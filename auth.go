@@ -3,8 +3,12 @@ package main
 import (
 	"fmt"
 	"os"
+	"syscall"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
+
+	"github.com/safedep/vet/internal/auth"
 )
 
 var (
@@ -13,7 +17,8 @@ var (
 
 func newAuthCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "auth",
+		Use:   "auth",
+		Short: "Configure and verify Insights API authentication",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			fmt.Printf("You must choose an appropriate command: configure, verify\n")
 			os.Exit(1)
@@ -31,7 +36,20 @@ func configureAuthCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "configure",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Run auth.Configure()
+			fmt.Print("Enter API Key: ")
+			key, err := term.ReadPassword(syscall.Stdin)
+			if err != nil {
+				panic(err)
+			}
+
+			err = auth.Configure(auth.Config{
+				ApiUrl: authInsightApiBaseUrl,
+				ApiKey: string(key),
+			})
+			if err != nil {
+				panic(err)
+			}
+
 			os.Exit(1)
 			return nil
 		},
