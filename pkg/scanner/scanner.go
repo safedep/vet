@@ -101,7 +101,7 @@ func (s *packageManifestScanner) enrichManifest(manifest *models.PackageManifest
 	// the dependencies
 	q := utils.NewWorkQueue[*models.Package](100000,
 		s.config.ConcurrentAnalyzer,
-		s.packageEnrichWorkQueueHandler())
+		s.packageEnrichWorkQueueHandler(manifest))
 	q.Start()
 
 	for _, pkg := range manifest.Packages {
@@ -114,10 +114,10 @@ func (s *packageManifestScanner) enrichManifest(manifest *models.PackageManifest
 	return nil
 }
 
-func (s *packageManifestScanner) packageEnrichWorkQueueHandler() utils.WorkQueueFn[*models.Package] {
+func (s *packageManifestScanner) packageEnrichWorkQueueHandler(pm *models.PackageManifest) utils.WorkQueueFn[*models.Package] {
 	return func(q *utils.WorkQueue[*models.Package], item *models.Package) error {
 		for _, enricher := range s.enrichers {
-			err := enricher.Enrich(item, s.packageDependencyHandler(q))
+			err := enricher.Enrich(item, s.packageDependencyHandler(pm, q))
 			if err != nil {
 				logger.Errorf("Enricher %s failed with %v", enricher.Name(), err)
 			}
@@ -127,7 +127,8 @@ func (s *packageManifestScanner) packageEnrichWorkQueueHandler() utils.WorkQueue
 	}
 }
 
-func (s *packageManifestScanner) packageDependencyHandler(q *utils.WorkQueue[*models.Package]) PackageDependencyCallbackFn {
+func (s *packageManifestScanner) packageDependencyHandler(pm *models.PackageManifest,
+	q *utils.WorkQueue[*models.Package]) PackageDependencyCallbackFn {
 	return func(pkg *models.Package) error {
 		if !s.config.TransitiveAnalysis {
 			return nil
@@ -139,7 +140,10 @@ func (s *packageManifestScanner) packageDependencyHandler(q *utils.WorkQueue[*mo
 
 		logger.Debugf("Adding transitive dependency %s/%v to work queue",
 			pkg.PackageDetails.Name, pkg.PackageDetails.Version)
-		q.Add(pkg)
+
+		if q.Add(pkg) {
+			pm.AddPackage(pkg)
+		}
 
 		return nil
 	}

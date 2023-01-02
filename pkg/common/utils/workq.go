@@ -60,13 +60,14 @@ func (q *WorkQueue[T]) Stop() {
 	close(q.done)
 }
 
-func (q *WorkQueue[T]) Add(item T) {
+func (q *WorkQueue[T]) Add(item T) bool {
 	if _, ok := q.status.Load(item.Id()); ok {
-		return
+		return false
 	}
 
 	q.status.Store(item.Id(), true)
 	q.wg.Add(1)
 
 	q.items <- item
+	return true
 }

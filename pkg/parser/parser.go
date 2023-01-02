@@ -79,7 +79,7 @@ func (pw *parserWrapper) Parse(lockfilePath string) (models.PackageManifest, err
 	}
 
 	for _, pkg := range packages {
-		pm.Packages = append(pm.Packages, &models.Package{
+		pm.AddPackage(&models.Package{
 			PackageDetails: pkg,
 			Manifest:       &pm,
 		})

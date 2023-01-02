@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
@@ -49,6 +50,7 @@ func (j *jsonDumperAnalyzer) Analyze(manifest *models.PackageManifest,
 		return fmt.Errorf("Failed to JSON serialize manifest: %w", err)
 	}
 
+	rand.Seed(time.Now().UnixNano())
 	path := filepath.Join(j.dir, fmt.Sprintf("%s-%s--%d-dump.json",
 		manifest.Ecosystem,
 		filepath.Base(manifest.Path),

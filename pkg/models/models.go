@@ -5,6 +5,7 @@ import (
 	"hash/fnv"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/safedep/vet/gen/insightapi"
@@ -34,6 +35,16 @@ type PackageManifest struct {
 
 	// List of packages obtained by parsing the manifest
 	Packages []*Package `json:"packages"`
+
+	// Lock to serialize updating packages
+	m sync.Mutex
+}
+
+func (pm *PackageManifest) AddPackage(pkg *Package) {
+	pm.m.Lock()
+	defer pm.m.Unlock()
+
+	pm.Packages = append(pm.Packages, pkg)
 }
 
 // Represents a package such as a version of a library defined as a dependency

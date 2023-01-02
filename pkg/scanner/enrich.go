@@ -77,9 +77,9 @@ func (e *insightsBasedPackageEnricher) Enrich(pkg *models.Package,
 		}
 
 		err := cb(&models.Package{
+			Manifest: pkg.Manifest,
 			Parent:   pkg,
 			Depth:    pkg.Depth + 1,
-			Manifest: pkg.Manifest,
 			PackageDetails: models.NewPackageDetail(dep.PackageVersion.Ecosystem,
 				dep.PackageVersion.Name, dep.PackageVersion.Version),
 		})
