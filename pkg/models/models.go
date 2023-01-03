@@ -78,6 +78,7 @@ func (p *Package) Id() string {
 func NewPackageDetail(e, n, v string) lockfile.PackageDetails {
 	return lockfile.PackageDetails{
 		Ecosystem: lockfile.Ecosystem(e),
+		CompareAs: lockfile.Ecosystem(e),
 		Name:      n,
 		Version:   v,
 	}

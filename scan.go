@@ -20,6 +20,7 @@ var (
 	concurrency         int
 	dumpJsonManifest    bool
 	dumpJsonManifestDir string
+	celFilterExpression string
 )
 
 func newScanCommand() *cobra.Command {
@@ -53,6 +54,8 @@ func newScanCommand() *cobra.Command {
 		"Dump enriched manifests as JSON docs")
 	cmd.Flags().StringVarP(&dumpJsonManifestDir, "json-dump-dir", "", "",
 		"Dump dir for enriched JSON docs")
+	cmd.Flags().StringVarP(&celFilterExpression, "filter-cel", "", "",
+		"Filter and print packages using CEL")
 
 	cmd.AddCommand(listParsersCommand())
 	return cmd
@@ -86,6 +89,15 @@ func internalStartScan() error {
 	analyzers := []analyzer.Analyzer{}
 	if dumpJsonManifest {
 		task, err := analyzer.NewJsonDumperAnalyzer(dumpJsonManifestDir)
+		if err != nil {
+			return err
+		}
+
+		analyzers = append(analyzers, task)
+	}
+
+	if len(celFilterExpression) > 0 {
+		task, err := analyzer.NewCelFilterAnalyzer(celFilterExpression)
 		if err != nil {
 			return err
 		}
