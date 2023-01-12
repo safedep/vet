@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -32,6 +33,10 @@ func main() {
 	cmd.AddCommand(newAuthCommand())
 	cmd.AddCommand(newScanCommand())
 	cmd.AddCommand(newVersionCommand())
+
+	cobra.OnInitialize(func() {
+		logger.SetLogLevel(verbose, debug)
+	})
 
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)

@@ -8,7 +8,7 @@ import (
 
 func init() {
 	logrus.SetOutput(os.Stdout)
-	logrus.SetLevel(logrus.InfoLevel)
+	logrus.SetLevel(logrus.WarnLevel)
 }
 
 func SetLogLevel(verbose, debug bool) {
@@ -18,7 +18,6 @@ func SetLogLevel(verbose, debug bool) {
 
 	if debug {
 		logrus.SetLevel(logrus.DebugLevel)
-		logrus.SetReportCaller(true)
 	}
 }
 
