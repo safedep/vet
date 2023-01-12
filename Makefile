@@ -1,3 +1,7 @@
+SHELL := /bin/bash
+GITCOMMIT := $(shell git rev-parse HEAD)
+VERSION := "$(shell git describe --tags --abbrev=0)-$(shell git rev-parse --short HEAD)"
+
 all: clean setup vet
 
 oapi-codegen-install:
@@ -10,8 +14,11 @@ oapi-codegen:
 setup:
 	mkdir -p out gen/insightapi
 
+GO_CFLAGS=-X main.commit=$(GITCOMMIT) -X main.version=$(VERSION)
+GO_LDFLAGS=-ldflags "-w $(GO_CFLAGS)"
+
 vet: oapi-codegen
-	go build
+	go build ${GO_LDFLAGS}
 
 .PHONY: test
 test:

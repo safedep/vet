@@ -15,4 +15,5 @@
 # vendor/
 
 /vet
-/gen
+
+dist/
