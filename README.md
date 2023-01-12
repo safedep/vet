@@ -11,6 +11,12 @@ Build this repository
 make oapi-codegen-install && make
 ```
 
+Alternatively install using
+
+```bash
+go install github.com/safedep/vet@latest
+```
+
 Configure `vet` to use API Key to access [Insights API](#)
 
 ```bash
