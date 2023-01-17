@@ -757,6 +757,55 @@ components:
           type: integer
         link:
           type: string
+    PackageVulnerability:
+      type: object
+      description: |
+        Subset of OSV schema required to perform policy
+        decision by various tools
+      properties:
+        id:
+          type: string
+          description: Vulnerability identifier
+        summary:
+          type: string
+          description: Short summary of vulnerability
+        aliases:
+          type: array
+          items:
+            type: string
+          description: |
+            Alias identifiers of the same vulnerability in
+            other databases
+        related:
+          type: array
+          items:
+            type: string
+          description: |
+            Related vulnerability identifiers for similar issues
+            in
+        severities:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  - UNSPECIFIED
+                  - CVSS_V3
+                  - CVSS_V2
+              score:
+                type: string
+                description: Type specific vulnerability score
+              risk:
+                type: string
+                enum:
+                  - CRITICAL
+                  - HIGH
+                  - MEDIUM
+                  - LOW
+                  - UNKNOWN
+                description: Normalized risk rating computed from score
     PackageVersionInsight:
       type: object
       properties:
@@ -778,3 +827,7 @@ components:
             $ref: '#/components/schemas/PackageDependency'
         scorecard:
           $ref: '#/components/schemas/Scorecard'
+        vulnerabilities:
+          type: array
+          items:
+            $ref: '#/components/schemas/PackageVulnerability'
