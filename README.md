@@ -1,5 +1,5 @@
-# vet : The dependency vetting tool
-Tool for identifying software supply chain risks
+# vet 
+Tool for identifying open source software supply chain risks
 
 ## TL;DR
 
@@ -40,3 +40,9 @@ Insights API Key can be passed at runtime using environment variable
 ```bash
 VET_INSIGHTS_API_KEY=... vet scan
 ```
+
+## FAQ
+
+### How do I disable the stupid banner?
+
+Set environment variable `VET_DISABLE_BANNER=1`
