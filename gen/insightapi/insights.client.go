@@ -269,6 +269,7 @@ type GetPackageVersionInsightResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *PackageVersionInsight
+	JSON403      *ApiError
 	JSON404      *ApiError
 	JSON429      *ApiError
 	JSON500      *ApiError
@@ -344,6 +345,13 @@ func ParseGetPackageVersionInsightResponse(rsp *http.Response) (*GetPackageVersi
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ApiError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest ApiError

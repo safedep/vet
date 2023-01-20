@@ -1155,13 +1155,16 @@ type PackageVersion struct {
 
 // PackageVersionInsight defines model for PackageVersionInsight.
 type PackageVersionInsight struct {
-	Dependencies    *[]PackageDependency    `json:"dependencies,omitempty"`
-	Dependents      *PackageDependents      `json:"dependents,omitempty"`
-	Licenses        *[]License              `json:"licenses,omitempty"`
-	PackageVersion  *PackageVersion         `json:"package_version,omitempty"`
-	Projects        *[]PackageProjectInfo   `json:"projects,omitempty"`
-	Scorecard       *Scorecard              `json:"scorecard,omitempty"`
-	Vulnerabilities *[]PackageVulnerability `json:"vulnerabilities,omitempty"`
+	Dependencies *[]PackageDependency `json:"dependencies,omitempty"`
+	Dependents   *PackageDependents   `json:"dependents,omitempty"`
+	Licenses     *[]License           `json:"licenses,omitempty"`
+
+	// The latest version available for the package
+	PackageCurrentVersion *string                 `json:"package_current_version,omitempty"`
+	PackageVersion        *PackageVersion         `json:"package_version,omitempty"`
+	Projects              *[]PackageProjectInfo   `json:"projects,omitempty"`
+	Scorecard             *Scorecard              `json:"scorecard,omitempty"`
+	Vulnerabilities       *[]PackageVulnerability `json:"vulnerabilities,omitempty"`
 }
 
 // Subset of OSV schema required to perform policy

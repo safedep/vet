@@ -47,6 +47,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PackageVersionInsight'
+        '403':
+          description: Access to the API is denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '404':
           description: Requested resource was not found
           content:
@@ -811,6 +817,9 @@ components:
       properties:
         package_version:
           $ref: '#/components/schemas/PackageVersion'
+        package_current_version:
+          type: string
+          description: The latest version available for the package
         projects:
           type: array
           items:

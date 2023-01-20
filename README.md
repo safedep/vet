@@ -46,3 +46,8 @@ VET_INSIGHTS_API_KEY=... vet scan
 ### How do I disable the stupid banner?
 
 Set environment variable `VET_DISABLE_BANNER=1`
+
+## References
+
+* https://github.com/google/osv-scanner
+
