@@ -34,8 +34,10 @@ github.com/pborman/getopt v0.0.0-20170112200414-7148bc3a4c30/go.mod h1:85jBQOZwp
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
-github.com/safedep/dry v0.0.0-20230118052634-223a5f3eef52 h1:TQNrGUhXbm9ZzQW0u0vGv+AoTQIP4ajEicSb9qpX8dk=
-github.com/safedep/dry v0.0.0-20230118052634-223a5f3eef52/go.mod h1:BDeFh8rfhLz1H0F829C6adC7nkmoU9BfGyKlHE+ccF0=
+github.com/safedep/dry v0.0.0-20230126064409-364d15d6da9e h1:wYYH3CqeJG43TFIT839a93Lb1xXpudRaOX63nohLRjc=
+github.com/safedep/dry v0.0.0-20230126064409-364d15d6da9e/go.mod h1:BDeFh8rfhLz1H0F829C6adC7nkmoU9BfGyKlHE+ccF0=
+github.com/safedep/dry v0.0.0-20230126072808-757e0d0b96a0 h1:eoi06kSA6sVsGPPjnaWJ5lmhz44ZlFBfOG6rIgchHOk=
+github.com/safedep/dry v0.0.0-20230126072808-757e0d0b96a0/go.mod h1:BDeFh8rfhLz1H0F829C6adC7nkmoU9BfGyKlHE+ccF0=
 github.com/sirupsen/logrus v1.9.0 h1:trlNQbNUG3OdDrDil03MCb1H2o9nJ1x4/5LYw7byDE0=
 github.com/sirupsen/logrus v1.9.0/go.mod h1:naHLuLoDiP4jHNo9R0sCBMtWGeIprob74mVsIT4qYEQ=
 github.com/spf13/cobra v1.6.1 h1:o94oiPyS4KD1mPy2fmcYYHHfCxLqYjJOhGsCHFZtEzA=

@@ -64,13 +64,8 @@ func (e *insightsBasedPackageEnricher) Enrich(pkg *models.Package,
 	}
 
 	if res.HTTPResponse.StatusCode != 200 {
-		return buildApiError(res.HTTPResponse,
-			map[int]*insightapi.ApiError{
-				429: res.JSON429,
-				403: res.JSON403,
-				404: res.JSON404,
-				500: res.JSON500,
-			})
+		err, _ = errors.UnmarshalApiError(res.Body)
+		return err
 	}
 
 	if res.JSON200 == nil {
@@ -99,21 +94,4 @@ func (e *insightsBasedPackageEnricher) Enrich(pkg *models.Package,
 
 	pkg.Insights = res.JSON200
 	return nil
-}
-
-// buildApiError builds an API error based on response code and body
-func buildApiError(res *http.Response, payloads map[int]*insightapi.ApiError) error {
-	if res.StatusCode == http.StatusOK {
-		return nil
-	}
-
-	apiErr := payloads[res.StatusCode]
-	if apiErr == nil {
-		return errors.BuildApiError("500", "Internal Server Error",
-			"internal_server_error")
-	}
-
-	return errors.BuildApiError(utils.SafelyGetValue(apiErr.Code),
-		utils.SafelyGetValue(apiErr.Message),
-		utils.SafelyGetValue(apiErr.Type))
 }
