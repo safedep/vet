@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/parser"
+	"github.com/safedep/vet/pkg/reporter"
 	"github.com/safedep/vet/pkg/scanner"
 	"github.com/spf13/cobra"
 )
@@ -21,6 +23,7 @@ var (
 	dumpJsonManifest    bool
 	dumpJsonManifestDir string
 	celFilterExpression string
+	markdownReportPath  string
 )
 
 func newScanCommand() *cobra.Command {
@@ -56,6 +59,8 @@ func newScanCommand() *cobra.Command {
 		"Dump dir for enriched JSON docs")
 	cmd.Flags().StringVarP(&celFilterExpression, "filter-cel", "", "",
 		"Filter and print packages using CEL")
+	cmd.Flags().StringVarP(&markdownReportPath, "report-markdown", "", "",
+		"Generate consolidated markdown report to file")
 
 	cmd.AddCommand(listParsersCommand())
 	return cmd
@@ -96,13 +101,25 @@ func internalStartScan() error {
 		analyzers = append(analyzers, task)
 	}
 
-	if len(celFilterExpression) > 0 {
+	if !utils.IsEmptyString(celFilterExpression) {
 		task, err := analyzer.NewCelFilterAnalyzer(celFilterExpression)
 		if err != nil {
 			return err
 		}
 
 		analyzers = append(analyzers, task)
+	}
+
+	reporters := []reporter.Reporter{}
+	if !utils.IsEmptyString(markdownReportPath) {
+		rp, err := reporter.NewMarkdownReportGenerator(reporter.MarkdownReportingConfig{
+			Path: markdownReportPath,
+		})
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
 	}
 
 	enrichers := []scanner.PackageMetaEnricher{
@@ -113,7 +130,7 @@ func internalStartScan() error {
 		TransitiveAnalysis: transitiveAnalysis,
 		TransitiveDepth:    transitiveDepth,
 		ConcurrentAnalyzer: concurrency,
-	}, enrichers, analyzers)
+	}, enrichers, analyzers, reporters)
 
 	var err error
 	if len(lockfiles) > 0 {
