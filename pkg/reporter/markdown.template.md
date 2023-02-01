@@ -13,5 +13,18 @@ The scan was performed on following manifests:
 * [{{ $m.Ecosystem }}] {{ $m.Path }}
 {{ end }}
 
+## Packages
+
+{{ range $m := .Manifests }}
+### [{{ $m.Ecosystem }}] {{ $m.Path }}
+{{ range $p := $m.Packages }}
+#### {{ $p.PackageDetails.Name }} / {{ $p.PackageDetails.Version }}
+
+{{ if and $p.Insights $p.Insights.Vulnerabilities }}
+* {{ len *$p.Insights.Vulnerabilites }} vulnerabilities were identified
+{{ end }}
+
+{{ end }}
+{{ end }}
 
 
