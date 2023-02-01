@@ -39,8 +39,8 @@ paths:
             schema:
               $ref: '#/components/schemas/TrialRequest'
       responses:
-        '200':
-          description: Successful response
+        '201':
+          description: Successfully created an API key request
           content:
             application/json:
               schema:

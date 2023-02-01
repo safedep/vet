@@ -13,18 +13,15 @@ const (
 	apiUrlEnvKey = "VET_INSIGHTS_API_URL"
 	apiKeyEnvKey = "VET_INSIGHTS_API_KEY"
 
-	controlPlaneUrlEnvKey = "VET_CONTROL_PLANE_API_URL"
-
 	defaultApiUrl             = "https://api.safedep.io/insights/v1"
-	defaultControlPlaneApiUrl = "https://api.safedep.io/controlplane/v1"
+	defaultControlPlaneApiUrl = "https://api.safedep.io/control-plane/v1"
 
 	homeRelativeConfigPath = ".safedep/vet-auth.yml"
 )
 
 type Config struct {
-	ApiUrl             string `yaml:"api_url"`
-	ApiKey             string `yaml:"api_key"`
-	ControlPlaneApiUrl string `yaml:"control_plane_api"`
+	ApiUrl string `yaml:"api_url"`
+	ApiKey string `yaml:"api_key"`
 }
 
 // Global config to be used during runtime
@@ -74,18 +71,6 @@ func ApiKey() string {
 	}
 
 	return ""
-}
-
-func ControlPlaneApiUrl() string {
-	if url, ok := os.LookupEnv(controlPlaneUrlEnvKey); ok {
-		return url
-	}
-
-	if globalConfig != nil {
-		return globalConfig.ControlPlaneApiUrl
-	}
-
-	return defaultControlPlaneApiUrl
 }
 
 func loadConfiguration() error {

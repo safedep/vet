@@ -210,7 +210,7 @@ type ClientWithResponsesInterface interface {
 type RegisterTrialUserResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *TrialResponse
+	JSON201      *TrialResponse
 	JSON403      *ApiError
 	JSON429      *ApiError
 	JSON500      *ApiError
@@ -263,12 +263,12 @@ func ParseRegisterTrialUserResponse(rsp *http.Response) (*RegisterTrialUserRespo
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
 		var dest TrialResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
-		response.JSON200 = &dest
+		response.JSON201 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
 		var dest ApiError

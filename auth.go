@@ -46,10 +46,10 @@ func configureAuthCommand() *cobra.Command {
 			}
 
 			err = auth.Configure(auth.Config{
-				ApiUrl:             authInsightApiBaseUrl,
-				ApiKey:             string(key),
-				ControlPlaneApiUrl: authControlPlaneApiBaseUrl,
+				ApiUrl: authInsightApiBaseUrl,
+				ApiKey: string(key),
 			})
+
 			if err != nil {
 				panic(err)
 			}
@@ -61,8 +61,6 @@ func configureAuthCommand() *cobra.Command {
 
 	cmd.Flags().StringVarP(&authInsightApiBaseUrl, "api", "", auth.DefaultApiUrl(),
 		"Base URL of Insights API")
-	cmd.Flags().StringVarP(&authControlPlaneApiBaseUrl, "control-plane", "",
-		auth.DefaultControlPlaneApiUrl(), "Base URL of Control Plane API for registrations")
 
 	return cmd
 
@@ -92,7 +90,8 @@ func trialsRegisterCommand() *cobra.Command {
 
 			res, err := client.Execute()
 			if err != nil {
-				return err
+				fmt.Printf("Error: %v\n", err)
+				os.Exit(1)
 			}
 
 			fmt.Printf("Trial registration successful with Id:%s\n", res.Id)

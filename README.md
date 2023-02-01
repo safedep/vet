@@ -1,44 +1,40 @@
 # vet 
-Tool for identifying open source software supply chain risks
+
+`vet` is a tool for identifying risks in open source software supply chain. It
+helps engineering and security teams to identify potential issues in their open
+source dependencies and evaluate them against organizational policies.
 
 ## TL;DR
 
-Build this repository
-
 > Ensure `$(go env GOPATH)/bin` is in your `$PATH`
 
-```bash
-make oapi-codegen-install && make
-```
-
-Alternatively install using
+Install using `go get`
 
 ```bash
 go install github.com/safedep/vet@latest
 ```
 
-Configure `vet` to use API Key to access [Insights API](#)
+Get a trial API key for [Insights API](https://safedep.io/docs/concepts/raya-data-platform-overview) access
+
+```bash
+vet auth trial --email john.doe@example.com
+```
+
+> A time limited trial API key will be sent over email.
+
+Configure `vet` to use API Key to access [Insights API](https://safedep.io/docs/concepts/raya-data-platform-overview)
 
 ```bash
 vet auth configure
 ```
 
-> Alternatively pass the API key as environment to skip configuration
+> Insights API is used to enrich OSS packages with meta-data for rich query and policy
+> decisions
 
 Run `vet` to identify risks
 
 ```bash
-vet scan
-```
-
-## Usage
-
-### Configuration
-
-Insights API Key can be passed at runtime using environment variable
-
-```bash
-VET_INSIGHTS_API_KEY=... vet scan
+vet scan -D /path/to/repository
 ```
 
 ## FAQ

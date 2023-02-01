@@ -6,7 +6,7 @@ require (
 	github.com/deepmap/oapi-codegen v1.12.4
 	github.com/google/cel-go v0.13.0
 	github.com/google/osv-scanner v1.0.2
-	github.com/safedep/dry v0.0.0-20230126072808-757e0d0b96a0
+	github.com/safedep/dry v0.0.0-20230201172119-ff40bd754419
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.1
