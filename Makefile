@@ -10,9 +10,11 @@ oapi-codegen-install:
 oapi-codegen:
 	oapi-codegen -package insightapi -generate types ./api/insights-v1.yml > ./gen/insightapi/insights.types.go
 	oapi-codegen -package insightapi -generate client ./api/insights-v1.yml > ./gen/insightapi/insights.client.go
+	oapi-codegen -package controlplane -generate types ./api/cp-v1-trials.yml > ./gen/controlplane/trials.types.go
+	oapi-codegen -package controlplane -generate client ./api/cp-v1-trials.yml > ./gen/controlplane/trials.client.go
 
 setup:
-	mkdir -p out gen/insightapi
+	mkdir -p out gen/insightapi gen/controlplane
 
 GO_CFLAGS=-X main.commit=$(GITCOMMIT) -X main.version=$(VERSION)
 GO_LDFLAGS=-ldflags "-w $(GO_CFLAGS)"
