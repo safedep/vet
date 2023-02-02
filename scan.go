@@ -57,7 +57,7 @@ func newScanCommand() *cobra.Command {
 		"Dump enriched manifests as JSON docs")
 	cmd.Flags().StringVarP(&dumpJsonManifestDir, "json-dump-dir", "", "",
 		"Dump dir for enriched JSON docs")
-	cmd.Flags().StringVarP(&celFilterExpression, "filter-cel", "", "",
+	cmd.Flags().StringVarP(&celFilterExpression, "filter", "", "",
 		"Filter and print packages using CEL")
 	cmd.Flags().StringVarP(&markdownReportPath, "report-markdown", "", "",
 		"Generate consolidated markdown report to file")
