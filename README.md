@@ -14,6 +14,9 @@ Install using `go get`
 go install github.com/safedep/vet@latest
 ```
 
+Alternatively, look at [Releases](https://github.com/safedep/vet/releases) for
+a pre-built binary for your platform.
+
 Get a trial API key for [Insights API](https://safedep.io/docs/concepts/raya-data-platform-overview) access
 
 ```bash
@@ -46,8 +49,16 @@ vet scan --lockfiles /path/to/package-lock.json
 ```
 
 The default scan uses an opinionated [Console Reporter](#) which presents
-a summary of findings per package manifest. Thanks NOT about it. Read more for
+a summary of findings per package manifest. Thats NOT about it. Read more for
 expression based filtering and policy evaluation.
+
+## Filtering
+
+TODO
+
+## Policy Evaluation
+
+TODO
 
 ## FAQ
 
