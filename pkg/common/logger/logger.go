@@ -11,6 +11,15 @@ func init() {
 	logrus.SetLevel(logrus.WarnLevel)
 }
 
+func LogToFile(path string) {
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	if err != nil {
+		panic(err)
+	}
+
+	logrus.SetOutput(file)
+}
+
 func SetLogLevel(verbose, debug bool) {
 	if verbose {
 		logrus.SetLevel(logrus.InfoLevel)
