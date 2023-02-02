@@ -24,6 +24,7 @@ var (
 	dumpJsonManifestDir string
 	celFilterExpression string
 	markdownReportPath  string
+	consoleReport       bool
 )
 
 func newScanCommand() *cobra.Command {
@@ -61,6 +62,8 @@ func newScanCommand() *cobra.Command {
 		"Filter and print packages using CEL")
 	cmd.Flags().StringVarP(&markdownReportPath, "report-markdown", "", "",
 		"Generate consolidated markdown report to file")
+	cmd.Flags().BoolVarP(&consoleReport, "report-console", "", true,
+		"Minimal summary of package manifest")
 
 	cmd.AddCommand(listParsersCommand())
 	return cmd
@@ -111,6 +114,15 @@ func internalStartScan() error {
 	}
 
 	reporters := []reporter.Reporter{}
+	if consoleReport {
+		rp, err := reporter.NewConsoleReporter()
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
 	if !utils.IsEmptyString(markdownReportPath) {
 		rp, err := reporter.NewMarkdownReportGenerator(reporter.MarkdownReportingConfig{
 			Path: markdownReportPath,
