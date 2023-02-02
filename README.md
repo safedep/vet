@@ -66,6 +66,11 @@ TODO
 
 Set environment variable `VET_DISABLE_BANNER=1`
 
+### Can I use this tool without an API Key for Insight Service?
+
+Probably no. All useful data (enrichments) for a detected package comes from
+a backend service. The service is rate limited with quotas to prevent abuse.
+
 ## References
 
 * https://github.com/google/osv-scanner
