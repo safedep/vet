@@ -15,7 +15,8 @@ go install github.com/safedep/vet@latest
 ```
 
 Alternatively, look at [Releases](https://github.com/safedep/vet/releases) for
-a pre-built binary for your platform.
+a pre-built binary for your platform. [SLSA Provenance](https://slsa.dev/provenance/v0.1) is published
+along with each binary release.
 
 Get a trial API key for [Insights API](https://safedep.io/docs/concepts/raya-data-platform-overview) access
 
@@ -47,6 +48,8 @@ vet scan --lockfiles /path/to/pom.xml
 vet scan --lockfiles /path/to/requirements.txt
 vet scan --lockfiles /path/to/package-lock.json
 ```
+
+> Use `vet scan parsers` to list supported package manifest parsers
 
 The default scan uses an opinionated [Console Reporter](#) which presents
 a summary of findings per package manifest. Thats NOT about it. Read more for

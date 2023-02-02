@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+/* Specifcations for filter input that can be used for query by CEL */
+option go_package = "github.com/safedep/vet/gen/filterinput";
+
+message Vulnerability {
+  string id = 1;        // OSV ID
+  string cve = 2;       // CVE ID
+}
+
+// Only hold vulnerability IDs
+message Vulnerabilities {
+  repeated Vulnerability all = 1;
+  repeated Vulnerability critical = 2;
+  repeated Vulnerability high = 3;
+  repeated Vulnerability medium = 4;
+  repeated Vulnerability low = 5;
+}
+
+// OpenSSF Scorecard
+message Scorecard {
+  map<string, float> scores = 1;
+}
+
+enum ProjectType {
+  UNKNOWN = 0;
+  GITHUB = 1;
+}
+
+message ProjectInfo {
+  string name = 1;
+  ProjectType type = 2;
+  int32 stars = 3;
+  int32 forks = 4;
+  int32 issues = 5;
+}
+
+message PackageVersion {
+  string ecosystem = 1;
+  string name = 2;
+  string version = 3;
+}
+
+message FilterInput {
+  PackageVersion pkg = 1;
+  Vulnerabilities vulns = 2;
+  Scorecard scorecard = 3;
+  repeated ProjectInfo projects = 4;
+  repeated string licenses = 5;
+}

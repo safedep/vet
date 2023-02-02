@@ -33,8 +33,7 @@ func (r *consoleReporter) AddManifest(manifest *models.PackageManifest) {
 		r.report(tbl, pkg)
 	}
 
-	fmt.Print(text.Bold.Sprint("Rendering summary report for: ",
-		manifest.Path))
+	fmt.Print(text.Bold.Sprint("Manifest: ", text.FgBlue.Sprint(manifest.Path)))
 	fmt.Print("\n")
 
 	tbl.Render()
