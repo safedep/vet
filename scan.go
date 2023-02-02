@@ -51,8 +51,8 @@ func newScanCommand() *cobra.Command {
 		"Analyze transitive dependencies")
 	cmd.Flags().IntVarP(&transitiveDepth, "transitive-depth", "", 2,
 		"Analyze transitive dependencies till depth")
-	cmd.Flags().IntVarP(&concurrency, "concurrency", "C", 10,
-		"Number of goroutines to use for analysis")
+	cmd.Flags().IntVarP(&concurrency, "concurrency", "C", 5,
+		"Number of concurrent analysis to run")
 	cmd.Flags().BoolVarP(&dumpJsonManifest, "json-dump", "", false,
 		"Dump enriched manifests as JSON docs")
 	cmd.Flags().StringVarP(&dumpJsonManifestDir, "json-dump-dir", "", "",
