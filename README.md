@@ -37,6 +37,18 @@ Run `vet` to identify risks
 vet scan -D /path/to/repository
 ```
 
+or scan a specific (supported) package manifest
+
+```bash
+vet scan --lockfiles /path/to/pom.xml
+vet scan --lockfiles /path/to/requirements.txt
+vet scan --lockfiles /path/to/package-lock.json
+```
+
+The default scan uses an opinionated [Console Reporter](#) which presents
+a summary of findings per package manifest. Thanks NOT about it. Read more for
+expression based filtering and policy evaluation.
+
 ## FAQ
 
 ### How do I disable the stupid banner?
