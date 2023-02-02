@@ -6,6 +6,7 @@ require (
 	github.com/deepmap/oapi-codegen v1.12.4
 	github.com/google/cel-go v0.13.0
 	github.com/google/osv-scanner v1.1.0
+	github.com/jedib0t/go-pretty/v6 v6.4.4
 	github.com/safedep/dry v0.0.0-20230201172119-ff40bd754419
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
@@ -22,9 +23,11 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
+	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stoewer/go-strcase v1.2.0 // indirect
 	golang.org/x/mod v0.7.0 // indirect
