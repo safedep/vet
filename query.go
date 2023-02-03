@@ -9,10 +9,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// We will re-use the variable declarations in scan.go
-// since query.go is a subset of scan function where
-// data is loaded from JSON instead of lockfiles and enriched
-// with backend
+var (
+	queryFilterExpression    string
+	queryLoadDirectory       string
+	queryEnableConsoleReport bool
+)
 
 func newQueryCommand() *cobra.Command {
 	cmd := &cobra.Command{
@@ -24,11 +25,11 @@ func newQueryCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&dumpJsonManifestDir, "from", "F", "",
+	cmd.Flags().StringVarP(&queryLoadDirectory, "from", "F", "",
 		"The directory to load JSON dump files")
-	cmd.Flags().StringVarP(&celFilterExpression, "filter", "", "",
+	cmd.Flags().StringVarP(&queryFilterExpression, "filter", "", "",
 		"Filter and print packages using CEL")
-	cmd.Flags().BoolVarP(&consoleReport, "report-console", "", false,
+	cmd.Flags().BoolVarP(&queryEnableConsoleReport, "report-console", "", false,
 		"Minimal summary of package manifest")
 
 	return cmd
@@ -46,8 +47,8 @@ func internalStartQuery() error {
 	reporters := []reporter.Reporter{}
 	enrichers := []scanner.PackageMetaEnricher{}
 
-	if !utils.IsEmptyString(celFilterExpression) {
-		task, err := analyzer.NewCelFilterAnalyzer(celFilterExpression)
+	if !utils.IsEmptyString(queryFilterExpression) {
+		task, err := analyzer.NewCelFilterAnalyzer(queryFilterExpression)
 		if err != nil {
 			return err
 		}
@@ -55,7 +56,7 @@ func internalStartQuery() error {
 		analyzers = append(analyzers, task)
 	}
 
-	if consoleReport {
+	if queryEnableConsoleReport {
 		rp, err := reporter.NewConsoleReporter()
 		if err != nil {
 			return err
@@ -68,5 +69,5 @@ func internalStartQuery() error {
 		TransitiveAnalysis: false,
 	}, enrichers, analyzers, reporters)
 
-	return pmScanner.ScanDumpDirectory(dumpJsonManifestDir)
+	return pmScanner.ScanDumpDirectory(queryLoadDirectory)
 }
