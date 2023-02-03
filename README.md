@@ -71,6 +71,9 @@ vet scan --lockfiles /path/to/pom.xml --report-console=false \
     --filter='vulns.critical.exists_one(x, true)'
 ```
 
+> Use filtering along with `query` command for offline slicing and dicing of
+> enriched package manifests. Read [filtering guide](docs/filtering.md)
+
 [Common Expressions Language](https://github.com/google/cel-spec) is used to
 evaluate filters on packages. Learn more about [filtering with vet](docs/filtering.md).
 Look at [filter input spec](api/filter_input_spec.proto) on attributes
@@ -91,7 +94,7 @@ Set environment variable `VET_DISABLE_BANNER=1`
 Probably no. All useful data (enrichments) for a detected package comes from
 a backend service. The service is rate limited with quotas to prevent abuse.
 
-Look at `api/insights_api.yml`. It contains the contract expected for Insights
+Look at `api/insights-v1.yml`. It contains the contract expected for Insights
 API. You can perhaps consider rolling out your own to avoid dependency with our
 backend.
 

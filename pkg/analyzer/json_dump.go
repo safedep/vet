@@ -28,9 +28,7 @@ func NewJsonDumperAnalyzer(dir string) (Analyzer, error) {
 		} else {
 			return nil, fmt.Errorf("cannot stat dir: %w", err)
 		}
-	}
-
-	if !fi.IsDir() {
+	} else if !fi.IsDir() {
 		return nil, fmt.Errorf("%s is not a dir", dir)
 	}
 

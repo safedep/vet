@@ -48,6 +48,7 @@ func main() {
 
 	cmd.AddCommand(newAuthCommand())
 	cmd.AddCommand(newScanCommand())
+	cmd.AddCommand(newQueryCommand())
 	cmd.AddCommand(newVersionCommand())
 
 	cobra.OnInitialize(func() {

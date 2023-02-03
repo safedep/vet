@@ -39,7 +39,6 @@ func (s *packageManifestScanner) ScanDirectory(dir string) error {
 
 	manifests, err := scanDirectoryForManifests(dir)
 	if err != nil {
-		logger.Errorf("Failed to scan directory: %v", err)
 		return err
 	}
 
@@ -55,11 +54,23 @@ func (s *packageManifestScanner) ScanLockfiles(lockfiles []string,
 
 	manifests, err := scanLockfilesForManifests(lockfiles, lockfileAs)
 	if err != nil {
-		logger.Errorf("Failed to scan lockfiles: %v", err)
 		return err
 	}
 
 	logger.Infof("Discovered %d manifest(s)", len(manifests))
+	return s.analyzeManifests(manifests)
+}
+
+// Load the manifests from a previous dumped JSON file
+func (s *packageManifestScanner) ScanDumpDirectory(dir string) error {
+	logger.Infof("Scan dump files to load as manifests: %s", dir)
+
+	manifests, err := scanDumpFilesForManifest(dir)
+	if err != nil {
+		return err
+	}
+
+	logger.Infof("Loaded %d manifest(s)", len(manifests))
 	return s.analyzeManifests(manifests)
 }
 
@@ -126,6 +137,10 @@ func (s *packageManifestScanner) finishReporting() {
 }
 
 func (s *packageManifestScanner) enrichManifest(manifest *models.PackageManifest) error {
+	if len(s.enrichers) == 0 {
+		return nil
+	}
+
 	// FIXME: Potential deadlock situation in case of channel buffer is full
 	// because the goroutines perform both read and write to channel. Write occurs
 	// when goroutine invokes the work queue handler and the handler pushes back

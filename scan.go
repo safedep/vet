@@ -20,7 +20,6 @@ var (
 	transitiveAnalysis  bool
 	transitiveDepth     int
 	concurrency         int
-	dumpJsonManifest    bool
 	dumpJsonManifestDir string
 	celFilterExpression string
 	markdownReportPath  string
@@ -54,10 +53,8 @@ func newScanCommand() *cobra.Command {
 		"Analyze transitive dependencies till depth")
 	cmd.Flags().IntVarP(&concurrency, "concurrency", "C", 5,
 		"Number of concurrent analysis to run")
-	cmd.Flags().BoolVarP(&dumpJsonManifest, "json-dump", "", false,
-		"Dump enriched manifests as JSON docs")
 	cmd.Flags().StringVarP(&dumpJsonManifestDir, "json-dump-dir", "", "",
-		"Dump dir for enriched JSON docs")
+		"Dump enriched package manifests as JSON files to dir")
 	cmd.Flags().StringVarP(&celFilterExpression, "filter", "", "",
 		"Filter and print packages using CEL")
 	cmd.Flags().StringVarP(&markdownReportPath, "report-markdown", "", "",
@@ -95,7 +92,7 @@ func startScan() {
 
 func internalStartScan() error {
 	analyzers := []analyzer.Analyzer{}
-	if dumpJsonManifest {
+	if !utils.IsEmptyString(dumpJsonManifestDir) {
 		task, err := analyzer.NewJsonDumperAnalyzer(dumpJsonManifestDir)
 		if err != nil {
 			return err
