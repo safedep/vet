@@ -32,7 +32,7 @@ knowledge of CEL will help formulating queries.
 | Description                                  | Query                                 |
 |----------------------------------------------|---------------------------------------|
 | Find packages with a critical vulnerability  | `vulns.critical.exists(x, true)`      |
-| Find unmaintained packages as per OpenSSF SC | `scorecard.score["Maintenance"] == 0` |
+| Find unmaintained packages as per OpenSSF SC | `scorecard.score["Maintained"] == 0` |
 | Find packages with low stars                 | `projects.exists(x, x.stars < 10)`    |
 | Find packages with GPL-2.0 license           | `licenses.exists(x, x == "GPL-2.0")`
 
@@ -58,7 +58,7 @@ Load the enriched metadata for filtering and reporting
 
 ```bash
 vet query --from /tmp/dump --report-console
-vet query --from /tmp/dump --filter 'scorecard.score["Maintenance"] == 0'
+vet query --from /tmp/dump --filter 'scorecard.score.Maintained == 0'
 ```
 
 ## FAQ
