@@ -4,6 +4,8 @@
 helps engineering and security teams to identify potential issues in their open
 source dependencies and evaluate them against organizational policies.
 
+[CodeQL](https://github.com/safedep/vet/actions/workflows/codeql.yml/badge.svg?branch=main&event=push)
+
 ## TL;DR
 
 > Ensure `$(go env GOPATH)/bin` is in your `$PATH`
