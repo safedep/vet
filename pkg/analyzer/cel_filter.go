@@ -1,12 +1,16 @@
 package analyzer
 
 import (
+	"encoding/json"
+	"fmt"
 	"os"
 	"reflect"
 	"strings"
 
+	"github.com/golang/protobuf/jsonpb"
 	"github.com/google/cel-go/cel"
 	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/filterinput"
 	"github.com/safedep/vet/gen/insightapi"
@@ -15,7 +19,7 @@ import (
 )
 
 const (
-	filterInputVarRoot      = "$"
+	filterInputVarRoot      = "_"
 	filterInputVarPkg       = "pkg"
 	filterInputVarVulns     = "vulns"
 	filterInputVarScorecard = "scorecard"
@@ -67,23 +71,41 @@ func (f *celFilterAnalyzer) Analyze(manifest *models.PackageManifest,
 	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Version",
 		"Latest", "Source"})
 
+	filterStat := struct {
+		total   int
+		matched int
+		err     int
+	}{}
+
 	logger.Infof("CEL filtering manifest: %s", manifest.Path)
 	for _, pkg := range manifest.Packages {
+		filterStat.total += 1
+
 		filterInput, err := f.buildFilterInput(pkg)
 		if err != nil {
+			filterStat.err += 1
 			logger.Errorf("Failed to convert package to filter input: %v", err)
 			continue
 		}
 
+		serializedInput, err := f.serializeFilterInput(filterInput)
+		if err != nil {
+			filterStat.err += 1
+			logger.Errorf("Failed to serialize filter input: %v", err)
+			continue
+		}
+
 		out, _, err := f.program.Eval(map[string]interface{}{
-			filterInputVarPkg:       filterInput.Pkg,
-			filterInputVarProjects:  filterInput.Projects,
-			filterInputVarVulns:     filterInput.Vulns,
-			filterInputVarScorecard: filterInput.Scorecard,
-			filterInputVarLicenses:  filterInput.Licenses,
+			filterInputVarRoot:      serializedInput,
+			filterInputVarPkg:       serializedInput["pkg"],
+			filterInputVarProjects:  serializedInput["projects"],
+			filterInputVarVulns:     serializedInput["vulns"],
+			filterInputVarScorecard: serializedInput["scorecard"],
+			filterInputVarLicenses:  serializedInput["licenses"],
 		})
 
 		if err != nil {
+			filterStat.err += 1
 			logger.Errorf("Failed to evaluate CEL for %s:%v : %v",
 				pkg.PackageDetails.Name,
 				pkg.PackageDetails.Version, err)
@@ -92,6 +114,7 @@ func (f *celFilterAnalyzer) Analyze(manifest *models.PackageManifest,
 
 		if (reflect.TypeOf(out).Kind() == reflect.Bool) &&
 			(reflect.ValueOf(out).Bool()) {
+			filterStat.matched += 1
 			tbl.AppendRow(table.Row{pkg.PackageDetails.Ecosystem,
 				pkg.PackageDetails.Name,
 				pkg.PackageDetails.Version,
@@ -101,8 +124,33 @@ func (f *celFilterAnalyzer) Analyze(manifest *models.PackageManifest,
 		}
 	}
 
+	fmt.Printf("%s\n", text.Bold.Sprint("Filter evaluated with ",
+		filterStat.matched, " out of ", filterStat.total, " matched and ",
+		filterStat.err, " error(s)"))
+
 	tbl.Render()
 	return nil
+}
+
+// TODO: Fix this JSON round-trip problem by directly configuring CEL env to
+// work with Protobuf messages
+func (f *celFilterAnalyzer) serializeFilterInput(fi *filterinput.FilterInput) (map[string]interface{}, error) {
+	var ret map[string]interface{}
+	m := jsonpb.Marshaler{OrigName: true, EnumsAsInts: false, EmitDefaults: true}
+
+	data, err := m.MarshalToString(fi)
+	if err != nil {
+		return ret, err
+	}
+
+	logger.Debugf("Serialized filter input: %s", data)
+
+	err = json.Unmarshal([]byte(data), &ret)
+	if err != nil {
+		return ret, err
+	}
+
+	return ret, nil
 }
 
 func (f *celFilterAnalyzer) pkgLatestVersion(pkg *models.Package) string {
@@ -146,12 +194,22 @@ func (f *celFilterAnalyzer) buildFilterInput(pkg *models.Package) (*filterinput.
 	insight := utils.SafelyGetValue(pkg.Insights)
 
 	// Add projects
+	projectTypeMapper := func(tp string) filterinput.ProjectType {
+		tp = strings.ToLower(tp)
+		if tp == "github" {
+			return filterinput.ProjectType_GITHUB
+		} else {
+			return filterinput.ProjectType_UNKNOWN
+		}
+	}
+
 	for _, project := range utils.SafelyGetValue(insight.Projects) {
 		fi.Projects = append(fi.Projects, &filterinput.ProjectInfo{
 			Name:   utils.SafelyGetValue(project.Name),
 			Stars:  int32(utils.SafelyGetValue(project.Stars)),
 			Forks:  int32(utils.SafelyGetValue(project.Forks)),
 			Issues: int32(utils.SafelyGetValue(project.Issues)),
+			Type:   projectTypeMapper(utils.SafelyGetValue(project.Type)),
 		})
 	}
 

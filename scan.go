@@ -48,7 +48,7 @@ func newScanCommand() *cobra.Command {
 		"List of lockfiles to scan")
 	cmd.Flags().StringVarP(&lockfileAs, "lockfile-as", "", "",
 		"Parser to use for the lockfile (vet scan parsers to list)")
-	cmd.Flags().BoolVarP(&transitiveAnalysis, "transitive", "", true,
+	cmd.Flags().BoolVarP(&transitiveAnalysis, "transitive", "", false,
 		"Analyze transitive dependencies")
 	cmd.Flags().IntVarP(&transitiveDepth, "transitive-depth", "", 2,
 		"Analyze transitive dependencies till depth")

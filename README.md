@@ -57,7 +57,24 @@ expression based filtering and policy evaluation.
 
 ## Filtering
 
-TODO
+Find dependencies that seems not very popular
+
+```bash
+vet scan --lockfiles /path/to/pom.xml --report-console=false \
+    --filter='projects.exists(x, x.stars < 10)'
+```
+
+Find dependencies with a critical vulnerability
+
+```bash
+vet scan --lockfiles /path/to/pom.xml --report-console=false \
+    --filter='vulns.critical.exists_one(x, true)'
+```
+
+[Common Expressions Language](https://github.com/google/cel-spec) is used to
+evaluate filters on packages. Learn more about [filtering with vet](docs/filtering.md).
+Look at [filter input spec](api/filter_input_spec.proto) on attributes
+available to the filter expression.
 
 ## Policy Evaluation
 
@@ -73,6 +90,10 @@ Set environment variable `VET_DISABLE_BANNER=1`
 
 Probably no. All useful data (enrichments) for a detected package comes from
 a backend service. The service is rate limited with quotas to prevent abuse.
+
+Look at `api/insights_api.yml`. It contains the contract expected for Insights
+API. You can perhaps consider rolling out your own to avoid dependency with our
+backend.
 
 ## References
 
