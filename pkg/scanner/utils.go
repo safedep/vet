@@ -3,6 +3,7 @@ package scanner
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
@@ -16,7 +17,8 @@ func scanDirectoryForManifests(dir string) ([]*models.PackageManifest, error) {
 			return err
 		}
 
-		if info.IsDir() && info.Name() == ".git" {
+		if info.IsDir() && ignorableDirectory(info.Name()) {
+			logger.Debugf("Ignoring directory %s", path)
 			return filepath.SkipDir
 		}
 
@@ -61,4 +63,19 @@ func scanLockfilesForManifests(lockfiles []string, lockfileAs string) ([]*models
 	}
 
 	return manifests, nil
+}
+
+func ignorableDirectory(name string) bool {
+	dirs := []string{
+		".git",
+		"node_modules",
+	}
+
+	for _, d := range dirs {
+		if strings.EqualFold(d, name) {
+			return true
+		}
+	}
+
+	return false
 }
