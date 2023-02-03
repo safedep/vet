@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"io"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -17,7 +18,11 @@ func LogToFile(path string) {
 		panic(err)
 	}
 
-	logrus.SetOutput(file)
+	MigrateTo(file)
+}
+
+func MigrateTo(writer io.Writer) {
+	logrus.SetOutput(writer)
 }
 
 func SetLogLevel(verbose, debug bool) {

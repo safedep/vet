@@ -127,6 +127,7 @@ func (f *celFilterAnalyzer) Analyze(manifest *models.PackageManifest,
 	fmt.Printf("%s\n", text.Bold.Sprint("Filter evaluated with ",
 		filterStat.matched, " out of ", filterStat.total, " matched and ",
 		filterStat.err, " error(s)"))
+	fmt.Println(text.Faint.Sprint(manifest.Path))
 
 	tbl.Render()
 	return nil

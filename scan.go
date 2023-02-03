@@ -141,6 +141,8 @@ func internalStartScan() error {
 		ConcurrentAnalyzer: concurrency,
 	}, enrichers, analyzers, reporters)
 
+	redirectLogToFile(logFile)
+
 	var err error
 	if len(lockfiles) > 0 {
 		err = pmScanner.ScanLockfiles(lockfiles, lockfileAs)

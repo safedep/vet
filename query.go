@@ -69,5 +69,6 @@ func internalStartQuery() error {
 		TransitiveAnalysis: false,
 	}, enrichers, analyzers, reporters)
 
+	redirectLogToFile(logFile)
 	return pmScanner.ScanDumpDirectory(queryLoadDirectory)
 }

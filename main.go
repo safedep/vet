@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strconv"
 
+	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/spf13/cobra"
 )
@@ -12,6 +14,7 @@ import (
 var (
 	verbose bool
 	debug   bool
+	logFile string
 )
 
 var banner string = `
@@ -45,6 +48,7 @@ func main() {
 
 	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Show verbose logs")
 	cmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Show debug logs")
+	cmd.PersistentFlags().StringVarP(&logFile, "log", "l", "", "Write command logs to file")
 
 	cmd.AddCommand(newAuthCommand())
 	cmd.AddCommand(newScanCommand())
@@ -65,5 +69,14 @@ func printBanner() {
 	bRet, err := strconv.ParseBool(os.Getenv("VET_DISABLE_BANNER"))
 	if (err != nil) || (!bRet) {
 		fmt.Print(banner)
+	}
+}
+
+// Redirect to file or discard log if empty
+func redirectLogToFile(path string) {
+	if !utils.IsEmptyString(path) {
+		logger.LogToFile(path)
+	} else {
+		logger.MigrateTo(ioutil.Discard)
 	}
 }
