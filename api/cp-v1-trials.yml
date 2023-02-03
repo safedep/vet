@@ -1,0 +1,123 @@
+openapi: 3.0.2
+info:
+  title: SafeDep Control Plane API for Trials Registration
+  contact:
+    name: SafeDep API
+    url: 'https://safedep.io'
+  description: |
+    Trials API provide a way for obtaining an API Key for data plane service access
+    using an Email Address. Trials is different from Registrations as the later
+    allows full access to the control plane while Trials is meant to allow access
+    only to a time bounded (expirable) API key for quick evaluation of tools.
+  version: 0.0.1
+servers:
+  - url: 'https://{apiHost}/{apiBase}'
+    variables:
+      apiHost:
+        default: api.safedep.io
+      apiBase:
+        default: control-plane/v1
+tags:
+  - name: Control Plane
+    description: Control Plane API
+paths:
+  /trials:
+    post:
+      description: |
+        Register a trial user to obtain an expirable API Key. The API key will
+        be generated and sent to the user over Email to ensure validity and access
+        to the email by the requester. System defined limits will be applied to
+        maximum number of trial API keys that can be generated for an email.
+      operationId: registerTrialUser
+      tags:
+        - Control Plane
+      requestBody:
+        description: Trial registration request
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrialRequest'
+      responses:
+        '201':
+          description: Successfully created an API key request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrialResponse'
+        '403':
+          description: Access to the API is denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '429':
+          description: Rate limit block
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Failed due to internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+components:
+  schemas:
+    ApiError:
+      type: object
+      properties:
+        message:
+          type: string
+          description: A descriptive message about the error meant for developer consumption
+        type:
+          type: string
+          description: An optional service or domain specific error group
+          enum:
+            - invalid_request
+            - operation_failed
+            - internal_error
+        code:
+          type: string
+          description: An error code identifying the error
+          enum:
+            - api_guard_invalid_credentials
+            - api_guard_rate_limit_exceeded
+            - api_guard_unauthorized
+            - api_guard_error
+            - app_generic_error
+            - app_security_error
+            - app_insufficient_parameters
+            - app_feature_not_enabled
+            - app_package_version_not_found
+        params:
+          type: object
+          description: Optional error specific attributes
+          additionalProperties:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+    TrialRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+        - email
+    TrialResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 6
+          maxLength: 512
+          description: The ID of the trial registration request created in the system
+        expires_at:
+          type: string
+          format: date-time
+          description: The expiry time of the API key

@@ -5,6 +5,7 @@ import (
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/common/utils"
 	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/pkg/reporter"
 )
 
 type Config struct {
@@ -17,15 +18,18 @@ type packageManifestScanner struct {
 	config    Config
 	enrichers []PackageMetaEnricher
 	analyzers []analyzer.Analyzer
+	reporters []reporter.Reporter
 }
 
 func NewPackageManifestScanner(config Config,
 	enrichers []PackageMetaEnricher,
-	analyzers []analyzer.Analyzer) *packageManifestScanner {
+	analyzers []analyzer.Analyzer,
+	reporters []reporter.Reporter) *packageManifestScanner {
 	return &packageManifestScanner{
 		config:    config,
 		enrichers: enrichers,
 		analyzers: analyzers,
+		reporters: reporters,
 	}
 }
 
@@ -35,7 +39,6 @@ func (s *packageManifestScanner) ScanDirectory(dir string) error {
 
 	manifests, err := scanDirectoryForManifests(dir)
 	if err != nil {
-		logger.Errorf("Failed to scan directory: %v", err)
 		return err
 	}
 
@@ -51,11 +54,23 @@ func (s *packageManifestScanner) ScanLockfiles(lockfiles []string,
 
 	manifests, err := scanLockfilesForManifests(lockfiles, lockfileAs)
 	if err != nil {
-		logger.Errorf("Failed to scan lockfiles: %v", err)
 		return err
 	}
 
 	logger.Infof("Discovered %d manifest(s)", len(manifests))
+	return s.analyzeManifests(manifests)
+}
+
+// Load the manifests from a previous dumped JSON file
+func (s *packageManifestScanner) ScanDumpDirectory(dir string) error {
+	logger.Infof("Scan dump files to load as manifests: %s", dir)
+
+	manifests, err := scanDumpFilesForManifest(dir)
+	if err != nil {
+		return err
+	}
+
+	logger.Infof("Loaded %d manifest(s)", len(manifests))
 	return s.analyzeManifests(manifests)
 }
 
@@ -72,18 +87,28 @@ func (s *packageManifestScanner) analyzeManifests(manifests []*models.PackageMan
 
 		err = s.analyzeManifest(manifest)
 		if err != nil {
-			logger.Errorf("Failed to analyze %s manifest %v : %v",
+			logger.Errorf("Failed to analyze %s manifest %s : %v",
+				manifest.Ecosystem, manifest.Path, err)
+		}
+
+		err = s.reportManifest(manifest)
+		if err != nil {
+			logger.Errorf("Failed to report %s manifest %s : %v",
 				manifest.Ecosystem, manifest.Path, err)
 		}
 	}
 
+	s.finishReporting()
 	return nil
 }
 
 func (s *packageManifestScanner) analyzeManifest(manifest *models.PackageManifest) error {
 	for _, task := range s.analyzers {
 		err := task.Analyze(manifest, func(event *analyzer.AnalyzerEvent) error {
-			// Handle analyzer event
+			for _, r := range s.reporters {
+				r.AddAnalyzerEvent(event)
+			}
+
 			return nil
 		})
 		if err != nil {
@@ -94,7 +119,28 @@ func (s *packageManifestScanner) analyzeManifest(manifest *models.PackageManifes
 	return nil
 }
 
+func (s *packageManifestScanner) reportManifest(manifest *models.PackageManifest) error {
+	for _, r := range s.reporters {
+		r.AddManifest(manifest)
+	}
+
+	return nil
+}
+
+func (s *packageManifestScanner) finishReporting() {
+	for _, r := range s.reporters {
+		err := r.Finish()
+		if err != nil {
+			logger.Errorf("Reporter: %s failed with %v", r.Name(), err)
+		}
+	}
+}
+
 func (s *packageManifestScanner) enrichManifest(manifest *models.PackageManifest) error {
+	if len(s.enrichers) == 0 {
+		return nil
+	}
+
 	// FIXME: Potential deadlock situation in case of channel buffer is full
 	// because the goroutines perform both read and write to channel. Write occurs
 	// when goroutine invokes the work queue handler and the handler pushes back

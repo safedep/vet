@@ -8,6 +8,16 @@ import (
 	"github.com/safedep/vet/pkg/models"
 )
 
+// We are supporting only those ecosystems for which we have data
+// for enrichment. More ecosystems will be supported as we improve
+// the capability of our Insights API
+var supportedEcosystems map[string]bool = map[string]bool{
+	models.EcosystemGo:    true,
+	models.EcosystemMaven: true,
+	models.EcosystemNpm:   true,
+	models.EcosystemPyPI:  true,
+}
+
 type Parser interface {
 	Ecosystem() string
 	Parse(lockfilePath string) (models.PackageManifest, error)
@@ -19,17 +29,36 @@ type parserWrapper struct {
 }
 
 func List() []string {
-	return lockfile.ListParsers()
+	supportedParsers := make([]string, 0, 0)
+	parsers := lockfile.ListParsers()
+
+	for _, p := range parsers {
+		_, err := FindParser("", p)
+		if err != nil {
+			continue
+		}
+
+		supportedParsers = append(supportedParsers, p)
+	}
+
+	return supportedParsers
 }
 
 func FindParser(lockfilePath, lockfileAs string) (Parser, error) {
 	p, pa := lockfile.FindParser(lockfilePath, lockfileAs)
 	if p != nil {
-		return &parserWrapper{parser: p, parseAs: pa}, nil
+		pw := &parserWrapper{parser: p, parseAs: pa}
+		if pw.supported() {
+			return pw, nil
+		}
 	}
 
 	return nil, fmt.Errorf("no parser found with: %s for: %s", lockfileAs,
 		lockfilePath)
+}
+
+func (pw *parserWrapper) supported() bool {
+	return supportedEcosystems[pw.Ecosystem()]
 }
 
 func (pw *parserWrapper) Ecosystem() string {

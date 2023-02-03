@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/parser"
+	"github.com/safedep/vet/pkg/reporter"
 	"github.com/safedep/vet/pkg/scanner"
 	"github.com/spf13/cobra"
 )
@@ -18,9 +20,10 @@ var (
 	transitiveAnalysis  bool
 	transitiveDepth     int
 	concurrency         int
-	dumpJsonManifest    bool
 	dumpJsonManifestDir string
 	celFilterExpression string
+	markdownReportPath  string
+	consoleReport       bool
 )
 
 func newScanCommand() *cobra.Command {
@@ -44,18 +47,20 @@ func newScanCommand() *cobra.Command {
 		"List of lockfiles to scan")
 	cmd.Flags().StringVarP(&lockfileAs, "lockfile-as", "", "",
 		"Parser to use for the lockfile (vet scan parsers to list)")
-	cmd.Flags().BoolVarP(&transitiveAnalysis, "transitive", "", true,
+	cmd.Flags().BoolVarP(&transitiveAnalysis, "transitive", "", false,
 		"Analyze transitive dependencies")
 	cmd.Flags().IntVarP(&transitiveDepth, "transitive-depth", "", 2,
 		"Analyze transitive dependencies till depth")
-	cmd.Flags().IntVarP(&concurrency, "concurrency", "C", 10,
-		"Number of goroutines to use for analysis")
-	cmd.Flags().BoolVarP(&dumpJsonManifest, "json-dump", "", false,
-		"Dump enriched manifests as JSON docs")
+	cmd.Flags().IntVarP(&concurrency, "concurrency", "C", 5,
+		"Number of concurrent analysis to run")
 	cmd.Flags().StringVarP(&dumpJsonManifestDir, "json-dump-dir", "", "",
-		"Dump dir for enriched JSON docs")
-	cmd.Flags().StringVarP(&celFilterExpression, "filter-cel", "", "",
+		"Dump enriched package manifests as JSON files to dir")
+	cmd.Flags().StringVarP(&celFilterExpression, "filter", "", "",
 		"Filter and print packages using CEL")
+	cmd.Flags().StringVarP(&markdownReportPath, "report-markdown", "", "",
+		"Generate consolidated markdown report to file")
+	cmd.Flags().BoolVarP(&consoleReport, "report-console", "", true,
+		"Minimal summary of package manifest")
 
 	cmd.AddCommand(listParsersCommand())
 	return cmd
@@ -87,7 +92,7 @@ func startScan() {
 
 func internalStartScan() error {
 	analyzers := []analyzer.Analyzer{}
-	if dumpJsonManifest {
+	if !utils.IsEmptyString(dumpJsonManifestDir) {
 		task, err := analyzer.NewJsonDumperAnalyzer(dumpJsonManifestDir)
 		if err != nil {
 			return err
@@ -96,13 +101,34 @@ func internalStartScan() error {
 		analyzers = append(analyzers, task)
 	}
 
-	if len(celFilterExpression) > 0 {
+	if !utils.IsEmptyString(celFilterExpression) {
 		task, err := analyzer.NewCelFilterAnalyzer(celFilterExpression)
 		if err != nil {
 			return err
 		}
 
 		analyzers = append(analyzers, task)
+	}
+
+	reporters := []reporter.Reporter{}
+	if consoleReport {
+		rp, err := reporter.NewConsoleReporter()
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if !utils.IsEmptyString(markdownReportPath) {
+		rp, err := reporter.NewMarkdownReportGenerator(reporter.MarkdownReportingConfig{
+			Path: markdownReportPath,
+		})
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
 	}
 
 	enrichers := []scanner.PackageMetaEnricher{
@@ -113,7 +139,7 @@ func internalStartScan() error {
 		TransitiveAnalysis: transitiveAnalysis,
 		TransitiveDepth:    transitiveDepth,
 		ConcurrentAnalyzer: concurrency,
-	}, enrichers, analyzers)
+	}, enrichers, analyzers, reporters)
 
 	var err error
 	if len(lockfiles) > 0 {

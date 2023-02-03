@@ -1021,6 +1021,28 @@ const (
 	LicenseZlibAcknowledgement License = "zlib-acknowledgement"
 )
 
+// Defines values for PackageVulnerabilitySeveritiesRisk.
+const (
+	PackageVulnerabilitySeveritiesRiskCRITICAL PackageVulnerabilitySeveritiesRisk = "CRITICAL"
+
+	PackageVulnerabilitySeveritiesRiskHIGH PackageVulnerabilitySeveritiesRisk = "HIGH"
+
+	PackageVulnerabilitySeveritiesRiskLOW PackageVulnerabilitySeveritiesRisk = "LOW"
+
+	PackageVulnerabilitySeveritiesRiskMEDIUM PackageVulnerabilitySeveritiesRisk = "MEDIUM"
+
+	PackageVulnerabilitySeveritiesRiskUNKNOWN PackageVulnerabilitySeveritiesRisk = "UNKNOWN"
+)
+
+// Defines values for PackageVulnerabilitySeveritiesType.
+const (
+	PackageVulnerabilitySeveritiesTypeCVSSV2 PackageVulnerabilitySeveritiesType = "CVSS_V2"
+
+	PackageVulnerabilitySeveritiesTypeCVSSV3 PackageVulnerabilitySeveritiesType = "CVSS_V3"
+
+	PackageVulnerabilitySeveritiesTypeUNSPECIFIED PackageVulnerabilitySeveritiesType = "UNSPECIFIED"
+)
+
 // Defines values for ScorecardVersion.
 const (
 	ScorecardVersionV2 ScorecardVersion = "V2"
@@ -1133,13 +1155,49 @@ type PackageVersion struct {
 
 // PackageVersionInsight defines model for PackageVersionInsight.
 type PackageVersionInsight struct {
-	Dependencies   *[]PackageDependency  `json:"dependencies,omitempty"`
-	Dependents     *PackageDependents    `json:"dependents,omitempty"`
-	Licenses       *[]License            `json:"licenses,omitempty"`
-	PackageVersion *PackageVersion       `json:"package_version,omitempty"`
-	Projects       *[]PackageProjectInfo `json:"projects,omitempty"`
-	Scorecard      *Scorecard            `json:"scorecard,omitempty"`
+	Dependencies *[]PackageDependency `json:"dependencies,omitempty"`
+	Dependents   *PackageDependents   `json:"dependents,omitempty"`
+	Licenses     *[]License           `json:"licenses,omitempty"`
+
+	// The latest version available for the package
+	PackageCurrentVersion *string                 `json:"package_current_version,omitempty"`
+	PackageVersion        *PackageVersion         `json:"package_version,omitempty"`
+	Projects              *[]PackageProjectInfo   `json:"projects,omitempty"`
+	Scorecard             *Scorecard              `json:"scorecard,omitempty"`
+	Vulnerabilities       *[]PackageVulnerability `json:"vulnerabilities,omitempty"`
 }
+
+// Subset of OSV schema required to perform policy
+// decision by various tools
+type PackageVulnerability struct {
+	// Alias identifiers of the same vulnerability in
+	// other databases
+	Aliases *[]string `json:"aliases,omitempty"`
+
+	// Vulnerability identifier
+	Id *string `json:"id,omitempty"`
+
+	// Related vulnerability identifiers for similar issues
+	// in
+	Related    *[]string `json:"related,omitempty"`
+	Severities *[]struct {
+		// Normalized risk rating computed from score
+		Risk *PackageVulnerabilitySeveritiesRisk `json:"risk,omitempty"`
+
+		// Type specific vulnerability score
+		Score *string                             `json:"score,omitempty"`
+		Type  *PackageVulnerabilitySeveritiesType `json:"type,omitempty"`
+	} `json:"severities,omitempty"`
+
+	// Short summary of vulnerability
+	Summary *string `json:"summary,omitempty"`
+}
+
+// Normalized risk rating computed from score
+type PackageVulnerabilitySeveritiesRisk string
+
+// PackageVulnerabilitySeveritiesType defines model for PackageVulnerability.Severities.Type.
+type PackageVulnerabilitySeveritiesType string
 
 // Scorecard defines model for Scorecard.
 type Scorecard struct {

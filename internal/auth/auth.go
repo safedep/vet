@@ -13,7 +13,8 @@ const (
 	apiUrlEnvKey = "VET_INSIGHTS_API_URL"
 	apiKeyEnvKey = "VET_INSIGHTS_API_KEY"
 
-	defaultApiUrl = "https://api.safedep.io/insights/v1"
+	defaultApiUrl             = "https://api.safedep.io/insights/v1"
+	defaultControlPlaneApiUrl = "https://api.safedep.io/control-plane/v1"
 
 	homeRelativeConfigPath = ".safedep/vet-auth.yml"
 )
@@ -38,6 +39,14 @@ func Configure(m Config) error {
 func Verify() error {
 	// TODO: Verify by actually calling insight API
 	return nil
+}
+
+func DefaultApiUrl() string {
+	return defaultApiUrl
+}
+
+func DefaultControlPlaneApiUrl() string {
+	return defaultControlPlaneApiUrl
 }
 
 func ApiUrl() string {

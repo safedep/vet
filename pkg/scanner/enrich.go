@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/safedep/dry/errors"
+	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -62,15 +64,16 @@ func (e *insightsBasedPackageEnricher) Enrich(pkg *models.Package,
 	}
 
 	if res.HTTPResponse.StatusCode != 200 {
-		return fmt.Errorf("bad response: %d: %s", res.HTTPResponse.StatusCode,
-			res.HTTPResponse.Status)
+		err, _ = errors.UnmarshalApiError(res.Body)
+		return err
 	}
 
-	if (res.JSON200 == nil) || (res.JSON200.Dependencies == nil) {
-		return fmt.Errorf("unexpected nil response from Insight API")
+	if res.JSON200 == nil {
+		return fmt.Errorf("unexpected nil response for: %s/%s/%s",
+			pkg.Manifest.Ecosystem, pkg.PackageDetails.Name, pkg.Insights.PackageVersion.Version)
 	}
 
-	for _, dep := range *res.JSON200.Dependencies {
+	for _, dep := range utils.SafelyGetValue(res.JSON200.Dependencies) {
 		if strings.EqualFold(dep.PackageVersion.Name, pkg.PackageDetails.Name) {
 			// Skip self references in dependency
 			continue
@@ -85,7 +88,7 @@ func (e *insightsBasedPackageEnricher) Enrich(pkg *models.Package,
 		})
 
 		if err != nil {
-			logger.Errorf("Failed to invoke package dependency callback: %v", err)
+			logger.Errorf("package dependency callback failed: %v", err)
 		}
 	}
 
