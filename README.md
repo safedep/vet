@@ -53,8 +53,8 @@ vet scan --lockfiles /path/to/package-lock.json
 
 > Use `vet scan parsers` to list supported package manifest parsers
 
-The default scan uses an opinionated [Console Reporter](#) which presents
-a summary of findings per package manifest. Thats NOT about it. Read more for
+The default scan uses an opinionated [Summary Reporter](#) which presents
+a consolidated summary of findings. Thats NOT about it. Read more for
 expression based filtering and policy evaluation.
 
 ## Filtering

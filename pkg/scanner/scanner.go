@@ -43,7 +43,7 @@ func (s *packageManifestScanner) ScanDirectory(dir string) error {
 	}
 
 	logger.Infof("Discovered %d manifest(s)", len(manifests))
-	return s.analyzeManifests(manifests)
+	return s.scanManifests(manifests)
 }
 
 // Scan specific lockfiles, optionally interpreted as instead of
@@ -58,7 +58,7 @@ func (s *packageManifestScanner) ScanLockfiles(lockfiles []string,
 	}
 
 	logger.Infof("Discovered %d manifest(s)", len(manifests))
-	return s.analyzeManifests(manifests)
+	return s.scanManifests(manifests)
 }
 
 // Load the manifests from a previous dumped JSON file
@@ -71,10 +71,10 @@ func (s *packageManifestScanner) ScanDumpDirectory(dir string) error {
 	}
 
 	logger.Infof("Loaded %d manifest(s)", len(manifests))
-	return s.analyzeManifests(manifests)
+	return s.scanManifests(manifests)
 }
 
-func (s *packageManifestScanner) analyzeManifests(manifests []*models.PackageManifest) error {
+func (s *packageManifestScanner) scanManifests(manifests []*models.PackageManifest) error {
 	for _, manifest := range manifests {
 		logger.Infof("Analysing %s as %s ecosystem with %d packages", manifest.Path,
 			manifest.Ecosystem, len(manifest.Packages))
