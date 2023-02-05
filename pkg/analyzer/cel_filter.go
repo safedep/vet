@@ -133,6 +133,10 @@ func (f *celFilterAnalyzer) Analyze(manifest *models.PackageManifest,
 	return nil
 }
 
+func (f *celFilterAnalyzer) Finish() error {
+	return nil
+}
+
 // TODO: Fix this JSON round-trip problem by directly configuring CEL env to
 // work with Protobuf messages
 func (f *celFilterAnalyzer) serializeFilterInput(fi *filterinput.FilterInput) (map[string]interface{}, error) {

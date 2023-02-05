@@ -56,3 +56,7 @@ func (j *jsonDumperAnalyzer) Analyze(manifest *models.PackageManifest,
 
 	return ioutil.WriteFile(path, data, 0600)
 }
+
+func (j *jsonDumperAnalyzer) Finish() error {
+	return nil
+}

@@ -29,4 +29,6 @@ type Analyzer interface {
 
 	Analyze(manifest *models.PackageManifest,
 		handler AnalyzerEventHandler) error
+
+	Finish() error
 }
