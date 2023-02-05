@@ -13,6 +13,7 @@ var (
 	queryFilterExpression    string
 	queryLoadDirectory       string
 	queryEnableConsoleReport bool
+	queryEnableSummaryReport bool
 )
 
 func newQueryCommand() *cobra.Command {
@@ -31,6 +32,8 @@ func newQueryCommand() *cobra.Command {
 		"Filter and print packages using CEL")
 	cmd.Flags().BoolVarP(&queryEnableConsoleReport, "report-console", "", false,
 		"Minimal summary of package manifest")
+	cmd.Flags().BoolVarP(&queryEnableSummaryReport, "report-summary", "", false,
+		"Show an actionable summary based on scan data")
 
 	return cmd
 }
@@ -58,6 +61,15 @@ func internalStartQuery() error {
 
 	if queryEnableConsoleReport {
 		rp, err := reporter.NewConsoleReporter()
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if queryEnableSummaryReport {
+		rp, err := reporter.NewSummaryReporter()
 		if err != nil {
 			return err
 		}
