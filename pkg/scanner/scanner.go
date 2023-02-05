@@ -98,7 +98,9 @@ func (s *packageManifestScanner) scanManifests(manifests []*models.PackageManife
 		}
 	}
 
+	s.finishAnalyzers()
 	s.finishReporting()
+
 	return nil
 }
 
@@ -132,6 +134,15 @@ func (s *packageManifestScanner) finishReporting() {
 		err := r.Finish()
 		if err != nil {
 			logger.Errorf("Reporter: %s failed with %v", r.Name(), err)
+		}
+	}
+}
+
+func (s *packageManifestScanner) finishAnalyzers() {
+	for _, r := range s.analyzers {
+		err := r.Finish()
+		if err != nil {
+			logger.Errorf("Analyzer: %s failed with %v", r.Name(), err)
 		}
 	}
 }

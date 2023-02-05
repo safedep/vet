@@ -1,14 +1,13 @@
 package scanner
 
 // Implement hooks for various callbacks during scanning
-
 const (
-	ScanHookInit                   = 0
-	ScanHookBeforeEnrichManifest   = 1
-	ScanHookAfterEnrichManifest    = 2
-	ScanHookBeforeAnalyzeManifest  = 3
-	ScanHookAfterAnalyzeManifest   = 4
-	ScanHookBeforePolicyEvaluation = 5
-	ScanHookAfterPolicyEvaluation  = 6
-	ScanHookBeforeFinish           = 10
+	scanHookInit                   = 0
+	scanHookBeforeEnrichManifest   = 1
+	scanHookAfterEnrichManifest    = 2
+	scanHookBeforeAnalyzeManifest  = 3
+	scanHookAfterAnalyzeManifest   = 4
+	scanHookBeforePolicyEvaluation = 5
+	scanHookAfterPolicyEvaluation  = 6
+	scanHookBeforeFinish           = 10
 )

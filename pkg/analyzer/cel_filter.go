@@ -29,6 +29,15 @@ const (
 
 type celFilterAnalyzer struct {
 	program cel.Program
+
+	packages []*models.Package
+
+	stat struct {
+		manifests int
+		packages  int
+		matched   int
+		err       int
+	}
 }
 
 func NewCelFilterAnalyzer(filter string) (Analyzer, error) {
@@ -55,7 +64,9 @@ func NewCelFilterAnalyzer(filter string) (Analyzer, error) {
 		return nil, err
 	}
 
-	return &celFilterAnalyzer{program: prog}, nil
+	return &celFilterAnalyzer{program: prog,
+		packages: []*models.Package{},
+	}, nil
 }
 
 func (f *celFilterAnalyzer) Name() string {
@@ -65,32 +76,22 @@ func (f *celFilterAnalyzer) Name() string {
 func (f *celFilterAnalyzer) Analyze(manifest *models.PackageManifest,
 	handler AnalyzerEventHandler) error {
 
-	tbl := table.NewWriter()
-	tbl.SetStyle(table.StyleLight)
-	tbl.SetOutputMirror(os.Stdout)
-	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Version",
-		"Latest", "Source"})
-
-	filterStat := struct {
-		total   int
-		matched int
-		err     int
-	}{}
-
 	logger.Infof("CEL filtering manifest: %s", manifest.Path)
+	f.stat.manifests += 1
+
 	for _, pkg := range manifest.Packages {
-		filterStat.total += 1
+		f.stat.packages += 1
 
 		filterInput, err := f.buildFilterInput(pkg)
 		if err != nil {
-			filterStat.err += 1
+			f.stat.err += 1
 			logger.Errorf("Failed to convert package to filter input: %v", err)
 			continue
 		}
 
 		serializedInput, err := f.serializeFilterInput(filterInput)
 		if err != nil {
-			filterStat.err += 1
+			f.stat.err += 1
 			logger.Errorf("Failed to serialize filter input: %v", err)
 			continue
 		}
@@ -105,7 +106,7 @@ func (f *celFilterAnalyzer) Analyze(manifest *models.PackageManifest,
 		})
 
 		if err != nil {
-			filterStat.err += 1
+			f.stat.err += 1
 			logger.Errorf("Failed to evaluate CEL for %s:%v : %v",
 				pkg.PackageDetails.Name,
 				pkg.PackageDetails.Version, err)
@@ -114,26 +115,35 @@ func (f *celFilterAnalyzer) Analyze(manifest *models.PackageManifest,
 
 		if (reflect.TypeOf(out).Kind() == reflect.Bool) &&
 			(reflect.ValueOf(out).Bool()) {
-			filterStat.matched += 1
-			tbl.AppendRow(table.Row{pkg.PackageDetails.Ecosystem,
-				pkg.PackageDetails.Name,
-				pkg.PackageDetails.Version,
-				f.pkgLatestVersion(pkg),
-				f.pkgSource(pkg),
-			})
+			f.stat.matched += 1
+			f.packages = append(f.packages, pkg)
 		}
 	}
 
-	fmt.Printf("%s\n", text.Bold.Sprint("Filter evaluated with ",
-		filterStat.matched, " out of ", filterStat.total, " matched and ",
-		filterStat.err, " error(s)"))
-	fmt.Println(text.Faint.Sprint(manifest.Path))
-
-	tbl.Render()
 	return nil
 }
 
 func (f *celFilterAnalyzer) Finish() error {
+	tbl := table.NewWriter()
+	tbl.SetStyle(table.StyleLight)
+	tbl.SetOutputMirror(os.Stdout)
+	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Version",
+		"Source"})
+
+	for _, pkg := range f.packages {
+		tbl.AppendRow(table.Row{pkg.PackageDetails.Ecosystem,
+			pkg.PackageDetails.Name,
+			pkg.PackageDetails.Version,
+			f.pkgSource(pkg),
+		})
+	}
+
+	fmt.Printf("%s\n", text.Bold.Sprint("Filter evaluated with ",
+		f.stat.matched, " out of ", f.stat.packages, " matched and ",
+		f.stat.err, " error(s) ", "across ", f.stat.manifests,
+		" manifest(s)"))
+
+	tbl.Render()
 	return nil
 }
 
