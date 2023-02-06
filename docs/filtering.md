@@ -4,6 +4,14 @@ Filter command helps solve the problem of visibility for OSS dependencies in an
 application. To support various requirements, we adopt a generic [expressions
 language](https://github.com/google/cel-spec) for flexible filtering.
 
+Example:
+
+```bash
+vet scan -D /path/to/repo \
+    --report-summary=false \
+    --filter 'licenses.exists(p, p == "MIT")'
+```
+
 ## Input
 
 Filter expressions work on packages (aka. dependencies) and evaluates to
@@ -43,7 +51,7 @@ a list of checks available from OpenSSF Scorecards project.
 
 Scanning a package manifest is a resource intensive process as it involves
 enriching package metadata by queryin [Insights API](https://safedep.io/docs/concepts/raya-data-platform-overview).
-However, for filtering and reporting may be done multiple times on the same
+However, filtering and reporting may be done multiple times on the same
 manifest. To speed up the process, we can dump the enriched data as JSON and
 load the same for filtering and reporting.
 
@@ -57,8 +65,29 @@ vet scan -D /path/to/repository --json-dump-dir /tmp/dump-many
 Load the enriched metadata for filtering and reporting
 
 ```bash
-vet query --from /tmp/dump --report-console
+vet query --from /tmp/dump --report-summary
 vet query --from /tmp/dump --filter 'scorecard.score.Maintained == 0'
+```
+
+## Gating with Filters
+
+A simple security gate (in CI) can be achieved using the filters. The
+`--filter-fail` argument tells the `Filter Analyzer` module to fail the command
+if any package matches the given filter.
+
+Example:
+
+```bash
+vet query --from /path/to/json-dump \
+    --filter 'scorecard.scores.Maintained == 0' \
+    --filter-fail
+```
+
+Subsequently, the command fails with `-1` exit code in case of match
+
+```bash
+➜  vet git:(develop) ✗ echo $?
+255
 ```
 
 ## FAQ

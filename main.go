@@ -84,3 +84,10 @@ func redirectLogToFile(path string) {
 		logger.MigrateTo(ioutil.Discard)
 	}
 }
+
+func failOnError(stage string, err error) {
+	if err != nil {
+		logger.Errorf("%s failed due to error %v", stage, err)
+		os.Exit(-1)
+	}
+}

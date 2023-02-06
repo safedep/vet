@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/pkg/analyzer"
-	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/reporter"
 	"github.com/safedep/vet/pkg/scanner"
 	"github.com/spf13/cobra"
@@ -11,6 +10,7 @@ import (
 
 var (
 	queryFilterExpression    string
+	queryFilterFailOnMatch   bool
 	queryLoadDirectory       string
 	queryEnableConsoleReport bool
 	queryEnableSummaryReport bool
@@ -30,6 +30,8 @@ func newQueryCommand() *cobra.Command {
 		"The directory to load JSON dump files")
 	cmd.Flags().StringVarP(&queryFilterExpression, "filter", "", "",
 		"Filter and print packages using CEL")
+	cmd.Flags().BoolVarP(&queryFilterFailOnMatch, "filter-fail", "", false,
+		"Fail the command if filter matches any package (for security gate)")
 	cmd.Flags().BoolVarP(&queryEnableConsoleReport, "report-console", "", false,
 		"Minimal summary of package manifest")
 	cmd.Flags().BoolVarP(&queryEnableSummaryReport, "report-summary", "", false,
@@ -39,10 +41,7 @@ func newQueryCommand() *cobra.Command {
 }
 
 func startQuery() {
-	err := internalStartQuery()
-	if err != nil {
-		logger.Errorf("Query completed with error: %v", err)
-	}
+	failOnError("query", internalStartQuery())
 }
 
 func internalStartQuery() error {
@@ -51,7 +50,8 @@ func internalStartQuery() error {
 	enrichers := []scanner.PackageMetaEnricher{}
 
 	if !utils.IsEmptyString(queryFilterExpression) {
-		task, err := analyzer.NewCelFilterAnalyzer(queryFilterExpression)
+		task, err := analyzer.NewCelFilterAnalyzer(queryFilterExpression,
+			queryFilterFailOnMatch)
 		if err != nil {
 			return err
 		}

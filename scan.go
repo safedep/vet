@@ -6,7 +6,6 @@ import (
 
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/pkg/analyzer"
-	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/parser"
 	"github.com/safedep/vet/pkg/reporter"
 	"github.com/safedep/vet/pkg/scanner"
@@ -14,17 +13,18 @@ import (
 )
 
 var (
-	lockfiles           []string
-	lockfileAs          string
-	baseDirectory       string
-	transitiveAnalysis  bool
-	transitiveDepth     int
-	concurrency         int
-	dumpJsonManifestDir string
-	celFilterExpression string
-	markdownReportPath  string
-	consoleReport       bool
-	summaryReport       bool
+	lockfiles            []string
+	lockfileAs           string
+	baseDirectory        string
+	transitiveAnalysis   bool
+	transitiveDepth      int
+	concurrency          int
+	dumpJsonManifestDir  string
+	celFilterExpression  string
+	celFilterFailOnMatch bool
+	markdownReportPath   string
+	consoleReport        bool
+	summaryReport        bool
 )
 
 func newScanCommand() *cobra.Command {
@@ -58,6 +58,8 @@ func newScanCommand() *cobra.Command {
 		"Dump enriched package manifests as JSON files to dir")
 	cmd.Flags().StringVarP(&celFilterExpression, "filter", "", "",
 		"Filter and print packages using CEL")
+	cmd.Flags().BoolVarP(&celFilterFailOnMatch, "filter-fail", "", false,
+		"Fail the scan if the filter match any package (security gate)")
 	cmd.Flags().StringVarP(&markdownReportPath, "report-markdown", "", "",
 		"Generate consolidated markdown report to file")
 	cmd.Flags().BoolVarP(&consoleReport, "report-console", "", false,
@@ -87,10 +89,7 @@ func listParsersCommand() *cobra.Command {
 }
 
 func startScan() {
-	err := internalStartScan()
-	if err != nil {
-		logger.Errorf("Scan completed with error: %v", err)
-	}
+	failOnError("scan", internalStartScan())
 }
 
 func internalStartScan() error {
@@ -105,7 +104,8 @@ func internalStartScan() error {
 	}
 
 	if !utils.IsEmptyString(celFilterExpression) {
-		task, err := analyzer.NewCelFilterAnalyzer(celFilterExpression)
+		task, err := analyzer.NewCelFilterAnalyzer(celFilterExpression,
+			celFilterFailOnMatch)
 		if err != nil {
 			return err
 		}

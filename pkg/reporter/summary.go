@@ -171,6 +171,8 @@ func (r *summaryReporter) addPkgForRemediationAdvice(pkg *models.Package, weight
 }
 
 func (r *summaryReporter) Finish() error {
+	fmt.Println(summaryListPrependText, text.BgBlue.Sprint(" Summary of Findings "))
+	fmt.Println()
 	fmt.Println(text.FgHiRed.Sprint(summaryListPrependText, r.vulnSummaryStatement()))
 	fmt.Println()
 	fmt.Println(text.FgHiYellow.Sprint(summaryListPrependText, r.popularityCountStatement()))

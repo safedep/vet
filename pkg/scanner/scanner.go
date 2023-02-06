@@ -1,6 +1,8 @@
 package scanner
 
 import (
+	"fmt"
+
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/common/utils"
@@ -19,6 +21,8 @@ type packageManifestScanner struct {
 	enrichers []PackageMetaEnricher
 	analyzers []analyzer.Analyzer
 	reporters []reporter.Reporter
+
+	failOnError error
 }
 
 func NewPackageManifestScanner(config Config,
@@ -75,22 +79,31 @@ func (s *packageManifestScanner) ScanDumpDirectory(dir string) error {
 }
 
 func (s *packageManifestScanner) scanManifests(manifests []*models.PackageManifest) error {
+	// Start the scan phases per manifest
 	for _, manifest := range manifests {
 		logger.Infof("Analysing %s as %s ecosystem with %d packages", manifest.Path,
 			manifest.Ecosystem, len(manifest.Packages))
 
+		// Stop scan if there is a pendin error
+		if s.hasError() {
+			break
+		}
+
+		// Enrich each packages in a manifest with metadata
 		err := s.enrichManifest(manifest)
 		if err != nil {
 			logger.Errorf("Failed to enrich %s manifest %s : %v",
 				manifest.Ecosystem, manifest.Path, err)
 		}
 
+		// Invoke analyzers to analyse the manifest
 		err = s.analyzeManifest(manifest)
 		if err != nil {
 			logger.Errorf("Failed to analyze %s manifest %s : %v",
 				manifest.Ecosystem, manifest.Path, err)
 		}
 
+		// Invoke activated reporting modules to report on the manifest
 		err = s.reportManifest(manifest)
 		if err != nil {
 			logger.Errorf("Failed to report %s manifest %s : %v",
@@ -98,10 +111,11 @@ func (s *packageManifestScanner) scanManifests(manifests []*models.PackageManife
 		}
 	}
 
+	// Signal analyzers and reporters to finish anything pending
 	s.finishAnalyzers()
 	s.finishReporting()
 
-	return nil
+	return s.error()
 }
 
 func (s *packageManifestScanner) analyzeManifest(manifest *models.PackageManifest) error {
@@ -111,14 +125,36 @@ func (s *packageManifestScanner) analyzeManifest(manifest *models.PackageManifes
 				r.AddAnalyzerEvent(event)
 			}
 
-			return nil
+			return s.internalHandleAnalyzerEvent(event)
 		})
+
 		if err != nil {
 			logger.Errorf("Analyzer %s failed: %v", task.Name(), err)
 		}
 	}
 
 	return nil
+}
+
+func (s *packageManifestScanner) internalHandleAnalyzerEvent(event *analyzer.AnalyzerEvent) error {
+	if event.IsFailOnError() {
+		s.failWith(fmt.Errorf("%s analyzer raised an event to fail with: %w",
+			event.Source, event.Err))
+	}
+
+	return nil
+}
+
+func (s *packageManifestScanner) failWith(err error) {
+	s.failOnError = err
+}
+
+func (s *packageManifestScanner) hasError() bool {
+	return (s.error() != nil)
+}
+
+func (s *packageManifestScanner) error() error {
+	return s.failOnError
 }
 
 func (s *packageManifestScanner) reportManifest(manifest *models.PackageManifest) error {

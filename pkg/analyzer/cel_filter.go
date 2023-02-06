@@ -28,7 +28,8 @@ const (
 )
 
 type celFilterAnalyzer struct {
-	program cel.Program
+	program     cel.Program
+	failOnMatch bool
 
 	packages map[string]*models.Package
 
@@ -40,7 +41,7 @@ type celFilterAnalyzer struct {
 	}
 }
 
-func NewCelFilterAnalyzer(filter string) (Analyzer, error) {
+func NewCelFilterAnalyzer(filter string, failOnMatch bool) (Analyzer, error) {
 	env, err := cel.NewEnv(
 		cel.Variable(filterInputVarPkg, cel.DynType),
 		cel.Variable(filterInputVarVulns, cel.DynType),
@@ -65,7 +66,8 @@ func NewCelFilterAnalyzer(filter string) (Analyzer, error) {
 	}
 
 	return &celFilterAnalyzer{program: prog,
-		packages: make(map[string]*models.Package),
+		failOnMatch: failOnMatch,
+		packages:    make(map[string]*models.Package),
 	}, nil
 }
 
@@ -126,7 +128,7 @@ func (f *celFilterAnalyzer) Analyze(manifest *models.PackageManifest,
 		}
 	}
 
-	return nil
+	return f.notifyCaller(manifest, handler)
 }
 
 func (f *celFilterAnalyzer) Finish() error {
@@ -150,6 +152,21 @@ func (f *celFilterAnalyzer) Finish() error {
 		" manifest(s)"))
 
 	tbl.Render()
+	return nil
+}
+
+func (f *celFilterAnalyzer) notifyCaller(manifest *models.PackageManifest,
+	handler AnalyzerEventHandler) error {
+	if f.failOnMatch && (f.stat.matched > 0) {
+		handler(&AnalyzerEvent{
+			Source:   f.Name(),
+			Type:     ET_AnalyzerFailOnError,
+			Manifest: manifest,
+			Err: fmt.Errorf("failed due to filter match on %s",
+				manifest.Path),
+		})
+	}
+
 	return nil
 }
 
