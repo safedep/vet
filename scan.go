@@ -6,7 +6,6 @@ import (
 
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/pkg/analyzer"
-	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/parser"
 	"github.com/safedep/vet/pkg/reporter"
 	"github.com/safedep/vet/pkg/scanner"
@@ -14,16 +13,18 @@ import (
 )
 
 var (
-	lockfiles           []string
-	lockfileAs          string
-	baseDirectory       string
-	transitiveAnalysis  bool
-	transitiveDepth     int
-	concurrency         int
-	dumpJsonManifestDir string
-	celFilterExpression string
-	markdownReportPath  string
-	consoleReport       bool
+	lockfiles            []string
+	lockfileAs           string
+	baseDirectory        string
+	transitiveAnalysis   bool
+	transitiveDepth      int
+	concurrency          int
+	dumpJsonManifestDir  string
+	celFilterExpression  string
+	celFilterFailOnMatch bool
+	markdownReportPath   string
+	consoleReport        bool
+	summaryReport        bool
 )
 
 func newScanCommand() *cobra.Command {
@@ -57,10 +58,14 @@ func newScanCommand() *cobra.Command {
 		"Dump enriched package manifests as JSON files to dir")
 	cmd.Flags().StringVarP(&celFilterExpression, "filter", "", "",
 		"Filter and print packages using CEL")
+	cmd.Flags().BoolVarP(&celFilterFailOnMatch, "filter-fail", "", false,
+		"Fail the scan if the filter match any package (security gate)")
 	cmd.Flags().StringVarP(&markdownReportPath, "report-markdown", "", "",
 		"Generate consolidated markdown report to file")
-	cmd.Flags().BoolVarP(&consoleReport, "report-console", "", true,
-		"Minimal summary of package manifest")
+	cmd.Flags().BoolVarP(&consoleReport, "report-console", "", false,
+		"Print a report to the console")
+	cmd.Flags().BoolVarP(&summaryReport, "report-summary", "", true,
+		"Print a summary report with actionable advice")
 
 	cmd.AddCommand(listParsersCommand())
 	return cmd
@@ -84,10 +89,7 @@ func listParsersCommand() *cobra.Command {
 }
 
 func startScan() {
-	err := internalStartScan()
-	if err != nil {
-		logger.Errorf("Scan completed with error: %v", err)
-	}
+	failOnError("scan", internalStartScan())
 }
 
 func internalStartScan() error {
@@ -102,7 +104,8 @@ func internalStartScan() error {
 	}
 
 	if !utils.IsEmptyString(celFilterExpression) {
-		task, err := analyzer.NewCelFilterAnalyzer(celFilterExpression)
+		task, err := analyzer.NewCelFilterAnalyzer(celFilterExpression,
+			celFilterFailOnMatch)
 		if err != nil {
 			return err
 		}
@@ -113,6 +116,15 @@ func internalStartScan() error {
 	reporters := []reporter.Reporter{}
 	if consoleReport {
 		rp, err := reporter.NewConsoleReporter()
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if summaryReport {
+		rp, err := reporter.NewSummaryReporter()
 		if err != nil {
 			return err
 		}
@@ -140,6 +152,8 @@ func internalStartScan() error {
 		TransitiveDepth:    transitiveDepth,
 		ConcurrentAnalyzer: concurrency,
 	}, enrichers, analyzers, reporters)
+
+	redirectLogToFile(logFile)
 
 	var err error
 	if len(lockfiles) > 0 {

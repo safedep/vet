@@ -68,7 +68,7 @@ type Package struct {
 func (p *Package) Id() string {
 	h := fnv.New64a()
 	h.Write([]byte(fmt.Sprintf("%s/%s/%s",
-		strings.ToLower(p.Manifest.Ecosystem),
+		strings.ToLower(string(p.PackageDetails.Ecosystem)),
 		strings.ToLower(p.PackageDetails.Name),
 		strings.ToLower(p.PackageDetails.Version))))
 

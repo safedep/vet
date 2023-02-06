@@ -35,6 +35,11 @@ func scanDumpFilesForManifest(dir string) ([]*models.PackageManifest, error) {
 			return err
 		}
 
+		// Fix manifest reference in each package
+		for _, pkg := range manifest.Packages {
+			pkg.Manifest = &manifest
+		}
+
 		manifests = append(manifests, &manifest)
 		return nil
 	})
