@@ -12,7 +12,7 @@ type WorkQueueItem interface {
 
 type WorkQueueFn[T WorkQueueItem] func(q *WorkQueue[T], item T) error
 
-type WorkQueueCallbackOnItemFn[T WorkQueueItem] func(q *WorkQueue[T], item T) error
+type WorkQueueCallbackOnItemFn[T WorkQueueItem] func(q *WorkQueue[T], item T)
 
 type WorkQueueCallbacks[T WorkQueueItem] struct {
 	OnAdd  WorkQueueCallbackOnItemFn[T]

@@ -195,6 +195,12 @@ func (s *packageManifestScanner) enrichManifest(manifest *models.PackageManifest
 	q := utils.NewWorkQueue[*models.Package](100000,
 		s.config.ConcurrentAnalyzer,
 		s.packageEnrichWorkQueueHandler(manifest))
+
+	q.WithCallbacks(utils.WorkQueueCallbacks[*models.Package]{
+		OnAdd:  func(q *utils.WorkQueue[*models.Package], item *models.Package) {},
+		OnDone: func(q *utils.WorkQueue[*models.Package], item *models.Package) {},
+	})
+
 	q.Start()
 
 	for _, pkg := range manifest.Packages {
