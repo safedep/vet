@@ -12,6 +12,13 @@ type WorkQueueItem interface {
 
 type WorkQueueFn[T WorkQueueItem] func(q *WorkQueue[T], item T) error
 
+type WorkQueueCallbackOnItemFn[T WorkQueueItem] func(q *WorkQueue[T], item T) error
+
+type WorkQueueCallbacks[T WorkQueueItem] struct {
+	OnAdd  WorkQueueCallbackOnItemFn[T]
+	OnDone WorkQueueCallbackOnItemFn[T]
+}
+
 type WorkQueue[T WorkQueueItem] struct {
 	done        chan bool
 	m           sync.Mutex
@@ -20,6 +27,7 @@ type WorkQueue[T WorkQueueItem] struct {
 	handler     WorkQueueFn[T]
 	status      sync.Map
 	items       chan T
+	callbacks   WorkQueueCallbacks[T]
 }
 
 func NewWorkQueue[T WorkQueueItem](bufferSize int, concurrency int,
@@ -30,6 +38,10 @@ func NewWorkQueue[T WorkQueueItem](bufferSize int, concurrency int,
 		items:       make(chan T, bufferSize),
 		done:        make(chan bool),
 	}
+}
+
+func (q *WorkQueue[T]) WithCallbacks(callbacks WorkQueueCallbacks[T]) {
+	q.callbacks = callbacks
 }
 
 func (q *WorkQueue[T]) Start() {
@@ -46,6 +58,7 @@ func (q *WorkQueue[T]) Start() {
 					}
 
 					q.wg.Done()
+					q.dispatchOnDone(item)
 				}
 			}
 		}()
@@ -69,5 +82,19 @@ func (q *WorkQueue[T]) Add(item T) bool {
 	q.wg.Add(1)
 
 	q.items <- item
+	q.dispatchOnAdd(item)
+
 	return true
+}
+
+func (q *WorkQueue[T]) dispatchOnAdd(item T) {
+	if q.callbacks.OnAdd != nil {
+		q.callbacks.OnAdd(q, item)
+	}
+}
+
+func (q *WorkQueue[T]) dispatchOnDone(item T) {
+	if q.callbacks.OnDone != nil {
+		q.callbacks.OnDone(q, item)
+	}
 }

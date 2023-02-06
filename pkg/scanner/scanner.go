@@ -231,7 +231,7 @@ func (s *packageManifestScanner) packageDependencyHandler(pm *models.PackageMani
 			return nil
 		}
 
-		logger.Debugf("Adding transitive dependency %s/%v to work queue",
+		logger.Debugf("Adding transitive dependency %s/%s to work queue",
 			pkg.PackageDetails.Name, pkg.PackageDetails.Version)
 
 		if q.Add(pkg) {
