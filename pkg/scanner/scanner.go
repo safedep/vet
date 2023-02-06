@@ -22,6 +22,7 @@ type packageManifestScanner struct {
 	analyzers []analyzer.Analyzer
 	reporters []reporter.Reporter
 
+	callbacks   ScannerCallbacks
 	failOnError error
 }
 
@@ -79,6 +80,8 @@ func (s *packageManifestScanner) ScanDumpDirectory(dir string) error {
 }
 
 func (s *packageManifestScanner) scanManifests(manifests []*models.PackageManifest) error {
+	s.dispatchOnStart()
+
 	// Start the scan phases per manifest
 	for _, manifest := range manifests {
 		logger.Infof("Analysing %s as %s ecosystem with %d packages", manifest.Path,
@@ -110,6 +113,8 @@ func (s *packageManifestScanner) scanManifests(manifests []*models.PackageManife
 				manifest.Ecosystem, manifest.Path, err)
 		}
 	}
+
+	s.dispatchBeforeFinish()
 
 	// Signal analyzers and reporters to finish anything pending
 	s.finishAnalyzers()

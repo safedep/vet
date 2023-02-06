@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/safedep/dry/utils"
+	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/parser"
 	"github.com/safedep/vet/pkg/reporter"
@@ -152,6 +153,15 @@ func internalStartScan() error {
 		TransitiveDepth:    transitiveDepth,
 		ConcurrentAnalyzer: concurrency,
 	}, enrichers, analyzers, reporters)
+
+	pmScanner.WithCallbacks(scanner.ScannerCallbacks{
+		OnStart: func() {
+			ui.StartSpinner("Scanning")
+		},
+		BeforeFinish: func() {
+			ui.StopSpinner()
+		},
+	})
 
 	redirectLogToFile(logFile)
 
