@@ -62,14 +62,14 @@ expression based filtering and policy evaluation.
 Find dependencies that seems not very popular
 
 ```bash
-vet scan --lockfiles /path/to/pom.xml --report-console=false \
+vet scan --lockfiles /path/to/pom.xml --report-summary=false \
     --filter='projects.exists(x, x.stars < 10)'
 ```
 
 Find dependencies with a critical vulnerability
 
 ```bash
-vet scan --lockfiles /path/to/pom.xml --report-console=false \
+vet scan --lockfiles /path/to/pom.xml --report-summary=false \
     --filter='vulns.critical.exists_one(x, true)'
 ```
 
