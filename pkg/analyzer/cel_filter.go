@@ -30,7 +30,7 @@ const (
 type celFilterAnalyzer struct {
 	program cel.Program
 
-	packages []*models.Package
+	packages map[string]*models.Package
 
 	stat struct {
 		manifests int
@@ -65,7 +65,7 @@ func NewCelFilterAnalyzer(filter string) (Analyzer, error) {
 	}
 
 	return &celFilterAnalyzer{program: prog,
-		packages: []*models.Package{},
+		packages: make(map[string]*models.Package),
 	}, nil
 }
 
@@ -115,8 +115,14 @@ func (f *celFilterAnalyzer) Analyze(manifest *models.PackageManifest,
 
 		if (reflect.TypeOf(out).Kind() == reflect.Bool) &&
 			(reflect.ValueOf(out).Bool()) {
+
+			// Avoid duplicates added to the table
+			if _, ok := f.packages[pkg.Id()]; ok {
+				continue
+			}
+
 			f.stat.matched += 1
-			f.packages = append(f.packages, pkg)
+			f.packages[pkg.Id()] = pkg
 		}
 	}
 
@@ -139,7 +145,7 @@ func (f *celFilterAnalyzer) Finish() error {
 	}
 
 	fmt.Printf("%s\n", text.Bold.Sprint("Filter evaluated with ",
-		f.stat.matched, " out of ", f.stat.packages, " matched and ",
+		f.stat.matched, " out of ", f.stat.packages, " uniquely matched and ",
 		f.stat.err, " error(s) ", "across ", f.stat.manifests,
 		" manifest(s)"))
 
