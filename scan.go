@@ -5,7 +5,9 @@ import (
 	"os"
 
 	"github.com/safedep/dry/utils"
+	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/analyzer"
+	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/parser"
 	"github.com/safedep/vet/pkg/reporter"
 	"github.com/safedep/vet/pkg/scanner"
@@ -25,6 +27,7 @@ var (
 	markdownReportPath   string
 	consoleReport        bool
 	summaryReport        bool
+	silentScan           bool
 )
 
 func newScanCommand() *cobra.Command {
@@ -42,6 +45,8 @@ func newScanCommand() *cobra.Command {
 		panic(err)
 	}
 
+	cmd.Flags().BoolVarP(&silentScan, "silent", "s", false,
+		"Silent scan to prevent rendering UI")
 	cmd.Flags().StringVarP(&baseDirectory, "directory", "D", wd,
 		"The directory to scan for lockfiles")
 	cmd.Flags().StringArrayVarP(&lockfiles, "lockfiles", "L", []string{},
@@ -153,7 +158,40 @@ func internalStartScan() error {
 		ConcurrentAnalyzer: concurrency,
 	}, enrichers, analyzers, reporters)
 
+	// Redirect log to files to create space for UI rendering
 	redirectLogToFile(logFile)
+
+	// Trackers to handle UI
+	var packageManifestTracker any
+	var packageTracker any
+
+	pmScanner.WithCallbacks(scanner.ScannerCallbacks{
+		OnStart: func(manifests []*models.PackageManifest) {
+			if !silentScan {
+				ui.StartProgressWriter()
+			}
+
+			var tm, tp int
+			for _, m := range manifests {
+				tm += 1
+				tp += len(m.Packages)
+			}
+
+			packageManifestTracker = ui.TrackProgress("Scanning manifests", tm)
+			packageTracker = ui.TrackProgress("Scanning packages", tp)
+		},
+		OnDoneManifest: func(manifest *models.PackageManifest) {
+			ui.IncrementProgress(packageManifestTracker, 1)
+		},
+		OnDonePackage: func(pkg *models.Package) {
+			ui.IncrementProgress(packageTracker, 1)
+		},
+		BeforeFinish: func() {
+			ui.MarkTrackerAsDone(packageManifestTracker)
+			ui.MarkTrackerAsDone(packageTracker)
+			ui.StopProgressWriter()
+		},
+	})
 
 	var err error
 	if len(lockfiles) > 0 {

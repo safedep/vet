@@ -22,6 +22,7 @@ type packageManifestScanner struct {
 	analyzers []analyzer.Analyzer
 	reporters []reporter.Reporter
 
+	callbacks   ScannerCallbacks
 	failOnError error
 }
 
@@ -79,10 +80,14 @@ func (s *packageManifestScanner) ScanDumpDirectory(dir string) error {
 }
 
 func (s *packageManifestScanner) scanManifests(manifests []*models.PackageManifest) error {
+	s.dispatchOnStart(manifests)
+
 	// Start the scan phases per manifest
 	for _, manifest := range manifests {
 		logger.Infof("Analysing %s as %s ecosystem with %d packages", manifest.Path,
 			manifest.Ecosystem, len(manifest.Packages))
+
+		s.dispatchOnStartManifest(manifest)
 
 		// Stop scan if there is a pendin error
 		if s.hasError() {
@@ -109,12 +114,17 @@ func (s *packageManifestScanner) scanManifests(manifests []*models.PackageManife
 			logger.Errorf("Failed to report %s manifest %s : %v",
 				manifest.Ecosystem, manifest.Path, err)
 		}
+
+		s.dispatchOnDoneManifest(manifest)
 	}
+
+	s.dispatchBeforeFinish()
 
 	// Signal analyzers and reporters to finish anything pending
 	s.finishAnalyzers()
 	s.finishReporting()
 
+	s.dispatchOnStop(s.error())
 	return s.error()
 }
 
@@ -195,6 +205,16 @@ func (s *packageManifestScanner) enrichManifest(manifest *models.PackageManifest
 	q := utils.NewWorkQueue[*models.Package](100000,
 		s.config.ConcurrentAnalyzer,
 		s.packageEnrichWorkQueueHandler(manifest))
+
+	q.WithCallbacks(utils.WorkQueueCallbacks[*models.Package]{
+		OnAdd: func(q *utils.WorkQueue[*models.Package], item *models.Package) {
+			s.dispatchOnStartPackage(item)
+		},
+		OnDone: func(q *utils.WorkQueue[*models.Package], item *models.Package) {
+			s.dispatchOnDonePackage(item)
+		},
+	})
+
 	q.Start()
 
 	for _, pkg := range manifest.Packages {
@@ -231,7 +251,7 @@ func (s *packageManifestScanner) packageDependencyHandler(pm *models.PackageMani
 			return nil
 		}
 
-		logger.Debugf("Adding transitive dependency %s/%v to work queue",
+		logger.Debugf("Adding transitive dependency %s/%s to work queue",
 			pkg.PackageDetails.Name, pkg.PackageDetails.Version)
 
 		if q.Add(pkg) {

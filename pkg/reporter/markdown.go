@@ -1,6 +1,7 @@
 package reporter
 
 import (
+	"fmt"
 	"os"
 	"sync"
 	"text/template"
@@ -20,26 +21,32 @@ type MarkdownReportingConfig struct {
 	Path string
 }
 
-type markdownTemplateInput struct {
-	Manifests      []*models.PackageManifest
-	AnalyzerEvents []*analyzer.AnalyzerEvent
-	PolicyEvents   []*policy.PolicyEvent
+type markdownTemplateInputRemediation struct {
+	Pkg                *models.Package
+	PkgRemediationName string
+	Score              int
 }
 
+type markdownTemplateInput struct {
+	Remediations   []markdownTemplateInputRemediation
+	ManifestsCount int
+	PackagesCount  int
+}
+
+// Markdown reporter is built on top of summary reporter to
+// provide extended visibility
 type markdownReportGenerator struct {
-	m             sync.Mutex
-	config        MarkdownReportingConfig
-	templateInput markdownTemplateInput
+	m               sync.Mutex
+	config          MarkdownReportingConfig
+	summaryReporter Reporter
+	templateInput   markdownTemplateInput
 }
 
 func NewMarkdownReportGenerator(config MarkdownReportingConfig) (Reporter, error) {
+	summaryReporter, _ := NewSummaryReporter()
 	return &markdownReportGenerator{
-		config: config,
-		templateInput: markdownTemplateInput{
-			Manifests:      make([]*models.PackageManifest, 0),
-			AnalyzerEvents: make([]*analyzer.AnalyzerEvent, 0),
-			PolicyEvents:   make([]*policy.PolicyEvent, 0),
-		},
+		config:          config,
+		summaryReporter: summaryReporter,
 	}, nil
 }
 
@@ -48,25 +55,33 @@ func (r *markdownReportGenerator) Name() string {
 }
 
 func (r *markdownReportGenerator) AddManifest(manifest *models.PackageManifest) {
-	r.m.Lock()
-	defer r.m.Unlock()
-	r.templateInput.Manifests = append(r.templateInput.Manifests, manifest)
+	r.summaryReporter.AddManifest(manifest)
 }
 
-func (r *markdownReportGenerator) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
-	r.m.Lock()
-	defer r.m.Unlock()
-	r.templateInput.AnalyzerEvents = append(r.templateInput.AnalyzerEvents, event)
-}
+func (r *markdownReportGenerator) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {}
 
-func (r *markdownReportGenerator) AddPolicyEvent(event *policy.PolicyEvent) {
-	r.m.Lock()
-	defer r.m.Unlock()
-	r.templateInput.PolicyEvents = append(r.templateInput.PolicyEvents, event)
-}
+func (r *markdownReportGenerator) AddPolicyEvent(event *policy.PolicyEvent) {}
 
 func (r *markdownReportGenerator) Finish() error {
 	logger.Infof("Generating consolidated markdown report: %s", r.config.Path)
+
+	var sr *summaryReporter
+	var ok bool
+
+	if sr, ok = r.summaryReporter.(*summaryReporter); !ok {
+		return fmt.Errorf("failed to duck type Reporter to summaryReporter")
+	}
+
+	sortedList := sr.sortedRemediations()
+	remediations := []markdownTemplateInputRemediation{}
+
+	for _, s := range sortedList {
+		remediations = append(remediations, markdownTemplateInputRemediation{
+			Pkg:                s.pkg,
+			PkgRemediationName: sr.packageNameForRemediationAdvice(s.pkg),
+			Score:              s.score,
+		})
+	}
 
 	tmpl, err := template.New("markdown").Parse(markdownTemplate)
 	if err != nil {
@@ -79,5 +94,9 @@ func (r *markdownReportGenerator) Finish() error {
 	}
 
 	defer file.Close()
-	return tmpl.Execute(file, r.templateInput)
+	return tmpl.Execute(file, markdownTemplateInput{
+		Remediations:   remediations,
+		ManifestsCount: sr.summary.manifests,
+		PackagesCount:  sr.summary.packages,
+	})
 }

@@ -193,7 +193,7 @@ func (r *summaryReporter) Finish() error {
 	return nil
 }
 
-func (r *summaryReporter) renderRemediationAdvice() {
+func (r *summaryReporter) sortedRemediations() []*summaryReporterRemediationData {
 	sortedPackages := []*summaryReporterRemediationData{}
 	for _, value := range r.remediationScores {
 		i := sort.Search(len(sortedPackages), func(i int) bool {
@@ -208,6 +208,12 @@ func (r *summaryReporter) renderRemediationAdvice() {
 		sortedPackages[i] = value
 	}
 
+	return sortedPackages
+}
+
+func (r *summaryReporter) renderRemediationAdvice() {
+	sortedPackages := r.sortedRemediations()
+
 	fmt.Println(text.Bold.Sprint("Consider upgrading the following libraries for maximum impact:"))
 	fmt.Println()
 
@@ -218,7 +224,7 @@ func (r *summaryReporter) renderRemediationAdvice() {
 	tbl.AppendHeader(table.Row{"Package", "Update To", "Risk Score"})
 	for idx, sp := range sortedPackages {
 		if idx >= summaryReportMaxUpgradeAdvice {
-			continue
+			break
 		}
 
 		insight := utils.SafelyGetValue(sp.pkg.Insights)
