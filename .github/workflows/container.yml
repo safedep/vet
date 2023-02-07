@@ -2,7 +2,8 @@ name: Container Image Releaser
 
 on:
   push:
-    branches: [ main ]
+    tags:
+      - "*"
 
 env:
   REGISTRY: ghcr.io
