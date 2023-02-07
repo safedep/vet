@@ -63,6 +63,7 @@ func StartProgressWriter() {
 func StopProgressWriter() {
 	if progressWriter != nil {
 		progressWriter.Stop()
+		time.Sleep(1 * time.Second)
 	}
 }
 

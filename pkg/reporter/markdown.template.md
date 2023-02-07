@@ -2,29 +2,18 @@
 
 ## Summary
 
-* {{ len .Manifests }} manifest(s) were scanned
-* {{ len .AnalyzerEvents }} analyzer event(s) were generated
-* {{ len .PolicyEvents }} policy violation(s) were observed
+* {{ .ManifestsCount }} manifest(s) were scanned
+* {{ .PackagesCount }} packages were analyzed
 
-## Details
+## Remediation Advice
 
-The scan was performed on following manifests:
-{{ range $m := .Manifests }}
-* [{{ $m.Ecosystem }}] {{ $m.Path }}
-{{ end }}
+The table below lists advice for dependency upgrade to mitigate one or more
+issues identified during the scan.
 
-## Packages
-
-{{ range $m := .Manifests }}
-### [{{ $m.Ecosystem }}] {{ $m.Path }}
-{{ range $p := $m.Packages }}
-#### {{ $p.PackageDetails.Name }} / {{ $p.PackageDetails.Version }}
-
-{{ if and $p.Insights $p.Insights.Vulnerabilities }}
-* {{ len *$p.Insights.Vulnerabilites }} vulnerabilities were identified
-{{ end }}
-
-{{ end }}
-{{ end }}
+| Package | Update Version | Risk Score | Issues |
+|---------|----------------|------------|--------|
+{{- range .Remediations }}
+| {{ .PkgRemediationName }} | {{ .Pkg.Insights.PackageCurrentVersion }} | {{ .Score }} | - |
+{{- end }}
 
 

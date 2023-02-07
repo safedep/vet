@@ -14,6 +14,7 @@ var (
 	queryLoadDirectory       string
 	queryEnableConsoleReport bool
 	queryEnableSummaryReport bool
+	queryMarkdownReportPath  string
 )
 
 func newQueryCommand() *cobra.Command {
@@ -36,7 +37,8 @@ func newQueryCommand() *cobra.Command {
 		"Minimal summary of package manifest")
 	cmd.Flags().BoolVarP(&queryEnableSummaryReport, "report-summary", "", false,
 		"Show an actionable summary based on scan data")
-
+	cmd.Flags().StringVarP(&queryMarkdownReportPath, "report-markdown", "", "",
+		"Generate markdown report to file")
 	return cmd
 }
 
@@ -70,6 +72,18 @@ func internalStartQuery() error {
 
 	if queryEnableSummaryReport {
 		rp, err := reporter.NewSummaryReporter()
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if !utils.IsEmptyString(queryMarkdownReportPath) {
+		rp, err := reporter.NewMarkdownReportGenerator(reporter.MarkdownReportingConfig{
+			Path: queryMarkdownReportPath,
+		})
+
 		if err != nil {
 			return err
 		}
