@@ -1,0 +1,45 @@
+name: Container Image Releaser
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    if: "!contains(github.event.commits[0].message, '[noci]')"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+        fetch-depth: 0
+
+    - name: Registry Login
+      uses: docker/login-action@v1
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup QEMU
+      uses: docker/setup-qemu-action@v2
+
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Build and Push Container Image
+      run: |
+        docker buildx build --push --platform linux/amd64 \
+        -t $REGISTRY/$IMAGE_NAME:latest \
+        .
+
+
