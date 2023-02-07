@@ -100,6 +100,22 @@ Look at `api/insights-v1.yml`. It contains the contract expected for Insights
 API. You can perhaps consider rolling out your own to avoid dependency with our
 backend.
 
+### Something is wrong! How do I debug this thing?
+
+Run without the eye candy UI and enable log to file or to `stdout`.
+
+Log to `stdout`:
+
+```bash
+vet scan -D /path/to/repo -s -l- -v
+```
+
+Log to file:
+
+```bash
+vet scan -D /path/to/repo -l /tmp/vet.log -v
+```
+
 ## References
 
 * https://github.com/google/osv-scanner
