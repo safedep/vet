@@ -27,8 +27,15 @@ type markdownTemplateInputRemediation struct {
 	Score              int
 }
 
+type markdownTemplateInputResultSummary struct {
+	Ecosystem              string
+	PackageCount           int
+	PackageWithIssuesCount int
+}
+
 type markdownTemplateInput struct {
-	Remediations   []markdownTemplateInputRemediation
+	Remediations   map[string][]markdownTemplateInputRemediation
+	Summary        map[string]markdownTemplateInputResultSummary
 	ManifestsCount int
 	PackagesCount  int
 }
@@ -73,14 +80,27 @@ func (r *markdownReportGenerator) Finish() error {
 	}
 
 	sortedList := sr.sortedRemediations()
-	remediations := []markdownTemplateInputRemediation{}
+	remediations := map[string][]markdownTemplateInputRemediation{}
+	summaries := map[string]markdownTemplateInputResultSummary{}
 
 	for _, s := range sortedList {
-		remediations = append(remediations, markdownTemplateInputRemediation{
+		mp := s.pkg.Manifest.Path
+		remediations[mp] = append(remediations[mp], markdownTemplateInputRemediation{
 			Pkg:                s.pkg,
 			PkgRemediationName: sr.packageNameForRemediationAdvice(s.pkg),
 			Score:              s.score,
 		})
+
+		if _, ok := summaries[mp]; !ok {
+			summaries[mp] = markdownTemplateInputResultSummary{
+				Ecosystem:    s.pkg.Manifest.Ecosystem,
+				PackageCount: len(s.pkg.Manifest.Packages),
+			}
+		} else {
+			s := summaries[mp]
+			s.PackageWithIssuesCount += 1
+			summaries[mp] = s
+		}
 	}
 
 	tmpl, err := template.New("markdown").Parse(markdownTemplate)
@@ -98,5 +118,6 @@ func (r *markdownReportGenerator) Finish() error {
 		Remediations:   remediations,
 		ManifestsCount: sr.summary.manifests,
 		PackagesCount:  sr.summary.packages,
+		Summary:        summaries,
 	})
 }
