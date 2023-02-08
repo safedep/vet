@@ -9,7 +9,7 @@
 
 ## Results
 
-| Manifest | Ecosystem | Packages | :x: Packages with Issues |
+| Manifest | Ecosystem | Packages | Need Update |
 |----------|-----------|----------|--------------------------|
 {{- range $key, $value := .Summary }}
 | {{ $key }} | {{ $value.Ecosystem }} | {{ $value.PackageCount }} | {{ $value.PackageWithIssuesCount }} |
