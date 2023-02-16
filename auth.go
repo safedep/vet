@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"syscall"
@@ -22,9 +23,7 @@ func newAuthCommand() *cobra.Command {
 		Use:   "auth",
 		Short: "Configure and verify Insights API authentication",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Printf("You must choose an appropriate command: configure, verify\n")
-			os.Exit(1)
-			return nil
+			return errors.New("a valid sub-command is required")
 		},
 	}
 
