@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/safedep/dry/utils"
+	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/spf13/cobra"
 )
@@ -68,7 +69,7 @@ func main() {
 func printBanner() {
 	bRet, err := strconv.ParseBool(os.Getenv("VET_DISABLE_BANNER"))
 	if (err != nil) || (!bRet) {
-		fmt.Print(banner)
+		ui.PrintBanner(banner)
 	}
 }
 
