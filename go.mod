@@ -8,7 +8,7 @@ require (
 	github.com/google/cel-go v0.13.0
 	github.com/google/osv-scanner v1.1.0
 	github.com/jedib0t/go-pretty/v6 v6.4.4
-	github.com/safedep/dry v0.0.0-20230203134955-367834d99b1c
+	github.com/safedep/dry v0.0.0-20230216112435-385c68e56634
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.1
