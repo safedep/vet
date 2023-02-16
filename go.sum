@@ -45,6 +45,8 @@ github.com/rivo/uniseg v0.2.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJ
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/safedep/dry v0.0.0-20230203134955-367834d99b1c h1:zbhTBT463mwcIuCq89GT8pFTU8UtGalBWFaa/wsgVXA=
 github.com/safedep/dry v0.0.0-20230203134955-367834d99b1c/go.mod h1:yZ8R6kv4pR0yertVoxgBmnN4bvHT8TLubE7aahpWDDk=
+github.com/safedep/dry v0.0.0-20230216112435-385c68e56634 h1:JRIzwT2Xo7TFH2O1gMJpHS5Fn6jDJdF+/+2JdyhzI3A=
+github.com/safedep/dry v0.0.0-20230216112435-385c68e56634/go.mod h1:yZ8R6kv4pR0yertVoxgBmnN4bvHT8TLubE7aahpWDDk=
 github.com/sirupsen/logrus v1.9.0 h1:trlNQbNUG3OdDrDil03MCb1H2o9nJ1x4/5LYw7byDE0=
 github.com/sirupsen/logrus v1.9.0/go.mod h1:naHLuLoDiP4jHNo9R0sCBMtWGeIprob74mVsIT4qYEQ=
 github.com/spf13/cobra v1.6.1 h1:o94oiPyS4KD1mPy2fmcYYHHfCxLqYjJOhGsCHFZtEzA=

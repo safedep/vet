@@ -85,6 +85,8 @@ func (pw *parserWrapper) Ecosystem() string {
 		return models.EcosystemPub
 	case "requirements.txt":
 		return models.EcosystemPyPI
+	case "Pipfile.lock":
+		return models.EcosystemPyPI
 	case "yarn.lock":
 		return models.EcosystemNpm
 	case "gradle.lockfile":

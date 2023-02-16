@@ -26,12 +26,17 @@ const (
 	summaryWeightUnpopular    = 2
 	summaryWeightMajorDrift   = 2
 
+	tagVuln      = "vulnerabiity"
+	tagUnpopular = "low popularity"
+	tagDrift     = "drift"
+
 	summaryReportMaxUpgradeAdvice = 5
 )
 
 type summaryReporterRemediationData struct {
 	pkg   *models.Package
 	score int
+	tags  []string
 }
 
 type summaryReporter struct {
@@ -100,7 +105,7 @@ func (r *summaryReporter) processForVersionDrift(pkg *models.Package) {
 	driftType, _ := semver.Diff(version, latestVersion)
 	if driftType.IsMajor() {
 		r.summary.metrics.drifts += 1
-		r.addPkgForRemediationAdvice(pkg, summaryWeightMajorDrift)
+		r.addPkgForRemediationAdvice(pkg, summaryWeightMajorDrift, tagDrift)
 	}
 }
 
@@ -121,7 +126,7 @@ func (r *summaryReporter) processForPopularity(pkg *models.Package) {
 
 		if (strings.EqualFold(projectType, "github")) && (starsCount < 10) {
 			r.summary.metrics.unpopular += 1
-			r.addPkgForRemediationAdvice(pkg, summaryWeightUnpopular)
+			r.addPkgForRemediationAdvice(pkg, summaryWeightUnpopular, tagUnpopular)
 		}
 	}
 }
@@ -141,33 +146,39 @@ func (r *summaryReporter) processForVulns(pkg *models.Package) {
 			switch risk {
 			case insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL:
 				r.summary.vulns.critical += 1
-				r.addPkgForRemediationAdvice(pkg, summaryWeightCriticalVuln)
+				r.addPkgForRemediationAdvice(pkg, summaryWeightCriticalVuln, tagVuln)
 				break
 			case insightapi.PackageVulnerabilitySeveritiesRiskHIGH:
 				r.summary.vulns.high += 1
-				r.addPkgForRemediationAdvice(pkg, summaryWeightHighVuln)
+				r.addPkgForRemediationAdvice(pkg, summaryWeightHighVuln, tagVuln)
 				break
 			case insightapi.PackageVulnerabilitySeveritiesRiskMEDIUM:
 				r.summary.vulns.medium += 1
-				r.addPkgForRemediationAdvice(pkg, summaryWeightMediumVuln)
+				r.addPkgForRemediationAdvice(pkg, summaryWeightMediumVuln, tagVuln)
 				break
 			case insightapi.PackageVulnerabilitySeveritiesRiskLOW:
 				r.summary.vulns.low += 1
-				r.addPkgForRemediationAdvice(pkg, summaryWeightLowVuln)
+				r.addPkgForRemediationAdvice(pkg, summaryWeightLowVuln, tagVuln)
 				break
 			}
 		}
 	}
 }
 
-func (r *summaryReporter) addPkgForRemediationAdvice(pkg *models.Package, weight int) {
+func (r *summaryReporter) addPkgForRemediationAdvice(pkg *models.Package,
+	weight int, tag string) {
 	if _, ok := r.remediationScores[pkg.Id()]; !ok {
 		r.remediationScores[pkg.Id()] = &summaryReporterRemediationData{
-			pkg: pkg,
+			pkg:  pkg,
+			tags: []string{},
 		}
 	}
 
 	r.remediationScores[pkg.Id()].score += weight
+
+	if utils.FindInSlice(r.remediationScores[pkg.Id()].tags, tag) == -1 {
+		r.remediationScores[pkg.Id()].tags = append(r.remediationScores[pkg.Id()].tags, tag)
+	}
 }
 
 func (r *summaryReporter) Finish() error {
@@ -181,11 +192,10 @@ func (r *summaryReporter) Finish() error {
 	fmt.Println()
 	fmt.Println(text.Faint.Sprint(summaryListPrependText, r.manifestCountStatement()))
 	fmt.Println()
+
 	r.renderRemediationAdvice()
 	fmt.Println()
-	fmt.Println("Install as a security gate in CI for incremental scan and blocking risky dependencies")
-	fmt.Println("Run `vet ci` to generate CI scripts")
-	fmt.Println()
+
 	fmt.Println("Run with `vet --filter=\"...\"` for custom filters to identify risky libraries")
 	fmt.Println()
 	fmt.Println("For more details", text.Bold.Sprint("https://github.com/safedep/vet"))
@@ -221,7 +231,7 @@ func (r *summaryReporter) renderRemediationAdvice() {
 	tbl.SetOutputMirror(os.Stdout)
 	tbl.SetStyle(table.StyleLight)
 
-	tbl.AppendHeader(table.Row{"Package", "Update To", "Risk Score"})
+	tbl.AppendHeader(table.Row{"Package", "Update To", "Impact"})
 	for idx, sp := range sortedPackages {
 		if idx >= summaryReportMaxUpgradeAdvice {
 			break
@@ -234,6 +244,17 @@ func (r *summaryReporter) renderRemediationAdvice() {
 			utils.SafelyGetValue(insight.PackageCurrentVersion),
 			sp.score,
 		})
+
+		tagText := ""
+		for _, t := range sp.tags {
+			tagText += text.BgMagenta.Sprint(" "+t+" ") + " "
+		}
+
+		tbl.AppendRow(table.Row{
+			tagText, "", "",
+		})
+
+		tbl.AppendSeparator()
 	}
 
 	tbl.Render()
@@ -255,7 +276,7 @@ func (r *summaryReporter) packageNameForRemediationAdvice(pkg *models.Package) s
 }
 
 func (r *summaryReporter) vulnSummaryStatement() string {
-	return fmt.Sprintf("%d critical, %d high and %d other vulnerabilities were identifier",
+	return fmt.Sprintf("%d critical, %d high and %d other vulnerabilities were identified",
 		r.summary.vulns.critical, r.summary.vulns.high,
 		r.summary.vulns.medium+r.summary.vulns.low)
 }
