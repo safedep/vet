@@ -181,8 +181,10 @@ func (r *summaryReporter) Finish() error {
 	fmt.Println()
 	fmt.Println(text.Faint.Sprint(summaryListPrependText, r.manifestCountStatement()))
 	fmt.Println()
+
 	r.renderRemediationAdvice()
 	fmt.Println()
+
 	fmt.Println("Install as a security gate in CI for incremental scan and blocking risky dependencies")
 	fmt.Println("Run `vet ci` to generate CI scripts")
 	fmt.Println()
@@ -221,7 +223,7 @@ func (r *summaryReporter) renderRemediationAdvice() {
 	tbl.SetOutputMirror(os.Stdout)
 	tbl.SetStyle(table.StyleLight)
 
-	tbl.AppendHeader(table.Row{"Package", "Update To", "Risk Score"})
+	tbl.AppendHeader(table.Row{"Package", "Update To", "Impact"})
 	for idx, sp := range sortedPackages {
 		if idx >= summaryReportMaxUpgradeAdvice {
 			break
@@ -255,7 +257,7 @@ func (r *summaryReporter) packageNameForRemediationAdvice(pkg *models.Package) s
 }
 
 func (r *summaryReporter) vulnSummaryStatement() string {
-	return fmt.Sprintf("%d critical, %d high and %d other vulnerabilities were identifier",
+	return fmt.Sprintf("%d critical, %d high and %d other vulnerabilities were identified",
 		r.summary.vulns.critical, r.summary.vulns.high,
 		r.summary.vulns.medium+r.summary.vulns.low)
 }
