@@ -12,6 +12,8 @@ vet scan -D /path/to/repo \
     --filter 'licenses.exists(p, p == "MIT")'
 ```
 
+The scan will list only packages that use the `MIT` license.
+
 ## Input
 
 Filter expressions work on packages (aka. dependencies) and evaluates to
@@ -69,7 +71,7 @@ vet query --from /tmp/dump --report-summary
 vet query --from /tmp/dump --filter 'scorecard.score.Maintained == 0'
 ```
 
-## Gating with Filters
+## Security Gating with Filters
 
 A simple security gate (in CI) can be achieved using the filters. The
 `--filter-fail` argument tells the `Filter Analyzer` module to fail the command
@@ -89,6 +91,62 @@ Subsequently, the command fails with `-1` exit code in case of match
 ➜  vet git:(develop) ✗ echo $?
 255
 ```
+
+## Filter Suite
+
+A single filter is useful for identification of packages that meet some
+specific criteria. While it helps solve various use-cases, it is not entirely
+suitable for `security gating` where multiple filters may be required to
+express an organization's acceptable OSS usage policy.
+
+For example, an organization may define a filter to deny certain type of
+packages:
+
+1. Any package that has a high or critical vulnerability
+2. Any package that does not match acceptable OSS licenses
+3. Any package that has a low [OpenSSF scorecard score](https://github.com/ossf/scorecard)
+
+To express this policy, multiple filters are needed such as:
+
+```
+vulns.critical.exists(p, true) ||
+
+licenses.exists(p, 
+    (p != "MIT") && (p != "Apache-2.0")
+) ||
+
+(scorecard.scores.Maintained == 0)
+```
+
+To solve this problem, we introduce the concept of `Filter Suite`. It can be
+represented as an YAML file containing multiple filters to match:
+
+```yaml
+name: Generic Filter Suite
+description: Example filter suite with canned filters
+filters:
+  - name: critical-vuln
+    value: |
+      vulns.critical.exists(p, true)
+  - name: safe-licenses
+    value: |
+      licenses.exists(p, (p != "MIT") && (p != "Apache-2.0"))
+  - name: ossf-maintained
+    value: |
+      scorecard.scores.Maintained == 0
+```
+
+A scan or query operation can be invoked using the filter suite:
+
+```bash
+vet scan -D /path/to/repo --filter-suite /path/to/filters.yml --filter-fail
+```
+
+The filter suite will be evaluated as:
+
+* Ordered list of filters as given in the suite file
+* Stop on first rule match for a given package
+* Stop on first evaluation error for a given package
 
 ## FAQ
 

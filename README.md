@@ -79,8 +79,8 @@ vet scan --lockfiles /path/to/pom.xml --report-summary=false \
 > Use filtering along with `query` command for offline slicing and dicing of
 > enriched package manifests. Read [filtering guide](docs/filtering.md)
 
-[Common Expressions Language](https://github.com/google/cel-spec) is used to
-evaluate filters on packages. Learn more about [filtering with vet](docs/filtering.md).
+
+Learn more about [filtering with vet](docs/filtering.md). 
 Look at [filter input spec](api/filter_input_spec.proto) on attributes
 available to the filter expression.
 
