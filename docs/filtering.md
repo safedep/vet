@@ -37,11 +37,11 @@ knowledge of CEL will help formulating queries.
 
 ### Example Queries
 
-| Description                                  | Query                                 |
-|----------------------------------------------|---------------------------------------|
-| Find packages with a critical vulnerability  | `vulns.critical.exists(x, true)`      |
-| Find unmaintained packages as per OpenSSF SC | `scorecard.score["Maintained"] == 0` |
-| Find packages with low stars                 | `projects.exists(x, x.stars < 10)`    |
+| Description                                  | Query                                |
+|----------------------------------------------|--------------------------------------|
+| Find packages with a critical vulnerability  | `vulns.critical.exists(x, true)`     |
+| Find unmaintained packages as per OpenSSF SC | `scorecard.scores.Maintained == 0`   |
+| Find packages with low stars                 | `projects.exists(x, x.stars < 10)`   |
 | Find packages with GPL-2.0 license           | `licenses.exists(x, x == "GPL-2.0")`
 
 Refer to [scorecard checks](https://github.com/ossf/scorecard#checks-1) for
