@@ -8,6 +8,9 @@ source dependencies and evaluate them against organizational policies.
 [![CodeQL](https://github.com/safedep/vet/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/safedep/vet/actions/workflows/codeql.yml)
 [![Scorecard supply-chain security](https://github.com/safedep/vet/actions/workflows/scorecard.yml/badge.svg)](https://github.com/safedep/vet/actions/workflows/scorecard.yml)
 
+## Demo
+
+[![asciicast](https://asciinema.org/a/I60aD2VtVsETQtIFsYTCewJZ3.svg)](https://asciinema.org/a/I60aD2VtVsETQtIFsYTCewJZ3)
 
 ## TL;DR
 
