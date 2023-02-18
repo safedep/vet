@@ -23,6 +23,7 @@ var (
 	concurrency          int
 	dumpJsonManifestDir  string
 	celFilterExpression  string
+	celFilterSuiteFile   string
 	celFilterFailOnMatch bool
 	markdownReportPath   string
 	consoleReport        bool
@@ -63,6 +64,8 @@ func newScanCommand() *cobra.Command {
 		"Dump enriched package manifests as JSON files to dir")
 	cmd.Flags().StringVarP(&celFilterExpression, "filter", "", "",
 		"Filter and print packages using CEL")
+	cmd.Flags().StringVarP(&celFilterSuiteFile, "filter-suite", "", "",
+		"Filter packages using CEL Filter Suite from file")
 	cmd.Flags().BoolVarP(&celFilterFailOnMatch, "filter-fail", "", false,
 		"Fail the scan if the filter match any package (security gate)")
 	cmd.Flags().StringVarP(&markdownReportPath, "report-markdown", "", "",
@@ -110,6 +113,16 @@ func internalStartScan() error {
 
 	if !utils.IsEmptyString(celFilterExpression) {
 		task, err := analyzer.NewCelFilterAnalyzer(celFilterExpression,
+			celFilterFailOnMatch)
+		if err != nil {
+			return err
+		}
+
+		analyzers = append(analyzers, task)
+	}
+
+	if !utils.IsEmptyString(celFilterSuiteFile) {
+		task, err := analyzer.NewCelFilterSuiteAnalyzer(celFilterSuiteFile,
 			celFilterFailOnMatch)
 		if err != nil {
 			return err

@@ -142,7 +142,6 @@ The filter suite will be evaluated as:
 
 * Ordered list of filters as given in the suite file
 * Stop on first rule match for a given package
-* Stop on first evaluation error for a given package
 
 ## FAQ
 

@@ -20,6 +20,7 @@ LABEL org.opencontainers.image.source=https://github.com/safedep/vet
 LABEL org.opencontainers.image.description="Open source software supply chain security tool"
 LABEL org.opencontainers.image.licenses=Apache-2.0
 
+COPY ./samples/ /vet/samples
 COPY --from=build /build/vet /usr/local/bin/vet
 
 USER nonroot:nonroot

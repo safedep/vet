@@ -84,9 +84,16 @@ Learn more about [filtering with vet](docs/filtering.md).
 Look at [filter input spec](api/filter_input_spec.proto) on attributes
 available to the filter expression.
 
-## Policy Evaluation
+### Using Filter Suite
 
-TODO
+Filter suites can be used to implement security gating in CI. [Example](samples/filter-suites/fs-generic.yml)
+file suite contains rules to enforce generic OSS consumption best practices.
+
+```bash
+vet scan -D /path/to/dir --filter-suite /path/to/suite.yml --filter-fail
+```
+
+Read more about filter suites in [filtering guide](docs/filtering.md)
 
 ## FAQ
 
