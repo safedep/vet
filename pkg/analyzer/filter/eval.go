@@ -37,12 +37,13 @@ type Evaluator interface {
 }
 
 type filterEvaluator struct {
-	name     string
-	env      *cel.Env
-	programs []*filterProgram
+	name        string
+	env         *cel.Env
+	programs    []*filterProgram
+	ignoreError bool
 }
 
-func NewEvaluator(name string) (Evaluator, error) {
+func NewEvaluator(name string, ignoreError bool) (Evaluator, error) {
 	env, err := cel.NewEnv(
 		cel.Variable(filterInputVarPkg, cel.DynType),
 		cel.Variable(filterInputVarVulns, cel.DynType),
@@ -57,9 +58,10 @@ func NewEvaluator(name string) (Evaluator, error) {
 	}
 
 	return &filterEvaluator{
-		name:     name,
-		env:      env,
-		programs: []*filterProgram{},
+		name:        name,
+		env:         env,
+		programs:    []*filterProgram{},
+		ignoreError: ignoreError,
 	}, nil
 }
 
@@ -108,6 +110,12 @@ func (f *filterEvaluator) EvalPackage(pkg *models.Package) (*filterEvaluationRes
 		})
 
 		if err != nil {
+			logger.Warnf("CEL evaluator error: %s", err.Error())
+
+			if f.ignoreError {
+				continue
+			}
+
 			return nil, err
 		}
 
@@ -119,7 +127,6 @@ func (f *filterEvaluator) EvalPackage(pkg *models.Package) (*filterEvaluationRes
 				program: prog,
 			}, nil
 		}
-
 	}
 
 	return &filterEvaluationResult{

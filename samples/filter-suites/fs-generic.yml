@@ -6,15 +6,17 @@ filters:
   - name: critical-or-high-vulns
     value: |
       vulns.critical.exists(p, true) || vulns.high.exists(p, true)
-  - name: ossf-best-practices
+  - name: low-popularity
     value: |
-      (scorecard.scores["Maintained"] == 0) ||
-      (scorecard.scores["Binary-Artifacts"] == 0) ||
-      (scorecard.scores["Branch-Protection"] == 0) ||
-      (scorecard.scores["Code-Review"] == 0) ||
-      (scorecard.scores["Dangerous-Workflow"] == 0)
+      projects.exists(p, (p.type == "GITHUB") && (p.stars < 10))
   - name: risky-oss-licenses
     value: |
       licenses.exists(p, p == "GPL-2.0") ||
       licenses.exists(p, p == "GPL-3.0")
+  - name: ossf-unmaintained
+    value: |
+      scorecard.scores["Maintained"] == 0
+  - name: ossf-dangerous-workflow
+    value: |
+      scorecard.scores["Dangerous-Workflow"] == 0
 

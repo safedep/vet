@@ -110,11 +110,7 @@ To express this policy, multiple filters are needed such as:
 
 ```
 vulns.critical.exists(p, true) ||
-
-licenses.exists(p, 
-    (p != "MIT") && (p != "Apache-2.0")
-) ||
-
+licenses.exists(p, (p != "MIT") && (p != "Apache-2.0")) ||
 (scorecard.scores.Maintained == 0)
 ```
 

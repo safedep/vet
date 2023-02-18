@@ -1,18 +1,26 @@
 package analyzer
 
 import (
+	"fmt"
 	"os"
 
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/filtersuite"
 	"github.com/safedep/vet/pkg/analyzer/filter"
 	"github.com/safedep/vet/pkg/models"
 )
 
+type celFilterMatchedPackage struct {
+	pkg        *models.Package
+	filterName string
+}
+
 type celFilterSuiteAnalyzer struct {
-	evaluator   filter.Evaluator
-	suite       *filtersuite.FilterSuite
-	failOnMatch bool
+	evaluator       filter.Evaluator
+	suite           *filtersuite.FilterSuite
+	failOnMatch     bool
+	matchedPackages map[string]*celFilterMatchedPackage
 }
 
 func NewCelFilterSuiteAnalyzer(path string, failOnMatch bool) (Analyzer, error) {
@@ -21,7 +29,7 @@ func NewCelFilterSuiteAnalyzer(path string, failOnMatch bool) (Analyzer, error) 
 		return nil, err
 	}
 
-	evaluator, err := filter.NewEvaluator(fs.GetName())
+	evaluator, err := filter.NewEvaluator(fs.GetName(), true)
 	if err != nil {
 		return nil, err
 	}
@@ -34,9 +42,10 @@ func NewCelFilterSuiteAnalyzer(path string, failOnMatch bool) (Analyzer, error) 
 	}
 
 	return &celFilterSuiteAnalyzer{
-		evaluator:   evaluator,
-		suite:       fs,
-		failOnMatch: failOnMatch,
+		evaluator:       evaluator,
+		suite:           fs,
+		failOnMatch:     failOnMatch,
+		matchedPackages: make(map[string]*celFilterMatchedPackage),
 	}, nil
 }
 
@@ -46,11 +55,66 @@ func (f *celFilterSuiteAnalyzer) Name() string {
 
 func (f *celFilterSuiteAnalyzer) Analyze(manifest *models.PackageManifest,
 	handler AnalyzerEventHandler) error {
+
+	for _, pkg := range manifest.Packages {
+		res, err := f.evaluator.EvalPackage(pkg)
+		if err != nil {
+			continue
+		}
+
+		if res.Matched() {
+			f.queueMatchedPkg(pkg, res.GetMatchedFilter().Name())
+		}
+	}
+
+	if f.failOnMatch && (len(f.matchedPackages) > 0) {
+		handler(&AnalyzerEvent{
+			Source:   f.Name(),
+			Type:     ET_AnalyzerFailOnError,
+			Manifest: manifest,
+			Err:      fmt.Errorf("failed due to filter suite match on %s", manifest.Path),
+		})
+	}
+
 	return nil
 }
 
 func (f *celFilterSuiteAnalyzer) Finish() error {
+	f.renderMatchTable()
 	return nil
+}
+
+func (f *celFilterSuiteAnalyzer) renderMatchTable() {
+	tbl := table.NewWriter()
+	tbl.SetStyle(table.StyleLight)
+	tbl.SetOutputMirror(os.Stdout)
+	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Latest",
+		"Filter"})
+
+	for _, mp := range f.matchedPackages {
+		insights := utils.SafelyGetValue(mp.pkg.Insights)
+		tbl.AppendRow(table.Row{
+			mp.pkg.PackageDetails.Ecosystem,
+			fmt.Sprintf("%s@%s", mp.pkg.PackageDetails.Name,
+				mp.pkg.PackageDetails.Version),
+			utils.SafelyGetValue(insights.PackageCurrentVersion),
+			mp.filterName,
+		})
+	}
+
+	tbl.Render()
+}
+
+func (f *celFilterSuiteAnalyzer) queueMatchedPkg(pkg *models.Package,
+	filterName string) {
+	if _, ok := f.matchedPackages[pkg.Id()]; ok {
+		return
+	}
+
+	f.matchedPackages[pkg.Id()] = &celFilterMatchedPackage{
+		filterName: filterName,
+		pkg:        pkg,
+	}
 }
 
 // To correctly unmarshal a []byte into protobuf message, we must use

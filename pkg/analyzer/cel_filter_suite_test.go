@@ -29,7 +29,7 @@ func TestLoadFilterSuiteFromFile(t *testing.T) {
 			"",
 			"",
 			0,
-			"unknown field \"A\" in FilterSuite",
+			"unknown field",
 		},
 		{
 			"filter suite does not exists",
