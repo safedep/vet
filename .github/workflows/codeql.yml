@@ -18,6 +18,9 @@ on:
     # The branches below must be a subset of the branches above
     branches: [ "main" ]
 
+permissions:
+  contents: read
+
 jobs:
   analyze:
     if: "!contains(github.event.commits[0].message, '[noci]')"
