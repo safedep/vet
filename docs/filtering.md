@@ -31,11 +31,15 @@ Filter expressions get the following input data to work with
 | `licenses`  | Holds a list of liceses in SPDX license code format         |
 
 
+Refer to [filter input spec](../api/filter_input_spec.proto) for detailed
+structure of input messages.
+
 ## Expressions
 
 Expressions are [CEL](https://github.com/google/cel-spec) statements. While
 CEL internals are not required, an [introductory](https://github.com/google/cel-spec/blob/master/doc/intro.md)
-knowledge of CEL will help formulating queries.
+knowledge of CEL will help formulating queries. Expressions are logical
+statements that evaluate to `true` or `false`.
 
 ### Example Queries
 

@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/jedib0t/go-pretty/v6/table"
-	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/pkg/analyzer/filter"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -17,13 +16,7 @@ type celFilterAnalyzer struct {
 	failOnMatch bool
 
 	packages map[string]*models.Package
-
-	stat struct {
-		manifests int
-		packages  int
-		matched   int
-		err       int
-	}
+	stat     celFilterStat
 }
 
 func NewCelFilterAnalyzer(fl string, failOnMatch bool) (Analyzer, error) {
@@ -41,6 +34,7 @@ func NewCelFilterAnalyzer(fl string, failOnMatch bool) (Analyzer, error) {
 		evaluator:   evaluator,
 		failOnMatch: failOnMatch,
 		packages:    make(map[string]*models.Package),
+		stat:        celFilterStat{},
 	}, nil
 }
 
@@ -52,17 +46,19 @@ func (f *celFilterAnalyzer) Analyze(manifest *models.PackageManifest,
 	handler AnalyzerEventHandler) error {
 
 	logger.Infof("CEL filtering manifest: %s", manifest.Path)
-	f.stat.manifests += 1
+	f.stat.IncScannedManifest()
 
 	for _, pkg := range manifest.Packages {
-		f.stat.packages += 1
+		f.stat.IncEvaluatedPackage()
 
 		res, err := f.evaluator.EvalPackage(pkg)
 		if err != nil {
-			f.stat.err += 1
+			f.stat.IncError(err)
+
 			logger.Errorf("Failed to evaluate CEL for %s:%s : %v",
 				pkg.PackageDetails.Name,
 				pkg.PackageDetails.Version, err)
+
 			continue
 		}
 
@@ -72,7 +68,7 @@ func (f *celFilterAnalyzer) Analyze(manifest *models.PackageManifest,
 				continue
 			}
 
-			f.stat.matched += 1
+			f.stat.IncMatchedPackage()
 			f.packages[pkg.Id()] = pkg
 		}
 	}
@@ -95,10 +91,7 @@ func (f *celFilterAnalyzer) Finish() error {
 		})
 	}
 
-	fmt.Printf("%s\n", text.Bold.Sprint("Filter evaluated with ",
-		f.stat.matched, " out of ", f.stat.packages, " uniquely matched and ",
-		f.stat.err, " error(s) ", "across ", f.stat.manifests,
-		" manifest(s)"))
+	f.stat.PrintStatMessage(os.Stderr)
 
 	tbl.Render()
 	return nil
@@ -106,7 +99,7 @@ func (f *celFilterAnalyzer) Finish() error {
 
 func (f *celFilterAnalyzer) notifyCaller(manifest *models.PackageManifest,
 	handler AnalyzerEventHandler) error {
-	if f.failOnMatch && (f.stat.matched > 0) {
+	if f.failOnMatch && (len(f.packages) > 0) {
 		handler(&AnalyzerEvent{
 			Source:   f.Name(),
 			Type:     ET_AnalyzerFailOnError,

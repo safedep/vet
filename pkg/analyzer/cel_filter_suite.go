@@ -8,6 +8,7 @@ import (
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/filtersuite"
 	"github.com/safedep/vet/pkg/analyzer/filter"
+	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 )
 
@@ -21,6 +22,7 @@ type celFilterSuiteAnalyzer struct {
 	suite           *filtersuite.FilterSuite
 	failOnMatch     bool
 	matchedPackages map[string]*celFilterMatchedPackage
+	stat            celFilterStat
 }
 
 func NewCelFilterSuiteAnalyzer(path string, failOnMatch bool) (Analyzer, error) {
@@ -46,6 +48,7 @@ func NewCelFilterSuiteAnalyzer(path string, failOnMatch bool) (Analyzer, error) 
 		suite:           fs,
 		failOnMatch:     failOnMatch,
 		matchedPackages: make(map[string]*celFilterMatchedPackage),
+		stat:            celFilterStat{},
 	}, nil
 }
 
@@ -56,9 +59,20 @@ func (f *celFilterSuiteAnalyzer) Name() string {
 func (f *celFilterSuiteAnalyzer) Analyze(manifest *models.PackageManifest,
 	handler AnalyzerEventHandler) error {
 
+	logger.Infof("CEL Filter Suite: Analyzing manifest: %s", manifest.Path)
+
+	f.stat.IncScannedManifest()
 	for _, pkg := range manifest.Packages {
+		f.stat.IncEvaluatedPackage()
+
 		res, err := f.evaluator.EvalPackage(pkg)
 		if err != nil {
+			f.stat.IncError(err)
+
+			logger.Errorf("Failed to evaluate CEL for %s:%s : %v",
+				pkg.PackageDetails.Name,
+				pkg.PackageDetails.Version, err)
+
 			continue
 		}
 
@@ -102,6 +116,7 @@ func (f *celFilterSuiteAnalyzer) renderMatchTable() {
 		})
 	}
 
+	f.stat.PrintStatMessage(os.Stderr)
 	tbl.Render()
 }
 
@@ -111,6 +126,7 @@ func (f *celFilterSuiteAnalyzer) queueMatchedPkg(pkg *models.Package,
 		return
 	}
 
+	f.stat.IncMatchedPackage()
 	f.matchedPackages[pkg.Id()] = &celFilterMatchedPackage{
 		filterName: filterName,
 		pkg:        pkg,
@@ -122,6 +138,8 @@ func (f *celFilterSuiteAnalyzer) queueMatchedPkg(pkg *models.Package,
 // officially supported yamlpb, equivalent to jsonpb, we convert YAML
 // to JSON before unmarshalling it into a protobuf message
 func loadFilterSuiteFromFile(path string) (*filtersuite.FilterSuite, error) {
+	logger.Debugf("CEL Filter Suite: Loading suite from file: %s", path)
+
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
