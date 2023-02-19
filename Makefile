@@ -21,9 +21,13 @@ protoc-codegen:
 		--go_out=./gen/filterinput \
 		--go_opt=paths=source_relative \
 		./api/filter_input_spec.proto
+	protoc -I ./api \
+		--go_out=./gen/filtersuite \
+		--go_opt=paths=source_relative \
+		./api/filter_suite_spec.proto
 
 setup:
-	mkdir -p out gen/insightapi gen/controlplane gen/filterinput
+	mkdir -p out gen/insightapi gen/controlplane gen/filterinput gen/filtersuite
 
 GO_CFLAGS=-X main.commit=$(GITCOMMIT) -X main.version=$(VERSION)
 GO_LDFLAGS=-ldflags "-w $(GO_CFLAGS)"

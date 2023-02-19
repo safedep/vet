@@ -1,0 +1,5 @@
+name: Valid Filter Suite
+description: Valid Filter Suite
+filters:
+  - name: r1
+    value: "true"

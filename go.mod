@@ -8,7 +8,7 @@ require (
 	github.com/google/cel-go v0.13.0
 	github.com/google/osv-scanner v1.1.0
 	github.com/jedib0t/go-pretty/v6 v6.4.4
-	github.com/safedep/dry v0.0.0-20230216112435-385c68e56634
+	github.com/safedep/dry v0.0.0-20230218045153-1a93b0397b55
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.1
@@ -37,4 +37,5 @@ require (
 	golang.org/x/text v0.5.0 // indirect
 	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	sigs.k8s.io/yaml v1.3.0 // indirect
 )

@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option go_package = "github.com/safedep/vet/gen/filtersuite";
+
+message Filter {
+  string name = 1;
+  string value = 2;
+}
+
+message FilterSuite {
+  string name = 1;
+  string description = 2;
+  repeated Filter filters = 3;
+}

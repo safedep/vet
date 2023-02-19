@@ -26,7 +26,7 @@ const (
 	summaryWeightUnpopular    = 2
 	summaryWeightMajorDrift   = 2
 
-	tagVuln      = "vulnerabiity"
+	tagVuln      = "vulnerability"
 	tagUnpopular = "low popularity"
 	tagDrift     = "drift"
 

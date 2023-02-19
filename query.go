@@ -10,6 +10,7 @@ import (
 
 var (
 	queryFilterExpression    string
+	queryFilterSuiteFile     string
 	queryFilterFailOnMatch   bool
 	queryLoadDirectory       string
 	queryEnableConsoleReport bool
@@ -31,6 +32,8 @@ func newQueryCommand() *cobra.Command {
 		"The directory to load JSON dump files")
 	cmd.Flags().StringVarP(&queryFilterExpression, "filter", "", "",
 		"Filter and print packages using CEL")
+	cmd.Flags().StringVarP(&queryFilterSuiteFile, "filter-suite", "", "",
+		"Filter packages using CEL Filter Suite from file")
 	cmd.Flags().BoolVarP(&queryFilterFailOnMatch, "filter-fail", "", false,
 		"Fail the command if filter matches any package (for security gate)")
 	cmd.Flags().BoolVarP(&queryEnableConsoleReport, "report-console", "", false,
@@ -53,6 +56,16 @@ func internalStartQuery() error {
 
 	if !utils.IsEmptyString(queryFilterExpression) {
 		task, err := analyzer.NewCelFilterAnalyzer(queryFilterExpression,
+			queryFilterFailOnMatch)
+		if err != nil {
+			return err
+		}
+
+		analyzers = append(analyzers, task)
+	}
+
+	if !utils.IsEmptyString(queryFilterSuiteFile) {
+		task, err := analyzer.NewCelFilterSuiteAnalyzer(queryFilterSuiteFile,
 			queryFilterFailOnMatch)
 		if err != nil {
 			return err

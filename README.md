@@ -8,6 +8,9 @@ source dependencies and evaluate them against organizational policies.
 [![CodeQL](https://github.com/safedep/vet/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/safedep/vet/actions/workflows/codeql.yml)
 [![Scorecard supply-chain security](https://github.com/safedep/vet/actions/workflows/scorecard.yml/badge.svg)](https://github.com/safedep/vet/actions/workflows/scorecard.yml)
 
+## Demo
+
+[![asciicast](https://asciinema.org/a/I60aD2VtVsETQtIFsYTCewJZ3.svg)](https://asciinema.org/a/I60aD2VtVsETQtIFsYTCewJZ3)
 
 ## TL;DR
 
@@ -79,14 +82,21 @@ vet scan --lockfiles /path/to/pom.xml --report-summary=false \
 > Use filtering along with `query` command for offline slicing and dicing of
 > enriched package manifests. Read [filtering guide](docs/filtering.md)
 
-[Common Expressions Language](https://github.com/google/cel-spec) is used to
-evaluate filters on packages. Learn more about [filtering with vet](docs/filtering.md).
+
+Learn more about [filtering with vet](docs/filtering.md). 
 Look at [filter input spec](api/filter_input_spec.proto) on attributes
 available to the filter expression.
 
-## Policy Evaluation
+### Using Filter Suite
 
-TODO
+Filter suites can be used to implement security gating in CI. [Example](samples/filter-suites/fs-generic.yml)
+file suite contains rules to enforce generic OSS consumption best practices.
+
+```bash
+vet scan -D /path/to/dir --filter-suite /path/to/suite.yml --filter-fail
+```
+
+Read more about filter suites in [filtering guide](docs/filtering.md)
 
 ## FAQ
 

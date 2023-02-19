@@ -88,7 +88,7 @@ func redirectLogToFile(path string) {
 
 func failOnError(stage string, err error) {
 	if err != nil {
-		logger.Errorf("%s failed due to error %v", stage, err)
+		ui.PrintError("%s failed due to error: %s", stage, err.Error())
 		os.Exit(-1)
 	}
 }
