@@ -7,7 +7,7 @@ Any security scanning tool may produce
 3. Issues that are ignored permanently
 
 To support exceptions, we introduce the exception model defined in [exception
-spec](../api/exception_spec.proto)
+spec](../api/exceptions_spec.proto)
 
 ## Use-case
 
@@ -23,8 +23,8 @@ This workflow will allow users to
 
 ### Security Risks
 
-Exceptions management should handle the potential security risk of ignoring an
-asset and its future issues. To mitigate this risk, we will ensure that issues
+Exceptions management should handle the potential security risk of ignoring a
+package and its future issues. To mitigate this risk, we will ensure that issues
 can be ignored till an acceptable time window and not permanently.
 
 ## Workflow
