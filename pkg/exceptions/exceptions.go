@@ -10,6 +10,11 @@ import (
 	"time"
 
 	"github.com/safedep/vet/gen/exceptionsapi"
+	"github.com/safedep/vet/pkg/models"
+)
+
+var (
+	jitter = 5 * time.Second
 )
 
 // Represents an exception rule as per spec with additional details
@@ -21,7 +26,7 @@ type exceptionRule struct {
 // In-memory store of exceptions to be used for package hash and exception ID
 // based lookup for fast matching and avoid duplicates
 type exceptionStore struct {
-	m     sync.Mutex
+	m     sync.RWMutex
 	rules map[string]map[string]*exceptionRule
 }
 
@@ -30,6 +35,12 @@ type exceptionStore struct {
 type exceptionsLoader interface {
 	// Read an exception rule, return io.EOF on done
 	Read() (*exceptionRule, error)
+}
+
+// Represents an exception match result
+type exceptionMatchResult struct {
+	pkg  *models.Package
+	rule *exceptionRule
 }
 
 // Global exceptions store
@@ -60,6 +71,10 @@ func Load(loader exceptionsLoader) error {
 			}
 		}
 
+		if rule.expiry.Before(time.Now().Add(jitter)) {
+			continue
+		}
+
 		h := pkgHash(rule.spec.GetEcosystem(), rule.spec.GetName())
 		if _, ok := globalExceptions.rules[h]; ok {
 			if _, ok = globalExceptions.rules[h][rule.spec.GetId()]; ok {
@@ -69,14 +84,51 @@ func Load(loader exceptionsLoader) error {
 			globalExceptions.rules[h] = make(map[string]*exceptionRule)
 		}
 
-		if rule.expiry.UTC().Before(time.Now().UTC()) {
-			continue
-		}
-
 		globalExceptions.rules[h][rule.spec.GetId()] = rule
 	}
 
 	return nil
+}
+
+func Apply(pkg *models.Package) (*exceptionMatchResult, error) {
+	return globalExceptions.Match(pkg)
+}
+
+func (s *exceptionStore) Match(pkg *models.Package) (*exceptionMatchResult, error) {
+	result := exceptionMatchResult{}
+
+	s.m.RLock()
+	defer s.m.RUnlock()
+
+	h := pkgHash(string(pkg.PackageDetails.Ecosystem), pkg.PackageDetails.Name)
+	if _, ok := s.rules[h]; !ok {
+		return &result, nil
+	}
+
+	for _, rule := range s.rules[h] {
+		if rule.matchByPattern(pkg) || rule.matchByVersion(pkg) {
+			result.pkg = pkg
+			result.rule = rule
+
+			return &result, nil
+		}
+	}
+
+	return &result, nil
+}
+
+func (r *exceptionRule) matchByPattern(pkg *models.Package) bool {
+	return false
+}
+
+func (r *exceptionRule) matchByVersion(pkg *models.Package) bool {
+	return strings.EqualFold(string(pkg.PackageDetails.Ecosystem), r.spec.GetEcosystem()) &&
+		strings.EqualFold(pkg.PackageDetails.Name, r.spec.GetName()) &&
+		((r.spec.GetVersion() == "*") || (r.spec.GetVersion() == pkg.PackageDetails.Version))
+}
+
+func (r *exceptionMatchResult) Matched() bool {
+	return (r == nil) || ((r.pkg != nil) && (r.rule != nil))
 }
 
 func pkgHash(ecosystem, name string) string {

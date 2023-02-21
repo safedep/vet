@@ -67,10 +67,11 @@ various commands such as `scan` or `query`.
 ## Behaviour
 
 * All exceptions rules are applied only on a `Package`
-* All comparisons will be case-insensitive
+* All comparisons will be case-insensitive except version
 * Only `version` can have a value of `*` matching any version
 * Exceptions are globally managed and will be shared across packages
 * Exempted packages will be ignored by all analysers and reporters
+* First match policy for exceptions matching
 
 Anti-patterns that will NOT be implemented
 
