@@ -51,6 +51,10 @@ func Debugf(msg string, args ...any) {
 	logrus.Debugf(msg, args...)
 }
 
+func Fatalf(msg string, args ...any) {
+	logrus.Fatalf(msg, args...)
+}
+
 func LoggerWith(key string, value any) *logrus.Entry {
 	return logrus.WithFields(logrus.Fields{
 		key: value,
