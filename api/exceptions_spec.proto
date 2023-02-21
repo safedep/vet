@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package = "github.com/safedep/vet/gen/exceptionsapi";
+
+message Exception {
+  string ecosystem = 1;
+  string name = 2;
+  string version = 3;
+  string expires = 4;
+  string pattern = 5;   // To be used for special cases
+}
+
+message ExceptionSuite {
+  string name = 1;
+  string description = 2;
+  repeated Exception exceptions = 3;
+}
