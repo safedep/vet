@@ -14,6 +14,7 @@ import (
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
+	"github.com/safedep/vet/pkg/readers"
 )
 
 const (
@@ -72,13 +73,14 @@ func (r *summaryReporter) Name() string {
 }
 
 func (r *summaryReporter) AddManifest(manifest *models.PackageManifest) {
-	for _, pkg := range manifest.Packages {
+	readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
 		r.processForVulns(pkg)
 		r.processForPopularity(pkg)
 		r.processForVersionDrift(pkg)
 
 		r.summary.packages += 1
-	}
+		return nil
+	})
 
 	r.summary.manifests += 1
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
+	"github.com/safedep/vet/pkg/readers"
 )
 
 type consoleReporter struct{}
@@ -29,9 +30,10 @@ func (r *consoleReporter) AddManifest(manifest *models.PackageManifest) {
 	tbl.SetStyle(table.StyleLight)
 
 	tbl.AppendHeader(table.Row{"Package", "Attribute", "Summary"})
-	for _, pkg := range manifest.Packages {
+	readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
 		r.report(tbl, pkg)
-	}
+		return nil
+	})
 
 	fmt.Print(text.Bold.Sprint("Manifest: ", text.FgBlue.Sprint(manifest.Path)))
 	fmt.Print("\n")

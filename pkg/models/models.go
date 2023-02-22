@@ -75,6 +75,12 @@ func (p *Package) Id() string {
 	return strconv.FormatUint(h.Sum64(), 16)
 }
 
+func (p *Package) ShortName() string {
+	return fmt.Sprintf("pkg:%s/%s@%s",
+		strings.ToLower(string(p.Ecosystem)),
+		strings.ToLower(p.Name), p.Version)
+}
+
 func NewPackageDetail(e, n, v string) lockfile.PackageDetails {
 	return lockfile.PackageDetails{
 		Ecosystem: lockfile.Ecosystem(e),
