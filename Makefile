@@ -25,9 +25,18 @@ protoc-codegen:
 		--go_out=./gen/filtersuite \
 		--go_opt=paths=source_relative \
 		./api/filter_suite_spec.proto
+	protoc -I ./api \
+		--go_out=./gen/exceptionsapi \
+		--go_opt=paths=source_relative \
+		./api/exceptions_spec.proto
 
 setup:
-	mkdir -p out gen/insightapi gen/controlplane gen/filterinput gen/filtersuite
+	mkdir -p out \
+		gen/insightapi \
+		gen/controlplane \
+		gen/filterinput \
+		gen/filtersuite \
+		gen/exceptionsapi
 
 GO_CFLAGS=-X main.commit=$(GITCOMMIT) -X main.version=$(VERSION)
 GO_LDFLAGS=-ldflags "-w $(GO_CFLAGS)"

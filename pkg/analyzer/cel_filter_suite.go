@@ -10,6 +10,7 @@ import (
 	"github.com/safedep/vet/pkg/analyzer/filter"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/pkg/readers"
 )
 
 type celFilterMatchedPackage struct {
@@ -62,7 +63,7 @@ func (f *celFilterSuiteAnalyzer) Analyze(manifest *models.PackageManifest,
 	logger.Infof("CEL Filter Suite: Analyzing manifest: %s", manifest.Path)
 
 	f.stat.IncScannedManifest()
-	for _, pkg := range manifest.Packages {
+	readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
 		f.stat.IncEvaluatedPackage()
 
 		res, err := f.evaluator.EvalPackage(pkg)
@@ -73,13 +74,15 @@ func (f *celFilterSuiteAnalyzer) Analyze(manifest *models.PackageManifest,
 				pkg.PackageDetails.Name,
 				pkg.PackageDetails.Version, err)
 
-			continue
+			return nil
 		}
 
 		if res.Matched() {
 			f.queueMatchedPkg(pkg, res.GetMatchedFilter().Name())
 		}
-	}
+
+		return nil
+	})
 
 	if f.failOnMatch && (len(f.matchedPackages) > 0) {
 		handler(&AnalyzerEvent{

@@ -14,6 +14,17 @@ source dependencies and evaluate them against organizational policies.
 
 ## TL;DR
 
+Scan a repository for OSS dependency risks with auto-detection of package
+manifests
+
+```bash
+vet scan -D /path/to/repo
+```
+
+![vet Summary Demo](docs/images/vet-summary-demo.png)
+
+## Getting Started
+
 > Ensure `$(go env GOPATH)/bin` is in your `$PATH`
 
 Install using `go get`
@@ -57,6 +68,12 @@ vet scan --lockfiles /path/to/requirements.txt
 vet scan --lockfiles /path/to/package-lock.json
 ```
 
+or scan a supported package manifest with a non-standard name
+
+```bash
+vet scan --lockfiles /path/to/gradle-compileOnly.lock --lockfile-as gradle.lockfile
+```
+
 > Use `vet scan parsers` to list supported package manifest parsers
 
 The default scan uses an opinionated [Summary Reporter](#) which presents
@@ -97,6 +114,21 @@ vet scan -D /path/to/dir --filter-suite /path/to/suite.yml --filter-fail
 ```
 
 Read more about filter suites in [filtering guide](docs/filtering.md)
+
+## Exceptions Management
+
+Exception rules can be generated using the `query` workflow to temporarily
+ignore (or snooze) existing issues when using `vet` for the first time. This
+helps in establishing security gating to prevent introduction of new security
+issues while existing issues are being remediated.
+
+Use exception rules during scan to ignore specific packages
+
+```bash
+vet scan -D /path/to/repo -e /path/to/exceptions.yml
+```
+
+For more information, refer to [exceptions guide](docs/exceptions.md)
 
 ## FAQ
 

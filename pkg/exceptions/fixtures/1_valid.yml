@@ -1,0 +1,17 @@
+name: Exceptions File for Fixture
+description: |
+  Test exceptions file
+exceptions:
+  - ecosystem: maven
+    name: p1
+    version: v1
+    expires: 2050-11-10T23:00:00Z
+  - ecosystem: maven
+    name: p2
+    version: '*'
+    expires: 2050-11-10T23:00:00Z
+  - ecosystem: maven
+    name: p3
+    version: '*'
+    expires: 2020-11-10T23:00:00Z
+

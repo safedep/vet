@@ -9,13 +9,15 @@ import (
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/pkg/exceptions"
 	"github.com/spf13/cobra"
 )
 
 var (
-	verbose bool
-	debug   bool
-	logFile string
+	verbose              bool
+	debug                bool
+	logFile              string
+	globalExceptionsFile string
 )
 
 var banner string = `
@@ -50,6 +52,7 @@ func main() {
 	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Show verbose logs")
 	cmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Show debug logs")
 	cmd.PersistentFlags().StringVarP(&logFile, "log", "l", "", "Write command logs to file")
+	cmd.PersistentFlags().StringVarP(&globalExceptionsFile, "exceptions", "e", "", "Load exceptions from file")
 
 	cmd.AddCommand(newAuthCommand())
 	cmd.AddCommand(newScanCommand())
@@ -58,11 +61,26 @@ func main() {
 
 	cobra.OnInitialize(func() {
 		printBanner()
+		loadExceptions()
 		logger.SetLogLevel(verbose, debug)
 	})
 
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
+	}
+}
+
+func loadExceptions() {
+	if globalExceptionsFile != "" {
+		loader, err := exceptions.NewExceptionsFileLoader(globalExceptionsFile)
+		if err != nil {
+			logger.Fatalf("Exceptions loader: %v", err)
+		}
+
+		err = exceptions.Load(loader)
+		if err != nil {
+			logger.Fatalf("Exceptions loader: %v", err)
+		}
 	}
 }
 

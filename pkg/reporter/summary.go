@@ -12,8 +12,10 @@ import (
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/analyzer"
+	"github.com/safedep/vet/pkg/exceptions"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
+	"github.com/safedep/vet/pkg/readers"
 )
 
 const (
@@ -72,13 +74,14 @@ func (r *summaryReporter) Name() string {
 }
 
 func (r *summaryReporter) AddManifest(manifest *models.PackageManifest) {
-	for _, pkg := range manifest.Packages {
+	readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
 		r.processForVulns(pkg)
 		r.processForPopularity(pkg)
 		r.processForVersionDrift(pkg)
 
 		r.summary.packages += 1
-	}
+		return nil
+	})
 
 	r.summary.manifests += 1
 }
@@ -196,9 +199,14 @@ func (r *summaryReporter) Finish() error {
 	r.renderRemediationAdvice()
 	fmt.Println()
 
+	if exceptions.ActiveCount() > 0 {
+		fmt.Println(text.Faint.Sprint(summaryListPrependText, r.exceptionsCountStatement()))
+		fmt.Println()
+	}
+
 	fmt.Println("Run with `vet --filter=\"...\"` for custom filters to identify risky libraries")
-	fmt.Println()
 	fmt.Println("For more details", text.Bold.Sprint("https://github.com/safedep/vet"))
+	fmt.Println()
 
 	return nil
 }
@@ -295,4 +303,9 @@ func (r *summaryReporter) popularityCountStatement() string {
 func (r *summaryReporter) majorVersionDriftStatement() string {
 	return fmt.Sprintf("%d libraries are out of date with major version drift in direct dependencies",
 		r.summary.metrics.drifts)
+}
+
+func (r *summaryReporter) exceptionsCountStatement() string {
+	return fmt.Sprintf("%d libraries are exempted from analysis through exception rules",
+		exceptions.ActiveCount())
 }

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/reporter"
@@ -16,6 +18,11 @@ var (
 	queryEnableConsoleReport bool
 	queryEnableSummaryReport bool
 	queryMarkdownReportPath  string
+	queryExceptionsFile      string
+	queryExceptionsTill      string
+	queryExceptionsFilter    string
+
+	queryDefaultExceptionExpiry = time.Now().Add(90 * 24 * time.Hour)
 )
 
 func newQueryCommand() *cobra.Command {
@@ -36,6 +43,13 @@ func newQueryCommand() *cobra.Command {
 		"Filter packages using CEL Filter Suite from file")
 	cmd.Flags().BoolVarP(&queryFilterFailOnMatch, "filter-fail", "", false,
 		"Fail the command if filter matches any package (for security gate)")
+	cmd.Flags().StringVarP(&queryExceptionsFile, "exceptions-generate", "", "",
+		"Generate exception records to file (YAML)")
+	cmd.Flags().StringVarP(&queryExceptionsTill, "exceptions-till", "",
+		queryDefaultExceptionExpiry.Format("2006-01-02"),
+		"Generated exceptions are valid till")
+	cmd.Flags().StringVarP(&queryExceptionsFilter, "exceptions-filter", "", "",
+		"Generate exception records for packages matching filter")
 	cmd.Flags().BoolVarP(&queryEnableConsoleReport, "report-console", "", false,
 		"Minimal summary of package manifest")
 	cmd.Flags().BoolVarP(&queryEnableSummaryReport, "report-summary", "", false,
@@ -67,6 +81,20 @@ func internalStartQuery() error {
 	if !utils.IsEmptyString(queryFilterSuiteFile) {
 		task, err := analyzer.NewCelFilterSuiteAnalyzer(queryFilterSuiteFile,
 			queryFilterFailOnMatch)
+		if err != nil {
+			return err
+		}
+
+		analyzers = append(analyzers, task)
+	}
+
+	if !utils.IsEmptyString(queryExceptionsFile) {
+		task, err := analyzer.NewExceptionsGenerator(analyzer.ExceptionsGeneratorConfig{
+			Path:      queryExceptionsFile,
+			ExpiresOn: queryExceptionsTill,
+			Filter:    queryExceptionsFilter,
+		})
+
 		if err != nil {
 			return err
 		}

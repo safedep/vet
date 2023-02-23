@@ -7,6 +7,7 @@ import (
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/common/utils"
 	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/pkg/readers"
 	"github.com/safedep/vet/pkg/reporter"
 )
 
@@ -217,9 +218,10 @@ func (s *packageManifestScanner) enrichManifest(manifest *models.PackageManifest
 
 	q.Start()
 
-	for _, pkg := range manifest.Packages {
+	readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
 		q.Add(pkg)
-	}
+		return nil
+	})
 
 	q.Wait()
 	q.Stop()
