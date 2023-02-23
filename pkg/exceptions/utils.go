@@ -18,6 +18,8 @@ func AllowedPackages(manifest *models.PackageManifest,
 		}
 
 		if res.Matched() {
+			logger.Debugf("Ignoring package:%s due to exception rule",
+				pkg.ShortName())
 			continue
 		}
 

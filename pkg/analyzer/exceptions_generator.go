@@ -8,6 +8,7 @@ import (
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/exceptionsapi"
 	"github.com/safedep/vet/pkg/analyzer/filter"
+	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/readers"
 )
@@ -50,6 +51,9 @@ func NewExceptionsGenerator(config ExceptionsGeneratorConfig) (Analyzer, error) 
 		return nil, err
 	}
 
+	logger.Infof("Initialized exceptions generator with filter: '%s' expiry: %s",
+		config.Filter, expiresOn.Format(time.RFC3339))
+
 	return &exceptionsGenerator{
 		writer:          fd,
 		filterEvaluator: filterEvaluator,
@@ -91,6 +95,8 @@ func (f *exceptionsGenerator) Finish() error {
 	}
 
 	for _, pkg := range f.pkgCache {
+		logger.Infof("Adding %s to exceptions list", pkg.ShortName())
+
 		suite.Exceptions = append(suite.Exceptions, &exceptionsapi.Exception{
 			Id:        utils.NewUniqueId(),
 			Ecosystem: string(pkg.Ecosystem),

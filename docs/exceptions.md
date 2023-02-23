@@ -64,6 +64,9 @@ various commands such as `scan` or `query`.
 ./vet --exceptions /path/to/exceptions.yml scan -D /path/to/repo
 ```
 
+> **Note:** Do not pass this flag while generating exceptions list in query
+> workflow to avoid incorrect exception list generation
+
 ## Behaviour
 
 * All exceptions rules are applied only on a `Package`
