@@ -94,6 +94,14 @@ func Apply(pkg *models.Package) (*exceptionMatchResult, error) {
 	return globalExceptions.Match(pkg)
 }
 
+func ActiveCount() int {
+	return globalExceptions.ActiveCount()
+}
+
+func (s *exceptionStore) ActiveCount() int {
+	return len(s.rules)
+}
+
 func (s *exceptionStore) Match(pkg *models.Package) (*exceptionMatchResult, error) {
 	result := exceptionMatchResult{}
 
