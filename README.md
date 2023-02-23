@@ -23,6 +23,9 @@ vet scan -D /path/to/repo
 
 ![vet Summary Demo](docs/images/vet-summary-demo.png)
 
+[Example Security Gate](https://github.com/safedep/demo-client-java/pull/2)
+using `vet` to prevent introducing new OSS dependency risk in an application.
+
 ## Getting Started
 
 > Ensure `$(go env GOPATH)/bin` is in your `$PATH`
