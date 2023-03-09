@@ -46,7 +46,12 @@ func Verify(config *VerifyConfig) error {
 
 	}
 
+	if resp.JSON200 == nil {
+		return fmt.Errorf("invalid nil response from server")
+	}
+
 	logger.Infof("Current auth token is valid with expiry: %s",
 		utils.SafelyGetValue(resp.JSON200.Expiry))
+
 	return nil
 }
