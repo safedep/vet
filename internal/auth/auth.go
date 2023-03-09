@@ -36,11 +36,6 @@ func Configure(m Config) error {
 	return persistConfiguration()
 }
 
-func Verify() error {
-	// TODO: Verify by actually calling insight API
-	return nil
-}
-
 func DefaultApiUrl() string {
 	return defaultApiUrl
 }
