@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	apiUrlEnvKey = "VET_INSIGHTS_API_URL"
-	apiKeyEnvKey = "VET_INSIGHTS_API_KEY"
+	apiUrlEnvKey          = "VET_INSIGHTS_API_URL"
+	apiKeyEnvKey          = "VET_INSIGHTS_API_KEY"
+	apiKeyAlternateEnvKey = "VET_API_KEY"
 
 	defaultApiUrl             = "https://api.safedep.io/insights/v1"
 	defaultControlPlaneApiUrl = "https://api.safedep.io/control-plane/v1"
@@ -58,6 +59,10 @@ func ApiUrl() string {
 
 func ApiKey() string {
 	if key, ok := os.LookupEnv(apiKeyEnvKey); ok {
+		return key
+	}
+
+	if key, ok := os.LookupEnv(apiKeyAlternateEnvKey); ok {
 		return key
 	}
 

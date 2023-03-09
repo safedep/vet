@@ -10,6 +10,7 @@ import (
 	"golang.org/x/term"
 
 	"github.com/safedep/vet/internal/auth"
+	"github.com/safedep/vet/internal/ui"
 )
 
 var (
@@ -76,6 +77,7 @@ func verifyAuthCommand() *cobra.Command {
 				ControlPlaneApiUrl: authControlPlaneApiBaseUrl,
 			}))
 
+			ui.PrintSuccess("Authentication key is valid!")
 			return nil
 		},
 	}
