@@ -49,8 +49,9 @@ func configureAuthCommand() *cobra.Command {
 			}
 
 			err = auth.Configure(auth.Config{
-				ApiUrl: authInsightApiBaseUrl,
-				ApiKey: string(key),
+				ApiUrl:             authInsightApiBaseUrl,
+				ApiKey:             string(key),
+				ControlPlaneApiUrl: authControlPlaneApiBaseUrl,
 			})
 
 			if err != nil {

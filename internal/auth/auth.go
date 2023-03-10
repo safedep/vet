@@ -21,8 +21,9 @@ const (
 )
 
 type Config struct {
-	ApiUrl string `yaml:"api_url"`
-	ApiKey string `yaml:"api_key"`
+	ApiUrl             string `yaml:"api_url"`
+	ApiKey             string `yaml:"api_key"`
+	ControlPlaneApiUrl string `yaml:"cp_api_url"`
 }
 
 // Global config to be used during runtime
@@ -42,6 +43,10 @@ func DefaultApiUrl() string {
 }
 
 func DefaultControlPlaneApiUrl() string {
+	if (globalConfig != nil) && (globalConfig.ControlPlaneApiUrl != "") {
+		return globalConfig.ControlPlaneApiUrl
+	}
+
 	return defaultControlPlaneApiUrl
 }
 
