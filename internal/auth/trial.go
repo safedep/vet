@@ -9,7 +9,7 @@ import (
 
 	"github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/safedep/dry/utils"
-	"github.com/safedep/vet/gen/controlplane"
+	"github.com/safedep/vet/gen/cpv1trials"
 	"github.com/safedep/vet/pkg/common/logger"
 
 	apierr "github.com/safedep/dry/errors"
@@ -45,7 +45,7 @@ func (client *trialRegistrationClient) Execute() (*trialRegistrationResponse, er
 	logger.Infof("Trial registrations using Control Plane: %s",
 		client.config.ControlPlaneApiUrl)
 
-	cpClient, err := controlplane.NewClientWithResponses(client.config.ControlPlaneApiUrl)
+	cpClient, err := cpv1trials.NewClientWithResponses(client.config.ControlPlaneApiUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func (client *trialRegistrationClient) Execute() (*trialRegistrationResponse, er
 		client.config.Email)
 
 	res, err := cpClient.RegisterTrialUserWithResponse(context.Background(),
-		controlplane.RegisterTrialUserJSONRequestBody{
+		cpv1trials.RegisterTrialUserJSONRequestBody{
 			Email: types.Email(client.config.Email),
 		})
 	if err != nil {

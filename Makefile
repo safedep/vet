@@ -13,8 +13,10 @@ protoc-install:
 oapi-codegen:
 	oapi-codegen -package insightapi -generate types ./api/insights-v1.yml > ./gen/insightapi/insights.types.go
 	oapi-codegen -package insightapi -generate client ./api/insights-v1.yml > ./gen/insightapi/insights.client.go
-	oapi-codegen -package controlplane -generate types ./api/cp-v1-trials.yml > ./gen/controlplane/trials.types.go
-	oapi-codegen -package controlplane -generate client ./api/cp-v1-trials.yml > ./gen/controlplane/trials.client.go
+	oapi-codegen -package cpv1trials -generate types ./api/cp-v1-trials.yml > ./gen/cpv1trials/trials.types.go
+	oapi-codegen -package cpv1trials -generate client ./api/cp-v1-trials.yml > ./gen/cpv1trials/trials.client.go
+	oapi-codegen -package cpv1 -generate types ./api/cp-v1.yml > ./gen/cpv1/cp.types.go
+	oapi-codegen -package cpv1 -generate client ./api/cp-v1.yml > ./gen/cpv1/cp.client.go
 
 protoc-codegen:
 	protoc -I ./api \
@@ -33,7 +35,8 @@ protoc-codegen:
 setup:
 	mkdir -p out \
 		gen/insightapi \
-		gen/controlplane \
+		gen/cpv1trials \
+		gen/cpv1 \
 		gen/filterinput \
 		gen/filtersuite \
 		gen/exceptionsapi

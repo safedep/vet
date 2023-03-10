@@ -10,6 +10,7 @@ import (
 	"golang.org/x/term"
 
 	"github.com/safedep/vet/internal/auth"
+	"github.com/safedep/vet/internal/ui"
 )
 
 var (
@@ -26,6 +27,9 @@ func newAuthCommand() *cobra.Command {
 			return errors.New("a valid sub-command is required")
 		},
 	}
+
+	cmd.PersistentFlags().StringVarP(&authControlPlaneApiBaseUrl, "control-plane", "",
+		auth.DefaultControlPlaneApiUrl(), "Base URL of Control Plane API")
 
 	cmd.AddCommand(configureAuthCommand())
 	cmd.AddCommand(verifyAuthCommand())
@@ -45,8 +49,9 @@ func configureAuthCommand() *cobra.Command {
 			}
 
 			err = auth.Configure(auth.Config{
-				ApiUrl: authInsightApiBaseUrl,
-				ApiKey: string(key),
+				ApiUrl:             authInsightApiBaseUrl,
+				ApiKey:             string(key),
+				ControlPlaneApiUrl: authControlPlaneApiBaseUrl,
 			})
 
 			if err != nil {
@@ -69,8 +74,11 @@ func verifyAuthCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "verify",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Printf("Verify auth command is currently work in progress\n")
-			os.Exit(1)
+			failOnError("auth/verify", auth.Verify(&auth.VerifyConfig{
+				ControlPlaneApiUrl: authControlPlaneApiBaseUrl,
+			}))
+
+			ui.PrintSuccess("Authentication key is valid!")
 			return nil
 		},
 	}
@@ -103,8 +111,6 @@ func trialsRegisterCommand() *cobra.Command {
 
 	cmd.Flags().StringVarP(&authTrialEmail, "email", "", "",
 		"Email address to use for sending trial API key")
-	cmd.Flags().StringVarP(&authControlPlaneApiBaseUrl, "control-plane", "",
-		auth.DefaultControlPlaneApiUrl(), "Base URL of Control Plane API for registrations")
 
 	return cmd
 }

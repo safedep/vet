@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	apiUrlEnvKey = "VET_INSIGHTS_API_URL"
-	apiKeyEnvKey = "VET_INSIGHTS_API_KEY"
+	apiUrlEnvKey          = "VET_INSIGHTS_API_URL"
+	apiKeyEnvKey          = "VET_INSIGHTS_API_KEY"
+	apiKeyAlternateEnvKey = "VET_API_KEY"
 
 	defaultApiUrl             = "https://api.safedep.io/insights/v1"
 	defaultControlPlaneApiUrl = "https://api.safedep.io/control-plane/v1"
@@ -20,8 +21,9 @@ const (
 )
 
 type Config struct {
-	ApiUrl string `yaml:"api_url"`
-	ApiKey string `yaml:"api_key"`
+	ApiUrl             string `yaml:"api_url"`
+	ApiKey             string `yaml:"api_key"`
+	ControlPlaneApiUrl string `yaml:"cp_api_url"`
 }
 
 // Global config to be used during runtime
@@ -36,16 +38,15 @@ func Configure(m Config) error {
 	return persistConfiguration()
 }
 
-func Verify() error {
-	// TODO: Verify by actually calling insight API
-	return nil
-}
-
 func DefaultApiUrl() string {
 	return defaultApiUrl
 }
 
 func DefaultControlPlaneApiUrl() string {
+	if (globalConfig != nil) && (globalConfig.ControlPlaneApiUrl != "") {
+		return globalConfig.ControlPlaneApiUrl
+	}
+
 	return defaultControlPlaneApiUrl
 }
 
@@ -63,6 +64,10 @@ func ApiUrl() string {
 
 func ApiKey() string {
 	if key, ok := os.LookupEnv(apiKeyEnvKey); ok {
+		return key
+	}
+
+	if key, ok := os.LookupEnv(apiKeyAlternateEnvKey); ok {
 		return key
 	}
 

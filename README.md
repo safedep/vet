@@ -55,9 +55,16 @@ vet auth configure
 ```
 
 > Insights API is used to enrich OSS packages with meta-data for rich query and policy
-> decisions
+> decisions. Alternatively, the API key can be passed through environment
+> variable `VET_API_KEY`
 
-Run `vet` to identify risks
+Verify authentication token is valid
+
+```bash
+vet auth verify
+```
+
+Run `vet` to identify risks in a source repository
 
 ```bash
 vet scan -D /path/to/repository
