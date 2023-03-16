@@ -1,4 +1,5 @@
 # vet 
+## Automate Open Source Package Vetting in CI/CD
 
 `vet` is a tool for identifying risks in open source software supply chain. It
 helps engineering and security teams to identify potential issues in their open
@@ -10,7 +11,7 @@ source dependencies and evaluate them against organizational policies.
 
 ## Demo
 
-[![asciicast](https://asciinema.org/a/I60aD2VtVsETQtIFsYTCewJZ3.svg)](https://asciinema.org/a/I60aD2VtVsETQtIFsYTCewJZ3)
+![vet Demo](docs/images/vet-demo.gif)
 
 ## TL;DR
 
@@ -40,13 +41,13 @@ Alternatively, look at [Releases](https://github.com/safedep/vet/releases) for
 a pre-built binary for your platform. [SLSA Provenance](https://slsa.dev/provenance/v0.1) is published
 along with each binary release.
 
-Get a trial API key for [Insights API](https://safedep.io/docs/concepts/raya-data-platform-overview) access
+Get an API key for [Insights API](https://safedep.io/docs/concepts/raya-data-platform-overview) access
 
 ```bash
 vet auth trial --email john.doe@example.com
 ```
 
-> A time limited trial API key will be sent over email.
+> A time limited API key will be sent over email.
 
 Configure `vet` to use API Key to access [Insights API](https://safedep.io/docs/concepts/raya-data-platform-overview)
 
@@ -54,7 +55,7 @@ Configure `vet` to use API Key to access [Insights API](https://safedep.io/docs/
 vet auth configure
 ```
 
-> Insights API is used to enrich OSS packages with meta-data for rich query and policy
+> Insights API is used to enrich OSS packages with metadata for rich query and policy
 > decisions. Alternatively, the API key can be passed through environment
 > variable `VET_API_KEY`
 
@@ -90,7 +91,59 @@ The default scan uses an opinionated [Summary Reporter](#) which presents
 a consolidated summary of findings. Thats NOT about it. Read more for
 expression based filtering and policy evaluation.
 
-## Filtering
+## Policy Control
+
+Policies are written using a DSL. A group of policies can be applied using
+`vet` to build a security gate in CI/CD.
+
+Start by copying a sample policy
+
+```bash
+curl -LO https://raw.githubusercontent.com/safedep/vet/main/samples/filter-suites/fs-generic.yml
+```
+
+Run a scan with policies and configure the scanner to fail in case of policy
+violation
+
+```bash
+vet scan -D /path/to/dir --filter-suite fs-generic.yml --filter-fail
+```
+
+Read more about underlying capability using which policy control is implemented
+in [filtering guide](docs/filtering.md)
+
+## Exceptions Management
+
+Projects may have legacy libraries that will fail any reasonable security policy.
+Legacy libraries can be added as time bounded exceptions to the policies to place 
+strict control on any new library while legacy library can be upgraded over
+time.
+
+Exception rules can be generated using the `query` workflow to temporarily
+ignore (or snooze) existing issues when using `vet` for the first time. This
+helps in establishing security gating to prevent introduction of new security
+issues while existing issues are being remediated.
+
+Use exception rules during scan to ignore specific packages
+
+```bash
+vet scan -D /path/to/repo -e /path/to/exceptions.yml
+```
+
+For more information on generating exceptions,
+refer to [exceptions guide](docs/exceptions.md)
+
+The generated exceptions file, when combined with policy control, can be used
+to setup a security gate to prevent introducing new issues while ignoring the
+existing backlog for a period of time.
+
+```bash
+vet scan -D /path/to/dir \
+    --filter-suite fs-generic.yml --filter-fail
+    -e /path/to/exceptions.yml
+```
+
+## Exploring OSS Risks using Filters
 
 Find dependencies that seems not very popular
 
@@ -109,36 +162,9 @@ vet scan --lockfiles /path/to/pom.xml --report-summary=false \
 > Use filtering along with `query` command for offline slicing and dicing of
 > enriched package manifests. Read [filtering guide](docs/filtering.md)
 
-
 Learn more about [filtering with vet](docs/filtering.md). 
 Look at [filter input spec](api/filter_input_spec.proto) on attributes
 available to the filter expression.
-
-### Using Filter Suite
-
-Filter suites can be used to implement security gating in CI. [Example](samples/filter-suites/fs-generic.yml)
-file suite contains rules to enforce generic OSS consumption best practices.
-
-```bash
-vet scan -D /path/to/dir --filter-suite /path/to/suite.yml --filter-fail
-```
-
-Read more about filter suites in [filtering guide](docs/filtering.md)
-
-## Exceptions Management
-
-Exception rules can be generated using the `query` workflow to temporarily
-ignore (or snooze) existing issues when using `vet` for the first time. This
-helps in establishing security gating to prevent introduction of new security
-issues while existing issues are being remediated.
-
-Use exception rules during scan to ignore specific packages
-
-```bash
-vet scan -D /path/to/repo -e /path/to/exceptions.yml
-```
-
-For more information, refer to [exceptions guide](docs/exceptions.md)
 
 ## FAQ
 

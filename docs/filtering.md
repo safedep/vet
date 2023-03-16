@@ -4,7 +4,7 @@ Filter command helps solve the problem of visibility for OSS dependencies in an
 application. To support various requirements, we adopt a generic [expressions
 language](https://github.com/google/cel-spec) for flexible filtering.
 
-Example:
+## Example
 
 ```bash
 vet scan -D /path/to/repo \
@@ -13,6 +13,20 @@ vet scan -D /path/to/repo \
 ```
 
 The scan will list only packages that use the `MIT` license.
+
+Find dependencies that seems not very popular
+
+```bash
+vet scan --lockfiles /path/to/pom.xml --report-summary=false \
+    --filter='projects.exists(x, x.stars < 10)'
+```
+
+Find dependencies with a critical vulnerability
+
+```bash
+vet scan --lockfiles /path/to/pom.xml --report-summary=false \
+    --filter='vulns.critical.exists_one(x, true)'
+```
 
 ## Input
 

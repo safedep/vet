@@ -20,6 +20,7 @@ message Vulnerabilities {
 // OpenSSF Scorecard
 message Scorecard {
   map<string, float> scores = 1;
+  float score = 2;
 }
 
 enum ProjectType {

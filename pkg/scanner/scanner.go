@@ -56,7 +56,7 @@ func (s *packageManifestScanner) ScanDirectory(dir string) error {
 // automatic parser selection
 func (s *packageManifestScanner) ScanLockfiles(lockfiles []string,
 	lockfileAs string) error {
-	logger.Infof("Scannding %d lockfiles as %s", len(lockfiles), lockfileAs)
+	logger.Infof("Scanning %d lockfiles as %s", len(lockfiles), lockfileAs)
 
 	manifests, err := scanLockfilesForManifests(lockfiles, lockfileAs)
 	if err != nil {
