@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/safedep/dry/utils"
+	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/models"
@@ -15,20 +16,21 @@ import (
 )
 
 var (
-	lockfiles            []string
-	lockfileAs           string
-	baseDirectory        string
-	transitiveAnalysis   bool
-	transitiveDepth      int
-	concurrency          int
-	dumpJsonManifestDir  string
-	celFilterExpression  string
-	celFilterSuiteFile   string
-	celFilterFailOnMatch bool
-	markdownReportPath   string
-	consoleReport        bool
-	summaryReport        bool
-	silentScan           bool
+	lockfiles                   []string
+	lockfileAs                  string
+	baseDirectory               string
+	transitiveAnalysis          bool
+	transitiveDepth             int
+	concurrency                 int
+	dumpJsonManifestDir         string
+	celFilterExpression         string
+	celFilterSuiteFile          string
+	celFilterFailOnMatch        bool
+	markdownReportPath          string
+	consoleReport               bool
+	summaryReport               bool
+	silentScan                  bool
+	disableAuthVerifyBeforeScan bool
 )
 
 func newScanCommand() *cobra.Command {
@@ -68,6 +70,8 @@ func newScanCommand() *cobra.Command {
 		"Filter packages using CEL Filter Suite from file")
 	cmd.Flags().BoolVarP(&celFilterFailOnMatch, "filter-fail", "", false,
 		"Fail the scan if the filter match any package (security gate)")
+	cmd.Flags().BoolVarP(&disableAuthVerifyBeforeScan, "no-verify-auth", "", false,
+		"Do not verify auth token before starting scan")
 	cmd.Flags().StringVarP(&markdownReportPath, "report-markdown", "", "",
 		"Generate consolidated markdown report to file")
 	cmd.Flags().BoolVarP(&consoleReport, "report-console", "", false,
@@ -97,6 +101,12 @@ func listParsersCommand() *cobra.Command {
 }
 
 func startScan() {
+	if !disableAuthVerifyBeforeScan {
+		failOnError("auth/verify", auth.Verify(&auth.VerifyConfig{
+			ControlPlaneApiUrl: auth.DefaultControlPlaneApiUrl(),
+		}))
+	}
+
 	failOnError("scan", internalStartScan())
 }
 
