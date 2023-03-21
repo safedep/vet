@@ -8,6 +8,10 @@ import (
 	"github.com/safedep/vet/pkg/models"
 )
 
+const (
+	customParserTypePyWheel = "python-wheel"
+)
+
 // We are supporting only those ecosystems for which we have data
 // for enrichment. More ecosystems will be supported as we improve
 // the capability of our Insights API
@@ -16,6 +20,10 @@ var supportedEcosystems map[string]bool = map[string]bool{
 	models.EcosystemMaven: true,
 	models.EcosystemNpm:   true,
 	models.EcosystemPyPI:  true,
+}
+
+var customExperimentalParsers map[string]lockfile.PackageDetailsParser = map[string]lockfile.PackageDetailsParser{
+	customParserTypePyWheel: parsePythonWheelDist,
 }
 
 type Parser interface {
@@ -48,6 +56,13 @@ func FindParser(lockfilePath, lockfileAs string) (Parser, error) {
 	p, pa := lockfile.FindParser(lockfilePath, lockfileAs)
 	if p != nil {
 		pw := &parserWrapper{parser: p, parseAs: pa}
+		if pw.supported() {
+			return pw, nil
+		}
+	}
+
+	if p, ok := customExperimentalParsers[lockfileAs]; ok {
+		pw := &parserWrapper{parser: p, parseAs: lockfileAs}
 		if pw.supported() {
 			return pw, nil
 		}
@@ -93,6 +108,8 @@ func (pw *parserWrapper) Ecosystem() string {
 		return models.EcosystemMaven
 	case "buildscript-gradle.lockfile":
 		return models.EcosystemMaven
+	case customParserTypePyWheel:
+		return models.EcosystemPyPI
 	default:
 		return ""
 	}

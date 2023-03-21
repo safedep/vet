@@ -23,8 +23,8 @@ issues identified during the scan.
 {{ range $key, $value := .Remediations }}
 > {{ $key }}
 
-| Package | Update Version | Risk Score | Issues |
-|---------|----------------|------------|--------|
+| Package | Update Version | Impact Score | Issues |
+|---------|----------------|--------------|--------|
 {{- range $value }}
 | {{ .PkgRemediationName }} | {{ .Pkg.Insights.PackageCurrentVersion }} | {{ .Score }} | - |
 {{- end }}

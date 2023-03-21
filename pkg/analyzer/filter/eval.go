@@ -251,7 +251,12 @@ func (f *filterEvaluator) buildFilterInput(pkg *models.Package) (*filterinput.Fi
 
 	// Scorecard
 	scorecard := utils.SafelyGetValue(insight.Scorecard)
-	checks := utils.SafelyGetValue(utils.SafelyGetValue(scorecard.Content).Checks)
+	scorecardContent := utils.SafelyGetValue(scorecard.Content)
+
+	// Aggregated score
+	fi.Scorecard.Score = utils.SafelyGetValue(scorecardContent.Score)
+
+	checks := utils.SafelyGetValue(scorecardContent.Checks)
 	for _, check := range checks {
 		fi.Scorecard.Scores[string(utils.SafelyGetValue(check.Name))] =
 			utils.SafelyGetValue(check.Score)
