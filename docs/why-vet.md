@@ -22,11 +22,7 @@ velocity, especially for evolving products.
 driven automated analysis of libraries. It can be seamlessly integrated with
 any CI tool or used in developer / security engineer's local environment. 
 
-<!-- Place this tag where you want the button to render. -->
-<a class="github-button" href="https://github.com/safedep/vet/releases" data-color-scheme="no-preference: light; light: light; dark: dark;" data-icon="octicon-download" data-size="large" aria-label="Download safedep/vet on GitHub">Download a Release</a>
-
-<!-- Place this tag where you want the button to render. -->
-<a class="github-button" href="https://github.com/safedep/vet/packages" data-color-scheme="no-preference: light; light: light; dark: dark;" data-icon="octicon-package" data-size="large" aria-label="Install this package safedep/vet on GitHub">Run as Container</a>
+:link: [Get Started](https://github.com/safedep/vet)
 
 ## Reference
 
