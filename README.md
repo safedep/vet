@@ -22,6 +22,9 @@ manifests
 vet scan -D /path/to/repo
 ```
 
+> **Note:** An API key is required for `vet` to fetch package metadata. Refer
+> [Getting Started](#getting-started) on how to obtain an API key.
+
 ![vet Summary Demo](docs/images/vet-summary-demo.png)
 
 [Example Security Gate](https://github.com/safedep/demo-client-java/pull/2)
@@ -29,9 +32,22 @@ using `vet` to prevent introducing new OSS dependency risk in an application.
 
 ## Getting Started
 
-> Ensure `$(go env GOPATH)/bin` is in your `$PATH`
+### As Docker Container
 
-Install using `go get`
+Run `vet` as a docker container without any installation
+
+```bash
+docker run --rm -it -v /path/to/your/source:/target \
+    -e VET_API_KEY=... \
+    ghcr.io/safedep/vet:latest \
+    scan -D /target
+```
+
+### Build from Source
+
+To build from source, install using `go get`
+
+> Ensure `$(go env GOPATH)/bin` is in your `$PATH`
 
 ```bash
 go install github.com/safedep/vet@latest
@@ -40,6 +56,8 @@ go install github.com/safedep/vet@latest
 Alternatively, look at [Releases](https://github.com/safedep/vet/releases) for
 a pre-built binary for your platform. [SLSA Provenance](https://slsa.dev/provenance/v0.1) is published
 along with each binary release.
+
+### Obtain API Key
 
 Get an API key for [Insights API](https://safedep.io/docs/concepts/raya-data-platform-overview) access
 
@@ -196,6 +214,13 @@ Log to file:
 ```bash
 vet scan -D /path/to/repo -l /tmp/vet.log -v
 ```
+
+### Which all ecosystems are supported?
+
+* Java
+* Go
+* Javascript / NodeJS
+* Python
 
 ## References
 
