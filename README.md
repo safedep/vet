@@ -53,6 +53,8 @@ To build from source, install using `go get`
 go install github.com/safedep/vet@latest
 ```
 
+### Binary Release
+
 Alternatively, look at [Releases](https://github.com/safedep/vet/releases) for
 a pre-built binary for your platform. [SLSA Provenance](https://slsa.dev/provenance/v0.1) is published
 along with each binary release.
@@ -82,6 +84,8 @@ Verify authentication token is valid
 ```bash
 vet auth verify
 ```
+
+### Basic Usage
 
 Run `vet` to identify risks in a source repository
 
