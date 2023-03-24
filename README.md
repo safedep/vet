@@ -5,6 +5,7 @@
 helps engineering and security teams to identify potential issues in their open
 source dependencies and evaluate them against organizational policies.
 
+[![Release](https://img.shields.io/github/v/release/safedep/vet.svg?logo=github&style=flat-square)](https://github.com/safedep/vet/releases)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/safedep/vet/badge)](https://api.securityscorecards.dev/projects/github.com/safedep/vet)
 [![CodeQL](https://github.com/safedep/vet/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/safedep/vet/actions/workflows/codeql.yml)
 [![Scorecard supply-chain security](https://github.com/safedep/vet/actions/workflows/scorecard.yml/badge.svg)](https://github.com/safedep/vet/actions/workflows/scorecard.yml)
