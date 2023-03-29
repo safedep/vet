@@ -45,7 +45,7 @@ jobs:
 
 :::tip
 
-- We have many policy packs available at [Query Packs](../packs/)
+- We have many policy packs available at [Query Packs](../packs/safedep-pack.md)
 - You can also write your custom policy as a code, refer to [PaaC](../advanced/polic-as-code.md)
 
 :::
