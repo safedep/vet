@@ -1,5 +1,5 @@
 <h1 align="center">
-    <img alt="Kubernetes Goat" src="docs/static/img/vet-logo.png" width="150" />
+    <img alt="SafeDep Vet" src="docs/static/img/vet-logo.png" width="150" />
 </h1>
 <p align="center">
     🙌 Refer to <b><a href="https://safedep.io/docs/">https://safedep.io/docs</a></b> for the documentation 📖
