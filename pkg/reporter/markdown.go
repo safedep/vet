@@ -75,7 +75,7 @@ func (r *markdownReportGenerator) AddManifest(manifest *models.PackageManifest) 
 }
 
 func (r *markdownReportGenerator) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
-	if event.Type != analyzer.ET_FilterExpressionMatched {
+	if !event.IsFilterMatch() {
 		return
 	}
 
