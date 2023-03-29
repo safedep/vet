@@ -1,5 +1,5 @@
 <h1 align="center">
-    vet
+    <img alt="Kubernetes Goat" src="docs/static/img/vet-logo.png" width="150" />
 </h1>
 <p align="center">
     🙌 Refer to <b><a href="https://safedep.io/docs/">https://safedep.io/docs</a></b> for the documentation 📖
@@ -10,8 +10,6 @@
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/safedep/vet/badge)](https://api.securityscorecards.dev/projects/github.com/safedep/vet)
 [![CodeQL](https://github.com/safedep/vet/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/safedep/vet/actions/workflows/codeql.yml)
 [![Scorecard supply-chain security](https://github.com/safedep/vet/actions/workflows/scorecard.yml/badge.svg)](https://github.com/safedep/vet/actions/workflows/scorecard.yml)
-
-**🙌 Refer to [https://safedep.io/docs](https://safedep.io/docs) for the documentation 📖**
 
 ![vet banner](docs/static/img/vet/vet-banner.png)
 ## Automate Open Source Package Vetting in CI/CD
