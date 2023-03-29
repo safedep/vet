@@ -8,9 +8,6 @@
 .docusaurus
 .cache-loader
 
-# package-lock
-package-lock.json
-
 # Misc
 .DS_Store
 .env.local
