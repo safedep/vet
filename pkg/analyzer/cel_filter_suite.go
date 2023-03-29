@@ -78,7 +78,7 @@ func (f *celFilterSuiteAnalyzer) Analyze(manifest *models.PackageManifest,
 		}
 
 		if res.Matched() {
-			f.queueMatchedPkg(pkg, res.GetMatchedFilter().Name())
+			f.handleMatchedPkg(pkg, res.GetMatchedFilter().Name(), handler)
 		}
 
 		return nil
@@ -123,8 +123,8 @@ func (f *celFilterSuiteAnalyzer) renderMatchTable() {
 	tbl.Render()
 }
 
-func (f *celFilterSuiteAnalyzer) queueMatchedPkg(pkg *models.Package,
-	filterName string) {
+func (f *celFilterSuiteAnalyzer) handleMatchedPkg(pkg *models.Package,
+	filterName string, handler AnalyzerEventHandler) {
 	if _, ok := f.matchedPackages[pkg.Id()]; ok {
 		return
 	}
@@ -134,6 +134,14 @@ func (f *celFilterSuiteAnalyzer) queueMatchedPkg(pkg *models.Package,
 		filterName: filterName,
 		pkg:        pkg,
 	}
+
+	handler(&AnalyzerEvent{
+		Source:   f.Name(),
+		Type:     ET_FilterExpressionMatched,
+		Manifest: pkg.Manifest,
+		Package:  pkg,
+		Message:  filterName,
+	})
 }
 
 // To correctly unmarshal a []byte into protobuf message, we must use

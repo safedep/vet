@@ -21,6 +21,12 @@ type MarkdownReportingConfig struct {
 	Path string
 }
 
+type markdownTemplateInputViolation struct {
+	Ecosystem string
+	PkgName   string
+	Message   string
+}
+
 type markdownTemplateInputRemediation struct {
 	Pkg                *models.Package
 	PkgRemediationName string
@@ -36,6 +42,7 @@ type markdownTemplateInputResultSummary struct {
 type markdownTemplateInput struct {
 	Remediations   map[string][]markdownTemplateInputRemediation
 	Summary        map[string]markdownTemplateInputResultSummary
+	Violations     []markdownTemplateInputViolation
 	ManifestsCount int
 	PackagesCount  int
 }
@@ -47,6 +54,7 @@ type markdownReportGenerator struct {
 	config          MarkdownReportingConfig
 	summaryReporter Reporter
 	templateInput   markdownTemplateInput
+	violations      map[string]*analyzer.AnalyzerEvent
 }
 
 func NewMarkdownReportGenerator(config MarkdownReportingConfig) (Reporter, error) {
@@ -54,6 +62,7 @@ func NewMarkdownReportGenerator(config MarkdownReportingConfig) (Reporter, error
 	return &markdownReportGenerator{
 		config:          config,
 		summaryReporter: summaryReporter,
+		violations:      make(map[string]*analyzer.AnalyzerEvent),
 	}, nil
 }
 
@@ -65,7 +74,26 @@ func (r *markdownReportGenerator) AddManifest(manifest *models.PackageManifest) 
 	r.summaryReporter.AddManifest(manifest)
 }
 
-func (r *markdownReportGenerator) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {}
+func (r *markdownReportGenerator) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
+	if !event.IsFilterMatch() {
+		return
+	}
+
+	if event.Package == nil {
+		return
+	}
+
+	if event.Package.Manifest == nil {
+		return
+	}
+
+	pkgId := event.Package.Id()
+	if _, ok := r.violations[pkgId]; ok {
+		return
+	}
+
+	r.violations[pkgId] = event
+}
 
 func (r *markdownReportGenerator) AddPolicyEvent(event *policy.PolicyEvent) {}
 
@@ -103,6 +131,20 @@ func (r *markdownReportGenerator) Finish() error {
 		}
 	}
 
+	violations := []markdownTemplateInputViolation{}
+	for _, v := range r.violations {
+		var msg string
+		if msg, ok = v.Message.(string); !ok {
+			continue
+		}
+
+		violations = append(violations, markdownTemplateInputViolation{
+			Ecosystem: v.Manifest.Ecosystem,
+			PkgName:   fmt.Sprintf("%s@%s", v.Package.Name, v.Package.Version),
+			Message:   msg,
+		})
+	}
+
 	tmpl, err := template.New("markdown").Parse(markdownTemplate)
 	if err != nil {
 		return err
@@ -119,5 +161,6 @@ func (r *markdownReportGenerator) Finish() error {
 		ManifestsCount: sr.summary.manifests,
 		PackagesCount:  sr.summary.packages,
 		Summary:        summaries,
+		Violations:     violations,
 	})
 }

@@ -15,6 +15,18 @@
 | {{ $key }} | {{ $value.Ecosystem }} | {{ $value.PackageCount }} | {{ $value.PackageWithIssuesCount }} |
 {{- end }}
 
+## Policy Violation
+
+{{ if .Violations }}
+| Ecosystem | Package | Reason |
+|-----------|---------|--------|
+{{- range $value := .Violations }}
+| {{ $value.Ecosystem }} | {{ $value.PkgName }} | {{ $value.Message }} |
+{{- end }}
+{{ else }}
+> No policy violation found or policy not configured during scan
+{{ end }}
+
 ## Remediation Advice
 
 The table below lists advice for dependency upgrade to mitigate one or more

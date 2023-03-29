@@ -71,6 +71,14 @@ func (f *celFilterAnalyzer) Analyze(manifest *models.PackageManifest,
 
 			f.stat.IncMatchedPackage()
 			f.packages[pkg.Id()] = pkg
+
+			handler(&AnalyzerEvent{
+				Source:   f.Name(),
+				Type:     ET_FilterExpressionMatched,
+				Manifest: manifest,
+				Package:  pkg,
+				Message:  "cli-filter",
+			})
 		}
 
 		return nil
