@@ -4,13 +4,13 @@
 const lightCodeTheme = require('prism-react-renderer/themes/github');
 const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
-const BASE_URL = '/docs/';
+const BASE_URL = '/';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'vet',
   tagline: 'Identify Open Source Risks',
-  url: 'https://safedep.io',
+  url: 'https://docs.safedep.io',
   baseUrl: `${BASE_URL}`,
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
