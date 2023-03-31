@@ -44,7 +44,7 @@ jobs:
 
     - name: Build and Push Container Image
       run: |
-        docker buildx build --push --platform linux/amd64, linux/arm64 \
+        docker buildx build --push --platform linux/amd64 --platform linux/arm64 \
         -t $REGISTRY/$IMAGE_NAME:latest \
         .
 
