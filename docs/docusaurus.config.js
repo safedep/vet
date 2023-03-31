@@ -80,6 +80,21 @@ const config = {
             href: 'https://github.com/safedep/vet',
             label: 'GitHub',
             position: 'right',
+          },
+          {
+            href: 'https://twitter.com/safedepio',
+            label: 'Twitter',
+            position: 'right',
+          },
+          {
+            href: 'https://rebrand.ly/safedep-community',
+            label: 'Discord',
+            position: 'right',
+          },
+          {
+            href: 'https://www.producthunt.com/products/safedep-vet',
+            label: 'Product Hunt',
+            position: 'right',
           }
         ],
       },
