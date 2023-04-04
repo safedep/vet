@@ -7,12 +7,29 @@ before:
 builds:
   - env:
       - CGO_ENABLED=0
+    binary: vet
     goos:
       - linux
       - darwin
     goarch:
       - amd64
       - arm64
+
+release:
+  # for prerelease it doesn't build and distribute
+  prerelease: auto
+
+universal_binaries:
+  - replace: true
+
+brews:
+  - 
+    name: vet
+    homepage: https://safedep.io
+    description: "SafeDep vet is a tool for identifying open source software supply chain risks"
+    tap:
+      owner: safedep
+      name: homebrew-vet
 
 archives:
   - format: tar.gz
