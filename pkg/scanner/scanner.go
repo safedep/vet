@@ -258,6 +258,7 @@ func (s *packageManifestScanner) packageDependencyHandler(pm *models.PackageMani
 
 		if q.Add(pkg) {
 			pm.AddPackage(pkg)
+			s.dispatchOnAddTransitivePackage(pkg)
 		}
 
 		return nil

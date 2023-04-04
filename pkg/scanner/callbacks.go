@@ -13,13 +13,14 @@ type ScannerCallbackErrArgFn func(error)
 type ScannerCallbackNoArgFn func()
 
 type ScannerCallbacks struct {
-	OnStart         ScannerCallbackOnManifestsFn
-	OnStartManifest ScannerCallbackOnManifestFn
-	OnStartPackage  ScannerCallbackOnPackageFn
-	OnDonePackage   ScannerCallbackOnPackageFn
-	OnDoneManifest  ScannerCallbackOnManifestFn
-	BeforeFinish    ScannerCallbackNoArgFn
-	OnStop          ScannerCallbackErrArgFn
+	OnStart                ScannerCallbackOnManifestsFn
+	OnStartManifest        ScannerCallbackOnManifestFn
+	OnStartPackage         ScannerCallbackOnPackageFn
+	OnAddTransitivePackage ScannerCallbackOnPackageFn
+	OnDonePackage          ScannerCallbackOnPackageFn
+	OnDoneManifest         ScannerCallbackOnManifestFn
+	BeforeFinish           ScannerCallbackNoArgFn
+	OnStop                 ScannerCallbackErrArgFn
 }
 
 func (s *packageManifestScanner) WithCallbacks(callbacks ScannerCallbacks) {
@@ -47,6 +48,12 @@ func (s *packageManifestScanner) dispatchOnStartPackage(pkg *models.Package) {
 func (s *packageManifestScanner) dispatchOnDonePackage(pkg *models.Package) {
 	if s.callbacks.OnDonePackage != nil {
 		s.callbacks.OnDonePackage(pkg)
+	}
+}
+
+func (s *packageManifestScanner) dispatchOnAddTransitivePackage(pkg *models.Package) {
+	if s.callbacks.OnAddTransitivePackage != nil {
+		s.callbacks.OnAddTransitivePackage(pkg)
 	}
 }
 

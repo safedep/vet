@@ -203,6 +203,9 @@ func internalStartScan() error {
 			packageManifestTracker = ui.TrackProgress("Scanning manifests", tm)
 			packageTracker = ui.TrackProgress("Scanning packages", tp)
 		},
+		OnAddTransitivePackage: func(pkg *models.Package) {
+			ui.IncrementTrackerTotal(packageTracker, 1)
+		},
 		OnDoneManifest: func(manifest *models.PackageManifest) {
 			ui.IncrementProgress(packageManifestTracker, 1)
 		},
