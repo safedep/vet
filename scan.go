@@ -19,6 +19,7 @@ var (
 	lockfiles                   []string
 	lockfileAs                  string
 	baseDirectory               string
+	scanExclude                 []string
 	transitiveAnalysis          bool
 	transitiveDepth             int
 	concurrency                 int
@@ -52,6 +53,8 @@ func newScanCommand() *cobra.Command {
 		"Silent scan to prevent rendering UI")
 	cmd.Flags().StringVarP(&baseDirectory, "directory", "D", wd,
 		"The directory to scan for lockfiles")
+	cmd.Flags().StringArrayVarP(&scanExclude, "exclude", "", []string{},
+		"Name patterns to ignore while scanning a directory")
 	cmd.Flags().StringArrayVarP(&lockfiles, "lockfiles", "L", []string{},
 		"List of lockfiles to scan")
 	cmd.Flags().StringVarP(&lockfileAs, "lockfile-as", "", "",
@@ -179,6 +182,7 @@ func internalStartScan() error {
 		TransitiveAnalysis: transitiveAnalysis,
 		TransitiveDepth:    transitiveDepth,
 		ConcurrentAnalyzer: concurrency,
+		ExcludePatterns:    scanExclude,
 	}, enrichers, analyzers, reporters)
 
 	// Redirect log to files to create space for UI rendering
