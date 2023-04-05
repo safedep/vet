@@ -3,6 +3,7 @@ package scanner
 import (
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/safedep/vet/pkg/common/logger"
@@ -10,21 +11,26 @@ import (
 	"github.com/safedep/vet/pkg/parser"
 )
 
-func scanDirectoryForManifests(dir string) ([]*models.PackageManifest, error) {
+func (s *packageManifestScanner) scanDirectoryForManifests(dir string) ([]*models.PackageManifest, error) {
 	var manifests []*models.PackageManifest
 	err := filepath.WalkDir(dir, func(path string, info os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
-		if info.IsDir() && ignorableDirectory(info.Name()) {
-			logger.Debugf("Ignoring directory %s", path)
+		if info.IsDir() && s.ignorableDirectory(info.Name()) {
+			logger.Debugf("Ignoring directory: %s", path)
 			return filepath.SkipDir
 		}
 
 		path, err = filepath.Abs(path)
 		if err != nil {
 			return err
+		}
+
+		if s.excludedPath(path) {
+			logger.Debugf("Ignoring excluded path: %s", path)
+			return filepath.SkipDir
 		}
 
 		p, err := parser.FindParser(path, "")
@@ -44,7 +50,8 @@ func scanDirectoryForManifests(dir string) ([]*models.PackageManifest, error) {
 	return manifests, err
 }
 
-func scanLockfilesForManifests(lockfiles []string, lockfileAs string) ([]*models.PackageManifest, error) {
+func (s *packageManifestScanner) scanLockfilesForManifests(lockfiles []string,
+	lockfileAs string) ([]*models.PackageManifest, error) {
 	var manifests []*models.PackageManifest
 	for _, lf := range lockfiles {
 		p, err := parser.FindParser(lf, lockfileAs)
@@ -65,7 +72,24 @@ func scanLockfilesForManifests(lockfiles []string, lockfileAs string) ([]*models
 	return manifests, nil
 }
 
-func ignorableDirectory(name string) bool {
+// TODO: Build a precompiled cache of regex patterns
+func (s *packageManifestScanner) excludedPath(path string) bool {
+	for _, pattern := range s.config.ExcludePatterns {
+		m, err := regexp.MatchString(pattern, path)
+		if err != nil {
+			logger.Warnf("Invalid regex pattern: %s: %v", pattern, err)
+			continue
+		}
+
+		if m {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (s *packageManifestScanner) ignorableDirectory(name string) bool {
 	dirs := []string{
 		".git",
 		"node_modules",

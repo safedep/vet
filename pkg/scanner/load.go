@@ -8,7 +8,7 @@ import (
 	"github.com/safedep/vet/pkg/models"
 )
 
-func scanDumpFilesForManifest(dir string) ([]*models.PackageManifest, error) {
+func (s *packageManifestScanner) scanDumpFilesForManifest(dir string) ([]*models.PackageManifest, error) {
 	var manifests []*models.PackageManifest
 	err := filepath.WalkDir(dir, func(path string, info os.DirEntry, err error) error {
 		if err != nil {

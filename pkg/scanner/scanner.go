@@ -12,6 +12,7 @@ import (
 )
 
 type Config struct {
+	ExcludePatterns    []string
 	ConcurrentAnalyzer int
 	TransitiveAnalysis bool
 	TransitiveDepth    int
@@ -43,7 +44,7 @@ func NewPackageManifestScanner(config Config,
 func (s *packageManifestScanner) ScanDirectory(dir string) error {
 	logger.Infof("Starting package manifest scanner on dir: %s", dir)
 
-	manifests, err := scanDirectoryForManifests(dir)
+	manifests, err := s.scanDirectoryForManifests(dir)
 	if err != nil {
 		return err
 	}
@@ -58,7 +59,7 @@ func (s *packageManifestScanner) ScanLockfiles(lockfiles []string,
 	lockfileAs string) error {
 	logger.Infof("Scanning %d lockfiles as %s", len(lockfiles), lockfileAs)
 
-	manifests, err := scanLockfilesForManifests(lockfiles, lockfileAs)
+	manifests, err := s.scanLockfilesForManifests(lockfiles, lockfileAs)
 	if err != nil {
 		return err
 	}
@@ -71,7 +72,7 @@ func (s *packageManifestScanner) ScanLockfiles(lockfiles []string,
 func (s *packageManifestScanner) ScanDumpDirectory(dir string) error {
 	logger.Infof("Scan dump files to load as manifests: %s", dir)
 
-	manifests, err := scanDumpFilesForManifest(dir)
+	manifests, err := s.scanDumpFilesForManifest(dir)
 	if err != nil {
 		return err
 	}
@@ -258,6 +259,7 @@ func (s *packageManifestScanner) packageDependencyHandler(pm *models.PackageMani
 
 		if q.Add(pkg) {
 			pm.AddPackage(pkg)
+			s.dispatchOnAddTransitivePackage(pkg)
 		}
 
 		return nil
