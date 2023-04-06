@@ -220,10 +220,10 @@ func (r *summaryReporter) sortedRemediations() []*summaryReporterRemediationData
 
 		if i == len(sortedPackages) {
 			sortedPackages = append(sortedPackages, value)
+		} else {
+			sortedPackages = append(sortedPackages[:i+1], sortedPackages[i:]...)
+			sortedPackages[i] = value
 		}
-
-		sortedPackages = append(sortedPackages[:i+1], sortedPackages[i:]...)
-		sortedPackages[i] = value
 	}
 
 	return sortedPackages
