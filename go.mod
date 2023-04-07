@@ -7,7 +7,7 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/google/cel-go v0.13.0
 	github.com/google/osv-scanner v1.2.0
-	github.com/jedib0t/go-pretty/v6 v6.4.4
+	github.com/jedib0t/go-pretty/v6 v6.4.6
 	github.com/safedep/dry v0.0.0-20230222132026-c8b6cb976849
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
