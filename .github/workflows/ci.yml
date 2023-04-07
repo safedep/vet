@@ -1,0 +1,27 @@
+name: CI
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568
+        with:
+          go-version: 1.19
+          check-latest: true
+
+      - name: Build and Test
+        run: |
+          go mod tidy
+          go build
+          go test -v ./...
