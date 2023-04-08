@@ -20,6 +20,7 @@ type Config struct {
 
 type packageManifestScanner struct {
 	config    Config
+	readers   []readers.PackageManifestReader
 	enrichers []PackageMetaEnricher
 	analyzers []analyzer.Analyzer
 	reporters []reporter.Reporter
@@ -29,55 +30,36 @@ type packageManifestScanner struct {
 }
 
 func NewPackageManifestScanner(config Config,
+	readers []readers.PackageManifestReader,
 	enrichers []PackageMetaEnricher,
 	analyzers []analyzer.Analyzer,
 	reporters []reporter.Reporter) *packageManifestScanner {
 	return &packageManifestScanner{
 		config:    config,
+		readers:   readers,
 		enrichers: enrichers,
 		analyzers: analyzers,
 		reporters: reporters,
 	}
 }
 
-// Autodiscover lockfiles
-func (s *packageManifestScanner) ScanDirectory(dir string) error {
-	logger.Infof("Starting package manifest scanner on dir: %s", dir)
+func (s *packageManifestScanner) Start() error {
+	// We need to eager load the manifests because the current UI experience
+	// of progress update depends on it
+	var manifests []*models.PackageManifest
 
-	manifests, err := s.scanDirectoryForManifests(dir)
-	if err != nil {
-		return err
+	for _, reader := range s.readers {
+		err := reader.EnumManifests(func(manifest *models.PackageManifest,
+			_ readers.PackageReader) error {
+			manifests = append(manifests, manifest)
+			return nil
+		})
+
+		if err != nil {
+			return err
+		}
 	}
 
-	logger.Infof("Discovered %d manifest(s)", len(manifests))
-	return s.scanManifests(manifests)
-}
-
-// Scan specific lockfiles, optionally interpreted as instead of
-// automatic parser selection
-func (s *packageManifestScanner) ScanLockfiles(lockfiles []string,
-	lockfileAs string) error {
-	logger.Infof("Scanning %d lockfiles as %s", len(lockfiles), lockfileAs)
-
-	manifests, err := s.scanLockfilesForManifests(lockfiles, lockfileAs)
-	if err != nil {
-		return err
-	}
-
-	logger.Infof("Discovered %d manifest(s)", len(manifests))
-	return s.scanManifests(manifests)
-}
-
-// Load the manifests from a previous dumped JSON file
-func (s *packageManifestScanner) ScanDumpDirectory(dir string) error {
-	logger.Infof("Scan dump files to load as manifests: %s", dir)
-
-	manifests, err := s.scanDumpFilesForManifest(dir)
-	if err != nil {
-		return err
-	}
-
-	logger.Infof("Loaded %d manifest(s)", len(manifests))
 	return s.scanManifests(manifests)
 }
 

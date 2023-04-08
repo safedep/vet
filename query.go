@@ -5,6 +5,7 @@ import (
 
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/pkg/analyzer"
+	"github.com/safedep/vet/pkg/readers"
 	"github.com/safedep/vet/pkg/reporter"
 	"github.com/safedep/vet/pkg/scanner"
 	"github.com/spf13/cobra"
@@ -64,9 +65,17 @@ func startQuery() {
 }
 
 func internalStartQuery() error {
+	readerList := []readers.PackageManifestReader{}
 	analyzers := []analyzer.Analyzer{}
 	reporters := []reporter.Reporter{}
 	enrichers := []scanner.PackageMetaEnricher{}
+
+	reader, err := readers.NewJsonDumpReader(queryLoadDirectory)
+	if err != nil {
+		return err
+	}
+
+	readerList = append(readerList, reader)
 
 	if !utils.IsEmptyString(queryFilterExpression) {
 		task, err := analyzer.NewCelFilterAnalyzer(queryFilterExpression,
@@ -134,8 +143,8 @@ func internalStartQuery() error {
 
 	pmScanner := scanner.NewPackageManifestScanner(scanner.Config{
 		TransitiveAnalysis: false,
-	}, enrichers, analyzers, reporters)
+	}, readerList, enrichers, analyzers, reporters)
 
 	redirectLogToFile(logFile)
-	return pmScanner.ScanDumpDirectory(queryLoadDirectory)
+	return pmScanner.Start()
 }

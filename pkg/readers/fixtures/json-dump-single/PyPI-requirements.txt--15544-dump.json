@@ -1,0 +1,1856 @@
+{
+  "path": "./pkg/readers/fixtures/multi-with-invalid/requirements.txt",
+  "ecosystem": "PyPI",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "pyyaml",
+        "version": "5.4.1",
+        "ecosystem": "PyPI",
+        "compareAs": "PyPI"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "YAML parser and emitter for Python",
+            "distance": 0,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "pyyaml",
+              "version": "5.4.1"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "MIT"
+        ],
+        "package_current_version": "6.0.0",
+        "package_version": {
+          "ecosystem": "PYPI",
+          "name": "pyyaml",
+          "version": "5.4.1"
+        },
+        "projects": [
+          {
+            "display_name": "yaml/pyyaml",
+            "forks": 441,
+            "issues": 259,
+            "link": "https://github.com/yaml/pyyaml",
+            "name": "yaml/pyyaml",
+            "stars": 2132,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Maintained",
+                "reason": "1 commit(s) out of 30 and 6 issue activity out of 30 found in the last 90 days -- score normalized to 5",
+                "score": 5
+              },
+              {
+                "name": "Code-Review",
+                "reason": "5 out of last 30 changesets reviewed before merge -- score normalized to 1",
+                "score": 1
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no badge detected",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "no vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection is not maximal on development and all release branches",
+                "score": 3
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file detected",
+                "score": 10
+              },
+              {
+                "name": "Packaging",
+                "reason": "no published package detected",
+                "score": -1
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "non read-only tokens detected in GitHub workflows",
+                "score": 0
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 7",
+                "score": 7
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is fuzzed with [OSSFuzz]",
+                "score": 10
+              },
+              {
+                "name": "Dependency-Update-Tool",
+                "reason": "no update tool detected",
+                "score": 0
+              }
+            ],
+            "date": "2022-11-21",
+            "repository": {
+              "commit": "957ae4d495cf8fcb5475c6c2f1bce801096b68a5",
+              "name": "github.com/yaml/pyyaml"
+            },
+            "score": 5.5,
+            "scorecard": {
+              "commit": "d8fefc9b246db3600c777e9d60d441d7c386ce1d",
+              "version": "v4.8.0-79-gd8fefc9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0
+    },
+    {
+      "package_detail": {
+        "name": "s3transfer",
+        "version": "0.5.2",
+        "ecosystem": "PyPI",
+        "compareAs": "PyPI"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "An Amazon S3 Transfer Manager",
+            "distance": 0,
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "s3transfer",
+              "version": "0.5.2"
+            }
+          },
+          {
+            "description": "Low-level, data-driven core of boto 3.",
+            "distance": 1,
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "botocore",
+              "version": "1.29.109"
+            }
+          },
+          {
+            "description": "JSON Matching Expressions",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "jmespath",
+              "version": "1.0.1"
+            }
+          },
+          {
+            "description": "Extensions to the standard Python datetime module",
+            "distance": 2,
+            "licenses": [
+              "non-standard"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "python-dateutil",
+              "version": "2.8.2"
+            }
+          },
+          {
+            "description": "HTTP library with thread-safe connection pooling, file post, and more.",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "urllib3",
+              "version": "1.26.15"
+            }
+          },
+          {
+            "description": "Python 2 and 3 compatibility utilities",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "six",
+              "version": "1.16.0"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 1,
+          "indirect_dependents": 4,
+          "total_dependents": 5
+        },
+        "licenses": [
+          "Apache-2.0"
+        ],
+        "package_current_version": "0.6.0",
+        "package_version": {
+          "ecosystem": "PYPI",
+          "name": "s3transfer",
+          "version": "0.5.2"
+        },
+        "projects": [
+          {
+            "display_name": "boto/s3transfer",
+            "forks": 117,
+            "issues": 48,
+            "link": "https://github.com/boto/s3transfer",
+            "name": "boto/s3transfer",
+            "stars": 164,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Maintained",
+                "reason": "1 commit(s) out of 30 and 0 issue activity out of 30 found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Code-Review",
+                "reason": "14 out of last 22 changesets reviewed before merge -- score normalized to 6",
+                "score": 6
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no badge detected",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "no vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection is not maximal on development and all release branches",
+                "score": 6
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "Packaging",
+                "reason": "no published package detected",
+                "score": -1
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file detected",
+                "score": 10
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "non read-only tokens detected in GitHub workflows",
+                "score": 0
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 7",
+                "score": 7
+              },
+              {
+                "name": "Dependency-Update-Tool",
+                "reason": "no update tool detected",
+                "score": 0
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              }
+            ],
+            "date": "2022-11-21",
+            "repository": {
+              "commit": "52b424d57f24953565cd24cbb5ed1a059f580a76",
+              "name": "github.com/boto/s3transfer"
+            },
+            "score": 5.1,
+            "scorecard": {
+              "commit": "469216299ac3e161ebb995302ff8eb4ac43bb199",
+              "version": "v4.8.0-70-g4692162"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0
+    },
+    {
+      "package_detail": {
+        "name": "six",
+        "version": "1.16.0",
+        "ecosystem": "PyPI",
+        "compareAs": "PyPI"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Python 2 and 3 compatibility utilities",
+            "distance": 0,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "six",
+              "version": "1.16.0"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "MIT"
+        ],
+        "package_current_version": "1.16.0",
+        "package_version": {
+          "ecosystem": "PYPI",
+          "name": "six",
+          "version": "1.16.0"
+        },
+        "projects": [
+          {
+            "display_name": "benjaminp/six",
+            "forks": 260,
+            "issues": 110,
+            "link": "https://github.com/benjaminp/six",
+            "name": "benjaminp/six",
+            "stars": 936,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Maintained",
+                "reason": "0 commit(s) out of 30 and 1 issue activity out of 30 found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Code-Review",
+                "reason": "10 out of last 30 changesets reviewed before merge -- score normalized to 3",
+                "score": 3
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no badge detected",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "no vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "all dependencies are pinned",
+                "score": 10
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "tokens are read-only in GitHub workflows",
+                "score": 10
+              },
+              {
+                "name": "Packaging",
+                "reason": "no published package detected",
+                "score": -1
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "Dependency-Update-Tool",
+                "reason": "no update tool detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              }
+            ],
+            "date": "2022-11-21",
+            "repository": {
+              "commit": "3b7efbcca41857da03fb01f004ccc425ab82dfbf",
+              "name": "github.com/benjaminp/six"
+            },
+            "score": 4.8,
+            "scorecard": {
+              "commit": "469216299ac3e161ebb995302ff8eb4ac43bb199",
+              "version": "v4.8.0-70-g4692162"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0
+    },
+    {
+      "package_detail": {
+        "name": "urllib3",
+        "version": "1.26.9",
+        "ecosystem": "PyPI",
+        "compareAs": "PyPI"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "HTTP library with thread-safe connection pooling, file post, and more.",
+            "distance": 0,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "urllib3",
+              "version": "1.26.9"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "MIT"
+        ],
+        "package_current_version": "1.26.15",
+        "package_version": {
+          "ecosystem": "PYPI",
+          "name": "urllib3",
+          "version": "1.26.9"
+        },
+        "projects": [
+          {
+            "display_name": "urllib3/urllib3",
+            "forks": 1038,
+            "issues": 121,
+            "link": "https://github.com/urllib3/urllib3",
+            "name": "urllib3/urllib3",
+            "stars": 3317,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Maintained",
+                "reason": "30 commit(s) out of 30 and 19 issue activity out of 30 found in the last 90 days -- score normalized to 10",
+                "score": 10
+              },
+              {
+                "name": "Code-Review",
+                "reason": "22 out of last 24 changesets reviewed before merge -- score normalized to 9",
+                "score": 9
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "no vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "badge detected: passing",
+                "score": 5
+              },
+              {
+                "name": "Dependency-Update-Tool",
+                "reason": "update tool detected",
+                "score": 10
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file detected",
+                "score": 10
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "tokens are read-only in GitHub workflows",
+                "score": 10
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "all dependencies are pinned",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "5 out of 5 artifacts are signed or have provenance",
+                "score": 9
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection is not maximal on development and all release branches",
+                "score": 8
+              },
+              {
+                "name": "Packaging",
+                "reason": "publishing workflow detected",
+                "score": 10
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is fuzzed with [OSSFuzz]",
+                "score": 10
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is run on all commits",
+                "score": 10
+              }
+            ],
+            "date": "2022-11-21",
+            "repository": {
+              "commit": "94ccda029d556c2b17184d5874bfe598c7012589",
+              "name": "github.com/urllib3/urllib3"
+            },
+            "score": 9.6,
+            "scorecard": {
+              "commit": "d8fefc9b246db3600c777e9d60d441d7c386ce1d",
+              "version": "v4.8.0-79-gd8fefc9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0
+    },
+    {
+      "package_detail": {
+        "name": "pydoop",
+        "version": "2.0.0",
+        "ecosystem": "PyPI",
+        "compareAs": "PyPI"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "",
+            "distance": 0,
+            "licenses": [],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "pydoop",
+              "version": "2.0.0"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [],
+        "package_current_version": "2.0.0",
+        "package_version": {
+          "ecosystem": "PYPI",
+          "name": "pydoop",
+          "version": "2.0.0"
+        },
+        "projects": []
+      },
+      "depth": 0
+    },
+    {
+      "package_detail": {
+        "name": "awscli",
+        "version": "1.23.3",
+        "ecosystem": "PyPI",
+        "compareAs": "PyPI"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Universal Command Line Environment for AWS.",
+            "distance": 0,
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "awscli",
+              "version": "1.23.3"
+            }
+          },
+          {
+            "description": "Low-level, data-driven core of boto 3.",
+            "distance": 1,
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "botocore",
+              "version": "1.25.3"
+            }
+          },
+          {
+            "description": "Cross-platform colored terminal text.",
+            "distance": 1,
+            "licenses": [
+              "non-standard"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "colorama",
+              "version": "0.4.4"
+            }
+          },
+          {
+            "description": "Docutils -- Python Documentation Utilities",
+            "distance": 1,
+            "licenses": [
+              "non-standard"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "docutils",
+              "version": "0.15.2"
+            }
+          },
+          {
+            "description": "YAML parser and emitter for Python",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "pyyaml",
+              "version": "5.4.1"
+            }
+          },
+          {
+            "description": "Pure-Python RSA implementation",
+            "distance": 1,
+            "licenses": [
+              "non-standard"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "rsa",
+              "version": "4.7.2"
+            }
+          },
+          {
+            "description": "An Amazon S3 Transfer Manager",
+            "distance": 1,
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "s3transfer",
+              "version": "0.5.2"
+            }
+          },
+          {
+            "description": "JSON Matching Expressions",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "jmespath",
+              "version": "1.0.1"
+            }
+          },
+          {
+            "description": "ASN.1 types and codecs",
+            "distance": 2,
+            "licenses": [
+              "non-standard"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "pyasn1",
+              "version": "0.4.8"
+            }
+          },
+          {
+            "description": "Extensions to the standard Python datetime module",
+            "distance": 2,
+            "licenses": [
+              "non-standard"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "python-dateutil",
+              "version": "2.8.2"
+            }
+          },
+          {
+            "description": "HTTP library with thread-safe connection pooling, file post, and more.",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "urllib3",
+              "version": "1.26.15"
+            }
+          },
+          {
+            "description": "Python 2 and 3 compatibility utilities",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "six",
+              "version": "1.16.0"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 6,
+          "indirect_dependents": 5,
+          "total_dependents": 11
+        },
+        "licenses": [
+          "Apache-2.0"
+        ],
+        "package_current_version": "1.27.109",
+        "package_version": {
+          "ecosystem": "PYPI",
+          "name": "awscli",
+          "version": "1.23.3"
+        },
+        "projects": [
+          {
+            "display_name": "aws/aws-cli",
+            "forks": 3646,
+            "issues": 503,
+            "link": "https://github.com/aws/aws-cli",
+            "name": "aws/aws-cli",
+            "stars": 13626,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Maintained",
+                "reason": "30 commit(s) out of 30 and 5 issue activity out of 30 found in the last 90 days -- score normalized to 10",
+                "score": 10
+              },
+              {
+                "name": "Code-Review",
+                "reason": "7 out of last 10 changesets reviewed before merge -- score normalized to 7",
+                "score": 7
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no badge detected",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "no vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "0 out of 1 artifacts are signed or have provenance",
+                "score": 0
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection is not maximal on development and all release branches",
+                "score": 6
+              },
+              {
+                "name": "SAST",
+                "reason": "internal error: Client.Checks.ListCheckRunsForRef: error during graphqlHandler.setupCheckRuns: non-200 OK status code: 502 Bad Gateway body: \"{\\n   \\\"data\\\": null,\\n   \\\"errors\\\":[\\n      {\\n         \\\"message\\\":\\\"Something went wrong while executing your query. This may be the result of a timeout, or it could be a GitHub bug. Please include `81BE:5FBA:1670E17:2DE3EEA:637CD946` when reporting this issue.\\\"\\n      }\\n   ]\\n}\\n\"",
+                "score": -1
+              },
+              {
+                "name": "Dependency-Update-Tool",
+                "reason": "update tool detected",
+                "score": 10
+              },
+              {
+                "name": "Packaging",
+                "reason": "no published package detected",
+                "score": -1
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "non read-only tokens detected in GitHub workflows",
+                "score": 0
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 7",
+                "score": 7
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file detected",
+                "score": 10
+              }
+            ],
+            "date": "2022-11-21",
+            "repository": {
+              "commit": "1b0005a2d8cb66594c4dd568571a905f131d5cde",
+              "name": "github.com/aws/aws-cli"
+            },
+            "score": 6.8,
+            "scorecard": {
+              "commit": "469216299ac3e161ebb995302ff8eb4ac43bb199",
+              "version": "v4.8.0-70-g4692162"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0
+    },
+    {
+      "package_detail": {
+        "name": "jmespath",
+        "version": "0.10.0",
+        "ecosystem": "PyPI",
+        "compareAs": "PyPI"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "JSON Matching Expressions",
+            "distance": 0,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "jmespath",
+              "version": "0.10.0"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "MIT"
+        ],
+        "package_current_version": "1.0.1",
+        "package_version": {
+          "ecosystem": "PYPI",
+          "name": "jmespath",
+          "version": "0.10.0"
+        },
+        "projects": [
+          {
+            "display_name": "jmespath/jmespath.py",
+            "forks": 168,
+            "issues": 43,
+            "link": "https://github.com/jmespath/jmespath.py",
+            "name": "jmespath/jmespath.py",
+            "stars": 1786,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Maintained",
+                "reason": "0 commit(s) out of 30 and 0 issue activity out of 30 found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Code-Review",
+                "reason": "10 out of last 18 changesets reviewed before merge -- score normalized to 5",
+                "score": 5
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no badge detected",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "no vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "non read-only tokens detected in GitHub workflows",
+                "score": 0
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Packaging",
+                "reason": "no published package detected",
+                "score": -1
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 9",
+                "score": 9
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "Dependency-Update-Tool",
+                "reason": "update tool detected",
+                "score": 10
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "internal error: internal error: Client.Search.Code: Search.Code: GET https://api.github.com/search/code?q=github.com+jmespath+jmespath.py+repo%3Agoogle%2Foss-fuzz+in%3Afile+filename%3Aproject.yaml: 400  []",
+                "score": -1
+              }
+            ],
+            "date": "2022-11-21",
+            "repository": {
+              "commit": "bbe7300c60056f52413603cf3e2bcd0b6afeda3d",
+              "name": "github.com/jmespath/jmespath.py"
+            },
+            "score": 5.2,
+            "scorecard": {
+              "commit": "ef79b9487d8f8bf6fca7b0bafc8c55049d925403",
+              "version": "v4.8.0-75-gef79b94"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0
+    },
+    {
+      "package_detail": {
+        "name": "pyasn1",
+        "version": "0.4.8",
+        "ecosystem": "PyPI",
+        "compareAs": "PyPI"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "ASN.1 types and codecs",
+            "distance": 0,
+            "licenses": [
+              "non-standard"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "pyasn1",
+              "version": "0.4.8"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "non-standard"
+        ],
+        "package_current_version": "0.4.8",
+        "package_version": {
+          "ecosystem": "PYPI",
+          "name": "pyasn1",
+          "version": "0.4.8"
+        },
+        "projects": [
+          {
+            "display_name": "etingof/pyasn1",
+            "forks": 98,
+            "issues": 58,
+            "link": "https://github.com/etingof/pyasn1",
+            "name": "etingof/pyasn1",
+            "stars": 228,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Maintained",
+                "reason": "0 commit(s) out of 30 and 0 issue activity out of 30 found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Code-Review",
+                "reason": "3 out of last 15 changesets reviewed before merge -- score normalized to 2",
+                "score": 2
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no badge detected",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "no vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "tokens are read-only in GitHub workflows",
+                "score": 10
+              },
+              {
+                "name": "Packaging",
+                "reason": "no published package detected",
+                "score": -1
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "all dependencies are pinned",
+                "score": 10
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is fuzzed with [OSSFuzz]",
+                "score": 10
+              },
+              {
+                "name": "Dependency-Update-Tool",
+                "reason": "internal error: Search.Code: GET https://api.github.com/search/commits?per_page=100\u0026q=repo%3Aetingof%2Fpyasn1+author%3Adependabot%5Bbot%5D: 400  []",
+                "score": -1
+              }
+            ],
+            "date": "2022-11-21",
+            "repository": {
+              "commit": "db8f1a7930c6b5826357646746337dafc983f953",
+              "name": "github.com/etingof/pyasn1"
+            },
+            "score": 5.8,
+            "scorecard": {
+              "commit": "ef79b9487d8f8bf6fca7b0bafc8c55049d925403",
+              "version": "v4.8.0-75-gef79b94"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0
+    },
+    {
+      "package_detail": {
+        "name": "python-dateutil",
+        "version": "2.8.2",
+        "ecosystem": "PyPI",
+        "compareAs": "PyPI"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Extensions to the standard Python datetime module",
+            "distance": 0,
+            "licenses": [
+              "non-standard"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "python-dateutil",
+              "version": "2.8.2"
+            }
+          },
+          {
+            "description": "Python 2 and 3 compatibility utilities",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "six",
+              "version": "1.16.0"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 1,
+          "indirect_dependents": 0,
+          "total_dependents": 1
+        },
+        "licenses": [
+          "non-standard"
+        ],
+        "package_current_version": "2.8.2",
+        "package_version": {
+          "ecosystem": "PYPI",
+          "name": "python-dateutil",
+          "version": "2.8.2"
+        },
+        "projects": [
+          {
+            "display_name": "dateutil/dateutil",
+            "forks": 430,
+            "issues": 329,
+            "link": "https://github.com/dateutil/dateutil",
+            "name": "dateutil/dateutil",
+            "stars": 2027,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Maintained",
+                "reason": "1 commit(s) out of 30 and 5 issue activity out of 30 found in the last 90 days -- score normalized to 5",
+                "score": 5
+              },
+              {
+                "name": "Code-Review",
+                "reason": "12 out of last 15 changesets reviewed before merge -- score normalized to 8",
+                "score": 8
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no badge detected",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "no vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "non read-only tokens detected in GitHub workflows",
+                "score": 0
+              },
+              {
+                "name": "Packaging",
+                "reason": "no published package detected",
+                "score": -1
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 7",
+                "score": 7
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "5 out of 5 artifacts are signed or have provenance",
+                "score": 8
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection is not maximal on development and all release branches",
+                "score": 3
+              },
+              {
+                "name": "Dependency-Update-Tool",
+                "reason": "no update tool detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is fuzzed with [OSSFuzz]",
+                "score": 10
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "SAST",
+                "reason": "internal error: Client.Search.Code: Search.Code: GET https://api.github.com/search/code?q=github+codeql-action+analyze+repo%3Adateutil%2Fdateutil+path%3A%2F.github%2Fworkflows: 400  []",
+                "score": -1
+              }
+            ],
+            "date": "2022-11-21",
+            "repository": {
+              "commit": "322fa34bc5fafb2e1c725e97909bf490a9dec1c8",
+              "name": "github.com/dateutil/dateutil"
+            },
+            "score": 6,
+            "scorecard": {
+              "commit": "469216299ac3e161ebb995302ff8eb4ac43bb199",
+              "version": "v4.8.0-70-g4692162"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0
+    },
+    {
+      "package_detail": {
+        "name": "rsa",
+        "version": "4.7.2",
+        "ecosystem": "PyPI",
+        "compareAs": "PyPI"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Pure-Python RSA implementation",
+            "distance": 0,
+            "licenses": [
+              "non-standard"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "rsa",
+              "version": "4.7.2"
+            }
+          },
+          {
+            "description": "ASN.1 types and codecs",
+            "distance": 1,
+            "licenses": [
+              "non-standard"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "pyasn1",
+              "version": "0.4.8"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 1,
+          "indirect_dependents": 0,
+          "total_dependents": 1
+        },
+        "licenses": [
+          "non-standard"
+        ],
+        "package_current_version": "4.9.0",
+        "package_version": {
+          "ecosystem": "PYPI",
+          "name": "rsa",
+          "version": "4.7.2"
+        },
+        "projects": []
+      },
+      "depth": 0
+    },
+    {
+      "package_detail": {
+        "name": "botocore",
+        "version": "1.25.3",
+        "ecosystem": "PyPI",
+        "compareAs": "PyPI"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Low-level, data-driven core of boto 3.",
+            "distance": 0,
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "botocore",
+              "version": "1.25.3"
+            }
+          },
+          {
+            "description": "JSON Matching Expressions",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "jmespath",
+              "version": "1.0.1"
+            }
+          },
+          {
+            "description": "Extensions to the standard Python datetime module",
+            "distance": 1,
+            "licenses": [
+              "non-standard"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "python-dateutil",
+              "version": "2.8.2"
+            }
+          },
+          {
+            "description": "HTTP library with thread-safe connection pooling, file post, and more.",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "urllib3",
+              "version": "1.26.15"
+            }
+          },
+          {
+            "description": "Python 2 and 3 compatibility utilities",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "six",
+              "version": "1.16.0"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 3,
+          "indirect_dependents": 1,
+          "total_dependents": 4
+        },
+        "licenses": [
+          "Apache-2.0"
+        ],
+        "package_current_version": "1.29.109",
+        "package_version": {
+          "ecosystem": "PYPI",
+          "name": "botocore",
+          "version": "1.25.3"
+        },
+        "projects": [
+          {
+            "display_name": "boto/botocore",
+            "forks": 1000,
+            "issues": 142,
+            "link": "https://github.com/boto/botocore",
+            "name": "boto/botocore",
+            "stars": 1261,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Code-Review",
+                "reason": "9 out of last 29 changesets reviewed before merge -- score normalized to 3",
+                "score": 3
+              },
+              {
+                "name": "Maintained",
+                "reason": "30 commit(s) out of 30 and 0 issue activity out of 30 found in the last 90 days -- score normalized to 10",
+                "score": 10
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no badge detected",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "no vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection is not maximal on development and all release branches",
+                "score": 6
+              },
+              {
+                "name": "Packaging",
+                "reason": "no published package detected",
+                "score": -1
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "non read-only tokens detected in GitHub workflows",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file detected",
+                "score": 10
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "Dependency-Update-Tool",
+                "reason": "no update tool detected",
+                "score": 0
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 7",
+                "score": 7
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              }
+            ],
+            "date": "2022-11-21",
+            "repository": {
+              "commit": "a942b57854dd35a37766d7973c3fb980a2de4068",
+              "name": "github.com/boto/botocore"
+            },
+            "score": 5.7,
+            "scorecard": {
+              "commit": "469216299ac3e161ebb995302ff8eb4ac43bb199",
+              "version": "v4.8.0-70-g4692162"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0
+    },
+    {
+      "package_detail": {
+        "name": "colorama",
+        "version": "0.4.4",
+        "ecosystem": "PyPI",
+        "compareAs": "PyPI"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Cross-platform colored terminal text.",
+            "distance": 0,
+            "licenses": [
+              "non-standard"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "colorama",
+              "version": "0.4.4"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "non-standard"
+        ],
+        "package_current_version": "0.4.6",
+        "package_version": {
+          "ecosystem": "PYPI",
+          "name": "colorama",
+          "version": "0.4.4"
+        },
+        "projects": [
+          {
+            "display_name": "tartley/colorama",
+            "forks": 228,
+            "issues": 108,
+            "link": "https://github.com/tartley/colorama",
+            "name": "tartley/colorama",
+            "stars": 3115,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Maintained",
+                "reason": "30 commit(s) out of 30 and 18 issue activity out of 30 found in the last 90 days -- score normalized to 10",
+                "score": 10
+              },
+              {
+                "name": "Code-Review",
+                "reason": "5 out of last 15 changesets reviewed before merge -- score normalized to 3",
+                "score": 3
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no badge detected",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "no vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "Packaging",
+                "reason": "no published package detected",
+                "score": -1
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "non read-only tokens detected in GitHub workflows",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file detected",
+                "score": 10
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 9",
+                "score": 9
+              },
+              {
+                "name": "Dependency-Update-Tool",
+                "reason": "no update tool detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              }
+            ],
+            "date": "2022-11-21",
+            "repository": {
+              "commit": "21c4b94fe21ce29c85c896ace828da24b7527641",
+              "name": "github.com/tartley/colorama"
+            },
+            "score": 5.3,
+            "scorecard": {
+              "commit": "ef79b9487d8f8bf6fca7b0bafc8c55049d925403",
+              "version": "v4.8.0-75-gef79b94"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0
+    },
+    {
+      "package_detail": {
+        "name": "docutils",
+        "version": "0.15.2",
+        "ecosystem": "PyPI",
+        "compareAs": "PyPI"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Docutils -- Python Documentation Utilities",
+            "distance": 0,
+            "licenses": [
+              "non-standard"
+            ],
+            "package_version": {
+              "ecosystem": "PYPI",
+              "name": "docutils",
+              "version": "0.15.2"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "non-standard"
+        ],
+        "package_current_version": "0.19.0",
+        "package_version": {
+          "ecosystem": "PYPI",
+          "name": "docutils",
+          "version": "0.15.2"
+        },
+        "projects": []
+      },
+      "depth": 0
+    }
+  ]
+}

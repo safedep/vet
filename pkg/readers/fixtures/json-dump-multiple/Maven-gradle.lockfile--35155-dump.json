@@ -1,0 +1,235 @@
+{
+  "path": "./pkg/readers/fixtures/java/gradle.lockfile",
+  "ecosystem": "Maven",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "antlr:antlr",
+        "version": "2.7.7",
+        "ecosystem": "Maven",
+        "compareAs": "Maven"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "\n    A framework for constructing recognizers, compilers,\n    and translators from grammatical descriptions containing\n    Java, C#, C++, or Python actions.\n  ",
+            "distance": 0,
+            "licenses": [
+              "non-standard"
+            ],
+            "package_version": {
+              "ecosystem": "MAVEN",
+              "name": "antlr:antlr",
+              "version": "2.7.7"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "non-standard"
+        ],
+        "package_current_version": "20030911",
+        "package_version": {
+          "ecosystem": "MAVEN",
+          "name": "antlr:antlr",
+          "version": "2.7.7"
+        },
+        "projects": []
+      },
+      "depth": 0
+    },
+    {
+      "package_detail": {
+        "name": "ch.qos.logback:logback-core",
+        "version": "1.2.11",
+        "ecosystem": "Maven",
+        "compareAs": "Maven"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "logback-core module",
+            "distance": 0,
+            "licenses": [
+              "EPL-1.0",
+              "non-standard"
+            ],
+            "package_version": {
+              "ecosystem": "MAVEN",
+              "name": "ch.qos.logback:logback-core",
+              "version": "1.2.11"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "EPL-1.0",
+          "non-standard"
+        ],
+        "package_current_version": "1.4.6",
+        "package_version": {
+          "ecosystem": "MAVEN",
+          "name": "ch.qos.logback:logback-core",
+          "version": "1.2.11"
+        },
+        "projects": []
+      },
+      "depth": 0
+    },
+    {
+      "package_detail": {
+        "name": "com.fasterxml.jackson.core:jackson-annotations",
+        "version": "2.13.4",
+        "ecosystem": "Maven",
+        "compareAs": "Maven"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Core annotations used for value types, used by Jackson data binding package.\n  ",
+            "distance": 0,
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_version": {
+              "ecosystem": "MAVEN",
+              "name": "com.fasterxml.jackson.core:jackson-annotations",
+              "version": "2.13.4"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "Apache-2.0"
+        ],
+        "package_current_version": "2.14.2",
+        "package_version": {
+          "ecosystem": "MAVEN",
+          "name": "com.fasterxml.jackson.core:jackson-annotations",
+          "version": "2.13.4"
+        },
+        "projects": [
+          {
+            "display_name": "FasterXML/jackson-annotations",
+            "forks": 316,
+            "issues": 11,
+            "link": "https://github.com/fasterxml/jackson-annotations",
+            "name": "fasterxml/jackson-annotations",
+            "stars": 967,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Maintained",
+                "reason": "26 commit(s) out of 30 and 2 issue activity out of 30 found in the last 90 days -- score normalized to 10",
+                "score": 10
+              },
+              {
+                "name": "Code-Review",
+                "reason": "3 out of last 30 changesets reviewed before merge -- score normalized to 1",
+                "score": 1
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no badge detected",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "no vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "Dependency-Update-Tool",
+                "reason": "update tool detected",
+                "score": 10
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "tokens are read-only in GitHub workflows",
+                "score": 10
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file detected",
+                "score": 10
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "binaries present in source code",
+                "score": 9
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 9",
+                "score": 9
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "Packaging",
+                "reason": "publishing workflow detected",
+                "score": 10
+              }
+            ],
+            "date": "2022-11-21",
+            "repository": {
+              "commit": "1d1f1a594c7f0ce0d3e6a342537d4c70d4ca1ed5",
+              "name": "github.com/FasterXML/jackson-annotations"
+            },
+            "score": 7,
+            "scorecard": {
+              "commit": "469216299ac3e161ebb995302ff8eb4ac43bb199",
+              "version": "v4.8.0-70-g4692162"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0
+    }
+  ]
+}
