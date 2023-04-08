@@ -29,7 +29,7 @@ brews:
     description: "SafeDep vet is a tool for identifying open source software supply chain risks"
     tap:
       owner: safedep
-      name: homebrew-vet
+      name: homebrew-tap
 
 archives:
   - format: tar.gz
