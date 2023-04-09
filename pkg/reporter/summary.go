@@ -251,6 +251,7 @@ func (r *summaryReporter) renderRemediationAdvice() {
 			r.packageNameForRemediationAdvice(sp.pkg),
 			utils.SafelyGetValue(insight.PackageCurrentVersion),
 			sp.score,
+			r.packageNameForRemediationAdvice(sp.ecosystem),
 		})
 
 		tagText := ""
