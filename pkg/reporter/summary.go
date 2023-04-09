@@ -248,10 +248,11 @@ func (r *summaryReporter) renderRemediationAdvice() {
 		insight := utils.SafelyGetValue(sp.pkg.Insights)
 
 		tbl.AppendRow(table.Row{
+			sp.ecosystem,
 			r.packageNameForRemediationAdvice(sp.pkg),
 			utils.SafelyGetValue(insight.PackageCurrentVersion),
 			sp.score,
-			r.packageNameForRemediationAdvice(sp.ecosystem),
+		
 		})
 
 		tagText := ""
