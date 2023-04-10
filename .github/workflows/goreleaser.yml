@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  contents: write
 
 jobs:
   goreleaser:
@@ -42,9 +43,9 @@ jobs:
         uses: goreleaser/goreleaser-action@8f67e590f2d095516493f017008adc464e63adb1 # v4.1.0
         with:
           version: latest
-          args: release --rm-dist
+          args: release --clean
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
       - name: Generate subject
         id: hash
         env:

@@ -23,13 +23,17 @@ universal_binaries:
   - replace: true
 
 brews:
-  - 
-    name: vet
+  - name: vet
     homepage: https://safedep.io
     description: "SafeDep vet is a tool for identifying open source software supply chain risks"
+    license: "Apache-2.0"
     tap:
       owner: safedep
       name: homebrew-tap
+      branch: develop/vet
+      pull_request:
+        enabled: true
+        base: main
 
 archives:
   - format: tar.gz
