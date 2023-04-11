@@ -80,6 +80,10 @@ func ApiKey() string {
 
 func loadConfiguration() error {
 	path, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
 	path = filepath.Join(path, homeRelativeConfigPath)
 
 	data, err := ioutil.ReadFile(path)
@@ -104,6 +108,10 @@ func persistConfiguration() error {
 	}
 
 	path, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
 	path = filepath.Join(path, homeRelativeConfigPath)
 
 	os.MkdirAll(filepath.Dir(path), os.ModePerm)
