@@ -37,6 +37,12 @@ Insights API is used to enrich OSS packages with metadata for rich query and pol
 
 :::
 
+- You can verify the configured key is successful by running the following command
+
+```bash
+vet auth verify
+```
+
 - Run `vet` to identify risks
 
 ```bash
