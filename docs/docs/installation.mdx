@@ -10,7 +10,9 @@ Here you can find different ways of installing `vet`. It covers various platform
 
 ## Install Official GitHub Release Binary
 
-- Download the binary file for your operating system/architecture from the [Official GitHub Releases](https://github.com/safedep/vet/releases)
+- Download the binary file for your operating system/architecture from the [Official GitHub Releases](https://github.com/safedep/vet/releases) or look at [different installation options](installation.mdx).
+
+> The version given in the documentation may be older than actually released versions
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -91,6 +93,13 @@ docker run --rm -it -v yourcode-in-host:/code -e VET_API_KEY=YOUR_API_KEY ghcr.i
 ```bash
 brew tap safedep/tap
 brew install safedep/tap/vet
+```
+
+- You can upgrade `vet` using homebrew for MacOS and Linux
+
+```bash
+brew update
+brew upgrade safedep/tap/vet
 ```
 
 ### RHEL/CentOS
