@@ -10,6 +10,7 @@ import (
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/parser"
+	"github.com/safedep/vet/pkg/readers"
 	"github.com/safedep/vet/pkg/reporter"
 	"github.com/safedep/vet/pkg/scanner"
 	"github.com/spf13/cobra"
@@ -114,6 +115,25 @@ func startScan() {
 }
 
 func internalStartScan() error {
+	readerList := []readers.PackageManifestReader{}
+	var reader readers.PackageManifestReader
+	var err error
+
+	// We can easily support both directory and lockfile reader. But current UX
+	// contract is to support one of them at a time. Lets not break the contract
+	// for now and figure out UX improvement later
+	if len(lockfiles) > 0 {
+		reader, err = readers.NewLockfileReader(lockfiles, lockfileAs)
+	} else {
+		reader, err = readers.NewDirectoryReader(baseDirectory, scanExclude)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	readerList = append(readerList, reader)
+
 	analyzers := []analyzer.Analyzer{}
 	if !utils.IsEmptyString(dumpJsonManifestDir) {
 		task, err := analyzer.NewJsonDumperAnalyzer(dumpJsonManifestDir)
@@ -183,7 +203,7 @@ func internalStartScan() error {
 		TransitiveDepth:    transitiveDepth,
 		ConcurrentAnalyzer: concurrency,
 		ExcludePatterns:    scanExclude,
-	}, enrichers, analyzers, reporters)
+	}, readerList, enrichers, analyzers, reporters)
 
 	// Redirect log to files to create space for UI rendering
 	redirectLogToFile(logFile)
@@ -223,12 +243,5 @@ func internalStartScan() error {
 		},
 	})
 
-	var err error
-	if len(lockfiles) > 0 {
-		err = pmScanner.ScanLockfiles(lockfiles, lockfileAs)
-	} else {
-		err = pmScanner.ScanDirectory(baseDirectory)
-	}
-
-	return err
+	return pmScanner.Start()
 }
