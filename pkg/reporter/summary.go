@@ -234,7 +234,6 @@ func (r *summaryReporter) renderRemediationAdvice() {
 
 	fmt.Println(text.Bold.Sprint("Consider upgrading the following libraries for maximum impact:"))
 	fmt.Println()
-	// fmt.Println(sortedPackages)
 	tbl := table.NewWriter()
 	tbl.SetOutputMirror(os.Stdout)
 	tbl.SetStyle(table.StyleLight)
