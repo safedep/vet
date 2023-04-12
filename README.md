@@ -5,15 +5,16 @@
     🙌 Refer to <b><a href="https://safedep.io/docs/">https://safedep.io/docs</a></b> for the documentation 📖
 </p>
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/safedep/vet)](https://goreportcard.com/report/github.com/safedep/vet)
 ![License](https://img.shields.io/github/license/safedep/vet)
 ![Release](https://img.shields.io/github/v/release/safedep/vet)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/safedep/vet/badge)](https://api.securityscorecards.dev/projects/github.com/safedep/vet)
 [![CodeQL](https://github.com/safedep/vet/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/safedep/vet/actions/workflows/codeql.yml)
-[![Scorecard supply-chain security](https://github.com/safedep/vet/actions/workflows/scorecard.yml/badge.svg)](https://github.com/safedep/vet/actions/workflows/scorecard.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/safedep/vet)](https://goreportcard.com/report/github.com/safedep/vet)
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
+[![Scorecard supply-chain security](https://github.com/safedep/vet/actions/workflows/scorecard.yml/badge.svg)](https://github.com/safedep/vet/actions/workflows/scorecard.yml)
+[![Twitter](https://img.shields.io/twitter/follow/safedepio?style=social)](https://twitter.com/intent/follow?screen_name=safedepio)
 
-![vet banner](docs/static/img/vet/vet-banner.png)
+[![vet banner](docs/static/img/vet/vet-banner.png)](https://safedep.io/docs)
 ## Automate Open Source Package Vetting in CI/CD
 
 `vet` is a tool for identifying risks in open source software supply chain. It
@@ -27,6 +28,13 @@ source dependencies and evaluate them against organizational policies.
 ## Getting Started
 
 - Download the binary file for your operating system/architecture from the [Official GitHub Releases](https://github.com/safedep/vet/releases)
+
+- You can also install the vet using the homebrew in MacOS and Linux
+
+```bash
+brew tap safedep/tap
+brew install safedep/tap/vet
+```
 
 - Get an API key for the vet insights data access for performing the scan
 
@@ -47,6 +55,12 @@ vet auth configure
 ![vet configure](docs/static/img/vet/vet-configure.png)
 
 > Insights API is used to enrich OSS packages with metadata for rich query and policy decisions. Alternatively, the API key can be passed through environment variable `VET_API_KEY`
+
+- You can verify the configured key is successful by running the following command
+
+```bash
+vet auth verify
+```
 
 - Run `vet` to identify risks
 
