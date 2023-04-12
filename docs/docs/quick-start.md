@@ -5,7 +5,7 @@ title: 🚀 Quick Start
 
 # 🚀 Quick Start
 
-- Download the binary file for your operating system/architecture from the [Official GitHub Releases](https://github.com/safedep/vet/releases)
+- Download the binary file for your operating system/architecture from the [Official GitHub Releases](https://github.com/safedep/vet/releases) or look at [different installation options](installation.mdx).
 
 ![vet Github Releases](/img/vet/vet-github-releases.png)
 
