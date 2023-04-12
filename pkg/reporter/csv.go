@@ -16,6 +16,11 @@ type csvReporter struct {
 	csvRecords []CsvRecord
 }
 
+type CsvRecord struct {
+	packageName string
+	updateTo    string
+}
+
 func NewCsvReporter() (Reporter, error) {
 	return &csvReporter{}, nil
 }
@@ -45,11 +50,6 @@ func (r *csvReporter) Finish() error {
 		return csvResponse
 	}
 	return nil
-}
-
-type CsvRecord struct {
-	packageName string
-	updateTo    string
 }
 
 func (r *csvReporter) createCsvRecord(pkg *models.Package) *CsvRecord {
