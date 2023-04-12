@@ -12,8 +12,6 @@ import (
 	"github.com/safedep/vet/pkg/readers"
 )
 
-
-
 type csvReporter struct {
 	csvRecords []CsvRecord
 }
