@@ -31,6 +31,7 @@ var (
 	markdownReportPath          string
 	consoleReport               bool
 	summaryReport               bool
+	csvReport                   bool
 	silentScan                  bool
 	disableAuthVerifyBeforeScan bool
 )
@@ -82,6 +83,10 @@ func newScanCommand() *cobra.Command {
 		"Print a report to the console")
 	cmd.Flags().BoolVarP(&summaryReport, "report-summary", "", true,
 		"Print a summary report with actionable advice")
+	cmd.Flags().BoolVarP(&csvReport, "report-csv", "", false,
+		"Generate a csv report")
+	cmd.Flags().BoolVarP(&csvReport, "report-csv", "", false,
+		"Generate a csv report")
 
 	cmd.AddCommand(listParsersCommand())
 	return cmd
@@ -176,6 +181,15 @@ func internalStartScan() error {
 
 	if summaryReport {
 		rp, err := reporter.NewSummaryReporter()
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if csvReport {
+		rp, err := reporter.NewCsvReporter()
 		if err != nil {
 			return err
 		}
