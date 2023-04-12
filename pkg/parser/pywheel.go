@@ -5,11 +5,24 @@ import (
 	"errors"
 	"io"
 	"net/mail"
+	"regexp"
 	"strings"
 
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/safedep/vet/pkg/common/logger"
 )
+
+// The order of regexp is important as it gives the precedence of range that we
+// want to consider. Exact match is always highest precendence. We pessimistically
+// consider the lower version in the range
+var pyWheelVersionMatchers []*regexp.Regexp = []*regexp.Regexp{
+	regexp.MustCompile("==([0-9\\.]+)"),
+	regexp.MustCompile(">([0-9\\.]+)"),
+	regexp.MustCompile(">=([0-9\\.]+)"),
+	regexp.MustCompile("<([0-9\\.]+)"),
+	regexp.MustCompile("<=([0-9\\.]+)"),
+	regexp.MustCompile("~=([0-9\\.]+)"),
+}
 
 // https://packaging.python.org/en/latest/specifications/binary-distribution-format/
 func parsePythonWheelDist(pathToLockfile string) ([]lockfile.PackageDetails, error) {
@@ -69,10 +82,25 @@ func parsePythonPkgInfo(reader io.Reader) ([]lockfile.PackageDetails, error) {
 // to do it correctly. Taking shortcut here by only using the name as the first
 // iteration ignoring the version
 func parsePythonPackageSpec(pkgSpec string) (lockfile.PackageDetails, error) {
-	name := strings.SplitN(pkgSpec, " ", 2)[0]
+	parts := strings.SplitN(pkgSpec, " ", 2)
+	name := parts[0]
+	rest := parts[1]
+	version := "0.0.0"
+
+	// Try to match version by regex
+	for _, r := range pyWheelVersionMatchers {
+		res := r.FindAllStringSubmatch(rest, 1)
+		if (len(res) == 0) || (len(res[0]) < 2) {
+			continue
+		}
+
+		version = res[0][1]
+		break
+	}
+
 	return lockfile.PackageDetails{
 		Name:      name,
-		Version:   "0.0.0",
+		Version:   version,
 		Ecosystem: lockfile.PipEcosystem,
 		CompareAs: lockfile.PipEcosystem,
 	}, nil
