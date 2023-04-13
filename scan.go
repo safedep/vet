@@ -84,7 +84,7 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().BoolVarP(&summaryReport, "report-summary", "", true,
 		"Print a summary report with actionable advice")
 	cmd.Flags().StringVarP(&csvReportPath, "report-csv", "", "",
-		"Generate csv report")
+		"Generate CSV report of filtered packages")
 
 	cmd.AddCommand(listParsersCommand())
 	return cmd

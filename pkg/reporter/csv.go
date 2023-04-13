@@ -68,16 +68,16 @@ func (r *csvReporter) AddPolicyEvent(event *policy.PolicyEvent) {}
 func (r *csvReporter) Finish() error {
 	logger.Infof("Generating consolidated CSV report: %s", r.config.Path)
 
-	var ok bool
-
-	violations := []csvRecord{}
+	records := []csvRecord{}
 	for _, v := range r.violations {
 		var msg string
+		var ok bool
+
 		if msg, ok = v.Message.(string); !ok {
 			continue
 		}
 
-		violations = append(violations, csvRecord{
+		records = append(records, csvRecord{
 			ecosystem:       v.Manifest.Ecosystem,
 			manifestPath:    v.Manifest.Path,
 			packageName:     v.Package.Name,
@@ -86,36 +86,37 @@ func (r *csvReporter) Finish() error {
 		})
 	}
 
-	csvResponse := r.generateCsv(violations)
-
-	// Error case
-	if csvResponse != nil {
-		return csvResponse
+	err := r.persistCsvRecords(records)
+	if err != nil {
+		return err
 	}
+
 	return nil
 }
 
-func (r *csvReporter) generateCsv(csvRecords []csvRecord) error {
-
-	records := []csvRecord{}
-
+func (r *csvReporter) persistCsvRecords(records []csvRecord) error {
 	f, err := os.Create(r.config.Path)
-	defer f.Close()
-
 	if err != nil {
-		logger.Errorf("failed to open file : %v", err)
 		return err
 	}
+
+	defer f.Close()
 
 	w := csv.NewWriter(f)
 	defer w.Flush()
 
-	w.Write([]string{"Ecosystem", "Manifest Path", "Package Name", "Package Version", "Violation Reason"})
+	w.Write([]string{"Ecosystem",
+		"Manifest Path",
+		"Package Name",
+		"Package Version",
+		"Filter Name"})
 
 	for _, csvRecord := range records {
-		if err := w.Write([]string{csvRecord.ecosystem, csvRecord.manifestPath,
-			csvRecord.packageName, csvRecord.packageVersion, csvRecord.violationReason}); err != nil {
-			logger.Errorf("error writing record to file %v", err)
+		if err := w.Write([]string{
+			csvRecord.ecosystem, csvRecord.manifestPath,
+			csvRecord.packageName, csvRecord.packageVersion,
+			csvRecord.violationReason,
+		}); err != nil {
 			return err
 		}
 	}
