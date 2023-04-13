@@ -15,10 +15,9 @@ type CsvReportingConfig struct {
 }
 
 type csvReporter struct {
-	config          CsvReportingConfig
-	csvRecords      []csvRecord
-	summaryReporter Reporter
-	violations      map[string]*analyzer.AnalyzerEvent
+	config     CsvReportingConfig
+	csvRecords []csvRecord
+	violations map[string]*analyzer.AnalyzerEvent
 }
 
 type csvRecord struct {
@@ -30,13 +29,10 @@ type csvRecord struct {
 }
 
 func NewCsvReporter(config CsvReportingConfig) (Reporter, error) {
-	summaryReporter, _ := NewSummaryReporter()
-
 	return &csvReporter{
-		config:          config,
-		summaryReporter: summaryReporter,
-		csvRecords:      make([]csvRecord, 0),
-		violations:      make(map[string]*analyzer.AnalyzerEvent),
+		config:     config,
+		csvRecords: make([]csvRecord, 0),
+		violations: make(map[string]*analyzer.AnalyzerEvent),
 	}, nil
 }
 
@@ -44,9 +40,7 @@ func (r *csvReporter) Name() string {
 	return "CSV Report Generator"
 }
 
-func (r *csvReporter) AddManifest(manifest *models.PackageManifest) {
-	r.summaryReporter.AddManifest(manifest)
-}
+func (r *csvReporter) AddManifest(manifest *models.PackageManifest) {}
 
 func (r *csvReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 	if !event.IsFilterMatch() {
