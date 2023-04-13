@@ -84,8 +84,12 @@ func parsePythonPkgInfo(reader io.Reader) ([]lockfile.PackageDetails, error) {
 func parsePythonPackageSpec(pkgSpec string) (lockfile.PackageDetails, error) {
 	parts := strings.SplitN(pkgSpec, " ", 2)
 	name := parts[0]
-	rest := parts[1]
 	version := "0.0.0"
+
+	rest := ""
+	if len(parts) > 1 {
+		rest = parts[1]
+	}
 
 	// Try to match version by regex
 	for _, r := range pyWheelVersionMatchers {

@@ -60,6 +60,12 @@ func TestParsePythonPackageSpec(t *testing.T) {
 			"0.0.0",
 		},
 		{
+			"Spec with name only without version",
+			"censys",
+			"censys",
+			"0.0.0",
+		},
+		{
 			"Version with exclusion",
 			"PySocks (!=1.5.7,>=1.5.6) ; extra == 'socks'",
 			"PySocks",
