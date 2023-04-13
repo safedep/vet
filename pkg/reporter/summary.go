@@ -234,24 +234,24 @@ func (r *summaryReporter) renderRemediationAdvice() {
 
 	fmt.Println(text.Bold.Sprint("Consider upgrading the following libraries for maximum impact:"))
 	fmt.Println()
+
 	tbl := table.NewWriter()
 	tbl.SetOutputMirror(os.Stdout)
 	tbl.SetStyle(table.StyleLight)
 
-	tbl.AppendHeader(table.Row{"Package", "Ecosystem", "Update To", "Impact"})
+	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Update To", "Impact"})
 	for idx, sp := range sortedPackages {
 		if idx >= summaryReportMaxUpgradeAdvice {
 			break
 		}
 
 		insight := utils.SafelyGetValue(sp.pkg.Insights)
-		
+
 		tbl.AppendRow(table.Row{
-			r.packageNameForRemediationAdvice(sp.pkg),
 			sp.pkg.Manifest.Ecosystem,
+			r.packageNameForRemediationAdvice(sp.pkg),
 			utils.SafelyGetValue(insight.PackageCurrentVersion),
 			sp.score,
-		
 		})
 
 		tagText := ""
@@ -260,7 +260,7 @@ func (r *summaryReporter) renderRemediationAdvice() {
 		}
 
 		tbl.AppendRow(table.Row{
-			tagText, "", "",
+			"", tagText, "", "",
 		})
 
 		tbl.AppendSeparator()
