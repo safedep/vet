@@ -31,7 +31,7 @@ var (
 	markdownReportPath          string
 	consoleReport               bool
 	summaryReport               bool
-	csvReport                   bool
+	csvReportPath               string
 	silentScan                  bool
 	disableAuthVerifyBeforeScan bool
 )
@@ -83,10 +83,8 @@ func newScanCommand() *cobra.Command {
 		"Print a report to the console")
 	cmd.Flags().BoolVarP(&summaryReport, "report-summary", "", true,
 		"Print a summary report with actionable advice")
-	cmd.Flags().BoolVarP(&csvReport, "report-csv", "", false,
-		"Generate a csv report")
-	cmd.Flags().BoolVarP(&csvReport, "report-csv", "", false,
-		"Generate a csv report")
+	cmd.Flags().StringVarP(&csvReportPath, "report-csv", "", "",
+		"Generate csv report")
 
 	cmd.AddCommand(listParsersCommand())
 	return cmd
@@ -188,8 +186,10 @@ func internalStartScan() error {
 		reporters = append(reporters, rp)
 	}
 
-	if csvReport {
-		rp, err := reporter.NewCsvReporter()
+	if !utils.IsEmptyString(markdownReportPath) {
+		rp, err := reporter.NewMarkdownReportGenerator(reporter.MarkdownReportingConfig{
+			Path: markdownReportPath,
+		})
 		if err != nil {
 			return err
 		}
@@ -197,9 +197,9 @@ func internalStartScan() error {
 		reporters = append(reporters, rp)
 	}
 
-	if !utils.IsEmptyString(markdownReportPath) {
-		rp, err := reporter.NewMarkdownReportGenerator(reporter.MarkdownReportingConfig{
-			Path: markdownReportPath,
+	if !utils.IsEmptyString(csvReportPath) {
+		rp, err := reporter.NewCsvReporter(reporter.CsvReportingConfig{
+			Path: csvReportPath,
 		})
 		if err != nil {
 			return err

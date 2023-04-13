@@ -2,68 +2,110 @@ package reporter
 
 import (
 	"encoding/csv"
-	"fmt"
 	"os"
 
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
-	"github.com/safedep/vet/pkg/readers"
 )
 
+type CsvReportingConfig struct {
+	Path string
+}
+
 type csvReporter struct {
-	csvRecords []CsvRecord
+	config          CsvReportingConfig
+	csvRecords      []csvRecord
+	summaryReporter Reporter
+	violations      map[string]*analyzer.AnalyzerEvent
 }
 
-type CsvRecord struct {
-	packageName string
-	updateTo    string
+type csvRecord struct {
+	ecosystem       string
+	manifestPath    string
+	packageName     string
+	packageVersion  string
+	violationReason string
 }
 
-func NewCsvReporter() (Reporter, error) {
-	return &csvReporter{}, nil
+func NewCsvReporter(config CsvReportingConfig) (Reporter, error) {
+	summaryReporter, _ := NewSummaryReporter()
+
+	return &csvReporter{
+		config:          config,
+		summaryReporter: summaryReporter,
+		csvRecords:      make([]csvRecord, 0),
+		violations:      make(map[string]*analyzer.AnalyzerEvent),
+	}, nil
 }
 
 func (r *csvReporter) Name() string {
-	return "Csv Report Generator"
+	return "CSV Report Generator"
 }
 
 func (r *csvReporter) AddManifest(manifest *models.PackageManifest) {
-	r.csvRecords = make([]CsvRecord,0)
-	readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
-		r.csvRecords = append(r.csvRecords,r.createCsvRecord(pkg))
-		return nil
-	})
+	r.summaryReporter.AddManifest(manifest)
 }
 
-func (r *csvReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {}
+func (r *csvReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
+	if !event.IsFilterMatch() {
+		return
+	}
+
+	if event.Package == nil {
+		return
+	}
+
+	if event.Package.Manifest == nil {
+		return
+	}
+
+	pkgId := event.Package.Id()
+	if _, ok := r.violations[pkgId]; ok {
+		return
+	}
+
+	r.violations[pkgId] = event
+}
 
 func (r *csvReporter) AddPolicyEvent(event *policy.PolicyEvent) {}
 
 func (r *csvReporter) Finish() error {
+	logger.Infof("Generating consolidated CSV report: %s", r.config.Path)
 
-	csvResponse := r.generateCsv(r.csvRecords)
+	var ok bool
+
+	violations := []csvRecord{}
+	for _, v := range r.violations {
+		var msg string
+		if msg, ok = v.Message.(string); !ok {
+			continue
+		}
+
+		violations = append(violations, csvRecord{
+			ecosystem:       v.Manifest.Ecosystem,
+			manifestPath:    v.Manifest.Path,
+			packageName:     v.Package.Name,
+			packageVersion:  v.Package.Version,
+			violationReason: msg,
+		})
+	}
+
+	csvResponse := r.generateCsv(violations)
 
 	// Error case
-	if(csvResponse != nil){
+	if csvResponse != nil {
 		return csvResponse
 	}
 	return nil
 }
 
-func (r *csvReporter) createCsvRecord(pkg *models.Package) *CsvRecord {
-	return &CsvRecord{
-		packageName: r.packageNameForRemediationAdvice(pkg),
-		updateTo: 			utils.SafelyGetValue(insight.PackageCurrentVersion),		,
-	}
-}
+func (r *csvReporter) generateCsv(csvRecords []csvRecord) error {
 
-func (r *csvReporter) generateCsv(csvRecords []CsvRecord) error{
-	
-	records := []CsvRecord{}
+	records := []csvRecord{}
 
-	f, err := os.Create("report.csv")
+	f, err := os.Create(r.config.Path)
 	defer f.Close()
 
 	if err != nil {
@@ -74,19 +116,15 @@ func (r *csvReporter) generateCsv(csvRecords []CsvRecord) error{
 	w := csv.NewWriter(f)
 	defer w.Flush()
 
-	w.Write([]string{"Package", "Update To"})
+	w.Write([]string{"Ecosystem", "Manifest Path", "Package Name", "Package Version", "Violation Reason"})
 
 	for _, csvRecord := range records {
-		if err := w.Write([]string{csvRecord.packageName, csvRecord.updateTo}); err != nil {
+		if err := w.Write([]string{csvRecord.ecosystem, csvRecord.manifestPath,
+			csvRecord.packageName, csvRecord.packageVersion, csvRecord.violationReason}); err != nil {
 			logger.Errorf("error writing record to file %v", err)
 			return err
 		}
 	}
 
 	return nil
-}
-
-func (r *csvReporter) packageNameForRemediationAdvice(pkg *models.Package) string {
-	return fmt.Sprintf("%s@%s", pkg.PackageDetails.Name,
-		pkg.PackageDetails.Version)
 }
