@@ -29,11 +29,19 @@ source dependencies and evaluate them against organizational policies.
 
 - Download the binary file for your operating system/architecture from the [Official GitHub Releases](https://github.com/safedep/vet/releases)
 
-- You can also install the vet using the homebrew in MacOS and Linux
+- You can also install vet using homebrew in MacOS and Linux
 
 ```bash
 brew tap safedep/tap
 brew install safedep/tap/vet
+```
+
+- Alternatively, build from source
+
+> Ensure $(go env GOPATH)/bin is in your $PATH
+
+```bash
+go install github.com/safedep/vet@latest
 ```
 
 - Get an API key for the vet insights data access for performing the scan
