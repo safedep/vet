@@ -105,11 +105,14 @@ func (r *csvReporter) persistCsvRecords(records []csvRecord) error {
 	w := csv.NewWriter(f)
 	defer w.Flush()
 
-	w.Write([]string{"Ecosystem",
+	err = w.Write([]string{"Ecosystem",
 		"Manifest Path",
 		"Package Name",
 		"Package Version",
 		"Filter Name"})
+	if err != nil {
+		return err
+	}
 
 	for _, csvRecord := range records {
 		if err := w.Write([]string{
