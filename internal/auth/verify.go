@@ -18,6 +18,11 @@ type VerifyConfig struct {
 // Verify function takes config and current API key available
 // from this package and returns an error if auth is invalid
 func Verify(config *VerifyConfig) error {
+	if CommunityMode() {
+		logger.Infof("Skipping auth verify due to community mode enabled")
+		return nil
+	}
+
 	logger.Infof("Verifying auth token using Control Plane: %s", config.ControlPlaneApiUrl)
 
 	client, err := cpv1.NewClientWithResponses(config.ControlPlaneApiUrl)

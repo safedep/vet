@@ -9,7 +9,9 @@ title: 🚀 Quick Start
 
 ![vet Github Releases](/img/vet/vet-github-releases.png)
 
-- Get an API key for the vet insights data access for performing the scan
+- Get an API key for the vet insights data access for performing the scan.
+    Alternatively, look at [configuration options](configure.md) for
+    instruction on using community mode without API key.
 
 ```bash
 vet auth trial --email john.doe@example.com

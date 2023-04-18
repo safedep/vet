@@ -114,6 +114,10 @@ func startScan() {
 		}))
 	}
 
+	if auth.CommunityMode() {
+		ui.PrintSuccess("Running in Community Mode")
+	}
+
 	failOnError("scan", internalStartScan())
 }
 

@@ -39,6 +39,16 @@ vet auth configure
 
 - To renew an API key, you can re-register using the email. Even reach out to us at [contact@safedep.io](mailto:contact@safedep.io) and we would be happy to work with you
 
+## Using Community Mode
+
+- You can use community endpoint for Insights API without API key
+
+```bash
+vet auth configure --community
+```
+
+- For CI job, set environment variable `VET_COMMUNITY_MODE=true` to enable community runtime mode
+
 ## Scanning
 
 ### Scanning Directories

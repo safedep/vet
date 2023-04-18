@@ -27,9 +27,9 @@ source dependencies and evaluate them against organizational policies.
 
 ## Getting Started
 
-- Download the binary file for your operating system/architecture from the [Official GitHub Releases](https://github.com/safedep/vet/releases)
+- Download the binary file for your operating system / architecture from the [Official GitHub Releases](https://github.com/safedep/vet/releases)
 
-- You can also install vet using homebrew in MacOS and Linux
+- You can also install `vet` using homebrew in MacOS and Linux
 
 ```bash
 brew tap safedep/tap
@@ -44,7 +44,8 @@ brew install safedep/tap/vet
 go install github.com/safedep/vet@latest
 ```
 
-- Get an API key for the vet insights data access for performing the scan
+- Get an API key for the vet insights data access for performing the scan.
+    Alternatively, look at [using community endpoint without API key](#using-community-mode)
 
 ```bash
 vet auth trial --email john.doe@example.com
@@ -69,6 +70,16 @@ vet auth configure
 ```bash
 vet auth verify
 ```
+
+### Using Community Mode
+
+Community mode can be used to avoid registering and obtaining an API key.
+
+```bash
+vet auth configure --community
+```
+
+### Running Scan
 
 - Run `vet` to identify risks
 

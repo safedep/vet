@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"gopkg.in/yaml.v2"
 )
@@ -13,8 +14,10 @@ const (
 	apiUrlEnvKey          = "VET_INSIGHTS_API_URL"
 	apiKeyEnvKey          = "VET_INSIGHTS_API_KEY"
 	apiKeyAlternateEnvKey = "VET_API_KEY"
+	communityModeEnvKey   = "VET_COMMUNITY_MODE"
 
 	defaultApiUrl             = "https://api.safedep.io/insights/v1"
+	defaultCommunityApiUrl    = "https://api.safedep.io/insights-community/v1"
 	defaultControlPlaneApiUrl = "https://api.safedep.io/control-plane/v1"
 
 	homeRelativeConfigPath = ".safedep/vet-auth.yml"
@@ -23,6 +26,7 @@ const (
 type Config struct {
 	ApiUrl             string `yaml:"api_url"`
 	ApiKey             string `yaml:"api_key"`
+	Community          bool   `yaml:"community"`
 	ControlPlaneApiUrl string `yaml:"cp_api_url"`
 }
 
@@ -42,6 +46,10 @@ func DefaultApiUrl() string {
 	return defaultApiUrl
 }
 
+func DefaultCommunityApiUrl() string {
+	return defaultCommunityApiUrl
+}
+
 func DefaultControlPlaneApiUrl() string {
 	if (globalConfig != nil) && (globalConfig.ControlPlaneApiUrl != "") {
 		return globalConfig.ControlPlaneApiUrl
@@ -57,6 +65,10 @@ func ApiUrl() string {
 
 	if globalConfig != nil {
 		return globalConfig.ApiUrl
+	}
+
+	if CommunityMode() {
+		return defaultCommunityApiUrl
 	}
 
 	return defaultApiUrl
@@ -76,6 +88,19 @@ func ApiKey() string {
 	}
 
 	return ""
+}
+
+func CommunityMode() bool {
+	bRet, err := strconv.ParseBool(os.Getenv(communityModeEnvKey))
+	if (err == nil) && bRet {
+		return true
+	}
+
+	if globalConfig != nil {
+		return globalConfig.Community
+	}
+
+	return false
 }
 
 func loadConfiguration() error {
