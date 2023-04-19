@@ -17,6 +17,7 @@ var (
 	authInsightApiBaseUrl      string
 	authControlPlaneApiBaseUrl string
 	authTrialEmail             string
+	authCommunity              bool
 )
 
 func newAuthCommand() *cobra.Command {
@@ -42,16 +43,24 @@ func configureAuthCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "configure",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Print("Enter API Key: ")
-			key, err := term.ReadPassword(syscall.Stdin)
-			if err != nil {
-				panic(err)
+			var key []byte
+			var err error
+
+			if !authCommunity {
+				fmt.Print("Enter API Key: ")
+				key, err = term.ReadPassword(syscall.Stdin)
+				if err != nil {
+					panic(err)
+				}
+			} else {
+				authInsightApiBaseUrl = auth.DefaultCommunityApiUrl()
 			}
 
 			err = auth.Configure(auth.Config{
 				ApiUrl:             authInsightApiBaseUrl,
 				ApiKey:             string(key),
 				ControlPlaneApiUrl: authControlPlaneApiBaseUrl,
+				Community:          authCommunity,
 			})
 
 			if err != nil {
@@ -65,6 +74,8 @@ func configureAuthCommand() *cobra.Command {
 
 	cmd.Flags().StringVarP(&authInsightApiBaseUrl, "api", "", auth.DefaultApiUrl(),
 		"Base URL of Insights API")
+	cmd.Flags().BoolVarP(&authCommunity, "community", "", false,
+		"Use community API endpoint for Insights")
 
 	return cmd
 
@@ -74,6 +85,10 @@ func verifyAuthCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "verify",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if auth.CommunityMode() {
+				ui.PrintSuccess("Running in Community Mode")
+			}
+
 			failOnError("auth/verify", auth.Verify(&auth.VerifyConfig{
 				ControlPlaneApiUrl: authControlPlaneApiBaseUrl,
 			}))
