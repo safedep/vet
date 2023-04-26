@@ -19,6 +19,7 @@ const (
 	defaultApiUrl             = "https://api.safedep.io/insights/v1"
 	defaultCommunityApiUrl    = "https://api.safedep.io/insights-community/v1"
 	defaultControlPlaneApiUrl = "https://api.safedep.io/control-plane/v1"
+	defaultSyncApiUrl         = "https://api.safedep.io/sync/v1"
 
 	homeRelativeConfigPath = ".safedep/vet-auth.yml"
 )
@@ -28,6 +29,7 @@ type Config struct {
 	ApiKey             string `yaml:"api_key"`
 	Community          bool   `yaml:"community"`
 	ControlPlaneApiUrl string `yaml:"cp_api_url"`
+	SyncApiUrl         string `yaml:"sync_api_url"`
 }
 
 // Global config to be used during runtime
@@ -56,6 +58,14 @@ func DefaultControlPlaneApiUrl() string {
 	}
 
 	return defaultControlPlaneApiUrl
+}
+
+func DefaultSyncApiUrl() string {
+	if (globalConfig != nil) && (globalConfig.SyncApiUrl != "") {
+		return globalConfig.SyncApiUrl
+	}
+
+	return defaultSyncApiUrl
 }
 
 func ApiUrl() string {

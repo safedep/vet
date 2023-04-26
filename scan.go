@@ -34,6 +34,9 @@ var (
 	csvReportPath               string
 	silentScan                  bool
 	disableAuthVerifyBeforeScan bool
+	syncReport                  bool
+	syncReportProject           string
+	syncReportStream            string
 )
 
 func newScanCommand() *cobra.Command {
@@ -85,6 +88,12 @@ func newScanCommand() *cobra.Command {
 		"Print a summary report with actionable advice")
 	cmd.Flags().StringVarP(&csvReportPath, "report-csv", "", "",
 		"Generate CSV report of filtered packages")
+	cmd.Flags().BoolVarP(&syncReport, "report-sync", "", false,
+		"Enable syncing report data to cloud")
+	cmd.Flags().StringVarP(&syncReportProject, "report-sync-project", "", "",
+		"Project name to use in cloud")
+	cmd.Flags().StringVarP(&syncReportStream, "report-sync-stream", "", "",
+		"Project stream name (e.g. branch) to use in cloud")
 
 	cmd.AddCommand(listParsersCommand())
 	return cmd
@@ -204,6 +213,18 @@ func internalStartScan() error {
 	if !utils.IsEmptyString(csvReportPath) {
 		rp, err := reporter.NewCsvReporter(reporter.CsvReportingConfig{
 			Path: csvReportPath,
+		})
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if syncReport {
+		rp, err := reporter.NewSyncReporter(reporter.SyncReporterConfig{
+			ProjectName: syncReportProject,
+			StreamName:  syncReportStream,
 		})
 		if err != nil {
 			return err
