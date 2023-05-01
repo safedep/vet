@@ -6,7 +6,7 @@ require (
 	github.com/deepmap/oapi-codegen v1.12.4
 	github.com/golang/protobuf v1.5.3
 	github.com/google/cel-go v0.14.0
-	github.com/google/osv-scanner v1.3.1
+	github.com/google/osv-scanner v1.3.2
 	github.com/jedib0t/go-pretty/v6 v6.4.6
 	github.com/safedep/dry v0.0.0-20230222132026-c8b6cb976849
 	github.com/sirupsen/logrus v1.9.0
@@ -32,8 +32,8 @@ require (
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stoewer/go-strcase v1.2.0 // indirect
-	golang.org/x/exp v0.0.0-20230321023759-10a507213a29 // indirect
-	golang.org/x/mod v0.9.0 // indirect
+	golang.org/x/exp v0.0.0-20230425010034-47ecfdc1ba53 // indirect
+	golang.org/x/mod v0.10.0 // indirect
 	golang.org/x/sys v0.7.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
 	google.golang.org/genproto v0.0.0-20221207170731-23e4bf6bdc37 // indirect
