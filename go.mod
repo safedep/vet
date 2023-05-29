@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/deepmap/oapi-codegen v1.12.4
 	github.com/golang/protobuf v1.5.3
-	github.com/google/cel-go v0.15.1
+	github.com/google/cel-go v0.15.3
 	github.com/google/osv-scanner v1.3.2
 	github.com/jedib0t/go-pretty/v6 v6.4.6
 	github.com/safedep/dry v0.0.0-20230222132026-c8b6cb976849
