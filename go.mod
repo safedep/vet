@@ -9,7 +9,7 @@ require (
 	github.com/google/osv-scanner v1.3.2
 	github.com/jedib0t/go-pretty/v6 v6.4.6
 	github.com/safedep/dry v0.0.0-20230222132026-c8b6cb976849
-	github.com/sirupsen/logrus v1.9.0
+	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.2
 	golang.org/x/term v0.8.0
