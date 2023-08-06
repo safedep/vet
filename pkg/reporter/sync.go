@@ -115,7 +115,8 @@ func (s *syncReporter) Name() string {
 }
 
 func (s *syncReporter) AddManifest(manifest *models.PackageManifest) {
-	readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
+	// We are ignoring the error here because we are asynchronously handling the sync of Manifest
+	_ = readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
 
 		s.queuePackageDependencyIssue(manifest, pkg)
 		s.queuePackageMetadataIssue(manifest, pkg)
@@ -160,7 +161,10 @@ func (s *syncReporter) syncReportWorker() {
 	for {
 		select {
 		case issue := <-s.issueChannel:
-			s.syncReportIssue(issue)
+			err := s.syncReportIssue(issue)
+			if err != nil {
+				logger.Errorf("failed to sync issue: %v", err)
+			}
 		case <-s.done:
 			return
 		}
