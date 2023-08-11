@@ -78,7 +78,7 @@ func (r *csvReporter) Finish() error {
 		}
 
 		records = append(records, csvRecord{
-			ecosystem:       v.Manifest.Ecosystem,
+			ecosystem:       string(v.Package.Ecosystem),
 			manifestPath:    v.Manifest.Path,
 			packageName:     v.Package.Name,
 			packageVersion:  v.Package.Version,

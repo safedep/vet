@@ -69,7 +69,7 @@ func parseCyclonedxSBOM(pathToLockfile string) ([]lockfile.PackageDetails, error
 		}
 	}
 	
-	// fmt.Printf("%v", bom.Components)
+	fmt.Printf("%v", bom.Components)
 	for _, comp := range bom.Components {
 		if d, err := convertSbomComponent2LPD(&comp); err != nil {
 			// fmt.Println(err)

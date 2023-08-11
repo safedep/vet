@@ -4,8 +4,17 @@
 
 |           |                       |
 |-----------|-----------------------|
+| Critical Vulns  | {{ .CriticalVulnCount }}  |
+| High Vulns  | {{ .HighVulnCount }}  |
+| Other Vulns  | {{ .OtherVulnCount }}  |
+| Unpopular Packages  | {{ .UnpopularLibsCount }}  |
+| Major Version Differences  | {{ .DriftLibsCount }}  |
 | Manifests | {{ .ManifestsCount }} |
-| Packages  | {{ .PackagesCount }}  |
+| Total Packages  | {{ .PackagesCount }}  |
+| Exepmted Packages | {{.ExemptedLibs}} |
+
+
+
 
 ## Results
 
@@ -35,10 +44,10 @@ issues identified during the scan.
 {{ range $key, $value := .Remediations }}
 > {{ $key }}
 
-| Package | Update Version | Impact Score | Issues |
-|---------|----------------|--------------|--------|
+| Package | Update Version | Impact Score | Issues | Tags   |
+|---------|----------------|--------------|--------|--------|
 {{- range $value }}
-| {{ .PkgRemediationName }} | {{ .Pkg.Insights.PackageCurrentVersion }} | {{ .Score }} | - |
+| {{ .PkgRemediationName }} | {{ .Pkg.Insights.PackageCurrentVersion }} | {{ .Score }} | - | {{.Tags}}
 {{- end }}
 {{ end }}
 
