@@ -121,7 +121,7 @@ func (r *markdownReportGenerator) Finish() error {
 
 		if _, ok := summaries[mp]; !ok {
 			summaries[mp] = markdownTemplateInputResultSummary{
-				Ecosystem:    s.pkg.Manifest.Ecosystem,
+				Ecosystem:    string(s.pkg.Ecosystem),
 				PackageCount: len(s.pkg.Manifest.Packages),
 			}
 		} else {
@@ -139,7 +139,7 @@ func (r *markdownReportGenerator) Finish() error {
 		}
 
 		violations = append(violations, markdownTemplateInputViolation{
-			Ecosystem: v.Manifest.Ecosystem,
+			Ecosystem: string(v.Package.Ecosystem),
 			PkgName:   fmt.Sprintf("%s@%s", v.Package.Name, v.Package.Version),
 			Message:   msg,
 		})

@@ -1,0 +1,472 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4",
+  "serialNumber": "urn:uuid:8161abe9-1e8b-4456-ba4f-4d847267b76a",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2023-08-11T06:45:11.368Z",
+    "tools": [
+      {
+        "vendor": "cyclonedx",
+        "name": "cdxgen",
+        "version": "8.0.4"
+      }
+    ],
+    "authors": [
+      {
+        "name": "Prabhu Subramanian",
+        "email": "prabhu@appthreat.com"
+      }
+    ],
+    "component": {
+      "group": "",
+      "name": "tmp",
+      "version": "",
+      "type": "application"
+    }
+  },
+  "components": [
+    {
+      "publisher": "",
+      "group": "",
+      "name": "google-cloud-pubsub",
+      "version": "2.0",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/google-cloud-pubsub@2.0",
+      "type": "library",
+      "bom-ref": "pkg:pypi/google-cloud-pubsub@2.0"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "knowledge-graph",
+      "version": "3.12.0",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/knowledge-graph@3.12.0",
+      "type": "library",
+      "bom-ref": "pkg:pypi/knowledge-graph@3.12.0"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "deepc_exceptions",
+      "version": "0.4.3",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/deepc-exceptions@0.4.3",
+      "type": "library",
+      "bom-ref": "pkg:pypi/deepc-exceptions@0.4.3"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "deepc-models",
+      "version": "3.48.6",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/deepc-models@3.48.6",
+      "type": "library",
+      "bom-ref": "pkg:pypi/deepc-models@3.48.6"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "deepc-utils",
+      "version": "6.54.32",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/deepc-utils@6.54.32",
+      "type": "library",
+      "bom-ref": "pkg:pypi/deepc-utils@6.54.32"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "deepc-convertor",
+      "version": "0.62.2",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/deepc-convertor@0.62.2",
+      "type": "library",
+      "bom-ref": "pkg:pypi/deepc-convertor@0.62.2"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "deepc_dorks",
+      "version": "0.4",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/deepc-dorks@0.4",
+      "type": "library",
+      "bom-ref": "pkg:pypi/deepc-dorks@0.4"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "deepc_social",
+      "version": "0.2",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/deepc-social@0.2",
+      "type": "library",
+      "bom-ref": "pkg:pypi/deepc-social@0.2"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "di_client",
+      "version": "1.4.5",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/di-client@1.4.5",
+      "type": "library",
+      "bom-ref": "pkg:pypi/di-client@1.4.5"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "exploration-events",
+      "version": "3.4",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/exploration-events@3.4",
+      "type": "library",
+      "bom-ref": "pkg:pypi/exploration-events@3.4"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "nessus-client",
+      "version": "0.13.12",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/nessus-client@0.13.12",
+      "type": "library",
+      "bom-ref": "pkg:pypi/nessus-client@0.13.12"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "vulners",
+      "version": "1.5.0",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/vulners@1.5.0",
+      "type": "library",
+      "bom-ref": "pkg:pypi/vulners@1.5.0"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "ipwhois",
+      "version": "1.1.0",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/ipwhois@1.1.0",
+      "type": "library",
+      "bom-ref": "pkg:pypi/ipwhois@1.1.0"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "gpapi",
+      "version": "0.4.4",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/gpapi@0.4.4",
+      "type": "library",
+      "bom-ref": "pkg:pypi/gpapi@0.4.4"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "PyGithub",
+      "version": "1.54.1",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/pygithub@1.54.1",
+      "type": "library",
+      "bom-ref": "pkg:pypi/pygithub@1.54.1"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "python-whois",
+      "version": "0.7.3",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/python-whois@0.7.3",
+      "type": "library",
+      "bom-ref": "pkg:pypi/python-whois@0.7.3"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "sh",
+      "version": "1.14.1",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/sh@1.14.1",
+      "type": "library",
+      "bom-ref": "pkg:pypi/sh@1.14.1"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "OTXv2",
+      "version": "1.5.10",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/otxv2@1.5.10",
+      "type": "library",
+      "bom-ref": "pkg:pypi/otxv2@1.5.10"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "certstream",
+      "version": "1.11",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/certstream@1.11",
+      "type": "library",
+      "bom-ref": "pkg:pypi/certstream@1.11"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "colorama",
+      "version": "0.4.1",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/colorama@0.4.1",
+      "type": "library",
+      "bom-ref": "pkg:pypi/colorama@0.4.1"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "ipaddress",
+      "version": "1.0.22",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/ipaddress@1.0.22",
+      "type": "library",
+      "bom-ref": "pkg:pypi/ipaddress@1.0.22"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "packaging",
+      "version": "19.2",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/packaging@19.2",
+      "type": "library",
+      "bom-ref": "pkg:pypi/packaging@19.2"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "prettytable",
+      "version": "0.7.2",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/prettytable@0.7.2",
+      "type": "library",
+      "bom-ref": "pkg:pypi/prettytable@0.7.2"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "pyfiglet",
+      "version": "0.8.post1",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/pyfiglet@0.8.post1",
+      "type": "library",
+      "bom-ref": "pkg:pypi/pyfiglet@0.8.post1"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "requests",
+      "version": "2.22.0",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/requests@2.22.0",
+      "type": "library",
+      "bom-ref": "pkg:pypi/requests@2.22.0"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "termcolor",
+      "version": "1.1.0",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/termcolor@1.1.0",
+      "type": "library",
+      "bom-ref": "pkg:pypi/termcolor@1.1.0"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "beautifulsoup4",
+      "version": "4.8.1",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/beautifulsoup4@4.8.1",
+      "type": "library",
+      "bom-ref": "pkg:pypi/beautifulsoup4@4.8.1"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "fcwhispers",
+      "version": "2.1.7",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/fcwhispers@2.1.7",
+      "type": "library",
+      "bom-ref": "pkg:pypi/fcwhispers@2.1.7"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "gvm-tools",
+      "version": "21.6.0",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/gvm-tools@21.6.0",
+      "type": "library",
+      "bom-ref": "pkg:pypi/gvm-tools@21.6.0"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "cloud_ip_info",
+      "version": "1.3.3",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/cloud-ip-info@1.3.3",
+      "type": "library",
+      "bom-ref": "pkg:pypi/cloud-ip-info@1.3.3"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "Jinja2",
+      "version": "3.0.3",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/jinja2@3.0.3",
+      "type": "library",
+      "bom-ref": "pkg:pypi/jinja2@3.0.3"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "configobj",
+      "version": "5.0.6",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/configobj@5.0.6",
+      "type": "library",
+      "bom-ref": "pkg:pypi/configobj@5.0.6"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "cloud_recon",
+      "version": "0.2.7",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/cloud-recon@0.2.7",
+      "type": "library",
+      "bom-ref": "pkg:pypi/cloud-recon@0.2.7"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "credovergeneric",
+      "version": "1.6.7",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/credovergeneric@1.6.7",
+      "type": "library",
+      "bom-ref": "pkg:pypi/credovergeneric@1.6.7"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "pycryptodome",
+      "version": "3.12.0",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/pycryptodome@3.12.0",
+      "type": "library",
+      "bom-ref": "pkg:pypi/pycryptodome@3.12.0"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "azure-mgmt-resource",
+      "version": "20.0.0",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/azure-mgmt-resource@20.0.0",
+      "type": "library",
+      "bom-ref": "pkg:pypi/azure-mgmt-resource@20.0.0"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "fc-cloud-storage-client",
+      "version": "0.0.14",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/fc-cloud-storage-client@0.0.14",
+      "type": "library",
+      "bom-ref": "pkg:pypi/fc-cloud-storage-client@0.0.14"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "azure-identity",
+      "version": "1.7.1",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/azure-identity@1.7.1",
+      "type": "library",
+      "bom-ref": "pkg:pypi/azure-identity@1.7.1"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "dnsdb",
+      "version": "0.2.5",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/dnsdb@0.2.5",
+      "type": "library",
+      "bom-ref": "pkg:pypi/dnsdb@0.2.5"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "fc_kb_auth_proxy_client",
+      "version": "0.0.3",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/fc-kb-auth-proxy-client@0.0.3",
+      "type": "library",
+      "bom-ref": "pkg:pypi/fc-kb-auth-proxy-client@0.0.3"
+    }
+  ],
+  "services": [],
+  "dependencies": []
+}

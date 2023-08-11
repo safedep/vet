@@ -10,6 +10,7 @@ import (
 
 const (
 	customParserTypePyWheel = "python-wheel"
+	customParserCycloneDXSBOM = "cydx-sbom"
 )
 
 // We are supporting only those ecosystems for which we have data
@@ -20,10 +21,12 @@ var supportedEcosystems map[string]bool = map[string]bool{
 	models.EcosystemMaven: true,
 	models.EcosystemNpm:   true,
 	models.EcosystemPyPI:  true,
+	models.EcosystemCyDxSBOM: 	true,
 }
 
 var customExperimentalParsers map[string]lockfile.PackageDetailsParser = map[string]lockfile.PackageDetailsParser{
 	customParserTypePyWheel: parsePythonWheelDist,
+	customParserCycloneDXSBOM: parseCyclonedxSBOM,
 }
 
 type Parser interface {
@@ -46,6 +49,10 @@ func List() []string {
 			continue
 		}
 
+		supportedParsers = append(supportedParsers, p)
+	}
+
+	for p, _ := range customExperimentalParsers {
 		supportedParsers = append(supportedParsers, p)
 	}
 
@@ -110,7 +117,11 @@ func (pw *parserWrapper) Ecosystem() string {
 		return models.EcosystemMaven
 	case customParserTypePyWheel:
 		return models.EcosystemPyPI
+	case customParserCycloneDXSBOM:
+		logger.Warnf("CDX lockfile-as %s. Skipping...", pw.parseAs)
+		return models.EcosystemCyDxSBOM
 	default:
+		logger.Debugf("Unsupported lockfile-as %s. Skipping...", pw.parseAs)
 		return ""
 	}
 }
