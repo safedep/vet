@@ -10,6 +10,7 @@ import (
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
+	"github.com/safedep/vet/pkg/exceptions"
 
 	_ "embed"
 )
@@ -31,6 +32,7 @@ type markdownTemplateInputRemediation struct {
 	Pkg                *models.Package
 	PkgRemediationName string
 	Score              int
+	Tags 			   string
 }
 
 type markdownTemplateInputResultSummary struct {
@@ -45,6 +47,12 @@ type markdownTemplateInput struct {
 	Violations     []markdownTemplateInputViolation
 	ManifestsCount int
 	PackagesCount  int
+	CriticalVulnCount int
+	HighVulnCount int
+	OtherVulnCount int 
+	UnpopularLibsCount int
+	DriftLibsCount int
+	ExemptedLibs int
 }
 
 // Markdown reporter is built on top of summary reporter to
@@ -117,11 +125,12 @@ func (r *markdownReportGenerator) Finish() error {
 			Pkg:                s.pkg,
 			PkgRemediationName: sr.packageNameForRemediationAdvice(s.pkg),
 			Score:              s.score,
+			Tags:				fmt.Sprintf("%s", s.tags),
 		})
 
 		if _, ok := summaries[mp]; !ok {
 			summaries[mp] = markdownTemplateInputResultSummary{
-				Ecosystem:    s.pkg.Manifest.Ecosystem,
+				Ecosystem:    string(s.pkg.Ecosystem),
 				PackageCount: len(s.pkg.Manifest.Packages),
 			}
 		} else {
@@ -139,7 +148,7 @@ func (r *markdownReportGenerator) Finish() error {
 		}
 
 		violations = append(violations, markdownTemplateInputViolation{
-			Ecosystem: v.Manifest.Ecosystem,
+			Ecosystem: string(v.Package.Ecosystem),
 			PkgName:   fmt.Sprintf("%s@%s", v.Package.Name, v.Package.Version),
 			Message:   msg,
 		})
@@ -160,6 +169,12 @@ func (r *markdownReportGenerator) Finish() error {
 		Remediations:   remediations,
 		ManifestsCount: sr.summary.manifests,
 		PackagesCount:  sr.summary.packages,
+		CriticalVulnCount: sr.summary.vulns.critical,
+		HighVulnCount: sr.summary.vulns.high,
+		OtherVulnCount: sr.summary.vulns.medium + sr.summary.vulns.low, 
+		UnpopularLibsCount: sr.summary.metrics.unpopular,
+		DriftLibsCount: sr.summary.metrics.drifts,
+		ExemptedLibs: exceptions.ActiveCount(),
 		Summary:        summaries,
 		Violations:     violations,
 	})
