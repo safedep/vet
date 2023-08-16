@@ -22,7 +22,7 @@ const (
 	EcosystemPackagist = "Packagist"
 	EcosystemHex       = "Hex"
 	EcosystemPub       = "Pub"
-	EcosystemCyDxSBOM  = "CydxSbom"
+	EcosystemCyDxSBOM  = "CycloneDxSbom"
 )
 
 // Represents a package manifest that contains a list

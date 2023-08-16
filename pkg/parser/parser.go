@@ -10,7 +10,7 @@ import (
 
 const (
 	customParserTypePyWheel = "python-wheel"
-	customParserCycloneDXSBOM = "cydx-sbom"
+	customParserCycloneDXSBOM = "bom-cyclonedx"
 )
 
 // We are supporting only those ecosystems for which we have data
@@ -52,7 +52,8 @@ func List() []string {
 		supportedParsers = append(supportedParsers, p)
 	}
 
-	for p, _ := range customExperimentalParsers {
+	//In order to show users, even the list of custom parsers
+	for p := range customExperimentalParsers {
 		supportedParsers = append(supportedParsers, p)
 	}
 
@@ -118,7 +119,6 @@ func (pw *parserWrapper) Ecosystem() string {
 	case customParserTypePyWheel:
 		return models.EcosystemPyPI
 	case customParserCycloneDXSBOM:
-		logger.Warnf("CDX lockfile-as %s. Skipping...", pw.parseAs)
 		return models.EcosystemCyDxSBOM
 	default:
 		logger.Debugf("Unsupported lockfile-as %s. Skipping...", pw.parseAs)

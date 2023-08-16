@@ -6,6 +6,7 @@ import (
 	"testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/google/osv-scanner/pkg/lockfile"
+	cdx "github.com/CycloneDX/cyclonedx-go"
 )
 
 func TestParseCyclonedxSBOM(t *testing.T) {
@@ -28,7 +29,8 @@ func TestParseCyclonedxSBOM(t *testing.T) {
 			}
 		]
 	}`
-	ioutil.WriteFile(tempFile.Name(), []byte(sbomContent), 0644)
+	err := ioutil.WriteFile(tempFile.Name(), []byte(sbomContent), 0644)
+	assert.Nil(t, err)
 
 	packages, err := parseCyclonedxSBOM(tempFile.Name())
 
@@ -39,11 +41,11 @@ func TestParseCyclonedxSBOM(t *testing.T) {
 }
 
 func TestConvertSbomComponent2LPD(t *testing.T) {
-	component := Component{
+	component := cdx.Component{
 		Group:   "testGroup",
 		Name:    "testName",
 		Version: "1.0",
-		BomRef:  "pkg:pypi",
+		BOMRef:  "pkg:pypi",
 	}
 
 	pd, err := convertSbomComponent2LPD(&component)
@@ -54,7 +56,7 @@ func TestConvertSbomComponent2LPD(t *testing.T) {
 	assert.Equal(t, lockfile.PipEcosystem, pd.Ecosystem)
 }
 
-func TestconvertBomRefAsEcosystem(t *testing.T) {
+func TestConvertBomRefAsEcosystem(t *testing.T) {
 	ecosystem, err := convertBomRefAsEcosystem("pkg:pypi")
 
 	assert.Nil(t, err)

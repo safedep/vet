@@ -57,7 +57,6 @@ func (e *insightsBasedPackageEnricher) Enrich(pkg *models.Package,
 		pkg.PackageDetails.Name, pkg.PackageDetails.Version)
 
 	res, err := e.client.GetPackageVersionInsightWithResponse(context.Background(),
-		// pkg.Manifest.Ecosystem,
 		string(pkg.PackageDetails.Ecosystem), 
 		pkg.Name, pkg.Version)
 	if err != nil {
