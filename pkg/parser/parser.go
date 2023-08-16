@@ -52,10 +52,10 @@ func List() []string {
 		supportedParsers = append(supportedParsers, p)
 	}
 
-	//In order to show users, even the list of custom parsers
-	for p := range customExperimentalParsers {
-		supportedParsers = append(supportedParsers, p)
-	}
+	// //In order to show users, even the list of custom parsers
+	// for p := range customExperimentalParsers {
+	// 	supportedParsers = append(supportedParsers, p)
+	// }
 
 	return supportedParsers
 }
