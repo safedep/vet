@@ -9,21 +9,24 @@ import (
 )
 
 const (
-	customParserTypePyWheel = "python-wheel"
+	customParserTypePyWheel   = "python-wheel"
+	customParserCycloneDXSBOM = "bom-cyclonedx"
 )
 
 // We are supporting only those ecosystems for which we have data
 // for enrichment. More ecosystems will be supported as we improve
 // the capability of our Insights API
 var supportedEcosystems map[string]bool = map[string]bool{
-	models.EcosystemGo:    true,
-	models.EcosystemMaven: true,
-	models.EcosystemNpm:   true,
-	models.EcosystemPyPI:  true,
+	models.EcosystemGo:       true,
+	models.EcosystemMaven:    true,
+	models.EcosystemNpm:      true,
+	models.EcosystemPyPI:     true,
+	models.EcosystemCyDxSBOM: true,
 }
 
 var customExperimentalParsers map[string]lockfile.PackageDetailsParser = map[string]lockfile.PackageDetailsParser{
-	customParserTypePyWheel: parsePythonWheelDist,
+	customParserTypePyWheel:   parsePythonWheelDist,
+	customParserCycloneDXSBOM: parseCyclonedxSBOM,
 }
 
 type Parser interface {
@@ -36,7 +39,7 @@ type parserWrapper struct {
 	parseAs string
 }
 
-func List() []string {
+func List(experimental bool) []string {
 	supportedParsers := make([]string, 0, 0)
 	parsers := lockfile.ListParsers()
 
@@ -47,6 +50,12 @@ func List() []string {
 		}
 
 		supportedParsers = append(supportedParsers, p)
+	}
+
+	if experimental {
+		for p := range customExperimentalParsers {
+			supportedParsers = append(supportedParsers, p)
+		}
 	}
 
 	return supportedParsers
@@ -110,7 +119,10 @@ func (pw *parserWrapper) Ecosystem() string {
 		return models.EcosystemMaven
 	case customParserTypePyWheel:
 		return models.EcosystemPyPI
+	case customParserCycloneDXSBOM:
+		return models.EcosystemCyDxSBOM
 	default:
+		logger.Debugf("Unsupported lockfile-as %s", pw.parseAs)
 		return ""
 	}
 }

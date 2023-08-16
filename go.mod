@@ -3,6 +3,7 @@ module github.com/safedep/vet
 go 1.18
 
 require (
+	github.com/CycloneDX/cyclonedx-go v0.7.1
 	github.com/deepmap/oapi-codegen v1.13.3
 	github.com/golang/protobuf v1.5.3
 	github.com/google/cel-go v0.17.1

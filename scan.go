@@ -37,6 +37,7 @@ var (
 	syncReport                  bool
 	syncReportProject           string
 	syncReportStream            string
+	listExperimentalParsers     bool
 )
 
 func newScanCommand() *cobra.Command {
@@ -100,20 +101,25 @@ func newScanCommand() *cobra.Command {
 }
 
 func listParsersCommand() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "parsers",
 		Short: "List available lockfile parsers",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			fmt.Printf("Available Lockfile Parsers\n")
 			fmt.Printf("==========================\n\n")
 
-			for idx, p := range parser.List() {
+			for idx, p := range parser.List(listExperimentalParsers) {
 				fmt.Printf("[%d] %s\n", idx, p)
 			}
 
 			return nil
 		},
 	}
+
+	cmd.Flags().BoolVarP(&listExperimentalParsers, "experimental", "", false,
+		"Include experimental parsers in the list")
+
+	return cmd
 }
 
 func startScan() {

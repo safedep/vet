@@ -248,7 +248,7 @@ func (r *summaryReporter) renderRemediationAdvice() {
 		insight := utils.SafelyGetValue(sp.pkg.Insights)
 
 		tbl.AppendRow(table.Row{
-			sp.pkg.Manifest.Ecosystem,
+			string(sp.pkg.Ecosystem),
 			r.packageNameForRemediationAdvice(sp.pkg),
 			utils.SafelyGetValue(insight.PackageCurrentVersion),
 			sp.score,

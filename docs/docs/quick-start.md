@@ -61,4 +61,11 @@ vet scan --lockfiles /path/to/requirements.txt
 vet scan --lockfiles /path/to/package-lock.json
 ```
 
+:::info
+
+To list all available package manifest parsers run
+`vet scan parsers --experimental`
+
+:::
+
 ![vet scan files](/img/vet/vet-scan-files.png)

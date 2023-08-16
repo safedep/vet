@@ -99,6 +99,23 @@ vet scan --lockfiles /path/to/package-lock.json
 
 > [Example Security Gate](https://github.com/safedep/demo-client-java/pull/2) using `vet` to prevent introducing new OSS dependency risk in an application.
 
+#### Scanning SBOM
+
+- To scan an SBOM in [CycloneDX](https://cyclonedx.org/) format
+
+```bash
+vet scan --lockfiles /path/to/cyclonedx-sbom.json --lockfile-as bom-cyclonedx
+```
+
+> **Note:** SBOM scanning feature is currently in experimental stage
+
+#### Available Parsers
+
+- To list supported package manifest parsers including experimental modules
+
+```bash
+vet scan parsers --experimental
+```
 
 ## 📖 Documentation
 
