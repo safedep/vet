@@ -7,7 +7,7 @@ import (
 )
 
 func TestListParser(t *testing.T) {
-	parsers := List()
+	parsers := List(false)
 	assert.Equal(t, 10, len(parsers))
 }
 
@@ -17,7 +17,7 @@ func TestInvalidEcosystemMapping(t *testing.T) {
 }
 
 func TestEcosystemMapping(t *testing.T) {
-	for _, lf := range List() {
+	for _, lf := range List(false) {
 		t.Run(lf, func(t *testing.T) {
 			pw := &parserWrapper{parseAs: lf}
 			assert.NotEmpty(t, pw.Ecosystem())
