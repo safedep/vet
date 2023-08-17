@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"encoding/json"
-	"sync"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
@@ -59,10 +58,8 @@ type jsonTemplateInputResultSummary struct {
 // Json reporter is built on top of summary reporter to
 // provide extended visibility
 type jsonReportGenerator struct {
-	m               sync.Mutex
 	config          JsonReportingConfig
 	summaryReporter Reporter
-	templateInput   jsonTemplateInput
 	violations      map[string]*analyzer.AnalyzerEvent
 }
 
