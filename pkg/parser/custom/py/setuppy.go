@@ -2,9 +2,9 @@ package py
 
 import (
 	"strings" 
-	"regexp"
-	// "github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/google/osv-scanner/pkg/lockfile"
+	"github.com/safedep/vet/pkg/parser/custom/utils/regex_utils"
 )
 
 
@@ -15,18 +15,18 @@ func ParseSetuppy(pathToLockfile string) ([]lockfile.PackageDetails, error) {
 	if stringConstants, err := GetDependencies(pathToLockfile); err != nil {
 		return details, err
 	} else {
+		// fmt.Printf("Dependencies  %v", stringConstants)
 		for _, constant := range stringConstants {
-			if pd, err := parsePythonPackageSpec(constant); err != nil{
-				return details, err
-			} else {
-				details = append(details, pd)
-			}
+			pd := ParseRequirementsFileLine(constant)
+			details = append(details, pd)
 		}
 	}
+
+	logger.Debugf("Parsed Packaged Details %v", details)
 	return details, nil
 }
 
-// Return Dependency Strings
+// Return Dependency Strings in raw format such as "xxx>=123"
 func GetDependencies(pathToLockfile string) ([]string, error) {
 	setuppy_parser := NewSetuppyParserViaSyntaxTree()
 	// Get and print dependency strings from the setup.py file
@@ -38,50 +38,64 @@ func GetDependencies(pathToLockfile string) ([]string, error) {
 }
 
 
+// todo: expand this to support more things, e.g.
+//
+//	https://pip.pypa.io/en/stable/reference/requirements-file-format/#example
+func ParseRequirementsFileLine(line string) lockfile.PackageDetails {
+	var constraint string
+	name := line
 
-// The order of regexp is important as it gives the precedence of range that we
-// want to consider. Exact match is always highest precendence. We pessimistically
-// consider the lower version in the range
-var pyWheelVersionMatchers []*regexp.Regexp = []*regexp.Regexp{
-	regexp.MustCompile("==([0-9\\.]+)"),
-	regexp.MustCompile(">([0-9\\.]+)"),
-	regexp.MustCompile(">=([0-9\\.]+)"),
-	regexp.MustCompile("<([0-9\\.]+)"),
-	regexp.MustCompile("<=([0-9\\.]+)"),
-	regexp.MustCompile("~=([0-9\\.]+)"),
-}
-
-
-// https://peps.python.org/pep-0440/
-// https://peps.python.org/pep-0508/
-// Parsing python dist version spec is not easy. We need to use the spec grammar
-// to do it correctly. Taking shortcut here by only using the name as the first
-// iteration ignoring the version
-func parsePythonPackageSpec(pkgSpec string) (lockfile.PackageDetails, error) {
-	parts := strings.SplitN(pkgSpec, " ", 2)
-	name := parts[0]
 	version := "0.0.0"
 
-	rest := ""
-	if len(parts) > 1 {
-		rest = parts[1]
+	if strings.Contains(line, "==") {
+		constraint = "=="
 	}
 
-	// Try to match version by regex
-	for _, r := range pyWheelVersionMatchers {
-		res := r.FindAllStringSubmatch(rest, 1)
-		if (len(res) == 0) || (len(res[0]) < 2) {
-			continue
-		}
+	if strings.Contains(line, ">=") {
+		constraint = ">="
+	}
 
-		version = res[0][1]
-		break
+	if strings.Contains(line, "~=") {
+		constraint = "~="
+	}
+
+	if strings.Contains(line, "!=") {
+		constraint = "!="
+	}
+
+	if constraint != "" {
+		unprocessedName, unprocessedVersion, _ := strings.Cut(line, constraint)
+		name = strings.TrimSpace(unprocessedName)
+
+		if constraint != "!=" {
+			version, _, _ = strings.Cut(strings.TrimSpace(unprocessedVersion), " ")
+		}
 	}
 
 	return lockfile.PackageDetails{
-		Name:      name,
+		Name:      normalizedRequirementName(name),
 		Version:   version,
 		Ecosystem: lockfile.PipEcosystem,
 		CompareAs: lockfile.PipEcosystem,
-	}, nil
+	}
+}
+
+// normalizedName ensures that the package name is normalized per PEP-0503
+// and then removing "added support" syntax if present.
+//
+// This is done to ensure we don't miss any advisories, as while the OSV
+// specification says that the normalized name should be used for advisories,
+// that's not the case currently in our databases, _and_ Pip itself supports
+// non-normalized names in the requirements.txt, so we need to normalize
+// on both sides to ensure we don't have false negatives.
+//
+// It's possible that this will cause some false positives, but that is better
+// than false negatives, and can be dealt with when/if it actually happens.
+func normalizedRequirementName(name string) string {
+	// per https://www.python.org/dev/peps/pep-0503/#normalized-names
+	name = regex_utils.MustCompileAndCache(`[-_.]+`).ReplaceAllString(name, "-")
+	name = strings.ToLower(name)
+	name, _, _ = strings.Cut(name, "[")
+
+	return name
 }
