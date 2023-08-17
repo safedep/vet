@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"context"
 	// "github.com/mpvl/unique"
 	"github.com/safedep/vet/pkg/common/logger"
 	treesitter "github.com/smacker/go-tree-sitter"
@@ -133,12 +134,12 @@ func (s *SetuppyParserViaSyntaxTree) extractStringConstants(node *treesitter.Nod
 // aggStringConstants aggregates string constants based on dependencies.
 func (s *SetuppyParserViaSyntaxTree) aggStringConstants(src string) []string {
 	const_strings := []string{}
-	dep_syms := []string{}
 
 	if cs, ok := s.Symbol2strings[src]; ok {
 		const_strings = append(const_strings, cs...)
 	} 
 
+	var dep_syms []string
 	if ds, ok := s.Symbol2symbols[src]; !ok {
 		return const_strings
 	} else {
@@ -206,7 +207,13 @@ func (s *SetuppyParserViaSyntaxTree) GetDependencyStrings(filepath string) ([]st
 		code = content
 	}
 
-	tree := s.Parser.Parse(nil, code)
+	ctx := context.Background()
+	tree, err := s.Parser.ParseCtx(ctx, nil, code)
+
+	if err != nil{
+		logger.Warnf("Error while creating parser %v", err)
+		return dependencies, err
+	}
 
 	if tree.RootNode().Type() != "module" {
 		return dependencies, fmt.Errorf("Error parsing module")
