@@ -143,10 +143,10 @@ func TestGetDependencies(t *testing.T) {
 			assert.Nil(t, err)
 
 			if len(dependencies) != len(test.expectedDeps) {
-				fmt.Println(dependencies)
-				fmt.Println(test.expectedDeps)
-				fmt.Println(Difference(dependencies, test.expectedDeps))
-				fmt.Println(Difference(test.expectedDeps, dependencies))
+				// fmt.Println(dependencies)
+				// fmt.Println(test.expectedDeps)
+				// fmt.Println(Difference(dependencies, test.expectedDeps))
+				// fmt.Println(Difference(test.expectedDeps, dependencies))
 				t.Fatalf("Expected %d dependencies, but got %d", len(test.expectedDeps), len(dependencies))
 			}
 
