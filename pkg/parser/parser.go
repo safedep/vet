@@ -11,9 +11,9 @@ import (
 )
 
 const (
-	customParserTypePyWheel = "python-wheel"
+	customParserTypePyWheel   = "python-wheel"
 	customParserCycloneDXSBOM = "bom-cyclonedx"
-	customParserTypeSetupPy = "setup.py"
+	customParserTypeSetupPy   = "setup.py"
 )
 
 // We are supporting only those ecosystems for which we have data
@@ -28,9 +28,9 @@ var supportedEcosystems map[string]bool = map[string]bool{
 }
 
 var customExperimentalParsers map[string]lockfile.PackageDetailsParser = map[string]lockfile.PackageDetailsParser{
-	customParserTypePyWheel: parsePythonWheelDist,
+	customParserTypePyWheel:   parsePythonWheelDist,
 	customParserCycloneDXSBOM: parseCyclonedxSBOM,
-	customParserTypeSetupPy: py.ParseSetuppy,
+	customParserTypeSetupPy:   py.ParseSetuppy,
 }
 
 type Parser interface {

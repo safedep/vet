@@ -1,12 +1,11 @@
 package py
 
 import (
-	"strings" 
-	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/google/osv-scanner/pkg/lockfile"
+	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/common/utils/regex_utils"
+	"strings"
 )
-
 
 func ParseSetuppy(pathToLockfile string) ([]lockfile.PackageDetails, error) {
 	details := []lockfile.PackageDetails{}
@@ -35,7 +34,6 @@ func getDependencies(pathToLockfile string) ([]string, error) {
 		return stringConstants, nil
 	}
 }
-
 
 // todo: expand this to support more things, e.g.
 //

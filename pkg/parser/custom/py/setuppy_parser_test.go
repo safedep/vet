@@ -1,8 +1,8 @@
 package py
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 // Set difference: A - B
@@ -10,13 +10,13 @@ func difference(a, b []string) (diff []string) {
 	m := make(map[string]bool)
 
 	for _, item := range b {
-			m[item] = true
+		m[item] = true
 	}
 
 	for _, item := range a {
-			if _, ok := m[item]; !ok {
-					diff = append(diff, item)
-			}
+		if _, ok := m[item]; !ok {
+			diff = append(diff, item)
+		}
 	}
 	return diff
 }
@@ -46,7 +46,7 @@ func TestGetDependencies(t *testing.T) {
 				"patool>=1.12",
 				"wordninja>=2.0.0",
 				"iocextract>=1.13.1",
-				"pyparsing>=3.0.8", 
+				"pyparsing>=3.0.8",
 				"ioc-fanger",
 				"titlecase>=0.12.0",
 				"furl>=2.1.0",
@@ -148,10 +148,10 @@ func TestGetDependencies(t *testing.T) {
 			dep_diff2 := difference(test.expectedDeps, dependencies)
 			assert.Equal(t, 0, len(dep_diff1))
 			assert.Equal(t, 0, len(dep_diff2))
-			if len(dep_diff1) > 0  {
+			if len(dep_diff1) > 0 {
 				t.Fatalf("More Dependencies in test set %v", dep_diff1)
 			}
-			if len(dep_diff2) > 0  {
+			if len(dep_diff2) > 0 {
 				t.Fatalf("More Dependencies in test set %v", dep_diff2)
 			}
 		})

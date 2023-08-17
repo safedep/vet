@@ -1,34 +1,33 @@
-package py 
+package py
 
 import (
-	"fmt"
-	"os"
-	"strings"
 	"context"
+	"fmt"
 	"github.com/safedep/vet/pkg/common/logger"
 	treesitter "github.com/smacker/go-tree-sitter"
 	"github.com/smacker/go-tree-sitter/python"
+	"os"
+	"strings"
 )
 
 const (
-	node_type_identifier = "identifier"
+	node_type_identifier          = "identifier"
 	node_type_function_definition = "function_definition"
-	node_type_string = "string"
-	node_type_assignment = "assignment"
-	node_type_format_string = "format_string"
-	node_type_expr_list = "expr_list"
-	node_type_testlist = "testlist"
-	node_type_keyword_argument = "keyword_argument"
-	node_type_call = "call"
-	node_type_def = "def"
+	node_type_string              = "string"
+	node_type_assignment          = "assignment"
+	node_type_format_string       = "format_string"
+	node_type_expr_list           = "expr_list"
+	node_type_testlist            = "testlist"
+	node_type_keyword_argument    = "keyword_argument"
+	node_type_call                = "call"
+	node_type_def                 = "def"
 )
 
 // setuppyParserViaSyntaxTree holds the parsing and extraction logic for setup.py files.
-type setuppyParserViaSyntaxTree struct
-{
+type setuppyParserViaSyntaxTree struct {
 	Symbol2strings map[string][]string
 	Symbol2symbols map[string][]string
-	Parser *treesitter.Parser
+	Parser         *treesitter.Parser
 }
 
 // newSetuppyParserViaSyntaxTree creates a new instance of setuppyParserViaSyntaxTree.
@@ -55,9 +54,9 @@ func (s *setuppyParserViaSyntaxTree) extractStringConstants(node *treesitter.Nod
 		}
 		symbol_string = append(symbol_string, node.Content(code))
 	case node_type_function_definition:
-		if node.Child(0).Type() == node_type_def &&  node.Child(1).Type() == node_type_identifier{
+		if node.Child(0).Type() == node_type_def && node.Child(1).Type() == node_type_identifier {
 			const_strings2 := make([]string, 0)
-			symbol_strings2 := []string{} 
+			symbol_strings2 := []string{}
 			for i := uint32(2); i < node.ChildCount(); i++ {
 				child := node.Child(int(i))
 				a, b := s.extractStringConstants(child, code)
@@ -69,7 +68,7 @@ func (s *setuppyParserViaSyntaxTree) extractStringConstants(node *treesitter.Nod
 			symbol_string = append(symbol_string, node.Child(1).Content(code))
 			s.Symbol2strings[node.Child(1).Content(code)] = const_strings2
 			s.Symbol2symbols[node.Child(1).Content(code)] = symbol_strings2
-			
+
 		}
 	case node_type_string:
 		a := strings.Trim(string(node.Content(code)), "\"")
@@ -78,7 +77,7 @@ func (s *setuppyParserViaSyntaxTree) extractStringConstants(node *treesitter.Nod
 		attribute := node.Child(0)
 		if attribute.Type() == node_type_identifier {
 			const_strings2 := make([]string, 0)
-			symbol_strings2 := []string{} 
+			symbol_strings2 := []string{}
 			for i := uint32(1); i < node.ChildCount(); i++ {
 				child := node.Child(int(i))
 				a, b := s.extractStringConstants(child, code)
@@ -90,7 +89,7 @@ func (s *setuppyParserViaSyntaxTree) extractStringConstants(node *treesitter.Nod
 			symbol_string = append(symbol_string, attribute.Content(code))
 			s.Symbol2strings[attribute.Content(code)] = const_strings2
 			s.Symbol2symbols[attribute.Content(code)] = symbol_strings2
-			
+
 		}
 	case node_type_format_string:
 		a, b := s.extractStringConstants(node.Child(0), code)
@@ -103,24 +102,25 @@ func (s *setuppyParserViaSyntaxTree) extractStringConstants(node *treesitter.Nod
 			const_strings = append(const_strings, a...)
 			symbol_string = append(symbol_string, b...)
 		}
-	case node_type_keyword_argument: {
-		attribute := node.Child(0)
-		if attribute.Type() == node_type_identifier {
-			const_strings2 := make([]string, 0)
-			symbol_strings2 := make([]string, 0)
-			for i := uint32(1); i < node.ChildCount(); i++ {
-				child := node.Child(int(i))
-				a, b := s.extractStringConstants(child, code)
-				const_strings2 = append(const_strings2, a...)
-				symbol_strings2 = append(symbol_strings2, b...)
-			}
-			const_strings = append(const_strings, const_strings2...)
-			symbol_string = append(symbol_string, symbol_strings2...)
+	case node_type_keyword_argument:
+		{
+			attribute := node.Child(0)
+			if attribute.Type() == node_type_identifier {
+				const_strings2 := make([]string, 0)
+				symbol_strings2 := make([]string, 0)
+				for i := uint32(1); i < node.ChildCount(); i++ {
+					child := node.Child(int(i))
+					a, b := s.extractStringConstants(child, code)
+					const_strings2 = append(const_strings2, a...)
+					symbol_strings2 = append(symbol_strings2, b...)
+				}
+				const_strings = append(const_strings, const_strings2...)
+				symbol_string = append(symbol_string, symbol_strings2...)
 
-			s.Symbol2strings[attribute.Content(code)] = const_strings2
-			s.Symbol2symbols[attribute.Content(code)] = symbol_strings2
+				s.Symbol2strings[attribute.Content(code)] = const_strings2
+				s.Symbol2symbols[attribute.Content(code)] = symbol_strings2
+			}
 		}
-	}
 	case node_type_call:
 		for i := uint32(0); i < node.ChildCount(); i++ {
 			child := node.Child(int(i))
@@ -146,7 +146,7 @@ func (s *setuppyParserViaSyntaxTree) aggStringConstants(src string) []string {
 
 	if cs, ok := s.Symbol2strings[src]; ok {
 		const_strings = append(const_strings, cs...)
-	} 
+	}
 
 	var dep_syms []string
 	if ds, ok := s.Symbol2symbols[src]; !ok {
@@ -163,10 +163,13 @@ func (s *setuppyParserViaSyntaxTree) aggStringConstants(src string) []string {
 	return const_strings
 }
 
-/**
- getDependencyStrings extracts dependency strings from a setup.py file.
+/*
+*
 
- - "iptools>=0.7.0"
+	getDependencyStrings extracts dependency strings from a setup.py file.
+
+	- "iptools>=0.7.0"
+
 - "parsedatetime>=2.4"
 - "beautifulsoup4>=4.7.1"
 - "fuzzywuzzy>=0.18.0"
@@ -212,7 +215,7 @@ func (s *setuppyParserViaSyntaxTree) getDependencyStrings(filepath string) ([]st
 	ctx := context.Background()
 	tree, err := s.Parser.ParseCtx(ctx, nil, code)
 
-	if err != nil{
+	if err != nil {
 		logger.Warnf("Error while creating parser %v", err)
 		return dependencies, err
 	}

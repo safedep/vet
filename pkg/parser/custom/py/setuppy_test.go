@@ -2,10 +2,10 @@ package py
 
 import (
 	"fmt"
-	"testing"
+	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/google/osv-scanner/pkg/lockfile"
+	"testing"
 )
 
 func TestParseRequirementsFileLine(t *testing.T) {
@@ -88,7 +88,7 @@ func TestParseSetuppy(t *testing.T) {
 	}{
 		{
 			filepath: "./fixtures/setuppy/setup2_parser1.py", // Path to your test file
-			expectedDeps:  []lockfile.PackageDetails{ 
+			expectedDeps: []lockfile.PackageDetails{
 				{
 					Name:      "google-cloud-storage",
 					Version:   "0.0.0",
@@ -135,7 +135,7 @@ func TestParseSetuppy(t *testing.T) {
 			for _, v := range dependencies {
 				ev, ok := dep_map[v.Name]
 				assert.True(t, ok, fmt.Sprintf("Package %s not found in expected result", v.Name))
-				assert.Equal(t, ev.Name, v.Name,  fmt.Sprintf("Mismatch for the package: %s", v.Name))
+				assert.Equal(t, ev.Name, v.Name, fmt.Sprintf("Mismatch for the package: %s", v.Name))
 				assert.Equal(t, ev.Version, v.Version, fmt.Sprintf("Mismatch for the package: %s", v.Name))
 				assert.Equal(t, ev.Ecosystem, v.Ecosystem, fmt.Sprintf("Mismatch for the package: %s", v.Name))
 				assert.Equal(t, ev.CompareAs, v.CompareAs, fmt.Sprintf("Mismatch for the package: %s", v.Name))

@@ -17,6 +17,19 @@ vet scan --report-summary -D demo-client-java
 
 ![vet summary report](/img/vet/vet-report-summary.png)
 
+## JSON Report
+
+:::caution
+
+The JSON report generator is currently in experimental state. The JSON schema
+may change without notice.
+
+:::
+
+```bash
+vet scan --report-json /path/to/report.json -D demo-client-java
+```
+
 ## Console
 
 - You can run the console output format for the `vet` using `--report-console` flag. Which returns the whole report of the scan in detailed format in the terminal or console.
@@ -328,10 +341,6 @@ vet scan --report-markdown=vet-markdown-report.md -D demo-client-java
 ![vet markdown report file](/img/vet/vet-markdown-report-file.png)
 
 ## SARIF
-
-🚧 Work-in-Progress (WIP)
-
-## JSON
 
 🚧 Work-in-Progress (WIP)
 

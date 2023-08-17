@@ -1,12 +1,12 @@
 package parser
 
 import (
-	"os"
-	"io/ioutil"
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"github.com/google/osv-scanner/pkg/lockfile"
 	cdx "github.com/CycloneDX/cyclonedx-go"
+	"github.com/google/osv-scanner/pkg/lockfile"
+	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"os"
+	"testing"
 )
 
 func TestParseCyclonedxSBOM(t *testing.T) {

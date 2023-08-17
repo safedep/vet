@@ -2,9 +2,6 @@ package reporter
 
 import (
 	"fmt"
-	"os"
-	"sort"
-	"strings"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/safedep/dry/semver"
@@ -15,6 +12,9 @@ import (
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
 	"github.com/safedep/vet/pkg/readers"
+	"os"
+	"sort"
+	"strings"
 )
 
 const (
@@ -66,13 +66,13 @@ type summaryReporter struct {
 
 	// Map of pkgId and associated meta for building remediation advice
 	remediationScores map[string]*summaryReporterRemediationData
-	violations     map[string]*summaryReporterInputViolationData
+	violations        map[string]*summaryReporterInputViolationData
 }
 
 func NewSummaryReporter() (Reporter, error) {
 	return &summaryReporter{
 		remediationScores: make(map[string]*summaryReporterRemediationData),
-		violations:      make(map[string]*summaryReporterInputViolationData),
+		violations:        make(map[string]*summaryReporterInputViolationData),
 	}, nil
 }
 

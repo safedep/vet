@@ -1,16 +1,15 @@
 package reporter
 
 import (
-	"fmt"
-	"os"
 	"encoding/json"
+	"fmt"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/pkg/exceptions"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
-	"github.com/safedep/vet/pkg/exceptions"
+	"os"
 )
-
 
 type JsonReportingConfig struct {
 	Path string
@@ -18,11 +17,10 @@ type JsonReportingConfig struct {
 
 // Highlevel Json Structure
 type jsonTemplateInput struct {
-	Remediations       map[string][]jsonTemplateInputRemediation `json:"remediations"`         // Remediations
-	Summary            jsonTemplateInputResultSummary 			 `json:"summary"`              // Summary
-	Violations         []jsonTemplateInputViolation              `json:"violations"`           // Violations
+	Remediations map[string][]jsonTemplateInputRemediation `json:"remediations"` // Remediations
+	Summary      jsonTemplateInputResultSummary            `json:"summary"`      // Summary
+	Violations   []jsonTemplateInputViolation              `json:"violations"`   // Violations
 }
-
 
 type jsonTemplateInputViolation struct {
 	Ecosystem string `json:"ecosystem"` // Ecosystem of the package
@@ -38,21 +36,21 @@ type jsonTemplateInputRemediation struct {
 }
 
 type jsonTemplateInputManifestResultSummary struct {
-	Ecosystem               string `json:"ecosystem"`                 // Ecosystem
-	PackageCount            int    `json:"package_count"`             // Package count
-	PackageWithIssuesCount  int    `json:"package_with_issues_count"` // Packages with issues count
+	Ecosystem              string `json:"ecosystem"`                 // Ecosystem
+	PackageCount           int    `json:"package_count"`             // Package count
+	PackageWithIssuesCount int    `json:"package_with_issues_count"` // Packages with issues count
 }
 
 type jsonTemplateInputResultSummary struct {
-	Manifests 				 map[string]jsonTemplateInputManifestResultSummary `json:"manifests"` 
-	ManifestsCount			int    `json:"manifests_count"`      // Manifests count
-	PackagesCount      		int    `json:"packages_count"`       // Packages count
-	CriticalVulnCount  		int    `json:"critical_vuln_count"`  // Critical vulnerabilities count
-	HighVulnCount      		int    `json:"high_vuln_count"`      // High vulnerabilities count
-	OtherVulnCount     		int    `json:"other_vuln_count"`     // Other vulnerabilities count
-	UnpopularLibsCount 		int    `json:"unpopular_libs_count"` // Unpopular libraries count
-	DriftLibsCount     		int    `json:"drift_libs_count"`     // Drifting libraries count
-	ExemptedLibs       		int    `json:"exempted_libs"`        // Exempted libraries count
+	Manifests          map[string]jsonTemplateInputManifestResultSummary `json:"manifests"`
+	ManifestsCount     int                                               `json:"manifests_count"`      // Manifests count
+	PackagesCount      int                                               `json:"packages_count"`       // Packages count
+	CriticalVulnCount  int                                               `json:"critical_vuln_count"`  // Critical vulnerabilities count
+	HighVulnCount      int                                               `json:"high_vuln_count"`      // High vulnerabilities count
+	OtherVulnCount     int                                               `json:"other_vuln_count"`     // Other vulnerabilities count
+	UnpopularLibsCount int                                               `json:"unpopular_libs_count"` // Unpopular libraries count
+	DriftLibsCount     int                                               `json:"drift_libs_count"`     // Drifting libraries count
+	ExemptedLibs       int                                               `json:"exempted_libs"`        // Exempted libraries count
 }
 
 // Json reporter is built on top of summary reporter to
@@ -123,7 +121,7 @@ func (r *jsonReportGenerator) Finish() error {
 			Pkg:                s.pkg,
 			PkgRemediationName: sr.packageNameForRemediationAdvice(s.pkg),
 			Score:              s.score,
-			Tags:				fmt.Sprintf("%s", s.tags),
+			Tags:               fmt.Sprintf("%s", s.tags),
 		})
 
 		if _, ok := manifest_summaries[mp]; !ok {
@@ -157,21 +155,21 @@ func (r *jsonReportGenerator) Finish() error {
 	summaries.PackagesCount = sr.summary.packages
 	summaries.CriticalVulnCount = sr.summary.vulns.critical
 	summaries.HighVulnCount = sr.summary.vulns.high
-	summaries.OtherVulnCount = sr.summary.vulns.medium + sr.summary.vulns.low 
+	summaries.OtherVulnCount = sr.summary.vulns.medium + sr.summary.vulns.low
 	summaries.UnpopularLibsCount = sr.summary.metrics.unpopular
 	summaries.DriftLibsCount = sr.summary.metrics.drifts
 	summaries.ExemptedLibs = exceptions.ActiveCount()
 
 	templateInput := jsonTemplateInput{
-			Remediations:   remediations,
-			Summary:        summaries,
-			Violations:     violations,
-		}
+		Remediations: remediations,
+		Summary:      summaries,
+		Violations:   violations,
+	}
 
 	b, err := json.Marshal(templateInput)
-    if err != nil {
+	if err != nil {
 		return err
-    }
+	}
 
 	file, err := os.Create(r.config.Path)
 	if err != nil {
