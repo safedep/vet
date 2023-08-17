@@ -4,7 +4,7 @@ import (
 	"strings" 
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/google/osv-scanner/pkg/lockfile"
-	"github.com/safedep/vet/pkg/parser/custom/utils/regex_utils"
+	"github.com/safedep/vet/pkg/common/utils/regex_utils"
 )
 
 
@@ -12,12 +12,11 @@ func ParseSetuppy(pathToLockfile string) ([]lockfile.PackageDetails, error) {
 	details := []lockfile.PackageDetails{}
 
 	// Get and print dependency strings from the setup.py file
-	if stringConstants, err := GetDependencies(pathToLockfile); err != nil {
+	if stringConstants, err := getDependencies(pathToLockfile); err != nil {
 		return details, err
 	} else {
-		// fmt.Printf("Dependencies  %v", stringConstants)
 		for _, constant := range stringConstants {
-			pd := ParseRequirementsFileLine(constant)
+			pd := parseRequirementsFileLine(constant)
 			details = append(details, pd)
 		}
 	}
@@ -27,10 +26,10 @@ func ParseSetuppy(pathToLockfile string) ([]lockfile.PackageDetails, error) {
 }
 
 // Return Dependency Strings in raw format such as "xxx>=123"
-func GetDependencies(pathToLockfile string) ([]string, error) {
-	setuppy_parser := NewSetuppyParserViaSyntaxTree()
+func getDependencies(pathToLockfile string) ([]string, error) {
+	setuppy_parser := newSetuppyParserViaSyntaxTree()
 	// Get and print dependency strings from the setup.py file
-	if stringConstants, err := setuppy_parser.GetDependencyStrings(pathToLockfile); err != nil {
+	if stringConstants, err := setuppy_parser.getDependencyStrings(pathToLockfile); err != nil {
 		return nil, err
 	} else {
 		return stringConstants, nil
@@ -41,7 +40,7 @@ func GetDependencies(pathToLockfile string) ([]string, error) {
 // todo: expand this to support more things, e.g.
 //
 //	https://pip.pypa.io/en/stable/reference/requirements-file-format/#example
-func ParseRequirementsFileLine(line string) lockfile.PackageDetails {
+func parseRequirementsFileLine(line string) lockfile.PackageDetails {
 	var constraint string
 	name := line
 

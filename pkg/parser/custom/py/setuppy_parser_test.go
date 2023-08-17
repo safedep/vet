@@ -1,13 +1,12 @@
 package py
 
 import (
-	"fmt"
 	"testing"
 	"github.com/stretchr/testify/assert"
 )
 
-// Set Difference: A - B
-func Difference(a, b []string) (diff []string) {
+// Set difference: A - B
+func difference(a, b []string) (diff []string) {
 	m := make(map[string]bool)
 
 	for _, item := range b {
@@ -22,7 +21,7 @@ func Difference(a, b []string) (diff []string) {
 	return diff
 }
 
-func TestGetDependencies(t *testing.T) {
+func TestgetDependencies(t *testing.T) {
 	tests := []struct {
 		filepath     string
 		expectedDeps []string
@@ -138,20 +137,15 @@ func TestGetDependencies(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.filepath, func(t *testing.T) {
-			dependencies, err := GetDependencies(test.filepath)
-			fmt.Println(test.filepath)
+			dependencies, err := getDependencies(test.filepath)
 			assert.Nil(t, err)
 
 			if len(dependencies) != len(test.expectedDeps) {
-				// fmt.Println(dependencies)
-				// fmt.Println(test.expectedDeps)
-				// fmt.Println(Difference(dependencies, test.expectedDeps))
-				// fmt.Println(Difference(test.expectedDeps, dependencies))
 				t.Fatalf("Expected %d dependencies, but got %d", len(test.expectedDeps), len(dependencies))
 			}
 
-			dep_diff1 := Difference(dependencies, test.expectedDeps)
-			dep_diff2 := Difference(test.expectedDeps, dependencies)
+			dep_diff1 := difference(dependencies, test.expectedDeps)
+			dep_diff2 := difference(test.expectedDeps, dependencies)
 			assert.Equal(t, 0, len(dep_diff1))
 			assert.Equal(t, 0, len(dep_diff2))
 			if len(dep_diff1) > 0  {

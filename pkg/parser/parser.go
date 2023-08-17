@@ -28,7 +28,7 @@ var supportedEcosystems map[string]bool = map[string]bool{
 }
 
 var customExperimentalParsers map[string]lockfile.PackageDetailsParser = map[string]lockfile.PackageDetailsParser{
-	customParserTypePyWheel:   parsePythonWheelDist,
+	customParserTypePyWheel: parsePythonWheelDist,
 	customParserCycloneDXSBOM: parseCyclonedxSBOM,
 	customParserTypeSetupPy: py.ParseSetuppy,
 }

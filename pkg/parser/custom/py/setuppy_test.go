@@ -1,15 +1,14 @@
-package py_test
+package py
 
 import (
 	"fmt"
 	"testing"
-	"github.com/safedep/vet/pkg/parser/custom/py"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/google/osv-scanner/pkg/lockfile"
 )
 
-func TestParseRequirementsFileLine(t *testing.T) {
+func TestparseRequirementsFileLine(t *testing.T) {
 	tests := []struct {
 		input      string
 		expected   lockfile.PackageDetails
@@ -71,18 +70,16 @@ func TestParseRequirementsFileLine(t *testing.T) {
 		t.Run(test.input, func(t *testing.T) {
 			if test.shouldFail {
 				require.Panics(t, func() {
-					parsed := py.ParseRequirementsFileLine(test.input)
+					parsed := parseRequirementsFileLine(test.input)
 					assert.Fail(t, "Shouldn't reach here", "Parsed: %#v", parsed)
 				})
 			} else {
-				parsed := py.ParseRequirementsFileLine(test.input)
+				parsed := parseRequirementsFileLine(test.input)
 				assert.Equal(t, test.expected, parsed, "Parsed package details should match expected")
 			}
 		})
 	}
 }
-
-
 
 func TestParseSetuppy(t *testing.T) {
 	tests := []struct {
@@ -123,14 +120,10 @@ func TestParseSetuppy(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.filepath, func(t *testing.T) {
-			dependencies, err := py.ParseSetuppy(test.filepath)
+			dependencies, err := ParseSetuppy(test.filepath)
 			assert.Nil(t, err)
 
 			if len(dependencies) != len(test.expectedDeps) {
-				// fmt.Println(dependencies)
-				// fmt.Println(test.expectedDeps)
-				// fmt.Println(Difference(dependencies, test.expectedDeps))
-				// fmt.Println(Difference(test.expectedDeps, dependencies))
 				t.Fatalf("Expected %d dependencies, but got %d", len(test.expectedDeps), len(dependencies))
 			}
 
