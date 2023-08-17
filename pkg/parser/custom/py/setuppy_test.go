@@ -8,7 +8,7 @@ import (
 	"github.com/google/osv-scanner/pkg/lockfile"
 )
 
-func TestparseRequirementsFileLine(t *testing.T) {
+func TestParseRequirementsFileLine(t *testing.T) {
 	tests := []struct {
 		input      string
 		expected   lockfile.PackageDetails

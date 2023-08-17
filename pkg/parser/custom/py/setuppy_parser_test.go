@@ -21,7 +21,7 @@ func difference(a, b []string) (diff []string) {
 	return diff
 }
 
-func TestgetDependencies(t *testing.T) {
+func TestGetDependencies(t *testing.T) {
 	tests := []struct {
 		filepath     string
 		expectedDeps []string
