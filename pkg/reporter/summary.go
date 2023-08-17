@@ -5,7 +5,6 @@ import (
 	"os"
 	"sort"
 	"strings"
-
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/safedep/dry/semver"
@@ -35,6 +34,12 @@ const (
 	summaryReportMaxUpgradeAdvice = 5
 )
 
+type summaryReporterInputViolationData struct {
+	Ecosystem string
+	PkgName   string
+	Message   string
+}
+
 type summaryReporterRemediationData struct {
 	pkg   *models.Package
 	score int
@@ -61,11 +66,13 @@ type summaryReporter struct {
 
 	// Map of pkgId and associated meta for building remediation advice
 	remediationScores map[string]*summaryReporterRemediationData
+	violations     map[string]*summaryReporterInputViolationData
 }
 
 func NewSummaryReporter() (Reporter, error) {
 	return &summaryReporter{
 		remediationScores: make(map[string]*summaryReporterRemediationData),
+		violations:      make(map[string]*summaryReporterInputViolationData),
 	}, nil
 }
 
@@ -86,7 +93,36 @@ func (r *summaryReporter) AddManifest(manifest *models.PackageManifest) {
 	r.summary.manifests += 1
 }
 
-func (r *summaryReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {}
+func (r *summaryReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
+	if !event.IsFilterMatch() {
+		return
+	}
+
+	if event.Package == nil {
+		return
+	}
+
+	if event.Package.Manifest == nil {
+		return
+	}
+
+	pkgId := event.Package.Id()
+	if _, ok := r.violations[pkgId]; ok {
+		return
+	}
+
+	if msg, ok := event.Message.(string); !ok {
+		return
+	} else {
+		v := summaryReporterInputViolationData{
+			Ecosystem: string(event.Package.Ecosystem),
+			PkgName:   fmt.Sprintf("%s@%s", event.Package.Name, event.Package.Version),
+			Message:   msg,
+		}
+		r.violations[pkgId] = &v
+	}
+
+}
 
 func (r *summaryReporter) AddPolicyEvent(event *policy.PolicyEvent) {}
 
@@ -185,6 +221,7 @@ func (r *summaryReporter) addPkgForRemediationAdvice(pkg *models.Package,
 }
 
 func (r *summaryReporter) Finish() error {
+
 	fmt.Println(summaryListPrependText, text.BgBlue.Sprint(" Summary of Findings "))
 	fmt.Println()
 	fmt.Println(text.FgHiRed.Sprint(summaryListPrependText, r.vulnSummaryStatement()))

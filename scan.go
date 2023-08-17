@@ -29,6 +29,7 @@ var (
 	celFilterSuiteFile          string
 	celFilterFailOnMatch        bool
 	markdownReportPath          string
+	jsonReportPath              string
 	consoleReport               bool
 	summaryReport               bool
 	csvReportPath               string
@@ -89,6 +90,8 @@ func newScanCommand() *cobra.Command {
 		"Print a summary report with actionable advice")
 	cmd.Flags().StringVarP(&csvReportPath, "report-csv", "", "",
 		"Generate CSV report of filtered packages")
+	cmd.Flags().StringVarP(&jsonReportPath, "report-json", "", "",
+		"Generate consolidated json report to file")
 	cmd.Flags().BoolVarP(&syncReport, "report-sync", "", false,
 		"Enable syncing report data to cloud")
 	cmd.Flags().StringVarP(&syncReportProject, "report-sync-project", "", "",
@@ -208,6 +211,17 @@ func internalStartScan() error {
 	if !utils.IsEmptyString(markdownReportPath) {
 		rp, err := reporter.NewMarkdownReportGenerator(reporter.MarkdownReportingConfig{
 			Path: markdownReportPath,
+		})
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if !utils.IsEmptyString(jsonReportPath) {
+		rp, err := reporter.NewJsonReportGenerator(reporter.JsonReportingConfig{
+			Path: jsonReportPath,
 		})
 		if err != nil {
 			return err

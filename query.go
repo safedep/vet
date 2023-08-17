@@ -19,6 +19,7 @@ var (
 	queryEnableConsoleReport bool
 	queryEnableSummaryReport bool
 	queryMarkdownReportPath  string
+	queryJsonReportPath      string
 	queryCsvReportPath       string
 	queryExceptionsFile      string
 	queryExceptionsTill      string
@@ -58,6 +59,8 @@ func newQueryCommand() *cobra.Command {
 		"Show an actionable summary based on scan data")
 	cmd.Flags().StringVarP(&queryMarkdownReportPath, "report-markdown", "", "",
 		"Generate markdown report to file")
+	cmd.Flags().StringVarP(&queryJsonReportPath, "report-json", "", "",
+		"Generate json report to file")
 	cmd.Flags().StringVarP(&queryCsvReportPath, "report-csv", "", "",
 		"Generate CSV report of filtered packages to file")
 	return cmd
@@ -137,6 +140,17 @@ func internalStartQuery() error {
 			Path: queryMarkdownReportPath,
 		})
 
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if !utils.IsEmptyString(queryJsonReportPath) {
+		rp, err := reporter.NewJsonReportGenerator(reporter.JsonReportingConfig{
+			Path: queryJsonReportPath,
+		})
 		if err != nil {
 			return err
 		}
