@@ -11,6 +11,7 @@ import (
 const (
 	customParserTypePyWheel = "python-wheel"
 	customParserCycloneDXSBOM = "bom-cyclonedx"
+	customParserTypeSetupPy = "setup-py"
 )
 
 // We are supporting only those ecosystems for which we have data

@@ -3,6 +3,7 @@ module github.com/safedep/vet
 go 1.18
 
 require (
+	github.com/CycloneDX/cyclonedx-go v0.7.1
 	github.com/deepmap/oapi-codegen v1.13.3
 	github.com/golang/protobuf v1.5.3
 	github.com/google/cel-go v0.17.1
@@ -10,6 +11,7 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.4.6
 	github.com/safedep/dry v0.0.0-20230222132026-c8b6cb976849
 	github.com/sirupsen/logrus v1.9.3
+	github.com/smacker/go-tree-sitter v0.0.0-20230720070738-0d0a9f78d8f8
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/term v0.11.0
@@ -19,7 +21,6 @@ require (
 
 require (
 	github.com/BurntSushi/toml v1.3.2 // indirect
-	github.com/CycloneDX/cyclonedx-go v0.7.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
 	github.com/antlr/antlr4/runtime/Go/antlr/v4 v4.0.0-20230305170008-8188dc5388df // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
