@@ -43,7 +43,6 @@ func convertSbomComponent2LPD(comp *cdx.Component) (*lockfile.PackageDetails, er
 	} else {
 		name = comp.Name
 	}
-
 	var ecosysystem lockfile.Ecosystem
 	if eco, err := convertBomRefAsEcosystem(comp.BOMRef); err != nil {
 		return nil, err

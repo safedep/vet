@@ -6,11 +6,14 @@ import (
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
+
+	"github.com/safedep/vet/pkg/parser/custom/py"
 )
 
 const (
 	customParserTypePyWheel   = "python-wheel"
 	customParserCycloneDXSBOM = "bom-cyclonedx"
+	customParserTypeSetupPy   = "setup.py"
 )
 
 // We are supporting only those ecosystems for which we have data
@@ -27,6 +30,7 @@ var supportedEcosystems map[string]bool = map[string]bool{
 var customExperimentalParsers map[string]lockfile.PackageDetailsParser = map[string]lockfile.PackageDetailsParser{
 	customParserTypePyWheel:   parsePythonWheelDist,
 	customParserCycloneDXSBOM: parseCyclonedxSBOM,
+	customParserTypeSetupPy:   py.ParseSetuppy,
 }
 
 type Parser interface {
@@ -121,6 +125,8 @@ func (pw *parserWrapper) Ecosystem() string {
 		return models.EcosystemPyPI
 	case customParserCycloneDXSBOM:
 		return models.EcosystemCyDxSBOM
+	case customParserTypeSetupPy:
+		return models.EcosystemPyPI
 	default:
 		logger.Debugf("Unsupported lockfile-as %s", pw.parseAs)
 		return ""

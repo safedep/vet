@@ -1,0 +1,373 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4",
+  "serialNumber": "urn:uuid:52d87f2e-93ce-4fd6-96d4-071f97ce61a6",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2023-08-11T04:54:21.340Z",
+    "tools": [
+      {
+        "vendor": "cyclonedx",
+        "name": "cdxgen",
+        "version": "8.0.4"
+      }
+    ],
+    "authors": [
+      {
+        "name": "Prabhu Subramanian",
+        "email": "prabhu@appthreat.com"
+      }
+    ],
+    "component": {
+      "group": "",
+      "name": "app",
+      "version": "",
+      "type": "application"
+    }
+  },
+  "components": [
+    {
+      "publisher": "",
+      "group": "",
+      "name": "food-exceptions",
+      "version": "0.4.4",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/food-exceptions@0.4.4",
+      "type": "library",
+      "bom-ref": "pkg:pypi/food-exceptions@0.4.4"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "food-models",
+      "version": "3.3.1",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/food-models@3.3.1",
+      "type": "library",
+      "bom-ref": "pkg:pypi/food-models@3.3.1"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "dateutils",
+      "version": "0.6.6",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/dateutils@0.6.6",
+      "type": "library",
+      "bom-ref": "pkg:pypi/dateutils@0.6.6"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "publicsuffixlist",
+      "version": "0.6.2",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/publicsuffixlist@0.6.2",
+      "type": "library",
+      "bom-ref": "pkg:pypi/publicsuffixlist@0.6.2"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "dnspython",
+      "version": "1.15.0",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/dnspython@1.15.0",
+      "type": "library",
+      "bom-ref": "pkg:pypi/dnspython@1.15.0"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "netaddr",
+      "version": "0.7.18",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/netaddr@0.7.18",
+      "type": "library",
+      "bom-ref": "pkg:pypi/netaddr@0.7.18"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "validators",
+      "version": "0.12.2",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/validators@0.12.2",
+      "type": "library",
+      "bom-ref": "pkg:pypi/validators@0.12.2"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "fqdn",
+      "version": "1.1.0",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/fqdn@1.1.0",
+      "type": "library",
+      "bom-ref": "pkg:pypi/fqdn@1.1.0"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "tld",
+      "version": "0.9.1",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/tld@0.9.1",
+      "type": "library",
+      "bom-ref": "pkg:pypi/tld@0.9.1"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "cchardet",
+      "version": "2.1.4",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/cchardet@2.1.4",
+      "type": "library",
+      "bom-ref": "pkg:pypi/cchardet@2.1.4"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "urllib3",
+      "version": "1.22",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/urllib3@1.22",
+      "type": "library",
+      "bom-ref": "pkg:pypi/urllib3@1.22"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "tldextract",
+      "version": "2.2.0",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/tldextract@2.2.0",
+      "type": "library",
+      "bom-ref": "pkg:pypi/tldextract@2.2.0"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "iptools",
+      "version": "0.7.0",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/iptools@0.7.0",
+      "type": "library",
+      "bom-ref": "pkg:pypi/iptools@0.7.0"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "parsedatetime",
+      "version": "2.4",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/parsedatetime@2.4",
+      "type": "library",
+      "bom-ref": "pkg:pypi/parsedatetime@2.4"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "beautifulsoup4",
+      "version": "4.7.1",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/beautifulsoup4@4.7.1",
+      "type": "library",
+      "bom-ref": "pkg:pypi/beautifulsoup4@4.7.1"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "filetype",
+      "version": "1.0.5",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/filetype@1.0.5",
+      "type": "library",
+      "bom-ref": "pkg:pypi/filetype@1.0.5"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "pyunpack",
+      "version": "0.1.2",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/pyunpack@0.1.2",
+      "type": "library",
+      "bom-ref": "pkg:pypi/pyunpack@0.1.2"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "patool",
+      "version": "1.12",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/patool@1.12",
+      "type": "library",
+      "bom-ref": "pkg:pypi/patool@1.12"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "wordninja",
+      "version": "2.0.0",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/wordninja@2.0.0",
+      "type": "library",
+      "bom-ref": "pkg:pypi/wordninja@2.0.0"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "iocextract",
+      "version": "1.13.1",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/iocextract@1.13.1",
+      "type": "library",
+      "bom-ref": "pkg:pypi/iocextract@1.13.1"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "pyparsing",
+      "version": "3.0.8",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/pyparsing@3.0.8",
+      "type": "library",
+      "bom-ref": "pkg:pypi/pyparsing@3.0.8"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "titlecase",
+      "version": "0.12.0",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/titlecase@0.12.0",
+      "type": "library",
+      "bom-ref": "pkg:pypi/titlecase@0.12.0"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "furl",
+      "version": "2.1.0",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/furl@2.1.0",
+      "type": "library",
+      "bom-ref": "pkg:pypi/furl@2.1.0"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "pathlib2",
+      "version": "2.3.3",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/pathlib2@2.3.3",
+      "type": "library",
+      "bom-ref": "pkg:pypi/pathlib2@2.3.3"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "lxml",
+      "version": "4.5.0",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/lxml@4.5.0",
+      "type": "library",
+      "bom-ref": "pkg:pypi/lxml@4.5.0"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "fuzzywuzzy",
+      "version": "0.18.0",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/fuzzywuzzy@0.18.0",
+      "type": "library",
+      "bom-ref": "pkg:pypi/fuzzywuzzy@0.18.0"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "PySocks",
+      "version": "1.7.0",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/pysocks@1.7.0",
+      "type": "library",
+      "bom-ref": "pkg:pypi/pysocks@1.7.0"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "truffleHogRegexes",
+      "version": "0.0.7",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/trufflehogregexes@0.0.7",
+      "type": "library",
+      "bom-ref": "pkg:pypi/trufflehogregexes@0.0.7"
+    },
+    {
+      "publisher": "",
+      "group": "",
+      "name": "soupsieve",
+      "version": "1.9.1",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:pypi/soupsieve@1.9.1",
+      "type": "library",
+      "bom-ref": "pkg:pypi/soupsieve@1.9.1"
+    },
+    {
+      "publisher": "",
+      "group": "actions",
+      "name": "checkout",
+      "version": "v2",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:github/actions/checkout@v2",
+      "type": "application",
+      "bom-ref": "pkg:github/actions/checkout@v2"
+    },
+    {
+      "publisher": "",
+      "group": "actions",
+      "name": "setup-python",
+      "version": "v2",
+      "description": "",
+      "licenses": [],
+      "purl": "pkg:github/actions/setup-python@v2",
+      "type": "application",
+      "bom-ref": "pkg:github/actions/setup-python@v2"
+    }
+  ],
+  "services": [],
+  "dependencies": []
+}

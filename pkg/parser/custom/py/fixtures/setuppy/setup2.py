@@ -1,0 +1,103 @@
+#!/usr/bin/env python
+# import pytest
+import re
+import sys
+import os
+from setuptools import setup, find_packages
+from setuptools.command.test import test as TestCommand
+
+rootdir = os.path.abspath(os.path.dirname(__file__))
+name = open(os.path.join(rootdir, 'NAME')).read().strip()
+version = open(os.path.join(rootdir, 'VERSION')).read().strip()
+#long_description = open(os.path.join(rootdir, 'README.md')).read()
+long_description = "food Integrations"
+
+setup(
+    name=name,
+    packages=find_packages(),
+    version=version,
+    description=long_description,
+    long_description=long_description,
+    author='Jitendra Chauhan',
+    author_email='jitendra.chauhan@xxxxx.com',
+    url="",
+    include_package_data=True,
+    #    python_requires='>=2.7,>=3.5,<4.0',
+    install_requires=[
+        "google-cloud-storage",
+        "google-cloud-pubsub>=2.0",
+        "knowledge-graph>=3.12.0",
+        "food_exceptions>=0.4.3",
+        "food-models>=3.48.6",
+        "food-utils>=6.54.32",
+        "food-convertor>=0.62.2",
+        "food_dorks>=0.4",
+        "food_social>=0.2",
+        "xx_client>=1.4.5",
+        "exploration-events>=3.4",
+        "http-parser",
+        "simplejson",
+        "titlecase",
+        "cpe",
+        "addict",
+        "GitPython",
+        "feedparser",
+        "nessus-client>=0.13.12",
+        "vulners>=1.5.0",
+        "retrying",
+        "ipwhois>=1.1.0",
+        "ratelimit",
+        "vulners>=1.5.0",
+        "gpapi==0.4.4",
+        "shodan",
+        "python-libnmap",
+        "GitPython",
+        "PyGithub==1.54.1",
+        "python-whois",
+        "retry",
+        "pytrie",
+        "python-whois>=0.7.3",
+        "sh>=1.14.1",
+        "GitPython",
+        "unidiff",
+        "feedparser",
+        "OTXv2>=1.5.10",
+        "certstream>=1.11",
+        "protobuf<4",
+        "inflect",
+        "colorama>=0.4.1",
+        "ipaddress>=1.0.22",
+        "packaging>=19.2",
+        "prettytable>=0.7.2",
+        "pyfiglet>=0.8.post1",
+        "requests>=2.22.0",
+        "termcolor>=1.1.0",
+        "beautifulsoup4>=4.8.1",
+        "censys",
+        "favicon",
+        "mmh3",
+        "xxwhispers>=2.1.7",
+        "func-timeout",
+        "ipinfo",
+        "tqdm",
+        "gvm-tools>=21.6.0",
+        "cloud_ip_info>=1.3.3",
+        "pymetasploit3",
+        "Jinja2>=3.0.3",
+        "configobj==5.0.6",
+        "cloud_recon>=0.2.7",
+        "credovergeneric>=1.6.7",
+        "pycryptodome==3.12.0",
+        "azure-mgmt-resource==20.0.0",
+        "xx-cloud-storage-client>=0.0.14",
+        "azure-identity==1.7.1",
+        "dnsdb==0.2.5",
+        "google-cloud-resource-manager",
+        "xx_kb_auth_proxy_client>=0.0.3",
+        "statistics"
+
+    ],
+    setup_requires=[],
+    tests_require=["mock"],
+    # cmdclass={'test': PyTest},
+)
