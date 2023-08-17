@@ -1,6 +1,7 @@
 package py_test
 
 import (
+	"fmt"
 	"testing"
 	"github.com/safedep/vet/pkg/parser/custom/py"
 	"github.com/stretchr/testify/assert"
@@ -76,6 +77,75 @@ func TestParseRequirementsFileLine(t *testing.T) {
 			} else {
 				parsed := py.ParseRequirementsFileLine(test.input)
 				assert.Equal(t, test.expected, parsed, "Parsed package details should match expected")
+			}
+		})
+	}
+}
+
+
+
+func TestParseSetuppy(t *testing.T) {
+	tests := []struct {
+		filepath     string
+		expectedDeps []lockfile.PackageDetails
+	}{
+		{
+			filepath: "./fixtures/setuppy/setup2_parser1.py", // Path to your test file
+			expectedDeps:  []lockfile.PackageDetails{ 
+				{
+					Name:      "google-cloud-storage",
+					Version:   "0.0.0",
+					Ecosystem: lockfile.PipEcosystem,
+					CompareAs: lockfile.PipEcosystem,
+				},
+				{
+					Name:      "google-cloud-pubsub",
+					Version:   "2.0",
+					Ecosystem: lockfile.PipEcosystem,
+					CompareAs: lockfile.PipEcosystem,
+				},
+				{
+					Name:      "knowledge-graph",
+					Version:   "3.12.0",
+					Ecosystem: lockfile.PipEcosystem,
+					CompareAs: lockfile.PipEcosystem,
+				},
+				{
+					Name:      "statistics",
+					Version:   "0.0.0",
+					Ecosystem: lockfile.PipEcosystem,
+					CompareAs: lockfile.PipEcosystem,
+				},
+			},
+		},
+		// Add more test cases here
+	}
+
+	for _, test := range tests {
+		t.Run(test.filepath, func(t *testing.T) {
+			dependencies, err := py.ParseSetuppy(test.filepath)
+			assert.Nil(t, err)
+
+			if len(dependencies) != len(test.expectedDeps) {
+				// fmt.Println(dependencies)
+				// fmt.Println(test.expectedDeps)
+				// fmt.Println(Difference(dependencies, test.expectedDeps))
+				// fmt.Println(Difference(test.expectedDeps, dependencies))
+				t.Fatalf("Expected %d dependencies, but got %d", len(test.expectedDeps), len(dependencies))
+			}
+
+			dep_map := make(map[string]lockfile.PackageDetails, 0)
+			for _, v := range test.expectedDeps {
+				dep_map[v.Name] = v
+			}
+
+			for _, v := range dependencies {
+				ev, ok := dep_map[v.Name]
+				assert.True(t, ok, fmt.Sprintf("Package %s not found in expected result", v.Name))
+				assert.Equal(t, ev.Name, v.Name,  fmt.Sprintf("Mismatch for the package: %s", v.Name))
+				assert.Equal(t, ev.Version, v.Version, fmt.Sprintf("Mismatch for the package: %s", v.Name))
+				assert.Equal(t, ev.Ecosystem, v.Ecosystem, fmt.Sprintf("Mismatch for the package: %s", v.Name))
+				assert.Equal(t, ev.CompareAs, v.CompareAs, fmt.Sprintf("Mismatch for the package: %s", v.Name))
 			}
 		})
 	}
