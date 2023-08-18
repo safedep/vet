@@ -72,3 +72,19 @@ func TestConvertBomRefAsEcosystem(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Equal(t, lockfile.NpmEcosystem, ecosystem) // As per your code, it defaults to lockfile.NpmEcosystem
 }
+
+
+func TestParseCyclonedxSBOM_WithEmptyComponents(t *testing.T) {
+	// Create a sample SBOM JSON file
+	tempFile, _ := ioutil.TempFile("", "sbom_*.json")
+	defer os.Remove(tempFile.Name())
+	sbomContent := `{
+	}`
+	err := ioutil.WriteFile(tempFile.Name(), []byte(sbomContent), 0644)
+	assert.Nil(t, err)
+
+	packages, err := parseCyclonedxSBOM(tempFile.Name())
+
+	assert.Nil(t, err)
+	assert.Len(t, packages, 0)
+}
