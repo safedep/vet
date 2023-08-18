@@ -14,24 +14,33 @@ import (
 func parseCyclonedxSBOM(pathToLockfile string) ([]lockfile.PackageDetails, error) {
 	details := []lockfile.PackageDetails{}
 
-	bom := new(cdx.BOM)
+	bom := cdx.NewBOM()
+	logger.Infof("Starting SBOM decoding...")
 	if file, err := os.Open(pathToLockfile); err != nil {
+		logger.Debugf("Error in Decoding the SBOM file %v", err)
 		return nil, err
 	} else {
+		defer file.Close()
 		sbom_content := bufio.NewReader(file)
 		decoder := cdx.NewBOMDecoder(sbom_content, cdx.BOMFileFormatJSON)
 		if err = decoder.Decode(bom); err != nil {
+			logger.Debugf("Error in Decoding the SBOM file %v", err)
 			return nil, err
 		}
 	}
 
-	for _, comp := range *bom.Components {
-		if d, err := convertSbomComponent2LPD(&comp); err != nil {
-			logger.Warnf("Failed converting sbom to lockfile component: %v", err)
-		} else {
-			details = append(details, *d)
+	// Components is a pointer array and it can be empty
+	if bom.Components != nil {
+		for _, comp := range *bom.Components {
+			if d, err := convertSbomComponent2LPD(&comp); err != nil {
+				logger.Debugf("Failed converting sbom to lockfile component: %v", err)
+			} else {
+				details = append(details, *d)
+			}
 		}
 	}
+
+	logger.Debugf("Found number of packages %d\n", len(details))
 
 	return details, nil
 }
