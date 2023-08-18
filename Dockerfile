@@ -8,11 +8,11 @@ RUN go mod download
 
 COPY . .
 
-ENV CGO_ENABLED=0
+ENV CGO_ENABLED=1
 
 RUN go build -o vet
 
-FROM gcr.io/distroless/base-debian11
+FROM gcr.io/distroless/cc
 
 ARG TARGETPLATFORM
 
