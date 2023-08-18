@@ -4,15 +4,30 @@ before:
   hooks:
     - go mod tidy
     - go generate ./...
+
+env:
+  - CGO_ENABLED=1
+
 builds:
-  - env:
-      - CGO_ENABLED=1
+  - id: linux
     binary: vet
     goos:
       - linux
+    goarch:
+      - amd64
+
+  - id: darwin-amd64
+    binary: vet
+    goos:
       - darwin
     goarch:
       - amd64
+
+  - id: darwin-arm64
+    binary: vet
+    goos:
+      - darwin
+    goarch:
       - arm64
 
 release:
