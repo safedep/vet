@@ -2,15 +2,16 @@ package spdx_sbom
 
 import (
 	"fmt"
-	"github.com/google/osv-scanner/pkg/lockfile"
-	packageurl "github.com/package-url/packageurl-go"
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/parser/custom/spdx_sbom/packagefile"
-	spdx_json "github.com/spdx/tools-golang/json"
-	"github.com/spdx/tools-golang/spdx"
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/google/osv-scanner/pkg/lockfile"
+	"github.com/safedep/vet/pkg/parser/custom/spdx_sbom/packagefile"
+	"github.com/spdx/tools-golang/spdx"
+	packageurl "github.com/package-url/packageurl-go"
+	spdx_json "github.com/spdx/tools-golang/json"
 )
 
 /*
@@ -29,7 +30,7 @@ func Parse(pathToLockfile string) ([]lockfile.PackageDetails, error) {
 		lockfile_pd := pd.Convert2LockfilePackageDetails()
 		details = append(details, *lockfile_pd)
 	}
-	logger.Debugf("Found number of packages %d\n", len(details))
+	logger.Debugf("Found number of packages %d", len(details))
 	return details, nil
 }
 
@@ -68,7 +69,7 @@ func parse2PackageDetailsDoc(pathToLockfile string) (*packagefile.PackageDetails
 
 			pd, err := parsePackage(comp)
 			if err != nil {
-				logger.Debugf("Error while parsing the spdx pkg %s %v\n", comp.PackageName, err)
+				logger.Debugf("Error while parsing the spdx pkg %s %v", comp.PackageName, err)
 				continue
 			}
 
@@ -86,7 +87,6 @@ func ParsePurlType(purl_type string) (lockfile.Ecosystem, bool) {
 		packageurl.TypeMaven:    lockfile.MavenEcosystem,
 		packageurl.TypeNPM:      lockfile.NpmEcosystem,
 		packageurl.TypeNuget:    lockfile.NuGetEcosystem,
-		// packageurl.TypePub:         lockfile.PubEcosystem,
 		packageurl.TypePyPi: lockfile.PipEcosystem,
 		"pip":               lockfile.PipEcosystem,
 	}
@@ -183,14 +183,16 @@ func attempParsePackageName(input string) (string, string, string, bool) {
 	pattern := regexp.MustCompile(`^((.+):)?((.+)/)?(.*)$`)
 	matches := pattern.FindStringSubmatch(input)
 	version := matches[5]
+
 	if matches[5] == "" {
 		version = "0.0.0"
 	}
-	if len(matches) == 6 {
-		return matches[2], matches[4], version, true
-	} else {
+
+	if len(matches) != 6 {
 		return "", "", "", false
 	}
+	
+	return matches[2], matches[4], version, true
 }
 
 /*
