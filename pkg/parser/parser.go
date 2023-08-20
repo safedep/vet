@@ -74,16 +74,16 @@ func FindParser(lockfilePath, lockfileAs string) (Parser, error) {
 		}
 	}
 
-	logger.Debugf("Trying to find parser in experimental parsers %s\n", lockfileAs )
+	logger.Debugf("Trying to find parser in experimental parsers %s", lockfileAs)
 	if p, ok := customExperimentalParsers[lockfileAs]; ok {
 		pw := &parserWrapper{parser: p, parseAs: lockfileAs}
 		if pw.supported() {
-			logger.Debugf("Found Parser type for the type %s\n", lockfileAs )
+			logger.Debugf("Found Parser type for the type %s", lockfileAs)
 			return pw, nil
 		}
 	}
 
-	logger.Debugf("No Parser found for the type %s\n", lockfileAs)
+	logger.Debugf("No Parser found for the type %s", lockfileAs)
 	return nil, fmt.Errorf("no parser found with: %s for: %s", lockfileAs,
 		lockfilePath)
 }
@@ -93,7 +93,7 @@ func (pw *parserWrapper) supported() bool {
 }
 
 func (pw *parserWrapper) Ecosystem() string {
-	logger.Debugf("Provided Lockfile Type %s", pw.parseAs )
+	logger.Debugf("Provided Lockfile Type %s", pw.parseAs)
 	switch pw.parseAs {
 	case "Cargo.lock":
 		return models.EcosystemCargo
