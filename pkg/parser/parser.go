@@ -8,11 +8,13 @@ import (
 	"github.com/safedep/vet/pkg/models"
 
 	"github.com/safedep/vet/pkg/parser/custom/py"
+	"github.com/safedep/vet/pkg/parser/custom/spdx_sbom"
 )
 
 const (
 	customParserTypePyWheel   = "python-wheel"
 	customParserCycloneDXSBOM = "bom-cyclonedx"
+	customParserSpdxSBOM      = "bom-spdx"
 	customParserTypeSetupPy   = "setup.py"
 )
 
@@ -25,11 +27,13 @@ var supportedEcosystems map[string]bool = map[string]bool{
 	models.EcosystemNpm:      true,
 	models.EcosystemPyPI:     true,
 	models.EcosystemCyDxSBOM: true,
+	models.EcosystemSpdxSBOM: true,
 }
 
 var customExperimentalParsers map[string]lockfile.PackageDetailsParser = map[string]lockfile.PackageDetailsParser{
 	customParserTypePyWheel:   parsePythonWheelDist,
 	customParserCycloneDXSBOM: parseCyclonedxSBOM,
+	customParserSpdxSBOM:      spdx_sbom.Parse,
 	customParserTypeSetupPy:   py.ParseSetuppy,
 }
 
@@ -74,11 +78,11 @@ func FindParser(lockfilePath, lockfileAs string) (Parser, error) {
 		}
 	}
 
-	logger.Debugf("Trying to find parser in experimental parsers %s\n", lockfileAs )
+	logger.Debugf("Trying to find parser in experimental parsers %s\n", lockfileAs)
 	if p, ok := customExperimentalParsers[lockfileAs]; ok {
 		pw := &parserWrapper{parser: p, parseAs: lockfileAs}
 		if pw.supported() {
-			logger.Debugf("Found Parser type for the type %s\n", lockfileAs )
+			logger.Debugf("Found Parser type for the type %s\n", lockfileAs)
 			return pw, nil
 		}
 	}
@@ -93,7 +97,7 @@ func (pw *parserWrapper) supported() bool {
 }
 
 func (pw *parserWrapper) Ecosystem() string {
-	logger.Debugf("Provided Lockfile Type %s", pw.parseAs )
+	logger.Debugf("Provided Lockfile Type %s", pw.parseAs)
 	switch pw.parseAs {
 	case "Cargo.lock":
 		return models.EcosystemCargo
@@ -131,6 +135,8 @@ func (pw *parserWrapper) Ecosystem() string {
 		return models.EcosystemCyDxSBOM
 	case customParserTypeSetupPy:
 		return models.EcosystemPyPI
+	case customParserSpdxSBOM:
+		return models.EcosystemSpdxSBOM
 	default:
 		logger.Debugf("Unsupported lockfile-as %s", pw.parseAs)
 		return ""
