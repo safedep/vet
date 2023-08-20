@@ -97,13 +97,13 @@ func ParsePurlType(purl_type string) (lockfile.Ecosystem, bool) {
 func parsePackage(pkg *spdx.Package) (*packagefile.PackageDetails, error) {
 
 	// Attempt parsing from purl
-	pd, err := parsePackageFromPurl(pkg)
+	pd, _ := parsePackageFromPurl(pkg)
 	if pd != nil {
 		return pd, nil
 	}
 
 	// Attempt parsing from package detials
-	pd, err = parsePackageFromPackageDetails(pkg)
+	pd, err := parsePackageFromPackageDetails(pkg)
 	return pd, err
 }
 
