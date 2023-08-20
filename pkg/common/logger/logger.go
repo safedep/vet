@@ -3,13 +3,35 @@ package logger
 import (
 	"io"
 	"os"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 )
 
 func init() {
 	logrus.SetOutput(os.Stdout)
-	logrus.SetLevel(logrus.WarnLevel)
+	logrus.SetLevel(getLogLevelFromEnv())
+}
+
+func getLogLevelFromEnv() logrus.Level {
+	envLogLevel := strings.ToLower(os.Getenv("LOG_LEVEL"))
+
+	switch envLogLevel {
+	case "debug":
+		return logrus.DebugLevel
+	case "info":
+		return logrus.InfoLevel
+	case "warn":
+		return logrus.WarnLevel
+	case "error":
+		return logrus.ErrorLevel
+	case "fatal":
+		return logrus.FatalLevel
+	case "panic":
+		return logrus.PanicLevel
+	default:
+		return logrus.WarnLevel // Default to Info level if the environment variable is not set or invalid.
+	}
 }
 
 func LogToFile(path string) {

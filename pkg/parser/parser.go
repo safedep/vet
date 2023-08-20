@@ -8,11 +8,13 @@ import (
 	"github.com/safedep/vet/pkg/models"
 
 	"github.com/safedep/vet/pkg/parser/custom/py"
+	"github.com/safedep/vet/pkg/parser/custom/spdx_sbom"
 )
 
 const (
 	customParserTypePyWheel   = "python-wheel"
 	customParserCycloneDXSBOM = "bom-cyclonedx"
+	customParserSpdxSBOM      = "bom-spdx"
 	customParserTypeSetupPy   = "setup.py"
 )
 
@@ -25,11 +27,13 @@ var supportedEcosystems map[string]bool = map[string]bool{
 	models.EcosystemNpm:      true,
 	models.EcosystemPyPI:     true,
 	models.EcosystemCyDxSBOM: true,
+	models.EcosystemSpdxSBOM: true,
 }
 
 var customExperimentalParsers map[string]lockfile.PackageDetailsParser = map[string]lockfile.PackageDetailsParser{
 	customParserTypePyWheel:   parsePythonWheelDist,
 	customParserCycloneDXSBOM: parseCyclonedxSBOM,
+	customParserSpdxSBOM:      spdx_sbom.Parse,
 	customParserTypeSetupPy:   py.ParseSetuppy,
 }
 
@@ -131,6 +135,8 @@ func (pw *parserWrapper) Ecosystem() string {
 		return models.EcosystemCyDxSBOM
 	case customParserTypeSetupPy:
 		return models.EcosystemPyPI
+	case customParserSpdxSBOM:
+		return models.EcosystemSpdxSBOM
 	default:
 		logger.Debugf("Unsupported lockfile-as %s", pw.parseAs)
 		return ""
