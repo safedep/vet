@@ -6,12 +6,12 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/google/osv-scanner/pkg/lockfile"
-	"github.com/safedep/vet/pkg/parser/custom/spdx_sbom/packagefile"
-	"github.com/spdx/tools-golang/spdx"
 	packageurl "github.com/package-url/packageurl-go"
+	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/pkg/parser/custom/spdx_sbom/packagefile"
 	spdx_json "github.com/spdx/tools-golang/json"
+	"github.com/spdx/tools-golang/spdx"
 )
 
 /*
@@ -87,8 +87,8 @@ func ParsePurlType(purl_type string) (lockfile.Ecosystem, bool) {
 		packageurl.TypeMaven:    lockfile.MavenEcosystem,
 		packageurl.TypeNPM:      lockfile.NpmEcosystem,
 		packageurl.TypeNuget:    lockfile.NuGetEcosystem,
-		packageurl.TypePyPi: lockfile.PipEcosystem,
-		"pip":               lockfile.PipEcosystem,
+		packageurl.TypePyPi:     lockfile.PipEcosystem,
+		"pip":                   lockfile.PipEcosystem,
 	}
 	eco, ok := KnownTypes[purl_type]
 	return eco, ok
@@ -191,7 +191,7 @@ func attempParsePackageName(input string) (string, string, string, bool) {
 	if len(matches) != 6 {
 		return "", "", "", false
 	}
-	
+
 	return matches[2], matches[4], version, true
 }
 

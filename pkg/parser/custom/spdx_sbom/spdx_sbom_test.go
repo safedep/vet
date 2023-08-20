@@ -7,7 +7,6 @@ import (
 	"os"
 	"strings"
 	"testing"
-	// "github.com/safedep/vet/pkg/parser/custom/spdx_sbom/packagefile"
 )
 
 func TestParseSpdxSBOM(t *testing.T) {
@@ -324,15 +323,11 @@ func TestGetDependencies(t *testing.T) {
 					assert.False(t, strings.HasSuffix(pd.Name, ch),
 						fmt.Sprintf("Name should not end with %s", ch))
 
-					assert.True(t, len(pd.Name) > 0,
-						fmt.Sprintf("Package Name can not be empty"))
-					assert.True(t, len(pd.Ecosystem) > 0,
-						fmt.Sprintf("Ecosystem can not be empty"))
-					assert.True(t, len(pd.CompareAs) > 0,
-						fmt.Sprintf("CompareAs can not be empty"))
+					assert.True(t, len(pd.Name) > 0, "Package Name can not be empty")
+					assert.True(t, len(pd.Ecosystem) > 0, "Ecosystem can not be empty")
+					assert.True(t, len(pd.CompareAs) > 0, "CompareAs can not be empty")
 
-					assert.True(t, len(pd.Version) >= 0,
-						fmt.Sprintf("Version can not be empty"))
+					assert.True(t, len(pd.Version) >= 0, "Version can not be empty")
 
 					assert.NotNil(t, pd.SpdxRef)
 					if pd.Version != "0.0.0" {

@@ -39,7 +39,7 @@ type PackageDetails struct {
 }
 
 /*
-	Convert to osv-scanner/pkg/lockfile PackageDetails
+Convert to osv-scanner/pkg/lockfile PackageDetails
 */
 func (pd *PackageDetails) Convert2LockfilePackageDetails() *lockfile.PackageDetails {
 	return &lockfile.PackageDetails{

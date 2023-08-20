@@ -10,7 +10,6 @@ import (
 
 func init() {
 	logrus.SetOutput(os.Stdout)
-	//Add ability to set log level from env variable
 	logrus.SetLevel(getLogLevelFromEnv())
 }
 
