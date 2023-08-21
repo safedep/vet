@@ -58,6 +58,7 @@ func main() {
 	cmd.AddCommand(newScanCommand())
 	cmd.AddCommand(newQueryCommand())
 	cmd.AddCommand(newVersionCommand())
+	cmd.AddCommand(newConnectCommand())
 
 	cobra.OnInitialize(func() {
 		printBanner()
