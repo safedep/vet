@@ -20,6 +20,7 @@ var (
 	lockfiles                   []string
 	lockfileAs                  string
 	baseDirectory               string
+	github_repo_urls            []string
 	scanExclude                 []string
 	transitiveAnalysis          bool
 	transitiveDepth             int
@@ -64,6 +65,8 @@ func newScanCommand() *cobra.Command {
 		"Name patterns to ignore while scanning a directory")
 	cmd.Flags().StringArrayVarP(&lockfiles, "lockfiles", "L", []string{},
 		"List of lockfiles to scan")
+	cmd.Flags().StringArrayVarP(&github_repo_urls, "github", "", []string{},
+		"Remote Github Url Examples: [https://]github.com/Org/Repo, Org/Repo, Org, [https://]github.com/Org")
 	cmd.Flags().StringVarP(&lockfileAs, "lockfile-as", "", "",
 		"Parser to use for the lockfile (vet scan parsers to list)")
 	cmd.Flags().BoolVarP(&transitiveAnalysis, "transitive", "", false,
@@ -149,6 +152,8 @@ func internalStartScan() error {
 	// for now and figure out UX improvement later
 	if len(lockfiles) > 0 {
 		reader, err = readers.NewLockfileReader(lockfiles, lockfileAs)
+	} else if len(github_repo_urls) > 0 {
+		reader, err = readers.NewGithubReader(github_repo_urls, lockfileAs)
 	} else {
 		reader, err = readers.NewDirectoryReader(baseDirectory, scanExclude)
 	}
