@@ -4,7 +4,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"path/filepath"
 )
 
 func CreateEmptyTempFile() (string, error) {
@@ -54,59 +53,4 @@ func CopyToTempFile(src io.ReadCloser, dir string, pattern string) (*os.File, er
 	}
 
 	return f, nil // Return the pointer to the temporary file and nil error if successful.
-}
-
-// CopyFile copies a file from the source path to the destination path.
-// It returns an error if any error occurs during the file copying process.
-func CopyFile(srcPath, destPath string) error {
-	srcFile, err := os.Open(srcPath)
-	if err != nil {
-		return err
-	}
-	defer srcFile.Close()
-
-	destFile, err := os.Create(destPath)
-	if err != nil {
-		return err
-	}
-	defer destFile.Close()
-
-	_, err = io.Copy(destFile, srcFile)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// CreateTempDirAndCopyFile creates a temporary directory, copies a file to it,
-// and returns the path of the temporary directory.
-// It returns the directory path and an error if any error occurs during the process.
-func CreateTempDirAndCopyFile(filePath string, dstfilename string) (string, error) {
-	tempDir, err := os.MkdirTemp(os.TempDir(), "safedep")
-	if err != nil {
-		return "", err
-	}
-
-	if dstfilename == "" {
-		dstfilename = filepath.Base(filePath)
-	}
-
-	destPath := filepath.Join(tempDir, dstfilename)
-
-	err = CopyFile(filePath, destPath)
-	if err != nil {
-		os.RemoveAll(tempDir) // Clean up the temporary directory if copying fails
-		return "", err
-	}
-
-	return tempDir, nil
-}
-
-func RemoveDirectory(path string) error {
-	err := os.RemoveAll(path)
-	if err != nil {
-		return err
-	}
-	return nil
 }

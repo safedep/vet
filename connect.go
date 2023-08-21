@@ -79,13 +79,13 @@ func getAccessTokenFromUser() (string, bool) {
 		Options: []string{"Y", "N"},
 		Default: "Y",
 	}
-	survey.AskOne(prompt, &by_github_acces_token)
+	_ = survey.AskOne(prompt, &by_github_acces_token)
 
 	if by_github_acces_token == "Y" { // Github access token flow
 		prompt := &survey.Password{
 			Message: "Paste Your Access Token: ",
 		}
-		survey.AskOne(prompt, &githubAccessToken)
+		_ = survey.AskOne(prompt, &githubAccessToken)
 
 		return githubAccessToken, true
 	}
@@ -101,7 +101,7 @@ func getAccessTokenViaDeviceFlow() (string, bool) {
 		Options: []string{"Y", "N"},
 		Default: "Y",
 	}
-	survey.AskOne(prompt, &by_web_flow)
+	_ = survey.AskOne(prompt, &by_web_flow)
 	if by_web_flow == "Y" {
 		fmt.Println("Starting Github Authenitcation via Device Flow...")
 		providedToken, err := connectGithubWithDeviceFlow()
@@ -119,6 +119,9 @@ func getAccessTokenViaDeviceFlow() (string, bool) {
 // Initiate Device Authentication
 func connectGithubWithDeviceFlow() (string, error) {
 	clientID := strings.ToLower(os.Getenv("VET_GITHUB_CLIENT_ID"))
+	if clientID == "" {
+		clientID = "163517854a5c067ce32f" // Sample clientId
+	}
 	if clientID == "" {
 		return "", fmt.Errorf("missing Client ID. Set Env Variable %s to provide it", "VET_GITHUB_CLIENT_ID")
 	}
