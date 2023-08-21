@@ -44,19 +44,19 @@ func GetConfigFile() string {
 	return homeRelativeConfigPath
 }
 
+// GetGithubClient retrieves a GitHub API client for interacting with the GitHub API.
+// It either uses a personal access token if available, or falls back to an unauthenticated client
+// which can be used for accessing public repositories.
+//
+// Returns:
+// - A *github.Client for interacting with the GitHub API.
+// - An error if any error occurs during client creation or token retrieval.
 func GetGithubClient() (*github.Client, error) {
 	if githubClient == nil {
 		ctx := context.Background()
 		github_token, err := getGithubAccessToken()
 		if err != nil {
-			// Create Client with no access token, it may be useful to access public repos
-			tc := oauth2.NewClient(ctx, nil)
-			rateLimiter, err := github_ratelimit.NewRateLimitWaiterClient(tc.Transport)
-			if err != nil {
-				return nil, err
-			}
-			githubClient = github.NewClient(rateLimiter)
-
+			githubClient = github.NewClient(nil)
 		} else {
 			// Create Client with the access token
 			ts := oauth2.StaticTokenSource(
@@ -86,7 +86,7 @@ func getGithubAccessToken() (string, error) {
 		return github_token, nil
 	}
 
-	return "", fmt.Errorf("Github Access Token not found")
+	return "", fmt.Errorf("github Access Token not found")
 }
 
 func loadConfiguration() error {

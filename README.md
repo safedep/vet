@@ -107,7 +107,31 @@ vet scan --lockfiles /path/to/package-lock.json
 vet scan --lockfiles /path/to/cyclonedx-sbom.json --lockfile-as bom-cyclonedx
 ```
 
+- To scan an SBOM in [SPDX](https://spdx.dev/) format
+
+```bash
+vet scan --lockfiles /path/to/spdx-sbom.json --lockfile-as bom-spdx
+```
+
 > **Note:** SBOM scanning feature is currently in experimental stage
+
+#### Scanning Remote Github Repo
+
+- Setup github access token to scan private repo
+
+```bash
+    vet connect github
+```
+
+Optionally, set GITHUB_TOKEN env variable
+
+- To scan remote Github repo
+
+```bash
+vet scan  --github https://github.com/safedep/vet
+```
+
+
 
 #### Available Parsers
 
