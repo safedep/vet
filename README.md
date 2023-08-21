@@ -123,7 +123,7 @@ vet scan --lockfiles /path/to/spdx-sbom.json --lockfile-as bom-spdx
     vet connect github
 ```
 
-Optionally, set GITHUB_TOKEN env variable
+Optionally, set GITHUB_AUTH_TOKEN env variable
 
 - To scan remote Github repo
 

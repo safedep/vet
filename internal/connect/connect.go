@@ -75,14 +75,14 @@ func GetGithubClient() (*github.Client, error) {
 
 // Get Github Access token using various techniques
 func getGithubAccessToken() (string, error) {
-	github_token := os.Getenv("GITHUB_TOKEN")
+	github_token := os.Getenv("GITHUB_AUTH_TOKEN")
 	if github_token != "" {
-		logger.Debugf("Found GITHUB_TOKEN env variable, using it to access Gtihub.")
+		logger.Debugf("Found GITHUB_AUTH_TOKEN env variable, using it to access Gtihub.")
 	}
 
 	github_token = globalConfig.GithubAccessToken
 	if github_token != "" {
-		logger.Debugf("Found GITHUB_TOKEN in configuration, using it to access Gtihub.")
+		logger.Debugf("Found GITHUB_AUTH_TOKEN in configuration, using it to access Gtihub.")
 		return github_token, nil
 	}
 
