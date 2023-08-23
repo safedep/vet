@@ -6,8 +6,10 @@ import (
 
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/internal/auth"
+	"github.com/safedep/vet/internal/connect"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/analyzer"
+	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/parser"
 	"github.com/safedep/vet/pkg/readers"
@@ -153,7 +155,12 @@ func internalStartScan() error {
 	if len(lockfiles) > 0 {
 		reader, err = readers.NewLockfileReader(lockfiles, lockfileAs)
 	} else if len(github_repo_urls) > 0 {
-		reader, err = readers.NewGithubReader(github_repo_urls, lockfileAs)
+		githubClient, err := connect.GetGithubClient()
+		if err != nil {
+			logger.Fatalf("Failed to build Github client: %v", err)
+		}
+
+		reader, err = readers.NewGithubReader(githubClient, github_repo_urls, lockfileAs)
 	} else {
 		reader, err = readers.NewDirectoryReader(baseDirectory, scanExclude)
 	}

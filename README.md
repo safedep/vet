@@ -115,23 +115,21 @@ vet scan --lockfiles /path/to/spdx-sbom.json --lockfile-as bom-spdx
 
 > **Note:** SBOM scanning feature is currently in experimental stage
 
-#### Scanning Remote Github Repo
+#### Scanning Github Repositories
 
 - Setup github access token to scan private repo
 
 ```bash
-    vet connect github
+vet connect github
 ```
 
-Optionally, set GITHUB_AUTH_TOKEN env variable
+Alternatively, set `GITHUB_AUTH_TOKEN` environment variable
 
-- To scan remote Github repo
+- To scan remote Github repositories
 
 ```bash
-vet scan  --github https://github.com/safedep/vet
+vet scan --github https://github.com/safedep/vet
 ```
-
-
 
 #### Available Parsers
 

@@ -1,92 +1,49 @@
 package connect
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sync"
 
-	"github.com/gofri/go-github-ratelimit/github_ratelimit"
-	"github.com/google/go-github/v54/github"
 	"github.com/safedep/vet/pkg/common/logger"
-	"golang.org/x/oauth2"
 	"gopkg.in/yaml.v2"
 )
 
-// with go modules enabled (GO111MODULE=on or outside GOPATH)
-// with go modules disabled
-
 const (
-	homeRelativeConfigPath = ".safedep/connected-apps.yml"
+	homeRelativeConfigPath = ".safedep/vet-connected-apps.yml"
 )
-
-var githubClient *github.Client
 
 type Config struct {
 	GithubAccessToken string `yaml:"github_access_token"`
 }
 
-// Connected Apps Global config to be used during runtime
+type ConfigUpdaterFn func(*Config)
+
 var globalConfig *Config
+var globalConfigUpdaterMutex sync.Mutex
 
 func init() {
 	err := loadConfiguration()
-	logger.Debugf("Error while loading connected apps configuration %v", err)
+	if err != nil {
+		logger.Debugf("Error while loading connected apps configuration: %v", err)
+		globalConfig = &Config{}
+	}
 }
 
-func Configure(m Config) error {
-	globalConfig = &m
+// We are not exposing the actual path, but just hint of where the connected
+// app credentials may be stored so that UI packages can be transparent about it
+func GetConfigFileHint() string {
+	return fmt.Sprintf("~/%s", homeRelativeConfigPath)
+}
+
+func updateConfig(fn ConfigUpdaterFn) error {
+	globalConfigUpdaterMutex.Lock()
+	defer globalConfigUpdaterMutex.Unlock()
+
+	fn(globalConfig)
 	return persistConfiguration()
-}
-
-func GetConfigFile() string {
-	return homeRelativeConfigPath
-}
-
-// GetGithubClient retrieves a GitHub API client for interacting with the GitHub API.
-// It either uses a personal access token if available, or falls back to an unauthenticated client
-// which can be used for accessing public repositories.
-//
-// Returns:
-// - A *github.Client for interacting with the GitHub API.
-// - An error if any error occurs during client creation or token retrieval.
-func GetGithubClient() (*github.Client, error) {
-	if githubClient == nil {
-		ctx := context.Background()
-		github_token, err := getGithubAccessToken()
-		if err != nil {
-			githubClient = github.NewClient(nil)
-		} else {
-			// Create Client with the access token
-			ts := oauth2.StaticTokenSource(
-				&oauth2.Token{AccessToken: github_token},
-			)
-			tc := oauth2.NewClient(ctx, ts)
-			rateLimiter, err := github_ratelimit.NewRateLimitWaiterClient(tc.Transport)
-			if err != nil {
-				return nil, err
-			}
-			githubClient = github.NewClient(rateLimiter)
-		}
-	}
-	return githubClient, nil
-}
-
-// Get Github Access token using various techniques
-func getGithubAccessToken() (string, error) {
-	github_token := os.Getenv("GITHUB_AUTH_TOKEN")
-	if github_token != "" {
-		logger.Debugf("Found GITHUB_AUTH_TOKEN env variable, using it to access Gtihub.")
-	}
-
-	github_token = globalConfig.GithubAccessToken
-	if github_token != "" {
-		logger.Debugf("Found GITHUB_AUTH_TOKEN in configuration, using it to access Gtihub.")
-		return github_token, nil
-	}
-
-	return "", fmt.Errorf("github Access Token not found")
 }
 
 func loadConfiguration() error {
@@ -129,5 +86,6 @@ func persistConfiguration() error {
 	if err != nil {
 		logger.Debugf("Error while creatinng directory %s %v", filepath.Dir(path), err)
 	}
+
 	return ioutil.WriteFile(path, data, 0600)
 }

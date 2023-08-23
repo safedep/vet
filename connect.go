@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
 
 	"context"
 	"net/http"
@@ -12,17 +11,15 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/cli/oauth/device"
 	"github.com/safedep/vet/internal/connect"
+	"github.com/safedep/vet/internal/ui"
+	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/spf13/cobra"
-)
-
-var (
-	githubAccessToken string
 )
 
 func newConnectCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "connect",
-		Short: "Connect Vet with 3rd Party Apps",
+		Short: "Connect with 3rd party apps",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return errors.New("a valid sub-command is required")
 		},
@@ -38,30 +35,24 @@ func connectGithubCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "github",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var ok bool
-			var err error
-
-			githubAccessToken, ok = getAccessTokenFromUser()
-			if !ok {
-				githubAccessToken, ok = getAccessTokenViaDeviceFlow()
+			githubAccessToken, err := getAccessTokenFromUser()
+			if err != nil {
+				githubAccessToken, err = getAccessTokenViaDeviceFlow()
 			}
 
-			if ok {
-				// Persist the token for future reference
-				err = connect.Configure(connect.Config{
-					GithubAccessToken: githubAccessToken,
-				})
-
-				if err != nil {
-					panic(err)
-				}
-
-				fmt.Printf(`Github Access Token Configured and Saved at %s for your convenience 
-					You cna use vet to scan your github repos.`, connect.GetConfigFile())
-
-				fmt.Printf(`Run the command to scan your github repos:
-					vet scan ...`)
+			if err != nil {
+				logger.Fatalf("Failed to connect with Github API: %s", err.Error())
 			}
+
+			err = connect.PersistGithubAccessToken(githubAccessToken)
+			if err != nil {
+				logger.Fatalf("Failed to persist Github connection token: %s", err.Error())
+			}
+
+			ui.PrintSuccess("Github Access Token configured and saved at '%s' for your convenience.", connect.GetConfigFileHint())
+			ui.PrintSuccess("You can use vet to scan your github repositories")
+			ui.PrintSuccess("Run the command to scan your github repository")
+			ui.PrintSuccess("\tvet scan https://github.com/<Org|User>/<Repo>")
 
 			os.Exit(1)
 			return nil
@@ -71,79 +62,93 @@ func connectGithubCommand() *cobra.Command {
 	return cmd
 }
 
-func getAccessTokenFromUser() (string, bool) {
+func getAccessTokenFromUser() (string, error) {
 	var by_github_acces_token string
 
 	prompt := &survey.Select{
-		Message: "Do you have Access Token Ready?",
+		Message: "Do you have access token ready?",
 		Options: []string{"Y", "N"},
 		Default: "Y",
 	}
-	_ = survey.AskOne(prompt, &by_github_acces_token)
 
-	if by_github_acces_token == "Y" { // Github access token flow
-		prompt := &survey.Password{
-			Message: "Paste Your Access Token: ",
-		}
-		_ = survey.AskOne(prompt, &githubAccessToken)
-
-		return githubAccessToken, true
+	err := survey.AskOne(prompt, &by_github_acces_token)
+	if err != nil {
+		return "", err
 	}
 
-	// Return user opted not to provide github access toke
-	return "", false
+	if by_github_acces_token != "Y" {
+		return "", fmt.Errorf("user refused to provide access token")
+	}
+
+	password := &survey.Password{
+		Message: "Paste your access token: ",
+	}
+
+	var accessToken string
+	err = survey.AskOne(password, &accessToken)
+	if err != nil {
+		return "", err
+	}
+
+	return accessToken, nil
 }
 
-func getAccessTokenViaDeviceFlow() (string, bool) {
+func getAccessTokenViaDeviceFlow() (string, error) {
 	var by_web_flow string
 	prompt := &survey.Select{
-		Message: "You must Connect with your Github Account to continue?",
+		Message: "Do you want to connect with your Github account to continue?",
 		Options: []string{"Y", "N"},
 		Default: "Y",
 	}
-	_ = survey.AskOne(prompt, &by_web_flow)
-	if by_web_flow == "Y" {
-		fmt.Println("Starting Github Authenitcation via Device Flow...")
-		providedToken, err := connectGithubWithDeviceFlow()
-		if err != nil {
-			fmt.Printf("Error while initiating Device Flow Authentication: \n\t %s", err.Error())
-			return "", false
-		}
-		return providedToken, true
+
+	err := survey.AskOne(prompt, &by_web_flow)
+	if err != nil {
+		return "", err
 	}
 
-	fmt.Println("Can not proceed. Need Github Access. Run the connect again.")
-	return "", false
+	if by_web_flow != "Y" {
+		return "", fmt.Errorf("user cancelled device flow")
+	}
+
+	ui.PrintMsg("Starting Github authentication using oauth2 device flow")
+
+	token, err := connectGithubWithDeviceFlow()
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
 
-// Initiate Device Authentication
 func connectGithubWithDeviceFlow() (string, error) {
-	clientID := strings.ToLower(os.Getenv("VET_GITHUB_CLIENT_ID"))
-	if clientID == "" {
-		clientID = "163517854a5c067ce32f" // Sample clientId
-	}
-	if clientID == "" {
-		return "", fmt.Errorf("missing Client ID. Set Env Variable %s to provide it", "VET_GITHUB_CLIENT_ID")
-	}
+	clientID := connect.GetGithubOAuth2ClientId()
 	scopes := []string{"repo", "read:org"}
 	httpClient := http.DefaultClient
 
+	logger.Debugf("Initiating Github device flow auth using clientId: %s", clientID)
+
+	// TODO: We are coupling with Github cloud API here. Self-hosted Github enterprise won't work
 	code, err := device.RequestCode(httpClient, "https://github.com/login/device/code", clientID, scopes)
 	if err != nil {
-		fmt.Printf("Error while requesting code from github %v", err)
+		ui.PrintError("Error while requesting code from github: ", err.Error())
 		return "", err
 	}
 
-	fmt.Printf("Copy the code: %s\n", code.UserCode)
-	fmt.Printf("then open the link: %s\n", code.VerificationURI)
+	ui.PrintMsg("Copy the code: %s", code.UserCode)
+	ui.PrintMsg("Navigate to the URL and paste the code: %s", code.VerificationURI)
 
-	accessToken, err := device.Wait(context.TODO(), httpClient, "https://github.com/login/oauth/access_token", device.WaitOptions{
-		ClientID:   clientID,
-		DeviceCode: code,
-	})
+	// TODO: We are coupling with Github cloud API here. Self-hosted Github enterprise won't work
+	accessToken, err := device.Wait(context.TODO(), httpClient,
+		"https://github.com/login/oauth/access_token",
+		device.WaitOptions{
+			ClientID:   clientID,
+			DeviceCode: code,
+		})
+
 	if err != nil {
 		return "", err
 	}
 
+	logger.Debugf("Completed device flow with Github successfully")
 	return accessToken.Token, nil
 }

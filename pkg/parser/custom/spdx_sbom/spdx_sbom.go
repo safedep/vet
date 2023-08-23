@@ -89,7 +89,9 @@ func ParsePurlType(purl_type string) (lockfile.Ecosystem, bool) {
 		packageurl.TypeNuget:    lockfile.NuGetEcosystem,
 		packageurl.TypePyPi:     lockfile.PipEcosystem,
 		"pip":                   lockfile.PipEcosystem,
+		"go":                    lockfile.GoEcosystem,
 	}
+
 	eco, ok := KnownTypes[purl_type]
 	return eco, ok
 }
@@ -109,7 +111,6 @@ func parsePackage(pkg *spdx.Package) (*packagefile.PackageDetails, error) {
 
 // Parse from Purl if available. It is a reliable parsing technique
 func parsePackageFromPurl(pkg *spdx.Package) (*packagefile.PackageDetails, error) {
-
 	for _, ref := range pkg.PackageExternalReferences {
 		if ref.RefType == "purl" {
 			instance, err := packageurl.FromString(ref.Locator)
@@ -122,8 +123,8 @@ func parsePackageFromPurl(pkg *spdx.Package) (*packagefile.PackageDetails, error
 			}
 			ecosysystem, ok := ParsePurlType(instance.Type)
 			if !ok {
-				logger.Debugf("Unknown Supported Ecosystem type %s", instance.Type)
-				return nil, fmt.Errorf("Unknown Supported Ecosystem type %s", instance.Type)
+				logger.Debugf("Unknown ecosystem type %s", instance.Type)
+				return nil, fmt.Errorf("unknown ecosystem type %s", instance.Type)
 			}
 			pd := &packagefile.PackageDetails{
 				Name:      name,

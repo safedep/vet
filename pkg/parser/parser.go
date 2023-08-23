@@ -18,6 +18,13 @@ const (
 	customParserTypeSetupPy   = "setup.py"
 )
 
+// Exporting as constants for use outside this package to refer to specific
+// parsers. For example: Github reader
+const (
+	LockfileAsBomSpdx      = customParserSpdxSBOM
+	LockfileAsBomCycloneDx = customParserCycloneDXSBOM
+)
+
 // We are supporting only those ecosystems for which we have data
 // for enrichment. More ecosystems will be supported as we improve
 // the capability of our Insights API
