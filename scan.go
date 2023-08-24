@@ -6,8 +6,10 @@ import (
 
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/internal/auth"
+	"github.com/safedep/vet/internal/connect"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/analyzer"
+	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/parser"
 	"github.com/safedep/vet/pkg/readers"
@@ -20,6 +22,7 @@ var (
 	lockfiles                   []string
 	lockfileAs                  string
 	baseDirectory               string
+	github_repo_urls            []string
 	scanExclude                 []string
 	transitiveAnalysis          bool
 	transitiveDepth             int
@@ -64,6 +67,8 @@ func newScanCommand() *cobra.Command {
 		"Name patterns to ignore while scanning a directory")
 	cmd.Flags().StringArrayVarP(&lockfiles, "lockfiles", "L", []string{},
 		"List of lockfiles to scan")
+	cmd.Flags().StringArrayVarP(&github_repo_urls, "github", "", []string{},
+		"Remote Github Url Example: https://github.com/Org/Repo")
 	cmd.Flags().StringVarP(&lockfileAs, "lockfile-as", "", "",
 		"Parser to use for the lockfile (vet scan parsers to list)")
 	cmd.Flags().BoolVarP(&transitiveAnalysis, "transitive", "", false,
@@ -149,6 +154,13 @@ func internalStartScan() error {
 	// for now and figure out UX improvement later
 	if len(lockfiles) > 0 {
 		reader, err = readers.NewLockfileReader(lockfiles, lockfileAs)
+	} else if len(github_repo_urls) > 0 {
+		githubClient, err := connect.GetGithubClient()
+		if err != nil {
+			logger.Fatalf("Failed to build Github client: %v", err)
+		}
+
+		reader, err = readers.NewGithubReader(githubClient, github_repo_urls, lockfileAs)
 	} else {
 		reader, err = readers.NewDirectoryReader(baseDirectory, scanExclude)
 	}
