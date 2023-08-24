@@ -123,13 +123,15 @@ vet scan --lockfiles /path/to/spdx-sbom.json --lockfile-as bom-spdx
 vet connect github
 ```
 
-Alternatively, set `GITHUB_AUTH_TOKEN` environment variable
+Alternatively, set `GITHUB_TOKEN` environment variable with [Github PAT](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
 
-- To scan remote Github repositories
+- To scan remote Github repositories, including private ones
 
 ```bash
 vet scan --github https://github.com/safedep/vet
 ```
+
+**Note:** You may need to enable [Dependency Graph](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-the-dependency-graph) at repository or organization level for Github repository scanning to work.
 
 #### Available Parsers
 
