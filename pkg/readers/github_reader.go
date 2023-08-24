@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/go-github/v54/github"
 	giturl "github.com/kubescape/go-git-url"
-	"github.com/safedep/vet/pkg/common/utils/file_utils"
+	"github.com/safedep/vet/pkg/common/utils"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/parser"
 )
@@ -123,7 +123,7 @@ func fetchRemoteFile(ctx context.Context, client *github.Client,
 	}
 
 	io_reader := io.NopCloser(bytes.NewReader(sbom_bytes))
-	lfile, err := file_utils.CopyToTempFile(io_reader, os.TempDir(), "gh-sbom")
+	lfile, err := utils.CopyToTempFile(io_reader, os.TempDir(), "gh-sbom")
 	if err != nil {
 		return "", fmt.Errorf("error copying sbom json bytes to the file %v", err)
 	}

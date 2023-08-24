@@ -143,9 +143,9 @@ func parsePackageFromPurl(pkg *spdx.Package) (*packagefile.PackageDetails, error
 // Parse from packahge details, if available. It is bit Unreliable Parsing
 func parsePackageFromPackageDetails(pkg *spdx.Package) (*packagefile.PackageDetails, error) {
 	ptype, g, n, ok := attempParsePackageName(pkg.PackageName)
-	logger.Debugf("Parsed Package Name: type: %s Group: %s Name: %s", ptype, g, n)
+	logger.Debugf("Parsed package name: Type: %s Group: %s Name: %s", ptype, g, n)
 	if !ok {
-		logger.Debugf("Could not parse package name  %s", pkg.PackageName)
+		logger.Debugf("Could not parse package name: %s", pkg.PackageName)
 		return nil, fmt.Errorf("Could not parse package name %s", pkg.PackageName)
 	}
 

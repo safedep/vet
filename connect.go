@@ -26,7 +26,6 @@ func newConnectCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(connectGithubCommand())
-	cmd.AddCommand()
 
 	return cmd
 }
@@ -130,7 +129,7 @@ func connectGithubWithDeviceFlow() (string, error) {
 	// TODO: We are coupling with Github cloud API here. Self-hosted Github enterprise won't work
 	code, err := device.RequestCode(httpClient, "https://github.com/login/device/code", clientID, scopes)
 	if err != nil {
-		ui.PrintError("Error while requesting code from github: ", err.Error())
+		ui.PrintError("Error while requesting code from github: %s", err.Error())
 		return "", err
 	}
 

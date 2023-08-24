@@ -1,4 +1,4 @@
-package file_utils
+package utils
 
 import (
 	"bytes"
@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestCreateEmptyTempFile tests the CreateEmptyTempFile function
 func TestCreateEmptyTempFile(t *testing.T) {
 	filename, err := CreateEmptyTempFile()
 	if err != nil {
@@ -20,12 +19,10 @@ func TestCreateEmptyTempFile(t *testing.T) {
 		t.Fatal("Expected a filename, got empty string")
 	}
 
-	// Check if file exists
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		t.Fatalf("Expected file to exist: %v", err)
 	}
 
-	// Clean up
 	err = os.Remove(filename)
 	if err != nil {
 		t.Fatalf("Failed to clean up: %v", err)

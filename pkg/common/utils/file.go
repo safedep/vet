@@ -1,8 +1,7 @@
-package file_utils
+package utils
 
 import (
 	"io"
-	"log"
 	"os"
 )
 
@@ -14,7 +13,6 @@ func CreateEmptyTempFile() (string, error) {
 
 	defer tempFile.Close()
 
-	// Write empty content
 	_, err = tempFile.Write([]byte(""))
 	if err != nil {
 		return "", err
@@ -34,23 +32,18 @@ func CreateEmptyTempFile() (string, error) {
  * @return Any error encountered during the copy operation.
  */
 func CopyToTempFile(src io.ReadCloser, dir string, pattern string) (*os.File, error) {
-	// Create a temporary file in the specified directory with the given pattern as the prefix.
 	f, err := os.CreateTemp(dir, pattern)
 	if err != nil {
-		log.Printf("Error while creating tmp dir %v", err) // If there was an error creating the temporary file, log it and return the error.
 		return nil, err
 	}
 
-	// Copy the contents from the source `io.ReadCloser` to the temporary file.
 	if _, err := f.ReadFrom(src); err != nil {
-		log.Printf("Error while reading from src file stream %v", err) // If there was an error while copying, log it and return the error.
 		return nil, err
 	}
 
-	// Close the temporary file to ensure all data is flushed to disk.
 	if err := f.Close(); err != nil {
-		log.Printf("Error while closing tmp file %v", err) // If there was an error closing the temporary file, log it.
+		return nil, err
 	}
 
-	return f, nil // Return the pointer to the temporary file and nil error if successful.
+	return f, nil
 }
