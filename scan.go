@@ -68,7 +68,7 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().StringArrayVarP(&lockfiles, "lockfiles", "L", []string{},
 		"List of lockfiles to scan")
 	cmd.Flags().StringArrayVarP(&github_repo_urls, "github", "", []string{},
-		"Remote Github Url Examples: [https://]github.com/Org/Repo, Org/Repo, Org, [https://]github.com/Org")
+		"Remote Github Url Example: https://github.com/Org/Repo")
 	cmd.Flags().StringVarP(&lockfileAs, "lockfile-as", "", "",
 		"Parser to use for the lockfile (vet scan parsers to list)")
 	cmd.Flags().BoolVarP(&transitiveAnalysis, "transitive", "", false,
