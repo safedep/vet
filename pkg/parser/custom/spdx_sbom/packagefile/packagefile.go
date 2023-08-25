@@ -1,6 +1,8 @@
 package packagefile
 
 import (
+	"fmt"
+
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/spdx/tools-golang/spdx"
@@ -26,7 +28,8 @@ type PackageDetailsDoc struct {
 PackageDetails
 */
 type PackageDetails struct {
-	Name string `json:"name"`
+	Name  string `json:"name"`
+	Group string `json:"group"` //Namespace or Group if available
 	// Version extracted. It can be min, max or exact. It can be empty or exact version string
 	Version string `json:"version"`
 	// Specs specific version string with operators
@@ -42,10 +45,26 @@ type PackageDetails struct {
 Convert to osv-scanner/pkg/lockfile PackageDetails
 */
 func (pd *PackageDetails) Convert2LockfilePackageDetails() *lockfile.PackageDetails {
+	name := pd.createOssScannerPackageDetailName()
 	return &lockfile.PackageDetails{
-		Name:      pd.Name,
+		Name:      name,
 		Version:   pd.Version,
 		Ecosystem: pd.Ecosystem,
 		CompareAs: pd.CompareAs,
 	}
+}
+
+func (pd *PackageDetails) createOssScannerPackageDetailName() string {
+	name := pd.Name
+	if pd.Group != "" {
+		switch pd.Ecosystem {
+		case lockfile.GoEcosystem:
+			name = fmt.Sprintf("%s/%s", pd.Group, pd.Name)
+		case lockfile.NpmEcosystem:
+			name = fmt.Sprintf("%s/%s", pd.Group, pd.Name)
+		default:
+			name = fmt.Sprintf("%s:%s", pd.Group, pd.Name)
+		}
+	}
+	return name
 }

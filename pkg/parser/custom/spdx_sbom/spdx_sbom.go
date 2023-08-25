@@ -117,17 +117,14 @@ func parsePackageFromPurl(pkg *spdx.Package) (*packagefile.PackageDetails, error
 			if err != nil {
 				return nil, err
 			}
-			name := instance.Name
-			if instance.Namespace != "" {
-				name = fmt.Sprintf("%s:%s", instance.Namespace, instance.Name)
-			}
 			ecosysystem, ok := ParsePurlType(instance.Type)
 			if !ok {
 				logger.Debugf("Unknown ecosystem type %s", instance.Type)
 				return nil, fmt.Errorf("unknown ecosystem type %s", instance.Type)
 			}
 			pd := &packagefile.PackageDetails{
-				Name:      name,
+				Name:      instance.Name,
+				Group:     instance.Namespace,
 				Version:   instance.Version,
 				Ecosystem: ecosysystem,
 				CompareAs: ecosysystem,
@@ -146,23 +143,19 @@ func parsePackageFromPackageDetails(pkg *spdx.Package) (*packagefile.PackageDeta
 	logger.Debugf("Parsed package name: Type: %s Group: %s Name: %s", ptype, g, n)
 	if !ok {
 		logger.Debugf("Could not parse package name: %s", pkg.PackageName)
-		return nil, fmt.Errorf("Could not parse package name %s", pkg.PackageName)
+		return nil, fmt.Errorf("could not parse package name %s", pkg.PackageName)
 	}
 
 	ecosysystem, ok := ParsePurlType(ptype)
 	if !ok {
 		logger.Debugf("Unknown Supported Ecosystem type %s", ptype)
-		return nil, fmt.Errorf("Unknown Supported Ecosystem type %s", ptype)
-	}
-
-	name := n
-	if g != "" {
-		name = fmt.Sprintf("%s:%s", g, n)
+		return nil, fmt.Errorf("unknown Supported Ecosystem type %s", ptype)
 	}
 
 	version, _, _ := attemptParsePackageVersionExpression(pkg.PackageVersion)
 	pd := &packagefile.PackageDetails{
-		Name:      name,
+		Name:      n,
+		Group:     g,
 		Version:   version,
 		Ecosystem: ecosysystem,
 		CompareAs: ecosysystem,
