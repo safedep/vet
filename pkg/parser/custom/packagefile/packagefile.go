@@ -5,6 +5,9 @@ import (
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/google/osv-scanner/pkg/lockfile"
+	"github.com/package-url/packageurl-go"
+	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/pkg/common/utils/sbom_utils"
 	"github.com/spdx/tools-golang/spdx"
 )
 
@@ -39,6 +42,27 @@ type PackageDetails struct {
 	CompareAs    lockfile.Ecosystem `json:"compare_as,omitempty"`
 	SpdxRef      *spdx.Package      `json:"spdx_ref,omitempty"`
 	CycloneDxRef *cdx.Component     `json:"cylcone_dx_ref,omitempty"`
+}
+
+// Parse from Purl if available. It is a reliable parsing technique
+func ParsePackageFromPurl(purl string) (*PackageDetails, error) {
+	instance, err := packageurl.FromString(purl)
+	if err != nil {
+		return nil, err
+	}
+	ecosysystem, ok := sbom_utils.ParsePurlType(instance.Type)
+	if !ok {
+		logger.Debugf("Unknown ecosystem type %s", instance.Type)
+		return nil, fmt.Errorf("unknown ecosystem type %s", instance.Type)
+	}
+	pd := &PackageDetails{
+		Name:      instance.Name,
+		Group:     instance.Namespace,
+		Version:   instance.Version,
+		Ecosystem: ecosysystem,
+		CompareAs: ecosysystem,
+	}
+	return pd, nil
 }
 
 /*

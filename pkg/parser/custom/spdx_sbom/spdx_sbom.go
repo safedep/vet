@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/google/osv-scanner/pkg/lockfile"
-	packageurl "github.com/package-url/packageurl-go"
 	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/parser/custom/spdx_sbom/packagefile"
+	"github.com/safedep/vet/pkg/common/utils/sbom_utils"
+	"github.com/safedep/vet/pkg/parser/custom/packagefile"
 	spdx_json "github.com/spdx/tools-golang/json"
 	"github.com/spdx/tools-golang/spdx"
 )
@@ -79,23 +79,6 @@ func parse2PackageDetailsDoc(pathToLockfile string) (*packagefile.PackageDetails
 	return details, nil
 }
 
-func ParsePurlType(purl_type string) (lockfile.Ecosystem, bool) {
-	KnownTypes := map[string]lockfile.Ecosystem{
-		packageurl.TypeCargo:    lockfile.CargoEcosystem,
-		packageurl.TypeComposer: lockfile.ComposerEcosystem,
-		packageurl.TypeGolang:   lockfile.GoEcosystem,
-		packageurl.TypeMaven:    lockfile.MavenEcosystem,
-		packageurl.TypeNPM:      lockfile.NpmEcosystem,
-		packageurl.TypeNuget:    lockfile.NuGetEcosystem,
-		packageurl.TypePyPi:     lockfile.PipEcosystem,
-		"pip":                   lockfile.PipEcosystem,
-		"go":                    lockfile.GoEcosystem,
-	}
-
-	eco, ok := KnownTypes[purl_type]
-	return eco, ok
-}
-
 func parsePackage(pkg *spdx.Package) (*packagefile.PackageDetails, error) {
 
 	// Attempt parsing from purl
@@ -113,24 +96,11 @@ func parsePackage(pkg *spdx.Package) (*packagefile.PackageDetails, error) {
 func parsePackageFromPurl(pkg *spdx.Package) (*packagefile.PackageDetails, error) {
 	for _, ref := range pkg.PackageExternalReferences {
 		if ref.RefType == "purl" {
-			instance, err := packageurl.FromString(ref.Locator)
-			if err != nil {
-				return nil, err
+			pd, err := packagefile.ParsePackageFromPurl(ref.Locator)
+			if pd != nil {
+				pd.SpdxRef = pkg
 			}
-			ecosysystem, ok := ParsePurlType(instance.Type)
-			if !ok {
-				logger.Debugf("Unknown ecosystem type %s", instance.Type)
-				return nil, fmt.Errorf("unknown ecosystem type %s", instance.Type)
-			}
-			pd := &packagefile.PackageDetails{
-				Name:      instance.Name,
-				Group:     instance.Namespace,
-				Version:   instance.Version,
-				Ecosystem: ecosysystem,
-				CompareAs: ecosysystem,
-				SpdxRef:   pkg,
-			}
-			return pd, nil
+			return pd, err
 		}
 	}
 	//When nothing found
@@ -146,7 +116,7 @@ func parsePackageFromPackageDetails(pkg *spdx.Package) (*packagefile.PackageDeta
 		return nil, fmt.Errorf("could not parse package name %s", pkg.PackageName)
 	}
 
-	ecosysystem, ok := ParsePurlType(ptype)
+	ecosysystem, ok := sbom_utils.ParsePurlType(ptype)
 	if !ok {
 		logger.Debugf("Unknown Supported Ecosystem type %s", ptype)
 		return nil, fmt.Errorf("unknown Supported Ecosystem type %s", ptype)
