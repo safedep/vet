@@ -1,4 +1,4 @@
-package spdx_sbom
+package spdx
 
 import (
 	"fmt"

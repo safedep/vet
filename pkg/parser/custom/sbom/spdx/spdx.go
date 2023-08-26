@@ -1,4 +1,4 @@
-package spdx_sbom
+package spdx
 
 import (
 	"fmt"
@@ -8,10 +8,10 @@ import (
 
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/common/utils/sbom_utils"
+	sbom_utils "github.com/safedep/vet/pkg/common/utils/sbom"
 	"github.com/safedep/vet/pkg/parser/custom/packagefile"
 	spdx_json "github.com/spdx/tools-golang/json"
-	"github.com/spdx/tools-golang/spdx"
+	spdx_go "github.com/spdx/tools-golang/spdx"
 )
 
 /*
@@ -79,7 +79,7 @@ func parse2PackageDetailsDoc(pathToLockfile string) (*packagefile.PackageDetails
 	return details, nil
 }
 
-func parsePackage(pkg *spdx.Package) (*packagefile.PackageDetails, error) {
+func parsePackage(pkg *spdx_go.Package) (*packagefile.PackageDetails, error) {
 
 	// Attempt parsing from purl
 	pd, _ := parsePackageFromPurl(pkg)
@@ -93,7 +93,7 @@ func parsePackage(pkg *spdx.Package) (*packagefile.PackageDetails, error) {
 }
 
 // Parse from Purl if available. It is a reliable parsing technique
-func parsePackageFromPurl(pkg *spdx.Package) (*packagefile.PackageDetails, error) {
+func parsePackageFromPurl(pkg *spdx_go.Package) (*packagefile.PackageDetails, error) {
 	for _, ref := range pkg.PackageExternalReferences {
 		if ref.RefType == "purl" {
 			pd, err := packagefile.ParsePackageFromPurl(ref.Locator)
@@ -108,7 +108,7 @@ func parsePackageFromPurl(pkg *spdx.Package) (*packagefile.PackageDetails, error
 }
 
 // Parse from packahge details, if available. It is bit Unreliable Parsing
-func parsePackageFromPackageDetails(pkg *spdx.Package) (*packagefile.PackageDetails, error) {
+func parsePackageFromPackageDetails(pkg *spdx_go.Package) (*packagefile.PackageDetails, error) {
 	ptype, g, n, ok := attempParsePackageName(pkg.PackageName)
 	logger.Debugf("Parsed package name: Type: %s Group: %s Name: %s", ptype, g, n)
 	if !ok {
@@ -116,10 +116,10 @@ func parsePackageFromPackageDetails(pkg *spdx.Package) (*packagefile.PackageDeta
 		return nil, fmt.Errorf("could not parse package name %s", pkg.PackageName)
 	}
 
-	ecosysystem, ok := sbom_utils.ParsePurlType(ptype)
-	if !ok {
+	ecosysystem, err := sbom_utils.PurlTypeToLockfileEcosystem(ptype)
+	if err != nil {
 		logger.Debugf("Unknown Supported Ecosystem type %s", ptype)
-		return nil, fmt.Errorf("unknown Supported Ecosystem type %s", ptype)
+		return nil, err
 	}
 
 	version, _, _ := attemptParsePackageVersionExpression(pkg.PackageVersion)

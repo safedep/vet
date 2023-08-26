@@ -1,4 +1,4 @@
-package cyclonedx_sbom
+package cyclonedx
 
 import (
 	"io/ioutil"

@@ -1,4 +1,4 @@
-package regex_utils
+package regex
 
 import (
 	"regexp"

@@ -7,9 +7,9 @@ import (
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 
-	cdx "github.com/safedep/vet/pkg/parser/custom/cyclonedx_sbom"
 	"github.com/safedep/vet/pkg/parser/custom/py"
-	spdx "github.com/safedep/vet/pkg/parser/custom/spdx_sbom"
+	cdx "github.com/safedep/vet/pkg/parser/custom/sbom/cyclonedx"
+	"github.com/safedep/vet/pkg/parser/custom/sbom/spdx"
 )
 
 const (

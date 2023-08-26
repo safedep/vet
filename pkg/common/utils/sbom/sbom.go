@@ -1,6 +1,8 @@
-package sbom_utils
+package sbom
 
 import (
+	"fmt"
+
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/package-url/packageurl-go"
 )
@@ -8,7 +10,7 @@ import (
 // ParsePurlType parses a package URL (purl) type and returns the corresponding lockfile.Ecosystem.
 // It also returns a boolean indicating whether the provided purl type is recognized.
 // The recognized purl types are mapped to their corresponding lockfile ecosystems.
-func ParsePurlType(purl_type string) (lockfile.Ecosystem, bool) {
+func PurlTypeToLockfileEcosystem(purl_type string) (lockfile.Ecosystem, error) {
 	// KnownTypes maps recognized package URL types to their corresponding lockfile ecosystems.
 	KnownTypes := map[string]lockfile.Ecosystem{
 		packageurl.TypeCargo:    lockfile.CargoEcosystem,
@@ -25,5 +27,8 @@ func ParsePurlType(purl_type string) (lockfile.Ecosystem, bool) {
 	// Look up the provided purl_type in the KnownTypes map.
 	// eco holds the corresponding lockfile ecosystem, and ok indicates if the purl type is recognized.
 	eco, ok := KnownTypes[purl_type]
-	return eco, ok
+	if !ok {
+		return "", fmt.Errorf("no known package url type found for: %s", purl_type)
+	}
+	return eco, nil
 }

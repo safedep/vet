@@ -1,7 +1,6 @@
-package sbom_utils
+package sbom
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/google/osv-scanner/pkg/lockfile"
@@ -27,10 +26,13 @@ func TestParsePurlType(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		eco, ok := ParsePurlType(tc.input)
-		fmt.Println(tc.input)
+		eco, err := PurlTypeToLockfileEcosystem(tc.input)
 		assert.Equal(t, tc.expectedEco, eco, tc.input)
-		assert.Equal(t, tc.expectedOk, ok, tc.input)
+		if tc.expectedOk {
+			assert.Nil(t, err, "did not expect an error")
+		} else {
+			assert.NotNil(t, err, "expected an error")
+		}
 	}
 }
 

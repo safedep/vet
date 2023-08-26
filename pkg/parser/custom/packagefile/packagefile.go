@@ -7,7 +7,7 @@ import (
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/package-url/packageurl-go"
 	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/common/utils/sbom_utils"
+	sbom_utils "github.com/safedep/vet/pkg/common/utils/sbom"
 	"github.com/spdx/tools-golang/spdx"
 )
 
@@ -50,10 +50,10 @@ func ParsePackageFromPurl(purl string) (*PackageDetails, error) {
 	if err != nil {
 		return nil, err
 	}
-	ecosysystem, ok := sbom_utils.ParsePurlType(instance.Type)
-	if !ok {
+	ecosysystem, err := sbom_utils.PurlTypeToLockfileEcosystem(instance.Type)
+	if err != nil {
 		logger.Debugf("Unknown ecosystem type %s", instance.Type)
-		return nil, fmt.Errorf("unknown ecosystem type %s", instance.Type)
+		return nil, err
 	}
 	pd := &PackageDetails{
 		Name:      instance.Name,
