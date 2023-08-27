@@ -1,18 +1,17 @@
-package parser
+package cyclonedx
 
 import (
 	"bufio"
-	"fmt"
 	"os"
-	"strings"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/pkg/parser/custom/packagefile"
 )
 
-func parseCyclonedxSBOM(pathToLockfile string) ([]lockfile.PackageDetails, error) {
+func Parse(pathToLockfile string) ([]lockfile.PackageDetails, error) {
 	details := []lockfile.PackageDetails{}
 
 	bom := cdx.NewBOM()
@@ -48,37 +47,11 @@ func parseCyclonedxSBOM(pathToLockfile string) ([]lockfile.PackageDetails, error
 }
 
 func convertSbomComponent2LPD(comp *cdx.Component) (*lockfile.PackageDetails, error) {
-	var name string
-	if comp.Group != "" {
-		name = fmt.Sprintf("%s:%s", comp.Group, comp.Name)
-	} else {
-		name = comp.Name
-	}
 
-	var ecosysystem lockfile.Ecosystem
-	if eco, err := convertBomRefAsEcosystem(comp.BOMRef); err != nil {
+	pd, err := packagefile.ParsePackageFromPurl(comp.PackageURL)
+	if err != nil {
 		return nil, err
-	} else {
-		ecosysystem = eco
 	}
-
-	d := lockfile.PackageDetails{
-		Name:      name,
-		Version:   comp.Version,
-		Ecosystem: ecosysystem,
-		CompareAs: ecosysystem,
-	}
-
-	return &d, nil
-}
-
-func convertBomRefAsEcosystem(bomref string) (lockfile.Ecosystem, error) {
-	if strings.Contains(bomref, "pkg:pypi") {
-		return lockfile.PipEcosystem, nil
-	} else if strings.Contains(bomref, "pkg:npm") {
-		return lockfile.NpmEcosystem, nil
-	} else {
-		// Return an error, the ecosystem here does not matter
-		return lockfile.NpmEcosystem, fmt.Errorf("failed parsing bomref %s to ecosystem", bomref)
-	}
+	pd.CycloneDxRef = comp
+	return pd.Convert2LockfilePackageDetails(), nil
 }

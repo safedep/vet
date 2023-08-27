@@ -1,10 +1,11 @@
 package py
 
 import (
+	"strings"
+
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/common/utils/regex_utils"
-	"strings"
+	regex_utils "github.com/safedep/vet/pkg/common/utils/regex"
 )
 
 func ParseSetuppy(pathToLockfile string) ([]lockfile.PackageDetails, error) {

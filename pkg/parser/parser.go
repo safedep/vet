@@ -8,7 +8,8 @@ import (
 	"github.com/safedep/vet/pkg/models"
 
 	"github.com/safedep/vet/pkg/parser/custom/py"
-	"github.com/safedep/vet/pkg/parser/custom/spdx_sbom"
+	cdx "github.com/safedep/vet/pkg/parser/custom/sbom/cyclonedx"
+	"github.com/safedep/vet/pkg/parser/custom/sbom/spdx"
 )
 
 const (
@@ -39,8 +40,8 @@ var supportedEcosystems map[string]bool = map[string]bool{
 
 var customExperimentalParsers map[string]lockfile.PackageDetailsParser = map[string]lockfile.PackageDetailsParser{
 	customParserTypePyWheel:   parsePythonWheelDist,
-	customParserCycloneDXSBOM: parseCyclonedxSBOM,
-	customParserSpdxSBOM:      spdx_sbom.Parse,
+	customParserCycloneDXSBOM: cdx.Parse,
+	customParserSpdxSBOM:      spdx.Parse,
 	customParserTypeSetupPy:   py.ParseSetuppy,
 }
 

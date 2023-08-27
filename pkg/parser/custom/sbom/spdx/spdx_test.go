@@ -1,12 +1,13 @@
-package spdx_sbom
+package spdx
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParseSpdxSBOM(t *testing.T) {
