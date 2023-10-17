@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"strconv"
 
@@ -101,7 +101,7 @@ func redirectLogToFile(path string) {
 			logger.LogToFile(path)
 		}
 	} else {
-		logger.MigrateTo(ioutil.Discard)
+		logger.MigrateTo(io.Discard)
 	}
 }
 
