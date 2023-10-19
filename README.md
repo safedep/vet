@@ -41,42 +41,21 @@ brew install safedep/tap/vet
 > Ensure $(go env GOPATH)/bin is in your $PATH
 
 ```bash
-go install github.com/safedep/vet@latest
+go install github.com/safedep/vet@main
 ```
 
-- Get an API key for the vet insights data access for performing the scan.
-    Alternatively, look at [using community endpoint without API key](#using-community-mode)
+- Configure `vet` to use community mode for Insights API
 
 ```bash
-vet auth trial --email john.doe@example.com
+vet auth configure --community
 ```
 
-![vet register trial](docs/static/img/vet/vet-register-trial.png)
-
-> A time limited trial API key will be sent over email.
-
-- Configure `vet` to use API key to access the insights
-
-```bash
-vet auth configure
-```
-
-![vet configure](docs/static/img/vet/vet-configure.png)
-
-> Insights API is used to enrich OSS packages with metadata for rich query and policy decisions. Alternatively, the API key can be passed through environment variable `VET_API_KEY`
+> Insights API is used to enrich OSS packages with metadata for rich query and policy decisions.
 
 - You can verify the configured key is successful by running the following command
 
 ```bash
 vet auth verify
-```
-
-### Using Community Mode
-
-Community mode can be used to avoid registering and obtaining an API key.
-
-```bash
-vet auth configure --community
 ```
 
 ### Running Scan
@@ -154,6 +133,35 @@ First of all, thank you so much for showing interest in `vet`, we appreciate it 
 - Join the server using the link - [https://rebrand.ly/safedep-community](https://rebrand.ly/safedep-community)
 
 [![SafeDep Discord](docs/static/img/safedep-discord.png)](https://rebrand.ly/safedep-community)
+
+## 💻 Development
+
+### Setup
+
+* Install [ASDF](https://asdf-vm.com/)
+* Install the development tools
+
+```bash
+asdf install
+```
+
+* Install `lefthook`
+
+```bash
+go install github.com/evilmartians/lefthook@latest
+```
+
+* Install git hooks
+
+```bash
+$(go env GOPATH)/bin/lefthook install
+```
+
+### Run Tests
+
+```bash
+go test -v ./...
+```
 
 ## 🔖 References
 
