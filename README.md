@@ -157,6 +157,26 @@ go install github.com/evilmartians/lefthook@latest
 $(go env GOPATH)/bin/lefthook install
 ```
 
+### Build
+
+Install build tools
+
+```bash
+make protoc-install oapi-codegen-install
+```
+
+Generate code from API specs and build `vet`
+
+```bash
+make
+```
+
+Quick build without regenerating code from API specs
+
+```bash
+make quick-vet
+```
+
 ### Run Tests
 
 ```bash

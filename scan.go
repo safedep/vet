@@ -96,7 +96,7 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&csvReportPath, "report-csv", "", "",
 		"Generate CSV report of filtered packages")
 	cmd.Flags().StringVarP(&jsonReportPath, "report-json", "", "",
-		"Generate consolidated json report to file")
+		"Generate consolidated JSON report to file (EXPERIMENTAL schema)")
 	cmd.Flags().BoolVarP(&syncReport, "report-sync", "", false,
 		"Enable syncing report data to cloud")
 	cmd.Flags().StringVarP(&syncReportProject, "report-sync-project", "", "",

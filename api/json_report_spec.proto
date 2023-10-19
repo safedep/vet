@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+option go_package = "github.com/safedep/vet/gen/jsonreportspec";
+
+import "models.proto";
+
+enum ViolationType {
+  UnknownViolationType = 0;
+  ViolationByVulnerability = 1;
+  ViolationByMaliciousness = 2;
+  ViolationByLowPopularity = 3;
+  ViolationByUnmaintained = 4;
+
+  reserved 5 to 99;
+  ViolationByOther = 100;
+}
+
+message Violation {
+  ViolationType type = 1;
+  Package package = 2;
+  string message = 3;
+  map<string, string> extra = 4;
+}
+
+enum RemediationAdviceType {
+  UnknownAdviceType = 0;
+  UpgradePackage = 1;
+}
+
+message RemediationAdvice {
+  RemediationAdviceType type = 1;
+  Package package = 2;
+  string target_version = 3;
+  string target_package_name = 4;
+}
+
+message Report {
+  repeated Violation violations = 1;
+  repeated RemediationAdvice advices = 2;
+}
+

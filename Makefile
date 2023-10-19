@@ -33,6 +33,14 @@ protoc-codegen:
 		--go_out=./gen/exceptionsapi \
 		--go_opt=paths=source_relative \
 		./api/exceptions_spec.proto
+	protoc -I ./api \
+		--go_out=./gen/models \
+		--go_opt=paths=source_relative \
+		./api/models.proto
+	protoc -I ./api \
+		--go_out=./gen/jsonreport \
+		--go_opt=paths=source_relative \
+		./api/json_report_spec.proto
 
 setup:
 	mkdir -p out \
@@ -42,12 +50,17 @@ setup:
 		gen/syncv1 \
 		gen/filterinput \
 		gen/filtersuite \
-		gen/exceptionsapi
+		gen/exceptionsapi \
+		gen/models \
+		gen/jsonreport
 
 GO_CFLAGS=-X main.commit=$(GITCOMMIT) -X main.version=$(VERSION)
 GO_LDFLAGS=-ldflags "-w $(GO_CFLAGS)"
 
 vet: oapi-codegen protoc-codegen
+	go build ${GO_LDFLAGS}
+
+quick-vet:
 	go build ${GO_LDFLAGS}
 
 .PHONY: test

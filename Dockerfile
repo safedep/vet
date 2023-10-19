@@ -10,7 +10,7 @@ COPY . .
 
 ENV CGO_ENABLED=1
 
-RUN go build -o vet
+RUN make quick-vet
 
 FROM gcr.io/distroless/cc
 
