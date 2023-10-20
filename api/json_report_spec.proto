@@ -17,8 +17,21 @@ message RemediationAdvice {
   string target_package_name = 4;
 }
 
-message Report {
-  repeated Violation violations = 1;
-  repeated RemediationAdvice advices = 2;
+message ManifestReport {
+  Ecosystem ecosystem = 1;
+  string path = 2;
+  repeated Package packages = 3;
 }
 
+message ReportMeta {
+  string tool_name = 1;
+  string tool_version = 2;
+  string created_at = 3;
+}
+
+message Report {
+  ReportMeta meta = 1;
+  repeated Violation violations = 2;
+  repeated RemediationAdvice advices = 3;
+  repeated ManifestReport manifests = 4;
+}

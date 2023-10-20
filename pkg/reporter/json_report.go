@@ -3,6 +3,7 @@ package reporter
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/safedep/dry/utils"
 	schema "github.com/safedep/vet/gen/jsonreport"
@@ -82,6 +83,11 @@ func (r *jsonReportGenerator) Finish() error {
 
 	sortedList := sr.sortedRemediations()
 	report := schema.Report{
+		Meta: &schema.ReportMeta{
+			ToolName:    "vet",
+			ToolVersion: "latest",
+			CreatedAt:   time.Now().UTC().Format(time.RFC3339),
+		},
 		Violations: []*violations.Violation{},
 		Advices:    []*schema.RemediationAdvice{},
 	}

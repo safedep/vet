@@ -2,9 +2,12 @@ syntax = "proto3";
 
 option go_package = "github.com/safedep/vet/gen/filtersuite";
 
+import "violations.proto";
+
 message Filter {
   string name = 1;
   string value = 2;
+  ViolationType violation_type = 3;
 }
 
 message FilterSuite {
