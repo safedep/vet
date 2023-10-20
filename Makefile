@@ -41,6 +41,10 @@ protoc-codegen:
 		--go_out=./gen/jsonreport \
 		--go_opt=paths=source_relative \
 		./api/json_report_spec.proto
+	protoc -I ./api \
+		--go_out=./gen/violations \
+		--go_opt=paths=source_relative \
+		./api/violations.proto
 
 setup:
 	mkdir -p out \
@@ -52,7 +56,8 @@ setup:
 		gen/filtersuite \
 		gen/exceptionsapi \
 		gen/models \
-		gen/jsonreport
+		gen/jsonreport \
+		gen/violations
 
 GO_CFLAGS=-X main.commit=$(GITCOMMIT) -X main.version=$(VERSION)
 GO_LDFLAGS=-ldflags "-w $(GO_CFLAGS)"

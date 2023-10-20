@@ -7,6 +7,7 @@ import (
 	"github.com/safedep/dry/utils"
 	schema "github.com/safedep/vet/gen/jsonreport"
 	modelspec "github.com/safedep/vet/gen/models"
+	"github.com/safedep/vet/gen/violations"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
@@ -81,7 +82,7 @@ func (r *jsonReportGenerator) Finish() error {
 
 	sortedList := sr.sortedRemediations()
 	report := schema.Report{
-		Violations: []*schema.Violation{},
+		Violations: []*violations.Violation{},
 		Advices:    []*schema.RemediationAdvice{},
 	}
 
@@ -110,8 +111,8 @@ func (r *jsonReportGenerator) Finish() error {
 				continue
 			}
 
-			report.Violations = append(report.Violations, &schema.Violation{
-				Type:    schema.ViolationType_ViolationByOther,
+			report.Violations = append(report.Violations, &violations.Violation{
+				Type:    violations.ViolationType_ViolationByOther,
 				Message: msg,
 				Package: &modelspec.Package{
 					Name:    v.Package.Name,
