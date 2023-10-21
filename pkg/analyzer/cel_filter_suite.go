@@ -78,7 +78,7 @@ func (f *celFilterSuiteAnalyzer) Analyze(manifest *models.PackageManifest,
 		}
 
 		if res.Matched() {
-			f.handleMatchedPkg(pkg, res.GetMatchedFilter().Name(), handler)
+			f.handleMatchedPkg(pkg, res.GetMatchedFilter(), handler)
 		}
 
 		return nil
@@ -124,24 +124,27 @@ func (f *celFilterSuiteAnalyzer) renderMatchTable() {
 }
 
 func (f *celFilterSuiteAnalyzer) handleMatchedPkg(pkg *models.Package,
-	filterName string, handler AnalyzerEventHandler) {
+	filter *filtersuite.Filter, handler AnalyzerEventHandler) {
+	handler(&AnalyzerEvent{
+		Source:   f.Name(),
+		Type:     ET_FilterExpressionMatched,
+		Manifest: pkg.Manifest,
+		Package:  pkg,
+		Filter:   filter,
+		Message:  filter.GetName(),
+	})
+
+	// For internal table rendering, we will avoid duplicate packages and will
+	// render failed package only once
 	if _, ok := f.matchedPackages[pkg.Id()]; ok {
 		return
 	}
 
 	f.stat.IncMatchedPackage()
 	f.matchedPackages[pkg.Id()] = &celFilterMatchedPackage{
-		filterName: filterName,
+		filterName: filter.GetName(),
 		pkg:        pkg,
 	}
-
-	handler(&AnalyzerEvent{
-		Source:   f.Name(),
-		Type:     ET_FilterExpressionMatched,
-		Manifest: pkg.Manifest,
-		Package:  pkg,
-		Message:  filterName,
-	})
 }
 
 // To correctly unmarshal a []byte into protobuf message, we must use

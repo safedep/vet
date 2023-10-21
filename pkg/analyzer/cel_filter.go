@@ -80,6 +80,7 @@ func (f *celFilterAnalyzer) Analyze(manifest *models.PackageManifest,
 				Source:   f.Name(),
 				Type:     ET_FilterExpressionMatched,
 				Manifest: manifest,
+				Filter:   res.GetMatchedProgram().GetFilter(),
 				Package:  pkg,
 				Message:  "cli-filter",
 			})

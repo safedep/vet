@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/safedep/dry/utils"
-	"github.com/safedep/vet/gen/checks"
 	schema "github.com/safedep/vet/gen/jsonreport"
 	modelspec "github.com/safedep/vet/gen/models"
 	"github.com/safedep/vet/gen/violations"
@@ -59,6 +58,10 @@ func (r *jsonReportGenerator) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 	}
 
 	if event.Package.Manifest == nil {
+		return
+	}
+
+	if event.Filter == nil {
 		return
 	}
 
@@ -119,14 +122,13 @@ func (r *jsonReportGenerator) Finish() error {
 			}
 
 			report.Violations = append(report.Violations, &violations.Violation{
-				CheckType: checks.CheckType_CheckTypeOther,
+				CheckType: v.Filter.GetCheckType(),
 				Message:   msg,
 				Package: &modelspec.Package{
 					Name:    v.Package.Name,
 					Version: v.Package.Version,
 				},
 			})
-
 		}
 	}
 

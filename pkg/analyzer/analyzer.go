@@ -1,6 +1,9 @@
 package analyzer
 
-import "github.com/safedep/vet/pkg/models"
+import (
+	"github.com/safedep/vet/gen/filtersuite"
+	"github.com/safedep/vet/pkg/models"
+)
 
 type AnalyzerEventType string
 
@@ -16,8 +19,9 @@ type AnalyzerEvent struct {
 	// Type of the event
 	Type AnalyzerEventType
 
-	// Message / Error
+	// Message / Error / Filter
 	Message interface{}
+	Filter  *filtersuite.Filter
 	Err     error
 
 	// Entities on which event was generated
