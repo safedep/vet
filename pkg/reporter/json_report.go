@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/safedep/dry/utils"
+	"github.com/safedep/vet/gen/checks"
 	schema "github.com/safedep/vet/gen/jsonreport"
 	modelspec "github.com/safedep/vet/gen/models"
 	"github.com/safedep/vet/gen/violations"
@@ -118,8 +119,8 @@ func (r *jsonReportGenerator) Finish() error {
 			}
 
 			report.Violations = append(report.Violations, &violations.Violation{
-				Type:    violations.ViolationType_ViolationByOther,
-				Message: msg,
+				CheckType: checks.CheckType_CheckTypeOther,
+				Message:   msg,
 				Package: &modelspec.Package{
 					Name:    v.Package.Name,
 					Version: v.Package.Version,
