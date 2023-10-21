@@ -4,11 +4,16 @@ VERSION := "$(shell git describe --tags --abbrev=0)-$(shell git rev-parse --shor
 
 all: clean setup vet
 
+linter-install:
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.0
+
 oapi-codegen-install:
 	go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.10.1
 
 protoc-install:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+
+dev-setup: linter-install oapi-codegen-install protoc-install
 
 oapi-codegen:
 	oapi-codegen -package insightapi -generate types ./api/insights-v1.yml > ./gen/insightapi/insights.types.go

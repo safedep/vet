@@ -125,7 +125,7 @@ func (f *celFilterSuiteAnalyzer) renderMatchTable() {
 
 func (f *celFilterSuiteAnalyzer) handleMatchedPkg(pkg *models.Package,
 	filter *filtersuite.Filter, handler AnalyzerEventHandler) {
-	handler(&AnalyzerEvent{
+	err := handler(&AnalyzerEvent{
 		Source:   f.Name(),
 		Type:     ET_FilterExpressionMatched,
 		Manifest: pkg.Manifest,
@@ -133,6 +133,9 @@ func (f *celFilterSuiteAnalyzer) handleMatchedPkg(pkg *models.Package,
 		Filter:   filter,
 		Message:  filter.GetName(),
 	})
+	if err != nil {
+		logger.Warnf("Handler failed to handle analyzer event: %v", err)
+	}
 
 	// For internal table rendering, we will avoid duplicate packages and will
 	// render failed package only once

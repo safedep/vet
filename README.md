@@ -136,6 +136,10 @@ First of all, thank you so much for showing interest in `vet`, we appreciate it 
 
 ## 💻 Development
 
+## Requirements
+
+* Go 1.21+
+
 ### Setup
 
 * Install [ASDF](https://asdf-vm.com/)
@@ -162,7 +166,7 @@ $(go env GOPATH)/bin/lefthook install
 Install build tools
 
 ```bash
-make protoc-install oapi-codegen-install
+make dev-setup
 ```
 
 Generate code from API specs and build `vet`
