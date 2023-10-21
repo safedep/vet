@@ -1,0 +1,5 @@
+name: Check Type Missing
+description: Filter Suite with Missing Check Type
+filters:
+  - name: r1
+    value: "true"

@@ -8,10 +8,15 @@ message Filter {
   string name = 1;
   string value = 2;
   CheckType check_type = 3;
+  string summary = 4;
+  string description = 5;
+  repeated string references = 6;
+  repeated string tags = 7;
 }
 
 message FilterSuite {
   string name = 1;
   string description = 2;
   repeated Filter filters = 3;
+  repeated string tags = 4;
 }

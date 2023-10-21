@@ -3,3 +3,10 @@ description: Valid Filter Suite
 filters:
   - name: r1
     value: "true"
+    tags:
+      - A
+  - name: r2
+    value: "true"
+    check_type: CheckTypeVulnerability
+    summary: "TEST SUMMARY"
+    description: "TEST DESCRIPTION"
