@@ -1,11 +1,11 @@
 package reporter
 
 import (
-	"fmt"
 	"os"
 	"time"
 
 	"github.com/safedep/dry/utils"
+	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
 	schema "github.com/safedep/vet/gen/jsonreport"
 	modelspec "github.com/safedep/vet/gen/models"
 	"github.com/safedep/vet/gen/violations"
@@ -13,6 +13,9 @@ import (
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
+	"github.com/safedep/vet/pkg/readers"
+	"github.com/safedep/vet/pkg/remediations"
+	"k8s.io/utils/strings/slices"
 )
 
 type JsonReportingConfig struct {
@@ -24,7 +27,9 @@ type JsonReportingConfig struct {
 type jsonReportGenerator struct {
 	config     JsonReportingConfig
 	repository Reporter
-	violations map[string][]*analyzer.AnalyzerEvent
+
+	manifests map[string]*jsonreportspec.PackageManifestReport
+	packages  map[string]*jsonreportspec.PackageReport
 }
 
 func NewJsonReportGenerator(config JsonReportingConfig) (Reporter, error) {
@@ -36,7 +41,8 @@ func NewJsonReportGenerator(config JsonReportingConfig) (Reporter, error) {
 	return &jsonReportGenerator{
 		config:     config,
 		repository: sr,
-		violations: make(map[string][]*analyzer.AnalyzerEvent),
+		manifests:  make(map[string]*schema.PackageManifestReport),
+		packages:   make(map[string]*schema.PackageReport),
 	}, nil
 }
 
@@ -46,6 +52,30 @@ func (r *jsonReportGenerator) Name() string {
 
 func (r *jsonReportGenerator) AddManifest(manifest *models.PackageManifest) {
 	r.repository.AddManifest(manifest)
+
+	if _, ok := r.manifests[manifest.Id()]; !ok {
+		r.manifests[manifest.Id()] = &jsonreportspec.PackageManifestReport{
+			Id:        manifest.Id(),
+			Path:      manifest.Path,
+			Ecosystem: manifest.GetSpecEcosystem(),
+		}
+	}
+
+	err := readers.NewManifestModelReader(manifest).EnumPackages(func(p *models.Package) error {
+		if _, ok := r.packages[p.Id()]; !ok {
+			r.packages[p.Id()] = r.buildJsonPackageReportFromPackage(p)
+		}
+
+		if !slices.Contains(r.packages[p.Id()].Manifests, manifest.Id()) {
+			r.packages[p.Id()].Manifests = append(r.packages[p.Id()].Manifests, manifest.Id())
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		logger.Warnf("Failed to enumerate manifest packages: %v", err)
+	}
 }
 
 func (r *jsonReportGenerator) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
@@ -65,12 +95,34 @@ func (r *jsonReportGenerator) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 		return
 	}
 
-	pkgId := event.Package.Id()
-	if _, ok := r.violations[pkgId]; !ok {
-		r.violations[pkgId] = []*analyzer.AnalyzerEvent{}
+	if _, ok := r.packages[event.Package.Id()]; !ok {
+		r.packages[event.Package.Id()] = r.buildJsonPackageReportFromPackage(event.Package)
 	}
 
-	r.violations[pkgId] = append(r.violations[pkgId], event)
+	// We avoid duplicate violation for a package. Duplicates can occur because same package
+	// is in multiple manifests hence raising same violation
+	v := utils.FindAnyWith(r.packages[event.Package.Id()].Violations, func(item **violations.Violation) bool {
+		return ((*item).GetFilter().GetName() == event.Filter.GetName())
+	})
+	if v != nil {
+		return
+	}
+
+	violation := &violations.Violation{
+		CheckType: event.Filter.GetCheckType(),
+		Filter:    event.Filter,
+	}
+
+	r.packages[event.Package.Id()].Violations = append(r.packages[event.Package.Id()].Violations, violation)
+
+	remediationGenerator := remediations.NewStaticRemediationGenerator()
+	advice, err := remediationGenerator.Advice(event.Package, violation)
+	if err != nil {
+		logger.Warnf("Failed to generate remediation for %s due to %v",
+			event.Package.ShortName(), err)
+	} else {
+		r.packages[event.Package.Id()].Advices = append(r.packages[event.Package.Id()].Advices, advice)
+	}
 }
 
 func (r *jsonReportGenerator) AddPolicyEvent(event *policy.PolicyEvent) {}
@@ -78,58 +130,22 @@ func (r *jsonReportGenerator) AddPolicyEvent(event *policy.PolicyEvent) {}
 func (r *jsonReportGenerator) Finish() error {
 	logger.Infof("Generating consolidated Json report: %s", r.config.Path)
 
-	var sr *summaryReporter
-	var ok bool
-
-	if sr, ok = r.repository.(*summaryReporter); !ok {
-		return fmt.Errorf("failed to duck type Reporter to summaryReporter")
-	}
-
-	sortedList := sr.sortedRemediations()
 	report := schema.Report{
 		Meta: &schema.ReportMeta{
 			ToolName:    "vet",
 			ToolVersion: "latest",
 			CreatedAt:   time.Now().UTC().Format(time.RFC3339),
 		},
-		Violations: []*violations.Violation{},
-		Advices:    []*schema.RemediationAdvice{},
+		Packages:  make([]*schema.PackageReport, 0),
+		Manifests: make([]*schema.PackageManifestReport, 0),
 	}
 
-	for _, s := range sortedList {
-		pkgInsight := utils.SafelyGetValue(s.pkg.Insights)
-
-		report.Advices = append(report.Advices, &schema.RemediationAdvice{
-			Package: &modelspec.Package{
-				Name:    s.pkg.Name,
-				Version: s.pkg.Version,
-			},
-			TargetPackageName: sr.packageNameForRemediationAdvice(s.pkg),
-			TargetVersion:     utils.SafelyGetValue(pkgInsight.PackageCurrentVersion),
-		})
-
+	for _, pm := range r.manifests {
+		report.Manifests = append(report.Manifests, pm)
 	}
 
-	for _, events := range r.violations {
-		if len(events) == 0 {
-			continue
-		}
-
-		for _, v := range events {
-			var msg string
-			if msg, ok = v.Message.(string); !ok {
-				continue
-			}
-
-			report.Violations = append(report.Violations, &violations.Violation{
-				CheckType: v.Filter.GetCheckType(),
-				Message:   msg,
-				Package: &modelspec.Package{
-					Name:    v.Package.Name,
-					Version: v.Package.Version,
-				},
-			})
-		}
+	for _, p := range r.packages {
+		report.Packages = append(report.Packages, p)
 	}
 
 	b, err := utils.ToPbJson(&report, "")
@@ -145,4 +161,16 @@ func (r *jsonReportGenerator) Finish() error {
 	defer file.Close()
 	_, err = file.WriteString(b)
 	return err
+}
+
+func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Package) *jsonreportspec.PackageReport {
+	return &jsonreportspec.PackageReport{
+		Package: &modelspec.Package{
+			Ecosystem: p.GetSpecEcosystem(),
+			Name:      p.GetName(),
+			Version:   p.GetVersion(),
+		},
+		Violations: make([]*violations.Violation, 0),
+		Advices:    make([]*schema.RemediationAdvice, 0),
+	}
 }

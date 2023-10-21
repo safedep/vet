@@ -31,5 +31,5 @@ filters:
     check_type: CheckTypeSecurityScorecard
     summary: Component release pipeline appear to use dangerous workflows
     value: |
-      scorecard.scores["Dangerous-Workflow"] == 10
+      scorecard.scores["Dangerous-Workflow"] == 0
 
