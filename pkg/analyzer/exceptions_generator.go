@@ -7,6 +7,7 @@ import (
 
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/exceptionsapi"
+	"github.com/safedep/vet/gen/filtersuite"
 	"github.com/safedep/vet/pkg/analyzer/filter"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
@@ -46,7 +47,10 @@ func NewExceptionsGenerator(config ExceptionsGeneratorConfig) (Analyzer, error) 
 		config.Filter = "true"
 	}
 
-	err = filterEvaluator.AddFilter("exceptions-filter", config.Filter)
+	err = filterEvaluator.AddFilter(&filtersuite.Filter{
+		Name:  "exceptions-filter",
+		Value: config.Filter,
+	})
 	if err != nil {
 		return nil, err
 	}

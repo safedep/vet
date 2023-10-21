@@ -38,7 +38,7 @@ func NewCelFilterSuiteAnalyzer(path string, failOnMatch bool) (Analyzer, error) 
 	}
 
 	for _, fl := range fs.GetFilters() {
-		err = evaluator.AddFilter(fl.GetName(), fl.GetValue())
+		err = evaluator.AddFilter(fl)
 		if err != nil {
 			return nil, err
 		}
