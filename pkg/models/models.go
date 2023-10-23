@@ -51,6 +51,10 @@ func (pm *PackageManifest) AddPackage(pkg *Package) {
 	pm.Packages = append(pm.Packages, pkg)
 }
 
+func (pm *PackageManifest) GetPath() string {
+	return pm.Path
+}
+
 func (pm *PackageManifest) Id() string {
 	h := fnv.New64a()
 	h.Write([]byte(fmt.Sprintf("%s/%s",

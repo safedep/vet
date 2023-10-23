@@ -25,24 +25,19 @@ type JsonReportingConfig struct {
 // Json reporter is built on top of summary reporter to
 // provide extended visibility
 type jsonReportGenerator struct {
-	config     JsonReportingConfig
-	repository Reporter
+	config       JsonReportingConfig
+	remediations remediations.RemediationGenerator
 
 	manifests map[string]*jsonreportspec.PackageManifestReport
 	packages  map[string]*jsonreportspec.PackageReport
 }
 
 func NewJsonReportGenerator(config JsonReportingConfig) (Reporter, error) {
-	sr, err := NewSummaryReporter()
-	if err != nil {
-		return nil, err
-	}
-
 	return &jsonReportGenerator{
-		config:     config,
-		repository: sr,
-		manifests:  make(map[string]*schema.PackageManifestReport),
-		packages:   make(map[string]*schema.PackageReport),
+		config:       config,
+		remediations: remediations.NewStaticRemediationGenerator(),
+		manifests:    make(map[string]*schema.PackageManifestReport),
+		packages:     make(map[string]*schema.PackageReport),
 	}, nil
 }
 
@@ -51,23 +46,23 @@ func (r *jsonReportGenerator) Name() string {
 }
 
 func (r *jsonReportGenerator) AddManifest(manifest *models.PackageManifest) {
-	r.repository.AddManifest(manifest)
-
-	if _, ok := r.manifests[manifest.Id()]; !ok {
-		r.manifests[manifest.Id()] = &jsonreportspec.PackageManifestReport{
-			Id:        manifest.Id(),
-			Path:      manifest.Path,
+	manifestId := manifest.Id()
+	if _, ok := r.manifests[manifestId]; !ok {
+		r.manifests[manifestId] = &jsonreportspec.PackageManifestReport{
+			Id:        manifestId,
+			Path:      manifest.GetPath(),
 			Ecosystem: manifest.GetSpecEcosystem(),
 		}
 	}
 
 	err := readers.NewManifestModelReader(manifest).EnumPackages(func(p *models.Package) error {
-		if _, ok := r.packages[p.Id()]; !ok {
-			r.packages[p.Id()] = r.buildJsonPackageReportFromPackage(p)
+		pkgId := p.Id()
+		if _, ok := r.packages[pkgId]; !ok {
+			r.packages[pkgId] = r.buildJsonPackageReportFromPackage(p)
 		}
 
-		if !slices.Contains(r.packages[p.Id()].Manifests, manifest.Id()) {
-			r.packages[p.Id()].Manifests = append(r.packages[p.Id()].Manifests, manifest.Id())
+		if !slices.Contains(r.packages[pkgId].Manifests, manifestId) {
+			r.packages[pkgId].Manifests = append(r.packages[p.Id()].Manifests, manifestId)
 		}
 
 		return nil
@@ -84,44 +79,48 @@ func (r *jsonReportGenerator) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 	}
 
 	if event.Package == nil {
+		logger.Warnf("Analyzer event with nil package")
 		return
 	}
 
 	if event.Package.Manifest == nil {
+		logger.Warnf("Analyzer event with nil package manifest")
 		return
 	}
 
 	if event.Filter == nil {
+		logger.Warnf("Analyzer event that matched filter but without Filter object")
 		return
 	}
 
-	if _, ok := r.packages[event.Package.Id()]; !ok {
-		r.packages[event.Package.Id()] = r.buildJsonPackageReportFromPackage(event.Package)
+	pkgId := event.Package.Id()
+	if _, ok := r.packages[pkgId]; !ok {
+		r.packages[pkgId] = r.buildJsonPackageReportFromPackage(event.Package)
 	}
 
 	// We avoid duplicate violation for a package. Duplicates can occur because same package
 	// is in multiple manifests hence raising same violation
-	v := utils.FindAnyWith(r.packages[event.Package.Id()].Violations, func(item **violations.Violation) bool {
+	v := utils.FindAnyWith(r.packages[pkgId].Violations, func(item **violations.Violation) bool {
 		return ((*item).GetFilter().GetName() == event.Filter.GetName())
 	})
 	if v != nil {
 		return
 	}
 
+	// Fall through here to associate a Violation and a RemediationAdvice
 	violation := &violations.Violation{
 		CheckType: event.Filter.GetCheckType(),
 		Filter:    event.Filter,
 	}
 
-	r.packages[event.Package.Id()].Violations = append(r.packages[event.Package.Id()].Violations, violation)
+	r.packages[pkgId].Violations = append(r.packages[pkgId].Violations, violation)
 
-	remediationGenerator := remediations.NewStaticRemediationGenerator()
-	advice, err := remediationGenerator.Advice(event.Package, violation)
+	advice, err := r.remediations.Advice(event.Package, violation)
 	if err != nil {
 		logger.Warnf("Failed to generate remediation for %s due to %v",
 			event.Package.ShortName(), err)
 	} else {
-		r.packages[event.Package.Id()].Advices = append(r.packages[event.Package.Id()].Advices, advice)
+		r.packages[pkgId].Advices = append(r.packages[pkgId].Advices, advice)
 	}
 }
 
