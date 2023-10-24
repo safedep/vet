@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package = "github.com/safedep/vet/gen/checks";
+
+enum CheckType {
+  CheckTypeUnknown = 0;
+  CheckTypeVulnerability = 1;
+  CheckTypeMalware = 2;
+  CheckTypePopularity = 3;
+  CheckTypeMaintenance = 4;
+  CheckTypeSecurityScorecard = 5;
+  CheckTypeLicense = 6;
+
+  reserved 7 to 99;
+
+  CheckTypeOther = 100;
+}

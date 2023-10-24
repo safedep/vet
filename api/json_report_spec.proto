@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+option go_package = "github.com/safedep/vet/gen/jsonreportspec";
+
+import "models.proto";
+import "violations.proto";
+
+enum RemediationAdviceType {
+  UnknownAdviceType = 0;
+  UpgradePackage = 1;
+  AlternatePopularPackage = 2;
+  AlternateSecurePackage = 3;
+}
+
+message RemediationAdvice {
+  RemediationAdviceType type = 1;
+  Package package = 2;
+  string target_package_name = 3;
+  string target_package_version = 4;
+  string target_alternate_package_name = 5;
+  string target_alternate_package_version = 6;
+}
+
+message PackageManifestReport {
+  string id = 1;
+  Ecosystem ecosystem = 2;
+  string path = 3;
+}
+
+// PackageReport represents the first class entity for which we have different type
+// of reporting information
+message PackageReport {
+  Package package = 1;
+
+  // The manifests identified by IDs where this package belongs to
+  repeated string manifests = 2;
+
+  repeated Violation violations = 3;
+  repeated RemediationAdvice advices = 4;
+}
+
+message ReportMeta {
+  string tool_name = 1;
+  string tool_version = 2;
+  string created_at = 3;
+}
+
+message Report {
+  ReportMeta meta = 1;
+
+  repeated PackageManifestReport manifests = 2;
+  repeated PackageReport packages = 3;
+}

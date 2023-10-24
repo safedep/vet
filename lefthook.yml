@@ -1,0 +1,17 @@
+pre-push:
+  parallel: true
+  comands:
+    test:
+      run: go test -v ./...
+
+pre-commit:
+  parallel: true
+  commands:
+    linter:
+      run: golangci-lint run -n
+    secrets-scanning:
+      files: git diff --name-only --diff-filter=d --staged
+      # https://gitlab.com/gitlab-org/gitlab/-/blob/master/lefthook.yml
+      run: 'if command -v gitleaks > /dev/null 2>&1; then gitleaks protect --no-banner --staged --redact --verbose; else echo "WARNING: gitleaks is not installed. Please install it. See https://github.com/gitleaks/gitleaks#installing"; fi'
+
+

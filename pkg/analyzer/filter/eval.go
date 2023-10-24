@@ -10,12 +10,15 @@ import (
 	"github.com/google/cel-go/cel"
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/filterinput"
+	"github.com/safedep/vet/gen/filtersuite"
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 )
 
 const (
+	// Should be consistent with filterinput.FilterInput
+	// Need to find a way to keep this DRY
 	filterInputVarRoot      = "_"
 	filterInputVarPkg       = "pkg"
 	filterInputVarVulns     = "vulns"
@@ -32,7 +35,7 @@ var (
 )
 
 type Evaluator interface {
-	AddFilter(name, filter string) error
+	AddFilter(filter *filtersuite.Filter) error
 	EvalPackage(pkg *models.Package) (*filterEvaluationResult, error)
 }
 
@@ -65,12 +68,12 @@ func NewEvaluator(name string, ignoreError bool) (Evaluator, error) {
 	}, nil
 }
 
-func (f *filterEvaluator) AddFilter(name, filter string) error {
+func (f *filterEvaluator) AddFilter(filter *filtersuite.Filter) error {
 	if len(f.programs) >= filterEvalMaxFilters {
 		return errMaxFilter
 	}
 
-	ast, issues := f.env.Compile(filter)
+	ast, issues := f.env.Compile(filter.GetValue())
 	if issues != nil && issues.Err() != nil {
 		return issues.Err()
 	}
@@ -81,7 +84,7 @@ func (f *filterEvaluator) AddFilter(name, filter string) error {
 	}
 
 	f.programs = append(f.programs, &filterProgram{
-		name:    name,
+		filter:  filter,
 		program: prog,
 	})
 

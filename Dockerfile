@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.19-buster AS build
+FROM --platform=$BUILDPLATFORM golang:1.21-bullseye AS build
 
 WORKDIR /build
 
@@ -10,7 +10,7 @@ COPY . .
 
 ENV CGO_ENABLED=1
 
-RUN go build -o vet
+RUN make quick-vet
 
 FROM gcr.io/distroless/cc
 

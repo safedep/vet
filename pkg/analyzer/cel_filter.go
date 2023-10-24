@@ -6,6 +6,7 @@ import (
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/safedep/dry/utils"
+	"github.com/safedep/vet/gen/filtersuite"
 	"github.com/safedep/vet/pkg/analyzer/filter"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
@@ -26,7 +27,10 @@ func NewCelFilterAnalyzer(fl string, failOnMatch bool) (Analyzer, error) {
 		return nil, err
 	}
 
-	err = evaluator.AddFilter("single-filter", fl)
+	err = evaluator.AddFilter(&filtersuite.Filter{
+		Name:  "filter-query",
+		Value: fl,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -76,6 +80,7 @@ func (f *celFilterAnalyzer) Analyze(manifest *models.PackageManifest,
 				Source:   f.Name(),
 				Type:     ET_FilterExpressionMatched,
 				Manifest: manifest,
+				Filter:   res.GetMatchedProgram().GetFilter(),
 				Package:  pkg,
 				Message:  "cli-filter",
 			})

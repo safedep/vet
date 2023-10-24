@@ -9,6 +9,8 @@ import (
 
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/safedep/vet/gen/insightapi"
+
+	modelspec "github.com/safedep/vet/gen/models"
 )
 
 const (
@@ -49,6 +51,49 @@ func (pm *PackageManifest) AddPackage(pkg *Package) {
 	pm.Packages = append(pm.Packages, pkg)
 }
 
+func (pm *PackageManifest) GetPath() string {
+	return pm.Path
+}
+
+func (pm *PackageManifest) Id() string {
+	h := fnv.New64a()
+	h.Write([]byte(fmt.Sprintf("%s/%s",
+		pm.Ecosystem, pm.Path)))
+
+	return strconv.FormatUint(h.Sum64(), 16)
+}
+
+func (pm *PackageManifest) GetSpecEcosystem() modelspec.Ecosystem {
+	switch pm.Ecosystem {
+	case EcosystemCargo:
+		return modelspec.Ecosystem_Cargo
+	case EcosystemGo:
+		return modelspec.Ecosystem_Go
+	case EcosystemMaven:
+		return modelspec.Ecosystem_Maven
+	case EcosystemNpm:
+		return modelspec.Ecosystem_Npm
+	case EcosystemHex:
+		return modelspec.Ecosystem_Hex
+	case EcosystemRubyGems:
+		return modelspec.Ecosystem_RubyGems
+	case EcosystemPyPI:
+		return modelspec.Ecosystem_PyPI
+	case EcosystemPub:
+		return modelspec.Ecosystem_Pub
+	case EcosystemCyDxSBOM:
+		return modelspec.Ecosystem_CycloneDxSBOM
+	case EcosystemSpdxSBOM:
+		return modelspec.Ecosystem_SpdxSBOM
+	case EcosystemPackagist:
+		return modelspec.Ecosystem_Packagist
+	case EcosystemNuGet:
+		return modelspec.Ecosystem_NuGet
+	default:
+		return modelspec.Ecosystem_UNKNOWN_ECOSYSTEM
+	}
+}
+
 // Represents a package such as a version of a library defined as a dependency
 // in Gemfile.lock, pom.xml etc.
 type Package struct {
@@ -75,6 +120,18 @@ func (p *Package) Id() string {
 		strings.ToLower(p.PackageDetails.Version))))
 
 	return strconv.FormatUint(h.Sum64(), 16)
+}
+
+func (p *Package) GetSpecEcosystem() modelspec.Ecosystem {
+	return p.Manifest.GetSpecEcosystem()
+}
+
+func (p *Package) GetName() string {
+	return p.Name
+}
+
+func (p *Package) GetVersion() string {
+	return p.Version
 }
 
 func (p *Package) ShortName() string {

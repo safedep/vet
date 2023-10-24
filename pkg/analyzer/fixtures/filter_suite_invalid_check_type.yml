@@ -1,0 +1,6 @@
+name: Check Type Invalid
+description: Filter Suite with Invalid Check Type
+filters:
+  - name: r1
+    value: "true"
+    check_type: Invalid

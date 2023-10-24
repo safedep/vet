@@ -1,81 +1,76 @@
 package reporter
 
 import (
-	"encoding/json"
-	"fmt"
+	"os"
+	"time"
+
+	"github.com/safedep/dry/utils"
+	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
+	schema "github.com/safedep/vet/gen/jsonreport"
+	modelspec "github.com/safedep/vet/gen/models"
+	"github.com/safedep/vet/gen/violations"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/exceptions"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
-	"os"
+	"github.com/safedep/vet/pkg/readers"
+	"github.com/safedep/vet/pkg/remediations"
+	"k8s.io/utils/strings/slices"
 )
 
 type JsonReportingConfig struct {
 	Path string
 }
 
-// Highlevel Json Structure
-type jsonTemplateInput struct {
-	Remediations map[string][]jsonTemplateInputRemediation `json:"remediations"` // Remediations
-	Summary      jsonTemplateInputResultSummary            `json:"summary"`      // Summary
-	Violations   []jsonTemplateInputViolation              `json:"violations"`   // Violations
-}
-
-type jsonTemplateInputViolation struct {
-	Ecosystem string `json:"ecosystem"` // Ecosystem of the package
-	PkgName   string `json:"pkg_name"`  // Package name
-	Message   string `json:"message"`   // Violation message
-}
-
-type jsonTemplateInputRemediation struct {
-	Pkg                *models.Package `json:"pkg"`                  // Package details
-	PkgRemediationName string          `json:"pkg_remediation_name"` // Remediation name
-	Score              int             `json:"score"`                // Score
-	Tags               string          `json:"tags"`                 // Tags
-}
-
-type jsonTemplateInputManifestResultSummary struct {
-	Ecosystem              string `json:"ecosystem"`                 // Ecosystem
-	PackageCount           int    `json:"package_count"`             // Package count
-	PackageWithIssuesCount int    `json:"package_with_issues_count"` // Packages with issues count
-}
-
-type jsonTemplateInputResultSummary struct {
-	Manifests          map[string]jsonTemplateInputManifestResultSummary `json:"manifests"`
-	ManifestsCount     int                                               `json:"manifests_count"`      // Manifests count
-	PackagesCount      int                                               `json:"packages_count"`       // Packages count
-	CriticalVulnCount  int                                               `json:"critical_vuln_count"`  // Critical vulnerabilities count
-	HighVulnCount      int                                               `json:"high_vuln_count"`      // High vulnerabilities count
-	OtherVulnCount     int                                               `json:"other_vuln_count"`     // Other vulnerabilities count
-	UnpopularLibsCount int                                               `json:"unpopular_libs_count"` // Unpopular libraries count
-	DriftLibsCount     int                                               `json:"drift_libs_count"`     // Drifting libraries count
-	ExemptedLibs       int                                               `json:"exempted_libs"`        // Exempted libraries count
-}
-
 // Json reporter is built on top of summary reporter to
 // provide extended visibility
 type jsonReportGenerator struct {
-	config          JsonReportingConfig
-	summaryReporter Reporter
-	violations      map[string]*analyzer.AnalyzerEvent
+	config       JsonReportingConfig
+	remediations remediations.RemediationGenerator
+
+	manifests map[string]*jsonreportspec.PackageManifestReport
+	packages  map[string]*jsonreportspec.PackageReport
 }
 
 func NewJsonReportGenerator(config JsonReportingConfig) (Reporter, error) {
-	summaryReporter, _ := NewSummaryReporter()
 	return &jsonReportGenerator{
-		config:          config,
-		summaryReporter: summaryReporter,
-		violations:      make(map[string]*analyzer.AnalyzerEvent),
+		config:       config,
+		remediations: remediations.NewStaticRemediationGenerator(),
+		manifests:    make(map[string]*schema.PackageManifestReport),
+		packages:     make(map[string]*schema.PackageReport),
 	}, nil
 }
 
 func (r *jsonReportGenerator) Name() string {
-	return "Json Report Generator"
+	return "JSON Report Generator"
 }
 
 func (r *jsonReportGenerator) AddManifest(manifest *models.PackageManifest) {
-	r.summaryReporter.AddManifest(manifest)
+	manifestId := manifest.Id()
+	if _, ok := r.manifests[manifestId]; !ok {
+		r.manifests[manifestId] = &jsonreportspec.PackageManifestReport{
+			Id:        manifestId,
+			Path:      manifest.GetPath(),
+			Ecosystem: manifest.GetSpecEcosystem(),
+		}
+	}
+
+	err := readers.NewManifestModelReader(manifest).EnumPackages(func(p *models.Package) error {
+		pkgId := p.Id()
+		if _, ok := r.packages[pkgId]; !ok {
+			r.packages[pkgId] = r.buildJsonPackageReportFromPackage(p)
+		}
+
+		if !slices.Contains(r.packages[pkgId].Manifests, manifestId) {
+			r.packages[pkgId].Manifests = append(r.packages[p.Id()].Manifests, manifestId)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		logger.Warnf("Failed to enumerate manifest packages: %v", err)
+	}
 }
 
 func (r *jsonReportGenerator) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
@@ -84,19 +79,49 @@ func (r *jsonReportGenerator) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 	}
 
 	if event.Package == nil {
+		logger.Warnf("Analyzer event with nil package")
 		return
 	}
 
 	if event.Package.Manifest == nil {
+		logger.Warnf("Analyzer event with nil package manifest")
+		return
+	}
+
+	if event.Filter == nil {
+		logger.Warnf("Analyzer event that matched filter but without Filter object")
 		return
 	}
 
 	pkgId := event.Package.Id()
-	if _, ok := r.violations[pkgId]; ok {
+	if _, ok := r.packages[pkgId]; !ok {
+		r.packages[pkgId] = r.buildJsonPackageReportFromPackage(event.Package)
+	}
+
+	// We avoid duplicate violation for a package. Duplicates can occur because same package
+	// is in multiple manifests hence raising same violation
+	v := utils.FindAnyWith(r.packages[pkgId].Violations, func(item **violations.Violation) bool {
+		return ((*item).GetFilter().GetName() == event.Filter.GetName())
+	})
+	if v != nil {
 		return
 	}
 
-	r.violations[pkgId] = event
+	// Fall through here to associate a Violation and a RemediationAdvice
+	violation := &violations.Violation{
+		CheckType: event.Filter.GetCheckType(),
+		Filter:    event.Filter,
+	}
+
+	r.packages[pkgId].Violations = append(r.packages[pkgId].Violations, violation)
+
+	advice, err := r.remediations.Advice(event.Package, violation)
+	if err != nil {
+		logger.Warnf("Failed to generate remediation for %s due to %v",
+			event.Package.ShortName(), err)
+	} else {
+		r.packages[pkgId].Advices = append(r.packages[pkgId].Advices, advice)
+	}
 }
 
 func (r *jsonReportGenerator) AddPolicyEvent(event *policy.PolicyEvent) {}
@@ -104,69 +129,25 @@ func (r *jsonReportGenerator) AddPolicyEvent(event *policy.PolicyEvent) {}
 func (r *jsonReportGenerator) Finish() error {
 	logger.Infof("Generating consolidated Json report: %s", r.config.Path)
 
-	var sr *summaryReporter
-	var ok bool
-
-	if sr, ok = r.summaryReporter.(*summaryReporter); !ok {
-		return fmt.Errorf("failed to duck type Reporter to summaryReporter")
+	report := schema.Report{
+		Meta: &schema.ReportMeta{
+			ToolName:    "vet",
+			ToolVersion: "latest",
+			CreatedAt:   time.Now().UTC().Format(time.RFC3339),
+		},
+		Packages:  make([]*schema.PackageReport, 0),
+		Manifests: make([]*schema.PackageManifestReport, 0),
 	}
 
-	sortedList := sr.sortedRemediations()
-	remediations := map[string][]jsonTemplateInputRemediation{}
-	manifest_summaries := map[string]jsonTemplateInputManifestResultSummary{}
-
-	for _, s := range sortedList {
-		mp := s.pkg.Manifest.Path
-		remediations[mp] = append(remediations[mp], jsonTemplateInputRemediation{
-			Pkg:                s.pkg,
-			PkgRemediationName: sr.packageNameForRemediationAdvice(s.pkg),
-			Score:              s.score,
-			Tags:               fmt.Sprintf("%s", s.tags),
-		})
-
-		if _, ok := manifest_summaries[mp]; !ok {
-			manifest_summaries[mp] = jsonTemplateInputManifestResultSummary{
-				Ecosystem:    string(s.pkg.Ecosystem),
-				PackageCount: len(s.pkg.Manifest.Packages),
-			}
-		} else {
-			s := manifest_summaries[mp]
-			s.PackageWithIssuesCount += 1
-			manifest_summaries[mp] = s
-		}
+	for _, pm := range r.manifests {
+		report.Manifests = append(report.Manifests, pm)
 	}
 
-	violations := []jsonTemplateInputViolation{}
-	for _, v := range r.violations {
-		var msg string
-		if msg, ok = v.Message.(string); !ok {
-			continue
-		}
-
-		violations = append(violations, jsonTemplateInputViolation{
-			Ecosystem: string(v.Package.Ecosystem),
-			PkgName:   fmt.Sprintf("%s@%s", v.Package.Name, v.Package.Version),
-			Message:   msg,
-		})
+	for _, p := range r.packages {
+		report.Packages = append(report.Packages, p)
 	}
 
-	summaries := jsonTemplateInputResultSummary{Manifests: manifest_summaries}
-	summaries.ManifestsCount = len(manifest_summaries)
-	summaries.PackagesCount = sr.summary.packages
-	summaries.CriticalVulnCount = sr.summary.vulns.critical
-	summaries.HighVulnCount = sr.summary.vulns.high
-	summaries.OtherVulnCount = sr.summary.vulns.medium + sr.summary.vulns.low
-	summaries.UnpopularLibsCount = sr.summary.metrics.unpopular
-	summaries.DriftLibsCount = sr.summary.metrics.drifts
-	summaries.ExemptedLibs = exceptions.ActiveCount()
-
-	templateInput := jsonTemplateInput{
-		Remediations: remediations,
-		Summary:      summaries,
-		Violations:   violations,
-	}
-
-	b, err := json.Marshal(templateInput)
+	b, err := utils.ToPbJson(&report, "")
 	if err != nil {
 		return err
 	}
@@ -177,6 +158,18 @@ func (r *jsonReportGenerator) Finish() error {
 	}
 
 	defer file.Close()
-	_, err = file.Write(b)
+	_, err = file.WriteString(b)
 	return err
+}
+
+func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Package) *jsonreportspec.PackageReport {
+	return &jsonreportspec.PackageReport{
+		Package: &modelspec.Package{
+			Ecosystem: p.GetSpecEcosystem(),
+			Name:      p.GetName(),
+			Version:   p.GetVersion(),
+		},
+		Violations: make([]*violations.Violation, 0),
+		Advices:    make([]*schema.RemediationAdvice, 0),
+	}
 }

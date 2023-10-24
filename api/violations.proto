@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option go_package = "github.com/safedep/vet/gen/violations";
+
+import "models.proto";
+import "checks.proto";
+import "filter_suite_spec.proto";
+
+message Violation {
+  CheckType check_type = 1;
+  Package package = 2;
+  Filter filter = 3;
+
+  map<string, string> extra = 4;
+}

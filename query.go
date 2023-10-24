@@ -60,7 +60,7 @@ func newQueryCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&queryMarkdownReportPath, "report-markdown", "", "",
 		"Generate markdown report to file")
 	cmd.Flags().StringVarP(&queryJsonReportPath, "report-json", "", "",
-		"Generate json report to file")
+		"Generate JSON report to file (EXPERIMENTAL)")
 	cmd.Flags().StringVarP(&queryCsvReportPath, "report-csv", "", "",
 		"Generate CSV report of filtered packages to file")
 	return cmd

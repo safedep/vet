@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+option go_package = "github.com/safedep/vet/gen/models";
+
+// Core data models on which `vet` operations. This should eventually
+// become source of truth and we should remove the model definitions in
+// Go code `models.go` and instead generate code from here
+
+enum Ecosystem {
+  UNKNOWN_ECOSYSTEM = 0;
+  Maven = 1;
+  RubyGems = 2;
+  Go = 3;
+  Npm = 4;
+  PyPI = 5;
+  Cargo = 6;
+  NuGet = 7;
+  Packagist = 8;
+  Hex = 9;
+  Pub = 10;
+  CycloneDxSBOM = 11;
+  SpdxSBOM = 12;
+}
+
+message Package {
+  Ecosystem ecosystem = 1;
+  string name = 2;
+  string version = 3;
+}
+
+message PackageManifest {
+  Ecosystem ecosystem = 1;
+  string path = 2;
+  repeated Package packages = 3;
+}
