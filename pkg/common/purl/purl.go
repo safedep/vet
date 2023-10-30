@@ -69,6 +69,7 @@ func PurlTypeToEcosystem(purlType string) (lockfile.Ecosystem, error) {
 		packageurl.TypePyPi:     lockfile.PipEcosystem,
 		"pip":                   lockfile.PipEcosystem,
 		"go":                    lockfile.GoEcosystem,
+		"rubygems":              lockfile.BundlerEcosystem,
 	}
 
 	ecosystem, ok := knownTypes[purlType]

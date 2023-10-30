@@ -156,6 +156,7 @@ func internalStartScan() error {
 	// contract is to support one of them at a time. Lets not break the contract
 	// for now and figure out UX improvement later
 	if len(lockfiles) > 0 {
+		// nolint:ineffassign,staticcheck
 		reader, err = readers.NewLockfileReader(lockfiles, lockfileAs)
 	} else if len(githubRepoUrls) > 0 {
 		githubClient, err := connect.GetGithubClient()
@@ -163,10 +164,13 @@ func internalStartScan() error {
 			logger.Fatalf("Failed to build Github client: %v", err)
 		}
 
+		// nolint:ineffassign,staticcheck
 		reader, err = readers.NewGithubReader(githubClient, githubRepoUrls, lockfileAs)
 	} else if len(purlSpec) > 0 {
+		// nolint:ineffassign,staticcheck
 		reader, err = readers.NewPurlReader(purlSpec)
 	} else {
+		// nolint:ineffassign,staticcheck
 		reader, err = readers.NewDirectoryReader(baseDirectory, scanExclude)
 	}
 
