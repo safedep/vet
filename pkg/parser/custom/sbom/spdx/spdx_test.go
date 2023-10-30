@@ -301,7 +301,7 @@ func TestGetDependencies(t *testing.T) {
 		{
 			filepath: "./fixtures/osv-scanner_google_3cab6.json",
 			expected: ExpectedResult{
-				total_pkgs: 54,
+				total_pkgs: 144,
 			},
 		},
 		// Add more test cases here
