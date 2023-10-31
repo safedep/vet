@@ -36,6 +36,8 @@ brew tap safedep/tap
 brew install safedep/tap/vet
 ```
 
+**Note:** The `brew` based release is broken. Look at [#139](https://github.com/safedep/vet/issues/139). Consider using `docker` images or build from source.
+
 - Alternatively, build from source
 
 > Ensure $(go env GOPATH)/bin is in your $PATH
@@ -111,6 +113,14 @@ vet scan --github https://github.com/safedep/vet
 ```
 
 **Note:** You may need to enable [Dependency Graph](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-the-dependency-graph) at repository or organization level for Github repository scanning to work.
+
+#### Scanning Package URL
+
+- To scan a [purl](https://github.com/package-url/purl-spec)
+
+```bash
+vet scan --purl pkg:/gem/nokogiri@1.10.4
+```
 
 #### Available Parsers
 
