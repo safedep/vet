@@ -27,6 +27,11 @@ filters:
     summary: Component appears to be unmaintained
     value: |
       scorecard.scores["Maintained"] == 0
+  - name: osv-malware
+    check_type: CheckTypeMalware
+    summary: Malicious (malware) component detected
+    value: |
+      vulns.all.exists(v, v.id.startsWith("MAL-"))
   - name: ossf-dangerous-workflow
     check_type: CheckTypeSecurityScorecard
     summary: Component release pipeline appear to use dangerous workflows
