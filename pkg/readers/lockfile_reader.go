@@ -42,7 +42,7 @@ func (p *lockfileReader) EnumManifests(handler func(*models.PackageManifest,
 			return err
 		}
 
-		err = handler(&manifest, NewManifestModelReader(&manifest))
+		err = handler(manifest, NewManifestModelReader(manifest))
 		if err != nil {
 			return err
 		}

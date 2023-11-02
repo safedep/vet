@@ -90,7 +90,7 @@ func processRemoteLockfile(ctx context.Context, client *github.Client,
 		return err
 	}
 
-	err = handler(&manifest, NewManifestModelReader(&manifest))
+	err = handler(manifest, NewManifestModelReader(manifest))
 	if err != nil {
 		return err
 	}

@@ -48,7 +48,7 @@ var customExperimentalParsers map[string]lockfile.PackageDetailsParser = map[str
 
 type Parser interface {
 	Ecosystem() string
-	Parse(lockfilePath string) (models.PackageManifest, error)
+	Parse(lockfilePath string) (*models.PackageManifest, error)
 }
 
 type parserWrapper struct {
@@ -152,7 +152,7 @@ func (pw *parserWrapper) Ecosystem() string {
 	}
 }
 
-func (pw *parserWrapper) Parse(lockfilePath string) (models.PackageManifest, error) {
+func (pw *parserWrapper) Parse(lockfilePath string) (*models.PackageManifest, error) {
 	pm := models.PackageManifest{Path: lockfilePath,
 		Ecosystem: pw.Ecosystem()}
 
@@ -160,7 +160,7 @@ func (pw *parserWrapper) Parse(lockfilePath string) (models.PackageManifest, err
 
 	packages, err := pw.parser(lockfilePath)
 	if err != nil {
-		return pm, err
+		return &pm, err
 	}
 
 	for _, pkg := range packages {
@@ -170,5 +170,5 @@ func (pw *parserWrapper) Parse(lockfilePath string) (models.PackageManifest, err
 		})
 	}
 
-	return pm, nil
+	return &pm, nil
 }
