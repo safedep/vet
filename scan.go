@@ -36,6 +36,7 @@ var (
 	jsonReportPath              string
 	consoleReport               bool
 	summaryReport               bool
+	summaryReportMaxAdvice      int
 	csvReportPath               string
 	silentScan                  bool
 	disableAuthVerifyBeforeScan bool
@@ -96,6 +97,8 @@ func newScanCommand() *cobra.Command {
 		"Print a report to the console")
 	cmd.Flags().BoolVarP(&summaryReport, "report-summary", "", true,
 		"Print a summary report with actionable advice")
+	cmd.Flags().IntVarP(&summaryReportMaxAdvice, "report-summary-max-advice", "", 5,
+		"Maximum number of package risk advice to show")
 	cmd.Flags().StringVarP(&csvReportPath, "report-csv", "", "",
 		"Generate CSV report of filtered packages")
 	cmd.Flags().StringVarP(&jsonReportPath, "report-json", "", "",
@@ -221,7 +224,10 @@ func internalStartScan() error {
 	}
 
 	if summaryReport {
-		rp, err := reporter.NewSummaryReporter()
+		rp, err := reporter.NewSummaryReporter(reporter.SummaryReporterConfig{
+			MaxAdvice: summaryReportMaxAdvice,
+		})
+
 		if err != nil {
 			return err
 		}

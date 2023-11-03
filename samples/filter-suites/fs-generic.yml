@@ -21,7 +21,9 @@ filters:
     summary: Risky OSS license was detected
     value: |
       licenses.exists(p, p == "GPL-2.0") ||
-      licenses.exists(p, p == "GPL-3.0")
+      licenses.exists(p, p == "GPL-2.0-only") ||
+      licenses.exists(p, p == "GPL-3.0") ||
+      licenses.exists(p, p == "GPL-3.0-only")
   - name: ossf-unmaintained
     check_type: CheckTypeMaintenance
     summary: Component appears to be unmaintained

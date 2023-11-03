@@ -47,7 +47,13 @@ type summaryReporterRemediationData struct {
 	tags  []string
 }
 
+type SummaryReporterConfig struct {
+	MaxAdvice int
+}
+
 type summaryReporter struct {
+	config SummaryReporterConfig
+
 	summary struct {
 		manifests int
 		packages  int
@@ -70,8 +76,13 @@ type summaryReporter struct {
 	violations        map[string]*summaryReporterInputViolationData
 }
 
-func NewSummaryReporter() (Reporter, error) {
+func NewSummaryReporter(config SummaryReporterConfig) (Reporter, error) {
+	if config.MaxAdvice == 0 {
+		config.MaxAdvice = summaryReportMaxUpgradeAdvice
+	}
+
 	return &summaryReporter{
+		config:            config,
 		remediationScores: make(map[string]*summaryReporterRemediationData),
 		violations:        make(map[string]*summaryReporterInputViolationData),
 	}, nil
@@ -295,8 +306,10 @@ func (r *summaryReporter) renderRemediationAdvice() {
 	tbl.SetStyle(table.StyleLight)
 
 	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Update To", "Impact"})
+
+	maxAdvice := r.config.MaxAdvice
 	for idx, sp := range sortedPackages {
-		if idx >= summaryReportMaxUpgradeAdvice {
+		if idx >= maxAdvice {
 			break
 		}
 

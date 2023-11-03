@@ -66,7 +66,10 @@ type markdownReportGenerator struct {
 }
 
 func NewMarkdownReportGenerator(config MarkdownReportingConfig) (Reporter, error) {
-	summaryReporter, _ := NewSummaryReporter()
+	summaryReporter, _ := NewSummaryReporter(SummaryReporterConfig{
+		MaxAdvice: summaryReportMaxUpgradeAdvice,
+	})
+
 	return &markdownReportGenerator{
 		config:          config,
 		summaryReporter: summaryReporter,
