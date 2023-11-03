@@ -72,8 +72,8 @@ func (p *directoryReader) EnumManifests(handler func(*models.PackageManifest,
 			return nil
 		}
 
-		return handler(&manifest,
-			NewManifestModelReader(&manifest))
+		return handler(manifest,
+			NewManifestModelReader(manifest))
 	})
 
 	return err

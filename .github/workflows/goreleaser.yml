@@ -1,4 +1,4 @@
-name: goreleaser
+name: Release Automation
 
 on:
   push:
@@ -7,6 +7,10 @@ on:
 
 permissions:
   contents: read
+
+env:
+  OSX_CROSS_TOOLCHAIN_REPOSITORY: https://github.com/abhisek/osxcross
+  OSX_CROSS_MACOS_SDK_VERSION: "12.3"
 
 jobs:
   goreleaser:
@@ -37,6 +41,35 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install OSX Cross Compiler Build Tools
+        run: sudo apt-get install -y -qq clang gcc g++ zlib1g-dev libmpc-dev libmpfr-dev libgmp-dev cmake libxml2-dev libssl-dev xz-utils
+
+      - name: Setup OSX Cross Compiler Tool Chain Environment
+        run: |
+          echo "OSXCROSS_DIR=$(dirname $GITHUB_WORKSPACE)/osxcross" >> $GITHUB_ENV
+
+      - name: Clone OSX Cross Compiler Tool Chain
+        run: git clone $OSX_CROSS_TOOLCHAIN_REPOSITORY $OSXCROSS_DIR
+
+      - name: Setup Cache for OSX Cross Compiler Tool Chain
+        id: osxcross-cache
+        uses: actions/cache@v3
+        with:
+          key: ${{ runner.os }}-osxcross-${{ env.OSX_CROSS_MACOS_SDK_VERSION }}
+          path: |
+            ${{ env.OSXCROSS_DIR }}/target/bin
+
+      - name: Build OSX Cross Compiler Tool Chain
+        if: steps.osxcross-cache.outputs.cache-hit != 'true'
+        run: |
+          cd $OSXCROSS_DIR
+          SDK_VERSION=$OSX_CROSS_MACOS_SDK_VERSION UNATTENDED=yes ./build.sh
+
+      - name: Add OSX Cross Compiler Tool Chain to Path
+        run: |
+          echo "$OSXCROSS_DIR/target/bin" >> $GITHUB_PATH
+
       - name: Run GoReleaser
         id: run-goreleaser
         uses: goreleaser/goreleaser-action@8f67e590f2d095516493f017008adc464e63adb1 # v4.1.0
@@ -45,6 +78,7 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
+
       - name: Generate subject
         id: hash
         env:

@@ -16,6 +16,7 @@ import (
 var (
 	verbose              bool
 	debug                bool
+	noBanner             bool
 	logFile              string
 	globalExceptionsFile string
 )
@@ -51,6 +52,7 @@ func main() {
 
 	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Show verbose logs")
 	cmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Show debug logs")
+	cmd.PersistentFlags().BoolVarP(&noBanner, "no-banner", "", false, "Do not display the vet banner")
 	cmd.PersistentFlags().StringVarP(&logFile, "log", "l", "", "Write command logs to file")
 	cmd.PersistentFlags().StringVarP(&globalExceptionsFile, "exceptions", "e", "", "Load exceptions from file")
 
@@ -86,10 +88,16 @@ func loadExceptions() {
 }
 
 func printBanner() {
-	bRet, err := strconv.ParseBool(os.Getenv("VET_DISABLE_BANNER"))
-	if (err != nil) || (!bRet) {
-		ui.PrintBanner(banner)
+	if noBanner {
+		return
 	}
+
+	bRet, err := strconv.ParseBool(os.Getenv("VET_DISABLE_BANNER"))
+	if (err == nil) && (bRet) {
+		return
+	}
+
+	ui.PrintBanner(banner)
 }
 
 // Redirect to file or discard log if empty

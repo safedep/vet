@@ -21,12 +21,19 @@ filters:
     summary: Risky OSS license was detected
     value: |
       licenses.exists(p, p == "GPL-2.0") ||
-      licenses.exists(p, p == "GPL-3.0")
+      licenses.exists(p, p == "GPL-2.0-only") ||
+      licenses.exists(p, p == "GPL-3.0") ||
+      licenses.exists(p, p == "GPL-3.0-only")
   - name: ossf-unmaintained
     check_type: CheckTypeMaintenance
     summary: Component appears to be unmaintained
     value: |
       scorecard.scores["Maintained"] == 0
+  - name: osv-malware
+    check_type: CheckTypeMalware
+    summary: Malicious (malware) component detected
+    value: |
+      vulns.all.exists(v, v.id.startsWith("MAL-"))
   - name: ossf-dangerous-workflow
     check_type: CheckTypeSecurityScorecard
     summary: Component release pipeline appear to use dangerous workflows

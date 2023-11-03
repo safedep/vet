@@ -58,7 +58,7 @@ func (p *githubReader) EnumManifests(handler func(*models.PackageManifest,
 			return err
 		}
 
-		err = processRemoteLockfile(ctx, p.client, gitURL, handler)
+		err = p.processRemoteDependencyGraph(ctx, p.client, gitURL, handler)
 		if err != nil {
 			return err
 		}
@@ -67,17 +67,18 @@ func (p *githubReader) EnumManifests(handler func(*models.PackageManifest,
 	return nil
 }
 
-func processRemoteLockfile(ctx context.Context, client *github.Client,
+func (p *githubReader) processRemoteDependencyGraph(ctx context.Context, client *github.Client,
 	gitUrl giturl.IGitURL, handler func(*models.PackageManifest,
 		PackageReader) error) error {
 
 	org := gitUrl.GetOwnerName()
 	repo := gitUrl.GetRepoName()
 
-	lf, err := fetchRemoteFile(ctx, client, org, repo)
+	lf, err := p.fetchRemoteDependencyGraphToFile(ctx, client, org, repo)
 	if err != nil {
 		return err
 	}
+
 	defer os.Remove(lf)
 
 	lfParser, err := parser.FindParser(lf, parser.LockfileAsBomSpdx)
@@ -90,7 +91,7 @@ func processRemoteLockfile(ctx context.Context, client *github.Client,
 		return err
 	}
 
-	err = handler(&manifest, NewManifestModelReader(&manifest))
+	err = handler(manifest, NewManifestModelReader(manifest))
 	if err != nil {
 		return err
 	}
@@ -110,7 +111,7 @@ func processRemoteLockfile(ctx context.Context, client *github.Client,
  *
  * Note: The caller should remove the filepath returned when done.
  **/
-func fetchRemoteFile(ctx context.Context, client *github.Client,
+func (p *githubReader) fetchRemoteDependencyGraphToFile(ctx context.Context, client *github.Client,
 	org, repo string) (string, error) {
 	sbom, _, err := client.DependencyGraph.GetSBOM(ctx, org, repo)
 	if err != nil {

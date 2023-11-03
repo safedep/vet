@@ -12,18 +12,19 @@ import (
 )
 
 var (
-	queryFilterExpression    string
-	queryFilterSuiteFile     string
-	queryFilterFailOnMatch   bool
-	queryLoadDirectory       string
-	queryEnableConsoleReport bool
-	queryEnableSummaryReport bool
-	queryMarkdownReportPath  string
-	queryJsonReportPath      string
-	queryCsvReportPath       string
-	queryExceptionsFile      string
-	queryExceptionsTill      string
-	queryExceptionsFilter    string
+	queryFilterExpression       string
+	queryFilterSuiteFile        string
+	queryFilterFailOnMatch      bool
+	queryLoadDirectory          string
+	queryEnableConsoleReport    bool
+	queryEnableSummaryReport    bool
+	querySummaryReportMaxAdvice int
+	queryMarkdownReportPath     string
+	queryJsonReportPath         string
+	queryCsvReportPath          string
+	queryExceptionsFile         string
+	queryExceptionsTill         string
+	queryExceptionsFilter       string
 
 	queryDefaultExceptionExpiry = time.Now().Add(90 * 24 * time.Hour)
 )
@@ -57,6 +58,8 @@ func newQueryCommand() *cobra.Command {
 		"Minimal summary of package manifest")
 	cmd.Flags().BoolVarP(&queryEnableSummaryReport, "report-summary", "", false,
 		"Show an actionable summary based on scan data")
+	cmd.Flags().IntVarP(&querySummaryReportMaxAdvice, "report-summary-max-advice", "", 5,
+		"Maximum number of package risk advice to show")
 	cmd.Flags().StringVarP(&queryMarkdownReportPath, "report-markdown", "", "",
 		"Generate markdown report to file")
 	cmd.Flags().StringVarP(&queryJsonReportPath, "report-json", "", "",
@@ -127,7 +130,10 @@ func internalStartQuery() error {
 	}
 
 	if queryEnableSummaryReport {
-		rp, err := reporter.NewSummaryReporter()
+		rp, err := reporter.NewSummaryReporter(reporter.SummaryReporterConfig{
+			MaxAdvice: querySummaryReportMaxAdvice,
+		})
+
 		if err != nil {
 			return err
 		}

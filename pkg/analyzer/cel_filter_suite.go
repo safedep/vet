@@ -14,8 +14,8 @@ import (
 )
 
 type celFilterMatchedPackage struct {
-	pkg        *models.Package
-	filterName string
+	pkg *models.Package
+	flt *filtersuite.Filter
 }
 
 type celFilterSuiteAnalyzer struct {
@@ -106,7 +106,7 @@ func (f *celFilterSuiteAnalyzer) renderMatchTable() {
 	tbl.SetStyle(table.StyleLight)
 	tbl.SetOutputMirror(os.Stdout)
 	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Latest",
-		"Filter"})
+		"Filter", "Summary"})
 
 	for _, mp := range f.matchedPackages {
 		insights := utils.SafelyGetValue(mp.pkg.Insights)
@@ -115,7 +115,8 @@ func (f *celFilterSuiteAnalyzer) renderMatchTable() {
 			fmt.Sprintf("%s@%s", mp.pkg.PackageDetails.Name,
 				mp.pkg.PackageDetails.Version),
 			utils.SafelyGetValue(insights.PackageCurrentVersion),
-			mp.filterName,
+			mp.flt.GetName(),
+			mp.flt.GetSummary(),
 		})
 	}
 
@@ -145,8 +146,8 @@ func (f *celFilterSuiteAnalyzer) handleMatchedPkg(pkg *models.Package,
 
 	f.stat.IncMatchedPackage()
 	f.matchedPackages[pkg.Id()] = &celFilterMatchedPackage{
-		filterName: filter.GetName(),
-		pkg:        pkg,
+		flt: filter,
+		pkg: pkg,
 	}
 }
 
