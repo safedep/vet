@@ -5,6 +5,8 @@ on:
     tags:
       - "*" # triggers only if push new tag version, like `0.8.4` or else
 
+concurrency: ci-release-automation
+
 permissions:
   contents: read
 
