@@ -1,4 +1,4 @@
-name: goreleaser
+name: Release Automation
 
 on:
   push:
@@ -37,6 +37,10 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Compiler Tools
+        run: sudo apt-get install -y -qq clang gcc g++ zlib1g-dev libmpc-dev libmpfr-dev libgmp-dev cmake libxml2-dev libssl-dev xz-utils
+
       - name: Run GoReleaser
         id: run-goreleaser
         uses: goreleaser/goreleaser-action@8f67e590f2d095516493f017008adc464e63adb1 # v4.1.0
@@ -45,6 +49,7 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
+
       - name: Generate subject
         id: hash
         env:

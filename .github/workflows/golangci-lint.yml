@@ -1,4 +1,4 @@
-name: golangci-lint
+name: Go Linter
 on:
   pull_request:
     branches:
