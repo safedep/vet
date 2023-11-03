@@ -26,8 +26,8 @@ builds:
     goarch:
       - amd64
     env:
-      - CC=clang
-      - CXX=clang++
+      - CC=o64-clang
+      - CXX=o64-clang++
 
   - id: darwin-arm64
     binary: vet
@@ -36,8 +36,8 @@ builds:
     goarch:
       - arm64
     env:
-      - CC=clang
-      - CXX=clang++
+      - CC=o64-clang
+      - CXX=o64-clang++
 
 release:
   # for prerelease it doesn't build and distribute
