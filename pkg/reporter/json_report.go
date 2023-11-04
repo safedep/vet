@@ -50,7 +50,7 @@ func (r *jsonReportGenerator) AddManifest(manifest *models.PackageManifest) {
 	if _, ok := r.manifests[manifestId]; !ok {
 		r.manifests[manifestId] = &jsonreportspec.PackageManifestReport{
 			Id:        manifestId,
-			Path:      manifest.GetPath(),
+			Path:      manifest.GetDisplayPath(),
 			Ecosystem: manifest.GetSpecEcosystem(),
 		}
 	}

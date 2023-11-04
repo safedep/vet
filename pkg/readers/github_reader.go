@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/go-github/v54/github"
 	giturl "github.com/kubescape/go-git-url"
+	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/common/utils"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/parser"
@@ -74,6 +75,8 @@ func (p *githubReader) processRemoteDependencyGraph(ctx context.Context, client 
 	org := gitUrl.GetOwnerName()
 	repo := gitUrl.GetRepoName()
 
+	logger.Infof("Fetching dependency graph from %s", gitUrl.GetURL().String())
+
 	lf, err := p.fetchRemoteDependencyGraphToFile(ctx, client, org, repo)
 	if err != nil {
 		return err
@@ -91,12 +94,13 @@ func (p *githubReader) processRemoteDependencyGraph(ctx context.Context, client 
 		return err
 	}
 
-	err = handler(manifest, NewManifestModelReader(manifest))
-	if err != nil {
-		return err
-	}
+	logger.Infof("Overriding manifest display path to: %s", gitUrl.GetHttpCloneURL())
 
-	return nil
+	// Override the display path because local path of the downloaded
+	// SBOM does not actually have a meaning
+	manifest.SetDisplayPath(gitUrl.GetHttpCloneURL())
+
+	return handler(manifest, NewManifestModelReader(manifest))
 }
 
 /**

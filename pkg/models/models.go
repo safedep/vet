@@ -34,6 +34,11 @@ type PackageManifest struct {
 	// Filesystem path of this manifest
 	Path string `json:"path"`
 
+	// When we scan non-path entities like Github org / repo
+	// then only path doesn't make sense, which is more local
+	// temporary file path
+	DisplayPath string `json:"display_path"`
+
 	// Ecosystem to interpret this manifest
 	Ecosystem string `json:"ecosystem"`
 
@@ -53,6 +58,20 @@ func (pm *PackageManifest) AddPackage(pkg *Package) {
 
 func (pm *PackageManifest) GetPath() string {
 	return pm.Path
+}
+
+func (pm *PackageManifest) SetDisplayPath(path string) {
+	pm.DisplayPath = path
+}
+
+// GetDisplayPath returns the [DisplayPath] if available or fallsback
+// to [Path]
+func (pm *PackageManifest) GetDisplayPath() string {
+	if len(pm.DisplayPath) > 0 {
+		return pm.DisplayPath
+	}
+
+	return pm.GetPath()
 }
 
 func (pm *PackageManifest) Id() string {

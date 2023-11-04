@@ -102,6 +102,8 @@ func printBanner() {
 
 // Redirect to file or discard log if empty
 func redirectLogToFile(path string) {
+	logger.Debugf("Redirecting logger output to: %s", path)
+
 	if !utils.IsEmptyString(path) {
 		if path == "-" {
 			logger.MigrateTo(os.Stdout)
