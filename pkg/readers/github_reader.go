@@ -119,7 +119,7 @@ func (p *githubReader) fetchRemoteDependencyGraphToFile(ctx context.Context, cli
 	org, repo string) (string, error) {
 	sbom, _, err := client.DependencyGraph.GetSBOM(ctx, org, repo)
 	if err != nil {
-		return "", fmt.Errorf("failed to fetch SBOM from Github: %v", err)
+		return "", fmt.Errorf("failed to fetch SBOM from Github: %v, you may have to enable Dependency Graph for your repository", err)
 	}
 
 	sbom_bytes, err := json.Marshal(sbom.SBOM)
