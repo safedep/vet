@@ -2,7 +2,6 @@ package auth
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -121,7 +120,7 @@ func loadConfiguration() error {
 
 	path = filepath.Join(path, homeRelativeConfigPath)
 
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
@@ -150,5 +149,5 @@ func persistConfiguration() error {
 	path = filepath.Join(path, homeRelativeConfigPath)
 
 	os.MkdirAll(filepath.Dir(path), os.ModePerm)
-	return ioutil.WriteFile(path, data, 0600)
+	return os.WriteFile(path, data, 0600)
 }

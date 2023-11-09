@@ -2,7 +2,6 @@ package spdx
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -11,8 +10,8 @@ import (
 )
 
 func TestParseSpdxSBOM(t *testing.T) {
-	// Create a sample SBOM JSON file
-	tempFile, _ := ioutil.TempFile("", "sbom_*.json")
+	tempFile, _ := os.CreateTemp("", "sbom_*.json")
+
 	defer os.Remove(tempFile.Name())
 	sbomContent := `{
 		"SPDXID": "SPDXRef-DOCUMENT",
@@ -272,7 +271,8 @@ func TestParseSpdxSBOM(t *testing.T) {
 		  }
 		]
 	  }`
-	err := ioutil.WriteFile(tempFile.Name(), []byte(sbomContent), 0644)
+
+	err := os.WriteFile(tempFile.Name(), []byte(sbomContent), 0644)
 	assert.Nil(t, err)
 
 	packages, err := Parse(tempFile.Name())
@@ -283,33 +283,37 @@ func TestParseSpdxSBOM(t *testing.T) {
 	assert.Equal(t, "mock", packages[1].Name)
 }
 
-type ExpectedResult struct {
+type expectedResult struct {
 	total_pkgs int
 }
 
 func TestGetDependencies(t *testing.T) {
 	tests := []struct {
 		filepath string
-		expected ExpectedResult
+		expected expectedResult
 	}{
 		{
 			filepath: "./fixtures/requests_psf_2ee5b0b01.json", // Path to your test file
-			expected: ExpectedResult{
+			expected: expectedResult{
 				total_pkgs: 15,
 			},
 		},
 		{
 			filepath: "./fixtures/osv-scanner_google_3cab6.json",
-			expected: ExpectedResult{
+			expected: expectedResult{
 				total_pkgs: 144,
 			},
 		},
-		// Add more test cases here
+		{
+			filepath: "./fixtures/janusgraph_oss_2dc3a123d9.json",
+			expected: expectedResult{
+				total_pkgs: 283,
+			},
+		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.filepath, func(t *testing.T) {
-
 			pkgs_doc, err := parse2PackageDetailsDoc(test.filepath)
 
 			assert.Nil(t, err)

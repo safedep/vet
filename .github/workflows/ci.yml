@@ -25,6 +25,8 @@ jobs:
           go mod tidy
           go build
           go test -v ./...
+        env:
+          VET_E2E: true
 
   build-container:
     runs-on: ubuntu-latest

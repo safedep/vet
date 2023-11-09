@@ -1,16 +1,15 @@
 package readers
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/google/go-github/v54/github"
 	giturl "github.com/kubescape/go-git-url"
-	"github.com/safedep/vet/pkg/common/utils"
+	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/parser"
 )
@@ -46,21 +45,100 @@ func (p *githubReader) Name() string {
 // string during initialization.
 func (p *githubReader) EnumManifests(handler func(*models.PackageManifest,
 	PackageReader) error) error {
-	var err error
 	ctx := context.Background()
-	if err != nil {
-		return err
-	}
 
+	// We will not fail fast! This is because when we are scanning multiple
+	// github urls, which we may while scanning an entire org, we want to make
+	// as much progress as possible while logging errors
 	for _, github_url := range p.github_urls {
 		gitURL, err := giturl.NewGitURL(github_url)
 		if err != nil {
-			return err
+			logger.Errorf("Failed to parse Github URL: %s due to %v", github_url, err)
+			continue
 		}
 
 		err = p.processRemoteDependencyGraph(ctx, p.client, gitURL, handler)
 		if err != nil {
-			return err
+			logger.Debugf("Failed to process dependency graph for %s: %v",
+				gitURL.GetURL().String(), err)
+
+			logger.Debugf("Attempting github repository enumeration to find lockfiles")
+			err = p.processTopLevelLockfiles(ctx, p.client, gitURL, handler)
+			if err != nil {
+				logger.Errorf("Failed to enumerate packages for: %s due to %v",
+					github_url, err)
+				continue
+			}
+		}
+	}
+
+	return nil
+}
+
+// This is used as a backup in case dependency insights are not enabled for a repository
+// However to keep things within the Github API rate limit and not to have the need for cloning
+// the entire repo, we will walk the top level files only to identify lockfiles to scan
+func (p *githubReader) processTopLevelLockfiles(ctx context.Context, client *github.Client,
+	gitUrl giturl.IGitURL, handler func(*models.PackageManifest, PackageReader) error) error {
+
+	logger.Infof("Discovering lockfiles by enumerating %s", gitUrl.GetURL().String())
+
+	repository, _, err := client.Repositories.Get(ctx, gitUrl.GetOwnerName(), gitUrl.GetRepoName())
+	if err != nil {
+		return err
+	}
+
+	targetBranch := repository.GetDefaultBranch()
+	logger.Debugf("Using branch: %s", targetBranch)
+
+	tree, _, err := client.Git.GetTree(ctx, gitUrl.GetOwnerName(), gitUrl.GetRepoName(),
+		targetBranch, false)
+	if err != nil {
+		return err
+	}
+
+	logger.Infof("Found default branch tree @ %s with %d entries",
+		tree.GetSHA(), len(tree.Entries))
+
+	for _, entry := range tree.Entries {
+		logger.Debugf("Attempting to find parser for: %s", entry.GetPath())
+
+		parser, err := parser.FindParser(entry.GetPath(), "")
+		if err != nil {
+			continue
+		}
+
+		logger.Debugf("Found a valid lockfile parser for: %s", entry.GetPath())
+
+		lfile, err := p.fetchRemoteFileToLocalFile(ctx, client,
+			gitUrl.GetOwnerName(), gitUrl.GetRepoName(),
+			entry.GetPath(), targetBranch)
+
+		if err != nil {
+			logger.Errorf("failed to fetch remote file: %v", err)
+			continue
+		}
+
+		err = func() error {
+			defer os.Remove(lfile)
+
+			pm, err := parser.Parse(lfile)
+			if err != nil {
+				return err
+			}
+
+			pm.SetDisplayPath(entry.GetURL())
+			err = handler(pm, NewManifestModelReader(pm))
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}()
+
+		if err != nil {
+			logger.Errorf("Failed to handle lockfile %s due to %v",
+				entry.GetPath(), err)
 		}
 	}
 
@@ -71,10 +149,10 @@ func (p *githubReader) processRemoteDependencyGraph(ctx context.Context, client 
 	gitUrl giturl.IGitURL, handler func(*models.PackageManifest,
 		PackageReader) error) error {
 
-	org := gitUrl.GetOwnerName()
-	repo := gitUrl.GetRepoName()
+	logger.Infof("Fetching dependency graph from %s", gitUrl.GetURL().String())
 
-	lf, err := p.fetchRemoteDependencyGraphToFile(ctx, client, org, repo)
+	lf, err := p.fetchRemoteDependencyGraphToFile(ctx, client,
+		gitUrl.GetOwnerName(), gitUrl.GetRepoName())
 	if err != nil {
 		return err
 	}
@@ -91,31 +169,24 @@ func (p *githubReader) processRemoteDependencyGraph(ctx context.Context, client 
 		return err
 	}
 
-	err = handler(manifest, NewManifestModelReader(manifest))
-	if err != nil {
-		return err
+	if len(manifest.Packages) == 0 {
+		return errors.New("no packages identified from SBOM")
 	}
 
-	return nil
+	logger.Infof("Overriding manifest display path to: %s", gitUrl.GetHttpCloneURL())
+
+	// Override the display path because local path of the downloaded
+	// SBOM does not actually have a meaning
+	manifest.SetDisplayPath(gitUrl.GetHttpCloneURL())
+
+	return handler(manifest, NewManifestModelReader(manifest))
 }
 
-/**
- * fetchRemoteFile processes the GitHub URL, downloads the content, and returns the filepath with the content.
- *
- * @param ctx       The context for the operation.
- * @param client    The GitHub client used for interacting with the API.
- * @param github_url   The GitHub URL to process.
- *
- * @return string    The filepath to the temporary file containing the downloaded content.
- * @return error     Any error encountered during the operation.
- *
- * Note: The caller should remove the filepath returned when done.
- **/
 func (p *githubReader) fetchRemoteDependencyGraphToFile(ctx context.Context, client *github.Client,
 	org, repo string) (string, error) {
 	sbom, _, err := client.DependencyGraph.GetSBOM(ctx, org, repo)
 	if err != nil {
-		return "", fmt.Errorf("failed to fetch SBOM from Github: %v", err)
+		return "", fmt.Errorf("failed to fetch SBOM from Github: %v, you may have to enable Dependency Graph for your repository", err)
 	}
 
 	sbom_bytes, err := json.Marshal(sbom.SBOM)
@@ -123,12 +194,47 @@ func (p *githubReader) fetchRemoteDependencyGraphToFile(ctx context.Context, cli
 		return "", fmt.Errorf("error converting sbom to json: %v", err)
 	}
 
-	io_reader := io.NopCloser(bytes.NewReader(sbom_bytes))
-	lfile, err := utils.CopyToTempFile(io_reader, os.TempDir(), "gh-sbom")
+	lfile, err := os.CreateTemp("", "vet-github-sbom")
 	if err != nil {
-		return "", fmt.Errorf("error copying sbom json bytes to the file %v", err)
+		return "", fmt.Errorf("failed to create temporary file: %v", err)
+	}
+
+	_, err = lfile.Write(sbom_bytes)
+	if err != nil {
+		return "", fmt.Errorf("failed to write sbom into temp file: %v", err)
 	}
 
 	defer lfile.Close()
 	return lfile.Name(), nil
+}
+
+func (p *githubReader) fetchRemoteFileToLocalFile(ctx context.Context, client *github.Client,
+	org, repo, path, ref string) (string, error) {
+	fileContent, _, _, err := client.Repositories.GetContents(ctx, org, repo, path,
+		&github.RepositoryContentGetOptions{
+			Ref: ref,
+		})
+
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch file from github: %v", err)
+	}
+
+	fileContentDecoded, err := fileContent.GetContent()
+	if err != nil {
+		return "", err
+	}
+
+	file, err := os.CreateTemp("", "vet-github-")
+	if err != nil {
+		return "", fmt.Errorf("failed to create temporary file: %v", err)
+	}
+
+	defer file.Close()
+
+	_, err = file.Write([]byte(fileContentDecoded))
+	if err != nil {
+		return "", err
+	}
+
+	return file.Name(), nil
 }

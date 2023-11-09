@@ -38,15 +38,14 @@ func Parse(pathToLockfile string) ([]lockfile.PackageDetails, error) {
 Parse and create PackageDetailsDoc
 */
 func parse2PackageDetailsDoc(pathToLockfile string) (*packagefile.PackageDetailsDoc, error) {
-	// open the SPDX file
 	r, err := os.Open(pathToLockfile)
 	if err != nil {
 		logger.Debugf("Error while opening %v for reading: %v", pathToLockfile, err)
 		return nil, err
 	}
+
 	defer r.Close()
 
-	// try to load the SPDX file's contents as a json file
 	bom, err := spdx_json.Read(r)
 	if err != nil {
 		logger.Debugf("Error while parsing %v: %v", pathToLockfile, err)
@@ -76,18 +75,16 @@ func parse2PackageDetailsDoc(pathToLockfile string) (*packagefile.PackageDetails
 			details.PackageDetails = append(details.PackageDetails, pd)
 		}
 	}
+
 	return details, nil
 }
 
 func parsePackage(pkg *spdx_go.Package) (*packagefile.PackageDetails, error) {
-
-	// Attempt parsing from purl
 	pd, _ := parsePackageFromPurl(pkg)
 	if pd != nil {
 		return pd, nil
 	}
 
-	// Attempt parsing from package detials
 	pd, err := parsePackageFromPackageDetails(pkg)
 	return pd, err
 }
@@ -100,16 +97,24 @@ func parsePackageFromPurl(pkg *spdx_go.Package) (*packagefile.PackageDetails, er
 			if pd != nil {
 				pd.SpdxRef = pkg
 			}
+
 			return pd, err
 		}
 	}
-	//When nothing found
+
 	return nil, nil
 }
 
-// Parse from packahge details, if available. It is bit Unreliable Parsing
+// Parse from package details, if available. It is bit Unreliable Parsing
 func parsePackageFromPackageDetails(pkg *spdx_go.Package) (*packagefile.PackageDetails, error) {
 	ptype, g, n, ok := attempParsePackageName(pkg.PackageName)
+
+	// FIXME: Generalize this
+	if strings.HasPrefix(ptype, "maven:") {
+		parts := strings.Split(ptype, ":")
+		ptype, g = parts[0], parts[1]
+	}
+
 	logger.Debugf("Parsed package name: Type: %s Group: %s Name: %s", ptype, g, n)
 	if !ok {
 		logger.Debugf("Could not parse package name: %s", pkg.PackageName)

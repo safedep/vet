@@ -36,8 +36,6 @@ brew tap safedep/tap
 brew install safedep/tap/vet
 ```
 
-**Note:** The `brew` based release is broken. Look at [#139](https://github.com/safedep/vet/issues/139). Consider using `docker` images or build from source.
-
 - Alternatively, build from source
 
 > Ensure $(go env GOPATH)/bin is in your $PATH

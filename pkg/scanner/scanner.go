@@ -68,7 +68,7 @@ func (s *packageManifestScanner) scanManifests(manifests []*models.PackageManife
 
 	// Start the scan phases per manifest
 	for _, manifest := range manifests {
-		logger.Infof("Analysing %s as %s ecosystem with %d packages", manifest.Path,
+		logger.Infof("Analysing %s as %s ecosystem with %d packages", manifest.GetPath(),
 			manifest.Ecosystem, len(manifest.Packages))
 
 		s.dispatchOnStartManifest(manifest)
@@ -82,21 +82,21 @@ func (s *packageManifestScanner) scanManifests(manifests []*models.PackageManife
 		err := s.enrichManifest(manifest)
 		if err != nil {
 			logger.Errorf("Failed to enrich %s manifest %s : %v",
-				manifest.Ecosystem, manifest.Path, err)
+				manifest.Ecosystem, manifest.GetPath(), err)
 		}
 
 		// Invoke analyzers to analyse the manifest
 		err = s.analyzeManifest(manifest)
 		if err != nil {
 			logger.Errorf("Failed to analyze %s manifest %s : %v",
-				manifest.Ecosystem, manifest.Path, err)
+				manifest.Ecosystem, manifest.GetPath(), err)
 		}
 
 		// Invoke activated reporting modules to report on the manifest
 		err = s.reportManifest(manifest)
 		if err != nil {
 			logger.Errorf("Failed to report %s manifest %s : %v",
-				manifest.Ecosystem, manifest.Path, err)
+				manifest.Ecosystem, manifest.GetPath(), err)
 		}
 
 		s.dispatchOnDoneManifest(manifest)
