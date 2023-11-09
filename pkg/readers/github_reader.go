@@ -44,15 +44,12 @@ func (p *githubReader) Name() string {
 // string during initialization.
 func (p *githubReader) EnumManifests(handler func(*models.PackageManifest,
 	PackageReader) error) error {
-	var err error
 	ctx := context.Background()
-	if err != nil {
-		return err
-	}
 
 	for _, github_url := range p.github_urls {
 		gitURL, err := giturl.NewGitURL(github_url)
 		if err != nil {
+			logger.Errorf("Failed to parse Github URL: %s due to %v", github_url, err)
 			return err
 		}
 
@@ -64,6 +61,8 @@ func (p *githubReader) EnumManifests(handler func(*models.PackageManifest,
 			logger.Debugf("Attempting github repository enumeration to find lockfiles")
 			err = p.processTopLevelLockfiles(ctx, p.client, gitURL, handler)
 			if err != nil {
+				logger.Errorf("Failed to enumerate packages for: %s due to %v",
+					github_url, err)
 				return err
 			}
 		}
@@ -85,8 +84,11 @@ func (p *githubReader) processTopLevelLockfiles(ctx context.Context, client *git
 		return err
 	}
 
+	targetBranch := repository.GetDefaultBranch()
+	logger.Debugf("Using branch: %s", targetBranch)
+
 	tree, _, err := client.Git.GetTree(ctx, gitUrl.GetOwnerName(), gitUrl.GetRepoName(),
-		repository.GetDefaultBranch(), false)
+		targetBranch, false)
 	if err != nil {
 		return err
 	}
@@ -95,6 +97,8 @@ func (p *githubReader) processTopLevelLockfiles(ctx context.Context, client *git
 		tree.GetSHA(), len(tree.Entries))
 
 	for _, entry := range tree.Entries {
+		logger.Debugf("Attempting to find parser for: %s", entry.GetPath())
+
 		parser, err := parser.FindParser(entry.GetPath(), "")
 		if err != nil {
 			continue
@@ -104,7 +108,7 @@ func (p *githubReader) processTopLevelLockfiles(ctx context.Context, client *git
 
 		lfile, err := p.fetchRemoteFileToLocalFile(ctx, client,
 			gitUrl.GetOwnerName(), gitUrl.GetRepoName(),
-			entry.GetPath(), entry.GetSHA())
+			entry.GetPath(), targetBranch)
 
 		if err != nil {
 			logger.Errorf("failed to fetch remote file: %v", err)
