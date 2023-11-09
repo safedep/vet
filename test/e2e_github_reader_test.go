@@ -2,6 +2,7 @@ package test
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/safedep/vet/internal/connect"
@@ -29,22 +30,32 @@ func TestGithubReaderWithVetPublicRepository(t *testing.T) {
 
 		githubReader, err := readers.NewGithubReader(githubClient, []string{
 			"https://github.com/safedep/vet",
+			"https://github.com/safedep/demo-client-java",
 		}, "")
 
 		assert.Nil(t, err, "github reader builder error")
 
-		var manifest *models.PackageManifest
+		var manifests []*models.PackageManifest
 		err = githubReader.EnumManifests(func(pm *models.PackageManifest, pr readers.PackageReader) error {
-			manifest = pm
+			manifests = append(manifests, pm)
 			return nil
 		})
 
 		assert.Nil(t, err)
-		assert.NotNil(t, manifest)
 
-		assert.Equal(t, manifest.GetSpecEcosystem().String(), modelspec.Ecosystem_SpdxSBOM.String())
-		assert.Equal(t, "https://github.com/safedep/vet.git", manifest.GetDisplayPath())
+		assert.Equal(t, len(manifests), 2)
 
-		assert.Greater(t, len(manifest.Packages), 0)
+		assert.NotNil(t, manifests[0])
+		assert.NotNil(t, manifests[1])
+
+		assert.Equal(t, manifests[0].GetSpecEcosystem().String(), modelspec.Ecosystem_SpdxSBOM.String())
+		assert.Equal(t, "https://github.com/safedep/vet.git", manifests[0].GetDisplayPath(), "found in Dependency API (SBOM)")
+		assert.Greater(t, len(manifests[0].Packages), 0)
+
+		assert.True(t, strings.HasPrefix(manifests[1].GetDisplayPath(),
+			"https://api.github.com/repos/safedep/demo-client-java/git/blobs/"),
+			"found by enumerating top level directory")
+
+		assert.Greater(t, len(manifests[1].Packages), 0)
 	})
 }
