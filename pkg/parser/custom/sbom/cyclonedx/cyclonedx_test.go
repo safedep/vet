@@ -79,7 +79,6 @@ func TestParseCyclonedxSBOM_WithMultipleFiles(t *testing.T) {
 
 	for _, filename := range filesToTest {
 		t.Run(filename, func(t *testing.T) {
-			// Construct the full file path
 			filePath := filepath.Join(fixtureDir, filename)
 
 			packages, err := Parse(filePath)
@@ -87,8 +86,6 @@ func TestParseCyclonedxSBOM_WithMultipleFiles(t *testing.T) {
 			assert.Nil(t, err)
 			assert.NotNil(t, packages)
 			assert.NotEmpty(t, packages)
-			t.Logf("Packages from %s: %v", filename, packages)
-			// You can add assertions for the parsed packages here
 		})
 	}
 }
