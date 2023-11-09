@@ -7,19 +7,19 @@ require (
 	github.com/CycloneDX/cyclonedx-go v0.7.2
 	github.com/cli/oauth v1.0.1
 	github.com/deepmap/oapi-codegen v1.16.2
-	github.com/gofri/go-github-ratelimit v1.0.4
+	github.com/gofri/go-github-ratelimit v1.0.5
 	github.com/golang/protobuf v1.5.3
 	github.com/google/cel-go v0.18.1
 	github.com/google/go-github/v54 v54.0.0
-	github.com/google/osv-scanner v1.4.1
-	github.com/jedib0t/go-pretty/v6 v6.4.8
+	github.com/google/osv-scanner v1.4.3
+	github.com/jedib0t/go-pretty/v6 v6.4.9
 	github.com/kubescape/go-git-url v0.0.25
 	github.com/package-url/packageurl-go v0.1.2
 	github.com/safedep/dry v0.0.0-20231024121814-ee8dd6ec7d93
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smacker/go-tree-sitter v0.0.0-20230720070738-0d0a9f78d8f8
 	github.com/spdx/tools-golang v0.5.3
-	github.com/spf13/cobra v1.7.0
+	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/oauth2 v0.13.0
 	golang.org/x/term v0.13.0
@@ -113,7 +113,6 @@ require (
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/genproto v0.0.0-20231016165738-49dd2c1f3d0b // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20231016165738-49dd2c1f3d0b // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231016165738-49dd2c1f3d0b // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
