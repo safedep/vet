@@ -51,7 +51,7 @@ func connectGithubCommand() *cobra.Command {
 			ui.PrintSuccess("Github Access Token configured and saved at '%s' for your convenience.", connect.GetConfigFileHint())
 			ui.PrintSuccess("You can use vet to scan your github repositories")
 			ui.PrintSuccess("Run the command to scan your github repository")
-			ui.PrintSuccess("\tvet scan https://github.com/<Org|User>/<Repo>")
+			ui.PrintSuccess("\tvet scan --github https://github.com/<Org|User>/<Repo>")
 
 			os.Exit(1)
 			return nil
