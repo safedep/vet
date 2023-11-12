@@ -321,6 +321,13 @@ func internalStartScan() error {
 	var packageTracker any
 
 	pmScanner.WithCallbacks(scanner.ScannerCallbacks{
+		OnStartEnumerateManifest: func() {
+			ui.PrintMsg("Starting to enumerate manifests")
+		},
+		OnEnumerateManifest: func(manifest *models.PackageManifest) {
+			ui.PrintSuccess("Discovered a manifest at %s with %d packages",
+				manifest.GetDisplayPath(), len(manifest.Packages))
+		},
 		OnStart: func(manifests []*models.PackageManifest) {
 			if !silentScan {
 				ui.StartProgressWriter()

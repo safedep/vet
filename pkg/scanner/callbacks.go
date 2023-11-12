@@ -13,18 +13,32 @@ type ScannerCallbackErrArgFn func(error)
 type ScannerCallbackNoArgFn func()
 
 type ScannerCallbacks struct {
-	OnStart                ScannerCallbackOnManifestsFn
-	OnStartManifest        ScannerCallbackOnManifestFn
-	OnStartPackage         ScannerCallbackOnPackageFn
-	OnAddTransitivePackage ScannerCallbackOnPackageFn
-	OnDonePackage          ScannerCallbackOnPackageFn
-	OnDoneManifest         ScannerCallbackOnManifestFn
-	BeforeFinish           ScannerCallbackNoArgFn
-	OnStop                 ScannerCallbackErrArgFn
+	OnStartEnumerateManifest ScannerCallbackNoArgFn       // Manifest enumeration is starting
+	OnEnumerateManifest      ScannerCallbackOnManifestFn  // A manifest is read by reader
+	OnStart                  ScannerCallbackOnManifestsFn // Manifest scan phase is starting
+	OnStartManifest          ScannerCallbackOnManifestFn  // A manifest is starting to be scanned
+	OnStartPackage           ScannerCallbackOnPackageFn   // A package analysis is starting
+	OnAddTransitivePackage   ScannerCallbackOnPackageFn   // A transitive dependency is discovered
+	OnDonePackage            ScannerCallbackOnPackageFn   // A package analysis is finished
+	OnDoneManifest           ScannerCallbackOnManifestFn  // A manifest analysis is finished
+	BeforeFinish             ScannerCallbackNoArgFn       // Scan is about to finish
+	OnStop                   ScannerCallbackErrArgFn      // Scan is finished
 }
 
 func (s *packageManifestScanner) WithCallbacks(callbacks ScannerCallbacks) {
 	s.callbacks = callbacks
+}
+
+func (s *packageManifestScanner) dispatchStartManifestEnumeration() {
+	if s.callbacks.OnStartEnumerateManifest != nil {
+		s.callbacks.OnStartEnumerateManifest()
+	}
+}
+
+func (s *packageManifestScanner) dispatchOnManifestEnumeration(manifest *models.PackageManifest) {
+	if s.callbacks.OnEnumerateManifest != nil {
+		s.callbacks.OnEnumerateManifest(manifest)
+	}
 }
 
 func (s *packageManifestScanner) dispatchOnStart(manifests []*models.PackageManifest) {
