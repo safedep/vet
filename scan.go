@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/google/go-github/v54/github"
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/internal/connect"
@@ -24,6 +25,8 @@ var (
 	baseDirectory               string
 	purlSpec                    string
 	githubRepoUrls              []string
+	githubOrgUrl                string
+	githubOrgMaxRepositories    int
 	scanExclude                 []string
 	transitiveAnalysis          bool
 	transitiveDepth             int
@@ -73,6 +76,10 @@ func newScanCommand() *cobra.Command {
 		"PURL to scan")
 	cmd.Flags().StringArrayVarP(&githubRepoUrls, "github", "", []string{},
 		"Github repository URL (Example: https://github.com/{org}/{repo})")
+	cmd.Flags().StringVarP(&githubOrgUrl, "github-org", "", "",
+		"Github organization URL (Example: https://github.com/safedep)")
+	cmd.Flags().IntVarP(&githubOrgMaxRepositories, "github-org-max-repo", "", 1000,
+		"Maximum number of repositories to process for the Github Org")
 	cmd.Flags().StringVarP(&lockfileAs, "lockfile-as", "", "",
 		"Parser to use for the lockfile (vet scan parsers to list)")
 	cmd.Flags().BoolVarP(&transitiveAnalysis, "transitive", "", false,
@@ -155,6 +162,15 @@ func internalStartScan() error {
 	var reader readers.PackageManifestReader
 	var err error
 
+	githubClientBuilder := func() *github.Client {
+		githubClient, err := connect.GetGithubClient()
+		if err != nil {
+			logger.Fatalf("Failed to build Github client: %v", err)
+		}
+
+		return githubClient
+	}
+
 	// We can easily support both directory and lockfile reader. But current UX
 	// contract is to support one of them at a time. Lets not break the contract
 	// for now and figure out UX improvement later
@@ -162,13 +178,19 @@ func internalStartScan() error {
 		// nolint:ineffassign,staticcheck
 		reader, err = readers.NewLockfileReader(lockfiles, lockfileAs)
 	} else if len(githubRepoUrls) > 0 {
-		githubClient, err := connect.GetGithubClient()
-		if err != nil {
-			logger.Fatalf("Failed to build Github client: %v", err)
-		}
+		githubClient := githubClientBuilder()
 
 		// nolint:ineffassign,staticcheck
 		reader, err = readers.NewGithubReader(githubClient, githubRepoUrls, lockfileAs)
+	} else if len(githubOrgUrl) > 0 {
+		githubClient := githubClientBuilder()
+
+		// nolint:ineffassign,staticcheck
+		reader, err = readers.NewGithubOrgReader(githubClient, &readers.GithubOrgReaderConfig{
+			OrganizationURL: githubOrgUrl,
+			IncludeArchived: false,
+			MaxRepositories: githubOrgMaxRepositories,
+		})
 	} else if len(purlSpec) > 0 {
 		// nolint:ineffassign,staticcheck
 		reader, err = readers.NewPurlReader(purlSpec)

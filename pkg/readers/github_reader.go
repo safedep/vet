@@ -51,6 +51,8 @@ func (p *githubReader) EnumManifests(handler func(*models.PackageManifest,
 	// github urls, which we may while scanning an entire org, we want to make
 	// as much progress as possible while logging errors
 	for _, github_url := range p.github_urls {
+		logger.Debugf("Processing Github URL: %s", github_url)
+
 		gitURL, err := giturl.NewGitURL(github_url)
 		if err != nil {
 			logger.Errorf("Failed to parse Github URL: %s due to %v", github_url, err)
