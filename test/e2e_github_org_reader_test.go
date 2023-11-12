@@ -26,7 +26,7 @@ func TestGithubOrgReaderWithSafeDepOrg(t *testing.T) {
 
 		githubOrgReader, err := readers.NewGithubOrgReader(githubClient, &readers.GithubOrgReaderConfig{
 			OrganizationURL: "https://github.com/safedep",
-			MaxRepositories: 1,
+			MaxRepositories: 5,
 		})
 
 		assert.Nil(t, err)
