@@ -22,8 +22,9 @@ type GithubOrgReaderConfig struct {
 }
 
 type githubOrgReader struct {
-	client *github.Client
-	config *GithubOrgReaderConfig
+	client             *github.Client
+	config             *GithubOrgReaderConfig
+	scannedRepoCounter int
 }
 
 // NewGithubOrgReader creates a [PackageManifestReader] which enumerates
@@ -31,8 +32,9 @@ type githubOrgReader struct {
 func NewGithubOrgReader(client *github.Client,
 	config *GithubOrgReaderConfig) (PackageManifestReader, error) {
 	return &githubOrgReader{
-		client: client,
-		config: config,
+		client:             client,
+		config:             config,
+		scannedRepoCounter: 0,
 	}, nil
 }
 
@@ -54,14 +56,13 @@ func (p *githubOrgReader) EnumManifests(handler func(*models.PackageManifest,
 		PerPage: githubOrgReaderPerPageSize,
 	}
 
-	enumeratedRepositories := 0
 	for {
 		if err := ctx.Err(); err != nil {
 			logger.Errorf("Context error: %v", err)
 			break
 		}
 
-		if (p.config.MaxRepositories != 0) && (enumeratedRepositories > p.config.MaxRepositories) {
+		if p.isRepoLimitReached() {
 			logger.Infof("Stopping repository enumeration due to max %d limit reached",
 				p.config.MaxRepositories)
 			break
@@ -90,11 +91,24 @@ func (p *githubOrgReader) EnumManifests(handler func(*models.PackageManifest,
 			break
 		}
 
-		enumeratedRepositories = enumeratedRepositories + len(repositories)
 		listOptions.Page = resp.NextPage
 	}
 
 	return nil
+}
+
+func (p *githubOrgReader) isRepoLimitReached() bool {
+	return (p.config.MaxRepositories != 0) &&
+		(p.scannedRepoCounter >= p.config.MaxRepositories)
+}
+
+// withIncrementedRepoCount executes fn while incrementing the repository
+// count. It returns a boolean indicating if repo count is reached
+func (p *githubOrgReader) withIncrementedRepoCount(fn func()) bool {
+	fn()
+	p.scannedRepoCounter = p.scannedRepoCounter + 1
+
+	return p.isRepoLimitReached()
 }
 
 func (p *githubOrgReader) handleRepositoryBatch(repositories []*github.Repository,
@@ -102,7 +116,17 @@ func (p *githubOrgReader) handleRepositoryBatch(repositories []*github.Repositor
 
 	var repoUrls []string
 	for _, repo := range repositories {
-		repoUrls = append(repoUrls, repo.GetCloneURL())
+		breach := p.withIncrementedRepoCount(func() {
+			repoUrls = append(repoUrls, repo.GetCloneURL())
+		})
+
+		if breach {
+			break
+		}
+	}
+
+	if len(repoUrls) == 0 {
+		return nil
 	}
 
 	githubReader, err := NewGithubReader(p.client, repoUrls, "")

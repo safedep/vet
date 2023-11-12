@@ -31,10 +31,13 @@ func TestGithubOrgReaderWithSafeDepOrg(t *testing.T) {
 
 		assert.Nil(t, err)
 
+		var manifests []*models.PackageManifest
 		err = githubOrgReader.EnumManifests(func(pm *models.PackageManifest, pr readers.PackageReader) error {
+			manifests = append(manifests, pm)
 			return nil
 		})
 
 		assert.Nil(t, err)
+		assert.Greater(t, len(manifests), 0)
 	})
 }
