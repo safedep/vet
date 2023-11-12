@@ -112,6 +112,15 @@ vet scan --github https://github.com/safedep/vet
 
 **Note:** You may need to enable [Dependency Graph](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-the-dependency-graph) at repository or organization level for Github repository scanning to work.
 
+#### Scanning Github Organization
+
+> You must setup the required access for scanning private repositories
+> before scanning organizations
+
+```bash
+vet scan --github-org https://github.com/safedep
+```
+
 #### Scanning Package URL
 
 - To scan a [purl](https://github.com/package-url/purl-spec)
