@@ -204,6 +204,10 @@ make quick-vet
 go test -v ./...
 ```
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=safedep/vet&type=Date)](https://star-history.com/#safedep/vet&Date)
+
 ## 🔖 References
 
 - [https://github.com/google/osv-scanner](https://github.com/google/osv-scanner)
