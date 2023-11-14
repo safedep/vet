@@ -80,7 +80,7 @@ func getAccessTokenFromUser() (string, error) {
 	}
 
 	password := &survey.Password{
-		Message: "Paste your access token: ",
+		Message: "Provide your access token: ",
 	}
 
 	var accessToken string
