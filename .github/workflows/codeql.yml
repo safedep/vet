@@ -24,6 +24,7 @@ permissions:
 jobs:
   analyze:
     if: "!contains(github.event.commits[0].message, '[noci]')"
+    timeout-minutes: 30
     name: Analyze
     runs-on: ubuntu-latest
     permissions:

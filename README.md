@@ -121,6 +121,8 @@ vet scan --github https://github.com/safedep/vet
 vet scan --github-org https://github.com/safedep
 ```
 
+> **Note:** `vet` will block and wait if it encounters Github secondary rate limit.
+
 #### Scanning Package URL
 
 - To scan a [purl](https://github.com/package-url/purl-spec)
