@@ -151,14 +151,14 @@ func attempParsePackageName(input string) (string, string, string, bool) {
 	// 3. (.*?)    Match and capture the name
 	pattern := regexp.MustCompile(`^((.+):)?((.+)/)?(.*)$`)
 	matches := pattern.FindStringSubmatch(input)
-	version := matches[5]
-
-	if matches[5] == "" {
-		version = "0.0.0"
-	}
 
 	if len(matches) != 6 {
 		return "", "", "", false
+	}
+
+	version := matches[5]
+	if version == "" {
+		version = "0.0.0"
 	}
 
 	return matches[2], matches[4], version, true

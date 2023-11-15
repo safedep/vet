@@ -48,10 +48,14 @@ func (s *packageManifestScanner) Start() error {
 	// of progress update depends on it
 	var manifests []*models.PackageManifest
 
+	s.dispatchStartManifestEnumeration()
 	for _, reader := range s.readers {
 		err := reader.EnumManifests(func(manifest *models.PackageManifest,
 			_ readers.PackageReader) error {
+
+			s.dispatchOnManifestEnumeration(manifest)
 			manifests = append(manifests, manifest)
+
 			return nil
 		})
 
