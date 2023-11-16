@@ -9,7 +9,6 @@ import (
 	"github.com/safedep/dry/errors"
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/insightapi"
-	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 )
@@ -24,26 +23,30 @@ type PackageMetaEnricher interface {
 	Enrich(pkg *models.Package, cb PackageDependencyCallbackFn) error
 }
 
+type InsightsBasedPackageMetaEnricherConfig struct {
+	ApiUrl     string
+	ApiAuthKey string
+}
+
 type insightsBasedPackageEnricher struct {
 	client *insightapi.ClientWithResponses
 }
 
-func NewInsightBasedPackageEnricher() PackageMetaEnricher {
+func NewInsightBasedPackageEnricher(config InsightsBasedPackageMetaEnricherConfig) (PackageMetaEnricher, error) {
 	apiKeyApplier := func(ctx context.Context, req *http.Request) error {
-		req.Header.Set("Authorization", auth.ApiKey())
+		req.Header.Set("Authorization", config.ApiAuthKey)
 		return nil
 	}
 
-	client, err := insightapi.NewClientWithResponses(auth.ApiUrl(),
+	client, err := insightapi.NewClientWithResponses(config.ApiUrl,
 		insightapi.WithRequestEditorFn(apiKeyApplier))
 	if err != nil {
-		// TODO: Handle
-		panic(err)
+		return nil, err
 	}
 
 	return &insightsBasedPackageEnricher{
 		client: client,
-	}
+	}, nil
 }
 
 func (e *insightsBasedPackageEnricher) Name() string {

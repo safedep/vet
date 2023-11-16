@@ -1,7 +1,9 @@
 package scanner
 
 import (
+	"context"
 	"fmt"
+	"sync"
 
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -44,9 +46,14 @@ func NewPackageManifestScanner(config Config,
 }
 
 func (s *packageManifestScanner) Start() error {
-	// We need to eager load the manifests because the current UI experience
-	// of progress update depends on it
-	var manifests []*models.PackageManifest
+	s.dispatchOnStart()
+
+	scannerChannel := make(chan *models.PackageManifest, 100)
+	defer close(scannerChannel)
+
+	wg := sync.WaitGroup{}
+	ctx := context.Background()
+	go s.startManifestScanner(ctx, scannerChannel, &wg)
 
 	s.dispatchStartManifestEnumeration()
 	for _, reader := range s.readers {
@@ -54,57 +61,19 @@ func (s *packageManifestScanner) Start() error {
 			_ readers.PackageReader) error {
 
 			s.dispatchOnManifestEnumeration(manifest)
-			manifests = append(manifests, manifest)
+			scannerChannel <- manifest
 
+			wg.Add(1)
 			return nil
 		})
 
 		if err != nil {
+			ctx.Done()
 			return err
 		}
 	}
 
-	return s.scanManifests(manifests)
-}
-
-func (s *packageManifestScanner) scanManifests(manifests []*models.PackageManifest) error {
-	s.dispatchOnStart(manifests)
-
-	// Start the scan phases per manifest
-	for _, manifest := range manifests {
-		logger.Infof("Analysing %s as %s ecosystem with %d packages", manifest.GetPath(),
-			manifest.Ecosystem, len(manifest.Packages))
-
-		s.dispatchOnStartManifest(manifest)
-
-		// Stop scan if there is a pendin error
-		if s.hasError() {
-			break
-		}
-
-		// Enrich each packages in a manifest with metadata
-		err := s.enrichManifest(manifest)
-		if err != nil {
-			logger.Errorf("Failed to enrich %s manifest %s : %v",
-				manifest.Ecosystem, manifest.GetPath(), err)
-		}
-
-		// Invoke analyzers to analyse the manifest
-		err = s.analyzeManifest(manifest)
-		if err != nil {
-			logger.Errorf("Failed to analyze %s manifest %s : %v",
-				manifest.Ecosystem, manifest.GetPath(), err)
-		}
-
-		// Invoke activated reporting modules to report on the manifest
-		err = s.reportManifest(manifest)
-		if err != nil {
-			logger.Errorf("Failed to report %s manifest %s : %v",
-				manifest.Ecosystem, manifest.GetPath(), err)
-		}
-
-		s.dispatchOnDoneManifest(manifest)
-	}
+	wg.Wait()
 
 	s.dispatchBeforeFinish()
 
@@ -114,6 +83,58 @@ func (s *packageManifestScanner) scanManifests(manifests []*models.PackageManife
 
 	s.dispatchOnStop(s.error())
 	return s.error()
+}
+
+// startManifestScanner internally takes input from channel and scans the manifest
+// The object is NOT to scan manifests in parallel but to build a work queue like
+// mechanism where we can scan a manifest whenever it is available instead of waiting
+// for all manifests to be available
+func (s *packageManifestScanner) startManifestScanner(ctx context.Context,
+	incoming <-chan *models.PackageManifest, waiter *sync.WaitGroup) {
+
+	// Start the scan phases per manifest
+	for {
+		if err := ctx.Err(); err != nil {
+			break
+		}
+
+		// Stop scan if there is a pending error
+		if s.hasError() {
+			break
+		}
+
+		manifest := <-incoming
+		s.dispatchOnStartManifest(manifest)
+
+		// We are using a function here so that we can use `defer` to ensure
+		// we always mark the wait group irrespective of success or failure
+		func() {
+			defer waiter.Done()
+
+			// Enrich each packages in a manifest with metadata
+			err := s.enrichManifest(manifest)
+			if err != nil {
+				logger.Errorf("Failed to enrich %s manifest %s : %v",
+					manifest.Ecosystem, manifest.GetPath(), err)
+			}
+
+			// Invoke analyzers to analyse the manifest
+			err = s.analyzeManifest(manifest)
+			if err != nil {
+				logger.Errorf("Failed to analyze %s manifest %s : %v",
+					manifest.Ecosystem, manifest.GetPath(), err)
+			}
+
+			// Invoke activated reporting modules to report on the manifest
+			err = s.reportManifest(manifest)
+			if err != nil {
+				logger.Errorf("Failed to report %s manifest %s : %v",
+					manifest.Ecosystem, manifest.GetPath(), err)
+			}
+
+			s.dispatchOnDoneManifest(manifest)
+		}()
+	}
 }
 
 func (s *packageManifestScanner) analyzeManifest(manifest *models.PackageManifest) error {
