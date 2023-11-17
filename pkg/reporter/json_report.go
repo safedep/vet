@@ -187,7 +187,7 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 		pkg.Vulnerabilities = append(pkg.Vulnerabilities, &modelspec.InsightVulnerability{
 			Id:         utils.SafelyGetValue(vuln.Id),
 			Title:      utils.SafelyGetValue(vuln.Summary),
-			Aliases:    utils.SafelyGetValue(vuln.Related),
+			Aliases:    utils.SafelyGetValue(vuln.Aliases),
 			Severities: make([]*modelspec.InsightVulnerabilitySeverity, 0),
 		})
 	}
