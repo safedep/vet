@@ -93,14 +93,18 @@ func (r *jsonReportGenerator) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 		return
 	}
 
+	// Create a reportable package model if it does not already exist
 	pkgId := event.Package.Id()
 	if _, ok := r.packages[pkgId]; !ok {
 		r.packages[pkgId] = r.buildJsonPackageReportFromPackage(event.Package)
 	}
 
+	// All subsequent operations are on this pkg
+	pkg := r.packages[pkgId]
+
 	// We avoid duplicate violation for a package. Duplicates can occur because same package
 	// is in multiple manifests hence raising same violation
-	v := utils.FindAnyWith(r.packages[pkgId].Violations, func(item **violations.Violation) bool {
+	v := utils.FindAnyWith(pkg.Violations, func(item **violations.Violation) bool {
 		return ((*item).GetFilter().GetName() == event.Filter.GetName())
 	})
 	if v != nil {
@@ -113,14 +117,14 @@ func (r *jsonReportGenerator) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 		Filter:    event.Filter,
 	}
 
-	r.packages[pkgId].Violations = append(r.packages[pkgId].Violations, violation)
+	pkg.Violations = append(pkg.Violations, violation)
 
 	advice, err := r.remediations.Advice(event.Package, violation)
 	if err != nil {
 		logger.Warnf("Failed to generate remediation for %s due to %v",
 			event.Package.ShortName(), err)
 	} else {
-		r.packages[pkgId].Advices = append(r.packages[pkgId].Advices, advice)
+		pkg.Advices = append(pkg.Advices, advice)
 	}
 }
 
@@ -163,13 +167,36 @@ func (r *jsonReportGenerator) Finish() error {
 }
 
 func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Package) *jsonreportspec.PackageReport {
-	return &jsonreportspec.PackageReport{
+	pkg := &jsonreportspec.PackageReport{
 		Package: &modelspec.Package{
 			Ecosystem: p.GetSpecEcosystem(),
 			Name:      p.GetName(),
 			Version:   p.GetVersion(),
 		},
-		Violations: make([]*violations.Violation, 0),
-		Advices:    make([]*schema.RemediationAdvice, 0),
+		Violations:      make([]*violations.Violation, 0),
+		Advices:         make([]*schema.RemediationAdvice, 0),
+		Vulnerabilities: make([]*modelspec.InsightVulnerability, 0),
+		Licenses:        make([]*modelspec.InsightLicenseInfo, 0),
 	}
+
+	insights := utils.SafelyGetValue(p.Insights)
+	vulns := utils.SafelyGetValue(insights.Vulnerabilities)
+	licenses := utils.SafelyGetValue(insights.Licenses)
+
+	for _, vuln := range vulns {
+		pkg.Vulnerabilities = append(pkg.Vulnerabilities, &modelspec.InsightVulnerability{
+			Id:         utils.SafelyGetValue(vuln.Id),
+			Title:      utils.SafelyGetValue(vuln.Summary),
+			Aliases:    utils.SafelyGetValue(vuln.Related),
+			Severities: make([]*modelspec.InsightVulnerabilitySeverity, 0),
+		})
+	}
+
+	for _, license := range licenses {
+		pkg.Licenses = append(pkg.Licenses, &modelspec.InsightLicenseInfo{
+			Id: string(license),
+		})
+	}
+
+	return pkg
 }

@@ -141,6 +141,8 @@ func (p *Package) Id() string {
 	return strconv.FormatUint(h.Sum64(), 16)
 }
 
+// FIXME: For SPDX/CycloneDX, package ecosystem may be different
+// from the manifest ecosystem
 func (p *Package) GetSpecEcosystem() modelspec.Ecosystem {
 	return p.Manifest.GetSpecEcosystem()
 }

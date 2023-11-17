@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+option go_package = "github.com/safedep/vet/gen/models";
+
+enum InsightVulnerabilitySeverityType {
+  InsightVulnerabilitySeverity_UNKNOWN = 0;
+  InsightVulnerabilitySeverity_CVSSV2 = 1;
+  InsightVulnerabilitySeverity_CVSSV3 = 2;
+}
+
+enum InsightVulnerabilitySeverityRisk {
+  VULN_RISK_LOW = 0;
+  VULN_RISK_MEDIUM = 1;
+  VULN_RISK_HIGH = 2;
+  VULN_RISK_CRITICAL = 3;
+}
+
+message InsightVulnerabilitySeverity {
+  InsightVulnerabilitySeverityType type = 1;
+  float score = 2;
+  InsightVulnerabilitySeverityRisk risk = 3;
+}
+
+message InsightVulnerability {
+  string id = 1;        // OSV ID
+  string cve = 2;       // CVE ID. DO NOT USE THIS outside vet. Its used for internal legacy reason
+  string title = 3;
+  repeated string aliases = 4;       // Other IDs for same vuln in different databases
+  repeated InsightVulnerabilitySeverity severities = 5;
+}
+
+message InsightLicenseInfo {
+  string id = 1;  // SPDX license ID
+}
+
+message InsightScorecard {
+  map<string, float> scores = 1;
+  float score = 2;
+}
+
+enum InsightProjectType {
+  UNKNOWN = 0;
+  GITHUB = 1;
+}
+
+message InsightProjectInfo {
+  string name = 1;
+  InsightProjectType type = 2;
+  int32 stars = 3;
+  int32 forks = 4;
+  int32 issues = 5;
+}
+
+
