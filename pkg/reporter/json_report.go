@@ -133,6 +133,27 @@ func (r *jsonReportGenerator) AddPolicyEvent(event *policy.PolicyEvent) {}
 func (r *jsonReportGenerator) Finish() error {
 	logger.Infof("Generating consolidated Json report: %s", r.config.Path)
 
+	report, err := r.buildSpecReport()
+	if err != nil {
+		return err
+	}
+
+	b, err := utils.ToPbJson(report, "")
+	if err != nil {
+		return err
+	}
+
+	file, err := os.Create(r.config.Path)
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+	_, err = file.WriteString(b)
+	return err
+}
+
+func (r *jsonReportGenerator) buildSpecReport() (*schema.Report, error) {
 	report := schema.Report{
 		Meta: &schema.ReportMeta{
 			ToolName:    "vet",
@@ -151,19 +172,7 @@ func (r *jsonReportGenerator) Finish() error {
 		report.Packages = append(report.Packages, p)
 	}
 
-	b, err := utils.ToPbJson(&report, "")
-	if err != nil {
-		return err
-	}
-
-	file, err := os.Create(r.config.Path)
-	if err != nil {
-		return err
-	}
-
-	defer file.Close()
-	_, err = file.WriteString(b)
-	return err
+	return &report, nil
 }
 
 func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Package) *jsonreportspec.PackageReport {
