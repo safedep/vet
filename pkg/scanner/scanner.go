@@ -51,28 +51,32 @@ func (s *packageManifestScanner) Start() error {
 	scannerChannel := make(chan *models.PackageManifest, 100)
 	defer close(scannerChannel)
 
-	wg := sync.WaitGroup{}
 	ctx := context.Background()
+	defer ctx.Done()
+
+	wg := sync.WaitGroup{}
 	go s.startManifestScanner(ctx, scannerChannel, &wg)
 
 	s.dispatchStartManifestEnumeration()
+
 	for _, reader := range s.readers {
 		err := reader.EnumManifests(func(manifest *models.PackageManifest,
 			_ readers.PackageReader) error {
 
+			wg.Add(1)
+
 			s.dispatchOnManifestEnumeration(manifest)
 			scannerChannel <- manifest
 
-			wg.Add(1)
 			return nil
 		})
 
 		if err != nil {
-			ctx.Done()
 			return err
 		}
 	}
 
+	// Wait for manifest scanner to finish
 	wg.Wait()
 
 	s.dispatchBeforeFinish()

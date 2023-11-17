@@ -329,6 +329,7 @@ func internalStartScan() error {
 	var packageManifestTracker any
 	var packageTracker any
 
+	manifestsCount := 0
 	pmScanner.WithCallbacks(scanner.ScannerCallbacks{
 		OnStartEnumerateManifest: func() {
 			logger.Infof("Starting to enumerate manifests")
@@ -338,7 +339,11 @@ func internalStartScan() error {
 				manifest.GetDisplayPath(), manifest.GetPackagesCount())
 
 			ui.IncrementTrackerTotal(packageManifestTracker, 1)
-			ui.IncrementTrackerTotal(packageTracker, manifest.GetPackagesCount())
+			ui.IncrementTrackerTotal(packageTracker, int64(manifest.GetPackagesCount()))
+
+			manifestsCount = manifestsCount + 1
+			ui.SetPinnedMessageOnProgressWriter(fmt.Sprintf("Scanning %d discovered manifest(s)",
+				manifestsCount))
 		},
 		OnStart: func() {
 			if !silentScan {
