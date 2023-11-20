@@ -4,13 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"syscall"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/spf13/cobra"
-	"golang.org/x/term"
 
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/internal/ui"
+	"github.com/safedep/vet/pkg/common/logger"
 )
 
 var (
@@ -43,17 +43,19 @@ func configureAuthCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "configure",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var key []byte
+			var key string
 			var err error
 
 			if !authCommunity {
-				fmt.Print("Enter API Key: ")
-				key, err = term.ReadPassword(syscall.Stdin)
-				if err != nil {
-					panic(err)
-				}
+				err = survey.AskOne(&survey.Password{
+					Message: "Enter the API key",
+				}, &key)
 			} else {
 				authInsightApiBaseUrl = auth.DefaultCommunityApiUrl()
+			}
+
+			if err != nil {
+				logger.Fatalf("Failed to setup auth: %v", err)
 			}
 
 			err = auth.Configure(auth.Config{
@@ -64,10 +66,10 @@ func configureAuthCommand() *cobra.Command {
 			})
 
 			if err != nil {
-				panic(err)
+				logger.Fatalf("Failed to configure auth: %v", err)
 			}
 
-			os.Exit(1)
+			os.Exit(0)
 			return nil
 		},
 	}
