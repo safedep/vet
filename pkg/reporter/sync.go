@@ -299,7 +299,8 @@ func (s *syncReporter) queuePackageVulnerabilityIssue(manifest *models.PackageMa
 			Related: vuln.Related,
 		}
 
-		for _, severity := range utils.SafelyGetValue(vuln.Severities) {
+		insightsVulnSeverities := utils.SafelyGetValue(vuln.Severities)
+		for _, severity := range insightsVulnSeverities {
 			sRisk := syncv1.IssuePackageCommonVulnerabilitySeveritiesRisk(utils.SafelyGetValue(severity.Risk))
 			sType := syncv1.IssuePackageCommonVulnerabilitySeveritiesType(utils.SafelyGetValue(severity.Type))
 

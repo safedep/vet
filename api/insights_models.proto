@@ -17,8 +17,9 @@ enum InsightVulnerabilitySeverityRisk {
 
 message InsightVulnerabilitySeverity {
   InsightVulnerabilitySeverityType type = 1;
-  float score = 2;
+  string score = 2;  // Score based on type (usually the CVSS metric)
   InsightVulnerabilitySeverityRisk risk = 3;
+
 }
 
 message InsightVulnerability {

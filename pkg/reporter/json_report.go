@@ -15,6 +15,7 @@ import (
 	"github.com/safedep/vet/pkg/policy"
 	"github.com/safedep/vet/pkg/readers"
 	"github.com/safedep/vet/pkg/remediations"
+	"github.com/safedep/vet/pkg/schemamapper"
 	"k8s.io/utils/strings/slices"
 )
 
@@ -193,11 +194,29 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 	licenses := utils.SafelyGetValue(insights.Licenses)
 
 	for _, vuln := range vulns {
+		insightSeverities := utils.SafelyGetValue(vuln.Severities)
+		severties := []*modelspec.InsightVulnerabilitySeverity{}
+
+		for _, sev := range insightSeverities {
+			mappedSeverity, err := schemamapper.InsightsVulnerabilitySeverityToModelSeverity(&schemamapper.InsightsVulnerabilitySeverity{
+				Type:  sev.Type,
+				Risk:  sev.Risk,
+				Score: sev.Score,
+			})
+
+			if err != nil {
+				logger.Errorf("Failed to convert InsightAPI schema to model spec: %v", err)
+				continue
+			}
+
+			severties = append(severties, mappedSeverity)
+		}
+
 		pkg.Vulnerabilities = append(pkg.Vulnerabilities, &modelspec.InsightVulnerability{
 			Id:         utils.SafelyGetValue(vuln.Id),
 			Title:      utils.SafelyGetValue(vuln.Summary),
 			Aliases:    utils.SafelyGetValue(vuln.Aliases),
-			Severities: make([]*modelspec.InsightVulnerabilitySeverity, 0),
+			Severities: severties,
 		})
 	}
 
