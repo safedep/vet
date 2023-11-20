@@ -2,6 +2,7 @@ package reporter
 
 import (
 	"os"
+	"slices"
 	"time"
 
 	"github.com/safedep/dry/utils"
@@ -16,7 +17,6 @@ import (
 	"github.com/safedep/vet/pkg/readers"
 	"github.com/safedep/vet/pkg/remediations"
 	"github.com/safedep/vet/pkg/schemamapper"
-	"k8s.io/utils/strings/slices"
 )
 
 type JsonReportingConfig struct {

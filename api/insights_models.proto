@@ -9,10 +9,11 @@ enum InsightVulnerabilitySeverityType {
 }
 
 enum InsightVulnerabilitySeverityRisk {
-  VULN_RISK_LOW = 0;
-  VULN_RISK_MEDIUM = 1;
-  VULN_RISK_HIGH = 2;
-  VULN_RISK_CRITICAL = 3;
+  VULN_RISK_UNKNOWN = 0;
+  VULN_RISK_LOW = 1;
+  VULN_RISK_MEDIUM = 2;
+  VULN_RISK_HIGH = 3;
+  VULN_RISK_CRITICAL = 4;
 }
 
 message InsightVulnerabilitySeverity {
