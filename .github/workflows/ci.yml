@@ -29,6 +29,28 @@ jobs:
         env:
           VET_E2E: true
 
+  run-e2e:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568
+        with:
+          go-version: 1.21
+          check-latest: true
+
+      - name: Build vet
+        run: |
+          go mod tidy
+          go build
+
+      - name: Run E2E Scenarios
+        run: |
+          ./test/scenarios/all.sh
+
   build-container:
     runs-on: ubuntu-latest
     timeout-minutes: 15
