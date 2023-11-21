@@ -43,6 +43,10 @@ protoc-codegen:
 		--go_opt=paths=source_relative \
 		./api/models.proto
 	protoc -I ./api \
+		--go_out=./gen/models \
+		--go_opt=paths=source_relative \
+		./api/insights_models.proto
+	protoc -I ./api \
 		--go_out=./gen/jsonreport \
 		--go_opt=paths=source_relative \
 		./api/json_report_spec.proto

@@ -12,6 +12,7 @@ import (
 	"github.com/safedep/vet/gen/filterinput"
 	"github.com/safedep/vet/gen/filtersuite"
 	"github.com/safedep/vet/gen/insightapi"
+	specmodels "github.com/safedep/vet/gen/models"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 )
@@ -160,20 +161,20 @@ func (f *filterEvaluator) serializeFilterInput(fi *filterinput.FilterInput) (map
 
 func (f *filterEvaluator) buildFilterInput(pkg *models.Package) (*filterinput.FilterInput, error) {
 	fi := filterinput.FilterInput{
-		Pkg: &filterinput.PackageVersion{
+		Pkg: &filterinput.FilterInputPackageVersion{
 			Ecosystem: strings.ToLower(string(pkg.PackageDetails.Ecosystem)),
 			Name:      pkg.PackageDetails.Name,
 			Version:   pkg.PackageDetails.Version,
 		},
-		Projects: []*filterinput.ProjectInfo{},
-		Vulns: &filterinput.Vulnerabilities{
-			All:      []*filterinput.Vulnerability{},
-			Critical: []*filterinput.Vulnerability{},
-			High:     []*filterinput.Vulnerability{},
-			Medium:   []*filterinput.Vulnerability{},
-			Low:      []*filterinput.Vulnerability{},
+		Projects: []*specmodels.InsightProjectInfo{},
+		Vulns: &filterinput.FilterInputVulnerabilities{
+			All:      []*specmodels.InsightVulnerability{},
+			Critical: []*specmodels.InsightVulnerability{},
+			High:     []*specmodels.InsightVulnerability{},
+			Medium:   []*specmodels.InsightVulnerability{},
+			Low:      []*specmodels.InsightVulnerability{},
 		},
-		Scorecard: &filterinput.Scorecard{
+		Scorecard: &specmodels.InsightScorecard{
 			Scores: map[string]float32{},
 		},
 		Licenses: []string{},
@@ -183,17 +184,17 @@ func (f *filterEvaluator) buildFilterInput(pkg *models.Package) (*filterinput.Fi
 	insight := utils.SafelyGetValue(pkg.Insights)
 
 	// Add projects
-	projectTypeMapper := func(tp string) filterinput.ProjectType {
+	projectTypeMapper := func(tp string) specmodels.InsightProjectInfo_Type {
 		tp = strings.ToLower(tp)
 		if tp == "github" {
-			return filterinput.ProjectType_GITHUB
+			return specmodels.InsightProjectInfo_GITHUB
 		} else {
-			return filterinput.ProjectType_UNKNOWN
+			return specmodels.InsightProjectInfo_UNKNOWN
 		}
 	}
 
 	for _, project := range utils.SafelyGetValue(insight.Projects) {
-		fi.Projects = append(fi.Projects, &filterinput.ProjectInfo{
+		fi.Projects = append(fi.Projects, &specmodels.InsightProjectInfo{
 			Name:   utils.SafelyGetValue(project.Name),
 			Stars:  int32(utils.SafelyGetValue(project.Stars)),
 			Forks:  int32(utils.SafelyGetValue(project.Forks)),
@@ -214,7 +215,7 @@ func (f *filterEvaluator) buildFilterInput(pkg *models.Package) (*filterinput.Fi
 	}
 
 	for _, vuln := range utils.SafelyGetValue(insight.Vulnerabilities) {
-		fiv := filterinput.Vulnerability{
+		fiv := specmodels.InsightVulnerability{
 			Id:  utils.SafelyGetValue(vuln.Id),
 			Cve: cveFilter(utils.SafelyGetValue(vuln.Aliases)),
 		}
