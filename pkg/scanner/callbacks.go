@@ -2,8 +2,6 @@ package scanner
 
 import "github.com/safedep/vet/pkg/models"
 
-type ScannerCallbackOnManifestsFn func(manifest []*models.PackageManifest)
-
 type ScannerCallbackOnManifestFn func(manifest *models.PackageManifest)
 
 type ScannerCallbackOnPackageFn func(pkg *models.Package)
@@ -13,16 +11,16 @@ type ScannerCallbackErrArgFn func(error)
 type ScannerCallbackNoArgFn func()
 
 type ScannerCallbacks struct {
-	OnStartEnumerateManifest ScannerCallbackNoArgFn       // Manifest enumeration is starting
-	OnEnumerateManifest      ScannerCallbackOnManifestFn  // A manifest is read by reader
-	OnStart                  ScannerCallbackOnManifestsFn // Manifest scan phase is starting
-	OnStartManifest          ScannerCallbackOnManifestFn  // A manifest is starting to be scanned
-	OnStartPackage           ScannerCallbackOnPackageFn   // A package analysis is starting
-	OnAddTransitivePackage   ScannerCallbackOnPackageFn   // A transitive dependency is discovered
-	OnDonePackage            ScannerCallbackOnPackageFn   // A package analysis is finished
-	OnDoneManifest           ScannerCallbackOnManifestFn  // A manifest analysis is finished
-	BeforeFinish             ScannerCallbackNoArgFn       // Scan is about to finish
-	OnStop                   ScannerCallbackErrArgFn      // Scan is finished
+	OnStartEnumerateManifest ScannerCallbackNoArgFn      // Manifest enumeration is starting
+	OnEnumerateManifest      ScannerCallbackOnManifestFn // A manifest is read by reader
+	OnStart                  ScannerCallbackNoArgFn      // Manifest scan phase is starting
+	OnStartManifest          ScannerCallbackOnManifestFn // A manifest is starting to be scanned
+	OnStartPackage           ScannerCallbackOnPackageFn  // A package analysis is starting
+	OnAddTransitivePackage   ScannerCallbackOnPackageFn  // A transitive dependency is discovered
+	OnDonePackage            ScannerCallbackOnPackageFn  // A package analysis is finished
+	OnDoneManifest           ScannerCallbackOnManifestFn // A manifest analysis is finished
+	BeforeFinish             ScannerCallbackNoArgFn      // Scan is about to finish
+	OnStop                   ScannerCallbackErrArgFn     // Scan is finished
 }
 
 func (s *packageManifestScanner) WithCallbacks(callbacks ScannerCallbacks) {
@@ -41,9 +39,9 @@ func (s *packageManifestScanner) dispatchOnManifestEnumeration(manifest *models.
 	}
 }
 
-func (s *packageManifestScanner) dispatchOnStart(manifests []*models.PackageManifest) {
+func (s *packageManifestScanner) dispatchOnStart() {
 	if s.callbacks.OnStart != nil {
-		s.callbacks.OnStart(manifests)
+		s.callbacks.OnStart()
 	}
 }
 

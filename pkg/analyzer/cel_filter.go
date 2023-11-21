@@ -121,7 +121,7 @@ func (f *celFilterAnalyzer) notifyCaller(manifest *models.PackageManifest,
 			Type:     ET_AnalyzerFailOnError,
 			Manifest: manifest,
 			Err: fmt.Errorf("failed due to filter match on %s",
-				manifest.Path),
+				manifest.GetDisplayPath()),
 		})
 	}
 

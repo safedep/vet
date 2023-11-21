@@ -10,3 +10,4 @@ $E2E_VET_BINARY auth configure --community
 
 bash $E2E_THIS_DIR/scenario-1-vet-scans-vet.sh
 bash $E2E_THIS_DIR/scenario-2-vet-scan-demo-client-java.sh
+bash $E2E_THIS_DIR/scenario-3-filter-fail-fast.sh

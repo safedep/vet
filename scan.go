@@ -302,8 +302,17 @@ func internalStartScan() error {
 		reporters = append(reporters, rp)
 	}
 
+	insightsEnricher, err := scanner.NewInsightBasedPackageEnricher(scanner.InsightsBasedPackageMetaEnricherConfig{
+		ApiUrl:     auth.ApiUrl(),
+		ApiAuthKey: auth.ApiKey(),
+	})
+
+	if err != nil {
+		return err
+	}
+
 	enrichers := []scanner.PackageMetaEnricher{
-		scanner.NewInsightBasedPackageEnricher(),
+		insightsEnricher,
 	}
 
 	pmScanner := scanner.NewPackageManifestScanner(scanner.Config{
@@ -320,27 +329,29 @@ func internalStartScan() error {
 	var packageManifestTracker any
 	var packageTracker any
 
+	manifestsCount := 0
 	pmScanner.WithCallbacks(scanner.ScannerCallbacks{
 		OnStartEnumerateManifest: func() {
-			ui.PrintMsg("Starting to enumerate manifests")
+			logger.Infof("Starting to enumerate manifests")
 		},
 		OnEnumerateManifest: func(manifest *models.PackageManifest) {
-			ui.PrintSuccess("Discovered a manifest at %s with %d packages",
-				manifest.GetDisplayPath(), len(manifest.Packages))
+			logger.Infof("Discovered a manifest at %s with %d packages",
+				manifest.GetDisplayPath(), manifest.GetPackagesCount())
+
+			ui.IncrementTrackerTotal(packageManifestTracker, 1)
+			ui.IncrementTrackerTotal(packageTracker, int64(manifest.GetPackagesCount()))
+
+			manifestsCount = manifestsCount + 1
+			ui.SetPinnedMessageOnProgressWriter(fmt.Sprintf("Scanning %d discovered manifest(s)",
+				manifestsCount))
 		},
-		OnStart: func(manifests []*models.PackageManifest) {
+		OnStart: func() {
 			if !silentScan {
 				ui.StartProgressWriter()
 			}
 
-			var tm, tp int
-			for _, m := range manifests {
-				tm += 1
-				tp += len(m.Packages)
-			}
-
-			packageManifestTracker = ui.TrackProgress("Scanning manifests", tm)
-			packageTracker = ui.TrackProgress("Scanning packages", tp)
+			packageManifestTracker = ui.TrackProgress("Scanning manifests", 0)
+			packageTracker = ui.TrackProgress("Scanning packages", 0)
 		},
 		OnAddTransitivePackage: func(pkg *models.Package) {
 			ui.IncrementTrackerTotal(packageTracker, 1)

@@ -1,6 +1,7 @@
 package scanner
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/safedep/vet/pkg/analyzer"
@@ -44,17 +45,27 @@ func NewPackageManifestScanner(config Config,
 }
 
 func (s *packageManifestScanner) Start() error {
-	// We need to eager load the manifests because the current UI experience
-	// of progress update depends on it
-	var manifests []*models.PackageManifest
+	s.dispatchOnStart()
+
+	// The manifest processing go routine will close the doneChannel
+	doneChannel := make(chan bool)
+
+	// We will close the scanner channel
+	scannerChannel := make(chan *models.PackageManifest, 100)
+
+	ctx := context.Background()
+	defer ctx.Done()
+
+	go s.startManifestScanner(ctx, scannerChannel, doneChannel)
 
 	s.dispatchStartManifestEnumeration()
+
 	for _, reader := range s.readers {
 		err := reader.EnumManifests(func(manifest *models.PackageManifest,
 			_ readers.PackageReader) error {
 
 			s.dispatchOnManifestEnumeration(manifest)
-			manifests = append(manifests, manifest)
+			scannerChannel <- manifest
 
 			return nil
 		})
@@ -64,23 +75,48 @@ func (s *packageManifestScanner) Start() error {
 		}
 	}
 
-	return s.scanManifests(manifests)
+	// Close this channel so that go routine processing the manifests
+	// can break the loop
+	close(scannerChannel)
+
+	// Wait for manifest scanner to finish
+	<-doneChannel
+
+	s.dispatchBeforeFinish()
+
+	// Signal analyzers and reporters to finish anything pending
+	s.finishAnalyzers()
+	s.finishReporting()
+
+	s.dispatchOnStop(s.error())
+	return s.error()
 }
 
-func (s *packageManifestScanner) scanManifests(manifests []*models.PackageManifest) error {
-	s.dispatchOnStart(manifests)
+// startManifestScanner internally takes input from channel and scans the manifest
+// The object is NOT to scan manifests in parallel but to build a work queue like
+// mechanism where we can scan a manifest whenever it is available instead of waiting
+// for all manifests to be available
+func (s *packageManifestScanner) startManifestScanner(ctx context.Context,
+	incoming <-chan *models.PackageManifest, done chan bool) {
+	defer close(done)
 
 	// Start the scan phases per manifest
-	for _, manifest := range manifests {
-		logger.Infof("Analysing %s as %s ecosystem with %d packages", manifest.GetPath(),
-			manifest.Ecosystem, len(manifest.Packages))
+	for {
+		if err := ctx.Err(); err != nil {
+			break
+		}
 
-		s.dispatchOnStartManifest(manifest)
-
-		// Stop scan if there is a pendin error
+		// Stop scan if there is a pending error
 		if s.hasError() {
 			break
 		}
+
+		manifest, ok := <-incoming
+		if !ok {
+			break
+		}
+
+		s.dispatchOnStartManifest(manifest)
 
 		// Enrich each packages in a manifest with metadata
 		err := s.enrichManifest(manifest)
@@ -105,15 +141,6 @@ func (s *packageManifestScanner) scanManifests(manifests []*models.PackageManife
 
 		s.dispatchOnDoneManifest(manifest)
 	}
-
-	s.dispatchBeforeFinish()
-
-	// Signal analyzers and reporters to finish anything pending
-	s.finishAnalyzers()
-	s.finishReporting()
-
-	s.dispatchOnStop(s.error())
-	return s.error()
 }
 
 func (s *packageManifestScanner) analyzeManifest(manifest *models.PackageManifest) error {

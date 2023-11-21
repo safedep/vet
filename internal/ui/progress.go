@@ -12,6 +12,7 @@ var progressWriter progress.Writer
 func StartProgressWriter() {
 	pw := progress.NewWriter()
 
+	pw.SetAutoStop(false)
 	pw.SetTrackerLength(25)
 	pw.SetMessageWidth(20)
 	pw.SetSortBy(progress.SortByPercentDsc)
@@ -36,6 +37,12 @@ func StopProgressWriter() {
 	}
 }
 
+func SetPinnedMessageOnProgressWriter(msg string) {
+	if progressWriter != nil {
+		progressWriter.SetPinnedMessages(msg)
+	}
+}
+
 func TrackProgress(message string, total int) any {
 	tracker := progress.Tracker{Message: message, Total: int64(total),
 		Units: progress.UnitsDefault}
@@ -53,14 +60,18 @@ func MarkTrackerAsDone(i any) {
 	}
 }
 
-func IncrementTrackerTotal(i any, count int) {
+func IncrementTrackerTotal(i any, count int64) {
 	if tracker, ok := i.(*progress.Tracker); ok {
-		tracker.UpdateTotal(tracker.Total + int64(count))
+		tracker.UpdateTotal(tracker.Total + count)
 	}
 }
 
-func IncrementProgress(i any, count int) {
-	if tracker, ok := i.(*progress.Tracker); ok {
-		tracker.Increment(int64(count))
+func IncrementProgress(i any, count int64) {
+	if tracker, ok := i.(*progress.Tracker); ok && (progressTrackerDelta(tracker) > count) {
+		tracker.Increment(count)
 	}
+}
+
+func progressTrackerDelta(tracker *progress.Tracker) int64 {
+	return (tracker.Total - tracker.Value())
 }

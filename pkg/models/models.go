@@ -82,6 +82,10 @@ func (pm *PackageManifest) Id() string {
 	return strconv.FormatUint(h.Sum64(), 16)
 }
 
+func (pm *PackageManifest) GetPackagesCount() int {
+	return len(pm.Packages)
+}
+
 func (pm *PackageManifest) GetSpecEcosystem() modelspec.Ecosystem {
 	switch pm.Ecosystem {
 	case EcosystemCargo:
