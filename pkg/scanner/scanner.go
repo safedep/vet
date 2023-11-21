@@ -50,10 +50,8 @@ func (s *packageManifestScanner) Start() error {
 	// The manifest processing go routine will close the doneChannel
 	doneChannel := make(chan bool)
 
-	scannerChannel := make(chan *models.PackageManifest, 100)
-
 	// We will close the scanner channel
-	defer close(scannerChannel)
+	scannerChannel := make(chan *models.PackageManifest, 100)
 
 	ctx := context.Background()
 	defer ctx.Done()
@@ -76,6 +74,10 @@ func (s *packageManifestScanner) Start() error {
 			return err
 		}
 	}
+
+	// Close this channel so that go routine processing the manifests
+	// can break the loop
+	close(scannerChannel)
 
 	// Wait for manifest scanner to finish
 	<-doneChannel
