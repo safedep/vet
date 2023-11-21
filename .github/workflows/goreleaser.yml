@@ -91,7 +91,6 @@ jobs:
           checksum_file=$(echo "$ARTIFACTS" | jq -r '.[] | select (.type=="Checksum") | .path')
           echo "hashes=$(cat $checksum_file | base64 -w0)" >> "$GITHUB_OUTPUT"
   provenance:
-    timeout-minutes: 30
     needs: [goreleaser]
     permissions:
       actions: read # To read the workflow path.
