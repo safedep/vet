@@ -20,23 +20,23 @@ func InsightsVulnerabilitySeverityToModelSeverity(sev *InsightsVulnerabilitySeve
 	sevType := utils.SafelyGetValue(sev.Type)
 	switch sevType {
 	case insightapi.PackageVulnerabilitySeveritiesTypeCVSSV2:
-		severity.Type = models.InsightVulnerabilitySeverityType_InsightVulnerabilitySeverity_CVSSV2
+		severity.Type = models.InsightVulnerabilitySeverity_CVSSV2
 	case insightapi.PackageVulnerabilitySeveritiesTypeCVSSV3:
-		severity.Type = models.InsightVulnerabilitySeverityType_InsightVulnerabilitySeverity_CVSSV3
+		severity.Type = models.InsightVulnerabilitySeverity_CVSSV3
 	default:
-		severity.Type = models.InsightVulnerabilitySeverityType_InsightVulnerabilitySeverity_UNKNOWN
+		severity.Type = models.InsightVulnerabilitySeverity_UNKNOWN_TYPE
 	}
 
 	risk := utils.SafelyGetValue(sev.Risk)
 	switch risk {
 	case insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL:
-		severity.Risk = models.InsightVulnerabilitySeverityRisk_VULN_RISK_CRITICAL
+		severity.Risk = models.InsightVulnerabilitySeverity_CRITICAL
 	case insightapi.PackageVulnerabilitySeveritiesRiskHIGH:
-		severity.Risk = models.InsightVulnerabilitySeverityRisk_VULN_RISK_HIGH
+		severity.Risk = models.InsightVulnerabilitySeverity_HIGH
 	case insightapi.PackageVulnerabilitySeveritiesRiskMEDIUM:
-		severity.Risk = models.InsightVulnerabilitySeverityRisk_VULN_RISK_MEDIUM
+		severity.Risk = models.InsightVulnerabilitySeverity_MEDIUM
 	case insightapi.PackageVulnerabilitySeveritiesRiskLOW:
-		severity.Risk = models.InsightVulnerabilitySeverityRisk_VULN_RISK_LOW
+		severity.Risk = models.InsightVulnerabilitySeverity_LOW
 	}
 
 	severity.Score = utils.SafelyGetValue(sev.Score)

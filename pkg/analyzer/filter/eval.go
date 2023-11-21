@@ -184,12 +184,12 @@ func (f *filterEvaluator) buildFilterInput(pkg *models.Package) (*filterinput.Fi
 	insight := utils.SafelyGetValue(pkg.Insights)
 
 	// Add projects
-	projectTypeMapper := func(tp string) specmodels.InsightProjectType {
+	projectTypeMapper := func(tp string) specmodels.InsightProjectInfo_Type {
 		tp = strings.ToLower(tp)
 		if tp == "github" {
-			return specmodels.InsightProjectType_GITHUB
+			return specmodels.InsightProjectInfo_GITHUB
 		} else {
-			return specmodels.InsightProjectType_UNKNOWN
+			return specmodels.InsightProjectInfo_UNKNOWN
 		}
 	}
 

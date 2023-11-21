@@ -2,25 +2,24 @@ syntax = "proto3";
 
 option go_package = "github.com/safedep/vet/gen/models";
 
-enum InsightVulnerabilitySeverityType {
-  InsightVulnerabilitySeverity_UNKNOWN = 0;
-  InsightVulnerabilitySeverity_CVSSV2 = 1;
-  InsightVulnerabilitySeverity_CVSSV3 = 2;
-}
-
-enum InsightVulnerabilitySeverityRisk {
-  VULN_RISK_UNKNOWN = 0;
-  VULN_RISK_LOW = 1;
-  VULN_RISK_MEDIUM = 2;
-  VULN_RISK_HIGH = 3;
-  VULN_RISK_CRITICAL = 4;
-}
-
 message InsightVulnerabilitySeverity {
-  InsightVulnerabilitySeverityType type = 1;
-  string score = 2;  // Score based on type (usually the CVSS metric)
-  InsightVulnerabilitySeverityRisk risk = 3;
+  enum Type {
+    UNKNOWN_TYPE = 0;
+    CVSSV2 = 1;
+    CVSSV3 = 2;
+  }
 
+  enum Risk {
+    UNKNOWN_RISK = 0;
+    LOW = 1;
+    MEDIUM = 2;
+    HIGH = 3;
+    CRITICAL = 4;
+  }
+
+  Type type = 1;
+  string score = 2;  // Score based on type (usually the CVSS metric)
+  Risk risk = 3;
 }
 
 message InsightVulnerability {
@@ -40,14 +39,14 @@ message InsightScorecard {
   float score = 2;
 }
 
-enum InsightProjectType {
-  UNKNOWN = 0;
-  GITHUB = 1;
-}
-
 message InsightProjectInfo {
+  enum Type {
+    UNKNOWN = 0;
+    GITHUB = 1;
+  }
+
   string name = 1;
-  InsightProjectType type = 2;
+  Type type = 2;
   int32 stars = 3;
   int32 forks = 4;
   int32 issues = 5;
