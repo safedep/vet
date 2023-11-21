@@ -16,8 +16,8 @@ func TestInsightsVulnerabilitySeverityToModelSeverity(t *testing.T) {
 		actualRisk  insightapi.PackageVulnerabilitySeveritiesRisk
 		actualScore string
 
-		expectedType  models.InsightVulnerabilitySeverityType
-		expectedRisk  models.InsightVulnerabilitySeverityRisk
+		expectedType  models.InsightVulnerabilitySeverity_Type
+		expectedRisk  models.InsightVulnerabilitySeverity_Risk
 		expectedScore string
 	}{
 		{
@@ -27,8 +27,8 @@ func TestInsightsVulnerabilitySeverityToModelSeverity(t *testing.T) {
 			insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL,
 			"Score-A",
 
-			models.InsightVulnerabilitySeverityType_InsightVulnerabilitySeverity_CVSSV2,
-			models.InsightVulnerabilitySeverityRisk_VULN_RISK_CRITICAL,
+			models.InsightVulnerabilitySeverity_CVSSV2,
+			models.InsightVulnerabilitySeverity_CRITICAL,
 			"Score-A",
 		},
 		{
@@ -38,8 +38,8 @@ func TestInsightsVulnerabilitySeverityToModelSeverity(t *testing.T) {
 			insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL,
 			"Score-B",
 
-			models.InsightVulnerabilitySeverityType_InsightVulnerabilitySeverity_UNKNOWN,
-			models.InsightVulnerabilitySeverityRisk_VULN_RISK_CRITICAL,
+			models.InsightVulnerabilitySeverity_UNKNOWN_TYPE,
+			models.InsightVulnerabilitySeverity_CRITICAL,
 			"Score-B",
 		},
 		{
@@ -49,8 +49,8 @@ func TestInsightsVulnerabilitySeverityToModelSeverity(t *testing.T) {
 			insightapi.PackageVulnerabilitySeveritiesRisk("WHAT?"),
 			"Score-C",
 
-			models.InsightVulnerabilitySeverityType_InsightVulnerabilitySeverity_CVSSV2,
-			models.InsightVulnerabilitySeverityRisk_VULN_RISK_UNKNOWN,
+			models.InsightVulnerabilitySeverity_CVSSV2,
+			models.InsightVulnerabilitySeverity_UNKNOWN_RISK,
 			"Score-C",
 		},
 		{
@@ -60,8 +60,8 @@ func TestInsightsVulnerabilitySeverityToModelSeverity(t *testing.T) {
 			insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL,
 			"",
 
-			models.InsightVulnerabilitySeverityType_InsightVulnerabilitySeverity_CVSSV2,
-			models.InsightVulnerabilitySeverityRisk_VULN_RISK_CRITICAL,
+			models.InsightVulnerabilitySeverity_CVSSV2,
+			models.InsightVulnerabilitySeverity_CRITICAL,
 			"",
 		},
 	}
