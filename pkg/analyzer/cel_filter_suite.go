@@ -89,7 +89,7 @@ func (f *celFilterSuiteAnalyzer) Analyze(manifest *models.PackageManifest,
 			Source:   f.Name(),
 			Type:     ET_AnalyzerFailOnError,
 			Manifest: manifest,
-			Err:      fmt.Errorf("failed due to filter suite match on %s", manifest.Path),
+			Err:      fmt.Errorf("failed due to filter suite match on %s", manifest.GetDisplayPath()),
 		})
 	}
 

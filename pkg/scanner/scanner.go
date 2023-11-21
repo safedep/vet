@@ -3,7 +3,6 @@ package scanner
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -48,22 +47,24 @@ func NewPackageManifestScanner(config Config,
 func (s *packageManifestScanner) Start() error {
 	s.dispatchOnStart()
 
+	// The manifest processing go routine will close the doneChannel
+	doneChannel := make(chan bool)
+
 	scannerChannel := make(chan *models.PackageManifest, 100)
+
+	// We will close the scanner channel
 	defer close(scannerChannel)
 
 	ctx := context.Background()
 	defer ctx.Done()
 
-	wg := sync.WaitGroup{}
-	go s.startManifestScanner(ctx, scannerChannel, &wg)
+	go s.startManifestScanner(ctx, scannerChannel, doneChannel)
 
 	s.dispatchStartManifestEnumeration()
 
 	for _, reader := range s.readers {
 		err := reader.EnumManifests(func(manifest *models.PackageManifest,
 			_ readers.PackageReader) error {
-
-			wg.Add(1)
 
 			s.dispatchOnManifestEnumeration(manifest)
 			scannerChannel <- manifest
@@ -77,7 +78,7 @@ func (s *packageManifestScanner) Start() error {
 	}
 
 	// Wait for manifest scanner to finish
-	wg.Wait()
+	<-doneChannel
 
 	s.dispatchBeforeFinish()
 
@@ -94,7 +95,8 @@ func (s *packageManifestScanner) Start() error {
 // mechanism where we can scan a manifest whenever it is available instead of waiting
 // for all manifests to be available
 func (s *packageManifestScanner) startManifestScanner(ctx context.Context,
-	incoming <-chan *models.PackageManifest, waiter *sync.WaitGroup) {
+	incoming <-chan *models.PackageManifest, done chan bool) {
+	defer close(done)
 
 	// Start the scan phases per manifest
 	for {
@@ -107,14 +109,16 @@ func (s *packageManifestScanner) startManifestScanner(ctx context.Context,
 			break
 		}
 
-		manifest := <-incoming
+		manifest, ok := <-incoming
+		if !ok {
+			break
+		}
+
 		s.dispatchOnStartManifest(manifest)
 
 		// We are using a function here so that we can use `defer` to ensure
 		// we always mark the wait group irrespective of success or failure
 		func() {
-			defer waiter.Done()
-
 			// Enrich each packages in a manifest with metadata
 			err := s.enrichManifest(manifest)
 			if err != nil {
