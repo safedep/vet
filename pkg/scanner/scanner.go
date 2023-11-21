@@ -118,32 +118,28 @@ func (s *packageManifestScanner) startManifestScanner(ctx context.Context,
 
 		s.dispatchOnStartManifest(manifest)
 
-		// We are using a function here so that we can use `defer` to ensure
-		// we always mark the wait group irrespective of success or failure
-		func() {
-			// Enrich each packages in a manifest with metadata
-			err := s.enrichManifest(manifest)
-			if err != nil {
-				logger.Errorf("Failed to enrich %s manifest %s : %v",
-					manifest.Ecosystem, manifest.GetPath(), err)
-			}
+		// Enrich each packages in a manifest with metadata
+		err := s.enrichManifest(manifest)
+		if err != nil {
+			logger.Errorf("Failed to enrich %s manifest %s : %v",
+				manifest.Ecosystem, manifest.GetPath(), err)
+		}
 
-			// Invoke analyzers to analyse the manifest
-			err = s.analyzeManifest(manifest)
-			if err != nil {
-				logger.Errorf("Failed to analyze %s manifest %s : %v",
-					manifest.Ecosystem, manifest.GetPath(), err)
-			}
+		// Invoke analyzers to analyse the manifest
+		err = s.analyzeManifest(manifest)
+		if err != nil {
+			logger.Errorf("Failed to analyze %s manifest %s : %v",
+				manifest.Ecosystem, manifest.GetPath(), err)
+		}
 
-			// Invoke activated reporting modules to report on the manifest
-			err = s.reportManifest(manifest)
-			if err != nil {
-				logger.Errorf("Failed to report %s manifest %s : %v",
-					manifest.Ecosystem, manifest.GetPath(), err)
-			}
+		// Invoke activated reporting modules to report on the manifest
+		err = s.reportManifest(manifest)
+		if err != nil {
+			logger.Errorf("Failed to report %s manifest %s : %v",
+				manifest.Ecosystem, manifest.GetPath(), err)
+		}
 
-			s.dispatchOnDoneManifest(manifest)
-		}()
+		s.dispatchOnDoneManifest(manifest)
 	}
 }
 
