@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"path"
 
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -87,18 +88,31 @@ func FindParser(lockfilePath, lockfileAs string) (Parser, error) {
 		}
 	}
 
-	logger.Debugf("Trying to find parser in experimental parsers %s", lockfileAs)
-	if p, ok := customExperimentalParsers[lockfileAs]; ok {
-		pw := &parserWrapper{parser: p, parseAs: lockfileAs}
-		if pw.supported() {
-			logger.Debugf("Found Parser type for the type %s", lockfileAs)
-			return pw, nil
-		}
+	pw, pa := findExperimentalParser(lockfilePath, lockfileAs)
+	if pw != nil {
+		return pw, nil
 	}
 
 	logger.Debugf("No Parser found for the type %s", lockfileAs)
 	return nil, fmt.Errorf("no parser found with: %s for: %s", lockfileAs,
 		lockfilePath)
+}
+
+func findExperimentalParser(lockfilePath, lockfileAs string) (Parser, string) {
+	if lockfileAs == "" {
+		_, filename := path.Split(lockfilePath)
+		lockfileAs = filename
+	}
+	logger.Debugf("Trying to find parser in experimental parsers %s", lockfileAs)
+	if p, ok := customExperimentalParsers[lockfileAs]; ok {
+		pw := &parserWrapper{parser: p, parseAs: lockfileAs}
+		if pw.supported() {
+			logger.Debugf("Found Parser type for the type %s", lockfileAs)
+			return pw, lockfileAs
+		}
+	}
+
+	return nil, ""
 }
 
 func (pw *parserWrapper) supported() bool {
