@@ -88,7 +88,7 @@ func FindParser(lockfilePath, lockfileAs string) (Parser, error) {
 		}
 	}
 
-	pw, pa := findExperimentalParser(lockfilePath, lockfileAs)
+	pw, _ := findExperimentalParser(lockfilePath, lockfileAs)
 	if pw != nil {
 		return pw, nil
 	}
