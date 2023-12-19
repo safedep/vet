@@ -139,6 +139,26 @@ vet scan --purl pkg:/gem/nokogiri@1.10.4
 vet scan parsers --experimental
 ```
 
+## Inventory Management
+
+### OWASP Dependency Track Integration
+
+Connect OWASP [Dependency Track](https://dependencytrack.org/) with `vet`
+
+```bash
+vet connect dtrack
+```
+
+> You will be required to provide DependencyTrack URL and API Token.
+> Alternatively, you can provide DependencyTrack configuration via. environment
+> variable `DEPENDENCY_TRACK_URL`, `DEPENDENCY_TRACK_TOKEN`
+
+Export results to Dependency Track
+
+```bash
+vet scan --github-org https://github.com/safedep --report-dtrack
+```
+
 ## 📖 Documentation
 
 - Refer to [https://safedep.io/docs](https://safedep.io/docs) for the detailed documentation
