@@ -249,7 +249,6 @@ func internalStartScan() error {
 		rp, err := reporter.NewSummaryReporter(reporter.SummaryReporterConfig{
 			MaxAdvice: summaryReportMaxAdvice,
 		})
-
 		if err != nil {
 			return err
 		}
@@ -306,7 +305,6 @@ func internalStartScan() error {
 		ApiUrl:     auth.ApiUrl(),
 		ApiAuthKey: auth.ApiKey(),
 	})
-
 	if err != nil {
 		return err
 	}
