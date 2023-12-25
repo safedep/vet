@@ -74,6 +74,7 @@ type summaryReporter struct {
 	// Map of pkgId and associated meta for building remediation advice
 	remediationScores map[string]*summaryReporterRemediationData
 	violations        map[string]*summaryReporterInputViolationData
+	lockfilePoisoning []string
 }
 
 func NewSummaryReporter(config SummaryReporterConfig) (Reporter, error) {
@@ -107,6 +108,10 @@ func (r *summaryReporter) AddManifest(manifest *models.PackageManifest) {
 }
 
 func (r *summaryReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
+	if event.IsLockfilePoisoningSignal() {
+		r.lockfilePoisoning = append(r.lockfilePoisoning, event.Message.(string))
+	}
+
 	if !event.IsFilterMatch() {
 		return
 	}
@@ -267,6 +272,17 @@ func (r *summaryReporter) Finish() error {
 
 	if exceptions.ActiveCount() > 0 {
 		fmt.Println(text.Faint.Sprint(summaryListPrependText, r.exceptionsCountStatement()))
+		fmt.Println()
+	}
+
+	if len(r.lockfilePoisoning) > 0 {
+		fmt.Println(summaryListPrependText, text.Bold.Sprint(" Lockfile Poisoning Detected "))
+		fmt.Println()
+
+		for _, msg := range r.lockfilePoisoning {
+			fmt.Println(text.WrapHard(text.BgRed.Sprint(summaryListPrependText, msg), 120))
+		}
+
 		fmt.Println()
 	}
 

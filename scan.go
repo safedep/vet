@@ -205,7 +205,16 @@ func internalStartScan() error {
 
 	readerList = append(readerList, reader)
 
-	analyzers := []analyzer.Analyzer{}
+	// We will always use this analyzer
+	lfpAnalyzer, err := analyzer.NewLockfilePoisoningAnalyzer(analyzer.LockfilePoisoningAnalyzerConfig{
+		FailFast: false,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	analyzers := []analyzer.Analyzer{lfpAnalyzer}
 	if !utils.IsEmptyString(dumpJsonManifestDir) {
 		task, err := analyzer.NewJsonDumperAnalyzer(dumpJsonManifestDir)
 		if err != nil {

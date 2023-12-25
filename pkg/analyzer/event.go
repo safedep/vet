@@ -7,3 +7,7 @@ func (ev *AnalyzerEvent) IsFailOnError() bool {
 func (ev *AnalyzerEvent) IsFilterMatch() bool {
 	return ev.Type == ET_FilterExpressionMatched
 }
+
+func (ev *AnalyzerEvent) IsLockfilePoisoningSignal() bool {
+	return ev.Type == ET_LockfilePoisoningSignal
+}
