@@ -153,22 +153,20 @@ func (pw *parserWrapper) Ecosystem() string {
 }
 
 func (pw *parserWrapper) Parse(lockfilePath string) (*models.PackageManifest, error) {
-	pm := models.PackageManifest{Path: lockfilePath,
-		Ecosystem: pw.Ecosystem()}
-
 	logger.Infof("[%s] Parsing %s", pw.parseAs, lockfilePath)
+	pm := models.NewPackageManifest(lockfilePath, pw.Ecosystem())
 
 	packages, err := pw.parser(lockfilePath)
 	if err != nil {
-		return &pm, err
+		return pm, err
 	}
 
 	for _, pkg := range packages {
 		pm.AddPackage(&models.Package{
 			PackageDetails: pkg,
-			Manifest:       &pm,
+			Manifest:       pm,
 		})
 	}
 
-	return &pm, nil
+	return pm, nil
 }
