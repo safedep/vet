@@ -47,6 +47,7 @@ var (
 	syncReportProject           string
 	syncReportStream            string
 	listExperimentalParsers     bool
+	failFast                    bool
 )
 
 func newScanCommand() *cobra.Command {
@@ -66,6 +67,8 @@ func newScanCommand() *cobra.Command {
 
 	cmd.Flags().BoolVarP(&silentScan, "silent", "s", false,
 		"Silent scan to prevent rendering UI")
+	cmd.Flags().BoolVarP(&failFast, "fail-fast", "", false,
+		"Fail fast when an issue is identified")
 	cmd.Flags().StringVarP(&baseDirectory, "directory", "D", wd,
 		"The directory to scan for lockfiles")
 	cmd.Flags().StringArrayVarP(&scanExclude, "exclude", "", []string{},
@@ -207,7 +210,7 @@ func internalStartScan() error {
 
 	// We will always use this analyzer
 	lfpAnalyzer, err := analyzer.NewLockfilePoisoningAnalyzer(analyzer.LockfilePoisoningAnalyzerConfig{
-		FailFast: false,
+		FailFast: failFast,
 	})
 
 	if err != nil {
@@ -226,7 +229,7 @@ func internalStartScan() error {
 
 	if !utils.IsEmptyString(celFilterExpression) {
 		task, err := analyzer.NewCelFilterAnalyzer(celFilterExpression,
-			celFilterFailOnMatch)
+			failFast || celFilterFailOnMatch)
 		if err != nil {
 			return err
 		}
@@ -236,7 +239,7 @@ func internalStartScan() error {
 
 	if !utils.IsEmptyString(celFilterSuiteFile) {
 		task, err := analyzer.NewCelFilterSuiteAnalyzer(celFilterSuiteFile,
-			celFilterFailOnMatch)
+			failFast || celFilterFailOnMatch)
 		if err != nil {
 			return err
 		}
