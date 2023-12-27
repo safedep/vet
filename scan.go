@@ -48,6 +48,7 @@ var (
 	syncReportStream            string
 	listExperimentalParsers     bool
 	failFast                    bool
+	trustedRegistryUrls         []string
 )
 
 func newScanCommand() *cobra.Command {
@@ -119,6 +120,8 @@ func newScanCommand() *cobra.Command {
 		"Project name to use in cloud")
 	cmd.Flags().StringVarP(&syncReportStream, "report-sync-stream", "", "",
 		"Project stream name (e.g. branch) to use in cloud")
+	cmd.Flags().StringArrayVarP(&trustedRegistryUrls, "trusted-registry", "", []string{},
+		"Trusted registry URLs to use for package manifest verification")
 
 	cmd.AddCommand(listParsersCommand())
 	return cmd
@@ -210,7 +213,8 @@ func internalStartScan() error {
 
 	// We will always use this analyzer
 	lfpAnalyzer, err := analyzer.NewLockfilePoisoningAnalyzer(analyzer.LockfilePoisoningAnalyzerConfig{
-		FailFast: failFast,
+		FailFast:            failFast,
+		TrustedRegistryUrls: trustedRegistryUrls,
 	})
 
 	if err != nil {

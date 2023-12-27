@@ -11,7 +11,8 @@ import (
 const lfpAnalyzerName = "LockfilePoisoningAnalyzer"
 
 type LockfilePoisoningAnalyzerConfig struct {
-	FailFast bool
+	FailFast            bool
+	TrustedRegistryUrls []string
 }
 
 type lockfilePoisoningAnalyzer struct {

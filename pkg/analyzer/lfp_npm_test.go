@@ -40,22 +40,38 @@ func TestNpmIsTrustedSource(t *testing.T) {
 		{
 			"local urls are always trusted",
 			"file:///a/b/c",
-			[]string{"registry.npmjs.com"},
+			[]string{},
 			true,
 		},
-		/*
-			{
-				"source is a git url with user and commit-ish",
-				"git+ssh://user@github.com:safedep/project.git#commit-ish",
-				[]string{"github.com/safedep"},
-				true,
-			},
-		*/
+		{
+			"source is a git url with user and commit-ish",
+			"git+ssh://user@github.com:safedep/project.git#commit-ish",
+			[]string{"git+ssh://github.com/safedep"},
+			true,
+		},
 		{
 			"source is a local relative url",
 			"./a/b/c",
-			[]string{"https://registry.npmjs.com"},
+			[]string{},
 			true,
+		},
+		{
+			"source is a trusted url in config list of trusted urls",
+			"https://registry.example.org/a/b/-/c.tgz",
+			[]string{"https://registry.example.org"},
+			true,
+		},
+		{
+			"source is a trusted url when multiple trusted urls are specified",
+			"https://registry.example.org/a/b/-/c.tgz",
+			[]string{"https://registry.example.org", "https://registry.npmjs.org"},
+			true,
+		},
+		{
+			"source is not a trusted url when multiple trusted urls are specified but none match",
+			"https://registry.example.org/a/b/-/c.tgz",
+			[]string{"https://registry.npmjs.org", "git+ssh://github.com/safedep"},
+			false,
 		},
 	}
 

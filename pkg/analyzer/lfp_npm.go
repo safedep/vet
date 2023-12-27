@@ -101,9 +101,13 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 			continue
 		}
 
-		logger.Debugf("npmLockfilePoisoningAnalyzer: Analyzing package [%s]", packageName)
+		trustedRegistryUrls := []string{npmRegistryTrustedUrlBase}
+		trustedRegistryUrls = append(trustedRegistryUrls, npm.config.TrustedRegistryUrls...)
 
-		if !npmIsTrustedSource(lockfilePackage.Resolved, []string{npmRegistryTrustedUrlBase}) {
+		logger.Debugf("npmLockfilePoisoningAnalyzer: Analyzing package [%s] with %d trusted registry URLs in config",
+			packageName, len(trustedRegistryUrls))
+
+		if !npmIsTrustedSource(lockfilePackage.Resolved, trustedRegistryUrls) {
 			logger.Debugf("npmLockfilePoisoningAnalyzer: Package [%s] resolved to an untrusted host [%s]",
 				packageName, lockfilePackage.Resolved)
 
@@ -139,10 +143,12 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 
 // Analyze the artifact URL and determine if the source is trusted
 func npmIsTrustedSource(sourceUrl string, trusteUrls []string) bool {
-	scheme := ""
-	host := ""
-	port := ""
-	path := ""
+	// Go url parser cannot handle git+ssh://host:project/repo.git#commit
+	if len(sourceUrl) > 10 && strings.EqualFold(sourceUrl[0:10], "git+ssh://") {
+		if cIndex := strings.Index(sourceUrl[10:], ":"); cIndex != -1 {
+			sourceUrl = sourceUrl[0:10+cIndex] + "/" + sourceUrl[10+cIndex+1:]
+		}
+	}
 
 	parsedUrl, err := url.Parse(sourceUrl)
 	if err != nil {
@@ -151,10 +157,10 @@ func npmIsTrustedSource(sourceUrl string, trusteUrls []string) bool {
 		return false
 	}
 
-	scheme = parsedUrl.Scheme
-	host = parsedUrl.Hostname()
-	port = parsedUrl.Port()
-	path = parsedUrl.Path
+	scheme := parsedUrl.Scheme
+	host := parsedUrl.Hostname()
+	port := parsedUrl.Port()
+	path := parsedUrl.Path
 
 	// Always true for local filesystem URLs
 	if scheme == "file" || scheme == "" {
@@ -170,7 +176,7 @@ func npmIsTrustedSource(sourceUrl string, trusteUrls []string) bool {
 			continue
 		}
 
-		if parsedTrustedUrl.Scheme != scheme {
+		if parsedTrustedUrl.Scheme != "" && parsedTrustedUrl.Scheme != scheme {
 			continue
 		}
 
