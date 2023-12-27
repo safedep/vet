@@ -1,0 +1,23 @@
+{
+  "[go]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "golang.go",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    }
+  },
+  "gopls": {
+    "usePlaceholders": true,
+    "completeUnimported": true,
+    "staticcheck": true,
+    "ui.semanticTokens": true,
+    "formatting.gofumpt": true,
+  },
+  "cSpell.words": [
+    "ineffassign",
+    "Infof",
+    "lockfiles",
+    "nolint",
+    "safedep"
+  ]
+}

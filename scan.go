@@ -47,6 +47,8 @@ var (
 	syncReportProject           string
 	syncReportStream            string
 	listExperimentalParsers     bool
+	failFast                    bool
+	trustedRegistryUrls         []string
 )
 
 func newScanCommand() *cobra.Command {
@@ -66,6 +68,8 @@ func newScanCommand() *cobra.Command {
 
 	cmd.Flags().BoolVarP(&silentScan, "silent", "s", false,
 		"Silent scan to prevent rendering UI")
+	cmd.Flags().BoolVarP(&failFast, "fail-fast", "", false,
+		"Fail fast when an issue is identified")
 	cmd.Flags().StringVarP(&baseDirectory, "directory", "D", wd,
 		"The directory to scan for lockfiles")
 	cmd.Flags().StringArrayVarP(&scanExclude, "exclude", "", []string{},
@@ -116,6 +120,8 @@ func newScanCommand() *cobra.Command {
 		"Project name to use in cloud")
 	cmd.Flags().StringVarP(&syncReportStream, "report-sync-stream", "", "",
 		"Project stream name (e.g. branch) to use in cloud")
+	cmd.Flags().StringArrayVarP(&trustedRegistryUrls, "trusted-registry", "", []string{},
+		"Trusted registry URLs to use for package manifest verification")
 
 	cmd.AddCommand(listParsersCommand())
 	return cmd
@@ -205,7 +211,17 @@ func internalStartScan() error {
 
 	readerList = append(readerList, reader)
 
-	analyzers := []analyzer.Analyzer{}
+	// We will always use this analyzer
+	lfpAnalyzer, err := analyzer.NewLockfilePoisoningAnalyzer(analyzer.LockfilePoisoningAnalyzerConfig{
+		FailFast:            failFast,
+		TrustedRegistryUrls: trustedRegistryUrls,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	analyzers := []analyzer.Analyzer{lfpAnalyzer}
 	if !utils.IsEmptyString(dumpJsonManifestDir) {
 		task, err := analyzer.NewJsonDumperAnalyzer(dumpJsonManifestDir)
 		if err != nil {
@@ -217,7 +233,7 @@ func internalStartScan() error {
 
 	if !utils.IsEmptyString(celFilterExpression) {
 		task, err := analyzer.NewCelFilterAnalyzer(celFilterExpression,
-			celFilterFailOnMatch)
+			failFast || celFilterFailOnMatch)
 		if err != nil {
 			return err
 		}
@@ -227,7 +243,7 @@ func internalStartScan() error {
 
 	if !utils.IsEmptyString(celFilterSuiteFile) {
 		task, err := analyzer.NewCelFilterSuiteAnalyzer(celFilterSuiteFile,
-			celFilterFailOnMatch)
+			failFast || celFilterFailOnMatch)
 		if err != nil {
 			return err
 		}
@@ -249,7 +265,6 @@ func internalStartScan() error {
 		rp, err := reporter.NewSummaryReporter(reporter.SummaryReporterConfig{
 			MaxAdvice: summaryReportMaxAdvice,
 		})
-
 		if err != nil {
 			return err
 		}
@@ -306,7 +321,6 @@ func internalStartScan() error {
 		ApiUrl:     auth.ApiUrl(),
 		ApiAuthKey: auth.ApiKey(),
 	})
-
 	if err != nil {
 		return err
 	}
