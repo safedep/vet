@@ -13,7 +13,7 @@ require (
 	github.com/google/go-github/v54 v54.0.0
 	github.com/google/osv-scanner v1.5.0
 	github.com/jedib0t/go-pretty/v6 v6.4.9
-	github.com/kubescape/go-git-url v0.0.25
+	github.com/kubescape/go-git-url v0.0.26
 	github.com/package-url/packageurl-go v0.1.2
 	github.com/safedep/dry v0.0.0-20231024121814-ee8dd6ec7d93
 	github.com/sirupsen/logrus v1.9.3
@@ -40,6 +40,7 @@ require (
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/bytedance/sonic v1.10.2 // indirect
+	github.com/chainguard-dev/git-urls v1.0.2 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.0 // indirect
 	github.com/cloudflare/circl v1.3.5 // indirect
@@ -100,7 +101,6 @@ require (
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.0 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
-	github.com/whilp/git-urls v1.0.0 // indirect
 	github.com/yosssi/ace v0.0.5 // indirect
 	golang.org/x/arch v0.5.0 // indirect
 	golang.org/x/crypto v0.17.0 // indirect
