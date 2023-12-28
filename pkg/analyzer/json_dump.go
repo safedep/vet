@@ -3,7 +3,6 @@ package analyzer
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -48,13 +47,13 @@ func (j *jsonDumperAnalyzer) Analyze(manifest *models.PackageManifest,
 		return fmt.Errorf("Failed to JSON serialize manifest: %w", err)
 	}
 
-	rand.Seed(time.Now().UnixNano())
+	random := rand.NewSource(time.Now().UnixNano())
 	path := filepath.Join(j.dir, fmt.Sprintf("%s-%s--%d-dump.json",
 		manifest.Ecosystem,
 		filepath.Base(manifest.Path),
-		rand.Intn(2<<15)))
+		random.Int63()))
 
-	return ioutil.WriteFile(path, data, 0600)
+	return os.WriteFile(path, data, 0600)
 }
 
 func (j *jsonDumperAnalyzer) Finish() error {

@@ -22,6 +22,7 @@ import (
 var (
 	lockfiles                   []string
 	lockfileAs                  string
+	enrich                      bool
 	baseDirectory               string
 	purlSpec                    string
 	githubRepoUrls              []string
@@ -70,6 +71,8 @@ func newScanCommand() *cobra.Command {
 		"Silent scan to prevent rendering UI")
 	cmd.Flags().BoolVarP(&failFast, "fail-fast", "", false,
 		"Fail fast when an issue is identified")
+	cmd.Flags().BoolVarP(&enrich, "enrich", "", true,
+		"Enrich package metadata (almost always required) using Insights API")
 	cmd.Flags().StringVarP(&baseDirectory, "directory", "D", wd,
 		"The directory to scan for lockfiles")
 	cmd.Flags().StringArrayVarP(&scanExclude, "exclude", "", []string{},
@@ -317,16 +320,17 @@ func internalStartScan() error {
 		reporters = append(reporters, rp)
 	}
 
-	insightsEnricher, err := scanner.NewInsightBasedPackageEnricher(scanner.InsightsBasedPackageMetaEnricherConfig{
-		ApiUrl:     auth.ApiUrl(),
-		ApiAuthKey: auth.ApiKey(),
-	})
-	if err != nil {
-		return err
-	}
+	enrichers := []scanner.PackageMetaEnricher{}
+	if enrich {
+		insightsEnricher, err := scanner.NewInsightBasedPackageEnricher(scanner.InsightsBasedPackageMetaEnricherConfig{
+			ApiUrl:     auth.ApiUrl(),
+			ApiAuthKey: auth.ApiKey(),
+		})
+		if err != nil {
+			return err
+		}
 
-	enrichers := []scanner.PackageMetaEnricher{
-		insightsEnricher,
+		enrichers = append(enrichers, insightsEnricher)
 	}
 
 	pmScanner := scanner.NewPackageManifestScanner(scanner.Config{
