@@ -123,7 +123,7 @@ type Package struct {
 	lockfile.PackageDetails `json:"package_detail"`
 
 	// Insights obtained for this package
-	Insights *insightapi.PackageVersionInsight `json:"insights"`
+	Insights *insightapi.PackageVersionInsight `json:"insights,omitempty"`
 
 	// This package is a transitive dependency of parent package
 	Parent *Package `json:"-"`
