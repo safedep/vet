@@ -10,8 +10,10 @@ type AnalyzerEventType string
 
 const (
 	ET_FilterExpressionMatched = AnalyzerEventType("ev_pkg_filter_match")
-	ET_LockfilePoisoningSignal = AnalyzerEventType("ev_lockfile_poisoning")
 	ET_AnalyzerFailOnError     = AnalyzerEventType("ev_fail_on_error")
+
+	// Following event types must set the Threat field
+	ET_LockfilePoisoningSignal = AnalyzerEventType("ev_lockfile_poisoning")
 )
 
 type AnalyzerEvent struct {
