@@ -44,20 +44,27 @@ message ReportThreat {
     CWE = 1;
   }
 
-  enum Subject {
+  enum SubjectType {
     UnknownSubject = 0;
 
     Package = 1;
     Manifest = 2;
   }
 
-  string id = 1;
-  string message = 2;
-  Subject subject_type = 3;
-  string subject = 4;
-  Confidence confidence = 5;
-  Source source = 6;
-  string source_id = 7;
+  enum ReportThreatId {
+    UnknownReportThreatId = 0;
+
+    LockfilePoisoning = 1;
+  }
+
+  ReportThreatId id = 1;
+  string instanceId = 2; // Unique threat instance ID per (ID, SubjectType, Subject) tuple
+  string message = 3;
+  SubjectType subject_type = 4;
+  string subject = 5;
+  Confidence confidence = 6;
+  Source source = 7;
+  string source_id = 8;
 }
 
 message PackageManifestReport {
