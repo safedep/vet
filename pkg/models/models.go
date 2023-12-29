@@ -75,11 +75,8 @@ func (pm *PackageManifest) GetDisplayPath() string {
 }
 
 func (pm *PackageManifest) Id() string {
-	h := fnv.New64a()
-	h.Write([]byte(fmt.Sprintf("%s/%s",
-		pm.Ecosystem, pm.Path)))
-
-	return strconv.FormatUint(h.Sum64(), 16)
+	return hashedId(fmt.Sprintf("%s/%s",
+		pm.Ecosystem, pm.Path))
 }
 
 func (pm *PackageManifest) GetPackagesCount() int {
@@ -136,13 +133,10 @@ type Package struct {
 }
 
 func (p *Package) Id() string {
-	h := fnv.New64a()
-	h.Write([]byte(fmt.Sprintf("%s/%s/%s",
+	return hashedId(fmt.Sprintf("%s/%s/%s",
 		strings.ToLower(string(p.PackageDetails.Ecosystem)),
 		strings.ToLower(p.PackageDetails.Name),
-		strings.ToLower(p.PackageDetails.Version))))
-
-	return strconv.FormatUint(h.Sum64(), 16)
+		strings.ToLower(p.PackageDetails.Version)))
 }
 
 // FIXME: For SPDX/CycloneDX, package ecosystem may be different
@@ -172,4 +166,17 @@ func NewPackageDetail(e, n, v string) lockfile.PackageDetails {
 		Name:      n,
 		Version:   v,
 	}
+}
+
+// This is probably not the best place for IdGen but keeping it here
+// since this package is the most stable (SDP)
+func IdGen(data string) string {
+	return hashedId(data)
+}
+
+func hashedId(str string) string {
+	h := fnv.New64a()
+	h.Write([]byte(str))
+
+	return strconv.FormatUint(h.Sum64(), 16)
 }

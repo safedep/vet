@@ -112,7 +112,7 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 			logger.Debugf("npmLockfilePoisoningAnalyzer: Package [%s] resolved to an untrusted host [%s]",
 				packageName, lockfilePackage.Resolved)
 
-			message := fmt.Sprintf("Package [%s] resolved to an untrusted host [%s]",
+			message := fmt.Sprintf("Package `%s` resolved to an untrusted host `%s`",
 				packageName, lockfilePackage.Resolved)
 
 			_ = handler(&AnalyzerEvent{
@@ -122,6 +122,10 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 				Manifest: manifest,
 				Package:  pkg,
 				Threat: &jsonreportspec.ReportThreat{
+					Id: jsonreportspec.ReportThreat_LockfilePoisoning,
+					InstanceId: ThreatInstanceId(jsonreportspec.ReportThreat_LockfilePoisoning,
+						jsonreportspec.ReportThreat_Manifest,
+						manifest.GetDisplayPath()),
 					Message:     message,
 					SubjectType: jsonreportspec.ReportThreat_Manifest,
 					Subject:     manifest.GetDisplayPath(),
@@ -136,7 +140,7 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 			logger.Debugf("npmLockfilePoisoningAnalyzer: Package [%s] resolved to an unconventional URL [%s]",
 				packageName, lockfilePackage.Resolved)
 
-			message := fmt.Sprintf("Package [%s] resolved to an URL [%s] that does not follow the "+
+			message := fmt.Sprintf("Package `%s` resolved to an URL `%s` that does not follow the "+
 				"package name path convention", packageName, lockfilePackage.Resolved)
 
 			_ = handler(&AnalyzerEvent{
@@ -146,6 +150,10 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 				Manifest: manifest,
 				Package:  pkg,
 				Threat: &jsonreportspec.ReportThreat{
+					Id: jsonreportspec.ReportThreat_LockfilePoisoning,
+					InstanceId: ThreatInstanceId(jsonreportspec.ReportThreat_LockfilePoisoning,
+						jsonreportspec.ReportThreat_Manifest,
+						manifest.GetDisplayPath()),
 					Message:     message,
 					SubjectType: jsonreportspec.ReportThreat_Manifest,
 					Subject:     manifest.GetDisplayPath(),
