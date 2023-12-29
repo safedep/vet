@@ -47,23 +47,15 @@ func (r *jsonReportGenerator) Name() string {
 }
 
 func (r *jsonReportGenerator) AddManifest(manifest *models.PackageManifest) {
-	manifestId := manifest.Id()
-	if _, ok := r.manifests[manifestId]; !ok {
-		r.manifests[manifestId] = &jsonreportspec.PackageManifestReport{
-			Id:        manifestId,
-			Path:      manifest.GetDisplayPath(),
-			Ecosystem: manifest.GetSpecEcosystem(),
-		}
-	}
+	// Eager load the package manifest in the cache
+	_ = r.findPackageManifestReport(manifest)
 
 	err := readers.NewManifestModelReader(manifest).EnumPackages(func(p *models.Package) error {
-		pkgId := p.Id()
-		if _, ok := r.packages[pkgId]; !ok {
-			r.packages[pkgId] = r.buildJsonPackageReportFromPackage(p)
-		}
+		// Eager load the package in the cache
+		_ = r.findPackageReport(p)
 
-		if !slices.Contains(r.packages[pkgId].Manifests, manifestId) {
-			r.packages[pkgId].Manifests = append(r.packages[p.Id()].Manifests, manifestId)
+		if !slices.Contains(r.packages[p.Id()].Manifests, manifest.Id()) {
+			r.packages[p.Id()].Manifests = append(r.packages[p.Id()].Manifests, manifest.Id())
 		}
 
 		return nil
@@ -75,10 +67,31 @@ func (r *jsonReportGenerator) AddManifest(manifest *models.PackageManifest) {
 }
 
 func (r *jsonReportGenerator) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
-	if !event.IsFilterMatch() {
+	if event.IsFilterMatch() {
+		r.handleFilterEvent(event)
+	} else if event.IsLockfilePoisoningSignal() {
+		r.handleThreatEvent(event)
+	}
+}
+
+func (r *jsonReportGenerator) handleThreatEvent(event *analyzer.AnalyzerEvent) {
+	if event.Threat == nil {
 		return
 	}
 
+	switch event.Threat.SubjectType {
+	case jsonreportspec.ReportThreat_Manifest:
+		manifest := r.findPackageManifestReport(event.Manifest)
+		manifest.Threats = append(manifest.Threats, event.Threat)
+
+	case jsonreportspec.ReportThreat_Package:
+		pkg := r.findPackageReport(event.Package)
+		pkg.Threats = append(pkg.Threats, event.Threat)
+	}
+
+}
+
+func (r *jsonReportGenerator) handleFilterEvent(event *analyzer.AnalyzerEvent) {
 	if event.Package == nil {
 		logger.Warnf("Analyzer event with nil package")
 		return
@@ -94,14 +107,8 @@ func (r *jsonReportGenerator) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 		return
 	}
 
-	// Create a reportable package model if it does not already exist
-	pkgId := event.Package.Id()
-	if _, ok := r.packages[pkgId]; !ok {
-		r.packages[pkgId] = r.buildJsonPackageReportFromPackage(event.Package)
-	}
-
 	// All subsequent operations are on this pkg
-	pkg := r.packages[pkgId]
+	pkg := r.findPackageReport(event.Package)
 
 	// We avoid duplicate violation for a package. Duplicates can occur because same package
 	// is in multiple manifests hence raising same violation
@@ -127,6 +134,29 @@ func (r *jsonReportGenerator) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 	} else {
 		pkg.Advices = append(pkg.Advices, advice)
 	}
+}
+
+func (r *jsonReportGenerator) findPackageManifestReport(manifest *models.PackageManifest) *jsonreportspec.PackageManifestReport {
+	manifestId := manifest.Id()
+	if _, ok := r.manifests[manifestId]; !ok {
+		r.manifests[manifestId] = &jsonreportspec.PackageManifestReport{
+			Id:        manifestId,
+			Path:      manifest.GetDisplayPath(),
+			Ecosystem: manifest.GetSpecEcosystem(),
+			Threats:   make([]*schema.ReportThreat, 0),
+		}
+	}
+
+	return r.manifests[manifestId]
+}
+
+func (r *jsonReportGenerator) findPackageReport(pkg *models.Package) *jsonreportspec.PackageReport {
+	pkgId := pkg.Id()
+	if _, ok := r.packages[pkgId]; !ok {
+		r.packages[pkgId] = r.buildJsonPackageReportFromPackage(pkg)
+	}
+
+	return r.packages[pkgId]
 }
 
 func (r *jsonReportGenerator) AddPolicyEvent(event *policy.PolicyEvent) {}
@@ -187,6 +217,7 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 		Advices:         make([]*schema.RemediationAdvice, 0),
 		Vulnerabilities: make([]*modelspec.InsightVulnerability, 0),
 		Licenses:        make([]*modelspec.InsightLicenseInfo, 0),
+		Threats:         make([]*schema.ReportThreat, 0),
 	}
 
 	insights := utils.SafelyGetValue(p.Insights)

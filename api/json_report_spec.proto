@@ -22,10 +22,49 @@ message RemediationAdvice {
   string target_alternate_package_version = 6;
 }
 
+// We are introducing the concept of Threat as a reporting entity so
+// that we can report threats like lockfile poisoning using a standard schema.
+// But why do we need threats? Why not just use vet's paradigm of policy over
+// enriched packages? The reason is, there are threats that are applicable in
+// an environment, against a manifest or other entities or even group of entities.
+// Hence it is required to introduce a threat as a reporting entity so that external
+// tools can consume vet's reports and take actions based on the threats.
+message ReportThreat {
+  enum Confidence {
+    UnknownConfidence = 0;
+
+    High = 1;
+    Medium = 2;
+    Low = 3;
+  }
+
+  enum Source {
+    UnknownSource = 0;
+
+    CWE = 1;
+  }
+
+  enum Subject {
+    UnknownSubject = 0;
+
+    Package = 1;
+    Manifest = 2;
+  }
+
+  string id = 1;
+  string message = 2;
+  Subject subject_type = 3;
+  string subject = 4;
+  Confidence confidence = 5;
+  Source source = 6;
+  string source_id = 7;
+}
+
 message PackageManifestReport {
   string id = 1;
   Ecosystem ecosystem = 2;
   string path = 3;
+  repeated ReportThreat threats = 4;
 }
 
 // PackageReport represents the first class entity for which we have different type
@@ -42,6 +81,9 @@ message PackageReport {
   // Insights data
   repeated InsightVulnerability vulnerabilities = 5;
   repeated InsightLicenseInfo licenses = 6;
+
+  // Threats
+  repeated ReportThreat threats = 7;
 }
 
 message ReportMeta {

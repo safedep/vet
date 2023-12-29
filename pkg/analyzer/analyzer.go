@@ -2,6 +2,7 @@ package analyzer
 
 import (
 	"github.com/safedep/vet/gen/filtersuite"
+	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
 	"github.com/safedep/vet/pkg/models"
 )
 
@@ -23,6 +24,7 @@ type AnalyzerEvent struct {
 	// Message / Error / Filter
 	Message interface{}
 	Filter  *filtersuite.Filter
+	Threat  *jsonreportspec.ReportThreat
 	Err     error
 
 	// Entities on which event was generated

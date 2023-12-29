@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/readers"
@@ -111,13 +112,23 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 			logger.Debugf("npmLockfilePoisoningAnalyzer: Package [%s] resolved to an untrusted host [%s]",
 				packageName, lockfilePackage.Resolved)
 
+			message := fmt.Sprintf("Package [%s] resolved to an untrusted host [%s]",
+				packageName, lockfilePackage.Resolved)
+
 			_ = handler(&AnalyzerEvent{
-				Source: lfpAnalyzerName,
-				Type:   ET_LockfilePoisoningSignal,
-				Message: fmt.Sprintf("Package [%s] resolved to an untrusted host [%s]",
-					packageName, lockfilePackage.Resolved),
+				Source:   lfpAnalyzerName,
+				Type:     ET_LockfilePoisoningSignal,
+				Message:  message,
 				Manifest: manifest,
 				Package:  pkg,
+				Threat: &jsonreportspec.ReportThreat{
+					Message:     message,
+					SubjectType: jsonreportspec.ReportThreat_Manifest,
+					Subject:     manifest.GetDisplayPath(),
+					Confidence:  jsonreportspec.ReportThreat_Medium,
+					Source:      lfpThreatSource,
+					SourceId:    lfpThreatSourceId,
+				},
 			})
 		}
 
@@ -125,17 +136,25 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 			logger.Debugf("npmLockfilePoisoningAnalyzer: Package [%s] resolved to an unconventional URL [%s]",
 				packageName, lockfilePackage.Resolved)
 
+			message := fmt.Sprintf("Package [%s] resolved to an URL [%s] that does not follow the "+
+				"package name path convention", packageName, lockfilePackage.Resolved)
+
 			_ = handler(&AnalyzerEvent{
-				Source: lfpAnalyzerName,
-				Type:   ET_LockfilePoisoningSignal,
-				Message: fmt.Sprintf("Package [%s] resolved to an URL [%s] that does not follow the "+
-					"package name path convention", packageName, lockfilePackage.Resolved),
+				Source:   lfpAnalyzerName,
+				Type:     ET_LockfilePoisoningSignal,
+				Message:  message,
 				Manifest: manifest,
 				Package:  pkg,
+				Threat: &jsonreportspec.ReportThreat{
+					Message:     message,
+					SubjectType: jsonreportspec.ReportThreat_Manifest,
+					Subject:     manifest.GetDisplayPath(),
+					Confidence:  jsonreportspec.ReportThreat_Medium,
+					Source:      lfpThreatSource,
+					SourceId:    lfpThreatSourceId,
+				},
 			})
 		}
-
-		// TODO: Handle the 3rd case of new entry added to package-lock.json dependency list
 	}
 
 	return nil

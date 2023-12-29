@@ -3,12 +3,18 @@ package analyzer
 import (
 	"fmt"
 
+	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
 	specmodels "github.com/safedep/vet/gen/models"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 )
 
 const lfpAnalyzerName = "LockfilePoisoningAnalyzer"
+const lfpThreatSource = jsonreportspec.ReportThreat_CWE
+
+// https://cwe.mitre.org/data/definitions/349.html
+// Acceptance of Extraneous Untrusted Data With Trusted Data
+const lfpThreatSourceId = "CWE-349"
 
 type LockfilePoisoningAnalyzerConfig struct {
 	FailFast            bool
@@ -60,12 +66,16 @@ func (lfp *lockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifest,
 	return plugin.Analyze(manifest, func(event *AnalyzerEvent) error {
 		lfp.detections = append(lfp.detections, event)
 		if lfp.config.FailFast {
-			_ = handler(&AnalyzerEvent{
+			err := handler(&AnalyzerEvent{
 				Source:  lfpAnalyzerName,
 				Type:    ET_AnalyzerFailOnError,
 				Message: "Identified lockfile poisoning attempt in " + manifest.GetDisplayPath(),
 				Err:     fmt.Errorf("fail-fast on lockfile poisoning at %s", manifest.GetDisplayPath()),
 			})
+
+			if err != nil {
+				logger.Errorf("LockfilePoisoningAnalyzer: Error handling fail-fast event: %v", err)
+			}
 		}
 
 		return handler(event)
