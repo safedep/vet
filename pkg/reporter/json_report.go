@@ -79,6 +79,14 @@ func (r *jsonReportGenerator) handleThreatEvent(event *analyzer.AnalyzerEvent) {
 		return
 	}
 
+	if event.Threat.SubjectType == jsonreportspec.ReportThreat_Manifest && event.Manifest == nil {
+		return
+	}
+
+	if event.Threat.SubjectType == jsonreportspec.ReportThreat_Package && event.Package == nil {
+		return
+	}
+
 	switch event.Threat.SubjectType {
 	case jsonreportspec.ReportThreat_Manifest:
 		manifest := r.findPackageManifestReport(event.Manifest)
