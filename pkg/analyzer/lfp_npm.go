@@ -96,10 +96,12 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 			continue
 		}
 
+		// We don't strictly need this because the package name is extracted from `package-lock.json`
+		// The impact here is, pkg can be nil in the event and may cause a bug for reporters if they
+		// don't handle nil package
 		pkg, ok := pkgMap[packageName]
 		if !ok {
-			logger.Warnf("npmLockfilePoisoningAnalyzer: Package [%s] not found in manifest", packageName)
-			continue
+			logger.Debugf("npmLockfilePoisoningAnalyzer: Package [%s] not found in manifest", packageName)
 		}
 
 		trustedRegistryUrls := []string{npmRegistryTrustedUrlBase}
