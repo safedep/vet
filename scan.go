@@ -154,9 +154,14 @@ func listParsersCommand() *cobra.Command {
 
 func startScan() {
 	if !disableAuthVerifyBeforeScan {
-		failOnError("auth/verify", auth.Verify(&auth.VerifyConfig{
+		err := auth.Verify(&auth.VerifyConfig{
 			ControlPlaneApiUrl: auth.DefaultControlPlaneApiUrl(),
-		}))
+		})
+
+		if err != nil {
+			failOnError("auth/verify", fmt.Errorf("failed to verify auth token: %v. "+
+				"You may want to setup community mode using: vet auth configure --community", err))
+		}
 	}
 
 	if auth.CommunityMode() {
