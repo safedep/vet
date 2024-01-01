@@ -329,12 +329,10 @@ func (r *summaryReporter) renderRemediationAdvice() {
 			break
 		}
 
-		insight := utils.SafelyGetValue(sp.pkg.Insights)
-
 		tbl.AppendRow(table.Row{
 			string(sp.pkg.Ecosystem),
 			r.packageNameForRemediationAdvice(sp.pkg),
-			utils.SafelyGetValue(insight.PackageCurrentVersion),
+			r.packageUpdateVersionForRemediationAdvice(sp.pkg),
 			sp.score,
 		})
 
@@ -366,6 +364,22 @@ func (r *summaryReporter) renderRemediationAdvice() {
 func (r *summaryReporter) packageNameForRemediationAdvice(pkg *models.Package) string {
 	return fmt.Sprintf("%s@%s", pkg.PackageDetails.Name,
 		pkg.PackageDetails.Version)
+}
+
+func (r *summaryReporter) packageUpdateVersionForRemediationAdvice(pkg *models.Package) string {
+	insight := utils.SafelyGetValue(pkg.Insights)
+	insightsCurrentVersion := utils.SafelyGetValue(insight.PackageCurrentVersion)
+
+	if insightsCurrentVersion == "" {
+		return "Not Available"
+	}
+
+	sver, _ := semver.Diff(pkg.PackageDetails.Version, insightsCurrentVersion)
+	if sver.IsNone() {
+		return "-"
+	}
+
+	return insightsCurrentVersion
 }
 
 func (r *summaryReporter) vulnSummaryStatement() string {
