@@ -59,7 +59,10 @@ func (p *jsonDumpReader) EnumManifests(handler func(*models.PackageManifest,
 			return err
 		}
 
-		var manifest models.PackageManifest
+		manifest := models.PackageManifest{
+			DependencyGraph: models.NewDependencyGraph[*models.Package](),
+		}
+
 		err = json.Unmarshal(data, &manifest)
 		if err != nil {
 			return err

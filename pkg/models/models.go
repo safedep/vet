@@ -45,8 +45,20 @@ type PackageManifest struct {
 	// List of packages obtained by parsing the manifest
 	Packages []*Package `json:"packages"`
 
+	// The package depeneny graph representation
+	DependencyGraph *DependencyGraph[*Package] `json:"dependency_graph"`
+
 	// Lock to serialize updating packages
 	m sync.Mutex
+}
+
+func NewPackageManifest(path, ecosystem string) *PackageManifest {
+	return &PackageManifest{
+		Path:            path,
+		Ecosystem:       ecosystem,
+		Packages:        make([]*Package, 0),
+		DependencyGraph: NewDependencyGraph[*Package](),
+	}
 }
 
 func (pm *PackageManifest) AddPackage(pkg *Package) {
@@ -72,6 +84,17 @@ func (pm *PackageManifest) GetDisplayPath() string {
 	}
 
 	return pm.GetPath()
+}
+
+// GetPackages returns the list of packages in this manifest
+// It uses the DependencyGraph to get the list of packages if available
+// else fallsback to the [Packages] field
+func (pm *PackageManifest) GetPackages() []*Package {
+	if pm.DependencyGraph != nil && pm.DependencyGraph.Present() {
+		return pm.DependencyGraph.GetNodes()
+	}
+
+	return pm.Packages
 }
 
 func (pm *PackageManifest) Id() string {
@@ -132,6 +155,9 @@ type Package struct {
 	Manifest *PackageManifest `json:"-"`
 }
 
+// Id returns a unique identifier for this package within a manifest
+// It is used to identify a package in the dependency graph
+// It should be reproducible across multiple runs
 func (p *Package) Id() string {
 	return hashedId(fmt.Sprintf("%s/%s/%s",
 		strings.ToLower(string(p.PackageDetails.Ecosystem)),

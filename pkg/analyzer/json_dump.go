@@ -47,11 +47,11 @@ func (j *jsonDumperAnalyzer) Analyze(manifest *models.PackageManifest,
 		return fmt.Errorf("Failed to JSON serialize manifest: %w", err)
 	}
 
-	random := rand.NewSource(time.Now().UnixNano())
+	randomSource := rand.NewSource(time.Now().UnixNano())
 	path := filepath.Join(j.dir, fmt.Sprintf("%s-%s--%d-dump.json",
 		manifest.Ecosystem,
 		filepath.Base(manifest.Path),
-		random.Int63()))
+		randomSource.Int63()))
 
 	return os.WriteFile(path, data, 0600)
 }
