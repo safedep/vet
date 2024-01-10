@@ -21,6 +21,7 @@ var (
 	querySummaryReportMaxAdvice int
 	queryMarkdownReportPath     string
 	queryJsonReportPath         string
+	queryGraphReportPath        string
 	queryCsvReportPath          string
 	queryExceptionsFile         string
 	queryExceptionsTill         string
@@ -64,6 +65,8 @@ func newQueryCommand() *cobra.Command {
 		"Generate markdown report to file")
 	cmd.Flags().StringVarP(&queryJsonReportPath, "report-json", "", "",
 		"Generate JSON report to file (EXPERIMENTAL)")
+	cmd.Flags().StringVarP(&queryGraphReportPath, "report-graph", "", "",
+		"Generate dependency graph as graphviz dot files to directory")
 	cmd.Flags().StringVarP(&queryCsvReportPath, "report-csv", "", "",
 		"Generate CSV report of filtered packages to file")
 	return cmd
@@ -169,6 +172,15 @@ func internalStartQuery() error {
 			Path: queryCsvReportPath,
 		})
 
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if !utils.IsEmptyString(queryGraphReportPath) {
+		rp, err := reporter.NewDotGraphReporter(queryGraphReportPath)
 		if err != nil {
 			return err
 		}

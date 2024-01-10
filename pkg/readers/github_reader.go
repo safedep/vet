@@ -171,7 +171,7 @@ func (p *githubReader) processRemoteDependencyGraph(ctx context.Context, client 
 		return err
 	}
 
-	if len(manifest.Packages) == 0 {
+	if manifest.GetPackagesCount() == 0 {
 		return errors.New("no packages identified from SBOM")
 	}
 

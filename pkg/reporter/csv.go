@@ -3,6 +3,7 @@ package reporter
 import (
 	"encoding/csv"
 	"os"
+	"strings"
 
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -25,6 +26,8 @@ type csvRecord struct {
 	manifestPath    string
 	packageName     string
 	packageVersion  string
+	introducedBy    string
+	pathToRoot      string
 	violationReason string
 }
 
@@ -77,12 +80,29 @@ func (r *csvReporter) Finish() error {
 			continue
 		}
 
+		introducedBy := ""
+		pathToRoot := ""
+
+		paths := v.Package.DependencyPath()
+		pathPackages := []string{}
+
+		for _, path := range paths {
+			pathPackages = append(pathPackages, path.GetName())
+		}
+
+		if len(paths) > 0 {
+			introducedBy = pathPackages[len(paths)-1]
+			pathToRoot = strings.Join(pathPackages, " -> ")
+		}
+
 		records = append(records, csvRecord{
 			ecosystem:       string(v.Package.Ecosystem),
 			manifestPath:    v.Manifest.GetDisplayPath(),
 			packageName:     v.Package.GetName(),
 			packageVersion:  v.Package.GetVersion(),
 			violationReason: msg,
+			introducedBy:    introducedBy,
+			pathToRoot:      pathToRoot,
 		})
 	}
 
@@ -109,7 +129,9 @@ func (r *csvReporter) persistCsvRecords(records []csvRecord) error {
 		"Manifest Path",
 		"Package Name",
 		"Package Version",
-		"Filter Name"})
+		"Violation",
+		"Introduced By",
+		"Path To Root"})
 	if err != nil {
 		return err
 	}
@@ -119,6 +141,8 @@ func (r *csvReporter) persistCsvRecords(records []csvRecord) error {
 			csvRecord.ecosystem, csvRecord.manifestPath,
 			csvRecord.packageName, csvRecord.packageVersion,
 			csvRecord.violationReason,
+			csvRecord.introducedBy,
+			csvRecord.pathToRoot,
 		}); err != nil {
 			return err
 		}

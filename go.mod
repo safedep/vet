@@ -15,7 +15,7 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.4.9
 	github.com/kubescape/go-git-url v0.0.25
 	github.com/package-url/packageurl-go v0.1.2
-	github.com/safedep/dry v0.0.0-20231024121814-ee8dd6ec7d93
+	github.com/safedep/dry v0.0.0-20240110142304-5970e3335464
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smacker/go-tree-sitter v0.0.0-20230720070738-0d0a9f78d8f8
 	github.com/spdx/tools-golang v0.5.3

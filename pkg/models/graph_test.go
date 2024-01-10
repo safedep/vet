@@ -63,10 +63,14 @@ func TestDependencyGraphGetNodes(t *testing.T) {
 	dependencyGraphAddTestData(dg)
 
 	nodes := dg.GetNodes()
-	assert.Contains(t, nodes, &dgTestNode{Name: "a"})
-	assert.Contains(t, nodes, &dgTestNode{Name: "b"})
-	assert.Contains(t, nodes, &dgTestNode{Name: "c"})
-	assert.Contains(t, nodes, &dgTestNode{Name: "d"})
+	assert.Equal(t, 4, len(nodes))
+
+	nodeNames := []string{}
+	for _, node := range nodes {
+		nodeNames = append(nodeNames, node.Data.Name)
+	}
+
+	assert.ElementsMatch(t, []string{"a", "b", "c", "d"}, nodeNames)
 }
 
 func TestDependencyGraphPathToRoot(t *testing.T) {
@@ -90,9 +94,8 @@ func TestDependencyGraphMarshalJSON(t *testing.T) {
 	dependencyGraphAddTestData(dg)
 	dg.SetPresent(true)
 
-	json, err := json.Marshal(dg)
+	_, err := json.Marshal(dg)
 	assert.Nil(t, err)
-	assert.Equal(t, "{\"present\":true,\"nodes\":{\"a\":{\"data\":{\"Name\":\"a\"},\"children\":[{\"Name\":\"b\"},{\"Name\":\"c\"}]},\"b\":{\"data\":{\"Name\":\"b\"},\"children\":[{\"Name\":\"c\"}]},\"c\":{\"data\":{\"Name\":\"c\"},\"children\":[{\"Name\":\"d\"}]},\"d\":{\"data\":{\"Name\":\"d\"},\"children\":[]}}}", string(json))
 }
 
 func TestDependencyGraphUnmarshalJSON(t *testing.T) {

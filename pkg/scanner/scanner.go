@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	dryutils "github.com/safedep/dry/utils"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/common/utils"
@@ -17,6 +18,7 @@ type Config struct {
 	ConcurrentAnalyzer int
 	TransitiveAnalysis bool
 	TransitiveDepth    int
+	Experimental       bool
 }
 
 type packageManifestScanner struct {
@@ -213,6 +215,8 @@ func (s *packageManifestScanner) enrichManifest(manifest *models.PackageManifest
 		return nil
 	}
 
+	defer s.finaliseDependencyGraph(manifest)
+
 	// FIXME: Potential deadlock situation in case of channel buffer is full
 	// because the goroutines perform both read and write to channel. Write occurs
 	// when goroutine invokes the work queue handler and the handler pushes back
@@ -246,7 +250,7 @@ func (s *packageManifestScanner) enrichManifest(manifest *models.PackageManifest
 func (s *packageManifestScanner) packageEnrichWorkQueueHandler(pm *models.PackageManifest) utils.WorkQueueFn[*models.Package] {
 	return func(q *utils.WorkQueue[*models.Package], item *models.Package) error {
 		for _, enricher := range s.enrichers {
-			err := enricher.Enrich(item, s.packageDependencyHandler(pm, q))
+			err := enricher.Enrich(item, s.packageDependencyHandler(pm, item, q))
 			if err != nil {
 				logger.Errorf("Enricher %s failed with %v", enricher.Name(), err)
 			}
@@ -257,8 +261,10 @@ func (s *packageManifestScanner) packageEnrichWorkQueueHandler(pm *models.Packag
 }
 
 func (s *packageManifestScanner) packageDependencyHandler(pm *models.PackageManifest,
+	currentPkg *models.Package,
 	q *utils.WorkQueue[*models.Package]) PackageDependencyCallbackFn {
 	return func(pkg *models.Package) error {
+		// Check and queue for further analysis
 		if !s.config.TransitiveAnalysis {
 			return nil
 		}
@@ -277,4 +283,62 @@ func (s *packageManifestScanner) packageDependencyHandler(pm *models.PackageMani
 
 		return nil
 	}
+}
+
+// finaliseDependencyGraph attempts to mark some nodes as root node if they do not have a dependent
+// this is just a heuristic to mark some nodes as root node. This may not be accurate in all cases
+func (s *packageManifestScanner) finaliseDependencyGraph(manifest *models.PackageManifest) {
+	if manifest.DependencyGraph == nil {
+		return
+	}
+
+	if manifest.DependencyGraph.Present() {
+		return
+	}
+
+	// Building dependency graph using package insights
+	packages := manifest.GetPackages()
+	for _, pkg := range packages {
+		insights := dryutils.SafelyGetValue(pkg.Insights)
+		dependencies := dryutils.SafelyGetValue(insights.Dependencies)
+
+		for _, dep := range dependencies {
+			distance := dryutils.SafelyGetValue(dep.Distance)
+
+			// Distance = 0 is the package itself
+			if distance == 0 {
+				continue
+			}
+
+			// Distance > 1 means the package is not a direct dependency
+			if distance > 1 {
+				continue
+			}
+
+			logger.Debugf("Adding dependency %s/%s to dependency graph",
+				dep.PackageVersion.Name, dep.PackageVersion.Version)
+
+			targetPkg := utils.FindDependencyGraphNodeBySemverRange(manifest.DependencyGraph,
+				dep.PackageVersion.Name, dep.PackageVersion.Version)
+
+			if targetPkg == nil {
+				logger.Debugf("Dependency %s/%s not found in dependency graph",
+					dep.PackageVersion.Name, dep.PackageVersion.Version)
+				continue
+			}
+
+			manifest.DependencyGraph.AddDependency(pkg, targetPkg.Data)
+		}
+	}
+
+	nodes := manifest.DependencyGraph.GetNodes()
+	for _, node := range nodes {
+		pkg := node.Data
+		dependents := manifest.DependencyGraph.GetDependents(pkg)
+		if len(dependents) == 0 {
+			node.SetRoot(true)
+		}
+	}
+
+	manifest.DependencyGraph.SetPresent(true)
 }

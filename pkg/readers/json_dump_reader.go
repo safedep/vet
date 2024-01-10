@@ -77,7 +77,7 @@ func (p *jsonDumpReader) EnumManifests(handler func(*models.PackageManifest,
 		manifest.Path = path
 
 		// Fix manifest reference in each package
-		for _, pkg := range manifest.Packages {
+		for _, pkg := range manifest.GetPackages() {
 			pkg.Manifest = &manifest
 		}
 
