@@ -74,16 +74,18 @@ func main() {
 }
 
 func loadExceptions() {
-	if globalExceptionsFile != "" {
-		loader, err := exceptions.NewExceptionsFileLoader(globalExceptionsFile)
-		if err != nil {
-			logger.Fatalf("Exceptions loader: %v", err)
-		}
+	if globalExceptionsFile == "" {
+		return
+	}
 
-		err = exceptions.Load(loader)
-		if err != nil {
-			logger.Fatalf("Exceptions loader: %v", err)
-		}
+	loader, err := exceptions.NewExceptionsFileLoader(globalExceptionsFile)
+	if err != nil {
+		logger.Fatalf("Exceptions loader: %v", err)
+	}
+
+	err = exceptions.Load(loader)
+	if err != nil {
+		logger.Fatalf("Exceptions loader: %v", err)
 	}
 }
 
