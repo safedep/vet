@@ -9,7 +9,7 @@ require (
 	github.com/deepmap/oapi-codegen v1.16.2
 	github.com/gofri/go-github-ratelimit v1.0.5
 	github.com/golang/protobuf v1.5.3
-	github.com/google/cel-go v0.18.1
+	github.com/google/cel-go v0.19.0
 	github.com/google/go-github/v54 v54.0.0
 	github.com/google/osv-scanner v1.5.0
 	github.com/jedib0t/go-pretty/v6 v6.4.9
@@ -36,7 +36,7 @@ require (
 	github.com/Shopify/goreferrer v0.0.0-20220729165902-8cddb4f5de06 // indirect
 	github.com/anchore/go-struct-converter v0.0.0-20230627203149-c72ef8859ca9 // indirect
 	github.com/andybalholm/brotli v1.0.6 // indirect
-	github.com/antlr/antlr4/runtime/Go/antlr/v4 v4.0.0-20230305170008-8188dc5388df // indirect
+	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/bytedance/sonic v1.10.2 // indirect
