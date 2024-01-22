@@ -7,6 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var defaultParserConfigForTest = &ParserConfig{}
+
 func findPackageInGraph(graph *models.DependencyGraph[*models.Package], name, version string) *models.Package {
 	for _, node := range graph.GetPackages() {
 		if node.GetName() == name && node.GetVersion() == version {
@@ -18,7 +20,7 @@ func findPackageInGraph(graph *models.DependencyGraph[*models.Package], name, ve
 }
 
 func TestNpmGraphParserBasic(t *testing.T) {
-	pm, err := parseNpmPackageLockAsGraph("./fixtures/package-lock-graph.json")
+	pm, err := parseNpmPackageLockAsGraph("./fixtures/package-lock-graph.json", defaultParserConfigForTest)
 	assert.Nil(t, err)
 
 	assert.NotNil(t, pm)
@@ -27,7 +29,7 @@ func TestNpmGraphParserBasic(t *testing.T) {
 }
 
 func TestNpmGraphParserDependencies(t *testing.T) {
-	pm, err := parseNpmPackageLockAsGraph("./fixtures/package-lock-graph.json")
+	pm, err := parseNpmPackageLockAsGraph("./fixtures/package-lock-graph.json", defaultParserConfigForTest)
 	assert.Nil(t, err)
 
 	aNode := findPackageInGraph(pm.DependencyGraph, "@aws-sdk/client-s3", "3.478.0")
@@ -107,7 +109,7 @@ func TestNpmGraphParserDependencies(t *testing.T) {
 }
 
 func TestNpmGraphParserDependents(t *testing.T) {
-	pm, err := parseNpmPackageLockAsGraph("./fixtures/package-lock-graph.json")
+	pm, err := parseNpmPackageLockAsGraph("./fixtures/package-lock-graph.json", defaultParserConfigForTest)
 	assert.Nil(t, err)
 
 	bNode := findPackageInGraph(pm.DependencyGraph, "tslib", "1.14.1")
@@ -147,7 +149,7 @@ func TestNpmGraphParserDependents(t *testing.T) {
 }
 
 func TestNpmGraphParserPathToRootFromRoot(t *testing.T) {
-	pm, err := parseNpmPackageLockAsGraph("./fixtures/package-lock-graph.json")
+	pm, err := parseNpmPackageLockAsGraph("./fixtures/package-lock-graph.json", defaultParserConfigForTest)
 	assert.Nil(t, err)
 
 	aNode := findPackageInGraph(pm.DependencyGraph, "@aws-sdk/client-s3", "3.478.0")
@@ -159,7 +161,7 @@ func TestNpmGraphParserPathToRootFromRoot(t *testing.T) {
 }
 
 func TestNpmGraphParserPathToRootFromDependent(t *testing.T) {
-	pm, err := parseNpmPackageLockAsGraph("./fixtures/package-lock-graph.json")
+	pm, err := parseNpmPackageLockAsGraph("./fixtures/package-lock-graph.json", defaultParserConfigForTest)
 	assert.Nil(t, err)
 
 	bNode := findPackageInGraph(pm.DependencyGraph, "tslib", "1.14.1")

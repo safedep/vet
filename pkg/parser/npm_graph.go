@@ -31,7 +31,7 @@ type npmPackageLock struct {
 	Packages        map[string]npmPackageLockPackage `json:"packages"`
 }
 
-func parseNpmPackageLockAsGraph(lockfilePath string) (*models.PackageManifest, error) {
+func parseNpmPackageLockAsGraph(lockfilePath string, config *ParserConfig) (*models.PackageManifest, error) {
 	data, err := os.ReadFile(lockfilePath)
 	if err != nil {
 		return nil, err
@@ -87,8 +87,7 @@ func parseNpmPackageLockAsGraph(lockfilePath string) (*models.PackageManifest, e
 			continue
 		}
 
-		// TODO: This needs to be configurable
-		if pkgInfo.Dev || pkgInfo.Optional {
+		if !config.IncludeDevDependencies && (pkgInfo.Dev || pkgInfo.Optional) {
 			logger.Debugf("npmGraphParser: Skipping dev/optional package %s", pkgName)
 			continue
 		}

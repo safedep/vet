@@ -27,13 +27,6 @@ const (
 	LockfileAsBomCycloneDx = customParserCycloneDXSBOM
 )
 
-type dependencyGraphParser func(lockfilePath string) (*models.PackageManifest, error)
-
-// Maintain a map of lockfileAs to dependencyGraphParser
-var dependencyGraphParsers map[string]dependencyGraphParser = map[string]dependencyGraphParser{
-	"package-lock.json": parseNpmPackageLockAsGraph,
-}
-
 // We are supporting only those ecosystems for which we have data
 // for enrichment. More ecosystems will be supported as we improve
 // the capability of our Insights API
@@ -47,6 +40,7 @@ var supportedEcosystems map[string]bool = map[string]bool{
 	models.EcosystemSpdxSBOM: true,
 }
 
+// TODO: Migrate these to graph parser
 var customExperimentalParsers map[string]lockfile.PackageDetailsParser = map[string]lockfile.PackageDetailsParser{
 	customParserTypePyWheel:   parsePythonWheelDist,
 	customParserCycloneDXSBOM: cdx.Parse,
@@ -57,6 +51,14 @@ var customExperimentalParsers map[string]lockfile.PackageDetailsParser = map[str
 type Parser interface {
 	Ecosystem() string
 	Parse(lockfilePath string) (*models.PackageManifest, error)
+	ParseWithConfig(lockfilePath string, config *ParserConfig) (*models.PackageManifest, error)
+}
+
+type ParserConfig struct {
+	// A generic config flag (not specific to npm even though the name sounds like that) to indicate
+	// if the parser should include non-production dependencies as well. But this will work
+	// only for supported parsers such as npm graph parser
+	IncludeDevDependencies bool
 }
 
 // Graph parser always takes precedence over lockfile parser
@@ -64,6 +66,14 @@ type parserWrapper struct {
 	graphParser dependencyGraphParser
 	parser      lockfile.PackageDetailsParser
 	parseAs     string
+}
+
+// This is how a graph parser should be implemented
+type dependencyGraphParser func(lockfilePath string, config *ParserConfig) (*models.PackageManifest, error)
+
+// Maintain a map of lockfileAs to dependencyGraphParser
+var dependencyGraphParsers map[string]dependencyGraphParser = map[string]dependencyGraphParser{
+	"package-lock.json": parseNpmPackageLockAsGraph,
 }
 
 func List(experimental bool) []string {
@@ -193,9 +203,13 @@ func (pw *parserWrapper) Ecosystem() string {
 }
 
 func (pw *parserWrapper) Parse(lockfilePath string) (*models.PackageManifest, error) {
+	return pw.ParseWithConfig(lockfilePath, &ParserConfig{})
+}
+
+func (pw *parserWrapper) ParseWithConfig(lockfilePath string, config *ParserConfig) (*models.PackageManifest, error) {
 	logger.Infof("[%s] Parsing %s", pw.parseAs, lockfilePath)
 	if pw.graphParser != nil {
-		return pw.graphParser(lockfilePath)
+		return pw.graphParser(lockfilePath, config)
 	}
 
 	packages, err := pw.parser(lockfilePath)
