@@ -10,6 +10,7 @@ import (
 
 	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
 	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/pkg/common/utils"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/readers"
 )
@@ -23,6 +24,7 @@ type npmPackageLockPackage struct {
 	Integrity string `json:"integrity"`
 	Dev       bool   `json:"dev"`
 	Optional  bool   `json:"optional"`
+	Link      bool   `json:"link"`
 }
 
 // https://docs.npmjs.com/cli/v10/configuring-npm/package-lock-json
@@ -87,6 +89,12 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 
 		if lockfilePackage.Resolved == "" {
 			logger.Warnf("npmLockfilePoisoningAnalyzer: Node Module [%s] does not have a resolved URL", path)
+			continue
+		}
+
+		if lockfilePackage.Link {
+			logger.Debugf("npmLockfilePoisoningAnalyzer: Skipping linked package [%s] for [%s]",
+				path, lockfilePackage.Resolved)
 			continue
 		}
 
@@ -229,19 +237,7 @@ func npmIsTrustedSource(sourceUrl string, trusteUrls []string) bool {
 
 // Extract the package name from the node_modules filesystem path
 func npmNodeModulesPackagePathToName(path string) string {
-	// Extract the package name from the node_modules filesystem path
-	// Example: node_modules/express -> express
-	// Example: node_modules/@angular/core -> @angular/core
-	// Example: node_modules/@angular/core/node_modules/express -> express
-	// Example: node_modules/@angular/core/node_modules/@angular/common -> @angular/common
-
-	for i := len(path) - 1; i >= 0; i-- {
-		if (len(path[i:]) > 13) && (path[i:i+13] == "node_modules/") {
-			return path[i+13:]
-		}
-	}
-
-	return ""
+	return utils.NpmNodeModulesPackagePathToName(path)
 }
 
 // Test if URL follows the pkg name path convention as per NPM package registry

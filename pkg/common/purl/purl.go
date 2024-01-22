@@ -52,6 +52,8 @@ func purlBuildLockfilePackageName(ecosystem lockfile.Ecosystem, group, name stri
 	switch ecosystem {
 	case lockfile.GoEcosystem, lockfile.NpmEcosystem:
 		return fmt.Sprintf("%s/%s", group, name)
+	case lockfile.MavenEcosystem:
+		return fmt.Sprintf("%s:%s", group, name)
 	default:
 		return name
 	}

@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -39,6 +40,7 @@ var supportedEcosystems map[string]bool = map[string]bool{
 	models.EcosystemSpdxSBOM: true,
 }
 
+// TODO: Migrate these to graph parser
 var customExperimentalParsers map[string]lockfile.PackageDetailsParser = map[string]lockfile.PackageDetailsParser{
 	customParserTypePyWheel:   parsePythonWheelDist,
 	customParserCycloneDXSBOM: cdx.Parse,
@@ -49,17 +51,39 @@ var customExperimentalParsers map[string]lockfile.PackageDetailsParser = map[str
 type Parser interface {
 	Ecosystem() string
 	Parse(lockfilePath string) (*models.PackageManifest, error)
+	ParseWithConfig(lockfilePath string, config *ParserConfig) (*models.PackageManifest, error)
 }
 
+type ParserConfig struct {
+	// A generic config flag (not specific to npm even though the name sounds like that) to indicate
+	// if the parser should include non-production dependencies as well. But this will work
+	// only for supported parsers such as npm graph parser
+	IncludeDevDependencies bool
+}
+
+// Graph parser always takes precedence over lockfile parser
 type parserWrapper struct {
-	parser  lockfile.PackageDetailsParser
-	parseAs string
+	graphParser dependencyGraphParser
+	parser      lockfile.PackageDetailsParser
+	parseAs     string
+}
+
+// This is how a graph parser should be implemented
+type dependencyGraphParser func(lockfilePath string, config *ParserConfig) (*models.PackageManifest, error)
+
+// Maintain a map of lockfileAs to dependencyGraphParser
+var dependencyGraphParsers map[string]dependencyGraphParser = map[string]dependencyGraphParser{
+	"package-lock.json": parseNpmPackageLockAsGraph,
 }
 
 func List(experimental bool) []string {
 	supportedParsers := make([]string, 0, 0)
-	parsers := lockfile.ListParsers()
 
+	for pa := range dependencyGraphParsers {
+		supportedParsers = append(supportedParsers, fmt.Sprintf("%s (graph)", pa))
+	}
+
+	parsers := lockfile.ListParsers()
 	for _, p := range parsers {
 		_, err := FindParser("", p)
 		if err != nil {
@@ -79,6 +103,18 @@ func List(experimental bool) []string {
 }
 
 func FindParser(lockfilePath, lockfileAs string) (Parser, error) {
+	// Find a graph parser for the lockfile
+	logger.Debugf("Trying to find graph parser for %s", lockfilePath)
+	gp, gpa := findGraphParser(lockfilePath, lockfileAs)
+	if gp != nil {
+		pw := &parserWrapper{graphParser: gp, parseAs: gpa}
+		if pw.supported() {
+			return pw, nil
+		}
+	}
+
+	// Try to find a parser for the lockfile
+	logger.Debugf("Trying to find lockfile parser for %s", lockfilePath)
 	p, pa := lockfile.FindParser(lockfilePath, lockfileAs)
 	if p != nil {
 		pw := &parserWrapper{parser: p, parseAs: pa}
@@ -87,6 +123,7 @@ func FindParser(lockfilePath, lockfileAs string) (Parser, error) {
 		}
 	}
 
+	// Use experimental parser for explicitly provided lockfile type
 	logger.Debugf("Trying to find parser in experimental parsers %s", lockfileAs)
 	if p, ok := customExperimentalParsers[lockfileAs]; ok {
 		pw := &parserWrapper{parser: p, parseAs: lockfileAs}
@@ -96,9 +133,23 @@ func FindParser(lockfilePath, lockfileAs string) (Parser, error) {
 		}
 	}
 
+	// We failed!
 	logger.Debugf("No Parser found for the type %s", lockfileAs)
 	return nil, fmt.Errorf("no parser found with: %s for: %s", lockfileAs,
 		lockfilePath)
+}
+
+func findGraphParser(lockfilePath, lockfileAs string) (dependencyGraphParser, string) {
+	parseAs := lockfileAs
+	if lockfileAs == "" {
+		parseAs = filepath.Base(lockfilePath)
+	}
+
+	if _, ok := dependencyGraphParsers[parseAs]; ok {
+		return dependencyGraphParsers[parseAs], parseAs
+	}
+
+	return nil, ""
 }
 
 func (pw *parserWrapper) supported() bool {
@@ -106,7 +157,6 @@ func (pw *parserWrapper) supported() bool {
 }
 
 func (pw *parserWrapper) Ecosystem() string {
-	logger.Debugf("Provided Lockfile Type %s", pw.parseAs)
 	switch pw.parseAs {
 	case "Cargo.lock":
 		return models.EcosystemCargo
@@ -153,14 +203,21 @@ func (pw *parserWrapper) Ecosystem() string {
 }
 
 func (pw *parserWrapper) Parse(lockfilePath string) (*models.PackageManifest, error) {
+	return pw.ParseWithConfig(lockfilePath, &ParserConfig{})
+}
+
+func (pw *parserWrapper) ParseWithConfig(lockfilePath string, config *ParserConfig) (*models.PackageManifest, error) {
 	logger.Infof("[%s] Parsing %s", pw.parseAs, lockfilePath)
-	pm := models.NewPackageManifest(lockfilePath, pw.Ecosystem())
+	if pw.graphParser != nil {
+		return pw.graphParser(lockfilePath, config)
+	}
 
 	packages, err := pw.parser(lockfilePath)
 	if err != nil {
-		return pm, err
+		return nil, err
 	}
 
+	pm := models.NewPackageManifest(lockfilePath, pw.Ecosystem())
 	for _, pkg := range packages {
 		pm.AddPackage(&models.Package{
 			PackageDetails: pkg,

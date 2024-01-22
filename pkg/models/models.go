@@ -66,6 +66,7 @@ func (pm *PackageManifest) AddPackage(pkg *Package) {
 	defer pm.m.Unlock()
 
 	pm.Packages = append(pm.Packages, pkg)
+	pm.DependencyGraph.AddNode(pkg)
 }
 
 func (pm *PackageManifest) GetPath() string {
@@ -91,7 +92,7 @@ func (pm *PackageManifest) GetDisplayPath() string {
 // else fallsback to the [Packages] field
 func (pm *PackageManifest) GetPackages() []*Package {
 	if pm.DependencyGraph != nil && pm.DependencyGraph.Present() {
-		return pm.DependencyGraph.GetNodes()
+		return pm.DependencyGraph.GetPackages()
 	}
 
 	return pm.Packages
@@ -103,7 +104,7 @@ func (pm *PackageManifest) Id() string {
 }
 
 func (pm *PackageManifest) GetPackagesCount() int {
-	return len(pm.Packages)
+	return len(pm.GetPackages())
 }
 
 func (pm *PackageManifest) GetSpecEcosystem() modelspec.Ecosystem {
@@ -185,12 +186,38 @@ func (p *Package) ShortName() string {
 		strings.ToLower(p.Name), p.Version)
 }
 
-func NewPackageDetail(e, n, v string) lockfile.PackageDetails {
+func (p *Package) GetDependencyGraph() *DependencyGraph[*Package] {
+	if p.Manifest == nil {
+		return nil
+	}
+
+	if p.Manifest.DependencyGraph == nil {
+		return nil
+	}
+
+	if !p.Manifest.DependencyGraph.Present() {
+		return nil
+	}
+
+	return p.Manifest.DependencyGraph
+}
+
+// DependencyPath returns the path from a root package to this package
+func (p *Package) DependencyPath() []*Package {
+	dg := p.GetDependencyGraph()
+	if dg == nil {
+		return []*Package{}
+	}
+
+	return dg.PathToRoot(p)
+}
+
+func NewPackageDetail(ecosystem, name, version string) lockfile.PackageDetails {
 	return lockfile.PackageDetails{
-		Ecosystem: lockfile.Ecosystem(e),
-		CompareAs: lockfile.Ecosystem(e),
-		Name:      n,
-		Version:   v,
+		Ecosystem: lockfile.Ecosystem(ecosystem),
+		CompareAs: lockfile.Ecosystem(ecosystem),
+		Name:      name,
+		Version:   version,
 	}
 }
 

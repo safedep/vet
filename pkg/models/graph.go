@@ -1,6 +1,10 @@
 package models
 
-import "encoding/json"
+import (
+	"cmp"
+	"encoding/json"
+	"slices"
+)
 
 // We are using generics here to make the graph implementation
 // not too coupled with our model types
@@ -13,12 +17,19 @@ type DependencyGraphNodeType interface {
 type DependencyGraphNode[T DependencyGraphNodeType] struct {
 	Data     T   `json:"data"`
 	Children []T `json:"children"`
+
+	// While not relevant for a graph, this is required to identify root packages
+	Root bool `json:"root"`
 }
 
 // Directed Acyclic Graph (DAG) representation of the package manifest
 type DependencyGraph[T DependencyGraphNodeType] struct {
 	present bool
 	nodes   map[string]*DependencyGraphNode[T]
+}
+
+func (node *DependencyGraphNode[T]) SetRoot(root bool) {
+	node.Root = root
 }
 
 func NewDependencyGraph[T DependencyGraphNodeType]() *DependencyGraph[T] {
@@ -46,18 +57,32 @@ func (dg *DependencyGraph[T]) SetPresent(present bool) {
 	dg.present = present
 }
 
+// Add a node to the graph
+func (dg *DependencyGraph[T]) AddNode(node T) {
+	_ = dg.findOrCreateNode(node)
+}
+
+func (dg *DependencyGraph[T]) IsRoot(data T) bool {
+	if node, ok := dg.nodes[data.Id()]; ok {
+		return node.Root
+	}
+
+	return false
+}
+
+// Add a root node to the graph
+func (dg *DependencyGraph[T]) AddRootNode(node T) {
+	dg.AddNode(node)
+	dg.nodes[node.Id()].Root = true
+}
+
 // AddDependency adds a dependency from one package to another
 // Add an edge from [from] to [to]
 func (dg *DependencyGraph[T]) AddDependency(from, to T) {
-	if _, ok := dg.nodes[from.Id()]; !ok {
-		dg.nodes[from.Id()] = &DependencyGraphNode[T]{Data: from, Children: []T{}}
-	}
+	fromNode := dg.findOrCreateNode(from)
+	toNode := dg.findOrCreateNode(to)
 
-	if _, ok := dg.nodes[to.Id()]; !ok {
-		dg.nodes[to.Id()] = &DependencyGraphNode[T]{Data: to, Children: []T{}}
-	}
-
-	dg.nodes[from.Id()].Children = append(dg.nodes[from.Id()].Children, dg.nodes[to.Id()].Data)
+	fromNode.Children = append(fromNode.Children, toNode.Data)
 }
 
 // GetDependencies returns the list of dependencies for the given package
@@ -90,19 +115,23 @@ func (dg *DependencyGraph[T]) GetDependents(pkg T) []T {
 }
 
 // GetNodes returns the list of nodes in the graph
-// This is useful when enumerating all packages
-func (dg *DependencyGraph[T]) GetNodes() []T {
-	var nodes []T
+func (dg *DependencyGraph[T]) GetNodes() []*DependencyGraphNode[T] {
+	var nodes []*DependencyGraphNode[T]
 	for _, node := range dg.nodes {
-		nodes = append(nodes, node.Data)
+		nodes = append(nodes, node)
 	}
 
 	return nodes
 }
 
-// Alias for GetNodes
+// GetPackages returns the list of packages in the graph
 func (dg *DependencyGraph[T]) GetPackages() []T {
-	return dg.GetNodes()
+	var packages []T
+	for _, node := range dg.nodes {
+		packages = append(packages, node.Data)
+	}
+
+	return packages
 }
 
 // PathToRoot returns the path from the given package to the root
@@ -111,13 +140,20 @@ func (dg *DependencyGraph[T]) GetPackages() []T {
 // is more relevant here because we want to update minimum number of root packages
 func (dg *DependencyGraph[T]) PathToRoot(pkg T) []T {
 	var path []T
-	for _, node := range dg.nodes {
-		if node.Data.Id() == pkg.Id() {
-			path = append(path, node.Data)
-			break
-		}
+
+	// If the package is not present in the graph, return an empty path
+	if node, ok := dg.nodes[pkg.Id()]; ok {
+		path = append(path, node.Data)
+	} else {
+		return path
 	}
 
+	// Check if we are already at the root
+	if dg.nodes[pkg.Id()].Root {
+		return path
+	}
+
+	visited := make(map[string]bool)
 	for len(path) > 0 {
 		node := path[len(path)-1]
 		dependents := dg.GetDependents(node)
@@ -125,10 +161,44 @@ func (dg *DependencyGraph[T]) PathToRoot(pkg T) []T {
 			break
 		}
 
-		path = append(path, dependents[0])
+		// Sort dependents by Id to ensure deterministic traversal
+		slices.SortFunc(dependents, func(a, b T) int {
+			return cmp.Compare(a.Id(), b.Id())
+		})
+
+		progress := false
+		for _, dependent := range dependents {
+			if _, ok := visited[dependent.Id()]; !ok {
+				path = append(path, dependent)
+				visited[dependent.Id()] = true
+				progress = true
+				break
+			}
+		}
+
+		if !progress {
+			break
+		}
+
+		if n, ok := dg.nodes[path[len(path)-1].Id()]; ok && n.Root {
+			break
+		}
 	}
 
 	return path
+}
+
+func (dg *DependencyGraph[T]) findOrCreateNode(data T) *DependencyGraphNode[T] {
+	id := data.Id()
+	if _, ok := dg.nodes[id]; !ok {
+		dg.nodes[id] = &DependencyGraphNode[T]{
+			Root:     false,
+			Data:     data,
+			Children: []T{},
+		}
+	}
+
+	return dg.nodes[id]
 }
 
 func (dg *DependencyGraph[T]) MarshalJSON() ([]byte, error) {

@@ -9,7 +9,8 @@ import (
 // only for packages not in the exempted by exception rules
 func AllowedPackages(manifest *models.PackageManifest,
 	handler func(pkg *models.Package) error) error {
-	for _, pkg := range manifest.Packages {
+	packages := manifest.GetPackages()
+	for _, pkg := range packages {
 		res, err := Apply(pkg)
 		if err != nil {
 			logger.Errorf("Failed to evaluate exception for %s: %v",

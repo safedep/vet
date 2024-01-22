@@ -1,9 +1,10 @@
 package reporter
 
 import (
+	"cmp"
 	"fmt"
 	"os"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -296,17 +297,17 @@ func (r *summaryReporter) Finish() error {
 func (r *summaryReporter) sortedRemediations() []*summaryReporterRemediationData {
 	sortedPackages := []*summaryReporterRemediationData{}
 	for _, value := range r.remediationScores {
-		i := sort.Search(len(sortedPackages), func(i int) bool {
-			return value.score >= sortedPackages[i].score
-		})
-
-		if i == len(sortedPackages) {
-			sortedPackages = append(sortedPackages, value)
-		} else {
-			sortedPackages = append(sortedPackages[:i+1], sortedPackages[i:]...)
-			sortedPackages[i] = value
-		}
+		sortedPackages = append(sortedPackages, value)
 	}
+
+	slices.SortFunc(sortedPackages, func(a, b *summaryReporterRemediationData) int {
+		if a.score == b.score {
+			return cmp.Compare(a.pkg.GetName(), b.pkg.GetName())
+		}
+
+		// We want to sort by descending order
+		return cmp.Compare(b.score, a.score)
+	})
 
 	return sortedPackages
 }
@@ -344,6 +345,13 @@ func (r *summaryReporter) renderRemediationAdvice() {
 		tbl.AppendRow(table.Row{
 			"", tagText, "", "",
 		})
+
+		pathToRoot := text.Faint.Sprint(r.pathToPackageRoot(sp.pkg))
+		if pathToRoot != "" {
+			tbl.AppendRow(table.Row{
+				"", pathToRoot, "", "",
+			})
+		}
 
 		tbl.AppendSeparator()
 	}
@@ -407,4 +415,29 @@ func (r *summaryReporter) majorVersionDriftStatement() string {
 func (r *summaryReporter) exceptionsCountStatement() string {
 	return fmt.Sprintf("%d libraries are exempted from analysis through exception rules",
 		exceptions.ActiveCount())
+}
+
+func (r *summaryReporter) pathToPackageRoot(pkg *models.Package) string {
+	path := strings.Builder{}
+
+	dg := pkg.GetDependencyGraph()
+	if dg == nil {
+		return path.String()
+	}
+
+	if dg.IsRoot(pkg) {
+		return path.String()
+	}
+
+	pathToRoot := pkg.Manifest.DependencyGraph.PathToRoot(pkg)
+	if len(pathToRoot) == 0 {
+		return path.String()
+	}
+
+	path.WriteString(fmt.Sprintf(" ... [%d] > ", len(pathToRoot)-1))
+
+	rootPkg := pathToRoot[len(pathToRoot)-1]
+	path.WriteString(rootPkg.GetName() + "@" + rootPkg.GetVersion())
+
+	return path.String()
 }

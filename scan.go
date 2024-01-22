@@ -46,10 +46,12 @@ var (
 	disableAuthVerifyBeforeScan bool
 	syncReport                  bool
 	syncReportProject           string
+	graphReportDirectory        string
 	syncReportStream            string
 	listExperimentalParsers     bool
 	failFast                    bool
 	trustedRegistryUrls         []string
+	scannerExperimental         bool
 )
 
 func newScanCommand() *cobra.Command {
@@ -117,6 +119,8 @@ func newScanCommand() *cobra.Command {
 		"Generate CSV report of filtered packages")
 	cmd.Flags().StringVarP(&jsonReportPath, "report-json", "", "",
 		"Generate consolidated JSON report to file (EXPERIMENTAL schema)")
+	cmd.Flags().StringVarP(&graphReportDirectory, "report-graph", "", "",
+		"Generate dependency graph (if available) as dot files to directory")
 	cmd.Flags().BoolVarP(&syncReport, "report-sync", "", false,
 		"Enable syncing report data to cloud")
 	cmd.Flags().StringVarP(&syncReportProject, "report-sync-project", "", "",
@@ -125,6 +129,8 @@ func newScanCommand() *cobra.Command {
 		"Project stream name (e.g. branch) to use in cloud")
 	cmd.Flags().StringArrayVarP(&trustedRegistryUrls, "trusted-registry", "", []string{},
 		"Trusted registry URLs to use for package manifest verification")
+	cmd.Flags().BoolVarP(&scannerExperimental, "experimental", "", false,
+		"Enable experimental features in scanner")
 
 	cmd.AddCommand(listParsersCommand())
 	return cmd
@@ -302,6 +308,15 @@ func internalStartScan() error {
 		reporters = append(reporters, rp)
 	}
 
+	if !utils.IsEmptyString(graphReportDirectory) {
+		rp, err := reporter.NewDotGraphReporter(graphReportDirectory)
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
 	if !utils.IsEmptyString(csvReportPath) {
 		rp, err := reporter.NewCsvReporter(reporter.CsvReportingConfig{
 			Path: csvReportPath,
@@ -343,6 +358,7 @@ func internalStartScan() error {
 		TransitiveDepth:    transitiveDepth,
 		ConcurrentAnalyzer: concurrency,
 		ExcludePatterns:    scanExclude,
+		Experimental:       scannerExperimental,
 	}, readerList, enrichers, analyzers, reporters)
 
 	// Redirect log to files to create space for UI rendering

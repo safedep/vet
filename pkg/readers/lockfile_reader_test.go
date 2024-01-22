@@ -63,7 +63,7 @@ func TestLockfileReaderEnumManifests(t *testing.T) {
 			},
 			"", // Auto detect from name
 			nil,
-			errors.New("package-lock.json: invalid character"),
+			errors.New("invalid character"),
 			0,
 			[]int{13},
 		},
