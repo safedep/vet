@@ -80,6 +80,9 @@ func (r *DotGraphReporter) dotRenderDependencyGraph(dg *models.DependencyGraph[*
 	sb.WriteString("  rankdir=LR;\n")
 	sb.WriteString("  node [shape=box];\n")
 
+	// Add a dummy root node
+	sb.WriteString("  \"root\";\n")
+
 	// Generate the node names
 	for _, node := range dg.GetNodes() {
 		sb.WriteString("  ")
@@ -89,6 +92,14 @@ func (r *DotGraphReporter) dotRenderDependencyGraph(dg *models.DependencyGraph[*
 
 	// Add the relations
 	for _, node := range dg.GetNodes() {
+		if node.Root {
+			sb.WriteString("  ")
+			sb.WriteString("\"root\"")
+			sb.WriteString(" -> ")
+			sb.WriteString("\"" + r.nodeNameForPackage(node.Data) + "\"")
+			sb.WriteString(";\n")
+		}
+
 		for _, edge := range node.Children {
 			sb.WriteString("  ")
 			sb.WriteString("\"" + r.nodeNameForPackage(node.Data) + "\"")
