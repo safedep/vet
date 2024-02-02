@@ -9,7 +9,6 @@ import (
 	"github.com/safedep/vet/pkg/models"
 
 	"github.com/safedep/vet/pkg/parser/custom/py"
-	cdx "github.com/safedep/vet/pkg/parser/custom/sbom/cyclonedx"
 	"github.com/safedep/vet/pkg/parser/custom/sbom/spdx"
 )
 
@@ -42,10 +41,9 @@ var supportedEcosystems map[string]bool = map[string]bool{
 
 // TODO: Migrate these to graph parser
 var customExperimentalParsers map[string]lockfile.PackageDetailsParser = map[string]lockfile.PackageDetailsParser{
-	customParserTypePyWheel:   parsePythonWheelDist,
-	customParserCycloneDXSBOM: cdx.Parse,
-	customParserSpdxSBOM:      spdx.Parse,
-	customParserTypeSetupPy:   py.ParseSetuppy,
+	customParserTypePyWheel: parsePythonWheelDist,
+	customParserSpdxSBOM:    spdx.Parse,
+	customParserTypeSetupPy: py.ParseSetuppy,
 }
 
 type Parser interface {
@@ -73,7 +71,8 @@ type dependencyGraphParser func(lockfilePath string, config *ParserConfig) (*mod
 
 // Maintain a map of lockfileAs to dependencyGraphParser
 var dependencyGraphParsers map[string]dependencyGraphParser = map[string]dependencyGraphParser{
-	"package-lock.json": parseNpmPackageLockAsGraph,
+	"package-lock.json":       parseNpmPackageLockAsGraph,
+	customParserCycloneDXSBOM: parseSbomCycloneDxAsGraph,
 }
 
 func List(experimental bool) []string {

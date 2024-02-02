@@ -65,6 +65,10 @@ func (pm *PackageManifest) AddPackage(pkg *Package) {
 	pm.m.Lock()
 	defer pm.m.Unlock()
 
+	if pkg.Manifest == nil {
+		pkg.Manifest = pm
+	}
+
 	pm.Packages = append(pm.Packages, pkg)
 	pm.DependencyGraph.AddNode(pkg)
 }
