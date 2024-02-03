@@ -22,12 +22,16 @@ import (
 const (
 	summaryListPrependText = "  ** "
 
-	summaryWeightCriticalVuln = 5
-	summaryWeightHighVuln     = 3
-	summaryWeightMediumVuln   = 1
-	summaryWeightLowVuln      = 0
-	summaryWeightUnpopular    = 2
+	// Opinionated weights for scoring
+	summaryWeightCriticalVuln = 10
+	summaryWeightHighVuln     = 8
+	summaryWeightMediumVuln   = 2
+	summaryWeightLowVuln      = 1
+	summaryWeightUnpopular    = 1
 	summaryWeightMajorDrift   = 2
+
+	// Opinionated thresholds for identifying repo popularity by stars
+	minStarsForPopularity = 10
 
 	tagVuln      = "vulnerability"
 	tagUnpopular = "low popularity"
@@ -48,8 +52,14 @@ type summaryReporterRemediationData struct {
 	tags  []string
 }
 
+type summaryReporterVulnerabilityData struct {
+	pkg             *models.Package
+	vulnerabilities map[insightapi.PackageVulnerabilitySeveritiesRisk][]string
+}
+
 type SummaryReporterConfig struct {
-	MaxAdvice int
+	MaxAdvice               int
+	GroupByDirectDependency bool
 }
 
 type summaryReporter struct {
@@ -74,7 +84,14 @@ type summaryReporter struct {
 
 	// Map of pkgId and associated meta for building remediation advice
 	remediationScores map[string]*summaryReporterRemediationData
-	violations        map[string]*summaryReporterInputViolationData
+
+	// Map of pkgId and associated meta for rendering vulnerability risk
+	vulnerabilityInfo map[string]*summaryReporterVulnerabilityData
+
+	// Map of pkgId and violation information
+	violations map[string]*summaryReporterInputViolationData
+
+	// List of lockfile poisoning detection signals
 	lockfilePoisoning []string
 }
 
@@ -86,6 +103,7 @@ func NewSummaryReporter(config SummaryReporterConfig) (Reporter, error) {
 	return &summaryReporter{
 		config:            config,
 		remediationScores: make(map[string]*summaryReporterRemediationData),
+		vulnerabilityInfo: make(map[string]*summaryReporterVulnerabilityData),
 		violations:        make(map[string]*summaryReporterInputViolationData),
 	}, nil
 }
@@ -182,7 +200,7 @@ func (r *summaryReporter) processForPopularity(pkg *models.Package) {
 		starsCount := utils.SafelyGetValue(p.Stars)
 		projectType := utils.SafelyGetValue(p.Type)
 
-		if (strings.EqualFold(projectType, "github")) && (starsCount < 10) {
+		if (strings.EqualFold(projectType, "github")) && (starsCount < minStarsForPopularity) {
 			r.summary.metrics.unpopular += 1
 			r.addPkgForRemediationAdvice(pkg, summaryWeightUnpopular, tagUnpopular)
 		}
@@ -216,6 +234,8 @@ func (r *summaryReporter) processForVulns(pkg *models.Package) {
 				(sevType != insightapi.PackageVulnerabilitySeveritiesTypeCVSSV3) {
 				continue
 			}
+
+			r.addPkgForVulnerabilityRisk(pkg, risk, utils.SafelyGetValue(vuln.Id))
 
 			switch risk {
 			case insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL:
@@ -253,6 +273,23 @@ func (r *summaryReporter) addPkgForRemediationAdvice(pkg *models.Package,
 	if utils.FindInSlice(r.remediationScores[pkg.Id()].tags, tag) == -1 {
 		r.remediationScores[pkg.Id()].tags = append(r.remediationScores[pkg.Id()].tags, tag)
 	}
+}
+
+func (r *summaryReporter) addPkgForVulnerabilityRisk(pkg *models.Package,
+	risk insightapi.PackageVulnerabilitySeveritiesRisk, vuln string) {
+	if _, ok := r.vulnerabilityInfo[pkg.Id()]; !ok {
+		r.vulnerabilityInfo[pkg.Id()] = &summaryReporterVulnerabilityData{
+			pkg:             pkg,
+			vulnerabilities: make(map[insightapi.PackageVulnerabilitySeveritiesRisk][]string),
+		}
+	}
+
+	if _, ok := r.vulnerabilityInfo[pkg.Id()].vulnerabilities[risk]; !ok {
+		r.vulnerabilityInfo[pkg.Id()].vulnerabilities[risk] = []string{}
+	}
+
+	r.vulnerabilityInfo[pkg.Id()].vulnerabilities[risk] =
+		append(r.vulnerabilityInfo[pkg.Id()].vulnerabilities[risk], vuln)
 }
 
 func (r *summaryReporter) Finish() error {
@@ -313,8 +350,6 @@ func (r *summaryReporter) sortedRemediations() []*summaryReporterRemediationData
 }
 
 func (r *summaryReporter) renderRemediationAdvice() {
-	sortedPackages := r.sortedRemediations()
-
 	fmt.Println(text.Bold.Sprint("Consider upgrading the following libraries for maximum impact:"))
 	fmt.Println()
 
@@ -322,9 +357,11 @@ func (r *summaryReporter) renderRemediationAdvice() {
 	tbl.SetOutputMirror(os.Stdout)
 	tbl.SetStyle(table.StyleLight)
 
-	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Update To", "Impact"})
+	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Update To", "Impact Score", "Vuln Risk"})
 
+	sortedPackages := r.sortedRemediations()
 	maxAdvice := r.config.MaxAdvice
+
 	for idx, sp := range sortedPackages {
 		if idx >= maxAdvice {
 			break
@@ -335,6 +372,7 @@ func (r *summaryReporter) renderRemediationAdvice() {
 			r.packageNameForRemediationAdvice(sp.pkg),
 			r.packageUpdateVersionForRemediationAdvice(sp.pkg),
 			sp.score,
+			r.packageVulnerabilityRiskText(sp.pkg),
 		})
 
 		tagText := ""
@@ -344,12 +382,13 @@ func (r *summaryReporter) renderRemediationAdvice() {
 
 		tbl.AppendRow(table.Row{
 			"", tagText, "", "",
+			r.packageVulnerabilitySampleText(sp.pkg),
 		})
 
 		pathToRoot := text.Faint.Sprint(r.pathToPackageRoot(sp.pkg))
 		if pathToRoot != "" {
 			tbl.AppendRow(table.Row{
-				"", pathToRoot, "", "",
+				"", pathToRoot, "", "", "",
 			})
 		}
 
@@ -367,6 +406,71 @@ func (r *summaryReporter) renderRemediationAdvice() {
 
 		fmt.Println(text.Bold.Sprint("Run vet with `--report-markdown=/path/to/report.md` for details"))
 	}
+}
+
+func (r *summaryReporter) packageVulnerabilityRiskText(pkg *models.Package) string {
+	if _, ok := r.vulnerabilityInfo[pkg.Id()]; !ok {
+		return text.BgGreen.Sprint(" None ")
+	}
+
+	vulnData := r.vulnerabilityInfo[pkg.Id()]
+
+	if len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL]) > 0 {
+		return text.BgHiRed.Sprint(" Critical ")
+	}
+
+	if len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskHIGH]) > 0 {
+		return text.BgRed.Sprint(" High ")
+	}
+
+	if len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskMEDIUM]) > 0 {
+		return text.BgYellow.Sprint(" Medium ")
+	}
+
+	if len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskLOW]) > 0 {
+		return text.BgBlue.Sprint(" Low ")
+	}
+
+	return text.BgWhite.Sprint(" Unknown ")
+}
+
+func (r *summaryReporter) packageVulnerabilitySampleText(pkg *models.Package) string {
+	if _, ok := r.vulnerabilityInfo[pkg.Id()]; !ok {
+		return ""
+	}
+
+	vulnData := r.vulnerabilityInfo[pkg.Id()]
+
+	textTemplateFunc := func(s string, c int) string {
+		text := s
+		if c > 1 {
+			text += fmt.Sprintf(" + %d", c-1)
+		}
+
+		return text
+	}
+
+	if len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL]) > 0 {
+		return textTemplateFunc(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL][0],
+			len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL]))
+	}
+
+	if len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskHIGH]) > 0 {
+		return textTemplateFunc(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskHIGH][0],
+			len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskHIGH]))
+	}
+
+	if len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskMEDIUM]) > 0 {
+		return textTemplateFunc(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskMEDIUM][0],
+			len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskMEDIUM]))
+	}
+
+	if len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskLOW]) > 0 {
+		return textTemplateFunc(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskLOW][0],
+			len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskLOW]))
+	}
+
+	return ""
 }
 
 func (r *summaryReporter) packageNameForRemediationAdvice(pkg *models.Package) string {
