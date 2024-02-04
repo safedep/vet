@@ -50,6 +50,10 @@ type summaryReporterRemediationData struct {
 	pkg   *models.Package
 	score int
 	tags  []string
+
+	// Used in group by primitive, where remediating the pkg
+	// leads to remediating all the packages in the array
+	remediates []*summaryReporterRemediationData
 }
 
 type summaryReporterVulnerabilityData struct {
@@ -349,6 +353,68 @@ func (r *summaryReporter) sortedRemediations() []*summaryReporterRemediationData
 	return sortedPackages
 }
 
+// To be able to group by direct dependencies, we need to:
+// - Enumerate through all package risks
+// - Group by direct dependency if available
+// - Track the packages that are remediated by the direct dependency
+func (r *summaryReporter) sortedRemediationsGroupByDirectDependency() []*summaryReporterRemediationData {
+	groupedRemediationPackages := map[string]*summaryReporterRemediationData{}
+	for _, value := range r.remediationScores {
+		// Get the package and dependency graph
+		pkg := value.pkg
+		dg := pkg.GetDependencyGraph()
+
+		// If dependency graph is available
+		if dg != nil {
+			// Find the top level dependency that may result in upgrading affected package
+			remediationPath := dg.PathToRoot(pkg)
+
+			if len(remediationPath) > 1 {
+				// Package has atleast 1 parent so we will group by the root pkg
+				pkg = remediationPath[len(remediationPath)-1]
+			}
+		}
+
+		if _, ok := groupedRemediationPackages[pkg.Id()]; !ok {
+			groupedRemediationPackages[pkg.Id()] = &summaryReporterRemediationData{
+				pkg:        pkg,
+				score:      0,
+				tags:       make([]string, 0),
+				remediates: []*summaryReporterRemediationData{},
+			}
+		}
+
+		groupedRemediationPackages[pkg.Id()].score = groupedRemediationPackages[pkg.Id()].score + value.score
+
+		// TODO: Merge without duplicates
+		groupedRemediationPackages[pkg.Id()].tags = append(groupedRemediationPackages[pkg.Id()].tags, value.tags...)
+
+		// If the root package is not same as the current package, then the root package remediates
+		// the current package
+		if pkg.Id() != value.pkg.Id() {
+			groupedRemediationPackages[pkg.Id()].remediates = append(groupedRemediationPackages[pkg.Id()].remediates, value)
+		}
+	}
+
+	// Sort the remediated packages by score
+	for _, pkg := range groupedRemediationPackages {
+		slices.SortFunc(pkg.remediates, func(a, b *summaryReporterRemediationData) int {
+			return cmp.Compare(b.score, a.score)
+		})
+	}
+
+	remediationPackages := make([]*summaryReporterRemediationData, 0)
+	for _, rd := range groupedRemediationPackages {
+		remediationPackages = append(remediationPackages, rd)
+	}
+
+	slices.SortFunc(remediationPackages, func(a, b *summaryReporterRemediationData) int {
+		return cmp.Compare(b.score, a.score)
+	})
+
+	return remediationPackages
+}
+
 func (r *summaryReporter) renderRemediationAdvice() {
 	fmt.Println(text.Bold.Sprint("Consider upgrading the following libraries for maximum impact:"))
 	fmt.Println()
@@ -357,10 +423,30 @@ func (r *summaryReporter) renderRemediationAdvice() {
 	tbl.SetOutputMirror(os.Stdout)
 	tbl.SetStyle(table.StyleLight)
 
-	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Update To", "Impact Score", "Vuln Risk"})
+	var sortedPackages []*summaryReporterRemediationData
+	if r.config.GroupByDirectDependency {
+		sortedPackages = r.sortedRemediationsGroupByDirectDependency()
+	} else {
+		sortedPackages = r.sortedRemediations()
+	}
+	r.addRemediationAdviceTableRows(tbl, sortedPackages, r.config.MaxAdvice)
 
-	sortedPackages := r.sortedRemediations()
-	maxAdvice := r.config.MaxAdvice
+	tbl.Render()
+
+	if len(sortedPackages) > summaryReportMaxUpgradeAdvice {
+		fmt.Println()
+		fmt.Println(text.FgHiYellow.Sprint(
+			fmt.Sprintf("There are %d more libraries that should be upgraded to reduce risk",
+				len(sortedPackages)-summaryReportMaxUpgradeAdvice),
+		))
+
+		fmt.Println(text.Bold.Sprint("Run vet with `--report-markdown=/path/to/report.md` for details"))
+	}
+}
+
+func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
+	sortedPackages []*summaryReporterRemediationData, maxAdvice int) {
+	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Update To", "Impact Score", "Vuln Risk"})
 
 	for idx, sp := range sortedPackages {
 		if idx >= maxAdvice {
@@ -380,31 +466,45 @@ func (r *summaryReporter) renderRemediationAdvice() {
 			tagText += text.BgMagenta.Sprint(" "+t+" ") + " "
 		}
 
-		tbl.AppendRow(table.Row{
-			"", tagText, "", "",
-			r.packageVulnerabilitySampleText(sp.pkg),
-		})
+		if len(sp.remediates) > 0 {
+			remediatesSample := sp.remediates[0:slices.Min([]int{len(sp.remediates), 5})]
 
-		pathToRoot := text.Faint.Sprint(r.pathToPackageRoot(sp.pkg))
-		if pathToRoot != "" {
+			// This is a grouped dependency so we will render the children
+			for _, rd := range remediatesSample {
+				remediatedPkgName := text.Faint.Sprint(r.packageNameForRemediationAdvice(rd.pkg))
+				vulnRisk := r.packageVulnerabilityRiskText(rd.pkg)
+				vulnRiskSample := r.packageVulnerabilitySampleText(rd.pkg)
+
+				if vulnRiskSample != "" {
+					vulnRisk = fmt.Sprintf("%s (%s)", vulnRisk, vulnRiskSample)
+				}
+
+				tbl.AppendRow(table.Row{
+					"", remediatedPkgName, "", "", vulnRisk,
+				})
+			}
+
+			if len(sp.remediates) > len(remediatesSample) {
+				tbl.AppendRow(table.Row{
+					"", fmt.Sprintf("... and %d more", len(sp.remediates)-len(remediatesSample)), "", "", "",
+				})
+			}
+		} else {
+			// This is a direct dependency or do not remediate anything else (not grouped)
 			tbl.AppendRow(table.Row{
-				"", pathToRoot, "", "", "",
+				"", tagText, "", "",
+				r.packageVulnerabilitySampleText(sp.pkg),
 			})
+
+			pathToRoot := text.Faint.Sprint(r.pathToPackageRoot(sp.pkg))
+			if pathToRoot != "" {
+				tbl.AppendRow(table.Row{
+					"", pathToRoot, "", "", "",
+				})
+			}
 		}
 
 		tbl.AppendSeparator()
-	}
-
-	tbl.Render()
-
-	if len(sortedPackages) > summaryReportMaxUpgradeAdvice {
-		fmt.Println()
-		fmt.Println(text.FgHiYellow.Sprint(
-			fmt.Sprintf("There are %d more libraries that should be upgraded to reduce risk",
-				len(sortedPackages)-summaryReportMaxUpgradeAdvice),
-		))
-
-		fmt.Println(text.Bold.Sprint("Run vet with `--report-markdown=/path/to/report.md` for details"))
 	}
 }
 

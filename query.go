@@ -12,20 +12,21 @@ import (
 )
 
 var (
-	queryFilterExpression       string
-	queryFilterSuiteFile        string
-	queryFilterFailOnMatch      bool
-	queryLoadDirectory          string
-	queryEnableConsoleReport    bool
-	queryEnableSummaryReport    bool
-	querySummaryReportMaxAdvice int
-	queryMarkdownReportPath     string
-	queryJsonReportPath         string
-	queryGraphReportPath        string
-	queryCsvReportPath          string
-	queryExceptionsFile         string
-	queryExceptionsTill         string
-	queryExceptionsFilter       string
+	queryFilterExpression               string
+	queryFilterSuiteFile                string
+	queryFilterFailOnMatch              bool
+	queryLoadDirectory                  string
+	queryEnableConsoleReport            bool
+	queryEnableSummaryReport            bool
+	querySummaryReportMaxAdvice         int
+	querySummaryReportGroupByDirectDeps bool
+	queryMarkdownReportPath             string
+	queryJsonReportPath                 string
+	queryGraphReportPath                string
+	queryCsvReportPath                  string
+	queryExceptionsFile                 string
+	queryExceptionsTill                 string
+	queryExceptionsFilter               string
 
 	queryDefaultExceptionExpiry = time.Now().Add(90 * 24 * time.Hour)
 )
@@ -61,6 +62,8 @@ func newQueryCommand() *cobra.Command {
 		"Show an actionable summary based on scan data")
 	cmd.Flags().IntVarP(&querySummaryReportMaxAdvice, "report-summary-max-advice", "", 5,
 		"Maximum number of package risk advice to show")
+	cmd.Flags().BoolVarP(&querySummaryReportGroupByDirectDeps, "report-summary-group-by-direct-deps", "", false,
+		"Group summary by direct dependencies")
 	cmd.Flags().StringVarP(&queryMarkdownReportPath, "report-markdown", "", "",
 		"Generate markdown report to file")
 	cmd.Flags().StringVarP(&queryJsonReportPath, "report-json", "", "",
@@ -134,7 +137,8 @@ func internalStartQuery() error {
 
 	if queryEnableSummaryReport {
 		rp, err := reporter.NewSummaryReporter(reporter.SummaryReporterConfig{
-			MaxAdvice: querySummaryReportMaxAdvice,
+			MaxAdvice:               querySummaryReportMaxAdvice,
+			GroupByDirectDependency: querySummaryReportGroupByDirectDeps,
 		})
 
 		if err != nil {
