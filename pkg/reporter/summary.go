@@ -429,8 +429,8 @@ func (r *summaryReporter) renderRemediationAdvice() {
 	} else {
 		sortedPackages = r.sortedRemediations()
 	}
-	r.addRemediationAdviceTableRows(tbl, sortedPackages, r.config.MaxAdvice)
 
+	r.addRemediationAdviceTableRows(tbl, sortedPackages, r.config.MaxAdvice)
 	tbl.Render()
 
 	if len(sortedPackages) > summaryReportMaxUpgradeAdvice {
@@ -448,11 +448,23 @@ func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
 	sortedPackages []*summaryReporterRemediationData, maxAdvice int) {
 	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Update To", "Impact Score", "Vuln Risk"})
 
+	// Re-use the formatting logic within this function boundary
+	formatTags := func(tags []string) string {
+		tagText := ""
+
+		for _, t := range tags {
+			tagText += text.BgMagenta.Sprint(" "+t+" ") + " "
+		}
+
+		return tagText
+	}
+
 	for idx, sp := range sortedPackages {
 		if idx >= maxAdvice {
 			break
 		}
 
+		// Add the package as a table row
 		tbl.AppendRow(table.Row{
 			string(sp.pkg.Ecosystem),
 			r.packageNameForRemediationAdvice(sp.pkg),
@@ -461,12 +473,24 @@ func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
 			r.packageVulnerabilityRiskText(sp.pkg),
 		})
 
-		tagText := ""
-		for _, t := range sp.tags {
-			tagText += text.BgMagenta.Sprint(" "+t+" ") + " "
-		}
-
+		// Here things change. We check if we are grouping by top level dependency
+		// in which case we also add the packages that are expected to be remediated
+		// by updating the direct dependency
 		if len(sp.remediates) > 0 {
+			uniqueTags := []string{}
+			for _, rd := range sp.remediates {
+				for _, pt := range rd.tags {
+					if utils.FindInSlice(uniqueTags, pt) == -1 {
+						uniqueTags = append(uniqueTags, pt)
+					}
+				}
+			}
+
+			tbl.AppendRow(table.Row{
+				"", formatTags(uniqueTags), "", "",
+				r.packageVulnerabilitySampleText(sp.pkg),
+			})
+
 			remediatesSample := sp.remediates[0:slices.Min([]int{len(sp.remediates), 5})]
 
 			// This is a grouped dependency so we will render the children
@@ -492,7 +516,7 @@ func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
 		} else {
 			// This is a direct dependency or do not remediate anything else (not grouped)
 			tbl.AppendRow(table.Row{
-				"", tagText, "", "",
+				"", formatTags(sp.tags), "", "",
 				r.packageVulnerabilitySampleText(sp.pkg),
 			})
 
