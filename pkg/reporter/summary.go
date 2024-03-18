@@ -22,12 +22,16 @@ import (
 const (
 	summaryListPrependText = "  ** "
 
-	summaryWeightCriticalVuln = 5
-	summaryWeightHighVuln     = 3
-	summaryWeightMediumVuln   = 1
-	summaryWeightLowVuln      = 0
-	summaryWeightUnpopular    = 2
+	// Opinionated weights for scoring
+	summaryWeightCriticalVuln = 10
+	summaryWeightHighVuln     = 8
+	summaryWeightMediumVuln   = 2
+	summaryWeightLowVuln      = 1
+	summaryWeightUnpopular    = 1
 	summaryWeightMajorDrift   = 2
+
+	// Opinionated thresholds for identifying repo popularity by stars
+	minStarsForPopularity = 10
 
 	tagVuln      = "vulnerability"
 	tagUnpopular = "low popularity"
@@ -46,10 +50,20 @@ type summaryReporterRemediationData struct {
 	pkg   *models.Package
 	score int
 	tags  []string
+
+	// Used in group by primitive, where remediating the pkg
+	// leads to remediating all the packages in the array
+	remediates []*summaryReporterRemediationData
+}
+
+type summaryReporterVulnerabilityData struct {
+	pkg             *models.Package
+	vulnerabilities map[insightapi.PackageVulnerabilitySeveritiesRisk][]string
 }
 
 type SummaryReporterConfig struct {
-	MaxAdvice int
+	MaxAdvice               int
+	GroupByDirectDependency bool
 }
 
 type summaryReporter struct {
@@ -74,7 +88,14 @@ type summaryReporter struct {
 
 	// Map of pkgId and associated meta for building remediation advice
 	remediationScores map[string]*summaryReporterRemediationData
-	violations        map[string]*summaryReporterInputViolationData
+
+	// Map of pkgId and associated meta for rendering vulnerability risk
+	vulnerabilityInfo map[string]*summaryReporterVulnerabilityData
+
+	// Map of pkgId and violation information
+	violations map[string]*summaryReporterInputViolationData
+
+	// List of lockfile poisoning detection signals
 	lockfilePoisoning []string
 }
 
@@ -86,6 +107,7 @@ func NewSummaryReporter(config SummaryReporterConfig) (Reporter, error) {
 	return &summaryReporter{
 		config:            config,
 		remediationScores: make(map[string]*summaryReporterRemediationData),
+		vulnerabilityInfo: make(map[string]*summaryReporterVulnerabilityData),
 		violations:        make(map[string]*summaryReporterInputViolationData),
 	}, nil
 }
@@ -182,7 +204,7 @@ func (r *summaryReporter) processForPopularity(pkg *models.Package) {
 		starsCount := utils.SafelyGetValue(p.Stars)
 		projectType := utils.SafelyGetValue(p.Type)
 
-		if (strings.EqualFold(projectType, "github")) && (starsCount < 10) {
+		if (strings.EqualFold(projectType, "github")) && (starsCount < minStarsForPopularity) {
 			r.summary.metrics.unpopular += 1
 			r.addPkgForRemediationAdvice(pkg, summaryWeightUnpopular, tagUnpopular)
 		}
@@ -216,6 +238,8 @@ func (r *summaryReporter) processForVulns(pkg *models.Package) {
 				(sevType != insightapi.PackageVulnerabilitySeveritiesTypeCVSSV3) {
 				continue
 			}
+
+			r.addPkgForVulnerabilityRisk(pkg, risk, utils.SafelyGetValue(vuln.Id))
 
 			switch risk {
 			case insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL:
@@ -253,6 +277,23 @@ func (r *summaryReporter) addPkgForRemediationAdvice(pkg *models.Package,
 	if utils.FindInSlice(r.remediationScores[pkg.Id()].tags, tag) == -1 {
 		r.remediationScores[pkg.Id()].tags = append(r.remediationScores[pkg.Id()].tags, tag)
 	}
+}
+
+func (r *summaryReporter) addPkgForVulnerabilityRisk(pkg *models.Package,
+	risk insightapi.PackageVulnerabilitySeveritiesRisk, vuln string) {
+	if _, ok := r.vulnerabilityInfo[pkg.Id()]; !ok {
+		r.vulnerabilityInfo[pkg.Id()] = &summaryReporterVulnerabilityData{
+			pkg:             pkg,
+			vulnerabilities: make(map[insightapi.PackageVulnerabilitySeveritiesRisk][]string),
+		}
+	}
+
+	if _, ok := r.vulnerabilityInfo[pkg.Id()].vulnerabilities[risk]; !ok {
+		r.vulnerabilityInfo[pkg.Id()].vulnerabilities[risk] = []string{}
+	}
+
+	r.vulnerabilityInfo[pkg.Id()].vulnerabilities[risk] =
+		append(r.vulnerabilityInfo[pkg.Id()].vulnerabilities[risk], vuln)
 }
 
 func (r *summaryReporter) Finish() error {
@@ -312,9 +353,69 @@ func (r *summaryReporter) sortedRemediations() []*summaryReporterRemediationData
 	return sortedPackages
 }
 
-func (r *summaryReporter) renderRemediationAdvice() {
-	sortedPackages := r.sortedRemediations()
+// To be able to group by direct dependencies, we need to:
+// - Enumerate through all package risks
+// - Group by direct dependency if available
+// - Track the packages that are remediated by the direct dependency
+func (r *summaryReporter) sortedRemediationsGroupByDirectDependency() []*summaryReporterRemediationData {
+	groupedRemediationPackages := map[string]*summaryReporterRemediationData{}
+	for _, value := range r.remediationScores {
+		// Get the package and dependency graph
+		pkg := value.pkg
+		dg := pkg.GetDependencyGraph()
 
+		// If dependency graph is available
+		if dg != nil {
+			// Find the top level dependency that may result in upgrading affected package
+			remediationPath := dg.PathToRoot(pkg)
+
+			if len(remediationPath) > 1 {
+				// Package has atleast 1 parent so we will group by the root pkg
+				pkg = remediationPath[len(remediationPath)-1]
+			}
+		}
+
+		if _, ok := groupedRemediationPackages[pkg.Id()]; !ok {
+			groupedRemediationPackages[pkg.Id()] = &summaryReporterRemediationData{
+				pkg:        pkg,
+				score:      0,
+				tags:       make([]string, 0),
+				remediates: []*summaryReporterRemediationData{},
+			}
+		}
+
+		groupedRemediationPackages[pkg.Id()].score = groupedRemediationPackages[pkg.Id()].score + value.score
+
+		// TODO: Merge without duplicates
+		groupedRemediationPackages[pkg.Id()].tags = append(groupedRemediationPackages[pkg.Id()].tags, value.tags...)
+
+		// If the root package is not same as the current package, then the root package remediates
+		// the current package
+		if pkg.Id() != value.pkg.Id() {
+			groupedRemediationPackages[pkg.Id()].remediates = append(groupedRemediationPackages[pkg.Id()].remediates, value)
+		}
+	}
+
+	// Sort the remediated packages by score
+	for _, pkg := range groupedRemediationPackages {
+		slices.SortFunc(pkg.remediates, func(a, b *summaryReporterRemediationData) int {
+			return cmp.Compare(b.score, a.score)
+		})
+	}
+
+	remediationPackages := make([]*summaryReporterRemediationData, 0)
+	for _, rd := range groupedRemediationPackages {
+		remediationPackages = append(remediationPackages, rd)
+	}
+
+	slices.SortFunc(remediationPackages, func(a, b *summaryReporterRemediationData) int {
+		return cmp.Compare(b.score, a.score)
+	})
+
+	return remediationPackages
+}
+
+func (r *summaryReporter) renderRemediationAdvice() {
 	fmt.Println(text.Bold.Sprint("Consider upgrading the following libraries for maximum impact:"))
 	fmt.Println()
 
@@ -322,40 +423,14 @@ func (r *summaryReporter) renderRemediationAdvice() {
 	tbl.SetOutputMirror(os.Stdout)
 	tbl.SetStyle(table.StyleLight)
 
-	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Update To", "Impact"})
-
-	maxAdvice := r.config.MaxAdvice
-	for idx, sp := range sortedPackages {
-		if idx >= maxAdvice {
-			break
-		}
-
-		tbl.AppendRow(table.Row{
-			string(sp.pkg.Ecosystem),
-			r.packageNameForRemediationAdvice(sp.pkg),
-			r.packageUpdateVersionForRemediationAdvice(sp.pkg),
-			sp.score,
-		})
-
-		tagText := ""
-		for _, t := range sp.tags {
-			tagText += text.BgMagenta.Sprint(" "+t+" ") + " "
-		}
-
-		tbl.AppendRow(table.Row{
-			"", tagText, "", "",
-		})
-
-		pathToRoot := text.Faint.Sprint(r.pathToPackageRoot(sp.pkg))
-		if pathToRoot != "" {
-			tbl.AppendRow(table.Row{
-				"", pathToRoot, "", "",
-			})
-		}
-
-		tbl.AppendSeparator()
+	var sortedPackages []*summaryReporterRemediationData
+	if r.config.GroupByDirectDependency {
+		sortedPackages = r.sortedRemediationsGroupByDirectDependency()
+	} else {
+		sortedPackages = r.sortedRemediations()
 	}
 
+	r.addRemediationAdviceTableRows(tbl, sortedPackages, r.config.MaxAdvice)
 	tbl.Render()
 
 	if len(sortedPackages) > summaryReportMaxUpgradeAdvice {
@@ -367,6 +442,159 @@ func (r *summaryReporter) renderRemediationAdvice() {
 
 		fmt.Println(text.Bold.Sprint("Run vet with `--report-markdown=/path/to/report.md` for details"))
 	}
+}
+
+func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
+	sortedPackages []*summaryReporterRemediationData, maxAdvice int) {
+	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Update To", "Impact Score", "Vuln Risk"})
+
+	// Re-use the formatting logic within this function boundary
+	formatTags := func(tags []string) string {
+		tagText := ""
+
+		for _, t := range tags {
+			tagText += text.BgMagenta.Sprint(" "+t+" ") + " "
+		}
+
+		return tagText
+	}
+
+	for idx, sp := range sortedPackages {
+		if idx >= maxAdvice {
+			break
+		}
+
+		// Add the package as a table row
+		tbl.AppendRow(table.Row{
+			string(sp.pkg.Ecosystem),
+			r.packageNameForRemediationAdvice(sp.pkg),
+			r.packageUpdateVersionForRemediationAdvice(sp.pkg),
+			sp.score,
+			r.packageVulnerabilityRiskText(sp.pkg),
+		})
+
+		// Here things change. We check if we are grouping by top level dependency
+		// in which case we also add the packages that are expected to be remediated
+		// by updating the direct dependency
+		if len(sp.remediates) > 0 {
+			uniqueTags := []string{}
+			for _, rd := range sp.remediates {
+				for _, pt := range rd.tags {
+					if utils.FindInSlice(uniqueTags, pt) == -1 {
+						uniqueTags = append(uniqueTags, pt)
+					}
+				}
+			}
+
+			tbl.AppendRow(table.Row{
+				"", formatTags(uniqueTags), "", "",
+				r.packageVulnerabilitySampleText(sp.pkg),
+			})
+
+			remediatesSample := sp.remediates[0:slices.Min([]int{len(sp.remediates), 5})]
+
+			// This is a grouped dependency so we will render the children
+			for _, rd := range remediatesSample {
+				remediatedPkgName := text.Faint.Sprint(r.packageNameForRemediationAdvice(rd.pkg))
+				vulnRisk := r.packageVulnerabilityRiskText(rd.pkg)
+				vulnRiskSample := r.packageVulnerabilitySampleText(rd.pkg)
+
+				if vulnRiskSample != "" {
+					vulnRisk = fmt.Sprintf("%s (%s)", vulnRisk, vulnRiskSample)
+				}
+
+				tbl.AppendRow(table.Row{
+					"", remediatedPkgName, "", "", vulnRisk,
+				})
+			}
+
+			if len(sp.remediates) > len(remediatesSample) {
+				tbl.AppendRow(table.Row{
+					"", fmt.Sprintf("... and %d more", len(sp.remediates)-len(remediatesSample)), "", "", "",
+				})
+			}
+		} else {
+			// This is a direct dependency or do not remediate anything else (not grouped)
+			tbl.AppendRow(table.Row{
+				"", formatTags(sp.tags), "", "",
+				r.packageVulnerabilitySampleText(sp.pkg),
+			})
+
+			pathToRoot := text.Faint.Sprint(r.pathToPackageRoot(sp.pkg))
+			if pathToRoot != "" {
+				tbl.AppendRow(table.Row{
+					"", pathToRoot, "", "", "",
+				})
+			}
+		}
+
+		tbl.AppendSeparator()
+	}
+}
+
+func (r *summaryReporter) packageVulnerabilityRiskText(pkg *models.Package) string {
+	if _, ok := r.vulnerabilityInfo[pkg.Id()]; !ok {
+		return text.BgGreen.Sprint(" None ")
+	}
+
+	vulnData := r.vulnerabilityInfo[pkg.Id()]
+
+	if len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL]) > 0 {
+		return text.BgHiRed.Sprint(" Critical ")
+	}
+
+	if len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskHIGH]) > 0 {
+		return text.BgRed.Sprint(" High ")
+	}
+
+	if len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskMEDIUM]) > 0 {
+		return text.BgYellow.Sprint(" Medium ")
+	}
+
+	if len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskLOW]) > 0 {
+		return text.BgBlue.Sprint(" Low ")
+	}
+
+	return text.BgWhite.Sprint(" Unknown ")
+}
+
+func (r *summaryReporter) packageVulnerabilitySampleText(pkg *models.Package) string {
+	if _, ok := r.vulnerabilityInfo[pkg.Id()]; !ok {
+		return ""
+	}
+
+	vulnData := r.vulnerabilityInfo[pkg.Id()]
+
+	textTemplateFunc := func(s string, c int) string {
+		text := s
+		if c > 1 {
+			text += fmt.Sprintf(" + %d", c-1)
+		}
+
+		return text
+	}
+
+	if len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL]) > 0 {
+		return textTemplateFunc(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL][0],
+			len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL]))
+	}
+
+	if len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskHIGH]) > 0 {
+		return textTemplateFunc(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskHIGH][0],
+			len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskHIGH]))
+	}
+
+	if len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskMEDIUM]) > 0 {
+		return textTemplateFunc(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskMEDIUM][0],
+			len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskMEDIUM]))
+	}
+
+	if len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskLOW]) > 0 {
+		return textTemplateFunc(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskLOW][0],
+			len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskLOW]))
+	}
+
+	return ""
 }
 
 func (r *summaryReporter) packageNameForRemediationAdvice(pkg *models.Package) string {

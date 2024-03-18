@@ -20,38 +20,39 @@ import (
 )
 
 var (
-	lockfiles                   []string
-	lockfileAs                  string
-	enrich                      bool
-	baseDirectory               string
-	purlSpec                    string
-	githubRepoUrls              []string
-	githubOrgUrl                string
-	githubOrgMaxRepositories    int
-	scanExclude                 []string
-	transitiveAnalysis          bool
-	transitiveDepth             int
-	concurrency                 int
-	dumpJsonManifestDir         string
-	celFilterExpression         string
-	celFilterSuiteFile          string
-	celFilterFailOnMatch        bool
-	markdownReportPath          string
-	jsonReportPath              string
-	consoleReport               bool
-	summaryReport               bool
-	summaryReportMaxAdvice      int
-	csvReportPath               string
-	silentScan                  bool
-	disableAuthVerifyBeforeScan bool
-	syncReport                  bool
-	syncReportProject           string
-	graphReportDirectory        string
-	syncReportStream            string
-	listExperimentalParsers     bool
-	failFast                    bool
-	trustedRegistryUrls         []string
-	scannerExperimental         bool
+	lockfiles                      []string
+	lockfileAs                     string
+	enrich                         bool
+	baseDirectory                  string
+	purlSpec                       string
+	githubRepoUrls                 []string
+	githubOrgUrl                   string
+	githubOrgMaxRepositories       int
+	scanExclude                    []string
+	transitiveAnalysis             bool
+	transitiveDepth                int
+	concurrency                    int
+	dumpJsonManifestDir            string
+	celFilterExpression            string
+	celFilterSuiteFile             string
+	celFilterFailOnMatch           bool
+	markdownReportPath             string
+	jsonReportPath                 string
+	consoleReport                  bool
+	summaryReport                  bool
+	summaryReportMaxAdvice         int
+	summaryReportGroupByDirectDeps bool
+	csvReportPath                  string
+	silentScan                     bool
+	disableAuthVerifyBeforeScan    bool
+	syncReport                     bool
+	syncReportProject              string
+	graphReportDirectory           string
+	syncReportStream               string
+	listExperimentalParsers        bool
+	failFast                       bool
+	trustedRegistryUrls            []string
+	scannerExperimental            bool
 )
 
 func newScanCommand() *cobra.Command {
@@ -115,6 +116,8 @@ func newScanCommand() *cobra.Command {
 		"Print a summary report with actionable advice")
 	cmd.Flags().IntVarP(&summaryReportMaxAdvice, "report-summary-max-advice", "", 5,
 		"Maximum number of package risk advice to show")
+	cmd.Flags().BoolVarP(&summaryReportGroupByDirectDeps, "report-summary-group-by-direct-deps", "", false,
+		"Group summary report by direct dependencies")
 	cmd.Flags().StringVarP(&csvReportPath, "report-csv", "", "",
 		"Generate CSV report of filtered packages")
 	cmd.Flags().StringVarP(&jsonReportPath, "report-json", "", "",
@@ -277,7 +280,8 @@ func internalStartScan() error {
 
 	if summaryReport {
 		rp, err := reporter.NewSummaryReporter(reporter.SummaryReporterConfig{
-			MaxAdvice: summaryReportMaxAdvice,
+			MaxAdvice:               summaryReportMaxAdvice,
+			GroupByDirectDependency: summaryReportGroupByDirectDeps,
 		})
 		if err != nil {
 			return err
