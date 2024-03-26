@@ -247,7 +247,8 @@ func (r *markdownSummaryReporter) addThreatsSection(builder *markdown.MarkdownBu
 				}
 			*/
 
-			builder.AddBulletPoint(fmt.Sprintf(":warning: Found in %s `%s`, %s. Refer to [this](%s) for more details",
+			builder.AddBulletPoint(fmt.Sprintf("%s Found in %s `%s`, %s. Refer to [this](%s) for more details",
+				markdown.EmojiWarning,
 				foundOn,
 				subject,
 				threat.GetMessage(),
@@ -274,9 +275,9 @@ func (r *markdownSummaryReporter) addChangedPackageSection(builder *markdown.Mar
 			continue
 		}
 
-		statusEmoji := ":white_check_mark:"
+		statusEmoji := markdown.EmojiWhiteCheckMark
 		if len(pkg.GetViolations()) > 0 {
-			statusEmoji = ":warning:"
+			statusEmoji = markdown.EmojiWarning
 		}
 
 		builder.AddBulletPoint(fmt.Sprintf("%s [`%s`] `%s@%s`",
@@ -311,7 +312,8 @@ func (r *markdownSummaryReporter) addViolationSection(builder *markdown.Markdown
 			isHeaderAdded = true
 		}
 
-		externalReferenceEmojiUrl := fmt.Sprintf("[:link:](%s)",
+		externalReferenceEmojiUrl := fmt.Sprintf("[%s](%s)",
+			markdown.EmojiLink,
 			r.getPackageExternalReferenceUrl(pkgModel))
 
 		builder.AddHeader(3, fmt.Sprintf("[%s] `%s@%s` %s",
@@ -354,17 +356,17 @@ func (r *markdownSummaryReporter) addViolationSection(builder *markdown.Markdown
 func (r *markdownSummaryReporter) getCheckIconByCheckType(internalModel *vetResultInternalModel,
 	ct checks.CheckType) string {
 	if _, ok := internalModel.violations[ct]; !ok {
-		return ":white_check_mark:"
+		return markdown.EmojiWhiteCheckMark
 	} else {
-		return ":x:"
+		return markdown.EmojiCrossMark
 	}
 }
 
 func (r *markdownSummaryReporter) getCheckIconForThreats(internalModel *vetResultInternalModel) string {
 	if len(internalModel.threats) == 0 {
-		return ":white_check_mark:"
+		return markdown.EmojiWhiteCheckMark
 	} else {
-		return ":x:"
+		return markdown.EmojiCrossMark
 	}
 }
 
