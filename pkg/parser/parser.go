@@ -202,7 +202,9 @@ func (pw *parserWrapper) Ecosystem() string {
 }
 
 func (pw *parserWrapper) Parse(lockfilePath string) (*models.PackageManifest, error) {
-	return pw.ParseWithConfig(lockfilePath, &ParserConfig{})
+	return pw.ParseWithConfig(lockfilePath, &ParserConfig{
+		IncludeDevDependencies: true,
+	})
 }
 
 func (pw *parserWrapper) ParseWithConfig(lockfilePath string, config *ParserConfig) (*models.PackageManifest, error) {

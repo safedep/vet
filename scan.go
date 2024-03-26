@@ -37,6 +37,7 @@ var (
 	celFilterSuiteFile             string
 	celFilterFailOnMatch           bool
 	markdownReportPath             string
+	markdownSummaryReportPath      string
 	jsonReportPath                 string
 	consoleReport                  bool
 	summaryReport                  bool
@@ -110,6 +111,8 @@ func newScanCommand() *cobra.Command {
 		"Do not verify auth token before starting scan")
 	cmd.Flags().StringVarP(&markdownReportPath, "report-markdown", "", "",
 		"Generate consolidated markdown report to file")
+	cmd.Flags().StringVarP(&markdownSummaryReportPath, "report-markdown-summary", "", "",
+		"Generate consolidate summary in markdown")
 	cmd.Flags().BoolVarP(&consoleReport, "report-console", "", false,
 		"Print a report to the console")
 	cmd.Flags().BoolVarP(&summaryReport, "report-summary", "", true,
@@ -293,6 +296,17 @@ func internalStartScan() error {
 	if !utils.IsEmptyString(markdownReportPath) {
 		rp, err := reporter.NewMarkdownReportGenerator(reporter.MarkdownReportingConfig{
 			Path: markdownReportPath,
+		})
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if !utils.IsEmptyString(markdownSummaryReportPath) {
+		rp, err := reporter.NewMarkdownSummaryReporter(reporter.MarkdownSummaryReporterConfig{
+			Path: markdownSummaryReportPath,
 		})
 		if err != nil {
 			return err
