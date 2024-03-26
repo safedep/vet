@@ -21,6 +21,7 @@ var (
 	querySummaryReportMaxAdvice         int
 	querySummaryReportGroupByDirectDeps bool
 	queryMarkdownReportPath             string
+	queryMarkdownSummaryReportPath      string
 	queryJsonReportPath                 string
 	queryGraphReportPath                string
 	queryCsvReportPath                  string
@@ -66,6 +67,8 @@ func newQueryCommand() *cobra.Command {
 		"Group summary by direct dependencies")
 	cmd.Flags().StringVarP(&queryMarkdownReportPath, "report-markdown", "", "",
 		"Generate markdown report to file")
+	cmd.Flags().StringVarP(&queryMarkdownSummaryReportPath, "report-markdown-summary", "", "",
+		"Generate markdown summary report to file")
 	cmd.Flags().StringVarP(&queryJsonReportPath, "report-json", "", "",
 		"Generate JSON report to file (EXPERIMENTAL)")
 	cmd.Flags().StringVarP(&queryGraphReportPath, "report-graph", "", "",
@@ -151,6 +154,18 @@ func internalStartQuery() error {
 	if !utils.IsEmptyString(queryMarkdownReportPath) {
 		rp, err := reporter.NewMarkdownReportGenerator(reporter.MarkdownReportingConfig{
 			Path: queryMarkdownReportPath,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if !utils.IsEmptyString(queryMarkdownSummaryReportPath) {
+		rp, err := reporter.NewMarkdownSummaryReporter(reporter.MarkdownSummaryReporterConfig{
+			Path: queryMarkdownSummaryReportPath,
 		})
 
 		if err != nil {

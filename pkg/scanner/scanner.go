@@ -221,7 +221,7 @@ func (s *packageManifestScanner) enrichManifest(manifest *models.PackageManifest
 	// because the goroutines perform both read and write to channel. Write occurs
 	// when goroutine invokes the work queue handler and the handler pushes back
 	// the dependencies
-	q := utils.NewWorkQueue[*models.Package](100000,
+	q := utils.NewWorkQueue(100000,
 		s.config.ConcurrentAnalyzer,
 		s.packageEnrichWorkQueueHandler(manifest))
 
@@ -261,7 +261,7 @@ func (s *packageManifestScanner) packageEnrichWorkQueueHandler(pm *models.Packag
 }
 
 func (s *packageManifestScanner) packageDependencyHandler(pm *models.PackageManifest,
-	currentPkg *models.Package,
+	_ *models.Package,
 	q *utils.WorkQueue[*models.Package]) PackageDependencyCallbackFn {
 	return func(pkg *models.Package) error {
 		// Check and queue for further analysis
