@@ -1,0 +1,42 @@
+name: SafeDep vet OSS suite
+description: |
+  Customized filter suite for vet vetting vet.
+tags:
+  - general
+  - safedep-vet
+filters:
+  - name: critical-or-high-vulns
+    check_type: CheckTypeVulnerability
+    summary: Critical or high risk vulnerabilities were found
+    value: |
+      vulns.critical.exists(p, true) || vulns.high.exists(p, true)
+  - name: low-popularity
+    check_type: CheckTypePopularity
+    summary: Component popularity is low by Github stars count
+    value: |
+      projects.exists(p, (p.type == "GITHUB") && (p.stars < 10))
+  - name: risky-oss-licenses
+    check_type: CheckTypeLicense
+    summary: Risky OSS license was detected
+    value: |
+      licenses.exists(p, p == "GPL-2.0") ||
+      licenses.exists(p, p == "GPL-2.0-only") ||
+      licenses.exists(p, p == "GPL-3.0") ||
+      licenses.exists(p, p == "GPL-3.0-only") ||
+      licenses.exists(p, p == "BSD-3-Clause OR GPL-2.0")
+  - name: ossf-unmaintained
+    check_type: CheckTypeMaintenance
+    summary: Component appears to be unmaintained
+    value: |
+      scorecard.scores["Maintained"] == 0
+  - name: osv-malware
+    check_type: CheckTypeMalware
+    summary: Malicious (malware) component detected
+    value: |
+      vulns.all.exists(v, v.id.startsWith("MAL-"))
+  - name: ossf-dangerous-workflow
+    check_type: CheckTypeSecurityScorecard
+    summary: Component release pipeline appear to use dangerous workflows
+    value: |
+      scorecard.scores["Dangerous-Workflow"] == 0
+
