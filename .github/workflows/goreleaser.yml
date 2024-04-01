@@ -36,7 +36,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
         with:
-          go-version: 1.21
+          go-version: 1.22
           check-latest: true
       - name: ghcr-login
         uses: docker/login-action@dd4fa0671be5250ee6f50aedf4cb05514abda2c7 # v1
