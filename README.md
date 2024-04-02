@@ -15,11 +15,32 @@
 [![Twitter](https://img.shields.io/twitter/follow/safedepio?style=social)](https://twitter.com/intent/follow?screen_name=safedepio)
 
 [![vet banner](docs/static/img/vet/vet-banner.png)](https://safedep.io/docs)
+
 ## Automate Open Source Package Vetting in CI/CD
 
 `vet` is a tool for identifying risks in open source software supply chain. It
-helps engineering and security teams to identify potential issues in their open
-source dependencies and evaluate them against organizational policies.
+goes beyond just vulnerabilities and provides visibility on OSS package risks
+due to it's license, popularity, security hygiene, and more. `vet` is designed
+with the goal of enabling trusted OSS package consumption by integrating with
+CI/CD and `policy as code` as guardrails.
+
+* [🔥 vet in action](#-vet-in-action)
+* [Getting Started](#getting-started)
+  * [Running Scan](#running-scan)
+    * [Scanning SBOM](#scanning-sbom)
+    * [Scanning Github Repositories](#scanning-github-repositories)
+    * [Scanning Github Organization](#scanning-github-organization)
+    * [Scanning Package URL](#scanning-package-url)
+    * [Available Parsers](#available-parsers)
+* [CI/CD Integration](#ci/cd-integration)
+  * [📦 GitHub Action](#-github-action)
+  * [🚀 GitLab CI](#-gitlab-ci)
+* [🛠️ Advanced Usage](#-advanced-usage)
+* [📖 Documentation](#-documentation)
+* [🎊 Community](#-community)
+* [💻 Development](#-development)
+* [Star History](#star-history)
+* [🔖 References](#-references)
 
 ## 🔥 vet in action
 
@@ -41,26 +62,22 @@ brew install safedep/tap/vet
 > Ensure $(go env GOPATH)/bin is in your $PATH
 
 ```bash
-go install github.com/safedep/vet@main
+go install github.com/safedep/vet@latest
 ```
 
-- Configure `vet` to use community mode for Insights API
+- Also available as a container image
 
 ```bash
-vet auth configure --community
+docker run --rm -it ghcr.io/safedep/vet:latest version
 ```
 
-> Insights API is used to enrich OSS packages with metadata for rich query and policy decisions.
-
-- You can verify the configured key is successful by running the following command
-
-```bash
-vet auth verify
-```
+> **Note:** Container image is built for x86_64 Linux only. Use a
+> [pre-built binary](https://github.com/safedep/vet/releases) or
+> build from source for other platforms.
 
 ### Running Scan
 
-- Run `vet` to identify risks
+- Run `vet` to identify risks by scanning a directory
 
 ```bash
 vet scan -D /path/to/repository
@@ -68,7 +85,7 @@ vet scan -D /path/to/repository
 
 ![vet scan directory](docs/static/img/vet/vet-scan-directory.png)
 
-- You can also scan a specific (supported) package manifest
+- Run `vet` to scan specific (supported) package manifests
 
 ```bash
 vet scan --lockfiles /path/to/pom.xml
@@ -76,17 +93,15 @@ vet scan --lockfiles /path/to/requirements.txt
 vet scan --lockfiles /path/to/package-lock.json
 ```
 
-> [Example Security Gate](https://github.com/safedep/demo-client-java/pull/2) using `vet` to prevent introducing new OSS dependency risk in an application.
-
 #### Scanning SBOM
 
-- To scan an SBOM in [CycloneDX](https://cyclonedx.org/) format
+- Scan an SBOM in [CycloneDX](https://cyclonedx.org/) format
 
 ```bash
 vet scan --lockfiles /path/to/cyclonedx-sbom.json --lockfile-as bom-cyclonedx
 ```
 
-- To scan an SBOM in [SPDX](https://spdx.dev/) format
+- Scan an SBOM in [SPDX](https://spdx.dev/) format
 
 ```bash
 vet scan --lockfiles /path/to/spdx-sbom.json --lockfile-as bom-spdx
@@ -133,11 +148,27 @@ vet scan --purl pkg:/gem/nokogiri@1.10.4
 
 #### Available Parsers
 
-- To list supported package manifest parsers including experimental modules
+- List supported package manifest parsers including experimental modules
 
 ```bash
 vet scan parsers --experimental
 ```
+
+## CI/CD Integration
+
+### 📦 GitHub Action
+
+- `vet` is available as a GitHub Action, refer to [vet-action](https://github.com/safedep/vet-action)
+
+### 🚀 GitLab CI
+
+- `vet` can be integrated with GitLab CI, refer to [vet-gitlab-ci](https://docs.safedep.io/integrations/gitlab-ci)
+
+## 🛠️ Advanced Usage
+
+- [Threat Hunting with vet](https://docs.safedep.io/advanced/filtering)
+- [Policy as Code](https://docs.safedep.io/advanced/polic-as-code)
+- [Exceptions and Overrides](https://docs.safedep.io/advanced/exceptions)
 
 ## 📖 Documentation
 
@@ -149,62 +180,13 @@ vet scan parsers --experimental
 
 First of all, thank you so much for showing interest in `vet`, we appreciate it ❤️
 
-- Join the server using the link - [https://rebrand.ly/safedep-community](https://rebrand.ly/safedep-community)
+- Join the Discord server using the link - [https://rebrand.ly/safedep-community](https://rebrand.ly/safedep-community)
 
 [![SafeDep Discord](docs/static/img/safedep-discord.png)](https://rebrand.ly/safedep-community)
 
 ## 💻 Development
 
-## Requirements
-
-* Go 1.21+
-
-### Setup
-
-* Install [ASDF](https://asdf-vm.com/)
-* Install the development tools
-
-```bash
-asdf install
-```
-
-* Install `lefthook`
-
-```bash
-go install github.com/evilmartians/lefthook@latest
-```
-
-* Install git hooks
-
-```bash
-$(go env GOPATH)/bin/lefthook install
-```
-
-### Build
-
-Install build tools
-
-```bash
-make dev-setup
-```
-
-Generate code from API specs and build `vet`
-
-```bash
-make
-```
-
-Quick build without regenerating code from API specs
-
-```bash
-make quick-vet
-```
-
-### Run Tests
-
-```bash
-go test -v ./...
-```
+Refer to [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Star History
 
@@ -212,4 +194,7 @@ go test -v ./...
 
 ## 🔖 References
 
-- [https://github.com/google/osv-scanner](https://github.com/google/osv-scanner)
+- https://github.com/google/osv-scanner
+- https://deps.dev/
+- https://securityscorecards.dev/
+- https://slsa.dev/
