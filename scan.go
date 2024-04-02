@@ -170,9 +170,10 @@ func startScan() {
 			ControlPlaneApiUrl: auth.DefaultControlPlaneApiUrl(),
 		})
 
+		// We will fallback to community mode by default to provide
+		// a seamless user experience
 		if err != nil {
-			failOnError("auth/verify", fmt.Errorf("failed to verify auth token: %v. "+
-				"You may want to setup community mode using: vet auth configure --community", err))
+			auth.SetRuntimeCommunityMode()
 		}
 	}
 

@@ -9,42 +9,6 @@ title: 🚀 Quick Start
 
 ![vet Github Releases](/img/vet/vet-github-releases.png)
 
-- Get an API key for the vet insights data access for performing the scan.
-    Alternatively, look at [configuration options](configure.md) for
-    instruction on using community mode without API key.
-
-```bash
-vet auth trial --email john.doe@example.com
-```
-
-![vet register trial](/img/vet/vet-register-trial.png)
-
-:::info
-
-A time limited trial API key will be sent over email.
-
-:::
-
-- Configure `vet` to use API key to access the insights
-
-```bash
-vet auth configure
-```
-
-![vet configure](/img/vet/vet-configure.png)
-
-:::tip
-
-Insights API is used to enrich OSS packages with metadata for rich query and policy decisions. Alternatively, the API key can be passed through environment variable `VET_API_KEY`
-
-:::
-
-- You can verify the configured key is successful by running the following command
-
-```bash
-vet auth verify
-```
-
 - Run `vet` to identify risks
 
 ```bash

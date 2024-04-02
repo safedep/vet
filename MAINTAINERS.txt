@@ -1,0 +1,9 @@
+vet is built and maintained by SafeDep with the help of the community.
+https://safedep.io
+
+Abhisek Datta
+	Email: abhisek@safedep.io
+	GitHub username: @abhisek
+	Affiliation: SafeDep
+
+

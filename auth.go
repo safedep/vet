@@ -80,7 +80,6 @@ func configureAuthCommand() *cobra.Command {
 		"Use community API endpoint for Insights")
 
 	return cmd
-
 }
 
 func verifyAuthCommand() *cobra.Command {
