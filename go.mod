@@ -14,7 +14,7 @@ require (
 	github.com/google/cel-go v0.20.1
 	github.com/google/go-github/v54 v54.0.0
 	github.com/google/osv-scanner v1.7.1
-	github.com/jedib0t/go-pretty/v6 v6.5.6
+	github.com/jedib0t/go-pretty/v6 v6.5.8
 	github.com/kubescape/go-git-url v0.0.30
 	github.com/package-url/packageurl-go v0.1.2
 	github.com/safedep/dry v0.0.0-20240331060350-d08f4f1de9c3
