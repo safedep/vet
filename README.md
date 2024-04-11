@@ -32,6 +32,7 @@ CI/CD and `policy as code` as guardrails.
     * [Scanning Github Organization](#scanning-github-organization)
     * [Scanning Package URL](#scanning-package-url)
     * [Available Parsers](#available-parsers)
+* [Policy as Code](#policy-as-code)
 * [CI/CD Integration](#ci/cd-integration)
   * [📦 GitHub Action](#-github-action)
   * [🚀 GitLab CI](#-gitlab-ci)
@@ -153,6 +154,38 @@ vet scan --purl pkg:/gem/nokogiri@1.10.4
 ```bash
 vet scan parsers --experimental
 ```
+
+## Policy as Code
+
+`vet` uses [Common Expressions Language](https://github.com/google/cel-spec)
+(CEL) as the policy language. Policies can be defined to build guardrails
+preventing introduction of insecure components.
+
+- Run `vet` and fail if a critical or high vulnerability was detected
+
+```bash
+vet scan -D /path/to/code \
+    --filter 'vulns.critical.exists(p, true) || vulns.high.exists(p, true)' \
+    --filter-fail
+```
+
+- Run `vet` and fail if a package with a specific license was detected
+
+```bash
+vet scan -D /path/to/code \
+    --filter 'licenses.exists(p, p == "GPL-2.0")' \
+    --filter-fail
+```
+
+- Run `vet` and fail based on [OpenSSF Scorecard](https://securityscorecards.dev/) attributes
+
+```bash
+vet scan -D /path/to/code \
+    --filter 'scorecard.scores.Maintained == 0' \
+    --filter-fail
+```
+
+For more examples, refer to [documentation](https://docs.safedep.io/advanced/polic-as-code)
 
 ## CI/CD Integration
 
