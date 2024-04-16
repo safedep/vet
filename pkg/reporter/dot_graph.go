@@ -15,8 +15,11 @@ import (
 
 var dotFileNameCleanerRegexp = regexp.MustCompile(`[^\w\d\.\-]`)
 
-type DotGraphReporter struct {
+type dotGraphReporter struct {
 	Directory string
+
+	// Map to hold pkgId of packages that matched filters
+	filterMatchedPackage map[string]bool
 }
 
 func NewDotGraphReporter(directory string) (Reporter, error) {
@@ -27,14 +30,17 @@ func NewDotGraphReporter(directory string) (Reporter, error) {
 		}
 	}
 
-	return &DotGraphReporter{Directory: directory}, nil
+	return &dotGraphReporter{
+		Directory:            directory,
+		filterMatchedPackage: make(map[string]bool),
+	}, nil
 }
 
-func (r *DotGraphReporter) Name() string {
+func (r *dotGraphReporter) Name() string {
 	return "Graphviz Dot Graph"
 }
 
-func (r *DotGraphReporter) AddManifest(manifest *models.PackageManifest) {
+func (r *dotGraphReporter) AddManifest(manifest *models.PackageManifest) {
 	dotFileName := r.dotFileNameFromManifestPath(manifest.GetPath())
 	dotFilePath := filepath.Join(r.Directory, dotFileName+".dot")
 
@@ -59,22 +65,32 @@ func (r *DotGraphReporter) AddManifest(manifest *models.PackageManifest) {
 	}
 }
 
-func (r *DotGraphReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {}
+func (r *dotGraphReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
+	if event.Type != analyzer.ET_FilterExpressionMatched {
+		return
+	}
 
-func (r *DotGraphReporter) AddPolicyEvent(event *policy.PolicyEvent) {}
+	if event.Package == nil {
+		return
+	}
 
-func (r *DotGraphReporter) Finish() error {
+	r.filterMatchedPackage[event.Package.Id()] = true
+}
+
+func (r *dotGraphReporter) AddPolicyEvent(event *policy.PolicyEvent) {}
+
+func (r *dotGraphReporter) Finish() error {
 	return nil
 }
 
-func (r *DotGraphReporter) dotFileNameFromManifestPath(path string) string {
+func (r *dotGraphReporter) dotFileNameFromManifestPath(path string) string {
 	s := filepath.Clean(path)
 	s = dotFileNameCleanerRegexp.ReplaceAllString(s, "_")
 
 	return s
 }
 
-func (r *DotGraphReporter) dotRenderDependencyGraph(dg *models.DependencyGraph[*models.Package]) (string, error) {
+func (r *dotGraphReporter) dotRenderDependencyGraph(dg *models.DependencyGraph[*models.Package]) (string, error) {
 	var sb strings.Builder
 	sb.WriteString("digraph {\n")
 	sb.WriteString("  rankdir=LR;\n")
@@ -86,7 +102,7 @@ func (r *DotGraphReporter) dotRenderDependencyGraph(dg *models.DependencyGraph[*
 	// Generate the node names
 	for _, node := range dg.GetNodes() {
 		sb.WriteString("  ")
-		sb.WriteString("\"" + r.nodeNameForPackage(node.Data) + "\"")
+		sb.WriteString("\"" + r.nodeNameForPackage(node.Data) + "\" " + r.nodeStyleForPackage(node.Data))
 		sb.WriteString(";\n")
 	}
 
@@ -113,6 +129,19 @@ func (r *DotGraphReporter) dotRenderDependencyGraph(dg *models.DependencyGraph[*
 	return sb.String(), nil
 }
 
-func (r *DotGraphReporter) nodeNameForPackage(pkg *models.Package) string {
+func (r *dotGraphReporter) nodeNameForPackage(pkg *models.Package) string {
 	return fmt.Sprintf("%s@%s", pkg.GetName(), pkg.GetVersion())
+}
+
+func (r *dotGraphReporter) nodeStyleForPackage(pkg *models.Package) string {
+	fillColor := "white"
+	fontColor := "black"
+
+	if _, ok := r.filterMatchedPackage[pkg.Id()]; ok {
+		fillColor = "red"
+		fontColor = "white"
+	}
+
+	return fmt.Sprintf("[fillcolor=\"%s\", fontcolor=\"%s\", style=\"filled\"]",
+		fillColor, fontColor)
 }
