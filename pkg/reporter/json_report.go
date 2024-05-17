@@ -216,6 +216,7 @@ func (r *jsonReportGenerator) buildSpecReport() (*schema.Report, error) {
 
 func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Package) *jsonreportspec.PackageReport {
 
+	flag := true
 	var r *summaryReporter
 	pkg := &jsonreportspec.PackageReport{
 		Package: &modelspec.Package{
@@ -263,10 +264,12 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 			Severities: severties,
 		})
 
-		if (len(pkg.Vulnerabilities) > 0) {
+		if (len(pkg.Vulnerabilities) > 0 && flag) {
 			pkg.Advices = append(pkg.Advices, &schema.RemediationAdvice{
 				TargetAlternatePackageVersion:	updateToVersion,
 			})
+			flag = false
+
 		}
 
 	}
