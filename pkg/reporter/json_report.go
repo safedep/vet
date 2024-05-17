@@ -215,9 +215,6 @@ func (r *jsonReportGenerator) buildSpecReport() (*schema.Report, error) {
 }
 
 func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Package) *jsonreportspec.PackageReport {
-
-	flag := true
-	var r *summaryReporter
 	pkg := &jsonreportspec.PackageReport{
 		Package: &modelspec.Package{
 			Ecosystem: p.GetSpecEcosystem(),
@@ -234,9 +231,6 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 	insights := utils.SafelyGetValue(p.Insights)
 	vulns := utils.SafelyGetValue(insights.Vulnerabilities)
 	licenses := utils.SafelyGetValue(insights.Licenses)
-	updateToVersion := r.packageUpdateVersionForRemediationAdvice(p)
-
-
 
 	for _, vuln := range vulns {
 		insightSeverities := utils.SafelyGetValue(vuln.Severities)
@@ -264,18 +258,18 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 			Severities: severties,
 		})
 
-		if (len(pkg.Vulnerabilities) > 0 && flag) {
-			pkg.Advices = append(pkg.Advices, &schema.RemediationAdvice{
-				Type:					schema.RemediationAdviceType_UpgradePackage,
-				TargetAlternatePackageVersion:		updateToVersion,
-			})
-			flag = false
-
 	}
 
 	for _, license := range licenses {
 		pkg.Licenses = append(pkg.Licenses, &modelspec.InsightLicenseInfo{
 			Id: string(license),
+		})
+	}
+
+	if len(pkg.Vulnerabilities) > 0 {
+		pkg.Advices = append(pkg.Advices, &schema.RemediationAdvice{
+			Type:                          schema.RemediationAdviceType_UpgradePackage,
+			TargetAlternatePackageVersion: utils.SafelyGetValue(insights.PackageCurrentVersion),
 		})
 	}
 
