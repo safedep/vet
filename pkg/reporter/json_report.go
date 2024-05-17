@@ -215,6 +215,8 @@ func (r *jsonReportGenerator) buildSpecReport() (*schema.Report, error) {
 }
 
 func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Package) *jsonreportspec.PackageReport {
+
+	var r *summaryReporter
 	pkg := &jsonreportspec.PackageReport{
 		Package: &modelspec.Package{
 			Ecosystem: p.GetSpecEcosystem(),
@@ -231,6 +233,9 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 	insights := utils.SafelyGetValue(p.Insights)
 	vulns := utils.SafelyGetValue(insights.Vulnerabilities)
 	licenses := utils.SafelyGetValue(insights.Licenses)
+	updateToVersion := r.packageUpdateVersionForRemediationAdvice(p)
+
+
 
 	for _, vuln := range vulns {
 		insightSeverities := utils.SafelyGetValue(vuln.Severities)
@@ -257,6 +262,13 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 			Aliases:    utils.SafelyGetValue(vuln.Aliases),
 			Severities: severties,
 		})
+
+		if (len(pkg.Vulnerabilities) > 0) {
+			pkg.Advices = append(pkg.Advices, &schema.RemediationAdvice{
+				TargetAlternatePackageVersion:	updateToVersion,
+			})
+		}
+
 	}
 
 	for _, license := range licenses {
