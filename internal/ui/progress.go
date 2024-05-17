@@ -14,7 +14,7 @@ func StartProgressWriter() {
 
 	pw.SetAutoStop(false)
 	pw.SetTrackerLength(25)
-	pw.SetMessageWidth(20)
+	pw.SetMessageLength(20)
 	pw.SetSortBy(progress.SortByPercentDsc)
 	pw.SetStyle(progress.StyleDefault)
 	pw.SetOutputWriter(os.Stderr)
@@ -69,6 +69,12 @@ func IncrementTrackerTotal(i any, count int64) {
 func IncrementProgress(i any, count int64) {
 	if tracker, ok := i.(*progress.Tracker); ok && (progressTrackerDelta(tracker) > count) {
 		tracker.Increment(count)
+	}
+}
+
+func UpdateValue(i any, count int64) {
+	if tracker, ok := i.(*progress.Tracker); ok {
+		tracker.SetValue(count)
 	}
 }
 

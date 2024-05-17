@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/safedep/dry/utils"
+	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
@@ -29,6 +31,10 @@ type csvRecord struct {
 	introducedBy    string
 	pathToRoot      string
 	violationReason string
+	osvId           string
+	cveId           string
+	vulnSeverity    string
+	vulnSummary     string
 }
 
 func NewCsvReporter(config CsvReportingConfig) (Reporter, error) {
@@ -95,7 +101,8 @@ func (r *csvReporter) Finish() error {
 			pathToRoot = strings.Join(pathPackages, " -> ")
 		}
 
-		records = append(records, csvRecord{
+		// Base record
+		record := csvRecord{
 			ecosystem:       string(v.Package.Ecosystem),
 			manifestPath:    v.Manifest.GetDisplayPath(),
 			packageName:     v.Package.GetName(),
@@ -103,7 +110,49 @@ func (r *csvReporter) Finish() error {
 			violationReason: msg,
 			introducedBy:    introducedBy,
 			pathToRoot:      pathToRoot,
-		})
+		}
+
+		// Flatten the vulnerabilities
+		insight := utils.SafelyGetValue(v.Package.Insights)
+		vulnerabilities := utils.SafelyGetValue(insight.Vulnerabilities)
+
+		// If no vulnerabilities, add the record as is and continue
+		if len(vulnerabilities) == 0 {
+			records = append(records, record)
+			continue
+		}
+
+		for _, vuln := range vulnerabilities {
+			vulnId := utils.SafelyGetValue(vuln.Id)
+			aliases := utils.SafelyGetValue(vuln.Aliases)
+			summary := utils.SafelyGetValue(vuln.Summary)
+
+			cveId := ""
+			for _, alias := range aliases {
+				if strings.HasPrefix(alias, "CVE-") {
+					cveId = alias
+					break
+				}
+			}
+
+			risk := ""
+			severities := utils.SafelyGetValue(vuln.Severities)
+			for _, severity := range severities {
+				sevType := utils.SafelyGetValue(severity.Type)
+				if sevType == insightapi.PackageVulnerabilitySeveritiesTypeCVSSV2 || sevType == insightapi.PackageVulnerabilitySeveritiesTypeCVSSV3 {
+					risk = string(utils.SafelyGetValue(severity.Risk))
+					break
+				}
+			}
+
+			newRecord := record
+			newRecord.osvId = vulnId
+			newRecord.cveId = cveId
+			newRecord.vulnSummary = summary
+			newRecord.vulnSeverity = risk
+
+			records = append(records, newRecord)
+		}
 	}
 
 	err := r.persistCsvRecords(records)
@@ -131,7 +180,12 @@ func (r *csvReporter) persistCsvRecords(records []csvRecord) error {
 		"Package Version",
 		"Violation",
 		"Introduced By",
-		"Path To Root"})
+		"Path To Root",
+		"OSV ID",
+		"CVE ID",
+		"Vulnerability Severity",
+		"Vulnerability Summary",
+	})
 	if err != nil {
 		return err
 	}
@@ -143,6 +197,10 @@ func (r *csvReporter) persistCsvRecords(records []csvRecord) error {
 			csvRecord.violationReason,
 			csvRecord.introducedBy,
 			csvRecord.pathToRoot,
+			csvRecord.osvId,
+			csvRecord.cveId,
+			csvRecord.vulnSeverity,
+			csvRecord.vulnSummary,
 		}); err != nil {
 			return err
 		}
