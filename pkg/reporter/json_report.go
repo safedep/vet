@@ -266,11 +266,10 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 
 		if (len(pkg.Vulnerabilities) > 0 && flag) {
 			pkg.Advices = append(pkg.Advices, &schema.RemediationAdvice{
-				TargetAlternatePackageVersion:	updateToVersion,
+				Type:					schema.RemediationAdviceType_UpgradePackage,
+				TargetAlternatePackageVersion:		updateToVersion,
 			})
 			flag = false
-
-		}
 
 	}
 
