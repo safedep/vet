@@ -257,11 +257,19 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 			Aliases:    utils.SafelyGetValue(vuln.Aliases),
 			Severities: severties,
 		})
+
 	}
 
 	for _, license := range licenses {
 		pkg.Licenses = append(pkg.Licenses, &modelspec.InsightLicenseInfo{
 			Id: string(license),
+		})
+	}
+
+	if len(pkg.Vulnerabilities) > 0 {
+		pkg.Advices = append(pkg.Advices, &schema.RemediationAdvice{
+			Type:                          schema.RemediationAdviceType_UpgradePackage,
+			TargetAlternatePackageVersion: utils.SafelyGetValue(insights.PackageCurrentVersion),
 		})
 	}
 
