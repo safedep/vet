@@ -6,7 +6,7 @@ toolchain go1.22.1
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
-	github.com/CycloneDX/cyclonedx-go v0.8.0
+	github.com/CycloneDX/cyclonedx-go v0.9.0
 	github.com/cli/oauth v1.0.1
 	github.com/deepmap/oapi-codegen v1.16.2
 	github.com/gofri/go-github-ratelimit v1.1.0
