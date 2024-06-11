@@ -52,8 +52,13 @@ func TestDependencyGraphGetDependents(t *testing.T) {
 
 	assert.Equal(t, []*dgTestNode{}, dg.GetDependents(&dgTestNode{Name: "a"}))
 	assert.Equal(t, []*dgTestNode{{Name: "a"}}, dg.GetDependents(&dgTestNode{Name: "b"}))
-	assert.Equal(t, []*dgTestNode{{Name: "a"}, {Name: "b"}}, dg.GetDependents(&dgTestNode{Name: "c"}))
 	assert.Equal(t, []*dgTestNode{{Name: "c"}}, dg.GetDependents(&dgTestNode{Name: "d"}))
+
+	dependents := dg.GetDependents(&dgTestNode{Name: "c"})
+
+	assert.Equal(t, 2, len(dependents))
+	assert.Contains(t, dependents, &dgTestNode{Name: "b"})
+	assert.Contains(t, dependents, &dgTestNode{Name: "a"})
 }
 
 func TestDependencyGraphGetNodes(t *testing.T) {
