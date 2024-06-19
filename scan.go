@@ -44,6 +44,7 @@ var (
 	summaryReportMaxAdvice         int
 	summaryReportGroupByDirectDeps bool
 	csvReportPath                  string
+	sarifReportPath                string
 	silentScan                     bool
 	disableAuthVerifyBeforeScan    bool
 	syncReport                     bool
@@ -125,6 +126,8 @@ func newScanCommand() *cobra.Command {
 		"Generate CSV report of filtered packages")
 	cmd.Flags().StringVarP(&jsonReportPath, "report-json", "", "",
 		"Generate consolidated JSON report to file (EXPERIMENTAL schema)")
+	cmd.Flags().StringVarP(&sarifReportPath, "report-sarif", "", "",
+		"Generate SARIF report to file")
 	cmd.Flags().StringVarP(&graphReportDirectory, "report-graph", "", "",
 		"Generate dependency graph (if available) as dot files to directory")
 	cmd.Flags().BoolVarP(&syncReport, "report-sync", "", false,
@@ -320,6 +323,22 @@ func internalStartScan() error {
 		rp, err := reporter.NewJsonReportGenerator(reporter.JsonReportingConfig{
 			Path: jsonReportPath,
 		})
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if !utils.IsEmptyString(sarifReportPath) {
+		rp, err := reporter.NewSarifReporter(reporter.SarifReporterConfig{
+			Tool: reporter.SarifToolMetadata{
+				Name:    "vet",
+				Version: version,
+			},
+			Path: sarifReportPath,
+		})
+
 		if err != nil {
 			return err
 		}

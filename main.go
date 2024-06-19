@@ -14,11 +14,12 @@ import (
 )
 
 var (
-	verbose              bool
-	debug                bool
-	noBanner             bool
-	logFile              string
-	globalExceptionsFile string
+	verbose               bool
+	debug                 bool
+	noBanner              bool
+	logFile               string
+	globalExceptionsFile  string
+	globalExceptionsExtra []string
 )
 
 var banner string = `
@@ -55,6 +56,7 @@ func main() {
 	cmd.PersistentFlags().BoolVarP(&noBanner, "no-banner", "", false, "Do not display the vet banner")
 	cmd.PersistentFlags().StringVarP(&logFile, "log", "l", "", "Write command logs to file, use - as for stdout")
 	cmd.PersistentFlags().StringVarP(&globalExceptionsFile, "exceptions", "e", "", "Load exceptions from file")
+	cmd.PersistentFlags().StringSliceVarP(&globalExceptionsExtra, "exceptions-extra", "", []string{}, "Load additional exceptions from file")
 
 	cmd.AddCommand(newAuthCommand())
 	cmd.AddCommand(newScanCommand())
@@ -74,18 +76,26 @@ func main() {
 }
 
 func loadExceptions() {
-	if globalExceptionsFile == "" {
+	loadExceptionsFromFile(globalExceptionsFile)
+
+	for _, extra := range globalExceptionsExtra {
+		loadExceptionsFromFile(extra)
+	}
+}
+
+func loadExceptionsFromFile(file string) {
+	if file == "" {
 		return
 	}
 
-	loader, err := exceptions.NewExceptionsFileLoader(globalExceptionsFile)
+	loader, err := exceptions.NewExceptionsFileLoader(file)
 	if err != nil {
-		logger.Fatalf("Exceptions loader: %v", err)
+		logger.Fatalf("Failed to create Exceptions loader: %v", err)
 	}
 
 	err = exceptions.Load(loader)
 	if err != nil {
-		logger.Fatalf("Exceptions loader: %v", err)
+		logger.Fatalf("Failed to load exceptions: %v", err)
 	}
 }
 
