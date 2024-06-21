@@ -1,6 +1,7 @@
 ---
 sidebar_position: 2
 title: 🧰 CIS Benchmarks
+draft: true
 ---
 
 # 🧰 CIS Benchmarks
@@ -10,7 +11,7 @@ The following policy geared towards the CIS benchmarks based guidelines towards 
 ```yaml title="cis-risk-pack.yaml"
 name: CIS Benchmarks Security Risks & Best Practices
 description: |
-  This filter suite contains rules for implementing based on CIS benchmarks 
+  This filter suite contains rules for implementing based on CIS benchmarks
   and best practices for an organization.
 filters:
   - name: critical-or-high-vulns

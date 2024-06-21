@@ -1,53 +1,12 @@
 ---
 sidebar_position: 4
 title: 🧩 Configuration
+draft: true
 ---
 
 # 🧩 Configuring Vet
 
 `vet` comes with super powers 🚀, this section will help you to understand and explore some of them so that you can take your open source security to next level 😎
-
-![vet command](/img/vet/vet-command.png)
-
-## API Key
-
-`vet` uses control plane API for the insights required to enrich the information of dependencies, and its information.
-
-### Generating an API key
-
-- You can run the following command with your email address to receive an API key. After running the following command, you will receive an email with the API key.
-
-```bash
-vet auth trial --email john.doe@example.com
-```
-
-![vet register trial](/img/vet/vet-register-trial.png)
-
-### Configuring an API key
-
-- You can configure the api key using the following command
-
-```bash
-vet auth configure
-```
-
-![vet configure](/img/vet/vet-configure.png)
-
-- You can also pass the API key through environment variable using the variable `VET_API_KEY`
-
-### Renewing an API key
-
-- To renew an API key, you can re-register using the email. Even reach out to us at [contact@safedep.io](mailto:contact@safedep.io) and we would be happy to work with you
-
-## Using Community Mode
-
-- You can use community endpoint for Insights API without API key
-
-```bash
-vet auth configure --community
-```
-
-- For CI job, set environment variable `VET_COMMUNITY_MODE=true` to enable community runtime mode
 
 ## Scanning
 
