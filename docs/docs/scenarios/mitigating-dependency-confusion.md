@@ -1,3 +1,7 @@
+---
+draft: true
+---
+
 # Dependency Confusion - package substitution attacks
 
 :::info

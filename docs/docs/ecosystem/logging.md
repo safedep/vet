@@ -1,3 +1,7 @@
+---
+draft: true
+---
+
 # Logging & Monitoring Systems
 
 🚧 Work-in-Progress (WIP)

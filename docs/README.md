@@ -27,7 +27,7 @@ npm install
 - Start the development server
 
 ```bash
-yarn start
+npm start
 ```
 
 - Navigate to [http://localhost:3000](http://localhost:3000) for accessing the `vet` documentation locally

@@ -1,6 +1,7 @@
 ---
 sidebar_position: 3
 title: 🧰 OpenSSF Scorecard
+draft: true
 ---
 
 # 🧰 OpenSSF Scorecard
