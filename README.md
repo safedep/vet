@@ -33,6 +33,8 @@ CI/CD and `policy as code` as guardrails.
     * [Scanning Package URL](#scanning-package-url)
     * [Available Parsers](#available-parsers)
 * [Policy as Code](#policy-as-code)
+* [Query Mode](#query-mode)
+* [Reporting](#reporting)
 * [CI/CD Integration](#ci/cd-integration)
   * [📦 GitHub Action](#-github-action)
   * [🚀 GitLab CI](#-gitlab-ci)
@@ -186,6 +188,41 @@ vet scan -D /path/to/code \
 ```
 
 For more examples, refer to [documentation](https://docs.safedep.io/advanced/polic-as-code)
+
+## Query Mode
+
+- Run scan and dump internal data structures to a file for further querying
+
+```bash
+vet scan -D /path/to/code --json-dump-dir /path/to/dump
+```
+
+- Filter results using `query` command
+
+```bash
+vet query --from /path/to/dump \
+    --filter 'vulns.critical.exists(p, true) || vulns.high.exists(p, true)'
+```
+
+- Generate report from dumped data
+
+```bash
+vet query --from /path/to/dump --report-json /path/to/report.json
+```
+
+## Reporting
+
+`vet` supports generating reports in multiple formats during `scan` or `query`
+execution.
+
+| Format   | Description                                                                    |
+|----------|--------------------------------------------------------------------------------|
+| Markdown | Human readable report for vulnerabilities, licenses, and more                  |
+| CSV      | Export data to CSV format for manual slicing and dicing                        |
+| JSON     | Machine readable JSON format following internal schema (maximum data)          |
+| SARIF    | Useful for integration with Github Code Scanning and other tools               |
+| Graph    | Dependency graph in DOT format for risk and package relationship visualization |
+| Summary  | Default console report with summary of vulnerabilities, licenses, and more     |
 
 ## CI/CD Integration
 

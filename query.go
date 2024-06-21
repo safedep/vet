@@ -25,6 +25,7 @@ var (
 	queryJsonReportPath                 string
 	queryGraphReportPath                string
 	queryCsvReportPath                  string
+	querySarifReportPath                string
 	queryExceptionsFile                 string
 	queryExceptionsTill                 string
 	queryExceptionsFilter               string
@@ -75,6 +76,8 @@ func newQueryCommand() *cobra.Command {
 		"Generate dependency graph as graphviz dot files to directory")
 	cmd.Flags().StringVarP(&queryCsvReportPath, "report-csv", "", "",
 		"Generate CSV report of filtered packages to file")
+	cmd.Flags().StringVarP(&querySarifReportPath, "report-sarif", "", "",
+		"Generate SARIF report to file")
 	return cmd
 }
 
@@ -200,6 +203,22 @@ func internalStartQuery() error {
 
 	if !utils.IsEmptyString(queryGraphReportPath) {
 		rp, err := reporter.NewDotGraphReporter(queryGraphReportPath)
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if !utils.IsEmptyString(querySarifReportPath) {
+		rp, err := reporter.NewSarifReporter(reporter.SarifReporterConfig{
+			Path: querySarifReportPath,
+			Tool: reporter.SarifToolMetadata{
+				Name:    "vet",
+				Version: version,
+			},
+		})
+
 		if err != nil {
 			return err
 		}

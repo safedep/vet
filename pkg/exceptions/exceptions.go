@@ -125,7 +125,7 @@ func (s *exceptionStore) Match(pkg *models.Package) (*exceptionMatchResult, erro
 	return &result, nil
 }
 
-func (r *exceptionRule) matchByPattern(pkg *models.Package) bool {
+func (r *exceptionRule) matchByPattern(_ *models.Package) bool {
 	return false
 }
 
