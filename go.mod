@@ -13,7 +13,7 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/google/cel-go v0.20.1
 	github.com/google/go-github/v54 v54.0.0
-	github.com/google/osv-scanner v1.7.4
+	github.com/google/osv-scanner v1.8.1
 	github.com/jedib0t/go-pretty/v6 v6.5.9
 	github.com/kubescape/go-git-url v0.0.30
 	github.com/owenrumney/go-sarif/v2 v2.3.1
@@ -25,7 +25,7 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/oauth2 v0.21.0
-	google.golang.org/protobuf v1.34.1
+	google.golang.org/protobuf v1.34.2
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -112,7 +112,7 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/arch v0.8.0 // indirect
 	golang.org/x/crypto v0.24.0 // indirect
-	golang.org/x/exp v0.0.0-20240604190554-fc45aab8b7f8 // indirect
+	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8 // indirect
 	golang.org/x/mod v0.18.0 // indirect
 	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sys v0.21.0 // indirect
