@@ -1,6 +1,9 @@
 package code
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/safedep/vet/pkg/common/logger"
 	sitter "github.com/smacker/go-tree-sitter"
 	"github.com/smacker/go-tree-sitter/python"
@@ -139,4 +142,29 @@ func (l *pythonSourceLanguage) GetFunctionCallNodes(cst *CST) ([]CSTFunctionCall
 		})
 
 	return nodes, err
+}
+
+func (l *pythonSourceLanguage) ResolveImportNameFromPath(relPath string) (string, error) {
+	if relPath[0] == '/' {
+		return "", fmt.Errorf("path is not relative: %s", relPath)
+	}
+
+	relPath = strings.TrimSuffix(relPath, "__init__.py")
+	relPath = strings.TrimSuffix(relPath, "/")
+	relPath = strings.TrimSuffix(relPath, ".py")
+
+	relPath = strings.ReplaceAll(relPath, "/", ".")
+
+	return relPath, nil
+}
+
+func (l *pythonSourceLanguage) ResolveImportPathsFromName(importName string) ([]string, error) {
+	paths := []string{}
+
+	importName = strings.ReplaceAll(importName, ".", "/")
+
+	paths = append(paths, importName+".py")
+	paths = append(paths, importName+"/__init__.py")
+
+	return paths, nil
 }

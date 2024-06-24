@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/safedep/vet/pkg/common/logger"
 )
@@ -35,6 +36,27 @@ func (r *fileSystemSourceRepository) Name() string {
 	return "FileSystemSourceRepository"
 }
 
+func (r *fileSystemSourceRepository) GetRelativePath(path string, includeImportPaths bool) (string, error) {
+	lookupPaths := []string{}
+
+	lookupPaths = append(lookupPaths, r.config.SourcePaths...)
+	if includeImportPaths {
+		lookupPaths = append(lookupPaths, r.config.ImportPaths...)
+	}
+
+	for _, rootPath := range lookupPaths {
+		if relPath, err := filepath.Rel(rootPath, path); err == nil {
+			if strings.HasPrefix(relPath, "..") {
+				continue
+			}
+
+			return relPath, nil
+		}
+	}
+
+	return "", fmt.Errorf("path not found in source or import paths: %s", path)
+}
+
 func (r *fileSystemSourceRepository) ConfigureForLanguage(language SourceLanguage) {
 	langMeta := language.GetMeta()
 
@@ -60,7 +82,13 @@ func (r *fileSystemSourceRepository) EnumerateSourceFiles(handler sourceFileHand
 // Python and Ruby may have different rules to lookup a source file by path during
 // import operation. May be we need to make the operations explicit at repository level.
 func (r *fileSystemSourceRepository) GetSourceFileByPath(path string) (SourceFile, error) {
-	for _, sourcePath := range r.config.SourcePaths {
+	lookupPaths := []string{}
+
+	// Import paths are generally are higher precedence than source paths
+	lookupPaths = append(lookupPaths, r.config.ImportPaths...)
+	lookupPaths = append(lookupPaths, r.config.SourcePaths...)
+
+	for _, sourcePath := range lookupPaths {
 		st, err := os.Stat(sourcePath)
 		if err != nil {
 			continue

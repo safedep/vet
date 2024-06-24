@@ -6,9 +6,9 @@ import (
 )
 
 type CpgBuilderConfig struct {
-	Repository   SourceRepository
-	Language     SourceLanguage
-	DatabasePath string
+	Repository SourceRepository
+	Language   SourceLanguage
+	Graph      graph.Graph
 }
 
 type cpgBuilder struct {
@@ -27,9 +27,40 @@ type cpgBuilderLocalScratchPad struct {
 
 // First attempt in building a CPG. Lets hardcode the intention
 // within the name as a constant reminder to keep it simple and avoid
-// generalization.
+// generalization. We will not try to achieve building a full CPG (AST + CFG + PDG)
+// but will use it as an inspiration to model entity relationships as a property graph.
 type cpgSimple struct {
 	graph graph.Graph
+}
+
+const (
+	pkgNodeType           = "package"
+	pkgNodeImportRelation = "imports"
+)
+
+type packageNode struct {
+	id    string
+	name  string
+	props map[string]string
+}
+
+// Build a graph relationship between two package nodes
+func (n *packageNode) Imports(anotherNode *packageNode) *graph.Edge {
+	logger.Debugf("Creating edge from %s to %s", n.id, anotherNode.id)
+
+	return &graph.Edge{
+		Name: pkgNodeImportRelation,
+		From: &graph.Node{
+			ID:         n.id,
+			Label:      pkgNodeType,
+			Properties: n.props,
+		},
+		To: &graph.Node{
+			ID:         anotherNode.id,
+			Label:      pkgNodeType,
+			Properties: anotherNode.props,
+		},
+	}
 }
 
 func NewCpgBuilder(config CpgBuilderConfig) (*cpgBuilder, error) {
@@ -46,19 +77,13 @@ func (b *cpgBuilder) Build() (CPG, error) {
 		return b.cpg, nil
 	}
 
-	graph, err := graph.NewPropertyGraph(&graph.LocalPropertyGraphConfig{
-		Name:         "cpg",
-		DatabasePath: b.config.DatabasePath,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	cpg := &cpgSimple{graph: graph}
+	cpg := &cpgSimple{graph: b.config.Graph}
 	logger.Debugf("Building CPG using repository: %s", b.config.Repository.Name())
 
-	err = b.config.Repository.EnumerateSourceFiles(func(file SourceFile) error {
+	// TODO: May be we need a go channel approach for processing because
+	// we need to enqueue more source files from imported packages
+
+	err := b.config.Repository.EnumerateSourceFiles(func(file SourceFile) error {
 		logger.Debugf("Parsing source file: %s", file.Id)
 
 		cst, err := b.config.Language.ParseSource(file)
@@ -70,9 +95,9 @@ func (b *cpgBuilder) Build() (CPG, error) {
 			imports: make([]CSTImportNode, 0),
 		}
 
-		b.processSourceFileNode(graph, file)
-		b.processImportNodes(graph, cst, b.config.Language, scratchPad, file)
-		b.processFunctionCalls(graph, cst, b.config.Language, scratchPad, file)
+		b.processSourceFileNode(b.config.Graph, file)
+		b.processImportNodes(b.config.Graph, cst, b.config.Language, scratchPad, file)
+		b.processFunctionCalls(b.config.Graph, cst, b.config.Language, scratchPad, file)
 
 		return nil
 	})
@@ -86,28 +111,36 @@ func (b *cpgBuilder) Build() (CPG, error) {
 }
 
 func (b *cpgBuilder) processSourceFileNode(g graph.Graph, file SourceFile) {
-	err := g.Link(&graph.Edge{
-		Name: "contains",
-		From: &graph.Node{
-			ID:         file.repository.Name(),
-			Label:      "repository",
-			Properties: map[string]string{"name": file.repository.Name()},
-		},
-		To: &graph.Node{
-			ID:         file.Id,
-			Label:      "source_file",
-			Properties: map[string]string{"path": file.Id},
-		},
-	})
-
-	if err != nil {
-		logger.Errorf("Failed to link source file node: %v", err)
-	}
+	// What?
 }
 
 func (b *cpgBuilder) processImportNodes(g graph.Graph, cst *CST, lang SourceLanguage,
 	scratch *cpgBuilderLocalScratchPad,
 	currentFile SourceFile) {
+
+	relativeSourceFilePath, err := b.config.Repository.GetRelativePath(currentFile.Id, true)
+	if err != nil {
+		logger.Errorf("Failed to get relative path for current file: %v", err)
+		return
+	}
+
+	currentModuleName, err := lang.ResolveImportNameFromPath(relativeSourceFilePath)
+	if err != nil {
+		logger.Errorf("Failed to resolve import name from path: %v", err)
+		return
+	}
+
+	// We will use the strategy of resolving the import module name from
+	// the source relative file path. This import module name will be used
+	// for uniquely identifying the package node in the graph. There are possibility
+	// of conflict across different import paths but we will ignore that for now.
+
+	thisNode := &packageNode{
+		id:    currentModuleName,
+		name:  relativeSourceFilePath,
+		props: map[string]string{"path": currentFile.Id},
+	}
+
 	importNodes, err := lang.GetImportNodes(cst)
 	if err != nil {
 		logger.Errorf("Failed to get import nodes: %v", err)
@@ -116,27 +149,25 @@ func (b *cpgBuilder) processImportNodes(g graph.Graph, cst *CST, lang SourceLang
 
 	for _, importNode := range importNodes {
 		logger.Debugf("Processing import node: %s", importNode.ImportName())
-		logger.Debugf("Adding edge from %s to %s", currentFile.Id, importNode.ImportName())
 
-		// Source file has imports
-		err := g.Link(&graph.Edge{
-			Name: "imports",
-			From: &graph.Node{
-				ID:         currentFile.Id,
-				Label:      "source_file",
-				Properties: map[string]string{"path": currentFile.Id},
-			},
-			To: &graph.Node{
-				ID:    importNode.ImportName(),
-				Label: "imported_package",
-				Properties: map[string]string{
-					"name":  importNode.ImportName(),
-					"item":  importNode.ImportItem(),
-					"alias": importNode.ImportAlias(),
-				},
-			},
-		})
+		/*
+			importedFilePaths, err := lang.ResolveImportPathsFromName(importNode.ImportName())
+			if err != nil {
+				logger.Errorf("Failed to resolve import paths from name: %v", err)
+				continue
+			}
+		*/
 
+		importedPkgNode := &packageNode{
+			id:   importNode.ImportName(),
+			name: importNode.ImportName(),
+			props: map[string]string{
+				"item":  importNode.ImportItem(),
+				"alias": importNode.ImportAlias(),
+			},
+		}
+
+		err = g.Link(thisNode.Imports(importedPkgNode))
 		if err != nil {
 			logger.Errorf("Failed to link import node: %v", err)
 		}

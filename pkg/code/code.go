@@ -154,6 +154,10 @@ type SourceRepository interface {
 
 	// Configure the repository for a source language
 	ConfigureForLanguage(language SourceLanguage)
+
+	// Get relative path of the source file from the repository root
+	// This is useful for constructing the import path. The first match is returned
+	GetRelativePath(path string, includeImportPaths bool) (string, error)
 }
 
 // Declarative metadata for the source language
@@ -165,12 +169,29 @@ type SourceLanguageMeta struct {
 // primitives for integration with the code analysis system
 // TODO: Apply ISP to separate out the interfaces by functionality
 type SourceLanguage interface {
+	// Get metadata for the source language
 	GetMeta() SourceLanguageMeta
+
+	// Parse a source file and return the CST (tree-sitter concrete syntax tree)
 	ParseSource(file SourceFile) (*CST, error)
+
+	// Get import nodes from the CST
 	GetImportNodes(cst *CST) ([]CSTImportNode, error)
+
+	// Get function declaration nodes from the CST
 	GetFunctionDeclarationNodes(cst *CST) ([]CSTFunctionNode, error)
+
+	// Get function call nodes from the CST
 	GetFunctionCallNodes(cst *CST) ([]CSTFunctionCallNode, error)
-	ResolveImportPath(currentFile SourceFile, importName string) (SourceFile, error)
+
+	// Resolve the import module / package name from relative path
+	ResolveImportNameFromPath(relPath string) (string, error)
+
+	// Resolve import name to possible relative file names
+	// Multiple paths are possible because an import such
+	// as a.b can resolve to a/b.py or a/b/__init__.py depending
+	// on language and file system
+	ResolveImportPathsFromName(importName string) ([]string, error)
 }
 
 // Base implementation of a common source language
@@ -212,8 +233,12 @@ func (l *commonSourceLanguage) GetFunctionCallNodes(cst *CST) ([]CSTFunctionCall
 	return nil, fmt.Errorf("language does not support function call nodes")
 }
 
-func (l *commonSourceLanguage) ResolveImportPath(currentFile SourceFile, importName string) (SourceFile, error) {
-	return SourceFile{}, fmt.Errorf("language does not support import resolution")
+func (l *commonSourceLanguage) ResolveImportNameFromPath(relPath string) (string, error) {
+	return "", fmt.Errorf("language does not support import name resolution")
+}
+
+func (l *commonSourceLanguage) ResolveImportPathsFromName(importName string) ([]string, error) {
+	return nil, fmt.Errorf("language does not support import path resolution")
 }
 
 func (l *commonSourceLanguage) GetMeta() SourceLanguageMeta {

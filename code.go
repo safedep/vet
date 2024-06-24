@@ -8,6 +8,7 @@ import (
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/code"
 	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/pkg/storage/graph"
 	"github.com/spf13/cobra"
 )
 
@@ -123,10 +124,19 @@ func internalStartCreateDatabase() error {
 
 	codeRepo.ConfigureForLanguage(codeLang)
 
-	cpgBuilderCfg := code.CpgBuilderConfig{
-		Repository:   codeRepo,
-		Language:     codeLang,
+	graph, err := graph.NewPropertyGraph(&graph.LocalPropertyGraphConfig{
+		Name:         "code-analysis",
 		DatabasePath: codeGraphDatabase,
+	})
+
+	if err != nil {
+		return fmt.Errorf("failed to create graph database: %w", err)
+	}
+
+	cpgBuilderCfg := code.CpgBuilderConfig{
+		Repository: codeRepo,
+		Language:   codeLang,
+		Graph:      graph,
 	}
 
 	cpgBuilder, err := code.NewCpgBuilder(cpgBuilderCfg)
