@@ -2,6 +2,7 @@ package code
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/safedep/vet/pkg/common/logger"
@@ -158,8 +159,25 @@ func (l *pythonSourceLanguage) ResolveImportNameFromPath(relPath string) (string
 	return relPath, nil
 }
 
-func (l *pythonSourceLanguage) ResolveImportPathsFromName(importName string) ([]string, error) {
+func (l *pythonSourceLanguage) ResolveImportPathsFromName(currentFile SourceFile, importName string, includeImports bool) ([]string, error) {
 	paths := []string{}
+
+	if len(importName) == 0 {
+		return paths, fmt.Errorf("import name is empty")
+	}
+
+	// If its a relative import, resolve it to the root
+	if importName[0] == '.' {
+		currDir := filepath.Dir(currentFile.Path)
+		relativeImportName := filepath.Join(currDir, importName[1:])
+
+		rootRelativePath, err := currentFile.repository.GetRelativePath(relativeImportName, includeImports)
+		if err != nil {
+			return paths, fmt.Errorf("failed to get relative path: %w", err)
+		}
+
+		importName = rootRelativePath
+	}
 
 	importName = strings.ReplaceAll(importName, ".", "/")
 

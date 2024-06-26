@@ -8,9 +8,17 @@ import (
 )
 
 type CpgBuilderConfig struct {
+	// Repository containing source files
 	Repository SourceRepository
-	Language   SourceLanguage
-	Graph      graph.Graph
+
+	// Language to use for parsing source files
+	Language SourceLanguage
+
+	// Resolve imports to file and load them
+	RecursiveImport bool
+
+	// Graph storage adapter
+	Graph graph.Graph
 }
 
 type cpgBuilder struct {
@@ -179,7 +187,7 @@ func (b *cpgBuilder) processImportNodes(g graph.Graph, cst *CST, lang SourceLang
 
 	// Get the module name for the source file we are processing
 	// This serves as the current node in the graph
-	currentModuleName, err := langMapFileToModule(currentFile.Path, b.config.Repository, lang, true)
+	currentModuleName, err := langMapFileToModule(currentFile, b.config.Repository, lang, true)
 	if err != nil {
 		logger.Errorf("Failed to map file to module: %v", err)
 		return
@@ -197,19 +205,34 @@ func (b *cpgBuilder) processImportNodes(g graph.Graph, cst *CST, lang SourceLang
 		logger.Debugf("Processing import node: %s", importNode.ImportName())
 
 		// Try to resolve the imported package to file for further processing
-		sourceFilePath, err := langMapModuleToFile(importNode.ImportName(), b.config.Repository, lang, true)
+		sourceFile, err := langMapModuleToFile(importNode.ImportName(), currentFile,
+			b.config.Repository, lang, true)
 		if err != nil {
 			logger.Warnf("Failed to process import node: %s: %v", importNode.ImportName(), err)
 		} else {
 			logger.Debugf("Import node: %s resolved to path: %s",
-				importNode.ImportName(), sourceFilePath)
+				importNode.ImportName(), sourceFile.Path)
 
-			// TODO: We need a function in repo to build SourceFile
-			b.enqueueSourceFile(SourceFile{Path: sourceFilePath, repository: b.config.Repository})
+			if b.useImports() {
+				b.enqueueSourceFile(sourceFile)
+			}
+		}
+
+		// Import name may be current file relative in which case we fix it up
+		// to appropriate module name to avoid duplicate nodes in the graph
+		importNodeName := importNode.ImportName()
+		if len(sourceFile.Path) > 0 {
+			fixedImportName, err := langMapFileToModule(sourceFile, b.config.Repository, lang, true)
+			if err != nil {
+				logger.Errorf("[Import Fixing]: Failed to map file to module: %v", err)
+				return
+			} else {
+				importNodeName = fixedImportName
+			}
 		}
 
 		// Finally add the imported package node to the graph
-		importedPkgNode := buildPackageNode(importNode.ImportName(), importNode.ImportName(), sourceFilePath)
+		importedPkgNode := buildPackageNode(importNodeName, importNodeName, sourceFile.Path)
 		err = g.Link(thisNode.Imports(&importedPkgNode))
 		if err != nil {
 			logger.Errorf("Failed to link import node: %v", err)
@@ -228,4 +251,8 @@ func (b *cpgBuilder) processFunctionCalls(_ graph.Graph, cst *CST, lang SourceLa
 	for _, functionCallNode := range functionCallNodes {
 		logger.Debugf("Processing function call node: %s", functionCallNode.Callee())
 	}
+}
+
+func (b *cpgBuilder) useImports() bool {
+	return b.config.RecursiveImport
 }

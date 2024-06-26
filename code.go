@@ -134,9 +134,10 @@ func internalStartCreateDatabase() error {
 	}
 
 	cpgBuilderCfg := code.CpgBuilderConfig{
-		Repository: codeRepo,
-		Language:   codeLang,
-		Graph:      graph,
+		Repository:      codeRepo,
+		Language:        codeLang,
+		Graph:           graph,
+		RecursiveImport: true,
 	}
 
 	cpgBuilder, err := code.NewCpgBuilder(cpgBuilderCfg)

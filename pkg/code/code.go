@@ -193,7 +193,7 @@ type SourceLanguage interface {
 	// Multiple paths are possible because an import such
 	// as a.b can resolve to a/b.py or a/b/__init__.py depending
 	// on language and file system
-	ResolveImportPathsFromName(importName string) ([]string, error)
+	ResolveImportPathsFromName(currentFile SourceFile, importName string, includeImports bool) ([]string, error)
 }
 
 // Base implementation of a common source language
