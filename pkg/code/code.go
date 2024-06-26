@@ -118,10 +118,12 @@ type CPG interface {
 // Represents a source file. This is required because import resolution
 // algorithm may need to know the path of the current file
 type SourceFile struct {
-	// Identifier for the source file. This is file depending on the
-	// repository from where the file is retrieved. Local file path in case of
-	// local file system as the repository
+	// Identifier for the source file. This is dependent on the
+	// language on how to uniquely identify a source file
 	Id string
+
+	// Repository specific path to the file
+	Path string
 
 	// The repository from where the source file is retrieved
 	repository SourceRepository
@@ -145,9 +147,9 @@ type SourceRepository interface {
 	// directories for a local source repository
 	EnumerateSourceFiles(handler sourceFileHandlerFn) error
 
-	// Get a source file by path. This function should enumerate all directories
+	// Get a source file by path. This function enumerates all directories
 	// available in the repository to check for existence of the source file by path
-	GetSourceFileByPath(path string) (SourceFile, error)
+	GetSourceFileByPath(path string, includeImports bool) (SourceFile, error)
 
 	// Open a source file for reading
 	OpenSourceFile(file SourceFile) (io.ReadCloser, error)
@@ -157,7 +159,7 @@ type SourceRepository interface {
 
 	// Get relative path of the source file from the repository root
 	// This is useful for constructing the import path. The first match is returned
-	GetRelativePath(path string, includeImportPaths bool) (string, error)
+	GetRelativePath(path string, includeImport bool) (string, error)
 }
 
 // Declarative metadata for the source language

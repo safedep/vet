@@ -90,7 +90,7 @@ func (l *pythonSourceLanguage) GetImportNodes(cst *CST) ([]CSTImportNode, error)
 				importNode.ImportName(),
 				importNode.ImportItem(),
 				importNode.ImportAlias(),
-				importNode.cst.file.Id,
+				importNode.cst.file.Path,
 				importNode.moduleNameNode.StartPoint().Row)
 
 			nodes = append(nodes, importNode)
@@ -134,7 +134,7 @@ func (l *pythonSourceLanguage) GetFunctionCallNodes(cst *CST) ([]CSTFunctionCall
 			logger.Debugf("Found function call: (%s).%s in %s:%d",
 				functionCallNode.Receiver(),
 				functionCallNode.Callee(),
-				cst.file.Id,
+				cst.file.Path,
 				functionCallNode.callee.StartPoint().Row)
 
 			nodes = append(nodes, functionCallNode)

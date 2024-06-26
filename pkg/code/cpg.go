@@ -1,6 +1,8 @@
 package code
 
 import (
+	"sync"
+
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/storage/graph"
 )
@@ -17,12 +19,12 @@ type cpgBuilder struct {
 	// Building is a heavy operation, we will cache the CPG
 	// on successful build
 	cpg CPG
-}
 
-// Per file local scratch pad (state) for building the CPG
-type cpgBuilderLocalScratchPad struct {
-	imports       []CSTImportNode
-	functionCalls []CSTFunctionCallNode
+	// Queue for processing files
+	fileQueue     chan SourceFile
+	fileQueueWg   *sync.WaitGroup
+	fileQueueLock *sync.Mutex
+	fileCache     map[string]bool
 }
 
 // First attempt in building a CPG. Lets hardcode the intention
@@ -34,8 +36,12 @@ type cpgSimple struct {
 }
 
 const (
-	pkgNodeType           = "package"
-	pkgNodeImportRelation = "imports"
+	pkgNodeType = "package"
+
+	pkgNodePropType     = "type"
+	pkgNodePropFilePath = "path"
+
+	pkgRelationImport = "IMPORTS"
 )
 
 type packageNode struct {
@@ -49,7 +55,7 @@ func (n *packageNode) Imports(anotherNode *packageNode) *graph.Edge {
 	logger.Debugf("Creating edge from %s to %s", n.id, anotherNode.id)
 
 	return &graph.Edge{
-		Name: pkgNodeImportRelation,
+		Name: pkgRelationImport,
 		From: &graph.Node{
 			ID:         n.id,
 			Label:      pkgNodeType,
@@ -77,30 +83,32 @@ func (b *cpgBuilder) Build() (CPG, error) {
 		return b.cpg, nil
 	}
 
+	// Reinitialize the file queue if needed
+	if b.fileQueue != nil {
+		close(b.fileQueue)
+	}
+
+	b.fileQueue = make(chan SourceFile, 10000)
+	b.fileQueueWg = &sync.WaitGroup{}
+	b.fileQueueLock = &sync.Mutex{}
+
+	b.fileCache = make(map[string]bool)
+
 	cpg := &cpgSimple{graph: b.config.Graph}
 	logger.Debugf("Building CPG using repository: %s", b.config.Repository.Name())
 
-	// TODO: May be we need a go channel approach for processing because
-	// we need to enqueue more source files from imported packages
+	// Start the file processors as a separate goroutine
+	go b.fileProcessor(b.fileQueueWg)
 
 	err := b.config.Repository.EnumerateSourceFiles(func(file SourceFile) error {
-		logger.Debugf("Parsing source file: %s", file.Id)
-
-		cst, err := b.config.Language.ParseSource(file)
-		if err != nil {
-			return err
-		}
-
-		scratchPad := &cpgBuilderLocalScratchPad{
-			imports: make([]CSTImportNode, 0),
-		}
-
-		b.processSourceFileNode(b.config.Graph, file)
-		b.processImportNodes(b.config.Graph, cst, b.config.Language, scratchPad, file)
-		b.processFunctionCalls(b.config.Graph, cst, b.config.Language, scratchPad, file)
-
+		b.enqueueSourceFile(file)
 		return nil
 	})
+
+	b.fileQueueWg.Wait()
+
+	close(b.fileQueue)
+	b.fileQueue = nil
 
 	if err != nil {
 		return nil, err
@@ -110,36 +118,74 @@ func (b *cpgBuilder) Build() (CPG, error) {
 	return cpg, nil
 }
 
+func (b *cpgBuilder) enqueueSourceFile(file SourceFile) {
+	b.fileQueueLock.Lock()
+	defer b.fileQueueLock.Unlock()
+
+	if _, ok := b.fileCache[file.Path]; ok {
+		logger.Debugf("Skipping already processed file: %s", file.Path)
+		return
+	}
+
+	b.fileQueueWg.Add(1)
+	b.fileQueue <- file
+
+	b.fileCache[file.Path] = true
+}
+
+func (b *cpgBuilder) fileProcessor(wg *sync.WaitGroup) {
+	for file := range b.fileQueue {
+		err := b.buildForFile(file)
+		if err != nil {
+			logger.Errorf("Failed to process CPG for: %s: %v", file.Path, err)
+		}
+
+		wg.Done()
+	}
+}
+
+func (b *cpgBuilder) buildForFile(file SourceFile) error {
+	logger.Debugf("Parsing source file: %s", file.Path)
+
+	cst, err := b.config.Language.ParseSource(file)
+	if err != nil {
+		return err
+	}
+
+	b.processSourceFileNode(b.config.Graph, file)
+	b.processImportNodes(b.config.Graph, cst, b.config.Language, file)
+	//b.processFunctionCalls(b.config.Graph, cst, b.config.Language, file)
+
+	return nil
+}
+
 func (b *cpgBuilder) processSourceFileNode(g graph.Graph, file SourceFile) {
 	// What?
 }
 
 func (b *cpgBuilder) processImportNodes(g graph.Graph, cst *CST, lang SourceLanguage,
-	scratch *cpgBuilderLocalScratchPad,
 	currentFile SourceFile) {
+	// Reuse the node builder within the scope of this function
+	buildPackageNode := func(id, name, path string) packageNode {
+		return packageNode{
+			id:   id,
+			name: name,
+			props: map[string]string{
+				pkgNodePropFilePath: path,
+				pkgNodePropType:     pkgNodeType,
+			},
+		}
+	}
 
-	relativeSourceFilePath, err := b.config.Repository.GetRelativePath(currentFile.Id, true)
+	// Get the module name for the source file we are processing
+	// This serves as the current node in the graph
+	currentModuleName, err := langMapFileToModule(currentFile.Path, b.config.Repository, lang, true)
 	if err != nil {
-		logger.Errorf("Failed to get relative path for current file: %v", err)
+		logger.Errorf("Failed to map file to module: %v", err)
 		return
 	}
 
-	currentModuleName, err := lang.ResolveImportNameFromPath(relativeSourceFilePath)
-	if err != nil {
-		logger.Errorf("Failed to resolve import name from path: %v", err)
-		return
-	}
-
-	// We will use the strategy of resolving the import module name from
-	// the source relative file path. This import module name will be used
-	// for uniquely identifying the package node in the graph. There are possibility
-	// of conflict across different import paths but we will ignore that for now.
-
-	thisNode := &packageNode{
-		id:    currentModuleName,
-		name:  relativeSourceFilePath,
-		props: map[string]string{"path": currentFile.Id},
-	}
+	thisNode := buildPackageNode(currentModuleName, currentModuleName, currentFile.Path)
 
 	importNodes, err := lang.GetImportNodes(cst)
 	if err != nil {
@@ -150,34 +196,28 @@ func (b *cpgBuilder) processImportNodes(g graph.Graph, cst *CST, lang SourceLang
 	for _, importNode := range importNodes {
 		logger.Debugf("Processing import node: %s", importNode.ImportName())
 
-		/*
-			importedFilePaths, err := lang.ResolveImportPathsFromName(importNode.ImportName())
-			if err != nil {
-				logger.Errorf("Failed to resolve import paths from name: %v", err)
-				continue
-			}
-		*/
+		// Try to resolve the imported package to file for further processing
+		sourceFilePath, err := langMapModuleToFile(importNode.ImportName(), b.config.Repository, lang, true)
+		if err != nil {
+			logger.Warnf("Failed to process import node: %s: %v", importNode.ImportName(), err)
+		} else {
+			logger.Debugf("Import node: %s resolved to path: %s",
+				importNode.ImportName(), sourceFilePath)
 
-		importedPkgNode := &packageNode{
-			id:   importNode.ImportName(),
-			name: importNode.ImportName(),
-			props: map[string]string{
-				"item":  importNode.ImportItem(),
-				"alias": importNode.ImportAlias(),
-			},
+			// TODO: We need a function in repo to build SourceFile
+			b.enqueueSourceFile(SourceFile{Path: sourceFilePath, repository: b.config.Repository})
 		}
 
-		err = g.Link(thisNode.Imports(importedPkgNode))
+		// Finally add the imported package node to the graph
+		importedPkgNode := buildPackageNode(importNode.ImportName(), importNode.ImportName(), sourceFilePath)
+		err = g.Link(thisNode.Imports(&importedPkgNode))
 		if err != nil {
 			logger.Errorf("Failed to link import node: %v", err)
 		}
-
-		scratch.imports = append(scratch.imports, importNode)
 	}
 }
 
 func (b *cpgBuilder) processFunctionCalls(_ graph.Graph, cst *CST, lang SourceLanguage,
-	scratch *cpgBuilderLocalScratchPad,
 	_ SourceFile) {
 	functionCallNodes, err := lang.GetFunctionCallNodes(cst)
 	if err != nil {
@@ -188,6 +228,4 @@ func (b *cpgBuilder) processFunctionCalls(_ graph.Graph, cst *CST, lang SourceLa
 	for _, functionCallNode := range functionCallNodes {
 		logger.Debugf("Processing function call node: %s", functionCallNode.Callee())
 	}
-
-	scratch.functionCalls = append(scratch.functionCalls, functionCallNodes...)
 }

@@ -81,11 +81,14 @@ func (r *fileSystemSourceRepository) EnumerateSourceFiles(handler sourceFileHand
 // TODO: This is a problem. Source file lookup is ecosystem specific. For example
 // Python and Ruby may have different rules to lookup a source file by path during
 // import operation. May be we need to make the operations explicit at repository level.
-func (r *fileSystemSourceRepository) GetSourceFileByPath(path string) (SourceFile, error) {
+func (r *fileSystemSourceRepository) GetSourceFileByPath(path string, includeImports bool) (SourceFile, error) {
 	lookupPaths := []string{}
 
 	// Import paths are generally are higher precedence than source paths
-	lookupPaths = append(lookupPaths, r.config.ImportPaths...)
+	if includeImports {
+		lookupPaths = append(lookupPaths, r.config.ImportPaths...)
+	}
+
 	lookupPaths = append(lookupPaths, r.config.SourcePaths...)
 
 	for _, sourcePath := range lookupPaths {
@@ -101,7 +104,7 @@ func (r *fileSystemSourceRepository) GetSourceFileByPath(path string) (SourceFil
 		sourceFilePath := filepath.Join(sourcePath, path)
 		if _, err := os.Stat(sourceFilePath); err == nil {
 			return SourceFile{
-				Id:         sourceFilePath,
+				Path:       sourceFilePath,
 				repository: r,
 			}, nil
 		}
@@ -111,7 +114,7 @@ func (r *fileSystemSourceRepository) GetSourceFileByPath(path string) (SourceFil
 }
 
 func (r *fileSystemSourceRepository) OpenSourceFile(file SourceFile) (io.ReadCloser, error) {
-	return os.OpenFile(file.Id, os.O_RDONLY, 0)
+	return os.OpenFile(file.Path, os.O_RDONLY, 0)
 }
 
 func (r *fileSystemSourceRepository) enumSourceDir(path string, handler sourceFileHandlerFn) error {
@@ -130,7 +133,7 @@ func (r *fileSystemSourceRepository) enumSourceDir(path string, handler sourceFi
 		}
 
 		return handler(SourceFile{
-			Id:         path,
+			Path:       path,
 			repository: r,
 		})
 	})
