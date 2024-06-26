@@ -102,6 +102,33 @@ func (l *pythonSourceLanguage) GetImportNodes(cst *CST) ([]CSTImportNode, error)
 	return nodes, err
 }
 
+func (l *pythonSourceLanguage) GetFunctionDeclarationNodes(cst *CST) ([]CSTFunctionNode, error) {
+	query := `
+	(function_definition
+		name: (identifier) @function_name)
+	`
+	nodes := []CSTFunctionNode{}
+	err := tsExecQuery(query, python.GetLanguage(),
+		cst.code,
+		cst.tree.RootNode(),
+		func(m *sitter.QueryMatch, _ *sitter.Query, ok bool) error {
+			functionNode := CSTFunctionNode{
+				cst:  cst,
+				node: m.Captures[0].Node,
+			}
+
+			logger.Debugf("Found function: %s in %s:%d",
+				functionNode.Name(),
+				cst.file.Path,
+				functionNode.node.StartPoint().Row)
+
+			nodes = append(nodes, functionNode)
+			return nil
+		})
+
+	return nodes, err
+}
+
 func (l *pythonSourceLanguage) GetFunctionCallNodes(cst *CST) ([]CSTFunctionCallNode, error) {
 	query := `
 	(call
@@ -159,7 +186,8 @@ func (l *pythonSourceLanguage) ResolveImportNameFromPath(relPath string) (string
 	return relPath, nil
 }
 
-func (l *pythonSourceLanguage) ResolveImportPathsFromName(currentFile SourceFile, importName string, includeImports bool) ([]string, error) {
+func (l *pythonSourceLanguage) ResolveImportPathsFromName(currentFile SourceFile,
+	importName string, includeImports bool) ([]string, error) {
 	paths := []string{}
 
 	if len(importName) == 0 {

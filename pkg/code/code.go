@@ -85,8 +85,18 @@ type CSTFunctionNode struct {
 	node *sitter.Node
 }
 
+func (n CSTFunctionNode) Name() string {
+	if n.node != nil {
+		return n.node.Content(n.cst.code)
+	}
+
+	return ""
+}
+
 type CSTFunctionCallNode struct {
-	cst      *CST
+	cst    *CST
+	caller *CSTFunctionNode
+
 	receiver *sitter.Node
 	callee   *sitter.Node
 	args     *sitter.Node
@@ -131,6 +141,14 @@ type SourceFile struct {
 
 func (f SourceFile) Open() (io.ReadCloser, error) {
 	return f.repository.OpenSourceFile(f)
+}
+
+// Check if the source file is imported. Returns true
+// if the source file is relative to the source directories
+// without considering any import directories
+func (f SourceFile) IsImportedFile() bool {
+	_, err := f.repository.GetRelativePath(f.Path, false)
+	return (err != nil)
 }
 
 type sourceFileHandlerFn func(file SourceFile) error

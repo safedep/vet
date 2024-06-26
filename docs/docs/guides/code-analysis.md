@@ -60,6 +60,8 @@ docker run -it -p 64210:64210 -v /tmp/code.db:/db cayleygraph/cayley -a /db -d b
 
 ### Query Examples
 
+#### Dependency Graph
+
 Build dependency graph for your application
 
 ```js
@@ -67,3 +69,19 @@ g.V().Tag("source").out("IMPORTS").Tag("target").all()
 ```
 
 ![Dependency Graph](/img/vet-code-demo-import-graph.png)
+
+#### Import Reachability
+
+Check if a specific import is reachable in your application
+
+```js
+g.V("app").followRecursive(g.M().out("IMPORTS")).is("six").all()
+```
+
+- `app` is the application originating from `app.py`
+- `six` is a python module imported transitively
+
+### Query API
+
+Refer to [Gizmo Query Language](https://cayley.gitbook.io/cayley/query-languages/gizmoapi)
+for documentation on constructing custom queries.

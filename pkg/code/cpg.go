@@ -49,6 +49,10 @@ const (
 	pkgNodePropType     = "type"
 	pkgNodePropFilePath = "path"
 
+	pkgNodePropSource          = "source"
+	pkgNodePropSourceValApp    = "app"
+	pkgNodePropSourceValImport = "import"
+
 	pkgRelationImport = "IMPORTS"
 )
 
@@ -138,6 +142,7 @@ func (b *cpgBuilder) enqueueSourceFile(file SourceFile) {
 	b.fileQueueWg.Add(1)
 	b.fileQueue <- file
 
+	// TODO: Optimize this. Storing entire file path is not needed
 	b.fileCache[file.Path] = true
 }
 
@@ -174,14 +179,24 @@ func (b *cpgBuilder) processSourceFileNode(g graph.Graph, file SourceFile) {
 func (b *cpgBuilder) processImportNodes(g graph.Graph, cst *CST, lang SourceLanguage,
 	currentFile SourceFile) {
 	// Reuse the node builder within the scope of this function
-	buildPackageNode := func(id, name, path string) packageNode {
+	buildPackageNode := func(id, name, path, src string) packageNode {
 		return packageNode{
 			id:   id,
 			name: name,
 			props: map[string]string{
 				pkgNodePropFilePath: path,
 				pkgNodePropType:     pkgNodeType,
+				pkgNodePropSource:   src,
 			},
+		}
+	}
+
+	// Map the SourceFile to a source name for use as a node property
+	importSrcName := func(src SourceFile) string {
+		if src.IsImportedFile() {
+			return pkgNodePropSourceValImport
+		} else {
+			return pkgNodePropSourceValApp
 		}
 	}
 
@@ -193,7 +208,8 @@ func (b *cpgBuilder) processImportNodes(g graph.Graph, cst *CST, lang SourceLang
 		return
 	}
 
-	thisNode := buildPackageNode(currentModuleName, currentModuleName, currentFile.Path)
+	thisNode := buildPackageNode(currentModuleName,
+		currentModuleName, currentFile.Path, importSrcName(currentFile))
 
 	importNodes, err := lang.GetImportNodes(cst)
 	if err != nil {
@@ -232,7 +248,8 @@ func (b *cpgBuilder) processImportNodes(g graph.Graph, cst *CST, lang SourceLang
 		}
 
 		// Finally add the imported package node to the graph
-		importedPkgNode := buildPackageNode(importNodeName, importNodeName, sourceFile.Path)
+		importedPkgNode := buildPackageNode(importNodeName, importNodeName,
+			sourceFile.Path, importSrcName(sourceFile))
 		err = g.Link(thisNode.Imports(&importedPkgNode))
 		if err != nil {
 			logger.Errorf("Failed to link import node: %v", err)
