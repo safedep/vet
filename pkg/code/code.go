@@ -43,6 +43,21 @@ type CST struct {
 	file *SourceFile
 }
 
+// Create a new CST from the content of the node
+func (n CST) SubTree(node *sitter.Node) (*CST, error) {
+	p := sitter.NewParser()
+	p.SetLanguage(n.lang)
+
+	data := []byte(node.Content(n.code))
+
+	t, err := p.ParseCtx(context.Background(), nil, data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &CST{tree: t, lang: n.lang, code: data, file: n.file}, nil
+}
+
 type CSTImportNode struct {
 	cst             *CST
 	moduleNameNode  *sitter.Node
@@ -81,13 +96,35 @@ func (n CSTImportNode) ImportAlias() string {
 }
 
 type CSTFunctionNode struct {
-	cst  *CST
-	node *sitter.Node
+	cst *CST
+
+	// The function declaration
+	declaration *sitter.Node
+
+	// Container node, such as a class or a module
+	container *sitter.Node
+
+	// Name of the function
+	name *sitter.Node
+
+	// Arguments of the function
+	args *sitter.Node
+
+	// Body of the function
+	body *sitter.Node
 }
 
 func (n CSTFunctionNode) Name() string {
-	if n.node != nil {
-		return n.node.Content(n.cst.code)
+	if n.name != nil {
+		return n.name.Content(n.cst.code)
+	}
+
+	return ""
+}
+
+func (n CSTFunctionNode) Container() string {
+	if n.container != nil {
+		return n.container.Content(n.cst.code)
 	}
 
 	return ""
@@ -147,6 +184,12 @@ func (f SourceFile) Open() (io.ReadCloser, error) {
 // if the source file is relative to the source directories
 // without considering any import directories
 func (f SourceFile) IsImportedFile() bool {
+	// When we don't have a repository, we assume that the file
+	// is not valid. Let us consider it to be an unresolved import
+	if f.repository == nil {
+		return true
+	}
+
 	_, err := f.repository.GetRelativePath(f.Path, false)
 	return (err != nil)
 }

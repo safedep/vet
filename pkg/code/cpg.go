@@ -165,9 +165,11 @@ func (b *cpgBuilder) buildForFile(file SourceFile) error {
 		return err
 	}
 
+	defer cst.tree.Close()
+
 	b.processSourceFileNode(b.config.Graph, file)
 	b.processImportNodes(b.config.Graph, cst, b.config.Language, file)
-	//b.processFunctionCalls(b.config.Graph, cst, b.config.Language, file)
+	b.processFunctionCalls(b.config.Graph, cst, b.config.Language, file)
 
 	return nil
 }
@@ -257,16 +259,59 @@ func (b *cpgBuilder) processImportNodes(g graph.Graph, cst *CST, lang SourceLang
 	}
 }
 
-func (b *cpgBuilder) processFunctionCalls(_ graph.Graph, cst *CST, lang SourceLanguage,
-	_ SourceFile) {
-	functionCallNodes, err := lang.GetFunctionCallNodes(cst)
+// The function call graph will be built as follows:
+// [Function] -> [FunctionCall] -> [Function]
+//
+// # To build this, we will
+//
+// - Enumerate all function declarations
+// - Assign an unique ID for the function (source)
+// - Enumerate all function calls within the function body
+// - Resolve the function call to a function declaration
+// - Assign an unique ID to the called function (target)
+// - Store the relationship in the graph
+func (b *cpgBuilder) processFunctionCalls(g graph.Graph, cst *CST, lang SourceLanguage,
+	currentFile SourceFile) {
+	moduleName, err := langMapFileToModule(currentFile, b.config.Repository, lang, true)
 	if err != nil {
-		logger.Errorf("Failed to get function call nodes: %v", err)
+		logger.Errorf("Failed to map file to module: %v", err)
 		return
 	}
 
-	for _, functionCallNode := range functionCallNodes {
-		logger.Debugf("Processing function call node: %s", functionCallNode.Callee())
+	functionDecls, err := lang.GetFunctionDeclarationNodes(cst)
+	if err != nil {
+		logger.Errorf("Failed to get function declaration nodes: %v", err)
+		return
+	}
+
+	mkFuncId := func(mod, fname string) string {
+		return mod + "/" + fname
+	}
+
+	for _, functionDecl := range functionDecls {
+		logger.Debugf("Processing function declaration: %s/%s",
+			moduleName,
+			functionDecl.Name())
+
+		fnBodyCST, err := cst.SubTree(functionDecl.declaration)
+		if err != nil {
+			logger.Errorf("Failed to get function body CST: %v", err)
+			continue
+		}
+
+		functionCalls, err := lang.GetFunctionCallNodes(fnBodyCST)
+		if err != nil {
+			logger.Errorf("Failed to get function call nodes: %v", err)
+			continue
+		}
+
+		for _, functionCall := range functionCalls {
+			logger.Debugf("Processing function call %s/%s",
+				mkFuncId(moduleName, functionDecl.Name()),
+				functionCall.Callee())
+		}
+
+		// How to resolve functionCall.callee to a module?
 	}
 }
 

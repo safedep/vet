@@ -105,7 +105,9 @@ func (l *pythonSourceLanguage) GetImportNodes(cst *CST) ([]CSTImportNode, error)
 func (l *pythonSourceLanguage) GetFunctionDeclarationNodes(cst *CST) ([]CSTFunctionNode, error) {
 	query := `
 	(function_definition
-		name: (identifier) @function_name)
+		name: (identifier) @function_name
+		parameters: (parameters) @function_args
+		body: (block) @function_body) @function_declaration
 	`
 	nodes := []CSTFunctionNode{}
 	err := tsExecQuery(query, python.GetLanguage(),
@@ -113,14 +115,22 @@ func (l *pythonSourceLanguage) GetFunctionDeclarationNodes(cst *CST) ([]CSTFunct
 		cst.tree.RootNode(),
 		func(m *sitter.QueryMatch, _ *sitter.Query, ok bool) error {
 			functionNode := CSTFunctionNode{
-				cst:  cst,
-				node: m.Captures[0].Node,
+				cst: cst,
 			}
+
+			if len(m.Captures) != 4 {
+				return fmt.Errorf("expected 4 captures, got %d", len(m.Captures))
+			}
+
+			functionNode.declaration = m.Captures[0].Node
+			functionNode.name = m.Captures[1].Node
+			functionNode.args = m.Captures[2].Node
+			functionNode.body = m.Captures[3].Node
 
 			logger.Debugf("Found function: %s in %s:%d",
 				functionNode.Name(),
 				cst.file.Path,
-				functionNode.node.StartPoint().Row)
+				functionNode.name.StartPoint().Row)
 
 			nodes = append(nodes, functionNode)
 			return nil
