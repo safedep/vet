@@ -122,12 +122,26 @@ func (l *pythonSourceLanguage) GetFunctionDeclarationNodes(cst *CST) ([]CSTFunct
 				return fmt.Errorf("expected 4 captures, got %d", len(m.Captures))
 			}
 
+			fnNode := m.Captures[0].Node
+
+			// Find the containing class if any by walking up the tree
+			parent := fnNode.Parent()
+			for parent != nil {
+				if parent.Type() == "class_definition" {
+					functionNode.container = parent.ChildByFieldName("name")
+					break
+				}
+
+				parent = parent.Parent()
+			}
+
 			functionNode.declaration = m.Captures[0].Node
 			functionNode.name = m.Captures[1].Node
 			functionNode.args = m.Captures[2].Node
 			functionNode.body = m.Captures[3].Node
 
-			logger.Debugf("Found function: %s in %s:%d",
+			logger.Debugf("Found function: %s/%s in %s:%d",
+				functionNode.Container(),
 				functionNode.Name(),
 				cst.file.Path,
 				functionNode.name.StartPoint().Row)
@@ -143,30 +157,34 @@ func (l *pythonSourceLanguage) GetFunctionCallNodes(cst *CST) ([]CSTFunctionCall
 	query := `
 	(call
 		function: (identifier) @function_name
-		arguments: (argument_list) @arguments)
+		arguments: (argument_list) @arguments) @function_call
 
 	(call
 		function: (attribute
 			object: (identifier) @object
 			attribute: (identifier) @function_name)
-		arguments: (argument_list) @arguments)
+		arguments: (argument_list) @arguments) @function_call
 	`
 	nodes := []CSTFunctionCallNode{}
 	err := tsExecQuery(query, python.GetLanguage(),
 		cst.code,
 		cst.tree.RootNode(),
 		func(m *sitter.QueryMatch, q *sitter.Query, ok bool) error {
-			functionCallNode := CSTFunctionCallNode{cst: cst}
+			if len(m.Captures) < 3 {
+				return fmt.Errorf("expected at least 3 captures, got %d", len(m.Captures))
+			}
+
+			functionCallNode := CSTFunctionCallNode{cst: cst, call: m.Captures[0].Node}
 
 			n := len(m.Captures)
 			switch n {
-			case 2:
-				functionCallNode.callee = m.Captures[0].Node
-				functionCallNode.args = m.Captures[1].Node
 			case 3:
-				functionCallNode.receiver = m.Captures[0].Node
 				functionCallNode.callee = m.Captures[1].Node
 				functionCallNode.args = m.Captures[2].Node
+			case 4:
+				functionCallNode.receiver = m.Captures[1].Node
+				functionCallNode.callee = m.Captures[2].Node
+				functionCallNode.args = m.Captures[3].Node
 			}
 
 			logger.Debugf("Found function call: (%s).%s in %s:%d",

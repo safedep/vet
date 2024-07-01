@@ -1,6 +1,7 @@
 package code
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/safedep/vet/pkg/common/logger"
@@ -325,13 +326,17 @@ func (b *cpgBuilder) processFunctionDeclarations(g graph.Graph, cst *CST, lang S
 			moduleName,
 			functionDecl.Name())
 
+		functionId := fmt.Sprintf("%s@%s/%s", moduleName,
+			functionDecl.Container(), functionDecl.Name())
+
 		fnNode := functionNode{
-			id:   functionDecl.Name(),
+			id:   functionId,
 			name: functionDecl.Name(),
 			props: map[string]string{
 				pkgNodePropFilePath: currentFile.Path,
 				pkgNodePropType:     pkgNodeTypeFn,
 				pkgNodePropSource:   b.importSourceName(currentFile),
+				"container":         functionDecl.Container(),
 			},
 		}
 
@@ -380,7 +385,14 @@ func (b *cpgBuilder) processFunctionCalls(g graph.Graph, cst *CST, lang SourceLa
 			}
 		}
 
-		logger.Debugf("Processing function call: %s", functionCall.Callee())
+		if functionCall.receiver != nil {
+			logger.Debugf("Processing function call in object: %s.%s",
+				functionCall.Receiver(), functionCall.Callee())
+
+		} else {
+			logger.Debugf("Processing function call: %s", functionCall.Callee())
+
+		}
 
 		fnCallNode := functionCallNode{
 			id:   functionCall.Callee(),

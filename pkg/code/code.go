@@ -134,6 +134,7 @@ type CSTFunctionCallNode struct {
 	cst    *CST
 	caller *CSTFunctionNode
 
+	call     *sitter.Node
 	receiver *sitter.Node
 	callee   *sitter.Node
 	args     *sitter.Node
