@@ -15,10 +15,10 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/google/cel-go v0.20.1
 	github.com/google/go-github/v54 v54.0.0
-	github.com/google/osv-scanner v1.8.2
+	github.com/google/osv-scanner v1.8.3
 	github.com/jedib0t/go-pretty/v6 v6.5.9
 	github.com/kubescape/go-git-url v0.0.30
-	github.com/owenrumney/go-sarif/v2 v2.3.2
+	github.com/owenrumney/go-sarif/v2 v2.3.3
 	github.com/package-url/packageurl-go v0.1.3
 	github.com/safedep/dry v0.0.0-20240405050202-3b26d9386e57
 	github.com/sirupsen/logrus v1.9.3
@@ -136,7 +136,7 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/arch v0.8.0 // indirect
 	golang.org/x/crypto v0.25.0 // indirect
-	golang.org/x/exp v0.0.0-20240707233637-46b078467d37 // indirect
+	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
 	golang.org/x/mod v0.19.0 // indirect
 	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
