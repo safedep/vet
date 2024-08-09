@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"slices"
 	"strings"
 
 	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
@@ -146,7 +147,7 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 			})
 		}
 
-		if !npmIsUrlFollowsPathConvention(lockfilePackage.Resolved, packageName) {
+		if !npmIsUrlFollowsPathConvention(lockfilePackage.Resolved, packageName, trustedRegistryUrls) {
 			logger.Debugf("npmLockfilePoisoningAnalyzer: Package [%s] resolved to an unconventional URL [%s]",
 				packageName, lockfilePackage.Resolved)
 
@@ -180,14 +181,7 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 
 // Analyze the artifact URL and determine if the source is trusted
 func npmIsTrustedSource(sourceUrl string, trusteUrls []string) bool {
-	// Go url parser cannot handle git+ssh://host:project/repo.git#commit
-	if len(sourceUrl) > 10 && strings.EqualFold(sourceUrl[0:10], "git+ssh://") {
-		if cIndex := strings.Index(sourceUrl[10:], ":"); cIndex != -1 {
-			sourceUrl = sourceUrl[0:10+cIndex] + "/" + sourceUrl[10+cIndex+1:]
-		}
-	}
-
-	parsedUrl, err := url.Parse(sourceUrl)
+	parsedUrl, err := npmParseSourceUrl(sourceUrl)
 	if err != nil {
 		logger.Errorf("npmIsTrustedSource: Failed to parse URL %s: %v",
 			sourceUrl, err)
@@ -206,7 +200,7 @@ func npmIsTrustedSource(sourceUrl string, trusteUrls []string) bool {
 
 	// Compare with trusted URLs
 	for _, trusteUrl := range trusteUrls {
-		parsedTrustedUrl, err := url.Parse(trusteUrl)
+		parsedTrustedUrl, err := npmParseSourceUrl(trusteUrl)
 		if err != nil {
 			logger.Errorf("npmIsTrustedSource: Failed to parse trusted URL %s: %v",
 				trusteUrl, err)
@@ -235,6 +229,17 @@ func npmIsTrustedSource(sourceUrl string, trusteUrls []string) bool {
 	return false
 }
 
+func npmParseSourceUrl(sourceUrl string) (*url.URL, error) {
+	// Go url parser cannot handle git+ssh://host:project/repo.git#commit
+	if len(sourceUrl) > 10 && strings.EqualFold(sourceUrl[0:10], "git+ssh://") {
+		if cIndex := strings.Index(sourceUrl[10:], ":"); cIndex != -1 {
+			sourceUrl = sourceUrl[0:10+cIndex] + "/" + sourceUrl[10+cIndex+1:]
+		}
+	}
+
+	return url.Parse(sourceUrl)
+}
+
 // Extract the package name from the node_modules filesystem path
 func npmNodeModulesPackagePathToName(path string) string {
 	return utils.NpmNodeModulesPackagePathToName(path)
@@ -242,9 +247,9 @@ func npmNodeModulesPackagePathToName(path string) string {
 
 // Test if URL follows the pkg name path convention as per NPM package registry
 // specification https://docs.npmjs.com/cli/v10/configuring-npm/package-lock-json
-func npmIsUrlFollowsPathConvention(sourceUrl string, pkg string) bool {
+func npmIsUrlFollowsPathConvention(sourceUrl string, pkg string, trustedUrls []string) bool {
 	// Example: https://registry.npmjs.org/express/-/express-4.17.1.tgz
-	parsedUrl, err := url.Parse(sourceUrl)
+	parsedUrl, err := npmParseSourceUrl(sourceUrl)
 	if err != nil {
 		logger.Errorf("npmIsUrlFollowsPathConvention: Failed to parse URL %s: %v",
 			sourceUrl, err)
@@ -260,6 +265,25 @@ func npmIsUrlFollowsPathConvention(sourceUrl string, pkg string) bool {
 		path = path[1:]
 	}
 
+	acceptablePackageNames := []string{pkg}
+	for _, trustedUrl := range trustedUrls {
+		parsedTrustedUrl, err := npmParseSourceUrl(trustedUrl)
+		if err != nil {
+			logger.Errorf("npmIsUrlFollowsPathConvention: Failed to parse trusted URL %s: %v",
+				trustedUrl, err)
+			continue
+		}
+
+		trustedBase := parsedTrustedUrl.Path
+		trustedBase = strings.TrimPrefix(trustedBase, "/")
+		trustedBase = strings.TrimSuffix(trustedBase, "/")
+
+		acceptablePackageNames = append(acceptablePackageNames,
+			fmt.Sprintf("%s/%s", trustedBase, pkg))
+	}
+
+	// Example: @angular/core from https://registry.npmjs.org/@angular/core/-/core-1.0.0.tgz
 	scopedPackageName := strings.Split(path, "/-/")[0]
-	return scopedPackageName == pkg
+
+	return slices.Contains(acceptablePackageNames, scopedPackageName)
 }
