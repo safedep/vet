@@ -153,6 +153,13 @@ func TestNpmIsUrlFollowsPathConvention(t *testing.T) {
 			[]string{"https://registry.npmjs.org/base", "https://registry.npmjs.org/base1"},
 			true,
 		},
+		{
+			"package path matches the second trusted url base",
+			"https://registry.npmjs.org/base1/package-name/-/package-name-1.0.0.tgz",
+			"package-name",
+			[]string{"https://registry.npmjs.org/base", "https://registry.npmjs.org/base1"},
+			true,
+		},
 	}
 
 	for _, test := range cases {
