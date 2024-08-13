@@ -110,8 +110,8 @@ func (q *cayleyQueryResult) Strings() ([]string, error) {
 					continue
 				}
 
-				n := q.store.NameOf(ref)
-				if n == nil {
+				n, err := q.store.NameOf(ref)
+				if (err != nil) || (n == nil) {
 					continue
 				}
 
@@ -148,8 +148,8 @@ func (q *cayleyQueryResult) Nodes() ([]Node, error) {
 					continue
 				}
 
-				n := q.store.NameOf(ref)
-				if n == nil {
+				n, err := q.store.NameOf(ref)
+				if (err != nil) || (n == nil) {
 					continue
 				}
 
