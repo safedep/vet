@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -13,10 +14,16 @@ import (
 )
 
 const (
-	customParserTypePyWheel   = "python-wheel"
-	customParserCycloneDXSBOM = "bom-cyclonedx"
-	customParserSpdxSBOM      = "bom-spdx"
-	customParserTypeSetupPy   = "setup.py"
+	customParserTypePyWheel           = "python-wheel"
+	customParserCycloneDXSBOM         = "bom-cyclonedx"
+	customParserSpdxSBOM              = "bom-spdx"
+	customParserTypeSetupPy           = "setup.py"
+	customParserTypeJavaArchive       = "jar"
+	customParserTypeJavaWebAppArchive = "war"
+)
+
+var (
+	errUnsupportedFormat = errors.New("unsupported format")
 )
 
 // Exporting as constants for use outside this package to refer to specific
@@ -71,8 +78,25 @@ type dependencyGraphParser func(lockfilePath string, config *ParserConfig) (*mod
 
 // Maintain a map of lockfileAs to dependencyGraphParser
 var dependencyGraphParsers map[string]dependencyGraphParser = map[string]dependencyGraphParser{
-	"package-lock.json":       parseNpmPackageLockAsGraph,
-	customParserCycloneDXSBOM: parseSbomCycloneDxAsGraph,
+	"package-lock.json":               parseNpmPackageLockAsGraph,
+	customParserCycloneDXSBOM:         parseSbomCycloneDxAsGraph,
+	customParserTypeJavaArchive:       parseJavaArchiveAsGraph,
+	customParserTypeJavaWebAppArchive: parseJavaArchiveAsGraph,
+}
+
+// Maintain a map of extension to lockfileAs
+// Ensure that only supported extensions are added
+var lockfileAsMapByExtension map[string]string = map[string]string{
+	"jar": customParserTypeJavaArchive,
+	"war": customParserTypeJavaWebAppArchive,
+}
+
+func FindLockFileAsByExtension(extension string) (string, error) {
+	if lockfileAs, ok := lockfileAsMapByExtension[extension]; ok {
+		return lockfileAs, nil
+	}
+
+	return "", fmt.Errorf("no format found for the extension %s", extension)
 }
 
 func List(experimental bool) []string {
@@ -195,6 +219,10 @@ func (pw *parserWrapper) Ecosystem() string {
 		return models.EcosystemPyPI
 	case customParserSpdxSBOM:
 		return models.EcosystemSpdxSBOM
+	case customParserTypeJavaArchive:
+		return models.EcosystemMaven
+	case customParserTypeJavaWebAppArchive:
+		return models.EcosystemMaven
 	default:
 		logger.Debugf("Unsupported lockfile-as %s", pw.parseAs)
 		return ""

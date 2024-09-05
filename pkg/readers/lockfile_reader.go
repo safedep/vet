@@ -32,12 +32,18 @@ func (p *lockfileReader) Name() string {
 func (p *lockfileReader) EnumManifests(handler func(*models.PackageManifest,
 	PackageReader) error) error {
 	for _, lf := range p.lockfiles {
-		lfParser, err := parser.FindParser(lf, p.lockfileAs)
+		rf, rt, err := parser.ResolveParseTarget(lf, p.lockfileAs,
+			[]parser.TargetScopeType{parser.TargetScopeAll})
 		if err != nil {
 			return err
 		}
 
-		manifest, err := lfParser.Parse(lf)
+		lfParser, err := parser.FindParser(rf, rt)
+		if err != nil {
+			return err
+		}
+
+		manifest, err := lfParser.Parse(rf)
 		if err != nil {
 			return err
 		}
