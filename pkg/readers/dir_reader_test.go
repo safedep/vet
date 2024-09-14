@@ -32,7 +32,10 @@ func TestNewDirectoryReader(t *testing.T) {
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
-			_, err := NewDirectoryReader(test.path, test.exclusions)
+			_, err := NewDirectoryReader(DirectoryReaderConfig{
+				Path:       test.path,
+				Exclusions: test.exclusions,
+			})
 			assert.Equal(t, test.err, err)
 		})
 	}
@@ -114,7 +117,10 @@ func TestDirectoryReaderEnumPackages(t *testing.T) {
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
-			reader, _ := NewDirectoryReader(test.path, test.exclusions)
+			reader, _ := NewDirectoryReader(DirectoryReaderConfig{
+				Path:       test.path,
+				Exclusions: test.exclusions,
+			})
 			assert.NotNil(t, reader)
 
 			manifestCount := 0
@@ -192,7 +198,10 @@ func TestDirectoryReaderExcludedPath(t *testing.T) {
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
-			r, err := NewDirectoryReader("some-path", test.patterns)
+			r, err := NewDirectoryReader(DirectoryReaderConfig{
+				Path:       "test-path",
+				Exclusions: test.patterns,
+			})
 			assert.Nil(t, err)
 
 			var ret bool

@@ -73,6 +73,12 @@ func TestNpmIsTrustedSource(t *testing.T) {
 			[]string{"https://registry.npmjs.org", "git+ssh://github.com/safedep"},
 			false,
 		},
+		{
+			"source is trusted when trusted url has a base path",
+			"https://registry.example.org/base/a/b/-/c.tgz",
+			[]string{"https://registry.example.org/base"},
+			true,
+		},
 	}
 
 	for _, test := range cases {
@@ -85,34 +91,80 @@ func TestNpmIsTrustedSource(t *testing.T) {
 
 func TestNpmIsUrlFollowsPathConvention(t *testing.T) {
 	cases := []struct {
-		name     string
-		url      string
-		pkgName  string
-		expected bool
+		name        string
+		url         string
+		pkgName     string
+		trustedUrls []string
+		expected    bool
 	}{
 		{
 			"package name matches url path",
 			"https://registry.npmjs.org/package-name/-/package-name-1.0.0.tgz",
 			"package-name",
+			[]string{},
 			true,
 		},
 		{
 			"package name matches scoped url path",
 			"https://registry.npmjs.org/@angular/core/-/core-1.0.0.tgz",
 			"@angular/core",
+			[]string{},
 			true,
 		},
 		{
 			"package name does not match scoped url path",
 			"https://registry.npmjs.org/@angular/core/-/core-1.0.0.tgz",
 			"@someother/core",
+			[]string{},
 			false,
+		},
+		{
+			"package path matches trusted url path",
+			"https://registry.npmjs.org/base/package-name/-/package-name-1.0.0.tgz",
+			"package-name",
+			[]string{"https://registry.npmjs.org/base"},
+			true,
+		},
+		{
+			"package path matches trusted url path with trailing slash",
+			"https://registry.npmjs.org/base/package-name/-/package-name-1.0.0.tgz",
+			"package-name",
+			[]string{"https://registry.npmjs.org/base/"},
+			true,
+		},
+		{
+			"package path matches trusted url path prefix",
+			"https://registry.npmjs.org/base/package-name/-/package-name-1.0.0.tgz",
+			"package-name",
+			[]string{"https://registry.npmjs.org/base1/base2"},
+			false,
+		},
+		{
+			"package path has base without trusted url",
+			"https://registry.npmjs.org/base/package-name/-/package-name-1.0.0.tgz",
+			"package-name",
+			[]string{},
+			false,
+		},
+		{
+			"package path matches one of the trusted url base",
+			"https://registry.npmjs.org/base/package-name/-/package-name-1.0.0.tgz",
+			"package-name",
+			[]string{"https://registry.npmjs.org/base", "https://registry.npmjs.org/base1"},
+			true,
+		},
+		{
+			"package path matches the second trusted url base",
+			"https://registry.npmjs.org/base1/package-name/-/package-name-1.0.0.tgz",
+			"package-name",
+			[]string{"https://registry.npmjs.org/base", "https://registry.npmjs.org/base1"},
+			true,
 		},
 	}
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
-			actual := npmIsUrlFollowsPathConvention(test.url, test.pkgName)
+			actual := npmIsUrlFollowsPathConvention(test.url, test.pkgName, test.trustedUrls)
 			assert.Equal(t, test.expected, actual)
 		})
 	}

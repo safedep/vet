@@ -27,6 +27,7 @@ CI/CD and `policy as code` as guardrails.
 * [🔥 vet in action](#-vet-in-action)
 * [Getting Started](#getting-started)
   * [Running Scan](#running-scan)
+    * [Scanning Binary Artifacts](#scanning-binary-artifacts)
     * [Scanning SBOM](#scanning-sbom)
     * [Scanning Github Repositories](#scanning-github-repositories)
     * [Scanning Github Organization](#scanning-github-organization)
@@ -91,9 +92,28 @@ vet scan -D /path/to/repository
 - Run `vet` to scan specific (supported) package manifests
 
 ```bash
-vet scan --lockfiles /path/to/pom.xml
-vet scan --lockfiles /path/to/requirements.txt
-vet scan --lockfiles /path/to/package-lock.json
+vet scan -M /path/to/pom.xml
+vet scan -M /path/to/requirements.txt
+vet scan -M /path/to/package-lock.json
+```
+
+**Note:** `--lockfiles` is generalized to `-M` or `--manifests` to support additional
+types of package manifests or other artifacts in future.
+
+#### Scanning Binary Artifacts
+
+- Scan a Java JAR file
+
+```bash
+vet scan -M /path/to/app.jar
+```
+
+> Suitable for scanning bootable JARs with embedded dependencies
+
+- Scan a directory with JAR files
+
+```bash
+vet scan -D /path/to/jars --type jar
 ```
 
 #### Scanning SBOM
@@ -101,14 +121,17 @@ vet scan --lockfiles /path/to/package-lock.json
 - Scan an SBOM in [CycloneDX](https://cyclonedx.org/) format
 
 ```bash
-vet scan --lockfiles /path/to/cyclonedx-sbom.json --lockfile-as bom-cyclonedx
+vet scan -M /path/to/cyclonedx-sbom.json --type bom-cyclonedx
 ```
 
 - Scan an SBOM in [SPDX](https://spdx.dev/) format
 
 ```bash
-vet scan --lockfiles /path/to/spdx-sbom.json --lockfile-as bom-spdx
+vet scan -M /path/to/spdx-sbom.json --type bom-spdx
 ```
+
+**Note:** `--type` is a generalized version of `--lockfile-as` to support additional
+artifact types in future.
 
 > **Note:** SBOM scanning feature is currently in experimental stage
 
@@ -265,6 +288,7 @@ Refer to [CONTRIBUTING.md](CONTRIBUTING.md)
 ## 🔖 References
 
 - https://github.com/google/osv-scanner
+- https://github.com/anchore/syft
 - https://deps.dev/
 - https://securityscorecards.dev/
 - https://slsa.dev/

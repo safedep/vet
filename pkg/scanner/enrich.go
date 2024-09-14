@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
+	"github.com/gojek/heimdall"
+	"github.com/gojek/heimdall/v7/hystrix"
 	"github.com/safedep/dry/errors"
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/insightapi"
@@ -38,8 +41,19 @@ func NewInsightBasedPackageEnricher(config InsightsBasedPackageMetaEnricherConfi
 		return nil
 	}
 
+	timeout := 5 * time.Second
+	backoff := heimdall.NewConstantBackoff(1*time.Second,
+		3*time.Second)
+
+	retriableClient := hystrix.NewClient(hystrix.WithHTTPTimeout(timeout),
+		hystrix.WithCommandName("insights-api-client"),
+		hystrix.WithMaxConcurrentRequests(10),
+		hystrix.WithRetryCount(3),
+		hystrix.WithRetrier(heimdall.NewRetrier(backoff)))
+
 	client, err := insightapi.NewClientWithResponses(config.ApiUrl,
-		insightapi.WithRequestEditorFn(apiKeyApplier))
+		insightapi.WithRequestEditorFn(apiKeyApplier),
+		insightapi.WithHTTPClient(retriableClient))
 	if err != nil {
 		return nil, err
 	}

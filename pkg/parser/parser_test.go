@@ -9,7 +9,7 @@ import (
 
 func TestListParser(t *testing.T) {
 	parsers := List(false)
-	assert.Equal(t, 13, len(parsers))
+	assert.Equal(t, 15, len(parsers))
 }
 
 func TestInvalidEcosystemMapping(t *testing.T) {

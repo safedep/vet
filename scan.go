@@ -20,6 +20,8 @@ import (
 )
 
 var (
+	manifests                      []string
+	manifestType                   string
 	lockfiles                      []string
 	lockfileAs                     string
 	enrich                         bool
@@ -79,11 +81,13 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().BoolVarP(&enrich, "enrich", "", true,
 		"Enrich package metadata (almost always required) using Insights API")
 	cmd.Flags().StringVarP(&baseDirectory, "directory", "D", wd,
-		"The directory to scan for lockfiles")
+		"The directory to scan for package manifests")
 	cmd.Flags().StringArrayVarP(&scanExclude, "exclude", "", []string{},
 		"Name patterns to ignore while scanning a directory")
 	cmd.Flags().StringArrayVarP(&lockfiles, "lockfiles", "L", []string{},
 		"List of lockfiles to scan")
+	cmd.Flags().StringArrayVarP(&manifests, "manifests", "M", []string{},
+		"List of package manifest or archive to scan (example: jar:/tmp/foo.jar)")
 	cmd.Flags().StringVarP(&purlSpec, "purl", "", "",
 		"PURL to scan")
 	cmd.Flags().StringArrayVarP(&githubRepoUrls, "github", "", []string{},
@@ -94,6 +98,8 @@ func newScanCommand() *cobra.Command {
 		"Maximum number of repositories to process for the Github Org")
 	cmd.Flags().StringVarP(&lockfileAs, "lockfile-as", "", "",
 		"Parser to use for the lockfile (vet scan parsers to list)")
+	cmd.Flags().StringVarP(&manifestType, "type", "", "",
+		"Parser to use for the artifact (vet scan parsers --experimental to list)")
 	cmd.Flags().BoolVarP(&transitiveAnalysis, "transitive", "", false,
 		"Analyze transitive dependencies")
 	cmd.Flags().IntVarP(&transitiveDepth, "transitive-depth", "", 2,
@@ -201,12 +207,28 @@ func internalStartScan() error {
 		return githubClient
 	}
 
+	// manifestType will supersede lockfileAs and eventually deprecate it
+	// But for now, manifestType is backward compatible with lockfileAs
+	if manifestType != "" {
+		lockfileAs = manifestType
+	} else {
+		manifestType = lockfileAs
+	}
+
 	// We can easily support both directory and lockfile reader. But current UX
 	// contract is to support one of them at a time. Lets not break the contract
 	// for now and figure out UX improvement later
 	if len(lockfiles) > 0 {
 		// nolint:ineffassign,staticcheck
-		reader, err = readers.NewLockfileReader(lockfiles, lockfileAs)
+		reader, err = readers.NewLockfileReader(lockfiles, manifestType)
+	} else if len(manifests) > 0 {
+		// We will make manifestType backward compatible with lockfileAs
+		if manifestType == "" {
+			manifestType = lockfileAs
+		}
+
+		// nolint:ineffassign,staticcheck
+		reader, err = readers.NewLockfileReader(manifests, manifestType)
 	} else if len(githubRepoUrls) > 0 {
 		githubClient := githubClientBuilder()
 
@@ -226,7 +248,11 @@ func internalStartScan() error {
 		reader, err = readers.NewPurlReader(purlSpec)
 	} else {
 		// nolint:ineffassign,staticcheck
-		reader, err = readers.NewDirectoryReader(baseDirectory, scanExclude)
+		reader, err = readers.NewDirectoryReader(readers.DirectoryReaderConfig{
+			Path:                 baseDirectory,
+			Exclusions:           scanExclude,
+			ManifestTypeOverride: manifestType,
+		})
 	}
 
 	if err != nil {
