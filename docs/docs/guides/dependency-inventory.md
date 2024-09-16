@@ -1,5 +1,6 @@
 ---
 draft: false
+title: 📦 Dependency Inventory
 ---
 
 # Dependency Inventory
