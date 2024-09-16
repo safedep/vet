@@ -70,7 +70,8 @@ func NewCodeGraphBuilder(config CodeGraphBuilderConfig,
 		config.Concurrency = 1
 	}
 
-	return &codeGraphBuilder{config: config,
+	return &codeGraphBuilder{
+		config:        config,
 		repository:    repository,
 		lang:          lang,
 		storage:       storage,
