@@ -15,10 +15,12 @@ const (
 	apiKeyAlternateEnvKey = "VET_API_KEY"
 	communityModeEnvKey   = "VET_COMMUNITY_MODE"
 
-	defaultApiUrl             = "https://api.safedep.io/insights/v1"
-	defaultCommunityApiUrl    = "https://api.safedep.io/insights-community/v1"
-	defaultControlPlaneApiUrl = "https://api.safedep.io/control-plane/v1"
-	defaultSyncApiUrl         = "https://api.safedep.io/sync/v1"
+	defaultApiUrl          = "https://api.safedep.io/insights/v1"
+	defaultCommunityApiUrl = "https://api.safedep.io/insights-community/v1"
+	defaultSyncApiUrl      = "https://api.safedep.io/sync/v1"
+
+	// gRPC service base URL.
+	defaultControlPlaneApiUrl = "https://api.safedep.io"
 
 	homeRelativeConfigPath = ".safedep/vet-auth.yml"
 )
@@ -51,20 +53,20 @@ func DefaultCommunityApiUrl() string {
 	return defaultCommunityApiUrl
 }
 
-func DefaultControlPlaneApiUrl() string {
-	if (globalConfig != nil) && (globalConfig.ControlPlaneApiUrl != "") {
-		return globalConfig.ControlPlaneApiUrl
-	}
-
-	return defaultControlPlaneApiUrl
-}
-
 func DefaultSyncApiUrl() string {
 	if (globalConfig != nil) && (globalConfig.SyncApiUrl != "") {
 		return globalConfig.SyncApiUrl
 	}
 
 	return defaultSyncApiUrl
+}
+
+func DefaultControlTowerUrl() string {
+	if (globalConfig != nil) && (globalConfig.ControlPlaneApiUrl != "") {
+		return globalConfig.ControlPlaneApiUrl
+	}
+
+	return defaultControlPlaneApiUrl
 }
 
 func ApiUrl() string {

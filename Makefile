@@ -18,12 +18,6 @@ dev-setup: linter-install oapi-codegen-install protoc-install
 oapi-codegen:
 	oapi-codegen -package insightapi -generate types ./api/insights-v1.yml > ./gen/insightapi/insights.types.go
 	oapi-codegen -package insightapi -generate client ./api/insights-v1.yml > ./gen/insightapi/insights.client.go
-	oapi-codegen -package cpv1trials -generate types ./api/cp-v1-trials.yml > ./gen/cpv1trials/trials.types.go
-	oapi-codegen -package cpv1trials -generate client ./api/cp-v1-trials.yml > ./gen/cpv1trials/trials.client.go
-	oapi-codegen -package cpv1 -generate types ./api/cp-v1.yml > ./gen/cpv1/cp.types.go
-	oapi-codegen -package cpv1 -generate client ./api/cp-v1.yml > ./gen/cpv1/cp.client.go
-	oapi-codegen -package syncv1 -generate types ./api/sync-v1.yml > ./gen/syncv1/sync.types.go
-	oapi-codegen -package syncv1 -generate client ./api/sync-v1.yml > ./gen/syncv1/sync.client.go
 
 protoc-codegen:
 	protoc -I ./api \

@@ -176,7 +176,7 @@ func listParsersCommand() *cobra.Command {
 func startScan() {
 	if !disableAuthVerifyBeforeScan {
 		err := auth.Verify(&auth.VerifyConfig{
-			ControlPlaneApiUrl: auth.DefaultControlPlaneApiUrl(),
+			ControlPlaneApiUrl: auth.DefaultControlTowerUrl(),
 		})
 
 		// We will fallback to community mode by default to provide
@@ -394,8 +394,12 @@ func internalStartScan() error {
 
 	if syncReport {
 		rp, err := reporter.NewSyncReporter(reporter.SyncReporterConfig{
-			ProjectName: syncReportProject,
-			StreamName:  syncReportStream,
+			ToolName:            "vet",
+			ToolVersion:         version,
+			ProjectName:         syncReportProject,
+			ProjectVersion:      syncReportStream,
+			ControlTowerBaseUrl: auth.DefaultControlTowerUrl(),
+			ControlTowerToken:   auth.ApiKey(),
 		})
 		if err != nil {
 			return err

@@ -30,7 +30,7 @@ func newAuthCommand() *cobra.Command {
 	}
 
 	cmd.PersistentFlags().StringVarP(&authControlPlaneApiBaseUrl, "control-plane", "",
-		auth.DefaultControlPlaneApiUrl(), "Base URL of Control Plane API")
+		auth.DefaultControlTowerUrl(), "Base URL of Control Plane API")
 
 	cmd.AddCommand(configureAuthCommand())
 	cmd.AddCommand(verifyAuthCommand())
