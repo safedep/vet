@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/safedep/vet/gen/insightapi"
 
@@ -109,6 +110,21 @@ func (pm *PackageManifest) Id() string {
 
 func (pm *PackageManifest) GetPackagesCount() int {
 	return len(pm.GetPackages())
+}
+
+func (pm *PackageManifest) GetControlTowerSpecEcosystem() packagev1.Ecosystem {
+	switch pm.Ecosystem {
+	case EcosystemCargo:
+		return packagev1.Ecosystem_ECOSYSTEM_CARGO
+	case EcosystemGo:
+		return packagev1.Ecosystem_ECOSYSTEM_GO
+	case EcosystemMaven:
+		return packagev1.Ecosystem_ECOSYSTEM_MAVEN
+	case EcosystemNpm:
+		return packagev1.Ecosystem_ECOSYSTEM_NPM
+	default:
+		return packagev1.Ecosystem_ECOSYSTEM_UNSPECIFIED
+	}
 }
 
 func (pm *PackageManifest) GetSpecEcosystem() modelspec.Ecosystem {

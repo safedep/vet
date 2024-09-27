@@ -2,16 +2,16 @@ package reporter
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"sync"
 
 	"buf.build/gen/go/safedep/api/grpc/go/safedep/services/controltower/v1/controltowerv1grpc"
+	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	controltowerv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/controltower/v1"
 	drygrpc "github.com/safedep/dry/adapters/grpc"
-	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
@@ -73,9 +73,12 @@ func NewSyncReporter(config SyncReporterConfig) (Reporter, error) {
 
 	logger.Debugf("ControlTower host: %s, port: %s", host, port)
 
+	vetTenantId := os.Getenv("VET_CONTROL_TOWER_TENANT_ID")
+	vetTenantMockUser := os.Getenv("VET_CONTROL_TOWER_MOCK_USER") // Used in dev
+
 	headers := http.Header{}
-	headers.Set("x-tenant-id", "default-team.safedep-io.safedep.io")
-	headers.Set("x-mock-user", "abhisek@safedep.io")
+	headers.Set("x-tenant-id", vetTenantId)
+	headers.Set("x-mock-user", vetTenantMockUser)
 
 	client, err := drygrpc.GrpcClient("vet-sync", host, port,
 		config.ControlTowerToken, headers, []grpc.DialOption{})
@@ -142,7 +145,18 @@ func (s *syncReporter) Finish() error {
 	s.wg.Wait()
 	close(s.done)
 
-	return nil
+	logger.Debugf("Report Sync: Completing tool session: %s", s.sessionId)
+
+	_, err := s.toolServiceClient.CompleteToolSession(context.Background(),
+		&controltowerv1.CompleteToolSessionRequest{
+			ToolSession: &controltowerv1.ToolSession{
+				ToolSessionId: s.sessionId,
+			},
+
+			Status: controltowerv1.CompleteToolSessionRequest_STATUS_SUCCESS,
+		})
+
+	return err
 }
 
 func (s *syncReporter) queuePackage(pkg *models.Package) {
@@ -177,20 +191,67 @@ func (s *syncReporter) syncReportWorker() {
 
 func (s *syncReporter) syncPackage(pkg *models.Package) error {
 	defer s.wg.Done()
-	return nil
-}
 
-func validateSyncReporterConfig(config *SyncReporterConfig) error {
-	if utils.IsEmptyString(config.ProjectName) {
-		return errors.New("project name not in config")
+	req := controltowerv1.PublishPackageInsightRequest{
+		ToolSession: &controltowerv1.ToolSession{
+			ToolSessionId: s.sessionId,
+		},
+
+		Manifest: &packagev1.PackageManifest{
+			Ecosystem: pkg.Manifest.GetControlTowerSpecEcosystem(),
+			Name:      pkg.Manifest.GetDisplayPath(),
+		},
+
+		PackageVersion: &packagev1.PackageVersion{
+			Package: &packagev1.Package{
+				Ecosystem: pkg.Manifest.GetControlTowerSpecEcosystem(),
+				Name:      pkg.Name,
+			},
+
+			Version: pkg.Version,
+		},
+
+		PackageVersionInsight: &packagev1.PackageVersionInsight{
+			Dependencies: []*packagev1.PackageVersion{},
+		},
 	}
 
-	if utils.IsEmptyString(config.ProjectVersion) {
-		return errors.New("stream name not in config")
+	// We should move this to models
+	graph := pkg.GetDependencyGraph()
+	if graph != nil {
+		nodes := graph.GetNodes()
+		for _, node := range nodes {
+			if node.Root {
+				continue
+			}
+
+			thisPkg := node.Data
+			if thisPkg == nil {
+				continue
+			}
+
+			if thisPkg.GetName() != pkg.GetName() &&
+				thisPkg.GetVersion() != pkg.GetVersion() &&
+				thisPkg.GetSpecEcosystem() != pkg.GetSpecEcosystem() {
+				continue
+			}
+
+			for _, child := range node.Children {
+				req.PackageVersionInsight.Dependencies = append(req.PackageVersionInsight.Dependencies, &packagev1.PackageVersion{
+					Package: &packagev1.Package{
+						Ecosystem: child.Manifest.GetControlTowerSpecEcosystem(),
+						Name:      child.GetName(),
+					},
+
+					Version: child.GetVersion(),
+				})
+			}
+		}
 	}
 
-	if utils.IsEmptyString(config.TriggerEvent) {
-		return errors.New("trigger event not in config")
+	_, err := s.toolServiceClient.PublishPackageInsight(context.Background(), &req)
+	if err != nil {
+		return fmt.Errorf("failed to publish package insight: %w", err)
 	}
 
 	return nil
