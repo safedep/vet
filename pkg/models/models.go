@@ -232,6 +232,37 @@ func (p *Package) DependencyPath() []*Package {
 	return dg.PathToRoot(p)
 }
 
+func (p *Package) GetDependencies() ([]*Package, error) {
+	graph := p.GetDependencyGraph()
+	if graph == nil {
+		return nil, fmt.Errorf("dependency graph not available")
+	}
+
+	dependencies := []*Package{}
+
+	nodes := graph.GetNodes()
+	for _, node := range nodes {
+		if node.Root {
+			continue
+		}
+
+		if node.Data == nil {
+			continue
+		}
+
+		if p.GetName() != node.Data.GetName() &&
+			p.GetVersion() != node.Data.GetVersion() &&
+			p.GetSpecEcosystem() != node.Data.GetSpecEcosystem() {
+			continue
+		}
+
+		dependencies = append(dependencies, node.Children...)
+		break
+	}
+
+	return dependencies, nil
+}
+
 func NewPackageDetail(ecosystem, name, version string) lockfile.PackageDetails {
 	return lockfile.PackageDetails{
 		Ecosystem: lockfile.Ecosystem(ecosystem),

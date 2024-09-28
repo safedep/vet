@@ -87,7 +87,7 @@ func NewSyncReporter(config SyncReporterConfig) (Reporter, error) {
 	}
 
 	trigger := controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL
-	source := controltowerv1.ProjectSource_PROJECT_SOURCE_OTHER
+	source := packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_UNSPECIFIED
 
 	logger.Debugf("Report Sync: Creating tool session for project: %s, version: %s",
 		config.ProjectName, config.ProjectVersion)
@@ -216,40 +216,24 @@ func (s *syncReporter) syncPackage(pkg *models.Package) error {
 		},
 	}
 
-	// We should move this to models
-	graph := pkg.GetDependencyGraph()
-	if graph != nil {
-		nodes := graph.GetNodes()
-		for _, node := range nodes {
-			if node.Root {
-				continue
-			}
+	dependencies, err := pkg.GetDependencies()
+	if err != nil {
+		logger.Warnf("failed to get dependencies for package: %s/%s/%s: %s",
+			pkg.Manifest.Ecosystem, pkg.GetName(), pkg.GetVersion(), err.Error())
+	} else {
+		for _, child := range dependencies {
+			req.PackageVersionInsight.Dependencies = append(req.PackageVersionInsight.Dependencies, &packagev1.PackageVersion{
+				Package: &packagev1.Package{
+					Ecosystem: child.Manifest.GetControlTowerSpecEcosystem(),
+					Name:      child.GetName(),
+				},
 
-			thisPkg := node.Data
-			if thisPkg == nil {
-				continue
-			}
-
-			if thisPkg.GetName() != pkg.GetName() &&
-				thisPkg.GetVersion() != pkg.GetVersion() &&
-				thisPkg.GetSpecEcosystem() != pkg.GetSpecEcosystem() {
-				continue
-			}
-
-			for _, child := range node.Children {
-				req.PackageVersionInsight.Dependencies = append(req.PackageVersionInsight.Dependencies, &packagev1.PackageVersion{
-					Package: &packagev1.Package{
-						Ecosystem: child.Manifest.GetControlTowerSpecEcosystem(),
-						Name:      child.GetName(),
-					},
-
-					Version: child.GetVersion(),
-				})
-			}
+				Version: child.GetVersion(),
+			})
 		}
 	}
 
-	_, err := s.toolServiceClient.PublishPackageInsight(context.Background(), &req)
+	_, err = s.toolServiceClient.PublishPackageInsight(context.Background(), &req)
 	if err != nil {
 		return fmt.Errorf("failed to publish package insight: %w", err)
 	}
