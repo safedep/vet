@@ -6,12 +6,15 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"sync"
 
 	"buf.build/gen/go/safedep/api/grpc/go/safedep/services/controltower/v1/controltowerv1grpc"
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
+	vulnerabilityv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/vulnerability/v1"
 	controltowerv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/controltower/v1"
 	drygrpc "github.com/safedep/dry/adapters/grpc"
+	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
@@ -192,6 +195,7 @@ func (s *syncReporter) syncReportWorker() {
 func (s *syncReporter) syncPackage(pkg *models.Package) error {
 	defer s.wg.Done()
 
+	// Build the base package manifest and package
 	req := controltowerv1.PublishPackageInsightRequest{
 		ToolSession: &controltowerv1.ToolSession{
 			ToolSessionId: s.sessionId,
@@ -199,6 +203,7 @@ func (s *syncReporter) syncPackage(pkg *models.Package) error {
 
 		Manifest: &packagev1.PackageManifest{
 			Ecosystem: pkg.Manifest.GetControlTowerSpecEcosystem(),
+			Namespace: &pkg.Manifest.Path,
 			Name:      pkg.Manifest.GetDisplayPath(),
 		},
 
@@ -212,10 +217,16 @@ func (s *syncReporter) syncPackage(pkg *models.Package) error {
 		},
 
 		PackageVersionInsight: &packagev1.PackageVersionInsight{
-			Dependencies: []*packagev1.PackageVersion{},
+			Dependencies:    []*packagev1.PackageVersion{},
+			Vulnerabilities: []*vulnerabilityv1.Vulnerability{},
+			ProjectInsights: []*packagev1.ProjectInsight{},
+			Licenses: &packagev1.LicenseMetaList{
+				Licenses: []*packagev1.LicenseMeta{},
+			},
 		},
 	}
 
+	// Add package dependencies
 	dependencies, err := pkg.GetDependencies()
 	if err != nil {
 		logger.Warnf("failed to get dependencies for package: %s/%s/%s: %s",
@@ -232,6 +243,73 @@ func (s *syncReporter) syncPackage(pkg *models.Package) error {
 			})
 		}
 	}
+
+	// Get the insights
+	insights := utils.SafelyGetValue(pkg.Insights)
+
+	// Add vulnerabilities. We will publish only the minimum required information.
+	// The backend should have its own VDB to enrich the data.
+	vulnerabilities := utils.SafelyGetValue(insights.Vulnerabilities)
+	for _, v := range vulnerabilities {
+		vId := utils.SafelyGetValue(v.Id)
+		vulnerability := vulnerabilityv1.Vulnerability{
+			Id: &vulnerabilityv1.VulnerabilityIdentifier{
+				Value: vId,
+			},
+			Summary: utils.SafelyGetValue(v.Summary),
+		}
+
+		if strings.HasPrefix(vId, "CVE-") {
+			vulnerability.Id.Type = vulnerabilityv1.VulnerabilityIdentifierType_VULNERABILITY_IDENTIFIER_TYPE_CVE
+		} else if strings.HasPrefix(vId, "OSV-") {
+			vulnerability.Id.Type = vulnerabilityv1.VulnerabilityIdentifierType_VULNERABILITY_IDENTIFIER_TYPE_OSV
+		}
+
+		req.PackageVersionInsight.Vulnerabilities = append(req.PackageVersionInsight.Vulnerabilities, &vulnerability)
+	}
+
+	// Add project information
+	project := utils.SafelyGetValue(insights.Projects)
+	for _, p := range project {
+		stars := int64(utils.SafelyGetValue(p.Stars))
+		forks := int64(utils.SafelyGetValue(p.Forks))
+		issues := int64(utils.SafelyGetValue(p.Issues))
+
+		vt := packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_UNSPECIFIED
+		switch utils.SafelyGetValue(p.Type) {
+		case "GITHUB":
+			vt = packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_GITHUB
+		case "GITLAB":
+			vt = packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_GITLAB
+		}
+
+		req.PackageVersionInsight.ProjectInsights = append(req.PackageVersionInsight.ProjectInsights, &packagev1.ProjectInsight{
+			Project: &packagev1.Project{
+				Type: vt,
+				Name: utils.SafelyGetValue(p.Name),
+				Url:  utils.SafelyGetValue(p.Link),
+			},
+
+			Stars: &stars,
+			Forks: &forks,
+			Issues: &packagev1.ProjectInsight_IssueStat{
+				Total: issues,
+			},
+		})
+	}
+
+	licenses := utils.SafelyGetValue(insights.Licenses)
+	for _, license := range licenses {
+		req.PackageVersionInsight.Licenses.Licenses = append(req.PackageVersionInsight.Licenses.Licenses, &packagev1.LicenseMeta{
+			LicenseId: string(license),
+			Name:      string(license),
+		})
+	}
+
+	// OpenSSF
+	// We can't use vet's collected scorecard because its data model is wrong. There is
+	// not a single scorecard per package. Rather there is a scorecard per project. Since
+	// a package may be related to multiple projects, we will have multiple related scorecards.
 
 	_, err = s.toolServiceClient.PublishPackageInsight(context.Background(), &req)
 	if err != nil {
