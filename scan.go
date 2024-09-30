@@ -51,6 +51,7 @@ var (
 	disableAuthVerifyBeforeScan    bool
 	syncReport                     bool
 	syncReportProject              string
+	syncEnableMultiProject         bool
 	graphReportDirectory           string
 	syncReportStream               string
 	listExperimentalParsers        bool
@@ -140,6 +141,8 @@ func newScanCommand() *cobra.Command {
 		"Enable syncing report data to cloud")
 	cmd.Flags().StringVarP(&syncReportProject, "report-sync-project", "", "",
 		"Project name to use in cloud")
+	cmd.Flags().BoolVarP(&syncEnableMultiProject, "report-sync-multi-project", "", false,
+		"Lazily create cloud sessions for multiple projects (per manifest)")
 	cmd.Flags().StringVarP(&syncReportStream, "report-sync-project-version", "", "",
 		"Project stream name (e.g. branch) to use in cloud")
 	cmd.Flags().StringArrayVarP(&trustedRegistryUrls, "trusted-registry", "", []string{},
@@ -394,12 +397,13 @@ func internalStartScan() error {
 
 	if syncReport {
 		rp, err := reporter.NewSyncReporter(reporter.SyncReporterConfig{
-			ToolName:            "vet",
-			ToolVersion:         version,
-			ProjectName:         syncReportProject,
-			ProjectVersion:      syncReportStream,
-			ControlTowerBaseUrl: auth.DefaultControlTowerUrl(),
-			ControlTowerToken:   auth.ApiKey(),
+			ToolName:               "vet",
+			ToolVersion:            version,
+			ProjectName:            syncReportProject,
+			ProjectVersion:         syncReportStream,
+			ControlTowerBaseUrl:    auth.DefaultControlTowerUrl(),
+			ControlTowerToken:      auth.ApiKey(),
+			EnableMultiProjectSync: syncEnableMultiProject,
 		})
 		if err != nil {
 			return err

@@ -78,6 +78,14 @@ func (s *syncSessionPool) addPrimarySession(sessionId string, client controltowe
 	}
 }
 
+func (s *syncSessionPool) hasKeyedSession(key string) bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	_, ok := s.syncSessions[key]
+	return ok
+}
+
 func (s *syncSessionPool) addKeyedSession(key, sessionId string, client controltowerv1grpc.ToolServiceClient) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -122,6 +130,7 @@ type syncReporter struct {
 	workQueue chan *models.Package
 	done      chan bool
 	wg        sync.WaitGroup
+	client    *grpc.ClientConn
 	sessions  *syncSessionPool
 }
 
@@ -191,6 +200,7 @@ func NewSyncReporter(config SyncReporterConfig) (Reporter, error) {
 		config:    &config,
 		done:      done,
 		workQueue: make(chan *models.Package, 1000),
+		client:    client,
 		sessions:  &syncSessionPool,
 	}
 
@@ -203,6 +213,40 @@ func (s *syncReporter) Name() string {
 }
 
 func (s *syncReporter) AddManifest(manifest *models.PackageManifest) {
+	manifestSessionKey := manifest.Path
+	if s.config.EnableMultiProjectSync && !s.sessions.hasKeyedSession(manifestSessionKey) {
+		projectName := manifest.GetDisplayPath()
+		projectVersion := "main"
+
+		source := packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_UNSPECIFIED
+		trigger := controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL
+
+		logger.Debugf("Report Sync: Creating tool session for project: %s, version: %s",
+			projectName, projectVersion)
+
+		toolServiceClient := controltowerv1grpc.NewToolServiceClient(s.client)
+		toolSessionRes, err := toolServiceClient.CreateToolSession(context.Background(),
+			&controltowerv1.CreateToolSessionRequest{
+				ToolName:       s.config.ToolName,
+				ToolVersion:    s.config.ToolVersion,
+				ProjectName:    projectName,
+				ProjectVersion: &projectVersion,
+				ProjectSource:  &source,
+				Trigger:        &trigger,
+			})
+		if err != nil {
+			logger.Errorf("failed to create tool session for project: %s/%s: %v",
+				projectName, projectVersion, err)
+		}
+
+		logger.Debugf("Report Sync: Tool data upload session ID: %s",
+			toolSessionRes.GetToolSession().GetToolSessionId())
+
+		s.sessions.addKeyedSession(manifestSessionKey,
+			toolSessionRes.GetToolSession().GetToolSessionId(), toolServiceClient)
+
+	}
+
 	// We are ignoring the error here because we are asynchronously handling the sync of Manifest
 	_ = readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
 		s.queuePackage(pkg)
@@ -269,7 +313,8 @@ func (s *syncReporter) syncReportWorker() {
 func (s *syncReporter) syncPackage(pkg *models.Package) error {
 	defer s.wg.Done()
 
-	session, err := s.sessions.getSession(pkg.Manifest.Path)
+	manifestSessionKey := pkg.Manifest.Path
+	session, err := s.sessions.getSession(manifestSessionKey)
 	if err != nil {
 		return fmt.Errorf("failed to get session for package: %s/%s/%s: %w",
 			pkg.Manifest.Ecosystem, pkg.GetName(), pkg.GetVersion(), err)

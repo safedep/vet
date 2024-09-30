@@ -129,7 +129,7 @@ func (p *githubReader) processTopLevelLockfiles(ctx context.Context, client *git
 				return err
 			}
 
-			pm.SetDisplayPath(entry.GetURL())
+			pm.SetDisplayPath(gitUrl.GetHttpCloneURL())
 			err = handler(pm, NewManifestModelReader(pm))
 			if err != nil {
 				return err
