@@ -140,7 +140,7 @@ func newScanCommand() *cobra.Command {
 		"Enable syncing report data to cloud")
 	cmd.Flags().StringVarP(&syncReportProject, "report-sync-project", "", "",
 		"Project name to use in cloud")
-	cmd.Flags().StringVarP(&syncReportStream, "report-sync-stream", "", "",
+	cmd.Flags().StringVarP(&syncReportStream, "report-sync-project-version", "", "",
 		"Project stream name (e.g. branch) to use in cloud")
 	cmd.Flags().StringArrayVarP(&trustedRegistryUrls, "trusted-registry", "", []string{},
 		"Trusted registry URLs to use for package manifest verification")
