@@ -11,10 +11,12 @@ import (
 
 	"buf.build/gen/go/safedep/api/grpc/go/safedep/services/controltower/v1/controltowerv1grpc"
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
+	policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
 	vulnerabilityv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/vulnerability/v1"
 	controltowerv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/controltower/v1"
 	drygrpc "github.com/safedep/dry/adapters/grpc"
 	"github.com/safedep/dry/utils"
+	"github.com/safedep/vet/gen/checks"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
@@ -336,6 +338,68 @@ func (s *syncReporter) syncEvent(event *analyzer.AnalyzerEvent) error {
 
 	if pkg == nil || filter == nil || pkg.Manifest == nil {
 		return fmt.Errorf("failed to sync event: invalid event data")
+	}
+
+	manifestSessionKey := pkg.Manifest.Path
+	session, err := s.sessions.getSession(manifestSessionKey)
+	if err != nil {
+		return fmt.Errorf("failed to get session for package: %s/%s/%s: %w",
+			pkg.Manifest.Ecosystem, pkg.GetName(), pkg.GetVersion(), err)
+	}
+
+	checkType := policyv1.RuleCheck_RULE_CHECK_UNSPECIFIED
+	switch filter.GetCheckType() {
+	case checks.CheckType_CheckTypeVulnerability:
+		checkType = policyv1.RuleCheck_RULE_CHECK_VULNERABILITY
+	case checks.CheckType_CheckTypeLicense:
+		checkType = policyv1.RuleCheck_RULE_CHECK_LICENSE
+	case checks.CheckType_CheckTypeMalware:
+		checkType = policyv1.RuleCheck_RULE_CHECK_MALWARE
+	case checks.CheckType_CheckTypeMaintenance:
+		checkType = policyv1.RuleCheck_RULE_CHECK_MAINTENANCE
+	case checks.CheckType_CheckTypePopularity:
+		checkType = policyv1.RuleCheck_RULE_CHECK_POPULARITY
+	case checks.CheckType_CheckTypeSecurityScorecard:
+		checkType = policyv1.RuleCheck_RULE_CHECK_PROJECT_SCORECARD
+	default:
+		logger.Warnf("unsupported check type: %s", filter.GetCheckType())
+	}
+
+	req := controltowerv1.PublishPolicyViolationRequest{
+		ToolSession: &controltowerv1.ToolSession{
+			ToolSessionId: session.sessionId,
+		},
+
+		Manifest: &packagev1.PackageManifest{
+			Ecosystem: pkg.Manifest.GetControlTowerSpecEcosystem(),
+			Namespace: &pkg.Manifest.Path,
+			Name:      pkg.Manifest.GetDisplayPath(),
+		},
+
+		PackageVersion: &packagev1.PackageVersion{
+			Package: &packagev1.Package{
+				Ecosystem: pkg.Manifest.GetControlTowerSpecEcosystem(),
+				Name:      pkg.Name,
+			},
+
+			Version: pkg.Version,
+		},
+
+		Violation: &policyv1.Violation{
+			Rule: &policyv1.Rule{
+				Name:        filter.GetName(),
+				Description: filter.GetSummary(),
+				Value:       filter.GetValue(),
+				Check:       checkType,
+			},
+
+			Evidences: []*policyv1.ViolationEvidence{},
+		},
+	}
+
+	_, err = session.toolServiceClient.PublishPolicyViolation(context.Background(), &req)
+	if err != nil {
+		return fmt.Errorf("failed to publish policy violation: %w", err)
 	}
 
 	return nil
