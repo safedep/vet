@@ -3,8 +3,8 @@ module github.com/safedep/vet
 go 1.22.1
 
 require (
-	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20241001040428-5024b95e2438.1
-	buf.build/gen/go/safedep/api/protocolbuffers/go v1.34.2-20241001040428-5024b95e2438.2
+	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20241002100539-9b93cced4b10.1
+	buf.build/gen/go/safedep/api/protocolbuffers/go v1.34.2-20241002100539-9b93cced4b10.2
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/CycloneDX/cyclonedx-go v0.9.0
 	github.com/anchore/syft v1.11.1
