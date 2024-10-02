@@ -396,14 +396,18 @@ func internalStartScan() error {
 	}
 
 	if syncReport {
+		clientConn, err := auth.ControlPlaneClientConnection("vet-sync")
+		if err != nil {
+			return err
+		}
+
 		rp, err := reporter.NewSyncReporter(reporter.SyncReporterConfig{
 			ToolName:               "vet",
 			ToolVersion:            version,
 			ProjectName:            syncReportProject,
 			ProjectVersion:         syncReportStream,
-			ControlTowerBaseUrl:    auth.DefaultControlTowerUrl(),
-			ControlTowerToken:      auth.ApiKey(),
 			EnableMultiProjectSync: syncEnableMultiProject,
+			ClientConnection:       clientConn,
 		})
 		if err != nil {
 			return err

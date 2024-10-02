@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/safedep/dry/utils"
+	"github.com/safedep/vet/cmd/cloud"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/exceptions"
@@ -64,6 +65,7 @@ func main() {
 	cmd.AddCommand(newCodeCommand())
 	cmd.AddCommand(newVersionCommand())
 	cmd.AddCommand(newConnectCommand())
+	cmd.AddCommand(cloud.NewCloudCommand())
 
 	cobra.OnInitialize(func() {
 		printBanner()

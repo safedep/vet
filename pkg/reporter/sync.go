@@ -3,9 +3,6 @@ package reporter
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"net/url"
-	"os"
 	"strings"
 	"sync"
 
@@ -14,7 +11,6 @@ import (
 	policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
 	vulnerabilityv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/vulnerability/v1"
 	controltowerv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/controltower/v1"
-	drygrpc "github.com/safedep/dry/adapters/grpc"
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/checks"
 	"github.com/safedep/vet/pkg/analyzer"
@@ -32,9 +28,8 @@ const (
 )
 
 type SyncReporterConfig struct {
-	// ControlTower API Base URL
-	ControlTowerBaseUrl string
-	ControlTowerToken   string
+	// gRPC connection for ControlTower
+	ClientConnection *grpc.ClientConn
 
 	// Enable multi-project syncing
 	// In this case, a new project is created per package manifest
@@ -142,29 +137,8 @@ type syncReporter struct {
 }
 
 func NewSyncReporter(config SyncReporterConfig) (Reporter, error) {
-	parsedUrl, err := url.Parse(config.ControlTowerBaseUrl)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse ControlTower base URL: %w", err)
-	}
-
-	host, port := parsedUrl.Hostname(), parsedUrl.Port()
-	if port == "" {
-		port = "443"
-	}
-
-	logger.Debugf("ControlTower host: %s, port: %s", host, port)
-
-	vetTenantId := os.Getenv("VET_CONTROL_TOWER_TENANT_ID")
-	vetTenantMockUser := os.Getenv("VET_CONTROL_TOWER_MOCK_USER") // Used in dev
-
-	headers := http.Header{}
-	headers.Set("x-tenant-id", vetTenantId)
-	headers.Set("x-mock-user", vetTenantMockUser)
-
-	client, err := drygrpc.GrpcClient("vet-sync", host, port,
-		config.ControlTowerToken, headers, []grpc.DialOption{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create gRPC client: %w", err)
+	if config.ClientConnection == nil {
+		return nil, fmt.Errorf("missing gRPC client connection")
 	}
 
 	// TODO: Auto-discover config using CI environment variables
@@ -181,7 +155,7 @@ func NewSyncReporter(config SyncReporterConfig) (Reporter, error) {
 		logger.Debugf("Report Sync: Creating tool session for project: %s, version: %s",
 			config.ProjectName, config.ProjectVersion)
 
-		toolServiceClient := controltowerv1grpc.NewToolServiceClient(client)
+		toolServiceClient := controltowerv1grpc.NewToolServiceClient(config.ClientConnection)
 		toolSessionRes, err := toolServiceClient.CreateToolSession(context.Background(),
 			&controltowerv1.CreateToolSessionRequest{
 				ToolName:       config.ToolName,
@@ -207,7 +181,7 @@ func NewSyncReporter(config SyncReporterConfig) (Reporter, error) {
 		config:    &config,
 		done:      done,
 		workQueue: make(chan *workItem, 1000),
-		client:    client,
+		client:    config.ClientConnection,
 		sessions:  &syncSessionPool,
 	}
 

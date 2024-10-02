@@ -23,7 +23,7 @@ var (
 func newAuthCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "auth",
-		Short: "Configure and verify Insights API authentication",
+		Short: "[Deprecated] Use cloud command",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return errors.New("a valid sub-command is required")
 		},
