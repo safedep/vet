@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"os"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -16,7 +15,6 @@ import (
 var (
 	authInsightApiBaseUrl      string
 	authControlPlaneApiBaseUrl string
-	authTrialEmail             string
 	authCommunity              bool
 )
 
@@ -34,7 +32,6 @@ func newAuthCommand() *cobra.Command {
 
 	cmd.AddCommand(configureAuthCommand())
 	cmd.AddCommand(verifyAuthCommand())
-	cmd.AddCommand(trialsRegisterCommand())
 
 	return cmd
 }
@@ -98,35 +95,6 @@ func verifyAuthCommand() *cobra.Command {
 			return nil
 		},
 	}
-
-	return cmd
-}
-
-func trialsRegisterCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use: "trial",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			client := auth.NewTrialRegistrationClient(auth.TrialConfig{
-				Email:              authTrialEmail,
-				ControlPlaneApiUrl: authControlPlaneApiBaseUrl,
-			})
-
-			res, err := client.Execute()
-			if err != nil {
-				fmt.Printf("Error: %v\n", err)
-				os.Exit(1)
-			}
-
-			fmt.Printf("Trial registration successful with Id:%s\n", res.Id)
-			fmt.Printf("Check your email (%s) for API key and usage instructions\n", authTrialEmail)
-			fmt.Printf("The trial API key will expire on %s\n", res.ExpiresAt.String())
-
-			return nil
-		},
-	}
-
-	cmd.Flags().StringVarP(&authTrialEmail, "email", "", "",
-		"Email address to use for sending trial API key")
 
 	return cmd
 }

@@ -23,6 +23,10 @@ func Verify(config *VerifyConfig) error {
 		return nil
 	}
 
+	if ApiKey() == "" {
+		return fmt.Errorf("API key is not set")
+	}
+
 	logger.Infof("Verifying auth token using Control Plane: %s", config.ControlPlaneApiUrl)
 
 	client, err := cpv1.NewClientWithResponses(config.ControlPlaneApiUrl)

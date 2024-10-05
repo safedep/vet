@@ -155,6 +155,7 @@ func NewSyncReporter(config SyncReporterConfig) (Reporter, error) {
 		logger.Debugf("Report Sync: Creating tool session for project: %s, version: %s",
 			config.ProjectName, config.ProjectVersion)
 
+		// Refactor this into a common session creator function
 		toolServiceClient := controltowerv1grpc.NewToolServiceClient(config.ClientConnection)
 		toolSessionRes, err := toolServiceClient.CreateToolSession(context.Background(),
 			&controltowerv1.CreateToolSessionRequest{
@@ -205,6 +206,7 @@ func (s *syncReporter) AddManifest(manifest *models.PackageManifest) {
 		logger.Debugf("Report Sync: Creating tool session for project: %s, version: %s",
 			projectName, projectVersion)
 
+		// Refactor this into a common session creator function
 		toolServiceClient := controltowerv1grpc.NewToolServiceClient(s.client)
 		toolSessionRes, err := toolServiceClient.CreateToolSession(context.Background(),
 			&controltowerv1.CreateToolSessionRequest{
