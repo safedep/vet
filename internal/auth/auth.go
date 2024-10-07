@@ -17,10 +17,10 @@ const (
 
 	defaultApiUrl          = "https://api.safedep.io/insights/v1"
 	defaultCommunityApiUrl = "https://api.safedep.io/insights-community/v1"
-	defaultSyncApiUrl      = "https://api.safedep.io/sync/v1"
 
 	// gRPC service base URL.
-	defaultControlPlaneApiUrl = "https://api.safedep.io"
+	defaultSyncApiUrl         = "https://api.safedep.io"
+	defaultControlPlaneApiUrl = "https://cloud.safedep.io"
 
 	homeRelativeConfigPath = ".safedep/vet-auth.yml"
 )
@@ -29,8 +29,9 @@ type Config struct {
 	ApiUrl             string `yaml:"api_url"`
 	ApiKey             string `yaml:"api_key"`
 	Community          bool   `yaml:"community"`
-	ControlPlaneApiUrl string `yaml:"cp_api_url"`
+	ControlPlaneApiUrl string `yaml:"control_api_url"`
 	SyncApiUrl         string `yaml:"sync_api_url"`
+	TenantDomain       string `yaml:"tenant_domain"`
 }
 
 // Global config to be used during runtime
@@ -53,7 +54,7 @@ func DefaultCommunityApiUrl() string {
 	return defaultCommunityApiUrl
 }
 
-func DefaultSyncApiUrl() string {
+func SyncApiUrl() string {
 	if (globalConfig != nil) && (globalConfig.SyncApiUrl != "") {
 		return globalConfig.SyncApiUrl
 	}
@@ -61,12 +62,20 @@ func DefaultSyncApiUrl() string {
 	return defaultSyncApiUrl
 }
 
-func DefaultControlTowerUrl() string {
+func ControlTowerUrl() string {
 	if (globalConfig != nil) && (globalConfig.ControlPlaneApiUrl != "") {
 		return globalConfig.ControlPlaneApiUrl
 	}
 
 	return defaultControlPlaneApiUrl
+}
+
+func TenantDomain() string {
+	if globalConfig != nil {
+		return globalConfig.TenantDomain
+	}
+
+	return ""
 }
 
 func ApiUrl() string {

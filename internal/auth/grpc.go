@@ -15,7 +15,15 @@ import (
 // Create a gRPC client connection for the control plane
 // based on available configuration
 func ControlPlaneClientConnection(name string) (*grpc.ClientConn, error) {
-	parsedUrl, err := url.Parse(DefaultControlTowerUrl())
+	return cloudClientConnection(name, ControlTowerUrl())
+}
+
+func SyncClientConnection(name string) (*grpc.ClientConn, error) {
+	return cloudClientConnection(name, SyncApiUrl())
+}
+
+func cloudClientConnection(name, loc string) (*grpc.ClientConn, error) {
+	parsedUrl, err := url.Parse(loc)
 	if err != nil {
 		return nil, err
 	}
@@ -27,13 +35,20 @@ func ControlPlaneClientConnection(name string) (*grpc.ClientConn, error) {
 
 	logger.Debugf("ControlTower host: %s, port: %s", host, port)
 
-	// For local development, we use the mock user.
-	vetTenantId := os.Getenv("VET_CONTROL_TOWER_TENANT_ID")
-	vetTenantMockUser := os.Getenv("VET_CONTROL_TOWER_MOCK_USER")
+	vetTenantId := TenantDomain()
+	tenantIdOverride := os.Getenv("VET_CONTROL_TOWER_TENANT_ID")
+
+	if tenantIdOverride != "" {
+		vetTenantId = tenantIdOverride
+	}
 
 	headers := http.Header{}
 	headers.Set("x-tenant-id", vetTenantId)
-	headers.Set("x-mock-user", vetTenantMockUser)
+
+	vetTenantMockUser := os.Getenv("VET_CONTROL_TOWER_MOCK_USER")
+	if vetTenantMockUser != "" {
+		headers.Set("x-mock-user", vetTenantMockUser)
+	}
 
 	client, err := drygrpc.GrpcClient(name, host, port,
 		ApiKey(), headers, []grpc.DialOption{})
