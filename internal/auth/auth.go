@@ -23,6 +23,13 @@ const (
 	defaultControlPlaneApiUrl = "https://cloud.safedep.io"
 
 	homeRelativeConfigPath = ".safedep/vet-auth.yml"
+
+	// https://dev-dkwn3e2k4k1fornc.us.auth0.com/.well-known/openid-configuration
+	cloudIdentityServiceClientId      = "VzkDpYHdGOHJ51w2iym0AEx68cdecM83"
+	cloudIdentityServiceAudience      = "https://cloud.safedep.io"
+	cloudIdentityServiceBaseUrl       = "https://dev-dkwn3e2k4k1fornc.us.auth0.com"
+	cloudIdentityServiceDeviceCodeUrl = "https://dev-dkwn3e2k4k1fornc.us.auth0.com/oauth/device/code"
+	cloudIdentityServiceTokenUrl      = "https://dev-dkwn3e2k4k1fornc.us.auth0.com/oauth/token"
 )
 
 type Config struct {
@@ -32,6 +39,8 @@ type Config struct {
 	ControlPlaneApiUrl string `yaml:"control_api_url"`
 	SyncApiUrl         string `yaml:"sync_api_url"`
 	TenantDomain       string `yaml:"tenant_domain"`
+	CloudAccessToken   string `yaml:"cloud_access_token"`
+	CloudRefreshToken  string `yaml:"cloud_refresh_token"`
 }
 
 // Global config to be used during runtime
@@ -41,8 +50,29 @@ func init() {
 	loadConfiguration()
 }
 
+func DefaultConfig() Config {
+	return Config{
+		ApiUrl:             defaultApiUrl,
+		Community:          false,
+		ControlPlaneApiUrl: defaultControlPlaneApiUrl,
+		SyncApiUrl:         defaultSyncApiUrl,
+	}
+}
+
 func Configure(m Config) error {
 	globalConfig = &m
+	return persistConfiguration()
+}
+
+func PersistCloudTokens(accessToken, refreshToken string) error {
+	if globalConfig == nil {
+		c := DefaultConfig()
+		globalConfig = &c
+	}
+
+	globalConfig.CloudAccessToken = accessToken
+	globalConfig.CloudRefreshToken = refreshToken
+
 	return persistConfiguration()
 }
 
@@ -52,6 +82,42 @@ func DefaultApiUrl() string {
 
 func DefaultCommunityApiUrl() string {
 	return defaultCommunityApiUrl
+}
+
+func CloudIdentityServiceClientId() string {
+	return cloudIdentityServiceClientId
+}
+
+func CloudIdentityServiceBaseUrl() string {
+	return cloudIdentityServiceBaseUrl
+}
+
+func CloudIdentityServiceDeviceCodeUrl() string {
+	return cloudIdentityServiceDeviceCodeUrl
+}
+
+func CloudIdentityServiceAudience() string {
+	return cloudIdentityServiceAudience
+}
+
+func CloudIdentityServiceTokenUrl() string {
+	return cloudIdentityServiceTokenUrl
+}
+
+func CloudAccessToken() string {
+	if globalConfig != nil {
+		return globalConfig.CloudAccessToken
+	}
+
+	return ""
+}
+
+func CloudRefreshToken() string {
+	if globalConfig != nil {
+		return globalConfig.CloudRefreshToken
+	}
+
+	return ""
 }
 
 func SyncApiUrl() string {

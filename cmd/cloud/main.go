@@ -11,6 +11,7 @@ func NewCloudCommand() *cobra.Command {
 		},
 	}
 
+	cmd.AddCommand(newCloudLoginCommand())
 	cmd.AddCommand(newQueryCommand())
 
 	return cmd

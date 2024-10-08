@@ -15,14 +15,14 @@ import (
 // Create a gRPC client connection for the control plane
 // based on available configuration
 func ControlPlaneClientConnection(name string) (*grpc.ClientConn, error) {
-	return cloudClientConnection(name, ControlTowerUrl())
+	return cloudClientConnection(name, ControlTowerUrl(), CloudAccessToken())
 }
 
 func SyncClientConnection(name string) (*grpc.ClientConn, error) {
-	return cloudClientConnection(name, SyncApiUrl())
+	return cloudClientConnection(name, SyncApiUrl(), ApiKey())
 }
 
-func cloudClientConnection(name, loc string) (*grpc.ClientConn, error) {
+func cloudClientConnection(name, loc, tok string) (*grpc.ClientConn, error) {
 	parsedUrl, err := url.Parse(loc)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func cloudClientConnection(name, loc string) (*grpc.ClientConn, error) {
 	}
 
 	client, err := drygrpc.GrpcClient(name, host, port,
-		ApiKey(), headers, []grpc.DialOption{})
+		tok, headers, []grpc.DialOption{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create gRPC client: %w", err)
 	}

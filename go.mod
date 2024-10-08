@@ -37,6 +37,9 @@ require (
 
 replace github.com/owenrumney/go-sarif/v2 v2.3.1 => github.com/safedep/go-sarif/v2 v2.3.1
 
+// https://github.com/cli/oauth/pull/68
+replace github.com/cli/oauth v1.0.1 => github.com/abhisek/oauth v1.0.1-audience
+
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.34.2-20240508200655-46a4cf4ba109.2 // indirect
 	github.com/BurntSushi/toml v1.4.0 // indirect
