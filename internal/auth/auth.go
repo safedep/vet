@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"gopkg.in/yaml.v2"
 )
@@ -25,7 +26,7 @@ const (
 	homeRelativeConfigPath = ".safedep/vet-auth.yml"
 
 	// https://dev-dkwn3e2k4k1fornc.us.auth0.com/.well-known/openid-configuration
-	cloudIdentityServiceClientId      = "VzkDpYHdGOHJ51w2iym0AEx68cdecM83"
+	cloudIdentityServiceClientId      = "xidzYke2rDMJmNyXId2dLpNs4DLm4yZX" // gitleaks:allow
 	cloudIdentityServiceAudience      = "https://cloud.safedep.io"
 	cloudIdentityServiceBaseUrl       = "https://dev-dkwn3e2k4k1fornc.us.auth0.com"
 	cloudIdentityServiceDeviceCodeUrl = "https://dev-dkwn3e2k4k1fornc.us.auth0.com/oauth/device/code"
@@ -33,14 +34,15 @@ const (
 )
 
 type Config struct {
-	ApiUrl             string `yaml:"api_url"`
-	ApiKey             string `yaml:"api_key"`
-	Community          bool   `yaml:"community"`
-	ControlPlaneApiUrl string `yaml:"control_api_url"`
-	SyncApiUrl         string `yaml:"sync_api_url"`
-	TenantDomain       string `yaml:"tenant_domain"`
-	CloudAccessToken   string `yaml:"cloud_access_token"`
-	CloudRefreshToken  string `yaml:"cloud_refresh_token"`
+	ApiUrl                    string    `yaml:"api_url"`
+	ApiKey                    string    `yaml:"api_key"`
+	Community                 bool      `yaml:"community"`
+	ControlPlaneApiUrl        string    `yaml:"control_api_url"`
+	SyncApiUrl                string    `yaml:"sync_api_url"`
+	TenantDomain              string    `yaml:"tenant_domain"`
+	CloudAccessToken          string    `yaml:"cloud_access_token"`
+	CloudRefreshToken         string    `yaml:"cloud_refresh_token"`
+	CloudAccessTokenUpdatedAt time.Time `yaml:"cloud_access_token_updated_at"`
 }
 
 // Global config to be used during runtime
@@ -72,6 +74,7 @@ func PersistCloudTokens(accessToken, refreshToken string) error {
 
 	globalConfig.CloudAccessToken = accessToken
 	globalConfig.CloudRefreshToken = refreshToken
+	globalConfig.CloudAccessTokenUpdatedAt = time.Now()
 
 	return persistConfiguration()
 }
