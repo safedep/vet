@@ -2,7 +2,7 @@ SHELL := /bin/bash
 GITCOMMIT := $(shell git rev-parse HEAD)
 VERSION := "$(shell git describe --tags --abbrev=0)-$(shell git rev-parse --short HEAD)"
 
-all: clean setup vet
+all: quick-vet
 
 linter-install:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.0
@@ -70,10 +70,10 @@ setup:
 GO_CFLAGS=-X main.commit=$(GITCOMMIT) -X main.version=$(VERSION)
 GO_LDFLAGS=-ldflags "-w $(GO_CFLAGS)"
 
-vet: oapi-codegen protoc-codegen
+quick-vet:
 	go build ${GO_LDFLAGS}
 
-quick-vet:
+vet: oapi-codegen protoc-codegen
 	go build ${GO_LDFLAGS}
 
 .PHONY: test
