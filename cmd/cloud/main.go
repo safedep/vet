@@ -12,6 +12,7 @@ func NewCloudCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(newCloudLoginCommand())
+	cmd.AddCommand(newRegisterCommand())
 	cmd.AddCommand(newQueryCommand())
 	cmd.AddCommand(newPingCommand())
 	cmd.AddCommand(newWhoamiCommand())
