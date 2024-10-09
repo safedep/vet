@@ -66,16 +66,33 @@ func Configure(m Config) error {
 	return persistConfiguration()
 }
 
-func PersistCloudTokens(accessToken, refreshToken string) error {
+func PersistCloudTokens(accessToken, refreshToken, domain string) error {
 	if globalConfig == nil {
 		c := DefaultConfig()
 		globalConfig = &c
+	}
+
+	// We are explicitly check for empty string for domain
+	// because we do not want to overwrite the domain if it is
+	// not provided.
+	if domain != "" {
+		globalConfig.TenantDomain = domain
 	}
 
 	globalConfig.CloudAccessToken = accessToken
 	globalConfig.CloudRefreshToken = refreshToken
 	globalConfig.CloudAccessTokenUpdatedAt = time.Now()
 
+	return persistConfiguration()
+}
+
+func PersistTenantDomain(domain string) error {
+	if globalConfig == nil {
+		c := DefaultConfig()
+		globalConfig = &c
+	}
+
+	globalConfig.TenantDomain = domain
 	return persistConfiguration()
 }
 

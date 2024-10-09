@@ -1,6 +1,8 @@
 package cloud
 
 import (
+	"fmt"
+
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/cloud"
@@ -65,6 +67,11 @@ func registerUserTenant() error {
 
 	ui.PrintSuccess("Registered user and tenant.")
 	ui.PrintSuccess("Tenant domain: %s", res.TenantDomain)
+
+	err = auth.PersistTenantDomain(res.TenantDomain)
+	if err != nil {
+		return fmt.Errorf("failed to persist tenant domain: %w", err)
+	}
 
 	return nil
 }

@@ -12,10 +12,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	loginTenantDomain string
+)
+
 func newCloudLoginCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "login",
-		Short: "Login to the SafeDep cloud for management",
+		Short: "Login to SafeDep cloud for management tasks",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			err := executeDeviceAuthFlow()
 			if err != nil {
@@ -25,6 +29,9 @@ func newCloudLoginCommand() *cobra.Command {
 			return nil
 		},
 	}
+
+	cmd.Flags().StringVar(&loginTenantDomain, "tenant", "",
+		"Domain of the tenant to login to for existing users")
 
 	return cmd
 }
@@ -52,5 +59,5 @@ func executeDeviceAuthFlow() error {
 		return fmt.Errorf("failed to authenticate: %w", err)
 	}
 
-	return auth.PersistCloudTokens(token.Token, token.RefreshToken)
+	return auth.PersistCloudTokens(token.Token, token.RefreshToken, loginTenantDomain)
 }
