@@ -19,7 +19,7 @@ var (
 func newQueryCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "query",
-		Short: "Query cloud resources",
+		Short: "Query risks by executing SQL queries",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return cmd.Help()
 		},
