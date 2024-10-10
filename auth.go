@@ -116,9 +116,7 @@ func verifyAuthCommand() *cobra.Command {
 				ui.PrintSuccess("Running in Community Mode")
 			}
 
-			failOnError("auth/verify", auth.Verify(&auth.VerifyConfig{
-				ControlPlaneApiUrl: authControlPlaneApiBaseUrl,
-			}))
+			failOnError("auth/verify", auth.Verify())
 
 			ui.PrintSuccess("Authentication key is valid!")
 			return nil

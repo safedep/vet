@@ -178,9 +178,7 @@ func listParsersCommand() *cobra.Command {
 
 func startScan() {
 	if !disableAuthVerifyBeforeScan {
-		err := auth.Verify(&auth.VerifyConfig{
-			ControlPlaneApiUrl: auth.ControlTowerUrl(),
-		})
+		err := auth.Verify()
 
 		// We will fallback to community mode by default to provide
 		// a seamless user experience
