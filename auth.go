@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"os"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -14,11 +13,7 @@ import (
 )
 
 var (
-	authInsightApiBaseUrl      string
-	authControlPlaneApiBaseUrl string
-	authSyncApiBaseUrl         string
-	authCommunity              bool
-	authTenantDomain           string
+	authTenantDomain string
 )
 
 func newAuthCommand() *cobra.Command {
@@ -29,11 +24,6 @@ func newAuthCommand() *cobra.Command {
 			return errors.New("a valid sub-command is required")
 		},
 	}
-
-	cmd.PersistentFlags().StringVarP(&authControlPlaneApiBaseUrl, "control-plane", "",
-		auth.ControlTowerUrl(), "Base URL of Control Plane API")
-	cmd.PersistentFlags().StringVarP(&authSyncApiBaseUrl, "sync", "", auth.SyncApiUrl(),
-		"Base URL of Sync API")
 
 	cmd.AddCommand(configureAuthCommand())
 	cmd.AddCommand(verifyAuthCommand())
@@ -48,21 +38,16 @@ func configureAuthCommand() *cobra.Command {
 			var key string
 			var err error
 
-			if !authCommunity {
-				err = survey.AskOne(&survey.Password{
-					Message: "Enter the API key",
-				}, &key)
-			} else {
-				authInsightApiBaseUrl = auth.DefaultCommunityApiUrl()
-			}
-
+			err = survey.AskOne(&survey.Password{
+				Message: "Enter the API key",
+			}, &key)
 			if err != nil {
 				logger.Fatalf("Failed to setup auth: %v", err)
 			}
 
 			if auth.TenantDomain() != "" && auth.TenantDomain() != authTenantDomain {
-				ui.PrintWarning(fmt.Sprintf("Tenant domain mismatch. Existing: %s, New: %s, continue? ",
-					auth.TenantDomain(), authTenantDomain))
+				ui.PrintWarning("Tenant domain mismatch. Existing: %s, New: %s, continue? ",
+					auth.TenantDomain(), authTenantDomain)
 
 				var confirm bool
 				err = survey.AskOne(&survey.Confirm{
@@ -78,15 +63,7 @@ func configureAuthCommand() *cobra.Command {
 				}
 			}
 
-			err = auth.Configure(auth.Config{
-				ApiUrl:             authInsightApiBaseUrl,
-				ApiKey:             string(key),
-				ControlPlaneApiUrl: authControlPlaneApiBaseUrl,
-				SyncApiUrl:         authSyncApiBaseUrl,
-				Community:          authCommunity,
-				TenantDomain:       authTenantDomain,
-			})
-
+			err = auth.PersistApiKey(key, authTenantDomain)
 			if err != nil {
 				logger.Fatalf("Failed to configure auth: %v", err)
 			}
@@ -96,14 +73,10 @@ func configureAuthCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&authTenantDomain, "tenant-domain", "", "",
+	cmd.Flags().StringVarP(&authTenantDomain, "tenant", "", "",
 		"Tenant domain for SafeDep Cloud")
-	cmd.Flags().StringVarP(&authInsightApiBaseUrl, "api", "", auth.DefaultApiUrl(),
-		"Base URL of Insights API")
-	cmd.Flags().BoolVarP(&authCommunity, "community", "", false,
-		"Use community API endpoint for Insights")
 
-	_ = cmd.MarkFlagRequired("tenant-domain")
+	_ = cmd.MarkFlagRequired("tenant")
 
 	return cmd
 }

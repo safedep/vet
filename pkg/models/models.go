@@ -122,6 +122,10 @@ func (pm *PackageManifest) GetControlTowerSpecEcosystem() packagev1.Ecosystem {
 		return packagev1.Ecosystem_ECOSYSTEM_MAVEN
 	case EcosystemNpm:
 		return packagev1.Ecosystem_ECOSYSTEM_NPM
+	case EcosystemRubyGems:
+		return packagev1.Ecosystem_ECOSYSTEM_RUBYGEMS
+	case EcosystemPyPI:
+		return packagev1.Ecosystem_ECOSYSTEM_PYPI
 	default:
 		return packagev1.Ecosystem_ECOSYSTEM_UNSPECIFIED
 	}

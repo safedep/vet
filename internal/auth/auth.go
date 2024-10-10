@@ -61,8 +61,19 @@ func DefaultConfig() Config {
 	}
 }
 
-func Configure(m Config) error {
-	globalConfig = &m
+func PersistApiKey(key, domain string) error {
+	if globalConfig == nil {
+		c := DefaultConfig()
+		globalConfig = &c
+	}
+
+	if domain != "" {
+		globalConfig.TenantDomain = domain
+	}
+
+	globalConfig.ApiUrl = defaultApiUrl
+	globalConfig.ApiKey = key
+
 	return persistConfiguration()
 }
 
@@ -169,12 +180,12 @@ func ApiUrl() string {
 		return url
 	}
 
-	if globalConfig != nil {
-		return globalConfig.ApiUrl
-	}
-
 	if CommunityMode() {
 		return defaultCommunityApiUrl
+	}
+
+	if globalConfig != nil {
+		return globalConfig.ApiUrl
 	}
 
 	return defaultApiUrl
