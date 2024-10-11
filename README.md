@@ -1,9 +1,6 @@
 <h1 align="center">
     <img alt="SafeDep Vet" src="docs/static/img/vet-logo.png" width="150" />
 </h1>
-<p align="center">
-    🙌 Refer to <b><a href="https://safedep.io/docs/">https://safedep.io/docs</a></b> for the documentation 📖
-</p>
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/safedep/vet)](https://goreportcard.com/report/github.com/safedep/vet)
 ![License](https://img.shields.io/github/license/safedep/vet)
@@ -16,13 +13,13 @@
 
 [![vet banner](docs/static/img/vet/vet-banner.png)](https://safedep.io/docs)
 
-## Automate Open Source Package Vetting in CI/CD
+## Policy as Code for Open Source Software Supply Chain
 
 `vet` is a tool for identifying risks in open source software supply chain. It
 goes beyond just vulnerabilities and provides visibility on OSS package risks
 due to it's license, popularity, security hygiene, and more. `vet` is designed
-with the goal of enabling trusted OSS package consumption by integrating with
-CI/CD and `policy as code` as guardrails.
+with the goal of helping software development teams consume safe and trusted
+OSS components through automated vetting in CI/CD.
 
 * [🔥 vet in action](#-vet-in-action)
 * [Getting Started](#getting-started)
@@ -43,6 +40,7 @@ CI/CD and `policy as code` as guardrails.
 * [📖 Documentation](#-documentation)
 * [🎊 Community](#-community)
 * [💻 Development](#-development)
+* [Support](#support)
 * [Star History](#star-history)
 * [🔖 References](#-references)
 
@@ -280,6 +278,12 @@ First of all, thank you so much for showing interest in `vet`, we appreciate it 
 ## 💻 Development
 
 Refer to [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## Support
+
+[SafeDep](https://safedep.io) provides enterprise support for `vet`
+deployments. Check out [SafeDep Cloud](https://safedep.io) for large scale
+deployment and management of `vet` in your organization.
 
 ## Star History
 

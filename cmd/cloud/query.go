@@ -2,7 +2,6 @@ package cloud
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"sort"
 
@@ -84,7 +83,7 @@ func renderQueryResponseAsTable(response *query.QueryResponse) error {
 		return nil
 	}
 
-	ui.PrintSuccess(fmt.Sprintf("Query returned %d results", response.Count()))
+	ui.PrintSuccess("Query returned %d results", response.Count())
 
 	// Header
 	headers := []string{}
