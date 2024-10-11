@@ -26,12 +26,11 @@ const (
 
 	homeRelativeConfigPath = ".safedep/vet-auth.yml"
 
-	// https://dev-dkwn3e2k4k1fornc.us.auth0.com/.well-known/openid-configuration
-	cloudIdentityServiceClientId      = "xidzYke2rDMJmNyXId2dLpNs4DLm4yZX" // gitleaks:allow
+	cloudIdentityServiceClientId      = "QtXHUN3hOdbJbCiGU8FiNCnC2KtuROCu" // gitleaks:allow
 	cloudIdentityServiceAudience      = "https://cloud.safedep.io"
-	cloudIdentityServiceBaseUrl       = "https://dev-dkwn3e2k4k1fornc.us.auth0.com"
-	cloudIdentityServiceDeviceCodeUrl = "https://dev-dkwn3e2k4k1fornc.us.auth0.com/oauth/device/code"
-	cloudIdentityServiceTokenUrl      = "https://dev-dkwn3e2k4k1fornc.us.auth0.com/oauth/token"
+	cloudIdentityServiceBaseUrl       = "https://auth.safedep.io"
+	cloudIdentityServiceDeviceCodeUrl = "https://auth.safedep.io/oauth/device/code"
+	cloudIdentityServiceTokenUrl      = "https://auth.safedep.io/oauth/token"
 )
 
 type Config struct {
