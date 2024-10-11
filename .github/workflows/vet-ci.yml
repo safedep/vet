@@ -26,5 +26,8 @@ jobs:
         uses: safedep/vet-action@v1
         with:
           policy: .github/vet/policy.yml
+          cloud: true
+          cloud-key: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
+          cloud-tenant: ${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
