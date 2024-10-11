@@ -12,8 +12,8 @@ import (
 
 const (
 	apiUrlEnvKey             = "VET_INSIGHTS_API_URL"
-	apiKeyEnvKey             = "VET_INSIGHTS_API_KEY"
-	apiKeyAlternateEnvKey    = "VET_API_KEY"
+	apiKeyEnvKey             = "VET_API_KEY"
+	apiKeyAlternateEnvKey    = "VET_INSIGHTS_API_KEY"
 	communityModeEnvKey      = "VET_COMMUNITY_MODE"
 	controlTowerTenantEnvKey = "VET_CONTROL_TOWER_TENANT_ID"
 
@@ -234,6 +234,10 @@ func SetRuntimeCommunityMode() {
 
 func SetRuntimeCloudTenant(domain string) {
 	os.Setenv(controlTowerTenantEnvKey, domain)
+}
+
+func SetRuntimeApiKey(key string) {
+	os.Setenv(apiKeyEnvKey, key)
 }
 
 func loadConfiguration() error {

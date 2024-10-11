@@ -63,6 +63,14 @@ func configureAuthCommand() *cobra.Command {
 				}
 			}
 
+			auth.SetRuntimeCloudTenant(authTenantDomain)
+			auth.SetRuntimeApiKey(key)
+
+			err = auth.Verify()
+			if err != nil {
+				logger.Fatalf("Failed to verify auth: %v", err)
+			}
+
 			err = auth.PersistApiKey(key, authTenantDomain)
 			if err != nil {
 				logger.Fatalf("Failed to configure auth: %v", err)
