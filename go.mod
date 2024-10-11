@@ -19,7 +19,7 @@ require (
 	github.com/google/cel-go v0.21.0
 	github.com/google/go-github/v54 v54.0.0
 	github.com/google/osv-scanner v1.8.4
-	github.com/jedib0t/go-pretty/v6 v6.5.9
+	github.com/jedib0t/go-pretty/v6 v6.6.0
 	github.com/kubescape/go-git-url v0.0.30
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/owenrumney/go-sarif/v2 v2.3.3
@@ -223,6 +223,6 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/utils v0.0.0-20240902221715-702e33fdd3c3 // indirect
+	k8s.io/utils v0.0.0-20240921022957-49e7df575cb6 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
