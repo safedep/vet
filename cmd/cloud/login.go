@@ -12,10 +12,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	loginTenantDomain string
-)
-
 func newCloudLoginCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "login",
@@ -29,9 +25,6 @@ func newCloudLoginCommand() *cobra.Command {
 			return nil
 		},
 	}
-
-	cmd.Flags().StringVar(&loginTenantDomain, "tenant", "",
-		"Domain of the tenant to login to for existing users")
 
 	return cmd
 }
@@ -59,5 +52,6 @@ func executeDeviceAuthFlow() error {
 		return fmt.Errorf("failed to authenticate: %w", err)
 	}
 
-	return auth.PersistCloudTokens(token.Token, token.RefreshToken, loginTenantDomain)
+	return auth.PersistCloudTokens(token.Token,
+		token.RefreshToken, tenantDomain)
 }

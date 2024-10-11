@@ -35,17 +35,10 @@ func cloudClientConnection(name, loc, tok string) (*grpc.ClientConn, error) {
 
 	logger.Debugf("ControlTower host: %s, port: %s", host, port)
 
-	vetTenantId := TenantDomain()
-	tenantIdOverride := os.Getenv("VET_CONTROL_TOWER_TENANT_ID")
-
-	if tenantIdOverride != "" {
-		vetTenantId = tenantIdOverride
-	}
-
 	headers := http.Header{}
-	headers.Set("x-tenant-id", vetTenantId)
+	headers.Set("x-tenant-id", TenantDomain())
 
-	vetTenantMockUser := os.Getenv("VET_CONTROL_TOWER_MOCK_USER")
+	vetTenantMockUser := os.Getenv(controlTowerTenantEnvKey)
 	if vetTenantMockUser != "" {
 		headers.Set("x-mock-user", vetTenantMockUser)
 	}

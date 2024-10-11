@@ -11,10 +11,11 @@ import (
 )
 
 const (
-	apiUrlEnvKey          = "VET_INSIGHTS_API_URL"
-	apiKeyEnvKey          = "VET_INSIGHTS_API_KEY"
-	apiKeyAlternateEnvKey = "VET_API_KEY"
-	communityModeEnvKey   = "VET_COMMUNITY_MODE"
+	apiUrlEnvKey             = "VET_INSIGHTS_API_URL"
+	apiKeyEnvKey             = "VET_INSIGHTS_API_KEY"
+	apiKeyAlternateEnvKey    = "VET_API_KEY"
+	communityModeEnvKey      = "VET_COMMUNITY_MODE"
+	controlTowerTenantEnvKey = "VET_CONTROL_TOWER_TENANT_ID"
 
 	defaultApiUrl          = "https://api.safedep.io/insights/v1"
 	defaultCommunityApiUrl = "https://api.safedep.io/insights-community/v1"
@@ -168,6 +169,11 @@ func ControlTowerUrl() string {
 }
 
 func TenantDomain() string {
+	tenantFromEnv := os.Getenv(controlTowerTenantEnvKey)
+	if tenantFromEnv != "" {
+		return tenantFromEnv
+	}
+
 	if globalConfig != nil {
 		return globalConfig.TenantDomain
 	}
@@ -224,6 +230,10 @@ func CommunityMode() bool {
 // persisting it to the configuration file
 func SetRuntimeCommunityMode() {
 	os.Setenv(communityModeEnvKey, "true")
+}
+
+func SetRuntimeCloudTenant(domain string) {
+	os.Setenv(controlTowerTenantEnvKey, domain)
 }
 
 func loadConfiguration() error {
