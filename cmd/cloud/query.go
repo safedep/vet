@@ -2,11 +2,13 @@ package cloud
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"sort"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/safedep/vet/internal/auth"
+	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/cloud/query"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/spf13/cobra"
@@ -81,6 +83,8 @@ func renderQueryResponseAsTable(response *query.QueryResponse) error {
 		logger.Infof("No results found")
 		return nil
 	}
+
+	ui.PrintSuccess(fmt.Sprintf("Query returned %d results", response.Count()))
 
 	// Header
 	headers := []string{}

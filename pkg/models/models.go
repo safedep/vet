@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"hash/fnv"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -29,16 +30,58 @@ const (
 	EcosystemSpdxSBOM  = "SpdxSbom"
 )
 
+type ManifestSourceType string
+
+const (
+	ManifestSourceLocal         = ManifestSourceType("local")
+	ManifestSourceGitRepository = ManifestSourceType("git_repository")
+)
+
+// We now have different sources from where a package
+// manifest can be identified. For example, local, github,
+// and may be in future within containers or archives like
+// JAR. So we need to store additional internal metadata
+type PackageManifestSource struct {
+	// The source type of this package namespace
+	Type ManifestSourceType
+
+	// The namespace of the package manifest. Examples:
+	// - Directory when source is local
+	// - GitHub repo URL when source is GitHub
+	Namespace string
+
+	// The namespace relative path of the package manifest
+	Path string
+
+	// Explicit override the display path
+	DisplayPath string
+}
+
+func (ps PackageManifestSource) GetDisplayPath() string {
+	switch ps.Type {
+	case ManifestSourceLocal:
+		return filepath.Join(ps.Namespace, ps.Path)
+	default:
+		return ps.DisplayPath
+	}
+}
+
+func (ps PackageManifestSource) GetNamespace() string {
+	return ps.Namespace
+}
+
+func (ps PackageManifestSource) GetPath() string {
+	return ps.Path
+}
+
 // Represents a package manifest that contains a list
 // of packages. Example: pom.xml, requirements.txt
 type PackageManifest struct {
+	// The source of the package manifest
+	Source PackageManifestSource `json:"source"`
+
 	// Filesystem path of this manifest
 	Path string `json:"path"`
-
-	// When we scan non-path entities like Github org / repo
-	// then only path doesn't make sense, which is more local
-	// temporary file path
-	DisplayPath string `json:"display_path"`
 
 	// Ecosystem to interpret this manifest
 	Ecosystem string `json:"ecosystem"`
@@ -53,12 +96,44 @@ type PackageManifest struct {
 	m sync.Mutex
 }
 
+// Deprecated: Use NewPackageManifest* initializers
 func NewPackageManifest(path, ecosystem string) *PackageManifest {
+	return NewPackageManifestFromLocal(path, ecosystem)
+}
+
+func NewPackageManifestFromLocal(path, ecosystem string) *PackageManifest {
+	return newPackageManifest(PackageManifestSource{
+		Type:      ManifestSourceLocal,
+		Namespace: filepath.Dir(path),
+		Path:      filepath.Base(path),
+	}, path, ecosystem)
+}
+
+func NewPackageManifestFromGitHub(repo, repoRelativePath, realPath, ecosystem string) *PackageManifest {
+	return newPackageManifest(PackageManifestSource{
+		Type:      ManifestSourceGitRepository,
+		Namespace: repo,
+		Path:      repoRelativePath,
+	}, realPath, ecosystem)
+}
+
+func newPackageManifest(source PackageManifestSource, path, ecosystem string) *PackageManifest {
 	return &PackageManifest{
+		Source:          source,
 		Path:            path,
 		Ecosystem:       ecosystem,
 		Packages:        make([]*Package, 0),
 		DependencyGraph: NewDependencyGraph[*Package](),
+	}
+}
+
+// Parsers usually create a package manifest from file, readers
+// have the context to set the source correct. Example: GitHub reader
+func (p *PackageManifest) UpdateSourceAsGitRepository(repo, repoRelativePath string) {
+	p.Source = PackageManifestSource{
+		Type:      ManifestSourceGitRepository,
+		Namespace: repo,
+		Path:      repoRelativePath,
 	}
 }
 
@@ -74,22 +149,22 @@ func (pm *PackageManifest) AddPackage(pkg *Package) {
 	pm.DependencyGraph.AddNode(pkg)
 }
 
+func (pm *PackageManifest) GetSource() PackageManifestSource {
+	return pm.Source
+}
+
 func (pm *PackageManifest) GetPath() string {
 	return pm.Path
 }
 
 func (pm *PackageManifest) SetDisplayPath(path string) {
-	pm.DisplayPath = path
+	pm.Source.DisplayPath = path
 }
 
 // GetDisplayPath returns the [DisplayPath] if available or fallsback
 // to [Path]
 func (pm *PackageManifest) GetDisplayPath() string {
-	if len(pm.DisplayPath) > 0 {
-		return pm.DisplayPath
-	}
-
-	return pm.GetPath()
+	return pm.Source.GetDisplayPath()
 }
 
 // GetPackages returns the list of packages in this manifest

@@ -151,6 +151,8 @@ func NewSyncReporter(config SyncReporterConfig) (Reporter, error) {
 	trigger := controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL
 	source := packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_UNSPECIFIED
 
+	// A multi-project sync is required for cases like GitHub org where
+	// we are scanning multiple repositories
 	if !config.EnableMultiProjectSync {
 		logger.Debugf("Report Sync: Creating tool session for project: %s, version: %s",
 			config.ProjectName, config.ProjectVersion)
@@ -197,7 +199,7 @@ func (s *syncReporter) Name() string {
 func (s *syncReporter) AddManifest(manifest *models.PackageManifest) {
 	manifestSessionKey := manifest.Path
 	if s.config.EnableMultiProjectSync && !s.sessions.hasKeyedSession(manifestSessionKey) {
-		projectName := manifest.GetDisplayPath()
+		projectName := manifest.GetSource().GetNamespace()
 		projectVersion := "main"
 
 		source := packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_UNSPECIFIED
@@ -341,6 +343,7 @@ func (s *syncReporter) syncEvent(event *analyzer.AnalyzerEvent) error {
 		logger.Warnf("unsupported check type: %s", filter.GetCheckType())
 	}
 
+	namespace := pkg.Manifest.GetSource().GetNamespace()
 	req := controltowerv1.PublishPolicyViolationRequest{
 		ToolSession: &controltowerv1.ToolSession{
 			ToolSessionId: session.sessionId,
@@ -348,8 +351,8 @@ func (s *syncReporter) syncEvent(event *analyzer.AnalyzerEvent) error {
 
 		Manifest: &packagev1.PackageManifest{
 			Ecosystem: pkg.Manifest.GetControlTowerSpecEcosystem(),
-			Namespace: &pkg.Manifest.Path,
-			Name:      pkg.Manifest.GetDisplayPath(),
+			Namespace: &namespace,
+			Name:      pkg.Manifest.GetSource().GetPath(),
 		},
 
 		PackageVersion: &packagev1.PackageVersion{

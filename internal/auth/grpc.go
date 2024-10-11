@@ -33,12 +33,13 @@ func cloudClientConnection(name, loc, tok string) (*grpc.ClientConn, error) {
 		port = "443"
 	}
 
-	logger.Debugf("ControlTower host: %s, port: %s", host, port)
+	logger.Debugf("Establishing grpc connection for: %s host: %s, port: %s",
+		name, host, port)
 
 	headers := http.Header{}
 	headers.Set("x-tenant-id", TenantDomain())
 
-	vetTenantMockUser := os.Getenv(controlTowerTenantEnvKey)
+	vetTenantMockUser := os.Getenv("VET_CONTROL_TOWER_MOCK_USER")
 	if vetTenantMockUser != "" {
 		headers.Set("x-mock-user", vetTenantMockUser)
 	}
