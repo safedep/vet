@@ -5,30 +5,44 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"gopkg.in/yaml.v2"
 )
 
 const (
-	apiUrlEnvKey          = "VET_INSIGHTS_API_URL"
-	apiKeyEnvKey          = "VET_INSIGHTS_API_KEY"
-	apiKeyAlternateEnvKey = "VET_API_KEY"
-	communityModeEnvKey   = "VET_COMMUNITY_MODE"
+	apiUrlEnvKey             = "VET_INSIGHTS_API_URL"
+	apiKeyEnvKey             = "VET_API_KEY"
+	apiKeyAlternateEnvKey    = "VET_INSIGHTS_API_KEY"
+	communityModeEnvKey      = "VET_COMMUNITY_MODE"
+	controlTowerTenantEnvKey = "VET_CONTROL_TOWER_TENANT_ID"
 
-	defaultApiUrl             = "https://api.safedep.io/insights/v1"
-	defaultCommunityApiUrl    = "https://api.safedep.io/insights-community/v1"
-	defaultControlPlaneApiUrl = "https://api.safedep.io/control-plane/v1"
-	defaultSyncApiUrl         = "https://api.safedep.io/sync/v1"
+	defaultApiUrl          = "https://api.safedep.io/insights/v1"
+	defaultCommunityApiUrl = "https://api.safedep.io/insights-community/v1"
+
+	// gRPC service base URL.
+	defaultSyncApiUrl         = "https://api.safedep.io"
+	defaultControlPlaneApiUrl = "https://cloud.safedep.io"
 
 	homeRelativeConfigPath = ".safedep/vet-auth.yml"
+
+	cloudIdentityServiceClientId      = "QtXHUN3hOdbJbCiGU8FiNCnC2KtuROCu" // gitleaks:allow
+	cloudIdentityServiceAudience      = "https://cloud.safedep.io"
+	cloudIdentityServiceBaseUrl       = "https://auth.safedep.io"
+	cloudIdentityServiceDeviceCodeUrl = "https://auth.safedep.io/oauth/device/code"
+	cloudIdentityServiceTokenUrl      = "https://auth.safedep.io/oauth/token"
 )
 
 type Config struct {
-	ApiUrl             string `yaml:"api_url"`
-	ApiKey             string `yaml:"api_key"`
-	Community          bool   `yaml:"community"`
-	ControlPlaneApiUrl string `yaml:"cp_api_url"`
-	SyncApiUrl         string `yaml:"sync_api_url"`
+	ApiUrl                    string    `yaml:"api_url"`
+	ApiKey                    string    `yaml:"api_key"`
+	Community                 bool      `yaml:"community"`
+	ControlPlaneApiUrl        string    `yaml:"control_api_url"`
+	SyncApiUrl                string    `yaml:"sync_api_url"`
+	TenantDomain              string    `yaml:"tenant_domain"`
+	CloudAccessToken          string    `yaml:"cloud_access_token"`
+	CloudRefreshToken         string    `yaml:"cloud_refresh_token"`
+	CloudAccessTokenUpdatedAt time.Time `yaml:"cloud_access_token_updated_at"`
 }
 
 // Global config to be used during runtime
@@ -38,8 +52,58 @@ func init() {
 	loadConfiguration()
 }
 
-func Configure(m Config) error {
-	globalConfig = &m
+func DefaultConfig() Config {
+	return Config{
+		ApiUrl:             defaultApiUrl,
+		Community:          false,
+		ControlPlaneApiUrl: defaultControlPlaneApiUrl,
+		SyncApiUrl:         defaultSyncApiUrl,
+	}
+}
+
+func PersistApiKey(key, domain string) error {
+	if globalConfig == nil {
+		c := DefaultConfig()
+		globalConfig = &c
+	}
+
+	if domain != "" {
+		globalConfig.TenantDomain = domain
+	}
+
+	globalConfig.ApiUrl = defaultApiUrl
+	globalConfig.ApiKey = key
+
+	return persistConfiguration()
+}
+
+func PersistCloudTokens(accessToken, refreshToken, domain string) error {
+	if globalConfig == nil {
+		c := DefaultConfig()
+		globalConfig = &c
+	}
+
+	// We are explicitly check for empty string for domain
+	// because we do not want to overwrite the domain if it is
+	// not provided.
+	if domain != "" {
+		globalConfig.TenantDomain = domain
+	}
+
+	globalConfig.CloudAccessToken = accessToken
+	globalConfig.CloudRefreshToken = refreshToken
+	globalConfig.CloudAccessTokenUpdatedAt = time.Now()
+
+	return persistConfiguration()
+}
+
+func PersistTenantDomain(domain string) error {
+	if globalConfig == nil {
+		c := DefaultConfig()
+		globalConfig = &c
+	}
+
+	globalConfig.TenantDomain = domain
 	return persistConfiguration()
 }
 
@@ -51,15 +115,43 @@ func DefaultCommunityApiUrl() string {
 	return defaultCommunityApiUrl
 }
 
-func DefaultControlPlaneApiUrl() string {
-	if (globalConfig != nil) && (globalConfig.ControlPlaneApiUrl != "") {
-		return globalConfig.ControlPlaneApiUrl
-	}
-
-	return defaultControlPlaneApiUrl
+func CloudIdentityServiceClientId() string {
+	return cloudIdentityServiceClientId
 }
 
-func DefaultSyncApiUrl() string {
+func CloudIdentityServiceBaseUrl() string {
+	return cloudIdentityServiceBaseUrl
+}
+
+func CloudIdentityServiceDeviceCodeUrl() string {
+	return cloudIdentityServiceDeviceCodeUrl
+}
+
+func CloudIdentityServiceAudience() string {
+	return cloudIdentityServiceAudience
+}
+
+func CloudIdentityServiceTokenUrl() string {
+	return cloudIdentityServiceTokenUrl
+}
+
+func CloudAccessToken() string {
+	if globalConfig != nil {
+		return globalConfig.CloudAccessToken
+	}
+
+	return ""
+}
+
+func CloudRefreshToken() string {
+	if globalConfig != nil {
+		return globalConfig.CloudRefreshToken
+	}
+
+	return ""
+}
+
+func SyncApiUrl() string {
 	if (globalConfig != nil) && (globalConfig.SyncApiUrl != "") {
 		return globalConfig.SyncApiUrl
 	}
@@ -67,17 +159,38 @@ func DefaultSyncApiUrl() string {
 	return defaultSyncApiUrl
 }
 
+func ControlTowerUrl() string {
+	if (globalConfig != nil) && (globalConfig.ControlPlaneApiUrl != "") {
+		return globalConfig.ControlPlaneApiUrl
+	}
+
+	return defaultControlPlaneApiUrl
+}
+
+func TenantDomain() string {
+	tenantFromEnv := os.Getenv(controlTowerTenantEnvKey)
+	if tenantFromEnv != "" {
+		return tenantFromEnv
+	}
+
+	if globalConfig != nil {
+		return globalConfig.TenantDomain
+	}
+
+	return ""
+}
+
 func ApiUrl() string {
 	if url, ok := os.LookupEnv(apiUrlEnvKey); ok {
 		return url
 	}
 
-	if globalConfig != nil {
-		return globalConfig.ApiUrl
-	}
-
 	if CommunityMode() {
 		return defaultCommunityApiUrl
+	}
+
+	if globalConfig != nil {
+		return globalConfig.ApiUrl
 	}
 
 	return defaultApiUrl
@@ -116,6 +229,14 @@ func CommunityMode() bool {
 // persisting it to the configuration file
 func SetRuntimeCommunityMode() {
 	os.Setenv(communityModeEnvKey, "true")
+}
+
+func SetRuntimeCloudTenant(domain string) {
+	os.Setenv(controlTowerTenantEnvKey, domain)
+}
+
+func SetRuntimeApiKey(key string) {
+	os.Setenv(apiKeyEnvKey, key)
 }
 
 func loadConfiguration() error {

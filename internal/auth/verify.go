@@ -1,62 +1,24 @@
 package auth
 
-import (
-	"context"
-	"fmt"
-	"net/http"
+import "github.com/safedep/vet/pkg/cloud"
 
-	apierr "github.com/safedep/dry/errors"
-	"github.com/safedep/dry/utils"
-	"github.com/safedep/vet/gen/cpv1"
-	"github.com/safedep/vet/pkg/common/logger"
-)
-
-type VerifyConfig struct {
-	ControlPlaneApiUrl string
-}
-
-// Verify function takes config and current API key available
-// from this package and returns an error if auth is invalid
-func Verify(config *VerifyConfig) error {
-	if CommunityMode() {
-		logger.Infof("Skipping auth verify due to community mode enabled")
-		return nil
-	}
-
-	logger.Infof("Verifying auth token using Control Plane: %s", config.ControlPlaneApiUrl)
-
-	client, err := cpv1.NewClientWithResponses(config.ControlPlaneApiUrl)
+// Verify authentication to the data plane using
+// API key and Ping Service.
+func Verify() error {
+	conn, err := SyncClientConnection("vet-auth-verify")
 	if err != nil {
 		return err
 	}
 
-	authKeyApplier := func(ctx context.Context, req *http.Request) error {
-		req.Header.Set("Authorization", ApiKey())
-		return nil
-	}
-
-	resp, err := client.GetApiCredentialIntrospectionWithResponse(context.Background(),
-		authKeyApplier)
+	pingService, err := cloud.NewPingService(conn)
 	if err != nil {
 		return err
 	}
 
-	if resp.StatusCode() != http.StatusOK {
-		if err, ok := apierr.UnmarshalApiError(resp.Body); ok {
-			return err
-		} else {
-			return fmt.Errorf("unexpected status code:%d from control plane",
-				resp.HTTPResponse.StatusCode)
-		}
-
+	_, err = pingService.Ping()
+	if err != nil {
+		return err
 	}
-
-	if resp.JSON200 == nil {
-		return fmt.Errorf("invalid nil response from server")
-	}
-
-	logger.Infof("Current auth token is valid with expiry: %s",
-		utils.SafelyGetValue(resp.JSON200.Expiry))
 
 	return nil
 }

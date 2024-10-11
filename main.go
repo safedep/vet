@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/safedep/dry/utils"
+	"github.com/safedep/vet/cmd/cloud"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/exceptions"
@@ -23,17 +24,10 @@ var (
 )
 
 var banner string = `
- .----------------.  .----------------.  .----------------.
-| .--------------. || .--------------. || .--------------. |
-| | ____   ____  | || |  _________   | || |  _________   | |
-| ||_  _| |_  _| | || | |_   ___  |  | || | |  _   _  |  | |
-| |  \ \   / /   | || |   | |_  \_|  | || | |_/ | | \_|  | |
-| |   \ \ / /    | || |   |  _|  _   | || |     | |      | |
-| |    \ ' /     | || |  _| |___/ |  | || |    _| |_     | |
-| |     \_/      | || | |_________|  | || |   |_____|    | |
-| |              | || |              | || |              | |
-| '--------------' || '--------------' || '--------------' |
- '----------------'  '----------------'  '----------------'
+Yb    dP 888888 888888
+ Yb  dP  88__     88
+  YbdP   88""     88
+   YP    888888   88
 
 `
 
@@ -64,6 +58,7 @@ func main() {
 	cmd.AddCommand(newCodeCommand())
 	cmd.AddCommand(newVersionCommand())
 	cmd.AddCommand(newConnectCommand())
+	cmd.AddCommand(cloud.NewCloudCommand())
 
 	cobra.OnInitialize(func() {
 		printBanner()

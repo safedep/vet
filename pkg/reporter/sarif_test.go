@@ -34,12 +34,16 @@ var events []analyzer.AnalyzerEvent = []analyzer.AnalyzerEvent{
 			CheckType: checks.CheckType_CheckTypeLicense,
 		},
 		Manifest: &models.PackageManifest{
-			DisplayPath: "displayPath1",
+			Source: models.PackageManifestSource{
+				DisplayPath: "displayPath1",
+			},
 		},
 		Package: &models.Package{
 			PackageDetails: models.NewPackageDetail("ecosystem1", "name1", "version1"),
 			Manifest: &models.PackageManifest{
-				DisplayPath: "displayPath1",
+				Source: models.PackageManifestSource{
+					DisplayPath: "displayPath1",
+				},
 			},
 			Insights: &insightapi.PackageVersionInsight{
 				Licenses: &licenses,
@@ -55,12 +59,16 @@ var events []analyzer.AnalyzerEvent = []analyzer.AnalyzerEvent{
 			CheckType: checks.CheckType_CheckTypeVulnerability,
 		},
 		Manifest: &models.PackageManifest{
-			DisplayPath: "displayPath2",
+			Source: models.PackageManifestSource{
+				DisplayPath: "displayPath1",
+			},
 		},
 		Package: &models.Package{
 			PackageDetails: models.NewPackageDetail("ecosystem2", "name2", "version2"),
 			Manifest: &models.PackageManifest{
-				DisplayPath: "displayPath2",
+				Source: models.PackageManifestSource{
+					DisplayPath: "displayPath1",
+				},
 			},
 			Insights: &insightapi.PackageVersionInsight{
 				Vulnerabilities: &[]insightapi.PackageVulnerability{
@@ -81,12 +89,16 @@ var events []analyzer.AnalyzerEvent = []analyzer.AnalyzerEvent{
 			CheckType: checks.CheckType_CheckTypePopularity,
 		},
 		Manifest: &models.PackageManifest{
-			DisplayPath: "displayPath3",
+			Source: models.PackageManifestSource{
+				DisplayPath: "displayPath2",
+			},
 		},
 		Package: &models.Package{
 			PackageDetails: models.NewPackageDetail("ecosystem3", "name3", "version3"),
 			Manifest: &models.PackageManifest{
-				DisplayPath: "displayPath3",
+				Source: models.PackageManifestSource{
+					DisplayPath: "displayPath3",
+				},
 			},
 			Insights: &insightapi.PackageVersionInsight{
 				Projects: &[]insightapi.PackageProjectInfo{

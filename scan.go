@@ -51,6 +51,7 @@ var (
 	disableAuthVerifyBeforeScan    bool
 	syncReport                     bool
 	syncReportProject              string
+	syncEnableMultiProject         bool
 	graphReportDirectory           string
 	syncReportStream               string
 	listExperimentalParsers        bool
@@ -140,7 +141,9 @@ func newScanCommand() *cobra.Command {
 		"Enable syncing report data to cloud")
 	cmd.Flags().StringVarP(&syncReportProject, "report-sync-project", "", "",
 		"Project name to use in cloud")
-	cmd.Flags().StringVarP(&syncReportStream, "report-sync-stream", "", "",
+	cmd.Flags().BoolVarP(&syncEnableMultiProject, "report-sync-multi-project", "", false,
+		"Lazily create cloud sessions for multiple projects (per manifest)")
+	cmd.Flags().StringVarP(&syncReportStream, "report-sync-project-version", "", "",
 		"Project stream name (e.g. branch) to use in cloud")
 	cmd.Flags().StringArrayVarP(&trustedRegistryUrls, "trusted-registry", "", []string{},
 		"Trusted registry URLs to use for package manifest verification")
@@ -175,9 +178,7 @@ func listParsersCommand() *cobra.Command {
 
 func startScan() {
 	if !disableAuthVerifyBeforeScan {
-		err := auth.Verify(&auth.VerifyConfig{
-			ControlPlaneApiUrl: auth.DefaultControlPlaneApiUrl(),
-		})
+		err := auth.Verify()
 
 		// We will fallback to community mode by default to provide
 		// a seamless user experience
@@ -393,9 +394,18 @@ func internalStartScan() error {
 	}
 
 	if syncReport {
+		clientConn, err := auth.SyncClientConnection("vet-sync")
+		if err != nil {
+			return err
+		}
+
 		rp, err := reporter.NewSyncReporter(reporter.SyncReporterConfig{
-			ProjectName: syncReportProject,
-			StreamName:  syncReportStream,
+			ToolName:               "vet",
+			ToolVersion:            version,
+			ProjectName:            syncReportProject,
+			ProjectVersion:         syncReportStream,
+			EnableMultiProjectSync: syncEnableMultiProject,
+			ClientConnection:       clientConn,
 		})
 		if err != nil {
 			return err

@@ -2,7 +2,7 @@ SHELL := /bin/bash
 GITCOMMIT := $(shell git rev-parse HEAD)
 VERSION := "$(shell git describe --tags --abbrev=0)-$(shell git rev-parse --short HEAD)"
 
-all: clean setup vet
+all: quick-vet
 
 linter-install:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.0
@@ -18,12 +18,6 @@ dev-setup: linter-install oapi-codegen-install protoc-install
 oapi-codegen:
 	oapi-codegen -package insightapi -generate types ./api/insights-v1.yml > ./gen/insightapi/insights.types.go
 	oapi-codegen -package insightapi -generate client ./api/insights-v1.yml > ./gen/insightapi/insights.client.go
-	oapi-codegen -package cpv1trials -generate types ./api/cp-v1-trials.yml > ./gen/cpv1trials/trials.types.go
-	oapi-codegen -package cpv1trials -generate client ./api/cp-v1-trials.yml > ./gen/cpv1trials/trials.client.go
-	oapi-codegen -package cpv1 -generate types ./api/cp-v1.yml > ./gen/cpv1/cp.types.go
-	oapi-codegen -package cpv1 -generate client ./api/cp-v1.yml > ./gen/cpv1/cp.client.go
-	oapi-codegen -package syncv1 -generate types ./api/sync-v1.yml > ./gen/syncv1/sync.types.go
-	oapi-codegen -package syncv1 -generate client ./api/sync-v1.yml > ./gen/syncv1/sync.client.go
 
 protoc-codegen:
 	protoc -I ./api \
@@ -76,10 +70,10 @@ setup:
 GO_CFLAGS=-X main.commit=$(GITCOMMIT) -X main.version=$(VERSION)
 GO_LDFLAGS=-ldflags "-w $(GO_CFLAGS)"
 
-vet: oapi-codegen protoc-codegen
+quick-vet:
 	go build ${GO_LDFLAGS}
 
-quick-vet:
+vet: oapi-codegen protoc-codegen
 	go build ${GO_LDFLAGS}
 
 .PHONY: test

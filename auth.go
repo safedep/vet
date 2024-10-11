@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"os"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -14,27 +13,20 @@ import (
 )
 
 var (
-	authInsightApiBaseUrl      string
-	authControlPlaneApiBaseUrl string
-	authTrialEmail             string
-	authCommunity              bool
+	authTenantDomain string
 )
 
 func newAuthCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "auth",
-		Short: "Configure and verify Insights API authentication",
+		Short: "Configure vet authentication",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return errors.New("a valid sub-command is required")
 		},
 	}
 
-	cmd.PersistentFlags().StringVarP(&authControlPlaneApiBaseUrl, "control-plane", "",
-		auth.DefaultControlPlaneApiUrl(), "Base URL of Control Plane API")
-
 	cmd.AddCommand(configureAuthCommand())
 	cmd.AddCommand(verifyAuthCommand())
-	cmd.AddCommand(trialsRegisterCommand())
 
 	return cmd
 }
@@ -46,25 +38,40 @@ func configureAuthCommand() *cobra.Command {
 			var key string
 			var err error
 
-			if !authCommunity {
-				err = survey.AskOne(&survey.Password{
-					Message: "Enter the API key",
-				}, &key)
-			} else {
-				authInsightApiBaseUrl = auth.DefaultCommunityApiUrl()
-			}
-
+			err = survey.AskOne(&survey.Password{
+				Message: "Enter the API key",
+			}, &key)
 			if err != nil {
 				logger.Fatalf("Failed to setup auth: %v", err)
 			}
 
-			err = auth.Configure(auth.Config{
-				ApiUrl:             authInsightApiBaseUrl,
-				ApiKey:             string(key),
-				ControlPlaneApiUrl: authControlPlaneApiBaseUrl,
-				Community:          authCommunity,
-			})
+			if auth.TenantDomain() != "" && auth.TenantDomain() != authTenantDomain {
+				ui.PrintWarning("Tenant domain mismatch. Existing: %s, New: %s, continue? ",
+					auth.TenantDomain(), authTenantDomain)
 
+				var confirm bool
+				err = survey.AskOne(&survey.Confirm{
+					Message: "Do you want to continue?",
+				}, &confirm)
+
+				if err != nil {
+					logger.Fatalf("Failed to setup auth: %v", err)
+				}
+
+				if !confirm {
+					return nil
+				}
+			}
+
+			auth.SetRuntimeCloudTenant(authTenantDomain)
+			auth.SetRuntimeApiKey(key)
+
+			err = auth.Verify()
+			if err != nil {
+				logger.Fatalf("Failed to verify auth: %v", err)
+			}
+
+			err = auth.PersistApiKey(key, authTenantDomain)
 			if err != nil {
 				logger.Fatalf("Failed to configure auth: %v", err)
 			}
@@ -74,10 +81,10 @@ func configureAuthCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&authInsightApiBaseUrl, "api", "", auth.DefaultApiUrl(),
-		"Base URL of Insights API")
-	cmd.Flags().BoolVarP(&authCommunity, "community", "", false,
-		"Use community API endpoint for Insights")
+	cmd.Flags().StringVarP(&authTenantDomain, "tenant", "", "",
+		"Tenant domain for SafeDep Cloud")
+
+	_ = cmd.MarkFlagRequired("tenant")
 
 	return cmd
 }
@@ -90,43 +97,12 @@ func verifyAuthCommand() *cobra.Command {
 				ui.PrintSuccess("Running in Community Mode")
 			}
 
-			failOnError("auth/verify", auth.Verify(&auth.VerifyConfig{
-				ControlPlaneApiUrl: authControlPlaneApiBaseUrl,
-			}))
+			failOnError("auth/verify", auth.Verify())
 
 			ui.PrintSuccess("Authentication key is valid!")
 			return nil
 		},
 	}
-
-	return cmd
-}
-
-func trialsRegisterCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use: "trial",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			client := auth.NewTrialRegistrationClient(auth.TrialConfig{
-				Email:              authTrialEmail,
-				ControlPlaneApiUrl: authControlPlaneApiBaseUrl,
-			})
-
-			res, err := client.Execute()
-			if err != nil {
-				fmt.Printf("Error: %v\n", err)
-				os.Exit(1)
-			}
-
-			fmt.Printf("Trial registration successful with Id:%s\n", res.Id)
-			fmt.Printf("Check your email (%s) for API key and usage instructions\n", authTrialEmail)
-			fmt.Printf("The trial API key will expire on %s\n", res.ExpiresAt.String())
-
-			return nil
-		},
-	}
-
-	cmd.Flags().StringVarP(&authTrialEmail, "email", "", "",
-		"Email address to use for sending trial API key")
 
 	return cmd
 }

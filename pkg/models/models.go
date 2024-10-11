@@ -3,10 +3,12 @@ package models
 import (
 	"fmt"
 	"hash/fnv"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
 
+	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/safedep/vet/gen/insightapi"
 
@@ -28,16 +30,58 @@ const (
 	EcosystemSpdxSBOM  = "SpdxSbom"
 )
 
+type ManifestSourceType string
+
+const (
+	ManifestSourceLocal         = ManifestSourceType("local")
+	ManifestSourceGitRepository = ManifestSourceType("git_repository")
+)
+
+// We now have different sources from where a package
+// manifest can be identified. For example, local, github,
+// and may be in future within containers or archives like
+// JAR. So we need to store additional internal metadata
+type PackageManifestSource struct {
+	// The source type of this package namespace
+	Type ManifestSourceType
+
+	// The namespace of the package manifest. Examples:
+	// - Directory when source is local
+	// - GitHub repo URL when source is GitHub
+	Namespace string
+
+	// The namespace relative path of the package manifest
+	Path string
+
+	// Explicit override the display path
+	DisplayPath string
+}
+
+func (ps PackageManifestSource) GetDisplayPath() string {
+	switch ps.Type {
+	case ManifestSourceLocal:
+		return filepath.Join(ps.Namespace, ps.Path)
+	default:
+		return ps.DisplayPath
+	}
+}
+
+func (ps PackageManifestSource) GetNamespace() string {
+	return ps.Namespace
+}
+
+func (ps PackageManifestSource) GetPath() string {
+	return ps.Path
+}
+
 // Represents a package manifest that contains a list
 // of packages. Example: pom.xml, requirements.txt
 type PackageManifest struct {
+	// The source of the package manifest
+	Source PackageManifestSource `json:"source"`
+
 	// Filesystem path of this manifest
 	Path string `json:"path"`
-
-	// When we scan non-path entities like Github org / repo
-	// then only path doesn't make sense, which is more local
-	// temporary file path
-	DisplayPath string `json:"display_path"`
 
 	// Ecosystem to interpret this manifest
 	Ecosystem string `json:"ecosystem"`
@@ -52,12 +96,44 @@ type PackageManifest struct {
 	m sync.Mutex
 }
 
+// Deprecated: Use NewPackageManifest* initializers
 func NewPackageManifest(path, ecosystem string) *PackageManifest {
+	return NewPackageManifestFromLocal(path, ecosystem)
+}
+
+func NewPackageManifestFromLocal(path, ecosystem string) *PackageManifest {
+	return newPackageManifest(PackageManifestSource{
+		Type:      ManifestSourceLocal,
+		Namespace: filepath.Dir(path),
+		Path:      filepath.Base(path),
+	}, path, ecosystem)
+}
+
+func NewPackageManifestFromGitHub(repo, repoRelativePath, realPath, ecosystem string) *PackageManifest {
+	return newPackageManifest(PackageManifestSource{
+		Type:      ManifestSourceGitRepository,
+		Namespace: repo,
+		Path:      repoRelativePath,
+	}, realPath, ecosystem)
+}
+
+func newPackageManifest(source PackageManifestSource, path, ecosystem string) *PackageManifest {
 	return &PackageManifest{
+		Source:          source,
 		Path:            path,
 		Ecosystem:       ecosystem,
 		Packages:        make([]*Package, 0),
 		DependencyGraph: NewDependencyGraph[*Package](),
+	}
+}
+
+// Parsers usually create a package manifest from file, readers
+// have the context to set the source correct. Example: GitHub reader
+func (p *PackageManifest) UpdateSourceAsGitRepository(repo, repoRelativePath string) {
+	p.Source = PackageManifestSource{
+		Type:      ManifestSourceGitRepository,
+		Namespace: repo,
+		Path:      repoRelativePath,
 	}
 }
 
@@ -73,22 +149,22 @@ func (pm *PackageManifest) AddPackage(pkg *Package) {
 	pm.DependencyGraph.AddNode(pkg)
 }
 
+func (pm *PackageManifest) GetSource() PackageManifestSource {
+	return pm.Source
+}
+
 func (pm *PackageManifest) GetPath() string {
 	return pm.Path
 }
 
 func (pm *PackageManifest) SetDisplayPath(path string) {
-	pm.DisplayPath = path
+	pm.Source.DisplayPath = path
 }
 
 // GetDisplayPath returns the [DisplayPath] if available or fallsback
 // to [Path]
 func (pm *PackageManifest) GetDisplayPath() string {
-	if len(pm.DisplayPath) > 0 {
-		return pm.DisplayPath
-	}
-
-	return pm.GetPath()
+	return pm.Source.GetDisplayPath()
 }
 
 // GetPackages returns the list of packages in this manifest
@@ -109,6 +185,25 @@ func (pm *PackageManifest) Id() string {
 
 func (pm *PackageManifest) GetPackagesCount() int {
 	return len(pm.GetPackages())
+}
+
+func (pm *PackageManifest) GetControlTowerSpecEcosystem() packagev1.Ecosystem {
+	switch pm.Ecosystem {
+	case EcosystemCargo:
+		return packagev1.Ecosystem_ECOSYSTEM_CARGO
+	case EcosystemGo:
+		return packagev1.Ecosystem_ECOSYSTEM_GO
+	case EcosystemMaven:
+		return packagev1.Ecosystem_ECOSYSTEM_MAVEN
+	case EcosystemNpm:
+		return packagev1.Ecosystem_ECOSYSTEM_NPM
+	case EcosystemRubyGems:
+		return packagev1.Ecosystem_ECOSYSTEM_RUBYGEMS
+	case EcosystemPyPI:
+		return packagev1.Ecosystem_ECOSYSTEM_PYPI
+	default:
+		return packagev1.Ecosystem_ECOSYSTEM_UNSPECIFIED
+	}
 }
 
 func (pm *PackageManifest) GetSpecEcosystem() modelspec.Ecosystem {
@@ -214,6 +309,37 @@ func (p *Package) DependencyPath() []*Package {
 	}
 
 	return dg.PathToRoot(p)
+}
+
+func (p *Package) GetDependencies() ([]*Package, error) {
+	graph := p.GetDependencyGraph()
+	if graph == nil {
+		return nil, fmt.Errorf("dependency graph not available")
+	}
+
+	dependencies := []*Package{}
+
+	nodes := graph.GetNodes()
+	for _, node := range nodes {
+		if node.Root {
+			continue
+		}
+
+		if node.Data == nil {
+			continue
+		}
+
+		if p.GetName() != node.Data.GetName() &&
+			p.GetVersion() != node.Data.GetVersion() &&
+			p.GetSpecEcosystem() != node.Data.GetSpecEcosystem() {
+			continue
+		}
+
+		dependencies = append(dependencies, node.Children...)
+		break
+	}
+
+	return dependencies, nil
 }
 
 func NewPackageDetail(ecosystem, name, version string) lockfile.PackageDetails {

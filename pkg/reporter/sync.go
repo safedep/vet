@@ -2,21 +2,23 @@ package reporter
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"math"
-	"net/http"
+	"strings"
 	"sync"
 
-	api_errors "github.com/safedep/dry/errors"
+	"buf.build/gen/go/safedep/api/grpc/go/safedep/services/controltower/v1/controltowerv1grpc"
+	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
+	policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
+	vulnerabilityv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/vulnerability/v1"
+	controltowerv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/controltower/v1"
 	"github.com/safedep/dry/utils"
-	"github.com/safedep/vet/gen/syncv1"
-	"github.com/safedep/vet/internal/auth"
+	"github.com/safedep/vet/gen/checks"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
 	"github.com/safedep/vet/pkg/readers"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -26,84 +28,164 @@ const (
 )
 
 type SyncReporterConfig struct {
+	// gRPC connection for ControlTower
+	ClientConnection *grpc.ClientConn
+
+	// Enable multi-project syncing
+	// In this case, a new project is created per package manifest
+	EnableMultiProjectSync bool
+
 	// Required
-	ProjectName  string
-	StreamName   string
-	TriggerEvent string
+	ProjectName    string
+	ProjectVersion string
+	TriggerEvent   string
 
 	// Optional or auto-discovered from environment
-	ProjectSource string
-	GitRef        string
-	GitRefName    string
-	GitRefType    string
-	GitSha        string
+	GitRef     string
+	GitRefName string
+	GitRefType string
+	GitSha     string
 
 	// Performance
 	WorkerCount int
 
-	// Internal config
-	toolName    string
-	toolVersion string
-	toolType    string
+	// Tool details
+	ToolName    string
+	ToolVersion string
 }
 
-type syncIssueWrapper struct {
-	retries int
-	issue   any
+type syncSession struct {
+	sessionId         string
+	toolServiceClient controltowerv1grpc.ToolServiceClient
+}
+
+type syncSessionPool struct {
+	mu           sync.RWMutex
+	syncSessions map[string]syncSession
+}
+
+// Only use this session
+func (s *syncSessionPool) addPrimarySession(sessionId string, client controltowerv1grpc.ToolServiceClient) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.syncSessions["*"] = syncSession{
+		sessionId:         sessionId,
+		toolServiceClient: client,
+	}
+}
+
+func (s *syncSessionPool) hasKeyedSession(key string) bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	_, ok := s.syncSessions[key]
+	return ok
+}
+
+func (s *syncSessionPool) addKeyedSession(key, sessionId string, client controltowerv1grpc.ToolServiceClient) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.syncSessions[key] = syncSession{
+		sessionId:         sessionId,
+		toolServiceClient: client,
+	}
+}
+
+func (s *syncSessionPool) getSession(key string) (*syncSession, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s, ok := s.syncSessions["*"]; ok {
+		return &s, nil
+	}
+
+	if s, ok := s.syncSessions[key]; ok {
+		return &s, nil
+	}
+
+	return nil, fmt.Errorf("session not found for key: %s", key)
+}
+
+func (s *syncSessionPool) forEach(f func(key string, session *syncSession) error) error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	for key, session := range s.syncSessions {
+		err := f(key, &session)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+type workItem struct {
+	pkg   *models.Package
+	event *analyzer.AnalyzerEvent
 }
 
 type syncReporter struct {
-	client       *syncv1.ClientWithResponses
-	config       *SyncReporterConfig
-	issueChannel chan *syncIssueWrapper
-	done         chan bool
-	wg           sync.WaitGroup
-	jobId        string
+	config    *SyncReporterConfig
+	workQueue chan *workItem
+	done      chan bool
+	wg        sync.WaitGroup
+	client    *grpc.ClientConn
+	sessions  *syncSessionPool
 }
 
 func NewSyncReporter(config SyncReporterConfig) (Reporter, error) {
-	apiKeyApplier := func(ctx context.Context, req *http.Request) error {
-		req.Header.Set("Authorization", auth.ApiKey())
-		return nil
+	if config.ClientConnection == nil {
+		return nil, fmt.Errorf("missing gRPC client connection")
 	}
 
-	// TODO: Use hysterix as the API client with retries, backoff
-	// connection pooling etc.
+	// TODO: Auto-discover config using CI environment variables
+	// if enabled by the user
 
-	client, err := syncv1.NewClientWithResponses(auth.DefaultSyncApiUrl(),
-		syncv1.WithRequestEditorFn(apiKeyApplier))
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize client for sync reporter: %w", err)
+	syncSessionPool := syncSessionPool{
+		syncSessions: make(map[string]syncSession),
 	}
 
-	config.TriggerEvent = string(syncv1.CreateJobRequestTriggerEventManual)
-	config.ProjectSource = string(syncv1.CreateJobRequestProjectSourceOther)
-	config.toolType = string(syncv1.CreateJobRequestToolTypeOssVet)
-	config.toolName = syncReporterToolName
-	config.toolVersion = "FIXME"
+	trigger := controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL
+	source := packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_UNSPECIFIED
 
-	// TODO: Use an interface to auto-discover environmental details
-	// if not provided and update config
+	// A multi-project sync is required for cases like GitHub org where
+	// we are scanning multiple repositories
+	if !config.EnableMultiProjectSync {
+		logger.Debugf("Report Sync: Creating tool session for project: %s, version: %s",
+			config.ProjectName, config.ProjectVersion)
 
-	err = validateSyncReporterConfig(&config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to validate sync reporter config : %w", err)
-	}
+		// Refactor this into a common session creator function
+		toolServiceClient := controltowerv1grpc.NewToolServiceClient(config.ClientConnection)
+		toolSessionRes, err := toolServiceClient.CreateToolSession(context.Background(),
+			&controltowerv1.CreateToolSessionRequest{
+				ToolName:       config.ToolName,
+				ToolVersion:    config.ToolVersion,
+				ProjectName:    config.ProjectName,
+				ProjectVersion: &config.ProjectVersion,
+				ProjectSource:  &source,
+				Trigger:        &trigger,
+			})
+		if err != nil {
+			return nil, fmt.Errorf("failed to create tool session: %w", err)
+		}
 
-	jobId, err := createJobForSyncReportSession(client, &config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create job for sync reporter: %w", err)
+		logger.Debugf("Report Sync: Tool data upload session ID: %s",
+			toolSessionRes.GetToolSession().GetToolSessionId())
+
+		syncSessionPool.addPrimarySession(toolSessionRes.GetToolSession().GetToolSessionId(),
+			toolServiceClient)
 	}
 
 	done := make(chan bool)
-	issuesChan := make(chan *syncIssueWrapper, 100000)
-
 	self := &syncReporter{
-		config:       &config,
-		client:       client,
-		issueChannel: issuesChan,
-		jobId:        jobId,
-		done:         done,
+		config:    &config,
+		done:      done,
+		workQueue: make(chan *workItem, 1000),
+		client:    config.ClientConnection,
+		sessions:  &syncSessionPool,
 	}
 
 	self.startWorkers()
@@ -115,20 +197,50 @@ func (s *syncReporter) Name() string {
 }
 
 func (s *syncReporter) AddManifest(manifest *models.PackageManifest) {
+	manifestSessionKey := manifest.Path
+	if s.config.EnableMultiProjectSync && !s.sessions.hasKeyedSession(manifestSessionKey) {
+		projectName := manifest.GetSource().GetNamespace()
+		projectVersion := "main"
+
+		source := packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_UNSPECIFIED
+		trigger := controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL
+
+		logger.Debugf("Report Sync: Creating tool session for project: %s, version: %s",
+			projectName, projectVersion)
+
+		// Refactor this into a common session creator function
+		toolServiceClient := controltowerv1grpc.NewToolServiceClient(s.client)
+		toolSessionRes, err := toolServiceClient.CreateToolSession(context.Background(),
+			&controltowerv1.CreateToolSessionRequest{
+				ToolName:       s.config.ToolName,
+				ToolVersion:    s.config.ToolVersion,
+				ProjectName:    projectName,
+				ProjectVersion: &projectVersion,
+				ProjectSource:  &source,
+				Trigger:        &trigger,
+			})
+		if err != nil {
+			logger.Errorf("failed to create tool session for project: %s/%s: %v",
+				projectName, projectVersion, err)
+		}
+
+		logger.Debugf("Report Sync: Tool data upload session ID: %s",
+			toolSessionRes.GetToolSession().GetToolSessionId())
+
+		s.sessions.addKeyedSession(manifestSessionKey,
+			toolSessionRes.GetToolSession().GetToolSessionId(), toolServiceClient)
+
+	}
+
 	// We are ignoring the error here because we are asynchronously handling the sync of Manifest
 	_ = readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
-
-		s.queuePackageDependencyIssue(manifest, pkg)
-		s.queuePackageMetadataIssue(manifest, pkg)
-		s.queuePackageLicenseIssue(manifest, pkg)
-		s.queuePackageVulnerabilityIssue(manifest, pkg)
-		s.queuePackageScorecardIssue(manifest, pkg)
-
+		s.queuePackage(pkg)
 		return nil
 	})
 }
 
 func (s *syncReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
+	s.queueEvent(event)
 }
 
 func (s *syncReporter) AddPolicyEvent(event *policy.PolicyEvent) {
@@ -138,12 +250,30 @@ func (s *syncReporter) Finish() error {
 	s.wg.Wait()
 	close(s.done)
 
-	return nil
+	return s.sessions.forEach(func(_ string, session *syncSession) error {
+		logger.Debugf("Report Sync: Completing tool session: %s", session.sessionId)
+
+		_, err := session.toolServiceClient.CompleteToolSession(context.Background(),
+			&controltowerv1.CompleteToolSessionRequest{
+				ToolSession: &controltowerv1.ToolSession{
+					ToolSessionId: session.sessionId,
+				},
+
+				Status: controltowerv1.CompleteToolSessionRequest_STATUS_SUCCESS,
+			})
+
+		return err
+	})
 }
 
-func (s *syncReporter) queueIssueForSync(issue *syncIssueWrapper) {
+func (s *syncReporter) queueEvent(event *analyzer.AnalyzerEvent) {
 	s.wg.Add(1)
-	s.issueChannel <- issue
+	s.workQueue <- &workItem{event: event}
+}
+
+func (s *syncReporter) queuePackage(pkg *models.Package) {
+	s.wg.Add(1)
+	s.workQueue <- &workItem{pkg: pkg}
 }
 
 func (s *syncReporter) startWorkers() {
@@ -160,10 +290,17 @@ func (s *syncReporter) startWorkers() {
 func (s *syncReporter) syncReportWorker() {
 	for {
 		select {
-		case issue := <-s.issueChannel:
-			err := s.syncReportIssue(issue)
-			if err != nil {
-				logger.Errorf("failed to sync issue: %v", err)
+		case item := <-s.workQueue:
+			if item.event != nil {
+				err := s.syncEvent(item.event)
+				if err != nil {
+					logger.Errorf("failed to sync event: %v", err)
+				}
+			} else if item.pkg != nil {
+				err := s.syncPackage(item.pkg)
+				if err != nil {
+					logger.Errorf("failed to sync package: %v", err)
+				}
 			}
 		case <-s.done:
 			return
@@ -171,270 +308,212 @@ func (s *syncReporter) syncReportWorker() {
 	}
 }
 
-func (s *syncReporter) syncReportIssue(iw *syncIssueWrapper) error {
+func (s *syncReporter) syncEvent(event *analyzer.AnalyzerEvent) error {
 	defer s.wg.Done()
 
-	res, err := s.client.CreateJobIssueWithResponse(context.Background(), s.jobId, iw.issue)
+	pkg := event.Package
+	filter := event.Filter
+
+	if pkg == nil || filter == nil || pkg.Manifest == nil {
+		return fmt.Errorf("failed to sync event: invalid event data")
+	}
+
+	manifestSessionKey := pkg.Manifest.Path
+	session, err := s.sessions.getSession(manifestSessionKey)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get session for package: %s/%s/%s: %w",
+			pkg.Manifest.Ecosystem, pkg.GetName(), pkg.GetVersion(), err)
 	}
 
-	defer res.HTTPResponse.Body.Close()
-
-	if res.HTTPResponse.StatusCode != http.StatusCreated {
-		apiErr, _ := api_errors.UnmarshalApiError(res.Body)
-		if apiErr.Retriable() && (iw.retries < syncReporterMaxRetries) {
-			iw.retries++
-			s.queueIssueForSync(iw)
-			return nil
-		}
-
-		return fmt.Errorf("invalid response code %d from Issue API : %w",
-			res.HTTPResponse.StatusCode, err)
+	checkType := policyv1.RuleCheck_RULE_CHECK_UNSPECIFIED
+	switch filter.GetCheckType() {
+	case checks.CheckType_CheckTypeVulnerability:
+		checkType = policyv1.RuleCheck_RULE_CHECK_VULNERABILITY
+	case checks.CheckType_CheckTypeLicense:
+		checkType = policyv1.RuleCheck_RULE_CHECK_LICENSE
+	case checks.CheckType_CheckTypeMalware:
+		checkType = policyv1.RuleCheck_RULE_CHECK_MALWARE
+	case checks.CheckType_CheckTypeMaintenance:
+		checkType = policyv1.RuleCheck_RULE_CHECK_MAINTENANCE
+	case checks.CheckType_CheckTypePopularity:
+		checkType = policyv1.RuleCheck_RULE_CHECK_POPULARITY
+	case checks.CheckType_CheckTypeSecurityScorecard:
+		checkType = policyv1.RuleCheck_RULE_CHECK_PROJECT_SCORECARD
+	default:
+		logger.Warnf("unsupported check type: %s", filter.GetCheckType())
 	}
 
-	response := utils.SafelyGetValue(res.JSON201)
-	logger.Debugf("Synced issued with ID: %s", response.Id)
+	namespace := pkg.Manifest.GetSource().GetNamespace()
+	req := controltowerv1.PublishPolicyViolationRequest{
+		ToolSession: &controltowerv1.ToolSession{
+			ToolSessionId: session.sessionId,
+		},
+
+		Manifest: &packagev1.PackageManifest{
+			Ecosystem: pkg.Manifest.GetControlTowerSpecEcosystem(),
+			Namespace: &namespace,
+			Name:      pkg.Manifest.GetSource().GetPath(),
+		},
+
+		PackageVersion: &packagev1.PackageVersion{
+			Package: &packagev1.Package{
+				Ecosystem: pkg.Manifest.GetControlTowerSpecEcosystem(),
+				Name:      pkg.Name,
+			},
+
+			Version: pkg.Version,
+		},
+
+		Violation: &policyv1.Violation{
+			Rule: &policyv1.Rule{
+				Name:        filter.GetName(),
+				Description: filter.GetSummary(),
+				Value:       filter.GetValue(),
+				Check:       checkType,
+			},
+
+			Evidences: []*policyv1.ViolationEvidence{},
+		},
+	}
+
+	_, err = session.toolServiceClient.PublishPolicyViolation(context.Background(), &req)
+	if err != nil {
+		return fmt.Errorf("failed to publish policy violation: %w", err)
+	}
 
 	return nil
 }
 
-func (s *syncReporter) buildPackageIssue(issueType syncv1.IssueIssueType,
-	manifest *models.PackageManifest, pkg *models.Package) syncv1.PackageIssue {
-	ecosystem := syncv1.PackageIssueManifestEcosystem(manifest.Ecosystem)
-	return syncv1.PackageIssue{
-		Issue: syncv1.Issue{
-			IssueType: issueType,
+func (s *syncReporter) syncPackage(pkg *models.Package) error {
+	defer s.wg.Done()
+
+	manifestSessionKey := pkg.Manifest.Path
+	session, err := s.sessions.getSession(manifestSessionKey)
+	if err != nil {
+		return fmt.Errorf("failed to get session for package: %s/%s/%s: %w",
+			pkg.Manifest.Ecosystem, pkg.GetName(), pkg.GetVersion(), err)
+	}
+
+	// Build the base package manifest and package
+	req := controltowerv1.PublishPackageInsightRequest{
+		ToolSession: &controltowerv1.ToolSession{
+			ToolSessionId: session.sessionId,
 		},
-		ManifestEcosystem: &ecosystem,
-		ManifestPath:      &manifest.Path,
-		PackageName:       &pkg.Name,
-		PackageVersion:    &pkg.Version,
+
+		Manifest: &packagev1.PackageManifest{
+			Ecosystem: pkg.Manifest.GetControlTowerSpecEcosystem(),
+			Namespace: &pkg.Manifest.Path,
+			Name:      pkg.Manifest.GetDisplayPath(),
+		},
+
+		PackageVersion: &packagev1.PackageVersion{
+			Package: &packagev1.Package{
+				Ecosystem: pkg.Manifest.GetControlTowerSpecEcosystem(),
+				Name:      pkg.Name,
+			},
+
+			Version: pkg.Version,
+		},
+
+		PackageVersionInsight: &packagev1.PackageVersionInsight{
+			Dependencies:    []*packagev1.PackageVersion{},
+			Vulnerabilities: []*vulnerabilityv1.Vulnerability{},
+			ProjectInsights: []*packagev1.ProjectInsight{},
+			Licenses: &packagev1.LicenseMetaList{
+				Licenses: []*packagev1.LicenseMeta{},
+			},
+		},
 	}
-}
 
-func (s *syncReporter) queuePackageDependencyIssue(manifest *models.PackageManifest, pkg *models.Package) {
-	issue := syncv1.IssuePackageDependency{
-		PackageIssue: s.buildPackageIssue(syncv1.IssueIssueTypePackageDependency,
-			manifest, pkg),
-	}
+	// Add package dependencies
+	dependencies, err := pkg.GetDependencies()
+	if err != nil {
+		logger.Warnf("failed to get dependencies for package: %s/%s/%s: %s",
+			pkg.Manifest.Ecosystem, pkg.GetName(), pkg.GetVersion(), err.Error())
+	} else {
+		for _, child := range dependencies {
+			req.PackageVersionInsight.Dependencies = append(req.PackageVersionInsight.Dependencies, &packagev1.PackageVersion{
+				Package: &packagev1.Package{
+					Ecosystem: child.Manifest.GetControlTowerSpecEcosystem(),
+					Name:      child.GetName(),
+				},
 
-	if pkg.Parent != nil {
-		issue.ParentPackageName = &pkg.Parent.Name
-		issue.ParentPackageVersion = &pkg.Parent.Version
-	}
-
-	iw := syncIssueWrapper{issue: issue}
-	s.queueIssueForSync(&iw)
-}
-
-func (s *syncReporter) queuePackageMetadataIssue(manifest *models.PackageManifest, pkg *models.Package) {
-	insights := utils.SafelyGetValue(pkg.Insights)
-	projects := utils.SafelyGetValue(insights.Projects)
-
-	for _, project := range projects {
-		issue := syncv1.IssuePackageSource{
-			PackageIssue: s.buildPackageIssue(syncv1.IssueIssueTypePackageSourceInfo,
-				manifest, pkg),
-		}
-
-		sourceType := utils.SafelyGetValue(project.Type)
-		issueSourceType := syncv1.IssuePackageSourceSourceTypeOther
-
-		switch sourceType {
-		case "GITHUB":
-			issueSourceType = syncv1.IssuePackageSourceSourceTypeGithub
-		case "BITBUCKET":
-			issueSourceType = syncv1.IssuePackageSourceSourceTypeBitbucket
-		case "GITLAB":
-			issueSourceType = syncv1.IssuePackageSourceSourceTypeGitlab
-		}
-
-		issue.SourceType = &issueSourceType
-		issue.SourceUrl = project.Link
-		issue.SourceDisplayName = project.DisplayName
-		issue.SourceForks = project.Forks
-		issue.SourceStars = project.Stars
-
-		s.queueIssueForSync(&syncIssueWrapper{issue: issue})
-	}
-}
-
-func (s *syncReporter) queuePackageLicenseIssue(manifest *models.PackageManifest, pkg *models.Package) {
-	insights := utils.SafelyGetValue(pkg.Insights)
-	licenses := utils.SafelyGetValue(insights.Licenses)
-
-	for _, license := range licenses {
-		licenseId := syncv1.IssuePackageLicenseLicenseId(license)
-		issue := syncv1.IssuePackageLicense{
-			PackageIssue: s.buildPackageIssue(syncv1.IssueIssueTypePackageLicense,
-				manifest, pkg),
-			LicenseId: &licenseId,
-		}
-
-		s.queueIssueForSync(&syncIssueWrapper{issue: issue})
-	}
-}
-
-func (s *syncReporter) queuePackageVulnerabilityIssue(manifest *models.PackageManifest, pkg *models.Package) {
-	insights := utils.SafelyGetValue(pkg.Insights)
-	vulnerabilities := utils.SafelyGetValue(insights.Vulnerabilities)
-
-	for _, vuln := range vulnerabilities {
-		issue := syncv1.IssuePackageVulnerability{
-			PackageIssue: s.buildPackageIssue(syncv1.IssueIssueTypePackageVulnerability,
-				manifest, pkg),
-		}
-
-		severities := []struct {
-			Risk  *syncv1.IssuePackageCommonVulnerabilitySeveritiesRisk `json:"risk,omitempty"`
-			Score *string                                               `json:"score,omitempty"`
-			Type  *syncv1.IssuePackageCommonVulnerabilitySeveritiesType `json:"type,omitempty"`
-		}{}
-
-		issue.Vulnerability = &syncv1.IssuePackageCommonVulnerability{
-			Id:      vuln.Id,
-			Summary: vuln.Summary,
-			Aliases: vuln.Aliases,
-			Related: vuln.Related,
-		}
-
-		insightsVulnSeverities := utils.SafelyGetValue(vuln.Severities)
-		for _, severity := range insightsVulnSeverities {
-			sRisk := syncv1.IssuePackageCommonVulnerabilitySeveritiesRisk(utils.SafelyGetValue(severity.Risk))
-			sType := syncv1.IssuePackageCommonVulnerabilitySeveritiesType(utils.SafelyGetValue(severity.Type))
-
-			severities = append(severities, struct {
-				Risk  *syncv1.IssuePackageCommonVulnerabilitySeveritiesRisk `json:"risk,omitempty"`
-				Score *string                                               `json:"score,omitempty"`
-				Type  *syncv1.IssuePackageCommonVulnerabilitySeveritiesType `json:"type,omitempty"`
-			}{
-				Score: severity.Score,
-				Risk:  &sRisk,
-				Type:  &sType,
+				Version: child.GetVersion(),
 			})
 		}
-
-		issue.Vulnerability.Severities = &severities
-		s.queueIssueForSync(&syncIssueWrapper{issue: issue})
 	}
-}
 
-func (s *syncReporter) queuePackageScorecardIssue(manifest *models.PackageManifest, pkg *models.Package) {
+	// Get the insights
 	insights := utils.SafelyGetValue(pkg.Insights)
 
-	// Basic sanity test to fail fast if Scorecard is unavailable
-	if (insights.Scorecard == nil) || (insights.Scorecard.Content == nil) {
-		return
+	// Add vulnerabilities. We will publish only the minimum required information.
+	// The backend should have its own VDB to enrich the data.
+	vulnerabilities := utils.SafelyGetValue(insights.Vulnerabilities)
+	for _, v := range vulnerabilities {
+		vId := utils.SafelyGetValue(v.Id)
+		vulnerability := vulnerabilityv1.Vulnerability{
+			Id: &vulnerabilityv1.VulnerabilityIdentifier{
+				Value: vId,
+			},
+			Summary: utils.SafelyGetValue(v.Summary),
+		}
+
+		if strings.HasPrefix(vId, "CVE-") {
+			vulnerability.Id.Type = vulnerabilityv1.VulnerabilityIdentifierType_VULNERABILITY_IDENTIFIER_TYPE_CVE
+		} else if strings.HasPrefix(vId, "OSV-") {
+			vulnerability.Id.Type = vulnerabilityv1.VulnerabilityIdentifierType_VULNERABILITY_IDENTIFIER_TYPE_OSV
+		}
+
+		req.PackageVersionInsight.Vulnerabilities = append(req.PackageVersionInsight.Vulnerabilities, &vulnerability)
 	}
 
-	scorecard := utils.SafelyGetValue(insights.Scorecard)
-	scorecardContent := utils.SafelyGetValue(scorecard.Content)
-	scorecardRepo := utils.SafelyGetValue(scorecardContent.Repository)
-	scorecardChecks := utils.SafelyGetValue(scorecardContent.Checks)
+	// Add project information
+	project := utils.SafelyGetValue(insights.Projects)
+	for _, p := range project {
+		stars := int64(utils.SafelyGetValue(p.Stars))
+		forks := int64(utils.SafelyGetValue(p.Forks))
+		issues := int64(utils.SafelyGetValue(p.Issues))
 
-	date := utils.SafelyGetValue(scorecardContent.Date).Format("2006-01-02")
-	repo := struct {
-		Commit *string `json:"commit,omitempty"`
-		Name   *string `json:"name,omitempty"`
-	}{
-		Commit: scorecardRepo.Commit,
-		Name:   scorecardRepo.Name,
-	}
+		vt := packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_UNSPECIFIED
+		switch utils.SafelyGetValue(p.Type) {
+		case "GITHUB":
+			vt = packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_GITHUB
+		case "GITLAB":
+			vt = packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_GITLAB
+		}
 
-	checks := []struct {
-		Details       *[]string `json:"details,omitempty"`
-		Documentation *struct {
-			Short *string `json:"short,omitempty"`
-			Url   *string `json:"url,omitempty"`
-		} `json:"documentation,omitempty"`
-		Name   *string `json:"name,omitempty"`
-		Reason *string `json:"reason,omitempty"`
-		Score  *int    `json:"score"`
-	}{}
+		req.PackageVersionInsight.ProjectInsights = append(req.PackageVersionInsight.ProjectInsights, &packagev1.ProjectInsight{
+			Project: &packagev1.Project{
+				Type: vt,
+				Name: utils.SafelyGetValue(p.Name),
+				Url:  utils.SafelyGetValue(p.Link),
+			},
 
-	for _, check := range scorecardChecks {
-		// We have to do this stupid type conversion because Scorecard check score seems
-		// be to int / float32 in different specs. We are good with downsizing width because
-		// scorecard score is max 10
-		checkScore := utils.SafelyGetValue(check.Score)
-		checkScoreInt := int(math.Round(float64(checkScore)))
-
-		checks = append(checks, struct {
-			Details       *[]string `json:"details,omitempty"`
-			Documentation *struct {
-				Short *string `json:"short,omitempty"`
-				Url   *string `json:"url,omitempty"`
-			} `json:"documentation,omitempty"`
-			Name   *string `json:"name,omitempty"`
-			Reason *string `json:"reason,omitempty"`
-			Score  *int    `json:"score"`
-		}{
-			Details: check.Details,
-			Name:    (*string)(check.Name),
-			Reason:  check.Reason,
-			Score:   &checkScoreInt,
+			Stars: &stars,
+			Forks: &forks,
+			Issues: &packagev1.ProjectInsight_IssueStat{
+				Total: issues,
+			},
 		})
 	}
 
-	issue := &syncv1.IssuePackageScorecard{
-		PackageIssue: s.buildPackageIssue(syncv1.IssueIssueTypePackageOpenssfScorecard,
-			manifest, pkg),
-		Date:   &date,
-		Score:  scorecardContent.Score,
-		Repo:   &repo,
-		Checks: &checks,
+	licenses := utils.SafelyGetValue(insights.Licenses)
+	for _, license := range licenses {
+		req.PackageVersionInsight.Licenses.Licenses = append(req.PackageVersionInsight.Licenses.Licenses, &packagev1.LicenseMeta{
+			LicenseId: string(license),
+			Name:      string(license),
+		})
 	}
 
-	s.queueIssueForSync(&syncIssueWrapper{issue: issue})
-}
+	// OpenSSF
+	// We can't use vet's collected scorecard because its data model is wrong. There is
+	// not a single scorecard per package. Rather there is a scorecard per project. Since
+	// a package may be related to multiple projects, we will have multiple related scorecards.
 
-func validateSyncReporterConfig(config *SyncReporterConfig) error {
-	if utils.IsEmptyString(config.ProjectName) {
-		return errors.New("project name not in config")
-	}
-
-	if utils.IsEmptyString(config.StreamName) {
-		return errors.New("stream name not in config")
-	}
-
-	if utils.IsEmptyString(config.TriggerEvent) {
-		return errors.New("trigger event not in config")
+	_, err = session.toolServiceClient.PublishPackageInsight(context.Background(), &req)
+	if err != nil {
+		return fmt.Errorf("failed to publish package insight: %w", err)
 	}
 
 	return nil
-}
-
-func createJobForSyncReportSession(client *syncv1.ClientWithResponses,
-	config *SyncReporterConfig) (string, error) {
-
-	jobConfig := syncv1.CreateSyncJobJSONRequestBody{
-		ProjectName:   config.ProjectName,
-		ProjectSource: syncv1.CreateJobRequestProjectSource(config.ProjectSource),
-		StreamName:    config.StreamName,
-		TriggerEvent:  syncv1.CreateJobRequestTriggerEvent(config.TriggerEvent),
-		ToolType:      syncv1.CreateJobRequestToolType(config.toolType),
-		ToolName:      config.toolName,
-		ToolVersion:   config.toolVersion,
-		GitRefType:    (*syncv1.CreateJobRequestGitRefType)(&config.GitRefType),
-		GitRef:        &config.GitRef,
-		GitRefName:    &config.GitRefName,
-		GitSha:        &config.GitSha,
-	}
-
-	job, err := client.CreateSyncJobWithResponse(context.Background(), jobConfig)
-	if err != nil {
-		return "", err
-	}
-
-	defer job.HTTPResponse.Body.Close()
-
-	if job.HTTPResponse.StatusCode != http.StatusCreated {
-		err, _ = api_errors.UnmarshalApiError(job.Body)
-		return "", fmt.Errorf("invalid response code %d from Job API : %w",
-			job.HTTPResponse.StatusCode, err)
-	}
-
-	res := utils.SafelyGetValue(job.JSON201)
-	return utils.SafelyGetValue(res.Id), nil
 }
