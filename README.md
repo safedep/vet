@@ -2,6 +2,10 @@
     <img alt="SafeDep Vet" src="docs/static/img/vet-logo.png" width="150" />
 </h1>
 
+<p align="center">
+    Created and maintained by <b><a href="https://safedep.io/">https://safedep.io</a></b> with contributions from the community 🚀
+</p>
+
 [![Go Report Card](https://goreportcard.com/badge/github.com/safedep/vet)](https://goreportcard.com/report/github.com/safedep/vet)
 ![License](https://img.shields.io/github/license/safedep/vet)
 ![Release](https://img.shields.io/github/v/release/safedep/vet)
