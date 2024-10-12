@@ -16,6 +16,18 @@ func NewQueryService(client *grpc.ClientConn) (*queryService, error) {
 	return &queryService{client: client}, nil
 }
 
+func (q *queryService) GetSchema() (*controltowerv1.GetSqlSchemaResponse, error) {
+	queryServiceClient := controltowerv1grpc.NewQueryServiceClient(q.client)
+
+	res, err := queryServiceClient.GetSqlSchema(context.Background(),
+		&controltowerv1.GetSqlSchemaRequest{})
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
 func (q *queryService) ExecuteSql(sql string) (*QueryResponse, error) {
 	queryServiceClient := controltowerv1grpc.NewQueryServiceClient(q.client)
 
