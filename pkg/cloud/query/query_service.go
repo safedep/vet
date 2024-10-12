@@ -28,12 +28,12 @@ func (q *queryService) GetSchema() (*controltowerv1.GetSqlSchemaResponse, error)
 	return res, nil
 }
 
-func (q *queryService) ExecuteSql(sql string) (*QueryResponse, error) {
+func (q *queryService) ExecuteSql(sql string, pageSize int) (*QueryResponse, error) {
 	queryServiceClient := controltowerv1grpc.NewQueryServiceClient(q.client)
 
 	res, err := queryServiceClient.QueryBySql(context.Background(), &controltowerv1.QueryBySqlRequest{
 		Query:    sql,
-		PageSize: 100,
+		PageSize: int32(pageSize),
 	})
 
 	if err != nil {

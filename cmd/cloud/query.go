@@ -14,7 +14,8 @@ import (
 )
 
 var (
-	querySql string
+	querySql      string
+	queryPageSize int
 )
 
 func newQueryCommand() *cobra.Command {
@@ -64,6 +65,7 @@ func newQueryExecuteCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&querySql, "sql", "s", "", "SQL query to execute")
+	cmd.Flags().IntVarP(&queryPageSize, "limit", "", 100, "Limit the number of results returned")
 
 	return cmd
 }
@@ -131,7 +133,7 @@ func executeQuery() error {
 		return err
 	}
 
-	response, err := queryService.ExecuteSql(querySql)
+	response, err := queryService.ExecuteSql(querySql, queryPageSize)
 	if err != nil {
 		return err
 	}
