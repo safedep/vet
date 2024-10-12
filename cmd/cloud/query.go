@@ -14,7 +14,8 @@ import (
 )
 
 var (
-	querySql string
+	querySql      string
+	queryPageSize int
 )
 
 func newQueryCommand() *cobra.Command {
@@ -26,7 +27,25 @@ func newQueryCommand() *cobra.Command {
 		},
 	}
 
+	cmd.AddCommand(newQuerySchemaCommand())
 	cmd.AddCommand(newQueryExecuteCommand())
+
+	return cmd
+}
+
+func newQuerySchemaCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "schema",
+		Short: "Get the schema for the query service",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			err := getQuerySchema()
+			if err != nil {
+				logger.Errorf("Failed to get query schema: %v", err)
+			}
+
+			return nil
+		},
+	}
 
 	return cmd
 }
@@ -46,8 +65,57 @@ func newQueryExecuteCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&querySql, "sql", "s", "", "SQL query to execute")
+	cmd.Flags().IntVarP(&queryPageSize, "limit", "", 100, "Limit the number of results returned")
 
 	return cmd
+}
+
+func getQuerySchema() error {
+	client, err := auth.ControlPlaneClientConnection("vet-cloud-query")
+	if err != nil {
+		return err
+	}
+
+	queryService, err := query.NewQueryService(client)
+	if err != nil {
+		return err
+	}
+
+	response, err := queryService.GetSchema()
+	if err != nil {
+		return err
+	}
+
+	tbl := table.NewWriter()
+	tbl.SetOutputMirror(os.Stdout)
+	tbl.SetStyle(table.StyleLight)
+
+	tbl.AppendHeader(table.Row{"Name", "Column Name", "Selectable", "Filterable", "Reference"})
+
+	schemas := response.GetSchemas()
+	for _, schema := range schemas {
+		schemaName := schema.GetName()
+		columns := schema.GetColumns()
+
+		sort.Slice(columns, func(i, j int) bool {
+			return columns[i].GetName() < columns[j].GetName()
+		})
+
+		for _, column := range columns {
+			tbl.AppendRow(table.Row{
+				schemaName,
+				column.GetName(),
+				column.GetSelectable(),
+				column.GetFilterable(),
+				column.GetReferenceUrl(),
+			})
+		}
+
+		tbl.AppendSeparator()
+	}
+
+	tbl.Render()
+	return nil
 }
 
 func executeQuery() error {
@@ -65,7 +133,7 @@ func executeQuery() error {
 		return err
 	}
 
-	response, err := queryService.ExecuteSql(querySql)
+	response, err := queryService.ExecuteSql(querySql, queryPageSize)
 	if err != nil {
 		return err
 	}
