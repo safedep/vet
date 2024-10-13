@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/package-url/packageurl-go"
+	"github.com/safedep/vet/pkg/models"
 )
 
 // Wraps a PURL parsed response for extensibility. This is internal and will
@@ -72,6 +73,7 @@ func PurlTypeToEcosystem(purlType string) (lockfile.Ecosystem, error) {
 		"pip":                   lockfile.PipEcosystem,
 		"go":                    lockfile.GoEcosystem,
 		"rubygems":              lockfile.BundlerEcosystem,
+		packageurl.TypeGithub:   models.EcosystemGitHubActions,
 	}
 
 	ecosystem, ok := knownTypes[purlType]
