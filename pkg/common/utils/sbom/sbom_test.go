@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/google/osv-scanner/pkg/lockfile"
+	"github.com/safedep/vet/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,7 +14,7 @@ func TestParsePurlType(t *testing.T) {
 		expectedEco lockfile.Ecosystem
 		expectedOk  bool
 	}{
-		{"github", "", false}, // Update with the expected ecosystem
+		{"github", models.EcosystemGitHubActions, true}, // Update with the expected ecosystem
 		{"golang", lockfile.GoEcosystem, true},
 		{"maven", lockfile.MavenEcosystem, true},
 		{"npm", lockfile.NpmEcosystem, true},

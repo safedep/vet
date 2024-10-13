@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"regexp"
 
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -20,6 +21,7 @@ const (
 	customParserTypeSetupPy           = "setup.py"
 	customParserTypeJavaArchive       = "jar"
 	customParserTypeJavaWebAppArchive = "war"
+	customParserGitHubActions         = "github-actions"
 )
 
 var (
@@ -29,21 +31,23 @@ var (
 // Exporting as constants for use outside this package to refer to specific
 // parsers. For example: Github reader
 const (
-	LockfileAsBomSpdx      = customParserSpdxSBOM
-	LockfileAsBomCycloneDx = customParserCycloneDXSBOM
+	LockfileAsBomSpdx       = customParserSpdxSBOM
+	LockfileAsBomCycloneDx  = customParserCycloneDXSBOM
+	LockfileAsGitHubActions = customParserGitHubActions
 )
 
 // We are supporting only those ecosystems for which we have data
 // for enrichment. More ecosystems will be supported as we improve
 // the capability of our Insights API
 var supportedEcosystems map[string]bool = map[string]bool{
-	models.EcosystemGo:       true,
-	models.EcosystemMaven:    true,
-	models.EcosystemNpm:      true,
-	models.EcosystemPyPI:     true,
-	models.EcosystemRubyGems: true,
-	models.EcosystemCyDxSBOM: true,
-	models.EcosystemSpdxSBOM: true,
+	models.EcosystemGo:            true,
+	models.EcosystemMaven:         true,
+	models.EcosystemNpm:           true,
+	models.EcosystemPyPI:          true,
+	models.EcosystemRubyGems:      true,
+	models.EcosystemCyDxSBOM:      true,
+	models.EcosystemSpdxSBOM:      true,
+	models.EcosystemGitHubActions: true,
 }
 
 // TODO: Migrate these to graph parser
@@ -82,6 +86,7 @@ var dependencyGraphParsers map[string]dependencyGraphParser = map[string]depende
 	customParserCycloneDXSBOM:         parseSbomCycloneDxAsGraph,
 	customParserTypeJavaArchive:       parseJavaArchiveAsGraph,
 	customParserTypeJavaWebAppArchive: parseJavaArchiveAsGraph,
+	customParserGitHubActions:         parseGithubActionWorkflowAsGraph,
 }
 
 // Maintain a map of extension to lockfileAs
@@ -156,6 +161,15 @@ func FindParser(lockfilePath, lockfileAs string) (Parser, error) {
 		}
 	}
 
+	// Check special case of GitHub actions
+	if m, err := regexp.Match(`\.github/(workflows|actions)/.*\.(yml|yaml)`, []byte(lockfilePath)); m && err == nil {
+		pw := &parserWrapper{graphParser: parseGithubActionWorkflowAsGraph,
+			parseAs: customParserGitHubActions}
+		if pw.supported() {
+			return pw, nil
+		}
+	}
+
 	// We failed!
 	logger.Debugf("No Parser found for the type %s", lockfileAs)
 	return nil, fmt.Errorf("no parser found with: %s for: %s", lockfileAs,
@@ -223,6 +237,8 @@ func (pw *parserWrapper) Ecosystem() string {
 		return models.EcosystemMaven
 	case customParserTypeJavaWebAppArchive:
 		return models.EcosystemMaven
+	case customParserGitHubActions:
+		return models.EcosystemGitHubActions
 	default:
 		logger.Debugf("Unsupported lockfile-as %s", pw.parseAs)
 		return ""
@@ -246,7 +262,7 @@ func (pw *parserWrapper) ParseWithConfig(lockfilePath string, config *ParserConf
 		return nil, err
 	}
 
-	pm := models.NewPackageManifest(lockfilePath, pw.Ecosystem())
+	pm := models.NewPackageManifestFromLocal(lockfilePath, pw.Ecosystem())
 	for _, pkg := range packages {
 		pm.AddPackage(&models.Package{
 			PackageDetails: pkg,

@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/anchore/syft/syft/pkg/cataloger/java"
+	"github.com/anchore/syft/syft/pkg/cataloger/githubactions"
 	"github.com/anchore/syft/syft/source/filesource"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/common/purl"
 	"github.com/safedep/vet/pkg/models"
 )
 
-func parseJavaArchiveAsGraph(path string, config *ParserConfig) (*models.PackageManifest, error) {
+func parseGithubActionWorkflowAsGraph(path string, _ *ParserConfig) (*models.PackageManifest, error) {
 	fi, err := os.Stat(path)
 	if err != nil {
 		return nil, err
@@ -32,17 +32,18 @@ func parseJavaArchiveAsGraph(path string, config *ParserConfig) (*models.Package
 		return nil, err
 	}
 
-	cataloger := java.NewArchiveCataloger(java.DefaultArchiveCatalogerConfig())
+	cataloger := githubactions.NewActionUsageCataloger()
 	pkgs, _, err := cataloger.Catalog(context.Background(), resolver)
 	if err != nil {
 		return nil, err
 	}
 
-	manifest := models.NewPackageManifestFromLocal(path, models.EcosystemMaven)
+	manifest := models.NewPackageManifestFromLocal(path, models.EcosystemGitHubActions)
 	for _, pkg := range pkgs {
 		parsedPurl, err := purl.ParsePackageUrl(pkg.PURL)
 		if err != nil {
-			logger.Errorf("failed to parse package url: %s from jar: %s", pkg.PURL, path)
+			logger.Errorf("failed to parse package url: %s from file: %s: %v",
+				pkg.PURL, path, err)
 			continue
 		}
 
@@ -52,4 +53,5 @@ func parseJavaArchiveAsGraph(path string, config *ParserConfig) (*models.Package
 	}
 
 	return manifest, nil
+
 }
