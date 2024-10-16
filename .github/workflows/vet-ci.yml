@@ -22,12 +22,24 @@ jobs:
         id: checkout
         uses: actions/checkout@v4
 
+      - name: Enable Cloud Cloud
+        run: echo "SAFEDEP_CLOUD_MODE=true" >> $GITHUB_ENV
+
+      - name: Override Cloud Mode if Actor is Dependabot
+        if: github.actor == 'dependabot[bot]'
+        run: echo "SAFEDEP_CLOUD_MODE=false" >> $GITHUB_ENV
+
+      - name: Override Cloud Mode if PR is from External Repository
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
+        run: echo "SAFEDEP_CLOUD_MODE=false" >> $GITHUB_ENV
+
       - name: Run vet
         uses: safedep/vet-action@v1
         with:
           policy: .github/vet/policy.yml
-          cloud: true
+          cloud: ${{ env.SAFEDEP_CLOUD_MODE }}
           cloud-key: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
           cloud-tenant: ${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SAFEDEP_CLOUD_MODE: ${{ env.SAFEDEP_CLOUD_MODE }}
