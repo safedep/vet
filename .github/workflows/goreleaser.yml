@@ -51,7 +51,6 @@ jobs:
       - name: Setup OSX Cross Compiler Tool Chain Environment
         run: |
           echo "OSXCROSS_DIR=$(dirname $GITHUB_WORKSPACE)/osxcross" >> $GITHUB_ENV
-
       - name: Clone OSX Cross Compiler Tool Chain
         run: git clone $OSX_CROSS_TOOLCHAIN_REPOSITORY $OSXCROSS_DIR
 
@@ -62,22 +61,21 @@ jobs:
           key: ${{ runner.os }}-osxcross-${{ env.OSX_CROSS_MACOS_SDK_VERSION }}
           path: |
             ${{ env.OSXCROSS_DIR }}/target/bin
-
       - name: Build OSX Cross Compiler Tool Chain
         if: steps.osxcross-cache.outputs.cache-hit != 'true'
         run: |
           cd $OSXCROSS_DIR
           SDK_VERSION=$OSX_CROSS_MACOS_SDK_VERSION UNATTENDED=yes ./build.sh
-
       - name: Add OSX Cross Compiler Tool Chain to Path
         run: |
           echo "$OSXCROSS_DIR/target/bin" >> $GITHUB_PATH
 
       - name: Run GoReleaser
         id: run-goreleaser
-        uses: goreleaser/goreleaser-action@8f67e590f2d095516493f017008adc464e63adb1 # v4.1.0
+        uses: goreleaser/goreleaser-action@286f3b13b1b49da4ac219696163fb8c1c93e1200 # v4.1.0
         with:
-          version: v1.26.2
+          distribution: goreleaser
+          version: '~> v2'
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
@@ -101,4 +99,3 @@ jobs:
       base64-subjects: "${{ needs.goreleaser.outputs.hashes }}"
       upload-assets: true
       private-repository: true
-
