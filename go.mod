@@ -10,7 +10,7 @@ require (
 	github.com/anchore/syft v1.11.1
 	github.com/cayleygraph/cayley v0.7.7-0.20240706181042-81dcd7d73e45
 	github.com/cayleygraph/quad v1.3.0
-	github.com/cli/oauth v1.0.1
+	github.com/cli/oauth v1.2.0
 	github.com/deepmap/oapi-codegen v1.16.3
 	github.com/gofri/go-github-ratelimit v1.1.0
 	github.com/gojek/heimdall v5.0.2+incompatible
@@ -35,8 +35,6 @@ require (
 	google.golang.org/protobuf v1.35.1
 	gopkg.in/yaml.v2 v2.4.0
 )
-
-replace github.com/owenrumney/go-sarif/v2 v2.3.1 => github.com/safedep/go-sarif/v2 v2.3.1
 
 // https://github.com/cli/oauth/pull/68
 replace github.com/cli/oauth v1.0.1 => github.com/abhisek/oauth v1.0.1-audience
@@ -75,6 +73,8 @@ require (
 	github.com/cactus/go-statsd-client/statsd v0.0.0-20200423205355-cb0885a1018c // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chainguard-dev/git-urls v1.0.2 // indirect
+	github.com/cli/browser v1.3.0 // indirect
+	github.com/cli/safeexec v1.0.1 // indirect
 	github.com/cloudflare/circl v1.4.0 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
@@ -214,7 +214,7 @@ require (
 	golang.org/x/exp v0.0.0-20240904232852-e7e105dedf7e // indirect
 	golang.org/x/mod v0.21.0 // indirect
 	golang.org/x/net v0.29.0 // indirect
-	golang.org/x/sys v0.25.0 // indirect
+	golang.org/x/sys v0.26.0 // indirect
 	golang.org/x/term v0.24.0 // indirect
 	golang.org/x/text v0.18.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
