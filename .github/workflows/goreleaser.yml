@@ -2,8 +2,8 @@ name: Release Automation
 
 on:
   push:
-    tags:
-      - "*" # triggers only if push new tag version, like `0.8.4` or else
+#    tags:
+#      - "*" # triggers only if push new tag version, like `0.8.4` or else
 
 concurrency: ci-release-automation
 
@@ -75,11 +75,11 @@ jobs:
 
       - name: Run GoReleaser
         id: run-goreleaser
-        uses: goreleaser/goreleaser-action@v6 # v4.1.0
+        uses: goreleaser/goreleaser-action@286f3b13b1b49da4ac219696163fb8c1c93e1200 # v6.0.0
         with:
           distribution: goreleaser
-          version: 'v2'
-          args: release --clean
+          version: '~> v2'
+          args: release --clean --skip publish --snapshot
         env:
           GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
 
@@ -102,4 +102,4 @@ jobs:
       base64-subjects: "${{ needs.goreleaser.outputs.hashes }}"
       upload-assets: true
       private-repository: true
-
+:
