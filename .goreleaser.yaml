@@ -14,7 +14,6 @@ builds:
     goos: [linux]
     goarch: [amd64]
     env:
-      - CGO_ENABLED=1
       - CC=x86_64-linux-gnu-gcc
       - CXX=x86_64-linux-gnu-g++
 
@@ -22,7 +21,6 @@ builds:
     goos: [darwin]
     goarch: [amd64, arm64]
     env:
-      - CGO_ENABLED=1
       - CC=o64-clang
       - CXX=o64-clang++
 
