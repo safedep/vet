@@ -102,4 +102,4 @@ jobs:
       base64-subjects: "${{ needs.goreleaser.outputs.hashes }}"
       upload-assets: true
       private-repository: true
-:
+
