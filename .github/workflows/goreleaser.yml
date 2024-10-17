@@ -67,12 +67,13 @@ jobs:
       - name: Add OSX Cross Compiler Tool Chain to Path
         run: |
           echo "$OSXCROSS_DIR/target/bin" >> $GITHUB_PATH
+
       - name: Run GoReleaser
         id: run-goreleaser
-        uses: goreleaser/goreleaser-action@v6 # v4.1.0
+        uses: goreleaser/goreleaser-action@286f3b13b1b49da4ac219696163fb8c1c93e1200 # v4.1.0
         with:
           distribution: goreleaser
-          version: 'v2'
+          version: '~> v2'
           args: release --clean --skip publish --snapshot
         env:
           GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
