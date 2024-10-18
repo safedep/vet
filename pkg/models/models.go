@@ -209,6 +209,8 @@ func (pm *PackageManifest) GetControlTowerSpecEcosystem() packagev1.Ecosystem {
 		return packagev1.Ecosystem_ECOSYSTEM_PYPI
 	case EcosystemGitHubActions:
 		return packagev1.Ecosystem_ECOSYSTEM_GITHUB_ACTIONS
+	case EcosystemPackagist:
+		return packagev1.Ecosystem_ECOSYSTEM_PACKAGIST
 	default:
 		return packagev1.Ecosystem_ECOSYSTEM_UNSPECIFIED
 	}

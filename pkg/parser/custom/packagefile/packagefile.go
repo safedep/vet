@@ -52,7 +52,7 @@ func ParsePackageFromPurl(purl string) (*PackageDetails, error) {
 	}
 	ecosysystem, err := sbom_utils.PurlTypeToLockfileEcosystem(instance.Type)
 	if err != nil {
-		logger.Debugf("Unknown ecosystem type %s", instance.Type)
+		logger.Debugf("Unknown ecosystem type: %s", instance.Type)
 		return nil, err
 	}
 	pd := &PackageDetails{
