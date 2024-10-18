@@ -1,5 +1,6 @@
 # This is an example .goreleaser.yml file with some sensible defaults.
 # Make sure to check the documentation at https://goreleaser.com
+version: 2
 before:
   hooks:
     - go mod tidy
@@ -10,31 +11,15 @@ env:
 
 builds:
   - id: linux
-    binary: vet
-    goos:
-      - linux
-    goarch:
-      - amd64
+    goos: [linux]
+    goarch: [amd64]
     env:
       - CC=x86_64-linux-gnu-gcc
       - CXX=x86_64-linux-gnu-g++
 
-  - id: darwin-amd64
-    binary: vet
-    goos:
-      - darwin
-    goarch:
-      - amd64
-    env:
-      - CC=o64-clang
-      - CXX=o64-clang++
-
-  - id: darwin-arm64
-    binary: vet
-    goos:
-      - darwin
-    goarch:
-      - arm64
+  - id: darwin
+    goos: [darwin]
+    goarch: [amd64, arm64]
     env:
       - CC=o64-clang
       - CXX=o64-clang++
@@ -51,7 +36,7 @@ brews:
     homepage: https://safedep.io
     description: "SafeDep vet is a tool for identifying open source software supply chain risks"
     license: "Apache-2.0"
-    tap:
+    repository:
       owner: safedep
       name: homebrew-tap
       branch: main
@@ -76,8 +61,9 @@ archives:
       format: zip
 checksum:
   name_template: 'checksums.txt'
+  algorithm: sha256
 snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+  version_template: "{{ incpatch .Version }}-next"
 changelog:
   sort: asc
   filters:
