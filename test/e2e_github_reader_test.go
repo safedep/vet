@@ -2,7 +2,6 @@ package test
 
 import (
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/safedep/vet/internal/connect"
@@ -48,14 +47,16 @@ func TestGithubReaderWithVetPublicRepository(t *testing.T) {
 		assert.NotNil(t, manifests[0])
 		assert.NotNil(t, manifests[1])
 
-		assert.Equal(t, manifests[0].GetSpecEcosystem().String(), modelspec.Ecosystem_SpdxSBOM.String())
+		assert.Equal(t, modelspec.Ecosystem_SpdxSBOM.String(), manifests[0].GetSpecEcosystem().String())
+		assert.Equal(t, modelspec.Ecosystem_SpdxSBOM.String(), manifests[1].GetSpecEcosystem().String())
+
 		assert.Equal(t, "https://github.com/safedep/vet.git", manifests[0].GetDisplayPath(), "found in Dependency API (SBOM)")
+		assert.Equal(t, "", manifests[0].GetPath())
+
+		assert.Equal(t, "", manifests[1].GetPath())
+		assert.Equal(t, "https://github.com/safedep/demo-client-java.git", manifests[1].GetDisplayPath())
+
 		assert.Greater(t, len(manifests[0].Packages), 0)
-
-		assert.True(t, strings.HasPrefix(manifests[1].GetDisplayPath(),
-			"https://api.github.com/repos/safedep/demo-client-java/git/blobs/"),
-			"found by enumerating top level directory")
-
 		assert.Greater(t, len(manifests[1].Packages), 0)
 	})
 }

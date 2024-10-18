@@ -51,7 +51,8 @@ type PackageManifestSource struct {
 	// - GitHub repo URL when source is GitHub
 	Namespace string
 
-	// The namespace relative path of the package manifest
+	// The namespace relative path of the package manifest.
+	// This is an actually referenceable identifier to the data
 	Path string
 
 	// Explicit override the display path
@@ -158,6 +159,10 @@ func (pm *PackageManifest) GetPath() string {
 	return pm.Path
 }
 
+func (pm *PackageManifest) SetPath(path string) {
+	pm.Path = path
+}
+
 func (pm *PackageManifest) SetDisplayPath(path string) {
 	pm.Source.DisplayPath = path
 }
@@ -204,6 +209,8 @@ func (pm *PackageManifest) GetControlTowerSpecEcosystem() packagev1.Ecosystem {
 		return packagev1.Ecosystem_ECOSYSTEM_PYPI
 	case EcosystemGitHubActions:
 		return packagev1.Ecosystem_ECOSYSTEM_GITHUB_ACTIONS
+	case EcosystemPackagist:
+		return packagev1.Ecosystem_ECOSYSTEM_PACKAGIST
 	default:
 		return packagev1.Ecosystem_ECOSYSTEM_UNSPECIFIED
 	}

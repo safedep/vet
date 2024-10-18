@@ -130,7 +130,8 @@ func (p *githubReader) processTopLevelLockfiles(ctx context.Context, client *git
 			}
 
 			pm.UpdateSourceAsGitRepository(gitUrl.GetHttpCloneURL(), entry.GetPath())
-			pm.SetDisplayPath(entry.GetURL())
+			pm.SetDisplayPath(entry.GetPath())
+			pm.SetPath(entry.GetURL())
 
 			err = handler(pm, NewManifestModelReader(pm))
 			if err != nil {
@@ -180,9 +181,10 @@ func (p *githubReader) processRemoteDependencyGraph(ctx context.Context, client 
 	logger.Infof("Overriding manifest display path to: %s", gitUrl.GetHttpCloneURL())
 
 	// Override the display path because local path of the downloaded
-	// SBOM does not actually have a meaning
-	manifest.UpdateSourceAsGitRepository(gitUrl.GetHttpCloneURL(), "<github-dependency-graph>")
+	// SBOM does not actually have a meaning. Also there isn't any path.
+	manifest.UpdateSourceAsGitRepository(gitUrl.GetHttpCloneURL(), "")
 	manifest.SetDisplayPath(gitUrl.GetHttpCloneURL())
+	manifest.SetPath("")
 
 	return handler(manifest, NewManifestModelReader(manifest))
 }

@@ -278,7 +278,7 @@ func TestParseSpdxSBOM(t *testing.T) {
 	packages, err := Parse(tempFile.Name())
 
 	assert.Nil(t, err)
-	assert.Len(t, packages, 12)
+	assert.Len(t, packages, 15)
 	assert.Equal(t, "flake8", packages[0].Name)
 	assert.Equal(t, "mock", packages[1].Name)
 }
@@ -295,19 +295,19 @@ func TestGetDependencies(t *testing.T) {
 		{
 			filepath: "./fixtures/requests_psf_2ee5b0b01.json", // Path to your test file
 			expected: expectedResult{
-				total_pkgs: 15,
+				total_pkgs: 22,
 			},
 		},
 		{
 			filepath: "./fixtures/osv-scanner_google_3cab6.json",
 			expected: expectedResult{
-				total_pkgs: 144,
+				total_pkgs: 162,
 			},
 		},
 		{
 			filepath: "./fixtures/janusgraph_oss_2dc3a123d9.json",
 			expected: expectedResult{
-				total_pkgs: 283,
+				total_pkgs: 300,
 			},
 		},
 	}
