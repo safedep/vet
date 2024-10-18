@@ -1,8 +1,7 @@
 name: vet OSS Components
 
 on:
-  pull_request_target:
-    # Let vet action run with token perm on base
+  pull_request:
   push:
     branches:
       - main
