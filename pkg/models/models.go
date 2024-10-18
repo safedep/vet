@@ -51,7 +51,8 @@ type PackageManifestSource struct {
 	// - GitHub repo URL when source is GitHub
 	Namespace string
 
-	// The namespace relative path of the package manifest
+	// The namespace relative path of the package manifest.
+	// This is an actually referenceable identifier to the data
 	Path string
 
 	// Explicit override the display path
@@ -156,6 +157,10 @@ func (pm *PackageManifest) GetSource() PackageManifestSource {
 
 func (pm *PackageManifest) GetPath() string {
 	return pm.Path
+}
+
+func (pm *PackageManifest) SetPath(path string) {
+	pm.Path = path
 }
 
 func (pm *PackageManifest) SetDisplayPath(path string) {

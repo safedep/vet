@@ -3,7 +3,9 @@ name: Release Automation
 on:
   push:
     tags:
-      - "*" # triggers only if push new tag version, like `0.8.4` or else
+      # triggers only if push new tag version, like `v0.8.4`
+      # or `v0.8.4-1-g1234567`
+      - '(v\d+\.\d+\.\d+|v\d+\.\d+\.\d+-\d+-\w+)'
 
 concurrency: ci-release-automation
 
@@ -72,7 +74,7 @@ jobs:
 
       - name: Run GoReleaser
         id: run-goreleaser
-        uses: goreleaser/goreleaser-action@286f3b13b1b49da4ac219696163fb8c1c93e1200 # v4.1.0
+        uses: goreleaser/goreleaser-action@286f3b13b1b49da4ac219696163fb8c1c93e1200 # v6.0.0
         with:
           distribution: goreleaser
           version: '~> v2'
@@ -98,4 +100,4 @@ jobs:
     with:
       base64-subjects: "${{ needs.goreleaser.outputs.hashes }}"
       upload-assets: true
-      private-repository: true
+      private-repository: false

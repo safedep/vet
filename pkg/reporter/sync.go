@@ -352,7 +352,7 @@ func (s *syncReporter) syncEvent(event *analyzer.AnalyzerEvent) error {
 		Manifest: &packagev1.PackageManifest{
 			Ecosystem: pkg.Manifest.GetControlTowerSpecEcosystem(),
 			Namespace: &namespace,
-			Name:      pkg.Manifest.GetSource().GetPath(),
+			Name:      pkg.Manifest.GetDisplayPath(),
 		},
 
 		PackageVersion: &packagev1.PackageVersion{
@@ -394,7 +394,10 @@ func (s *syncReporter) syncPackage(pkg *models.Package) error {
 			pkg.Manifest.Ecosystem, pkg.GetName(), pkg.GetVersion(), err)
 	}
 
-	// Build the base package manifest and package
+	logger.Debugf("Report Sync: Publishing package insight for package: %s/%s/%s/%s",
+		pkg.GetSpecEcosystem(), pkg.Manifest.GetDisplayPath(), pkg.GetName(), pkg.GetVersion())
+
+	namespace := pkg.Manifest.GetSource().GetNamespace()
 	req := controltowerv1.PublishPackageInsightRequest{
 		ToolSession: &controltowerv1.ToolSession{
 			ToolSessionId: session.sessionId,
@@ -402,7 +405,7 @@ func (s *syncReporter) syncPackage(pkg *models.Package) error {
 
 		Manifest: &packagev1.PackageManifest{
 			Ecosystem: pkg.Manifest.GetControlTowerSpecEcosystem(),
-			Namespace: &pkg.Manifest.Path,
+			Namespace: &namespace,
 			Name:      pkg.Manifest.GetDisplayPath(),
 		},
 

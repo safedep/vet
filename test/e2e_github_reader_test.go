@@ -50,6 +50,7 @@ func TestGithubReaderWithVetPublicRepository(t *testing.T) {
 
 		assert.Equal(t, manifests[0].GetSpecEcosystem().String(), modelspec.Ecosystem_SpdxSBOM.String())
 		assert.Equal(t, "https://github.com/safedep/vet.git", manifests[0].GetDisplayPath(), "found in Dependency API (SBOM)")
+		assert.Equal(t, "", manifests[0].GetPath())
 		assert.Greater(t, len(manifests[0].Packages), 0)
 
 		assert.True(t, strings.HasPrefix(manifests[1].GetDisplayPath(),
