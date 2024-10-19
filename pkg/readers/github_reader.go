@@ -14,10 +14,15 @@ import (
 	"github.com/safedep/vet/pkg/parser"
 )
 
+type GitHubReaderConfig struct {
+	Urls                         []string
+	LockfileAs                   string
+	SkipGitHubDependencyGraphAPI bool
+}
+
 type githubReader struct {
-	client      *github.Client
-	github_urls []string
-	lockfileAs  string
+	client *github.Client
+	config GitHubReaderConfig
 }
 
 // NewGithubReader creates a [PackageManifestReader] that can be used to read
@@ -25,13 +30,10 @@ type githubReader struct {
 // the parser auto-detects the format based on file name. This reader fails and
 // returns an error on first error encountered while parsing github_urls
 func NewGithubReader(client *github.Client,
-	github_urls []string,
-	lockfileAs string) (PackageManifestReader, error) {
-
+	config GitHubReaderConfig) (PackageManifestReader, error) {
 	return &githubReader{
-		client:      client,
-		github_urls: github_urls,
-		lockfileAs:  lockfileAs, // This is unused currently
+		client: client,
+		config: config,
 	}, nil
 }
 
@@ -50,7 +52,7 @@ func (p *githubReader) EnumManifests(handler func(*models.PackageManifest,
 	// We will not fail fast! This is because when we are scanning multiple
 	// github urls, which we may while scanning an entire org, we want to make
 	// as much progress as possible while logging errors
-	for _, github_url := range p.github_urls {
+	for _, github_url := range p.config.Urls {
 		logger.Debugf("Processing Github URL: %s", github_url)
 
 		gitURL, err := giturl.NewGitURL(github_url)
@@ -153,6 +155,9 @@ func (p *githubReader) processTopLevelLockfiles(ctx context.Context, client *git
 func (p *githubReader) processRemoteDependencyGraph(ctx context.Context, client *github.Client,
 	gitUrl giturl.IGitURL, handler func(*models.PackageManifest,
 		PackageReader) error) error {
+	if p.config.SkipGitHubDependencyGraphAPI {
+		return errors.New("dependency graph API is disabled in the configuration")
+	}
 
 	logger.Infof("Fetching dependency graph from %s", gitUrl.GetURL().String())
 

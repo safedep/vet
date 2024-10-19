@@ -27,10 +27,11 @@ func TestGithubReaderWithVetPublicRepository(t *testing.T) {
 
 		assert.Nil(t, err, "github client creation error")
 
-		githubReader, err := readers.NewGithubReader(githubClient, []string{
-			"https://github.com/safedep/vet",
-			"https://github.com/safedep/demo-client-java",
-		}, "")
+		githubReader, err := readers.NewGithubReader(githubClient, readers.GitHubReaderConfig{
+			Urls: []string{
+				"https://github.com/safedep/vet",
+				"https://github.com/safedep/demo-client-java",
+			}, LockfileAs: "", SkipGitHubDependencyGraphAPI: false})
 
 		assert.Nil(t, err, "github reader builder error")
 

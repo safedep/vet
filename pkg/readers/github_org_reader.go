@@ -16,9 +16,10 @@ const (
 )
 
 type GithubOrgReaderConfig struct {
-	OrganizationURL string
-	IncludeArchived bool
-	MaxRepositories int
+	OrganizationURL        string
+	IncludeArchived        bool
+	MaxRepositories        int
+	SkipDependencyGraphAPI bool
 }
 
 type githubOrgReader struct {
@@ -129,7 +130,11 @@ func (p *githubOrgReader) handleRepositoryBatch(repositories []*github.Repositor
 		return nil
 	}
 
-	githubReader, err := NewGithubReader(p.client, repoUrls, "")
+	githubReader, err := NewGithubReader(p.client, GitHubReaderConfig{
+		Urls:                         repoUrls,
+		SkipGitHubDependencyGraphAPI: p.config.SkipDependencyGraphAPI,
+	})
+
 	if err != nil {
 		return err
 	}

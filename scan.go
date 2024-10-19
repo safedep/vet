@@ -30,6 +30,7 @@ var (
 	githubRepoUrls                 []string
 	githubOrgUrl                   string
 	githubOrgMaxRepositories       int
+	githubSkipDependencyGraphAPI   bool
 	scanExclude                    []string
 	transitiveAnalysis             bool
 	transitiveDepth                int
@@ -97,6 +98,8 @@ func newScanCommand() *cobra.Command {
 		"Github organization URL (Example: https://github.com/safedep)")
 	cmd.Flags().IntVarP(&githubOrgMaxRepositories, "github-org-max-repo", "", 1000,
 		"Maximum number of repositories to process for the Github Org")
+	cmd.Flags().BoolVarP(&githubSkipDependencyGraphAPI, "skip-github-dependency-graph-api", "", false,
+		"Do not use GitHub Dependency Graph API to fetch dependencies")
 	cmd.Flags().StringVarP(&lockfileAs, "lockfile-as", "", "",
 		"Parser to use for the lockfile (vet scan parsers to list)")
 	cmd.Flags().StringVarP(&manifestType, "type", "", "",
@@ -234,15 +237,20 @@ func internalStartScan() error {
 		githubClient := githubClientBuilder()
 
 		// nolint:ineffassign,staticcheck
-		reader, err = readers.NewGithubReader(githubClient, githubRepoUrls, lockfileAs)
+		reader, err = readers.NewGithubReader(githubClient, readers.GitHubReaderConfig{
+			Urls:                         githubRepoUrls,
+			LockfileAs:                   lockfileAs,
+			SkipGitHubDependencyGraphAPI: githubSkipDependencyGraphAPI,
+		})
 	} else if len(githubOrgUrl) > 0 {
 		githubClient := githubClientBuilder()
 
 		// nolint:ineffassign,staticcheck
 		reader, err = readers.NewGithubOrgReader(githubClient, &readers.GithubOrgReaderConfig{
-			OrganizationURL: githubOrgUrl,
-			IncludeArchived: false,
-			MaxRepositories: githubOrgMaxRepositories,
+			OrganizationURL:        githubOrgUrl,
+			IncludeArchived:        false,
+			MaxRepositories:        githubOrgMaxRepositories,
+			SkipDependencyGraphAPI: githubSkipDependencyGraphAPI,
 		})
 	} else if len(purlSpec) > 0 {
 		// nolint:ineffassign,staticcheck

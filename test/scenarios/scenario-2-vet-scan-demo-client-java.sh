@@ -3,5 +3,5 @@
 set -ex
 
 echo $( \
-  $E2E_VET_BINARY scan -s --no-banner --github https://github.com/safedep/demo-client-java.git --report-summary=false --filter 'vulns.critical.exists(p, p.id == "GHSA-4wrc-f8pq-fpqp")' \
+  $E2E_VET_BINARY scan -s --no-banner --github https://github.com/safedep/demo-client-java.git --report-summary=false --filter 'vulns.critical.exists(p, p.id == "GHSA-4wrc-f8pq-fpqp")' --skip-github-dependency-graph-api \
 ) | grep "https://github.com/spring-projects/spring-framework"
