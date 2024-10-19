@@ -74,6 +74,7 @@ func PurlTypeToEcosystem(purlType string) (lockfile.Ecosystem, error) {
 		"go":                    lockfile.GoEcosystem,
 		"rubygems":              lockfile.BundlerEcosystem,
 		packageurl.TypeGithub:   models.EcosystemGitHubActions,
+		"actions":               models.EcosystemGitHubActions,
 	}
 
 	ecosystem, ok := knownTypes[purlType]
