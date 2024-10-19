@@ -3,9 +3,7 @@ name: Release Automation
 on:
   push:
     tags:
-      # triggers only if push new tag version, like `v0.8.4`
-      # or `v0.8.4-1-g1234567`
-      - '(v\d+\.\d+\.\d+|v\d+\.\d+\.\d+-\d+-\w+)'
+      - 'v[0-9]+.[0-9]+.[0-9]+'
 
 concurrency: ci-release-automation
 
