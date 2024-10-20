@@ -29,6 +29,7 @@ const (
 	EcosystemCyDxSBOM      = "CycloneDxSbom"
 	EcosystemSpdxSBOM      = "SpdxSbom"
 	EcosystemGitHubActions = "GitHubActions"
+	EcoSystemTerraform     = "terraform"
 )
 
 type ManifestSourceType string
