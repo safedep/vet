@@ -3,6 +3,7 @@ package parser
 import (
 	"errors"
 	"fmt"
+	"github.com/safedep/vet/pkg/parser/custom/terraform"
 	"path/filepath"
 	"regexp"
 
@@ -50,7 +51,6 @@ var supportedEcosystems map[string]bool = map[string]bool{
 	models.EcosystemCyDxSBOM:      true,
 	models.EcosystemSpdxSBOM:      true,
 	models.EcosystemGitHubActions: true,
-	models.EcosystemCargo:         true,
 	models.EcoSystemTerraform:     true,
 }
 
@@ -59,7 +59,7 @@ var customExperimentalParsers map[string]lockfile.PackageDetailsParser = map[str
 	customParserTypePyWheel: parsePythonWheelDist,
 	customParserSpdxSBOM:    spdx.Parse,
 	customParserTypeSetupPy: py.ParseSetuppy,
-	customParserTerraform:   ParseTerraformLockfile,
+	customParserTerraform:   terraform.ParseTerraformLockfile,
 }
 
 type Parser interface {
