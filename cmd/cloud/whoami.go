@@ -1,8 +1,10 @@
 package cloud
 
 import (
+	"os"
+
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/safedep/vet/internal/auth"
-	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/cloud"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/spf13/cobra"
@@ -41,14 +43,17 @@ func executeWhoami() error {
 		return err
 	}
 
-	ui.PrintSuccess("Authenticated as: %s <%s>", res.GetUser().GetName(),
-		res.GetUser().GetEmail())
+	tbl := table.NewWriter()
+	tbl.SetOutputMirror(os.Stdout)
 
-	ui.PrintSuccess("Has access to the following tenants:")
+	tbl.AppendHeader(table.Row{"User", "Tenant", "Access Level"})
+	tbl.AppendSeparator()
+
 	for _, access := range res.GetAccess() {
-		ui.PrintSuccess("  - %s [%d]", access.GetTenant().GetDomain(),
-			access.GetLevel())
+		tbl.AppendRow(table.Row{res.GetUser().GetEmail(),
+			access.GetTenant().GetDomain(), access.GetLevel()})
 	}
 
+	tbl.Render()
 	return nil
 }
