@@ -28,6 +28,50 @@ type CreateApiKeyResponse struct {
 	ExpiresAt time.Time
 }
 
+type ListApiKeyRequest struct {
+	Name           string
+	OnlyMine       bool
+	IncludeExpired bool
+}
+
+type ApiKey struct {
+	Name      string
+	Desc      string
+	ID        string
+	ExpiresAt time.Time
+}
+
+type ListApiKeyResponse struct {
+	Keys []*ApiKey
+}
+
+func (a *apiKeyService) ListKeys(req *ListApiKeyRequest) (*ListApiKeyResponse, error) {
+	keyService := controltowerv1grpc.NewApiKeyServiceClient(a.conn)
+	res, err := keyService.ListApiKeys(context.Background(), &controltowerv1.ListApiKeysRequest{
+		Filter: &controltowerv1.ListApiKeyFilter{
+			Name:               req.Name,
+			IncludeExpired:     req.IncludeExpired,
+			IncludeCurrentUser: req.OnlyMine,
+		},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	keys := make([]*ApiKey, 0, len(res.GetKeys()))
+	for _, key := range res.GetKeys() {
+		keys = append(keys, &ApiKey{
+			Name:      key.GetName(),
+			Desc:      key.GetDescription(),
+			ID:        key.GetKeyId(),
+			ExpiresAt: key.GetExpiresAt().AsTime(),
+		})
+	}
+
+	return &ListApiKeyResponse{Keys: keys}, nil
+}
+
 func (a *apiKeyService) CreateApiKey(req *CreateApiKeyRequest) (*CreateApiKeyResponse, error) {
 	keyService := controltowerv1grpc.NewApiKeyServiceClient(a.conn)
 	res, err := keyService.CreateApiKey(context.Background(), &controltowerv1.CreateApiKeyRequest{
