@@ -23,10 +23,10 @@ func NewCloudCommand() *cobra.Command {
 	cmd.PersistentFlags().StringVar(&tenantDomain, "tenant", "",
 		"Tenant domain to use for the command")
 
-	cmd.PersistentFlags().StringVar(&outputCSV, "out-csv", "",
+	cmd.PersistentFlags().StringVar(&outputCSV, "csv", "",
 		"Output table views to a CSV file")
 
-	cmd.PersistentFlags().StringVar(&outputMarkdown, "out-markdown", "",
+	cmd.PersistentFlags().StringVar(&outputMarkdown, "markdown", "",
 		"Output table views to a Markdown file")
 
 	cmd.AddCommand(newCloudLoginCommand())
