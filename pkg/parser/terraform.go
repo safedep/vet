@@ -2,21 +2,12 @@ package parser
 
 import (
 	"fmt"
+	"github.com/hashicorp/hcl/v2/hclparse"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/safedep/vet/pkg/models"
-	"os"
-
-	"github.com/hashicorp/hcl/v2/hclparse"
 )
 
 func parseTerraformLockfile(path string, config *ParserConfig) (*models.PackageManifest, error) {
-	// Open the lockfile
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open file: %s", err)
-	}
-	defer file.Close()
-
 	// Parse the file using the HCL parser
 	parser := hclparse.NewParser()
 	hclFile, diags := parser.ParseHCLFile(path)
