@@ -5,7 +5,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var tenantDomain string
+var (
+	tenantDomain   string
+	outputCSV      string
+	outputMarkdown string
+)
 
 func NewCloudCommand() *cobra.Command {
 	cmd := &cobra.Command{
@@ -18,6 +22,12 @@ func NewCloudCommand() *cobra.Command {
 
 	cmd.PersistentFlags().StringVar(&tenantDomain, "tenant", "",
 		"Tenant domain to use for the command")
+
+	cmd.PersistentFlags().StringVar(&outputCSV, "csv", "",
+		"Output table views to a CSV file")
+
+	cmd.PersistentFlags().StringVar(&outputMarkdown, "markdown", "",
+		"Output table views to a Markdown file")
 
 	cmd.AddCommand(newCloudLoginCommand())
 	cmd.AddCommand(newRegisterCommand())

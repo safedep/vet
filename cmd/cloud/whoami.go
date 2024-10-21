@@ -1,6 +1,9 @@
 package cloud
 
 import (
+	"fmt"
+
+	controltowerv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/cloud"
@@ -41,14 +44,19 @@ func executeWhoami() error {
 		return err
 	}
 
-	ui.PrintSuccess("Authenticated as: %s <%s>", res.GetUser().GetName(),
-		res.GetUser().GetEmail())
+	tbl := ui.NewTabler(ui.TablerConfig{})
 
-	ui.PrintSuccess("Has access to the following tenants:")
+	tbl.AddHeader("Email", "Tenant", "Access Level")
 	for _, access := range res.GetAccess() {
-		ui.PrintSuccess("  - %s [%d]", access.GetTenant().GetDomain(),
-			access.GetLevel())
+		accessName := "UNSPECIFIED"
+		if name, ok := controltowerv1.AccessLevel_name[int32(access.GetLevel())]; ok {
+			accessName = name
+		}
+
+		tbl.AddRow(res.GetUser().GetEmail(),
+			access.GetTenant().GetDomain(),
+			fmt.Sprintf("%s (%d)", accessName, access.GetRole()))
 	}
 
-	return nil
+	return tbl.Finish()
 }
