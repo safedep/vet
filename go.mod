@@ -4,7 +4,7 @@ go 1.23.2
 
 require (
 	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20241018171312-dab1d3391113.1
-	buf.build/gen/go/safedep/api/protocolbuffers/go v1.35.1-20241018171312-dab1d3391113.1
+	buf.build/gen/go/safedep/api/protocolbuffers/go v1.35.1-20241020033425-ee2968f8c621.1
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/CycloneDX/cyclonedx-go v0.9.1
 	github.com/anchore/syft v1.14.1

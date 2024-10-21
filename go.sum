@@ -2,8 +2,8 @@ buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.35.1-2024092016423
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.35.1-20240920164238-5a7b106cbb87.1/go.mod h1:Duw/9JoXkXIydyASnLYIiufkzySThoqavOsF+IihqvM=
 buf.build/gen/go/safedep/api/grpc/go v1.5.1-20241018171312-dab1d3391113.1 h1:Iya58BNJyNN2f7xMGRTd69UqN+PlIcDZroh5zRPeQdo=
 buf.build/gen/go/safedep/api/grpc/go v1.5.1-20241018171312-dab1d3391113.1/go.mod h1:aEp9GzEA+av+idM44tVG+u8WYl/nHBYLDqGpI9gFKtk=
-buf.build/gen/go/safedep/api/protocolbuffers/go v1.35.1-20241018171312-dab1d3391113.1 h1:HAnfxnohw6+AWaIiZoZtlvjEk/ABw01TmGFu8ygEbGI=
-buf.build/gen/go/safedep/api/protocolbuffers/go v1.35.1-20241018171312-dab1d3391113.1/go.mod h1:WCxZaBpYxgWnSpauuzVhzbJawAp6uPXJPN5tbDpceQ0=
+buf.build/gen/go/safedep/api/protocolbuffers/go v1.35.1-20241020033425-ee2968f8c621.1 h1:h2banU4RDXdxn1gEMhJWC84hJLcPXMFF56uwEESrc2w=
+buf.build/gen/go/safedep/api/protocolbuffers/go v1.35.1-20241020033425-ee2968f8c621.1/go.mod h1:WCxZaBpYxgWnSpauuzVhzbJawAp6uPXJPN5tbDpceQ0=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.38.0/go.mod h1:990N+gfupTy94rShfmMCWGDn0LpTmnzTp2qbd1dvSRU=
