@@ -85,12 +85,12 @@ type dependencyGraphParser func(lockfilePath string, config *ParserConfig) (*mod
 
 // Maintain a map of lockfileAs to dependencyGraphParser
 var dependencyGraphParsers map[string]dependencyGraphParser = map[string]dependencyGraphParser{
-	customParserTerraform:             parseTerraformLockfile,
 	"package-lock.json":               parseNpmPackageLockAsGraph,
 	customParserCycloneDXSBOM:         parseSbomCycloneDxAsGraph,
 	customParserTypeJavaArchive:       parseJavaArchiveAsGraph,
 	customParserTypeJavaWebAppArchive: parseJavaArchiveAsGraph,
 	customParserGitHubActions:         parseGithubActionWorkflowAsGraph,
+	customParserTerraform:             parseTerraformLockfile,
 }
 
 // Maintain a map of extension to lockfileAs
@@ -98,6 +98,13 @@ var dependencyGraphParsers map[string]dependencyGraphParser = map[string]depende
 var lockfileAsMapByExtension map[string]string = map[string]string{
 	"jar": customParserTypeJavaArchive,
 	"war": customParserTypeJavaWebAppArchive,
+}
+
+// Maintain a map of standard filenames to a custom parser. This has
+// higher precendence that lockfile package. Graph parsers discover
+// reference to this map to resolve the lockfileAs from base filename
+var lockfileAsMapByPath map[string]string = map[string]string{
+	".terraform.lock.hcl": customParserTerraform,
 }
 
 func FindLockFileAsByExtension(extension string) (string, error) {
@@ -185,6 +192,9 @@ func findGraphParser(lockfilePath, lockfileAs string) (dependencyGraphParser, st
 	parseAs := lockfileAs
 	if lockfileAs == "" {
 		parseAs = filepath.Base(lockfilePath)
+		if _, ok := lockfileAsMapByPath[parseAs]; ok {
+			parseAs = lockfileAsMapByPath[parseAs]
+		}
 	}
 
 	if _, ok := dependencyGraphParsers[parseAs]; ok {
