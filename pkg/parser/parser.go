@@ -244,7 +244,7 @@ func (pw *parserWrapper) Ecosystem() string {
 		return models.EcosystemMaven
 	case customParserGitHubActions:
 		return models.EcosystemGitHubActions
-	case ".terraform.lock.hcl":
+	case customParserTerraform:
 		return models.EcosystemTerraform
 	default:
 		logger.Debugf("Unsupported lockfile-as %s", pw.parseAs)
