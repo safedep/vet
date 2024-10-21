@@ -1,10 +1,11 @@
 package cloud
 
 import (
-	"os"
+	"fmt"
 
-	"github.com/jedib0t/go-pretty/v6/table"
+	controltowerv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
 	"github.com/safedep/vet/internal/auth"
+	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/cloud"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/spf13/cobra"
@@ -43,17 +44,19 @@ func executeWhoami() error {
 		return err
 	}
 
-	tbl := table.NewWriter()
-	tbl.SetOutputMirror(os.Stdout)
+	tbl := ui.NewTabler(ui.TablerConfig{})
 
-	tbl.AppendHeader(table.Row{"User", "Tenant", "Access Level"})
-	tbl.AppendSeparator()
-
+	tbl.AddHeader("Email", "Tenant", "Access Level")
 	for _, access := range res.GetAccess() {
-		tbl.AppendRow(table.Row{res.GetUser().GetEmail(),
-			access.GetTenant().GetDomain(), access.GetLevel()})
+		accessName := "UNSPECIFIED"
+		if name, ok := controltowerv1.AccessLevel_name[int32(access.GetLevel())]; ok {
+			accessName = name
+		}
+
+		tbl.AddRow(res.GetUser().GetEmail(),
+			access.GetTenant().GetDomain(),
+			fmt.Sprintf("%s (%d)", accessName, access.GetRole()))
 	}
 
-	tbl.Render()
-	return nil
+	return tbl.Finish()
 }
