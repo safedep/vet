@@ -45,6 +45,15 @@ type ListApiKeyResponse struct {
 	Keys []*ApiKey
 }
 
+func (a *apiKeyService) DeleteKey(id string) error {
+	keyService := controltowerv1grpc.NewApiKeyServiceClient(a.conn)
+	_, err := keyService.DeleteApiKey(context.Background(), &controltowerv1.DeleteApiKeyRequest{
+		KeyId: id,
+	})
+
+	return err
+}
+
 func (a *apiKeyService) ListKeys(req *ListApiKeyRequest) (*ListApiKeyResponse, error) {
 	keyService := controltowerv1grpc.NewApiKeyServiceClient(a.conn)
 	res, err := keyService.ListApiKeys(context.Background(), &controltowerv1.ListApiKeysRequest{

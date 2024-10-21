@@ -20,10 +20,7 @@ type tabler struct {
 
 func NewTabler(config TablerConfig) *tabler {
 	tbl := table.NewWriter()
-
-	if !config.SkipStdoutMirror {
-		tbl.SetOutputMirror(os.Stdout)
-	}
+	tbl.SetStyle(table.StyleLight)
 
 	return &tabler{
 		table:  tbl,
@@ -60,14 +57,41 @@ func (t *tabler) Finish() error {
 		}
 	}
 
-	t.table.Render()
+	if !t.config.SkipStdoutMirror {
+		if _, err := os.Stdout.WriteString(t.table.Render()); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
 func (t *tabler) renderCsvFile(path string) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+	_, err = f.WriteString(t.table.RenderCSV())
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (t *tabler) renderMarkdownFile(path string) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+	_, err = f.WriteString(t.table.RenderMarkdown())
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

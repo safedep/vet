@@ -18,6 +18,8 @@ var (
 	listKeysName           string
 	listKeysIncludeExpired bool
 	listKeysOnlyMine       bool
+
+	deleteKeyId string
 )
 
 func newKeyCommand() *cobra.Command {
@@ -31,8 +33,49 @@ func newKeyCommand() *cobra.Command {
 
 	cmd.AddCommand(newKeyCreateCommand())
 	cmd.AddCommand(newListKeyCommand())
+	cmd.AddCommand(newDeleteKeyCommand())
 
 	return cmd
+}
+
+func newDeleteKeyCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "delete",
+		Short: "Delete an API key",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			err := executeDeleteKey()
+			if err != nil {
+				logger.Errorf("Failed to delete API key: %v", err)
+			}
+
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&deleteKeyId, "id", "", "ID of the API key to delete")
+	_ = cmd.MarkFlagRequired("id")
+
+	return cmd
+}
+
+func executeDeleteKey() error {
+	client, err := auth.ControlPlaneClientConnection("vet-cloud-key-delete")
+	if err != nil {
+		return err
+	}
+
+	keyService, err := cloud.NewApiKeyService(client)
+	if err != nil {
+		return err
+	}
+
+	err = keyService.DeleteKey(deleteKeyId)
+	if err != nil {
+		return err
+	}
+
+	ui.PrintSuccess("API key deleted successfully.")
+	return nil
 }
 
 func newListKeyCommand() *cobra.Command {

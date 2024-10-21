@@ -2,10 +2,8 @@ package cloud
 
 import (
 	"errors"
-	"os"
 	"sort"
 
-	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/cloud/query"
@@ -86,11 +84,12 @@ func getQuerySchema() error {
 		return err
 	}
 
-	tbl := table.NewWriter()
-	tbl.SetOutputMirror(os.Stdout)
-	tbl.SetStyle(table.StyleLight)
+	tbl := ui.NewTabler(ui.TablerConfig{
+		CsvPath:      outputCSV,
+		MarkdownPath: outputMarkdown,
+	})
 
-	tbl.AppendHeader(table.Row{"Name", "Column Name", "Selectable", "Filterable", "Reference"})
+	tbl.AddHeader("Name", "Column Name", "Selectable", "Filterable", "Reference")
 
 	schemas := response.GetSchemas()
 	for _, schema := range schemas {
@@ -102,20 +101,15 @@ func getQuerySchema() error {
 		})
 
 		for _, column := range columns {
-			tbl.AppendRow(table.Row{
-				schemaName,
+			tbl.AddRow(schemaName,
 				column.GetName(),
 				column.GetSelectable(),
 				column.GetFilterable(),
-				column.GetReferenceUrl(),
-			})
+				column.GetReferenceUrl())
 		}
-
-		tbl.AppendSeparator()
 	}
 
-	tbl.Render()
-	return nil
+	return tbl.Finish()
 }
 
 func executeQuery() error {
@@ -142,9 +136,10 @@ func executeQuery() error {
 }
 
 func renderQueryResponseAsTable(response *query.QueryResponse) error {
-	tbl := table.NewWriter()
-	tbl.SetOutputMirror(os.Stdout)
-	tbl.SetStyle(table.StyleLight)
+	tbl := ui.NewTabler(ui.TablerConfig{
+		CsvPath:      outputCSV,
+		MarkdownPath: outputMarkdown,
+	})
 
 	if response.Count() == 0 {
 		logger.Infof("No results found")
@@ -166,7 +161,7 @@ func renderQueryResponseAsTable(response *query.QueryResponse) error {
 		headerRow = append(headerRow, header)
 	}
 
-	tbl.AppendHeader(headerRow)
+	tbl.AddHeader(headerRow...)
 
 	// Ensure we have a consistent order of columns
 	response.ForEachRow(func(row *query.QueryRow) {
@@ -175,10 +170,8 @@ func renderQueryResponseAsTable(response *query.QueryResponse) error {
 			rowValues = append(rowValues, row.GetField(header))
 		}
 
-		tbl.AppendRow(rowValues)
-		tbl.AppendSeparator()
+		tbl.AddRow(rowValues...)
 	})
 
-	tbl.Render()
-	return nil
+	return tbl.Finish()
 }
