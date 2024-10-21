@@ -3,7 +3,6 @@ package parser
 import (
 	"errors"
 	"fmt"
-	"github.com/safedep/vet/pkg/parser/custom/terraform"
 	"path/filepath"
 	"regexp"
 
@@ -51,7 +50,7 @@ var supportedEcosystems map[string]bool = map[string]bool{
 	models.EcosystemCyDxSBOM:      true,
 	models.EcosystemSpdxSBOM:      true,
 	models.EcosystemGitHubActions: true,
-	models.EcoSystemTerraform:     true,
+	models.EcosystemTerraform:     true,
 }
 
 // TODO: Migrate these to graph parser
@@ -59,7 +58,6 @@ var customExperimentalParsers map[string]lockfile.PackageDetailsParser = map[str
 	customParserTypePyWheel: parsePythonWheelDist,
 	customParserSpdxSBOM:    spdx.Parse,
 	customParserTypeSetupPy: py.ParseSetuppy,
-	customParserTerraform:   terraform.ParseTerraformLockfile,
 }
 
 type Parser interface {
@@ -87,6 +85,7 @@ type dependencyGraphParser func(lockfilePath string, config *ParserConfig) (*mod
 
 // Maintain a map of lockfileAs to dependencyGraphParser
 var dependencyGraphParsers map[string]dependencyGraphParser = map[string]dependencyGraphParser{
+	".terraform.lock.hcl":             parseTerraformLockfile,
 	"package-lock.json":               parseNpmPackageLockAsGraph,
 	customParserCycloneDXSBOM:         parseSbomCycloneDxAsGraph,
 	customParserTypeJavaArchive:       parseJavaArchiveAsGraph,
@@ -245,8 +244,8 @@ func (pw *parserWrapper) Ecosystem() string {
 		return models.EcosystemMaven
 	case customParserGitHubActions:
 		return models.EcosystemGitHubActions
-	case customParserTerraform:
-		return models.EcoSystemTerraform
+	case ".terraform.lock.hcl":
+		return models.EcosystemTerraform
 	default:
 		logger.Debugf("Unsupported lockfile-as %s", pw.parseAs)
 		return ""
