@@ -22,6 +22,7 @@ const (
 	customParserTypeJavaArchive       = "jar"
 	customParserTypeJavaWebAppArchive = "war"
 	customParserGitHubActions         = "github-actions"
+	customParserTerraform             = "terraform"
 )
 
 var (
@@ -49,6 +50,7 @@ var supportedEcosystems map[string]bool = map[string]bool{
 	models.EcosystemCyDxSBOM:      true,
 	models.EcosystemSpdxSBOM:      true,
 	models.EcosystemGitHubActions: true,
+	models.EcosystemTerraform:     true,
 }
 
 // TODO: Migrate these to graph parser
@@ -83,6 +85,7 @@ type dependencyGraphParser func(lockfilePath string, config *ParserConfig) (*mod
 
 // Maintain a map of lockfileAs to dependencyGraphParser
 var dependencyGraphParsers map[string]dependencyGraphParser = map[string]dependencyGraphParser{
+	customParserTerraform:             parseTerraformLockfile,
 	"package-lock.json":               parseNpmPackageLockAsGraph,
 	customParserCycloneDXSBOM:         parseSbomCycloneDxAsGraph,
 	customParserTypeJavaArchive:       parseJavaArchiveAsGraph,
@@ -160,6 +163,7 @@ func FindParser(lockfilePath, lockfileAs string) (Parser, error) {
 			logger.Debugf("Found Parser type for the type %s", lockfileAs)
 			return pw, nil
 		}
+
 	}
 
 	// Check special case of GitHub actions
@@ -240,6 +244,8 @@ func (pw *parserWrapper) Ecosystem() string {
 		return models.EcosystemMaven
 	case customParserGitHubActions:
 		return models.EcosystemGitHubActions
+	case customParserTerraform:
+		return models.EcosystemTerraform
 	default:
 		logger.Debugf("Unsupported lockfile-as %s", pw.parseAs)
 		return ""

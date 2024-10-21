@@ -29,6 +29,7 @@ const (
 	EcosystemCyDxSBOM      = "CycloneDxSbom"
 	EcosystemSpdxSBOM      = "SpdxSbom"
 	EcosystemGitHubActions = "GitHubActions"
+	EcosystemTerraform     = "terraform"
 )
 
 type ManifestSourceType string
@@ -91,7 +92,7 @@ type PackageManifest struct {
 	// List of packages obtained by parsing the manifest
 	Packages []*Package `json:"packages"`
 
-	// The package depeneny graph representation
+	// The package dependency graph representation
 	DependencyGraph *DependencyGraph[*Package] `json:"dependency_graph"`
 
 	// Lock to serialize updating packages
