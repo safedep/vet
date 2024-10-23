@@ -15,5 +15,5 @@
 # vendor/
 
 /vet
-
 dist/
+/.env.dev
