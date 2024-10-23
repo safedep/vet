@@ -12,6 +12,8 @@ import (
 
 const (
 	apiUrlEnvKey             = "VET_INSIGHTS_API_URL"
+	syncUrlEnvKey            = "VET_SYNC_API_URL"
+	controlPlaneUrlEnvKey    = "VET_CONTROL_PLANE_API_URL"
 	apiKeyEnvKey             = "VET_API_KEY"
 	apiKeyAlternateEnvKey    = "VET_INSIGHTS_API_KEY"
 	communityModeEnvKey      = "VET_COMMUNITY_MODE"
@@ -152,6 +154,11 @@ func CloudRefreshToken() string {
 }
 
 func SyncApiUrl() string {
+	envOverride := os.Getenv(syncUrlEnvKey)
+	if envOverride != "" {
+		return envOverride
+	}
+
 	if (globalConfig != nil) && (globalConfig.SyncApiUrl != "") {
 		return globalConfig.SyncApiUrl
 	}
@@ -160,6 +167,11 @@ func SyncApiUrl() string {
 }
 
 func ControlTowerUrl() string {
+	envOverride := os.Getenv(controlPlaneUrlEnvKey)
+	if envOverride != "" {
+		return envOverride
+	}
+
 	if (globalConfig != nil) && (globalConfig.ControlPlaneApiUrl != "") {
 		return globalConfig.ControlPlaneApiUrl
 	}

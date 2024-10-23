@@ -6,6 +6,7 @@ import (
 	"buf.build/gen/go/safedep/api/grpc/go/safedep/services/controltower/v1/controltowerv1grpc"
 	controltowerv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/controltower/v1"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 type queryService struct {
@@ -44,7 +45,16 @@ func (q *queryService) ExecuteSql(sql string, pageSize int) (*QueryResponse, err
 	for _, row := range res.Rows {
 		rowMap := make(map[string]interface{})
 		for key, val := range row.Fields {
-			rowMap[key] = val.GetStringValue()
+			switch val.GetKind().(type) {
+			case *structpb.Value_StringValue:
+				rowMap[key] = val.GetStringValue()
+			case *structpb.Value_NumberValue:
+				rowMap[key] = val.GetNumberValue()
+			case *structpb.Value_BoolValue:
+				rowMap[key] = val.GetBoolValue()
+			default:
+				rowMap[key] = ""
+			}
 		}
 
 		response = append(response, rowMap)
