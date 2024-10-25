@@ -212,11 +212,14 @@ func (pm *PackageManifest) GetControlTowerSpecEcosystem() packagev1.Ecosystem {
 		return packagev1.Ecosystem_ECOSYSTEM_GITHUB_ACTIONS
 	case EcosystemPackagist:
 		return packagev1.Ecosystem_ECOSYSTEM_PACKAGIST
+	case EcosystemTerraform:
+		return packagev1.Ecosystem_ECOSYSTEM_TERRAFORM
 	default:
 		return packagev1.Ecosystem_ECOSYSTEM_UNSPECIFIED
 	}
 }
 
+// Deprecated: Move towards GetControlTowerSpecEcosystem
 func (pm *PackageManifest) GetSpecEcosystem() modelspec.Ecosystem {
 	switch pm.Ecosystem {
 	case EcosystemCargo:
