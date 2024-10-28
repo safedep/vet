@@ -1,15 +1,7 @@
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.35.1-20240920164238-5a7b106cbb87.1 h1:9wP6ZZYWnF2Z0TxmII7m3XNykxnP4/w8oXeth6ekcRI=
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.35.1-20240920164238-5a7b106cbb87.1/go.mod h1:Duw/9JoXkXIydyASnLYIiufkzySThoqavOsF+IihqvM=
-buf.build/gen/go/safedep/api/grpc/go v1.5.1-20241021065218-021c29274fc6.1 h1:g7y1C4EeDQpg4rFciYfXxmeW28UX+ySv5nQbBFpvbiA=
-buf.build/gen/go/safedep/api/grpc/go v1.5.1-20241021065218-021c29274fc6.1/go.mod h1:+Fs1Kwxdn+N0xgYXBtKIw7M7BGUtZmkOND8V8zDO/Ys=
-buf.build/gen/go/safedep/api/grpc/go v1.5.1-20241023034507-f29b26e33b84.1 h1:S/3hIsDul9jcSXqaG/dwhRaz2DvshrDeyLMq/2UBBOI=
-buf.build/gen/go/safedep/api/grpc/go v1.5.1-20241023034507-f29b26e33b84.1/go.mod h1:IkuTE1VLIZwtnJvCEMat8mIhoRk92/R9H2tMCTYI4hU=
 buf.build/gen/go/safedep/api/grpc/go v1.5.1-20241023094826-0cc88affe8f4.1 h1:HGihq+yyD2jkeKWET/tlHRoCP/en+Eodg7yzqz3QWyU=
 buf.build/gen/go/safedep/api/grpc/go v1.5.1-20241023094826-0cc88affe8f4.1/go.mod h1:nzJWFl1LLNVEW72epR1/zFcdHXwXtv7B0PS2loPDMQE=
-buf.build/gen/go/safedep/api/protocolbuffers/go v1.35.1-20241021065218-021c29274fc6.1 h1:c9YRtuOJh9H9aR/nxFqjDyCzt03DdZfllX64aW/O4E4=
-buf.build/gen/go/safedep/api/protocolbuffers/go v1.35.1-20241021065218-021c29274fc6.1/go.mod h1:WCxZaBpYxgWnSpauuzVhzbJawAp6uPXJPN5tbDpceQ0=
-buf.build/gen/go/safedep/api/protocolbuffers/go v1.35.1-20241023034507-f29b26e33b84.1 h1:sjntwKL0M0cj6NRpkulewQrO8qXCA+BOlOjqlCBc3qE=
-buf.build/gen/go/safedep/api/protocolbuffers/go v1.35.1-20241023034507-f29b26e33b84.1/go.mod h1:WCxZaBpYxgWnSpauuzVhzbJawAp6uPXJPN5tbDpceQ0=
 buf.build/gen/go/safedep/api/protocolbuffers/go v1.35.1-20241023094826-0cc88affe8f4.1 h1:3rqy0HyEq00gU+M2fEhFl0HwpBckieqlv3DG9L4EfwA=
 buf.build/gen/go/safedep/api/protocolbuffers/go v1.35.1-20241023094826-0cc88affe8f4.1/go.mod h1:WCxZaBpYxgWnSpauuzVhzbJawAp6uPXJPN5tbDpceQ0=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
@@ -563,8 +555,8 @@ github.com/iris-contrib/httpexpect/v2 v2.15.2 h1:T9THsdP1woyAqKHwjkEsbCnMefsAFvk
 github.com/iris-contrib/httpexpect/v2 v2.15.2/go.mod h1:JLDgIqnFy5loDSUv1OA2j0mb6p/rDhiCqigP22Uq9xE=
 github.com/iris-contrib/schema v0.0.6 h1:CPSBLyx2e91H2yJzPuhGuifVRnZBBJ3pCOMbOvPZaTw=
 github.com/iris-contrib/schema v0.0.6/go.mod h1:iYszG0IOsuIsfzjymw1kMzTL8YQcCWlm65f3wX8J5iA=
-github.com/jedib0t/go-pretty/v6 v6.6.0 h1:wmZVuAcEkZRT+Aq1xXpE8IGat4vE5WXOMmBpbQqERXw=
-github.com/jedib0t/go-pretty/v6 v6.6.0/go.mod h1:zbn98qrYlh95FIhwwsbIip0LYpwSG8SUOScs+v9/t0E=
+github.com/jedib0t/go-pretty/v6 v6.6.1 h1:iJ65Xjb680rHcikRj6DSIbzCex2huitmc7bDtxYVWyc=
+github.com/jedib0t/go-pretty/v6 v6.6.1/go.mod h1:zbn98qrYlh95FIhwwsbIip0LYpwSG8SUOScs+v9/t0E=
 github.com/jinzhu/copier v0.4.0 h1:w3ciUoD19shMCRargcpm0cm91ytaBhDvuRpz1ODO/U8=
 github.com/jinzhu/copier v0.4.0/go.mod h1:DfbEm0FYsaqBcKcFuvmOZb218JkPGtvSHsKg8S8hyyg=
 github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=
