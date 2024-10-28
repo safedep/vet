@@ -20,7 +20,7 @@ require (
 	github.com/google/go-github/v54 v54.0.0
 	github.com/google/osv-scanner v1.9.0
 	github.com/hashicorp/hcl/v2 v2.22.0
-	github.com/jedib0t/go-pretty/v6 v6.6.0
+	github.com/jedib0t/go-pretty/v6 v6.6.1
 	github.com/kubescape/go-git-url v0.0.30
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/owenrumney/go-sarif/v2 v2.3.3
