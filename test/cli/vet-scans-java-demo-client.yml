@@ -1,0 +1,6 @@
+run:
+  vetscandemojavaclient:
+    command: "vet scan -s --no-banner --github https://github.com/safedep/demo-client-java.git --report-summary=false --filter 'vulns.critical.exists(p, p.id == \"GHSA-4wrc-f8pq-fpqp\")'"
+    expectCode: 0
+    outputContains:
+      - "https://github.com/spring-projects/spring-framework"

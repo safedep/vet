@@ -1,6 +1,6 @@
 run:
-  vetscansvet:                  # a "helloWorld" test suite "step"
-    command: 'echo $E2E_VET_BINARY scan -s --no-banner --lockfiles "$E2E_ROOT/go.mod" --report-summary=false --filter pkg.name == "github.com/safedep/dry"'
+  vetscansvet:
+    command: "/bin/bash -c \"vet scan -s --no-banner --lockfiles ${E2E_ROOT}/go.mod --report-summary=false --filter 'pkg.name == \\\"github.com/safedep/dry\\\"'\""
     expectCode: 0
     outputContains:
-      - 'github.com/safedep/dry'
+      - "github.com/safedep/dry"
