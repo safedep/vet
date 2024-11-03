@@ -55,6 +55,8 @@ func purlBuildLockfilePackageName(ecosystem lockfile.Ecosystem, group, name stri
 		return fmt.Sprintf("%s/%s", group, name)
 	case lockfile.MavenEcosystem:
 		return fmt.Sprintf("%s:%s", group, name)
+	case models.EcosystemGitHubActions:
+		return fmt.Sprintf("%s/%s", group, name)
 	default:
 		return name
 	}
