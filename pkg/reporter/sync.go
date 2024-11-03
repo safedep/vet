@@ -344,7 +344,7 @@ func (s *syncReporter) syncEvent(event *analyzer.AnalyzerEvent) error {
 	}
 
 	logger.Debugf("Report Sync: Publishing policy violation for package: %s/%s/%s/%s",
-		pkg.GetSpecEcosystem(), pkg.Manifest.GetDisplayPath(), pkg.GetName(), pkg.GetVersion())
+		pkg.Manifest.GetControlTowerSpecEcosystem(), pkg.Manifest.GetDisplayPath(), pkg.GetName(), pkg.GetVersion())
 
 	namespace := pkg.Manifest.GetSource().GetNamespace()
 	req := controltowerv1.PublishPolicyViolationRequest{
@@ -398,7 +398,7 @@ func (s *syncReporter) syncPackage(pkg *models.Package) error {
 	}
 
 	logger.Debugf("Report Sync: Publishing package insight for package: %s/%s/%s/%s",
-		pkg.GetSpecEcosystem(), pkg.Manifest.GetDisplayPath(), pkg.GetName(), pkg.GetVersion())
+		pkg.Manifest.GetControlTowerSpecEcosystem(), pkg.Manifest.GetDisplayPath(), pkg.GetName(), pkg.GetVersion())
 
 	namespace := pkg.Manifest.GetSource().GetNamespace()
 	req := controltowerv1.PublishPackageInsightRequest{

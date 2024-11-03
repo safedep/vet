@@ -9,6 +9,8 @@ import (
 	"github.com/safedep/vet/pkg/storage/graph"
 )
 
+// This should just be a code walker and parser. Code graph is a separate
+// concern, much larger and complex.
 type CodeGraphBuilderConfig struct {
 	// Resolve imports to file and load them
 	RecursiveImport bool
@@ -28,9 +30,12 @@ type CodeGraphBuilderMetrics struct {
 
 type CodeGraphBuilderEvent struct {
 	Kind string
+
+	// Add structured data here
 	Data interface{}
 }
 
+// Move this into separate events.go file
 const (
 	CodeGraphBuilderEventFileQueued        = "file_queued"
 	CodeGraphBuilderEventFileProcessed     = "file_processed"
@@ -48,8 +53,13 @@ type codeGraphBuilder struct {
 	metrics       CodeGraphBuilderMetrics
 
 	repository SourceRepository
-	lang       SourceLanguage
-	storage    graph.Graph
+
+	// Support multiple languages, may be selected by extension
+	lang SourceLanguage
+
+	// Decouple this. This should be a separate concern
+	// We can have a plugin / listener that can build the graph
+	storage graph.Graph
 
 	// Queue for processing files
 	fileQueue     chan SourceFile
@@ -99,6 +109,7 @@ func (b *codeGraphBuilder) Build() error {
 	b.fileQueueWg = &sync.WaitGroup{}
 	b.fileQueueLock = &sync.Mutex{}
 
+	// Do we really need these caches?
 	b.fileCache = make(map[string]bool)
 	b.functionDeclCache = make(map[string]string)
 	b.functionCallCache = make(map[string]string)
@@ -126,6 +137,8 @@ func (b *codeGraphBuilder) enqueueSourceFile(file SourceFile) {
 	b.synchronized(func() {
 		b.metrics.FilesInQueue++
 
+		// Why do we need to cache files? Are we processing the same file multiple times?
+		// May be yes when it comes to imports
 		if _, ok := b.fileCache[file.Path]; ok {
 			logger.Debugf("Skipping already processed file: %s", file.Path)
 			return
@@ -138,12 +151,15 @@ func (b *codeGraphBuilder) enqueueSourceFile(file SourceFile) {
 		b.fileCache[file.Path] = true
 	})
 
+	// Make this more structured i.e. each Data is in its own
+	// struct (pointer)
 	b.notifyEventHandlers(CodeGraphBuilderEvent{
 		Kind: CodeGraphBuilderEventFileQueued,
 		Data: file,
 	}, b.metrics)
 }
 
+// Add context with cancellation support
 func (b *codeGraphBuilder) fileProcessor(wg *sync.WaitGroup) {
 	for file := range b.fileQueue {
 		err := b.buildForFile(file)
@@ -175,6 +191,8 @@ func (b *codeGraphBuilder) buildForFile(file SourceFile) error {
 	if err != nil {
 		return err
 	}
+
+	// Pass CST to analysers / callbacks
 
 	defer cst.Close()
 
@@ -242,6 +260,7 @@ func (b *codeGraphBuilder) processImportNodes(cst *nodes.CST, currentFile Source
 		importedPkgNode := b.buildPackageNode(importNodeName, importNodeName,
 			sourceFile.Path, b.importSourceName(sourceFile))
 
+		// This can be handled by callbacks
 		err = b.storage.Link(thisNode.Imports(&importedPkgNode))
 		if err != nil {
 			logger.Errorf("Failed to link import node: %v", err)
