@@ -1,0 +1,4 @@
+run:
+  vetlfpfailfast:
+    command: '/bin/bash -c \"vet scan -s --no-banner --lockfiles ${E2E_FIXTURES}/lockfiles/nestjs-lfp-package-lock.json --lockfile-as package-lock.json --report-summary=false --fail-fast || exit 0; exit 1\""'
+    expectCode: 0
