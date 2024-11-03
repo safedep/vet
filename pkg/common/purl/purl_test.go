@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/osv-scanner/pkg/lockfile"
+	"github.com/safedep/vet/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -40,6 +41,14 @@ func TestParsePackageUrl(t *testing.T) {
 			"",
 			"",
 			errors.New("failed to map PURL type:unknown to known ecosystem"),
+		},
+		{
+			"Parse GitHub Actions PURL",
+			"pkg:actions/github/actions@v2",
+			lockfile.Ecosystem(models.EcosystemGitHubActions),
+			"github/actions",
+			"v2",
+			nil,
 		},
 	}
 
