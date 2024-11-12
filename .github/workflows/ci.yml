@@ -63,6 +63,8 @@ jobs:
         env:
           E2E_INSIGHTS_V2: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # This will not be available when there is a PR from a forked repository
+          SAFEDEP_CLOUD_API_KEY: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
 
   build-container:
     runs-on: ubuntu-latest

@@ -38,14 +38,14 @@ func GetGithubOAuth2ClientId() string {
 }
 
 func GetGithubClient() (*github.Client, error) {
-	github_token := os.Getenv("GITHUB_TOKEN")
-	if !utils.IsEmptyString(github_token) {
+	githubToken := os.Getenv("GITHUB_TOKEN")
+	if !utils.IsEmptyString(githubToken) {
 		logger.Debugf("Found GITHUB_TOKEN env variable, using it to access Github.")
 	} else {
-		github_token = globalConfig.GithubAccessToken
+		githubToken = globalConfig.GithubAccessToken
 	}
 
-	if utils.IsEmptyString(github_token) {
+	if utils.IsEmptyString(githubToken) {
 		rateLimitedClient, err := githubRateLimitedClient(http.DefaultTransport)
 		if err != nil {
 			return nil, err
@@ -56,7 +56,7 @@ func GetGithubClient() (*github.Client, error) {
 	}
 
 	tokenSource := oauth2.StaticTokenSource(&oauth2.Token{
-		AccessToken: github_token,
+		AccessToken: githubToken,
 	})
 
 	baseClient := oauth2.NewClient(context.Background(), tokenSource)
