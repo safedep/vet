@@ -2,6 +2,7 @@ package test
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/safedep/vet/internal/connect"
@@ -31,7 +32,7 @@ func TestGithubReaderWithVetPublicRepository(t *testing.T) {
 			Urls: []string{
 				"https://github.com/safedep/vet",
 				"https://github.com/safedep/demo-client-java",
-			}, LockfileAs: "", SkipGitHubDependencyGraphAPI: false})
+			}, LockfileAs: "", SkipGitHubDependencyGraphAPI: true})
 
 		assert.Nil(t, err, "github reader builder error")
 
@@ -48,14 +49,16 @@ func TestGithubReaderWithVetPublicRepository(t *testing.T) {
 		assert.NotNil(t, manifests[0])
 		assert.NotNil(t, manifests[1])
 
-		assert.Equal(t, modelspec.Ecosystem_SpdxSBOM.String(), manifests[0].GetSpecEcosystem().String())
-		assert.Equal(t, modelspec.Ecosystem_SpdxSBOM.String(), manifests[1].GetSpecEcosystem().String())
+		assert.Equal(t, modelspec.Ecosystem_Go.String(), manifests[0].GetSpecEcosystem().String())
+		assert.Equal(t, modelspec.Ecosystem_Maven.String(), manifests[1].GetSpecEcosystem().String())
 
-		assert.Equal(t, "https://github.com/safedep/vet.git", manifests[0].GetDisplayPath(), "found in Dependency API (SBOM)")
-		assert.Equal(t, "", manifests[0].GetPath())
+		assert.Equal(t, "go.mod", manifests[0].GetDisplayPath(), "found in GitHub repository")
+		assert.True(t, strings.HasPrefix(manifests[0].GetPath(),
+			"https://api.github.com/repos/safedep/vet/git/blobs/"))
 
-		assert.Equal(t, "", manifests[1].GetPath())
-		assert.Equal(t, "https://github.com/safedep/demo-client-java.git", manifests[1].GetDisplayPath())
+		assert.Equal(t, "gradle.lockfile", manifests[1].GetDisplayPath(), "found in GitHub repository")
+		assert.True(t, strings.HasPrefix(manifests[1].GetPath(),
+			"https://api.github.com/repos/safedep/demo-client-java/git/blobs/"))
 
 		assert.Greater(t, len(manifests[0].Packages), 0)
 		assert.Greater(t, len(manifests[1].Packages), 0)
