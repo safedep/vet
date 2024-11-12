@@ -7,6 +7,7 @@ import (
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	vulnerabilityv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/vulnerability/v1"
 	insightsv2 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/insights/v2"
+	"github.com/safedep/dry/semver"
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
@@ -113,7 +114,20 @@ func (e *insightsBasedPackageEnricherV2) convertInsightsV2ToV1(pvi *packagev1.Pa
 	// Why do we need this inside insights?
 
 	// Current Version
-	// We don't seem to have this
+	// We have available versions in insights v2 model. Will choose by default flag
+	// if available. If not, fall back to latest version.
+	currentVersion := ""
+	for _, v := range pvi.GetAvailableVersions() {
+		if currentVersion == "" {
+			currentVersion = v.GetVersion()
+		}
+
+		if semver.IsAhead(currentVersion, v.GetVersion()) {
+			currentVersion = v.GetVersion()
+		}
+	}
+
+	insights.PackageCurrentVersion = &currentVersion
 
 	// Projects
 	projects := []insightapi.PackageProjectInfo{}
