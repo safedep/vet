@@ -11,7 +11,7 @@ export E2E_VET_SCAN_CMD="$E2E_VET_BINARY scan -s --no-banner --insights-v2 $E2E_
 
 bash $E2E_THIS_DIR/scenario-1-vet-scans-vet.sh
 bash $E2E_THIS_DIR/scenario-2-vet-scan-demo-client-java.sh
-#bash $E2E_THIS_DIR/scenario-3-filter-fail-fast.sh
-#bash $E2E_THIS_DIR/scenario-4-lfp-fail-fast.sh
-#bash $E2E_THIS_DIR/scenario-5-gradle-depgraph-build.sh
-#bash $E2E_THIS_DIR/scenario-6-manifest-flag.sh
+bash $E2E_THIS_DIR/scenario-3-filter-fail-fast.sh
+bash $E2E_THIS_DIR/scenario-4-lfp-fail-fast.sh
+bash $E2E_THIS_DIR/scenario-5-gradle-depgraph-build.sh
+bash $E2E_THIS_DIR/scenario-6-manifest-flag.sh

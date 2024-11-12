@@ -54,6 +54,15 @@ jobs:
       - name: Run E2E Scenarios
         run: |
           ./test/scenarios/all.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run E2E Scenarios with Insights V2
+        run: |
+          ./test/scenarios/all.sh
+        env:
+          E2E_INSIGHTS_V2: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-container:
     runs-on: ubuntu-latest
