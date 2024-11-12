@@ -285,6 +285,10 @@ func (p *Package) GetSpecEcosystem() modelspec.Ecosystem {
 	return p.Manifest.GetSpecEcosystem()
 }
 
+func (p *Package) GetControlTowerSpecEcosystem() packagev1.Ecosystem {
+	return p.Manifest.GetControlTowerSpecEcosystem()
+}
+
 func (p *Package) GetName() string {
 	return p.Name
 }
