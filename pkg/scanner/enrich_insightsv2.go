@@ -6,6 +6,7 @@ import (
 	"buf.build/gen/go/safedep/api/grpc/go/safedep/services/insights/v2/insightsv2grpc"
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	insightsv2 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/insights/v2"
+	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 	"google.golang.org/grpc"
@@ -61,5 +62,181 @@ func (e *insightsBasedPackageEnricherV2) Enrich(pkg *models.Package,
 
 func (e *insightsBasedPackageEnricherV2) applyInsights(pkg *models.Package,
 	res *insightsv2.GetPackageVersionInsightResponse) error {
+	// Convert the V2 insights to V1 insights for backward compatibility
+	insightsv1, err := e.convertInsightsV2ToV1(res.GetInsight())
+	if err != nil {
+		return err
+	}
+
+	// Apply the V1 insights to the package
+	pkg.Insights = insightsv1
+
+	// Finally, store the new insights model :)
+	pkg.InsightsV2 = res.GetInsight()
 	return nil
+}
+
+func (e *insightsBasedPackageEnricherV2) convertInsightsV2ToV1(pvi *packagev1.PackageVersionInsight) (*insightapi.PackageVersionInsight, error) {
+	insights := &insightapi.PackageVersionInsight{}
+
+	// Dependencies
+	distance := 1
+	dependencies := []insightapi.PackageDependency{}
+	for _, d := range pvi.GetDependencies() {
+		dependencies = append(dependencies, insightapi.PackageDependency{
+			PackageVersion: &insightapi.PackageVersion{
+				Ecosystem: e.mapEcosystem(d.GetPackage().GetEcosystem()),
+				Name:      d.GetPackage().GetName(),
+				Version:   d.GetVersion(),
+			},
+
+			// This is missing in insights v2 or should we use the dependency graph?
+			Distance: &distance,
+		})
+	}
+
+	insights.Dependencies = &dependencies
+
+	// Dependents
+	// We don't have dependents in Insights V2 model
+
+	// Licenses
+	licenses := []insightapi.License{}
+	for _, l := range pvi.GetLicenses().GetLicenses() {
+		licenses = append(licenses, insightapi.License(l.GetLicenseId()))
+	}
+
+	insights.Licenses = &licenses
+
+	// Package Version
+	// Why do we need this inside insights?
+
+	// Current Version
+	// We don't seem to have this
+
+	// Projects
+	projects := []insightapi.PackageProjectInfo{}
+	for _, p := range pvi.GetProjectInsights() {
+		projectName := p.GetProject().GetName()
+		projectDisplayName := "" // Missing
+		link := p.GetProject().GetUrl()
+		forks := int(p.GetForks())
+		stars := int(p.GetStars())
+		issues := int(p.GetIssues().GetOpen())
+		projectType := "GITHUB" // Old policy compatibility
+		if p.GetProject().GetType() == packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_GITLAB {
+			projectType = "GITLAB"
+		} else if p.GetProject().GetType() == packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_BITBUCKET {
+			projectType = "BITBUCKET"
+		}
+
+		projects = append(projects, insightapi.PackageProjectInfo{
+			Name:        &projectName,
+			DisplayName: &projectDisplayName,
+			Link:        &link,
+			Forks:       &forks,
+			Stars:       &stars,
+			Issues:      &issues,
+			Type:        &projectType,
+		})
+	}
+
+	insights.Projects = &projects
+
+	// Scorecard - Wrong modelling here. Scorecard is part of project
+	// To work around, we will only use the first project's scorecard
+	scorecard := insightapi.Scorecard{}
+	if len(projects) > 0 {
+		sourceProject := pvi.GetProjectInsights()[0]
+		sourceScorecard := sourceProject.GetScorecard()
+		sourceScorecardVersion := insightapi.ScorecardVersion(sourceScorecard.GetScorecardVersion().GetVersion())
+		sourceScorecardScore := sourceScorecard.GetScore()
+		sourceScorecardRepoCommit := sourceScorecard.GetRepo().GetCommit()
+		sourceScorecardRepoName := sourceScorecard.GetRepo().GetName()
+
+		checks := []insightapi.ScorecardV2Check{}
+		for _, c := range sourceScorecard.GetChecks() {
+			checkName := insightapi.ScorecardV2CheckName(c.GetName())
+			checkReason := c.GetReason()
+			checkScore := c.GetScore()
+			checks = append(checks, insightapi.ScorecardV2Check{
+				Name:   &checkName,
+				Reason: &checkReason,
+				Score:  &checkScore,
+			})
+		}
+
+		scorecard = insightapi.Scorecard{
+			Version: &sourceScorecardVersion,
+			Content: &insightapi.ScorecardContentV2{
+				Score: &sourceScorecardScore,
+				Repository: &insightapi.ScorecardContentV2Repository{
+					Commit: &sourceScorecardRepoCommit,
+					Name:   &sourceScorecardRepoName,
+				},
+				Scorecard: &insightapi.ScorecardContentV2Version{
+					// Not available in Insights v2
+				},
+				Checks: &checks,
+			},
+		}
+	}
+
+	insights.Scorecard = &scorecard
+
+	// Vulnerabilities
+	vulnerabilities := []insightapi.PackageVulnerability{}
+	for _, v := range pvi.GetVulnerabilities() {
+		vulnId := v.GetId().GetValue()
+		aliases := []string{}
+		related := []string{}
+		summary := v.GetSummary()
+
+		for _, a := range v.GetAliases() {
+			aliases = append(aliases, a.GetValue())
+		}
+
+		for _, r := range v.GetRelated() {
+			related = append(related, r.GetValue())
+		}
+
+		vulnerabilities = append(vulnerabilities, insightapi.PackageVulnerability{
+			Id:      &vulnId,
+			Aliases: &aliases,
+			Related: &related,
+			Summary: &summary,
+			// How to map Severities which is a naked struct?
+		})
+	}
+
+	insights.Vulnerabilities = &vulnerabilities
+	return insights, nil
+}
+
+// Should this be in models?
+func (e *insightsBasedPackageEnricherV2) mapEcosystem(ecosystem packagev1.Ecosystem) string {
+	switch ecosystem {
+	case packagev1.Ecosystem_ECOSYSTEM_GO:
+		return models.EcosystemGo
+	case packagev1.Ecosystem_ECOSYSTEM_MAVEN:
+		return models.EcosystemMaven
+	case packagev1.Ecosystem_ECOSYSTEM_NPM:
+		return models.EcosystemNpm
+	case packagev1.Ecosystem_ECOSYSTEM_PYPI:
+		return models.EcosystemPyPI
+	case packagev1.Ecosystem_ECOSYSTEM_RUBYGEMS:
+		return models.EcosystemRubyGems
+	case packagev1.Ecosystem_ECOSYSTEM_PACKAGIST:
+		return models.EcosystemPackagist
+	case packagev1.Ecosystem_ECOSYSTEM_CARGO:
+		return models.EcosystemCargo
+	case packagev1.Ecosystem_ECOSYSTEM_GITHUB_ACTIONS:
+		return models.EcosystemGitHubActions
+	case packagev1.Ecosystem_ECOSYSTEM_TERRAFORM_MODULE:
+		return models.EcosystemTerraformModule
+	case packagev1.Ecosystem_ECOSYSTEM_TERRAFORM_PROVIDER:
+		return models.EcosystemTerraformProvider
+	default:
+		return "unknown"
+	}
 }

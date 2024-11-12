@@ -16,20 +16,22 @@ import (
 )
 
 const (
-	EcosystemMaven         = "Maven"
-	EcosystemRubyGems      = "RubyGems"
-	EcosystemGo            = "Go"
-	EcosystemNpm           = "npm"
-	EcosystemPyPI          = "PyPI"
-	EcosystemCargo         = "Cargo"
-	EcosystemNuGet         = "NuGet"
-	EcosystemPackagist     = "Packagist"
-	EcosystemHex           = "Hex"
-	EcosystemPub           = "Pub"
-	EcosystemCyDxSBOM      = "CycloneDxSbom"
-	EcosystemSpdxSBOM      = "SpdxSbom"
-	EcosystemGitHubActions = "GitHubActions"
-	EcosystemTerraform     = "terraform"
+	EcosystemMaven             = "Maven"
+	EcosystemRubyGems          = "RubyGems"
+	EcosystemGo                = "Go"
+	EcosystemNpm               = "npm"
+	EcosystemPyPI              = "PyPI"
+	EcosystemCargo             = "Cargo"
+	EcosystemNuGet             = "NuGet"
+	EcosystemPackagist         = "Packagist"
+	EcosystemHex               = "Hex"
+	EcosystemPub               = "Pub"
+	EcosystemCyDxSBOM          = "CycloneDxSbom"
+	EcosystemSpdxSBOM          = "SpdxSbom"
+	EcosystemGitHubActions     = "GitHubActions"
+	EcosystemTerraform         = "terraform"
+	EcosystemTerraformModule   = "terraform_module"
+	EcosystemTerraformProvider = "terraform_provider"
 )
 
 type ManifestSourceType string
@@ -258,6 +260,9 @@ type Package struct {
 
 	// Insights obtained for this package
 	Insights *insightapi.PackageVersionInsight `json:"insights,omitempty"`
+
+	// Insights v2
+	InsightsV2 *packagev1.PackageVersionInsight `json:"insights_v2,omitempty"`
 
 	// This package is a transitive dependency of parent package
 	Parent *Package `json:"-"`
