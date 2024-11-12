@@ -2,7 +2,7 @@
 
 set -x
 
-$E2E_VET_BINARY scan -s --no-banner \
+$E2E_VET_SCAN_CMD \
   --lockfiles $E2E_FIXTURES/lockfiles/nestjs-lfp-package-lock.json \
   --lockfile-as package-lock.json \
   --report-summary=false \

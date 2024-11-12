@@ -2,7 +2,7 @@
 
 set -ex
 
-$E2E_VET_BINARY scan -s --no-banner \
+$E2E_VET_SCAN_CMD \
   --lockfiles $E2E_FIXTURES/lockfiles/demo-client-java-gradle.lockfile \
   --lockfile-as gradle.lockfile \
   --report-graph /tmp/graph

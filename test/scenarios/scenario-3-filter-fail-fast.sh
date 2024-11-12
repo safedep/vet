@@ -2,7 +2,7 @@
 
 set -x
 
-$E2E_VET_BINARY scan -s --no-banner \
+$E2E_VET_SCAN_CMD \
   --github https://github.com/safedep/demo-client-java.git \
   --report-summary=false \
   --skip-github-dependency-graph-api \
