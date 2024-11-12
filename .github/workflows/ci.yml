@@ -65,6 +65,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # This will not be available when there is a PR from a forked repository
           VET_API_KEY: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
+          VET_CONTROL_TOWER_TENANT_ID: ${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }}
 
   build-container:
     runs-on: ubuntu-latest
