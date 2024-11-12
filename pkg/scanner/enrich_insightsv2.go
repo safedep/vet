@@ -5,6 +5,7 @@ import (
 
 	"buf.build/gen/go/safedep/api/grpc/go/safedep/services/insights/v2/insightsv2grpc"
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
+	vulnerabilityv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/vulnerability/v1"
 	insightsv2 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/insights/v2"
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -200,13 +201,60 @@ func (e *insightsBasedPackageEnricherV2) convertInsightsV2ToV1(pvi *packagev1.Pa
 			related = append(related, r.GetValue())
 		}
 
-		vulnerabilities = append(vulnerabilities, insightapi.PackageVulnerability{
+		packageVulnerability := insightapi.PackageVulnerability{
 			Id:      &vulnId,
 			Aliases: &aliases,
 			Related: &related,
 			Summary: &summary,
 			// How to map Severities which is a naked struct?
-		})
+		}
+
+		severities := []struct {
+			Risk  *insightapi.PackageVulnerabilitySeveritiesRisk `json:"risk,omitempty"`
+			Score *string                                        `json:"score,omitempty"`
+			Type  *insightapi.PackageVulnerabilitySeveritiesType `json:"type,omitempty"`
+		}{}
+
+		for _, sev := range v.GetSeverities() {
+			sevScore := sev.GetScore()
+			sevType := insightapi.PackageVulnerabilitySeveritiesType("")
+			sevRisk := insightapi.PackageVulnerabilitySeveritiesRisk("")
+
+			switch sev.GetRisk() {
+			case vulnerabilityv1.Severity_RISK_CRITICAL:
+				sevRisk = insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL
+			case vulnerabilityv1.Severity_RISK_HIGH:
+				sevRisk = insightapi.PackageVulnerabilitySeveritiesRiskHIGH
+			case vulnerabilityv1.Severity_RISK_MEDIUM:
+				sevRisk = insightapi.PackageVulnerabilitySeveritiesRiskMEDIUM
+			case vulnerabilityv1.Severity_RISK_LOW:
+				sevRisk = insightapi.PackageVulnerabilitySeveritiesRiskLOW
+			default:
+				sevRisk = insightapi.PackageVulnerabilitySeveritiesRiskUNKNOWN
+			}
+
+			switch sev.GetType() {
+			case vulnerabilityv1.Severity_TYPE_CVSS_V2:
+				sevType = insightapi.PackageVulnerabilitySeveritiesTypeCVSSV2
+			case vulnerabilityv1.Severity_TYPE_CVSS_V3:
+				sevType = insightapi.PackageVulnerabilitySeveritiesTypeCVSSV3
+			default:
+				sevType = insightapi.PackageVulnerabilitySeveritiesTypeUNSPECIFIED
+			}
+
+			severities = append(severities, struct {
+				Risk  *insightapi.PackageVulnerabilitySeveritiesRisk `json:"risk,omitempty"`
+				Score *string                                        `json:"score,omitempty"`
+				Type  *insightapi.PackageVulnerabilitySeveritiesType `json:"type,omitempty"`
+			}{
+				Risk:  &sevRisk,
+				Score: &sevScore,
+				Type:  &sevType,
+			})
+		}
+
+		packageVulnerability.Severities = &severities
+		vulnerabilities = append(vulnerabilities, packageVulnerability)
 	}
 
 	insights.Vulnerabilities = &vulnerabilities
