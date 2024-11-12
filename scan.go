@@ -429,6 +429,17 @@ func internalStartScan() error {
 	if enrich {
 		var enricher scanner.PackageMetaEnricher
 		if enrichUsingInsightsV2 {
+			client, err := auth.InsightsV2ClientConnection("vet-insights-v2")
+			if err != nil {
+				return err
+			}
+
+			insightsV2Enricher, err := scanner.NewInsightBasedPackageEnricherV2(client)
+			if err != nil {
+				return err
+			}
+
+			enricher = insightsV2Enricher
 		} else {
 			insightsEnricher, err := scanner.NewInsightBasedPackageEnricher(scanner.InsightsBasedPackageMetaEnricherConfig{
 				ApiUrl:     auth.ApiUrl(),
