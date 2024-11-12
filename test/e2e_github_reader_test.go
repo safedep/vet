@@ -5,12 +5,11 @@ import (
 	"strings"
 	"testing"
 
+	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	"github.com/safedep/vet/internal/connect"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/readers"
 	"github.com/stretchr/testify/assert"
-
-	modelspec "github.com/safedep/vet/gen/models"
 )
 
 func TestGithubReaderWithVetPublicRepository(t *testing.T) {
@@ -49,8 +48,8 @@ func TestGithubReaderWithVetPublicRepository(t *testing.T) {
 		assert.NotNil(t, manifests[0])
 		assert.NotNil(t, manifests[1])
 
-		assert.Equal(t, modelspec.Ecosystem_Go.String(), manifests[0].GetSpecEcosystem().String())
-		assert.Equal(t, modelspec.Ecosystem_Maven.String(), manifests[1].GetSpecEcosystem().String())
+		assert.Equal(t, packagev1.Ecosystem_ECOSYSTEM_GO, manifests[0].GetControlTowerSpecEcosystem())
+		assert.Equal(t, packagev1.Ecosystem_ECOSYSTEM_MAVEN, manifests[1].GetControlTowerSpecEcosystem())
 
 		assert.Equal(t, "go.mod", manifests[0].GetDisplayPath(), "found in GitHub repository")
 		assert.True(t, strings.HasPrefix(manifests[0].GetPath(),
