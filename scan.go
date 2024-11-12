@@ -25,6 +25,7 @@ var (
 	lockfiles                      []string
 	lockfileAs                     string
 	enrich                         bool
+	enrichUsingInsightsV2          bool
 	baseDirectory                  string
 	purlSpec                       string
 	githubRepoUrls                 []string
@@ -82,6 +83,8 @@ func newScanCommand() *cobra.Command {
 		"Fail fast when an issue is identified")
 	cmd.Flags().BoolVarP(&enrich, "enrich", "", true,
 		"Enrich package metadata (almost always required) using Insights API")
+	cmd.Flags().BoolVarP(&enrichUsingInsightsV2, "insights-v2", "", false,
+		"Enrich package metadata using Insights V2 API")
 	cmd.Flags().StringVarP(&baseDirectory, "directory", "D", wd,
 		"The directory to scan for package manifests")
 	cmd.Flags().StringArrayVarP(&scanExclude, "exclude", "", []string{},
@@ -424,15 +427,21 @@ func internalStartScan() error {
 
 	enrichers := []scanner.PackageMetaEnricher{}
 	if enrich {
-		insightsEnricher, err := scanner.NewInsightBasedPackageEnricher(scanner.InsightsBasedPackageMetaEnricherConfig{
-			ApiUrl:     auth.ApiUrl(),
-			ApiAuthKey: auth.ApiKey(),
-		})
-		if err != nil {
-			return err
+		var enricher scanner.PackageMetaEnricher
+		if enrichUsingInsightsV2 {
+		} else {
+			insightsEnricher, err := scanner.NewInsightBasedPackageEnricher(scanner.InsightsBasedPackageMetaEnricherConfig{
+				ApiUrl:     auth.ApiUrl(),
+				ApiAuthKey: auth.ApiKey(),
+			})
+			if err != nil {
+				return err
+			}
+
+			enricher = insightsEnricher
 		}
 
-		enrichers = append(enrichers, insightsEnricher)
+		enrichers = append(enrichers, enricher)
 	}
 
 	pmScanner := scanner.NewPackageManifestScanner(scanner.Config{

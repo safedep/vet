@@ -22,6 +22,10 @@ func SyncClientConnection(name string) (*grpc.ClientConn, error) {
 	return cloudClientConnection(name, SyncApiUrl(), ApiKey())
 }
 
+func InsightsV2ClientConnection(name string) (*grpc.ClientConn, error) {
+	return cloudClientConnection(name, InsightsApiV2Url(), ApiKey())
+}
+
 func cloudClientConnection(name, loc, tok string) (*grpc.ClientConn, error) {
 	parsedUrl, err := url.Parse(loc)
 	if err != nil {

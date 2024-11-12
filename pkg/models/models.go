@@ -45,19 +45,19 @@ const (
 // JAR. So we need to store additional internal metadata
 type PackageManifestSource struct {
 	// The source type of this package namespace
-	Type ManifestSourceType
+	Type ManifestSourceType `json:"type"`
 
 	// The namespace of the package manifest. Examples:
 	// - Directory when source is local
 	// - GitHub repo URL when source is GitHub
-	Namespace string
+	Namespace string `json:"namespace"`
 
 	// The namespace relative path of the package manifest.
 	// This is an actually referenceable identifier to the data
-	Path string
+	Path string `json:"path"`
 
 	// Explicit override the display path
-	DisplayPath string
+	DisplayPath string `json:"display_path"`
 }
 
 func (ps PackageManifestSource) GetDisplayPath() string {
