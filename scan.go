@@ -195,6 +195,8 @@ func startScan() {
 
 	if auth.CommunityMode() {
 		ui.PrintSuccess("Running in Community Mode")
+	} else {
+		ui.PrintSuccess("Running in Cloud (authenticated) Mode")
 	}
 
 	failOnError("scan", internalStartScan())
@@ -429,6 +431,13 @@ func internalStartScan() error {
 	if enrich {
 		var enricher scanner.PackageMetaEnricher
 		if enrichUsingInsightsV2 {
+			// We will enforce auth for Insights v2 during the experimental period.
+			// Once we have an understanding on the usage and capacity, we will open
+			// up for community usage.
+			if auth.CommunityMode() {
+				return fmt.Errorf("Insights v2 requires an API key. For more details: https://docs.safedep.io/cloud/quickstart/")
+			}
+
 			client, err := auth.InsightsV2ClientConnection("vet-insights-v2")
 			if err != nil {
 				return err
