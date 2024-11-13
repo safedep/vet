@@ -29,9 +29,9 @@ const (
 	EcosystemCyDxSBOM          = "CycloneDxSbom"
 	EcosystemSpdxSBOM          = "SpdxSbom"
 	EcosystemGitHubActions     = "GitHubActions"
-	EcosystemTerraform         = "terraform"
-	EcosystemTerraformModule   = "terraform_module"
-	EcosystemTerraformProvider = "terraform_provider"
+	EcosystemTerraform         = "Terraform"
+	EcosystemTerraformModule   = "TerraformModule"
+	EcosystemTerraformProvider = "TerraformProvider"
 )
 
 type ManifestSourceType string
@@ -216,6 +216,10 @@ func (pm *PackageManifest) GetControlTowerSpecEcosystem() packagev1.Ecosystem {
 		return packagev1.Ecosystem_ECOSYSTEM_PACKAGIST
 	case EcosystemTerraform:
 		return packagev1.Ecosystem_ECOSYSTEM_TERRAFORM
+	case EcosystemTerraformModule:
+		return packagev1.Ecosystem_ECOSYSTEM_TERRAFORM_MODULE
+	case EcosystemTerraformProvider:
+		return packagev1.Ecosystem_ECOSYSTEM_TERRAFORM_PROVIDER
 	default:
 		return packagev1.Ecosystem_ECOSYSTEM_UNSPECIFIED
 	}

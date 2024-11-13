@@ -114,12 +114,13 @@ func (e *insightsBasedPackageEnricherV2) convertInsightsV2ToV1(pvi *packagev1.Pa
 	// Why do we need this inside insights?
 
 	// Current Version
-	// We have available versions in insights v2 model. Will choose by default flag
-	// if available. If not, fall back to latest version.
+	// We will pick the latest version from available versions.
+	// This will work for most cases but not for all.
 	currentVersion := ""
 	for _, v := range pvi.GetAvailableVersions() {
 		if currentVersion == "" {
 			currentVersion = v.GetVersion()
+			continue
 		}
 
 		if semver.IsAhead(currentVersion, v.GetVersion()) {

@@ -3,6 +3,7 @@ package parser
 import (
 	"testing"
 
+	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -48,6 +49,7 @@ func TestTerraformLockfileParserAllProviders(t *testing.T) {
 	for _, providerName := range expectedProviders {
 		provider := findPackageInManifest(pm, providerName, "")
 		assert.NotNil(t, provider, "Provider %s should be present", providerName)
+		assert.Equal(t, packagev1.Ecosystem_ECOSYSTEM_TERRAFORM_PROVIDER, provider.GetControlTowerSpecEcosystem())
 	}
 }
 
@@ -63,6 +65,9 @@ func TestTerraformLockfileParserProviderVersions(t *testing.T) {
 		{"registry.terraform.io/hashicorp/google", "4.59.0"},
 		{"registry.terraform.io/datadog/datadog", "3.21.0"},
 	}
+
+	assert.Equal(t, packagev1.Ecosystem_ECOSYSTEM_TERRAFORM_PROVIDER, pm.GetControlTowerSpecEcosystem())
+	assert.Equal(t, models.EcosystemTerraformProvider, pm.Ecosystem)
 
 	for _, provider := range providers {
 		pkg := findPackageInManifest(pm, provider.name, provider.version)

@@ -21,7 +21,7 @@ func parseTerraformLockfile(path string, config *ParserConfig) (*models.PackageM
 		return nil, fmt.Errorf("failed to assert body as hclsyntax.Body")
 	}
 
-	manifest := models.NewPackageManifestFromLocal(path, models.EcosystemTerraform)
+	manifest := models.NewPackageManifestFromLocal(path, models.EcosystemTerraformProvider)
 	for _, block := range body.Blocks {
 		if block.Type != "provider" {
 			continue
@@ -43,7 +43,8 @@ func parseTerraformLockfile(path string, config *ParserConfig) (*models.PackageM
 			providerVersion = versionVal.AsString()
 		}
 
-		pkgdetails := models.NewPackageDetail(models.EcosystemTerraform, providerName, providerVersion)
+		pkgdetails := models.NewPackageDetail(models.EcosystemTerraformProvider,
+			providerName, providerVersion)
 		packageModel := models.Package{
 			PackageDetails: pkgdetails,
 			Depth:          0,
