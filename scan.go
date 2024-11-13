@@ -194,9 +194,9 @@ func startScan() {
 	}
 
 	if auth.CommunityMode() {
-		ui.PrintSuccess("Running in Community Mode")
+		ui.PrintMsg("Running in Community Mode")
 	} else {
-		ui.PrintSuccess("Running in Cloud (authenticated) Mode")
+		ui.PrintMsg("Running in Cloud (authenticated) Mode")
 	}
 
 	failOnError("scan", internalStartScan())
@@ -448,6 +448,7 @@ func internalStartScan() error {
 				return err
 			}
 
+			ui.PrintMsg("Using Insights v2 for package metadata enrichment")
 			enricher = insightsV2Enricher
 		} else {
 			insightsEnricher, err := scanner.NewInsightBasedPackageEnricher(scanner.InsightsBasedPackageMetaEnricherConfig{
