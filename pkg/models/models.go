@@ -16,20 +16,22 @@ import (
 )
 
 const (
-	EcosystemMaven         = "Maven"
-	EcosystemRubyGems      = "RubyGems"
-	EcosystemGo            = "Go"
-	EcosystemNpm           = "npm"
-	EcosystemPyPI          = "PyPI"
-	EcosystemCargo         = "Cargo"
-	EcosystemNuGet         = "NuGet"
-	EcosystemPackagist     = "Packagist"
-	EcosystemHex           = "Hex"
-	EcosystemPub           = "Pub"
-	EcosystemCyDxSBOM      = "CycloneDxSbom"
-	EcosystemSpdxSBOM      = "SpdxSbom"
-	EcosystemGitHubActions = "GitHubActions"
-	EcosystemTerraform     = "terraform"
+	EcosystemMaven             = "Maven"
+	EcosystemRubyGems          = "RubyGems"
+	EcosystemGo                = "Go"
+	EcosystemNpm               = "npm"
+	EcosystemPyPI              = "PyPI"
+	EcosystemCargo             = "Cargo"
+	EcosystemNuGet             = "NuGet"
+	EcosystemPackagist         = "Packagist"
+	EcosystemHex               = "Hex"
+	EcosystemPub               = "Pub"
+	EcosystemCyDxSBOM          = "CycloneDxSbom" // These are not real ecosystems. They are containers
+	EcosystemSpdxSBOM          = "SpdxSbom"      // These are not real ecosystems. They are containers
+	EcosystemGitHubActions     = "GitHubActions"
+	EcosystemTerraform         = "Terraform"
+	EcosystemTerraformModule   = "TerraformModule"
+	EcosystemTerraformProvider = "TerraformProvider"
 )
 
 type ManifestSourceType string
@@ -45,19 +47,19 @@ const (
 // JAR. So we need to store additional internal metadata
 type PackageManifestSource struct {
 	// The source type of this package namespace
-	Type ManifestSourceType
+	Type ManifestSourceType `json:"type"`
 
 	// The namespace of the package manifest. Examples:
 	// - Directory when source is local
 	// - GitHub repo URL when source is GitHub
-	Namespace string
+	Namespace string `json:"namespace"`
 
 	// The namespace relative path of the package manifest.
 	// This is an actually referenceable identifier to the data
-	Path string
+	Path string `json:"path"`
 
 	// Explicit override the display path
-	DisplayPath string
+	DisplayPath string `json:"display_path"`
 }
 
 func (ps PackageManifestSource) GetDisplayPath() string {
@@ -214,6 +216,10 @@ func (pm *PackageManifest) GetControlTowerSpecEcosystem() packagev1.Ecosystem {
 		return packagev1.Ecosystem_ECOSYSTEM_PACKAGIST
 	case EcosystemTerraform:
 		return packagev1.Ecosystem_ECOSYSTEM_TERRAFORM
+	case EcosystemTerraformModule:
+		return packagev1.Ecosystem_ECOSYSTEM_TERRAFORM_MODULE
+	case EcosystemTerraformProvider:
+		return packagev1.Ecosystem_ECOSYSTEM_TERRAFORM_PROVIDER
 	default:
 		return packagev1.Ecosystem_ECOSYSTEM_UNSPECIFIED
 	}
@@ -251,6 +257,34 @@ func (pm *PackageManifest) GetSpecEcosystem() modelspec.Ecosystem {
 	}
 }
 
+// Map the control tower spec ecosystem to model ecosystem
+func GetModelEcosystem(ecosystem packagev1.Ecosystem) string {
+	switch ecosystem {
+	case packagev1.Ecosystem_ECOSYSTEM_GO:
+		return EcosystemGo
+	case packagev1.Ecosystem_ECOSYSTEM_MAVEN:
+		return EcosystemMaven
+	case packagev1.Ecosystem_ECOSYSTEM_NPM:
+		return EcosystemNpm
+	case packagev1.Ecosystem_ECOSYSTEM_PYPI:
+		return EcosystemPyPI
+	case packagev1.Ecosystem_ECOSYSTEM_RUBYGEMS:
+		return EcosystemRubyGems
+	case packagev1.Ecosystem_ECOSYSTEM_PACKAGIST:
+		return EcosystemPackagist
+	case packagev1.Ecosystem_ECOSYSTEM_CARGO:
+		return EcosystemCargo
+	case packagev1.Ecosystem_ECOSYSTEM_GITHUB_ACTIONS:
+		return EcosystemGitHubActions
+	case packagev1.Ecosystem_ECOSYSTEM_TERRAFORM_MODULE:
+		return EcosystemTerraformModule
+	case packagev1.Ecosystem_ECOSYSTEM_TERRAFORM_PROVIDER:
+		return EcosystemTerraformProvider
+	default:
+		return "unknown"
+	}
+}
+
 // Represents a package such as a version of a library defined as a dependency
 // in Gemfile.lock, pom.xml etc.
 type Package struct {
@@ -258,6 +292,9 @@ type Package struct {
 
 	// Insights obtained for this package
 	Insights *insightapi.PackageVersionInsight `json:"insights,omitempty"`
+
+	// Insights v2
+	InsightsV2 *packagev1.PackageVersionInsight `json:"insights_v2,omitempty"`
 
 	// This package is a transitive dependency of parent package
 	Parent *Package `json:"-"`
@@ -283,6 +320,10 @@ func (p *Package) Id() string {
 // from the manifest ecosystem
 func (p *Package) GetSpecEcosystem() modelspec.Ecosystem {
 	return p.Manifest.GetSpecEcosystem()
+}
+
+func (p *Package) GetControlTowerSpecEcosystem() packagev1.Ecosystem {
+	return p.Manifest.GetControlTowerSpecEcosystem()
 }
 
 func (p *Package) GetName() string {

@@ -54,6 +54,19 @@ jobs:
       - name: Run E2E Scenarios
         run: |
           ./test/scenarios/all.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run E2E Scenarios with Insights V2
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          ./test/scenarios/all.sh
+        env:
+          E2E_INSIGHTS_V2: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # This will not be available when there is a PR from a forked repository
+          VET_API_KEY: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
+          VET_CONTROL_TOWER_TENANT_ID: ${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }}
 
   build-container:
     runs-on: ubuntu-latest

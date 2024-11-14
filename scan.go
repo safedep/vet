@@ -25,6 +25,7 @@ var (
 	lockfiles                      []string
 	lockfileAs                     string
 	enrich                         bool
+	enrichUsingInsightsV2          bool
 	baseDirectory                  string
 	purlSpec                       string
 	githubRepoUrls                 []string
@@ -82,6 +83,8 @@ func newScanCommand() *cobra.Command {
 		"Fail fast when an issue is identified")
 	cmd.Flags().BoolVarP(&enrich, "enrich", "", true,
 		"Enrich package metadata (almost always required) using Insights API")
+	cmd.Flags().BoolVarP(&enrichUsingInsightsV2, "insights-v2", "", false,
+		"Enrich package metadata using Insights V2 API")
 	cmd.Flags().StringVarP(&baseDirectory, "directory", "D", wd,
 		"The directory to scan for package manifests")
 	cmd.Flags().StringArrayVarP(&scanExclude, "exclude", "", []string{},
@@ -191,7 +194,9 @@ func startScan() {
 	}
 
 	if auth.CommunityMode() {
-		ui.PrintSuccess("Running in Community Mode")
+		ui.PrintMsg("Running in Community Mode")
+	} else {
+		ui.PrintMsg("Running in Cloud (authenticated) Mode")
 	}
 
 	failOnError("scan", internalStartScan())
@@ -424,15 +429,40 @@ func internalStartScan() error {
 
 	enrichers := []scanner.PackageMetaEnricher{}
 	if enrich {
-		insightsEnricher, err := scanner.NewInsightBasedPackageEnricher(scanner.InsightsBasedPackageMetaEnricherConfig{
-			ApiUrl:     auth.ApiUrl(),
-			ApiAuthKey: auth.ApiKey(),
-		})
-		if err != nil {
-			return err
+		var enricher scanner.PackageMetaEnricher
+		if enrichUsingInsightsV2 {
+			// We will enforce auth for Insights v2 during the experimental period.
+			// Once we have an understanding on the usage and capacity, we will open
+			// up for community usage.
+			if auth.CommunityMode() {
+				return fmt.Errorf("Insights v2 requires an API key. For more details: https://docs.safedep.io/cloud/quickstart/")
+			}
+
+			client, err := auth.InsightsV2ClientConnection("vet-insights-v2")
+			if err != nil {
+				return err
+			}
+
+			insightsV2Enricher, err := scanner.NewInsightBasedPackageEnricherV2(client)
+			if err != nil {
+				return err
+			}
+
+			ui.PrintMsg("Using Insights v2 for package metadata enrichment")
+			enricher = insightsV2Enricher
+		} else {
+			insightsEnricher, err := scanner.NewInsightBasedPackageEnricher(scanner.InsightsBasedPackageMetaEnricherConfig{
+				ApiUrl:     auth.ApiUrl(),
+				ApiAuthKey: auth.ApiKey(),
+			})
+			if err != nil {
+				return err
+			}
+
+			enricher = insightsEnricher
 		}
 
-		enrichers = append(enrichers, insightsEnricher)
+		enrichers = append(enrichers, enricher)
 	}
 
 	pmScanner := scanner.NewPackageManifestScanner(scanner.Config{
