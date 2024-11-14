@@ -278,28 +278,5 @@ func (e *insightsBasedPackageEnricherV2) convertInsightsV2ToV1(pvi *packagev1.Pa
 
 // Should this be in models?
 func (e *insightsBasedPackageEnricherV2) mapEcosystem(ecosystem packagev1.Ecosystem) string {
-	switch ecosystem {
-	case packagev1.Ecosystem_ECOSYSTEM_GO:
-		return models.EcosystemGo
-	case packagev1.Ecosystem_ECOSYSTEM_MAVEN:
-		return models.EcosystemMaven
-	case packagev1.Ecosystem_ECOSYSTEM_NPM:
-		return models.EcosystemNpm
-	case packagev1.Ecosystem_ECOSYSTEM_PYPI:
-		return models.EcosystemPyPI
-	case packagev1.Ecosystem_ECOSYSTEM_RUBYGEMS:
-		return models.EcosystemRubyGems
-	case packagev1.Ecosystem_ECOSYSTEM_PACKAGIST:
-		return models.EcosystemPackagist
-	case packagev1.Ecosystem_ECOSYSTEM_CARGO:
-		return models.EcosystemCargo
-	case packagev1.Ecosystem_ECOSYSTEM_GITHUB_ACTIONS:
-		return models.EcosystemGitHubActions
-	case packagev1.Ecosystem_ECOSYSTEM_TERRAFORM_MODULE:
-		return models.EcosystemTerraformModule
-	case packagev1.Ecosystem_ECOSYSTEM_TERRAFORM_PROVIDER:
-		return models.EcosystemTerraformProvider
-	default:
-		return "unknown"
-	}
+	return models.GetModelEcosystem(ecosystem)
 }

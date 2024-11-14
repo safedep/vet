@@ -26,8 +26,8 @@ const (
 	EcosystemPackagist         = "Packagist"
 	EcosystemHex               = "Hex"
 	EcosystemPub               = "Pub"
-	EcosystemCyDxSBOM          = "CycloneDxSbom"
-	EcosystemSpdxSBOM          = "SpdxSbom"
+	EcosystemCyDxSBOM          = "CycloneDxSbom" // These are not real ecosystems. They are containers
+	EcosystemSpdxSBOM          = "SpdxSbom"      // These are not real ecosystems. They are containers
 	EcosystemGitHubActions     = "GitHubActions"
 	EcosystemTerraform         = "Terraform"
 	EcosystemTerraformModule   = "TerraformModule"
@@ -254,6 +254,34 @@ func (pm *PackageManifest) GetSpecEcosystem() modelspec.Ecosystem {
 		return modelspec.Ecosystem_NuGet
 	default:
 		return modelspec.Ecosystem_UNKNOWN_ECOSYSTEM
+	}
+}
+
+// Map the control tower spec ecosystem to model ecosystem
+func GetModelEcosystem(ecosystem packagev1.Ecosystem) string {
+	switch ecosystem {
+	case packagev1.Ecosystem_ECOSYSTEM_GO:
+		return EcosystemGo
+	case packagev1.Ecosystem_ECOSYSTEM_MAVEN:
+		return EcosystemMaven
+	case packagev1.Ecosystem_ECOSYSTEM_NPM:
+		return EcosystemNpm
+	case packagev1.Ecosystem_ECOSYSTEM_PYPI:
+		return EcosystemPyPI
+	case packagev1.Ecosystem_ECOSYSTEM_RUBYGEMS:
+		return EcosystemRubyGems
+	case packagev1.Ecosystem_ECOSYSTEM_PACKAGIST:
+		return EcosystemPackagist
+	case packagev1.Ecosystem_ECOSYSTEM_CARGO:
+		return EcosystemCargo
+	case packagev1.Ecosystem_ECOSYSTEM_GITHUB_ACTIONS:
+		return EcosystemGitHubActions
+	case packagev1.Ecosystem_ECOSYSTEM_TERRAFORM_MODULE:
+		return EcosystemTerraformModule
+	case packagev1.Ecosystem_ECOSYSTEM_TERRAFORM_PROVIDER:
+		return EcosystemTerraformProvider
+	default:
+		return "unknown"
 	}
 }
 
