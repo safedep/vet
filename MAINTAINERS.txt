@@ -6,4 +6,7 @@ Abhisek Datta
 	GitHub username: @abhisek
 	Affiliation: SafeDep
 
-
+Nikhil Mittal
+	Email: nikhil.mittal641@gmail.com
+	GitHub username: @c0d3G33k
+	Affiliation: Chargebee
