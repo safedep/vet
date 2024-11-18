@@ -278,7 +278,8 @@ func (r *markdownSummaryReporter) addChangedPackageSection(builder *markdown.Mar
 		return nil
 	}
 
-	builder.AddHeader(2, "New Packages")
+	section := builder.StartCollapsibleSection("Changed Packages")
+	section.Builder().AddHeader(2, "Changed Packages")
 
 	for _, pkg := range internalModel.packages {
 		pkgModel := pkg.GetPackage()
@@ -292,17 +293,22 @@ func (r *markdownSummaryReporter) addChangedPackageSection(builder *markdown.Mar
 			statusEmoji = markdown.EmojiWarning
 		}
 
-		builder.AddBulletPoint(fmt.Sprintf("%s [`%s`] `%s@%s`",
+		section.Builder().AddBulletPoint(fmt.Sprintf("%s [`%s`] `%s@%s`",
 			statusEmoji,
 			pkgModel.GetEcosystem(), pkgModel.GetName(), pkgModel.GetVersion()))
 	}
 
+	builder.AddCollapsibleSection(section)
 	return nil
 }
 
 func (r *markdownSummaryReporter) addViolationSection(builder *markdown.MarkdownBuilder,
 	internalModel *vetResultInternalModel) error {
-	isHeaderAdded := false
+
+	section := builder.StartCollapsibleSection("Policy Violations")
+	section.Builder().AddHeader(2, "Packages Violating Policy")
+
+	hasViolations := false
 
 	for _, pkg := range internalModel.packages {
 		packageViolations := pkg.GetViolations()
@@ -317,18 +323,13 @@ func (r *markdownSummaryReporter) addViolationSection(builder *markdown.Markdown
 			continue
 		}
 
-		// We use this weird logic to ensure we don't end up adding
-		// section header if there are no package with violations
-		if !isHeaderAdded {
-			builder.AddHeader(2, "Packages Violating Policy")
-			isHeaderAdded = true
-		}
+		hasViolations = true
 
 		externalReferenceEmojiUrl := fmt.Sprintf("[%s](%s)",
 			markdown.EmojiLink,
 			r.getPackageExternalReferenceUrl(pkgModel))
 
-		builder.AddHeader(3, fmt.Sprintf("[%s] `%s@%s` %s",
+		section.Builder().AddHeader(3, fmt.Sprintf("[%s] `%s@%s` %s",
 			pkgModel.GetEcosystem(), pkgModel.GetName(), pkgModel.GetVersion(),
 			externalReferenceEmojiUrl))
 
@@ -343,12 +344,12 @@ func (r *markdownSummaryReporter) addViolationSection(builder *markdown.Markdown
 					}
 				*/
 
-				builder.AddBulletPoint(fmt.Sprintf(":arrow_right: Found in manifest `%s`", path))
+				section.Builder().AddBulletPoint(fmt.Sprintf(":arrow_right: Found in manifest `%s`", path))
 			}
 		}
 
 		for _, v := range packageViolations {
-			builder.AddBulletPoint(fmt.Sprintf(":warning: %s", v.GetFilter().GetSummary()))
+			section.Builder().AddBulletPoint(fmt.Sprintf(":warning: %s", v.GetFilter().GetSummary()))
 		}
 
 		advices := pkg.GetAdvices()
@@ -358,8 +359,12 @@ func (r *markdownSummaryReporter) addViolationSection(builder *markdown.Markdown
 				continue
 			}
 
-			builder.AddBulletPoint(fmt.Sprintf(":zap: %s", advSummary))
+			section.Builder().AddBulletPoint(fmt.Sprintf(":zap: %s", advSummary))
 		}
+	}
+
+	if hasViolations {
+		builder.AddCollapsibleSection(section)
 	}
 
 	return nil

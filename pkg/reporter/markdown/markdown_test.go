@@ -41,6 +41,15 @@ func TestMarkdownBuilder(t *testing.T) {
 			},
 			"- AAAA\n- BBBB",
 		},
+		{
+			"Has collapsible section",
+			func(builder *MarkdownBuilder) {
+				section := builder.StartCollapsibleSection("Title")
+				section.Builder().AddParagraph("AAAABBBB")
+				builder.AddCollapsibleSection(section)
+			},
+			"<details>\n<summary>Title</summary>\n\nAAAABBBB\n\n</details>",
+		},
 	}
 
 	for _, test := range cases {
