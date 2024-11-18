@@ -72,6 +72,9 @@ message PackageManifestReport {
   Ecosystem ecosystem = 2;
   string path = 3;
   repeated ReportThreat threats = 4;
+  string display_path = 5;
+  string source_type = 6;
+  string namespace = 7;
 }
 
 // PackageReport represents the first class entity for which we have different type

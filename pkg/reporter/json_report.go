@@ -148,10 +148,13 @@ func (r *jsonReportGenerator) findPackageManifestReport(manifest *models.Package
 	manifestId := manifest.Id()
 	if _, ok := r.manifests[manifestId]; !ok {
 		r.manifests[manifestId] = &jsonreportspec.PackageManifestReport{
-			Id:        manifestId,
-			Path:      manifest.GetDisplayPath(),
-			Ecosystem: manifest.GetSpecEcosystem(),
-			Threats:   make([]*schema.ReportThreat, 0),
+			Id:          manifestId,
+			SourceType:  string(manifest.GetSource().GetType()),
+			Namespace:   manifest.GetSource().GetNamespace(),
+			Path:        manifest.GetSource().GetPath(),
+			DisplayPath: manifest.GetDisplayPath(),
+			Ecosystem:   manifest.GetSpecEcosystem(),
+			Threats:     make([]*schema.ReportThreat, 0),
 		}
 	}
 

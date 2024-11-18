@@ -28,7 +28,13 @@ func TestJsonRepoGenerator(t *testing.T) {
 			"Verify sanity of test",
 			[]*models.PackageManifest{
 				&models.PackageManifest{
-					Path:      "/tmp/sample-path",
+					Source: models.PackageManifestSource{
+						Type:        models.ManifestSourceLocal,
+						Namespace:   "/namespace/1",
+						Path:        "sample-path",
+						DisplayPath: "/tmp/sample/display/path/does/not/matter",
+					},
+					Path:      "/real/path",
 					Ecosystem: models.EcosystemGo,
 					Packages: []*models.Package{
 						&models.Package{
@@ -43,9 +49,41 @@ func TestJsonRepoGenerator(t *testing.T) {
 			[]*analyzer.AnalyzerEvent{},
 			func(t *testing.T, report *jsonreportspec.Report) {
 				assert.Equal(t, 1, len(report.Manifests))
+				assert.Equal(t, "sample-path", report.Manifests[0].Path)
+				assert.Equal(t, "/namespace/1", report.Manifests[0].Namespace)
+
+				assert.Equal(t, "/namespace/1/sample-path", report.Manifests[0].DisplayPath)
+				assert.Equal(t, string(models.ManifestSourceLocal), report.Manifests[0].SourceType)
 				assert.Equal(t, 1, len(report.Packages))
 				assert.Equal(t, "golib1", report.Packages[0].GetPackage().GetName())
 				assert.Equal(t, "0.1.2", report.Packages[0].GetPackage().GetVersion())
+			},
+		},
+		{
+			"Verify GitHub manifest",
+			[]*models.PackageManifest{
+				&models.PackageManifest{
+					Source: models.PackageManifestSource{
+						Type:        models.ManifestSourceGitRepository,
+						Namespace:   "/namespace/1",
+						Path:        "sample-path",
+						DisplayPath: "/tmp/sample/display/path",
+					},
+					Path:      "/real/path",
+					Ecosystem: models.EcosystemGo,
+					Packages: []*models.Package{
+						&models.Package{
+							PackageDetails: lockfile.PackageDetails{
+								Name:    "golib1",
+								Version: "0.1.2",
+							},
+						},
+					},
+				},
+			},
+			[]*analyzer.AnalyzerEvent{},
+			func(t *testing.T, report *jsonreportspec.Report) {
+				assert.Equal(t, "/tmp/sample/display/path", report.Manifests[0].DisplayPath)
 			},
 		},
 	}
