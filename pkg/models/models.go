@@ -79,6 +79,10 @@ func (ps PackageManifestSource) GetPath() string {
 	return ps.Path
 }
 
+func (ps PackageManifestSource) GetType() ManifestSourceType {
+	return ps.Type
+}
+
 // Represents a package manifest that contains a list
 // of packages. Example: pom.xml, requirements.txt
 type PackageManifest struct {
