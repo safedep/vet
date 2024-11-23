@@ -24,6 +24,13 @@ builds:
       - CC=o64-clang
       - CXX=o64-clang++
 
+  - id: windows
+    goos: [windows]
+    goarch: [amd64]
+    env:
+      - CC=x86_64-w64-mingw32-gcc
+      - CXX=x86_64-w64-mingw32-g++
+
 release:
   # for prerelease it doesn't build and distribute
   prerelease: auto
