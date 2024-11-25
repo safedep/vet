@@ -212,7 +212,7 @@ vet scan -D /path/to/code \
     --filter-fail
 ```
 
-For more examples, refer to [documentation](https://docs.safedep.io/advanced/polic-as-code)
+For more examples, refer to [documentation](https://docs.safedep.io/advanced/policy-as-code)
 
 ## Query Mode
 
@@ -262,7 +262,7 @@ execution.
 ## 🛠️ Advanced Usage
 
 - [Threat Hunting with vet](https://docs.safedep.io/advanced/filtering)
-- [Policy as Code](https://docs.safedep.io/advanced/polic-as-code)
+- [Policy as Code](https://docs.safedep.io/advanced/policy-as-code)
 - [Exceptions and Overrides](https://docs.safedep.io/advanced/exceptions)
 
 ## 📖 Documentation
