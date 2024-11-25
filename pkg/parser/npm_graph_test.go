@@ -174,3 +174,100 @@ func TestNpmGraphParserPathToRootFromDependent(t *testing.T) {
 	assert.Equal(t, "@aws-sdk/client-sts", bNodeToRoot[2].GetName())
 	assert.Equal(t, "@aws-sdk/client-s3", bNodeToRoot[3].GetName())
 }
+
+func TestNpmVersionConstraintResolveVersion(t *testing.T) {
+	cases := []struct {
+		name   string
+		input  string
+		output string
+		err    error
+	}{
+		{
+			name:   "resolved version",
+			input:  "1.2.3",
+			output: "1.2.3",
+		},
+		{
+			name:   "semver with tilde",
+			input:  "~1.2.3",
+			output: "1.2.3",
+		},
+		{
+			name:   "semver with tilde space",
+			input:  "~ 1.2.3",
+			output: "1.2.3",
+		},
+		{
+			name:   "semver with greater equal",
+			input:  ">=1.2.3",
+			output: "1.2.3",
+		},
+		{
+			name:   "non-semver version",
+			input:  "latest",
+			output: "latest",
+		},
+	}
+
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+			version, err := npmVersionConstraintResolveVersion(test.input)
+			if test.err != nil {
+				assert.Error(t, err)
+				assert.ErrorContains(t, err, test.err.Error())
+			} else {
+				assert.Equal(t, test.output, version)
+			}
+		})
+	}
+}
+
+func TestNpmPackageJsonDependencies(t *testing.T) {
+	pm, err := parseNpmPackageJsonAsGraph("./fixtures/package.json", defaultParserConfigForTest)
+	assert.Nil(t, err)
+	assert.NotNil(t, pm)
+
+	actualPackages := map[string]string{}
+	for _, pkg := range pm.GetPackages() {
+		actualPackages[pkg.GetName()] = pkg.GetVersion()
+	}
+
+	expectedPackages := map[string]string{
+		"accepts":             "1.3.8",
+		"array-flatten":       "1.1.1",
+		"body-parser":         "1.20.1",
+		"content-disposition": "0.5.4",
+		"content-type":        "1.0.4",
+		"cookie":              "0.5.0",
+		"cookie-signature":    "1.0.6",
+		"debug":               "2.6.9",
+		"depd":                "2.0.0",
+		"encodeurl":           "1.0.2",
+		"escape-html":         "1.0.3",
+		"etag":                "1.8.1",
+		"finalhandler":        "1.2.0",
+		"fresh":               "0.5.2",
+		"http-errors":         "2.0.0",
+		"merge-descriptors":   "1.0.1",
+		"methods":             "1.1.2",
+		"on-finished":         "2.4.1",
+		"parseurl":            "1.3.3",
+		"path-to-regexp":      "0.1.7",
+		"proxy-addr":          "2.0.7",
+		"qs":                  "6.11.0",
+		"range-parser":        "1.2.1",
+		"safe-buffer":         "5.2.1",
+		"send":                "0.18.0",
+		"serve-static":        "1.15.0",
+		"setprototypeof":      "1.2.0",
+		"statuses":            "2.0.1",
+		"type-is":             "1.6.18",
+		"utils-merge":         "1.0.1",
+		"vary":                "1.1.2",
+	}
+
+	for pkg, ver := range expectedPackages {
+		assert.Contains(t, actualPackages, pkg)
+		assert.Equal(t, ver, actualPackages[pkg])
+	}
+}

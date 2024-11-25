@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"regexp"
 
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/common/utils"
@@ -31,6 +32,80 @@ type npmPackageLock struct {
 	Packages        map[string]npmPackageLockPackage `json:"packages"`
 }
 
+// https://docs.npmjs.com/cli/v10/configuring-npm/package-json
+type npmPackageJson struct {
+	Name            string            `json:"name"`
+	Description     string            `json:"description"`
+	Version         string            `json:"version"`
+	Author          string            `json:"author"`
+	Contributors    []string          `json:"contributors"`
+	License         string            `json:"license"`
+	Repository      string            `json:"repository"`
+	Homepage        string            `json:"homepage"`
+	Keywords        []string          `json:"keywords"`
+	Dependencies    map[string]string `json:"dependencies"`
+	DevDependencies map[string]string `json:"devDependencies"`
+	Engines         map[string]string `json:"engines"`
+	Files           []string          `json:"files"`
+	Scripts         map[string]string `json:"scripts"`
+}
+
+var (
+	exactVersionMatchRegex = regexp.MustCompile(`^(\d+)\.(\d+)\.(\d+)$`)
+	startsWithDigitRegex   = regexp.MustCompile(`^[0-9]`)
+	semverExtractorRegex   = regexp.MustCompile(`([0-9]+\.[0-9]+\.[0-9]+)`)
+)
+
+// Parse package.json. This is required because npm library packages do
+// not lock dependencies (rightly so).
+func parseNpmPackageJsonAsGraph(packageJsonPath string, config *ParserConfig) (*models.PackageManifest, error) {
+	data, err := os.ReadFile(packageJsonPath)
+	if err != nil {
+		return nil, err
+	}
+
+	var packageJson npmPackageJson
+	err = json.NewDecoder(bytes.NewReader(data)).Decode(&packageJson)
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Debugf("npmGraphParser: Found %d dependencies in package.json",
+		len(packageJson.Dependencies))
+
+	manifest := models.NewPackageManifestFromLocal(packageJsonPath, models.EcosystemNpm)
+
+	dependencies := packageJson.Dependencies
+	if config.IncludeDevDependencies {
+		for k, v := range packageJson.DevDependencies {
+			if _, ok := dependencies[k]; !ok {
+				dependencies[k] = v
+			} else {
+				logger.Warnf("npmGraphParser: Dev dependency %s is already present in dependencies", k)
+			}
+		}
+	}
+
+	for depName, depVersion := range dependencies {
+		// We are supporting only package dependencies. Actual dependencies
+		// can be Url, Git URL, GitHub URL as well. We are not handling those
+		// for now.
+
+		resolvedVersion, err := npmVersionConstraintResolveVersion(depVersion)
+		if err != nil {
+			logger.Warnf("npmGraphParser: Could not resolve version for %s: %v", depVersion, err)
+			continue
+		}
+
+		pkgDetails := models.NewPackageDetail(models.EcosystemNpm, depName, resolvedVersion)
+		manifest.AddPackage(&models.Package{
+			PackageDetails: pkgDetails,
+		})
+	}
+
+	return manifest, nil
+}
+
 func parseNpmPackageLockAsGraph(lockfilePath string, config *ParserConfig) (*models.PackageManifest, error) {
 	data, err := os.ReadFile(lockfilePath)
 	if err != nil {
@@ -51,7 +126,7 @@ func parseNpmPackageLockAsGraph(lockfilePath string, config *ParserConfig) (*mod
 	logger.Debugf("npmGraphParser: Found %d packages in lockfile",
 		len(lockfile.Packages))
 
-	manifest := models.NewPackageManifest(lockfilePath, models.EcosystemNpm)
+	manifest := models.NewPackageManifestFromLocal(lockfilePath, models.EcosystemNpm)
 	dependencyGraph := manifest.DependencyGraph
 
 	if dependencyGraph == nil {
@@ -132,4 +207,23 @@ func npmGraphAddDependencyRelation(graph *models.DependencyGraph[*models.Package
 func npmGraphFindBySemverRange(graph *models.DependencyGraph[*models.Package],
 	name, semver string) *models.DependencyGraphNode[*models.Package] {
 	return utils.FindDependencyGraphNodeBySemverRange(graph, name, semver)
+}
+
+// There is no way for us to resolve the version from a semver constraint
+// because it depends on a lot of factors including other dependencies, platform,
+// node version etc. To keep things simple, we will choose the lowest version
+func npmVersionConstraintResolveVersion(constraint string) (string, error) {
+	if exactVersionMatchRegex.MatchString(constraint) {
+		return constraint, nil
+	}
+
+	if startsWithDigitRegex.MatchString(constraint) {
+		return constraint, nil
+	}
+
+	if semverExtractorRegex.MatchString(constraint) {
+		return semverExtractorRegex.FindString(constraint), nil
+	}
+
+	return constraint, nil
 }

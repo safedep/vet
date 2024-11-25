@@ -85,6 +85,7 @@ type dependencyGraphParser func(lockfilePath string, config *ParserConfig) (*mod
 
 // Maintain a map of lockfileAs to dependencyGraphParser
 var dependencyGraphParsers map[string]dependencyGraphParser = map[string]dependencyGraphParser{
+	"package.json":                    parseNpmPackageJsonAsGraph,
 	"package-lock.json":               parseNpmPackageLockAsGraph,
 	customParserCycloneDXSBOM:         parseSbomCycloneDxAsGraph,
 	customParserTypeJavaArchive:       parseJavaArchiveAsGraph,
@@ -240,6 +241,8 @@ func (pw *parserWrapper) Ecosystem() string {
 		return models.EcosystemMaven
 	case "buildscript-gradle.lockfile":
 		return models.EcosystemMaven
+	case "package.json":
+		return models.EcosystemNpm
 	case customParserTypePyWheel:
 		return models.EcosystemPyPI
 	case customParserCycloneDXSBOM:
