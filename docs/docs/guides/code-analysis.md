@@ -11,7 +11,7 @@ EXPERIMENTAL: This feature is experimental and may introduce breaking changes.
 
 :::
 
-`vet` has a code analysis framework built on top of [tree-sitter](#) parsers. The goal
+`vet` has a code analysis framework built on top of [tree-sitter](https://tree-sitter.github.io/tree-sitter/) parsers. The goal
 of this framework is to support multiple languages, source repositories (local and remote),
 and create a representation of code that can be analysed for common software
 supply chain security related use-cases such as
