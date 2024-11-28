@@ -50,6 +50,7 @@ message InsightProjectInfo {
   int32 stars = 3;
   int32 forks = 4;
   int32 issues = 5;
+  string url = 6;
 }
 
 

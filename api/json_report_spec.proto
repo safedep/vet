@@ -91,6 +91,7 @@ message PackageReport {
   // Insights data
   repeated InsightVulnerability vulnerabilities = 5;
   repeated InsightLicenseInfo licenses = 6;
+  repeated InsightProjectInfo projects = 8;
 
   // Threats
   repeated ReportThreat threats = 7;

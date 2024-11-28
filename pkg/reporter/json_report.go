@@ -228,12 +228,14 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 		Advices:         make([]*schema.RemediationAdvice, 0),
 		Vulnerabilities: make([]*modelspec.InsightVulnerability, 0),
 		Licenses:        make([]*modelspec.InsightLicenseInfo, 0),
+		Projects:        make([]*modelspec.InsightProjectInfo, 0),
 		Threats:         make([]*schema.ReportThreat, 0),
 	}
 
 	insights := utils.SafelyGetValue(p.Insights)
 	vulns := utils.SafelyGetValue(insights.Vulnerabilities)
 	licenses := utils.SafelyGetValue(insights.Licenses)
+	projects := utils.SafelyGetValue(insights.Projects)
 
 	for _, vuln := range vulns {
 		insightSeverities := utils.SafelyGetValue(vuln.Severities)
@@ -266,6 +268,17 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 	for _, license := range licenses {
 		pkg.Licenses = append(pkg.Licenses, &modelspec.InsightLicenseInfo{
 			Id: string(license),
+		})
+	}
+
+	for _, project := range projects {
+		stars := utils.SafelyGetValue(project.Stars)
+		projectUrl := utils.SafelyGetValue(project.Link)
+
+		pkg.Projects = append(pkg.Projects, &modelspec.InsightProjectInfo{
+			Name:  utils.SafelyGetValue(project.Name),
+			Stars: int32(stars),
+			Url:   projectUrl,
 		})
 	}
 
