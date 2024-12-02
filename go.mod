@@ -3,8 +3,8 @@ module github.com/safedep/vet
 go 1.23.2
 
 require (
-	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20241117092917-2fd4dbf7c52e.1
-	buf.build/gen/go/safedep/api/protocolbuffers/go v1.35.2-20241117092917-2fd4dbf7c52e.1
+	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20241127172711-d314452ec756.1
+	buf.build/gen/go/safedep/api/protocolbuffers/go v1.35.2-20241127172711-d314452ec756.1
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/CycloneDX/cyclonedx-go v0.9.1
 	github.com/anchore/syft v1.16.0
@@ -25,7 +25,7 @@ require (
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/owenrumney/go-sarif/v2 v2.3.3
 	github.com/package-url/packageurl-go v0.1.3
-	github.com/safedep/dry v0.0.0-20241112071106-48fc2b8dc770
+	github.com/safedep/dry v0.0.0-20241128083908-2f8ecd48dc2c
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smacker/go-tree-sitter v0.0.0-20240827094217-dd81d9e9be82
 	github.com/spdx/tools-golang v0.5.5

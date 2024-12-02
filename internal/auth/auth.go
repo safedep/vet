@@ -15,6 +15,7 @@ const (
 	apiV2UrlEnvKey           = "VET_INSIGHTS_API_V2_URL" // gitleaks:allow
 	syncUrlEnvKey            = "VET_SYNC_API_URL"
 	controlPlaneUrlEnvKey    = "VET_CONTROL_PLANE_API_URL"
+	dataPlaneUrlEnvKey       = "VET_DATA_PLANE_API_URL"
 	apiKeyEnvKey             = "VET_API_KEY"
 	apiKeyAlternateEnvKey    = "VET_INSIGHTS_API_KEY"
 	communityModeEnvKey      = "VET_COMMUNITY_MODE"
@@ -24,6 +25,7 @@ const (
 	defaultCommunityApiUrl = "https://api.safedep.io/insights-community/v1"
 
 	// gRPC service base URL.
+	defaultDataPlaneApiUrl    = "https://api.safedep.io"
 	defaultSyncApiUrl         = "https://api.safedep.io"
 	defaultInsightsApiV2Url   = "https://api.safedep.io"
 	defaultControlPlaneApiUrl = "https://cloud.safedep.io"
@@ -41,6 +43,7 @@ type Config struct {
 	ApiUrl                    string    `yaml:"api_url"`
 	ApiKey                    string    `yaml:"api_key"`
 	Community                 bool      `yaml:"community"`
+	DataPlaneApiUrl           string    `yaml:"data_plane_api_url"`
 	ControlPlaneApiUrl        string    `yaml:"control_api_url"`
 	SyncApiUrl                string    `yaml:"sync_api_url"`
 	InsightsApiV2Url          string    `yaml:"insights_api_v2_url"`
@@ -61,6 +64,7 @@ func DefaultConfig() Config {
 	return Config{
 		ApiUrl:             defaultApiUrl,
 		Community:          false,
+		DataPlaneApiUrl:    defaultDataPlaneApiUrl,
 		ControlPlaneApiUrl: defaultControlPlaneApiUrl,
 		SyncApiUrl:         defaultSyncApiUrl,
 		InsightsApiV2Url:   defaultInsightsApiV2Url,
@@ -155,6 +159,19 @@ func CloudRefreshToken() string {
 	}
 
 	return ""
+}
+
+func DataPlaneUrl() string {
+	envOverride := os.Getenv(dataPlaneUrlEnvKey)
+	if envOverride != "" {
+		return envOverride
+	}
+
+	if (globalConfig != nil) && (globalConfig.DataPlaneApiUrl != "") {
+		return globalConfig.ApiUrl
+	}
+
+	return defaultDataPlaneApiUrl
 }
 
 func SyncApiUrl() string {
