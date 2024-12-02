@@ -8,6 +8,7 @@ import (
 
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/cmd/cloud"
+	"github.com/safedep/vet/cmd/inspect"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/exceptions"
@@ -60,6 +61,10 @@ func main() {
 	cmd.AddCommand(newConnectCommand())
 	cmd.AddCommand(cloud.NewCloudCommand())
 
+	if checkIfPackageInspectCommandEnabled() {
+		cmd.AddCommand(inspect.NewPackageInspectCommand())
+	}
+
 	cobra.OnInitialize(func() {
 		printBanner()
 		loadExceptions()
@@ -106,6 +111,15 @@ func printBanner() {
 	}
 
 	ui.PrintBanner(banner)
+}
+
+func checkIfPackageInspectCommandEnabled() bool {
+	bRet, err := strconv.ParseBool(os.Getenv("VET_ENABLE_PACKAGE_INSPECT_COMMAND"))
+	if err != nil {
+		return false
+	}
+
+	return bRet
 }
 
 // Redirect to file or discard log if empty
