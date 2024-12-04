@@ -446,7 +446,7 @@ func (r *summaryReporter) renderRemediationAdvice() {
 
 func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
 	sortedPackages []*summaryReporterRemediationData, maxAdvice int) {
-	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Update To", "Impact Score", "Vuln Risk"})
+	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Latest", "Impact Score", "Vuln Risk"})
 
 	// Re-use the formatting logic within this function boundary
 	formatTags := func(tags []string) string {
