@@ -32,7 +32,13 @@ func StartSpinner(msg string) {
 }
 
 func StopSpinner() {
-	spinnerChan <- true
+	// Gracefully handle the case where the spinner is already stopped
+	// and the channel is closed, yet client code calls StopSpinner() again.
+	defer func() {
+		_ = recover()
+	}()
+
+	close(spinnerChan)
 
 	fmt.Printf("\r")
 	fmt.Println()
