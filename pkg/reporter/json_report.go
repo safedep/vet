@@ -3,6 +3,7 @@ package reporter
 import (
 	"os"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/safedep/dry/utils"
@@ -271,6 +272,28 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 		})
 	}
 
+	// Re-usable function to get project name and url from scorecard
+	// when projects are not available in insights
+	getProjectFromScorecard := func() (string, string) {
+		scorecard := utils.SafelyGetValue(insights.Scorecard)
+		content := utils.SafelyGetValue(scorecard.Content)
+		repository := utils.SafelyGetValue(content.Repository)
+
+		projectUrl := utils.SafelyGetValue(repository.Name)
+		projectName := ""
+
+		parts := strings.SplitN(projectUrl, "/", 2)
+		if len(parts) == 2 {
+			projectName = parts[1]
+		}
+
+		if projectUrl != "" && !strings.HasPrefix(projectUrl, "http") {
+			projectUrl = "https://" + projectUrl
+		}
+
+		return projectName, projectUrl
+	}
+
 	for _, project := range projects {
 		stars := utils.SafelyGetValue(project.Stars)
 		projectUrl := utils.SafelyGetValue(project.Link)
@@ -280,6 +303,19 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 			Stars: int32(stars),
 			Url:   projectUrl,
 		})
+	}
+
+	// Project Url can be empty because we use custom data source
+	// for RubyGems. We should copy from scorecard
+	if len(projects) == 0 {
+		projectName, projectUrl := getProjectFromScorecard()
+
+		if projectUrl != "" {
+			pkg.Projects = append(pkg.Projects, &modelspec.InsightProjectInfo{
+				Name: projectName,
+				Url:  projectUrl,
+			})
+		}
 	}
 
 	if len(pkg.Vulnerabilities) > 0 {
