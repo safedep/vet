@@ -25,7 +25,7 @@ func (p *purlReader) EnumManifests(handler func(*models.PackageManifest,
 	}
 
 	pd := parsedPurl.GetPackageDetails()
-	pm := models.NewPackageManifest(p.purl, string(pd.Ecosystem))
+	pm := models.NewPackageManifestFromPurl(p.purl, string(pd.Ecosystem))
 
 	pm.AddPackage(&models.Package{
 		PackageDetails: pd,

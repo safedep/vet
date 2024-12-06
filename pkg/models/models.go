@@ -38,6 +38,7 @@ type ManifestSourceType string
 
 const (
 	ManifestSourceLocal         = ManifestSourceType("local")
+	ManifestSourcePurl          = ManifestSourceType("purl")
 	ManifestSourceGitRepository = ManifestSourceType("git_repository")
 )
 
@@ -65,6 +66,8 @@ type PackageManifestSource struct {
 func (ps PackageManifestSource) GetDisplayPath() string {
 	switch ps.Type {
 	case ManifestSourceLocal:
+		return filepath.Join(ps.Namespace, ps.Path)
+	case ManifestSourcePurl:
 		return filepath.Join(ps.Namespace, ps.Path)
 	default:
 		return ps.DisplayPath
@@ -116,6 +119,14 @@ func NewPackageManifestFromLocal(path, ecosystem string) *PackageManifest {
 		Namespace: filepath.Dir(path),
 		Path:      filepath.Base(path),
 	}, path, ecosystem)
+}
+
+func NewPackageManifestFromPurl(purl, ecosystem string) *PackageManifest {
+	return newPackageManifest(PackageManifestSource{
+		Type:      ManifestSourcePurl,
+		Namespace: filepath.Dir(purl),
+		Path:      filepath.Base(purl),
+	}, purl, ecosystem)
 }
 
 func NewPackageManifestFromGitHub(repo, repoRelativePath, realPath, ecosystem string) *PackageManifest {
