@@ -343,8 +343,9 @@ func (s *syncReporter) syncEvent(event *analyzer.AnalyzerEvent) error {
 		logger.Warnf("unsupported check type: %s", filter.GetCheckType())
 	}
 
-	logger.Debugf("Report Sync: Publishing policy violation for package: %s/%s/%s/%s",
-		pkg.Manifest.GetControlTowerSpecEcosystem(), pkg.Manifest.GetDisplayPath(), pkg.GetName(), pkg.GetVersion())
+	logger.Debugf("Report Sync: Publishing policy violation for package: %s/%s/%s/%s with violation %s/%s/%s",
+		pkg.Manifest.GetControlTowerSpecEcosystem(), pkg.Manifest.GetDisplayPath(), pkg.GetName(), pkg.GetVersion(),
+		checkType, filter.GetName(), filter.GetValue())
 
 	namespace := pkg.Manifest.GetSource().GetNamespace()
 	req := controltowerv1.PublishPolicyViolationRequest{
