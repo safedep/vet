@@ -76,6 +76,10 @@ func parseNpmPackageJsonAsGraph(packageJsonPath string, config *ParserConfig) (*
 	manifest := models.NewPackageManifestFromLocal(packageJsonPath, models.EcosystemNpm)
 
 	dependencies := packageJson.Dependencies
+	if dependencies == nil {
+		dependencies = make(map[string]string)
+	}
+
 	if config.IncludeDevDependencies {
 		for k, v := range packageJson.DevDependencies {
 			if _, ok := dependencies[k]; !ok {
