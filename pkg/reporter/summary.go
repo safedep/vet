@@ -416,6 +416,11 @@ func (r *summaryReporter) sortedRemediationsGroupByDirectDependency() []*summary
 }
 
 func (r *summaryReporter) renderRemediationAdvice() {
+	if len(r.remediationScores) == 0 {
+		fmt.Println(text.BgGreen.Sprint(" No risky libraries identified "))
+		return
+	}
+
 	fmt.Println(text.Bold.Sprint("Consider upgrading the following libraries for maximum impact:"))
 	fmt.Println()
 

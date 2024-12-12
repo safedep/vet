@@ -28,6 +28,17 @@ func TestNpmGraphParserBasic(t *testing.T) {
 	assert.NotEmpty(t, pm.DependencyGraph.GetNodes())
 }
 
+func TestPackageJsonOnlyDevDependencies(t *testing.T) {
+	pm, err := parseNpmPackageJsonAsGraph("./fixtures/package-json-with-only-dev-dependencies.json",
+		&ParserConfig{IncludeDevDependencies: true})
+	assert.Nil(t, err)
+
+	assert.NotNil(t, pm)
+	assert.NotNil(t, pm.DependencyGraph)
+	assert.NotEmpty(t, pm.DependencyGraph.GetNodes())
+	assert.Equal(t, 1, len(pm.GetPackages()))
+}
+
 func TestNpmGraphParserDependencies(t *testing.T) {
 	pm, err := parseNpmPackageLockAsGraph("./fixtures/package-lock-graph.json", defaultParserConfigForTest)
 	assert.Nil(t, err)
