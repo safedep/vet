@@ -73,9 +73,33 @@ func (e *insightsBasedPackageEnricherV2) applyInsights(pkg *models.Package,
 	// Apply the V1 insights to the package
 	pkg.Insights = insightsv1
 
+	// Apply provenance if available
+	pkg.Provenances = e.getProvenances(res)
+
 	// Finally, store the new insights model :)
 	pkg.InsightsV2 = res.GetInsight()
 	return nil
+}
+
+func (e *insightsBasedPackageEnricherV2) getProvenances(res *insightsv2.GetPackageVersionInsightResponse) []*models.Provenance {
+	pkgProvenances := []*models.Provenance{}
+
+	provenances := res.GetInsight().GetSlsaProvenances()
+	if len(provenances) == 0 {
+		return pkgProvenances
+	}
+
+	for _, p := range provenances {
+		pkgProvenances = append(pkgProvenances, &models.Provenance{
+			Type:             models.ProvenanceTypeSlsa,
+			SourceRepository: p.GetSourceRepository(),
+			CommitSHA:        p.GetCommitSha(),
+			Url:              p.GetUrl(),
+			Verified:         p.GetVerified(),
+		})
+	}
+
+	return pkgProvenances
 }
 
 func (e *insightsBasedPackageEnricherV2) convertInsightsV2ToV1(pvi *packagev1.PackageVersionInsight) (*insightapi.PackageVersionInsight, error) {

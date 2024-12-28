@@ -300,6 +300,22 @@ func GetModelEcosystem(ecosystem packagev1.Ecosystem) string {
 	}
 }
 
+type ProvenanceType string
+
+const (
+	ProvenanceTypeSlsa = ProvenanceType("slsa")
+)
+
+// Represents an abstract provenance of a package provided
+// by different sources such as deps.dev or other sources
+type Provenance struct {
+	Type             ProvenanceType `json:"type"`
+	CommitSHA        string         `json:"commit_sha"`
+	SourceRepository string         `json:"source_url"`
+	Url              string         `json:"url"`
+	Verified         bool           `json:"verified"`
+}
+
 // Represents a package such as a version of a library defined as a dependency
 // in Gemfile.lock, pom.xml etc.
 type Package struct {
@@ -316,6 +332,9 @@ type Package struct {
 
 	// Depth of this package in dependency tree
 	Depth int `json:"depth"`
+
+	// Optional provenances for this package
+	Provenances []*Provenance `json:"provenances"`
 
 	// Manifest from where this package was found directly or indirectly
 	Manifest *PackageManifest `json:"-"`
@@ -347,6 +366,10 @@ func (p *Package) GetName() string {
 
 func (p *Package) GetVersion() string {
 	return p.Version
+}
+
+func (p *Package) GetProvenances() []*Provenance {
+	return p.Provenances
 }
 
 func (p *Package) ShortName() string {
