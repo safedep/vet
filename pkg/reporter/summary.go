@@ -84,6 +84,12 @@ type summaryReporter struct {
 			unpopular int
 			drifts    int
 		}
+
+		provenance struct {
+			none       int
+			verified   int
+			unverified int
+		}
 	}
 
 	// Map of pkgId and associated meta for building remediation advice
@@ -122,6 +128,7 @@ func (r *summaryReporter) AddManifest(manifest *models.PackageManifest) {
 		r.processForMalware(pkg)
 		r.processForPopularity(pkg)
 		r.processForVersionDrift(pkg)
+		r.processForProvenance(pkg)
 
 		r.summary.packages += 1
 		return nil
@@ -225,6 +232,27 @@ func (r *summaryReporter) processForMalware(pkg *models.Package) {
 	}
 }
 
+func (r *summaryReporter) processForProvenance(pkg *models.Package) {
+	if len(pkg.GetProvenances()) == 0 {
+		r.summary.provenance.none += 1
+		return
+	}
+
+	verified := false
+	for _, p := range pkg.GetProvenances() {
+		if p.Verified {
+			verified = true
+			break
+		}
+	}
+
+	if verified {
+		r.summary.provenance.verified += 1
+	} else {
+		r.summary.provenance.unverified += 1
+	}
+}
+
 func (r *summaryReporter) processForVulns(pkg *models.Package) {
 	insight := utils.SafelyGetValue(pkg.Insights)
 	vulns := utils.SafelyGetValue(insight.Vulnerabilities)
@@ -303,6 +331,8 @@ func (r *summaryReporter) Finish() error {
 	fmt.Println(text.FgHiRed.Sprint(summaryListPrependText, r.vulnSummaryStatement()))
 	fmt.Println()
 	fmt.Println(text.FgHiYellow.Sprint(summaryListPrependText, r.popularityCountStatement()))
+	fmt.Println()
+	fmt.Println(text.FgHiYellow.Sprint(summaryListPrependText, r.provenanceStatement()))
 	fmt.Println()
 	fmt.Println(text.FgHiYellow.Sprint(summaryListPrependText, r.majorVersionDriftStatement()))
 	fmt.Println()
@@ -421,7 +451,7 @@ func (r *summaryReporter) renderRemediationAdvice() {
 		return
 	}
 
-	fmt.Println(text.Bold.Sprint("Consider upgrading the following libraries for maximum impact:"))
+	fmt.Println(text.Bold.Sprint(fmt.Sprintf("Top %d libraries to upgrade ...", r.config.MaxAdvice)))
 	fmt.Println()
 
 	tbl := table.NewWriter()
@@ -472,7 +502,7 @@ func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
 		// Add the package as a table row
 		tbl.AppendRow(table.Row{
 			string(sp.pkg.Ecosystem),
-			r.packageNameForRemediationAdvice(sp.pkg),
+			r.packageNameForRemediationAdvice(sp.pkg) + " " + r.slsaTagFor(sp.pkg),
 			r.packageUpdateVersionForRemediationAdvice(sp.pkg),
 			sp.score,
 			r.packageVulnerabilityRiskText(sp.pkg),
@@ -607,6 +637,26 @@ func (r *summaryReporter) packageNameForRemediationAdvice(pkg *models.Package) s
 		pkg.PackageDetails.Version)
 }
 
+func (r *summaryReporter) slsaTagFor(pkg *models.Package) string {
+	var slsaProvenance *models.Provenance
+	for _, p := range pkg.GetProvenances() {
+		if p.Type == models.ProvenanceTypeSlsa {
+			slsaProvenance = p
+			break
+		}
+	}
+
+	if slsaProvenance != nil {
+		if slsaProvenance.Verified {
+			return text.BgGreen.Sprint(" slsa: verified ")
+		} else {
+			return text.BgRed.Sprint(" slsa: unverified ")
+		}
+	}
+
+	return ""
+}
+
 func (r *summaryReporter) packageUpdateVersionForRemediationAdvice(pkg *models.Package) string {
 	insight := utils.SafelyGetValue(pkg.Insights)
 	insightsCurrentVersion := utils.SafelyGetValue(insight.PackageCurrentVersion)
@@ -638,6 +688,12 @@ func (r *summaryReporter) manifestCountStatement() string {
 func (r *summaryReporter) popularityCountStatement() string {
 	return fmt.Sprintf("%d potentially unpopular library identified as direct dependency",
 		r.summary.metrics.unpopular)
+}
+
+func (r *summaryReporter) provenanceStatement() string {
+	return fmt.Sprintf("Provenance: %d verified, %d unverified, %d missing",
+		r.summary.provenance.verified, r.summary.provenance.unverified,
+		r.summary.provenance.none)
 }
 
 func (r *summaryReporter) majorVersionDriftStatement() string {
