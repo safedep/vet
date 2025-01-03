@@ -326,6 +326,8 @@ github.com/gin-contrib/sse v0.1.0 h1:Y/yl/+YNO8GZSjAhjMsSuLt29uWRFHdHYUb5lYOV9qE
 github.com/gin-contrib/sse v0.1.0/go.mod h1:RHrZQHXnP2xjPF+u1gW/2HnVO7nvIa9PG3Gm+fLHvGI=
 github.com/gin-gonic/gin v1.10.0 h1:nTuyha1TYqgedzytsKYqna+DfLos46nTv2ygFy86HFU=
 github.com/gin-gonic/gin v1.10.0/go.mod h1:4PMNQiOhvDRa013RKVbsiNwoyezlm2rm0uX/T7kzp5Y=
+github.com/github/go-spdx v1.0.0 h1:Agt89TGYtnecn4iyqHZc94AhfZoRvEteyUSreA2kDBk=
+github.com/github/go-spdx v1.0.0/go.mod h1:GBvbsKusvqGQZ3Bpw/50Nu5NICiTcop8/Y5BrnGutVE=
 github.com/github/go-spdx/v2 v2.3.2 h1:IfdyNHTqzs4zAJjXdVQfRnxt1XMfycXoHBE2Vsm1bjs=
 github.com/github/go-spdx/v2 v2.3.2/go.mod h1:2ZxKsOhvBp+OYBDlsGnUMcchLeo2mrpEBn2L1C+U3IQ=
 github.com/gkampitakis/ciinfo v0.3.0 h1:gWZlOC2+RYYttL0hBqcoQhM7h1qNkVqvRCV1fOvpAv8=

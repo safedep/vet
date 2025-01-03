@@ -200,7 +200,14 @@ vet scan -D /path/to/code \
 
 ```bash
 vet scan -D /path/to/code \
-    --filter 'licenses.exists(p, p == "GPL-2.0")' \
+    --filter 'licenses.contains_license("MIT")' \
+    --filter-fail
+```
+- Vet supports SPDX expressions so even you can SPDX expressions for license matching 
+
+```bash
+vet scan -D /path/to/code \
+    --filter 'licenses.contains_license("MIT AND LGPL-1.2+")' \
     --filter-fail
 ```
 
