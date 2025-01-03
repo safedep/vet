@@ -3,6 +3,7 @@ package filter
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -15,6 +16,12 @@ import (
 	specmodels "github.com/safedep/vet/gen/models"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
+
+	"github.com/google/cel-go/common/types"
+	"github.com/google/cel-go/common/types/ref"
+	"github.com/google/cel-go/common/types/traits"
+
+	"github.com/github/go-spdx/v2/spdxexp"
 )
 
 const (
@@ -31,9 +38,7 @@ const (
 	filterEvalMaxFilters = 50
 )
 
-var (
-	errMaxFilter = errors.New("max filter limit has reached")
-)
+var errMaxFilter = errors.New("max filter limit has reached")
 
 type Evaluator interface {
 	AddFilter(filter *filtersuite.Filter) error
@@ -55,8 +60,37 @@ func NewEvaluator(name string, ignoreError bool) (Evaluator, error) {
 		cel.Variable(filterInputVarScorecard, cel.DynType),
 		cel.Variable(filterInputVarLicenses, cel.DynType),
 		cel.Variable(filterInputVarRoot, cel.DynType),
-	)
+		cel.Function("contains_license",
+			cel.MemberOverload("list_string_contains_license_string", []*cel.Type{cel.ListType(cel.StringType), cel.StringType}, cel.BoolType,
+				cel.BinaryBinding(func(lhs, rhs ref.Val) ref.Val {
+					l := lhs.(traits.Lister)
+					filterlicenseexp := fmt.Sprintf("%s", rhs)
+					iter := l.Iterator()
+					contains := false
+					i := 0
+					for {
+						if contains {
+							break
+						}
+						if iter.HasNext().Value() == true {
+							str := l.Get(types.Int(i))
 
+							licenseexp := fmt.Sprintf("%s", str)
+							extracted, _ := spdxexp.ExtractLicenses(licenseexp)
+
+							satisfied, _ := spdxexp.Satisfies(filterlicenseexp, extracted)
+							contains = satisfied
+
+							i++
+						} else {
+							break
+						}
+					}
+					return types.Bool(contains)
+				}),
+			),
+		),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +146,6 @@ func (f *filterEvaluator) EvalPackage(pkg *models.Package) (*filterEvaluationRes
 			filterInputVarScorecard: serializedInput["scorecard"],
 			filterInputVarLicenses:  serializedInput["licenses"],
 		})
-
 		if err != nil {
 			logger.Warnf("CEL evaluator error: %s", err.Error())
 
@@ -262,8 +295,7 @@ func (f *filterEvaluator) buildFilterInput(pkg *models.Package) (*filterinput.Fi
 
 	checks := utils.SafelyGetValue(scorecardContent.Checks)
 	for _, check := range checks {
-		fi.Scorecard.Scores[string(utils.SafelyGetValue(check.Name))] =
-			utils.SafelyGetValue(check.Score)
+		fi.Scorecard.Scores[string(utils.SafelyGetValue(check.Name))] = utils.SafelyGetValue(check.Score)
 	}
 
 	return &fi, nil
