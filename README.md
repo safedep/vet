@@ -188,6 +188,8 @@ vet scan parsers --experimental
 (CEL) as the policy language. Policies can be defined to build guardrails
 preventing introduction of insecure components.
 
+### Vulnerability
+
 - Run `vet` and fail if a critical or high vulnerability was detected
 
 ```bash
@@ -196,13 +198,28 @@ vet scan -D /path/to/code \
     --filter-fail
 ```
 
+### License
+
 - Run `vet` and fail if a package with a specific license was detected
 
 ```bash
 vet scan -D /path/to/code \
-    --filter 'licenses.exists(p, p == "GPL-2.0")' \
+    --filter 'licenses.exists(p, "GPL-2.0")' \
     --filter-fail
 ```
+
+**Note:** Using `licenses.contains_license(...)` is recommended for license matching due
+to its support for SPDX expressions.
+
+- `vet` supports [SPDX License Expressions](https://spdx.github.io/spdx-spec/v2.3/SPDX-license-expressions/) at package license and policy level
+
+```bash
+vet scan -D /path/to/code \
+    --filter 'licenses.contains_license("LGPL-2.1+")' \
+    --filter-fail
+```
+
+### Scorecard
 
 - Run `vet` and fail based on [OpenSSF Scorecard](https://securityscorecards.dev/) attributes
 
