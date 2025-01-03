@@ -63,7 +63,12 @@ func NewEvaluator(name string, ignoreError bool) (Evaluator, error) {
 		cel.Function("contains_license",
 			cel.MemberOverload("list_string_contains_license_string", []*cel.Type{cel.ListType(cel.StringType), cel.StringType}, cel.BoolType,
 				cel.BinaryBinding(func(lhs, rhs ref.Val) ref.Val {
-					l := lhs.(traits.Lister)
+					l, ok := lhs.(traits.Lister)
+					if !ok {
+						logger.Fatalf("Cannot parse contains_license LHS to list")
+
+						return types.Bool(false)
+					}
 					filterlicenseexp := fmt.Sprintf("%s", rhs)
 					iter := l.Iterator()
 					contains := false
@@ -72,20 +77,28 @@ func NewEvaluator(name string, ignoreError bool) (Evaluator, error) {
 						if contains {
 							break
 						}
-						if iter.HasNext().Value() == true {
-							str := l.Get(types.Int(i))
 
-							licenseexp := fmt.Sprintf("%s", str)
-							extracted, _ := spdxexp.ExtractLicenses(licenseexp)
-
-							satisfied, _ := spdxexp.Satisfies(filterlicenseexp, extracted)
-							contains = satisfied
-
-							i++
-						} else {
+						if iter.HasNext().Value() == false {
 							break
 						}
+
+						str := l.Get(types.Int(i))
+
+						licenseexp := fmt.Sprintf("%s", str)
+						extracted, err := spdxexp.ExtractLicenses(licenseexp)
+						if err != nil {
+							logger.Fatalf("Error encountered while extracting license: %v", err)
+						}
+
+						satisfied, err := spdxexp.Satisfies(filterlicenseexp, extracted)
+						if err != nil {
+							logger.Fatalf("Error encountered while matching license exp: %v", err)
+						}
+
+						contains = satisfied
+						i++
 					}
+
 					return types.Bool(contains)
 				}),
 			),
