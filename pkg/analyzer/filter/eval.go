@@ -3,6 +3,7 @@ package filter
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -15,6 +16,12 @@ import (
 	specmodels "github.com/safedep/vet/gen/models"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
+
+	"github.com/google/cel-go/common/types"
+	"github.com/google/cel-go/common/types/ref"
+	"github.com/google/cel-go/common/types/traits"
+
+	"github.com/github/go-spdx/v2/spdxexp"
 )
 
 const (
@@ -31,9 +38,7 @@ const (
 	filterEvalMaxFilters = 50
 )
 
-var (
-	errMaxFilter = errors.New("max filter limit has reached")
-)
+var errMaxFilter = errors.New("max filter limit has reached")
 
 type Evaluator interface {
 	AddFilter(filter *filtersuite.Filter) error
@@ -55,7 +60,10 @@ func NewEvaluator(name string, ignoreError bool) (Evaluator, error) {
 		cel.Variable(filterInputVarScorecard, cel.DynType),
 		cel.Variable(filterInputVarLicenses, cel.DynType),
 		cel.Variable(filterInputVarRoot, cel.DynType),
-	)
+		cel.Function("contains_license",
+			cel.MemberOverload("list_string_contains_license_string",
+				[]*cel.Type{cel.ListType(cel.StringType), cel.StringType}, cel.BoolType,
+				cel.BinaryBinding(celFuncLicenseExpressionMatch()))))
 
 	if err != nil {
 		return nil, err
@@ -112,7 +120,6 @@ func (f *filterEvaluator) EvalPackage(pkg *models.Package) (*filterEvaluationRes
 			filterInputVarScorecard: serializedInput["scorecard"],
 			filterInputVarLicenses:  serializedInput["licenses"],
 		})
-
 		if err != nil {
 			logger.Warnf("CEL evaluator error: %s", err.Error())
 
@@ -262,9 +269,51 @@ func (f *filterEvaluator) buildFilterInput(pkg *models.Package) (*filterinput.Fi
 
 	checks := utils.SafelyGetValue(scorecardContent.Checks)
 	for _, check := range checks {
-		fi.Scorecard.Scores[string(utils.SafelyGetValue(check.Name))] =
-			utils.SafelyGetValue(check.Score)
+		fi.Scorecard.Scores[string(utils.SafelyGetValue(check.Name))] = utils.SafelyGetValue(check.Score)
 	}
 
 	return &fi, nil
+}
+
+func celFuncLicenseExpressionMatch() func(ref.Val, ref.Val) ref.Val {
+	return func(lhs, rhs ref.Val) ref.Val {
+		l, ok := lhs.(traits.Lister)
+		if !ok {
+			logger.Warnf("celFuncLicenseExpressionMatch: lhs is not a list")
+			return types.Bool(false)
+		}
+
+		filterLicenseExp := fmt.Sprintf("%s", rhs)
+		iter := l.Iterator()
+		contains := false
+
+		i := 0
+		for {
+			if contains {
+				break
+			}
+
+			if iter.HasNext().Value() == false {
+				break
+			}
+
+			str := l.Get(types.Int(i))
+			extracted, err := spdxexp.ExtractLicenses(fmt.Sprintf("%s", str))
+			if err != nil {
+				logger.Errorf("error while extracting license exp: %v", err)
+				break
+			}
+
+			satisfied, err := spdxexp.Satisfies(filterLicenseExp, extracted)
+			if err != nil {
+				logger.Errorf("error while checking license exp: %v", err)
+				break
+			}
+
+			contains = satisfied
+			i++
+		}
+
+		return types.Bool(contains)
+	}
 }
