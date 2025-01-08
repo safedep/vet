@@ -73,7 +73,6 @@ func TestNpmIsTrustedSource(t *testing.T) {
 			[]string{"https://registry.npmjs.org", "git+ssh://github.com/safedep"},
 			false,
 		},
-
 		{
 			"source is trusted when trusted url has a base path",
 			"https://registry.example.org/base/a/b/-/c.tgz",
@@ -159,7 +158,6 @@ func TestNpmIsUrlFollowsPathConvention(t *testing.T) {
 			"https://registry.npmjs.org/base1/package-name/-/package-name-1.0.0.tgz",
 			"package-name",
 			[]string{"https://registry.npmjs.org/base", "https://registry.npmjs.org/base1"},
-
 			true,
 		},
 		{
