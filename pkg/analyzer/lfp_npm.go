@@ -284,6 +284,17 @@ func npmIsUrlFollowsPathConvention(sourceUrl string, pkg string, trustedUrls []s
 
 	// Example: @angular/core from https://registry.npmjs.org/@angular/core/-/core-1.0.0.tgz
 	scopedPackageName := strings.Split(path, "/-/")[0]
+	if slices.Contains(acceptablePackageNames, scopedPackageName) {
+		return true
+	} else {
+		// Check if resolved URL starts with any trusted URL
+		// This is used to handle cases where strip-ansi-cjs resolves to https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz
+		for _, trustedUrl := range trustedUrls {
+			if strings.HasPrefix(sourceUrl, trustedUrl) {
+				return true
+			}
+		}
+		return false
+	}
 
-	return slices.Contains(acceptablePackageNames, scopedPackageName)
 }
