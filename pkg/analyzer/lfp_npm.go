@@ -248,11 +248,10 @@ func npmNodeModulesPackagePathToName(path string) string {
 // Test if URL follows the pkg name path convention as per NPM package registry
 // specification https://docs.npmjs.com/cli/v10/configuring-npm/package-lock-json
 func npmIsUrlFollowsPathConvention(sourceUrl string, pkg string, trustedUrls []string) bool {
-	// Example: https://registry.npmjs.org/express/-/express-4.17.1.tgz
+	// Parse the source URL
 	parsedUrl, err := npmParseSourceUrl(sourceUrl)
 	if err != nil {
-		logger.Errorf("npmIsUrlFollowsPathConvention: Failed to parse URL %s: %v",
-			sourceUrl, err)
+		logger.Errorf("npmIsUrlFollowsPathConvention: Failed to parse URL %s: %v", sourceUrl, err)
 		return false
 	}
 
@@ -265,36 +264,35 @@ func npmIsUrlFollowsPathConvention(sourceUrl string, pkg string, trustedUrls []s
 		path = path[1:]
 	}
 
+	// Build a list of acceptable package names
 	acceptablePackageNames := []string{pkg}
 	for _, trustedUrl := range trustedUrls {
 		parsedTrustedUrl, err := npmParseSourceUrl(trustedUrl)
 		if err != nil {
-			logger.Errorf("npmIsUrlFollowsPathConvention: Failed to parse trusted URL %s: %v",
-				trustedUrl, err)
+			logger.Errorf("npmIsUrlFollowsPathConvention: Failed to parse trusted URL %s: %v", trustedUrl, err)
 			continue
 		}
 
-		trustedBase := parsedTrustedUrl.Path
-		trustedBase = strings.TrimPrefix(trustedBase, "/")
-		trustedBase = strings.TrimSuffix(trustedBase, "/")
-
-		acceptablePackageNames = append(acceptablePackageNames,
-			fmt.Sprintf("%s/%s", trustedBase, pkg))
+		trustedBase := strings.Trim(parsedTrustedUrl.Path, "/")
+		acceptablePackageNames = append(acceptablePackageNames, fmt.Sprintf("%s/%s", trustedBase, pkg))
 	}
 
-	// Example: @angular/core from https://registry.npmjs.org/@angular/core/-/core-1.0.0.tgz
+	// Extract the scoped package name
 	scopedPackageName := strings.Split(path, "/-/")[0]
 	if slices.Contains(acceptablePackageNames, scopedPackageName) {
 		return true
-	} else {
-		// Check if resolved URL starts with any trusted URL
-		// This is used to handle cases where strip-ansi-cjs resolves to https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz
-		for _, trustedUrl := range trustedUrls {
-			if strings.HasPrefix(sourceUrl, trustedUrl) {
-				return true
-			}
-		}
-		return false
 	}
 
+	// Check if the source URL starts with any trusted URL except the NPM trusted base URL
+	for _, trustedUrl := range trustedUrls {
+		if trustedUrl == npmRegistryTrustedUrlBase {
+			continue
+		}
+		if strings.HasPrefix(sourceUrl, trustedUrl) {
+			return true
+		}
+	}
+
+	// Default fallback
+	return false
 }
