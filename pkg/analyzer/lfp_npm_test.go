@@ -171,7 +171,7 @@ func TestNpmIsUrlFollowsPathConvention(t *testing.T) {
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
-			actual := npmIsUrlFollowsPathConvention(test.url, test.pkgName, test.trustedUrls)
+			actual := npmIsUrlFollowsPathConvention(test.url, test.pkgName, test.trustedUrls, test.trustedUrls)
 			assert.Equal(t, test.expected, actual)
 		})
 	}
