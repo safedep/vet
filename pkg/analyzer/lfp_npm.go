@@ -115,7 +115,7 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 
 		trustedRegistryUrls := []string{npmRegistryTrustedUrlBase}
 		trustedRegistryUrls = append(trustedRegistryUrls, npm.config.TrustedRegistryUrls...)
-
+		userTrustUrls := npm.config.TrustedRegistryUrls
 		logger.Debugf("npmLockfilePoisoningAnalyzer: Analyzing package [%s] with %d trusted registry URLs in config",
 			packageName, len(trustedRegistryUrls))
 
@@ -147,7 +147,7 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 			})
 		}
 
-		if !npmIsUrlFollowsPathConvention(lockfilePackage.Resolved, packageName, trustedRegistryUrls) {
+		if !npmIsUrlFollowsPathConvention(lockfilePackage.Resolved, packageName, trustedRegistryUrls, userTrustUrls) {
 			logger.Debugf("npmLockfilePoisoningAnalyzer: Package [%s] resolved to an unconventional URL [%s]",
 				packageName, lockfilePackage.Resolved)
 
@@ -247,7 +247,7 @@ func npmNodeModulesPackagePathToName(path string) string {
 
 // Test if URL follows the pkg name path convention as per NPM package registry
 // specification https://docs.npmjs.com/cli/v10/configuring-npm/package-lock-json
-func npmIsUrlFollowsPathConvention(sourceUrl string, pkg string, trustedUrls []string) bool {
+func npmIsUrlFollowsPathConvention(sourceUrl string, pkg string, trustedUrls []string, userTrustedUrls []string) bool {
 	// Parse the source URL
 	parsedUrl, err := npmParseSourceUrl(sourceUrl)
 	if err != nil {
@@ -284,10 +284,7 @@ func npmIsUrlFollowsPathConvention(sourceUrl string, pkg string, trustedUrls []s
 	}
 
 	// Check if the source URL starts with any trusted URL except the NPM trusted base URL
-	for _, trustedUrl := range trustedUrls {
-		if trustedUrl == npmRegistryTrustedUrlBase {
-			continue
-		}
+	for _, trustedUrl := range userTrustedUrls {
 		if strings.HasPrefix(sourceUrl, trustedUrl) {
 			return true
 		}
