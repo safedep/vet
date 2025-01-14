@@ -160,11 +160,18 @@ func TestNpmIsUrlFollowsPathConvention(t *testing.T) {
 			[]string{"https://registry.npmjs.org/base", "https://registry.npmjs.org/base1"},
 			true,
 		},
+		{
+			"strip_ansi_cjs package path matches trusted url path",
+			"https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz",
+			"strip-ansi-cjs",
+			[]string{"https://registry.npmjs.org/strip-ansi"},
+			true,
+		},
 	}
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
-			actual := npmIsUrlFollowsPathConvention(test.url, test.pkgName, test.trustedUrls)
+			actual := npmIsUrlFollowsPathConvention(test.url, test.pkgName, test.trustedUrls, test.trustedUrls)
 			assert.Equal(t, test.expected, actual)
 		})
 	}

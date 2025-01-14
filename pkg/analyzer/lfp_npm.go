@@ -115,7 +115,7 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 
 		trustedRegistryUrls := []string{npmRegistryTrustedUrlBase}
 		trustedRegistryUrls = append(trustedRegistryUrls, npm.config.TrustedRegistryUrls...)
-
+		userTrustUrls := npm.config.TrustedRegistryUrls
 		logger.Debugf("npmLockfilePoisoningAnalyzer: Analyzing package [%s] with %d trusted registry URLs in config",
 			packageName, len(trustedRegistryUrls))
 
@@ -147,7 +147,7 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 			})
 		}
 
-		if !npmIsUrlFollowsPathConvention(lockfilePackage.Resolved, packageName, trustedRegistryUrls) {
+		if !npmIsUrlFollowsPathConvention(lockfilePackage.Resolved, packageName, trustedRegistryUrls, userTrustUrls) {
 			logger.Debugf("npmLockfilePoisoningAnalyzer: Package [%s] resolved to an unconventional URL [%s]",
 				packageName, lockfilePackage.Resolved)
 
@@ -247,12 +247,11 @@ func npmNodeModulesPackagePathToName(path string) string {
 
 // Test if URL follows the pkg name path convention as per NPM package registry
 // specification https://docs.npmjs.com/cli/v10/configuring-npm/package-lock-json
-func npmIsUrlFollowsPathConvention(sourceUrl string, pkg string, trustedUrls []string) bool {
-	// Example: https://registry.npmjs.org/express/-/express-4.17.1.tgz
+func npmIsUrlFollowsPathConvention(sourceUrl string, pkg string, trustedUrls []string, userTrustedUrls []string) bool {
+	// Parse the source URL
 	parsedUrl, err := npmParseSourceUrl(sourceUrl)
 	if err != nil {
-		logger.Errorf("npmIsUrlFollowsPathConvention: Failed to parse URL %s: %v",
-			sourceUrl, err)
+		logger.Errorf("npmIsUrlFollowsPathConvention: Failed to parse URL %s: %v", sourceUrl, err)
 		return false
 	}
 
@@ -265,25 +264,32 @@ func npmIsUrlFollowsPathConvention(sourceUrl string, pkg string, trustedUrls []s
 		path = path[1:]
 	}
 
+	// Build a list of acceptable package names
 	acceptablePackageNames := []string{pkg}
 	for _, trustedUrl := range trustedUrls {
 		parsedTrustedUrl, err := npmParseSourceUrl(trustedUrl)
 		if err != nil {
-			logger.Errorf("npmIsUrlFollowsPathConvention: Failed to parse trusted URL %s: %v",
-				trustedUrl, err)
+			logger.Errorf("npmIsUrlFollowsPathConvention: Failed to parse trusted URL %s: %v", trustedUrl, err)
 			continue
 		}
 
-		trustedBase := parsedTrustedUrl.Path
-		trustedBase = strings.TrimPrefix(trustedBase, "/")
-		trustedBase = strings.TrimSuffix(trustedBase, "/")
-
-		acceptablePackageNames = append(acceptablePackageNames,
-			fmt.Sprintf("%s/%s", trustedBase, pkg))
+		trustedBase := strings.Trim(parsedTrustedUrl.Path, "/")
+		acceptablePackageNames = append(acceptablePackageNames, fmt.Sprintf("%s/%s", trustedBase, pkg))
 	}
 
-	// Example: @angular/core from https://registry.npmjs.org/@angular/core/-/core-1.0.0.tgz
+	// Extract the scoped package name
 	scopedPackageName := strings.Split(path, "/-/")[0]
+	if slices.Contains(acceptablePackageNames, scopedPackageName) {
+		return true
+	}
 
-	return slices.Contains(acceptablePackageNames, scopedPackageName)
+	// Check if the source URL starts with any trusted URL except the NPM trusted base URL
+	for _, trustedUrl := range userTrustedUrls {
+		if strings.HasPrefix(sourceUrl, trustedUrl) {
+			return true
+		}
+	}
+
+	// Default fallback
+	return false
 }
