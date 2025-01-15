@@ -3,8 +3,8 @@ module github.com/safedep/vet
 go 1.23.2
 
 require (
-	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20241127172711-d314452ec756.1
-	buf.build/gen/go/safedep/api/protocolbuffers/go v1.35.2-20241127172711-d314452ec756.1
+	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250113125913-f90710bfd672.2
+	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.2-20250113125913-f90710bfd672.1
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/CycloneDX/cyclonedx-go v0.9.1
 	github.com/anchore/syft v1.16.0
@@ -34,7 +34,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/oauth2 v0.24.0
 	google.golang.org/grpc v1.68.0
-	google.golang.org/protobuf v1.35.2
+	google.golang.org/protobuf v1.36.2
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -44,7 +44,7 @@ replace github.com/owenrumney/go-sarif/v2 v2.3.1 => github.com/safedep/go-sarif/
 replace github.com/cli/oauth v1.0.1 => github.com/abhisek/oauth v1.0.1-audience
 
 require (
-	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.35.2-20240920164238-5a7b106cbb87.1 // indirect
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.2-20240508200655-46a4cf4ba109.1 // indirect
 	cel.dev/expr v0.18.0 // indirect
 	dario.cat/mergo v1.0.1 // indirect
 	github.com/BurntSushi/toml v1.4.0 // indirect

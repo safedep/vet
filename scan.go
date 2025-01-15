@@ -26,6 +26,7 @@ var (
 	lockfileAs                     string
 	enrich                         bool
 	enrichUsingInsightsV2          bool
+	enrichMalware                  bool
 	baseDirectory                  string
 	purlSpec                       string
 	githubRepoUrls                 []string
@@ -85,6 +86,8 @@ func newScanCommand() *cobra.Command {
 		"Enrich package metadata (almost always required) using Insights API")
 	cmd.Flags().BoolVarP(&enrichUsingInsightsV2, "insights-v2", "", false,
 		"Enrich package metadata using Insights V2 API")
+	cmd.Flags().BoolVarP(&enrichMalware, "malware", "", false,
+		"Enrich package metadata with malware analysis results")
 	cmd.Flags().StringVarP(&baseDirectory, "directory", "D", wd,
 		"The directory to scan for package manifests")
 	cmd.Flags().StringArrayVarP(&scanExclude, "exclude", "", []string{},
@@ -463,6 +466,27 @@ func internalStartScan() error {
 		}
 
 		enrichers = append(enrichers, enricher)
+	}
+
+	if enrichMalware {
+		if auth.CommunityMode() {
+			return fmt.Errorf("Malicious Package Analysis requires an API key. " +
+				"For more details: https://docs.safedep.io/cloud/quickstart/")
+		}
+
+		client, err := auth.MalwareAnalysisClientConnection("vet-malware-analysis")
+		if err != nil {
+			return err
+		}
+
+		malwareEnricher, err := scanner.NewMalysisMalwareEnricher(client,
+			scanner.DefaultMalysisMalwareEnricherConfig())
+		if err != nil {
+			return err
+		}
+
+		ui.PrintMsg("Using Malysis for malware analysis")
+		enrichers = append(enrichers, malwareEnricher)
 	}
 
 	pmScanner := scanner.NewPackageManifestScanner(scanner.Config{
