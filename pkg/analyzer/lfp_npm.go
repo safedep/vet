@@ -284,7 +284,7 @@ func npmIsUrlFollowsPathConvention(sourceUrl string, pkg string, trustedUrls []s
 	}
 
 	// Check if the source URL starts with any trusted URL except the NPM trusted base URL
-	for _, trustedUrl := range userTrustedUrls {
+	for _, trustedUrl := range trustedUrls {
 		if strings.HasPrefix(sourceUrl, trustedUrl) {
 			return true
 		}
