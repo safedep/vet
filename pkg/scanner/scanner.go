@@ -259,7 +259,7 @@ func (s *packageManifestScanner) packageEnricherWait() error {
 
 		err := enricher.Wait()
 		if err != nil {
-			return err
+			logger.Errorf("Failed to wait for enricher %s: %v", enricher.Name(), err)
 		}
 	}
 
