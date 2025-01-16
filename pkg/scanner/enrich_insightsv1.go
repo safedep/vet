@@ -104,3 +104,7 @@ func (e *insightsBasedPackageEnricher) Enrich(pkg *models.Package,
 	pkg.Insights = res.JSON200
 	return nil
 }
+
+func (e *insightsBasedPackageEnricher) Wait() error {
+	return nil
+}

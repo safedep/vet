@@ -300,6 +300,10 @@ func (e *insightsBasedPackageEnricherV2) convertInsightsV2ToV1(pvi *packagev1.Pa
 	return insights, nil
 }
 
+func (e *insightsBasedPackageEnricherV2) Wait() error {
+	return nil
+}
+
 // Should this be in models?
 func (e *insightsBasedPackageEnricherV2) mapEcosystem(ecosystem packagev1.Ecosystem) string {
 	return models.GetModelEcosystem(ecosystem)

@@ -244,6 +244,25 @@ func (s *packageManifestScanner) enrichManifest(manifest *models.PackageManifest
 	q.Wait()
 	q.Stop()
 
+	// Finally wait for all enrichers to finish
+	err := s.packageEnricherWait()
+	if err != nil {
+		return fmt.Errorf("package enricher wait failed: %w", err)
+	}
+
+	return nil
+}
+
+func (s *packageManifestScanner) packageEnricherWait() error {
+	for _, enricher := range s.enrichers {
+		logger.Debugf("Waiting for enricher %s to finish", enricher.Name())
+
+		err := enricher.Wait()
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
