@@ -23,6 +23,7 @@ const (
 	customParserTypeJavaWebAppArchive = "war"
 	customParserGitHubActions         = "github-actions"
 	customParserTerraform             = "terraform"
+	customParserComposer              = "composer"
 )
 
 var (
@@ -51,6 +52,7 @@ var supportedEcosystems map[string]bool = map[string]bool{
 	models.EcosystemSpdxSBOM:      true,
 	models.EcosystemGitHubActions: true,
 	models.EcosystemTerraform:     true,
+	models.EcosystemPHPComposer:   true,
 }
 
 // TODO: Migrate these to graph parser
@@ -92,6 +94,7 @@ var dependencyGraphParsers map[string]dependencyGraphParser = map[string]depende
 	customParserTypeJavaWebAppArchive: parseJavaArchiveAsGraph,
 	customParserGitHubActions:         parseGithubActionWorkflowAsGraph,
 	customParserTerraform:             parseTerraformLockfile,
+	customParserComposer:              parseComposerJSON,
 }
 
 // Maintain a map of extension to lockfileAs
@@ -106,6 +109,7 @@ var lockfileAsMapByExtension map[string]string = map[string]string{
 // reference to this map to resolve the lockfileAs from base filename
 var lockfileAsMapByPath map[string]string = map[string]string{
 	".terraform.lock.hcl": customParserTerraform,
+	"composer.json":       customParserComposer,
 }
 
 func FindLockFileAsByExtension(extension string) (string, error) {
@@ -259,6 +263,8 @@ func (pw *parserWrapper) Ecosystem() string {
 		return models.EcosystemGitHubActions
 	case customParserTerraform:
 		return models.EcosystemTerraform
+	case customParserComposer:
+		return models.EcosystemPHPComposer
 	default:
 		logger.Debugf("Unsupported lockfile-as %s", pw.parseAs)
 		return ""

@@ -266,7 +266,7 @@ func npmIsUrlFollowsPathConvention(sourceUrl string, pkg string, trustedUrls []s
 
 	// Build a list of acceptable package names
 	acceptablePackageNames := []string{pkg}
-	for _, trustedUrl := range trustedUrls {
+	for _, trustedUrl := range userTrustedUrls {
 		parsedTrustedUrl, err := npmParseSourceUrl(trustedUrl)
 		if err != nil {
 			logger.Errorf("npmIsUrlFollowsPathConvention: Failed to parse trusted URL %s: %v", trustedUrl, err)
