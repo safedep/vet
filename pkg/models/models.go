@@ -466,6 +466,14 @@ func (p *Package) GetMalwareAnalysisResult() *MalwareAnalysisResult {
 	return p.MalwareAnalysis
 }
 
+func (p *Package) IsMalware() bool {
+	if p.MalwareAnalysis == nil {
+		return false
+	}
+
+	return p.MalwareAnalysis.IsMalware
+}
+
 func NewPackageDetail(ecosystem, name, version string) lockfile.PackageDetails {
 	return lockfile.PackageDetails{
 		Ecosystem: lockfile.Ecosystem(ecosystem),

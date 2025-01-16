@@ -318,6 +318,15 @@ func internalStartScan() error {
 		analyzers = append(analyzers, task)
 	}
 
+	if enrichMalware {
+		task, err := analyzer.NewMalwareAnalyzer(analyzer.DefaultMalwareAnalyzerConfig())
+		if err != nil {
+			return err
+		}
+
+		analyzers = append(analyzers, task)
+	}
+
 	reporters := []reporter.Reporter{}
 	if consoleReport {
 		rp, err := reporter.NewConsoleReporter()
