@@ -53,6 +53,10 @@ func (mb *MarkdownBuilder) AddCodeSnippet(code, language string) {
 	mb.content.WriteString("```\n")
 }
 
+func (mb *MarkdownBuilder) AddRaw(content string) {
+	mb.content.WriteString("\n" + content + "\n")
+}
+
 // StartCollapsibleSection starts a collapsible section in the markdown document.
 func (mb *MarkdownBuilder) StartCollapsibleSection(title string) *MarkdownCollapsibleSection {
 	return &MarkdownCollapsibleSection{

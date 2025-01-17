@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/safedep/dry/log"
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/checks"
@@ -14,8 +15,11 @@ import (
 	specmodels "github.com/safedep/vet/gen/models"
 	"github.com/safedep/vet/gen/violations"
 	"github.com/safedep/vet/pkg/analyzer"
+	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/pkg/malysis"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
+	"github.com/safedep/vet/pkg/readers"
 	"github.com/safedep/vet/pkg/reporter/markdown"
 )
 
@@ -25,8 +29,9 @@ const (
 )
 
 type MarkdownSummaryReporterConfig struct {
-	Path        string
-	ReportTitle string
+	Path                   string
+	ReportTitle            string
+	IncludeMalwareAnalysis bool
 }
 
 type vetResultInternalModel struct {
@@ -36,10 +41,24 @@ type vetResultInternalModel struct {
 	threats    map[jsonreportspec.ReportThreat_ReportThreatId][]*jsonreportspec.ReportThreat
 }
 
+type markdownSummaryPackageMalwareInfo struct {
+	ecosystem     string
+	name          string
+	version       string
+	is_malicious  bool
+	is_suspicious bool
+	referenceUrl  string
+}
+
+type markdownSummaryMalwareInfo struct {
+	malwareInfo map[string]*markdownSummaryPackageMalwareInfo
+}
+
 type markdownSummaryReporter struct {
 	config         MarkdownSummaryReporterConfig
 	jsonReportPath string
 	jsonReporter   Reporter
+	malwareInfo    *markdownSummaryMalwareInfo
 }
 
 // NewMarkdownSummaryReporter creates a new markdown summary reporter. This reporter
@@ -70,6 +89,9 @@ func NewMarkdownSummaryReporter(config MarkdownSummaryReporterConfig) (Reporter,
 		config:         config,
 		jsonReportPath: tmpFile.Name(),
 		jsonReporter:   jsonReporter,
+		malwareInfo: &markdownSummaryMalwareInfo{
+			malwareInfo: make(map[string]*markdownSummaryPackageMalwareInfo),
+		},
 	}, nil
 }
 
@@ -79,6 +101,21 @@ func (r *markdownSummaryReporter) Name() string {
 
 func (r *markdownSummaryReporter) AddManifest(manifest *models.PackageManifest) {
 	r.jsonReporter.AddManifest(manifest)
+
+	err := readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
+		err := r.malwareInfo.handlePackage(pkg)
+		if err != nil {
+			logger.Errorf("[Markdown Reporter]: Failed to handle malware info for package %s: %v",
+				pkg.GetName(), err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		logger.Errorf("[Markdown Reporter]: Failed to enumerate packages in manifest %s: %v",
+			manifest.GetPath(), err)
+	}
 }
 
 func (r *markdownSummaryReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
@@ -143,6 +180,13 @@ func (r *markdownSummaryReporter) buildMarkdownReport(builder *markdown.Markdown
 	err = r.addThreatsSection(builder, internalModel)
 	if err != nil {
 		return fmt.Errorf("failed to add threats section: %w", err)
+	}
+
+	if r.config.IncludeMalwareAnalysis {
+		err = r.addMalwareAnalysisReportSection(builder)
+		if err != nil {
+			return fmt.Errorf("failed to add malware analysis section: %w", err)
+		}
 	}
 
 	err = r.addChangedPackageSection(builder, internalModel)
@@ -370,6 +414,19 @@ func (r *markdownSummaryReporter) addViolationSection(builder *markdown.Markdown
 	return nil
 }
 
+func (r *markdownSummaryReporter) addMalwareAnalysisReportSection(builder *markdown.MarkdownBuilder) error {
+	malwareInfoTable, err := r.malwareInfo.renderMalwareInfoTable()
+	if err != nil {
+		return fmt.Errorf("failed to render malware info table: %w", err)
+	}
+
+	builder.AddHeader(2, "Malicious Package Analysis")
+	builder.AddParagraph("The following packages have been analyzed for malware")
+	builder.AddRaw(malwareInfoTable)
+
+	return nil
+}
+
 func (r *markdownSummaryReporter) getCheckIconByCheckType(internalModel *vetResultInternalModel,
 	ct checks.CheckType) string {
 	if _, ok := internalModel.violations[ct]; !ok {
@@ -421,4 +478,51 @@ func (r *markdownSummaryReporter) getPackageExternalReferenceUrl(pkg *specmodels
 		url.QueryEscape(strings.ToLower(pkg.GetEcosystem().String())),
 		url.QueryEscape(pkg.GetName()),
 		url.QueryEscape(version))
+}
+
+// Update the local cache of malware analysis stats
+func (m *markdownSummaryMalwareInfo) handlePackage(pkg *models.Package) error {
+	ma := pkg.GetMalwareAnalysisResult()
+	if ma == nil {
+		// TODO: Store metric
+		return nil
+	}
+
+	if _, ok := m.malwareInfo[pkg.Id()]; !ok {
+		m.malwareInfo[pkg.Id()] = &markdownSummaryPackageMalwareInfo{
+			ecosystem:     pkg.GetControlTowerSpecEcosystem().String(),
+			name:          pkg.GetName(),
+			version:       pkg.GetVersion(),
+			is_malicious:  ma.IsMalware,
+			is_suspicious: ma.IsSuspicious,
+			referenceUrl:  malysis.ReportURL(ma.AnalysisId),
+		}
+	}
+
+	return nil
+}
+
+// Render the malware info cache as markdown table
+func (m *markdownSummaryMalwareInfo) renderMalwareInfoTable() (string, error) {
+	tbl := table.NewWriter()
+	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Version", "Status", "Report"})
+
+	for _, info := range m.malwareInfo {
+		emoji := markdown.EmojiWhiteCheckMark
+		if info.is_malicious {
+			emoji = markdown.EmojiCrossMark
+		} else if info.is_suspicious {
+			emoji = markdown.EmojiWarning
+		}
+
+		tbl.AppendRow(table.Row{
+			info.ecosystem,
+			info.name,
+			info.version,
+			emoji,
+			fmt.Sprintf("[%s](%s)", markdown.EmojiLink, info.referenceUrl),
+		})
+	}
+
+	return tbl.RenderMarkdown(), nil
 }

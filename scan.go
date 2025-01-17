@@ -362,7 +362,8 @@ func internalStartScan() error {
 
 	if !utils.IsEmptyString(markdownSummaryReportPath) {
 		rp, err := reporter.NewMarkdownSummaryReporter(reporter.MarkdownSummaryReporterConfig{
-			Path: markdownSummaryReportPath,
+			Path:                   markdownSummaryReportPath,
+			IncludeMalwareAnalysis: enrichMalware,
 		})
 		if err != nil {
 			return err
