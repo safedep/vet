@@ -328,6 +328,7 @@ func internalStartScan() error {
 	if enrichMalware {
 		config := analyzer.DefaultMalwareAnalyzerConfig()
 		config.TrustAutomatedAnalysis = malwareAnalyzerTrustToolResult
+		config.FailFast = failFast
 
 		task, err := analyzer.NewMalwareAnalyzer(config)
 		if err != nil {
