@@ -61,6 +61,7 @@ var (
 	failFast                       bool
 	trustedRegistryUrls            []string
 	scannerExperimental            bool
+	malwareAnalyzerTrustToolResult bool
 )
 
 func newScanCommand() *cobra.Command {
@@ -158,6 +159,8 @@ func newScanCommand() *cobra.Command {
 		"Trusted registry URLs to use for package manifest verification")
 	cmd.Flags().BoolVarP(&scannerExperimental, "experimental", "", false,
 		"Enable experimental features in scanner")
+	cmd.Flags().BoolVarP(&malwareAnalyzerTrustToolResult, "malware-trust-tool-result", "", false,
+		"Trust malware analysis tool result without verification record")
 
 	cmd.AddCommand(listParsersCommand())
 	return cmd
@@ -319,7 +322,10 @@ func internalStartScan() error {
 	}
 
 	if enrichMalware {
-		task, err := analyzer.NewMalwareAnalyzer(analyzer.DefaultMalwareAnalyzerConfig())
+		config := analyzer.DefaultMalwareAnalyzerConfig()
+		config.TrustAutomatedAnalysis = malwareAnalyzerTrustToolResult
+
+		task, err := analyzer.NewMalwareAnalyzer(config)
 		if err != nil {
 			return err
 		}
