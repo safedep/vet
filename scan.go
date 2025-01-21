@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/google/go-github/v54/github"
 	"github.com/safedep/dry/utils"
@@ -62,6 +63,7 @@ var (
 	trustedRegistryUrls            []string
 	scannerExperimental            bool
 	malwareAnalyzerTrustToolResult bool
+	malwareAnalysisTimeout         time.Duration
 )
 
 func newScanCommand() *cobra.Command {
@@ -160,7 +162,9 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().BoolVarP(&scannerExperimental, "experimental", "", false,
 		"Enable experimental features in scanner")
 	cmd.Flags().BoolVarP(&malwareAnalyzerTrustToolResult, "malware-trust-tool-result", "", false,
-		"Trust malware analysis tool result without verification record")
+		"Trust malicious package analysis tool result without verification record")
+	cmd.Flags().DurationVarP(&malwareAnalysisTimeout, "malware-analysis-timeout", "", 5*time.Minute,
+		"Timeout for malicious package analysis")
 
 	cmd.AddCommand(listParsersCommand())
 	return cmd
@@ -495,8 +499,10 @@ func internalStartScan() error {
 			return err
 		}
 
-		malwareEnricher, err := scanner.NewMalysisMalwareEnricher(client,
-			scanner.DefaultMalysisMalwareEnricherConfig())
+		config := scanner.DefaultMalysisMalwareEnricherConfig()
+		config.Timeout = malwareAnalysisTimeout
+
+		malwareEnricher, err := scanner.NewMalysisMalwareEnricher(client, config)
 		if err != nil {
 			return err
 		}

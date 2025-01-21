@@ -281,6 +281,18 @@ execution.
 
 `vet` supports scanning for malicious packages using [SafeDep Cloud API](https://docs.safedep.io/cloud/malware-analysis)
 
+- Run a scan and check for malicious packages
+
+```bash
+vet scan -D /path/to/code --malware
+```
+
+**Note**: `vet` will submit identified packages to SafeDep Cloud for analysis and wait
+for a `timeout` period for response. Not all package analysis may be completed
+within the timeout period. However, subsequent scans will fetch the results if
+available and lead to increased coverage over time. Adjust the timeout using
+`--malware-analysis-timeout` flag.
+
 ## 🛠️ Advanced Usage
 
 - [Threat Hunting with vet](https://docs.safedep.io/advanced/filtering)
