@@ -40,6 +40,7 @@ OSS components through automated vetting in CI/CD.
 * [CI/CD Integration](#ci/cd-integration)
   * [📦 GitHub Action](#-github-action)
   * [🚀 GitLab CI](#-gitlab-ci)
+* [🐙 Malicious Package Analysis](#-malicious-package-analysis)
 * [🛠️ Advanced Usage](#-advanced-usage)
 * [📖 Documentation](#-documentation)
 * [🎊 Community](#-community)
@@ -275,6 +276,10 @@ execution.
 ### 🚀 GitLab CI
 
 - `vet` can be integrated with GitLab CI, refer to [vet-gitlab-ci](https://docs.safedep.io/integrations/gitlab-ci)
+
+## 🐙 Malicious Package Analysis
+
+`vet` supports scanning for malicious packages using [SafeDep Cloud API](https://docs.safedep.io/cloud/malware-analysis)
 
 ## 🛠️ Advanced Usage
 
