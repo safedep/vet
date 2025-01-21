@@ -51,7 +51,9 @@ type markdownSummaryPackageMalwareInfo struct {
 }
 
 type markdownSummaryMalwareInfo struct {
-	malwareInfo map[string]*markdownSummaryPackageMalwareInfo
+	malwareInfo              map[string]*markdownSummaryPackageMalwareInfo
+	haveMalwarAnalysisReport int
+	missingMalwareAnalysis   int
 }
 
 type markdownSummaryReporter struct {
@@ -423,6 +425,14 @@ func (r *markdownSummaryReporter) addMalwareAnalysisReportSection(builder *markd
 	builder.AddHeader(2, "Malicious Package Analysis")
 	builder.AddParagraph("The following packages have been analyzed for malware")
 	builder.AddRaw(malwareInfoTable)
+	builder.AddParagraph(fmt.Sprintf("%d/%d packages have malware analysis reports",
+		r.malwareInfo.haveMalwarAnalysisReport,
+		r.malwareInfo.haveMalwarAnalysisReport+r.malwareInfo.missingMalwareAnalysis))
+
+	if r.malwareInfo.missingMalwareAnalysis > 0 {
+		builder.AddQuote("Note: Some of the package analysis jobs may still be running." +
+			"Please check back later. Consider increasing the timeout for better coverage.")
+	}
 
 	return nil
 }
@@ -484,11 +494,12 @@ func (r *markdownSummaryReporter) getPackageExternalReferenceUrl(pkg *specmodels
 func (m *markdownSummaryMalwareInfo) handlePackage(pkg *models.Package) error {
 	ma := pkg.GetMalwareAnalysisResult()
 	if ma == nil {
-		// TODO: Store metric
+		m.missingMalwareAnalysis++
 		return nil
 	}
 
 	if _, ok := m.malwareInfo[pkg.Id()]; !ok {
+		m.haveMalwarAnalysisReport++
 		m.malwareInfo[pkg.Id()] = &markdownSummaryPackageMalwareInfo{
 			ecosystem:     pkg.GetControlTowerSpecEcosystem().String(),
 			name:          pkg.GetName(),
