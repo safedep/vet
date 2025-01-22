@@ -100,6 +100,11 @@ func (e *insightsBasedPackageEnricher) Enrich(pkg *models.Package,
 		}
 	}
 
+	// We should acquire a lock before mutating package?
 	pkg.Insights = res.JSON200
+	return nil
+}
+
+func (e *insightsBasedPackageEnricher) Wait() error {
 	return nil
 }

@@ -6,4 +6,7 @@ const (
 	EmojiCrossMark      = ":x:"
 	EmojiLink           = ":link:"
 	EmojiWarning        = ":warning:"
+	EmojiRedExclamation = ":exclamation:"
+	EmojiOrangeCircle   = ":orange_circle:"
+	EmojiRedCircle      = ":red_circle:"
 )

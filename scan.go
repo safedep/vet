@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/google/go-github/v54/github"
 	"github.com/safedep/dry/utils"
@@ -26,6 +27,7 @@ var (
 	lockfileAs                     string
 	enrich                         bool
 	enrichUsingInsightsV2          bool
+	enrichMalware                  bool
 	baseDirectory                  string
 	purlSpec                       string
 	githubRepoUrls                 []string
@@ -60,6 +62,8 @@ var (
 	failFast                       bool
 	trustedRegistryUrls            []string
 	scannerExperimental            bool
+	malwareAnalyzerTrustToolResult bool
+	malwareAnalysisTimeout         time.Duration
 )
 
 func newScanCommand() *cobra.Command {
@@ -85,6 +89,8 @@ func newScanCommand() *cobra.Command {
 		"Enrich package metadata (almost always required) using Insights API")
 	cmd.Flags().BoolVarP(&enrichUsingInsightsV2, "insights-v2", "", false,
 		"Enrich package metadata using Insights V2 API")
+	cmd.Flags().BoolVarP(&enrichMalware, "malware", "", false,
+		"Enrich package metadata with malware analysis results")
 	cmd.Flags().StringVarP(&baseDirectory, "directory", "D", wd,
 		"The directory to scan for package manifests")
 	cmd.Flags().StringArrayVarP(&scanExclude, "exclude", "", []string{},
@@ -155,6 +161,10 @@ func newScanCommand() *cobra.Command {
 		"Trusted registry URLs to use for package manifest verification")
 	cmd.Flags().BoolVarP(&scannerExperimental, "experimental", "", false,
 		"Enable experimental features in scanner")
+	cmd.Flags().BoolVarP(&malwareAnalyzerTrustToolResult, "malware-trust-tool-result", "", false,
+		"Trust malicious package analysis tool result without verification record")
+	cmd.Flags().DurationVarP(&malwareAnalysisTimeout, "malware-analysis-timeout", "", 5*time.Minute,
+		"Timeout for malicious package analysis")
 
 	cmd.AddCommand(listParsersCommand())
 	return cmd
@@ -315,6 +325,19 @@ func internalStartScan() error {
 		analyzers = append(analyzers, task)
 	}
 
+	if enrichMalware {
+		config := analyzer.DefaultMalwareAnalyzerConfig()
+		config.TrustAutomatedAnalysis = malwareAnalyzerTrustToolResult
+		config.FailFast = failFast
+
+		task, err := analyzer.NewMalwareAnalyzer(config)
+		if err != nil {
+			return err
+		}
+
+		analyzers = append(analyzers, task)
+	}
+
 	reporters := []reporter.Reporter{}
 	if consoleReport {
 		rp, err := reporter.NewConsoleReporter()
@@ -350,7 +373,8 @@ func internalStartScan() error {
 
 	if !utils.IsEmptyString(markdownSummaryReportPath) {
 		rp, err := reporter.NewMarkdownSummaryReporter(reporter.MarkdownSummaryReporterConfig{
-			Path: markdownSummaryReportPath,
+			Path:                   markdownSummaryReportPath,
+			IncludeMalwareAnalysis: enrichMalware,
 		})
 		if err != nil {
 			return err
@@ -463,6 +487,29 @@ func internalStartScan() error {
 		}
 
 		enrichers = append(enrichers, enricher)
+	}
+
+	if enrichMalware {
+		if auth.CommunityMode() {
+			return fmt.Errorf("Malicious Package Analysis requires an API key. " +
+				"For more details: https://docs.safedep.io/cloud/quickstart/")
+		}
+
+		client, err := auth.MalwareAnalysisClientConnection("vet-malware-analysis")
+		if err != nil {
+			return err
+		}
+
+		config := scanner.DefaultMalysisMalwareEnricherConfig()
+		config.Timeout = malwareAnalysisTimeout
+
+		malwareEnricher, err := scanner.NewMalysisMalwareEnricher(client, config)
+		if err != nil {
+			return err
+		}
+
+		ui.PrintMsg("Using Malysis for malware analysis")
+		enrichers = append(enrichers, malwareEnricher)
 	}
 
 	pmScanner := scanner.NewPackageManifestScanner(scanner.Config{

@@ -17,3 +17,4 @@ bash $E2E_THIS_DIR/scenario-5-gradle-depgraph-build.sh
 bash $E2E_THIS_DIR/scenario-6-manifest-flag.sh
 bash $E2E_THIS_DIR/scenario-7-rubygems-project-url.sh
 bash $E2E_THIS_DIR/scenario-8-summary-report.sh
+bash $E2E_THIS_DIR/scenario-9-malware-analysis.sh
