@@ -474,6 +474,14 @@ func (p *Package) IsMalware() bool {
 	return p.MalwareAnalysis.IsMalware
 }
 
+func (p *Package) IsSuspicious() bool {
+	if p.MalwareAnalysis == nil {
+		return false
+	}
+
+	return p.MalwareAnalysis.IsSuspicious
+}
+
 func NewPackageDetail(ecosystem, name, version string) lockfile.PackageDetails {
 	return lockfile.PackageDetails{
 		Ecosystem: lockfile.Ecosystem(ecosystem),
