@@ -54,6 +54,8 @@ type markdownSummaryMalwareInfo struct {
 	malwareInfo              map[string]*markdownSummaryPackageMalwareInfo
 	haveMalwarAnalysisReport int
 	missingMalwareAnalysis   int
+	maliciousPackages        int
+	suspiciousPackages       int
 }
 
 type markdownSummaryReporter struct {
@@ -423,11 +425,26 @@ func (r *markdownSummaryReporter) addMalwareAnalysisReportSection(builder *markd
 	}
 
 	builder.AddHeader(2, "Malicious Package Analysis")
-	builder.AddParagraph("The following packages have been analyzed for malware")
-	builder.AddRaw(malwareInfoTable)
-	builder.AddParagraph(fmt.Sprintf("%d/%d packages have malware analysis reports",
-		r.malwareInfo.haveMalwarAnalysisReport,
-		r.malwareInfo.haveMalwarAnalysisReport+r.malwareInfo.missingMalwareAnalysis))
+	builder.AddParagraph("Malicious package analysis is performed using [SafeDep Cloud API](https://docs.safedep.io/cloud/malware-analysis).")
+
+	reportSection := builder.StartCollapsibleSection("Malicious Package Analysis Report")
+	reportSection.Builder().AddRaw(malwareInfoTable)
+	reportSection.Builder().AddParagraph("")
+	builder.AddCollapsibleSection(reportSection)
+
+	builder.AddBulletPoint(fmt.Sprintf("%s %d packages have been actively analyzed for malicious behaviour.",
+		markdown.EmojiInformationSource, r.malwareInfo.haveMalwarAnalysisReport))
+
+	if r.malwareInfo.maliciousPackages > 0 {
+		builder.AddBulletPoint(fmt.Sprintf("%s %d packages are identified as malicious.",
+			markdown.EmojiRedCircle, r.malwareInfo.maliciousPackages))
+	} else if r.malwareInfo.suspiciousPackages > 0 {
+		builder.AddBulletPoint(fmt.Sprintf("%s %d packages are identified as suspicious.",
+			markdown.EmojiOrangeCircle, r.malwareInfo.suspiciousPackages))
+	} else {
+		builder.AddBulletPoint(fmt.Sprintf("%s No malicious packages found.",
+			markdown.EmojiWhiteCheckMark))
+	}
 
 	if r.malwareInfo.missingMalwareAnalysis > 0 {
 		builder.AddQuote("Note: Some of the package analysis jobs may still be running." +
@@ -500,6 +517,13 @@ func (m *markdownSummaryMalwareInfo) handlePackage(pkg *models.Package) error {
 
 	if _, ok := m.malwareInfo[pkg.Id()]; !ok {
 		m.haveMalwarAnalysisReport++
+
+		if ma.IsMalware {
+			m.maliciousPackages++
+		} else if ma.IsSuspicious {
+			m.suspiciousPackages++
+		}
+
 		m.malwareInfo[pkg.Id()] = &markdownSummaryPackageMalwareInfo{
 			ecosystem:     pkg.GetControlTowerSpecEcosystem().String(),
 			name:          pkg.GetName(),
