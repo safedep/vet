@@ -3,7 +3,7 @@ module github.com/safedep/vet
 go 1.23.2
 
 require (
-	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250120081932-370c5c54f7c9.2
+	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250122153233-c2b6daa5e70e.2
 	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.3-20250120081932-370c5c54f7c9.1
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/CycloneDX/cyclonedx-go v0.9.2
@@ -84,7 +84,6 @@ require (
 	github.com/chainguard-dev/git-urls v1.0.2 // indirect
 	github.com/cloudflare/circl v1.5.0 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
-	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dlclark/regexp2 v1.11.4 // indirect
@@ -151,7 +150,6 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
-	github.com/mholt/archiver/v3 v3.5.1 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
