@@ -334,3 +334,5 @@ deployment and management of `vet` in your organization.
 - https://deps.dev/
 - https://securityscorecards.dev/
 - https://slsa.dev/
+
+<img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=304d1856-fcb3-4166-bfbf-b3e40d0f1e3b" />
