@@ -24,6 +24,7 @@ require (
 	github.com/hashicorp/hcl/v2 v2.23.0
 	github.com/jedib0t/go-pretty/v6 v6.6.5
 	github.com/kubescape/go-git-url v0.0.30
+	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/owenrumney/go-sarif/v2 v2.3.3
 	github.com/package-url/packageurl-go v0.1.3

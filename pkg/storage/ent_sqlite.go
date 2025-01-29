@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/safedep/vet/ent"
 )
 
@@ -25,10 +26,10 @@ type entSqliteClient struct {
 func NewEntSqliteClient(config EntSqliteClientConfig) (Storage[*ent.Client], error) {
 	mode := "rwc"
 	if config.ReadOnly {
-		mode = "r"
+		mode = "ro"
 	}
 
-	dbConn := fmt.Sprintf("file:%s?mode=%s&_fk=1", mode, config.Path)
+	dbConn := fmt.Sprintf("file:%s?mode=%s&cache=private&_fk=1", config.Path, mode)
 	client, err := ent.Open("sqlite3", dbConn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open sqlite3 connection: %w", err)
