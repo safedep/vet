@@ -2,8 +2,8 @@ ariga.io/atlas v0.19.1-0.20240203083654-5948b60a8e43 h1:GwdJbXydHCYPedeeLt4x/lrl
 ariga.io/atlas v0.19.1-0.20240203083654-5948b60a8e43/go.mod h1:uj3pm+hUTVN/X5yfdBexHlZv+1Xu5u5ZbZx7+CDavNU=
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.3-20241127180247-a33202765966.1 h1:cQZXKoQ+eB0kykzfJe80RP3nc+3PWbbBrUBm8XNYAQY=
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.3-20241127180247-a33202765966.1/go.mod h1:6VPKM8zbmgf9qsmkmKeH49a36Vtmidw3rG53B5mTenc=
-buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250120081932-370c5c54f7c9.2 h1:8GnhglDlnetv0W40JaRxUloAALoDUNYjgUy9ZsKFGrQ=
-buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250120081932-370c5c54f7c9.2/go.mod h1:tJ3olHksW0Top5Uq4gagVEoEwzA3KQrBeSbKdmK/iOo=
+buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250127065543-e5fb79b7f8fa.2 h1:O0UncNKEpz+80EymEBHYN0n7B5tUbBCue+tJzlhqgmg=
+buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250127065543-e5fb79b7f8fa.2/go.mod h1:RAQGx0I0YM3839xtHz3e7R+d9evsppMmnz+Hmt7oKm0=
 buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.3-20250120081932-370c5c54f7c9.1 h1:oxEK5wTESsdCmtdcVCI0aoXf5Hflvk7pYlKlTVPXMhM=
 buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.3-20250120081932-370c5c54f7c9.1/go.mod h1:buFDzX2R5tIKP7wAw/B+iJR0WykeqRTLuNsbJA27hYQ=
 cel.dev/expr v0.19.1 h1:NciYrtDRIR0lNCnH1LFJegdjspNx9fI59O7TWcua/W4=
