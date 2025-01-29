@@ -56,7 +56,6 @@ func main() {
 	cmd.AddCommand(newAuthCommand())
 	cmd.AddCommand(newScanCommand())
 	cmd.AddCommand(newQueryCommand())
-	cmd.AddCommand(newCodeCommand())
 	cmd.AddCommand(newVersionCommand())
 	cmd.AddCommand(newConnectCommand())
 	cmd.AddCommand(cloud.NewCloudCommand())

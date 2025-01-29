@@ -4,6 +4,10 @@ VERSION := "$(shell git describe --tags --abbrev=0)-$(shell git rev-parse --shor
 
 all: quick-vet
 
+.PHONY: ent
+ent:
+	go generate ./ent
+
 linter-install:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.0
 
