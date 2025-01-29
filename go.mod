@@ -4,7 +4,7 @@ go 1.23.2
 
 require (
 	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250120081932-370c5c54f7c9.2
-	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.3-20250120081932-370c5c54f7c9.1
+	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.4-20250127065543-e5fb79b7f8fa.1
 	entgo.io/ent v0.14.1
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/CycloneDX/cyclonedx-go v0.9.2
@@ -37,7 +37,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/oauth2 v0.25.0
 	google.golang.org/grpc v1.69.4
-	google.golang.org/protobuf v1.36.3
+	google.golang.org/protobuf v1.36.4
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -48,7 +48,7 @@ replace github.com/cli/oauth v1.0.1 => github.com/abhisek/oauth v1.0.1-audience
 
 require (
 	ariga.io/atlas v0.19.1-0.20240203083654-5948b60a8e43 // indirect
-	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.3-20241127180247-a33202765966.1 // indirect
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.4-20240508200655-46a4cf4ba109.1 // indirect
 	cel.dev/expr v0.19.1 // indirect
 	dario.cat/mergo v1.0.1 // indirect
 	github.com/BurntSushi/toml v1.4.0 // indirect
