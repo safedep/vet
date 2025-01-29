@@ -5,6 +5,7 @@ go 1.23.2
 require (
 	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250120081932-370c5c54f7c9.2
 	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.3-20250120081932-370c5c54f7c9.1
+	entgo.io/ent v0.14.1
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/CycloneDX/cyclonedx-go v0.9.2
 	github.com/anchore/syft v1.18.1
@@ -44,6 +45,7 @@ replace github.com/owenrumney/go-sarif/v2 v2.3.1 => github.com/safedep/go-sarif/
 replace github.com/cli/oauth v1.0.1 => github.com/abhisek/oauth v1.0.1-audience
 
 require (
+	ariga.io/atlas v0.19.1-0.20240203083654-5948b60a8e43 // indirect
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.3-20241127180247-a33202765966.1 // indirect
 	cel.dev/expr v0.19.1 // indirect
 	dario.cat/mergo v1.0.1 // indirect
@@ -102,6 +104,7 @@ require (
 	github.com/gin-gonic/gin v1.10.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/go-openapi/inflect v0.19.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.24.0 // indirect
