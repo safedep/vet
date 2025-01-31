@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/safedep/vet/ent/codesourcefile"
+	"github.com/safedep/vet/ent/depsusageevidence"
 	"github.com/safedep/vet/ent/predicate"
 )
 
@@ -23,20 +24,24 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeCodeSourceFile = "CodeSourceFile"
+	TypeCodeSourceFile    = "CodeSourceFile"
+	TypeDepsUsageEvidence = "DepsUsageEvidence"
 )
 
 // CodeSourceFileMutation represents an operation that mutates the CodeSourceFile nodes in the graph.
 type CodeSourceFileMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	_path         *string
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*CodeSourceFile, error)
-	predicates    []predicate.CodeSourceFile
+	op                          Op
+	typ                         string
+	id                          *int
+	_path                       *string
+	clearedFields               map[string]struct{}
+	deps_usage_evidences        map[int]struct{}
+	removeddeps_usage_evidences map[int]struct{}
+	cleareddeps_usage_evidences bool
+	done                        bool
+	oldValue                    func(context.Context) (*CodeSourceFile, error)
+	predicates                  []predicate.CodeSourceFile
 }
 
 var _ ent.Mutation = (*CodeSourceFileMutation)(nil)
@@ -173,6 +178,60 @@ func (m *CodeSourceFileMutation) ResetPath() {
 	m._path = nil
 }
 
+// AddDepsUsageEvidenceIDs adds the "deps_usage_evidences" edge to the DepsUsageEvidence entity by ids.
+func (m *CodeSourceFileMutation) AddDepsUsageEvidenceIDs(ids ...int) {
+	if m.deps_usage_evidences == nil {
+		m.deps_usage_evidences = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.deps_usage_evidences[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDepsUsageEvidences clears the "deps_usage_evidences" edge to the DepsUsageEvidence entity.
+func (m *CodeSourceFileMutation) ClearDepsUsageEvidences() {
+	m.cleareddeps_usage_evidences = true
+}
+
+// DepsUsageEvidencesCleared reports if the "deps_usage_evidences" edge to the DepsUsageEvidence entity was cleared.
+func (m *CodeSourceFileMutation) DepsUsageEvidencesCleared() bool {
+	return m.cleareddeps_usage_evidences
+}
+
+// RemoveDepsUsageEvidenceIDs removes the "deps_usage_evidences" edge to the DepsUsageEvidence entity by IDs.
+func (m *CodeSourceFileMutation) RemoveDepsUsageEvidenceIDs(ids ...int) {
+	if m.removeddeps_usage_evidences == nil {
+		m.removeddeps_usage_evidences = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.deps_usage_evidences, ids[i])
+		m.removeddeps_usage_evidences[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDepsUsageEvidences returns the removed IDs of the "deps_usage_evidences" edge to the DepsUsageEvidence entity.
+func (m *CodeSourceFileMutation) RemovedDepsUsageEvidencesIDs() (ids []int) {
+	for id := range m.removeddeps_usage_evidences {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DepsUsageEvidencesIDs returns the "deps_usage_evidences" edge IDs in the mutation.
+func (m *CodeSourceFileMutation) DepsUsageEvidencesIDs() (ids []int) {
+	for id := range m.deps_usage_evidences {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDepsUsageEvidences resets all changes to the "deps_usage_evidences" edge.
+func (m *CodeSourceFileMutation) ResetDepsUsageEvidences() {
+	m.deps_usage_evidences = nil
+	m.cleareddeps_usage_evidences = false
+	m.removeddeps_usage_evidences = nil
+}
+
 // Where appends a list predicates to the CodeSourceFileMutation builder.
 func (m *CodeSourceFileMutation) Where(ps ...predicate.CodeSourceFile) {
 	m.predicates = append(m.predicates, ps...)
@@ -306,48 +365,989 @@ func (m *CodeSourceFileMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CodeSourceFileMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.deps_usage_evidences != nil {
+		edges = append(edges, codesourcefile.EdgeDepsUsageEvidences)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *CodeSourceFileMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case codesourcefile.EdgeDepsUsageEvidences:
+		ids := make([]ent.Value, 0, len(m.deps_usage_evidences))
+		for id := range m.deps_usage_evidences {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CodeSourceFileMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.removeddeps_usage_evidences != nil {
+		edges = append(edges, codesourcefile.EdgeDepsUsageEvidences)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *CodeSourceFileMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case codesourcefile.EdgeDepsUsageEvidences:
+		ids := make([]ent.Value, 0, len(m.removeddeps_usage_evidences))
+		for id := range m.removeddeps_usage_evidences {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CodeSourceFileMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.cleareddeps_usage_evidences {
+		edges = append(edges, codesourcefile.EdgeDepsUsageEvidences)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *CodeSourceFileMutation) EdgeCleared(name string) bool {
+	switch name {
+	case codesourcefile.EdgeDepsUsageEvidences:
+		return m.cleareddeps_usage_evidences
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *CodeSourceFileMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown CodeSourceFile unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *CodeSourceFileMutation) ResetEdge(name string) error {
+	switch name {
+	case codesourcefile.EdgeDepsUsageEvidences:
+		m.ResetDepsUsageEvidences()
+		return nil
+	}
 	return fmt.Errorf("unknown CodeSourceFile edge %s", name)
+}
+
+// DepsUsageEvidenceMutation represents an operation that mutates the DepsUsageEvidence nodes in the graph.
+type DepsUsageEvidenceMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int
+	package_hint       *string
+	module_name        *string
+	module_item        *string
+	module_alias       *string
+	is_wild_card_usage *bool
+	identifier         *string
+	usage_file_path    *string
+	line               *uint
+	addline            *int
+	clearedFields      map[string]struct{}
+	used_in            *int
+	clearedused_in     bool
+	done               bool
+	oldValue           func(context.Context) (*DepsUsageEvidence, error)
+	predicates         []predicate.DepsUsageEvidence
+}
+
+var _ ent.Mutation = (*DepsUsageEvidenceMutation)(nil)
+
+// depsusageevidenceOption allows management of the mutation configuration using functional options.
+type depsusageevidenceOption func(*DepsUsageEvidenceMutation)
+
+// newDepsUsageEvidenceMutation creates new mutation for the DepsUsageEvidence entity.
+func newDepsUsageEvidenceMutation(c config, op Op, opts ...depsusageevidenceOption) *DepsUsageEvidenceMutation {
+	m := &DepsUsageEvidenceMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeDepsUsageEvidence,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withDepsUsageEvidenceID sets the ID field of the mutation.
+func withDepsUsageEvidenceID(id int) depsusageevidenceOption {
+	return func(m *DepsUsageEvidenceMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *DepsUsageEvidence
+		)
+		m.oldValue = func(ctx context.Context) (*DepsUsageEvidence, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().DepsUsageEvidence.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withDepsUsageEvidence sets the old DepsUsageEvidence of the mutation.
+func withDepsUsageEvidence(node *DepsUsageEvidence) depsusageevidenceOption {
+	return func(m *DepsUsageEvidenceMutation) {
+		m.oldValue = func(context.Context) (*DepsUsageEvidence, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m DepsUsageEvidenceMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m DepsUsageEvidenceMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *DepsUsageEvidenceMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *DepsUsageEvidenceMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().DepsUsageEvidence.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetPackageHint sets the "package_hint" field.
+func (m *DepsUsageEvidenceMutation) SetPackageHint(s string) {
+	m.package_hint = &s
+}
+
+// PackageHint returns the value of the "package_hint" field in the mutation.
+func (m *DepsUsageEvidenceMutation) PackageHint() (r string, exists bool) {
+	v := m.package_hint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPackageHint returns the old "package_hint" field's value of the DepsUsageEvidence entity.
+// If the DepsUsageEvidence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepsUsageEvidenceMutation) OldPackageHint(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPackageHint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPackageHint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPackageHint: %w", err)
+	}
+	return oldValue.PackageHint, nil
+}
+
+// ClearPackageHint clears the value of the "package_hint" field.
+func (m *DepsUsageEvidenceMutation) ClearPackageHint() {
+	m.package_hint = nil
+	m.clearedFields[depsusageevidence.FieldPackageHint] = struct{}{}
+}
+
+// PackageHintCleared returns if the "package_hint" field was cleared in this mutation.
+func (m *DepsUsageEvidenceMutation) PackageHintCleared() bool {
+	_, ok := m.clearedFields[depsusageevidence.FieldPackageHint]
+	return ok
+}
+
+// ResetPackageHint resets all changes to the "package_hint" field.
+func (m *DepsUsageEvidenceMutation) ResetPackageHint() {
+	m.package_hint = nil
+	delete(m.clearedFields, depsusageevidence.FieldPackageHint)
+}
+
+// SetModuleName sets the "module_name" field.
+func (m *DepsUsageEvidenceMutation) SetModuleName(s string) {
+	m.module_name = &s
+}
+
+// ModuleName returns the value of the "module_name" field in the mutation.
+func (m *DepsUsageEvidenceMutation) ModuleName() (r string, exists bool) {
+	v := m.module_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModuleName returns the old "module_name" field's value of the DepsUsageEvidence entity.
+// If the DepsUsageEvidence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepsUsageEvidenceMutation) OldModuleName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModuleName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModuleName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModuleName: %w", err)
+	}
+	return oldValue.ModuleName, nil
+}
+
+// ResetModuleName resets all changes to the "module_name" field.
+func (m *DepsUsageEvidenceMutation) ResetModuleName() {
+	m.module_name = nil
+}
+
+// SetModuleItem sets the "module_item" field.
+func (m *DepsUsageEvidenceMutation) SetModuleItem(s string) {
+	m.module_item = &s
+}
+
+// ModuleItem returns the value of the "module_item" field in the mutation.
+func (m *DepsUsageEvidenceMutation) ModuleItem() (r string, exists bool) {
+	v := m.module_item
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModuleItem returns the old "module_item" field's value of the DepsUsageEvidence entity.
+// If the DepsUsageEvidence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepsUsageEvidenceMutation) OldModuleItem(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModuleItem is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModuleItem requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModuleItem: %w", err)
+	}
+	return oldValue.ModuleItem, nil
+}
+
+// ClearModuleItem clears the value of the "module_item" field.
+func (m *DepsUsageEvidenceMutation) ClearModuleItem() {
+	m.module_item = nil
+	m.clearedFields[depsusageevidence.FieldModuleItem] = struct{}{}
+}
+
+// ModuleItemCleared returns if the "module_item" field was cleared in this mutation.
+func (m *DepsUsageEvidenceMutation) ModuleItemCleared() bool {
+	_, ok := m.clearedFields[depsusageevidence.FieldModuleItem]
+	return ok
+}
+
+// ResetModuleItem resets all changes to the "module_item" field.
+func (m *DepsUsageEvidenceMutation) ResetModuleItem() {
+	m.module_item = nil
+	delete(m.clearedFields, depsusageevidence.FieldModuleItem)
+}
+
+// SetModuleAlias sets the "module_alias" field.
+func (m *DepsUsageEvidenceMutation) SetModuleAlias(s string) {
+	m.module_alias = &s
+}
+
+// ModuleAlias returns the value of the "module_alias" field in the mutation.
+func (m *DepsUsageEvidenceMutation) ModuleAlias() (r string, exists bool) {
+	v := m.module_alias
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModuleAlias returns the old "module_alias" field's value of the DepsUsageEvidence entity.
+// If the DepsUsageEvidence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepsUsageEvidenceMutation) OldModuleAlias(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModuleAlias is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModuleAlias requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModuleAlias: %w", err)
+	}
+	return oldValue.ModuleAlias, nil
+}
+
+// ClearModuleAlias clears the value of the "module_alias" field.
+func (m *DepsUsageEvidenceMutation) ClearModuleAlias() {
+	m.module_alias = nil
+	m.clearedFields[depsusageevidence.FieldModuleAlias] = struct{}{}
+}
+
+// ModuleAliasCleared returns if the "module_alias" field was cleared in this mutation.
+func (m *DepsUsageEvidenceMutation) ModuleAliasCleared() bool {
+	_, ok := m.clearedFields[depsusageevidence.FieldModuleAlias]
+	return ok
+}
+
+// ResetModuleAlias resets all changes to the "module_alias" field.
+func (m *DepsUsageEvidenceMutation) ResetModuleAlias() {
+	m.module_alias = nil
+	delete(m.clearedFields, depsusageevidence.FieldModuleAlias)
+}
+
+// SetIsWildCardUsage sets the "is_wild_card_usage" field.
+func (m *DepsUsageEvidenceMutation) SetIsWildCardUsage(b bool) {
+	m.is_wild_card_usage = &b
+}
+
+// IsWildCardUsage returns the value of the "is_wild_card_usage" field in the mutation.
+func (m *DepsUsageEvidenceMutation) IsWildCardUsage() (r bool, exists bool) {
+	v := m.is_wild_card_usage
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsWildCardUsage returns the old "is_wild_card_usage" field's value of the DepsUsageEvidence entity.
+// If the DepsUsageEvidence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepsUsageEvidenceMutation) OldIsWildCardUsage(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsWildCardUsage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsWildCardUsage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsWildCardUsage: %w", err)
+	}
+	return oldValue.IsWildCardUsage, nil
+}
+
+// ClearIsWildCardUsage clears the value of the "is_wild_card_usage" field.
+func (m *DepsUsageEvidenceMutation) ClearIsWildCardUsage() {
+	m.is_wild_card_usage = nil
+	m.clearedFields[depsusageevidence.FieldIsWildCardUsage] = struct{}{}
+}
+
+// IsWildCardUsageCleared returns if the "is_wild_card_usage" field was cleared in this mutation.
+func (m *DepsUsageEvidenceMutation) IsWildCardUsageCleared() bool {
+	_, ok := m.clearedFields[depsusageevidence.FieldIsWildCardUsage]
+	return ok
+}
+
+// ResetIsWildCardUsage resets all changes to the "is_wild_card_usage" field.
+func (m *DepsUsageEvidenceMutation) ResetIsWildCardUsage() {
+	m.is_wild_card_usage = nil
+	delete(m.clearedFields, depsusageevidence.FieldIsWildCardUsage)
+}
+
+// SetIdentifier sets the "identifier" field.
+func (m *DepsUsageEvidenceMutation) SetIdentifier(s string) {
+	m.identifier = &s
+}
+
+// Identifier returns the value of the "identifier" field in the mutation.
+func (m *DepsUsageEvidenceMutation) Identifier() (r string, exists bool) {
+	v := m.identifier
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIdentifier returns the old "identifier" field's value of the DepsUsageEvidence entity.
+// If the DepsUsageEvidence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepsUsageEvidenceMutation) OldIdentifier(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIdentifier is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIdentifier requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIdentifier: %w", err)
+	}
+	return oldValue.Identifier, nil
+}
+
+// ClearIdentifier clears the value of the "identifier" field.
+func (m *DepsUsageEvidenceMutation) ClearIdentifier() {
+	m.identifier = nil
+	m.clearedFields[depsusageevidence.FieldIdentifier] = struct{}{}
+}
+
+// IdentifierCleared returns if the "identifier" field was cleared in this mutation.
+func (m *DepsUsageEvidenceMutation) IdentifierCleared() bool {
+	_, ok := m.clearedFields[depsusageevidence.FieldIdentifier]
+	return ok
+}
+
+// ResetIdentifier resets all changes to the "identifier" field.
+func (m *DepsUsageEvidenceMutation) ResetIdentifier() {
+	m.identifier = nil
+	delete(m.clearedFields, depsusageevidence.FieldIdentifier)
+}
+
+// SetUsageFilePath sets the "usage_file_path" field.
+func (m *DepsUsageEvidenceMutation) SetUsageFilePath(s string) {
+	m.usage_file_path = &s
+}
+
+// UsageFilePath returns the value of the "usage_file_path" field in the mutation.
+func (m *DepsUsageEvidenceMutation) UsageFilePath() (r string, exists bool) {
+	v := m.usage_file_path
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUsageFilePath returns the old "usage_file_path" field's value of the DepsUsageEvidence entity.
+// If the DepsUsageEvidence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepsUsageEvidenceMutation) OldUsageFilePath(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUsageFilePath is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUsageFilePath requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUsageFilePath: %w", err)
+	}
+	return oldValue.UsageFilePath, nil
+}
+
+// ResetUsageFilePath resets all changes to the "usage_file_path" field.
+func (m *DepsUsageEvidenceMutation) ResetUsageFilePath() {
+	m.usage_file_path = nil
+}
+
+// SetLine sets the "line" field.
+func (m *DepsUsageEvidenceMutation) SetLine(u uint) {
+	m.line = &u
+	m.addline = nil
+}
+
+// Line returns the value of the "line" field in the mutation.
+func (m *DepsUsageEvidenceMutation) Line() (r uint, exists bool) {
+	v := m.line
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLine returns the old "line" field's value of the DepsUsageEvidence entity.
+// If the DepsUsageEvidence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepsUsageEvidenceMutation) OldLine(ctx context.Context) (v uint, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLine is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLine requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLine: %w", err)
+	}
+	return oldValue.Line, nil
+}
+
+// AddLine adds u to the "line" field.
+func (m *DepsUsageEvidenceMutation) AddLine(u int) {
+	if m.addline != nil {
+		*m.addline += u
+	} else {
+		m.addline = &u
+	}
+}
+
+// AddedLine returns the value that was added to the "line" field in this mutation.
+func (m *DepsUsageEvidenceMutation) AddedLine() (r int, exists bool) {
+	v := m.addline
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLine resets all changes to the "line" field.
+func (m *DepsUsageEvidenceMutation) ResetLine() {
+	m.line = nil
+	m.addline = nil
+}
+
+// SetUsedInID sets the "used_in" edge to the CodeSourceFile entity by id.
+func (m *DepsUsageEvidenceMutation) SetUsedInID(id int) {
+	m.used_in = &id
+}
+
+// ClearUsedIn clears the "used_in" edge to the CodeSourceFile entity.
+func (m *DepsUsageEvidenceMutation) ClearUsedIn() {
+	m.clearedused_in = true
+}
+
+// UsedInCleared reports if the "used_in" edge to the CodeSourceFile entity was cleared.
+func (m *DepsUsageEvidenceMutation) UsedInCleared() bool {
+	return m.clearedused_in
+}
+
+// UsedInID returns the "used_in" edge ID in the mutation.
+func (m *DepsUsageEvidenceMutation) UsedInID() (id int, exists bool) {
+	if m.used_in != nil {
+		return *m.used_in, true
+	}
+	return
+}
+
+// UsedInIDs returns the "used_in" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UsedInID instead. It exists only for internal usage by the builders.
+func (m *DepsUsageEvidenceMutation) UsedInIDs() (ids []int) {
+	if id := m.used_in; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUsedIn resets all changes to the "used_in" edge.
+func (m *DepsUsageEvidenceMutation) ResetUsedIn() {
+	m.used_in = nil
+	m.clearedused_in = false
+}
+
+// Where appends a list predicates to the DepsUsageEvidenceMutation builder.
+func (m *DepsUsageEvidenceMutation) Where(ps ...predicate.DepsUsageEvidence) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the DepsUsageEvidenceMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DepsUsageEvidenceMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DepsUsageEvidence, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *DepsUsageEvidenceMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DepsUsageEvidenceMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (DepsUsageEvidence).
+func (m *DepsUsageEvidenceMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *DepsUsageEvidenceMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.package_hint != nil {
+		fields = append(fields, depsusageevidence.FieldPackageHint)
+	}
+	if m.module_name != nil {
+		fields = append(fields, depsusageevidence.FieldModuleName)
+	}
+	if m.module_item != nil {
+		fields = append(fields, depsusageevidence.FieldModuleItem)
+	}
+	if m.module_alias != nil {
+		fields = append(fields, depsusageevidence.FieldModuleAlias)
+	}
+	if m.is_wild_card_usage != nil {
+		fields = append(fields, depsusageevidence.FieldIsWildCardUsage)
+	}
+	if m.identifier != nil {
+		fields = append(fields, depsusageevidence.FieldIdentifier)
+	}
+	if m.usage_file_path != nil {
+		fields = append(fields, depsusageevidence.FieldUsageFilePath)
+	}
+	if m.line != nil {
+		fields = append(fields, depsusageevidence.FieldLine)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *DepsUsageEvidenceMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case depsusageevidence.FieldPackageHint:
+		return m.PackageHint()
+	case depsusageevidence.FieldModuleName:
+		return m.ModuleName()
+	case depsusageevidence.FieldModuleItem:
+		return m.ModuleItem()
+	case depsusageevidence.FieldModuleAlias:
+		return m.ModuleAlias()
+	case depsusageevidence.FieldIsWildCardUsage:
+		return m.IsWildCardUsage()
+	case depsusageevidence.FieldIdentifier:
+		return m.Identifier()
+	case depsusageevidence.FieldUsageFilePath:
+		return m.UsageFilePath()
+	case depsusageevidence.FieldLine:
+		return m.Line()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *DepsUsageEvidenceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case depsusageevidence.FieldPackageHint:
+		return m.OldPackageHint(ctx)
+	case depsusageevidence.FieldModuleName:
+		return m.OldModuleName(ctx)
+	case depsusageevidence.FieldModuleItem:
+		return m.OldModuleItem(ctx)
+	case depsusageevidence.FieldModuleAlias:
+		return m.OldModuleAlias(ctx)
+	case depsusageevidence.FieldIsWildCardUsage:
+		return m.OldIsWildCardUsage(ctx)
+	case depsusageevidence.FieldIdentifier:
+		return m.OldIdentifier(ctx)
+	case depsusageevidence.FieldUsageFilePath:
+		return m.OldUsageFilePath(ctx)
+	case depsusageevidence.FieldLine:
+		return m.OldLine(ctx)
+	}
+	return nil, fmt.Errorf("unknown DepsUsageEvidence field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DepsUsageEvidenceMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case depsusageevidence.FieldPackageHint:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPackageHint(v)
+		return nil
+	case depsusageevidence.FieldModuleName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModuleName(v)
+		return nil
+	case depsusageevidence.FieldModuleItem:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModuleItem(v)
+		return nil
+	case depsusageevidence.FieldModuleAlias:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModuleAlias(v)
+		return nil
+	case depsusageevidence.FieldIsWildCardUsage:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsWildCardUsage(v)
+		return nil
+	case depsusageevidence.FieldIdentifier:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIdentifier(v)
+		return nil
+	case depsusageevidence.FieldUsageFilePath:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUsageFilePath(v)
+		return nil
+	case depsusageevidence.FieldLine:
+		v, ok := value.(uint)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLine(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DepsUsageEvidence field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *DepsUsageEvidenceMutation) AddedFields() []string {
+	var fields []string
+	if m.addline != nil {
+		fields = append(fields, depsusageevidence.FieldLine)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *DepsUsageEvidenceMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case depsusageevidence.FieldLine:
+		return m.AddedLine()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DepsUsageEvidenceMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case depsusageevidence.FieldLine:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLine(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DepsUsageEvidence numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *DepsUsageEvidenceMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(depsusageevidence.FieldPackageHint) {
+		fields = append(fields, depsusageevidence.FieldPackageHint)
+	}
+	if m.FieldCleared(depsusageevidence.FieldModuleItem) {
+		fields = append(fields, depsusageevidence.FieldModuleItem)
+	}
+	if m.FieldCleared(depsusageevidence.FieldModuleAlias) {
+		fields = append(fields, depsusageevidence.FieldModuleAlias)
+	}
+	if m.FieldCleared(depsusageevidence.FieldIsWildCardUsage) {
+		fields = append(fields, depsusageevidence.FieldIsWildCardUsage)
+	}
+	if m.FieldCleared(depsusageevidence.FieldIdentifier) {
+		fields = append(fields, depsusageevidence.FieldIdentifier)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *DepsUsageEvidenceMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *DepsUsageEvidenceMutation) ClearField(name string) error {
+	switch name {
+	case depsusageevidence.FieldPackageHint:
+		m.ClearPackageHint()
+		return nil
+	case depsusageevidence.FieldModuleItem:
+		m.ClearModuleItem()
+		return nil
+	case depsusageevidence.FieldModuleAlias:
+		m.ClearModuleAlias()
+		return nil
+	case depsusageevidence.FieldIsWildCardUsage:
+		m.ClearIsWildCardUsage()
+		return nil
+	case depsusageevidence.FieldIdentifier:
+		m.ClearIdentifier()
+		return nil
+	}
+	return fmt.Errorf("unknown DepsUsageEvidence nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *DepsUsageEvidenceMutation) ResetField(name string) error {
+	switch name {
+	case depsusageevidence.FieldPackageHint:
+		m.ResetPackageHint()
+		return nil
+	case depsusageevidence.FieldModuleName:
+		m.ResetModuleName()
+		return nil
+	case depsusageevidence.FieldModuleItem:
+		m.ResetModuleItem()
+		return nil
+	case depsusageevidence.FieldModuleAlias:
+		m.ResetModuleAlias()
+		return nil
+	case depsusageevidence.FieldIsWildCardUsage:
+		m.ResetIsWildCardUsage()
+		return nil
+	case depsusageevidence.FieldIdentifier:
+		m.ResetIdentifier()
+		return nil
+	case depsusageevidence.FieldUsageFilePath:
+		m.ResetUsageFilePath()
+		return nil
+	case depsusageevidence.FieldLine:
+		m.ResetLine()
+		return nil
+	}
+	return fmt.Errorf("unknown DepsUsageEvidence field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *DepsUsageEvidenceMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.used_in != nil {
+		edges = append(edges, depsusageevidence.EdgeUsedIn)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *DepsUsageEvidenceMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case depsusageevidence.EdgeUsedIn:
+		if id := m.used_in; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *DepsUsageEvidenceMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *DepsUsageEvidenceMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *DepsUsageEvidenceMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedused_in {
+		edges = append(edges, depsusageevidence.EdgeUsedIn)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *DepsUsageEvidenceMutation) EdgeCleared(name string) bool {
+	switch name {
+	case depsusageevidence.EdgeUsedIn:
+		return m.clearedused_in
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *DepsUsageEvidenceMutation) ClearEdge(name string) error {
+	switch name {
+	case depsusageevidence.EdgeUsedIn:
+		m.ClearUsedIn()
+		return nil
+	}
+	return fmt.Errorf("unknown DepsUsageEvidence unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *DepsUsageEvidenceMutation) ResetEdge(name string) error {
+	switch name {
+	case depsusageevidence.EdgeUsedIn:
+		m.ResetUsedIn()
+		return nil
+	}
+	return fmt.Errorf("unknown DepsUsageEvidence edge %s", name)
 }

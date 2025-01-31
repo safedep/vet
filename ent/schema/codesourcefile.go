@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -19,5 +20,8 @@ func (CodeSourceFile) Fields() []ent.Field {
 
 // Edges of the CodeSourceFile.
 func (CodeSourceFile) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("deps_usage_evidences", DepsUsageEvidence.Type).
+			Ref("used_in"),
+	}
 }

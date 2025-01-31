@@ -23,7 +23,7 @@ type entSqliteClient struct {
 	client *ent.Client
 }
 
-func NewEntSqliteClient(config EntSqliteClientConfig) (Storage[*ent.Client], error) {
+func NewEntSqliteStorage(config EntSqliteClientConfig) (Storage[*ent.Client], error) {
 	mode := "rwc"
 	if config.ReadOnly {
 		mode = "ro"

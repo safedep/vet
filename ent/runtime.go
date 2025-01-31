@@ -4,6 +4,7 @@ package ent
 
 import (
 	"github.com/safedep/vet/ent/codesourcefile"
+	"github.com/safedep/vet/ent/depsusageevidence"
 	"github.com/safedep/vet/ent/schema"
 )
 
@@ -17,4 +18,10 @@ func init() {
 	codesourcefileDescPath := codesourcefileFields[0].Descriptor()
 	// codesourcefile.PathValidator is a validator for the "path" field. It is called by the builders before save.
 	codesourcefile.PathValidator = codesourcefileDescPath.Validators[0].(func(string) error)
+	depsusageevidenceFields := schema.DepsUsageEvidence{}.Fields()
+	_ = depsusageevidenceFields
+	// depsusageevidenceDescIsWildCardUsage is the schema descriptor for is_wild_card_usage field.
+	depsusageevidenceDescIsWildCardUsage := depsusageevidenceFields[4].Descriptor()
+	// depsusageevidence.DefaultIsWildCardUsage holds the default value on creation for the is_wild_card_usage field.
+	depsusageevidence.DefaultIsWildCardUsage = depsusageevidenceDescIsWildCardUsage.Default.(bool)
 }

@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -12,16 +13,18 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/safedep/vet/ent/codesourcefile"
+	"github.com/safedep/vet/ent/depsusageevidence"
 	"github.com/safedep/vet/ent/predicate"
 )
 
 // CodeSourceFileQuery is the builder for querying CodeSourceFile entities.
 type CodeSourceFileQuery struct {
 	config
-	ctx        *QueryContext
-	order      []codesourcefile.OrderOption
-	inters     []Interceptor
-	predicates []predicate.CodeSourceFile
+	ctx                    *QueryContext
+	order                  []codesourcefile.OrderOption
+	inters                 []Interceptor
+	predicates             []predicate.CodeSourceFile
+	withDepsUsageEvidences *DepsUsageEvidenceQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -56,6 +59,28 @@ func (csfq *CodeSourceFileQuery) Unique(unique bool) *CodeSourceFileQuery {
 func (csfq *CodeSourceFileQuery) Order(o ...codesourcefile.OrderOption) *CodeSourceFileQuery {
 	csfq.order = append(csfq.order, o...)
 	return csfq
+}
+
+// QueryDepsUsageEvidences chains the current query on the "deps_usage_evidences" edge.
+func (csfq *CodeSourceFileQuery) QueryDepsUsageEvidences() *DepsUsageEvidenceQuery {
+	query := (&DepsUsageEvidenceClient{config: csfq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := csfq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := csfq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(codesourcefile.Table, codesourcefile.FieldID, selector),
+			sqlgraph.To(depsusageevidence.Table, depsusageevidence.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, codesourcefile.DepsUsageEvidencesTable, codesourcefile.DepsUsageEvidencesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(csfq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first CodeSourceFile entity from the query.
@@ -245,15 +270,27 @@ func (csfq *CodeSourceFileQuery) Clone() *CodeSourceFileQuery {
 		return nil
 	}
 	return &CodeSourceFileQuery{
-		config:     csfq.config,
-		ctx:        csfq.ctx.Clone(),
-		order:      append([]codesourcefile.OrderOption{}, csfq.order...),
-		inters:     append([]Interceptor{}, csfq.inters...),
-		predicates: append([]predicate.CodeSourceFile{}, csfq.predicates...),
+		config:                 csfq.config,
+		ctx:                    csfq.ctx.Clone(),
+		order:                  append([]codesourcefile.OrderOption{}, csfq.order...),
+		inters:                 append([]Interceptor{}, csfq.inters...),
+		predicates:             append([]predicate.CodeSourceFile{}, csfq.predicates...),
+		withDepsUsageEvidences: csfq.withDepsUsageEvidences.Clone(),
 		// clone intermediate query.
 		sql:  csfq.sql.Clone(),
 		path: csfq.path,
 	}
+}
+
+// WithDepsUsageEvidences tells the query-builder to eager-load the nodes that are connected to
+// the "deps_usage_evidences" edge. The optional arguments are used to configure the query builder of the edge.
+func (csfq *CodeSourceFileQuery) WithDepsUsageEvidences(opts ...func(*DepsUsageEvidenceQuery)) *CodeSourceFileQuery {
+	query := (&DepsUsageEvidenceClient{config: csfq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	csfq.withDepsUsageEvidences = query
+	return csfq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -332,8 +369,11 @@ func (csfq *CodeSourceFileQuery) prepareQuery(ctx context.Context) error {
 
 func (csfq *CodeSourceFileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*CodeSourceFile, error) {
 	var (
-		nodes = []*CodeSourceFile{}
-		_spec = csfq.querySpec()
+		nodes       = []*CodeSourceFile{}
+		_spec       = csfq.querySpec()
+		loadedTypes = [1]bool{
+			csfq.withDepsUsageEvidences != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*CodeSourceFile).scanValues(nil, columns)
@@ -341,6 +381,7 @@ func (csfq *CodeSourceFileQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &CodeSourceFile{config: csfq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -352,7 +393,48 @@ func (csfq *CodeSourceFileQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := csfq.withDepsUsageEvidences; query != nil {
+		if err := csfq.loadDepsUsageEvidences(ctx, query, nodes,
+			func(n *CodeSourceFile) { n.Edges.DepsUsageEvidences = []*DepsUsageEvidence{} },
+			func(n *CodeSourceFile, e *DepsUsageEvidence) {
+				n.Edges.DepsUsageEvidences = append(n.Edges.DepsUsageEvidences, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (csfq *CodeSourceFileQuery) loadDepsUsageEvidences(ctx context.Context, query *DepsUsageEvidenceQuery, nodes []*CodeSourceFile, init func(*CodeSourceFile), assign func(*CodeSourceFile, *DepsUsageEvidence)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*CodeSourceFile)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.DepsUsageEvidence(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(codesourcefile.DepsUsageEvidencesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.deps_usage_evidence_used_in
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "deps_usage_evidence_used_in" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "deps_usage_evidence_used_in" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (csfq *CodeSourceFileQuery) sqlCount(ctx context.Context) (int, error) {

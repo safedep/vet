@@ -14,7 +14,9 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/safedep/vet/ent/codesourcefile"
+	"github.com/safedep/vet/ent/depsusageevidence"
 )
 
 // Client is the client that holds all ent builders.
@@ -24,6 +26,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// CodeSourceFile is the client for interacting with the CodeSourceFile builders.
 	CodeSourceFile *CodeSourceFileClient
+	// DepsUsageEvidence is the client for interacting with the DepsUsageEvidence builders.
+	DepsUsageEvidence *DepsUsageEvidenceClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -36,6 +40,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.CodeSourceFile = NewCodeSourceFileClient(c.config)
+	c.DepsUsageEvidence = NewDepsUsageEvidenceClient(c.config)
 }
 
 type (
@@ -126,9 +131,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:            ctx,
-		config:         cfg,
-		CodeSourceFile: NewCodeSourceFileClient(cfg),
+		ctx:               ctx,
+		config:            cfg,
+		CodeSourceFile:    NewCodeSourceFileClient(cfg),
+		DepsUsageEvidence: NewDepsUsageEvidenceClient(cfg),
 	}, nil
 }
 
@@ -146,9 +152,10 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:            ctx,
-		config:         cfg,
-		CodeSourceFile: NewCodeSourceFileClient(cfg),
+		ctx:               ctx,
+		config:            cfg,
+		CodeSourceFile:    NewCodeSourceFileClient(cfg),
+		DepsUsageEvidence: NewDepsUsageEvidenceClient(cfg),
 	}, nil
 }
 
@@ -178,12 +185,14 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.CodeSourceFile.Use(hooks...)
+	c.DepsUsageEvidence.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.CodeSourceFile.Intercept(interceptors...)
+	c.DepsUsageEvidence.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -191,6 +200,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *CodeSourceFileMutation:
 		return c.CodeSourceFile.mutate(ctx, m)
+	case *DepsUsageEvidenceMutation:
+		return c.DepsUsageEvidence.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -304,6 +315,22 @@ func (c *CodeSourceFileClient) GetX(ctx context.Context, id int) *CodeSourceFile
 	return obj
 }
 
+// QueryDepsUsageEvidences queries the deps_usage_evidences edge of a CodeSourceFile.
+func (c *CodeSourceFileClient) QueryDepsUsageEvidences(csf *CodeSourceFile) *DepsUsageEvidenceQuery {
+	query := (&DepsUsageEvidenceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := csf.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(codesourcefile.Table, codesourcefile.FieldID, id),
+			sqlgraph.To(depsusageevidence.Table, depsusageevidence.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, codesourcefile.DepsUsageEvidencesTable, codesourcefile.DepsUsageEvidencesColumn),
+		)
+		fromV = sqlgraph.Neighbors(csf.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CodeSourceFileClient) Hooks() []Hook {
 	return c.hooks.CodeSourceFile
@@ -329,12 +356,161 @@ func (c *CodeSourceFileClient) mutate(ctx context.Context, m *CodeSourceFileMuta
 	}
 }
 
+// DepsUsageEvidenceClient is a client for the DepsUsageEvidence schema.
+type DepsUsageEvidenceClient struct {
+	config
+}
+
+// NewDepsUsageEvidenceClient returns a client for the DepsUsageEvidence from the given config.
+func NewDepsUsageEvidenceClient(c config) *DepsUsageEvidenceClient {
+	return &DepsUsageEvidenceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `depsusageevidence.Hooks(f(g(h())))`.
+func (c *DepsUsageEvidenceClient) Use(hooks ...Hook) {
+	c.hooks.DepsUsageEvidence = append(c.hooks.DepsUsageEvidence, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `depsusageevidence.Intercept(f(g(h())))`.
+func (c *DepsUsageEvidenceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DepsUsageEvidence = append(c.inters.DepsUsageEvidence, interceptors...)
+}
+
+// Create returns a builder for creating a DepsUsageEvidence entity.
+func (c *DepsUsageEvidenceClient) Create() *DepsUsageEvidenceCreate {
+	mutation := newDepsUsageEvidenceMutation(c.config, OpCreate)
+	return &DepsUsageEvidenceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DepsUsageEvidence entities.
+func (c *DepsUsageEvidenceClient) CreateBulk(builders ...*DepsUsageEvidenceCreate) *DepsUsageEvidenceCreateBulk {
+	return &DepsUsageEvidenceCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DepsUsageEvidenceClient) MapCreateBulk(slice any, setFunc func(*DepsUsageEvidenceCreate, int)) *DepsUsageEvidenceCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DepsUsageEvidenceCreateBulk{err: fmt.Errorf("calling to DepsUsageEvidenceClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DepsUsageEvidenceCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DepsUsageEvidenceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DepsUsageEvidence.
+func (c *DepsUsageEvidenceClient) Update() *DepsUsageEvidenceUpdate {
+	mutation := newDepsUsageEvidenceMutation(c.config, OpUpdate)
+	return &DepsUsageEvidenceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DepsUsageEvidenceClient) UpdateOne(due *DepsUsageEvidence) *DepsUsageEvidenceUpdateOne {
+	mutation := newDepsUsageEvidenceMutation(c.config, OpUpdateOne, withDepsUsageEvidence(due))
+	return &DepsUsageEvidenceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DepsUsageEvidenceClient) UpdateOneID(id int) *DepsUsageEvidenceUpdateOne {
+	mutation := newDepsUsageEvidenceMutation(c.config, OpUpdateOne, withDepsUsageEvidenceID(id))
+	return &DepsUsageEvidenceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DepsUsageEvidence.
+func (c *DepsUsageEvidenceClient) Delete() *DepsUsageEvidenceDelete {
+	mutation := newDepsUsageEvidenceMutation(c.config, OpDelete)
+	return &DepsUsageEvidenceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DepsUsageEvidenceClient) DeleteOne(due *DepsUsageEvidence) *DepsUsageEvidenceDeleteOne {
+	return c.DeleteOneID(due.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DepsUsageEvidenceClient) DeleteOneID(id int) *DepsUsageEvidenceDeleteOne {
+	builder := c.Delete().Where(depsusageevidence.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DepsUsageEvidenceDeleteOne{builder}
+}
+
+// Query returns a query builder for DepsUsageEvidence.
+func (c *DepsUsageEvidenceClient) Query() *DepsUsageEvidenceQuery {
+	return &DepsUsageEvidenceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDepsUsageEvidence},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DepsUsageEvidence entity by its id.
+func (c *DepsUsageEvidenceClient) Get(ctx context.Context, id int) (*DepsUsageEvidence, error) {
+	return c.Query().Where(depsusageevidence.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DepsUsageEvidenceClient) GetX(ctx context.Context, id int) *DepsUsageEvidence {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUsedIn queries the used_in edge of a DepsUsageEvidence.
+func (c *DepsUsageEvidenceClient) QueryUsedIn(due *DepsUsageEvidence) *CodeSourceFileQuery {
+	query := (&CodeSourceFileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := due.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(depsusageevidence.Table, depsusageevidence.FieldID, id),
+			sqlgraph.To(codesourcefile.Table, codesourcefile.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, depsusageevidence.UsedInTable, depsusageevidence.UsedInColumn),
+		)
+		fromV = sqlgraph.Neighbors(due.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *DepsUsageEvidenceClient) Hooks() []Hook {
+	return c.hooks.DepsUsageEvidence
+}
+
+// Interceptors returns the client interceptors.
+func (c *DepsUsageEvidenceClient) Interceptors() []Interceptor {
+	return c.inters.DepsUsageEvidence
+}
+
+func (c *DepsUsageEvidenceClient) mutate(ctx context.Context, m *DepsUsageEvidenceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DepsUsageEvidenceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DepsUsageEvidenceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DepsUsageEvidenceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DepsUsageEvidenceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DepsUsageEvidence mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		CodeSourceFile []ent.Hook
+		CodeSourceFile, DepsUsageEvidence []ent.Hook
 	}
 	inters struct {
-		CodeSourceFile []ent.Interceptor
+		CodeSourceFile, DepsUsageEvidence []ent.Interceptor
 	}
 )

@@ -19,11 +19,40 @@ var (
 		Columns:    CodeSourceFilesColumns,
 		PrimaryKey: []*schema.Column{CodeSourceFilesColumns[0]},
 	}
+	// DepsUsageEvidencesColumns holds the columns for the "deps_usage_evidences" table.
+	DepsUsageEvidencesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "package_hint", Type: field.TypeString, Nullable: true},
+		{Name: "module_name", Type: field.TypeString},
+		{Name: "module_item", Type: field.TypeString, Nullable: true},
+		{Name: "module_alias", Type: field.TypeString, Nullable: true},
+		{Name: "is_wild_card_usage", Type: field.TypeBool, Nullable: true, Default: false},
+		{Name: "identifier", Type: field.TypeString, Nullable: true},
+		{Name: "usage_file_path", Type: field.TypeString},
+		{Name: "line", Type: field.TypeUint},
+		{Name: "deps_usage_evidence_used_in", Type: field.TypeInt},
+	}
+	// DepsUsageEvidencesTable holds the schema information for the "deps_usage_evidences" table.
+	DepsUsageEvidencesTable = &schema.Table{
+		Name:       "deps_usage_evidences",
+		Columns:    DepsUsageEvidencesColumns,
+		PrimaryKey: []*schema.Column{DepsUsageEvidencesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "deps_usage_evidences_code_source_files_used_in",
+				Columns:    []*schema.Column{DepsUsageEvidencesColumns[9]},
+				RefColumns: []*schema.Column{CodeSourceFilesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		CodeSourceFilesTable,
+		DepsUsageEvidencesTable,
 	}
 )
 
 func init() {
+	DepsUsageEvidencesTable.ForeignKeys[0].RefTable = CodeSourceFilesTable
 }

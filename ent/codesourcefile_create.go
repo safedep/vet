@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/safedep/vet/ent/codesourcefile"
+	"github.com/safedep/vet/ent/depsusageevidence"
 )
 
 // CodeSourceFileCreate is the builder for creating a CodeSourceFile entity.
@@ -23,6 +24,21 @@ type CodeSourceFileCreate struct {
 func (csfc *CodeSourceFileCreate) SetPath(s string) *CodeSourceFileCreate {
 	csfc.mutation.SetPath(s)
 	return csfc
+}
+
+// AddDepsUsageEvidenceIDs adds the "deps_usage_evidences" edge to the DepsUsageEvidence entity by IDs.
+func (csfc *CodeSourceFileCreate) AddDepsUsageEvidenceIDs(ids ...int) *CodeSourceFileCreate {
+	csfc.mutation.AddDepsUsageEvidenceIDs(ids...)
+	return csfc
+}
+
+// AddDepsUsageEvidences adds the "deps_usage_evidences" edges to the DepsUsageEvidence entity.
+func (csfc *CodeSourceFileCreate) AddDepsUsageEvidences(d ...*DepsUsageEvidence) *CodeSourceFileCreate {
+	ids := make([]int, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return csfc.AddDepsUsageEvidenceIDs(ids...)
 }
 
 // Mutation returns the CodeSourceFileMutation object of the builder.
@@ -96,6 +112,22 @@ func (csfc *CodeSourceFileCreate) createSpec() (*CodeSourceFile, *sqlgraph.Creat
 	if value, ok := csfc.mutation.Path(); ok {
 		_spec.SetField(codesourcefile.FieldPath, field.TypeString, value)
 		_node.Path = value
+	}
+	if nodes := csfc.mutation.DepsUsageEvidencesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   codesourcefile.DepsUsageEvidencesTable,
+			Columns: []string{codesourcefile.DepsUsageEvidencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(depsusageevidence.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

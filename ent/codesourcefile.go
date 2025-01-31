@@ -17,8 +17,29 @@ type CodeSourceFile struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// Path holds the value of the "path" field.
-	Path         string `json:"path,omitempty"`
+	Path string `json:"path,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the CodeSourceFileQuery when eager-loading is set.
+	Edges        CodeSourceFileEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// CodeSourceFileEdges holds the relations/edges for other nodes in the graph.
+type CodeSourceFileEdges struct {
+	// DepsUsageEvidences holds the value of the deps_usage_evidences edge.
+	DepsUsageEvidences []*DepsUsageEvidence `json:"deps_usage_evidences,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// DepsUsageEvidencesOrErr returns the DepsUsageEvidences value or an error if the edge
+// was not loaded in eager-loading.
+func (e CodeSourceFileEdges) DepsUsageEvidencesOrErr() ([]*DepsUsageEvidence, error) {
+	if e.loadedTypes[0] {
+		return e.DepsUsageEvidences, nil
+	}
+	return nil, &NotLoadedError{edge: "deps_usage_evidences"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -68,6 +89,11 @@ func (csf *CodeSourceFile) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (csf *CodeSourceFile) Value(name string) (ent.Value, error) {
 	return csf.selectValues.Get(name)
+}
+
+// QueryDepsUsageEvidences queries the "deps_usage_evidences" edge of the CodeSourceFile entity.
+func (csf *CodeSourceFile) QueryDepsUsageEvidences() *DepsUsageEvidenceQuery {
+	return NewCodeSourceFileClient(csf.config).QueryDepsUsageEvidences(csf)
 }
 
 // Update returns a builder for updating this CodeSourceFile.

@@ -8,6 +8,7 @@ import (
 
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/cmd/cloud"
+	"github.com/safedep/vet/cmd/code"
 	"github.com/safedep/vet/cmd/inspect"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -59,6 +60,7 @@ func main() {
 	cmd.AddCommand(newVersionCommand())
 	cmd.AddCommand(newConnectCommand())
 	cmd.AddCommand(cloud.NewCloudCommand())
+	cmd.AddCommand(code.NewCodeCommand())
 
 	if checkIfPackageInspectCommandEnabled() {
 		cmd.AddCommand(inspect.NewPackageInspectCommand())
