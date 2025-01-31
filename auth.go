@@ -9,12 +9,11 @@ import (
 
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/internal/ui"
+	"github.com/safedep/vet/pkg/command"
 	"github.com/safedep/vet/pkg/common/logger"
 )
 
-var (
-	authTenantDomain string
-)
+var authTenantDomain string
 
 func newAuthCommand() *cobra.Command {
 	cmd := &cobra.Command{
@@ -53,7 +52,6 @@ func configureAuthCommand() *cobra.Command {
 				err = survey.AskOne(&survey.Confirm{
 					Message: "Do you want to continue?",
 				}, &confirm)
-
 				if err != nil {
 					logger.Fatalf("Failed to setup auth: %v", err)
 				}
@@ -97,7 +95,7 @@ func verifyAuthCommand() *cobra.Command {
 				ui.PrintSuccess("Running in Community Mode")
 			}
 
-			failOnError("auth/verify", auth.Verify())
+			command.FailOnError("auth/verify", auth.Verify())
 
 			ui.PrintSuccess("Authentication key is valid!")
 			return nil

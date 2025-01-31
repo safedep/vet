@@ -11,6 +11,7 @@ import (
 	"github.com/safedep/vet/internal/connect"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/analyzer"
+	"github.com/safedep/vet/pkg/command"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/parser"
@@ -195,7 +196,6 @@ func listParsersCommand() *cobra.Command {
 func startScan() {
 	if !disableAuthVerifyBeforeScan {
 		err := auth.Verify()
-
 		// We will fallback to community mode by default to provide
 		// a seamless user experience
 		if err != nil {
@@ -209,7 +209,7 @@ func startScan() {
 		ui.PrintMsg("Running in Cloud (authenticated) Mode")
 	}
 
-	failOnError("scan", internalStartScan())
+	command.FailOnError("scan", internalStartScan())
 }
 
 func internalStartScan() error {
@@ -290,7 +290,6 @@ func internalStartScan() error {
 		FailFast:            failFast,
 		TrustedRegistryUrls: trustedRegistryUrls,
 	})
-
 	if err != nil {
 		return err
 	}
@@ -402,7 +401,6 @@ func internalStartScan() error {
 			},
 			Path: sarifReportPath,
 		})
-
 		if err != nil {
 			return err
 		}

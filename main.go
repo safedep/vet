@@ -137,10 +137,3 @@ func redirectLogToFile(path string) {
 		logger.MigrateTo(io.Discard)
 	}
 }
-
-func failOnError(stage string, err error) {
-	if err != nil {
-		ui.PrintError("%s failed due to error: %s", stage, err.Error())
-		os.Exit(-1)
-	}
-}

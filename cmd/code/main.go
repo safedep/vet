@@ -1,9 +1,7 @@
 package code
 
 import (
-	"os"
-
-	"github.com/safedep/vet/internal/ui"
+	"github.com/safedep/vet/pkg/command"
 	"github.com/spf13/cobra"
 )
 
@@ -19,17 +17,10 @@ func NewCodeCommand() *cobra.Command {
 	}
 
 	defaultAllLanguageCodes, err := getAllLanguageCodeStrings()
-	failOnError("setup-default-languages", err)
+	command.FailOnError("setup-default-languages", err)
 	cmd.PersistentFlags().StringArrayVar(&languageCodes, "lang", defaultAllLanguageCodes, "Source code languages to analyze")
 
 	cmd.AddCommand(newScanCommand())
 
 	return cmd
-}
-
-func failOnError(stage string, err error) {
-	if err != nil {
-		ui.PrintError("%s failed due to error: %s", stage, err.Error())
-		os.Exit(-1)
-	}
 }

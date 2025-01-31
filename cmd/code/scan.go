@@ -6,6 +6,7 @@ import (
 
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/code"
+	"github.com/safedep/vet/pkg/command"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/storage"
 	"github.com/spf13/cobra"
@@ -13,7 +14,7 @@ import (
 
 var (
 	dbPath                    string
-	dirsToWalk                []string
+	appDirs                   []string
 	importDirs                []string
 	skipDependencyUsagePlugin bool
 )
@@ -28,22 +29,24 @@ func newScanCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&dbPath, "db", "vet.db", "Path to create the sqlite database")
-	cmd.Flags().StringArrayVar(&dirsToWalk, "dir", []string{"."}, "Directories to scan for code files")
+	cmd.Flags().StringVar(&dbPath, "db", "", "Path to create the sqlite database")
+	cmd.Flags().StringArrayVar(&appDirs, "app", []string{"."}, "Directories to scan for application code files")
 	cmd.Flags().StringArrayVar(&importDirs, "import-dir", []string{}, "Directories to scan for import files")
 	cmd.Flags().BoolVar(&skipDependencyUsagePlugin, "skip-dependency-usage-plugin", false, "Skip dependency usage plugin analysis")
+
+	_ = cmd.MarkFlagRequired("db")
 
 	return cmd
 }
 
 func startScan() {
-	failOnError("scan", internalStartScan())
+	command.FailOnError("scan", internalStartScan())
 }
 
 func internalStartScan() error {
 	allowedLanguages, err := getLanguagesFromCodes(languageCodes)
 	if err != nil {
-		logger.Fatalf("Failed to get languages from codes: %v", err)
+		logger.Fatalf("failed to get languages from codes: %v", err)
 		return err
 	}
 
@@ -53,12 +56,12 @@ func internalStartScan() error {
 		SkipSchemaCreation: false,
 	})
 	if err != nil {
-		logger.Fatalf("Failed to create ent sqlite storage: %v", err)
+		logger.Fatalf("failed to create ent sqlite storage: %v", err)
 		return err
 	}
 
 	codeScanner, err := code.NewScanner(code.ScannerConfig{
-		AppDirectories:            dirsToWalk,
+		AppDirectories:            appDirs,
 		ImportDirectories:         importDirs,
 		Languages:                 allowedLanguages,
 		SkipDependencyUsagePlugin: skipDependencyUsagePlugin,
@@ -69,13 +72,13 @@ func internalStartScan() error {
 			},
 			OnScanEnd: func() error {
 				ui.StopSpinner()
-				fmt.Println("Scan complete.")
+				fmt.Println("Scan complete")
 				return nil
 			},
 		},
 	}, entSqliteStorage)
 	if err != nil {
-		logger.Fatalf("Failed to create code scanner: %v", err)
+		logger.Fatalf("failed to create code scanner: %v", err)
 		return err
 	}
 

@@ -23,7 +23,7 @@ func getLanguagesFromCodes(languageCodes []string) ([]core.Language, error) {
 	for _, languageCode := range languageCodes {
 		language, err := lang.GetLanguage(languageCode)
 		if err != nil {
-			logger.Fatalf("Failed to get language for code %s: %v", languageCode, err)
+			logger.Fatalf("failed to get language for code %s: %v", languageCode, err)
 			return nil, err
 		}
 		languages = append(languages, language)

@@ -5,6 +5,7 @@ import (
 
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/pkg/analyzer"
+	"github.com/safedep/vet/pkg/command"
 	"github.com/safedep/vet/pkg/readers"
 	"github.com/safedep/vet/pkg/reporter"
 	"github.com/safedep/vet/pkg/scanner"
@@ -82,7 +83,7 @@ func newQueryCommand() *cobra.Command {
 }
 
 func startQuery() {
-	failOnError("query", internalStartQuery())
+	command.FailOnError("query", internalStartQuery())
 }
 
 func internalStartQuery() error {
@@ -124,7 +125,6 @@ func internalStartQuery() error {
 			ExpiresOn: queryExceptionsTill,
 			Filter:    queryExceptionsFilter,
 		})
-
 		if err != nil {
 			return err
 		}
@@ -146,7 +146,6 @@ func internalStartQuery() error {
 			MaxAdvice:               querySummaryReportMaxAdvice,
 			GroupByDirectDependency: querySummaryReportGroupByDirectDeps,
 		})
-
 		if err != nil {
 			return err
 		}
@@ -158,7 +157,6 @@ func internalStartQuery() error {
 		rp, err := reporter.NewMarkdownReportGenerator(reporter.MarkdownReportingConfig{
 			Path: queryMarkdownReportPath,
 		})
-
 		if err != nil {
 			return err
 		}
@@ -170,7 +168,6 @@ func internalStartQuery() error {
 		rp, err := reporter.NewMarkdownSummaryReporter(reporter.MarkdownSummaryReporterConfig{
 			Path: queryMarkdownSummaryReportPath,
 		})
-
 		if err != nil {
 			return err
 		}
@@ -193,7 +190,6 @@ func internalStartQuery() error {
 		rp, err := reporter.NewCsvReporter(reporter.CsvReportingConfig{
 			Path: queryCsvReportPath,
 		})
-
 		if err != nil {
 			return err
 		}
@@ -218,7 +214,6 @@ func internalStartQuery() error {
 				Version: version,
 			},
 		})
-
 		if err != nil {
 			return err
 		}
