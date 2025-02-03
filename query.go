@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/safedep/dry/utils"
+	"github.com/safedep/vet/internal/command"
 	"github.com/safedep/vet/pkg/analyzer"
-	"github.com/safedep/vet/pkg/command"
 	"github.com/safedep/vet/pkg/readers"
 	"github.com/safedep/vet/pkg/reporter"
 	"github.com/safedep/vet/pkg/scanner"

@@ -8,8 +8,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/internal/auth"
+	"github.com/safedep/vet/internal/command"
 	"github.com/safedep/vet/internal/ui"
-	"github.com/safedep/vet/pkg/command"
 	"github.com/safedep/vet/pkg/common/logger"
 )
 
