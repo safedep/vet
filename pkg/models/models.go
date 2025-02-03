@@ -11,6 +11,7 @@ import (
 	malysisv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	"github.com/google/osv-scanner/pkg/lockfile"
+	"github.com/safedep/vet/ent"
 	"github.com/safedep/vet/gen/insightapi"
 
 	modelspec "github.com/safedep/vet/gen/models"
@@ -336,6 +337,11 @@ type MalwareAnalysisResult struct {
 	VerificationRecord *malysisv1.VerificationRecord
 }
 
+type CodeAnalysisResult struct {
+	// Usage evidences of a package obtained by depsusage plugin
+	UsageEvidences []*ent.DepsUsageEvidence `json:"usage_evidences"`
+}
+
 // Represents a package such as a version of a library defined as a dependency
 // in Gemfile.lock, pom.xml etc.
 type Package struct {
@@ -358,6 +364,9 @@ type Package struct {
 
 	// Optional malware analysis result for this package
 	MalwareAnalysis *MalwareAnalysisResult `json:"malware_analysis"`
+
+	// Optional code analysis result for this package
+	CodeAnalysis *CodeAnalysisResult `json:"code_analysis"`
 
 	// Manifest from where this package was found directly or indirectly
 	Manifest *PackageManifest `json:"-"`

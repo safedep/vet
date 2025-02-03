@@ -98,6 +98,10 @@ type summaryReporter struct {
 			malicious  int
 			suspicious int
 		}
+
+		codeanalysis struct {
+			unused int
+		}
 	}
 
 	// Map of pkgId and associated meta for building remediation advice
@@ -137,6 +141,7 @@ func (r *summaryReporter) AddManifest(manifest *models.PackageManifest) {
 		r.processForPopularity(pkg)
 		r.processForVersionDrift(pkg)
 		r.processForProvenance(pkg)
+		r.processForDepsUsageEvidence(pkg)
 
 		r.summary.packages += 1
 		return nil
@@ -177,7 +182,6 @@ func (r *summaryReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 		}
 		r.violations[pkgId] = &v
 	}
-
 }
 
 func (r *summaryReporter) AddPolicyEvent(event *policy.PolicyEvent) {}
@@ -262,6 +266,12 @@ func (r *summaryReporter) processForMalware(pkg *models.Package) {
 	}
 }
 
+func (r *summaryReporter) processForDepsUsageEvidence(pkg *models.Package) {
+	if pkg.CodeAnalysis == nil || len(pkg.CodeAnalysis.UsageEvidences) == 0 {
+		r.summary.codeanalysis.unused += 1
+	}
+}
+
 func (r *summaryReporter) processForProvenance(pkg *models.Package) {
 	if len(pkg.GetProvenances()) == 0 {
 		r.summary.provenance.none += 1
@@ -303,26 +313,23 @@ func (r *summaryReporter) processForVulns(pkg *models.Package) {
 			case insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL:
 				r.summary.vulns.critical += 1
 				r.addPkgForRemediationAdvice(pkg, summaryWeightCriticalVuln, tagVuln)
-				break
 			case insightapi.PackageVulnerabilitySeveritiesRiskHIGH:
 				r.summary.vulns.high += 1
 				r.addPkgForRemediationAdvice(pkg, summaryWeightHighVuln, tagVuln)
-				break
 			case insightapi.PackageVulnerabilitySeveritiesRiskMEDIUM:
 				r.summary.vulns.medium += 1
 				r.addPkgForRemediationAdvice(pkg, summaryWeightMediumVuln, tagVuln)
-				break
 			case insightapi.PackageVulnerabilitySeveritiesRiskLOW:
 				r.summary.vulns.low += 1
 				r.addPkgForRemediationAdvice(pkg, summaryWeightLowVuln, tagVuln)
-				break
 			}
 		}
 	}
 }
 
 func (r *summaryReporter) addPkgForRemediationAdvice(pkg *models.Package,
-	weight int, tag string) {
+	weight int, tag string,
+) {
 	if _, ok := r.remediationScores[pkg.Id()]; !ok {
 		r.remediationScores[pkg.Id()] = &summaryReporterRemediationData{
 			pkg:  pkg,
@@ -338,7 +345,8 @@ func (r *summaryReporter) addPkgForRemediationAdvice(pkg *models.Package,
 }
 
 func (r *summaryReporter) addPkgForVulnerabilityRisk(pkg *models.Package,
-	risk insightapi.PackageVulnerabilitySeveritiesRisk, vuln string) {
+	risk insightapi.PackageVulnerabilitySeveritiesRisk, vuln string,
+) {
 	if _, ok := r.vulnerabilityInfo[pkg.Id()]; !ok {
 		r.vulnerabilityInfo[pkg.Id()] = &summaryReporterVulnerabilityData{
 			pkg:             pkg,
@@ -350,8 +358,7 @@ func (r *summaryReporter) addPkgForVulnerabilityRisk(pkg *models.Package,
 		r.vulnerabilityInfo[pkg.Id()].vulnerabilities[risk] = []string{}
 	}
 
-	r.vulnerabilityInfo[pkg.Id()].vulnerabilities[risk] =
-		append(r.vulnerabilityInfo[pkg.Id()].vulnerabilities[risk], vuln)
+	r.vulnerabilityInfo[pkg.Id()].vulnerabilities[risk] = append(r.vulnerabilityInfo[pkg.Id()].vulnerabilities[risk], vuln)
 }
 
 func (r *summaryReporter) Finish() error {
@@ -362,6 +369,8 @@ func (r *summaryReporter) Finish() error {
 	fmt.Println(text.FgHiYellow.Sprint(summaryListPrependText, r.popularityCountStatement()))
 	fmt.Println()
 	fmt.Println(text.FgHiYellow.Sprint(summaryListPrependText, r.provenanceStatement()))
+	fmt.Println()
+	fmt.Println(text.FgHiYellow.Sprint(summaryListPrependText, r.depsusageEvidenceStatement()))
 	fmt.Println()
 	fmt.Println(text.FgHiYellow.Sprint(summaryListPrependText, r.malwareAnalysisStatement()))
 	fmt.Println()
@@ -511,7 +520,8 @@ func (r *summaryReporter) renderRemediationAdvice() {
 }
 
 func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
-	sortedPackages []*summaryReporterRemediationData, maxAdvice int) {
+	sortedPackages []*summaryReporterRemediationData, maxAdvice int,
+) {
 	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Latest", "Impact Score", "Vuln Risk"})
 
 	// Re-use the formatting logic within this function boundary
@@ -725,6 +735,11 @@ func (r *summaryReporter) provenanceStatement() string {
 	return fmt.Sprintf("Provenance: %d verified, %d unverified, %d missing",
 		r.summary.provenance.verified, r.summary.provenance.unverified,
 		r.summary.provenance.none)
+}
+
+func (r *summaryReporter) depsusageEvidenceStatement() string {
+	return fmt.Sprintf("%d/%d libraries unused",
+		r.summary.codeanalysis.unused, r.summary.packages)
 }
 
 func (r *summaryReporter) malwareAnalysisStatement() string {

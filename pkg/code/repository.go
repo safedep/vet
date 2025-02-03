@@ -15,5 +15,5 @@ type writerRepository interface {
 // Repository exposed to rest of the vet to query code analysis data
 // persisted in the storage. This is a contract to the rest of the system
 type ReaderRepository interface {
-	// Stuff like GetEvidenceByPackageName(...)
+	GetDependencyUsageEvidencesByPackageName(context.Context, string) ([]*ent.DepsUsageEvidence, error)
 }
