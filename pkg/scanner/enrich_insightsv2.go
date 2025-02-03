@@ -19,6 +19,8 @@ type insightsBasedPackageEnricherV2 struct {
 	client insightsv2grpc.InsightServiceClient
 }
 
+var _ PackageMetaEnricher = (*insightsBasedPackageEnricherV2)(nil)
+
 // NewInsightBasedPackageEnricherV2 creates a new instance of the enricher using
 // Insights API v2. It requires a pre-configured gRPC client connection.
 func NewInsightBasedPackageEnricherV2(cc *grpc.ClientConn) (PackageMetaEnricher, error) {
@@ -41,7 +43,8 @@ func (e *insightsBasedPackageEnricherV2) Name() string {
 // - Existing analysers and reporters continue to work without any changes.
 // - We can start using V2 data model in new analysers and reporters.
 func (e *insightsBasedPackageEnricherV2) Enrich(pkg *models.Package,
-	cb PackageDependencyCallbackFn) error {
+	cb PackageDependencyCallbackFn,
+) error {
 	res, err := e.client.GetPackageVersionInsight(context.Background(),
 		&insightsv2.GetPackageVersionInsightRequest{
 			PackageVersion: &packagev1.PackageVersion{
@@ -52,7 +55,6 @@ func (e *insightsBasedPackageEnricherV2) Enrich(pkg *models.Package,
 				Version: pkg.GetVersion(),
 			},
 		})
-
 	if err != nil {
 		logger.Debugf("Failed to enrich package: %s/%s: %v",
 			pkg.GetName(), pkg.GetVersion(), err)
@@ -63,7 +65,8 @@ func (e *insightsBasedPackageEnricherV2) Enrich(pkg *models.Package,
 }
 
 func (e *insightsBasedPackageEnricherV2) applyInsights(pkg *models.Package,
-	res *insightsv2.GetPackageVersionInsightResponse) error {
+	res *insightsv2.GetPackageVersionInsightResponse,
+) error {
 	// Convert the V2 insights to V1 insights for backward compatibility
 	insightsv1, err := e.convertInsightsV2ToV1(res.GetInsight())
 	if err != nil {

@@ -25,6 +25,8 @@ type insightsBasedPackageEnricher struct {
 	client *insightapi.ClientWithResponses
 }
 
+var _ PackageMetaEnricher = (*insightsBasedPackageEnricher)(nil)
+
 func NewInsightBasedPackageEnricher(config InsightsBasedPackageMetaEnricherConfig) (PackageMetaEnricher, error) {
 	apiKeyApplier := func(ctx context.Context, req *http.Request) error {
 		req.Header.Set("Authorization", config.ApiAuthKey)
@@ -58,8 +60,8 @@ func (e *insightsBasedPackageEnricher) Name() string {
 }
 
 func (e *insightsBasedPackageEnricher) Enrich(pkg *models.Package,
-	cb PackageDependencyCallbackFn) error {
-
+	cb PackageDependencyCallbackFn,
+) error {
 	logger.Infof("[%s] Enriching %s/%s", pkg.Manifest.Ecosystem,
 		pkg.PackageDetails.Name, pkg.PackageDetails.Version)
 
@@ -94,7 +96,6 @@ func (e *insightsBasedPackageEnricher) Enrich(pkg *models.Package,
 			PackageDetails: models.NewPackageDetail(dep.PackageVersion.Ecosystem,
 				dep.PackageVersion.Name, dep.PackageVersion.Version),
 		})
-
 		if err != nil {
 			logger.Errorf("package dependency callback failed: %v", err)
 		}
