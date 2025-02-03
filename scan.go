@@ -429,6 +429,11 @@ func internalStartScan() error {
 	}
 
 	if syncReport {
+		if version == "" {
+			return fmt.Errorf("version is required for sync report, install vet using supported method: " +
+				"https://docs.safedep.io/quickstart/")
+		}
+
 		clientConn, err := auth.SyncClientConnection("vet-sync")
 		if err != nil {
 			return err

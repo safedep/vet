@@ -43,9 +43,6 @@ require (
 
 replace github.com/owenrumney/go-sarif/v2 v2.3.1 => github.com/safedep/go-sarif/v2 v2.3.1
 
-// https://github.com/cli/oauth/pull/68
-replace github.com/cli/oauth v1.0.1 => github.com/abhisek/oauth v1.0.1-audience
-
 require (
 	ariga.io/atlas v0.19.1-0.20240203083654-5948b60a8e43 // indirect
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.4-20241127180247-a33202765966.1 // indirect
