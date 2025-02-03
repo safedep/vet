@@ -4,6 +4,7 @@ package codesourcefile
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/safedep/vet/ent/predicate"
 )
 
@@ -120,6 +121,29 @@ func PathEqualFold(v string) predicate.CodeSourceFile {
 // PathContainsFold applies the ContainsFold predicate on the "path" field.
 func PathContainsFold(v string) predicate.CodeSourceFile {
 	return predicate.CodeSourceFile(sql.FieldContainsFold(FieldPath, v))
+}
+
+// HasDepsUsageEvidences applies the HasEdge predicate on the "deps_usage_evidences" edge.
+func HasDepsUsageEvidences() predicate.CodeSourceFile {
+	return predicate.CodeSourceFile(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, DepsUsageEvidencesTable, DepsUsageEvidencesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDepsUsageEvidencesWith applies the HasEdge predicate on the "deps_usage_evidences" edge with a given conditions (other predicates).
+func HasDepsUsageEvidencesWith(preds ...predicate.DepsUsageEvidence) predicate.CodeSourceFile {
+	return predicate.CodeSourceFile(func(s *sql.Selector) {
+		step := newDepsUsageEvidencesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

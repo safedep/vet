@@ -21,6 +21,18 @@ func (f CodeSourceFileFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CodeSourceFileMutation", m)
 }
 
+// The DepsUsageEvidenceFunc type is an adapter to allow the use of ordinary
+// function as DepsUsageEvidence mutator.
+type DepsUsageEvidenceFunc func(context.Context, *ent.DepsUsageEvidenceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DepsUsageEvidenceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DepsUsageEvidenceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DepsUsageEvidenceMutation", m)
+}
+
 // Condition is a hook condition function.
 type Condition func(context.Context, ent.Mutation) bool
 

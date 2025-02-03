@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/safedep/vet/ent/codesourcefile"
+	"github.com/safedep/vet/ent/depsusageevidence"
 	"github.com/safedep/vet/ent/predicate"
 )
 
@@ -41,9 +42,45 @@ func (csfu *CodeSourceFileUpdate) SetNillablePath(s *string) *CodeSourceFileUpda
 	return csfu
 }
 
+// AddDepsUsageEvidenceIDs adds the "deps_usage_evidences" edge to the DepsUsageEvidence entity by IDs.
+func (csfu *CodeSourceFileUpdate) AddDepsUsageEvidenceIDs(ids ...int) *CodeSourceFileUpdate {
+	csfu.mutation.AddDepsUsageEvidenceIDs(ids...)
+	return csfu
+}
+
+// AddDepsUsageEvidences adds the "deps_usage_evidences" edges to the DepsUsageEvidence entity.
+func (csfu *CodeSourceFileUpdate) AddDepsUsageEvidences(d ...*DepsUsageEvidence) *CodeSourceFileUpdate {
+	ids := make([]int, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return csfu.AddDepsUsageEvidenceIDs(ids...)
+}
+
 // Mutation returns the CodeSourceFileMutation object of the builder.
 func (csfu *CodeSourceFileUpdate) Mutation() *CodeSourceFileMutation {
 	return csfu.mutation
+}
+
+// ClearDepsUsageEvidences clears all "deps_usage_evidences" edges to the DepsUsageEvidence entity.
+func (csfu *CodeSourceFileUpdate) ClearDepsUsageEvidences() *CodeSourceFileUpdate {
+	csfu.mutation.ClearDepsUsageEvidences()
+	return csfu
+}
+
+// RemoveDepsUsageEvidenceIDs removes the "deps_usage_evidences" edge to DepsUsageEvidence entities by IDs.
+func (csfu *CodeSourceFileUpdate) RemoveDepsUsageEvidenceIDs(ids ...int) *CodeSourceFileUpdate {
+	csfu.mutation.RemoveDepsUsageEvidenceIDs(ids...)
+	return csfu
+}
+
+// RemoveDepsUsageEvidences removes "deps_usage_evidences" edges to DepsUsageEvidence entities.
+func (csfu *CodeSourceFileUpdate) RemoveDepsUsageEvidences(d ...*DepsUsageEvidence) *CodeSourceFileUpdate {
+	ids := make([]int, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return csfu.RemoveDepsUsageEvidenceIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -98,6 +135,51 @@ func (csfu *CodeSourceFileUpdate) sqlSave(ctx context.Context) (n int, err error
 	if value, ok := csfu.mutation.Path(); ok {
 		_spec.SetField(codesourcefile.FieldPath, field.TypeString, value)
 	}
+	if csfu.mutation.DepsUsageEvidencesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   codesourcefile.DepsUsageEvidencesTable,
+			Columns: []string{codesourcefile.DepsUsageEvidencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(depsusageevidence.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := csfu.mutation.RemovedDepsUsageEvidencesIDs(); len(nodes) > 0 && !csfu.mutation.DepsUsageEvidencesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   codesourcefile.DepsUsageEvidencesTable,
+			Columns: []string{codesourcefile.DepsUsageEvidencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(depsusageevidence.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := csfu.mutation.DepsUsageEvidencesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   codesourcefile.DepsUsageEvidencesTable,
+			Columns: []string{codesourcefile.DepsUsageEvidencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(depsusageevidence.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, csfu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{codesourcefile.Label}
@@ -132,9 +214,45 @@ func (csfuo *CodeSourceFileUpdateOne) SetNillablePath(s *string) *CodeSourceFile
 	return csfuo
 }
 
+// AddDepsUsageEvidenceIDs adds the "deps_usage_evidences" edge to the DepsUsageEvidence entity by IDs.
+func (csfuo *CodeSourceFileUpdateOne) AddDepsUsageEvidenceIDs(ids ...int) *CodeSourceFileUpdateOne {
+	csfuo.mutation.AddDepsUsageEvidenceIDs(ids...)
+	return csfuo
+}
+
+// AddDepsUsageEvidences adds the "deps_usage_evidences" edges to the DepsUsageEvidence entity.
+func (csfuo *CodeSourceFileUpdateOne) AddDepsUsageEvidences(d ...*DepsUsageEvidence) *CodeSourceFileUpdateOne {
+	ids := make([]int, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return csfuo.AddDepsUsageEvidenceIDs(ids...)
+}
+
 // Mutation returns the CodeSourceFileMutation object of the builder.
 func (csfuo *CodeSourceFileUpdateOne) Mutation() *CodeSourceFileMutation {
 	return csfuo.mutation
+}
+
+// ClearDepsUsageEvidences clears all "deps_usage_evidences" edges to the DepsUsageEvidence entity.
+func (csfuo *CodeSourceFileUpdateOne) ClearDepsUsageEvidences() *CodeSourceFileUpdateOne {
+	csfuo.mutation.ClearDepsUsageEvidences()
+	return csfuo
+}
+
+// RemoveDepsUsageEvidenceIDs removes the "deps_usage_evidences" edge to DepsUsageEvidence entities by IDs.
+func (csfuo *CodeSourceFileUpdateOne) RemoveDepsUsageEvidenceIDs(ids ...int) *CodeSourceFileUpdateOne {
+	csfuo.mutation.RemoveDepsUsageEvidenceIDs(ids...)
+	return csfuo
+}
+
+// RemoveDepsUsageEvidences removes "deps_usage_evidences" edges to DepsUsageEvidence entities.
+func (csfuo *CodeSourceFileUpdateOne) RemoveDepsUsageEvidences(d ...*DepsUsageEvidence) *CodeSourceFileUpdateOne {
+	ids := make([]int, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return csfuo.RemoveDepsUsageEvidenceIDs(ids...)
 }
 
 // Where appends a list predicates to the CodeSourceFileUpdate builder.
@@ -218,6 +336,51 @@ func (csfuo *CodeSourceFileUpdateOne) sqlSave(ctx context.Context) (_node *CodeS
 	}
 	if value, ok := csfuo.mutation.Path(); ok {
 		_spec.SetField(codesourcefile.FieldPath, field.TypeString, value)
+	}
+	if csfuo.mutation.DepsUsageEvidencesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   codesourcefile.DepsUsageEvidencesTable,
+			Columns: []string{codesourcefile.DepsUsageEvidencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(depsusageevidence.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := csfuo.mutation.RemovedDepsUsageEvidencesIDs(); len(nodes) > 0 && !csfuo.mutation.DepsUsageEvidencesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   codesourcefile.DepsUsageEvidencesTable,
+			Columns: []string{codesourcefile.DepsUsageEvidencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(depsusageevidence.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := csfuo.mutation.DepsUsageEvidencesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   codesourcefile.DepsUsageEvidencesTable,
+			Columns: []string{codesourcefile.DepsUsageEvidencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(depsusageevidence.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &CodeSourceFile{config: csfuo.config}
 	_spec.Assign = _node.assignValues

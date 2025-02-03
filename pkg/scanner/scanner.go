@@ -36,7 +36,8 @@ func NewPackageManifestScanner(config Config,
 	readers []readers.PackageManifestReader,
 	enrichers []PackageMetaEnricher,
 	analyzers []analyzer.Analyzer,
-	reporters []reporter.Reporter) *packageManifestScanner {
+	reporters []reporter.Reporter,
+) *packageManifestScanner {
 	return &packageManifestScanner{
 		config:    config,
 		readers:   readers,
@@ -64,14 +65,13 @@ func (s *packageManifestScanner) Start() error {
 
 	for _, reader := range s.readers {
 		err := reader.EnumManifests(func(manifest *models.PackageManifest,
-			_ readers.PackageReader) error {
-
+			_ readers.PackageReader,
+		) error {
 			s.dispatchOnManifestEnumeration(manifest)
 			scannerChannel <- manifest
 
 			return nil
 		})
-
 		if err != nil {
 			return err
 		}
@@ -99,7 +99,8 @@ func (s *packageManifestScanner) Start() error {
 // mechanism where we can scan a manifest whenever it is available instead of waiting
 // for all manifests to be available
 func (s *packageManifestScanner) startManifestScanner(ctx context.Context,
-	incoming <-chan *models.PackageManifest, done chan bool) {
+	incoming <-chan *models.PackageManifest, done chan bool,
+) {
 	defer close(done)
 
 	// Start the scan phases per manifest
@@ -154,7 +155,6 @@ func (s *packageManifestScanner) analyzeManifest(manifest *models.PackageManifes
 
 			return s.internalHandleAnalyzerEvent(event)
 		})
-
 		if err != nil {
 			logger.Errorf("Analyzer %s failed: %v", task.Name(), err)
 		}
@@ -281,7 +281,8 @@ func (s *packageManifestScanner) packageEnrichWorkQueueHandler(pm *models.Packag
 
 func (s *packageManifestScanner) packageDependencyHandler(pm *models.PackageManifest,
 	_ *models.Package,
-	q *utils.WorkQueue[*models.Package]) PackageDependencyCallbackFn {
+	q *utils.WorkQueue[*models.Package],
+) PackageDependencyCallbackFn {
 	return func(pkg *models.Package) error {
 		// Check and queue for further analysis
 		if !s.config.TransitiveAnalysis {

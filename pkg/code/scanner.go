@@ -3,8 +3,13 @@ package code
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"github.com/safedep/code/core"
+	"github.com/safedep/code/fs"
+	"github.com/safedep/code/parser"
+	"github.com/safedep/code/plugin"
+	"github.com/safedep/code/plugin/depsusage"
 	"github.com/safedep/vet/ent"
 	"github.com/safedep/vet/pkg/storage"
 )
@@ -16,6 +21,10 @@ type ScannerConfig struct {
 
 	// 3rd party imported code directories (e.g. Python virtual env, `node_modules` etc.)
 	ImportDirectories []string
+
+	// Regular expressions to exclude files or directories
+	// from traversal
+	ExcludePatterns []*regexp.Regexp
 
 	// Languages to scan
 	Languages []core.Language
@@ -69,15 +78,59 @@ func NewScanner(config ScannerConfig, storage storage.Storage[*ent.Client]) (Sca
 }
 
 func (s *scanner) Scan(ctx context.Context) error {
-	// Create the file system walker with config
+	err := s.config.Callbacks.OnScanStart()
+	if err != nil {
+		return fmt.Errorf("failed to execute OnScanStart callback: %w", err)
+	}
 
-	// Initialize the plugins
+	fileSystem, err := fs.NewLocalFileSystem(fs.LocalFileSystemConfig{
+		AppDirectories:    s.config.AppDirectories,
+		ImportDirectories: s.config.ImportDirectories,
+		ExcludePatterns:   s.config.ExcludePatterns,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create file system: %w", err)
+	}
 
-	// Start the tree walker with plugins
+	walker, err := fs.NewSourceWalker(fs.SourceWalkerConfig{}, s.config.Languages)
+	if err != nil {
+		return fmt.Errorf("failed to create source walker: %w", err)
+	}
 
-	// Handle results from plugins
+	treeWalker, err := parser.NewWalkingParser(walker, s.config.Languages)
+	if err != nil {
+		return fmt.Errorf("failed to create tree walker: %w", err)
+	}
 
-	// Use repository to persist the results
+	// Configure plugins
+	plugins := []core.Plugin{}
+
+	if !s.config.SkipDependencyUsagePlugin {
+		var usageCallback depsusage.DependencyUsageCallback = func(ctx context.Context, evidence *depsusage.UsageEvidence) error {
+			_, err := s.writer.SaveDependencyUsage(ctx, evidence)
+			if err != nil {
+				return fmt.Errorf("failed to save dependency usage: %w", err)
+			}
+			return nil
+		}
+		plugins = append(plugins, depsusage.NewDependencyUsagePlugin(usageCallback))
+	}
+
+	// Execute plugins
+	pluginExecutor, err := plugin.NewTreeWalkPluginExecutor(treeWalker, plugins)
+	if err != nil {
+		return fmt.Errorf("failed to create plugin executor: %w", err)
+	}
+
+	err = pluginExecutor.Execute(ctx, fileSystem)
+	if err != nil {
+		return fmt.Errorf("failed to execute plugin: %w", err)
+	}
+
+	err = s.config.Callbacks.OnScanEnd()
+	if err != nil {
+		return fmt.Errorf("failed to execute OnScanEnd callback: %w", err)
+	}
 
 	return nil
 }

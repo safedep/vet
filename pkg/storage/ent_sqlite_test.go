@@ -7,26 +7,29 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewSqliteClient(t *testing.T) {
-	t.Run("NewEntSqliteClient", func(t *testing.T) {
-		t.Run("should return storage client when path is given", func(t *testing.T) {
+func TestNewSqliteStorage(t *testing.T) {
+	t.Run("NewEntSqliteStorage", func(t *testing.T) {
+		t.Run("should return storage and its client when path is given", func(t *testing.T) {
 			tmpPath := filepath.Join(t.TempDir(), "test.db")
-			client, err := NewEntSqliteClient(EntSqliteClientConfig{
+			sqliteStorage, err := NewEntSqliteStorage(EntSqliteClientConfig{
 				Path: tmpPath,
 			})
+			assert.NoError(t, err)
+			assert.NotNil(t, sqliteStorage)
+			assert.FileExists(t, tmpPath)
 
+			client, err := sqliteStorage.Client()
 			assert.NoError(t, err)
 			assert.NotNil(t, client)
-			assert.FileExists(t, tmpPath)
 		})
 
-		t.Run("should return an error when an invalid path is given", func(t *testing.T) {
-			client, err := NewEntSqliteClient(EntSqliteClientConfig{
+		t.Run("should return an error when an invalid storage path is given", func(t *testing.T) {
+			sqliteStorage, err := NewEntSqliteStorage(EntSqliteClientConfig{
 				Path: "/invalid/path/1/2",
 			})
 
 			assert.Error(t, err)
-			assert.Nil(t, client)
+			assert.Nil(t, sqliteStorage)
 		})
 	})
 }

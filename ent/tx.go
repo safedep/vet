@@ -14,6 +14,8 @@ type Tx struct {
 	config
 	// CodeSourceFile is the client for interacting with the CodeSourceFile builders.
 	CodeSourceFile *CodeSourceFileClient
+	// DepsUsageEvidence is the client for interacting with the DepsUsageEvidence builders.
+	DepsUsageEvidence *DepsUsageEvidenceClient
 
 	// lazily loaded.
 	client     *Client
@@ -146,6 +148,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.CodeSourceFile = NewCodeSourceFileClient(tx.config)
+	tx.DepsUsageEvidence = NewDepsUsageEvidenceClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

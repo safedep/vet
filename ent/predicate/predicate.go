@@ -8,3 +8,6 @@ import (
 
 // CodeSourceFile is the predicate function for codesourcefile builders.
 type CodeSourceFile func(*sql.Selector)
+
+// DepsUsageEvidence is the predicate function for depsusageevidence builders.
+type DepsUsageEvidence func(*sql.Selector)

@@ -21,6 +21,7 @@ func (ev *AnalyzerEvent) IsLockfilePoisoningSignal() bool {
 
 func ThreatInstanceId(id jsonreportspec.ReportThreat_ReportThreatId,
 	st jsonreportspec.ReportThreat_SubjectType,
-	s string) string {
+	s string,
+) string {
 	return models.IdGen(fmt.Sprintf("%s-%s-%s", id.String(), st.String(), s))
 }
