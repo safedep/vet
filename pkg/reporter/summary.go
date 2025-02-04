@@ -28,14 +28,16 @@ const (
 	summaryWeightMediumVuln   = 2
 	summaryWeightLowVuln      = 1
 	summaryWeightUnpopular    = 1
+	summaryWeightUsedInCode   = 1
 	summaryWeightMajorDrift   = 2
 
 	// Opinionated thresholds for identifying repo popularity by stars
 	minStarsForPopularity = 10
 
-	tagVuln      = "vulnerability"
-	tagUnpopular = "low popularity"
-	tagDrift     = "drift"
+	tagVuln       = "vulnerability"
+	tagUnpopular  = "low popularity"
+	tagDrift      = "drift"
+	tagUsedInCode = "used-in-code"
 
 	summaryReportMaxUpgradeAdvice = 5
 )
@@ -272,6 +274,7 @@ func (r *summaryReporter) processForDepsUsageEvidence(pkg *models.Package) {
 		r.summary.codeanalysis.unknown += 1
 	} else if len(pkg.CodeAnalysis.UsageEvidences) > 0 {
 		r.summary.codeanalysis.used += 1
+		r.addPkgForRemediationAdvice(pkg, summaryWeightUsedInCode, tagUsedInCode)
 	}
 }
 
