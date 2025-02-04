@@ -79,6 +79,18 @@ func TestNpmIsTrustedSource(t *testing.T) {
 			[]string{"https://registry.example.org/base"},
 			true,
 		},
+		{
+			"full package URL can be used to trust a source",
+			"https://registry.npmjs.org/a/b/-/c.tgz",
+			[]string{"https://registry.npmjs.org/a/b/-/c.tgz"},
+			true,
+		},
+		{
+			"full package URL should not trust other package URLs",
+			"https://registry.npmjs.org/a/b/-/c.tgz",
+			[]string{"https://registry.npmjs.org/a/b/-/d.tgz"},
+			false,
+		},
 	}
 
 	for _, test := range cases {
@@ -166,6 +178,20 @@ func TestNpmIsUrlFollowsPathConvention(t *testing.T) {
 			"strip-ansi-cjs",
 			[]string{"https://registry.npmjs.org/strip-ansi"},
 			true,
+		},
+		{
+			"full package URL should trust the source",
+			"https://registry.npmjs.org/package-name/-/package-name-1.0.0.tgz",
+			"package-name",
+			[]string{"https://registry.npmjs.org/package-name/-/package-name-1.0.0.tgz"},
+			true,
+		},
+		{
+			"full package URL should not trust other package URLs",
+			"https://registry.npmjs.org/package-name/-/package-name-1.0.0.tgz",
+			"package-name",
+			[]string{"https://registry.npmjs.org/package-name/-/package-name-2.0.0.tgz"},
+			false,
 		},
 	}
 
