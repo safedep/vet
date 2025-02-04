@@ -167,6 +167,21 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().DurationVarP(&malwareAnalysisTimeout, "malware-analysis-timeout", "", 5*time.Minute,
 		"Timeout for malicious package analysis")
 
+	// Add validations that should trigger a fail fast condition
+	cmd.PreRunE = func(cmd *cobra.Command, args []string) error {
+		err := func() error {
+			if syncReport && version == "" {
+				return fmt.Errorf("version is required for sync report, install vet using supported method: " +
+					"https://docs.safedep.io/quickstart/")
+			}
+
+			return nil
+		}()
+
+		command.FailOnError("pre-scan", err)
+		return nil
+	}
+
 	cmd.AddCommand(listParsersCommand())
 	return cmd
 }
