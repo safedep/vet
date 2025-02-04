@@ -121,7 +121,7 @@ func (s *packageManifestScanner) startManifestScanner(ctx context.Context,
 
 		s.dispatchOnStartManifest(manifest)
 
-		// Enrich each packages in a manifest with metadata
+		// Enrich each package in a manifest with metadata
 		err := s.enrichManifest(manifest)
 		if err != nil {
 			logger.Errorf("Failed to enrich %s manifest %s : %v",
