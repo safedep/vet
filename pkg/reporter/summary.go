@@ -100,7 +100,8 @@ type summaryReporter struct {
 		}
 
 		codeanalysis struct {
-			unused int
+			used    int
+			unknown int
 		}
 	}
 
@@ -267,8 +268,10 @@ func (r *summaryReporter) processForMalware(pkg *models.Package) {
 }
 
 func (r *summaryReporter) processForDepsUsageEvidence(pkg *models.Package) {
-	if pkg.CodeAnalysis == nil || len(pkg.CodeAnalysis.UsageEvidences) == 0 {
-		r.summary.codeanalysis.unused += 1
+	if pkg.CodeAnalysis == nil || pkg.CodeAnalysis.UsageEvidences == nil {
+		r.summary.codeanalysis.unknown += 1
+	} else if len(pkg.CodeAnalysis.UsageEvidences) > 0 {
+		r.summary.codeanalysis.used += 1
 	}
 }
 
@@ -738,8 +741,8 @@ func (r *summaryReporter) provenanceStatement() string {
 }
 
 func (r *summaryReporter) depsusageEvidenceStatement() string {
-	return fmt.Sprintf("%d/%d libraries unused",
-		r.summary.codeanalysis.unused, r.summary.packages)
+	return fmt.Sprintf("Found usage evidences for %d/%d libraries",
+		r.summary.codeanalysis.used, r.summary.packages)
 }
 
 func (r *summaryReporter) malwareAnalysisStatement() string {

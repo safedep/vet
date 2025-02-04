@@ -9,18 +9,19 @@ import (
 )
 
 type CodeAnalysisEnricherConfig struct {
-	ReaderRepository        code.ReaderRepository
 	EnableDepsUsageEvidence bool
 }
 type codeAnalysisEnricher struct {
-	config CodeAnalysisEnricherConfig
+	config           CodeAnalysisEnricherConfig
+	ReaderRepository code.ReaderRepository
 }
 
 var _ PackageMetaEnricher = (*codeAnalysisEnricher)(nil)
 
-func NewCodeAnalysisEnricher(config CodeAnalysisEnricherConfig) *codeAnalysisEnricher {
+func NewCodeAnalysisEnricher(config CodeAnalysisEnricherConfig, readerRepository code.ReaderRepository) *codeAnalysisEnricher {
 	return &codeAnalysisEnricher{
-		config: config,
+		config:           config,
+		ReaderRepository: readerRepository,
 	}
 }
 
@@ -48,7 +49,7 @@ func (e *codeAnalysisEnricher) Wait() error {
 }
 
 func (e *codeAnalysisEnricher) EnrichDependencyUsageEvidence(pkg *models.Package) error {
-	evidences, err := e.config.ReaderRepository.GetDependencyUsageEvidencesByPackageName(context.Background(), pkg.GetName())
+	evidences, err := e.ReaderRepository.GetDependencyUsageEvidencesByPackageName(context.Background(), pkg.GetName())
 	if err != nil {
 		return fmt.Errorf("failed to fetch dependency usage evidence: %w", err)
 	}
