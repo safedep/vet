@@ -3,6 +3,7 @@ package reporter
 import (
 	"encoding/csv"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/safedep/dry/utils"
@@ -24,17 +25,19 @@ type csvReporter struct {
 }
 
 type csvRecord struct {
-	ecosystem       string
-	manifestPath    string
-	packageName     string
-	packageVersion  string
-	introducedBy    string
-	pathToRoot      string
-	violationReason string
-	osvId           string
-	cveId           string
-	vulnSeverity    string
-	vulnSummary     string
+	ecosystem           string
+	manifestPath        string
+	packageName         string
+	packageVersion      string
+	introducedBy        string
+	pathToRoot          string
+	violationReason     string
+	osvId               string
+	cveId               string
+	vulnSeverity        string
+	vulnSummary         string
+	usageEvidenceCount  string
+	usageEvidenceSample string
 }
 
 func NewCsvReporter(config CsvReportingConfig) (Reporter, error) {
@@ -145,11 +148,22 @@ func (r *csvReporter) Finish() error {
 				}
 			}
 
+			usageEvidenceCount := ""
+			usageEvidenceSample := ""
+			if v.Package.CodeAnalysis != nil && v.Package.CodeAnalysis.UsageEvidences != nil {
+				usageEvidenceCount = strconv.Itoa(len(v.Package.CodeAnalysis.UsageEvidences))
+				if len(v.Package.CodeAnalysis.UsageEvidences) > 0 {
+					usageEvidenceSample = v.Package.CodeAnalysis.UsageEvidences[0].UsageFilePath + ":" + strconv.Itoa(int(v.Package.CodeAnalysis.UsageEvidences[0].Line))
+				}
+			}
+
 			newRecord := record
 			newRecord.osvId = vulnId
 			newRecord.cveId = cveId
 			newRecord.vulnSummary = summary
 			newRecord.vulnSeverity = risk
+			newRecord.usageEvidenceCount = usageEvidenceCount
+			newRecord.usageEvidenceSample = usageEvidenceSample
 
 			records = append(records, newRecord)
 		}
@@ -174,7 +188,8 @@ func (r *csvReporter) persistCsvRecords(records []csvRecord) error {
 	w := csv.NewWriter(f)
 	defer w.Flush()
 
-	err = w.Write([]string{"Ecosystem",
+	err = w.Write([]string{
+		"Ecosystem",
 		"Manifest Path",
 		"Package Name",
 		"Package Version",
@@ -185,6 +200,8 @@ func (r *csvReporter) persistCsvRecords(records []csvRecord) error {
 		"CVE ID",
 		"Vulnerability Severity",
 		"Vulnerability Summary",
+		"Usage Evidence count",
+		"Sample Usage Evidence",
 	})
 	if err != nil {
 		return err
@@ -201,6 +218,8 @@ func (r *csvReporter) persistCsvRecords(records []csvRecord) error {
 			csvRecord.cveId,
 			csvRecord.vulnSeverity,
 			csvRecord.vulnSummary,
+			csvRecord.usageEvidenceCount,
+			csvRecord.usageEvidenceSample,
 		}); err != nil {
 			return err
 		}
