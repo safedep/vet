@@ -20,3 +20,4 @@ bash $E2E_THIS_DIR/scenario-7-rubygems-project-url.sh
 bash $E2E_THIS_DIR/scenario-8-summary-report.sh
 bash $E2E_THIS_DIR/scenario-9-malware-analysis.sh
 bash $E2E_THIS_DIR/scenario-10-code-scan.sh
+bash $E2E_THIS_DIR/scenario-11-code-csvreport.sh
