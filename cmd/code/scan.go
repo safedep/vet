@@ -2,6 +2,7 @@ package code
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/safedep/vet/internal/command"
 	"github.com/safedep/vet/internal/ui"
@@ -15,6 +16,7 @@ var (
 	dbPath                    string
 	appDirs                   []string
 	importDirs                []string
+	excludePatterns           []string
 	skipDependencyUsagePlugin bool
 )
 
@@ -31,6 +33,8 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().StringVar(&dbPath, "db", "", "Path to create the sqlite database")
 	cmd.Flags().StringArrayVar(&appDirs, "app", []string{"."}, "Directories to scan for application code files")
 	cmd.Flags().StringArrayVar(&importDirs, "import-dir", []string{}, "Directories to scan for import files")
+	cmd.Flags().StringArrayVarP(&excludePatterns, "exclude", "", []string{},
+		"Name patterns to ignore while scanning a codebase")
 	cmd.Flags().BoolVar(&skipDependencyUsagePlugin, "skip-dependency-usage-plugin", false, "Skip dependency usage plugin analysis")
 
 	_ = cmd.MarkFlagRequired("db")
@@ -59,9 +63,15 @@ func internalStartScan() error {
 		return err
 	}
 
+	excludePatternsRegexps := []*regexp.Regexp{}
+	for _, pattern := range excludePatterns {
+		excludePatternsRegexps = append(excludePatternsRegexps, regexp.MustCompile(pattern))
+	}
+
 	codeScanner, err := code.NewScanner(code.ScannerConfig{
 		AppDirectories:            appDirs,
 		ImportDirectories:         importDirs,
+		ExcludePatterns:           excludePatternsRegexps,
 		Languages:                 allowedLanguages,
 		SkipDependencyUsagePlugin: skipDependencyUsagePlugin,
 		Callbacks: &code.ScannerCallbackRegistry{

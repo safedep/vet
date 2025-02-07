@@ -3,6 +3,8 @@ package storage
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/safedep/vet/ent"
@@ -27,6 +29,12 @@ func NewEntSqliteStorage(config EntSqliteClientConfig) (Storage[*ent.Client], er
 	mode := "rwc"
 	if config.ReadOnly {
 		mode = "ro"
+	}
+
+	// Ensure the path exists
+	dir := filepath.Dir(config.Path)
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		return nil, fmt.Errorf("failed to create DB path %s: %w", dir, err)
 	}
 
 	dbConn := fmt.Sprintf("file:%s?mode=%s&cache=private&_fk=1", config.Path, mode)
