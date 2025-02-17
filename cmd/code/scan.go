@@ -81,7 +81,7 @@ func internalStartScan() error {
 			},
 			OnScanEnd: func() error {
 				ui.StopSpinner()
-				ui.PrintSuccess("Code scanning completed")
+				ui.PrintSuccess("🚀 Code scanning completed. Run vet scan with code context using --code flag")
 				return nil
 			},
 		},

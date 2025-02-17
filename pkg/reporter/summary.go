@@ -34,10 +34,12 @@ const (
 	// Opinionated thresholds for identifying repo popularity by stars
 	minStarsForPopularity = 10
 
-	tagVuln       = "vulnerability"
-	tagUnpopular  = "low popularity"
-	tagDrift      = "drift"
-	tagUsedInCode = "used-in-code"
+	tagVuln              = "vulnerability"
+	tagUnpopular         = "low popularity"
+	tagDrift             = "drift"
+	tagUsedInCode        = "used-in-code"
+	tagMalware           = "malware"
+	tagMalwareSuspicious = "suspicious"
 
 	summaryReportMaxUpgradeAdvice = 5
 )
@@ -240,12 +242,12 @@ func (r *summaryReporter) processForMalware(pkg *models.Package) {
 
 	malwareTaggerFn := func(pkg *models.Package) {
 		r.summary.vulns.critical += 1
-		r.addPkgForRemediationAdvice(pkg, summaryWeightCriticalVuln, "malware")
+		r.addPkgForRemediationAdvice(pkg, summaryWeightCriticalVuln, tagMalware)
 	}
 
 	suspiciousTaggerFn := func(pkg *models.Package) {
 		r.summary.vulns.high += 1
-		r.addPkgForRemediationAdvice(pkg, summaryWeightHighVuln, "suspicious")
+		r.addPkgForRemediationAdvice(pkg, summaryWeightHighVuln, tagMalwareSuspicious)
 	}
 
 	for _, vuln := range vulns {
@@ -535,7 +537,16 @@ func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
 		tagText := ""
 
 		for _, t := range tags {
-			tagText += text.BgMagenta.Sprint(" "+t+" ") + " "
+			switch t {
+			case tagMalware:
+				tagText += text.BgRed.Sprint(" "+t+" ") + " "
+			case tagMalwareSuspicious:
+				tagText += text.BgYellow.Sprint(" "+t+" ") + " "
+			case tagUsedInCode:
+				tagText += text.BgBlue.Sprint(" "+t+" ") + " "
+			default:
+				tagText += text.BgMagenta.Sprint(" "+t+" ") + " "
+			}
 		}
 
 		return tagText
