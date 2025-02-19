@@ -21,6 +21,7 @@ var (
 	queryEnableSummaryReport            bool
 	querySummaryReportMaxAdvice         int
 	querySummaryReportGroupByDirectDeps bool
+	querySummaryUsedOnly                bool
 	queryMarkdownReportPath             string
 	queryMarkdownSummaryReportPath      string
 	queryJsonReportPath                 string
@@ -67,6 +68,8 @@ func newQueryCommand() *cobra.Command {
 		"Maximum number of package risk advice to show")
 	cmd.Flags().BoolVarP(&querySummaryReportGroupByDirectDeps, "report-summary-group-by-direct-deps", "", false,
 		"Group summary by direct dependencies")
+	cmd.Flags().BoolVarP(&querySummaryUsedOnly, "report-summary-used-only", "", false,
+		"Show only packages that are used in code (requires code analysis during scan)")
 	cmd.Flags().StringVarP(&queryMarkdownReportPath, "report-markdown", "", "",
 		"Generate markdown report to file")
 	cmd.Flags().StringVarP(&queryMarkdownSummaryReportPath, "report-markdown-summary", "", "",
@@ -143,8 +146,9 @@ func internalStartQuery() error {
 
 	if queryEnableSummaryReport {
 		rp, err := reporter.NewSummaryReporter(reporter.SummaryReporterConfig{
-			MaxAdvice:               querySummaryReportMaxAdvice,
-			GroupByDirectDependency: querySummaryReportGroupByDirectDeps,
+			MaxAdvice:                    querySummaryReportMaxAdvice,
+			GroupByDirectDependency:      querySummaryReportGroupByDirectDeps,
+			ShowOnlyPackagesWithEvidence: querySummaryUsedOnly,
 		})
 		if err != nil {
 			return err

@@ -68,6 +68,10 @@ type summaryReporterVulnerabilityData struct {
 type SummaryReporterConfig struct {
 	MaxAdvice               int
 	GroupByDirectDependency bool
+
+	// This requires code analysis to be enabled with dependency
+	// usage evidences to be available
+	ShowOnlyPackagesWithEvidence bool
 }
 
 type summaryReporter struct {
@@ -141,6 +145,10 @@ func (r *summaryReporter) Name() string {
 
 func (r *summaryReporter) AddManifest(manifest *models.PackageManifest) {
 	readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
+		if r.config.ShowOnlyPackagesWithEvidence && !r.usedInCode(pkg) {
+			return nil
+		}
+
 		r.processForVulns(pkg)
 		r.processForMalware(pkg)
 		r.processForPopularity(pkg)
@@ -190,6 +198,14 @@ func (r *summaryReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 }
 
 func (r *summaryReporter) AddPolicyEvent(event *policy.PolicyEvent) {}
+
+func (r *summaryReporter) usedInCode(pkg *models.Package) bool {
+	if pkg.CodeAnalysis == nil || pkg.CodeAnalysis.UsageEvidences == nil {
+		return false
+	}
+
+	return len(pkg.CodeAnalysis.UsageEvidences) > 0
+}
 
 func (r *summaryReporter) processForVersionDrift(pkg *models.Package) {
 	insight := utils.SafelyGetValue(pkg.Insights)
