@@ -68,6 +68,10 @@ type summaryReporterVulnerabilityData struct {
 type SummaryReporterConfig struct {
 	MaxAdvice               int
 	GroupByDirectDependency bool
+
+	// This requires code analysis to be enabled with dependency
+	// usage evidences to be available
+	ShowOnlyPackagesWithEvidence bool
 }
 
 type summaryReporter struct {
@@ -170,6 +174,12 @@ func (r *summaryReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 
 	if event.Package.Manifest == nil {
 		return
+	}
+
+	if r.config.ShowOnlyPackagesWithEvidence {
+		if event.Package.CodeAnalysis == nil || event.Package.CodeAnalysis.UsageEvidences == nil {
+			return
+		}
 	}
 
 	pkgId := event.Package.Id()

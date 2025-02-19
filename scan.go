@@ -54,6 +54,7 @@ var (
 	summaryReport                  bool
 	summaryReportMaxAdvice         int
 	summaryReportGroupByDirectDeps bool
+	summaryReportUsedOnly          bool
 	csvReportPath                  string
 	sarifReportPath                string
 	silentScan                     bool
@@ -148,6 +149,8 @@ func newScanCommand() *cobra.Command {
 		"Maximum number of package risk advice to show")
 	cmd.Flags().BoolVarP(&summaryReportGroupByDirectDeps, "report-summary-group-by-direct-deps", "", false,
 		"Group summary report by direct dependencies")
+	cmd.Flags().BoolVarP(&summaryReportUsedOnly, "report-summary-used-only", "", false,
+		"Show only packages that are used in code (requires code analysis)")
 	cmd.Flags().StringVarP(&csvReportPath, "report-csv", "", "",
 		"Generate CSV report of filtered packages")
 	cmd.Flags().StringVarP(&jsonReportPath, "report-json", "", "",
@@ -179,6 +182,11 @@ func newScanCommand() *cobra.Command {
 			if syncReport && version == "" {
 				return fmt.Errorf("version is required for sync report, install vet using supported method: " +
 					"https://docs.safedep.io/quickstart/")
+			}
+
+			if summaryReportUsedOnly && codeAnalysisDBPath == "" {
+				return fmt.Errorf("Summary report with used only packages requires code analysis database: " +
+					"Enable with --code")
 			}
 
 			return nil
@@ -369,8 +377,9 @@ func internalStartScan() error {
 
 	if summaryReport {
 		rp, err := reporter.NewSummaryReporter(reporter.SummaryReporterConfig{
-			MaxAdvice:               summaryReportMaxAdvice,
-			GroupByDirectDependency: summaryReportGroupByDirectDeps,
+			MaxAdvice:                    summaryReportMaxAdvice,
+			GroupByDirectDependency:      summaryReportGroupByDirectDeps,
+			ShowOnlyPackagesWithEvidence: summaryReportUsedOnly,
 		})
 		if err != nil {
 			return err
