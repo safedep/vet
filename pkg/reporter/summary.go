@@ -145,6 +145,10 @@ func (r *summaryReporter) Name() string {
 
 func (r *summaryReporter) AddManifest(manifest *models.PackageManifest) {
 	readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
+		if r.config.ShowOnlyPackagesWithEvidence && !r.usedInCode(pkg) {
+			return nil
+		}
+
 		r.processForVulns(pkg)
 		r.processForMalware(pkg)
 		r.processForPopularity(pkg)
@@ -176,12 +180,6 @@ func (r *summaryReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 		return
 	}
 
-	if r.config.ShowOnlyPackagesWithEvidence {
-		if event.Package.CodeAnalysis == nil || event.Package.CodeAnalysis.UsageEvidences == nil {
-			return
-		}
-	}
-
 	pkgId := event.Package.Id()
 	if _, ok := r.violations[pkgId]; ok {
 		return
@@ -200,6 +198,14 @@ func (r *summaryReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 }
 
 func (r *summaryReporter) AddPolicyEvent(event *policy.PolicyEvent) {}
+
+func (r *summaryReporter) usedInCode(pkg *models.Package) bool {
+	if pkg.CodeAnalysis == nil || pkg.CodeAnalysis.UsageEvidences == nil {
+		return false
+	}
+
+	return len(pkg.CodeAnalysis.UsageEvidences) > 0
+}
 
 func (r *summaryReporter) processForVersionDrift(pkg *models.Package) {
 	insight := utils.SafelyGetValue(pkg.Insights)
