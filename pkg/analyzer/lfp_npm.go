@@ -18,6 +18,16 @@ import (
 
 const npmRegistryTrustedUrlBase = "https://registry.npmjs.org"
 
+// List of packages that are known to have inconsistent URLs in the package-lock.json
+// file. For example, `strip-ansi-cjs` resolvs to URL that does not follow path convention
+// Here we maintain a map of such package names so that users don't have to manually
+// add them to the trusted registry URLs in the config file.
+var npmRegistryKnownInconsistentPackageUrls = map[string]string{
+	"strip-ansi-cjs":   "https://registry.npmjs.org/strip-ansi/-/",
+	"wrap-ansi-cjs":    "https://registry.npmjs.org/wrap-ansi/-/",
+	"string-width-cjs": "https://registry.npmjs.org/string-width/-/",
+}
+
 type npmPackageLockPackage struct {
 	Version   string `json:"version"`
 	License   string `json:"license"`
@@ -41,7 +51,8 @@ type npmLockfilePoisoningAnalyzer struct {
 }
 
 func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifest,
-	handler AnalyzerEventHandler) error {
+	handler AnalyzerEventHandler,
+) error {
 	logger.Debugf("npmLockfilePoisoningAnalyzer: Analyzing [%s] %s",
 		manifest.GetSpecEcosystem(), manifest.GetDisplayPath())
 
@@ -70,7 +81,6 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 		pkgMap[p.Name] = p
 		return nil
 	})
-
 	if err != nil {
 		return err
 	}
@@ -116,6 +126,7 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 		trustedRegistryUrls := []string{npmRegistryTrustedUrlBase}
 		trustedRegistryUrls = append(trustedRegistryUrls, npm.config.TrustedRegistryUrls...)
 		userTrustUrls := npm.config.TrustedRegistryUrls
+
 		logger.Debugf("npmLockfilePoisoningAnalyzer: Analyzing package [%s] with %d trusted registry URLs in config",
 			packageName, len(trustedRegistryUrls))
 
@@ -248,6 +259,10 @@ func npmNodeModulesPackagePathToName(path string) string {
 // Test if URL follows the pkg name path convention as per NPM package registry
 // specification https://docs.npmjs.com/cli/v10/configuring-npm/package-lock-json
 func npmIsUrlFollowsPathConvention(sourceUrl string, pkg string, trustedUrls []string, userTrustedUrls []string) bool {
+	if npmIsPackageKnownToHaveInconsistentUrl(pkg, sourceUrl) {
+		return true
+	}
+
 	// Parse the source URL
 	parsedUrl, err := npmParseSourceUrl(sourceUrl)
 	if err != nil {
@@ -292,4 +307,14 @@ func npmIsUrlFollowsPathConvention(sourceUrl string, pkg string, trustedUrls []s
 
 	// Default fallback
 	return false
+}
+
+func npmIsPackageKnownToHaveInconsistentUrl(pkg, url string) bool {
+	knownUrl, ok := npmRegistryKnownInconsistentPackageUrls[pkg]
+	if !ok {
+		return false
+	}
+
+	// IMPORTANT: We must check that the URL is indeed a prefix of the known URL
+	return strings.HasPrefix(url, knownUrl)
 }

@@ -164,7 +164,14 @@ func TestNpmIsUrlFollowsPathConvention(t *testing.T) {
 			"strip_ansi_cjs package path matches trusted url path",
 			"https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz",
 			"strip-ansi-cjs",
-			[]string{"https://registry.npmjs.org/strip-ansi"},
+			[]string{},
+			true,
+		},
+		{
+			"wrap_ansi_cjs package path matches trusted url path",
+			"https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-7.0.0.tgz",
+			"wrap-ansi-cjs",
+			[]string{},
 			true,
 		},
 	}
