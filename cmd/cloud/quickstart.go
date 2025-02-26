@@ -19,7 +19,7 @@ import (
 func newCloudQuickstartCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "quickstart",
-		Short: "Quick onboarding to SafeDep Cloud with API key creation",
+		Short: "Quick onboarding to SafeDep Cloud and cli setup",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			err := executeCloudQuickstart()
 			if err != nil {
@@ -60,41 +60,10 @@ func executeCloudQuickstart() error {
 		return err
 	}
 
-	if len(userInfo.GetAccess()) == 0 {
-		ui.PrintError("❌ Oops! This is weird, you should have access to at least one tenant. Please contact support.")
-		return fmt.Errorf("no tenant access")
-	}
-
-	// If user has access to multiple tenants
-	// Ask user about which tenant they want to use if they have more than one
-	var tenant *controltowerv1pb.Tenant
-	if len(userInfo.GetAccess()) > 1 {
-		// Print all tenants with index
-		var tenantOptions []string
-		ui.PrintMsg("🔍 You have access to the following tenants:")
-		for idx, tenant := range userInfo.GetAccess() {
-			ui.PrintMsg("%s", fmt.Sprintf("  - [%d] %s", idx, tenant.GetTenant().GetDomain()))
-			tenantOptions = append(tenantOptions, fmt.Sprintf("%d", idx))
-		}
-
-		// Ask user which tenant they want to use
-		var tenantIndex int
-		err := survey.AskOne(&survey.Select{
-			Message: "🔍 Which tenant do you want to use?",
-			Options: tenantOptions,
-		}, &tenantIndex)
-		if err != nil {
-			ui.PrintError("❌ Oops! Something went wrong while asking which tenant to use: %s", err.Error())
-			return err
-		}
-
-		tenant = userInfo.GetAccess()[tenantIndex].GetTenant()
-	} else {
-		tenant = userInfo.GetAccess()[0].GetTenant()
-	}
-
-	if err := auth.PersistTenantDomain(tenant.GetDomain()); err != nil {
-		ui.PrintError("❌ Oops! Something went wrong while persisting your tenant domain: %s", err.Error())
+	// Here we get the tenant from the user info. The tenant domain is stored
+	// in the local config file.
+	tenant, err := quickStartSetupTenantFromAccess(userInfo)
+	if err != nil {
 		return err
 	}
 
@@ -127,13 +96,55 @@ func executeCloudQuickstart() error {
 	return nil
 }
 
+func quickStartSetupTenantFromAccess(userInfo *controltowerv1.GetUserInfoResponse) (*controltowerv1pb.Tenant, error) {
+	if len(userInfo.GetAccess()) == 0 {
+		ui.PrintError("❌ Oops! This is weird, you should have access to at least one tenant. Please contact support.")
+		return nil, fmt.Errorf("no tenant access")
+	}
+
+	// If user has access to multiple tenants
+	// Ask user about which tenant they want to use if they have more than one
+	var tenant *controltowerv1pb.Tenant
+	if len(userInfo.GetAccess()) > 1 {
+		// Print all tenants with index
+		var tenantOptions []string
+		ui.PrintMsg("🔍 You have access to the following tenants:")
+		for idx, tenant := range userInfo.GetAccess() {
+			ui.PrintMsg("%s", fmt.Sprintf("  - [%d] %s", idx, tenant.GetTenant().GetDomain()))
+			tenantOptions = append(tenantOptions, tenant.GetTenant().GetDomain())
+		}
+
+		// Ask user which tenant they want to use
+		var tenantIndex int
+		err := survey.AskOne(&survey.Select{
+			Message: "🔍 Which tenant do you want to use?",
+			Options: tenantOptions,
+		}, &tenantIndex)
+		if err != nil {
+			ui.PrintError("❌ Oops! Something went wrong while asking which tenant to use: %s", err.Error())
+			return nil, err
+		}
+
+		tenant = userInfo.GetAccess()[tenantIndex].GetTenant()
+	} else {
+		tenant = userInfo.GetAccess()[0].GetTenant()
+	}
+
+	if err := auth.PersistTenantDomain(tenant.GetDomain()); err != nil {
+		ui.PrintError("❌ Oops! Something went wrong while persisting your tenant domain: %s", err.Error())
+		return nil, err
+	}
+
+	return tenant, nil
+}
+
 func quickStartAuthentication() error {
 	ui.PrintMsg("🔑 Start by creating an account or sign-in to your existing account")
 
 	token, err := executeDeviceAuthFlow()
 	if err != nil {
 		ui.PrintError("❌ Oops! Something went wrong while authenticating you: %s", err.Error())
-		ui.PrintMsg("ℹ️ If you are using email and password, ensure your email is verified.")
+		ui.PrintMsg("ℹ️  If you are using email and password, ensure your email is verified.")
 		return err
 	}
 
