@@ -8,7 +8,7 @@ import (
 )
 
 func PrintBanner(s string) {
-	fmt.Fprintf(os.Stderr, s)
+	fmt.Fprintf(os.Stderr, "%s", s)
 }
 
 func PrintSuccess(s string, args ...any) {

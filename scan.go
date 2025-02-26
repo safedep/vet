@@ -486,7 +486,7 @@ func internalStartScan() error {
 			// Once we have an understanding on the usage and capacity, we will open
 			// up for community usage.
 			if auth.CommunityMode() {
-				return fmt.Errorf("Insights v2 requires an API key. For more details: https://docs.safedep.io/cloud/quickstart/")
+				return fmt.Errorf("access to Insights v2 requires an API key. For more details: https://docs.safedep.io/cloud/quickstart/")
 			}
 
 			client, err := auth.InsightsV2ClientConnection("vet-insights-v2")
@@ -547,7 +547,7 @@ func internalStartScan() error {
 
 	if enrichMalware {
 		if auth.CommunityMode() {
-			return fmt.Errorf("Malicious Package Analysis requires an API key. " +
+			return fmt.Errorf("access to Malicious Package Analysis requires an API key. " +
 				"For more details: https://docs.safedep.io/cloud/quickstart/")
 		}
 
