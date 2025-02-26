@@ -303,10 +303,11 @@ func quickStartAPIKeyCreation(conn *grpc.ClientConn, tenant *controltowerv1pb.Te
 
 	if showAPIKey {
 		ui.PrintMsg("✅ Here is your API key: %s", text.BgGreen.Sprint(apiKey.Key))
-		ui.PrintMsg("ℹ️ Your tenant domain is: %s", text.BgGreen.Sprint(tenant.GetDomain()))
-		ui.PrintMsg("🔑 Please save this API key in a secure location, it will not be shown again.")
 		ui.PrintMsg("🔒 Your key will expire on: %s", apiKey.ExpiresAt.Format(time.RFC3339))
 	}
+
+	ui.PrintMsg("ℹ️ Your tenant domain is: %s", text.BgGreen.Sprint(tenant.GetDomain()))
+	ui.PrintMsg("🔑 Please save this API key in a secure location, it will not be shown again.")
 
 	return nil
 }
