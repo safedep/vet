@@ -35,6 +35,7 @@ func NewCloudCommand() *cobra.Command {
 	cmd.AddCommand(newPingCommand())
 	cmd.AddCommand(newWhoamiCommand())
 	cmd.AddCommand(newKeyCommand())
+	cmd.AddCommand(newCloudQuickstartCommand())
 
 	cmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		if tenantDomain != "" {
