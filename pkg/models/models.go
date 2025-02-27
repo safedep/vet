@@ -34,6 +34,7 @@ const (
 	EcosystemTerraform         = "Terraform"
 	EcosystemTerraformModule   = "TerraformModule"
 	EcosystemTerraformProvider = "TerraformProvider"
+	EcosystemPHPComposer       = "Composer"
 )
 
 type ManifestSourceType string
