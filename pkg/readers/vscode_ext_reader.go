@@ -59,7 +59,6 @@ func NewVSCodeExtReaderFromDefaultDistributions() (*vscodeExtReader, error) {
 	distributionHomeDir := map[string]string{
 		"code":   filepath.Join(homeDir, ".vscode", "extensions"),
 		"cursor": filepath.Join(homeDir, ".cursor", "extensions"),
-		"codium": filepath.Join(homeDir, ".vscode", "extensions"),
 	}
 
 	return &vscodeExtReader{distributionHomeDir: distributionHomeDir}, nil
