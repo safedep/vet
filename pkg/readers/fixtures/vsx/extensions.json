@@ -1,0 +1,26 @@
+[
+  {
+    "identifier": {
+      "id": "castwide.solargraph",
+      "uuid": "349e83e2-207c-4309-a8d2-dfa43f7ee0c9"
+    },
+    "version": "0.24.1",
+    "location": {
+      "$mid": 1,
+      "path": "/Users/dev/.vscode/extensions/castwide.solargraph-0.24.1",
+      "scheme": "file"
+    },
+    "relativeLocation": "castwide.solargraph-0.24.1",
+    "metadata": {
+      "id": "349e83e2-207c-4309-a8d2-dfa43f7ee0c9",
+      "publisherId": "8244762e-597b-434d-b303-f780ff47b36c",
+      "publisherDisplayName": "Castwide",
+      "targetPlatform": "undefined",
+      "updated": false,
+      "isPreReleaseVersion": false,
+      "installedTimestamp": 1703166823676,
+      "pinned": false,
+      "preRelease": false
+    }
+  }
+]
