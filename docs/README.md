@@ -1,33 +1,9 @@
-# vet docs overview
+# vet Documentation
 
-This section contains documentation for `vet`. This documentation site is based on the Docusaurus framework.
+## Usage
 
-## Getting Started
+`vet` user documentation is available at [https://docs.safedep.io/](https://docs.safedep.io/)
 
-To start a local environment of this project docs, please do the following
+## Development
 
-- Clone the repository
-
-```bash
-git clone https://github.com/safedep/vet.git
-```
-
-- Navigate to the guide directory
-
-```bash
-cd vet/docs
-```
-
-- Install dependencies
-
-```bash
-npm install
-```
-
-- Start the development server
-
-```bash
-npm start
-```
-
-- Navigate to [http://localhost:3000](http://localhost:3000) for accessing the `vet` documentation locally
+- [Storage](./storage.md)
