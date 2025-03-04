@@ -41,7 +41,6 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-replace github.com/owenrumney/go-sarif/v2 v2.3.1 => github.com/safedep/go-sarif/v2 v2.3.1
 
 require (
 	ariga.io/atlas v0.31.0 // indirect
