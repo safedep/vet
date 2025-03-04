@@ -1,5 +1,5 @@
 <h1 align="center">
-    <img alt="SafeDep Vet" src="docs/static/img/vet-logo.png" width="150" />
+    <img alt="SafeDep Vet" src="./docs/assets/vet-logo.png" width="150" />
 </h1>
 
 <p align="center">
@@ -15,7 +15,9 @@
 [![Scorecard supply-chain security](https://github.com/safedep/vet/actions/workflows/scorecard.yml/badge.svg)](https://github.com/safedep/vet/actions/workflows/scorecard.yml)
 [![Twitter](https://img.shields.io/twitter/follow/safedepio?style=social)](https://twitter.com/intent/follow?screen_name=safedepio)
 
-[![vet banner](docs/static/img/vet/vet-banner.png)](https://safedep.io/docs)
+## 🔥 vet in action
+
+![vet Demo](./docs/assets/vet-demo.gif)
 
 ## Policy as Code for Open Source Software Supply Chain
 
@@ -25,7 +27,6 @@ due to it's license, popularity, security hygiene, and more. `vet` is designed
 with the goal of helping software development teams consume safe and trusted
 OSS components through automated vetting in CI/CD.
 
-* [🔥 vet in action](#-vet-in-action)
 * [Getting Started](#getting-started)
   * [Running Scan](#running-scan)
     * [Scanning Binary Artifacts](#scanning-binary-artifacts)
@@ -48,10 +49,6 @@ OSS components through automated vetting in CI/CD.
 * [Support](#support)
 * [Star History](#star-history)
 * [🔖 References](#-references)
-
-## 🔥 vet in action
-
-![vet Demo](docs/static/img/vet/vet-demo.gif)
 
 ## Getting Started
 
@@ -90,7 +87,7 @@ docker run --rm -it ghcr.io/safedep/vet:latest version
 vet scan -D /path/to/repository
 ```
 
-![vet scan directory](docs/static/img/vet/vet-scan-directory.png)
+![vet scan directory](./docs/assets/vet-scan-directory.png)
 
 - Run `vet` to scan specific (supported) package manifests
 
@@ -280,6 +277,13 @@ execution.
 ## 🐙 Malicious Package Analysis
 
 `vet` supports scanning for malicious packages using [SafeDep Cloud API](https://docs.safedep.io/cloud/malware-analysis)
+which requires an API key.
+
+- To setup an API key for malicious package scanning
+
+```bash
+vet cloud quickstart
+```
 
 - Run a scan and check for malicious packages
 
@@ -303,7 +307,7 @@ available and lead to increased coverage over time. Adjust the timeout using
 
 - Refer to [https://safedep.io/docs](https://safedep.io/docs) for the detailed documentation
 
-[![vet docs](docs/static/img/vet-docs.png)](https://safedep.io/docs)
+[![vet docs](./docs/assets/vet-docs.png)](https://safedep.io/docs)
 
 ## 🎊 Community
 
@@ -311,7 +315,7 @@ First of all, thank you so much for showing interest in `vet`, we appreciate it 
 
 - Join the Discord server using the link - [https://rebrand.ly/safedep-community](https://rebrand.ly/safedep-community)
 
-[![SafeDep Discord](docs/static/img/safedep-discord.png)](https://rebrand.ly/safedep-community)
+[![SafeDep Discord](./docs/assets/safedep-discord.png)](https://rebrand.ly/safedep-community)
 
 ## 💻 Development
 
