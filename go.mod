@@ -28,7 +28,7 @@ require (
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/owenrumney/go-sarif/v2 v2.3.3
 	github.com/package-url/packageurl-go v0.1.3
-	github.com/safedep/code v0.0.0-20250130060610-76bafd23d38e
+	github.com/safedep/code v0.0.0-20250303084214-bb66646eda54
 	github.com/safedep/dry v0.0.0-20250301022252-336816e3a229
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smacker/go-tree-sitter v0.0.0-20240827094217-dd81d9e9be82
@@ -40,7 +40,6 @@ require (
 	google.golang.org/protobuf v1.36.5
 	gopkg.in/yaml.v2 v2.4.0
 )
-
 
 require (
 	ariga.io/atlas v0.31.0 // indirect
