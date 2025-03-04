@@ -33,6 +33,8 @@ var (
 	enrichMalware                  bool
 	baseDirectory                  string
 	purlSpec                       string
+	vsxReader                      bool
+	vsxDirectories                 []string
 	githubRepoUrls                 []string
 	githubOrgUrl                   string
 	githubOrgMaxRepositories       int
@@ -107,6 +109,10 @@ func newScanCommand() *cobra.Command {
 		"List of package manifest or archive to scan (example: jar:/tmp/foo.jar)")
 	cmd.Flags().StringVarP(&purlSpec, "purl", "", "",
 		"PURL to scan")
+	cmd.Flags().BoolVarP(&vsxReader, "vsx", "", false,
+		"Read VSCode extensions from VSCode extensions directory")
+	cmd.Flags().StringArrayVarP(&vsxDirectories, "vsx-dir", "", []string{},
+		"VSCode extensions directory to scan (default: auto-detect)")
 	cmd.Flags().StringArrayVarP(&githubRepoUrls, "github", "", []string{},
 		"Github repository URL (Example: https://github.com/{org}/{repo})")
 	cmd.Flags().StringVarP(&githubOrgUrl, "github-org", "", "",
@@ -185,7 +191,7 @@ func newScanCommand() *cobra.Command {
 			}
 
 			if summaryReportUsedOnly && codeAnalysisDBPath == "" {
-				return fmt.Errorf("Summary report with used only packages requires code analysis database: " +
+				return fmt.Errorf("summary report with used only packages requires code analysis database: " +
 					"Enable with --code")
 			}
 
@@ -298,6 +304,14 @@ func internalStartScan() error {
 	} else if len(purlSpec) > 0 {
 		// nolint:ineffassign,staticcheck
 		reader, err = readers.NewPurlReader(purlSpec)
+	} else if vsxReader {
+		if len(vsxDirectories) == 0 {
+			// nolint:ineffassign,staticcheck
+			reader, err = readers.NewVSCodeExtReaderFromDefaultDistributions()
+		} else {
+			// nolint:ineffassign,staticcheck
+			reader, err = readers.NewVSCodeExtReader(vsxDirectories)
+		}
 	} else {
 		// nolint:ineffassign,staticcheck
 		reader, err = readers.NewDirectoryReader(readers.DirectoryReaderConfig{
