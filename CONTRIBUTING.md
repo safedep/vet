@@ -41,6 +41,8 @@ When contributing changes to repository, follow these steps:
 * Install the development tools
 
 ```bash
+asdf plugin add golang
+asdf plugin add gitleaks
 asdf install
 ```
 
@@ -79,7 +81,7 @@ make quick-vet
 ### Run Tests
 
 ```bash
-go test -v ./...
+make test
 ```
 
 
