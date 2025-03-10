@@ -20,8 +20,8 @@ protoc-install:
 dev-setup: linter-install oapi-codegen-install protoc-install
 
 oapi-codegen:
-	oapi-codegen -package insightapi -generate types ./api/insights-v1.yml > ./gen/insightapi/insights.types.go
-	oapi-codegen -package insightapi -generate client ./api/insights-v1.yml > ./gen/insightapi/insights.client.go
+	go tool oapi-codegen -package insightapi -generate types ./api/insights-v1.yml > ./gen/insightapi/insights.types.go
+	go tool oapi-codegen -package insightapi -generate client ./api/insights-v1.yml > ./gen/insightapi/insights.client.go
 
 protoc-codegen:
 	protoc -I ./api \

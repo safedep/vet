@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.23-bullseye AS build
+FROM --platform=$BUILDPLATFORM golang:1.24-bullseye AS build
 
 WORKDIR /build
 
