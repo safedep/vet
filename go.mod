@@ -12,7 +12,7 @@ require (
 	github.com/cayleygraph/cayley v0.7.7-0.20240706181042-81dcd7d73e45
 	github.com/cayleygraph/quad v1.3.0
 	github.com/cli/oauth v1.2.0
-	github.com/deepmap/oapi-codegen v1.16.3
+	github.com/deepmap/oapi-codegen v1.10.1
 	github.com/github/go-spdx/v2 v2.3.2
 	github.com/gofri/go-github-ratelimit v1.1.0
 	github.com/gojek/heimdall v5.0.2+incompatible
@@ -98,11 +98,15 @@ require (
 	github.com/flosch/pongo2/v4 v4.0.2 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
+	github.com/getkin/kin-openapi v0.94.0 // indirect
+	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/gin-contrib/sse v1.0.0 // indirect
 	github.com/gin-gonic/gin v1.10.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/inflect v0.21.0 // indirect
+	github.com/go-openapi/jsonpointer v0.19.5 // indirect
+	github.com/go-openapi/swag v0.21.1 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.24.0 // indirect
@@ -236,3 +240,5 @@ require (
 	k8s.io/utils v0.0.0-20241210054802-24370beab758 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
+
+tool github.com/deepmap/oapi-codegen/cmd/oapi-codegen
