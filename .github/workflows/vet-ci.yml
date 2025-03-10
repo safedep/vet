@@ -40,6 +40,7 @@ jobs:
           cloud: ${{ env.SAFEDEP_CLOUD_MODE }}
           cloud-key: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
           cloud-tenant: ${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }}
+          enable-comments-proxy: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SAFEDEP_CLOUD_MODE: ${{ env.SAFEDEP_CLOUD_MODE }}
