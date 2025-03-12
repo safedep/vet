@@ -5,7 +5,7 @@ go 1.24
 require (
 	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250301021737-c36547045930.2
 	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.5-20250301021737-c36547045930.1
-	entgo.io/ent v0.14.1
+	entgo.io/ent v0.14.3
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/CycloneDX/cyclonedx-go v0.9.2
 	github.com/anchore/syft v1.19.0
@@ -42,7 +42,7 @@ require (
 )
 
 require (
-	ariga.io/atlas v0.31.0 // indirect
+	ariga.io/atlas v0.31.1-0.20250212144724-069be8033e83 // indirect
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.5-20250130201111-63bb56e20495.1 // indirect
 	cel.dev/expr v0.20.0 // indirect
 	dario.cat/mergo v1.0.1 // indirect
