@@ -8,7 +8,7 @@ pre-commit:
   parallel: true
   commands:
     linter:
-      run: golangci-lint run -n
+      run: go tool golangci-lint run -n
     secrets-scanning:
       files: git diff --name-only --diff-filter=d --staged
       # https://gitlab.com/gitlab-org/gitlab/-/blob/master/lefthook.yml
