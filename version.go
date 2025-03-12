@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	runtimeDebug "runtime/debug"
 
 	"github.com/spf13/cobra"
 )
@@ -11,6 +12,15 @@ var version string
 var commit string
 
 func newVersionCommand() *cobra.Command {
+	buildInfo, ok := runtimeDebug.ReadBuildInfo()
+
+	if ok && version == "" {
+		// Main.Version is based on the version control system tag or commit.
+		// This useful when app is build with `go install`
+		// See: https://antonz.org/go-1-24/#main-modules-version
+		version = buildInfo.Main.Version
+	}
+
 	cmd := &cobra.Command{
 		Use:   "version",
 		Short: "Show version and build information",
