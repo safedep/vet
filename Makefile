@@ -8,13 +8,10 @@ all: quick-vet
 ent:
 	go generate ./ent
 
-linter-install:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.0
-
 protoc-install:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 
-dev-setup: linter-install protoc-install
+dev-setup: protoc-install
 
 protoc-codegen:
 	protoc -I ./api \
