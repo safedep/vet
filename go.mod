@@ -110,7 +110,7 @@ require (
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gojek/valkyrie v0.0.0-20190210220504-8f62c1e7ba45 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/gomarkdown/markdown v0.0.0-20230716120725-531d2d74bc12 // indirect
+	github.com/gomarkdown/markdown v0.0.0-20250311123330-531bef5e742b // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/go-containerregistry v0.20.3 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
