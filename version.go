@@ -8,19 +8,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var version string
+// Main.Version is based on the version control system tag or commit.
+// This useful when app is build with `go install`
+// See: https://antonz.org/go-1-24/#main-modules-version
+var buildInfo, _ = runtimeDebug.ReadBuildInfo()
+
+// When building with CI or Make, version is set using `ldflags` but when building with `go install`
+// it will be set on runtime using VCS TAG AND COMMITS
+var version = buildInfo.Main.Version
 var commit string
 
 func newVersionCommand() *cobra.Command {
-	buildInfo, ok := runtimeDebug.ReadBuildInfo()
-
-	if ok && version == "" {
-		// Main.Version is based on the version control system tag or commit.
-		// This useful when app is build with `go install`
-		// See: https://antonz.org/go-1-24/#main-modules-version
-		version = buildInfo.Main.Version
-	}
-
 	cmd := &cobra.Command{
 		Use:   "version",
 		Short: "Show version and build information",
