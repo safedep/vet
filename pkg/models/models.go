@@ -23,7 +23,6 @@ const (
 	EcosystemGo                = "Go"
 	EcosystemNpm               = "npm"
 	EcosystemPyPI              = "PyPI"
-	EcosystemUv                = "uv"
 	EcosystemCargo             = "Cargo"
 	EcosystemNuGet             = "NuGet"
 	EcosystemPackagist         = "Packagist"

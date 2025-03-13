@@ -51,7 +51,6 @@ var supportedEcosystems map[string]bool = map[string]bool{
 	models.EcosystemSpdxSBOM:      true,
 	models.EcosystemGitHubActions: true,
 	models.EcosystemTerraform:     true,
-	models.EcosystemUv:            true,
 }
 
 // TODO: Migrate these to graph parser
@@ -246,7 +245,7 @@ func (pw *parserWrapper) Ecosystem() string {
 	case "package.json":
 		return models.EcosystemNpm
 	case "uv.lock":
-		return models.EcosystemUv
+		return models.EcosystemPyPI
 	case customParserTypePyWheel:
 		return models.EcosystemPyPI
 	case customParserCycloneDXSBOM:

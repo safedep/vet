@@ -62,7 +62,7 @@ func parseUvPackageLockAsGraph(lockfilePath string, config *ParserConfig) (*mode
 	logger.Debugf("uvGraphParser: Found %d packages in lockfile",
 		len(parsedLockFile.Packages))
 
-	manifest := models.NewPackageManifestFromLocal(lockfilePath, models.EcosystemUv)
+	manifest := models.NewPackageManifestFromLocal(lockfilePath, models.EcosystemPyPI)
 	dependencyGraph := manifest.DependencyGraph
 
 	if dependencyGraph == nil {
@@ -83,7 +83,7 @@ func parseUvPackageLockAsGraph(lockfilePath string, config *ParserConfig) (*mode
 	}()
 
 	for _, pkgInfo := range parsedLockFile.Packages {
-		pkgDetails := models.NewPackageDetail(models.EcosystemUv, pkgInfo.Name, pkgInfo.Version)
+		pkgDetails := models.NewPackageDetail(models.EcosystemPyPI, pkgInfo.Name, pkgInfo.Version)
 		pkg := &models.Package{
 			PackageDetails: pkgDetails,
 			Manifest:       manifest,
