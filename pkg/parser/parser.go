@@ -51,6 +51,7 @@ var supportedEcosystems map[string]bool = map[string]bool{
 	models.EcosystemSpdxSBOM:      true,
 	models.EcosystemGitHubActions: true,
 	models.EcosystemTerraform:     true,
+	models.EcosystemUv:            true,
 }
 
 // TODO: Migrate these to graph parser
@@ -87,6 +88,7 @@ type dependencyGraphParser func(lockfilePath string, config *ParserConfig) (*mod
 var dependencyGraphParsers map[string]dependencyGraphParser = map[string]dependencyGraphParser{
 	"package.json":                    parseNpmPackageJsonAsGraph,
 	"package-lock.json":               parseNpmPackageLockAsGraph,
+	"uv.lock":                         parseUvPackageLockAsGraph,
 	customParserCycloneDXSBOM:         parseSbomCycloneDxAsGraph,
 	customParserTypeJavaArchive:       parseJavaArchiveAsGraph,
 	customParserTypeJavaWebAppArchive: parseJavaArchiveAsGraph,
@@ -243,6 +245,8 @@ func (pw *parserWrapper) Ecosystem() string {
 		return models.EcosystemMaven
 	case "package.json":
 		return models.EcosystemNpm
+	case "uv.lock":
+		return models.EcosystemUv
 	case customParserTypePyWheel:
 		return models.EcosystemPyPI
 	case customParserCycloneDXSBOM:
