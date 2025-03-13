@@ -16,6 +16,7 @@ require (
 	github.com/cli/oauth v1.2.0
 	github.com/deepmap/oapi-codegen v1.16.3
 	github.com/github/go-spdx/v2 v2.3.2
+	github.com/go-resty/resty/v2 v2.16.5
 	github.com/gofri/go-github-ratelimit v1.1.1
 	github.com/gojek/heimdall v5.0.2+incompatible
 	github.com/gojek/heimdall/v7 v7.0.3
@@ -113,7 +114,6 @@ require (
 	github.com/chainguard-dev/git-urls v1.0.2 // indirect
 	github.com/charithe/durationcheck v0.0.10 // indirect
 	github.com/chavacava/garif v0.1.0 // indirect
-	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/ckaznocha/intrange v0.3.0 // indirect
 	github.com/cloudflare/circl v1.6.0 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect

@@ -58,6 +58,8 @@ var (
 	summaryReportGroupByDirectDeps bool
 	summaryReportUsedOnly          bool
 	csvReportPath                  string
+	reportDefectDojo               bool
+	defectDojoProductID            int
 	sarifReportPath                string
 	silentScan                     bool
 	disableAuthVerifyBeforeScan    bool
@@ -159,6 +161,8 @@ func newScanCommand() *cobra.Command {
 		"Show only packages that are used in code (requires code analysis)")
 	cmd.Flags().StringVarP(&csvReportPath, "report-csv", "", "",
 		"Generate CSV report of filtered packages")
+	cmd.Flags().BoolVarP(&reportDefectDojo, "report-defect-dojo", "", false, "Report to DefectDojo")
+	cmd.Flags().IntVarP(&defectDojoProductID, "defect-dojo-product-id", "", -1, "DefectDojo Product ID")
 	cmd.Flags().StringVarP(&jsonReportPath, "report-json", "", "",
 		"Generate consolidated JSON report to file (EXPERIMENTAL schema)")
 	cmd.Flags().StringVarP(&sarifReportPath, "report-sarif", "", "",
@@ -193,6 +197,10 @@ func newScanCommand() *cobra.Command {
 			if summaryReportUsedOnly && codeAnalysisDBPath == "" {
 				return fmt.Errorf("summary report with used only packages requires code analysis database: " +
 					"Enable with --code")
+			}
+
+			if reportDefectDojo && defectDojoProductID == -1 {
+				return fmt.Errorf("defect dojo product ID is required for defect dojo report")
 			}
 
 			return nil
@@ -443,6 +451,21 @@ func internalStartScan() error {
 				Version: version,
 			},
 			Path: sarifReportPath,
+		})
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if reportDefectDojo {
+		rp, err := reporter.NewDefectDojoReporter(reporter.DefectDojoReporterConfig{
+			Tool: reporter.DefectDojoToolMetadata{
+				Name:    "vet",
+				Version: version,
+			},
+			ProductID: defectDojoProductID,
 		})
 		if err != nil {
 			return err
