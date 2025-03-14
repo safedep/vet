@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
@@ -17,7 +16,7 @@ import (
 // DefectDojo accepts findings in SARIF report format. We'll use sarfBuilder
 // to generate the SARIF report and post it to DefectDojo.
 
-var DefaultDefectDojoHostUrl = "http://localhost:8080"
+const DefaultDefectDojoHostUrl = "http://localhost:8080"
 
 type DefectDojoProduct struct {
 	ID            int       `json:"id"`
@@ -35,8 +34,11 @@ type DefectDojoToolMetadata struct {
 }
 
 type DefectDojoReporterConfig struct {
-	Tool      DefectDojoToolMetadata
-	ProductID int
+	Tool               DefectDojoToolMetadata
+	ProductID          int
+	EngagementName     string
+	DefectDojoHostUrl  string
+	DefectDojoApiV2Key string
 }
 
 type defectDojoReporter struct {
@@ -46,19 +48,9 @@ type defectDojoReporter struct {
 }
 
 func NewDefectDojoReporter(config DefectDojoReporterConfig) (Reporter, error) {
-	defectDojoApiV2Key := os.Getenv("DEFECT_DOJO_APIV2_KEY")
-	if utils.IsEmptyString(defectDojoApiV2Key) {
-		return nil, fmt.Errorf("please set DEFECT_DOJO_APIV2_KEY environment variable to enable dojo reporting")
-	}
-
-	defectDojoHostUrl := os.Getenv("DEFECT_DOJO_HOST_URL")
-	if utils.IsEmptyString(defectDojoHostUrl) {
-		defectDojoHostUrl = DefaultDefectDojoHostUrl
-	}
-
 	defectDojoClient := resty.New().
-		SetHeader("Authorization", "Token "+defectDojoApiV2Key).
-		SetBaseURL(defectDojoHostUrl)
+		SetHeader("Authorization", "Token "+config.DefectDojoApiV2Key).
+		SetBaseURL(config.DefectDojoHostUrl)
 
 	builder, err := newSarifBuilder(
 		sarifBuilderToolMetadata{
@@ -78,7 +70,7 @@ func NewDefectDojoReporter(config DefectDojoReporterConfig) (Reporter, error) {
 }
 
 func (r *defectDojoReporter) Name() string {
-	return "sarif"
+	return "defect-dojo"
 }
 
 func (r *defectDojoReporter) AddManifest(manifest *models.PackageManifest) {
@@ -128,12 +120,10 @@ func (r *defectDojoReporter) Finish() error {
 		return fmt.Errorf("couldn't get product information for product_id = %d: %w", r.config.ProductID, err)
 	}
 	if resp.IsError() {
-		// print resul
 		return fmt.Errorf("couldn't get product information for product_id = %d, response (%d) - %v", r.config.ProductID, resp.StatusCode(), resp.String())
 	}
 
 	dateStr := time.Now().Format("2006-01-02")
-	engagementName := fmt.Sprintf("vet-report-%s", dateStr)
 
 	resp, err = r.defectDojoClient.R().
 		SetFile("file", tempSarifReportFile.Name()).
@@ -147,7 +137,7 @@ func (r *defectDojoReporter) Finish() error {
 			"auto_create_context":    "true",
 			"product":                strconv.Itoa(r.config.ProductID),
 			"product_name":           product.Name,
-			"engagement_name":        engagementName,
+			"engagement_name":        r.config.EngagementName,
 		}).
 		Post("/api/v2/import-scan/")
 	if err != nil {

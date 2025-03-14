@@ -77,7 +77,7 @@ func (b *sarifBuilder) recordFilterMatchEvent(event *analyzer.AnalyzerEvent) {
 		return
 	}
 
-	if (event.Package == nil) || (event.Package.Manifest == nil) || (event.Filter == nil) {
+	if (event.Package == nil) || (event.Manifest == nil) || (event.Filter == nil) {
 		logger.Warnf("SARIF: Invalid event: missing package or manifest or filter")
 		return
 	}

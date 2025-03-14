@@ -460,12 +460,26 @@ func internalStartScan() error {
 	}
 
 	if reportDefectDojo {
+		defectDojoApiV2Key := os.Getenv("DEFECT_DOJO_APIV2_KEY")
+		if utils.IsEmptyString(defectDojoApiV2Key) {
+			return fmt.Errorf("please set DEFECT_DOJO_APIV2_KEY environment variable to enable defect-dojo reporting")
+		}
+
+		defectDojoHostUrl := os.Getenv("DEFECT_DOJO_HOST_URL")
+		if utils.IsEmptyString(defectDojoHostUrl) {
+			defectDojoHostUrl = reporter.DefaultDefectDojoHostUrl
+		}
+
+		engagementName := fmt.Sprintf("vet-report-%s", time.Now().Format("2006-01-02"))
 		rp, err := reporter.NewDefectDojoReporter(reporter.DefectDojoReporterConfig{
 			Tool: reporter.DefectDojoToolMetadata{
 				Name:    "vet",
 				Version: version,
 			},
-			ProductID: defectDojoProductID,
+			ProductID:          defectDojoProductID,
+			EngagementName:     engagementName,
+			DefectDojoHostUrl:  defectDojoHostUrl,
+			DefectDojoApiV2Key: defectDojoApiV2Key,
 		})
 		if err != nil {
 			return err
