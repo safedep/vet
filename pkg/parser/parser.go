@@ -87,6 +87,7 @@ type dependencyGraphParser func(lockfilePath string, config *ParserConfig) (*mod
 var dependencyGraphParsers map[string]dependencyGraphParser = map[string]dependencyGraphParser{
 	"package.json":                    parseNpmPackageJsonAsGraph,
 	"package-lock.json":               parseNpmPackageLockAsGraph,
+	"uv.lock":                         parseUvPackageLockAsGraph,
 	customParserCycloneDXSBOM:         parseSbomCycloneDxAsGraph,
 	customParserTypeJavaArchive:       parseJavaArchiveAsGraph,
 	customParserTypeJavaWebAppArchive: parseJavaArchiveAsGraph,
@@ -243,6 +244,8 @@ func (pw *parserWrapper) Ecosystem() string {
 		return models.EcosystemMaven
 	case "package.json":
 		return models.EcosystemNpm
+	case "uv.lock":
+		return models.EcosystemPyPI
 	case customParserTypePyWheel:
 		return models.EcosystemPyPI
 	case customParserCycloneDXSBOM:
