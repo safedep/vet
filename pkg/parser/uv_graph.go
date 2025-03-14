@@ -92,14 +92,7 @@ func parseUvPackageLockAsGraph(lockfilePath string, config *ParserConfig) (*mode
 		dependencyGraph.AddNode(pkg)
 
 		for _, depName := range pkgInfo.Dependencies {
-			targetPkg := uvFindPackageByName(dependencyGraph, depName.Name)
-			if targetPkg == nil {
-				logger.Debugf("uvGraphParser: Missing dependency %s for %s",
-					depName, pkgInfo.Name)
-				continue
-			}
-
-			defer dependencyGraph.AddDependency(pkg, targetPkg.Data)
+			defer uvGraphAddDependencyRelation(dependencyGraph, pkg, depName.Name)
 		}
 
 		for groupName, deps := range pkgInfo.Groups {
@@ -108,18 +101,23 @@ func parseUvPackageLockAsGraph(lockfilePath string, config *ParserConfig) (*mode
 			}
 
 			for _, depName := range deps {
-				targetNode := uvFindPackageByName(dependencyGraph, depName.Name)
-				if targetNode != nil {
-					dependencyGraph.AddDependency(pkg, targetNode.Data)
-				} else {
-					logger.Debugf("uvGraphParser: Could not find dependency %s for %s",
-						depName, pkgInfo.Name)
-				}
+				defer uvGraphAddDependencyRelation(dependencyGraph, pkg, depName.Name)
 			}
 		}
 	}
 	dependencyGraph.SetPresent(true)
 	return manifest, nil
+}
+
+func uvGraphAddDependencyRelation(graph *models.DependencyGraph[*models.Package], from *models.Package, name string) {
+	targetPkg := uvFindPackageByName(graph, name)
+	if targetPkg == nil {
+		logger.Debugf("uvGraphParser: Missing dependency %s for %s",
+			name, from.Name)
+		return
+	}
+
+	graph.AddDependency(from, targetPkg.Data)
 }
 
 func uvFindPackageByName(graph *models.DependencyGraph[*models.Package], name string) *models.DependencyGraphNode[*models.Package] {
