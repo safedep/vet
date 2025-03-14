@@ -30,6 +30,7 @@ var (
 	queryGraphReportPath                string
 	queryCsvReportPath                  string
 	queryReportDefectDojo               bool
+	queryDefectDojoHostUrl              string
 	queryDefectDojoProductID            int
 	querySarifReportPath                string
 	queryExceptionsFile                 string
@@ -85,6 +86,8 @@ func newQueryCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&queryCsvReportPath, "report-csv", "", "",
 		"Generate CSV report of filtered packages to file")
 	cmd.Flags().BoolVarP(&queryReportDefectDojo, "report-defect-dojo", "", false, "Report to DefectDojo")
+	cmd.Flags().StringVarP(&queryDefectDojoHostUrl, "defect-dojo-host-url", "", "",
+		"DefectDojo Host URL eg. http://localhost:8080")
 	cmd.Flags().IntVarP(&queryDefectDojoProductID, "defect-dojo-product-id", "", -1, "DefectDojo Product ID")
 	cmd.Flags().StringVarP(&querySarifReportPath, "report-sarif", "", "",
 		"Generate SARIF report to file")
@@ -92,8 +95,8 @@ func newQueryCommand() *cobra.Command {
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
 		err := func() error {
-			if queryReportDefectDojo && queryDefectDojoProductID == -1 {
-				return fmt.Errorf("defect dojo product ID is required for defect dojo report")
+			if queryReportDefectDojo && (queryDefectDojoProductID == -1 || utils.IsEmptyString(queryDefectDojoHostUrl)) {
+				return fmt.Errorf("defect dojo Host URL & product ID are required for defect dojo report")
 			}
 
 			return nil
@@ -250,11 +253,6 @@ func internalStartQuery() error {
 			return fmt.Errorf("please set DEFECT_DOJO_APIV2_KEY environment variable to enable defect-dojo reporting")
 		}
 
-		defectDojoHostUrl := os.Getenv("DEFECT_DOJO_HOST_URL")
-		if utils.IsEmptyString(defectDojoHostUrl) {
-			defectDojoHostUrl = reporter.DefaultDefectDojoHostUrl
-		}
-
 		engagementName := fmt.Sprintf("vet-report-%s", time.Now().Format("2006-01-02"))
 		rp, err := reporter.NewDefectDojoReporter(reporter.DefectDojoReporterConfig{
 			Tool: reporter.DefectDojoToolMetadata{
@@ -263,7 +261,7 @@ func internalStartQuery() error {
 			},
 			ProductID:          queryDefectDojoProductID,
 			EngagementName:     engagementName,
-			DefectDojoHostUrl:  defectDojoHostUrl,
+			DefectDojoHostUrl:  queryDefectDojoHostUrl,
 			DefectDojoApiV2Key: defectDojoApiV2Key,
 		})
 		if err != nil {

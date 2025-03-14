@@ -16,8 +16,6 @@ import (
 // DefectDojo accepts findings in SARIF report format. We'll use sarfBuilder
 // to generate the SARIF report and post it to DefectDojo.
 
-const DefaultDefectDojoHostUrl = "http://localhost:8080"
-
 type DefectDojoProduct struct {
 	ID            int       `json:"id"`
 	FindingsCount int       `json:"findings_count"`

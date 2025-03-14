@@ -59,6 +59,7 @@ var (
 	summaryReportUsedOnly          bool
 	csvReportPath                  string
 	reportDefectDojo               bool
+	defectDojoHostUrl              string
 	defectDojoProductID            int
 	sarifReportPath                string
 	silentScan                     bool
@@ -162,6 +163,8 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&csvReportPath, "report-csv", "", "",
 		"Generate CSV report of filtered packages")
 	cmd.Flags().BoolVarP(&reportDefectDojo, "report-defect-dojo", "", false, "Report to DefectDojo")
+	cmd.Flags().StringVarP(&defectDojoHostUrl, "defect-dojo-host-url", "", "",
+		"DefectDojo Host URL eg. http://localhost:8080")
 	cmd.Flags().IntVarP(&defectDojoProductID, "defect-dojo-product-id", "", -1, "DefectDojo Product ID")
 	cmd.Flags().StringVarP(&jsonReportPath, "report-json", "", "",
 		"Generate consolidated JSON report to file (EXPERIMENTAL schema)")
@@ -199,8 +202,8 @@ func newScanCommand() *cobra.Command {
 					"Enable with --code")
 			}
 
-			if reportDefectDojo && defectDojoProductID == -1 {
-				return fmt.Errorf("defect dojo product ID is required for defect dojo report")
+			if reportDefectDojo && (defectDojoProductID == -1 || utils.IsEmptyString(defectDojoHostUrl)) {
+				return fmt.Errorf("defect dojo Host URL & product ID are required for defect dojo report")
 			}
 
 			return nil
@@ -463,11 +466,6 @@ func internalStartScan() error {
 		defectDojoApiV2Key := os.Getenv("DEFECT_DOJO_APIV2_KEY")
 		if utils.IsEmptyString(defectDojoApiV2Key) {
 			return fmt.Errorf("please set DEFECT_DOJO_APIV2_KEY environment variable to enable defect-dojo reporting")
-		}
-
-		defectDojoHostUrl := os.Getenv("DEFECT_DOJO_HOST_URL")
-		if utils.IsEmptyString(defectDojoHostUrl) {
-			defectDojoHostUrl = reporter.DefaultDefectDojoHostUrl
 		}
 
 		engagementName := fmt.Sprintf("vet-report-%s", time.Now().Format("2006-01-02"))
