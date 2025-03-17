@@ -17,12 +17,16 @@ var licenses = []insightapi.License{
 	"GPL",
 }
 
-var sampleVulnId = "ghsa-123"
-var sampleVulnSummary = "sample-vuln-summary"
+var (
+	sampleVulnId      = "ghsa-123"
+	sampleVulnSummary = "sample-vuln-summary"
+)
 
-var sampleProjectName = "project-name"
-var sampleProjectType = "GITHUB"
-var sampleProjectStars = 100
+var (
+	sampleProjectName  = "project-name"
+	sampleProjectType  = "GITHUB"
+	sampleProjectStars = 100
+)
 
 var events []analyzer.AnalyzerEvent = []analyzer.AnalyzerEvent{
 	{
@@ -113,68 +117,57 @@ var events []analyzer.AnalyzerEvent = []analyzer.AnalyzerEvent{
 	},
 }
 
-func TestSarifReport(t *testing.T) {
-	tmpFile, err := os.CreateTemp("", "sarif-reporter-test")
+func TestSarifBuilderReport(t *testing.T) {
+	tmpFile, err := os.CreateTemp("", "sarif-builder-test")
 	assert.Nil(t, err)
 
 	defer os.Remove(tmpFile.Name())
 
-	r, err := NewSarifReporter(SarifReporterConfig{
-		Tool: SarifToolMetadata{
-			Name:    "tool-name",
-			Version: "tool-version",
-		},
-		Path: tmpFile.Name(),
+	builder, err := newSarifBuilder(sarifBuilderToolMetadata{
+		Name:    "tool-name",
+		Version: "tool-version",
 	})
-
 	assert.Nil(t, err)
 
 	for _, event := range events {
-		r.AddManifest(event.Manifest)
-		r.AddAnalyzerEvent(&event)
+		builder.AddManifest(event.Manifest)
+		builder.AddAnalyzerEvent(&event)
 	}
 
-	err = r.Finish()
+	report, err := builder.GetSarifReport()
 	assert.Nil(t, err)
+	assert.NotNil(t, report)
 
-	s := r.(*sarifReporter)
-	assert.Equal(t, "sarif", s.Name())
-
-	assert.Equal(t, 1, len(s.report.Runs))
-	assert.Equal(t, len(events), len(s.report.Runs[0].Artifacts))
-	assert.Equal(t, len(events), len(s.report.Runs[0].Results))
+	assert.Equal(t, 1, len(builder.report.Runs))
+	assert.Equal(t, len(events), len(builder.report.Runs[0].Artifacts))
+	assert.Equal(t, len(events), len(builder.report.Runs[0].Results))
 }
 
-func TestSarifReportMarkdown(t *testing.T) {
-	tmpFile, err := os.CreateTemp("", "sarif-reporter-test")
+func TestSarifReportBuilderMarkdown(t *testing.T) {
+	tmpFile, err := os.CreateTemp("", "sarif-builder-test")
 	assert.Nil(t, err)
 
 	defer os.Remove(tmpFile.Name())
 
-	r, err := NewSarifReporter(SarifReporterConfig{
-		Tool: SarifToolMetadata{
-			Name:    "tool-name",
-			Version: "tool-version",
-		},
-		Path: tmpFile.Name(),
+	builder, err := newSarifBuilder(sarifBuilderToolMetadata{
+		Name:    "tool-name",
+		Version: "tool-version",
 	})
-
 	assert.Nil(t, err)
 
 	for _, event := range events {
-		r.AddManifest(event.Manifest)
-		r.AddAnalyzerEvent(&event)
+		builder.AddManifest(event.Manifest)
+		builder.AddAnalyzerEvent(&event)
 	}
 
-	err = r.Finish()
+	report, err := builder.GetSarifReport()
 	assert.Nil(t, err)
+	assert.NotNil(t, report)
 
-	s := r.(*sarifReporter)
-
-	assert.Contains(t, *s.report.Runs[0].Results[0].Message.Markdown, "Licenses")
-	assert.Contains(t, *s.report.Runs[0].Results[0].Message.Text, licenses[0])
-	assert.Contains(t, *s.report.Runs[0].Results[1].Message.Markdown, sampleVulnSummary)
-	assert.Contains(t, *s.report.Runs[0].Results[1].Message.Text, sampleVulnSummary)
-	assert.Contains(t, *s.report.Runs[0].Results[2].Message.Markdown, "GitHub Project")
-	assert.Contains(t, *s.report.Runs[0].Results[2].Message.Text, sampleProjectName)
+	assert.Contains(t, *builder.report.Runs[0].Results[0].Message.Markdown, "Licenses")
+	assert.Contains(t, *builder.report.Runs[0].Results[0].Message.Text, licenses[0])
+	assert.Contains(t, *builder.report.Runs[0].Results[1].Message.Markdown, sampleVulnSummary)
+	assert.Contains(t, *builder.report.Runs[0].Results[1].Message.Text, sampleVulnSummary)
+	assert.Contains(t, *builder.report.Runs[0].Results[2].Message.Markdown, "GitHub Project")
+	assert.Contains(t, *builder.report.Runs[0].Results[2].Message.Text, sampleProjectName)
 }

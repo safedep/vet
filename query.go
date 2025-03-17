@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/safedep/dry/utils"
@@ -27,6 +29,9 @@ var (
 	queryJsonReportPath                 string
 	queryGraphReportPath                string
 	queryCsvReportPath                  string
+	queryReportDefectDojo               bool
+	queryDefectDojoHostUrl              string
+	queryDefectDojoProductID            int
 	querySarifReportPath                string
 	queryExceptionsFile                 string
 	queryExceptionsTill                 string
@@ -80,8 +85,25 @@ func newQueryCommand() *cobra.Command {
 		"Generate dependency graph as graphviz dot files to directory")
 	cmd.Flags().StringVarP(&queryCsvReportPath, "report-csv", "", "",
 		"Generate CSV report of filtered packages to file")
+	cmd.Flags().BoolVarP(&queryReportDefectDojo, "report-defect-dojo", "", false, "Report to DefectDojo")
+	cmd.Flags().StringVarP(&queryDefectDojoHostUrl, "defect-dojo-host-url", "", "",
+		"DefectDojo Host URL eg. http://localhost:8080")
+	cmd.Flags().IntVarP(&queryDefectDojoProductID, "defect-dojo-product-id", "", -1, "DefectDojo Product ID")
 	cmd.Flags().StringVarP(&querySarifReportPath, "report-sarif", "", "",
 		"Generate SARIF report to file")
+
+	// Add validations that should trigger a fail fast condition
+	cmd.PreRun = func(cmd *cobra.Command, args []string) {
+		err := func() error {
+			if queryReportDefectDojo && (queryDefectDojoProductID == -1 || utils.IsEmptyString(queryDefectDojoHostUrl)) {
+				return fmt.Errorf("defect dojo Host URL & product ID are required for defect dojo report")
+			}
+
+			return nil
+		}()
+
+		command.FailOnError("pre-scan", err)
+	}
 	return cmd
 }
 
@@ -217,6 +239,30 @@ func internalStartQuery() error {
 				Name:    "vet",
 				Version: version,
 			},
+		})
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if queryReportDefectDojo {
+		defectDojoApiV2Key := os.Getenv("DEFECT_DOJO_APIV2_KEY")
+		if utils.IsEmptyString(defectDojoApiV2Key) {
+			return fmt.Errorf("please set DEFECT_DOJO_APIV2_KEY environment variable to enable defect-dojo reporting")
+		}
+
+		engagementName := fmt.Sprintf("vet-report-%s", time.Now().Format("2006-01-02"))
+		rp, err := reporter.NewDefectDojoReporter(reporter.DefectDojoReporterConfig{
+			Tool: reporter.DefectDojoToolMetadata{
+				Name:    "vet",
+				Version: version,
+			},
+			ProductID:          queryDefectDojoProductID,
+			EngagementName:     engagementName,
+			DefectDojoHostUrl:  queryDefectDojoHostUrl,
+			DefectDojoApiV2Key: defectDojoApiV2Key,
 		})
 		if err != nil {
 			return err
