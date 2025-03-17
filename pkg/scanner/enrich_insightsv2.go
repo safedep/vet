@@ -1,17 +1,17 @@
 package scanner
 
 import (
-	"context"
-
 	"buf.build/gen/go/safedep/api/grpc/go/safedep/services/insights/v2/insightsv2grpc"
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	vulnerabilityv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/vulnerability/v1"
 	insightsv2 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/insights/v2"
+	"context"
 	"github.com/safedep/dry/semver"
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 	"google.golang.org/grpc"
+	"strings"
 )
 
 type insightsBasedPackageEnricherV2 struct {
@@ -61,7 +61,32 @@ func (e *insightsBasedPackageEnricherV2) Enrich(pkg *models.Package,
 		return err
 	}
 
-	return e.applyInsights(pkg, res)
+	// Apply insights to the package
+	if err := e.applyInsights(pkg, res); err != nil {
+		logger.Debugf("Failed to apply insights to package: %s/%s: %v",
+			pkg.GetName(), pkg.GetVersion(), err)
+		return err
+	}
+
+	// For all dependencies call the callback function
+	for _, dep := range res.GetInsight().GetDependencies() {
+		if strings.EqualFold(dep.GetPackage().Name, pkg.GetName()) {
+			// Skip cyclic references
+			continue
+		}
+
+		if err := cb(&models.Package{
+			Manifest: pkg.Manifest,
+			Parent:   pkg,
+			Depth:    pkg.Depth + 1,
+			PackageDetails: models.NewPackageDetail(dep.GetPackage().GetEcosystem().String(),
+				dep.GetPackage().Name, dep.GetVersion()),
+		}); err != nil {
+			logger.Errorf("package dependency callback failed: %v\n", err)
+		}
+	}
+
+	return nil
 }
 
 func (e *insightsBasedPackageEnricherV2) applyInsights(pkg *models.Package,
