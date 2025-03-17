@@ -79,10 +79,10 @@ func (e *insightsBasedPackageEnricherV2) Enrich(pkg *models.Package,
 			Manifest: pkg.Manifest,
 			Parent:   pkg,
 			Depth:    pkg.Depth + 1,
-			PackageDetails: models.NewPackageDetail(dep.GetPackage().GetEcosystem().String(),
+			PackageDetails: models.NewPackageDetail(models.GetModelEcosystem(dep.GetPackage().Ecosystem),
 				dep.GetPackage().Name, dep.GetVersion()),
 		}); err != nil {
-			logger.Errorf("package dependency callback failed: %v\n", err)
+			logger.Errorf("package dependency callback failed: %v", err)
 		}
 	}
 
