@@ -22,10 +22,11 @@ type uvLockPackage struct {
 }
 
 type uvLockPackageSource struct {
-	Type   string `toml:"type"`
-	URL    string `toml:"url"`
-	Subdir string `toml:"subdir,omitempty"`
-	Ref    string `toml:"ref,omitempty"`
+	Type    string `toml:"type"`
+	URL     string `toml:"url"`
+	Subdir  string `toml:"subdir,omitempty"`
+	Ref     string `toml:"ref,omitempty"`
+	Virtual string `toml:"virtual,omitempty"`
 }
 
 type uvDependency struct {
@@ -71,9 +72,9 @@ func parseUvPackageLockAsGraph(lockfilePath string, config *ParserConfig) (*mode
 
 	defer func() {
 		for _, pkg := range parsedLockFile.Packages {
-			if len(pkg.Metadata.RequiresDist) != 0 {
-				for _, dep := range pkg.Metadata.RequiresDist {
-					node := uvGraphFindByVersionRange(dependencyGraph, dep.Name, dep.Specifier)
+			if pkg.Source.Virtual != "" {
+				for _, dep := range pkg.Dependencies {
+					node := uvFindPackageByName(dependencyGraph, dep.Name)
 					if node != nil {
 						node.SetRoot(true)
 					}
@@ -89,7 +90,9 @@ func parseUvPackageLockAsGraph(lockfilePath string, config *ParserConfig) (*mode
 			Manifest:       manifest,
 		}
 
-		dependencyGraph.AddNode(pkg)
+		if pkgInfo.Source.Virtual == "" {
+			dependencyGraph.AddNode(pkg)
+		}
 
 		for _, depName := range pkgInfo.Dependencies {
 			defer uvGraphAddDependencyRelation(dependencyGraph, pkg, depName.Name)
