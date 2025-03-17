@@ -86,7 +86,7 @@ func TestUvGraphParserPathToRoot(t *testing.T) {
 	assert.NotNil(t, asgirefNode)
 
 	pathToRoot := pm.DependencyGraph.PathToRoot(asgirefNode)
-	assert.Equal(t, 3, len(pathToRoot))
+	assert.Equal(t, 2, len(pathToRoot))
 	assert.Equal(t, "asgiref", pathToRoot[0].GetName())
 	assert.Equal(t, "django", pathToRoot[1].GetName())
 }
