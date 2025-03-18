@@ -9,6 +9,7 @@ require (
 	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.5-20250312090301-a3dc128f144f.1
 	entgo.io/ent v0.14.3
 	github.com/AlecAivazis/survey/v2 v2.3.7
+	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c
 	github.com/CycloneDX/cyclonedx-go v0.9.2
 	github.com/anchore/syft v1.20.0
 	github.com/cayleygraph/cayley v0.7.7-0.20240706181042-81dcd7d73e45
@@ -56,7 +57,6 @@ require (
 	github.com/Antonboom/errname v1.0.0 // indirect
 	github.com/Antonboom/nilnil v1.0.1 // indirect
 	github.com/Antonboom/testifylint v1.5.2 // indirect
-	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c // indirect
 	github.com/CloudyKit/fastprinter v0.0.0-20200109182630-33d98a066a53 // indirect
 	github.com/CloudyKit/jet/v6 v6.3.1 // indirect
 	github.com/Crocmagnon/fatcontext v0.7.1 // indirect
