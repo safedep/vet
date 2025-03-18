@@ -127,14 +127,6 @@ type workItem struct {
 	event *analyzer.AnalyzerEvent
 }
 
-type SyncReporterCallbacks struct {
-	OnPackageSync     func(pkg *models.Package)
-	OnPackageSyncDone func(pkg *models.Package)
-	OnEventSync       func(event *analyzer.AnalyzerEvent)
-	OnEventSyncDone   func(event *analyzer.AnalyzerEvent)
-	OnSyncFinish      func()
-}
-
 type syncReporter struct {
 	config    *SyncReporterConfig
 	workQueue chan *workItem
@@ -261,7 +253,7 @@ func (s *syncReporter) AddPolicyEvent(event *policy.PolicyEvent) {
 
 func (s *syncReporter) Finish() error {
 	s.wg.Wait()
-	s.callbacks.OnSyncFinish()
+	s.dispatchOnSyncFinish()
 	close(s.done)
 
 	return s.sessions.forEach(func(_ string, session *syncSession) error {
@@ -272,7 +264,6 @@ func (s *syncReporter) Finish() error {
 				ToolSession: &controltowerv1.ToolSession{
 					ToolSessionId: session.sessionId,
 				},
-
 				Status: controltowerv1.CompleteToolSessionRequest_STATUS_SUCCESS,
 			})
 
@@ -282,13 +273,13 @@ func (s *syncReporter) Finish() error {
 
 func (s *syncReporter) queueEvent(event *analyzer.AnalyzerEvent) {
 	s.wg.Add(1)
-	s.callbacks.OnEventSync(event)
+	s.dispatchOnEventSync(event)
 	s.workQueue <- &workItem{event: event}
 }
 
 func (s *syncReporter) queuePackage(pkg *models.Package) {
 	s.wg.Add(1)
-	s.callbacks.OnPackageSync(pkg)
+	s.dispatchOnPackageSync(pkg)
 	s.workQueue <- &workItem{pkg: pkg}
 }
 
@@ -401,7 +392,7 @@ func (s *syncReporter) syncEvent(event *analyzer.AnalyzerEvent) error {
 		return fmt.Errorf("failed to publish policy violation: %w", err)
 	}
 
-	s.callbacks.OnEventSyncDone(event)
+	s.dispatchOnEventSyncDone(event)
 	return nil
 }
 
@@ -539,6 +530,6 @@ func (s *syncReporter) syncPackage(pkg *models.Package) error {
 		return fmt.Errorf("failed to publish package insight: %w", err)
 	}
 
-	s.callbacks.OnPackageSyncDone(pkg)
+	s.dispatchOnPackageSyncDone(pkg)
 	return nil
 }

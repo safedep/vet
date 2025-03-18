@@ -688,11 +688,17 @@ func internalStartScan() error {
 			ui.IncrementProgress(packageTracker, 1)
 		},
 		BeforeFinish: func() {
+			// Only mark package and manifest trackers as done
 			ui.MarkTrackerAsDone(packageManifestTracker)
 			ui.MarkTrackerAsDone(packageTracker)
+		},
+		OnStop: func(err error) {
+			// Keep progress writer active until everything is done
 			if syncReport {
+				// Wait for sync reporter to finish before marking its tracker done
 				ui.MarkTrackerAsDone(syncReportTracker)
 			}
+			// Stop progress writer last after all operations are complete
 			ui.StopProgressWriter()
 		},
 	})
