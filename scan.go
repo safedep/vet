@@ -506,6 +506,9 @@ func internalStartScan() error {
 		reporters = append(reporters, rp)
 	}
 
+	// UI tracker (progress bar) for cloud report syncing
+	var syncReportTracker any
+
 	if syncReport {
 		clientConn, err := auth.SyncClientConnection("vet-sync")
 		if err != nil {
@@ -519,6 +522,22 @@ func internalStartScan() error {
 			ProjectVersion:         syncReportStream,
 			EnableMultiProjectSync: syncEnableMultiProject,
 			ClientConnection:       clientConn,
+		}, reporter.SyncReporterCallbacks{
+			OnPackageSync: func(pkg *models.Package) {
+				ui.IncrementTrackerTotal(syncReportTracker, 1)
+			},
+			OnPackageSyncDone: func(pkg *models.Package) {
+				ui.IncrementProgress(syncReportTracker, 1)
+			},
+			OnEventSync: func(event *analyzer.AnalyzerEvent) {
+				ui.IncrementTrackerTotal(syncReportTracker, 1)
+			},
+			OnEventSyncDone: func(event *analyzer.AnalyzerEvent) {
+				ui.IncrementProgress(syncReportTracker, 1)
+			},
+			OnSyncFinish: func() {
+				ui.PrintSuccess("Syncing report data to cloud is complete")
+			},
 		})
 		if err != nil {
 			return err
@@ -655,6 +674,9 @@ func internalStartScan() error {
 
 			packageManifestTracker = ui.TrackProgress("Scanning manifests", 0)
 			packageTracker = ui.TrackProgress("Scanning packages", 0)
+			if syncReport {
+				syncReportTracker = ui.TrackProgress("Uploading reports", 0)
+			}
 		},
 		OnAddTransitivePackage: func(pkg *models.Package) {
 			ui.IncrementTrackerTotal(packageTracker, 1)
@@ -668,6 +690,7 @@ func internalStartScan() error {
 		BeforeFinish: func() {
 			ui.MarkTrackerAsDone(packageManifestTracker)
 			ui.MarkTrackerAsDone(packageTracker)
+			ui.MarkTrackerAsDone(syncReportTracker)
 			ui.StopProgressWriter()
 		},
 	})
