@@ -690,7 +690,9 @@ func internalStartScan() error {
 		BeforeFinish: func() {
 			ui.MarkTrackerAsDone(packageManifestTracker)
 			ui.MarkTrackerAsDone(packageTracker)
-			ui.MarkTrackerAsDone(syncReportTracker)
+			if syncReport {
+				ui.MarkTrackerAsDone(syncReportTracker)
+			}
 			ui.StopProgressWriter()
 		},
 	})
