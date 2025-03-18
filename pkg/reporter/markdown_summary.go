@@ -491,8 +491,10 @@ func (r *markdownSummaryReporter) getCheckIconForThreats(internalModel *vetResul
 func (r *markdownSummaryReporter) getAdviceSummary(adv *jsonreportspec.RemediationAdvice) (string, error) {
 	switch adv.Type {
 	case jsonreportspec.RemediationAdviceType_UpgradePackage:
-		return fmt.Sprintf("Upgrade to %s@%s", adv.GetTargetPackageName(),
-			adv.GetTargetPackageVersion()), nil
+		if adv.GetTargetPackageVersion() != "" {
+			return fmt.Sprintf("Upgrade to %s@%s", adv.GetTargetPackageName(),
+				adv.GetTargetPackageVersion()), nil
+		}
 	case jsonreportspec.RemediationAdviceType_AlternatePopularPackage:
 		return "Use an alternative package that is popular", nil
 	case jsonreportspec.RemediationAdviceType_AlternateSecurePackage:
