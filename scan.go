@@ -677,6 +677,8 @@ func internalStartScan() error {
 
 			packageManifestTracker = ui.TrackProgress("Scanning manifests", 0)
 			packageTracker = ui.TrackProgress("Scanning packages", 0)
+
+			// We use a separate tracker for syncing report data
 			if syncReport {
 				syncReportTracker = ui.TrackProgress("Uploading reports", 0)
 			}
@@ -694,12 +696,12 @@ func internalStartScan() error {
 			// Only mark package and manifest trackers as done
 			ui.MarkTrackerAsDone(packageManifestTracker)
 			ui.MarkTrackerAsDone(packageTracker)
-			ui.StopProgressWriter()
 		},
 		OnStop: func(err error) {
 			if syncReport {
 				ui.MarkTrackerAsDone(syncReportTracker)
 			}
+
 			ui.StopProgressWriter()
 		},
 	})
