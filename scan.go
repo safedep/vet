@@ -523,6 +523,9 @@ func internalStartScan() error {
 			EnableMultiProjectSync: syncEnableMultiProject,
 			ClientConnection:       clientConn,
 		}, reporter.SyncReporterCallbacks{
+			OnSyncStart: func() {
+				ui.PrintMsg("🌐 Syncing data to SafeDep Cloud...")
+			},
 			OnPackageSync: func(pkg *models.Package) {
 				ui.IncrementTrackerTotal(syncReportTracker, 1)
 			},
@@ -691,14 +694,12 @@ func internalStartScan() error {
 			// Only mark package and manifest trackers as done
 			ui.MarkTrackerAsDone(packageManifestTracker)
 			ui.MarkTrackerAsDone(packageTracker)
+			ui.StopProgressWriter()
 		},
 		OnStop: func(err error) {
-			// Keep progress writer active until everything is done
 			if syncReport {
-				// Wait for sync reporter to finish before marking its tracker done
 				ui.MarkTrackerAsDone(syncReportTracker)
 			}
-			// Stop progress writer last after all operations are complete
 			ui.StopProgressWriter()
 		},
 	})

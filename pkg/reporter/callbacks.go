@@ -8,11 +8,12 @@ import (
 // SyncReporterCallbacks are effects trigger during Cloud Sync Report Process
 // This is primarily used to show progress bar on the terminal
 type SyncReporterCallbacks struct {
+	OnSyncStart       func()
+	OnSyncFinish      func()
 	OnPackageSync     func(pkg *models.Package)
 	OnPackageSyncDone func(pkg *models.Package)
 	OnEventSync       func(event *analyzer.AnalyzerEvent)
 	OnEventSyncDone   func(event *analyzer.AnalyzerEvent)
-	OnSyncFinish      func()
 }
 
 func (s *syncReporter) dispatchOnPackageSync(pkg *models.Package) {
@@ -36,6 +37,12 @@ func (s *syncReporter) dispatchOnEventSync(event *analyzer.AnalyzerEvent) {
 func (s *syncReporter) dispatchOnEventSyncDone(event *analyzer.AnalyzerEvent) {
 	if s.callbacks.OnEventSyncDone != nil {
 		s.callbacks.OnEventSyncDone(event)
+	}
+}
+
+func (s *syncReporter) dispatchOnSyncStart() {
+	if s.callbacks.OnSyncStart != nil {
+		s.callbacks.OnSyncStart()
 	}
 }
 

@@ -193,6 +193,7 @@ func NewSyncReporter(config SyncReporterConfig, callbacks SyncReporterCallbacks)
 		callbacks: callbacks,
 	}
 
+	self.dispatchOnSyncStart()
 	self.startWorkers()
 	return self, nil
 }
