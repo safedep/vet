@@ -49,6 +49,9 @@ func (p *lockfileReader) EnumManifests(handler func(*models.PackageManifest,
 		}
 
 		manifest, err := lfParser.Parse(rf)
+		if err != nil {
+			return err
+		}
 		var updatedPkgs []*models.Package
 		for _, pkg := range manifest.Packages {
 			if pkg.PackageDetails.Version != "0.0.0" && pkg.PackageDetails.Version != "" {
