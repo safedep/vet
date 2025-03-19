@@ -15,17 +15,31 @@
 [![Scorecard supply-chain security](https://github.com/safedep/vet/actions/workflows/scorecard.yml/badge.svg)](https://github.com/safedep/vet/actions/workflows/scorecard.yml)
 [![Twitter](https://img.shields.io/twitter/follow/safedepio?style=social)](https://twitter.com/intent/follow?screen_name=safedepio)
 
+# 🔍 vet
+
+`vet` is a tool for identifying risks in open source software supply chain using
+an opinionated policy expressed as [Common Expressions Language](https://cel.dev/) and extensive
+package security metadata including
+
+- Code Analysis
+- Vulnerabilities
+- Popularity
+- Maintenance
+- Extended License Attributes
+- OpenSSF Scorecard
+
+## 🐞 Malicious Code Analysis
+
+`vet` is integrated with [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis) for real time protection against
+malicious open source packages through active code scanning and analysis. [vet-action](https://github.com/safedep/vet-action)
+seamlessly integrates `vet` in GitHub Action for proactive guardrails against malicious code from open sources.
+
+
 ## 🔥 vet in action
 
 ![vet Demo](./docs/assets/vet-demo.gif)
 
-## Policy as Code for Open Source Software Supply Chain
-
-`vet` is a tool for identifying risks in open source software supply chain. It
-goes beyond just vulnerabilities and provides visibility on OSS package risks
-due to it's license, popularity, security hygiene, and more. `vet` is designed
-with the goal of helping software development teams consume safe and trusted
-OSS components through automated vetting in CI/CD.
+# 🚀 Let's go!
 
 * [Getting Started](#getting-started)
   * [Running Scan](#running-scan)
