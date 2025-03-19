@@ -34,6 +34,11 @@ package security metadata including
 malicious open source packages through active code scanning and analysis. [vet-action](https://github.com/safedep/vet-action)
 seamlessly integrates `vet` in GitHub Action for proactive guardrails against malicious code from open sources.
 
+## 🎯 Policy as Code
+
+`vet` is built for users who intend to enforce guardrails against open source supply chain attacks using their opinionated
+policies. Security guardrails can be built by expressing policies as [CEL](https://cel.dev/) which `vet` enforces in CI/CD.
+
 
 ## 🔥 vet in action
 
