@@ -17,16 +17,17 @@
 
 # 🔍 vet
 
-`vet` is a tool for identifying risks in open source software supply chain using
+`vet` is a tool for **protecting against open source software supply chain attacks**. To adapt to organizational needs, it uses
 an opinionated policy expressed as [Common Expressions Language](https://cel.dev/) and extensive
 package security metadata including
 
-- Code Analysis
-- Vulnerabilities
-- Popularity
-- Maintenance
-- Extended License Attributes
-- OpenSSF Scorecard
+- **Code Analysis** to guard against risks that actually matter
+- **Vulnerabilities** from [OSV](https://osv.dev)
+- **Popularity** based guardrails to prevent unvetted or risky packages
+- **Maintenance** status of the package
+- **Extended License Attributes** based compliance
+- **OpenSSF Scorecard** based 3rd party OSS risk management
+- **Direct** and **Transitive** dependency analysis for coverage
 
 ## 🐞 Malicious Code Analysis
 
