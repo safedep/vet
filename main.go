@@ -115,12 +115,8 @@ func printBanner() {
 }
 
 func checkIfPackageInspectCommandEnabled() bool {
-	bRet, err := strconv.ParseBool(os.Getenv("VET_ENABLE_PACKAGE_INSPECT_COMMAND"))
-	if err != nil {
-		return false
-	}
-
-	return bRet
+	// Enabled by default now that we have tested this for a while
+	return true
 }
 
 // Redirect to file or discard log if empty
