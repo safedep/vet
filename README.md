@@ -47,28 +47,38 @@ policies. Security guardrails can be built by expressing policies as [CEL](https
 
 # 🚀 Let's go!
 
-* [Getting Started](#getting-started)
-  * [Running Scan](#running-scan)
-    * [Scanning Binary Artifacts](#scanning-binary-artifacts)
-    * [Scanning SBOM](#scanning-sbom)
-    * [Scanning Github Repositories](#scanning-github-repositories)
-    * [Scanning Github Organization](#scanning-github-organization)
-    * [Scanning Package URL](#scanning-package-url)
-    * [Available Parsers](#available-parsers)
-* [Policy as Code](#policy-as-code)
-* [Query Mode](#query-mode)
-* [Reporting](#reporting)
-* [CI/CD Integration](#ci/cd-integration)
-  * [📦 GitHub Action](#-github-action)
-  * [🚀 GitLab CI](#-gitlab-ci)
-* [🐙 Malicious Package Analysis](#-malicious-package-analysis)
-* [🛠️ Advanced Usage](#-advanced-usage)
-* [📖 Documentation](#-documentation)
-* [🎊 Community](#-community)
-* [💻 Development](#-development)
-* [Support](#support)
-* [Star History](#star-history)
-* [🔖 References](#-references)
+- [🔍 vet](#-vet)
+  - [🐞 Malicious Code Analysis](#-malicious-code-analysis)
+  - [🎯 Policy as Code](#-policy-as-code)
+  - [🔥 vet in action](#-vet-in-action)
+- [🚀 Let's go!](#-lets-go)
+  - [Getting Started](#getting-started)
+    - [Running Scan](#running-scan)
+      - [Scanning Binary Artifacts](#scanning-binary-artifacts)
+      - [Scanning SBOM](#scanning-sbom)
+      - [Scanning Github Repositories](#scanning-github-repositories)
+      - [Scanning Github Organization](#scanning-github-organization)
+      - [Scanning Package URL](#scanning-package-url)
+      - [Available Parsers](#available-parsers)
+  - [Policy as Code](#policy-as-code)
+    - [Vulnerability](#vulnerability)
+    - [License](#license)
+    - [Scorecard](#scorecard)
+  - [Query Mode](#query-mode)
+  - [Reporting](#reporting)
+  - [CI/CD Integration](#cicd-integration)
+    - [📦 GitHub Action](#-github-action)
+    - [🚀 GitLab CI](#-gitlab-ci)
+  - [🐙 Malicious Package Analysis](#-malicious-package-analysis)
+    - [🔍 Scanning Visual Studio Code Extensions](#-scanning-visual-studio-code-extensions)
+    - [🔍 Scanning GitHub Actions (or any other GitHub repository)](#-scanning-github-actions-or-any-other-github-repository)
+  - [🛠️ Advanced Usage](#️-advanced-usage)
+  - [📖 Documentation](#-documentation)
+  - [🎊 Community](#-community)
+  - [💻 Development](#-development)
+  - [Support](#support)
+  - [Star History](#star-history)
+  - [🔖 References](#-references)
 
 ## Getting Started
 
@@ -316,6 +326,37 @@ for a `timeout` period for response. Not all package analysis may be completed
 within the timeout period. However, subsequent scans will fetch the results if
 available and lead to increased coverage over time. Adjust the timeout using
 `--malware-analysis-timeout` flag.
+
+### 🔍 Scanning Visual Studio Code Extensions
+
+- Auto-discover and scan Visual Studio Code extensions in the local system
+
+```bash
+vet scan --vsx --malware
+```
+
+### 🔍 Scanning GitHub Actions (or any other GitHub repository)
+
+- Scan a single GitHub Actions workflow using `inspect` command
+
+```bash
+vet inspect malware --purl pkg:github/safedep/vet-action@v1
+```
+
+- The same convention can be used to inspect any GitHub repository reference
+
+```bash
+vet inspect malware --purl pkg:github/safedep/vet@v1.9.5
+```
+
+- Scan all GitHub Actions workflows in a repository
+
+```bash
+vet scan -D .github/workflows --malware
+```
+
+**Note:** `vet` will resolve the commit hash for the given version and use it for malware analysis.
+This is because GitHub repository tags are mutable and can be changed.
 
 ## 🛠️ Advanced Usage
 

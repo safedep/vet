@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/go-github/v54/github"
+	"github.com/safedep/dry/adapters"
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/internal/command"
@@ -627,10 +628,15 @@ func internalStartScan() error {
 			return err
 		}
 
+		githubClient, err := adapters.NewGithubClient(adapters.DefaultGitHubClientConfig())
+		if err != nil {
+			return fmt.Errorf("failed to create Github client: %w", err)
+		}
+
 		config := scanner.DefaultMalysisMalwareEnricherConfig()
 		config.Timeout = malwareAnalysisTimeout
 
-		malwareEnricher, err := scanner.NewMalysisMalwareEnricher(client, config)
+		malwareEnricher, err := scanner.NewMalysisMalwareEnricher(client, githubClient, config)
 		if err != nil {
 			return err
 		}

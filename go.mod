@@ -9,6 +9,7 @@ require (
 	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.5-20250312090301-a3dc128f144f.1
 	entgo.io/ent v0.14.3
 	github.com/AlecAivazis/survey/v2 v2.3.7
+	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c
 	github.com/CycloneDX/cyclonedx-go v0.9.2
 	github.com/anchore/syft v1.20.0
 	github.com/cayleygraph/cayley v0.7.7-0.20240706181042-81dcd7d73e45
@@ -22,6 +23,7 @@ require (
 	github.com/gojek/heimdall/v7 v7.0.3
 	github.com/golang/protobuf v1.5.4
 	github.com/google/cel-go v0.24.1
+	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-github/v54 v54.0.0
 	github.com/google/osv-scanner v1.9.2
 	github.com/hashicorp/hcl/v2 v2.23.0
@@ -32,7 +34,7 @@ require (
 	github.com/owenrumney/go-sarif/v2 v2.3.3
 	github.com/package-url/packageurl-go v0.1.3
 	github.com/safedep/code v0.0.0-20250312034900-2c213d0ff4a6
-	github.com/safedep/dry v0.0.0-20250305143146-a77eda46ba77
+	github.com/safedep/dry v0.0.0-20250320093822-0f025f3695ce
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smacker/go-tree-sitter v0.0.0-20240827094217-dd81d9e9be82
 	github.com/spdx/tools-golang v0.5.5
@@ -56,7 +58,6 @@ require (
 	github.com/Antonboom/errname v1.0.0 // indirect
 	github.com/Antonboom/nilnil v1.0.1 // indirect
 	github.com/Antonboom/testifylint v1.5.2 // indirect
-	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c // indirect
 	github.com/CloudyKit/fastprinter v0.0.0-20200109182630-33d98a066a53 // indirect
 	github.com/CloudyKit/jet/v6 v6.3.1 // indirect
 	github.com/Crocmagnon/fatcontext v0.7.1 // indirect
@@ -176,6 +177,7 @@ require (
 	github.com/gomarkdown/markdown v0.0.0-20250311123330-531bef5e742b // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/go-containerregistry v0.20.3 // indirect
+	github.com/google/go-github/v70 v70.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/licensecheck v0.3.1 // indirect
 	github.com/google/pprof v0.0.0-20250302191652-9094ed2288e7 // indirect
