@@ -7,25 +7,27 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	"github.com/safedep/dry/semver"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 )
 
 type uvLockPackage struct {
-	Name         string                    `toml:"name"`
-	Version      string                    `toml:"version"`
-	Source       uvLockPackageSource       `toml:"source"`
-	Dependencies []uvDependency            `toml:"dependencies"`
-	Groups       map[string][]uvDependency `toml:"optional-dependencies"`
-	Metadata     Metadata                  `toml:"metadata"`
+	Name                 string                    `toml:"name"`
+	Version              string                    `toml:"version"`
+	Source               uvLockPackageSource       `toml:"source"`
+	Dependencies         []uvDependency            `toml:"dependencies"`
+	OptionalDependencies map[string][]uvDependency `toml:"optional-dependencies"`
+	DevDependencies      map[string][]uvDependency `toml:"dev-dependencies"`
+	Metadata             Metadata                  `toml:"metadata"`
 }
 
 type uvLockPackageSource struct {
-	Type   string `toml:"type"`
-	URL    string `toml:"url"`
-	Subdir string `toml:"subdir,omitempty"`
-	Ref    string `toml:"ref,omitempty"`
+	Type     string `toml:"type"`
+	URL      string `toml:"url"`
+	Subdir   string `toml:"subdir,omitempty"`
+	Ref      string `toml:"ref,omitempty"`
+	Virtual  string `toml:"virtual,omitempty"`
+	Editable string `toml:"editable,omitempty"`
 }
 
 type uvDependency struct {
@@ -71,9 +73,9 @@ func parseUvPackageLockAsGraph(lockfilePath string, config *ParserConfig) (*mode
 
 	defer func() {
 		for _, pkg := range parsedLockFile.Packages {
-			if len(pkg.Metadata.RequiresDist) != 0 {
-				for _, dep := range pkg.Metadata.RequiresDist {
-					node := uvGraphFindByVersionRange(dependencyGraph, dep.Name, dep.Specifier)
+			if pkg.Source.Virtual != "" || pkg.Source.Editable != "" {
+				for _, dep := range pkg.Dependencies {
+					node := uvFindPackageByName(dependencyGraph, dep.Name)
 					if node != nil {
 						node.SetRoot(true)
 					}
@@ -89,14 +91,26 @@ func parseUvPackageLockAsGraph(lockfilePath string, config *ParserConfig) (*mode
 			Manifest:       manifest,
 		}
 
-		dependencyGraph.AddNode(pkg)
+		if pkgInfo.Source.Virtual == "" || pkgInfo.Source.Editable == "" {
+			dependencyGraph.AddNode(pkg)
+		}
 
 		for _, depName := range pkgInfo.Dependencies {
 			defer uvGraphAddDependencyRelation(dependencyGraph, pkg, depName.Name)
 		}
 
-		for groupName, deps := range pkgInfo.Groups {
-			if !config.IncludeDevDependencies && isDevGroup(groupName) {
+		for _, deps := range pkgInfo.OptionalDependencies {
+			if !config.IncludeDevDependencies {
+				continue
+			}
+
+			for _, depName := range deps {
+				defer uvGraphAddDependencyRelation(dependencyGraph, pkg, depName.Name)
+			}
+		}
+
+		for _, deps := range pkgInfo.DevDependencies {
+			if !config.IncludeDevDependencies {
 				continue
 			}
 
@@ -126,29 +140,5 @@ func uvFindPackageByName(graph *models.DependencyGraph[*models.Package], name st
 			return node
 		}
 	}
-	return nil
-}
-
-func isDevGroup(groupName string) bool {
-	return strings.Contains(strings.ToLower(groupName), "dev")
-}
-
-func uvGraphFindByVersionRange(graph *models.DependencyGraph[*models.Package],
-	name string, versionRange string,
-) *models.DependencyGraphNode[*models.Package] {
-	for _, node := range graph.GetNodes() {
-		if !strings.EqualFold(node.Data.GetName(), name) {
-			continue
-		}
-
-		if node.Data.GetVersion() == versionRange {
-			return node
-		}
-
-		if semver.IsVersionInRange(node.Data.GetVersion(), versionRange) {
-			return node
-		}
-	}
-
 	return nil
 }
