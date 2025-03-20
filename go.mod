@@ -23,7 +23,6 @@ require (
 	github.com/gojek/heimdall/v7 v7.0.3
 	github.com/golang/protobuf v1.5.4
 	github.com/google/cel-go v0.24.1
-	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-github/v54 v54.0.0
 	github.com/google/osv-scanner v1.9.2
 	github.com/hashicorp/hcl/v2 v2.23.0
