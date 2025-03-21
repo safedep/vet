@@ -5,7 +5,7 @@ go 1.24.0
 toolchain go1.24.1
 
 require (
-	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250312090301-a3dc128f144f.2
+	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250320113722-f16f868058c9.2
 	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.5-20250312090301-a3dc128f144f.1
 	entgo.io/ent v0.14.3
 	github.com/AlecAivazis/survey/v2 v2.3.7
