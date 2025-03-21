@@ -1042,8 +1042,8 @@ github.com/ryancurrah/gomodguard v1.3.5/go.mod h1:MXlEPQRxgfPQa62O8wzK3Ozbkv9Rkq
 github.com/ryanrolds/sqlclosecheck v0.5.1 h1:dibWW826u0P8jNLsLN+En7+RqWWTYrjCB9fJfSfdyCU=
 github.com/ryanrolds/sqlclosecheck v0.5.1/go.mod h1:2g3dUjoS6AL4huFdv6wn55WpLIDjY7ZgUR4J8HOO/XQ=
 github.com/ryanuber/columnize v0.0.0-20160712163229-9b3edd62028f/go.mod h1:sm1tb6uqfes/u+d4ooFouqFdy9/2g9QGwK3SQygK0Ts=
-github.com/safedep/code v0.0.0-20250312034900-2c213d0ff4a6 h1:NbKRakWmXKG9pgdSK70/U6weD3S/G3xQrMzJ4PpHFg0=
-github.com/safedep/code v0.0.0-20250312034900-2c213d0ff4a6/go.mod h1:GOdO9QLN5jUedP+0NPFb/crECesm9MjSvUfu2pZt2QU=
+github.com/safedep/code v0.0.0-20250321055437-1ad5eaa427d8 h1:fg9AZir+pM7tONRWXi7mr15UviPeHsxlA9IEl49Thu0=
+github.com/safedep/code v0.0.0-20250321055437-1ad5eaa427d8/go.mod h1:WcI0XB6AKkejX0LTHF3tOul9SBONwLNFIAvDk2tD4go=
 github.com/safedep/dry v0.0.0-20250320093822-0f025f3695ce h1:2JZuP7XMZiAIYBaRSBx5/IG4PMgCsAwUoCFOROkJuMI=
 github.com/safedep/dry v0.0.0-20250320093822-0f025f3695ce/go.mod h1:EcWFgEueluRLQbBwM1ycPSWBxz1/xQz1RTtWreuRrGA=
 github.com/sagikazarmark/crypt v0.3.0/go.mod h1:uD/D+6UF4SrIR1uGEv7bBNkNqLGqUr43MRiaGWX1Nig=
