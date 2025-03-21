@@ -12,7 +12,7 @@ ENV CGO_ENABLED=1
 
 RUN make quick-vet
 
-FROM gcr.io/distroless/cc
+FROM debian:bullseye-slim
 
 ARG TARGETPLATFORM
 
