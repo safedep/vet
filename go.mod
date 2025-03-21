@@ -32,7 +32,7 @@ require (
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/owenrumney/go-sarif/v2 v2.3.3
 	github.com/package-url/packageurl-go v0.1.3
-	github.com/safedep/code v0.0.0-20250312034900-2c213d0ff4a6
+	github.com/safedep/code v0.0.0-20250321055437-1ad5eaa427d8
 	github.com/safedep/dry v0.0.0-20250320093822-0f025f3695ce
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smacker/go-tree-sitter v0.0.0-20240827094217-dd81d9e9be82
