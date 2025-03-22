@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Checkout
         id: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Enable Cloud Cloud
         run: echo "SAFEDEP_CLOUD_MODE=true" >> $GITHUB_ENV
@@ -34,7 +34,7 @@ jobs:
         run: echo "SAFEDEP_CLOUD_MODE=false" >> $GITHUB_ENV
 
       - name: Run vet
-        uses: safedep/vet-action@v1
+        uses: safedep/vet-action@01f547ee95dfd4f8f11fa64b399e5e00f22b0801
         with:
           policy: .github/vet/policy.yml
           cloud: ${{ env.SAFEDEP_CLOUD_MODE }}
