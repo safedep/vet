@@ -1,0 +1,184 @@
+# Verify Vet is Working on Different OS / Articture
+# Ensuring `go` is not pre-installed (removing if installed)
+
+name: Test Standalone Binary Across Platforms
+
+on:
+  push:
+    branches: main
+  pull_request:
+    branches: main
+  workflow_dispatch:  # Allow manual triggers
+
+jobs:
+  upload-binary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build Vet Binary
+        uses: actions/checkout@v4
+        uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+        with:
+          go-version: '1.24'
+        run: |
+          make quick-vet
+
+      - name: Upload binary as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vet
+          path: vet  # Replace with your binary path
+          retention-days: 1
+
+  test-binary:
+    needs: upload-binary
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false  # Continue with other tests even if one fails
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        arch: [x64, arm64]
+        # Skip macOS ARM64 on GitHub-hosted runners as it runs on Rosetta
+        exclude:
+          - os: macos-latest
+            arch: arm64
+          # Skip Windows ARM64 if not needed
+          - os: windows-latest
+            arch: arm64
+
+    steps:
+      - name: Download binary
+        uses: actions/download-artifact@v4
+        with:
+          name: vet
+          path: ./
+
+      - name: Make binary executable (Unix)
+        if: runner.os != 'Windows'
+        run: chmod +x ./vet
+
+      - name: Ensure Go is not installed
+        run: |
+          # Remove Go if it exists on the runner
+          if command -v go &> /dev/null; then
+            echo "Removing Go from runner..."
+            if [ "$RUNNER_OS" == "Windows" ]; then
+              # Windows - typically in Program Files
+              rm -rf "/c/Program Files/Go"
+              rm -rf "$GITHUB_PATH/go"
+            elif [ "$RUNNER_OS" == "macOS" ]; then
+              # macOS
+              sudo rm -rf /usr/local/go
+              brew uninstall go || true
+            else
+              # Linux
+              sudo apt-get remove -y golang-go || true
+              sudo apt-get remove -y --auto-remove golang-go || true
+              sudo rm -rf /usr/local/go
+            fi
+          fi
+          
+          # Verify Go is really gone
+          if command -v go &> /dev/null; then
+            echo "ERROR: Failed to remove Go from runner!"
+            exit 1
+          else
+            echo "Confirmed: Go is not installed on this runner"
+          fi
+        shell: bash
+
+      - name: Test binary execution
+        run: |
+          ./vet version
+        shell: bash
+
+      - name: Run functional tests
+        run: |
+          ./vet scan
+        shell: bash
+
+  test-on-containers:
+    needs: upload-binary
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        container: 
+          # Minimal Linux distros that likely won't have Go installed
+          - alpine:latest
+          - busybox:latest
+          - debian:slim
+          - centos:latest
+          - ubuntu:latest # ubuntu continer does not have go installed, but ubuntu github runner has
+
+    container:
+      image: ${{ matrix.container }}
+
+    steps:
+      - name: Download binary
+        uses: actions/download-artifact@v4
+        with:
+          name: vet
+          path: ./
+
+      - name: Install basic utils (Alpine)
+        if: contains(matrix.container, 'alpine')
+        run: apk add --no-cache bash
+
+      - name: Install basic utils (BusyBox)
+        if: contains(matrix.container, 'busybox')
+        run: |
+          # BusyBox typically doesn't have package managers
+          # Just verify we can run commands
+          echo "Testing on BusyBox environment"
+
+      - name: Install basic utils (Debian/Ubuntu)
+        if: contains(matrix.container, 'debian') || contains(matrix.container, 'ubuntu')
+        run: apt-get update && apt-get install -y bash
+
+      - name: Install basic utils (CentOS)
+        if: contains(matrix.container, 'centos')
+        run: yum install -y bash
+
+      - name: Make binary executable
+        run: chmod +x ./vet
+
+      - name: Ensure Go is not installed
+        run: |
+          # Remove Go if it exists on the container
+          if command -v go &> /dev/null; then
+            echo "Removing Go from container..."
+            # Different package managers depending on container
+            if command -v apk &> /dev/null; then
+              apk del go golang || true
+            elif command -v apt-get &> /dev/null; then
+              apt-get remove -y golang-go || true
+              apt-get remove -y --auto-remove golang-go || true
+            elif command -v yum &> /dev/null; then
+              yum remove -y golang || true
+            fi
+            
+            # Remove any remaining Go installation directories
+            rm -rf /usr/local/go
+          fi
+          
+          # Verify Go is really gone
+          if command -v go &> /dev/null; then
+            echo "ERROR: Failed to remove Go from container!"
+            exit 1
+          else
+            echo "Confirmed: Go is not installed on this container"
+          fi
+        shell: bash
+
+      - name: Test binary execution
+        run: |
+          # Basic execution test
+          ./vet version
+        shell: bash
+
+      - name: Run functional tests
+        run: |
+          # Add commands to test actual functionality
+          ./vet scan
+        shell: bash
+        
