@@ -12,23 +12,25 @@ on:
 
 jobs:
   upload-binary:
-    runs-on: ${{ matrix.os }}
+    strategy:
+      runs-on: ubuntu-latest
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
-      - name: Build Vet Binary
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: Setup go 
-        uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: '1.24'
-      - name: Build binary 
+      
+      - name: Build
         run: |
-          make quick-vet
+          make quick-vet "vet-${{ matrix.os }}"
 
       - name: Upload binary as artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: vet
-          path: vet
+          name: vet-${{ matrix.os }}
+          path: vet-${{ matrix.os }}
           retention-days: 1
 
   test-binary:
@@ -38,25 +40,17 @@ jobs:
       fail-fast: false  # Continue with other tests even if one fails
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        arch: [x64, arm64]
-        # Skip macOS ARM64 on GitHub-hosted runners as it runs on Rosetta
-        exclude:
-          - os: macos-latest
-            arch: arm64
-          # Skip Windows ARM64 if not needed
-          - os: windows-latest
-            arch: arm64
 
     steps:
       - name: Download binary
         uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
         with:
-          name: vet
+          name: vet-${{ matrix.os }}
           path: ./
 
       - name: Make binary executable (Unix)
         if: runner.os != 'Windows'
-        run: chmod +x ./vet
+        run: chmod +x ./vet-${{ matrix.os }}
 
       - name: Ensure Go is not installed
         run: |
@@ -112,7 +106,7 @@ jobs:
 
       - name: Test working
         run: |
-          ./vet scan
+          ./vet-${{ matrix.os }} scan
         shell: bash
 
   test-on-containers:
