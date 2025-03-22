@@ -22,7 +22,7 @@ jobs:
         id: checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
-      - name: Enable Cloud Cloud
+      - name: Enable Cloud Mode
         run: echo "SAFEDEP_CLOUD_MODE=true" >> $GITHUB_ENV
 
       - name: Override Cloud Mode if Actor is Dependabot
