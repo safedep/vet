@@ -13,7 +13,6 @@ on:
 jobs:
   upload-binary:
     strategy:
-      runs-on: ubuntu-latest
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
