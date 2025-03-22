@@ -110,12 +110,7 @@ jobs:
           fi
         shell: bash
 
-      - name: Test binary execution
-        run: |
-          ./vet version
-        shell: bash
-
-      - name: Run functional tests
+      - name: Test working
         run: |
           ./vet scan
         shell: bash
@@ -177,13 +172,7 @@ jobs:
           fi
         shell: bash
 
-      - name: Test binary execution
-        run: |
-          # Basic execution test
-          ./vet version
-        shell: bash
-
-      - name: Run functional tests
+      - name: Run test working
         run: |
           # Add commands to test actual functionality
           ./vet scan
