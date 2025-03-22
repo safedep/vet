@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "pinner-mcp-stdio-server": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "ghcr.io/safedep/pinner-mcp:latest"
+      ]
+    }
+  }
+}

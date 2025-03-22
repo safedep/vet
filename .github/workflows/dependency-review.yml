@@ -16,6 +16,6 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: 'Checkout Repository'
-        uses: actions/checkout@v3
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
       - name: 'Dependency Review'
-        uses: actions/dependency-review-action@v3
+        uses: actions/dependency-review-action@cc4f6536e38d1126c5e3b0683d469a14f23bfea4 # v3

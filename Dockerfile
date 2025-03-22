@@ -1,4 +1,5 @@
-FROM --platform=$BUILDPLATFORM golang:1.24-bullseye AS build
+FROM --platform=$BUILDPLATFORM golang:1.24-bullseye@sha256:3c669c8fed069d80d199073b806243c4bf79ad117b797b96f18177ad9c521cff AS build
+# Original: golang:1.24-bullseye
 
 WORKDIR /build
 
@@ -12,7 +13,8 @@ ENV CGO_ENABLED=1
 
 RUN make quick-vet
 
-FROM debian:bullseye-slim
+FROM debian:11-slim@sha256:e4b93db6aad977a95aa103917f3de8a2b16ead91cf255c3ccdb300c5d20f3015
+# Original: debian:11-slim
 
 # Create nonroot user and group with specific IDs
 RUN groupadd -r nonroot --gid=65532 && \
