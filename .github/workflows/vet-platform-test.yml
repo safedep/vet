@@ -24,13 +24,13 @@ jobs:
       
       - name: Build
         run: |
-          make quick-vet "vet-${{ matrix.os }}"
+          make quick-vet
 
       - name: Upload binary as artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: vet-${{ matrix.os }}
-          path: vet-${{ matrix.os }}
+          path: vet
           retention-days: 1
 
   test-binary:
