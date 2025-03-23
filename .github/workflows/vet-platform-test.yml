@@ -44,7 +44,7 @@ jobs:
           fi
           
           # Build the binary with specific OS and architecture
-          go build -o $OUTPUT ./*.go
+          go build -o $OUTPUT
           
           # Make binary executable for non-Windows
           if [ "${{ matrix.os }}" != "windows" ]; then
