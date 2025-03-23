@@ -10,13 +10,33 @@ on:
   workflow_dispatch:  # Allows manual triggering
 
 jobs:
-  # First job: Build binaries for different operating systems
-  build:
-    name: Build for ${{ matrix.os }}
-    runs-on: ubuntu-latest
+  build-and-test:
+    name: Build and Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [linux, darwin, windows]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            binary: vet-linux
+            go_remove: |
+              sudo rm -rf /usr/local/go
+              sudo apt-get remove -y golang-go || true
+              sudo apt-get autoremove -y
+            test_cmd: ./vet-linux version
+          - os: macos-latest
+            binary: vet-darwin
+            go_remove: |
+              sudo rm -rf /usr/local/go /usr/local/bin/go
+              brew uninstall go || true
+            test_cmd: ./vet-darwin version
+          - os: windows-latest
+            binary: vet-windows.exe
+            go_remove: |
+              Remove-Item -Path "C:\Program Files\Go" -Recurse -Force -ErrorAction SilentlyContinue
+              Remove-Item -Path "C:\hostedtoolcache\windows\go" -Recurse -Force -ErrorAction SilentlyContinue
+              $env:PATH = ($env:PATH.Split(';') | Where-Object { $_ -notlike "*\Go*" }) -join ';'
+            test_cmd: .\vet-windows.exe version
 
     steps:
       - name: Checkout code
@@ -27,71 +47,67 @@ jobs:
         with:
           go-version: '1.24'
 
-      - name: Build binary
-        env:
-          CGO_ENABLED: 1
+      # Build native binary for each OS
+      - name: Build binary (Linux/macOS)
+        if: matrix.os != 'windows-latest'
         run: |
-          # Set output filename based on OS
-          if [ "${{ matrix.os }}" == "windows" ]; then
-            OUTPUT="vet-${{ matrix.os }}.exe"
-          else
-            OUTPUT="vet-${{ matrix.os }}"
-          fi
-          
-          # Build the binary with specific OS
-          go build -o $OUTPUT
-          
-          # Make binary executable for non-Windows
-          if [ "${{ matrix.os }}" != "windows" ]; then
-            chmod +x $OUTPUT
-          fi
+          go build -o ${{ matrix.binary }}
+          chmod +x ${{ matrix.binary }}
 
+      - name: Build binary (Windows)
+        if: matrix.os == 'windows-latest'
+        run: go build -o ${{ matrix.binary }}
+        shell: powershell
+
+      # Save binary as an artifact for reinstall test
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
         with:
-          name: vet-${{ matrix.os }}
-          path: vet-${{ matrix.os }}*
+          name: ${{ matrix.binary }}
+          path: ${{ matrix.binary }}
           retention-days: 1
 
-  # Second job: Test binaries on respective platforms
-  test:
-    needs: build
-    name: Test on ${{ matrix.os }}
-    runs-on: ${{ matrix.runner }}
-    strategy:
-      matrix:
-        include:
-          - os: linux
-            runner: ubuntu-latest
-            binary: vet-linux
-          - os: darwin
-            runner: macos-latest
-            binary: vet-darwin
-          - os: windows
-            runner: windows-latest
-            binary: vet-windows.exe
-
-    steps:
-      - name: Download binary
-        uses: actions/download-artifact@v4
-        with:
-          name: vet-${{ matrix.os }}
-
-      - name: Make binary executable (non-Windows)
-        if: matrix.os != 'windows'
-        run: chmod +x ${{ matrix.binary }}
+      # Remove Go before testing the binary
+      - name: Remove Go (Linux/macOS)
+        if: matrix.os != 'windows-latest'
+        run: ${{ matrix.go_remove }}
         shell: bash
 
-      - name: Test CLI (non-Windows)
-        if: matrix.os != 'windows'
+      - name: Remove Go (Windows)
+        if: matrix.os == 'windows-latest'
+        run: ${{ matrix.go_remove }}
+        shell: powershell
+
+      # Verify Go is removed
+      - name: Verify Go is removed (Linux/macOS)
+        if: matrix.os != 'windows-latest'
         run: |
-          # Run basic command
-          ./${{ matrix.binary }} version
+          if command -v go &> /dev/null; then
+            echo "ERROR: Go is still installed!"
+            exit 1
+          else
+            echo "Confirmed: Go is not available"
+          fi
         shell: bash
 
-      - name: Test CLI (Windows)
-        if: matrix.os == 'windows'
+      - name: Verify Go is removed (Windows)
+        if: matrix.os == 'windows-latest'
         run: |
-          # Run basic command
-          .\${{ matrix.binary }} version
+          if (Get-Command go -ErrorAction SilentlyContinue) {
+            Write-Host "ERROR: Go is still installed!"
+            exit 1
+          } else {
+            Write-Host "Confirmed: Go is not available"
+          }
+        shell: powershell
+
+      # Test the binary without Go installed
+      - name: Test binary (Linux/macOS)
+        if: matrix.os != 'windows-latest'
+        run: ${{ matrix.test_cmd }}
+        shell: bash
+
+      - name: Test binary (Windows)
+        if: matrix.os == 'windows-latest'
+        run: ${{ matrix.test_cmd }}
         shell: powershell
