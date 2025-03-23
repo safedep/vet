@@ -1,4 +1,4 @@
-name: Cross-Platform Binary Testing
+name: Cross-Platform Testing
 
 on:
   push:
@@ -10,17 +10,13 @@ on:
   workflow_dispatch:  # Allows manual triggering
 
 jobs:
-  # First job: Build binaries for different platforms
+  # First job: Build binaries for different operating systems
   build:
-    name: Build for ${{ matrix.os }}-${{ matrix.arch }}
+    name: Build for ${{ matrix.os }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
         os: [linux, darwin, windows]
-        arch: [amd64, arm64]
-        exclude:
-          - os: windows
-            arch: arm64
 
     steps:
       - name: Checkout code
@@ -29,27 +25,22 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24' 
+          go-version: '1.24'
 
       - name: Build binary
         env:
           GOOS: ${{ matrix.os }}
-          GOARCH: ${{ matrix.arch }}
+          GOARCH: amd64
           CGO_ENABLED: 1
         run: |
-          # Set crosscompile C compiler based on target architecture
-          if [ "${{ matrix.arch }}" == "arm64" ]; then
-            export CC=aarch64-linux-gnu-gcc
-          fi
-          
           # Set output filename based on OS
           if [ "${{ matrix.os }}" == "windows" ]; then
-            OUTPUT="vet-${{ matrix.os }}-${{ matrix.arch }}.exe"
+            OUTPUT="vet-${{ matrix.os }}.exe"
           else
-            OUTPUT="vet-${{ matrix.os }}-${{ matrix.arch }}"
+            OUTPUT="vet-${{ matrix.os }}"
           fi
           
-          # Build the binary with specific OS and architecture
+          # Build the binary with specific OS
           go build -o $OUTPUT
           
           # Make binary executable for non-Windows
@@ -60,9 +51,9 @@ jobs:
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
         with:
-          name: vet-${{ matrix.os }}-${{ matrix.arch }}
-          path: vet-${{ matrix.os }}-${{ matrix.arch }}*
-          retention-days: 1  # Keep only for the duration of the workflow
+          name: vet-${{ matrix.os }}
+          path: vet-${{ matrix.os }}*
+          retention-days: 1
 
   # Second job: Test binaries on respective platforms
   test:
@@ -73,41 +64,36 @@ jobs:
       matrix:
         include:
           - os: linux
-            arch: amd64
             runner: ubuntu-latest
+            binary: vet-linux
           - os: darwin
-            arch: amd64
             runner: macos-latest
+            binary: vet-darwin
           - os: windows
-            arch: amd64
             runner: windows-latest
+            binary: vet-windows.exe
 
     steps:
       - name: Download binary
         uses: actions/download-artifact@v4
         with:
-          name: vet-${{ matrix.os }}-${{ matrix.arch }}
+          name: vet-${{ matrix.os }}
 
       - name: Make binary executable (non-Windows)
         if: matrix.os != 'windows'
-        run: chmod +x cli-${{ matrix.os }}-${{ matrix.arch }}
+        run: chmod +x ${{ matrix.binary }}
         shell: bash
 
       - name: Test CLI (non-Windows)
         if: matrix.os != 'windows'
         run: |
-          # Verify Go is not installed
-          if command -v go &> /dev/null; then
-            echo "Warning: Go is installed on the runner"
-          fi
-          
-          # Test basic command (adjust as needed)
-          ./vet-${{ matrix.os }}-${{ matrix.arch }} version
+          # Run basic command
+          ./${{ matrix.binary }} version
         shell: bash
 
       - name: Test CLI (Windows)
         if: matrix.os == 'windows'
         run: |
-          # Test basic command (adjust as needed)
-          .\vet-${{ matrix.os }}-${{ matrix.arch }}.exe -version
+          # Run basic command
+          .\${{ matrix.binary }} version
         shell: powershell
