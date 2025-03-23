@@ -29,8 +29,6 @@ jobs:
 
       - name: Build binary
         env:
-          GOOS: ${{ matrix.os }}
-          GOARCH: amd64
           CGO_ENABLED: 1
         run: |
           # Set output filename based on OS
