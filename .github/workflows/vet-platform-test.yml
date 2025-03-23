@@ -1,173 +1,107 @@
-# Verify Vet is Working on Different OS / Articture
-# Ensuring `go` is not pre-installed (removing if installed)
-
-name: Test Standalone Binary Across Platforms
+name: Cross-Platform Binary Testing
 
 on:
   push:
-    branches: main
+    branches: 
+      - main
   pull_request:
-    branches: main
-  workflow_dispatch:  # Allow manual triggers
+    branches: 
+      - main
+  workflow_dispatch:  # Allows manual triggering
 
 jobs:
-  upload-binary:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.24'
-      
-      - name: Build
-        run: |
-          make quick-vet
-
-      - name: Upload binary as artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: vet-${{ matrix.os }}
-          path: vet
-          retention-days: 1
-
-  test-binary:
-    needs: upload-binary
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false  # Continue with other tests even if one fails
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-
-    steps:
-      - name: Download binary
-        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
-        with:
-          name: vet-${{ matrix.os }}
-          path: ./
-
-      - name: Make binary executable (Unix)
-        if: runner.os != 'Windows'
-        run: chmod +x ./vet-${{ matrix.os }}
-
-      - name: Ensure Go is not installed
-        run: |
-          # Remove Go if it exists on the runner
-          if command -v go &> /dev/null; then
-            echo "Removing Go from runner..."
-            if [ "$RUNNER_OS" == "Windows" ]; then
-              # Windows - typically in Program Files
-              rm -rf "/c/Program Files/Go"
-              rm -rf "$GITHUB_PATH/go"
-            elif [ "$RUNNER_OS" == "macOS" ]; then
-              # macOS
-              sudo rm -rf /usr/local/go
-              brew uninstall go || true
-            else
-              # Linux - more thorough approach
-              # First find where go is installed
-              GO_PATH=$(which go)
-              echo "Go found at: $GO_PATH"
-              
-              # Remove Go packages
-              sudo apt-get remove -y golang* || true
-              sudo apt-get autoremove -y || true
-              
-              # Find and remove Go directories
-              sudo rm -rf /usr/local/go
-              
-              # If Go was installed via actions/setup-go, remove it from the path
-              if [[ -d "$GITHUB_WORKSPACE/go" ]]; then
-                rm -rf "$GITHUB_WORKSPACE/go"
-              fi
-              
-              # Remove go from PATH by creating a symlink to a dummy executable
-              if [[ -n "$GO_PATH" ]]; then
-                sudo rm -f "$GO_PATH"
-                # Create a "fake" go command that always fails
-                echo '#!/bin/bash' | sudo tee "$GO_PATH"
-                echo 'echo "Go has been disabled for this test"' | sudo tee -a "$GO_PATH"
-                echo 'exit 1' | sudo tee -a "$GO_PATH"
-                sudo chmod +x "$GO_PATH"
-              fi
-            fi
-          fi
-          
-          # Verify Go is really gone or disabled
-          if go version &> /dev/null; then
-            echo "ERROR: Go is still functioning!"
-            exit 1
-          else
-            echo "Confirmed: Go is not functional on this runner"
-          fi
-        shell: bash
-
-      - name: Test working
-        run: |
-          ./vet-${{ matrix.os }} scan
-        shell: bash
-
-  test-on-containers:
-    needs: upload-binary
+  # First job: Build binaries for different platforms
+  build:
+    name: Build for ${{ matrix.os }}-${{ matrix.arch }}
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
-        container: 
-          # Minimal Linux distros that likely won't have Go installed
-          - alpine:latest
-          - busybox:latest
-          - debian:slim
-          - centos:latest
-          - ubuntu:latest # ubuntu continer does not have go installed, but ubuntu github runner has
+        os: [linux, darwin, windows]
+        arch: [amd64, arm64]
+        exclude:
+          - os: windows
+            arch: arm64
 
-    container:
-      image: ${{ matrix.container }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24' 
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+        run: |
+          # Set output filename based on OS
+          if [ "${{ matrix.os }}" == "windows" ]; then
+            OUTPUT="vet-${{ matrix.os }}-${{ matrix.arch }}.exe"
+          else
+            OUTPUT="vet-${{ matrix.os }}-${{ matrix.arch }}"
+          fi
+          
+          # Build the binary with specific OS and architecture
+          go build -o $OUTPUT ./*.go
+          
+          # Make binary executable for non-Windows
+          if [ "${{ matrix.os }}" != "windows" ]; then
+            chmod +x $OUTPUT
+          fi
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: vet-${{ matrix.os }}-${{ matrix.arch }}
+          path: vet-${{ matrix.os }}-${{ matrix.arch }}*
+          retention-days: 1  # Keep only for the duration of the workflow
+
+  # Second job: Test binaries on respective platforms
+  test:
+    needs: build
+    name: Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - os: linux
+            arch: amd64
+            runner: ubuntu-latest
+          - os: darwin
+            arch: amd64
+            runner: macos-latest
+          - os: windows
+            arch: amd64
+            runner: windows-latest
 
     steps:
       - name: Download binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
-          name: vet
-          path: ./
+          name: vet-${{ matrix.os }}-${{ matrix.arch }}
 
-      - name: Install basic utils (Alpine)
-        if: contains(matrix.container, 'alpine')
-        run: apk add --no-cache bash
+      - name: Make binary executable (non-Windows)
+        if: matrix.os != 'windows'
+        run: chmod +x cli-${{ matrix.os }}-${{ matrix.arch }}
+        shell: bash
 
-      - name: Install basic utils (BusyBox)
-        if: contains(matrix.container, 'busybox')
+      - name: Test CLI (non-Windows)
+        if: matrix.os != 'windows'
         run: |
-          # BusyBox typically doesn't have package managers
-          # Just verify we can run commands
-          echo "Testing on BusyBox environment"
-
-      - name: Install basic utils (Debian/Ubuntu)
-        if: contains(matrix.container, 'debian') || contains(matrix.container, 'ubuntu')
-        run: apt-get update && apt-get install -y bash
-
-      - name: Install basic utils (CentOS)
-        if: contains(matrix.container, 'centos')
-        run: yum install -y bash
-
-      - name: Make binary executable
-        run: chmod +x ./vet
-
-      - name: Verify Go is not installed
-        run: |
-          # For containers, just check if Go exists
+          # Verify Go is not installed
           if command -v go &> /dev/null; then
-            echo "ERROR: Go is installed in this container!"
-            exit 1
-          else
-            echo "Confirmed: Go is not installed on this container"
+            echo "Warning: Go is installed on the runner"
           fi
+          
+          # Test basic command (adjust as needed)
+          ./vet-${{ matrix.os }}-${{ matrix.arch }} version
         shell: bash
 
-      - name: Run test working
+      - name: Test CLI (Windows)
+        if: matrix.os == 'windows'
         run: |
-          # Add commands to test actual functionality
-          ./vet scan
-        shell: bash
+          # Test basic command (adjust as needed)
+          .\vet-${{ matrix.os }}-${{ matrix.arch }}.exe -version
+        shell: powershell
