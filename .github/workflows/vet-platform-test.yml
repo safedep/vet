@@ -35,7 +35,17 @@ jobs:
         env:
           GOOS: ${{ matrix.os }}
           GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: 1
         run: |
+          # Install required dependencies for CGO
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib gcc-aarch64-linux-gnu
+          
+          # Set crosscompile C compiler based on target architecture
+          if [ "${{ matrix.arch }}" == "arm64" ]; then
+            export CC=aarch64-linux-gnu-gcc
+          fi
+          
           # Set output filename based on OS
           if [ "${{ matrix.os }}" == "windows" ]; then
             OUTPUT="vet-${{ matrix.os }}-${{ matrix.arch }}.exe"
