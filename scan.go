@@ -76,6 +76,7 @@ var (
 	scannerExperimental            bool
 	malwareAnalyzerTrustToolResult bool
 	malwareAnalysisTimeout         time.Duration
+	gitlabReportPath               string
 )
 
 func newScanCommand() *cobra.Command {
@@ -189,6 +190,8 @@ func newScanCommand() *cobra.Command {
 		"Trust malicious package analysis tool result without verification record")
 	cmd.Flags().DurationVarP(&malwareAnalysisTimeout, "malware-analysis-timeout", "", 5*time.Minute,
 		"Timeout for malicious package analysis")
+	cmd.Flags().StringVarP(&gitlabReportPath, "report-gitlab", "", "",
+		"Generate GitLab dependency scanning report to file")
 
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
@@ -499,6 +502,17 @@ func internalStartScan() error {
 	if !utils.IsEmptyString(csvReportPath) {
 		rp, err := reporter.NewCsvReporter(reporter.CsvReportingConfig{
 			Path: csvReportPath,
+		})
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if !utils.IsEmptyString(gitlabReportPath) {
+		rp, err := reporter.NewGitLabReporter(reporter.GitLabReporterConfig{
+			Path: gitlabReportPath,
 		})
 		if err != nil {
 			return err
