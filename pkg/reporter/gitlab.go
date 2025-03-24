@@ -1,5 +1,11 @@
 package reporter
 
+// GitLabReporter is the reporter for GitLab.
+// This report is same for most of gitlab scanners, types
+// and schemas.
+// But we are using only for dependencyscanning report. That's we do report.type = "dependency_scanning"
+// Schema: https://gitlab.com/gitlab-org/security-products/security-report-schemas/-/raw/v15.2.1/dist/dependency-scanning-report-format.json
+
 import (
 	"encoding/json"
 	"fmt"
@@ -15,9 +21,12 @@ import (
 )
 
 type GitLabReporterConfig struct {
-	Path string
+	Path string // Report path
 }
 
+// GitLabVulnerability is the struct for the GitLab vulnerability,
+// it is used to convert the vulnerability to the GitLab format.
+// Docs: https://docs.gitlab.com/development/integrations/secure/#vulnerabilities
 type GitLabVulnerability struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
@@ -42,6 +51,10 @@ type GitLabVulnerability struct {
 	} `json:"identifiers"`
 }
 
+// GitLabReport is the struct for the GitLab, currently using the 15.2.1 schema
+// and `dependency_scanning` type.
+// but can be extended to support other types and schemas in the future.
+// docs: https://docs.gitlab.com/development/integrations/secure/#report
 type GitLabReport struct {
 	Schema  string `json:"schema"`
 	Version string `json:"version"`
@@ -88,6 +101,8 @@ func (r *gitLabReporter) Name() string {
 	return "GitLab Dependency Scanning Report Generator"
 }
 
+// GitLab backend requires time to be in this format
+// Learned the hard way :), (not that actually , thanks to Cursor)
 func formatTime(t time.Time) string {
 	return t.Format("2006-01-02T15:04:05")
 }
@@ -123,16 +138,17 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 			glVuln := GitLabVulnerability{
 				ID:          utils.SafelyGetValue(vulns[i].Id),
 				Name:        utils.SafelyGetValue(vulns[i].Summary),
-				Description: utils.SafelyGetValue(vulns[i].Summary),
+				Description: utils.SafelyGetValue(vulns[i].Summary), // Summary is good for names, but not for description, we need some more infor here
 				Severity:    severity,
-				Solution:    "Upgrade to a newer version with the fix",
+				// Todo: Solution
+				// Solution:    "Upgrade to a newer version with the fix",
 			}
 
 			// Set location info
 			glVuln.Location.File = manifest.Path
 			glVuln.Location.Dependency.Package.Name = pkg.GetName()
 			glVuln.Location.Dependency.Version = pkg.GetVersion()
-			// Since we can't determine if it's a direct dependency, we'll set it to false
+
 			glVuln.Location.Dependency.Direct = pkg.Depth == 1
 
 			// Add identifiers
