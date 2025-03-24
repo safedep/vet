@@ -43,8 +43,9 @@ type GitLabVulnerability struct {
 }
 
 type GitLabReport struct {
-	Schema string `json:"schema"`
-	Scan   struct {
+	Schema  string `json:"schema"`
+	Version string `json:"version"`
+	Scan    struct {
 		Scanner struct {
 			ID      string `json:"id"`
 			Name    string `json:"name"`
@@ -151,7 +152,8 @@ func (r *gitLabReporter) Finish() error {
 	logger.Infof("Generating GitLab dependency scanning report: %s", r.config.Path)
 
 	report := GitLabReport{
-		Schema: "https://gitlab.com/gitlab-org/security-products/security-report-schemas/-/raw/master/dist/dependency-scanning-report-format.json",
+		Schema:  "https://gitlab.com/gitlab-org/security-products/security-report-schemas/-/raw/15.2.1/dist/dependency-scanning-report-format.json",
+		Version: "15.2.1",
 	}
 
 	// Set scanner info
