@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/safedep/dry/utils"
@@ -89,6 +90,9 @@ type gitLabReporter struct {
 	startTime       time.Time
 }
 
+// Ensure gitLabReporter implements Reporter interface
+var _ Reporter = (*gitLabReporter)(nil)
+
 func NewGitLabReporter(config GitLabReporterConfig) (Reporter, error) {
 	return &gitLabReporter{
 		config:          config,
@@ -105,6 +109,85 @@ func (r *gitLabReporter) Name() string {
 // Learned the hard way :), (not that actually , thanks to Cursor)
 func formatTime(t time.Time) string {
 	return t.Format("2006-01-02T15:04:05")
+}
+
+// addIdentifiers adds all relevant identifiers for a vulnerability
+// following GitLab's identifier guidelines
+// Docs: https://docs.gitlab.com/development/integrations/secure/#identifiers
+func addIdentifiers(vuln *GitLabVulnerability, vulnData *insightapi.PackageVulnerability) {
+	// Extract identifiers from the vulnerability data
+	var cve, cwe, ghsa string
+	aliases := utils.SafelyGetValue(vulnData.Aliases)
+	for _, alias := range aliases {
+		switch {
+		case strings.HasPrefix(alias, "CVE-"):
+			cve = alias
+		case strings.HasPrefix(alias, "CWE-"):
+			cwe = alias
+		case strings.HasPrefix(alias, "GHSA-"):
+			ghsa = alias
+		}
+	}
+
+	// Add identifiers in order of priority (max 20 as per GitLab's limit)
+	identifiers := make([]struct {
+		Type  string `json:"type"`
+		Name  string `json:"name"`
+		Value string `json:"value"`
+		URL   string `json:"url"`
+	}, 0)
+
+	// Primary identifier should be CVE if available
+	if cve != "" {
+		identifiers = append(identifiers, struct {
+			Type  string `json:"type"`
+			Name  string `json:"name"`
+			Value string `json:"value"`
+			URL   string `json:"url"`
+		}{
+			Type:  "cve",
+			Name:  cve,
+			Value: cve,
+			URL:   fmt.Sprintf("https://cve.mitre.org/cgi-bin/cvename.cgi?name=%s", cve),
+		})
+	}
+
+	// Add CWE if available
+	if cwe != "" {
+		identifiers = append(identifiers, struct {
+			Type  string `json:"type"`
+			Name  string `json:"name"`
+			Value string `json:"value"`
+			URL   string `json:"url"`
+		}{
+			Type:  "cwe",
+			Name:  cwe,
+			Value: strings.TrimPrefix(cwe, "CWE-"),
+			URL:   fmt.Sprintf("https://cwe.mitre.org/data/definitions/%s.html", strings.TrimPrefix(cwe, "CWE-")),
+		})
+	}
+
+	// Add GHSA if available
+	if ghsa != "" {
+		identifiers = append(identifiers, struct {
+			Type  string `json:"type"`
+			Name  string `json:"name"`
+			Value string `json:"value"`
+			URL   string `json:"url"`
+		}{
+			Type:  "ghsa",
+			Name:  ghsa,
+			Value: strings.TrimPrefix(ghsa, "GHSA-"),
+			URL:   fmt.Sprintf("https://github.com/advisories/%s", ghsa),
+		})
+	}
+
+	// Limit to 20 identifiers as per GitLab's requirement
+	if len(identifiers) > 20 {
+		identifiers = identifiers[:20]
+	}
+
+	vuln.Identifiers = identifiers
 }
 
 func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
@@ -134,38 +217,25 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 				}
 			}
 
+			summary := utils.SafelyGetValue(vulns[i].Summary)
 			// Create GitLab vulnerability entry
 			glVuln := GitLabVulnerability{
 				ID:          utils.SafelyGetValue(vulns[i].Id),
-				Name:        utils.SafelyGetValue(vulns[i].Summary),
-				Description: utils.SafelyGetValue(vulns[i].Summary), // Summary is good for names, but not for description, we need some more infor here
+				Name:        summary,
+				Description: summary, // Using summary as description since that's what we have
 				Severity:    severity,
 				// Todo: Solution
-				// Solution:    "Upgrade to a newer version with the fix",
+				// Solution:    fmt.Sprintf("Upgrade to a version without %s", utils.SafelyGetValue(vulns[i].Id)),
 			}
 
 			// Set location info
 			glVuln.Location.File = manifest.Path
 			glVuln.Location.Dependency.Package.Name = pkg.GetName()
 			glVuln.Location.Dependency.Version = pkg.GetVersion()
-
 			glVuln.Location.Dependency.Direct = pkg.Depth == 1
 
-			// Add identifiers
-			vulnId := utils.SafelyGetValue(vulns[i].Id)
-			if vulnId != "" {
-				glVuln.Identifiers = append(glVuln.Identifiers, struct {
-					Type  string `json:"type"`
-					Name  string `json:"name"`
-					Value string `json:"value"`
-					URL   string `json:"url"`
-				}{
-					Type:  "VULNERABILITY_ID",
-					Name:  "VulnerabilityID",
-					Value: vulnId,
-					URL:   fmt.Sprintf("https://safedep.io/vulns/%s", vulnId), // Using a valid URL format
-				})
-			}
+			// Add all relevant identifiers
+			addIdentifiers(&glVuln, &vulns[i])
 
 			r.vulnerabilities = append(r.vulnerabilities, glVuln)
 		}
