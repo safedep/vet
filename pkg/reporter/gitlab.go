@@ -116,20 +116,21 @@ func formatTime(t time.Time) string {
 // Docs: https://docs.gitlab.com/development/integrations/secure/#identifiers
 func addIdentifiers(vuln *GitLabVulnerability, vulnData *insightapi.PackageVulnerability) {
 	// Extract identifiers from the vulnerability data
-	var cve, cwe, ghsa string
+	var cves, cwes, ghsas []string
 	aliases := utils.SafelyGetValue(vulnData.Aliases)
+
 	for _, alias := range aliases {
 		switch {
 		case strings.HasPrefix(alias, "CVE-"):
-			cve = alias
+			cves = append(cves, alias)
 		case strings.HasPrefix(alias, "CWE-"):
-			cwe = alias
+			cwes = append(cwes, alias)
 		case strings.HasPrefix(alias, "GHSA-"):
-			ghsa = alias
+			ghsas = append(ghsas, alias)
 		}
 	}
 
-	// Add identifiers in order of priority (max 20 as per GitLab's limit)
+	// Add identifiers in order of priority
 	identifiers := make([]struct {
 		Type  string `json:"type"`
 		Name  string `json:"name"`
@@ -137,8 +138,8 @@ func addIdentifiers(vuln *GitLabVulnerability, vulnData *insightapi.PackageVulne
 		URL   string `json:"url"`
 	}, 0)
 
-	// Primary identifier should be CVE if available
-	if cve != "" {
+	// Add all CVEs first
+	for _, cve := range cves {
 		identifiers = append(identifiers, struct {
 			Type  string `json:"type"`
 			Name  string `json:"name"`
@@ -152,8 +153,8 @@ func addIdentifiers(vuln *GitLabVulnerability, vulnData *insightapi.PackageVulne
 		})
 	}
 
-	// Add CWE if available
-	if cwe != "" {
+	// Add all CWEs
+	for _, cwe := range cwes {
 		identifiers = append(identifiers, struct {
 			Type  string `json:"type"`
 			Name  string `json:"name"`
@@ -167,8 +168,8 @@ func addIdentifiers(vuln *GitLabVulnerability, vulnData *insightapi.PackageVulne
 		})
 	}
 
-	// Add GHSA if available
-	if ghsa != "" {
+	// Add all GHSAs
+	for _, ghsa := range ghsas {
 		identifiers = append(identifiers, struct {
 			Type  string `json:"type"`
 			Name  string `json:"name"`
@@ -182,7 +183,7 @@ func addIdentifiers(vuln *GitLabVulnerability, vulnData *insightapi.PackageVulne
 		})
 	}
 
-	// Limit to 20 identifiers as per GitLab's requirement
+	// If identifiers are more than 20, then system saves only 20, so why increase the network cost
 	if len(identifiers) > 20 {
 		identifiers = identifiers[:20]
 	}
