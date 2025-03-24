@@ -54,10 +54,18 @@ type GitLabReport struct {
 				Name string `json:"name"`
 			} `json:"vendor"`
 		} `json:"scanner"`
-		Type      string    `json:"type"`
-		StartTime time.Time `json:"start_time"`
-		EndTime   time.Time `json:"end_time"`
-		Status    string    `json:"status"`
+		Analyzer struct {
+			ID      string `json:"id"`
+			Name    string `json:"name"`
+			Version string `json:"version"`
+			Vendor  struct {
+				Name string `json:"name"`
+			} `json:"vendor"`
+		} `json:"analyzer"`
+		Type      string `json:"type"`
+		StartTime string `json:"start_time"`
+		EndTime   string `json:"end_time"`
+		Status    string `json:"status"`
 	} `json:"scan"`
 	Vulnerabilities []GitLabVulnerability `json:"vulnerabilities"`
 }
@@ -78,6 +86,10 @@ func NewGitLabReporter(config GitLabReporterConfig) (Reporter, error) {
 
 func (r *gitLabReporter) Name() string {
 	return "GitLab Dependency Scanning Report Generator"
+}
+
+func formatTime(t time.Time) string {
+	return t.Format("2006-01-02T15:04:05")
 }
 
 func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
@@ -135,7 +147,7 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 					Type:  "VULNERABILITY_ID",
 					Name:  "VulnerabilityID",
 					Value: vulnId,
-					URL:   "", // We don't have URL in our model
+					URL:   fmt.Sprintf("https://safedep.io/vulns/%s", vulnId), // Using a valid URL format
 				})
 			}
 
@@ -162,10 +174,16 @@ func (r *gitLabReporter) Finish() error {
 	report.Scan.Scanner.Version = "latest"
 	report.Scan.Scanner.Vendor.Name = "safedep"
 
+	// Set analyzer info (required by schema)
+	report.Scan.Analyzer.ID = "vet"
+	report.Scan.Analyzer.Name = "vet"
+	report.Scan.Analyzer.Version = "latest"
+	report.Scan.Analyzer.Vendor.Name = "safedep"
+
 	// Set scan metadata
 	report.Scan.Type = "dependency_scanning"
-	report.Scan.StartTime = r.startTime
-	report.Scan.EndTime = time.Now()
+	report.Scan.StartTime = formatTime(r.startTime)
+	report.Scan.EndTime = formatTime(time.Now())
 	report.Scan.Status = "success"
 
 	// Add vulnerabilities
