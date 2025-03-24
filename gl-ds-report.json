@@ -1,0 +1,683 @@
+{
+  "schema": "https://gitlab.com/gitlab-org/security-products/security-report-schemas/-/raw/15.2.1/dist/dependency-scanning-report-format.json",
+  "version": "15.2.1",
+  "scan": {
+    "scanner": {
+      "id": "vet",
+      "name": "vet",
+      "version": "latest",
+      "vendor": {
+        "name": "safedep"
+      }
+    },
+    "analyzer": {
+      "id": "vet",
+      "name": "vet",
+      "version": "latest",
+      "vendor": {
+        "name": "safedep"
+      }
+    },
+    "type": "dependency_scanning",
+    "start_time": "2025-03-24T23:42:17",
+    "end_time": "2025-03-24T23:43:33",
+    "status": "success"
+  },
+  "vulnerabilities": [
+    {
+      "id": "GHSA-5v2h-r2cx-5xgj",
+      "name": "Inefficient Regular Expression Complexity in marked",
+      "description": "Inefficient Regular Expression Complexity in marked",
+      "severity": "High",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/pkg/parser/fixtures/package.json",
+        "dependency": {
+          "package": {
+            "name": "marked"
+          },
+          "version": "0.7.0",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2022-21681",
+          "value": "CVE-2022-21681",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-21681"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-rrrm-qjm4-v8hf",
+      "name": "Inefficient Regular Expression Complexity in marked",
+      "description": "Inefficient Regular Expression Complexity in marked",
+      "severity": "High",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/pkg/parser/fixtures/package.json",
+        "dependency": {
+          "package": {
+            "name": "marked"
+          },
+          "version": "0.7.0",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2022-21680",
+          "value": "CVE-2022-21680",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-21680"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-pxg6-pf52-xh8x",
+      "name": "cookie accepts cookie name, path, and domain with out of bounds characters",
+      "description": "cookie accepts cookie name, path, and domain with out of bounds characters",
+      "severity": "Unknown",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/pkg/parser/fixtures/package.json",
+        "dependency": {
+          "package": {
+            "name": "cookie"
+          },
+          "version": "0.5.0",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2024-47764",
+          "value": "CVE-2024-47764",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-47764"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-cm22-4g7w-348p",
+      "name": "serve-static vulnerable to template injection that can lead to XSS",
+      "description": "serve-static vulnerable to template injection that can lead to XSS",
+      "severity": "Medium",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/pkg/parser/fixtures/package.json",
+        "dependency": {
+          "package": {
+            "name": "serve-static"
+          },
+          "version": "1.15.0",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2024-43800",
+          "value": "CVE-2024-43800",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-43800"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-qwcr-r2fm-qrc7",
+      "name": "body-parser vulnerable to denial of service when url encoding is enabled",
+      "description": "body-parser vulnerable to denial of service when url encoding is enabled",
+      "severity": "High",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/pkg/parser/fixtures/package.json",
+        "dependency": {
+          "package": {
+            "name": "body-parser"
+          },
+          "version": "1.20.1",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2024-45590",
+          "value": "CVE-2024-45590",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-45590"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-9wv6-86v2-598j",
+      "name": "path-to-regexp outputs backtracking regular expressions",
+      "description": "path-to-regexp outputs backtracking regular expressions",
+      "severity": "High",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/pkg/parser/fixtures/package.json",
+        "dependency": {
+          "package": {
+            "name": "path-to-regexp"
+          },
+          "version": "0.1.7",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2024-45296",
+          "value": "CVE-2024-45296",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-45296"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-rhx6-c78j-4q9w",
+      "name": "Unpatched `path-to-regexp` ReDoS in 0.1.x",
+      "description": "Unpatched `path-to-regexp` ReDoS in 0.1.x",
+      "severity": "Unknown",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/pkg/parser/fixtures/package.json",
+        "dependency": {
+          "package": {
+            "name": "path-to-regexp"
+          },
+          "version": "0.1.7",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2024-52798",
+          "value": "CVE-2024-52798",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-52798"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-m6fv-jmcg-4jfg",
+      "name": "send vulnerable to template injection that can lead to XSS",
+      "description": "send vulnerable to template injection that can lead to XSS",
+      "severity": "Medium",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/pkg/parser/fixtures/package.json",
+        "dependency": {
+          "package": {
+            "name": "send"
+          },
+          "version": "0.18.0",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2024-43799",
+          "value": "CVE-2024-43799",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-43799"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-ghr5-ch3p-vcr6",
+      "name": "ejs lacks certain pollution protection",
+      "description": "ejs lacks certain pollution protection",
+      "severity": "Medium",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/pkg/parser/fixtures/package.json",
+        "dependency": {
+          "package": {
+            "name": "ejs"
+          },
+          "version": "3.1.8",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2024-33883",
+          "value": "CVE-2024-33883",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-33883"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-6v67-2wr5-gvf4",
+      "name": "QOS.CH logback-core Server-Side Request Forgery vulnerability",
+      "description": "QOS.CH logback-core Server-Side Request Forgery vulnerability",
+      "severity": "Unknown",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/pkg/readers/fixtures/java/gradle.lockfile",
+        "dependency": {
+          "package": {
+            "name": "ch.qos.logback:logback-core"
+          },
+          "version": "1.2.11",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2024-12801",
+          "value": "CVE-2024-12801",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-12801"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-pr98-23f8-jwxv",
+      "name": "QOS.CH logback-core Expression Language Injection vulnerability",
+      "description": "QOS.CH logback-core Expression Language Injection vulnerability",
+      "severity": "Unknown",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/pkg/readers/fixtures/java/gradle.lockfile",
+        "dependency": {
+          "package": {
+            "name": "ch.qos.logback:logback-core"
+          },
+          "version": "1.2.11",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2024-12798",
+          "value": "CVE-2024-12798",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-12798"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-vmq6-5m68-f53m",
+      "name": "logback serialization vulnerability",
+      "description": "logback serialization vulnerability",
+      "severity": "High",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/pkg/readers/fixtures/java/gradle.lockfile",
+        "dependency": {
+          "package": {
+            "name": "ch.qos.logback:logback-core"
+          },
+          "version": "1.2.11",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2023-6378",
+          "value": "CVE-2023-6378",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-6378"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-6v67-2wr5-gvf4",
+      "name": "QOS.CH logback-core Server-Side Request Forgery vulnerability",
+      "description": "QOS.CH logback-core Server-Side Request Forgery vulnerability",
+      "severity": "Unknown",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/pkg/readers/fixtures/java-multi/gradle.lockfile",
+        "dependency": {
+          "package": {
+            "name": "ch.qos.logback:logback-core"
+          },
+          "version": "1.2.11",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2024-12801",
+          "value": "CVE-2024-12801",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-12801"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-pr98-23f8-jwxv",
+      "name": "QOS.CH logback-core Expression Language Injection vulnerability",
+      "description": "QOS.CH logback-core Expression Language Injection vulnerability",
+      "severity": "Unknown",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/pkg/readers/fixtures/java-multi/gradle.lockfile",
+        "dependency": {
+          "package": {
+            "name": "ch.qos.logback:logback-core"
+          },
+          "version": "1.2.11",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2024-12798",
+          "value": "CVE-2024-12798",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-12798"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-vmq6-5m68-f53m",
+      "name": "logback serialization vulnerability",
+      "description": "logback serialization vulnerability",
+      "severity": "High",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/pkg/readers/fixtures/java-multi/gradle.lockfile",
+        "dependency": {
+          "package": {
+            "name": "ch.qos.logback:logback-core"
+          },
+          "version": "1.2.11",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2023-6378",
+          "value": "CVE-2023-6378",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-6378"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-34jh-p97f-mpxf",
+      "name": "urllib3's Proxy-Authorization request header isn't stripped during cross-origin redirects",
+      "description": "urllib3's Proxy-Authorization request header isn't stripped during cross-origin redirects",
+      "severity": "Medium",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/pkg/readers/fixtures/multi-with-invalid/requirements.txt",
+        "dependency": {
+          "package": {
+            "name": "urllib3"
+          },
+          "version": "1.26.9",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2024-37891",
+          "value": "CVE-2024-37891",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-37891"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-g4mx-q9vg-27p4",
+      "name": "urllib3's request body not stripped after redirect from 303 status changes request method to GET",
+      "description": "urllib3's request body not stripped after redirect from 303 status changes request method to GET",
+      "severity": "Medium",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/pkg/readers/fixtures/multi-with-invalid/requirements.txt",
+        "dependency": {
+          "package": {
+            "name": "urllib3"
+          },
+          "version": "1.26.9",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2023-45803",
+          "value": "CVE-2023-45803",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-45803"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-v845-jxx5-vc9f",
+      "name": "`Cookie` HTTP header isn't stripped on cross-origin redirects",
+      "description": "`Cookie` HTTP header isn't stripped on cross-origin redirects",
+      "severity": "Medium",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/pkg/readers/fixtures/multi-with-invalid/requirements.txt",
+        "dependency": {
+          "package": {
+            "name": "urllib3"
+          },
+          "version": "1.26.9",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2023-43804",
+          "value": "CVE-2023-43804",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-43804"
+        }
+      ]
+    },
+    {
+      "id": "PYSEC-2023-192",
+      "name": "",
+      "description": "",
+      "severity": "High",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/pkg/readers/fixtures/multi-with-invalid/requirements.txt",
+        "dependency": {
+          "package": {
+            "name": "urllib3"
+          },
+          "version": "1.26.9",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2023-43804",
+          "value": "CVE-2023-43804",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-43804"
+        },
+        {
+          "type": "ghsa",
+          "name": "GHSA-v845-jxx5-vc9f",
+          "value": "v845-jxx5-vc9f",
+          "url": "https://github.com/advisories/GHSA-v845-jxx5-vc9f"
+        }
+      ]
+    },
+    {
+      "id": "PYSEC-2023-212",
+      "name": "",
+      "description": "",
+      "severity": "Medium",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/pkg/readers/fixtures/multi-with-invalid/requirements.txt",
+        "dependency": {
+          "package": {
+            "name": "urllib3"
+          },
+          "version": "1.26.9",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2023-45803",
+          "value": "CVE-2023-45803",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-45803"
+        },
+        {
+          "type": "ghsa",
+          "name": "GHSA-g4mx-q9vg-27p4",
+          "value": "g4mx-q9vg-27p4",
+          "url": "https://github.com/advisories/GHSA-g4mx-q9vg-27p4"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-m2qf-hxjv-5gpq",
+      "name": "Flask vulnerable to possible disclosure of permanent session cookie due to missing Vary: Cookie header",
+      "description": "Flask vulnerable to possible disclosure of permanent session cookie due to missing Vary: Cookie header",
+      "severity": "High",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/test/scenarios/fixtures/code/requirements.txt",
+        "dependency": {
+          "package": {
+            "name": "flask"
+          },
+          "version": "1.0.4",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2023-30861",
+          "value": "CVE-2023-30861",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-30861"
+        }
+      ]
+    },
+    {
+      "id": "PYSEC-2023-62",
+      "name": "",
+      "description": "",
+      "severity": "Unknown",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/test/scenarios/fixtures/code/requirements.txt",
+        "dependency": {
+          "package": {
+            "name": "flask"
+          },
+          "version": "1.0.4",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2023-30861",
+          "value": "CVE-2023-30861",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-30861"
+        },
+        {
+          "type": "ghsa",
+          "name": "GHSA-m2qf-hxjv-5gpq",
+          "value": "m2qf-hxjv-5gpq",
+          "url": "https://github.com/advisories/GHSA-m2qf-hxjv-5gpq"
+        }
+      ]
+    },
+    {
+      "id": "GHSA-3hjh-jh2h-vrg6",
+      "name": "Denial of service in langchain-community",
+      "description": "Denial of service in langchain-community",
+      "severity": "Medium",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/test/scenarios/fixtures/code/requirements.txt",
+        "dependency": {
+          "package": {
+            "name": "langchain"
+          },
+          "version": "0.2.1",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2024-2965",
+          "value": "CVE-2024-2965",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-2965"
+        }
+      ]
+    },
+    {
+      "id": "PYSEC-2024-114",
+      "name": "",
+      "description": "",
+      "severity": "Critical",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/test/scenarios/fixtures/code/requirements.txt",
+        "dependency": {
+          "package": {
+            "name": "langchain"
+          },
+          "version": "0.2.1",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2024-7042",
+          "value": "CVE-2024-7042",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-7042"
+        },
+        {
+          "type": "ghsa",
+          "name": "GHSA-6m59-8fmv-m5f9",
+          "value": "6m59-8fmv-m5f9",
+          "url": "https://github.com/advisories/GHSA-6m59-8fmv-m5f9"
+        }
+      ]
+    },
+    {
+      "id": "PYSEC-2024-118",
+      "name": "",
+      "description": "",
+      "severity": "Medium",
+      "solution": "",
+      "location": {
+        "file": "/media/kunalsin9h/hdd_drive/safedep/vet/test/scenarios/fixtures/code/requirements.txt",
+        "dependency": {
+          "package": {
+            "name": "langchain"
+          },
+          "version": "0.2.1",
+          "direct": false
+        }
+      },
+      "identifiers": [
+        {
+          "type": "cve",
+          "name": "CVE-2024-2965",
+          "value": "CVE-2024-2965",
+          "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-2965"
+        },
+        {
+          "type": "ghsa",
+          "name": "GHSA-3hjh-jh2h-vrg6",
+          "value": "3hjh-jh2h-vrg6",
+          "url": "https://github.com/advisories/GHSA-3hjh-jh2h-vrg6"
+        }
+      ]
+    }
+  ]
+}

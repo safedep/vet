@@ -3,8 +3,9 @@ package reporter
 // GitLabReporter is the reporter for GitLab.
 // This report is same for most of gitlab scanners, types
 // and schemas.
-// But we are using only for dependencyscanning report. That's we do report.type = "dependency_scanning"
+// But we are using only for dependency_scanning report. That's we do report.type = "dependency_scanning"
 // Schema: https://gitlab.com/gitlab-org/security-products/security-report-schemas/-/raw/v15.2.1/dist/dependency-scanning-report-format.json
+// Docs: https://www.notion.so/safedep-inc/Need-for-GitLab-specific-schema-reporting-1c061d70b23680319849c32d2b0cbcd6?pvs=4
 
 import (
 	"encoding/json"
@@ -16,13 +17,12 @@ import (
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/analyzer"
-	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
 )
 
 type GitLabReporterConfig struct {
-	Path string // Report path
+	Path string // Report path, value of --report-gitlab
 }
 
 // GitLabVulnerability is the struct for the GitLab vulnerability,
@@ -105,7 +105,7 @@ func (r *gitLabReporter) Name() string {
 	return "GitLab Dependency Scanning Report Generator"
 }
 
-// GitLab backend requires time to be in this format
+// GitLab requires time to be in this format
 // Learned the hard way :), (not that actually , thanks to Cursor)
 func formatTime(t time.Time) string {
 	return t.Format("2006-01-02T15:04:05")
@@ -232,7 +232,7 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 			glVuln.Location.File = manifest.Path
 			glVuln.Location.Dependency.Package.Name = pkg.GetName()
 			glVuln.Location.Dependency.Version = pkg.GetVersion()
-			glVuln.Location.Dependency.Direct = pkg.Depth == 1
+			glVuln.Location.Dependency.Direct = pkg.Depth == 0
 
 			// Add all relevant identifiers
 			addIdentifiers(&glVuln, &vulns[i])
@@ -247,8 +247,6 @@ func (r *gitLabReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {}
 func (r *gitLabReporter) AddPolicyEvent(event *policy.PolicyEvent) {}
 
 func (r *gitLabReporter) Finish() error {
-	logger.Infof("Generating GitLab dependency scanning report: %s", r.config.Path)
-
 	report := GitLabReport{
 		Schema:  "https://gitlab.com/gitlab-org/security-products/security-report-schemas/-/raw/15.2.1/dist/dependency-scanning-report-format.json",
 		Version: "15.2.1",
@@ -282,7 +280,7 @@ func (r *gitLabReporter) Finish() error {
 	}
 
 	// Write to file
-	err = os.WriteFile(r.config.Path, jsonData, 0o644)
+	err = os.WriteFile(r.config.Path, jsonData, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("failed to write GitLab report: %w", err)
 	}
