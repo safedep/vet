@@ -16,12 +16,6 @@ RUN make quick-vet
 FROM debian:11-slim@sha256:e4b93db6aad977a95aa103917f3de8a2b16ead91cf255c3ccdb300c5d20f3015
 # Original: debian:11-slim
 
-# Create nonroot user and group with specific IDs
-RUN groupadd -r nonroot --gid=65532 && \
-    useradd -r -g nonroot --uid=65532 nonroot
-
-USER nonroot:nonroot
-
 ARG TARGETPLATFORM
 
 LABEL org.opencontainers.image.source=https://github.com/safedep/vet
