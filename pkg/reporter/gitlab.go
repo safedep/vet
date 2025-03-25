@@ -25,62 +25,71 @@ type GitLabReporterConfig struct {
 	Path string // Report path, value of --report-gitlab
 }
 
-// GitLabVulnerability is the struct for the GitLab vulnerability,
-// it is used to convert the vulnerability to the GitLab format.
-// Docs: https://docs.gitlab.com/development/integrations/secure/#vulnerabilities
-type GitLabVulnerability struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Severity    string `json:"severity"`
-	Solution    string `json:"solution"`
-	Location    struct {
-		File       string `json:"file"`
-		Dependency struct {
-			Package struct {
-				Name string `json:"name"`
-			} `json:"package"`
-			Version string `json:"version"`
-			Direct  bool   `json:"direct"`
-		} `json:"dependency"`
-	} `json:"location"`
-	Identifiers []struct {
-		Type  string `json:"type"`
-		Name  string `json:"name"`
-		Value string `json:"value"`
-		URL   string `json:"url"`
-	} `json:"identifiers"`
+// GitLabVendor represents vendor information
+type GitLabVendor struct {
+	Name string `json:"name"`
 }
 
-// GitLabReport is the struct for the GitLab, currently using the 15.2.1 schema
-// and `dependency_scanning` type.
-// but can be extended to support other types and schemas in the future.
-// docs: https://docs.gitlab.com/development/integrations/secure/#report
+// GitLabScanner represents scanner information
+type GitLabScanner struct {
+	ID      string       `json:"id"`
+	Name    string       `json:"name"`
+	Version string       `json:"version"`
+	Vendor  GitLabVendor `json:"vendor"`
+}
+
+// GitLabPackage represents package information
+type GitLabPackage struct {
+	Name string `json:"name"`
+}
+
+// GitLabDependency represents dependency information
+type GitLabDependency struct {
+	Package GitLabPackage `json:"package"`
+	Version string        `json:"version"`
+	Direct  bool          `json:"direct"`
+}
+
+// GitLabLocation represents location information
+type GitLabLocation struct {
+	File       string           `json:"file"`
+	Dependency GitLabDependency `json:"dependency"`
+}
+
+// GitLabIdentifier represents identifier information
+type GitLabIdentifier struct {
+	Type  string `json:"type"`
+	Name  string `json:"name"`
+	Value string `json:"value"`
+	URL   string `json:"url"`
+}
+
+// GitLabVulnerability represents a vulnerability in GitLab format
+type GitLabVulnerability struct {
+	ID          string             `json:"id"`
+	Name        string             `json:"name"`
+	Description string             `json:"description"`
+	Severity    string             `json:"severity"`
+	Solution    string             `json:"solution"`
+	Location    GitLabLocation     `json:"location"`
+	Identifiers []GitLabIdentifier `json:"identifiers"`
+}
+
+// GitLabScan represents scan information
+type GitLabScan struct {
+	Scanner   GitLabScanner `json:"scanner"`
+	Analyzer  GitLabScanner `json:"analyzer"` // Reusing GitLabScanner as they have same structure
+	Type      string        `json:"type"`
+	StartTime string        `json:"start_time"`
+	EndTime   string        `json:"end_time"`
+	Status    string        `json:"status"`
+}
+
+// GitLabReport represents the complete GitLab report
 type GitLabReport struct {
-	Schema  string `json:"schema"`
-	Version string `json:"version"`
-	Scan    struct {
-		Scanner struct {
-			ID      string `json:"id"`
-			Name    string `json:"name"`
-			Version string `json:"version"`
-			Vendor  struct {
-				Name string `json:"name"`
-			} `json:"vendor"`
-		} `json:"scanner"`
-		Analyzer struct {
-			ID      string `json:"id"`
-			Name    string `json:"name"`
-			Version string `json:"version"`
-			Vendor  struct {
-				Name string `json:"name"`
-			} `json:"vendor"`
-		} `json:"analyzer"`
-		Type      string `json:"type"`
-		StartTime string `json:"start_time"`
-		EndTime   string `json:"end_time"`
-		Status    string `json:"status"`
-	} `json:"scan"`
+	Schema          string                `json:"schema"`
+	Version         string                `json:"version"`
+	Scan            GitLabScan            `json:"scan"`
 	Vulnerabilities []GitLabVulnerability `json:"vulnerabilities"`
 }
 
@@ -131,21 +140,11 @@ func addIdentifiers(vuln *GitLabVulnerability, vulnData *insightapi.PackageVulne
 	}
 
 	// Add identifiers in order of priority
-	identifiers := make([]struct {
-		Type  string `json:"type"`
-		Name  string `json:"name"`
-		Value string `json:"value"`
-		URL   string `json:"url"`
-	}, 0)
+	identifiers := make([]GitLabIdentifier, 0)
 
 	// Add all CVEs first
 	for _, cve := range cves {
-		identifiers = append(identifiers, struct {
-			Type  string `json:"type"`
-			Name  string `json:"name"`
-			Value string `json:"value"`
-			URL   string `json:"url"`
-		}{
+		identifiers = append(identifiers, GitLabIdentifier{
 			Type:  "cve",
 			Name:  cve,
 			Value: cve,
@@ -155,12 +154,7 @@ func addIdentifiers(vuln *GitLabVulnerability, vulnData *insightapi.PackageVulne
 
 	// Add all CWEs
 	for _, cwe := range cwes {
-		identifiers = append(identifiers, struct {
-			Type  string `json:"type"`
-			Name  string `json:"name"`
-			Value string `json:"value"`
-			URL   string `json:"url"`
-		}{
+		identifiers = append(identifiers, GitLabIdentifier{
 			Type:  "cwe",
 			Name:  cwe,
 			Value: strings.TrimPrefix(cwe, "CWE-"),
@@ -170,12 +164,7 @@ func addIdentifiers(vuln *GitLabVulnerability, vulnData *insightapi.PackageVulne
 
 	// Add all GHSAs
 	for _, ghsa := range ghsas {
-		identifiers = append(identifiers, struct {
-			Type  string `json:"type"`
-			Name  string `json:"name"`
-			Value string `json:"value"`
-			URL   string `json:"url"`
-		}{
+		identifiers = append(identifiers, GitLabIdentifier{
 			Type:  "ghsa",
 			Name:  ghsa,
 			Value: strings.TrimPrefix(ghsa, "GHSA-"),
@@ -227,13 +216,17 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 				Severity:    severity,
 				// Todo: Solution
 				// Solution:    fmt.Sprintf("Upgrade to a version without %s", utils.SafelyGetValue(vulns[i].Id)),
+				Location: GitLabLocation{
+					File: manifest.Path,
+					Dependency: GitLabDependency{
+						Package: GitLabPackage{
+							Name: pkg.GetName(),
+						},
+						Version: pkg.GetVersion(),
+						Direct:  pkg.Depth == 0,
+					},
+				},
 			}
-
-			// Set location info
-			glVuln.Location.File = manifest.Path
-			glVuln.Location.Dependency.Package.Name = pkg.GetName()
-			glVuln.Location.Dependency.Version = pkg.GetVersion()
-			glVuln.Location.Dependency.Direct = pkg.Depth == 0
 
 			// Add all relevant identifiers
 			addIdentifiers(&glVuln, &vulns[i])
@@ -248,31 +241,27 @@ func (r *gitLabReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {}
 func (r *gitLabReporter) AddPolicyEvent(event *policy.PolicyEvent) {}
 
 func (r *gitLabReporter) Finish() error {
+	vendor := GitLabVendor{Name: "safedep"}
+	scanner := GitLabScanner{
+		ID:      "vet",
+		Name:    "vet",
+		Version: "latest",
+		Vendor:  vendor,
+	}
+
 	report := GitLabReport{
 		Schema:  "https://gitlab.com/gitlab-org/security-products/security-report-schemas/-/raw/15.2.1/dist/dependency-scanning-report-format.json",
 		Version: "15.2.1",
+		Scan: GitLabScan{
+			Scanner:   scanner,
+			Analyzer:  scanner, // Using same scanner info for analyzer
+			Type:      "dependency_scanning",
+			StartTime: formatTime(r.startTime),
+			EndTime:   formatTime(time.Now()),
+			Status:    "success",
+		},
+		Vulnerabilities: r.vulnerabilities,
 	}
-
-	// Set scanner info
-	report.Scan.Scanner.ID = "vet"
-	report.Scan.Scanner.Name = "vet"
-	report.Scan.Scanner.Version = "latest"
-	report.Scan.Scanner.Vendor.Name = "safedep"
-
-	// Set analyzer info (required by schema)
-	report.Scan.Analyzer.ID = "vet"
-	report.Scan.Analyzer.Name = "vet"
-	report.Scan.Analyzer.Version = "latest"
-	report.Scan.Analyzer.Vendor.Name = "safedep"
-
-	// Set scan metadata
-	report.Scan.Type = "dependency_scanning"
-	report.Scan.StartTime = formatTime(r.startTime)
-	report.Scan.EndTime = formatTime(time.Now())
-	report.Scan.Status = "success"
-
-	// Add vulnerabilities
-	report.Vulnerabilities = r.vulnerabilities
 
 	// Marshal to JSON
 	jsonData, err := json.MarshalIndent(report, "", "  ")
