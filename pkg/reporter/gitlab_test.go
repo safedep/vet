@@ -8,8 +8,10 @@ import (
 	"testing"
 	"time"
 
+	malysisv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/common/utils"
+	"github.com/safedep/vet/pkg/malysis"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -56,7 +58,8 @@ func TestGitLabReporter(t *testing.T) {
 
 	t.Run("Report With Vulnerabilities", func(t *testing.T) {
 		reporter, _ := NewGitLabReporter(GitLabReporterConfig{
-			Path: reportPath,
+			Path:       reportPath,
+			VetVersion: "1.0.0",
 		})
 
 		// Create test manifest with vulnerabilities
@@ -148,7 +151,8 @@ func TestGitLabReporter(t *testing.T) {
 
 	t.Run("Maximum Identifiers", func(t *testing.T) {
 		reporter, _ := NewGitLabReporter(GitLabReporterConfig{
-			Path: reportPath,
+			Path:       reportPath,
+			VetVersion: "1.0.0",
 		})
 
 		// Create aliases with more than 20 identifiers
@@ -189,6 +193,79 @@ func TestGitLabReporter(t *testing.T) {
 
 		// Verify maximum identifiers limit
 		assert.Len(t, report.Vulnerabilities[0].Identifiers, 20)
+	})
+
+	t.Run("Report With Malicious Package", func(t *testing.T) {
+		reporter, _ := NewGitLabReporter(GitLabReporterConfig{
+			Path:       reportPath,
+			VetVersion: "1.0.0",
+		})
+
+		manifest := &models.PackageManifest{
+			Path: "test/package.json",
+			Packages: []*models.Package{
+				{
+					PackageDetails: models.NewPackageDetail("npm", "malicious-package", "1.0.0"),
+					Depth:          0,
+					Insights:       &insightapi.PackageVersionInsight{}, // not make package skip
+					MalwareAnalysis: &models.MalwareAnalysisResult{
+						AnalysisId:   "123",
+						IsMalware:    true,
+						IsSuspicious: false,
+						Report: &malysisv1.Report{
+							ReportId: "report-123",
+							Inference: &malysisv1.Report_Inference{
+								Summary: "Package contains malicious code",
+								Details: "Found suspicious eval usage and data exfiltration attempts",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		reporter.AddManifest(manifest)
+		err := reporter.Finish()
+		assert.NoError(t, err)
+
+		// Read and verify the report
+		data, err := os.ReadFile(reportPath)
+		assert.NoError(t, err)
+
+		// Debug: Print the report data
+		fmt.Printf("Report data: %s\n", string(data))
+
+		var report GitLabReport
+		err = json.Unmarshal(data, &report)
+		assert.NoError(t, err)
+
+		// Debug: Print the vulnerabilities
+		fmt.Printf("Vulnerabilities: %+v\n", report.Vulnerabilities)
+
+		// Verify malicious package reporting
+		assert.Len(t, report.Vulnerabilities, 1)
+		vuln := report.Vulnerabilities[0]
+
+		// Check basic vulnerability info
+		assert.Equal(t, "MAL-123", vuln.ID)
+		assert.Equal(t, "malicious-package@1.0.0 is Malware/Suspicious Package", vuln.Name)
+		assert.Equal(t, "Critical", vuln.Severity)
+		assert.Equal(t, "Package contains malicious code\n\nFound suspicious eval usage and data exfiltration attempts", vuln.Description)
+
+		// Check location info
+		assert.Equal(t, "test/package.json", vuln.Location.File)
+		assert.Equal(t, "malicious-package", vuln.Location.Dependency.Package.Name)
+		assert.Equal(t, "1.0.0", vuln.Location.Dependency.Version)
+		assert.True(t, vuln.Location.Dependency.Direct)
+
+		// Check identifiers
+		assert.Len(t, vuln.Identifiers, 1)
+
+		// Check malware identifier
+		assert.Equal(t, "malware", vuln.Identifiers[0].Type)
+		assert.Equal(t, "MAL-123", vuln.Identifiers[0].Name)
+		assert.Equal(t, "MAL-123", vuln.Identifiers[0].Value)
+		assert.Equal(t, malysis.ReportURL("report-123"), vuln.Identifiers[0].URL)
 	})
 
 	t.Run("Invalid Report Path", func(t *testing.T) {

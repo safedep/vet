@@ -215,14 +215,12 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 			}
 
 			description := ""
-			solution := ""
 			reportUrl := ""
 
 			if malwareAnalysis.Report != nil {
 				reportUrl = malysis.ReportURL(malwareAnalysis.Report.ReportId)
 				if malwareAnalysis.Report.Inference != nil {
-					description = malwareAnalysis.Report.Inference.Summary
-					solution = malwareAnalysis.Report.Inference.Details
+					description = fmt.Sprintf("%s\n\n%s", malwareAnalysis.Report.Inference.Summary, malwareAnalysis.Report.Inference.Details)
 				}
 			}
 
@@ -241,7 +239,8 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 						URL:   reportUrl,
 					},
 				},
-				Solution: solution,
+				// TODO
+				// Solution: "",
 			}
 
 			r.vulnerabilities = append(r.vulnerabilities, glVuln)
