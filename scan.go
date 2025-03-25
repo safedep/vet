@@ -512,7 +512,8 @@ func internalStartScan() error {
 
 	if !utils.IsEmptyString(gitlabReportPath) {
 		rp, err := reporter.NewGitLabReporter(reporter.GitLabReporterConfig{
-			Path: gitlabReportPath,
+			Path:       gitlabReportPath,
+			VetVersion: version,
 		})
 		if err != nil {
 			return err

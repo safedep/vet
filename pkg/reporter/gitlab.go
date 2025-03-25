@@ -22,7 +22,8 @@ import (
 )
 
 type GitLabReporterConfig struct {
-	Path string // Report path, value of --report-gitlab
+	Path       string // Report path, value of --report-gitlab
+	VetVersion string // Vet version, value from version.go
 }
 
 // GitLabVendor represents vendor information
@@ -249,7 +250,7 @@ func (r *gitLabReporter) Finish() error {
 	scanner := GitLabScanner{
 		ID:      "vet",
 		Name:    "vet",
-		Version: "latest",
+		Version: r.config.VetVersion,
 		Vendor:  vendor,
 	}
 
