@@ -91,9 +91,8 @@ jobs:
         docker run --rm \
           -v $(pwd):/workspace \
           -w /workspace \
+          -e VET_API_KEY=${{ secrets.SAFEDEP_CLOUD_API_KEY }} \
+          -e VET_CONTROL_TOWER_TENANT_ID=${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }} \
           build-container-test:latest \
           auth verify
-      env:
-        VET_API_KEY: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
-        VET_CONTROL_TOWER_TENANT_ID: ${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }}
 
