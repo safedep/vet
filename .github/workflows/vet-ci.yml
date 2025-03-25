@@ -20,7 +20,10 @@ jobs:
     steps:
       - name: vet GitHub Actions
         run: |
+          # Remove the version from the workflow file
           GITHUB_WORKFLOW_FILE=$(echo $GITHUB_WORKFLOW_REF | cut -d'@' -f1)
+          # Remove prefix $GITHUB_REPOSITORY from the workflow file
+          GITHUB_WORKFLOW_FILE=$(echo $GITHUB_WORKFLOW_FILE | sed "s|${GITHUB_REPOSITORY}/||")
           echo "Scanning workflow file: $GITHUB_WORKFLOW_FILE"
           docker run --rm \
             -e VET_API_KEY -e VET_CONTROL_TOWER_TENANT_ID \
