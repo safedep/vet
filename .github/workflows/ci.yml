@@ -68,7 +68,7 @@ jobs:
           VET_API_KEY: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
           VET_CONTROL_TOWER_TENANT_ID: ${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }}
 
-  build-container:
+  build-container-test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -85,4 +85,23 @@ jobs:
       run: |
         docker buildx build --platform linux/amd64 --platform linux/arm64 \
         -t build-container-test .
+
+    - name: Test Container Image
+      run: |
+        docker run --rm \
+          build-container-test \
+          scan \
+          --filter-suite .github/vet/policy.yml \
+          --cloud-mode true \
+          --cloud-key "${{ secrets.SAFEDEP_CLOUD_API_KEY }}" \
+          --cloud-tenant "${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }}" | tee scan_output.txt
+
+        # Check if the output contains expected results
+        if grep -q "Summary of Findings" scan_output.txt; then
+          echo "Container test passed: Scan completed successfully"
+        else
+          echo "Container test failed"
+          cat scan_output.txt
+          exit 1
+        fi
 
