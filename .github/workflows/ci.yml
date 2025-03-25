@@ -83,7 +83,7 @@ jobs:
 
     - name: Build Container Image
       run: |
-        docker buildx build --platform linux/amd64 --platform linux/arm64 \
+        docker buildx build --platform linux/amd64 --load \
         -t build-container-test:latest .
 
     - name: Test Container Image
