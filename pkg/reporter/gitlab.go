@@ -193,9 +193,22 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 			continue
 		}
 
+		// Package location
+		location := GitLabLocation{
+			File: manifest.Path,
+			Dependency: GitLabDependency{
+				Package: GitLabPackage{
+					Name: pkg.GetName(),
+				},
+				Version: pkg.GetVersion(),
+				Direct:  pkg.Depth == 0,
+			},
+		}
+
 		// Add malware analysis result
 		malwareAnalysis := pkg.MalwareAnalysis
-		if malwareAnalysis != nil && malwareAnalysis.Report != nil {
+
+		if malwareAnalysis != nil && malwareAnalysis.Report != nil && malwareAnalysis.VerificationRecord != nil {
 			severity := "Unknown"
 			if malwareAnalysis.IsMalware {
 				severity = "Critical"
@@ -215,16 +228,7 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 				Name:        "Malware/Suspicious Package",
 				Description: description,
 				Severity:    severity,
-				Location: GitLabLocation{
-					File: manifest.Path,
-					Dependency: GitLabDependency{
-						Package: GitLabPackage{
-							Name: pkg.GetName(),
-						},
-						Version: pkg.GetVersion(),
-						Direct:  pkg.Depth == 0,
-					},
-				},
+				Location:    location,
 				Identifiers: []GitLabIdentifier{
 					{
 						Type:  "malware",
@@ -233,6 +237,7 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 						URL:   malysis.ReportURL(malwareAnalysis.Report.ReportId),
 					},
 				},
+				Solution: fmt.Sprintf("Reference: %s", strings.Join(malwareAnalysis.VerificationRecord.ReferenceUrls, "\n")),
 			}
 
 			r.vulnerabilities = append(r.vulnerabilities, glVuln)
@@ -265,18 +270,9 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 				Name:        summary,
 				Description: summary, // Using summary as description since that's what we have
 				Severity:    severity,
+				Location:    location,
 				// Todo: Solution
 				// Solution:    fmt.Sprintf("Upgrade to a version without %s", utils.SafelyGetValue(vulns[i].Id)),
-				Location: GitLabLocation{
-					File: manifest.Path,
-					Dependency: GitLabDependency{
-						Package: GitLabPackage{
-							Name: pkg.GetName(),
-						},
-						Version: pkg.GetVersion(),
-						Direct:  pkg.Depth == 0,
-					},
-				},
 			}
 
 			// Add all relevant identifiers
