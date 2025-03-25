@@ -18,6 +18,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: vet GitHub Actions
+        run: |
+          GITHUB_WORKFLOW_FILE=$(echo $GITHUB_WORKFLOW_REF | cut -d'@' -f1)
+          echo "Scanning workflow file: $GITHUB_WORKFLOW_FILE"
+          docker run --rm \
+            -e SAFEDEP_CLOUD_TENANT_DOMAIN -e SAFEDEP_CLOUD_API_KEY \
+            ghcr.io/safedep/vet:latest \
+            scan -M $GITHUB_WORKFLOW_FILE --malware --malware-trust-tool-result
+            --malware --malware-trust-tool-result
+
       - name: Checkout
         id: checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
