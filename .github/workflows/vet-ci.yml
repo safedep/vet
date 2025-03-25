@@ -23,10 +23,13 @@ jobs:
           GITHUB_WORKFLOW_FILE=$(echo $GITHUB_WORKFLOW_REF | cut -d'@' -f1)
           echo "Scanning workflow file: $GITHUB_WORKFLOW_FILE"
           docker run --rm \
-            -e SAFEDEP_CLOUD_TENANT_DOMAIN -e SAFEDEP_CLOUD_API_KEY \
+            -e VET_API_KEY -e VET_CONTROL_TOWER_TENANT_ID \
             ghcr.io/safedep/vet:latest \
             scan -M $GITHUB_WORKFLOW_FILE --malware --malware-trust-tool-result
             --malware --malware-trust-tool-result
+        env:
+          VET_API_KEY: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
+          VET_CONTROL_TOWER_TENANT_ID: ${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }}
 
       - name: Checkout
         id: checkout
