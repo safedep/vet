@@ -65,6 +65,7 @@ type GitLabIdentifier struct {
 }
 
 // GitLabVulnerability represents a vulnerability in GitLab format
+// Docs: https://docs.gitlab.com/development/integrations/secure/#vulnerabilities
 type GitLabVulnerability struct {
 	ID          string             `json:"id"`
 	Name        string             `json:"name"`
@@ -85,7 +86,10 @@ type GitLabScan struct {
 	Status    string        `json:"status"`
 }
 
-// GitLabReport represents the complete GitLab report
+// GitLabReport represents the complete GitLab report currently using the 15.2.1 schema
+// and `dependency_scanning` type.
+// but can be extended to support other types and schemas in the future.
+// docs: https://docs.gitlab.com/development/integrations/secure/#report
 type GitLabReport struct {
 	Schema          string                `json:"schema"`
 	Version         string                `json:"version"`
