@@ -208,24 +208,28 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 		// Add malware analysis result
 		malwareAnalysis := pkg.MalwareAnalysis
 
-		if malwareAnalysis != nil && malwareAnalysis.Report != nil && malwareAnalysis.VerificationRecord != nil {
-			severity := "Unknown"
-			if malwareAnalysis.IsMalware {
-				severity = "Critical"
-			} else if malwareAnalysis.IsSuspicious {
+		if malwareAnalysis != nil && (malwareAnalysis.IsMalware || malwareAnalysis.IsSuspicious) {
+			severity := "Critical"
+			if malwareAnalysis.IsSuspicious {
 				severity = "High"
 			}
 
-			description := "Package is malware/suspicious"
+			description := ""
+			solution := ""
+			reportUrl := ""
 
-			if malwareAnalysis.VerificationRecord != nil {
-				description = malwareAnalysis.VerificationRecord.Reason
+			if malwareAnalysis.Report != nil {
+				reportUrl = malysis.ReportURL(malwareAnalysis.Report.ReportId)
+				if malwareAnalysis.Report.Inference != nil {
+					description = malwareAnalysis.Report.Inference.Summary
+					solution = malwareAnalysis.Report.Inference.Details
+				}
 			}
 
-			malwareId := fmt.Sprintf("MALWARE-%s", malwareAnalysis.AnalysisId)
+			malwareId := fmt.Sprintf("MAL-%s", malwareAnalysis.AnalysisId)
 			glVuln := GitLabVulnerability{
 				ID:          malwareId,
-				Name:        "Malware/Suspicious Package",
+				Name:        fmt.Sprintf("%s@%s is Malware/Suspicious Package", pkg.GetName(), pkg.GetVersion()),
 				Description: description,
 				Severity:    severity,
 				Location:    location,
@@ -234,10 +238,10 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 						Type:  "malware",
 						Name:  malwareId,
 						Value: malwareId,
-						URL:   malysis.ReportURL(malwareAnalysis.Report.ReportId),
+						URL:   reportUrl,
 					},
 				},
-				Solution: fmt.Sprintf("Reference: %s", strings.Join(malwareAnalysis.VerificationRecord.ReferenceUrls, "\n")),
+				Solution: solution,
 			}
 
 			r.vulnerabilities = append(r.vulnerabilities, glVuln)
