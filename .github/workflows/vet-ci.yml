@@ -25,7 +25,7 @@ jobs:
           docker run --rm \
             -e VET_API_KEY -e VET_CONTROL_TOWER_TENANT_ID \
             ghcr.io/safedep/vet:latest \
-            scan -M $GITHUB_WORKFLOW_FILE --malware --malware-trust-tool-result
+            scan -M $GITHUB_WORKFLOW_FILE --type github-actions \
             --malware --malware-trust-tool-result
         env:
           VET_API_KEY: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
