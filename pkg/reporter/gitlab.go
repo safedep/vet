@@ -17,6 +17,7 @@ import (
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/analyzer"
+	"github.com/safedep/vet/pkg/malysis"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
 )
@@ -190,6 +191,51 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 	for _, pkg := range manifest.Packages {
 		if pkg.Insights == nil {
 			continue
+		}
+
+		// Add malware analysis result
+		malwareAnalysis := pkg.MalwareAnalysis
+		if malwareAnalysis != nil && malwareAnalysis.Report != nil {
+			severity := "Unknown"
+			if malwareAnalysis.IsMalware {
+				severity = "Critical"
+			} else if malwareAnalysis.IsSuspicious {
+				severity = "High"
+			}
+
+			description := "Package is malware/suspicious"
+
+			if malwareAnalysis.VerificationRecord != nil {
+				description = malwareAnalysis.VerificationRecord.Reason
+			}
+
+			malwareId := fmt.Sprintf("MALWARE-%s", malwareAnalysis.AnalysisId)
+			glVuln := GitLabVulnerability{
+				ID:          malwareId,
+				Name:        "Malware/Suspicious Package",
+				Description: description,
+				Severity:    severity,
+				Location: GitLabLocation{
+					File: manifest.Path,
+					Dependency: GitLabDependency{
+						Package: GitLabPackage{
+							Name: pkg.GetName(),
+						},
+						Version: pkg.GetVersion(),
+						Direct:  pkg.Depth == 0,
+					},
+				},
+				Identifiers: []GitLabIdentifier{
+					{
+						Type:  "malware",
+						Name:  malwareId,
+						Value: malwareId,
+						URL:   malysis.ReportURL(malwareAnalysis.Report.ReportId),
+					},
+				},
+			}
+
+			r.vulnerabilities = append(r.vulnerabilities, glVuln)
 		}
 
 		// Convert each vulnerability to GitLab format
