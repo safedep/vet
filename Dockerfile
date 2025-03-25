@@ -16,6 +16,10 @@ RUN make quick-vet
 FROM debian:11-slim@sha256:e4b93db6aad977a95aa103917f3de8a2b16ead91cf255c3ccdb300c5d20f3015
 # Original: debian:11-slim
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+	ca-certificates \
+	&& rm -rf /var/lib/apt/lists/*
+
 ARG TARGETPLATFORM
 
 LABEL org.opencontainers.image.source=https://github.com/safedep/vet
