@@ -18,25 +18,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
       - name: vet GitHub Actions
         run: |
-          # Remove the version from the workflow file
-          GITHUB_WORKFLOW_FILE=$(echo $GITHUB_WORKFLOW_REF | cut -d'@' -f1)
-          # Remove prefix $GITHUB_REPOSITORY from the workflow file
-          GITHUB_WORKFLOW_FILE=$(echo $GITHUB_WORKFLOW_FILE | sed "s|${GITHUB_REPOSITORY}/||")
-          echo "Scanning workflow file: $GITHUB_WORKFLOW_FILE"
           docker run --rm \
             -e VET_API_KEY -e VET_CONTROL_TOWER_TENANT_ID \
             ghcr.io/safedep/vet:latest \
-            scan -M $GITHUB_WORKFLOW_FILE --type github-actions \
+            scan -D .github/workflows --type github-actions \
             --malware --malware-trust-tool-result
         env:
           VET_API_KEY: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
           VET_CONTROL_TOWER_TENANT_ID: ${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }}
-
-      - name: Checkout
-        id: checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Enable Cloud Mode
         run: echo "SAFEDEP_CLOUD_MODE=true" >> $GITHUB_ENV
