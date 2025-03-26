@@ -30,6 +30,7 @@ const (
 	gitlabSchemaURL                    = "https://gitlab.com/gitlab-org/security-products/security-report-schemas/-/raw/15.2.1/dist/dependency-scanning-report-format.json"
 	gitlabSchemaVersion                = "15.2.1"
 	gitlabSuccessStatus                = "success"
+	gitlabFailedStatus                 = "failure"
 )
 
 type GitLabReporterConfig struct {
