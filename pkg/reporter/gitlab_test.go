@@ -44,7 +44,7 @@ func TestGitLabReporter(t *testing.T) {
 		data, err := os.ReadFile(reportPath)
 		assert.NoError(t, err)
 
-		var report GitLabReport
+		var report gitLabReport
 		err = json.Unmarshal(data, &report)
 		assert.NoError(t, err)
 
@@ -102,7 +102,7 @@ func TestGitLabReporter(t *testing.T) {
 		data, err := os.ReadFile(reportPath)
 		assert.NoError(t, err)
 
-		var report GitLabReport
+		var report gitLabReport
 		err = json.Unmarshal(data, &report)
 		assert.NoError(t, err)
 
@@ -125,19 +125,19 @@ func TestGitLabReporter(t *testing.T) {
 		assert.GreaterOrEqual(t, len(vuln.Identifiers), 3)
 
 		// Check CVE identifier
-		assert.Equal(t, GitLabIdentifierTypeCVE, vuln.Identifiers[0].Type)
+		assert.Equal(t, gitLabIdentifierTypeCVE, vuln.Identifiers[0].Type)
 		assert.Equal(t, "CVE-2023-1234", vuln.Identifiers[0].Name)
 		assert.Equal(t, "CVE-2023-1234", vuln.Identifiers[0].Value)
 		assert.Contains(t, vuln.Identifiers[0].URL, "cve.mitre.org")
 
 		// Check CWE identifier
-		assert.Equal(t, GitLabIdentifierTypeCWE, vuln.Identifiers[1].Type)
+		assert.Equal(t, gitLabIdentifierTypeCWE, vuln.Identifiers[1].Type)
 		assert.Equal(t, "CWE-79", vuln.Identifiers[1].Name)
 		assert.Equal(t, "79", vuln.Identifiers[1].Value)
 		assert.Contains(t, vuln.Identifiers[1].URL, "cwe.mitre.org")
 
 		// Check GHSA identifier
-		assert.Equal(t, GitLabIdentifierTypeGHSA, vuln.Identifiers[2].Type)
+		assert.Equal(t, gitLabIdentifierTypeGHSA, vuln.Identifiers[2].Type)
 		assert.Equal(t, "GHSA-abcd-efgh-ijkl", vuln.Identifiers[2].Name)
 		assert.Equal(t, "abcd-efgh-ijkl", vuln.Identifiers[2].Value)
 		assert.Contains(t, vuln.Identifiers[2].URL, "github.com/advisories")
@@ -187,7 +187,7 @@ func TestGitLabReporter(t *testing.T) {
 		data, err := os.ReadFile(reportPath)
 		assert.NoError(t, err)
 
-		var report GitLabReport
+		var report gitLabReport
 		err = json.Unmarshal(data, &report)
 		assert.NoError(t, err)
 
@@ -235,7 +235,7 @@ func TestGitLabReporter(t *testing.T) {
 		// Debug: Print the report data
 		fmt.Printf("Report data: %s\n", string(data))
 
-		var report GitLabReport
+		var report gitLabReport
 		err = json.Unmarshal(data, &report)
 		assert.NoError(t, err)
 
@@ -262,7 +262,7 @@ func TestGitLabReporter(t *testing.T) {
 		assert.Len(t, vuln.Identifiers, 1)
 
 		// Check malware identifier
-		assert.Equal(t, GitLabIdentifierTypeMALWARE, vuln.Identifiers[0].Type)
+		assert.Equal(t, gitLabIdentifierTypeMALWARE, vuln.Identifiers[0].Type)
 		assert.Equal(t, "MAL-123", vuln.Identifiers[0].Name)
 		assert.Equal(t, "MAL-123", vuln.Identifiers[0].Value)
 		assert.Equal(t, malysis.ReportURL("report-123"), vuln.Identifiers[0].URL)

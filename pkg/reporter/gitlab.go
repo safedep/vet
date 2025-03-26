@@ -31,58 +31,58 @@ type GitLabReporterConfig struct {
 	VetVersion string // Vet version, value from version.go
 }
 
-// GitLabVendor represents vendor information
-type GitLabVendor struct {
+// gitLabVendor represents vendor information
+type gitLabVendor struct {
 	Name string `json:"name"`
 }
 
-// GitLabScanner represents scanner information
-type GitLabScanner struct {
+// gitLabScanner represents scanner information
+type gitLabScanner struct {
 	ID      string       `json:"id"`
 	Name    string       `json:"name"`
 	Version string       `json:"version"`
-	Vendor  GitLabVendor `json:"vendor"`
+	Vendor  gitLabVendor `json:"vendor"`
 }
 
-// GitLabPackage represents package information
-type GitLabPackage struct {
+// gitLabPackage represents package information
+type gitLabPackage struct {
 	Name string `json:"name"`
 }
 
-// GitLabDependency represents dependency information
-type GitLabDependency struct {
-	Package GitLabPackage `json:"package"`
+// gitLabDependency represents dependency information
+type gitLabDependency struct {
+	Package gitLabPackage `json:"package"`
 	Version string        `json:"version"`
 	Direct  bool          `json:"direct"`
 }
 
-// GitLabLocation represents location information
-type GitLabLocation struct {
+// gitLabLocation represents location information
+type gitLabLocation struct {
 	File       string           `json:"file"`
-	Dependency GitLabDependency `json:"dependency"`
+	Dependency gitLabDependency `json:"dependency"`
 }
 
-// GitLabIdentifierType represents type of identifier
+// gitLabIdentifierType represents type of identifier
 // Docs: https://docs.gitlab.com/development/integrations/secure/#identifiers
-type GitLabIdentifierType string
+type gitLabIdentifierType string
 
 const (
-	GitLabIdentifierTypeCVE       GitLabIdentifierType = "cve"
-	GitLabIdentifierTypeCWE       GitLabIdentifierType = "cwe"
-	GitLabIdentifierTypeGHSA      GitLabIdentifierType = "ghsa"
-	GitLabIdentifierTypeELSA      GitLabIdentifierType = "elsa"
-	GitLabIdentifierTypeOSVD      GitLabIdentifierType = "osvdb"
-	GitLabIdentifierTypeOWASP     GitLabIdentifierType = "owasp"
-	GitLabIdentifierTypeRHSA      GitLabIdentifierType = "rhsa"
-	GitLabIdentifierTypeUSN       GitLabIdentifierType = "usn"
-	GitLabIdentifierTypeHACKERONE GitLabIdentifierType = "hackerone"
+	gitLabIdentifierTypeCVE       gitLabIdentifierType = "cve"
+	gitLabIdentifierTypeCWE       gitLabIdentifierType = "cwe"
+	gitLabIdentifierTypeGHSA      gitLabIdentifierType = "ghsa"
+	gitLabIdentifierTypeELSA      gitLabIdentifierType = "elsa"
+	gitLabIdentifierTypeOSVD      gitLabIdentifierType = "osvdb"
+	gitLabIdentifierTypeOWASP     gitLabIdentifierType = "owasp"
+	gitLabIdentifierTypeRHSA      gitLabIdentifierType = "rhsa"
+	gitLabIdentifierTypeUSN       gitLabIdentifierType = "usn"
+	gitLabIdentifierTypeHACKERONE gitLabIdentifierType = "hackerone"
 	// NOT GITLAB BUT WE ARE USING THIS FOR OUR CUSTOM IDENTIFIER
-	GitLabIdentifierTypeMALWARE GitLabIdentifierType = "malware"
+	gitLabIdentifierTypeMALWARE gitLabIdentifierType = "malware"
 )
 
-// GitLabIdentifier represents identifier information
-type GitLabIdentifier struct {
-	Type  GitLabIdentifierType `json:"type"`
+// gitLabIdentifier represents identifier information
+type gitLabIdentifier struct {
+	Type  gitLabIdentifierType `json:"type"`
 	Name  string               `json:"name"`
 	Value string               `json:"value"`
 	URL   string               `json:"url"`
@@ -99,42 +99,42 @@ const (
 	SeverityLow      Severity = "Low"
 )
 
-// GitLabVulnerability represents a vulnerability in GitLab format
+// gitLabVulnerability represents a vulnerability in GitLab format
 // Docs: https://docs.gitlab.com/development/integrations/secure/#vulnerabilities
-type GitLabVulnerability struct {
+type gitLabVulnerability struct {
 	ID          string             `json:"id"`
 	Name        string             `json:"name"`
 	Description string             `json:"description"`
 	Severity    Severity           `json:"severity"`
 	Solution    string             `json:"solution"`
-	Location    GitLabLocation     `json:"location"`
-	Identifiers []GitLabIdentifier `json:"identifiers"`
+	Location    gitLabLocation     `json:"location"`
+	Identifiers []gitLabIdentifier `json:"identifiers"`
 }
 
-// GitLabScan represents scan information
-type GitLabScan struct {
-	Scanner   GitLabScanner `json:"scanner"`
-	Analyzer  GitLabScanner `json:"analyzer"` // Reusing GitLabScanner as they have same structure
+// gitLabScan represents scan information
+type gitLabScan struct {
+	Scanner   gitLabScanner `json:"scanner"`
+	Analyzer  gitLabScanner `json:"analyzer"` // Reusing GitLabScanner as they have same structure
 	Type      string        `json:"type"`
 	StartTime string        `json:"start_time"`
 	EndTime   string        `json:"end_time"`
 	Status    string        `json:"status"`
 }
 
-// GitLabReport represents the complete GitLab report currently using the 15.2.1 schema
+// gitLabReport represents the complete GitLab report currently using the 15.2.1 schema
 // and `dependency_scanning` type.
 // but can be extended to support other types and schemas in the future.
 // docs: https://docs.gitlab.com/development/integrations/secure/#report
-type GitLabReport struct {
+type gitLabReport struct {
 	Schema          string                `json:"schema"`
 	Version         string                `json:"version"`
-	Scan            GitLabScan            `json:"scan"`
-	Vulnerabilities []GitLabVulnerability `json:"vulnerabilities"`
+	Scan            gitLabScan            `json:"scan"`
+	Vulnerabilities []gitLabVulnerability `json:"vulnerabilities"`
 }
 
 type gitLabReporter struct {
 	config          GitLabReporterConfig
-	vulnerabilities []GitLabVulnerability
+	vulnerabilities []gitLabVulnerability
 	startTime       time.Time
 }
 
@@ -144,7 +144,7 @@ var _ Reporter = (*gitLabReporter)(nil)
 func NewGitLabReporter(config GitLabReporterConfig) (Reporter, error) {
 	return &gitLabReporter{
 		config:          config,
-		vulnerabilities: make([]GitLabVulnerability, 0),
+		vulnerabilities: make([]gitLabVulnerability, 0),
 		startTime:       time.Now(),
 	}, nil
 }
@@ -165,55 +165,55 @@ func gitlabFormatTime(t time.Time) string {
 // gitlabAddVulnerabilityIdentifiers adds all relevant identifiers for a vulnerability
 // following GitLab's identifier guidelines
 // Docs: https://docs.gitlab.com/development/integrations/secure/#identifiers
-func gitlabAddVulnerabilityIdentifiers(vuln *GitLabVulnerability, vulnData *insightapi.PackageVulnerability) {
+func gitlabAddVulnerabilityIdentifiers(vuln *gitLabVulnerability, vulnData *insightapi.PackageVulnerability) {
 	// Extract identifiers from the vulnerability data
-	identifiersFound := make(map[GitLabIdentifierType][]string)
+	identifiersFound := make(map[gitLabIdentifierType][]string)
 	aliases := utils.SafelyGetValue(vulnData.Aliases)
 
 	for _, alias := range aliases {
 		switch {
 		case strings.HasPrefix(alias, "CVE-"):
-			identifiersFound[GitLabIdentifierTypeCVE] = append(identifiersFound[GitLabIdentifierTypeCVE], alias)
+			identifiersFound[gitLabIdentifierTypeCVE] = append(identifiersFound[gitLabIdentifierTypeCVE], alias)
 		case strings.HasPrefix(alias, "CWE-"):
-			identifiersFound[GitLabIdentifierTypeCWE] = append(identifiersFound[GitLabIdentifierTypeCWE], alias)
+			identifiersFound[gitLabIdentifierTypeCWE] = append(identifiersFound[gitLabIdentifierTypeCWE], alias)
 		case strings.HasPrefix(alias, "GHSA-"):
-			identifiersFound[GitLabIdentifierTypeGHSA] = append(identifiersFound[GitLabIdentifierTypeGHSA], alias)
+			identifiersFound[gitLabIdentifierTypeGHSA] = append(identifiersFound[gitLabIdentifierTypeGHSA], alias)
 		case strings.HasPrefix(alias, "ELSA-"):
-			identifiersFound[GitLabIdentifierTypeELSA] = append(identifiersFound[GitLabIdentifierTypeELSA], alias)
+			identifiersFound[gitLabIdentifierTypeELSA] = append(identifiersFound[gitLabIdentifierTypeELSA], alias)
 		case strings.HasPrefix(alias, "OSVDB-"):
-			identifiersFound[GitLabIdentifierTypeOSVD] = append(identifiersFound[GitLabIdentifierTypeOSVD], alias)
+			identifiersFound[gitLabIdentifierTypeOSVD] = append(identifiersFound[gitLabIdentifierTypeOSVD], alias)
 		case strings.HasPrefix(alias, "OWASP-"):
-			identifiersFound[GitLabIdentifierTypeOWASP] = append(identifiersFound[GitLabIdentifierTypeOWASP], alias)
+			identifiersFound[gitLabIdentifierTypeOWASP] = append(identifiersFound[gitLabIdentifierTypeOWASP], alias)
 		case strings.HasPrefix(alias, "RHSA-"):
-			identifiersFound[GitLabIdentifierTypeRHSA] = append(identifiersFound[GitLabIdentifierTypeRHSA], alias)
+			identifiersFound[gitLabIdentifierTypeRHSA] = append(identifiersFound[gitLabIdentifierTypeRHSA], alias)
 		case strings.HasPrefix(alias, "USN-"):
-			identifiersFound[GitLabIdentifierTypeUSN] = append(identifiersFound[GitLabIdentifierTypeUSN], alias)
+			identifiersFound[gitLabIdentifierTypeUSN] = append(identifiersFound[gitLabIdentifierTypeUSN], alias)
 		case strings.HasPrefix(alias, "HACKERONE-"):
-			identifiersFound[GitLabIdentifierTypeHACKERONE] = append(identifiersFound[GitLabIdentifierTypeHACKERONE], alias)
+			identifiersFound[gitLabIdentifierTypeHACKERONE] = append(identifiersFound[gitLabIdentifierTypeHACKERONE], alias)
 		}
 	}
 
 	// Priority order of identifiers
 	// Since we can only who {gitlabMaxIdentifiers} in gitlab, we need to prioritize identifiers
 	identifiersPriority := []struct {
-		identifierType GitLabIdentifierType
+		identifierType gitLabIdentifierType
 		urlPrefix      string
 		namePrefix     string
 		trimNamePrefix bool // For some url, we need to trim the name prefix, like GitHub Advisories
 	}{
-		{GitLabIdentifierTypeCVE, "https://cve.mitre.org/cgi-bin/cvename.cgi?name=%s", "CVE", false},
-		{GitLabIdentifierTypeCWE, "https://cwe.mitre.org/data/definitions/%s.html", "CWE", true}, // Trim CWE- from the identifier name
-		{GitLabIdentifierTypeGHSA, "https://github.com/advisories/%s", "GHSA", true},             // Trim GHSA- from the identifier name
-		{GitLabIdentifierTypeELSA, "https://linux.oracle.com/errata/%s.html", "ELSA", false},
-		{GitLabIdentifierTypeOSVD, "https://osv.dev/vulnerability/%s", "OSVDB", false},
-		{GitLabIdentifierTypeOWASP, "https://owasp.org/www-community/vulnerabilities/%s", "OWASP", false},
-		{GitLabIdentifierTypeRHSA, "https://access.redhat.com/errata/%s", "RHSA", false},
-		{GitLabIdentifierTypeUSN, "https://ubuntu.com/security/notices/%s", "USN", false},
-		{GitLabIdentifierTypeHACKERONE, "https://hackerone.com/reports/%s", "HACKERONE", false},
+		{gitLabIdentifierTypeCVE, "https://cve.mitre.org/cgi-bin/cvename.cgi?name=%s", "CVE", false},
+		{gitLabIdentifierTypeCWE, "https://cwe.mitre.org/data/definitions/%s.html", "CWE", true}, // Trim CWE- from the identifier name
+		{gitLabIdentifierTypeGHSA, "https://github.com/advisories/%s", "GHSA", true},             // Trim GHSA- from the identifier name
+		{gitLabIdentifierTypeELSA, "https://linux.oracle.com/errata/%s.html", "ELSA", false},
+		{gitLabIdentifierTypeOSVD, "https://osv.dev/vulnerability/%s", "OSVDB", false},
+		{gitLabIdentifierTypeOWASP, "https://owasp.org/www-community/vulnerabilities/%s", "OWASP", false},
+		{gitLabIdentifierTypeRHSA, "https://access.redhat.com/errata/%s", "RHSA", false},
+		{gitLabIdentifierTypeUSN, "https://ubuntu.com/security/notices/%s", "USN", false},
+		{gitLabIdentifierTypeHACKERONE, "https://hackerone.com/reports/%s", "HACKERONE", false},
 	}
 
 	// Add identifiers in order of priority to report
-	reportIdentifiers := make([]GitLabIdentifier, 0)
+	reportIdentifiers := make([]gitLabIdentifier, 0)
 
 	for _, idx := range identifiersPriority {
 		for _, identifier := range identifiersFound[idx.identifierType] {
@@ -222,7 +222,7 @@ func gitlabAddVulnerabilityIdentifiers(vuln *GitLabVulnerability, vulnData *insi
 				value = strings.TrimPrefix(identifier, fmt.Sprintf("%s-", idx.namePrefix)) // Trim CWE- or GHSA- etc. from the identifier name
 			}
 
-			reportIdentifiers = append(reportIdentifiers, GitLabIdentifier{
+			reportIdentifiers = append(reportIdentifiers, gitLabIdentifier{
 				Type:  idx.identifierType,
 				Name:  identifier,
 				Value: value,
@@ -247,10 +247,10 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 		}
 
 		// Package location
-		location := GitLabLocation{
+		location := gitLabLocation{
 			File: manifest.Path,
-			Dependency: GitLabDependency{
-				Package: GitLabPackage{
+			Dependency: gitLabDependency{
+				Package: gitLabPackage{
 					Name: pkg.GetName(),
 				},
 				Version: pkg.GetVersion(),
@@ -278,15 +278,15 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 			}
 
 			malwareId := fmt.Sprintf("MAL-%s", malwareAnalysis.AnalysisId)
-			glVuln := GitLabVulnerability{
+			glVuln := gitLabVulnerability{
 				ID:          malwareId,
 				Name:        fmt.Sprintf("%s@%s is Malware/Suspicious Package", pkg.GetName(), pkg.GetVersion()),
 				Description: description,
 				Severity:    severity,
 				Location:    location,
-				Identifiers: []GitLabIdentifier{
+				Identifiers: []gitLabIdentifier{
 					{
-						Type:  GitLabIdentifierTypeMALWARE,
+						Type:  gitLabIdentifierTypeMALWARE,
 						Name:  malwareId,
 						Value: malwareId,
 						URL:   reportUrl,
@@ -312,7 +312,7 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 
 			summary := utils.SafelyGetValue(vulns[i].Summary)
 			// Create GitLab vulnerability entry
-			glVuln := GitLabVulnerability{
+			glVuln := gitLabVulnerability{
 				ID:          utils.SafelyGetValue(vulns[i].Id),
 				Name:        summary,
 				Description: summary, // Using summary as description since that's what we have
@@ -335,18 +335,18 @@ func (r *gitLabReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {}
 func (r *gitLabReporter) AddPolicyEvent(event *policy.PolicyEvent) {}
 
 func (r *gitLabReporter) Finish() error {
-	vendor := GitLabVendor{Name: "safedep"}
-	scanner := GitLabScanner{
+	vendor := gitLabVendor{Name: "safedep"}
+	scanner := gitLabScanner{
 		ID:      "vet",
 		Name:    "vet",
 		Version: r.config.VetVersion,
 		Vendor:  vendor,
 	}
 
-	report := GitLabReport{
+	report := gitLabReport{
 		Schema:  "https://gitlab.com/gitlab-org/security-products/security-report-schemas/-/raw/15.2.1/dist/dependency-scanning-report-format.json",
 		Version: "15.2.1",
-		Scan: GitLabScan{
+		Scan: gitLabScan{
 			Scanner:   scanner,
 			Analyzer:  scanner, // Using same scanner info for analyzer
 			Type:      "dependency_scanning",
