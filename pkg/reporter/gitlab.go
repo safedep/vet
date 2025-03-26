@@ -27,8 +27,13 @@ import (
 const gitlabMaxIdentifiers = 20
 
 type GitLabReporterConfig struct {
-	Path       string // Report path, value of --report-gitlab
-	VetVersion string // Vet version, value from version.go
+	Path           string // Report path, value of --report-gitlab
+	ToolName       string
+	ToolVersion    string // Tool version, value from version.go
+	ToolVendorName string
+	Schema         string
+	SchemaVersion  string
+	ReportType     string
 }
 
 // gitLabVendor represents vendor information
@@ -329,21 +334,21 @@ func (r *gitLabReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {}
 func (r *gitLabReporter) AddPolicyEvent(event *policy.PolicyEvent) {}
 
 func (r *gitLabReporter) Finish() error {
-	vendor := gitLabVendor{Name: "safedep"}
+	vendor := gitLabVendor{Name: r.config.ToolVendorName}
 	scanner := gitLabScanner{
-		ID:      "vet",
-		Name:    "vet",
-		Version: r.config.VetVersion,
+		ID:      r.config.ToolName,
+		Name:    r.config.ToolName,
+		Version: r.config.ToolVersion,
 		Vendor:  vendor,
 	}
 
 	report := gitLabReport{
-		Schema:  "https://gitlab.com/gitlab-org/security-products/security-report-schemas/-/raw/15.2.1/dist/dependency-scanning-report-format.json",
-		Version: "15.2.1",
+		Schema:  r.config.Schema,
+		Version: r.config.SchemaVersion,
 		Scan: gitLabScan{
 			Scanner:   scanner,
 			Analyzer:  scanner, // Using same scanner info for analyzer
-			Type:      "dependency_scanning",
+			Type:      r.config.ReportType,
 			StartTime: gitlabFormatTime(r.startTime),
 			EndTime:   gitlabFormatTime(time.Now()),
 			Status:    "success",

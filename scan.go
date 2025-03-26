@@ -516,8 +516,13 @@ func internalStartScan() error {
 
 	if !utils.IsEmptyString(gitlabReportPath) {
 		rp, err := reporter.NewGitLabReporter(reporter.GitLabReporterConfig{
-			Path:       gitlabReportPath,
-			VetVersion: version,
+			Path:           gitlabReportPath,
+			ToolVersion:    version,
+			ToolName:       "vet",
+			ToolVendorName: "safedep",
+			Schema:         "https://gitlab.com/gitlab-org/security-products/security-report-schemas/-/raw/15.2.1/dist/dependency-scanning-report-format.json",
+			SchemaVersion:  "15.2.1",
+			ReportType:     "dependency_scanning",
 		})
 		if err != nil {
 			return err

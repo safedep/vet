@@ -16,6 +16,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func getGitLabReporter(reportPath string) (Reporter, error) {
+	return NewGitLabReporter(GitLabReporterConfig{
+		Path:           reportPath,
+		ToolVersion:    "1.0.0",
+		ToolName:       "vet",
+		ToolVendorName: "safedep",
+		Schema:         "https://gitlab.com/gitlab-org/security-products/security-report-schemas/-/raw/15.2.1/dist/dependency-scanning-report-format.json",
+		SchemaVersion:  "15.2.1",
+		ReportType:     "dependency_scanning",
+	})
+}
+
 func TestGitLabReporter(t *testing.T) {
 	// Create a temporary directory for test reports
 	tmpDir, err := os.MkdirTemp("", "gitlab-reporter-test-*")
@@ -25,19 +37,16 @@ func TestGitLabReporter(t *testing.T) {
 	reportPath := filepath.Join(tmpDir, "gl-dependency-scanning-report.json")
 
 	t.Run("NewGitLabReporter", func(t *testing.T) {
-		reporter, err := NewGitLabReporter(GitLabReporterConfig{
-			Path: reportPath,
-		})
+		reporter, err := getGitLabReporter(reportPath)
 		assert.NoError(t, err)
 		assert.NotNil(t, reporter)
 		assert.Equal(t, "GitLab Dependency Scanning Report Generator", reporter.Name())
 	})
 
 	t.Run("Empty Report", func(t *testing.T) {
-		reporter, _ := NewGitLabReporter(GitLabReporterConfig{
-			Path: reportPath,
-		})
-		err := reporter.Finish()
+		reporter, err := getGitLabReporter(reportPath)
+		assert.NoError(t, err)
+		err = reporter.Finish()
 		assert.NoError(t, err)
 
 		// Read and verify the report
@@ -57,10 +66,8 @@ func TestGitLabReporter(t *testing.T) {
 	})
 
 	t.Run("Report With Vulnerabilities", func(t *testing.T) {
-		reporter, _ := NewGitLabReporter(GitLabReporterConfig{
-			Path:       reportPath,
-			VetVersion: "1.0.0",
-		})
+		reporter, err := getGitLabReporter(reportPath)
+		assert.NoError(t, err)
 
 		// Create test manifest with vulnerabilities
 		manifest := &models.PackageManifest{
@@ -95,7 +102,7 @@ func TestGitLabReporter(t *testing.T) {
 		}
 
 		reporter.AddManifest(manifest)
-		err := reporter.Finish()
+		err = reporter.Finish()
 		assert.NoError(t, err)
 
 		// Read and verify the report
@@ -150,10 +157,8 @@ func TestGitLabReporter(t *testing.T) {
 	})
 
 	t.Run("Maximum Identifiers", func(t *testing.T) {
-		reporter, _ := NewGitLabReporter(GitLabReporterConfig{
-			Path:       reportPath,
-			VetVersion: "1.0.0",
-		})
+		reporter, err := getGitLabReporter(reportPath)
+		assert.NoError(t, err)
 
 		// Create aliases with more than 20 identifiers
 		// As per GitLab's limit
@@ -180,7 +185,7 @@ func TestGitLabReporter(t *testing.T) {
 		}
 
 		reporter.AddManifest(manifest)
-		err := reporter.Finish()
+		err = reporter.Finish()
 		assert.NoError(t, err)
 
 		// Read and verify the report
@@ -196,10 +201,8 @@ func TestGitLabReporter(t *testing.T) {
 	})
 
 	t.Run("Report With Malicious Package", func(t *testing.T) {
-		reporter, _ := NewGitLabReporter(GitLabReporterConfig{
-			Path:       reportPath,
-			VetVersion: "1.0.0",
-		})
+		reporter, err := getGitLabReporter(reportPath)
+		assert.NoError(t, err)
 
 		manifest := &models.PackageManifest{
 			Path: "test/package.json",
@@ -225,7 +228,7 @@ func TestGitLabReporter(t *testing.T) {
 		}
 
 		reporter.AddManifest(manifest)
-		err := reporter.Finish()
+		err = reporter.Finish()
 		assert.NoError(t, err)
 
 		// Read and verify the report
