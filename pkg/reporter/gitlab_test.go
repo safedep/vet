@@ -248,7 +248,7 @@ func TestGitLabReporter(t *testing.T) {
 
 		// Check basic vulnerability info
 		assert.Equal(t, "MAL-123", vuln.ID)
-		assert.Equal(t, "malicious-package@1.0.0 is Malware/Suspicious Package", vuln.Name)
+		assert.Equal(t, "malicious-package@1.0.0 is malware/suspicious package", vuln.Name)
 		assert.Equal(t, SeverityCritical, vuln.Severity)
 		assert.Equal(t, "Package contains malicious code\n\nFound suspicious eval usage and data exfiltration attempts", vuln.Description)
 

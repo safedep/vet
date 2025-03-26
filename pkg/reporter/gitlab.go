@@ -276,18 +276,17 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 				}
 			}
 
-			malwareId := fmt.Sprintf("MAL-%s", malwareAnalysis.AnalysisId)
 			glVuln := gitLabVulnerability{
-				ID:          malwareId,
-				Name:        fmt.Sprintf("%s@%s is Malware/Suspicious Package", pkg.GetName(), pkg.GetVersion()),
+				ID:          malwareAnalysis.Id(),
+				Name:        fmt.Sprintf("%s@%s is malware/suspicious package", pkg.GetName(), pkg.GetVersion()),
 				Description: description,
 				Severity:    severity,
 				Location:    location,
 				Identifiers: []gitLabIdentifier{
 					{
 						Type:  gitLabIdentifierTypeMALWARE,
-						Name:  malwareId,
-						Value: malwareId,
+						Name:  malwareAnalysis.Id(),
+						Value: malwareAnalysis.Id(),
 						URL:   reportUrl,
 					},
 				},

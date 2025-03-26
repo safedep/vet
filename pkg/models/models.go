@@ -340,6 +340,13 @@ type MalwareAnalysisResult struct {
 	VerificationRecord *malysisv1.VerificationRecord
 }
 
+// Id returns id for malware analysis result
+// Its Opionionated, we use MAL- prefix for malware analysis results
+// Its not linked to any standard
+func (m *MalwareAnalysisResult) Id() string {
+	return fmt.Sprintf("MAL-%s", m.AnalysisId)
+}
+
 type CodeAnalysisResult struct {
 	// Usage evidences of a package obtained by depsusage plugin
 	UsageEvidences []*ent.DepsUsageEvidence `json:"usage_evidences"`
