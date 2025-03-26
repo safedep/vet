@@ -66,13 +66,24 @@ type GitLabIdentifier struct {
 	URL   string `json:"url"`
 }
 
+// Severity represents severity of a vulnerability or malware
+type Severity string
+
+const (
+	SeverityUnknown  Severity = "Unknown"
+	SeverityCritical Severity = "Critical"
+	SeverityHigh     Severity = "High"
+	SeverityMedium   Severity = "Medium"
+	SeverityLow      Severity = "Low"
+)
+
 // GitLabVulnerability represents a vulnerability in GitLab format
 // Docs: https://docs.gitlab.com/development/integrations/secure/#vulnerabilities
 type GitLabVulnerability struct {
 	ID          string             `json:"id"`
 	Name        string             `json:"name"`
 	Description string             `json:"description"`
-	Severity    string             `json:"severity"`
+	Severity    Severity           `json:"severity"`
 	Solution    string             `json:"solution"`
 	Location    GitLabLocation     `json:"location"`
 	Identifiers []GitLabIdentifier `json:"identifiers"`
@@ -209,9 +220,9 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 		malwareAnalysis := pkg.MalwareAnalysis
 
 		if malwareAnalysis != nil && (malwareAnalysis.IsMalware || malwareAnalysis.IsSuspicious) {
-			severity := "Critical"
+			severity := SeverityCritical
 			if malwareAnalysis.IsSuspicious {
-				severity = "High"
+				severity = SeverityHigh
 			}
 
 			description := ""
@@ -250,7 +261,7 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 		vulns := utils.SafelyGetValue(pkg.Insights.Vulnerabilities)
 		for i := range vulns {
 			// Map severity
-			severity := "Unknown"
+			severity := SeverityUnknown
 			severities := utils.SafelyGetValue(vulns[i].Severities)
 			if len(severities) > 0 {
 				risk := utils.SafelyGetValue(severities[0].Risk)
@@ -319,17 +330,17 @@ func (r *gitLabReporter) Finish() error {
 	return nil
 }
 
-func getVulnerabilitySeverity(risk insightapi.PackageVulnerabilitySeveritiesRisk) string {
+func getVulnerabilitySeverity(risk insightapi.PackageVulnerabilitySeveritiesRisk) Severity {
 	switch risk {
 	case insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL:
-		return "Critical"
+		return SeverityCritical
 	case insightapi.PackageVulnerabilitySeveritiesRiskHIGH:
-		return "High"
+		return SeverityHigh
 	case insightapi.PackageVulnerabilitySeveritiesRiskMEDIUM:
-		return "Medium"
+		return SeverityMedium
 	case insightapi.PackageVulnerabilitySeveritiesRiskLOW:
-		return "Low"
+		return SeverityLow
 	default:
-		return "Unknown"
+		return SeverityUnknown
 	}
 }
