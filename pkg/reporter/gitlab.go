@@ -144,7 +144,7 @@ type gitLabReporter struct {
 // Ensure gitLabReporter implements Reporter interface
 var _ Reporter = (*gitLabReporter)(nil)
 
-func NewGitLabReporter(config GitLabReporterConfig) (Reporter, error) {
+func NewGitLabReporter(config GitLabReporterConfig) (*gitLabReporter, error) {
 	return &gitLabReporter{
 		config:          config,
 		vulnerabilities: make([]gitLabVulnerability, 0),
@@ -161,14 +161,14 @@ func (r *gitLabReporter) Name() string {
 // Example: "2020-01-28T03:26:02"
 //
 // Docs (Schema Reference): https://gitlab.com/gitlab-org/security-products/security-report-schemas/-/blob/master/dist/sast-report-format.json#L497
-func gitlabFormatTime(t time.Time) string {
+func (r *gitLabReporter) gitlabFormatTime(t time.Time) string {
 	return t.Format("2006-01-02T15:04:05")
 }
 
 // gitlabAddVulnerabilityIdentifiers adds all relevant identifiers for a vulnerability
 // following GitLab's identifier guidelines
 // Docs: https://docs.gitlab.com/development/integrations/secure/#identifiers
-func gitlabAddVulnerabilityIdentifiers(vuln *gitLabVulnerability, vulnData *insightapi.PackageVulnerability) {
+func (r *gitLabReporter) gitlabAddVulnerabilityIdentifiers(vuln *gitLabVulnerability, vulnData *insightapi.PackageVulnerability) {
 	// Extract identifiers from the vulnerability data
 	identifiersFound := make(map[gitLabIdentifierType][]string)
 	aliases := utils.SafelyGetValue(vulnData.Aliases)
@@ -197,11 +197,21 @@ func gitlabAddVulnerabilityIdentifiers(vuln *gitLabVulnerability, vulnData *insi
 
 	for _, idfsType := range identifiersPriority {
 		for _, identifier := range identifiersFound[idfsType] {
+			url := ""
+			switch idfsType {
+			case gitLabIdentifierTypeCVE:
+				url = common.GetCveReferenceURL(identifier)
+			case gitLabIdentifierTypeCWE:
+				url = common.GetCweReferenceURL(identifier)
+			case gitLabIdentifierTypeGHSA:
+				url = common.GetGhsaReferenceURL(identifier)
+			}
+
 			reportIdentifiers = append(reportIdentifiers, gitLabIdentifier{
 				Type:  idfsType,
 				Name:  identifier,
 				Value: identifier,
-				URL:   common.GetIdentifierURL(string(idfsType), identifier),
+				URL:   url,
 			})
 		}
 	}
@@ -242,14 +252,12 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 				severity = SeverityHigh
 			}
 
-			description := ""
+			description := "Package is malware/suspicious"
 			reportUrl := ""
 
 			if malwareAnalysis.Report != nil {
 				reportUrl = malysis.ReportURL(malwareAnalysis.Report.ReportId)
-				if malwareAnalysis.Report.Inference != nil {
-					description = fmt.Sprintf("%s\n\n%s", malwareAnalysis.Report.Inference.Summary, malwareAnalysis.Report.Inference.Details)
-				}
+				description = fmt.Sprintf("%s\n\n%s", malwareAnalysis.Report.GetInference().GetSummary(), malwareAnalysis.Report.GetInference().GetDetails())
 			}
 
 			glVuln := gitLabVulnerability{
@@ -279,7 +287,7 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 			severities := utils.SafelyGetValue(vulns[i].Severities)
 			if len(severities) > 0 {
 				risk := utils.SafelyGetValue(severities[0].Risk)
-				severity = getVulnerabilitySeverity(risk)
+				severity = r.getVulnerabilitySeverity(risk)
 			}
 
 			summary := utils.SafelyGetValue(vulns[i].Summary)
@@ -293,7 +301,7 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 			}
 
 			// Add all relevant identifiers
-			gitlabAddVulnerabilityIdentifiers(&glVuln, &vulns[i])
+			r.gitlabAddVulnerabilityIdentifiers(&glVuln, &vulns[i])
 
 			r.vulnerabilities = append(r.vulnerabilities, glVuln)
 		}
@@ -320,8 +328,8 @@ func (r *gitLabReporter) Finish() error {
 			Scanner:   scanner,
 			Analyzer:  scanner, // Using same scanner info for analyzer
 			Type:      gitlabReportTypeDependencyScanning,
-			StartTime: gitlabFormatTime(r.startTime),
-			EndTime:   gitlabFormatTime(time.Now()),
+			StartTime: r.gitlabFormatTime(r.startTime),
+			EndTime:   r.gitlabFormatTime(time.Now()),
 			Status:    gitlabSuccessStatus,
 		},
 		Vulnerabilities: r.vulnerabilities,
@@ -342,7 +350,7 @@ func (r *gitLabReporter) Finish() error {
 	return nil
 }
 
-func getVulnerabilitySeverity(risk insightapi.PackageVulnerabilitySeveritiesRisk) Severity {
+func (r *gitLabReporter) getVulnerabilitySeverity(risk insightapi.PackageVulnerabilitySeveritiesRisk) Severity {
 	switch risk {
 	case insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL:
 		return SeverityCritical

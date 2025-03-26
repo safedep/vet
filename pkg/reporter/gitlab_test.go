@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func getGitLabReporter(reportPath string) (Reporter, error) {
+func getGitLabReporter(reportPath string) (*gitLabReporter, error) {
 	return NewGitLabReporter(GitLabReporterConfig{
 		Path:           reportPath,
 		ToolVersion:    "1.0.0",
@@ -148,8 +148,11 @@ func TestGitLabReporter(t *testing.T) {
 	})
 
 	t.Run("Time Format", func(t *testing.T) {
+		reporter, err := getGitLabReporter(reportPath)
+		assert.NoError(t, err)
+
 		testTime := time.Date(2024, 3, 15, 14, 30, 45, 0, time.UTC)
-		formatted := gitlabFormatTime(testTime)
+		formatted := reporter.gitlabFormatTime(testTime)
 		assert.Equal(t, "2024-03-15T14:30:45", formatted)
 	})
 
