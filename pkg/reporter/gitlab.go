@@ -106,7 +106,6 @@ type gitLabVulnerability struct {
 	Name        string             `json:"name"`
 	Description string             `json:"description"`
 	Severity    Severity           `json:"severity"`
-	Solution    string             `json:"solution"`
 	Location    gitLabLocation     `json:"location"`
 	Identifiers []gitLabIdentifier `json:"identifiers"`
 }
@@ -292,8 +291,6 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 						URL:   reportUrl,
 					},
 				},
-				// TODO
-				// Solution: "",
 			}
 
 			r.vulnerabilities = append(r.vulnerabilities, glVuln)
@@ -318,8 +315,6 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 				Description: summary, // Using summary as description since that's what we have
 				Severity:    severity,
 				Location:    location,
-				// Todo: Solution
-				// Solution:    fmt.Sprintf("Upgrade to a version without %s", utils.SafelyGetValue(vulns[i].Id)),
 			}
 
 			// Add all relevant identifiers
