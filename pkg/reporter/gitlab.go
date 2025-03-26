@@ -254,16 +254,7 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 			severities := utils.SafelyGetValue(vulns[i].Severities)
 			if len(severities) > 0 {
 				risk := utils.SafelyGetValue(severities[0].Risk)
-				switch risk {
-				case insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL:
-					severity = "Critical"
-				case insightapi.PackageVulnerabilitySeveritiesRiskHIGH:
-					severity = "High"
-				case insightapi.PackageVulnerabilitySeveritiesRiskMEDIUM:
-					severity = "Medium"
-				case insightapi.PackageVulnerabilitySeveritiesRiskLOW:
-					severity = "Low"
-				}
+				severity = getVulnerabilitySeverity(risk)
 			}
 
 			summary := utils.SafelyGetValue(vulns[i].Summary)
@@ -326,4 +317,19 @@ func (r *gitLabReporter) Finish() error {
 	}
 
 	return nil
+}
+
+func getVulnerabilitySeverity(risk insightapi.PackageVulnerabilitySeveritiesRisk) string {
+	switch risk {
+	case insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL:
+		return "Critical"
+	case insightapi.PackageVulnerabilitySeveritiesRiskHIGH:
+		return "High"
+	case insightapi.PackageVulnerabilitySeveritiesRiskMEDIUM:
+		return "Medium"
+	case insightapi.PackageVulnerabilitySeveritiesRiskLOW:
+		return "Low"
+	default:
+		return "Unknown"
+	}
 }
