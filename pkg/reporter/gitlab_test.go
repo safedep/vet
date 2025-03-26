@@ -125,19 +125,19 @@ func TestGitLabReporter(t *testing.T) {
 		assert.GreaterOrEqual(t, len(vuln.Identifiers), 3)
 
 		// Check CVE identifier
-		assert.Equal(t, "cve", vuln.Identifiers[0].Type)
+		assert.Equal(t, GitLabIdentifierTypeCVE, vuln.Identifiers[0].Type)
 		assert.Equal(t, "CVE-2023-1234", vuln.Identifiers[0].Name)
 		assert.Equal(t, "CVE-2023-1234", vuln.Identifiers[0].Value)
 		assert.Contains(t, vuln.Identifiers[0].URL, "cve.mitre.org")
 
 		// Check CWE identifier
-		assert.Equal(t, "cwe", vuln.Identifiers[1].Type)
+		assert.Equal(t, GitLabIdentifierTypeCWE, vuln.Identifiers[1].Type)
 		assert.Equal(t, "CWE-79", vuln.Identifiers[1].Name)
 		assert.Equal(t, "79", vuln.Identifiers[1].Value)
 		assert.Contains(t, vuln.Identifiers[1].URL, "cwe.mitre.org")
 
 		// Check GHSA identifier
-		assert.Equal(t, "ghsa", vuln.Identifiers[2].Type)
+		assert.Equal(t, GitLabIdentifierTypeGHSA, vuln.Identifiers[2].Type)
 		assert.Equal(t, "GHSA-abcd-efgh-ijkl", vuln.Identifiers[2].Name)
 		assert.Equal(t, "abcd-efgh-ijkl", vuln.Identifiers[2].Value)
 		assert.Contains(t, vuln.Identifiers[2].URL, "github.com/advisories")
@@ -145,7 +145,7 @@ func TestGitLabReporter(t *testing.T) {
 
 	t.Run("Time Format", func(t *testing.T) {
 		testTime := time.Date(2024, 3, 15, 14, 30, 45, 0, time.UTC)
-		formatted := formatTime(testTime)
+		formatted := gitlabFormatTime(testTime)
 		assert.Equal(t, "2024-03-15T14:30:45", formatted)
 	})
 
@@ -262,7 +262,7 @@ func TestGitLabReporter(t *testing.T) {
 		assert.Len(t, vuln.Identifiers, 1)
 
 		// Check malware identifier
-		assert.Equal(t, "malware", vuln.Identifiers[0].Type)
+		assert.Equal(t, GitLabIdentifierTypeMALWARE, vuln.Identifiers[0].Type)
 		assert.Equal(t, "MAL-123", vuln.Identifiers[0].Name)
 		assert.Equal(t, "MAL-123", vuln.Identifiers[0].Value)
 		assert.Equal(t, malysis.ReportURL("report-123"), vuln.Identifiers[0].URL)

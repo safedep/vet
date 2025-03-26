@@ -22,6 +22,10 @@ import (
 	"github.com/safedep/vet/pkg/policy"
 )
 
+// gitlabMaxIdentifiers is the maximum number of identifiers that can be added to a vulnerability
+// Docs: https://docs.gitlab.com/development/integrations/secure/#identifiers
+const gitlabMaxIdentifiers = 20
+
 type GitLabReporterConfig struct {
 	Path       string // Report path, value of --report-gitlab
 	VetVersion string // Vet version, value from version.go
@@ -58,12 +62,30 @@ type GitLabLocation struct {
 	Dependency GitLabDependency `json:"dependency"`
 }
 
+// GitLabIdentifierType represents type of identifier
+// Docs: https://docs.gitlab.com/development/integrations/secure/#identifiers
+type GitLabIdentifierType string
+
+const (
+	GitLabIdentifierTypeCVE       GitLabIdentifierType = "cve"
+	GitLabIdentifierTypeCWE       GitLabIdentifierType = "cwe"
+	GitLabIdentifierTypeGHSA      GitLabIdentifierType = "ghsa"
+	GitLabIdentifierTypeELSA      GitLabIdentifierType = "elsa"
+	GitLabIdentifierTypeOSVD      GitLabIdentifierType = "osvdb"
+	GitLabIdentifierTypeOWASP     GitLabIdentifierType = "owasp"
+	GitLabIdentifierTypeRHSA      GitLabIdentifierType = "rhsa"
+	GitLabIdentifierTypeUSN       GitLabIdentifierType = "usn"
+	GitLabIdentifierTypeHACKERONE GitLabIdentifierType = "hackerone"
+	// NOT GITLAB BUT WE ARE USING THIS FOR OUR CUSTOM IDENTIFIER
+	GitLabIdentifierTypeMALWARE GitLabIdentifierType = "malware"
+)
+
 // GitLabIdentifier represents identifier information
 type GitLabIdentifier struct {
-	Type  string `json:"type"`
-	Name  string `json:"name"`
-	Value string `json:"value"`
-	URL   string `json:"url"`
+	Type  GitLabIdentifierType `json:"type"`
+	Name  string               `json:"name"`
+	Value string               `json:"value"`
+	URL   string               `json:"url"`
 }
 
 // Severity represents severity of a vulnerability or malware
@@ -131,70 +153,90 @@ func (r *gitLabReporter) Name() string {
 	return "GitLab Dependency Scanning Report Generator"
 }
 
-// GitLab requires time to be in this format
-// Learned the hard way :), (not that actually , thanks to Cursor)
-func formatTime(t time.Time) string {
+// GitLab requires time to be in pattern
+// "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$"
+// Example: "2020-01-28T03:26:02"
+//
+// Docs (Schema Reference): https://gitlab.com/gitlab-org/security-products/security-report-schemas/-/blob/master/dist/sast-report-format.json#L497
+func gitlabFormatTime(t time.Time) string {
 	return t.Format("2006-01-02T15:04:05")
 }
 
-// addIdentifiers adds all relevant identifiers for a vulnerability
+// gitlabAddVulnerabilityIdentifiers adds all relevant identifiers for a vulnerability
 // following GitLab's identifier guidelines
 // Docs: https://docs.gitlab.com/development/integrations/secure/#identifiers
-func addIdentifiers(vuln *GitLabVulnerability, vulnData *insightapi.PackageVulnerability) {
+func gitlabAddVulnerabilityIdentifiers(vuln *GitLabVulnerability, vulnData *insightapi.PackageVulnerability) {
 	// Extract identifiers from the vulnerability data
-	var cves, cwes, ghsas []string
+	identifiersFound := make(map[GitLabIdentifierType][]string)
 	aliases := utils.SafelyGetValue(vulnData.Aliases)
 
 	for _, alias := range aliases {
 		switch {
 		case strings.HasPrefix(alias, "CVE-"):
-			cves = append(cves, alias)
+			identifiersFound[GitLabIdentifierTypeCVE] = append(identifiersFound[GitLabIdentifierTypeCVE], alias)
 		case strings.HasPrefix(alias, "CWE-"):
-			cwes = append(cwes, alias)
+			identifiersFound[GitLabIdentifierTypeCWE] = append(identifiersFound[GitLabIdentifierTypeCWE], alias)
 		case strings.HasPrefix(alias, "GHSA-"):
-			ghsas = append(ghsas, alias)
+			identifiersFound[GitLabIdentifierTypeGHSA] = append(identifiersFound[GitLabIdentifierTypeGHSA], alias)
+		case strings.HasPrefix(alias, "ELSA-"):
+			identifiersFound[GitLabIdentifierTypeELSA] = append(identifiersFound[GitLabIdentifierTypeELSA], alias)
+		case strings.HasPrefix(alias, "OSVDB-"):
+			identifiersFound[GitLabIdentifierTypeOSVD] = append(identifiersFound[GitLabIdentifierTypeOSVD], alias)
+		case strings.HasPrefix(alias, "OWASP-"):
+			identifiersFound[GitLabIdentifierTypeOWASP] = append(identifiersFound[GitLabIdentifierTypeOWASP], alias)
+		case strings.HasPrefix(alias, "RHSA-"):
+			identifiersFound[GitLabIdentifierTypeRHSA] = append(identifiersFound[GitLabIdentifierTypeRHSA], alias)
+		case strings.HasPrefix(alias, "USN-"):
+			identifiersFound[GitLabIdentifierTypeUSN] = append(identifiersFound[GitLabIdentifierTypeUSN], alias)
+		case strings.HasPrefix(alias, "HACKERONE-"):
+			identifiersFound[GitLabIdentifierTypeHACKERONE] = append(identifiersFound[GitLabIdentifierTypeHACKERONE], alias)
 		}
 	}
 
-	// Add identifiers in order of priority
-	identifiers := make([]GitLabIdentifier, 0)
-
-	// Add all CVEs first
-	for _, cve := range cves {
-		identifiers = append(identifiers, GitLabIdentifier{
-			Type:  "cve",
-			Name:  cve,
-			Value: cve,
-			URL:   fmt.Sprintf("https://cve.mitre.org/cgi-bin/cvename.cgi?name=%s", cve),
-		})
+	// Priority order of identifiers
+	// Since we can only who {gitlabMaxIdentifiers} in gitlab, we need to prioritize identifiers
+	identifiersPriority := []struct {
+		identifierType GitLabIdentifierType
+		urlPrefix      string
+		namePrefix     string
+		trimNamePrefix bool // For some url, we need to trim the name prefix, like GitHub Advisories
+	}{
+		{GitLabIdentifierTypeCVE, "https://cve.mitre.org/cgi-bin/cvename.cgi?name=%s", "CVE", false},
+		{GitLabIdentifierTypeCWE, "https://cwe.mitre.org/data/definitions/%s.html", "CWE", true}, // Trim CWE- from the identifier name
+		{GitLabIdentifierTypeGHSA, "https://github.com/advisories/%s", "GHSA", true},             // Trim GHSA- from the identifier name
+		{GitLabIdentifierTypeELSA, "https://linux.oracle.com/errata/%s.html", "ELSA", false},
+		{GitLabIdentifierTypeOSVD, "https://osv.dev/vulnerability/%s", "OSVDB", false},
+		{GitLabIdentifierTypeOWASP, "https://owasp.org/www-community/vulnerabilities/%s", "OWASP", false},
+		{GitLabIdentifierTypeRHSA, "https://access.redhat.com/errata/%s", "RHSA", false},
+		{GitLabIdentifierTypeUSN, "https://ubuntu.com/security/notices/%s", "USN", false},
+		{GitLabIdentifierTypeHACKERONE, "https://hackerone.com/reports/%s", "HACKERONE", false},
 	}
 
-	// Add all CWEs
-	for _, cwe := range cwes {
-		identifiers = append(identifiers, GitLabIdentifier{
-			Type:  "cwe",
-			Name:  cwe,
-			Value: strings.TrimPrefix(cwe, "CWE-"),
-			URL:   fmt.Sprintf("https://cwe.mitre.org/data/definitions/%s.html", strings.TrimPrefix(cwe, "CWE-")),
-		})
+	// Add identifiers in order of priority to report
+	reportIdentifiers := make([]GitLabIdentifier, 0)
+
+	for _, idx := range identifiersPriority {
+		for _, identifier := range identifiersFound[idx.identifierType] {
+			value := identifier
+			if idx.trimNamePrefix {
+				value = strings.TrimPrefix(identifier, fmt.Sprintf("%s-", idx.namePrefix)) // Trim CWE- or GHSA- etc. from the identifier name
+			}
+
+			reportIdentifiers = append(reportIdentifiers, GitLabIdentifier{
+				Type:  idx.identifierType,
+				Name:  identifier,
+				Value: value,
+				URL:   fmt.Sprintf(idx.urlPrefix, value),
+			})
+		}
 	}
 
-	// Add all GHSAs
-	for _, ghsa := range ghsas {
-		identifiers = append(identifiers, GitLabIdentifier{
-			Type:  "ghsa",
-			Name:  ghsa,
-			Value: strings.TrimPrefix(ghsa, "GHSA-"),
-			URL:   fmt.Sprintf("https://github.com/advisories/%s", ghsa),
-		})
+	// If identifiers are more than {gitlabMaxIdentifiers}, then system saves only {gitlabMaxIdentifiers}, so why increase the network cost
+	if len(reportIdentifiers) > gitlabMaxIdentifiers {
+		reportIdentifiers = reportIdentifiers[:gitlabMaxIdentifiers]
 	}
 
-	// If identifiers are more than 20, then system saves only 20, so why increase the network cost
-	if len(identifiers) > 20 {
-		identifiers = identifiers[:20]
-	}
-
-	vuln.Identifiers = identifiers
+	vuln.Identifiers = reportIdentifiers
 }
 
 func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
@@ -244,7 +286,7 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 				Location:    location,
 				Identifiers: []GitLabIdentifier{
 					{
-						Type:  "malware",
+						Type:  GitLabIdentifierTypeMALWARE,
 						Name:  malwareId,
 						Value: malwareId,
 						URL:   reportUrl,
@@ -281,7 +323,7 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 			}
 
 			// Add all relevant identifiers
-			addIdentifiers(&glVuln, &vulns[i])
+			gitlabAddVulnerabilityIdentifiers(&glVuln, &vulns[i])
 
 			r.vulnerabilities = append(r.vulnerabilities, glVuln)
 		}
@@ -308,8 +350,8 @@ func (r *gitLabReporter) Finish() error {
 			Scanner:   scanner,
 			Analyzer:  scanner, // Using same scanner info for analyzer
 			Type:      "dependency_scanning",
-			StartTime: formatTime(r.startTime),
-			EndTime:   formatTime(time.Now()),
+			StartTime: gitlabFormatTime(r.startTime),
+			EndTime:   gitlabFormatTime(time.Now()),
 			Status:    "success",
 		},
 		Vulnerabilities: r.vulnerabilities,
