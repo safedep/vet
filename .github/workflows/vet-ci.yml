@@ -24,11 +24,14 @@ jobs:
 
       - name: vet GitHub Actions
         run: |
+          WORKFLOW_FILE_PATH=$(echo $GITHUB_WORKFLOW_REF | cut -d'@' -f1)
+          WORKFLOW_FILE_PATH=$(echo $WORKFLOW_FILE_PATH | sed "s|${GITHUB_REPOSITORY}/||")
+          echo "Scanning workflow file: $WORKFLOW_FILE_PATH"
           docker run --rm \
             -v $(pwd):/target \
             -e VET_API_KEY -e VET_CONTROL_TOWER_TENANT_ID \
             ghcr.io/safedep/vet:latest \
-            scan -D /target/.github/workflows --type github-actions \
+            scan -D /target/$WORKFLOW_FILE_PATH --type github-actions \
             --malware --malware-trust-tool-result
         env:
           VET_API_KEY: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
