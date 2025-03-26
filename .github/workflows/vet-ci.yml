@@ -32,7 +32,8 @@ jobs:
             -e VET_API_KEY -e VET_CONTROL_TOWER_TENANT_ID \
             ghcr.io/safedep/vet:latest \
             scan -D /target/$WORKFLOW_FILE_PATH --type github-actions \
-            --malware --malware-trust-tool-result
+            --malware --malware-trust-tool-result --malware-analysis-min-confidence=MEDIUM \
+            --fail-fast
         env:
           VET_API_KEY: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
           VET_CONTROL_TOWER_TENANT_ID: ${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }}
