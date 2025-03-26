@@ -12,9 +12,9 @@ func GetIdentifierURL(identifier, value string) string {
 	case "cve":
 		return fmt.Sprintf("https://cve.mitre.org/cgi-bin/cvename.cgi?name=%s", value)
 	case "cwe":
-		return fmt.Sprintf("https://cwe.mitre.org/data/definitions/%s.html", strings.TrimPrefix(value, "CWE-"))
+		return fmt.Sprintf("https://cwe.mitre.org/data/definitions/%s.html", strings.TrimPrefix(value, "CWE-")) // CWE Rquire only the number, ie. CWE-123 -> 123
 	case "ghsa":
-		return fmt.Sprintf("https://github.com/advisories/%s", strings.TrimPrefix(value, "GHSA-"))
+		return fmt.Sprintf("https://github.com/advisories/%s", value)
 	}
 	return ""
 }
