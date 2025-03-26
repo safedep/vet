@@ -3,9 +3,9 @@ package reporter
 // GitLabReporter is the reporter for GitLab.
 // This report is same for most of gitlab scanners, types
 // and schemas.
-// But we are using only for dependency_scanning report. That's we do report.type = "dependency_scanning"
-// Schema: https://gitlab.com/gitlab-org/security-products/security-report-schemas/-/raw/v15.2.1/dist/dependency-scanning-report-format.json
-// Docs: https://www.notion.so/safedep-inc/Need-for-GitLab-specific-schema-reporting-1c061d70b23680319849c32d2b0cbcd6?pvs=4
+//
+// We are using Schema Verison 15.2.1 for dependency_scanning report.
+// All the versions are available at: https://gitlab.com/gitlab-org/security-products/security-report-schemas
 
 import (
 	"encoding/json"
@@ -22,18 +22,21 @@ import (
 	"github.com/safedep/vet/pkg/policy"
 )
 
-// gitlabMaxIdentifiers is the maximum number of identifiers that can be added to a vulnerability
+// gitlab constants
 // Docs: https://docs.gitlab.com/development/integrations/secure/#identifiers
-const gitlabMaxIdentifiers = 20
+const (
+	gitlabMaxIdentifiers               = 20 //  maximum number of identifiers that can be added to a vulnerability
+	gitlabReportTypeDependencyScanning = "dependency_scanning"
+	gitlabSchemaURL                    = "https://gitlab.com/gitlab-org/security-products/security-report-schemas/-/raw/15.2.1/dist/dependency-scanning-report-format.json"
+	gitlabSchemaVersion                = "15.2.1"
+	gitlabSuccessStatus                = "success"
+)
 
 type GitLabReporterConfig struct {
 	Path           string // Report path, value of --report-gitlab
 	ToolName       string
 	ToolVersion    string // Tool version, value from version.go
 	ToolVendorName string
-	Schema         string
-	SchemaVersion  string
-	ReportType     string
 }
 
 // gitLabVendor represents vendor information
@@ -343,15 +346,15 @@ func (r *gitLabReporter) Finish() error {
 	}
 
 	report := gitLabReport{
-		Schema:  r.config.Schema,
-		Version: r.config.SchemaVersion,
+		Schema:  gitlabSchemaURL,
+		Version: gitlabSchemaVersion,
 		Scan: gitLabScan{
 			Scanner:   scanner,
 			Analyzer:  scanner, // Using same scanner info for analyzer
-			Type:      r.config.ReportType,
+			Type:      gitlabReportTypeDependencyScanning,
 			StartTime: gitlabFormatTime(r.startTime),
 			EndTime:   gitlabFormatTime(time.Now()),
-			Status:    "success",
+			Status:    gitlabSuccessStatus,
 		},
 		Vulnerabilities: r.vulnerabilities,
 	}

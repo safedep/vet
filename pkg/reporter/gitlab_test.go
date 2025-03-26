@@ -22,9 +22,6 @@ func getGitLabReporter(reportPath string) (Reporter, error) {
 		ToolVersion:    "1.0.0",
 		ToolName:       "vet",
 		ToolVendorName: "safedep",
-		Schema:         "https://gitlab.com/gitlab-org/security-products/security-report-schemas/-/raw/15.2.1/dist/dependency-scanning-report-format.json",
-		SchemaVersion:  "15.2.1",
-		ReportType:     "dependency_scanning",
 	})
 }
 
