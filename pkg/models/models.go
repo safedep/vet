@@ -399,6 +399,10 @@ func (p *Package) GetName() string {
 	return p.Name
 }
 
+func (p *Package) IsDirect() bool {
+	return p.Depth == 0
+}
+
 func (p *Package) GetVersion() string {
 	return p.Version
 }

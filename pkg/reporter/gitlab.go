@@ -254,7 +254,7 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 					Name: pkg.GetName(),
 				},
 				Version: pkg.GetVersion(),
-				Direct:  pkg.Depth == 0,
+				Direct:  pkg.IsDirect(),
 			},
 		}
 
