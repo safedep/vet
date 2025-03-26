@@ -137,13 +137,13 @@ func TestGitLabReporter(t *testing.T) {
 		// Check CWE identifier
 		assert.Equal(t, gitLabIdentifierTypeCWE, vuln.Identifiers[1].Type)
 		assert.Equal(t, "CWE-79", vuln.Identifiers[1].Name)
-		assert.Equal(t, "79", vuln.Identifiers[1].Value)
+		assert.Equal(t, "CWE-79", vuln.Identifiers[1].Value)
 		assert.Contains(t, vuln.Identifiers[1].URL, "cwe.mitre.org")
 
 		// Check GHSA identifier
 		assert.Equal(t, gitLabIdentifierTypeGHSA, vuln.Identifiers[2].Type)
 		assert.Equal(t, "GHSA-abcd-efgh-ijkl", vuln.Identifiers[2].Name)
-		assert.Equal(t, "abcd-efgh-ijkl", vuln.Identifiers[2].Value)
+		assert.Equal(t, "GHSA-abcd-efgh-ijkl", vuln.Identifiers[2].Value)
 		assert.Contains(t, vuln.Identifiers[2].URL, "github.com/advisories")
 	})
 

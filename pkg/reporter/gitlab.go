@@ -17,6 +17,7 @@ import (
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/analyzer"
+	"github.com/safedep/vet/pkg/common"
 	"github.com/safedep/vet/pkg/malysis"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
@@ -76,15 +77,9 @@ type gitLabLocation struct {
 type gitLabIdentifierType string
 
 const (
-	gitLabIdentifierTypeCVE       gitLabIdentifierType = "cve"
-	gitLabIdentifierTypeCWE       gitLabIdentifierType = "cwe"
-	gitLabIdentifierTypeGHSA      gitLabIdentifierType = "ghsa"
-	gitLabIdentifierTypeELSA      gitLabIdentifierType = "elsa"
-	gitLabIdentifierTypeOSVD      gitLabIdentifierType = "osvdb"
-	gitLabIdentifierTypeOWASP     gitLabIdentifierType = "owasp"
-	gitLabIdentifierTypeRHSA      gitLabIdentifierType = "rhsa"
-	gitLabIdentifierTypeUSN       gitLabIdentifierType = "usn"
-	gitLabIdentifierTypeHACKERONE gitLabIdentifierType = "hackerone"
+	gitLabIdentifierTypeCVE  gitLabIdentifierType = "cve"
+	gitLabIdentifierTypeCWE  gitLabIdentifierType = "cwe"
+	gitLabIdentifierTypeGHSA gitLabIdentifierType = "ghsa"
 	// NOT GITLAB BUT WE ARE USING THIS FOR OUR CUSTOM IDENTIFIER
 	gitLabIdentifierTypeMALWARE gitLabIdentifierType = "malware"
 )
@@ -186,55 +181,27 @@ func gitlabAddVulnerabilityIdentifiers(vuln *gitLabVulnerability, vulnData *insi
 			identifiersFound[gitLabIdentifierTypeCWE] = append(identifiersFound[gitLabIdentifierTypeCWE], alias)
 		case strings.HasPrefix(alias, "GHSA-"):
 			identifiersFound[gitLabIdentifierTypeGHSA] = append(identifiersFound[gitLabIdentifierTypeGHSA], alias)
-		case strings.HasPrefix(alias, "ELSA-"):
-			identifiersFound[gitLabIdentifierTypeELSA] = append(identifiersFound[gitLabIdentifierTypeELSA], alias)
-		case strings.HasPrefix(alias, "OSVDB-"):
-			identifiersFound[gitLabIdentifierTypeOSVD] = append(identifiersFound[gitLabIdentifierTypeOSVD], alias)
-		case strings.HasPrefix(alias, "OWASP-"):
-			identifiersFound[gitLabIdentifierTypeOWASP] = append(identifiersFound[gitLabIdentifierTypeOWASP], alias)
-		case strings.HasPrefix(alias, "RHSA-"):
-			identifiersFound[gitLabIdentifierTypeRHSA] = append(identifiersFound[gitLabIdentifierTypeRHSA], alias)
-		case strings.HasPrefix(alias, "USN-"):
-			identifiersFound[gitLabIdentifierTypeUSN] = append(identifiersFound[gitLabIdentifierTypeUSN], alias)
-		case strings.HasPrefix(alias, "HACKERONE-"):
-			identifiersFound[gitLabIdentifierTypeHACKERONE] = append(identifiersFound[gitLabIdentifierTypeHACKERONE], alias)
 		}
 	}
 
 	// Priority order of identifiers
 	// Since we can only who {gitlabMaxIdentifiers} in gitlab, we need to prioritize identifiers
-	identifiersPriority := []struct {
-		identifierType gitLabIdentifierType
-		urlPrefix      string
-		namePrefix     string
-		trimNamePrefix bool // For some url, we need to trim the name prefix, like GitHub Advisories
-	}{
-		{gitLabIdentifierTypeCVE, "https://cve.mitre.org/cgi-bin/cvename.cgi?name=%s", "CVE", false},
-		{gitLabIdentifierTypeCWE, "https://cwe.mitre.org/data/definitions/%s.html", "CWE", true}, // Trim CWE- from the identifier name
-		{gitLabIdentifierTypeGHSA, "https://github.com/advisories/%s", "GHSA", true},             // Trim GHSA- from the identifier name
-		{gitLabIdentifierTypeELSA, "https://linux.oracle.com/errata/%s.html", "ELSA", false},
-		{gitLabIdentifierTypeOSVD, "https://osv.dev/vulnerability/%s", "OSVDB", false},
-		{gitLabIdentifierTypeOWASP, "https://owasp.org/www-community/vulnerabilities/%s", "OWASP", false},
-		{gitLabIdentifierTypeRHSA, "https://access.redhat.com/errata/%s", "RHSA", false},
-		{gitLabIdentifierTypeUSN, "https://ubuntu.com/security/notices/%s", "USN", false},
-		{gitLabIdentifierTypeHACKERONE, "https://hackerone.com/reports/%s", "HACKERONE", false},
+	identifiersPriority := []gitLabIdentifierType{
+		gitLabIdentifierTypeCVE,
+		gitLabIdentifierTypeCWE,
+		gitLabIdentifierTypeGHSA,
 	}
 
 	// Add identifiers in order of priority to report
 	reportIdentifiers := make([]gitLabIdentifier, 0)
 
-	for _, idx := range identifiersPriority {
-		for _, identifier := range identifiersFound[idx.identifierType] {
-			value := identifier
-			if idx.trimNamePrefix {
-				value = strings.TrimPrefix(identifier, fmt.Sprintf("%s-", idx.namePrefix)) // Trim CWE- or GHSA- etc. from the identifier name
-			}
-
+	for _, idfsType := range identifiersPriority {
+		for _, identifier := range identifiersFound[idfsType] {
 			reportIdentifiers = append(reportIdentifiers, gitLabIdentifier{
-				Type:  idx.identifierType,
+				Type:  idfsType,
 				Name:  identifier,
-				Value: value,
-				URL:   fmt.Sprintf(idx.urlPrefix, value),
+				Value: identifier,
+				URL:   common.GetIdentifierURL(string(idfsType), identifier),
 			})
 		}
 	}
