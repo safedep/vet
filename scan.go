@@ -25,58 +25,59 @@ import (
 )
 
 var (
-	manifests                      []string
-	manifestType                   string
-	lockfiles                      []string
-	lockfileAs                     string
-	enrich                         bool
-	enrichUsingInsightsV2          bool
-	enrichMalware                  bool
-	baseDirectory                  string
-	purlSpec                       string
-	vsxReader                      bool
-	vsxDirectories                 []string
-	githubRepoUrls                 []string
-	githubOrgUrl                   string
-	githubOrgMaxRepositories       int
-	githubSkipDependencyGraphAPI   bool
-	scanExclude                    []string
-	transitiveAnalysis             bool
-	transitiveDepth                int
-	dependencyUsageEvidence        bool
-	codeAnalysisDBPath             string
-	concurrency                    int
-	dumpJsonManifestDir            string
-	celFilterExpression            string
-	celFilterSuiteFile             string
-	celFilterFailOnMatch           bool
-	markdownReportPath             string
-	markdownSummaryReportPath      string
-	jsonReportPath                 string
-	consoleReport                  bool
-	summaryReport                  bool
-	summaryReportMaxAdvice         int
-	summaryReportGroupByDirectDeps bool
-	summaryReportUsedOnly          bool
-	csvReportPath                  string
-	reportDefectDojo               bool
-	defectDojoHostUrl              string
-	defectDojoProductID            int
-	sarifReportPath                string
-	silentScan                     bool
-	disableAuthVerifyBeforeScan    bool
-	syncReport                     bool
-	syncReportProject              string
-	syncEnableMultiProject         bool
-	graphReportDirectory           string
-	syncReportStream               string
-	listExperimentalParsers        bool
-	failFast                       bool
-	trustedRegistryUrls            []string
-	scannerExperimental            bool
-	malwareAnalyzerTrustToolResult bool
-	malwareAnalysisTimeout         time.Duration
-	gitlabReportPath               string
+	manifests                        []string
+	manifestType                     string
+	lockfiles                        []string
+	lockfileAs                       string
+	enrich                           bool
+	enrichUsingInsightsV2            bool
+	enrichMalware                    bool
+	baseDirectory                    string
+	purlSpec                         string
+	vsxReader                        bool
+	vsxDirectories                   []string
+	githubRepoUrls                   []string
+	githubOrgUrl                     string
+	githubOrgMaxRepositories         int
+	githubSkipDependencyGraphAPI     bool
+	scanExclude                      []string
+	transitiveAnalysis               bool
+	transitiveDepth                  int
+	dependencyUsageEvidence          bool
+	codeAnalysisDBPath               string
+	concurrency                      int
+	dumpJsonManifestDir              string
+	celFilterExpression              string
+	celFilterSuiteFile               string
+	celFilterFailOnMatch             bool
+	markdownReportPath               string
+	markdownSummaryReportPath        string
+	jsonReportPath                   string
+	consoleReport                    bool
+	summaryReport                    bool
+	summaryReportMaxAdvice           int
+	summaryReportGroupByDirectDeps   bool
+	summaryReportUsedOnly            bool
+	csvReportPath                    string
+	reportDefectDojo                 bool
+	defectDojoHostUrl                string
+	defectDojoProductID              int
+	sarifReportPath                  string
+	silentScan                       bool
+	disableAuthVerifyBeforeScan      bool
+	syncReport                       bool
+	syncReportProject                string
+	syncEnableMultiProject           bool
+	graphReportDirectory             string
+	syncReportStream                 string
+	listExperimentalParsers          bool
+	failFast                         bool
+	trustedRegistryUrls              []string
+	scannerExperimental              bool
+	malwareAnalyzerTrustToolResult   bool
+	malwareAnalysisTimeout           time.Duration
+	malwareAnalysisMinimumConfidence string
+  gitlabReportPath                 string
 )
 
 func newScanCommand() *cobra.Command {
@@ -192,6 +193,8 @@ func newScanCommand() *cobra.Command {
 		"Timeout for malicious package analysis")
 	cmd.Flags().StringVarP(&gitlabReportPath, "report-gitlab", "", "",
 		"Generate GitLab dependency scanning report to file")
+	cmd.Flags().StringVarP(&malwareAnalysisMinimumConfidence, "malware-analysis-min-confidence", "", "HIGH",
+		"Minimum confidence level for malicious package analysis result to fail fast")
 
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
@@ -384,6 +387,7 @@ func internalStartScan() error {
 	if enrichMalware {
 		config := analyzer.DefaultMalwareAnalyzerConfig()
 		config.TrustAutomatedAnalysis = malwareAnalyzerTrustToolResult
+		config.MinimumConfidence = malwareAnalysisMinimumConfidence
 		config.FailFast = failFast
 
 		task, err := analyzer.NewMalwareAnalyzer(config)
