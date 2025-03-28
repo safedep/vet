@@ -31,7 +31,8 @@ type githubOrgReader struct {
 // NewGithubOrgReader creates a [PackageManifestReader] which enumerates
 // a Github org, identifying repositories and scanning them using [githubReader]
 func NewGithubOrgReader(client *github.Client,
-	config *GithubOrgReaderConfig) (PackageManifestReader, error) {
+	config *GithubOrgReaderConfig,
+) (PackageManifestReader, error) {
 	return &githubOrgReader{
 		client:             client,
 		config:             config,
@@ -43,8 +44,13 @@ func (p *githubOrgReader) Name() string {
 	return "Github Organization Package Manifest Reader"
 }
 
+func (p *githubOrgReader) ApplicationName() (string, error) {
+	return githubOrgFromURL(p.config.OrganizationURL)
+}
+
 func (p *githubOrgReader) EnumManifests(handler func(*models.PackageManifest,
-	PackageReader) error) error {
+	PackageReader) error,
+) error {
 	ctx := context.Background()
 
 	gitOrg, err := githubOrgFromURL(p.config.OrganizationURL)
@@ -73,7 +79,6 @@ func (p *githubOrgReader) EnumManifests(handler func(*models.PackageManifest,
 			&github.RepositoryListByOrgOptions{
 				ListOptions: *listOptions,
 			})
-
 		if err != nil {
 			logger.Errorf("Failed to list Github org: %v", err)
 			break
@@ -113,8 +118,8 @@ func (p *githubOrgReader) withIncrementedRepoCount(fn func()) bool {
 }
 
 func (p *githubOrgReader) handleRepositoryBatch(repositories []*github.Repository,
-	handler PackageManifestHandlerFn) error {
-
+	handler PackageManifestHandlerFn,
+) error {
 	var repoUrls []string
 	for _, repo := range repositories {
 		breach := p.withIncrementedRepoCount(func() {
@@ -134,7 +139,6 @@ func (p *githubOrgReader) handleRepositoryBatch(repositories []*github.Repositor
 		Urls:                         repoUrls,
 		SkipGitHubDependencyGraphAPI: p.config.SkipDependencyGraphAPI,
 	})
-
 	if err != nil {
 		return err
 	}

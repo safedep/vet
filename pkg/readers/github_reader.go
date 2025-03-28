@@ -30,7 +30,8 @@ type githubReader struct {
 // the parser auto-detects the format based on file name. This reader fails and
 // returns an error on first error encountered while parsing github_urls
 func NewGithubReader(client *github.Client,
-	config GitHubReaderConfig) (PackageManifestReader, error) {
+	config GitHubReaderConfig,
+) (PackageManifestReader, error) {
 	return &githubReader{
 		client: client,
 		config: config,
@@ -42,11 +43,24 @@ func (p *githubReader) Name() string {
 	return "Github Based Package Manifest Reader"
 }
 
+func (p *githubReader) ApplicationName() (string, error) {
+	if len(p.config.Urls) == 1 {
+		gitURL, err := giturl.NewGitURL(p.config.Urls[0])
+		if err != nil {
+			return "", err
+		}
+		return gitURL.GetRepoName(), nil
+	}
+
+	return "github", nil
+}
+
 // EnumManifests iterates over the provided lockfile as and attempts to parse
 // it as `lockfileAs` parser. To auto-detect parser, set `lockfileAs` to empty
 // string during initialization.
 func (p *githubReader) EnumManifests(handler func(*models.PackageManifest,
-	PackageReader) error) error {
+	PackageReader) error,
+) error {
 	ctx := context.Background()
 
 	// We will not fail fast! This is because when we are scanning multiple
@@ -83,8 +97,8 @@ func (p *githubReader) EnumManifests(handler func(*models.PackageManifest,
 // However to keep things within the Github API rate limit and not to have the need for cloning
 // the entire repo, we will walk the top level files only to identify lockfiles to scan
 func (p *githubReader) processTopLevelLockfiles(ctx context.Context, client *github.Client,
-	gitUrl giturl.IGitURL, handler func(*models.PackageManifest, PackageReader) error) error {
-
+	gitUrl giturl.IGitURL, handler func(*models.PackageManifest, PackageReader) error,
+) error {
 	logger.Infof("Discovering lockfiles by enumerating %s", gitUrl.GetURL().String())
 
 	repository, _, err := client.Repositories.Get(ctx, gitUrl.GetOwnerName(), gitUrl.GetRepoName())
@@ -117,7 +131,6 @@ func (p *githubReader) processTopLevelLockfiles(ctx context.Context, client *git
 		lfile, err := p.fetchRemoteFileToLocalFile(ctx, client,
 			gitUrl.GetOwnerName(), gitUrl.GetRepoName(),
 			entry.GetPath(), targetBranch)
-
 		if err != nil {
 			logger.Errorf("failed to fetch remote file: %v", err)
 			continue
@@ -142,7 +155,6 @@ func (p *githubReader) processTopLevelLockfiles(ctx context.Context, client *git
 
 			return nil
 		}()
-
 		if err != nil {
 			logger.Errorf("Failed to handle lockfile %s due to %v",
 				entry.GetPath(), err)
@@ -154,7 +166,8 @@ func (p *githubReader) processTopLevelLockfiles(ctx context.Context, client *git
 
 func (p *githubReader) processRemoteDependencyGraph(ctx context.Context, client *github.Client,
 	gitUrl giturl.IGitURL, handler func(*models.PackageManifest,
-		PackageReader) error) error {
+		PackageReader) error,
+) error {
 	if p.config.SkipGitHubDependencyGraphAPI {
 		return errors.New("dependency graph API is disabled in the configuration")
 	}
@@ -195,7 +208,8 @@ func (p *githubReader) processRemoteDependencyGraph(ctx context.Context, client 
 }
 
 func (p *githubReader) fetchRemoteDependencyGraphToFile(ctx context.Context, client *github.Client,
-	org, repo string) (string, error) {
+	org, repo string,
+) (string, error) {
 	sbom, _, err := client.DependencyGraph.GetSBOM(ctx, org, repo)
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch SBOM from Github: %v, you may have to enable Dependency Graph for your repository", err)
@@ -221,12 +235,12 @@ func (p *githubReader) fetchRemoteDependencyGraphToFile(ctx context.Context, cli
 }
 
 func (p *githubReader) fetchRemoteFileToLocalFile(ctx context.Context, client *github.Client,
-	org, repo, path, ref string) (string, error) {
+	org, repo, path, ref string,
+) (string, error) {
 	fileContent, _, _, err := client.Repositories.GetContents(ctx, org, repo, path,
 		&github.RepositoryContentGetOptions{
 			Ref: ref,
 		})
-
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch file from github: %v", err)
 	}

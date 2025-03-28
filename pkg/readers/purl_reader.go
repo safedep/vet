@@ -17,8 +17,18 @@ func (p *purlReader) Name() string {
 	return "PURL Reader"
 }
 
+func (p *purlReader) ApplicationName() (string, error) {
+	parsedPurl, err := purl.ParsePackageUrl(p.purl)
+	if err != nil {
+		return "", err
+	}
+
+	return parsedPurl.GetPackageDetails().Name, nil
+}
+
 func (p *purlReader) EnumManifests(handler func(*models.PackageManifest,
-	PackageReader) error) error {
+	PackageReader) error,
+) error {
 	parsedPurl, err := purl.ParsePackageUrl(p.purl)
 	if err != nil {
 		return err

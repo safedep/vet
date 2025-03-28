@@ -30,11 +30,16 @@ func (p *jsonDumpReader) Name() string {
 	return "JSON Dump Reader"
 }
 
+func (p *jsonDumpReader) ApplicationName() (string, error) {
+	return "vet-scanned-project", nil
+}
+
 // EnumManifests iterates the target directory looking for only JSON files by
 // extension and decoding them as [models.PackageManifest] model. Callback handler
 // is invoked for each decoded package manifest
 func (p *jsonDumpReader) EnumManifests(handler func(*models.PackageManifest,
-	PackageReader) error) error {
+	PackageReader) error,
+) error {
 	err := filepath.WalkDir(p.path, func(path string, info os.DirEntry, err error) error {
 		if err != nil {
 			return err

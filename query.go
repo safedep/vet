@@ -35,6 +35,8 @@ var (
 	querySarifReportPath                string
 	querySarifIncludeVulns              bool
 	querySarifIncludeMalware            bool
+	queryCycloneDXReportPath            string
+	queryCyclonedxReportApplicationName string
 	queryExceptionsFile                 string
 	queryExceptionsTill                 string
 	queryExceptionsFilter               string
@@ -92,9 +94,13 @@ func newQueryCommand() *cobra.Command {
 		"DefectDojo Host URL eg. http://localhost:8080")
 	cmd.Flags().IntVarP(&queryDefectDojoProductID, "defect-dojo-product-id", "", -1, "DefectDojo Product ID")
 	cmd.Flags().StringVarP(&querySarifReportPath, "report-sarif", "", "",
-		"Generate SARIF report to file")
+		"Generate SARIF report to file (*.sarif or *.sarif.json)")
 	cmd.Flags().BoolVarP(&querySarifIncludeVulns, "report-sarif-vulns", "", true, "Include vulnerabilities in SARIF report (Enabled by default)")
 	cmd.Flags().BoolVarP(&querySarifIncludeMalware, "report-sarif-malware", "", true, "Include malware in SARIF report (Enabled by default)")
+	cmd.Flags().StringVarP(&queryCycloneDXReportPath, "report-cdx", "", "",
+		"Generate CycloneDX report to file")
+	cmd.Flags().StringVarP(&queryCyclonedxReportApplicationName, "report-cdx-app-name", "", "",
+		"Application name used as root application component in CycloneDX BOM")
 
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
@@ -251,6 +257,30 @@ func internalStartQuery() error {
 			IncludeVulns:   querySarifIncludeVulns,
 			IncludeMalware: querySarifIncludeMalware,
 			Path:           querySarifReportPath,
+		})
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if !utils.IsEmptyString(queryCycloneDXReportPath) {
+		if utils.IsEmptyString(queryCyclonedxReportApplicationName) {
+			queryCyclonedxReportApplicationName, err = reader.ApplicationName()
+			if err != nil {
+				return err
+			}
+		}
+
+		rp, err := reporter.NewCycloneDXReporter(reporter.CycloneDXReporterConfig{
+			Path: queryCycloneDXReportPath,
+			Tool: reporter.CycloneDXToolMetadata{
+				Name:    "vet",
+				Version: version,
+				Purl:    "pkg:golang/safedep/vet@" + version,
+			},
+			ApplicationComponentName: queryCyclonedxReportApplicationName,
 		})
 		if err != nil {
 			return err
