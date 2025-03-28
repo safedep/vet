@@ -26,11 +26,16 @@ func (p *lockfileReader) Name() string {
 	return "Lockfiles Based Package Manifest Reader"
 }
 
+func (p *lockfileReader) ApplicationName() (string, error) {
+	return "vet-scanned-project", nil
+}
+
 // EnumManifests iterates over the provided lockfile as and attempts to parse
 // it as `lockfileAs` parser. To auto-detect parser, set `lockfileAs` to empty
 // string during initialization.
 func (p *lockfileReader) EnumManifests(handler func(*models.PackageManifest,
-	PackageReader) error) error {
+	PackageReader) error,
+) error {
 	for _, lf := range p.lockfiles {
 		rf, rt, err := parser.ResolveParseTarget(lf, p.lockfileAs,
 			[]parser.TargetScopeType{parser.TargetScopeAll})

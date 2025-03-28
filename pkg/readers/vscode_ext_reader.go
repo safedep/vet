@@ -72,6 +72,10 @@ func (r *vscodeExtReader) Name() string {
 	return "VSCode Extensions Reader"
 }
 
+func (r *vscodeExtReader) ApplicationName() (string, error) {
+	return "installed-vscode-extensions", nil
+}
+
 func (r *vscodeExtReader) EnumManifests(handler func(*models.PackageManifest, PackageReader) error) error {
 	for distribution := range r.distributionHomeDir {
 		extensions, path, err := r.readExtensions(distribution)
