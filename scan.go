@@ -65,6 +65,8 @@ var (
 	sarifReportPath                  string
 	sarifIncludeVulns                bool
 	sarifIncludeMalware              bool
+	cyclonedxReportPath              string
+	cyclonedxReportApplicationName   string
 	silentScan                       bool
 	disableAuthVerifyBeforeScan      bool
 	syncReport                       bool
@@ -177,6 +179,10 @@ func newScanCommand() *cobra.Command {
 		"Generate SARIF report to file (*.sarif or *.sarif.json)")
 	cmd.Flags().BoolVarP(&sarifIncludeVulns, "report-sarif-vulns", "", true, "Include vulnerabilities in SARIF report (Enabled by default)")
 	cmd.Flags().BoolVarP(&sarifIncludeMalware, "report-sarif-malware", "", true, "Include malware in SARIF report (Enabled by default)")
+	cmd.Flags().StringVarP(&cyclonedxReportPath, "report-cdx", "", "",
+		"Generate CycloneDX report to file")
+	cmd.Flags().StringVarP(&cyclonedxReportApplicationName, "report-cdx-app-name", "", "",
+		"Application name used as root application component in CycloneDX BOM")
 	cmd.Flags().StringVarP(&graphReportDirectory, "report-graph", "", "",
 		"Generate dependency graph (if available) as dot files to directory")
 	cmd.Flags().BoolVarP(&syncReport, "report-sync", "", false,
@@ -320,7 +326,7 @@ func internalStartScan() error {
 			LockfileAs:                   lockfileAs,
 			SkipGitHubDependencyGraphAPI: githubSkipDependencyGraphAPI,
 		})
-	} else if len(githubOrgUrl) > 0 {
+	} else if !utils.IsEmptyString(githubOrgUrl) {
 		githubClient := githubClientBuilder()
 
 		// nolint:ineffassign,staticcheck
@@ -474,6 +480,30 @@ func internalStartScan() error {
 			IncludeVulns:   sarifIncludeVulns,
 			IncludeMalware: sarifIncludeMalware,
 			Path:           sarifReportPath,
+		})
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if !utils.IsEmptyString(cyclonedxReportPath) {
+		if utils.IsEmptyString(cyclonedxReportApplicationName) {
+			cyclonedxReportApplicationName, err = reader.ApplicationName()
+			if err != nil {
+				return err
+			}
+		}
+
+		rp, err := reporter.NewCycloneDXReporter(reporter.CycloneDXReporterConfig{
+			Path: cyclonedxReportPath,
+			Tool: reporter.CycloneDXToolMetadata{
+				Name:    "vet",
+				Version: version,
+				Purl:    "pkg:golang/safedep/vet@" + version,
+			},
+			ApplicationComponentName: cyclonedxReportApplicationName,
 		})
 		if err != nil {
 			return err

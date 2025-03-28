@@ -418,10 +418,14 @@ func (p *Package) GetProvenances() []*Provenance {
 	return p.Provenances
 }
 
-func (p *Package) ShortName() string {
+func (p *Package) GetPackageUrl() string {
 	return fmt.Sprintf("pkg:%s/%s@%s",
 		strings.ToLower(string(p.Ecosystem)),
 		strings.ToLower(p.Name), p.Version)
+}
+
+func (p *Package) ShortName() string {
+	return p.GetPackageUrl()
 }
 
 func (p *Package) GetDependencyGraph() *DependencyGraph[*Package] {
