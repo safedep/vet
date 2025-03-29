@@ -61,7 +61,6 @@ func (r *jsonReportGenerator) AddManifest(manifest *models.PackageManifest) {
 
 		return nil
 	})
-
 	if err != nil {
 		logger.Warnf("Failed to enumerate manifest packages: %v", err)
 	}
@@ -97,7 +96,6 @@ func (r *jsonReportGenerator) handleThreatEvent(event *analyzer.AnalyzerEvent) {
 		pkg := r.findPackageReport(event.Package)
 		pkg.Threats = append(pkg.Threats, event.Threat)
 	}
-
 }
 
 func (r *jsonReportGenerator) handleFilterEvent(event *analyzer.AnalyzerEvent) {
@@ -248,7 +246,6 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 				Risk:  sev.Risk,
 				Score: sev.Score,
 			})
-
 			if err != nil {
 				logger.Errorf("Failed to convert InsightAPI schema to model spec: %v", err)
 				continue

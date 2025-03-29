@@ -63,6 +63,8 @@ var (
 	defectDojoHostUrl                string
 	defectDojoProductID              int
 	sarifReportPath                  string
+	cyclonedxReportPath              string
+	cyclonedxReportApplicationName   string
 	silentScan                       bool
 	disableAuthVerifyBeforeScan      bool
 	syncReport                       bool
@@ -77,7 +79,7 @@ var (
 	malwareAnalyzerTrustToolResult   bool
 	malwareAnalysisTimeout           time.Duration
 	malwareAnalysisMinimumConfidence string
-  gitlabReportPath                 string
+	gitlabReportPath                 string
 )
 
 func newScanCommand() *cobra.Command {
@@ -173,6 +175,10 @@ func newScanCommand() *cobra.Command {
 		"Generate consolidated JSON report to file (EXPERIMENTAL schema)")
 	cmd.Flags().StringVarP(&sarifReportPath, "report-sarif", "", "",
 		"Generate SARIF report to file")
+	cmd.Flags().StringVarP(&cyclonedxReportPath, "report-cdx", "", "",
+		"Generate CycloneDX report to file")
+	cmd.Flags().StringVarP(&cyclonedxReportApplicationName, "report-cdx-app-name", "", "",
+		"Application name used as root application component in CycloneDX BOM")
 	cmd.Flags().StringVarP(&graphReportDirectory, "report-graph", "", "",
 		"Generate dependency graph (if available) as dot files to directory")
 	cmd.Flags().BoolVarP(&syncReport, "report-sync", "", false,
@@ -309,7 +315,7 @@ func internalStartScan() error {
 			LockfileAs:                   lockfileAs,
 			SkipGitHubDependencyGraphAPI: githubSkipDependencyGraphAPI,
 		})
-	} else if len(githubOrgUrl) > 0 {
+	} else if !utils.IsEmptyString(githubOrgUrl) {
 		githubClient := githubClientBuilder()
 
 		// nolint:ineffassign,staticcheck
@@ -462,6 +468,30 @@ func internalStartScan() error {
 				Version: version,
 			},
 			Path: sarifReportPath,
+		})
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if !utils.IsEmptyString(cyclonedxReportPath) {
+		if utils.IsEmptyString(cyclonedxReportApplicationName) {
+			cyclonedxReportApplicationName, err = reader.ApplicationName()
+			if err != nil {
+				return err
+			}
+		}
+
+		rp, err := reporter.NewCycloneDXReporter(reporter.CycloneDXReporterConfig{
+			Path: cyclonedxReportPath,
+			Tool: reporter.CycloneDXToolMetadata{
+				Name:    "vet",
+				Version: version,
+				Purl:    "pkg:golang/safedep/vet@" + version,
+			},
+			ApplicationComponentName: cyclonedxReportApplicationName,
 		})
 		if err != nil {
 			return err

@@ -33,6 +33,8 @@ var (
 	queryDefectDojoHostUrl              string
 	queryDefectDojoProductID            int
 	querySarifReportPath                string
+	queryCycloneDXReportPath            string
+	queryCyclonedxReportApplicationName string
 	queryExceptionsFile                 string
 	queryExceptionsTill                 string
 	queryExceptionsFilter               string
@@ -91,6 +93,10 @@ func newQueryCommand() *cobra.Command {
 	cmd.Flags().IntVarP(&queryDefectDojoProductID, "defect-dojo-product-id", "", -1, "DefectDojo Product ID")
 	cmd.Flags().StringVarP(&querySarifReportPath, "report-sarif", "", "",
 		"Generate SARIF report to file")
+	cmd.Flags().StringVarP(&queryCycloneDXReportPath, "report-cdx", "", "",
+		"Generate CycloneDX report to file")
+	cmd.Flags().StringVarP(&queryCyclonedxReportApplicationName, "report-cdx-app-name", "", "",
+		"Application name used as root application component in CycloneDX BOM")
 
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
@@ -239,6 +245,30 @@ func internalStartQuery() error {
 				Name:    "vet",
 				Version: version,
 			},
+		})
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if !utils.IsEmptyString(queryCycloneDXReportPath) {
+		if utils.IsEmptyString(queryCyclonedxReportApplicationName) {
+			queryCyclonedxReportApplicationName, err = reader.ApplicationName()
+			if err != nil {
+				return err
+			}
+		}
+
+		rp, err := reporter.NewCycloneDXReporter(reporter.CycloneDXReporterConfig{
+			Path: queryCycloneDXReportPath,
+			Tool: reporter.CycloneDXToolMetadata{
+				Name:    "vet",
+				Version: version,
+				Purl:    "pkg:golang/safedep/vet@" + version,
+			},
+			ApplicationComponentName: queryCyclonedxReportApplicationName,
 		})
 		if err != nil {
 			return err
