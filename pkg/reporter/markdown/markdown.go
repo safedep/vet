@@ -3,6 +3,7 @@ package markdown
 import (
 	"bytes"
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -83,4 +84,33 @@ func (mb *MarkdownBuilder) AddCollapsibleSection(section *MarkdownCollapsibleSec
 
 func (mb *MarkdownBuilder) Build() string {
 	return mb.content.String()
+}
+
+var (
+	headerBulletRegex   = regexp.MustCompile(`(?m)^(#{1,6}\s+|[-*]\s{1,}|\d+\.\s+|>\s+)`)
+	inlineCodeRegex     = regexp.MustCompile("`{1,3}([^`]*)`{1,3}")
+	horizontalRuleRegex = regexp.MustCompile(`(?m)^\s*(-{3,}|\*{3,}|\_{3,})\s*$`)
+	boldItalicRegex     = regexp.MustCompile(`(?:\*\*\*|___)(.*?)(?:\*\*\*|___)`)
+	boldRegex           = regexp.MustCompile(`(?:\*\*|__)(.*?)(?:\*\*|__)`)
+	italicRegex         = regexp.MustCompile(`(?:\*|_)(.*?)(?:\*|_)`)
+	strikethroughRegex  = regexp.MustCompile(`~~([^~]+)~~`)
+	inlineLinkRegex     = regexp.MustCompile(`\[([^\]]+)\]\((\S+?)\)`)
+	imageRegex          = regexp.MustCompile(`!\[([^\]]*)\]\((\S+?)\)`)
+	extraSpacesRegex    = regexp.MustCompile(`\s+`)
+)
+
+func (mb *MarkdownBuilder) BuildPlainText() string {
+	content := mb.content.String()
+	content = headerBulletRegex.ReplaceAllString(content, "")
+	content = inlineCodeRegex.ReplaceAllString(content, "$1")
+	content = horizontalRuleRegex.ReplaceAllString(content, "")
+	content = boldItalicRegex.ReplaceAllString(content, "$1")
+	content = boldRegex.ReplaceAllString(content, "$1")
+	content = italicRegex.ReplaceAllString(content, "$1")
+	content = strikethroughRegex.ReplaceAllString(content, "$1")
+	content = imageRegex.ReplaceAllString(content, "$1")
+	content = inlineLinkRegex.ReplaceAllString(content, "$1")
+	content = extraSpacesRegex.ReplaceAllString(content, " ")
+
+	return strings.Trim(content, " \n")
 }

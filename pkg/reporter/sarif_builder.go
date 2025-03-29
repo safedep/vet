@@ -162,7 +162,7 @@ func (b *sarifBuilder) buildFilterResultMessageMarkdown(event *analyzer.Analyzer
 	// SARIF spec mandates that we provide text in addition to markdown
 	msg := sarif.NewMessage().
 		WithMarkdown(md.Build()).
-		WithText(md.Build())
+		WithText(md.BuildPlainText())
 
 	return msg
 }
