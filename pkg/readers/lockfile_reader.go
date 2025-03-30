@@ -30,7 +30,8 @@ func (p *lockfileReader) Name() string {
 // it as `lockfileAs` parser. To auto-detect parser, set `lockfileAs` to empty
 // string during initialization.
 func (p *lockfileReader) EnumManifests(handler func(*models.PackageManifest,
-	PackageReader) error) error {
+	PackageReader) error,
+) error {
 	for _, lf := range p.lockfiles {
 		rf, rt, err := parser.ResolveParseTarget(lf, p.lockfileAs,
 			[]parser.TargetScopeType{parser.TargetScopeAll})
@@ -44,6 +45,16 @@ func (p *lockfileReader) EnumManifests(handler func(*models.PackageManifest,
 		}
 
 		manifest, err := lfParser.Parse(rf)
+		if err != nil {
+			return err
+		}
+		var updatedPkgs []*models.Package
+		for _, pkg := range manifest.Packages {
+			if pkg.PackageDetails.Version != "0.0.0" && pkg.PackageDetails.Version != "" {
+				updatedPkgs = append(updatedPkgs, pkg)
+			}
+		}
+		manifest.Packages = updatedPkgs
 		if err != nil {
 			return err
 		}
