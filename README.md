@@ -302,7 +302,7 @@ execution.
 
 ### 🚀 GitLab CI
 
-- `vet` can be integrated with GitLab CI, refer to [vet-gitlab-ci](https://docs.safedep.io/integrations/gitlab-ci)
+- `vet` can be integrated with GitLab CI, refer to [vet CI Component](https://gitlab.com/explore/catalog/safedep/ci-components/vet)
 
 ## 🐙 Malicious Package Analysis
 
