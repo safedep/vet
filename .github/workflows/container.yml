@@ -68,10 +68,4 @@ jobs:
             .
         fi
 
-    - uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5.0.0
-      name: Remove Old Container Images
-      with: 
-        package-name: vet
-        package-type: 'container'
-        delete-only-untagged-versions: 'true'
 
