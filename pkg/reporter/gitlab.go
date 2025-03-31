@@ -111,6 +111,7 @@ type gitLabVulnerability struct {
 	Description string             `json:"description"`
 	Severity    Severity           `json:"severity"`
 	Location    gitLabLocation     `json:"location"`
+	Solution    string             `json:"solution"`
 	Identifiers []gitLabIdentifier `json:"identifiers"`
 }
 
@@ -291,13 +292,15 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 			}
 
 			summary := utils.SafelyGetValue(vulns[i].Summary)
+
 			// Create GitLab vulnerability entry
 			glVuln := gitLabVulnerability{
 				ID:          utils.SafelyGetValue(vulns[i].Id),
 				Name:        summary,
-				Description: summary, // Using summary as description since that's what we have
+				Description: r.getGitLabVulnerabilityDescription(pkg, summary),
 				Severity:    severity,
 				Location:    location,
+				Solution:    r.getGitLabVulnerabilitySolution(pkg),
 			}
 
 			// Add all relevant identifiers
@@ -363,4 +366,31 @@ func (r *gitLabReporter) getVulnerabilitySeverity(risk insightapi.PackageVulnera
 	default:
 		return SeverityUnknown
 	}
+}
+
+// getVulnerabilityDescription returns the description for a vulnerability
+// Markdown formatted
+func (r *gitLabReporter) getGitLabVulnerabilityDescription(pkg *models.Package, summary string) string {
+	pkgName := pkg.GetName()
+	pkgVersion := pkg.GetVersion()
+
+	description := fmt.Sprintf("Package **`%s@%s`**\n\n%s",
+		pkgName,
+		pkgVersion,
+		summary)
+
+	return description
+}
+
+// getVulnerabilitySolution returns the solution for a vulnerability
+// Markdown formatted
+func (r *gitLabReporter) getGitLabVulnerabilitySolution(pkg *models.Package) string {
+	solution := "No solution available for this vulnerability"
+
+	if pkg.Insights != nil && pkg.Insights.PackageCurrentVersion != nil {
+		latestVersion := utils.SafelyGetValue(pkg.Insights.PackageCurrentVersion)
+		solution = fmt.Sprintf("Upgrade to latest version **`%s`**", latestVersion)
+	}
+
+	return solution
 }
