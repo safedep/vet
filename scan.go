@@ -63,6 +63,8 @@ var (
 	defectDojoHostUrl                string
 	defectDojoProductID              int
 	sarifReportPath                  string
+	sarifIncludeVulns                bool
+	sarifIncludeMalware              bool
 	silentScan                       bool
 	disableAuthVerifyBeforeScan      bool
 	syncReport                       bool
@@ -77,7 +79,7 @@ var (
 	malwareAnalyzerTrustToolResult   bool
 	malwareAnalysisTimeout           time.Duration
 	malwareAnalysisMinimumConfidence string
-  gitlabReportPath                 string
+	gitlabReportPath                 string
 )
 
 func newScanCommand() *cobra.Command {
@@ -172,7 +174,9 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&jsonReportPath, "report-json", "", "",
 		"Generate consolidated JSON report to file (EXPERIMENTAL schema)")
 	cmd.Flags().StringVarP(&sarifReportPath, "report-sarif", "", "",
-		"Generate SARIF report to file")
+		"Generate SARIF report to file (*.sarif or *.sarif.json)")
+	cmd.Flags().BoolVarP(&sarifIncludeVulns, "report-sarif-vulns", "", false, "Include vulnerabilities in SARIF report")
+	cmd.Flags().BoolVarP(&sarifIncludeMalware, "report-sarif-malware", "", false, "Include malware in SARIF report")
 	cmd.Flags().StringVarP(&graphReportDirectory, "report-graph", "", "",
 		"Generate dependency graph (if available) as dot files to directory")
 	cmd.Flags().BoolVarP(&syncReport, "report-sync", "", false,
@@ -458,10 +462,13 @@ func internalStartScan() error {
 	if !utils.IsEmptyString(sarifReportPath) {
 		rp, err := reporter.NewSarifReporter(reporter.SarifReporterConfig{
 			Tool: reporter.SarifToolMetadata{
-				Name:    "vet",
-				Version: version,
+				Name:           "vet",
+				Version:        version,
+				InformationURI: "https://github.com/safedep/vet",
 			},
-			Path: sarifReportPath,
+			IncludeVulns:   sarifIncludeVulns,
+			IncludeMalware: sarifIncludeMalware,
+			Path:           sarifReportPath,
 		})
 		if err != nil {
 			return err
@@ -479,9 +486,12 @@ func internalStartScan() error {
 		engagementName := fmt.Sprintf("vet-report-%s", time.Now().Format("2006-01-02"))
 		rp, err := reporter.NewDefectDojoReporter(reporter.DefectDojoReporterConfig{
 			Tool: reporter.DefectDojoToolMetadata{
-				Name:    "vet",
-				Version: version,
+				Name:           "vet",
+				Version:        version,
+				InformationURI: "https://github.com/safedep/vet",
 			},
+			IncludeVulns:       true,
+			IncludeMalware:     enrichMalware,
 			ProductID:          defectDojoProductID,
 			EngagementName:     engagementName,
 			DefectDojoHostUrl:  defectDojoHostUrl,

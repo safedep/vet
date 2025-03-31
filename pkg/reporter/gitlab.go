@@ -282,20 +282,20 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 
 		// Convert each vulnerability to GitLab format
 		vulns := utils.SafelyGetValue(pkg.Insights.Vulnerabilities)
-		for i := range vulns {
+		for _, vuln := range vulns {
 			// Map severity
 			severity := SeverityUnknown
-			severities := utils.SafelyGetValue(vulns[i].Severities)
+			severities := utils.SafelyGetValue(vuln.Severities)
 			if len(severities) > 0 {
 				risk := utils.SafelyGetValue(severities[0].Risk)
 				severity = r.getVulnerabilitySeverity(risk)
 			}
 
-			summary := utils.SafelyGetValue(vulns[i].Summary)
+			summary := utils.SafelyGetValue(vuln.Summary)
 
 			// Create GitLab vulnerability entry
 			glVuln := gitLabVulnerability{
-				ID:          utils.SafelyGetValue(vulns[i].Id),
+				ID:          utils.SafelyGetValue(vuln.Id),
 				Name:        summary,
 				Description: r.getGitLabVulnerabilityDescription(pkg, summary),
 				Severity:    severity,
@@ -304,7 +304,7 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 			}
 
 			// Add all relevant identifiers
-			r.gitlabAddVulnerabilityIdentifiers(&glVuln, &vulns[i])
+			r.gitlabAddVulnerabilityIdentifiers(&glVuln, &vuln)
 
 			r.vulnerabilities = append(r.vulnerabilities, glVuln)
 		}

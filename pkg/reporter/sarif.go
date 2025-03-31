@@ -21,13 +21,16 @@ import (
 // report should be used for that purpose.
 
 type SarifToolMetadata struct {
-	Name    string
-	Version string
+	Name           string
+	Version        string
+	InformationURI string
 }
 
 type SarifReporterConfig struct {
-	Tool SarifToolMetadata
-	Path string
+	Tool           SarifToolMetadata
+	IncludeVulns   bool
+	IncludeMalware bool
+	Path           string
 }
 
 type sarifReporter struct {
@@ -37,9 +40,14 @@ type sarifReporter struct {
 
 func NewSarifReporter(config SarifReporterConfig) (Reporter, error) {
 	builder, err := newSarifBuilder(
-		sarifBuilderToolMetadata{
-			Name:    config.Tool.Name,
-			Version: config.Tool.Version,
+		sarifBuilderConfig{
+			Tool: sarifBuilderToolMetadata{
+				Name:           config.Tool.Name,
+				Version:        config.Tool.Version,
+				InformationURI: config.Tool.InformationURI,
+			},
+			IncludeVulns:   config.IncludeVulns,
+			IncludeMalware: config.IncludeMalware,
 		},
 	)
 	if err != nil {

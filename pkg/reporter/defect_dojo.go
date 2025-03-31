@@ -27,12 +27,15 @@ type DefectDojoProduct struct {
 }
 
 type DefectDojoToolMetadata struct {
-	Name    string
-	Version string
+	Name           string
+	Version        string
+	InformationURI string
 }
 
 type DefectDojoReporterConfig struct {
 	Tool               DefectDojoToolMetadata
+	IncludeVulns       bool
+	IncludeMalware     bool
 	ProductID          int
 	EngagementName     string
 	DefectDojoHostUrl  string
@@ -51,9 +54,14 @@ func NewDefectDojoReporter(config DefectDojoReporterConfig) (Reporter, error) {
 		SetBaseURL(config.DefectDojoHostUrl)
 
 	builder, err := newSarifBuilder(
-		sarifBuilderToolMetadata{
-			Name:    config.Tool.Name,
-			Version: config.Tool.Version,
+		sarifBuilderConfig{
+			Tool: sarifBuilderToolMetadata{
+				Name:           config.Tool.Name,
+				Version:        config.Tool.Version,
+				InformationURI: config.Tool.InformationURI,
+			},
+			IncludeVulns:   config.IncludeVulns,
+			IncludeMalware: config.IncludeMalware,
 		},
 	)
 	if err != nil {
