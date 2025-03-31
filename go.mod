@@ -6,7 +6,7 @@ toolchain go1.24.1
 
 require (
 	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250312090301-a3dc128f144f.2
-	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.5-20250312090301-a3dc128f144f.1
+	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.6-20250329145212-73a714065737.1
 	entgo.io/ent v0.14.3
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c
@@ -41,7 +41,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/oauth2 v0.28.0
 	google.golang.org/grpc v1.71.0
-	google.golang.org/protobuf v1.36.5
+	google.golang.org/protobuf v1.36.6
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -49,7 +49,7 @@ require (
 	4d63.com/gocheckcompilerdirectives v1.3.0 // indirect
 	4d63.com/gochecknoglobals v0.2.2 // indirect
 	ariga.io/atlas v0.32.0 // indirect
-	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.5-20250307204501-0409229c3780.1 // indirect
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.6-20240508200655-46a4cf4ba109.1 // indirect
 	cel.dev/expr v0.22.0 // indirect
 	dario.cat/mergo v1.0.1 // indirect
 	github.com/4meepo/tagalign v1.4.2 // indirect
