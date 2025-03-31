@@ -385,8 +385,12 @@ func (r *gitLabReporter) getGitLabVulnerabilityDescription(pkg *models.Package, 
 // getVulnerabilitySolution returns the solution for a vulnerability
 // Markdown formatted
 func (r *gitLabReporter) getGitLabVulnerabilitySolution(pkg *models.Package) string {
-	latestVersion := utils.SafelyGetValue(pkg.Insights.PackageCurrentVersion)
-	solution := fmt.Sprintf("Upgrade to latest version **`%s`**", latestVersion)
+	solution := "No solution available for this vulnerability"
+
+	if pkg.Insights != nil && pkg.Insights.PackageCurrentVersion != nil {
+		latestVersion := utils.SafelyGetValue(pkg.Insights.PackageCurrentVersion)
+		solution = fmt.Sprintf("Upgrade to latest version **`%s`**", latestVersion)
+	}
 
 	return solution
 }
