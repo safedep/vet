@@ -83,20 +83,20 @@ func TestGitLabReporter(t *testing.T) {
 					Insights: &insightapi.PackageVersionInsight{
 						Vulnerabilities: &[]insightapi.PackageVulnerability{
 							{
-								Id: utils.StringPtr("VULN-123"),
+								Id: utils.PtrTo("VULN-123"),
 								Aliases: &[]string{
 									"CVE-2023-1234",
 									"CWE-79",
 									"GHSA-abcd-efgh-ijkl",
 								},
-								Summary: utils.StringPtr("Test vulnerability"),
+								Summary: utils.PtrTo("Test vulnerability"),
 								Severities: &[]struct {
 									Risk  *insightapi.PackageVulnerabilitySeveritiesRisk `json:"risk,omitempty"`
 									Score *string                                        `json:"score,omitempty"`
 									Type  *insightapi.PackageVulnerabilitySeveritiesType `json:"type,omitempty"`
 								}{
 									{
-										Risk: (*insightapi.PackageVulnerabilitySeveritiesRisk)(utils.StringPtr("HIGH")),
+										Risk: (*insightapi.PackageVulnerabilitySeveritiesRisk)(utils.PtrTo("HIGH")),
 									},
 								},
 							},
@@ -183,7 +183,7 @@ func TestGitLabReporter(t *testing.T) {
 					Insights: &insightapi.PackageVersionInsight{
 						Vulnerabilities: &[]insightapi.PackageVulnerability{
 							{
-								Id:      utils.StringPtr("VULN-123"),
+								Id:      utils.PtrTo("VULN-123"),
 								Aliases: &aliases,
 							},
 						},
