@@ -25,7 +25,13 @@ var (
 	globalExceptionsExtra []string
 )
 
-var banner string = `
+const (
+	vetName           = "vet"
+	vetVendorName     = "safedep"
+	vetInformationURI = "https://github.com/safedep/vet"
+)
+
+const banner string = `
 Yb    dP 888888 888888
  Yb  dP  88__     88
   YbdP   88""     88

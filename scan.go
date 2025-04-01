@@ -438,6 +438,10 @@ func internalStartScan() error {
 
 	if !utils.IsEmptyString(markdownSummaryReportPath) {
 		rp, err := reporter.NewMarkdownSummaryReporter(reporter.MarkdownSummaryReporterConfig{
+			ToolMetadata: reporter.MarkdownSummaryToolMetadata{
+				Name:    vetName,
+				Version: version,
+			},
 			Path:                   markdownSummaryReportPath,
 			IncludeMalwareAnalysis: enrichMalware,
 		})
@@ -450,7 +454,9 @@ func internalStartScan() error {
 
 	if !utils.IsEmptyString(jsonReportPath) {
 		rp, err := reporter.NewJsonReportGenerator(reporter.JsonReportingConfig{
-			Path: jsonReportPath,
+			Path:        jsonReportPath,
+			ToolName:    vetName,
+			ToolVersion: version,
 		})
 		if err != nil {
 			return err
@@ -462,9 +468,9 @@ func internalStartScan() error {
 	if !utils.IsEmptyString(sarifReportPath) {
 		rp, err := reporter.NewSarifReporter(reporter.SarifReporterConfig{
 			Tool: reporter.SarifToolMetadata{
-				Name:           "vet",
+				Name:           vetName,
 				Version:        version,
-				InformationURI: "https://github.com/safedep/vet",
+				InformationURI: vetInformationURI,
 			},
 			IncludeVulns:   sarifIncludeVulns,
 			IncludeMalware: sarifIncludeMalware,
@@ -486,9 +492,9 @@ func internalStartScan() error {
 		engagementName := fmt.Sprintf("vet-report-%s", time.Now().Format("2006-01-02"))
 		rp, err := reporter.NewDefectDojoReporter(reporter.DefectDojoReporterConfig{
 			Tool: reporter.DefectDojoToolMetadata{
-				Name:           "vet",
+				Name:           vetName,
 				Version:        version,
-				InformationURI: "https://github.com/safedep/vet",
+				InformationURI: vetInformationURI,
 			},
 			IncludeVulns:       true,
 			IncludeMalware:     enrichMalware,
@@ -528,8 +534,8 @@ func internalStartScan() error {
 		rp, err := reporter.NewGitLabReporter(reporter.GitLabReporterConfig{
 			Path:           gitlabReportPath,
 			ToolVersion:    version,
-			ToolName:       "vet",
-			ToolVendorName: "safedep",
+			ToolName:       vetName,
+			ToolVendorName: vetVendorName,
 		})
 		if err != nil {
 			return err
@@ -548,7 +554,7 @@ func internalStartScan() error {
 		}
 
 		rp, err := reporter.NewSyncReporter(reporter.SyncReporterConfig{
-			ToolName:               "vet",
+			ToolName:               vetName,
 			ToolVersion:            version,
 			ProjectName:            syncReportProject,
 			ProjectVersion:         syncReportStream,

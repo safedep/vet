@@ -21,11 +21,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-const (
-	syncReporterDefaultWorkerCount = 10
-	syncReporterMaxRetries         = 3
-	syncReporterToolName           = "vet"
-)
+const syncReporterDefaultWorkerCount = 10
 
 type SyncReporterConfig struct {
 	// gRPC connection for ControlTower

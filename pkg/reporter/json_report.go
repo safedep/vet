@@ -21,7 +21,9 @@ import (
 )
 
 type JsonReportingConfig struct {
-	Path string
+	Path        string
+	ToolName    string
+	ToolVersion string
 }
 
 // Json reporter is built on top of summary reporter to
@@ -61,7 +63,6 @@ func (r *jsonReportGenerator) AddManifest(manifest *models.PackageManifest) {
 
 		return nil
 	})
-
 	if err != nil {
 		logger.Warnf("Failed to enumerate manifest packages: %v", err)
 	}
@@ -97,7 +98,6 @@ func (r *jsonReportGenerator) handleThreatEvent(event *analyzer.AnalyzerEvent) {
 		pkg := r.findPackageReport(event.Package)
 		pkg.Threats = append(pkg.Threats, event.Threat)
 	}
-
 }
 
 func (r *jsonReportGenerator) handleFilterEvent(event *analyzer.AnalyzerEvent) {
@@ -199,8 +199,8 @@ func (r *jsonReportGenerator) Finish() error {
 func (r *jsonReportGenerator) buildSpecReport() (*schema.Report, error) {
 	report := schema.Report{
 		Meta: &schema.ReportMeta{
-			ToolName:    "vet",
-			ToolVersion: "latest",
+			ToolName:    r.config.ToolName,
+			ToolVersion: r.config.ToolVersion,
 			CreatedAt:   time.Now().UTC().Format(time.RFC3339),
 		},
 		Packages:  make([]*schema.PackageReport, 0),
@@ -248,7 +248,6 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 				Risk:  sev.Risk,
 				Score: sev.Score,
 			})
-
 			if err != nil {
 				logger.Errorf("Failed to convert InsightAPI schema to model spec: %v", err)
 				continue

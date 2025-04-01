@@ -30,7 +30,10 @@ type sarifBuilder struct {
 	report          *sarif.Report
 	run             *sarif.Run
 	violationsCache map[string]bool
+	vulnCache       map[string]bool
 }
+
+const sarifErrorLevel = "error"
 
 func newSarifBuilder(config sarifBuilderConfig) (*sarifBuilder, error) {
 	report, err := sarif.New(sarif.Version210)
@@ -109,7 +112,7 @@ func (b *sarifBuilder) recordFilterMatchEvent(event *analyzer.AnalyzerEvent) {
 
 	result := sarif.NewRuleResult(event.Filter.GetName())
 
-	result.WithLevel("error")
+	result.WithLevel(sarifErrorLevel)
 	result.WithMessage(b.buildFilterResultMessageMarkdown(event))
 
 	pLocation := sarif.NewPhysicalLocation().
@@ -184,15 +187,16 @@ func (b *sarifBuilder) recordVulnerabilities(pkg *models.Package) {
 
 	for _, vuln := range vulns {
 		vulnId := utils.SafelyGetValue(vuln.Id)
-		if _, ok := b.violationsCache[vulnId]; ok {
+		if _, ok := b.vulnCache[vulnId]; ok {
 			continue
 		}
 
-		b.violationsCache[vulnId] = true
+		b.vulnCache[vulnId] = true
 
 		result := sarif.NewRuleResult(vulnId)
-		result.WithLevel("error")
+		result.WithLevel(sarifErrorLevel)
 		result.WithMessage(sarif.NewMessage().WithText(utils.SafelyGetValue(vuln.Summary)))
+
 		pLocation := sarif.NewPhysicalLocation().
 			WithArtifactLocation(sarif.NewSimpleArtifactLocation(pkg.Manifest.GetDisplayPath()))
 		result.Locations = append(result.Locations, sarif.NewLocation().WithPhysicalLocation(pLocation))
@@ -211,8 +215,9 @@ func (b *sarifBuilder) recordMalware(pkg *models.Package) {
 	if malwareAnalysis.IsMalware {
 		inference := utils.SafelyGetValue(malwareAnalysis.Report.GetInference())
 		result := sarif.NewRuleResult(malwareAnalysis.AnalysisId)
-		result.WithLevel("error")
+		result.WithLevel(sarifErrorLevel)
 		result.WithMessage(sarif.NewMessage().WithText(inference.GetSummary()))
+
 		pLocation := sarif.NewPhysicalLocation().
 			WithArtifactLocation(sarif.NewSimpleArtifactLocation(pkg.Manifest.GetDisplayPath()))
 		result.Locations = append(result.Locations, sarif.NewLocation().WithPhysicalLocation(pLocation))
