@@ -52,7 +52,7 @@ func (p *githubReader) ApplicationName() (string, error) {
 		return gitURL.GetRepoName(), nil
 	}
 
-	return "github", nil
+	return "vet-scanned-github-projects", nil
 }
 
 // EnumManifests iterates over the provided lockfile as and attempts to parse

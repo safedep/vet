@@ -3,6 +3,7 @@ package readers
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/url"
 	"strings"
 
@@ -45,7 +46,12 @@ func (p *githubOrgReader) Name() string {
 }
 
 func (p *githubOrgReader) ApplicationName() (string, error) {
-	return githubOrgFromURL(p.config.OrganizationURL)
+	orgName, err := githubOrgFromURL(p.config.OrganizationURL)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("vet-scanned-%s-projects", orgName), nil
 }
 
 func (p *githubOrgReader) EnumManifests(handler func(*models.PackageManifest,

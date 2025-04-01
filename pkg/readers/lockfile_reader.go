@@ -27,7 +27,7 @@ func (p *lockfileReader) Name() string {
 }
 
 func (p *lockfileReader) ApplicationName() (string, error) {
-	return "vet-scanned-project", nil
+	return defaultApplicationName, nil
 }
 
 // EnumManifests iterates over the provided lockfile as and attempts to parse

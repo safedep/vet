@@ -74,29 +74,29 @@ func NewCycloneDXReporter(config CycloneDXReporterConfig) (Reporter, error) {
 			BOMRef:     "root-application",
 			Type:       cdx.ComponentTypeApplication,
 			Name:       config.ApplicationComponentName,
-			Components: &[]cdx.Component{},
+			Components: commonUtils.PtrTo([]cdx.Component{}),
 		},
 		Tools: &cdx.ToolsChoice{
-			Components: &[]cdx.Component{
+			Components: commonUtils.PtrTo([]cdx.Component{
 				{
 					Type: cdx.ComponentTypeApplication,
 					Manufacturer: &cdx.OrganizationalEntity{
 						Name: "SafeDep",
-						URL:  &[]string{"https://safedep.io/"},
+						URL:  commonUtils.PtrTo([]string{"https://safedep.io/"}),
 					},
 					Name:       config.Tool.Name,
 					Version:    config.Tool.Version,
 					PackageURL: config.Tool.Purl,
 					BOMRef:     config.Tool.Purl,
 				},
-			},
+			}),
 		},
 		Timestamp: time.Now().UTC().Format(time.RFC3339),
 	}
 
-	bom.Components = &[]cdx.Component{}
-	bom.Vulnerabilities = &[]cdx.Vulnerability{}
-	bom.Dependencies = &[]cdx.Dependency{}
+	bom.Components = commonUtils.PtrTo([]cdx.Component{})
+	bom.Vulnerabilities = commonUtils.PtrTo([]cdx.Vulnerability{})
+	bom.Dependencies = commonUtils.PtrTo([]cdx.Dependency{})
 
 	return &cycloneDXReporter{
 		config: config,
@@ -141,19 +141,19 @@ func (r *cycloneDXReporter) addPackage(pkg *models.Package) {
 		BOMRef:     pkgPurl,
 		Licenses:   &cdx.Licenses{},
 		Evidence: &cdx.Evidence{
-			Identity: &[]cdx.EvidenceIdentity{
+			Identity: commonUtils.PtrTo([]cdx.EvidenceIdentity{
 				{
 					Field:      cdx.EvidenceIdentityFieldTypePURL,
 					Confidence: commonUtils.PtrTo(float32(0.7)),
-					Methods: &[]cdx.EvidenceIdentityMethod{
+					Methods: commonUtils.PtrTo([]cdx.EvidenceIdentityMethod{
 						{
 							Technique:  cdx.EvidenceIdentityTechniqueManifestAnalysis,
 							Confidence: commonUtils.PtrTo(float32(0.7)),
 							Value:      pkg.Manifest.GetSource().GetPath(),
 						},
-					},
+					}),
 				},
-			},
+			}),
 		},
 	}
 

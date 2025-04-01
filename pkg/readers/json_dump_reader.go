@@ -31,7 +31,7 @@ func (p *jsonDumpReader) Name() string {
 }
 
 func (p *jsonDumpReader) ApplicationName() (string, error) {
-	return "vet-scanned-project", nil
+	return defaultApplicationName, nil
 }
 
 // EnumManifests iterates the target directory looking for only JSON files by
