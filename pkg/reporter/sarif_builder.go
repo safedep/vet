@@ -13,14 +13,8 @@ import (
 	"github.com/safedep/vet/pkg/reporter/markdown"
 )
 
-type sarifBuilderToolMetadata struct {
-	Name           string
-	Version        string
-	InformationURI string
-}
-
 type sarifBuilderConfig struct {
-	Tool           sarifBuilderToolMetadata
+	Tool           ToolMetadata
 	IncludeVulns   bool
 	IncludeMalware bool
 }
@@ -112,7 +106,6 @@ func (b *sarifBuilder) recordFilterMatchEvent(event *analyzer.AnalyzerEvent) {
 	b.violationsCache[uniqueInstance] = true
 
 	result := sarif.NewRuleResult(event.Filter.GetName())
-
 	result.WithLevel(sarifErrorLevel)
 	result.WithMessage(b.buildFilterResultMessageMarkdown(event))
 
@@ -196,7 +189,12 @@ func (b *sarifBuilder) recordVulnerabilities(pkg *models.Package) {
 
 		result := sarif.NewRuleResult(vulnId)
 		result.WithLevel(sarifErrorLevel)
-		result.WithMessage(sarif.NewMessage().WithText(utils.SafelyGetValue(vuln.Summary)))
+
+		vulnerabilitySummary := utils.SafelyGetValue(vuln.Summary)
+		if utils.IsEmptyString(vulnerabilitySummary) {
+			vulnerabilitySummary = fmt.Sprintf("Vulnerability in %s (%s)", pkg.GetName(), pkg.Ecosystem)
+		}
+		result.WithMessage(sarif.NewMessage().WithText(vulnerabilitySummary))
 
 		pLocation := sarif.NewPhysicalLocation().
 			WithArtifactLocation(sarif.NewSimpleArtifactLocation(pkg.Manifest.GetDisplayPath()))
@@ -217,7 +215,12 @@ func (b *sarifBuilder) recordMalware(pkg *models.Package) {
 		inference := utils.SafelyGetValue(malwareAnalysis.Report.GetInference())
 		result := sarif.NewRuleResult(malwareAnalysis.AnalysisId)
 		result.WithLevel(sarifErrorLevel)
-		result.WithMessage(sarif.NewMessage().WithText(inference.GetSummary()))
+
+		malwareSummary := inference.GetSummary()
+		if utils.IsEmptyString(malwareSummary) {
+			malwareSummary = fmt.Sprintf("Malicious code in %s (%s)", pkg.GetName(), pkg.Ecosystem)
+		}
+		result.WithMessage(sarif.NewMessage().WithText(malwareSummary))
 
 		pLocation := sarif.NewPhysicalLocation().
 			WithArtifactLocation(sarif.NewSimpleArtifactLocation(pkg.Manifest.GetDisplayPath()))

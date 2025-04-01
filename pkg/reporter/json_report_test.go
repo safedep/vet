@@ -99,9 +99,13 @@ func TestJsonRepoGenerator(t *testing.T) {
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
 			r, err := NewJsonReportGenerator(JsonReportingConfig{
-				Path:        tmpFile.Name(),
-				ToolName:    "vet",
-				ToolVersion: "latest",
+				Path: tmpFile.Name(),
+				Tool: ToolMetadata{
+					Name:           "vet",
+					Version:        "latest",
+					InformationURI: "https://github.com/safedep/vet",
+					VendorName:     "safedep",
+				},
 			})
 
 			assert.Nil(t, err)

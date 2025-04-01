@@ -93,8 +93,8 @@ func newQueryCommand() *cobra.Command {
 	cmd.Flags().IntVarP(&queryDefectDojoProductID, "defect-dojo-product-id", "", -1, "DefectDojo Product ID")
 	cmd.Flags().StringVarP(&querySarifReportPath, "report-sarif", "", "",
 		"Generate SARIF report to file")
-	cmd.Flags().BoolVarP(&querySarifIncludeVulns, "report-sarif-vulns", "", false, "Include vulnerabilities in SARIF report")
-	cmd.Flags().BoolVarP(&querySarifIncludeMalware, "report-sarif-malware", "", false, "Include malware in SARIF report")
+	cmd.Flags().BoolVarP(&querySarifIncludeVulns, "report-sarif-vulns", "", true, "Include vulnerabilities in SARIF report (Enabled by default)")
+	cmd.Flags().BoolVarP(&querySarifIncludeMalware, "report-sarif-malware", "", true, "Include malware in SARIF report (Enabled by default)")
 
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
@@ -116,6 +116,13 @@ func startQuery() {
 }
 
 func internalStartQuery() error {
+	toolMetadata := reporter.ToolMetadata{
+		Name:           vetName,
+		Version:        version,
+		InformationURI: vetInformationURI,
+		VendorName:     vetVendorName,
+	}
+
 	readerList := []readers.PackageManifestReader{}
 	analyzers := []analyzer.Analyzer{}
 	reporters := []reporter.Reporter{}
@@ -196,10 +203,7 @@ func internalStartQuery() error {
 
 	if !utils.IsEmptyString(queryMarkdownSummaryReportPath) {
 		rp, err := reporter.NewMarkdownSummaryReporter(reporter.MarkdownSummaryReporterConfig{
-			ToolMetadata: reporter.MarkdownSummaryToolMetadata{
-				Name:    vetName,
-				Version: version,
-			},
+			Tool: toolMetadata,
 			Path: queryMarkdownSummaryReportPath,
 		})
 		if err != nil {
@@ -211,9 +215,8 @@ func internalStartQuery() error {
 
 	if !utils.IsEmptyString(queryJsonReportPath) {
 		rp, err := reporter.NewJsonReportGenerator(reporter.JsonReportingConfig{
-			Path:        queryJsonReportPath,
-			ToolName:    vetName,
-			ToolVersion: version,
+			Path: queryJsonReportPath,
+			Tool: toolMetadata,
 		})
 		if err != nil {
 			return err
@@ -244,11 +247,7 @@ func internalStartQuery() error {
 
 	if !utils.IsEmptyString(querySarifReportPath) {
 		rp, err := reporter.NewSarifReporter(reporter.SarifReporterConfig{
-			Tool: reporter.SarifToolMetadata{
-				Name:           vetName,
-				Version:        version,
-				InformationURI: vetInformationURI,
-			},
+			Tool:           toolMetadata,
 			IncludeVulns:   querySarifIncludeVulns,
 			IncludeMalware: querySarifIncludeMalware,
 			Path:           querySarifReportPath,
@@ -268,11 +267,7 @@ func internalStartQuery() error {
 
 		engagementName := fmt.Sprintf("vet-report-%s", time.Now().Format("2006-01-02"))
 		rp, err := reporter.NewDefectDojoReporter(reporter.DefectDojoReporterConfig{
-			Tool: reporter.DefectDojoToolMetadata{
-				Name:           vetName,
-				Version:        version,
-				InformationURI: vetInformationURI,
-			},
+			Tool:               toolMetadata,
 			IncludeVulns:       true,
 			IncludeMalware:     true,
 			ProductID:          queryDefectDojoProductID,

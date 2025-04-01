@@ -35,10 +35,8 @@ const (
 )
 
 type GitLabReporterConfig struct {
-	Path           string // Report path, value of --report-gitlab
-	ToolName       string
-	ToolVersion    string // Tool version, value from version.go
-	ToolVendorName string
+	Path string // Report path, value of --report-gitlab
+	Tool ToolMetadata
 }
 
 // gitLabVendor represents vendor information
@@ -316,11 +314,11 @@ func (r *gitLabReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {}
 func (r *gitLabReporter) AddPolicyEvent(event *policy.PolicyEvent) {}
 
 func (r *gitLabReporter) Finish() error {
-	vendor := gitLabVendor{Name: r.config.ToolVendorName}
+	vendor := gitLabVendor{Name: r.config.Tool.VendorName}
 	scanner := gitLabScanner{
-		ID:      r.config.ToolName,
-		Name:    r.config.ToolName,
-		Version: r.config.ToolVersion,
+		ID:      r.config.Tool.Name,
+		Name:    r.config.Tool.Name,
+		Version: r.config.Tool.Version,
 		Vendor:  vendor,
 	}
 

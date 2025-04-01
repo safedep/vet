@@ -26,14 +26,8 @@ type DefectDojoProduct struct {
 	Created       time.Time `json:"created"`
 }
 
-type DefectDojoToolMetadata struct {
-	Name           string
-	Version        string
-	InformationURI string
-}
-
 type DefectDojoReporterConfig struct {
-	Tool               DefectDojoToolMetadata
+	Tool               ToolMetadata
 	IncludeVulns       bool
 	IncludeMalware     bool
 	ProductID          int
@@ -55,11 +49,7 @@ func NewDefectDojoReporter(config DefectDojoReporterConfig) (Reporter, error) {
 
 	builder, err := newSarifBuilder(
 		sarifBuilderConfig{
-			Tool: sarifBuilderToolMetadata{
-				Name:           config.Tool.Name,
-				Version:        config.Tool.Version,
-				InformationURI: config.Tool.InformationURI,
-			},
+			Tool:           config.Tool,
 			IncludeVulns:   config.IncludeVulns,
 			IncludeMalware: config.IncludeMalware,
 		},

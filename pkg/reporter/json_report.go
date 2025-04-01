@@ -21,9 +21,8 @@ import (
 )
 
 type JsonReportingConfig struct {
-	Path        string
-	ToolName    string
-	ToolVersion string
+	Path string
+	Tool ToolMetadata
 }
 
 // Json reporter is built on top of summary reporter to
@@ -199,8 +198,8 @@ func (r *jsonReportGenerator) Finish() error {
 func (r *jsonReportGenerator) buildSpecReport() (*schema.Report, error) {
 	report := schema.Report{
 		Meta: &schema.ReportMeta{
-			ToolName:    r.config.ToolName,
-			ToolVersion: r.config.ToolVersion,
+			ToolName:    r.config.Tool.Name,
+			ToolVersion: r.config.Tool.Version,
 			CreatedAt:   time.Now().UTC().Format(time.RFC3339),
 		},
 		Packages:  make([]*schema.PackageReport, 0),

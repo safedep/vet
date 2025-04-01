@@ -20,14 +20,8 @@ import (
 // We will not publish all package information. JSON
 // report should be used for that purpose.
 
-type SarifToolMetadata struct {
-	Name           string
-	Version        string
-	InformationURI string
-}
-
 type SarifReporterConfig struct {
-	Tool           SarifToolMetadata
+	Tool           ToolMetadata
 	IncludeVulns   bool
 	IncludeMalware bool
 	Path           string
@@ -41,11 +35,7 @@ type sarifReporter struct {
 func NewSarifReporter(config SarifReporterConfig) (Reporter, error) {
 	builder, err := newSarifBuilder(
 		sarifBuilderConfig{
-			Tool: sarifBuilderToolMetadata{
-				Name:           config.Tool.Name,
-				Version:        config.Tool.Version,
-				InformationURI: config.Tool.InformationURI,
-			},
+			Tool:           config.Tool,
 			IncludeVulns:   config.IncludeVulns,
 			IncludeMalware: config.IncludeMalware,
 		},

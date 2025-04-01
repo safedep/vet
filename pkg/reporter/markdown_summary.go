@@ -28,13 +28,8 @@ const (
 	markdownSummaryReportTitle = "vet Summary Report"
 )
 
-type MarkdownSummaryToolMetadata struct {
-	Name    string
-	Version string
-}
-
 type MarkdownSummaryReporterConfig struct {
-	ToolMetadata           MarkdownSummaryToolMetadata
+	Tool                   ToolMetadata
 	Path                   string
 	ReportTitle            string
 	IncludeMalwareAnalysis bool
@@ -84,9 +79,8 @@ func NewMarkdownSummaryReporter(config MarkdownSummaryReporterConfig) (Reporter,
 	tmpFile.Close()
 
 	jsonReporter, err := NewJsonReportGenerator(JsonReportingConfig{
-		Path:        tmpFile.Name(),
-		ToolName:    config.ToolMetadata.Name,
-		ToolVersion: config.ToolMetadata.Version,
+		Path: tmpFile.Name(),
+		Tool: config.Tool,
 	})
 	if err != nil {
 		return nil, err

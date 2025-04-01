@@ -175,8 +175,8 @@ func newScanCommand() *cobra.Command {
 		"Generate consolidated JSON report to file (EXPERIMENTAL schema)")
 	cmd.Flags().StringVarP(&sarifReportPath, "report-sarif", "", "",
 		"Generate SARIF report to file (*.sarif or *.sarif.json)")
-	cmd.Flags().BoolVarP(&sarifIncludeVulns, "report-sarif-vulns", "", false, "Include vulnerabilities in SARIF report")
-	cmd.Flags().BoolVarP(&sarifIncludeMalware, "report-sarif-malware", "", false, "Include malware in SARIF report")
+	cmd.Flags().BoolVarP(&sarifIncludeVulns, "report-sarif-vulns", "", true, "Include vulnerabilities in SARIF report (Enabled by default)")
+	cmd.Flags().BoolVarP(&sarifIncludeMalware, "report-sarif-malware", "", true, "Include malware in SARIF report (Enabled by default)")
 	cmd.Flags().StringVarP(&graphReportDirectory, "report-graph", "", "",
 		"Generate dependency graph (if available) as dot files to directory")
 	cmd.Flags().BoolVarP(&syncReport, "report-sync", "", false,
@@ -269,6 +269,13 @@ func startScan() {
 }
 
 func internalStartScan() error {
+	toolMetadata := reporter.ToolMetadata{
+		Name:           vetName,
+		Version:        version,
+		InformationURI: vetInformationURI,
+		VendorName:     vetVendorName,
+	}
+
 	readerList := []readers.PackageManifestReader{}
 	var reader readers.PackageManifestReader
 	var err error
@@ -438,10 +445,7 @@ func internalStartScan() error {
 
 	if !utils.IsEmptyString(markdownSummaryReportPath) {
 		rp, err := reporter.NewMarkdownSummaryReporter(reporter.MarkdownSummaryReporterConfig{
-			ToolMetadata: reporter.MarkdownSummaryToolMetadata{
-				Name:    vetName,
-				Version: version,
-			},
+			Tool:                   toolMetadata,
 			Path:                   markdownSummaryReportPath,
 			IncludeMalwareAnalysis: enrichMalware,
 		})
@@ -454,9 +458,8 @@ func internalStartScan() error {
 
 	if !utils.IsEmptyString(jsonReportPath) {
 		rp, err := reporter.NewJsonReportGenerator(reporter.JsonReportingConfig{
-			Path:        jsonReportPath,
-			ToolName:    vetName,
-			ToolVersion: version,
+			Path: jsonReportPath,
+			Tool: toolMetadata,
 		})
 		if err != nil {
 			return err
@@ -467,11 +470,7 @@ func internalStartScan() error {
 
 	if !utils.IsEmptyString(sarifReportPath) {
 		rp, err := reporter.NewSarifReporter(reporter.SarifReporterConfig{
-			Tool: reporter.SarifToolMetadata{
-				Name:           vetName,
-				Version:        version,
-				InformationURI: vetInformationURI,
-			},
+			Tool:           toolMetadata,
 			IncludeVulns:   sarifIncludeVulns,
 			IncludeMalware: sarifIncludeMalware,
 			Path:           sarifReportPath,
@@ -491,13 +490,9 @@ func internalStartScan() error {
 
 		engagementName := fmt.Sprintf("vet-report-%s", time.Now().Format("2006-01-02"))
 		rp, err := reporter.NewDefectDojoReporter(reporter.DefectDojoReporterConfig{
-			Tool: reporter.DefectDojoToolMetadata{
-				Name:           vetName,
-				Version:        version,
-				InformationURI: vetInformationURI,
-			},
+			Tool:               toolMetadata,
 			IncludeVulns:       true,
-			IncludeMalware:     enrichMalware,
+			IncludeMalware:     true,
 			ProductID:          defectDojoProductID,
 			EngagementName:     engagementName,
 			DefectDojoHostUrl:  defectDojoHostUrl,
@@ -532,10 +527,8 @@ func internalStartScan() error {
 
 	if !utils.IsEmptyString(gitlabReportPath) {
 		rp, err := reporter.NewGitLabReporter(reporter.GitLabReporterConfig{
-			Path:           gitlabReportPath,
-			ToolVersion:    version,
-			ToolName:       vetName,
-			ToolVendorName: vetVendorName,
+			Path: gitlabReportPath,
+			Tool: toolMetadata,
 		})
 		if err != nil {
 			return err
@@ -554,8 +547,7 @@ func internalStartScan() error {
 		}
 
 		rp, err := reporter.NewSyncReporter(reporter.SyncReporterConfig{
-			ToolName:               vetName,
-			ToolVersion:            version,
+			Tool:                   toolMetadata,
 			ProjectName:            syncReportProject,
 			ProjectVersion:         syncReportStream,
 			EnableMultiProjectSync: syncEnableMultiProject,

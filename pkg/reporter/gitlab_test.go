@@ -18,10 +18,13 @@ import (
 
 func getGitLabReporter(reportPath string) (*gitLabReporter, error) {
 	return NewGitLabReporter(GitLabReporterConfig{
-		Path:           reportPath,
-		ToolVersion:    "1.0.0",
-		ToolName:       "vet",
-		ToolVendorName: "safedep",
+		Path: reportPath,
+		Tool: ToolMetadata{
+			Name:           "vet",
+			Version:        "latest",
+			InformationURI: "https://github.com/safedep/vet",
+			VendorName:     "safedep",
+		},
 	})
 }
 
