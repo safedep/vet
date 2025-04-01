@@ -54,6 +54,7 @@ func newSarifBuilder(config sarifBuilderConfig) (*sarifBuilder, error) {
 		report:          report,
 		run:             run,
 		config:          config,
+		vulnCache:       make(map[string]bool),
 		violationsCache: make(map[string]bool),
 	}, nil
 }
