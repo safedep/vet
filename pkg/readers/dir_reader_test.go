@@ -125,17 +125,19 @@ func TestDirectoryReaderEnumPackages(t *testing.T) {
 
 			manifestCount := 0
 			err := reader.EnumManifests(func(m *models.PackageManifest,
-				pr PackageReader) error {
+				pr PackageReader,
+			) error {
 				assert.NotNil(t, m)
 				assert.NotNil(t, pr)
 
 				assert.Equal(t, test.packageCounts[manifestCount], len(m.Packages))
 
 				manifestCount += 1
-				pr.EnumPackages(func(pkg *models.Package) error {
+				err := pr.EnumPackages(func(pkg *models.Package) error {
 					assert.NotNil(t, pkg)
 					return nil
 				})
+				assert.Nil(t, err)
 
 				return test.cbRet
 			})
