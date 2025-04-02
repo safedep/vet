@@ -26,10 +26,13 @@ var (
 )
 
 const (
-	vetName           = "vet"
-	vetVendorName     = "safedep"
-	vetInformationURI = "https://github.com/safedep/vet"
+	vetName                 = "vet"
+	vetInformationURI       = "https://github.com/safedep/vet"
+	vetVendorName           = "Safedep"
+	vetVendorInformationURI = "https://safedep.io"
 )
+
+var vetPurl = "pkg:golang/safedep/vet@" + version
 
 const banner string = `
 Yb    dP 888888 888888
