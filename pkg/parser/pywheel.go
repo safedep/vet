@@ -16,12 +16,12 @@ import (
 // want to consider. Exact match is always highest precendence. We pessimistically
 // consider the lower version in the range
 var pyWheelVersionMatchers []*regexp.Regexp = []*regexp.Regexp{
-	regexp.MustCompile("==([0-9\\.]+)"),
-	regexp.MustCompile(">([0-9\\.]+)"),
-	regexp.MustCompile(">=([0-9\\.]+)"),
-	regexp.MustCompile("<([0-9\\.]+)"),
-	regexp.MustCompile("<=([0-9\\.]+)"),
-	regexp.MustCompile("~=([0-9\\.]+)"),
+	regexp.MustCompile(`==([0-9\\.]+)`),
+	regexp.MustCompile(`>([0-9\\.]+)`),
+	regexp.MustCompile(`>=([0-9\\.]+)`),
+	regexp.MustCompile(`<([0-9\\.]+)`),
+	regexp.MustCompile(`<=([0-9\\.]+)`),
+	regexp.MustCompile(`~=([0-9\\.]+)`),
 }
 
 // https://packaging.python.org/en/latest/specifications/binary-distribution-format/
