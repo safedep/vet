@@ -23,6 +23,7 @@ type sarifBuilder struct {
 	config          sarifBuilderConfig
 	report          *sarif.Report
 	run             *sarif.Run
+	rulesCache      map[string]bool
 	violationsCache map[string]bool
 	vulnCache       map[string]bool
 }
@@ -48,6 +49,7 @@ func newSarifBuilder(config sarifBuilderConfig) (*sarifBuilder, error) {
 		report:          report,
 		run:             run,
 		config:          config,
+		rulesCache:      make(map[string]bool),
 		vulnCache:       make(map[string]bool),
 		violationsCache: make(map[string]bool),
 	}, nil
@@ -95,6 +97,18 @@ func (b *sarifBuilder) recordFilterMatchEvent(event *analyzer.AnalyzerEvent) {
 	if (event.Package == nil) || (event.Manifest == nil) || (event.Filter == nil) {
 		logger.Warnf("SARIF: Invalid event: missing package or manifest or filter")
 		return
+	}
+
+	if _, ok := b.rulesCache[event.Filter.GetName()]; !ok {
+		rule := sarif.NewRule(event.Filter.GetName())
+		rule.ShortDescription = sarif.NewMultiformatMessageString(event.Filter.GetSummary())
+		rule.Properties = sarif.Properties{
+			"filter": event.Filter.GetValue(),
+			"type":   event.Filter.GetCheckType(),
+		}
+
+		b.run.Tool.Driver.Rules = append(b.run.Tool.Driver.Rules, rule)
+		b.rulesCache[event.Filter.GetName()] = true
 	}
 
 	uniqueInstance := fmt.Sprintf("%s/%s/%s",
