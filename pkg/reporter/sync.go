@@ -21,11 +21,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-const (
-	syncReporterDefaultWorkerCount = 10
-	syncReporterMaxRetries         = 3
-	syncReporterToolName           = "vet"
-)
+const syncReporterDefaultWorkerCount = 10
 
 type SyncReporterConfig struct {
 	// gRPC connection for ControlTower
@@ -50,8 +46,7 @@ type SyncReporterConfig struct {
 	WorkerCount int
 
 	// Tool details
-	ToolName    string
-	ToolVersion string
+	Tool ToolMetadata
 }
 
 type syncSession struct {
@@ -165,8 +160,8 @@ func NewSyncReporter(config SyncReporterConfig, callbacks SyncReporterCallbacks)
 		toolServiceClient := controltowerv1grpc.NewToolServiceClient(config.ClientConnection)
 		toolSessionRes, err := toolServiceClient.CreateToolSession(context.Background(),
 			&controltowerv1.CreateToolSessionRequest{
-				ToolName:       config.ToolName,
-				ToolVersion:    config.ToolVersion,
+				ToolName:       config.Tool.Name,
+				ToolVersion:    config.Tool.Version,
 				ProjectName:    config.ProjectName,
 				ProjectVersion: &config.ProjectVersion,
 				ProjectSource:  &source,
@@ -218,8 +213,8 @@ func (s *syncReporter) AddManifest(manifest *models.PackageManifest) {
 		toolServiceClient := controltowerv1grpc.NewToolServiceClient(s.client)
 		toolSessionRes, err := toolServiceClient.CreateToolSession(context.Background(),
 			&controltowerv1.CreateToolSessionRequest{
-				ToolName:       s.config.ToolName,
-				ToolVersion:    s.config.ToolVersion,
+				ToolName:       s.config.Tool.Name,
+				ToolVersion:    s.config.Tool.Version,
 				ProjectName:    projectName,
 				ProjectVersion: &projectVersion,
 				ProjectSource:  &source,

@@ -35,7 +35,7 @@ func getLogLevelFromEnv() logrus.Level {
 }
 
 func LogToFile(path string) {
-	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
 	if err != nil {
 		panic(err)
 	}

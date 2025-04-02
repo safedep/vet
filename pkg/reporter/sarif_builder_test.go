@@ -117,16 +117,23 @@ var events []analyzer.AnalyzerEvent = []analyzer.AnalyzerEvent{
 	},
 }
 
+var toolMetadata = ToolMetadata{
+	Name:           "vet",
+	Version:        "latest",
+	InformationURI: "https://github.com/safedep/vet",
+	VendorName:     "safedep",
+}
+
 func TestSarifBuilderReport(t *testing.T) {
 	tmpFile, err := os.CreateTemp("", "sarif-builder-test")
 	assert.Nil(t, err)
 
 	defer os.Remove(tmpFile.Name())
 
-	builder, err := newSarifBuilder(sarifBuilderToolMetadata{
-		Name:    "tool-name",
-		Version: "tool-version",
-	})
+	builder, err := newSarifBuilder(
+		sarifBuilderConfig{
+			Tool: toolMetadata,
+		})
 	assert.Nil(t, err)
 
 	for _, event := range events {
@@ -149,10 +156,10 @@ func TestSarifReportBuilderMarkdown(t *testing.T) {
 
 	defer os.Remove(tmpFile.Name())
 
-	builder, err := newSarifBuilder(sarifBuilderToolMetadata{
-		Name:    "tool-name",
-		Version: "tool-version",
-	})
+	builder, err := newSarifBuilder(
+		sarifBuilderConfig{
+			Tool: toolMetadata,
+		})
 	assert.Nil(t, err)
 
 	for _, event := range events {

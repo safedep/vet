@@ -63,6 +63,8 @@ var (
 	defectDojoHostUrl                string
 	defectDojoProductID              int
 	sarifReportPath                  string
+	sarifIncludeVulns                bool
+	sarifIncludeMalware              bool
 	silentScan                       bool
 	disableAuthVerifyBeforeScan      bool
 	syncReport                       bool
@@ -77,7 +79,7 @@ var (
 	malwareAnalyzerTrustToolResult   bool
 	malwareAnalysisTimeout           time.Duration
 	malwareAnalysisMinimumConfidence string
-  gitlabReportPath                 string
+	gitlabReportPath                 string
 )
 
 func newScanCommand() *cobra.Command {
@@ -172,7 +174,9 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&jsonReportPath, "report-json", "", "",
 		"Generate consolidated JSON report to file (EXPERIMENTAL schema)")
 	cmd.Flags().StringVarP(&sarifReportPath, "report-sarif", "", "",
-		"Generate SARIF report to file")
+		"Generate SARIF report to file (*.sarif or *.sarif.json)")
+	cmd.Flags().BoolVarP(&sarifIncludeVulns, "report-sarif-vulns", "", true, "Include vulnerabilities in SARIF report (Enabled by default)")
+	cmd.Flags().BoolVarP(&sarifIncludeMalware, "report-sarif-malware", "", true, "Include malware in SARIF report (Enabled by default)")
 	cmd.Flags().StringVarP(&graphReportDirectory, "report-graph", "", "",
 		"Generate dependency graph (if available) as dot files to directory")
 	cmd.Flags().BoolVarP(&syncReport, "report-sync", "", false,
@@ -265,6 +269,13 @@ func startScan() {
 }
 
 func internalStartScan() error {
+	toolMetadata := reporter.ToolMetadata{
+		Name:           vetName,
+		Version:        version,
+		InformationURI: vetInformationURI,
+		VendorName:     vetVendorName,
+	}
+
 	readerList := []readers.PackageManifestReader{}
 	var reader readers.PackageManifestReader
 	var err error
@@ -434,6 +445,7 @@ func internalStartScan() error {
 
 	if !utils.IsEmptyString(markdownSummaryReportPath) {
 		rp, err := reporter.NewMarkdownSummaryReporter(reporter.MarkdownSummaryReporterConfig{
+			Tool:                   toolMetadata,
 			Path:                   markdownSummaryReportPath,
 			IncludeMalwareAnalysis: enrichMalware,
 		})
@@ -447,6 +459,7 @@ func internalStartScan() error {
 	if !utils.IsEmptyString(jsonReportPath) {
 		rp, err := reporter.NewJsonReportGenerator(reporter.JsonReportingConfig{
 			Path: jsonReportPath,
+			Tool: toolMetadata,
 		})
 		if err != nil {
 			return err
@@ -457,11 +470,10 @@ func internalStartScan() error {
 
 	if !utils.IsEmptyString(sarifReportPath) {
 		rp, err := reporter.NewSarifReporter(reporter.SarifReporterConfig{
-			Tool: reporter.SarifToolMetadata{
-				Name:    "vet",
-				Version: version,
-			},
-			Path: sarifReportPath,
+			Tool:           toolMetadata,
+			IncludeVulns:   sarifIncludeVulns,
+			IncludeMalware: sarifIncludeMalware,
+			Path:           sarifReportPath,
 		})
 		if err != nil {
 			return err
@@ -478,10 +490,9 @@ func internalStartScan() error {
 
 		engagementName := fmt.Sprintf("vet-report-%s", time.Now().Format("2006-01-02"))
 		rp, err := reporter.NewDefectDojoReporter(reporter.DefectDojoReporterConfig{
-			Tool: reporter.DefectDojoToolMetadata{
-				Name:    "vet",
-				Version: version,
-			},
+			Tool:               toolMetadata,
+			IncludeVulns:       true,
+			IncludeMalware:     true,
 			ProductID:          defectDojoProductID,
 			EngagementName:     engagementName,
 			DefectDojoHostUrl:  defectDojoHostUrl,
@@ -516,10 +527,8 @@ func internalStartScan() error {
 
 	if !utils.IsEmptyString(gitlabReportPath) {
 		rp, err := reporter.NewGitLabReporter(reporter.GitLabReporterConfig{
-			Path:           gitlabReportPath,
-			ToolVersion:    version,
-			ToolName:       "vet",
-			ToolVendorName: "safedep",
+			Path: gitlabReportPath,
+			Tool: toolMetadata,
 		})
 		if err != nil {
 			return err
@@ -538,8 +547,7 @@ func internalStartScan() error {
 		}
 
 		rp, err := reporter.NewSyncReporter(reporter.SyncReporterConfig{
-			ToolName:               "vet",
-			ToolVersion:            version,
+			Tool:                   toolMetadata,
 			ProjectName:            syncReportProject,
 			ProjectVersion:         syncReportStream,
 			EnableMultiProjectSync: syncEnableMultiProject,

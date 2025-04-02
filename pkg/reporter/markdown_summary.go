@@ -29,6 +29,7 @@ const (
 )
 
 type MarkdownSummaryReporterConfig struct {
+	Tool                   ToolMetadata
 	Path                   string
 	ReportTitle            string
 	IncludeMalwareAnalysis bool
@@ -79,8 +80,8 @@ func NewMarkdownSummaryReporter(config MarkdownSummaryReporterConfig) (Reporter,
 
 	jsonReporter, err := NewJsonReportGenerator(JsonReportingConfig{
 		Path: tmpFile.Name(),
+		Tool: config.Tool,
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +116,6 @@ func (r *markdownSummaryReporter) AddManifest(manifest *models.PackageManifest) 
 
 		return nil
 	})
-
 	if err != nil {
 		logger.Errorf("[Markdown Reporter]: Failed to enumerate packages in manifest %s: %v",
 			manifest.GetPath(), err)
@@ -158,7 +158,7 @@ func (r *markdownSummaryReporter) Finish() error {
 		return fmt.Errorf("failed to build markdown report: %w", err)
 	}
 
-	err = os.WriteFile(r.config.Path, []byte(builder.Build()), 0600)
+	err = os.WriteFile(r.config.Path, []byte(builder.Build()), 0o600)
 	if err != nil {
 		return fmt.Errorf("failed to write markdown summary to file: %w", err)
 	}
@@ -167,7 +167,8 @@ func (r *markdownSummaryReporter) Finish() error {
 }
 
 func (r *markdownSummaryReporter) buildMarkdownReport(builder *markdown.MarkdownBuilder,
-	report *jsonreportspec.Report) error {
+	report *jsonreportspec.Report,
+) error {
 	internalModel, err := r.buildInternalModel(report)
 	if err != nil {
 		return fmt.Errorf("failed to build internal data model: %w", err)
@@ -240,8 +241,7 @@ func (r *markdownSummaryReporter) buildInternalModel(report *jsonreportspec.Repo
 				internalModel.violations[violation.GetCheckType()] = make([]*violations.Violation, 0)
 			}
 
-			internalModel.violations[violation.GetCheckType()] =
-				append(internalModel.violations[violation.GetCheckType()], violation)
+			internalModel.violations[violation.GetCheckType()] = append(internalModel.violations[violation.GetCheckType()], violation)
 		}
 
 		appendThreats(pkg.GetThreats())
@@ -251,7 +251,8 @@ func (r *markdownSummaryReporter) buildInternalModel(report *jsonreportspec.Repo
 }
 
 func (r *markdownSummaryReporter) addPolicyCheckSection(builder *markdown.MarkdownBuilder,
-	internalModel *vetResultInternalModel) error {
+	internalModel *vetResultInternalModel,
+) error {
 	builder.AddHeader(2, "Policy Checks")
 
 	builder.AddBulletPoint(fmt.Sprintf("%s Vulnerability",
@@ -273,7 +274,8 @@ func (r *markdownSummaryReporter) addPolicyCheckSection(builder *markdown.Markdo
 }
 
 func (r *markdownSummaryReporter) addThreatsSection(builder *markdown.MarkdownBuilder,
-	internalModel *vetResultInternalModel) error {
+	internalModel *vetResultInternalModel,
+) error {
 	if len(internalModel.threats) == 0 {
 		return nil
 	}
@@ -321,7 +323,8 @@ func (r *markdownSummaryReporter) addThreatsSection(builder *markdown.MarkdownBu
 }
 
 func (r *markdownSummaryReporter) addChangedPackageSection(builder *markdown.MarkdownBuilder,
-	internalModel *vetResultInternalModel) error {
+	internalModel *vetResultInternalModel,
+) error {
 	if len(internalModel.packages) == 0 {
 		return nil
 	}
@@ -351,8 +354,8 @@ func (r *markdownSummaryReporter) addChangedPackageSection(builder *markdown.Mar
 }
 
 func (r *markdownSummaryReporter) addViolationSection(builder *markdown.MarkdownBuilder,
-	internalModel *vetResultInternalModel) error {
-
+	internalModel *vetResultInternalModel,
+) error {
 	section := builder.StartCollapsibleSection("Policy Violations")
 	section.Builder().AddHeader(2, "Packages Violating Policy")
 
@@ -455,7 +458,8 @@ func (r *markdownSummaryReporter) addMalwareAnalysisReportSection(builder *markd
 }
 
 func (r *markdownSummaryReporter) getCheckIconByCheckType(internalModel *vetResultInternalModel,
-	ct checks.CheckType) string {
+	ct checks.CheckType,
+) string {
 	if _, ok := internalModel.violations[ct]; !ok {
 		return markdown.EmojiWhiteCheckMark
 	} else {

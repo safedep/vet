@@ -13,37 +13,44 @@ import (
 	"github.com/safedep/vet/pkg/reporter/markdown"
 )
 
-type sarifBuilderToolMetadata struct {
-	Name    string
-	Version string
+type sarifBuilderConfig struct {
+	Tool           ToolMetadata
+	IncludeVulns   bool
+	IncludeMalware bool
 }
 
 type sarifBuilder struct {
+	config          sarifBuilderConfig
 	report          *sarif.Report
 	run             *sarif.Run
 	rulesCache      map[string]bool
 	violationsCache map[string]bool
+	vulnCache       map[string]bool
 }
 
-func newSarifBuilder(toolMetadata sarifBuilderToolMetadata) (*sarifBuilder, error) {
+const sarifErrorLevel = "error"
+
+func newSarifBuilder(config sarifBuilderConfig) (*sarifBuilder, error) {
 	report, err := sarif.New(sarif.Version210)
 	if err != nil {
 		return nil, err
 	}
 
-	run := sarif.NewRunWithInformationURI(toolMetadata.Name,
-		"https://github.com/safedep/vet")
+	run := sarif.NewRunWithInformationURI(config.Tool.Name,
+		config.Tool.InformationURI)
 
-	run.Tool.Driver.Version = &toolMetadata.Version
+	run.Tool.Driver.Version = &config.Tool.Version
 	run.Tool.Driver.Properties = sarif.Properties{
-		"name":    toolMetadata.Name,
-		"version": toolMetadata.Version,
+		"name":    config.Tool.Name,
+		"version": config.Tool.Version,
 	}
 
 	return &sarifBuilder{
 		report:          report,
 		run:             run,
+		config:          config,
 		rulesCache:      make(map[string]bool),
+		vulnCache:       make(map[string]bool),
 		violationsCache: make(map[string]bool),
 	}, nil
 }
@@ -52,6 +59,16 @@ func (b *sarifBuilder) AddManifest(manifest *models.PackageManifest) {
 	a := sarif.NewArtifact().
 		WithLocation(sarif.NewSimpleArtifactLocation(manifest.GetDisplayPath()))
 	b.run.Artifacts = append(b.run.Artifacts, a)
+
+	for _, pkg := range manifest.GetPackages() {
+		if b.config.IncludeVulns {
+			b.recordVulnerabilities(pkg)
+		}
+
+		if b.config.IncludeMalware {
+			b.recordMalware(pkg)
+		}
+	}
 }
 
 func (b *sarifBuilder) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
@@ -103,8 +120,7 @@ func (b *sarifBuilder) recordFilterMatchEvent(event *analyzer.AnalyzerEvent) {
 	b.violationsCache[uniqueInstance] = true
 
 	result := sarif.NewRuleResult(event.Filter.GetName())
-
-	result.WithLevel("error")
+	result.WithLevel(sarifErrorLevel)
 	result.WithMessage(b.buildFilterResultMessageMarkdown(event))
 
 	pLocation := sarif.NewPhysicalLocation().
@@ -165,4 +181,65 @@ func (b *sarifBuilder) buildFilterResultMessageMarkdown(event *analyzer.Analyzer
 		WithText(md.BuildPlainText())
 
 	return msg
+}
+
+func (b *sarifBuilder) recordVulnerabilities(pkg *models.Package) {
+	if pkg.Insights == nil {
+		return
+	}
+
+	vulns := utils.SafelyGetValue(pkg.Insights.Vulnerabilities)
+	if len(vulns) == 0 {
+		return
+	}
+
+	for _, vuln := range vulns {
+		vulnId := utils.SafelyGetValue(vuln.Id)
+		if _, ok := b.vulnCache[vulnId]; ok {
+			continue
+		}
+
+		b.vulnCache[vulnId] = true
+
+		result := sarif.NewRuleResult(vulnId)
+		result.WithLevel(sarifErrorLevel)
+
+		vulnerabilitySummary := utils.SafelyGetValue(vuln.Summary)
+		if utils.IsEmptyString(vulnerabilitySummary) {
+			vulnerabilitySummary = fmt.Sprintf("Vulnerability in %s (%s)", pkg.GetName(), pkg.Ecosystem)
+		}
+		result.WithMessage(sarif.NewMessage().WithText(vulnerabilitySummary))
+
+		pLocation := sarif.NewPhysicalLocation().
+			WithArtifactLocation(sarif.NewSimpleArtifactLocation(pkg.Manifest.GetDisplayPath()))
+		result.Locations = append(result.Locations, sarif.NewLocation().WithPhysicalLocation(pLocation))
+
+		b.run.AddResult(result)
+	}
+}
+
+func (b *sarifBuilder) recordMalware(pkg *models.Package) {
+	if pkg.MalwareAnalysis == nil {
+		return
+	}
+
+	malwareAnalysis := utils.SafelyGetValue(pkg.MalwareAnalysis)
+
+	if malwareAnalysis.IsMalware {
+		inference := utils.SafelyGetValue(malwareAnalysis.Report.GetInference())
+		result := sarif.NewRuleResult(malwareAnalysis.AnalysisId)
+		result.WithLevel(sarifErrorLevel)
+
+		malwareSummary := inference.GetSummary()
+		if utils.IsEmptyString(malwareSummary) {
+			malwareSummary = fmt.Sprintf("Malicious code in %s (%s)", pkg.GetName(), pkg.Ecosystem)
+		}
+		result.WithMessage(sarif.NewMessage().WithText(malwareSummary))
+
+		pLocation := sarif.NewPhysicalLocation().
+			WithArtifactLocation(sarif.NewSimpleArtifactLocation(pkg.Manifest.GetDisplayPath()))
+		result.Locations = append(result.Locations, sarif.NewLocation().WithPhysicalLocation(pLocation))
+
+		b.run.AddResult(result)
+	}
 }

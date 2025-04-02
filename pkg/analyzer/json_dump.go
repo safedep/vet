@@ -39,8 +39,8 @@ func (j *jsonDumperAnalyzer) Name() string {
 }
 
 func (j *jsonDumperAnalyzer) Analyze(manifest *models.PackageManifest,
-	handler AnalyzerEventHandler) error {
-
+	handler AnalyzerEventHandler,
+) error {
 	logger.Infof("Running analyzer: %s", j.Name())
 	data, err := json.MarshalIndent(manifest, "", "  ")
 	if err != nil {
@@ -53,7 +53,7 @@ func (j *jsonDumperAnalyzer) Analyze(manifest *models.PackageManifest,
 		filepath.Base(manifest.Path),
 		randomSource.Int63()))
 
-	return os.WriteFile(path, data, 0600)
+	return os.WriteFile(path, data, 0o600)
 }
 
 func (j *jsonDumperAnalyzer) Finish() error {
