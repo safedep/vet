@@ -276,10 +276,12 @@ func startScan() {
 
 func internalStartScan() error {
 	toolMetadata := reporter.ToolMetadata{
-		Name:           vetName,
-		Version:        version,
-		InformationURI: vetInformationURI,
-		VendorName:     vetVendorName,
+		Name:                 vetName,
+		Version:              version,
+		Purl:                 vetPurl,
+		InformationURI:       vetInformationURI,
+		VendorName:           vetVendorName,
+		VendorInformationURI: vetVendorInformationURI,
 	}
 
 	readerList := []readers.PackageManifestReader{}
@@ -497,12 +499,8 @@ func internalStartScan() error {
 		}
 
 		rp, err := reporter.NewCycloneDXReporter(reporter.CycloneDXReporterConfig{
-			Path: cyclonedxReportPath,
-			Tool: reporter.CycloneDXToolMetadata{
-				Name:    "vet",
-				Version: version,
-				Purl:    "pkg:golang/safedep/vet@" + version,
-			},
+			Tool:                     toolMetadata,
+			Path:                     cyclonedxReportPath,
 			ApplicationComponentName: cyclonedxReportApplicationName,
 		})
 		if err != nil {
