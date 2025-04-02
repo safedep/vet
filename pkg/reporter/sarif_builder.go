@@ -241,7 +241,5 @@ func (b *sarifBuilder) recordMalware(pkg *models.Package) {
 		result.Locations = append(result.Locations, sarif.NewLocation().WithPhysicalLocation(pLocation))
 
 		b.run.AddResult(result)
-	} else {
-		logger.Debugf("No malware found in package %s", pkg.GetName())
 	}
 }
