@@ -516,6 +516,24 @@ func (s *syncReporter) syncPackage(pkg *models.Package) error {
 		})
 	}
 
+	// Add malware analysis information if available
+	if mar := pkg.GetMalwareAnalysisResult(); mar != nil {
+		req.MaliciousPackageInsight = &controltowerv1.PublishPackageInsightRequest_MaliciousPackageInsight{
+			AnalysisId: mar.AnalysisId,
+			IsMalware:  mar.IsMalware,
+			IsVerified: mar.VerificationRecord != nil,
+		}
+
+		// Add summary if available
+		if mar.Report != nil && mar.Report.GetInference() != nil {
+			req.MaliciousPackageInsight.Summary = mar.Report.GetInference().GetSummary()
+		}
+
+		logger.Debugf("Report Sync: Added malware analysis for package: %s/%s/%s (malware: %t, verified: %t)",
+			pkg.GetControlTowerSpecEcosystem(), pkg.GetName(), pkg.GetVersion(),
+			mar.IsMalware, req.MaliciousPackageInsight.IsVerified)
+	}
+
 	// OpenSSF
 	// We can't use vet's collected scorecard because its data model is wrong. There is
 	// not a single scorecard per package. Rather there is a scorecard per project. Since
