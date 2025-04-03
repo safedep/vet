@@ -341,10 +341,12 @@ type MalwareAnalysisResult struct {
 }
 
 // Id returns id for malware analysis result
-// Its Opionionated, we use MAL- prefix for malware analysis results
-// Its not linked to any standard
+// Its Opionionated, we use SD-MAL- prefix for our malware analysis results
+// to prevent confusion against the MAL- prefix used by OSV.
+//
+//	Its not linked to any standard
 func (m *MalwareAnalysisResult) Id() string {
-	return fmt.Sprintf("MAL-%s", m.AnalysisId)
+	return fmt.Sprintf("SD-MAL-%s", m.AnalysisId)
 }
 
 type CodeAnalysisResult struct {

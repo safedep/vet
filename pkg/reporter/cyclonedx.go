@@ -39,11 +39,12 @@ type CycloneDXReporterConfig struct {
 
 type cycloneDXReporter struct {
 	sync.Mutex
-	config        CycloneDXReporterConfig
-	bom           *cdx.BOM
-	toolComponent cdx.Component
-	bomPurls      map[string]bool
-	bomEcosystems map[string]bool
+	config                    CycloneDXReporterConfig
+	bom                       *cdx.BOM
+	toolComponent             cdx.Component
+	rootComponentBomref       string
+	bomEcosystems             map[string]bool
+	bomVulnerabilitiesBomrefs map[string]bool
 }
 
 var cdxUUIDRegexp = regex.MustCompileAndCache(`^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
@@ -97,28 +98,17 @@ func NewCycloneDXReporter(config CycloneDXReporterConfig) (Reporter, error) {
 		},
 	}
 
-	bom.Annotations = commonUtils.PtrTo([]cdx.Annotation{
-		{
-			BOMRef: "metadata-annotations",
-			Subjects: commonUtils.PtrTo([]cdx.BOMReference{
-				cdx.BOMReference(rootComponentBomref),
-			}),
-			Annotator: &cdx.Annotator{
-				Component: &toolComponent,
-			},
-		},
-	})
-
 	bom.Components = commonUtils.PtrTo([]cdx.Component{})
 	bom.Vulnerabilities = commonUtils.PtrTo([]cdx.Vulnerability{})
 	bom.Dependencies = commonUtils.PtrTo([]cdx.Dependency{})
 
 	return &cycloneDXReporter{
-		config:        config,
-		bom:           bom,
-		toolComponent: toolComponent,
-		bomPurls:      map[string]bool{},
-		bomEcosystems: map[string]bool{},
+		config:                    config,
+		bom:                       bom,
+		toolComponent:             toolComponent,
+		rootComponentBomref:       rootComponentBomref,
+		bomEcosystems:             map[string]bool{},
+		bomVulnerabilitiesBomrefs: map[string]bool{},
 	}, nil
 }
 
@@ -152,7 +142,6 @@ func (r *cycloneDXReporter) AddManifest(manifest *models.PackageManifest) {
 
 func (r *cycloneDXReporter) addPackage(pkg *models.Package) {
 	pkgPurl := pkg.GetPackageUrl()
-	r.bomPurls[pkgPurl] = true
 
 	component := cdx.Component{
 		Type:       cdx.ComponentTypeLibrary,
@@ -202,10 +191,10 @@ func (r *cycloneDXReporter) resolvePackageLicenses(pkg *models.Package) []cdx.Li
 				ID:   string(license),
 			},
 		}
-		if _, validSpdxLicense := data.SPDXLicenseMap[string(license)]; validSpdxLicense {
-			// @TODO - this is taken from https://github.com/CycloneDX/cdxgen/blob/c32b2b64174c190490e34e18fe7c9a3f7bb4904e/lib/helpers/utils.js#L814
-			// However, some licenses don't point to a valid URL
-			licenseChoice.License.URL = "https://opensource.org/licenses/" + string(license)
+		spdxLicense, availableSpdxLicense := data.SpdxLicenses[string(license)]
+		if availableSpdxLicense {
+			licenseChoice.License.URL = spdxLicense.Reference
+			licenseChoice.License.Name = spdxLicense.Name
 		}
 		licenses = append(licenses, licenseChoice)
 	}
@@ -241,6 +230,14 @@ func (r *cycloneDXReporter) recordVulnerabilities(pkg *models.Package) {
 	pkgPurl := pkg.GetPackageUrl()
 
 	for _, vuln := range *pkg.Insights.Vulnerabilities {
+		// This format of Vulnerability BOMRef is used by cdxgen
+		vulnBomref := strings.Join([]string{utils.SafelyGetValue(vuln.Id), pkgPurl}, "/")
+
+		if _, ok := r.bomVulnerabilitiesBomrefs[vulnBomref]; ok {
+			// This vulnerability has already been recorded
+			continue
+		}
+
 		ratings := []cdx.VulnerabilityRating{}
 		for _, severity := range utils.SafelyGetValue(vuln.Severities) {
 			ratingMethod := cdx.ScoringMethodOther
@@ -261,17 +258,25 @@ func (r *cycloneDXReporter) recordVulnerabilities(pkg *models.Package) {
 			ratings = append(ratings, rating)
 		}
 
+		recommendation := ""
+		if pkg.Insights.PackageCurrentVersion != nil {
+			recommendation = fmt.Sprintf("Upgrade to version %s or later", utils.SafelyGetValue(pkg.Insights.PackageCurrentVersion))
+		}
+
 		*r.bom.Vulnerabilities = append(*r.bom.Vulnerabilities, cdx.Vulnerability{
-			ID:          utils.SafelyGetValue(vuln.Id),
-			BOMRef:      strings.Join([]string{utils.SafelyGetValue(vuln.Id), pkgPurl}, "/"), // This format of Vulnerability BOMRef is used by cdxgen
-			Description: utils.SafelyGetValue(vuln.Summary),
-			Ratings:     &ratings,
+			ID:             utils.SafelyGetValue(vuln.Id),
+			BOMRef:         vulnBomref,
+			Description:    utils.SafelyGetValue(vuln.Summary),
+			Ratings:        &ratings,
+			Recommendation: recommendation,
 			Affects: commonUtils.PtrTo([]cdx.Affects{
 				{
 					Ref: pkgPurl,
 				},
 			}),
 		})
+
+		r.bomVulnerabilitiesBomrefs[vulnBomref] = true
 	}
 }
 
@@ -284,6 +289,13 @@ func (r *cycloneDXReporter) recordMalware(pkg *models.Package) {
 	malwareAnalysis := utils.SafelyGetValue(pkg.MalwareAnalysis)
 
 	if malwareAnalysis.IsMalware {
+		malwareBomref := strings.Join([]string{malwareAnalysis.Id(), pkgPurl}, "/")
+
+		if _, ok := r.bomVulnerabilitiesBomrefs[malwareBomref]; ok {
+			// This malware analysis has already been recorded
+			return
+		}
+
 		inference := utils.SafelyGetValue(malwareAnalysis.Report.GetInference())
 		malwareSummary := inference.GetSummary()
 		if utils.IsEmptyString(malwareSummary) {
@@ -291,8 +303,8 @@ func (r *cycloneDXReporter) recordMalware(pkg *models.Package) {
 		}
 
 		*r.bom.Vulnerabilities = append(*r.bom.Vulnerabilities, cdx.Vulnerability{
-			ID:          utils.SafelyGetValue(&malwareAnalysis.AnalysisId),
-			BOMRef:      strings.Join([]string{malwareAnalysis.AnalysisId, pkgPurl}, "/"), // This format of Vulnerability BOMRef is used by cdxgen
+			ID:          malwareAnalysis.Id(),
+			BOMRef:      malwareBomref,
 			Description: malwareSummary,
 			Credits: &cdx.Credits{
 				Organizations: commonUtils.PtrTo([]cdx.OrganizationalEntity{
@@ -319,26 +331,34 @@ func (r *cycloneDXReporter) recordMalware(pkg *models.Package) {
 				},
 			}),
 		})
+
+		r.bomVulnerabilitiesBomrefs[malwareBomref] = true
 	}
 }
 
 func (r *cycloneDXReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 }
 
-func (r *cycloneDXReporter) AddPolicyEvent(event *policy.PolicyEvent) {
-	// @TODO - How to handle policy events
-}
+func (r *cycloneDXReporter) AddPolicyEvent(event *policy.PolicyEvent) {}
 
 func (r *cycloneDXReporter) finaliseBom() {
 	bomGenerationTime := time.Now().UTC()
 
 	r.bom.Metadata.Timestamp = bomGenerationTime.Format(time.RFC3339)
 
-	annotation := (*r.bom.Annotations)[0]
-	annotation.Timestamp = bomGenerationTime.Format(time.RFC3339)
-	annotation.Text = fmt.Sprintf("This Software Bill-of-Materials (SBOM) document was created on %s with %s. The data was captured during the build lifecycle phase. The document describes '%s'. It has total %d components. %d package type(s) and %d purl namespaces are described in the document under components.", bomGenerationTime.Format("Monday, January 2, 2006"), r.config.Tool.Name, r.config.ApplicationComponentName, len(*r.bom.Components), len(r.bomEcosystems), len(r.bomPurls))
-
-	(*r.bom.Annotations)[0] = annotation
+	r.bom.Annotations = commonUtils.PtrTo([]cdx.Annotation{
+		{
+			BOMRef: "metadata-annotations",
+			Subjects: commonUtils.PtrTo([]cdx.BOMReference{
+				cdx.BOMReference(r.rootComponentBomref),
+			}),
+			Annotator: &cdx.Annotator{
+				Component: &r.toolComponent,
+			},
+			Timestamp: bomGenerationTime.Format(time.RFC3339),
+			Text:      fmt.Sprintf("This Software Bill-of-Materials (SBOM) document was created on %s with %s. The data was captured during the build lifecycle phase. The document describes '%s'. It has total %d components. %d ecosystems are described in the document under components.", bomGenerationTime.Format("Monday, January 2, 2006"), r.config.Tool.Name, r.config.ApplicationComponentName, len(*r.bom.Components), len(r.bomEcosystems)),
+		},
+	})
 }
 
 func (r *cycloneDXReporter) Finish() error {
