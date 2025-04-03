@@ -44,11 +44,16 @@ func (p *directoryReader) Name() string {
 	return "Directory Based Package Manifest Reader"
 }
 
+func (p *directoryReader) ApplicationName() (string, error) {
+	return filepath.Base(p.config.Path), nil
+}
+
 // EnumManifests discovers package manifests in a directory using conventional
 // lockfile names. For each manifest discovered, it invokes the callback handler
 // with the manifest model and a default package reader implementation.
 func (p *directoryReader) EnumManifests(handler func(*models.PackageManifest,
-	PackageReader) error) error {
+	PackageReader) error,
+) error {
 	err := filepath.WalkDir(p.config.Path, func(path string, info os.DirEntry, err error) error {
 		if err != nil {
 			return err

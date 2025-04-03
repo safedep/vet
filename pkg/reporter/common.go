@@ -1,8 +1,10 @@
 package reporter
 
 type ToolMetadata struct {
-	Name           string
-	Version        string
-	InformationURI string
-	VendorName     string
+	Name                 string
+	Version              string
+	Purl                 string
+	InformationURI       string
+	VendorName           string
+	VendorInformationURI string
 }

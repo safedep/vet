@@ -341,10 +341,12 @@ type MalwareAnalysisResult struct {
 }
 
 // Id returns id for malware analysis result
-// Its Opionionated, we use MAL- prefix for malware analysis results
-// Its not linked to any standard
+// Its Opinionated, we use SD-MAL- prefix for our malware analysis results
+// to prevent confusion against the MAL- prefix used by OSV.
+//
+//	Its not linked to any standard
 func (m *MalwareAnalysisResult) Id() string {
-	return fmt.Sprintf("MAL-%s", m.AnalysisId)
+	return fmt.Sprintf("SD-MAL-%s", m.AnalysisId)
 }
 
 type CodeAnalysisResult struct {
@@ -418,10 +420,14 @@ func (p *Package) GetProvenances() []*Provenance {
 	return p.Provenances
 }
 
-func (p *Package) ShortName() string {
+func (p *Package) GetPackageUrl() string {
 	return fmt.Sprintf("pkg:%s/%s@%s",
 		strings.ToLower(string(p.Ecosystem)),
 		strings.ToLower(p.Name), p.Version)
+}
+
+func (p *Package) ShortName() string {
+	return p.GetPackageUrl()
 }
 
 func (p *Package) GetDependencyGraph() *DependencyGraph[*Package] {
