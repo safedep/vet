@@ -10,10 +10,12 @@ import (
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/google/uuid"
 	"github.com/safedep/dry/utils"
+	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
 	commonUtils "github.com/safedep/vet/pkg/common/utils"
 	"github.com/safedep/vet/pkg/common/utils/regex"
+	"github.com/safedep/vet/pkg/malysis"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
 	"github.com/safedep/vet/pkg/readers"
@@ -39,6 +41,7 @@ type cycloneDXReporter struct {
 	sync.Mutex
 	config        CycloneDXReporterConfig
 	bom           *cdx.BOM
+	toolComponent cdx.Component
 	bomPurls      map[string]bool
 	bomEcosystems map[string]bool
 }
@@ -113,6 +116,7 @@ func NewCycloneDXReporter(config CycloneDXReporterConfig) (Reporter, error) {
 	return &cycloneDXReporter{
 		config:        config,
 		bom:           bom,
+		toolComponent: toolComponent,
 		bomPurls:      map[string]bool{},
 		bomEcosystems: map[string]bool{},
 	}, nil
@@ -180,6 +184,7 @@ func (r *cycloneDXReporter) addPackage(pkg *models.Package) {
 
 	r.recordDependencies(pkg)
 	r.recordVulnerabilities(pkg)
+	r.recordMalware(pkg)
 
 	*r.bom.Components = append(*r.bom.Components, component)
 }
@@ -238,9 +243,19 @@ func (r *cycloneDXReporter) recordVulnerabilities(pkg *models.Package) {
 	for _, vuln := range *pkg.Insights.Vulnerabilities {
 		ratings := []cdx.VulnerabilityRating{}
 		for _, severity := range utils.SafelyGetValue(vuln.Severities) {
+			ratingMethod := cdx.ScoringMethodOther
+			switch utils.SafelyGetValue(severity.Type) {
+			case insightapi.PackageVulnerabilitySeveritiesTypeCVSSV2:
+				ratingMethod = cdx.ScoringMethodCVSSv2
+			case insightapi.PackageVulnerabilitySeveritiesTypeCVSSV3:
+				ratingMethod = cdx.ScoringMethodCVSSv3
+			case insightapi.PackageVulnerabilitySeveritiesTypeUNSPECIFIED:
+				ratingMethod = cdx.ScoringMethodOther
+			}
+
 			rating := cdx.VulnerabilityRating{
-				Method:   cdx.ScoringMethod(utils.SafelyGetValue(severity.Type)),
-				Severity: cdx.Severity(utils.SafelyGetValue(severity.Risk)),
+				Method:   ratingMethod,
+				Severity: cdx.Severity(strings.ToLower(string(utils.SafelyGetValue(severity.Risk)))),
 				Vector:   utils.SafelyGetValue(severity.Score),
 			}
 			ratings = append(ratings, rating)
@@ -251,6 +266,53 @@ func (r *cycloneDXReporter) recordVulnerabilities(pkg *models.Package) {
 			BOMRef:      strings.Join([]string{utils.SafelyGetValue(vuln.Id), pkgPurl}, "/"), // This format of Vulnerability BOMRef is used by cdxgen
 			Description: utils.SafelyGetValue(vuln.Summary),
 			Ratings:     &ratings,
+			Affects: commonUtils.PtrTo([]cdx.Affects{
+				{
+					Ref: pkgPurl,
+				},
+			}),
+		})
+	}
+}
+
+func (r *cycloneDXReporter) recordMalware(pkg *models.Package) {
+	if pkg.MalwareAnalysis == nil {
+		return
+	}
+
+	pkgPurl := pkg.GetPackageUrl()
+	malwareAnalysis := utils.SafelyGetValue(pkg.MalwareAnalysis)
+
+	if malwareAnalysis.IsMalware {
+		inference := utils.SafelyGetValue(malwareAnalysis.Report.GetInference())
+		malwareSummary := inference.GetSummary()
+		if utils.IsEmptyString(malwareSummary) {
+			malwareSummary = fmt.Sprintf("Malicious code in %s (%s)", pkg.GetName(), pkg.Ecosystem)
+		}
+
+		*r.bom.Vulnerabilities = append(*r.bom.Vulnerabilities, cdx.Vulnerability{
+			ID:          utils.SafelyGetValue(&malwareAnalysis.AnalysisId),
+			BOMRef:      strings.Join([]string{malwareAnalysis.AnalysisId, pkgPurl}, "/"), // This format of Vulnerability BOMRef is used by cdxgen
+			Description: malwareSummary,
+			Credits: &cdx.Credits{
+				Organizations: commonUtils.PtrTo([]cdx.OrganizationalEntity{
+					{
+						BOMRef: r.toolComponent.BOMRef,
+						Name:   r.toolComponent.Name,
+						URL:    commonUtils.PtrTo([]string{r.config.Tool.InformationURI}),
+					},
+				}),
+			},
+			Properties: commonUtils.PtrTo([]cdx.Property{
+				{
+					Name:  "report-url",
+					Value: malysis.ReportURL(malwareAnalysis.AnalysisId),
+				},
+			}),
+			Source: &cdx.Source{
+				Name: r.config.Tool.Name,
+				URL:  r.config.Tool.InformationURI,
+			},
 			Affects: commonUtils.PtrTo([]cdx.Affects{
 				{
 					Ref: pkgPurl,
@@ -275,9 +337,8 @@ func (r *cycloneDXReporter) finaliseBom() {
 	annotation := (*r.bom.Annotations)[0]
 	annotation.Timestamp = bomGenerationTime.Format(time.RFC3339)
 	annotation.Text = fmt.Sprintf("This Software Bill-of-Materials (SBOM) document was created on %s with %s. The data was captured during the build lifecycle phase. The document describes '%s'. It has total %d components. %d package type(s) and %d purl namespaces are described in the document under components.", bomGenerationTime.Format("Monday, January 2, 2006"), r.config.Tool.Name, r.config.ApplicationComponentName, len(*r.bom.Components), len(r.bomEcosystems), len(r.bomPurls))
-	*r.bom.Annotations = []cdx.Annotation{
-		annotation,
-	}
+
+	(*r.bom.Annotations)[0] = annotation
 }
 
 func (r *cycloneDXReporter) Finish() error {
