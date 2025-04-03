@@ -341,7 +341,7 @@ type MalwareAnalysisResult struct {
 }
 
 // Id returns id for malware analysis result
-// Its Opionionated, we use SD-MAL- prefix for our malware analysis results
+// Its Opinionated, we use SD-MAL- prefix for our malware analysis results
 // to prevent confusion against the MAL- prefix used by OSV.
 //
 //	Its not linked to any standard
