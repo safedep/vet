@@ -70,3 +70,46 @@ func TestPurlReaderWithMultiplePURLS(t *testing.T) {
 		})
 	}
 }
+
+func TestPurlReaderApplicationName(t *testing.T) {
+	cases := []struct {
+		name    string
+		purl    string
+		appName string
+		err     bool
+	}{
+		{
+			name:    "valid purl",
+			purl:    "pkg:gem/nokogiri@1.2.3",
+			appName: "nokogiri",
+			err:     false,
+		},
+		{
+			name:    "invalid purl",
+			purl:    "invalid-purl",
+			appName: "",
+			err:     true,
+		},
+		{
+			name:    "empty purl",
+			purl:    "",
+			appName: "",
+			err:     true,
+		},
+	}
+
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			reader, err := NewPurlReader(testCase.purl)
+			assert.NoError(t, err)
+
+			appName, err := reader.ApplicationName()
+			if testCase.err {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, testCase.appName, appName)
+			}
+		})
+	}
+}
