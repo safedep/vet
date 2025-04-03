@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/safedep/dry/utils"
+	"github.com/safedep/vet/gen/checks"
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common"
@@ -32,6 +33,10 @@ const (
 	gitlabSchemaVersion                = "15.2.1"
 	gitlabSuccessStatus                = "success"
 	gitlabFailedStatus                 = "failure"
+	gitlabPolicyViolationSeverity      = SeverityHigh // Default severity for policy violations
+	// SafeDep Custom - Not Standard GitLab Type
+	gitlabCustomPolicyViolationIdentifierType = "policy"
+	gitlabCustomPolicySuffix                  = "POL"
 )
 
 type GitLabReporterConfig struct {
@@ -309,7 +314,46 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 	}
 }
 
-func (r *gitLabReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {}
+func (r *gitLabReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
+	if !event.IsFilterMatch() {
+		return
+	}
+
+	if event.Package == nil || event.Filter == nil {
+		return
+	}
+
+	// Create location information
+	location := gitLabLocation{
+		File: event.Package.Manifest.Path,
+		Dependency: gitLabDependency{
+			Package: gitLabPackage{
+				Name: event.Package.GetName(),
+			},
+			Version: event.Package.GetVersion(),
+			Direct:  event.Package.IsDirect(),
+		},
+	}
+
+	// Create a vulnerability entry for the policy violation
+	glVuln := gitLabVulnerability{
+		ID:          fmt.Sprintf("%s-%s", gitlabCustomPolicySuffix, event.Package.Id()),
+		Name:        fmt.Sprintf("Policy Violation: %s", event.Filter.GetName()),
+		Description: event.Filter.GetSummary(),
+		Severity:    gitlabPolicyViolationSeverity,
+		Location:    location,
+		Solution:    r.getPolicyViolationSolution(event),
+		Identifiers: []gitLabIdentifier{
+			{
+				Type:  gitlabCustomPolicyViolationIdentifierType,
+				Name:  event.Filter.GetName(),
+				Value: event.Filter.GetValue(),
+			},
+		},
+	}
+
+	r.vulnerabilities = append(r.vulnerabilities, glVuln)
+}
 
 func (r *gitLabReporter) AddPolicyEvent(event *policy.PolicyEvent) {}
 
@@ -391,4 +435,36 @@ func (r *gitLabReporter) getGitLabVulnerabilitySolution(pkg *models.Package) str
 	}
 
 	return solution
+}
+
+func (r *gitLabReporter) getPolicyViolationSolution(event *analyzer.AnalyzerEvent) string {
+	switch event.Filter.GetCheckType() {
+	case checks.CheckType_CheckTypeVulnerability:
+		if event.Package.Insights != nil && event.Package.Insights.PackageCurrentVersion != nil {
+			return fmt.Sprintf("Upgrade to version %s to fix vulnerabilities",
+				utils.SafelyGetValue(event.Package.Insights.PackageCurrentVersion))
+		}
+		return "Upgrade to a newer version with security fixes"
+
+	case checks.CheckType_CheckTypePopularity:
+		return "Consider using a more popular alternative package"
+
+	case checks.CheckType_CheckTypeLicense:
+		return "Review and update package to comply with license policy"
+
+	case checks.CheckType_CheckTypeMaintenance:
+		return "Update package to align with maintenance policy"
+
+	case checks.CheckType_CheckTypeSecurityScorecard:
+		return "Review and improve package security posture"
+
+	case checks.CheckType_CheckTypeMalware:
+		return "Remove this package and review any affected code"
+
+	case checks.CheckType_CheckTypeOther:
+		return "Review and fix policy violation"
+
+	default:
+		return "Review and fix policy violation"
+	}
 }
