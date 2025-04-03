@@ -50,6 +50,7 @@ func TestDirectoryReaderEnumPackages(t *testing.T) {
 		exclusions []string
 
 		// Output
+		appName       string
 		manifestCount int
 		packageCounts []int
 
@@ -63,6 +64,7 @@ func TestDirectoryReaderEnumPackages(t *testing.T) {
 			"Directory enumeration with one manifest",
 			"./fixtures/java",
 			[]string{},
+			"java",
 			1,
 			[]int{3},
 			nil,
@@ -72,6 +74,7 @@ func TestDirectoryReaderEnumPackages(t *testing.T) {
 			"Directory enumeration with multiple manifests",
 			"./fixtures/java-multi",
 			[]string{},
+			"java-multi",
 			2,
 			[]int{3, 1},
 			nil,
@@ -81,6 +84,7 @@ func TestDirectoryReaderEnumPackages(t *testing.T) {
 			"Directory enumeration with multiple manifests including invalid",
 			"./fixtures/multi-with-invalid",
 			[]string{},
+			"multi-with-invalid",
 			2,
 			[]int{1, 13},
 			nil,
@@ -90,6 +94,7 @@ func TestDirectoryReaderEnumPackages(t *testing.T) {
 			"Directory enumeration with exclusion patterns",
 			"./fixtures/multi-with-invalid",
 			[]string{"requirements.txt"},
+			"multi-with-invalid",
 			1,
 			[]int{1},
 			nil,
@@ -99,6 +104,7 @@ func TestDirectoryReaderEnumPackages(t *testing.T) {
 			"Directory enumeration must stop if callback returns error",
 			"./fixtures/multi-with-invalid",
 			[]string{},
+			"multi-with-invalid",
 			1,
 			[]int{1},
 			errors.New("callback error"),
@@ -108,6 +114,7 @@ func TestDirectoryReaderEnumPackages(t *testing.T) {
 			"Directory does not exists",
 			"./fixtures/does.not.exist",
 			[]string{},
+			"does.not.exist",
 			0,
 			[]int{0},
 			nil,
@@ -123,8 +130,12 @@ func TestDirectoryReaderEnumPackages(t *testing.T) {
 			})
 			assert.NotNil(t, reader)
 
+			appName, err := reader.ApplicationName()
+			assert.Nil(t, err)
+			assert.Equal(t, test.appName, appName)
+
 			manifestCount := 0
-			err := reader.EnumManifests(func(m *models.PackageManifest,
+			err = reader.EnumManifests(func(m *models.PackageManifest,
 				pr PackageReader,
 			) error {
 				assert.NotNil(t, m)
