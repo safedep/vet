@@ -521,7 +521,7 @@ func (s *syncReporter) syncPackage(pkg *models.Package) error {
 		req.MaliciousPackageInsight = &controltowerv1.PublishPackageInsightRequest_MaliciousPackageInsight{
 			AnalysisId: mar.AnalysisId,
 			IsMalware:  mar.IsMalware,
-			IsVerified: mar.VerificationRecord != nil && mar.VerificationRecord.GetIsMalware(),
+			IsVerified: mar.VerificationRecord != nil,
 		}
 
 		// Add summary if available
