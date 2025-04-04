@@ -35,8 +35,9 @@ const (
 	gitlabFailedStatus                 = "failure"
 	gitlabPolicyViolationSeverity      = SeverityHigh // Default severity for policy violations
 	// SafeDep Custom - Not Standard GitLab Type
-	gitlabCustomPolicyViolationIdentifierType = "policy"
-	gitlabCustomPolicySuffix                  = "POL"
+	gitlabCustomPolicyType          = "policy"
+	gitlabCustomPolicySuffix        = "POL"
+	gitlabCustomPolicyIdentifierURL = "https://docs.safedep.io/advanced/policy-as-code"
 )
 
 type GitLabReporterConfig struct {
@@ -295,6 +296,11 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 			}
 
 			summary := utils.SafelyGetValue(vuln.Summary)
+			// Summary can be null, so we need to set a default value
+			// https://github.com/safedep/vet/pull/441#issuecomment-2768286240
+			if summary == "" {
+				summary = fmt.Sprintf("Vulnerability in %s", pkg.GetName())
+			}
 
 			// Create GitLab vulnerability entry
 			glVuln := gitLabVulnerability{
@@ -337,17 +343,24 @@ func (r *gitLabReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 
 	// Create a vulnerability entry for the policy violation
 	glVuln := gitLabVulnerability{
-		ID:          fmt.Sprintf("%s-%s", gitlabCustomPolicySuffix, event.Package.Id()),
-		Name:        fmt.Sprintf("Policy Violation: %s", event.Filter.GetName()),
-		Description: event.Filter.GetSummary(),
-		Severity:    gitlabPolicyViolationSeverity,
-		Location:    location,
-		Solution:    r.getPolicyViolationSolution(event),
+		ID:   fmt.Sprintf("%s-%s", gitlabCustomPolicySuffix, event.Package.Id()),
+		Name: fmt.Sprintf("Policy Violation by %s, %s", event.Package.GetName(), event.Filter.GetName()),
+		Description: fmt.Sprintf("%s \n\n %s \n\n The CEL expression is:  \n\n ```yaml\n%s\n```\n\n",
+			event.Filter.GetSummary(),
+			event.Filter.GetDescription(),
+			event.Filter.GetValue(),
+		),
+		Severity: gitlabPolicyViolationSeverity,
+		Location: location,
+		Solution: r.getPolicyViolationSolution(event),
+		// This is no need to have identifiers for policy violations
+		// but its required by gitlab schema
 		Identifiers: []gitLabIdentifier{
 			{
-				Type:  gitlabCustomPolicyViolationIdentifierType,
+				Type:  gitlabCustomPolicyType,
 				Name:  event.Filter.GetName(),
-				Value: event.Filter.GetValue(),
+				Value: event.Filter.GetName(),
+				URL:   gitlabCustomPolicyIdentifierURL,
 			},
 		},
 	}
@@ -440,11 +453,7 @@ func (r *gitLabReporter) getGitLabVulnerabilitySolution(pkg *models.Package) str
 func (r *gitLabReporter) getPolicyViolationSolution(event *analyzer.AnalyzerEvent) string {
 	switch event.Filter.GetCheckType() {
 	case checks.CheckType_CheckTypeVulnerability:
-		if event.Package.Insights != nil && event.Package.Insights.PackageCurrentVersion != nil {
-			return fmt.Sprintf("Upgrade to version %s to fix vulnerabilities",
-				utils.SafelyGetValue(event.Package.Insights.PackageCurrentVersion))
-		}
-		return "Upgrade to a newer version with security fixes"
+		return r.getGitLabVulnerabilitySolution(event.Package)
 
 	case checks.CheckType_CheckTypePopularity:
 		return "Consider using a more popular alternative package"

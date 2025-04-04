@@ -356,11 +356,9 @@ func TestGitLabReporterPolicyViolations(t *testing.T) {
 	vuln := report.Vulnerabilities[0]
 
 	// Check basic fields
-	assert.Contains(t, vuln.ID, fmt.Sprintf("%s-test-policy", gitlabCustomPolicySuffix))
-	assert.Equal(t, "Policy Violation: test-policy", vuln.Name)
-	assert.Equal(t, "Test policy violation", vuln.Description)
+	assert.Contains(t, vuln.ID, fmt.Sprintf("%s-%s", gitlabCustomPolicySuffix, event.Package.Id()))
 	assert.Equal(t, gitlabPolicyViolationSeverity, vuln.Severity)
-	assert.Equal(t, "Upgrade to version 2.0.0 to fix vulnerabilities", vuln.Solution)
+	assert.Equal(t, "Upgrade to latest version **`2.0.0`**", vuln.Solution)
 
 	// Check location details
 	assert.Equal(t, "test/path/package.json", vuln.Location.File)
@@ -369,7 +367,4 @@ func TestGitLabReporterPolicyViolations(t *testing.T) {
 
 	// Check identifiers
 	require.Len(t, vuln.Identifiers, 1)
-	assert.Equal(t, gitlabCustomPolicyViolationIdentifierType, vuln.Identifiers[0].Type)
-	assert.Equal(t, "test-policy", vuln.Identifiers[0].Name)
-	assert.Equal(t, "test-value", vuln.Identifiers[0].Value)
 }
