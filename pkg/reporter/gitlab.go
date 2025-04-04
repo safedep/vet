@@ -33,7 +33,7 @@ const (
 	gitlabSchemaVersion                = "15.2.1"
 	gitlabSuccessStatus                = "success"
 	gitlabFailedStatus                 = "failure"
-	gitlabPolicyViolationSeverity      = SeverityHigh // Default severity for policy violations
+	gitlabPolicyViolationSeverity      = SeverityInfo // Default severity for policy violations
 	// SafeDep Custom - Not Standard GitLab Type
 	gitlabCustomPolicyType          = "policy"
 	gitlabCustomPolicySuffix        = "POL"
@@ -105,6 +105,7 @@ const (
 	SeverityHigh     Severity = "High"
 	SeverityMedium   Severity = "Medium"
 	SeverityLow      Severity = "Low"
+	SeverityInfo     Severity = "Info"
 )
 
 // gitLabVulnerability represents a vulnerability in GitLab format
