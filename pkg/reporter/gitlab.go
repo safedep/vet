@@ -341,9 +341,11 @@ func (r *gitLabReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 		},
 	}
 
+	policyViolId := fmt.Sprintf("%s-%s", gitlabCustomPolicySuffix, event.Package.Id())
+
 	// Create a vulnerability entry for the policy violation
 	glVuln := gitLabVulnerability{
-		ID:   fmt.Sprintf("%s-%s", gitlabCustomPolicySuffix, event.Package.Id()),
+		ID:   policyViolId,
 		Name: fmt.Sprintf("Policy Violation by %s, %s", event.Package.GetName(), event.Filter.GetName()),
 		Description: fmt.Sprintf("%s \n\n %s \n\n The CEL expression is:  \n\n ```yaml\n%s\n```\n\n",
 			event.Filter.GetSummary(),
@@ -358,8 +360,8 @@ func (r *gitLabReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 		Identifiers: []gitLabIdentifier{
 			{
 				Type:  gitlabCustomPolicyType,
-				Name:  event.Filter.GetName(),
-				Value: event.Filter.GetName(),
+				Name:  policyViolId,
+				Value: policyViolId,
 				URL:   gitlabCustomPolicyIdentifierURL,
 			},
 		},
