@@ -9,11 +9,16 @@ import (
 	"time"
 
 	malysisv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
+	"github.com/google/osv-scanner/pkg/lockfile"
+	"github.com/safedep/vet/gen/checks"
+	"github.com/safedep/vet/gen/filtersuite"
 	"github.com/safedep/vet/gen/insightapi"
+	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/utils"
 	"github.com/safedep/vet/pkg/malysis"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func getGitLabReporter(reportPath string) (*gitLabReporter, error) {
@@ -281,4 +286,85 @@ func TestGitLabReporter(t *testing.T) {
 		err := reporter.Finish()
 		assert.Error(t, err)
 	})
+}
+
+func TestGitLabReporterPolicyViolations(t *testing.T) {
+	// Create a temporary file for the report
+	tmpFile, err := os.CreateTemp("", "gitlab-report-*.json")
+	require.NoError(t, err)
+	defer os.Remove(tmpFile.Name())
+
+	// Create reporter
+	reporter, err := NewGitLabReporter(GitLabReporterConfig{
+		Path: tmpFile.Name(),
+		Tool: ToolMetadata{
+			Name:       "test-tool",
+			Version:    "1.0.0",
+			VendorName: "test-vendor",
+		},
+	})
+	require.NoError(t, err)
+
+	// Create test manifest and package
+	manifest := &models.PackageManifest{
+		Path:      "test/path/package.json",
+		Ecosystem: string(lockfile.NpmEcosystem),
+	}
+
+	pkg := &models.Package{
+		PackageDetails: lockfile.PackageDetails{
+			Name:      "test-pkg",
+			Version:   "1.0.0",
+			Ecosystem: lockfile.NpmEcosystem,
+		},
+		Manifest: manifest,
+		Insights: &insightapi.PackageVersionInsight{
+			PackageCurrentVersion: utils.StringPtr("2.0.0"),
+		},
+	}
+
+	// Create test policy violation event
+	event := &analyzer.AnalyzerEvent{
+		Type:     analyzer.ET_FilterExpressionMatched,
+		Package:  pkg,
+		Manifest: manifest,
+		Filter: &filtersuite.Filter{
+			Name:      "test-policy",
+			Value:     "test-value",
+			Summary:   "Test policy violation",
+			CheckType: checks.CheckType_CheckTypeVulnerability,
+		},
+	}
+
+	// Add event to reporter
+	reporter.AddAnalyzerEvent(event)
+
+	// Finish report generation
+	err = reporter.Finish()
+	require.NoError(t, err)
+
+	// Read and parse the generated report
+	reportData, err := os.ReadFile(tmpFile.Name())
+	require.NoError(t, err)
+
+	var report gitLabReport
+	err = json.Unmarshal(reportData, &report)
+	require.NoError(t, err)
+
+	// Verify the policy violation details
+	require.Len(t, report.Vulnerabilities, 1)
+	vuln := report.Vulnerabilities[0]
+
+	// Check basic fields
+	assert.Contains(t, vuln.ID, fmt.Sprintf("%s-%s", gitlabCustomPolicySuffix, event.Package.Id()))
+	assert.Equal(t, gitlabPolicyViolationSeverity, vuln.Severity)
+	assert.Equal(t, "Upgrade to latest version **`2.0.0`**", vuln.Solution)
+
+	// Check location details
+	assert.Equal(t, "test/path/package.json", vuln.Location.File)
+	assert.Equal(t, "test-pkg", vuln.Location.Dependency.Package.Name)
+	assert.Equal(t, "1.0.0", vuln.Location.Dependency.Version)
+
+	// Check identifiers
+	require.Len(t, vuln.Identifiers, 1)
 }
