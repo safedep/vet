@@ -460,16 +460,14 @@ func (p *Package) GetDependencies() ([]*Package, error) {
 
 	nodes := graph.GetNodes()
 	for _, node := range nodes {
-		if node.Root {
-			continue
-		}
-
 		if node.Data == nil {
 			continue
 		}
 
-		if p.GetName() != node.Data.GetName() &&
-			p.GetVersion() != node.Data.GetVersion() &&
+		// Multiple versions of the same package can exist in the graph,
+		// find the one that matches the package name, version & ecosystem
+		if p.GetName() != node.Data.GetName() ||
+			p.GetVersion() != node.Data.GetVersion() ||
 			p.GetSpecEcosystem() != node.Data.GetSpecEcosystem() {
 			continue
 		}
