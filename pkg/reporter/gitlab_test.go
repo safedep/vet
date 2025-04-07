@@ -319,7 +319,7 @@ func TestGitLabReporterPolicyViolations(t *testing.T) {
 		},
 		Manifest: manifest,
 		Insights: &insightapi.PackageVersionInsight{
-			PackageCurrentVersion: utils.StringPtr("2.0.0"),
+			PackageCurrentVersion: utils.PtrTo("2.0.0"),
 		},
 	}
 
