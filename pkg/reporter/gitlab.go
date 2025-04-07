@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/safedep/dry/utils"
+	"github.com/safedep/vet/gen/checks"
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common"
@@ -32,6 +33,11 @@ const (
 	gitlabSchemaVersion                = "15.2.1"
 	gitlabSuccessStatus                = "success"
 	gitlabFailedStatus                 = "failure"
+	gitlabPolicyViolationSeverity      = SeverityInfo // Default severity for policy violations
+	// SafeDep Custom - Not Standard GitLab Type
+	gitlabCustomPolicyType          = "policy"
+	gitlabCustomPolicySuffix        = "POL"
+	gitlabCustomPolicyIdentifierURL = "https://docs.safedep.io/advanced/policy-as-code"
 )
 
 type GitLabReporterConfig struct {
@@ -99,6 +105,7 @@ const (
 	SeverityHigh     Severity = "High"
 	SeverityMedium   Severity = "Medium"
 	SeverityLow      Severity = "Low"
+	SeverityInfo     Severity = "Info"
 )
 
 // gitLabVulnerability represents a vulnerability in GitLab format
@@ -290,6 +297,11 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 			}
 
 			summary := utils.SafelyGetValue(vuln.Summary)
+			// Summary can be null, so we need to set a default value
+			// https://github.com/safedep/vet/pull/441#issuecomment-2768286240
+			if summary == "" {
+				summary = fmt.Sprintf("Vulnerability in %s", pkg.GetName())
+			}
 
 			// Create GitLab vulnerability entry
 			glVuln := gitLabVulnerability{
@@ -309,7 +321,55 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 	}
 }
 
-func (r *gitLabReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {}
+func (r *gitLabReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
+	if !event.IsFilterMatch() {
+		return
+	}
+
+	if event.Package == nil || event.Filter == nil {
+		return
+	}
+
+	// Create location information
+	location := gitLabLocation{
+		File: event.Package.Manifest.Path,
+		Dependency: gitLabDependency{
+			Package: gitLabPackage{
+				Name: event.Package.GetName(),
+			},
+			Version: event.Package.GetVersion(),
+			Direct:  event.Package.IsDirect(),
+		},
+	}
+
+	policyViolId := fmt.Sprintf("%s-%s", gitlabCustomPolicySuffix, event.Package.Id())
+
+	// Create a vulnerability entry for the policy violation
+	glVuln := gitLabVulnerability{
+		ID:   policyViolId,
+		Name: fmt.Sprintf("Policy Violation by %s, %s", event.Package.GetName(), event.Filter.GetName()),
+		Description: fmt.Sprintf("%s \n\n %s \n\n The CEL expression is:  \n\n ```yaml\n%s\n```\n\n",
+			event.Filter.GetSummary(),
+			event.Filter.GetDescription(),
+			event.Filter.GetValue(),
+		),
+		Severity: gitlabPolicyViolationSeverity,
+		Location: location,
+		Solution: r.getPolicyViolationSolution(event),
+		// This is no need to have identifiers for policy violations
+		// but its required by gitlab schema
+		Identifiers: []gitLabIdentifier{
+			{
+				Type:  gitlabCustomPolicyType,
+				Name:  policyViolId,
+				Value: policyViolId,
+				URL:   gitlabCustomPolicyIdentifierURL,
+			},
+		},
+	}
+
+	r.vulnerabilities = append(r.vulnerabilities, glVuln)
+}
 
 func (r *gitLabReporter) AddPolicyEvent(event *policy.PolicyEvent) {}
 
@@ -391,4 +451,32 @@ func (r *gitLabReporter) getGitLabVulnerabilitySolution(pkg *models.Package) str
 	}
 
 	return solution
+}
+
+func (r *gitLabReporter) getPolicyViolationSolution(event *analyzer.AnalyzerEvent) string {
+	switch event.Filter.GetCheckType() {
+	case checks.CheckType_CheckTypeVulnerability:
+		return r.getGitLabVulnerabilitySolution(event.Package)
+
+	case checks.CheckType_CheckTypePopularity:
+		return "Consider using a more popular alternative package"
+
+	case checks.CheckType_CheckTypeLicense:
+		return "Review and update package to comply with license policy"
+
+	case checks.CheckType_CheckTypeMaintenance:
+		return "Update package to align with maintenance policy"
+
+	case checks.CheckType_CheckTypeSecurityScorecard:
+		return "Review and improve package security posture"
+
+	case checks.CheckType_CheckTypeMalware:
+		return "Remove this package and review any affected code"
+
+	case checks.CheckType_CheckTypeOther:
+		return "Review and fix policy violation"
+
+	default:
+		return "Review and fix policy violation"
+	}
 }
