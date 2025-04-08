@@ -27,6 +27,22 @@ func TestParsePackageUrl(t *testing.T) {
 			nil,
 		},
 		{
+			"Parse a pypi PURL without explicit version",
+			"pkg:pypi/requests",
+			lockfile.PipEcosystem,
+			"requests",
+			"2.32.3",
+			nil,
+		},
+		{
+			"Parse a npm PURL with @latest version",
+			"pkg:npm/express@latest",
+			lockfile.NpmEcosystem,
+			"express",
+			"5.1.0",
+			nil,
+		},
+		{
 			"Invalid PURL Scheme",
 			"http://invalid/purl",
 			lockfile.Ecosystem(""),
@@ -62,7 +78,7 @@ func TestParsePackageUrl(t *testing.T) {
 
 				assert.Equal(t, test.ecosystem, r.GetPackageDetails().Ecosystem)
 				assert.Equal(t, test.pkgName, r.GetPackageDetails().Name)
-				assert.Equal(t, test.version, r.GetPackageDetails().Version)
+				assert.GreaterOrEqual(t, r.GetPackageDetails().Version, test.version)
 			}
 		})
 	}
