@@ -111,9 +111,10 @@ func TestLoad(t *testing.T) {
 			// Reset the store
 			initStore()
 
-			Load(&exceptionsLoaderMocker{
+			err := Load(&exceptionsLoaderMocker{
 				rules: test.rules,
 			})
+			assert.Nil(t, err)
 
 			assert.Equal(t, test.pCount, len(globalExceptions.rules))
 		})
@@ -231,9 +232,10 @@ func TestApply(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			initStore()
 
-			Load(&exceptionsLoaderMocker{
+			err := Load(&exceptionsLoaderMocker{
 				rules: test.rules,
 			})
+			assert.Nil(t, err)
 
 			pd := models.NewPackageDetail(test.ecosystem, test.pkgName, test.version)
 			res, err := Apply(&models.Package{
