@@ -15,6 +15,7 @@ import (
 	"github.com/safedep/vet/pkg/common/logger"
 	commonUtils "github.com/safedep/vet/pkg/common/utils"
 	"github.com/safedep/vet/pkg/common/utils/regex"
+	sbomUtils "github.com/safedep/vet/pkg/common/utils/sbom"
 	"github.com/safedep/vet/pkg/malysis"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
@@ -255,6 +256,10 @@ func (r *cycloneDXReporter) recordVulnerabilities(pkg *models.Package) {
 				Severity: cdx.Severity(strings.ToLower(string(utils.SafelyGetValue(severity.Risk)))),
 				Vector:   utils.SafelyGetValue(severity.Score),
 			}
+			calculatedScore, err := sbomUtils.CalculateCvssScore(utils.SafelyGetValue(severity.Score))
+			if err == nil {
+				rating.Score = &calculatedScore
+			}
 			ratings = append(ratings, rating)
 		}
 
@@ -309,9 +314,9 @@ func (r *cycloneDXReporter) recordMalware(pkg *models.Package) {
 			Credits: &cdx.Credits{
 				Organizations: commonUtils.PtrTo([]cdx.OrganizationalEntity{
 					{
-						BOMRef: r.toolComponent.BOMRef,
-						Name:   r.toolComponent.Name,
-						URL:    commonUtils.PtrTo([]string{r.config.Tool.InformationURI}),
+						BOMRef: r.config.Tool.VendorName,
+						Name:   r.config.Tool.VendorName,
+						URL:    commonUtils.PtrTo([]string{r.config.Tool.VendorInformationURI}),
 					},
 				}),
 			},
