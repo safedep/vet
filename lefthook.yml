@@ -1,6 +1,6 @@
 pre-push:
   parallel: true
-  comands:
+  commands:
     test:
       run: go test -v ./...
 
