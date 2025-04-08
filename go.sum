@@ -1046,8 +1046,8 @@ github.com/ryanrolds/sqlclosecheck v0.5.1/go.mod h1:2g3dUjoS6AL4huFdv6wn55WpLIDj
 github.com/ryanuber/columnize v0.0.0-20160712163229-9b3edd62028f/go.mod h1:sm1tb6uqfes/u+d4ooFouqFdy9/2g9QGwK3SQygK0Ts=
 github.com/safedep/code v0.0.0-20250321055437-1ad5eaa427d8 h1:fg9AZir+pM7tONRWXi7mr15UviPeHsxlA9IEl49Thu0=
 github.com/safedep/code v0.0.0-20250321055437-1ad5eaa427d8/go.mod h1:WcI0XB6AKkejX0LTHF3tOul9SBONwLNFIAvDk2tD4go=
-github.com/safedep/dry v0.0.0-20250408112144-e7d1e71782d4 h1:Imy3/xquKd86mTHMwz2WqvNvachOgT0v3HhKOrvzIdo=
-github.com/safedep/dry v0.0.0-20250408112144-e7d1e71782d4/go.mod h1:ACI8RktolBoZZyHT67GLPMiZmW1DirD+BDx04cUA4h4=
+github.com/safedep/dry v0.0.0-20250408150549-0cd5d9cd72a1 h1:pV45L5NWZloxY/rmVEKOL0NiEqVvTdm5GA7bR8DxQF4=
+github.com/safedep/dry v0.0.0-20250408150549-0cd5d9cd72a1/go.mod h1:EBAaPIWWi5sPFShU5wsTGynZekSo1Mxf+l/zzs1KTls=
 github.com/sagikazarmark/crypt v0.3.0/go.mod h1:uD/D+6UF4SrIR1uGEv7bBNkNqLGqUr43MRiaGWX1Nig=
 github.com/sagikazarmark/locafero v0.9.0 h1:GbgQGNtTrEmddYDSAH9QLRyfAHY12md+8YFTqyMTC9k=
 github.com/sagikazarmark/locafero v0.9.0/go.mod h1:UBUyz37V+EdMS3hDF3QWIiVr/2dPrx49OMO0Bn0hJqk=
@@ -1222,8 +1222,6 @@ github.com/wagoodman/go-partybus v0.0.0-20230516145632-8ccac152c651 h1:jIVmlAFIq
 github.com/wagoodman/go-partybus v0.0.0-20230516145632-8ccac152c651/go.mod h1:b26F2tHLqaoRQf8DywqzVaV1MQ9yvjb0OMcNl7Nxu20=
 github.com/wagoodman/go-progress v0.0.0-20230925121702-07e42b3cdba0 h1:0KGbf+0SMg+UFy4e1A/CPVvXn21f1qtWdeJwxZFoQG8=
 github.com/wagoodman/go-progress v0.0.0-20230925121702-07e42b3cdba0/go.mod h1:jLXFoL31zFaHKAAyZUh+sxiTDFe1L1ZHrcK2T1itVKA=
-github.com/whilp/git-urls v1.0.0 h1:95f6UMWN5FKW71ECsXRUd3FVYiXdrE7aX4NZKcPmIjU=
-github.com/whilp/git-urls v1.0.0/go.mod h1:J16SAmobsqc3Qcy98brfl5f5+e0clUvg1krgwk/qCfE=
 github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb h1:zGWFAtiMcyryUHoUjUJX0/lt1H2+i2Ka2n+D3DImSNo=
 github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb/go.mod h1:N2zxlSyiKSe5eX1tZViRH5QA0qijqEDrYZiPEAiq3wU=
 github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 h1:EzJWgHovont7NscjpAxXsDA8S8BMYve8Y5+7cuRE7R0=
