@@ -23,6 +23,7 @@ require (
 	github.com/google/cel-go v0.24.1
 	github.com/google/go-github/v54 v54.0.0
 	github.com/google/osv-scanner v1.9.2
+	github.com/google/uuid v1.6.0
 	github.com/hashicorp/hcl/v2 v2.23.0
 	github.com/jedib0t/go-pretty/v6 v6.6.7
 	github.com/kubescape/go-git-url v0.0.30
@@ -30,6 +31,7 @@ require (
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/owenrumney/go-sarif/v2 v2.3.3
 	github.com/package-url/packageurl-go v0.1.3
+	github.com/pandatix/go-cvss v0.6.2
 	github.com/safedep/code v0.0.0-20250321055437-1ad5eaa427d8
 	github.com/safedep/dry v0.0.0-20250327041912-cde95447fd25
 	github.com/sirupsen/logrus v1.9.3
@@ -181,7 +183,6 @@ require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/licensecheck v0.3.1 // indirect
 	github.com/google/pprof v0.0.0-20250317173921-a4b03ec1a45e // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/gookit/color v1.5.4 // indirect
 	github.com/gordonklaus/ineffassign v0.1.0 // indirect
 	github.com/gorilla/css v1.0.1 // indirect

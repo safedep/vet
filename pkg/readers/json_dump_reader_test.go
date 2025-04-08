@@ -71,12 +71,13 @@ func TestJsonDumpReaderEnumManifests(t *testing.T) {
 
 		manifestCount := 0
 		err = r.EnumManifests(func(m *models.PackageManifest,
-			pr PackageReader) error {
-
-			pr.EnumPackages(func(pkg *models.Package) error {
+			pr PackageReader,
+		) error {
+			err = pr.EnumPackages(func(pkg *models.Package) error {
 				assert.NotNil(t, pkg)
 				return nil
 			})
+			assert.Nil(t, err)
 
 			assert.Equal(t, test.packageCounts[manifestCount], len(m.Packages))
 			manifestCount += 1

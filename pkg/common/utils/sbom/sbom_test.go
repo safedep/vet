@@ -37,4 +37,23 @@ func TestParsePurlType(t *testing.T) {
 	}
 }
 
-// Add more test cases as needed for edge cases and different inputs
+func TestCalculateCvssScore(t *testing.T) {
+	testCases := []struct {
+		vector        string
+		expectedScore float64
+	}{
+		{"AV:N/AC:H/Au:S/C:C/I:P/A:C", 6.8},
+		{"CVSS:3.0/AV:A/AC:H/PR:H/UI:R/S:C/C:H/I:H/A:L", 7.2},
+		{"CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H", 9.8},
+		{"CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N", 8.7},
+	}
+
+	for _, tc := range testCases {
+		score, err := CalculateCvssScore(tc.vector)
+		assert.Nil(t, err)
+		assert.Equal(t, tc.expectedScore, score, "unexpected CVSS score")
+	}
+
+	_, err := CalculateCvssScore("invalid vector")
+	assert.Error(t, err, "expected an error for invalid vector")
+}

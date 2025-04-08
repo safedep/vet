@@ -75,7 +75,8 @@ func TestNewExceptionsFileLoader(t *testing.T) {
 				return
 			}
 
-			Load(loader)
+			err = Load(loader)
+			assert.Nil(t, err)
 
 			pd := models.NewPackageDetail(test.ecosystem, test.pkgName, test.version)
 			res, _ := Apply(&models.Package{PackageDetails: pd})

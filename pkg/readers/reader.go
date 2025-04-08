@@ -15,6 +15,7 @@ type PackageManifestHandlerFn func(*models.PackageManifest, PackageReader) error
 type PackageManifestReader interface {
 	Name() string
 	EnumManifests(func(*models.PackageManifest, PackageReader) error) error
+	ApplicationName() (string, error)
 }
 
 // Contract for implementing a package reader. Enumerator should fail and return

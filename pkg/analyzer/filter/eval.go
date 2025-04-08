@@ -64,7 +64,6 @@ func NewEvaluator(name string, ignoreError bool) (Evaluator, error) {
 			cel.MemberOverload("list_string_contains_license_string",
 				[]*cel.Type{cel.ListType(cel.StringType), cel.StringType}, cel.BoolType,
 				cel.BinaryBinding(celFuncLicenseExpressionMatch()))))
-
 	if err != nil {
 		return nil, err
 	}
@@ -242,16 +241,12 @@ func (f *filterEvaluator) buildFilterInput(pkg *models.Package) (*filterinput.Fi
 		switch risk {
 		case insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL:
 			fi.Vulns.Critical = append(fi.Vulns.Critical, &fiv)
-			break
 		case insightapi.PackageVulnerabilitySeveritiesRiskHIGH:
 			fi.Vulns.High = append(fi.Vulns.High, &fiv)
-			break
 		case insightapi.PackageVulnerabilitySeveritiesRiskMEDIUM:
 			fi.Vulns.Medium = append(fi.Vulns.Medium, &fiv)
-			break
 		case insightapi.PackageVulnerabilitySeveritiesRiskLOW:
 			fi.Vulns.Low = append(fi.Vulns.Low, &fiv)
-			break
 		}
 	}
 
