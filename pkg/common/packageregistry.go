@@ -7,7 +7,7 @@ import (
 	"github.com/safedep/dry/packageregistry"
 )
 
-const errorScope = "Failed to resolve package latest version"
+const errorScope = "failed to resolve package latest version"
 
 // ResolvePackageLatestVersion resolves the latest version of a package
 // from the package registry
