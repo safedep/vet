@@ -4,7 +4,7 @@ go 1.24.1
 
 require (
 	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250329145212-73a714065737.2
-	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.6-20250329145212-73a714065737.1
+	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.6-20250403164919-b2d27805fd31.1
 	entgo.io/ent v0.14.4
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/BurntSushi/toml v1.5.0
@@ -33,7 +33,7 @@ require (
 	github.com/package-url/packageurl-go v0.1.3
 	github.com/pandatix/go-cvss v0.6.2
 	github.com/safedep/code v0.0.0-20250321055437-1ad5eaa427d8
-	github.com/safedep/dry v0.0.0-20250327041912-cde95447fd25
+	github.com/safedep/dry v0.0.0-20250408150549-0cd5d9cd72a1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smacker/go-tree-sitter v0.0.0-20240827094217-dd81d9e9be82
 	github.com/spdx/tools-golang v0.5.5

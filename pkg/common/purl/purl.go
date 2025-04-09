@@ -3,8 +3,10 @@ package purl
 import (
 	"fmt"
 
+	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/package-url/packageurl-go"
+	"github.com/safedep/vet/pkg/common"
 	"github.com/safedep/vet/pkg/models"
 )
 
@@ -26,6 +28,20 @@ func ParsePackageUrl(purl string) (*purlResponseWrapper, error) {
 	instance, err := packageurl.FromString(purl)
 	if err != nil {
 		return nil, err
+	}
+
+	if instance.Version == "" || instance.Version == "latest" {
+		ecosystem, err := PurlTypeToPackageV1Ecosystem(instance.Type)
+		if err != nil {
+			return nil, err
+		}
+
+		version, err := common.ResolvePackageLatestVersion(instance.Name, ecosystem)
+		if err != nil {
+			return nil, err
+		}
+
+		instance.Version = version
 	}
 
 	ecosystem, err := PurlTypeToEcosystem(instance.Type)
@@ -82,6 +98,32 @@ func PurlTypeToEcosystem(purlType string) (lockfile.Ecosystem, error) {
 	ecosystem, ok := knownTypes[purlType]
 	if !ok {
 		return lockfile.Ecosystem(""),
+			fmt.Errorf("failed to map PURL type:%s to known ecosystem", purlType)
+	}
+
+	return ecosystem, nil
+}
+
+func PurlTypeToPackageV1Ecosystem(purlType string) (packagev1.Ecosystem, error) {
+	knownTypes := map[string]packagev1.Ecosystem{
+		packageurl.TypeCargo:    packagev1.Ecosystem_ECOSYSTEM_CARGO,
+		packageurl.TypeComposer: packagev1.Ecosystem_ECOSYSTEM_PACKAGIST,
+		packageurl.TypeGolang:   packagev1.Ecosystem_ECOSYSTEM_GO,
+		packageurl.TypeMaven:    packagev1.Ecosystem_ECOSYSTEM_MAVEN,
+		packageurl.TypeNPM:      packagev1.Ecosystem_ECOSYSTEM_NPM,
+		packageurl.TypeNuget:    packagev1.Ecosystem_ECOSYSTEM_NUGET,
+		packageurl.TypeGem:      packagev1.Ecosystem_ECOSYSTEM_RUBYGEMS,
+		packageurl.TypePyPi:     packagev1.Ecosystem_ECOSYSTEM_PYPI,
+		"pip":                   packagev1.Ecosystem_ECOSYSTEM_PYPI,
+		"go":                    packagev1.Ecosystem_ECOSYSTEM_GO,
+		"rubygems":              packagev1.Ecosystem_ECOSYSTEM_RUBYGEMS,
+		packageurl.TypeGithub:   packagev1.Ecosystem_ECOSYSTEM_GITHUB_ACTIONS,
+		"actions":               packagev1.Ecosystem_ECOSYSTEM_GITHUB_ACTIONS,
+	}
+
+	ecosystem, ok := knownTypes[purlType]
+	if !ok {
+		return packagev1.Ecosystem_ECOSYSTEM_UNSPECIFIED,
 			fmt.Errorf("failed to map PURL type:%s to known ecosystem", purlType)
 	}
 
