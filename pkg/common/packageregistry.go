@@ -7,26 +7,12 @@ import (
 	"github.com/safedep/dry/packageregistry"
 )
 
-// GetPackageRegistryClient returns a package registry client for the given ecosystem
-func GetPackageRegistryClient(ecosystem packagev1.Ecosystem) (packageregistry.Client, error) {
-	switch ecosystem {
-	case packagev1.Ecosystem_ECOSYSTEM_NPM:
-		return packageregistry.NewNpmAdapter()
-	case packagev1.Ecosystem_ECOSYSTEM_PYPI:
-		return packageregistry.NewPypiAdapter()
-	case packagev1.Ecosystem_ECOSYSTEM_RUBYGEMS:
-		return packageregistry.NewRubyAdapter()
-	default:
-		return nil, fmt.Errorf("unsupported ecosystem: %s", ecosystem)
-	}
-}
-
 // ResolvePackageLatestVersion resolves the latest version of a package
 // from the package registry
 func ResolvePackageLatestVersion(pkgName string, pkgEcosystem packagev1.Ecosystem) (string, error) {
-	pkg, err := GetPackageRegistryClient(pkgEcosystem)
+	pkg, err := packageregistry.NewRegistryAdapter(pkgEcosystem)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create package registry client: %v", err)
 	}
 
 	pkgPacakgeDiscovery, err := pkg.PackageDiscovery()
