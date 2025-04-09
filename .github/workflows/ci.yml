@@ -28,13 +28,19 @@ jobs:
         run: |
           go mod tidy
           go build
-          go test -v ./...
+          go test -coverprofile=coverage.txt -v ./...
         env:
           VET_E2E: true
 
           # Used to avoid rate limiting issue while running
           # test suites that use GitHub API
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Coverage
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   run-e2e:
     timeout-minutes: 30
