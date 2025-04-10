@@ -43,6 +43,14 @@ func TestParsePackageUrl(t *testing.T) {
 			nil,
 		},
 		{
+			"Parse an scoped npm PURL with @latest version",
+			"pkg:npm/@kunalsin9h/load-gql@latest",
+			lockfile.NpmEcosystem,
+			"@kunalsin9h/load-gql",
+			"1.0.2",
+			nil,
+		},
+		{
 			"Invalid PURL Scheme",
 			"http://invalid/purl",
 			lockfile.Ecosystem(""),

@@ -6,6 +6,7 @@ import (
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/package-url/packageurl-go"
+	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/common"
 	"github.com/safedep/vet/pkg/models"
 )
@@ -31,17 +32,26 @@ func ParsePackageUrl(purl string) (*purlResponseWrapper, error) {
 	}
 
 	if instance.Version == "" || instance.Version == "latest" {
+		ui.PrintMsg("Resolving latest version")
+
 		ecosystem, err := PurlTypeToPackageV1Ecosystem(instance.Type)
 		if err != nil {
 			return nil, err
 		}
 
-		version, err := common.ResolvePackageLatestVersion(instance.Name, ecosystem)
+		// For handing npm's @scoped packages and github actions which as {owner}/{repo} format
+		packageName := instance.Name
+		if instance.Namespace != "" {
+			packageName = fmt.Sprintf("%s/%s", instance.Namespace, instance.Name)
+		}
+
+		version, err := common.ResolvePackageLatestVersion(packageName, ecosystem)
 		if err != nil {
 			return nil, err
 		}
 
 		instance.Version = version
+		ui.PrintSuccess("Resolved latest version: %s", version)
 	}
 
 	ecosystem, err := PurlTypeToEcosystem(instance.Type)
