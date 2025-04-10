@@ -8,6 +8,7 @@ export E2E_FIXTURES="$E2E_THIS_DIR/fixtures"
 export E2E_VET_BINARY="$E2E_ROOT/vet"
 export E2E_VET_INSIGHTS_V2="${E2E_INSIGHTS_V2:-false}"
 export E2E_VET_SCAN_CMD="$E2E_VET_BINARY scan -s --no-banner --insights-v2=$E2E_VET_INSIGHTS_V2"
+export E2E_VET_INSPECT_MALWARE_CMD="$E2E_VET_BINARY inspect malware --no-banner"
 export E2E_VET_CODE_SCAN_CMD="$E2E_VET_BINARY code scan"
 
 bash $E2E_THIS_DIR/scenario-1-vet-scans-vet.sh
