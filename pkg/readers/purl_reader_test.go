@@ -49,6 +49,27 @@ func TestPurlReaderWithMultiplePURLS(t *testing.T) {
 			"log4j:log4j",
 			"1.2.17",
 		},
+		{
+			"Parse a pypi PURL without explicit version",
+			"pkg:pypi/requests",
+			"PyPI",
+			"requests",
+			"2.32.3",
+		},
+		{
+			"Parse a npm PURL with @latest version",
+			"pkg:npm/express@latest",
+			"npm",
+			"express",
+			"5.1.0",
+		},
+		{
+			"Parse an scoped npm PURL with @latest version",
+			"pkg:npm/@kunalsin9h/load-gql@latest",
+			"npm",
+			"@kunalsin9h/load-gql",
+			"1.0.2",
+		},
 	}
 
 	for _, test := range cases {
@@ -60,7 +81,7 @@ func TestPurlReaderWithMultiplePURLS(t *testing.T) {
 				assert.Equal(t, 1, len(pm.Packages))
 				assert.NotNil(t, pm.Packages[0])
 				assert.Equal(t, test.pkgName, pm.Packages[0].Name)
-				assert.Equal(t, test.version, pm.Packages[0].Version)
+				assert.GreaterOrEqual(t, pm.Packages[0].Version, test.version)
 				assert.Equal(t, test.ecosystem, string(pm.Packages[0].Ecosystem))
 
 				return nil
