@@ -10,7 +10,7 @@ func GetCveReferenceURL(cve string) string {
 }
 
 func GetCweReferenceURL(cwe string) string {
-	return fmt.Sprintf("https://cwe.mitre.org/data/definitions/%s.html", strings.TrimPrefix(cwe, "CWE-")) // CWE Rquire only the number, ie. CWE-123 -> 123
+	return fmt.Sprintf("https://cwe.mitre.org/data/definitions/%s.html", strings.TrimPrefix(cwe, "CWE-")) // CWE Require only the number, ie. CWE-123 -> 123
 }
 
 func GetGhsaReferenceURL(ghsa string) string {
