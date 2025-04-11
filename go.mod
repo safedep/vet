@@ -33,7 +33,7 @@ require (
 	github.com/package-url/packageurl-go v0.1.3
 	github.com/pandatix/go-cvss v0.6.2
 	github.com/safedep/code v0.0.0-20250321055437-1ad5eaa427d8
-	github.com/safedep/dry v0.0.0-20250408150549-0cd5d9cd72a1
+	github.com/safedep/dry v0.0.0-20250410092643-c7079e2f9442
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smacker/go-tree-sitter v0.0.0-20240827094217-dd81d9e9be82
 	github.com/spdx/tools-golang v0.5.5

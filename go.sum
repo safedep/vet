@@ -1046,8 +1046,8 @@ github.com/ryanrolds/sqlclosecheck v0.5.1/go.mod h1:2g3dUjoS6AL4huFdv6wn55WpLIDj
 github.com/ryanuber/columnize v0.0.0-20160712163229-9b3edd62028f/go.mod h1:sm1tb6uqfes/u+d4ooFouqFdy9/2g9QGwK3SQygK0Ts=
 github.com/safedep/code v0.0.0-20250321055437-1ad5eaa427d8 h1:fg9AZir+pM7tONRWXi7mr15UviPeHsxlA9IEl49Thu0=
 github.com/safedep/code v0.0.0-20250321055437-1ad5eaa427d8/go.mod h1:WcI0XB6AKkejX0LTHF3tOul9SBONwLNFIAvDk2tD4go=
-github.com/safedep/dry v0.0.0-20250408150549-0cd5d9cd72a1 h1:pV45L5NWZloxY/rmVEKOL0NiEqVvTdm5GA7bR8DxQF4=
-github.com/safedep/dry v0.0.0-20250408150549-0cd5d9cd72a1/go.mod h1:EBAaPIWWi5sPFShU5wsTGynZekSo1Mxf+l/zzs1KTls=
+github.com/safedep/dry v0.0.0-20250410092643-c7079e2f9442 h1:+wee7FBBGm/SD46Y+cHh6GOihYI2PZ4ql2la62in7Pk=
+github.com/safedep/dry v0.0.0-20250410092643-c7079e2f9442/go.mod h1:EBAaPIWWi5sPFShU5wsTGynZekSo1Mxf+l/zzs1KTls=
 github.com/sagikazarmark/crypt v0.3.0/go.mod h1:uD/D+6UF4SrIR1uGEv7bBNkNqLGqUr43MRiaGWX1Nig=
 github.com/sagikazarmark/locafero v0.9.0 h1:GbgQGNtTrEmddYDSAH9QLRyfAHY12md+8YFTqyMTC9k=
 github.com/sagikazarmark/locafero v0.9.0/go.mod h1:UBUyz37V+EdMS3hDF3QWIiVr/2dPrx49OMO0Bn0hJqk=
