@@ -170,13 +170,14 @@ func TestPurlReaderApplicationName(t *testing.T) {
 	for _, testCase := range cases {
 		t.Run(testCase.name, func(t *testing.T) {
 			reader, err := NewPurlReader(testCase.purl, PurlReaderConfig{AutoResolveMissingVersions: true}, nil)
-			assert.NoError(t, err)
-
-			appName, err := reader.ApplicationName()
 			if testCase.err {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
+
+				appName, err := reader.ApplicationName()
+				assert.NoError(t, err)
+
 				assert.Equal(t, testCase.appName, appName)
 			}
 		})
