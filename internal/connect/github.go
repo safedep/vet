@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/gofri/go-github-ratelimit/github_ratelimit"
-	"github.com/google/go-github/v54/github"
+	"github.com/google/go-github/v70/github"
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/pkg/common/logger"
 	"golang.org/x/oauth2"

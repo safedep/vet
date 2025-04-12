@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/google/go-github/v54/github"
+	"github.com/google/go-github/v70/github"
 	"github.com/safedep/dry/adapters"
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/internal/auth"
@@ -15,6 +15,7 @@ import (
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/code"
 	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/pkg/common/registry"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/parser"
 	"github.com/safedep/vet/pkg/readers"
@@ -305,6 +306,19 @@ func internalStartScan() error {
 		manifestType = lockfileAs
 	}
 
+	// This is our standardized GitHub client.
+	// We need to unify the GitHub client interfaces across different parts of vet
+	// Current they depend on different versions of GitHub client
+	githubClient, err := adapters.NewGithubClient(adapters.DefaultGitHubClientConfig())
+	if err != nil {
+		return err
+	}
+
+	versionResolver, err := registry.NewPackageVersionResolver(githubClient)
+	if err != nil {
+		return err
+	}
+
 	// We can easily support both directory and lockfile reader. But current UX
 	// contract is to support one of them at a time. Lets not break the contract
 	// for now and figure out UX improvement later
@@ -340,7 +354,7 @@ func internalStartScan() error {
 		})
 	} else if len(purlSpec) > 0 {
 		// nolint:ineffassign,staticcheck
-		reader, err = readers.NewPurlReader(purlSpec)
+		reader, err = readers.NewPurlReader(purlSpec, readers.PurlReaderConfig{AutoResolveMissingVersions: true}, versionResolver)
 	} else if vsxReader {
 		if len(vsxDirectories) == 0 {
 			// nolint:ineffassign,staticcheck
@@ -683,11 +697,6 @@ func internalStartScan() error {
 		client, err := auth.MalwareAnalysisClientConnection("vet-malware-analysis")
 		if err != nil {
 			return err
-		}
-
-		githubClient, err := adapters.NewGithubClient(adapters.DefaultGitHubClientConfig())
-		if err != nil {
-			return fmt.Errorf("failed to create Github client: %w", err)
 		}
 
 		config := scanner.DefaultMalysisMalwareEnricherConfig()

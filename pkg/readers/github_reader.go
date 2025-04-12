@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/google/go-github/v54/github"
+	"github.com/google/go-github/v70/github"
 	giturl "github.com/kubescape/go-git-url"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
