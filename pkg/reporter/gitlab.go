@@ -4,7 +4,7 @@ package reporter
 // This report is same for most of gitlab scanners, types
 // and schemas.
 //
-// We are using Schema Verison 15.2.1 for dependency_scanning report.
+// We are using Schema Version 15.2.1 for dependency_scanning report.
 // All the versions are available at: https://gitlab.com/gitlab-org/security-products/security-report-schemas
 
 import (

@@ -13,7 +13,7 @@ import (
 )
 
 // The order of regexp is important as it gives the precedence of range that we
-// want to consider. Exact match is always highest precendence. We pessimistically
+// want to consider. Exact match is always highest precedence. We pessimistically
 // consider the lower version in the range
 var pyWheelVersionMatchers []*regexp.Regexp = []*regexp.Regexp{
 	regexp.MustCompile(`==([0-9\\.]+)`),
