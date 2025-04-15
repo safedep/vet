@@ -1040,6 +1040,8 @@ github.com/ryanrolds/sqlclosecheck v0.5.1/go.mod h1:2g3dUjoS6AL4huFdv6wn55WpLIDj
 github.com/ryanuber/columnize v0.0.0-20160712163229-9b3edd62028f/go.mod h1:sm1tb6uqfes/u+d4ooFouqFdy9/2g9QGwK3SQygK0Ts=
 github.com/safedep/code v0.0.0-20250321055437-1ad5eaa427d8 h1:fg9AZir+pM7tONRWXi7mr15UviPeHsxlA9IEl49Thu0=
 github.com/safedep/code v0.0.0-20250321055437-1ad5eaa427d8/go.mod h1:WcI0XB6AKkejX0LTHF3tOul9SBONwLNFIAvDk2tD4go=
+github.com/safedep/code v0.0.0-20250414045718-1cdbf4a3b4ce h1:CrOoQTEBa8+lbwLxRZcjSqZcXtK8hNozbbNx6B0Xqrg=
+github.com/safedep/code v0.0.0-20250414045718-1cdbf4a3b4ce/go.mod h1:iSQqHutF05TXpcoOL2BOCpdXtPkZKWhLbAKq3/IwSoE=
 github.com/safedep/dry v0.0.0-20250410092643-c7079e2f9442 h1:+wee7FBBGm/SD46Y+cHh6GOihYI2PZ4ql2la62in7Pk=
 github.com/safedep/dry v0.0.0-20250410092643-c7079e2f9442/go.mod h1:EBAaPIWWi5sPFShU5wsTGynZekSo1Mxf+l/zzs1KTls=
 github.com/sagikazarmark/crypt v0.3.0/go.mod h1:uD/D+6UF4SrIR1uGEv7bBNkNqLGqUr43MRiaGWX1Nig=

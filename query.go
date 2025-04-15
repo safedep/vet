@@ -15,31 +15,32 @@ import (
 )
 
 var (
-	queryFilterExpression               string
-	queryFilterSuiteFile                string
-	queryFilterFailOnMatch              bool
-	queryLoadDirectory                  string
-	queryEnableConsoleReport            bool
-	queryEnableSummaryReport            bool
-	querySummaryReportMaxAdvice         int
-	querySummaryReportGroupByDirectDeps bool
-	querySummaryUsedOnly                bool
-	queryMarkdownReportPath             string
-	queryMarkdownSummaryReportPath      string
-	queryJsonReportPath                 string
-	queryGraphReportPath                string
-	queryCsvReportPath                  string
-	queryReportDefectDojo               bool
-	queryDefectDojoHostUrl              string
-	queryDefectDojoProductID            int
-	querySarifReportPath                string
-	querySarifIncludeVulns              bool
-	querySarifIncludeMalware            bool
-	queryCycloneDXReportPath            string
-	queryCyclonedxReportApplicationName string
-	queryExceptionsFile                 string
-	queryExceptionsTill                 string
-	queryExceptionsFilter               string
+	queryFilterExpression                string
+	queryFilterSuiteFile                 string
+	queryFilterFailOnMatch               bool
+	queryLoadDirectory                   string
+	queryEnableConsoleReport             bool
+	queryEnableSummaryReport             bool
+	querySummaryReportMaxAdvice          int
+	querySummaryReportGroupByDirectDeps  bool
+	querySummaryUsedOnly                 bool
+	queryMarkdownReportPath              string
+	queryMarkdownSummaryReportPath       string
+	queryJsonReportPath                  string
+	queryGraphReportPath                 string
+	queryCsvReportPath                   string
+	queryReportDefectDojo                bool
+	queryDefectDojoHostUrl               string
+	queryDefectDojoProductID             int
+	querySarifReportPath                 string
+	querySarifIncludeVulns               bool
+	querySarifIncludeMalware             bool
+	queryCycloneDXReportPath             string
+	queryCyclonedxReportApplicationName  string
+	queryCyclonedxReportGitlabProperties bool
+	queryExceptionsFile                  string
+	queryExceptionsTill                  string
+	queryExceptionsFilter                string
 
 	queryDefaultExceptionExpiry = time.Now().Add(90 * 24 * time.Hour)
 )
@@ -101,6 +102,8 @@ func newQueryCommand() *cobra.Command {
 		"Generate CycloneDX report to file")
 	cmd.Flags().StringVarP(&queryCyclonedxReportApplicationName, "report-cdx-app-name", "", "",
 		"Application name used as root application component in CycloneDX BOM")
+	cmd.Flags().BoolVarP(&queryCyclonedxReportGitlabProperties, "report-cdx-gitlab", "", false,
+		"Generate CycloneDX report adhering to GitLab CycloneDX property taxonomy")
 
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
@@ -279,6 +282,7 @@ func internalStartQuery() error {
 			Tool:                     toolMetadata,
 			Path:                     queryCycloneDXReportPath,
 			ApplicationComponentName: queryCyclonedxReportApplicationName,
+			EnableGitlabProperties:   queryCyclonedxReportGitlabProperties,
 		})
 		if err != nil {
 			return err

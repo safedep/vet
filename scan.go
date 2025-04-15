@@ -68,6 +68,7 @@ var (
 	sarifIncludeMalware              bool
 	cyclonedxReportPath              string
 	cyclonedxReportApplicationName   string
+	cyclonedxReportGitlabProperties  bool
 	silentScan                       bool
 	disableAuthVerifyBeforeScan      bool
 	syncReport                       bool
@@ -184,6 +185,7 @@ func newScanCommand() *cobra.Command {
 		"Generate CycloneDX report to file")
 	cmd.Flags().StringVarP(&cyclonedxReportApplicationName, "report-cdx-app-name", "", "",
 		"Application name used as root application component in CycloneDX BOM")
+	cmd.Flags().BoolVarP(&cyclonedxReportGitlabProperties, "report-cdx-gitlab", "", false, "Generate CycloneDX report adhering to GitLab CycloneDX property taxonomy")
 	cmd.Flags().StringVarP(&graphReportDirectory, "report-graph", "", "",
 		"Generate dependency graph (if available) as dot files to directory")
 	cmd.Flags().BoolVarP(&syncReport, "report-sync", "", false,
@@ -516,6 +518,7 @@ func internalStartScan() error {
 			Tool:                     toolMetadata,
 			Path:                     cyclonedxReportPath,
 			ApplicationComponentName: cyclonedxReportApplicationName,
+			EnableGitlabProperties:   cyclonedxReportGitlabProperties,
 		})
 		if err != nil {
 			return err

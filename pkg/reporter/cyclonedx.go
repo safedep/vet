@@ -14,6 +14,7 @@ import (
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
 	commonUtils "github.com/safedep/vet/pkg/common/utils"
+	vetUtils "github.com/safedep/vet/pkg/common/utils"
 	"github.com/safedep/vet/pkg/common/utils/regex"
 	sbomUtils "github.com/safedep/vet/pkg/common/utils/sbom"
 	"github.com/safedep/vet/pkg/malysis"
@@ -36,6 +37,8 @@ type CycloneDXReporterConfig struct {
 	// Unique identifier for this BOM confirming to UUID RFC 4122 standard
 	// If empty, a new UUID will be generated
 	SerialNumber string
+
+	EnableGitlabProperties bool
 }
 
 type cycloneDXReporter struct {
@@ -97,6 +100,15 @@ func NewCycloneDXReporter(config CycloneDXReporterConfig) (Reporter, error) {
 				toolComponent,
 			}),
 		},
+	}
+
+	if config.EnableGitlabProperties {
+		bom.Metadata.Properties = commonUtils.PtrTo([]cdx.Property{
+			{
+				Name:  "gitlab:meta:schema_version",
+				Value: "1",
+			},
+		})
 	}
 
 	bom.Components = commonUtils.PtrTo([]cdx.Component{})
@@ -172,11 +184,55 @@ func (r *cycloneDXReporter) addPackage(pkg *models.Package) {
 		component.Group = pkg.Manifest.Ecosystem
 	}
 
+	r.addGitlabPackageProperties(&component, pkg)
+
 	r.recordDependencies(pkg)
 	r.recordVulnerabilities(pkg)
 	r.recordMalware(pkg)
 
 	*r.bom.Components = append(*r.bom.Components, component)
+}
+
+func (r *cycloneDXReporter) addGitlabPackageProperties(component *cdx.Component, pkg *models.Package) {
+	if !r.config.EnableGitlabProperties {
+		return
+	}
+
+	if component.Properties == nil {
+		component.Properties = commonUtils.PtrTo([]cdx.Property{})
+	}
+
+	*component.Properties = append(*component.Properties, cdx.Property{
+		Name:  "gitlab:dependency_scanning:category",
+		Value: "production", // Default to production
+	})
+
+	if pkg.Manifest != nil {
+		*component.Properties = append(*component.Properties, cdx.Property{
+			Name:  "gitlab:dependency_scanning:input_file:path",
+			Value: pkg.Manifest.GetPath(),
+		})
+	}
+
+	// Add language info
+	pkgLanguage, languageResolved := vetUtils.GetLanguageFromOsvEcosystem(pkg.Ecosystem)
+	if languageResolved {
+		*component.Properties = append(*component.Properties, cdx.Property{
+			Name:  "gitlab:dependency_scanning:language:name",
+			Value: pkgLanguage,
+		})
+	}
+
+	if pkg.CodeAnalysis.UsageEvidences != nil {
+		reachabilityStatus := "not_found"
+		if len(pkg.CodeAnalysis.UsageEvidences) > 0 {
+			reachabilityStatus = "in_use"
+		}
+		*component.Properties = append(*component.Properties, cdx.Property{
+			Name:  "gitlab:dependency_scanning_component:reachability",
+			Value: reachabilityStatus,
+		})
+	}
 }
 
 func (r *cycloneDXReporter) resolvePackageLicenses(pkg *models.Package) []cdx.LicenseChoice {
