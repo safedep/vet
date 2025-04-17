@@ -12,7 +12,7 @@ jobs:
           output-file: flowlyt-results.md
           comment-on-pr: true
       - name: Upload results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4 # Updated to the latest version
         with:
           name: flowlyt-results
           path: flowlyt-results.md
