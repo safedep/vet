@@ -1,0 +1,18 @@
+name: Flowlyt Security Check
+on: [pull_request]
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Scan workflows
+        uses: harekrishnarai/flowlyt-action@v1.0.1
+        with:
+          output-format: markdown
+          output-file: flowlyt-results.md
+          comment-on-pr: true
+      - name: Upload results
+        uses: actions/upload-artifact@v3
+        with:
+          name: flowlyt-results
+          path: flowlyt-results.md
