@@ -109,7 +109,7 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().BoolVarP(&enrichUsingInsightsV2, "insights-v2", "", false,
 		"Enrich package metadata using Insights V2 API")
 	cmd.Flags().BoolVarP(&enrichMalware, "malware", "", false,
-		"Enrich package metadata with malware analysis results")
+		"Enrich package metadata with active malware analysis results")
 	cmd.Flags().StringVarP(&baseDirectory, "directory", "D", wd,
 		"The directory to scan for package manifests")
 	cmd.Flags().StringArrayVarP(&scanExclude, "exclude", "", []string{},
@@ -709,6 +709,23 @@ func internalStartScan() error {
 
 		ui.PrintMsg("Using Malysis for malware analysis")
 		enrichers = append(enrichers, malwareEnricher)
+	} else {
+		// If active analysis is not enable, we will use the query enricher to
+		// query known malicious packages data from the Malysis service.
+		client, err := auth.MalwareAnalysisCommunityClientConnection("vet-malware-analysis")
+		if err != nil {
+			return err
+		}
+
+		config := scanner.DefaultMalysisMalwareEnricherConfig()
+		config.Timeout = malwareAnalysisTimeout
+
+		queryEnricher, err := scanner.NewMalysisMalwareAnalysisQueryEnricher(client, githubClient, config)
+		if err != nil {
+			return err
+		}
+
+		enrichers = append(enrichers, queryEnricher)
 	}
 
 	pmScanner := scanner.NewPackageManifestScanner(scanner.Config{

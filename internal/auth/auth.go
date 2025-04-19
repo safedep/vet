@@ -33,7 +33,7 @@ const (
 
 	// Community services is a new unauthenticated endpoint through
 	// which we can serve the community features without authentication.
-	defaultCommunityServicesApiUrl = "https://community.safedep.io"
+	defaultCommunityServicesApiUrl = "https://community-api.safedep.io"
 
 	homeRelativeConfigPath = ".safedep/vet-auth.yml"
 
