@@ -11,15 +11,16 @@ import (
 )
 
 const (
-	apiUrlEnvKey             = "VET_INSIGHTS_API_URL"
-	apiV2UrlEnvKey           = "VET_INSIGHTS_API_V2_URL" // gitleaks:allow
-	syncUrlEnvKey            = "VET_SYNC_API_URL"
-	controlPlaneUrlEnvKey    = "VET_CONTROL_PLANE_API_URL"
-	dataPlaneUrlEnvKey       = "VET_DATA_PLANE_API_URL"
-	apiKeyEnvKey             = "VET_API_KEY"
-	apiKeyAlternateEnvKey    = "VET_INSIGHTS_API_KEY"
-	communityModeEnvKey      = "VET_COMMUNITY_MODE"
-	controlTowerTenantEnvKey = "VET_CONTROL_TOWER_TENANT_ID"
+	apiUrlEnvKey                  = "VET_INSIGHTS_API_URL"
+	apiV2UrlEnvKey                = "VET_INSIGHTS_API_V2_URL" // gitleaks:allow
+	communityServicesApiUrlEnvKey = "VET_COMMUNITY_SERVICES_API_URL"
+	syncUrlEnvKey                 = "VET_SYNC_API_URL"
+	controlPlaneUrlEnvKey         = "VET_CONTROL_PLANE_API_URL"
+	dataPlaneUrlEnvKey            = "VET_DATA_PLANE_API_URL"
+	apiKeyEnvKey                  = "VET_API_KEY"
+	apiKeyAlternateEnvKey         = "VET_INSIGHTS_API_KEY"
+	communityModeEnvKey           = "VET_COMMUNITY_MODE"
+	controlTowerTenantEnvKey      = "VET_CONTROL_TOWER_TENANT_ID"
 
 	defaultApiUrl          = "https://api.safedep.io/insights/v1"
 	defaultCommunityApiUrl = "https://api.safedep.io/insights-community/v1"
@@ -29,6 +30,10 @@ const (
 	defaultSyncApiUrl         = "https://api.safedep.io"
 	defaultInsightsApiV2Url   = "https://api.safedep.io"
 	defaultControlPlaneApiUrl = "https://cloud.safedep.io"
+
+	// Community services is a new unauthenticated endpoint through
+	// which we can serve the community features without authentication.
+	defaultCommunityServicesApiUrl = "https://community.safedep.io"
 
 	homeRelativeConfigPath = ".safedep/vet-auth.yml"
 
@@ -47,6 +52,7 @@ type Config struct {
 	ControlPlaneApiUrl        string    `yaml:"control_api_url"`
 	SyncApiUrl                string    `yaml:"sync_api_url"`
 	InsightsApiV2Url          string    `yaml:"insights_api_v2_url"`
+	CommunityServicesApiUrl   string    `yaml:"community_services_api_url"`
 	TenantDomain              string    `yaml:"tenant_domain"`
 	CloudAccessToken          string    `yaml:"cloud_access_token"`
 	CloudRefreshToken         string    `yaml:"cloud_refresh_token"`
@@ -62,12 +68,13 @@ func init() {
 
 func DefaultConfig() Config {
 	return Config{
-		ApiUrl:             defaultApiUrl,
-		Community:          false,
-		DataPlaneApiUrl:    defaultDataPlaneApiUrl,
-		ControlPlaneApiUrl: defaultControlPlaneApiUrl,
-		SyncApiUrl:         defaultSyncApiUrl,
-		InsightsApiV2Url:   defaultInsightsApiV2Url,
+		ApiUrl:                  defaultApiUrl,
+		Community:               false,
+		DataPlaneApiUrl:         defaultDataPlaneApiUrl,
+		ControlPlaneApiUrl:      defaultControlPlaneApiUrl,
+		SyncApiUrl:              defaultSyncApiUrl,
+		InsightsApiV2Url:        defaultInsightsApiV2Url,
+		CommunityServicesApiUrl: defaultCommunityServicesApiUrl,
 	}
 }
 
@@ -168,7 +175,7 @@ func DataPlaneUrl() string {
 	}
 
 	if (globalConfig != nil) && (globalConfig.DataPlaneApiUrl != "") {
-		return globalConfig.ApiUrl
+		return globalConfig.DataPlaneApiUrl
 	}
 
 	return defaultDataPlaneApiUrl
@@ -211,6 +218,19 @@ func InsightsApiV2Url() string {
 	}
 
 	return defaultInsightsApiV2Url
+}
+
+func CommunityServicesApiUrl() string {
+	envOverride := os.Getenv(communityServicesApiUrlEnvKey)
+	if envOverride != "" {
+		return envOverride
+	}
+
+	if (globalConfig != nil) && (globalConfig.CommunityServicesApiUrl != "") {
+		return globalConfig.CommunityServicesApiUrl
+	}
+
+	return defaultCommunityServicesApiUrl
 }
 
 func TenantDomain() string {
