@@ -33,6 +33,7 @@ type MarkdownSummaryReporterConfig struct {
 	Path                   string
 	ReportTitle            string
 	IncludeMalwareAnalysis bool
+	ActiveMalwareAnalysis  bool
 }
 
 type vetResultInternalModel struct {
@@ -428,11 +429,18 @@ func (r *markdownSummaryReporter) addMalwareAnalysisReportSection(builder *markd
 	}
 
 	builder.AddHeader(2, "Malicious Package Analysis")
-	builder.AddParagraph("Malicious package analysis is performed using [SafeDep Cloud API](https://docs.safedep.io/cloud/malware-analysis).")
+
+	if r.config.ActiveMalwareAnalysis {
+		builder.AddParagraph("Malicious package analysis was performed using [SafeDep Cloud API](https://docs.safedep.io/cloud/malware-analysis)")
+	} else {
+		builder.AddParagraph("Active malicious package analysis was disabled. " +
+			"Learn more about [enabling active package analysis](https://docs.safedep.io/cloud/malware-analysis)")
+	}
 
 	reportSection := builder.StartCollapsibleSection("Malicious Package Analysis Report")
 	reportSection.Builder().AddRaw(malwareInfoTable)
 	reportSection.Builder().AddParagraph("")
+
 	builder.AddCollapsibleSection(reportSection)
 
 	builder.AddBulletPoint(fmt.Sprintf("%s %d packages have been actively analyzed for malicious behaviour.",
@@ -450,8 +458,13 @@ func (r *markdownSummaryReporter) addMalwareAnalysisReportSection(builder *markd
 	}
 
 	if r.malwareInfo.missingMalwareAnalysis > 0 {
-		builder.AddQuote("Note: Some of the package analysis jobs may still be running." +
-			"Please check back later. Consider increasing the timeout for better coverage.")
+		if r.config.ActiveMalwareAnalysis {
+			builder.AddQuote("Note: Some of the package analysis jobs may still be running." +
+				"Please check back later. Consider increasing the timeout for better coverage.")
+		} else {
+			builder.AddQuote("Note: Only known malicious packages were reported. " +
+				"Consider enabling active package analysis to get more accurate results.")
+		}
 	}
 
 	return nil

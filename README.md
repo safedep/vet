@@ -72,6 +72,7 @@ policies. Security guardrails can be built by expressing policies as [CEL](https
   - [🐙 Malicious Package Analysis](#-malicious-package-analysis)
     - [🔍 Scanning Visual Studio Code Extensions](#-scanning-visual-studio-code-extensions)
     - [🔍 Scanning GitHub Actions (or any other GitHub repository)](#-scanning-github-actions-or-any-other-github-repository)
+    - [🔍 Malicious Package Query](#-malicious-package-query)
   - [🛠️ Advanced Usage](#️-advanced-usage)
   - [📖 Documentation](#-documentation)
   - [🎊 Community](#-community)
@@ -357,6 +358,11 @@ vet scan -D .github/workflows --malware
 
 **Note:** `vet` will resolve the commit hash for the given version and use it for malware analysis.
 This is because GitHub repository tags are mutable and can be changed.
+
+### 🔍 Malicious Package Query
+
+If active analysis is not enabled using `vet scan --malware` flag, `vet` will fallback to query known
+malicious packages data from community instance of [Malysis service](https://docs.safedep.io/cloud/malware-analysis).
 
 ## 🛠️ Advanced Usage
 
