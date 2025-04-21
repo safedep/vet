@@ -4,7 +4,7 @@ go 1.24.1
 
 require (
 	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250329145212-73a714065737.2
-	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.6-20250403164919-b2d27805fd31.1
+	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.6-20250418165058-162f6b0cc319.1
 	entgo.io/ent v0.14.4
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/BurntSushi/toml v1.5.0
