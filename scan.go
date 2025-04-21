@@ -33,6 +33,7 @@ var (
 	enrich                           bool
 	enrichUsingInsightsV2            bool
 	enrichMalware                    bool
+	enrichMalwareQuery               bool
 	baseDirectory                    string
 	purlSpec                         string
 	vsxReader                        bool
@@ -109,7 +110,9 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().BoolVarP(&enrichUsingInsightsV2, "insights-v2", "", false,
 		"Enrich package metadata using Insights V2 API")
 	cmd.Flags().BoolVarP(&enrichMalware, "malware", "", false,
-		"Enrich package metadata with malware analysis results")
+		"Enrich package metadata with active malware analysis results")
+	cmd.Flags().BoolVarP(&enrichMalwareQuery, "malware-query", "", true,
+		"Enrich package metadata with known malicious packages data")
 	cmd.Flags().StringVarP(&baseDirectory, "directory", "D", wd,
 		"The directory to scan for package manifests")
 	cmd.Flags().StringArrayVarP(&scanExclude, "exclude", "", []string{},
@@ -417,7 +420,7 @@ func internalStartScan() error {
 		analyzers = append(analyzers, task)
 	}
 
-	if enrichMalware {
+	if enrichMalware || enrichMalwareQuery {
 		config := analyzer.DefaultMalwareAnalyzerConfig()
 		config.TrustAutomatedAnalysis = malwareAnalyzerTrustToolResult
 		config.MinimumConfidence = malwareAnalysisMinimumConfidence
@@ -469,7 +472,8 @@ func internalStartScan() error {
 		rp, err := reporter.NewMarkdownSummaryReporter(reporter.MarkdownSummaryReporterConfig{
 			Tool:                   toolMetadata,
 			Path:                   markdownSummaryReportPath,
-			IncludeMalwareAnalysis: enrichMalware,
+			IncludeMalwareAnalysis: true,
+			ActiveMalwareAnalysis:  enrichMalware,
 		})
 		if err != nil {
 			return err
@@ -709,6 +713,24 @@ func internalStartScan() error {
 
 		ui.PrintMsg("Using Malysis for malware analysis")
 		enrichers = append(enrichers, malwareEnricher)
+	} else if enrichMalwareQuery {
+		// If active analysis is not enable, we will use the query enricher to
+		// query known malicious packages data from the Malysis service. This is
+		// the default behavior unless explicitly disabled by user.
+		client, err := auth.MalwareAnalysisCommunityClientConnection("vet-malware-analysis")
+		if err != nil {
+			return err
+		}
+
+		config := scanner.DefaultMalysisMalwareEnricherConfig()
+		config.Timeout = malwareAnalysisTimeout
+
+		queryEnricher, err := scanner.NewMalysisMalwareAnalysisQueryEnricher(client, githubClient, config)
+		if err != nil {
+			return err
+		}
+
+		enrichers = append(enrichers, queryEnricher)
 	}
 
 	pmScanner := scanner.NewPackageManifestScanner(scanner.Config{
