@@ -32,6 +32,7 @@ require (
 	github.com/owenrumney/go-sarif/v2 v2.3.3
 	github.com/package-url/packageurl-go v0.1.3
 	github.com/pandatix/go-cvss v0.6.2
+	github.com/posthog/posthog-go v1.4.10
 	github.com/safedep/code v0.0.0-20250414045718-1cdbf4a3b4ce
 	github.com/safedep/dry v0.0.0-20250410092643-c7079e2f9442
 	github.com/sirupsen/logrus v1.9.3

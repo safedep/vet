@@ -75,6 +75,7 @@ policies. Security guardrails can be built by expressing policies as [CEL](https
     - [🔍 Malicious Package Query](#-malicious-package-query)
   - [🛠️ Advanced Usage](#️-advanced-usage)
   - [📖 Documentation](#-documentation)
+  - [Telemetry](#telemetry)
   - [🎊 Community](#-community)
   - [💻 Development](#-development)
   - [Support](#support)
@@ -375,6 +376,16 @@ malicious packages data from community instance of [Malysis service](https://doc
 - Refer to [https://safedep.io/docs](https://safedep.io/docs) for the detailed documentation
 
 [![vet docs](./docs/assets/vet-docs.png)](https://safedep.io/docs)
+
+## Telemetry
+
+`vet` collects anonymous telemetry to help us understand how it is used and
+improve the product. To disable telemetry, set `VET_DISABLE_TELEMETRY` environment
+variable to `true`.
+
+```bash
+export VET_DISABLE_TELEMETRY=true
+```
 
 ## 🎊 Community
 

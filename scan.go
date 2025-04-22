@@ -8,6 +8,7 @@ import (
 	"github.com/google/go-github/v70/github"
 	"github.com/safedep/dry/adapters"
 	"github.com/safedep/dry/utils"
+	"github.com/safedep/vet/internal/analytics"
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/internal/command"
 	"github.com/safedep/vet/internal/connect"
@@ -260,6 +261,8 @@ func listParsersCommand() *cobra.Command {
 }
 
 func startScan() {
+	analytics.TrackCommandScan()
+
 	if !disableAuthVerifyBeforeScan {
 		err := auth.Verify()
 		// We will fallback to community mode by default to provide
@@ -326,9 +329,13 @@ func internalStartScan() error {
 	// contract is to support one of them at a time. Lets not break the contract
 	// for now and figure out UX improvement later
 	if len(lockfiles) > 0 {
+		analytics.TrackCommandScanPackageManifestScan()
+
 		// nolint:ineffassign,staticcheck
 		reader, err = readers.NewLockfileReader(lockfiles, manifestType)
 	} else if len(manifests) > 0 {
+		analytics.TrackCommandScanPackageManifestScan()
+
 		// We will make manifestType backward compatible with lockfileAs
 		if manifestType == "" {
 			manifestType = lockfileAs
@@ -337,6 +344,8 @@ func internalStartScan() error {
 		// nolint:ineffassign,staticcheck
 		reader, err = readers.NewLockfileReader(manifests, manifestType)
 	} else if len(githubRepoUrls) > 0 {
+		analytics.TrackCommandScanGitHubScan()
+
 		githubClient := githubClientBuilder()
 
 		// nolint:ineffassign,staticcheck
@@ -346,6 +355,8 @@ func internalStartScan() error {
 			SkipGitHubDependencyGraphAPI: githubSkipDependencyGraphAPI,
 		})
 	} else if !utils.IsEmptyString(githubOrgUrl) {
+		analytics.TrackCommandScanGitHubOrgScan()
+
 		githubClient := githubClientBuilder()
 
 		// nolint:ineffassign,staticcheck
@@ -356,17 +367,25 @@ func internalStartScan() error {
 			SkipDependencyGraphAPI: githubSkipDependencyGraphAPI,
 		})
 	} else if len(purlSpec) > 0 {
+		analytics.TrackCommandScanPurlScan()
+
 		// nolint:ineffassign,staticcheck
 		reader, err = readers.NewPurlReader(purlSpec, readers.PurlReaderConfig{AutoResolveMissingVersions: true}, versionResolver)
 	} else if vsxReader {
 		if len(vsxDirectories) == 0 {
+			analytics.TrackCommandScanVSCodeExtScan()
+
 			// nolint:ineffassign,staticcheck
 			reader, err = readers.NewVSCodeExtReaderFromDefaultDistributions()
 		} else {
+			analytics.TrackCommandScanVSCodeExtScan()
+
 			// nolint:ineffassign,staticcheck
 			reader, err = readers.NewVSCodeExtReader(vsxDirectories)
 		}
 	} else {
+		analytics.TrackCommandScanDirectoryScan()
+
 		// nolint:ineffassign,staticcheck
 		reader, err = readers.NewDirectoryReader(readers.DirectoryReaderConfig{
 			Path:                 baseDirectory,
@@ -401,6 +420,8 @@ func internalStartScan() error {
 	}
 
 	if !utils.IsEmptyString(celFilterExpression) {
+		analytics.TrackCommandScanFilterArgs()
+
 		task, err := analyzer.NewCelFilterAnalyzer(celFilterExpression,
 			failFast || celFilterFailOnMatch)
 		if err != nil {
@@ -411,6 +432,8 @@ func internalStartScan() error {
 	}
 
 	if !utils.IsEmptyString(celFilterSuiteFile) {
+		analytics.TrackCommandScanFilterSuite()
+
 		task, err := analyzer.NewCelFilterSuiteAnalyzer(celFilterSuiteFile,
 			failFast || celFilterFailOnMatch)
 		if err != nil {
@@ -469,6 +492,8 @@ func internalStartScan() error {
 	}
 
 	if !utils.IsEmptyString(markdownSummaryReportPath) {
+		analytics.TrackReporterMarkdownSummary()
+
 		rp, err := reporter.NewMarkdownSummaryReporter(reporter.MarkdownSummaryReporterConfig{
 			Tool:                   toolMetadata,
 			Path:                   markdownSummaryReportPath,
@@ -483,6 +508,8 @@ func internalStartScan() error {
 	}
 
 	if !utils.IsEmptyString(jsonReportPath) {
+		analytics.TrackReporterJSON()
+
 		rp, err := reporter.NewJsonReportGenerator(reporter.JsonReportingConfig{
 			Path: jsonReportPath,
 			Tool: toolMetadata,
@@ -495,6 +522,8 @@ func internalStartScan() error {
 	}
 
 	if !utils.IsEmptyString(sarifReportPath) {
+		analytics.TrackReporterSarif()
+
 		rp, err := reporter.NewSarifReporter(reporter.SarifReporterConfig{
 			Tool:           toolMetadata,
 			IncludeVulns:   sarifIncludeVulns,
@@ -509,6 +538,8 @@ func internalStartScan() error {
 	}
 
 	if !utils.IsEmptyString(cyclonedxReportPath) {
+		analytics.TrackReporterCycloneDX()
+
 		if utils.IsEmptyString(cyclonedxReportApplicationName) {
 			cyclonedxReportApplicationName, err = reader.ApplicationName()
 			if err != nil {
@@ -529,6 +560,8 @@ func internalStartScan() error {
 	}
 
 	if reportDefectDojo {
+		analytics.TrackReporterDefectDojo()
+
 		defectDojoApiV2Key := os.Getenv("DEFECT_DOJO_APIV2_KEY")
 		if utils.IsEmptyString(defectDojoApiV2Key) {
 			return fmt.Errorf("please set DEFECT_DOJO_APIV2_KEY environment variable to enable defect-dojo reporting")
@@ -561,6 +594,8 @@ func internalStartScan() error {
 	}
 
 	if !utils.IsEmptyString(csvReportPath) {
+		analytics.TrackReporterCSV()
+
 		rp, err := reporter.NewCsvReporter(reporter.CsvReportingConfig{
 			Path: csvReportPath,
 		})
@@ -587,6 +622,8 @@ func internalStartScan() error {
 	var syncReportTracker any
 
 	if syncReport {
+		analytics.TrackReporterCloudSync()
+
 		clientConn, err := auth.SyncClientConnection("vet-sync")
 		if err != nil {
 			return err
@@ -629,6 +666,8 @@ func internalStartScan() error {
 	if enrich {
 		var enricher scanner.PackageMetaEnricher
 		if enrichUsingInsightsV2 {
+			analytics.TrackCommandScanInsightsV2()
+
 			// We will enforce auth for Insights v2 during the experimental period.
 			// Once we have an understanding on the usage and capacity, we will open
 			// up for community usage.
@@ -664,6 +703,8 @@ func internalStartScan() error {
 	}
 
 	if codeAnalysisDBPath != "" {
+		analytics.TrackCommandScanUsingCodeAnalysis()
+
 		entSqliteStorage, err := storage.NewEntSqliteStorage(storage.EntSqliteClientConfig{
 			Path:               codeAnalysisDBPath,
 			ReadOnly:           true,
@@ -693,6 +734,8 @@ func internalStartScan() error {
 	}
 
 	if enrichMalware {
+		analytics.TrackCommandScanMalwareAnalysis()
+
 		if auth.CommunityMode() {
 			return fmt.Errorf("access to Malicious Package Analysis requires an API key. " +
 				"For more details: https://docs.safedep.io/cloud/quickstart/")

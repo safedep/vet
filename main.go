@@ -10,6 +10,7 @@ import (
 	"github.com/safedep/vet/cmd/cloud"
 	"github.com/safedep/vet/cmd/code"
 	"github.com/safedep/vet/cmd/inspect"
+	"github.com/safedep/vet/internal/analytics"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/exceptions"
@@ -80,6 +81,11 @@ func main() {
 		loadExceptions()
 		logger.SetLogLevel(verbose, debug)
 	})
+
+	defer analytics.Close()
+
+	analytics.TrackCommandRun()
+	analytics.TrackCI()
 
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
