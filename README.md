@@ -1,6 +1,6 @@
 <h1 align="center">
-    <img alt="SafeDep Vet" src="./docs/assets/vet-logo-light.png#gh-light-mode-only" alt="vet Logo" max-height="200px" width="auto" />
-    <img alt="SafeDep Vet" src="./docs/assets/vet-logo-dark.png#gh-dark-mode-only" alt="vet Logo" max-height="200px" width="auto" />
+    <img alt="SafeDep Vet" src="./docs/assets/vet-logo-light.png#gh-light-mode-only" alt="vet Logo" max-height="150px" width="auto" />
+    <img alt="SafeDep Vet" src="./docs/assets/vet-logo-dark.png#gh-dark-mode-only" alt="vet Logo" max-height="150px" width="auto" />
 </h1>
 
 <p align="center">
