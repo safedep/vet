@@ -61,7 +61,7 @@ func IsDisabled() bool {
 
 // We want to ensure that we do not collect any telemetry if the user has disabled them.
 // This is a helper function to ensure that we do not collect any telemetry if the user has disabled them.
-func Track(distinctId string, event string, properties map[string]interface{}) {
+func Track(distinctId string, event string, properties posthog.Properties) {
 	if isTelemetryDisabled() {
 		return
 	}
@@ -79,9 +79,9 @@ func Track(distinctId string, event string, properties map[string]interface{}) {
 }
 
 func TrackEvent(event string) {
-	Track(globalDistinctId, event, map[string]interface{}{
-		"$process_person_profile": false,
-	})
+	Track(globalDistinctId, event,
+		posthog.NewProperties().
+			Set("$process_person_profile", false))
 }
 
 func Close() {
