@@ -1,5 +1,6 @@
 <h1 align="center">
-    <img alt="SafeDep Vet" src="./docs/assets/vet-logo.png" width="150" />
+    <img alt="SafeDep vet" src="./docs/assets/vet-logo-light.png#gh-light-mode-only" max-height="150px" width="auto" />
+    <img alt="SafeDep vet" src="./docs/assets/vet-logo-dark.png#gh-dark-mode-only" max-height="150px" width="auto" />
 </h1>
 
 <p align="center">
@@ -52,39 +53,31 @@ policies. Security guardrails can be built by expressing policies as [CEL](https
   - [🎯 Policy as Code](#-policy-as-code)
   - [🔥 vet in action](#-vet-in-action)
 - [🚀 Let's go!](#-lets-go)
-  - [Getting Started](#getting-started)
-    - [Running Scan](#running-scan)
-      - [Scanning Binary Artifacts](#scanning-binary-artifacts)
-      - [Scanning SBOM](#scanning-sbom)
-      - [Scanning Github Repositories](#scanning-github-repositories)
-      - [Scanning Github Organization](#scanning-github-organization)
-      - [Scanning Package URL](#scanning-package-url)
-      - [Available Parsers](#available-parsers)
+  - [Installation](#installation)
+  - [Running Scans](#running-scans)
+    - [Scanning Binary Artifacts](#scanning-binary-artifacts)
+    - [Scanning SBOM](#scanning-sbom)
+    - [Scanning Github Repositories](#scanning-github-repositories)
+    - [Scanning Github Organization](#scanning-github-organization)
+    - [Other scanning options](#other-scanning-options)
   - [Policy as Code](#policy-as-code)
-    - [Vulnerability](#vulnerability)
-    - [License](#license)
-    - [Scorecard](#scorecard)
   - [Query Mode](#query-mode)
   - [Reporting](#reporting)
   - [CI/CD Integration](#cicd-integration)
     - [📦 GitHub Action](#-github-action)
     - [🚀 GitLab CI](#-gitlab-ci)
   - [🐙 Malicious Package Analysis](#-malicious-package-analysis)
-    - [🔍 Scanning Visual Studio Code Extensions](#-scanning-visual-studio-code-extensions)
-    - [🔍 Scanning GitHub Actions (or any other GitHub repository)](#-scanning-github-actions-or-any-other-github-repository)
     - [🔍 Malicious Package Query](#-malicious-package-query)
   - [🛠️ Advanced Usage](#️-advanced-usage)
   - [📖 Documentation](#-documentation)
-  - [Telemetry](#telemetry)
+  - [📊 Telemetry](#-telemetry)
   - [🎊 Community](#-community)
   - [💻 Development](#-development)
   - [Support](#support)
-  - [Star History](#star-history)
+  - [🌟 Star History](#-star-history)
   - [🔖 References](#-references)
 
-## Getting Started
-
-- Download the binary file for your operating system / architecture from the [Official GitHub Releases](https://github.com/safedep/vet/releases)
+## Installation
 
 - You can also install `vet` using homebrew in MacOS and Linux
 
@@ -93,7 +86,12 @@ brew tap safedep/tap
 brew install safedep/tap/vet
 ```
 
-- Alternatively, build from source
+<details>
+<summary>Other Installation Options</summary>
+
+- Download the binary file for your operating system / architecture from the [Official GitHub Releases](https://github.com/safedep/vet/releases)
+
+- Build from source
 
 > Ensure $(go env GOPATH)/bin is in your $PATH
 
@@ -101,7 +99,7 @@ brew install safedep/tap/vet
 go install github.com/safedep/vet@latest
 ```
 
-- Also available as a container image
+- Use a pre-built container image
 
 ```bash
 docker run --rm -it ghcr.io/safedep/vet:latest version
@@ -111,9 +109,11 @@ docker run --rm -it ghcr.io/safedep/vet:latest version
 > [pre-built binary](https://github.com/safedep/vet/releases) or
 > build from source for other platforms.
 
-### Running Scan
+</details>
 
-- Run `vet` to identify risks by scanning a directory
+## Running Scans
+
+- Run `vet` to identify open source risks by scanning your codebase
 
 ```bash
 vet scan -D /path/to/repository
@@ -121,7 +121,8 @@ vet scan -D /path/to/repository
 
 ![vet scan directory](./docs/assets/vet-scan-directory.png)
 
-- Run `vet` to scan specific (supported) package manifests
+<details>
+<summary>Scanning Specific Package Manifests</summary>
 
 ```bash
 vet scan -M /path/to/pom.xml
@@ -131,10 +132,14 @@ vet scan -M /path/to/package-lock.json
 
 **Note:** `--lockfiles` is generalized to `-M` or `--manifests` to support additional
 types of package manifests or other artifacts in future.
+</details>
 
-#### Scanning Binary Artifacts
+### Scanning Binary Artifacts
 
-- Scan a Java JAR file
+<details>
+<summary>Scanning Java JAR files</summary>
+
+- Scan a single JAR file
 
 ```bash
 vet scan -M /path/to/app.jar
@@ -147,27 +152,48 @@ vet scan -M /path/to/app.jar
 ```bash
 vet scan -D /path/to/jars --type jar
 ```
+</details>
 
-#### Scanning SBOM
+<details>
+<summary>Scanning Python Wheels</summary>
 
-- Scan an SBOM in [CycloneDX](https://cyclonedx.org/) format
+```bash
+vet scan -M /path/to/app.whl
+```
+
+> Suitable for scanning Python wheels with embedded dependencies
+
+</details>
+
+### Scanning SBOM
+
+<details>
+<summary>Scanning CycloneDX SBOMs</summary>
 
 ```bash
 vet scan -M /path/to/cyclonedx-sbom.json --type bom-cyclonedx
 ```
 
-- Scan an SBOM in [SPDX](https://spdx.dev/) format
+**Note:** `--type` is a generalized version of `--lockfile-as` to support additional
+artifact types in future.
+
+</details>
+
+<details>
+<summary>Scanning SPDX SBOMs</summary>
 
 ```bash
 vet scan -M /path/to/spdx-sbom.json --type bom-spdx
 ```
 
-**Note:** `--type` is a generalized version of `--lockfile-as` to support additional
-artifact types in future.
+</details>
 
 > **Note:** SBOM scanning feature is currently in experimental stage
 
-#### Scanning Github Repositories
+### Scanning Github Repositories
+
+<details>
+<summary>Scanning Github Repositories</summary>
 
 - Setup github access token to scan private repo
 
@@ -184,8 +210,12 @@ vet scan --github https://github.com/safedep/vet
 ```
 
 **Note:** You may need to enable [Dependency Graph](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-the-dependency-graph) at repository or organization level for Github repository scanning to work.
+</details>
 
-#### Scanning Github Organization
+### Scanning Github Organization
+
+<details>
+<summary>Scanning Github Organizations</summary>
 
 > You must setup the required access for scanning private repositories
 > before scanning organizations
@@ -196,7 +226,12 @@ vet scan --github-org https://github.com/safedep
 
 > **Note:** `vet` will block and wait if it encounters Github secondary rate limit.
 
-#### Scanning Package URL
+</details>
+
+### Other scanning options
+
+<details>
+<summary>Scanning Package URL</summary>
 
 - To scan a [purl](https://github.com/package-url/purl-spec)
 
@@ -204,13 +239,17 @@ vet scan --github-org https://github.com/safedep
 vet scan --purl pkg:/gem/nokogiri@1.10.4
 ```
 
-#### Available Parsers
+</details>
+
+<details>
+<summary>List supported package manifest parsers</summary>
 
 - List supported package manifest parsers including experimental modules
 
 ```bash
 vet scan parsers --experimental
 ```
+</details>
 
 ## Policy as Code
 
@@ -218,7 +257,8 @@ vet scan parsers --experimental
 (CEL) as the policy language. Policies can be defined to build guardrails
 preventing introduction of insecure components.
 
-### Vulnerability
+<details>
+<summary>Vulnerability</summary>
 
 - Run `vet` and fail if a critical or high vulnerability was detected
 
@@ -227,8 +267,10 @@ vet scan -D /path/to/code \
     --filter 'vulns.critical.exists(p, true) || vulns.high.exists(p, true)' \
     --filter-fail
 ```
+</details>
 
-### License
+<details>
+<summary>License</summary>
 
 - Run `vet` and fail if a package with a specific license was detected
 
@@ -248,10 +290,12 @@ vet scan -D /path/to/code \
     --filter 'licenses.contains_license("LGPL-2.1+")' \
     --filter-fail
 ```
+</details>
 
-### Scorecard
+<details>
+<summary>Scorecard</summary>
 
-- Run `vet` and fail based on [OpenSSF Scorecard](https://securityscorecards.dev/) attributes
+Run `vet` and fail based on [OpenSSF Scorecard](https://securityscorecards.dev/) attributes
 
 ```bash
 vet scan -D /path/to/code \
@@ -260,27 +304,39 @@ vet scan -D /path/to/code \
 ```
 
 For more examples, refer to [documentation](https://docs.safedep.io/advanced/policy-as-code)
+</details>
 
 ## Query Mode
 
-- Run scan and dump internal data structures to a file for further querying
+Query mode helps querying the data gathered by `vet` multiple times without running the scan again.
+
+<details>
+<summary>Run scan and dump internal data structures to a file for further querying</summary>
 
 ```bash
 vet scan -D /path/to/code --json-dump-dir /path/to/dump
 ```
 
-- Filter results using `query` command
+</details>
+
+<details>
+<summary>Filter results using query command</summary>
 
 ```bash
 vet query --from /path/to/dump \
     --filter 'vulns.critical.exists(p, true) || vulns.high.exists(p, true)'
 ```
 
-- Generate report from dumped data
+</details>
+
+<details>
+<summary>Generate report from dumped data</summary>
 
 ```bash
 vet query --from /path/to/dump --report-json /path/to/report.json
 ```
+
+</details>
 
 ## Reporting
 
@@ -329,7 +385,8 @@ within the timeout period. However, subsequent scans will fetch the results if
 available and lead to increased coverage over time. Adjust the timeout using
 `--malware-analysis-timeout` flag.
 
-### 🔍 Scanning Visual Studio Code Extensions
+<details>
+<summary>Scanning Visual Studio Code Extensions</summary>
 
 - Auto-discover and scan Visual Studio Code extensions in the local system
 
@@ -337,18 +394,15 @@ available and lead to increased coverage over time. Adjust the timeout using
 vet scan --vsx --malware
 ```
 
-### 🔍 Scanning GitHub Actions (or any other GitHub repository)
+</details>
+
+<details>
+<summary>Scanning GitHub Actions</summary>
 
 - Scan a single GitHub Actions workflow using `inspect` command
 
 ```bash
 vet inspect malware --purl pkg:github/safedep/vet-action@v1
-```
-
-- The same convention can be used to inspect any GitHub repository reference
-
-```bash
-vet inspect malware --purl pkg:github/safedep/vet@v1.9.5
 ```
 
 - Scan all GitHub Actions workflows in a repository
@@ -357,8 +411,16 @@ vet inspect malware --purl pkg:github/safedep/vet@v1.9.5
 vet scan -D .github/workflows --malware
 ```
 
+- The same convention can be used to inspect any GitHub repository reference
+
+```bash
+vet inspect malware --purl pkg:github/safedep/vet@v1.9.5
+```
+
 **Note:** `vet` will resolve the commit hash for the given version and use it for malware analysis.
 This is because GitHub repository tags are mutable and can be changed.
+
+</details>
 
 ### 🔍 Malicious Package Query
 
@@ -373,11 +435,13 @@ malicious packages data from community instance of [Malysis service](https://doc
 
 ## 📖 Documentation
 
+- Try out the [interactive tutorial](https://killercoda.com/safedep/scenario/101-intro) to get started with `vet`
+
 - Refer to [https://safedep.io/docs](https://safedep.io/docs) for the detailed documentation
 
 [![vet docs](./docs/assets/vet-docs.png)](https://safedep.io/docs)
 
-## Telemetry
+## 📊 Telemetry
 
 `vet` collects anonymous telemetry to help us understand how it is used and
 improve the product. To disable telemetry, set `VET_DISABLE_TELEMETRY` environment
@@ -405,7 +469,7 @@ Refer to [CONTRIBUTING.md](CONTRIBUTING.md)
 deployments. Check out [SafeDep Cloud](https://safedep.io) for large scale
 deployment and management of `vet` in your organization.
 
-## Star History
+## 🌟 Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=safedep/vet&type=Date)](https://star-history.com/#safedep/vet&Date)
 
