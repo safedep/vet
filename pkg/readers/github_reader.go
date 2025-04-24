@@ -25,13 +25,15 @@ type githubReader struct {
 	config GitHubReaderConfig
 }
 
+var _ PackageManifestReader = &githubReader{}
+
 // NewGithubReader creates a [PackageManifestReader] that can be used to read
 // one or more `github_urls` interpreted as `lockfileAs`. When `lockfileAs` is empty
 // the parser auto-detects the format based on file name. This reader fails and
 // returns an error on first error encountered while parsing github_urls
 func NewGithubReader(client *github.Client,
 	config GitHubReaderConfig,
-) (PackageManifestReader, error) {
+) (*githubReader, error) {
 	return &githubReader{
 		client: client,
 		config: config,
@@ -243,6 +245,11 @@ func (p *githubReader) fetchRemoteFileToLocalFile(ctx context.Context, client *g
 		})
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch file from github: %v", err)
+	}
+
+	// fileContent is nil if the file is a directory
+	if fileContent == nil {
+		return "", fmt.Errorf("file not found in github: %s", path)
 	}
 
 	fileContentDecoded, err := fileContent.GetContent()
