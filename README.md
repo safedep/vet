@@ -471,7 +471,7 @@ deployment and management of `vet` in your organization.
 
 ## 🌟 Star History
 
-[![Stargazers over time](https://starchart.cc/safedep/vet.svg?variant=adaptive)](https://starchart.cc/safedep/vet)
+[![Star History Chart](https://api.star-history.com/svg?repos=safedep/vet&type=Date)](https://star-history.com/#safedep/vet&Date)
 
 ## 🔖 References
 
