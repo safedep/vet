@@ -433,6 +433,8 @@ malicious packages data from community instance of [Malysis service](https://doc
 
 ## 📖 Documentation
 
+- Try out the [interactive tutorial](https://killercoda.com/safedep/scenario/101-intro) to get started with `vet`
+
 - Refer to [https://safedep.io/docs](https://safedep.io/docs) for the detailed documentation
 
 [![vet docs](./docs/assets/vet-docs.png)](https://safedep.io/docs)
