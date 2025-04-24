@@ -162,14 +162,13 @@ vet scan -M /path/to/app.whl
 ```
 
 > Suitable for scanning Python wheels with embedded dependencies
+
 </details>
 
 ### Scanning SBOM
 
 <details>
 <summary>Scanning CycloneDX SBOMs</summary>
-
-- Scan an SBOM in [CycloneDX](https://cyclonedx.org/) format
 
 ```bash
 vet scan -M /path/to/cyclonedx-sbom.json --type bom-cyclonedx
@@ -183,11 +182,10 @@ artifact types in future.
 <details>
 <summary>Scanning SPDX SBOMs</summary>
 
-- Scan an SBOM in [SPDX](https://spdx.dev/) format
-
 ```bash
 vet scan -M /path/to/spdx-sbom.json --type bom-spdx
 ```
+
 </details>
 
 > **Note:** SBOM scanning feature is currently in experimental stage
@@ -196,6 +194,7 @@ vet scan -M /path/to/spdx-sbom.json --type bom-spdx
 
 <details>
 <summary>Scanning Github Repositories</summary>
+
 - Setup github access token to scan private repo
 
 ```bash
@@ -317,15 +316,17 @@ Query mode helps querying the data gathered by `vet` multiple times without runn
 ```bash
 vet scan -D /path/to/code --json-dump-dir /path/to/dump
 ```
+
 </details>
 
 <details>
-<summary>Filter results using `query` command</summary>
+<summary>Filter results using query command</summary>
 
 ```bash
 vet query --from /path/to/dump \
     --filter 'vulns.critical.exists(p, true) || vulns.high.exists(p, true)'
 ```
+
 </details>
 
 <details>
@@ -334,6 +335,7 @@ vet query --from /path/to/dump \
 ```bash
 vet query --from /path/to/dump --report-json /path/to/report.json
 ```
+
 </details>
 
 ## Reporting
@@ -403,20 +405,16 @@ vet scan --vsx --malware
 vet inspect malware --purl pkg:github/safedep/vet-action@v1
 ```
 
-- The same convention can be used to inspect any GitHub repository reference
-
-```bash
-vet inspect malware --purl pkg:github/safedep/vet@v1.9.5
-```
-</details>
-
-<details>
-<summary>Scanning GitHub Actions</summary>
-
 - Scan all GitHub Actions workflows in a repository
 
 ```bash
 vet scan -D .github/workflows --malware
+```
+
+- The same convention can be used to inspect any GitHub repository reference
+
+```bash
+vet inspect malware --purl pkg:github/safedep/vet@v1.9.5
 ```
 
 **Note:** `vet` will resolve the commit hash for the given version and use it for malware analysis.
