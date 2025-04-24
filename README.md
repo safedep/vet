@@ -124,8 +124,6 @@ vet scan -D /path/to/repository
 <details>
 <summary>Scanning Specific Package Manifests</summary>
 
-- Run `vet` to scan specific (supported) package manifests
-
 ```bash
 vet scan -M /path/to/pom.xml
 vet scan -M /path/to/requirements.txt
@@ -141,7 +139,7 @@ types of package manifests or other artifacts in future.
 <details>
 <summary>Scanning Java JAR files</summary>
 
-- Scan a Java JAR file
+- Scan a single JAR file
 
 ```bash
 vet scan -M /path/to/app.jar
@@ -298,7 +296,7 @@ vet scan -D /path/to/code \
 <details>
 <summary>Scorecard</summary>
 
-- Run `vet` and fail based on [OpenSSF Scorecard](https://securityscorecards.dev/) attributes
+Run `vet` and fail based on [OpenSSF Scorecard](https://securityscorecards.dev/) attributes
 
 ```bash
 vet scan -D /path/to/code \
