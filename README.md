@@ -53,13 +53,13 @@ policies. Security guardrails can be built by expressing policies as [CEL](https
   - [🎯 Policy as Code](#-policy-as-code)
   - [🔥 vet in action](#-vet-in-action)
 - [🚀 Let's go!](#-lets-go)
-  - [Getting Started](#getting-started)
-    - [Running Scan](#running-scan)
-      - [Scanning Binary Artifacts](#scanning-binary-artifacts)
-      - [Scanning SBOM](#scanning-sbom)
-      - [Scanning Github Repositories](#scanning-github-repositories)
-      - [Scanning Github Organization](#scanning-github-organization)
-      - [Other scanning options](#other-scanning-options)
+  - [Installation](#installation)
+  - [Running Scans](#running-scans)
+    - [Scanning Binary Artifacts](#scanning-binary-artifacts)
+    - [Scanning SBOM](#scanning-sbom)
+    - [Scanning Github Repositories](#scanning-github-repositories)
+    - [Scanning Github Organization](#scanning-github-organization)
+    - [Other scanning options](#other-scanning-options)
   - [Policy as Code](#policy-as-code)
   - [Query Mode](#query-mode)
   - [Reporting](#reporting)
@@ -70,14 +70,14 @@ policies. Security guardrails can be built by expressing policies as [CEL](https
     - [🔍 Malicious Package Query](#-malicious-package-query)
   - [🛠️ Advanced Usage](#️-advanced-usage)
   - [📖 Documentation](#-documentation)
-  - [Telemetry](#telemetry)
+  - [📊 Telemetry](#-telemetry)
   - [🎊 Community](#-community)
   - [💻 Development](#-development)
   - [Support](#support)
-  - [Star History](#star-history)
+  - [🌟 Star History](#-star-history)
   - [🔖 References](#-references)
 
-## Getting Started
+## Installation
 
 - You can also install `vet` using homebrew in MacOS and Linux
 
@@ -111,7 +111,7 @@ docker run --rm -it ghcr.io/safedep/vet:latest version
 
 </details>
 
-### Running Scan
+## Running Scans
 
 - Run `vet` to identify open source risks by scanning your codebase
 
@@ -136,7 +136,7 @@ vet scan -M /path/to/package-lock.json
 types of package manifests or other artifacts in future.
 </details>
 
-#### Scanning Binary Artifacts
+### Scanning Binary Artifacts
 
 <details>
 <summary>Scanning Java JAR files</summary>
@@ -166,7 +166,7 @@ vet scan -M /path/to/app.whl
 > Suitable for scanning Python wheels with embedded dependencies
 </details>
 
-#### Scanning SBOM
+### Scanning SBOM
 
 <details>
 <summary>Scanning CycloneDX SBOMs</summary>
@@ -194,7 +194,7 @@ vet scan -M /path/to/spdx-sbom.json --type bom-spdx
 
 > **Note:** SBOM scanning feature is currently in experimental stage
 
-#### Scanning Github Repositories
+### Scanning Github Repositories
 
 <details>
 <summary>Scanning Github Repositories</summary>
@@ -215,7 +215,7 @@ vet scan --github https://github.com/safedep/vet
 **Note:** You may need to enable [Dependency Graph](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-the-dependency-graph) at repository or organization level for Github repository scanning to work.
 </details>
 
-#### Scanning Github Organization
+### Scanning Github Organization
 
 <details>
 <summary>Scanning Github Organizations</summary>
@@ -231,7 +231,7 @@ vet scan --github-org https://github.com/safedep
 
 </details>
 
-#### Other scanning options
+### Other scanning options
 
 <details>
 <summary>Scanning Package URL</summary>
@@ -313,24 +313,30 @@ For more examples, refer to [documentation](https://docs.safedep.io/advanced/pol
 
 Query mode helps querying the data gathered by `vet` multiple times without running the scan again.
 
-- Run scan and dump internal data structures to a file for further querying
+<details>
+<summary>Run scan and dump internal data structures to a file for further querying</summary>
 
 ```bash
 vet scan -D /path/to/code --json-dump-dir /path/to/dump
 ```
+</details>
 
-- Filter results using `query` command
+<details>
+<summary>Filter results using `query` command</summary>
 
 ```bash
 vet query --from /path/to/dump \
     --filter 'vulns.critical.exists(p, true) || vulns.high.exists(p, true)'
 ```
+</details>
 
-- Generate report from dumped data
+<details>
+<summary>Generate report from dumped data</summary>
 
 ```bash
 vet query --from /path/to/dump --report-json /path/to/report.json
 ```
+</details>
 
 ## Reporting
 
@@ -439,7 +445,7 @@ malicious packages data from community instance of [Malysis service](https://doc
 
 [![vet docs](./docs/assets/vet-docs.png)](https://safedep.io/docs)
 
-## Telemetry
+## 📊 Telemetry
 
 `vet` collects anonymous telemetry to help us understand how it is used and
 improve the product. To disable telemetry, set `VET_DISABLE_TELEMETRY` environment
@@ -467,7 +473,7 @@ Refer to [CONTRIBUTING.md](CONTRIBUTING.md)
 deployments. Check out [SafeDep Cloud](https://safedep.io) for large scale
 deployment and management of `vet` in your organization.
 
-## Star History
+## 🌟 Star History
 
 [![Stargazers over time](https://starchart.cc/safedep/vet.svg?variant=adaptive)](https://starchart.cc/safedep/vet)
 
