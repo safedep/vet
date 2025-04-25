@@ -21,7 +21,7 @@ type GithubOrgReaderConfig struct {
 	IncludeArchived        bool
 	MaxRepositories        int
 	SkipDependencyGraphAPI bool
-	ExcludeRepos           string
+	ExcludeRepos           []string
 }
 
 type githubOrgReader struct {

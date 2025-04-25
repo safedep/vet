@@ -42,7 +42,7 @@ var (
 	githubRepoUrls                   []string
 	githubOrgUrl                     string
 	githubOrgMaxRepositories         int
-	githubOrgExcludeRepos            string
+	githubOrgExcludeRepos            []string
 	githubSkipDependencyGraphAPI     bool
 	scanExclude                      []string
 	transitiveAnalysis               bool
@@ -135,7 +135,7 @@ func newScanCommand() *cobra.Command {
 		"Github organization URL (Example: https://github.com/safedep)")
 	cmd.Flags().IntVarP(&githubOrgMaxRepositories, "github-org-max-repo", "", 1000,
 		"Maximum number of repositories to process for the Github Org")
-	cmd.Flags().StringVar(&githubOrgExcludeRepos, "github-org-exclude-repos", "", 
+	cmd.Flags().StringArrayVarP(&githubOrgExcludeRepos, "github-org-exclude-repos", "", 
 		"Comma-separated list of GitHub repos to exclude during org scan (format: org/repo1,org/repo2)")
 	cmd.Flags().BoolVarP(&githubSkipDependencyGraphAPI, "skip-github-dependency-graph-api", "", false,
 		"Do not use GitHub Dependency Graph API to fetch dependencies")
