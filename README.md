@@ -350,6 +350,7 @@ execution.
 | JSON     | Machine readable JSON format following internal schema (maximum data)          |
 | SARIF    | Useful for integration with Github Code Scanning and other tools               |
 | Graph    | Dependency graph in DOT format for risk and package relationship visualization |
+| CycloneDX | Software Bill of Materials (SBOM) in CycloneDX format |
 | Summary  | Default console report with summary of vulnerabilities, licenses, and more     |
 
 ## CI/CD Integration
