@@ -368,6 +368,7 @@ func internalStartScan() error {
 			IncludeArchived:        false,
 			MaxRepositories:        githubOrgMaxRepositories,
 			SkipDependencyGraphAPI: githubSkipDependencyGraphAPI,
+			ExcludeRepos:           githubOrgExcludedRepos,
 		})
 	} else if len(purlSpec) > 0 {
 		analytics.TrackCommandScanPurlScan()

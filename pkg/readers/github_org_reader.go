@@ -131,7 +131,6 @@ func (p *githubOrgReader) handleRepositoryBatch(repositories []*github.Repositor
 
 	for _, repo := range repositories {
 		fullName := repo.GetFullName()
-
 		if githubIsExcludedRepo(fullName, p.config.ExcludeRepos) {
 			logger.Infof("Skipping excluded repo: %s", fullName)
 			continue
@@ -187,10 +186,13 @@ func githubIsExcludedRepo(repoName string, excludedRepositories []string) bool {
 		return false
 	}
 
+	logger.Debugf("Checking if repo %s is excluded", repoName)
+
 	for _, ex := range excludedRepositories {
 		if strings.TrimSpace(repoName) == strings.TrimSpace(ex) {
 			return true
 		}
 	}
+
 	return false
 }
