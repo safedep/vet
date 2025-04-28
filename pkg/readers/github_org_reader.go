@@ -132,7 +132,7 @@ func (p *githubOrgReader) handleRepositoryBatch(repositories []*github.Repositor
 	for _, repo := range repositories {
 		fullName := repo.GetFullName()
 
-		if isExcludedRepo(fullName, p.config.ExcludeRepos) {
+		if githubIsExcludedRepo(fullName, p.config.ExcludeRepos) {
 			logger.Infof("Skipping excluded repo: %s", fullName)
 			continue
 		}
@@ -182,13 +182,12 @@ func githubOrgFromURL(githubUrl string) (string, error) {
 }
 
 // To exclude specific repo using github org scanner
-func isExcludedRepo(repoName string, excludeCsv string) bool {
-	if excludeCsv == "" {
+func githubIsExcludedRepo(repoName string, excludedRepositories []string) bool {
+	if len(excludedRepositories) == 0 {
 		return false
 	}
 
-	excludeList := strings.Split(excludeCsv, ",")
-	for _, ex := range excludeList {
+	for _, ex := range excludedRepositories {
 		if strings.TrimSpace(repoName) == strings.TrimSpace(ex) {
 			return true
 		}
