@@ -77,4 +77,46 @@ func TestGithubOrgReader(t *testing.T) {
 			}
 		})
 	}
+	
+}
+
+func TestGithubIsExcludedRepo(t *testing.T) {
+	cases := []struct {
+		name        string
+		fullName    string
+		excluded    []string
+		expectedVal bool
+	}{
+		{
+			name:        "no excluded repo configured",
+			fullName:    "x/y",
+			excluded:    []string{},
+			expectedVal: false,
+		},
+		{
+			name:        "match excluded",
+			fullName:    "x/y",
+			excluded:    []string{"y/z", "x/y"},
+			expectedVal: true,
+		},
+		{
+			name:        "match with ignore whitespace",
+			fullName:    "x/y",
+			excluded:    []string{"  x/y  ", "b", "c"},
+			expectedVal: true,
+		},
+		{
+			name:        "no match",
+			fullName:    "x/u",
+			excluded:    []string{"x/y"},
+			expectedVal: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ret := githubIsExcludedRepo(tc.fullName, tc.excluded)
+			assert.Equal(t, tc.expectedVal, ret)
+		})
+	}
 }

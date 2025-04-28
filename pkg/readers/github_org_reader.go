@@ -21,6 +21,7 @@ type GithubOrgReaderConfig struct {
 	IncludeArchived        bool
 	MaxRepositories        int
 	SkipDependencyGraphAPI bool
+	ExcludeRepos           []string
 }
 
 type githubOrgReader struct {
@@ -127,7 +128,14 @@ func (p *githubOrgReader) handleRepositoryBatch(repositories []*github.Repositor
 	handler PackageManifestHandlerFn,
 ) error {
 	var repoUrls []string
+
 	for _, repo := range repositories {
+		fullName := repo.GetFullName()
+		if githubIsExcludedRepo(fullName, p.config.ExcludeRepos) {
+			logger.Infof("Skipping excluded repo: %s", fullName)
+			continue
+		}
+
 		breach := p.withIncrementedRepoCount(func() {
 			repoUrls = append(repoUrls, repo.GetCloneURL())
 		})
@@ -170,4 +178,21 @@ func githubOrgFromURL(githubUrl string) (string, error) {
 	}
 
 	return parts[1], nil
+}
+
+// To exclude specific repo using github org scanner
+func githubIsExcludedRepo(repoName string, excludedRepositories []string) bool {
+	if len(excludedRepositories) == 0 {
+		return false
+	}
+
+	logger.Debugf("Checking if repo %s is excluded", repoName)
+
+	for _, ex := range excludedRepositories {
+		if strings.TrimSpace(repoName) == strings.TrimSpace(ex) {
+			return true
+		}
+	}
+
+	return false
 }
