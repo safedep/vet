@@ -10,7 +10,6 @@ import (
 	"github.com/google/osv-scalibr/plugin"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
-	"os"
 )
 
 // parseMavenPomXmlFile parses the pom.xml file in a maven project.
@@ -55,14 +54,25 @@ func parseMavenPomXmlFile(lockfilePath string, _ *ParserConfig) (*models.Package
 
 	result := scalibr.New().Scan(context.Background(), config)
 
-	fmt.Println(result.Status.String())
-
-	for _, r := range result.Inventory.Packages {
-		fmt.Println(r.Name, r.Version)
+	if result.Status.Status != plugin.ScanStatusSucceeded {
+		logger.Warnf("osv-scalibr scan did not performed scan with success")
+		return nil, fmt.Errorf("osv-scalibr scan did not performed scan with success: Status %v", result.Status.Status)
 	}
 
-	os.Exit(1)
-	return nil, nil
+	manifest := &models.PackageManifest{
+		Ecosystem: models.EcosystemMaven,
+	}
+
+	for _, pkg := range result.Inventory.Packages {
+		pkgDetails := models.NewPackageDetail(models.EcosystemMaven, pkg.Name, pkg.Version)
+		modelPackage := models.Package{
+			PackageDetails: pkgDetails,
+			Manifest:       manifest,
+		}
+		manifest.Packages = append(manifest.Packages, &modelPackage)
+	}
+
+	return manifest, nil
 }
 
 // scanRoots function returns the default scan root required for osv-scalibr
