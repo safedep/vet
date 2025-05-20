@@ -62,17 +62,15 @@ func parseMavenPomXmlFile(lockfilePath string, _ *ParserConfig) (*models.Package
 		return nil, fmt.Errorf("osv-scalibr scan did not performed scan with success: Status %v", result.Status.Status)
 	}
 
-	manifest := &models.PackageManifest{
-		Ecosystem: models.EcosystemMaven,
-	}
+	manifest := models.NewPackageManifestFromLocal(lockfilePath, models.EcosystemMaven)
 
 	for _, pkg := range result.Inventory.Packages {
 		pkgDetails := models.NewPackageDetail(models.EcosystemMaven, pkg.Name, pkg.Version)
-		modelPackage := models.Package{
+		modelPackage := &models.Package{
 			PackageDetails: pkgDetails,
 			Manifest:       manifest,
 		}
-		manifest.Packages = append(manifest.Packages, &modelPackage)
+		manifest.AddPackage(modelPackage)
 	}
 
 	return manifest, nil
