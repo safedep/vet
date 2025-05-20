@@ -1,0 +1,24 @@
+<project>
+    <groupId>io.safedep.test</groupId>
+    <artifactId>child</artifactId>
+    <version>1.0</version>
+
+    <properties>
+        <mavenVersion>3.0</mavenVersion>
+    </properties>
+
+    <parent>
+        <groupId>io.safedep.test</groupId>
+        <artifactId>parent</artifactId>
+        <version>1.0</version>
+        <relativePath>../parent/pom.xml</relativePath>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <!-- No Version Here to test Parent POM -->
+        </dependency>
+    </dependencies>
+</project>
