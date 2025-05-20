@@ -4,10 +4,8 @@ import (
 	"context"
 	"fmt"
 	scalibr "github.com/google/osv-scalibr"
-	"github.com/google/osv-scalibr/binary/platform"
 	el "github.com/google/osv-scalibr/extractor/filesystem/list"
-	scalibrfs "github.com/google/osv-scalibr/fs"
-	"github.com/google/osv-scalibr/log"
+	scalibrlog "github.com/google/osv-scalibr/log"
 	"github.com/google/osv-scalibr/plugin"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
@@ -18,13 +16,13 @@ import (
 // We use osc-scalibr's java/pomxmlnet (with Net, or Network) to fetch dependency from registry.
 func parseMavenPomXmlFile(lockfilePath string, _ *ParserConfig) (*models.PackageManifest, error) {
 	// Disable osv-scalibr's native logging.
-	log.SetLogger(silentLogger{})
+	scalibrlog.SetLogger(silentLogger{})
 
 	// Java/PomXMLNet extractor
 	ext, err := el.ExtractorsFromNames([]string{"java/pomxmlnet"})
 	if err != nil {
-		logger.Errorf("Failed to create java/pomxmlnet extractor form osv-scalibr: %v", err)
-		return nil, fmt.Errorf("failed to create java/pomxmlnet extractor: %v", err.Error())
+		logger.Errorf("Failed to create java/pomxmlnet extractor form osv-scalibr: %s", err.Error())
+		return nil, fmt.Errorf("failed to create java/pomxmlnet extractor: %w", err)
 	}
 
 	// Capability is required for filtering the extractors,
@@ -43,8 +41,8 @@ func parseMavenPomXmlFile(lockfilePath string, _ *ParserConfig) (*models.Package
 	// Find the default scan root.
 	scanRoots, err := scanRoots()
 	if err != nil {
-		logger.Errorf("Failed to create scan roots for osv-scalibr: %v", err)
-		return nil, fmt.Errorf("failed to create scan roots for osv-scalibr: %v", err.Error())
+		logger.Errorf("Failed to create scan roots for osv-scalibr: %s", err.Error())
+		return nil, fmt.Errorf("failed to create scan roots for osv-scalibr: %w", err)
 	}
 
 	// ScanConfig
@@ -59,7 +57,7 @@ func parseMavenPomXmlFile(lockfilePath string, _ *ParserConfig) (*models.Package
 
 	if result.Status.Status != plugin.ScanStatusSucceeded {
 		logger.Warnf("osv-scalibr scan did not performed scan with success")
-		return nil, fmt.Errorf("osv-scalibr scan did not performed scan with success: Status %v", result.Status.Status)
+		return nil, fmt.Errorf("osv-scalibr scan did not performed scan with success: Status %s", result.Status.String())
 	}
 
 	manifest := models.NewPackageManifestFromLocal(lockfilePath, models.EcosystemMaven)
@@ -75,31 +73,3 @@ func parseMavenPomXmlFile(lockfilePath string, _ *ParserConfig) (*models.Package
 
 	return manifest, nil
 }
-
-// scanRoots function returns the default scan root required for osv-scalibr
-// Default is `/`
-func scanRoots() ([]*scalibrfs.ScanRoot, error) {
-	var scanRoots []*scalibrfs.ScanRoot
-	var scanRootPaths []string
-	var err error
-	if scanRootPaths, err = platform.DefaultScanRoots(false); err != nil {
-		return nil, err
-	}
-	for _, r := range scanRootPaths {
-		scanRoots = append(scanRoots, &scalibrfs.ScanRoot{FS: scalibrfs.DirFS(r), Path: r})
-	}
-	return scanRoots, nil
-}
-
-// silentLogger is custom logger for osv-scalibr
-// Primarily used to not log osv-scalibr's native logging.
-type silentLogger struct{}
-
-func (silentLogger) Errorf(format string, args ...any) {}
-func (silentLogger) Error(args ...any)                 {}
-func (silentLogger) Warnf(format string, args ...any)  {}
-func (silentLogger) Warn(args ...any)                  {}
-func (silentLogger) Infof(format string, args ...any)  {}
-func (silentLogger) Info(args ...any)                  {}
-func (silentLogger) Debugf(format string, args ...any) {}
-func (silentLogger) Debug(args ...any)                 {}
