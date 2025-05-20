@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.24-bullseye@sha256:3c669c8fed069d80d199073b806243c4bf79ad117b797b96f18177ad9c521cff AS build
+FROM --platform=$BUILDPLATFORM golang:1.24.2-bullseye@sha256:f50ff25f8331682b44c1582974eb9e620fcb08052fc6ed434f93ca24636fc4d6 AS build
 # Original: golang:1.24-bullseye
 
 WORKDIR /build

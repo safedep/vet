@@ -2,7 +2,6 @@ package readers
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/safedep/vet/pkg/models"
