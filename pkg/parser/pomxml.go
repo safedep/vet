@@ -5,7 +5,6 @@ import (
 	"fmt"
 	scalibr "github.com/google/osv-scalibr"
 	el "github.com/google/osv-scalibr/extractor/filesystem/list"
-	scalibrlog "github.com/google/osv-scalibr/log"
 	"github.com/google/osv-scalibr/plugin"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
@@ -15,9 +14,6 @@ import (
 // Its finds the dependency from Maven Registry, and also from Parent Maven BOM
 // We use osc-scalibr's java/pomxmlnet (with Net, or Network) to fetch dependency from registry.
 func parseMavenPomXmlFile(lockfilePath string, _ *ParserConfig) (*models.PackageManifest, error) {
-	// Disable osv-scalibr's native logging.
-	scalibrlog.SetLogger(silentLogger{})
-
 	// Java/PomXMLNet extractor
 	ext, err := el.ExtractorsFromNames([]string{"java/pomxmlnet"})
 	if err != nil {

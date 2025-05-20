@@ -3,7 +3,14 @@ package parser
 import (
 	"github.com/google/osv-scalibr/binary/platform"
 	scalibrfs "github.com/google/osv-scalibr/fs"
+
+	scalibrlog "github.com/google/osv-scalibr/log"
 )
+
+func init() {
+	// Disable osv-scalibr's native logging.
+	scalibrlog.SetLogger(silentLogger{})
+}
 
 // scanRoots function returns the default scan root required for osv-scalibr
 // Default is `/`
