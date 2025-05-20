@@ -7,6 +7,7 @@ import (
 	"github.com/google/osv-scalibr/binary/platform"
 	el "github.com/google/osv-scalibr/extractor/filesystem/list"
 	scalibrfs "github.com/google/osv-scalibr/fs"
+	"github.com/google/osv-scalibr/log"
 	"github.com/google/osv-scalibr/plugin"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
@@ -16,6 +17,9 @@ import (
 // Its finds the dependency from Maven Registry, and also from Parent Maven BOM
 // We use osc-scalibr's java/pomxmlnet (with Net, or Network) to fetch dependency from registry.
 func parseMavenPomXmlFile(lockfilePath string, _ *ParserConfig) (*models.PackageManifest, error) {
+	// Disable osv-scalibr's native logging.
+	log.SetLogger(silentLogger{})
+
 	// Java/PomXMLNet extractor
 	ext, err := el.ExtractorsFromNames([]string{"java/pomxmlnet"})
 	if err != nil {
@@ -26,9 +30,8 @@ func parseMavenPomXmlFile(lockfilePath string, _ *ParserConfig) (*models.Package
 	// Capability is required for filtering the extractors,
 	// For example, osv-scalibr has 33 default extractors for instance, go, JavaScript, java/gradel, java/pomxml etc.
 	// Then this capability is used to filter with some property, like network (as required by our java/pomxmlnet)
-	// Capability is required, even if its empty.
 	capability := &plugin.Capabilities{
-		OS:            plugin.OSLinux,
+		OS:            plugin.OSAny,
 		Network:       plugin.NetworkOnline,
 		DirectFS:      true,
 		RunningSystem: true,
@@ -89,3 +92,16 @@ func scanRoots() ([]*scalibrfs.ScanRoot, error) {
 	}
 	return scanRoots, nil
 }
+
+// silentLogger is custom logger for osv-scalibr
+// Primarily used to not log osv-scalibr's native logging.
+type silentLogger struct{}
+
+func (silentLogger) Errorf(format string, args ...any) {}
+func (silentLogger) Error(args ...any)                 {}
+func (silentLogger) Warnf(format string, args ...any)  {}
+func (silentLogger) Warn(args ...any)                  {}
+func (silentLogger) Infof(format string, args ...any)  {}
+func (silentLogger) Info(args ...any)                  {}
+func (silentLogger) Debugf(format string, args ...any) {}
+func (silentLogger) Debug(args ...any)                 {}
