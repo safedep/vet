@@ -6,6 +6,9 @@ import (
 	scalibr "github.com/google/osv-scalibr"
 	scalibrlayerimage "github.com/google/osv-scalibr/artifact/image/layerscanning/image"
 	"github.com/google/osv-scalibr/converter"
+	"github.com/google/osv-scalibr/extractor"
+
+	//"github.com/google/osv-scalibr/converter"
 	el "github.com/google/osv-scalibr/extractor/filesystem/list"
 	sl "github.com/google/osv-scalibr/extractor/standalone/list"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -57,12 +60,20 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 		return fmt.Errorf("failed to perform osv-scalibr scan: %s", err)
 	}
 
+	// Handle duplicated packages as same packages (name+version) are found on different locations.
+	// For golang:alpine, 25 % of packages were repeated: the total was 474 with a unique 355
+	packageSet := make(map[string]*extractor.Package)
+
 	manifests := make(map[string]*models.PackageManifest)
 
 	for _, pkg := range result.Inventory.Packages {
 		pkgPurl := converter.ToPURL(pkg)
+		packageSet[pkgPurl.String()] = pkg
+	}
+
+	for purlStr, pkg := range packageSet {
 		if _, ok := manifests[pkg.Ecosystem()]; !ok {
-			manifests[pkg.Ecosystem()] = models.NewPackageManifestFromPurl(pkgPurl.String(), pkg.Ecosystem())
+			manifests[pkg.Ecosystem()] = models.NewPackageManifestFromPurl(purlStr, pkg.Ecosystem())
 		}
 
 		pkgDetail := models.NewPackageDetail(pkg.Ecosystem(), pkg.Name, pkg.Version)
@@ -74,15 +85,7 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 		manifests[pkg.Ecosystem()].AddPackage(pkgPackage)
 	}
 
-	for eco, man := range manifests {
-		fmt.Println(eco)
-		for _, pkg := range man.GetPackages() {
-			fmt.Println("   ->" + pkg.Name + "  ->" + pkg.Version)
-		}
-	}
-
-	// TODO: Duplicated packages as they are found on different locations
-	// TODO: Some Ecosystem is very bad, like for alpine packages the ecosystme is Alpine2.25
+	// TODO: Some Ecosystem is very bad, like for alpine packages the ecosystem is Alpine2.25
 	for _, manifest := range manifests {
 		err = handler(manifest, NewManifestModelReader(manifest))
 		if err != nil {
