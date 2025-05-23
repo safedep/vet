@@ -5,11 +5,12 @@ import (
 	"fmt"
 	scalibr "github.com/google/osv-scalibr"
 	scalibrlayerimage "github.com/google/osv-scalibr/artifact/image/layerscanning/image"
+	"github.com/google/osv-scalibr/converter"
 	el "github.com/google/osv-scalibr/extractor/filesystem/list"
 	sl "github.com/google/osv-scalibr/extractor/standalone/list"
+	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/parser"
-	"os"
 )
 
 type ContainerImageReaderConfig struct {
@@ -39,44 +40,54 @@ func (c containerImageReader) ApplicationName() (string, error) {
 func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest, PackageReader) error) error {
 	image, err := c.getScalibrContainerImage()
 	if err != nil {
-		return err
+		logger.Errorf("failed to get Scalibr container image: %s", err)
+		return fmt.Errorf("failed to get Scalibr container image: %s", err)
 	}
 
 	scanConfig, err := c.getScalibrScanConfig()
 	if err != nil {
-		return err
+		logger.Errorf("failed to get scan config: %s", err)
+		return fmt.Errorf("failed to get Scalibr scan config: %s", err)
 	}
 
 	// Scan Container
 	result, err := scalibr.New().ScanContainer(context.Background(), image, scanConfig)
 	if err != nil {
-		return err
+		logger.Errorf("failed to perform osv-scalibr scan: %s", err)
+		return fmt.Errorf("failed to perform osv-scalibr scan: %s", err)
 	}
 
 	manifests := make(map[string]*models.PackageManifest)
 
 	for _, pkg := range result.Inventory.Packages {
-		fmt.Println(pkg.Name)
-		/*
-			if _, ok := manifests[pkg.Ecosystem()]; !ok {
-				manifests[pkg.Ecosystem()] = models.NewPackageManifestFromPurl(pkg.PURL().String(), pkg.Ecosystem())
-			}
+		pkgPurl := converter.ToPURL(pkg)
+		if _, ok := manifests[pkg.Ecosystem()]; !ok {
+			manifests[pkg.Ecosystem()] = models.NewPackageManifestFromPurl(pkgPurl.String(), pkg.Ecosystem())
+		}
 
-			pkgDetail := models.NewPackageDetail(pkg.Ecosystem(), pkg.Name, pkg.Version)
-			pkgPackage := &models.Package{
-				PackageDetails: pkgDetail,
-				Manifest:       manifests[pkg.Ecosystem()],
-			}
-			manifests[pkg.Ecosystem()].AddPackage(pkgPackage)
+		pkgDetail := models.NewPackageDetail(pkg.Ecosystem(), pkg.Name, pkg.Version)
+		pkgPackage := &models.Package{
+			PackageDetails: pkgDetail,
+			Manifest:       manifests[pkg.Ecosystem()],
+		}
 
-		*/
+		manifests[pkg.Ecosystem()].AddPackage(pkgPackage)
 	}
-	os.Exit(1)
 
+	for eco, man := range manifests {
+		fmt.Println(eco)
+		for _, pkg := range man.GetPackages() {
+			fmt.Println("   ->" + pkg.Name + "  ->" + pkg.Version)
+		}
+	}
+
+	// TODO: Duplicated packages as they are found on different locations
+	// TODO: Some Ecosystem is very bad, like for alpine packages the ecosystme is Alpine2.25
 	for _, manifest := range manifests {
 		err = handler(manifest, NewManifestModelReader(manifest))
 		if err != nil {
-			return err
+			logger.Errorf("failed to process manifest: %s", err)
+			return fmt.Errorf("failed to process manifest: %s", err)
 		}
 	}
 	return nil
