@@ -2,11 +2,13 @@ package readers
 
 import (
 	"context"
+	"fmt"
 	scalibr "github.com/google/osv-scalibr"
 	scalibrlayerimage "github.com/google/osv-scalibr/artifact/image/layerscanning/image"
 	el "github.com/google/osv-scalibr/extractor/filesystem/list"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/parser"
+	"os"
 )
 
 type ContainerImageReaderConfig struct {
@@ -34,7 +36,6 @@ func (c containerImageReader) ApplicationName() (string, error) {
 }
 
 func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest, PackageReader) error) error {
-	// Image
 	image, err := c.getScalibrContainerImage()
 	if err != nil {
 		return err
@@ -54,17 +55,22 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 	manifests := make(map[string]*models.PackageManifest)
 
 	for _, pkg := range result.Inventory.Packages {
-		if _, ok := manifests[pkg.Ecosystem()]; !ok {
-			manifests[pkg.Ecosystem()] = models.NewPackageManifestFromPurl(pkg.PURL().String(), pkg.Ecosystem())
-		}
+		fmt.Println(pkg.Name)
+		/*
+			if _, ok := manifests[pkg.Ecosystem()]; !ok {
+				manifests[pkg.Ecosystem()] = models.NewPackageManifestFromPurl(pkg.PURL().String(), pkg.Ecosystem())
+			}
 
-		pkgDetail := models.NewPackageDetail(pkg.Ecosystem(), pkg.Name, pkg.Version)
-		pkgPackage := &models.Package{
-			PackageDetails: pkgDetail,
-			Manifest:       manifests[pkg.Ecosystem()],
-		}
-		manifests[pkg.Ecosystem()].AddPackage(pkgPackage)
+			pkgDetail := models.NewPackageDetail(pkg.Ecosystem(), pkg.Name, pkg.Version)
+			pkgPackage := &models.Package{
+				PackageDetails: pkgDetail,
+				Manifest:       manifests[pkg.Ecosystem()],
+			}
+			manifests[pkg.Ecosystem()].AddPackage(pkgPackage)
+
+		*/
 	}
+	os.Exit(1)
 
 	for _, manifest := range manifests {
 		err = handler(manifest, NewManifestModelReader(manifest))
@@ -75,6 +81,7 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 	return nil
 }
 
+// getScalibrContainerImage returns an Image object from image name string
 func (c containerImageReader) getScalibrContainerImage() (*scalibrlayerimage.Image, error) {
 	config := scalibrlayerimage.DefaultConfig()
 	containerImage, err := scalibrlayerimage.FromRemoteName(c.config.Image, config)
@@ -84,9 +91,10 @@ func (c containerImageReader) getScalibrContainerImage() (*scalibrlayerimage.Ima
 	return containerImage, nil
 }
 
+// getScalibrScanConfig returns scalibr.ScanConfig with Extractors and Detectors enabled
 func (c containerImageReader) getScalibrScanConfig() (*scalibr.ScanConfig, error) {
 	// Create Extractors, we are using `all` as in container, we need to find everything
-	allExtractors, err := el.ExtractorsFromNames([]string{"all"})
+	allFilesystemExtractors, err := el.ExtractorsFromNames([]string{"all"})
 	if err != nil {
 		return nil, err
 	}
@@ -94,8 +102,14 @@ func (c containerImageReader) getScalibrScanConfig() (*scalibr.ScanConfig, error
 	// Get default scalibr capabilities
 	capability := parser.ScalibrDefaultCapabilities()
 
+	// From Docs: RunningSystem is "Whether the scanner is scanning the real running system it's on"
+	// For Remote Images (Current State), a running system should be false
+	// We're scanning a Linux container image whose filesystem is mounted to the host's disk.
+	// Ref: https://github.com/google/osv-scalibr/blob/a349e505ba1f0bba00c32d3f2df59807939b3db5/binary/cli/cli.go#L574
+	capability.RunningSystem = false
+
 	// Apply Capabilities
-	allExtractorsWithCapabilities := el.FilterByCapabilities(allExtractors, capability)
+	allFilesystemExtractorsWithCapabilities := el.FilterByCapabilities(allFilesystemExtractors, capability)
 
 	scanRoot, err := parser.ScalibrDefaultScanRoots()
 	if err != nil {
@@ -104,8 +118,8 @@ func (c containerImageReader) getScalibrScanConfig() (*scalibr.ScanConfig, error
 
 	return &scalibr.ScanConfig{
 		ScanRoots:            scanRoot,
-		FilesystemExtractors: allExtractorsWithCapabilities,
+		FilesystemExtractors: allFilesystemExtractorsWithCapabilities,
 		Capabilities:         capability,
-		PathsToExtract:       []string{"."},
+		PathsToExtract:       []string{"."}, // Default
 	}, nil
 }
