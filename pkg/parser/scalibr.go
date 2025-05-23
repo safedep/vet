@@ -18,7 +18,7 @@ func ScalibrDefaultCapabilities() *plugin.Capabilities {
 	// ScanConfig
 	capability := &plugin.Capabilities{
 		OS:            plugin.OSAny,
-		Network:       plugin.NetworkAny,
+		Network:       plugin.NetworkOnline,
 		DirectFS:      true,
 		RunningSystem: true,
 	}
