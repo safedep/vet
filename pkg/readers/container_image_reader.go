@@ -6,6 +6,7 @@ import (
 	scalibr "github.com/google/osv-scalibr"
 	scalibrlayerimage "github.com/google/osv-scalibr/artifact/image/layerscanning/image"
 	el "github.com/google/osv-scalibr/extractor/filesystem/list"
+	sl "github.com/google/osv-scalibr/extractor/standalone/list"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/parser"
 	"os"
@@ -93,8 +94,14 @@ func (c containerImageReader) getScalibrContainerImage() (*scalibrlayerimage.Ima
 
 // getScalibrScanConfig returns scalibr.ScanConfig with Extractors and Detectors enabled
 func (c containerImageReader) getScalibrScanConfig() (*scalibr.ScanConfig, error) {
-	// Create Extractors, we are using `all` as in container, we need to find everything
+	// Create Filesystem Extractors, we are using `all` as in container, we need to find everything
 	allFilesystemExtractors, err := el.ExtractorsFromNames([]string{"all"})
+	if err != nil {
+		return nil, err
+	}
+
+	// Create Standalone Extractors, we are using `all` as in container, we need to find everything
+	allStandaloneExtractors, err := sl.ExtractorsFromNames([]string{"all"})
 	if err != nil {
 		return nil, err
 	}
@@ -110,6 +117,7 @@ func (c containerImageReader) getScalibrScanConfig() (*scalibr.ScanConfig, error
 
 	// Apply Capabilities
 	allFilesystemExtractorsWithCapabilities := el.FilterByCapabilities(allFilesystemExtractors, capability)
+	allStandaloneExtractorsWithCapabilities := sl.FilterByCapabilities(allStandaloneExtractors, capability)
 
 	scanRoot, err := parser.ScalibrDefaultScanRoots()
 	if err != nil {
@@ -119,6 +127,7 @@ func (c containerImageReader) getScalibrScanConfig() (*scalibr.ScanConfig, error
 	return &scalibr.ScanConfig{
 		ScanRoots:            scanRoot,
 		FilesystemExtractors: allFilesystemExtractorsWithCapabilities,
+		StandaloneExtractors: allStandaloneExtractorsWithCapabilities,
 		Capabilities:         capability,
 		PathsToExtract:       []string{"."}, // Default
 	}, nil
