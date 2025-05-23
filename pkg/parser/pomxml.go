@@ -24,18 +24,13 @@ func parseMavenPomXmlFile(lockfilePath string, _ *ParserConfig) (*models.Package
 	// Capability is required for filtering the extractors,
 	// For example, osv-scalibr has 33 default extractors for instance, go, JavaScript, java/gradel, java/pomxml etc.
 	// Then this capability is used to filter with some property, like network (as required by our java/pomxmlnet)
-	capability := &plugin.Capabilities{
-		OS:            plugin.OSAny,
-		Network:       plugin.NetworkOnline,
-		DirectFS:      true,
-		RunningSystem: true,
-	}
+	capability := ScalibrDefaultCapabilities()
 
 	// Apply capabilities
 	ext = el.FilterByCapabilities(ext, capability)
 
 	// Find the default scan root.
-	scanRoots, err := scanRoots()
+	scanRoots, err := ScalibrDefaultScanRoots()
 	if err != nil {
 		logger.Errorf("Failed to create scan roots for osv-scalibr: %s", err.Error())
 		return nil, fmt.Errorf("failed to create scan roots for osv-scalibr: %w", err)
