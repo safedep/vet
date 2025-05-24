@@ -71,9 +71,9 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 		packageSet[pkgPurl.String()] = pkg
 	}
 
-	for purlStr, pkg := range packageSet {
+	for _, pkg := range packageSet {
 		if _, ok := manifests[pkg.Ecosystem()]; !ok {
-			manifests[pkg.Ecosystem()] = models.NewPackageManifestFromPurl(purlStr, pkg.Ecosystem())
+			manifests[pkg.Ecosystem()] = models.NewPackageManifestFromLocal("", pkg.Ecosystem())
 		}
 
 		pkgDetail := models.NewPackageDetail(pkg.Ecosystem(), pkg.Name, pkg.Version)
@@ -85,7 +85,7 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 		manifests[pkg.Ecosystem()].AddPackage(pkgPackage)
 	}
 
-	// TODO: Some Ecosystem is very bad, like for alpine packages the ecosystem is Alpine2.25
+	// TODO: Some Ecosystem is very bad, like for alpine packages the ecosystem is Alpine2.25,
 	for _, manifest := range manifests {
 		err = handler(manifest, NewManifestModelReader(manifest))
 		if err != nil {

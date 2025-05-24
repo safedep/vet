@@ -19,8 +19,11 @@ func TestContainerImageReaderEnumManifest(t *testing.T) {
 		assert.NotNil(t, manifest)
 		assert.NotNil(t, reader)
 
+		manifestID := manifest.Id()
+
 		assert.Equal(t, manifest.Ecosystem, "Alpine:v3.20")
 		assert.Equal(t, len(manifest.GetPackages()), 14)
+		assert.Equal(t, manifest.GetPackages()[0].Manifest.Id(), manifestID)
 		return nil
 	})
 
