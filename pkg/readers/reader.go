@@ -1,4 +1,4 @@
-// Package readers implements the various supported package manifest reader.
+// Package readers implement the various supported package manifest readers.
 // It defines an independent contract for implementing and reading packages
 // from one or more package manifest files. For more details, refer [TDD]
 //
