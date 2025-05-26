@@ -50,7 +50,7 @@ func (c containerImageReader) Name() string {
 }
 
 func (c containerImageReader) ApplicationName() (string, error) {
-	return "", nil
+	return fmt.Sprintf("pkg:/oci/%s", c.imageTarget.Image), nil
 }
 
 func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest, PackageReader) error) error {
