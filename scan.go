@@ -391,7 +391,7 @@ func internalStartScan() error {
 			reader, err = readers.NewVSCodeExtReader(vsxDirectories)
 		}
 	} else if len(scanImageTarget) != 0 {
-		// TODO: analytics to track image scanning usage
+		analytics.TrackCommandImageScan()
 
 		imageConfig := &readers.ImageTargetConfig{
 			Image: scanImageTarget,
