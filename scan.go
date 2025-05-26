@@ -393,9 +393,12 @@ func internalStartScan() error {
 	} else if len(imageReader) != 0 {
 		// TODO: analytics to track image scanning usage
 
-		reader, err = readers.NewContainerImageReader(&readers.ContainerImageReaderConfig{
+		imageConfig := &readers.ImageTargetConfig{
 			Image: imageReader,
-		})
+		}
+		readerConfig := readers.DefaultContainerImageReaderConfig()
+
+		reader, err = readers.NewContainerImageReader(imageConfig, readerConfig)
 	} else {
 		analytics.TrackCommandScanDirectoryScan()
 

@@ -7,11 +7,12 @@ import (
 )
 
 func TestContainerImageReaderEnumManifest(t *testing.T) {
-	config := &ContainerImageReaderConfig{
+	imageConfig := &ImageTargetConfig{
 		Image: "alpine:3.20",
 	}
+	readerConfig := DefaultContainerImageReaderConfig()
 
-	reader, err := NewContainerImageReader(config)
+	reader, err := NewContainerImageReader(imageConfig, readerConfig)
 	assert.NoError(t, err)
 	assert.NotNil(t, reader)
 

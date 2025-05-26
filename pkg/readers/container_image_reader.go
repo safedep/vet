@@ -18,18 +18,30 @@ import (
 )
 
 type ContainerImageReaderConfig struct {
+	RemoteImageFetch bool
+}
+
+func DefaultContainerImageReaderConfig() *ContainerImageReaderConfig {
+	return &ContainerImageReaderConfig{
+		RemoteImageFetch: true, // Fetch images from remote.
+	}
+}
+
+type ImageTargetConfig struct {
 	Image string
 }
 
 type containerImageReader struct {
-	config *ContainerImageReaderConfig
+	config      *ContainerImageReaderConfig
+	imageTarget *ImageTargetConfig
 }
 
 var _ PackageManifestReader = &containerImageReader{}
 
-func NewContainerImageReader(config *ContainerImageReaderConfig) (*containerImageReader, error) {
+func NewContainerImageReader(imageTarget *ImageTargetConfig, config *ContainerImageReaderConfig) (*containerImageReader, error) {
 	return &containerImageReader{
-		config: config,
+		config:      config,
+		imageTarget: imageTarget,
 	}, nil
 }
 
@@ -38,7 +50,7 @@ func (c containerImageReader) Name() string {
 }
 
 func (c containerImageReader) ApplicationName() (string, error) {
-	return defaultApplicationName, nil
+	return "", nil
 }
 
 func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest, PackageReader) error) error {
@@ -100,7 +112,7 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 // getScalibrContainerImage returns an Image object from image name string
 func (c containerImageReader) getScalibrContainerImage() (*scalibrlayerimage.Image, error) {
 	config := scalibrlayerimage.DefaultConfig()
-	containerImage, err := scalibrlayerimage.FromRemoteName(c.config.Image, config)
+	containerImage, err := scalibrlayerimage.FromRemoteName(c.imageTarget.Image, config)
 	if err != nil {
 		return nil, err
 	}
