@@ -1,22 +1,23 @@
-package readers
+package test
 
 import (
 	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/pkg/readers"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestContainerImageReaderEnumManifest(t *testing.T) {
-	imageConfig := &ImageTargetConfig{
+	imageConfig := &readers.ImageTargetConfig{
 		Image: "alpine:3.20",
 	}
-	readerConfig := DefaultContainerImageReaderConfig()
+	readerConfig := readers.DefaultContainerImageReaderConfig()
 
-	reader, err := NewContainerImageReader(imageConfig, readerConfig)
+	reader, err := readers.NewContainerImageReader(imageConfig, readerConfig)
 	assert.NoError(t, err)
 	assert.NotNil(t, reader)
 
-	err = reader.EnumManifests(func(manifest *models.PackageManifest, reader PackageReader) error {
+	err = reader.EnumManifests(func(manifest *models.PackageManifest, reader readers.PackageReader) error {
 		assert.NotNil(t, manifest)
 		assert.NotNil(t, reader)
 
