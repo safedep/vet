@@ -393,12 +393,8 @@ func internalStartScan() error {
 	} else if len(scanImageTarget) != 0 {
 		analytics.TrackCommandImageScan()
 
-		imageConfig := &readers.ImageTargetConfig{
-			Image: scanImageTarget,
-		}
 		readerConfig := readers.DefaultContainerImageReaderConfig()
-
-		reader, err = readers.NewContainerImageReader(imageConfig, readerConfig)
+		reader, err = readers.NewContainerImageReader(scanImageTarget, readerConfig)
 	} else {
 		analytics.TrackCommandScanDirectoryScan()
 

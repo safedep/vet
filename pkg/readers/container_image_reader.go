@@ -28,7 +28,8 @@ func DefaultContainerImageReaderConfig() *ContainerImageReaderConfig {
 }
 
 type ImageTargetConfig struct {
-	Image string
+	ImageStr     string
+	ScalibrImage *scalibrlayerimage.Image
 }
 
 type containerImageReader struct {
@@ -38,7 +39,18 @@ type containerImageReader struct {
 
 var _ PackageManifestReader = &containerImageReader{}
 
-func NewContainerImageReader(imageTarget *ImageTargetConfig, config *ContainerImageReaderConfig) (*containerImageReader, error) {
+func NewContainerImageReader(imageStr string, config *ContainerImageReaderConfig) (*containerImageReader, error) {
+	image, err := getScalibrContainerImage(imageStr)
+	if err != nil {
+		logger.Errorf("Failed to get Scalibr container image: %s", err)
+		return nil, fmt.Errorf("failed to fetch container image: %s", err)
+	}
+
+	imageTarget := &ImageTargetConfig{
+		ImageStr:     imageStr,
+		ScalibrImage: image,
+	}
+
 	return &containerImageReader{
 		config:      config,
 		imageTarget: imageTarget,
@@ -50,24 +62,18 @@ func (c containerImageReader) Name() string {
 }
 
 func (c containerImageReader) ApplicationName() (string, error) {
-	return fmt.Sprintf("pkg:/oci/%s", c.imageTarget.Image), nil
+	return fmt.Sprintf("pkg:/oci/%s", c.imageTarget.ImageStr), nil
 }
 
 func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest, PackageReader) error) error {
-	image, err := c.getScalibrContainerImage()
-	if err != nil {
-		logger.Errorf("failed to get container image: %s", err)
-		return fmt.Errorf("failed to get container image: %s", err)
-	}
-
-	scanConfig, err := c.getScalibrScanConfig()
+	scanConfig, err := getScalibrScanConfig()
 	if err != nil {
 		logger.Errorf("failed to get scan config: %s", err)
 		return fmt.Errorf("failed to get scan config: %s", err)
 	}
 
 	// Scan Container
-	result, err := scalibr.New().ScanContainer(context.Background(), image, scanConfig)
+	result, err := scalibr.New().ScanContainer(context.Background(), c.imageTarget.ScalibrImage, scanConfig)
 	if err != nil {
 		logger.Errorf("failed to perform container scan: %s", err)
 		return fmt.Errorf("failed to perform container scan: %s", err)
@@ -110,9 +116,9 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 }
 
 // getScalibrContainerImage returns an Image object from image name string
-func (c containerImageReader) getScalibrContainerImage() (*scalibrlayerimage.Image, error) {
+func getScalibrContainerImage(imageStr string) (*scalibrlayerimage.Image, error) {
 	config := scalibrlayerimage.DefaultConfig()
-	containerImage, err := scalibrlayerimage.FromRemoteName(c.imageTarget.Image, config)
+	containerImage, err := scalibrlayerimage.FromRemoteName(imageStr, config)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +126,7 @@ func (c containerImageReader) getScalibrContainerImage() (*scalibrlayerimage.Ima
 }
 
 // getScalibrScanConfig returns scalibr.ScanConfig with Extractors and Detectors enabled
-func (c containerImageReader) getScalibrScanConfig() (*scalibr.ScanConfig, error) {
+func getScalibrScanConfig() (*scalibr.ScanConfig, error) {
 	// Create Filesystem Extractors, we are using `all` as in container, we need to find everything
 	allFilesystemExtractors, err := el.ExtractorsFromNames([]string{"all"})
 	if err != nil {
