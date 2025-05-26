@@ -7,7 +7,6 @@ import (
 	scalibrlayerimage "github.com/google/osv-scalibr/artifact/image/layerscanning/image"
 	"github.com/google/osv-scalibr/binary/platform"
 	"github.com/google/osv-scalibr/converter"
-	"github.com/google/osv-scalibr/extractor"
 	scalibrfs "github.com/google/osv-scalibr/fs"
 	"github.com/google/osv-scalibr/plugin"
 	//"github.com/google/osv-scalibr/converter"
@@ -79,29 +78,27 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 		return fmt.Errorf("failed to perform container scan: %s", err)
 	}
 
-	// Handle duplicated packages as same packages (name+version) are found on different locations.
-	// For golang:alpine, 25 % of packages were repeated: the total was 474 with a unique 355
-	packageSet := make(map[string]*extractor.Package)
-
 	manifests := make(map[string]*models.PackageManifest)
 
 	for _, pkg := range result.Inventory.Packages {
 		pkgPurl := converter.ToPURL(pkg)
-		packageSet[pkgPurl.String()] = pkg
-	}
+		key := pkg.Ecosystem()
 
-	for purlStr, pkg := range packageSet {
-		if _, ok := manifests[pkg.Ecosystem()]; !ok {
-			manifests[pkg.Ecosystem()] = models.NewPackageManifestFromPurl(purlStr, pkg.Ecosystem())
+		for _, location := range pkg.Locations {
+			key = fmt.Sprintf("%s:%s", key, location) // Composite like, Go:go/pkg/xyz (EcoSystem:Location)
+		}
+
+		if _, ok := manifests[key]; !ok {
+			manifests[key] = models.NewPackageManifestFromPurl(pkgPurl.String(), pkg.Ecosystem())
 		}
 
 		pkgDetail := models.NewPackageDetail(pkg.Ecosystem(), pkg.Name, pkg.Version)
 		pkgPackage := &models.Package{
 			PackageDetails: pkgDetail,
-			Manifest:       manifests[pkg.Ecosystem()],
+			Manifest:       manifests[key],
 		}
 
-		manifests[pkg.Ecosystem()].AddPackage(pkgPackage)
+		manifests[key].AddPackage(pkgPackage)
 	}
 
 	// TODO: Some Ecosystem is very bad, like for alpine packages the ecosystem is Alpine2.25,
