@@ -4,7 +4,6 @@ import (
 	"github.com/google/osv-scalibr/binary/platform"
 	scalibrfs "github.com/google/osv-scalibr/fs"
 	scalibrlog "github.com/google/osv-scalibr/log"
-	"github.com/google/osv-scalibr/plugin"
 )
 
 func init() {
@@ -12,23 +11,9 @@ func init() {
 	scalibrlog.SetLogger(silentLogger{})
 }
 
-// ScalibrDefaultCapabilities returns capabilities for filtering extractors in scalibr config
-// This default capability is very general / all-weather, it will work for most cases.
-func ScalibrDefaultCapabilities() *plugin.Capabilities {
-	// ScanConfig
-	capability := &plugin.Capabilities{
-		OS:            plugin.OSAny,
-		Network:       plugin.NetworkOnline,
-		DirectFS:      true,
-		RunningSystem: true,
-	}
-
-	return capability
-}
-
 // ScalibrDefaultScanRoots function returns the default scan root required for osv-scalibr
 // Default is `/`
-func ScalibrDefaultScanRoots() ([]*scalibrfs.ScanRoot, error) {
+func scalibrDefaultScanRoots() ([]*scalibrfs.ScanRoot, error) {
 	var scanRoots []*scalibrfs.ScanRoot
 	var scanRootPaths []string
 	var err error

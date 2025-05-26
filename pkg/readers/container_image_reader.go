@@ -5,15 +5,16 @@ import (
 	"fmt"
 	scalibr "github.com/google/osv-scalibr"
 	scalibrlayerimage "github.com/google/osv-scalibr/artifact/image/layerscanning/image"
+	"github.com/google/osv-scalibr/binary/platform"
 	"github.com/google/osv-scalibr/converter"
 	"github.com/google/osv-scalibr/extractor"
-
+	scalibrfs "github.com/google/osv-scalibr/fs"
+	"github.com/google/osv-scalibr/plugin"
 	//"github.com/google/osv-scalibr/converter"
 	el "github.com/google/osv-scalibr/extractor/filesystem/list"
 	sl "github.com/google/osv-scalibr/extractor/standalone/list"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
-	"github.com/safedep/vet/pkg/parser"
 )
 
 type ContainerImageReaderConfig struct {
@@ -120,20 +121,22 @@ func (c containerImageReader) getScalibrScanConfig() (*scalibr.ScanConfig, error
 		return nil, err
 	}
 
-	// Get default scalibr capabilities
-	capability := parser.ScalibrDefaultCapabilities()
-
-	// From Docs: RunningSystem is "Whether the scanner is scanning the real running system it's on"
-	// For Remote Images (Current State), a running system should be false
-	// We're scanning a Linux container image whose filesystem is mounted to the host's disk.
-	// Ref: https://github.com/google/osv-scalibr/blob/a349e505ba1f0bba00c32d3f2df59807939b3db5/binary/cli/cli.go#L574
-	capability.RunningSystem = false
+	capability := &plugin.Capabilities{
+		OS:       plugin.OSAny,
+		Network:  plugin.NetworkAny,
+		DirectFS: true,
+		// From Docs: RunningSystem is "Whether the scanner is scanning the real running system it's on"
+		// For Remote Images (Current State), a running system should be false
+		// We're scanning a Linux container image whose filesystem is mounted to the host's disk.
+		// Ref: https://github.com/google/osv-scalibr/blob/a349e505ba1f0bba00c32d3f2df59807939b3db5/binary/cli/cli.go#L574
+		RunningSystem: true,
+	}
 
 	// Apply Capabilities
 	allFilesystemExtractorsWithCapabilities := el.FilterByCapabilities(allFilesystemExtractors, capability)
 	allStandaloneExtractorsWithCapabilities := sl.FilterByCapabilities(allStandaloneExtractors, capability)
 
-	scanRoot, err := parser.ScalibrDefaultScanRoots()
+	scanRoot, err := scalibrDefaultScanRoots()
 	if err != nil {
 		return nil, err
 	}
@@ -145,4 +148,17 @@ func (c containerImageReader) getScalibrScanConfig() (*scalibr.ScanConfig, error
 		Capabilities:         capability,
 		PathsToExtract:       []string{"."}, // Default
 	}, nil
+}
+
+func scalibrDefaultScanRoots() ([]*scalibrfs.ScanRoot, error) {
+	var scanRoots []*scalibrfs.ScanRoot
+	var scanRootPaths []string
+	var err error
+	if scanRootPaths, err = platform.DefaultScanRoots(false); err != nil {
+		return nil, err
+	}
+	for _, r := range scanRootPaths {
+		scanRoots = append(scanRoots, &scalibrfs.ScanRoot{FS: scalibrfs.DirFS(r), Path: r})
+	}
+	return scanRoots, nil
 }
