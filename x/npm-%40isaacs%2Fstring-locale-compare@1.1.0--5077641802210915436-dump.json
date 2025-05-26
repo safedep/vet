@@ -1,0 +1,311 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "%40isaacs%2Fstring-locale-compare@1.1.0",
+    "display_path": ""
+  },
+  "path": "pkg:npm/%40isaacs%2Fstring-locale-compare@1.1.0",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "@isaacs/string-locale-compare",
+        "version": "1.1.0",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Compare strings with Intl.Collator if available, falling back to String.localeCompare otherwise",
+            "distance": 0,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "@isaacs/string-locale-compare",
+              "version": "1.1.0"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "ISC"
+        ],
+        "package_current_version": "1.1.0",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "@isaacs/string-locale-compare",
+          "version": "1.1.0"
+        },
+        "projects": [
+          {
+            "display_name": "isaacs/string-locale-compare",
+            "forks": 0,
+            "issues": 1,
+            "link": "https://github.com/isaacs/string-locale-compare",
+            "name": "isaacs/string-locale-compare",
+            "stars": 5,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Token-Permissions",
+                "reason": "No tokens found",
+                "score": -1
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Maintained",
+                "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Code-Review",
+                "reason": "Found 0/12 approved changesets -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no workflows found",
+                "score": -1
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "no dependencies found",
+                "score": -1
+              },
+              {
+                "name": "SAST",
+                "reason": "no SAST tool detected",
+                "score": 0
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "13 existing vulnerabilities detected",
+                "score": 0
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "56348d643b863948f33464350d9aa5d540156200",
+              "name": "github.com/isaacs/string-locale-compare"
+            },
+            "score": 1.7,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": null,
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "73efef03c81d56d": {
+        "data": {
+          "package_detail": {
+            "name": "@isaacs/string-locale-compare",
+            "version": "1.1.0",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "Compare strings with Intl.Collator if available, falling back to String.localeCompare otherwise",
+                "distance": 0,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "@isaacs/string-locale-compare",
+                  "version": "1.1.0"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "ISC"
+            ],
+            "package_current_version": "1.1.0",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "@isaacs/string-locale-compare",
+              "version": "1.1.0"
+            },
+            "projects": [
+              {
+                "display_name": "isaacs/string-locale-compare",
+                "forks": 0,
+                "issues": 1,
+                "link": "https://github.com/isaacs/string-locale-compare",
+                "name": "isaacs/string-locale-compare",
+                "stars": 5,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "No tokens found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 0/12 approved changesets -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no workflows found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "no dependencies found",
+                    "score": -1
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "no SAST tool detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "branch protection not enabled on development/release branches",
+                    "score": 0
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file not detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "13 existing vulnerabilities detected",
+                    "score": 0
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "56348d643b863948f33464350d9aa5d540156200",
+                  "name": "github.com/isaacs/string-locale-compare"
+                },
+                "score": 1.7,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": null,
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

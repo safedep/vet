@@ -1,0 +1,539 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "smart-buffer@4.2.0",
+    "display_path": ""
+  },
+  "path": "pkg:npm/smart-buffer@4.2.0",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "smart-buffer",
+        "version": "4.2.0",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "smart-buffer is a Buffer wrapper that adds automatic read \u0026 write offset tracking, string operations, data insertions, and more.",
+            "distance": 0,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "smart-buffer",
+              "version": "4.2.0"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "MIT"
+        ],
+        "package_current_version": "4.2.0",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "smart-buffer",
+          "version": "4.2.0"
+        },
+        "projects": [
+          {
+            "display_name": "JoshGlazebrook/smart-buffer",
+            "forks": 19,
+            "issues": 21,
+            "link": "https://github.com/joshglazebrook/smart-buffer",
+            "name": "joshglazebrook/smart-buffer",
+            "stars": 102,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Code-Review",
+                "reason": "Found 5/30 approved changesets -- score normalized to 1",
+                "score": 1
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Maintained",
+                "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no workflows found",
+                "score": -1
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "No tokens found",
+                "score": -1
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "no dependencies found",
+                "score": -1
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "37 existing vulnerabilities detected",
+                "score": 0
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "2ce01c95312343325997b19e52daa166dc227930",
+              "name": "github.com/JoshGlazebrook/smart-buffer"
+            },
+            "score": 1.9,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JP02WSFDG76D3KBD9JZBXG7B",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "smart-buffer"
+            },
+            "version": "4.2.0"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+            "sha256": "3d9815e4cbd1beb947ac6bc8e33eb7d4d380e781fff696c2c9b55096af6450a1"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/LICENSE",
+                "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                "derived_extension": "unknown",
+                "size": 1087
+              },
+              {
+                "key": "package/build/smartbuffer.js",
+                "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                "derived_extension": "unknown",
+                "size": 20164
+              },
+              {
+                "key": "package/build/utils.js",
+                "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                "derived_extension": "unknown",
+                "size": 3008
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                "derived_extension": "unknown",
+                "size": 1969
+              },
+              {
+                "key": "package/build/smartbuffer.js.map",
+                "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                "derived_extension": "unknown",
+                "size": 20978
+              },
+              {
+                "key": "package/build/utils.js.map",
+                "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                "derived_extension": "unknown",
+                "size": 2024
+              },
+              {
+                "key": "package/docs/CHANGELOG.md",
+                "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                "derived_extension": "unknown",
+                "size": 2298
+              },
+              {
+                "key": "package/docs/README_v3.md",
+                "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                "derived_extension": "unknown",
+                "size": 12570
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                "derived_extension": "unknown",
+                "size": 18782
+              },
+              {
+                "key": "package/docs/ROADMAP.md",
+                "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz"
+              },
+              {
+                "key": "package/typings/smartbuffer.d.ts",
+                "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                "derived_extension": "unknown",
+                "size": 26868
+              },
+              {
+                "key": "package/typings/utils.d.ts",
+                "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                "derived_extension": "unknown",
+                "size": 2442
+              },
+              {
+                "key": "package/.prettierrc.yaml",
+                "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                "derived_extension": "unknown",
+                "size": 84
+              },
+              {
+                "key": "package/.travis.yml",
+                "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                "derived_extension": "unknown",
+                "size": 152
+              }
+            ]
+          },
+          "analyzed_at": {
+            "seconds": 1741612741,
+            "nanos": 46812872
+          },
+          "inference": {
+            "confidence": 1,
+            "details": "No malware evidence were identified by any tool in the workflow",
+            "summary": "No malware evidence were identified by any tool in the workflow"
+          },
+          "report_id": "01JP02WSFDG76D3KBD9JZBXG7B"
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "89915008925c64f0": {
+        "data": {
+          "package_detail": {
+            "name": "smart-buffer",
+            "version": "4.2.0",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "smart-buffer is a Buffer wrapper that adds automatic read \u0026 write offset tracking, string operations, data insertions, and more.",
+                "distance": 0,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "smart-buffer",
+                  "version": "4.2.0"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "MIT"
+            ],
+            "package_current_version": "4.2.0",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "smart-buffer",
+              "version": "4.2.0"
+            },
+            "projects": [
+              {
+                "display_name": "JoshGlazebrook/smart-buffer",
+                "forks": 19,
+                "issues": 21,
+                "link": "https://github.com/joshglazebrook/smart-buffer",
+                "name": "joshglazebrook/smart-buffer",
+                "stars": 102,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 5/30 approved changesets -- score normalized to 1",
+                    "score": 1
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no workflows found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "No tokens found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "no dependencies found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file not detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "branch protection not enabled on development/release branches",
+                    "score": 0
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "37 existing vulnerabilities detected",
+                    "score": 0
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "2ce01c95312343325997b19e52daa166dc227930",
+                  "name": "github.com/JoshGlazebrook/smart-buffer"
+                },
+                "score": 1.9,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JP02WSFDG76D3KBD9JZBXG7B",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "smart-buffer"
+                },
+                "version": "4.2.0"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                "sha256": "3d9815e4cbd1beb947ac6bc8e33eb7d4d380e781fff696c2c9b55096af6450a1"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/LICENSE",
+                    "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1087
+                  },
+                  {
+                    "key": "package/build/smartbuffer.js",
+                    "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 20164
+                  },
+                  {
+                    "key": "package/build/utils.js",
+                    "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3008
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1969
+                  },
+                  {
+                    "key": "package/build/smartbuffer.js.map",
+                    "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 20978
+                  },
+                  {
+                    "key": "package/build/utils.js.map",
+                    "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2024
+                  },
+                  {
+                    "key": "package/docs/CHANGELOG.md",
+                    "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2298
+                  },
+                  {
+                    "key": "package/docs/README_v3.md",
+                    "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 12570
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 18782
+                  },
+                  {
+                    "key": "package/docs/ROADMAP.md",
+                    "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz"
+                  },
+                  {
+                    "key": "package/typings/smartbuffer.d.ts",
+                    "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 26868
+                  },
+                  {
+                    "key": "package/typings/utils.d.ts",
+                    "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2442
+                  },
+                  {
+                    "key": "package/.prettierrc.yaml",
+                    "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 84
+                  },
+                  {
+                    "key": "package/.travis.yml",
+                    "origin": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 152
+                  }
+                ]
+              },
+              "analyzed_at": {
+                "seconds": 1741612741,
+                "nanos": 46812872
+              },
+              "inference": {
+                "confidence": 1,
+                "details": "No malware evidence were identified by any tool in the workflow",
+                "summary": "No malware evidence were identified by any tool in the workflow"
+              },
+              "report_id": "01JP02WSFDG76D3KBD9JZBXG7B"
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

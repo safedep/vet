@@ -1,0 +1,861 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "%40isaacs%2Fcliui@8.0.2",
+    "display_path": ""
+  },
+  "path": "pkg:npm/%40isaacs%2Fcliui@8.0.2",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "@isaacs/cliui",
+        "version": "8.0.2",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "easily create complex multi-column command-line-interfaces",
+            "distance": 0,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "@isaacs/cliui",
+              "version": "8.0.2"
+            }
+          },
+          {
+            "description": "Get the visual width of a string - the number of columns required to display it",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "string-width",
+              "version": "4.2.3"
+            }
+          },
+          {
+            "description": "Get the visual width of a string - the number of columns required to display it",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "string-width",
+              "version": "5.1.2"
+            }
+          },
+          {
+            "description": "Strip ANSI escape codes from a string",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "strip-ansi",
+              "version": "6.0.1"
+            }
+          },
+          {
+            "description": "Strip ANSI escape codes from a string",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "strip-ansi",
+              "version": "7.1.0"
+            }
+          },
+          {
+            "description": "Wordwrap a string with ANSI escape codes",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "wrap-ansi",
+              "version": "7.0.0"
+            }
+          },
+          {
+            "description": "Wordwrap a string with ANSI escape codes",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "wrap-ansi",
+              "version": "8.1.0"
+            }
+          },
+          {
+            "description": "Regular expression for matching ANSI escape codes",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "ansi-regex",
+              "version": "5.0.1"
+            }
+          },
+          {
+            "description": "Regular expression for matching ANSI escape codes",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "ansi-regex",
+              "version": "6.1.0"
+            }
+          },
+          {
+            "description": "ANSI escape codes for styling strings in the terminal",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "ansi-styles",
+              "version": "4.3.0"
+            }
+          },
+          {
+            "description": "ANSI escape codes for styling strings in the terminal",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "ansi-styles",
+              "version": "6.2.1"
+            }
+          },
+          {
+            "description": "Get East Asian Width from a character.",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "eastasianwidth",
+              "version": "0.2.0"
+            }
+          },
+          {
+            "description": "A regular expression to match all Emoji-only symbols as per the Unicode Standard.",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "emoji-regex",
+              "version": "8.0.0"
+            }
+          },
+          {
+            "description": "A regular expression to match all Emoji-only symbols as per the Unicode Standard.",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "emoji-regex",
+              "version": "9.2.2"
+            }
+          },
+          {
+            "description": "Check if the character represented by a given Unicode code point is fullwidth",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "is-fullwidth-code-point",
+              "version": "3.0.0"
+            }
+          },
+          {
+            "description": "Plain color conversion functions",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "color-convert",
+              "version": "2.0.1"
+            }
+          },
+          {
+            "description": "A list of color names and its values",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "color-name",
+              "version": "1.1.4"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 6,
+          "indirect_dependents": 10,
+          "total_dependents": 16
+        },
+        "licenses": [
+          "ISC"
+        ],
+        "package_current_version": "8.0.2",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "@isaacs/cliui",
+          "version": "8.0.2"
+        },
+        "projects": [
+          {
+            "display_name": "yargs/cliui",
+            "forks": 43,
+            "issues": 13,
+            "link": "https://github.com/yargs/cliui",
+            "name": "yargs/cliui",
+            "stars": 375,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Code-Review",
+                "reason": "Found 4/16 approved changesets -- score normalized to 2",
+                "score": 2
+              },
+              {
+                "name": "Maintained",
+                "reason": "5 commit(s) and 7 issue activity found in the last 90 days -- score normalized to 10",
+                "score": 10
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "detected GitHub workflow tokens with excessive permissions",
+                "score": 0
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "0 existing vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                "score": -1
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "2737977df41e728bd8c7d3ca0658498273cecce5",
+              "name": "github.com/yargs/cliui"
+            },
+            "score": 5,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JJ4E8F4V8P2BVHMKZDNDV0WC",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "@isaacs/cliui"
+            },
+            "version": "8.0.2"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/@isaacs/cliui/-/cliui-8.0.2.tgz",
+            "sha256": "35ae3c68fc09db09a73c223c9c96e742818a85cb3e9ae6574876b1577740e4c2"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/build/index.cjs",
+                "origin": "https://registry.npmjs.org/@isaacs/cliui/-/cliui-8.0.2.tgz",
+                "derived_extension": "unknown",
+                "size": 10398
+              },
+              {
+                "key": "package/build/index.d.cts",
+                "origin": "https://registry.npmjs.org/@isaacs/cliui/-/cliui-8.0.2.tgz",
+                "derived_extension": "unknown",
+                "size": 1050
+              },
+              {
+                "key": "package/build/lib/index.js",
+                "origin": "https://registry.npmjs.org/@isaacs/cliui/-/cliui-8.0.2.tgz",
+                "derived_extension": "unknown",
+                "size": 10100
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/@isaacs/cliui/-/cliui-8.0.2.tgz",
+                "derived_extension": "unknown",
+                "size": 2164
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/@isaacs/cliui/-/cliui-8.0.2.tgz",
+                "derived_extension": "unknown",
+                "size": 3055
+              },
+              {
+                "key": "package/index.mjs",
+                "origin": "https://registry.npmjs.org/@isaacs/cliui/-/cliui-8.0.2.tgz",
+                "derived_extension": "unknown",
+                "size": 299
+              },
+              {
+                "key": "package/LICENSE.txt",
+                "origin": "https://registry.npmjs.org/@isaacs/cliui/-/cliui-8.0.2.tgz",
+                "derived_extension": "unknown",
+                "size": 731
+              }
+            ]
+          },
+          "project_evidences": [
+            {
+              "evidence": {
+                "title": "Open Source Project with Few Published Versions",
+                "behavior": "The source project has published only a few versions of the package",
+                "details": "The source project has published only 1 version(s) of the package. These versions are: \n\n- 8.0.2\n  Published at: seconds:1682997868\n\n\nThis could indicate that the package is immature, not well maintained or potentially malicious.",
+                "confidence": 3,
+                "source": "Package Project Analyzer"
+              }
+            }
+          ],
+          "analyzed_at": {
+            "seconds": 1737465062,
+            "nanos": 145907529
+          },
+          "inference": {
+            "confidence": 2,
+            "details": "The package is not a malware because the evidence presented is insufficient to make that determination.  Evidence 0 highlights that the project has only published one version of the package. While this *could* indicate immaturity, poor maintenance, or malicious intent, it's not conclusive evidence of malware.  A single version doesn't automatically equate to malicious activity. Many legitimate open-source projects start with a single release and gradually add more versions over time.  The low number of stars and forks on GitHub (372 stars and 43 forks) suggests a relatively small and less-established project, which increases the risk slightly, but again, doesn't definitively prove malicious intent.  The lack of additional evidence, such as suspicious code behavior (no code analysis is provided), positive YARA rule matches, or LLM-based analysis results, prevents a conclusive determination of malware.  More comprehensive analysis is required, including a thorough review of the package's code for vulnerabilities or malicious functionality, before a definitive conclusion can be reached."
+          }
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "82259b5dff69627f": {
+        "data": {
+          "package_detail": {
+            "name": "@isaacs/cliui",
+            "version": "8.0.2",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "easily create complex multi-column command-line-interfaces",
+                "distance": 0,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "@isaacs/cliui",
+                  "version": "8.0.2"
+                }
+              },
+              {
+                "description": "Get the visual width of a string - the number of columns required to display it",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "string-width",
+                  "version": "4.2.3"
+                }
+              },
+              {
+                "description": "Get the visual width of a string - the number of columns required to display it",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "string-width",
+                  "version": "5.1.2"
+                }
+              },
+              {
+                "description": "Strip ANSI escape codes from a string",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "strip-ansi",
+                  "version": "6.0.1"
+                }
+              },
+              {
+                "description": "Strip ANSI escape codes from a string",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "strip-ansi",
+                  "version": "7.1.0"
+                }
+              },
+              {
+                "description": "Wordwrap a string with ANSI escape codes",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "wrap-ansi",
+                  "version": "7.0.0"
+                }
+              },
+              {
+                "description": "Wordwrap a string with ANSI escape codes",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "wrap-ansi",
+                  "version": "8.1.0"
+                }
+              },
+              {
+                "description": "Regular expression for matching ANSI escape codes",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "ansi-regex",
+                  "version": "5.0.1"
+                }
+              },
+              {
+                "description": "Regular expression for matching ANSI escape codes",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "ansi-regex",
+                  "version": "6.1.0"
+                }
+              },
+              {
+                "description": "ANSI escape codes for styling strings in the terminal",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "ansi-styles",
+                  "version": "4.3.0"
+                }
+              },
+              {
+                "description": "ANSI escape codes for styling strings in the terminal",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "ansi-styles",
+                  "version": "6.2.1"
+                }
+              },
+              {
+                "description": "Get East Asian Width from a character.",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "eastasianwidth",
+                  "version": "0.2.0"
+                }
+              },
+              {
+                "description": "A regular expression to match all Emoji-only symbols as per the Unicode Standard.",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "emoji-regex",
+                  "version": "8.0.0"
+                }
+              },
+              {
+                "description": "A regular expression to match all Emoji-only symbols as per the Unicode Standard.",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "emoji-regex",
+                  "version": "9.2.2"
+                }
+              },
+              {
+                "description": "Check if the character represented by a given Unicode code point is fullwidth",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "is-fullwidth-code-point",
+                  "version": "3.0.0"
+                }
+              },
+              {
+                "description": "Plain color conversion functions",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "color-convert",
+                  "version": "2.0.1"
+                }
+              },
+              {
+                "description": "A list of color names and its values",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "color-name",
+                  "version": "1.1.4"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 6,
+              "indirect_dependents": 10,
+              "total_dependents": 16
+            },
+            "licenses": [
+              "ISC"
+            ],
+            "package_current_version": "8.0.2",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "@isaacs/cliui",
+              "version": "8.0.2"
+            },
+            "projects": [
+              {
+                "display_name": "yargs/cliui",
+                "forks": 43,
+                "issues": 13,
+                "link": "https://github.com/yargs/cliui",
+                "name": "yargs/cliui",
+                "stars": 375,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 4/16 approved changesets -- score normalized to 2",
+                    "score": 2
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "5 commit(s) and 7 issue activity found in the last 90 days -- score normalized to 10",
+                    "score": 10
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no dangerous workflow patterns detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "detected GitHub workflow tokens with excessive permissions",
+                    "score": 0
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file not detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "0 existing vulnerabilities detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                    "score": -1
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                    "score": 0
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "2737977df41e728bd8c7d3ca0658498273cecce5",
+                  "name": "github.com/yargs/cliui"
+                },
+                "score": 5,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JJ4E8F4V8P2BVHMKZDNDV0WC",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "@isaacs/cliui"
+                },
+                "version": "8.0.2"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/@isaacs/cliui/-/cliui-8.0.2.tgz",
+                "sha256": "35ae3c68fc09db09a73c223c9c96e742818a85cb3e9ae6574876b1577740e4c2"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/build/index.cjs",
+                    "origin": "https://registry.npmjs.org/@isaacs/cliui/-/cliui-8.0.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 10398
+                  },
+                  {
+                    "key": "package/build/index.d.cts",
+                    "origin": "https://registry.npmjs.org/@isaacs/cliui/-/cliui-8.0.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1050
+                  },
+                  {
+                    "key": "package/build/lib/index.js",
+                    "origin": "https://registry.npmjs.org/@isaacs/cliui/-/cliui-8.0.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 10100
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/@isaacs/cliui/-/cliui-8.0.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2164
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/@isaacs/cliui/-/cliui-8.0.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3055
+                  },
+                  {
+                    "key": "package/index.mjs",
+                    "origin": "https://registry.npmjs.org/@isaacs/cliui/-/cliui-8.0.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 299
+                  },
+                  {
+                    "key": "package/LICENSE.txt",
+                    "origin": "https://registry.npmjs.org/@isaacs/cliui/-/cliui-8.0.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 731
+                  }
+                ]
+              },
+              "project_evidences": [
+                {
+                  "evidence": {
+                    "title": "Open Source Project with Few Published Versions",
+                    "behavior": "The source project has published only a few versions of the package",
+                    "details": "The source project has published only 1 version(s) of the package. These versions are: \n\n- 8.0.2\n  Published at: seconds:1682997868\n\n\nThis could indicate that the package is immature, not well maintained or potentially malicious.",
+                    "confidence": 3,
+                    "source": "Package Project Analyzer"
+                  }
+                }
+              ],
+              "analyzed_at": {
+                "seconds": 1737465062,
+                "nanos": 145907529
+              },
+              "inference": {
+                "confidence": 2,
+                "details": "The package is not a malware because the evidence presented is insufficient to make that determination.  Evidence 0 highlights that the project has only published one version of the package. While this *could* indicate immaturity, poor maintenance, or malicious intent, it's not conclusive evidence of malware.  A single version doesn't automatically equate to malicious activity. Many legitimate open-source projects start with a single release and gradually add more versions over time.  The low number of stars and forks on GitHub (372 stars and 43 forks) suggests a relatively small and less-established project, which increases the risk slightly, but again, doesn't definitively prove malicious intent.  The lack of additional evidence, such as suspicious code behavior (no code analysis is provided), positive YARA rule matches, or LLM-based analysis results, prevents a conclusive determination of malware.  More comprehensive analysis is required, including a thorough review of the package's code for vulnerabilities or malicious functionality, before a definitive conclusion can be reached."
+              }
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

@@ -7,11 +7,10 @@ import (
 	scalibrlayerimage "github.com/google/osv-scalibr/artifact/image/layerscanning/image"
 	"github.com/google/osv-scalibr/binary/platform"
 	"github.com/google/osv-scalibr/converter"
-	scalibrfs "github.com/google/osv-scalibr/fs"
-	"github.com/google/osv-scalibr/plugin"
-	//"github.com/google/osv-scalibr/converter"
 	el "github.com/google/osv-scalibr/extractor/filesystem/list"
 	sl "github.com/google/osv-scalibr/extractor/standalone/list"
+	scalibrfs "github.com/google/osv-scalibr/fs"
+	"github.com/google/osv-scalibr/plugin"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 )
@@ -80,8 +79,21 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 
 	manifests := make(map[string]*models.PackageManifest)
 
+	packagePurlCache := make(map[string]bool)
+
 	for _, pkg := range result.Inventory.Packages {
-		pkgPurl := converter.ToPURL(pkg)
+		pkgPurl := converter.ToPURL(pkg).String()
+
+		// Check if we already added this packages with some-other location (i.e., this package is found somewhere else also)
+		if _, ok := packagePurlCache[pkgPurl]; ok {
+			// Cache HIT - Continue
+			continue
+		}
+
+		// Cache MISS
+		// Add this into cache
+		packagePurlCache[pkgPurl] = true
+
 		key := pkg.Ecosystem()
 
 		for _, location := range pkg.Locations {
@@ -89,7 +101,7 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 		}
 
 		if _, ok := manifests[key]; !ok {
-			manifests[key] = models.NewPackageManifestFromPurl(pkgPurl.String(), pkg.Ecosystem())
+			manifests[key] = models.NewPackageManifestFromPurl(pkgPurl, pkg.Ecosystem())
 		}
 
 		pkgDetail := models.NewPackageDetail(pkg.Ecosystem(), pkg.Name, pkg.Version)

@@ -1,0 +1,999 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "ip-address@9.0.5",
+    "display_path": ""
+  },
+  "path": "pkg:npm/ip-address@9.0.5",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "ip-address",
+        "version": "9.0.5",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "A library for parsing IPv4 and IPv6 IP addresses in node and the browser.",
+            "distance": 0,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "ip-address",
+              "version": "9.0.5"
+            }
+          },
+          {
+            "description": "The jsbn library is a fast, portable implementation of large-number math in pure JavaScript, enabling public-key crypto and other applications on desktop and mobile browsers.",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "jsbn",
+              "version": "1.1.0"
+            }
+          },
+          {
+            "description": "JavaScript sprintf implementation",
+            "distance": 1,
+            "licenses": [
+              "BSD-3-Clause"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "sprintf-js",
+              "version": "1.1.3"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 2,
+          "indirect_dependents": 0,
+          "total_dependents": 2
+        },
+        "licenses": [
+          "MIT"
+        ],
+        "package_current_version": "10.0.1",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "ip-address",
+          "version": "9.0.5"
+        },
+        "projects": [
+          {
+            "display_name": "beaugunderson/ip-address",
+            "forks": 73,
+            "issues": 34,
+            "link": "https://github.com/beaugunderson/ip-address",
+            "name": "beaugunderson/ip-address",
+            "stars": 592,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Token-Permissions",
+                "reason": "No tokens found",
+                "score": -1
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no workflows found",
+                "score": -1
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Code-Review",
+                "reason": "Found 3/28 approved changesets -- score normalized to 1",
+                "score": 1
+              },
+              {
+                "name": "Maintained",
+                "reason": "0 commit(s) and 1 issue activity found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "no dependencies found",
+                "score": -1
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                "score": -1
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "10 existing vulnerabilities detected",
+                "score": 0
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "9d71112336c3b38faad691500ee384af1661bc9b",
+              "name": "github.com/beaugunderson/ip-address"
+            },
+            "score": 2.1,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JP02R218X475W4YMM47QA322",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "ip-address"
+            },
+            "version": "9.0.5"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+            "sha256": "9c15d24494df815bbd186692840ecbb9bccfc426c62ac5b604be3cf7b0d276cb"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/LICENSE",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 1061
+              },
+              {
+                "key": "package/dist/address-error.js",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 382
+              },
+              {
+                "key": "package/dist/common.js",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 736
+              },
+              {
+                "key": "package/dist/v4/constants.js",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 431
+              },
+              {
+                "key": "package/dist/v6/constants.js",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 2042
+              },
+              {
+                "key": "package/dist/v6/helpers.js",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 1309
+              },
+              {
+                "key": "package/dist/ip-address.js",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 1740
+              },
+              {
+                "key": "package/dist/ipv4.js",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 6384
+              },
+              {
+                "key": "package/dist/ipv6.js",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 22913
+              },
+              {
+                "key": "package/dist/v6/regular-expressions.js",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 3633
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 2147
+              },
+              {
+                "key": "package/dist/address-error.d.ts.map",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 228
+              },
+              {
+                "key": "package/dist/address-error.js.map",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 337
+              },
+              {
+                "key": "package/dist/common.d.ts.map",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 393
+              },
+              {
+                "key": "package/dist/common.js.map",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 672
+              },
+              {
+                "key": "package/dist/v4/constants.d.ts.map",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 243
+              },
+              {
+                "key": "package/dist/v6/constants.d.ts.map",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 626
+              },
+              {
+                "key": "package/dist/v4/constants.js.map",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 243
+              },
+              {
+                "key": "package/dist/v6/constants.js.map",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 1229
+              },
+              {
+                "key": "package/dist/v6/helpers.d.ts.map",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 417
+              },
+              {
+                "key": "package/dist/v6/helpers.js.map",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 1276
+              },
+              {
+                "key": "package/dist/ip-address.d.ts.map",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 398
+              },
+              {
+                "key": "package/dist/ip-address.js.map",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 296
+              },
+              {
+                "key": "package/dist/ipv4.d.ts.map",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 1580
+              },
+              {
+                "key": "package/dist/ipv4.js.map",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 5940
+              },
+              {
+                "key": "package/dist/ipv6.d.ts.map",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 3606
+              },
+              {
+                "key": "package/dist/ipv6.js.map",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 22696
+              },
+              {
+                "key": "package/dist/v6/regular-expressions.d.ts.map",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 445
+              },
+              {
+                "key": "package/dist/v6/regular-expressions.js.map",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 2669
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 4788
+              },
+              {
+                "key": "package/dist/address-error.d.ts",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 179
+              },
+              {
+                "key": "package/src/address-error.ts",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 263
+              },
+              {
+                "key": "package/dist/common.d.ts",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 370
+              },
+              {
+                "key": "package/src/common.ts",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 728
+              },
+              {
+                "key": "package/dist/v4/constants.d.ts",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 192
+              },
+              {
+                "key": "package/dist/v6/constants.d.ts",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 1068
+              },
+              {
+                "key": "package/src/v4/constants.ts",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 288
+              },
+              {
+                "key": "package/src/v6/constants.ts",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 2379
+              },
+              {
+                "key": "package/dist/v6/helpers.d.ts",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 629
+              },
+              {
+                "key": "package/src/v6/helpers.ts",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 1464
+              },
+              {
+                "key": "package/dist/ip-address.d.ts",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 325
+              },
+              {
+                "key": "package/src/ip-address.ts",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 260
+              },
+              {
+                "key": "package/dist/ipv4.d.ts",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 5441
+              },
+              {
+                "key": "package/src/ipv4.ts",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 8897
+              },
+              {
+                "key": "package/dist/ipv6.d.ts",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 12239
+              },
+              {
+                "key": "package/src/ipv6.ts",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 31049
+              },
+              {
+                "key": "package/dist/v6/regular-expressions.d.ts",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 428
+              },
+              {
+                "key": "package/src/v6/regular-expressions.ts",
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 2529
+              }
+            ]
+          },
+          "analyzed_at": {
+            "seconds": 1741612420,
+            "nanos": 368714884
+          },
+          "inference": {
+            "confidence": 1,
+            "details": "No malware evidence were identified by any tool in the workflow",
+            "summary": "No malware evidence were identified by any tool in the workflow"
+          },
+          "report_id": "01JP02R218X475W4YMM47QA322"
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "6ff9a67875c2bb04": {
+        "data": {
+          "package_detail": {
+            "name": "ip-address",
+            "version": "9.0.5",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "A library for parsing IPv4 and IPv6 IP addresses in node and the browser.",
+                "distance": 0,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "ip-address",
+                  "version": "9.0.5"
+                }
+              },
+              {
+                "description": "The jsbn library is a fast, portable implementation of large-number math in pure JavaScript, enabling public-key crypto and other applications on desktop and mobile browsers.",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "jsbn",
+                  "version": "1.1.0"
+                }
+              },
+              {
+                "description": "JavaScript sprintf implementation",
+                "distance": 1,
+                "licenses": [
+                  "BSD-3-Clause"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "sprintf-js",
+                  "version": "1.1.3"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 2,
+              "indirect_dependents": 0,
+              "total_dependents": 2
+            },
+            "licenses": [
+              "MIT"
+            ],
+            "package_current_version": "10.0.1",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "ip-address",
+              "version": "9.0.5"
+            },
+            "projects": [
+              {
+                "display_name": "beaugunderson/ip-address",
+                "forks": 73,
+                "issues": 34,
+                "link": "https://github.com/beaugunderson/ip-address",
+                "name": "beaugunderson/ip-address",
+                "stars": 592,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "No tokens found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no workflows found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 3/28 approved changesets -- score normalized to 1",
+                    "score": 1
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "0 commit(s) and 1 issue activity found in the last 90 days -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "no dependencies found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file not detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                    "score": -1
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "10 existing vulnerabilities detected",
+                    "score": 0
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "9d71112336c3b38faad691500ee384af1661bc9b",
+                  "name": "github.com/beaugunderson/ip-address"
+                },
+                "score": 2.1,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JP02R218X475W4YMM47QA322",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "ip-address"
+                },
+                "version": "9.0.5"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                "sha256": "9c15d24494df815bbd186692840ecbb9bccfc426c62ac5b604be3cf7b0d276cb"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/LICENSE",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1061
+                  },
+                  {
+                    "key": "package/dist/address-error.js",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 382
+                  },
+                  {
+                    "key": "package/dist/common.js",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 736
+                  },
+                  {
+                    "key": "package/dist/v4/constants.js",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 431
+                  },
+                  {
+                    "key": "package/dist/v6/constants.js",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2042
+                  },
+                  {
+                    "key": "package/dist/v6/helpers.js",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1309
+                  },
+                  {
+                    "key": "package/dist/ip-address.js",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1740
+                  },
+                  {
+                    "key": "package/dist/ipv4.js",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 6384
+                  },
+                  {
+                    "key": "package/dist/ipv6.js",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 22913
+                  },
+                  {
+                    "key": "package/dist/v6/regular-expressions.js",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3633
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2147
+                  },
+                  {
+                    "key": "package/dist/address-error.d.ts.map",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 228
+                  },
+                  {
+                    "key": "package/dist/address-error.js.map",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 337
+                  },
+                  {
+                    "key": "package/dist/common.d.ts.map",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 393
+                  },
+                  {
+                    "key": "package/dist/common.js.map",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 672
+                  },
+                  {
+                    "key": "package/dist/v4/constants.d.ts.map",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 243
+                  },
+                  {
+                    "key": "package/dist/v6/constants.d.ts.map",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 626
+                  },
+                  {
+                    "key": "package/dist/v4/constants.js.map",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 243
+                  },
+                  {
+                    "key": "package/dist/v6/constants.js.map",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1229
+                  },
+                  {
+                    "key": "package/dist/v6/helpers.d.ts.map",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 417
+                  },
+                  {
+                    "key": "package/dist/v6/helpers.js.map",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1276
+                  },
+                  {
+                    "key": "package/dist/ip-address.d.ts.map",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 398
+                  },
+                  {
+                    "key": "package/dist/ip-address.js.map",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 296
+                  },
+                  {
+                    "key": "package/dist/ipv4.d.ts.map",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1580
+                  },
+                  {
+                    "key": "package/dist/ipv4.js.map",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 5940
+                  },
+                  {
+                    "key": "package/dist/ipv6.d.ts.map",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3606
+                  },
+                  {
+                    "key": "package/dist/ipv6.js.map",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 22696
+                  },
+                  {
+                    "key": "package/dist/v6/regular-expressions.d.ts.map",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 445
+                  },
+                  {
+                    "key": "package/dist/v6/regular-expressions.js.map",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2669
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 4788
+                  },
+                  {
+                    "key": "package/dist/address-error.d.ts",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 179
+                  },
+                  {
+                    "key": "package/src/address-error.ts",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 263
+                  },
+                  {
+                    "key": "package/dist/common.d.ts",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 370
+                  },
+                  {
+                    "key": "package/src/common.ts",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 728
+                  },
+                  {
+                    "key": "package/dist/v4/constants.d.ts",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 192
+                  },
+                  {
+                    "key": "package/dist/v6/constants.d.ts",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1068
+                  },
+                  {
+                    "key": "package/src/v4/constants.ts",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 288
+                  },
+                  {
+                    "key": "package/src/v6/constants.ts",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2379
+                  },
+                  {
+                    "key": "package/dist/v6/helpers.d.ts",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 629
+                  },
+                  {
+                    "key": "package/src/v6/helpers.ts",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1464
+                  },
+                  {
+                    "key": "package/dist/ip-address.d.ts",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 325
+                  },
+                  {
+                    "key": "package/src/ip-address.ts",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 260
+                  },
+                  {
+                    "key": "package/dist/ipv4.d.ts",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 5441
+                  },
+                  {
+                    "key": "package/src/ipv4.ts",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 8897
+                  },
+                  {
+                    "key": "package/dist/ipv6.d.ts",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 12239
+                  },
+                  {
+                    "key": "package/src/ipv6.ts",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 31049
+                  },
+                  {
+                    "key": "package/dist/v6/regular-expressions.d.ts",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 428
+                  },
+                  {
+                    "key": "package/src/v6/regular-expressions.ts",
+                    "origin": "https://registry.npmjs.org/ip-address/-/ip-address-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2529
+                  }
+                ]
+              },
+              "analyzed_at": {
+                "seconds": 1741612420,
+                "nanos": 368714884
+              },
+              "inference": {
+                "confidence": 1,
+                "details": "No malware evidence were identified by any tool in the workflow",
+                "summary": "No malware evidence were identified by any tool in the workflow"
+              },
+              "report_id": "01JP02R218X475W4YMM47QA322"
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

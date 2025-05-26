@@ -1,0 +1,311 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "just-diff-apply@5.5.0",
+    "display_path": ""
+  },
+  "path": "pkg:npm/just-diff-apply@5.5.0",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "just-diff-apply",
+        "version": "5.5.0",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Apply a diff to an object. Optionally supports jsonPatch protocol",
+            "distance": 0,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "just-diff-apply",
+              "version": "5.5.0"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "MIT"
+        ],
+        "package_current_version": "5.5.0",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "just-diff-apply",
+          "version": "5.5.0"
+        },
+        "projects": [
+          {
+            "display_name": "angus-c/just",
+            "forks": 209,
+            "issues": 52,
+            "link": "https://github.com/angus-c/just",
+            "name": "angus-c/just",
+            "stars": 6152,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Maintained",
+                "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "Code-Review",
+                "reason": "Found 10/30 approved changesets -- score normalized to 3",
+                "score": 3
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file detected",
+                "score": 10
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "detected GitHub workflow tokens with excessive permissions",
+                "score": 0
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                "score": -1
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "46 existing vulnerabilities detected",
+                "score": 0
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "d8c5dd18941062d8db7e9310ecc8f53fd607df54",
+              "name": "github.com/angus-c/just"
+            },
+            "score": 3.8,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": null,
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "d97acdc03b7679b9": {
+        "data": {
+          "package_detail": {
+            "name": "just-diff-apply",
+            "version": "5.5.0",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "Apply a diff to an object. Optionally supports jsonPatch protocol",
+                "distance": 0,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "just-diff-apply",
+                  "version": "5.5.0"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "MIT"
+            ],
+            "package_current_version": "5.5.0",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "just-diff-apply",
+              "version": "5.5.0"
+            },
+            "projects": [
+              {
+                "display_name": "angus-c/just",
+                "forks": 209,
+                "issues": 52,
+                "link": "https://github.com/angus-c/just",
+                "name": "angus-c/just",
+                "stars": 6152,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Maintained",
+                    "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no dangerous workflow patterns detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 10/30 approved changesets -- score normalized to 3",
+                    "score": 3
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "detected GitHub workflow tokens with excessive permissions",
+                    "score": 0
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                    "score": -1
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "46 existing vulnerabilities detected",
+                    "score": 0
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "d8c5dd18941062d8db7e9310ecc8f53fd607df54",
+                  "name": "github.com/angus-c/just"
+                },
+                "score": 3.8,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": null,
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

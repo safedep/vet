@@ -1,0 +1,419 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "package-json-from-dist@1.0.0",
+    "display_path": ""
+  },
+  "path": "pkg:npm/package-json-from-dist@1.0.0",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "package-json-from-dist",
+        "version": "1.0.0",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Load the local package.json from either src or dist folder",
+            "distance": 0,
+            "licenses": [
+              "BlueOak-1.0.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "package-json-from-dist",
+              "version": "1.0.0"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "BlueOak-1.0.0"
+        ],
+        "package_current_version": "1.0.1",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "package-json-from-dist",
+          "version": "1.0.0"
+        },
+        "projects": [
+          {
+            "display_name": "isaacs/package-json-from-dist",
+            "forks": 0,
+            "issues": 0,
+            "link": "https://github.com/isaacs/package-json-from-dist",
+            "name": "isaacs/package-json-from-dist",
+            "stars": 9,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [],
+            "date": "0001-01-01",
+            "repository": {
+              "commit": "",
+              "name": ""
+            },
+            "score": 0,
+            "scorecard": {
+              "commit": "",
+              "version": ""
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JP2HVFYVAFVBN7SKPFHCJCMZ",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "package-json-from-dist"
+            },
+            "version": "1.0.0"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+            "sha256": "4589021dce988aa87c75f542e30ad6a6f1cb0cb83ba27923cf96383032a91e94"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/dist/commonjs/index.js",
+                "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 1347
+              },
+              {
+                "key": "package/dist/esm/index.js",
+                "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 1246
+              },
+              {
+                "key": "package/dist/commonjs/package.json",
+                "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 25
+              },
+              {
+                "key": "package/dist/esm/package.json",
+                "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 23
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 1733
+              },
+              {
+                "key": "package/dist/commonjs/index.d.ts.map",
+                "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 342
+              },
+              {
+                "key": "package/dist/esm/index.d.ts.map",
+                "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 342
+              },
+              {
+                "key": "package/dist/commonjs/index.js.map",
+                "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 5952
+              },
+              {
+                "key": "package/dist/esm/index.js.map",
+                "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 5984
+              },
+              {
+                "key": "package/LICENSE.md",
+                "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 1764
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 3097
+              },
+              {
+                "key": "package/dist/commonjs/index.d.ts",
+                "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 2996
+              },
+              {
+                "key": "package/dist/esm/index.d.ts",
+                "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 2996
+              }
+            ]
+          },
+          "project_evidences": [
+            {
+              "evidence": {
+                "title": "Open Source Project with Few Published Versions",
+                "behavior": "The source project has published only a few versions of the package",
+                "details": "The source project has published only 2 version(s) of the package. These versions are: \n\n- 1.0.0\n  Published at: 2024-05-14-17:57:55\n- 1.0.1\n  Published at: 2024-09-26-18:59:08\n\n\nThis could indicate that the package is immature, not well maintained or potentially malicious.",
+                "confidence": 3,
+                "source": "Package Project Analyzer"
+              }
+            },
+            {
+              "evidence": {
+                "title": "Untrustworthy source project",
+                "behavior": "Untrustworthy source project",
+                "details": "The source project at `https://github.com/isaacs/package-json-from-dist` for the package is not popular and has a low OpenSSF score. This could indicate that the package is not well maintained, has low community support or is potentially malicious.",
+                "confidence": 3,
+                "source": "Package Project Analyzer"
+              }
+            }
+          ],
+          "analyzed_at": {
+            "seconds": 1741695687,
+            "nanos": 740574491
+          },
+          "inference": {
+            "confidence": 2,
+            "details": "The provided evidence does not indicate malicious behavior.  While Evidence 0 highlights a small number of published versions, and Evidence 1 points to a low OpenSSF score and lack of popularity for the project, neither constitutes definitive proof of malicious intent.  Low popularity and few versions can simply reflect a small, niche project or a recently published one that hasn't yet gained traction.  The absence of additional evidence, such as suspicious code analysis, unusual file contents, or reported malicious activity, prevents a conclusion of malware.  The analysis lacks crucial information such as LLM-based file analysis results or YARA scan results (even though we acknowledge their limitations).  Without further data, it's premature to label this package as malware.",
+            "summary": "Insufficient evidence to classify as malware. Low popularity and few versions are not conclusive indicators of malicious intent."
+          },
+          "report_id": "01JP2HVFYVAFVBN7SKPFHCJCMZ"
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "9e323db7276b3a7c": {
+        "data": {
+          "package_detail": {
+            "name": "package-json-from-dist",
+            "version": "1.0.0",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "Load the local package.json from either src or dist folder",
+                "distance": 0,
+                "licenses": [
+                  "BlueOak-1.0.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "package-json-from-dist",
+                  "version": "1.0.0"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "BlueOak-1.0.0"
+            ],
+            "package_current_version": "1.0.1",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "package-json-from-dist",
+              "version": "1.0.0"
+            },
+            "projects": [
+              {
+                "display_name": "isaacs/package-json-from-dist",
+                "forks": 0,
+                "issues": 0,
+                "link": "https://github.com/isaacs/package-json-from-dist",
+                "name": "isaacs/package-json-from-dist",
+                "stars": 9,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [],
+                "date": "0001-01-01",
+                "repository": {
+                  "commit": "",
+                  "name": ""
+                },
+                "score": 0,
+                "scorecard": {
+                  "commit": "",
+                  "version": ""
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JP2HVFYVAFVBN7SKPFHCJCMZ",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "package-json-from-dist"
+                },
+                "version": "1.0.0"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                "sha256": "4589021dce988aa87c75f542e30ad6a6f1cb0cb83ba27923cf96383032a91e94"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/dist/commonjs/index.js",
+                    "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1347
+                  },
+                  {
+                    "key": "package/dist/esm/index.js",
+                    "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1246
+                  },
+                  {
+                    "key": "package/dist/commonjs/package.json",
+                    "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 25
+                  },
+                  {
+                    "key": "package/dist/esm/package.json",
+                    "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 23
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1733
+                  },
+                  {
+                    "key": "package/dist/commonjs/index.d.ts.map",
+                    "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 342
+                  },
+                  {
+                    "key": "package/dist/esm/index.d.ts.map",
+                    "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 342
+                  },
+                  {
+                    "key": "package/dist/commonjs/index.js.map",
+                    "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 5952
+                  },
+                  {
+                    "key": "package/dist/esm/index.js.map",
+                    "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 5984
+                  },
+                  {
+                    "key": "package/LICENSE.md",
+                    "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1764
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3097
+                  },
+                  {
+                    "key": "package/dist/commonjs/index.d.ts",
+                    "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2996
+                  },
+                  {
+                    "key": "package/dist/esm/index.d.ts",
+                    "origin": "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2996
+                  }
+                ]
+              },
+              "project_evidences": [
+                {
+                  "evidence": {
+                    "title": "Open Source Project with Few Published Versions",
+                    "behavior": "The source project has published only a few versions of the package",
+                    "details": "The source project has published only 2 version(s) of the package. These versions are: \n\n- 1.0.0\n  Published at: 2024-05-14-17:57:55\n- 1.0.1\n  Published at: 2024-09-26-18:59:08\n\n\nThis could indicate that the package is immature, not well maintained or potentially malicious.",
+                    "confidence": 3,
+                    "source": "Package Project Analyzer"
+                  }
+                },
+                {
+                  "evidence": {
+                    "title": "Untrustworthy source project",
+                    "behavior": "Untrustworthy source project",
+                    "details": "The source project at `https://github.com/isaacs/package-json-from-dist` for the package is not popular and has a low OpenSSF score. This could indicate that the package is not well maintained, has low community support or is potentially malicious.",
+                    "confidence": 3,
+                    "source": "Package Project Analyzer"
+                  }
+                }
+              ],
+              "analyzed_at": {
+                "seconds": 1741695687,
+                "nanos": 740574491
+              },
+              "inference": {
+                "confidence": 2,
+                "details": "The provided evidence does not indicate malicious behavior.  While Evidence 0 highlights a small number of published versions, and Evidence 1 points to a low OpenSSF score and lack of popularity for the project, neither constitutes definitive proof of malicious intent.  Low popularity and few versions can simply reflect a small, niche project or a recently published one that hasn't yet gained traction.  The absence of additional evidence, such as suspicious code analysis, unusual file contents, or reported malicious activity, prevents a conclusion of malware.  The analysis lacks crucial information such as LLM-based file analysis results or YARA scan results (even though we acknowledge their limitations).  Without further data, it's premature to label this package as malware.",
+                "summary": "Insufficient evidence to classify as malware. Low popularity and few versions are not conclusive indicators of malicious intent."
+              },
+              "report_id": "01JP2HVFYVAFVBN7SKPFHCJCMZ"
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

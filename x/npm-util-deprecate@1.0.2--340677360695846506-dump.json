@@ -1,0 +1,465 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "util-deprecate@1.0.2",
+    "display_path": ""
+  },
+  "path": "pkg:npm/util-deprecate@1.0.2",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "util-deprecate",
+        "version": "1.0.2",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "The Node.js `util.deprecate()` function with browser support",
+            "distance": 0,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "util-deprecate",
+              "version": "1.0.2"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "MIT"
+        ],
+        "package_current_version": "1.0.2",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "util-deprecate",
+          "version": "1.0.2"
+        },
+        "projects": [
+          {
+            "display_name": "TooTallNate/util-deprecate",
+            "forks": 15,
+            "issues": 1,
+            "link": "https://github.com/tootallnate/util-deprecate",
+            "name": "tootallnate/util-deprecate",
+            "stars": 38,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Code-Review",
+                "reason": "Found 2/9 approved changesets -- score normalized to 2",
+                "score": 2
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no workflows found",
+                "score": -1
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "No tokens found",
+                "score": -1
+              },
+              {
+                "name": "Maintained",
+                "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "no dependencies found",
+                "score": -1
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "0 existing vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "4bcc600d20e3a53ea27fa52c4d1fc49cc2d0eabb",
+              "name": "github.com/TooTallNate/util-deprecate"
+            },
+            "score": 3.3,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JHQ435EX6RYAF05P1E5YB875",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "util-deprecate"
+            },
+            "version": "1.0.2"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",
+            "sha256": "79a1de983c1b393180c47456d6b73caab278a00ea6e37d5c6675f2dcdec2a3e5"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",
+                "derived_extension": "unknown",
+                "size": 694
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",
+                "derived_extension": "unknown",
+                "size": 1666
+              },
+              {
+                "key": "package/LICENSE",
+                "origin": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",
+                "derived_extension": "unknown",
+                "size": 1102
+              },
+              {
+                "key": "package/browser.js",
+                "origin": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",
+                "derived_extension": "unknown",
+                "size": 1614
+              },
+              {
+                "key": "package/node.js",
+                "origin": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",
+                "derived_extension": "unknown",
+                "size": 123
+              },
+              {
+                "key": "package/History.md",
+                "origin": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",
+                "derived_extension": "unknown",
+                "size": 282
+              }
+            ]
+          },
+          "project_evidences": [
+            {
+              "evidence": {
+                "title": "Open Source Project with Few Published Versions",
+                "behavior": "The source project has published only a few versions of the package",
+                "details": "The source project has published only 3 version(s) of the package. These versions are: \n\n- 1.0.0\n  Published at: seconds:1398877832\n- 1.0.1\n  Published at: seconds:1416946093\n- 1.0.2\n  Published at: seconds:1444243060\n\n\nThis could indicate that the package is immature, not well maintained or potentially malicious.",
+                "confidence": 3,
+                "source": "Package Project Analyzer"
+              }
+            }
+          ],
+          "analyzed_at": {
+            "seconds": 1737016685,
+            "nanos": 90574560
+          },
+          "inference": {
+            "confidence": 2,
+            "details": "The package is not a malware because the evidence presented is insufficient to make such a determination.  Evidence 0 points to a low number of published versions (only three), suggesting immaturity or lack of maintenance.  This is a *risk factor*, not definitive proof of malicious intent.  Low numbers of stars and forks on GitHub (38 stars, 15 forks) also indicate a less-vetted project, increasing the risk, but again, this is not conclusive evidence of malware.  The absence of other evidence, such as positive YARA rule matches (noted as noisy and unreliable), LLM analysis (not available), or any indication of malicious code within the package itself, prevents a conclusive assessment.  To label this package as malware would be a false positive based on the provided data.  Further investigation, including code review and analysis of its functionality, is necessary to determine if it poses a threat."
+          }
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "537fbc216091afcf": {
+        "data": {
+          "package_detail": {
+            "name": "util-deprecate",
+            "version": "1.0.2",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "The Node.js `util.deprecate()` function with browser support",
+                "distance": 0,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "util-deprecate",
+                  "version": "1.0.2"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "MIT"
+            ],
+            "package_current_version": "1.0.2",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "util-deprecate",
+              "version": "1.0.2"
+            },
+            "projects": [
+              {
+                "display_name": "TooTallNate/util-deprecate",
+                "forks": 15,
+                "issues": 1,
+                "link": "https://github.com/tootallnate/util-deprecate",
+                "name": "tootallnate/util-deprecate",
+                "stars": 38,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 2/9 approved changesets -- score normalized to 2",
+                    "score": 2
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no workflows found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "No tokens found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "no dependencies found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file not detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "0 existing vulnerabilities detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "branch protection not enabled on development/release branches",
+                    "score": 0
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                    "score": 0
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "4bcc600d20e3a53ea27fa52c4d1fc49cc2d0eabb",
+                  "name": "github.com/TooTallNate/util-deprecate"
+                },
+                "score": 3.3,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JHQ435EX6RYAF05P1E5YB875",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "util-deprecate"
+                },
+                "version": "1.0.2"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",
+                "sha256": "79a1de983c1b393180c47456d6b73caab278a00ea6e37d5c6675f2dcdec2a3e5"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 694
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1666
+                  },
+                  {
+                    "key": "package/LICENSE",
+                    "origin": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1102
+                  },
+                  {
+                    "key": "package/browser.js",
+                    "origin": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1614
+                  },
+                  {
+                    "key": "package/node.js",
+                    "origin": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 123
+                  },
+                  {
+                    "key": "package/History.md",
+                    "origin": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 282
+                  }
+                ]
+              },
+              "project_evidences": [
+                {
+                  "evidence": {
+                    "title": "Open Source Project with Few Published Versions",
+                    "behavior": "The source project has published only a few versions of the package",
+                    "details": "The source project has published only 3 version(s) of the package. These versions are: \n\n- 1.0.0\n  Published at: seconds:1398877832\n- 1.0.1\n  Published at: seconds:1416946093\n- 1.0.2\n  Published at: seconds:1444243060\n\n\nThis could indicate that the package is immature, not well maintained or potentially malicious.",
+                    "confidence": 3,
+                    "source": "Package Project Analyzer"
+                  }
+                }
+              ],
+              "analyzed_at": {
+                "seconds": 1737016685,
+                "nanos": 90574560
+              },
+              "inference": {
+                "confidence": 2,
+                "details": "The package is not a malware because the evidence presented is insufficient to make such a determination.  Evidence 0 points to a low number of published versions (only three), suggesting immaturity or lack of maintenance.  This is a *risk factor*, not definitive proof of malicious intent.  Low numbers of stars and forks on GitHub (38 stars, 15 forks) also indicate a less-vetted project, increasing the risk, but again, this is not conclusive evidence of malware.  The absence of other evidence, such as positive YARA rule matches (noted as noisy and unreliable), LLM analysis (not available), or any indication of malicious code within the package itself, prevents a conclusive assessment.  To label this package as malware would be a false positive based on the provided data.  Further investigation, including code review and analysis of its functionality, is necessary to determine if it poses a threat."
+              }
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

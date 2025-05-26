@@ -1,0 +1,365 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "walk-up-path@3.0.1",
+    "display_path": ""
+  },
+  "path": "pkg:npm/walk-up-path@3.0.1",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "walk-up-path",
+        "version": "3.0.1",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Given a path string, return a generator that walks up the path, emitting each dirname.",
+            "distance": 0,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "walk-up-path",
+              "version": "3.0.1"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "ISC"
+        ],
+        "package_current_version": "4.0.0",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "walk-up-path",
+          "version": "3.0.1"
+        },
+        "projects": []
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JV1W4SXAA1T76N7ENAAW7PEZ",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "walk-up-path"
+            },
+            "version": "3.0.1"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+            "sha256": "6f613ae4b31d6ae5ef0a481da109e9279a8802a29f9cbdbb63529a3e69f972c4"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/LICENSE",
+                "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 748
+              },
+              {
+                "key": "package/dist/cjs/index.js",
+                "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 424,
+                "capability_labels": [
+                  "file:manipulation",
+                  "file:read"
+                ]
+              },
+              {
+                "key": "package/dist/mjs/index.js",
+                "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 289,
+                "capability_labels": [
+                  "file:read",
+                  "file:manipulation"
+                ]
+              },
+              {
+                "key": "package/dist/cjs/package.json",
+                "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 25
+              },
+              {
+                "key": "package/dist/mjs/package.json",
+                "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 23
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 1844
+              },
+              {
+                "key": "package/dist/cjs/index.d.ts.map",
+                "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 149
+              },
+              {
+                "key": "package/dist/mjs/index.d.ts.map",
+                "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 149
+              },
+              {
+                "key": "package/dist/cjs/index.js.map",
+                "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 695
+              },
+              {
+                "key": "package/dist/mjs/index.js.map",
+                "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 709
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 699
+              },
+              {
+                "key": "package/dist/cjs/index.d.ts",
+                "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 116
+              },
+              {
+                "key": "package/dist/mjs/index.d.ts",
+                "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 116
+              }
+            ]
+          },
+          "project_evidences": [
+            {
+              "evidence": {
+                "title": "Untrustworthy source project",
+                "behavior": "Untrustworthy source project",
+                "details": "The source project at `https://github.com/isaacs/walk-up-path` for the package is not popular and has a low OpenSSF score. This could indicate that the package is not well maintained, has low community support or is potentially malicious.",
+                "confidence": 3,
+                "source": "Package Project Analyzer"
+              }
+            }
+          ],
+          "analyzed_at": {
+            "seconds": 1747041022,
+            "nanos": 760219008
+          },
+          "inference": {
+            "confidence": 2,
+            "details": "The evidence suggests a low level of trust due to the project's low popularity (0 stars, 0 forks) and OpenSSF score. This raises a flag, but it's insufficient to classify the package as malware. Low popularity doesn't automatically equate to malicious intent. Further analysis, such as examining the package's code for suspicious behavior, would be needed to determine if the package is actually malicious. Without such evidence, it is safer to assume it is not malware.",
+            "summary": "Low project popularity and OpenSSF score are suspicious, but insufficient to classify as malware without further code analysis."
+          },
+          "report_id": "01JV1W4SXAA1T76N7ENAAW7PEZ"
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "6a9ee649fd718a8d": {
+        "data": {
+          "package_detail": {
+            "name": "walk-up-path",
+            "version": "3.0.1",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "Given a path string, return a generator that walks up the path, emitting each dirname.",
+                "distance": 0,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "walk-up-path",
+                  "version": "3.0.1"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "ISC"
+            ],
+            "package_current_version": "4.0.0",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "walk-up-path",
+              "version": "3.0.1"
+            },
+            "projects": []
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JV1W4SXAA1T76N7ENAAW7PEZ",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "walk-up-path"
+                },
+                "version": "3.0.1"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                "sha256": "6f613ae4b31d6ae5ef0a481da109e9279a8802a29f9cbdbb63529a3e69f972c4"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/LICENSE",
+                    "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 748
+                  },
+                  {
+                    "key": "package/dist/cjs/index.js",
+                    "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 424,
+                    "capability_labels": [
+                      "file:manipulation",
+                      "file:read"
+                    ]
+                  },
+                  {
+                    "key": "package/dist/mjs/index.js",
+                    "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 289,
+                    "capability_labels": [
+                      "file:read",
+                      "file:manipulation"
+                    ]
+                  },
+                  {
+                    "key": "package/dist/cjs/package.json",
+                    "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 25
+                  },
+                  {
+                    "key": "package/dist/mjs/package.json",
+                    "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 23
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1844
+                  },
+                  {
+                    "key": "package/dist/cjs/index.d.ts.map",
+                    "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 149
+                  },
+                  {
+                    "key": "package/dist/mjs/index.d.ts.map",
+                    "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 149
+                  },
+                  {
+                    "key": "package/dist/cjs/index.js.map",
+                    "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 695
+                  },
+                  {
+                    "key": "package/dist/mjs/index.js.map",
+                    "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 709
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 699
+                  },
+                  {
+                    "key": "package/dist/cjs/index.d.ts",
+                    "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 116
+                  },
+                  {
+                    "key": "package/dist/mjs/index.d.ts",
+                    "origin": "https://registry.npmjs.org/walk-up-path/-/walk-up-path-3.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 116
+                  }
+                ]
+              },
+              "project_evidences": [
+                {
+                  "evidence": {
+                    "title": "Untrustworthy source project",
+                    "behavior": "Untrustworthy source project",
+                    "details": "The source project at `https://github.com/isaacs/walk-up-path` for the package is not popular and has a low OpenSSF score. This could indicate that the package is not well maintained, has low community support or is potentially malicious.",
+                    "confidence": 3,
+                    "source": "Package Project Analyzer"
+                  }
+                }
+              ],
+              "analyzed_at": {
+                "seconds": 1747041022,
+                "nanos": 760219008
+              },
+              "inference": {
+                "confidence": 2,
+                "details": "The evidence suggests a low level of trust due to the project's low popularity (0 stars, 0 forks) and OpenSSF score. This raises a flag, but it's insufficient to classify the package as malware. Low popularity doesn't automatically equate to malicious intent. Further analysis, such as examining the package's code for suspicious behavior, would be needed to determine if the package is actually malicious. Without such evidence, it is safer to assume it is not malware.",
+                "summary": "Low project popularity and OpenSSF score are suspicious, but insufficient to classify as malware without further code analysis."
+              },
+              "report_id": "01JV1W4SXAA1T76N7ENAAW7PEZ"
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

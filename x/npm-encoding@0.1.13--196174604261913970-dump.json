@@ -1,0 +1,507 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "encoding@0.1.13",
+    "display_path": ""
+  },
+  "path": "pkg:npm/encoding@0.1.13",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "encoding",
+        "version": "0.1.13",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Convert encodings, uses iconv-lite",
+            "distance": 0,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "encoding",
+              "version": "0.1.13"
+            }
+          },
+          {
+            "description": "Convert character encodings in pure javascript.",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "iconv-lite",
+              "version": "0.6.3"
+            }
+          },
+          {
+            "description": "Modern Buffer API polyfill without footguns",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "safer-buffer",
+              "version": "2.1.2"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 1,
+          "indirect_dependents": 1,
+          "total_dependents": 2
+        },
+        "licenses": [
+          "MIT"
+        ],
+        "package_current_version": "0.1.13",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "encoding",
+          "version": "0.1.13"
+        },
+        "projects": [
+          {
+            "display_name": "andris9/encoding",
+            "forks": 44,
+            "issues": 7,
+            "link": "https://github.com/andris9/encoding",
+            "name": "andris9/encoding",
+            "stars": 92,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "no dependencies found",
+                "score": -1
+              },
+              {
+                "name": "Maintained",
+                "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no workflows found",
+                "score": -1
+              },
+              {
+                "name": "Code-Review",
+                "reason": "Found 5/29 approved changesets -- score normalized to 1",
+                "score": 1
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "No tokens found",
+                "score": -1
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 9
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "19 existing vulnerabilities detected",
+                "score": 0
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "13fe98b031aec2cd1f7e2c5d1a8df74febcdf609",
+              "name": "github.com/andris9/encoding"
+            },
+            "score": 1.8,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JP02P50NKBA2J3Z6F18BS7K6",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "encoding"
+            },
+            "version": "0.1.13"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/encoding/-/encoding-0.1.13.tgz",
+            "sha256": "6cf5b22ca0ee387c5302dcdefd8591c2ada56f1a6d6beaf64f0c021ff28dcf84"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/LICENSE",
+                "origin": "https://registry.npmjs.org/encoding/-/encoding-0.1.13.tgz",
+                "derived_extension": "unknown",
+                "size": 935
+              },
+              {
+                "key": "package/.prettierrc.js",
+                "origin": "https://registry.npmjs.org/encoding/-/encoding-0.1.13.tgz",
+                "derived_extension": "unknown",
+                "size": 155
+              },
+              {
+                "key": "package/lib/encoding.js",
+                "origin": "https://registry.npmjs.org/encoding/-/encoding-0.1.13.tgz",
+                "derived_extension": "unknown",
+                "size": 1449
+              },
+              {
+                "key": "package/test/test.js",
+                "origin": "https://registry.npmjs.org/encoding/-/encoding-0.1.13.tgz",
+                "derived_extension": "unknown",
+                "size": 1118
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/encoding/-/encoding-0.1.13.tgz",
+                "derived_extension": "unknown",
+                "size": 432
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/encoding/-/encoding-0.1.13.tgz",
+                "derived_extension": "unknown",
+                "size": 1379
+              },
+              {
+                "key": "package/.travis.yml",
+                "origin": "https://registry.npmjs.org/encoding/-/encoding-0.1.13.tgz",
+                "derived_extension": "unknown",
+                "size": 505
+              }
+            ]
+          },
+          "analyzed_at": {
+            "seconds": 1741612352,
+            "nanos": 981141742
+          },
+          "inference": {
+            "confidence": 1,
+            "details": "No malware evidence were identified by any tool in the workflow",
+            "summary": "No malware evidence were identified by any tool in the workflow"
+          },
+          "report_id": "01JP02P50NKBA2J3Z6F18BS7K6"
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "bb2700d648733cc2": {
+        "data": {
+          "package_detail": {
+            "name": "encoding",
+            "version": "0.1.13",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "Convert encodings, uses iconv-lite",
+                "distance": 0,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "encoding",
+                  "version": "0.1.13"
+                }
+              },
+              {
+                "description": "Convert character encodings in pure javascript.",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "iconv-lite",
+                  "version": "0.6.3"
+                }
+              },
+              {
+                "description": "Modern Buffer API polyfill without footguns",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "safer-buffer",
+                  "version": "2.1.2"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 1,
+              "indirect_dependents": 1,
+              "total_dependents": 2
+            },
+            "licenses": [
+              "MIT"
+            ],
+            "package_current_version": "0.1.13",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "encoding",
+              "version": "0.1.13"
+            },
+            "projects": [
+              {
+                "display_name": "andris9/encoding",
+                "forks": 44,
+                "issues": 7,
+                "link": "https://github.com/andris9/encoding",
+                "name": "andris9/encoding",
+                "stars": 92,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "no dependencies found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no workflows found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 5/29 approved changesets -- score normalized to 1",
+                    "score": 1
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "No tokens found",
+                    "score": -1
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file not detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 9
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "branch protection not enabled on development/release branches",
+                    "score": 0
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "19 existing vulnerabilities detected",
+                    "score": 0
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "13fe98b031aec2cd1f7e2c5d1a8df74febcdf609",
+                  "name": "github.com/andris9/encoding"
+                },
+                "score": 1.8,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JP02P50NKBA2J3Z6F18BS7K6",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "encoding"
+                },
+                "version": "0.1.13"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/encoding/-/encoding-0.1.13.tgz",
+                "sha256": "6cf5b22ca0ee387c5302dcdefd8591c2ada56f1a6d6beaf64f0c021ff28dcf84"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/LICENSE",
+                    "origin": "https://registry.npmjs.org/encoding/-/encoding-0.1.13.tgz",
+                    "derived_extension": "unknown",
+                    "size": 935
+                  },
+                  {
+                    "key": "package/.prettierrc.js",
+                    "origin": "https://registry.npmjs.org/encoding/-/encoding-0.1.13.tgz",
+                    "derived_extension": "unknown",
+                    "size": 155
+                  },
+                  {
+                    "key": "package/lib/encoding.js",
+                    "origin": "https://registry.npmjs.org/encoding/-/encoding-0.1.13.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1449
+                  },
+                  {
+                    "key": "package/test/test.js",
+                    "origin": "https://registry.npmjs.org/encoding/-/encoding-0.1.13.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1118
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/encoding/-/encoding-0.1.13.tgz",
+                    "derived_extension": "unknown",
+                    "size": 432
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/encoding/-/encoding-0.1.13.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1379
+                  },
+                  {
+                    "key": "package/.travis.yml",
+                    "origin": "https://registry.npmjs.org/encoding/-/encoding-0.1.13.tgz",
+                    "derived_extension": "unknown",
+                    "size": 505
+                  }
+                ]
+              },
+              "analyzed_at": {
+                "seconds": 1741612352,
+                "nanos": 981141742
+              },
+              "inference": {
+                "confidence": 1,
+                "details": "No malware evidence were identified by any tool in the workflow",
+                "summary": "No malware evidence were identified by any tool in the workflow"
+              },
+              "report_id": "01JP02P50NKBA2J3Z6F18BS7K6"
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

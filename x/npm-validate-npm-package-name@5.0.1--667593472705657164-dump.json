@@ -1,0 +1,423 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "validate-npm-package-name@5.0.1",
+    "display_path": ""
+  },
+  "path": "pkg:npm/validate-npm-package-name@5.0.1",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "validate-npm-package-name",
+        "version": "5.0.1",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Give me a string and I'll tell you if it's a valid npm package name",
+            "distance": 0,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "validate-npm-package-name",
+              "version": "5.0.1"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "ISC"
+        ],
+        "package_current_version": "6.0.0",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "validate-npm-package-name",
+          "version": "5.0.1"
+        },
+        "projects": [
+          {
+            "display_name": "npm/validate-npm-package-name",
+            "forks": 46,
+            "issues": 5,
+            "link": "https://github.com/npm/validate-npm-package-name",
+            "name": "npm/validate-npm-package-name",
+            "stars": 301,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Code-Review",
+                "reason": "all changesets reviewed",
+                "score": 10
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file detected",
+                "score": 10
+              },
+              {
+                "name": "Maintained",
+                "reason": "1 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "detected GitHub workflow tokens with excessive permissions",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "0 existing vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                "score": -1
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool detected but not run on all commits",
+                "score": 8
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "c45bc3709039088c7f97e89816452d3f04f68023",
+              "name": "github.com/npm/validate-npm-package-name"
+            },
+            "score": 6.1,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JP02YB3C4ZZDY8TE8XSQVZ2G",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "validate-npm-package-name"
+            },
+            "version": "5.0.1"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/validate-npm-package-name/-/validate-npm-package-name-5.0.1.tgz",
+            "sha256": "6a1b5f0fede7c6d6527d4d5eceb359308076f88c3ac3c6273416af9cf358d060"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/LICENSE",
+                "origin": "https://registry.npmjs.org/validate-npm-package-name/-/validate-npm-package-name-5.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 728
+              },
+              {
+                "key": "package/lib/index.js",
+                "origin": "https://registry.npmjs.org/validate-npm-package-name/-/validate-npm-package-name-5.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 2392
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/validate-npm-package-name/-/validate-npm-package-name-5.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 1518
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/validate-npm-package-name/-/validate-npm-package-name-5.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 2934
+              }
+            ]
+          },
+          "analyzed_at": {
+            "seconds": 1741612961,
+            "nanos": 455057299
+          },
+          "inference": {
+            "confidence": 1,
+            "details": "No malware evidence were identified by any tool in the workflow",
+            "summary": "No malware evidence were identified by any tool in the workflow"
+          },
+          "report_id": "01JP02YB3C4ZZDY8TE8XSQVZ2G"
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "5bf11ef3c4cf7147": {
+        "data": {
+          "package_detail": {
+            "name": "validate-npm-package-name",
+            "version": "5.0.1",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "Give me a string and I'll tell you if it's a valid npm package name",
+                "distance": 0,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "validate-npm-package-name",
+                  "version": "5.0.1"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "ISC"
+            ],
+            "package_current_version": "6.0.0",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "validate-npm-package-name",
+              "version": "5.0.1"
+            },
+            "projects": [
+              {
+                "display_name": "npm/validate-npm-package-name",
+                "forks": 46,
+                "issues": 5,
+                "link": "https://github.com/npm/validate-npm-package-name",
+                "name": "npm/validate-npm-package-name",
+                "stars": 301,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Code-Review",
+                    "reason": "all changesets reviewed",
+                    "score": 10
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "1 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no dangerous workflow patterns detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "detected GitHub workflow tokens with excessive permissions",
+                    "score": 0
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "0 existing vulnerabilities detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                    "score": -1
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool detected but not run on all commits",
+                    "score": 8
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "c45bc3709039088c7f97e89816452d3f04f68023",
+                  "name": "github.com/npm/validate-npm-package-name"
+                },
+                "score": 6.1,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JP02YB3C4ZZDY8TE8XSQVZ2G",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "validate-npm-package-name"
+                },
+                "version": "5.0.1"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/validate-npm-package-name/-/validate-npm-package-name-5.0.1.tgz",
+                "sha256": "6a1b5f0fede7c6d6527d4d5eceb359308076f88c3ac3c6273416af9cf358d060"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/LICENSE",
+                    "origin": "https://registry.npmjs.org/validate-npm-package-name/-/validate-npm-package-name-5.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 728
+                  },
+                  {
+                    "key": "package/lib/index.js",
+                    "origin": "https://registry.npmjs.org/validate-npm-package-name/-/validate-npm-package-name-5.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2392
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/validate-npm-package-name/-/validate-npm-package-name-5.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1518
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/validate-npm-package-name/-/validate-npm-package-name-5.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2934
+                  }
+                ]
+              },
+              "analyzed_at": {
+                "seconds": 1741612961,
+                "nanos": 455057299
+              },
+              "inference": {
+                "confidence": 1,
+                "details": "No malware evidence were identified by any tool in the workflow",
+                "summary": "No malware evidence were identified by any tool in the workflow"
+              },
+              "report_id": "01JP02YB3C4ZZDY8TE8XSQVZ2G"
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

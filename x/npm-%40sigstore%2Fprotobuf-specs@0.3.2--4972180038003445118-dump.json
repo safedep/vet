@@ -1,0 +1,311 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "%40sigstore%2Fprotobuf-specs@0.3.2",
+    "display_path": ""
+  },
+  "path": "pkg:npm/%40sigstore%2Fprotobuf-specs@0.3.2",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "@sigstore/protobuf-specs",
+        "version": "0.3.2",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "code-signing for npm packages",
+            "distance": 0,
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "@sigstore/protobuf-specs",
+              "version": "0.3.2"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "Apache-2.0"
+        ],
+        "package_current_version": "0.4.2",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "@sigstore/protobuf-specs",
+          "version": "0.3.2"
+        },
+        "projects": [
+          {
+            "display_name": "sigstore/protobuf-specs",
+            "forks": 37,
+            "issues": 37,
+            "link": "https://github.com/sigstore/protobuf-specs",
+            "name": "sigstore/protobuf-specs",
+            "stars": 32,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Maintained",
+                "reason": "30 commit(s) and 12 issue activity found in the last 90 days -- score normalized to 10",
+                "score": 10
+              },
+              {
+                "name": "Code-Review",
+                "reason": "all changesets reviewed",
+                "score": 10
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "GitHub workflow tokens follow principle of least privilege",
+                "score": 10
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 8",
+                "score": 8
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "3 out of the last 5 releases have a total of 3 signed artifacts.",
+                "score": 6
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow detected",
+                "score": 10
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file detected",
+                "score": 10
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                "score": -1
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 8",
+                "score": 8
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "3 existing vulnerabilities detected",
+                "score": 7
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "ef40dfbbd35e6efd3c6151e7d24da73f6382e579",
+              "name": "github.com/sigstore/protobuf-specs"
+            },
+            "score": 8.3,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": null,
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "dc0d32874e051c8e": {
+        "data": {
+          "package_detail": {
+            "name": "@sigstore/protobuf-specs",
+            "version": "0.3.2",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "code-signing for npm packages",
+                "distance": 0,
+                "licenses": [
+                  "Apache-2.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "@sigstore/protobuf-specs",
+                  "version": "0.3.2"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_current_version": "0.4.2",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "@sigstore/protobuf-specs",
+              "version": "0.3.2"
+            },
+            "projects": [
+              {
+                "display_name": "sigstore/protobuf-specs",
+                "forks": 37,
+                "issues": 37,
+                "link": "https://github.com/sigstore/protobuf-specs",
+                "name": "sigstore/protobuf-specs",
+                "stars": 32,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Maintained",
+                    "reason": "30 commit(s) and 12 issue activity found in the last 90 days -- score normalized to 10",
+                    "score": 10
+                  },
+                  {
+                    "name": "Code-Review",
+                    "reason": "all changesets reviewed",
+                    "score": 10
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no dangerous workflow patterns detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "GitHub workflow tokens follow principle of least privilege",
+                    "score": 10
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "dependency not pinned by hash detected -- score normalized to 8",
+                    "score": 8
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "3 out of the last 5 releases have a total of 3 signed artifacts.",
+                    "score": 6
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                    "score": -1
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 8",
+                    "score": 8
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "3 existing vulnerabilities detected",
+                    "score": 7
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "ef40dfbbd35e6efd3c6151e7d24da73f6382e579",
+                  "name": "github.com/sigstore/protobuf-specs"
+                },
+                "score": 8.3,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": null,
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

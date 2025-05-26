@@ -1,0 +1,519 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "promise-retry@2.0.1",
+    "display_path": ""
+  },
+  "path": "pkg:npm/promise-retry@2.0.1",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "promise-retry",
+        "version": "2.0.1",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Retries a function that returns a promise, leveraging the power of the retry module.",
+            "distance": 0,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "promise-retry",
+              "version": "2.0.1"
+            }
+          },
+          {
+            "description": "Create an error with a code",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "err-code",
+              "version": "2.0.3"
+            }
+          },
+          {
+            "description": "Abstraction for exponential and custom retry strategies for failed operations.",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "retry",
+              "version": "0.12.0"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 2,
+          "indirect_dependents": 0,
+          "total_dependents": 2
+        },
+        "licenses": [
+          "MIT"
+        ],
+        "package_current_version": "2.0.1",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "promise-retry",
+          "version": "2.0.1"
+        },
+        "projects": [
+          {
+            "display_name": "IndigoUnited/node-promise-retry",
+            "forks": 26,
+            "issues": 11,
+            "link": "https://github.com/indigounited/node-promise-retry",
+            "name": "indigounited/node-promise-retry",
+            "stars": 317,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "no dependencies found",
+                "score": -1
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Code-Review",
+                "reason": "Found 7/29 approved changesets -- score normalized to 2",
+                "score": 2
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Maintained",
+                "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no workflows found",
+                "score": -1
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "No tokens found",
+                "score": -1
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "11 existing vulnerabilities detected",
+                "score": 0
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "7fb08491112cffe5a0dd11805eff20ca6b6133ac",
+              "name": "github.com/IndigoUnited/node-promise-retry"
+            },
+            "score": 2,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JP02VC7AMVEP9T9FG9RKSCAP",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "promise-retry"
+            },
+            "version": "2.0.1"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/promise-retry/-/promise-retry-2.0.1.tgz",
+            "sha256": "58963726cda40bdf4ea694a9a84335ab3d203617703fd6a71f50f025056b55cc"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/.editorconfig",
+                "origin": "https://registry.npmjs.org/promise-retry/-/promise-retry-2.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 220
+              },
+              {
+                "key": "package/.jshintrc",
+                "origin": "https://registry.npmjs.org/promise-retry/-/promise-retry-2.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 1185
+              },
+              {
+                "key": "package/LICENSE",
+                "origin": "https://registry.npmjs.org/promise-retry/-/promise-retry-2.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 1056
+              },
+              {
+                "key": "package/index.js",
+                "origin": "https://registry.npmjs.org/promise-retry/-/promise-retry-2.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 12150
+              },
+              {
+                "key": "package/test/test.js",
+                "origin": "https://registry.npmjs.org/promise-retry/-/promise-retry-2.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 12057
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/promise-retry/-/promise-retry-2.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 843
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/promise-retry/-/promise-retry-2.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 3444
+              },
+              {
+                "key": "package/.travis.yml",
+                "origin": "https://registry.npmjs.org/promise-retry/-/promise-retry-2.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 45
+              }
+            ]
+          },
+          "analyzed_at": {
+            "seconds": 1741613292,
+            "nanos": 654848373
+          },
+          "inference": {
+            "confidence": 1,
+            "details": "No malware evidence were identified by any tool in the workflow",
+            "summary": "No malware evidence were identified by any tool in the workflow"
+          },
+          "report_id": "01JP02VC7AMVEP9T9FG9RKSCAP"
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "3ac3aa4ea50051fd": {
+        "data": {
+          "package_detail": {
+            "name": "promise-retry",
+            "version": "2.0.1",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "Retries a function that returns a promise, leveraging the power of the retry module.",
+                "distance": 0,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "promise-retry",
+                  "version": "2.0.1"
+                }
+              },
+              {
+                "description": "Create an error with a code",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "err-code",
+                  "version": "2.0.3"
+                }
+              },
+              {
+                "description": "Abstraction for exponential and custom retry strategies for failed operations.",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "retry",
+                  "version": "0.12.0"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 2,
+              "indirect_dependents": 0,
+              "total_dependents": 2
+            },
+            "licenses": [
+              "MIT"
+            ],
+            "package_current_version": "2.0.1",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "promise-retry",
+              "version": "2.0.1"
+            },
+            "projects": [
+              {
+                "display_name": "IndigoUnited/node-promise-retry",
+                "forks": 26,
+                "issues": 11,
+                "link": "https://github.com/indigounited/node-promise-retry",
+                "name": "indigounited/node-promise-retry",
+                "stars": 317,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "no dependencies found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 7/29 approved changesets -- score normalized to 2",
+                    "score": 2
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no workflows found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "No tokens found",
+                    "score": -1
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file not detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "branch protection not enabled on development/release branches",
+                    "score": 0
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "11 existing vulnerabilities detected",
+                    "score": 0
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "7fb08491112cffe5a0dd11805eff20ca6b6133ac",
+                  "name": "github.com/IndigoUnited/node-promise-retry"
+                },
+                "score": 2,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JP02VC7AMVEP9T9FG9RKSCAP",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "promise-retry"
+                },
+                "version": "2.0.1"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/promise-retry/-/promise-retry-2.0.1.tgz",
+                "sha256": "58963726cda40bdf4ea694a9a84335ab3d203617703fd6a71f50f025056b55cc"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/.editorconfig",
+                    "origin": "https://registry.npmjs.org/promise-retry/-/promise-retry-2.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 220
+                  },
+                  {
+                    "key": "package/.jshintrc",
+                    "origin": "https://registry.npmjs.org/promise-retry/-/promise-retry-2.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1185
+                  },
+                  {
+                    "key": "package/LICENSE",
+                    "origin": "https://registry.npmjs.org/promise-retry/-/promise-retry-2.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1056
+                  },
+                  {
+                    "key": "package/index.js",
+                    "origin": "https://registry.npmjs.org/promise-retry/-/promise-retry-2.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 12150
+                  },
+                  {
+                    "key": "package/test/test.js",
+                    "origin": "https://registry.npmjs.org/promise-retry/-/promise-retry-2.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 12057
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/promise-retry/-/promise-retry-2.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 843
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/promise-retry/-/promise-retry-2.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3444
+                  },
+                  {
+                    "key": "package/.travis.yml",
+                    "origin": "https://registry.npmjs.org/promise-retry/-/promise-retry-2.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 45
+                  }
+                ]
+              },
+              "analyzed_at": {
+                "seconds": 1741613292,
+                "nanos": 654848373
+              },
+              "inference": {
+                "confidence": 1,
+                "details": "No malware evidence were identified by any tool in the workflow",
+                "summary": "No malware evidence were identified by any tool in the workflow"
+              },
+              "report_id": "01JP02VC7AMVEP9T9FG9RKSCAP"
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

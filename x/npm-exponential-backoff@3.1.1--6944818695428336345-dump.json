@@ -1,0 +1,771 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "exponential-backoff@3.1.1",
+    "display_path": ""
+  },
+  "path": "pkg:npm/exponential-backoff@3.1.1",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "exponential-backoff",
+        "version": "3.1.1",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "A utility that allows retrying a function with an exponential delay between attempts.",
+            "distance": 0,
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "exponential-backoff",
+              "version": "3.1.1"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "Apache-2.0"
+        ],
+        "package_current_version": "3.1.2",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "exponential-backoff",
+          "version": "3.1.1"
+        },
+        "projects": [
+          {
+            "display_name": "coveooss/exponential-backoff",
+            "forks": 26,
+            "issues": 6,
+            "link": "https://github.com/coveo/exponential-backoff",
+            "name": "coveo/exponential-backoff",
+            "stars": 378,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Code-Review",
+                "reason": "all changesets reviewed",
+                "score": 10
+              },
+              {
+                "name": "Maintained",
+                "reason": "3 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 2",
+                "score": 2
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "GitHub workflow tokens follow principle of least privilege",
+                "score": 10
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "all dependencies are pinned",
+                "score": 10
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                "score": -1
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 2",
+                "score": 2
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "24 existing vulnerabilities detected",
+                "score": 0
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "799c9de62d67777c654b15da3719b11eae63d321",
+              "name": "github.com/coveo/exponential-backoff"
+            },
+            "score": 6.1,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JP02PWP2RFYGQT80WW0XFMHM",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "exponential-backoff"
+            },
+            "version": "3.1.1"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+            "sha256": "5e6a61c9cd1c1ac086ac5eb9c500b53e6bd14a076cdcc45380c5055493918d0b"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/LICENSE",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 11357
+              },
+              {
+                "key": "package/dist/delay/always/always.delay.js",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 975
+              },
+              {
+                "key": "package/dist/backoff.js",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 5516
+              },
+              {
+                "key": "package/dist/delay/delay.base.js",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 1479
+              },
+              {
+                "key": "package/dist/delay/delay.factory.js",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 572
+              },
+              {
+                "key": "package/dist/delay/delay.interface.js",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 77
+              },
+              {
+                "key": "package/dist/jitter/full/full.jitter.js",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 226
+              },
+              {
+                "key": "package/dist/jitter/jitter.factory.js",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 429
+              },
+              {
+                "key": "package/dist/jitter/no/no.jitter.js",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 153
+              },
+              {
+                "key": "package/dist/options.js",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 934
+              },
+              {
+                "key": "package/dist/delay/skip-first/skip-first.delay.js",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 4182
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 1308
+              },
+              {
+                "key": "package/dist/delay/always/always.delay.js.map",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 253
+              },
+              {
+                "key": "package/dist/backoff.js.map",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 1283
+              },
+              {
+                "key": "package/dist/delay/delay.base.js.map",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 1040
+              },
+              {
+                "key": "package/dist/delay/delay.factory.js.map",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 487
+              },
+              {
+                "key": "package/dist/delay/delay.interface.js.map",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 131
+              },
+              {
+                "key": "package/dist/jitter/full/full.jitter.js.map",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 283
+              },
+              {
+                "key": "package/dist/jitter/jitter.factory.js.map",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 326
+              },
+              {
+                "key": "package/dist/jitter/no/no.jitter.js.map",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 196
+              },
+              {
+                "key": "package/dist/options.js.map",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 520
+              },
+              {
+                "key": "package/dist/delay/skip-first/skip-first.delay.js.map",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 573
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 2414
+              },
+              {
+                "key": "package/dist/delay/always/always.delay.d.ts",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 90
+              },
+              {
+                "key": "package/dist/backoff.d.ts",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 206
+              },
+              {
+                "key": "package/dist/delay/delay.base.d.ts",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 436
+              },
+              {
+                "key": "package/dist/delay/delay.factory.d.ts",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 179
+              },
+              {
+                "key": "package/dist/delay/delay.interface.d.ts",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 112
+              },
+              {
+                "key": "package/dist/jitter/full/full.jitter.d.ts",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 59
+              },
+              {
+                "key": "package/dist/jitter/jitter.factory.d.ts",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 175
+              },
+              {
+                "key": "package/dist/jitter/no/no.jitter.d.ts",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 57
+              },
+              {
+                "key": "package/dist/options.d.ts",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 469
+              },
+              {
+                "key": "package/dist/delay/skip-first/skip-first.delay.d.ts",
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 214
+              }
+            ]
+          },
+          "analyzed_at": {
+            "seconds": 1741612401,
+            "nanos": 963035734
+          },
+          "inference": {
+            "confidence": 1,
+            "details": "No malware evidence were identified by any tool in the workflow",
+            "summary": "No malware evidence were identified by any tool in the workflow"
+          },
+          "report_id": "01JP02PWP2RFYGQT80WW0XFMHM"
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "743dea7c582216fd": {
+        "data": {
+          "package_detail": {
+            "name": "exponential-backoff",
+            "version": "3.1.1",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "A utility that allows retrying a function with an exponential delay between attempts.",
+                "distance": 0,
+                "licenses": [
+                  "Apache-2.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "exponential-backoff",
+                  "version": "3.1.1"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_current_version": "3.1.2",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "exponential-backoff",
+              "version": "3.1.1"
+            },
+            "projects": [
+              {
+                "display_name": "coveooss/exponential-backoff",
+                "forks": 26,
+                "issues": 6,
+                "link": "https://github.com/coveo/exponential-backoff",
+                "name": "coveo/exponential-backoff",
+                "stars": 378,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Code-Review",
+                    "reason": "all changesets reviewed",
+                    "score": 10
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "3 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 2",
+                    "score": 2
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no dangerous workflow patterns detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "GitHub workflow tokens follow principle of least privilege",
+                    "score": 10
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "all dependencies are pinned",
+                    "score": 10
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file not detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                    "score": -1
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 2",
+                    "score": 2
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "24 existing vulnerabilities detected",
+                    "score": 0
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "799c9de62d67777c654b15da3719b11eae63d321",
+                  "name": "github.com/coveo/exponential-backoff"
+                },
+                "score": 6.1,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JP02PWP2RFYGQT80WW0XFMHM",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "exponential-backoff"
+                },
+                "version": "3.1.1"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                "sha256": "5e6a61c9cd1c1ac086ac5eb9c500b53e6bd14a076cdcc45380c5055493918d0b"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/LICENSE",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 11357
+                  },
+                  {
+                    "key": "package/dist/delay/always/always.delay.js",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 975
+                  },
+                  {
+                    "key": "package/dist/backoff.js",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 5516
+                  },
+                  {
+                    "key": "package/dist/delay/delay.base.js",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1479
+                  },
+                  {
+                    "key": "package/dist/delay/delay.factory.js",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 572
+                  },
+                  {
+                    "key": "package/dist/delay/delay.interface.js",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 77
+                  },
+                  {
+                    "key": "package/dist/jitter/full/full.jitter.js",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 226
+                  },
+                  {
+                    "key": "package/dist/jitter/jitter.factory.js",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 429
+                  },
+                  {
+                    "key": "package/dist/jitter/no/no.jitter.js",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 153
+                  },
+                  {
+                    "key": "package/dist/options.js",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 934
+                  },
+                  {
+                    "key": "package/dist/delay/skip-first/skip-first.delay.js",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 4182
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1308
+                  },
+                  {
+                    "key": "package/dist/delay/always/always.delay.js.map",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 253
+                  },
+                  {
+                    "key": "package/dist/backoff.js.map",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1283
+                  },
+                  {
+                    "key": "package/dist/delay/delay.base.js.map",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1040
+                  },
+                  {
+                    "key": "package/dist/delay/delay.factory.js.map",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 487
+                  },
+                  {
+                    "key": "package/dist/delay/delay.interface.js.map",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 131
+                  },
+                  {
+                    "key": "package/dist/jitter/full/full.jitter.js.map",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 283
+                  },
+                  {
+                    "key": "package/dist/jitter/jitter.factory.js.map",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 326
+                  },
+                  {
+                    "key": "package/dist/jitter/no/no.jitter.js.map",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 196
+                  },
+                  {
+                    "key": "package/dist/options.js.map",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 520
+                  },
+                  {
+                    "key": "package/dist/delay/skip-first/skip-first.delay.js.map",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 573
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2414
+                  },
+                  {
+                    "key": "package/dist/delay/always/always.delay.d.ts",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 90
+                  },
+                  {
+                    "key": "package/dist/backoff.d.ts",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 206
+                  },
+                  {
+                    "key": "package/dist/delay/delay.base.d.ts",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 436
+                  },
+                  {
+                    "key": "package/dist/delay/delay.factory.d.ts",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 179
+                  },
+                  {
+                    "key": "package/dist/delay/delay.interface.d.ts",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 112
+                  },
+                  {
+                    "key": "package/dist/jitter/full/full.jitter.d.ts",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 59
+                  },
+                  {
+                    "key": "package/dist/jitter/jitter.factory.d.ts",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 175
+                  },
+                  {
+                    "key": "package/dist/jitter/no/no.jitter.d.ts",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 57
+                  },
+                  {
+                    "key": "package/dist/options.d.ts",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 469
+                  },
+                  {
+                    "key": "package/dist/delay/skip-first/skip-first.delay.d.ts",
+                    "origin": "https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 214
+                  }
+                ]
+              },
+              "analyzed_at": {
+                "seconds": 1741612401,
+                "nanos": 963035734
+              },
+              "inference": {
+                "confidence": 1,
+                "details": "No malware evidence were identified by any tool in the workflow",
+                "summary": "No malware evidence were identified by any tool in the workflow"
+              },
+              "report_id": "01JP02PWP2RFYGQT80WW0XFMHM"
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

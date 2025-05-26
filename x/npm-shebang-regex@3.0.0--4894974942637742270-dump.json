@@ -1,0 +1,453 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "shebang-regex@3.0.0",
+    "display_path": ""
+  },
+  "path": "pkg:npm/shebang-regex@3.0.0",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "shebang-regex",
+        "version": "3.0.0",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Regular expression for matching a shebang line",
+            "distance": 0,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "shebang-regex",
+              "version": "3.0.0"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "MIT"
+        ],
+        "package_current_version": "4.0.0",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "shebang-regex",
+          "version": "3.0.0"
+        },
+        "projects": [
+          {
+            "display_name": "sindresorhus/shebang-regex",
+            "forks": 8,
+            "issues": 0,
+            "link": "https://github.com/sindresorhus/shebang-regex",
+            "name": "sindresorhus/shebang-regex",
+            "stars": 46,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Code-Review",
+                "reason": "Found 3/15 approved changesets -- score normalized to 2",
+                "score": 2
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Maintained",
+                "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file detected",
+                "score": 10
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "detected GitHub workflow tokens with excessive permissions",
+                "score": 0
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "0 existing vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "a2e85dfd79f7c6d45b2d63ba4989d245e5f8b64a",
+              "name": "github.com/sindresorhus/shebang-regex"
+            },
+            "score": 4.2,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JHQ4701JEVYR3FAWD4Q8V47J",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "shebang-regex"
+            },
+            "version": "3.0.0"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/shebang-regex/-/shebang-regex-3.0.0.tgz",
+            "sha256": "fedbabaa6db26c6be0183f82777dfa852d59a62f8885de93bd32ebc28758958f"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/shebang-regex/-/shebang-regex-3.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 582
+              },
+              {
+                "key": "package/index.d.ts",
+                "origin": "https://registry.npmjs.org/shebang-regex/-/shebang-regex-3.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 446
+              },
+              {
+                "key": "package/index.js",
+                "origin": "https://registry.npmjs.org/shebang-regex/-/shebang-regex-3.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 42
+              },
+              {
+                "key": "package/license",
+                "origin": "https://registry.npmjs.org/shebang-regex/-/shebang-regex-3.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 1109
+              },
+              {
+                "key": "package/readme.md",
+                "origin": "https://registry.npmjs.org/shebang-regex/-/shebang-regex-3.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 649
+              }
+            ]
+          },
+          "project_evidences": [
+            {
+              "evidence": {
+                "title": "Open Source Project with Few Published Versions",
+                "behavior": "The source project has published only a few versions of the package",
+                "details": "The source project has published only 4 version(s) of the package. These versions are: \n\n- 1.0.0\n  Published at: seconds:1424150698\n- 2.0.0\n  Published at: seconds:1449247207\n- 3.0.0\n  Published at: seconds:1556361979\n- 4.0.0\n  Published at: seconds:1628896189\n\n\nThis could indicate that the package is immature, not well maintained or potentially malicious.",
+                "confidence": 3,
+                "source": "Package Project Analyzer"
+              }
+            }
+          ],
+          "analyzed_at": {
+            "seconds": 1737020303,
+            "nanos": 681834207
+          },
+          "inference": {
+            "confidence": 2,
+            "details": "The package is not a malware because the evidence presented does not indicate malicious behavior.  Evidence 0 points out that the project has only published a few versions. While this *could* suggest immaturity or lack of maintenance, it is not conclusive evidence of malicious intent.  A small number of versions doesn't automatically equate to malware.  Many legitimate, small, or niche projects might only have a few releases.  The lack of other evidence, such as suspicious code analysis from LLMs or YARA (despite acknowledging their limitations), or any indication of harmful functionality, means we cannot conclude this package is malicious. The low number of stars and forks on GitHub is also not sufficient evidence on its own; many perfectly legitimate projects have low community engagement."
+          }
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "4def6fd3abbc9f79": {
+        "data": {
+          "package_detail": {
+            "name": "shebang-regex",
+            "version": "3.0.0",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "Regular expression for matching a shebang line",
+                "distance": 0,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "shebang-regex",
+                  "version": "3.0.0"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "MIT"
+            ],
+            "package_current_version": "4.0.0",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "shebang-regex",
+              "version": "3.0.0"
+            },
+            "projects": [
+              {
+                "display_name": "sindresorhus/shebang-regex",
+                "forks": 8,
+                "issues": 0,
+                "link": "https://github.com/sindresorhus/shebang-regex",
+                "name": "sindresorhus/shebang-regex",
+                "stars": 46,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 3/15 approved changesets -- score normalized to 2",
+                    "score": 2
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no dangerous workflow patterns detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "detected GitHub workflow tokens with excessive permissions",
+                    "score": 0
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "0 existing vulnerabilities detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "branch protection not enabled on development/release branches",
+                    "score": 0
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                    "score": 0
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "a2e85dfd79f7c6d45b2d63ba4989d245e5f8b64a",
+                  "name": "github.com/sindresorhus/shebang-regex"
+                },
+                "score": 4.2,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JHQ4701JEVYR3FAWD4Q8V47J",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "shebang-regex"
+                },
+                "version": "3.0.0"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/shebang-regex/-/shebang-regex-3.0.0.tgz",
+                "sha256": "fedbabaa6db26c6be0183f82777dfa852d59a62f8885de93bd32ebc28758958f"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/shebang-regex/-/shebang-regex-3.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 582
+                  },
+                  {
+                    "key": "package/index.d.ts",
+                    "origin": "https://registry.npmjs.org/shebang-regex/-/shebang-regex-3.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 446
+                  },
+                  {
+                    "key": "package/index.js",
+                    "origin": "https://registry.npmjs.org/shebang-regex/-/shebang-regex-3.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 42
+                  },
+                  {
+                    "key": "package/license",
+                    "origin": "https://registry.npmjs.org/shebang-regex/-/shebang-regex-3.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1109
+                  },
+                  {
+                    "key": "package/readme.md",
+                    "origin": "https://registry.npmjs.org/shebang-regex/-/shebang-regex-3.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 649
+                  }
+                ]
+              },
+              "project_evidences": [
+                {
+                  "evidence": {
+                    "title": "Open Source Project with Few Published Versions",
+                    "behavior": "The source project has published only a few versions of the package",
+                    "details": "The source project has published only 4 version(s) of the package. These versions are: \n\n- 1.0.0\n  Published at: seconds:1424150698\n- 2.0.0\n  Published at: seconds:1449247207\n- 3.0.0\n  Published at: seconds:1556361979\n- 4.0.0\n  Published at: seconds:1628896189\n\n\nThis could indicate that the package is immature, not well maintained or potentially malicious.",
+                    "confidence": 3,
+                    "source": "Package Project Analyzer"
+                  }
+                }
+              ],
+              "analyzed_at": {
+                "seconds": 1737020303,
+                "nanos": 681834207
+              },
+              "inference": {
+                "confidence": 2,
+                "details": "The package is not a malware because the evidence presented does not indicate malicious behavior.  Evidence 0 points out that the project has only published a few versions. While this *could* suggest immaturity or lack of maintenance, it is not conclusive evidence of malicious intent.  A small number of versions doesn't automatically equate to malware.  Many legitimate, small, or niche projects might only have a few releases.  The lack of other evidence, such as suspicious code analysis from LLMs or YARA (despite acknowledging their limitations), or any indication of harmful functionality, means we cannot conclude this package is malicious. The low number of stars and forks on GitHub is also not sufficient evidence on its own; many perfectly legitimate projects have low community engagement."
+              }
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

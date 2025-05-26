@@ -1,0 +1,1013 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "socks@2.8.3",
+    "display_path": ""
+  },
+  "path": "pkg:npm/socks@2.8.3",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "socks",
+        "version": "2.8.3",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Fully featured SOCKS proxy client supporting SOCKSv4, SOCKSv4a, and SOCKSv5. Includes Bind and Associate functionality.",
+            "distance": 0,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "socks",
+              "version": "2.8.3"
+            }
+          },
+          {
+            "description": "A library for parsing IPv4 and IPv6 IP addresses in node and the browser.",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "ip-address",
+              "version": "9.0.5"
+            }
+          },
+          {
+            "description": "smart-buffer is a Buffer wrapper that adds automatic read \u0026 write offset tracking, string operations, data insertions, and more.",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "smart-buffer",
+              "version": "4.2.0"
+            }
+          },
+          {
+            "description": "The jsbn library is a fast, portable implementation of large-number math in pure JavaScript, enabling public-key crypto and other applications on desktop and mobile browsers.",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "jsbn",
+              "version": "1.1.0"
+            }
+          },
+          {
+            "description": "JavaScript sprintf implementation",
+            "distance": 2,
+            "licenses": [
+              "BSD-3-Clause"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "sprintf-js",
+              "version": "1.1.3"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 2,
+          "indirect_dependents": 2,
+          "total_dependents": 4
+        },
+        "licenses": [
+          "MIT"
+        ],
+        "package_current_version": "2.8.4",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "socks",
+          "version": "2.8.3"
+        },
+        "projects": [
+          {
+            "display_name": "JoshGlazebrook/socks",
+            "forks": 36,
+            "issues": 3,
+            "link": "https://github.com/joshglazebrook/socks",
+            "name": "joshglazebrook/socks",
+            "stars": 315,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Code-Review",
+                "reason": "Found 9/30 approved changesets -- score normalized to 3",
+                "score": 3
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "detected GitHub workflow tokens with excessive permissions",
+                "score": 0
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Maintained",
+                "reason": "2 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 1",
+                "score": 1
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 3",
+                "score": 3
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "4 existing vulnerabilities detected",
+                "score": 6
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "f047ee4a55c427d925849e355c8fbd0820fd855f",
+              "name": "github.com/JoshGlazebrook/socks"
+            },
+            "score": 3.6,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JP02WT8D9F2JNFZZ67DCF7PF",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "socks"
+            },
+            "version": "2.8.3"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+            "sha256": "d17f7d4d6e9bf91b7c0e15ebe3b8052338d3a069646073b6fedfb72a882e6750"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/LICENSE",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 1082
+              },
+              {
+                "key": "package/.eslintrc.cjs",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 207
+              },
+              {
+                "key": "package/build/common/constants.js",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 7177
+              },
+              {
+                "key": "package/build/common/helpers.js",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 5654,
+                "capability_labels": [
+                  "io:streaming",
+                  "network:sockets"
+                ]
+              },
+              {
+                "key": "package/build/index.js",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 813
+              },
+              {
+                "key": "package/build/common/receivebuffer.js",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 1508
+              },
+              {
+                "key": "package/build/client/socksclient.js",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 28704,
+                "capability_labels": [
+                  "network:sockets"
+                ]
+              },
+              {
+                "key": "package/build/common/util.js",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 554
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 1646
+              },
+              {
+                "key": "package/build/common/constants.js.map",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 2375
+              },
+              {
+                "key": "package/build/common/helpers.js.map",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 5036
+              },
+              {
+                "key": "package/build/index.js.map",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 129
+              },
+              {
+                "key": "package/build/common/receivebuffer.js.map",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 1650
+              },
+              {
+                "key": "package/build/client/socksclient.js.map",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 23770
+              },
+              {
+                "key": "package/build/common/util.js.map",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 657
+              },
+              {
+                "key": "package/docs/examples/javascript/associateExample.md",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 3274
+              },
+              {
+                "key": "package/docs/examples/typescript/associateExample.md",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 3337
+              },
+              {
+                "key": "package/docs/examples/javascript/bindExample.md",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 2772
+              },
+              {
+                "key": "package/docs/examples/typescript/bindExample.md",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 2838
+              },
+              {
+                "key": "package/docs/examples/javascript/connectExample.md",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 7567
+              },
+              {
+                "key": "package/docs/examples/typescript/connectExample.md",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 7738
+              },
+              {
+                "key": "package/docs/examples/index.md",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 354
+              },
+              {
+                "key": "package/docs/index.md",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 129
+              },
+              {
+                "key": "package/docs/migratingFromV1.md",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 2629
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 23348
+              },
+              {
+                "key": "package/typings/common/constants.d.ts",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 4709
+              },
+              {
+                "key": "package/typings/common/helpers.d.ts",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 829
+              },
+              {
+                "key": "package/typings/index.d.ts",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 38
+              },
+              {
+                "key": "package/typings/common/receivebuffer.d.ts",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 314
+              },
+              {
+                "key": "package/typings/client/socksclient.d.ts",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 6122
+              },
+              {
+                "key": "package/typings/common/util.d.ts",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 484
+              },
+              {
+                "key": "package/.prettierrc.yaml",
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "derived_extension": "unknown",
+                "size": 124
+              }
+            ]
+          },
+          "file_evidences": [
+            {
+              "file_key": "package/docs/examples/javascript/connectExample.md",
+              "evidence": {
+                "title": "YARA rule 'geoip_website_value' matched file",
+                "behavior": "YARA rules deletected the following behavior in the file: \n\n- public service for IP geolocation\n",
+                "details": "YARA rules detected multiple potential malware behaviors in the file.\nThe following strings were matched: \n\n- `$ipify`\n\n```\nip-api.com\n```\n\n",
+                "confidence": 2,
+                "source": "YARA Analyzer"
+              }
+            },
+            {
+              "file_key": "package/docs/examples/javascript/connectExample.md",
+              "evidence": {
+                "title": "YARA rule 'content_length_hardcoded' matched file",
+                "behavior": "YARA rules deletected the following behavior in the file: \n\n- Sets HTTP content length to hard-coded value\n",
+                "details": "YARA rules detected multiple potential malware behaviors in the file.\nThe following strings were matched: \n\n- `$ref`\n\n```\nContent-Length: 300\n```\n\n",
+                "confidence": 2,
+                "source": "YARA Analyzer"
+              }
+            },
+            {
+              "file_key": "package/docs/examples/typescript/connectExample.md",
+              "evidence": {
+                "title": "YARA rule 'geoip_website_value' matched file",
+                "behavior": "YARA rules deletected the following behavior in the file: \n\n- public service for IP geolocation\n",
+                "details": "YARA rules detected multiple potential malware behaviors in the file.\nThe following strings were matched: \n\n- `$ipify`\n\n```\nip-api.com\n```\n\n",
+                "confidence": 2,
+                "source": "YARA Analyzer"
+              }
+            },
+            {
+              "file_key": "package/docs/examples/typescript/connectExample.md",
+              "evidence": {
+                "title": "YARA rule 'content_length_hardcoded' matched file",
+                "behavior": "YARA rules deletected the following behavior in the file: \n\n- Sets HTTP content length to hard-coded value\n",
+                "details": "YARA rules detected multiple potential malware behaviors in the file.\nThe following strings were matched: \n\n- `$ref`\n\n```\nContent-Length: 300\n```\n\n",
+                "confidence": 2,
+                "source": "YARA Analyzer"
+              }
+            },
+            {
+              "file_key": "package/README.md",
+              "evidence": {
+                "title": "YARA rule 'hardcoded_ip_port' matched file",
+                "behavior": "YARA rules deletected the following behavior in the file: \n\n- hardcoded IP:port destination\n",
+                "details": "YARA rules detected multiple potential malware behaviors in the file.\nThe following strings were matched: \n\n- `$ipv4`\n\n```\n165.227.108.231:4444\n```\n\n",
+                "confidence": 2,
+                "source": "YARA Analyzer"
+              }
+            },
+            {
+              "file_key": "package/README.md",
+              "evidence": {
+                "title": "YARA rule 'geoip_website_value' matched file",
+                "behavior": "YARA rules deletected the following behavior in the file: \n\n- public service for IP geolocation\n",
+                "details": "YARA rules detected multiple potential malware behaviors in the file.\nThe following strings were matched: \n\n- `$ipify`\n\n```\nip-api.com\n```\n\n",
+                "confidence": 2,
+                "source": "YARA Analyzer"
+              }
+            },
+            {
+              "file_key": "package/README.md",
+              "evidence": {
+                "title": "YARA rule 'content_length_hardcoded' matched file",
+                "behavior": "YARA rules deletected the following behavior in the file: \n\n- Sets HTTP content length to hard-coded value\n",
+                "details": "YARA rules detected multiple potential malware behaviors in the file.\nThe following strings were matched: \n\n- `$ref`\n\n```\nContent-Length: 300\n```\n\n",
+                "confidence": 2,
+                "source": "YARA Analyzer"
+              }
+            }
+          ],
+          "analyzed_at": {
+            "seconds": 1741612726,
+            "nanos": 883873572
+          },
+          "inference": {
+            "confidence": 2,
+            "details": "The evidence presented is insufficient to classify the `socks` package as malware.  While several YARA rules triggered, these rules are flagged as having medium confidence and are known to be noisy.  The matches themselves point to examples using IP geolocation services (`ip-api.com`), hardcoded `Content-Length` headers in example code, and a hardcoded IP address (165.227.108.231:4444) likely for demonstration purposes within the documentation.  These are common practices in networking examples and documentation and do not inherently indicate malicious behavior. The presence of these strings within example files (`.md`) further reduces the likelihood of malicious intent.  The lack of LLM-based analysis, which is considered more accurate, further weakens the case for malicious activity.  The project on GitHub has a moderate number of stars and forks, suggesting some level of community scrutiny, although this is not definitive proof of safety.  Without more compelling evidence, such as code analysis revealing malicious functionality or network behavior demonstrating harmful actions, classifying this package as malware is unwarranted.",
+            "summary": "No strong evidence of malicious behavior; YARA matches are in example code and lack confirmation from more reliable analysis methods."
+          },
+          "report_id": "01JP02WT8D9F2JNFZZ67DCF7PF"
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "6dd7d24f48eb3280": {
+        "data": {
+          "package_detail": {
+            "name": "socks",
+            "version": "2.8.3",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "Fully featured SOCKS proxy client supporting SOCKSv4, SOCKSv4a, and SOCKSv5. Includes Bind and Associate functionality.",
+                "distance": 0,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "socks",
+                  "version": "2.8.3"
+                }
+              },
+              {
+                "description": "A library for parsing IPv4 and IPv6 IP addresses in node and the browser.",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "ip-address",
+                  "version": "9.0.5"
+                }
+              },
+              {
+                "description": "smart-buffer is a Buffer wrapper that adds automatic read \u0026 write offset tracking, string operations, data insertions, and more.",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "smart-buffer",
+                  "version": "4.2.0"
+                }
+              },
+              {
+                "description": "The jsbn library is a fast, portable implementation of large-number math in pure JavaScript, enabling public-key crypto and other applications on desktop and mobile browsers.",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "jsbn",
+                  "version": "1.1.0"
+                }
+              },
+              {
+                "description": "JavaScript sprintf implementation",
+                "distance": 2,
+                "licenses": [
+                  "BSD-3-Clause"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "sprintf-js",
+                  "version": "1.1.3"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 2,
+              "indirect_dependents": 2,
+              "total_dependents": 4
+            },
+            "licenses": [
+              "MIT"
+            ],
+            "package_current_version": "2.8.4",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "socks",
+              "version": "2.8.3"
+            },
+            "projects": [
+              {
+                "display_name": "JoshGlazebrook/socks",
+                "forks": 36,
+                "issues": 3,
+                "link": "https://github.com/joshglazebrook/socks",
+                "name": "joshglazebrook/socks",
+                "stars": 315,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 9/30 approved changesets -- score normalized to 3",
+                    "score": 3
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "detected GitHub workflow tokens with excessive permissions",
+                    "score": 0
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "2 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 1",
+                    "score": 1
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "dependency not pinned by hash detected -- score normalized to 3",
+                    "score": 3
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no dangerous workflow patterns detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file not detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "branch protection not enabled on development/release branches",
+                    "score": 0
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "4 existing vulnerabilities detected",
+                    "score": 6
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "f047ee4a55c427d925849e355c8fbd0820fd855f",
+                  "name": "github.com/JoshGlazebrook/socks"
+                },
+                "score": 3.6,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JP02WT8D9F2JNFZZ67DCF7PF",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "socks"
+                },
+                "version": "2.8.3"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                "sha256": "d17f7d4d6e9bf91b7c0e15ebe3b8052338d3a069646073b6fedfb72a882e6750"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/LICENSE",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1082
+                  },
+                  {
+                    "key": "package/.eslintrc.cjs",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 207
+                  },
+                  {
+                    "key": "package/build/common/constants.js",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 7177
+                  },
+                  {
+                    "key": "package/build/common/helpers.js",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 5654,
+                    "capability_labels": [
+                      "io:streaming",
+                      "network:sockets"
+                    ]
+                  },
+                  {
+                    "key": "package/build/index.js",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 813
+                  },
+                  {
+                    "key": "package/build/common/receivebuffer.js",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1508
+                  },
+                  {
+                    "key": "package/build/client/socksclient.js",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 28704,
+                    "capability_labels": [
+                      "network:sockets"
+                    ]
+                  },
+                  {
+                    "key": "package/build/common/util.js",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 554
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1646
+                  },
+                  {
+                    "key": "package/build/common/constants.js.map",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2375
+                  },
+                  {
+                    "key": "package/build/common/helpers.js.map",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 5036
+                  },
+                  {
+                    "key": "package/build/index.js.map",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 129
+                  },
+                  {
+                    "key": "package/build/common/receivebuffer.js.map",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1650
+                  },
+                  {
+                    "key": "package/build/client/socksclient.js.map",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 23770
+                  },
+                  {
+                    "key": "package/build/common/util.js.map",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 657
+                  },
+                  {
+                    "key": "package/docs/examples/javascript/associateExample.md",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3274
+                  },
+                  {
+                    "key": "package/docs/examples/typescript/associateExample.md",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3337
+                  },
+                  {
+                    "key": "package/docs/examples/javascript/bindExample.md",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2772
+                  },
+                  {
+                    "key": "package/docs/examples/typescript/bindExample.md",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2838
+                  },
+                  {
+                    "key": "package/docs/examples/javascript/connectExample.md",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 7567
+                  },
+                  {
+                    "key": "package/docs/examples/typescript/connectExample.md",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 7738
+                  },
+                  {
+                    "key": "package/docs/examples/index.md",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 354
+                  },
+                  {
+                    "key": "package/docs/index.md",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 129
+                  },
+                  {
+                    "key": "package/docs/migratingFromV1.md",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2629
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 23348
+                  },
+                  {
+                    "key": "package/typings/common/constants.d.ts",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 4709
+                  },
+                  {
+                    "key": "package/typings/common/helpers.d.ts",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 829
+                  },
+                  {
+                    "key": "package/typings/index.d.ts",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 38
+                  },
+                  {
+                    "key": "package/typings/common/receivebuffer.d.ts",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 314
+                  },
+                  {
+                    "key": "package/typings/client/socksclient.d.ts",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 6122
+                  },
+                  {
+                    "key": "package/typings/common/util.d.ts",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 484
+                  },
+                  {
+                    "key": "package/.prettierrc.yaml",
+                    "origin": "https://registry.npmjs.org/socks/-/socks-2.8.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 124
+                  }
+                ]
+              },
+              "file_evidences": [
+                {
+                  "file_key": "package/docs/examples/javascript/connectExample.md",
+                  "evidence": {
+                    "title": "YARA rule 'geoip_website_value' matched file",
+                    "behavior": "YARA rules deletected the following behavior in the file: \n\n- public service for IP geolocation\n",
+                    "details": "YARA rules detected multiple potential malware behaviors in the file.\nThe following strings were matched: \n\n- `$ipify`\n\n```\nip-api.com\n```\n\n",
+                    "confidence": 2,
+                    "source": "YARA Analyzer"
+                  }
+                },
+                {
+                  "file_key": "package/docs/examples/javascript/connectExample.md",
+                  "evidence": {
+                    "title": "YARA rule 'content_length_hardcoded' matched file",
+                    "behavior": "YARA rules deletected the following behavior in the file: \n\n- Sets HTTP content length to hard-coded value\n",
+                    "details": "YARA rules detected multiple potential malware behaviors in the file.\nThe following strings were matched: \n\n- `$ref`\n\n```\nContent-Length: 300\n```\n\n",
+                    "confidence": 2,
+                    "source": "YARA Analyzer"
+                  }
+                },
+                {
+                  "file_key": "package/docs/examples/typescript/connectExample.md",
+                  "evidence": {
+                    "title": "YARA rule 'geoip_website_value' matched file",
+                    "behavior": "YARA rules deletected the following behavior in the file: \n\n- public service for IP geolocation\n",
+                    "details": "YARA rules detected multiple potential malware behaviors in the file.\nThe following strings were matched: \n\n- `$ipify`\n\n```\nip-api.com\n```\n\n",
+                    "confidence": 2,
+                    "source": "YARA Analyzer"
+                  }
+                },
+                {
+                  "file_key": "package/docs/examples/typescript/connectExample.md",
+                  "evidence": {
+                    "title": "YARA rule 'content_length_hardcoded' matched file",
+                    "behavior": "YARA rules deletected the following behavior in the file: \n\n- Sets HTTP content length to hard-coded value\n",
+                    "details": "YARA rules detected multiple potential malware behaviors in the file.\nThe following strings were matched: \n\n- `$ref`\n\n```\nContent-Length: 300\n```\n\n",
+                    "confidence": 2,
+                    "source": "YARA Analyzer"
+                  }
+                },
+                {
+                  "file_key": "package/README.md",
+                  "evidence": {
+                    "title": "YARA rule 'hardcoded_ip_port' matched file",
+                    "behavior": "YARA rules deletected the following behavior in the file: \n\n- hardcoded IP:port destination\n",
+                    "details": "YARA rules detected multiple potential malware behaviors in the file.\nThe following strings were matched: \n\n- `$ipv4`\n\n```\n165.227.108.231:4444\n```\n\n",
+                    "confidence": 2,
+                    "source": "YARA Analyzer"
+                  }
+                },
+                {
+                  "file_key": "package/README.md",
+                  "evidence": {
+                    "title": "YARA rule 'geoip_website_value' matched file",
+                    "behavior": "YARA rules deletected the following behavior in the file: \n\n- public service for IP geolocation\n",
+                    "details": "YARA rules detected multiple potential malware behaviors in the file.\nThe following strings were matched: \n\n- `$ipify`\n\n```\nip-api.com\n```\n\n",
+                    "confidence": 2,
+                    "source": "YARA Analyzer"
+                  }
+                },
+                {
+                  "file_key": "package/README.md",
+                  "evidence": {
+                    "title": "YARA rule 'content_length_hardcoded' matched file",
+                    "behavior": "YARA rules deletected the following behavior in the file: \n\n- Sets HTTP content length to hard-coded value\n",
+                    "details": "YARA rules detected multiple potential malware behaviors in the file.\nThe following strings were matched: \n\n- `$ref`\n\n```\nContent-Length: 300\n```\n\n",
+                    "confidence": 2,
+                    "source": "YARA Analyzer"
+                  }
+                }
+              ],
+              "analyzed_at": {
+                "seconds": 1741612726,
+                "nanos": 883873572
+              },
+              "inference": {
+                "confidence": 2,
+                "details": "The evidence presented is insufficient to classify the `socks` package as malware.  While several YARA rules triggered, these rules are flagged as having medium confidence and are known to be noisy.  The matches themselves point to examples using IP geolocation services (`ip-api.com`), hardcoded `Content-Length` headers in example code, and a hardcoded IP address (165.227.108.231:4444) likely for demonstration purposes within the documentation.  These are common practices in networking examples and documentation and do not inherently indicate malicious behavior. The presence of these strings within example files (`.md`) further reduces the likelihood of malicious intent.  The lack of LLM-based analysis, which is considered more accurate, further weakens the case for malicious activity.  The project on GitHub has a moderate number of stars and forks, suggesting some level of community scrutiny, although this is not definitive proof of safety.  Without more compelling evidence, such as code analysis revealing malicious functionality or network behavior demonstrating harmful actions, classifying this package as malware is unwarranted.",
+                "summary": "No strong evidence of malicious behavior; YARA matches are in example code and lack confirmation from more reliable analysis methods."
+              },
+              "report_id": "01JP02WT8D9F2JNFZZ67DCF7PF"
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

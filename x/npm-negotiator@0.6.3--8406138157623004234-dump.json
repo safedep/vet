@@ -1,0 +1,479 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "negotiator@0.6.3",
+    "display_path": ""
+  },
+  "path": "pkg:npm/negotiator@0.6.3",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "negotiator",
+        "version": "0.6.3",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "HTTP content negotiation",
+            "distance": 0,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "negotiator",
+              "version": "0.6.3"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "MIT"
+        ],
+        "package_current_version": "1.0.0",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "negotiator",
+          "version": "0.6.3"
+        },
+        "projects": [
+          {
+            "display_name": "jshttp/negotiator",
+            "forks": 37,
+            "issues": 10,
+            "link": "https://github.com/jshttp/negotiator",
+            "name": "jshttp/negotiator",
+            "stars": 347,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Code-Review",
+                "reason": "Found 5/25 approved changesets -- score normalized to 2",
+                "score": 2
+              },
+              {
+                "name": "Maintained",
+                "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "detected GitHub workflow tokens with excessive permissions",
+                "score": 0
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "0 existing vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file detected",
+                "score": 10
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "a63518a9f12546bc6fbe52d45a829ef16ed7eca9",
+              "name": "github.com/jshttp/negotiator"
+            },
+            "score": 4.2,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JHQ44WA76HX54TKMMJCNBBZN",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "negotiator"
+            },
+            "version": "0.6.3"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+            "sha256": "912e687ba0f7e94f8e323e29e307db4a1838629399ff635412ae2a5d39765213"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/LICENSE",
+                "origin": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+                "derived_extension": "unknown",
+                "size": 1177
+              },
+              {
+                "key": "package/lib/charset.js",
+                "origin": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+                "derived_extension": "unknown",
+                "size": 3081
+              },
+              {
+                "key": "package/lib/encoding.js",
+                "origin": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+                "derived_extension": "unknown",
+                "size": 3506
+              },
+              {
+                "key": "package/index.js",
+                "origin": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+                "derived_extension": "unknown",
+                "size": 2451
+              },
+              {
+                "key": "package/lib/language.js",
+                "origin": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+                "derived_extension": "unknown",
+                "size": 3409
+              },
+              {
+                "key": "package/lib/mediaType.js",
+                "origin": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+                "derived_extension": "unknown",
+                "size": 5358
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+                "derived_extension": "unknown",
+                "size": 993
+              },
+              {
+                "key": "package/HISTORY.md",
+                "origin": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+                "derived_extension": "unknown",
+                "size": 2499
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+                "derived_extension": "unknown",
+                "size": 4901
+              }
+            ]
+          },
+          "analyzed_at": {
+            "seconds": 1737018163,
+            "nanos": 388790989
+          },
+          "inference": {
+            "confidence": 1,
+            "details": "No malware evidence were identified by any tool in the workflow"
+          }
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "ad40d1e4789647af": {
+        "data": {
+          "package_detail": {
+            "name": "negotiator",
+            "version": "0.6.3",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "HTTP content negotiation",
+                "distance": 0,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "negotiator",
+                  "version": "0.6.3"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "MIT"
+            ],
+            "package_current_version": "1.0.0",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "negotiator",
+              "version": "0.6.3"
+            },
+            "projects": [
+              {
+                "display_name": "jshttp/negotiator",
+                "forks": 37,
+                "issues": 10,
+                "link": "https://github.com/jshttp/negotiator",
+                "name": "jshttp/negotiator",
+                "stars": 347,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 5/25 approved changesets -- score normalized to 2",
+                    "score": 2
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no dangerous workflow patterns detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "detected GitHub workflow tokens with excessive permissions",
+                    "score": 0
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "0 existing vulnerabilities detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "branch protection not enabled on development/release branches",
+                    "score": 0
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                    "score": 0
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "a63518a9f12546bc6fbe52d45a829ef16ed7eca9",
+                  "name": "github.com/jshttp/negotiator"
+                },
+                "score": 4.2,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JHQ44WA76HX54TKMMJCNBBZN",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "negotiator"
+                },
+                "version": "0.6.3"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+                "sha256": "912e687ba0f7e94f8e323e29e307db4a1838629399ff635412ae2a5d39765213"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/LICENSE",
+                    "origin": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1177
+                  },
+                  {
+                    "key": "package/lib/charset.js",
+                    "origin": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3081
+                  },
+                  {
+                    "key": "package/lib/encoding.js",
+                    "origin": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3506
+                  },
+                  {
+                    "key": "package/index.js",
+                    "origin": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2451
+                  },
+                  {
+                    "key": "package/lib/language.js",
+                    "origin": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3409
+                  },
+                  {
+                    "key": "package/lib/mediaType.js",
+                    "origin": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 5358
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 993
+                  },
+                  {
+                    "key": "package/HISTORY.md",
+                    "origin": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2499
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 4901
+                  }
+                ]
+              },
+              "analyzed_at": {
+                "seconds": 1737018163,
+                "nanos": 388790989
+              },
+              "inference": {
+                "confidence": 1,
+                "details": "No malware evidence were identified by any tool in the workflow"
+              }
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

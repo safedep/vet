@@ -1,0 +1,419 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "spdx-exceptions@2.5.0",
+    "display_path": ""
+  },
+  "path": "pkg:npm/spdx-exceptions@2.5.0",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "spdx-exceptions",
+        "version": "2.5.0",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "list of SPDX standard license exceptions",
+            "distance": 0,
+            "licenses": [
+              "CC-BY-3.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "spdx-exceptions",
+              "version": "2.5.0"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "CC-BY-3.0"
+        ],
+        "package_current_version": "2.5.0",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "spdx-exceptions",
+          "version": "2.5.0"
+        },
+        "projects": [
+          {
+            "display_name": "jslicense/spdx-exceptions.json",
+            "forks": 11,
+            "issues": 1,
+            "link": "https://github.com/kemitchell/spdx-exceptions.json",
+            "name": "kemitchell/spdx-exceptions.json",
+            "stars": 16,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "Maintained",
+                "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Code-Review",
+                "reason": "Found 1/30 approved changesets -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "detected GitHub workflow tokens with excessive permissions",
+                "score": 0
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file not detected",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "0 existing vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                "score": -1
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "3aa64bec339abc6a3eca00c3436aaa7e154b8799",
+              "name": "github.com/kemitchell/spdx-exceptions.json"
+            },
+            "score": 3.4,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JJBTNDVYFY656X74C6TN4652",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "spdx-exceptions"
+            },
+            "version": "2.5.0"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/spdx-exceptions/-/spdx-exceptions-2.5.0.tgz",
+            "sha256": "c5295dd22415e8b60a5af2560e7461954f660bcb591be7c5622e463956d33256"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/deprecated.json",
+                "origin": "https://registry.npmjs.org/spdx-exceptions/-/spdx-exceptions-2.5.0.tgz",
+                "derived_extension": "unknown",
+                "size": 31
+              },
+              {
+                "key": "package/index.json",
+                "origin": "https://registry.npmjs.org/spdx-exceptions/-/spdx-exceptions-2.5.0.tgz",
+                "derived_extension": "unknown",
+                "size": 1731
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/spdx-exceptions/-/spdx-exceptions-2.5.0.tgz",
+                "derived_extension": "unknown",
+                "size": 463
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/spdx-exceptions/-/spdx-exceptions-2.5.0.tgz",
+                "derived_extension": "unknown",
+                "size": 1243
+              }
+            ]
+          },
+          "analyzed_at": {
+            "seconds": 1737711381,
+            "nanos": 818558459
+          },
+          "inference": {
+            "confidence": 1,
+            "details": "No malware evidence were identified by any tool in the workflow"
+          }
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "182e980f84d139b": {
+        "data": {
+          "package_detail": {
+            "name": "spdx-exceptions",
+            "version": "2.5.0",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "list of SPDX standard license exceptions",
+                "distance": 0,
+                "licenses": [
+                  "CC-BY-3.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "spdx-exceptions",
+                  "version": "2.5.0"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "CC-BY-3.0"
+            ],
+            "package_current_version": "2.5.0",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "spdx-exceptions",
+              "version": "2.5.0"
+            },
+            "projects": [
+              {
+                "display_name": "jslicense/spdx-exceptions.json",
+                "forks": 11,
+                "issues": 1,
+                "link": "https://github.com/kemitchell/spdx-exceptions.json",
+                "name": "kemitchell/spdx-exceptions.json",
+                "stars": 16,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no dangerous workflow patterns detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 1/30 approved changesets -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "detected GitHub workflow tokens with excessive permissions",
+                    "score": 0
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file not detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "0 existing vulnerabilities detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file not detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                    "score": -1
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                    "score": 0
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "3aa64bec339abc6a3eca00c3436aaa7e154b8799",
+                  "name": "github.com/kemitchell/spdx-exceptions.json"
+                },
+                "score": 3.4,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JJBTNDVYFY656X74C6TN4652",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "spdx-exceptions"
+                },
+                "version": "2.5.0"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/spdx-exceptions/-/spdx-exceptions-2.5.0.tgz",
+                "sha256": "c5295dd22415e8b60a5af2560e7461954f660bcb591be7c5622e463956d33256"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/deprecated.json",
+                    "origin": "https://registry.npmjs.org/spdx-exceptions/-/spdx-exceptions-2.5.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 31
+                  },
+                  {
+                    "key": "package/index.json",
+                    "origin": "https://registry.npmjs.org/spdx-exceptions/-/spdx-exceptions-2.5.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1731
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/spdx-exceptions/-/spdx-exceptions-2.5.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 463
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/spdx-exceptions/-/spdx-exceptions-2.5.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1243
+                  }
+                ]
+              },
+              "analyzed_at": {
+                "seconds": 1737711381,
+                "nanos": 818558459
+              },
+              "inference": {
+                "confidence": 1,
+                "details": "No malware evidence were identified by any tool in the workflow"
+              }
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

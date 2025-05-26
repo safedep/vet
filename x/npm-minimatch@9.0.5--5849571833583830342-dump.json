@@ -1,0 +1,1055 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "minimatch@9.0.5",
+    "display_path": ""
+  },
+  "path": "pkg:npm/minimatch@9.0.5",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "minimatch",
+        "version": "9.0.5",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "a glob matcher in javascript",
+            "distance": 0,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "minimatch",
+              "version": "9.0.5"
+            }
+          },
+          {
+            "description": "Brace expansion as known from sh/bash",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "brace-expansion",
+              "version": "2.0.1"
+            }
+          },
+          {
+            "description": "Match balanced character pairs, like \"{\" and \"}\"",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "balanced-match",
+              "version": "1.0.2"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 1,
+          "indirect_dependents": 1,
+          "total_dependents": 2
+        },
+        "licenses": [
+          "ISC"
+        ],
+        "package_current_version": "10.0.1",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "minimatch",
+          "version": "9.0.5"
+        },
+        "projects": [
+          {
+            "display_name": "isaacs/minimatch",
+            "forks": 262,
+            "issues": 14,
+            "link": "https://github.com/isaacs/minimatch",
+            "name": "isaacs/minimatch",
+            "stars": 3373,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "Maintained",
+                "reason": "0 commit(s) and 1 issue activity found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Code-Review",
+                "reason": "Found 3/30 approved changesets -- score normalized to 1",
+                "score": 1
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "detected GitHub workflow tokens with excessive permissions",
+                "score": 0
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                "score": -1
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "2 existing vulnerabilities detected",
+                "score": 8
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "0569cd3373408f9d701d3aab187b3f43a24a0db7",
+              "name": "github.com/isaacs/minimatch"
+            },
+            "score": 3.7,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JJ6JPZF2MHGAP3MP7JKEHGVF",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "minimatch"
+            },
+            "version": "9.0.5"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+            "sha256": "17d107a4b13e2dd4f4b7deacf22f97df984f8d70da985fdd80642b14b1045f8d"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/LICENSE",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 775
+              },
+              {
+                "key": "package/dist/commonjs/assert-valid-pattern.js",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 444
+              },
+              {
+                "key": "package/dist/esm/assert-valid-pattern.js",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 288
+              },
+              {
+                "key": "package/dist/commonjs/ast.js",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 16236
+              },
+              {
+                "key": "package/dist/esm/ast.js",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 16002
+              },
+              {
+                "key": "package/dist/commonjs/brace-expressions.js",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 4039
+              },
+              {
+                "key": "package/dist/esm/brace-expressions.js",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 3907
+              },
+              {
+                "key": "package/dist/commonjs/escape.js",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 329
+              },
+              {
+                "key": "package/dist/esm/escape.js",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 209
+              },
+              {
+                "key": "package/dist/commonjs/index.js",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 31346
+              },
+              {
+                "key": "package/dist/esm/index.js",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 29887
+              },
+              {
+                "key": "package/dist/commonjs/unescape.js",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 365
+              },
+              {
+                "key": "package/dist/esm/unescape.js",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 239
+              },
+              {
+                "key": "package/dist/commonjs/package.json",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 25
+              },
+              {
+                "key": "package/dist/esm/package.json",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 23
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 2003
+              },
+              {
+                "key": "package/dist/commonjs/assert-valid-pattern.d.ts.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 199
+              },
+              {
+                "key": "package/dist/esm/assert-valid-pattern.d.ts.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 199
+              },
+              {
+                "key": "package/dist/commonjs/assert-valid-pattern.js.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 802
+              },
+              {
+                "key": "package/dist/esm/assert-valid-pattern.js.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 785
+              },
+              {
+                "key": "package/dist/commonjs/ast.d.ts.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 868
+              },
+              {
+                "key": "package/dist/esm/ast.d.ts.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 868
+              },
+              {
+                "key": "package/dist/commonjs/ast.js.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 40021
+              },
+              {
+                "key": "package/dist/esm/ast.js.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 40036
+              },
+              {
+                "key": "package/dist/commonjs/brace-expressions.d.ts.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 304
+              },
+              {
+                "key": "package/dist/esm/brace-expressions.d.ts.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 304
+              },
+              {
+                "key": "package/dist/commonjs/brace-expressions.js.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 10371
+              },
+              {
+                "key": "package/dist/esm/brace-expressions.js.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 10355
+              },
+              {
+                "key": "package/dist/commonjs/escape.d.ts.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 244
+              },
+              {
+                "key": "package/dist/esm/escape.d.ts.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 244
+              },
+              {
+                "key": "package/dist/commonjs/escape.js.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 1378
+              },
+              {
+                "key": "package/dist/esm/escape.js.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 1364
+              },
+              {
+                "key": "package/dist/commonjs/index.d.ts.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 3194
+              },
+              {
+                "key": "package/dist/esm/index.d.ts.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 3194
+              },
+              {
+                "key": "package/dist/commonjs/index.js.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 71631
+              },
+              {
+                "key": "package/dist/esm/index.js.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 71657
+              },
+              {
+                "key": "package/dist/commonjs/unescape.d.ts.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 254
+              },
+              {
+                "key": "package/dist/esm/unescape.d.ts.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 254
+              },
+              {
+                "key": "package/dist/commonjs/unescape.js.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 1403
+              },
+              {
+                "key": "package/dist/esm/unescape.js.map",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 1389
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 16942
+              },
+              {
+                "key": "package/dist/commonjs/assert-valid-pattern.d.ts",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 115
+              },
+              {
+                "key": "package/dist/esm/assert-valid-pattern.d.ts",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 115
+              },
+              {
+                "key": "package/dist/commonjs/ast.d.ts",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 795
+              },
+              {
+                "key": "package/dist/esm/ast.d.ts",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 795
+              },
+              {
+                "key": "package/dist/commonjs/brace-expressions.d.ts",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 251
+              },
+              {
+                "key": "package/dist/esm/brace-expressions.d.ts",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 251
+              },
+              {
+                "key": "package/dist/commonjs/escape.d.ts",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 647
+              },
+              {
+                "key": "package/dist/esm/escape.d.ts",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 647
+              },
+              {
+                "key": "package/dist/commonjs/index.d.ts",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 3901
+              },
+              {
+                "key": "package/dist/esm/index.d.ts",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 3901
+              },
+              {
+                "key": "package/dist/commonjs/unescape.d.ts",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 788
+              },
+              {
+                "key": "package/dist/esm/unescape.d.ts",
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "derived_extension": "unknown",
+                "size": 788
+              }
+            ]
+          },
+          "analyzed_at": {
+            "seconds": 1737535901,
+            "nanos": 505861018
+          },
+          "inference": {
+            "confidence": 1,
+            "details": "No malware evidence were identified by any tool in the workflow"
+          }
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "b1c209b05e5ad192": {
+        "data": {
+          "package_detail": {
+            "name": "minimatch",
+            "version": "9.0.5",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "a glob matcher in javascript",
+                "distance": 0,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "minimatch",
+                  "version": "9.0.5"
+                }
+              },
+              {
+                "description": "Brace expansion as known from sh/bash",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "brace-expansion",
+                  "version": "2.0.1"
+                }
+              },
+              {
+                "description": "Match balanced character pairs, like \"{\" and \"}\"",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "balanced-match",
+                  "version": "1.0.2"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 1,
+              "indirect_dependents": 1,
+              "total_dependents": 2
+            },
+            "licenses": [
+              "ISC"
+            ],
+            "package_current_version": "10.0.1",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "minimatch",
+              "version": "9.0.5"
+            },
+            "projects": [
+              {
+                "display_name": "isaacs/minimatch",
+                "forks": 262,
+                "issues": 14,
+                "link": "https://github.com/isaacs/minimatch",
+                "name": "isaacs/minimatch",
+                "stars": 3373,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no dangerous workflow patterns detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "0 commit(s) and 1 issue activity found in the last 90 days -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 3/30 approved changesets -- score normalized to 1",
+                    "score": 1
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "detected GitHub workflow tokens with excessive permissions",
+                    "score": 0
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                    "score": -1
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file not detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "2 existing vulnerabilities detected",
+                    "score": 8
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "0569cd3373408f9d701d3aab187b3f43a24a0db7",
+                  "name": "github.com/isaacs/minimatch"
+                },
+                "score": 3.7,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JJ6JPZF2MHGAP3MP7JKEHGVF",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "minimatch"
+                },
+                "version": "9.0.5"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                "sha256": "17d107a4b13e2dd4f4b7deacf22f97df984f8d70da985fdd80642b14b1045f8d"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/LICENSE",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 775
+                  },
+                  {
+                    "key": "package/dist/commonjs/assert-valid-pattern.js",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 444
+                  },
+                  {
+                    "key": "package/dist/esm/assert-valid-pattern.js",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 288
+                  },
+                  {
+                    "key": "package/dist/commonjs/ast.js",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 16236
+                  },
+                  {
+                    "key": "package/dist/esm/ast.js",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 16002
+                  },
+                  {
+                    "key": "package/dist/commonjs/brace-expressions.js",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 4039
+                  },
+                  {
+                    "key": "package/dist/esm/brace-expressions.js",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3907
+                  },
+                  {
+                    "key": "package/dist/commonjs/escape.js",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 329
+                  },
+                  {
+                    "key": "package/dist/esm/escape.js",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 209
+                  },
+                  {
+                    "key": "package/dist/commonjs/index.js",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 31346
+                  },
+                  {
+                    "key": "package/dist/esm/index.js",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 29887
+                  },
+                  {
+                    "key": "package/dist/commonjs/unescape.js",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 365
+                  },
+                  {
+                    "key": "package/dist/esm/unescape.js",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 239
+                  },
+                  {
+                    "key": "package/dist/commonjs/package.json",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 25
+                  },
+                  {
+                    "key": "package/dist/esm/package.json",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 23
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2003
+                  },
+                  {
+                    "key": "package/dist/commonjs/assert-valid-pattern.d.ts.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 199
+                  },
+                  {
+                    "key": "package/dist/esm/assert-valid-pattern.d.ts.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 199
+                  },
+                  {
+                    "key": "package/dist/commonjs/assert-valid-pattern.js.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 802
+                  },
+                  {
+                    "key": "package/dist/esm/assert-valid-pattern.js.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 785
+                  },
+                  {
+                    "key": "package/dist/commonjs/ast.d.ts.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 868
+                  },
+                  {
+                    "key": "package/dist/esm/ast.d.ts.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 868
+                  },
+                  {
+                    "key": "package/dist/commonjs/ast.js.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 40021
+                  },
+                  {
+                    "key": "package/dist/esm/ast.js.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 40036
+                  },
+                  {
+                    "key": "package/dist/commonjs/brace-expressions.d.ts.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 304
+                  },
+                  {
+                    "key": "package/dist/esm/brace-expressions.d.ts.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 304
+                  },
+                  {
+                    "key": "package/dist/commonjs/brace-expressions.js.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 10371
+                  },
+                  {
+                    "key": "package/dist/esm/brace-expressions.js.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 10355
+                  },
+                  {
+                    "key": "package/dist/commonjs/escape.d.ts.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 244
+                  },
+                  {
+                    "key": "package/dist/esm/escape.d.ts.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 244
+                  },
+                  {
+                    "key": "package/dist/commonjs/escape.js.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1378
+                  },
+                  {
+                    "key": "package/dist/esm/escape.js.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1364
+                  },
+                  {
+                    "key": "package/dist/commonjs/index.d.ts.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3194
+                  },
+                  {
+                    "key": "package/dist/esm/index.d.ts.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3194
+                  },
+                  {
+                    "key": "package/dist/commonjs/index.js.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 71631
+                  },
+                  {
+                    "key": "package/dist/esm/index.js.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 71657
+                  },
+                  {
+                    "key": "package/dist/commonjs/unescape.d.ts.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 254
+                  },
+                  {
+                    "key": "package/dist/esm/unescape.d.ts.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 254
+                  },
+                  {
+                    "key": "package/dist/commonjs/unescape.js.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1403
+                  },
+                  {
+                    "key": "package/dist/esm/unescape.js.map",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1389
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 16942
+                  },
+                  {
+                    "key": "package/dist/commonjs/assert-valid-pattern.d.ts",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 115
+                  },
+                  {
+                    "key": "package/dist/esm/assert-valid-pattern.d.ts",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 115
+                  },
+                  {
+                    "key": "package/dist/commonjs/ast.d.ts",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 795
+                  },
+                  {
+                    "key": "package/dist/esm/ast.d.ts",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 795
+                  },
+                  {
+                    "key": "package/dist/commonjs/brace-expressions.d.ts",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 251
+                  },
+                  {
+                    "key": "package/dist/esm/brace-expressions.d.ts",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 251
+                  },
+                  {
+                    "key": "package/dist/commonjs/escape.d.ts",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 647
+                  },
+                  {
+                    "key": "package/dist/esm/escape.d.ts",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 647
+                  },
+                  {
+                    "key": "package/dist/commonjs/index.d.ts",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3901
+                  },
+                  {
+                    "key": "package/dist/esm/index.d.ts",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3901
+                  },
+                  {
+                    "key": "package/dist/commonjs/unescape.d.ts",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 788
+                  },
+                  {
+                    "key": "package/dist/esm/unescape.d.ts",
+                    "origin": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz",
+                    "derived_extension": "unknown",
+                    "size": 788
+                  }
+                ]
+              },
+              "analyzed_at": {
+                "seconds": 1737535901,
+                "nanos": 505861018
+              },
+              "inference": {
+                "confidence": 1,
+                "details": "No malware evidence were identified by any tool in the workflow"
+              }
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

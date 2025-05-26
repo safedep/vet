@@ -1,0 +1,335 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "cidr-regex@4.1.1",
+    "display_path": ""
+  },
+  "path": "pkg:npm/cidr-regex@4.1.1",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "cidr-regex",
+        "version": "4.1.1",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Regular expression for matching IP addresses in CIDR notation",
+            "distance": 0,
+            "licenses": [
+              "BSD-2-Clause"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "cidr-regex",
+              "version": "4.1.1"
+            }
+          },
+          {
+            "description": "Regular expression for matching IP addresses (IPv4 \u0026 IPv6)",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "ip-regex",
+              "version": "5.0.0"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 1,
+          "indirect_dependents": 0,
+          "total_dependents": 1
+        },
+        "licenses": [
+          "BSD-2-Clause"
+        ],
+        "package_current_version": "4.1.3",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "cidr-regex",
+          "version": "4.1.1"
+        },
+        "projects": [
+          {
+            "display_name": "silverwind/cidr-regex",
+            "forks": 10,
+            "issues": 1,
+            "link": "https://github.com/silverwind/cidr-regex",
+            "name": "silverwind/cidr-regex",
+            "stars": 31,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Maintained",
+                "reason": "5 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 4",
+                "score": 4
+              },
+              {
+                "name": "Code-Review",
+                "reason": "Found 0/30 approved changesets -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "detected GitHub workflow tokens with excessive permissions",
+                "score": 0
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "SAST",
+                "reason": "no SAST tool detected",
+                "score": 0
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "7 existing vulnerabilities detected",
+                "score": 3
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "0b22147b8e0790da5cf5107327b7ee705b6d6818",
+              "name": "github.com/silverwind/cidr-regex"
+            },
+            "score": 3.2,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": null,
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "e99da00adced5e64": {
+        "data": {
+          "package_detail": {
+            "name": "cidr-regex",
+            "version": "4.1.1",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "Regular expression for matching IP addresses in CIDR notation",
+                "distance": 0,
+                "licenses": [
+                  "BSD-2-Clause"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "cidr-regex",
+                  "version": "4.1.1"
+                }
+              },
+              {
+                "description": "Regular expression for matching IP addresses (IPv4 \u0026 IPv6)",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "ip-regex",
+                  "version": "5.0.0"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 1,
+              "indirect_dependents": 0,
+              "total_dependents": 1
+            },
+            "licenses": [
+              "BSD-2-Clause"
+            ],
+            "package_current_version": "4.1.3",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "cidr-regex",
+              "version": "4.1.1"
+            },
+            "projects": [
+              {
+                "display_name": "silverwind/cidr-regex",
+                "forks": 10,
+                "issues": 1,
+                "link": "https://github.com/silverwind/cidr-regex",
+                "name": "silverwind/cidr-regex",
+                "stars": 31,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Maintained",
+                    "reason": "5 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 4",
+                    "score": 4
+                  },
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 0/30 approved changesets -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no dangerous workflow patterns detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "detected GitHub workflow tokens with excessive permissions",
+                    "score": 0
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "no SAST tool detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file not detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "branch protection not enabled on development/release branches",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "7 existing vulnerabilities detected",
+                    "score": 3
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "0b22147b8e0790da5cf5107327b7ee705b6d6818",
+                  "name": "github.com/silverwind/cidr-regex"
+                },
+                "score": 3.2,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": null,
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

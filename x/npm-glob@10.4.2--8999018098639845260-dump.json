@@ -1,0 +1,1979 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "glob@10.4.2",
+    "display_path": ""
+  },
+  "path": "pkg:npm/glob@10.4.2",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "glob",
+        "version": "10.4.2",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "the most correct and second fastest glob implementation in JavaScript",
+            "distance": 0,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "glob",
+              "version": "10.4.2"
+            }
+          },
+          {
+            "description": "Run a child as if it's the foreground process. Give it stdio. Exit when it exits.",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "foreground-child",
+              "version": "3.3.1"
+            }
+          },
+          {
+            "description": "A very strict and proper argument parser.",
+            "distance": 1,
+            "licenses": [
+              "BlueOak-1.0.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "jackspeak",
+              "version": "3.4.3"
+            }
+          },
+          {
+            "description": "a glob matcher in javascript",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "minimatch",
+              "version": "9.0.5"
+            }
+          },
+          {
+            "description": "minimal implementation of a PassThrough stream",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "minipass",
+              "version": "7.1.2"
+            }
+          },
+          {
+            "description": "Load the local package.json from either src or dist folder",
+            "distance": 1,
+            "licenses": [
+              "BlueOak-1.0.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "package-json-from-dist",
+              "version": "1.0.1"
+            }
+          },
+          {
+            "description": "walk paths fast and efficiently",
+            "distance": 1,
+            "licenses": [
+              "BlueOak-1.0.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "path-scurry",
+              "version": "1.11.1"
+            }
+          },
+          {
+            "description": "easily create complex multi-column command-line-interfaces",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "@isaacs/cliui",
+              "version": "8.0.2"
+            }
+          },
+          {
+            "description": "Polyfill of future proposal for `util.parseArgs()`",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "@pkgjs/parseargs",
+              "version": "0.11.0"
+            }
+          },
+          {
+            "description": "Brace expansion as known from sh/bash",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "brace-expansion",
+              "version": "2.0.1"
+            }
+          },
+          {
+            "description": "Cross platform child_process#spawn and child_process#spawnSync",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "cross-spawn",
+              "version": "7.0.6"
+            }
+          },
+          {
+            "description": "A cache object that deletes the least-recently-used items.",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "lru-cache",
+              "version": "10.4.3"
+            }
+          },
+          {
+            "description": "when you want to fire an event no matter how a process exits.",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "signal-exit",
+              "version": "4.1.0"
+            }
+          },
+          {
+            "description": "Match balanced character pairs, like \"{\" and \"}\"",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "balanced-match",
+              "version": "1.0.2"
+            }
+          },
+          {
+            "description": "Get the PATH environment variable key cross-platform",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "path-key",
+              "version": "3.1.1"
+            }
+          },
+          {
+            "description": "Get the command from a shebang",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "shebang-command",
+              "version": "2.0.0"
+            }
+          },
+          {
+            "description": "Get the visual width of a string - the number of columns required to display it",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "string-width",
+              "version": "4.2.3"
+            }
+          },
+          {
+            "description": "Get the visual width of a string - the number of columns required to display it",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "string-width",
+              "version": "5.1.2"
+            }
+          },
+          {
+            "description": "Strip ANSI escape codes from a string",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "strip-ansi",
+              "version": "6.0.1"
+            }
+          },
+          {
+            "description": "Strip ANSI escape codes from a string",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "strip-ansi",
+              "version": "7.1.0"
+            }
+          },
+          {
+            "description": "Like which(1) unix command. Find the first instance of an executable in the PATH.",
+            "distance": 3,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "which",
+              "version": "2.0.2"
+            }
+          },
+          {
+            "description": "Wordwrap a string with ANSI escape codes",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "wrap-ansi",
+              "version": "7.0.0"
+            }
+          },
+          {
+            "description": "Wordwrap a string with ANSI escape codes",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "wrap-ansi",
+              "version": "8.1.0"
+            }
+          },
+          {
+            "description": "Regular expression for matching ANSI escape codes",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "ansi-regex",
+              "version": "5.0.1"
+            }
+          },
+          {
+            "description": "Regular expression for matching ANSI escape codes",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "ansi-regex",
+              "version": "6.1.0"
+            }
+          },
+          {
+            "description": "ANSI escape codes for styling strings in the terminal",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "ansi-styles",
+              "version": "4.3.0"
+            }
+          },
+          {
+            "description": "ANSI escape codes for styling strings in the terminal",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "ansi-styles",
+              "version": "6.2.1"
+            }
+          },
+          {
+            "description": "Get East Asian Width from a character.",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "eastasianwidth",
+              "version": "0.2.0"
+            }
+          },
+          {
+            "description": "A regular expression to match all Emoji-only symbols as per the Unicode Standard.",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "emoji-regex",
+              "version": "8.0.0"
+            }
+          },
+          {
+            "description": "A regular expression to match all Emoji-only symbols as per the Unicode Standard.",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "emoji-regex",
+              "version": "9.2.2"
+            }
+          },
+          {
+            "description": "Check if the character represented by a given Unicode code point is fullwidth",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "is-fullwidth-code-point",
+              "version": "3.0.0"
+            }
+          },
+          {
+            "description": "Minimal module to check if a file is executable.",
+            "distance": 4,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "isexe",
+              "version": "2.0.0"
+            }
+          },
+          {
+            "description": "Regular expression for matching a shebang line",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "shebang-regex",
+              "version": "3.0.0"
+            }
+          },
+          {
+            "description": "Plain color conversion functions",
+            "distance": 5,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "color-convert",
+              "version": "2.0.1"
+            }
+          },
+          {
+            "description": "A list of color names and its values",
+            "distance": 6,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "color-name",
+              "version": "1.1.4"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 6,
+          "indirect_dependents": 28,
+          "total_dependents": 34
+        },
+        "licenses": [
+          "ISC"
+        ],
+        "package_current_version": "11.0.2",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "glob",
+          "version": "10.4.2"
+        },
+        "projects": [
+          {
+            "display_name": "isaacs/node-glob",
+            "forks": 487,
+            "issues": 21,
+            "link": "https://github.com/isaacs/node-glob",
+            "name": "isaacs/node-glob",
+            "stars": 8605,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Maintained",
+                "reason": "2 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 1",
+                "score": 1
+              },
+              {
+                "name": "Code-Review",
+                "reason": "Found 2/30 approved changesets -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "detected GitHub workflow tokens with excessive permissions",
+                "score": 0
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 1",
+                "score": 1
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "1 existing vulnerabilities detected",
+                "score": 9
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "fd61f2410b4356f202f645661cfa175152702ae6",
+              "name": "github.com/isaacs/node-glob"
+            },
+            "score": 3.5,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JNRM26QQGEZ9Y8F3PSAB71N1",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "glob"
+            },
+            "version": "10.4.2"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+            "sha256": "dac790338fe1713e27baebe728a67b1b7cda83a87811e54665ce12bd11c02950"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/LICENSE",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 775
+              },
+              {
+                "key": "package/dist/commonjs/glob.js",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 7011
+              },
+              {
+                "key": "package/dist/esm/glob.js",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 6804
+              },
+              {
+                "key": "package/dist/commonjs/has-magic.js",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 437
+              },
+              {
+                "key": "package/dist/esm/has-magic.js",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 296
+              },
+              {
+                "key": "package/dist/commonjs/ignore.js",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 3197
+              },
+              {
+                "key": "package/dist/esm/ignore.js",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 3031
+              },
+              {
+                "key": "package/dist/commonjs/index.js",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 2891
+              },
+              {
+                "key": "package/dist/esm/index.js",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 1549
+              },
+              {
+                "key": "package/dist/commonjs/pattern.js",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 5474
+              },
+              {
+                "key": "package/dist/esm/pattern.js",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 5335
+              },
+              {
+                "key": "package/dist/commonjs/processor.js",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 8463
+              },
+              {
+                "key": "package/dist/esm/processor.js",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 8156
+              },
+              {
+                "key": "package/dist/commonjs/walker.js",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 11683
+              },
+              {
+                "key": "package/dist/esm/walker.js",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 11383
+              },
+              {
+                "key": "package/dist/commonjs/package.json",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 25
+              },
+              {
+                "key": "package/dist/esm/package.json",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 23
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 2569
+              },
+              {
+                "key": "package/dist/esm/bin.d.mts.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 105
+              },
+              {
+                "key": "package/dist/esm/bin.mjs.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 14152
+              },
+              {
+                "key": "package/dist/commonjs/glob.d.ts.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 4039
+              },
+              {
+                "key": "package/dist/esm/glob.d.ts.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 4039
+              },
+              {
+                "key": "package/dist/commonjs/glob.js.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 28218
+              },
+              {
+                "key": "package/dist/esm/glob.js.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 28377
+              },
+              {
+                "key": "package/dist/commonjs/has-magic.d.ts.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 246
+              },
+              {
+                "key": "package/dist/esm/has-magic.d.ts.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 246
+              },
+              {
+                "key": "package/dist/commonjs/has-magic.js.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 1482
+              },
+              {
+                "key": "package/dist/esm/has-magic.js.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 1495
+              },
+              {
+                "key": "package/dist/commonjs/ignore.d.ts.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 887
+              },
+              {
+                "key": "package/dist/esm/ignore.d.ts.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 887
+              },
+              {
+                "key": "package/dist/commonjs/ignore.js.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 7471
+              },
+              {
+                "key": "package/dist/esm/ignore.js.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 7514
+              },
+              {
+                "key": "package/dist/commonjs/index.d.ts.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 4085
+              },
+              {
+                "key": "package/dist/esm/index.d.ts.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 4085
+              },
+              {
+                "key": "package/dist/commonjs/index.js.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 8364
+              },
+              {
+                "key": "package/dist/esm/index.js.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 8404
+              },
+              {
+                "key": "package/dist/commonjs/pattern.d.ts.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 1315
+              },
+              {
+                "key": "package/dist/esm/pattern.d.ts.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 1315
+              },
+              {
+                "key": "package/dist/commonjs/pattern.js.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 13391
+              },
+              {
+                "key": "package/dist/esm/pattern.js.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 13407
+              },
+              {
+                "key": "package/dist/commonjs/processor.d.ts.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 1748
+              },
+              {
+                "key": "package/dist/esm/processor.d.ts.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 1748
+              },
+              {
+                "key": "package/dist/commonjs/processor.js.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 19044
+              },
+              {
+                "key": "package/dist/esm/processor.js.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 19037
+              },
+              {
+                "key": "package/dist/commonjs/walker.d.ts.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 4196
+              },
+              {
+                "key": "package/dist/esm/walker.d.ts.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 4196
+              },
+              {
+                "key": "package/dist/commonjs/walker.js.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 27899
+              },
+              {
+                "key": "package/dist/esm/walker.js.map",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 27953
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 48383
+              },
+              {
+                "key": "package/dist/esm/bin.mjs",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 9488,
+                "capability_labels": [
+                  "file:manipulation",
+                  "file:read"
+                ]
+              },
+              {
+                "key": "package/dist/esm/bin.d.mts",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 65
+              },
+              {
+                "key": "package/dist/commonjs/glob.d.ts",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 14839
+              },
+              {
+                "key": "package/dist/esm/glob.d.ts",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 14864
+              },
+              {
+                "key": "package/dist/commonjs/has-magic.d.ts",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 760
+              },
+              {
+                "key": "package/dist/esm/has-magic.d.ts",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 760
+              },
+              {
+                "key": "package/dist/commonjs/ignore.d.ts",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 844
+              },
+              {
+                "key": "package/dist/esm/ignore.d.ts",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 869
+              },
+              {
+                "key": "package/dist/commonjs/index.d.ts",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 6169
+              },
+              {
+                "key": "package/dist/esm/index.d.ts",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 6169
+              },
+              {
+                "key": "package/dist/commonjs/pattern.d.ts",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 2148
+              },
+              {
+                "key": "package/dist/esm/pattern.d.ts",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 2173
+              },
+              {
+                "key": "package/dist/commonjs/processor.d.ts",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 2136
+              },
+              {
+                "key": "package/dist/esm/processor.d.ts",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 2136
+              },
+              {
+                "key": "package/dist/commonjs/walker.d.ts",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 3811
+              },
+              {
+                "key": "package/dist/esm/walker.d.ts",
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "derived_extension": "unknown",
+                "size": 3836
+              }
+            ]
+          },
+          "analyzed_at": {
+            "seconds": 1741362617,
+            "nanos": 364300
+          },
+          "inference": {
+            "confidence": 1,
+            "details": "No malware evidence were identified by any tool in the workflow",
+            "summary": "No malware evidence were identified by any tool in the workflow"
+          },
+          "report_id": "01JNRM26QQGEZ9Y8F3PSAB71N1"
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "539c59b05de4ab15": {
+        "data": {
+          "package_detail": {
+            "name": "glob",
+            "version": "10.4.2",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "the most correct and second fastest glob implementation in JavaScript",
+                "distance": 0,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "glob",
+                  "version": "10.4.2"
+                }
+              },
+              {
+                "description": "Run a child as if it's the foreground process. Give it stdio. Exit when it exits.",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "foreground-child",
+                  "version": "3.3.1"
+                }
+              },
+              {
+                "description": "A very strict and proper argument parser.",
+                "distance": 1,
+                "licenses": [
+                  "BlueOak-1.0.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "jackspeak",
+                  "version": "3.4.3"
+                }
+              },
+              {
+                "description": "a glob matcher in javascript",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "minimatch",
+                  "version": "9.0.5"
+                }
+              },
+              {
+                "description": "minimal implementation of a PassThrough stream",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "minipass",
+                  "version": "7.1.2"
+                }
+              },
+              {
+                "description": "Load the local package.json from either src or dist folder",
+                "distance": 1,
+                "licenses": [
+                  "BlueOak-1.0.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "package-json-from-dist",
+                  "version": "1.0.1"
+                }
+              },
+              {
+                "description": "walk paths fast and efficiently",
+                "distance": 1,
+                "licenses": [
+                  "BlueOak-1.0.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "path-scurry",
+                  "version": "1.11.1"
+                }
+              },
+              {
+                "description": "easily create complex multi-column command-line-interfaces",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "@isaacs/cliui",
+                  "version": "8.0.2"
+                }
+              },
+              {
+                "description": "Polyfill of future proposal for `util.parseArgs()`",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "@pkgjs/parseargs",
+                  "version": "0.11.0"
+                }
+              },
+              {
+                "description": "Brace expansion as known from sh/bash",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "brace-expansion",
+                  "version": "2.0.1"
+                }
+              },
+              {
+                "description": "Cross platform child_process#spawn and child_process#spawnSync",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "cross-spawn",
+                  "version": "7.0.6"
+                }
+              },
+              {
+                "description": "A cache object that deletes the least-recently-used items.",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "lru-cache",
+                  "version": "10.4.3"
+                }
+              },
+              {
+                "description": "when you want to fire an event no matter how a process exits.",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "signal-exit",
+                  "version": "4.1.0"
+                }
+              },
+              {
+                "description": "Match balanced character pairs, like \"{\" and \"}\"",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "balanced-match",
+                  "version": "1.0.2"
+                }
+              },
+              {
+                "description": "Get the PATH environment variable key cross-platform",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "path-key",
+                  "version": "3.1.1"
+                }
+              },
+              {
+                "description": "Get the command from a shebang",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "shebang-command",
+                  "version": "2.0.0"
+                }
+              },
+              {
+                "description": "Get the visual width of a string - the number of columns required to display it",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "string-width",
+                  "version": "4.2.3"
+                }
+              },
+              {
+                "description": "Get the visual width of a string - the number of columns required to display it",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "string-width",
+                  "version": "5.1.2"
+                }
+              },
+              {
+                "description": "Strip ANSI escape codes from a string",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "strip-ansi",
+                  "version": "6.0.1"
+                }
+              },
+              {
+                "description": "Strip ANSI escape codes from a string",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "strip-ansi",
+                  "version": "7.1.0"
+                }
+              },
+              {
+                "description": "Like which(1) unix command. Find the first instance of an executable in the PATH.",
+                "distance": 3,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "which",
+                  "version": "2.0.2"
+                }
+              },
+              {
+                "description": "Wordwrap a string with ANSI escape codes",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "wrap-ansi",
+                  "version": "7.0.0"
+                }
+              },
+              {
+                "description": "Wordwrap a string with ANSI escape codes",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "wrap-ansi",
+                  "version": "8.1.0"
+                }
+              },
+              {
+                "description": "Regular expression for matching ANSI escape codes",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "ansi-regex",
+                  "version": "5.0.1"
+                }
+              },
+              {
+                "description": "Regular expression for matching ANSI escape codes",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "ansi-regex",
+                  "version": "6.1.0"
+                }
+              },
+              {
+                "description": "ANSI escape codes for styling strings in the terminal",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "ansi-styles",
+                  "version": "4.3.0"
+                }
+              },
+              {
+                "description": "ANSI escape codes for styling strings in the terminal",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "ansi-styles",
+                  "version": "6.2.1"
+                }
+              },
+              {
+                "description": "Get East Asian Width from a character.",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "eastasianwidth",
+                  "version": "0.2.0"
+                }
+              },
+              {
+                "description": "A regular expression to match all Emoji-only symbols as per the Unicode Standard.",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "emoji-regex",
+                  "version": "8.0.0"
+                }
+              },
+              {
+                "description": "A regular expression to match all Emoji-only symbols as per the Unicode Standard.",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "emoji-regex",
+                  "version": "9.2.2"
+                }
+              },
+              {
+                "description": "Check if the character represented by a given Unicode code point is fullwidth",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "is-fullwidth-code-point",
+                  "version": "3.0.0"
+                }
+              },
+              {
+                "description": "Minimal module to check if a file is executable.",
+                "distance": 4,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "isexe",
+                  "version": "2.0.0"
+                }
+              },
+              {
+                "description": "Regular expression for matching a shebang line",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "shebang-regex",
+                  "version": "3.0.0"
+                }
+              },
+              {
+                "description": "Plain color conversion functions",
+                "distance": 5,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "color-convert",
+                  "version": "2.0.1"
+                }
+              },
+              {
+                "description": "A list of color names and its values",
+                "distance": 6,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "color-name",
+                  "version": "1.1.4"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 6,
+              "indirect_dependents": 28,
+              "total_dependents": 34
+            },
+            "licenses": [
+              "ISC"
+            ],
+            "package_current_version": "11.0.2",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "glob",
+              "version": "10.4.2"
+            },
+            "projects": [
+              {
+                "display_name": "isaacs/node-glob",
+                "forks": 487,
+                "issues": 21,
+                "link": "https://github.com/isaacs/node-glob",
+                "name": "isaacs/node-glob",
+                "stars": 8605,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Maintained",
+                    "reason": "2 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 1",
+                    "score": 1
+                  },
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 2/30 approved changesets -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no dangerous workflow patterns detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "detected GitHub workflow tokens with excessive permissions",
+                    "score": 0
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "dependency not pinned by hash detected -- score normalized to 1",
+                    "score": 1
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "branch protection not enabled on development/release branches",
+                    "score": 0
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file not detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "1 existing vulnerabilities detected",
+                    "score": 9
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "fd61f2410b4356f202f645661cfa175152702ae6",
+                  "name": "github.com/isaacs/node-glob"
+                },
+                "score": 3.5,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JNRM26QQGEZ9Y8F3PSAB71N1",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "glob"
+                },
+                "version": "10.4.2"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                "sha256": "dac790338fe1713e27baebe728a67b1b7cda83a87811e54665ce12bd11c02950"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/LICENSE",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 775
+                  },
+                  {
+                    "key": "package/dist/commonjs/glob.js",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 7011
+                  },
+                  {
+                    "key": "package/dist/esm/glob.js",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 6804
+                  },
+                  {
+                    "key": "package/dist/commonjs/has-magic.js",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 437
+                  },
+                  {
+                    "key": "package/dist/esm/has-magic.js",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 296
+                  },
+                  {
+                    "key": "package/dist/commonjs/ignore.js",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3197
+                  },
+                  {
+                    "key": "package/dist/esm/ignore.js",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3031
+                  },
+                  {
+                    "key": "package/dist/commonjs/index.js",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2891
+                  },
+                  {
+                    "key": "package/dist/esm/index.js",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1549
+                  },
+                  {
+                    "key": "package/dist/commonjs/pattern.js",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 5474
+                  },
+                  {
+                    "key": "package/dist/esm/pattern.js",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 5335
+                  },
+                  {
+                    "key": "package/dist/commonjs/processor.js",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 8463
+                  },
+                  {
+                    "key": "package/dist/esm/processor.js",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 8156
+                  },
+                  {
+                    "key": "package/dist/commonjs/walker.js",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 11683
+                  },
+                  {
+                    "key": "package/dist/esm/walker.js",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 11383
+                  },
+                  {
+                    "key": "package/dist/commonjs/package.json",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 25
+                  },
+                  {
+                    "key": "package/dist/esm/package.json",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 23
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2569
+                  },
+                  {
+                    "key": "package/dist/esm/bin.d.mts.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 105
+                  },
+                  {
+                    "key": "package/dist/esm/bin.mjs.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 14152
+                  },
+                  {
+                    "key": "package/dist/commonjs/glob.d.ts.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 4039
+                  },
+                  {
+                    "key": "package/dist/esm/glob.d.ts.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 4039
+                  },
+                  {
+                    "key": "package/dist/commonjs/glob.js.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 28218
+                  },
+                  {
+                    "key": "package/dist/esm/glob.js.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 28377
+                  },
+                  {
+                    "key": "package/dist/commonjs/has-magic.d.ts.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 246
+                  },
+                  {
+                    "key": "package/dist/esm/has-magic.d.ts.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 246
+                  },
+                  {
+                    "key": "package/dist/commonjs/has-magic.js.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1482
+                  },
+                  {
+                    "key": "package/dist/esm/has-magic.js.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1495
+                  },
+                  {
+                    "key": "package/dist/commonjs/ignore.d.ts.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 887
+                  },
+                  {
+                    "key": "package/dist/esm/ignore.d.ts.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 887
+                  },
+                  {
+                    "key": "package/dist/commonjs/ignore.js.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 7471
+                  },
+                  {
+                    "key": "package/dist/esm/ignore.js.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 7514
+                  },
+                  {
+                    "key": "package/dist/commonjs/index.d.ts.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 4085
+                  },
+                  {
+                    "key": "package/dist/esm/index.d.ts.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 4085
+                  },
+                  {
+                    "key": "package/dist/commonjs/index.js.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 8364
+                  },
+                  {
+                    "key": "package/dist/esm/index.js.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 8404
+                  },
+                  {
+                    "key": "package/dist/commonjs/pattern.d.ts.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1315
+                  },
+                  {
+                    "key": "package/dist/esm/pattern.d.ts.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1315
+                  },
+                  {
+                    "key": "package/dist/commonjs/pattern.js.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 13391
+                  },
+                  {
+                    "key": "package/dist/esm/pattern.js.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 13407
+                  },
+                  {
+                    "key": "package/dist/commonjs/processor.d.ts.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1748
+                  },
+                  {
+                    "key": "package/dist/esm/processor.d.ts.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1748
+                  },
+                  {
+                    "key": "package/dist/commonjs/processor.js.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 19044
+                  },
+                  {
+                    "key": "package/dist/esm/processor.js.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 19037
+                  },
+                  {
+                    "key": "package/dist/commonjs/walker.d.ts.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 4196
+                  },
+                  {
+                    "key": "package/dist/esm/walker.d.ts.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 4196
+                  },
+                  {
+                    "key": "package/dist/commonjs/walker.js.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 27899
+                  },
+                  {
+                    "key": "package/dist/esm/walker.js.map",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 27953
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 48383
+                  },
+                  {
+                    "key": "package/dist/esm/bin.mjs",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 9488,
+                    "capability_labels": [
+                      "file:manipulation",
+                      "file:read"
+                    ]
+                  },
+                  {
+                    "key": "package/dist/esm/bin.d.mts",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 65
+                  },
+                  {
+                    "key": "package/dist/commonjs/glob.d.ts",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 14839
+                  },
+                  {
+                    "key": "package/dist/esm/glob.d.ts",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 14864
+                  },
+                  {
+                    "key": "package/dist/commonjs/has-magic.d.ts",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 760
+                  },
+                  {
+                    "key": "package/dist/esm/has-magic.d.ts",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 760
+                  },
+                  {
+                    "key": "package/dist/commonjs/ignore.d.ts",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 844
+                  },
+                  {
+                    "key": "package/dist/esm/ignore.d.ts",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 869
+                  },
+                  {
+                    "key": "package/dist/commonjs/index.d.ts",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 6169
+                  },
+                  {
+                    "key": "package/dist/esm/index.d.ts",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 6169
+                  },
+                  {
+                    "key": "package/dist/commonjs/pattern.d.ts",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2148
+                  },
+                  {
+                    "key": "package/dist/esm/pattern.d.ts",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2173
+                  },
+                  {
+                    "key": "package/dist/commonjs/processor.d.ts",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2136
+                  },
+                  {
+                    "key": "package/dist/esm/processor.d.ts",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2136
+                  },
+                  {
+                    "key": "package/dist/commonjs/walker.d.ts",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3811
+                  },
+                  {
+                    "key": "package/dist/esm/walker.d.ts",
+                    "origin": "https://registry.npmjs.org/glob/-/glob-10.4.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3836
+                  }
+                ]
+              },
+              "analyzed_at": {
+                "seconds": 1741362617,
+                "nanos": 364300
+              },
+              "inference": {
+                "confidence": 1,
+                "details": "No malware evidence were identified by any tool in the workflow",
+                "summary": "No malware evidence were identified by any tool in the workflow"
+              },
+              "report_id": "01JNRM26QQGEZ9Y8F3PSAB71N1"
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

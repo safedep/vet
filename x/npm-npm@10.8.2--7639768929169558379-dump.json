@@ -1,0 +1,5131 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "npm@10.8.2",
+    "display_path": ""
+  },
+  "path": "pkg:npm/npm@10.8.2",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "npm",
+        "version": "10.8.2",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "a package manager for JavaScript",
+            "distance": 0,
+            "licenses": [
+              "Artistic-2.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm",
+              "version": "10.8.2"
+            }
+          },
+          {
+            "description": "Compare strings with Intl.Collator if available, falling back to String.localeCompare otherwise",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@isaacs/string-locale-compare",
+              "version": "1.1.0"
+            }
+          },
+          {
+            "description": "Manage node_modules trees",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@npmcli/arborist",
+              "version": "7.5.4"
+            }
+          },
+          {
+            "description": "Configuration management for the npm cli",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@npmcli/config",
+              "version": "8.3.4"
+            }
+          },
+          {
+            "description": "filesystem utilities for the npm cli",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@npmcli/fs",
+              "version": "3.1.1"
+            }
+          },
+          {
+            "description": "Retrieves a name:pathname Map for a given workspaces config",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@npmcli/map-workspaces",
+              "version": "3.0.6"
+            }
+          },
+          {
+            "description": "Programmatic API to update package.json",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@npmcli/package-json",
+              "version": "5.2.0"
+            }
+          },
+          {
+            "description": "spawn processes the way the npm cli likes to do",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@npmcli/promise-spawn",
+              "version": "7.0.2"
+            }
+          },
+          {
+            "description": "Redact sensitive npm information from output",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@npmcli/redact",
+              "version": "2.0.1"
+            }
+          },
+          {
+            "description": "Run a lifecycle script for a package (descendant of npm-lifecycle)",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@npmcli/run-script",
+              "version": "8.1.0"
+            }
+          },
+          {
+            "description": "Client for the Sigstore TUF repository",
+            "distance": 1,
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@sigstore/tuf",
+              "version": "2.3.4"
+            }
+          },
+          {
+            "description": "Like ruby's abbrev module, but in js",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eabbrev",
+              "version": "2.0.0"
+            }
+          },
+          {
+            "description": "render nested hierarchies `npm ls` style with unicode pipes",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003earchy",
+              "version": "1.0.0"
+            }
+          },
+          {
+            "description": "Fast, fault-tolerant, cross-platform, disk-based, data-agnostic, content-addressable cache.",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ecacache",
+              "version": "18.0.3"
+            }
+          },
+          {
+            "description": "Terminal string styling done right",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003echalk",
+              "version": "5.3.0"
+            }
+          },
+          {
+            "description": "Get details about the current Continuous Integration environment",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eci-info",
+              "version": "4.0.0"
+            }
+          },
+          {
+            "description": "Columnated lists for the CLI.",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ecli-columns",
+              "version": "4.0.0"
+            }
+          },
+          {
+            "description": "Fastest Levenshtein distance implementation in JS.",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003efastest-levenshtein",
+              "version": "1.0.16"
+            }
+          },
+          {
+            "description": "fs read and write streams based on minipass",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003efs-minipass",
+              "version": "3.0.3"
+            }
+          },
+          {
+            "description": "the most correct and second fastest glob implementation in JavaScript",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eglob",
+              "version": "10.4.2"
+            }
+          },
+          {
+            "description": "A drop-in replacement for fs, making various improvements.",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003egraceful-fs",
+              "version": "4.2.11"
+            }
+          },
+          {
+            "description": "Provides metadata and conversions from repository urls for GitHub, Bitbucket and GitLab",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ehosted-git-info",
+              "version": "7.0.2"
+            }
+          },
+          {
+            "description": "An ini encoder/decoder for node",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eini",
+              "version": "4.1.3"
+            }
+          },
+          {
+            "description": "A node module to get your node module started",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003einit-package-json",
+              "version": "6.0.3"
+            }
+          },
+          {
+            "description": "Check if a string is an IP address in CIDR notation",
+            "distance": 1,
+            "licenses": [
+              "BSD-2-Clause"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eis-cidr",
+              "version": "5.1.0"
+            }
+          },
+          {
+            "description": "JSON.parse with context information on error",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ejson-parse-even-better-errors",
+              "version": "3.0.2"
+            }
+          },
+          {
+            "description": "programmatic library for `npm access` commands",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003elibnpmaccess",
+              "version": "8.0.6"
+            }
+          },
+          {
+            "description": "The registry diff",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003elibnpmdiff",
+              "version": "6.1.4"
+            }
+          },
+          {
+            "description": "npm exec (npx) programmatic API",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003elibnpmexec",
+              "version": "8.1.3"
+            }
+          },
+          {
+            "description": "Programmatic API for npm fund",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003elibnpmfund",
+              "version": "5.0.12"
+            }
+          },
+          {
+            "description": "programmatic API for managing npm registry hooks",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003elibnpmhook",
+              "version": "10.0.5"
+            }
+          },
+          {
+            "description": "Programmatic api for `npm org` commands",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003elibnpmorg",
+              "version": "6.0.6"
+            }
+          },
+          {
+            "description": "Programmatic API for the bits behind npm pack",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003elibnpmpack",
+              "version": "7.0.4"
+            }
+          },
+          {
+            "description": "Programmatic API for the bits behind npm publish and unpublish",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003elibnpmpublish",
+              "version": "9.0.9"
+            }
+          },
+          {
+            "description": "Programmatic API for searching in npm and compatible registries.",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003elibnpmsearch",
+              "version": "7.0.6"
+            }
+          },
+          {
+            "description": "npm Team management APIs",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003elibnpmteam",
+              "version": "6.0.5"
+            }
+          },
+          {
+            "description": "library to do the things that 'npm version' does",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003elibnpmversion",
+              "version": "6.0.3"
+            }
+          },
+          {
+            "description": "Opinionated, caching, retrying fetch client",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003emake-fetch-happen",
+              "version": "13.0.1"
+            }
+          },
+          {
+            "description": "a glob matcher in javascript",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eminimatch",
+              "version": "9.0.5"
+            }
+          },
+          {
+            "description": "minimal implementation of a PassThrough stream",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eminipass",
+              "version": "7.1.2"
+            }
+          },
+          {
+            "description": "create a pipeline of streams using Minipass",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eminipass-pipeline",
+              "version": "1.2.4"
+            }
+          },
+          {
+            "description": "Tiny millisecond conversion utility",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ems",
+              "version": "2.1.3"
+            }
+          },
+          {
+            "description": "Node.js native addon build tool",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003enode-gyp",
+              "version": "10.1.0"
+            }
+          },
+          {
+            "description": "Option parsing for Node, supporting types, shorthands, etc. Used by npm.",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003enopt",
+              "version": "7.2.1"
+            }
+          },
+          {
+            "description": "Normalizes data that can be found in package.json files.",
+            "distance": 1,
+            "licenses": [
+              "BSD-2-Clause"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003enormalize-package-data",
+              "version": "6.0.2"
+            }
+          },
+          {
+            "description": "Given a response from the npm security api, render it into a variety of security reports",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003enpm-audit-report",
+              "version": "5.0.0"
+            }
+          },
+          {
+            "description": "Check the engines and platform fields in package.json",
+            "distance": 1,
+            "licenses": [
+              "BSD-2-Clause"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003enpm-install-checks",
+              "version": "6.3.0"
+            }
+          },
+          {
+            "description": "Parse the things that can be arguments to `npm install`",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003enpm-package-arg",
+              "version": "11.0.2"
+            }
+          },
+          {
+            "description": "Resolves a matching manifest from a package metadata document according to standard npm semver resolution rules.",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003enpm-pick-manifest",
+              "version": "9.1.0"
+            }
+          },
+          {
+            "description": "Library for updating an npmjs.com profile",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003enpm-profile",
+              "version": "10.0.0"
+            }
+          },
+          {
+            "description": "Fetch-based http client for use with npm registry APIs",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003enpm-registry-fetch",
+              "version": "17.1.0"
+            }
+          },
+          {
+            "description": "User validations for npm",
+            "distance": 1,
+            "licenses": [
+              "BSD-2-Clause"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003enpm-user-validate",
+              "version": "2.0.1"
+            }
+          },
+          {
+            "description": "Map over promises concurrently",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ep-map",
+              "version": "4.0.0"
+            }
+          },
+          {
+            "description": "JavaScript package downloader",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003epacote",
+              "version": "18.0.6"
+            }
+          },
+          {
+            "description": "Parse a JSON string that has git merge conflicts, resolving if possible",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eparse-conflict-json",
+              "version": "3.0.1"
+            }
+          },
+          {
+            "description": "just emit 'log' events on the process object",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eproc-log",
+              "version": "4.2.0"
+            }
+          },
+          {
+            "description": "QRCodes, in the terminal",
+            "distance": 1,
+            "licenses": [],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eqrcode-terminal",
+              "version": "0.12.0"
+            }
+          },
+          {
+            "description": "read(1) for node programs",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eread",
+              "version": "3.0.1"
+            }
+          },
+          {
+            "description": "The semantic version parser used by npm.",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003esemver",
+              "version": "7.6.2"
+            }
+          },
+          {
+            "description": "parse SPDX license expressions",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003espdx-expression-parse",
+              "version": "4.0.0"
+            }
+          },
+          {
+            "description": "Standard Subresource Integrity library -- parses, serializes, generates, and verifies integrity metadata according to the SRI spec.",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003essri",
+              "version": "10.0.6"
+            }
+          },
+          {
+            "description": "Detect whether a terminal supports color",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003esupports-color",
+              "version": "9.4.0"
+            }
+          },
+          {
+            "description": "tar for node",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003etar",
+              "version": "6.2.1"
+            }
+          },
+          {
+            "description": "borderless text tables with alignment",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003etext-table",
+              "version": "0.2.0"
+            }
+          },
+          {
+            "description": "Tiny function that provides relative, human-readable dates.",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003etiny-relative-date",
+              "version": "1.3.0"
+            }
+          },
+          {
+            "description": "Walk any kind of tree structure depth- or breadth-first. Supports promises and advanced map-reduce operations with a very small API.",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003etreeverse",
+              "version": "3.0.0"
+            }
+          },
+          {
+            "description": "Give me a string and I'll tell you if it's a valid npm package name",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003evalidate-npm-package-name",
+              "version": "5.0.1"
+            }
+          },
+          {
+            "description": "Like which(1) unix command. Find the first instance of an executable in the PATH.",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ewhich",
+              "version": "4.0.0"
+            }
+          },
+          {
+            "description": "Write files in an atomic fashion w/configurable ownership",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ewrite-file-atomic",
+              "version": "5.0.1"
+            }
+          },
+          {
+            "description": "the http/https agent used by the npm cli",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@npmcli/agent",
+              "version": "2.2.2"
+            }
+          },
+          {
+            "description": "a util for spawning git from npm CLI contexts",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@npmcli/git",
+              "version": "5.0.8"
+            }
+          },
+          {
+            "description": "Get the list of files installed in a package in node_modules, including bundled dependencies",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@npmcli/installed-package-contents",
+              "version": "2.1.0"
+            }
+          },
+          {
+            "description": "Calculate meta-vulnerabilities from package security advisories",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@npmcli/metavuln-calculator",
+              "version": "7.1.1"
+            }
+          },
+          {
+            "description": "Get the package name from a folder path",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@npmcli/name-from-folder",
+              "version": "2.0.0"
+            }
+          },
+          {
+            "description": "Tools for dealing with node-gyp packages",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@npmcli/node-gyp",
+              "version": "3.0.0"
+            }
+          },
+          {
+            "description": "npm query parser and tools",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@npmcli/query",
+              "version": "3.1.0"
+            }
+          },
+          {
+            "description": "code-signing for npm packages",
+            "distance": 2,
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@sigstore/protobuf-specs",
+              "version": "0.3.2"
+            }
+          },
+          {
+            "description": "Create an error from multiple errors",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eaggregate-error",
+              "version": "3.1.0"
+            }
+          },
+          {
+            "description": "A ridiculously light-weight argument validator (now browser friendly)",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eaproba",
+              "version": "2.0.0"
+            }
+          },
+          {
+            "description": "JavaScript package binary linker",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ebin-links",
+              "version": "4.0.4"
+            }
+          },
+          {
+            "description": "List of binary file extensions",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ebinary-extensions",
+              "version": "2.3.0"
+            }
+          },
+          {
+            "description": "Brace expansion as known from sh/bash",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ebrace-expansion",
+              "version": "2.0.1"
+            }
+          },
+          {
+            "description": "like `chown -R`",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003echownr",
+              "version": "2.0.0"
+            }
+          },
+          {
+            "description": "Regular expression for matching IP addresses in CIDR notation",
+            "distance": 2,
+            "licenses": [
+              "BSD-2-Clause"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ecidr-regex",
+              "version": "4.1.1"
+            }
+          },
+          {
+            "description": "Find the common ancestor of 2 or more paths on Windows or Unix",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ecommon-ancestor-path",
+              "version": "1.0.1"
+            }
+          },
+          {
+            "description": "A JavaScript text diff implementation.",
+            "distance": 2,
+            "licenses": [
+              "BSD-3-Clause"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ediff",
+              "version": "5.2.0"
+            }
+          },
+          {
+            "description": "Get paths for storing things like data, config, cache, etc",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eenv-paths",
+              "version": "2.2.1"
+            }
+          },
+          {
+            "description": "A utility that allows retrying a function with an exponential delay between attempts.",
+            "distance": 2,
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eexponential-backoff",
+              "version": "3.1.1"
+            }
+          },
+          {
+            "description": "Run a child as if it's the foreground process. Give it stdio. Exit when it exits.",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eforeground-child",
+              "version": "3.2.1"
+            }
+          },
+          {
+            "description": "Parses Cache-Control and other headers. Helps building correct HTTP caches and proxies",
+            "distance": 2,
+            "licenses": [
+              "BSD-2-Clause"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ehttp-cache-semantics",
+              "version": "4.1.1"
+            }
+          },
+          {
+            "description": "An incremental implementation of MurmurHash3",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eimurmurhash",
+              "version": "0.1.4"
+            }
+          },
+          {
+            "description": "Detect if your code is running on an AWS Lambda server",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eis-lambda",
+              "version": "1.0.1"
+            }
+          },
+          {
+            "description": "A very strict and proper argument parser.",
+            "distance": 2,
+            "licenses": [
+              "BlueOak-1.0.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ejackspeak",
+              "version": "3.4.0"
+            }
+          },
+          {
+            "description": "Stringify an object sorting scalars before objects, and defaulting to 2-space indent",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ejson-stringify-nice",
+              "version": "1.1.4"
+            }
+          },
+          {
+            "description": "This is a pure-js JSON streaming parser for node.js",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ejsonparse",
+              "version": "1.3.1"
+            }
+          },
+          {
+            "description": "Return an object representing the diffs between two objects. Supports jsonPatch protocol",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ejust-diff",
+              "version": "6.0.2"
+            }
+          },
+          {
+            "description": "Apply a diff to an object. Optionally supports jsonPatch protocol",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ejust-diff-apply",
+              "version": "5.5.0"
+            }
+          },
+          {
+            "description": "A cache object that deletes the least-recently-used items.",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003elru-cache",
+              "version": "10.2.2"
+            }
+          },
+          {
+            "description": "A Minipass stream that collects all the data into a single chunk",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eminipass-collect",
+              "version": "2.0.1"
+            }
+          },
+          {
+            "description": "An implementation of window.fetch in Node.js using Minipass streams",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eminipass-fetch",
+              "version": "3.0.5"
+            }
+          },
+          {
+            "description": "A Minipass stream that calls a flush function before emitting 'end'",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eminipass-flush",
+              "version": "1.0.5"
+            }
+          },
+          {
+            "description": "minimal implementation of a PassThrough stream",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eminipass-pipeline\u003eminipass",
+              "version": "3.3.6"
+            }
+          },
+          {
+            "description": "A small fast zlib stream built on [minipass](http://npm.im/minipass) and Node.js's zlib binding.",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eminizlib",
+              "version": "2.1.2"
+            }
+          },
+          {
+            "description": "Recursively mkdir, like `mkdir -p`",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003emkdirp",
+              "version": "1.0.4"
+            }
+          },
+          {
+            "description": "Bytes go in, but they don't come out (when muted).",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003emute-stream",
+              "version": "1.0.0"
+            }
+          },
+          {
+            "description": "HTTP content negotiation",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003enegotiator",
+              "version": "0.6.3"
+            }
+          },
+          {
+            "description": "just emit 'log' events on the process object",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003enode-gyp\u003eproc-log",
+              "version": "3.0.0"
+            }
+          },
+          {
+            "description": "Turn any flavor of allowable package.json bin into a normalized object",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003enpm-normalize-package-bin",
+              "version": "3.0.1"
+            }
+          },
+          {
+            "description": "Get a list of the files to add from a folder into an npm package",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003enpm-packlist",
+              "version": "8.0.2"
+            }
+          },
+          {
+            "description": "Load the local package.json from either src or dist folder",
+            "distance": 2,
+            "licenses": [
+              "BlueOak-1.0.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003epackage-json-from-dist",
+              "version": "1.0.0"
+            }
+          },
+          {
+            "description": "walk paths fast and efficiently",
+            "distance": 2,
+            "licenses": [
+              "BlueOak-1.0.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003epath-scurry",
+              "version": "1.11.1"
+            }
+          },
+          {
+            "description": "Progress bar updates at a distance",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eproggy",
+              "version": "2.0.0"
+            }
+          },
+          {
+            "description": "Like Promise.all, but save rejections until all promises are resolved",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003epromise-all-reject-late",
+              "version": "1.0.1"
+            }
+          },
+          {
+            "description": "Call an array of promise-returning functions, restricting concurrency to a specified limit.",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003epromise-call-limit",
+              "version": "3.0.1"
+            }
+          },
+          {
+            "description": "Retries a function that returns a promise, leveraging the power of the retry module.",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003epromise-retry",
+              "version": "2.0.1"
+            }
+          },
+          {
+            "description": "prompting wizardly",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003epromzard",
+              "version": "1.0.2"
+            }
+          },
+          {
+            "description": "Like read-package-json, but faster",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eread-package-json-fast",
+              "version": "3.0.2"
+            }
+          },
+          {
+            "description": "when you want to fire an event no matter how a process exits.",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003esignal-exit",
+              "version": "4.1.0"
+            }
+          },
+          {
+            "description": "code-signing for npm packages",
+            "distance": 2,
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003esigstore",
+              "version": "2.3.1"
+            }
+          },
+          {
+            "description": "list of SPDX standard license exceptions",
+            "distance": 2,
+            "licenses": [
+              "CC-BY-3.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003espdx-exceptions",
+              "version": "2.5.0"
+            }
+          },
+          {
+            "description": "A list of SPDX license identifiers",
+            "distance": 2,
+            "licenses": [
+              "CC0-1.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003espdx-license-ids",
+              "version": "3.0.18"
+            }
+          },
+          {
+            "description": "Get the visual width of a string - the number of columns required to display it",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003estring-width",
+              "version": "4.2.3"
+            }
+          },
+          {
+            "description": "Strip ANSI escape codes from a string",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003estrip-ansi",
+              "version": "6.0.1"
+            }
+          },
+          {
+            "description": "fs read and write streams based on minipass",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003etar\u003efs-minipass",
+              "version": "2.1.0"
+            }
+          },
+          {
+            "description": "minimal implementation of a PassThrough stream",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003etar\u003eminipass",
+              "version": "5.0.0"
+            }
+          },
+          {
+            "description": "JavaScript implementation of The Update Framework (TUF)",
+            "distance": 2,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003etuf-js",
+              "version": "2.2.1"
+            }
+          },
+          {
+            "description": "Generate a unique filename for use in temporary directories or caches.",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eunique-filename",
+              "version": "3.0.0"
+            }
+          },
+          {
+            "description": "Give me a string and I'll tell you if it's a valid npm package license string",
+            "distance": 2,
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003evalidate-npm-package-license",
+              "version": "3.0.4"
+            }
+          },
+          {
+            "description": "Given a path string, return a generator that walks up the path, emitting each dirname.",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ewalk-up-path",
+              "version": "3.0.1"
+            }
+          },
+          {
+            "description": "Minimal module to check if a file is executable.",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ewhich\u003eisexe",
+              "version": "3.1.1"
+            }
+          },
+          {
+            "description": "Yet Another Linked List",
+            "distance": 2,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eyallist",
+              "version": "4.0.0"
+            }
+          },
+          {
+            "description": "easily create complex multi-column command-line-interfaces",
+            "distance": 3,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@isaacs/cliui",
+              "version": "8.0.2"
+            }
+          },
+          {
+            "description": "Polyfill of future proposal for `util.parseArgs()`",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@pkgjs/parseargs",
+              "version": "0.11.0"
+            }
+          },
+          {
+            "description": "Sigstore bundle type",
+            "distance": 3,
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@sigstore/bundle",
+              "version": "2.3.2"
+            }
+          },
+          {
+            "description": "Base library for Sigstore",
+            "distance": 3,
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@sigstore/core",
+              "version": "1.1.0"
+            }
+          },
+          {
+            "description": "Sigstore signing library",
+            "distance": 3,
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@sigstore/sign",
+              "version": "2.3.2"
+            }
+          },
+          {
+            "description": "Verification of Sigstore signatures",
+            "distance": 3,
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@sigstore/verify",
+              "version": "1.2.1"
+            }
+          },
+          {
+            "description": "TUF metadata models",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@tufjs/models",
+              "version": "2.0.1"
+            }
+          },
+          {
+            "description": "Turn a function into an `http.Agent` instance",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eagent-base",
+              "version": "7.1.1"
+            }
+          },
+          {
+            "description": "Regular expression for matching ANSI escape codes",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eansi-regex",
+              "version": "5.0.1"
+            }
+          },
+          {
+            "description": "Match balanced character pairs, like \"{\" and \"}\"",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ebalanced-match",
+              "version": "1.0.2"
+            }
+          },
+          {
+            "description": "Clean up error stack traces",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eclean-stack",
+              "version": "2.2.0"
+            }
+          },
+          {
+            "description": "Used in npm for command line application support",
+            "distance": 3,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ecmd-shim",
+              "version": "6.0.3"
+            }
+          },
+          {
+            "description": "Cross platform child_process#spawn and child_process#spawnSync",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ecross-spawn",
+              "version": "7.0.3"
+            }
+          },
+          {
+            "description": "Lightweight debugging utility for Node.js and the browser",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003edebug",
+              "version": "4.3.5"
+            }
+          },
+          {
+            "description": "A regular expression to match all Emoji-only symbols as per the Unicode Standard.",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eemoji-regex",
+              "version": "8.0.0"
+            }
+          },
+          {
+            "description": "Convert encodings, uses iconv-lite",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eencoding",
+              "version": "0.1.13"
+            }
+          },
+          {
+            "description": "Create an error with a code",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eerr-code",
+              "version": "2.0.3"
+            }
+          },
+          {
+            "description": "An HTTP(s) proxy `http.Agent` implementation for HTTP",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ehttp-proxy-agent",
+              "version": "7.0.2"
+            }
+          },
+          {
+            "description": "An HTTP(s) proxy `http.Agent` implementation for HTTPS",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ehttps-proxy-agent",
+              "version": "7.0.5"
+            }
+          },
+          {
+            "description": "Nested/recursive `.gitignore`/`.npmignore` parsing and filtering.",
+            "distance": 3,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eignore-walk",
+              "version": "6.0.5"
+            }
+          },
+          {
+            "description": "Indent each line in a string",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eindent-string",
+              "version": "4.0.0"
+            }
+          },
+          {
+            "description": "Regular expression for matching IP addresses (IPv4 \u0026 IPv6)",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eip-regex",
+              "version": "5.0.0"
+            }
+          },
+          {
+            "description": "Check if the character represented by a given Unicode code point is fullwidth",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eis-fullwidth-code-point",
+              "version": "3.0.0"
+            }
+          },
+          {
+            "description": "minimal implementation of a PassThrough stream",
+            "distance": 3,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eminipass-flush\u003eminipass",
+              "version": "3.3.6"
+            }
+          },
+          {
+            "description": "A Minipass stream that raises an error if you get a different number of bytes than expected",
+            "distance": 3,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eminipass-sized",
+              "version": "1.0.3"
+            }
+          },
+          {
+            "description": "minimal implementation of a PassThrough stream",
+            "distance": 3,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eminizlib\u003eminipass",
+              "version": "3.3.6"
+            }
+          },
+          {
+            "description": "list things in node_modules that are bundledDependencies, or transitive dependencies thereof",
+            "distance": 3,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003enpm-bundled",
+              "version": "3.0.1"
+            }
+          },
+          {
+            "description": "",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003epostcss-selector-parser",
+              "version": "6.1.0"
+            }
+          },
+          {
+            "description": "One promise for multiple requests in flight to avoid async duplication",
+            "distance": 3,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003epromise-inflight",
+              "version": "1.0.1"
+            }
+          },
+          {
+            "description": "Figure out what a cmd-shim is pointing at. This acts as the equivalent of fs.readlink.",
+            "distance": 3,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eread-cmd-shim",
+              "version": "4.0.0"
+            }
+          },
+          {
+            "description": "Abstraction for exponential and custom retry strategies for failed operations.",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eretry",
+              "version": "0.12.0"
+            }
+          },
+          {
+            "description": "A SOCKS proxy `http.Agent` implementation for HTTP and HTTPS",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003esocks-proxy-agent",
+              "version": "8.0.4"
+            }
+          },
+          {
+            "description": "correct invalid SPDX expressions",
+            "distance": 3,
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003espdx-correct",
+              "version": "3.2.0"
+            }
+          },
+          {
+            "description": "minimal implementation of a PassThrough stream",
+            "distance": 3,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003etar\u003efs-minipass\u003eminipass",
+              "version": "3.3.6"
+            }
+          },
+          {
+            "description": "Generate a unique character string suitible for use in files and URLs.",
+            "distance": 3,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eunique-slug",
+              "version": "4.0.0"
+            }
+          },
+          {
+            "description": "parse SPDX license expressions",
+            "distance": 3,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003evalidate-npm-package-license\u003espdx-expression-parse",
+              "version": "3.0.1"
+            }
+          },
+          {
+            "description": "Get the visual width of a string - the number of columns required to display it",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@isaacs/cliui\u003estring-width",
+              "version": "5.1.2"
+            }
+          },
+          {
+            "description": "Strip ANSI escape codes from a string",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@isaacs/cliui\u003estrip-ansi",
+              "version": "7.1.0"
+            }
+          },
+          {
+            "description": "OLPC JSON canonicalization",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@tufjs/canonical-json",
+              "version": "2.0.0"
+            }
+          },
+          {
+            "description": "Like which(1) unix command. Find the first instance of an executable in the PATH.",
+            "distance": 4,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ecross-spawn\u003ewhich",
+              "version": "2.0.2"
+            }
+          },
+          {
+            "description": "A JavaScript library for escaping CSS strings and identifiers while generating the shortest possible ASCII-only output.",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ecssesc",
+              "version": "3.0.0"
+            }
+          },
+          {
+            "description": "Tiny millisecond conversion utility",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003edebug\u003ems",
+              "version": "2.1.2"
+            }
+          },
+          {
+            "description": "Convert character encodings in pure javascript.",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eiconv-lite",
+              "version": "0.6.3"
+            }
+          },
+          {
+            "description": "minimal implementation of a PassThrough stream",
+            "distance": 4,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eminipass-sized\u003eminipass",
+              "version": "3.3.6"
+            }
+          },
+          {
+            "description": "Get the PATH environment variable key cross-platform",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003epath-key",
+              "version": "3.1.1"
+            }
+          },
+          {
+            "description": "Get the command from a shebang",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eshebang-command",
+              "version": "2.0.0"
+            }
+          },
+          {
+            "description": "Fully featured SOCKS proxy client supporting SOCKSv4, SOCKSv4a, and SOCKSv5. Includes Bind and Associate functionality.",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003esocks",
+              "version": "2.8.3"
+            }
+          },
+          {
+            "description": "parse SPDX license expressions",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003espdx-correct\u003espdx-expression-parse",
+              "version": "3.0.1"
+            }
+          },
+          {
+            "description": "Get the visual width of a string - the number of columns required to display it",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003estring-width-cjs",
+              "version": "4.2.3"
+            }
+          },
+          {
+            "description": "Strip ANSI escape codes from a string",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003estrip-ansi-cjs",
+              "version": "6.0.1"
+            }
+          },
+          {
+            "description": "The Node.js `util.deprecate()` function with browser support",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eutil-deprecate",
+              "version": "1.0.2"
+            }
+          },
+          {
+            "description": "Wordwrap a string with ANSI escape codes",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ewrap-ansi",
+              "version": "8.1.0"
+            }
+          },
+          {
+            "description": "Wordwrap a string with ANSI escape codes",
+            "distance": 4,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ewrap-ansi-cjs",
+              "version": "7.0.0"
+            }
+          },
+          {
+            "description": "Regular expression for matching ANSI escape codes",
+            "distance": 5,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@isaacs/cliui\u003eansi-regex",
+              "version": "6.0.1"
+            }
+          },
+          {
+            "description": "A regular expression to match all Emoji-only symbols as per the Unicode Standard.",
+            "distance": 5,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003e@isaacs/cliui\u003eemoji-regex",
+              "version": "9.2.2"
+            }
+          },
+          {
+            "description": "ANSI escape codes for styling strings in the terminal",
+            "distance": 5,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eansi-styles",
+              "version": "6.2.1"
+            }
+          },
+          {
+            "description": "Get East Asian Width from a character.",
+            "distance": 5,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eeastasianwidth",
+              "version": "0.2.0"
+            }
+          },
+          {
+            "description": "A library for parsing IPv4 and IPv6 IP addresses in node and the browser.",
+            "distance": 5,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eip-address",
+              "version": "9.0.5"
+            }
+          },
+          {
+            "description": "Minimal module to check if a file is executable.",
+            "distance": 5,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eisexe",
+              "version": "2.0.0"
+            }
+          },
+          {
+            "description": "Modern Buffer API polyfill without footguns",
+            "distance": 5,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003esafer-buffer",
+              "version": "2.1.2"
+            }
+          },
+          {
+            "description": "Regular expression for matching a shebang line",
+            "distance": 5,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003eshebang-regex",
+              "version": "3.0.0"
+            }
+          },
+          {
+            "description": "smart-buffer is a Buffer wrapper that adds automatic read \u0026 write offset tracking, string operations, data insertions, and more.",
+            "distance": 5,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003esmart-buffer",
+              "version": "4.2.0"
+            }
+          },
+          {
+            "description": "ANSI escape codes for styling strings in the terminal",
+            "distance": 5,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ewrap-ansi-cjs\u003eansi-styles",
+              "version": "4.3.0"
+            }
+          },
+          {
+            "description": "Get the visual width of a string - the number of columns required to display it",
+            "distance": 5,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ewrap-ansi\u003estring-width",
+              "version": "5.1.2"
+            }
+          },
+          {
+            "description": "Strip ANSI escape codes from a string",
+            "distance": 5,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ewrap-ansi\u003estrip-ansi",
+              "version": "7.1.0"
+            }
+          },
+          {
+            "description": "Plain color conversion functions",
+            "distance": 6,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ecolor-convert",
+              "version": "2.0.1"
+            }
+          },
+          {
+            "description": "The jsbn library is a fast, portable implementation of large-number math in pure JavaScript, enabling public-key crypto and other applications on desktop and mobile browsers.",
+            "distance": 6,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ejsbn",
+              "version": "1.1.0"
+            }
+          },
+          {
+            "description": "JavaScript sprintf implementation",
+            "distance": 6,
+            "licenses": [
+              "BSD-3-Clause"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003esprintf-js",
+              "version": "1.1.3"
+            }
+          },
+          {
+            "description": "Regular expression for matching ANSI escape codes",
+            "distance": 6,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ewrap-ansi\u003eansi-regex",
+              "version": "6.0.1"
+            }
+          },
+          {
+            "description": "A regular expression to match all Emoji-only symbols as per the Unicode Standard.",
+            "distance": 6,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ewrap-ansi\u003eemoji-regex",
+              "version": "9.2.2"
+            }
+          },
+          {
+            "description": "A list of color names and its values",
+            "distance": 7,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm\u003e10.8.2\u003ecolor-name",
+              "version": "1.1.4"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 68,
+          "indirect_dependents": 133,
+          "total_dependents": 201
+        },
+        "licenses": [
+          "Artistic-2.0"
+        ],
+        "package_current_version": "11.4.1",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "npm",
+          "version": "10.8.2"
+        },
+        "projects": [
+          {
+            "display_name": "npm/cli",
+            "forks": 3427,
+            "issues": 611,
+            "link": "https://github.com/npm/cli",
+            "name": "npm/cli",
+            "stars": 8887,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Maintained",
+                "reason": "30 commit(s) and 2 issue activity found in the last 90 days -- score normalized to 10",
+                "score": 10
+              },
+              {
+                "name": "Code-Review",
+                "reason": "all changesets reviewed",
+                "score": 10
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file detected",
+                "score": 10
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 9
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "detected GitHub workflow tokens with excessive permissions",
+                "score": 0
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                "score": -1
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool detected but not run on all commits",
+                "score": 9
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "112 existing vulnerabilities detected",
+                "score": 0
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "4d5c3c1d8d99e352b1b4906c2607752ee3051a75",
+              "name": "github.com/npm/cli"
+            },
+            "score": 6.1,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": null,
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "dd0ffac19ae1666": {
+        "data": {
+          "package_detail": {
+            "name": "npm",
+            "version": "10.8.2",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "a package manager for JavaScript",
+                "distance": 0,
+                "licenses": [
+                  "Artistic-2.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm",
+                  "version": "10.8.2"
+                }
+              },
+              {
+                "description": "Compare strings with Intl.Collator if available, falling back to String.localeCompare otherwise",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@isaacs/string-locale-compare",
+                  "version": "1.1.0"
+                }
+              },
+              {
+                "description": "Manage node_modules trees",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@npmcli/arborist",
+                  "version": "7.5.4"
+                }
+              },
+              {
+                "description": "Configuration management for the npm cli",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@npmcli/config",
+                  "version": "8.3.4"
+                }
+              },
+              {
+                "description": "filesystem utilities for the npm cli",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@npmcli/fs",
+                  "version": "3.1.1"
+                }
+              },
+              {
+                "description": "Retrieves a name:pathname Map for a given workspaces config",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@npmcli/map-workspaces",
+                  "version": "3.0.6"
+                }
+              },
+              {
+                "description": "Programmatic API to update package.json",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@npmcli/package-json",
+                  "version": "5.2.0"
+                }
+              },
+              {
+                "description": "spawn processes the way the npm cli likes to do",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@npmcli/promise-spawn",
+                  "version": "7.0.2"
+                }
+              },
+              {
+                "description": "Redact sensitive npm information from output",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@npmcli/redact",
+                  "version": "2.0.1"
+                }
+              },
+              {
+                "description": "Run a lifecycle script for a package (descendant of npm-lifecycle)",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@npmcli/run-script",
+                  "version": "8.1.0"
+                }
+              },
+              {
+                "description": "Client for the Sigstore TUF repository",
+                "distance": 1,
+                "licenses": [
+                  "Apache-2.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@sigstore/tuf",
+                  "version": "2.3.4"
+                }
+              },
+              {
+                "description": "Like ruby's abbrev module, but in js",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eabbrev",
+                  "version": "2.0.0"
+                }
+              },
+              {
+                "description": "render nested hierarchies `npm ls` style with unicode pipes",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003earchy",
+                  "version": "1.0.0"
+                }
+              },
+              {
+                "description": "Fast, fault-tolerant, cross-platform, disk-based, data-agnostic, content-addressable cache.",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ecacache",
+                  "version": "18.0.3"
+                }
+              },
+              {
+                "description": "Terminal string styling done right",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003echalk",
+                  "version": "5.3.0"
+                }
+              },
+              {
+                "description": "Get details about the current Continuous Integration environment",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eci-info",
+                  "version": "4.0.0"
+                }
+              },
+              {
+                "description": "Columnated lists for the CLI.",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ecli-columns",
+                  "version": "4.0.0"
+                }
+              },
+              {
+                "description": "Fastest Levenshtein distance implementation in JS.",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003efastest-levenshtein",
+                  "version": "1.0.16"
+                }
+              },
+              {
+                "description": "fs read and write streams based on minipass",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003efs-minipass",
+                  "version": "3.0.3"
+                }
+              },
+              {
+                "description": "the most correct and second fastest glob implementation in JavaScript",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eglob",
+                  "version": "10.4.2"
+                }
+              },
+              {
+                "description": "A drop-in replacement for fs, making various improvements.",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003egraceful-fs",
+                  "version": "4.2.11"
+                }
+              },
+              {
+                "description": "Provides metadata and conversions from repository urls for GitHub, Bitbucket and GitLab",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ehosted-git-info",
+                  "version": "7.0.2"
+                }
+              },
+              {
+                "description": "An ini encoder/decoder for node",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eini",
+                  "version": "4.1.3"
+                }
+              },
+              {
+                "description": "A node module to get your node module started",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003einit-package-json",
+                  "version": "6.0.3"
+                }
+              },
+              {
+                "description": "Check if a string is an IP address in CIDR notation",
+                "distance": 1,
+                "licenses": [
+                  "BSD-2-Clause"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eis-cidr",
+                  "version": "5.1.0"
+                }
+              },
+              {
+                "description": "JSON.parse with context information on error",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ejson-parse-even-better-errors",
+                  "version": "3.0.2"
+                }
+              },
+              {
+                "description": "programmatic library for `npm access` commands",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003elibnpmaccess",
+                  "version": "8.0.6"
+                }
+              },
+              {
+                "description": "The registry diff",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003elibnpmdiff",
+                  "version": "6.1.4"
+                }
+              },
+              {
+                "description": "npm exec (npx) programmatic API",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003elibnpmexec",
+                  "version": "8.1.3"
+                }
+              },
+              {
+                "description": "Programmatic API for npm fund",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003elibnpmfund",
+                  "version": "5.0.12"
+                }
+              },
+              {
+                "description": "programmatic API for managing npm registry hooks",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003elibnpmhook",
+                  "version": "10.0.5"
+                }
+              },
+              {
+                "description": "Programmatic api for `npm org` commands",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003elibnpmorg",
+                  "version": "6.0.6"
+                }
+              },
+              {
+                "description": "Programmatic API for the bits behind npm pack",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003elibnpmpack",
+                  "version": "7.0.4"
+                }
+              },
+              {
+                "description": "Programmatic API for the bits behind npm publish and unpublish",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003elibnpmpublish",
+                  "version": "9.0.9"
+                }
+              },
+              {
+                "description": "Programmatic API for searching in npm and compatible registries.",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003elibnpmsearch",
+                  "version": "7.0.6"
+                }
+              },
+              {
+                "description": "npm Team management APIs",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003elibnpmteam",
+                  "version": "6.0.5"
+                }
+              },
+              {
+                "description": "library to do the things that 'npm version' does",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003elibnpmversion",
+                  "version": "6.0.3"
+                }
+              },
+              {
+                "description": "Opinionated, caching, retrying fetch client",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003emake-fetch-happen",
+                  "version": "13.0.1"
+                }
+              },
+              {
+                "description": "a glob matcher in javascript",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eminimatch",
+                  "version": "9.0.5"
+                }
+              },
+              {
+                "description": "minimal implementation of a PassThrough stream",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eminipass",
+                  "version": "7.1.2"
+                }
+              },
+              {
+                "description": "create a pipeline of streams using Minipass",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eminipass-pipeline",
+                  "version": "1.2.4"
+                }
+              },
+              {
+                "description": "Tiny millisecond conversion utility",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ems",
+                  "version": "2.1.3"
+                }
+              },
+              {
+                "description": "Node.js native addon build tool",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003enode-gyp",
+                  "version": "10.1.0"
+                }
+              },
+              {
+                "description": "Option parsing for Node, supporting types, shorthands, etc. Used by npm.",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003enopt",
+                  "version": "7.2.1"
+                }
+              },
+              {
+                "description": "Normalizes data that can be found in package.json files.",
+                "distance": 1,
+                "licenses": [
+                  "BSD-2-Clause"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003enormalize-package-data",
+                  "version": "6.0.2"
+                }
+              },
+              {
+                "description": "Given a response from the npm security api, render it into a variety of security reports",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003enpm-audit-report",
+                  "version": "5.0.0"
+                }
+              },
+              {
+                "description": "Check the engines and platform fields in package.json",
+                "distance": 1,
+                "licenses": [
+                  "BSD-2-Clause"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003enpm-install-checks",
+                  "version": "6.3.0"
+                }
+              },
+              {
+                "description": "Parse the things that can be arguments to `npm install`",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003enpm-package-arg",
+                  "version": "11.0.2"
+                }
+              },
+              {
+                "description": "Resolves a matching manifest from a package metadata document according to standard npm semver resolution rules.",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003enpm-pick-manifest",
+                  "version": "9.1.0"
+                }
+              },
+              {
+                "description": "Library for updating an npmjs.com profile",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003enpm-profile",
+                  "version": "10.0.0"
+                }
+              },
+              {
+                "description": "Fetch-based http client for use with npm registry APIs",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003enpm-registry-fetch",
+                  "version": "17.1.0"
+                }
+              },
+              {
+                "description": "User validations for npm",
+                "distance": 1,
+                "licenses": [
+                  "BSD-2-Clause"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003enpm-user-validate",
+                  "version": "2.0.1"
+                }
+              },
+              {
+                "description": "Map over promises concurrently",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ep-map",
+                  "version": "4.0.0"
+                }
+              },
+              {
+                "description": "JavaScript package downloader",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003epacote",
+                  "version": "18.0.6"
+                }
+              },
+              {
+                "description": "Parse a JSON string that has git merge conflicts, resolving if possible",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eparse-conflict-json",
+                  "version": "3.0.1"
+                }
+              },
+              {
+                "description": "just emit 'log' events on the process object",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eproc-log",
+                  "version": "4.2.0"
+                }
+              },
+              {
+                "description": "QRCodes, in the terminal",
+                "distance": 1,
+                "licenses": [],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eqrcode-terminal",
+                  "version": "0.12.0"
+                }
+              },
+              {
+                "description": "read(1) for node programs",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eread",
+                  "version": "3.0.1"
+                }
+              },
+              {
+                "description": "The semantic version parser used by npm.",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003esemver",
+                  "version": "7.6.2"
+                }
+              },
+              {
+                "description": "parse SPDX license expressions",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003espdx-expression-parse",
+                  "version": "4.0.0"
+                }
+              },
+              {
+                "description": "Standard Subresource Integrity library -- parses, serializes, generates, and verifies integrity metadata according to the SRI spec.",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003essri",
+                  "version": "10.0.6"
+                }
+              },
+              {
+                "description": "Detect whether a terminal supports color",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003esupports-color",
+                  "version": "9.4.0"
+                }
+              },
+              {
+                "description": "tar for node",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003etar",
+                  "version": "6.2.1"
+                }
+              },
+              {
+                "description": "borderless text tables with alignment",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003etext-table",
+                  "version": "0.2.0"
+                }
+              },
+              {
+                "description": "Tiny function that provides relative, human-readable dates.",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003etiny-relative-date",
+                  "version": "1.3.0"
+                }
+              },
+              {
+                "description": "Walk any kind of tree structure depth- or breadth-first. Supports promises and advanced map-reduce operations with a very small API.",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003etreeverse",
+                  "version": "3.0.0"
+                }
+              },
+              {
+                "description": "Give me a string and I'll tell you if it's a valid npm package name",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003evalidate-npm-package-name",
+                  "version": "5.0.1"
+                }
+              },
+              {
+                "description": "Like which(1) unix command. Find the first instance of an executable in the PATH.",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ewhich",
+                  "version": "4.0.0"
+                }
+              },
+              {
+                "description": "Write files in an atomic fashion w/configurable ownership",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ewrite-file-atomic",
+                  "version": "5.0.1"
+                }
+              },
+              {
+                "description": "the http/https agent used by the npm cli",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@npmcli/agent",
+                  "version": "2.2.2"
+                }
+              },
+              {
+                "description": "a util for spawning git from npm CLI contexts",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@npmcli/git",
+                  "version": "5.0.8"
+                }
+              },
+              {
+                "description": "Get the list of files installed in a package in node_modules, including bundled dependencies",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@npmcli/installed-package-contents",
+                  "version": "2.1.0"
+                }
+              },
+              {
+                "description": "Calculate meta-vulnerabilities from package security advisories",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@npmcli/metavuln-calculator",
+                  "version": "7.1.1"
+                }
+              },
+              {
+                "description": "Get the package name from a folder path",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@npmcli/name-from-folder",
+                  "version": "2.0.0"
+                }
+              },
+              {
+                "description": "Tools for dealing with node-gyp packages",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@npmcli/node-gyp",
+                  "version": "3.0.0"
+                }
+              },
+              {
+                "description": "npm query parser and tools",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@npmcli/query",
+                  "version": "3.1.0"
+                }
+              },
+              {
+                "description": "code-signing for npm packages",
+                "distance": 2,
+                "licenses": [
+                  "Apache-2.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@sigstore/protobuf-specs",
+                  "version": "0.3.2"
+                }
+              },
+              {
+                "description": "Create an error from multiple errors",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eaggregate-error",
+                  "version": "3.1.0"
+                }
+              },
+              {
+                "description": "A ridiculously light-weight argument validator (now browser friendly)",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eaproba",
+                  "version": "2.0.0"
+                }
+              },
+              {
+                "description": "JavaScript package binary linker",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ebin-links",
+                  "version": "4.0.4"
+                }
+              },
+              {
+                "description": "List of binary file extensions",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ebinary-extensions",
+                  "version": "2.3.0"
+                }
+              },
+              {
+                "description": "Brace expansion as known from sh/bash",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ebrace-expansion",
+                  "version": "2.0.1"
+                }
+              },
+              {
+                "description": "like `chown -R`",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003echownr",
+                  "version": "2.0.0"
+                }
+              },
+              {
+                "description": "Regular expression for matching IP addresses in CIDR notation",
+                "distance": 2,
+                "licenses": [
+                  "BSD-2-Clause"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ecidr-regex",
+                  "version": "4.1.1"
+                }
+              },
+              {
+                "description": "Find the common ancestor of 2 or more paths on Windows or Unix",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ecommon-ancestor-path",
+                  "version": "1.0.1"
+                }
+              },
+              {
+                "description": "A JavaScript text diff implementation.",
+                "distance": 2,
+                "licenses": [
+                  "BSD-3-Clause"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ediff",
+                  "version": "5.2.0"
+                }
+              },
+              {
+                "description": "Get paths for storing things like data, config, cache, etc",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eenv-paths",
+                  "version": "2.2.1"
+                }
+              },
+              {
+                "description": "A utility that allows retrying a function with an exponential delay between attempts.",
+                "distance": 2,
+                "licenses": [
+                  "Apache-2.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eexponential-backoff",
+                  "version": "3.1.1"
+                }
+              },
+              {
+                "description": "Run a child as if it's the foreground process. Give it stdio. Exit when it exits.",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eforeground-child",
+                  "version": "3.2.1"
+                }
+              },
+              {
+                "description": "Parses Cache-Control and other headers. Helps building correct HTTP caches and proxies",
+                "distance": 2,
+                "licenses": [
+                  "BSD-2-Clause"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ehttp-cache-semantics",
+                  "version": "4.1.1"
+                }
+              },
+              {
+                "description": "An incremental implementation of MurmurHash3",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eimurmurhash",
+                  "version": "0.1.4"
+                }
+              },
+              {
+                "description": "Detect if your code is running on an AWS Lambda server",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eis-lambda",
+                  "version": "1.0.1"
+                }
+              },
+              {
+                "description": "A very strict and proper argument parser.",
+                "distance": 2,
+                "licenses": [
+                  "BlueOak-1.0.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ejackspeak",
+                  "version": "3.4.0"
+                }
+              },
+              {
+                "description": "Stringify an object sorting scalars before objects, and defaulting to 2-space indent",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ejson-stringify-nice",
+                  "version": "1.1.4"
+                }
+              },
+              {
+                "description": "This is a pure-js JSON streaming parser for node.js",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ejsonparse",
+                  "version": "1.3.1"
+                }
+              },
+              {
+                "description": "Return an object representing the diffs between two objects. Supports jsonPatch protocol",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ejust-diff",
+                  "version": "6.0.2"
+                }
+              },
+              {
+                "description": "Apply a diff to an object. Optionally supports jsonPatch protocol",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ejust-diff-apply",
+                  "version": "5.5.0"
+                }
+              },
+              {
+                "description": "A cache object that deletes the least-recently-used items.",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003elru-cache",
+                  "version": "10.2.2"
+                }
+              },
+              {
+                "description": "A Minipass stream that collects all the data into a single chunk",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eminipass-collect",
+                  "version": "2.0.1"
+                }
+              },
+              {
+                "description": "An implementation of window.fetch in Node.js using Minipass streams",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eminipass-fetch",
+                  "version": "3.0.5"
+                }
+              },
+              {
+                "description": "A Minipass stream that calls a flush function before emitting 'end'",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eminipass-flush",
+                  "version": "1.0.5"
+                }
+              },
+              {
+                "description": "minimal implementation of a PassThrough stream",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eminipass-pipeline\u003eminipass",
+                  "version": "3.3.6"
+                }
+              },
+              {
+                "description": "A small fast zlib stream built on [minipass](http://npm.im/minipass) and Node.js's zlib binding.",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eminizlib",
+                  "version": "2.1.2"
+                }
+              },
+              {
+                "description": "Recursively mkdir, like `mkdir -p`",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003emkdirp",
+                  "version": "1.0.4"
+                }
+              },
+              {
+                "description": "Bytes go in, but they don't come out (when muted).",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003emute-stream",
+                  "version": "1.0.0"
+                }
+              },
+              {
+                "description": "HTTP content negotiation",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003enegotiator",
+                  "version": "0.6.3"
+                }
+              },
+              {
+                "description": "just emit 'log' events on the process object",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003enode-gyp\u003eproc-log",
+                  "version": "3.0.0"
+                }
+              },
+              {
+                "description": "Turn any flavor of allowable package.json bin into a normalized object",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003enpm-normalize-package-bin",
+                  "version": "3.0.1"
+                }
+              },
+              {
+                "description": "Get a list of the files to add from a folder into an npm package",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003enpm-packlist",
+                  "version": "8.0.2"
+                }
+              },
+              {
+                "description": "Load the local package.json from either src or dist folder",
+                "distance": 2,
+                "licenses": [
+                  "BlueOak-1.0.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003epackage-json-from-dist",
+                  "version": "1.0.0"
+                }
+              },
+              {
+                "description": "walk paths fast and efficiently",
+                "distance": 2,
+                "licenses": [
+                  "BlueOak-1.0.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003epath-scurry",
+                  "version": "1.11.1"
+                }
+              },
+              {
+                "description": "Progress bar updates at a distance",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eproggy",
+                  "version": "2.0.0"
+                }
+              },
+              {
+                "description": "Like Promise.all, but save rejections until all promises are resolved",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003epromise-all-reject-late",
+                  "version": "1.0.1"
+                }
+              },
+              {
+                "description": "Call an array of promise-returning functions, restricting concurrency to a specified limit.",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003epromise-call-limit",
+                  "version": "3.0.1"
+                }
+              },
+              {
+                "description": "Retries a function that returns a promise, leveraging the power of the retry module.",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003epromise-retry",
+                  "version": "2.0.1"
+                }
+              },
+              {
+                "description": "prompting wizardly",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003epromzard",
+                  "version": "1.0.2"
+                }
+              },
+              {
+                "description": "Like read-package-json, but faster",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eread-package-json-fast",
+                  "version": "3.0.2"
+                }
+              },
+              {
+                "description": "when you want to fire an event no matter how a process exits.",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003esignal-exit",
+                  "version": "4.1.0"
+                }
+              },
+              {
+                "description": "code-signing for npm packages",
+                "distance": 2,
+                "licenses": [
+                  "Apache-2.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003esigstore",
+                  "version": "2.3.1"
+                }
+              },
+              {
+                "description": "list of SPDX standard license exceptions",
+                "distance": 2,
+                "licenses": [
+                  "CC-BY-3.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003espdx-exceptions",
+                  "version": "2.5.0"
+                }
+              },
+              {
+                "description": "A list of SPDX license identifiers",
+                "distance": 2,
+                "licenses": [
+                  "CC0-1.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003espdx-license-ids",
+                  "version": "3.0.18"
+                }
+              },
+              {
+                "description": "Get the visual width of a string - the number of columns required to display it",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003estring-width",
+                  "version": "4.2.3"
+                }
+              },
+              {
+                "description": "Strip ANSI escape codes from a string",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003estrip-ansi",
+                  "version": "6.0.1"
+                }
+              },
+              {
+                "description": "fs read and write streams based on minipass",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003etar\u003efs-minipass",
+                  "version": "2.1.0"
+                }
+              },
+              {
+                "description": "minimal implementation of a PassThrough stream",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003etar\u003eminipass",
+                  "version": "5.0.0"
+                }
+              },
+              {
+                "description": "JavaScript implementation of The Update Framework (TUF)",
+                "distance": 2,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003etuf-js",
+                  "version": "2.2.1"
+                }
+              },
+              {
+                "description": "Generate a unique filename for use in temporary directories or caches.",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eunique-filename",
+                  "version": "3.0.0"
+                }
+              },
+              {
+                "description": "Give me a string and I'll tell you if it's a valid npm package license string",
+                "distance": 2,
+                "licenses": [
+                  "Apache-2.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003evalidate-npm-package-license",
+                  "version": "3.0.4"
+                }
+              },
+              {
+                "description": "Given a path string, return a generator that walks up the path, emitting each dirname.",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ewalk-up-path",
+                  "version": "3.0.1"
+                }
+              },
+              {
+                "description": "Minimal module to check if a file is executable.",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ewhich\u003eisexe",
+                  "version": "3.1.1"
+                }
+              },
+              {
+                "description": "Yet Another Linked List",
+                "distance": 2,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eyallist",
+                  "version": "4.0.0"
+                }
+              },
+              {
+                "description": "easily create complex multi-column command-line-interfaces",
+                "distance": 3,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@isaacs/cliui",
+                  "version": "8.0.2"
+                }
+              },
+              {
+                "description": "Polyfill of future proposal for `util.parseArgs()`",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@pkgjs/parseargs",
+                  "version": "0.11.0"
+                }
+              },
+              {
+                "description": "Sigstore bundle type",
+                "distance": 3,
+                "licenses": [
+                  "Apache-2.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@sigstore/bundle",
+                  "version": "2.3.2"
+                }
+              },
+              {
+                "description": "Base library for Sigstore",
+                "distance": 3,
+                "licenses": [
+                  "Apache-2.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@sigstore/core",
+                  "version": "1.1.0"
+                }
+              },
+              {
+                "description": "Sigstore signing library",
+                "distance": 3,
+                "licenses": [
+                  "Apache-2.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@sigstore/sign",
+                  "version": "2.3.2"
+                }
+              },
+              {
+                "description": "Verification of Sigstore signatures",
+                "distance": 3,
+                "licenses": [
+                  "Apache-2.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@sigstore/verify",
+                  "version": "1.2.1"
+                }
+              },
+              {
+                "description": "TUF metadata models",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@tufjs/models",
+                  "version": "2.0.1"
+                }
+              },
+              {
+                "description": "Turn a function into an `http.Agent` instance",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eagent-base",
+                  "version": "7.1.1"
+                }
+              },
+              {
+                "description": "Regular expression for matching ANSI escape codes",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eansi-regex",
+                  "version": "5.0.1"
+                }
+              },
+              {
+                "description": "Match balanced character pairs, like \"{\" and \"}\"",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ebalanced-match",
+                  "version": "1.0.2"
+                }
+              },
+              {
+                "description": "Clean up error stack traces",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eclean-stack",
+                  "version": "2.2.0"
+                }
+              },
+              {
+                "description": "Used in npm for command line application support",
+                "distance": 3,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ecmd-shim",
+                  "version": "6.0.3"
+                }
+              },
+              {
+                "description": "Cross platform child_process#spawn and child_process#spawnSync",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ecross-spawn",
+                  "version": "7.0.3"
+                }
+              },
+              {
+                "description": "Lightweight debugging utility for Node.js and the browser",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003edebug",
+                  "version": "4.3.5"
+                }
+              },
+              {
+                "description": "A regular expression to match all Emoji-only symbols as per the Unicode Standard.",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eemoji-regex",
+                  "version": "8.0.0"
+                }
+              },
+              {
+                "description": "Convert encodings, uses iconv-lite",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eencoding",
+                  "version": "0.1.13"
+                }
+              },
+              {
+                "description": "Create an error with a code",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eerr-code",
+                  "version": "2.0.3"
+                }
+              },
+              {
+                "description": "An HTTP(s) proxy `http.Agent` implementation for HTTP",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ehttp-proxy-agent",
+                  "version": "7.0.2"
+                }
+              },
+              {
+                "description": "An HTTP(s) proxy `http.Agent` implementation for HTTPS",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ehttps-proxy-agent",
+                  "version": "7.0.5"
+                }
+              },
+              {
+                "description": "Nested/recursive `.gitignore`/`.npmignore` parsing and filtering.",
+                "distance": 3,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eignore-walk",
+                  "version": "6.0.5"
+                }
+              },
+              {
+                "description": "Indent each line in a string",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eindent-string",
+                  "version": "4.0.0"
+                }
+              },
+              {
+                "description": "Regular expression for matching IP addresses (IPv4 \u0026 IPv6)",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eip-regex",
+                  "version": "5.0.0"
+                }
+              },
+              {
+                "description": "Check if the character represented by a given Unicode code point is fullwidth",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eis-fullwidth-code-point",
+                  "version": "3.0.0"
+                }
+              },
+              {
+                "description": "minimal implementation of a PassThrough stream",
+                "distance": 3,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eminipass-flush\u003eminipass",
+                  "version": "3.3.6"
+                }
+              },
+              {
+                "description": "A Minipass stream that raises an error if you get a different number of bytes than expected",
+                "distance": 3,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eminipass-sized",
+                  "version": "1.0.3"
+                }
+              },
+              {
+                "description": "minimal implementation of a PassThrough stream",
+                "distance": 3,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eminizlib\u003eminipass",
+                  "version": "3.3.6"
+                }
+              },
+              {
+                "description": "list things in node_modules that are bundledDependencies, or transitive dependencies thereof",
+                "distance": 3,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003enpm-bundled",
+                  "version": "3.0.1"
+                }
+              },
+              {
+                "description": "",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003epostcss-selector-parser",
+                  "version": "6.1.0"
+                }
+              },
+              {
+                "description": "One promise for multiple requests in flight to avoid async duplication",
+                "distance": 3,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003epromise-inflight",
+                  "version": "1.0.1"
+                }
+              },
+              {
+                "description": "Figure out what a cmd-shim is pointing at. This acts as the equivalent of fs.readlink.",
+                "distance": 3,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eread-cmd-shim",
+                  "version": "4.0.0"
+                }
+              },
+              {
+                "description": "Abstraction for exponential and custom retry strategies for failed operations.",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eretry",
+                  "version": "0.12.0"
+                }
+              },
+              {
+                "description": "A SOCKS proxy `http.Agent` implementation for HTTP and HTTPS",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003esocks-proxy-agent",
+                  "version": "8.0.4"
+                }
+              },
+              {
+                "description": "correct invalid SPDX expressions",
+                "distance": 3,
+                "licenses": [
+                  "Apache-2.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003espdx-correct",
+                  "version": "3.2.0"
+                }
+              },
+              {
+                "description": "minimal implementation of a PassThrough stream",
+                "distance": 3,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003etar\u003efs-minipass\u003eminipass",
+                  "version": "3.3.6"
+                }
+              },
+              {
+                "description": "Generate a unique character string suitible for use in files and URLs.",
+                "distance": 3,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eunique-slug",
+                  "version": "4.0.0"
+                }
+              },
+              {
+                "description": "parse SPDX license expressions",
+                "distance": 3,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003evalidate-npm-package-license\u003espdx-expression-parse",
+                  "version": "3.0.1"
+                }
+              },
+              {
+                "description": "Get the visual width of a string - the number of columns required to display it",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@isaacs/cliui\u003estring-width",
+                  "version": "5.1.2"
+                }
+              },
+              {
+                "description": "Strip ANSI escape codes from a string",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@isaacs/cliui\u003estrip-ansi",
+                  "version": "7.1.0"
+                }
+              },
+              {
+                "description": "OLPC JSON canonicalization",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@tufjs/canonical-json",
+                  "version": "2.0.0"
+                }
+              },
+              {
+                "description": "Like which(1) unix command. Find the first instance of an executable in the PATH.",
+                "distance": 4,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ecross-spawn\u003ewhich",
+                  "version": "2.0.2"
+                }
+              },
+              {
+                "description": "A JavaScript library for escaping CSS strings and identifiers while generating the shortest possible ASCII-only output.",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ecssesc",
+                  "version": "3.0.0"
+                }
+              },
+              {
+                "description": "Tiny millisecond conversion utility",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003edebug\u003ems",
+                  "version": "2.1.2"
+                }
+              },
+              {
+                "description": "Convert character encodings in pure javascript.",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eiconv-lite",
+                  "version": "0.6.3"
+                }
+              },
+              {
+                "description": "minimal implementation of a PassThrough stream",
+                "distance": 4,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eminipass-sized\u003eminipass",
+                  "version": "3.3.6"
+                }
+              },
+              {
+                "description": "Get the PATH environment variable key cross-platform",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003epath-key",
+                  "version": "3.1.1"
+                }
+              },
+              {
+                "description": "Get the command from a shebang",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eshebang-command",
+                  "version": "2.0.0"
+                }
+              },
+              {
+                "description": "Fully featured SOCKS proxy client supporting SOCKSv4, SOCKSv4a, and SOCKSv5. Includes Bind and Associate functionality.",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003esocks",
+                  "version": "2.8.3"
+                }
+              },
+              {
+                "description": "parse SPDX license expressions",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003espdx-correct\u003espdx-expression-parse",
+                  "version": "3.0.1"
+                }
+              },
+              {
+                "description": "Get the visual width of a string - the number of columns required to display it",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003estring-width-cjs",
+                  "version": "4.2.3"
+                }
+              },
+              {
+                "description": "Strip ANSI escape codes from a string",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003estrip-ansi-cjs",
+                  "version": "6.0.1"
+                }
+              },
+              {
+                "description": "The Node.js `util.deprecate()` function with browser support",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eutil-deprecate",
+                  "version": "1.0.2"
+                }
+              },
+              {
+                "description": "Wordwrap a string with ANSI escape codes",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ewrap-ansi",
+                  "version": "8.1.0"
+                }
+              },
+              {
+                "description": "Wordwrap a string with ANSI escape codes",
+                "distance": 4,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ewrap-ansi-cjs",
+                  "version": "7.0.0"
+                }
+              },
+              {
+                "description": "Regular expression for matching ANSI escape codes",
+                "distance": 5,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@isaacs/cliui\u003eansi-regex",
+                  "version": "6.0.1"
+                }
+              },
+              {
+                "description": "A regular expression to match all Emoji-only symbols as per the Unicode Standard.",
+                "distance": 5,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003e@isaacs/cliui\u003eemoji-regex",
+                  "version": "9.2.2"
+                }
+              },
+              {
+                "description": "ANSI escape codes for styling strings in the terminal",
+                "distance": 5,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eansi-styles",
+                  "version": "6.2.1"
+                }
+              },
+              {
+                "description": "Get East Asian Width from a character.",
+                "distance": 5,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eeastasianwidth",
+                  "version": "0.2.0"
+                }
+              },
+              {
+                "description": "A library for parsing IPv4 and IPv6 IP addresses in node and the browser.",
+                "distance": 5,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eip-address",
+                  "version": "9.0.5"
+                }
+              },
+              {
+                "description": "Minimal module to check if a file is executable.",
+                "distance": 5,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eisexe",
+                  "version": "2.0.0"
+                }
+              },
+              {
+                "description": "Modern Buffer API polyfill without footguns",
+                "distance": 5,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003esafer-buffer",
+                  "version": "2.1.2"
+                }
+              },
+              {
+                "description": "Regular expression for matching a shebang line",
+                "distance": 5,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003eshebang-regex",
+                  "version": "3.0.0"
+                }
+              },
+              {
+                "description": "smart-buffer is a Buffer wrapper that adds automatic read \u0026 write offset tracking, string operations, data insertions, and more.",
+                "distance": 5,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003esmart-buffer",
+                  "version": "4.2.0"
+                }
+              },
+              {
+                "description": "ANSI escape codes for styling strings in the terminal",
+                "distance": 5,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ewrap-ansi-cjs\u003eansi-styles",
+                  "version": "4.3.0"
+                }
+              },
+              {
+                "description": "Get the visual width of a string - the number of columns required to display it",
+                "distance": 5,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ewrap-ansi\u003estring-width",
+                  "version": "5.1.2"
+                }
+              },
+              {
+                "description": "Strip ANSI escape codes from a string",
+                "distance": 5,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ewrap-ansi\u003estrip-ansi",
+                  "version": "7.1.0"
+                }
+              },
+              {
+                "description": "Plain color conversion functions",
+                "distance": 6,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ecolor-convert",
+                  "version": "2.0.1"
+                }
+              },
+              {
+                "description": "The jsbn library is a fast, portable implementation of large-number math in pure JavaScript, enabling public-key crypto and other applications on desktop and mobile browsers.",
+                "distance": 6,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ejsbn",
+                  "version": "1.1.0"
+                }
+              },
+              {
+                "description": "JavaScript sprintf implementation",
+                "distance": 6,
+                "licenses": [
+                  "BSD-3-Clause"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003esprintf-js",
+                  "version": "1.1.3"
+                }
+              },
+              {
+                "description": "Regular expression for matching ANSI escape codes",
+                "distance": 6,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ewrap-ansi\u003eansi-regex",
+                  "version": "6.0.1"
+                }
+              },
+              {
+                "description": "A regular expression to match all Emoji-only symbols as per the Unicode Standard.",
+                "distance": 6,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ewrap-ansi\u003eemoji-regex",
+                  "version": "9.2.2"
+                }
+              },
+              {
+                "description": "A list of color names and its values",
+                "distance": 7,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "npm\u003e10.8.2\u003ecolor-name",
+                  "version": "1.1.4"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 68,
+              "indirect_dependents": 133,
+              "total_dependents": 201
+            },
+            "licenses": [
+              "Artistic-2.0"
+            ],
+            "package_current_version": "11.4.1",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "npm",
+              "version": "10.8.2"
+            },
+            "projects": [
+              {
+                "display_name": "npm/cli",
+                "forks": 3427,
+                "issues": 611,
+                "link": "https://github.com/npm/cli",
+                "name": "npm/cli",
+                "stars": 8887,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Maintained",
+                    "reason": "30 commit(s) and 2 issue activity found in the last 90 days -- score normalized to 10",
+                    "score": 10
+                  },
+                  {
+                    "name": "Code-Review",
+                    "reason": "all changesets reviewed",
+                    "score": 10
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no dangerous workflow patterns detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 9
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "detected GitHub workflow tokens with excessive permissions",
+                    "score": 0
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                    "score": -1
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool detected but not run on all commits",
+                    "score": 9
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "112 existing vulnerabilities detected",
+                    "score": 0
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "4d5c3c1d8d99e352b1b4906c2607752ee3051a75",
+                  "name": "github.com/npm/cli"
+                },
+                "score": 6.1,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": null,
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

@@ -1,0 +1,407 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "eastasianwidth@0.2.0",
+    "display_path": ""
+  },
+  "path": "pkg:npm/eastasianwidth@0.2.0",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "eastasianwidth",
+        "version": "0.2.0",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Get East Asian Width from a character.",
+            "distance": 0,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "eastasianwidth",
+              "version": "0.2.0"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "MIT"
+        ],
+        "package_current_version": "0.3.0",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "eastasianwidth",
+          "version": "0.2.0"
+        },
+        "projects": [
+          {
+            "display_name": "komagata/eastasianwidth",
+            "forks": 11,
+            "issues": 3,
+            "link": "https://github.com/komagata/eastasianwidth",
+            "name": "komagata/eastasianwidth",
+            "stars": 88,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "No tokens found",
+                "score": -1
+              },
+              {
+                "name": "Code-Review",
+                "reason": "Found 7/16 approved changesets -- score normalized to 4",
+                "score": 4
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Maintained",
+                "reason": "4 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 3",
+                "score": 3
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no workflows found",
+                "score": -1
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "no dependencies found",
+                "score": -1
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "0 existing vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "8f38c3a1285d59c2846c4e2335cc0fe2d2de10ec",
+              "name": "github.com/komagata/eastasianwidth"
+            },
+            "score": 4,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JHQ47EDXSVB1P11XDTCWKX54",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "eastasianwidth"
+            },
+            "version": "0.2.0"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/eastasianwidth/-/eastasianwidth-0.2.0.tgz",
+            "sha256": "eccfa12bbda71f9f8e09de7ad1a4e554369a6b4d43d7f86085e85055a8694c27"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/eastasianwidth/-/eastasianwidth-0.2.0.tgz",
+                "derived_extension": "unknown",
+                "size": 390
+              },
+              {
+                "key": "package/eastasianwidth.js",
+                "origin": "https://registry.npmjs.org/eastasianwidth/-/eastasianwidth-0.2.0.tgz",
+                "derived_extension": "unknown",
+                "size": 12067
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/eastasianwidth/-/eastasianwidth-0.2.0.tgz",
+                "derived_extension": "unknown",
+                "size": 1183
+              }
+            ]
+          },
+          "analyzed_at": {
+            "seconds": 1737020525,
+            "nanos": 381323868
+          },
+          "inference": {
+            "confidence": 1,
+            "details": "No malware evidence were identified by any tool in the workflow"
+          }
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "86838d22279c7797": {
+        "data": {
+          "package_detail": {
+            "name": "eastasianwidth",
+            "version": "0.2.0",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "Get East Asian Width from a character.",
+                "distance": 0,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "eastasianwidth",
+                  "version": "0.2.0"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "MIT"
+            ],
+            "package_current_version": "0.3.0",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "eastasianwidth",
+              "version": "0.2.0"
+            },
+            "projects": [
+              {
+                "display_name": "komagata/eastasianwidth",
+                "forks": 11,
+                "issues": 3,
+                "link": "https://github.com/komagata/eastasianwidth",
+                "name": "komagata/eastasianwidth",
+                "stars": 88,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "No tokens found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 7/16 approved changesets -- score normalized to 4",
+                    "score": 4
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "4 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 3",
+                    "score": 3
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no workflows found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "no dependencies found",
+                    "score": -1
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file not detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "branch protection not enabled on development/release branches",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "0 existing vulnerabilities detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                    "score": 0
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "8f38c3a1285d59c2846c4e2335cc0fe2d2de10ec",
+                  "name": "github.com/komagata/eastasianwidth"
+                },
+                "score": 4,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JHQ47EDXSVB1P11XDTCWKX54",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "eastasianwidth"
+                },
+                "version": "0.2.0"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/eastasianwidth/-/eastasianwidth-0.2.0.tgz",
+                "sha256": "eccfa12bbda71f9f8e09de7ad1a4e554369a6b4d43d7f86085e85055a8694c27"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/eastasianwidth/-/eastasianwidth-0.2.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 390
+                  },
+                  {
+                    "key": "package/eastasianwidth.js",
+                    "origin": "https://registry.npmjs.org/eastasianwidth/-/eastasianwidth-0.2.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 12067
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/eastasianwidth/-/eastasianwidth-0.2.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1183
+                  }
+                ]
+              },
+              "analyzed_at": {
+                "seconds": 1737020525,
+                "nanos": 381323868
+              },
+              "inference": {
+                "confidence": 1,
+                "details": "No malware evidence were identified by any tool in the workflow"
+              }
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

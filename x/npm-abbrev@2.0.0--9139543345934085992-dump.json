@@ -1,0 +1,271 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "abbrev@2.0.0",
+    "display_path": ""
+  },
+  "path": "pkg:npm/abbrev@2.0.0",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "abbrev",
+        "version": "2.0.0",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Like ruby's abbrev module, but in js",
+            "distance": 0,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "abbrev",
+              "version": "2.0.0"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "ISC"
+        ],
+        "package_current_version": "3.0.1",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "abbrev",
+          "version": "2.0.0"
+        },
+        "projects": [
+          {
+            "display_name": "npm/abbrev-js",
+            "forks": 32,
+            "issues": 0,
+            "link": "https://github.com/npm/abbrev-js",
+            "name": "npm/abbrev-js",
+            "stars": 166,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [],
+            "date": "0001-01-01",
+            "repository": {
+              "commit": "",
+              "name": ""
+            },
+            "score": 0,
+            "scorecard": {
+              "commit": "",
+              "version": ""
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JP02KQZ90KJTH4DX3EMB0BJ8",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "abbrev"
+            },
+            "version": "2.0.0"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/abbrev/-/abbrev-2.0.0.tgz",
+            "sha256": "d902db7eb4863e8f6d7d5e176295381eefb84fcd1e8f6be95cf517c744e75231"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/LICENSE",
+                "origin": "https://registry.npmjs.org/abbrev/-/abbrev-2.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 2011
+              },
+              {
+                "key": "package/lib/index.js",
+                "origin": "https://registry.npmjs.org/abbrev/-/abbrev-2.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 5328
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/abbrev/-/abbrev-2.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 1002
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/abbrev/-/abbrev-2.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 499
+              }
+            ]
+          },
+          "analyzed_at": {
+            "seconds": 1741612384,
+            "nanos": 668933559
+          },
+          "inference": {
+            "confidence": 1,
+            "details": "No malware evidence were identified by any tool in the workflow",
+            "summary": "No malware evidence were identified by any tool in the workflow"
+          },
+          "report_id": "01JP02KQZ90KJTH4DX3EMB0BJ8"
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "4c3524f434987f86": {
+        "data": {
+          "package_detail": {
+            "name": "abbrev",
+            "version": "2.0.0",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "Like ruby's abbrev module, but in js",
+                "distance": 0,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "abbrev",
+                  "version": "2.0.0"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "ISC"
+            ],
+            "package_current_version": "3.0.1",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "abbrev",
+              "version": "2.0.0"
+            },
+            "projects": [
+              {
+                "display_name": "npm/abbrev-js",
+                "forks": 32,
+                "issues": 0,
+                "link": "https://github.com/npm/abbrev-js",
+                "name": "npm/abbrev-js",
+                "stars": 166,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [],
+                "date": "0001-01-01",
+                "repository": {
+                  "commit": "",
+                  "name": ""
+                },
+                "score": 0,
+                "scorecard": {
+                  "commit": "",
+                  "version": ""
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JP02KQZ90KJTH4DX3EMB0BJ8",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "abbrev"
+                },
+                "version": "2.0.0"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/abbrev/-/abbrev-2.0.0.tgz",
+                "sha256": "d902db7eb4863e8f6d7d5e176295381eefb84fcd1e8f6be95cf517c744e75231"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/LICENSE",
+                    "origin": "https://registry.npmjs.org/abbrev/-/abbrev-2.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2011
+                  },
+                  {
+                    "key": "package/lib/index.js",
+                    "origin": "https://registry.npmjs.org/abbrev/-/abbrev-2.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 5328
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/abbrev/-/abbrev-2.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1002
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/abbrev/-/abbrev-2.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 499
+                  }
+                ]
+              },
+              "analyzed_at": {
+                "seconds": 1741612384,
+                "nanos": 668933559
+              },
+              "inference": {
+                "confidence": 1,
+                "details": "No malware evidence were identified by any tool in the workflow",
+                "summary": "No malware evidence were identified by any tool in the workflow"
+              },
+              "report_id": "01JP02KQZ90KJTH4DX3EMB0BJ8"
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "%40sigstore%2Fcore@1.1.0",
+    "display_path": ""
+  },
+  "path": "pkg:npm/%40sigstore%2Fcore@1.1.0",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "@sigstore/core",
+        "version": "1.1.0",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Base library for Sigstore",
+            "distance": 0,
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "@sigstore/core",
+              "version": "1.1.0"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "Apache-2.0"
+        ],
+        "package_current_version": "2.0.0",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "@sigstore/core",
+          "version": "1.1.0"
+        },
+        "projects": [
+          {
+            "display_name": "sigstore/sigstore-js",
+            "forks": 28,
+            "issues": 6,
+            "link": "https://github.com/sigstore/sigstore-js",
+            "name": "sigstore/sigstore-js",
+            "stars": 162,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [],
+            "date": "0001-01-01",
+            "repository": {
+              "commit": "",
+              "name": ""
+            },
+            "score": 0,
+            "scorecard": {
+              "commit": "",
+              "version": ""
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": null,
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "4093bbf6ff4d87a0": {
+        "data": {
+          "package_detail": {
+            "name": "@sigstore/core",
+            "version": "1.1.0",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "Base library for Sigstore",
+                "distance": 0,
+                "licenses": [
+                  "Apache-2.0"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "@sigstore/core",
+                  "version": "1.1.0"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "Apache-2.0"
+            ],
+            "package_current_version": "2.0.0",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "@sigstore/core",
+              "version": "1.1.0"
+            },
+            "projects": [
+              {
+                "display_name": "sigstore/sigstore-js",
+                "forks": 28,
+                "issues": 6,
+                "link": "https://github.com/sigstore/sigstore-js",
+                "name": "sigstore/sigstore-js",
+                "stars": 162,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [],
+                "date": "0001-01-01",
+                "repository": {
+                  "commit": "",
+                  "name": ""
+                },
+                "score": 0,
+                "scorecard": {
+                  "commit": "",
+                  "version": ""
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": null,
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

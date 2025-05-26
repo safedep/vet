@@ -1,0 +1,567 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "jsonparse@1.3.1",
+    "display_path": ""
+  },
+  "path": "pkg:npm/jsonparse@1.3.1",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "jsonparse",
+        "version": "1.3.1",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "This is a pure-js JSON streaming parser for node.js",
+            "distance": 0,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "jsonparse",
+              "version": "1.3.1"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "MIT"
+        ],
+        "package_current_version": "1.3.1",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "jsonparse",
+          "version": "1.3.1"
+        },
+        "projects": [
+          {
+            "display_name": "creationix/jsonparse",
+            "forks": 63,
+            "issues": 20,
+            "link": "https://github.com/creationix/jsonparse",
+            "name": "creationix/jsonparse",
+            "stars": 362,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Code-Review",
+                "reason": "Found 7/14 approved changesets -- score normalized to 5",
+                "score": 5
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Maintained",
+                "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "no dependencies found",
+                "score": -1
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no workflows found",
+                "score": -1
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "No tokens found",
+                "score": -1
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "0 existing vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "b2d8bc6db4f6be3f276752b3b9f882b1945afede",
+              "name": "github.com/creationix/jsonparse"
+            },
+            "score": 3.7,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JNRM0DGJN3RS6T6ZYPET776G",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "jsonparse"
+            },
+            "version": "1.3.1"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+            "sha256": "cf6c2edd3a8f77080beabb6c46b51e5853b61422341a0ef2e05a9e83a90bffce"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                "derived_extension": "unknown",
+                "size": 551
+              },
+              {
+                "key": "package/.npmignore",
+                "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                "derived_extension": "unknown",
+                "size": 12
+              },
+              {
+                "key": "package/LICENSE",
+                "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                "derived_extension": "unknown",
+                "size": 1087
+              },
+              {
+                "key": "package/bench.js",
+                "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                "derived_extension": "unknown",
+                "size": 555
+              },
+              {
+                "key": "package/jsonparse.js",
+                "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                "derived_extension": "unknown",
+                "size": 14197
+              },
+              {
+                "key": "package/examples/twitterfeed.js",
+                "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                "derived_extension": "unknown",
+                "size": 1002
+              },
+              {
+                "key": "package/samplejson/basic.json",
+                "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                "derived_extension": "unknown",
+                "size": 4364
+              },
+              {
+                "key": "package/samplejson/basic2.json",
+                "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                "derived_extension": "unknown",
+                "size": 4591
+              },
+              {
+                "key": "package/README.markdown",
+                "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                "derived_extension": "unknown",
+                "size": 1198
+              },
+              {
+                "key": "package/test/big-token.js",
+                "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                "derived_extension": "unknown",
+                "size": 699
+              },
+              {
+                "key": "package/test/boundary.js",
+                "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                "derived_extension": "unknown",
+                "size": 2530
+              },
+              {
+                "key": "package/test/offset.js",
+                "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                "derived_extension": "unknown",
+                "size": 1714
+              },
+              {
+                "key": "package/test/primitives.js",
+                "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                "derived_extension": "unknown",
+                "size": 1239
+              },
+              {
+                "key": "package/test/surrogate.js",
+                "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                "derived_extension": "unknown",
+                "size": 449
+              },
+              {
+                "key": "package/test/unvalid.js",
+                "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                "derived_extension": "unknown",
+                "size": 250
+              },
+              {
+                "key": "package/test/utf8.js",
+                "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                "derived_extension": "unknown",
+                "size": 704
+              }
+            ]
+          },
+          "analyzed_at": {
+            "seconds": 1741361789,
+            "nanos": 502350899
+          },
+          "inference": {
+            "confidence": 1,
+            "details": "No malware evidence were identified by any tool in the workflow",
+            "summary": "No malware evidence were identified by any tool in the workflow"
+          },
+          "report_id": "01JNRM0DGJN3RS6T6ZYPET776G"
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "6f5d44a7cafedb5a": {
+        "data": {
+          "package_detail": {
+            "name": "jsonparse",
+            "version": "1.3.1",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "This is a pure-js JSON streaming parser for node.js",
+                "distance": 0,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "jsonparse",
+                  "version": "1.3.1"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "MIT"
+            ],
+            "package_current_version": "1.3.1",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "jsonparse",
+              "version": "1.3.1"
+            },
+            "projects": [
+              {
+                "display_name": "creationix/jsonparse",
+                "forks": 63,
+                "issues": 20,
+                "link": "https://github.com/creationix/jsonparse",
+                "name": "creationix/jsonparse",
+                "stars": 362,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 7/14 approved changesets -- score normalized to 5",
+                    "score": 5
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "no dependencies found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no workflows found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "No tokens found",
+                    "score": -1
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file not detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "0 existing vulnerabilities detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "branch protection not enabled on development/release branches",
+                    "score": 0
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                    "score": 0
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "b2d8bc6db4f6be3f276752b3b9f882b1945afede",
+                  "name": "github.com/creationix/jsonparse"
+                },
+                "score": 3.7,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JNRM0DGJN3RS6T6ZYPET776G",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "jsonparse"
+                },
+                "version": "1.3.1"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                "sha256": "cf6c2edd3a8f77080beabb6c46b51e5853b61422341a0ef2e05a9e83a90bffce"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 551
+                  },
+                  {
+                    "key": "package/.npmignore",
+                    "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 12
+                  },
+                  {
+                    "key": "package/LICENSE",
+                    "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1087
+                  },
+                  {
+                    "key": "package/bench.js",
+                    "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 555
+                  },
+                  {
+                    "key": "package/jsonparse.js",
+                    "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 14197
+                  },
+                  {
+                    "key": "package/examples/twitterfeed.js",
+                    "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1002
+                  },
+                  {
+                    "key": "package/samplejson/basic.json",
+                    "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 4364
+                  },
+                  {
+                    "key": "package/samplejson/basic2.json",
+                    "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 4591
+                  },
+                  {
+                    "key": "package/README.markdown",
+                    "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1198
+                  },
+                  {
+                    "key": "package/test/big-token.js",
+                    "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 699
+                  },
+                  {
+                    "key": "package/test/boundary.js",
+                    "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2530
+                  },
+                  {
+                    "key": "package/test/offset.js",
+                    "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1714
+                  },
+                  {
+                    "key": "package/test/primitives.js",
+                    "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1239
+                  },
+                  {
+                    "key": "package/test/surrogate.js",
+                    "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 449
+                  },
+                  {
+                    "key": "package/test/unvalid.js",
+                    "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 250
+                  },
+                  {
+                    "key": "package/test/utf8.js",
+                    "origin": "https://registry.npmjs.org/jsonparse/-/jsonparse-1.3.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 704
+                  }
+                ]
+              },
+              "analyzed_at": {
+                "seconds": 1741361789,
+                "nanos": 502350899
+              },
+              "inference": {
+                "confidence": 1,
+                "details": "No malware evidence were identified by any tool in the workflow",
+                "summary": "No malware evidence were identified by any tool in the workflow"
+              },
+              "report_id": "01JNRM0DGJN3RS6T6ZYPET776G"
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

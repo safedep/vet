@@ -1,0 +1,459 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "which@4.0.0",
+    "display_path": ""
+  },
+  "path": "pkg:npm/which@4.0.0",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "which",
+        "version": "4.0.0",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Like which(1) unix command. Find the first instance of an executable in the PATH.",
+            "distance": 0,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "which",
+              "version": "4.0.0"
+            }
+          },
+          {
+            "description": "Minimal module to check if a file is executable.",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "isexe",
+              "version": "3.1.1"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 1,
+          "indirect_dependents": 0,
+          "total_dependents": 1
+        },
+        "licenses": [
+          "ISC"
+        ],
+        "package_current_version": "5.0.0",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "which",
+          "version": "4.0.0"
+        },
+        "projects": [
+          {
+            "display_name": "npm/node-which",
+            "forks": 48,
+            "issues": 4,
+            "link": "https://github.com/npm/node-which",
+            "name": "npm/node-which",
+            "stars": 338,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Maintained",
+                "reason": "1 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Code-Review",
+                "reason": "all changesets reviewed",
+                "score": 10
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file detected",
+                "score": 10
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "detected GitHub workflow tokens with excessive permissions",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "0 existing vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                "score": -1
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool detected but not run on all commits",
+                "score": 7
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "746a84d950eade1da0a010c3038ff8a1b12baa32",
+              "name": "github.com/npm/node-which"
+            },
+            "score": 6,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JT7Q04STAA7EA3ND25DSKFHF",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "which"
+            },
+            "version": "4.0.0"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/which/-/which-4.0.0.tgz",
+            "sha256": "96040e2364f1c92135cda8df7f00249cc16c4e2cf049e29fc6ec6f619e6e88a4"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/LICENSE",
+                "origin": "https://registry.npmjs.org/which/-/which-4.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 765
+              },
+              {
+                "key": "package/lib/index.js",
+                "origin": "https://registry.npmjs.org/which/-/which-4.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 993
+              },
+              {
+                "key": "package/bin/which.js",
+                "origin": "https://registry.npmjs.org/which/-/which-4.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 959
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/which/-/which-4.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 1273
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/which/-/which-4.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 1378
+              }
+            ]
+          },
+          "analyzed_at": {
+            "seconds": 1746163209,
+            "nanos": 767400336
+          },
+          "inference": {
+            "confidence": 1,
+            "details": "No malware evidence were identified by any tool in the workflow",
+            "summary": "No malware evidence were identified by any tool in the workflow"
+          },
+          "report_id": "01JT7Q04STAA7EA3ND25DSKFHF"
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "5265e47f5e937ab": {
+        "data": {
+          "package_detail": {
+            "name": "which",
+            "version": "4.0.0",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "Like which(1) unix command. Find the first instance of an executable in the PATH.",
+                "distance": 0,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "which",
+                  "version": "4.0.0"
+                }
+              },
+              {
+                "description": "Minimal module to check if a file is executable.",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "isexe",
+                  "version": "3.1.1"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 1,
+              "indirect_dependents": 0,
+              "total_dependents": 1
+            },
+            "licenses": [
+              "ISC"
+            ],
+            "package_current_version": "5.0.0",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "which",
+              "version": "4.0.0"
+            },
+            "projects": [
+              {
+                "display_name": "npm/node-which",
+                "forks": 48,
+                "issues": 4,
+                "link": "https://github.com/npm/node-which",
+                "name": "npm/node-which",
+                "stars": 338,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Maintained",
+                    "reason": "1 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Code-Review",
+                    "reason": "all changesets reviewed",
+                    "score": 10
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no dangerous workflow patterns detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "detected GitHub workflow tokens with excessive permissions",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "0 existing vulnerabilities detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                    "score": -1
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool detected but not run on all commits",
+                    "score": 7
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "746a84d950eade1da0a010c3038ff8a1b12baa32",
+                  "name": "github.com/npm/node-which"
+                },
+                "score": 6,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JT7Q04STAA7EA3ND25DSKFHF",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "which"
+                },
+                "version": "4.0.0"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/which/-/which-4.0.0.tgz",
+                "sha256": "96040e2364f1c92135cda8df7f00249cc16c4e2cf049e29fc6ec6f619e6e88a4"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/LICENSE",
+                    "origin": "https://registry.npmjs.org/which/-/which-4.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 765
+                  },
+                  {
+                    "key": "package/lib/index.js",
+                    "origin": "https://registry.npmjs.org/which/-/which-4.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 993
+                  },
+                  {
+                    "key": "package/bin/which.js",
+                    "origin": "https://registry.npmjs.org/which/-/which-4.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 959
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/which/-/which-4.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1273
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/which/-/which-4.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1378
+                  }
+                ]
+              },
+              "analyzed_at": {
+                "seconds": 1746163209,
+                "nanos": 767400336
+              },
+              "inference": {
+                "confidence": 1,
+                "details": "No malware evidence were identified by any tool in the workflow",
+                "summary": "No malware evidence were identified by any tool in the workflow"
+              },
+              "report_id": "01JT7Q04STAA7EA3ND25DSKFHF"
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

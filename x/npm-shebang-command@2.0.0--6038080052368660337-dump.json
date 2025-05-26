@@ -1,0 +1,465 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "shebang-command@2.0.0",
+    "display_path": ""
+  },
+  "path": "pkg:npm/shebang-command@2.0.0",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "shebang-command",
+        "version": "2.0.0",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Get the command from a shebang",
+            "distance": 0,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "shebang-command",
+              "version": "2.0.0"
+            }
+          },
+          {
+            "description": "Regular expression for matching a shebang line",
+            "distance": 1,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "shebang-regex",
+              "version": "3.0.0"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 1,
+          "indirect_dependents": 0,
+          "total_dependents": 1
+        },
+        "licenses": [
+          "MIT"
+        ],
+        "package_current_version": "2.0.0",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "shebang-command",
+          "version": "2.0.0"
+        },
+        "projects": [
+          {
+            "display_name": "kevva/shebang-command",
+            "forks": 8,
+            "issues": 3,
+            "link": "https://github.com/kevva/shebang-command",
+            "name": "kevva/shebang-command",
+            "stars": 23,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Code-Review",
+                "reason": "Found 2/11 approved changesets -- score normalized to 1",
+                "score": 1
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "No tokens found",
+                "score": -1
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no workflows found",
+                "score": -1
+              },
+              {
+                "name": "Maintained",
+                "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "no dependencies found",
+                "score": -1
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file detected",
+                "score": 10
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "0 existing vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "dcd4c238e505068d8778fd5755d1158d6b78d52a",
+              "name": "github.com/kevva/shebang-command"
+            },
+            "score": 4,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JHQ43D24M6FN66G29G24R8TJ",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "shebang-command"
+            },
+            "version": "2.0.0"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/shebang-command/-/shebang-command-2.0.0.tgz",
+            "sha256": "9acba5bd18a51e9cdf5898380e4df63f803e1844def64ae1a46f88cff86d556e"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/license",
+                "origin": "https://registry.npmjs.org/shebang-command/-/shebang-command-2.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 1116
+              },
+              {
+                "key": "package/index.js",
+                "origin": "https://registry.npmjs.org/shebang-command/-/shebang-command-2.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 387
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/shebang-command/-/shebang-command-2.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 558
+              },
+              {
+                "key": "package/readme.md",
+                "origin": "https://registry.npmjs.org/shebang-command/-/shebang-command-2.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 495
+              }
+            ]
+          },
+          "project_evidences": [
+            {
+              "evidence": {
+                "title": "Open Source Project with Few Published Versions",
+                "behavior": "The source project has published only a few versions of the package",
+                "details": "The source project has published only 4 version(s) of the package. These versions are: \n\n- 1.0.0\n  Published at: seconds:1449232478\n- 1.1.0\n  Published at: seconds:1460047243\n- 1.2.0\n  Published at: seconds:1474530106\n- 2.0.0\n  Published at: seconds:1567781605\n\n\nThis could indicate that the package is immature, not well maintained or potentially malicious.",
+                "confidence": 3,
+                "source": "Package Project Analyzer"
+              }
+            }
+          ],
+          "analyzed_at": {
+            "seconds": 1737016838,
+            "nanos": 389450019
+          },
+          "inference": {
+            "confidence": 2,
+            "details": "Based on the provided evidence, there is insufficient information to classify the package `shebang-command` (version 2.0.0) as malware.  Evidence 0 highlights that the project has only released four versions. While this *could* indicate immaturity or lack of maintenance, it's not definitive proof of malicious intent.  Many legitimate open-source projects start with few releases and gradually increase their version count over time.  The low number of stars and forks on GitHub (22 stars, 8 forks) suggests a relatively small and potentially less scrutinized project, increasing the risk, but again, this is not conclusive evidence of malicious behavior.  The absence of other evidence, such as suspicious code analysis (LLM or YARA results), file content analysis, or behavioral indicators, prevents a definitive malware classification.  More comprehensive analysis is needed before a conclusion can be reached."
+          }
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "a876ff0c33b55600": {
+        "data": {
+          "package_detail": {
+            "name": "shebang-command",
+            "version": "2.0.0",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "Get the command from a shebang",
+                "distance": 0,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "shebang-command",
+                  "version": "2.0.0"
+                }
+              },
+              {
+                "description": "Regular expression for matching a shebang line",
+                "distance": 1,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "shebang-regex",
+                  "version": "3.0.0"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 1,
+              "indirect_dependents": 0,
+              "total_dependents": 1
+            },
+            "licenses": [
+              "MIT"
+            ],
+            "package_current_version": "2.0.0",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "shebang-command",
+              "version": "2.0.0"
+            },
+            "projects": [
+              {
+                "display_name": "kevva/shebang-command",
+                "forks": 8,
+                "issues": 3,
+                "link": "https://github.com/kevva/shebang-command",
+                "name": "kevva/shebang-command",
+                "stars": 23,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 2/11 approved changesets -- score normalized to 1",
+                    "score": 1
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "No tokens found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no workflows found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "no dependencies found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "0 existing vulnerabilities detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "branch protection not enabled on development/release branches",
+                    "score": 0
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                    "score": 0
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "dcd4c238e505068d8778fd5755d1158d6b78d52a",
+                  "name": "github.com/kevva/shebang-command"
+                },
+                "score": 4,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JHQ43D24M6FN66G29G24R8TJ",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "shebang-command"
+                },
+                "version": "2.0.0"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/shebang-command/-/shebang-command-2.0.0.tgz",
+                "sha256": "9acba5bd18a51e9cdf5898380e4df63f803e1844def64ae1a46f88cff86d556e"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/license",
+                    "origin": "https://registry.npmjs.org/shebang-command/-/shebang-command-2.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1116
+                  },
+                  {
+                    "key": "package/index.js",
+                    "origin": "https://registry.npmjs.org/shebang-command/-/shebang-command-2.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 387
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/shebang-command/-/shebang-command-2.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 558
+                  },
+                  {
+                    "key": "package/readme.md",
+                    "origin": "https://registry.npmjs.org/shebang-command/-/shebang-command-2.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 495
+                  }
+                ]
+              },
+              "project_evidences": [
+                {
+                  "evidence": {
+                    "title": "Open Source Project with Few Published Versions",
+                    "behavior": "The source project has published only a few versions of the package",
+                    "details": "The source project has published only 4 version(s) of the package. These versions are: \n\n- 1.0.0\n  Published at: seconds:1449232478\n- 1.1.0\n  Published at: seconds:1460047243\n- 1.2.0\n  Published at: seconds:1474530106\n- 2.0.0\n  Published at: seconds:1567781605\n\n\nThis could indicate that the package is immature, not well maintained or potentially malicious.",
+                    "confidence": 3,
+                    "source": "Package Project Analyzer"
+                  }
+                }
+              ],
+              "analyzed_at": {
+                "seconds": 1737016838,
+                "nanos": 389450019
+              },
+              "inference": {
+                "confidence": 2,
+                "details": "Based on the provided evidence, there is insufficient information to classify the package `shebang-command` (version 2.0.0) as malware.  Evidence 0 highlights that the project has only released four versions. While this *could* indicate immaturity or lack of maintenance, it's not definitive proof of malicious intent.  Many legitimate open-source projects start with few releases and gradually increase their version count over time.  The low number of stars and forks on GitHub (22 stars, 8 forks) suggests a relatively small and potentially less scrutinized project, increasing the risk, but again, this is not conclusive evidence of malicious behavior.  The absence of other evidence, such as suspicious code analysis (LLM or YARA results), file content analysis, or behavioral indicators, prevents a definitive malware classification.  More comprehensive analysis is needed before a conclusion can be reached."
+              }
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

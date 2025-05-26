@@ -1,0 +1,479 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "minizlib@2.1.2",
+    "display_path": ""
+  },
+  "path": "pkg:npm/minizlib@2.1.2",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "minizlib",
+        "version": "2.1.2",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "A small fast zlib stream built on [minipass](http://npm.im/minipass) and Node.js's zlib binding.",
+            "distance": 0,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "minizlib",
+              "version": "2.1.2"
+            }
+          },
+          {
+            "description": "minimal implementation of a PassThrough stream",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "minipass",
+              "version": "3.3.6"
+            }
+          },
+          {
+            "description": "Yet Another Linked List",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "yallist",
+              "version": "4.0.0"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 2,
+          "indirect_dependents": 0,
+          "total_dependents": 2
+        },
+        "licenses": [
+          "MIT"
+        ],
+        "package_current_version": "3.0.2",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "minizlib",
+          "version": "2.1.2"
+        },
+        "projects": [
+          {
+            "display_name": "isaacs/minizlib",
+            "forks": 10,
+            "issues": 0,
+            "link": "https://github.com/isaacs/minizlib",
+            "name": "isaacs/minizlib",
+            "stars": 78,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Code-Review",
+                "reason": "Found 2/30 approved changesets -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Maintained",
+                "reason": "8 commit(s) and 3 issue activity found in the last 90 days -- score normalized to 9",
+                "score": 9
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "detected GitHub workflow tokens with excessive permissions",
+                "score": 0
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 9
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "0 existing vulnerabilities detected",
+                "score": 10
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "c77e92c29633b2a5bd19c9912c4c72929523540b",
+              "name": "github.com/isaacs/minizlib"
+            },
+            "score": 4.2,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JJ4E8V39MKQVQH0CEFC8CRMH",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "minizlib"
+            },
+            "version": "2.1.2"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/minizlib/-/minizlib-2.1.2.tgz",
+            "sha256": "44ed118a2d089bb45debea5247486c4dc6bff7a1c4a28a34397c685fe2b0ceed"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/LICENSE",
+                "origin": "https://registry.npmjs.org/minizlib/-/minizlib-2.1.2.tgz",
+                "derived_extension": "unknown",
+                "size": 1297
+              },
+              {
+                "key": "package/constants.js",
+                "origin": "https://registry.npmjs.org/minizlib/-/minizlib-2.1.2.tgz",
+                "derived_extension": "unknown",
+                "size": 3740
+              },
+              {
+                "key": "package/index.js",
+                "origin": "https://registry.npmjs.org/minizlib/-/minizlib-2.1.2.tgz",
+                "derived_extension": "unknown",
+                "size": 9444
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/minizlib/-/minizlib-2.1.2.tgz",
+                "derived_extension": "unknown",
+                "size": 907
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/minizlib/-/minizlib-2.1.2.tgz",
+                "derived_extension": "unknown",
+                "size": 1921
+              }
+            ]
+          },
+          "analyzed_at": {
+            "seconds": 1737465233,
+            "nanos": 971830857
+          },
+          "inference": {
+            "confidence": 1,
+            "details": "No malware evidence were identified by any tool in the workflow"
+          }
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "d01e62a3b1be8d39": {
+        "data": {
+          "package_detail": {
+            "name": "minizlib",
+            "version": "2.1.2",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "A small fast zlib stream built on [minipass](http://npm.im/minipass) and Node.js's zlib binding.",
+                "distance": 0,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "minizlib",
+                  "version": "2.1.2"
+                }
+              },
+              {
+                "description": "minimal implementation of a PassThrough stream",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "minipass",
+                  "version": "3.3.6"
+                }
+              },
+              {
+                "description": "Yet Another Linked List",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "yallist",
+                  "version": "4.0.0"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 2,
+              "indirect_dependents": 0,
+              "total_dependents": 2
+            },
+            "licenses": [
+              "MIT"
+            ],
+            "package_current_version": "3.0.2",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "minizlib",
+              "version": "2.1.2"
+            },
+            "projects": [
+              {
+                "display_name": "isaacs/minizlib",
+                "forks": 10,
+                "issues": 0,
+                "link": "https://github.com/isaacs/minizlib",
+                "name": "isaacs/minizlib",
+                "stars": 78,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 2/30 approved changesets -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no dangerous workflow patterns detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "8 commit(s) and 3 issue activity found in the last 90 days -- score normalized to 9",
+                    "score": 9
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "detected GitHub workflow tokens with excessive permissions",
+                    "score": 0
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 9
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "branch protection not enabled on development/release branches",
+                    "score": 0
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file not detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "0 existing vulnerabilities detected",
+                    "score": 10
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "c77e92c29633b2a5bd19c9912c4c72929523540b",
+                  "name": "github.com/isaacs/minizlib"
+                },
+                "score": 4.2,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JJ4E8V39MKQVQH0CEFC8CRMH",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "minizlib"
+                },
+                "version": "2.1.2"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/minizlib/-/minizlib-2.1.2.tgz",
+                "sha256": "44ed118a2d089bb45debea5247486c4dc6bff7a1c4a28a34397c685fe2b0ceed"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/LICENSE",
+                    "origin": "https://registry.npmjs.org/minizlib/-/minizlib-2.1.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1297
+                  },
+                  {
+                    "key": "package/constants.js",
+                    "origin": "https://registry.npmjs.org/minizlib/-/minizlib-2.1.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3740
+                  },
+                  {
+                    "key": "package/index.js",
+                    "origin": "https://registry.npmjs.org/minizlib/-/minizlib-2.1.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 9444
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/minizlib/-/minizlib-2.1.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 907
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/minizlib/-/minizlib-2.1.2.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1921
+                  }
+                ]
+              },
+              "analyzed_at": {
+                "seconds": 1737465233,
+                "nanos": 971830857
+              },
+              "inference": {
+                "confidence": 1,
+                "details": "No malware evidence were identified by any tool in the workflow"
+              }
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

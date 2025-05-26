@@ -1,0 +1,441 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "common-ancestor-path@1.0.1",
+    "display_path": ""
+  },
+  "path": "pkg:npm/common-ancestor-path@1.0.1",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "common-ancestor-path",
+        "version": "1.0.1",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Find the common ancestor of 2 or more paths on Windows or Unix",
+            "distance": 0,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "common-ancestor-path",
+              "version": "1.0.1"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "ISC"
+        ],
+        "package_current_version": "1.0.1",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "common-ancestor-path",
+          "version": "1.0.1"
+        },
+        "projects": [
+          {
+            "display_name": "isaacs/common-ancestor-path",
+            "forks": 1,
+            "issues": 3,
+            "link": "https://github.com/isaacs/common-ancestor-path",
+            "name": "isaacs/common-ancestor-path",
+            "stars": 11,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Code-Review",
+                "reason": "Found 0/9 approved changesets -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no workflows found",
+                "score": -1
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Maintained",
+                "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "SAST",
+                "reason": "no SAST tool detected",
+                "score": 0
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "No tokens found",
+                "score": -1
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "no dependencies found",
+                "score": -1
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "22 existing vulnerabilities detected",
+                "score": 0
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "0bf875bd22a01c40364a8f9fb185c78cf27d0fb0",
+              "name": "github.com/isaacs/common-ancestor-path"
+            },
+            "score": 1.7,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JJ4E4YTPJ7SB900GB9Y8T4JX",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "common-ancestor-path"
+            },
+            "version": "1.0.1"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/common-ancestor-path/-/common-ancestor-path-1.0.1.tgz",
+            "sha256": "fb1540a79b755e8c2bb2cb9c85982018802f96d65331a5369be047f0db031833"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/LICENSE",
+                "origin": "https://registry.npmjs.org/common-ancestor-path/-/common-ancestor-path-1.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 748
+              },
+              {
+                "key": "package/index.js",
+                "origin": "https://registry.npmjs.org/common-ancestor-path/-/common-ancestor-path-1.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 473
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/common-ancestor-path/-/common-ancestor-path-1.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 664
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/common-ancestor-path/-/common-ancestor-path-1.0.1.tgz",
+                "derived_extension": "unknown",
+                "size": 689
+              }
+            ]
+          },
+          "project_evidences": [
+            {
+              "evidence": {
+                "title": "Open Source Project with Few Published Versions",
+                "behavior": "The source project has published only a few versions of the package",
+                "details": "The source project has published only 2 version(s) of the package. These versions are: \n\n- 1.0.0\n  Published at: seconds:1590377993\n- 1.0.1\n  Published at: seconds:1590378043\n\n\nThis could indicate that the package is immature, not well maintained or potentially malicious.",
+                "confidence": 3,
+                "source": "Package Project Analyzer"
+              }
+            }
+          ],
+          "analyzed_at": {
+            "seconds": 1737463782,
+            "nanos": 253694146
+          },
+          "inference": {
+            "confidence": 2,
+            "details": "The package is not a malware because the evidence presented is insufficient to make that determination.  Evidence 0 points to a low number of published versions, suggesting immaturity or lack of maintenance. However, this alone is not indicative of malicious intent.  A small number of versions does not automatically equate to malware.  Many legitimate open-source projects, especially those that are small or solve niche problems, may only have a few versions.  The lack of other evidence (e.g., suspicious code behavior, malicious file contents identified by LLM analysis, or positive YARA rule matches despite the acknowledged unreliability of YARA) prevents a conclusive determination of malware.  Further investigation, including a thorough code review and analysis of the package's functionality, is necessary to reach a definitive conclusion. The low number of stars and forks on GitHub is also not conclusive evidence of malicious activity; it simply suggests a less popular project, which doesn't automatically imply malevolence."
+          }
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "875e53057c6d52b3": {
+        "data": {
+          "package_detail": {
+            "name": "common-ancestor-path",
+            "version": "1.0.1",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "Find the common ancestor of 2 or more paths on Windows or Unix",
+                "distance": 0,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "common-ancestor-path",
+                  "version": "1.0.1"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "ISC"
+            ],
+            "package_current_version": "1.0.1",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "common-ancestor-path",
+              "version": "1.0.1"
+            },
+            "projects": [
+              {
+                "display_name": "isaacs/common-ancestor-path",
+                "forks": 1,
+                "issues": 3,
+                "link": "https://github.com/isaacs/common-ancestor-path",
+                "name": "isaacs/common-ancestor-path",
+                "stars": 11,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 0/9 approved changesets -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no workflows found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "no SAST tool detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "No tokens found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "no dependencies found",
+                    "score": -1
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file not detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "branch protection not enabled on development/release branches",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "22 existing vulnerabilities detected",
+                    "score": 0
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "0bf875bd22a01c40364a8f9fb185c78cf27d0fb0",
+                  "name": "github.com/isaacs/common-ancestor-path"
+                },
+                "score": 1.7,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JJ4E4YTPJ7SB900GB9Y8T4JX",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "common-ancestor-path"
+                },
+                "version": "1.0.1"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/common-ancestor-path/-/common-ancestor-path-1.0.1.tgz",
+                "sha256": "fb1540a79b755e8c2bb2cb9c85982018802f96d65331a5369be047f0db031833"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/LICENSE",
+                    "origin": "https://registry.npmjs.org/common-ancestor-path/-/common-ancestor-path-1.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 748
+                  },
+                  {
+                    "key": "package/index.js",
+                    "origin": "https://registry.npmjs.org/common-ancestor-path/-/common-ancestor-path-1.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 473
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/common-ancestor-path/-/common-ancestor-path-1.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 664
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/common-ancestor-path/-/common-ancestor-path-1.0.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 689
+                  }
+                ]
+              },
+              "project_evidences": [
+                {
+                  "evidence": {
+                    "title": "Open Source Project with Few Published Versions",
+                    "behavior": "The source project has published only a few versions of the package",
+                    "details": "The source project has published only 2 version(s) of the package. These versions are: \n\n- 1.0.0\n  Published at: seconds:1590377993\n- 1.0.1\n  Published at: seconds:1590378043\n\n\nThis could indicate that the package is immature, not well maintained or potentially malicious.",
+                    "confidence": 3,
+                    "source": "Package Project Analyzer"
+                  }
+                }
+              ],
+              "analyzed_at": {
+                "seconds": 1737463782,
+                "nanos": 253694146
+              },
+              "inference": {
+                "confidence": 2,
+                "details": "The package is not a malware because the evidence presented is insufficient to make that determination.  Evidence 0 points to a low number of published versions, suggesting immaturity or lack of maintenance. However, this alone is not indicative of malicious intent.  A small number of versions does not automatically equate to malware.  Many legitimate open-source projects, especially those that are small or solve niche problems, may only have a few versions.  The lack of other evidence (e.g., suspicious code behavior, malicious file contents identified by LLM analysis, or positive YARA rule matches despite the acknowledged unreliability of YARA) prevents a conclusive determination of malware.  Further investigation, including a thorough code review and analysis of the package's functionality, is necessary to reach a definitive conclusion. The low number of stars and forks on GitHub is also not conclusive evidence of malicious activity; it simply suggests a less popular project, which doesn't automatically imply malevolence."
+              }
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

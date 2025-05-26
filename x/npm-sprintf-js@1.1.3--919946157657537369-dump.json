@@ -1,0 +1,507 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "sprintf-js@1.1.3",
+    "display_path": ""
+  },
+  "path": "pkg:npm/sprintf-js@1.1.3",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "sprintf-js",
+        "version": "1.1.3",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "JavaScript sprintf implementation",
+            "distance": 0,
+            "licenses": [
+              "BSD-3-Clause"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "sprintf-js",
+              "version": "1.1.3"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "BSD-3-Clause"
+        ],
+        "package_current_version": "1.1.3",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "sprintf-js",
+          "version": "1.1.3"
+        },
+        "projects": [
+          {
+            "display_name": "alexei/sprintf.js",
+            "forks": 288,
+            "issues": 67,
+            "link": "https://github.com/alexei/sprintf.js",
+            "name": "alexei/sprintf.js",
+            "stars": 2127,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Code-Review",
+                "reason": "Found 5/14 approved changesets -- score normalized to 3",
+                "score": 3
+              },
+              {
+                "name": "Maintained",
+                "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "No tokens found",
+                "score": -1
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "no dependencies found",
+                "score": -1
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no workflows found",
+                "score": -1
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "30 existing vulnerabilities detected",
+                "score": 0
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "3a0d8c26d291b5bd9f1974877ecc50739921d6f5",
+              "name": "github.com/alexei/sprintf.js"
+            },
+            "score": 2.1,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JP02WYJNP71EZ45VG719X4ZQ",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "sprintf-js"
+            },
+            "version": "1.1.3"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+            "sha256": "9a8537928cdd2e987055f5cf38ae19db4a2d4b71c46648a51f15698a48deaeb6"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/dist/.gitattributes",
+                "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                "derived_extension": "unknown",
+                "size": 106
+              },
+              {
+                "key": "package/LICENSE",
+                "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                "derived_extension": "unknown",
+                "size": 1513
+              },
+              {
+                "key": "package/src/angular-sprintf.js",
+                "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                "derived_extension": "unknown",
+                "size": 601
+              },
+              {
+                "key": "package/dist/angular-sprintf.min.js",
+                "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                "derived_extension": "unknown",
+                "size": 339
+              },
+              {
+                "key": "package/src/sprintf.js",
+                "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                "derived_extension": "unknown",
+                "size": 8897
+              },
+              {
+                "key": "package/dist/sprintf.min.js",
+                "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                "derived_extension": "unknown",
+                "size": 3524
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                "derived_extension": "unknown",
+                "size": 869
+              },
+              {
+                "key": "package/dist/angular-sprintf.min.js.map",
+                "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                "derived_extension": "unknown",
+                "size": 1163
+              },
+              {
+                "key": "package/dist/sprintf.min.js.map",
+                "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                "derived_extension": "unknown",
+                "size": 14469
+              },
+              {
+                "key": "package/CONTRIBUTORS.md",
+                "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                "derived_extension": "unknown",
+                "size": 1333
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                "derived_extension": "unknown",
+                "size": 6340
+              }
+            ]
+          },
+          "analyzed_at": {
+            "seconds": 1741612732,
+            "nanos": 668368976
+          },
+          "inference": {
+            "confidence": 1,
+            "details": "No malware evidence were identified by any tool in the workflow",
+            "summary": "No malware evidence were identified by any tool in the workflow"
+          },
+          "report_id": "01JP02WYJNP71EZ45VG719X4ZQ"
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "b1457be5f7a5aad3": {
+        "data": {
+          "package_detail": {
+            "name": "sprintf-js",
+            "version": "1.1.3",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "JavaScript sprintf implementation",
+                "distance": 0,
+                "licenses": [
+                  "BSD-3-Clause"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "sprintf-js",
+                  "version": "1.1.3"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "BSD-3-Clause"
+            ],
+            "package_current_version": "1.1.3",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "sprintf-js",
+              "version": "1.1.3"
+            },
+            "projects": [
+              {
+                "display_name": "alexei/sprintf.js",
+                "forks": 288,
+                "issues": 67,
+                "link": "https://github.com/alexei/sprintf.js",
+                "name": "alexei/sprintf.js",
+                "stars": 2127,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 5/14 approved changesets -- score normalized to 3",
+                    "score": 3
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "No tokens found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "no dependencies found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no workflows found",
+                    "score": -1
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file not detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "branch protection not enabled on development/release branches",
+                    "score": 0
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "30 existing vulnerabilities detected",
+                    "score": 0
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "3a0d8c26d291b5bd9f1974877ecc50739921d6f5",
+                  "name": "github.com/alexei/sprintf.js"
+                },
+                "score": 2.1,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JP02WYJNP71EZ45VG719X4ZQ",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "sprintf-js"
+                },
+                "version": "1.1.3"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                "sha256": "9a8537928cdd2e987055f5cf38ae19db4a2d4b71c46648a51f15698a48deaeb6"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/dist/.gitattributes",
+                    "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 106
+                  },
+                  {
+                    "key": "package/LICENSE",
+                    "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1513
+                  },
+                  {
+                    "key": "package/src/angular-sprintf.js",
+                    "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 601
+                  },
+                  {
+                    "key": "package/dist/angular-sprintf.min.js",
+                    "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 339
+                  },
+                  {
+                    "key": "package/src/sprintf.js",
+                    "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 8897
+                  },
+                  {
+                    "key": "package/dist/sprintf.min.js",
+                    "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3524
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 869
+                  },
+                  {
+                    "key": "package/dist/angular-sprintf.min.js.map",
+                    "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1163
+                  },
+                  {
+                    "key": "package/dist/sprintf.min.js.map",
+                    "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 14469
+                  },
+                  {
+                    "key": "package/CONTRIBUTORS.md",
+                    "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1333
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.3.tgz",
+                    "derived_extension": "unknown",
+                    "size": 6340
+                  }
+                ]
+              },
+              "analyzed_at": {
+                "seconds": 1741612732,
+                "nanos": 668368976
+              },
+              "inference": {
+                "confidence": 1,
+                "details": "No malware evidence were identified by any tool in the workflow",
+                "summary": "No malware evidence were identified by any tool in the workflow"
+              },
+              "report_id": "01JP02WYJNP71EZ45VG719X4ZQ"
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

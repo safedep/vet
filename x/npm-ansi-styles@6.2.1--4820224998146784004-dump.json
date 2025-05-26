@@ -1,0 +1,465 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "ansi-styles@6.2.1",
+    "display_path": ""
+  },
+  "path": "pkg:npm/ansi-styles@6.2.1",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "ansi-styles",
+        "version": "6.2.1",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "ANSI escape codes for styling strings in the terminal",
+            "distance": 0,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "ansi-styles",
+              "version": "6.2.1"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "MIT"
+        ],
+        "package_current_version": "6.2.1",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "ansi-styles",
+          "version": "6.2.1"
+        },
+        "projects": [
+          {
+            "display_name": "chalk/ansi-styles",
+            "forks": 76,
+            "issues": 0,
+            "link": "https://github.com/chalk/ansi-styles",
+            "name": "chalk/ansi-styles",
+            "stars": 432,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "Code-Review",
+                "reason": "Found 11/30 approved changesets -- score normalized to 3",
+                "score": 3
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "detected GitHub workflow tokens with excessive permissions",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file detected",
+                "score": 10
+              },
+              {
+                "name": "Maintained",
+                "reason": "0 commit(s) and 1 issue activity found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "0 existing vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "7e358113b85bc9f3cf3512d2ae865748fe12d88d",
+              "name": "github.com/chalk/ansi-styles"
+            },
+            "score": 4.3,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JHQ45KW6A2KB3XSXPS8KPQV0",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "ansi-styles"
+            },
+            "version": "6.2.1"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-6.2.1.tgz",
+            "sha256": "68f0e73d3f2e9b794a388dc7f4e9a198270273a0bca48cd68dcf9e08cf3c5d18"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/license",
+                "origin": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-6.2.1.tgz",
+                "derived_extension": "unknown",
+                "size": 1117
+              },
+              {
+                "key": "package/index.js",
+                "origin": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-6.2.1.tgz",
+                "derived_extension": "unknown",
+                "size": 5267
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-6.2.1.tgz",
+                "derived_extension": "unknown",
+                "size": 1022
+              },
+              {
+                "key": "package/readme.md",
+                "origin": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-6.2.1.tgz",
+                "derived_extension": "unknown",
+                "size": 4908
+              },
+              {
+                "key": "package/index.d.ts",
+                "origin": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-6.2.1.tgz",
+                "derived_extension": "unknown",
+                "size": 5198
+              }
+            ]
+          },
+          "file_evidences": [
+            {
+              "file_key": "package/index.js",
+              "evidence": {
+                "title": "YARA rule 'python_exec_complex' matched file",
+                "behavior": "YARA rules deletected the following behavior in the file: \n\n- Executes code from a complex expression\n",
+                "details": "YARA rules detected multiple potential malware behaviors in the file.\nThe following strings were matched: \n\n- `$exec`\n\n```\nexec(hex.toString(16))\n```\n\n",
+                "confidence": 2,
+                "source": "YARA Analyzer"
+              }
+            }
+          ],
+          "analyzed_at": {
+            "seconds": 1737019196,
+            "nanos": 503576974
+          },
+          "inference": {
+            "confidence": 1,
+            "details": "**Note:** *This report is updated by a verification record*\n\nThe package is likely malware based on the provided evidence.  While the project `ansi-styles` on GitHub appears legitimate with a moderate number of stars and forks, the YARA analysis provides concerning evidence.  The detection of the `$exec` function and the execution of code from a hexadecimal string (`exec(hex.toString(16))`) strongly suggests malicious intent. This code snippet demonstrates dynamic code execution, a common tactic used by malware to obfuscate its actions and evade detection.  The use of `hex.toString(16)` further obfuscates the executed code, making static analysis more difficult.  Although YARA rules can be noisy, the finding of this specific behavior warrants further investigation.  The medium confidence level of the YARA alert, coupled with the highly suspicious nature of the detected code, points towards malicious activity.  The lack of LLM-based analysis is a limitation, but the YARA finding is sufficiently alarming to raise serious concerns about the package's safety.  Further analysis, including LLM-based analysis if available, and inspection of the `hex` variable's contents are crucial to confirm the malicious nature of the code, but the initial evidence strongly suggests malware.",
+            "summary": "**Note:** *This report is updated by a verification record*\n\n"
+          }
+        },
+        "VerificationRecord": {
+          "is_safe": true,
+          "reason": "Manual analysis confirmed that the package is not a malware.",
+          "extra_analysis": "Incorrect YARA rule match on regular expression match"
+        }
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "fc25505e75047081": {
+        "data": {
+          "package_detail": {
+            "name": "ansi-styles",
+            "version": "6.2.1",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "ANSI escape codes for styling strings in the terminal",
+                "distance": 0,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "ansi-styles",
+                  "version": "6.2.1"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "MIT"
+            ],
+            "package_current_version": "6.2.1",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "ansi-styles",
+              "version": "6.2.1"
+            },
+            "projects": [
+              {
+                "display_name": "chalk/ansi-styles",
+                "forks": 76,
+                "issues": 0,
+                "link": "https://github.com/chalk/ansi-styles",
+                "name": "chalk/ansi-styles",
+                "stars": 432,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no dangerous workflow patterns detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 11/30 approved changesets -- score normalized to 3",
+                    "score": 3
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "detected GitHub workflow tokens with excessive permissions",
+                    "score": 0
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "0 commit(s) and 1 issue activity found in the last 90 days -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "0 existing vulnerabilities detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "branch protection not enabled on development/release branches",
+                    "score": 0
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                    "score": 0
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "7e358113b85bc9f3cf3512d2ae865748fe12d88d",
+                  "name": "github.com/chalk/ansi-styles"
+                },
+                "score": 4.3,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JHQ45KW6A2KB3XSXPS8KPQV0",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "ansi-styles"
+                },
+                "version": "6.2.1"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-6.2.1.tgz",
+                "sha256": "68f0e73d3f2e9b794a388dc7f4e9a198270273a0bca48cd68dcf9e08cf3c5d18"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/license",
+                    "origin": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-6.2.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1117
+                  },
+                  {
+                    "key": "package/index.js",
+                    "origin": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-6.2.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 5267
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-6.2.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1022
+                  },
+                  {
+                    "key": "package/readme.md",
+                    "origin": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-6.2.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 4908
+                  },
+                  {
+                    "key": "package/index.d.ts",
+                    "origin": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-6.2.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 5198
+                  }
+                ]
+              },
+              "file_evidences": [
+                {
+                  "file_key": "package/index.js",
+                  "evidence": {
+                    "title": "YARA rule 'python_exec_complex' matched file",
+                    "behavior": "YARA rules deletected the following behavior in the file: \n\n- Executes code from a complex expression\n",
+                    "details": "YARA rules detected multiple potential malware behaviors in the file.\nThe following strings were matched: \n\n- `$exec`\n\n```\nexec(hex.toString(16))\n```\n\n",
+                    "confidence": 2,
+                    "source": "YARA Analyzer"
+                  }
+                }
+              ],
+              "analyzed_at": {
+                "seconds": 1737019196,
+                "nanos": 503576974
+              },
+              "inference": {
+                "confidence": 1,
+                "details": "**Note:** *This report is updated by a verification record*\n\nThe package is likely malware based on the provided evidence.  While the project `ansi-styles` on GitHub appears legitimate with a moderate number of stars and forks, the YARA analysis provides concerning evidence.  The detection of the `$exec` function and the execution of code from a hexadecimal string (`exec(hex.toString(16))`) strongly suggests malicious intent. This code snippet demonstrates dynamic code execution, a common tactic used by malware to obfuscate its actions and evade detection.  The use of `hex.toString(16)` further obfuscates the executed code, making static analysis more difficult.  Although YARA rules can be noisy, the finding of this specific behavior warrants further investigation.  The medium confidence level of the YARA alert, coupled with the highly suspicious nature of the detected code, points towards malicious activity.  The lack of LLM-based analysis is a limitation, but the YARA finding is sufficiently alarming to raise serious concerns about the package's safety.  Further analysis, including LLM-based analysis if available, and inspection of the `hex` variable's contents are crucial to confirm the malicious nature of the code, but the initial evidence strongly suggests malware.",
+                "summary": "**Note:** *This report is updated by a verification record*\n\n"
+              }
+            },
+            "VerificationRecord": {
+              "is_safe": true,
+              "reason": "Manual analysis confirmed that the package is not a malware.",
+              "extra_analysis": "Incorrect YARA rule match on regular expression match"
+            }
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

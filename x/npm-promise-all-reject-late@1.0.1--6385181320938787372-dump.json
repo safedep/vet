@@ -1,0 +1,107 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "promise-all-reject-late@1.0.1",
+    "display_path": ""
+  },
+  "path": "pkg:npm/promise-all-reject-late@1.0.1",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "promise-all-reject-late",
+        "version": "1.0.1",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Like Promise.all, but save rejections until all promises are resolved",
+            "distance": 0,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "promise-all-reject-late",
+              "version": "1.0.1"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "ISC"
+        ],
+        "package_current_version": "1.0.1",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "promise-all-reject-late",
+          "version": "1.0.1"
+        },
+        "projects": []
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": null,
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "a0f2597c00f34b0e": {
+        "data": {
+          "package_detail": {
+            "name": "promise-all-reject-late",
+            "version": "1.0.1",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "Like Promise.all, but save rejections until all promises are resolved",
+                "distance": 0,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "promise-all-reject-late",
+                  "version": "1.0.1"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "ISC"
+            ],
+            "package_current_version": "1.0.1",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "promise-all-reject-late",
+              "version": "1.0.1"
+            },
+            "projects": []
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": null,
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

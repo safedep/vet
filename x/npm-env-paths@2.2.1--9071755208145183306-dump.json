@@ -1,0 +1,435 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "env-paths@2.2.1",
+    "display_path": ""
+  },
+  "path": "pkg:npm/env-paths@2.2.1",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "env-paths",
+        "version": "2.2.1",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Get paths for storing things like data, config, cache, etc",
+            "distance": 0,
+            "licenses": [
+              "MIT"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "env-paths",
+              "version": "2.2.1"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "MIT"
+        ],
+        "package_current_version": "3.0.0",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "env-paths",
+          "version": "2.2.1"
+        },
+        "projects": [
+          {
+            "display_name": "sindresorhus/env-paths",
+            "forks": 19,
+            "issues": 1,
+            "link": "https://github.com/sindresorhus/env-paths",
+            "name": "sindresorhus/env-paths",
+            "stars": 391,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Code-Review",
+                "reason": "Found 7/28 approved changesets -- score normalized to 2",
+                "score": 2
+              },
+              {
+                "name": "Maintained",
+                "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "detected GitHub workflow tokens with excessive permissions",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file detected",
+                "score": 10
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "0 existing vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "f1729272888f45f6584e74dc4d0af3aecba9e7e8",
+              "name": "github.com/sindresorhus/env-paths"
+            },
+            "score": 4.2,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JNRM31M834XFSFBW9FMY0YT0",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "env-paths"
+            },
+            "version": "2.2.1"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/env-paths/-/env-paths-2.2.1.tgz",
+            "sha256": "5a0b894f4158809ffc408c6a9274cbca434472802128f6d80e5755fad0e6769e"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/license",
+                "origin": "https://registry.npmjs.org/env-paths/-/env-paths-2.2.1.tgz",
+                "derived_extension": "unknown",
+                "size": 1109
+              },
+              {
+                "key": "package/index.js",
+                "origin": "https://registry.npmjs.org/env-paths/-/env-paths-2.2.1.tgz",
+                "derived_extension": "unknown",
+                "size": 40
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/env-paths/-/env-paths-2.2.1.tgz",
+                "derived_extension": "unknown",
+                "size": 698
+              },
+              {
+                "key": "package/readme.md",
+                "origin": "https://registry.npmjs.org/env-paths/-/env-paths-2.2.1.tgz",
+                "derived_extension": "unknown",
+                "size": 3127
+              },
+              {
+                "key": "package/index.d.ts",
+                "origin": "https://registry.npmjs.org/env-paths/-/env-paths-2.2.1.tgz",
+                "derived_extension": "unknown",
+                "size": 3074
+              }
+            ]
+          },
+          "analyzed_at": {
+            "seconds": 1741361995,
+            "nanos": 641817332
+          },
+          "inference": {
+            "confidence": 1,
+            "details": "No malware evidence were identified by any tool in the workflow",
+            "summary": "No malware evidence were identified by any tool in the workflow"
+          },
+          "report_id": "01JNRM31M834XFSFBW9FMY0YT0"
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "e8b7ec9a0b699e8b": {
+        "data": {
+          "package_detail": {
+            "name": "env-paths",
+            "version": "2.2.1",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "Get paths for storing things like data, config, cache, etc",
+                "distance": 0,
+                "licenses": [
+                  "MIT"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "env-paths",
+                  "version": "2.2.1"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "MIT"
+            ],
+            "package_current_version": "3.0.0",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "env-paths",
+              "version": "2.2.1"
+            },
+            "projects": [
+              {
+                "display_name": "sindresorhus/env-paths",
+                "forks": 19,
+                "issues": 1,
+                "link": "https://github.com/sindresorhus/env-paths",
+                "name": "sindresorhus/env-paths",
+                "stars": 391,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 7/28 approved changesets -- score normalized to 2",
+                    "score": 2
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no dangerous workflow patterns detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "detected GitHub workflow tokens with excessive permissions",
+                    "score": 0
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "0 existing vulnerabilities detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "branch protection not enabled on development/release branches",
+                    "score": 0
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                    "score": 0
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "f1729272888f45f6584e74dc4d0af3aecba9e7e8",
+                  "name": "github.com/sindresorhus/env-paths"
+                },
+                "score": 4.2,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JNRM31M834XFSFBW9FMY0YT0",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "env-paths"
+                },
+                "version": "2.2.1"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/env-paths/-/env-paths-2.2.1.tgz",
+                "sha256": "5a0b894f4158809ffc408c6a9274cbca434472802128f6d80e5755fad0e6769e"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/license",
+                    "origin": "https://registry.npmjs.org/env-paths/-/env-paths-2.2.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1109
+                  },
+                  {
+                    "key": "package/index.js",
+                    "origin": "https://registry.npmjs.org/env-paths/-/env-paths-2.2.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 40
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/env-paths/-/env-paths-2.2.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 698
+                  },
+                  {
+                    "key": "package/readme.md",
+                    "origin": "https://registry.npmjs.org/env-paths/-/env-paths-2.2.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3127
+                  },
+                  {
+                    "key": "package/index.d.ts",
+                    "origin": "https://registry.npmjs.org/env-paths/-/env-paths-2.2.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3074
+                  }
+                ]
+              },
+              "analyzed_at": {
+                "seconds": 1741361995,
+                "nanos": 641817332
+              },
+              "inference": {
+                "confidence": 1,
+                "details": "No malware evidence were identified by any tool in the workflow",
+                "summary": "No malware evidence were identified by any tool in the workflow"
+              },
+              "report_id": "01JNRM31M834XFSFBW9FMY0YT0"
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

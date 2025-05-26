@@ -1,0 +1,587 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "%40npmcli%2Ffs@3.1.1",
+    "display_path": ""
+  },
+  "path": "pkg:npm/%40npmcli%2Ffs@3.1.1",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "@npmcli/fs",
+        "version": "3.1.1",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "filesystem utilities for the npm cli",
+            "distance": 0,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "@npmcli/fs",
+              "version": "3.1.1"
+            }
+          },
+          {
+            "description": "The semantic version parser used by npm.",
+            "distance": 1,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "semver",
+              "version": "7.7.2"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 1,
+          "indirect_dependents": 0,
+          "total_dependents": 1
+        },
+        "licenses": [
+          "ISC"
+        ],
+        "package_current_version": "4.0.0",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "@npmcli/fs",
+          "version": "3.1.1"
+        },
+        "projects": [
+          {
+            "display_name": "npm/fs",
+            "forks": 9,
+            "issues": 3,
+            "link": "https://github.com/npm/fs",
+            "name": "npm/fs",
+            "stars": 29,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Code-Review",
+                "reason": "all changesets reviewed",
+                "score": 10
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file detected",
+                "score": 10
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Maintained",
+                "reason": "2 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 1",
+                "score": 1
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "detected GitHub workflow tokens with excessive permissions",
+                "score": 0
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "0 existing vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 9
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                "score": -1
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool detected but not run on all commits",
+                "score": 8
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "4f74601489a9c258642630bef4fbb083c21ff36e",
+              "name": "github.com/npm/fs"
+            },
+            "score": 6.1,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JP02GH2APWQ78X2EK96986D9",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "@npmcli/fs"
+            },
+            "version": "3.1.1"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+            "sha256": "63995a958a6e3352d1bd29aeeab18e5961fc0ec34502d52aca01f1e26d9343ce"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/lib/cp/LICENSE",
+                "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 1084
+              },
+              {
+                "key": "package/lib/cp/errors.js",
+                "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 3052
+              },
+              {
+                "key": "package/lib/common/get-options.js",
+                "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 322
+              },
+              {
+                "key": "package/lib/cp/index.js",
+                "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 518
+              },
+              {
+                "key": "package/lib/index.js",
+                "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 804
+              },
+              {
+                "key": "package/lib/move-file.js",
+                "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 2032,
+                "capability_labels": [
+                  "file:manipulation",
+                  "file:read"
+                ]
+              },
+              {
+                "key": "package/lib/common/node.js",
+                "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 180
+              },
+              {
+                "key": "package/lib/cp/polyfill.js",
+                "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 10136,
+                "capability_labels": [
+                  "file:manipulation",
+                  "file:read"
+                ]
+              },
+              {
+                "key": "package/lib/readdir-scoped.js",
+                "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 430,
+                "capability_labels": [
+                  "file:manipulation",
+                  "file:read"
+                ]
+              },
+              {
+                "key": "package/lib/with-temp-dir.js",
+                "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 655,
+                "capability_labels": [
+                  "file:manipulation",
+                  "file:read"
+                ]
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 1187
+              },
+              {
+                "key": "package/LICENSE.md",
+                "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 798
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 2557
+              }
+            ]
+          },
+          "analyzed_at": {
+            "seconds": 1741611949,
+            "nanos": 262448183
+          },
+          "inference": {
+            "confidence": 1,
+            "details": "No malware evidence were identified by any tool in the workflow",
+            "summary": "No malware evidence were identified by any tool in the workflow"
+          },
+          "report_id": "01JP02GH2APWQ78X2EK96986D9"
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "9d11857bce192f98": {
+        "data": {
+          "package_detail": {
+            "name": "@npmcli/fs",
+            "version": "3.1.1",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "filesystem utilities for the npm cli",
+                "distance": 0,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "@npmcli/fs",
+                  "version": "3.1.1"
+                }
+              },
+              {
+                "description": "The semantic version parser used by npm.",
+                "distance": 1,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "semver",
+                  "version": "7.7.2"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 1,
+              "indirect_dependents": 0,
+              "total_dependents": 1
+            },
+            "licenses": [
+              "ISC"
+            ],
+            "package_current_version": "4.0.0",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "@npmcli/fs",
+              "version": "3.1.1"
+            },
+            "projects": [
+              {
+                "display_name": "npm/fs",
+                "forks": 9,
+                "issues": 3,
+                "link": "https://github.com/npm/fs",
+                "name": "npm/fs",
+                "stars": 29,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Code-Review",
+                    "reason": "all changesets reviewed",
+                    "score": 10
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "2 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 1",
+                    "score": 1
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no dangerous workflow patterns detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "detected GitHub workflow tokens with excessive permissions",
+                    "score": 0
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "0 existing vulnerabilities detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 9
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+                    "score": -1
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool detected but not run on all commits",
+                    "score": 8
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "4f74601489a9c258642630bef4fbb083c21ff36e",
+                  "name": "github.com/npm/fs"
+                },
+                "score": 6.1,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JP02GH2APWQ78X2EK96986D9",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "@npmcli/fs"
+                },
+                "version": "3.1.1"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                "sha256": "63995a958a6e3352d1bd29aeeab18e5961fc0ec34502d52aca01f1e26d9343ce"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/lib/cp/LICENSE",
+                    "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1084
+                  },
+                  {
+                    "key": "package/lib/cp/errors.js",
+                    "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 3052
+                  },
+                  {
+                    "key": "package/lib/common/get-options.js",
+                    "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 322
+                  },
+                  {
+                    "key": "package/lib/cp/index.js",
+                    "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 518
+                  },
+                  {
+                    "key": "package/lib/index.js",
+                    "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 804
+                  },
+                  {
+                    "key": "package/lib/move-file.js",
+                    "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2032,
+                    "capability_labels": [
+                      "file:manipulation",
+                      "file:read"
+                    ]
+                  },
+                  {
+                    "key": "package/lib/common/node.js",
+                    "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 180
+                  },
+                  {
+                    "key": "package/lib/cp/polyfill.js",
+                    "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 10136,
+                    "capability_labels": [
+                      "file:manipulation",
+                      "file:read"
+                    ]
+                  },
+                  {
+                    "key": "package/lib/readdir-scoped.js",
+                    "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 430,
+                    "capability_labels": [
+                      "file:manipulation",
+                      "file:read"
+                    ]
+                  },
+                  {
+                    "key": "package/lib/with-temp-dir.js",
+                    "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 655,
+                    "capability_labels": [
+                      "file:manipulation",
+                      "file:read"
+                    ]
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1187
+                  },
+                  {
+                    "key": "package/LICENSE.md",
+                    "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 798
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/@npmcli/fs/-/fs-3.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 2557
+                  }
+                ]
+              },
+              "analyzed_at": {
+                "seconds": 1741611949,
+                "nanos": 262448183
+              },
+              "inference": {
+                "confidence": 1,
+                "details": "No malware evidence were identified by any tool in the workflow",
+                "summary": "No malware evidence were identified by any tool in the workflow"
+              },
+              "report_id": "01JP02GH2APWQ78X2EK96986D9"
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

@@ -1,0 +1,419 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "http-cache-semantics@4.1.1",
+    "display_path": ""
+  },
+  "path": "pkg:npm/http-cache-semantics@4.1.1",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "http-cache-semantics",
+        "version": "4.1.1",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Parses Cache-Control and other headers. Helps building correct HTTP caches and proxies",
+            "distance": 0,
+            "licenses": [
+              "BSD-2-Clause"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "http-cache-semantics",
+              "version": "4.1.1"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "BSD-2-Clause"
+        ],
+        "package_current_version": "4.2.0",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "http-cache-semantics",
+          "version": "4.1.1"
+        },
+        "projects": [
+          {
+            "display_name": "kornelski/http-cache-semantics",
+            "forks": 27,
+            "issues": 8,
+            "link": "https://github.com/kornelski/http-cache-semantics",
+            "name": "kornelski/http-cache-semantics",
+            "stars": 252,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no workflows found",
+                "score": -1
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Code-Review",
+                "reason": "Found 3/29 approved changesets -- score normalized to 1",
+                "score": 1
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Maintained",
+                "reason": "2 commit(s) and 2 issue activity found in the last 90 days -- score normalized to 3",
+                "score": 3
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "No tokens found",
+                "score": -1
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "no dependencies found",
+                "score": -1
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "0 existing vulnerabilities detected",
+                "score": 10
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "SAST",
+                "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                "score": 0
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "f01112e954b83cfa8765b633ba880e5e980aa54c",
+              "name": "github.com/kornelski/http-cache-semantics"
+            },
+            "score": 3.6,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JHQ484B1HHVB44H8ZB96TWAW",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "http-cache-semantics"
+            },
+            "version": "4.1.1"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/http-cache-semantics/-/http-cache-semantics-4.1.1.tgz",
+            "sha256": "b9be98e14a11489149c0e6e155f3d0c75a4eb509facf8941a96495a01b7b3253"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/LICENSE",
+                "origin": "https://registry.npmjs.org/http-cache-semantics/-/http-cache-semantics-4.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 1274
+              },
+              {
+                "key": "package/index.js",
+                "origin": "https://registry.npmjs.org/http-cache-semantics/-/http-cache-semantics-4.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 23751
+              },
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/http-cache-semantics/-/http-cache-semantics-4.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 526
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/http-cache-semantics/-/http-cache-semantics-4.1.1.tgz",
+                "derived_extension": "unknown",
+                "size": 10387
+              }
+            ]
+          },
+          "analyzed_at": {
+            "seconds": 1737020685,
+            "nanos": 115926325
+          },
+          "inference": {
+            "confidence": 1,
+            "details": "No malware evidence were identified by any tool in the workflow"
+          }
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "2e894744035fa3cf": {
+        "data": {
+          "package_detail": {
+            "name": "http-cache-semantics",
+            "version": "4.1.1",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "Parses Cache-Control and other headers. Helps building correct HTTP caches and proxies",
+                "distance": 0,
+                "licenses": [
+                  "BSD-2-Clause"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "http-cache-semantics",
+                  "version": "4.1.1"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "BSD-2-Clause"
+            ],
+            "package_current_version": "4.2.0",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "http-cache-semantics",
+              "version": "4.1.1"
+            },
+            "projects": [
+              {
+                "display_name": "kornelski/http-cache-semantics",
+                "forks": 27,
+                "issues": 8,
+                "link": "https://github.com/kornelski/http-cache-semantics",
+                "name": "kornelski/http-cache-semantics",
+                "stars": 252,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no workflows found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 3/29 approved changesets -- score normalized to 1",
+                    "score": 1
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "2 commit(s) and 2 issue activity found in the last 90 days -- score normalized to 3",
+                    "score": 3
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "No tokens found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "no dependencies found",
+                    "score": -1
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file not detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "0 existing vulnerabilities detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "branch protection not enabled on development/release branches",
+                    "score": 0
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "SAST tool is not run on all commits -- score normalized to 0",
+                    "score": 0
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "f01112e954b83cfa8765b633ba880e5e980aa54c",
+                  "name": "github.com/kornelski/http-cache-semantics"
+                },
+                "score": 3.6,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JHQ484B1HHVB44H8ZB96TWAW",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "http-cache-semantics"
+                },
+                "version": "4.1.1"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/http-cache-semantics/-/http-cache-semantics-4.1.1.tgz",
+                "sha256": "b9be98e14a11489149c0e6e155f3d0c75a4eb509facf8941a96495a01b7b3253"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/LICENSE",
+                    "origin": "https://registry.npmjs.org/http-cache-semantics/-/http-cache-semantics-4.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1274
+                  },
+                  {
+                    "key": "package/index.js",
+                    "origin": "https://registry.npmjs.org/http-cache-semantics/-/http-cache-semantics-4.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 23751
+                  },
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/http-cache-semantics/-/http-cache-semantics-4.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 526
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/http-cache-semantics/-/http-cache-semantics-4.1.1.tgz",
+                    "derived_extension": "unknown",
+                    "size": 10387
+                  }
+                ]
+              },
+              "analyzed_at": {
+                "seconds": 1737020685,
+                "nanos": 115926325
+              },
+              "inference": {
+                "confidence": 1,
+                "details": "No malware evidence were identified by any tool in the workflow"
+              }
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}

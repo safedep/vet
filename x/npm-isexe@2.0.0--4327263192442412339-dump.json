@@ -1,0 +1,467 @@
+{
+  "source": {
+    "type": "purl",
+    "namespace": "pkg:npm",
+    "path": "isexe@2.0.0",
+    "display_path": ""
+  },
+  "path": "pkg:npm/isexe@2.0.0",
+  "ecosystem": "npm",
+  "packages": [
+    {
+      "package_detail": {
+        "name": "isexe",
+        "version": "2.0.0",
+        "ecosystem": "npm",
+        "compareAs": "npm"
+      },
+      "insights": {
+        "dependencies": [
+          {
+            "description": "Minimal module to check if a file is executable.",
+            "distance": 0,
+            "licenses": [
+              "ISC"
+            ],
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "isexe",
+              "version": "2.0.0"
+            }
+          }
+        ],
+        "dependents": {
+          "direct_dependents": 0,
+          "indirect_dependents": 0,
+          "total_dependents": 0
+        },
+        "licenses": [
+          "ISC"
+        ],
+        "package_current_version": "3.1.1",
+        "package_version": {
+          "ecosystem": "NPM",
+          "name": "isexe",
+          "version": "2.0.0"
+        },
+        "projects": [
+          {
+            "display_name": "isaacs/isexe",
+            "forks": 17,
+            "issues": 17,
+            "link": "https://github.com/isaacs/isexe",
+            "name": "isaacs/isexe",
+            "stars": 48,
+            "type": "GITHUB"
+          }
+        ],
+        "scorecard": {
+          "content": {
+            "checks": [
+              {
+                "name": "Code-Review",
+                "reason": "Found 0/27 approved changesets -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Maintained",
+                "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "Dangerous-Workflow",
+                "reason": "no dangerous workflow patterns detected",
+                "score": 10
+              },
+              {
+                "name": "Binary-Artifacts",
+                "reason": "no binaries found in the repo",
+                "score": 10
+              },
+              {
+                "name": "Packaging",
+                "reason": "packaging workflow not detected",
+                "score": -1
+              },
+              {
+                "name": "Token-Permissions",
+                "reason": "detected GitHub workflow tokens with excessive permissions",
+                "score": 0
+              },
+              {
+                "name": "SAST",
+                "reason": "no SAST tool detected",
+                "score": 0
+              },
+              {
+                "name": "Pinned-Dependencies",
+                "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                "score": 0
+              },
+              {
+                "name": "CII-Best-Practices",
+                "reason": "no effort to earn an OpenSSF best practices badge detected",
+                "score": 0
+              },
+              {
+                "name": "Fuzzing",
+                "reason": "project is not fuzzed",
+                "score": 0
+              },
+              {
+                "name": "License",
+                "reason": "license file detected",
+                "score": 10
+              },
+              {
+                "name": "Signed-Releases",
+                "reason": "no releases found",
+                "score": -1
+              },
+              {
+                "name": "Branch-Protection",
+                "reason": "branch protection not enabled on development/release branches",
+                "score": 0
+              },
+              {
+                "name": "Security-Policy",
+                "reason": "security policy file not detected",
+                "score": 0
+              },
+              {
+                "name": "Vulnerabilities",
+                "reason": "6 existing vulnerabilities detected",
+                "score": 4
+              }
+            ],
+            "date": "2025-05-05",
+            "repository": {
+              "commit": "626e837aab877acefe9c8d47bed677cc416898c7",
+              "name": "github.com/isaacs/isexe"
+            },
+            "score": 2.9,
+            "scorecard": {
+              "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+              "version": "v5.1.1-45-g40bbc9c9"
+            }
+          },
+          "version": "V2"
+        }
+      },
+      "depth": 0,
+      "provenances": null,
+      "malware_analysis": {
+        "analysis_id": "01JHQ43VQCP7Y9GK6F0K3ER2ZR",
+        "is_suspicious": false,
+        "is_malware": false,
+        "report": {
+          "package_version": {
+            "package": {
+              "ecosystem": 2,
+              "name": "isexe"
+            },
+            "version": "2.0.0"
+          },
+          "target": {
+            "origin": "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz",
+            "sha256": "47cfe872e088e28c53b736fef305324b57cc1cfc9f72a9b0f769f92731cb8359"
+          },
+          "file_system": {
+            "files": [
+              {
+                "key": "package/package.json",
+                "origin": "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 786
+              },
+              {
+                "key": "package/.npmignore",
+                "origin": "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 23
+              },
+              {
+                "key": "package/README.md",
+                "origin": "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 1395
+              },
+              {
+                "key": "package/LICENSE",
+                "origin": "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 765
+              },
+              {
+                "key": "package/windows.js",
+                "origin": "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 890
+              },
+              {
+                "key": "package/index.js",
+                "origin": "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 1192
+              },
+              {
+                "key": "package/mode.js",
+                "origin": "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 909
+              },
+              {
+                "key": "package/test/basic.js",
+                "origin": "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz",
+                "derived_extension": "unknown",
+                "size": 4996
+              }
+            ]
+          },
+          "analyzed_at": {
+            "seconds": 1737017696,
+            "nanos": 302117404
+          },
+          "inference": {
+            "confidence": 1,
+            "details": "No malware evidence were identified by any tool in the workflow"
+          }
+        },
+        "VerificationRecord": null
+      },
+      "code_analysis": null
+    }
+  ],
+  "dependency_graph": {
+    "present": true,
+    "nodes": {
+      "f48a61f5bb3e76a8": {
+        "data": {
+          "package_detail": {
+            "name": "isexe",
+            "version": "2.0.0",
+            "ecosystem": "npm",
+            "compareAs": "npm"
+          },
+          "insights": {
+            "dependencies": [
+              {
+                "description": "Minimal module to check if a file is executable.",
+                "distance": 0,
+                "licenses": [
+                  "ISC"
+                ],
+                "package_version": {
+                  "ecosystem": "NPM",
+                  "name": "isexe",
+                  "version": "2.0.0"
+                }
+              }
+            ],
+            "dependents": {
+              "direct_dependents": 0,
+              "indirect_dependents": 0,
+              "total_dependents": 0
+            },
+            "licenses": [
+              "ISC"
+            ],
+            "package_current_version": "3.1.1",
+            "package_version": {
+              "ecosystem": "NPM",
+              "name": "isexe",
+              "version": "2.0.0"
+            },
+            "projects": [
+              {
+                "display_name": "isaacs/isexe",
+                "forks": 17,
+                "issues": 17,
+                "link": "https://github.com/isaacs/isexe",
+                "name": "isaacs/isexe",
+                "stars": 48,
+                "type": "GITHUB"
+              }
+            ],
+            "scorecard": {
+              "content": {
+                "checks": [
+                  {
+                    "name": "Code-Review",
+                    "reason": "Found 0/27 approved changesets -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Maintained",
+                    "reason": "0 commit(s) and 0 issue activity found in the last 90 days -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "Dangerous-Workflow",
+                    "reason": "no dangerous workflow patterns detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Binary-Artifacts",
+                    "reason": "no binaries found in the repo",
+                    "score": 10
+                  },
+                  {
+                    "name": "Packaging",
+                    "reason": "packaging workflow not detected",
+                    "score": -1
+                  },
+                  {
+                    "name": "Token-Permissions",
+                    "reason": "detected GitHub workflow tokens with excessive permissions",
+                    "score": 0
+                  },
+                  {
+                    "name": "SAST",
+                    "reason": "no SAST tool detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Pinned-Dependencies",
+                    "reason": "dependency not pinned by hash detected -- score normalized to 0",
+                    "score": 0
+                  },
+                  {
+                    "name": "CII-Best-Practices",
+                    "reason": "no effort to earn an OpenSSF best practices badge detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Fuzzing",
+                    "reason": "project is not fuzzed",
+                    "score": 0
+                  },
+                  {
+                    "name": "License",
+                    "reason": "license file detected",
+                    "score": 10
+                  },
+                  {
+                    "name": "Signed-Releases",
+                    "reason": "no releases found",
+                    "score": -1
+                  },
+                  {
+                    "name": "Branch-Protection",
+                    "reason": "branch protection not enabled on development/release branches",
+                    "score": 0
+                  },
+                  {
+                    "name": "Security-Policy",
+                    "reason": "security policy file not detected",
+                    "score": 0
+                  },
+                  {
+                    "name": "Vulnerabilities",
+                    "reason": "6 existing vulnerabilities detected",
+                    "score": 4
+                  }
+                ],
+                "date": "2025-05-05",
+                "repository": {
+                  "commit": "626e837aab877acefe9c8d47bed677cc416898c7",
+                  "name": "github.com/isaacs/isexe"
+                },
+                "score": 2.9,
+                "scorecard": {
+                  "commit": "40bbc9c958aa66327fb026b2136f1951298ca0f8",
+                  "version": "v5.1.1-45-g40bbc9c9"
+                }
+              },
+              "version": "V2"
+            }
+          },
+          "depth": 0,
+          "provenances": null,
+          "malware_analysis": {
+            "analysis_id": "01JHQ43VQCP7Y9GK6F0K3ER2ZR",
+            "is_suspicious": false,
+            "is_malware": false,
+            "report": {
+              "package_version": {
+                "package": {
+                  "ecosystem": 2,
+                  "name": "isexe"
+                },
+                "version": "2.0.0"
+              },
+              "target": {
+                "origin": "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz",
+                "sha256": "47cfe872e088e28c53b736fef305324b57cc1cfc9f72a9b0f769f92731cb8359"
+              },
+              "file_system": {
+                "files": [
+                  {
+                    "key": "package/package.json",
+                    "origin": "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 786
+                  },
+                  {
+                    "key": "package/.npmignore",
+                    "origin": "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 23
+                  },
+                  {
+                    "key": "package/README.md",
+                    "origin": "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1395
+                  },
+                  {
+                    "key": "package/LICENSE",
+                    "origin": "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 765
+                  },
+                  {
+                    "key": "package/windows.js",
+                    "origin": "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 890
+                  },
+                  {
+                    "key": "package/index.js",
+                    "origin": "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 1192
+                  },
+                  {
+                    "key": "package/mode.js",
+                    "origin": "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 909
+                  },
+                  {
+                    "key": "package/test/basic.js",
+                    "origin": "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz",
+                    "derived_extension": "unknown",
+                    "size": 4996
+                  }
+                ]
+              },
+              "analyzed_at": {
+                "seconds": 1737017696,
+                "nanos": 302117404
+              },
+              "inference": {
+                "confidence": 1,
+                "details": "No malware evidence were identified by any tool in the workflow"
+              }
+            },
+            "VerificationRecord": null
+          },
+          "code_analysis": null
+        },
+        "children": [],
+        "root": true
+      }
+    }
+  }
+}
