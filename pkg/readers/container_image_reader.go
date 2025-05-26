@@ -11,6 +11,7 @@ import (
 	sl "github.com/google/osv-scalibr/extractor/standalone/list"
 	scalibrfs "github.com/google/osv-scalibr/fs"
 	"github.com/google/osv-scalibr/plugin"
+	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 )
@@ -37,16 +38,31 @@ type containerImageReader struct {
 
 var _ PackageManifestReader = &containerImageReader{}
 
+// NewContainerImageReader fetches images using config and creates containerImageReader
 func NewContainerImageReader(imageStr string, config *ContainerImageReaderConfig) (*containerImageReader, error) {
-	image, err := getScalibrContainerImage(imageStr)
-	if err != nil {
-		logger.Errorf("Failed to get Scalibr container image: %s", err)
-		return nil, fmt.Errorf("failed to fetch container image: %s", err)
+	ui.PrintMsg("Downloading and mounting %s filesystem for scanning", imageStr)
+
+	var containerImage *scalibrlayerimage.Image
+	var err error
+
+	if config.RemoteImageFetch {
+		ui.PrintMsg("Fetching from remote registry")
+		containerImage, err = scalibrlayerimage.FromRemoteName(imageStr, scalibrlayerimage.DefaultConfig())
+		if err != nil {
+			logger.Errorf("Failed to get Scalibr container image: %s", err)
+			return nil, fmt.Errorf("failed to fetch container image: %s", err)
+		}
+	} else {
+		ui.PrintMsg("Using image from local filesystem")
+		logger.Errorf("local image scanning not supported in image scan")
+		return nil, fmt.Errorf("local image scanning not supported in image scan")
 	}
+
+	ui.PrintSuccess("Successfully fetched image")
 
 	imageTarget := &ImageTargetConfig{
 		ImageStr:     imageStr,
-		ScalibrImage: image,
+		ScalibrImage: containerImage,
 	}
 
 	return &containerImageReader{
@@ -122,16 +138,6 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 		}
 	}
 	return nil
-}
-
-// getScalibrContainerImage returns an Image object from image name string
-func getScalibrContainerImage(imageStr string) (*scalibrlayerimage.Image, error) {
-	config := scalibrlayerimage.DefaultConfig()
-	containerImage, err := scalibrlayerimage.FromRemoteName(imageStr, config)
-	if err != nil {
-		return nil, err
-	}
-	return containerImage, nil
 }
 
 // getScalibrScanConfig returns scalibr.ScanConfig with Extractors and Detectors enabled
