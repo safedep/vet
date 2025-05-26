@@ -56,21 +56,21 @@ func (c containerImageReader) ApplicationName() (string, error) {
 func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest, PackageReader) error) error {
 	image, err := c.getScalibrContainerImage()
 	if err != nil {
-		logger.Errorf("failed to get Scalibr container image: %s", err)
-		return fmt.Errorf("failed to get Scalibr container image: %s", err)
+		logger.Errorf("failed to get container image: %s", err)
+		return fmt.Errorf("failed to get container image: %s", err)
 	}
 
 	scanConfig, err := c.getScalibrScanConfig()
 	if err != nil {
 		logger.Errorf("failed to get scan config: %s", err)
-		return fmt.Errorf("failed to get Scalibr scan config: %s", err)
+		return fmt.Errorf("failed to get scan config: %s", err)
 	}
 
 	// Scan Container
 	result, err := scalibr.New().ScanContainer(context.Background(), image, scanConfig)
 	if err != nil {
-		logger.Errorf("failed to perform osv-scalibr scan: %s", err)
-		return fmt.Errorf("failed to perform osv-scalibr scan: %s", err)
+		logger.Errorf("failed to perform container scan: %s", err)
+		return fmt.Errorf("failed to perform container scan: %s", err)
 	}
 
 	// Handle duplicated packages as same packages (name+version) are found on different locations.
