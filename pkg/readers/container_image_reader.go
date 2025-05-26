@@ -84,9 +84,9 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 		packageSet[pkgPurl.String()] = pkg
 	}
 
-	for _, pkg := range packageSet {
+	for purlStr, pkg := range packageSet {
 		if _, ok := manifests[pkg.Ecosystem()]; !ok {
-			manifests[pkg.Ecosystem()] = models.NewPackageManifestFromLocal("", pkg.Ecosystem())
+			manifests[pkg.Ecosystem()] = models.NewPackageManifestFromPurl(purlStr, pkg.Ecosystem())
 		}
 
 		pkgDetail := models.NewPackageDetail(pkg.Ecosystem(), pkg.Name, pkg.Version)
@@ -103,7 +103,7 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 		err = handler(manifest, NewManifestModelReader(manifest))
 		if err != nil {
 			logger.Errorf("failed to process manifest: %s", err)
-			return fmt.Errorf("failed to process manifest: %s", err)
+			continue
 		}
 	}
 	return nil
