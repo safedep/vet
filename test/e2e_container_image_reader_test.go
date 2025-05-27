@@ -8,6 +8,8 @@ import (
 )
 
 func TestContainerImageReaderEnumManifest(t *testing.T) {
+	verifyE2E(t)
+
 	testImage := "alpine:3.20"
 	readerConfig := readers.DefaultContainerImageReaderConfig()
 
