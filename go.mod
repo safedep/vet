@@ -3,8 +3,8 @@ module github.com/safedep/vet
 go 1.24.2
 
 require (
-	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250418165058-162f6b0cc319.2
-	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.6-20250418165058-162f6b0cc319.1
+	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250527100058-ba6815156f1f.2
+	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.6-20250527100058-ba6815156f1f.1
 	entgo.io/ent v0.14.4
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/BurntSushi/toml v1.5.0
