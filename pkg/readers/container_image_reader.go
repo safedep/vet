@@ -3,6 +3,7 @@ package readers
 import (
 	"context"
 	"fmt"
+
 	scalibr "github.com/google/osv-scalibr"
 	scalibrlayerimage "github.com/google/osv-scalibr/artifact/image/layerscanning/image"
 	"github.com/google/osv-scalibr/binary/platform"
@@ -11,7 +12,6 @@ import (
 	sl "github.com/google/osv-scalibr/extractor/standalone/list"
 	scalibrfs "github.com/google/osv-scalibr/fs"
 	"github.com/google/osv-scalibr/plugin"
-	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 )
@@ -40,7 +40,6 @@ var _ PackageManifestReader = &containerImageReader{}
 // NewContainerImageReader fetches images using config and creates containerImageReader
 func NewContainerImageReader(imageStr string, config *ContainerImageReaderConfig) (*containerImageReader, error) {
 	if !config.RemoteImageFetch {
-		ui.PrintError("Local image scanning is not supported yet!")
 		return nil, fmt.Errorf("local image scanning is not supported yet")
 	}
 
