@@ -578,8 +578,6 @@ type testEnvResolver struct {
 	projectUrl    string
 	trigger       controltowerv1.ToolTrigger
 	gitRef        string
-	gitRefName    string
-	gitRefType    string
 	gitSha        string
 }
 
