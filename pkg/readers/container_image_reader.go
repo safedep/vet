@@ -63,6 +63,10 @@ func (c containerImageReader) ApplicationName() (string, error) {
 
 func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest, PackageReader) error) error {
 	image, err := getScalibrImage(c.imageTarget.imageStr)
+	if err != nil {
+		logger.Errorf("invalid image: error while creating contaimer image from ref: %s", err)
+		return fmt.Errorf("invalid image: error while creating contaimer image from ref: %s", err)
+	}
 
 	scanConfig, err := getScalibrScanConfig()
 	if err != nil {

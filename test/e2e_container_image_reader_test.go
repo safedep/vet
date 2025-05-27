@@ -32,7 +32,7 @@ func TestContainerImageReaderEnumManifest(t *testing.T) {
 			expectedEcosystem: "Alpine:v3.20",
 		},
 		{
-			name:        "invalid image with version",
+			name:        "valid image with version",
 			imageRef:    "alpine:9999.999.939489", // Random Unavailable Version
 			expectedErr: true,
 		},
@@ -50,24 +50,24 @@ func TestContainerImageReaderEnumManifest(t *testing.T) {
 			readerConfig := readers.DefaultContainerImageReaderConfig()
 			reader, err := readers.NewContainerImageReader(tc.imageRef, readerConfig)
 
+			assert.NoError(t, err)
+			assert.NotNil(t, reader)
+
+			err = reader.EnumManifests(func(manifest *models.PackageManifest, reader readers.PackageReader) error {
+				assert.NotNil(t, manifest)
+				assert.NotNil(t, reader)
+
+				manifestID := manifest.Id()
+
+				assert.Equal(t, manifest.Ecosystem, tc.expectedEcosystem)
+				assert.Equal(t, len(manifest.GetPackages()), tc.expectedPackages)
+				assert.Equal(t, manifest.GetPackages()[0].Manifest.Id(), manifestID)
+				return nil
+			})
+
 			if tc.expectedErr {
 				assert.Error(t, err)
 			} else {
-				assert.NoError(t, err)
-				assert.NotNil(t, reader)
-
-				err = reader.EnumManifests(func(manifest *models.PackageManifest, reader readers.PackageReader) error {
-					assert.NotNil(t, manifest)
-					assert.NotNil(t, reader)
-
-					manifestID := manifest.Id()
-
-					assert.Equal(t, manifest.Ecosystem, tc.expectedEcosystem)
-					assert.Equal(t, len(manifest.GetPackages()), tc.expectedPackages)
-					assert.Equal(t, manifest.GetPackages()[0].Manifest.Id(), manifestID)
-					return nil
-				})
-
 				assert.NoError(t, err)
 			}
 		})
