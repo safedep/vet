@@ -22,18 +22,18 @@ type ContainerImageReaderConfig struct {
 
 func DefaultContainerImageReaderConfig() *ContainerImageReaderConfig {
 	return &ContainerImageReaderConfig{
-		RemoteImageFetch: true, // Fetch images from remote.
+		RemoteImageFetch: true,
 	}
 }
 
-type ImageTargetConfig struct {
-	ImageStr     string
-	ScalibrImage *scalibrlayerimage.Image
+type imageTargetConfig struct {
+	imageStr     string
+	scalibrImage *scalibrlayerimage.Image
 }
 
 type containerImageReader struct {
 	config      *ContainerImageReaderConfig
-	imageTarget *ImageTargetConfig
+	imageTarget *imageTargetConfig
 }
 
 var _ PackageManifestReader = &containerImageReader{}
@@ -60,9 +60,9 @@ func NewContainerImageReader(imageStr string, config *ContainerImageReaderConfig
 
 	ui.PrintSuccess("Successfully fetched image")
 
-	imageTarget := &ImageTargetConfig{
-		ImageStr:     imageStr,
-		ScalibrImage: containerImage,
+	imageTarget := &imageTargetConfig{
+		imageStr:     imageStr,
+		scalibrImage: containerImage,
 	}
 
 	return &containerImageReader{
@@ -76,7 +76,7 @@ func (c containerImageReader) Name() string {
 }
 
 func (c containerImageReader) ApplicationName() (string, error) {
-	return fmt.Sprintf("pkg:/oci/%s", c.imageTarget.ImageStr), nil
+	return fmt.Sprintf("pkg:/oci/%s", c.imageTarget.imageStr), nil
 }
 
 func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest, PackageReader) error) error {
@@ -87,7 +87,7 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 	}
 
 	// Scan Container
-	result, err := scalibr.New().ScanContainer(context.Background(), c.imageTarget.ScalibrImage, scanConfig)
+	result, err := scalibr.New().ScanContainer(context.Background(), c.imageTarget.scalibrImage, scanConfig)
 	if err != nil {
 		logger.Errorf("failed to perform container scan: %s", err)
 		return fmt.Errorf("failed to perform container scan: %s", err)
