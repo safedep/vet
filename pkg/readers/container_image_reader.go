@@ -27,8 +27,7 @@ func DefaultContainerImageReaderConfig() *ContainerImageReaderConfig {
 }
 
 type imageTargetConfig struct {
-	imageStr     string
-	scalibrImage *scalibrlayerimage.Image
+	imageStr string
 }
 
 type containerImageReader struct {
@@ -40,28 +39,14 @@ var _ PackageManifestReader = &containerImageReader{}
 
 // NewContainerImageReader fetches images using config and creates containerImageReader
 func NewContainerImageReader(imageStr string, config *ContainerImageReaderConfig) (*containerImageReader, error) {
-	ui.PrintMsg("Downloading and mounting %s filesystem for scanning", imageStr)
-
 	if !config.RemoteImageFetch {
-		ui.PrintMsg("Using image from local filesystem")
-		logger.Errorf("local image scanning not supported in image scan")
-		return nil, fmt.Errorf("local image scanning not supported in image scan")
+		ui.PrintError("Local image scanning is not supported yet!")
+		return nil, fmt.Errorf("local image scanning is not supported yet")
 	}
-
-	ui.PrintMsg("Fetching from remote registry")
-	containerImage, err := scalibrlayerimage.FromRemoteName(imageStr, scalibrlayerimage.DefaultConfig())
-	if err != nil {
-		logger.Errorf("Failed to get Scalibr container image: %s", err)
-		return nil, fmt.Errorf("failed to fetch container image: %s", err)
-	}
-
-	ui.PrintSuccess("Successfully fetched image")
 
 	imageTarget := &imageTargetConfig{
-		imageStr:     imageStr,
-		scalibrImage: containerImage,
+		imageStr: imageStr,
 	}
-
 	return &containerImageReader{
 		config:      config,
 		imageTarget: imageTarget,
@@ -77,6 +62,7 @@ func (c containerImageReader) ApplicationName() (string, error) {
 }
 
 func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest, PackageReader) error) error {
+	image, err := getScalibrImage(c.imageTarget.imageStr)
 
 	scanConfig, err := getScalibrScanConfig()
 	if err != nil {
@@ -85,7 +71,7 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 	}
 
 	// Scan Container
-	result, err := scalibr.New().ScanContainer(context.Background(), c.imageTarget.scalibrImage, scanConfig)
+	result, err := scalibr.New().ScanContainer(context.Background(), image, scanConfig)
 	if err != nil {
 		logger.Errorf("failed to perform container scan: %s", err)
 		return fmt.Errorf("failed to perform container scan: %s", err)
@@ -136,7 +122,7 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 		}
 	}
 
-	if err := c.imageTarget.scalibrImage.CleanUp(); err != nil {
+	if err := image.CleanUp(); err != nil {
 		logger.Errorf("failed to cleanup image target: %s", err)
 		return fmt.Errorf("failed to cleanup image target: %s", err)
 	}
@@ -185,6 +171,15 @@ func getScalibrScanConfig() (*scalibr.ScanConfig, error) {
 		Capabilities:         capability,
 		PathsToExtract:       []string{"."}, // Default
 	}, nil
+}
+
+func getScalibrImage(imageStr string) (*scalibrlayerimage.Image, error) {
+	containerImage, err := scalibrlayerimage.FromRemoteName(imageStr, scalibrlayerimage.DefaultConfig())
+	if err != nil {
+		logger.Errorf("Failed to get Scalibr container image: %s", err)
+		return nil, fmt.Errorf("failed to fetch container image: %s", err)
+	}
+	return containerImage, nil
 }
 
 func scalibrDefaultScanRoots() ([]*scalibrfs.ScanRoot, error) {
