@@ -599,14 +599,6 @@ func (r *testEnvResolver) GitRef() string {
 	return r.gitRef
 }
 
-func (r *testEnvResolver) GitRefName() string {
-	return r.gitRefName
-}
-
-func (r *testEnvResolver) GitRefType() string {
-	return r.gitRefType
-}
-
 func (r *testEnvResolver) GitSha() string {
 	return r.gitSha
 }
@@ -636,10 +628,10 @@ func TestCreateToolSessionRequestForProjectVersion(t *testing.T) {
 				assert.Equal(t, "1.0.0", *request.ProjectVersion)
 				assert.Equal(t, packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_UNSPECIFIED, *request.ProjectSource)
 				assert.Equal(t, controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL, *request.Trigger)
-				assert.Equal(t, controltowerv1pb.Project_SOURCE_UNSPECIFIED, *request.OriginProjectSource)
-				assert.Equal(t, "", *request.OriginProjectUrl)
-				assert.Equal(t, "", *request.GitRef)
-				assert.Equal(t, "", *request.GitSha)
+				assert.Nil(t, request.OriginProjectSource)
+				assert.Nil(t, request.OriginProjectUrl)
+				assert.Nil(t, request.GitRef)
+				assert.Nil(t, request.GitSha)
 			},
 		},
 		{
@@ -657,8 +649,6 @@ func TestCreateToolSessionRequestForProjectVersion(t *testing.T) {
 				projectUrl:    "https://github.com/test/test",
 				trigger:       controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL,
 				gitRef:        "refs/heads/main",
-				gitRefName:    "main",
-				gitRefType:    "branch",
 				gitSha:        "1234567890",
 			},
 			assertFn: func(t *testing.T, request *controltowerv1.CreateToolSessionRequest) {
@@ -667,7 +657,6 @@ func TestCreateToolSessionRequestForProjectVersion(t *testing.T) {
 				assert.Equal(t, "test-project", request.ProjectName)
 				assert.Equal(t, "1.0.0", *request.ProjectVersion)
 				assert.Equal(t, packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_UNSPECIFIED, *request.ProjectSource)
-				assert.Equal(t, controltowerv1pb.Project_SOURCE_GITHUB, *request.OriginProjectSource)
 				assert.Equal(t, controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL, *request.Trigger)
 				assert.Equal(t, controltowerv1pb.Project_SOURCE_GITHUB, *request.OriginProjectSource)
 				assert.Equal(t, "https://github.com/test/test", *request.OriginProjectUrl)

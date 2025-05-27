@@ -26,7 +26,10 @@ const syncReporterDefaultWorkerCount = 10
 
 // Contract for implementing environment resolver for the sync reporter.
 // Here we decouple the the actual implementation of the resolver to the
-// client that uses the reporter plugin
+// client that uses the reporter plugin. The resolver is used to provide
+// environment awareness to the reporter. For example, when running in GitHub
+// or on a Git repository, the resolver can provide the project source, project
+// and other information that is required to create a tool session.
 type SyncReporterEnvResolver interface {
 	// The resolved source of the runtime environment (e.g. GitHub)
 	GetProjectSource() controltowerv1pb.Project_Source
@@ -39,12 +42,6 @@ type SyncReporterEnvResolver interface {
 
 	// The Git reference of the runtime environment (e.g. branch, tag, commit)
 	GitRef() string
-
-	// The Git reference name of the runtime environment (e.g. branch name, tag name, commit hash)
-	GitRefName() string
-
-	// The Git reference type of the runtime environment (e.g. branch, tag, commit)
-	GitRefType() string
 
 	// The Git SHA of the runtime environment (e.g. commit hash)
 	GitSha() string
@@ -61,14 +58,6 @@ func (r *defaultSyncReporterEnvResolver) GetProjectUrl() string {
 }
 
 func (r *defaultSyncReporterEnvResolver) GitRef() string {
-	return ""
-}
-
-func (r *defaultSyncReporterEnvResolver) GitRefName() string {
-	return ""
-}
-
-func (r *defaultSyncReporterEnvResolver) GitRefType() string {
 	return ""
 }
 
@@ -92,10 +81,9 @@ type SyncReporterConfig struct {
 	// In this case, a new project is created per package manifest
 	EnableMultiProjectSync bool
 
-	// Required
+	// Required when scanning a single project
 	ProjectName    string
 	ProjectVersion string
-	ProjectSource  controltowerv1pb.Project_Source
 
 	// Performance
 	WorkerCount int
@@ -254,7 +242,6 @@ func (s *syncReporter) AddManifest(manifest *models.PackageManifest) {
 		logger.Debugf("Report Sync: Creating tool session for project: %s, version: %s",
 			projectName, projectVersion)
 
-		// Refactor this into a common session creator function
 		toolServiceClient := controltowerv1grpc.NewToolServiceClient(s.client)
 		toolSessionRes, err := toolServiceClient.CreateToolSession(context.Background(),
 			s.createToolSessionRequestForProjectVersion(projectName, projectVersion))
@@ -594,16 +581,33 @@ func (s *syncReporter) createToolSessionRequestForProjectVersion(projectName, pr
 	gitRef := s.envResolver.GitRef()
 	gitSha := s.envResolver.GitSha()
 
-	return &controltowerv1.CreateToolSessionRequest{
-		ToolName:            s.config.Tool.Name,
-		ToolVersion:         s.config.Tool.Version,
-		ProjectName:         projectName,
-		ProjectVersion:      &projectVersion,
-		ProjectSource:       &source,
-		Trigger:             &trigger,
-		OriginProjectSource: &originSource,
-		OriginProjectUrl:    &originUrl,
-		GitRef:              &gitRef,
-		GitSha:              &gitSha,
+	req := &controltowerv1.CreateToolSessionRequest{
+		ToolName:       s.config.Tool.Name,
+		ToolVersion:    s.config.Tool.Version,
+		ProjectName:    projectName,
+		ProjectVersion: &projectVersion,
+		ProjectSource:  &source,
 	}
+
+	if trigger != controltowerv1.ToolTrigger_TOOL_TRIGGER_UNSPECIFIED {
+		req.Trigger = &trigger
+	}
+
+	if originSource != controltowerv1pb.Project_SOURCE_UNSPECIFIED {
+		req.OriginProjectSource = &originSource
+	}
+
+	if originUrl != "" {
+		req.OriginProjectUrl = &originUrl
+	}
+
+	if gitRef != "" {
+		req.GitRef = &gitRef
+	}
+
+	if gitSha != "" {
+		req.GitSha = &gitSha
+	}
+
+	return req
 }
