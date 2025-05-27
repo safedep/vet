@@ -215,7 +215,7 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&malwareAnalysisMinimumConfidence, "malware-analysis-min-confidence", "", "HIGH",
 		"Minimum confidence level for malicious package analysis result to fail fast")
 	cmd.Flags().StringVarP(&scanImageTarget, "image", "", "",
-		"Image reference, name, tag and digest to run container  image scanning (eg. node:latest)")
+		"Image reference to run container  image scanning (eg. node:latest)")
 
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
