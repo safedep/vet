@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"buf.build/gen/go/safedep/api/grpc/go/safedep/services/controltower/v1/controltowerv1grpc"
+	controltowerv1pb "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
 	vulnerabilityv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/vulnerability/v1"
@@ -23,6 +24,66 @@ import (
 
 const syncReporterDefaultWorkerCount = 10
 
+// Contract for implementing environment resolver for the sync reporter.
+// Here we decouple the the actual implementation of the resolver to the
+// client that uses the reporter plugin
+type SyncReporterEnvResolver interface {
+	// The resolved source of the runtime environment (e.g. GitHub)
+	GetProjectSource() controltowerv1pb.Project_Source
+
+	// The resolved URL of the runtime environment (e.g. GitHub repository URL)
+	GetProjectUrl() string
+
+	// The trigger of the runtime environment (e.g. CI/CD pipeline)
+	Trigger() controltowerv1.ToolTrigger
+
+	// The Git reference of the runtime environment (e.g. branch, tag, commit)
+	GitRef() string
+
+	// The Git reference name of the runtime environment (e.g. branch name, tag name, commit hash)
+	GitRefName() string
+
+	// The Git reference type of the runtime environment (e.g. branch, tag, commit)
+	GitRefType() string
+
+	// The Git SHA of the runtime environment (e.g. commit hash)
+	GitSha() string
+}
+
+type defaultSyncReporterEnvResolver struct{}
+
+func (r *defaultSyncReporterEnvResolver) GetProjectSource() controltowerv1pb.Project_Source {
+	return controltowerv1pb.Project_SOURCE_UNSPECIFIED
+}
+
+func (r *defaultSyncReporterEnvResolver) GetProjectUrl() string {
+	return ""
+}
+
+func (r *defaultSyncReporterEnvResolver) GitRef() string {
+	return ""
+}
+
+func (r *defaultSyncReporterEnvResolver) GitRefName() string {
+	return ""
+}
+
+func (r *defaultSyncReporterEnvResolver) GitRefType() string {
+	return ""
+}
+
+func (r *defaultSyncReporterEnvResolver) GitSha() string {
+	return ""
+}
+
+func (r *defaultSyncReporterEnvResolver) Trigger() controltowerv1.ToolTrigger {
+	return controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL
+}
+
+func DefaultSyncReporterEnvResolver() SyncReporterEnvResolver {
+	return &defaultSyncReporterEnvResolver{}
+}
+
 type SyncReporterConfig struct {
 	// gRPC connection for ControlTower
 	ClientConnection *grpc.ClientConn
@@ -34,13 +95,7 @@ type SyncReporterConfig struct {
 	// Required
 	ProjectName    string
 	ProjectVersion string
-	TriggerEvent   string
-
-	// Optional or auto-discovered from environment
-	GitRef     string
-	GitRefName string
-	GitRefType string
-	GitSha     string
+	ProjectSource  controltowerv1pb.Project_Source
 
 	// Performance
 	WorkerCount int
@@ -123,32 +178,42 @@ type workItem struct {
 }
 
 type syncReporter struct {
-	config    *SyncReporterConfig
-	workQueue chan *workItem
-	done      chan bool
-	wg        sync.WaitGroup
-	client    *grpc.ClientConn
-	sessions  *syncSessionPool
-	callbacks SyncReporterCallbacks
+	config      *SyncReporterConfig
+	workQueue   chan *workItem
+	done        chan bool
+	wg          sync.WaitGroup
+	client      *grpc.ClientConn
+	sessions    *syncSessionPool
+	envResolver SyncReporterEnvResolver
+	callbacks   SyncReporterCallbacks
 }
 
 // Verify syncReporter implements the Reporter interface
 var _ Reporter = (*syncReporter)(nil)
 
-func NewSyncReporter(config SyncReporterConfig, callbacks SyncReporterCallbacks) (Reporter, error) {
+func NewSyncReporter(config SyncReporterConfig, envResolver SyncReporterEnvResolver, callbacks SyncReporterCallbacks) (*syncReporter, error) {
 	if config.ClientConnection == nil {
 		return nil, fmt.Errorf("missing gRPC client connection")
 	}
 
-	// TODO: Auto-discover config using CI environment variables
-	// if enabled by the user
+	if envResolver == nil {
+		return nil, fmt.Errorf("missing environment resolver")
+	}
 
 	syncSessionPool := syncSessionPool{
 		syncSessions: make(map[string]syncSession),
 	}
 
-	trigger := controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL
-	source := packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_UNSPECIFIED
+	done := make(chan bool)
+	self := &syncReporter{
+		config:      &config,
+		done:        done,
+		workQueue:   make(chan *workItem, 1000),
+		client:      config.ClientConnection,
+		sessions:    &syncSessionPool,
+		callbacks:   callbacks,
+		envResolver: envResolver,
+	}
 
 	// A multi-project sync is required for cases like GitHub org where
 	// we are scanning multiple repositories
@@ -159,14 +224,7 @@ func NewSyncReporter(config SyncReporterConfig, callbacks SyncReporterCallbacks)
 		// Refactor this into a common session creator function
 		toolServiceClient := controltowerv1grpc.NewToolServiceClient(config.ClientConnection)
 		toolSessionRes, err := toolServiceClient.CreateToolSession(context.Background(),
-			&controltowerv1.CreateToolSessionRequest{
-				ToolName:       config.Tool.Name,
-				ToolVersion:    config.Tool.Version,
-				ProjectName:    config.ProjectName,
-				ProjectVersion: &config.ProjectVersion,
-				ProjectSource:  &source,
-				Trigger:        &trigger,
-			})
+			self.createToolSessionRequestForProjectVersion(config.ProjectName, config.ProjectVersion))
 		if err != nil {
 			return nil, fmt.Errorf("failed to create tool session: %w", err)
 		}
@@ -176,16 +234,6 @@ func NewSyncReporter(config SyncReporterConfig, callbacks SyncReporterCallbacks)
 
 		syncSessionPool.addPrimarySession(toolSessionRes.GetToolSession().GetToolSessionId(),
 			toolServiceClient)
-	}
-
-	done := make(chan bool)
-	self := &syncReporter{
-		config:    &config,
-		done:      done,
-		workQueue: make(chan *workItem, 1000),
-		client:    config.ClientConnection,
-		sessions:  &syncSessionPool,
-		callbacks: callbacks,
 	}
 
 	self.dispatchOnSyncStart()
@@ -203,23 +251,13 @@ func (s *syncReporter) AddManifest(manifest *models.PackageManifest) {
 		projectName := manifest.GetSource().GetNamespace()
 		projectVersion := "main"
 
-		source := packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_UNSPECIFIED
-		trigger := controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL
-
 		logger.Debugf("Report Sync: Creating tool session for project: %s, version: %s",
 			projectName, projectVersion)
 
 		// Refactor this into a common session creator function
 		toolServiceClient := controltowerv1grpc.NewToolServiceClient(s.client)
 		toolSessionRes, err := toolServiceClient.CreateToolSession(context.Background(),
-			&controltowerv1.CreateToolSessionRequest{
-				ToolName:       s.config.Tool.Name,
-				ToolVersion:    s.config.Tool.Version,
-				ProjectName:    projectName,
-				ProjectVersion: &projectVersion,
-				ProjectSource:  &source,
-				Trigger:        &trigger,
-			})
+			s.createToolSessionRequestForProjectVersion(projectName, projectVersion))
 		if err != nil {
 			logger.Errorf("failed to create tool session for project: %s/%s: %v",
 				projectName, projectVersion, err)
@@ -546,4 +584,26 @@ func (s *syncReporter) syncPackage(pkg *models.Package) error {
 
 	s.dispatchOnPackageSyncDone(pkg)
 	return nil
+}
+
+func (s *syncReporter) createToolSessionRequestForProjectVersion(projectName, projectVersion string) *controltowerv1.CreateToolSessionRequest {
+	source := packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_UNSPECIFIED
+	trigger := s.envResolver.Trigger()
+	originSource := s.envResolver.GetProjectSource()
+	originUrl := s.envResolver.GetProjectUrl()
+	gitRef := s.envResolver.GitRef()
+	gitSha := s.envResolver.GitSha()
+
+	return &controltowerv1.CreateToolSessionRequest{
+		ToolName:            s.config.Tool.Name,
+		ToolVersion:         s.config.Tool.Version,
+		ProjectName:         projectName,
+		ProjectVersion:      &projectVersion,
+		ProjectSource:       &source,
+		Trigger:             &trigger,
+		OriginProjectSource: &originSource,
+		OriginProjectUrl:    &originUrl,
+		GitRef:              &gitRef,
+		GitSha:              &gitSha,
+	}
 }
