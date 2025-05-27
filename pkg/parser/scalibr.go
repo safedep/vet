@@ -3,7 +3,6 @@ package parser
 import (
 	"github.com/google/osv-scalibr/binary/platform"
 	scalibrfs "github.com/google/osv-scalibr/fs"
-
 	scalibrlog "github.com/google/osv-scalibr/log"
 )
 
@@ -12,9 +11,9 @@ func init() {
 	scalibrlog.SetLogger(silentLogger{})
 }
 
-// scanRoots function returns the default scan root required for osv-scalibr
+// ScalibrDefaultScanRoots function returns the default scan root required for osv-scalibr
 // Default is `/`
-func scanRoots() ([]*scalibrfs.ScanRoot, error) {
+func scalibrDefaultScanRoots() ([]*scalibrfs.ScanRoot, error) {
 	var scanRoots []*scalibrfs.ScanRoot
 	var scanRootPaths []string
 	var err error

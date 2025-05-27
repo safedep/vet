@@ -86,6 +86,7 @@ var (
 	malwareAnalysisTimeout           time.Duration
 	malwareAnalysisMinimumConfidence string
 	gitlabReportPath                 string
+	scanImageTarget                  string
 )
 
 func newScanCommand() *cobra.Command {
@@ -213,6 +214,8 @@ func newScanCommand() *cobra.Command {
 		"Generate GitLab dependency scanning report to file")
 	cmd.Flags().StringVarP(&malwareAnalysisMinimumConfidence, "malware-analysis-min-confidence", "", "HIGH",
 		"Minimum confidence level for malicious package analysis result to fail fast")
+	cmd.Flags().StringVarP(&scanImageTarget, "image", "", "",
+		"Image reference to run container  image scanning (eg. node:latest)")
 
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
@@ -387,6 +390,11 @@ func internalStartScan() error {
 			// nolint:ineffassign,staticcheck
 			reader, err = readers.NewVSCodeExtReader(vsxDirectories)
 		}
+	} else if len(scanImageTarget) != 0 {
+		analytics.TrackCommandImageScan()
+
+		readerConfig := readers.DefaultContainerImageReaderConfig()
+		reader, err = readers.NewContainerImageReader(scanImageTarget, readerConfig)
 	} else {
 		analytics.TrackCommandScanDirectoryScan()
 

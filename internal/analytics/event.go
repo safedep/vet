@@ -1,9 +1,12 @@
 package analytics
 
 const (
-	eventRun                     = "command_run"
-	eventCommandQuery            = "command_query"
-	eventCommandScan             = "command_scan"
+	eventRun = "command_run"
+
+	eventCommandQuery     = "command_query"
+	eventCommandScan      = "command_scan"
+	eventCommandImageScan = "command_image_scan"
+
 	eventScanFilterSuite         = "command_scan_has_filter_suite"
 	eventScanFilterArgs          = "command_scan_has_filter_args"
 	eventScanInsightsV2          = "command_scan_insights_v2"
@@ -133,4 +136,8 @@ func TrackReporterCycloneDX() {
 
 func TrackReporterCSV() {
 	TrackEvent(eventReporterCSV)
+}
+
+func TrackCommandImageScan() {
+	TrackEvent(eventCommandImageScan)
 }
