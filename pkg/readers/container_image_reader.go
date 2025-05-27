@@ -77,6 +77,7 @@ func (c containerImageReader) ApplicationName() (string, error) {
 }
 
 func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest, PackageReader) error) error {
+
 	scanConfig, err := getScalibrScanConfig()
 	if err != nil {
 		logger.Errorf("failed to get scan config: %s", err)
@@ -134,6 +135,12 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 			continue
 		}
 	}
+
+	if err := c.imageTarget.scalibrImage.CleanUp(); err != nil {
+		logger.Errorf("failed to cleanup image target: %s", err)
+		return fmt.Errorf("failed to cleanup image target: %s", err)
+	}
+
 	return nil
 }
 
