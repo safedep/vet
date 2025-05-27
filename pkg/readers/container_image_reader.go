@@ -42,20 +42,17 @@ var _ PackageManifestReader = &containerImageReader{}
 func NewContainerImageReader(imageStr string, config *ContainerImageReaderConfig) (*containerImageReader, error) {
 	ui.PrintMsg("Downloading and mounting %s filesystem for scanning", imageStr)
 
-	var containerImage *scalibrlayerimage.Image
-	var err error
-
-	if config.RemoteImageFetch {
-		ui.PrintMsg("Fetching from remote registry")
-		containerImage, err = scalibrlayerimage.FromRemoteName(imageStr, scalibrlayerimage.DefaultConfig())
-		if err != nil {
-			logger.Errorf("Failed to get Scalibr container image: %s", err)
-			return nil, fmt.Errorf("failed to fetch container image: %s", err)
-		}
-	} else {
+	if !config.RemoteImageFetch {
 		ui.PrintMsg("Using image from local filesystem")
 		logger.Errorf("local image scanning not supported in image scan")
 		return nil, fmt.Errorf("local image scanning not supported in image scan")
+	}
+
+	ui.PrintMsg("Fetching from remote registry")
+	containerImage, err := scalibrlayerimage.FromRemoteName(imageStr, scalibrlayerimage.DefaultConfig())
+	if err != nil {
+		logger.Errorf("Failed to get Scalibr container image: %s", err)
+		return nil, fmt.Errorf("failed to fetch container image: %s", err)
 	}
 
 	ui.PrintSuccess("Successfully fetched image")
