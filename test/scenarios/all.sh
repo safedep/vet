@@ -22,3 +22,6 @@ bash $E2E_THIS_DIR/scenario-8-summary-report.sh
 bash $E2E_THIS_DIR/scenario-9-malware-analysis.sh
 bash $E2E_THIS_DIR/scenario-10-code-scan.sh
 bash $E2E_THIS_DIR/scenario-11-code-csvreport.sh
+bash $E2E_THIS_DIR/scenario-12-image-scan-local-docker-image.sh
+bash $E2E_THIS_DIR/scenario-13-image-scan-with-local-tar
+bash $E2E_THIS_DIR/scenario-14-image-scan-with-remote-registry.sh
