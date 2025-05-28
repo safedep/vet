@@ -4,11 +4,14 @@ set -x
 
 # Scenario for Container Scanning from tar folder
 
-# Pull nats:2.10 image
-docker pull nats:2.10
+IMAGE="alpine/sqlite:3.48.0"
+TAR_FILE="alpine-sqlite.tar"
+
+# Pull image
+docker pull ${IMAGE}
 
 # save this image into tar file
-docker save nats:2.10 -o nats210.tar
+docker save ${IMAGE} -o ${TAR_FILE}
 
 $E2E_VET_BINARY \
-  scan --image ./nats210.tar
+  scan --image ./${TAR_FILE} --no-remote

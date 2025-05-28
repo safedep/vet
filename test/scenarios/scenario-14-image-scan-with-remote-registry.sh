@@ -4,5 +4,7 @@ set -x
 
 # Scenario for Container Scanning from remote registry
 
+IMAGE="alpine/sqlite:3.48.0"
+
 $E2E_VET_BINARY \
-  scan --image nats:2.10
+  scan --image ${IMAGE}
