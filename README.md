@@ -1,7 +1,7 @@
 <div align="center">
   <h1>🔍 vet</h1>
   
-  <p><strong>Enterprise-grade open source software supply chain security</strong></p>
+  <p><strong>🚀 Enterprise grade open source software supply chain security</strong></p>
   
   <p>
     <a href="https://github.com/safedep/vet/releases"><strong>Download</strong></a> •
@@ -105,7 +105,8 @@ vet scan \
 ## 🚀 Production Ready Integrations
 
 ### 📦 **GitHub Actions**
-Zero config security scanning in your CI/CD pipeline with custom policies:
+Zero config security guardrails against vulnerabilities and malicious packages in your CI/CD pipeline
+**with your own opinionated policies**:
 
 ```yaml
 - uses: safedep/vet-action@v1
@@ -156,7 +157,7 @@ docker run --rm -v $(pwd):/app ghcr.io/safedep/vet:latest scan -D /app
   - [🎯 **Policy Enforcement Examples**](#-policy-enforcement-examples)
   - [🔧 **SBOM Support**](#-sbom-support)
   - [📊 **Query Mode \& Data Persistence**](#-query-mode--data-persistence)
-- [📊 Comprehensive Reporting](#-comprehensive-reporting)
+- [📊 Reporting](#-reporting)
   - [📋 **Report Formats**](#-report-formats)
   - [🎯 **Report Examples**](#-report-examples)
 - [🛡️ Malicious Package Detection](#️-malicious-package-detection-1)
@@ -217,8 +218,8 @@ vet scan
 # Scan a given directory
 vet scan -D /path/to/project
 
-# With malware detection
-vet scan -D . --malware
+# Resolve and scan transitive dependencies
+vet scan -D . --transitive
 ```
 
 **📄 Manifest Files**
@@ -280,7 +281,7 @@ vet scan -D . \
 
 # Popularity-based filtering
 vet scan -D . \
-  --filter 'pkg.popularity.downloads.monthly < 1000' \
+  --filter 'projects.exists(p, p.type == "GITHUB" && p.stars < 50)' \
   --filter-fail
 ```
 
@@ -318,9 +319,9 @@ vet query --from ./scan-data \
   --report-json license-violations.json
 ```
 
-## 📊 Comprehensive Reporting
+## 📊 Reporting
 
-**vet** generates reports tailored for different stakeholders:
+**vet** generate reports that are tailored for different stakeholders:
 
 ### 📋 **Report Formats**
 
@@ -331,13 +332,13 @@ vet query --from ./scan-data \
 
 ```bash
 # SARIF for GitHub Security tab
-vet scan -D . --report-sarif=security.sarif
+vet scan -D . --report-sarif=report.sarif
 
 # JSON for custom tooling
-vet scan -D . --report-json=detailed.json
+vet scan -D . --report-json=report.json
 
 # CSV for spreadsheet analysis
-vet scan -D . --report-csv=analysis.csv
+vet scan -D . --report-csv=report.csv
 ```
 
 </td>
@@ -348,7 +349,7 @@ vet scan -D . --report-csv=analysis.csv
 
 ```bash
 # Markdown reports for PRs
-vet scan -D . --report-markdown=security-review.md
+vet scan -D . --report-markdown=report.md
 
 # Console summary (default)
 vet scan -D . --report-summary
@@ -377,14 +378,14 @@ vet scan -D . --report-dot=dependencies.dot
 ```bash
 # Multi-format output
 vet scan -D . \
-  --report-json=results.json \
-  --report-sarif=security.sarif \
-  --report-markdown=summary.md
+  --report-json=report.json \
+  --report-sarif=report.sarif \
+  --report-markdown=report.md
 
 # Focus on specific issues
 vet scan -D . \
   --filter 'vulns.high.exists(p, true)' \
-  --report-json=high-severity.json
+  --report-json=report.json
 ```
 
 ## 🛡️ Malicious Package Detection
@@ -403,6 +404,14 @@ vet cloud quickstart
 # Enable malware scanning
 vet scan -D . --malware
 ```
+
+Example malicious packages detected and reported by [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis)
+malicious package detection:
+
+- [MAL-2025-3541: express-cookie-parser](https://safedep.io/malicious-npm-package-express-cookie-parser/)
+- [MAL-2025-4339: eslint-config-airbnb-compat](https://safedep.io/digging-into-dynamic-malware-analysis-signals/)
+- [MAL-2025-4029: ts-runtime-compat-check](https://safedep.io/digging-into-dynamic-malware-analysis-signals/)
+- [MAL-2025-2227: nyc-config](https://safedep.io/nyc-config-malicious-package/)
 
 ### 🎯 **Advanced Malicious Package Analysis**
 
@@ -447,10 +456,10 @@ vet inspect malware \
 ### 🔒 **Security Features**
 
 - ✅ **Real-time analysis** of packages against known malware databases
-- ✅ **Behavioral analysis** using SafeDep Cloud's ML models  
-- ✅ **Community intelligence** from Malysis service
-- ✅ **Zero-day protection** through active code scanning
-- ✅ **Privacy-first** design with optional cloud analysis
+- ✅ **Behavioral analysis** using static and dynamic analysis
+- ✅ **Zero day protection** through active code scanning
+- ✅ **Human in the loop** for triaging and investigation of high impact findings
+- ✅ **Real time analysis** with public [analysis log](https://vetpkg.dev/mal)
 
 ## 🎊 Community & Support
 
