@@ -10,4 +10,4 @@ IMAGE="alpine/sqlite:3.48.0"
 docker pull ${IMAGE}
 
 $E2E_VET_BINARY \
-  scan --image ${IMAGE} --no-remote
+  scan --image ${IMAGE} --image-no-remote

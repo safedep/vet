@@ -217,7 +217,7 @@ func newScanCommand() *cobra.Command {
 		"Minimum confidence level for malicious package analysis result to fail fast")
 	cmd.Flags().StringVarP(&scanImageTarget, "image", "", "",
 		"Image reference to run container image scanning (eg. node:latest)")
-	cmd.Flags().BoolVarP(&scanImageNoRemote, "no-remote", "", false,
+	cmd.Flags().BoolVarP(&scanImageNoRemote, "image-no-remote", "", false,
 		"Disable remote registry image pulling")
 
 	// Add validations that should trigger a fail fast condition

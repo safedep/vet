@@ -14,4 +14,4 @@ docker pull ${IMAGE}
 docker save ${IMAGE} -o ${TAR_FILE}
 
 $E2E_VET_BINARY \
-  scan --image ./${TAR_FILE} --no-remote
+  scan --image ./${TAR_FILE} --image-no-remote

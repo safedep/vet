@@ -35,7 +35,6 @@ func (c containerImageReader) imageFromLocalDockerImageCatalog(ctx context.Conte
 	}
 
 	image, err := scalibrlayerimage.FromTarball(tempTarFileName, scalibrlayerimage.DefaultConfig())
-
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +48,7 @@ func (c containerImageReader) imageFromLocalDockerImageCatalog(ctx context.Conte
 }
 
 func (c containerImageReader) imageFromLocalTarFolder(_ context.Context) (*scalibrlayerimage.Image, error) {
-	pathExists, err := checkPathExists(c.imageTarget.imageStr)
+	pathExists, err := c.checkPathExists(c.imageTarget.imageStr)
 	if err != nil {
 		// Permission denied etc.
 		return nil, err
@@ -127,7 +126,7 @@ func (c containerImageReader) saveDockerImageToTempFile(ctx context.Context, tar
 	return tempTarFile.Name(), nil
 }
 
-func checkPathExists(path string) (bool, error) {
+func (c containerImageReader) checkPathExists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
 		return true, nil // Path exists

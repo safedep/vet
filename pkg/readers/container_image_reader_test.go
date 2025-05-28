@@ -44,3 +44,48 @@ func TestContainerImageReader_Name(t *testing.T) {
 
 	assert.Equal(t, "Container Image Reader", reader.Name())
 }
+
+func TestCheckPathExists(t *testing.T) {
+	cases := []struct {
+		name string
+		path string
+
+		isPathExists  bool
+		expectedError bool
+	}{
+		{
+			name: "valid path",
+			path: "./fixtures/image-tar/dummy.tar",
+
+			isPathExists:  true,
+			expectedError: false,
+		},
+		{
+			name: "invalid path",
+			path: "./fixtures/image-tar/not-exist.tar",
+
+			isPathExists:  false,
+			expectedError: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			config := DefaultContainerImageReaderConfig()
+			reader, err := NewContainerImageReader(tc.path, config)
+
+			assert.NoError(t, err)
+			assert.NotNil(t, reader)
+
+			exists, err := reader.checkPathExists(tc.path)
+
+			if tc.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			assert.Equal(t, tc.isPathExists, exists)
+		})
+	}
+}
