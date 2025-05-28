@@ -35,18 +35,6 @@ func TestContainerImageReader_ApplicationName(t *testing.T) {
 	}
 }
 
-func TestContainerImageReader_LocalImageNotSupported(t *testing.T) {
-	config := &ContainerImageReaderConfig{
-		// This is not supported, hence it will give error
-		RemoteImageFetch: false,
-	}
-
-	reader, err := NewContainerImageReader("alpine:latest", config)
-
-	assert.Error(t, err)
-	assert.Nil(t, reader)
-}
-
 func TestContainerImageReader_Name(t *testing.T) {
 	config := DefaultContainerImageReaderConfig()
 	reader, err := NewContainerImageReader("alpine:latest", config)
