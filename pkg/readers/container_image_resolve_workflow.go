@@ -34,8 +34,7 @@ func (c containerImageReader) imageFromLocalDockerImageCatalog() (*scalibrlayeri
 	}
 
 	// Assign this filename to imageStr of config and use tar image resolver.
-	c.imageTarget.imageStr = tempTarFileName
-	image, err := c.imageFromLocalTarFolder()
+	image, err := scalibrlayerimage.FromTarball(tempTarFileName, scalibrlayerimage.DefaultConfig())
 
 	if err != nil {
 		return nil, utils.LogAndError(err, "failed to read image from local tar")
@@ -76,7 +75,7 @@ func (c containerImageReader) imageFromRemoteRegistry() (*scalibrlayerimage.Imag
 
 	containerImage, err := scalibrlayerimage.FromRemoteName(c.imageTarget.imageStr, scalibrlayerimage.DefaultConfig())
 	if err != nil {
-		return nil, utils.LogAndError(err, "failed to fetch container image")
+		return nil, utils.LogAndError(err, "failed to fetch container image: image not exists")
 	}
 
 	logger.Infof("using image form remote registry")

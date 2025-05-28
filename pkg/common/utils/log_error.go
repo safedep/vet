@@ -6,7 +6,10 @@ import (
 )
 
 func LogAndError(err error, message string) error {
-	errorMsg := fmt.Sprintf("%s: %s", message, err)
-	logger.Errorf(errorMsg)
-	return fmt.Errorf(errorMsg)
+	errMsg := message
+	if err != nil {
+		errMsg += fmt.Sprintf(": %s", err)
+	}
+	logger.Errorf(errMsg)
+	return fmt.Errorf(errMsg)
 }
