@@ -2,6 +2,7 @@ package readers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/docker/docker/client"
 	scalibr "github.com/google/osv-scalibr"
@@ -40,6 +41,7 @@ var _ PackageManifestReader = &containerImageReader{}
 
 // NewContainerImageReader fetches images using config and creates containerImageReader
 func NewContainerImageReader(imageStr string, config *ContainerImageReaderConfig) (*containerImageReader, error) {
+	// docker is not required to be installed for this line, but when we use docker API then it should be.
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return nil, err
@@ -188,9 +190,10 @@ func (c containerImageReader) getScalibrImage(ctx context.Context) (*scalibrlaye
 
 	for _, getImage := range workflow {
 		image, err := getImage(ctx)
-		if err != nil {
-			logger.Errorf("failed to perform workflow: %s", err)
+		if errors.Is(err, imageResolverUnsupportedError) {
 			continue
+		} else if err != nil {
+			return nil, err
 		}
 
 		if image != nil {

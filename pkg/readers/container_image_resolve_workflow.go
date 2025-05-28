@@ -21,12 +21,14 @@ type imageResolutionWorkflowFunc func(ctx context.Context) (*scalibrlayerimage.I
 func (c containerImageReader) imageFromLocalDockerImageCatalog(ctx context.Context) (*scalibrlayerimage.Image, error) {
 	targetImageId, err := c.findLocalDockerImageId(ctx)
 	if err != nil {
-		return nil, err
+		// If a docker client is not available, then we return imageResolverUnsupportedError,
+		// or we get any error, then also get to the next workflow
+		return nil, imageResolverUnsupportedError
 	}
 
 	// no image found, go to the next workflow
 	if targetImageId == "" {
-		return nil, nil
+		return nil, imageResolverUnsupportedError
 	}
 
 	tempTarFileName, err := c.saveDockerImageToTempFile(ctx, targetImageId)
@@ -34,7 +36,6 @@ func (c containerImageReader) imageFromLocalDockerImageCatalog(ctx context.Conte
 		return nil, err
 	}
 
-	// Assign this filename to imageStr of config and use tar image resolver.
 	image, err := scalibrlayerimage.FromTarball(tempTarFileName, scalibrlayerimage.DefaultConfig())
 
 	if err != nil {
@@ -57,7 +58,7 @@ func (c containerImageReader) imageFromLocalTarFolder(_ context.Context) (*scali
 	}
 
 	if !pathExists {
-		return nil, nil
+		return nil, imageResolverUnsupportedError
 	}
 
 	containerImage, err := scalibrlayerimage.FromTarball(c.imageTarget.imageStr, scalibrlayerimage.DefaultConfig())
