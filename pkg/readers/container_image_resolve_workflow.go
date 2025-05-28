@@ -13,16 +13,14 @@ import (
 	"slices"
 )
 
-type imageCleanUpFunc func() error
 type imageResolutionWorkflowFunc func() (*scalibrlayerimage.Image, error)
 
 func (c containerImageReader) imageFromLocalDockerImageCatalog() (*scalibrlayerimage.Image, error) {
 	ctx := context.Background()
 
 	targetImageId, err := c.findLocalDockerImageId(ctx)
-
 	if err != nil {
-		return nil, fmt.Errorf("failed to find local docker image id: %w", err)
+		return nil, utils.LogAndError(err, "failed to find local docker image id")
 	}
 
 	// no image found, go to the next workflow
@@ -32,15 +30,8 @@ func (c containerImageReader) imageFromLocalDockerImageCatalog() (*scalibrlayeri
 
 	tempTarFileName, err := c.saveDockerImageToTempFile(ctx, targetImageId)
 	if err != nil {
-		return nil, fmt.Errorf("failed to save docker image to temp file: %w", err)
+		return nil, utils.LogAndError(err, "failed to save docker image to temp file")
 	}
-
-	/*	defer func() {
-			if err := os.Remove(tempTarFileName); err == nil {
-				logger.Errorf("failed to remove temp file %s", err)
-			}
-		}()
-	*/
 
 	// Assign this filename to imageStr of config and use tar image resolver.
 	c.imageTarget.imageStr = tempTarFileName
@@ -48,6 +39,10 @@ func (c containerImageReader) imageFromLocalDockerImageCatalog() (*scalibrlayeri
 
 	if err != nil {
 		return nil, utils.LogAndError(err, "failed to read image from local tar")
+	}
+
+	if err := os.Remove(tempTarFileName); err != nil {
+		return nil, utils.LogAndError(err, "failed to remove temp file")
 	}
 
 	logger.Infof("using image form local docker image catalog")
