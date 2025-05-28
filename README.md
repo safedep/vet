@@ -493,7 +493,7 @@ vet inspect malware \
 
 vet stands on the shoulders of giants:
 
-[OSV](https://osv.dev) • [OpenSSF Scorecard](https://securityscorecards.dev/) • [SLSA](https://slsa.dev/) • [OSV Scanner](https://github.com/google/osv-scanner) • [Syft](https://github.com/anchore/syft)
+[OSV](https://osv.dev) • [OpenSSF Scorecard](https://securityscorecards.dev/) • [SLSA](https://slsa.dev/) • [OSV-SCALIBR](https://github.com/google/osv-scalibr) • [Syft](https://github.com/anchore/syft)
 
 ---
 
