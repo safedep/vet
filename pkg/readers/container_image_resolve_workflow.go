@@ -21,9 +21,7 @@ type imageResolutionWorkflowFunc func(ctx context.Context) (*scalibrlayerimage.I
 func (c containerImageReader) imageFromLocalDockerImageCatalog(ctx context.Context) (*scalibrlayerimage.Image, error) {
 	targetImageId, err := c.findLocalDockerImageId(ctx)
 	if err != nil {
-		// If a docker client is not available, then we return imageResolverUnsupportedError,
-		// or we get any error, then also get to the next workflow
-		return nil, imageResolverUnsupportedError
+		return nil, err
 	}
 
 	// no image found, go to the next workflow
@@ -87,7 +85,7 @@ func (c containerImageReader) imageFromRemoteRegistry(_ context.Context) (*scali
 func (c containerImageReader) findLocalDockerImageId(ctx context.Context) (string, error) {
 	allLocalImages, err := c.dockerClient.ImageList(ctx, image.ListOptions{})
 	if err != nil {
-		return "", err
+		return "", imageResolverUnsupportedError
 	}
 
 	for _, image := range allLocalImages {
@@ -103,7 +101,7 @@ func (c containerImageReader) findLocalDockerImageId(ctx context.Context) (strin
 func (c containerImageReader) saveDockerImageToTempFile(ctx context.Context, targetImageId string) (string, error) {
 	reader, err := c.dockerClient.ImageSave(ctx, []string{targetImageId})
 	if err != nil {
-		return "", err
+		return "", imageResolverUnsupportedError
 	}
 
 	// create tem directory in /tmp for storing `POSIX tar archive` in file
