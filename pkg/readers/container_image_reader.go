@@ -139,7 +139,7 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 }
 
 // getScalibrScanConfig returns scalibr.ScanConfig with Extractors and Detectors enabled
-func (c *containerImageReader) getScalibrScanConfig() (*scalibr.ScanConfig, error) {
+func (c containerImageReader) getScalibrScanConfig() (*scalibr.ScanConfig, error) {
 	// Create Filesystem Extractors, we are using `all` as in container, we need to find everything
 	allFilesystemExtractors, err := el.ExtractorsFromNames([]string{"all"})
 	if err != nil {
@@ -182,7 +182,7 @@ func (c *containerImageReader) getScalibrScanConfig() (*scalibr.ScanConfig, erro
 }
 
 // getScalibrImage converts the user-provided image reference (path, tar, docker image) to a scalibr compatible object
-func (c *containerImageReader) getScalibrImage(imageStr string) (*scalibrlayerimage.Image, error) {
+func (c containerImageReader) getScalibrImage(imageStr string) (*scalibrlayerimage.Image, error) {
 	workflow := []imageResolutionWorkflowFunc{
 		c.imageFromLocalDockerImageCatalog,
 		c.imageFromLocalTarFolder,
@@ -205,7 +205,7 @@ func (c *containerImageReader) getScalibrImage(imageStr string) (*scalibrlayerim
 	return nil, fmt.Errorf("failed to find a valid image: no image resolution workflow applied")
 }
 
-func (c *containerImageReader) scalibrDefaultScanRoots() ([]*scalibrfs.ScanRoot, error) {
+func (c containerImageReader) scalibrDefaultScanRoots() ([]*scalibrfs.ScanRoot, error) {
 	var scanRoots []*scalibrfs.ScanRoot
 	var scanRootPaths []string
 	var err error

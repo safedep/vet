@@ -1,9 +1,9 @@
 package readers
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"github.com/docker/distribution/context"
 	"github.com/docker/docker/api/types/image"
 	scalibrlayerimage "github.com/google/osv-scalibr/artifact/image/layerscanning/image"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -15,58 +15,27 @@ import (
 type imageCleanUpFunc func() error
 type imageResolutionWorkflowFunc func() (*scalibrlayerimage.Image, error)
 
-func (c *containerImageReader) imageFromLocalDockerImageCatalog() (*scalibrlayerimage.Image, error) {
+func (c containerImageReader) imageFromLocalDockerImageCatalog() (*scalibrlayerimage.Image, error) {
 	ctx := context.Background()
 
-	allLocalImages, err := c.dockerClient.ImageList(ctx, image.ListOptions{})
+	targetImageId, err := c.findLocalDockerImageId(ctx)
+
 	if err != nil {
-		logger.Errorf("failed to list images: %s", err)
-		return nil, fmt.Errorf("failed to list images: %s", err)
+		return nil, fmt.Errorf("failed to find local docker image id: %w", err)
 	}
 
-	targetImageId := ""
-	for _, image := range allLocalImages {
-		if slices.Contains(image.RepoTags, c.imageTarget.imageStr) {
-			targetImageId = image.ID
-			break
-		}
-	}
-
-	// no image found
+	// no image found, go to the next workflow
 	if targetImageId == "" {
-		// not for our workflow
 		return nil, nil
 	}
 
-	reader, err := c.dockerClient.ImageSave(ctx, []string{targetImageId})
+	tempTarFileName, err := c.saveDockerImageToTempFile(ctx, targetImageId)
 	if err != nil {
-		logger.Errorf("failed to save image: %s", err)
-		return nil, fmt.Errorf("failed to save image: %s", err)
+		return nil, fmt.Errorf("failed to save docker image to temp file: %w", err)
 	}
 
-	// create tem directory in /tmp for storing `POSIX tar archive` in file
-	tempTarFile, err := os.CreateTemp(os.TempDir(), fmt.Sprintf("image-%s-*.tar", c.imageTarget.imageStr))
-
-	if err != nil {
-		logger.Errorf("failed to create temp file: %s", err)
-		return nil, fmt.Errorf("failed to create temp file: %s", err)
-	}
-
-	if _, err := io.Copy(tempTarFile, reader); err != nil {
-		logger.Errorf("failed to copy docker image data to temp file: %s", err)
-		return nil, fmt.Errorf("failed to copy docker image data to temp file: %s", err)
-	}
-
-	if err := reader.Close(); err != nil {
-		logger.Errorf("failed to close docker save reader: %s", err)
-		return nil, fmt.Errorf("failed to close docker save reader: %s", err)
-	}
-	if err := tempTarFile.Close(); err != nil {
-		logger.Errorf("failed to close temp file: %s", err)
-		return nil, fmt.Errorf("failed to close temp file: %s", err)
-	}
-
-	c.imageTarget.imageStr = tempTarFile.Name()
+	// Assign this filename to imageStr of config and use tar image resolver.
+	c.imageTarget.imageStr = tempTarFileName
 	image, err := c.imageFromLocalTarFolder()
 
 	if err != nil {
@@ -78,7 +47,7 @@ func (c *containerImageReader) imageFromLocalDockerImageCatalog() (*scalibrlayer
 	return image, nil
 }
 
-func (c *containerImageReader) imageFromLocalTarFolder() (*scalibrlayerimage.Image, error) {
+func (c containerImageReader) imageFromLocalTarFolder() (*scalibrlayerimage.Image, error) {
 	pathExists, err := checkPathExists(c.imageTarget.imageStr)
 	if err != nil {
 		// Permission denied etc.
@@ -100,7 +69,7 @@ func (c *containerImageReader) imageFromLocalTarFolder() (*scalibrlayerimage.Ima
 	return containerImage, nil
 }
 
-func (c *containerImageReader) imageFromRemoteRegistry() (*scalibrlayerimage.Image, error) {
+func (c containerImageReader) imageFromRemoteRegistry() (*scalibrlayerimage.Image, error) {
 	if !c.config.RemoteImageFetch {
 		return nil, fmt.Errorf("remote image fetching is disabled")
 	}
@@ -113,6 +82,58 @@ func (c *containerImageReader) imageFromRemoteRegistry() (*scalibrlayerimage.Ima
 
 	logger.Infof("using image form remote registry")
 	return containerImage, nil
+}
+
+func (c containerImageReader) findLocalDockerImageId(ctx context.Context) (string, error) {
+	allLocalImages, err := c.dockerClient.ImageList(ctx, image.ListOptions{})
+	if err != nil {
+		logger.Errorf("failed to list images: %s", err)
+		return "", fmt.Errorf("failed to list images: %s", err)
+	}
+
+	for _, image := range allLocalImages {
+		if slices.Contains(image.RepoTags, c.imageTarget.imageStr) {
+			return image.ID, nil
+			break
+		}
+	}
+
+	// no image, without error while finding
+	return "", nil
+}
+
+func (c containerImageReader) saveDockerImageToTempFile(ctx context.Context, targetImageId string) (string, error) {
+	reader, err := c.dockerClient.ImageSave(ctx, []string{targetImageId})
+	if err != nil {
+		logger.Errorf("failed to save image: %s", err)
+		return "", fmt.Errorf("failed to save image: %s", err)
+	}
+
+	// create tem directory in /tmp for storing `POSIX tar archive` in file
+	tempTarFile, err := os.CreateTemp(os.TempDir(), fmt.Sprintf("image-%s-*.tar", c.imageTarget.imageStr))
+
+	if err != nil {
+		logger.Errorf("failed to create temp file: %s", err)
+		return "", fmt.Errorf("failed to create temp file: %s", err)
+	}
+
+	if _, err := io.Copy(tempTarFile, reader); err != nil {
+		logger.Errorf("failed to copy docker image data to temp file: %s", err)
+		return "", fmt.Errorf("failed to copy docker image data to temp file: %s", err)
+	}
+
+	if err := reader.Close(); err != nil {
+		logger.Errorf("failed to close docker save reader: %s", err)
+		return "", fmt.Errorf("failed to close docker save reader: %s", err)
+	}
+
+	if err := tempTarFile.Close(); err != nil {
+		logger.Errorf("failed to close temp file: %s", err)
+		return "", fmt.Errorf("failed to close temp file: %s", err)
+	}
+
+	// from docs: it is safe to call Name after Close
+	return tempTarFile.Name(), nil
 }
 
 func checkPathExists(path string) (bool, error) {
