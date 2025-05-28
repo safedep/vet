@@ -13,6 +13,7 @@ import (
 	scalibrfs "github.com/google/osv-scalibr/fs"
 	"github.com/google/osv-scalibr/plugin"
 	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/pkg/common/utils"
 	"github.com/safedep/vet/pkg/models"
 )
 
@@ -42,8 +43,7 @@ var _ PackageManifestReader = &containerImageReader{}
 func NewContainerImageReader(imageStr string, config *ContainerImageReaderConfig) (*containerImageReader, error) {
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		logger.Errorf("error creating docker client: %s", err)
-		return nil, fmt.Errorf("failed to create docker client: %s", err)
+		return nil, utils.LogAndError(err, "failed to create docker client")
 	}
 
 	imageTarget := &imageTargetConfig{
@@ -68,21 +68,18 @@ func (c containerImageReader) ApplicationName() (string, error) {
 func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest, PackageReader) error) error {
 	image, err := c.getScalibrImage(c.imageTarget.imageStr)
 	if err != nil {
-		logger.Errorf("invalid image: error while creating contaimer image from ref: %s", err)
-		return fmt.Errorf("invalid image: error while creating contaimer image from ref: %s", err)
+		return utils.LogAndError(err, "invalid image: error while creating container image from ref")
 	}
 
 	scanConfig, err := c.getScalibrScanConfig()
 	if err != nil {
-		logger.Errorf("failed to get scan config: %s", err)
-		return fmt.Errorf("failed to get scan config: %s", err)
+		return utils.LogAndError(err, "failed to get scan config")
 	}
 
 	// Scan Container
 	result, err := scalibr.New().ScanContainer(context.Background(), image, scanConfig)
 	if err != nil {
-		logger.Errorf("failed to perform container scan: %s", err)
-		return fmt.Errorf("failed to perform container scan: %s", err)
+		return utils.LogAndError(err, "failed to perform container scan")
 	}
 
 	manifests := make(map[string]*models.PackageManifest)
@@ -131,8 +128,7 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 	}
 
 	if err := image.CleanUp(); err != nil {
-		logger.Errorf("failed to cleanup image target: %s", err)
-		return fmt.Errorf("failed to cleanup image target: %s", err)
+		return utils.LogAndError(err, "failed to cleanup image target")
 	}
 
 	return nil
@@ -201,8 +197,7 @@ func (c containerImageReader) getScalibrImage(imageStr string) (*scalibrlayerima
 		}
 	}
 
-	logger.Errorf("failed to find image for imageStr: no image resolution workflow applied")
-	return nil, fmt.Errorf("failed to find a valid image: no image resolution workflow applied")
+	return nil, utils.LogAndError(nil, "failed to find a valid image: no image resolution workflow applied")
 }
 
 func (c containerImageReader) scalibrDefaultScanRoots() ([]*scalibrfs.ScanRoot, error) {
