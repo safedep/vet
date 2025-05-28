@@ -56,11 +56,14 @@ vet scan -D .
 # Scan a single file
 vet scan -M package-lock.json
 
-# Scan with malicious package detection enabled
-vet scan -D . --malware
-
 # Fail CI on critical vulnerabilities
 vet scan -D . --filter 'vulns.critical.exists(p, true)' --filter-fail
+
+# Fail CI on OpenSSF Scorecard requirements
+vet scan -D . --filter 'scorecard.scores.Maintained < 5' --filter-fail
+
+# Fail CI if a package is published from a GitHub repository with less than 5 stars
+vet scan -D . --filter 'projects.exists(p, p.type == "GITHUB" && p.stars < 5)' --filter-fail
 ```
 
 ## 🔒 Key Features
@@ -69,7 +72,7 @@ vet scan -D . --filter 'vulns.critical.exists(p, true)' --filter-fail
 Unlike dependency scanners that flood you with noise, `vet` analyzes your **actual code usage** to prioritize real risks.
 
 ### 🛡️ **Malicious Package Detection**
-Integrated with [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis) for real-time protection against malicious packages in the wild.
+Integrated with [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis) for real-time protection against malicious packages in the wild. Free for open source projects. Fallback to *Query Mode* when API key is not provided. Read more [about malicious package detection](#-malicious-package-detection).
 
 ### 📋 **Policy as Code**
 Define security policies using CEL expressions to enforce context specific security requirements.
@@ -164,12 +167,12 @@ docker run --rm -v $(pwd):/app ghcr.io/safedep/vet:latest scan -D /app
   - [🚀 **Quick Setup**](#-quick-setup)
   - [🎯 **Advanced Malicious Package Analysis**](#-advanced-malicious-package-analysis)
   - [🔒 **Security Features**](#-security-features)
+- [📊 Privacy and Telemetry](#-privacy-and-telemetry)
 - [🎊 Community \& Support](#-community--support)
   - [🌟 **Join the Community**](#-join-the-community)
   - [💡 **Get Help \& Share Ideas**](#-get-help--share-ideas)
   - [⭐ **Star History**](#-star-history)
   - [🙏 **Built With Open Source**](#-built-with-open-source)
-  - [📊 Privacy \& Telemetry](#-privacy--telemetry)
 
 ## 📦 Installation Options
 
@@ -391,7 +394,15 @@ vet scan -D . \
 ## 🛡️ Malicious Package Detection
 
 **Malicious package detection through active scanning and code analysis** powered by 
-[SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis):
+[SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis). `vet` requires an API
+key for active scanning of unknown packages. When API key is not provided, `vet` will
+fallback to *Query Mode* which detects known malicious packages from [SafeDep](https://safedep.io)
+and [OSV](https://osv.dev) databases.
+
+- Grab a free API key from [SafeDep Platform App](https://platform.safedep.io) or use `vet cloud quickstart`
+- API access is free forever for open source projects
+- No proprietary code is collected for malicious package detection
+- Only open source package scanning from public repositories is supported
 
 ### 🚀 **Quick Setup**
 
@@ -403,6 +414,9 @@ vet cloud quickstart
 
 # Enable malware scanning
 vet scan -D . --malware
+
+# Query for known malicious packages without API key
+vet scan -D . --malware-query
 ```
 
 Example malicious packages detected and reported by [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis)
@@ -419,7 +433,7 @@ malicious package detection:
 <tr>
 <td width="50%">
 
-**🔍 Threat Intelligence**
+**🔍 Scan packages with malicious package detection enabled**
 ```bash
 # Real-time scanning
 vet scan -D . --malware
@@ -444,9 +458,12 @@ vet scan --vsx --malware
 # GitHub Actions
 vet scan -D .github/workflows --malware
 
-# Specific packages
+# Scan a single package and fail if its malicious
+vet scan --purl pkg:/npm/nyc-config@10.0.0 --fail-fast
+
+# Active scanning of a single package (requires API key)
 vet inspect malware \
-  --purl pkg:npm/malicious-package@1.0.0
+  --purl pkg:npm/nyc-config@10.0.0
 ```
 
 </td>
@@ -460,6 +477,15 @@ vet inspect malware \
 - ✅ **Zero day protection** through active code scanning
 - ✅ **Human in the loop** for triaging and investigation of high impact findings
 - ✅ **Real time analysis** with public [analysis log](https://vetpkg.dev/mal)
+
+## 📊 Privacy and Telemetry
+
+`vet` collects anonymous usage telemetry to improve the product. **Your code and package information is never transmitted.**
+
+```bash
+# Disable telemetry (optional)
+export VET_DISABLE_TELEMETRY=true
+```
 
 ## 🎊 Community & Support
 
@@ -502,14 +528,5 @@ vet stands on the shoulders of giants:
 Created with ❤️ by [SafeDep](https://safedep.io) and the open source community
 
 </div>
-
-### 📊 Privacy & Telemetry
-
-vet collects anonymous usage telemetry to improve the product. **Your code and package information is never transmitted.**
-
-```bash
-# Disable telemetry (optional)
-export VET_DISABLE_TELEMETRY=true
-```
 
 <img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=304d1856-fcb3-4166-bfbf-b3e40d0f1e3b" />
