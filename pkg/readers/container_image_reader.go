@@ -192,8 +192,8 @@ func (c *containerImageReader) getScalibrImage(imageStr string) (*scalibrlayerim
 		}
 	}
 
-	logger.Errorf("failed to find image for imageStr: no workflow applied")
-	return nil, fmt.Errorf("failed to find a valid image")
+	logger.Errorf("failed to find image for imageStr: no image resolution workflow applied")
+	return nil, fmt.Errorf("failed to find a valid image: no image resolution workflow applied")
 }
 
 func (c *containerImageReader) scalibrDefaultScanRoots() ([]*scalibrfs.ScanRoot, error) {
