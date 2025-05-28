@@ -72,5 +72,4 @@ func TestContainerImageReaderEnumManifest(t *testing.T) {
 			}
 		})
 	}
-
 }
