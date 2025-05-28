@@ -104,7 +104,7 @@ func (c containerImageReader) saveDockerImageToTempFile(ctx context.Context, tar
 	}
 
 	// create tem directory in /tmp for storing `POSIX tar archive` in file
-	tempTarFile, err := os.CreateTemp(os.TempDir(), fmt.Sprintf("image-%s-*.tar", c.imageTarget.imageStr))
+	tempTarFile, err := os.CreateTemp(os.TempDir(), "image-data-*.tar")
 
 	if err != nil {
 		return "", err
