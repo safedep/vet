@@ -3,7 +3,7 @@ package readers
 import (
 	"context"
 	"fmt"
-
+	"github.com/docker/docker/client"
 	scalibr "github.com/google/osv-scalibr"
 	scalibrlayerimage "github.com/google/osv-scalibr/artifact/image/layerscanning/image"
 	"github.com/google/osv-scalibr/binary/platform"
@@ -31,20 +31,29 @@ type imageTargetConfig struct {
 }
 
 type containerImageReader struct {
-	config      *ContainerImageReaderConfig
-	imageTarget *imageTargetConfig
+	config       *ContainerImageReaderConfig
+	imageTarget  *imageTargetConfig
+	dockerClient *client.Client
 }
 
 var _ PackageManifestReader = &containerImageReader{}
 
 // NewContainerImageReader fetches images using config and creates containerImageReader
 func NewContainerImageReader(imageStr string, config *ContainerImageReaderConfig) (*containerImageReader, error) {
+	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		logger.Errorf("error creating docker client: %s", err)
+		return nil, fmt.Errorf("failed to create docker client: %s", err)
+	}
+
 	imageTarget := &imageTargetConfig{
 		imageStr: imageStr,
 	}
+
 	return &containerImageReader{
-		config:      config,
-		imageTarget: imageTarget,
+		config:       config,
+		imageTarget:  imageTarget,
+		dockerClient: dockerClient,
 	}, nil
 }
 
