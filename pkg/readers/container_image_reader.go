@@ -66,7 +66,7 @@ func (c containerImageReader) ApplicationName() (string, error) {
 }
 
 func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest, PackageReader) error) error {
-	image, err := c.getScalibrImage(c.imageTarget.imageStr)
+	image, err := c.getScalibrImage()
 	if err != nil {
 		return utils.LogAndError(err, "invalid image: error while creating container image from ref")
 	}
@@ -178,7 +178,7 @@ func (c containerImageReader) getScalibrScanConfig() (*scalibr.ScanConfig, error
 }
 
 // getScalibrImage converts the user-provided image reference (path, tar, docker image) to a scalibr compatible object
-func (c containerImageReader) getScalibrImage(imageStr string) (*scalibrlayerimage.Image, error) {
+func (c containerImageReader) getScalibrImage() (*scalibrlayerimage.Image, error) {
 	workflow := []imageResolutionWorkflowFunc{
 		c.imageFromLocalDockerImageCatalog,
 		c.imageFromLocalTarFolder,
