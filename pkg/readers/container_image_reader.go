@@ -39,10 +39,6 @@ var _ PackageManifestReader = &containerImageReader{}
 
 // NewContainerImageReader fetches images using config and creates containerImageReader
 func NewContainerImageReader(imageStr string, config *ContainerImageReaderConfig) (*containerImageReader, error) {
-	if !config.RemoteImageFetch {
-		return nil, fmt.Errorf("local image scanning is not supported yet")
-	}
-
 	imageTarget := &imageTargetConfig{
 		imageStr: imageStr,
 	}
@@ -61,13 +57,13 @@ func (c containerImageReader) ApplicationName() (string, error) {
 }
 
 func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest, PackageReader) error) error {
-	image, err := getScalibrImage(c.imageTarget.imageStr)
+	image, err := c.getScalibrImage(c.imageTarget.imageStr)
 	if err != nil {
 		logger.Errorf("invalid image: error while creating contaimer image from ref: %s", err)
 		return fmt.Errorf("invalid image: error while creating contaimer image from ref: %s", err)
 	}
 
-	scanConfig, err := getScalibrScanConfig()
+	scanConfig, err := c.getScalibrScanConfig()
 	if err != nil {
 		logger.Errorf("failed to get scan config: %s", err)
 		return fmt.Errorf("failed to get scan config: %s", err)
@@ -134,7 +130,7 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 }
 
 // getScalibrScanConfig returns scalibr.ScanConfig with Extractors and Detectors enabled
-func getScalibrScanConfig() (*scalibr.ScanConfig, error) {
+func (c *containerImageReader) getScalibrScanConfig() (*scalibr.ScanConfig, error) {
 	// Create Filesystem Extractors, we are using `all` as in container, we need to find everything
 	allFilesystemExtractors, err := el.ExtractorsFromNames([]string{"all"})
 	if err != nil {
@@ -162,7 +158,7 @@ func getScalibrScanConfig() (*scalibr.ScanConfig, error) {
 	allFilesystemExtractorsWithCapabilities := el.FilterByCapabilities(allFilesystemExtractors, capability)
 	allStandaloneExtractorsWithCapabilities := sl.FilterByCapabilities(allStandaloneExtractors, capability)
 
-	scanRoot, err := scalibrDefaultScanRoots()
+	scanRoot, err := c.scalibrDefaultScanRoots()
 	if err != nil {
 		return nil, err
 	}
@@ -176,16 +172,31 @@ func getScalibrScanConfig() (*scalibr.ScanConfig, error) {
 	}, nil
 }
 
-func getScalibrImage(imageStr string) (*scalibrlayerimage.Image, error) {
-	containerImage, err := scalibrlayerimage.FromRemoteName(imageStr, scalibrlayerimage.DefaultConfig())
-	if err != nil {
-		logger.Errorf("Failed to get Scalibr container image: %s", err)
-		return nil, fmt.Errorf("failed to fetch container image: %s", err)
+// getScalibrImage converts the user-provided image reference (path, tar, docker image) to a scalibr compatible object
+func (c *containerImageReader) getScalibrImage(imageStr string) (*scalibrlayerimage.Image, error) {
+	workflow := []imageResolutionWorkflowFunc{
+		c.imageFromLocalDockerImageCatalog,
+		c.imageFromLocalTarFolder,
+		c.imageFromRemoteRegistry,
 	}
-	return containerImage, nil
+
+	for _, getImage := range workflow {
+		image, err := getImage()
+		if err != nil {
+			logger.Errorf("failed to perform workflow: %s", err)
+			continue
+		}
+
+		if image != nil {
+			return image, nil
+		}
+	}
+
+	logger.Errorf("failed to find image for imageStr: no workflow applied")
+	return nil, fmt.Errorf("failed to find a valid image")
 }
 
-func scalibrDefaultScanRoots() ([]*scalibrfs.ScanRoot, error) {
+func (c *containerImageReader) scalibrDefaultScanRoots() ([]*scalibrfs.ScanRoot, error) {
 	var scanRoots []*scalibrfs.ScanRoot
 	var scanRootPaths []string
 	var err error
