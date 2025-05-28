@@ -91,7 +91,6 @@ func (c containerImageReader) findLocalDockerImageId(ctx context.Context) (strin
 	for _, image := range allLocalImages {
 		if slices.Contains(image.RepoTags, c.imageTarget.imageStr) {
 			return image.ID, nil
-			break
 		}
 	}
 
