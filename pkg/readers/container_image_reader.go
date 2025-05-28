@@ -13,7 +13,6 @@ import (
 	scalibrfs "github.com/google/osv-scalibr/fs"
 	"github.com/google/osv-scalibr/plugin"
 	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/common/utils"
 	"github.com/safedep/vet/pkg/models"
 )
 
@@ -43,7 +42,7 @@ var _ PackageManifestReader = &containerImageReader{}
 func NewContainerImageReader(imageStr string, config *ContainerImageReaderConfig) (*containerImageReader, error) {
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		return nil, utils.LogAndError(err, "failed to create docker client")
+		return nil, err
 	}
 
 	imageTarget := &imageTargetConfig{
@@ -68,18 +67,18 @@ func (c containerImageReader) ApplicationName() (string, error) {
 func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest, PackageReader) error) error {
 	image, err := c.getScalibrImage()
 	if err != nil {
-		return utils.LogAndError(err, "invalid image: error while creating container image from ref")
+		return err
 	}
 
 	scanConfig, err := c.getScalibrScanConfig()
 	if err != nil {
-		return utils.LogAndError(err, "failed to get scan config")
+		return err
 	}
 
 	// Scan Container
 	result, err := scalibr.New().ScanContainer(context.Background(), image, scanConfig)
 	if err != nil {
-		return utils.LogAndError(err, "failed to perform container scan")
+		return err
 	}
 
 	manifests := make(map[string]*models.PackageManifest)
@@ -128,7 +127,7 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 	}
 
 	if err := image.CleanUp(); err != nil {
-		return utils.LogAndError(err, "failed to cleanup image target")
+		return err
 	}
 
 	return nil
@@ -197,7 +196,7 @@ func (c containerImageReader) getScalibrImage() (*scalibrlayerimage.Image, error
 		}
 	}
 
-	return nil, utils.LogAndError(nil, "failed to find a valid image")
+	return nil, nil
 }
 
 func (c containerImageReader) scalibrDefaultScanRoots() ([]*scalibrfs.ScanRoot, error) {

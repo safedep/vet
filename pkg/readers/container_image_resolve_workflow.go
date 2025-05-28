@@ -7,7 +7,6 @@ import (
 	"github.com/docker/docker/api/types/image"
 	scalibrlayerimage "github.com/google/osv-scalibr/artifact/image/layerscanning/image"
 	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/common/utils"
 	"io"
 	"os"
 	"slices"
@@ -20,7 +19,7 @@ func (c containerImageReader) imageFromLocalDockerImageCatalog() (*scalibrlayeri
 
 	targetImageId, err := c.findLocalDockerImageId(ctx)
 	if err != nil {
-		return nil, utils.LogAndError(err, "failed to find local docker image id")
+		return nil, err
 	}
 
 	// no image found, go to the next workflow
@@ -30,18 +29,18 @@ func (c containerImageReader) imageFromLocalDockerImageCatalog() (*scalibrlayeri
 
 	tempTarFileName, err := c.saveDockerImageToTempFile(ctx, targetImageId)
 	if err != nil {
-		return nil, utils.LogAndError(err, "failed to save docker image to temp file")
+		return nil, err
 	}
 
 	// Assign this filename to imageStr of config and use tar image resolver.
 	image, err := scalibrlayerimage.FromTarball(tempTarFileName, scalibrlayerimage.DefaultConfig())
 
 	if err != nil {
-		return nil, utils.LogAndError(err, "failed to read image from local tar")
+		return nil, err
 	}
 
 	if err := os.Remove(tempTarFileName); err != nil {
-		return nil, utils.LogAndError(err, "failed to remove temp file")
+		return nil, err
 	}
 
 	logger.Infof("using image form local docker image catalog")
@@ -52,7 +51,7 @@ func (c containerImageReader) imageFromLocalTarFolder() (*scalibrlayerimage.Imag
 	pathExists, err := checkPathExists(c.imageTarget.imageStr)
 	if err != nil {
 		// Permission denied etc.
-		return nil, utils.LogAndError(err, "failed to check tarball exists")
+		return nil, err
 	}
 
 	if !pathExists {
@@ -61,7 +60,7 @@ func (c containerImageReader) imageFromLocalTarFolder() (*scalibrlayerimage.Imag
 
 	containerImage, err := scalibrlayerimage.FromTarball(c.imageTarget.imageStr, scalibrlayerimage.DefaultConfig())
 	if err != nil {
-		return nil, utils.LogAndError(err, "failed to get container image from tarball")
+		return nil, err
 	}
 
 	logger.Infof("using image form tarball")
@@ -75,7 +74,7 @@ func (c containerImageReader) imageFromRemoteRegistry() (*scalibrlayerimage.Imag
 
 	containerImage, err := scalibrlayerimage.FromRemoteName(c.imageTarget.imageStr, scalibrlayerimage.DefaultConfig())
 	if err != nil {
-		return nil, utils.LogAndError(err, "failed to fetch container image: image not exists")
+		return nil, err
 	}
 
 	logger.Infof("using image form remote registry")
@@ -85,7 +84,7 @@ func (c containerImageReader) imageFromRemoteRegistry() (*scalibrlayerimage.Imag
 func (c containerImageReader) findLocalDockerImageId(ctx context.Context) (string, error) {
 	allLocalImages, err := c.dockerClient.ImageList(ctx, image.ListOptions{})
 	if err != nil {
-		return "", utils.LogAndError(err, "failed to list images")
+		return "", err
 	}
 
 	for _, image := range allLocalImages {
@@ -101,26 +100,26 @@ func (c containerImageReader) findLocalDockerImageId(ctx context.Context) (strin
 func (c containerImageReader) saveDockerImageToTempFile(ctx context.Context, targetImageId string) (string, error) {
 	reader, err := c.dockerClient.ImageSave(ctx, []string{targetImageId})
 	if err != nil {
-		return "", utils.LogAndError(err, "failed to save image")
+		return "", err
 	}
 
 	// create tem directory in /tmp for storing `POSIX tar archive` in file
 	tempTarFile, err := os.CreateTemp(os.TempDir(), fmt.Sprintf("image-%s-*.tar", c.imageTarget.imageStr))
 
 	if err != nil {
-		return "", utils.LogAndError(err, "failed to create temp file")
+		return "", err
 	}
 
 	if _, err := io.Copy(tempTarFile, reader); err != nil {
-		return "", utils.LogAndError(err, "failed to copy docker image data to temp file")
+		return "", err
 	}
 
 	if err := reader.Close(); err != nil {
-		return "", utils.LogAndError(err, "failed to close docker save reader")
+		return "", err
 	}
 
 	if err := tempTarFile.Close(); err != nil {
-		return "", utils.LogAndError(err, "failed to close temp file")
+		return "", err
 	}
 
 	// from docs: it is safe to call Name after Close
