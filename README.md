@@ -72,7 +72,7 @@ vet scan -D . --filter 'projects.exists(p, p.type == "GITHUB" && p.stars < 5)' -
 Unlike dependency scanners that flood you with noise, `vet` analyzes your **actual code usage** to prioritize real risks.
 
 ### 🛡️ **Malicious Package Detection**
-Integrated with [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis) for real-time protection against malicious packages in the wild. Free for open source projects. Fallback to *Query Mode* when API key is not provided. Read more [about malicious package detection](#-malicious-package-detection).
+Integrated with [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis) for real-time protection against malicious packages in the wild. Free for open source projects. Fallback to *Query Mode* when API key is not provided. Read more [about malicious package scanning](#️-malicious-package-detection-1).
 
 ### 📋 **Policy as Code**
 Define security policies using CEL expressions to enforce context specific security requirements.
