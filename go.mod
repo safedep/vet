@@ -14,7 +14,6 @@ require (
 	github.com/cayleygraph/quad v1.3.0
 	github.com/cli/oauth v1.2.0
 	github.com/deepmap/oapi-codegen v1.16.3
-	github.com/docker/distribution v2.8.3+incompatible
 	github.com/docker/docker v28.1.1+incompatible
 	github.com/github/go-spdx/v2 v2.3.2
 	github.com/go-resty/resty/v2 v2.16.5
@@ -148,6 +147,7 @@ require (
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/dlclark/regexp2 v1.11.4 // indirect
 	github.com/docker/cli v28.1.1+incompatible // indirect
+	github.com/docker/distribution v2.8.3+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.9.3 // indirect
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-events v0.0.0-20190806004212-e31b211e4f1c // indirect
@@ -217,7 +217,6 @@ require (
 	github.com/gookit/color v1.5.4 // indirect
 	github.com/gordonklaus/ineffassign v0.1.0 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
-	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gostaticanalysis/analysisutil v0.7.1 // indirect
 	github.com/gostaticanalysis/comment v1.5.0 // indirect
 	github.com/gostaticanalysis/forcetypeassert v0.2.0 // indirect
