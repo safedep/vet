@@ -12,11 +12,13 @@ import (
 	"slices"
 )
 
-type imageResolutionWorkflowFunc func() (*scalibrlayerimage.Image, error)
+var (
+	imageResolverUnsupportedError = errors.New("image resolver unsupported")
+)
 
-func (c containerImageReader) imageFromLocalDockerImageCatalog() (*scalibrlayerimage.Image, error) {
-	ctx := context.Background()
+type imageResolutionWorkflowFunc func(ctx context.Context) (*scalibrlayerimage.Image, error)
 
+func (c containerImageReader) imageFromLocalDockerImageCatalog(ctx context.Context) (*scalibrlayerimage.Image, error) {
 	targetImageId, err := c.findLocalDockerImageId(ctx)
 	if err != nil {
 		return nil, err
@@ -47,7 +49,7 @@ func (c containerImageReader) imageFromLocalDockerImageCatalog() (*scalibrlayeri
 	return image, nil
 }
 
-func (c containerImageReader) imageFromLocalTarFolder() (*scalibrlayerimage.Image, error) {
+func (c containerImageReader) imageFromLocalTarFolder(_ context.Context) (*scalibrlayerimage.Image, error) {
 	pathExists, err := checkPathExists(c.imageTarget.imageStr)
 	if err != nil {
 		// Permission denied etc.
@@ -67,7 +69,7 @@ func (c containerImageReader) imageFromLocalTarFolder() (*scalibrlayerimage.Imag
 	return containerImage, nil
 }
 
-func (c containerImageReader) imageFromRemoteRegistry() (*scalibrlayerimage.Image, error) {
+func (c containerImageReader) imageFromRemoteRegistry(_ context.Context) (*scalibrlayerimage.Image, error) {
 	if !c.config.RemoteImageFetch {
 		return nil, fmt.Errorf("remote image fetching is disabled")
 	}

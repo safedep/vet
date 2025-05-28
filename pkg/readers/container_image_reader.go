@@ -65,7 +65,9 @@ func (c containerImageReader) ApplicationName() (string, error) {
 }
 
 func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest, PackageReader) error) error {
-	image, err := c.getScalibrImage()
+	ctx := context.Background()
+
+	image, err := c.getScalibrImage(ctx)
 	if err != nil {
 		return err
 	}
@@ -76,7 +78,7 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 	}
 
 	// Scan Container
-	result, err := scalibr.New().ScanContainer(context.Background(), image, scanConfig)
+	result, err := scalibr.New().ScanContainer(ctx, image, scanConfig)
 	if err != nil {
 		return err
 	}
@@ -177,7 +179,7 @@ func (c containerImageReader) getScalibrScanConfig() (*scalibr.ScanConfig, error
 }
 
 // getScalibrImage converts the user-provided image reference (path, tar, docker image) to a scalibr compatible object
-func (c containerImageReader) getScalibrImage() (*scalibrlayerimage.Image, error) {
+func (c containerImageReader) getScalibrImage(ctx context.Context) (*scalibrlayerimage.Image, error) {
 	workflow := []imageResolutionWorkflowFunc{
 		c.imageFromLocalDockerImageCatalog,
 		c.imageFromLocalTarFolder,
@@ -185,7 +187,7 @@ func (c containerImageReader) getScalibrImage() (*scalibrlayerimage.Image, error
 	}
 
 	for _, getImage := range workflow {
-		image, err := getImage()
+		image, err := getImage(ctx)
 		if err != nil {
 			logger.Errorf("failed to perform workflow: %s", err)
 			continue
@@ -196,7 +198,7 @@ func (c containerImageReader) getScalibrImage() (*scalibrlayerimage.Image, error
 		}
 	}
 
-	return nil, nil
+	return nil, fmt.Errorf("invalid image: failed to fetch image")
 }
 
 func (c containerImageReader) scalibrDefaultScanRoots() ([]*scalibrfs.ScanRoot, error) {
