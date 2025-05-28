@@ -1,10 +1,7 @@
 <div align="center">
-  <img alt="SafeDep vet" src="./docs/assets/vet-logo-light.png#gh-light-mode-only" height="120" />
-  <img alt="SafeDep vet" src="./docs/assets/vet-logo-dark.png#gh-dark-mode-only" height="120" />
-  
   <h1>🔍 vet</h1>
   
-  <p><strong>Enterprise-grade supply chain security for open source dependencies</strong></p>
+  <p><strong>Enterprise-grade open source software supply chain security</strong></p>
   
   <p>
     <a href="https://github.com/safedep/vet/releases"><strong>Download</strong></a> •
@@ -29,15 +26,15 @@
 
 ## 🎯 Why vet?
 
-> **87% of codebases contain vulnerable dependencies** — and traditional tools miss the context that matters.
+> **70-90% of modern software constitute code from open sources** — How do we know if it's safe?
 
-**vet** is the first supply chain security tool built for **developers and security engineers** who need:
+**vet** is an open source software supply chain security tool built for **developers and security engineers** who need:
 
-✅ **Zero false positives** — Only actionable insights that matter to your codebase  
-✅ **Policy as Code** — Express complex security rules using [CEL](https://cel.dev/)  
-✅ **Real-time malware detection** — Powered by SafeDep Cloud's active scanning  
-✅ **Multi-ecosystem support** — npm, PyPI, Maven, Go, Docker, GitHub Actions, and more  
-✅ **CI/CD native** — Built for DevSecOps workflows with GitHub Actions & GitLab CI  
+✅ **Next-gen Software Composition Analysis** — Vulnerability and malicious package detection  
+✅ **Policy as Code** — Express opinionated security policies using [CEL](https://cel.dev/)    
+✅ **Real-time malicious package detection** — Powered by [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis) active scanning   
+✅ **Multi-ecosystem support** — npm, PyPI, Maven, Go, Docker, GitHub Actions, and more    
+✅ **CI/CD native** — Built for DevSecOps workflows with support for GitHub Actions, GitLab CI, and more   
 
 ## ⚡ Quick Start
 
@@ -46,10 +43,9 @@
 ```bash
 # macOS & Linux
 brew install safedep/tap/vet
-
-# Or download from releases
-curl -sSfL https://raw.githubusercontent.com/safedep/vet/main/install.sh | sh
 ```
+
+or download a [pre-built binary](https://github.com/safedep/vet/releases)
 
 **Scan your project:**
 
@@ -57,32 +53,39 @@ curl -sSfL https://raw.githubusercontent.com/safedep/vet/main/install.sh | sh
 # Scan current directory
 vet scan -D .
 
-# Scan with malware detection
+# Scan a single file
+vet scan -M package-lock.json
+
+# Scan with malicious package detection enabled
 vet scan -D . --malware
 
 # Fail CI on critical vulnerabilities
 vet scan -D . --filter 'vulns.critical.exists(p, true)' --filter-fail
 ```
 
-## 🔒 Enterprise Security Features
+## 🔒 Key Features
 
-### 🕵️ **Intelligent Code Analysis**
-Unlike dependency scanners that flood you with noise, vet analyzes your **actual code usage** to prioritize real risks.
+### 🕵️ **Code Analysis**
+Unlike dependency scanners that flood you with noise, `vet` analyzes your **actual code usage** to prioritize real risks.
 
-### 🛡️ **Advanced Malware Detection**
-Integrated with SafeDep Cloud for real-time protection against malicious packages in the wild.
+### 🛡️ **Malicious Package Detection**
+Integrated with [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis) for real-time protection against malicious packages in the wild.
 
 ### 📋 **Policy as Code**
-Define sophisticated security policies using CEL expressions:
+Define security policies using CEL expressions to enforce context specific security requirements.
 
 ```bash
 # Block packages with critical CVEs
+vet scan \
 --filter 'vulns.critical.exists(p, true)'
 
 # Enforce license compliance
+vet scan \
 --filter 'licenses.contains_license("GPL-3.0")'
 
+# Enforce OpenSSF Scorecard requirements
 # Require minimum OpenSSF Scorecard scores
+vet scan \
 --filter 'scorecard.scores.Maintained < 5'
 ```
 
@@ -99,21 +102,21 @@ Define sophisticated security policies using CEL expressions:
   <img src="./docs/assets/vet-demo.gif" alt="vet Demo" width="100%" />
 </div>
 
-## 🚀 Production-Ready Integrations
+## 🚀 Production Ready Integrations
 
 ### 📦 **GitHub Actions**
-Zero-config security scanning for your CI/CD:
+Zero config security scanning in your CI/CD pipeline with custom policies:
 
 ```yaml
 - uses: safedep/vet-action@v1
   with:
-    path: '.'
-    malware: true
-    policy: '.github/vet-policy.yml'
+    policy: '.github/vet/policy.yml'
 ```
 
+See more in [vet-action](https://github.com/safedep/vet-action) documentation.
+
 ### 🔧 **GitLab CI**
-Enterprise-grade scanning with [vet CI Component](https://gitlab.com/explore/catalog/safedep/ci-components/vet):
+Enterprise grade scanning with [vet CI Component](https://gitlab.com/explore/catalog/safedep/ci-components/vet):
 
 ```yaml
 include:
@@ -121,6 +124,8 @@ include:
 ```
 
 ### 🐳 **Container Integration**
+Run `vet` anywhere, even your internal developer platform or custom CI/CD environment using our container image.
+
 ```bash
 docker run --rm -v $(pwd):/app ghcr.io/safedep/vet:latest scan -D /app
 ```
@@ -129,14 +134,41 @@ docker run --rm -v $(pwd):/app ghcr.io/safedep/vet:latest scan -D /app
 
 - [🎯 Why vet?](#-why-vet)
 - [⚡ Quick Start](#-quick-start)
-- [🔒 Enterprise Security Features](#-enterprise-security-features)
+- [🔒 Key Features](#-key-features)
+  - [🕵️ **Code Analysis**](#️-code-analysis)
+  - [🛡️ **Malicious Package Detection**](#️-malicious-package-detection)
+  - [📋 **Policy as Code**](#-policy-as-code)
+  - [🎯 **Multi-Format Support**](#-multi-format-support)
 - [🔥 See vet in Action](#-see-vet-in-action)
-- [🚀 Production-Ready Integrations](#-production-ready-integrations)
+- [🚀 Production Ready Integrations](#-production-ready-integrations)
+  - [📦 **GitHub Actions**](#-github-actions)
+  - [🔧 **GitLab CI**](#-gitlab-ci)
+  - [🐳 **Container Integration**](#-container-integration)
+- [📚 Table of Contents](#-table-of-contents)
 - [📦 Installation Options](#-installation-options)
+  - [🍺 **Homebrew (Recommended)**](#-homebrew-recommended)
+  - [📥 **Direct Download**](#-direct-download)
+  - [🐹 **Go Install**](#-go-install)
+  - [🐳 **Container Image**](#-container-image)
+  - [⚙️ **Verify Installation**](#️-verify-installation)
 - [🎮 Advanced Usage](#-advanced-usage)
+  - [🔍 **Scanning Options**](#-scanning-options)
+  - [🎯 **Policy Enforcement Examples**](#-policy-enforcement-examples)
+  - [🔧 **SBOM Support**](#-sbom-support)
+  - [📊 **Query Mode \& Data Persistence**](#-query-mode--data-persistence)
 - [📊 Comprehensive Reporting](#-comprehensive-reporting)
-- [🛡️ Malware Detection](#️-malware-detection)
-- [🎊 Community & Support](#-community--support)
+  - [📋 **Report Formats**](#-report-formats)
+  - [🎯 **Report Examples**](#-report-examples)
+- [🛡️ Malicious Package Detection](#️-malicious-package-detection-1)
+  - [🚀 **Quick Setup**](#-quick-setup)
+  - [🎯 **Advanced Malicious Package Analysis**](#-advanced-malicious-package-analysis)
+  - [🔒 **Security Features**](#-security-features)
+- [🎊 Community \& Support](#-community--support)
+  - [🌟 **Join the Community**](#-join-the-community)
+  - [💡 **Get Help \& Share Ideas**](#-get-help--share-ideas)
+  - [⭐ **Star History**](#-star-history)
+  - [🙏 **Built With Open Source**](#-built-with-open-source)
+  - [📊 Privacy \& Telemetry](#-privacy--telemetry)
 
 ## 📦 Installation Options
 
@@ -147,13 +179,7 @@ brew install safedep/tap/vet
 ```
 
 ### 📥 **Direct Download**
-```bash
-# Latest release for your platform
-curl -sSfL https://raw.githubusercontent.com/safedep/vet/main/install.sh | sh
-
-# Or download manually from GitHub Releases
-wget https://github.com/safedep/vet/releases/latest
-```
+See [releases](https://github.com/safedep/vet/releases) for the latest version.
 
 ### 🐹 **Go Install**
 ```bash
@@ -185,11 +211,11 @@ vet version
 
 **📁 Directory Scanning**
 ```bash
-# Scan entire project
-vet scan -D /path/to/project
+# Scan current directory
+vet scan
 
-# Current directory
-vet scan -D .
+# Scan a given directory
+vet scan -D /path/to/project
 
 # With malware detection
 vet scan -D . --malware
@@ -198,10 +224,11 @@ vet scan -D . --malware
 **📄 Manifest Files**
 ```bash
 # Package managers
-vet scan -M package.json
+vet scan -M package-lock.json
 vet scan -M requirements.txt
 vet scan -M pom.xml
 vet scan -M go.mod
+vet scan -M Gemfile.lock
 ```
 
 </td>
@@ -257,13 +284,13 @@ vet scan -D . \
   --filter-fail
 ```
 
-### 🔧 **SBOM & Standards Support**
+### 🔧 **SBOM Support**
 
 ```bash
-# CycloneDX SBOM
+# Scan a CycloneDX SBOM
 vet scan -M sbom.json --type bom-cyclonedx
 
-# SPDX SBOM
+# Scan a SPDX SBOM
 vet scan -M sbom.spdx.json --type bom-spdx
 
 # Generate SBOM output
@@ -360,11 +387,14 @@ vet scan -D . \
   --report-json=high-severity.json
 ```
 
-## 🛡️ Malware Detection
+## 🛡️ Malicious Package Detection
 
-**Industry-leading malware detection** powered by SafeDep Cloud:
+**Malicious package detection through active scanning and code analysis** powered by 
+[SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis):
 
 ### 🚀 **Quick Setup**
+
+> Malicious package detection requires an API key for [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis).
 
 ```bash
 # One-time setup
@@ -374,7 +404,7 @@ vet cloud quickstart
 vet scan -D . --malware
 ```
 
-### 🎯 **Advanced Malware Analysis**
+### 🎯 **Advanced Malicious Package Analysis**
 
 <table>
 <tr>
@@ -428,7 +458,7 @@ vet inspect malware \
   
 ### 🌟 **Join the Community**
 
-[![Discord](https://img.shields.io/discord/1234567890?color=7289da&label=Discord&logo=discord&logoColor=white)](https://rebrand.ly/safedep-community)
+[![Discord](https://img.shields.io/discord/1090352019379851304?color=7289da&label=Discord&logo=discord&logoColor=white)](https://rebrand.ly/safedep-community)
 [![GitHub Discussions](https://img.shields.io/badge/GitHub-Discussions-green?logo=github)](https://github.com/safedep/vet/discussions)
 [![Twitter Follow](https://img.shields.io/twitter/follow/safedepio?style=social)](https://twitter.com/safedepio)
 
@@ -441,16 +471,6 @@ vet inspect malware \
 - 💬 **[Discord Community](https://rebrand.ly/safedep-community)** - Real-time support
 - 🐛 **[Issue Tracker](https://github.com/safedep/vet/issues)** - Bug reports & feature requests
 - 🤝 **[Contributing Guide](CONTRIBUTING.md)** - Join the development
-
-### 🏢 **Enterprise Support**
-
-Need enterprise-grade support? **[SafeDep Cloud](https://safedep.io)** provides:
-
-- ✅ Dedicated support team
-- ✅ Custom policy development  
-- ✅ Large-scale deployment assistance
-- ✅ Integration consulting
-- ✅ SLA guarantees
 
 ---
 
