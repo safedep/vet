@@ -47,6 +47,8 @@ func (c containerImageReader) imageFromLocalDockerImageCatalog(ctx context.Conte
 		return nil, imageResolverUnsupportedError
 	}
 
+	logger.Debugf("Found image in local docker image catalog with ImageID: %s", targetImage.ID)
+
 	reader, err := c.dockerClient.ImageSave(ctx, []string{targetImage.ID})
 	if err != nil {
 		return nil, imageResolverUnsupportedError
@@ -64,6 +66,8 @@ func (c containerImageReader) imageFromLocalDockerImageCatalog(ctx context.Conte
 	}
 
 	defer func() {
+		logger.Debugf("Closing temp tar file and removing it: %s", tempTarFile.Name())
+
 		if err := tempTarFile.Close(); err != nil {
 			logger.Errorf("failed to close temp tar file: %s", err.Error())
 		}
@@ -72,6 +76,8 @@ func (c containerImageReader) imageFromLocalDockerImageCatalog(ctx context.Conte
 			logger.Errorf("failed to remove temp tar file: %s", err.Error())
 		}
 	}()
+
+	logger.Debugf("Copying image to temp tar file: %s", tempTarFile.Name())
 
 	if _, err := io.Copy(tempTarFile, reader); err != nil {
 		return nil, fmt.Errorf("failed to copy image to temp tar file: %w", err)
@@ -90,6 +96,10 @@ func (c containerImageReader) imageFromLocalTarFile(
 	_ context.Context,
 	config *scalibrlayerimage.Config,
 ) (*scalibrlayerimage.Image, error) {
+	if !c.imageTarget.isLocalFile {
+		return nil, imageResolverUnsupportedError
+	}
+
 	logger.Debugf("Attempting to resolve image from local tar file: %s", c.imageTarget.imageRef)
 
 	containerImage, err := scalibrlayerimage.FromTarball(c.imageTarget.imageRef, config)
