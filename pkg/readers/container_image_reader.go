@@ -48,7 +48,7 @@ func NewContainerImageReader(imageRef string, config ContainerImageReaderConfig)
 	// docker is not required to be installed for this line, but when we use docker API then it should be.
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create docker client: %w", err)
 	}
 
 	imageTarget := imageTargetConfig{
