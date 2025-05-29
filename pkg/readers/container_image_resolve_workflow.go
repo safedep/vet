@@ -30,6 +30,8 @@ func (c containerImageReader) imageFromLocalDockerImageCatalog(ctx context.Conte
 
 	allLocalImages, err := c.dockerClient.ImageList(ctx, image.ListOptions{})
 	if err != nil {
+		logger.Debugf("Failed to list local images: %s", err.Error())
+
 		// This is not a failure because docker daemon may not be running
 		return nil, imageResolverUnsupportedError
 	}
