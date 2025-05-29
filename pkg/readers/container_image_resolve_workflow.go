@@ -15,10 +15,12 @@ import (
 
 var imageResolverUnsupportedError = errors.New("image resolver unsupported")
 
-type imageResolutionWorkflowFunc func(ctx context.Context) (*scalibrlayerimage.Image, error)
+type imageResolutionWorkflowFunc func(ctx context.Context, config *scalibrlayerimage.Config) (*scalibrlayerimage.Image, error)
 
 // imageFromLocalDockerImageCatalog attempts to resolve image from local docker image catalog
-func (c containerImageReader) imageFromLocalDockerImageCatalog(ctx context.Context) (*scalibrlayerimage.Image, error) {
+func (c containerImageReader) imageFromLocalDockerImageCatalog(ctx context.Context,
+	config *scalibrlayerimage.Config,
+) (*scalibrlayerimage.Image, error) {
 	// Skip if the image is already known to be local
 	if c.imageTarget.isLocalFile {
 		return nil, imageResolverUnsupportedError
@@ -61,19 +63,21 @@ func (c containerImageReader) imageFromLocalDockerImageCatalog(ctx context.Conte
 		return nil, fmt.Errorf("failed to create temp tar file: %w", err)
 	}
 
+	defer func() {
+		if err := tempTarFile.Close(); err != nil {
+			logger.Errorf("failed to close temp tar file: %s", err.Error())
+		}
+
+		if err := os.Remove(tempTarFile.Name()); err != nil {
+			logger.Errorf("failed to remove temp tar file: %s", err.Error())
+		}
+	}()
+
 	if _, err := io.Copy(tempTarFile, reader); err != nil {
 		return nil, fmt.Errorf("failed to copy image to temp tar file: %w", err)
 	}
 
-	if err := reader.Close(); err != nil {
-		return nil, fmt.Errorf("failed to close image reader: %w", err)
-	}
-
-	if err := tempTarFile.Close(); err != nil {
-		return nil, fmt.Errorf("failed to close temp tar file: %w", err)
-	}
-
-	image, err := c.imageFromLocalTarFile(ctx)
+	image, err := scalibrlayerimage.FromTarball(tempTarFile.Name(), config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create scalibr image from tarball: %w", err)
 	}
@@ -82,10 +86,13 @@ func (c containerImageReader) imageFromLocalDockerImageCatalog(ctx context.Conte
 	return image, nil
 }
 
-func (c containerImageReader) imageFromLocalTarFile(_ context.Context) (*scalibrlayerimage.Image, error) {
+func (c containerImageReader) imageFromLocalTarFile(
+	_ context.Context,
+	config *scalibrlayerimage.Config,
+) (*scalibrlayerimage.Image, error) {
 	logger.Debugf("Attempting to resolve image from local tar file: %s", c.imageTarget.imageRef)
 
-	containerImage, err := scalibrlayerimage.FromTarball(c.imageTarget.imageRef, scalibrlayerimage.DefaultConfig())
+	containerImage, err := scalibrlayerimage.FromTarball(c.imageTarget.imageRef, config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create scalibr image from tarball: %w", err)
 	}
@@ -94,12 +101,15 @@ func (c containerImageReader) imageFromLocalTarFile(_ context.Context) (*scalibr
 	return containerImage, nil
 }
 
-func (c containerImageReader) imageFromRemoteRegistry(_ context.Context) (*scalibrlayerimage.Image, error) {
+func (c containerImageReader) imageFromRemoteRegistry(
+	_ context.Context,
+	config *scalibrlayerimage.Config,
+) (*scalibrlayerimage.Image, error) {
 	if !c.config.RemoteImageFetch {
 		return nil, imageResolverUnsupportedError
 	}
 
-	containerImage, err := scalibrlayerimage.FromRemoteName(c.imageTarget.imageRef, scalibrlayerimage.DefaultConfig())
+	containerImage, err := scalibrlayerimage.FromRemoteName(c.imageTarget.imageRef, config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create scalibr image from remote registry: %w", err)
 	}

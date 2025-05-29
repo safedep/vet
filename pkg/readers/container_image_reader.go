@@ -198,7 +198,7 @@ func (c containerImageReader) getScalibrImage(ctx context.Context) (*scalibrlaye
 	}
 
 	for _, getImage := range workflow {
-		image, err := getImage(ctx)
+		image, err := getImage(ctx, scalibrlayerimage.DefaultConfig())
 		if err != nil {
 			if errors.Is(err, imageResolverUnsupportedError) {
 				continue
