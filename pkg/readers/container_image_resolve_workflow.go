@@ -4,136 +4,128 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/docker/docker/api/types/image"
-	scalibrlayerimage "github.com/google/osv-scalibr/artifact/image/layerscanning/image"
-	"github.com/safedep/vet/pkg/common/logger"
 	"io"
 	"os"
 	"slices"
+
+	"github.com/docker/docker/api/types/image"
+	scalibrlayerimage "github.com/google/osv-scalibr/artifact/image/layerscanning/image"
+	"github.com/safedep/vet/pkg/common/logger"
 )
 
-var (
-	imageResolverUnsupportedError = errors.New("image resolver unsupported")
-)
+var imageResolverUnsupportedError = errors.New("image resolver unsupported")
 
-type imageResolutionWorkflowFunc func(ctx context.Context) (*scalibrlayerimage.Image, error)
+type imageResolutionWorkflowFunc func(ctx context.Context, config *scalibrlayerimage.Config) (*scalibrlayerimage.Image, error)
 
-func (c containerImageReader) imageFromLocalDockerImageCatalog(ctx context.Context) (*scalibrlayerimage.Image, error) {
-	targetImageId, err := c.findLocalDockerImageId(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// no image found, go to the next workflow
-	if targetImageId == "" {
+// imageFromLocalDockerImageCatalog attempts to resolve image from local docker image catalog
+func (c containerImageReader) imageFromLocalDockerImageCatalog(ctx context.Context,
+	config *scalibrlayerimage.Config,
+) (*scalibrlayerimage.Image, error) {
+	// Skip if the image is already known to be local
+	if c.imageTarget.isLocalFile {
 		return nil, imageResolverUnsupportedError
 	}
 
-	tempTarFileName, err := c.saveDockerImageToTempFile(ctx, targetImageId)
-	if err != nil {
-		return nil, err
-	}
+	logger.Debugf("Attempting to resolve image from local docker image catalog: %s", c.imageTarget.imageRef)
 
-	image, err := scalibrlayerimage.FromTarball(tempTarFileName, scalibrlayerimage.DefaultConfig())
-	if err != nil {
-		return nil, err
-	}
-
-	if err := os.Remove(tempTarFileName); err != nil {
-		return nil, err
-	}
-
-	logger.Infof("using image form local docker image catalog")
-	return image, nil
-}
-
-func (c containerImageReader) imageFromLocalTarFolder(_ context.Context) (*scalibrlayerimage.Image, error) {
-	pathExists, err := c.checkPathExists(c.imageTarget.imageStr)
-	if err != nil {
-		// Permission denied etc.
-		return nil, err
-	}
-
-	if !pathExists {
-		return nil, imageResolverUnsupportedError
-	}
-
-	containerImage, err := scalibrlayerimage.FromTarball(c.imageTarget.imageStr, scalibrlayerimage.DefaultConfig())
-	if err != nil {
-		return nil, err
-	}
-
-	logger.Infof("using image form tarball")
-	return containerImage, nil
-}
-
-func (c containerImageReader) imageFromRemoteRegistry(_ context.Context) (*scalibrlayerimage.Image, error) {
-	if !c.config.RemoteImageFetch {
-		return nil, fmt.Errorf("remote image fetching is disabled")
-	}
-
-	containerImage, err := scalibrlayerimage.FromRemoteName(c.imageTarget.imageStr, scalibrlayerimage.DefaultConfig())
-	if err != nil {
-		return nil, err
-	}
-
-	logger.Infof("using image form remote registry")
-	return containerImage, nil
-}
-
-func (c containerImageReader) findLocalDockerImageId(ctx context.Context) (string, error) {
 	allLocalImages, err := c.dockerClient.ImageList(ctx, image.ListOptions{})
 	if err != nil {
-		return "", imageResolverUnsupportedError
+		logger.Debugf("Failed to list local images: %s", err.Error())
+
+		// This is not a failure because docker daemon may not be running
+		return nil, imageResolverUnsupportedError
 	}
 
-	for _, image := range allLocalImages {
-		if slices.Contains(image.RepoTags, c.imageTarget.imageStr) {
-			return image.ID, nil
+	var targetImage *image.Summary
+	for _, localImage := range allLocalImages {
+		if slices.Contains(localImage.RepoTags, c.imageTarget.imageRef) {
+			targetImage = &localImage
+			break
 		}
 	}
 
-	// no image, without error while finding
-	return "", nil
-}
-
-func (c containerImageReader) saveDockerImageToTempFile(ctx context.Context, targetImageId string) (string, error) {
-	reader, err := c.dockerClient.ImageSave(ctx, []string{targetImageId})
-	if err != nil {
-		return "", imageResolverUnsupportedError
+	// The image is not found in the local docker image catalog
+	if targetImage == nil {
+		return nil, imageResolverUnsupportedError
 	}
 
-	// create tem directory in /tmp for storing `POSIX tar archive` in file
+	logger.Debugf("Found image in local docker image catalog with ImageID: %s", targetImage.ID)
+
+	reader, err := c.dockerClient.ImageSave(ctx, []string{targetImage.ID})
+	if err != nil {
+		return nil, imageResolverUnsupportedError
+	}
+
+	defer func() {
+		if err := reader.Close(); err != nil {
+			logger.Errorf("failed to close image reader: %s", err.Error())
+		}
+	}()
+
 	tempTarFile, err := os.CreateTemp(os.TempDir(), "image-data-*.tar")
-
 	if err != nil {
-		return "", err
+		return nil, fmt.Errorf("failed to create temp tar file: %w", err)
 	}
+
+	defer func() {
+		logger.Debugf("Closing temp tar file and removing it: %s", tempTarFile.Name())
+
+		if err := tempTarFile.Close(); err != nil {
+			logger.Errorf("failed to close temp tar file: %s", err.Error())
+		}
+
+		if err := os.Remove(tempTarFile.Name()); err != nil {
+			logger.Errorf("failed to remove temp tar file: %s", err.Error())
+		}
+	}()
+
+	logger.Debugf("Copying image to temp tar file: %s", tempTarFile.Name())
 
 	if _, err := io.Copy(tempTarFile, reader); err != nil {
-		return "", err
+		return nil, fmt.Errorf("failed to copy image to temp tar file: %w", err)
 	}
 
-	if err := reader.Close(); err != nil {
-		return "", err
+	image, err := scalibrlayerimage.FromTarball(tempTarFile.Name(), config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create scalibr image from tarball: %w", err)
 	}
 
-	if err := tempTarFile.Close(); err != nil {
-		return "", err
-	}
-
-	// from docs: it is safe to call Name after Close
-	return tempTarFile.Name(), nil
+	logger.Infof("Using image from local docker image catalog with ImageID: %s", targetImage.ID)
+	return image, nil
 }
 
-func (c containerImageReader) checkPathExists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil // Path exists
-	}
-	if errors.Is(err, os.ErrNotExist) {
-		return false, nil // Path does not exist
+func (c containerImageReader) imageFromLocalTarFile(
+	_ context.Context,
+	config *scalibrlayerimage.Config,
+) (*scalibrlayerimage.Image, error) {
+	if !c.imageTarget.isLocalFile {
+		return nil, imageResolverUnsupportedError
 	}
 
-	return false, err // other error, like Permission Denied, etc.
+	logger.Debugf("Attempting to resolve image from local tar file: %s", c.imageTarget.imageRef)
+
+	containerImage, err := scalibrlayerimage.FromTarball(c.imageTarget.imageRef, config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create scalibr image from tarball: %w", err)
+	}
+
+	logger.Infof("Using image from local tar file: %s", c.imageTarget.imageRef)
+	return containerImage, nil
+}
+
+func (c containerImageReader) imageFromRemoteRegistry(
+	_ context.Context,
+	config *scalibrlayerimage.Config,
+) (*scalibrlayerimage.Image, error) {
+	if !c.config.RemoteImageFetch {
+		return nil, imageResolverUnsupportedError
+	}
+
+	containerImage, err := scalibrlayerimage.FromRemoteName(c.imageTarget.imageRef, config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create scalibr image from remote registry: %w", err)
+	}
+
+	logger.Infof("Using image from remote registry: %s", c.imageTarget.imageRef)
+	return containerImage, nil
 }

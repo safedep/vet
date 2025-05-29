@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+
 	"github.com/docker/docker/client"
 	scalibr "github.com/google/osv-scalibr"
 	scalibrlayerimage "github.com/google/osv-scalibr/artifact/image/layerscanning/image"
@@ -18,37 +20,43 @@ import (
 )
 
 type ContainerImageReaderConfig struct {
+	// Pull image from remote registry if not found locally
 	RemoteImageFetch bool
 }
 
-func DefaultContainerImageReaderConfig() *ContainerImageReaderConfig {
-	return &ContainerImageReaderConfig{
+func DefaultContainerImageReaderConfig() ContainerImageReaderConfig {
+	return ContainerImageReaderConfig{
 		RemoteImageFetch: true,
 	}
 }
 
 type imageTargetConfig struct {
-	imageStr string
+	imageRef    string
+	isLocalFile bool
 }
 
 type containerImageReader struct {
-	config       *ContainerImageReaderConfig
-	imageTarget  *imageTargetConfig
+	config       ContainerImageReaderConfig
+	imageTarget  imageTargetConfig
 	dockerClient *client.Client
 }
 
 var _ PackageManifestReader = &containerImageReader{}
 
 // NewContainerImageReader fetches images using config and creates containerImageReader
-func NewContainerImageReader(imageStr string, config *ContainerImageReaderConfig) (*containerImageReader, error) {
+func NewContainerImageReader(imageRef string, config ContainerImageReaderConfig) (*containerImageReader, error) {
 	// docker is not required to be installed for this line, but when we use docker API then it should be.
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create docker client: %w", err)
 	}
 
-	imageTarget := &imageTargetConfig{
-		imageStr: imageStr,
+	imageTarget := imageTargetConfig{
+		imageRef: imageRef,
+	}
+
+	if _, err := os.Stat(imageRef); err == nil {
+		imageTarget.isLocalFile = true
 	}
 
 	return &containerImageReader{
@@ -63,7 +71,11 @@ func (c containerImageReader) Name() string {
 }
 
 func (c containerImageReader) ApplicationName() (string, error) {
-	return fmt.Sprintf("pkg:/oci/%s", c.imageTarget.imageStr), nil
+	if c.imageTarget.isLocalFile {
+		return fmt.Sprintf("file://%s", c.imageTarget.imageRef), nil
+	}
+
+	return fmt.Sprintf("pkg:/oci/%s", c.imageTarget.imageRef), nil
 }
 
 func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest, PackageReader) error) error {
@@ -71,22 +83,21 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 
 	image, err := c.getScalibrImage(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get scalibr image: %w", err)
 	}
 
 	scanConfig, err := c.getScalibrScanConfig()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get scalibr scan config: %w", err)
 	}
 
 	// Scan Container
 	result, err := scalibr.New().ScanContainer(ctx, image, scanConfig)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to scan container: %w", err)
 	}
 
 	manifests := make(map[string]*models.PackageManifest)
-
 	packagePurlCache := make(map[string]bool)
 
 	for _, pkg := range result.Inventory.Packages {
@@ -94,18 +105,14 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 
 		// Check if we already added this packages with some-other location (i.e., this package is found somewhere else also)
 		if _, ok := packagePurlCache[pkgPurl]; ok {
-			// Cache HIT - Continue
 			continue
 		}
 
-		// Cache MISS
-		// Add this into cache
 		packagePurlCache[pkgPurl] = true
-
 		key := pkg.Ecosystem()
 
 		for _, location := range pkg.Locations {
-			key = fmt.Sprintf("%s:%s", key, location) // Composite like, Go:go/pkg/xyz (EcoSystem:Location)
+			key = fmt.Sprintf("%s:%s", key, location)
 		}
 
 		if _, ok := manifests[key]; !ok {
@@ -121,7 +128,7 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 		manifests[key].AddPackage(pkgPackage)
 	}
 
-	// TODO: Some Ecosystem is very bad, like for alpine packages the ecosystem is Alpine2.25,
+	// TODO: We do not recognize some ecosystems, like Alpine2.25
 	for _, manifest := range manifests {
 		err = handler(manifest, NewManifestModelReader(manifest))
 		if err != nil {
@@ -131,7 +138,7 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 	}
 
 	if err := image.CleanUp(); err != nil {
-		return err
+		return fmt.Errorf("failed to clean up image: %w", err)
 	}
 
 	return nil
@@ -176,29 +183,37 @@ func (c containerImageReader) getScalibrScanConfig() (*scalibr.ScanConfig, error
 		FilesystemExtractors: allFilesystemExtractorsWithCapabilities,
 		StandaloneExtractors: allStandaloneExtractorsWithCapabilities,
 		Capabilities:         capability,
-		PathsToExtract:       []string{"."}, // Default
+		PathsToExtract:       []string{"."},
 	}, nil
 }
 
 // getScalibrImage converts the user-provided image reference (path, tar, docker image) to a scalibr compatible object
 func (c containerImageReader) getScalibrImage(ctx context.Context) (*scalibrlayerimage.Image, error) {
+	// Ordered list of workflows to resolve the image.
+	// This also defines the lookup order of the image.
 	workflow := []imageResolutionWorkflowFunc{
+		c.imageFromLocalTarFile,
 		c.imageFromLocalDockerImageCatalog,
-		c.imageFromLocalTarFolder,
 		c.imageFromRemoteRegistry,
 	}
 
 	for _, getImage := range workflow {
-		image, err := getImage(ctx)
-		if errors.Is(err, imageResolverUnsupportedError) {
-			continue
-		} else if err != nil {
-			return nil, err
+		image, err := getImage(ctx, scalibrlayerimage.DefaultConfig())
+		if err != nil {
+			if errors.Is(err, imageResolverUnsupportedError) {
+				continue
+			}
+
+			return nil, fmt.Errorf("invalid image: %w", err)
 		}
 
-		if image != nil {
-			return image, nil
+		if image == nil {
+			return nil, fmt.Errorf("invalid image: failed to fetch image")
 		}
+
+		// We guarantee that the image is valid before returning.
+		// For any other case, we return an error.
+		return image, nil
 	}
 
 	return nil, fmt.Errorf("invalid image: failed to fetch image")
@@ -208,11 +223,14 @@ func (c containerImageReader) scalibrDefaultScanRoots() ([]*scalibrfs.ScanRoot, 
 	var scanRoots []*scalibrfs.ScanRoot
 	var scanRootPaths []string
 	var err error
+
 	if scanRootPaths, err = platform.DefaultScanRoots(false); err != nil {
 		return nil, err
 	}
+
 	for _, r := range scanRootPaths {
 		scanRoots = append(scanRoots, &scalibrfs.ScanRoot{FS: scalibrfs.DirFS(r), Path: r})
 	}
+
 	return scanRoots, nil
 }
