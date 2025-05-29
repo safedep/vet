@@ -32,7 +32,7 @@ func TestContainerImageReaderEnumManifest(t *testing.T) {
 			expectedEcosystem: "Alpine:v3.20",
 		},
 		{
-			name:        "valid image with version",
+			name:        "valid image with invalid version",
 			imageRef:    "alpine:9999.999.939489", // Random Unavailable Version
 			expectedErr: true,
 		},
@@ -72,5 +72,4 @@ func TestContainerImageReaderEnumManifest(t *testing.T) {
 			}
 		})
 	}
-
 }

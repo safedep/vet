@@ -87,6 +87,7 @@ var (
 	malwareAnalysisMinimumConfidence string
 	gitlabReportPath                 string
 	scanImageTarget                  string
+	scanImageNoRemote                bool
 )
 
 func newScanCommand() *cobra.Command {
@@ -215,7 +216,9 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&malwareAnalysisMinimumConfidence, "malware-analysis-min-confidence", "", "HIGH",
 		"Minimum confidence level for malicious package analysis result to fail fast")
 	cmd.Flags().StringVarP(&scanImageTarget, "image", "", "",
-		"Image reference to run container  image scanning (eg. node:latest)")
+		"Image reference to run container image scanning (eg. node:latest)")
+	cmd.Flags().BoolVarP(&scanImageNoRemote, "image-no-remote", "", false,
+		"Disable container image pulling when not found locally")
 
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
@@ -394,6 +397,11 @@ func internalStartScan() error {
 		analytics.TrackCommandImageScan()
 
 		readerConfig := readers.DefaultContainerImageReaderConfig()
+
+		if scanImageNoRemote {
+			readerConfig.RemoteImageFetch = false
+		}
+
 		reader, err = readers.NewContainerImageReader(scanImageTarget, readerConfig)
 	} else {
 		analytics.TrackCommandScanDirectoryScan()
