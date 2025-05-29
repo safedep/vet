@@ -1,8 +1,9 @@
 package readers
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestContainerImageReader_ApplicationName(t *testing.T) {
@@ -17,6 +18,10 @@ func TestContainerImageReader_ApplicationName(t *testing.T) {
 		{
 			imageRef:        "alpine:3.21.3@sha256:a8560b36e8b8210634f77d9f7f9efd7ffa463e380b75e2e74aff4511df3ef88c",
 			expectedAppName: "pkg:/oci/alpine:3.21.3@sha256:a8560b36e8b8210634f77d9f7f9efd7ffa463e380b75e2e74aff4511df3ef88c",
+		},
+		{
+			imageRef:        "./fixtures/image-tar/dummy.tar",
+			expectedAppName: "file://./fixtures/image-tar/dummy.tar",
 		},
 	}
 
@@ -77,15 +82,7 @@ func TestCheckPathExists(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotNil(t, reader)
 
-			exists, err := reader.checkPathExists(tc.path)
-
-			if tc.expectedError {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
-
-			assert.Equal(t, tc.isPathExists, exists)
+			assert.Equal(t, tc.isPathExists, reader.imageTarget.isLocalFile)
 		})
 	}
 }

@@ -218,7 +218,7 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&scanImageTarget, "image", "", "",
 		"Image reference to run container image scanning (eg. node:latest)")
 	cmd.Flags().BoolVarP(&scanImageNoRemote, "image-no-remote", "", false,
-		"Disable remote registry image pulling")
+		"Disable container image pulling when not found locally")
 
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
