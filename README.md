@@ -254,6 +254,7 @@ vet scan --github-org https://github.com/org
 ```bash
 # Container images
 vet scan --image nginx:latest
+vet scan --image /path/to/image-saved-file.tar
 
 # Binary artifacts
 vet scan -M app.jar
@@ -457,6 +458,9 @@ vet scan --vsx --malware
 
 # GitHub Actions
 vet scan -D .github/workflows --malware
+
+# Container Images
+vet scan --image nats:2.10 --malware
 
 # Scan a single package and fail if its malicious
 vet scan --purl pkg:/npm/nyc-config@10.0.0 --fail-fast
