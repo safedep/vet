@@ -254,6 +254,7 @@ vet scan --github-org https://github.com/org
 ```bash
 # Container images
 vet scan --image nginx:latest
+vet scan --image /path/to/image-saved-file.tar
 
 # Binary artifacts
 vet scan -M app.jar
@@ -298,7 +299,7 @@ vet scan -M sbom.json --type bom-cyclonedx
 vet scan -M sbom.spdx.json --type bom-spdx
 
 # Generate SBOM output
-vet scan -D . --report-cyclonedx=output.sbom.json
+vet scan -D . --report-cdx=output.sbom.json
 
 # Package URL scanning
 vet scan --purl pkg:npm/lodash@4.17.21
@@ -366,10 +367,10 @@ vet scan -D . --report-summary
 
 ```bash
 # SBOM generation
-vet scan -D . --report-cyclonedx=sbom.json
+vet scan -D . --report-cdx=sbom.json
 
 # Dependency graphs
-vet scan -D . --report-dot=dependencies.dot
+vet scan -D . --report-graph=dependencies.dot
 ```
 
 </td>
@@ -457,6 +458,9 @@ vet scan --vsx --malware
 
 # GitHub Actions
 vet scan -D .github/workflows --malware
+
+# Container Images
+vet scan --image nats:2.10 --malware
 
 # Scan a single package and fail if its malicious
 vet scan --purl pkg:/npm/nyc-config@10.0.0 --fail-fast
