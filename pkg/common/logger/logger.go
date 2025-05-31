@@ -16,6 +16,12 @@ func init() {
 func getLogLevelFromEnv() logrus.Level {
 	envLogLevel := strings.ToLower(os.Getenv("LOG_LEVEL"))
 
+	// This is more aligned with our naming conventions but we cannot
+	// change the previous environment variable name without breaking contract
+	if envLogLevel == "" {
+		envLogLevel = strings.ToLower(os.Getenv("VET_LOG_LEVEL"))
+	}
+
 	switch envLogLevel {
 	case "debug":
 		return logrus.DebugLevel
