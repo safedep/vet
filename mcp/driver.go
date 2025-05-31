@@ -18,9 +18,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var (
-	ErrMaliciousPackageScanningServiceNotFound = errors.New("malicious package scanning service not found")
-)
+var ErrMaliciousPackageScanningServiceNotFound = errors.New("malicious package scanning service not found")
 
 type DriverConfig struct{}
 
@@ -33,11 +31,22 @@ func DefaultDriverConfig() DriverConfig {
 // instead of using services directly in tools is to allow for caching and other stateful
 // operations while keeping tools stateless
 type Driver interface {
+	// Return all available versions for a package
 	GetPackageAvailableVersions(ctx context.Context, p *packagev1.Package) ([]*packagev1.PackageVersion, error)
+
+	// Return the latest version for a package
 	GetPackageLatestVersion(ctx context.Context, p *packagev1.Package) (*packagev1.PackageVersion, error)
+
+	// Return a malware analysis report for a package version
 	GetPackageVersionMalwareReport(ctx context.Context, pv *packagev1.PackageVersion) (*malysisv1pb.Report, error)
+
+	// Return vulnerabilities for a package version
 	GetPackageVersionVulnerabilities(ctx context.Context, pv *packagev1.PackageVersion) ([]*vulnerabilityv1.Vulnerability, error)
+
+	// Return popularity insights for a package version
 	GetPackageVersionPopularity(ctx context.Context, pv *packagev1.PackageVersion) ([]*packagev1.ProjectInsight, error)
+
+	// Return license information for a package version
 	GetPackageVersionLicenseInfo(ctx context.Context, pv *packagev1.PackageVersion) (*packagev1.LicenseMetaList, error)
 }
 
@@ -53,7 +62,8 @@ var _ Driver = &defaultDriver{}
 // Always follow dependency inversion principle when extending the driver
 func NewDefaultDriver(insightsClient insightsv2grpc.InsightServiceClient,
 	malysisClient malysisv1grpc.MalwareAnalysisServiceClient,
-	gh *adapters.GithubClient) (*defaultDriver, error) {
+	gh *adapters.GithubClient,
+) (*defaultDriver, error) {
 	return &defaultDriver{
 		insightsClient: insightsClient,
 		malysisClient:  malysisClient,
@@ -125,7 +135,6 @@ func (d *defaultDriver) GetPackageVersionMalwareReport(ctx context.Context, pv *
 			PackageVersion: pv,
 		},
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to query package analysis: %w", err)
 	}
@@ -164,7 +173,6 @@ func (d *defaultDriver) getPackageVersionInsight(ctx context.Context, pv *packag
 	res, err := d.insightsClient.GetPackageVersionInsight(ctx, &insightsv2.GetPackageVersionInsightRequest{
 		PackageVersion: pv,
 	})
-
 	if err != nil {
 		// Handle the case where the package version is not found. This is required otherwise
 		// LLMs hallucinates
