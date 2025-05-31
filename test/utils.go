@@ -12,3 +12,7 @@ func verifyE2E(t *testing.T) {
 		t.Skip("E2E is disabled in the environment")
 	}
 }
+
+func EnsureEndToEndTestIsEnabled(t *testing.T) {
+	verifyE2E(t)
+}
