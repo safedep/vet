@@ -7,6 +7,13 @@ open source packages before they are used in a project through AI generated code
 `vet` MCP server can protect against [Slopsquatting](#) attacks, malicious packages,
 vulnerabilities and other security risks.
 
+## Supported Ecosystems
+
+`vet` MCP server currently supports the following ecosystems:
+
+- npm
+- PyPI
+
 ## Usage
 
 Start the MCP server using SSE transport:
