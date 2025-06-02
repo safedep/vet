@@ -25,9 +25,7 @@ const (
 	customParserTerraform             = "terraform"
 )
 
-var (
-	errUnsupportedFormat = errors.New("unsupported format")
-)
+var errUnsupportedFormat = errors.New("unsupported format")
 
 // Exporting as constants for use outside this package to refer to specific
 // parsers. For example: Github reader
@@ -91,6 +89,7 @@ var dependencyGraphParsers map[string]dependencyGraphParser = map[string]depende
 	"uv.lock":                         parseUvPackageLockAsGraph,
 	"pom.xml":                         parseMavenPomXmlFile,
 	"Cargo.lock":                      parseCargoLockFile,
+	"go.mod":                          parseGoModFile,
 	customParserCycloneDXSBOM:         parseSbomCycloneDxAsGraph,
 	customParserTypeJavaArchive:       parseJavaArchiveAsGraph,
 	customParserTypeJavaWebAppArchive: parseJavaArchiveAsGraph,
@@ -180,8 +179,10 @@ func FindParser(lockfilePath, lockfileAs string) (Parser, error) {
 
 	// Check special case of GitHub actions
 	if m, err := regexp.Match(`\.github/(workflows|actions)/.*\.(yml|yaml)`, []byte(lockfilePath)); m && err == nil {
-		pw := &parserWrapper{graphParser: parseGithubActionWorkflowAsGraph,
-			parseAs: customParserGitHubActions}
+		pw := &parserWrapper{
+			graphParser: parseGithubActionWorkflowAsGraph,
+			parseAs:     customParserGitHubActions,
+		}
 		if pw.supported() {
 			return pw, nil
 		}
