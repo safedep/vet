@@ -145,6 +145,10 @@ func (d *defaultDriver) GetPackageAvailableVersions(ctx context.Context, p *pack
 }
 
 func (d *defaultDriver) GetPackageVersionMalwareReport(ctx context.Context, pv *packagev1.PackageVersion) (*malysisv1pb.Report, error) {
+	if pv == nil {
+		return nil, ErrInvalidParameters
+	}
+
 	// TODO: Based on config, either use query or active analysis
 	res, err := d.malysisClient.QueryPackageAnalysis(ctx, &malysisv1.QueryPackageAnalysisRequest{
 		Target: &malysisv1pb.PackageAnalysisTarget{
@@ -190,6 +194,10 @@ func (d *defaultDriver) GetPackageVersionLicenseInfo(ctx context.Context, pv *pa
 }
 
 func (d *defaultDriver) getPackageVersionInsight(ctx context.Context, pv *packagev1.PackageVersion) (*packagev1.PackageVersionInsight, error) {
+	if pv == nil {
+		return nil, ErrInvalidParameters
+	}
+
 	res, err := d.insightsClient.GetPackageVersionInsight(ctx, &insightsv2.GetPackageVersionInsightRequest{
 		PackageVersion: pv,
 	})

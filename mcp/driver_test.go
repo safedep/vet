@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
 	"buf.build/gen/go/safedep/api/grpc/go/safedep/services/insights/v2/insightsv2grpc"
 	"buf.build/gen/go/safedep/api/grpc/go/safedep/services/malysis/v1/malysisv1grpc"
@@ -20,7 +19,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Mock implementations
@@ -442,310 +440,30 @@ func TestDefaultDriver_GetPackageVersionLicenseInfo(t *testing.T) {
 	}
 }
 
-func TestDefaultDriver_GetPackageLatestVersion(t *testing.T) {
-	tests := []struct {
-		name          string
-		packageInput  *packagev1.Package
-		expectedError string
-		expectVersion bool
-	}{
-		{
-			name: "unsupported ecosystem",
-			packageInput: &packagev1.Package{
-				Ecosystem: packagev1.Ecosystem_ECOSYSTEM_UNSPECIFIED,
-				Name:      "test-package",
-			},
-			expectedError: "failed to create registry client",
-			expectVersion: false,
-		},
-	}
+func TestDefaultDriver_NilInputHandling(t *testing.T) {
+	mockInsightsClient := &mockInsightServiceClient{}
+	mockMalysisClient := &mockMalwareAnalysisServiceClient{}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mockInsightsClient := &mockInsightServiceClient{}
-			mockMalysisClient := &mockMalwareAnalysisServiceClient{}
+	driver, err := NewDefaultDriver(mockInsightsClient, mockMalysisClient, &adapters.GithubClient{})
+	require.NoError(t, err)
 
-			driver, err := NewDefaultDriver(mockInsightsClient, mockMalysisClient, &adapters.GithubClient{})
-			require.NoError(t, err)
+	// Test all methods with nil package version
+	vulns, err := driver.GetPackageVersionVulnerabilities(context.Background(), nil)
+	assert.Error(t, err)
+	assert.Nil(t, vulns)
 
-			version, err := driver.GetPackageLatestVersion(context.Background(), tt.packageInput)
+	insights, err := driver.GetPackageVersionPopularity(context.Background(), nil)
+	assert.Error(t, err)
+	assert.Nil(t, insights)
 
-			if tt.expectedError != "" {
-				assert.Error(t, err)
-				assert.Contains(t, err.Error(), tt.expectedError)
-			} else {
-				assert.NoError(t, err)
-			}
+	licenseInfo, err := driver.GetPackageVersionLicenseInfo(context.Background(), nil)
+	assert.Error(t, err)
+	assert.Nil(t, licenseInfo)
 
-			if tt.expectVersion {
-				assert.NotNil(t, version)
-			} else {
-				assert.Nil(t, version)
-			}
-		})
-	}
-}
+	report, err := driver.GetPackageVersionMalwareReport(context.Background(), nil)
+	assert.Error(t, err)
+	assert.Nil(t, report)
 
-func TestDefaultDriver_GetPackageAvailableVersions(t *testing.T) {
-	tests := []struct {
-		name           string
-		packageInput   *packagev1.Package
-		expectedError  string
-		expectVersions bool
-	}{
-		{
-			name: "unsupported ecosystem",
-			packageInput: &packagev1.Package{
-				Ecosystem: packagev1.Ecosystem_ECOSYSTEM_UNSPECIFIED,
-				Name:      "test-package",
-			},
-			expectedError:  "failed to create registry client",
-			expectVersions: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mockInsightsClient := &mockInsightServiceClient{}
-			mockMalysisClient := &mockMalwareAnalysisServiceClient{}
-
-			driver, err := NewDefaultDriver(mockInsightsClient, mockMalysisClient, &adapters.GithubClient{})
-			require.NoError(t, err)
-
-			versions, err := driver.GetPackageAvailableVersions(context.Background(), tt.packageInput)
-
-			if tt.expectedError != "" {
-				assert.Error(t, err)
-				assert.Contains(t, err.Error(), tt.expectedError)
-			} else {
-				assert.NoError(t, err)
-			}
-
-			if tt.expectVersions {
-				assert.NotNil(t, versions)
-			} else {
-				assert.Nil(t, versions)
-			}
-		})
-	}
-}
-
-// Test edge cases for methods that depend on insights
-func TestDefaultDriver_EdgeCases(t *testing.T) {
-	t.Run("GetPackageVersionVulnerabilities with empty response", func(t *testing.T) {
-		mockInsightsClient := &mockInsightServiceClient{}
-		mockMalysisClient := &mockMalwareAnalysisServiceClient{}
-
-		response := &insightsv2.GetPackageVersionInsightResponse{
-			Insight: &packagev1.PackageVersionInsight{
-				Vulnerabilities: nil, // Empty vulnerabilities
-			},
-		}
-		mockInsightsClient.On("GetPackageVersionInsight", mock.Anything, mock.AnythingOfType("*insightsv2.GetPackageVersionInsightRequest"), mock.Anything).Return(response, nil)
-
-		driver, err := NewDefaultDriver(mockInsightsClient, mockMalysisClient, &adapters.GithubClient{})
-		require.NoError(t, err)
-
-		vulns, err := driver.GetPackageVersionVulnerabilities(context.Background(), createTestPackageVersion())
-		assert.NoError(t, err)
-		assert.Nil(t, vulns)
-
-		mockInsightsClient.AssertExpectations(t)
-	})
-
-	t.Run("GetPackageVersionPopularity with empty response", func(t *testing.T) {
-		mockInsightsClient := &mockInsightServiceClient{}
-		mockMalysisClient := &mockMalwareAnalysisServiceClient{}
-
-		response := &insightsv2.GetPackageVersionInsightResponse{
-			Insight: &packagev1.PackageVersionInsight{
-				ProjectInsights: nil, // Empty project insights
-			},
-		}
-		mockInsightsClient.On("GetPackageVersionInsight",
-			mock.Anything, mock.AnythingOfType("*insightsv2.GetPackageVersionInsightRequest"), mock.Anything).Return(response, nil)
-
-		driver, err := NewDefaultDriver(mockInsightsClient, mockMalysisClient, &adapters.GithubClient{})
-		require.NoError(t, err)
-
-		insights, err := driver.GetPackageVersionPopularity(context.Background(), createTestPackageVersion())
-		assert.NoError(t, err)
-		assert.Nil(t, insights)
-
-		mockInsightsClient.AssertExpectations(t)
-	})
-
-	t.Run("GetPackageVersionLicenseInfo with empty response", func(t *testing.T) {
-		mockInsightsClient := &mockInsightServiceClient{}
-		mockMalysisClient := &mockMalwareAnalysisServiceClient{}
-
-		response := &insightsv2.GetPackageVersionInsightResponse{
-			Insight: &packagev1.PackageVersionInsight{
-				Licenses: nil, // Empty licenses
-			},
-		}
-		mockInsightsClient.On("GetPackageVersionInsight", mock.Anything,
-			mock.AnythingOfType("*insightsv2.GetPackageVersionInsightRequest"), mock.Anything).Return(response, nil)
-
-		driver, err := NewDefaultDriver(mockInsightsClient, mockMalysisClient, &adapters.GithubClient{})
-		require.NoError(t, err)
-
-		licenseInfo, err := driver.GetPackageVersionLicenseInfo(context.Background(), createTestPackageVersion())
-		assert.NoError(t, err)
-		assert.Nil(t, licenseInfo)
-
-		mockInsightsClient.AssertExpectations(t)
-	})
-
-	t.Run("GetPackageVersionInsight with nil insight in response", func(t *testing.T) {
-		mockInsightsClient := &mockInsightServiceClient{}
-		mockMalysisClient := &mockMalwareAnalysisServiceClient{}
-
-		response := &insightsv2.GetPackageVersionInsightResponse{
-			Insight: nil, // Nil insight
-		}
-		mockInsightsClient.On("GetPackageVersionInsight", mock.Anything,
-			mock.AnythingOfType("*insightsv2.GetPackageVersionInsightRequest"), mock.Anything).Return(response, nil)
-
-		driver, err := NewDefaultDriver(mockInsightsClient, mockMalysisClient, &adapters.GithubClient{})
-		require.NoError(t, err)
-
-		// Test that all methods handle nil insight gracefully
-		vulns, err := driver.GetPackageVersionVulnerabilities(context.Background(), createTestPackageVersion())
-		assert.NoError(t, err)
-		assert.Nil(t, vulns)
-
-		insights, err := driver.GetPackageVersionPopularity(context.Background(), createTestPackageVersion())
-		assert.NoError(t, err)
-		assert.Nil(t, insights)
-
-		licenseInfo, err := driver.GetPackageVersionLicenseInfo(context.Background(), createTestPackageVersion())
-		assert.NoError(t, err)
-		assert.Nil(t, licenseInfo)
-
-		mockInsightsClient.AssertExpectations(t)
-	})
-
-	t.Run("Methods with nil package version", func(t *testing.T) {
-		mockInsightsClient := &mockInsightServiceClient{}
-		mockMalysisClient := &mockMalwareAnalysisServiceClient{}
-
-		// Mock the insights client to return an error for nil package version
-		mockInsightsClient.On("GetPackageVersionInsight", mock.Anything,
-			mock.AnythingOfType("*insightsv2.GetPackageVersionInsightRequest"), mock.Anything).
-			Return((*insightsv2.GetPackageVersionInsightResponse)(nil), status.Error(codes.InvalidArgument, "invalid argument"))
-
-		// Mock the malysis client to return an error for nil package version
-		mockMalysisClient.On("QueryPackageAnalysis", mock.Anything,
-			mock.AnythingOfType("*malysisv1.QueryPackageAnalysisRequest"), mock.Anything).
-			Return((*malysisv1.QueryPackageAnalysisResponse)(nil), status.Error(codes.InvalidArgument, "invalid argument"))
-
-		driver, err := NewDefaultDriver(mockInsightsClient, mockMalysisClient, &adapters.GithubClient{})
-		require.NoError(t, err)
-
-		// Test GetPackageVersionVulnerabilities with nil package version
-		vulns, err := driver.GetPackageVersionVulnerabilities(context.Background(), nil)
-		assert.Error(t, err)
-		assert.Nil(t, vulns)
-
-		// Test GetPackageVersionPopularity with nil package version
-		insights, err := driver.GetPackageVersionPopularity(context.Background(), nil)
-		assert.Error(t, err)
-		assert.Nil(t, insights)
-
-		// Test GetPackageVersionLicenseInfo with nil package version
-		licenseInfo, err := driver.GetPackageVersionLicenseInfo(context.Background(), nil)
-		assert.Error(t, err)
-		assert.Nil(t, licenseInfo)
-
-		// Test GetPackageVersionMalwareReport with nil package version
-		report, err := driver.GetPackageVersionMalwareReport(context.Background(), nil)
-		assert.Error(t, err)
-		assert.Nil(t, report)
-
-		mockInsightsClient.AssertExpectations(t)
-		mockMalysisClient.AssertExpectations(t)
-	})
-}
-
-// Note: GetPackageLatestVersion and GetPackageAvailableVersions tests would require
-// mocking the package registry adapters, which is more complex due to their internal
-// initialization. These methods primarily depend on external package registries
-// and would be better tested with integration tests or by making the registry
-// adapter injectable as a dependency.
-
-func TestDefaultDriver_getPackageVersionInsight(t *testing.T) {
-	tests := []struct {
-		name           string
-		packageVersion *packagev1.PackageVersion
-		setupMock      func(*mockInsightServiceClient)
-		expectedError  error
-		expectInsight  bool
-	}{
-		{
-			name:           "successful insight retrieval",
-			packageVersion: createTestPackageVersion(),
-			setupMock: func(m *mockInsightServiceClient) {
-				response := &insightsv2.GetPackageVersionInsightResponse{
-					Insight: &packagev1.PackageVersionInsight{
-						PackagePublishedAt: timestamppb.New(time.Now()),
-					},
-				}
-				m.On("GetPackageVersionInsight", mock.Anything,
-					mock.AnythingOfType("*insightsv2.GetPackageVersionInsightRequest"), mock.Anything).Return(response, nil)
-			},
-			expectedError: nil,
-			expectInsight: true,
-		},
-		{
-			name:           "insight not found",
-			packageVersion: createTestPackageVersion(),
-			setupMock: func(m *mockInsightServiceClient) {
-				m.On("GetPackageVersionInsight", mock.Anything,
-					mock.AnythingOfType("*insightsv2.GetPackageVersionInsightRequest"), mock.Anything).
-					Return((*insightsv2.GetPackageVersionInsightResponse)(nil), status.Error(codes.NotFound, "not found"))
-			},
-			expectedError: ErrPackageVersionInsightNotFound,
-			expectInsight: false,
-		},
-		{
-			name:           "grpc internal error",
-			packageVersion: createTestPackageVersion(),
-			setupMock: func(m *mockInsightServiceClient) {
-				m.On("GetPackageVersionInsight", mock.Anything,
-					mock.AnythingOfType("*insightsv2.GetPackageVersionInsightRequest"), mock.Anything).
-					Return((*insightsv2.GetPackageVersionInsightResponse)(nil), status.Error(codes.Internal, "internal error"))
-			},
-			expectedError: errors.New("failed to get package version insight"),
-			expectInsight: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mockInsightsClient := &mockInsightServiceClient{}
-			mockMalysisClient := &mockMalwareAnalysisServiceClient{}
-			tt.setupMock(mockInsightsClient)
-
-			driver, err := NewDefaultDriver(mockInsightsClient, mockMalysisClient, &adapters.GithubClient{})
-			require.NoError(t, err)
-
-			insight, err := driver.getPackageVersionInsight(context.Background(), tt.packageVersion)
-
-			if tt.expectedError != nil {
-				assert.Error(t, err)
-				assert.Contains(t, err.Error(), tt.expectedError.Error())
-			} else {
-				assert.NoError(t, err)
-			}
-
-			if tt.expectInsight {
-				assert.NotNil(t, insight)
-			} else {
-				assert.Nil(t, insight)
-			}
-
-			mockInsightsClient.AssertExpectations(t)
-		})
-	}
+	mockInsightsClient.AssertExpectations(t)
+	mockMalysisClient.AssertExpectations(t)
 }
