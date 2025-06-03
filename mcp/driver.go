@@ -18,7 +18,11 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var ErrMaliciousPackageScanningServiceNotFound = errors.New("malicious package scanning service not found")
+var (
+	ErrMaliciousPackageScanningPackageNotFound = errors.New("no known malicious package scanning report found")
+	ErrPackageVersionInsightNotFound           = errors.New("no known package version insight found")
+	ErrInvalidParameters                       = errors.New("invalid parameters")
+)
 
 type DriverConfig struct{}
 
@@ -64,6 +68,18 @@ func NewDefaultDriver(insightsClient insightsv2grpc.InsightServiceClient,
 	malysisClient malysisv1grpc.MalwareAnalysisServiceClient,
 	gh *adapters.GithubClient,
 ) (*defaultDriver, error) {
+	if insightsClient == nil {
+		return nil, ErrInvalidParameters
+	}
+
+	if malysisClient == nil {
+		return nil, ErrInvalidParameters
+	}
+
+	if gh == nil {
+		return nil, ErrInvalidParameters
+	}
+
 	return &defaultDriver{
 		insightsClient: insightsClient,
 		malysisClient:  malysisClient,
@@ -104,12 +120,12 @@ func (d *defaultDriver) GetPackageAvailableVersions(ctx context.Context, p *pack
 		GitHubClient: d.gh,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create registry client: %w", err)
 	}
 
 	packageDiscovery, err := registryClient.PackageDiscovery()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create package discovery: %w", err)
 	}
 
 	packageInfo, err := packageDiscovery.GetPackage(p.Name)
@@ -136,6 +152,10 @@ func (d *defaultDriver) GetPackageVersionMalwareReport(ctx context.Context, pv *
 		},
 	})
 	if err != nil {
+		if s, ok := status.FromError(err); ok && s.Code() == codes.NotFound {
+			return nil, ErrMaliciousPackageScanningPackageNotFound
+		}
+
 		return nil, fmt.Errorf("failed to query package analysis: %w", err)
 	}
 
@@ -177,7 +197,7 @@ func (d *defaultDriver) getPackageVersionInsight(ctx context.Context, pv *packag
 		// Handle the case where the package version is not found. This is required otherwise
 		// LLMs hallucinates
 		if s, ok := status.FromError(err); ok && s.Code() == codes.NotFound {
-			return nil, ErrMaliciousPackageScanningServiceNotFound
+			return nil, ErrPackageVersionInsightNotFound
 		}
 
 		return nil, fmt.Errorf("failed to get package version insight: %w", err)
