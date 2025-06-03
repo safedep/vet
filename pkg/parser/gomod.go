@@ -9,7 +9,7 @@ import (
 )
 
 // parseGoModFile parses the go.mod file of the  project.
-func parseGoModFile(lockfilePath string, _ *ParserConfig) (*models.PackageManifest, error) {
+func parseGoModFile(lockfilePath string, config *ParserConfig) (*models.PackageManifest, error) {
 	data, err := os.ReadFile(lockfilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read the file: %w", err)
@@ -20,8 +20,11 @@ func parseGoModFile(lockfilePath string, _ *ParserConfig) (*models.PackageManife
 		return nil, fmt.Errorf("failed to parse go.mod file: %w", err)
 	}
 	manifest := models.NewPackageManifestFromLocal(lockfilePath, models.EcosystemGo)
-
 	for _, pkg := range file.Require {
+		if pkg.Indirect && !config.IncludeTransitiveDependencies {
+			continue
+		}
+
 		pkgDetails := models.NewPackageDetail(models.EcosystemGo, pkg.Mod.Path, pkg.Mod.Version)
 		modelPackage := &models.Package{
 			PackageDetails: pkgDetails,

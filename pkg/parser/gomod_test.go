@@ -13,8 +13,20 @@ var goDeps = []string{
 	"gopkg.in/inf.v0",         // indirect
 }
 
-func Test_GomodParser_Simple(t *testing.T) {
+func TestGomodParserSimple(t *testing.T) {
 	manifest, err := parseGoModFile("./fixtures/go/go.mod", &ParserConfig{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, 3, len(manifest.Packages))
+	for _, pkg := range manifest.Packages {
+		assert.Contains(t, goDeps, pkg.Name)
+	}
+}
+
+func TestGomodParserWithIndirectDependencies(t *testing.T) {
+	manifest, err := parseGoModFile("./fixtures/go/go.mod", &ParserConfig{IncludeTransitiveDependencies: true})
 	if err != nil {
 		t.Fatal(err)
 	}

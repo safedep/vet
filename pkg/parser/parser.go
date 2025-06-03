@@ -66,10 +66,11 @@ type Parser interface {
 }
 
 type ParserConfig struct {
-	// A generic config flag (not specific to npm even though the name sounds like that) to indicate
+	// IncludeDevDependencies is a generic config flag (not specific to npm even though the name sounds like that) to indicate
 	// if the parser should include non-production dependencies as well. But this will work
 	// only for supported parsers such as npm graph parser
-	IncludeDevDependencies bool
+	IncludeDevDependencies        bool
+	IncludeTransitiveDependencies bool
 }
 
 // Graph parser always takes precedence over lockfile parser
@@ -274,7 +275,8 @@ func (pw *parserWrapper) Ecosystem() string {
 
 func (pw *parserWrapper) Parse(lockfilePath string) (*models.PackageManifest, error) {
 	return pw.ParseWithConfig(lockfilePath, &ParserConfig{
-		IncludeDevDependencies: true,
+		IncludeDevDependencies:        true,
+		IncludeTransitiveDependencies: true,
 	})
 }
 
