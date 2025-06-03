@@ -4,7 +4,7 @@ The `vet` MCP server is designed to run locally using `stdio` or `sse` transport
 It provides tools for MCP clients such as Claude Code, Cursor and others to vet
 open source packages before they are used in a project through AI generated code.
 
-`vet` MCP server can protect against [Slopsquatting](#) attacks, malicious packages,
+`vet` MCP server can protect against [Slopsquatting](https://en.wikipedia.org/wiki/Slopsquatting) attacks, malicious packages,
 vulnerabilities and other security risks.
 
 ## Supported Ecosystems
@@ -80,3 +80,27 @@ Follow the rules below to use vet-mcp:
 Example usage with Cursor:
 
 ![Cursor vet-mcp example](./assets/vet-mcp-cursor.png)
+
+#### Claude Code
+
+Add the following to `.mcp.json` in your Claude Code project:
+
+```json
+{
+  "mcpServers": {
+    "vet-mcp": {
+      "command": "docker",
+      "args": [
+        "run",  
+        "--rm",
+        "-i",
+        "ghcr.io/safedep/vet:latest",
+        "server",
+        "mcp"
+      ]
+    }
+  }
+}
+```
+
+**Note:** You can also use `vet` binary directly as an MCP server using `stdio` transport.
