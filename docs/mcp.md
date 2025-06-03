@@ -58,6 +58,14 @@ Add following configuration to your MCP client if you are using SSE transport:
 }
 ```
 
+**Note:** While `docker` containers can help keep the MCP server process isolated, it needs to be periodically updated to the latest version.
+
+Alternatively, you can use `vet` binary directly as an MCP server using `stdio` transport. Use the following command to start the MCP server:
+
+```bash
+vet -l /tmp/vet-mcp.log server mcp --server-type stdio
+```
+
 ### Configure IDE
 
 #### Cursor
