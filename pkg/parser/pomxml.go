@@ -8,13 +8,27 @@ import (
 	"github.com/google/osv-scalibr/plugin"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
+	"io"
+	"os"
+	"path"
+	"path/filepath"
 )
 
 // parseMavenPomXmlFile parses the pom.xml file in a maven project.
 // Its finds the dependency from Maven Registry, and also from Parent Maven BOM
 // We use osc-scalibr's java/pomxmlnet (with Net, or Network) to fetch dependency from registry.
 func parseMavenPomXmlFile(lockfilePath string, _ *ParserConfig) (*models.PackageManifest, error) {
+	if filepath.Base(lockfilePath) != "pom.xml" {
+		// create a temp directory and put this file with the name pom.xml
+		newPath, err := copyLockfileToTempDir(lockfilePath, "pom.xml")
+		if err != nil {
+			return nil, fmt.Errorf("could not copy lockfile to temp directory: %w", err)
+		}
+		lockfilePath = newPath
+	}
+
 	// Java/PomXMLNet extractor
+	// need filename to be pom.xml
 	ext, err := el.ExtractorsFromNames([]string{"java/pomxmlnet"})
 	if err != nil {
 		logger.Errorf("Failed to create java/pomxmlnet extractor form osv-scalibr: %s", err.Error())
@@ -68,4 +82,32 @@ func parseMavenPomXmlFile(lockfilePath string, _ *ParserConfig) (*models.Package
 	}
 
 	return manifest, nil
+}
+
+func copyLockfileToTempDir(sourceFileName, destFileName string) (string, error) {
+	tempDir, err := os.MkdirTemp(os.TempDir(), "vet-scan-*")
+	if err != nil {
+		return "", err
+	}
+	// TODO: remove this dir
+
+	filePath := path.Join(tempDir, destFileName)
+	file, err := os.Create(filePath)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	sourceData, err := os.Open(sourceFileName)
+	if err != nil {
+		return "", err
+	}
+	defer sourceData.Close()
+
+	_, err = io.Copy(file, sourceData)
+	if err != nil {
+		return "", err
+	}
+
+	return file.Name(), nil
 }
