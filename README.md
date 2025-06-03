@@ -396,6 +396,8 @@ vet scan -D . \
 
 ### 🤖 **MCP Server**
 
+**vet** can be used as an MCP server to vet open source packages from AI suggested code.
+
 ```bash
 # Start the MCP server with SSE transport
 vet server mcp --server-type sse
