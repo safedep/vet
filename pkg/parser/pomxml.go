@@ -10,14 +10,12 @@ import (
 	"os"
 )
 
-const mavenCentralRegistry = "https://repo.maven.apache.org/maven2/"
-
 // parseMavenPomXmlFile parses the pom.xml file in a maven project.
 // Its finds the dependency from Maven Registry, and also from Parent Maven BOM
 // We use osc-scalibr's java/pomxmlnet (with Net, or Network) to fetch dependency from registry.
 func parseMavenPomXmlFile(lockfilePath string, _ *ParserConfig) (*models.PackageManifest, error) {
 	// Java/PomXMLNet extractor
-	pomXmlNetExtractor := pomxmlnet.New(pomxmlnet.NewConfig(mavenCentralRegistry))
+	pomXmlNetExtractor := pomxmlnet.NewDefault()
 
 	file, err := os.Open(lockfilePath)
 	if err != nil {
