@@ -37,3 +37,15 @@ func Test_MavenPomXmlParser_ChildParentRelation(t *testing.T) {
 		assert.Contains(t, deps, pkg.Name)
 	}
 }
+
+func Test_MavenPomXmlParser_RemoteParent(t *testing.T) {
+	manifest, err := parseMavenPomXmlFile("./fixtures/java/remote/pom.xml", &ParserConfig{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, len(manifest.Packages), 4)
+	for _, pkg := range manifest.Packages {
+		assert.Contains(t, deps, pkg.Name)
+	}
+}
