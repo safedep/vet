@@ -83,7 +83,11 @@ func newListKeyCommand() *cobra.Command {
 		Use:   "list",
 		Short: "List API keys",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := executeListKeys()
+			err := getNewAccessTokenUsingRefreshTokenIfCurrentIsExpired()
+			if err != nil {
+				logger.Errorf("Failed to refresh access token: %v", err)
+			}
+			err = executeListKeys()
 			if err != nil {
 				logger.Errorf("Failed to list API keys: %v", err)
 			}
@@ -178,7 +182,6 @@ func executeCreateKey() error {
 		Desc:         keyDescription,
 		ExpiryInDays: keyExpiresIn,
 	})
-
 	if err != nil {
 		return err
 	}

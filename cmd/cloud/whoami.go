@@ -16,7 +16,11 @@ func newWhoamiCommand() *cobra.Command {
 		Use:   "whoami",
 		Short: "Print information about the current user",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := executeWhoami()
+			err := getNewAccessTokenUsingRefreshTokenIfCurrentIsExpired()
+			if err != nil {
+				logger.Errorf("Failed to refresh access token: %v", err)
+			}
+			err = executeWhoami()
 			if err != nil {
 				logger.Errorf("Failed to execute whoami: %v", err)
 			}

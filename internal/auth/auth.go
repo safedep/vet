@@ -291,6 +291,10 @@ func CommunityMode() bool {
 	return false
 }
 
+func HomeRelativeConfigPath() string {
+	return homeRelativeConfigPath
+}
+
 // Set the runtime mode to community without
 // persisting it to the configuration file
 func SetRuntimeCommunityMode() {
