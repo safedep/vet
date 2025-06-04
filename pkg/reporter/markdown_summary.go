@@ -494,6 +494,9 @@ func (r *markdownSummaryReporter) getAdviceSummary(adv *jsonreportspec.Remediati
 		if adv.GetTargetPackageVersion() != "" {
 			return fmt.Sprintf("Upgrade to %s@%s", adv.GetTargetPackageName(),
 				adv.GetTargetPackageVersion()), nil
+		} else {
+			// We don't have a specific version to upgrade to. We should not given
+			// a generic advice to upgrade to latest version.
 		}
 	case jsonreportspec.RemediationAdviceType_AlternatePopularPackage:
 		return "Use an alternative package that is popular", nil
