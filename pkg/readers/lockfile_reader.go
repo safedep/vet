@@ -5,6 +5,10 @@ import (
 	"github.com/safedep/vet/pkg/parser"
 )
 
+const (
+	unknownVersion = "0.0.0"
+)
+
 type lockfileReader struct {
 	lockfiles  []string
 	lockfileAs string
@@ -53,6 +57,39 @@ func (p *lockfileReader) EnumManifests(handler func(*models.PackageManifest,
 			return err
 		}
 
+		// Check for and filter out duplicate packages without version
+		// See GitHub issue #343
+		packageMap := make(map[string]*models.Package)
+		for _, pkg := range manifest.Packages {
+			name := pkg.PackageDetails.Name
+
+			existing, exists := packageMap[name]
+			if !exists {
+				// Only add if version is not unknown
+				if pkg.PackageDetails.Version != unknownVersion && pkg.PackageDetails.Version != "" {
+					packageMap[name] = pkg
+				}
+			} else {
+				// Prefer explicit versions over unknown versions
+				if pkg.PackageDetails.Version != unknownVersion &&
+					pkg.PackageDetails.Version != "" &&
+					(existing.PackageDetails.Version == unknownVersion ||
+						existing.PackageDetails.Version == "") {
+					packageMap[name] = pkg
+				}
+			}
+		}
+
+		// Convert map to slice
+		var filteredPkgs []*models.Package
+		for _, pkg := range packageMap {
+			filteredPkgs = append(filteredPkgs, pkg)
+		}
+
+		// Update manifest with filtered packages
+		manifest.Packages = filteredPkgs
+
+		// Call the handler with the manifest and a reader for it
 		err = handler(manifest, NewManifestModelReader(manifest))
 		if err != nil {
 			return err

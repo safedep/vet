@@ -97,6 +97,15 @@ func TestLockfileReaderEnumManifests(t *testing.T) {
 			0,
 			[]int{},
 		},
+		{
+			"Duplicate packages with extras (GitHub issue #343)",
+			[]string{"./fixtures/duplicate-packages/requirements.txt"},
+			"",
+			nil,
+			nil,
+			1,
+			[]int{2}, // Should have 2 packages (bleach, requests) not 4 duplicates
+		},
 	}
 
 	for _, test := range cases {
@@ -128,4 +137,40 @@ func TestLockfileReaderEnumManifests(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestLockfileReaderDeduplication(t *testing.T) {
+	// Test specifically for GitHub issue #343 - duplicate packages with extras
+	t.Run("Deduplicates packages with extras syntax", func(t *testing.T) {
+		r, err := NewLockfileReader([]string{"./fixtures/duplicate-packages/requirements.txt"}, "")
+		assert.Nil(t, err)
+
+		var packages []*models.Package
+		err = r.EnumManifests(func(m *models.PackageManifest, pr PackageReader) error {
+			packages = m.Packages
+			return nil
+		})
+
+		assert.Nil(t, err)
+		assert.Equal(t, 2, len(packages), "Should have exactly 2 packages after deduplication")
+
+		// Check that we have the expected packages with correct versions
+		packageNames := make(map[string]string)
+		for _, pkg := range packages {
+			packageNames[pkg.PackageDetails.Name] = pkg.PackageDetails.Version
+		}
+
+		// Verify bleach has explicit version, not 0.0.0
+		assert.Contains(t, packageNames, "bleach")
+		assert.Equal(t, "3.1.2", packageNames["bleach"], "bleach should have explicit version 3.1.2")
+
+		// Verify requests has explicit version, not 0.0.0  
+		assert.Contains(t, packageNames, "requests")
+		assert.Equal(t, "2.25.1", packageNames["requests"], "requests should have explicit version 2.25.1")
+
+		// Ensure no 0.0.0 versions remain
+		for name, version := range packageNames {
+			assert.NotEqual(t, "0.0.0", version, "Package %s should not have unknown version", name)
+		}
+	})
 }
