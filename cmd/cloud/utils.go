@@ -61,7 +61,10 @@ func persistConfiguration(config auth.Config) error {
 
 	path = filepath.Join(path, auth.HomeRelativeConfigPath())
 
-	os.MkdirAll(filepath.Dir(path), os.ModePerm)
+	err = os.MkdirAll(filepath.Dir(path), os.ModePerm)
+	if err != nil {
+		return err
+	}
 	return os.WriteFile(path, data, 0o600)
 }
 
