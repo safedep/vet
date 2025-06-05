@@ -10,6 +10,7 @@ import (
 	"github.com/safedep/vet/cmd/cloud"
 	"github.com/safedep/vet/cmd/code"
 	"github.com/safedep/vet/cmd/inspect"
+	"github.com/safedep/vet/cmd/server"
 	"github.com/safedep/vet/internal/analytics"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -76,6 +77,10 @@ func main() {
 		cmd.AddCommand(inspect.NewPackageInspectCommand())
 	}
 
+	if checkIfServerCommandEnabled() {
+		cmd.AddCommand(server.NewServerCommand())
+	}
+
 	cobra.OnInitialize(func() {
 		printBanner()
 		loadExceptions()
@@ -131,6 +136,12 @@ func printBanner() {
 
 func checkIfPackageInspectCommandEnabled() bool {
 	// Enabled by default now that we have tested this for a while
+	return true
+}
+
+func checkIfServerCommandEnabled() bool {
+	// Enabled by default but keep option open for disabling
+	// based on remote config or user preference
 	return true
 }
 

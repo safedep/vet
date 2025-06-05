@@ -35,6 +35,7 @@
 ✅ **Real-time malicious package detection** — Powered by [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis) active scanning   
 ✅ **Multi-ecosystem support** — npm, PyPI, Maven, Go, Docker, GitHub Actions, and more    
 ✅ **CI/CD native** — Built for DevSecOps workflows with support for GitHub Actions, GitLab CI, and more   
+✅ **MCP Server** — Run `vet` as a MCP server to vet open source packages from AI suggested code   
 
 ## ⚡ Quick Start
 
@@ -163,6 +164,7 @@ docker run --rm -v $(pwd):/app ghcr.io/safedep/vet:latest scan -D /app
 - [📊 Reporting](#-reporting)
   - [📋 **Report Formats**](#-report-formats)
   - [🎯 **Report Examples**](#-report-examples)
+  - [🤖 **MCP Server**](#-mcp-server)
 - [🛡️ Malicious Package Detection](#️-malicious-package-detection-1)
   - [🚀 **Quick Setup**](#-quick-setup)
   - [🎯 **Advanced Malicious Package Analysis**](#-advanced-malicious-package-analysis)
@@ -391,6 +393,17 @@ vet scan -D . \
   --filter 'vulns.high.exists(p, true)' \
   --report-json=report.json
 ```
+
+### 🤖 **MCP Server**
+
+**vet** can be used as an MCP server to vet open source packages from AI suggested code.
+
+```bash
+# Start the MCP server with SSE transport
+vet server mcp --server-type sse
+```
+
+For more details, see [vet MCP Server](./docs/mcp.md) documentation.
 
 ## 🛡️ Malicious Package Detection
 
