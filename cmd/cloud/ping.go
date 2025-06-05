@@ -15,11 +15,7 @@ func newPingCommand() *cobra.Command {
 		Use:   "ping",
 		Short: "Ping the control plane to check authentication and connectivity",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := getNewAccessTokenUsingRefreshTokenIfCurrentIsExpired()
-			if err != nil {
-				logger.Errorf("Failed to refresh access token: %v", err)
-			}
-			err = pingControlPlane()
+			err := pingControlPlane()
 			if err != nil {
 				logger.Errorf("Failed to ping control plane: %v", err)
 			}

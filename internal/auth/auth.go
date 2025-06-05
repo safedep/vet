@@ -1,12 +1,18 @@
 package auth
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"gopkg.in/yaml.v2"
 )
 
@@ -291,10 +297,6 @@ func CommunityMode() bool {
 	return false
 }
 
-func HomeRelativeConfigPath() string {
-	return homeRelativeConfigPath
-}
-
 // Set the runtime mode to community without
 // persisting it to the configuration file
 func SetRuntimeCommunityMode() {
@@ -347,4 +349,79 @@ func persistConfiguration() error {
 
 	os.MkdirAll(filepath.Dir(path), os.ModePerm)
 	return os.WriteFile(path, data, 0o600)
+}
+
+type TokenResponse struct {
+	AccessToken string `json:"access_token"`
+	ExpireIn    int    `json:"expires_in"`
+	Scope       string `json:"scope"`
+	IDToken     string `json:"id_token"`
+	Tokentype   string `json:"token_type"`
+}
+
+func getNewAccessTokenAndPersistIt() error {
+	data := url.Values{}
+	data.Set("grant_type", "refresh_token")
+	data.Set("refresh_token", globalConfig.CloudRefreshToken)
+	data.Set("client_id", cloudIdentityServiceClientId)
+
+	req, _ := http.NewRequest("POST", cloudIdentityServiceTokenUrl, strings.NewReader(data.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("refresh failed: %s", string(body))
+	}
+
+	var result TokenResponse
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return err
+	}
+
+	globalConfig.CloudAccessToken = result.AccessToken
+	globalConfig.CloudAccessTokenUpdatedAt = time.Now()
+
+	return persistConfiguration()
+}
+
+// checkIfNewAccessTokenRequired does two level of check before trying to get the new access token
+//  1. Using CloudAccessTokenUpdatedAt field it check if the last time it was updated
+//     is less than equal to 10 hrs or not(Here 10hrs was taken because it was observer that most of the JWT token had similar expiry time)
+//  2. It will parse the JWT token to get the expiry time and then check for it expiry
+func checkIfNewAccessTokenRequired() (bool, error) {
+	if time.Since(globalConfig.CloudAccessTokenUpdatedAt) <= 10*time.Hour {
+		return false, nil
+	}
+
+	claims := jwt.MapClaims{}
+	_, _, err := jwt.NewParser().ParseUnverified(globalConfig.CloudAccessToken, claims)
+	if err != nil {
+		return false, err
+	}
+
+	accessTokenExpiryTime, err := strconv.ParseInt(fmt.Sprintf("%.0f", claims["exp"]), 10, 64)
+	if err != nil {
+		return false, err
+	}
+	return time.Now().Unix() > accessTokenExpiryTime, nil
+}
+
+func RefreshAccessToken() error {
+	isRequired, err := checkIfNewAccessTokenRequired()
+	if err != nil {
+		return err
+	}
+
+	if !isRequired {
+		return nil
+	}
+
+	return getNewAccessTokenAndPersistIt()
 }

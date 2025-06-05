@@ -36,11 +36,7 @@ func newQuerySchemaCommand() *cobra.Command {
 		Use:   "schema",
 		Short: "Get the schema for the query service",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := getNewAccessTokenUsingRefreshTokenIfCurrentIsExpired()
-			if err != nil {
-				logger.Errorf("Failed to refresh access token: %v", err)
-			}
-			err = getQuerySchema()
+			err := getQuerySchema()
 			if err != nil {
 				logger.Errorf("Failed to get query schema: %v", err)
 			}
@@ -57,11 +53,7 @@ func newQueryExecuteCommand() *cobra.Command {
 		Use:   "execute",
 		Short: "Execute a query",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := getNewAccessTokenUsingRefreshTokenIfCurrentIsExpired()
-			if err != nil {
-				logger.Errorf("Failed to refresh access token: %v", err)
-			}
-			err = executeQuery()
+			err := executeQuery()
 			if err != nil {
 				logger.Errorf("Failed to execute query: %v", err)
 			}

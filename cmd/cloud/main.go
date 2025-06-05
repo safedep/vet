@@ -2,6 +2,7 @@ package cloud
 
 import (
 	"github.com/safedep/vet/internal/auth"
+	"github.com/safedep/vet/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -40,6 +41,10 @@ func NewCloudCommand() *cobra.Command {
 	cmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		if tenantDomain != "" {
 			auth.SetRuntimeCloudTenant(tenantDomain)
+		}
+		err := auth.RefreshAccessToken()
+		if err != nil {
+			ui.PrintError("Failed to refresh access token. Please use 'vet cloud login' command to get new access and refresh token :%v", err.Error())
 		}
 	}
 
