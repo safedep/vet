@@ -351,7 +351,7 @@ func persistConfiguration() error {
 	return os.WriteFile(path, data, 0o600)
 }
 
-type TokenResponse struct {
+type tokenResponse struct {
 	AccessToken string `json:"access_token"`
 	ExpireIn    int    `json:"expires_in"`
 	Scope       string `json:"scope"`
@@ -359,7 +359,7 @@ type TokenResponse struct {
 	Tokentype   string `json:"token_type"`
 }
 
-func getNewAccessTokenAndPersistIt() error {
+func updatesWithNewAccessTokenAndPersistIt() error {
 	data := url.Values{}
 	data.Set("grant_type", "refresh_token")
 	data.Set("refresh_token", globalConfig.CloudRefreshToken)
@@ -370,7 +370,7 @@ func getNewAccessTokenAndPersistIt() error {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to send post request: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -379,10 +379,10 @@ func getNewAccessTokenAndPersistIt() error {
 		return fmt.Errorf("refresh failed: %s", string(body))
 	}
 
-	var result TokenResponse
+	var result tokenResponse
 
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return err
+		return fmt.Errorf("failed to decode JWT: %w", err)
 	}
 
 	globalConfig.CloudAccessToken = result.AccessToken
@@ -403,12 +403,12 @@ func checkIfNewAccessTokenRequired() (bool, error) {
 	claims := jwt.MapClaims{}
 	_, _, err := jwt.NewParser().ParseUnverified(globalConfig.CloudAccessToken, claims)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to parse jwt token: %w", err)
 	}
 
 	accessTokenExpiryTime, err := strconv.ParseInt(fmt.Sprintf("%.0f", claims["exp"]), 10, 64)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to parse jwt token exp time: %w", err)
 	}
 	return time.Now().Unix() > accessTokenExpiryTime, nil
 }
@@ -423,5 +423,5 @@ func RefreshAccessToken() error {
 		return nil
 	}
 
-	return getNewAccessTokenAndPersistIt()
+	return updatesWithNewAccessTokenAndPersistIt()
 }

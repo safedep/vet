@@ -42,9 +42,15 @@ func NewCloudCommand() *cobra.Command {
 		if tenantDomain != "" {
 			auth.SetRuntimeCloudTenant(tenantDomain)
 		}
-		err := auth.RefreshAccessToken()
-		if err != nil {
-			ui.PrintError("Failed to refresh access token. Please use 'vet cloud login' command to get new access and refresh token :%v", err.Error())
+		skipThisCommandForRefreshAccessToken := map[string]bool{
+			"login":      true,
+			"quickstart": true,
+		}
+		if !skipThisCommandForRefreshAccessToken[cmd.Name()] {
+			err := auth.RefreshAccessToken()
+			if err != nil {
+				ui.PrintError("Failed to refresh access token. Please use 'vet cloud login' command to get new access and refresh token :%v", err.Error())
+			}
 		}
 	}
 
