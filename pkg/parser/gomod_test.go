@@ -7,6 +7,7 @@ import (
 )
 
 var goDeps = []string{
+	"stdlib",                  // Direct
 	"connectrpc.com/connect",  // Direct
 	"github.com/anchore/syft", // Direct
 	"github.com/gocql/gocql",  // Direct
@@ -19,19 +20,7 @@ func TestGomodParserSimple(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	assert.Equal(t, 3, len(manifest.Packages))
-	for _, pkg := range manifest.Packages {
-		assert.Contains(t, goDeps, pkg.Name)
-	}
-}
-
-func TestGomodParserWithIndirectDependencies(t *testing.T) {
-	manifest, err := parseGoModFile("./fixtures/go/go.mod", &ParserConfig{IncludeTransitiveDependencies: true})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	assert.Equal(t, 4, len(manifest.Packages))
+	assert.Equal(t, 5, len(manifest.Packages))
 	for _, pkg := range manifest.Packages {
 		assert.Contains(t, goDeps, pkg.Name)
 	}
