@@ -19,6 +19,7 @@
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/safedep/vet/badge)](https://api.securityscorecards.dev/projects/github.com/safedep/vet)
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
 [![CodeQL](https://github.com/safedep/vet/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/safedep/vet/actions/workflows/codeql.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/safedep/vet.svg)](https://pkg.go.dev/github.com/safedep/vet)
 
 </div>
 
