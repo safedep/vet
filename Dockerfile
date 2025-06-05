@@ -3,15 +3,28 @@ FROM --platform=$BUILDPLATFORM golang:1.24.2-bullseye@sha256:f50ff25f8331682b44c
 
 WORKDIR /build
 
+# Install cross-compilation tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc-aarch64-linux-gnu \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY go.mod go.sum ./
 
 RUN go mod download
 
 COPY . .
 
+ARG TARGETPLATFORM
 ENV CGO_ENABLED=1
 
-RUN make quick-vet
+# Set up cross-compilation environment based on target platform
+RUN case "${TARGETPLATFORM}" in \
+    "linux/amd64") export CC=gcc CXX=g++ GOARCH=amd64 ;; \
+    "linux/arm64") export CC=aarch64-linux-gnu-gcc CXX=aarch64-linux-gnu-g++ GOARCH=arm64 ;; \
+    *) echo "Unsupported platform: ${TARGETPLATFORM}" && exit 1 ;; \
+    esac && \
+    export GOOS=linux && \
+    make quick-vet
 
 FROM debian:11-slim@sha256:e4b93db6aad977a95aa103917f3de8a2b16ead91cf255c3ccdb300c5d20f3015
 # Original: debian:11-slim
