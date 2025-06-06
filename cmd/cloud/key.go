@@ -178,7 +178,6 @@ func executeCreateKey() error {
 		Desc:         keyDescription,
 		ExpiryInDays: keyExpiresIn,
 	})
-
 	if err != nil {
 		return err
 	}
