@@ -1099,8 +1099,6 @@ github.com/ryanrolds/sqlclosecheck v0.5.1/go.mod h1:2g3dUjoS6AL4huFdv6wn55WpLIDj
 github.com/ryanuber/columnize v0.0.0-20160712163229-9b3edd62028f/go.mod h1:sm1tb6uqfes/u+d4ooFouqFdy9/2g9QGwK3SQygK0Ts=
 github.com/safedep/code v0.0.0-20250513161430-3da0c16c0b53 h1:FU3m6LEBDUaHTBbTNpTXGRV8W26F3JxSPwCUJL6hY08=
 github.com/safedep/code v0.0.0-20250513161430-3da0c16c0b53/go.mod h1:a6jPH1Yy0jLg5C1Ud/1GjGoqzH9gMg7WFdxGvbBAmVA=
-github.com/safedep/dry v0.0.0-20250531123959-330d159457cd h1:ye8c657UCalHBLHkE65G6H84i0PGMsrJDF9S4zo7CfA=
-github.com/safedep/dry v0.0.0-20250531123959-330d159457cd/go.mod h1:smBYH5z8EZdu+qj6sR9vUn//tKy7C1boN1go0RuzHZc=
 github.com/safedep/dry v0.0.0-20250603124321-c8255e47954f h1:wlUDnDSp1wPAXrv88eCYd7UlcQGWM7Umogr18n6q2ew=
 github.com/safedep/dry v0.0.0-20250603124321-c8255e47954f/go.mod h1:nU5w9Xb5Ja2wq5PU/K8r8r1Dc25ApJXKKqvwju99G2w=
 github.com/saferwall/pe v1.5.6 h1:DrRLnoQFxHWJ5lJUmrH7X2L0xeUu6SUS95Dc61eW2Yc=
