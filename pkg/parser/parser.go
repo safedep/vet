@@ -46,6 +46,7 @@ var supportedEcosystems map[string]bool = map[string]bool{
 	models.EcosystemNpm:           true,
 	models.EcosystemPyPI:          true,
 	models.EcosystemRubyGems:      true,
+	models.EcosystemCargo:         true,
 	models.EcosystemPackagist:     true,
 	models.EcosystemCyDxSBOM:      true,
 	models.EcosystemSpdxSBOM:      true,
