@@ -14,26 +14,38 @@ var goDeps = []string{
 	"gopkg.in/inf.v0",         // indirect
 }
 
-func TestGomodParserSimple(t *testing.T) {
-	manifest, err := parseGoModFile("./fixtures/go/go.mod", &ParserConfig{})
-	if err != nil {
-		t.Fatal(err)
+func TestGomodParser(t *testing.T) {
+	tests := []struct {
+		name                 string
+		filePath             string
+		config               *ParserConfig
+		expectedPackageCount int
+	}{
+		{
+			name:                 "Simple",
+			filePath:             "./fixtures/go/go.mod",
+			config:               &ParserConfig{},
+			expectedPackageCount: 5,
+		},
+		{
+			name:                 "Exclude Transitive Dependencies",
+			filePath:             "./fixtures/go/go.mod",
+			config:               &ParserConfig{ExcludeTransitiveDependencies: true},
+			expectedPackageCount: 4,
+		},
 	}
 
-	assert.Equal(t, 5, len(manifest.Packages))
-	for _, pkg := range manifest.Packages {
-		assert.Contains(t, goDeps, pkg.Name)
-	}
-}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			manifest, err := parseGoModFile(tt.filePath, tt.config)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-func TestGomodParserToExcludeTransitiveDependencies(t *testing.T) {
-	manifest, err := parseGoModFile("./fixtures/go/go.mod", &ParserConfig{ExcludeTransitiveDependencies: true})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	assert.Equal(t, 4, len(manifest.Packages))
-	for _, pkg := range manifest.Packages {
-		assert.Contains(t, goDeps, pkg.Name)
+			assert.Equal(t, tt.expectedPackageCount, len(manifest.Packages))
+			for _, pkg := range manifest.Packages {
+				assert.Contains(t, goDeps, pkg.Name)
+			}
+		})
 	}
 }
