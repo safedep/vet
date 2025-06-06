@@ -25,3 +25,15 @@ func TestGomodParserSimple(t *testing.T) {
 		assert.Contains(t, goDeps, pkg.Name)
 	}
 }
+
+func TestGomodParserToExcludeTransitiveDependencies(t *testing.T) {
+	manifest, err := parseGoModFile("./fixtures/go/go.mod", &ParserConfig{ExcludeTransitiveDependencies: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, 4, len(manifest.Packages))
+	for _, pkg := range manifest.Packages {
+		assert.Contains(t, goDeps, pkg.Name)
+	}
+}

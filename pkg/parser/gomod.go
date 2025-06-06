@@ -13,8 +13,6 @@ import (
 
 // parseGoModFile parses the go.mod file of the  project.
 func parseGoModFile(lockfilePath string, config *ParserConfig) (*models.PackageManifest, error) {
-	goModExtractor := gomod.New()
-
 	file, err := os.Open(lockfilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open lockfile: %s", err)
@@ -26,6 +24,11 @@ func parseGoModFile(lockfilePath string, config *ParserConfig) (*models.PackageM
 		Path:   lockfilePath,
 		Reader: file,
 	}
+
+	cfg := gomod.Config{
+		ExcludeIndirect: config.ExcludeTransitiveDependencies,
+	}
+	goModExtractor := gomod.NewWithConfig(cfg)
 
 	inventory, err := goModExtractor.Extract(context.Background(), inputConfig)
 	if err != nil {
