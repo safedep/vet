@@ -89,6 +89,7 @@ var dependencyGraphParsers map[string]dependencyGraphParser = map[string]depende
 	"package-lock.json":               parseNpmPackageLockAsGraph,
 	"uv.lock":                         parseUvPackageLockAsGraph,
 	"pom.xml":                         parseMavenPomXmlFile,
+	"Cargo.lock":                      parseCargoLockFile,
 	customParserCycloneDXSBOM:         parseSbomCycloneDxAsGraph,
 	customParserTypeJavaArchive:       parseJavaArchiveAsGraph,
 	customParserTypeJavaWebAppArchive: parseJavaArchiveAsGraph,
