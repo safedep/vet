@@ -47,7 +47,6 @@ Add following configuration to your MCP client if you are using SSE transport:
         "--rm",
         "-i",
         "ghcr.io/safedep/vet:latest",
-        "-s",
         "-l",
         "/tmp/vet-mcp.log",
         "server",
@@ -99,7 +98,7 @@ Add the following to `.mcp.json` in your Claude Code project:
     "vet-mcp": {
       "command": "docker",
       "args": [
-        "run",  
+        "run",
         "--rm",
         "-i",
         "ghcr.io/safedep/vet:latest",
