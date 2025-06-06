@@ -1,5 +1,7 @@
 # vet MCP Server
 
+[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/install-mcp?name=vet-mcp&config=eyJjb21tYW5kIjoiZG9ja2VyIHJ1biAtLXJtIC1pIGdoY3IuaW8vc2FmZWRlcC92ZXQ6bGF0ZXN0IC1zIC1sIC90bXAvdmV0LW1jcC5sb2cgc2VydmVyIG1jcCJ9)
+
 The `vet` MCP server is designed to run locally using `stdio` or `sse` transports.
 It provides tools for MCP clients such as Claude Code, Cursor and others to vet
 open source packages before they are used in a project through AI generated code.
@@ -47,7 +49,6 @@ Add following configuration to your MCP client if you are using SSE transport:
         "--rm",
         "-i",
         "ghcr.io/safedep/vet:latest",
-        "-s",
         "-l",
         "/tmp/vet-mcp.log",
         "server",
@@ -99,7 +100,7 @@ Add the following to `.mcp.json` in your Claude Code project:
     "vet-mcp": {
       "command": "docker",
       "args": [
-        "run",  
+        "run",
         "--rm",
         "-i",
         "ghcr.io/safedep/vet:latest",
