@@ -32,10 +32,10 @@ func parseCargoLockFile(lockfilePath string, _ *ParserConfig) (*models.PackageMa
 		return nil, fmt.Errorf("failed to extract packages: %s", err)
 	}
 
-	manifest := models.NewPackageManifestFromLocal(lockfilePath, models.EcosystemMaven)
+	manifest := models.NewPackageManifestFromLocal(lockfilePath, models.EcosystemCargo)
 
 	for _, pkg := range inventory.Packages {
-		pkgDetails := models.NewPackageDetail(models.EcosystemMaven, pkg.Name, pkg.Version)
+		pkgDetails := models.NewPackageDetail(models.EcosystemCargo, pkg.Name, pkg.Version)
 		modelPackage := &models.Package{
 			PackageDetails: pkgDetails,
 			Manifest:       manifest,
