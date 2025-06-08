@@ -12,6 +12,7 @@ import (
 	malysisv1pb "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	"github.com/ossf/osv-schema/bindings/go/osvschema"
+	"github.com/safedep/vet/pkg/common/logger"
 )
 
 const (
@@ -49,7 +50,9 @@ func NewOpenSSFMaliciousPackageReportGenerator(config OpenSSFMaliciousPackageRep
 		return nil, fmt.Errorf("dir is not a directory: %s", config.Dir)
 	}
 
-	return &openSSFMaliciousPackageReportGenerator{}, nil
+	return &openSSFMaliciousPackageReportGenerator{
+		config: config,
+	}, nil
 }
 
 func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Context,
@@ -82,6 +85,13 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 		Modified:      time.Now(),
 		Published:     time.Now(),
 		Summary:       fmt.Sprintf("Malicious code in %s package (%s)", report.GetPackageVersion().GetPackage().GetName(), ecosystem),
+		Details:       report.GetInference().GetSummary(), // This is intentional to map our summary with OSV details
+		References: []osvschema.Reference{
+			{
+				Type: osvschema.ReferenceReport,
+				URL:  ReportURL(report.GetReportId()),
+			},
+		},
 		Credits: []osvschema.Credit{
 			{
 				Type:    osvschema.CreditFinder,
@@ -126,6 +136,8 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 	if err != nil {
 		return fmt.Errorf("failed to create directory: %w", err)
 	}
+
+	logger.Debugf("Writing OSV report to: %s", fullFilePath)
 
 	err = os.WriteFile(fullFilePath, json, 0o644)
 	if err != nil {
