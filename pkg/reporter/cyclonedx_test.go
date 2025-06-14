@@ -8,9 +8,8 @@ import (
 
 	malysisv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
 	cdx "github.com/CycloneDX/cyclonedx-go"
-	dryUtils "github.com/safedep/dry/utils"
+	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/insightapi"
-	"github.com/safedep/vet/pkg/common/utils"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -68,12 +67,12 @@ func TestNewCycloneDxReporter(t *testing.T) {
 	assert.Equal(t, cdxAppName, generatedBom.Metadata.Component.Name)
 
 	// Verify tool metadata component
-	assert.Len(t, dryUtils.SafelyGetValue(dryUtils.SafelyGetValue(generatedBom.Metadata.Tools).Components), 1)
-	toolComponent := dryUtils.SafelyGetValue(dryUtils.SafelyGetValue(generatedBom.Metadata.Tools).Components)[0]
+	assert.Len(t, utils.SafelyGetValue(utils.SafelyGetValue(generatedBom.Metadata.Tools).Components), 1)
+	toolComponent := utils.SafelyGetValue(utils.SafelyGetValue(generatedBom.Metadata.Tools).Components)[0]
 	assert.Equal(t, cdx.ComponentTypeApplication, toolComponent.Type)
 	assert.NotNil(t, toolComponent.Manufacturer)
 	assert.Equal(t, toolComponent.Manufacturer.Name, cdxTestToolMetaData.VendorName)
-	assert.ElementsMatch(t, dryUtils.SafelyGetValue(toolComponent.Manufacturer.URL), []string{cdxTestToolMetaData.VendorInformationURI})
+	assert.ElementsMatch(t, utils.SafelyGetValue(toolComponent.Manufacturer.URL), []string{cdxTestToolMetaData.VendorInformationURI})
 	assert.Equal(t, cdxTestToolMetaData.VendorName, toolComponent.Group)
 	assert.Equal(t, cdxTestToolMetaData.Name, toolComponent.Name)
 	assert.Equal(t, cdxTestToolMetaData.Version, toolComponent.Version)
@@ -208,14 +207,14 @@ func TestCycloneDxReporterManifestWithDeps(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, generatedBom)
 
-	assert.Len(t, dryUtils.SafelyGetValue(generatedBom.Metadata.Component.Components), 1)
-	manifestComponent := dryUtils.SafelyGetValue(generatedBom.Metadata.Component.Components)[0]
+	assert.Len(t, utils.SafelyGetValue(generatedBom.Metadata.Component.Components), 1)
+	manifestComponent := utils.SafelyGetValue(generatedBom.Metadata.Component.Components)[0]
 	assert.Equal(t, cdx.ComponentTypeApplication, manifestComponent.Type)
 	assert.Equal(t, string(models.EcosystemNpm), manifestComponent.Group)
 	assert.Equal(t, "test/package-lock.json", manifestComponent.BOMRef)
 	assert.Equal(t, "test/package-lock.json", manifestComponent.Name)
 
-	components := dryUtils.SafelyGetValue(generatedBom.Components)
+	components := utils.SafelyGetValue(generatedBom.Components)
 	assert.NotNil(t, components)
 	assert.Len(t, components, 4)
 
@@ -281,8 +280,8 @@ func TestCycloneDxReporterLicenses(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, generatedBom)
 
-	assert.Len(t, dryUtils.SafelyGetValue(generatedBom.Components), 1)
-	licenses := dryUtils.SafelyGetValue(dryUtils.SafelyGetValue(generatedBom.Components)[0].Licenses)
+	assert.Len(t, utils.SafelyGetValue(generatedBom.Components), 1)
+	licenses := utils.SafelyGetValue(utils.SafelyGetValue(generatedBom.Components)[0].Licenses)
 	assert.Len(t, licenses, 1)
 	assert.Equal(t, "MIT", licenses[0].License.ID)
 	assert.Equal(t, "MIT License", licenses[0].License.Name)
@@ -346,7 +345,7 @@ func TestCycloneDxReporterVuln(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, generatedBom)
 
-	vulns := dryUtils.SafelyGetValue(generatedBom.Vulnerabilities)
+	vulns := utils.SafelyGetValue(generatedBom.Vulnerabilities)
 	assert.NotNil(t, vulns)
 	assert.Len(t, vulns, 1)
 
@@ -356,14 +355,14 @@ func TestCycloneDxReporterVuln(t *testing.T) {
 	assert.Equal(t, "Test vulnerability", vuln.Description)
 	assert.Equal(t, "Upgrade to version 1.2.0 or later", vuln.Recommendation)
 
-	ratings := dryUtils.SafelyGetValue(vuln.Ratings)
+	ratings := utils.SafelyGetValue(vuln.Ratings)
 	assert.Len(t, ratings, 1)
 	assert.Equal(t, cdx.SeverityHigh, ratings[0].Severity)
 	assert.Equal(t, "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", ratings[0].Vector)
 	assert.Equal(t, cdx.ScoringMethodCVSSv3, ratings[0].Method)
 	assert.Equal(t, utils.PtrTo(7.5), ratings[0].Score)
 
-	affects := dryUtils.SafelyGetValue(vuln.Affects)
+	affects := utils.SafelyGetValue(vuln.Affects)
 	assert.Len(t, affects, 1)
 	assert.Equal(t, "pkg:npm/test-package@1.0.0", affects[0].Ref)
 }
@@ -411,7 +410,7 @@ func TestCycloneDxReporterMalware(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, generatedBom)
 
-	vulns := dryUtils.SafelyGetValue(generatedBom.Vulnerabilities)
+	vulns := utils.SafelyGetValue(generatedBom.Vulnerabilities)
 	assert.NotNil(t, vulns)
 	assert.Len(t, vulns, 1)
 
@@ -421,19 +420,19 @@ func TestCycloneDxReporterMalware(t *testing.T) {
 	assert.Equal(t, "Malware detected by malysis", vuln.Description)
 	assert.Equal(t, "", vuln.Recommendation)
 
-	ratings := dryUtils.SafelyGetValue(vuln.Ratings)
+	ratings := utils.SafelyGetValue(vuln.Ratings)
 	assert.Len(t, ratings, 0)
 
-	affects := dryUtils.SafelyGetValue(vuln.Affects)
+	affects := utils.SafelyGetValue(vuln.Affects)
 	assert.Len(t, affects, 1)
 	assert.Equal(t, "pkg:npm/test-package@1.0.0", affects[0].Ref)
 
 	assert.Equal(t, cdxTestToolMetaData.Name, vuln.Source.Name)
 	assert.Equal(t, cdxTestToolMetaData.InformationURI, vuln.Source.URL)
 
-	assert.Len(t, dryUtils.SafelyGetValue(vuln.Credits.Organizations), 1)
-	toolOrg := dryUtils.SafelyGetValue(vuln.Credits.Organizations)[0]
+	assert.Len(t, utils.SafelyGetValue(vuln.Credits.Organizations), 1)
+	toolOrg := utils.SafelyGetValue(vuln.Credits.Organizations)[0]
 	assert.Equal(t, cdxTestToolMetaData.VendorName, toolOrg.BOMRef)
 	assert.Equal(t, cdxTestToolMetaData.VendorName, toolOrg.Name)
-	assert.Equal(t, []string{cdxTestToolMetaData.VendorInformationURI}, dryUtils.SafelyGetValue(toolOrg.URL))
+	assert.Equal(t, []string{cdxTestToolMetaData.VendorInformationURI}, utils.SafelyGetValue(toolOrg.URL))
 }

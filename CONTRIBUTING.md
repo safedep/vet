@@ -33,7 +33,7 @@ When contributing changes to repository, follow these steps:
 
 ### Requirements
 
-* Go 1.22+
+* Go 1.24+
 
 ### Install Dependencies
 

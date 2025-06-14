@@ -121,7 +121,7 @@ var toolMetadata = ToolMetadata{
 	Name:           "vet",
 	Version:        "latest",
 	InformationURI: "https://github.com/safedep/vet",
-	VendorName:     "safedep",
+	VendorName:     "SafeDep",
 }
 
 func TestSarifBuilderReport(t *testing.T) {
