@@ -66,7 +66,7 @@ func TestGitLabReporter(t *testing.T) {
 		assert.Equal(t, "15.2.1", report.Version)
 		assert.Equal(t, "dependency_scanning", report.Scan.Type)
 		assert.Equal(t, "vet", report.Scan.Scanner.ID)
-		assert.Equal(t, "safedep", report.Scan.Scanner.Vendor.Name)
+		assert.Equal(t, "SafeDep", report.Scan.Scanner.Vendor.Name)
 		assert.Empty(t, report.Vulnerabilities)
 	})
 
