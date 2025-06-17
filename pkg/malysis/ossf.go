@@ -132,7 +132,14 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 	}
 
 	fullFilePath := filepath.Join(g.config.Dir, relFilePath)
-	err = os.MkdirAll(filepath.Dir(fullFilePath), 0o755)
+	filePathDirectory := filepath.Dir(fullFilePath)
+
+	// check if already folder exists, and yes then we don't need to create new OSV record
+	if info, err := os.Stat(filePathDirectory); err == nil && info.IsDir() {
+		return fmt.Errorf("OSV report already exists: %v", err)
+	}
+
+	err = os.MkdirAll(filePathDirectory, 0o755)
 	if err != nil {
 		return fmt.Errorf("failed to create directory: %w", err)
 	}
@@ -178,6 +185,7 @@ func (g *openSSFMaliciousPackageReportGenerator) relativeFilePath(ecosystem pack
 	// Fixup package names. This has its own ecosystem specific rules.
 	packageFileName := strings.ReplaceAll(packageName, "/", "-")
 	packageFileName = strings.ReplaceAll(packageFileName, ":", "-")
+	packageFileName = strings.ReplaceAll(packageFileName, "@", "")
 
 	switch ecosystemStr {
 	case "npm":
