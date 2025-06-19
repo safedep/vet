@@ -30,7 +30,7 @@ var (
 const (
 	vetName                 = "vet"
 	vetInformationURI       = "https://github.com/safedep/vet"
-	vetVendorName           = "Safedep"
+	vetVendorName           = "SafeDep"
 	vetVendorInformationURI = "https://safedep.io"
 )
 

@@ -13,7 +13,6 @@ import (
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
-	commonUtils "github.com/safedep/vet/pkg/common/utils"
 	"github.com/safedep/vet/pkg/common/utils/regex"
 	sbomUtils "github.com/safedep/vet/pkg/common/utils/sbom"
 	"github.com/safedep/vet/pkg/malysis"
@@ -58,13 +57,13 @@ func NewCycloneDXReporter(config CycloneDXReporterConfig) (Reporter, error) {
 	if utils.IsEmptyString(config.SerialNumber) {
 		generatedSerialNumber, err := uuid.NewUUID()
 		if err != nil {
-			return nil, fmt.Errorf("Failed to generate UUID for CycloneDX serial number: %v", err)
+			return nil, fmt.Errorf("failed to generate UUID for CycloneDX serial number: %v", err)
 		}
 
 		bom.SerialNumber = fmt.Sprintf("urn:uuid:%s", generatedSerialNumber.String())
 	} else {
 		if !cdxUUIDRegexp.MatchString(config.SerialNumber) {
-			return nil, fmt.Errorf("Serial number '%s' does not match RFC 4122 UUID format", config.SerialNumber)
+			return nil, fmt.Errorf("serial number '%s' does not match RFC 4122 UUID format", config.SerialNumber)
 		}
 
 		bom.SerialNumber = config.SerialNumber
@@ -74,7 +73,7 @@ func NewCycloneDXReporter(config CycloneDXReporterConfig) (Reporter, error) {
 		Type: cdx.ComponentTypeApplication,
 		Manufacturer: &cdx.OrganizationalEntity{
 			Name: config.Tool.VendorName,
-			URL:  commonUtils.PtrTo([]string{config.Tool.VendorInformationURI}),
+			URL:  utils.PtrTo([]string{config.Tool.VendorInformationURI}),
 		},
 		Group:      config.Tool.VendorName,
 		Name:       config.Tool.Name,
@@ -90,18 +89,18 @@ func NewCycloneDXReporter(config CycloneDXReporterConfig) (Reporter, error) {
 			BOMRef:     rootComponentBomref,
 			Type:       cdx.ComponentTypeApplication,
 			Name:       config.ApplicationComponentName,
-			Components: commonUtils.PtrTo([]cdx.Component{}),
+			Components: utils.PtrTo([]cdx.Component{}),
 		},
 		Tools: &cdx.ToolsChoice{
-			Components: commonUtils.PtrTo([]cdx.Component{
+			Components: utils.PtrTo([]cdx.Component{
 				toolComponent,
 			}),
 		},
 	}
 
-	bom.Components = commonUtils.PtrTo([]cdx.Component{})
-	bom.Vulnerabilities = commonUtils.PtrTo([]cdx.Vulnerability{})
-	bom.Dependencies = commonUtils.PtrTo([]cdx.Dependency{})
+	bom.Components = utils.PtrTo([]cdx.Component{})
+	bom.Vulnerabilities = utils.PtrTo([]cdx.Vulnerability{})
+	bom.Dependencies = utils.PtrTo([]cdx.Dependency{})
 
 	return &cycloneDXReporter{
 		config:                    config,
@@ -123,7 +122,7 @@ func (r *cycloneDXReporter) AddManifest(manifest *models.PackageManifest) {
 
 	r.bomEcosystems[manifest.Ecosystem] = true
 
-	r.bom.Metadata.Component.Components = commonUtils.PtrTo(append(*r.bom.Metadata.Component.Components, cdx.Component{
+	r.bom.Metadata.Component.Components = utils.PtrTo(append(*r.bom.Metadata.Component.Components, cdx.Component{
 		Type:   cdx.ComponentTypeApplication,
 		Group:  manifest.Ecosystem,
 		BOMRef: manifest.Source.GetPath(),
@@ -150,16 +149,16 @@ func (r *cycloneDXReporter) addPackage(pkg *models.Package) {
 		Version:    pkg.GetVersion(),
 		PackageURL: pkgPurl,
 		BOMRef:     pkgPurl,
-		Licenses:   commonUtils.PtrTo(cdx.Licenses(r.resolvePackageLicenses(pkg))),
+		Licenses:   utils.PtrTo(cdx.Licenses(r.resolvePackageLicenses(pkg))),
 		Evidence: &cdx.Evidence{
-			Identity: commonUtils.PtrTo([]cdx.EvidenceIdentity{
+			Identity: utils.PtrTo([]cdx.EvidenceIdentity{
 				{
 					Field:      cdx.EvidenceIdentityFieldTypePURL,
-					Confidence: commonUtils.PtrTo(float32(0.7)),
-					Methods: commonUtils.PtrTo([]cdx.EvidenceIdentityMethod{
+					Confidence: utils.PtrTo(float32(0.7)),
+					Methods: utils.PtrTo([]cdx.EvidenceIdentityMethod{
 						{
 							Technique:  cdx.EvidenceIdentityTechniqueManifestAnalysis,
-							Confidence: commonUtils.PtrTo(float32(0.7)),
+							Confidence: utils.PtrTo(float32(0.7)),
 							Value:      pkg.Manifest.GetSource().GetPath(),
 						},
 					}),
@@ -274,7 +273,7 @@ func (r *cycloneDXReporter) recordVulnerabilities(pkg *models.Package) {
 			Description:    utils.SafelyGetValue(vuln.Summary),
 			Ratings:        &ratings,
 			Recommendation: recommendation,
-			Affects: commonUtils.PtrTo([]cdx.Affects{
+			Affects: utils.PtrTo([]cdx.Affects{
 				{
 					Ref: pkgPurl,
 				},
@@ -312,15 +311,15 @@ func (r *cycloneDXReporter) recordMalware(pkg *models.Package) {
 			BOMRef:      malwareBomref,
 			Description: malwareSummary,
 			Credits: &cdx.Credits{
-				Organizations: commonUtils.PtrTo([]cdx.OrganizationalEntity{
+				Organizations: utils.PtrTo([]cdx.OrganizationalEntity{
 					{
 						BOMRef: r.config.Tool.VendorName,
 						Name:   r.config.Tool.VendorName,
-						URL:    commonUtils.PtrTo([]string{r.config.Tool.VendorInformationURI}),
+						URL:    utils.PtrTo([]string{r.config.Tool.VendorInformationURI}),
 					},
 				}),
 			},
-			Properties: commonUtils.PtrTo([]cdx.Property{
+			Properties: utils.PtrTo([]cdx.Property{
 				{
 					Name:  "report-url",
 					Value: malysis.ReportURL(malwareAnalysis.AnalysisId),
@@ -330,7 +329,7 @@ func (r *cycloneDXReporter) recordMalware(pkg *models.Package) {
 				Name: r.config.Tool.Name,
 				URL:  r.config.Tool.InformationURI,
 			},
-			Affects: commonUtils.PtrTo([]cdx.Affects{
+			Affects: utils.PtrTo([]cdx.Affects{
 				{
 					Ref: pkgPurl,
 				},
@@ -351,10 +350,10 @@ func (r *cycloneDXReporter) finaliseBom() {
 
 	r.bom.Metadata.Timestamp = bomGenerationTime.Format(time.RFC3339)
 
-	r.bom.Annotations = commonUtils.PtrTo([]cdx.Annotation{
+	r.bom.Annotations = utils.PtrTo([]cdx.Annotation{
 		{
 			BOMRef: "metadata-annotations",
-			Subjects: commonUtils.PtrTo([]cdx.BOMReference{
+			Subjects: utils.PtrTo([]cdx.BOMReference{
 				cdx.BOMReference(r.rootComponentBomref),
 			}),
 			Annotator: &cdx.Annotator{
