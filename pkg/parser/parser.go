@@ -25,9 +25,7 @@ const (
 	customParserTerraform             = "terraform"
 )
 
-var (
-	errUnsupportedFormat = errors.New("unsupported format")
-)
+var errUnsupportedFormat = errors.New("unsupported format")
 
 // Exporting as constants for use outside this package to refer to specific
 // parsers. For example: Github reader
@@ -68,10 +66,11 @@ type Parser interface {
 }
 
 type ParserConfig struct {
-	// A generic config flag (not specific to npm even though the name sounds like that) to indicate
+	// IncludeDevDependencies is a generic config flag (not specific to npm even though the name sounds like that) to indicate
 	// if the parser should include non-production dependencies as well. But this will work
 	// only for supported parsers such as npm graph parser
-	IncludeDevDependencies bool
+	IncludeDevDependencies        bool
+	ExcludeTransitiveDependencies bool
 }
 
 // Graph parser always takes precedence over lockfile parser
@@ -91,6 +90,7 @@ var dependencyGraphParsers map[string]dependencyGraphParser = map[string]depende
 	"uv.lock":                         parseUvPackageLockAsGraph,
 	"pom.xml":                         parseMavenPomXmlFile,
 	"Cargo.lock":                      parseCargoLockFile,
+	"go.mod":                          parseGoModFile,
 	customParserCycloneDXSBOM:         parseSbomCycloneDxAsGraph,
 	customParserTypeJavaArchive:       parseJavaArchiveAsGraph,
 	customParserTypeJavaWebAppArchive: parseJavaArchiveAsGraph,
@@ -180,8 +180,10 @@ func FindParser(lockfilePath, lockfileAs string) (Parser, error) {
 
 	// Check special case of GitHub actions
 	if m, err := regexp.Match(`\.github/(workflows|actions)/.*\.(yml|yaml)`, []byte(lockfilePath)); m && err == nil {
-		pw := &parserWrapper{graphParser: parseGithubActionWorkflowAsGraph,
-			parseAs: customParserGitHubActions}
+		pw := &parserWrapper{
+			graphParser: parseGithubActionWorkflowAsGraph,
+			parseAs:     customParserGitHubActions,
+		}
 		if pw.supported() {
 			return pw, nil
 		}
@@ -273,7 +275,8 @@ func (pw *parserWrapper) Ecosystem() string {
 
 func (pw *parserWrapper) Parse(lockfilePath string) (*models.PackageManifest, error) {
 	return pw.ParseWithConfig(lockfilePath, &ParserConfig{
-		IncludeDevDependencies: true,
+		IncludeDevDependencies:        true,
+		ExcludeTransitiveDependencies: true,
 	})
 }
 
