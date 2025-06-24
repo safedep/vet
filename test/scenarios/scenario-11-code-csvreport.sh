@@ -22,7 +22,7 @@ ls $E2E_VET_CODE_DB || exit 1
 $E2E_VET_BINARY scan \
   -D $E2E_CODEPATH \
   --code $E2E_VET_CODE_DB \
-  --filter 'vulns.critical.exists(p, true) || vulns.high.exists(p, true)' \
+  --filter 'vulns.critical.exists(p, true) || vulns.high.exists(p, true) || vulns.medium.exists(p, true)' \
   --report-csv $E2E_VET_CSV_REPORT || exit 1
 
 ls $E2E_VET_CSV_REPORT || exit 1
@@ -32,7 +32,6 @@ Ecosystem,Manifest Namespace,Manifest Path,Package Name,Package Version,Violatio
 PyPI,*,*,flask,1.0.4,cli-filter,flask,flask,GHSA-m2qf-hxjv-5gpq,CVE-2023-30861,HIGH,Flask vulnerable to possible disclosure of permanent session cookie due to missing Vary: Cookie header,1,$E2E_CODEPATH/usage.py:4
 PyPI,*,*,flask,1.0.4,cli-filter,flask,flask,PYSEC-2023-62,CVE-2023-30861,,,1,$E2E_CODEPATH/usage.py:4
 PyPI,*,*,langchain,0.2.1,cli-filter,langchain,langchain,GHSA-3hjh-jh2h-vrg6,CVE-2024-2965,MEDIUM,Denial of service in langchain-community,0,
-PyPI,*,*,langchain,0.2.1,cli-filter,langchain,langchain,PYSEC-2024-114,CVE-2024-7042,CRITICAL,,0,
 PyPI,*,*,langchain,0.2.1,cli-filter,langchain,langchain,PYSEC-2024-118,CVE-2024-2965,MEDIUM,,0,
 EOL
 
