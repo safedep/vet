@@ -104,7 +104,7 @@ func TestJsonRepoGenerator(t *testing.T) {
 					Name:           "vet",
 					Version:        "latest",
 					InformationURI: "https://github.com/safedep/vet",
-					VendorName:     "safedep",
+					VendorName:     "SafeDep",
 				},
 			})
 

@@ -1,10 +1,10 @@
 module github.com/safedep/vet
 
-go 1.24.2
+go 1.24.3
 
 require (
-	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250528015308-9847554fa87b.2
-	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.6-20250528015308-9847554fa87b.1
+	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250610075857-7cfdb61a0bfa.2
+	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.6-20250610075857-7cfdb61a0bfa.1
 	entgo.io/ent v0.14.4
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/BurntSushi/toml v1.5.0
@@ -37,8 +37,8 @@ require (
 	github.com/package-url/packageurl-go v0.1.3
 	github.com/pandatix/go-cvss v0.6.2
 	github.com/posthog/posthog-go v1.5.11
-	github.com/safedep/code v0.0.0-20250513161430-3da0c16c0b53
-	github.com/safedep/dry v0.0.0-20250603124321-c8255e47954f
+	github.com/safedep/code v0.0.0-20250619080228-57f5b7b5e58c
+	github.com/safedep/dry v0.0.0-20250618113059-9f8b677e299c
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smacker/go-tree-sitter v0.0.0-20240827094217-dd81d9e9be82
 	github.com/spdx/tools-golang v0.5.5
