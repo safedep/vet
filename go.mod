@@ -37,8 +37,8 @@ require (
 	github.com/package-url/packageurl-go v0.1.3
 	github.com/pandatix/go-cvss v0.6.2
 	github.com/posthog/posthog-go v1.5.11
-	github.com/safedep/code v0.0.0-20250610122234-1c9ee24b7317
-	github.com/safedep/dry v0.0.0-20250613153337-39475c3f0d64
+	github.com/safedep/code v0.0.0-20250619080228-57f5b7b5e58c
+	github.com/safedep/dry v0.0.0-20250618113059-9f8b677e299c
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smacker/go-tree-sitter v0.0.0-20240827094217-dd81d9e9be82
 	github.com/spdx/tools-golang v0.5.5
