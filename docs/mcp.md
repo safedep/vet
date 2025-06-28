@@ -171,8 +171,7 @@ Follow the rules below to use vet-mcp:
 
 Example usage with VsCode:
 
-![VsCode vet-mcp example](./assets/vet-mcp-cursor.png)
-
+![VsCode vet-mcp example](./assets/vet-mcp-vscode.png)
 
 [📄 VsCode MCP server reference](https://code.visualstudio.com/docs/copilot/chat/mcp-servers)
 
