@@ -37,7 +37,37 @@ vet -s -l /tmp/vet-mcp.log server mcp --server-type stdio
 > **Note:** The example below uses pre-build docker image. You can build your own by running
 > `docker build -t ghcr.io/safedep/vet:latest .`
 
-Add following configuration to your MCP client if you are using SSE transport:
+Add following configuration to your MCP client configuration file, if you are using SSE transport:
+
+```json
+"vet-mcp": {
+  "command": "docker",
+  "args": [
+    "run",
+    "--rm",
+    "-i",
+    "ghcr.io/safedep/vet:latest",
+    "-l",
+    "/tmp/vet-mcp.log",
+    "server",
+    "mcp"
+  ]
+}
+```
+
+**Note:** While `docker` containers can help keep the MCP server process isolated, it needs to be periodically updated to the latest version.
+
+Alternatively, you can use `vet` binary directly as an MCP server using `stdio` transport. Use the following command to start the MCP server:
+
+```bash
+vet -l /tmp/vet-mcp.log server mcp --server-type stdio
+```
+
+### Configure IDE
+
+#### Cursor
+
+Add `vet-mcp` server to either `.cursor/mcp.json` (project specific configuration) or `~/.cursor/mcp.json` (applies to all projects)
 
 ```json
 {
@@ -59,18 +89,6 @@ Add following configuration to your MCP client if you are using SSE transport:
 }
 ```
 
-**Note:** While `docker` containers can help keep the MCP server process isolated, it needs to be periodically updated to the latest version.
-
-Alternatively, you can use `vet` binary directly as an MCP server using `stdio` transport. Use the following command to start the MCP server:
-
-```bash
-vet -l /tmp/vet-mcp.log server mcp --server-type stdio
-```
-
-### Configure IDE
-
-#### Cursor
-
 Add the following to `.cursor/rules/vet-mcp.mdc` file:
 
 ```
@@ -89,6 +107,74 @@ Follow the rules below to use vet-mcp:
 Example usage with Cursor:
 
 ![Cursor vet-mcp example](./assets/vet-mcp-cursor.png)
+
+[📄 Cursor MCP server reference](https://docs.cursor.com/context/model-context-protocol#manual-configuration)
+
+#### VsCode
+
+Add `vet-mcp` server to `.vscode/mcp.json` (project specific configuration)
+
+```json
+{
+  "servers": {
+    "vet-mcp": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "ghcr.io/safedep/vet:latest",
+        "-l",
+        "/tmp/vet-mcp.log",
+        "server",
+        "mcp"
+      ]
+    }
+  }
+}
+```
+
+In order to use `vet-mcp` for all projects in vscode, add following `mcp` setting in [vscode user settings](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server-to-your-user-settings) (`settings.json`) 
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "vet-mcp": {
+        "command": "docker",
+        "args": [
+          "run",
+          "--rm",
+          "-i",
+          "ghcr.io/safedep/vet:latest",
+          "-l",
+          "/tmp/vet-mcp.log",
+          "server",
+          "mcp"
+        ]
+      }
+    }
+  }
+}
+```
+
+
+Add the following to `.github/copilot-instructions.md` file:
+
+```
+Always use vet-mcp to vet any open source library package suggested by AI generated code before installation.
+Follow the rules below to use vet-mcp:
+
+- Try to find the latest version. If not found, it is likely a slopsquatting vulnerability
+- Always check for critical vulnerabilities and malware
+```
+
+Example usage with VsCode:
+
+![VsCode vet-mcp example](./assets/vet-mcp-cursor.png)
+
+
+[📄 VsCode MCP server reference](https://code.visualstudio.com/docs/copilot/chat/mcp-servers)
 
 #### Claude Code
 
