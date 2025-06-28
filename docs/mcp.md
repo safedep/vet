@@ -37,7 +37,7 @@ vet -s -l /tmp/vet-mcp.log server mcp --server-type stdio
 > **Note:** The example below uses pre-build docker image. You can build your own by running
 > `docker build -t ghcr.io/safedep/vet:latest .`
 
-Add following configuration to your MCP client configuration file, if you are using SSE transport:
+Add following configuration to your MCP client configuration file:
 
 ```json
 "vet-mcp": {
@@ -54,6 +54,8 @@ Add following configuration to your MCP client configuration file, if you are us
   ]
 }
 ```
+
+`vet` uses `stdio` by default, if you wish to use SSE transport, add following args: `"--server-type", "sse"`
 
 **Note:** While `docker` containers can help keep the MCP server process isolated, it needs to be periodically updated to the latest version.
 
