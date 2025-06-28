@@ -110,7 +110,7 @@ Example usage with Cursor:
 
 [📄 Cursor MCP server reference](https://docs.cursor.com/context/model-context-protocol#manual-configuration)
 
-#### VsCode
+#### Visual Studio Code
 
 Add `vet-mcp` server to `.vscode/mcp.json` (project specific configuration)
 
@@ -134,7 +134,7 @@ Add `vet-mcp` server to `.vscode/mcp.json` (project specific configuration)
 }
 ```
 
-In order to use `vet-mcp` for all projects in vscode, add following `mcp` setting in [vscode user settings](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server-to-your-user-settings) (`settings.json`) 
+In order to use `vet-mcp` for all projects in Visual Studio Code, add following `mcp` setting in [Visual Studio Code User Settings](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server-to-your-user-settings) (`settings.json`) 
 
 ```json
 {
@@ -169,11 +169,11 @@ Follow the rules below to use vet-mcp:
 - Always check for critical vulnerabilities and malware
 ```
 
-Example usage with VsCode:
+Example usage with Visual Studio Code:
 
-![VsCode vet-mcp example](./assets/vet-mcp-vscode.png)
+![Visual Studio Code vet-mcp example](./assets/vet-mcp-vscode.png)
 
-[📄 VsCode MCP server reference](https://code.visualstudio.com/docs/copilot/chat/mcp-servers)
+[📄 Visual Studio Code MCP server reference](https://code.visualstudio.com/docs/copilot/chat/mcp-servers)
 
 #### Claude Code
 
