@@ -24,8 +24,8 @@ import (
 
 const syncReporterDefaultWorkerCount = 10
 
-// Contract for implementing environment resolver for the sync reporter.
-// Here we decouple the the actual implementation of the resolver to the
+// SyncReporterEnvResolver defines the contract for implementing environment resolver for the sync reporter.
+// Here we decouple the actual implementation of the resolver to the
 // client that uses the reporter plugin. The resolver is used to provide
 // environment awareness to the reporter. For example, when running in GitHub
 // or on a Git repository, the resolver can provide the project source, project
@@ -35,7 +35,7 @@ type SyncReporterEnvResolver interface {
 	GetProjectSource() controltowerv1pb.Project_Source
 
 	// The resolved URL of the runtime environment (e.g. GitHub repository URL)
-	GetProjectUrl() string
+	GetProjectURL() string
 
 	// The trigger of the runtime environment (e.g. CI/CD pipeline)
 	Trigger() controltowerv1.ToolTrigger
@@ -49,30 +49,38 @@ type SyncReporterEnvResolver interface {
 
 type defaultSyncReporterEnvResolver struct{}
 
+// GetProjectSource returns the source of the runtime environment (e.g. GitHub)
 func (r *defaultSyncReporterEnvResolver) GetProjectSource() controltowerv1pb.Project_Source {
 	return controltowerv1pb.Project_SOURCE_UNSPECIFIED
 }
 
-func (r *defaultSyncReporterEnvResolver) GetProjectUrl() string {
+// GetProjectURL returns the URL of the runtime environment (e.g. GitHub repository URL)
+func (r *defaultSyncReporterEnvResolver) GetProjectURL() string {
 	return ""
 }
 
+// GitRef returns the Git reference of the runtime environment (e.g. branch, tag, commit)
 func (r *defaultSyncReporterEnvResolver) GitRef() string {
 	return ""
 }
 
+// GitSha returns the Git SHA of the runtime environment (e.g. commit hash)
 func (r *defaultSyncReporterEnvResolver) GitSha() string {
 	return ""
 }
 
+// Trigger returns the trigger of the runtime environment (e.g. CI/CD pipeline)
 func (r *defaultSyncReporterEnvResolver) Trigger() controltowerv1.ToolTrigger {
 	return controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL
 }
 
+// DefaultSyncReporterEnvResolver returns the default environment resolver for the sync reporter.
+// This is used when no environment resolver is provided.
 func DefaultSyncReporterEnvResolver() SyncReporterEnvResolver {
 	return &defaultSyncReporterEnvResolver{}
 }
 
+// SyncReporterConfig defines the configuration for the sync reporter.
 type SyncReporterConfig struct {
 	// gRPC connection for ControlTower
 	ClientConnection *grpc.ClientConn
@@ -93,7 +101,7 @@ type SyncReporterConfig struct {
 }
 
 type syncSession struct {
-	sessionId         string
+	sessionID         string
 	toolServiceClient controltowerv1grpc.ToolServiceClient
 }
 
@@ -103,12 +111,12 @@ type syncSessionPool struct {
 }
 
 // Only use this session
-func (s *syncSessionPool) addPrimarySession(sessionId string, client controltowerv1grpc.ToolServiceClient) {
+func (s *syncSessionPool) addPrimarySession(sessionID string, client controltowerv1grpc.ToolServiceClient) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	s.syncSessions["*"] = syncSession{
-		sessionId:         sessionId,
+		sessionID:         sessionID,
 		toolServiceClient: client,
 	}
 }
@@ -121,12 +129,12 @@ func (s *syncSessionPool) hasKeyedSession(key string) bool {
 	return ok
 }
 
-func (s *syncSessionPool) addKeyedSession(key, sessionId string, client controltowerv1grpc.ToolServiceClient) {
+func (s *syncSessionPool) addKeyedSession(key, sessionID string, client controltowerv1grpc.ToolServiceClient) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	s.syncSessions[key] = syncSession{
-		sessionId:         sessionId,
+		sessionID:         sessionID,
 		toolServiceClient: client,
 	}
 }
@@ -179,6 +187,7 @@ type syncReporter struct {
 // Verify syncReporter implements the Reporter interface
 var _ Reporter = (*syncReporter)(nil)
 
+// NewSyncReporter creates a new sync reporter.
 func NewSyncReporter(config SyncReporterConfig, envResolver SyncReporterEnvResolver, callbacks SyncReporterCallbacks) (*syncReporter, error) {
 	if config.ClientConnection == nil {
 		return nil, fmt.Errorf("missing gRPC client connection")
@@ -229,10 +238,12 @@ func NewSyncReporter(config SyncReporterConfig, envResolver SyncReporterEnvResol
 	return self, nil
 }
 
+// Name returns the name of the sync reporter.
 func (s *syncReporter) Name() string {
 	return "Cloud Sync Reporter"
 }
 
+// AddManifest adds a manifest to the sync reporter.
 func (s *syncReporter) AddManifest(manifest *models.PackageManifest) {
 	manifestSessionKey := manifest.Path
 	if s.config.EnableMultiProjectSync && !s.sessions.hasKeyedSession(manifestSessionKey) {
@@ -265,25 +276,28 @@ func (s *syncReporter) AddManifest(manifest *models.PackageManifest) {
 	})
 }
 
+// AddAnalyzerEvent adds an analyzer event to the sync reporter.
 func (s *syncReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 	s.queueEvent(event)
 }
 
+// AddPolicyEvent adds a policy event to the sync reporter.
 func (s *syncReporter) AddPolicyEvent(event *policy.PolicyEvent) {
 }
 
+// Finish finishes the sync reporter.
 func (s *syncReporter) Finish() error {
 	s.wg.Wait()
 	s.dispatchOnSyncFinish()
 	close(s.done)
 
 	return s.sessions.forEach(func(_ string, session *syncSession) error {
-		logger.Debugf("Report Sync: Completing tool session: %s", session.sessionId)
+		logger.Debugf("Report Sync: Completing tool session: %s", session.sessionID)
 
 		_, err := session.toolServiceClient.CompleteToolSession(context.Background(),
 			&controltowerv1.CompleteToolSessionRequest{
 				ToolSession: &controltowerv1.ToolSession{
-					ToolSessionId: session.sessionId,
+					ToolSessionId: session.sessionID,
 				},
 				Status: controltowerv1.CompleteToolSessionRequest_STATUS_SUCCESS,
 			})
@@ -378,7 +392,7 @@ func (s *syncReporter) syncEvent(event *analyzer.AnalyzerEvent) error {
 	namespace := pkg.Manifest.GetSource().GetNamespace()
 	req := controltowerv1.PublishPolicyViolationRequest{
 		ToolSession: &controltowerv1.ToolSession{
-			ToolSessionId: session.sessionId,
+			ToolSessionId: session.sessionID,
 		},
 
 		Manifest: &packagev1.PackageManifest{
@@ -433,7 +447,7 @@ func (s *syncReporter) syncPackage(pkg *models.Package) error {
 	namespace := pkg.Manifest.GetSource().GetNamespace()
 	req := controltowerv1.PublishPackageInsightRequest{
 		ToolSession: &controltowerv1.ToolSession{
-			ToolSessionId: session.sessionId,
+			ToolSessionId: session.sessionID,
 		},
 
 		Manifest: &packagev1.PackageManifest{
@@ -486,17 +500,17 @@ func (s *syncReporter) syncPackage(pkg *models.Package) error {
 	// The backend should have its own VDB to enrich the data.
 	vulnerabilities := utils.SafelyGetValue(insights.Vulnerabilities)
 	for _, v := range vulnerabilities {
-		vId := utils.SafelyGetValue(v.Id)
+		vulnerabilityID := utils.SafelyGetValue(v.Id)
 		vulnerability := vulnerabilityv1.Vulnerability{
 			Id: &vulnerabilityv1.VulnerabilityIdentifier{
-				Value: vId,
+				Value: vulnerabilityID,
 			},
 			Summary: utils.SafelyGetValue(v.Summary),
 		}
 
-		if strings.HasPrefix(vId, "CVE-") {
+		if strings.HasPrefix(vulnerabilityID, "CVE-") {
 			vulnerability.Id.Type = vulnerabilityv1.VulnerabilityIdentifierType_VULNERABILITY_IDENTIFIER_TYPE_CVE
-		} else if strings.HasPrefix(vId, "OSV-") {
+		} else if strings.HasPrefix(vulnerabilityID, "OSV-") {
 			vulnerability.Id.Type = vulnerabilityv1.VulnerabilityIdentifierType_VULNERABILITY_IDENTIFIER_TYPE_OSV
 		}
 
@@ -577,7 +591,7 @@ func (s *syncReporter) createToolSessionRequestForProjectVersion(projectName, pr
 	source := packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_UNSPECIFIED
 	trigger := s.envResolver.Trigger()
 	originSource := s.envResolver.GetProjectSource()
-	originUrl := s.envResolver.GetProjectUrl()
+	originURL := s.envResolver.GetProjectURL()
 	gitRef := s.envResolver.GitRef()
 	gitSha := s.envResolver.GitSha()
 
@@ -597,8 +611,8 @@ func (s *syncReporter) createToolSessionRequestForProjectVersion(projectName, pr
 		req.OriginProjectSource = &originSource
 	}
 
-	if originUrl != "" {
-		req.OriginProjectUrl = &originUrl
+	if originURL != "" {
+		req.OriginProjectUrl = &originURL
 	}
 
 	if gitRef != "" {
