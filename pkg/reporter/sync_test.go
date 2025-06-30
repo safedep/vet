@@ -291,7 +291,7 @@ func TestSyncPackage(t *testing.T) {
 				sessions: &syncSessionPool{
 					syncSessions: map[string]syncSession{
 						tt.pkg.Manifest.Path: {
-							sessionId:         tt.sessionID,
+							sessionID:         tt.sessionID,
 							toolServiceClient: mockClient,
 						},
 					},
@@ -418,7 +418,7 @@ func TestSyncSessionPoolForEach(t *testing.T) {
 
 	err := pool.forEach(func(key string, session *syncSession) error {
 		processedKeys[key] = true
-		processedSessions[session.sessionId] = true
+		processedSessions[session.sessionID] = true
 		return nil
 	})
 
@@ -546,7 +546,7 @@ func TestSyncEvent(t *testing.T) {
 				sessions: &syncSessionPool{
 					syncSessions: map[string]syncSession{
 						tt.event.Package.Manifest.Path: {
-							sessionId:         tt.sessionID,
+							sessionID:         tt.sessionID,
 							toolServiceClient: mockClient,
 						},
 					},
@@ -575,7 +575,7 @@ func TestSyncEvent(t *testing.T) {
 
 type testEnvResolver struct {
 	projectSource controltowerv1pb.Project_Source
-	projectUrl    string
+	projectURL    string
 	trigger       controltowerv1.ToolTrigger
 	gitRef        string
 	gitSha        string
@@ -585,8 +585,8 @@ func (r *testEnvResolver) GetProjectSource() controltowerv1pb.Project_Source {
 	return r.projectSource
 }
 
-func (r *testEnvResolver) GetProjectUrl() string {
-	return r.projectUrl
+func (r *testEnvResolver) GetProjectURL() string {
+	return r.projectURL
 }
 
 func (r *testEnvResolver) Trigger() controltowerv1.ToolTrigger {
@@ -644,7 +644,7 @@ func TestCreateToolSessionRequestForProjectVersion(t *testing.T) {
 			},
 			envResolver: &testEnvResolver{
 				projectSource: controltowerv1pb.Project_SOURCE_GITHUB,
-				projectUrl:    "https://github.com/test/test",
+				projectURL:    "https://github.com/test/test",
 				trigger:       controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL,
 				gitRef:        "refs/heads/main",
 				gitSha:        "1234567890",

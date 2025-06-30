@@ -1,3 +1,4 @@
+// Package reporter provides a contract for implementing reporting modules.
 package reporter
 
 import (
