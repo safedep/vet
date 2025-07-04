@@ -129,6 +129,47 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 				fileHasValidOSVReport(t, filePath)
 			},
 		},
+		{
+			name: "default introduced version should be '0' not '0.0.0'",
+			report: &malysisv1pb.Report{
+				PackageVersion: &packagev1.PackageVersion{
+					Package: &packagev1.Package{
+						Ecosystem: packagev1.Ecosystem_ECOSYSTEM_NPM,
+						Name:      "test-package",
+					},
+					Version: "1.0.0",
+				},
+				Inference: &malysisv1pb.Report_Inference{
+					Summary: "Test malicious package",
+					Details: "Test details",
+				},
+			},
+			params: OpenSSFMaliciousPackageReportParams{
+				// Deliberately leaving VersionIntroduced empty to test default
+			},
+			setup: func(t *testing.T, dir string) {
+				_ = os.MkdirAll(dir, 0o755)
+			},
+			assert: func(t *testing.T, dir string, err error) {
+				assert.NoError(t, err)
+				filePath := filepath.Join(dir, "osv/malicious/npm/test-package/MAL-0000-test-package.json")
+				assert.FileExists(t, filePath)
+
+				// Read and validate the OSV report
+				jsonFile, err := os.ReadFile(filePath)
+				assert.NoError(t, err)
+
+				var vuln osvschema.Vulnerability
+				err = json.Unmarshal(jsonFile, &vuln)
+				assert.NoError(t, err)
+
+				// Verify the introduced version is "0" not "0.0.0"
+				assert.Len(t, vuln.Affected, 1, "should have one affected package")
+				assert.Len(t, vuln.Affected[0].Ranges, 1, "should have one range")
+				assert.Len(t, vuln.Affected[0].Ranges[0].Events, 1, "should have one event")
+				assert.Equal(t, "0", vuln.Affected[0].Ranges[0].Events[0].Introduced, "introduced version should be '0' according to OSV schema")
+			},
+		},
 	}
 
 	for _, tc := range cases {
