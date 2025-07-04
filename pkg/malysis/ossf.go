@@ -65,9 +65,9 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 
 	versionIntroduced := params.VersionIntroduced
 	if versionIntroduced == "" {
-		// Fallback to the special version "0.0.0" which means all versions
-		// of the package is likely malicious
-		versionIntroduced = "0.0.0"
+		// Fallback to the special version "0" which means all versions
+		// of the package is likely malicious, as per OSV schema
+		versionIntroduced = "0"
 	}
 
 	finderName := params.FinderName
