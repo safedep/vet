@@ -17,7 +17,7 @@ func TestSSEHandlerWithHeadSupport(t *testing.T) {
 			w.Header().Set("Connection", "keep-alive")
 			w.Header().Set("Access-Control-Allow-Origin", "*")
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("event: endpoint\ndata: /message?sessionId=test\n\n"))
+			_, _ = w.Write([]byte("event: endpoint\ndata: /message?sessionId=test\n\n"))
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
