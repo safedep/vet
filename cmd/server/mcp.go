@@ -52,7 +52,9 @@ func startMcpServer() error {
 	case "stdio":
 		mcpSrv, err = server.NewMcpServerWithStdioTransport(server.DefaultMcpServerConfig())
 	case "sse":
-		mcpSrv, err = server.NewMcpServerWithSseTransport(server.DefaultMcpServerConfig())
+		srvConfig := server.DefaultMcpServerConfig()
+		srvConfig.SseServerAddr = mcpServerSseServerAddr
+		mcpSrv, err = server.NewMcpServerWithSseTransport(srvConfig)
 	default:
 		return fmt.Errorf("invalid server type: %s", mcpServerServerType)
 	}
