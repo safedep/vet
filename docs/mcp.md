@@ -32,6 +32,16 @@ vet -s -l /tmp/vet-mcp.log server mcp --server-type stdio
 
 > Avoid using `stdout` logging as it will interfere with the MCP server output.
 
+### SSE Transport Features
+
+The SSE (Server-Sent Events) transport supports:
+
+- **GET requests**: For establishing SSE connections to receive real-time events
+- **HEAD requests**: For endpoint health checks and capability probing (useful for tools like Langchain)
+- **POST requests**: For sending messages to the MCP server via the message endpoint
+
+The SSE endpoint returns appropriate headers for HEAD requests without a body, allowing tools to verify endpoint availability and capabilities.
+
 ## Configure MCP Client
 
 > **Note:** The example below uses pre-build docker image. You can build your own by running
