@@ -6,7 +6,9 @@ import (
 )
 
 func TestAgentUICreation(t *testing.T) {
-	ui := NewAgentUI()
+	mockAgent := NewMockAgent()
+	mockSession := NewMockSession()
+	ui := NewAgentUI(mockAgent, mockSession)
 	
 	if ui == nil {
 		t.Fatal("Failed to create AgentUI")
@@ -26,7 +28,9 @@ func TestAgentUICreation(t *testing.T) {
 }
 
 func TestMessageManagement(t *testing.T) {
-	ui := NewAgentUI()
+	mockAgent := NewMockAgent()
+	mockSession := NewMockSession()
+	ui := NewAgentUI(mockAgent, mockSession)
 	
 	// Test adding user message
 	ui.addUserMessage("Test user message")
@@ -58,7 +62,9 @@ func TestMessageManagement(t *testing.T) {
 }
 
 func TestMessageRendering(t *testing.T) {
-	ui := NewAgentUI()
+	mockAgent := NewMockAgent()
+	mockSession := NewMockSession()
+	ui := NewAgentUI(mockAgent, mockSession)
 	ui.addUserMessage("How many vulnerabilities?")
 	ui.addAgentMessage("Found 5 critical vulnerabilities")
 	
@@ -87,7 +93,9 @@ func TestMessageRendering(t *testing.T) {
 }
 
 func TestViewportUpdates(t *testing.T) {
-	ui := NewAgentUI()
+	mockAgent := NewMockAgent()
+	mockSession := NewMockSession()
+	ui := NewAgentUI(mockAgent, mockSession)
 	
 	// Set some dimensions to make viewport functional
 	ui.width = 80
@@ -118,14 +126,16 @@ func TestViewportUpdates(t *testing.T) {
 }
 
 func TestHeaderVisibility(t *testing.T) {
-	ui := NewAgentUI()
+	mockAgent := NewMockAgent()
+	mockSession := NewMockSession()
+	ui := NewAgentUI(mockAgent, mockSession)
 	ui.width = 80
 	ui.height = 24
 	ui.ready = true
 	
 	view := ui.View()
 	
-	if !contains(view, "Vet Security Agent") {
+	if !contains(view, "vet Query Agent") {
 		t.Error("Header should be visible in the view")
 	}
 	
@@ -135,7 +145,9 @@ func TestHeaderVisibility(t *testing.T) {
 }
 
 func TestInputDisabling(t *testing.T) {
-	ui := NewAgentUI()
+	mockAgent := NewMockAgent()
+	mockSession := NewMockSession()
+	ui := NewAgentUI(mockAgent, mockSession)
 	ui.width = 80
 	ui.height = 24
 	ui.ready = true
@@ -172,7 +184,9 @@ func TestInputDisabling(t *testing.T) {
 }
 
 func TestInputStateInView(t *testing.T) {
-	ui := NewAgentUI()
+	mockAgent := NewMockAgent()
+	mockSession := NewMockSession()
+	ui := NewAgentUI(mockAgent, mockSession)
 	ui.width = 80
 	ui.height = 24
 	ui.ready = true
@@ -196,7 +210,9 @@ func TestInputStateInView(t *testing.T) {
 }
 
 func TestCommandCreation(t *testing.T) {
-	ui := NewAgentUI()
+	mockAgent := NewMockAgent()
+	mockSession := NewMockSession()
+	ui := NewAgentUI(mockAgent, mockSession)
 	
 	// Test status update command
 	cmd := ui.updateStatus("Testing status")
@@ -211,30 +227,34 @@ func TestCommandCreation(t *testing.T) {
 	}
 }
 
-func TestSimulateAgentResponse(t *testing.T) {
-	ui := NewAgentUI()
+func TestExecuteAgentQuery(t *testing.T) {
+	mockAgent := NewMockAgent()
+	mockSession := NewMockSession()
+	ui := NewAgentUI(mockAgent, mockSession)
 	
 	// Test vulnerability query response
-	cmd := ui.simulateAgentResponse("How many vulnerabilities?")
+	cmd := ui.executeAgentQuery("How many vulnerabilities?")
 	if cmd == nil {
-		t.Error("simulateAgentResponse should return a non-nil command")
+		t.Error("executeAgentQuery should return a non-nil command")
 	}
 	
 	// Test malware query response
-	cmd = ui.simulateAgentResponse("Check for malware")
+	cmd = ui.executeAgentQuery("Check for malware")
 	if cmd == nil {
-		t.Error("simulateAgentResponse should return a non-nil command")
+		t.Error("executeAgentQuery should return a non-nil command")
 	}
 	
 	// Test general query response
-	cmd = ui.simulateAgentResponse("General security question")
+	cmd = ui.executeAgentQuery("General security question")
 	if cmd == nil {
-		t.Error("simulateAgentResponse should return a non-nil command")
+		t.Error("executeAgentQuery should return a non-nil command")
 	}
 }
 
 func TestMessageTimestamps(t *testing.T) {
-	ui := NewAgentUI()
+	mockAgent := NewMockAgent()
+	mockSession := NewMockSession()
+	ui := NewAgentUI(mockAgent, mockSession)
 	
 	before := time.Now()
 	ui.addUserMessage("Test message")

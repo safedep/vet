@@ -128,8 +128,10 @@ func startQuery() {
 			command.FailOnError("agent mode", fmt.Errorf("--from flag is required for agent mode"))
 		}
 		
-		// Start the TUI
-		command.FailOnError("agent mode", agent.RunAgentUI())
+		// Start the TUI with mock agent
+		mockAgent := agent.NewMockAgent()
+		mockSession := agent.NewMockSession()
+		command.FailOnError("agent mode", agent.RunAgentUI(mockAgent, mockSession))
 		return
 	}
 	

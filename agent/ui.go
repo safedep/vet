@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -80,6 +81,8 @@ type AgentUI struct {
 	isThinking    bool
 	messages      []Message
 	ready         bool
+	agent         Agent
+	session       Session
 }
 
 // Message represents a chat message
@@ -90,7 +93,7 @@ type Message struct {
 }
 
 // NewAgentUI creates a new agent UI instance
-func NewAgentUI() *AgentUI {
+func NewAgentUI(agent Agent, session Session) *AgentUI {
 	// Create viewport for main content
 	vp := viewport.New(80, 20)
 	vp.Style = mainPanelStyle
@@ -107,6 +110,8 @@ func NewAgentUI() *AgentUI {
 		textInput:     ta,
 		statusMessage: "Initializing agent...",
 		messages:      []Message{},
+		agent:         agent,
+		session:       session,
 	}
 
 	// Add welcome message
@@ -142,11 +147,11 @@ func (m *AgentUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.addUserMessage(userInput)
 					m.textInput.Reset()
 
-					// Simulate agent thinking and response
+					// Execute agent query
 					cmds = append(cmds,
 						m.updateStatus("Agent is analyzing your question..."),
 						m.setThinking(true),
-						m.simulateAgentResponse(userInput),
+						m.executeAgentQuery(userInput),
 					)
 				}
 			}
@@ -448,104 +453,28 @@ func (m *AgentUI) setThinking(thinking bool) tea.Cmd {
 	}
 }
 
-// simulateAgentResponse simulates an agent response (placeholder for real implementation)
-func (m *AgentUI) simulateAgentResponse(userInput string) tea.Cmd {
-	return tea.Tick(time.Second*2, func(t time.Time) tea.Msg {
-		// This is dummy content - in real implementation, this would call the agent
-		var response string
-
-		input := strings.ToLower(userInput)
-		switch {
-		case strings.Contains(input, "vulnerability") || strings.Contains(input, "vuln"):
-			response = `🔍 **Vulnerability Analysis**
-
-I found 3 critical vulnerabilities in your dependencies:
-
-**Critical Issues:**
-• lodash@4.17.19: CVE-2021-23337 (Command Injection)
-• jackson-databind@2.9.8: CVE-2020-36518 (Deserialization)  
-• urllib3@1.24.1: CVE-2021-33503 (SSRF)
-
-**Recommendation:** Update these packages immediately. All have fixes available in newer versions.
-
-Would you like me to analyze the impact of updating these packages?`
-
-		case strings.Contains(input, "malware") || strings.Contains(input, "malicious"):
-			response = `🚨 **Malware Detection Results**
-
-I detected 2 potentially malicious packages:
-
-**High Risk:**
-• suspicious-package@1.0.0: Contains obfuscated code and cryptocurrency mining
-• typosquatted-lib@2.1.0: Mimics popular library with malicious payload
-
-**Action Required:** Remove these packages immediately and scan your systems.
-
-Would you like me to suggest secure alternatives?`
-
-		case strings.Contains(input, "secure") || strings.Contains(input, "security"):
-			response = `🛡️ **Security Posture Assessment**
-
-**Overall Security Score: 6.2/10 (Moderate Risk)**
-
-**Summary:**
-• 23 total security issues found
-• 3 critical vulnerabilities requiring immediate action
-• 2 malicious packages detected
-• 15 packages with maintenance concerns
-
-**Priority Actions:**
-1. Remove malicious packages (Critical)
-2. Update vulnerable dependencies (High)
-3. Implement dependency scanning in CI/CD (Medium)
-
-Would you like me to create a detailed remediation plan?`
-
-		case strings.Contains(input, "update"):
-			response = `⬆️ **Update Analysis**
-
-Analyzing update recommendations for your dependencies...
-
-**Safe Updates Available:**
-• 12 packages can be safely updated (patch versions)
-• 5 packages have minor version updates with new features
-• 3 packages require major version updates (breaking changes)
-
-**Priority Updates:**
-1. lodash: 4.17.19 → 4.17.21 (Security fix, no breaking changes)
-2. urllib3: 1.24.1 → 1.26.18 (Security fix, minimal risk)
-
-Would you like detailed impact analysis for any specific package?`
-
-		default:
-			response = `🤖 **Security Analysis**
-
-I'm analyzing your question about: "` + userInput + `"
-
-I have access to comprehensive security data including:
-• Vulnerability databases
-• Malware detection results  
-• Dependency analysis
-• License compliance
-• Maintainer health metrics
-
-**Available Analysis Types:**
-• Security posture assessment
-• Vulnerability impact analysis
-• Malware detection
-• Update recommendations
-• Compliance checking
-
-What specific aspect would you like me to analyze in detail?`
+// executeAgentQuery executes a query using the agent interface
+func (m *AgentUI) executeAgentQuery(userInput string) tea.Cmd {
+	return func() tea.Msg {
+		ctx := context.Background()
+		input := Input{
+			Query: userInput,
 		}
 
-		return agentResponseMsg{content: response}
-	})
+		output, err := m.agent.Execute(ctx, m.session, input)
+		if err != nil {
+			return agentResponseMsg{
+				content: fmt.Sprintf("❌ **Error**\n\nSorry, I encountered an error while processing your query:\n\n%s", err.Error()),
+			}
+		}
+
+		return agentResponseMsg{content: output.Answer}
+	}
 }
 
 // RunAgentUI starts the TUI application
-func RunAgentUI() error {
-	ui := NewAgentUI()
+func RunAgentUI(agent Agent, session Session) error {
+	ui := NewAgentUI(agent, session)
 
 	p := tea.NewProgram(
 		ui,
