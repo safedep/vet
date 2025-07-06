@@ -42,6 +42,8 @@ var (
 	queryExceptionsTill                 string
 	queryExceptionsFilter               string
 	queryAgentMode                      bool
+	queryMockAgent                      bool
+	queryAgentMcpServerUrl              string
 
 	queryDefaultExceptionExpiry = time.Now().Add(90 * 24 * time.Hour)
 )
@@ -106,6 +108,14 @@ func newQueryCommand() *cobra.Command {
 	cmd.Flags().BoolVarP(&queryAgentMode, "agent", "", false,
 		"Start interactive agent mode for security analysis")
 
+	// TODO: Remove this flag once we have a proper MCP server
+	cmd.Flags().BoolVarP(&queryMockAgent, "mock-agent", "", false,
+		"Start interactive agent mode for security analysis with mock agent")
+
+	// TODO: We should auto start the MCP server if it's not running
+	cmd.Flags().StringVarP(&queryAgentMcpServerUrl, "agent-vet-mcp-server-url", "", "http://localhost:9988/sse",
+		"MCP server URL for agent mode")
+
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
 		err := func() error {
@@ -124,18 +134,22 @@ func newQueryCommand() *cobra.Command {
 func startQuery() {
 	// Check if agent mode is enabled
 	if queryAgentMode {
+		// Check and start the mock agent
+		if queryMockAgent {
+			mockAgent := agent.NewMockAgent()
+			mockSession := agent.NewMockSession()
+			command.FailOnError("mock agent mode", agent.RunAgentUI(mockAgent, mockSession))
+			return
+		}
+
 		if utils.IsEmptyString(queryLoadDirectory) {
 			command.FailOnError("agent mode", fmt.Errorf("--from flag is required for agent mode"))
 		}
-		
-		// Start the TUI with mock agent
-		mockAgent := agent.NewMockAgent()
-		mockSession := agent.NewMockSession()
-		command.FailOnError("agent mode", agent.RunAgentUI(mockAgent, mockSession))
-		return
+
+		command.FailOnError("agent mode", executeQueryAgent())
+	} else {
+		command.FailOnError("query", internalStartQuery())
 	}
-	
-	command.FailOnError("query", internalStartQuery())
 }
 
 func internalStartQuery() error {
