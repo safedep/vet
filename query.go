@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/safedep/dry/utils"
+	"github.com/safedep/vet/agent"
 	"github.com/safedep/vet/internal/command"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/readers"
@@ -40,6 +41,7 @@ var (
 	queryExceptionsFile                 string
 	queryExceptionsTill                 string
 	queryExceptionsFilter               string
+	queryAgentMode                      bool
 
 	queryDefaultExceptionExpiry = time.Now().Add(90 * 24 * time.Hour)
 )
@@ -101,6 +103,8 @@ func newQueryCommand() *cobra.Command {
 		"Generate CycloneDX report to file")
 	cmd.Flags().StringVarP(&queryCyclonedxReportApplicationName, "report-cdx-app-name", "", "",
 		"Application name used as root application component in CycloneDX BOM")
+	cmd.Flags().BoolVarP(&queryAgentMode, "agent", "", false,
+		"Start interactive agent mode for security analysis")
 
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
@@ -118,6 +122,17 @@ func newQueryCommand() *cobra.Command {
 }
 
 func startQuery() {
+	// Check if agent mode is enabled
+	if queryAgentMode {
+		if utils.IsEmptyString(queryLoadDirectory) {
+			command.FailOnError("agent mode", fmt.Errorf("--from flag is required for agent mode"))
+		}
+		
+		// Start the TUI
+		command.FailOnError("agent mode", agent.RunAgentUI())
+		return
+	}
+	
 	command.FailOnError("query", internalStartQuery())
 }
 
