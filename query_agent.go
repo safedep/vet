@@ -101,10 +101,20 @@ func executeQueryAgent() error {
 
 	ui.PrintMsg("Starting agent interaction UI...")
 
-	err = agent.RunAgentUI(agentExecutor, agent.NewMockSession())
+	memory, err := agent.NewSimpleMemory()
+	if err != nil {
+		return fmt.Errorf("failed to create memory: %w", err)
+	}
+
+	session, err := agent.NewSession(memory)
+	if err != nil {
+		return fmt.Errorf("failed to create session: %w", err)
+	}
+
+	err = agent.RunAgentUI(agentExecutor, session)
 	if err != nil {
 		return fmt.Errorf("failed to start agent interaction UI: %w", err)
 	}
 
-	return fmt.Errorf("agent interaction UI exited with error: %w", err)
+	return nil
 }

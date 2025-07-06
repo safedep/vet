@@ -12,7 +12,8 @@ import (
 )
 
 type ReactQueryAgentConfig struct {
-	MaxSteps int
+	MaxSteps     int
+	SystemPrompt string
 }
 
 type reactQueryAgent struct {
@@ -62,9 +63,49 @@ func (a *reactQueryAgent) Execute(ctx context.Context, session Session, input In
 		return Output{}, fmt.Errorf("failed to create react agent: %w", err)
 	}
 
-	msg, err := agent.Generate(ctx, []*schema.Message{{Role: schema.User, Content: input.Query}})
+	var messages []*schema.Message
+
+	// Start with the system prompt if available
+	if a.config.SystemPrompt != "" {
+		messages = append(messages, &schema.Message{
+			Role:    schema.System,
+			Content: a.config.SystemPrompt,
+		})
+	}
+
+	// Add the previous interactions to the messages
+	interactions, err := session.Memory().GetInteractions(ctx)
+	if err != nil {
+		return Output{}, fmt.Errorf("failed to get session memory: %w", err)
+	}
+
+	// TODO: Add a limit to the number of interactions to avoid context bloat
+	messages = append(messages, interactions...)
+
+	// Add the current user query message to the messages
+	userQueryMsg := &schema.Message{
+		Role:    schema.User,
+		Content: input.Query,
+	}
+
+	messages = append(messages, userQueryMsg)
+
+	// Execute the agent to produce a response
+	msg, err := agent.Generate(ctx, messages)
 	if err != nil {
 		return Output{}, fmt.Errorf("failed to generate response: %w", err)
+	}
+
+	// Add the user query message to the session memory
+	err = session.Memory().AddInteraction(ctx, userQueryMsg)
+	if err != nil {
+		return Output{}, fmt.Errorf("failed to add user query message to session memory: %w", err)
+	}
+
+	// Add the agent response message to the session memory
+	err = session.Memory().AddInteraction(ctx, msg)
+	if err != nil {
+		return Output{}, fmt.Errorf("failed to add response message to session memory: %w", err)
 	}
 
 	return Output{

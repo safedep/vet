@@ -5,6 +5,7 @@ import (
 	"context"
 
 	"github.com/cloudwego/eino/components/tool"
+	"github.com/cloudwego/eino/schema"
 )
 
 type Input struct {
@@ -23,8 +24,16 @@ type Output struct {
 	Format AnswerFormat
 }
 
-// Session is a placeholder for session interface
-type Session interface{}
+type Memory interface {
+	AddInteraction(ctx context.Context, interaction *schema.Message) error
+	GetInteractions(ctx context.Context) ([]*schema.Message, error)
+	Clear(ctx context.Context) error
+}
+
+type Session interface {
+	ID() string
+	Memory() Memory
+}
 
 type Agent interface {
 	Execute(context.Context, Session, Input) (Output, error)

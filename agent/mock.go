@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"strings"
+
+	"github.com/cloudwego/eino/schema"
 )
 
 // MockAgent provides a simple implementation of the Agent interface for testing
@@ -11,7 +13,28 @@ type mockAgent struct{}
 
 // MockSession is a simple session implementation
 type mockSession struct {
-	ID string
+	sessionID string
+	memory    Memory
+}
+
+type mockMemory struct {
+	interactions []*schema.Message
+}
+
+func (m *mockMemory) AddInteraction(ctx context.Context, interaction *schema.Message) error {
+	m.interactions = append(m.interactions, interaction)
+
+	return nil
+}
+
+func (m *mockMemory) GetInteractions(ctx context.Context) ([]*schema.Message, error) {
+	return m.interactions, nil
+}
+
+func (m *mockMemory) Clear(ctx context.Context) error {
+	m.interactions = make([]*schema.Message, 0)
+
+	return nil
 }
 
 // NewMockAgent creates a new mock agent
@@ -22,8 +45,17 @@ func NewMockAgent() *mockAgent {
 // NewMockSession creates a new mock session
 func NewMockSession() *mockSession {
 	return &mockSession{
-		ID: "mock-session-1",
+		sessionID: "mock-session-1",
+		memory:    &mockMemory{},
 	}
+}
+
+func (s *mockSession) ID() string {
+	return s.sessionID
+}
+
+func (s *mockSession) Memory() Memory {
+	return s.memory
 }
 
 // Execute implements the Agent interface with mock responses
