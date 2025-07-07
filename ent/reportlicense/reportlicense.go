@@ -4,6 +4,7 @@ package reportlicense
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -21,12 +22,27 @@ const (
 	FieldURL = "url"
 	// FieldIsOsiApproved holds the string denoting the is_osi_approved field in the database.
 	FieldIsOsiApproved = "is_osi_approved"
+	// FieldIsFsfApproved holds the string denoting the is_fsf_approved field in the database.
+	FieldIsFsfApproved = "is_fsf_approved"
+	// FieldIsSaasCompatible holds the string denoting the is_saas_compatible field in the database.
+	FieldIsSaasCompatible = "is_saas_compatible"
+	// FieldIsCommercialUseAllowed holds the string denoting the is_commercial_use_allowed field in the database.
+	FieldIsCommercialUseAllowed = "is_commercial_use_allowed"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// EdgePackage holds the string denoting the package edge name in mutations.
+	EdgePackage = "package"
 	// Table holds the table name of the reportlicense in the database.
 	Table = "report_licenses"
+	// PackageTable is the table that holds the package relation/edge.
+	PackageTable = "report_licenses"
+	// PackageInverseTable is the table name for the ReportPackage entity.
+	// It exists in this package in order to avoid circular dependency with the "reportpackage" package.
+	PackageInverseTable = "report_packages"
+	// PackageColumn is the table column denoting the package relation/edge.
+	PackageColumn = "report_package_licenses"
 )
 
 // Columns holds all SQL columns for reportlicense fields.
@@ -37,14 +53,28 @@ var Columns = []string{
 	FieldSpdxID,
 	FieldURL,
 	FieldIsOsiApproved,
+	FieldIsFsfApproved,
+	FieldIsSaasCompatible,
+	FieldIsCommercialUseAllowed,
 	FieldCreatedAt,
 	FieldUpdatedAt,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the "report_licenses"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"report_package_licenses",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -89,6 +119,21 @@ func ByIsOsiApproved(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsOsiApproved, opts...).ToFunc()
 }
 
+// ByIsFsfApproved orders the results by the is_fsf_approved field.
+func ByIsFsfApproved(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsFsfApproved, opts...).ToFunc()
+}
+
+// ByIsSaasCompatible orders the results by the is_saas_compatible field.
+func ByIsSaasCompatible(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsSaasCompatible, opts...).ToFunc()
+}
+
+// ByIsCommercialUseAllowed orders the results by the is_commercial_use_allowed field.
+func ByIsCommercialUseAllowed(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsCommercialUseAllowed, opts...).ToFunc()
+}
+
 // ByCreatedAt orders the results by the created_at field.
 func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
@@ -97,4 +142,18 @@ func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdatedAt orders the results by the updated_at field.
 func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByPackageField orders the results by package field.
+func ByPackageField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPackageStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newPackageStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PackageInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, PackageTable, PackageColumn),
+	)
 }

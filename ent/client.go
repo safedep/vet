@@ -828,6 +828,22 @@ func (c *ReportLicenseClient) GetX(ctx context.Context, id int) *ReportLicense {
 	return obj
 }
 
+// QueryPackage queries the package edge of a ReportLicense.
+func (c *ReportLicenseClient) QueryPackage(rl *ReportLicense) *ReportPackageQuery {
+	query := (&ReportPackageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rl.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportlicense.Table, reportlicense.FieldID, id),
+			sqlgraph.To(reportpackage.Table, reportpackage.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, reportlicense.PackageTable, reportlicense.PackageColumn),
+		)
+		fromV = sqlgraph.Neighbors(rl.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ReportLicenseClient) Hooks() []Hook {
 	return c.hooks.ReportLicense
@@ -1135,6 +1151,22 @@ func (c *ReportPackageClient) QueryVulnerabilities(rp *ReportPackage) *ReportVul
 			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, id),
 			sqlgraph.To(reportvulnerability.Table, reportvulnerability.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.VulnerabilitiesTable, reportpackage.VulnerabilitiesColumn),
+		)
+		fromV = sqlgraph.Neighbors(rp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLicenses queries the licenses edge of a ReportPackage.
+func (c *ReportPackageClient) QueryLicenses(rp *ReportPackage) *ReportLicenseQuery {
+	query := (&ReportLicenseClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, id),
+			sqlgraph.To(reportlicense.Table, reportlicense.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.LicensesTable, reportpackage.LicensesColumn),
 		)
 		fromV = sqlgraph.Neighbors(rp.driver.Dialect(), step)
 		return fromV, nil

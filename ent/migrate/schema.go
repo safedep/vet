@@ -81,14 +81,26 @@ var (
 		{Name: "spdx_id", Type: field.TypeString, Nullable: true},
 		{Name: "url", Type: field.TypeString, Nullable: true},
 		{Name: "is_osi_approved", Type: field.TypeBool, Nullable: true},
+		{Name: "is_fsf_approved", Type: field.TypeBool, Nullable: true},
+		{Name: "is_saas_compatible", Type: field.TypeBool, Nullable: true},
+		{Name: "is_commercial_use_allowed", Type: field.TypeBool, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime, Nullable: true},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "report_package_licenses", Type: field.TypeInt, Nullable: true},
 	}
 	// ReportLicensesTable holds the schema information for the "report_licenses" table.
 	ReportLicensesTable = &schema.Table{
 		Name:       "report_licenses",
 		Columns:    ReportLicensesColumns,
 		PrimaryKey: []*schema.Column{ReportLicensesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "report_licenses_report_packages_licenses",
+				Columns:    []*schema.Column{ReportLicensesColumns[11]},
+				RefColumns: []*schema.Column{ReportPackagesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
 	}
 	// ReportMalwaresColumns holds the columns for the "report_malwares" table.
 	ReportMalwaresColumns = []*schema.Column{
@@ -232,6 +244,7 @@ var (
 func init() {
 	DepsUsageEvidencesTable.ForeignKeys[0].RefTable = CodeSourceFilesTable
 	ReportDependenciesTable.ForeignKeys[0].RefTable = ReportPackagesTable
+	ReportLicensesTable.ForeignKeys[0].RefTable = ReportPackagesTable
 	ReportMalwaresTable.ForeignKeys[0].RefTable = ReportPackagesTable
 	ReportPackagesTable.ForeignKeys[0].RefTable = ReportPackageManifestsTable
 	ReportVulnerabilitiesTable.ForeignKeys[0].RefTable = ReportPackagesTable

@@ -44,6 +44,8 @@ const (
 	EdgeManifest = "manifest"
 	// EdgeVulnerabilities holds the string denoting the vulnerabilities edge name in mutations.
 	EdgeVulnerabilities = "vulnerabilities"
+	// EdgeLicenses holds the string denoting the licenses edge name in mutations.
+	EdgeLicenses = "licenses"
 	// EdgeDependencies holds the string denoting the dependencies edge name in mutations.
 	EdgeDependencies = "dependencies"
 	// EdgeMalwareAnalysis holds the string denoting the malware_analysis edge name in mutations.
@@ -64,6 +66,13 @@ const (
 	VulnerabilitiesInverseTable = "report_vulnerabilities"
 	// VulnerabilitiesColumn is the table column denoting the vulnerabilities relation/edge.
 	VulnerabilitiesColumn = "report_package_vulnerabilities"
+	// LicensesTable is the table that holds the licenses relation/edge.
+	LicensesTable = "report_licenses"
+	// LicensesInverseTable is the table name for the ReportLicense entity.
+	// It exists in this package in order to avoid circular dependency with the "reportlicense" package.
+	LicensesInverseTable = "report_licenses"
+	// LicensesColumn is the table column denoting the licenses relation/edge.
+	LicensesColumn = "report_package_licenses"
 	// DependenciesTable is the table that holds the dependencies relation/edge.
 	DependenciesTable = "report_dependencies"
 	// DependenciesInverseTable is the table name for the ReportDependency entity.
@@ -225,6 +234,20 @@ func ByVulnerabilities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByLicensesCount orders the results by licenses count.
+func ByLicensesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLicensesStep(), opts...)
+	}
+}
+
+// ByLicenses orders the results by licenses terms.
+func ByLicenses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLicensesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByDependenciesCount orders the results by dependencies count.
 func ByDependenciesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -257,6 +280,13 @@ func newVulnerabilitiesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(VulnerabilitiesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, VulnerabilitiesTable, VulnerabilitiesColumn),
+	)
+}
+func newLicensesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LicensesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, LicensesTable, LicensesColumn),
 	)
 }
 func newDependenciesStep() *sqlgraph.Step {

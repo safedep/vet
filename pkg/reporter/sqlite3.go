@@ -161,7 +161,7 @@ func (r *sqlite3Reporter) addPackage(pkg *models.Package, manifest *ent.ReportPa
 
 func (r *sqlite3Reporter) addInsightsV2Data(entPackage *ent.ReportPackage, insights *packagev1.PackageVersionInsight) {
 	ctx := context.Background()
-	
+
 	// Store the full insights as JSON - this is simpler and more robust
 	// Users can query the JSON data directly for detailed analysis
 	insightsData := map[string]interface{}{
@@ -177,6 +177,13 @@ func (r *sqlite3Reporter) addInsightsV2Data(entPackage *ent.ReportPackage, insig
 	if insights.Vulnerabilities != nil {
 		for _, vuln := range insights.Vulnerabilities {
 			r.addVulnerability(entPackage, vuln)
+		}
+	}
+
+	// Extract and store licenses in structured format for easier querying
+	if insights.Licenses != nil && insights.Licenses.Licenses != nil {
+		for _, license := range insights.Licenses.Licenses {
+			r.addLicense(entPackage, license)
 		}
 	}
 }
@@ -209,7 +216,7 @@ func (r *sqlite3Reporter) addVulnerability(entPackage *ent.ReportPackage, vuln *
 
 	if len(vuln.Severities) > 0 {
 		firstSeverity := vuln.Severities[0]
-		
+
 		// Map severity risk enum to string
 		switch firstSeverity.Risk {
 		case vulnerabilityv1.Severity_RISK_CRITICAL:
@@ -249,7 +256,6 @@ func (r *sqlite3Reporter) addVulnerability(entPackage *ent.ReportPackage, vuln *
 	_, err := r.client.ReportVulnerability.Create().
 		SetVulnerabilityID(vulnID).
 		SetTitle(vuln.Summary).
-		SetDescription(""). // No details field in v1 vulnerability, using summary as title
 		SetAliases(aliases).
 		SetSeverity(severity).
 		SetSeverityType(severityType).
@@ -261,6 +267,37 @@ func (r *sqlite3Reporter) addVulnerability(entPackage *ent.ReportPackage, vuln *
 		Save(ctx)
 	if err != nil {
 		logger.Errorf("Failed to create vulnerability in database: %v", err)
+	}
+}
+
+func (r *sqlite3Reporter) addLicense(entPackage *ent.ReportPackage, license *packagev1.LicenseMeta) {
+	now := time.Now()
+	ctx := context.Background()
+
+	// Extract license ID - this is the primary identifier
+	licenseID := license.LicenseId
+	if licenseID == "" {
+		return
+	}
+
+	// Create license record
+	// Note: LicenseMeta only has LicenseId and Name fields
+	// Other fields like SpdxId, Url, IsOsiApproved are not available in v2 model
+	_, err := r.client.ReportLicense.Create().
+		SetLicenseID(licenseID).
+		SetName(license.Name).
+		SetSpdxID(licenseID).
+		SetURL(license.DetailsUrl).
+		SetIsOsiApproved(license.OsiApproved).
+		SetIsFsfApproved(license.FsfApproved).
+		SetIsSaasCompatible(license.SaasCompatible).
+		SetIsCommercialUseAllowed(license.CommercialUseAllowed).
+		SetPackage(entPackage).
+		SetCreatedAt(now).
+		SetUpdatedAt(now).
+		Save(ctx)
+	if err != nil {
+		logger.Errorf("Failed to create license in database: %v", err)
 	}
 }
 

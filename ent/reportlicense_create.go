@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/safedep/vet/ent/reportlicense"
+	"github.com/safedep/vet/ent/reportpackage"
 )
 
 // ReportLicenseCreate is the builder for creating a ReportLicense entity.
@@ -82,6 +83,48 @@ func (rlc *ReportLicenseCreate) SetNillableIsOsiApproved(b *bool) *ReportLicense
 	return rlc
 }
 
+// SetIsFsfApproved sets the "is_fsf_approved" field.
+func (rlc *ReportLicenseCreate) SetIsFsfApproved(b bool) *ReportLicenseCreate {
+	rlc.mutation.SetIsFsfApproved(b)
+	return rlc
+}
+
+// SetNillableIsFsfApproved sets the "is_fsf_approved" field if the given value is not nil.
+func (rlc *ReportLicenseCreate) SetNillableIsFsfApproved(b *bool) *ReportLicenseCreate {
+	if b != nil {
+		rlc.SetIsFsfApproved(*b)
+	}
+	return rlc
+}
+
+// SetIsSaasCompatible sets the "is_saas_compatible" field.
+func (rlc *ReportLicenseCreate) SetIsSaasCompatible(b bool) *ReportLicenseCreate {
+	rlc.mutation.SetIsSaasCompatible(b)
+	return rlc
+}
+
+// SetNillableIsSaasCompatible sets the "is_saas_compatible" field if the given value is not nil.
+func (rlc *ReportLicenseCreate) SetNillableIsSaasCompatible(b *bool) *ReportLicenseCreate {
+	if b != nil {
+		rlc.SetIsSaasCompatible(*b)
+	}
+	return rlc
+}
+
+// SetIsCommercialUseAllowed sets the "is_commercial_use_allowed" field.
+func (rlc *ReportLicenseCreate) SetIsCommercialUseAllowed(b bool) *ReportLicenseCreate {
+	rlc.mutation.SetIsCommercialUseAllowed(b)
+	return rlc
+}
+
+// SetNillableIsCommercialUseAllowed sets the "is_commercial_use_allowed" field if the given value is not nil.
+func (rlc *ReportLicenseCreate) SetNillableIsCommercialUseAllowed(b *bool) *ReportLicenseCreate {
+	if b != nil {
+		rlc.SetIsCommercialUseAllowed(*b)
+	}
+	return rlc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (rlc *ReportLicenseCreate) SetCreatedAt(t time.Time) *ReportLicenseCreate {
 	rlc.mutation.SetCreatedAt(t)
@@ -108,6 +151,25 @@ func (rlc *ReportLicenseCreate) SetNillableUpdatedAt(t *time.Time) *ReportLicens
 		rlc.SetUpdatedAt(*t)
 	}
 	return rlc
+}
+
+// SetPackageID sets the "package" edge to the ReportPackage entity by ID.
+func (rlc *ReportLicenseCreate) SetPackageID(id int) *ReportLicenseCreate {
+	rlc.mutation.SetPackageID(id)
+	return rlc
+}
+
+// SetNillablePackageID sets the "package" edge to the ReportPackage entity by ID if the given value is not nil.
+func (rlc *ReportLicenseCreate) SetNillablePackageID(id *int) *ReportLicenseCreate {
+	if id != nil {
+		rlc = rlc.SetPackageID(*id)
+	}
+	return rlc
+}
+
+// SetPackage sets the "package" edge to the ReportPackage entity.
+func (rlc *ReportLicenseCreate) SetPackage(r *ReportPackage) *ReportLicenseCreate {
+	return rlc.SetPackageID(r.ID)
 }
 
 // Mutation returns the ReportLicenseMutation object of the builder.
@@ -198,6 +260,18 @@ func (rlc *ReportLicenseCreate) createSpec() (*ReportLicense, *sqlgraph.CreateSp
 		_spec.SetField(reportlicense.FieldIsOsiApproved, field.TypeBool, value)
 		_node.IsOsiApproved = value
 	}
+	if value, ok := rlc.mutation.IsFsfApproved(); ok {
+		_spec.SetField(reportlicense.FieldIsFsfApproved, field.TypeBool, value)
+		_node.IsFsfApproved = value
+	}
+	if value, ok := rlc.mutation.IsSaasCompatible(); ok {
+		_spec.SetField(reportlicense.FieldIsSaasCompatible, field.TypeBool, value)
+		_node.IsSaasCompatible = value
+	}
+	if value, ok := rlc.mutation.IsCommercialUseAllowed(); ok {
+		_spec.SetField(reportlicense.FieldIsCommercialUseAllowed, field.TypeBool, value)
+		_node.IsCommercialUseAllowed = value
+	}
 	if value, ok := rlc.mutation.CreatedAt(); ok {
 		_spec.SetField(reportlicense.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -205,6 +279,23 @@ func (rlc *ReportLicenseCreate) createSpec() (*ReportLicense, *sqlgraph.CreateSp
 	if value, ok := rlc.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportlicense.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if nodes := rlc.mutation.PackageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   reportlicense.PackageTable,
+			Columns: []string{reportlicense.PackageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.report_package_licenses = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

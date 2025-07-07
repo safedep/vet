@@ -13,15 +13,18 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/safedep/vet/ent/predicate"
 	"github.com/safedep/vet/ent/reportlicense"
+	"github.com/safedep/vet/ent/reportpackage"
 )
 
 // ReportLicenseQuery is the builder for querying ReportLicense entities.
 type ReportLicenseQuery struct {
 	config
-	ctx        *QueryContext
-	order      []reportlicense.OrderOption
-	inters     []Interceptor
-	predicates []predicate.ReportLicense
+	ctx         *QueryContext
+	order       []reportlicense.OrderOption
+	inters      []Interceptor
+	predicates  []predicate.ReportLicense
+	withPackage *ReportPackageQuery
+	withFKs     bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -56,6 +59,28 @@ func (rlq *ReportLicenseQuery) Unique(unique bool) *ReportLicenseQuery {
 func (rlq *ReportLicenseQuery) Order(o ...reportlicense.OrderOption) *ReportLicenseQuery {
 	rlq.order = append(rlq.order, o...)
 	return rlq
+}
+
+// QueryPackage chains the current query on the "package" edge.
+func (rlq *ReportLicenseQuery) QueryPackage() *ReportPackageQuery {
+	query := (&ReportPackageClient{config: rlq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rlq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rlq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportlicense.Table, reportlicense.FieldID, selector),
+			sqlgraph.To(reportpackage.Table, reportpackage.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, reportlicense.PackageTable, reportlicense.PackageColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(rlq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first ReportLicense entity from the query.
@@ -245,15 +270,27 @@ func (rlq *ReportLicenseQuery) Clone() *ReportLicenseQuery {
 		return nil
 	}
 	return &ReportLicenseQuery{
-		config:     rlq.config,
-		ctx:        rlq.ctx.Clone(),
-		order:      append([]reportlicense.OrderOption{}, rlq.order...),
-		inters:     append([]Interceptor{}, rlq.inters...),
-		predicates: append([]predicate.ReportLicense{}, rlq.predicates...),
+		config:      rlq.config,
+		ctx:         rlq.ctx.Clone(),
+		order:       append([]reportlicense.OrderOption{}, rlq.order...),
+		inters:      append([]Interceptor{}, rlq.inters...),
+		predicates:  append([]predicate.ReportLicense{}, rlq.predicates...),
+		withPackage: rlq.withPackage.Clone(),
 		// clone intermediate query.
 		sql:  rlq.sql.Clone(),
 		path: rlq.path,
 	}
+}
+
+// WithPackage tells the query-builder to eager-load the nodes that are connected to
+// the "package" edge. The optional arguments are used to configure the query builder of the edge.
+func (rlq *ReportLicenseQuery) WithPackage(opts ...func(*ReportPackageQuery)) *ReportLicenseQuery {
+	query := (&ReportPackageClient{config: rlq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	rlq.withPackage = query
+	return rlq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -332,15 +369,26 @@ func (rlq *ReportLicenseQuery) prepareQuery(ctx context.Context) error {
 
 func (rlq *ReportLicenseQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ReportLicense, error) {
 	var (
-		nodes = []*ReportLicense{}
-		_spec = rlq.querySpec()
+		nodes       = []*ReportLicense{}
+		withFKs     = rlq.withFKs
+		_spec       = rlq.querySpec()
+		loadedTypes = [1]bool{
+			rlq.withPackage != nil,
+		}
 	)
+	if rlq.withPackage != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, reportlicense.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*ReportLicense).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &ReportLicense{config: rlq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -352,7 +400,46 @@ func (rlq *ReportLicenseQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := rlq.withPackage; query != nil {
+		if err := rlq.loadPackage(ctx, query, nodes, nil,
+			func(n *ReportLicense, e *ReportPackage) { n.Edges.Package = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (rlq *ReportLicenseQuery) loadPackage(ctx context.Context, query *ReportPackageQuery, nodes []*ReportLicense, init func(*ReportLicense), assign func(*ReportLicense, *ReportPackage)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*ReportLicense)
+	for i := range nodes {
+		if nodes[i].report_package_licenses == nil {
+			continue
+		}
+		fk := *nodes[i].report_package_licenses
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(reportpackage.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "report_package_licenses" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (rlq *ReportLicenseQuery) sqlCount(ctx context.Context) (int, error) {

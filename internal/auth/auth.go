@@ -291,8 +291,8 @@ func CommunityMode() bool {
 	return false
 }
 
-// Set the runtime mode to community without
-// persisting it to the configuration file
+// SetRuntimeCommunityMode sets the runtime mode to community without
+// persisting it to the configuration file.
 func SetRuntimeCommunityMode() {
 	os.Setenv(communityModeEnvKey, "true")
 }

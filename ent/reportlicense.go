@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/safedep/vet/ent/reportlicense"
+	"github.com/safedep/vet/ent/reportpackage"
 )
 
 // ReportLicense is the model entity for the ReportLicense schema.
@@ -27,11 +28,41 @@ type ReportLicense struct {
 	URL string `json:"url,omitempty"`
 	// IsOsiApproved holds the value of the "is_osi_approved" field.
 	IsOsiApproved bool `json:"is_osi_approved,omitempty"`
+	// IsFsfApproved holds the value of the "is_fsf_approved" field.
+	IsFsfApproved bool `json:"is_fsf_approved,omitempty"`
+	// IsSaasCompatible holds the value of the "is_saas_compatible" field.
+	IsSaasCompatible bool `json:"is_saas_compatible,omitempty"`
+	// IsCommercialUseAllowed holds the value of the "is_commercial_use_allowed" field.
+	IsCommercialUseAllowed bool `json:"is_commercial_use_allowed,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt    time.Time `json:"updated_at,omitempty"`
-	selectValues sql.SelectValues
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ReportLicenseQuery when eager-loading is set.
+	Edges                   ReportLicenseEdges `json:"edges"`
+	report_package_licenses *int
+	selectValues            sql.SelectValues
+}
+
+// ReportLicenseEdges holds the relations/edges for other nodes in the graph.
+type ReportLicenseEdges struct {
+	// Package holds the value of the package edge.
+	Package *ReportPackage `json:"package,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// PackageOrErr returns the Package value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ReportLicenseEdges) PackageOrErr() (*ReportPackage, error) {
+	if e.Package != nil {
+		return e.Package, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: reportpackage.Label}
+	}
+	return nil, &NotLoadedError{edge: "package"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -39,7 +70,7 @@ func (*ReportLicense) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case reportlicense.FieldIsOsiApproved:
+		case reportlicense.FieldIsOsiApproved, reportlicense.FieldIsFsfApproved, reportlicense.FieldIsSaasCompatible, reportlicense.FieldIsCommercialUseAllowed:
 			values[i] = new(sql.NullBool)
 		case reportlicense.FieldID:
 			values[i] = new(sql.NullInt64)
@@ -47,6 +78,8 @@ func (*ReportLicense) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case reportlicense.FieldCreatedAt, reportlicense.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
+		case reportlicense.ForeignKeys[0]: // report_package_licenses
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -98,6 +131,24 @@ func (rl *ReportLicense) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				rl.IsOsiApproved = value.Bool
 			}
+		case reportlicense.FieldIsFsfApproved:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_fsf_approved", values[i])
+			} else if value.Valid {
+				rl.IsFsfApproved = value.Bool
+			}
+		case reportlicense.FieldIsSaasCompatible:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_saas_compatible", values[i])
+			} else if value.Valid {
+				rl.IsSaasCompatible = value.Bool
+			}
+		case reportlicense.FieldIsCommercialUseAllowed:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_commercial_use_allowed", values[i])
+			} else if value.Valid {
+				rl.IsCommercialUseAllowed = value.Bool
+			}
 		case reportlicense.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -110,6 +161,13 @@ func (rl *ReportLicense) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				rl.UpdatedAt = value.Time
 			}
+		case reportlicense.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field report_package_licenses", value)
+			} else if value.Valid {
+				rl.report_package_licenses = new(int)
+				*rl.report_package_licenses = int(value.Int64)
+			}
 		default:
 			rl.selectValues.Set(columns[i], values[i])
 		}
@@ -121,6 +179,11 @@ func (rl *ReportLicense) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (rl *ReportLicense) Value(name string) (ent.Value, error) {
 	return rl.selectValues.Get(name)
+}
+
+// QueryPackage queries the "package" edge of the ReportLicense entity.
+func (rl *ReportLicense) QueryPackage() *ReportPackageQuery {
+	return NewReportLicenseClient(rl.config).QueryPackage(rl)
 }
 
 // Update returns a builder for updating this ReportLicense.
@@ -160,6 +223,15 @@ func (rl *ReportLicense) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_osi_approved=")
 	builder.WriteString(fmt.Sprintf("%v", rl.IsOsiApproved))
+	builder.WriteString(", ")
+	builder.WriteString("is_fsf_approved=")
+	builder.WriteString(fmt.Sprintf("%v", rl.IsFsfApproved))
+	builder.WriteString(", ")
+	builder.WriteString("is_saas_compatible=")
+	builder.WriteString(fmt.Sprintf("%v", rl.IsSaasCompatible))
+	builder.WriteString(", ")
+	builder.WriteString("is_commercial_use_allowed=")
+	builder.WriteString(fmt.Sprintf("%v", rl.IsCommercialUseAllowed))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(rl.CreatedAt.Format(time.ANSIC))

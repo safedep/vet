@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/safedep/vet/ent/predicate"
 	"github.com/safedep/vet/ent/reportdependency"
+	"github.com/safedep/vet/ent/reportlicense"
 	"github.com/safedep/vet/ent/reportmalware"
 	"github.com/safedep/vet/ent/reportpackage"
 	"github.com/safedep/vet/ent/reportpackagemanifest"
@@ -275,6 +276,21 @@ func (rpu *ReportPackageUpdate) AddVulnerabilities(r ...*ReportVulnerability) *R
 	return rpu.AddVulnerabilityIDs(ids...)
 }
 
+// AddLicenseIDs adds the "licenses" edge to the ReportLicense entity by IDs.
+func (rpu *ReportPackageUpdate) AddLicenseIDs(ids ...int) *ReportPackageUpdate {
+	rpu.mutation.AddLicenseIDs(ids...)
+	return rpu
+}
+
+// AddLicenses adds the "licenses" edges to the ReportLicense entity.
+func (rpu *ReportPackageUpdate) AddLicenses(r ...*ReportLicense) *ReportPackageUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpu.AddLicenseIDs(ids...)
+}
+
 // AddDependencyIDs adds the "dependencies" edge to the ReportDependency entity by IDs.
 func (rpu *ReportPackageUpdate) AddDependencyIDs(ids ...int) *ReportPackageUpdate {
 	rpu.mutation.AddDependencyIDs(ids...)
@@ -339,6 +355,27 @@ func (rpu *ReportPackageUpdate) RemoveVulnerabilities(r ...*ReportVulnerability)
 		ids[i] = r[i].ID
 	}
 	return rpu.RemoveVulnerabilityIDs(ids...)
+}
+
+// ClearLicenses clears all "licenses" edges to the ReportLicense entity.
+func (rpu *ReportPackageUpdate) ClearLicenses() *ReportPackageUpdate {
+	rpu.mutation.ClearLicenses()
+	return rpu
+}
+
+// RemoveLicenseIDs removes the "licenses" edge to ReportLicense entities by IDs.
+func (rpu *ReportPackageUpdate) RemoveLicenseIDs(ids ...int) *ReportPackageUpdate {
+	rpu.mutation.RemoveLicenseIDs(ids...)
+	return rpu
+}
+
+// RemoveLicenses removes "licenses" edges to ReportLicense entities.
+func (rpu *ReportPackageUpdate) RemoveLicenses(r ...*ReportLicense) *ReportPackageUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpu.RemoveLicenseIDs(ids...)
 }
 
 // ClearDependencies clears all "dependencies" edges to the ReportDependency entity.
@@ -564,6 +601,51 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reportvulnerability.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if rpu.mutation.LicensesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.LicensesTable,
+			Columns: []string{reportpackage.LicensesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportlicense.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpu.mutation.RemovedLicensesIDs(); len(nodes) > 0 && !rpu.mutation.LicensesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.LicensesTable,
+			Columns: []string{reportpackage.LicensesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportlicense.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpu.mutation.LicensesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.LicensesTable,
+			Columns: []string{reportpackage.LicensesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportlicense.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -908,6 +990,21 @@ func (rpuo *ReportPackageUpdateOne) AddVulnerabilities(r ...*ReportVulnerability
 	return rpuo.AddVulnerabilityIDs(ids...)
 }
 
+// AddLicenseIDs adds the "licenses" edge to the ReportLicense entity by IDs.
+func (rpuo *ReportPackageUpdateOne) AddLicenseIDs(ids ...int) *ReportPackageUpdateOne {
+	rpuo.mutation.AddLicenseIDs(ids...)
+	return rpuo
+}
+
+// AddLicenses adds the "licenses" edges to the ReportLicense entity.
+func (rpuo *ReportPackageUpdateOne) AddLicenses(r ...*ReportLicense) *ReportPackageUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpuo.AddLicenseIDs(ids...)
+}
+
 // AddDependencyIDs adds the "dependencies" edge to the ReportDependency entity by IDs.
 func (rpuo *ReportPackageUpdateOne) AddDependencyIDs(ids ...int) *ReportPackageUpdateOne {
 	rpuo.mutation.AddDependencyIDs(ids...)
@@ -972,6 +1069,27 @@ func (rpuo *ReportPackageUpdateOne) RemoveVulnerabilities(r ...*ReportVulnerabil
 		ids[i] = r[i].ID
 	}
 	return rpuo.RemoveVulnerabilityIDs(ids...)
+}
+
+// ClearLicenses clears all "licenses" edges to the ReportLicense entity.
+func (rpuo *ReportPackageUpdateOne) ClearLicenses() *ReportPackageUpdateOne {
+	rpuo.mutation.ClearLicenses()
+	return rpuo
+}
+
+// RemoveLicenseIDs removes the "licenses" edge to ReportLicense entities by IDs.
+func (rpuo *ReportPackageUpdateOne) RemoveLicenseIDs(ids ...int) *ReportPackageUpdateOne {
+	rpuo.mutation.RemoveLicenseIDs(ids...)
+	return rpuo
+}
+
+// RemoveLicenses removes "licenses" edges to ReportLicense entities.
+func (rpuo *ReportPackageUpdateOne) RemoveLicenses(r ...*ReportLicense) *ReportPackageUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpuo.RemoveLicenseIDs(ids...)
 }
 
 // ClearDependencies clears all "dependencies" edges to the ReportDependency entity.
@@ -1227,6 +1345,51 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reportvulnerability.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if rpuo.mutation.LicensesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.LicensesTable,
+			Columns: []string{reportpackage.LicensesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportlicense.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpuo.mutation.RemovedLicensesIDs(); len(nodes) > 0 && !rpuo.mutation.LicensesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.LicensesTable,
+			Columns: []string{reportpackage.LicensesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportlicense.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpuo.mutation.LicensesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.LicensesTable,
+			Columns: []string{reportpackage.LicensesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportlicense.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

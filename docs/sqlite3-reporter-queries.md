@@ -73,6 +73,71 @@ JOIN report_vulnerabilities v ON p.id = v.report_package_vulnerabilities
 WHERE v.aliases IS NOT NULL AND v.aliases != '[]';
 ```
 
+## License Analysis Queries
+
+### Find all licenses
+```sql
+SELECT p.name, p.version, l.license_id, l.name
+FROM report_packages p
+JOIN report_licenses l ON p.id = l.report_package_licenses
+ORDER BY l.license_id, p.name;
+```
+
+### Count packages by license
+```sql
+SELECT l.license_id, COUNT(DISTINCT p.id) as package_count
+FROM report_licenses l
+JOIN report_packages p ON l.report_package_licenses = p.id
+GROUP BY l.license_id
+ORDER BY package_count DESC;
+```
+
+### Find packages with specific licenses
+```sql
+SELECT p.name, p.version, p.ecosystem, m.display_path
+FROM report_packages p
+JOIN report_licenses l ON p.id = l.report_package_licenses
+JOIN report_package_manifests m ON p.report_package_manifest_packages = m.id
+WHERE l.license_id IN ('MIT', 'Apache-2.0', 'GPL-3.0')
+ORDER BY l.license_id, p.name;
+```
+
+### License compliance overview by manifest
+```sql
+SELECT 
+    m.display_path,
+    COUNT(DISTINCT p.id) as total_packages,
+    COUNT(DISTINCT l.license_id) as unique_licenses,
+    GROUP_CONCAT(DISTINCT l.license_id) as all_licenses
+FROM report_package_manifests m
+LEFT JOIN report_packages p ON m.id = p.report_package_manifest_packages
+LEFT JOIN report_licenses l ON p.id = l.report_package_licenses
+GROUP BY m.id, m.display_path
+ORDER BY unique_licenses DESC;
+```
+
+### Find packages without license information
+```sql
+SELECT p.name, p.version, p.ecosystem, m.display_path
+FROM report_packages p
+JOIN report_package_manifests m ON p.report_package_manifest_packages = m.id
+LEFT JOIN report_licenses l ON p.id = l.report_package_licenses
+WHERE l.id IS NULL;
+```
+
+### Find potentially problematic licenses (copyleft, GPL, etc.)
+```sql
+SELECT p.name, p.version, l.license_id, m.display_path
+FROM report_packages p
+JOIN report_licenses l ON p.id = l.report_package_licenses
+JOIN report_package_manifests m ON p.report_package_manifest_packages = m.id
+WHERE l.license_id LIKE '%GPL%' 
+   OR l.license_id LIKE '%AGPL%' 
+   OR l.license_id LIKE '%LGPL%'
+   OR l.license_id LIKE '%Copyleft%'
+ORDER BY l.license_id, p.name;
+```
+
 ### Find packages flagged as malware
 ```sql
 SELECT p.name, p.version, p.ecosystem, m.display_path
@@ -223,6 +288,33 @@ SELECT
     json_extract(p.insights_v2, '$.vulnerabilities') as raw_vulnerabilities
 FROM report_packages p
 WHERE json_extract(p.insights_v2, '$.vulnerabilities') IS NOT NULL;
+```
+
+### Extract license data from Insights v2 JSON
+```sql
+SELECT 
+    p.name,
+    p.version,
+    json_extract(p.insights_v2, '$.licenses') as raw_licenses
+FROM report_packages p
+WHERE json_extract(p.insights_v2, '$.licenses') IS NOT NULL;
+```
+
+### Combined security and license risk analysis
+```sql
+SELECT 
+    p.name,
+    p.version,
+    COUNT(DISTINCT v.id) as vulnerability_count,
+    GROUP_CONCAT(DISTINCT l.license_id) as licenses,
+    SUM(CASE WHEN v.severity = 'CRITICAL' THEN 1 ELSE 0 END) as critical_vulns,
+    SUM(CASE WHEN v.severity = 'HIGH' THEN 1 ELSE 0 END) as high_vulns
+FROM report_packages p
+LEFT JOIN report_vulnerabilities v ON p.id = v.report_package_vulnerabilities
+LEFT JOIN report_licenses l ON p.id = l.report_package_licenses
+GROUP BY p.id, p.name, p.version
+HAVING vulnerability_count > 0 OR licenses IS NOT NULL
+ORDER BY critical_vulns DESC, high_vulns DESC, vulnerability_count DESC;
 ```
 
 ## Advanced Analysis Queries

@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/safedep/vet/ent/predicate"
 	"github.com/safedep/vet/ent/reportdependency"
+	"github.com/safedep/vet/ent/reportlicense"
 	"github.com/safedep/vet/ent/reportmalware"
 	"github.com/safedep/vet/ent/reportpackage"
 	"github.com/safedep/vet/ent/reportpackagemanifest"
@@ -29,6 +30,7 @@ type ReportPackageQuery struct {
 	predicates          []predicate.ReportPackage
 	withManifest        *ReportPackageManifestQuery
 	withVulnerabilities *ReportVulnerabilityQuery
+	withLicenses        *ReportLicenseQuery
 	withDependencies    *ReportDependencyQuery
 	withMalwareAnalysis *ReportMalwareQuery
 	withFKs             bool
@@ -105,6 +107,28 @@ func (rpq *ReportPackageQuery) QueryVulnerabilities() *ReportVulnerabilityQuery 
 			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, selector),
 			sqlgraph.To(reportvulnerability.Table, reportvulnerability.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.VulnerabilitiesTable, reportpackage.VulnerabilitiesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(rpq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryLicenses chains the current query on the "licenses" edge.
+func (rpq *ReportPackageQuery) QueryLicenses() *ReportLicenseQuery {
+	query := (&ReportLicenseClient{config: rpq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rpq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rpq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, selector),
+			sqlgraph.To(reportlicense.Table, reportlicense.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.LicensesTable, reportpackage.LicensesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(rpq.driver.Dialect(), step)
 		return fromU, nil
@@ -350,6 +374,7 @@ func (rpq *ReportPackageQuery) Clone() *ReportPackageQuery {
 		predicates:          append([]predicate.ReportPackage{}, rpq.predicates...),
 		withManifest:        rpq.withManifest.Clone(),
 		withVulnerabilities: rpq.withVulnerabilities.Clone(),
+		withLicenses:        rpq.withLicenses.Clone(),
 		withDependencies:    rpq.withDependencies.Clone(),
 		withMalwareAnalysis: rpq.withMalwareAnalysis.Clone(),
 		// clone intermediate query.
@@ -377,6 +402,17 @@ func (rpq *ReportPackageQuery) WithVulnerabilities(opts ...func(*ReportVulnerabi
 		opt(query)
 	}
 	rpq.withVulnerabilities = query
+	return rpq
+}
+
+// WithLicenses tells the query-builder to eager-load the nodes that are connected to
+// the "licenses" edge. The optional arguments are used to configure the query builder of the edge.
+func (rpq *ReportPackageQuery) WithLicenses(opts ...func(*ReportLicenseQuery)) *ReportPackageQuery {
+	query := (&ReportLicenseClient{config: rpq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	rpq.withLicenses = query
 	return rpq
 }
 
@@ -481,9 +517,10 @@ func (rpq *ReportPackageQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 		nodes       = []*ReportPackage{}
 		withFKs     = rpq.withFKs
 		_spec       = rpq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			rpq.withManifest != nil,
 			rpq.withVulnerabilities != nil,
+			rpq.withLicenses != nil,
 			rpq.withDependencies != nil,
 			rpq.withMalwareAnalysis != nil,
 		}
@@ -524,6 +561,13 @@ func (rpq *ReportPackageQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 			func(n *ReportPackage, e *ReportVulnerability) {
 				n.Edges.Vulnerabilities = append(n.Edges.Vulnerabilities, e)
 			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := rpq.withLicenses; query != nil {
+		if err := rpq.loadLicenses(ctx, query, nodes,
+			func(n *ReportPackage) { n.Edges.Licenses = []*ReportLicense{} },
+			func(n *ReportPackage, e *ReportLicense) { n.Edges.Licenses = append(n.Edges.Licenses, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -601,6 +645,37 @@ func (rpq *ReportPackageQuery) loadVulnerabilities(ctx context.Context, query *R
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "report_package_vulnerabilities" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (rpq *ReportPackageQuery) loadLicenses(ctx context.Context, query *ReportLicenseQuery, nodes []*ReportPackage, init func(*ReportPackage), assign func(*ReportPackage, *ReportLicense)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*ReportPackage)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.ReportLicense(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(reportpackage.LicensesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.report_package_licenses
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "report_package_licenses" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "report_package_licenses" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

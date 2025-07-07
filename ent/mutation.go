@@ -2237,20 +2237,25 @@ func (m *ReportDependencyMutation) ResetEdge(name string) error {
 // ReportLicenseMutation represents an operation that mutates the ReportLicense nodes in the graph.
 type ReportLicenseMutation struct {
 	config
-	op              Op
-	typ             string
-	id              *int
-	license_id      *string
-	name            *string
-	spdx_id         *string
-	url             *string
-	is_osi_approved *bool
-	created_at      *time.Time
-	updated_at      *time.Time
-	clearedFields   map[string]struct{}
-	done            bool
-	oldValue        func(context.Context) (*ReportLicense, error)
-	predicates      []predicate.ReportLicense
+	op                        Op
+	typ                       string
+	id                        *int
+	license_id                *string
+	name                      *string
+	spdx_id                   *string
+	url                       *string
+	is_osi_approved           *bool
+	is_fsf_approved           *bool
+	is_saas_compatible        *bool
+	is_commercial_use_allowed *bool
+	created_at                *time.Time
+	updated_at                *time.Time
+	clearedFields             map[string]struct{}
+	_package                  *int
+	cleared_package           bool
+	done                      bool
+	oldValue                  func(context.Context) (*ReportLicense, error)
+	predicates                []predicate.ReportLicense
 }
 
 var _ ent.Mutation = (*ReportLicenseMutation)(nil)
@@ -2583,6 +2588,153 @@ func (m *ReportLicenseMutation) ResetIsOsiApproved() {
 	delete(m.clearedFields, reportlicense.FieldIsOsiApproved)
 }
 
+// SetIsFsfApproved sets the "is_fsf_approved" field.
+func (m *ReportLicenseMutation) SetIsFsfApproved(b bool) {
+	m.is_fsf_approved = &b
+}
+
+// IsFsfApproved returns the value of the "is_fsf_approved" field in the mutation.
+func (m *ReportLicenseMutation) IsFsfApproved() (r bool, exists bool) {
+	v := m.is_fsf_approved
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsFsfApproved returns the old "is_fsf_approved" field's value of the ReportLicense entity.
+// If the ReportLicense object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportLicenseMutation) OldIsFsfApproved(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsFsfApproved is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsFsfApproved requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsFsfApproved: %w", err)
+	}
+	return oldValue.IsFsfApproved, nil
+}
+
+// ClearIsFsfApproved clears the value of the "is_fsf_approved" field.
+func (m *ReportLicenseMutation) ClearIsFsfApproved() {
+	m.is_fsf_approved = nil
+	m.clearedFields[reportlicense.FieldIsFsfApproved] = struct{}{}
+}
+
+// IsFsfApprovedCleared returns if the "is_fsf_approved" field was cleared in this mutation.
+func (m *ReportLicenseMutation) IsFsfApprovedCleared() bool {
+	_, ok := m.clearedFields[reportlicense.FieldIsFsfApproved]
+	return ok
+}
+
+// ResetIsFsfApproved resets all changes to the "is_fsf_approved" field.
+func (m *ReportLicenseMutation) ResetIsFsfApproved() {
+	m.is_fsf_approved = nil
+	delete(m.clearedFields, reportlicense.FieldIsFsfApproved)
+}
+
+// SetIsSaasCompatible sets the "is_saas_compatible" field.
+func (m *ReportLicenseMutation) SetIsSaasCompatible(b bool) {
+	m.is_saas_compatible = &b
+}
+
+// IsSaasCompatible returns the value of the "is_saas_compatible" field in the mutation.
+func (m *ReportLicenseMutation) IsSaasCompatible() (r bool, exists bool) {
+	v := m.is_saas_compatible
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsSaasCompatible returns the old "is_saas_compatible" field's value of the ReportLicense entity.
+// If the ReportLicense object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportLicenseMutation) OldIsSaasCompatible(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsSaasCompatible is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsSaasCompatible requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsSaasCompatible: %w", err)
+	}
+	return oldValue.IsSaasCompatible, nil
+}
+
+// ClearIsSaasCompatible clears the value of the "is_saas_compatible" field.
+func (m *ReportLicenseMutation) ClearIsSaasCompatible() {
+	m.is_saas_compatible = nil
+	m.clearedFields[reportlicense.FieldIsSaasCompatible] = struct{}{}
+}
+
+// IsSaasCompatibleCleared returns if the "is_saas_compatible" field was cleared in this mutation.
+func (m *ReportLicenseMutation) IsSaasCompatibleCleared() bool {
+	_, ok := m.clearedFields[reportlicense.FieldIsSaasCompatible]
+	return ok
+}
+
+// ResetIsSaasCompatible resets all changes to the "is_saas_compatible" field.
+func (m *ReportLicenseMutation) ResetIsSaasCompatible() {
+	m.is_saas_compatible = nil
+	delete(m.clearedFields, reportlicense.FieldIsSaasCompatible)
+}
+
+// SetIsCommercialUseAllowed sets the "is_commercial_use_allowed" field.
+func (m *ReportLicenseMutation) SetIsCommercialUseAllowed(b bool) {
+	m.is_commercial_use_allowed = &b
+}
+
+// IsCommercialUseAllowed returns the value of the "is_commercial_use_allowed" field in the mutation.
+func (m *ReportLicenseMutation) IsCommercialUseAllowed() (r bool, exists bool) {
+	v := m.is_commercial_use_allowed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsCommercialUseAllowed returns the old "is_commercial_use_allowed" field's value of the ReportLicense entity.
+// If the ReportLicense object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportLicenseMutation) OldIsCommercialUseAllowed(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsCommercialUseAllowed is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsCommercialUseAllowed requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsCommercialUseAllowed: %w", err)
+	}
+	return oldValue.IsCommercialUseAllowed, nil
+}
+
+// ClearIsCommercialUseAllowed clears the value of the "is_commercial_use_allowed" field.
+func (m *ReportLicenseMutation) ClearIsCommercialUseAllowed() {
+	m.is_commercial_use_allowed = nil
+	m.clearedFields[reportlicense.FieldIsCommercialUseAllowed] = struct{}{}
+}
+
+// IsCommercialUseAllowedCleared returns if the "is_commercial_use_allowed" field was cleared in this mutation.
+func (m *ReportLicenseMutation) IsCommercialUseAllowedCleared() bool {
+	_, ok := m.clearedFields[reportlicense.FieldIsCommercialUseAllowed]
+	return ok
+}
+
+// ResetIsCommercialUseAllowed resets all changes to the "is_commercial_use_allowed" field.
+func (m *ReportLicenseMutation) ResetIsCommercialUseAllowed() {
+	m.is_commercial_use_allowed = nil
+	delete(m.clearedFields, reportlicense.FieldIsCommercialUseAllowed)
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *ReportLicenseMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -2681,6 +2833,45 @@ func (m *ReportLicenseMutation) ResetUpdatedAt() {
 	delete(m.clearedFields, reportlicense.FieldUpdatedAt)
 }
 
+// SetPackageID sets the "package" edge to the ReportPackage entity by id.
+func (m *ReportLicenseMutation) SetPackageID(id int) {
+	m._package = &id
+}
+
+// ClearPackage clears the "package" edge to the ReportPackage entity.
+func (m *ReportLicenseMutation) ClearPackage() {
+	m.cleared_package = true
+}
+
+// PackageCleared reports if the "package" edge to the ReportPackage entity was cleared.
+func (m *ReportLicenseMutation) PackageCleared() bool {
+	return m.cleared_package
+}
+
+// PackageID returns the "package" edge ID in the mutation.
+func (m *ReportLicenseMutation) PackageID() (id int, exists bool) {
+	if m._package != nil {
+		return *m._package, true
+	}
+	return
+}
+
+// PackageIDs returns the "package" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PackageID instead. It exists only for internal usage by the builders.
+func (m *ReportLicenseMutation) PackageIDs() (ids []int) {
+	if id := m._package; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPackage resets all changes to the "package" edge.
+func (m *ReportLicenseMutation) ResetPackage() {
+	m._package = nil
+	m.cleared_package = false
+}
+
 // Where appends a list predicates to the ReportLicenseMutation builder.
 func (m *ReportLicenseMutation) Where(ps ...predicate.ReportLicense) {
 	m.predicates = append(m.predicates, ps...)
@@ -2715,7 +2906,7 @@ func (m *ReportLicenseMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ReportLicenseMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 10)
 	if m.license_id != nil {
 		fields = append(fields, reportlicense.FieldLicenseID)
 	}
@@ -2730,6 +2921,15 @@ func (m *ReportLicenseMutation) Fields() []string {
 	}
 	if m.is_osi_approved != nil {
 		fields = append(fields, reportlicense.FieldIsOsiApproved)
+	}
+	if m.is_fsf_approved != nil {
+		fields = append(fields, reportlicense.FieldIsFsfApproved)
+	}
+	if m.is_saas_compatible != nil {
+		fields = append(fields, reportlicense.FieldIsSaasCompatible)
+	}
+	if m.is_commercial_use_allowed != nil {
+		fields = append(fields, reportlicense.FieldIsCommercialUseAllowed)
 	}
 	if m.created_at != nil {
 		fields = append(fields, reportlicense.FieldCreatedAt)
@@ -2755,6 +2955,12 @@ func (m *ReportLicenseMutation) Field(name string) (ent.Value, bool) {
 		return m.URL()
 	case reportlicense.FieldIsOsiApproved:
 		return m.IsOsiApproved()
+	case reportlicense.FieldIsFsfApproved:
+		return m.IsFsfApproved()
+	case reportlicense.FieldIsSaasCompatible:
+		return m.IsSaasCompatible()
+	case reportlicense.FieldIsCommercialUseAllowed:
+		return m.IsCommercialUseAllowed()
 	case reportlicense.FieldCreatedAt:
 		return m.CreatedAt()
 	case reportlicense.FieldUpdatedAt:
@@ -2778,6 +2984,12 @@ func (m *ReportLicenseMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldURL(ctx)
 	case reportlicense.FieldIsOsiApproved:
 		return m.OldIsOsiApproved(ctx)
+	case reportlicense.FieldIsFsfApproved:
+		return m.OldIsFsfApproved(ctx)
+	case reportlicense.FieldIsSaasCompatible:
+		return m.OldIsSaasCompatible(ctx)
+	case reportlicense.FieldIsCommercialUseAllowed:
+		return m.OldIsCommercialUseAllowed(ctx)
 	case reportlicense.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case reportlicense.FieldUpdatedAt:
@@ -2825,6 +3037,27 @@ func (m *ReportLicenseMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsOsiApproved(v)
+		return nil
+	case reportlicense.FieldIsFsfApproved:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsFsfApproved(v)
+		return nil
+	case reportlicense.FieldIsSaasCompatible:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsSaasCompatible(v)
+		return nil
+	case reportlicense.FieldIsCommercialUseAllowed:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsCommercialUseAllowed(v)
 		return nil
 	case reportlicense.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -2882,6 +3115,15 @@ func (m *ReportLicenseMutation) ClearedFields() []string {
 	if m.FieldCleared(reportlicense.FieldIsOsiApproved) {
 		fields = append(fields, reportlicense.FieldIsOsiApproved)
 	}
+	if m.FieldCleared(reportlicense.FieldIsFsfApproved) {
+		fields = append(fields, reportlicense.FieldIsFsfApproved)
+	}
+	if m.FieldCleared(reportlicense.FieldIsSaasCompatible) {
+		fields = append(fields, reportlicense.FieldIsSaasCompatible)
+	}
+	if m.FieldCleared(reportlicense.FieldIsCommercialUseAllowed) {
+		fields = append(fields, reportlicense.FieldIsCommercialUseAllowed)
+	}
 	if m.FieldCleared(reportlicense.FieldCreatedAt) {
 		fields = append(fields, reportlicense.FieldCreatedAt)
 	}
@@ -2914,6 +3156,15 @@ func (m *ReportLicenseMutation) ClearField(name string) error {
 	case reportlicense.FieldIsOsiApproved:
 		m.ClearIsOsiApproved()
 		return nil
+	case reportlicense.FieldIsFsfApproved:
+		m.ClearIsFsfApproved()
+		return nil
+	case reportlicense.FieldIsSaasCompatible:
+		m.ClearIsSaasCompatible()
+		return nil
+	case reportlicense.FieldIsCommercialUseAllowed:
+		m.ClearIsCommercialUseAllowed()
+		return nil
 	case reportlicense.FieldCreatedAt:
 		m.ClearCreatedAt()
 		return nil
@@ -2943,6 +3194,15 @@ func (m *ReportLicenseMutation) ResetField(name string) error {
 	case reportlicense.FieldIsOsiApproved:
 		m.ResetIsOsiApproved()
 		return nil
+	case reportlicense.FieldIsFsfApproved:
+		m.ResetIsFsfApproved()
+		return nil
+	case reportlicense.FieldIsSaasCompatible:
+		m.ResetIsSaasCompatible()
+		return nil
+	case reportlicense.FieldIsCommercialUseAllowed:
+		m.ResetIsCommercialUseAllowed()
+		return nil
 	case reportlicense.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
@@ -2955,19 +3215,28 @@ func (m *ReportLicenseMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ReportLicenseMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m._package != nil {
+		edges = append(edges, reportlicense.EdgePackage)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *ReportLicenseMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case reportlicense.EdgePackage:
+		if id := m._package; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ReportLicenseMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
 	return edges
 }
 
@@ -2979,25 +3248,42 @@ func (m *ReportLicenseMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ReportLicenseMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.cleared_package {
+		edges = append(edges, reportlicense.EdgePackage)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *ReportLicenseMutation) EdgeCleared(name string) bool {
+	switch name {
+	case reportlicense.EdgePackage:
+		return m.cleared_package
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *ReportLicenseMutation) ClearEdge(name string) error {
+	switch name {
+	case reportlicense.EdgePackage:
+		m.ClearPackage()
+		return nil
+	}
 	return fmt.Errorf("unknown ReportLicense unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *ReportLicenseMutation) ResetEdge(name string) error {
+	switch name {
+	case reportlicense.EdgePackage:
+		m.ResetPackage()
+		return nil
+	}
 	return fmt.Errorf("unknown ReportLicense edge %s", name)
 }
 
@@ -3897,6 +4183,9 @@ type ReportPackageMutation struct {
 	vulnerabilities         map[int]struct{}
 	removedvulnerabilities  map[int]struct{}
 	clearedvulnerabilities  bool
+	licenses                map[int]struct{}
+	removedlicenses         map[int]struct{}
+	clearedlicenses         bool
 	dependencies            map[int]struct{}
 	removeddependencies     map[int]struct{}
 	cleareddependencies     bool
@@ -4687,6 +4976,60 @@ func (m *ReportPackageMutation) ResetVulnerabilities() {
 	m.removedvulnerabilities = nil
 }
 
+// AddLicenseIDs adds the "licenses" edge to the ReportLicense entity by ids.
+func (m *ReportPackageMutation) AddLicenseIDs(ids ...int) {
+	if m.licenses == nil {
+		m.licenses = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.licenses[ids[i]] = struct{}{}
+	}
+}
+
+// ClearLicenses clears the "licenses" edge to the ReportLicense entity.
+func (m *ReportPackageMutation) ClearLicenses() {
+	m.clearedlicenses = true
+}
+
+// LicensesCleared reports if the "licenses" edge to the ReportLicense entity was cleared.
+func (m *ReportPackageMutation) LicensesCleared() bool {
+	return m.clearedlicenses
+}
+
+// RemoveLicenseIDs removes the "licenses" edge to the ReportLicense entity by IDs.
+func (m *ReportPackageMutation) RemoveLicenseIDs(ids ...int) {
+	if m.removedlicenses == nil {
+		m.removedlicenses = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.licenses, ids[i])
+		m.removedlicenses[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedLicenses returns the removed IDs of the "licenses" edge to the ReportLicense entity.
+func (m *ReportPackageMutation) RemovedLicensesIDs() (ids []int) {
+	for id := range m.removedlicenses {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// LicensesIDs returns the "licenses" edge IDs in the mutation.
+func (m *ReportPackageMutation) LicensesIDs() (ids []int) {
+	for id := range m.licenses {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetLicenses resets all changes to the "licenses" edge.
+func (m *ReportPackageMutation) ResetLicenses() {
+	m.licenses = nil
+	m.clearedlicenses = false
+	m.removedlicenses = nil
+}
+
 // AddDependencyIDs adds the "dependencies" edge to the ReportDependency entity by ids.
 func (m *ReportPackageMutation) AddDependencyIDs(ids ...int) {
 	if m.dependencies == nil {
@@ -5182,12 +5525,15 @@ func (m *ReportPackageMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ReportPackageMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.manifest != nil {
 		edges = append(edges, reportpackage.EdgeManifest)
 	}
 	if m.vulnerabilities != nil {
 		edges = append(edges, reportpackage.EdgeVulnerabilities)
+	}
+	if m.licenses != nil {
+		edges = append(edges, reportpackage.EdgeLicenses)
 	}
 	if m.dependencies != nil {
 		edges = append(edges, reportpackage.EdgeDependencies)
@@ -5212,6 +5558,12 @@ func (m *ReportPackageMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case reportpackage.EdgeLicenses:
+		ids := make([]ent.Value, 0, len(m.licenses))
+		for id := range m.licenses {
+			ids = append(ids, id)
+		}
+		return ids
 	case reportpackage.EdgeDependencies:
 		ids := make([]ent.Value, 0, len(m.dependencies))
 		for id := range m.dependencies {
@@ -5228,9 +5580,12 @@ func (m *ReportPackageMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ReportPackageMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removedvulnerabilities != nil {
 		edges = append(edges, reportpackage.EdgeVulnerabilities)
+	}
+	if m.removedlicenses != nil {
+		edges = append(edges, reportpackage.EdgeLicenses)
 	}
 	if m.removeddependencies != nil {
 		edges = append(edges, reportpackage.EdgeDependencies)
@@ -5248,6 +5603,12 @@ func (m *ReportPackageMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case reportpackage.EdgeLicenses:
+		ids := make([]ent.Value, 0, len(m.removedlicenses))
+		for id := range m.removedlicenses {
+			ids = append(ids, id)
+		}
+		return ids
 	case reportpackage.EdgeDependencies:
 		ids := make([]ent.Value, 0, len(m.removeddependencies))
 		for id := range m.removeddependencies {
@@ -5260,12 +5621,15 @@ func (m *ReportPackageMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ReportPackageMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedmanifest {
 		edges = append(edges, reportpackage.EdgeManifest)
 	}
 	if m.clearedvulnerabilities {
 		edges = append(edges, reportpackage.EdgeVulnerabilities)
+	}
+	if m.clearedlicenses {
+		edges = append(edges, reportpackage.EdgeLicenses)
 	}
 	if m.cleareddependencies {
 		edges = append(edges, reportpackage.EdgeDependencies)
@@ -5284,6 +5648,8 @@ func (m *ReportPackageMutation) EdgeCleared(name string) bool {
 		return m.clearedmanifest
 	case reportpackage.EdgeVulnerabilities:
 		return m.clearedvulnerabilities
+	case reportpackage.EdgeLicenses:
+		return m.clearedlicenses
 	case reportpackage.EdgeDependencies:
 		return m.cleareddependencies
 	case reportpackage.EdgeMalwareAnalysis:
@@ -5315,6 +5681,9 @@ func (m *ReportPackageMutation) ResetEdge(name string) error {
 		return nil
 	case reportpackage.EdgeVulnerabilities:
 		m.ResetVulnerabilities()
+		return nil
+	case reportpackage.EdgeLicenses:
+		m.ResetLicenses()
 		return nil
 	case reportpackage.EdgeDependencies:
 		m.ResetDependencies()

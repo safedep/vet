@@ -42,6 +42,10 @@ func (ReportPackage) Edges() []ent.Edge {
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,
 			}),
+		edge.To("licenses", ReportLicense.Type).
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Cascade,
+			}),
 		edge.To("dependencies", ReportDependency.Type).
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,

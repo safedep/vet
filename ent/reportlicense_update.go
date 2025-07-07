@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/safedep/vet/ent/predicate"
 	"github.com/safedep/vet/ent/reportlicense"
+	"github.com/safedep/vet/ent/reportpackage"
 )
 
 // ReportLicenseUpdate is the builder for updating ReportLicense entities.
@@ -122,6 +123,66 @@ func (rlu *ReportLicenseUpdate) ClearIsOsiApproved() *ReportLicenseUpdate {
 	return rlu
 }
 
+// SetIsFsfApproved sets the "is_fsf_approved" field.
+func (rlu *ReportLicenseUpdate) SetIsFsfApproved(b bool) *ReportLicenseUpdate {
+	rlu.mutation.SetIsFsfApproved(b)
+	return rlu
+}
+
+// SetNillableIsFsfApproved sets the "is_fsf_approved" field if the given value is not nil.
+func (rlu *ReportLicenseUpdate) SetNillableIsFsfApproved(b *bool) *ReportLicenseUpdate {
+	if b != nil {
+		rlu.SetIsFsfApproved(*b)
+	}
+	return rlu
+}
+
+// ClearIsFsfApproved clears the value of the "is_fsf_approved" field.
+func (rlu *ReportLicenseUpdate) ClearIsFsfApproved() *ReportLicenseUpdate {
+	rlu.mutation.ClearIsFsfApproved()
+	return rlu
+}
+
+// SetIsSaasCompatible sets the "is_saas_compatible" field.
+func (rlu *ReportLicenseUpdate) SetIsSaasCompatible(b bool) *ReportLicenseUpdate {
+	rlu.mutation.SetIsSaasCompatible(b)
+	return rlu
+}
+
+// SetNillableIsSaasCompatible sets the "is_saas_compatible" field if the given value is not nil.
+func (rlu *ReportLicenseUpdate) SetNillableIsSaasCompatible(b *bool) *ReportLicenseUpdate {
+	if b != nil {
+		rlu.SetIsSaasCompatible(*b)
+	}
+	return rlu
+}
+
+// ClearIsSaasCompatible clears the value of the "is_saas_compatible" field.
+func (rlu *ReportLicenseUpdate) ClearIsSaasCompatible() *ReportLicenseUpdate {
+	rlu.mutation.ClearIsSaasCompatible()
+	return rlu
+}
+
+// SetIsCommercialUseAllowed sets the "is_commercial_use_allowed" field.
+func (rlu *ReportLicenseUpdate) SetIsCommercialUseAllowed(b bool) *ReportLicenseUpdate {
+	rlu.mutation.SetIsCommercialUseAllowed(b)
+	return rlu
+}
+
+// SetNillableIsCommercialUseAllowed sets the "is_commercial_use_allowed" field if the given value is not nil.
+func (rlu *ReportLicenseUpdate) SetNillableIsCommercialUseAllowed(b *bool) *ReportLicenseUpdate {
+	if b != nil {
+		rlu.SetIsCommercialUseAllowed(*b)
+	}
+	return rlu
+}
+
+// ClearIsCommercialUseAllowed clears the value of the "is_commercial_use_allowed" field.
+func (rlu *ReportLicenseUpdate) ClearIsCommercialUseAllowed() *ReportLicenseUpdate {
+	rlu.mutation.ClearIsCommercialUseAllowed()
+	return rlu
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (rlu *ReportLicenseUpdate) SetCreatedAt(t time.Time) *ReportLicenseUpdate {
 	rlu.mutation.SetCreatedAt(t)
@@ -162,9 +223,34 @@ func (rlu *ReportLicenseUpdate) ClearUpdatedAt() *ReportLicenseUpdate {
 	return rlu
 }
 
+// SetPackageID sets the "package" edge to the ReportPackage entity by ID.
+func (rlu *ReportLicenseUpdate) SetPackageID(id int) *ReportLicenseUpdate {
+	rlu.mutation.SetPackageID(id)
+	return rlu
+}
+
+// SetNillablePackageID sets the "package" edge to the ReportPackage entity by ID if the given value is not nil.
+func (rlu *ReportLicenseUpdate) SetNillablePackageID(id *int) *ReportLicenseUpdate {
+	if id != nil {
+		rlu = rlu.SetPackageID(*id)
+	}
+	return rlu
+}
+
+// SetPackage sets the "package" edge to the ReportPackage entity.
+func (rlu *ReportLicenseUpdate) SetPackage(r *ReportPackage) *ReportLicenseUpdate {
+	return rlu.SetPackageID(r.ID)
+}
+
 // Mutation returns the ReportLicenseMutation object of the builder.
 func (rlu *ReportLicenseUpdate) Mutation() *ReportLicenseMutation {
 	return rlu.mutation
+}
+
+// ClearPackage clears the "package" edge to the ReportPackage entity.
+func (rlu *ReportLicenseUpdate) ClearPackage() *ReportLicenseUpdate {
+	rlu.mutation.ClearPackage()
+	return rlu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -243,6 +329,24 @@ func (rlu *ReportLicenseUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	if rlu.mutation.IsOsiApprovedCleared() {
 		_spec.ClearField(reportlicense.FieldIsOsiApproved, field.TypeBool)
 	}
+	if value, ok := rlu.mutation.IsFsfApproved(); ok {
+		_spec.SetField(reportlicense.FieldIsFsfApproved, field.TypeBool, value)
+	}
+	if rlu.mutation.IsFsfApprovedCleared() {
+		_spec.ClearField(reportlicense.FieldIsFsfApproved, field.TypeBool)
+	}
+	if value, ok := rlu.mutation.IsSaasCompatible(); ok {
+		_spec.SetField(reportlicense.FieldIsSaasCompatible, field.TypeBool, value)
+	}
+	if rlu.mutation.IsSaasCompatibleCleared() {
+		_spec.ClearField(reportlicense.FieldIsSaasCompatible, field.TypeBool)
+	}
+	if value, ok := rlu.mutation.IsCommercialUseAllowed(); ok {
+		_spec.SetField(reportlicense.FieldIsCommercialUseAllowed, field.TypeBool, value)
+	}
+	if rlu.mutation.IsCommercialUseAllowedCleared() {
+		_spec.ClearField(reportlicense.FieldIsCommercialUseAllowed, field.TypeBool)
+	}
 	if value, ok := rlu.mutation.CreatedAt(); ok {
 		_spec.SetField(reportlicense.FieldCreatedAt, field.TypeTime, value)
 	}
@@ -254,6 +358,35 @@ func (rlu *ReportLicenseUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	}
 	if rlu.mutation.UpdatedAtCleared() {
 		_spec.ClearField(reportlicense.FieldUpdatedAt, field.TypeTime)
+	}
+	if rlu.mutation.PackageCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   reportlicense.PackageTable,
+			Columns: []string{reportlicense.PackageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rlu.mutation.PackageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   reportlicense.PackageTable,
+			Columns: []string{reportlicense.PackageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, rlu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -369,6 +502,66 @@ func (rluo *ReportLicenseUpdateOne) ClearIsOsiApproved() *ReportLicenseUpdateOne
 	return rluo
 }
 
+// SetIsFsfApproved sets the "is_fsf_approved" field.
+func (rluo *ReportLicenseUpdateOne) SetIsFsfApproved(b bool) *ReportLicenseUpdateOne {
+	rluo.mutation.SetIsFsfApproved(b)
+	return rluo
+}
+
+// SetNillableIsFsfApproved sets the "is_fsf_approved" field if the given value is not nil.
+func (rluo *ReportLicenseUpdateOne) SetNillableIsFsfApproved(b *bool) *ReportLicenseUpdateOne {
+	if b != nil {
+		rluo.SetIsFsfApproved(*b)
+	}
+	return rluo
+}
+
+// ClearIsFsfApproved clears the value of the "is_fsf_approved" field.
+func (rluo *ReportLicenseUpdateOne) ClearIsFsfApproved() *ReportLicenseUpdateOne {
+	rluo.mutation.ClearIsFsfApproved()
+	return rluo
+}
+
+// SetIsSaasCompatible sets the "is_saas_compatible" field.
+func (rluo *ReportLicenseUpdateOne) SetIsSaasCompatible(b bool) *ReportLicenseUpdateOne {
+	rluo.mutation.SetIsSaasCompatible(b)
+	return rluo
+}
+
+// SetNillableIsSaasCompatible sets the "is_saas_compatible" field if the given value is not nil.
+func (rluo *ReportLicenseUpdateOne) SetNillableIsSaasCompatible(b *bool) *ReportLicenseUpdateOne {
+	if b != nil {
+		rluo.SetIsSaasCompatible(*b)
+	}
+	return rluo
+}
+
+// ClearIsSaasCompatible clears the value of the "is_saas_compatible" field.
+func (rluo *ReportLicenseUpdateOne) ClearIsSaasCompatible() *ReportLicenseUpdateOne {
+	rluo.mutation.ClearIsSaasCompatible()
+	return rluo
+}
+
+// SetIsCommercialUseAllowed sets the "is_commercial_use_allowed" field.
+func (rluo *ReportLicenseUpdateOne) SetIsCommercialUseAllowed(b bool) *ReportLicenseUpdateOne {
+	rluo.mutation.SetIsCommercialUseAllowed(b)
+	return rluo
+}
+
+// SetNillableIsCommercialUseAllowed sets the "is_commercial_use_allowed" field if the given value is not nil.
+func (rluo *ReportLicenseUpdateOne) SetNillableIsCommercialUseAllowed(b *bool) *ReportLicenseUpdateOne {
+	if b != nil {
+		rluo.SetIsCommercialUseAllowed(*b)
+	}
+	return rluo
+}
+
+// ClearIsCommercialUseAllowed clears the value of the "is_commercial_use_allowed" field.
+func (rluo *ReportLicenseUpdateOne) ClearIsCommercialUseAllowed() *ReportLicenseUpdateOne {
+	rluo.mutation.ClearIsCommercialUseAllowed()
+	return rluo
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (rluo *ReportLicenseUpdateOne) SetCreatedAt(t time.Time) *ReportLicenseUpdateOne {
 	rluo.mutation.SetCreatedAt(t)
@@ -409,9 +602,34 @@ func (rluo *ReportLicenseUpdateOne) ClearUpdatedAt() *ReportLicenseUpdateOne {
 	return rluo
 }
 
+// SetPackageID sets the "package" edge to the ReportPackage entity by ID.
+func (rluo *ReportLicenseUpdateOne) SetPackageID(id int) *ReportLicenseUpdateOne {
+	rluo.mutation.SetPackageID(id)
+	return rluo
+}
+
+// SetNillablePackageID sets the "package" edge to the ReportPackage entity by ID if the given value is not nil.
+func (rluo *ReportLicenseUpdateOne) SetNillablePackageID(id *int) *ReportLicenseUpdateOne {
+	if id != nil {
+		rluo = rluo.SetPackageID(*id)
+	}
+	return rluo
+}
+
+// SetPackage sets the "package" edge to the ReportPackage entity.
+func (rluo *ReportLicenseUpdateOne) SetPackage(r *ReportPackage) *ReportLicenseUpdateOne {
+	return rluo.SetPackageID(r.ID)
+}
+
 // Mutation returns the ReportLicenseMutation object of the builder.
 func (rluo *ReportLicenseUpdateOne) Mutation() *ReportLicenseMutation {
 	return rluo.mutation
+}
+
+// ClearPackage clears the "package" edge to the ReportPackage entity.
+func (rluo *ReportLicenseUpdateOne) ClearPackage() *ReportLicenseUpdateOne {
+	rluo.mutation.ClearPackage()
+	return rluo
 }
 
 // Where appends a list predicates to the ReportLicenseUpdate builder.
@@ -520,6 +738,24 @@ func (rluo *ReportLicenseUpdateOne) sqlSave(ctx context.Context) (_node *ReportL
 	if rluo.mutation.IsOsiApprovedCleared() {
 		_spec.ClearField(reportlicense.FieldIsOsiApproved, field.TypeBool)
 	}
+	if value, ok := rluo.mutation.IsFsfApproved(); ok {
+		_spec.SetField(reportlicense.FieldIsFsfApproved, field.TypeBool, value)
+	}
+	if rluo.mutation.IsFsfApprovedCleared() {
+		_spec.ClearField(reportlicense.FieldIsFsfApproved, field.TypeBool)
+	}
+	if value, ok := rluo.mutation.IsSaasCompatible(); ok {
+		_spec.SetField(reportlicense.FieldIsSaasCompatible, field.TypeBool, value)
+	}
+	if rluo.mutation.IsSaasCompatibleCleared() {
+		_spec.ClearField(reportlicense.FieldIsSaasCompatible, field.TypeBool)
+	}
+	if value, ok := rluo.mutation.IsCommercialUseAllowed(); ok {
+		_spec.SetField(reportlicense.FieldIsCommercialUseAllowed, field.TypeBool, value)
+	}
+	if rluo.mutation.IsCommercialUseAllowedCleared() {
+		_spec.ClearField(reportlicense.FieldIsCommercialUseAllowed, field.TypeBool)
+	}
 	if value, ok := rluo.mutation.CreatedAt(); ok {
 		_spec.SetField(reportlicense.FieldCreatedAt, field.TypeTime, value)
 	}
@@ -531,6 +767,35 @@ func (rluo *ReportLicenseUpdateOne) sqlSave(ctx context.Context) (_node *ReportL
 	}
 	if rluo.mutation.UpdatedAtCleared() {
 		_spec.ClearField(reportlicense.FieldUpdatedAt, field.TypeTime)
+	}
+	if rluo.mutation.PackageCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   reportlicense.PackageTable,
+			Columns: []string{reportlicense.PackageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rluo.mutation.PackageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   reportlicense.PackageTable,
+			Columns: []string{reportlicense.PackageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &ReportLicense{config: rluo.config}
 	_spec.Assign = _node.assignValues

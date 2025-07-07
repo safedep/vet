@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/safedep/vet/ent/reportdependency"
+	"github.com/safedep/vet/ent/reportlicense"
 	"github.com/safedep/vet/ent/reportmalware"
 	"github.com/safedep/vet/ent/reportpackage"
 	"github.com/safedep/vet/ent/reportpackagemanifest"
@@ -188,6 +189,21 @@ func (rpc *ReportPackageCreate) AddVulnerabilities(r ...*ReportVulnerability) *R
 		ids[i] = r[i].ID
 	}
 	return rpc.AddVulnerabilityIDs(ids...)
+}
+
+// AddLicenseIDs adds the "licenses" edge to the ReportLicense entity by IDs.
+func (rpc *ReportPackageCreate) AddLicenseIDs(ids ...int) *ReportPackageCreate {
+	rpc.mutation.AddLicenseIDs(ids...)
+	return rpc
+}
+
+// AddLicenses adds the "licenses" edges to the ReportLicense entity.
+func (rpc *ReportPackageCreate) AddLicenses(r ...*ReportLicense) *ReportPackageCreate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpc.AddLicenseIDs(ids...)
 }
 
 // AddDependencyIDs adds the "dependencies" edge to the ReportDependency entity by IDs.
@@ -439,6 +455,22 @@ func (rpc *ReportPackageCreate) createSpec() (*ReportPackage, *sqlgraph.CreateSp
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reportvulnerability.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rpc.mutation.LicensesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.LicensesTable,
+			Columns: []string{reportpackage.LicensesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportlicense.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
