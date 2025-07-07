@@ -86,6 +86,7 @@ var (
 	malwareAnalysisTimeout           time.Duration
 	malwareAnalysisMinimumConfidence string
 	gitlabReportPath                 string
+	sqlite3ReportPath                string
 	scanImageTarget                  string
 	scanImageNoRemote                bool
 )
@@ -213,6 +214,8 @@ func newScanCommand() *cobra.Command {
 		"Timeout for malicious package analysis")
 	cmd.Flags().StringVarP(&gitlabReportPath, "report-gitlab", "", "",
 		"Generate GitLab dependency scanning report to file")
+	cmd.Flags().StringVarP(&sqlite3ReportPath, "report-sqlite3", "", "",
+		"Generate SQLite3 database report to file")
 	cmd.Flags().StringVarP(&malwareAnalysisMinimumConfidence, "malware-analysis-min-confidence", "", "HIGH",
 		"Minimum confidence level for malicious package analysis result to fail fast")
 	cmd.Flags().StringVarP(&scanImageTarget, "image", "", "",
@@ -629,6 +632,18 @@ func internalStartScan() error {
 	if !utils.IsEmptyString(gitlabReportPath) {
 		rp, err := reporter.NewGitLabReporter(reporter.GitLabReporterConfig{
 			Path: gitlabReportPath,
+			Tool: toolMetadata,
+		})
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if !utils.IsEmptyString(sqlite3ReportPath) {
+		rp, err := reporter.NewSqlite3Reporter(reporter.Sqlite3ReporterConfig{
+			Path: sqlite3ReportPath,
 			Tool: toolMetadata,
 		})
 		if err != nil {

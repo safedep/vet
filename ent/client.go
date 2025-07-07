@@ -17,6 +17,13 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/safedep/vet/ent/codesourcefile"
 	"github.com/safedep/vet/ent/depsusageevidence"
+	"github.com/safedep/vet/ent/reportdependency"
+	"github.com/safedep/vet/ent/reportlicense"
+	"github.com/safedep/vet/ent/reportmalware"
+	"github.com/safedep/vet/ent/reportpackage"
+	"github.com/safedep/vet/ent/reportpackagemanifest"
+	"github.com/safedep/vet/ent/reportproject"
+	"github.com/safedep/vet/ent/reportvulnerability"
 )
 
 // Client is the client that holds all ent builders.
@@ -28,6 +35,20 @@ type Client struct {
 	CodeSourceFile *CodeSourceFileClient
 	// DepsUsageEvidence is the client for interacting with the DepsUsageEvidence builders.
 	DepsUsageEvidence *DepsUsageEvidenceClient
+	// ReportDependency is the client for interacting with the ReportDependency builders.
+	ReportDependency *ReportDependencyClient
+	// ReportLicense is the client for interacting with the ReportLicense builders.
+	ReportLicense *ReportLicenseClient
+	// ReportMalware is the client for interacting with the ReportMalware builders.
+	ReportMalware *ReportMalwareClient
+	// ReportPackage is the client for interacting with the ReportPackage builders.
+	ReportPackage *ReportPackageClient
+	// ReportPackageManifest is the client for interacting with the ReportPackageManifest builders.
+	ReportPackageManifest *ReportPackageManifestClient
+	// ReportProject is the client for interacting with the ReportProject builders.
+	ReportProject *ReportProjectClient
+	// ReportVulnerability is the client for interacting with the ReportVulnerability builders.
+	ReportVulnerability *ReportVulnerabilityClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -41,6 +62,13 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.CodeSourceFile = NewCodeSourceFileClient(c.config)
 	c.DepsUsageEvidence = NewDepsUsageEvidenceClient(c.config)
+	c.ReportDependency = NewReportDependencyClient(c.config)
+	c.ReportLicense = NewReportLicenseClient(c.config)
+	c.ReportMalware = NewReportMalwareClient(c.config)
+	c.ReportPackage = NewReportPackageClient(c.config)
+	c.ReportPackageManifest = NewReportPackageManifestClient(c.config)
+	c.ReportProject = NewReportProjectClient(c.config)
+	c.ReportVulnerability = NewReportVulnerabilityClient(c.config)
 }
 
 type (
@@ -131,10 +159,17 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:               ctx,
-		config:            cfg,
-		CodeSourceFile:    NewCodeSourceFileClient(cfg),
-		DepsUsageEvidence: NewDepsUsageEvidenceClient(cfg),
+		ctx:                   ctx,
+		config:                cfg,
+		CodeSourceFile:        NewCodeSourceFileClient(cfg),
+		DepsUsageEvidence:     NewDepsUsageEvidenceClient(cfg),
+		ReportDependency:      NewReportDependencyClient(cfg),
+		ReportLicense:         NewReportLicenseClient(cfg),
+		ReportMalware:         NewReportMalwareClient(cfg),
+		ReportPackage:         NewReportPackageClient(cfg),
+		ReportPackageManifest: NewReportPackageManifestClient(cfg),
+		ReportProject:         NewReportProjectClient(cfg),
+		ReportVulnerability:   NewReportVulnerabilityClient(cfg),
 	}, nil
 }
 
@@ -152,10 +187,17 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:               ctx,
-		config:            cfg,
-		CodeSourceFile:    NewCodeSourceFileClient(cfg),
-		DepsUsageEvidence: NewDepsUsageEvidenceClient(cfg),
+		ctx:                   ctx,
+		config:                cfg,
+		CodeSourceFile:        NewCodeSourceFileClient(cfg),
+		DepsUsageEvidence:     NewDepsUsageEvidenceClient(cfg),
+		ReportDependency:      NewReportDependencyClient(cfg),
+		ReportLicense:         NewReportLicenseClient(cfg),
+		ReportMalware:         NewReportMalwareClient(cfg),
+		ReportPackage:         NewReportPackageClient(cfg),
+		ReportPackageManifest: NewReportPackageManifestClient(cfg),
+		ReportProject:         NewReportProjectClient(cfg),
+		ReportVulnerability:   NewReportVulnerabilityClient(cfg),
 	}, nil
 }
 
@@ -184,15 +226,25 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.CodeSourceFile.Use(hooks...)
-	c.DepsUsageEvidence.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.CodeSourceFile, c.DepsUsageEvidence, c.ReportDependency, c.ReportLicense,
+		c.ReportMalware, c.ReportPackage, c.ReportPackageManifest, c.ReportProject,
+		c.ReportVulnerability,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.CodeSourceFile.Intercept(interceptors...)
-	c.DepsUsageEvidence.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.CodeSourceFile, c.DepsUsageEvidence, c.ReportDependency, c.ReportLicense,
+		c.ReportMalware, c.ReportPackage, c.ReportPackageManifest, c.ReportProject,
+		c.ReportVulnerability,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -202,6 +254,20 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CodeSourceFile.mutate(ctx, m)
 	case *DepsUsageEvidenceMutation:
 		return c.DepsUsageEvidence.mutate(ctx, m)
+	case *ReportDependencyMutation:
+		return c.ReportDependency.mutate(ctx, m)
+	case *ReportLicenseMutation:
+		return c.ReportLicense.mutate(ctx, m)
+	case *ReportMalwareMutation:
+		return c.ReportMalware.mutate(ctx, m)
+	case *ReportPackageMutation:
+		return c.ReportPackage.mutate(ctx, m)
+	case *ReportPackageManifestMutation:
+		return c.ReportPackageManifest.mutate(ctx, m)
+	case *ReportProjectMutation:
+		return c.ReportProject.mutate(ctx, m)
+	case *ReportVulnerabilityMutation:
+		return c.ReportVulnerability.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -505,12 +571,1043 @@ func (c *DepsUsageEvidenceClient) mutate(ctx context.Context, m *DepsUsageEviden
 	}
 }
 
+// ReportDependencyClient is a client for the ReportDependency schema.
+type ReportDependencyClient struct {
+	config
+}
+
+// NewReportDependencyClient returns a client for the ReportDependency from the given config.
+func NewReportDependencyClient(c config) *ReportDependencyClient {
+	return &ReportDependencyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `reportdependency.Hooks(f(g(h())))`.
+func (c *ReportDependencyClient) Use(hooks ...Hook) {
+	c.hooks.ReportDependency = append(c.hooks.ReportDependency, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `reportdependency.Intercept(f(g(h())))`.
+func (c *ReportDependencyClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ReportDependency = append(c.inters.ReportDependency, interceptors...)
+}
+
+// Create returns a builder for creating a ReportDependency entity.
+func (c *ReportDependencyClient) Create() *ReportDependencyCreate {
+	mutation := newReportDependencyMutation(c.config, OpCreate)
+	return &ReportDependencyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ReportDependency entities.
+func (c *ReportDependencyClient) CreateBulk(builders ...*ReportDependencyCreate) *ReportDependencyCreateBulk {
+	return &ReportDependencyCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ReportDependencyClient) MapCreateBulk(slice any, setFunc func(*ReportDependencyCreate, int)) *ReportDependencyCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ReportDependencyCreateBulk{err: fmt.Errorf("calling to ReportDependencyClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ReportDependencyCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ReportDependencyCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ReportDependency.
+func (c *ReportDependencyClient) Update() *ReportDependencyUpdate {
+	mutation := newReportDependencyMutation(c.config, OpUpdate)
+	return &ReportDependencyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ReportDependencyClient) UpdateOne(rd *ReportDependency) *ReportDependencyUpdateOne {
+	mutation := newReportDependencyMutation(c.config, OpUpdateOne, withReportDependency(rd))
+	return &ReportDependencyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ReportDependencyClient) UpdateOneID(id int) *ReportDependencyUpdateOne {
+	mutation := newReportDependencyMutation(c.config, OpUpdateOne, withReportDependencyID(id))
+	return &ReportDependencyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ReportDependency.
+func (c *ReportDependencyClient) Delete() *ReportDependencyDelete {
+	mutation := newReportDependencyMutation(c.config, OpDelete)
+	return &ReportDependencyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ReportDependencyClient) DeleteOne(rd *ReportDependency) *ReportDependencyDeleteOne {
+	return c.DeleteOneID(rd.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ReportDependencyClient) DeleteOneID(id int) *ReportDependencyDeleteOne {
+	builder := c.Delete().Where(reportdependency.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ReportDependencyDeleteOne{builder}
+}
+
+// Query returns a query builder for ReportDependency.
+func (c *ReportDependencyClient) Query() *ReportDependencyQuery {
+	return &ReportDependencyQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeReportDependency},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ReportDependency entity by its id.
+func (c *ReportDependencyClient) Get(ctx context.Context, id int) (*ReportDependency, error) {
+	return c.Query().Where(reportdependency.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ReportDependencyClient) GetX(ctx context.Context, id int) *ReportDependency {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPackage queries the package edge of a ReportDependency.
+func (c *ReportDependencyClient) QueryPackage(rd *ReportDependency) *ReportPackageQuery {
+	query := (&ReportPackageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rd.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportdependency.Table, reportdependency.FieldID, id),
+			sqlgraph.To(reportpackage.Table, reportpackage.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, reportdependency.PackageTable, reportdependency.PackageColumn),
+		)
+		fromV = sqlgraph.Neighbors(rd.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ReportDependencyClient) Hooks() []Hook {
+	return c.hooks.ReportDependency
+}
+
+// Interceptors returns the client interceptors.
+func (c *ReportDependencyClient) Interceptors() []Interceptor {
+	return c.inters.ReportDependency
+}
+
+func (c *ReportDependencyClient) mutate(ctx context.Context, m *ReportDependencyMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ReportDependencyCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ReportDependencyUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ReportDependencyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ReportDependencyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ReportDependency mutation op: %q", m.Op())
+	}
+}
+
+// ReportLicenseClient is a client for the ReportLicense schema.
+type ReportLicenseClient struct {
+	config
+}
+
+// NewReportLicenseClient returns a client for the ReportLicense from the given config.
+func NewReportLicenseClient(c config) *ReportLicenseClient {
+	return &ReportLicenseClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `reportlicense.Hooks(f(g(h())))`.
+func (c *ReportLicenseClient) Use(hooks ...Hook) {
+	c.hooks.ReportLicense = append(c.hooks.ReportLicense, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `reportlicense.Intercept(f(g(h())))`.
+func (c *ReportLicenseClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ReportLicense = append(c.inters.ReportLicense, interceptors...)
+}
+
+// Create returns a builder for creating a ReportLicense entity.
+func (c *ReportLicenseClient) Create() *ReportLicenseCreate {
+	mutation := newReportLicenseMutation(c.config, OpCreate)
+	return &ReportLicenseCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ReportLicense entities.
+func (c *ReportLicenseClient) CreateBulk(builders ...*ReportLicenseCreate) *ReportLicenseCreateBulk {
+	return &ReportLicenseCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ReportLicenseClient) MapCreateBulk(slice any, setFunc func(*ReportLicenseCreate, int)) *ReportLicenseCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ReportLicenseCreateBulk{err: fmt.Errorf("calling to ReportLicenseClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ReportLicenseCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ReportLicenseCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ReportLicense.
+func (c *ReportLicenseClient) Update() *ReportLicenseUpdate {
+	mutation := newReportLicenseMutation(c.config, OpUpdate)
+	return &ReportLicenseUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ReportLicenseClient) UpdateOne(rl *ReportLicense) *ReportLicenseUpdateOne {
+	mutation := newReportLicenseMutation(c.config, OpUpdateOne, withReportLicense(rl))
+	return &ReportLicenseUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ReportLicenseClient) UpdateOneID(id int) *ReportLicenseUpdateOne {
+	mutation := newReportLicenseMutation(c.config, OpUpdateOne, withReportLicenseID(id))
+	return &ReportLicenseUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ReportLicense.
+func (c *ReportLicenseClient) Delete() *ReportLicenseDelete {
+	mutation := newReportLicenseMutation(c.config, OpDelete)
+	return &ReportLicenseDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ReportLicenseClient) DeleteOne(rl *ReportLicense) *ReportLicenseDeleteOne {
+	return c.DeleteOneID(rl.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ReportLicenseClient) DeleteOneID(id int) *ReportLicenseDeleteOne {
+	builder := c.Delete().Where(reportlicense.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ReportLicenseDeleteOne{builder}
+}
+
+// Query returns a query builder for ReportLicense.
+func (c *ReportLicenseClient) Query() *ReportLicenseQuery {
+	return &ReportLicenseQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeReportLicense},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ReportLicense entity by its id.
+func (c *ReportLicenseClient) Get(ctx context.Context, id int) (*ReportLicense, error) {
+	return c.Query().Where(reportlicense.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ReportLicenseClient) GetX(ctx context.Context, id int) *ReportLicense {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ReportLicenseClient) Hooks() []Hook {
+	return c.hooks.ReportLicense
+}
+
+// Interceptors returns the client interceptors.
+func (c *ReportLicenseClient) Interceptors() []Interceptor {
+	return c.inters.ReportLicense
+}
+
+func (c *ReportLicenseClient) mutate(ctx context.Context, m *ReportLicenseMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ReportLicenseCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ReportLicenseUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ReportLicenseUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ReportLicenseDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ReportLicense mutation op: %q", m.Op())
+	}
+}
+
+// ReportMalwareClient is a client for the ReportMalware schema.
+type ReportMalwareClient struct {
+	config
+}
+
+// NewReportMalwareClient returns a client for the ReportMalware from the given config.
+func NewReportMalwareClient(c config) *ReportMalwareClient {
+	return &ReportMalwareClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `reportmalware.Hooks(f(g(h())))`.
+func (c *ReportMalwareClient) Use(hooks ...Hook) {
+	c.hooks.ReportMalware = append(c.hooks.ReportMalware, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `reportmalware.Intercept(f(g(h())))`.
+func (c *ReportMalwareClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ReportMalware = append(c.inters.ReportMalware, interceptors...)
+}
+
+// Create returns a builder for creating a ReportMalware entity.
+func (c *ReportMalwareClient) Create() *ReportMalwareCreate {
+	mutation := newReportMalwareMutation(c.config, OpCreate)
+	return &ReportMalwareCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ReportMalware entities.
+func (c *ReportMalwareClient) CreateBulk(builders ...*ReportMalwareCreate) *ReportMalwareCreateBulk {
+	return &ReportMalwareCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ReportMalwareClient) MapCreateBulk(slice any, setFunc func(*ReportMalwareCreate, int)) *ReportMalwareCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ReportMalwareCreateBulk{err: fmt.Errorf("calling to ReportMalwareClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ReportMalwareCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ReportMalwareCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ReportMalware.
+func (c *ReportMalwareClient) Update() *ReportMalwareUpdate {
+	mutation := newReportMalwareMutation(c.config, OpUpdate)
+	return &ReportMalwareUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ReportMalwareClient) UpdateOne(rm *ReportMalware) *ReportMalwareUpdateOne {
+	mutation := newReportMalwareMutation(c.config, OpUpdateOne, withReportMalware(rm))
+	return &ReportMalwareUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ReportMalwareClient) UpdateOneID(id int) *ReportMalwareUpdateOne {
+	mutation := newReportMalwareMutation(c.config, OpUpdateOne, withReportMalwareID(id))
+	return &ReportMalwareUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ReportMalware.
+func (c *ReportMalwareClient) Delete() *ReportMalwareDelete {
+	mutation := newReportMalwareMutation(c.config, OpDelete)
+	return &ReportMalwareDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ReportMalwareClient) DeleteOne(rm *ReportMalware) *ReportMalwareDeleteOne {
+	return c.DeleteOneID(rm.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ReportMalwareClient) DeleteOneID(id int) *ReportMalwareDeleteOne {
+	builder := c.Delete().Where(reportmalware.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ReportMalwareDeleteOne{builder}
+}
+
+// Query returns a query builder for ReportMalware.
+func (c *ReportMalwareClient) Query() *ReportMalwareQuery {
+	return &ReportMalwareQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeReportMalware},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ReportMalware entity by its id.
+func (c *ReportMalwareClient) Get(ctx context.Context, id int) (*ReportMalware, error) {
+	return c.Query().Where(reportmalware.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ReportMalwareClient) GetX(ctx context.Context, id int) *ReportMalware {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPackage queries the package edge of a ReportMalware.
+func (c *ReportMalwareClient) QueryPackage(rm *ReportMalware) *ReportPackageQuery {
+	query := (&ReportPackageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rm.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportmalware.Table, reportmalware.FieldID, id),
+			sqlgraph.To(reportpackage.Table, reportpackage.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, reportmalware.PackageTable, reportmalware.PackageColumn),
+		)
+		fromV = sqlgraph.Neighbors(rm.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ReportMalwareClient) Hooks() []Hook {
+	return c.hooks.ReportMalware
+}
+
+// Interceptors returns the client interceptors.
+func (c *ReportMalwareClient) Interceptors() []Interceptor {
+	return c.inters.ReportMalware
+}
+
+func (c *ReportMalwareClient) mutate(ctx context.Context, m *ReportMalwareMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ReportMalwareCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ReportMalwareUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ReportMalwareUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ReportMalwareDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ReportMalware mutation op: %q", m.Op())
+	}
+}
+
+// ReportPackageClient is a client for the ReportPackage schema.
+type ReportPackageClient struct {
+	config
+}
+
+// NewReportPackageClient returns a client for the ReportPackage from the given config.
+func NewReportPackageClient(c config) *ReportPackageClient {
+	return &ReportPackageClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `reportpackage.Hooks(f(g(h())))`.
+func (c *ReportPackageClient) Use(hooks ...Hook) {
+	c.hooks.ReportPackage = append(c.hooks.ReportPackage, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `reportpackage.Intercept(f(g(h())))`.
+func (c *ReportPackageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ReportPackage = append(c.inters.ReportPackage, interceptors...)
+}
+
+// Create returns a builder for creating a ReportPackage entity.
+func (c *ReportPackageClient) Create() *ReportPackageCreate {
+	mutation := newReportPackageMutation(c.config, OpCreate)
+	return &ReportPackageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ReportPackage entities.
+func (c *ReportPackageClient) CreateBulk(builders ...*ReportPackageCreate) *ReportPackageCreateBulk {
+	return &ReportPackageCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ReportPackageClient) MapCreateBulk(slice any, setFunc func(*ReportPackageCreate, int)) *ReportPackageCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ReportPackageCreateBulk{err: fmt.Errorf("calling to ReportPackageClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ReportPackageCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ReportPackageCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ReportPackage.
+func (c *ReportPackageClient) Update() *ReportPackageUpdate {
+	mutation := newReportPackageMutation(c.config, OpUpdate)
+	return &ReportPackageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ReportPackageClient) UpdateOne(rp *ReportPackage) *ReportPackageUpdateOne {
+	mutation := newReportPackageMutation(c.config, OpUpdateOne, withReportPackage(rp))
+	return &ReportPackageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ReportPackageClient) UpdateOneID(id int) *ReportPackageUpdateOne {
+	mutation := newReportPackageMutation(c.config, OpUpdateOne, withReportPackageID(id))
+	return &ReportPackageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ReportPackage.
+func (c *ReportPackageClient) Delete() *ReportPackageDelete {
+	mutation := newReportPackageMutation(c.config, OpDelete)
+	return &ReportPackageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ReportPackageClient) DeleteOne(rp *ReportPackage) *ReportPackageDeleteOne {
+	return c.DeleteOneID(rp.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ReportPackageClient) DeleteOneID(id int) *ReportPackageDeleteOne {
+	builder := c.Delete().Where(reportpackage.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ReportPackageDeleteOne{builder}
+}
+
+// Query returns a query builder for ReportPackage.
+func (c *ReportPackageClient) Query() *ReportPackageQuery {
+	return &ReportPackageQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeReportPackage},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ReportPackage entity by its id.
+func (c *ReportPackageClient) Get(ctx context.Context, id int) (*ReportPackage, error) {
+	return c.Query().Where(reportpackage.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ReportPackageClient) GetX(ctx context.Context, id int) *ReportPackage {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryManifest queries the manifest edge of a ReportPackage.
+func (c *ReportPackageClient) QueryManifest(rp *ReportPackage) *ReportPackageManifestQuery {
+	query := (&ReportPackageManifestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, id),
+			sqlgraph.To(reportpackagemanifest.Table, reportpackagemanifest.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, reportpackage.ManifestTable, reportpackage.ManifestColumn),
+		)
+		fromV = sqlgraph.Neighbors(rp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDependencies queries the dependencies edge of a ReportPackage.
+func (c *ReportPackageClient) QueryDependencies(rp *ReportPackage) *ReportDependencyQuery {
+	query := (&ReportDependencyClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, id),
+			sqlgraph.To(reportdependency.Table, reportdependency.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.DependenciesTable, reportpackage.DependenciesColumn),
+		)
+		fromV = sqlgraph.Neighbors(rp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMalwareAnalysis queries the malware_analysis edge of a ReportPackage.
+func (c *ReportPackageClient) QueryMalwareAnalysis(rp *ReportPackage) *ReportMalwareQuery {
+	query := (&ReportMalwareClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, id),
+			sqlgraph.To(reportmalware.Table, reportmalware.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, reportpackage.MalwareAnalysisTable, reportpackage.MalwareAnalysisColumn),
+		)
+		fromV = sqlgraph.Neighbors(rp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ReportPackageClient) Hooks() []Hook {
+	return c.hooks.ReportPackage
+}
+
+// Interceptors returns the client interceptors.
+func (c *ReportPackageClient) Interceptors() []Interceptor {
+	return c.inters.ReportPackage
+}
+
+func (c *ReportPackageClient) mutate(ctx context.Context, m *ReportPackageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ReportPackageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ReportPackageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ReportPackageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ReportPackageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ReportPackage mutation op: %q", m.Op())
+	}
+}
+
+// ReportPackageManifestClient is a client for the ReportPackageManifest schema.
+type ReportPackageManifestClient struct {
+	config
+}
+
+// NewReportPackageManifestClient returns a client for the ReportPackageManifest from the given config.
+func NewReportPackageManifestClient(c config) *ReportPackageManifestClient {
+	return &ReportPackageManifestClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `reportpackagemanifest.Hooks(f(g(h())))`.
+func (c *ReportPackageManifestClient) Use(hooks ...Hook) {
+	c.hooks.ReportPackageManifest = append(c.hooks.ReportPackageManifest, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `reportpackagemanifest.Intercept(f(g(h())))`.
+func (c *ReportPackageManifestClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ReportPackageManifest = append(c.inters.ReportPackageManifest, interceptors...)
+}
+
+// Create returns a builder for creating a ReportPackageManifest entity.
+func (c *ReportPackageManifestClient) Create() *ReportPackageManifestCreate {
+	mutation := newReportPackageManifestMutation(c.config, OpCreate)
+	return &ReportPackageManifestCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ReportPackageManifest entities.
+func (c *ReportPackageManifestClient) CreateBulk(builders ...*ReportPackageManifestCreate) *ReportPackageManifestCreateBulk {
+	return &ReportPackageManifestCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ReportPackageManifestClient) MapCreateBulk(slice any, setFunc func(*ReportPackageManifestCreate, int)) *ReportPackageManifestCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ReportPackageManifestCreateBulk{err: fmt.Errorf("calling to ReportPackageManifestClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ReportPackageManifestCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ReportPackageManifestCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ReportPackageManifest.
+func (c *ReportPackageManifestClient) Update() *ReportPackageManifestUpdate {
+	mutation := newReportPackageManifestMutation(c.config, OpUpdate)
+	return &ReportPackageManifestUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ReportPackageManifestClient) UpdateOne(rpm *ReportPackageManifest) *ReportPackageManifestUpdateOne {
+	mutation := newReportPackageManifestMutation(c.config, OpUpdateOne, withReportPackageManifest(rpm))
+	return &ReportPackageManifestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ReportPackageManifestClient) UpdateOneID(id int) *ReportPackageManifestUpdateOne {
+	mutation := newReportPackageManifestMutation(c.config, OpUpdateOne, withReportPackageManifestID(id))
+	return &ReportPackageManifestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ReportPackageManifest.
+func (c *ReportPackageManifestClient) Delete() *ReportPackageManifestDelete {
+	mutation := newReportPackageManifestMutation(c.config, OpDelete)
+	return &ReportPackageManifestDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ReportPackageManifestClient) DeleteOne(rpm *ReportPackageManifest) *ReportPackageManifestDeleteOne {
+	return c.DeleteOneID(rpm.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ReportPackageManifestClient) DeleteOneID(id int) *ReportPackageManifestDeleteOne {
+	builder := c.Delete().Where(reportpackagemanifest.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ReportPackageManifestDeleteOne{builder}
+}
+
+// Query returns a query builder for ReportPackageManifest.
+func (c *ReportPackageManifestClient) Query() *ReportPackageManifestQuery {
+	return &ReportPackageManifestQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeReportPackageManifest},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ReportPackageManifest entity by its id.
+func (c *ReportPackageManifestClient) Get(ctx context.Context, id int) (*ReportPackageManifest, error) {
+	return c.Query().Where(reportpackagemanifest.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ReportPackageManifestClient) GetX(ctx context.Context, id int) *ReportPackageManifest {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPackages queries the packages edge of a ReportPackageManifest.
+func (c *ReportPackageManifestClient) QueryPackages(rpm *ReportPackageManifest) *ReportPackageQuery {
+	query := (&ReportPackageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rpm.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportpackagemanifest.Table, reportpackagemanifest.FieldID, id),
+			sqlgraph.To(reportpackage.Table, reportpackage.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, reportpackagemanifest.PackagesTable, reportpackagemanifest.PackagesColumn),
+		)
+		fromV = sqlgraph.Neighbors(rpm.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ReportPackageManifestClient) Hooks() []Hook {
+	return c.hooks.ReportPackageManifest
+}
+
+// Interceptors returns the client interceptors.
+func (c *ReportPackageManifestClient) Interceptors() []Interceptor {
+	return c.inters.ReportPackageManifest
+}
+
+func (c *ReportPackageManifestClient) mutate(ctx context.Context, m *ReportPackageManifestMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ReportPackageManifestCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ReportPackageManifestUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ReportPackageManifestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ReportPackageManifestDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ReportPackageManifest mutation op: %q", m.Op())
+	}
+}
+
+// ReportProjectClient is a client for the ReportProject schema.
+type ReportProjectClient struct {
+	config
+}
+
+// NewReportProjectClient returns a client for the ReportProject from the given config.
+func NewReportProjectClient(c config) *ReportProjectClient {
+	return &ReportProjectClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `reportproject.Hooks(f(g(h())))`.
+func (c *ReportProjectClient) Use(hooks ...Hook) {
+	c.hooks.ReportProject = append(c.hooks.ReportProject, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `reportproject.Intercept(f(g(h())))`.
+func (c *ReportProjectClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ReportProject = append(c.inters.ReportProject, interceptors...)
+}
+
+// Create returns a builder for creating a ReportProject entity.
+func (c *ReportProjectClient) Create() *ReportProjectCreate {
+	mutation := newReportProjectMutation(c.config, OpCreate)
+	return &ReportProjectCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ReportProject entities.
+func (c *ReportProjectClient) CreateBulk(builders ...*ReportProjectCreate) *ReportProjectCreateBulk {
+	return &ReportProjectCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ReportProjectClient) MapCreateBulk(slice any, setFunc func(*ReportProjectCreate, int)) *ReportProjectCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ReportProjectCreateBulk{err: fmt.Errorf("calling to ReportProjectClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ReportProjectCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ReportProjectCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ReportProject.
+func (c *ReportProjectClient) Update() *ReportProjectUpdate {
+	mutation := newReportProjectMutation(c.config, OpUpdate)
+	return &ReportProjectUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ReportProjectClient) UpdateOne(rp *ReportProject) *ReportProjectUpdateOne {
+	mutation := newReportProjectMutation(c.config, OpUpdateOne, withReportProject(rp))
+	return &ReportProjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ReportProjectClient) UpdateOneID(id int) *ReportProjectUpdateOne {
+	mutation := newReportProjectMutation(c.config, OpUpdateOne, withReportProjectID(id))
+	return &ReportProjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ReportProject.
+func (c *ReportProjectClient) Delete() *ReportProjectDelete {
+	mutation := newReportProjectMutation(c.config, OpDelete)
+	return &ReportProjectDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ReportProjectClient) DeleteOne(rp *ReportProject) *ReportProjectDeleteOne {
+	return c.DeleteOneID(rp.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ReportProjectClient) DeleteOneID(id int) *ReportProjectDeleteOne {
+	builder := c.Delete().Where(reportproject.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ReportProjectDeleteOne{builder}
+}
+
+// Query returns a query builder for ReportProject.
+func (c *ReportProjectClient) Query() *ReportProjectQuery {
+	return &ReportProjectQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeReportProject},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ReportProject entity by its id.
+func (c *ReportProjectClient) Get(ctx context.Context, id int) (*ReportProject, error) {
+	return c.Query().Where(reportproject.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ReportProjectClient) GetX(ctx context.Context, id int) *ReportProject {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ReportProjectClient) Hooks() []Hook {
+	return c.hooks.ReportProject
+}
+
+// Interceptors returns the client interceptors.
+func (c *ReportProjectClient) Interceptors() []Interceptor {
+	return c.inters.ReportProject
+}
+
+func (c *ReportProjectClient) mutate(ctx context.Context, m *ReportProjectMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ReportProjectCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ReportProjectUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ReportProjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ReportProjectDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ReportProject mutation op: %q", m.Op())
+	}
+}
+
+// ReportVulnerabilityClient is a client for the ReportVulnerability schema.
+type ReportVulnerabilityClient struct {
+	config
+}
+
+// NewReportVulnerabilityClient returns a client for the ReportVulnerability from the given config.
+func NewReportVulnerabilityClient(c config) *ReportVulnerabilityClient {
+	return &ReportVulnerabilityClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `reportvulnerability.Hooks(f(g(h())))`.
+func (c *ReportVulnerabilityClient) Use(hooks ...Hook) {
+	c.hooks.ReportVulnerability = append(c.hooks.ReportVulnerability, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `reportvulnerability.Intercept(f(g(h())))`.
+func (c *ReportVulnerabilityClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ReportVulnerability = append(c.inters.ReportVulnerability, interceptors...)
+}
+
+// Create returns a builder for creating a ReportVulnerability entity.
+func (c *ReportVulnerabilityClient) Create() *ReportVulnerabilityCreate {
+	mutation := newReportVulnerabilityMutation(c.config, OpCreate)
+	return &ReportVulnerabilityCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ReportVulnerability entities.
+func (c *ReportVulnerabilityClient) CreateBulk(builders ...*ReportVulnerabilityCreate) *ReportVulnerabilityCreateBulk {
+	return &ReportVulnerabilityCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ReportVulnerabilityClient) MapCreateBulk(slice any, setFunc func(*ReportVulnerabilityCreate, int)) *ReportVulnerabilityCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ReportVulnerabilityCreateBulk{err: fmt.Errorf("calling to ReportVulnerabilityClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ReportVulnerabilityCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ReportVulnerabilityCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ReportVulnerability.
+func (c *ReportVulnerabilityClient) Update() *ReportVulnerabilityUpdate {
+	mutation := newReportVulnerabilityMutation(c.config, OpUpdate)
+	return &ReportVulnerabilityUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ReportVulnerabilityClient) UpdateOne(rv *ReportVulnerability) *ReportVulnerabilityUpdateOne {
+	mutation := newReportVulnerabilityMutation(c.config, OpUpdateOne, withReportVulnerability(rv))
+	return &ReportVulnerabilityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ReportVulnerabilityClient) UpdateOneID(id int) *ReportVulnerabilityUpdateOne {
+	mutation := newReportVulnerabilityMutation(c.config, OpUpdateOne, withReportVulnerabilityID(id))
+	return &ReportVulnerabilityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ReportVulnerability.
+func (c *ReportVulnerabilityClient) Delete() *ReportVulnerabilityDelete {
+	mutation := newReportVulnerabilityMutation(c.config, OpDelete)
+	return &ReportVulnerabilityDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ReportVulnerabilityClient) DeleteOne(rv *ReportVulnerability) *ReportVulnerabilityDeleteOne {
+	return c.DeleteOneID(rv.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ReportVulnerabilityClient) DeleteOneID(id int) *ReportVulnerabilityDeleteOne {
+	builder := c.Delete().Where(reportvulnerability.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ReportVulnerabilityDeleteOne{builder}
+}
+
+// Query returns a query builder for ReportVulnerability.
+func (c *ReportVulnerabilityClient) Query() *ReportVulnerabilityQuery {
+	return &ReportVulnerabilityQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeReportVulnerability},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ReportVulnerability entity by its id.
+func (c *ReportVulnerabilityClient) Get(ctx context.Context, id int) (*ReportVulnerability, error) {
+	return c.Query().Where(reportvulnerability.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ReportVulnerabilityClient) GetX(ctx context.Context, id int) *ReportVulnerability {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ReportVulnerabilityClient) Hooks() []Hook {
+	return c.hooks.ReportVulnerability
+}
+
+// Interceptors returns the client interceptors.
+func (c *ReportVulnerabilityClient) Interceptors() []Interceptor {
+	return c.inters.ReportVulnerability
+}
+
+func (c *ReportVulnerabilityClient) mutate(ctx context.Context, m *ReportVulnerabilityMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ReportVulnerabilityCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ReportVulnerabilityUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ReportVulnerabilityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ReportVulnerabilityDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ReportVulnerability mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		CodeSourceFile, DepsUsageEvidence []ent.Hook
+		CodeSourceFile, DepsUsageEvidence, ReportDependency, ReportLicense,
+		ReportMalware, ReportPackage, ReportPackageManifest, ReportProject,
+		ReportVulnerability []ent.Hook
 	}
 	inters struct {
-		CodeSourceFile, DepsUsageEvidence []ent.Interceptor
+		CodeSourceFile, DepsUsageEvidence, ReportDependency, ReportLicense,
+		ReportMalware, ReportPackage, ReportPackageManifest, ReportProject,
+		ReportVulnerability []ent.Interceptor
 	}
 )

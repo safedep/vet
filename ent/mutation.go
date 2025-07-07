@@ -7,12 +7,20 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/safedep/vet/ent/codesourcefile"
 	"github.com/safedep/vet/ent/depsusageevidence"
 	"github.com/safedep/vet/ent/predicate"
+	"github.com/safedep/vet/ent/reportdependency"
+	"github.com/safedep/vet/ent/reportlicense"
+	"github.com/safedep/vet/ent/reportmalware"
+	"github.com/safedep/vet/ent/reportpackage"
+	"github.com/safedep/vet/ent/reportpackagemanifest"
+	"github.com/safedep/vet/ent/reportproject"
+	"github.com/safedep/vet/ent/reportvulnerability"
 )
 
 const (
@@ -24,8 +32,15 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeCodeSourceFile    = "CodeSourceFile"
-	TypeDepsUsageEvidence = "DepsUsageEvidence"
+	TypeCodeSourceFile        = "CodeSourceFile"
+	TypeDepsUsageEvidence     = "DepsUsageEvidence"
+	TypeReportDependency      = "ReportDependency"
+	TypeReportLicense         = "ReportLicense"
+	TypeReportMalware         = "ReportMalware"
+	TypeReportPackage         = "ReportPackage"
+	TypeReportPackageManifest = "ReportPackageManifest"
+	TypeReportProject         = "ReportProject"
+	TypeReportVulnerability   = "ReportVulnerability"
 )
 
 // CodeSourceFileMutation represents an operation that mutates the CodeSourceFile nodes in the graph.
@@ -1350,4 +1365,6650 @@ func (m *DepsUsageEvidenceMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown DepsUsageEvidence edge %s", name)
+}
+
+// ReportDependencyMutation represents an operation that mutates the ReportDependency nodes in the graph.
+type ReportDependencyMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *int
+	dependency_package_id *string
+	dependency_name       *string
+	dependency_version    *string
+	dependency_ecosystem  *string
+	dependency_type       *string
+	depth                 *int
+	adddepth              *int
+	created_at            *time.Time
+	updated_at            *time.Time
+	clearedFields         map[string]struct{}
+	_package              *int
+	cleared_package       bool
+	done                  bool
+	oldValue              func(context.Context) (*ReportDependency, error)
+	predicates            []predicate.ReportDependency
+}
+
+var _ ent.Mutation = (*ReportDependencyMutation)(nil)
+
+// reportdependencyOption allows management of the mutation configuration using functional options.
+type reportdependencyOption func(*ReportDependencyMutation)
+
+// newReportDependencyMutation creates new mutation for the ReportDependency entity.
+func newReportDependencyMutation(c config, op Op, opts ...reportdependencyOption) *ReportDependencyMutation {
+	m := &ReportDependencyMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeReportDependency,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withReportDependencyID sets the ID field of the mutation.
+func withReportDependencyID(id int) reportdependencyOption {
+	return func(m *ReportDependencyMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ReportDependency
+		)
+		m.oldValue = func(ctx context.Context) (*ReportDependency, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ReportDependency.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withReportDependency sets the old ReportDependency of the mutation.
+func withReportDependency(node *ReportDependency) reportdependencyOption {
+	return func(m *ReportDependencyMutation) {
+		m.oldValue = func(context.Context) (*ReportDependency, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ReportDependencyMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ReportDependencyMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ReportDependencyMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ReportDependencyMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ReportDependency.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetDependencyPackageID sets the "dependency_package_id" field.
+func (m *ReportDependencyMutation) SetDependencyPackageID(s string) {
+	m.dependency_package_id = &s
+}
+
+// DependencyPackageID returns the value of the "dependency_package_id" field in the mutation.
+func (m *ReportDependencyMutation) DependencyPackageID() (r string, exists bool) {
+	v := m.dependency_package_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDependencyPackageID returns the old "dependency_package_id" field's value of the ReportDependency entity.
+// If the ReportDependency object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyMutation) OldDependencyPackageID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDependencyPackageID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDependencyPackageID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDependencyPackageID: %w", err)
+	}
+	return oldValue.DependencyPackageID, nil
+}
+
+// ResetDependencyPackageID resets all changes to the "dependency_package_id" field.
+func (m *ReportDependencyMutation) ResetDependencyPackageID() {
+	m.dependency_package_id = nil
+}
+
+// SetDependencyName sets the "dependency_name" field.
+func (m *ReportDependencyMutation) SetDependencyName(s string) {
+	m.dependency_name = &s
+}
+
+// DependencyName returns the value of the "dependency_name" field in the mutation.
+func (m *ReportDependencyMutation) DependencyName() (r string, exists bool) {
+	v := m.dependency_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDependencyName returns the old "dependency_name" field's value of the ReportDependency entity.
+// If the ReportDependency object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyMutation) OldDependencyName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDependencyName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDependencyName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDependencyName: %w", err)
+	}
+	return oldValue.DependencyName, nil
+}
+
+// ResetDependencyName resets all changes to the "dependency_name" field.
+func (m *ReportDependencyMutation) ResetDependencyName() {
+	m.dependency_name = nil
+}
+
+// SetDependencyVersion sets the "dependency_version" field.
+func (m *ReportDependencyMutation) SetDependencyVersion(s string) {
+	m.dependency_version = &s
+}
+
+// DependencyVersion returns the value of the "dependency_version" field in the mutation.
+func (m *ReportDependencyMutation) DependencyVersion() (r string, exists bool) {
+	v := m.dependency_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDependencyVersion returns the old "dependency_version" field's value of the ReportDependency entity.
+// If the ReportDependency object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyMutation) OldDependencyVersion(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDependencyVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDependencyVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDependencyVersion: %w", err)
+	}
+	return oldValue.DependencyVersion, nil
+}
+
+// ResetDependencyVersion resets all changes to the "dependency_version" field.
+func (m *ReportDependencyMutation) ResetDependencyVersion() {
+	m.dependency_version = nil
+}
+
+// SetDependencyEcosystem sets the "dependency_ecosystem" field.
+func (m *ReportDependencyMutation) SetDependencyEcosystem(s string) {
+	m.dependency_ecosystem = &s
+}
+
+// DependencyEcosystem returns the value of the "dependency_ecosystem" field in the mutation.
+func (m *ReportDependencyMutation) DependencyEcosystem() (r string, exists bool) {
+	v := m.dependency_ecosystem
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDependencyEcosystem returns the old "dependency_ecosystem" field's value of the ReportDependency entity.
+// If the ReportDependency object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyMutation) OldDependencyEcosystem(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDependencyEcosystem is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDependencyEcosystem requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDependencyEcosystem: %w", err)
+	}
+	return oldValue.DependencyEcosystem, nil
+}
+
+// ResetDependencyEcosystem resets all changes to the "dependency_ecosystem" field.
+func (m *ReportDependencyMutation) ResetDependencyEcosystem() {
+	m.dependency_ecosystem = nil
+}
+
+// SetDependencyType sets the "dependency_type" field.
+func (m *ReportDependencyMutation) SetDependencyType(s string) {
+	m.dependency_type = &s
+}
+
+// DependencyType returns the value of the "dependency_type" field in the mutation.
+func (m *ReportDependencyMutation) DependencyType() (r string, exists bool) {
+	v := m.dependency_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDependencyType returns the old "dependency_type" field's value of the ReportDependency entity.
+// If the ReportDependency object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyMutation) OldDependencyType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDependencyType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDependencyType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDependencyType: %w", err)
+	}
+	return oldValue.DependencyType, nil
+}
+
+// ClearDependencyType clears the value of the "dependency_type" field.
+func (m *ReportDependencyMutation) ClearDependencyType() {
+	m.dependency_type = nil
+	m.clearedFields[reportdependency.FieldDependencyType] = struct{}{}
+}
+
+// DependencyTypeCleared returns if the "dependency_type" field was cleared in this mutation.
+func (m *ReportDependencyMutation) DependencyTypeCleared() bool {
+	_, ok := m.clearedFields[reportdependency.FieldDependencyType]
+	return ok
+}
+
+// ResetDependencyType resets all changes to the "dependency_type" field.
+func (m *ReportDependencyMutation) ResetDependencyType() {
+	m.dependency_type = nil
+	delete(m.clearedFields, reportdependency.FieldDependencyType)
+}
+
+// SetDepth sets the "depth" field.
+func (m *ReportDependencyMutation) SetDepth(i int) {
+	m.depth = &i
+	m.adddepth = nil
+}
+
+// Depth returns the value of the "depth" field in the mutation.
+func (m *ReportDependencyMutation) Depth() (r int, exists bool) {
+	v := m.depth
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDepth returns the old "depth" field's value of the ReportDependency entity.
+// If the ReportDependency object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyMutation) OldDepth(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDepth is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDepth requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDepth: %w", err)
+	}
+	return oldValue.Depth, nil
+}
+
+// AddDepth adds i to the "depth" field.
+func (m *ReportDependencyMutation) AddDepth(i int) {
+	if m.adddepth != nil {
+		*m.adddepth += i
+	} else {
+		m.adddepth = &i
+	}
+}
+
+// AddedDepth returns the value that was added to the "depth" field in this mutation.
+func (m *ReportDependencyMutation) AddedDepth() (r int, exists bool) {
+	v := m.adddepth
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDepth resets all changes to the "depth" field.
+func (m *ReportDependencyMutation) ResetDepth() {
+	m.depth = nil
+	m.adddepth = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ReportDependencyMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ReportDependencyMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ReportDependency entity.
+// If the ReportDependency object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ClearCreatedAt clears the value of the "created_at" field.
+func (m *ReportDependencyMutation) ClearCreatedAt() {
+	m.created_at = nil
+	m.clearedFields[reportdependency.FieldCreatedAt] = struct{}{}
+}
+
+// CreatedAtCleared returns if the "created_at" field was cleared in this mutation.
+func (m *ReportDependencyMutation) CreatedAtCleared() bool {
+	_, ok := m.clearedFields[reportdependency.FieldCreatedAt]
+	return ok
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ReportDependencyMutation) ResetCreatedAt() {
+	m.created_at = nil
+	delete(m.clearedFields, reportdependency.FieldCreatedAt)
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ReportDependencyMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ReportDependencyMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ReportDependency entity.
+// If the ReportDependency object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *ReportDependencyMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[reportdependency.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *ReportDependencyMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[reportdependency.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ReportDependencyMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, reportdependency.FieldUpdatedAt)
+}
+
+// SetPackageID sets the "package" edge to the ReportPackage entity by id.
+func (m *ReportDependencyMutation) SetPackageID(id int) {
+	m._package = &id
+}
+
+// ClearPackage clears the "package" edge to the ReportPackage entity.
+func (m *ReportDependencyMutation) ClearPackage() {
+	m.cleared_package = true
+}
+
+// PackageCleared reports if the "package" edge to the ReportPackage entity was cleared.
+func (m *ReportDependencyMutation) PackageCleared() bool {
+	return m.cleared_package
+}
+
+// PackageID returns the "package" edge ID in the mutation.
+func (m *ReportDependencyMutation) PackageID() (id int, exists bool) {
+	if m._package != nil {
+		return *m._package, true
+	}
+	return
+}
+
+// PackageIDs returns the "package" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PackageID instead. It exists only for internal usage by the builders.
+func (m *ReportDependencyMutation) PackageIDs() (ids []int) {
+	if id := m._package; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPackage resets all changes to the "package" edge.
+func (m *ReportDependencyMutation) ResetPackage() {
+	m._package = nil
+	m.cleared_package = false
+}
+
+// Where appends a list predicates to the ReportDependencyMutation builder.
+func (m *ReportDependencyMutation) Where(ps ...predicate.ReportDependency) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ReportDependencyMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ReportDependencyMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ReportDependency, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ReportDependencyMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ReportDependencyMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ReportDependency).
+func (m *ReportDependencyMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ReportDependencyMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.dependency_package_id != nil {
+		fields = append(fields, reportdependency.FieldDependencyPackageID)
+	}
+	if m.dependency_name != nil {
+		fields = append(fields, reportdependency.FieldDependencyName)
+	}
+	if m.dependency_version != nil {
+		fields = append(fields, reportdependency.FieldDependencyVersion)
+	}
+	if m.dependency_ecosystem != nil {
+		fields = append(fields, reportdependency.FieldDependencyEcosystem)
+	}
+	if m.dependency_type != nil {
+		fields = append(fields, reportdependency.FieldDependencyType)
+	}
+	if m.depth != nil {
+		fields = append(fields, reportdependency.FieldDepth)
+	}
+	if m.created_at != nil {
+		fields = append(fields, reportdependency.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, reportdependency.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ReportDependencyMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case reportdependency.FieldDependencyPackageID:
+		return m.DependencyPackageID()
+	case reportdependency.FieldDependencyName:
+		return m.DependencyName()
+	case reportdependency.FieldDependencyVersion:
+		return m.DependencyVersion()
+	case reportdependency.FieldDependencyEcosystem:
+		return m.DependencyEcosystem()
+	case reportdependency.FieldDependencyType:
+		return m.DependencyType()
+	case reportdependency.FieldDepth:
+		return m.Depth()
+	case reportdependency.FieldCreatedAt:
+		return m.CreatedAt()
+	case reportdependency.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ReportDependencyMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case reportdependency.FieldDependencyPackageID:
+		return m.OldDependencyPackageID(ctx)
+	case reportdependency.FieldDependencyName:
+		return m.OldDependencyName(ctx)
+	case reportdependency.FieldDependencyVersion:
+		return m.OldDependencyVersion(ctx)
+	case reportdependency.FieldDependencyEcosystem:
+		return m.OldDependencyEcosystem(ctx)
+	case reportdependency.FieldDependencyType:
+		return m.OldDependencyType(ctx)
+	case reportdependency.FieldDepth:
+		return m.OldDepth(ctx)
+	case reportdependency.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case reportdependency.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown ReportDependency field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportDependencyMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case reportdependency.FieldDependencyPackageID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDependencyPackageID(v)
+		return nil
+	case reportdependency.FieldDependencyName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDependencyName(v)
+		return nil
+	case reportdependency.FieldDependencyVersion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDependencyVersion(v)
+		return nil
+	case reportdependency.FieldDependencyEcosystem:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDependencyEcosystem(v)
+		return nil
+	case reportdependency.FieldDependencyType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDependencyType(v)
+		return nil
+	case reportdependency.FieldDepth:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDepth(v)
+		return nil
+	case reportdependency.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case reportdependency.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ReportDependency field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ReportDependencyMutation) AddedFields() []string {
+	var fields []string
+	if m.adddepth != nil {
+		fields = append(fields, reportdependency.FieldDepth)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ReportDependencyMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case reportdependency.FieldDepth:
+		return m.AddedDepth()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportDependencyMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case reportdependency.FieldDepth:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDepth(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ReportDependency numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ReportDependencyMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(reportdependency.FieldDependencyType) {
+		fields = append(fields, reportdependency.FieldDependencyType)
+	}
+	if m.FieldCleared(reportdependency.FieldCreatedAt) {
+		fields = append(fields, reportdependency.FieldCreatedAt)
+	}
+	if m.FieldCleared(reportdependency.FieldUpdatedAt) {
+		fields = append(fields, reportdependency.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ReportDependencyMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ReportDependencyMutation) ClearField(name string) error {
+	switch name {
+	case reportdependency.FieldDependencyType:
+		m.ClearDependencyType()
+		return nil
+	case reportdependency.FieldCreatedAt:
+		m.ClearCreatedAt()
+		return nil
+	case reportdependency.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportDependency nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ReportDependencyMutation) ResetField(name string) error {
+	switch name {
+	case reportdependency.FieldDependencyPackageID:
+		m.ResetDependencyPackageID()
+		return nil
+	case reportdependency.FieldDependencyName:
+		m.ResetDependencyName()
+		return nil
+	case reportdependency.FieldDependencyVersion:
+		m.ResetDependencyVersion()
+		return nil
+	case reportdependency.FieldDependencyEcosystem:
+		m.ResetDependencyEcosystem()
+		return nil
+	case reportdependency.FieldDependencyType:
+		m.ResetDependencyType()
+		return nil
+	case reportdependency.FieldDepth:
+		m.ResetDepth()
+		return nil
+	case reportdependency.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case reportdependency.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportDependency field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ReportDependencyMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m._package != nil {
+		edges = append(edges, reportdependency.EdgePackage)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ReportDependencyMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case reportdependency.EdgePackage:
+		if id := m._package; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ReportDependencyMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ReportDependencyMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ReportDependencyMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleared_package {
+		edges = append(edges, reportdependency.EdgePackage)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ReportDependencyMutation) EdgeCleared(name string) bool {
+	switch name {
+	case reportdependency.EdgePackage:
+		return m.cleared_package
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ReportDependencyMutation) ClearEdge(name string) error {
+	switch name {
+	case reportdependency.EdgePackage:
+		m.ClearPackage()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportDependency unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ReportDependencyMutation) ResetEdge(name string) error {
+	switch name {
+	case reportdependency.EdgePackage:
+		m.ResetPackage()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportDependency edge %s", name)
+}
+
+// ReportLicenseMutation represents an operation that mutates the ReportLicense nodes in the graph.
+type ReportLicenseMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *int
+	license_id      *string
+	name            *string
+	spdx_id         *string
+	url             *string
+	is_osi_approved *bool
+	created_at      *time.Time
+	updated_at      *time.Time
+	clearedFields   map[string]struct{}
+	done            bool
+	oldValue        func(context.Context) (*ReportLicense, error)
+	predicates      []predicate.ReportLicense
+}
+
+var _ ent.Mutation = (*ReportLicenseMutation)(nil)
+
+// reportlicenseOption allows management of the mutation configuration using functional options.
+type reportlicenseOption func(*ReportLicenseMutation)
+
+// newReportLicenseMutation creates new mutation for the ReportLicense entity.
+func newReportLicenseMutation(c config, op Op, opts ...reportlicenseOption) *ReportLicenseMutation {
+	m := &ReportLicenseMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeReportLicense,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withReportLicenseID sets the ID field of the mutation.
+func withReportLicenseID(id int) reportlicenseOption {
+	return func(m *ReportLicenseMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ReportLicense
+		)
+		m.oldValue = func(ctx context.Context) (*ReportLicense, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ReportLicense.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withReportLicense sets the old ReportLicense of the mutation.
+func withReportLicense(node *ReportLicense) reportlicenseOption {
+	return func(m *ReportLicenseMutation) {
+		m.oldValue = func(context.Context) (*ReportLicense, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ReportLicenseMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ReportLicenseMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ReportLicenseMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ReportLicenseMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ReportLicense.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetLicenseID sets the "license_id" field.
+func (m *ReportLicenseMutation) SetLicenseID(s string) {
+	m.license_id = &s
+}
+
+// LicenseID returns the value of the "license_id" field in the mutation.
+func (m *ReportLicenseMutation) LicenseID() (r string, exists bool) {
+	v := m.license_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLicenseID returns the old "license_id" field's value of the ReportLicense entity.
+// If the ReportLicense object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportLicenseMutation) OldLicenseID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLicenseID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLicenseID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLicenseID: %w", err)
+	}
+	return oldValue.LicenseID, nil
+}
+
+// ResetLicenseID resets all changes to the "license_id" field.
+func (m *ReportLicenseMutation) ResetLicenseID() {
+	m.license_id = nil
+}
+
+// SetName sets the "name" field.
+func (m *ReportLicenseMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *ReportLicenseMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the ReportLicense entity.
+// If the ReportLicense object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportLicenseMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ClearName clears the value of the "name" field.
+func (m *ReportLicenseMutation) ClearName() {
+	m.name = nil
+	m.clearedFields[reportlicense.FieldName] = struct{}{}
+}
+
+// NameCleared returns if the "name" field was cleared in this mutation.
+func (m *ReportLicenseMutation) NameCleared() bool {
+	_, ok := m.clearedFields[reportlicense.FieldName]
+	return ok
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *ReportLicenseMutation) ResetName() {
+	m.name = nil
+	delete(m.clearedFields, reportlicense.FieldName)
+}
+
+// SetSpdxID sets the "spdx_id" field.
+func (m *ReportLicenseMutation) SetSpdxID(s string) {
+	m.spdx_id = &s
+}
+
+// SpdxID returns the value of the "spdx_id" field in the mutation.
+func (m *ReportLicenseMutation) SpdxID() (r string, exists bool) {
+	v := m.spdx_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSpdxID returns the old "spdx_id" field's value of the ReportLicense entity.
+// If the ReportLicense object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportLicenseMutation) OldSpdxID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSpdxID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSpdxID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSpdxID: %w", err)
+	}
+	return oldValue.SpdxID, nil
+}
+
+// ClearSpdxID clears the value of the "spdx_id" field.
+func (m *ReportLicenseMutation) ClearSpdxID() {
+	m.spdx_id = nil
+	m.clearedFields[reportlicense.FieldSpdxID] = struct{}{}
+}
+
+// SpdxIDCleared returns if the "spdx_id" field was cleared in this mutation.
+func (m *ReportLicenseMutation) SpdxIDCleared() bool {
+	_, ok := m.clearedFields[reportlicense.FieldSpdxID]
+	return ok
+}
+
+// ResetSpdxID resets all changes to the "spdx_id" field.
+func (m *ReportLicenseMutation) ResetSpdxID() {
+	m.spdx_id = nil
+	delete(m.clearedFields, reportlicense.FieldSpdxID)
+}
+
+// SetURL sets the "url" field.
+func (m *ReportLicenseMutation) SetURL(s string) {
+	m.url = &s
+}
+
+// URL returns the value of the "url" field in the mutation.
+func (m *ReportLicenseMutation) URL() (r string, exists bool) {
+	v := m.url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldURL returns the old "url" field's value of the ReportLicense entity.
+// If the ReportLicense object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportLicenseMutation) OldURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldURL: %w", err)
+	}
+	return oldValue.URL, nil
+}
+
+// ClearURL clears the value of the "url" field.
+func (m *ReportLicenseMutation) ClearURL() {
+	m.url = nil
+	m.clearedFields[reportlicense.FieldURL] = struct{}{}
+}
+
+// URLCleared returns if the "url" field was cleared in this mutation.
+func (m *ReportLicenseMutation) URLCleared() bool {
+	_, ok := m.clearedFields[reportlicense.FieldURL]
+	return ok
+}
+
+// ResetURL resets all changes to the "url" field.
+func (m *ReportLicenseMutation) ResetURL() {
+	m.url = nil
+	delete(m.clearedFields, reportlicense.FieldURL)
+}
+
+// SetIsOsiApproved sets the "is_osi_approved" field.
+func (m *ReportLicenseMutation) SetIsOsiApproved(b bool) {
+	m.is_osi_approved = &b
+}
+
+// IsOsiApproved returns the value of the "is_osi_approved" field in the mutation.
+func (m *ReportLicenseMutation) IsOsiApproved() (r bool, exists bool) {
+	v := m.is_osi_approved
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsOsiApproved returns the old "is_osi_approved" field's value of the ReportLicense entity.
+// If the ReportLicense object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportLicenseMutation) OldIsOsiApproved(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsOsiApproved is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsOsiApproved requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsOsiApproved: %w", err)
+	}
+	return oldValue.IsOsiApproved, nil
+}
+
+// ClearIsOsiApproved clears the value of the "is_osi_approved" field.
+func (m *ReportLicenseMutation) ClearIsOsiApproved() {
+	m.is_osi_approved = nil
+	m.clearedFields[reportlicense.FieldIsOsiApproved] = struct{}{}
+}
+
+// IsOsiApprovedCleared returns if the "is_osi_approved" field was cleared in this mutation.
+func (m *ReportLicenseMutation) IsOsiApprovedCleared() bool {
+	_, ok := m.clearedFields[reportlicense.FieldIsOsiApproved]
+	return ok
+}
+
+// ResetIsOsiApproved resets all changes to the "is_osi_approved" field.
+func (m *ReportLicenseMutation) ResetIsOsiApproved() {
+	m.is_osi_approved = nil
+	delete(m.clearedFields, reportlicense.FieldIsOsiApproved)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ReportLicenseMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ReportLicenseMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ReportLicense entity.
+// If the ReportLicense object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportLicenseMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ClearCreatedAt clears the value of the "created_at" field.
+func (m *ReportLicenseMutation) ClearCreatedAt() {
+	m.created_at = nil
+	m.clearedFields[reportlicense.FieldCreatedAt] = struct{}{}
+}
+
+// CreatedAtCleared returns if the "created_at" field was cleared in this mutation.
+func (m *ReportLicenseMutation) CreatedAtCleared() bool {
+	_, ok := m.clearedFields[reportlicense.FieldCreatedAt]
+	return ok
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ReportLicenseMutation) ResetCreatedAt() {
+	m.created_at = nil
+	delete(m.clearedFields, reportlicense.FieldCreatedAt)
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ReportLicenseMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ReportLicenseMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ReportLicense entity.
+// If the ReportLicense object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportLicenseMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *ReportLicenseMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[reportlicense.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *ReportLicenseMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[reportlicense.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ReportLicenseMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, reportlicense.FieldUpdatedAt)
+}
+
+// Where appends a list predicates to the ReportLicenseMutation builder.
+func (m *ReportLicenseMutation) Where(ps ...predicate.ReportLicense) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ReportLicenseMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ReportLicenseMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ReportLicense, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ReportLicenseMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ReportLicenseMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ReportLicense).
+func (m *ReportLicenseMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ReportLicenseMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.license_id != nil {
+		fields = append(fields, reportlicense.FieldLicenseID)
+	}
+	if m.name != nil {
+		fields = append(fields, reportlicense.FieldName)
+	}
+	if m.spdx_id != nil {
+		fields = append(fields, reportlicense.FieldSpdxID)
+	}
+	if m.url != nil {
+		fields = append(fields, reportlicense.FieldURL)
+	}
+	if m.is_osi_approved != nil {
+		fields = append(fields, reportlicense.FieldIsOsiApproved)
+	}
+	if m.created_at != nil {
+		fields = append(fields, reportlicense.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, reportlicense.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ReportLicenseMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case reportlicense.FieldLicenseID:
+		return m.LicenseID()
+	case reportlicense.FieldName:
+		return m.Name()
+	case reportlicense.FieldSpdxID:
+		return m.SpdxID()
+	case reportlicense.FieldURL:
+		return m.URL()
+	case reportlicense.FieldIsOsiApproved:
+		return m.IsOsiApproved()
+	case reportlicense.FieldCreatedAt:
+		return m.CreatedAt()
+	case reportlicense.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ReportLicenseMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case reportlicense.FieldLicenseID:
+		return m.OldLicenseID(ctx)
+	case reportlicense.FieldName:
+		return m.OldName(ctx)
+	case reportlicense.FieldSpdxID:
+		return m.OldSpdxID(ctx)
+	case reportlicense.FieldURL:
+		return m.OldURL(ctx)
+	case reportlicense.FieldIsOsiApproved:
+		return m.OldIsOsiApproved(ctx)
+	case reportlicense.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case reportlicense.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown ReportLicense field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportLicenseMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case reportlicense.FieldLicenseID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLicenseID(v)
+		return nil
+	case reportlicense.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case reportlicense.FieldSpdxID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSpdxID(v)
+		return nil
+	case reportlicense.FieldURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetURL(v)
+		return nil
+	case reportlicense.FieldIsOsiApproved:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsOsiApproved(v)
+		return nil
+	case reportlicense.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case reportlicense.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ReportLicense field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ReportLicenseMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ReportLicenseMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportLicenseMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ReportLicense numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ReportLicenseMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(reportlicense.FieldName) {
+		fields = append(fields, reportlicense.FieldName)
+	}
+	if m.FieldCleared(reportlicense.FieldSpdxID) {
+		fields = append(fields, reportlicense.FieldSpdxID)
+	}
+	if m.FieldCleared(reportlicense.FieldURL) {
+		fields = append(fields, reportlicense.FieldURL)
+	}
+	if m.FieldCleared(reportlicense.FieldIsOsiApproved) {
+		fields = append(fields, reportlicense.FieldIsOsiApproved)
+	}
+	if m.FieldCleared(reportlicense.FieldCreatedAt) {
+		fields = append(fields, reportlicense.FieldCreatedAt)
+	}
+	if m.FieldCleared(reportlicense.FieldUpdatedAt) {
+		fields = append(fields, reportlicense.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ReportLicenseMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ReportLicenseMutation) ClearField(name string) error {
+	switch name {
+	case reportlicense.FieldName:
+		m.ClearName()
+		return nil
+	case reportlicense.FieldSpdxID:
+		m.ClearSpdxID()
+		return nil
+	case reportlicense.FieldURL:
+		m.ClearURL()
+		return nil
+	case reportlicense.FieldIsOsiApproved:
+		m.ClearIsOsiApproved()
+		return nil
+	case reportlicense.FieldCreatedAt:
+		m.ClearCreatedAt()
+		return nil
+	case reportlicense.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportLicense nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ReportLicenseMutation) ResetField(name string) error {
+	switch name {
+	case reportlicense.FieldLicenseID:
+		m.ResetLicenseID()
+		return nil
+	case reportlicense.FieldName:
+		m.ResetName()
+		return nil
+	case reportlicense.FieldSpdxID:
+		m.ResetSpdxID()
+		return nil
+	case reportlicense.FieldURL:
+		m.ResetURL()
+		return nil
+	case reportlicense.FieldIsOsiApproved:
+		m.ResetIsOsiApproved()
+		return nil
+	case reportlicense.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case reportlicense.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportLicense field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ReportLicenseMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ReportLicenseMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ReportLicenseMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ReportLicenseMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ReportLicenseMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ReportLicenseMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ReportLicenseMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown ReportLicense unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ReportLicenseMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown ReportLicense edge %s", name)
+}
+
+// ReportMalwareMutation represents an operation that mutates the ReportMalware nodes in the graph.
+type ReportMalwareMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *int
+	analysis_id         *string
+	is_malware          *bool
+	is_suspicious       *bool
+	confidence          *string
+	report              *map[string]interface{}
+	verification_record *map[string]interface{}
+	created_at          *time.Time
+	updated_at          *time.Time
+	clearedFields       map[string]struct{}
+	_package            *int
+	cleared_package     bool
+	done                bool
+	oldValue            func(context.Context) (*ReportMalware, error)
+	predicates          []predicate.ReportMalware
+}
+
+var _ ent.Mutation = (*ReportMalwareMutation)(nil)
+
+// reportmalwareOption allows management of the mutation configuration using functional options.
+type reportmalwareOption func(*ReportMalwareMutation)
+
+// newReportMalwareMutation creates new mutation for the ReportMalware entity.
+func newReportMalwareMutation(c config, op Op, opts ...reportmalwareOption) *ReportMalwareMutation {
+	m := &ReportMalwareMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeReportMalware,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withReportMalwareID sets the ID field of the mutation.
+func withReportMalwareID(id int) reportmalwareOption {
+	return func(m *ReportMalwareMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ReportMalware
+		)
+		m.oldValue = func(ctx context.Context) (*ReportMalware, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ReportMalware.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withReportMalware sets the old ReportMalware of the mutation.
+func withReportMalware(node *ReportMalware) reportmalwareOption {
+	return func(m *ReportMalwareMutation) {
+		m.oldValue = func(context.Context) (*ReportMalware, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ReportMalwareMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ReportMalwareMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ReportMalwareMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ReportMalwareMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ReportMalware.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetAnalysisID sets the "analysis_id" field.
+func (m *ReportMalwareMutation) SetAnalysisID(s string) {
+	m.analysis_id = &s
+}
+
+// AnalysisID returns the value of the "analysis_id" field in the mutation.
+func (m *ReportMalwareMutation) AnalysisID() (r string, exists bool) {
+	v := m.analysis_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAnalysisID returns the old "analysis_id" field's value of the ReportMalware entity.
+// If the ReportMalware object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportMalwareMutation) OldAnalysisID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAnalysisID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAnalysisID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAnalysisID: %w", err)
+	}
+	return oldValue.AnalysisID, nil
+}
+
+// ResetAnalysisID resets all changes to the "analysis_id" field.
+func (m *ReportMalwareMutation) ResetAnalysisID() {
+	m.analysis_id = nil
+}
+
+// SetIsMalware sets the "is_malware" field.
+func (m *ReportMalwareMutation) SetIsMalware(b bool) {
+	m.is_malware = &b
+}
+
+// IsMalware returns the value of the "is_malware" field in the mutation.
+func (m *ReportMalwareMutation) IsMalware() (r bool, exists bool) {
+	v := m.is_malware
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsMalware returns the old "is_malware" field's value of the ReportMalware entity.
+// If the ReportMalware object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportMalwareMutation) OldIsMalware(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsMalware is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsMalware requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsMalware: %w", err)
+	}
+	return oldValue.IsMalware, nil
+}
+
+// ResetIsMalware resets all changes to the "is_malware" field.
+func (m *ReportMalwareMutation) ResetIsMalware() {
+	m.is_malware = nil
+}
+
+// SetIsSuspicious sets the "is_suspicious" field.
+func (m *ReportMalwareMutation) SetIsSuspicious(b bool) {
+	m.is_suspicious = &b
+}
+
+// IsSuspicious returns the value of the "is_suspicious" field in the mutation.
+func (m *ReportMalwareMutation) IsSuspicious() (r bool, exists bool) {
+	v := m.is_suspicious
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsSuspicious returns the old "is_suspicious" field's value of the ReportMalware entity.
+// If the ReportMalware object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportMalwareMutation) OldIsSuspicious(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsSuspicious is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsSuspicious requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsSuspicious: %w", err)
+	}
+	return oldValue.IsSuspicious, nil
+}
+
+// ResetIsSuspicious resets all changes to the "is_suspicious" field.
+func (m *ReportMalwareMutation) ResetIsSuspicious() {
+	m.is_suspicious = nil
+}
+
+// SetConfidence sets the "confidence" field.
+func (m *ReportMalwareMutation) SetConfidence(s string) {
+	m.confidence = &s
+}
+
+// Confidence returns the value of the "confidence" field in the mutation.
+func (m *ReportMalwareMutation) Confidence() (r string, exists bool) {
+	v := m.confidence
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConfidence returns the old "confidence" field's value of the ReportMalware entity.
+// If the ReportMalware object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportMalwareMutation) OldConfidence(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConfidence is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConfidence requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConfidence: %w", err)
+	}
+	return oldValue.Confidence, nil
+}
+
+// ClearConfidence clears the value of the "confidence" field.
+func (m *ReportMalwareMutation) ClearConfidence() {
+	m.confidence = nil
+	m.clearedFields[reportmalware.FieldConfidence] = struct{}{}
+}
+
+// ConfidenceCleared returns if the "confidence" field was cleared in this mutation.
+func (m *ReportMalwareMutation) ConfidenceCleared() bool {
+	_, ok := m.clearedFields[reportmalware.FieldConfidence]
+	return ok
+}
+
+// ResetConfidence resets all changes to the "confidence" field.
+func (m *ReportMalwareMutation) ResetConfidence() {
+	m.confidence = nil
+	delete(m.clearedFields, reportmalware.FieldConfidence)
+}
+
+// SetReport sets the "report" field.
+func (m *ReportMalwareMutation) SetReport(value map[string]interface{}) {
+	m.report = &value
+}
+
+// Report returns the value of the "report" field in the mutation.
+func (m *ReportMalwareMutation) Report() (r map[string]interface{}, exists bool) {
+	v := m.report
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReport returns the old "report" field's value of the ReportMalware entity.
+// If the ReportMalware object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportMalwareMutation) OldReport(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReport is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReport requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReport: %w", err)
+	}
+	return oldValue.Report, nil
+}
+
+// ClearReport clears the value of the "report" field.
+func (m *ReportMalwareMutation) ClearReport() {
+	m.report = nil
+	m.clearedFields[reportmalware.FieldReport] = struct{}{}
+}
+
+// ReportCleared returns if the "report" field was cleared in this mutation.
+func (m *ReportMalwareMutation) ReportCleared() bool {
+	_, ok := m.clearedFields[reportmalware.FieldReport]
+	return ok
+}
+
+// ResetReport resets all changes to the "report" field.
+func (m *ReportMalwareMutation) ResetReport() {
+	m.report = nil
+	delete(m.clearedFields, reportmalware.FieldReport)
+}
+
+// SetVerificationRecord sets the "verification_record" field.
+func (m *ReportMalwareMutation) SetVerificationRecord(value map[string]interface{}) {
+	m.verification_record = &value
+}
+
+// VerificationRecord returns the value of the "verification_record" field in the mutation.
+func (m *ReportMalwareMutation) VerificationRecord() (r map[string]interface{}, exists bool) {
+	v := m.verification_record
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVerificationRecord returns the old "verification_record" field's value of the ReportMalware entity.
+// If the ReportMalware object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportMalwareMutation) OldVerificationRecord(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVerificationRecord is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVerificationRecord requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVerificationRecord: %w", err)
+	}
+	return oldValue.VerificationRecord, nil
+}
+
+// ClearVerificationRecord clears the value of the "verification_record" field.
+func (m *ReportMalwareMutation) ClearVerificationRecord() {
+	m.verification_record = nil
+	m.clearedFields[reportmalware.FieldVerificationRecord] = struct{}{}
+}
+
+// VerificationRecordCleared returns if the "verification_record" field was cleared in this mutation.
+func (m *ReportMalwareMutation) VerificationRecordCleared() bool {
+	_, ok := m.clearedFields[reportmalware.FieldVerificationRecord]
+	return ok
+}
+
+// ResetVerificationRecord resets all changes to the "verification_record" field.
+func (m *ReportMalwareMutation) ResetVerificationRecord() {
+	m.verification_record = nil
+	delete(m.clearedFields, reportmalware.FieldVerificationRecord)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ReportMalwareMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ReportMalwareMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ReportMalware entity.
+// If the ReportMalware object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportMalwareMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ClearCreatedAt clears the value of the "created_at" field.
+func (m *ReportMalwareMutation) ClearCreatedAt() {
+	m.created_at = nil
+	m.clearedFields[reportmalware.FieldCreatedAt] = struct{}{}
+}
+
+// CreatedAtCleared returns if the "created_at" field was cleared in this mutation.
+func (m *ReportMalwareMutation) CreatedAtCleared() bool {
+	_, ok := m.clearedFields[reportmalware.FieldCreatedAt]
+	return ok
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ReportMalwareMutation) ResetCreatedAt() {
+	m.created_at = nil
+	delete(m.clearedFields, reportmalware.FieldCreatedAt)
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ReportMalwareMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ReportMalwareMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ReportMalware entity.
+// If the ReportMalware object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportMalwareMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *ReportMalwareMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[reportmalware.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *ReportMalwareMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[reportmalware.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ReportMalwareMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, reportmalware.FieldUpdatedAt)
+}
+
+// SetPackageID sets the "package" edge to the ReportPackage entity by id.
+func (m *ReportMalwareMutation) SetPackageID(id int) {
+	m._package = &id
+}
+
+// ClearPackage clears the "package" edge to the ReportPackage entity.
+func (m *ReportMalwareMutation) ClearPackage() {
+	m.cleared_package = true
+}
+
+// PackageCleared reports if the "package" edge to the ReportPackage entity was cleared.
+func (m *ReportMalwareMutation) PackageCleared() bool {
+	return m.cleared_package
+}
+
+// PackageID returns the "package" edge ID in the mutation.
+func (m *ReportMalwareMutation) PackageID() (id int, exists bool) {
+	if m._package != nil {
+		return *m._package, true
+	}
+	return
+}
+
+// PackageIDs returns the "package" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PackageID instead. It exists only for internal usage by the builders.
+func (m *ReportMalwareMutation) PackageIDs() (ids []int) {
+	if id := m._package; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPackage resets all changes to the "package" edge.
+func (m *ReportMalwareMutation) ResetPackage() {
+	m._package = nil
+	m.cleared_package = false
+}
+
+// Where appends a list predicates to the ReportMalwareMutation builder.
+func (m *ReportMalwareMutation) Where(ps ...predicate.ReportMalware) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ReportMalwareMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ReportMalwareMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ReportMalware, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ReportMalwareMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ReportMalwareMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ReportMalware).
+func (m *ReportMalwareMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ReportMalwareMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.analysis_id != nil {
+		fields = append(fields, reportmalware.FieldAnalysisID)
+	}
+	if m.is_malware != nil {
+		fields = append(fields, reportmalware.FieldIsMalware)
+	}
+	if m.is_suspicious != nil {
+		fields = append(fields, reportmalware.FieldIsSuspicious)
+	}
+	if m.confidence != nil {
+		fields = append(fields, reportmalware.FieldConfidence)
+	}
+	if m.report != nil {
+		fields = append(fields, reportmalware.FieldReport)
+	}
+	if m.verification_record != nil {
+		fields = append(fields, reportmalware.FieldVerificationRecord)
+	}
+	if m.created_at != nil {
+		fields = append(fields, reportmalware.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, reportmalware.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ReportMalwareMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case reportmalware.FieldAnalysisID:
+		return m.AnalysisID()
+	case reportmalware.FieldIsMalware:
+		return m.IsMalware()
+	case reportmalware.FieldIsSuspicious:
+		return m.IsSuspicious()
+	case reportmalware.FieldConfidence:
+		return m.Confidence()
+	case reportmalware.FieldReport:
+		return m.Report()
+	case reportmalware.FieldVerificationRecord:
+		return m.VerificationRecord()
+	case reportmalware.FieldCreatedAt:
+		return m.CreatedAt()
+	case reportmalware.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ReportMalwareMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case reportmalware.FieldAnalysisID:
+		return m.OldAnalysisID(ctx)
+	case reportmalware.FieldIsMalware:
+		return m.OldIsMalware(ctx)
+	case reportmalware.FieldIsSuspicious:
+		return m.OldIsSuspicious(ctx)
+	case reportmalware.FieldConfidence:
+		return m.OldConfidence(ctx)
+	case reportmalware.FieldReport:
+		return m.OldReport(ctx)
+	case reportmalware.FieldVerificationRecord:
+		return m.OldVerificationRecord(ctx)
+	case reportmalware.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case reportmalware.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown ReportMalware field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportMalwareMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case reportmalware.FieldAnalysisID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAnalysisID(v)
+		return nil
+	case reportmalware.FieldIsMalware:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsMalware(v)
+		return nil
+	case reportmalware.FieldIsSuspicious:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsSuspicious(v)
+		return nil
+	case reportmalware.FieldConfidence:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConfidence(v)
+		return nil
+	case reportmalware.FieldReport:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReport(v)
+		return nil
+	case reportmalware.FieldVerificationRecord:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVerificationRecord(v)
+		return nil
+	case reportmalware.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case reportmalware.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ReportMalware field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ReportMalwareMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ReportMalwareMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportMalwareMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ReportMalware numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ReportMalwareMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(reportmalware.FieldConfidence) {
+		fields = append(fields, reportmalware.FieldConfidence)
+	}
+	if m.FieldCleared(reportmalware.FieldReport) {
+		fields = append(fields, reportmalware.FieldReport)
+	}
+	if m.FieldCleared(reportmalware.FieldVerificationRecord) {
+		fields = append(fields, reportmalware.FieldVerificationRecord)
+	}
+	if m.FieldCleared(reportmalware.FieldCreatedAt) {
+		fields = append(fields, reportmalware.FieldCreatedAt)
+	}
+	if m.FieldCleared(reportmalware.FieldUpdatedAt) {
+		fields = append(fields, reportmalware.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ReportMalwareMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ReportMalwareMutation) ClearField(name string) error {
+	switch name {
+	case reportmalware.FieldConfidence:
+		m.ClearConfidence()
+		return nil
+	case reportmalware.FieldReport:
+		m.ClearReport()
+		return nil
+	case reportmalware.FieldVerificationRecord:
+		m.ClearVerificationRecord()
+		return nil
+	case reportmalware.FieldCreatedAt:
+		m.ClearCreatedAt()
+		return nil
+	case reportmalware.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportMalware nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ReportMalwareMutation) ResetField(name string) error {
+	switch name {
+	case reportmalware.FieldAnalysisID:
+		m.ResetAnalysisID()
+		return nil
+	case reportmalware.FieldIsMalware:
+		m.ResetIsMalware()
+		return nil
+	case reportmalware.FieldIsSuspicious:
+		m.ResetIsSuspicious()
+		return nil
+	case reportmalware.FieldConfidence:
+		m.ResetConfidence()
+		return nil
+	case reportmalware.FieldReport:
+		m.ResetReport()
+		return nil
+	case reportmalware.FieldVerificationRecord:
+		m.ResetVerificationRecord()
+		return nil
+	case reportmalware.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case reportmalware.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportMalware field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ReportMalwareMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m._package != nil {
+		edges = append(edges, reportmalware.EdgePackage)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ReportMalwareMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case reportmalware.EdgePackage:
+		if id := m._package; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ReportMalwareMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ReportMalwareMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ReportMalwareMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleared_package {
+		edges = append(edges, reportmalware.EdgePackage)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ReportMalwareMutation) EdgeCleared(name string) bool {
+	switch name {
+	case reportmalware.EdgePackage:
+		return m.cleared_package
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ReportMalwareMutation) ClearEdge(name string) error {
+	switch name {
+	case reportmalware.EdgePackage:
+		m.ClearPackage()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportMalware unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ReportMalwareMutation) ResetEdge(name string) error {
+	switch name {
+	case reportmalware.EdgePackage:
+		m.ResetPackage()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportMalware edge %s", name)
+}
+
+// ReportPackageMutation represents an operation that mutates the ReportPackage nodes in the graph.
+type ReportPackageMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *int
+	package_id              *string
+	name                    *string
+	version                 *string
+	ecosystem               *string
+	package_url             *string
+	depth                   *int
+	adddepth                *int
+	is_direct               *bool
+	is_malware              *bool
+	is_suspicious           *bool
+	package_details         *map[string]interface{}
+	insights_v2             *map[string]interface{}
+	code_analysis           *map[string]interface{}
+	created_at              *time.Time
+	updated_at              *time.Time
+	clearedFields           map[string]struct{}
+	manifest                *int
+	clearedmanifest         bool
+	dependencies            map[int]struct{}
+	removeddependencies     map[int]struct{}
+	cleareddependencies     bool
+	malware_analysis        *int
+	clearedmalware_analysis bool
+	done                    bool
+	oldValue                func(context.Context) (*ReportPackage, error)
+	predicates              []predicate.ReportPackage
+}
+
+var _ ent.Mutation = (*ReportPackageMutation)(nil)
+
+// reportpackageOption allows management of the mutation configuration using functional options.
+type reportpackageOption func(*ReportPackageMutation)
+
+// newReportPackageMutation creates new mutation for the ReportPackage entity.
+func newReportPackageMutation(c config, op Op, opts ...reportpackageOption) *ReportPackageMutation {
+	m := &ReportPackageMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeReportPackage,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withReportPackageID sets the ID field of the mutation.
+func withReportPackageID(id int) reportpackageOption {
+	return func(m *ReportPackageMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ReportPackage
+		)
+		m.oldValue = func(ctx context.Context) (*ReportPackage, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ReportPackage.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withReportPackage sets the old ReportPackage of the mutation.
+func withReportPackage(node *ReportPackage) reportpackageOption {
+	return func(m *ReportPackageMutation) {
+		m.oldValue = func(context.Context) (*ReportPackage, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ReportPackageMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ReportPackageMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ReportPackageMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ReportPackageMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ReportPackage.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetPackageID sets the "package_id" field.
+func (m *ReportPackageMutation) SetPackageID(s string) {
+	m.package_id = &s
+}
+
+// PackageID returns the value of the "package_id" field in the mutation.
+func (m *ReportPackageMutation) PackageID() (r string, exists bool) {
+	v := m.package_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPackageID returns the old "package_id" field's value of the ReportPackage entity.
+// If the ReportPackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageMutation) OldPackageID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPackageID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPackageID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPackageID: %w", err)
+	}
+	return oldValue.PackageID, nil
+}
+
+// ResetPackageID resets all changes to the "package_id" field.
+func (m *ReportPackageMutation) ResetPackageID() {
+	m.package_id = nil
+}
+
+// SetName sets the "name" field.
+func (m *ReportPackageMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *ReportPackageMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the ReportPackage entity.
+// If the ReportPackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *ReportPackageMutation) ResetName() {
+	m.name = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *ReportPackageMutation) SetVersion(s string) {
+	m.version = &s
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *ReportPackageMutation) Version() (r string, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the ReportPackage entity.
+// If the ReportPackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageMutation) OldVersion(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *ReportPackageMutation) ResetVersion() {
+	m.version = nil
+}
+
+// SetEcosystem sets the "ecosystem" field.
+func (m *ReportPackageMutation) SetEcosystem(s string) {
+	m.ecosystem = &s
+}
+
+// Ecosystem returns the value of the "ecosystem" field in the mutation.
+func (m *ReportPackageMutation) Ecosystem() (r string, exists bool) {
+	v := m.ecosystem
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEcosystem returns the old "ecosystem" field's value of the ReportPackage entity.
+// If the ReportPackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageMutation) OldEcosystem(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEcosystem is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEcosystem requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEcosystem: %w", err)
+	}
+	return oldValue.Ecosystem, nil
+}
+
+// ResetEcosystem resets all changes to the "ecosystem" field.
+func (m *ReportPackageMutation) ResetEcosystem() {
+	m.ecosystem = nil
+}
+
+// SetPackageURL sets the "package_url" field.
+func (m *ReportPackageMutation) SetPackageURL(s string) {
+	m.package_url = &s
+}
+
+// PackageURL returns the value of the "package_url" field in the mutation.
+func (m *ReportPackageMutation) PackageURL() (r string, exists bool) {
+	v := m.package_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPackageURL returns the old "package_url" field's value of the ReportPackage entity.
+// If the ReportPackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageMutation) OldPackageURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPackageURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPackageURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPackageURL: %w", err)
+	}
+	return oldValue.PackageURL, nil
+}
+
+// ResetPackageURL resets all changes to the "package_url" field.
+func (m *ReportPackageMutation) ResetPackageURL() {
+	m.package_url = nil
+}
+
+// SetDepth sets the "depth" field.
+func (m *ReportPackageMutation) SetDepth(i int) {
+	m.depth = &i
+	m.adddepth = nil
+}
+
+// Depth returns the value of the "depth" field in the mutation.
+func (m *ReportPackageMutation) Depth() (r int, exists bool) {
+	v := m.depth
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDepth returns the old "depth" field's value of the ReportPackage entity.
+// If the ReportPackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageMutation) OldDepth(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDepth is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDepth requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDepth: %w", err)
+	}
+	return oldValue.Depth, nil
+}
+
+// AddDepth adds i to the "depth" field.
+func (m *ReportPackageMutation) AddDepth(i int) {
+	if m.adddepth != nil {
+		*m.adddepth += i
+	} else {
+		m.adddepth = &i
+	}
+}
+
+// AddedDepth returns the value that was added to the "depth" field in this mutation.
+func (m *ReportPackageMutation) AddedDepth() (r int, exists bool) {
+	v := m.adddepth
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDepth resets all changes to the "depth" field.
+func (m *ReportPackageMutation) ResetDepth() {
+	m.depth = nil
+	m.adddepth = nil
+}
+
+// SetIsDirect sets the "is_direct" field.
+func (m *ReportPackageMutation) SetIsDirect(b bool) {
+	m.is_direct = &b
+}
+
+// IsDirect returns the value of the "is_direct" field in the mutation.
+func (m *ReportPackageMutation) IsDirect() (r bool, exists bool) {
+	v := m.is_direct
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsDirect returns the old "is_direct" field's value of the ReportPackage entity.
+// If the ReportPackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageMutation) OldIsDirect(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsDirect is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsDirect requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsDirect: %w", err)
+	}
+	return oldValue.IsDirect, nil
+}
+
+// ResetIsDirect resets all changes to the "is_direct" field.
+func (m *ReportPackageMutation) ResetIsDirect() {
+	m.is_direct = nil
+}
+
+// SetIsMalware sets the "is_malware" field.
+func (m *ReportPackageMutation) SetIsMalware(b bool) {
+	m.is_malware = &b
+}
+
+// IsMalware returns the value of the "is_malware" field in the mutation.
+func (m *ReportPackageMutation) IsMalware() (r bool, exists bool) {
+	v := m.is_malware
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsMalware returns the old "is_malware" field's value of the ReportPackage entity.
+// If the ReportPackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageMutation) OldIsMalware(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsMalware is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsMalware requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsMalware: %w", err)
+	}
+	return oldValue.IsMalware, nil
+}
+
+// ResetIsMalware resets all changes to the "is_malware" field.
+func (m *ReportPackageMutation) ResetIsMalware() {
+	m.is_malware = nil
+}
+
+// SetIsSuspicious sets the "is_suspicious" field.
+func (m *ReportPackageMutation) SetIsSuspicious(b bool) {
+	m.is_suspicious = &b
+}
+
+// IsSuspicious returns the value of the "is_suspicious" field in the mutation.
+func (m *ReportPackageMutation) IsSuspicious() (r bool, exists bool) {
+	v := m.is_suspicious
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsSuspicious returns the old "is_suspicious" field's value of the ReportPackage entity.
+// If the ReportPackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageMutation) OldIsSuspicious(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsSuspicious is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsSuspicious requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsSuspicious: %w", err)
+	}
+	return oldValue.IsSuspicious, nil
+}
+
+// ResetIsSuspicious resets all changes to the "is_suspicious" field.
+func (m *ReportPackageMutation) ResetIsSuspicious() {
+	m.is_suspicious = nil
+}
+
+// SetPackageDetails sets the "package_details" field.
+func (m *ReportPackageMutation) SetPackageDetails(value map[string]interface{}) {
+	m.package_details = &value
+}
+
+// PackageDetails returns the value of the "package_details" field in the mutation.
+func (m *ReportPackageMutation) PackageDetails() (r map[string]interface{}, exists bool) {
+	v := m.package_details
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPackageDetails returns the old "package_details" field's value of the ReportPackage entity.
+// If the ReportPackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageMutation) OldPackageDetails(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPackageDetails is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPackageDetails requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPackageDetails: %w", err)
+	}
+	return oldValue.PackageDetails, nil
+}
+
+// ClearPackageDetails clears the value of the "package_details" field.
+func (m *ReportPackageMutation) ClearPackageDetails() {
+	m.package_details = nil
+	m.clearedFields[reportpackage.FieldPackageDetails] = struct{}{}
+}
+
+// PackageDetailsCleared returns if the "package_details" field was cleared in this mutation.
+func (m *ReportPackageMutation) PackageDetailsCleared() bool {
+	_, ok := m.clearedFields[reportpackage.FieldPackageDetails]
+	return ok
+}
+
+// ResetPackageDetails resets all changes to the "package_details" field.
+func (m *ReportPackageMutation) ResetPackageDetails() {
+	m.package_details = nil
+	delete(m.clearedFields, reportpackage.FieldPackageDetails)
+}
+
+// SetInsightsV2 sets the "insights_v2" field.
+func (m *ReportPackageMutation) SetInsightsV2(value map[string]interface{}) {
+	m.insights_v2 = &value
+}
+
+// InsightsV2 returns the value of the "insights_v2" field in the mutation.
+func (m *ReportPackageMutation) InsightsV2() (r map[string]interface{}, exists bool) {
+	v := m.insights_v2
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInsightsV2 returns the old "insights_v2" field's value of the ReportPackage entity.
+// If the ReportPackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageMutation) OldInsightsV2(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInsightsV2 is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInsightsV2 requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInsightsV2: %w", err)
+	}
+	return oldValue.InsightsV2, nil
+}
+
+// ClearInsightsV2 clears the value of the "insights_v2" field.
+func (m *ReportPackageMutation) ClearInsightsV2() {
+	m.insights_v2 = nil
+	m.clearedFields[reportpackage.FieldInsightsV2] = struct{}{}
+}
+
+// InsightsV2Cleared returns if the "insights_v2" field was cleared in this mutation.
+func (m *ReportPackageMutation) InsightsV2Cleared() bool {
+	_, ok := m.clearedFields[reportpackage.FieldInsightsV2]
+	return ok
+}
+
+// ResetInsightsV2 resets all changes to the "insights_v2" field.
+func (m *ReportPackageMutation) ResetInsightsV2() {
+	m.insights_v2 = nil
+	delete(m.clearedFields, reportpackage.FieldInsightsV2)
+}
+
+// SetCodeAnalysis sets the "code_analysis" field.
+func (m *ReportPackageMutation) SetCodeAnalysis(value map[string]interface{}) {
+	m.code_analysis = &value
+}
+
+// CodeAnalysis returns the value of the "code_analysis" field in the mutation.
+func (m *ReportPackageMutation) CodeAnalysis() (r map[string]interface{}, exists bool) {
+	v := m.code_analysis
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCodeAnalysis returns the old "code_analysis" field's value of the ReportPackage entity.
+// If the ReportPackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageMutation) OldCodeAnalysis(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCodeAnalysis is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCodeAnalysis requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCodeAnalysis: %w", err)
+	}
+	return oldValue.CodeAnalysis, nil
+}
+
+// ClearCodeAnalysis clears the value of the "code_analysis" field.
+func (m *ReportPackageMutation) ClearCodeAnalysis() {
+	m.code_analysis = nil
+	m.clearedFields[reportpackage.FieldCodeAnalysis] = struct{}{}
+}
+
+// CodeAnalysisCleared returns if the "code_analysis" field was cleared in this mutation.
+func (m *ReportPackageMutation) CodeAnalysisCleared() bool {
+	_, ok := m.clearedFields[reportpackage.FieldCodeAnalysis]
+	return ok
+}
+
+// ResetCodeAnalysis resets all changes to the "code_analysis" field.
+func (m *ReportPackageMutation) ResetCodeAnalysis() {
+	m.code_analysis = nil
+	delete(m.clearedFields, reportpackage.FieldCodeAnalysis)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ReportPackageMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ReportPackageMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ReportPackage entity.
+// If the ReportPackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ClearCreatedAt clears the value of the "created_at" field.
+func (m *ReportPackageMutation) ClearCreatedAt() {
+	m.created_at = nil
+	m.clearedFields[reportpackage.FieldCreatedAt] = struct{}{}
+}
+
+// CreatedAtCleared returns if the "created_at" field was cleared in this mutation.
+func (m *ReportPackageMutation) CreatedAtCleared() bool {
+	_, ok := m.clearedFields[reportpackage.FieldCreatedAt]
+	return ok
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ReportPackageMutation) ResetCreatedAt() {
+	m.created_at = nil
+	delete(m.clearedFields, reportpackage.FieldCreatedAt)
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ReportPackageMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ReportPackageMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ReportPackage entity.
+// If the ReportPackage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *ReportPackageMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[reportpackage.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *ReportPackageMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[reportpackage.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ReportPackageMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, reportpackage.FieldUpdatedAt)
+}
+
+// SetManifestID sets the "manifest" edge to the ReportPackageManifest entity by id.
+func (m *ReportPackageMutation) SetManifestID(id int) {
+	m.manifest = &id
+}
+
+// ClearManifest clears the "manifest" edge to the ReportPackageManifest entity.
+func (m *ReportPackageMutation) ClearManifest() {
+	m.clearedmanifest = true
+}
+
+// ManifestCleared reports if the "manifest" edge to the ReportPackageManifest entity was cleared.
+func (m *ReportPackageMutation) ManifestCleared() bool {
+	return m.clearedmanifest
+}
+
+// ManifestID returns the "manifest" edge ID in the mutation.
+func (m *ReportPackageMutation) ManifestID() (id int, exists bool) {
+	if m.manifest != nil {
+		return *m.manifest, true
+	}
+	return
+}
+
+// ManifestIDs returns the "manifest" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ManifestID instead. It exists only for internal usage by the builders.
+func (m *ReportPackageMutation) ManifestIDs() (ids []int) {
+	if id := m.manifest; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetManifest resets all changes to the "manifest" edge.
+func (m *ReportPackageMutation) ResetManifest() {
+	m.manifest = nil
+	m.clearedmanifest = false
+}
+
+// AddDependencyIDs adds the "dependencies" edge to the ReportDependency entity by ids.
+func (m *ReportPackageMutation) AddDependencyIDs(ids ...int) {
+	if m.dependencies == nil {
+		m.dependencies = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.dependencies[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDependencies clears the "dependencies" edge to the ReportDependency entity.
+func (m *ReportPackageMutation) ClearDependencies() {
+	m.cleareddependencies = true
+}
+
+// DependenciesCleared reports if the "dependencies" edge to the ReportDependency entity was cleared.
+func (m *ReportPackageMutation) DependenciesCleared() bool {
+	return m.cleareddependencies
+}
+
+// RemoveDependencyIDs removes the "dependencies" edge to the ReportDependency entity by IDs.
+func (m *ReportPackageMutation) RemoveDependencyIDs(ids ...int) {
+	if m.removeddependencies == nil {
+		m.removeddependencies = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.dependencies, ids[i])
+		m.removeddependencies[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDependencies returns the removed IDs of the "dependencies" edge to the ReportDependency entity.
+func (m *ReportPackageMutation) RemovedDependenciesIDs() (ids []int) {
+	for id := range m.removeddependencies {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DependenciesIDs returns the "dependencies" edge IDs in the mutation.
+func (m *ReportPackageMutation) DependenciesIDs() (ids []int) {
+	for id := range m.dependencies {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDependencies resets all changes to the "dependencies" edge.
+func (m *ReportPackageMutation) ResetDependencies() {
+	m.dependencies = nil
+	m.cleareddependencies = false
+	m.removeddependencies = nil
+}
+
+// SetMalwareAnalysisID sets the "malware_analysis" edge to the ReportMalware entity by id.
+func (m *ReportPackageMutation) SetMalwareAnalysisID(id int) {
+	m.malware_analysis = &id
+}
+
+// ClearMalwareAnalysis clears the "malware_analysis" edge to the ReportMalware entity.
+func (m *ReportPackageMutation) ClearMalwareAnalysis() {
+	m.clearedmalware_analysis = true
+}
+
+// MalwareAnalysisCleared reports if the "malware_analysis" edge to the ReportMalware entity was cleared.
+func (m *ReportPackageMutation) MalwareAnalysisCleared() bool {
+	return m.clearedmalware_analysis
+}
+
+// MalwareAnalysisID returns the "malware_analysis" edge ID in the mutation.
+func (m *ReportPackageMutation) MalwareAnalysisID() (id int, exists bool) {
+	if m.malware_analysis != nil {
+		return *m.malware_analysis, true
+	}
+	return
+}
+
+// MalwareAnalysisIDs returns the "malware_analysis" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// MalwareAnalysisID instead. It exists only for internal usage by the builders.
+func (m *ReportPackageMutation) MalwareAnalysisIDs() (ids []int) {
+	if id := m.malware_analysis; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetMalwareAnalysis resets all changes to the "malware_analysis" edge.
+func (m *ReportPackageMutation) ResetMalwareAnalysis() {
+	m.malware_analysis = nil
+	m.clearedmalware_analysis = false
+}
+
+// Where appends a list predicates to the ReportPackageMutation builder.
+func (m *ReportPackageMutation) Where(ps ...predicate.ReportPackage) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ReportPackageMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ReportPackageMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ReportPackage, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ReportPackageMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ReportPackageMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ReportPackage).
+func (m *ReportPackageMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ReportPackageMutation) Fields() []string {
+	fields := make([]string, 0, 14)
+	if m.package_id != nil {
+		fields = append(fields, reportpackage.FieldPackageID)
+	}
+	if m.name != nil {
+		fields = append(fields, reportpackage.FieldName)
+	}
+	if m.version != nil {
+		fields = append(fields, reportpackage.FieldVersion)
+	}
+	if m.ecosystem != nil {
+		fields = append(fields, reportpackage.FieldEcosystem)
+	}
+	if m.package_url != nil {
+		fields = append(fields, reportpackage.FieldPackageURL)
+	}
+	if m.depth != nil {
+		fields = append(fields, reportpackage.FieldDepth)
+	}
+	if m.is_direct != nil {
+		fields = append(fields, reportpackage.FieldIsDirect)
+	}
+	if m.is_malware != nil {
+		fields = append(fields, reportpackage.FieldIsMalware)
+	}
+	if m.is_suspicious != nil {
+		fields = append(fields, reportpackage.FieldIsSuspicious)
+	}
+	if m.package_details != nil {
+		fields = append(fields, reportpackage.FieldPackageDetails)
+	}
+	if m.insights_v2 != nil {
+		fields = append(fields, reportpackage.FieldInsightsV2)
+	}
+	if m.code_analysis != nil {
+		fields = append(fields, reportpackage.FieldCodeAnalysis)
+	}
+	if m.created_at != nil {
+		fields = append(fields, reportpackage.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, reportpackage.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ReportPackageMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case reportpackage.FieldPackageID:
+		return m.PackageID()
+	case reportpackage.FieldName:
+		return m.Name()
+	case reportpackage.FieldVersion:
+		return m.Version()
+	case reportpackage.FieldEcosystem:
+		return m.Ecosystem()
+	case reportpackage.FieldPackageURL:
+		return m.PackageURL()
+	case reportpackage.FieldDepth:
+		return m.Depth()
+	case reportpackage.FieldIsDirect:
+		return m.IsDirect()
+	case reportpackage.FieldIsMalware:
+		return m.IsMalware()
+	case reportpackage.FieldIsSuspicious:
+		return m.IsSuspicious()
+	case reportpackage.FieldPackageDetails:
+		return m.PackageDetails()
+	case reportpackage.FieldInsightsV2:
+		return m.InsightsV2()
+	case reportpackage.FieldCodeAnalysis:
+		return m.CodeAnalysis()
+	case reportpackage.FieldCreatedAt:
+		return m.CreatedAt()
+	case reportpackage.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ReportPackageMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case reportpackage.FieldPackageID:
+		return m.OldPackageID(ctx)
+	case reportpackage.FieldName:
+		return m.OldName(ctx)
+	case reportpackage.FieldVersion:
+		return m.OldVersion(ctx)
+	case reportpackage.FieldEcosystem:
+		return m.OldEcosystem(ctx)
+	case reportpackage.FieldPackageURL:
+		return m.OldPackageURL(ctx)
+	case reportpackage.FieldDepth:
+		return m.OldDepth(ctx)
+	case reportpackage.FieldIsDirect:
+		return m.OldIsDirect(ctx)
+	case reportpackage.FieldIsMalware:
+		return m.OldIsMalware(ctx)
+	case reportpackage.FieldIsSuspicious:
+		return m.OldIsSuspicious(ctx)
+	case reportpackage.FieldPackageDetails:
+		return m.OldPackageDetails(ctx)
+	case reportpackage.FieldInsightsV2:
+		return m.OldInsightsV2(ctx)
+	case reportpackage.FieldCodeAnalysis:
+		return m.OldCodeAnalysis(ctx)
+	case reportpackage.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case reportpackage.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown ReportPackage field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportPackageMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case reportpackage.FieldPackageID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPackageID(v)
+		return nil
+	case reportpackage.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case reportpackage.FieldVersion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case reportpackage.FieldEcosystem:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEcosystem(v)
+		return nil
+	case reportpackage.FieldPackageURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPackageURL(v)
+		return nil
+	case reportpackage.FieldDepth:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDepth(v)
+		return nil
+	case reportpackage.FieldIsDirect:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsDirect(v)
+		return nil
+	case reportpackage.FieldIsMalware:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsMalware(v)
+		return nil
+	case reportpackage.FieldIsSuspicious:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsSuspicious(v)
+		return nil
+	case reportpackage.FieldPackageDetails:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPackageDetails(v)
+		return nil
+	case reportpackage.FieldInsightsV2:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInsightsV2(v)
+		return nil
+	case reportpackage.FieldCodeAnalysis:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCodeAnalysis(v)
+		return nil
+	case reportpackage.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case reportpackage.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ReportPackage field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ReportPackageMutation) AddedFields() []string {
+	var fields []string
+	if m.adddepth != nil {
+		fields = append(fields, reportpackage.FieldDepth)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ReportPackageMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case reportpackage.FieldDepth:
+		return m.AddedDepth()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportPackageMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case reportpackage.FieldDepth:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDepth(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ReportPackage numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ReportPackageMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(reportpackage.FieldPackageDetails) {
+		fields = append(fields, reportpackage.FieldPackageDetails)
+	}
+	if m.FieldCleared(reportpackage.FieldInsightsV2) {
+		fields = append(fields, reportpackage.FieldInsightsV2)
+	}
+	if m.FieldCleared(reportpackage.FieldCodeAnalysis) {
+		fields = append(fields, reportpackage.FieldCodeAnalysis)
+	}
+	if m.FieldCleared(reportpackage.FieldCreatedAt) {
+		fields = append(fields, reportpackage.FieldCreatedAt)
+	}
+	if m.FieldCleared(reportpackage.FieldUpdatedAt) {
+		fields = append(fields, reportpackage.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ReportPackageMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ReportPackageMutation) ClearField(name string) error {
+	switch name {
+	case reportpackage.FieldPackageDetails:
+		m.ClearPackageDetails()
+		return nil
+	case reportpackage.FieldInsightsV2:
+		m.ClearInsightsV2()
+		return nil
+	case reportpackage.FieldCodeAnalysis:
+		m.ClearCodeAnalysis()
+		return nil
+	case reportpackage.FieldCreatedAt:
+		m.ClearCreatedAt()
+		return nil
+	case reportpackage.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportPackage nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ReportPackageMutation) ResetField(name string) error {
+	switch name {
+	case reportpackage.FieldPackageID:
+		m.ResetPackageID()
+		return nil
+	case reportpackage.FieldName:
+		m.ResetName()
+		return nil
+	case reportpackage.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case reportpackage.FieldEcosystem:
+		m.ResetEcosystem()
+		return nil
+	case reportpackage.FieldPackageURL:
+		m.ResetPackageURL()
+		return nil
+	case reportpackage.FieldDepth:
+		m.ResetDepth()
+		return nil
+	case reportpackage.FieldIsDirect:
+		m.ResetIsDirect()
+		return nil
+	case reportpackage.FieldIsMalware:
+		m.ResetIsMalware()
+		return nil
+	case reportpackage.FieldIsSuspicious:
+		m.ResetIsSuspicious()
+		return nil
+	case reportpackage.FieldPackageDetails:
+		m.ResetPackageDetails()
+		return nil
+	case reportpackage.FieldInsightsV2:
+		m.ResetInsightsV2()
+		return nil
+	case reportpackage.FieldCodeAnalysis:
+		m.ResetCodeAnalysis()
+		return nil
+	case reportpackage.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case reportpackage.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportPackage field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ReportPackageMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.manifest != nil {
+		edges = append(edges, reportpackage.EdgeManifest)
+	}
+	if m.dependencies != nil {
+		edges = append(edges, reportpackage.EdgeDependencies)
+	}
+	if m.malware_analysis != nil {
+		edges = append(edges, reportpackage.EdgeMalwareAnalysis)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ReportPackageMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case reportpackage.EdgeManifest:
+		if id := m.manifest; id != nil {
+			return []ent.Value{*id}
+		}
+	case reportpackage.EdgeDependencies:
+		ids := make([]ent.Value, 0, len(m.dependencies))
+		for id := range m.dependencies {
+			ids = append(ids, id)
+		}
+		return ids
+	case reportpackage.EdgeMalwareAnalysis:
+		if id := m.malware_analysis; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ReportPackageMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.removeddependencies != nil {
+		edges = append(edges, reportpackage.EdgeDependencies)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ReportPackageMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case reportpackage.EdgeDependencies:
+		ids := make([]ent.Value, 0, len(m.removeddependencies))
+		for id := range m.removeddependencies {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ReportPackageMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedmanifest {
+		edges = append(edges, reportpackage.EdgeManifest)
+	}
+	if m.cleareddependencies {
+		edges = append(edges, reportpackage.EdgeDependencies)
+	}
+	if m.clearedmalware_analysis {
+		edges = append(edges, reportpackage.EdgeMalwareAnalysis)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ReportPackageMutation) EdgeCleared(name string) bool {
+	switch name {
+	case reportpackage.EdgeManifest:
+		return m.clearedmanifest
+	case reportpackage.EdgeDependencies:
+		return m.cleareddependencies
+	case reportpackage.EdgeMalwareAnalysis:
+		return m.clearedmalware_analysis
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ReportPackageMutation) ClearEdge(name string) error {
+	switch name {
+	case reportpackage.EdgeManifest:
+		m.ClearManifest()
+		return nil
+	case reportpackage.EdgeMalwareAnalysis:
+		m.ClearMalwareAnalysis()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportPackage unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ReportPackageMutation) ResetEdge(name string) error {
+	switch name {
+	case reportpackage.EdgeManifest:
+		m.ResetManifest()
+		return nil
+	case reportpackage.EdgeDependencies:
+		m.ResetDependencies()
+		return nil
+	case reportpackage.EdgeMalwareAnalysis:
+		m.ResetMalwareAnalysis()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportPackage edge %s", name)
+}
+
+// ReportPackageManifestMutation represents an operation that mutates the ReportPackageManifest nodes in the graph.
+type ReportPackageManifestMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *int
+	manifest_id     *string
+	source_type     *string
+	namespace       *string
+	_path           *string
+	display_path    *string
+	ecosystem       *string
+	created_at      *time.Time
+	updated_at      *time.Time
+	clearedFields   map[string]struct{}
+	packages        map[int]struct{}
+	removedpackages map[int]struct{}
+	clearedpackages bool
+	done            bool
+	oldValue        func(context.Context) (*ReportPackageManifest, error)
+	predicates      []predicate.ReportPackageManifest
+}
+
+var _ ent.Mutation = (*ReportPackageManifestMutation)(nil)
+
+// reportpackagemanifestOption allows management of the mutation configuration using functional options.
+type reportpackagemanifestOption func(*ReportPackageManifestMutation)
+
+// newReportPackageManifestMutation creates new mutation for the ReportPackageManifest entity.
+func newReportPackageManifestMutation(c config, op Op, opts ...reportpackagemanifestOption) *ReportPackageManifestMutation {
+	m := &ReportPackageManifestMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeReportPackageManifest,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withReportPackageManifestID sets the ID field of the mutation.
+func withReportPackageManifestID(id int) reportpackagemanifestOption {
+	return func(m *ReportPackageManifestMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ReportPackageManifest
+		)
+		m.oldValue = func(ctx context.Context) (*ReportPackageManifest, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ReportPackageManifest.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withReportPackageManifest sets the old ReportPackageManifest of the mutation.
+func withReportPackageManifest(node *ReportPackageManifest) reportpackagemanifestOption {
+	return func(m *ReportPackageManifestMutation) {
+		m.oldValue = func(context.Context) (*ReportPackageManifest, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ReportPackageManifestMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ReportPackageManifestMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ReportPackageManifestMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ReportPackageManifestMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ReportPackageManifest.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetManifestID sets the "manifest_id" field.
+func (m *ReportPackageManifestMutation) SetManifestID(s string) {
+	m.manifest_id = &s
+}
+
+// ManifestID returns the value of the "manifest_id" field in the mutation.
+func (m *ReportPackageManifestMutation) ManifestID() (r string, exists bool) {
+	v := m.manifest_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldManifestID returns the old "manifest_id" field's value of the ReportPackageManifest entity.
+// If the ReportPackageManifest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageManifestMutation) OldManifestID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldManifestID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldManifestID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldManifestID: %w", err)
+	}
+	return oldValue.ManifestID, nil
+}
+
+// ResetManifestID resets all changes to the "manifest_id" field.
+func (m *ReportPackageManifestMutation) ResetManifestID() {
+	m.manifest_id = nil
+}
+
+// SetSourceType sets the "source_type" field.
+func (m *ReportPackageManifestMutation) SetSourceType(s string) {
+	m.source_type = &s
+}
+
+// SourceType returns the value of the "source_type" field in the mutation.
+func (m *ReportPackageManifestMutation) SourceType() (r string, exists bool) {
+	v := m.source_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceType returns the old "source_type" field's value of the ReportPackageManifest entity.
+// If the ReportPackageManifest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageManifestMutation) OldSourceType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceType: %w", err)
+	}
+	return oldValue.SourceType, nil
+}
+
+// ResetSourceType resets all changes to the "source_type" field.
+func (m *ReportPackageManifestMutation) ResetSourceType() {
+	m.source_type = nil
+}
+
+// SetNamespace sets the "namespace" field.
+func (m *ReportPackageManifestMutation) SetNamespace(s string) {
+	m.namespace = &s
+}
+
+// Namespace returns the value of the "namespace" field in the mutation.
+func (m *ReportPackageManifestMutation) Namespace() (r string, exists bool) {
+	v := m.namespace
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespace returns the old "namespace" field's value of the ReportPackageManifest entity.
+// If the ReportPackageManifest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageManifestMutation) OldNamespace(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespace is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespace requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespace: %w", err)
+	}
+	return oldValue.Namespace, nil
+}
+
+// ResetNamespace resets all changes to the "namespace" field.
+func (m *ReportPackageManifestMutation) ResetNamespace() {
+	m.namespace = nil
+}
+
+// SetPath sets the "path" field.
+func (m *ReportPackageManifestMutation) SetPath(s string) {
+	m._path = &s
+}
+
+// Path returns the value of the "path" field in the mutation.
+func (m *ReportPackageManifestMutation) Path() (r string, exists bool) {
+	v := m._path
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPath returns the old "path" field's value of the ReportPackageManifest entity.
+// If the ReportPackageManifest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageManifestMutation) OldPath(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPath is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPath requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPath: %w", err)
+	}
+	return oldValue.Path, nil
+}
+
+// ResetPath resets all changes to the "path" field.
+func (m *ReportPackageManifestMutation) ResetPath() {
+	m._path = nil
+}
+
+// SetDisplayPath sets the "display_path" field.
+func (m *ReportPackageManifestMutation) SetDisplayPath(s string) {
+	m.display_path = &s
+}
+
+// DisplayPath returns the value of the "display_path" field in the mutation.
+func (m *ReportPackageManifestMutation) DisplayPath() (r string, exists bool) {
+	v := m.display_path
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDisplayPath returns the old "display_path" field's value of the ReportPackageManifest entity.
+// If the ReportPackageManifest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageManifestMutation) OldDisplayPath(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDisplayPath is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDisplayPath requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDisplayPath: %w", err)
+	}
+	return oldValue.DisplayPath, nil
+}
+
+// ResetDisplayPath resets all changes to the "display_path" field.
+func (m *ReportPackageManifestMutation) ResetDisplayPath() {
+	m.display_path = nil
+}
+
+// SetEcosystem sets the "ecosystem" field.
+func (m *ReportPackageManifestMutation) SetEcosystem(s string) {
+	m.ecosystem = &s
+}
+
+// Ecosystem returns the value of the "ecosystem" field in the mutation.
+func (m *ReportPackageManifestMutation) Ecosystem() (r string, exists bool) {
+	v := m.ecosystem
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEcosystem returns the old "ecosystem" field's value of the ReportPackageManifest entity.
+// If the ReportPackageManifest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageManifestMutation) OldEcosystem(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEcosystem is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEcosystem requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEcosystem: %w", err)
+	}
+	return oldValue.Ecosystem, nil
+}
+
+// ResetEcosystem resets all changes to the "ecosystem" field.
+func (m *ReportPackageManifestMutation) ResetEcosystem() {
+	m.ecosystem = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ReportPackageManifestMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ReportPackageManifestMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ReportPackageManifest entity.
+// If the ReportPackageManifest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageManifestMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ClearCreatedAt clears the value of the "created_at" field.
+func (m *ReportPackageManifestMutation) ClearCreatedAt() {
+	m.created_at = nil
+	m.clearedFields[reportpackagemanifest.FieldCreatedAt] = struct{}{}
+}
+
+// CreatedAtCleared returns if the "created_at" field was cleared in this mutation.
+func (m *ReportPackageManifestMutation) CreatedAtCleared() bool {
+	_, ok := m.clearedFields[reportpackagemanifest.FieldCreatedAt]
+	return ok
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ReportPackageManifestMutation) ResetCreatedAt() {
+	m.created_at = nil
+	delete(m.clearedFields, reportpackagemanifest.FieldCreatedAt)
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ReportPackageManifestMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ReportPackageManifestMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ReportPackageManifest entity.
+// If the ReportPackageManifest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportPackageManifestMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *ReportPackageManifestMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[reportpackagemanifest.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *ReportPackageManifestMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[reportpackagemanifest.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ReportPackageManifestMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, reportpackagemanifest.FieldUpdatedAt)
+}
+
+// AddPackageIDs adds the "packages" edge to the ReportPackage entity by ids.
+func (m *ReportPackageManifestMutation) AddPackageIDs(ids ...int) {
+	if m.packages == nil {
+		m.packages = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.packages[ids[i]] = struct{}{}
+	}
+}
+
+// ClearPackages clears the "packages" edge to the ReportPackage entity.
+func (m *ReportPackageManifestMutation) ClearPackages() {
+	m.clearedpackages = true
+}
+
+// PackagesCleared reports if the "packages" edge to the ReportPackage entity was cleared.
+func (m *ReportPackageManifestMutation) PackagesCleared() bool {
+	return m.clearedpackages
+}
+
+// RemovePackageIDs removes the "packages" edge to the ReportPackage entity by IDs.
+func (m *ReportPackageManifestMutation) RemovePackageIDs(ids ...int) {
+	if m.removedpackages == nil {
+		m.removedpackages = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.packages, ids[i])
+		m.removedpackages[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPackages returns the removed IDs of the "packages" edge to the ReportPackage entity.
+func (m *ReportPackageManifestMutation) RemovedPackagesIDs() (ids []int) {
+	for id := range m.removedpackages {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PackagesIDs returns the "packages" edge IDs in the mutation.
+func (m *ReportPackageManifestMutation) PackagesIDs() (ids []int) {
+	for id := range m.packages {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPackages resets all changes to the "packages" edge.
+func (m *ReportPackageManifestMutation) ResetPackages() {
+	m.packages = nil
+	m.clearedpackages = false
+	m.removedpackages = nil
+}
+
+// Where appends a list predicates to the ReportPackageManifestMutation builder.
+func (m *ReportPackageManifestMutation) Where(ps ...predicate.ReportPackageManifest) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ReportPackageManifestMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ReportPackageManifestMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ReportPackageManifest, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ReportPackageManifestMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ReportPackageManifestMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ReportPackageManifest).
+func (m *ReportPackageManifestMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ReportPackageManifestMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.manifest_id != nil {
+		fields = append(fields, reportpackagemanifest.FieldManifestID)
+	}
+	if m.source_type != nil {
+		fields = append(fields, reportpackagemanifest.FieldSourceType)
+	}
+	if m.namespace != nil {
+		fields = append(fields, reportpackagemanifest.FieldNamespace)
+	}
+	if m._path != nil {
+		fields = append(fields, reportpackagemanifest.FieldPath)
+	}
+	if m.display_path != nil {
+		fields = append(fields, reportpackagemanifest.FieldDisplayPath)
+	}
+	if m.ecosystem != nil {
+		fields = append(fields, reportpackagemanifest.FieldEcosystem)
+	}
+	if m.created_at != nil {
+		fields = append(fields, reportpackagemanifest.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, reportpackagemanifest.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ReportPackageManifestMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case reportpackagemanifest.FieldManifestID:
+		return m.ManifestID()
+	case reportpackagemanifest.FieldSourceType:
+		return m.SourceType()
+	case reportpackagemanifest.FieldNamespace:
+		return m.Namespace()
+	case reportpackagemanifest.FieldPath:
+		return m.Path()
+	case reportpackagemanifest.FieldDisplayPath:
+		return m.DisplayPath()
+	case reportpackagemanifest.FieldEcosystem:
+		return m.Ecosystem()
+	case reportpackagemanifest.FieldCreatedAt:
+		return m.CreatedAt()
+	case reportpackagemanifest.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ReportPackageManifestMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case reportpackagemanifest.FieldManifestID:
+		return m.OldManifestID(ctx)
+	case reportpackagemanifest.FieldSourceType:
+		return m.OldSourceType(ctx)
+	case reportpackagemanifest.FieldNamespace:
+		return m.OldNamespace(ctx)
+	case reportpackagemanifest.FieldPath:
+		return m.OldPath(ctx)
+	case reportpackagemanifest.FieldDisplayPath:
+		return m.OldDisplayPath(ctx)
+	case reportpackagemanifest.FieldEcosystem:
+		return m.OldEcosystem(ctx)
+	case reportpackagemanifest.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case reportpackagemanifest.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown ReportPackageManifest field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportPackageManifestMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case reportpackagemanifest.FieldManifestID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetManifestID(v)
+		return nil
+	case reportpackagemanifest.FieldSourceType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceType(v)
+		return nil
+	case reportpackagemanifest.FieldNamespace:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespace(v)
+		return nil
+	case reportpackagemanifest.FieldPath:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPath(v)
+		return nil
+	case reportpackagemanifest.FieldDisplayPath:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDisplayPath(v)
+		return nil
+	case reportpackagemanifest.FieldEcosystem:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEcosystem(v)
+		return nil
+	case reportpackagemanifest.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case reportpackagemanifest.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ReportPackageManifest field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ReportPackageManifestMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ReportPackageManifestMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportPackageManifestMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ReportPackageManifest numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ReportPackageManifestMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(reportpackagemanifest.FieldCreatedAt) {
+		fields = append(fields, reportpackagemanifest.FieldCreatedAt)
+	}
+	if m.FieldCleared(reportpackagemanifest.FieldUpdatedAt) {
+		fields = append(fields, reportpackagemanifest.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ReportPackageManifestMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ReportPackageManifestMutation) ClearField(name string) error {
+	switch name {
+	case reportpackagemanifest.FieldCreatedAt:
+		m.ClearCreatedAt()
+		return nil
+	case reportpackagemanifest.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportPackageManifest nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ReportPackageManifestMutation) ResetField(name string) error {
+	switch name {
+	case reportpackagemanifest.FieldManifestID:
+		m.ResetManifestID()
+		return nil
+	case reportpackagemanifest.FieldSourceType:
+		m.ResetSourceType()
+		return nil
+	case reportpackagemanifest.FieldNamespace:
+		m.ResetNamespace()
+		return nil
+	case reportpackagemanifest.FieldPath:
+		m.ResetPath()
+		return nil
+	case reportpackagemanifest.FieldDisplayPath:
+		m.ResetDisplayPath()
+		return nil
+	case reportpackagemanifest.FieldEcosystem:
+		m.ResetEcosystem()
+		return nil
+	case reportpackagemanifest.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case reportpackagemanifest.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportPackageManifest field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ReportPackageManifestMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.packages != nil {
+		edges = append(edges, reportpackagemanifest.EdgePackages)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ReportPackageManifestMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case reportpackagemanifest.EdgePackages:
+		ids := make([]ent.Value, 0, len(m.packages))
+		for id := range m.packages {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ReportPackageManifestMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedpackages != nil {
+		edges = append(edges, reportpackagemanifest.EdgePackages)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ReportPackageManifestMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case reportpackagemanifest.EdgePackages:
+		ids := make([]ent.Value, 0, len(m.removedpackages))
+		for id := range m.removedpackages {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ReportPackageManifestMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedpackages {
+		edges = append(edges, reportpackagemanifest.EdgePackages)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ReportPackageManifestMutation) EdgeCleared(name string) bool {
+	switch name {
+	case reportpackagemanifest.EdgePackages:
+		return m.clearedpackages
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ReportPackageManifestMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ReportPackageManifest unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ReportPackageManifestMutation) ResetEdge(name string) error {
+	switch name {
+	case reportpackagemanifest.EdgePackages:
+		m.ResetPackages()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportPackageManifest edge %s", name)
+}
+
+// ReportProjectMutation represents an operation that mutates the ReportProject nodes in the graph.
+type ReportProjectMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	name          *string
+	url           *string
+	description   *string
+	stars         *int32
+	addstars      *int32
+	forks         *int32
+	addforks      *int32
+	scorecard     *map[string]interface{}
+	created_at    *time.Time
+	updated_at    *time.Time
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*ReportProject, error)
+	predicates    []predicate.ReportProject
+}
+
+var _ ent.Mutation = (*ReportProjectMutation)(nil)
+
+// reportprojectOption allows management of the mutation configuration using functional options.
+type reportprojectOption func(*ReportProjectMutation)
+
+// newReportProjectMutation creates new mutation for the ReportProject entity.
+func newReportProjectMutation(c config, op Op, opts ...reportprojectOption) *ReportProjectMutation {
+	m := &ReportProjectMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeReportProject,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withReportProjectID sets the ID field of the mutation.
+func withReportProjectID(id int) reportprojectOption {
+	return func(m *ReportProjectMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ReportProject
+		)
+		m.oldValue = func(ctx context.Context) (*ReportProject, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ReportProject.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withReportProject sets the old ReportProject of the mutation.
+func withReportProject(node *ReportProject) reportprojectOption {
+	return func(m *ReportProjectMutation) {
+		m.oldValue = func(context.Context) (*ReportProject, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ReportProjectMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ReportProjectMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ReportProjectMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ReportProjectMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ReportProject.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *ReportProjectMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *ReportProjectMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the ReportProject entity.
+// If the ReportProject object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportProjectMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *ReportProjectMutation) ResetName() {
+	m.name = nil
+}
+
+// SetURL sets the "url" field.
+func (m *ReportProjectMutation) SetURL(s string) {
+	m.url = &s
+}
+
+// URL returns the value of the "url" field in the mutation.
+func (m *ReportProjectMutation) URL() (r string, exists bool) {
+	v := m.url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldURL returns the old "url" field's value of the ReportProject entity.
+// If the ReportProject object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportProjectMutation) OldURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldURL: %w", err)
+	}
+	return oldValue.URL, nil
+}
+
+// ClearURL clears the value of the "url" field.
+func (m *ReportProjectMutation) ClearURL() {
+	m.url = nil
+	m.clearedFields[reportproject.FieldURL] = struct{}{}
+}
+
+// URLCleared returns if the "url" field was cleared in this mutation.
+func (m *ReportProjectMutation) URLCleared() bool {
+	_, ok := m.clearedFields[reportproject.FieldURL]
+	return ok
+}
+
+// ResetURL resets all changes to the "url" field.
+func (m *ReportProjectMutation) ResetURL() {
+	m.url = nil
+	delete(m.clearedFields, reportproject.FieldURL)
+}
+
+// SetDescription sets the "description" field.
+func (m *ReportProjectMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *ReportProjectMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the ReportProject entity.
+// If the ReportProject object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportProjectMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *ReportProjectMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[reportproject.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *ReportProjectMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[reportproject.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *ReportProjectMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, reportproject.FieldDescription)
+}
+
+// SetStars sets the "stars" field.
+func (m *ReportProjectMutation) SetStars(i int32) {
+	m.stars = &i
+	m.addstars = nil
+}
+
+// Stars returns the value of the "stars" field in the mutation.
+func (m *ReportProjectMutation) Stars() (r int32, exists bool) {
+	v := m.stars
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStars returns the old "stars" field's value of the ReportProject entity.
+// If the ReportProject object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportProjectMutation) OldStars(ctx context.Context) (v int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStars is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStars requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStars: %w", err)
+	}
+	return oldValue.Stars, nil
+}
+
+// AddStars adds i to the "stars" field.
+func (m *ReportProjectMutation) AddStars(i int32) {
+	if m.addstars != nil {
+		*m.addstars += i
+	} else {
+		m.addstars = &i
+	}
+}
+
+// AddedStars returns the value that was added to the "stars" field in this mutation.
+func (m *ReportProjectMutation) AddedStars() (r int32, exists bool) {
+	v := m.addstars
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearStars clears the value of the "stars" field.
+func (m *ReportProjectMutation) ClearStars() {
+	m.stars = nil
+	m.addstars = nil
+	m.clearedFields[reportproject.FieldStars] = struct{}{}
+}
+
+// StarsCleared returns if the "stars" field was cleared in this mutation.
+func (m *ReportProjectMutation) StarsCleared() bool {
+	_, ok := m.clearedFields[reportproject.FieldStars]
+	return ok
+}
+
+// ResetStars resets all changes to the "stars" field.
+func (m *ReportProjectMutation) ResetStars() {
+	m.stars = nil
+	m.addstars = nil
+	delete(m.clearedFields, reportproject.FieldStars)
+}
+
+// SetForks sets the "forks" field.
+func (m *ReportProjectMutation) SetForks(i int32) {
+	m.forks = &i
+	m.addforks = nil
+}
+
+// Forks returns the value of the "forks" field in the mutation.
+func (m *ReportProjectMutation) Forks() (r int32, exists bool) {
+	v := m.forks
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldForks returns the old "forks" field's value of the ReportProject entity.
+// If the ReportProject object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportProjectMutation) OldForks(ctx context.Context) (v int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldForks is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldForks requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldForks: %w", err)
+	}
+	return oldValue.Forks, nil
+}
+
+// AddForks adds i to the "forks" field.
+func (m *ReportProjectMutation) AddForks(i int32) {
+	if m.addforks != nil {
+		*m.addforks += i
+	} else {
+		m.addforks = &i
+	}
+}
+
+// AddedForks returns the value that was added to the "forks" field in this mutation.
+func (m *ReportProjectMutation) AddedForks() (r int32, exists bool) {
+	v := m.addforks
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearForks clears the value of the "forks" field.
+func (m *ReportProjectMutation) ClearForks() {
+	m.forks = nil
+	m.addforks = nil
+	m.clearedFields[reportproject.FieldForks] = struct{}{}
+}
+
+// ForksCleared returns if the "forks" field was cleared in this mutation.
+func (m *ReportProjectMutation) ForksCleared() bool {
+	_, ok := m.clearedFields[reportproject.FieldForks]
+	return ok
+}
+
+// ResetForks resets all changes to the "forks" field.
+func (m *ReportProjectMutation) ResetForks() {
+	m.forks = nil
+	m.addforks = nil
+	delete(m.clearedFields, reportproject.FieldForks)
+}
+
+// SetScorecard sets the "scorecard" field.
+func (m *ReportProjectMutation) SetScorecard(value map[string]interface{}) {
+	m.scorecard = &value
+}
+
+// Scorecard returns the value of the "scorecard" field in the mutation.
+func (m *ReportProjectMutation) Scorecard() (r map[string]interface{}, exists bool) {
+	v := m.scorecard
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldScorecard returns the old "scorecard" field's value of the ReportProject entity.
+// If the ReportProject object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportProjectMutation) OldScorecard(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldScorecard is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldScorecard requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldScorecard: %w", err)
+	}
+	return oldValue.Scorecard, nil
+}
+
+// ClearScorecard clears the value of the "scorecard" field.
+func (m *ReportProjectMutation) ClearScorecard() {
+	m.scorecard = nil
+	m.clearedFields[reportproject.FieldScorecard] = struct{}{}
+}
+
+// ScorecardCleared returns if the "scorecard" field was cleared in this mutation.
+func (m *ReportProjectMutation) ScorecardCleared() bool {
+	_, ok := m.clearedFields[reportproject.FieldScorecard]
+	return ok
+}
+
+// ResetScorecard resets all changes to the "scorecard" field.
+func (m *ReportProjectMutation) ResetScorecard() {
+	m.scorecard = nil
+	delete(m.clearedFields, reportproject.FieldScorecard)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ReportProjectMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ReportProjectMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ReportProject entity.
+// If the ReportProject object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportProjectMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ClearCreatedAt clears the value of the "created_at" field.
+func (m *ReportProjectMutation) ClearCreatedAt() {
+	m.created_at = nil
+	m.clearedFields[reportproject.FieldCreatedAt] = struct{}{}
+}
+
+// CreatedAtCleared returns if the "created_at" field was cleared in this mutation.
+func (m *ReportProjectMutation) CreatedAtCleared() bool {
+	_, ok := m.clearedFields[reportproject.FieldCreatedAt]
+	return ok
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ReportProjectMutation) ResetCreatedAt() {
+	m.created_at = nil
+	delete(m.clearedFields, reportproject.FieldCreatedAt)
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ReportProjectMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ReportProjectMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ReportProject entity.
+// If the ReportProject object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportProjectMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *ReportProjectMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[reportproject.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *ReportProjectMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[reportproject.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ReportProjectMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, reportproject.FieldUpdatedAt)
+}
+
+// Where appends a list predicates to the ReportProjectMutation builder.
+func (m *ReportProjectMutation) Where(ps ...predicate.ReportProject) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ReportProjectMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ReportProjectMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ReportProject, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ReportProjectMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ReportProjectMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ReportProject).
+func (m *ReportProjectMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ReportProjectMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.name != nil {
+		fields = append(fields, reportproject.FieldName)
+	}
+	if m.url != nil {
+		fields = append(fields, reportproject.FieldURL)
+	}
+	if m.description != nil {
+		fields = append(fields, reportproject.FieldDescription)
+	}
+	if m.stars != nil {
+		fields = append(fields, reportproject.FieldStars)
+	}
+	if m.forks != nil {
+		fields = append(fields, reportproject.FieldForks)
+	}
+	if m.scorecard != nil {
+		fields = append(fields, reportproject.FieldScorecard)
+	}
+	if m.created_at != nil {
+		fields = append(fields, reportproject.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, reportproject.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ReportProjectMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case reportproject.FieldName:
+		return m.Name()
+	case reportproject.FieldURL:
+		return m.URL()
+	case reportproject.FieldDescription:
+		return m.Description()
+	case reportproject.FieldStars:
+		return m.Stars()
+	case reportproject.FieldForks:
+		return m.Forks()
+	case reportproject.FieldScorecard:
+		return m.Scorecard()
+	case reportproject.FieldCreatedAt:
+		return m.CreatedAt()
+	case reportproject.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ReportProjectMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case reportproject.FieldName:
+		return m.OldName(ctx)
+	case reportproject.FieldURL:
+		return m.OldURL(ctx)
+	case reportproject.FieldDescription:
+		return m.OldDescription(ctx)
+	case reportproject.FieldStars:
+		return m.OldStars(ctx)
+	case reportproject.FieldForks:
+		return m.OldForks(ctx)
+	case reportproject.FieldScorecard:
+		return m.OldScorecard(ctx)
+	case reportproject.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case reportproject.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown ReportProject field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportProjectMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case reportproject.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case reportproject.FieldURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetURL(v)
+		return nil
+	case reportproject.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case reportproject.FieldStars:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStars(v)
+		return nil
+	case reportproject.FieldForks:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetForks(v)
+		return nil
+	case reportproject.FieldScorecard:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetScorecard(v)
+		return nil
+	case reportproject.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case reportproject.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ReportProject field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ReportProjectMutation) AddedFields() []string {
+	var fields []string
+	if m.addstars != nil {
+		fields = append(fields, reportproject.FieldStars)
+	}
+	if m.addforks != nil {
+		fields = append(fields, reportproject.FieldForks)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ReportProjectMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case reportproject.FieldStars:
+		return m.AddedStars()
+	case reportproject.FieldForks:
+		return m.AddedForks()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportProjectMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case reportproject.FieldStars:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStars(v)
+		return nil
+	case reportproject.FieldForks:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddForks(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ReportProject numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ReportProjectMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(reportproject.FieldURL) {
+		fields = append(fields, reportproject.FieldURL)
+	}
+	if m.FieldCleared(reportproject.FieldDescription) {
+		fields = append(fields, reportproject.FieldDescription)
+	}
+	if m.FieldCleared(reportproject.FieldStars) {
+		fields = append(fields, reportproject.FieldStars)
+	}
+	if m.FieldCleared(reportproject.FieldForks) {
+		fields = append(fields, reportproject.FieldForks)
+	}
+	if m.FieldCleared(reportproject.FieldScorecard) {
+		fields = append(fields, reportproject.FieldScorecard)
+	}
+	if m.FieldCleared(reportproject.FieldCreatedAt) {
+		fields = append(fields, reportproject.FieldCreatedAt)
+	}
+	if m.FieldCleared(reportproject.FieldUpdatedAt) {
+		fields = append(fields, reportproject.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ReportProjectMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ReportProjectMutation) ClearField(name string) error {
+	switch name {
+	case reportproject.FieldURL:
+		m.ClearURL()
+		return nil
+	case reportproject.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case reportproject.FieldStars:
+		m.ClearStars()
+		return nil
+	case reportproject.FieldForks:
+		m.ClearForks()
+		return nil
+	case reportproject.FieldScorecard:
+		m.ClearScorecard()
+		return nil
+	case reportproject.FieldCreatedAt:
+		m.ClearCreatedAt()
+		return nil
+	case reportproject.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportProject nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ReportProjectMutation) ResetField(name string) error {
+	switch name {
+	case reportproject.FieldName:
+		m.ResetName()
+		return nil
+	case reportproject.FieldURL:
+		m.ResetURL()
+		return nil
+	case reportproject.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case reportproject.FieldStars:
+		m.ResetStars()
+		return nil
+	case reportproject.FieldForks:
+		m.ResetForks()
+		return nil
+	case reportproject.FieldScorecard:
+		m.ResetScorecard()
+		return nil
+	case reportproject.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case reportproject.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportProject field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ReportProjectMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ReportProjectMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ReportProjectMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ReportProjectMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ReportProjectMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ReportProjectMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ReportProjectMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown ReportProject unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ReportProjectMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown ReportProject edge %s", name)
+}
+
+// ReportVulnerabilityMutation represents an operation that mutates the ReportVulnerability nodes in the graph.
+type ReportVulnerabilityMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int
+	vulnerability_id *string
+	title            *string
+	description      *string
+	aliases          *[]string
+	appendaliases    []string
+	severity         *string
+	severity_type    *string
+	cvss_score       *float64
+	addcvss_score    *float64
+	severity_details *map[string]interface{}
+	created_at       *time.Time
+	updated_at       *time.Time
+	clearedFields    map[string]struct{}
+	done             bool
+	oldValue         func(context.Context) (*ReportVulnerability, error)
+	predicates       []predicate.ReportVulnerability
+}
+
+var _ ent.Mutation = (*ReportVulnerabilityMutation)(nil)
+
+// reportvulnerabilityOption allows management of the mutation configuration using functional options.
+type reportvulnerabilityOption func(*ReportVulnerabilityMutation)
+
+// newReportVulnerabilityMutation creates new mutation for the ReportVulnerability entity.
+func newReportVulnerabilityMutation(c config, op Op, opts ...reportvulnerabilityOption) *ReportVulnerabilityMutation {
+	m := &ReportVulnerabilityMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeReportVulnerability,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withReportVulnerabilityID sets the ID field of the mutation.
+func withReportVulnerabilityID(id int) reportvulnerabilityOption {
+	return func(m *ReportVulnerabilityMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ReportVulnerability
+		)
+		m.oldValue = func(ctx context.Context) (*ReportVulnerability, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ReportVulnerability.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withReportVulnerability sets the old ReportVulnerability of the mutation.
+func withReportVulnerability(node *ReportVulnerability) reportvulnerabilityOption {
+	return func(m *ReportVulnerabilityMutation) {
+		m.oldValue = func(context.Context) (*ReportVulnerability, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ReportVulnerabilityMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ReportVulnerabilityMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ReportVulnerabilityMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ReportVulnerabilityMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ReportVulnerability.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetVulnerabilityID sets the "vulnerability_id" field.
+func (m *ReportVulnerabilityMutation) SetVulnerabilityID(s string) {
+	m.vulnerability_id = &s
+}
+
+// VulnerabilityID returns the value of the "vulnerability_id" field in the mutation.
+func (m *ReportVulnerabilityMutation) VulnerabilityID() (r string, exists bool) {
+	v := m.vulnerability_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVulnerabilityID returns the old "vulnerability_id" field's value of the ReportVulnerability entity.
+// If the ReportVulnerability object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportVulnerabilityMutation) OldVulnerabilityID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVulnerabilityID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVulnerabilityID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVulnerabilityID: %w", err)
+	}
+	return oldValue.VulnerabilityID, nil
+}
+
+// ResetVulnerabilityID resets all changes to the "vulnerability_id" field.
+func (m *ReportVulnerabilityMutation) ResetVulnerabilityID() {
+	m.vulnerability_id = nil
+}
+
+// SetTitle sets the "title" field.
+func (m *ReportVulnerabilityMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *ReportVulnerabilityMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the ReportVulnerability entity.
+// If the ReportVulnerability object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportVulnerabilityMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *ReportVulnerabilityMutation) ResetTitle() {
+	m.title = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *ReportVulnerabilityMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *ReportVulnerabilityMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the ReportVulnerability entity.
+// If the ReportVulnerability object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportVulnerabilityMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *ReportVulnerabilityMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[reportvulnerability.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *ReportVulnerabilityMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[reportvulnerability.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *ReportVulnerabilityMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, reportvulnerability.FieldDescription)
+}
+
+// SetAliases sets the "aliases" field.
+func (m *ReportVulnerabilityMutation) SetAliases(s []string) {
+	m.aliases = &s
+	m.appendaliases = nil
+}
+
+// Aliases returns the value of the "aliases" field in the mutation.
+func (m *ReportVulnerabilityMutation) Aliases() (r []string, exists bool) {
+	v := m.aliases
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAliases returns the old "aliases" field's value of the ReportVulnerability entity.
+// If the ReportVulnerability object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportVulnerabilityMutation) OldAliases(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAliases is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAliases requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAliases: %w", err)
+	}
+	return oldValue.Aliases, nil
+}
+
+// AppendAliases adds s to the "aliases" field.
+func (m *ReportVulnerabilityMutation) AppendAliases(s []string) {
+	m.appendaliases = append(m.appendaliases, s...)
+}
+
+// AppendedAliases returns the list of values that were appended to the "aliases" field in this mutation.
+func (m *ReportVulnerabilityMutation) AppendedAliases() ([]string, bool) {
+	if len(m.appendaliases) == 0 {
+		return nil, false
+	}
+	return m.appendaliases, true
+}
+
+// ClearAliases clears the value of the "aliases" field.
+func (m *ReportVulnerabilityMutation) ClearAliases() {
+	m.aliases = nil
+	m.appendaliases = nil
+	m.clearedFields[reportvulnerability.FieldAliases] = struct{}{}
+}
+
+// AliasesCleared returns if the "aliases" field was cleared in this mutation.
+func (m *ReportVulnerabilityMutation) AliasesCleared() bool {
+	_, ok := m.clearedFields[reportvulnerability.FieldAliases]
+	return ok
+}
+
+// ResetAliases resets all changes to the "aliases" field.
+func (m *ReportVulnerabilityMutation) ResetAliases() {
+	m.aliases = nil
+	m.appendaliases = nil
+	delete(m.clearedFields, reportvulnerability.FieldAliases)
+}
+
+// SetSeverity sets the "severity" field.
+func (m *ReportVulnerabilityMutation) SetSeverity(s string) {
+	m.severity = &s
+}
+
+// Severity returns the value of the "severity" field in the mutation.
+func (m *ReportVulnerabilityMutation) Severity() (r string, exists bool) {
+	v := m.severity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSeverity returns the old "severity" field's value of the ReportVulnerability entity.
+// If the ReportVulnerability object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportVulnerabilityMutation) OldSeverity(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSeverity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSeverity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSeverity: %w", err)
+	}
+	return oldValue.Severity, nil
+}
+
+// ClearSeverity clears the value of the "severity" field.
+func (m *ReportVulnerabilityMutation) ClearSeverity() {
+	m.severity = nil
+	m.clearedFields[reportvulnerability.FieldSeverity] = struct{}{}
+}
+
+// SeverityCleared returns if the "severity" field was cleared in this mutation.
+func (m *ReportVulnerabilityMutation) SeverityCleared() bool {
+	_, ok := m.clearedFields[reportvulnerability.FieldSeverity]
+	return ok
+}
+
+// ResetSeverity resets all changes to the "severity" field.
+func (m *ReportVulnerabilityMutation) ResetSeverity() {
+	m.severity = nil
+	delete(m.clearedFields, reportvulnerability.FieldSeverity)
+}
+
+// SetSeverityType sets the "severity_type" field.
+func (m *ReportVulnerabilityMutation) SetSeverityType(s string) {
+	m.severity_type = &s
+}
+
+// SeverityType returns the value of the "severity_type" field in the mutation.
+func (m *ReportVulnerabilityMutation) SeverityType() (r string, exists bool) {
+	v := m.severity_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSeverityType returns the old "severity_type" field's value of the ReportVulnerability entity.
+// If the ReportVulnerability object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportVulnerabilityMutation) OldSeverityType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSeverityType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSeverityType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSeverityType: %w", err)
+	}
+	return oldValue.SeverityType, nil
+}
+
+// ClearSeverityType clears the value of the "severity_type" field.
+func (m *ReportVulnerabilityMutation) ClearSeverityType() {
+	m.severity_type = nil
+	m.clearedFields[reportvulnerability.FieldSeverityType] = struct{}{}
+}
+
+// SeverityTypeCleared returns if the "severity_type" field was cleared in this mutation.
+func (m *ReportVulnerabilityMutation) SeverityTypeCleared() bool {
+	_, ok := m.clearedFields[reportvulnerability.FieldSeverityType]
+	return ok
+}
+
+// ResetSeverityType resets all changes to the "severity_type" field.
+func (m *ReportVulnerabilityMutation) ResetSeverityType() {
+	m.severity_type = nil
+	delete(m.clearedFields, reportvulnerability.FieldSeverityType)
+}
+
+// SetCvssScore sets the "cvss_score" field.
+func (m *ReportVulnerabilityMutation) SetCvssScore(f float64) {
+	m.cvss_score = &f
+	m.addcvss_score = nil
+}
+
+// CvssScore returns the value of the "cvss_score" field in the mutation.
+func (m *ReportVulnerabilityMutation) CvssScore() (r float64, exists bool) {
+	v := m.cvss_score
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCvssScore returns the old "cvss_score" field's value of the ReportVulnerability entity.
+// If the ReportVulnerability object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportVulnerabilityMutation) OldCvssScore(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCvssScore is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCvssScore requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCvssScore: %w", err)
+	}
+	return oldValue.CvssScore, nil
+}
+
+// AddCvssScore adds f to the "cvss_score" field.
+func (m *ReportVulnerabilityMutation) AddCvssScore(f float64) {
+	if m.addcvss_score != nil {
+		*m.addcvss_score += f
+	} else {
+		m.addcvss_score = &f
+	}
+}
+
+// AddedCvssScore returns the value that was added to the "cvss_score" field in this mutation.
+func (m *ReportVulnerabilityMutation) AddedCvssScore() (r float64, exists bool) {
+	v := m.addcvss_score
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearCvssScore clears the value of the "cvss_score" field.
+func (m *ReportVulnerabilityMutation) ClearCvssScore() {
+	m.cvss_score = nil
+	m.addcvss_score = nil
+	m.clearedFields[reportvulnerability.FieldCvssScore] = struct{}{}
+}
+
+// CvssScoreCleared returns if the "cvss_score" field was cleared in this mutation.
+func (m *ReportVulnerabilityMutation) CvssScoreCleared() bool {
+	_, ok := m.clearedFields[reportvulnerability.FieldCvssScore]
+	return ok
+}
+
+// ResetCvssScore resets all changes to the "cvss_score" field.
+func (m *ReportVulnerabilityMutation) ResetCvssScore() {
+	m.cvss_score = nil
+	m.addcvss_score = nil
+	delete(m.clearedFields, reportvulnerability.FieldCvssScore)
+}
+
+// SetSeverityDetails sets the "severity_details" field.
+func (m *ReportVulnerabilityMutation) SetSeverityDetails(value map[string]interface{}) {
+	m.severity_details = &value
+}
+
+// SeverityDetails returns the value of the "severity_details" field in the mutation.
+func (m *ReportVulnerabilityMutation) SeverityDetails() (r map[string]interface{}, exists bool) {
+	v := m.severity_details
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSeverityDetails returns the old "severity_details" field's value of the ReportVulnerability entity.
+// If the ReportVulnerability object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportVulnerabilityMutation) OldSeverityDetails(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSeverityDetails is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSeverityDetails requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSeverityDetails: %w", err)
+	}
+	return oldValue.SeverityDetails, nil
+}
+
+// ClearSeverityDetails clears the value of the "severity_details" field.
+func (m *ReportVulnerabilityMutation) ClearSeverityDetails() {
+	m.severity_details = nil
+	m.clearedFields[reportvulnerability.FieldSeverityDetails] = struct{}{}
+}
+
+// SeverityDetailsCleared returns if the "severity_details" field was cleared in this mutation.
+func (m *ReportVulnerabilityMutation) SeverityDetailsCleared() bool {
+	_, ok := m.clearedFields[reportvulnerability.FieldSeverityDetails]
+	return ok
+}
+
+// ResetSeverityDetails resets all changes to the "severity_details" field.
+func (m *ReportVulnerabilityMutation) ResetSeverityDetails() {
+	m.severity_details = nil
+	delete(m.clearedFields, reportvulnerability.FieldSeverityDetails)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ReportVulnerabilityMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ReportVulnerabilityMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ReportVulnerability entity.
+// If the ReportVulnerability object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportVulnerabilityMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ClearCreatedAt clears the value of the "created_at" field.
+func (m *ReportVulnerabilityMutation) ClearCreatedAt() {
+	m.created_at = nil
+	m.clearedFields[reportvulnerability.FieldCreatedAt] = struct{}{}
+}
+
+// CreatedAtCleared returns if the "created_at" field was cleared in this mutation.
+func (m *ReportVulnerabilityMutation) CreatedAtCleared() bool {
+	_, ok := m.clearedFields[reportvulnerability.FieldCreatedAt]
+	return ok
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ReportVulnerabilityMutation) ResetCreatedAt() {
+	m.created_at = nil
+	delete(m.clearedFields, reportvulnerability.FieldCreatedAt)
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ReportVulnerabilityMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ReportVulnerabilityMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ReportVulnerability entity.
+// If the ReportVulnerability object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportVulnerabilityMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *ReportVulnerabilityMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[reportvulnerability.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *ReportVulnerabilityMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[reportvulnerability.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ReportVulnerabilityMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, reportvulnerability.FieldUpdatedAt)
+}
+
+// Where appends a list predicates to the ReportVulnerabilityMutation builder.
+func (m *ReportVulnerabilityMutation) Where(ps ...predicate.ReportVulnerability) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ReportVulnerabilityMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ReportVulnerabilityMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ReportVulnerability, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ReportVulnerabilityMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ReportVulnerabilityMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ReportVulnerability).
+func (m *ReportVulnerabilityMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ReportVulnerabilityMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.vulnerability_id != nil {
+		fields = append(fields, reportvulnerability.FieldVulnerabilityID)
+	}
+	if m.title != nil {
+		fields = append(fields, reportvulnerability.FieldTitle)
+	}
+	if m.description != nil {
+		fields = append(fields, reportvulnerability.FieldDescription)
+	}
+	if m.aliases != nil {
+		fields = append(fields, reportvulnerability.FieldAliases)
+	}
+	if m.severity != nil {
+		fields = append(fields, reportvulnerability.FieldSeverity)
+	}
+	if m.severity_type != nil {
+		fields = append(fields, reportvulnerability.FieldSeverityType)
+	}
+	if m.cvss_score != nil {
+		fields = append(fields, reportvulnerability.FieldCvssScore)
+	}
+	if m.severity_details != nil {
+		fields = append(fields, reportvulnerability.FieldSeverityDetails)
+	}
+	if m.created_at != nil {
+		fields = append(fields, reportvulnerability.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, reportvulnerability.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ReportVulnerabilityMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case reportvulnerability.FieldVulnerabilityID:
+		return m.VulnerabilityID()
+	case reportvulnerability.FieldTitle:
+		return m.Title()
+	case reportvulnerability.FieldDescription:
+		return m.Description()
+	case reportvulnerability.FieldAliases:
+		return m.Aliases()
+	case reportvulnerability.FieldSeverity:
+		return m.Severity()
+	case reportvulnerability.FieldSeverityType:
+		return m.SeverityType()
+	case reportvulnerability.FieldCvssScore:
+		return m.CvssScore()
+	case reportvulnerability.FieldSeverityDetails:
+		return m.SeverityDetails()
+	case reportvulnerability.FieldCreatedAt:
+		return m.CreatedAt()
+	case reportvulnerability.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ReportVulnerabilityMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case reportvulnerability.FieldVulnerabilityID:
+		return m.OldVulnerabilityID(ctx)
+	case reportvulnerability.FieldTitle:
+		return m.OldTitle(ctx)
+	case reportvulnerability.FieldDescription:
+		return m.OldDescription(ctx)
+	case reportvulnerability.FieldAliases:
+		return m.OldAliases(ctx)
+	case reportvulnerability.FieldSeverity:
+		return m.OldSeverity(ctx)
+	case reportvulnerability.FieldSeverityType:
+		return m.OldSeverityType(ctx)
+	case reportvulnerability.FieldCvssScore:
+		return m.OldCvssScore(ctx)
+	case reportvulnerability.FieldSeverityDetails:
+		return m.OldSeverityDetails(ctx)
+	case reportvulnerability.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case reportvulnerability.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown ReportVulnerability field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportVulnerabilityMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case reportvulnerability.FieldVulnerabilityID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVulnerabilityID(v)
+		return nil
+	case reportvulnerability.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case reportvulnerability.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case reportvulnerability.FieldAliases:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAliases(v)
+		return nil
+	case reportvulnerability.FieldSeverity:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSeverity(v)
+		return nil
+	case reportvulnerability.FieldSeverityType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSeverityType(v)
+		return nil
+	case reportvulnerability.FieldCvssScore:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCvssScore(v)
+		return nil
+	case reportvulnerability.FieldSeverityDetails:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSeverityDetails(v)
+		return nil
+	case reportvulnerability.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case reportvulnerability.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ReportVulnerability field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ReportVulnerabilityMutation) AddedFields() []string {
+	var fields []string
+	if m.addcvss_score != nil {
+		fields = append(fields, reportvulnerability.FieldCvssScore)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ReportVulnerabilityMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case reportvulnerability.FieldCvssScore:
+		return m.AddedCvssScore()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportVulnerabilityMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case reportvulnerability.FieldCvssScore:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCvssScore(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ReportVulnerability numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ReportVulnerabilityMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(reportvulnerability.FieldDescription) {
+		fields = append(fields, reportvulnerability.FieldDescription)
+	}
+	if m.FieldCleared(reportvulnerability.FieldAliases) {
+		fields = append(fields, reportvulnerability.FieldAliases)
+	}
+	if m.FieldCleared(reportvulnerability.FieldSeverity) {
+		fields = append(fields, reportvulnerability.FieldSeverity)
+	}
+	if m.FieldCleared(reportvulnerability.FieldSeverityType) {
+		fields = append(fields, reportvulnerability.FieldSeverityType)
+	}
+	if m.FieldCleared(reportvulnerability.FieldCvssScore) {
+		fields = append(fields, reportvulnerability.FieldCvssScore)
+	}
+	if m.FieldCleared(reportvulnerability.FieldSeverityDetails) {
+		fields = append(fields, reportvulnerability.FieldSeverityDetails)
+	}
+	if m.FieldCleared(reportvulnerability.FieldCreatedAt) {
+		fields = append(fields, reportvulnerability.FieldCreatedAt)
+	}
+	if m.FieldCleared(reportvulnerability.FieldUpdatedAt) {
+		fields = append(fields, reportvulnerability.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ReportVulnerabilityMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ReportVulnerabilityMutation) ClearField(name string) error {
+	switch name {
+	case reportvulnerability.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case reportvulnerability.FieldAliases:
+		m.ClearAliases()
+		return nil
+	case reportvulnerability.FieldSeverity:
+		m.ClearSeverity()
+		return nil
+	case reportvulnerability.FieldSeverityType:
+		m.ClearSeverityType()
+		return nil
+	case reportvulnerability.FieldCvssScore:
+		m.ClearCvssScore()
+		return nil
+	case reportvulnerability.FieldSeverityDetails:
+		m.ClearSeverityDetails()
+		return nil
+	case reportvulnerability.FieldCreatedAt:
+		m.ClearCreatedAt()
+		return nil
+	case reportvulnerability.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportVulnerability nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ReportVulnerabilityMutation) ResetField(name string) error {
+	switch name {
+	case reportvulnerability.FieldVulnerabilityID:
+		m.ResetVulnerabilityID()
+		return nil
+	case reportvulnerability.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case reportvulnerability.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case reportvulnerability.FieldAliases:
+		m.ResetAliases()
+		return nil
+	case reportvulnerability.FieldSeverity:
+		m.ResetSeverity()
+		return nil
+	case reportvulnerability.FieldSeverityType:
+		m.ResetSeverityType()
+		return nil
+	case reportvulnerability.FieldCvssScore:
+		m.ResetCvssScore()
+		return nil
+	case reportvulnerability.FieldSeverityDetails:
+		m.ResetSeverityDetails()
+		return nil
+	case reportvulnerability.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case reportvulnerability.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportVulnerability field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ReportVulnerabilityMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ReportVulnerabilityMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ReportVulnerabilityMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ReportVulnerabilityMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ReportVulnerabilityMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ReportVulnerabilityMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ReportVulnerabilityMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown ReportVulnerability unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ReportVulnerabilityMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown ReportVulnerability edge %s", name)
 }

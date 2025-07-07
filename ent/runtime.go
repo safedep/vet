@@ -5,6 +5,13 @@ package ent
 import (
 	"github.com/safedep/vet/ent/codesourcefile"
 	"github.com/safedep/vet/ent/depsusageevidence"
+	"github.com/safedep/vet/ent/reportdependency"
+	"github.com/safedep/vet/ent/reportlicense"
+	"github.com/safedep/vet/ent/reportmalware"
+	"github.com/safedep/vet/ent/reportpackage"
+	"github.com/safedep/vet/ent/reportpackagemanifest"
+	"github.com/safedep/vet/ent/reportproject"
+	"github.com/safedep/vet/ent/reportvulnerability"
 	"github.com/safedep/vet/ent/schema"
 )
 
@@ -24,4 +31,126 @@ func init() {
 	depsusageevidenceDescIsWildCardUsage := depsusageevidenceFields[4].Descriptor()
 	// depsusageevidence.DefaultIsWildCardUsage holds the default value on creation for the is_wild_card_usage field.
 	depsusageevidence.DefaultIsWildCardUsage = depsusageevidenceDescIsWildCardUsage.Default.(bool)
+	reportdependencyFields := schema.ReportDependency{}.Fields()
+	_ = reportdependencyFields
+	// reportdependencyDescDependencyPackageID is the schema descriptor for dependency_package_id field.
+	reportdependencyDescDependencyPackageID := reportdependencyFields[0].Descriptor()
+	// reportdependency.DependencyPackageIDValidator is a validator for the "dependency_package_id" field. It is called by the builders before save.
+	reportdependency.DependencyPackageIDValidator = reportdependencyDescDependencyPackageID.Validators[0].(func(string) error)
+	// reportdependencyDescDependencyName is the schema descriptor for dependency_name field.
+	reportdependencyDescDependencyName := reportdependencyFields[1].Descriptor()
+	// reportdependency.DependencyNameValidator is a validator for the "dependency_name" field. It is called by the builders before save.
+	reportdependency.DependencyNameValidator = reportdependencyDescDependencyName.Validators[0].(func(string) error)
+	// reportdependencyDescDependencyVersion is the schema descriptor for dependency_version field.
+	reportdependencyDescDependencyVersion := reportdependencyFields[2].Descriptor()
+	// reportdependency.DependencyVersionValidator is a validator for the "dependency_version" field. It is called by the builders before save.
+	reportdependency.DependencyVersionValidator = reportdependencyDescDependencyVersion.Validators[0].(func(string) error)
+	// reportdependencyDescDependencyEcosystem is the schema descriptor for dependency_ecosystem field.
+	reportdependencyDescDependencyEcosystem := reportdependencyFields[3].Descriptor()
+	// reportdependency.DependencyEcosystemValidator is a validator for the "dependency_ecosystem" field. It is called by the builders before save.
+	reportdependency.DependencyEcosystemValidator = reportdependencyDescDependencyEcosystem.Validators[0].(func(string) error)
+	// reportdependencyDescDepth is the schema descriptor for depth field.
+	reportdependencyDescDepth := reportdependencyFields[5].Descriptor()
+	// reportdependency.DefaultDepth holds the default value on creation for the depth field.
+	reportdependency.DefaultDepth = reportdependencyDescDepth.Default.(int)
+	reportlicenseFields := schema.ReportLicense{}.Fields()
+	_ = reportlicenseFields
+	// reportlicenseDescLicenseID is the schema descriptor for license_id field.
+	reportlicenseDescLicenseID := reportlicenseFields[0].Descriptor()
+	// reportlicense.LicenseIDValidator is a validator for the "license_id" field. It is called by the builders before save.
+	reportlicense.LicenseIDValidator = reportlicenseDescLicenseID.Validators[0].(func(string) error)
+	reportmalwareFields := schema.ReportMalware{}.Fields()
+	_ = reportmalwareFields
+	// reportmalwareDescAnalysisID is the schema descriptor for analysis_id field.
+	reportmalwareDescAnalysisID := reportmalwareFields[0].Descriptor()
+	// reportmalware.AnalysisIDValidator is a validator for the "analysis_id" field. It is called by the builders before save.
+	reportmalware.AnalysisIDValidator = reportmalwareDescAnalysisID.Validators[0].(func(string) error)
+	// reportmalwareDescIsMalware is the schema descriptor for is_malware field.
+	reportmalwareDescIsMalware := reportmalwareFields[1].Descriptor()
+	// reportmalware.DefaultIsMalware holds the default value on creation for the is_malware field.
+	reportmalware.DefaultIsMalware = reportmalwareDescIsMalware.Default.(bool)
+	// reportmalwareDescIsSuspicious is the schema descriptor for is_suspicious field.
+	reportmalwareDescIsSuspicious := reportmalwareFields[2].Descriptor()
+	// reportmalware.DefaultIsSuspicious holds the default value on creation for the is_suspicious field.
+	reportmalware.DefaultIsSuspicious = reportmalwareDescIsSuspicious.Default.(bool)
+	reportpackageFields := schema.ReportPackage{}.Fields()
+	_ = reportpackageFields
+	// reportpackageDescPackageID is the schema descriptor for package_id field.
+	reportpackageDescPackageID := reportpackageFields[0].Descriptor()
+	// reportpackage.PackageIDValidator is a validator for the "package_id" field. It is called by the builders before save.
+	reportpackage.PackageIDValidator = reportpackageDescPackageID.Validators[0].(func(string) error)
+	// reportpackageDescName is the schema descriptor for name field.
+	reportpackageDescName := reportpackageFields[1].Descriptor()
+	// reportpackage.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	reportpackage.NameValidator = reportpackageDescName.Validators[0].(func(string) error)
+	// reportpackageDescVersion is the schema descriptor for version field.
+	reportpackageDescVersion := reportpackageFields[2].Descriptor()
+	// reportpackage.VersionValidator is a validator for the "version" field. It is called by the builders before save.
+	reportpackage.VersionValidator = reportpackageDescVersion.Validators[0].(func(string) error)
+	// reportpackageDescEcosystem is the schema descriptor for ecosystem field.
+	reportpackageDescEcosystem := reportpackageFields[3].Descriptor()
+	// reportpackage.EcosystemValidator is a validator for the "ecosystem" field. It is called by the builders before save.
+	reportpackage.EcosystemValidator = reportpackageDescEcosystem.Validators[0].(func(string) error)
+	// reportpackageDescPackageURL is the schema descriptor for package_url field.
+	reportpackageDescPackageURL := reportpackageFields[4].Descriptor()
+	// reportpackage.PackageURLValidator is a validator for the "package_url" field. It is called by the builders before save.
+	reportpackage.PackageURLValidator = reportpackageDescPackageURL.Validators[0].(func(string) error)
+	// reportpackageDescDepth is the schema descriptor for depth field.
+	reportpackageDescDepth := reportpackageFields[5].Descriptor()
+	// reportpackage.DefaultDepth holds the default value on creation for the depth field.
+	reportpackage.DefaultDepth = reportpackageDescDepth.Default.(int)
+	// reportpackageDescIsDirect is the schema descriptor for is_direct field.
+	reportpackageDescIsDirect := reportpackageFields[6].Descriptor()
+	// reportpackage.DefaultIsDirect holds the default value on creation for the is_direct field.
+	reportpackage.DefaultIsDirect = reportpackageDescIsDirect.Default.(bool)
+	// reportpackageDescIsMalware is the schema descriptor for is_malware field.
+	reportpackageDescIsMalware := reportpackageFields[7].Descriptor()
+	// reportpackage.DefaultIsMalware holds the default value on creation for the is_malware field.
+	reportpackage.DefaultIsMalware = reportpackageDescIsMalware.Default.(bool)
+	// reportpackageDescIsSuspicious is the schema descriptor for is_suspicious field.
+	reportpackageDescIsSuspicious := reportpackageFields[8].Descriptor()
+	// reportpackage.DefaultIsSuspicious holds the default value on creation for the is_suspicious field.
+	reportpackage.DefaultIsSuspicious = reportpackageDescIsSuspicious.Default.(bool)
+	reportpackagemanifestFields := schema.ReportPackageManifest{}.Fields()
+	_ = reportpackagemanifestFields
+	// reportpackagemanifestDescManifestID is the schema descriptor for manifest_id field.
+	reportpackagemanifestDescManifestID := reportpackagemanifestFields[0].Descriptor()
+	// reportpackagemanifest.ManifestIDValidator is a validator for the "manifest_id" field. It is called by the builders before save.
+	reportpackagemanifest.ManifestIDValidator = reportpackagemanifestDescManifestID.Validators[0].(func(string) error)
+	// reportpackagemanifestDescSourceType is the schema descriptor for source_type field.
+	reportpackagemanifestDescSourceType := reportpackagemanifestFields[1].Descriptor()
+	// reportpackagemanifest.SourceTypeValidator is a validator for the "source_type" field. It is called by the builders before save.
+	reportpackagemanifest.SourceTypeValidator = reportpackagemanifestDescSourceType.Validators[0].(func(string) error)
+	// reportpackagemanifestDescNamespace is the schema descriptor for namespace field.
+	reportpackagemanifestDescNamespace := reportpackagemanifestFields[2].Descriptor()
+	// reportpackagemanifest.NamespaceValidator is a validator for the "namespace" field. It is called by the builders before save.
+	reportpackagemanifest.NamespaceValidator = reportpackagemanifestDescNamespace.Validators[0].(func(string) error)
+	// reportpackagemanifestDescPath is the schema descriptor for path field.
+	reportpackagemanifestDescPath := reportpackagemanifestFields[3].Descriptor()
+	// reportpackagemanifest.PathValidator is a validator for the "path" field. It is called by the builders before save.
+	reportpackagemanifest.PathValidator = reportpackagemanifestDescPath.Validators[0].(func(string) error)
+	// reportpackagemanifestDescDisplayPath is the schema descriptor for display_path field.
+	reportpackagemanifestDescDisplayPath := reportpackagemanifestFields[4].Descriptor()
+	// reportpackagemanifest.DisplayPathValidator is a validator for the "display_path" field. It is called by the builders before save.
+	reportpackagemanifest.DisplayPathValidator = reportpackagemanifestDescDisplayPath.Validators[0].(func(string) error)
+	// reportpackagemanifestDescEcosystem is the schema descriptor for ecosystem field.
+	reportpackagemanifestDescEcosystem := reportpackagemanifestFields[5].Descriptor()
+	// reportpackagemanifest.EcosystemValidator is a validator for the "ecosystem" field. It is called by the builders before save.
+	reportpackagemanifest.EcosystemValidator = reportpackagemanifestDescEcosystem.Validators[0].(func(string) error)
+	reportprojectFields := schema.ReportProject{}.Fields()
+	_ = reportprojectFields
+	// reportprojectDescName is the schema descriptor for name field.
+	reportprojectDescName := reportprojectFields[0].Descriptor()
+	// reportproject.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	reportproject.NameValidator = reportprojectDescName.Validators[0].(func(string) error)
+	reportvulnerabilityFields := schema.ReportVulnerability{}.Fields()
+	_ = reportvulnerabilityFields
+	// reportvulnerabilityDescVulnerabilityID is the schema descriptor for vulnerability_id field.
+	reportvulnerabilityDescVulnerabilityID := reportvulnerabilityFields[0].Descriptor()
+	// reportvulnerability.VulnerabilityIDValidator is a validator for the "vulnerability_id" field. It is called by the builders before save.
+	reportvulnerability.VulnerabilityIDValidator = reportvulnerabilityDescVulnerabilityID.Validators[0].(func(string) error)
+	// reportvulnerabilityDescTitle is the schema descriptor for title field.
+	reportvulnerabilityDescTitle := reportvulnerabilityFields[1].Descriptor()
+	// reportvulnerability.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	reportvulnerability.TitleValidator = reportvulnerabilityDescTitle.Validators[0].(func(string) error)
 }

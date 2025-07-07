@@ -11,3 +11,24 @@ type CodeSourceFile func(*sql.Selector)
 
 // DepsUsageEvidence is the predicate function for depsusageevidence builders.
 type DepsUsageEvidence func(*sql.Selector)
+
+// ReportDependency is the predicate function for reportdependency builders.
+type ReportDependency func(*sql.Selector)
+
+// ReportLicense is the predicate function for reportlicense builders.
+type ReportLicense func(*sql.Selector)
+
+// ReportMalware is the predicate function for reportmalware builders.
+type ReportMalware func(*sql.Selector)
+
+// ReportPackage is the predicate function for reportpackage builders.
+type ReportPackage func(*sql.Selector)
+
+// ReportPackageManifest is the predicate function for reportpackagemanifest builders.
+type ReportPackageManifest func(*sql.Selector)
+
+// ReportProject is the predicate function for reportproject builders.
+type ReportProject func(*sql.Selector)
+
+// ReportVulnerability is the predicate function for reportvulnerability builders.
+type ReportVulnerability func(*sql.Selector)
