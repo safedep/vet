@@ -36,7 +36,7 @@ func (c *queryDataCache) EnumManifests(handler func(*models.PackageManifest, rea
 }
 
 func executeQueryAgent() error {
-	ui.PrintMsg("Loading JSON dump files...")
+	ui.PrintMsg("Loading JSON dump files")
 
 	reader, err := readers.NewJsonDumpReader(queryLoadDirectory)
 	if err != nil {
@@ -61,12 +61,11 @@ func executeQueryAgent() error {
 		return err
 	}
 
-	ui.PrintMsg("Loading JSON dump files... done")
+	ui.PrintMsg("Loaded %d manifests", index)
 
-	ui.PrintMsg("Connecting to MCP server...")
+	ui.PrintMsg("Connecting to MCP server")
 
 	toolBuilder, err := agent.NewMcpClientToolBuilder(agent.McpClientToolBuilderConfig{
-		SseURL:        queryAgentMcpServerUrl,
 		ClientName:    "vet-query-agent",
 		ClientVersion: version,
 	})
@@ -83,14 +82,14 @@ func executeQueryAgent() error {
 
 	// TODO: Add the tool for query data cache access for the agent
 
-	ui.PrintMsg("Creating model...")
+	ui.PrintMsg("Creating LLM model adapter based on environment configuration")
 
 	model, err := agent.BuildModelFromEnvironment()
 	if err != nil {
 		return fmt.Errorf("failed to create model: %w", err)
 	}
 
-	ui.PrintMsg("Creating agent...")
+	ui.PrintMsg("Creating query agent")
 
 	agentExecutor, err := agent.NewReactQueryAgent(model, agent.ReactQueryAgentConfig{
 		MaxSteps: 30,
@@ -99,7 +98,7 @@ func executeQueryAgent() error {
 		return fmt.Errorf("failed to create agent: %w", err)
 	}
 
-	ui.PrintMsg("Starting agent interaction UI...")
+	ui.PrintMsg("Starting query agent UI")
 
 	memory, err := agent.NewSimpleMemory()
 	if err != nil {

@@ -3,6 +3,8 @@ package agent
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/cloudwego/eino/components/tool"
 	"github.com/mark3labs/mcp-go/client"
@@ -31,14 +33,24 @@ func NewMcpClientToolBuilder(config McpClientToolBuilderConfig) (*mcpClientToolB
 }
 
 func (b *mcpClientToolBuilder) Build(ctx context.Context) ([]tool.BaseTool, error) {
-	cli, err := client.NewSSEMCPClient(b.config.SseURL, client.WithHeaders(b.config.Headers))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create sse client: %w", err)
+	var cli *client.Client
+	var err error
+
+	if b.config.SseURL != "" {
+		cli, err = b.buildSseClient()
+		if err != nil {
+			return nil, fmt.Errorf("failed to create sse client: %w", err)
+		}
+	} else {
+		cli, err = b.buildStdioClient()
+		if err != nil {
+			return nil, fmt.Errorf("failed to create stdio client: %w", err)
+		}
 	}
 
 	err = cli.Start(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to start sse client: %w", err)
+		return nil, fmt.Errorf("failed to start mcp client: %w", err)
 	}
 
 	initRequest := mcp.InitializeRequest{}
@@ -50,7 +62,7 @@ func (b *mcpClientToolBuilder) Build(ctx context.Context) ([]tool.BaseTool, erro
 
 	_, err = cli.Initialize(ctx, initRequest)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize sse client: %w", err)
+		return nil, fmt.Errorf("failed to initialize mcp client: %w", err)
 	}
 
 	tools, err := einomcp.GetTools(ctx, &einomcp.Config{
@@ -61,4 +73,36 @@ func (b *mcpClientToolBuilder) Build(ctx context.Context) ([]tool.BaseTool, erro
 	}
 
 	return tools, nil
+}
+
+func (b *mcpClientToolBuilder) buildSseClient() (*client.Client, error) {
+	cli, err := client.NewSSEMCPClient(b.config.SseURL, client.WithHeaders(b.config.Headers))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create sse client: %w", err)
+	}
+
+	return cli, nil
+}
+
+func (b *mcpClientToolBuilder) buildStdioClient() (*client.Client, error) {
+	binaryPath, err := os.Executable()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get running binary path: %w", err)
+	}
+
+	// TODO: We should not log by default. This is only for debugging purposes.
+	vetMcpServerLogFile := filepath.Join(os.TempDir(), "vet-mcp-server.log")
+
+	// vet-mcp server defaults to stdio transport. See cmd/server/mcp.go
+	vetMcpServerCommandArgs := []string{"server", "mcp"}
+
+	cli, err := client.NewStdioMCPClient(binaryPath, []string{
+		"APP_LOG_LEVEL=debug",
+		"APP_LOG_FILE=" + vetMcpServerLogFile,
+	}, vetMcpServerCommandArgs...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create stdio client: %w", err)
+	}
+
+	return cli, nil
 }
