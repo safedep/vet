@@ -42,6 +42,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeManifest holds the string denoting the manifest edge name in mutations.
 	EdgeManifest = "manifest"
+	// EdgeVulnerabilities holds the string denoting the vulnerabilities edge name in mutations.
+	EdgeVulnerabilities = "vulnerabilities"
 	// EdgeDependencies holds the string denoting the dependencies edge name in mutations.
 	EdgeDependencies = "dependencies"
 	// EdgeMalwareAnalysis holds the string denoting the malware_analysis edge name in mutations.
@@ -55,6 +57,13 @@ const (
 	ManifestInverseTable = "report_package_manifests"
 	// ManifestColumn is the table column denoting the manifest relation/edge.
 	ManifestColumn = "report_package_manifest_packages"
+	// VulnerabilitiesTable is the table that holds the vulnerabilities relation/edge.
+	VulnerabilitiesTable = "report_vulnerabilities"
+	// VulnerabilitiesInverseTable is the table name for the ReportVulnerability entity.
+	// It exists in this package in order to avoid circular dependency with the "reportvulnerability" package.
+	VulnerabilitiesInverseTable = "report_vulnerabilities"
+	// VulnerabilitiesColumn is the table column denoting the vulnerabilities relation/edge.
+	VulnerabilitiesColumn = "report_package_vulnerabilities"
 	// DependenciesTable is the table that holds the dependencies relation/edge.
 	DependenciesTable = "report_dependencies"
 	// DependenciesInverseTable is the table name for the ReportDependency entity.
@@ -202,6 +211,20 @@ func ByManifestField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
+// ByVulnerabilitiesCount orders the results by vulnerabilities count.
+func ByVulnerabilitiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newVulnerabilitiesStep(), opts...)
+	}
+}
+
+// ByVulnerabilities orders the results by vulnerabilities terms.
+func ByVulnerabilities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newVulnerabilitiesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByDependenciesCount orders the results by dependencies count.
 func ByDependenciesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -227,6 +250,13 @@ func newManifestStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ManifestInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, ManifestTable, ManifestColumn),
+	)
+}
+func newVulnerabilitiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(VulnerabilitiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, VulnerabilitiesTable, VulnerabilitiesColumn),
 	)
 }
 func newDependenciesStep() *sqlgraph.Step {

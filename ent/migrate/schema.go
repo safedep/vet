@@ -199,12 +199,21 @@ var (
 		{Name: "severity_details", Type: field.TypeJSON, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime, Nullable: true},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "report_package_vulnerabilities", Type: field.TypeInt, Nullable: true},
 	}
 	// ReportVulnerabilitiesTable holds the schema information for the "report_vulnerabilities" table.
 	ReportVulnerabilitiesTable = &schema.Table{
 		Name:       "report_vulnerabilities",
 		Columns:    ReportVulnerabilitiesColumns,
 		PrimaryKey: []*schema.Column{ReportVulnerabilitiesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "report_vulnerabilities_report_packages_vulnerabilities",
+				Columns:    []*schema.Column{ReportVulnerabilitiesColumns[11]},
+				RefColumns: []*schema.Column{ReportPackagesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
@@ -225,4 +234,5 @@ func init() {
 	ReportDependenciesTable.ForeignKeys[0].RefTable = ReportPackagesTable
 	ReportMalwaresTable.ForeignKeys[0].RefTable = ReportPackagesTable
 	ReportPackagesTable.ForeignKeys[0].RefTable = ReportPackageManifestsTable
+	ReportVulnerabilitiesTable.ForeignKeys[0].RefTable = ReportPackagesTable
 }

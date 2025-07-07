@@ -3,9 +3,11 @@ package reporter
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
+	vulnerabilityv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/vulnerability/v1"
 	"github.com/safedep/vet/ent"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -158,6 +160,8 @@ func (r *sqlite3Reporter) addPackage(pkg *models.Package, manifest *ent.ReportPa
 }
 
 func (r *sqlite3Reporter) addInsightsV2Data(entPackage *ent.ReportPackage, insights *packagev1.PackageVersionInsight) {
+	ctx := context.Background()
+	
 	// Store the full insights as JSON - this is simpler and more robust
 	// Users can query the JSON data directly for detailed analysis
 	insightsData := map[string]interface{}{
@@ -167,9 +171,97 @@ func (r *sqlite3Reporter) addInsightsV2Data(entPackage *ent.ReportPackage, insig
 		"dependencies":    insights.Dependencies,
 		// Add other fields as needed
 	}
-
-	ctx := context.Background()
 	entPackage.Update().SetInsightsV2(insightsData).ExecX(ctx)
+
+	// Extract and store vulnerabilities in structured format for easier querying
+	if insights.Vulnerabilities != nil {
+		for _, vuln := range insights.Vulnerabilities {
+			r.addVulnerability(entPackage, vuln)
+		}
+	}
+}
+
+func (r *sqlite3Reporter) addVulnerability(entPackage *ent.ReportPackage, vuln *vulnerabilityv1.Vulnerability) {
+	now := time.Now()
+	ctx := context.Background()
+
+	// Extract vulnerability ID
+	vulnID := ""
+	if vuln.Id != nil {
+		vulnID = vuln.Id.Value
+	}
+	if vulnID == "" {
+		return
+	}
+
+	// Extract aliases
+	aliases := []string{}
+	for _, alias := range vuln.Aliases {
+		if alias != nil {
+			aliases = append(aliases, alias.Value)
+		}
+	}
+
+	// Extract severity information
+	var severity, severityType string
+	var cvssScore float64
+	var severityDetails map[string]interface{}
+
+	if len(vuln.Severities) > 0 {
+		firstSeverity := vuln.Severities[0]
+		
+		// Map severity risk enum to string
+		switch firstSeverity.Risk {
+		case vulnerabilityv1.Severity_RISK_CRITICAL:
+			severity = "CRITICAL"
+		case vulnerabilityv1.Severity_RISK_HIGH:
+			severity = "HIGH"
+		case vulnerabilityv1.Severity_RISK_MEDIUM:
+			severity = "MEDIUM"
+		case vulnerabilityv1.Severity_RISK_LOW:
+			severity = "LOW"
+		default:
+			severity = "UNKNOWN"
+		}
+
+		// Map severity type enum to string
+		switch firstSeverity.Type {
+		case vulnerabilityv1.Severity_TYPE_CVSS_V2:
+			severityType = "CVSS_V2"
+		case vulnerabilityv1.Severity_TYPE_CVSS_V3:
+			severityType = "CVSS_V3"
+		default:
+			severityType = "UNSPECIFIED"
+		}
+
+		// Parse CVSS score
+		if score, err := strconv.ParseFloat(firstSeverity.Score, 64); err == nil {
+			cvssScore = score
+		}
+
+		// Store all severity details as JSON
+		severityDetails = map[string]interface{}{
+			"severities": vuln.Severities,
+		}
+	}
+
+	// Create vulnerability record
+	_, err := r.client.ReportVulnerability.Create().
+		SetVulnerabilityID(vulnID).
+		SetTitle(vuln.Summary).
+		SetDescription(""). // No details field in v1 vulnerability, using summary as title
+		SetAliases(aliases).
+		SetSeverity(severity).
+		SetSeverityType(severityType).
+		SetCvssScore(cvssScore).
+		SetSeverityDetails(severityDetails).
+		SetPackage(entPackage).
+		SetCreatedAt(now).
+		SetUpdatedAt(now).
+		Save(ctx)
+	if err != nil {
+		logger.Errorf("Failed to create vulnerability in database: %v", err)
+	}
 }
 
 func (r *sqlite3Reporter) addMalwareAnalysis(entPackage *ent.ReportPackage, malware *models.MalwareAnalysisResult) {

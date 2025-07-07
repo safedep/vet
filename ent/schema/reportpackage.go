@@ -38,6 +38,10 @@ func (ReportPackage) Edges() []ent.Edge {
 		edge.From("manifest", ReportPackageManifest.Type).
 			Ref("packages").
 			Unique(),
+		edge.To("vulnerabilities", ReportVulnerability.Type).
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Cascade,
+			}),
 		edge.To("dependencies", ReportDependency.Type).
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,

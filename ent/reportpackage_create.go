@@ -14,6 +14,7 @@ import (
 	"github.com/safedep/vet/ent/reportmalware"
 	"github.com/safedep/vet/ent/reportpackage"
 	"github.com/safedep/vet/ent/reportpackagemanifest"
+	"github.com/safedep/vet/ent/reportvulnerability"
 )
 
 // ReportPackageCreate is the builder for creating a ReportPackage entity.
@@ -172,6 +173,21 @@ func (rpc *ReportPackageCreate) SetNillableManifestID(id *int) *ReportPackageCre
 // SetManifest sets the "manifest" edge to the ReportPackageManifest entity.
 func (rpc *ReportPackageCreate) SetManifest(r *ReportPackageManifest) *ReportPackageCreate {
 	return rpc.SetManifestID(r.ID)
+}
+
+// AddVulnerabilityIDs adds the "vulnerabilities" edge to the ReportVulnerability entity by IDs.
+func (rpc *ReportPackageCreate) AddVulnerabilityIDs(ids ...int) *ReportPackageCreate {
+	rpc.mutation.AddVulnerabilityIDs(ids...)
+	return rpc
+}
+
+// AddVulnerabilities adds the "vulnerabilities" edges to the ReportVulnerability entity.
+func (rpc *ReportPackageCreate) AddVulnerabilities(r ...*ReportVulnerability) *ReportPackageCreate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpc.AddVulnerabilityIDs(ids...)
 }
 
 // AddDependencyIDs adds the "dependencies" edge to the ReportDependency entity by IDs.
@@ -412,6 +428,22 @@ func (rpc *ReportPackageCreate) createSpec() (*ReportPackage, *sqlgraph.CreateSp
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.report_package_manifest_packages = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rpc.mutation.VulnerabilitiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.VulnerabilitiesTable,
+			Columns: []string{reportpackage.VulnerabilitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportvulnerability.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := rpc.mutation.DependenciesIDs(); len(nodes) > 0 {

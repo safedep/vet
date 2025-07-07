@@ -17,6 +17,7 @@ import (
 	"github.com/safedep/vet/ent/reportmalware"
 	"github.com/safedep/vet/ent/reportpackage"
 	"github.com/safedep/vet/ent/reportpackagemanifest"
+	"github.com/safedep/vet/ent/reportvulnerability"
 )
 
 // ReportPackageQuery is the builder for querying ReportPackage entities.
@@ -27,6 +28,7 @@ type ReportPackageQuery struct {
 	inters              []Interceptor
 	predicates          []predicate.ReportPackage
 	withManifest        *ReportPackageManifestQuery
+	withVulnerabilities *ReportVulnerabilityQuery
 	withDependencies    *ReportDependencyQuery
 	withMalwareAnalysis *ReportMalwareQuery
 	withFKs             bool
@@ -81,6 +83,28 @@ func (rpq *ReportPackageQuery) QueryManifest() *ReportPackageManifestQuery {
 			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, selector),
 			sqlgraph.To(reportpackagemanifest.Table, reportpackagemanifest.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, reportpackage.ManifestTable, reportpackage.ManifestColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(rpq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryVulnerabilities chains the current query on the "vulnerabilities" edge.
+func (rpq *ReportPackageQuery) QueryVulnerabilities() *ReportVulnerabilityQuery {
+	query := (&ReportVulnerabilityClient{config: rpq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rpq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rpq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, selector),
+			sqlgraph.To(reportvulnerability.Table, reportvulnerability.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.VulnerabilitiesTable, reportpackage.VulnerabilitiesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(rpq.driver.Dialect(), step)
 		return fromU, nil
@@ -325,6 +349,7 @@ func (rpq *ReportPackageQuery) Clone() *ReportPackageQuery {
 		inters:              append([]Interceptor{}, rpq.inters...),
 		predicates:          append([]predicate.ReportPackage{}, rpq.predicates...),
 		withManifest:        rpq.withManifest.Clone(),
+		withVulnerabilities: rpq.withVulnerabilities.Clone(),
 		withDependencies:    rpq.withDependencies.Clone(),
 		withMalwareAnalysis: rpq.withMalwareAnalysis.Clone(),
 		// clone intermediate query.
@@ -341,6 +366,17 @@ func (rpq *ReportPackageQuery) WithManifest(opts ...func(*ReportPackageManifestQ
 		opt(query)
 	}
 	rpq.withManifest = query
+	return rpq
+}
+
+// WithVulnerabilities tells the query-builder to eager-load the nodes that are connected to
+// the "vulnerabilities" edge. The optional arguments are used to configure the query builder of the edge.
+func (rpq *ReportPackageQuery) WithVulnerabilities(opts ...func(*ReportVulnerabilityQuery)) *ReportPackageQuery {
+	query := (&ReportVulnerabilityClient{config: rpq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	rpq.withVulnerabilities = query
 	return rpq
 }
 
@@ -445,8 +481,9 @@ func (rpq *ReportPackageQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 		nodes       = []*ReportPackage{}
 		withFKs     = rpq.withFKs
 		_spec       = rpq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			rpq.withManifest != nil,
+			rpq.withVulnerabilities != nil,
 			rpq.withDependencies != nil,
 			rpq.withMalwareAnalysis != nil,
 		}
@@ -478,6 +515,15 @@ func (rpq *ReportPackageQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	if query := rpq.withManifest; query != nil {
 		if err := rpq.loadManifest(ctx, query, nodes, nil,
 			func(n *ReportPackage, e *ReportPackageManifest) { n.Edges.Manifest = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := rpq.withVulnerabilities; query != nil {
+		if err := rpq.loadVulnerabilities(ctx, query, nodes,
+			func(n *ReportPackage) { n.Edges.Vulnerabilities = []*ReportVulnerability{} },
+			func(n *ReportPackage, e *ReportVulnerability) {
+				n.Edges.Vulnerabilities = append(n.Edges.Vulnerabilities, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -526,6 +572,37 @@ func (rpq *ReportPackageQuery) loadManifest(ctx context.Context, query *ReportPa
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (rpq *ReportPackageQuery) loadVulnerabilities(ctx context.Context, query *ReportVulnerabilityQuery, nodes []*ReportPackage, init func(*ReportPackage), assign func(*ReportPackage, *ReportVulnerability)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*ReportPackage)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.ReportVulnerability(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(reportpackage.VulnerabilitiesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.report_package_vulnerabilities
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "report_package_vulnerabilities" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "report_package_vulnerabilities" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

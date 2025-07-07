@@ -1126,6 +1126,22 @@ func (c *ReportPackageClient) QueryManifest(rp *ReportPackage) *ReportPackageMan
 	return query
 }
 
+// QueryVulnerabilities queries the vulnerabilities edge of a ReportPackage.
+func (c *ReportPackageClient) QueryVulnerabilities(rp *ReportPackage) *ReportVulnerabilityQuery {
+	query := (&ReportVulnerabilityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, id),
+			sqlgraph.To(reportvulnerability.Table, reportvulnerability.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.VulnerabilitiesTable, reportpackage.VulnerabilitiesColumn),
+		)
+		fromV = sqlgraph.Neighbors(rp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryDependencies queries the dependencies edge of a ReportPackage.
 func (c *ReportPackageClient) QueryDependencies(rp *ReportPackage) *ReportDependencyQuery {
 	query := (&ReportDependencyClient{config: c.config}).Query()
@@ -1571,6 +1587,22 @@ func (c *ReportVulnerabilityClient) GetX(ctx context.Context, id int) *ReportVul
 		panic(err)
 	}
 	return obj
+}
+
+// QueryPackage queries the package edge of a ReportVulnerability.
+func (c *ReportVulnerabilityClient) QueryPackage(rv *ReportVulnerability) *ReportPackageQuery {
+	query := (&ReportPackageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rv.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportvulnerability.Table, reportvulnerability.FieldID, id),
+			sqlgraph.To(reportpackage.Table, reportpackage.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, reportvulnerability.PackageTable, reportvulnerability.PackageColumn),
+		)
+		fromV = sqlgraph.Neighbors(rv.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.

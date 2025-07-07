@@ -658,6 +658,29 @@ func HasManifestWith(preds ...predicate.ReportPackageManifest) predicate.ReportP
 	})
 }
 
+// HasVulnerabilities applies the HasEdge predicate on the "vulnerabilities" edge.
+func HasVulnerabilities() predicate.ReportPackage {
+	return predicate.ReportPackage(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, VulnerabilitiesTable, VulnerabilitiesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasVulnerabilitiesWith applies the HasEdge predicate on the "vulnerabilities" edge with a given conditions (other predicates).
+func HasVulnerabilitiesWith(preds ...predicate.ReportVulnerability) predicate.ReportPackage {
+	return predicate.ReportPackage(func(s *sql.Selector) {
+		step := newVulnerabilitiesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasDependencies applies the HasEdge predicate on the "dependencies" edge.
 func HasDependencies() predicate.ReportPackage {
 	return predicate.ReportPackage(func(s *sql.Selector) {

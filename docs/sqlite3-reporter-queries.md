@@ -29,6 +29,50 @@ ORDER BY p.name;
 
 ## Security Analysis Queries
 
+### Find all vulnerabilities
+```sql
+SELECT p.name, p.version, v.vulnerability_id, v.title, v.severity, v.cvss_score
+FROM report_packages p
+JOIN report_vulnerabilities v ON p.id = v.report_package_vulnerabilities
+ORDER BY v.severity DESC, v.cvss_score DESC;
+```
+
+### Find critical and high severity vulnerabilities
+```sql
+SELECT p.name, p.version, v.vulnerability_id, v.title, v.severity, m.display_path
+FROM report_packages p
+JOIN report_vulnerabilities v ON p.id = v.report_package_vulnerabilities
+JOIN report_package_manifests m ON p.report_package_manifest_packages = m.id
+WHERE v.severity IN ('CRITICAL', 'HIGH')
+ORDER BY v.severity DESC;
+```
+
+### Count vulnerabilities by severity
+```sql
+SELECT v.severity, COUNT(*) as vulnerability_count
+FROM report_vulnerabilities v
+GROUP BY v.severity
+ORDER BY vulnerability_count DESC;
+```
+
+### Find packages with most vulnerabilities
+```sql
+SELECT p.name, p.version, p.ecosystem, COUNT(v.id) as vuln_count
+FROM report_packages p
+LEFT JOIN report_vulnerabilities v ON p.id = v.report_package_vulnerabilities
+GROUP BY p.id, p.name, p.version, p.ecosystem
+HAVING vuln_count > 0
+ORDER BY vuln_count DESC;
+```
+
+### Find vulnerability aliases
+```sql
+SELECT p.name, p.version, v.vulnerability_id, v.aliases
+FROM report_packages p
+JOIN report_vulnerabilities v ON p.id = v.report_package_vulnerabilities
+WHERE v.aliases IS NOT NULL AND v.aliases != '[]';
+```
+
 ### Find packages flagged as malware
 ```sql
 SELECT p.name, p.version, p.ecosystem, m.display_path
@@ -138,6 +182,47 @@ SELECT
     json_extract(insights_v2, '$.vulnerabilities') as vulnerabilities
 FROM report_packages
 WHERE json_extract(insights_v2, '$.vulnerabilities') IS NOT NULL;
+```
+
+## Vulnerability Analysis Queries
+
+### Vulnerability summary by manifest
+```sql
+SELECT 
+    m.display_path,
+    m.ecosystem,
+    COUNT(DISTINCT p.id) as total_packages,
+    COUNT(v.id) as total_vulnerabilities,
+    SUM(CASE WHEN v.severity = 'CRITICAL' THEN 1 ELSE 0 END) as critical_vulns,
+    SUM(CASE WHEN v.severity = 'HIGH' THEN 1 ELSE 0 END) as high_vulns,
+    SUM(CASE WHEN v.severity = 'MEDIUM' THEN 1 ELSE 0 END) as medium_vulns,
+    SUM(CASE WHEN v.severity = 'LOW' THEN 1 ELSE 0 END) as low_vulns
+FROM report_package_manifests m
+LEFT JOIN report_packages p ON m.id = p.report_package_manifest_packages
+LEFT JOIN report_vulnerabilities v ON p.id = v.report_package_vulnerabilities
+GROUP BY m.id, m.display_path, m.ecosystem
+ORDER BY critical_vulns DESC, high_vulns DESC;
+```
+
+### Vulnerability timeline analysis
+```sql
+SELECT 
+    DATE(v.created_at) as scan_date,
+    v.severity,
+    COUNT(*) as vulnerability_count
+FROM report_vulnerabilities v
+GROUP BY DATE(v.created_at), v.severity
+ORDER BY scan_date DESC, v.severity;
+```
+
+### Extract vulnerability data from Insights v2 JSON
+```sql
+SELECT 
+    p.name,
+    p.version,
+    json_extract(p.insights_v2, '$.vulnerabilities') as raw_vulnerabilities
+FROM report_packages p
+WHERE json_extract(p.insights_v2, '$.vulnerabilities') IS NOT NULL;
 ```
 
 ## Advanced Analysis Queries

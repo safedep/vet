@@ -3894,6 +3894,9 @@ type ReportPackageMutation struct {
 	clearedFields           map[string]struct{}
 	manifest                *int
 	clearedmanifest         bool
+	vulnerabilities         map[int]struct{}
+	removedvulnerabilities  map[int]struct{}
+	clearedvulnerabilities  bool
 	dependencies            map[int]struct{}
 	removeddependencies     map[int]struct{}
 	cleareddependencies     bool
@@ -4630,6 +4633,60 @@ func (m *ReportPackageMutation) ResetManifest() {
 	m.clearedmanifest = false
 }
 
+// AddVulnerabilityIDs adds the "vulnerabilities" edge to the ReportVulnerability entity by ids.
+func (m *ReportPackageMutation) AddVulnerabilityIDs(ids ...int) {
+	if m.vulnerabilities == nil {
+		m.vulnerabilities = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.vulnerabilities[ids[i]] = struct{}{}
+	}
+}
+
+// ClearVulnerabilities clears the "vulnerabilities" edge to the ReportVulnerability entity.
+func (m *ReportPackageMutation) ClearVulnerabilities() {
+	m.clearedvulnerabilities = true
+}
+
+// VulnerabilitiesCleared reports if the "vulnerabilities" edge to the ReportVulnerability entity was cleared.
+func (m *ReportPackageMutation) VulnerabilitiesCleared() bool {
+	return m.clearedvulnerabilities
+}
+
+// RemoveVulnerabilityIDs removes the "vulnerabilities" edge to the ReportVulnerability entity by IDs.
+func (m *ReportPackageMutation) RemoveVulnerabilityIDs(ids ...int) {
+	if m.removedvulnerabilities == nil {
+		m.removedvulnerabilities = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.vulnerabilities, ids[i])
+		m.removedvulnerabilities[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedVulnerabilities returns the removed IDs of the "vulnerabilities" edge to the ReportVulnerability entity.
+func (m *ReportPackageMutation) RemovedVulnerabilitiesIDs() (ids []int) {
+	for id := range m.removedvulnerabilities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// VulnerabilitiesIDs returns the "vulnerabilities" edge IDs in the mutation.
+func (m *ReportPackageMutation) VulnerabilitiesIDs() (ids []int) {
+	for id := range m.vulnerabilities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetVulnerabilities resets all changes to the "vulnerabilities" edge.
+func (m *ReportPackageMutation) ResetVulnerabilities() {
+	m.vulnerabilities = nil
+	m.clearedvulnerabilities = false
+	m.removedvulnerabilities = nil
+}
+
 // AddDependencyIDs adds the "dependencies" edge to the ReportDependency entity by ids.
 func (m *ReportPackageMutation) AddDependencyIDs(ids ...int) {
 	if m.dependencies == nil {
@@ -5125,9 +5182,12 @@ func (m *ReportPackageMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ReportPackageMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.manifest != nil {
 		edges = append(edges, reportpackage.EdgeManifest)
+	}
+	if m.vulnerabilities != nil {
+		edges = append(edges, reportpackage.EdgeVulnerabilities)
 	}
 	if m.dependencies != nil {
 		edges = append(edges, reportpackage.EdgeDependencies)
@@ -5146,6 +5206,12 @@ func (m *ReportPackageMutation) AddedIDs(name string) []ent.Value {
 		if id := m.manifest; id != nil {
 			return []ent.Value{*id}
 		}
+	case reportpackage.EdgeVulnerabilities:
+		ids := make([]ent.Value, 0, len(m.vulnerabilities))
+		for id := range m.vulnerabilities {
+			ids = append(ids, id)
+		}
+		return ids
 	case reportpackage.EdgeDependencies:
 		ids := make([]ent.Value, 0, len(m.dependencies))
 		for id := range m.dependencies {
@@ -5162,7 +5228,10 @@ func (m *ReportPackageMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ReportPackageMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
+	if m.removedvulnerabilities != nil {
+		edges = append(edges, reportpackage.EdgeVulnerabilities)
+	}
 	if m.removeddependencies != nil {
 		edges = append(edges, reportpackage.EdgeDependencies)
 	}
@@ -5173,6 +5242,12 @@ func (m *ReportPackageMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *ReportPackageMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case reportpackage.EdgeVulnerabilities:
+		ids := make([]ent.Value, 0, len(m.removedvulnerabilities))
+		for id := range m.removedvulnerabilities {
+			ids = append(ids, id)
+		}
+		return ids
 	case reportpackage.EdgeDependencies:
 		ids := make([]ent.Value, 0, len(m.removeddependencies))
 		for id := range m.removeddependencies {
@@ -5185,9 +5260,12 @@ func (m *ReportPackageMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ReportPackageMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedmanifest {
 		edges = append(edges, reportpackage.EdgeManifest)
+	}
+	if m.clearedvulnerabilities {
+		edges = append(edges, reportpackage.EdgeVulnerabilities)
 	}
 	if m.cleareddependencies {
 		edges = append(edges, reportpackage.EdgeDependencies)
@@ -5204,6 +5282,8 @@ func (m *ReportPackageMutation) EdgeCleared(name string) bool {
 	switch name {
 	case reportpackage.EdgeManifest:
 		return m.clearedmanifest
+	case reportpackage.EdgeVulnerabilities:
+		return m.clearedvulnerabilities
 	case reportpackage.EdgeDependencies:
 		return m.cleareddependencies
 	case reportpackage.EdgeMalwareAnalysis:
@@ -5232,6 +5312,9 @@ func (m *ReportPackageMutation) ResetEdge(name string) error {
 	switch name {
 	case reportpackage.EdgeManifest:
 		m.ResetManifest()
+		return nil
+	case reportpackage.EdgeVulnerabilities:
+		m.ResetVulnerabilities()
 		return nil
 	case reportpackage.EdgeDependencies:
 		m.ResetDependencies()
@@ -7011,6 +7094,8 @@ type ReportVulnerabilityMutation struct {
 	created_at       *time.Time
 	updated_at       *time.Time
 	clearedFields    map[string]struct{}
+	_package         *int
+	cleared_package  bool
 	done             bool
 	oldValue         func(context.Context) (*ReportVulnerability, error)
 	predicates       []predicate.ReportVulnerability
@@ -7615,6 +7700,45 @@ func (m *ReportVulnerabilityMutation) ResetUpdatedAt() {
 	delete(m.clearedFields, reportvulnerability.FieldUpdatedAt)
 }
 
+// SetPackageID sets the "package" edge to the ReportPackage entity by id.
+func (m *ReportVulnerabilityMutation) SetPackageID(id int) {
+	m._package = &id
+}
+
+// ClearPackage clears the "package" edge to the ReportPackage entity.
+func (m *ReportVulnerabilityMutation) ClearPackage() {
+	m.cleared_package = true
+}
+
+// PackageCleared reports if the "package" edge to the ReportPackage entity was cleared.
+func (m *ReportVulnerabilityMutation) PackageCleared() bool {
+	return m.cleared_package
+}
+
+// PackageID returns the "package" edge ID in the mutation.
+func (m *ReportVulnerabilityMutation) PackageID() (id int, exists bool) {
+	if m._package != nil {
+		return *m._package, true
+	}
+	return
+}
+
+// PackageIDs returns the "package" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PackageID instead. It exists only for internal usage by the builders.
+func (m *ReportVulnerabilityMutation) PackageIDs() (ids []int) {
+	if id := m._package; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPackage resets all changes to the "package" edge.
+func (m *ReportVulnerabilityMutation) ResetPackage() {
+	m._package = nil
+	m.cleared_package = false
+}
+
 // Where appends a list predicates to the ReportVulnerabilityMutation builder.
 func (m *ReportVulnerabilityMutation) Where(ps ...predicate.ReportVulnerability) {
 	m.predicates = append(m.predicates, ps...)
@@ -7967,19 +8091,28 @@ func (m *ReportVulnerabilityMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ReportVulnerabilityMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m._package != nil {
+		edges = append(edges, reportvulnerability.EdgePackage)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *ReportVulnerabilityMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case reportvulnerability.EdgePackage:
+		if id := m._package; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ReportVulnerabilityMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
 	return edges
 }
 
@@ -7991,24 +8124,41 @@ func (m *ReportVulnerabilityMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ReportVulnerabilityMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.cleared_package {
+		edges = append(edges, reportvulnerability.EdgePackage)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *ReportVulnerabilityMutation) EdgeCleared(name string) bool {
+	switch name {
+	case reportvulnerability.EdgePackage:
+		return m.cleared_package
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *ReportVulnerabilityMutation) ClearEdge(name string) error {
+	switch name {
+	case reportvulnerability.EdgePackage:
+		m.ClearPackage()
+		return nil
+	}
 	return fmt.Errorf("unknown ReportVulnerability unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *ReportVulnerabilityMutation) ResetEdge(name string) error {
+	switch name {
+	case reportvulnerability.EdgePackage:
+		m.ResetPackage()
+		return nil
+	}
 	return fmt.Errorf("unknown ReportVulnerability edge %s", name)
 }

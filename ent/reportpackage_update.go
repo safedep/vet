@@ -16,6 +16,7 @@ import (
 	"github.com/safedep/vet/ent/reportmalware"
 	"github.com/safedep/vet/ent/reportpackage"
 	"github.com/safedep/vet/ent/reportpackagemanifest"
+	"github.com/safedep/vet/ent/reportvulnerability"
 )
 
 // ReportPackageUpdate is the builder for updating ReportPackage entities.
@@ -259,6 +260,21 @@ func (rpu *ReportPackageUpdate) SetManifest(r *ReportPackageManifest) *ReportPac
 	return rpu.SetManifestID(r.ID)
 }
 
+// AddVulnerabilityIDs adds the "vulnerabilities" edge to the ReportVulnerability entity by IDs.
+func (rpu *ReportPackageUpdate) AddVulnerabilityIDs(ids ...int) *ReportPackageUpdate {
+	rpu.mutation.AddVulnerabilityIDs(ids...)
+	return rpu
+}
+
+// AddVulnerabilities adds the "vulnerabilities" edges to the ReportVulnerability entity.
+func (rpu *ReportPackageUpdate) AddVulnerabilities(r ...*ReportVulnerability) *ReportPackageUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpu.AddVulnerabilityIDs(ids...)
+}
+
 // AddDependencyIDs adds the "dependencies" edge to the ReportDependency entity by IDs.
 func (rpu *ReportPackageUpdate) AddDependencyIDs(ids ...int) *ReportPackageUpdate {
 	rpu.mutation.AddDependencyIDs(ids...)
@@ -302,6 +318,27 @@ func (rpu *ReportPackageUpdate) Mutation() *ReportPackageMutation {
 func (rpu *ReportPackageUpdate) ClearManifest() *ReportPackageUpdate {
 	rpu.mutation.ClearManifest()
 	return rpu
+}
+
+// ClearVulnerabilities clears all "vulnerabilities" edges to the ReportVulnerability entity.
+func (rpu *ReportPackageUpdate) ClearVulnerabilities() *ReportPackageUpdate {
+	rpu.mutation.ClearVulnerabilities()
+	return rpu
+}
+
+// RemoveVulnerabilityIDs removes the "vulnerabilities" edge to ReportVulnerability entities by IDs.
+func (rpu *ReportPackageUpdate) RemoveVulnerabilityIDs(ids ...int) *ReportPackageUpdate {
+	rpu.mutation.RemoveVulnerabilityIDs(ids...)
+	return rpu
+}
+
+// RemoveVulnerabilities removes "vulnerabilities" edges to ReportVulnerability entities.
+func (rpu *ReportPackageUpdate) RemoveVulnerabilities(r ...*ReportVulnerability) *ReportPackageUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpu.RemoveVulnerabilityIDs(ids...)
 }
 
 // ClearDependencies clears all "dependencies" edges to the ReportDependency entity.
@@ -482,6 +519,51 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reportpackagemanifest.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if rpu.mutation.VulnerabilitiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.VulnerabilitiesTable,
+			Columns: []string{reportpackage.VulnerabilitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportvulnerability.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpu.mutation.RemovedVulnerabilitiesIDs(); len(nodes) > 0 && !rpu.mutation.VulnerabilitiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.VulnerabilitiesTable,
+			Columns: []string{reportpackage.VulnerabilitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportvulnerability.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpu.mutation.VulnerabilitiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.VulnerabilitiesTable,
+			Columns: []string{reportpackage.VulnerabilitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportvulnerability.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -811,6 +893,21 @@ func (rpuo *ReportPackageUpdateOne) SetManifest(r *ReportPackageManifest) *Repor
 	return rpuo.SetManifestID(r.ID)
 }
 
+// AddVulnerabilityIDs adds the "vulnerabilities" edge to the ReportVulnerability entity by IDs.
+func (rpuo *ReportPackageUpdateOne) AddVulnerabilityIDs(ids ...int) *ReportPackageUpdateOne {
+	rpuo.mutation.AddVulnerabilityIDs(ids...)
+	return rpuo
+}
+
+// AddVulnerabilities adds the "vulnerabilities" edges to the ReportVulnerability entity.
+func (rpuo *ReportPackageUpdateOne) AddVulnerabilities(r ...*ReportVulnerability) *ReportPackageUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpuo.AddVulnerabilityIDs(ids...)
+}
+
 // AddDependencyIDs adds the "dependencies" edge to the ReportDependency entity by IDs.
 func (rpuo *ReportPackageUpdateOne) AddDependencyIDs(ids ...int) *ReportPackageUpdateOne {
 	rpuo.mutation.AddDependencyIDs(ids...)
@@ -854,6 +951,27 @@ func (rpuo *ReportPackageUpdateOne) Mutation() *ReportPackageMutation {
 func (rpuo *ReportPackageUpdateOne) ClearManifest() *ReportPackageUpdateOne {
 	rpuo.mutation.ClearManifest()
 	return rpuo
+}
+
+// ClearVulnerabilities clears all "vulnerabilities" edges to the ReportVulnerability entity.
+func (rpuo *ReportPackageUpdateOne) ClearVulnerabilities() *ReportPackageUpdateOne {
+	rpuo.mutation.ClearVulnerabilities()
+	return rpuo
+}
+
+// RemoveVulnerabilityIDs removes the "vulnerabilities" edge to ReportVulnerability entities by IDs.
+func (rpuo *ReportPackageUpdateOne) RemoveVulnerabilityIDs(ids ...int) *ReportPackageUpdateOne {
+	rpuo.mutation.RemoveVulnerabilityIDs(ids...)
+	return rpuo
+}
+
+// RemoveVulnerabilities removes "vulnerabilities" edges to ReportVulnerability entities.
+func (rpuo *ReportPackageUpdateOne) RemoveVulnerabilities(r ...*ReportVulnerability) *ReportPackageUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpuo.RemoveVulnerabilityIDs(ids...)
 }
 
 // ClearDependencies clears all "dependencies" edges to the ReportDependency entity.
@@ -1064,6 +1182,51 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reportpackagemanifest.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if rpuo.mutation.VulnerabilitiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.VulnerabilitiesTable,
+			Columns: []string{reportpackage.VulnerabilitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportvulnerability.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpuo.mutation.RemovedVulnerabilitiesIDs(); len(nodes) > 0 && !rpuo.mutation.VulnerabilitiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.VulnerabilitiesTable,
+			Columns: []string{reportpackage.VulnerabilitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportvulnerability.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpuo.mutation.VulnerabilitiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.VulnerabilitiesTable,
+			Columns: []string{reportpackage.VulnerabilitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportvulnerability.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

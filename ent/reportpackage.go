@@ -59,13 +59,15 @@ type ReportPackage struct {
 type ReportPackageEdges struct {
 	// Manifest holds the value of the manifest edge.
 	Manifest *ReportPackageManifest `json:"manifest,omitempty"`
+	// Vulnerabilities holds the value of the vulnerabilities edge.
+	Vulnerabilities []*ReportVulnerability `json:"vulnerabilities,omitempty"`
 	// Dependencies holds the value of the dependencies edge.
 	Dependencies []*ReportDependency `json:"dependencies,omitempty"`
 	// MalwareAnalysis holds the value of the malware_analysis edge.
 	MalwareAnalysis *ReportMalware `json:"malware_analysis,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // ManifestOrErr returns the Manifest value or an error if the edge
@@ -79,10 +81,19 @@ func (e ReportPackageEdges) ManifestOrErr() (*ReportPackageManifest, error) {
 	return nil, &NotLoadedError{edge: "manifest"}
 }
 
+// VulnerabilitiesOrErr returns the Vulnerabilities value or an error if the edge
+// was not loaded in eager-loading.
+func (e ReportPackageEdges) VulnerabilitiesOrErr() ([]*ReportVulnerability, error) {
+	if e.loadedTypes[1] {
+		return e.Vulnerabilities, nil
+	}
+	return nil, &NotLoadedError{edge: "vulnerabilities"}
+}
+
 // DependenciesOrErr returns the Dependencies value or an error if the edge
 // was not loaded in eager-loading.
 func (e ReportPackageEdges) DependenciesOrErr() ([]*ReportDependency, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.Dependencies, nil
 	}
 	return nil, &NotLoadedError{edge: "dependencies"}
@@ -93,7 +104,7 @@ func (e ReportPackageEdges) DependenciesOrErr() ([]*ReportDependency, error) {
 func (e ReportPackageEdges) MalwareAnalysisOrErr() (*ReportMalware, error) {
 	if e.MalwareAnalysis != nil {
 		return e.MalwareAnalysis, nil
-	} else if e.loadedTypes[2] {
+	} else if e.loadedTypes[3] {
 		return nil, &NotFoundError{label: reportmalware.Label}
 	}
 	return nil, &NotLoadedError{edge: "malware_analysis"}
@@ -250,6 +261,11 @@ func (rp *ReportPackage) Value(name string) (ent.Value, error) {
 // QueryManifest queries the "manifest" edge of the ReportPackage entity.
 func (rp *ReportPackage) QueryManifest() *ReportPackageManifestQuery {
 	return NewReportPackageClient(rp.config).QueryManifest(rp)
+}
+
+// QueryVulnerabilities queries the "vulnerabilities" edge of the ReportPackage entity.
+func (rp *ReportPackage) QueryVulnerabilities() *ReportVulnerabilityQuery {
+	return NewReportPackageClient(rp.config).QueryVulnerabilities(rp)
 }
 
 // QueryDependencies queries the "dependencies" edge of the ReportPackage entity.
