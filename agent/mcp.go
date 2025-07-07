@@ -18,6 +18,11 @@ type McpClientToolBuilderConfig struct {
 	Headers       map[string]string
 	ClientName    string
 	ClientVersion string
+
+	// Config for start vet mcp server
+	SkipDefaultTools    bool
+	SQLQueryToolEnabled bool
+	SQLQueryToolDBPath  string
 }
 
 type mcpClientToolBuilder struct {
@@ -94,11 +99,19 @@ func (b *mcpClientToolBuilder) buildStdioClient() (*client.Client, error) {
 	vetMcpServerLogFile := filepath.Join(os.TempDir(), "vet-mcp-server.log")
 
 	// vet-mcp server defaults to stdio transport. See cmd/server/mcp.go
-	vetMcpServerCommandArgs := []string{"server", "mcp"}
+	vetMcpServerCommandArgs := []string{"server", "mcp", "-l", vetMcpServerLogFile}
+
+	if b.config.SQLQueryToolEnabled {
+		vetMcpServerCommandArgs = append(vetMcpServerCommandArgs, "--sql-query-tool")
+		vetMcpServerCommandArgs = append(vetMcpServerCommandArgs, "--sql-query-tool-db-path", b.config.SQLQueryToolDBPath)
+	}
+
+	if b.config.SkipDefaultTools {
+		vetMcpServerCommandArgs = append(vetMcpServerCommandArgs, "--skip-default-tools")
+	}
 
 	cli, err := client.NewStdioMCPClient(binaryPath, []string{
 		"APP_LOG_LEVEL=debug",
-		"APP_LOG_FILE=" + vetMcpServerLogFile,
 	}, vetMcpServerCommandArgs...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create stdio client: %w", err)

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/safedep/dry/utils"
-	"github.com/safedep/vet/agent"
 	"github.com/safedep/vet/internal/command"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/readers"
@@ -41,8 +40,6 @@ var (
 	queryExceptionsFile                 string
 	queryExceptionsTill                 string
 	queryExceptionsFilter               string
-	queryAgentMode                      bool
-	queryMockAgent                      bool
 
 	queryDefaultExceptionExpiry = time.Now().Add(90 * 24 * time.Hour)
 )
@@ -104,12 +101,6 @@ func newQueryCommand() *cobra.Command {
 		"Generate CycloneDX report to file")
 	cmd.Flags().StringVarP(&queryCyclonedxReportApplicationName, "report-cdx-app-name", "", "",
 		"Application name used as root application component in CycloneDX BOM")
-	cmd.Flags().BoolVarP(&queryAgentMode, "agent", "", false,
-		"Start interactive agent mode for security analysis")
-
-	// TODO: Remove this flag once we have a proper MCP server
-	cmd.Flags().BoolVarP(&queryMockAgent, "mock-agent", "", false,
-		"Start interactive agent mode for security analysis with mock agent")
 
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
@@ -127,24 +118,7 @@ func newQueryCommand() *cobra.Command {
 }
 
 func startQuery() {
-	// Check if agent mode is enabled
-	if queryAgentMode {
-		// Check and start the mock agent
-		if queryMockAgent {
-			mockAgent := agent.NewMockAgent()
-			mockSession := agent.NewMockSession()
-			command.FailOnError("mock agent mode", agent.RunAgentUI(mockAgent, mockSession))
-			return
-		}
-
-		if utils.IsEmptyString(queryLoadDirectory) {
-			command.FailOnError("agent mode", fmt.Errorf("--from flag is required for agent mode"))
-		}
-
-		command.FailOnError("agent mode", executeQueryAgent())
-	} else {
-		command.FailOnError("query", internalStartQuery())
-	}
+	command.FailOnError("query", internalStartQuery())
 }
 
 func internalStartQuery() error {

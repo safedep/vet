@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/safedep/dry/utils"
+	"github.com/safedep/vet/cmd/agent"
 	"github.com/safedep/vet/cmd/cloud"
 	"github.com/safedep/vet/cmd/code"
 	"github.com/safedep/vet/cmd/inspect"
@@ -72,6 +73,7 @@ func main() {
 	cmd.AddCommand(newConnectCommand())
 	cmd.AddCommand(cloud.NewCloudCommand())
 	cmd.AddCommand(code.NewCodeCommand())
+	cmd.AddCommand(agent.NewAgentCommand())
 
 	if checkIfPackageInspectCommandEnabled() {
 		cmd.AddCommand(inspect.NewPackageInspectCommand())
