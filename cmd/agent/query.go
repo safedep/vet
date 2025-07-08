@@ -76,7 +76,12 @@ func executeQueryAgent() error {
 		return fmt.Errorf("failed to create session: %w", err)
 	}
 
-	err = agent.RunAgentUI(agentExecutor, session)
+	uiConfig := agent.DefaultAgentUIConfig()
+	uiConfig.TitleText = "🔍 Query Agent - Interactive Query Mode"
+	uiConfig.TextInputPlaceholder = "Ask me anything about your scan data..."
+	uiConfig.InitialSystemMessage = "🤖 Query Agent initialized. Ask me anything about your dependencies, vulnerabilities and other supply chain risks."
+
+	err = agent.StartUIWithConfig(agentExecutor, session, uiConfig)
 	if err != nil {
 		return fmt.Errorf("failed to start agent interaction UI: %w", err)
 	}

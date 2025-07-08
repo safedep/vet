@@ -14,12 +14,15 @@ import (
 )
 
 type McpClientToolBuilderConfig struct {
-	SseURL        string
-	Headers       map[string]string
+	// Common config
 	ClientName    string
 	ClientVersion string
 
-	// Config for starting vet mcp server only when stdio transport is used
+	// SSE client config
+	SseURL  string
+	Headers map[string]string
+
+	// Stdout client config
 	SkipDefaultTools    bool
 	SQLQueryToolEnabled bool
 	SQLQueryToolDBPath  string

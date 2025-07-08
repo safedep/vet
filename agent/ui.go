@@ -77,14 +77,14 @@ var (
 )
 
 // AgentUI represents the main TUI model
-type AgentUI struct {
+type agentUI struct {
 	viewport      viewport.Model
 	textInput     textarea.Model
 	width         int
 	height        int
 	statusMessage string
 	isThinking    bool
-	messages      []Message
+	messages      []uiMessage
 	ready         bool
 	agent         Agent
 	session       Session
@@ -92,7 +92,7 @@ type AgentUI struct {
 }
 
 // Message represents a chat message
-type Message struct {
+type uiMessage struct {
 	Role      string // "user", "agent", "system"
 	Content   string
 	Timestamp time.Time
@@ -112,14 +112,14 @@ func DefaultAgentUIConfig() AgentUIConfig {
 	return AgentUIConfig{
 		Width:                80,
 		Height:               20,
-		InitialSystemMessage: "🤖 Security Agent initialized. Ask me anything about your dependencies, vulnerabilities, or supply chain risks.",
-		TextInputPlaceholder: "Ask me anything about your security data...",
-		TitleText:            "🔍 vet Query Agent - Interactive Query Mode",
+		InitialSystemMessage: "Security Agent initialized",
+		TextInputPlaceholder: "Ask me anything...",
+		TitleText:            "Security Agent",
 	}
 }
 
 // NewAgentUI creates a new agent UI instance
-func NewAgentUI(agent Agent, session Session, config AgentUIConfig) *AgentUI {
+func NewAgentUI(agent Agent, session Session, config AgentUIConfig) *agentUI {
 	// Create viewport for main content
 	vp := viewport.New(config.Width, config.Height)
 	vp.Style = mainPanelStyle
@@ -131,11 +131,11 @@ func NewAgentUI(agent Agent, session Session, config AgentUIConfig) *AgentUI {
 	ta.SetHeight(3)
 	ta.SetWidth(80)
 
-	ui := &AgentUI{
+	ui := &agentUI{
 		viewport:      vp,
 		textInput:     ta,
 		statusMessage: "Initializing agent...",
-		messages:      []Message{},
+		messages:      []uiMessage{},
 		agent:         agent,
 		session:       session,
 		config:        config,
@@ -148,7 +148,7 @@ func NewAgentUI(agent Agent, session Session, config AgentUIConfig) *AgentUI {
 }
 
 // Init implements the tea.Model interface
-func (m *AgentUI) Init() tea.Cmd {
+func (m *agentUI) Init() tea.Cmd {
 	return tea.Batch(
 		textarea.Blink,
 		m.updateStatus("Ready - Ask me anything!"),
@@ -156,7 +156,7 @@ func (m *AgentUI) Init() tea.Cmd {
 }
 
 // Update implements the tea.Model interface
-func (m *AgentUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *agentUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
 
@@ -297,7 +297,7 @@ func (m *AgentUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // View implements the tea.Model interface
-func (m *AgentUI) View() string {
+func (m *agentUI) View() string {
 	if !m.ready {
 		return "Loading..."
 	}
@@ -372,8 +372,8 @@ func (m *AgentUI) View() string {
 }
 
 // Helper methods for message management
-func (m *AgentUI) addUserMessage(content string) {
-	m.messages = append(m.messages, Message{
+func (m *agentUI) addUserMessage(content string) {
+	m.messages = append(m.messages, uiMessage{
 		Role:      "user",
 		Content:   content,
 		Timestamp: time.Now(),
@@ -383,8 +383,8 @@ func (m *AgentUI) addUserMessage(content string) {
 	m.viewport.GotoBottom()
 }
 
-func (m *AgentUI) addAgentMessage(content string) {
-	m.messages = append(m.messages, Message{
+func (m *agentUI) addAgentMessage(content string) {
+	m.messages = append(m.messages, uiMessage{
 		Role:      "agent",
 		Content:   content,
 		Timestamp: time.Now(),
@@ -394,8 +394,8 @@ func (m *AgentUI) addAgentMessage(content string) {
 	m.viewport.GotoBottom()
 }
 
-func (m *AgentUI) addSystemMessage(content string) {
-	m.messages = append(m.messages, Message{
+func (m *agentUI) addSystemMessage(content string) {
+	m.messages = append(m.messages, uiMessage{
 		Role:      "system",
 		Content:   content,
 		Timestamp: time.Now(),
@@ -406,7 +406,7 @@ func (m *AgentUI) addSystemMessage(content string) {
 }
 
 // renderMessages formats all messages for display
-func (m *AgentUI) renderMessages() string {
+func (m *agentUI) renderMessages() string {
 	var rendered []string
 
 	// Add adequate top spacing to prevent text cutoff
@@ -472,20 +472,20 @@ func (m *AgentUI) renderMessages() string {
 }
 
 // Command creators for Bubbletea
-func (m *AgentUI) updateStatus(message string) tea.Cmd {
+func (m *agentUI) updateStatus(message string) tea.Cmd {
 	return func() tea.Msg {
 		return statusUpdateMsg{message: message}
 	}
 }
 
-func (m *AgentUI) setThinking(thinking bool) tea.Cmd {
+func (m *agentUI) setThinking(thinking bool) tea.Cmd {
 	return func() tea.Msg {
 		return agentThinkingMsg{thinking: thinking}
 	}
 }
 
 // executeAgentQuery executes a query using the agent interface
-func (m *AgentUI) executeAgentQuery(userInput string) tea.Cmd {
+func (m *agentUI) executeAgentQuery(userInput string) tea.Cmd {
 	return func() tea.Msg {
 		ctx := context.Background()
 		input := Input{
@@ -508,9 +508,14 @@ func (m *AgentUI) executeAgentQuery(userInput string) tea.Cmd {
 	}
 }
 
-// RunAgentUI starts the TUI application
-func RunAgentUI(agent Agent, session Session) error {
+// StartUI starts the TUI application with the default configuration
+func StartUI(agent Agent, session Session) error {
 	config := DefaultAgentUIConfig()
+	return StartUIWithConfig(agent, session, config)
+}
+
+// StartUIWithConfig starts the TUI application with the provided configuration
+func StartUIWithConfig(agent Agent, session Session, config AgentUIConfig) error {
 	ui := NewAgentUI(agent, session, config)
 
 	p := tea.NewProgram(
