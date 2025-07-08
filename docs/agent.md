@@ -10,6 +10,8 @@ export ANTHROPIC_API_KEY=sk-...
 export GEMINI_API_KEY=AIza...
 ```
 
+> **Note:** You can also set the model to use with `OPENAI_MODEL_OVERRIDE`, `ANTHROPIC_MODEL_OVERRIDE` and `GEMINI_MODEL_OVERRIDE` environment variables to override the default model used by the agent.
+
 ## Query Agent
 
 The query agent helps run query and analysis over vet's sqlite3 reporting database. To use it:

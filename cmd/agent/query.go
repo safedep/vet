@@ -9,7 +9,12 @@ import (
 	"github.com/safedep/vet/internal/command"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/spf13/cobra"
+
+	_ "embed"
 )
+
+//go:embed query_prompt.md
+var querySystemPrompt string
 
 var queryAgentDBPath string
 
@@ -59,8 +64,8 @@ func executeQueryAgent() error {
 	}
 
 	agentExecutor, err := agent.NewReactQueryAgent(model, agent.ReactQueryAgentConfig{
-		// TODO: Define the system prompt for the use-case
-		MaxSteps: maxAgentSteps,
+		MaxSteps:     maxAgentSteps,
+		SystemPrompt: querySystemPrompt,
 	}, agent.WithTools(tools))
 	if err != nil {
 		return fmt.Errorf("failed to create agent: %w", err)
@@ -76,14 +81,22 @@ func executeQueryAgent() error {
 		return fmt.Errorf("failed to create session: %w", err)
 	}
 
-	uiConfig := agent.DefaultAgentUIConfig()
-	uiConfig.TitleText = "🔍 Query Agent - Interactive Query Mode"
-	uiConfig.TextInputPlaceholder = "Ask me anything about your scan data..."
-	uiConfig.InitialSystemMessage = "🤖 Query Agent initialized. Ask me anything about your dependencies, vulnerabilities and other supply chain risks."
+	if singlePrompt != "" {
+		err = executeAgentPrompt(agentExecutor, session, singlePrompt)
+		if err != nil {
+			return fmt.Errorf("failed to execute agent prompt: %w", err)
+		}
+	} else {
 
-	err = agent.StartUIWithConfig(agentExecutor, session, uiConfig)
-	if err != nil {
-		return fmt.Errorf("failed to start agent interaction UI: %w", err)
+		uiConfig := agent.DefaultAgentUIConfig()
+		uiConfig.TitleText = "🔍 Query Agent - Interactive Query Mode"
+		uiConfig.TextInputPlaceholder = "Ask me anything about your scan data..."
+		uiConfig.InitialSystemMessage = "🤖 Query Agent initialized. Ask me anything about your dependencies, vulnerabilities and other supply chain risks."
+
+		err = agent.StartUIWithConfig(agentExecutor, session, uiConfig)
+		if err != nil {
+			return fmt.Errorf("failed to start agent interaction UI: %w", err)
+		}
 	}
 
 	return nil
