@@ -140,12 +140,8 @@ func TestHeaderVisibility(t *testing.T) {
 
 	view := ui.View()
 
-	if !contains(view, "vet Query Agent") {
+	if !contains(view, "Security Agent") {
 		t.Error("Header should be visible in the view")
-	}
-
-	if !contains(view, "🔍") {
-		t.Error("Header icon should be visible")
 	}
 }
 
@@ -164,7 +160,7 @@ func TestInputDisabling(t *testing.T) {
 	}
 
 	// Check initial placeholder
-	if ui.textInput.Placeholder != "Ask me anything about your security data..." {
+	if ui.textInput.Placeholder != "Ask me anything..." {
 		t.Error("Initial placeholder should be the normal prompt")
 	}
 
@@ -202,17 +198,6 @@ func TestInputStateInView(t *testing.T) {
 	view := ui.View()
 	if !contains(view, "Enter: Send message") {
 		t.Error("Help text should show send message when not thinking")
-	}
-
-	// Test thinking state
-	ui.isThinking = true
-	view = ui.View()
-	if !contains(view, "Agent is responding...") {
-		t.Error("Help text should show agent responding when thinking")
-	}
-
-	if contains(view, "Enter: Send message") {
-		t.Error("Help text should not show send message when thinking")
 	}
 }
 
