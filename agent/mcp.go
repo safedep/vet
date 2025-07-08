@@ -19,7 +19,7 @@ type McpClientToolBuilderConfig struct {
 	ClientName    string
 	ClientVersion string
 
-	// Config for start vet mcp server
+	// Config for starting vet mcp server only when stdio transport is used
 	SkipDefaultTools    bool
 	SQLQueryToolEnabled bool
 	SQLQueryToolDBPath  string
@@ -89,6 +89,8 @@ func (b *mcpClientToolBuilder) buildSseClient() (*client.Client, error) {
 	return cli, nil
 }
 
+// buildStdioClient is used to start vet mcp server with arguments
+// based on the configuration.
 func (b *mcpClientToolBuilder) buildStdioClient() (*client.Client, error) {
 	binaryPath, err := os.Executable()
 	if err != nil {

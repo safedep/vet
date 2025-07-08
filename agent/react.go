@@ -51,11 +51,24 @@ func NewReactQueryAgent(model model.ToolCallingChatModel,
 	return a, nil
 }
 
-func (a *reactQueryAgent) Execute(ctx context.Context, session Session, input Input) (Output, error) {
+func (a *reactQueryAgent) Execute(ctx context.Context, session Session, input Input, opts ...AgentExecutionContextOpt) (Output, error) {
+	executionContext := &AgentExecutionContext{}
+	for _, opt := range opts {
+		opt(executionContext)
+	}
+
 	agent, err := react.NewAgent(ctx, &react.AgentConfig{
 		ToolCallingModel: a.model,
 		ToolsConfig: compose.ToolsNodeConfig{
 			Tools: a.tools,
+			ToolArgumentsHandler: func(ctx context.Context, name string, arguments string) (string, error) {
+				// Only allow introspection if the function is provided. Do not allow mutation.
+				if executionContext.OnToolCall != nil {
+					_ = executionContext.OnToolCall(ctx, session, input, name, arguments)
+				}
+
+				return arguments, nil
+			},
 		},
 		MaxStep: a.config.MaxSteps,
 	})

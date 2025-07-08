@@ -32,6 +32,8 @@ const (
 	eventReporterSarif           = "reporter_sarif"
 	eventReporterCycloneDX       = "reporter_cyclonedx"
 	eventReporterCSV             = "reporter_csv"
+
+	eventAgentQuery = "agent_query"
 )
 
 func TrackCommandRun() {
@@ -140,4 +142,8 @@ func TrackReporterCSV() {
 
 func TrackCommandImageScan() {
 	TrackEvent(eventCommandImageScan)
+}
+
+func TrackAgentQuery() {
+	TrackEvent(eventAgentQuery)
 }

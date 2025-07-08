@@ -59,7 +59,7 @@ func (s *mockSession) Memory() Memory {
 }
 
 // Execute implements the Agent interface with mock responses
-func (m *mockAgent) Execute(ctx context.Context, session Session, input Input) (Output, error) {
+func (m *mockAgent) Execute(ctx context.Context, session Session, input Input, opts ...AgentExecutionContextOpt) (Output, error) {
 	// Simple mock responses based on input
 	query := strings.ToLower(input.Query)
 

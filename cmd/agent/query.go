@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/safedep/vet/agent"
+	"github.com/safedep/vet/internal/analytics"
 	"github.com/safedep/vet/internal/command"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/spf13/cobra"
@@ -34,6 +35,8 @@ func newQueryAgentCommand() *cobra.Command {
 }
 
 func executeQueryAgent() error {
+	analytics.TrackAgentQuery()
+
 	toolBuilder, err := agent.NewMcpClientToolBuilder(agent.McpClientToolBuilderConfig{
 		ClientName:          "vet-query-agent",
 		ClientVersion:       command.GetVersion(),
@@ -56,6 +59,7 @@ func executeQueryAgent() error {
 	}
 
 	agentExecutor, err := agent.NewReactQueryAgent(model, agent.ReactQueryAgentConfig{
+		// TODO: Define the system prompt for the use-case
 		MaxSteps: maxAgentSteps,
 	}, agent.WithTools(tools))
 	if err != nil {

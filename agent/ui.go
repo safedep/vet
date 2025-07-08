@@ -26,6 +26,11 @@ type agentThinkingMsg struct {
 	thinking bool
 }
 
+type agentToolCallMsg struct {
+	toolName string
+	toolArgs string
+}
+
 // Styles using Lipgloss
 var (
 	// Main panel styles
@@ -83,6 +88,7 @@ type AgentUI struct {
 	ready         bool
 	agent         Agent
 	session       Session
+	config        AgentUIConfig
 }
 
 // Message represents a chat message
@@ -92,15 +98,35 @@ type Message struct {
 	Timestamp time.Time
 }
 
+// AgentUIConfig defines the configuration for the UI
+type AgentUIConfig struct {
+	Width                int
+	Height               int
+	InitialSystemMessage string
+	TextInputPlaceholder string
+	TitleText            string
+}
+
+// DefaultAgentUIConfig returns the opinionated default configuration for the UI
+func DefaultAgentUIConfig() AgentUIConfig {
+	return AgentUIConfig{
+		Width:                80,
+		Height:               20,
+		InitialSystemMessage: "🤖 Security Agent initialized. Ask me anything about your dependencies, vulnerabilities, or supply chain risks.",
+		TextInputPlaceholder: "Ask me anything about your security data...",
+		TitleText:            "🔍 vet Query Agent - Interactive Query Mode",
+	}
+}
+
 // NewAgentUI creates a new agent UI instance
-func NewAgentUI(agent Agent, session Session) *AgentUI {
+func NewAgentUI(agent Agent, session Session, config AgentUIConfig) *AgentUI {
 	// Create viewport for main content
-	vp := viewport.New(80, 20)
+	vp := viewport.New(config.Width, config.Height)
 	vp.Style = mainPanelStyle
 
 	// Create text input for chat
 	ta := textarea.New()
-	ta.Placeholder = "Ask me anything about your security data..."
+	ta.Placeholder = config.TextInputPlaceholder
 	ta.Focus()
 	ta.SetHeight(3)
 	ta.SetWidth(80)
@@ -112,10 +138,11 @@ func NewAgentUI(agent Agent, session Session) *AgentUI {
 		messages:      []Message{},
 		agent:         agent,
 		session:       session,
+		config:        config,
 	}
 
 	// Add welcome message
-	ui.addSystemMessage("🤖 Security Agent initialized. Ask me anything about your dependencies, vulnerabilities, or supply chain risks.")
+	ui.addSystemMessage(config.InitialSystemMessage)
 
 	return ui
 }
@@ -250,6 +277,10 @@ func (m *AgentUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.setThinking(false),
 			m.updateStatus("Ready - Ask me anything!"),
 		)
+
+	case agentToolCallMsg:
+		m.updateStatus("Agent is calling a tool...")
+		m.addAgentMessage(fmt.Sprintf("➡️ Tool call: %s(%s)", msg.toolName, msg.toolArgs))
 	}
 
 	// Update child components
@@ -285,7 +316,7 @@ func (m *AgentUI) View() string {
 		Width(m.width).
 		Padding(1, 1)
 
-	header := headerStyle.Render("🔍 vet Query Agent - Interactive Query Mode")
+	header := headerStyle.Render(m.config.TitleText)
 
 	// Main viewport with messages - use exact viewport dimensions
 	mainPanel := mainPanelStyle.
@@ -323,7 +354,7 @@ func (m *AgentUI) View() string {
 	// Status bar
 	statusContent := m.statusMessage
 	if m.isThinking {
-		statusContent = thinkingStyle.Render("🤔 Agent is thinking...") + " " + statusContent
+		statusContent = thinkingStyle.Render("🤔 Agent is working...") + " " + statusContent
 	}
 
 	statusBar := statusBarStyle.
@@ -461,7 +492,12 @@ func (m *AgentUI) executeAgentQuery(userInput string) tea.Cmd {
 			Query: userInput,
 		}
 
-		output, err := m.agent.Execute(ctx, m.session, input)
+		toolCallHook := func(_ context.Context, _ Session, _ Input, toolName string, toolArgs string) error {
+			m.Update(agentToolCallMsg{toolName: toolName, toolArgs: toolArgs})
+			return nil
+		}
+
+		output, err := m.agent.Execute(ctx, m.session, input, WithToolCallHook(toolCallHook))
 		if err != nil {
 			return agentResponseMsg{
 				content: fmt.Sprintf("❌ **Error**\n\nSorry, I encountered an error while processing your query:\n\n%s", err.Error()),
@@ -474,7 +510,8 @@ func (m *AgentUI) executeAgentQuery(userInput string) tea.Cmd {
 
 // RunAgentUI starts the TUI application
 func RunAgentUI(agent Agent, session Session) error {
-	ui := NewAgentUI(agent, session)
+	config := DefaultAgentUIConfig()
+	ui := NewAgentUI(agent, session, config)
 
 	p := tea.NewProgram(
 		ui,
