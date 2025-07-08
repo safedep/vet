@@ -15,6 +15,7 @@ import (
 	"github.com/safedep/vet/ent/codesourcefile"
 	"github.com/safedep/vet/ent/depsusageevidence"
 	"github.com/safedep/vet/ent/reportdependency"
+	"github.com/safedep/vet/ent/reportdependencygraph"
 	"github.com/safedep/vet/ent/reportlicense"
 	"github.com/safedep/vet/ent/reportmalware"
 	"github.com/safedep/vet/ent/reportpackage"
@@ -84,6 +85,7 @@ func checkColumn(table, column string) error {
 			codesourcefile.Table:        codesourcefile.ValidColumn,
 			depsusageevidence.Table:     depsusageevidence.ValidColumn,
 			reportdependency.Table:      reportdependency.ValidColumn,
+			reportdependencygraph.Table: reportdependencygraph.ValidColumn,
 			reportlicense.Table:         reportlicense.ValidColumn,
 			reportmalware.Table:         reportmalware.ValidColumn,
 			reportpackage.Table:         reportpackage.ValidColumn,

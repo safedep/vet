@@ -18,6 +18,8 @@ type Tx struct {
 	DepsUsageEvidence *DepsUsageEvidenceClient
 	// ReportDependency is the client for interacting with the ReportDependency builders.
 	ReportDependency *ReportDependencyClient
+	// ReportDependencyGraph is the client for interacting with the ReportDependencyGraph builders.
+	ReportDependencyGraph *ReportDependencyGraphClient
 	// ReportLicense is the client for interacting with the ReportLicense builders.
 	ReportLicense *ReportLicenseClient
 	// ReportMalware is the client for interacting with the ReportMalware builders.
@@ -164,6 +166,7 @@ func (tx *Tx) init() {
 	tx.CodeSourceFile = NewCodeSourceFileClient(tx.config)
 	tx.DepsUsageEvidence = NewDepsUsageEvidenceClient(tx.config)
 	tx.ReportDependency = NewReportDependencyClient(tx.config)
+	tx.ReportDependencyGraph = NewReportDependencyGraphClient(tx.config)
 	tx.ReportLicense = NewReportLicenseClient(tx.config)
 	tx.ReportMalware = NewReportMalwareClient(tx.config)
 	tx.ReportPackage = NewReportPackageClient(tx.config)

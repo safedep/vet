@@ -157,6 +157,9 @@ func (r *sqlite3Reporter) addPackage(pkg *models.Package, manifest *ent.ReportPa
 
 	// Add dependency graph information
 	r.addDependencies(entPackage, pkg)
+
+	// Add dependency graph edges
+	r.addDependencyGraphEdges(entPackage, pkg, manifest)
 }
 
 func (r *sqlite3Reporter) addInsightsV2Data(entPackage *ent.ReportPackage, insights *packagev1.PackageVersionInsight) {
@@ -369,6 +372,100 @@ func (r *sqlite3Reporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 func (r *sqlite3Reporter) AddPolicyEvent(event *policy.PolicyEvent) {
 	// Policy events can be stored as additional metadata if needed
 	// For now, we'll skip these as the main package data is more important
+}
+
+func (r *sqlite3Reporter) addDependencyGraphEdges(entPackage *ent.ReportPackage, pkg *models.Package, manifest *ent.ReportPackageManifest) {
+	ctx := context.Background()
+	now := time.Now()
+
+	// Get the dependency graph if available
+	dependencyGraph := pkg.GetDependencyGraph()
+	if dependencyGraph == nil || !dependencyGraph.Present() {
+		return
+	}
+
+	// Find the node for this package in the dependency graph
+	var currentNode *models.DependencyGraphNode[*models.Package]
+	nodes := dependencyGraph.GetNodes()
+	for _, node := range nodes {
+		if node.Data.Id() == pkg.Id() {
+			currentNode = node
+			break
+		}
+	}
+
+	if currentNode == nil {
+		return
+	}
+
+	// Create edges for all dependencies of this package
+	for _, depPkg := range currentNode.Children {
+		// Skip if the dependency package is the same as current package (cycle detection)
+		if depPkg.Id() == pkg.Id() {
+			continue
+		}
+
+		// Determine if this is a direct dependency
+		isDirect := pkg.Depth == 0 || depPkg.Depth == pkg.Depth+1
+
+		// Create dependency graph edge
+		_, err := r.client.ReportDependencyGraph.Create().
+			SetFromPackageID(pkg.Id()).
+			SetFromPackageName(pkg.GetName()).
+			SetFromPackageVersion(pkg.GetVersion()).
+			SetFromPackageEcosystem(string(pkg.Ecosystem)).
+			SetToPackageID(depPkg.Id()).
+			SetToPackageName(depPkg.GetName()).
+			SetToPackageVersion(depPkg.GetVersion()).
+			SetToPackageEcosystem(string(depPkg.Ecosystem)).
+			SetDepth(depPkg.Depth).
+			SetIsDirect(isDirect).
+			SetIsRootEdge(pkg.Depth == 0).
+			SetManifestID(manifest.ManifestID).
+			SetCreatedAt(now).
+			SetUpdatedAt(now).
+			Save(ctx)
+		if err != nil {
+			logger.Errorf("Failed to create dependency graph edge: %v", err)
+		}
+	}
+
+	// Also create edges from Insights V2 dependencies if available
+	if pkg.InsightsV2 != nil && pkg.InsightsV2.Dependencies != nil {
+		for _, dep := range pkg.InsightsV2.Dependencies {
+			if dep.Package == nil {
+				continue
+			}
+
+			depID := models.ControlTowerPackageID(dep)
+
+			// Skip if the dependency package is the same as current package
+			if depID == pkg.Id() {
+				continue
+			}
+
+			// Create dependency graph edge from Insights V2 data
+			_, err := r.client.ReportDependencyGraph.Create().
+				SetFromPackageID(pkg.Id()).
+				SetFromPackageName(pkg.GetName()).
+				SetFromPackageVersion(pkg.GetVersion()).
+				SetFromPackageEcosystem(string(pkg.Ecosystem)).
+				SetToPackageID(depID).
+				SetToPackageName(dep.Package.Name).
+				SetToPackageVersion(dep.Version).
+				SetToPackageEcosystem(string(dep.Package.Ecosystem)).
+				SetDepth(1). // Insights V2 dependencies are typically direct
+				SetIsDirect(true).
+				SetIsRootEdge(pkg.Depth == 0).
+				SetManifestID(manifest.ManifestID).
+				SetCreatedAt(now).
+				SetUpdatedAt(now).
+				Save(ctx)
+			if err != nil {
+				logger.Errorf("Failed to create dependency graph edge from Insights V2: %v", err)
+			}
+		}
+	}
 }
 
 func (r *sqlite3Reporter) Finish() error {

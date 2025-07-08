@@ -337,14 +337,7 @@ func (m *agentUI) View() string {
 			Render(m.textInput.View())
 	}
 
-	// Help text - update based on thinking state
-	var helpContent string
-	if m.isThinking {
-		helpContent = "Agent is responding... • ↑↓/PgUp/PgDown: Scroll • Home/End: Top/Bottom • Ctrl+C/Esc: Quit"
-	} else {
-		helpContent = "Tab: Switch focus • Enter: Send message • ↑↓/PgUp/PgDown: Scroll • Home/End: Top/Bottom • Ctrl+C/Esc: Quit"
-	}
-
+	helpContent := "Tab: Switch focus • Enter: Send message • ↑↓/PgUp/PgDown: Scroll • Home/End: Top/Bottom • Ctrl+C/Esc: Quit"
 	helpText := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("241")).
 		Align(lipgloss.Center).

@@ -15,6 +15,7 @@ import (
 	"github.com/safedep/vet/ent/depsusageevidence"
 	"github.com/safedep/vet/ent/predicate"
 	"github.com/safedep/vet/ent/reportdependency"
+	"github.com/safedep/vet/ent/reportdependencygraph"
 	"github.com/safedep/vet/ent/reportlicense"
 	"github.com/safedep/vet/ent/reportmalware"
 	"github.com/safedep/vet/ent/reportpackage"
@@ -35,6 +36,7 @@ const (
 	TypeCodeSourceFile        = "CodeSourceFile"
 	TypeDepsUsageEvidence     = "DepsUsageEvidence"
 	TypeReportDependency      = "ReportDependency"
+	TypeReportDependencyGraph = "ReportDependencyGraph"
 	TypeReportLicense         = "ReportLicense"
 	TypeReportMalware         = "ReportMalware"
 	TypeReportPackage         = "ReportPackage"
@@ -2232,6 +2234,1257 @@ func (m *ReportDependencyMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown ReportDependency edge %s", name)
+}
+
+// ReportDependencyGraphMutation represents an operation that mutates the ReportDependencyGraph nodes in the graph.
+type ReportDependencyGraphMutation struct {
+	config
+	op                     Op
+	typ                    string
+	id                     *int
+	from_package_id        *string
+	from_package_name      *string
+	from_package_version   *string
+	from_package_ecosystem *string
+	to_package_id          *string
+	to_package_name        *string
+	to_package_version     *string
+	to_package_ecosystem   *string
+	dependency_type        *string
+	version_constraint     *string
+	depth                  *int
+	adddepth               *int
+	is_direct              *bool
+	is_root_edge           *bool
+	manifest_id            *string
+	created_at             *time.Time
+	updated_at             *time.Time
+	clearedFields          map[string]struct{}
+	done                   bool
+	oldValue               func(context.Context) (*ReportDependencyGraph, error)
+	predicates             []predicate.ReportDependencyGraph
+}
+
+var _ ent.Mutation = (*ReportDependencyGraphMutation)(nil)
+
+// reportdependencygraphOption allows management of the mutation configuration using functional options.
+type reportdependencygraphOption func(*ReportDependencyGraphMutation)
+
+// newReportDependencyGraphMutation creates new mutation for the ReportDependencyGraph entity.
+func newReportDependencyGraphMutation(c config, op Op, opts ...reportdependencygraphOption) *ReportDependencyGraphMutation {
+	m := &ReportDependencyGraphMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeReportDependencyGraph,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withReportDependencyGraphID sets the ID field of the mutation.
+func withReportDependencyGraphID(id int) reportdependencygraphOption {
+	return func(m *ReportDependencyGraphMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ReportDependencyGraph
+		)
+		m.oldValue = func(ctx context.Context) (*ReportDependencyGraph, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ReportDependencyGraph.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withReportDependencyGraph sets the old ReportDependencyGraph of the mutation.
+func withReportDependencyGraph(node *ReportDependencyGraph) reportdependencygraphOption {
+	return func(m *ReportDependencyGraphMutation) {
+		m.oldValue = func(context.Context) (*ReportDependencyGraph, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ReportDependencyGraphMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ReportDependencyGraphMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ReportDependencyGraphMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ReportDependencyGraphMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ReportDependencyGraph.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetFromPackageID sets the "from_package_id" field.
+func (m *ReportDependencyGraphMutation) SetFromPackageID(s string) {
+	m.from_package_id = &s
+}
+
+// FromPackageID returns the value of the "from_package_id" field in the mutation.
+func (m *ReportDependencyGraphMutation) FromPackageID() (r string, exists bool) {
+	v := m.from_package_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFromPackageID returns the old "from_package_id" field's value of the ReportDependencyGraph entity.
+// If the ReportDependencyGraph object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyGraphMutation) OldFromPackageID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFromPackageID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFromPackageID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFromPackageID: %w", err)
+	}
+	return oldValue.FromPackageID, nil
+}
+
+// ResetFromPackageID resets all changes to the "from_package_id" field.
+func (m *ReportDependencyGraphMutation) ResetFromPackageID() {
+	m.from_package_id = nil
+}
+
+// SetFromPackageName sets the "from_package_name" field.
+func (m *ReportDependencyGraphMutation) SetFromPackageName(s string) {
+	m.from_package_name = &s
+}
+
+// FromPackageName returns the value of the "from_package_name" field in the mutation.
+func (m *ReportDependencyGraphMutation) FromPackageName() (r string, exists bool) {
+	v := m.from_package_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFromPackageName returns the old "from_package_name" field's value of the ReportDependencyGraph entity.
+// If the ReportDependencyGraph object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyGraphMutation) OldFromPackageName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFromPackageName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFromPackageName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFromPackageName: %w", err)
+	}
+	return oldValue.FromPackageName, nil
+}
+
+// ResetFromPackageName resets all changes to the "from_package_name" field.
+func (m *ReportDependencyGraphMutation) ResetFromPackageName() {
+	m.from_package_name = nil
+}
+
+// SetFromPackageVersion sets the "from_package_version" field.
+func (m *ReportDependencyGraphMutation) SetFromPackageVersion(s string) {
+	m.from_package_version = &s
+}
+
+// FromPackageVersion returns the value of the "from_package_version" field in the mutation.
+func (m *ReportDependencyGraphMutation) FromPackageVersion() (r string, exists bool) {
+	v := m.from_package_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFromPackageVersion returns the old "from_package_version" field's value of the ReportDependencyGraph entity.
+// If the ReportDependencyGraph object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyGraphMutation) OldFromPackageVersion(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFromPackageVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFromPackageVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFromPackageVersion: %w", err)
+	}
+	return oldValue.FromPackageVersion, nil
+}
+
+// ResetFromPackageVersion resets all changes to the "from_package_version" field.
+func (m *ReportDependencyGraphMutation) ResetFromPackageVersion() {
+	m.from_package_version = nil
+}
+
+// SetFromPackageEcosystem sets the "from_package_ecosystem" field.
+func (m *ReportDependencyGraphMutation) SetFromPackageEcosystem(s string) {
+	m.from_package_ecosystem = &s
+}
+
+// FromPackageEcosystem returns the value of the "from_package_ecosystem" field in the mutation.
+func (m *ReportDependencyGraphMutation) FromPackageEcosystem() (r string, exists bool) {
+	v := m.from_package_ecosystem
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFromPackageEcosystem returns the old "from_package_ecosystem" field's value of the ReportDependencyGraph entity.
+// If the ReportDependencyGraph object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyGraphMutation) OldFromPackageEcosystem(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFromPackageEcosystem is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFromPackageEcosystem requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFromPackageEcosystem: %w", err)
+	}
+	return oldValue.FromPackageEcosystem, nil
+}
+
+// ResetFromPackageEcosystem resets all changes to the "from_package_ecosystem" field.
+func (m *ReportDependencyGraphMutation) ResetFromPackageEcosystem() {
+	m.from_package_ecosystem = nil
+}
+
+// SetToPackageID sets the "to_package_id" field.
+func (m *ReportDependencyGraphMutation) SetToPackageID(s string) {
+	m.to_package_id = &s
+}
+
+// ToPackageID returns the value of the "to_package_id" field in the mutation.
+func (m *ReportDependencyGraphMutation) ToPackageID() (r string, exists bool) {
+	v := m.to_package_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldToPackageID returns the old "to_package_id" field's value of the ReportDependencyGraph entity.
+// If the ReportDependencyGraph object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyGraphMutation) OldToPackageID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldToPackageID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldToPackageID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldToPackageID: %w", err)
+	}
+	return oldValue.ToPackageID, nil
+}
+
+// ResetToPackageID resets all changes to the "to_package_id" field.
+func (m *ReportDependencyGraphMutation) ResetToPackageID() {
+	m.to_package_id = nil
+}
+
+// SetToPackageName sets the "to_package_name" field.
+func (m *ReportDependencyGraphMutation) SetToPackageName(s string) {
+	m.to_package_name = &s
+}
+
+// ToPackageName returns the value of the "to_package_name" field in the mutation.
+func (m *ReportDependencyGraphMutation) ToPackageName() (r string, exists bool) {
+	v := m.to_package_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldToPackageName returns the old "to_package_name" field's value of the ReportDependencyGraph entity.
+// If the ReportDependencyGraph object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyGraphMutation) OldToPackageName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldToPackageName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldToPackageName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldToPackageName: %w", err)
+	}
+	return oldValue.ToPackageName, nil
+}
+
+// ResetToPackageName resets all changes to the "to_package_name" field.
+func (m *ReportDependencyGraphMutation) ResetToPackageName() {
+	m.to_package_name = nil
+}
+
+// SetToPackageVersion sets the "to_package_version" field.
+func (m *ReportDependencyGraphMutation) SetToPackageVersion(s string) {
+	m.to_package_version = &s
+}
+
+// ToPackageVersion returns the value of the "to_package_version" field in the mutation.
+func (m *ReportDependencyGraphMutation) ToPackageVersion() (r string, exists bool) {
+	v := m.to_package_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldToPackageVersion returns the old "to_package_version" field's value of the ReportDependencyGraph entity.
+// If the ReportDependencyGraph object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyGraphMutation) OldToPackageVersion(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldToPackageVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldToPackageVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldToPackageVersion: %w", err)
+	}
+	return oldValue.ToPackageVersion, nil
+}
+
+// ResetToPackageVersion resets all changes to the "to_package_version" field.
+func (m *ReportDependencyGraphMutation) ResetToPackageVersion() {
+	m.to_package_version = nil
+}
+
+// SetToPackageEcosystem sets the "to_package_ecosystem" field.
+func (m *ReportDependencyGraphMutation) SetToPackageEcosystem(s string) {
+	m.to_package_ecosystem = &s
+}
+
+// ToPackageEcosystem returns the value of the "to_package_ecosystem" field in the mutation.
+func (m *ReportDependencyGraphMutation) ToPackageEcosystem() (r string, exists bool) {
+	v := m.to_package_ecosystem
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldToPackageEcosystem returns the old "to_package_ecosystem" field's value of the ReportDependencyGraph entity.
+// If the ReportDependencyGraph object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyGraphMutation) OldToPackageEcosystem(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldToPackageEcosystem is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldToPackageEcosystem requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldToPackageEcosystem: %w", err)
+	}
+	return oldValue.ToPackageEcosystem, nil
+}
+
+// ResetToPackageEcosystem resets all changes to the "to_package_ecosystem" field.
+func (m *ReportDependencyGraphMutation) ResetToPackageEcosystem() {
+	m.to_package_ecosystem = nil
+}
+
+// SetDependencyType sets the "dependency_type" field.
+func (m *ReportDependencyGraphMutation) SetDependencyType(s string) {
+	m.dependency_type = &s
+}
+
+// DependencyType returns the value of the "dependency_type" field in the mutation.
+func (m *ReportDependencyGraphMutation) DependencyType() (r string, exists bool) {
+	v := m.dependency_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDependencyType returns the old "dependency_type" field's value of the ReportDependencyGraph entity.
+// If the ReportDependencyGraph object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyGraphMutation) OldDependencyType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDependencyType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDependencyType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDependencyType: %w", err)
+	}
+	return oldValue.DependencyType, nil
+}
+
+// ClearDependencyType clears the value of the "dependency_type" field.
+func (m *ReportDependencyGraphMutation) ClearDependencyType() {
+	m.dependency_type = nil
+	m.clearedFields[reportdependencygraph.FieldDependencyType] = struct{}{}
+}
+
+// DependencyTypeCleared returns if the "dependency_type" field was cleared in this mutation.
+func (m *ReportDependencyGraphMutation) DependencyTypeCleared() bool {
+	_, ok := m.clearedFields[reportdependencygraph.FieldDependencyType]
+	return ok
+}
+
+// ResetDependencyType resets all changes to the "dependency_type" field.
+func (m *ReportDependencyGraphMutation) ResetDependencyType() {
+	m.dependency_type = nil
+	delete(m.clearedFields, reportdependencygraph.FieldDependencyType)
+}
+
+// SetVersionConstraint sets the "version_constraint" field.
+func (m *ReportDependencyGraphMutation) SetVersionConstraint(s string) {
+	m.version_constraint = &s
+}
+
+// VersionConstraint returns the value of the "version_constraint" field in the mutation.
+func (m *ReportDependencyGraphMutation) VersionConstraint() (r string, exists bool) {
+	v := m.version_constraint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersionConstraint returns the old "version_constraint" field's value of the ReportDependencyGraph entity.
+// If the ReportDependencyGraph object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyGraphMutation) OldVersionConstraint(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersionConstraint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersionConstraint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersionConstraint: %w", err)
+	}
+	return oldValue.VersionConstraint, nil
+}
+
+// ClearVersionConstraint clears the value of the "version_constraint" field.
+func (m *ReportDependencyGraphMutation) ClearVersionConstraint() {
+	m.version_constraint = nil
+	m.clearedFields[reportdependencygraph.FieldVersionConstraint] = struct{}{}
+}
+
+// VersionConstraintCleared returns if the "version_constraint" field was cleared in this mutation.
+func (m *ReportDependencyGraphMutation) VersionConstraintCleared() bool {
+	_, ok := m.clearedFields[reportdependencygraph.FieldVersionConstraint]
+	return ok
+}
+
+// ResetVersionConstraint resets all changes to the "version_constraint" field.
+func (m *ReportDependencyGraphMutation) ResetVersionConstraint() {
+	m.version_constraint = nil
+	delete(m.clearedFields, reportdependencygraph.FieldVersionConstraint)
+}
+
+// SetDepth sets the "depth" field.
+func (m *ReportDependencyGraphMutation) SetDepth(i int) {
+	m.depth = &i
+	m.adddepth = nil
+}
+
+// Depth returns the value of the "depth" field in the mutation.
+func (m *ReportDependencyGraphMutation) Depth() (r int, exists bool) {
+	v := m.depth
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDepth returns the old "depth" field's value of the ReportDependencyGraph entity.
+// If the ReportDependencyGraph object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyGraphMutation) OldDepth(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDepth is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDepth requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDepth: %w", err)
+	}
+	return oldValue.Depth, nil
+}
+
+// AddDepth adds i to the "depth" field.
+func (m *ReportDependencyGraphMutation) AddDepth(i int) {
+	if m.adddepth != nil {
+		*m.adddepth += i
+	} else {
+		m.adddepth = &i
+	}
+}
+
+// AddedDepth returns the value that was added to the "depth" field in this mutation.
+func (m *ReportDependencyGraphMutation) AddedDepth() (r int, exists bool) {
+	v := m.adddepth
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDepth resets all changes to the "depth" field.
+func (m *ReportDependencyGraphMutation) ResetDepth() {
+	m.depth = nil
+	m.adddepth = nil
+}
+
+// SetIsDirect sets the "is_direct" field.
+func (m *ReportDependencyGraphMutation) SetIsDirect(b bool) {
+	m.is_direct = &b
+}
+
+// IsDirect returns the value of the "is_direct" field in the mutation.
+func (m *ReportDependencyGraphMutation) IsDirect() (r bool, exists bool) {
+	v := m.is_direct
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsDirect returns the old "is_direct" field's value of the ReportDependencyGraph entity.
+// If the ReportDependencyGraph object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyGraphMutation) OldIsDirect(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsDirect is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsDirect requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsDirect: %w", err)
+	}
+	return oldValue.IsDirect, nil
+}
+
+// ResetIsDirect resets all changes to the "is_direct" field.
+func (m *ReportDependencyGraphMutation) ResetIsDirect() {
+	m.is_direct = nil
+}
+
+// SetIsRootEdge sets the "is_root_edge" field.
+func (m *ReportDependencyGraphMutation) SetIsRootEdge(b bool) {
+	m.is_root_edge = &b
+}
+
+// IsRootEdge returns the value of the "is_root_edge" field in the mutation.
+func (m *ReportDependencyGraphMutation) IsRootEdge() (r bool, exists bool) {
+	v := m.is_root_edge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsRootEdge returns the old "is_root_edge" field's value of the ReportDependencyGraph entity.
+// If the ReportDependencyGraph object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyGraphMutation) OldIsRootEdge(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsRootEdge is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsRootEdge requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsRootEdge: %w", err)
+	}
+	return oldValue.IsRootEdge, nil
+}
+
+// ResetIsRootEdge resets all changes to the "is_root_edge" field.
+func (m *ReportDependencyGraphMutation) ResetIsRootEdge() {
+	m.is_root_edge = nil
+}
+
+// SetManifestID sets the "manifest_id" field.
+func (m *ReportDependencyGraphMutation) SetManifestID(s string) {
+	m.manifest_id = &s
+}
+
+// ManifestID returns the value of the "manifest_id" field in the mutation.
+func (m *ReportDependencyGraphMutation) ManifestID() (r string, exists bool) {
+	v := m.manifest_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldManifestID returns the old "manifest_id" field's value of the ReportDependencyGraph entity.
+// If the ReportDependencyGraph object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyGraphMutation) OldManifestID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldManifestID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldManifestID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldManifestID: %w", err)
+	}
+	return oldValue.ManifestID, nil
+}
+
+// ResetManifestID resets all changes to the "manifest_id" field.
+func (m *ReportDependencyGraphMutation) ResetManifestID() {
+	m.manifest_id = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ReportDependencyGraphMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ReportDependencyGraphMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ReportDependencyGraph entity.
+// If the ReportDependencyGraph object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyGraphMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ClearCreatedAt clears the value of the "created_at" field.
+func (m *ReportDependencyGraphMutation) ClearCreatedAt() {
+	m.created_at = nil
+	m.clearedFields[reportdependencygraph.FieldCreatedAt] = struct{}{}
+}
+
+// CreatedAtCleared returns if the "created_at" field was cleared in this mutation.
+func (m *ReportDependencyGraphMutation) CreatedAtCleared() bool {
+	_, ok := m.clearedFields[reportdependencygraph.FieldCreatedAt]
+	return ok
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ReportDependencyGraphMutation) ResetCreatedAt() {
+	m.created_at = nil
+	delete(m.clearedFields, reportdependencygraph.FieldCreatedAt)
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ReportDependencyGraphMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ReportDependencyGraphMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ReportDependencyGraph entity.
+// If the ReportDependencyGraph object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportDependencyGraphMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *ReportDependencyGraphMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[reportdependencygraph.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *ReportDependencyGraphMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[reportdependencygraph.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ReportDependencyGraphMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, reportdependencygraph.FieldUpdatedAt)
+}
+
+// Where appends a list predicates to the ReportDependencyGraphMutation builder.
+func (m *ReportDependencyGraphMutation) Where(ps ...predicate.ReportDependencyGraph) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ReportDependencyGraphMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ReportDependencyGraphMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ReportDependencyGraph, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ReportDependencyGraphMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ReportDependencyGraphMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ReportDependencyGraph).
+func (m *ReportDependencyGraphMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ReportDependencyGraphMutation) Fields() []string {
+	fields := make([]string, 0, 16)
+	if m.from_package_id != nil {
+		fields = append(fields, reportdependencygraph.FieldFromPackageID)
+	}
+	if m.from_package_name != nil {
+		fields = append(fields, reportdependencygraph.FieldFromPackageName)
+	}
+	if m.from_package_version != nil {
+		fields = append(fields, reportdependencygraph.FieldFromPackageVersion)
+	}
+	if m.from_package_ecosystem != nil {
+		fields = append(fields, reportdependencygraph.FieldFromPackageEcosystem)
+	}
+	if m.to_package_id != nil {
+		fields = append(fields, reportdependencygraph.FieldToPackageID)
+	}
+	if m.to_package_name != nil {
+		fields = append(fields, reportdependencygraph.FieldToPackageName)
+	}
+	if m.to_package_version != nil {
+		fields = append(fields, reportdependencygraph.FieldToPackageVersion)
+	}
+	if m.to_package_ecosystem != nil {
+		fields = append(fields, reportdependencygraph.FieldToPackageEcosystem)
+	}
+	if m.dependency_type != nil {
+		fields = append(fields, reportdependencygraph.FieldDependencyType)
+	}
+	if m.version_constraint != nil {
+		fields = append(fields, reportdependencygraph.FieldVersionConstraint)
+	}
+	if m.depth != nil {
+		fields = append(fields, reportdependencygraph.FieldDepth)
+	}
+	if m.is_direct != nil {
+		fields = append(fields, reportdependencygraph.FieldIsDirect)
+	}
+	if m.is_root_edge != nil {
+		fields = append(fields, reportdependencygraph.FieldIsRootEdge)
+	}
+	if m.manifest_id != nil {
+		fields = append(fields, reportdependencygraph.FieldManifestID)
+	}
+	if m.created_at != nil {
+		fields = append(fields, reportdependencygraph.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, reportdependencygraph.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ReportDependencyGraphMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case reportdependencygraph.FieldFromPackageID:
+		return m.FromPackageID()
+	case reportdependencygraph.FieldFromPackageName:
+		return m.FromPackageName()
+	case reportdependencygraph.FieldFromPackageVersion:
+		return m.FromPackageVersion()
+	case reportdependencygraph.FieldFromPackageEcosystem:
+		return m.FromPackageEcosystem()
+	case reportdependencygraph.FieldToPackageID:
+		return m.ToPackageID()
+	case reportdependencygraph.FieldToPackageName:
+		return m.ToPackageName()
+	case reportdependencygraph.FieldToPackageVersion:
+		return m.ToPackageVersion()
+	case reportdependencygraph.FieldToPackageEcosystem:
+		return m.ToPackageEcosystem()
+	case reportdependencygraph.FieldDependencyType:
+		return m.DependencyType()
+	case reportdependencygraph.FieldVersionConstraint:
+		return m.VersionConstraint()
+	case reportdependencygraph.FieldDepth:
+		return m.Depth()
+	case reportdependencygraph.FieldIsDirect:
+		return m.IsDirect()
+	case reportdependencygraph.FieldIsRootEdge:
+		return m.IsRootEdge()
+	case reportdependencygraph.FieldManifestID:
+		return m.ManifestID()
+	case reportdependencygraph.FieldCreatedAt:
+		return m.CreatedAt()
+	case reportdependencygraph.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ReportDependencyGraphMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case reportdependencygraph.FieldFromPackageID:
+		return m.OldFromPackageID(ctx)
+	case reportdependencygraph.FieldFromPackageName:
+		return m.OldFromPackageName(ctx)
+	case reportdependencygraph.FieldFromPackageVersion:
+		return m.OldFromPackageVersion(ctx)
+	case reportdependencygraph.FieldFromPackageEcosystem:
+		return m.OldFromPackageEcosystem(ctx)
+	case reportdependencygraph.FieldToPackageID:
+		return m.OldToPackageID(ctx)
+	case reportdependencygraph.FieldToPackageName:
+		return m.OldToPackageName(ctx)
+	case reportdependencygraph.FieldToPackageVersion:
+		return m.OldToPackageVersion(ctx)
+	case reportdependencygraph.FieldToPackageEcosystem:
+		return m.OldToPackageEcosystem(ctx)
+	case reportdependencygraph.FieldDependencyType:
+		return m.OldDependencyType(ctx)
+	case reportdependencygraph.FieldVersionConstraint:
+		return m.OldVersionConstraint(ctx)
+	case reportdependencygraph.FieldDepth:
+		return m.OldDepth(ctx)
+	case reportdependencygraph.FieldIsDirect:
+		return m.OldIsDirect(ctx)
+	case reportdependencygraph.FieldIsRootEdge:
+		return m.OldIsRootEdge(ctx)
+	case reportdependencygraph.FieldManifestID:
+		return m.OldManifestID(ctx)
+	case reportdependencygraph.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case reportdependencygraph.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown ReportDependencyGraph field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportDependencyGraphMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case reportdependencygraph.FieldFromPackageID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFromPackageID(v)
+		return nil
+	case reportdependencygraph.FieldFromPackageName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFromPackageName(v)
+		return nil
+	case reportdependencygraph.FieldFromPackageVersion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFromPackageVersion(v)
+		return nil
+	case reportdependencygraph.FieldFromPackageEcosystem:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFromPackageEcosystem(v)
+		return nil
+	case reportdependencygraph.FieldToPackageID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetToPackageID(v)
+		return nil
+	case reportdependencygraph.FieldToPackageName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetToPackageName(v)
+		return nil
+	case reportdependencygraph.FieldToPackageVersion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetToPackageVersion(v)
+		return nil
+	case reportdependencygraph.FieldToPackageEcosystem:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetToPackageEcosystem(v)
+		return nil
+	case reportdependencygraph.FieldDependencyType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDependencyType(v)
+		return nil
+	case reportdependencygraph.FieldVersionConstraint:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersionConstraint(v)
+		return nil
+	case reportdependencygraph.FieldDepth:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDepth(v)
+		return nil
+	case reportdependencygraph.FieldIsDirect:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsDirect(v)
+		return nil
+	case reportdependencygraph.FieldIsRootEdge:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsRootEdge(v)
+		return nil
+	case reportdependencygraph.FieldManifestID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetManifestID(v)
+		return nil
+	case reportdependencygraph.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case reportdependencygraph.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ReportDependencyGraph field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ReportDependencyGraphMutation) AddedFields() []string {
+	var fields []string
+	if m.adddepth != nil {
+		fields = append(fields, reportdependencygraph.FieldDepth)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ReportDependencyGraphMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case reportdependencygraph.FieldDepth:
+		return m.AddedDepth()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportDependencyGraphMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case reportdependencygraph.FieldDepth:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDepth(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ReportDependencyGraph numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ReportDependencyGraphMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(reportdependencygraph.FieldDependencyType) {
+		fields = append(fields, reportdependencygraph.FieldDependencyType)
+	}
+	if m.FieldCleared(reportdependencygraph.FieldVersionConstraint) {
+		fields = append(fields, reportdependencygraph.FieldVersionConstraint)
+	}
+	if m.FieldCleared(reportdependencygraph.FieldCreatedAt) {
+		fields = append(fields, reportdependencygraph.FieldCreatedAt)
+	}
+	if m.FieldCleared(reportdependencygraph.FieldUpdatedAt) {
+		fields = append(fields, reportdependencygraph.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ReportDependencyGraphMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ReportDependencyGraphMutation) ClearField(name string) error {
+	switch name {
+	case reportdependencygraph.FieldDependencyType:
+		m.ClearDependencyType()
+		return nil
+	case reportdependencygraph.FieldVersionConstraint:
+		m.ClearVersionConstraint()
+		return nil
+	case reportdependencygraph.FieldCreatedAt:
+		m.ClearCreatedAt()
+		return nil
+	case reportdependencygraph.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportDependencyGraph nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ReportDependencyGraphMutation) ResetField(name string) error {
+	switch name {
+	case reportdependencygraph.FieldFromPackageID:
+		m.ResetFromPackageID()
+		return nil
+	case reportdependencygraph.FieldFromPackageName:
+		m.ResetFromPackageName()
+		return nil
+	case reportdependencygraph.FieldFromPackageVersion:
+		m.ResetFromPackageVersion()
+		return nil
+	case reportdependencygraph.FieldFromPackageEcosystem:
+		m.ResetFromPackageEcosystem()
+		return nil
+	case reportdependencygraph.FieldToPackageID:
+		m.ResetToPackageID()
+		return nil
+	case reportdependencygraph.FieldToPackageName:
+		m.ResetToPackageName()
+		return nil
+	case reportdependencygraph.FieldToPackageVersion:
+		m.ResetToPackageVersion()
+		return nil
+	case reportdependencygraph.FieldToPackageEcosystem:
+		m.ResetToPackageEcosystem()
+		return nil
+	case reportdependencygraph.FieldDependencyType:
+		m.ResetDependencyType()
+		return nil
+	case reportdependencygraph.FieldVersionConstraint:
+		m.ResetVersionConstraint()
+		return nil
+	case reportdependencygraph.FieldDepth:
+		m.ResetDepth()
+		return nil
+	case reportdependencygraph.FieldIsDirect:
+		m.ResetIsDirect()
+		return nil
+	case reportdependencygraph.FieldIsRootEdge:
+		m.ResetIsRootEdge()
+		return nil
+	case reportdependencygraph.FieldManifestID:
+		m.ResetManifestID()
+		return nil
+	case reportdependencygraph.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case reportdependencygraph.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportDependencyGraph field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ReportDependencyGraphMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ReportDependencyGraphMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ReportDependencyGraphMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ReportDependencyGraphMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ReportDependencyGraphMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ReportDependencyGraphMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ReportDependencyGraphMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown ReportDependencyGraph unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ReportDependencyGraphMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown ReportDependencyGraph edge %s", name)
 }
 
 // ReportLicenseMutation represents an operation that mutates the ReportLicense nodes in the graph.

@@ -382,6 +382,302 @@ WHERE code_analysis IS NOT NULL;
 4. **Join tables** to get comprehensive views across related data
 5. **Use aggregate functions** to generate summary statistics
 
+## Dependency Graph Analysis Queries
+
+The SQLite3 reporter includes a comprehensive dependency graph stored in the `report_dependency_graphs` table, enabling advanced dependency analysis including path tracing, dependent discovery, and graph traversal queries.
+
+### Dependency Graph Schema
+
+The dependency graph is stored in the `report_dependency_graphs` table with the following structure:
+
+```sql
+CREATE TABLE report_dependency_graphs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    
+    -- Source package (dependent)
+    from_package_id TEXT NOT NULL,
+    from_package_name TEXT NOT NULL,
+    from_package_version TEXT NOT NULL,
+    from_package_ecosystem TEXT NOT NULL,
+    
+    -- Target package (dependency)
+    to_package_id TEXT NOT NULL,
+    to_package_name TEXT NOT NULL,
+    to_package_version TEXT NOT NULL,
+    to_package_ecosystem TEXT NOT NULL,
+    
+    -- Edge metadata
+    dependency_type TEXT,
+    version_constraint TEXT,
+    depth INTEGER DEFAULT 0,
+    is_direct BOOLEAN DEFAULT FALSE,
+    is_root_edge BOOLEAN DEFAULT FALSE,
+    manifest_id TEXT NOT NULL,
+    
+    created_at DATETIME,
+    updated_at DATETIME
+);
+```
+
+### Find All Dependencies of a Package
+
+```sql
+SELECT 
+    to_package_name,
+    to_package_version,
+    to_package_ecosystem,
+    depth,
+    is_direct,
+    dependency_type
+FROM report_dependency_graphs 
+WHERE from_package_name = 'express' 
+  AND from_package_ecosystem = 'npm'
+ORDER BY depth, to_package_name;
+```
+
+### Find All Dependents of a Package
+
+```sql
+SELECT 
+    from_package_name,
+    from_package_version,
+    from_package_ecosystem,
+    depth,
+    is_direct
+FROM report_dependency_graphs 
+WHERE to_package_name = 'lodash' 
+  AND to_package_ecosystem = 'npm'
+ORDER BY depth, from_package_name;
+```
+
+### Find Direct Dependencies Only
+
+```sql
+SELECT 
+    to_package_name,
+    to_package_version,
+    to_package_ecosystem,
+    dependency_type
+FROM report_dependency_graphs 
+WHERE from_package_name = 'my-app' 
+  AND is_direct = 1
+ORDER BY to_package_name;
+```
+
+### Find Root Packages (Top-Level Dependencies)
+
+```sql
+SELECT DISTINCT
+    from_package_name,
+    from_package_version,
+    from_package_ecosystem,
+    manifest_id
+FROM report_dependency_graphs 
+WHERE is_root_edge = 1
+ORDER BY from_package_name;
+```
+
+### Trace Dependency Path (Simple Path from A to B)
+
+```sql
+WITH RECURSIVE dependency_path AS (
+    -- Base case: find direct dependencies
+    SELECT 
+        from_package_id,
+        from_package_name,
+        to_package_id,
+        to_package_name,
+        depth,
+        from_package_name || ' -> ' || to_package_name AS path,
+        1 AS level
+    FROM report_dependency_graphs 
+    WHERE from_package_name = 'my-app'
+    
+    UNION ALL
+    
+    -- Recursive case: follow the dependency chain
+    SELECT 
+        rdg.from_package_id,
+        rdg.from_package_name,
+        rdg.to_package_id,
+        rdg.to_package_name,
+        rdg.depth,
+        dp.path || ' -> ' || rdg.to_package_name,
+        dp.level + 1
+    FROM report_dependency_graphs rdg
+    JOIN dependency_path dp ON rdg.from_package_id = dp.to_package_id
+    WHERE dp.level < 10 -- Prevent infinite loops
+)
+SELECT path, level 
+FROM dependency_path
+WHERE to_package_name = 'target-package'
+ORDER BY level;
+```
+
+### Find Packages with Vulnerabilities in Dependency Chain
+
+```sql
+SELECT DISTINCT
+    dg.from_package_name,
+    dg.from_package_version,
+    dg.to_package_name AS vulnerable_dep,
+    dg.to_package_version AS vulnerable_version,
+    rv.vulnerability_id,
+    rv.severity,
+    dg.depth
+FROM report_dependency_graphs dg
+JOIN report_packages rp ON dg.to_package_id = rp.package_id
+JOIN report_vulnerabilities rv ON rp.id = rv.report_package_vulnerabilities
+WHERE dg.from_package_name = 'my-app'
+  AND rv.severity IN ('CRITICAL', 'HIGH')
+ORDER BY dg.depth, rv.severity;
+```
+
+### Find Dependency Depth Distribution
+
+```sql
+SELECT 
+    depth,
+    COUNT(*) as edge_count,
+    COUNT(DISTINCT to_package_name) as unique_packages
+FROM report_dependency_graphs
+GROUP BY depth
+ORDER BY depth;
+```
+
+### Find Packages with Most Dependencies
+
+```sql
+SELECT 
+    from_package_name,
+    from_package_version,
+    from_package_ecosystem,
+    COUNT(*) as dependency_count
+FROM report_dependency_graphs
+GROUP BY from_package_id, from_package_name, from_package_version, from_package_ecosystem
+ORDER BY dependency_count DESC
+LIMIT 10;
+```
+
+### Find Packages with Most Dependents
+
+```sql
+SELECT 
+    to_package_name,
+    to_package_version,
+    to_package_ecosystem,
+    COUNT(*) as dependent_count
+FROM report_dependency_graphs
+GROUP BY to_package_id, to_package_name, to_package_version, to_package_ecosystem
+ORDER BY dependent_count DESC
+LIMIT 10;
+```
+
+### Find Circular Dependencies
+
+```sql
+WITH RECURSIVE circular_deps AS (
+    SELECT 
+        from_package_id,
+        to_package_id,
+        from_package_name,
+        to_package_name,
+        from_package_name || ' -> ' || to_package_name AS path,
+        1 AS level
+    FROM report_dependency_graphs
+    
+    UNION ALL
+    
+    SELECT 
+        rdg.from_package_id,
+        rdg.to_package_id,
+        rdg.from_package_name,
+        rdg.to_package_name,
+        cd.path || ' -> ' || rdg.to_package_name,
+        cd.level + 1
+    FROM report_dependency_graphs rdg
+    JOIN circular_deps cd ON rdg.from_package_id = cd.to_package_id
+    WHERE cd.level < 50
+    AND rdg.to_package_id NOT IN (
+        SELECT from_package_id 
+        FROM circular_deps c2 
+        WHERE c2.path = cd.path
+    )
+)
+SELECT path
+FROM circular_deps
+WHERE to_package_id = from_package_id
+ORDER BY level;
+```
+
+### Complex Vulnerability Impact Analysis
+
+```sql
+-- Find all packages that depend on packages with high severity vulnerabilities
+SELECT DISTINCT
+    root_pkg.from_package_name as root_package,
+    vuln_pkg.to_package_name as vulnerable_package,
+    rv.vulnerability_id,
+    rv.severity,
+    MIN(dg.depth) as min_depth
+FROM report_dependency_graphs root_pkg
+JOIN report_dependency_graphs dg ON root_pkg.from_package_id = dg.from_package_id
+JOIN report_packages rp ON dg.to_package_id = rp.package_id
+JOIN report_vulnerabilities rv ON rp.id = rv.report_package_vulnerabilities
+JOIN report_dependency_graphs vuln_pkg ON dg.to_package_id = vuln_pkg.to_package_id
+WHERE root_pkg.is_root_edge = 1
+  AND rv.severity IN ('CRITICAL', 'HIGH')
+GROUP BY root_pkg.from_package_name, vuln_pkg.to_package_name, rv.vulnerability_id
+ORDER BY min_depth, rv.severity;
+```
+
+### Find Transitive Dependency Chains
+
+```sql
+SELECT 
+    dg1.from_package_name as root_pkg,
+    dg1.to_package_name as direct_dep,
+    dg2.to_package_name as transitive_dep,
+    dg1.depth + dg2.depth as total_depth
+FROM report_dependency_graphs dg1 
+JOIN report_dependency_graphs dg2 ON dg1.to_package_id = dg2.from_package_id
+WHERE dg1.is_root_edge = 1 AND dg2.depth > 0
+ORDER BY total_depth
+LIMIT 10;
+```
+
+### Vulnerability Impact Summary
+
+```sql
+SELECT 
+    rp.name as vulnerable_package,
+    rv.vulnerability_id,
+    rv.severity,
+    COUNT(dg.from_package_id) as packages_affected
+FROM report_packages rp
+JOIN report_vulnerabilities rv ON rp.id = rv.report_package_vulnerabilities
+LEFT JOIN report_dependency_graphs dg ON rp.package_id = dg.to_package_id
+GROUP BY rp.package_id, rv.vulnerability_id
+ORDER BY rv.severity, packages_affected DESC;
+```
+
+### Performance Optimization
+
+The dependency graph queries are optimized with the following indexes:
+
+- `from_package_id` - for finding dependencies
+- `to_package_id` - for finding dependents  
+- `manifest_id` - for manifest-specific queries
+- `is_direct` - for direct dependency queries
+- `is_root_edge` - for root package queries
+- `depth` - for depth-based queries
+
+For large dependency graphs, consider:
+- Using LIMIT clauses for exploratory queries
+- Adding WHERE clauses to filter by ecosystem or manifest
+- Using the depth field to limit traversal depth
+- Creating additional indexes for frequently queried patterns
+
 ## Creating Views for Common Queries
 
 You can create views to simplify frequently used queries:
@@ -401,6 +697,22 @@ SELECT
 FROM report_packages p
 JOIN report_package_manifests m ON p.report_package_manifest_packages = m.id;
 
--- Use the view
+-- Create a view for vulnerability impact analysis
+CREATE VIEW vulnerability_impact AS
+SELECT 
+    rp.name as vulnerable_package,
+    rp.version as vulnerable_version,
+    rv.vulnerability_id,
+    rv.severity,
+    dg.from_package_name as affected_package,
+    dg.depth as dependency_depth,
+    dg.is_direct,
+    dg.is_root_edge
+FROM report_packages rp
+JOIN report_vulnerabilities rv ON rp.id = rv.report_package_vulnerabilities
+LEFT JOIN report_dependency_graphs dg ON rp.package_id = dg.to_package_id;
+
+-- Use the views
 SELECT * FROM security_overview WHERE is_malware = 1;
+SELECT * FROM vulnerability_impact WHERE severity IN ('CRITICAL', 'HIGH');
 ```

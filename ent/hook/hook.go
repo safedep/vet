@@ -45,6 +45,18 @@ func (f ReportDependencyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ReportDependencyMutation", m)
 }
 
+// The ReportDependencyGraphFunc type is an adapter to allow the use of ordinary
+// function as ReportDependencyGraph mutator.
+type ReportDependencyGraphFunc func(context.Context, *ent.ReportDependencyGraphMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ReportDependencyGraphFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ReportDependencyGraphMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ReportDependencyGraphMutation", m)
+}
+
 // The ReportLicenseFunc type is an adapter to allow the use of ordinary
 // function as ReportLicense mutator.
 type ReportLicenseFunc func(context.Context, *ent.ReportLicenseMutation) (ent.Value, error)

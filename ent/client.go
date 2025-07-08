@@ -18,6 +18,7 @@ import (
 	"github.com/safedep/vet/ent/codesourcefile"
 	"github.com/safedep/vet/ent/depsusageevidence"
 	"github.com/safedep/vet/ent/reportdependency"
+	"github.com/safedep/vet/ent/reportdependencygraph"
 	"github.com/safedep/vet/ent/reportlicense"
 	"github.com/safedep/vet/ent/reportmalware"
 	"github.com/safedep/vet/ent/reportpackage"
@@ -37,6 +38,8 @@ type Client struct {
 	DepsUsageEvidence *DepsUsageEvidenceClient
 	// ReportDependency is the client for interacting with the ReportDependency builders.
 	ReportDependency *ReportDependencyClient
+	// ReportDependencyGraph is the client for interacting with the ReportDependencyGraph builders.
+	ReportDependencyGraph *ReportDependencyGraphClient
 	// ReportLicense is the client for interacting with the ReportLicense builders.
 	ReportLicense *ReportLicenseClient
 	// ReportMalware is the client for interacting with the ReportMalware builders.
@@ -63,6 +66,7 @@ func (c *Client) init() {
 	c.CodeSourceFile = NewCodeSourceFileClient(c.config)
 	c.DepsUsageEvidence = NewDepsUsageEvidenceClient(c.config)
 	c.ReportDependency = NewReportDependencyClient(c.config)
+	c.ReportDependencyGraph = NewReportDependencyGraphClient(c.config)
 	c.ReportLicense = NewReportLicenseClient(c.config)
 	c.ReportMalware = NewReportMalwareClient(c.config)
 	c.ReportPackage = NewReportPackageClient(c.config)
@@ -164,6 +168,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CodeSourceFile:        NewCodeSourceFileClient(cfg),
 		DepsUsageEvidence:     NewDepsUsageEvidenceClient(cfg),
 		ReportDependency:      NewReportDependencyClient(cfg),
+		ReportDependencyGraph: NewReportDependencyGraphClient(cfg),
 		ReportLicense:         NewReportLicenseClient(cfg),
 		ReportMalware:         NewReportMalwareClient(cfg),
 		ReportPackage:         NewReportPackageClient(cfg),
@@ -192,6 +197,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CodeSourceFile:        NewCodeSourceFileClient(cfg),
 		DepsUsageEvidence:     NewDepsUsageEvidenceClient(cfg),
 		ReportDependency:      NewReportDependencyClient(cfg),
+		ReportDependencyGraph: NewReportDependencyGraphClient(cfg),
 		ReportLicense:         NewReportLicenseClient(cfg),
 		ReportMalware:         NewReportMalwareClient(cfg),
 		ReportPackage:         NewReportPackageClient(cfg),
@@ -227,9 +233,9 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.CodeSourceFile, c.DepsUsageEvidence, c.ReportDependency, c.ReportLicense,
-		c.ReportMalware, c.ReportPackage, c.ReportPackageManifest, c.ReportProject,
-		c.ReportVulnerability,
+		c.CodeSourceFile, c.DepsUsageEvidence, c.ReportDependency,
+		c.ReportDependencyGraph, c.ReportLicense, c.ReportMalware, c.ReportPackage,
+		c.ReportPackageManifest, c.ReportProject, c.ReportVulnerability,
 	} {
 		n.Use(hooks...)
 	}
@@ -239,9 +245,9 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.CodeSourceFile, c.DepsUsageEvidence, c.ReportDependency, c.ReportLicense,
-		c.ReportMalware, c.ReportPackage, c.ReportPackageManifest, c.ReportProject,
-		c.ReportVulnerability,
+		c.CodeSourceFile, c.DepsUsageEvidence, c.ReportDependency,
+		c.ReportDependencyGraph, c.ReportLicense, c.ReportMalware, c.ReportPackage,
+		c.ReportPackageManifest, c.ReportProject, c.ReportVulnerability,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -256,6 +262,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.DepsUsageEvidence.mutate(ctx, m)
 	case *ReportDependencyMutation:
 		return c.ReportDependency.mutate(ctx, m)
+	case *ReportDependencyGraphMutation:
+		return c.ReportDependencyGraph.mutate(ctx, m)
 	case *ReportLicenseMutation:
 		return c.ReportLicense.mutate(ctx, m)
 	case *ReportMalwareMutation:
@@ -717,6 +725,139 @@ func (c *ReportDependencyClient) mutate(ctx context.Context, m *ReportDependency
 		return (&ReportDependencyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown ReportDependency mutation op: %q", m.Op())
+	}
+}
+
+// ReportDependencyGraphClient is a client for the ReportDependencyGraph schema.
+type ReportDependencyGraphClient struct {
+	config
+}
+
+// NewReportDependencyGraphClient returns a client for the ReportDependencyGraph from the given config.
+func NewReportDependencyGraphClient(c config) *ReportDependencyGraphClient {
+	return &ReportDependencyGraphClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `reportdependencygraph.Hooks(f(g(h())))`.
+func (c *ReportDependencyGraphClient) Use(hooks ...Hook) {
+	c.hooks.ReportDependencyGraph = append(c.hooks.ReportDependencyGraph, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `reportdependencygraph.Intercept(f(g(h())))`.
+func (c *ReportDependencyGraphClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ReportDependencyGraph = append(c.inters.ReportDependencyGraph, interceptors...)
+}
+
+// Create returns a builder for creating a ReportDependencyGraph entity.
+func (c *ReportDependencyGraphClient) Create() *ReportDependencyGraphCreate {
+	mutation := newReportDependencyGraphMutation(c.config, OpCreate)
+	return &ReportDependencyGraphCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ReportDependencyGraph entities.
+func (c *ReportDependencyGraphClient) CreateBulk(builders ...*ReportDependencyGraphCreate) *ReportDependencyGraphCreateBulk {
+	return &ReportDependencyGraphCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ReportDependencyGraphClient) MapCreateBulk(slice any, setFunc func(*ReportDependencyGraphCreate, int)) *ReportDependencyGraphCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ReportDependencyGraphCreateBulk{err: fmt.Errorf("calling to ReportDependencyGraphClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ReportDependencyGraphCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ReportDependencyGraphCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ReportDependencyGraph.
+func (c *ReportDependencyGraphClient) Update() *ReportDependencyGraphUpdate {
+	mutation := newReportDependencyGraphMutation(c.config, OpUpdate)
+	return &ReportDependencyGraphUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ReportDependencyGraphClient) UpdateOne(rdg *ReportDependencyGraph) *ReportDependencyGraphUpdateOne {
+	mutation := newReportDependencyGraphMutation(c.config, OpUpdateOne, withReportDependencyGraph(rdg))
+	return &ReportDependencyGraphUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ReportDependencyGraphClient) UpdateOneID(id int) *ReportDependencyGraphUpdateOne {
+	mutation := newReportDependencyGraphMutation(c.config, OpUpdateOne, withReportDependencyGraphID(id))
+	return &ReportDependencyGraphUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ReportDependencyGraph.
+func (c *ReportDependencyGraphClient) Delete() *ReportDependencyGraphDelete {
+	mutation := newReportDependencyGraphMutation(c.config, OpDelete)
+	return &ReportDependencyGraphDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ReportDependencyGraphClient) DeleteOne(rdg *ReportDependencyGraph) *ReportDependencyGraphDeleteOne {
+	return c.DeleteOneID(rdg.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ReportDependencyGraphClient) DeleteOneID(id int) *ReportDependencyGraphDeleteOne {
+	builder := c.Delete().Where(reportdependencygraph.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ReportDependencyGraphDeleteOne{builder}
+}
+
+// Query returns a query builder for ReportDependencyGraph.
+func (c *ReportDependencyGraphClient) Query() *ReportDependencyGraphQuery {
+	return &ReportDependencyGraphQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeReportDependencyGraph},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ReportDependencyGraph entity by its id.
+func (c *ReportDependencyGraphClient) Get(ctx context.Context, id int) (*ReportDependencyGraph, error) {
+	return c.Query().Where(reportdependencygraph.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ReportDependencyGraphClient) GetX(ctx context.Context, id int) *ReportDependencyGraph {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ReportDependencyGraphClient) Hooks() []Hook {
+	return c.hooks.ReportDependencyGraph
+}
+
+// Interceptors returns the client interceptors.
+func (c *ReportDependencyGraphClient) Interceptors() []Interceptor {
+	return c.inters.ReportDependencyGraph
+}
+
+func (c *ReportDependencyGraphClient) mutate(ctx context.Context, m *ReportDependencyGraphMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ReportDependencyGraphCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ReportDependencyGraphUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ReportDependencyGraphUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ReportDependencyGraphDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ReportDependencyGraph mutation op: %q", m.Op())
 	}
 }
 
@@ -1665,13 +1806,13 @@ func (c *ReportVulnerabilityClient) mutate(ctx context.Context, m *ReportVulnera
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		CodeSourceFile, DepsUsageEvidence, ReportDependency, ReportLicense,
-		ReportMalware, ReportPackage, ReportPackageManifest, ReportProject,
-		ReportVulnerability []ent.Hook
+		CodeSourceFile, DepsUsageEvidence, ReportDependency, ReportDependencyGraph,
+		ReportLicense, ReportMalware, ReportPackage, ReportPackageManifest,
+		ReportProject, ReportVulnerability []ent.Hook
 	}
 	inters struct {
-		CodeSourceFile, DepsUsageEvidence, ReportDependency, ReportLicense,
-		ReportMalware, ReportPackage, ReportPackageManifest, ReportProject,
-		ReportVulnerability []ent.Interceptor
+		CodeSourceFile, DepsUsageEvidence, ReportDependency, ReportDependencyGraph,
+		ReportLicense, ReportMalware, ReportPackage, ReportPackageManifest,
+		ReportProject, ReportVulnerability []ent.Interceptor
 	}
 )

@@ -73,6 +73,74 @@ var (
 			},
 		},
 	}
+	// ReportDependencyGraphsColumns holds the columns for the "report_dependency_graphs" table.
+	ReportDependencyGraphsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "from_package_id", Type: field.TypeString},
+		{Name: "from_package_name", Type: field.TypeString},
+		{Name: "from_package_version", Type: field.TypeString},
+		{Name: "from_package_ecosystem", Type: field.TypeString},
+		{Name: "to_package_id", Type: field.TypeString},
+		{Name: "to_package_name", Type: field.TypeString},
+		{Name: "to_package_version", Type: field.TypeString},
+		{Name: "to_package_ecosystem", Type: field.TypeString},
+		{Name: "dependency_type", Type: field.TypeString, Nullable: true},
+		{Name: "version_constraint", Type: field.TypeString, Nullable: true},
+		{Name: "depth", Type: field.TypeInt, Default: 0},
+		{Name: "is_direct", Type: field.TypeBool, Default: false},
+		{Name: "is_root_edge", Type: field.TypeBool, Default: false},
+		{Name: "manifest_id", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+	}
+	// ReportDependencyGraphsTable holds the schema information for the "report_dependency_graphs" table.
+	ReportDependencyGraphsTable = &schema.Table{
+		Name:       "report_dependency_graphs",
+		Columns:    ReportDependencyGraphsColumns,
+		PrimaryKey: []*schema.Column{ReportDependencyGraphsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "reportdependencygraph_from_package_id",
+				Unique:  false,
+				Columns: []*schema.Column{ReportDependencyGraphsColumns[1]},
+			},
+			{
+				Name:    "reportdependencygraph_to_package_id",
+				Unique:  false,
+				Columns: []*schema.Column{ReportDependencyGraphsColumns[5]},
+			},
+			{
+				Name:    "reportdependencygraph_manifest_id",
+				Unique:  false,
+				Columns: []*schema.Column{ReportDependencyGraphsColumns[14]},
+			},
+			{
+				Name:    "reportdependencygraph_from_package_id_is_direct",
+				Unique:  false,
+				Columns: []*schema.Column{ReportDependencyGraphsColumns[1], ReportDependencyGraphsColumns[12]},
+			},
+			{
+				Name:    "reportdependencygraph_is_root_edge",
+				Unique:  false,
+				Columns: []*schema.Column{ReportDependencyGraphsColumns[13]},
+			},
+			{
+				Name:    "reportdependencygraph_from_package_id_to_package_id_manifest_id",
+				Unique:  false,
+				Columns: []*schema.Column{ReportDependencyGraphsColumns[1], ReportDependencyGraphsColumns[5], ReportDependencyGraphsColumns[14]},
+			},
+			{
+				Name:    "reportdependencygraph_dependency_type",
+				Unique:  false,
+				Columns: []*schema.Column{ReportDependencyGraphsColumns[9]},
+			},
+			{
+				Name:    "reportdependencygraph_depth",
+				Unique:  false,
+				Columns: []*schema.Column{ReportDependencyGraphsColumns[11]},
+			},
+		},
+	}
 	// ReportLicensesColumns holds the columns for the "report_licenses" table.
 	ReportLicensesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -232,6 +300,7 @@ var (
 		CodeSourceFilesTable,
 		DepsUsageEvidencesTable,
 		ReportDependenciesTable,
+		ReportDependencyGraphsTable,
 		ReportLicensesTable,
 		ReportMalwaresTable,
 		ReportPackagesTable,

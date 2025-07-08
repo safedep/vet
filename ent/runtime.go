@@ -6,6 +6,7 @@ import (
 	"github.com/safedep/vet/ent/codesourcefile"
 	"github.com/safedep/vet/ent/depsusageevidence"
 	"github.com/safedep/vet/ent/reportdependency"
+	"github.com/safedep/vet/ent/reportdependencygraph"
 	"github.com/safedep/vet/ent/reportlicense"
 	"github.com/safedep/vet/ent/reportmalware"
 	"github.com/safedep/vet/ent/reportpackage"
@@ -53,6 +54,56 @@ func init() {
 	reportdependencyDescDepth := reportdependencyFields[5].Descriptor()
 	// reportdependency.DefaultDepth holds the default value on creation for the depth field.
 	reportdependency.DefaultDepth = reportdependencyDescDepth.Default.(int)
+	reportdependencygraphFields := schema.ReportDependencyGraph{}.Fields()
+	_ = reportdependencygraphFields
+	// reportdependencygraphDescFromPackageID is the schema descriptor for from_package_id field.
+	reportdependencygraphDescFromPackageID := reportdependencygraphFields[0].Descriptor()
+	// reportdependencygraph.FromPackageIDValidator is a validator for the "from_package_id" field. It is called by the builders before save.
+	reportdependencygraph.FromPackageIDValidator = reportdependencygraphDescFromPackageID.Validators[0].(func(string) error)
+	// reportdependencygraphDescFromPackageName is the schema descriptor for from_package_name field.
+	reportdependencygraphDescFromPackageName := reportdependencygraphFields[1].Descriptor()
+	// reportdependencygraph.FromPackageNameValidator is a validator for the "from_package_name" field. It is called by the builders before save.
+	reportdependencygraph.FromPackageNameValidator = reportdependencygraphDescFromPackageName.Validators[0].(func(string) error)
+	// reportdependencygraphDescFromPackageVersion is the schema descriptor for from_package_version field.
+	reportdependencygraphDescFromPackageVersion := reportdependencygraphFields[2].Descriptor()
+	// reportdependencygraph.FromPackageVersionValidator is a validator for the "from_package_version" field. It is called by the builders before save.
+	reportdependencygraph.FromPackageVersionValidator = reportdependencygraphDescFromPackageVersion.Validators[0].(func(string) error)
+	// reportdependencygraphDescFromPackageEcosystem is the schema descriptor for from_package_ecosystem field.
+	reportdependencygraphDescFromPackageEcosystem := reportdependencygraphFields[3].Descriptor()
+	// reportdependencygraph.FromPackageEcosystemValidator is a validator for the "from_package_ecosystem" field. It is called by the builders before save.
+	reportdependencygraph.FromPackageEcosystemValidator = reportdependencygraphDescFromPackageEcosystem.Validators[0].(func(string) error)
+	// reportdependencygraphDescToPackageID is the schema descriptor for to_package_id field.
+	reportdependencygraphDescToPackageID := reportdependencygraphFields[4].Descriptor()
+	// reportdependencygraph.ToPackageIDValidator is a validator for the "to_package_id" field. It is called by the builders before save.
+	reportdependencygraph.ToPackageIDValidator = reportdependencygraphDescToPackageID.Validators[0].(func(string) error)
+	// reportdependencygraphDescToPackageName is the schema descriptor for to_package_name field.
+	reportdependencygraphDescToPackageName := reportdependencygraphFields[5].Descriptor()
+	// reportdependencygraph.ToPackageNameValidator is a validator for the "to_package_name" field. It is called by the builders before save.
+	reportdependencygraph.ToPackageNameValidator = reportdependencygraphDescToPackageName.Validators[0].(func(string) error)
+	// reportdependencygraphDescToPackageVersion is the schema descriptor for to_package_version field.
+	reportdependencygraphDescToPackageVersion := reportdependencygraphFields[6].Descriptor()
+	// reportdependencygraph.ToPackageVersionValidator is a validator for the "to_package_version" field. It is called by the builders before save.
+	reportdependencygraph.ToPackageVersionValidator = reportdependencygraphDescToPackageVersion.Validators[0].(func(string) error)
+	// reportdependencygraphDescToPackageEcosystem is the schema descriptor for to_package_ecosystem field.
+	reportdependencygraphDescToPackageEcosystem := reportdependencygraphFields[7].Descriptor()
+	// reportdependencygraph.ToPackageEcosystemValidator is a validator for the "to_package_ecosystem" field. It is called by the builders before save.
+	reportdependencygraph.ToPackageEcosystemValidator = reportdependencygraphDescToPackageEcosystem.Validators[0].(func(string) error)
+	// reportdependencygraphDescDepth is the schema descriptor for depth field.
+	reportdependencygraphDescDepth := reportdependencygraphFields[10].Descriptor()
+	// reportdependencygraph.DefaultDepth holds the default value on creation for the depth field.
+	reportdependencygraph.DefaultDepth = reportdependencygraphDescDepth.Default.(int)
+	// reportdependencygraphDescIsDirect is the schema descriptor for is_direct field.
+	reportdependencygraphDescIsDirect := reportdependencygraphFields[11].Descriptor()
+	// reportdependencygraph.DefaultIsDirect holds the default value on creation for the is_direct field.
+	reportdependencygraph.DefaultIsDirect = reportdependencygraphDescIsDirect.Default.(bool)
+	// reportdependencygraphDescIsRootEdge is the schema descriptor for is_root_edge field.
+	reportdependencygraphDescIsRootEdge := reportdependencygraphFields[12].Descriptor()
+	// reportdependencygraph.DefaultIsRootEdge holds the default value on creation for the is_root_edge field.
+	reportdependencygraph.DefaultIsRootEdge = reportdependencygraphDescIsRootEdge.Default.(bool)
+	// reportdependencygraphDescManifestID is the schema descriptor for manifest_id field.
+	reportdependencygraphDescManifestID := reportdependencygraphFields[13].Descriptor()
+	// reportdependencygraph.ManifestIDValidator is a validator for the "manifest_id" field. It is called by the builders before save.
+	reportdependencygraph.ManifestIDValidator = reportdependencygraphDescManifestID.Validators[0].(func(string) error)
 	reportlicenseFields := schema.ReportLicense{}.Fields()
 	_ = reportlicenseFields
 	// reportlicenseDescLicenseID is the schema descriptor for license_id field.

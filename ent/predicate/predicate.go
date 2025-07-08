@@ -15,6 +15,9 @@ type DepsUsageEvidence func(*sql.Selector)
 // ReportDependency is the predicate function for reportdependency builders.
 type ReportDependency func(*sql.Selector)
 
+// ReportDependencyGraph is the predicate function for reportdependencygraph builders.
+type ReportDependencyGraph func(*sql.Selector)
+
 // ReportLicense is the predicate function for reportlicense builders.
 type ReportLicense func(*sql.Selector)
 
