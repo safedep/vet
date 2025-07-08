@@ -12,6 +12,7 @@ import (
 	"github.com/safedep/vet/ent/reportpackage"
 	"github.com/safedep/vet/ent/reportpackagemanifest"
 	"github.com/safedep/vet/ent/reportproject"
+	"github.com/safedep/vet/ent/reportslsaprovenance"
 	"github.com/safedep/vet/ent/reportvulnerability"
 	"github.com/safedep/vet/ent/schema"
 )
@@ -194,6 +195,12 @@ func init() {
 	reportprojectDescName := reportprojectFields[0].Descriptor()
 	// reportproject.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	reportproject.NameValidator = reportprojectDescName.Validators[0].(func(string) error)
+	reportslsaprovenanceFields := schema.ReportSlsaProvenance{}.Fields()
+	_ = reportslsaprovenanceFields
+	// reportslsaprovenanceDescVerified is the schema descriptor for verified field.
+	reportslsaprovenanceDescVerified := reportslsaprovenanceFields[3].Descriptor()
+	// reportslsaprovenance.DefaultVerified holds the default value on creation for the verified field.
+	reportslsaprovenance.DefaultVerified = reportslsaprovenanceDescVerified.Default.(bool)
 	reportvulnerabilityFields := schema.ReportVulnerability{}.Fields()
 	_ = reportvulnerabilityFields
 	// reportvulnerabilityDescVulnerabilityID is the schema descriptor for vulnerability_id field.

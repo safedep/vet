@@ -16,6 +16,7 @@ import (
 	"github.com/safedep/vet/ent/reportpackage"
 	"github.com/safedep/vet/ent/reportpackagemanifest"
 	"github.com/safedep/vet/ent/reportproject"
+	"github.com/safedep/vet/ent/reportslsaprovenance"
 	"github.com/safedep/vet/ent/reportvulnerability"
 )
 
@@ -254,6 +255,21 @@ func (rpc *ReportPackageCreate) AddProjects(r ...*ReportProject) *ReportPackageC
 		ids[i] = r[i].ID
 	}
 	return rpc.AddProjectIDs(ids...)
+}
+
+// AddSlsaProvenanceIDs adds the "slsa_provenances" edge to the ReportSlsaProvenance entity by IDs.
+func (rpc *ReportPackageCreate) AddSlsaProvenanceIDs(ids ...int) *ReportPackageCreate {
+	rpc.mutation.AddSlsaProvenanceIDs(ids...)
+	return rpc
+}
+
+// AddSlsaProvenances adds the "slsa_provenances" edges to the ReportSlsaProvenance entity.
+func (rpc *ReportPackageCreate) AddSlsaProvenances(r ...*ReportSlsaProvenance) *ReportPackageCreate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpc.AddSlsaProvenanceIDs(ids...)
 }
 
 // Mutation returns the ReportPackageMutation object of the builder.
@@ -535,6 +551,22 @@ func (rpc *ReportPackageCreate) createSpec() (*ReportPackage, *sqlgraph.CreateSp
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reportproject.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rpc.mutation.SlsaProvenancesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.SlsaProvenancesTable,
+			Columns: []string{reportpackage.SlsaProvenancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportslsaprovenance.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

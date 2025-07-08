@@ -23,6 +23,7 @@ import (
 	"github.com/safedep/vet/ent/reportproject"
 	"github.com/safedep/vet/ent/reportscorecard"
 	"github.com/safedep/vet/ent/reportscorecardcheck"
+	"github.com/safedep/vet/ent/reportslsaprovenance"
 	"github.com/safedep/vet/ent/reportvulnerability"
 )
 
@@ -46,6 +47,7 @@ const (
 	TypeReportProject         = "ReportProject"
 	TypeReportScorecard       = "ReportScorecard"
 	TypeReportScorecardCheck  = "ReportScorecardCheck"
+	TypeReportSlsaProvenance  = "ReportSlsaProvenance"
 	TypeReportVulnerability   = "ReportVulnerability"
 )
 
@@ -3494,25 +3496,21 @@ func (m *ReportDependencyGraphMutation) ResetEdge(name string) error {
 // ReportLicenseMutation represents an operation that mutates the ReportLicense nodes in the graph.
 type ReportLicenseMutation struct {
 	config
-	op                        Op
-	typ                       string
-	id                        *int
-	license_id                *string
-	name                      *string
-	spdx_id                   *string
-	url                       *string
-	is_osi_approved           *bool
-	is_fsf_approved           *bool
-	is_saas_compatible        *bool
-	is_commercial_use_allowed *bool
-	created_at                *time.Time
-	updated_at                *time.Time
-	clearedFields             map[string]struct{}
-	_package                  *int
-	cleared_package           bool
-	done                      bool
-	oldValue                  func(context.Context) (*ReportLicense, error)
-	predicates                []predicate.ReportLicense
+	op              Op
+	typ             string
+	id              *int
+	license_id      *string
+	name            *string
+	spdx_id         *string
+	url             *string
+	created_at      *time.Time
+	updated_at      *time.Time
+	clearedFields   map[string]struct{}
+	_package        *int
+	cleared_package bool
+	done            bool
+	oldValue        func(context.Context) (*ReportLicense, error)
+	predicates      []predicate.ReportLicense
 }
 
 var _ ent.Mutation = (*ReportLicenseMutation)(nil)
@@ -3796,202 +3794,6 @@ func (m *ReportLicenseMutation) ResetURL() {
 	delete(m.clearedFields, reportlicense.FieldURL)
 }
 
-// SetIsOsiApproved sets the "is_osi_approved" field.
-func (m *ReportLicenseMutation) SetIsOsiApproved(b bool) {
-	m.is_osi_approved = &b
-}
-
-// IsOsiApproved returns the value of the "is_osi_approved" field in the mutation.
-func (m *ReportLicenseMutation) IsOsiApproved() (r bool, exists bool) {
-	v := m.is_osi_approved
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldIsOsiApproved returns the old "is_osi_approved" field's value of the ReportLicense entity.
-// If the ReportLicense object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ReportLicenseMutation) OldIsOsiApproved(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsOsiApproved is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsOsiApproved requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsOsiApproved: %w", err)
-	}
-	return oldValue.IsOsiApproved, nil
-}
-
-// ClearIsOsiApproved clears the value of the "is_osi_approved" field.
-func (m *ReportLicenseMutation) ClearIsOsiApproved() {
-	m.is_osi_approved = nil
-	m.clearedFields[reportlicense.FieldIsOsiApproved] = struct{}{}
-}
-
-// IsOsiApprovedCleared returns if the "is_osi_approved" field was cleared in this mutation.
-func (m *ReportLicenseMutation) IsOsiApprovedCleared() bool {
-	_, ok := m.clearedFields[reportlicense.FieldIsOsiApproved]
-	return ok
-}
-
-// ResetIsOsiApproved resets all changes to the "is_osi_approved" field.
-func (m *ReportLicenseMutation) ResetIsOsiApproved() {
-	m.is_osi_approved = nil
-	delete(m.clearedFields, reportlicense.FieldIsOsiApproved)
-}
-
-// SetIsFsfApproved sets the "is_fsf_approved" field.
-func (m *ReportLicenseMutation) SetIsFsfApproved(b bool) {
-	m.is_fsf_approved = &b
-}
-
-// IsFsfApproved returns the value of the "is_fsf_approved" field in the mutation.
-func (m *ReportLicenseMutation) IsFsfApproved() (r bool, exists bool) {
-	v := m.is_fsf_approved
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldIsFsfApproved returns the old "is_fsf_approved" field's value of the ReportLicense entity.
-// If the ReportLicense object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ReportLicenseMutation) OldIsFsfApproved(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsFsfApproved is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsFsfApproved requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsFsfApproved: %w", err)
-	}
-	return oldValue.IsFsfApproved, nil
-}
-
-// ClearIsFsfApproved clears the value of the "is_fsf_approved" field.
-func (m *ReportLicenseMutation) ClearIsFsfApproved() {
-	m.is_fsf_approved = nil
-	m.clearedFields[reportlicense.FieldIsFsfApproved] = struct{}{}
-}
-
-// IsFsfApprovedCleared returns if the "is_fsf_approved" field was cleared in this mutation.
-func (m *ReportLicenseMutation) IsFsfApprovedCleared() bool {
-	_, ok := m.clearedFields[reportlicense.FieldIsFsfApproved]
-	return ok
-}
-
-// ResetIsFsfApproved resets all changes to the "is_fsf_approved" field.
-func (m *ReportLicenseMutation) ResetIsFsfApproved() {
-	m.is_fsf_approved = nil
-	delete(m.clearedFields, reportlicense.FieldIsFsfApproved)
-}
-
-// SetIsSaasCompatible sets the "is_saas_compatible" field.
-func (m *ReportLicenseMutation) SetIsSaasCompatible(b bool) {
-	m.is_saas_compatible = &b
-}
-
-// IsSaasCompatible returns the value of the "is_saas_compatible" field in the mutation.
-func (m *ReportLicenseMutation) IsSaasCompatible() (r bool, exists bool) {
-	v := m.is_saas_compatible
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldIsSaasCompatible returns the old "is_saas_compatible" field's value of the ReportLicense entity.
-// If the ReportLicense object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ReportLicenseMutation) OldIsSaasCompatible(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsSaasCompatible is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsSaasCompatible requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsSaasCompatible: %w", err)
-	}
-	return oldValue.IsSaasCompatible, nil
-}
-
-// ClearIsSaasCompatible clears the value of the "is_saas_compatible" field.
-func (m *ReportLicenseMutation) ClearIsSaasCompatible() {
-	m.is_saas_compatible = nil
-	m.clearedFields[reportlicense.FieldIsSaasCompatible] = struct{}{}
-}
-
-// IsSaasCompatibleCleared returns if the "is_saas_compatible" field was cleared in this mutation.
-func (m *ReportLicenseMutation) IsSaasCompatibleCleared() bool {
-	_, ok := m.clearedFields[reportlicense.FieldIsSaasCompatible]
-	return ok
-}
-
-// ResetIsSaasCompatible resets all changes to the "is_saas_compatible" field.
-func (m *ReportLicenseMutation) ResetIsSaasCompatible() {
-	m.is_saas_compatible = nil
-	delete(m.clearedFields, reportlicense.FieldIsSaasCompatible)
-}
-
-// SetIsCommercialUseAllowed sets the "is_commercial_use_allowed" field.
-func (m *ReportLicenseMutation) SetIsCommercialUseAllowed(b bool) {
-	m.is_commercial_use_allowed = &b
-}
-
-// IsCommercialUseAllowed returns the value of the "is_commercial_use_allowed" field in the mutation.
-func (m *ReportLicenseMutation) IsCommercialUseAllowed() (r bool, exists bool) {
-	v := m.is_commercial_use_allowed
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldIsCommercialUseAllowed returns the old "is_commercial_use_allowed" field's value of the ReportLicense entity.
-// If the ReportLicense object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ReportLicenseMutation) OldIsCommercialUseAllowed(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsCommercialUseAllowed is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsCommercialUseAllowed requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsCommercialUseAllowed: %w", err)
-	}
-	return oldValue.IsCommercialUseAllowed, nil
-}
-
-// ClearIsCommercialUseAllowed clears the value of the "is_commercial_use_allowed" field.
-func (m *ReportLicenseMutation) ClearIsCommercialUseAllowed() {
-	m.is_commercial_use_allowed = nil
-	m.clearedFields[reportlicense.FieldIsCommercialUseAllowed] = struct{}{}
-}
-
-// IsCommercialUseAllowedCleared returns if the "is_commercial_use_allowed" field was cleared in this mutation.
-func (m *ReportLicenseMutation) IsCommercialUseAllowedCleared() bool {
-	_, ok := m.clearedFields[reportlicense.FieldIsCommercialUseAllowed]
-	return ok
-}
-
-// ResetIsCommercialUseAllowed resets all changes to the "is_commercial_use_allowed" field.
-func (m *ReportLicenseMutation) ResetIsCommercialUseAllowed() {
-	m.is_commercial_use_allowed = nil
-	delete(m.clearedFields, reportlicense.FieldIsCommercialUseAllowed)
-}
-
 // SetCreatedAt sets the "created_at" field.
 func (m *ReportLicenseMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -4163,7 +3965,7 @@ func (m *ReportLicenseMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ReportLicenseMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 6)
 	if m.license_id != nil {
 		fields = append(fields, reportlicense.FieldLicenseID)
 	}
@@ -4175,18 +3977,6 @@ func (m *ReportLicenseMutation) Fields() []string {
 	}
 	if m.url != nil {
 		fields = append(fields, reportlicense.FieldURL)
-	}
-	if m.is_osi_approved != nil {
-		fields = append(fields, reportlicense.FieldIsOsiApproved)
-	}
-	if m.is_fsf_approved != nil {
-		fields = append(fields, reportlicense.FieldIsFsfApproved)
-	}
-	if m.is_saas_compatible != nil {
-		fields = append(fields, reportlicense.FieldIsSaasCompatible)
-	}
-	if m.is_commercial_use_allowed != nil {
-		fields = append(fields, reportlicense.FieldIsCommercialUseAllowed)
 	}
 	if m.created_at != nil {
 		fields = append(fields, reportlicense.FieldCreatedAt)
@@ -4210,14 +4000,6 @@ func (m *ReportLicenseMutation) Field(name string) (ent.Value, bool) {
 		return m.SpdxID()
 	case reportlicense.FieldURL:
 		return m.URL()
-	case reportlicense.FieldIsOsiApproved:
-		return m.IsOsiApproved()
-	case reportlicense.FieldIsFsfApproved:
-		return m.IsFsfApproved()
-	case reportlicense.FieldIsSaasCompatible:
-		return m.IsSaasCompatible()
-	case reportlicense.FieldIsCommercialUseAllowed:
-		return m.IsCommercialUseAllowed()
 	case reportlicense.FieldCreatedAt:
 		return m.CreatedAt()
 	case reportlicense.FieldUpdatedAt:
@@ -4239,14 +4021,6 @@ func (m *ReportLicenseMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldSpdxID(ctx)
 	case reportlicense.FieldURL:
 		return m.OldURL(ctx)
-	case reportlicense.FieldIsOsiApproved:
-		return m.OldIsOsiApproved(ctx)
-	case reportlicense.FieldIsFsfApproved:
-		return m.OldIsFsfApproved(ctx)
-	case reportlicense.FieldIsSaasCompatible:
-		return m.OldIsSaasCompatible(ctx)
-	case reportlicense.FieldIsCommercialUseAllowed:
-		return m.OldIsCommercialUseAllowed(ctx)
 	case reportlicense.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case reportlicense.FieldUpdatedAt:
@@ -4287,34 +4061,6 @@ func (m *ReportLicenseMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetURL(v)
-		return nil
-	case reportlicense.FieldIsOsiApproved:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetIsOsiApproved(v)
-		return nil
-	case reportlicense.FieldIsFsfApproved:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetIsFsfApproved(v)
-		return nil
-	case reportlicense.FieldIsSaasCompatible:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetIsSaasCompatible(v)
-		return nil
-	case reportlicense.FieldIsCommercialUseAllowed:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetIsCommercialUseAllowed(v)
 		return nil
 	case reportlicense.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -4369,18 +4115,6 @@ func (m *ReportLicenseMutation) ClearedFields() []string {
 	if m.FieldCleared(reportlicense.FieldURL) {
 		fields = append(fields, reportlicense.FieldURL)
 	}
-	if m.FieldCleared(reportlicense.FieldIsOsiApproved) {
-		fields = append(fields, reportlicense.FieldIsOsiApproved)
-	}
-	if m.FieldCleared(reportlicense.FieldIsFsfApproved) {
-		fields = append(fields, reportlicense.FieldIsFsfApproved)
-	}
-	if m.FieldCleared(reportlicense.FieldIsSaasCompatible) {
-		fields = append(fields, reportlicense.FieldIsSaasCompatible)
-	}
-	if m.FieldCleared(reportlicense.FieldIsCommercialUseAllowed) {
-		fields = append(fields, reportlicense.FieldIsCommercialUseAllowed)
-	}
 	if m.FieldCleared(reportlicense.FieldCreatedAt) {
 		fields = append(fields, reportlicense.FieldCreatedAt)
 	}
@@ -4410,18 +4144,6 @@ func (m *ReportLicenseMutation) ClearField(name string) error {
 	case reportlicense.FieldURL:
 		m.ClearURL()
 		return nil
-	case reportlicense.FieldIsOsiApproved:
-		m.ClearIsOsiApproved()
-		return nil
-	case reportlicense.FieldIsFsfApproved:
-		m.ClearIsFsfApproved()
-		return nil
-	case reportlicense.FieldIsSaasCompatible:
-		m.ClearIsSaasCompatible()
-		return nil
-	case reportlicense.FieldIsCommercialUseAllowed:
-		m.ClearIsCommercialUseAllowed()
-		return nil
 	case reportlicense.FieldCreatedAt:
 		m.ClearCreatedAt()
 		return nil
@@ -4447,18 +4169,6 @@ func (m *ReportLicenseMutation) ResetField(name string) error {
 		return nil
 	case reportlicense.FieldURL:
 		m.ResetURL()
-		return nil
-	case reportlicense.FieldIsOsiApproved:
-		m.ResetIsOsiApproved()
-		return nil
-	case reportlicense.FieldIsFsfApproved:
-		m.ResetIsFsfApproved()
-		return nil
-	case reportlicense.FieldIsSaasCompatible:
-		m.ResetIsSaasCompatible()
-		return nil
-	case reportlicense.FieldIsCommercialUseAllowed:
-		m.ResetIsCommercialUseAllowed()
 		return nil
 	case reportlicense.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -5451,6 +5161,9 @@ type ReportPackageMutation struct {
 	projects                map[int]struct{}
 	removedprojects         map[int]struct{}
 	clearedprojects         bool
+	slsa_provenances        map[int]struct{}
+	removedslsa_provenances map[int]struct{}
+	clearedslsa_provenances bool
 	done                    bool
 	oldValue                func(context.Context) (*ReportPackage, error)
 	predicates              []predicate.ReportPackage
@@ -6437,6 +6150,60 @@ func (m *ReportPackageMutation) ResetProjects() {
 	m.removedprojects = nil
 }
 
+// AddSlsaProvenanceIDs adds the "slsa_provenances" edge to the ReportSlsaProvenance entity by ids.
+func (m *ReportPackageMutation) AddSlsaProvenanceIDs(ids ...int) {
+	if m.slsa_provenances == nil {
+		m.slsa_provenances = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.slsa_provenances[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSlsaProvenances clears the "slsa_provenances" edge to the ReportSlsaProvenance entity.
+func (m *ReportPackageMutation) ClearSlsaProvenances() {
+	m.clearedslsa_provenances = true
+}
+
+// SlsaProvenancesCleared reports if the "slsa_provenances" edge to the ReportSlsaProvenance entity was cleared.
+func (m *ReportPackageMutation) SlsaProvenancesCleared() bool {
+	return m.clearedslsa_provenances
+}
+
+// RemoveSlsaProvenanceIDs removes the "slsa_provenances" edge to the ReportSlsaProvenance entity by IDs.
+func (m *ReportPackageMutation) RemoveSlsaProvenanceIDs(ids ...int) {
+	if m.removedslsa_provenances == nil {
+		m.removedslsa_provenances = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.slsa_provenances, ids[i])
+		m.removedslsa_provenances[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSlsaProvenances returns the removed IDs of the "slsa_provenances" edge to the ReportSlsaProvenance entity.
+func (m *ReportPackageMutation) RemovedSlsaProvenancesIDs() (ids []int) {
+	for id := range m.removedslsa_provenances {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SlsaProvenancesIDs returns the "slsa_provenances" edge IDs in the mutation.
+func (m *ReportPackageMutation) SlsaProvenancesIDs() (ids []int) {
+	for id := range m.slsa_provenances {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSlsaProvenances resets all changes to the "slsa_provenances" edge.
+func (m *ReportPackageMutation) ResetSlsaProvenances() {
+	m.slsa_provenances = nil
+	m.clearedslsa_provenances = false
+	m.removedslsa_provenances = nil
+}
+
 // Where appends a list predicates to the ReportPackageMutation builder.
 func (m *ReportPackageMutation) Where(ps ...predicate.ReportPackage) {
 	m.predicates = append(m.predicates, ps...)
@@ -6839,7 +6606,7 @@ func (m *ReportPackageMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ReportPackageMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.manifest != nil {
 		edges = append(edges, reportpackage.EdgeManifest)
 	}
@@ -6857,6 +6624,9 @@ func (m *ReportPackageMutation) AddedEdges() []string {
 	}
 	if m.projects != nil {
 		edges = append(edges, reportpackage.EdgeProjects)
+	}
+	if m.slsa_provenances != nil {
+		edges = append(edges, reportpackage.EdgeSlsaProvenances)
 	}
 	return edges
 }
@@ -6897,13 +6667,19 @@ func (m *ReportPackageMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case reportpackage.EdgeSlsaProvenances:
+		ids := make([]ent.Value, 0, len(m.slsa_provenances))
+		for id := range m.slsa_provenances {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ReportPackageMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.removedvulnerabilities != nil {
 		edges = append(edges, reportpackage.EdgeVulnerabilities)
 	}
@@ -6915,6 +6691,9 @@ func (m *ReportPackageMutation) RemovedEdges() []string {
 	}
 	if m.removedprojects != nil {
 		edges = append(edges, reportpackage.EdgeProjects)
+	}
+	if m.removedslsa_provenances != nil {
+		edges = append(edges, reportpackage.EdgeSlsaProvenances)
 	}
 	return edges
 }
@@ -6947,13 +6726,19 @@ func (m *ReportPackageMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case reportpackage.EdgeSlsaProvenances:
+		ids := make([]ent.Value, 0, len(m.removedslsa_provenances))
+		for id := range m.removedslsa_provenances {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ReportPackageMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.clearedmanifest {
 		edges = append(edges, reportpackage.EdgeManifest)
 	}
@@ -6971,6 +6756,9 @@ func (m *ReportPackageMutation) ClearedEdges() []string {
 	}
 	if m.clearedprojects {
 		edges = append(edges, reportpackage.EdgeProjects)
+	}
+	if m.clearedslsa_provenances {
+		edges = append(edges, reportpackage.EdgeSlsaProvenances)
 	}
 	return edges
 }
@@ -6991,6 +6779,8 @@ func (m *ReportPackageMutation) EdgeCleared(name string) bool {
 		return m.clearedmalware_analysis
 	case reportpackage.EdgeProjects:
 		return m.clearedprojects
+	case reportpackage.EdgeSlsaProvenances:
+		return m.clearedslsa_provenances
 	}
 	return false
 }
@@ -7030,6 +6820,9 @@ func (m *ReportPackageMutation) ResetEdge(name string) error {
 		return nil
 	case reportpackage.EdgeProjects:
 		m.ResetProjects()
+		return nil
+	case reportpackage.EdgeSlsaProvenances:
+		m.ResetSlsaProvenances()
 		return nil
 	}
 	return fmt.Errorf("unknown ReportPackage edge %s", name)
@@ -10438,6 +10231,710 @@ func (m *ReportScorecardCheckMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown ReportScorecardCheck edge %s", name)
+}
+
+// ReportSlsaProvenanceMutation represents an operation that mutates the ReportSlsaProvenance nodes in the graph.
+type ReportSlsaProvenanceMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *int
+	source_repository *string
+	commit_sha        *string
+	url               *string
+	verified          *bool
+	created_at        *time.Time
+	updated_at        *time.Time
+	clearedFields     map[string]struct{}
+	_package          *int
+	cleared_package   bool
+	done              bool
+	oldValue          func(context.Context) (*ReportSlsaProvenance, error)
+	predicates        []predicate.ReportSlsaProvenance
+}
+
+var _ ent.Mutation = (*ReportSlsaProvenanceMutation)(nil)
+
+// reportslsaprovenanceOption allows management of the mutation configuration using functional options.
+type reportslsaprovenanceOption func(*ReportSlsaProvenanceMutation)
+
+// newReportSlsaProvenanceMutation creates new mutation for the ReportSlsaProvenance entity.
+func newReportSlsaProvenanceMutation(c config, op Op, opts ...reportslsaprovenanceOption) *ReportSlsaProvenanceMutation {
+	m := &ReportSlsaProvenanceMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeReportSlsaProvenance,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withReportSlsaProvenanceID sets the ID field of the mutation.
+func withReportSlsaProvenanceID(id int) reportslsaprovenanceOption {
+	return func(m *ReportSlsaProvenanceMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ReportSlsaProvenance
+		)
+		m.oldValue = func(ctx context.Context) (*ReportSlsaProvenance, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ReportSlsaProvenance.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withReportSlsaProvenance sets the old ReportSlsaProvenance of the mutation.
+func withReportSlsaProvenance(node *ReportSlsaProvenance) reportslsaprovenanceOption {
+	return func(m *ReportSlsaProvenanceMutation) {
+		m.oldValue = func(context.Context) (*ReportSlsaProvenance, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ReportSlsaProvenanceMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ReportSlsaProvenanceMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ReportSlsaProvenanceMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ReportSlsaProvenanceMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ReportSlsaProvenance.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetSourceRepository sets the "source_repository" field.
+func (m *ReportSlsaProvenanceMutation) SetSourceRepository(s string) {
+	m.source_repository = &s
+}
+
+// SourceRepository returns the value of the "source_repository" field in the mutation.
+func (m *ReportSlsaProvenanceMutation) SourceRepository() (r string, exists bool) {
+	v := m.source_repository
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceRepository returns the old "source_repository" field's value of the ReportSlsaProvenance entity.
+// If the ReportSlsaProvenance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportSlsaProvenanceMutation) OldSourceRepository(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceRepository is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceRepository requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceRepository: %w", err)
+	}
+	return oldValue.SourceRepository, nil
+}
+
+// ResetSourceRepository resets all changes to the "source_repository" field.
+func (m *ReportSlsaProvenanceMutation) ResetSourceRepository() {
+	m.source_repository = nil
+}
+
+// SetCommitSha sets the "commit_sha" field.
+func (m *ReportSlsaProvenanceMutation) SetCommitSha(s string) {
+	m.commit_sha = &s
+}
+
+// CommitSha returns the value of the "commit_sha" field in the mutation.
+func (m *ReportSlsaProvenanceMutation) CommitSha() (r string, exists bool) {
+	v := m.commit_sha
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCommitSha returns the old "commit_sha" field's value of the ReportSlsaProvenance entity.
+// If the ReportSlsaProvenance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportSlsaProvenanceMutation) OldCommitSha(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCommitSha is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCommitSha requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCommitSha: %w", err)
+	}
+	return oldValue.CommitSha, nil
+}
+
+// ResetCommitSha resets all changes to the "commit_sha" field.
+func (m *ReportSlsaProvenanceMutation) ResetCommitSha() {
+	m.commit_sha = nil
+}
+
+// SetURL sets the "url" field.
+func (m *ReportSlsaProvenanceMutation) SetURL(s string) {
+	m.url = &s
+}
+
+// URL returns the value of the "url" field in the mutation.
+func (m *ReportSlsaProvenanceMutation) URL() (r string, exists bool) {
+	v := m.url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldURL returns the old "url" field's value of the ReportSlsaProvenance entity.
+// If the ReportSlsaProvenance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportSlsaProvenanceMutation) OldURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldURL: %w", err)
+	}
+	return oldValue.URL, nil
+}
+
+// ResetURL resets all changes to the "url" field.
+func (m *ReportSlsaProvenanceMutation) ResetURL() {
+	m.url = nil
+}
+
+// SetVerified sets the "verified" field.
+func (m *ReportSlsaProvenanceMutation) SetVerified(b bool) {
+	m.verified = &b
+}
+
+// Verified returns the value of the "verified" field in the mutation.
+func (m *ReportSlsaProvenanceMutation) Verified() (r bool, exists bool) {
+	v := m.verified
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVerified returns the old "verified" field's value of the ReportSlsaProvenance entity.
+// If the ReportSlsaProvenance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportSlsaProvenanceMutation) OldVerified(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVerified is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVerified requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVerified: %w", err)
+	}
+	return oldValue.Verified, nil
+}
+
+// ResetVerified resets all changes to the "verified" field.
+func (m *ReportSlsaProvenanceMutation) ResetVerified() {
+	m.verified = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ReportSlsaProvenanceMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ReportSlsaProvenanceMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ReportSlsaProvenance entity.
+// If the ReportSlsaProvenance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportSlsaProvenanceMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ClearCreatedAt clears the value of the "created_at" field.
+func (m *ReportSlsaProvenanceMutation) ClearCreatedAt() {
+	m.created_at = nil
+	m.clearedFields[reportslsaprovenance.FieldCreatedAt] = struct{}{}
+}
+
+// CreatedAtCleared returns if the "created_at" field was cleared in this mutation.
+func (m *ReportSlsaProvenanceMutation) CreatedAtCleared() bool {
+	_, ok := m.clearedFields[reportslsaprovenance.FieldCreatedAt]
+	return ok
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ReportSlsaProvenanceMutation) ResetCreatedAt() {
+	m.created_at = nil
+	delete(m.clearedFields, reportslsaprovenance.FieldCreatedAt)
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ReportSlsaProvenanceMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ReportSlsaProvenanceMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ReportSlsaProvenance entity.
+// If the ReportSlsaProvenance object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportSlsaProvenanceMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *ReportSlsaProvenanceMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[reportslsaprovenance.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *ReportSlsaProvenanceMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[reportslsaprovenance.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ReportSlsaProvenanceMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, reportslsaprovenance.FieldUpdatedAt)
+}
+
+// SetPackageID sets the "package" edge to the ReportPackage entity by id.
+func (m *ReportSlsaProvenanceMutation) SetPackageID(id int) {
+	m._package = &id
+}
+
+// ClearPackage clears the "package" edge to the ReportPackage entity.
+func (m *ReportSlsaProvenanceMutation) ClearPackage() {
+	m.cleared_package = true
+}
+
+// PackageCleared reports if the "package" edge to the ReportPackage entity was cleared.
+func (m *ReportSlsaProvenanceMutation) PackageCleared() bool {
+	return m.cleared_package
+}
+
+// PackageID returns the "package" edge ID in the mutation.
+func (m *ReportSlsaProvenanceMutation) PackageID() (id int, exists bool) {
+	if m._package != nil {
+		return *m._package, true
+	}
+	return
+}
+
+// PackageIDs returns the "package" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PackageID instead. It exists only for internal usage by the builders.
+func (m *ReportSlsaProvenanceMutation) PackageIDs() (ids []int) {
+	if id := m._package; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPackage resets all changes to the "package" edge.
+func (m *ReportSlsaProvenanceMutation) ResetPackage() {
+	m._package = nil
+	m.cleared_package = false
+}
+
+// Where appends a list predicates to the ReportSlsaProvenanceMutation builder.
+func (m *ReportSlsaProvenanceMutation) Where(ps ...predicate.ReportSlsaProvenance) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ReportSlsaProvenanceMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ReportSlsaProvenanceMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ReportSlsaProvenance, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ReportSlsaProvenanceMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ReportSlsaProvenanceMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ReportSlsaProvenance).
+func (m *ReportSlsaProvenanceMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ReportSlsaProvenanceMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.source_repository != nil {
+		fields = append(fields, reportslsaprovenance.FieldSourceRepository)
+	}
+	if m.commit_sha != nil {
+		fields = append(fields, reportslsaprovenance.FieldCommitSha)
+	}
+	if m.url != nil {
+		fields = append(fields, reportslsaprovenance.FieldURL)
+	}
+	if m.verified != nil {
+		fields = append(fields, reportslsaprovenance.FieldVerified)
+	}
+	if m.created_at != nil {
+		fields = append(fields, reportslsaprovenance.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, reportslsaprovenance.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ReportSlsaProvenanceMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case reportslsaprovenance.FieldSourceRepository:
+		return m.SourceRepository()
+	case reportslsaprovenance.FieldCommitSha:
+		return m.CommitSha()
+	case reportslsaprovenance.FieldURL:
+		return m.URL()
+	case reportslsaprovenance.FieldVerified:
+		return m.Verified()
+	case reportslsaprovenance.FieldCreatedAt:
+		return m.CreatedAt()
+	case reportslsaprovenance.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ReportSlsaProvenanceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case reportslsaprovenance.FieldSourceRepository:
+		return m.OldSourceRepository(ctx)
+	case reportslsaprovenance.FieldCommitSha:
+		return m.OldCommitSha(ctx)
+	case reportslsaprovenance.FieldURL:
+		return m.OldURL(ctx)
+	case reportslsaprovenance.FieldVerified:
+		return m.OldVerified(ctx)
+	case reportslsaprovenance.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case reportslsaprovenance.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown ReportSlsaProvenance field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportSlsaProvenanceMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case reportslsaprovenance.FieldSourceRepository:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceRepository(v)
+		return nil
+	case reportslsaprovenance.FieldCommitSha:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCommitSha(v)
+		return nil
+	case reportslsaprovenance.FieldURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetURL(v)
+		return nil
+	case reportslsaprovenance.FieldVerified:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVerified(v)
+		return nil
+	case reportslsaprovenance.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case reportslsaprovenance.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ReportSlsaProvenance field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ReportSlsaProvenanceMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ReportSlsaProvenanceMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportSlsaProvenanceMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ReportSlsaProvenance numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ReportSlsaProvenanceMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(reportslsaprovenance.FieldCreatedAt) {
+		fields = append(fields, reportslsaprovenance.FieldCreatedAt)
+	}
+	if m.FieldCleared(reportslsaprovenance.FieldUpdatedAt) {
+		fields = append(fields, reportslsaprovenance.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ReportSlsaProvenanceMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ReportSlsaProvenanceMutation) ClearField(name string) error {
+	switch name {
+	case reportslsaprovenance.FieldCreatedAt:
+		m.ClearCreatedAt()
+		return nil
+	case reportslsaprovenance.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportSlsaProvenance nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ReportSlsaProvenanceMutation) ResetField(name string) error {
+	switch name {
+	case reportslsaprovenance.FieldSourceRepository:
+		m.ResetSourceRepository()
+		return nil
+	case reportslsaprovenance.FieldCommitSha:
+		m.ResetCommitSha()
+		return nil
+	case reportslsaprovenance.FieldURL:
+		m.ResetURL()
+		return nil
+	case reportslsaprovenance.FieldVerified:
+		m.ResetVerified()
+		return nil
+	case reportslsaprovenance.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case reportslsaprovenance.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportSlsaProvenance field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ReportSlsaProvenanceMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m._package != nil {
+		edges = append(edges, reportslsaprovenance.EdgePackage)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ReportSlsaProvenanceMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case reportslsaprovenance.EdgePackage:
+		if id := m._package; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ReportSlsaProvenanceMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ReportSlsaProvenanceMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ReportSlsaProvenanceMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleared_package {
+		edges = append(edges, reportslsaprovenance.EdgePackage)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ReportSlsaProvenanceMutation) EdgeCleared(name string) bool {
+	switch name {
+	case reportslsaprovenance.EdgePackage:
+		return m.cleared_package
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ReportSlsaProvenanceMutation) ClearEdge(name string) error {
+	switch name {
+	case reportslsaprovenance.EdgePackage:
+		m.ClearPackage()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportSlsaProvenance unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ReportSlsaProvenanceMutation) ResetEdge(name string) error {
+	switch name {
+	case reportslsaprovenance.EdgePackage:
+		m.ResetPackage()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportSlsaProvenance edge %s", name)
 }
 
 // ReportVulnerabilityMutation represents an operation that mutates the ReportVulnerability nodes in the graph.

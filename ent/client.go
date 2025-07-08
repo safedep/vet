@@ -26,6 +26,7 @@ import (
 	"github.com/safedep/vet/ent/reportproject"
 	"github.com/safedep/vet/ent/reportscorecard"
 	"github.com/safedep/vet/ent/reportscorecardcheck"
+	"github.com/safedep/vet/ent/reportslsaprovenance"
 	"github.com/safedep/vet/ent/reportvulnerability"
 )
 
@@ -56,6 +57,8 @@ type Client struct {
 	ReportScorecard *ReportScorecardClient
 	// ReportScorecardCheck is the client for interacting with the ReportScorecardCheck builders.
 	ReportScorecardCheck *ReportScorecardCheckClient
+	// ReportSlsaProvenance is the client for interacting with the ReportSlsaProvenance builders.
+	ReportSlsaProvenance *ReportSlsaProvenanceClient
 	// ReportVulnerability is the client for interacting with the ReportVulnerability builders.
 	ReportVulnerability *ReportVulnerabilityClient
 }
@@ -80,6 +83,7 @@ func (c *Client) init() {
 	c.ReportProject = NewReportProjectClient(c.config)
 	c.ReportScorecard = NewReportScorecardClient(c.config)
 	c.ReportScorecardCheck = NewReportScorecardCheckClient(c.config)
+	c.ReportSlsaProvenance = NewReportSlsaProvenanceClient(c.config)
 	c.ReportVulnerability = NewReportVulnerabilityClient(c.config)
 }
 
@@ -184,6 +188,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ReportProject:         NewReportProjectClient(cfg),
 		ReportScorecard:       NewReportScorecardClient(cfg),
 		ReportScorecardCheck:  NewReportScorecardCheckClient(cfg),
+		ReportSlsaProvenance:  NewReportSlsaProvenanceClient(cfg),
 		ReportVulnerability:   NewReportVulnerabilityClient(cfg),
 	}, nil
 }
@@ -215,6 +220,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ReportProject:         NewReportProjectClient(cfg),
 		ReportScorecard:       NewReportScorecardClient(cfg),
 		ReportScorecardCheck:  NewReportScorecardCheckClient(cfg),
+		ReportSlsaProvenance:  NewReportSlsaProvenanceClient(cfg),
 		ReportVulnerability:   NewReportVulnerabilityClient(cfg),
 	}, nil
 }
@@ -248,7 +254,7 @@ func (c *Client) Use(hooks ...Hook) {
 		c.CodeSourceFile, c.DepsUsageEvidence, c.ReportDependency,
 		c.ReportDependencyGraph, c.ReportLicense, c.ReportMalware, c.ReportPackage,
 		c.ReportPackageManifest, c.ReportProject, c.ReportScorecard,
-		c.ReportScorecardCheck, c.ReportVulnerability,
+		c.ReportScorecardCheck, c.ReportSlsaProvenance, c.ReportVulnerability,
 	} {
 		n.Use(hooks...)
 	}
@@ -261,7 +267,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.CodeSourceFile, c.DepsUsageEvidence, c.ReportDependency,
 		c.ReportDependencyGraph, c.ReportLicense, c.ReportMalware, c.ReportPackage,
 		c.ReportPackageManifest, c.ReportProject, c.ReportScorecard,
-		c.ReportScorecardCheck, c.ReportVulnerability,
+		c.ReportScorecardCheck, c.ReportSlsaProvenance, c.ReportVulnerability,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -292,6 +298,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ReportScorecard.mutate(ctx, m)
 	case *ReportScorecardCheckMutation:
 		return c.ReportScorecardCheck.mutate(ctx, m)
+	case *ReportSlsaProvenanceMutation:
+		return c.ReportSlsaProvenance.mutate(ctx, m)
 	case *ReportVulnerabilityMutation:
 		return c.ReportVulnerability.mutate(ctx, m)
 	default:
@@ -1381,6 +1389,22 @@ func (c *ReportPackageClient) QueryProjects(rp *ReportPackage) *ReportProjectQue
 	return query
 }
 
+// QuerySlsaProvenances queries the slsa_provenances edge of a ReportPackage.
+func (c *ReportPackageClient) QuerySlsaProvenances(rp *ReportPackage) *ReportSlsaProvenanceQuery {
+	query := (&ReportSlsaProvenanceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, id),
+			sqlgraph.To(reportslsaprovenance.Table, reportslsaprovenance.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.SlsaProvenancesTable, reportpackage.SlsaProvenancesColumn),
+		)
+		fromV = sqlgraph.Neighbors(rp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ReportPackageClient) Hooks() []Hook {
 	return c.hooks.ReportPackage
@@ -2034,6 +2058,155 @@ func (c *ReportScorecardCheckClient) mutate(ctx context.Context, m *ReportScorec
 	}
 }
 
+// ReportSlsaProvenanceClient is a client for the ReportSlsaProvenance schema.
+type ReportSlsaProvenanceClient struct {
+	config
+}
+
+// NewReportSlsaProvenanceClient returns a client for the ReportSlsaProvenance from the given config.
+func NewReportSlsaProvenanceClient(c config) *ReportSlsaProvenanceClient {
+	return &ReportSlsaProvenanceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `reportslsaprovenance.Hooks(f(g(h())))`.
+func (c *ReportSlsaProvenanceClient) Use(hooks ...Hook) {
+	c.hooks.ReportSlsaProvenance = append(c.hooks.ReportSlsaProvenance, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `reportslsaprovenance.Intercept(f(g(h())))`.
+func (c *ReportSlsaProvenanceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ReportSlsaProvenance = append(c.inters.ReportSlsaProvenance, interceptors...)
+}
+
+// Create returns a builder for creating a ReportSlsaProvenance entity.
+func (c *ReportSlsaProvenanceClient) Create() *ReportSlsaProvenanceCreate {
+	mutation := newReportSlsaProvenanceMutation(c.config, OpCreate)
+	return &ReportSlsaProvenanceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ReportSlsaProvenance entities.
+func (c *ReportSlsaProvenanceClient) CreateBulk(builders ...*ReportSlsaProvenanceCreate) *ReportSlsaProvenanceCreateBulk {
+	return &ReportSlsaProvenanceCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ReportSlsaProvenanceClient) MapCreateBulk(slice any, setFunc func(*ReportSlsaProvenanceCreate, int)) *ReportSlsaProvenanceCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ReportSlsaProvenanceCreateBulk{err: fmt.Errorf("calling to ReportSlsaProvenanceClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ReportSlsaProvenanceCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ReportSlsaProvenanceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ReportSlsaProvenance.
+func (c *ReportSlsaProvenanceClient) Update() *ReportSlsaProvenanceUpdate {
+	mutation := newReportSlsaProvenanceMutation(c.config, OpUpdate)
+	return &ReportSlsaProvenanceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ReportSlsaProvenanceClient) UpdateOne(rsp *ReportSlsaProvenance) *ReportSlsaProvenanceUpdateOne {
+	mutation := newReportSlsaProvenanceMutation(c.config, OpUpdateOne, withReportSlsaProvenance(rsp))
+	return &ReportSlsaProvenanceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ReportSlsaProvenanceClient) UpdateOneID(id int) *ReportSlsaProvenanceUpdateOne {
+	mutation := newReportSlsaProvenanceMutation(c.config, OpUpdateOne, withReportSlsaProvenanceID(id))
+	return &ReportSlsaProvenanceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ReportSlsaProvenance.
+func (c *ReportSlsaProvenanceClient) Delete() *ReportSlsaProvenanceDelete {
+	mutation := newReportSlsaProvenanceMutation(c.config, OpDelete)
+	return &ReportSlsaProvenanceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ReportSlsaProvenanceClient) DeleteOne(rsp *ReportSlsaProvenance) *ReportSlsaProvenanceDeleteOne {
+	return c.DeleteOneID(rsp.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ReportSlsaProvenanceClient) DeleteOneID(id int) *ReportSlsaProvenanceDeleteOne {
+	builder := c.Delete().Where(reportslsaprovenance.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ReportSlsaProvenanceDeleteOne{builder}
+}
+
+// Query returns a query builder for ReportSlsaProvenance.
+func (c *ReportSlsaProvenanceClient) Query() *ReportSlsaProvenanceQuery {
+	return &ReportSlsaProvenanceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeReportSlsaProvenance},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ReportSlsaProvenance entity by its id.
+func (c *ReportSlsaProvenanceClient) Get(ctx context.Context, id int) (*ReportSlsaProvenance, error) {
+	return c.Query().Where(reportslsaprovenance.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ReportSlsaProvenanceClient) GetX(ctx context.Context, id int) *ReportSlsaProvenance {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPackage queries the package edge of a ReportSlsaProvenance.
+func (c *ReportSlsaProvenanceClient) QueryPackage(rsp *ReportSlsaProvenance) *ReportPackageQuery {
+	query := (&ReportPackageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rsp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportslsaprovenance.Table, reportslsaprovenance.FieldID, id),
+			sqlgraph.To(reportpackage.Table, reportpackage.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, reportslsaprovenance.PackageTable, reportslsaprovenance.PackageColumn),
+		)
+		fromV = sqlgraph.Neighbors(rsp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ReportSlsaProvenanceClient) Hooks() []Hook {
+	return c.hooks.ReportSlsaProvenance
+}
+
+// Interceptors returns the client interceptors.
+func (c *ReportSlsaProvenanceClient) Interceptors() []Interceptor {
+	return c.inters.ReportSlsaProvenance
+}
+
+func (c *ReportSlsaProvenanceClient) mutate(ctx context.Context, m *ReportSlsaProvenanceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ReportSlsaProvenanceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ReportSlsaProvenanceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ReportSlsaProvenanceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ReportSlsaProvenanceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ReportSlsaProvenance mutation op: %q", m.Op())
+	}
+}
+
 // ReportVulnerabilityClient is a client for the ReportVulnerability schema.
 type ReportVulnerabilityClient struct {
 	config
@@ -2188,13 +2361,13 @@ type (
 	hooks struct {
 		CodeSourceFile, DepsUsageEvidence, ReportDependency, ReportDependencyGraph,
 		ReportLicense, ReportMalware, ReportPackage, ReportPackageManifest,
-		ReportProject, ReportScorecard, ReportScorecardCheck,
+		ReportProject, ReportScorecard, ReportScorecardCheck, ReportSlsaProvenance,
 		ReportVulnerability []ent.Hook
 	}
 	inters struct {
 		CodeSourceFile, DepsUsageEvidence, ReportDependency, ReportDependencyGraph,
 		ReportLicense, ReportMalware, ReportPackage, ReportPackageManifest,
-		ReportProject, ReportScorecard, ReportScorecardCheck,
+		ReportProject, ReportScorecard, ReportScorecardCheck, ReportSlsaProvenance,
 		ReportVulnerability []ent.Interceptor
 	}
 )

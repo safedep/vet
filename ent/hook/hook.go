@@ -141,6 +141,18 @@ func (f ReportScorecardCheckFunc) Mutate(ctx context.Context, m ent.Mutation) (e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ReportScorecardCheckMutation", m)
 }
 
+// The ReportSlsaProvenanceFunc type is an adapter to allow the use of ordinary
+// function as ReportSlsaProvenance mutator.
+type ReportSlsaProvenanceFunc func(context.Context, *ent.ReportSlsaProvenanceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ReportSlsaProvenanceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ReportSlsaProvenanceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ReportSlsaProvenanceMutation", m)
+}
+
 // The ReportVulnerabilityFunc type is an adapter to allow the use of ordinary
 // function as ReportVulnerability mutator.
 type ReportVulnerabilityFunc func(context.Context, *ent.ReportVulnerabilityMutation) (ent.Value, error)

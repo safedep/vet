@@ -26,14 +26,6 @@ type ReportLicense struct {
 	SpdxID string `json:"spdx_id,omitempty"`
 	// URL holds the value of the "url" field.
 	URL string `json:"url,omitempty"`
-	// IsOsiApproved holds the value of the "is_osi_approved" field.
-	IsOsiApproved bool `json:"is_osi_approved,omitempty"`
-	// IsFsfApproved holds the value of the "is_fsf_approved" field.
-	IsFsfApproved bool `json:"is_fsf_approved,omitempty"`
-	// IsSaasCompatible holds the value of the "is_saas_compatible" field.
-	IsSaasCompatible bool `json:"is_saas_compatible,omitempty"`
-	// IsCommercialUseAllowed holds the value of the "is_commercial_use_allowed" field.
-	IsCommercialUseAllowed bool `json:"is_commercial_use_allowed,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -70,8 +62,6 @@ func (*ReportLicense) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case reportlicense.FieldIsOsiApproved, reportlicense.FieldIsFsfApproved, reportlicense.FieldIsSaasCompatible, reportlicense.FieldIsCommercialUseAllowed:
-			values[i] = new(sql.NullBool)
 		case reportlicense.FieldID:
 			values[i] = new(sql.NullInt64)
 		case reportlicense.FieldLicenseID, reportlicense.FieldName, reportlicense.FieldSpdxID, reportlicense.FieldURL:
@@ -124,30 +114,6 @@ func (rl *ReportLicense) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field url", values[i])
 			} else if value.Valid {
 				rl.URL = value.String
-			}
-		case reportlicense.FieldIsOsiApproved:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_osi_approved", values[i])
-			} else if value.Valid {
-				rl.IsOsiApproved = value.Bool
-			}
-		case reportlicense.FieldIsFsfApproved:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_fsf_approved", values[i])
-			} else if value.Valid {
-				rl.IsFsfApproved = value.Bool
-			}
-		case reportlicense.FieldIsSaasCompatible:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_saas_compatible", values[i])
-			} else if value.Valid {
-				rl.IsSaasCompatible = value.Bool
-			}
-		case reportlicense.FieldIsCommercialUseAllowed:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_commercial_use_allowed", values[i])
-			} else if value.Valid {
-				rl.IsCommercialUseAllowed = value.Bool
 			}
 		case reportlicense.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -220,18 +186,6 @@ func (rl *ReportLicense) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("url=")
 	builder.WriteString(rl.URL)
-	builder.WriteString(", ")
-	builder.WriteString("is_osi_approved=")
-	builder.WriteString(fmt.Sprintf("%v", rl.IsOsiApproved))
-	builder.WriteString(", ")
-	builder.WriteString("is_fsf_approved=")
-	builder.WriteString(fmt.Sprintf("%v", rl.IsFsfApproved))
-	builder.WriteString(", ")
-	builder.WriteString("is_saas_compatible=")
-	builder.WriteString(fmt.Sprintf("%v", rl.IsSaasCompatible))
-	builder.WriteString(", ")
-	builder.WriteString("is_commercial_use_allowed=")
-	builder.WriteString(fmt.Sprintf("%v", rl.IsCommercialUseAllowed))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(rl.CreatedAt.Format(time.ANSIC))

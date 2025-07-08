@@ -18,6 +18,7 @@ import (
 	"github.com/safedep/vet/ent/reportpackage"
 	"github.com/safedep/vet/ent/reportpackagemanifest"
 	"github.com/safedep/vet/ent/reportproject"
+	"github.com/safedep/vet/ent/reportslsaprovenance"
 	"github.com/safedep/vet/ent/reportvulnerability"
 )
 
@@ -341,6 +342,21 @@ func (rpu *ReportPackageUpdate) AddProjects(r ...*ReportProject) *ReportPackageU
 	return rpu.AddProjectIDs(ids...)
 }
 
+// AddSlsaProvenanceIDs adds the "slsa_provenances" edge to the ReportSlsaProvenance entity by IDs.
+func (rpu *ReportPackageUpdate) AddSlsaProvenanceIDs(ids ...int) *ReportPackageUpdate {
+	rpu.mutation.AddSlsaProvenanceIDs(ids...)
+	return rpu
+}
+
+// AddSlsaProvenances adds the "slsa_provenances" edges to the ReportSlsaProvenance entity.
+func (rpu *ReportPackageUpdate) AddSlsaProvenances(r ...*ReportSlsaProvenance) *ReportPackageUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpu.AddSlsaProvenanceIDs(ids...)
+}
+
 // Mutation returns the ReportPackageMutation object of the builder.
 func (rpu *ReportPackageUpdate) Mutation() *ReportPackageMutation {
 	return rpu.mutation
@@ -440,6 +456,27 @@ func (rpu *ReportPackageUpdate) RemoveProjects(r ...*ReportProject) *ReportPacka
 		ids[i] = r[i].ID
 	}
 	return rpu.RemoveProjectIDs(ids...)
+}
+
+// ClearSlsaProvenances clears all "slsa_provenances" edges to the ReportSlsaProvenance entity.
+func (rpu *ReportPackageUpdate) ClearSlsaProvenances() *ReportPackageUpdate {
+	rpu.mutation.ClearSlsaProvenances()
+	return rpu
+}
+
+// RemoveSlsaProvenanceIDs removes the "slsa_provenances" edge to ReportSlsaProvenance entities by IDs.
+func (rpu *ReportPackageUpdate) RemoveSlsaProvenanceIDs(ids ...int) *ReportPackageUpdate {
+	rpu.mutation.RemoveSlsaProvenanceIDs(ids...)
+	return rpu
+}
+
+// RemoveSlsaProvenances removes "slsa_provenances" edges to ReportSlsaProvenance entities.
+func (rpu *ReportPackageUpdate) RemoveSlsaProvenances(r ...*ReportSlsaProvenance) *ReportPackageUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpu.RemoveSlsaProvenanceIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -809,6 +846,51 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if rpu.mutation.SlsaProvenancesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.SlsaProvenancesTable,
+			Columns: []string{reportpackage.SlsaProvenancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportslsaprovenance.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpu.mutation.RemovedSlsaProvenancesIDs(); len(nodes) > 0 && !rpu.mutation.SlsaProvenancesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.SlsaProvenancesTable,
+			Columns: []string{reportpackage.SlsaProvenancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportslsaprovenance.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpu.mutation.SlsaProvenancesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.SlsaProvenancesTable,
+			Columns: []string{reportpackage.SlsaProvenancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportslsaprovenance.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, rpu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{reportpackage.Label}
@@ -1136,6 +1218,21 @@ func (rpuo *ReportPackageUpdateOne) AddProjects(r ...*ReportProject) *ReportPack
 	return rpuo.AddProjectIDs(ids...)
 }
 
+// AddSlsaProvenanceIDs adds the "slsa_provenances" edge to the ReportSlsaProvenance entity by IDs.
+func (rpuo *ReportPackageUpdateOne) AddSlsaProvenanceIDs(ids ...int) *ReportPackageUpdateOne {
+	rpuo.mutation.AddSlsaProvenanceIDs(ids...)
+	return rpuo
+}
+
+// AddSlsaProvenances adds the "slsa_provenances" edges to the ReportSlsaProvenance entity.
+func (rpuo *ReportPackageUpdateOne) AddSlsaProvenances(r ...*ReportSlsaProvenance) *ReportPackageUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpuo.AddSlsaProvenanceIDs(ids...)
+}
+
 // Mutation returns the ReportPackageMutation object of the builder.
 func (rpuo *ReportPackageUpdateOne) Mutation() *ReportPackageMutation {
 	return rpuo.mutation
@@ -1235,6 +1332,27 @@ func (rpuo *ReportPackageUpdateOne) RemoveProjects(r ...*ReportProject) *ReportP
 		ids[i] = r[i].ID
 	}
 	return rpuo.RemoveProjectIDs(ids...)
+}
+
+// ClearSlsaProvenances clears all "slsa_provenances" edges to the ReportSlsaProvenance entity.
+func (rpuo *ReportPackageUpdateOne) ClearSlsaProvenances() *ReportPackageUpdateOne {
+	rpuo.mutation.ClearSlsaProvenances()
+	return rpuo
+}
+
+// RemoveSlsaProvenanceIDs removes the "slsa_provenances" edge to ReportSlsaProvenance entities by IDs.
+func (rpuo *ReportPackageUpdateOne) RemoveSlsaProvenanceIDs(ids ...int) *ReportPackageUpdateOne {
+	rpuo.mutation.RemoveSlsaProvenanceIDs(ids...)
+	return rpuo
+}
+
+// RemoveSlsaProvenances removes "slsa_provenances" edges to ReportSlsaProvenance entities.
+func (rpuo *ReportPackageUpdateOne) RemoveSlsaProvenances(r ...*ReportSlsaProvenance) *ReportPackageUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpuo.RemoveSlsaProvenanceIDs(ids...)
 }
 
 // Where appends a list predicates to the ReportPackageUpdate builder.
@@ -1627,6 +1745,51 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reportproject.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if rpuo.mutation.SlsaProvenancesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.SlsaProvenancesTable,
+			Columns: []string{reportpackage.SlsaProvenancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportslsaprovenance.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpuo.mutation.RemovedSlsaProvenancesIDs(); len(nodes) > 0 && !rpuo.mutation.SlsaProvenancesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.SlsaProvenancesTable,
+			Columns: []string{reportpackage.SlsaProvenancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportslsaprovenance.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpuo.mutation.SlsaProvenancesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.SlsaProvenancesTable,
+			Columns: []string{reportpackage.SlsaProvenancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportslsaprovenance.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

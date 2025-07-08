@@ -52,6 +52,8 @@ const (
 	EdgeMalwareAnalysis = "malware_analysis"
 	// EdgeProjects holds the string denoting the projects edge name in mutations.
 	EdgeProjects = "projects"
+	// EdgeSlsaProvenances holds the string denoting the slsa_provenances edge name in mutations.
+	EdgeSlsaProvenances = "slsa_provenances"
 	// Table holds the table name of the reportpackage in the database.
 	Table = "report_packages"
 	// ManifestTable is the table that holds the manifest relation/edge.
@@ -96,6 +98,13 @@ const (
 	ProjectsInverseTable = "report_projects"
 	// ProjectsColumn is the table column denoting the projects relation/edge.
 	ProjectsColumn = "report_package_projects"
+	// SlsaProvenancesTable is the table that holds the slsa_provenances relation/edge.
+	SlsaProvenancesTable = "report_slsa_provenances"
+	// SlsaProvenancesInverseTable is the table name for the ReportSlsaProvenance entity.
+	// It exists in this package in order to avoid circular dependency with the "reportslsaprovenance" package.
+	SlsaProvenancesInverseTable = "report_slsa_provenances"
+	// SlsaProvenancesColumn is the table column denoting the slsa_provenances relation/edge.
+	SlsaProvenancesColumn = "report_package_slsa_provenances"
 )
 
 // Columns holds all SQL columns for reportpackage fields.
@@ -291,6 +300,20 @@ func ByProjects(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newProjectsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// BySlsaProvenancesCount orders the results by slsa_provenances count.
+func BySlsaProvenancesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSlsaProvenancesStep(), opts...)
+	}
+}
+
+// BySlsaProvenances orders the results by slsa_provenances terms.
+func BySlsaProvenances(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSlsaProvenancesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newManifestStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -331,5 +354,12 @@ func newProjectsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ProjectsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ProjectsTable, ProjectsColumn),
+	)
+}
+func newSlsaProvenancesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SlsaProvenancesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SlsaProvenancesTable, SlsaProvenancesColumn),
 	)
 }

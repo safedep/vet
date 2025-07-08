@@ -23,6 +23,7 @@ import (
 	"github.com/safedep/vet/ent/reportproject"
 	"github.com/safedep/vet/ent/reportscorecard"
 	"github.com/safedep/vet/ent/reportscorecardcheck"
+	"github.com/safedep/vet/ent/reportslsaprovenance"
 	"github.com/safedep/vet/ent/reportvulnerability"
 )
 
@@ -95,6 +96,7 @@ func checkColumn(table, column string) error {
 			reportproject.Table:         reportproject.ValidColumn,
 			reportscorecard.Table:       reportscorecard.ValidColumn,
 			reportscorecardcheck.Table:  reportscorecardcheck.ValidColumn,
+			reportslsaprovenance.Table:  reportslsaprovenance.ValidColumn,
 			reportvulnerability.Table:   reportvulnerability.ValidColumn,
 		})
 	})

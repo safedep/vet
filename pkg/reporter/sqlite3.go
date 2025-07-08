@@ -197,6 +197,13 @@ func (r *sqlite3Reporter) addInsightsV2Data(entPackage *ent.ReportPackage, insig
 			r.addProjectInsight(entPackage, projectInsight)
 		}
 	}
+
+	// Extract and store SLSA provenance data
+	if insights.SlsaProvenances != nil {
+		for _, slsaProvenance := range insights.SlsaProvenances {
+			r.addSlsaProvenance(entPackage, slsaProvenance)
+		}
+	}
 }
 
 func (r *sqlite3Reporter) addVulnerability(entPackage *ent.ReportPackage, vuln *vulnerabilityv1.Vulnerability) {
@@ -299,10 +306,6 @@ func (r *sqlite3Reporter) addLicense(entPackage *ent.ReportPackage, license *pac
 		SetName(license.Name).
 		SetSpdxID(licenseID).
 		SetURL(license.DetailsUrl).
-		SetIsOsiApproved(license.OsiApproved).
-		SetIsFsfApproved(license.FsfApproved).
-		SetIsSaasCompatible(license.SaasCompatible).
-		SetIsCommercialUseAllowed(license.CommercialUseAllowed).
 		SetPackage(entPackage).
 		SetCreatedAt(now).
 		SetUpdatedAt(now).
@@ -326,7 +329,7 @@ func (r *sqlite3Reporter) addProjectInsight(entPackage *ent.ReportPackage, proje
 	projectName := project.Name
 	projectURL := project.Url
 	projectDescription := "" // Description is not available in v2 model
-	
+
 	// Handle optional fields safely
 	var stars, forks int32
 	if projectInsight.Stars != nil {
@@ -402,15 +405,34 @@ func (r *sqlite3Reporter) addScorecardCheck(entScorecard *ent.ReportScorecard, c
 		SetScorecard(entScorecard).
 		SetCreatedAt(now).
 		SetUpdatedAt(now)
-	
+
 	// Set reason if available (it's optional)
 	if check.Reason != nil {
 		create = create.SetReason(*check.Reason)
 	}
-	
+
 	_, err := create.Save(ctx)
 	if err != nil {
 		logger.Errorf("Failed to create scorecard check in database: %v", err)
+	}
+}
+
+func (r *sqlite3Reporter) addSlsaProvenance(entPackage *ent.ReportPackage, slsaProvenance *packagev1.PackageVersionSlsaProvenance) {
+	now := time.Now()
+	ctx := context.Background()
+
+	// Create SLSA provenance record
+	_, err := r.client.ReportSlsaProvenance.Create().
+		SetSourceRepository(slsaProvenance.SourceRepository).
+		SetCommitSha(slsaProvenance.CommitSha).
+		SetURL(slsaProvenance.Url).
+		SetVerified(slsaProvenance.Verified).
+		SetPackage(entPackage).
+		SetCreatedAt(now).
+		SetUpdatedAt(now).
+		Save(ctx)
+	if err != nil {
+		logger.Errorf("Failed to create SLSA provenance in database: %v", err)
 	}
 }
 

@@ -19,6 +19,7 @@ import (
 	"github.com/safedep/vet/ent/reportpackage"
 	"github.com/safedep/vet/ent/reportpackagemanifest"
 	"github.com/safedep/vet/ent/reportproject"
+	"github.com/safedep/vet/ent/reportslsaprovenance"
 	"github.com/safedep/vet/ent/reportvulnerability"
 )
 
@@ -35,6 +36,7 @@ type ReportPackageQuery struct {
 	withDependencies    *ReportDependencyQuery
 	withMalwareAnalysis *ReportMalwareQuery
 	withProjects        *ReportProjectQuery
+	withSlsaProvenances *ReportSlsaProvenanceQuery
 	withFKs             bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -197,6 +199,28 @@ func (rpq *ReportPackageQuery) QueryProjects() *ReportProjectQuery {
 			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, selector),
 			sqlgraph.To(reportproject.Table, reportproject.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.ProjectsTable, reportpackage.ProjectsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(rpq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySlsaProvenances chains the current query on the "slsa_provenances" edge.
+func (rpq *ReportPackageQuery) QuerySlsaProvenances() *ReportSlsaProvenanceQuery {
+	query := (&ReportSlsaProvenanceClient{config: rpq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rpq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rpq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, selector),
+			sqlgraph.To(reportslsaprovenance.Table, reportslsaprovenance.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.SlsaProvenancesTable, reportpackage.SlsaProvenancesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(rpq.driver.Dialect(), step)
 		return fromU, nil
@@ -402,6 +426,7 @@ func (rpq *ReportPackageQuery) Clone() *ReportPackageQuery {
 		withDependencies:    rpq.withDependencies.Clone(),
 		withMalwareAnalysis: rpq.withMalwareAnalysis.Clone(),
 		withProjects:        rpq.withProjects.Clone(),
+		withSlsaProvenances: rpq.withSlsaProvenances.Clone(),
 		// clone intermediate query.
 		sql:  rpq.sql.Clone(),
 		path: rpq.path,
@@ -471,6 +496,17 @@ func (rpq *ReportPackageQuery) WithProjects(opts ...func(*ReportProjectQuery)) *
 		opt(query)
 	}
 	rpq.withProjects = query
+	return rpq
+}
+
+// WithSlsaProvenances tells the query-builder to eager-load the nodes that are connected to
+// the "slsa_provenances" edge. The optional arguments are used to configure the query builder of the edge.
+func (rpq *ReportPackageQuery) WithSlsaProvenances(opts ...func(*ReportSlsaProvenanceQuery)) *ReportPackageQuery {
+	query := (&ReportSlsaProvenanceClient{config: rpq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	rpq.withSlsaProvenances = query
 	return rpq
 }
 
@@ -553,13 +589,14 @@ func (rpq *ReportPackageQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 		nodes       = []*ReportPackage{}
 		withFKs     = rpq.withFKs
 		_spec       = rpq.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [7]bool{
 			rpq.withManifest != nil,
 			rpq.withVulnerabilities != nil,
 			rpq.withLicenses != nil,
 			rpq.withDependencies != nil,
 			rpq.withMalwareAnalysis != nil,
 			rpq.withProjects != nil,
+			rpq.withSlsaProvenances != nil,
 		}
 	)
 	if rpq.withManifest != nil {
@@ -625,6 +662,15 @@ func (rpq *ReportPackageQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 		if err := rpq.loadProjects(ctx, query, nodes,
 			func(n *ReportPackage) { n.Edges.Projects = []*ReportProject{} },
 			func(n *ReportPackage, e *ReportProject) { n.Edges.Projects = append(n.Edges.Projects, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := rpq.withSlsaProvenances; query != nil {
+		if err := rpq.loadSlsaProvenances(ctx, query, nodes,
+			func(n *ReportPackage) { n.Edges.SlsaProvenances = []*ReportSlsaProvenance{} },
+			func(n *ReportPackage, e *ReportSlsaProvenance) {
+				n.Edges.SlsaProvenances = append(n.Edges.SlsaProvenances, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -810,6 +856,37 @@ func (rpq *ReportPackageQuery) loadProjects(ctx context.Context, query *ReportPr
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "report_package_projects" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (rpq *ReportPackageQuery) loadSlsaProvenances(ctx context.Context, query *ReportSlsaProvenanceQuery, nodes []*ReportPackage, init func(*ReportPackage), assign func(*ReportPackage, *ReportSlsaProvenance)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*ReportPackage)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.ReportSlsaProvenance(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(reportpackage.SlsaProvenancesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.report_package_slsa_provenances
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "report_package_slsa_provenances" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "report_package_slsa_provenances" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

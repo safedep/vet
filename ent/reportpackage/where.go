@@ -773,6 +773,29 @@ func HasProjectsWith(preds ...predicate.ReportProject) predicate.ReportPackage {
 	})
 }
 
+// HasSlsaProvenances applies the HasEdge predicate on the "slsa_provenances" edge.
+func HasSlsaProvenances() predicate.ReportPackage {
+	return predicate.ReportPackage(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SlsaProvenancesTable, SlsaProvenancesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSlsaProvenancesWith applies the HasEdge predicate on the "slsa_provenances" edge with a given conditions (other predicates).
+func HasSlsaProvenancesWith(preds ...predicate.ReportSlsaProvenance) predicate.ReportPackage {
+	return predicate.ReportPackage(func(s *sql.Selector) {
+		step := newSlsaProvenancesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.ReportPackage) predicate.ReportPackage {
 	return predicate.ReportPackage(sql.AndPredicates(predicates...))

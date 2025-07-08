@@ -34,6 +34,8 @@ type Tx struct {
 	ReportScorecard *ReportScorecardClient
 	// ReportScorecardCheck is the client for interacting with the ReportScorecardCheck builders.
 	ReportScorecardCheck *ReportScorecardCheckClient
+	// ReportSlsaProvenance is the client for interacting with the ReportSlsaProvenance builders.
+	ReportSlsaProvenance *ReportSlsaProvenanceClient
 	// ReportVulnerability is the client for interacting with the ReportVulnerability builders.
 	ReportVulnerability *ReportVulnerabilityClient
 
@@ -178,6 +180,7 @@ func (tx *Tx) init() {
 	tx.ReportProject = NewReportProjectClient(tx.config)
 	tx.ReportScorecard = NewReportScorecardClient(tx.config)
 	tx.ReportScorecardCheck = NewReportScorecardCheckClient(tx.config)
+	tx.ReportSlsaProvenance = NewReportSlsaProvenanceClient(tx.config)
 	tx.ReportVulnerability = NewReportVulnerabilityClient(tx.config)
 }
 

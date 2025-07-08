@@ -69,9 +69,11 @@ type ReportPackageEdges struct {
 	MalwareAnalysis *ReportMalware `json:"malware_analysis,omitempty"`
 	// Projects holds the value of the projects edge.
 	Projects []*ReportProject `json:"projects,omitempty"`
+	// SlsaProvenances holds the value of the slsa_provenances edge.
+	SlsaProvenances []*ReportSlsaProvenance `json:"slsa_provenances,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 }
 
 // ManifestOrErr returns the Manifest value or an error if the edge
@@ -130,6 +132,15 @@ func (e ReportPackageEdges) ProjectsOrErr() ([]*ReportProject, error) {
 		return e.Projects, nil
 	}
 	return nil, &NotLoadedError{edge: "projects"}
+}
+
+// SlsaProvenancesOrErr returns the SlsaProvenances value or an error if the edge
+// was not loaded in eager-loading.
+func (e ReportPackageEdges) SlsaProvenancesOrErr() ([]*ReportSlsaProvenance, error) {
+	if e.loadedTypes[6] {
+		return e.SlsaProvenances, nil
+	}
+	return nil, &NotLoadedError{edge: "slsa_provenances"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -308,6 +319,11 @@ func (rp *ReportPackage) QueryMalwareAnalysis() *ReportMalwareQuery {
 // QueryProjects queries the "projects" edge of the ReportPackage entity.
 func (rp *ReportPackage) QueryProjects() *ReportProjectQuery {
 	return NewReportPackageClient(rp.config).QueryProjects(rp)
+}
+
+// QuerySlsaProvenances queries the "slsa_provenances" edge of the ReportPackage entity.
+func (rp *ReportPackage) QuerySlsaProvenances() *ReportSlsaProvenanceQuery {
+	return NewReportPackageClient(rp.config).QuerySlsaProvenances(rp)
 }
 
 // Update returns a builder for updating this ReportPackage.

@@ -374,6 +374,128 @@ WHERE s.score >= 8.0
 ORDER BY s.score DESC, proj.stars DESC;
 ```
 
+## SLSA Provenance Queries
+
+### Find packages WITH SLSA provenance
+```sql
+SELECT p.name, p.version, p.ecosystem, COUNT(slsa.id) as provenance_count
+FROM report_packages p
+JOIN report_slsa_provenances slsa ON p.id = slsa.report_package_slsa_provenances
+GROUP BY p.id, p.name, p.version, p.ecosystem
+ORDER BY provenance_count DESC;
+```
+
+### Find packages WITHOUT SLSA provenance (Missing Supply Chain Security)
+```sql
+SELECT p.name, p.version, p.ecosystem, m.display_path
+FROM report_packages p
+JOIN report_package_manifests m ON p.report_package_manifest_packages = m.id
+LEFT JOIN report_slsa_provenances slsa ON p.id = slsa.report_package_slsa_provenances
+WHERE slsa.id IS NULL
+ORDER BY p.name;
+```
+
+### Find packages with verified SLSA provenance
+```sql
+SELECT p.name, p.version, slsa.source_repository, slsa.commit_sha, slsa.url
+FROM report_packages p
+JOIN report_slsa_provenances slsa ON p.id = slsa.report_package_slsa_provenances
+WHERE slsa.verified = true
+ORDER BY p.name;
+```
+
+### Find packages with unverified SLSA provenance (Security Risk)
+```sql
+SELECT p.name, p.version, slsa.source_repository, slsa.commit_sha, slsa.verified
+FROM report_packages p
+JOIN report_slsa_provenances slsa ON p.id = slsa.report_package_slsa_provenances
+WHERE slsa.verified = false
+ORDER BY p.name;
+```
+
+### SLSA provenance summary by ecosystem
+```sql
+SELECT 
+    p.ecosystem,
+    COUNT(DISTINCT p.id) as total_packages,
+    COUNT(DISTINCT CASE WHEN slsa.id IS NOT NULL THEN p.id END) as packages_with_provenance,
+    COUNT(DISTINCT CASE WHEN slsa.verified = true THEN p.id END) as packages_with_verified_provenance,
+    ROUND(
+        (COUNT(DISTINCT CASE WHEN slsa.id IS NOT NULL THEN p.id END) * 100.0) / COUNT(DISTINCT p.id), 2
+    ) as provenance_coverage_percent,
+    ROUND(
+        (COUNT(DISTINCT CASE WHEN slsa.verified = true THEN p.id END) * 100.0) / COUNT(DISTINCT p.id), 2
+    ) as verified_provenance_percent
+FROM report_packages p
+LEFT JOIN report_slsa_provenances slsa ON p.id = slsa.report_package_slsa_provenances
+GROUP BY p.ecosystem
+ORDER BY provenance_coverage_percent DESC;
+```
+
+### Find direct dependencies without SLSA provenance (High Priority Security Risk)
+```sql
+SELECT p.name, p.version, p.ecosystem, m.display_path
+FROM report_packages p
+JOIN report_package_manifests m ON p.report_package_manifest_packages = m.id
+LEFT JOIN report_slsa_provenances slsa ON p.id = slsa.report_package_slsa_provenances
+WHERE p.is_direct = 1 AND slsa.id IS NULL
+ORDER BY p.ecosystem, p.name;
+```
+
+### SLSA provenance source repository analysis
+```sql
+SELECT 
+    slsa.source_repository,
+    COUNT(DISTINCT p.id) as package_count,
+    COUNT(CASE WHEN slsa.verified = true THEN 1 END) as verified_count,
+    COUNT(CASE WHEN slsa.verified = false THEN 1 END) as unverified_count,
+    GROUP_CONCAT(DISTINCT p.name) as packages
+FROM report_slsa_provenances slsa
+JOIN report_packages p ON slsa.report_package_slsa_provenances = p.id
+GROUP BY slsa.source_repository
+ORDER BY package_count DESC;
+```
+
+### Combined security analysis: Vulnerabilities + Missing SLSA Provenance
+```sql
+SELECT 
+    p.name,
+    p.version,
+    p.ecosystem,
+    COUNT(v.id) as vulnerability_count,
+    CASE WHEN slsa.id IS NULL THEN 'Missing' ELSE 'Present' END as slsa_provenance,
+    CASE WHEN slsa.verified = true THEN 'Verified' 
+         WHEN slsa.verified = false THEN 'Unverified' 
+         ELSE 'Missing' END as slsa_status,
+    SUM(CASE WHEN v.severity = 'CRITICAL' THEN 1 ELSE 0 END) as critical_vulns
+FROM report_packages p
+LEFT JOIN report_vulnerabilities v ON p.id = v.report_package_vulnerabilities
+LEFT JOIN report_slsa_provenances slsa ON p.id = slsa.report_package_slsa_provenances
+GROUP BY p.id, p.name, p.version, p.ecosystem, slsa.id, slsa.verified
+HAVING vulnerability_count > 0 OR slsa_provenance = 'Missing'
+ORDER BY critical_vulns DESC, vulnerability_count DESC;
+```
+
+### Supply chain security scorecard
+```sql
+SELECT 
+    m.display_path,
+    COUNT(DISTINCT p.id) as total_packages,
+    COUNT(DISTINCT CASE WHEN slsa.id IS NOT NULL THEN p.id END) as with_slsa_provenance,
+    COUNT(DISTINCT CASE WHEN slsa.verified = true THEN p.id END) as with_verified_slsa,
+    COUNT(DISTINCT CASE WHEN v.id IS NOT NULL THEN p.id END) as with_vulnerabilities,
+    COUNT(DISTINCT CASE WHEN p.is_malware = 1 THEN p.id END) as malware_packages,
+    ROUND(
+        (COUNT(DISTINCT CASE WHEN slsa.verified = true THEN p.id END) * 100.0) / COUNT(DISTINCT p.id), 2
+    ) as supply_chain_security_score
+FROM report_package_manifests m
+LEFT JOIN report_packages p ON m.id = p.report_package_manifest_packages
+LEFT JOIN report_slsa_provenances slsa ON p.id = slsa.report_package_slsa_provenances
+LEFT JOIN report_vulnerabilities v ON p.id = v.report_package_vulnerabilities
+GROUP BY m.id, m.display_path
+ORDER BY supply_chain_security_score DESC;
+```
+
 ## Insights V2 Data Queries
 
 ### Query packages with Insights V2 data
@@ -870,11 +992,28 @@ CREATE TABLE report_scorecard_checks (
 );
 ```
 
+### ReportSlsaProvenances Table
+```sql
+CREATE TABLE report_slsa_provenances (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_repository TEXT NOT NULL,
+    commit_sha TEXT NOT NULL,
+    url TEXT NOT NULL,
+    verified BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at DATETIME,
+    updated_at DATETIME,
+    report_package_slsa_provenances INTEGER REFERENCES report_packages(id)
+);
+```
+
 This normalized schema enables:
 - Direct queries on scorecard scores without JSON parsing
 - Individual analysis of each scorecard check
 - Efficient joins across packages → projects → scorecards → checks
-- Proper indexing on scorecard fields for performance
+- **SLSA provenance tracking** for supply chain security analysis
+- **Verification status monitoring** to identify unverified provenance
+- **Source repository analysis** to understand package origins
+- Proper indexing on scorecard and provenance fields for performance
 
 ## Creating Views for Common Queries
 
@@ -947,9 +1086,30 @@ LEFT JOIN report_projects proj ON p.id = proj.report_package_projects
 LEFT JOIN report_scorecards s ON proj.id = s.report_project_scorecard
 GROUP BY p.id, proj.id, s.id;
 
+-- Create a view for SLSA provenance analysis
+CREATE VIEW slsa_provenance_analysis AS
+SELECT 
+    p.name as package_name,
+    p.version as package_version,
+    p.ecosystem,
+    p.is_direct,
+    slsa.source_repository,
+    slsa.commit_sha,
+    slsa.url as provenance_url,
+    slsa.verified,
+    CASE 
+        WHEN slsa.id IS NULL THEN 'Missing'
+        WHEN slsa.verified = true THEN 'Verified'
+        ELSE 'Unverified'
+    END as provenance_status
+FROM report_packages p
+LEFT JOIN report_slsa_provenances slsa ON p.id = slsa.report_package_slsa_provenances;
+
 -- Use the views
 SELECT * FROM security_overview WHERE is_malware = 1;
 SELECT * FROM vulnerability_impact WHERE severity IN ('CRITICAL', 'HIGH');
 SELECT * FROM scorecard_analysis WHERE scorecard_score < 5.0;
 SELECT * FROM security_posture WHERE scorecard_score < 6 AND vulnerability_count > 0;
+SELECT * FROM slsa_provenance_analysis WHERE provenance_status = 'Missing';
+SELECT * FROM slsa_provenance_analysis WHERE is_direct = 1 AND provenance_status != 'Verified';
 ```

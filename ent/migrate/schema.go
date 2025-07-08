@@ -148,10 +148,6 @@ var (
 		{Name: "name", Type: field.TypeString, Nullable: true},
 		{Name: "spdx_id", Type: field.TypeString, Nullable: true},
 		{Name: "url", Type: field.TypeString, Nullable: true},
-		{Name: "is_osi_approved", Type: field.TypeBool, Nullable: true},
-		{Name: "is_fsf_approved", Type: field.TypeBool, Nullable: true},
-		{Name: "is_saas_compatible", Type: field.TypeBool, Nullable: true},
-		{Name: "is_commercial_use_allowed", Type: field.TypeBool, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime, Nullable: true},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "report_package_licenses", Type: field.TypeInt, Nullable: true},
@@ -164,7 +160,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "report_licenses_report_packages_licenses",
-				Columns:    []*schema.Column{ReportLicensesColumns[11]},
+				Columns:    []*schema.Column{ReportLicensesColumns[7]},
 				RefColumns: []*schema.Column{ReportPackagesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -324,6 +320,31 @@ var (
 			},
 		},
 	}
+	// ReportSlsaProvenancesColumns holds the columns for the "report_slsa_provenances" table.
+	ReportSlsaProvenancesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "source_repository", Type: field.TypeString},
+		{Name: "commit_sha", Type: field.TypeString},
+		{Name: "url", Type: field.TypeString},
+		{Name: "verified", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "report_package_slsa_provenances", Type: field.TypeInt, Nullable: true},
+	}
+	// ReportSlsaProvenancesTable holds the schema information for the "report_slsa_provenances" table.
+	ReportSlsaProvenancesTable = &schema.Table{
+		Name:       "report_slsa_provenances",
+		Columns:    ReportSlsaProvenancesColumns,
+		PrimaryKey: []*schema.Column{ReportSlsaProvenancesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "report_slsa_provenances_report_packages_slsa_provenances",
+				Columns:    []*schema.Column{ReportSlsaProvenancesColumns[7]},
+				RefColumns: []*schema.Column{ReportPackagesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// ReportVulnerabilitiesColumns holds the columns for the "report_vulnerabilities" table.
 	ReportVulnerabilitiesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -366,6 +387,7 @@ var (
 		ReportProjectsTable,
 		ReportScorecardsTable,
 		ReportScorecardChecksTable,
+		ReportSlsaProvenancesTable,
 		ReportVulnerabilitiesTable,
 	}
 )
@@ -379,5 +401,6 @@ func init() {
 	ReportProjectsTable.ForeignKeys[0].RefTable = ReportPackagesTable
 	ReportScorecardsTable.ForeignKeys[0].RefTable = ReportProjectsTable
 	ReportScorecardChecksTable.ForeignKeys[0].RefTable = ReportScorecardsTable
+	ReportSlsaProvenancesTable.ForeignKeys[0].RefTable = ReportPackagesTable
 	ReportVulnerabilitiesTable.ForeignKeys[0].RefTable = ReportPackagesTable
 }

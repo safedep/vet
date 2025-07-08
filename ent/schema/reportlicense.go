@@ -18,10 +18,6 @@ func (ReportLicense) Fields() []ent.Field {
 		field.String("name").Optional(),
 		field.String("spdx_id").Optional(),
 		field.String("url").Optional(),
-		field.Bool("is_osi_approved").Optional(),
-		field.Bool("is_fsf_approved").Optional(),
-		field.Bool("is_saas_compatible").Optional(),
-		field.Bool("is_commercial_use_allowed").Optional(),
 		field.Time("created_at").Optional(),
 		field.Time("updated_at").Optional(),
 	}

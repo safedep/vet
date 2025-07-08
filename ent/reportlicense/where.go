@@ -75,26 +75,6 @@ func URL(v string) predicate.ReportLicense {
 	return predicate.ReportLicense(sql.FieldEQ(FieldURL, v))
 }
 
-// IsOsiApproved applies equality check predicate on the "is_osi_approved" field. It's identical to IsOsiApprovedEQ.
-func IsOsiApproved(v bool) predicate.ReportLicense {
-	return predicate.ReportLicense(sql.FieldEQ(FieldIsOsiApproved, v))
-}
-
-// IsFsfApproved applies equality check predicate on the "is_fsf_approved" field. It's identical to IsFsfApprovedEQ.
-func IsFsfApproved(v bool) predicate.ReportLicense {
-	return predicate.ReportLicense(sql.FieldEQ(FieldIsFsfApproved, v))
-}
-
-// IsSaasCompatible applies equality check predicate on the "is_saas_compatible" field. It's identical to IsSaasCompatibleEQ.
-func IsSaasCompatible(v bool) predicate.ReportLicense {
-	return predicate.ReportLicense(sql.FieldEQ(FieldIsSaasCompatible, v))
-}
-
-// IsCommercialUseAllowed applies equality check predicate on the "is_commercial_use_allowed" field. It's identical to IsCommercialUseAllowedEQ.
-func IsCommercialUseAllowed(v bool) predicate.ReportLicense {
-	return predicate.ReportLicense(sql.FieldEQ(FieldIsCommercialUseAllowed, v))
-}
-
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.ReportLicense {
 	return predicate.ReportLicense(sql.FieldEQ(FieldCreatedAt, v))
@@ -393,86 +373,6 @@ func URLEqualFold(v string) predicate.ReportLicense {
 // URLContainsFold applies the ContainsFold predicate on the "url" field.
 func URLContainsFold(v string) predicate.ReportLicense {
 	return predicate.ReportLicense(sql.FieldContainsFold(FieldURL, v))
-}
-
-// IsOsiApprovedEQ applies the EQ predicate on the "is_osi_approved" field.
-func IsOsiApprovedEQ(v bool) predicate.ReportLicense {
-	return predicate.ReportLicense(sql.FieldEQ(FieldIsOsiApproved, v))
-}
-
-// IsOsiApprovedNEQ applies the NEQ predicate on the "is_osi_approved" field.
-func IsOsiApprovedNEQ(v bool) predicate.ReportLicense {
-	return predicate.ReportLicense(sql.FieldNEQ(FieldIsOsiApproved, v))
-}
-
-// IsOsiApprovedIsNil applies the IsNil predicate on the "is_osi_approved" field.
-func IsOsiApprovedIsNil() predicate.ReportLicense {
-	return predicate.ReportLicense(sql.FieldIsNull(FieldIsOsiApproved))
-}
-
-// IsOsiApprovedNotNil applies the NotNil predicate on the "is_osi_approved" field.
-func IsOsiApprovedNotNil() predicate.ReportLicense {
-	return predicate.ReportLicense(sql.FieldNotNull(FieldIsOsiApproved))
-}
-
-// IsFsfApprovedEQ applies the EQ predicate on the "is_fsf_approved" field.
-func IsFsfApprovedEQ(v bool) predicate.ReportLicense {
-	return predicate.ReportLicense(sql.FieldEQ(FieldIsFsfApproved, v))
-}
-
-// IsFsfApprovedNEQ applies the NEQ predicate on the "is_fsf_approved" field.
-func IsFsfApprovedNEQ(v bool) predicate.ReportLicense {
-	return predicate.ReportLicense(sql.FieldNEQ(FieldIsFsfApproved, v))
-}
-
-// IsFsfApprovedIsNil applies the IsNil predicate on the "is_fsf_approved" field.
-func IsFsfApprovedIsNil() predicate.ReportLicense {
-	return predicate.ReportLicense(sql.FieldIsNull(FieldIsFsfApproved))
-}
-
-// IsFsfApprovedNotNil applies the NotNil predicate on the "is_fsf_approved" field.
-func IsFsfApprovedNotNil() predicate.ReportLicense {
-	return predicate.ReportLicense(sql.FieldNotNull(FieldIsFsfApproved))
-}
-
-// IsSaasCompatibleEQ applies the EQ predicate on the "is_saas_compatible" field.
-func IsSaasCompatibleEQ(v bool) predicate.ReportLicense {
-	return predicate.ReportLicense(sql.FieldEQ(FieldIsSaasCompatible, v))
-}
-
-// IsSaasCompatibleNEQ applies the NEQ predicate on the "is_saas_compatible" field.
-func IsSaasCompatibleNEQ(v bool) predicate.ReportLicense {
-	return predicate.ReportLicense(sql.FieldNEQ(FieldIsSaasCompatible, v))
-}
-
-// IsSaasCompatibleIsNil applies the IsNil predicate on the "is_saas_compatible" field.
-func IsSaasCompatibleIsNil() predicate.ReportLicense {
-	return predicate.ReportLicense(sql.FieldIsNull(FieldIsSaasCompatible))
-}
-
-// IsSaasCompatibleNotNil applies the NotNil predicate on the "is_saas_compatible" field.
-func IsSaasCompatibleNotNil() predicate.ReportLicense {
-	return predicate.ReportLicense(sql.FieldNotNull(FieldIsSaasCompatible))
-}
-
-// IsCommercialUseAllowedEQ applies the EQ predicate on the "is_commercial_use_allowed" field.
-func IsCommercialUseAllowedEQ(v bool) predicate.ReportLicense {
-	return predicate.ReportLicense(sql.FieldEQ(FieldIsCommercialUseAllowed, v))
-}
-
-// IsCommercialUseAllowedNEQ applies the NEQ predicate on the "is_commercial_use_allowed" field.
-func IsCommercialUseAllowedNEQ(v bool) predicate.ReportLicense {
-	return predicate.ReportLicense(sql.FieldNEQ(FieldIsCommercialUseAllowed, v))
-}
-
-// IsCommercialUseAllowedIsNil applies the IsNil predicate on the "is_commercial_use_allowed" field.
-func IsCommercialUseAllowedIsNil() predicate.ReportLicense {
-	return predicate.ReportLicense(sql.FieldIsNull(FieldIsCommercialUseAllowed))
-}
-
-// IsCommercialUseAllowedNotNil applies the NotNil predicate on the "is_commercial_use_allowed" field.
-func IsCommercialUseAllowedNotNil() predicate.ReportLicense {
-	return predicate.ReportLicense(sql.FieldNotNull(FieldIsCommercialUseAllowed))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

@@ -39,5 +39,8 @@ type ReportScorecard func(*sql.Selector)
 // ReportScorecardCheck is the predicate function for reportscorecardcheck builders.
 type ReportScorecardCheck func(*sql.Selector)
 
+// ReportSlsaProvenance is the predicate function for reportslsaprovenance builders.
+type ReportSlsaProvenance func(*sql.Selector)
+
 // ReportVulnerability is the predicate function for reportvulnerability builders.
 type ReportVulnerability func(*sql.Selector)

@@ -69,62 +69,6 @@ func (rlc *ReportLicenseCreate) SetNillableURL(s *string) *ReportLicenseCreate {
 	return rlc
 }
 
-// SetIsOsiApproved sets the "is_osi_approved" field.
-func (rlc *ReportLicenseCreate) SetIsOsiApproved(b bool) *ReportLicenseCreate {
-	rlc.mutation.SetIsOsiApproved(b)
-	return rlc
-}
-
-// SetNillableIsOsiApproved sets the "is_osi_approved" field if the given value is not nil.
-func (rlc *ReportLicenseCreate) SetNillableIsOsiApproved(b *bool) *ReportLicenseCreate {
-	if b != nil {
-		rlc.SetIsOsiApproved(*b)
-	}
-	return rlc
-}
-
-// SetIsFsfApproved sets the "is_fsf_approved" field.
-func (rlc *ReportLicenseCreate) SetIsFsfApproved(b bool) *ReportLicenseCreate {
-	rlc.mutation.SetIsFsfApproved(b)
-	return rlc
-}
-
-// SetNillableIsFsfApproved sets the "is_fsf_approved" field if the given value is not nil.
-func (rlc *ReportLicenseCreate) SetNillableIsFsfApproved(b *bool) *ReportLicenseCreate {
-	if b != nil {
-		rlc.SetIsFsfApproved(*b)
-	}
-	return rlc
-}
-
-// SetIsSaasCompatible sets the "is_saas_compatible" field.
-func (rlc *ReportLicenseCreate) SetIsSaasCompatible(b bool) *ReportLicenseCreate {
-	rlc.mutation.SetIsSaasCompatible(b)
-	return rlc
-}
-
-// SetNillableIsSaasCompatible sets the "is_saas_compatible" field if the given value is not nil.
-func (rlc *ReportLicenseCreate) SetNillableIsSaasCompatible(b *bool) *ReportLicenseCreate {
-	if b != nil {
-		rlc.SetIsSaasCompatible(*b)
-	}
-	return rlc
-}
-
-// SetIsCommercialUseAllowed sets the "is_commercial_use_allowed" field.
-func (rlc *ReportLicenseCreate) SetIsCommercialUseAllowed(b bool) *ReportLicenseCreate {
-	rlc.mutation.SetIsCommercialUseAllowed(b)
-	return rlc
-}
-
-// SetNillableIsCommercialUseAllowed sets the "is_commercial_use_allowed" field if the given value is not nil.
-func (rlc *ReportLicenseCreate) SetNillableIsCommercialUseAllowed(b *bool) *ReportLicenseCreate {
-	if b != nil {
-		rlc.SetIsCommercialUseAllowed(*b)
-	}
-	return rlc
-}
-
 // SetCreatedAt sets the "created_at" field.
 func (rlc *ReportLicenseCreate) SetCreatedAt(t time.Time) *ReportLicenseCreate {
 	rlc.mutation.SetCreatedAt(t)
@@ -255,22 +199,6 @@ func (rlc *ReportLicenseCreate) createSpec() (*ReportLicense, *sqlgraph.CreateSp
 	if value, ok := rlc.mutation.URL(); ok {
 		_spec.SetField(reportlicense.FieldURL, field.TypeString, value)
 		_node.URL = value
-	}
-	if value, ok := rlc.mutation.IsOsiApproved(); ok {
-		_spec.SetField(reportlicense.FieldIsOsiApproved, field.TypeBool, value)
-		_node.IsOsiApproved = value
-	}
-	if value, ok := rlc.mutation.IsFsfApproved(); ok {
-		_spec.SetField(reportlicense.FieldIsFsfApproved, field.TypeBool, value)
-		_node.IsFsfApproved = value
-	}
-	if value, ok := rlc.mutation.IsSaasCompatible(); ok {
-		_spec.SetField(reportlicense.FieldIsSaasCompatible, field.TypeBool, value)
-		_node.IsSaasCompatible = value
-	}
-	if value, ok := rlc.mutation.IsCommercialUseAllowed(); ok {
-		_spec.SetField(reportlicense.FieldIsCommercialUseAllowed, field.TypeBool, value)
-		_node.IsCommercialUseAllowed = value
 	}
 	if value, ok := rlc.mutation.CreatedAt(); ok {
 		_spec.SetField(reportlicense.FieldCreatedAt, field.TypeTime, value)
