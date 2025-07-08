@@ -50,6 +50,8 @@ const (
 	EdgeDependencies = "dependencies"
 	// EdgeMalwareAnalysis holds the string denoting the malware_analysis edge name in mutations.
 	EdgeMalwareAnalysis = "malware_analysis"
+	// EdgeProjects holds the string denoting the projects edge name in mutations.
+	EdgeProjects = "projects"
 	// Table holds the table name of the reportpackage in the database.
 	Table = "report_packages"
 	// ManifestTable is the table that holds the manifest relation/edge.
@@ -87,6 +89,13 @@ const (
 	MalwareAnalysisInverseTable = "report_malwares"
 	// MalwareAnalysisColumn is the table column denoting the malware_analysis relation/edge.
 	MalwareAnalysisColumn = "report_package_malware_analysis"
+	// ProjectsTable is the table that holds the projects relation/edge.
+	ProjectsTable = "report_projects"
+	// ProjectsInverseTable is the table name for the ReportProject entity.
+	// It exists in this package in order to avoid circular dependency with the "reportproject" package.
+	ProjectsInverseTable = "report_projects"
+	// ProjectsColumn is the table column denoting the projects relation/edge.
+	ProjectsColumn = "report_package_projects"
 )
 
 // Columns holds all SQL columns for reportpackage fields.
@@ -268,6 +277,20 @@ func ByMalwareAnalysisField(field string, opts ...sql.OrderTermOption) OrderOpti
 		sqlgraph.OrderByNeighborTerms(s, newMalwareAnalysisStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByProjectsCount orders the results by projects count.
+func ByProjectsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newProjectsStep(), opts...)
+	}
+}
+
+// ByProjects orders the results by projects terms.
+func ByProjects(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newProjectsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newManifestStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -301,5 +324,12 @@ func newMalwareAnalysisStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(MalwareAnalysisInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2O, false, MalwareAnalysisTable, MalwareAnalysisColumn),
+	)
+}
+func newProjectsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ProjectsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ProjectsTable, ProjectsColumn),
 	)
 }

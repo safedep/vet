@@ -4,6 +4,7 @@ package reportproject
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -21,14 +22,30 @@ const (
 	FieldStars = "stars"
 	// FieldForks holds the string denoting the forks field in the database.
 	FieldForks = "forks"
-	// FieldScorecard holds the string denoting the scorecard field in the database.
-	FieldScorecard = "scorecard"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// EdgePackage holds the string denoting the package edge name in mutations.
+	EdgePackage = "package"
+	// EdgeScorecard holds the string denoting the scorecard edge name in mutations.
+	EdgeScorecard = "scorecard"
 	// Table holds the table name of the reportproject in the database.
 	Table = "report_projects"
+	// PackageTable is the table that holds the package relation/edge.
+	PackageTable = "report_projects"
+	// PackageInverseTable is the table name for the ReportPackage entity.
+	// It exists in this package in order to avoid circular dependency with the "reportpackage" package.
+	PackageInverseTable = "report_packages"
+	// PackageColumn is the table column denoting the package relation/edge.
+	PackageColumn = "report_package_projects"
+	// ScorecardTable is the table that holds the scorecard relation/edge.
+	ScorecardTable = "report_scorecards"
+	// ScorecardInverseTable is the table name for the ReportScorecard entity.
+	// It exists in this package in order to avoid circular dependency with the "reportscorecard" package.
+	ScorecardInverseTable = "report_scorecards"
+	// ScorecardColumn is the table column denoting the scorecard relation/edge.
+	ScorecardColumn = "report_project_scorecard"
 )
 
 // Columns holds all SQL columns for reportproject fields.
@@ -39,15 +56,25 @@ var Columns = []string{
 	FieldDescription,
 	FieldStars,
 	FieldForks,
-	FieldScorecard,
 	FieldCreatedAt,
 	FieldUpdatedAt,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the "report_projects"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"report_package_projects",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -100,4 +127,32 @@ func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdatedAt orders the results by the updated_at field.
 func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByPackageField orders the results by package field.
+func ByPackageField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPackageStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByScorecardField orders the results by scorecard field.
+func ByScorecardField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newScorecardStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newPackageStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PackageInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, PackageTable, PackageColumn),
+	)
+}
+func newScorecardStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ScorecardInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, ScorecardTable, ScorecardColumn),
+	)
 }

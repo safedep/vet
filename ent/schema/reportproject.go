@@ -2,6 +2,8 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -18,7 +20,6 @@ func (ReportProject) Fields() []ent.Field {
 		field.String("description").Optional(),
 		field.Int32("stars").Optional(),
 		field.Int32("forks").Optional(),
-		field.JSON("scorecard", map[string]interface{}{}).Optional(),
 		field.Time("created_at").Optional(),
 		field.Time("updated_at").Optional(),
 	}
@@ -26,5 +27,14 @@ func (ReportProject) Fields() []ent.Field {
 
 // Edges of the ReportProject.
 func (ReportProject) Edges() []ent.Edge {
-	return []ent.Edge{}
+	return []ent.Edge{
+		edge.From("package", ReportPackage.Type).
+			Ref("projects").
+			Unique(),
+		edge.To("scorecard", ReportScorecard.Type).
+			Unique().
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Cascade,
+			}),
+	}
 }

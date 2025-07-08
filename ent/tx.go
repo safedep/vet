@@ -30,6 +30,10 @@ type Tx struct {
 	ReportPackageManifest *ReportPackageManifestClient
 	// ReportProject is the client for interacting with the ReportProject builders.
 	ReportProject *ReportProjectClient
+	// ReportScorecard is the client for interacting with the ReportScorecard builders.
+	ReportScorecard *ReportScorecardClient
+	// ReportScorecardCheck is the client for interacting with the ReportScorecardCheck builders.
+	ReportScorecardCheck *ReportScorecardCheckClient
 	// ReportVulnerability is the client for interacting with the ReportVulnerability builders.
 	ReportVulnerability *ReportVulnerabilityClient
 
@@ -172,6 +176,8 @@ func (tx *Tx) init() {
 	tx.ReportPackage = NewReportPackageClient(tx.config)
 	tx.ReportPackageManifest = NewReportPackageManifestClient(tx.config)
 	tx.ReportProject = NewReportProjectClient(tx.config)
+	tx.ReportScorecard = NewReportScorecardClient(tx.config)
+	tx.ReportScorecardCheck = NewReportScorecardCheckClient(tx.config)
 	tx.ReportVulnerability = NewReportVulnerabilityClient(tx.config)
 }
 

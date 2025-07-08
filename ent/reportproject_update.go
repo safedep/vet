@@ -12,7 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/safedep/vet/ent/predicate"
+	"github.com/safedep/vet/ent/reportpackage"
 	"github.com/safedep/vet/ent/reportproject"
+	"github.com/safedep/vet/ent/reportscorecard"
 )
 
 // ReportProjectUpdate is the builder for updating ReportProject entities.
@@ -136,18 +138,6 @@ func (rpu *ReportProjectUpdate) ClearForks() *ReportProjectUpdate {
 	return rpu
 }
 
-// SetScorecard sets the "scorecard" field.
-func (rpu *ReportProjectUpdate) SetScorecard(m map[string]interface{}) *ReportProjectUpdate {
-	rpu.mutation.SetScorecard(m)
-	return rpu
-}
-
-// ClearScorecard clears the value of the "scorecard" field.
-func (rpu *ReportProjectUpdate) ClearScorecard() *ReportProjectUpdate {
-	rpu.mutation.ClearScorecard()
-	return rpu
-}
-
 // SetCreatedAt sets the "created_at" field.
 func (rpu *ReportProjectUpdate) SetCreatedAt(t time.Time) *ReportProjectUpdate {
 	rpu.mutation.SetCreatedAt(t)
@@ -188,9 +178,59 @@ func (rpu *ReportProjectUpdate) ClearUpdatedAt() *ReportProjectUpdate {
 	return rpu
 }
 
+// SetPackageID sets the "package" edge to the ReportPackage entity by ID.
+func (rpu *ReportProjectUpdate) SetPackageID(id int) *ReportProjectUpdate {
+	rpu.mutation.SetPackageID(id)
+	return rpu
+}
+
+// SetNillablePackageID sets the "package" edge to the ReportPackage entity by ID if the given value is not nil.
+func (rpu *ReportProjectUpdate) SetNillablePackageID(id *int) *ReportProjectUpdate {
+	if id != nil {
+		rpu = rpu.SetPackageID(*id)
+	}
+	return rpu
+}
+
+// SetPackage sets the "package" edge to the ReportPackage entity.
+func (rpu *ReportProjectUpdate) SetPackage(r *ReportPackage) *ReportProjectUpdate {
+	return rpu.SetPackageID(r.ID)
+}
+
+// SetScorecardID sets the "scorecard" edge to the ReportScorecard entity by ID.
+func (rpu *ReportProjectUpdate) SetScorecardID(id int) *ReportProjectUpdate {
+	rpu.mutation.SetScorecardID(id)
+	return rpu
+}
+
+// SetNillableScorecardID sets the "scorecard" edge to the ReportScorecard entity by ID if the given value is not nil.
+func (rpu *ReportProjectUpdate) SetNillableScorecardID(id *int) *ReportProjectUpdate {
+	if id != nil {
+		rpu = rpu.SetScorecardID(*id)
+	}
+	return rpu
+}
+
+// SetScorecard sets the "scorecard" edge to the ReportScorecard entity.
+func (rpu *ReportProjectUpdate) SetScorecard(r *ReportScorecard) *ReportProjectUpdate {
+	return rpu.SetScorecardID(r.ID)
+}
+
 // Mutation returns the ReportProjectMutation object of the builder.
 func (rpu *ReportProjectUpdate) Mutation() *ReportProjectMutation {
 	return rpu.mutation
+}
+
+// ClearPackage clears the "package" edge to the ReportPackage entity.
+func (rpu *ReportProjectUpdate) ClearPackage() *ReportProjectUpdate {
+	rpu.mutation.ClearPackage()
+	return rpu
+}
+
+// ClearScorecard clears the "scorecard" edge to the ReportScorecard entity.
+func (rpu *ReportProjectUpdate) ClearScorecard() *ReportProjectUpdate {
+	rpu.mutation.ClearScorecard()
+	return rpu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -275,12 +315,6 @@ func (rpu *ReportProjectUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	if rpu.mutation.ForksCleared() {
 		_spec.ClearField(reportproject.FieldForks, field.TypeInt32)
 	}
-	if value, ok := rpu.mutation.Scorecard(); ok {
-		_spec.SetField(reportproject.FieldScorecard, field.TypeJSON, value)
-	}
-	if rpu.mutation.ScorecardCleared() {
-		_spec.ClearField(reportproject.FieldScorecard, field.TypeJSON)
-	}
 	if value, ok := rpu.mutation.CreatedAt(); ok {
 		_spec.SetField(reportproject.FieldCreatedAt, field.TypeTime, value)
 	}
@@ -292,6 +326,64 @@ func (rpu *ReportProjectUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	}
 	if rpu.mutation.UpdatedAtCleared() {
 		_spec.ClearField(reportproject.FieldUpdatedAt, field.TypeTime)
+	}
+	if rpu.mutation.PackageCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   reportproject.PackageTable,
+			Columns: []string{reportproject.PackageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpu.mutation.PackageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   reportproject.PackageTable,
+			Columns: []string{reportproject.PackageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if rpu.mutation.ScorecardCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   reportproject.ScorecardTable,
+			Columns: []string{reportproject.ScorecardColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportscorecard.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpu.mutation.ScorecardIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   reportproject.ScorecardTable,
+			Columns: []string{reportproject.ScorecardColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportscorecard.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, rpu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -421,18 +513,6 @@ func (rpuo *ReportProjectUpdateOne) ClearForks() *ReportProjectUpdateOne {
 	return rpuo
 }
 
-// SetScorecard sets the "scorecard" field.
-func (rpuo *ReportProjectUpdateOne) SetScorecard(m map[string]interface{}) *ReportProjectUpdateOne {
-	rpuo.mutation.SetScorecard(m)
-	return rpuo
-}
-
-// ClearScorecard clears the value of the "scorecard" field.
-func (rpuo *ReportProjectUpdateOne) ClearScorecard() *ReportProjectUpdateOne {
-	rpuo.mutation.ClearScorecard()
-	return rpuo
-}
-
 // SetCreatedAt sets the "created_at" field.
 func (rpuo *ReportProjectUpdateOne) SetCreatedAt(t time.Time) *ReportProjectUpdateOne {
 	rpuo.mutation.SetCreatedAt(t)
@@ -473,9 +553,59 @@ func (rpuo *ReportProjectUpdateOne) ClearUpdatedAt() *ReportProjectUpdateOne {
 	return rpuo
 }
 
+// SetPackageID sets the "package" edge to the ReportPackage entity by ID.
+func (rpuo *ReportProjectUpdateOne) SetPackageID(id int) *ReportProjectUpdateOne {
+	rpuo.mutation.SetPackageID(id)
+	return rpuo
+}
+
+// SetNillablePackageID sets the "package" edge to the ReportPackage entity by ID if the given value is not nil.
+func (rpuo *ReportProjectUpdateOne) SetNillablePackageID(id *int) *ReportProjectUpdateOne {
+	if id != nil {
+		rpuo = rpuo.SetPackageID(*id)
+	}
+	return rpuo
+}
+
+// SetPackage sets the "package" edge to the ReportPackage entity.
+func (rpuo *ReportProjectUpdateOne) SetPackage(r *ReportPackage) *ReportProjectUpdateOne {
+	return rpuo.SetPackageID(r.ID)
+}
+
+// SetScorecardID sets the "scorecard" edge to the ReportScorecard entity by ID.
+func (rpuo *ReportProjectUpdateOne) SetScorecardID(id int) *ReportProjectUpdateOne {
+	rpuo.mutation.SetScorecardID(id)
+	return rpuo
+}
+
+// SetNillableScorecardID sets the "scorecard" edge to the ReportScorecard entity by ID if the given value is not nil.
+func (rpuo *ReportProjectUpdateOne) SetNillableScorecardID(id *int) *ReportProjectUpdateOne {
+	if id != nil {
+		rpuo = rpuo.SetScorecardID(*id)
+	}
+	return rpuo
+}
+
+// SetScorecard sets the "scorecard" edge to the ReportScorecard entity.
+func (rpuo *ReportProjectUpdateOne) SetScorecard(r *ReportScorecard) *ReportProjectUpdateOne {
+	return rpuo.SetScorecardID(r.ID)
+}
+
 // Mutation returns the ReportProjectMutation object of the builder.
 func (rpuo *ReportProjectUpdateOne) Mutation() *ReportProjectMutation {
 	return rpuo.mutation
+}
+
+// ClearPackage clears the "package" edge to the ReportPackage entity.
+func (rpuo *ReportProjectUpdateOne) ClearPackage() *ReportProjectUpdateOne {
+	rpuo.mutation.ClearPackage()
+	return rpuo
+}
+
+// ClearScorecard clears the "scorecard" edge to the ReportScorecard entity.
+func (rpuo *ReportProjectUpdateOne) ClearScorecard() *ReportProjectUpdateOne {
+	rpuo.mutation.ClearScorecard()
+	return rpuo
 }
 
 // Where appends a list predicates to the ReportProjectUpdate builder.
@@ -590,12 +720,6 @@ func (rpuo *ReportProjectUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 	if rpuo.mutation.ForksCleared() {
 		_spec.ClearField(reportproject.FieldForks, field.TypeInt32)
 	}
-	if value, ok := rpuo.mutation.Scorecard(); ok {
-		_spec.SetField(reportproject.FieldScorecard, field.TypeJSON, value)
-	}
-	if rpuo.mutation.ScorecardCleared() {
-		_spec.ClearField(reportproject.FieldScorecard, field.TypeJSON)
-	}
 	if value, ok := rpuo.mutation.CreatedAt(); ok {
 		_spec.SetField(reportproject.FieldCreatedAt, field.TypeTime, value)
 	}
@@ -607,6 +731,64 @@ func (rpuo *ReportProjectUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 	}
 	if rpuo.mutation.UpdatedAtCleared() {
 		_spec.ClearField(reportproject.FieldUpdatedAt, field.TypeTime)
+	}
+	if rpuo.mutation.PackageCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   reportproject.PackageTable,
+			Columns: []string{reportproject.PackageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpuo.mutation.PackageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   reportproject.PackageTable,
+			Columns: []string{reportproject.PackageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if rpuo.mutation.ScorecardCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   reportproject.ScorecardTable,
+			Columns: []string{reportproject.ScorecardColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportscorecard.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpuo.mutation.ScorecardIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   reportproject.ScorecardTable,
+			Columns: []string{reportproject.ScorecardColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportscorecard.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &ReportProject{config: rpuo.config}
 	_spec.Assign = _node.assignValues

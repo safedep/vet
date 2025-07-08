@@ -10,7 +10,9 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/safedep/vet/ent/reportpackage"
 	"github.com/safedep/vet/ent/reportproject"
+	"github.com/safedep/vet/ent/reportscorecard"
 )
 
 // ReportProjectCreate is the builder for creating a ReportProject entity.
@@ -82,12 +84,6 @@ func (rpc *ReportProjectCreate) SetNillableForks(i *int32) *ReportProjectCreate 
 	return rpc
 }
 
-// SetScorecard sets the "scorecard" field.
-func (rpc *ReportProjectCreate) SetScorecard(m map[string]interface{}) *ReportProjectCreate {
-	rpc.mutation.SetScorecard(m)
-	return rpc
-}
-
 // SetCreatedAt sets the "created_at" field.
 func (rpc *ReportProjectCreate) SetCreatedAt(t time.Time) *ReportProjectCreate {
 	rpc.mutation.SetCreatedAt(t)
@@ -114,6 +110,44 @@ func (rpc *ReportProjectCreate) SetNillableUpdatedAt(t *time.Time) *ReportProjec
 		rpc.SetUpdatedAt(*t)
 	}
 	return rpc
+}
+
+// SetPackageID sets the "package" edge to the ReportPackage entity by ID.
+func (rpc *ReportProjectCreate) SetPackageID(id int) *ReportProjectCreate {
+	rpc.mutation.SetPackageID(id)
+	return rpc
+}
+
+// SetNillablePackageID sets the "package" edge to the ReportPackage entity by ID if the given value is not nil.
+func (rpc *ReportProjectCreate) SetNillablePackageID(id *int) *ReportProjectCreate {
+	if id != nil {
+		rpc = rpc.SetPackageID(*id)
+	}
+	return rpc
+}
+
+// SetPackage sets the "package" edge to the ReportPackage entity.
+func (rpc *ReportProjectCreate) SetPackage(r *ReportPackage) *ReportProjectCreate {
+	return rpc.SetPackageID(r.ID)
+}
+
+// SetScorecardID sets the "scorecard" edge to the ReportScorecard entity by ID.
+func (rpc *ReportProjectCreate) SetScorecardID(id int) *ReportProjectCreate {
+	rpc.mutation.SetScorecardID(id)
+	return rpc
+}
+
+// SetNillableScorecardID sets the "scorecard" edge to the ReportScorecard entity by ID if the given value is not nil.
+func (rpc *ReportProjectCreate) SetNillableScorecardID(id *int) *ReportProjectCreate {
+	if id != nil {
+		rpc = rpc.SetScorecardID(*id)
+	}
+	return rpc
+}
+
+// SetScorecard sets the "scorecard" edge to the ReportScorecard entity.
+func (rpc *ReportProjectCreate) SetScorecard(r *ReportScorecard) *ReportProjectCreate {
+	return rpc.SetScorecardID(r.ID)
 }
 
 // Mutation returns the ReportProjectMutation object of the builder.
@@ -204,10 +238,6 @@ func (rpc *ReportProjectCreate) createSpec() (*ReportProject, *sqlgraph.CreateSp
 		_spec.SetField(reportproject.FieldForks, field.TypeInt32, value)
 		_node.Forks = value
 	}
-	if value, ok := rpc.mutation.Scorecard(); ok {
-		_spec.SetField(reportproject.FieldScorecard, field.TypeJSON, value)
-		_node.Scorecard = value
-	}
 	if value, ok := rpc.mutation.CreatedAt(); ok {
 		_spec.SetField(reportproject.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -215,6 +245,39 @@ func (rpc *ReportProjectCreate) createSpec() (*ReportProject, *sqlgraph.CreateSp
 	if value, ok := rpc.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportproject.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if nodes := rpc.mutation.PackageIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   reportproject.PackageTable,
+			Columns: []string{reportproject.PackageColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.report_package_projects = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rpc.mutation.ScorecardIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   reportproject.ScorecardTable,
+			Columns: []string{reportproject.ScorecardColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportscorecard.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

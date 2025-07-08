@@ -55,5 +55,9 @@ func (ReportPackage) Edges() []ent.Edge {
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,
 			}),
+		edge.To("projects", ReportProject.Type).
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Cascade,
+			}),
 	}
 }

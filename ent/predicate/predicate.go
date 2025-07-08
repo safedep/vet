@@ -33,5 +33,11 @@ type ReportPackageManifest func(*sql.Selector)
 // ReportProject is the predicate function for reportproject builders.
 type ReportProject func(*sql.Selector)
 
+// ReportScorecard is the predicate function for reportscorecard builders.
+type ReportScorecard func(*sql.Selector)
+
+// ReportScorecardCheck is the predicate function for reportscorecardcheck builders.
+type ReportScorecardCheck func(*sql.Selector)
+
 // ReportVulnerability is the predicate function for reportvulnerability builders.
 type ReportVulnerability func(*sql.Selector)

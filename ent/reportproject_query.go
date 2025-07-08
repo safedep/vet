@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -12,16 +13,21 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/safedep/vet/ent/predicate"
+	"github.com/safedep/vet/ent/reportpackage"
 	"github.com/safedep/vet/ent/reportproject"
+	"github.com/safedep/vet/ent/reportscorecard"
 )
 
 // ReportProjectQuery is the builder for querying ReportProject entities.
 type ReportProjectQuery struct {
 	config
-	ctx        *QueryContext
-	order      []reportproject.OrderOption
-	inters     []Interceptor
-	predicates []predicate.ReportProject
+	ctx           *QueryContext
+	order         []reportproject.OrderOption
+	inters        []Interceptor
+	predicates    []predicate.ReportProject
+	withPackage   *ReportPackageQuery
+	withScorecard *ReportScorecardQuery
+	withFKs       bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -56,6 +62,50 @@ func (rpq *ReportProjectQuery) Unique(unique bool) *ReportProjectQuery {
 func (rpq *ReportProjectQuery) Order(o ...reportproject.OrderOption) *ReportProjectQuery {
 	rpq.order = append(rpq.order, o...)
 	return rpq
+}
+
+// QueryPackage chains the current query on the "package" edge.
+func (rpq *ReportProjectQuery) QueryPackage() *ReportPackageQuery {
+	query := (&ReportPackageClient{config: rpq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rpq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rpq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportproject.Table, reportproject.FieldID, selector),
+			sqlgraph.To(reportpackage.Table, reportpackage.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, reportproject.PackageTable, reportproject.PackageColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(rpq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryScorecard chains the current query on the "scorecard" edge.
+func (rpq *ReportProjectQuery) QueryScorecard() *ReportScorecardQuery {
+	query := (&ReportScorecardClient{config: rpq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rpq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rpq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportproject.Table, reportproject.FieldID, selector),
+			sqlgraph.To(reportscorecard.Table, reportscorecard.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, reportproject.ScorecardTable, reportproject.ScorecardColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(rpq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first ReportProject entity from the query.
@@ -245,15 +295,39 @@ func (rpq *ReportProjectQuery) Clone() *ReportProjectQuery {
 		return nil
 	}
 	return &ReportProjectQuery{
-		config:     rpq.config,
-		ctx:        rpq.ctx.Clone(),
-		order:      append([]reportproject.OrderOption{}, rpq.order...),
-		inters:     append([]Interceptor{}, rpq.inters...),
-		predicates: append([]predicate.ReportProject{}, rpq.predicates...),
+		config:        rpq.config,
+		ctx:           rpq.ctx.Clone(),
+		order:         append([]reportproject.OrderOption{}, rpq.order...),
+		inters:        append([]Interceptor{}, rpq.inters...),
+		predicates:    append([]predicate.ReportProject{}, rpq.predicates...),
+		withPackage:   rpq.withPackage.Clone(),
+		withScorecard: rpq.withScorecard.Clone(),
 		// clone intermediate query.
 		sql:  rpq.sql.Clone(),
 		path: rpq.path,
 	}
+}
+
+// WithPackage tells the query-builder to eager-load the nodes that are connected to
+// the "package" edge. The optional arguments are used to configure the query builder of the edge.
+func (rpq *ReportProjectQuery) WithPackage(opts ...func(*ReportPackageQuery)) *ReportProjectQuery {
+	query := (&ReportPackageClient{config: rpq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	rpq.withPackage = query
+	return rpq
+}
+
+// WithScorecard tells the query-builder to eager-load the nodes that are connected to
+// the "scorecard" edge. The optional arguments are used to configure the query builder of the edge.
+func (rpq *ReportProjectQuery) WithScorecard(opts ...func(*ReportScorecardQuery)) *ReportProjectQuery {
+	query := (&ReportScorecardClient{config: rpq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	rpq.withScorecard = query
+	return rpq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -332,15 +406,27 @@ func (rpq *ReportProjectQuery) prepareQuery(ctx context.Context) error {
 
 func (rpq *ReportProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ReportProject, error) {
 	var (
-		nodes = []*ReportProject{}
-		_spec = rpq.querySpec()
+		nodes       = []*ReportProject{}
+		withFKs     = rpq.withFKs
+		_spec       = rpq.querySpec()
+		loadedTypes = [2]bool{
+			rpq.withPackage != nil,
+			rpq.withScorecard != nil,
+		}
 	)
+	if rpq.withPackage != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, reportproject.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*ReportProject).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &ReportProject{config: rpq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -352,7 +438,80 @@ func (rpq *ReportProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := rpq.withPackage; query != nil {
+		if err := rpq.loadPackage(ctx, query, nodes, nil,
+			func(n *ReportProject, e *ReportPackage) { n.Edges.Package = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := rpq.withScorecard; query != nil {
+		if err := rpq.loadScorecard(ctx, query, nodes, nil,
+			func(n *ReportProject, e *ReportScorecard) { n.Edges.Scorecard = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (rpq *ReportProjectQuery) loadPackage(ctx context.Context, query *ReportPackageQuery, nodes []*ReportProject, init func(*ReportProject), assign func(*ReportProject, *ReportPackage)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*ReportProject)
+	for i := range nodes {
+		if nodes[i].report_package_projects == nil {
+			continue
+		}
+		fk := *nodes[i].report_package_projects
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(reportpackage.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "report_package_projects" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (rpq *ReportProjectQuery) loadScorecard(ctx context.Context, query *ReportScorecardQuery, nodes []*ReportProject, init func(*ReportProject), assign func(*ReportProject, *ReportScorecard)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*ReportProject)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+	}
+	query.withFKs = true
+	query.Where(predicate.ReportScorecard(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(reportproject.ScorecardColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.report_project_scorecard
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "report_project_scorecard" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "report_project_scorecard" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (rpq *ReportProjectQuery) sqlCount(ctx context.Context) (int, error) {

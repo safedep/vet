@@ -3,14 +3,15 @@
 package ent
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/safedep/vet/ent/reportpackage"
 	"github.com/safedep/vet/ent/reportproject"
+	"github.com/safedep/vet/ent/reportscorecard"
 )
 
 // ReportProject is the model entity for the ReportProject schema.
@@ -28,13 +29,48 @@ type ReportProject struct {
 	Stars int32 `json:"stars,omitempty"`
 	// Forks holds the value of the "forks" field.
 	Forks int32 `json:"forks,omitempty"`
-	// Scorecard holds the value of the "scorecard" field.
-	Scorecard map[string]interface{} `json:"scorecard,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt    time.Time `json:"updated_at,omitempty"`
-	selectValues sql.SelectValues
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ReportProjectQuery when eager-loading is set.
+	Edges                   ReportProjectEdges `json:"edges"`
+	report_package_projects *int
+	selectValues            sql.SelectValues
+}
+
+// ReportProjectEdges holds the relations/edges for other nodes in the graph.
+type ReportProjectEdges struct {
+	// Package holds the value of the package edge.
+	Package *ReportPackage `json:"package,omitempty"`
+	// Scorecard holds the value of the scorecard edge.
+	Scorecard *ReportScorecard `json:"scorecard,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// PackageOrErr returns the Package value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ReportProjectEdges) PackageOrErr() (*ReportPackage, error) {
+	if e.Package != nil {
+		return e.Package, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: reportpackage.Label}
+	}
+	return nil, &NotLoadedError{edge: "package"}
+}
+
+// ScorecardOrErr returns the Scorecard value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ReportProjectEdges) ScorecardOrErr() (*ReportScorecard, error) {
+	if e.Scorecard != nil {
+		return e.Scorecard, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: reportscorecard.Label}
+	}
+	return nil, &NotLoadedError{edge: "scorecard"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -42,14 +78,14 @@ func (*ReportProject) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case reportproject.FieldScorecard:
-			values[i] = new([]byte)
 		case reportproject.FieldID, reportproject.FieldStars, reportproject.FieldForks:
 			values[i] = new(sql.NullInt64)
 		case reportproject.FieldName, reportproject.FieldURL, reportproject.FieldDescription:
 			values[i] = new(sql.NullString)
 		case reportproject.FieldCreatedAt, reportproject.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
+		case reportproject.ForeignKeys[0]: // report_package_projects
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -101,14 +137,6 @@ func (rp *ReportProject) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				rp.Forks = int32(value.Int64)
 			}
-		case reportproject.FieldScorecard:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field scorecard", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &rp.Scorecard); err != nil {
-					return fmt.Errorf("unmarshal field scorecard: %w", err)
-				}
-			}
 		case reportproject.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -121,6 +149,13 @@ func (rp *ReportProject) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				rp.UpdatedAt = value.Time
 			}
+		case reportproject.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field report_package_projects", value)
+			} else if value.Valid {
+				rp.report_package_projects = new(int)
+				*rp.report_package_projects = int(value.Int64)
+			}
 		default:
 			rp.selectValues.Set(columns[i], values[i])
 		}
@@ -132,6 +167,16 @@ func (rp *ReportProject) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (rp *ReportProject) Value(name string) (ent.Value, error) {
 	return rp.selectValues.Get(name)
+}
+
+// QueryPackage queries the "package" edge of the ReportProject entity.
+func (rp *ReportProject) QueryPackage() *ReportPackageQuery {
+	return NewReportProjectClient(rp.config).QueryPackage(rp)
+}
+
+// QueryScorecard queries the "scorecard" edge of the ReportProject entity.
+func (rp *ReportProject) QueryScorecard() *ReportScorecardQuery {
+	return NewReportProjectClient(rp.config).QueryScorecard(rp)
 }
 
 // Update returns a builder for updating this ReportProject.
@@ -171,9 +216,6 @@ func (rp *ReportProject) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("forks=")
 	builder.WriteString(fmt.Sprintf("%v", rp.Forks))
-	builder.WriteString(", ")
-	builder.WriteString("scorecard=")
-	builder.WriteString(fmt.Sprintf("%v", rp.Scorecard))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(rp.CreatedAt.Format(time.ANSIC))

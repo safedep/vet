@@ -21,6 +21,8 @@ import (
 	"github.com/safedep/vet/ent/reportpackage"
 	"github.com/safedep/vet/ent/reportpackagemanifest"
 	"github.com/safedep/vet/ent/reportproject"
+	"github.com/safedep/vet/ent/reportscorecard"
+	"github.com/safedep/vet/ent/reportscorecardcheck"
 	"github.com/safedep/vet/ent/reportvulnerability"
 )
 
@@ -42,6 +44,8 @@ const (
 	TypeReportPackage         = "ReportPackage"
 	TypeReportPackageManifest = "ReportPackageManifest"
 	TypeReportProject         = "ReportProject"
+	TypeReportScorecard       = "ReportScorecard"
+	TypeReportScorecardCheck  = "ReportScorecardCheck"
 	TypeReportVulnerability   = "ReportVulnerability"
 )
 
@@ -5444,6 +5448,9 @@ type ReportPackageMutation struct {
 	cleareddependencies     bool
 	malware_analysis        *int
 	clearedmalware_analysis bool
+	projects                map[int]struct{}
+	removedprojects         map[int]struct{}
+	clearedprojects         bool
 	done                    bool
 	oldValue                func(context.Context) (*ReportPackage, error)
 	predicates              []predicate.ReportPackage
@@ -6376,6 +6383,60 @@ func (m *ReportPackageMutation) ResetMalwareAnalysis() {
 	m.clearedmalware_analysis = false
 }
 
+// AddProjectIDs adds the "projects" edge to the ReportProject entity by ids.
+func (m *ReportPackageMutation) AddProjectIDs(ids ...int) {
+	if m.projects == nil {
+		m.projects = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.projects[ids[i]] = struct{}{}
+	}
+}
+
+// ClearProjects clears the "projects" edge to the ReportProject entity.
+func (m *ReportPackageMutation) ClearProjects() {
+	m.clearedprojects = true
+}
+
+// ProjectsCleared reports if the "projects" edge to the ReportProject entity was cleared.
+func (m *ReportPackageMutation) ProjectsCleared() bool {
+	return m.clearedprojects
+}
+
+// RemoveProjectIDs removes the "projects" edge to the ReportProject entity by IDs.
+func (m *ReportPackageMutation) RemoveProjectIDs(ids ...int) {
+	if m.removedprojects == nil {
+		m.removedprojects = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.projects, ids[i])
+		m.removedprojects[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedProjects returns the removed IDs of the "projects" edge to the ReportProject entity.
+func (m *ReportPackageMutation) RemovedProjectsIDs() (ids []int) {
+	for id := range m.removedprojects {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ProjectsIDs returns the "projects" edge IDs in the mutation.
+func (m *ReportPackageMutation) ProjectsIDs() (ids []int) {
+	for id := range m.projects {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetProjects resets all changes to the "projects" edge.
+func (m *ReportPackageMutation) ResetProjects() {
+	m.projects = nil
+	m.clearedprojects = false
+	m.removedprojects = nil
+}
+
 // Where appends a list predicates to the ReportPackageMutation builder.
 func (m *ReportPackageMutation) Where(ps ...predicate.ReportPackage) {
 	m.predicates = append(m.predicates, ps...)
@@ -6778,7 +6839,7 @@ func (m *ReportPackageMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ReportPackageMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.manifest != nil {
 		edges = append(edges, reportpackage.EdgeManifest)
 	}
@@ -6793,6 +6854,9 @@ func (m *ReportPackageMutation) AddedEdges() []string {
 	}
 	if m.malware_analysis != nil {
 		edges = append(edges, reportpackage.EdgeMalwareAnalysis)
+	}
+	if m.projects != nil {
+		edges = append(edges, reportpackage.EdgeProjects)
 	}
 	return edges
 }
@@ -6827,13 +6891,19 @@ func (m *ReportPackageMutation) AddedIDs(name string) []ent.Value {
 		if id := m.malware_analysis; id != nil {
 			return []ent.Value{*id}
 		}
+	case reportpackage.EdgeProjects:
+		ids := make([]ent.Value, 0, len(m.projects))
+		for id := range m.projects {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ReportPackageMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.removedvulnerabilities != nil {
 		edges = append(edges, reportpackage.EdgeVulnerabilities)
 	}
@@ -6842,6 +6912,9 @@ func (m *ReportPackageMutation) RemovedEdges() []string {
 	}
 	if m.removeddependencies != nil {
 		edges = append(edges, reportpackage.EdgeDependencies)
+	}
+	if m.removedprojects != nil {
+		edges = append(edges, reportpackage.EdgeProjects)
 	}
 	return edges
 }
@@ -6868,13 +6941,19 @@ func (m *ReportPackageMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case reportpackage.EdgeProjects:
+		ids := make([]ent.Value, 0, len(m.removedprojects))
+		for id := range m.removedprojects {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ReportPackageMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.clearedmanifest {
 		edges = append(edges, reportpackage.EdgeManifest)
 	}
@@ -6889,6 +6968,9 @@ func (m *ReportPackageMutation) ClearedEdges() []string {
 	}
 	if m.clearedmalware_analysis {
 		edges = append(edges, reportpackage.EdgeMalwareAnalysis)
+	}
+	if m.clearedprojects {
+		edges = append(edges, reportpackage.EdgeProjects)
 	}
 	return edges
 }
@@ -6907,6 +6989,8 @@ func (m *ReportPackageMutation) EdgeCleared(name string) bool {
 		return m.cleareddependencies
 	case reportpackage.EdgeMalwareAnalysis:
 		return m.clearedmalware_analysis
+	case reportpackage.EdgeProjects:
+		return m.clearedprojects
 	}
 	return false
 }
@@ -6943,6 +7027,9 @@ func (m *ReportPackageMutation) ResetEdge(name string) error {
 		return nil
 	case reportpackage.EdgeMalwareAnalysis:
 		m.ResetMalwareAnalysis()
+		return nil
+	case reportpackage.EdgeProjects:
+		m.ResetProjects()
 		return nil
 	}
 	return fmt.Errorf("unknown ReportPackage edge %s", name)
@@ -7789,23 +7876,26 @@ func (m *ReportPackageManifestMutation) ResetEdge(name string) error {
 // ReportProjectMutation represents an operation that mutates the ReportProject nodes in the graph.
 type ReportProjectMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	name          *string
-	url           *string
-	description   *string
-	stars         *int32
-	addstars      *int32
-	forks         *int32
-	addforks      *int32
-	scorecard     *map[string]interface{}
-	created_at    *time.Time
-	updated_at    *time.Time
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*ReportProject, error)
-	predicates    []predicate.ReportProject
+	op               Op
+	typ              string
+	id               *int
+	name             *string
+	url              *string
+	description      *string
+	stars            *int32
+	addstars         *int32
+	forks            *int32
+	addforks         *int32
+	created_at       *time.Time
+	updated_at       *time.Time
+	clearedFields    map[string]struct{}
+	_package         *int
+	cleared_package  bool
+	scorecard        *int
+	clearedscorecard bool
+	done             bool
+	oldValue         func(context.Context) (*ReportProject, error)
+	predicates       []predicate.ReportProject
 }
 
 var _ ent.Mutation = (*ReportProjectMutation)(nil)
@@ -8180,55 +8270,6 @@ func (m *ReportProjectMutation) ResetForks() {
 	delete(m.clearedFields, reportproject.FieldForks)
 }
 
-// SetScorecard sets the "scorecard" field.
-func (m *ReportProjectMutation) SetScorecard(value map[string]interface{}) {
-	m.scorecard = &value
-}
-
-// Scorecard returns the value of the "scorecard" field in the mutation.
-func (m *ReportProjectMutation) Scorecard() (r map[string]interface{}, exists bool) {
-	v := m.scorecard
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldScorecard returns the old "scorecard" field's value of the ReportProject entity.
-// If the ReportProject object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ReportProjectMutation) OldScorecard(ctx context.Context) (v map[string]interface{}, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldScorecard is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldScorecard requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldScorecard: %w", err)
-	}
-	return oldValue.Scorecard, nil
-}
-
-// ClearScorecard clears the value of the "scorecard" field.
-func (m *ReportProjectMutation) ClearScorecard() {
-	m.scorecard = nil
-	m.clearedFields[reportproject.FieldScorecard] = struct{}{}
-}
-
-// ScorecardCleared returns if the "scorecard" field was cleared in this mutation.
-func (m *ReportProjectMutation) ScorecardCleared() bool {
-	_, ok := m.clearedFields[reportproject.FieldScorecard]
-	return ok
-}
-
-// ResetScorecard resets all changes to the "scorecard" field.
-func (m *ReportProjectMutation) ResetScorecard() {
-	m.scorecard = nil
-	delete(m.clearedFields, reportproject.FieldScorecard)
-}
-
 // SetCreatedAt sets the "created_at" field.
 func (m *ReportProjectMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -8327,6 +8368,84 @@ func (m *ReportProjectMutation) ResetUpdatedAt() {
 	delete(m.clearedFields, reportproject.FieldUpdatedAt)
 }
 
+// SetPackageID sets the "package" edge to the ReportPackage entity by id.
+func (m *ReportProjectMutation) SetPackageID(id int) {
+	m._package = &id
+}
+
+// ClearPackage clears the "package" edge to the ReportPackage entity.
+func (m *ReportProjectMutation) ClearPackage() {
+	m.cleared_package = true
+}
+
+// PackageCleared reports if the "package" edge to the ReportPackage entity was cleared.
+func (m *ReportProjectMutation) PackageCleared() bool {
+	return m.cleared_package
+}
+
+// PackageID returns the "package" edge ID in the mutation.
+func (m *ReportProjectMutation) PackageID() (id int, exists bool) {
+	if m._package != nil {
+		return *m._package, true
+	}
+	return
+}
+
+// PackageIDs returns the "package" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PackageID instead. It exists only for internal usage by the builders.
+func (m *ReportProjectMutation) PackageIDs() (ids []int) {
+	if id := m._package; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPackage resets all changes to the "package" edge.
+func (m *ReportProjectMutation) ResetPackage() {
+	m._package = nil
+	m.cleared_package = false
+}
+
+// SetScorecardID sets the "scorecard" edge to the ReportScorecard entity by id.
+func (m *ReportProjectMutation) SetScorecardID(id int) {
+	m.scorecard = &id
+}
+
+// ClearScorecard clears the "scorecard" edge to the ReportScorecard entity.
+func (m *ReportProjectMutation) ClearScorecard() {
+	m.clearedscorecard = true
+}
+
+// ScorecardCleared reports if the "scorecard" edge to the ReportScorecard entity was cleared.
+func (m *ReportProjectMutation) ScorecardCleared() bool {
+	return m.clearedscorecard
+}
+
+// ScorecardID returns the "scorecard" edge ID in the mutation.
+func (m *ReportProjectMutation) ScorecardID() (id int, exists bool) {
+	if m.scorecard != nil {
+		return *m.scorecard, true
+	}
+	return
+}
+
+// ScorecardIDs returns the "scorecard" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ScorecardID instead. It exists only for internal usage by the builders.
+func (m *ReportProjectMutation) ScorecardIDs() (ids []int) {
+	if id := m.scorecard; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetScorecard resets all changes to the "scorecard" edge.
+func (m *ReportProjectMutation) ResetScorecard() {
+	m.scorecard = nil
+	m.clearedscorecard = false
+}
+
 // Where appends a list predicates to the ReportProjectMutation builder.
 func (m *ReportProjectMutation) Where(ps ...predicate.ReportProject) {
 	m.predicates = append(m.predicates, ps...)
@@ -8361,7 +8480,7 @@ func (m *ReportProjectMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ReportProjectMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 7)
 	if m.name != nil {
 		fields = append(fields, reportproject.FieldName)
 	}
@@ -8376,9 +8495,6 @@ func (m *ReportProjectMutation) Fields() []string {
 	}
 	if m.forks != nil {
 		fields = append(fields, reportproject.FieldForks)
-	}
-	if m.scorecard != nil {
-		fields = append(fields, reportproject.FieldScorecard)
 	}
 	if m.created_at != nil {
 		fields = append(fields, reportproject.FieldCreatedAt)
@@ -8404,8 +8520,6 @@ func (m *ReportProjectMutation) Field(name string) (ent.Value, bool) {
 		return m.Stars()
 	case reportproject.FieldForks:
 		return m.Forks()
-	case reportproject.FieldScorecard:
-		return m.Scorecard()
 	case reportproject.FieldCreatedAt:
 		return m.CreatedAt()
 	case reportproject.FieldUpdatedAt:
@@ -8429,8 +8543,6 @@ func (m *ReportProjectMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldStars(ctx)
 	case reportproject.FieldForks:
 		return m.OldForks(ctx)
-	case reportproject.FieldScorecard:
-		return m.OldScorecard(ctx)
 	case reportproject.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case reportproject.FieldUpdatedAt:
@@ -8478,13 +8590,6 @@ func (m *ReportProjectMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetForks(v)
-		return nil
-	case reportproject.FieldScorecard:
-		v, ok := value.(map[string]interface{})
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetScorecard(v)
 		return nil
 	case reportproject.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -8569,9 +8674,6 @@ func (m *ReportProjectMutation) ClearedFields() []string {
 	if m.FieldCleared(reportproject.FieldForks) {
 		fields = append(fields, reportproject.FieldForks)
 	}
-	if m.FieldCleared(reportproject.FieldScorecard) {
-		fields = append(fields, reportproject.FieldScorecard)
-	}
 	if m.FieldCleared(reportproject.FieldCreatedAt) {
 		fields = append(fields, reportproject.FieldCreatedAt)
 	}
@@ -8604,9 +8706,6 @@ func (m *ReportProjectMutation) ClearField(name string) error {
 	case reportproject.FieldForks:
 		m.ClearForks()
 		return nil
-	case reportproject.FieldScorecard:
-		m.ClearScorecard()
-		return nil
 	case reportproject.FieldCreatedAt:
 		m.ClearCreatedAt()
 		return nil
@@ -8636,9 +8735,6 @@ func (m *ReportProjectMutation) ResetField(name string) error {
 	case reportproject.FieldForks:
 		m.ResetForks()
 		return nil
-	case reportproject.FieldScorecard:
-		m.ResetScorecard()
-		return nil
 	case reportproject.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
@@ -8651,19 +8747,35 @@ func (m *ReportProjectMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ReportProjectMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m._package != nil {
+		edges = append(edges, reportproject.EdgePackage)
+	}
+	if m.scorecard != nil {
+		edges = append(edges, reportproject.EdgeScorecard)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *ReportProjectMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case reportproject.EdgePackage:
+		if id := m._package; id != nil {
+			return []ent.Value{*id}
+		}
+	case reportproject.EdgeScorecard:
+		if id := m.scorecard; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ReportProjectMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -8675,26 +8787,1657 @@ func (m *ReportProjectMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ReportProjectMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.cleared_package {
+		edges = append(edges, reportproject.EdgePackage)
+	}
+	if m.clearedscorecard {
+		edges = append(edges, reportproject.EdgeScorecard)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *ReportProjectMutation) EdgeCleared(name string) bool {
+	switch name {
+	case reportproject.EdgePackage:
+		return m.cleared_package
+	case reportproject.EdgeScorecard:
+		return m.clearedscorecard
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *ReportProjectMutation) ClearEdge(name string) error {
+	switch name {
+	case reportproject.EdgePackage:
+		m.ClearPackage()
+		return nil
+	case reportproject.EdgeScorecard:
+		m.ClearScorecard()
+		return nil
+	}
 	return fmt.Errorf("unknown ReportProject unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *ReportProjectMutation) ResetEdge(name string) error {
+	switch name {
+	case reportproject.EdgePackage:
+		m.ResetPackage()
+		return nil
+	case reportproject.EdgeScorecard:
+		m.ResetScorecard()
+		return nil
+	}
 	return fmt.Errorf("unknown ReportProject edge %s", name)
+}
+
+// ReportScorecardMutation represents an operation that mutates the ReportScorecard nodes in the graph.
+type ReportScorecardMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *int
+	score             *float32
+	addscore          *float32
+	scorecard_version *string
+	repo_name         *string
+	repo_commit       *string
+	date              *string
+	created_at        *time.Time
+	updated_at        *time.Time
+	clearedFields     map[string]struct{}
+	project           *int
+	clearedproject    bool
+	checks            map[int]struct{}
+	removedchecks     map[int]struct{}
+	clearedchecks     bool
+	done              bool
+	oldValue          func(context.Context) (*ReportScorecard, error)
+	predicates        []predicate.ReportScorecard
+}
+
+var _ ent.Mutation = (*ReportScorecardMutation)(nil)
+
+// reportscorecardOption allows management of the mutation configuration using functional options.
+type reportscorecardOption func(*ReportScorecardMutation)
+
+// newReportScorecardMutation creates new mutation for the ReportScorecard entity.
+func newReportScorecardMutation(c config, op Op, opts ...reportscorecardOption) *ReportScorecardMutation {
+	m := &ReportScorecardMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeReportScorecard,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withReportScorecardID sets the ID field of the mutation.
+func withReportScorecardID(id int) reportscorecardOption {
+	return func(m *ReportScorecardMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ReportScorecard
+		)
+		m.oldValue = func(ctx context.Context) (*ReportScorecard, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ReportScorecard.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withReportScorecard sets the old ReportScorecard of the mutation.
+func withReportScorecard(node *ReportScorecard) reportscorecardOption {
+	return func(m *ReportScorecardMutation) {
+		m.oldValue = func(context.Context) (*ReportScorecard, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ReportScorecardMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ReportScorecardMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ReportScorecardMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ReportScorecardMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ReportScorecard.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetScore sets the "score" field.
+func (m *ReportScorecardMutation) SetScore(f float32) {
+	m.score = &f
+	m.addscore = nil
+}
+
+// Score returns the value of the "score" field in the mutation.
+func (m *ReportScorecardMutation) Score() (r float32, exists bool) {
+	v := m.score
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldScore returns the old "score" field's value of the ReportScorecard entity.
+// If the ReportScorecard object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportScorecardMutation) OldScore(ctx context.Context) (v float32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldScore is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldScore requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldScore: %w", err)
+	}
+	return oldValue.Score, nil
+}
+
+// AddScore adds f to the "score" field.
+func (m *ReportScorecardMutation) AddScore(f float32) {
+	if m.addscore != nil {
+		*m.addscore += f
+	} else {
+		m.addscore = &f
+	}
+}
+
+// AddedScore returns the value that was added to the "score" field in this mutation.
+func (m *ReportScorecardMutation) AddedScore() (r float32, exists bool) {
+	v := m.addscore
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetScore resets all changes to the "score" field.
+func (m *ReportScorecardMutation) ResetScore() {
+	m.score = nil
+	m.addscore = nil
+}
+
+// SetScorecardVersion sets the "scorecard_version" field.
+func (m *ReportScorecardMutation) SetScorecardVersion(s string) {
+	m.scorecard_version = &s
+}
+
+// ScorecardVersion returns the value of the "scorecard_version" field in the mutation.
+func (m *ReportScorecardMutation) ScorecardVersion() (r string, exists bool) {
+	v := m.scorecard_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldScorecardVersion returns the old "scorecard_version" field's value of the ReportScorecard entity.
+// If the ReportScorecard object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportScorecardMutation) OldScorecardVersion(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldScorecardVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldScorecardVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldScorecardVersion: %w", err)
+	}
+	return oldValue.ScorecardVersion, nil
+}
+
+// ResetScorecardVersion resets all changes to the "scorecard_version" field.
+func (m *ReportScorecardMutation) ResetScorecardVersion() {
+	m.scorecard_version = nil
+}
+
+// SetRepoName sets the "repo_name" field.
+func (m *ReportScorecardMutation) SetRepoName(s string) {
+	m.repo_name = &s
+}
+
+// RepoName returns the value of the "repo_name" field in the mutation.
+func (m *ReportScorecardMutation) RepoName() (r string, exists bool) {
+	v := m.repo_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRepoName returns the old "repo_name" field's value of the ReportScorecard entity.
+// If the ReportScorecard object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportScorecardMutation) OldRepoName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRepoName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRepoName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRepoName: %w", err)
+	}
+	return oldValue.RepoName, nil
+}
+
+// ResetRepoName resets all changes to the "repo_name" field.
+func (m *ReportScorecardMutation) ResetRepoName() {
+	m.repo_name = nil
+}
+
+// SetRepoCommit sets the "repo_commit" field.
+func (m *ReportScorecardMutation) SetRepoCommit(s string) {
+	m.repo_commit = &s
+}
+
+// RepoCommit returns the value of the "repo_commit" field in the mutation.
+func (m *ReportScorecardMutation) RepoCommit() (r string, exists bool) {
+	v := m.repo_commit
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRepoCommit returns the old "repo_commit" field's value of the ReportScorecard entity.
+// If the ReportScorecard object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportScorecardMutation) OldRepoCommit(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRepoCommit is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRepoCommit requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRepoCommit: %w", err)
+	}
+	return oldValue.RepoCommit, nil
+}
+
+// ResetRepoCommit resets all changes to the "repo_commit" field.
+func (m *ReportScorecardMutation) ResetRepoCommit() {
+	m.repo_commit = nil
+}
+
+// SetDate sets the "date" field.
+func (m *ReportScorecardMutation) SetDate(s string) {
+	m.date = &s
+}
+
+// Date returns the value of the "date" field in the mutation.
+func (m *ReportScorecardMutation) Date() (r string, exists bool) {
+	v := m.date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDate returns the old "date" field's value of the ReportScorecard entity.
+// If the ReportScorecard object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportScorecardMutation) OldDate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDate: %w", err)
+	}
+	return oldValue.Date, nil
+}
+
+// ClearDate clears the value of the "date" field.
+func (m *ReportScorecardMutation) ClearDate() {
+	m.date = nil
+	m.clearedFields[reportscorecard.FieldDate] = struct{}{}
+}
+
+// DateCleared returns if the "date" field was cleared in this mutation.
+func (m *ReportScorecardMutation) DateCleared() bool {
+	_, ok := m.clearedFields[reportscorecard.FieldDate]
+	return ok
+}
+
+// ResetDate resets all changes to the "date" field.
+func (m *ReportScorecardMutation) ResetDate() {
+	m.date = nil
+	delete(m.clearedFields, reportscorecard.FieldDate)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ReportScorecardMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ReportScorecardMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ReportScorecard entity.
+// If the ReportScorecard object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportScorecardMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ClearCreatedAt clears the value of the "created_at" field.
+func (m *ReportScorecardMutation) ClearCreatedAt() {
+	m.created_at = nil
+	m.clearedFields[reportscorecard.FieldCreatedAt] = struct{}{}
+}
+
+// CreatedAtCleared returns if the "created_at" field was cleared in this mutation.
+func (m *ReportScorecardMutation) CreatedAtCleared() bool {
+	_, ok := m.clearedFields[reportscorecard.FieldCreatedAt]
+	return ok
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ReportScorecardMutation) ResetCreatedAt() {
+	m.created_at = nil
+	delete(m.clearedFields, reportscorecard.FieldCreatedAt)
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ReportScorecardMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ReportScorecardMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ReportScorecard entity.
+// If the ReportScorecard object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportScorecardMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *ReportScorecardMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[reportscorecard.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *ReportScorecardMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[reportscorecard.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ReportScorecardMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, reportscorecard.FieldUpdatedAt)
+}
+
+// SetProjectID sets the "project" edge to the ReportProject entity by id.
+func (m *ReportScorecardMutation) SetProjectID(id int) {
+	m.project = &id
+}
+
+// ClearProject clears the "project" edge to the ReportProject entity.
+func (m *ReportScorecardMutation) ClearProject() {
+	m.clearedproject = true
+}
+
+// ProjectCleared reports if the "project" edge to the ReportProject entity was cleared.
+func (m *ReportScorecardMutation) ProjectCleared() bool {
+	return m.clearedproject
+}
+
+// ProjectID returns the "project" edge ID in the mutation.
+func (m *ReportScorecardMutation) ProjectID() (id int, exists bool) {
+	if m.project != nil {
+		return *m.project, true
+	}
+	return
+}
+
+// ProjectIDs returns the "project" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ProjectID instead. It exists only for internal usage by the builders.
+func (m *ReportScorecardMutation) ProjectIDs() (ids []int) {
+	if id := m.project; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetProject resets all changes to the "project" edge.
+func (m *ReportScorecardMutation) ResetProject() {
+	m.project = nil
+	m.clearedproject = false
+}
+
+// AddCheckIDs adds the "checks" edge to the ReportScorecardCheck entity by ids.
+func (m *ReportScorecardMutation) AddCheckIDs(ids ...int) {
+	if m.checks == nil {
+		m.checks = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.checks[ids[i]] = struct{}{}
+	}
+}
+
+// ClearChecks clears the "checks" edge to the ReportScorecardCheck entity.
+func (m *ReportScorecardMutation) ClearChecks() {
+	m.clearedchecks = true
+}
+
+// ChecksCleared reports if the "checks" edge to the ReportScorecardCheck entity was cleared.
+func (m *ReportScorecardMutation) ChecksCleared() bool {
+	return m.clearedchecks
+}
+
+// RemoveCheckIDs removes the "checks" edge to the ReportScorecardCheck entity by IDs.
+func (m *ReportScorecardMutation) RemoveCheckIDs(ids ...int) {
+	if m.removedchecks == nil {
+		m.removedchecks = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.checks, ids[i])
+		m.removedchecks[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedChecks returns the removed IDs of the "checks" edge to the ReportScorecardCheck entity.
+func (m *ReportScorecardMutation) RemovedChecksIDs() (ids []int) {
+	for id := range m.removedchecks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ChecksIDs returns the "checks" edge IDs in the mutation.
+func (m *ReportScorecardMutation) ChecksIDs() (ids []int) {
+	for id := range m.checks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetChecks resets all changes to the "checks" edge.
+func (m *ReportScorecardMutation) ResetChecks() {
+	m.checks = nil
+	m.clearedchecks = false
+	m.removedchecks = nil
+}
+
+// Where appends a list predicates to the ReportScorecardMutation builder.
+func (m *ReportScorecardMutation) Where(ps ...predicate.ReportScorecard) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ReportScorecardMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ReportScorecardMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ReportScorecard, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ReportScorecardMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ReportScorecardMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ReportScorecard).
+func (m *ReportScorecardMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ReportScorecardMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.score != nil {
+		fields = append(fields, reportscorecard.FieldScore)
+	}
+	if m.scorecard_version != nil {
+		fields = append(fields, reportscorecard.FieldScorecardVersion)
+	}
+	if m.repo_name != nil {
+		fields = append(fields, reportscorecard.FieldRepoName)
+	}
+	if m.repo_commit != nil {
+		fields = append(fields, reportscorecard.FieldRepoCommit)
+	}
+	if m.date != nil {
+		fields = append(fields, reportscorecard.FieldDate)
+	}
+	if m.created_at != nil {
+		fields = append(fields, reportscorecard.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, reportscorecard.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ReportScorecardMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case reportscorecard.FieldScore:
+		return m.Score()
+	case reportscorecard.FieldScorecardVersion:
+		return m.ScorecardVersion()
+	case reportscorecard.FieldRepoName:
+		return m.RepoName()
+	case reportscorecard.FieldRepoCommit:
+		return m.RepoCommit()
+	case reportscorecard.FieldDate:
+		return m.Date()
+	case reportscorecard.FieldCreatedAt:
+		return m.CreatedAt()
+	case reportscorecard.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ReportScorecardMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case reportscorecard.FieldScore:
+		return m.OldScore(ctx)
+	case reportscorecard.FieldScorecardVersion:
+		return m.OldScorecardVersion(ctx)
+	case reportscorecard.FieldRepoName:
+		return m.OldRepoName(ctx)
+	case reportscorecard.FieldRepoCommit:
+		return m.OldRepoCommit(ctx)
+	case reportscorecard.FieldDate:
+		return m.OldDate(ctx)
+	case reportscorecard.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case reportscorecard.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown ReportScorecard field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportScorecardMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case reportscorecard.FieldScore:
+		v, ok := value.(float32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetScore(v)
+		return nil
+	case reportscorecard.FieldScorecardVersion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetScorecardVersion(v)
+		return nil
+	case reportscorecard.FieldRepoName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRepoName(v)
+		return nil
+	case reportscorecard.FieldRepoCommit:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRepoCommit(v)
+		return nil
+	case reportscorecard.FieldDate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDate(v)
+		return nil
+	case reportscorecard.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case reportscorecard.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ReportScorecard field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ReportScorecardMutation) AddedFields() []string {
+	var fields []string
+	if m.addscore != nil {
+		fields = append(fields, reportscorecard.FieldScore)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ReportScorecardMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case reportscorecard.FieldScore:
+		return m.AddedScore()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportScorecardMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case reportscorecard.FieldScore:
+		v, ok := value.(float32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddScore(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ReportScorecard numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ReportScorecardMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(reportscorecard.FieldDate) {
+		fields = append(fields, reportscorecard.FieldDate)
+	}
+	if m.FieldCleared(reportscorecard.FieldCreatedAt) {
+		fields = append(fields, reportscorecard.FieldCreatedAt)
+	}
+	if m.FieldCleared(reportscorecard.FieldUpdatedAt) {
+		fields = append(fields, reportscorecard.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ReportScorecardMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ReportScorecardMutation) ClearField(name string) error {
+	switch name {
+	case reportscorecard.FieldDate:
+		m.ClearDate()
+		return nil
+	case reportscorecard.FieldCreatedAt:
+		m.ClearCreatedAt()
+		return nil
+	case reportscorecard.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportScorecard nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ReportScorecardMutation) ResetField(name string) error {
+	switch name {
+	case reportscorecard.FieldScore:
+		m.ResetScore()
+		return nil
+	case reportscorecard.FieldScorecardVersion:
+		m.ResetScorecardVersion()
+		return nil
+	case reportscorecard.FieldRepoName:
+		m.ResetRepoName()
+		return nil
+	case reportscorecard.FieldRepoCommit:
+		m.ResetRepoCommit()
+		return nil
+	case reportscorecard.FieldDate:
+		m.ResetDate()
+		return nil
+	case reportscorecard.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case reportscorecard.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportScorecard field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ReportScorecardMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.project != nil {
+		edges = append(edges, reportscorecard.EdgeProject)
+	}
+	if m.checks != nil {
+		edges = append(edges, reportscorecard.EdgeChecks)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ReportScorecardMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case reportscorecard.EdgeProject:
+		if id := m.project; id != nil {
+			return []ent.Value{*id}
+		}
+	case reportscorecard.EdgeChecks:
+		ids := make([]ent.Value, 0, len(m.checks))
+		for id := range m.checks {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ReportScorecardMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedchecks != nil {
+		edges = append(edges, reportscorecard.EdgeChecks)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ReportScorecardMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case reportscorecard.EdgeChecks:
+		ids := make([]ent.Value, 0, len(m.removedchecks))
+		for id := range m.removedchecks {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ReportScorecardMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedproject {
+		edges = append(edges, reportscorecard.EdgeProject)
+	}
+	if m.clearedchecks {
+		edges = append(edges, reportscorecard.EdgeChecks)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ReportScorecardMutation) EdgeCleared(name string) bool {
+	switch name {
+	case reportscorecard.EdgeProject:
+		return m.clearedproject
+	case reportscorecard.EdgeChecks:
+		return m.clearedchecks
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ReportScorecardMutation) ClearEdge(name string) error {
+	switch name {
+	case reportscorecard.EdgeProject:
+		m.ClearProject()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportScorecard unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ReportScorecardMutation) ResetEdge(name string) error {
+	switch name {
+	case reportscorecard.EdgeProject:
+		m.ResetProject()
+		return nil
+	case reportscorecard.EdgeChecks:
+		m.ResetChecks()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportScorecard edge %s", name)
+}
+
+// ReportScorecardCheckMutation represents an operation that mutates the ReportScorecardCheck nodes in the graph.
+type ReportScorecardCheckMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int
+	name             *string
+	score            *float32
+	addscore         *float32
+	reason           *string
+	created_at       *time.Time
+	updated_at       *time.Time
+	clearedFields    map[string]struct{}
+	scorecard        *int
+	clearedscorecard bool
+	done             bool
+	oldValue         func(context.Context) (*ReportScorecardCheck, error)
+	predicates       []predicate.ReportScorecardCheck
+}
+
+var _ ent.Mutation = (*ReportScorecardCheckMutation)(nil)
+
+// reportscorecardcheckOption allows management of the mutation configuration using functional options.
+type reportscorecardcheckOption func(*ReportScorecardCheckMutation)
+
+// newReportScorecardCheckMutation creates new mutation for the ReportScorecardCheck entity.
+func newReportScorecardCheckMutation(c config, op Op, opts ...reportscorecardcheckOption) *ReportScorecardCheckMutation {
+	m := &ReportScorecardCheckMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeReportScorecardCheck,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withReportScorecardCheckID sets the ID field of the mutation.
+func withReportScorecardCheckID(id int) reportscorecardcheckOption {
+	return func(m *ReportScorecardCheckMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ReportScorecardCheck
+		)
+		m.oldValue = func(ctx context.Context) (*ReportScorecardCheck, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ReportScorecardCheck.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withReportScorecardCheck sets the old ReportScorecardCheck of the mutation.
+func withReportScorecardCheck(node *ReportScorecardCheck) reportscorecardcheckOption {
+	return func(m *ReportScorecardCheckMutation) {
+		m.oldValue = func(context.Context) (*ReportScorecardCheck, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ReportScorecardCheckMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ReportScorecardCheckMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ReportScorecardCheckMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ReportScorecardCheckMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ReportScorecardCheck.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *ReportScorecardCheckMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *ReportScorecardCheckMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the ReportScorecardCheck entity.
+// If the ReportScorecardCheck object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportScorecardCheckMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *ReportScorecardCheckMutation) ResetName() {
+	m.name = nil
+}
+
+// SetScore sets the "score" field.
+func (m *ReportScorecardCheckMutation) SetScore(f float32) {
+	m.score = &f
+	m.addscore = nil
+}
+
+// Score returns the value of the "score" field in the mutation.
+func (m *ReportScorecardCheckMutation) Score() (r float32, exists bool) {
+	v := m.score
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldScore returns the old "score" field's value of the ReportScorecardCheck entity.
+// If the ReportScorecardCheck object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportScorecardCheckMutation) OldScore(ctx context.Context) (v float32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldScore is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldScore requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldScore: %w", err)
+	}
+	return oldValue.Score, nil
+}
+
+// AddScore adds f to the "score" field.
+func (m *ReportScorecardCheckMutation) AddScore(f float32) {
+	if m.addscore != nil {
+		*m.addscore += f
+	} else {
+		m.addscore = &f
+	}
+}
+
+// AddedScore returns the value that was added to the "score" field in this mutation.
+func (m *ReportScorecardCheckMutation) AddedScore() (r float32, exists bool) {
+	v := m.addscore
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetScore resets all changes to the "score" field.
+func (m *ReportScorecardCheckMutation) ResetScore() {
+	m.score = nil
+	m.addscore = nil
+}
+
+// SetReason sets the "reason" field.
+func (m *ReportScorecardCheckMutation) SetReason(s string) {
+	m.reason = &s
+}
+
+// Reason returns the value of the "reason" field in the mutation.
+func (m *ReportScorecardCheckMutation) Reason() (r string, exists bool) {
+	v := m.reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReason returns the old "reason" field's value of the ReportScorecardCheck entity.
+// If the ReportScorecardCheck object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportScorecardCheckMutation) OldReason(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReason: %w", err)
+	}
+	return oldValue.Reason, nil
+}
+
+// ClearReason clears the value of the "reason" field.
+func (m *ReportScorecardCheckMutation) ClearReason() {
+	m.reason = nil
+	m.clearedFields[reportscorecardcheck.FieldReason] = struct{}{}
+}
+
+// ReasonCleared returns if the "reason" field was cleared in this mutation.
+func (m *ReportScorecardCheckMutation) ReasonCleared() bool {
+	_, ok := m.clearedFields[reportscorecardcheck.FieldReason]
+	return ok
+}
+
+// ResetReason resets all changes to the "reason" field.
+func (m *ReportScorecardCheckMutation) ResetReason() {
+	m.reason = nil
+	delete(m.clearedFields, reportscorecardcheck.FieldReason)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ReportScorecardCheckMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ReportScorecardCheckMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ReportScorecardCheck entity.
+// If the ReportScorecardCheck object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportScorecardCheckMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ClearCreatedAt clears the value of the "created_at" field.
+func (m *ReportScorecardCheckMutation) ClearCreatedAt() {
+	m.created_at = nil
+	m.clearedFields[reportscorecardcheck.FieldCreatedAt] = struct{}{}
+}
+
+// CreatedAtCleared returns if the "created_at" field was cleared in this mutation.
+func (m *ReportScorecardCheckMutation) CreatedAtCleared() bool {
+	_, ok := m.clearedFields[reportscorecardcheck.FieldCreatedAt]
+	return ok
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ReportScorecardCheckMutation) ResetCreatedAt() {
+	m.created_at = nil
+	delete(m.clearedFields, reportscorecardcheck.FieldCreatedAt)
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ReportScorecardCheckMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ReportScorecardCheckMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ReportScorecardCheck entity.
+// If the ReportScorecardCheck object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ReportScorecardCheckMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *ReportScorecardCheckMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[reportscorecardcheck.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *ReportScorecardCheckMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[reportscorecardcheck.FieldUpdatedAt]
+	return ok
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ReportScorecardCheckMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+	delete(m.clearedFields, reportscorecardcheck.FieldUpdatedAt)
+}
+
+// SetScorecardID sets the "scorecard" edge to the ReportScorecard entity by id.
+func (m *ReportScorecardCheckMutation) SetScorecardID(id int) {
+	m.scorecard = &id
+}
+
+// ClearScorecard clears the "scorecard" edge to the ReportScorecard entity.
+func (m *ReportScorecardCheckMutation) ClearScorecard() {
+	m.clearedscorecard = true
+}
+
+// ScorecardCleared reports if the "scorecard" edge to the ReportScorecard entity was cleared.
+func (m *ReportScorecardCheckMutation) ScorecardCleared() bool {
+	return m.clearedscorecard
+}
+
+// ScorecardID returns the "scorecard" edge ID in the mutation.
+func (m *ReportScorecardCheckMutation) ScorecardID() (id int, exists bool) {
+	if m.scorecard != nil {
+		return *m.scorecard, true
+	}
+	return
+}
+
+// ScorecardIDs returns the "scorecard" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ScorecardID instead. It exists only for internal usage by the builders.
+func (m *ReportScorecardCheckMutation) ScorecardIDs() (ids []int) {
+	if id := m.scorecard; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetScorecard resets all changes to the "scorecard" edge.
+func (m *ReportScorecardCheckMutation) ResetScorecard() {
+	m.scorecard = nil
+	m.clearedscorecard = false
+}
+
+// Where appends a list predicates to the ReportScorecardCheckMutation builder.
+func (m *ReportScorecardCheckMutation) Where(ps ...predicate.ReportScorecardCheck) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ReportScorecardCheckMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ReportScorecardCheckMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ReportScorecardCheck, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ReportScorecardCheckMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ReportScorecardCheckMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ReportScorecardCheck).
+func (m *ReportScorecardCheckMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ReportScorecardCheckMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.name != nil {
+		fields = append(fields, reportscorecardcheck.FieldName)
+	}
+	if m.score != nil {
+		fields = append(fields, reportscorecardcheck.FieldScore)
+	}
+	if m.reason != nil {
+		fields = append(fields, reportscorecardcheck.FieldReason)
+	}
+	if m.created_at != nil {
+		fields = append(fields, reportscorecardcheck.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, reportscorecardcheck.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ReportScorecardCheckMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case reportscorecardcheck.FieldName:
+		return m.Name()
+	case reportscorecardcheck.FieldScore:
+		return m.Score()
+	case reportscorecardcheck.FieldReason:
+		return m.Reason()
+	case reportscorecardcheck.FieldCreatedAt:
+		return m.CreatedAt()
+	case reportscorecardcheck.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ReportScorecardCheckMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case reportscorecardcheck.FieldName:
+		return m.OldName(ctx)
+	case reportscorecardcheck.FieldScore:
+		return m.OldScore(ctx)
+	case reportscorecardcheck.FieldReason:
+		return m.OldReason(ctx)
+	case reportscorecardcheck.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case reportscorecardcheck.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown ReportScorecardCheck field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportScorecardCheckMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case reportscorecardcheck.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case reportscorecardcheck.FieldScore:
+		v, ok := value.(float32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetScore(v)
+		return nil
+	case reportscorecardcheck.FieldReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReason(v)
+		return nil
+	case reportscorecardcheck.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case reportscorecardcheck.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ReportScorecardCheck field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ReportScorecardCheckMutation) AddedFields() []string {
+	var fields []string
+	if m.addscore != nil {
+		fields = append(fields, reportscorecardcheck.FieldScore)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ReportScorecardCheckMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case reportscorecardcheck.FieldScore:
+		return m.AddedScore()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ReportScorecardCheckMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case reportscorecardcheck.FieldScore:
+		v, ok := value.(float32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddScore(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ReportScorecardCheck numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ReportScorecardCheckMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(reportscorecardcheck.FieldReason) {
+		fields = append(fields, reportscorecardcheck.FieldReason)
+	}
+	if m.FieldCleared(reportscorecardcheck.FieldCreatedAt) {
+		fields = append(fields, reportscorecardcheck.FieldCreatedAt)
+	}
+	if m.FieldCleared(reportscorecardcheck.FieldUpdatedAt) {
+		fields = append(fields, reportscorecardcheck.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ReportScorecardCheckMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ReportScorecardCheckMutation) ClearField(name string) error {
+	switch name {
+	case reportscorecardcheck.FieldReason:
+		m.ClearReason()
+		return nil
+	case reportscorecardcheck.FieldCreatedAt:
+		m.ClearCreatedAt()
+		return nil
+	case reportscorecardcheck.FieldUpdatedAt:
+		m.ClearUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportScorecardCheck nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ReportScorecardCheckMutation) ResetField(name string) error {
+	switch name {
+	case reportscorecardcheck.FieldName:
+		m.ResetName()
+		return nil
+	case reportscorecardcheck.FieldScore:
+		m.ResetScore()
+		return nil
+	case reportscorecardcheck.FieldReason:
+		m.ResetReason()
+		return nil
+	case reportscorecardcheck.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case reportscorecardcheck.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportScorecardCheck field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ReportScorecardCheckMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.scorecard != nil {
+		edges = append(edges, reportscorecardcheck.EdgeScorecard)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ReportScorecardCheckMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case reportscorecardcheck.EdgeScorecard:
+		if id := m.scorecard; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ReportScorecardCheckMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ReportScorecardCheckMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ReportScorecardCheckMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedscorecard {
+		edges = append(edges, reportscorecardcheck.EdgeScorecard)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ReportScorecardCheckMutation) EdgeCleared(name string) bool {
+	switch name {
+	case reportscorecardcheck.EdgeScorecard:
+		return m.clearedscorecard
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ReportScorecardCheckMutation) ClearEdge(name string) error {
+	switch name {
+	case reportscorecardcheck.EdgeScorecard:
+		m.ClearScorecard()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportScorecardCheck unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ReportScorecardCheckMutation) ResetEdge(name string) error {
+	switch name {
+	case reportscorecardcheck.EdgeScorecard:
+		m.ResetScorecard()
+		return nil
+	}
+	return fmt.Errorf("unknown ReportScorecardCheck edge %s", name)
 }
 
 // ReportVulnerabilityMutation represents an operation that mutates the ReportVulnerability nodes in the graph.

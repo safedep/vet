@@ -17,6 +17,7 @@ import (
 	"github.com/safedep/vet/ent/reportmalware"
 	"github.com/safedep/vet/ent/reportpackage"
 	"github.com/safedep/vet/ent/reportpackagemanifest"
+	"github.com/safedep/vet/ent/reportproject"
 	"github.com/safedep/vet/ent/reportvulnerability"
 )
 
@@ -325,6 +326,21 @@ func (rpu *ReportPackageUpdate) SetMalwareAnalysis(r *ReportMalware) *ReportPack
 	return rpu.SetMalwareAnalysisID(r.ID)
 }
 
+// AddProjectIDs adds the "projects" edge to the ReportProject entity by IDs.
+func (rpu *ReportPackageUpdate) AddProjectIDs(ids ...int) *ReportPackageUpdate {
+	rpu.mutation.AddProjectIDs(ids...)
+	return rpu
+}
+
+// AddProjects adds the "projects" edges to the ReportProject entity.
+func (rpu *ReportPackageUpdate) AddProjects(r ...*ReportProject) *ReportPackageUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpu.AddProjectIDs(ids...)
+}
+
 // Mutation returns the ReportPackageMutation object of the builder.
 func (rpu *ReportPackageUpdate) Mutation() *ReportPackageMutation {
 	return rpu.mutation
@@ -403,6 +419,27 @@ func (rpu *ReportPackageUpdate) RemoveDependencies(r ...*ReportDependency) *Repo
 func (rpu *ReportPackageUpdate) ClearMalwareAnalysis() *ReportPackageUpdate {
 	rpu.mutation.ClearMalwareAnalysis()
 	return rpu
+}
+
+// ClearProjects clears all "projects" edges to the ReportProject entity.
+func (rpu *ReportPackageUpdate) ClearProjects() *ReportPackageUpdate {
+	rpu.mutation.ClearProjects()
+	return rpu
+}
+
+// RemoveProjectIDs removes the "projects" edge to ReportProject entities by IDs.
+func (rpu *ReportPackageUpdate) RemoveProjectIDs(ids ...int) *ReportPackageUpdate {
+	rpu.mutation.RemoveProjectIDs(ids...)
+	return rpu
+}
+
+// RemoveProjects removes "projects" edges to ReportProject entities.
+func (rpu *ReportPackageUpdate) RemoveProjects(r ...*ReportProject) *ReportPackageUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpu.RemoveProjectIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -727,6 +764,51 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if rpu.mutation.ProjectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.ProjectsTable,
+			Columns: []string{reportpackage.ProjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportproject.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpu.mutation.RemovedProjectsIDs(); len(nodes) > 0 && !rpu.mutation.ProjectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.ProjectsTable,
+			Columns: []string{reportpackage.ProjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportproject.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpu.mutation.ProjectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.ProjectsTable,
+			Columns: []string{reportpackage.ProjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportproject.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, rpu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{reportpackage.Label}
@@ -1039,6 +1121,21 @@ func (rpuo *ReportPackageUpdateOne) SetMalwareAnalysis(r *ReportMalware) *Report
 	return rpuo.SetMalwareAnalysisID(r.ID)
 }
 
+// AddProjectIDs adds the "projects" edge to the ReportProject entity by IDs.
+func (rpuo *ReportPackageUpdateOne) AddProjectIDs(ids ...int) *ReportPackageUpdateOne {
+	rpuo.mutation.AddProjectIDs(ids...)
+	return rpuo
+}
+
+// AddProjects adds the "projects" edges to the ReportProject entity.
+func (rpuo *ReportPackageUpdateOne) AddProjects(r ...*ReportProject) *ReportPackageUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpuo.AddProjectIDs(ids...)
+}
+
 // Mutation returns the ReportPackageMutation object of the builder.
 func (rpuo *ReportPackageUpdateOne) Mutation() *ReportPackageMutation {
 	return rpuo.mutation
@@ -1117,6 +1214,27 @@ func (rpuo *ReportPackageUpdateOne) RemoveDependencies(r ...*ReportDependency) *
 func (rpuo *ReportPackageUpdateOne) ClearMalwareAnalysis() *ReportPackageUpdateOne {
 	rpuo.mutation.ClearMalwareAnalysis()
 	return rpuo
+}
+
+// ClearProjects clears all "projects" edges to the ReportProject entity.
+func (rpuo *ReportPackageUpdateOne) ClearProjects() *ReportPackageUpdateOne {
+	rpuo.mutation.ClearProjects()
+	return rpuo
+}
+
+// RemoveProjectIDs removes the "projects" edge to ReportProject entities by IDs.
+func (rpuo *ReportPackageUpdateOne) RemoveProjectIDs(ids ...int) *ReportPackageUpdateOne {
+	rpuo.mutation.RemoveProjectIDs(ids...)
+	return rpuo
+}
+
+// RemoveProjects removes "projects" edges to ReportProject entities.
+func (rpuo *ReportPackageUpdateOne) RemoveProjects(r ...*ReportProject) *ReportPackageUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpuo.RemoveProjectIDs(ids...)
 }
 
 // Where appends a list predicates to the ReportPackageUpdate builder.
@@ -1464,6 +1582,51 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reportmalware.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if rpuo.mutation.ProjectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.ProjectsTable,
+			Columns: []string{reportpackage.ProjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportproject.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpuo.mutation.RemovedProjectsIDs(); len(nodes) > 0 && !rpuo.mutation.ProjectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.ProjectsTable,
+			Columns: []string{reportpackage.ProjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportproject.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpuo.mutation.ProjectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.ProjectsTable,
+			Columns: []string{reportpackage.ProjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportproject.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

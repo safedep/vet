@@ -15,6 +15,7 @@ import (
 	"github.com/safedep/vet/ent/reportmalware"
 	"github.com/safedep/vet/ent/reportpackage"
 	"github.com/safedep/vet/ent/reportpackagemanifest"
+	"github.com/safedep/vet/ent/reportproject"
 	"github.com/safedep/vet/ent/reportvulnerability"
 )
 
@@ -238,6 +239,21 @@ func (rpc *ReportPackageCreate) SetNillableMalwareAnalysisID(id *int) *ReportPac
 // SetMalwareAnalysis sets the "malware_analysis" edge to the ReportMalware entity.
 func (rpc *ReportPackageCreate) SetMalwareAnalysis(r *ReportMalware) *ReportPackageCreate {
 	return rpc.SetMalwareAnalysisID(r.ID)
+}
+
+// AddProjectIDs adds the "projects" edge to the ReportProject entity by IDs.
+func (rpc *ReportPackageCreate) AddProjectIDs(ids ...int) *ReportPackageCreate {
+	rpc.mutation.AddProjectIDs(ids...)
+	return rpc
+}
+
+// AddProjects adds the "projects" edges to the ReportProject entity.
+func (rpc *ReportPackageCreate) AddProjects(r ...*ReportProject) *ReportPackageCreate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpc.AddProjectIDs(ids...)
 }
 
 // Mutation returns the ReportPackageMutation object of the builder.
@@ -503,6 +519,22 @@ func (rpc *ReportPackageCreate) createSpec() (*ReportPackage, *sqlgraph.CreateSp
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reportmalware.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rpc.mutation.ProjectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   reportpackage.ProjectsTable,
+			Columns: []string{reportpackage.ProjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportproject.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

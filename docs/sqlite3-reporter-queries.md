@@ -229,6 +229,151 @@ WHERE p.is_direct = 1
 ORDER BY m.display_path, p.name;
 ```
 
+## OSS Project and OpenSSF Scorecard Queries
+
+### Find packages with project information
+```sql
+SELECT p.name, p.version, proj.name as project_name, proj.url, proj.stars, proj.forks
+FROM report_packages p
+JOIN report_projects proj ON p.id = proj.report_package_projects
+ORDER BY proj.stars DESC;
+```
+
+### Find packages with low scorecard scores
+```sql
+SELECT p.name, p.version, s.score, s.scorecard_version, proj.name as project_name
+FROM report_packages p
+JOIN report_projects proj ON p.id = proj.report_package_projects
+JOIN report_scorecards s ON proj.id = s.report_project_scorecard
+WHERE s.score < 5.0
+ORDER BY s.score ASC;
+```
+
+### Find packages failing specific scorecard checks
+```sql
+SELECT p.name, p.version, c.name as check_name, c.score, c.reason, proj.name as project_name
+FROM report_packages p
+JOIN report_projects proj ON p.id = proj.report_package_projects  
+JOIN report_scorecards s ON proj.id = s.report_project_scorecard
+JOIN report_scorecard_checks c ON s.id = c.report_scorecard_checks
+WHERE c.name = 'Maintained' AND c.score < 5
+ORDER BY c.score ASC;
+```
+
+### OpenSSF scorecard check summary
+```sql
+SELECT 
+    c.name as check_name,
+    AVG(c.score) as avg_score,
+    MIN(c.score) as min_score,
+    MAX(c.score) as max_score,
+    COUNT(*) as package_count
+FROM report_scorecard_checks c
+GROUP BY c.name
+ORDER BY avg_score ASC;
+```
+
+### Find packages with security-related scorecard failures
+```sql
+SELECT DISTINCT p.name, p.version, c.name as failed_check, c.score, c.reason
+FROM report_packages p
+JOIN report_projects proj ON p.id = proj.report_package_projects  
+JOIN report_scorecards s ON proj.id = s.report_project_scorecard
+JOIN report_scorecard_checks c ON s.id = c.report_scorecard_checks
+WHERE c.name IN ('Security-Policy', 'Vulnerabilities', 'Token-Permissions', 'Dangerous-Workflow')
+  AND c.score < 5
+ORDER BY c.score ASC;
+```
+
+### Find popular projects with poor security scores
+```sql
+SELECT 
+    p.name, 
+    p.version, 
+    proj.name as project_name,
+    proj.stars,
+    s.score as scorecard_score,
+    COUNT(c.id) as failed_checks
+FROM report_packages p
+JOIN report_projects proj ON p.id = proj.report_package_projects
+JOIN report_scorecards s ON proj.id = s.report_project_scorecard
+LEFT JOIN report_scorecard_checks c ON s.id = c.report_scorecard_checks AND c.score < 5
+WHERE proj.stars > 1000 AND s.score < 6
+GROUP BY p.id, proj.id, s.id
+ORDER BY proj.stars DESC;
+```
+
+### Scorecard overview by ecosystem
+```sql
+SELECT 
+    p.ecosystem,
+    COUNT(DISTINCT p.id) as packages_with_scorecard,
+    AVG(s.score) as avg_scorecard_score,
+    MIN(s.score) as min_score,
+    MAX(s.score) as max_score,
+    AVG(proj.stars) as avg_stars
+FROM report_packages p
+JOIN report_projects proj ON p.id = proj.report_package_projects
+JOIN report_scorecards s ON proj.id = s.report_project_scorecard
+GROUP BY p.ecosystem
+ORDER BY avg_scorecard_score DESC;
+```
+
+### Find packages with both vulnerabilities and poor scorecard scores
+```sql
+SELECT 
+    p.name, 
+    p.version,
+    s.score as scorecard_score,
+    COUNT(v.id) as vulnerability_count,
+    SUM(CASE WHEN v.severity = 'CRITICAL' THEN 1 ELSE 0 END) as critical_vulns,
+    proj.name as project_name,
+    proj.stars
+FROM report_packages p
+JOIN report_projects proj ON p.id = proj.report_package_projects
+JOIN report_scorecards s ON proj.id = s.report_project_scorecard
+LEFT JOIN report_vulnerabilities v ON p.id = v.report_package_vulnerabilities
+WHERE s.score < 6
+GROUP BY p.id, proj.id, s.id
+HAVING vulnerability_count > 0
+ORDER BY critical_vulns DESC, vulnerability_count DESC;
+```
+
+### Detailed scorecard check analysis
+```sql
+SELECT 
+    p.name,
+    p.version,
+    proj.name as project_name,
+    s.score as overall_score,
+    c.name as check_name,
+    c.score as check_score,
+    c.reason
+FROM report_packages p
+JOIN report_projects proj ON p.id = proj.report_package_projects
+JOIN report_scorecards s ON proj.id = s.report_project_scorecard
+JOIN report_scorecard_checks c ON s.id = c.report_scorecard_checks
+WHERE p.name = 'example-package'
+ORDER BY c.score ASC;
+```
+
+### Find projects with best security practices
+```sql
+SELECT 
+    p.name,
+    p.version,
+    proj.name as project_name,
+    proj.url,
+    s.score as scorecard_score,
+    proj.stars,
+    proj.forks
+FROM report_packages p
+JOIN report_projects proj ON p.id = proj.report_package_projects
+JOIN report_scorecards s ON proj.id = s.report_project_scorecard
+WHERE s.score >= 8.0
+ORDER BY s.score DESC, proj.stars DESC;
+```
+
 ## Insights V2 Data Queries
 
 ### Query packages with Insights V2 data
@@ -678,6 +823,59 @@ For large dependency graphs, consider:
 - Using the depth field to limit traversal depth
 - Creating additional indexes for frequently queried patterns
 
+## OpenSSF Scorecard Database Schema
+
+The OpenSSF scorecard data is stored in separate, normalized entities for optimal querying:
+
+### ReportProjects Table
+```sql
+CREATE TABLE report_projects (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    url TEXT,
+    description TEXT,
+    stars INTEGER,
+    forks INTEGER,
+    created_at DATETIME,
+    updated_at DATETIME,
+    report_package_projects INTEGER REFERENCES report_packages(id)
+);
+```
+
+### ReportScorecards Table
+```sql
+CREATE TABLE report_scorecards (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    score REAL NOT NULL,
+    scorecard_version TEXT NOT NULL,
+    repo_name TEXT NOT NULL,
+    repo_commit TEXT NOT NULL,
+    date TEXT,
+    created_at DATETIME,
+    updated_at DATETIME,
+    report_project_scorecard INTEGER REFERENCES report_projects(id)
+);
+```
+
+### ReportScorecardChecks Table
+```sql
+CREATE TABLE report_scorecard_checks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    score REAL NOT NULL,
+    reason TEXT,
+    created_at DATETIME,
+    updated_at DATETIME,
+    report_scorecard_checks INTEGER REFERENCES report_scorecards(id)
+);
+```
+
+This normalized schema enables:
+- Direct queries on scorecard scores without JSON parsing
+- Individual analysis of each scorecard check
+- Efficient joins across packages → projects → scorecards → checks
+- Proper indexing on scorecard fields for performance
+
 ## Creating Views for Common Queries
 
 You can create views to simplify frequently used queries:
@@ -712,7 +910,46 @@ FROM report_packages rp
 JOIN report_vulnerabilities rv ON rp.id = rv.report_package_vulnerabilities
 LEFT JOIN report_dependency_graphs dg ON rp.package_id = dg.to_package_id;
 
+-- Create a view for scorecard analysis
+CREATE VIEW scorecard_analysis AS
+SELECT 
+    p.name as package_name,
+    p.version as package_version,
+    p.ecosystem,
+    proj.name as project_name,
+    proj.url as project_url,
+    proj.stars,
+    proj.forks,
+    s.score as scorecard_score,
+    s.scorecard_version,
+    s.repo_name,
+    s.date as scorecard_date
+FROM report_packages p
+JOIN report_projects proj ON p.id = proj.report_package_projects
+LEFT JOIN report_scorecards s ON proj.id = s.report_project_scorecard;
+
+-- Create a view for security posture overview
+CREATE VIEW security_posture AS
+SELECT 
+    p.name,
+    p.version,
+    p.ecosystem,
+    p.is_malware,
+    p.is_suspicious,
+    COUNT(DISTINCT v.id) as vulnerability_count,
+    SUM(CASE WHEN v.severity = 'CRITICAL' THEN 1 ELSE 0 END) as critical_vulns,
+    SUM(CASE WHEN v.severity = 'HIGH' THEN 1 ELSE 0 END) as high_vulns,
+    s.score as scorecard_score,
+    proj.stars
+FROM report_packages p
+LEFT JOIN report_vulnerabilities v ON p.id = v.report_package_vulnerabilities
+LEFT JOIN report_projects proj ON p.id = proj.report_package_projects
+LEFT JOIN report_scorecards s ON proj.id = s.report_project_scorecard
+GROUP BY p.id, proj.id, s.id;
+
 -- Use the views
 SELECT * FROM security_overview WHERE is_malware = 1;
 SELECT * FROM vulnerability_impact WHERE severity IN ('CRITICAL', 'HIGH');
+SELECT * FROM scorecard_analysis WHERE scorecard_score < 5.0;
+SELECT * FROM security_posture WHERE scorecard_score < 6 AND vulnerability_count > 0;
 ```

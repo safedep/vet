@@ -67,9 +67,11 @@ type ReportPackageEdges struct {
 	Dependencies []*ReportDependency `json:"dependencies,omitempty"`
 	// MalwareAnalysis holds the value of the malware_analysis edge.
 	MalwareAnalysis *ReportMalware `json:"malware_analysis,omitempty"`
+	// Projects holds the value of the projects edge.
+	Projects []*ReportProject `json:"projects,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // ManifestOrErr returns the Manifest value or an error if the edge
@@ -119,6 +121,15 @@ func (e ReportPackageEdges) MalwareAnalysisOrErr() (*ReportMalware, error) {
 		return nil, &NotFoundError{label: reportmalware.Label}
 	}
 	return nil, &NotLoadedError{edge: "malware_analysis"}
+}
+
+// ProjectsOrErr returns the Projects value or an error if the edge
+// was not loaded in eager-loading.
+func (e ReportPackageEdges) ProjectsOrErr() ([]*ReportProject, error) {
+	if e.loadedTypes[5] {
+		return e.Projects, nil
+	}
+	return nil, &NotLoadedError{edge: "projects"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -292,6 +303,11 @@ func (rp *ReportPackage) QueryDependencies() *ReportDependencyQuery {
 // QueryMalwareAnalysis queries the "malware_analysis" edge of the ReportPackage entity.
 func (rp *ReportPackage) QueryMalwareAnalysis() *ReportMalwareQuery {
 	return NewReportPackageClient(rp.config).QueryMalwareAnalysis(rp)
+}
+
+// QueryProjects queries the "projects" edge of the ReportPackage entity.
+func (rp *ReportPackage) QueryProjects() *ReportProjectQuery {
+	return NewReportPackageClient(rp.config).QueryProjects(rp)
 }
 
 // Update returns a builder for updating this ReportPackage.

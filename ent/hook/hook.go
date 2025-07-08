@@ -117,6 +117,30 @@ func (f ReportProjectFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Valu
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ReportProjectMutation", m)
 }
 
+// The ReportScorecardFunc type is an adapter to allow the use of ordinary
+// function as ReportScorecard mutator.
+type ReportScorecardFunc func(context.Context, *ent.ReportScorecardMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ReportScorecardFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ReportScorecardMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ReportScorecardMutation", m)
+}
+
+// The ReportScorecardCheckFunc type is an adapter to allow the use of ordinary
+// function as ReportScorecardCheck mutator.
+type ReportScorecardCheckFunc func(context.Context, *ent.ReportScorecardCheckMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ReportScorecardCheckFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ReportScorecardCheckMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ReportScorecardCheckMutation", m)
+}
+
 // The ReportVulnerabilityFunc type is an adapter to allow the use of ordinary
 // function as ReportVulnerability mutator.
 type ReportVulnerabilityFunc func(context.Context, *ent.ReportVulnerabilityMutation) (ent.Value, error)

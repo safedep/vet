@@ -18,6 +18,7 @@ import (
 	"github.com/safedep/vet/ent/reportmalware"
 	"github.com/safedep/vet/ent/reportpackage"
 	"github.com/safedep/vet/ent/reportpackagemanifest"
+	"github.com/safedep/vet/ent/reportproject"
 	"github.com/safedep/vet/ent/reportvulnerability"
 )
 
@@ -33,6 +34,7 @@ type ReportPackageQuery struct {
 	withLicenses        *ReportLicenseQuery
 	withDependencies    *ReportDependencyQuery
 	withMalwareAnalysis *ReportMalwareQuery
+	withProjects        *ReportProjectQuery
 	withFKs             bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -173,6 +175,28 @@ func (rpq *ReportPackageQuery) QueryMalwareAnalysis() *ReportMalwareQuery {
 			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, selector),
 			sqlgraph.To(reportmalware.Table, reportmalware.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, reportpackage.MalwareAnalysisTable, reportpackage.MalwareAnalysisColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(rpq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryProjects chains the current query on the "projects" edge.
+func (rpq *ReportPackageQuery) QueryProjects() *ReportProjectQuery {
+	query := (&ReportProjectClient{config: rpq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rpq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rpq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, selector),
+			sqlgraph.To(reportproject.Table, reportproject.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.ProjectsTable, reportpackage.ProjectsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(rpq.driver.Dialect(), step)
 		return fromU, nil
@@ -377,6 +401,7 @@ func (rpq *ReportPackageQuery) Clone() *ReportPackageQuery {
 		withLicenses:        rpq.withLicenses.Clone(),
 		withDependencies:    rpq.withDependencies.Clone(),
 		withMalwareAnalysis: rpq.withMalwareAnalysis.Clone(),
+		withProjects:        rpq.withProjects.Clone(),
 		// clone intermediate query.
 		sql:  rpq.sql.Clone(),
 		path: rpq.path,
@@ -435,6 +460,17 @@ func (rpq *ReportPackageQuery) WithMalwareAnalysis(opts ...func(*ReportMalwareQu
 		opt(query)
 	}
 	rpq.withMalwareAnalysis = query
+	return rpq
+}
+
+// WithProjects tells the query-builder to eager-load the nodes that are connected to
+// the "projects" edge. The optional arguments are used to configure the query builder of the edge.
+func (rpq *ReportPackageQuery) WithProjects(opts ...func(*ReportProjectQuery)) *ReportPackageQuery {
+	query := (&ReportProjectClient{config: rpq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	rpq.withProjects = query
 	return rpq
 }
 
@@ -517,12 +553,13 @@ func (rpq *ReportPackageQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 		nodes       = []*ReportPackage{}
 		withFKs     = rpq.withFKs
 		_spec       = rpq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [6]bool{
 			rpq.withManifest != nil,
 			rpq.withVulnerabilities != nil,
 			rpq.withLicenses != nil,
 			rpq.withDependencies != nil,
 			rpq.withMalwareAnalysis != nil,
+			rpq.withProjects != nil,
 		}
 	)
 	if rpq.withManifest != nil {
@@ -581,6 +618,13 @@ func (rpq *ReportPackageQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	if query := rpq.withMalwareAnalysis; query != nil {
 		if err := rpq.loadMalwareAnalysis(ctx, query, nodes, nil,
 			func(n *ReportPackage, e *ReportMalware) { n.Edges.MalwareAnalysis = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := rpq.withProjects; query != nil {
+		if err := rpq.loadProjects(ctx, query, nodes,
+			func(n *ReportPackage) { n.Edges.Projects = []*ReportProject{} },
+			func(n *ReportPackage, e *ReportProject) { n.Edges.Projects = append(n.Edges.Projects, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -735,6 +779,37 @@ func (rpq *ReportPackageQuery) loadMalwareAnalysis(ctx context.Context, query *R
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "report_package_malware_analysis" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (rpq *ReportPackageQuery) loadProjects(ctx context.Context, query *ReportProjectQuery, nodes []*ReportPackage, init func(*ReportPackage), assign func(*ReportPackage, *ReportProject)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*ReportPackage)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.ReportProject(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(reportpackage.ProjectsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.report_package_projects
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "report_package_projects" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "report_package_projects" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

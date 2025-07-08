@@ -7,6 +7,7 @@ import (
 	"time"
 
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
+	scorecardv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/scorecard/v1"
 	vulnerabilityv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/vulnerability/v1"
 	"github.com/safedep/vet/ent"
 	"github.com/safedep/vet/pkg/analyzer"
@@ -189,6 +190,13 @@ func (r *sqlite3Reporter) addInsightsV2Data(entPackage *ent.ReportPackage, insig
 			r.addLicense(entPackage, license)
 		}
 	}
+
+	// Extract and store project information including scorecard data
+	if insights.ProjectInsights != nil {
+		for _, projectInsight := range insights.ProjectInsights {
+			r.addProjectInsight(entPackage, projectInsight)
+		}
+	}
 }
 
 func (r *sqlite3Reporter) addVulnerability(entPackage *ent.ReportPackage, vuln *vulnerabilityv1.Vulnerability) {
@@ -301,6 +309,108 @@ func (r *sqlite3Reporter) addLicense(entPackage *ent.ReportPackage, license *pac
 		Save(ctx)
 	if err != nil {
 		logger.Errorf("Failed to create license in database: %v", err)
+	}
+}
+
+func (r *sqlite3Reporter) addProjectInsight(entPackage *ent.ReportPackage, projectInsight *packagev1.ProjectInsight) {
+	now := time.Now()
+	ctx := context.Background()
+
+	if projectInsight.Project == nil {
+		return
+	}
+
+	project := projectInsight.Project
+
+	// Extract project information
+	projectName := project.Name
+	projectURL := project.Url
+	projectDescription := "" // Description is not available in v2 model
+	
+	// Handle optional fields safely
+	var stars, forks int32
+	if projectInsight.Stars != nil {
+		stars = int32(*projectInsight.Stars)
+	}
+	if projectInsight.Forks != nil {
+		forks = int32(*projectInsight.Forks)
+	}
+
+	// Create project record
+	entProject, err := r.client.ReportProject.Create().
+		SetName(projectName).
+		SetNillableURL(&projectURL).
+		SetNillableDescription(&projectDescription).
+		SetNillableStars(&stars).
+		SetNillableForks(&forks).
+		SetPackage(entPackage).
+		SetCreatedAt(now).
+		SetUpdatedAt(now).
+		Save(ctx)
+	if err != nil {
+		logger.Errorf("Failed to create project in database: %v", err)
+		return
+	}
+
+	// Create scorecard record if available
+	if projectInsight.Scorecard != nil {
+		r.addScorecard(entProject, projectInsight.Scorecard)
+	}
+}
+
+func (r *sqlite3Reporter) addScorecard(entProject *ent.ReportProject, scorecard *scorecardv1.Scorecard) {
+	now := time.Now()
+	ctx := context.Background()
+
+	// Extract scorecard information
+	score := scorecard.Score
+	version := scorecard.ScorecardVersion.Version
+	repoName := scorecard.Repo.Name
+	repoCommit := scorecard.Repo.Commit
+	date := scorecard.Date
+
+	// Create scorecard record
+	entScorecard, err := r.client.ReportScorecard.Create().
+		SetScore(score).
+		SetScorecardVersion(version).
+		SetRepoName(repoName).
+		SetRepoCommit(repoCommit).
+		SetDate(date).
+		SetProject(entProject).
+		SetCreatedAt(now).
+		SetUpdatedAt(now).
+		Save(ctx)
+	if err != nil {
+		logger.Errorf("Failed to create scorecard in database: %v", err)
+		return
+	}
+
+	// Create scorecard check records
+	for _, check := range scorecard.Checks {
+		r.addScorecardCheck(entScorecard, check)
+	}
+}
+
+func (r *sqlite3Reporter) addScorecardCheck(entScorecard *ent.ReportScorecard, check *scorecardv1.ScorecardCheck) {
+	now := time.Now()
+	ctx := context.Background()
+
+	// Create scorecard check record
+	create := r.client.ReportScorecardCheck.Create().
+		SetName(check.Name).
+		SetScore(check.Score).
+		SetScorecard(entScorecard).
+		SetCreatedAt(now).
+		SetUpdatedAt(now)
+	
+	// Set reason if available (it's optional)
+	if check.Reason != nil {
+		create = create.SetReason(*check.Reason)
+	}
+	
+	_, err := create.Save(ctx)
+	if err != nil {
+		logger.Errorf("Failed to create scorecard check in database: %v", err)
 	}
 }
 

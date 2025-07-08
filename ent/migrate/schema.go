@@ -256,15 +256,73 @@ var (
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "stars", Type: field.TypeInt32, Nullable: true},
 		{Name: "forks", Type: field.TypeInt32, Nullable: true},
-		{Name: "scorecard", Type: field.TypeJSON, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime, Nullable: true},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "report_package_projects", Type: field.TypeInt, Nullable: true},
 	}
 	// ReportProjectsTable holds the schema information for the "report_projects" table.
 	ReportProjectsTable = &schema.Table{
 		Name:       "report_projects",
 		Columns:    ReportProjectsColumns,
 		PrimaryKey: []*schema.Column{ReportProjectsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "report_projects_report_packages_projects",
+				Columns:    []*schema.Column{ReportProjectsColumns[8]},
+				RefColumns: []*schema.Column{ReportPackagesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// ReportScorecardsColumns holds the columns for the "report_scorecards" table.
+	ReportScorecardsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "score", Type: field.TypeFloat32},
+		{Name: "scorecard_version", Type: field.TypeString},
+		{Name: "repo_name", Type: field.TypeString},
+		{Name: "repo_commit", Type: field.TypeString},
+		{Name: "date", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "report_project_scorecard", Type: field.TypeInt, Unique: true, Nullable: true},
+	}
+	// ReportScorecardsTable holds the schema information for the "report_scorecards" table.
+	ReportScorecardsTable = &schema.Table{
+		Name:       "report_scorecards",
+		Columns:    ReportScorecardsColumns,
+		PrimaryKey: []*schema.Column{ReportScorecardsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "report_scorecards_report_projects_scorecard",
+				Columns:    []*schema.Column{ReportScorecardsColumns[8]},
+				RefColumns: []*schema.Column{ReportProjectsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// ReportScorecardChecksColumns holds the columns for the "report_scorecard_checks" table.
+	ReportScorecardChecksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "score", Type: field.TypeFloat32},
+		{Name: "reason", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "report_scorecard_checks", Type: field.TypeInt, Nullable: true},
+	}
+	// ReportScorecardChecksTable holds the schema information for the "report_scorecard_checks" table.
+	ReportScorecardChecksTable = &schema.Table{
+		Name:       "report_scorecard_checks",
+		Columns:    ReportScorecardChecksColumns,
+		PrimaryKey: []*schema.Column{ReportScorecardChecksColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "report_scorecard_checks_report_scorecards_checks",
+				Columns:    []*schema.Column{ReportScorecardChecksColumns[6]},
+				RefColumns: []*schema.Column{ReportScorecardsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
 	}
 	// ReportVulnerabilitiesColumns holds the columns for the "report_vulnerabilities" table.
 	ReportVulnerabilitiesColumns = []*schema.Column{
@@ -306,6 +364,8 @@ var (
 		ReportPackagesTable,
 		ReportPackageManifestsTable,
 		ReportProjectsTable,
+		ReportScorecardsTable,
+		ReportScorecardChecksTable,
 		ReportVulnerabilitiesTable,
 	}
 )
@@ -316,5 +376,8 @@ func init() {
 	ReportLicensesTable.ForeignKeys[0].RefTable = ReportPackagesTable
 	ReportMalwaresTable.ForeignKeys[0].RefTable = ReportPackagesTable
 	ReportPackagesTable.ForeignKeys[0].RefTable = ReportPackageManifestsTable
+	ReportProjectsTable.ForeignKeys[0].RefTable = ReportPackagesTable
+	ReportScorecardsTable.ForeignKeys[0].RefTable = ReportProjectsTable
+	ReportScorecardChecksTable.ForeignKeys[0].RefTable = ReportScorecardsTable
 	ReportVulnerabilitiesTable.ForeignKeys[0].RefTable = ReportPackagesTable
 }

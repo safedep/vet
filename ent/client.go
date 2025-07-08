@@ -24,6 +24,8 @@ import (
 	"github.com/safedep/vet/ent/reportpackage"
 	"github.com/safedep/vet/ent/reportpackagemanifest"
 	"github.com/safedep/vet/ent/reportproject"
+	"github.com/safedep/vet/ent/reportscorecard"
+	"github.com/safedep/vet/ent/reportscorecardcheck"
 	"github.com/safedep/vet/ent/reportvulnerability"
 )
 
@@ -50,6 +52,10 @@ type Client struct {
 	ReportPackageManifest *ReportPackageManifestClient
 	// ReportProject is the client for interacting with the ReportProject builders.
 	ReportProject *ReportProjectClient
+	// ReportScorecard is the client for interacting with the ReportScorecard builders.
+	ReportScorecard *ReportScorecardClient
+	// ReportScorecardCheck is the client for interacting with the ReportScorecardCheck builders.
+	ReportScorecardCheck *ReportScorecardCheckClient
 	// ReportVulnerability is the client for interacting with the ReportVulnerability builders.
 	ReportVulnerability *ReportVulnerabilityClient
 }
@@ -72,6 +78,8 @@ func (c *Client) init() {
 	c.ReportPackage = NewReportPackageClient(c.config)
 	c.ReportPackageManifest = NewReportPackageManifestClient(c.config)
 	c.ReportProject = NewReportProjectClient(c.config)
+	c.ReportScorecard = NewReportScorecardClient(c.config)
+	c.ReportScorecardCheck = NewReportScorecardCheckClient(c.config)
 	c.ReportVulnerability = NewReportVulnerabilityClient(c.config)
 }
 
@@ -174,6 +182,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ReportPackage:         NewReportPackageClient(cfg),
 		ReportPackageManifest: NewReportPackageManifestClient(cfg),
 		ReportProject:         NewReportProjectClient(cfg),
+		ReportScorecard:       NewReportScorecardClient(cfg),
+		ReportScorecardCheck:  NewReportScorecardCheckClient(cfg),
 		ReportVulnerability:   NewReportVulnerabilityClient(cfg),
 	}, nil
 }
@@ -203,6 +213,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ReportPackage:         NewReportPackageClient(cfg),
 		ReportPackageManifest: NewReportPackageManifestClient(cfg),
 		ReportProject:         NewReportProjectClient(cfg),
+		ReportScorecard:       NewReportScorecardClient(cfg),
+		ReportScorecardCheck:  NewReportScorecardCheckClient(cfg),
 		ReportVulnerability:   NewReportVulnerabilityClient(cfg),
 	}, nil
 }
@@ -235,7 +247,8 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.CodeSourceFile, c.DepsUsageEvidence, c.ReportDependency,
 		c.ReportDependencyGraph, c.ReportLicense, c.ReportMalware, c.ReportPackage,
-		c.ReportPackageManifest, c.ReportProject, c.ReportVulnerability,
+		c.ReportPackageManifest, c.ReportProject, c.ReportScorecard,
+		c.ReportScorecardCheck, c.ReportVulnerability,
 	} {
 		n.Use(hooks...)
 	}
@@ -247,7 +260,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.CodeSourceFile, c.DepsUsageEvidence, c.ReportDependency,
 		c.ReportDependencyGraph, c.ReportLicense, c.ReportMalware, c.ReportPackage,
-		c.ReportPackageManifest, c.ReportProject, c.ReportVulnerability,
+		c.ReportPackageManifest, c.ReportProject, c.ReportScorecard,
+		c.ReportScorecardCheck, c.ReportVulnerability,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -274,6 +288,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ReportPackageManifest.mutate(ctx, m)
 	case *ReportProjectMutation:
 		return c.ReportProject.mutate(ctx, m)
+	case *ReportScorecardMutation:
+		return c.ReportScorecard.mutate(ctx, m)
+	case *ReportScorecardCheckMutation:
+		return c.ReportScorecardCheck.mutate(ctx, m)
 	case *ReportVulnerabilityMutation:
 		return c.ReportVulnerability.mutate(ctx, m)
 	default:
@@ -1347,6 +1365,22 @@ func (c *ReportPackageClient) QueryMalwareAnalysis(rp *ReportPackage) *ReportMal
 	return query
 }
 
+// QueryProjects queries the projects edge of a ReportPackage.
+func (c *ReportPackageClient) QueryProjects(rp *ReportPackage) *ReportProjectQuery {
+	query := (&ReportProjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, id),
+			sqlgraph.To(reportproject.Table, reportproject.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.ProjectsTable, reportpackage.ProjectsColumn),
+		)
+		fromV = sqlgraph.Neighbors(rp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ReportPackageClient) Hooks() []Hook {
 	return c.hooks.ReportPackage
@@ -1629,6 +1663,38 @@ func (c *ReportProjectClient) GetX(ctx context.Context, id int) *ReportProject {
 	return obj
 }
 
+// QueryPackage queries the package edge of a ReportProject.
+func (c *ReportProjectClient) QueryPackage(rp *ReportProject) *ReportPackageQuery {
+	query := (&ReportPackageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportproject.Table, reportproject.FieldID, id),
+			sqlgraph.To(reportpackage.Table, reportpackage.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, reportproject.PackageTable, reportproject.PackageColumn),
+		)
+		fromV = sqlgraph.Neighbors(rp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryScorecard queries the scorecard edge of a ReportProject.
+func (c *ReportProjectClient) QueryScorecard(rp *ReportProject) *ReportScorecardQuery {
+	query := (&ReportScorecardClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportproject.Table, reportproject.FieldID, id),
+			sqlgraph.To(reportscorecard.Table, reportscorecard.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, reportproject.ScorecardTable, reportproject.ScorecardColumn),
+		)
+		fromV = sqlgraph.Neighbors(rp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ReportProjectClient) Hooks() []Hook {
 	return c.hooks.ReportProject
@@ -1651,6 +1717,320 @@ func (c *ReportProjectClient) mutate(ctx context.Context, m *ReportProjectMutati
 		return (&ReportProjectDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown ReportProject mutation op: %q", m.Op())
+	}
+}
+
+// ReportScorecardClient is a client for the ReportScorecard schema.
+type ReportScorecardClient struct {
+	config
+}
+
+// NewReportScorecardClient returns a client for the ReportScorecard from the given config.
+func NewReportScorecardClient(c config) *ReportScorecardClient {
+	return &ReportScorecardClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `reportscorecard.Hooks(f(g(h())))`.
+func (c *ReportScorecardClient) Use(hooks ...Hook) {
+	c.hooks.ReportScorecard = append(c.hooks.ReportScorecard, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `reportscorecard.Intercept(f(g(h())))`.
+func (c *ReportScorecardClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ReportScorecard = append(c.inters.ReportScorecard, interceptors...)
+}
+
+// Create returns a builder for creating a ReportScorecard entity.
+func (c *ReportScorecardClient) Create() *ReportScorecardCreate {
+	mutation := newReportScorecardMutation(c.config, OpCreate)
+	return &ReportScorecardCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ReportScorecard entities.
+func (c *ReportScorecardClient) CreateBulk(builders ...*ReportScorecardCreate) *ReportScorecardCreateBulk {
+	return &ReportScorecardCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ReportScorecardClient) MapCreateBulk(slice any, setFunc func(*ReportScorecardCreate, int)) *ReportScorecardCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ReportScorecardCreateBulk{err: fmt.Errorf("calling to ReportScorecardClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ReportScorecardCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ReportScorecardCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ReportScorecard.
+func (c *ReportScorecardClient) Update() *ReportScorecardUpdate {
+	mutation := newReportScorecardMutation(c.config, OpUpdate)
+	return &ReportScorecardUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ReportScorecardClient) UpdateOne(rs *ReportScorecard) *ReportScorecardUpdateOne {
+	mutation := newReportScorecardMutation(c.config, OpUpdateOne, withReportScorecard(rs))
+	return &ReportScorecardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ReportScorecardClient) UpdateOneID(id int) *ReportScorecardUpdateOne {
+	mutation := newReportScorecardMutation(c.config, OpUpdateOne, withReportScorecardID(id))
+	return &ReportScorecardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ReportScorecard.
+func (c *ReportScorecardClient) Delete() *ReportScorecardDelete {
+	mutation := newReportScorecardMutation(c.config, OpDelete)
+	return &ReportScorecardDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ReportScorecardClient) DeleteOne(rs *ReportScorecard) *ReportScorecardDeleteOne {
+	return c.DeleteOneID(rs.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ReportScorecardClient) DeleteOneID(id int) *ReportScorecardDeleteOne {
+	builder := c.Delete().Where(reportscorecard.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ReportScorecardDeleteOne{builder}
+}
+
+// Query returns a query builder for ReportScorecard.
+func (c *ReportScorecardClient) Query() *ReportScorecardQuery {
+	return &ReportScorecardQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeReportScorecard},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ReportScorecard entity by its id.
+func (c *ReportScorecardClient) Get(ctx context.Context, id int) (*ReportScorecard, error) {
+	return c.Query().Where(reportscorecard.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ReportScorecardClient) GetX(ctx context.Context, id int) *ReportScorecard {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryProject queries the project edge of a ReportScorecard.
+func (c *ReportScorecardClient) QueryProject(rs *ReportScorecard) *ReportProjectQuery {
+	query := (&ReportProjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rs.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportscorecard.Table, reportscorecard.FieldID, id),
+			sqlgraph.To(reportproject.Table, reportproject.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, reportscorecard.ProjectTable, reportscorecard.ProjectColumn),
+		)
+		fromV = sqlgraph.Neighbors(rs.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryChecks queries the checks edge of a ReportScorecard.
+func (c *ReportScorecardClient) QueryChecks(rs *ReportScorecard) *ReportScorecardCheckQuery {
+	query := (&ReportScorecardCheckClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rs.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportscorecard.Table, reportscorecard.FieldID, id),
+			sqlgraph.To(reportscorecardcheck.Table, reportscorecardcheck.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, reportscorecard.ChecksTable, reportscorecard.ChecksColumn),
+		)
+		fromV = sqlgraph.Neighbors(rs.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ReportScorecardClient) Hooks() []Hook {
+	return c.hooks.ReportScorecard
+}
+
+// Interceptors returns the client interceptors.
+func (c *ReportScorecardClient) Interceptors() []Interceptor {
+	return c.inters.ReportScorecard
+}
+
+func (c *ReportScorecardClient) mutate(ctx context.Context, m *ReportScorecardMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ReportScorecardCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ReportScorecardUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ReportScorecardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ReportScorecardDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ReportScorecard mutation op: %q", m.Op())
+	}
+}
+
+// ReportScorecardCheckClient is a client for the ReportScorecardCheck schema.
+type ReportScorecardCheckClient struct {
+	config
+}
+
+// NewReportScorecardCheckClient returns a client for the ReportScorecardCheck from the given config.
+func NewReportScorecardCheckClient(c config) *ReportScorecardCheckClient {
+	return &ReportScorecardCheckClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `reportscorecardcheck.Hooks(f(g(h())))`.
+func (c *ReportScorecardCheckClient) Use(hooks ...Hook) {
+	c.hooks.ReportScorecardCheck = append(c.hooks.ReportScorecardCheck, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `reportscorecardcheck.Intercept(f(g(h())))`.
+func (c *ReportScorecardCheckClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ReportScorecardCheck = append(c.inters.ReportScorecardCheck, interceptors...)
+}
+
+// Create returns a builder for creating a ReportScorecardCheck entity.
+func (c *ReportScorecardCheckClient) Create() *ReportScorecardCheckCreate {
+	mutation := newReportScorecardCheckMutation(c.config, OpCreate)
+	return &ReportScorecardCheckCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ReportScorecardCheck entities.
+func (c *ReportScorecardCheckClient) CreateBulk(builders ...*ReportScorecardCheckCreate) *ReportScorecardCheckCreateBulk {
+	return &ReportScorecardCheckCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ReportScorecardCheckClient) MapCreateBulk(slice any, setFunc func(*ReportScorecardCheckCreate, int)) *ReportScorecardCheckCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ReportScorecardCheckCreateBulk{err: fmt.Errorf("calling to ReportScorecardCheckClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ReportScorecardCheckCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ReportScorecardCheckCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ReportScorecardCheck.
+func (c *ReportScorecardCheckClient) Update() *ReportScorecardCheckUpdate {
+	mutation := newReportScorecardCheckMutation(c.config, OpUpdate)
+	return &ReportScorecardCheckUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ReportScorecardCheckClient) UpdateOne(rsc *ReportScorecardCheck) *ReportScorecardCheckUpdateOne {
+	mutation := newReportScorecardCheckMutation(c.config, OpUpdateOne, withReportScorecardCheck(rsc))
+	return &ReportScorecardCheckUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ReportScorecardCheckClient) UpdateOneID(id int) *ReportScorecardCheckUpdateOne {
+	mutation := newReportScorecardCheckMutation(c.config, OpUpdateOne, withReportScorecardCheckID(id))
+	return &ReportScorecardCheckUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ReportScorecardCheck.
+func (c *ReportScorecardCheckClient) Delete() *ReportScorecardCheckDelete {
+	mutation := newReportScorecardCheckMutation(c.config, OpDelete)
+	return &ReportScorecardCheckDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ReportScorecardCheckClient) DeleteOne(rsc *ReportScorecardCheck) *ReportScorecardCheckDeleteOne {
+	return c.DeleteOneID(rsc.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ReportScorecardCheckClient) DeleteOneID(id int) *ReportScorecardCheckDeleteOne {
+	builder := c.Delete().Where(reportscorecardcheck.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ReportScorecardCheckDeleteOne{builder}
+}
+
+// Query returns a query builder for ReportScorecardCheck.
+func (c *ReportScorecardCheckClient) Query() *ReportScorecardCheckQuery {
+	return &ReportScorecardCheckQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeReportScorecardCheck},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ReportScorecardCheck entity by its id.
+func (c *ReportScorecardCheckClient) Get(ctx context.Context, id int) (*ReportScorecardCheck, error) {
+	return c.Query().Where(reportscorecardcheck.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ReportScorecardCheckClient) GetX(ctx context.Context, id int) *ReportScorecardCheck {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryScorecard queries the scorecard edge of a ReportScorecardCheck.
+func (c *ReportScorecardCheckClient) QueryScorecard(rsc *ReportScorecardCheck) *ReportScorecardQuery {
+	query := (&ReportScorecardClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rsc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reportscorecardcheck.Table, reportscorecardcheck.FieldID, id),
+			sqlgraph.To(reportscorecard.Table, reportscorecard.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, reportscorecardcheck.ScorecardTable, reportscorecardcheck.ScorecardColumn),
+		)
+		fromV = sqlgraph.Neighbors(rsc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ReportScorecardCheckClient) Hooks() []Hook {
+	return c.hooks.ReportScorecardCheck
+}
+
+// Interceptors returns the client interceptors.
+func (c *ReportScorecardCheckClient) Interceptors() []Interceptor {
+	return c.inters.ReportScorecardCheck
+}
+
+func (c *ReportScorecardCheckClient) mutate(ctx context.Context, m *ReportScorecardCheckMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ReportScorecardCheckCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ReportScorecardCheckUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ReportScorecardCheckUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ReportScorecardCheckDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ReportScorecardCheck mutation op: %q", m.Op())
 	}
 }
 
@@ -1808,11 +2188,13 @@ type (
 	hooks struct {
 		CodeSourceFile, DepsUsageEvidence, ReportDependency, ReportDependencyGraph,
 		ReportLicense, ReportMalware, ReportPackage, ReportPackageManifest,
-		ReportProject, ReportVulnerability []ent.Hook
+		ReportProject, ReportScorecard, ReportScorecardCheck,
+		ReportVulnerability []ent.Hook
 	}
 	inters struct {
 		CodeSourceFile, DepsUsageEvidence, ReportDependency, ReportDependencyGraph,
 		ReportLicense, ReportMalware, ReportPackage, ReportPackageManifest,
-		ReportProject, ReportVulnerability []ent.Interceptor
+		ReportProject, ReportScorecard, ReportScorecardCheck,
+		ReportVulnerability []ent.Interceptor
 	}
 )

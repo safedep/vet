@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/safedep/vet/ent/predicate"
 )
 
@@ -404,16 +405,6 @@ func ForksNotNil() predicate.ReportProject {
 	return predicate.ReportProject(sql.FieldNotNull(FieldForks))
 }
 
-// ScorecardIsNil applies the IsNil predicate on the "scorecard" field.
-func ScorecardIsNil() predicate.ReportProject {
-	return predicate.ReportProject(sql.FieldIsNull(FieldScorecard))
-}
-
-// ScorecardNotNil applies the NotNil predicate on the "scorecard" field.
-func ScorecardNotNil() predicate.ReportProject {
-	return predicate.ReportProject(sql.FieldNotNull(FieldScorecard))
-}
-
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.ReportProject {
 	return predicate.ReportProject(sql.FieldEQ(FieldCreatedAt, v))
@@ -512,6 +503,52 @@ func UpdatedAtIsNil() predicate.ReportProject {
 // UpdatedAtNotNil applies the NotNil predicate on the "updated_at" field.
 func UpdatedAtNotNil() predicate.ReportProject {
 	return predicate.ReportProject(sql.FieldNotNull(FieldUpdatedAt))
+}
+
+// HasPackage applies the HasEdge predicate on the "package" edge.
+func HasPackage() predicate.ReportProject {
+	return predicate.ReportProject(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, PackageTable, PackageColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPackageWith applies the HasEdge predicate on the "package" edge with a given conditions (other predicates).
+func HasPackageWith(preds ...predicate.ReportPackage) predicate.ReportProject {
+	return predicate.ReportProject(func(s *sql.Selector) {
+		step := newPackageStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasScorecard applies the HasEdge predicate on the "scorecard" edge.
+func HasScorecard() predicate.ReportProject {
+	return predicate.ReportProject(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, ScorecardTable, ScorecardColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasScorecardWith applies the HasEdge predicate on the "scorecard" edge with a given conditions (other predicates).
+func HasScorecardWith(preds ...predicate.ReportScorecard) predicate.ReportProject {
+	return predicate.ReportProject(func(s *sql.Selector) {
+		step := newScorecardStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.
