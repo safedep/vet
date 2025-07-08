@@ -74,6 +74,12 @@ var (
 	thinkingStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("214")).
 			Italic(true)
+
+	// Tool call message style - subtle and less prominent
+	toolCallStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("245")).
+			Italic(true).
+			Faint(true)
 )
 
 // AgentUI represents the main TUI model
@@ -279,8 +285,8 @@ func (m *agentUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		)
 
 	case agentToolCallMsg:
-		m.updateStatus("Agent is calling a tool...")
-		m.addAgentMessage(fmt.Sprintf("➡️ Tool call: %s(%s)", msg.toolName, msg.toolArgs))
+		m.updateStatus("Agent is using tools...")
+		m.addToolCallMessage(fmt.Sprintf("🔧 %s", msg.toolName), msg.toolArgs)
 	}
 
 	// Update child components
@@ -398,6 +404,23 @@ func (m *agentUI) addSystemMessage(content string) {
 	m.viewport.GotoBottom()
 }
 
+func (m *agentUI) addToolCallMessage(toolName string, toolArgs string) {
+	// Format the tool call message in a subtle, developer-friendly way
+	content := fmt.Sprintf("    %s", toolName)
+	if toolArgs != "" && toolArgs != "{}" {
+		content += fmt.Sprintf("\n    └─ %s", toolArgs)
+	}
+
+	m.messages = append(m.messages, uiMessage{
+		Role:      "tool",
+		Content:   content,
+		Timestamp: time.Now(),
+	})
+	// Update viewport content and scroll to bottom
+	m.viewport.SetContent(m.renderMessages())
+	m.viewport.GotoBottom()
+}
+
 // renderMessages formats all messages for display
 func (m *agentUI) renderMessages() string {
 	var rendered []string
@@ -453,6 +476,11 @@ func (m *agentUI) renderMessages() string {
 		case "system":
 			rendered = append(rendered,
 				systemMessageStyle.Render(fmt.Sprintf("[%s] %s", timestamp, msg.Content)),
+				"",
+			)
+		case "tool":
+			rendered = append(rendered,
+				toolCallStyle.Render(fmt.Sprintf("[%s] %s", timestamp, msg.Content)),
 				"",
 			)
 		}

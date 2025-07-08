@@ -24,6 +24,7 @@ import (
 	"github.com/safedep/vet/pkg/scanner"
 	"github.com/safedep/vet/pkg/storage"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 )
 
 var (
@@ -703,14 +704,17 @@ func internalStartScan() error {
 		if enrichUsingInsightsV2 {
 			analytics.TrackCommandScanInsightsV2()
 
-			// We will enforce auth for Insights v2 during the experimental period.
-			// Once we have an understanding on the usage and capacity, we will open
-			// up for community usage.
+			var client *grpc.ClientConn
+			var err error
+
+			// We have two endpoints for accessing the insights v2 service. The authenticated endpoints
+			// have higher rate limits and better latency guarantees
 			if auth.CommunityMode() {
-				return fmt.Errorf("access to Insights v2 requires an API key. For more details: https://docs.safedep.io/cloud/quickstart/")
+				client, err = auth.InsightsV2CommunityClientConnection("vet-insights-v2")
+			} else {
+				client, err = auth.InsightsV2ClientConnection("vet-insights-v2")
 			}
 
-			client, err := auth.InsightsV2ClientConnection("vet-insights-v2")
 			if err != nil {
 				return err
 			}
