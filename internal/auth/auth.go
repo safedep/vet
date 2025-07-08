@@ -63,7 +63,7 @@ type Config struct {
 var globalConfig *Config
 
 func init() {
-	loadConfiguration()
+	_ = loadConfiguration()
 }
 
 func DefaultConfig() Config {
