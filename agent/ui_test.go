@@ -196,7 +196,7 @@ func TestInputStateInView(t *testing.T) {
 
 	// Test normal state
 	view := ui.View()
-	if !contains(view, "Enter: Send message") {
+	if !contains(view, "Enter: Send") {
 		t.Error("Help text should show send message when not thinking")
 	}
 }
