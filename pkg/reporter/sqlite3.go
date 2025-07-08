@@ -298,9 +298,7 @@ func (r *sqlite3Reporter) addLicense(entPackage *ent.ReportPackage, license *pac
 		return
 	}
 
-	// Create license record
-	// Note: LicenseMeta only has LicenseId and Name fields
-	// Other fields like SpdxId, Url, IsOsiApproved are not available in v2 model
+	// Create license record using available fields from LicenseMeta v2 model
 	_, err := r.client.ReportLicense.Create().
 		SetLicenseID(licenseID).
 		SetName(license.Name).
