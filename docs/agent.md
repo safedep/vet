@@ -19,8 +19,10 @@ The query agent helps run query and analysis over vet's sqlite3 reporting databa
 * Run a `vet` scan and generate report in sqlite3 format
 
 ```bash
-vet scan -M package-lock.json --report-sqlite3 report.db
+vet scan --insights-v2 -M package-lock.json --report-sqlite3 report.db
 ```
+
+**Note:** Agents only work with `--insights-v2`
 
 * Start the query agent
 
