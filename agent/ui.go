@@ -31,55 +31,74 @@ type agentToolCallMsg struct {
 	toolArgs string
 }
 
+type thinkingTickMsg struct{}
+
+type toolProgressMsg struct {
+	progress int
+}
+
 // Styles using Lipgloss
 var (
-	// Main panel styles
+	// Main panel styles with enhanced visuals
 	mainPanelStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color("62")).
-			Padding(1, 2)
+			Padding(1, 2).
+			Margin(0, 1)
 
-	// Chat input styles
+	// Chat input styles with focus animation
 	inputPanelStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("240")).
-			Padding(0, 1)
+			BorderForeground(lipgloss.Color("39")).
+			Padding(0, 1).
+			Margin(0, 1)
 
-	// Disabled input styles
+	// Disabled input styles with subtle animation
 	inputPanelDisabledStyle = lipgloss.NewStyle().
 				Border(lipgloss.RoundedBorder()).
 				BorderForeground(lipgloss.Color("238")).
 				Foreground(lipgloss.Color("243")).
-				Padding(0, 1)
+				Padding(0, 1).
+				Margin(0, 1)
 
-	// Status bar styles
+	// Status bar styles with gradient effect
 	statusBarStyle = lipgloss.NewStyle().
 			Background(lipgloss.Color("62")).
 			Foreground(lipgloss.Color("230")).
-			Padding(0, 1)
+			Padding(0, 1).
+			Bold(true)
 
-	// Message styles
+	// Message styles with enhanced colors
 	userMessageStyle = lipgloss.NewStyle().
 				Foreground(lipgloss.Color("86")).
-				Bold(true)
+				Bold(true).
+				Padding(0, 1).
+				Margin(0, 0, 1, 0)
 
 	agentMessageStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("39"))
+				Foreground(lipgloss.Color("39")).
+				Padding(0, 1).
+				Margin(0, 0, 1, 0)
 
 	systemMessageStyle = lipgloss.NewStyle().
 				Foreground(lipgloss.Color("241")).
-				Italic(true)
+				Italic(true).
+				Padding(0, 1).
+				Margin(0, 0, 1, 0)
 
-	// Thinking indicator style
+	// Thinking indicator style with pulsing effect
 	thinkingStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("214")).
-			Italic(true)
+			Italic(true).
+			Bold(true)
 
 	// Tool call message style - subtle and less prominent
 	toolCallStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("245")).
 			Italic(true).
-			Faint(true)
+			Faint(true).
+			Padding(0, 1).
+			Margin(0, 0, 1, 0)
 )
 
 // AgentUI represents the main TUI model
@@ -95,6 +114,9 @@ type agentUI struct {
 	agent         Agent
 	session       Session
 	config        AgentUIConfig
+	// Animation state
+	thinkingFrame int
+	toolProgress  int
 }
 
 // Message represents a chat message
@@ -136,6 +158,7 @@ func NewAgentUI(agent Agent, session Session, config AgentUIConfig) *agentUI {
 	ta.Focus()
 	ta.SetHeight(3)
 	ta.SetWidth(80)
+	ta.CharLimit = 1000
 
 	ui := &agentUI{
 		viewport:      vp,
@@ -145,6 +168,8 @@ func NewAgentUI(agent Agent, session Session, config AgentUIConfig) *agentUI {
 		agent:         agent,
 		session:       session,
 		config:        config,
+		thinkingFrame: 0,
+		toolProgress:  0,
 	}
 
 	// Add welcome message
@@ -158,6 +183,7 @@ func (m *agentUI) Init() tea.Cmd {
 	return tea.Batch(
 		textarea.Blink,
 		m.updateStatus("Ready - Ask me anything!"),
+		m.tickThinking(),
 	)
 }
 
@@ -208,15 +234,29 @@ func (m *agentUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case tea.KeyHome:
-			// Go to top of viewport
+			// Go to top of viewport with smooth scrolling indication
 			if !m.textInput.Focused() {
 				m.viewport.GotoTop()
+				cmds = append(cmds, m.updateStatus("Scrolled to top"))
 			}
 
 		case tea.KeyEnd:
-			// Go to bottom of viewport
+			// Go to bottom of viewport with smooth scrolling indication
 			if !m.textInput.Focused() {
 				m.viewport.GotoBottom()
+				cmds = append(cmds, m.updateStatus("Scrolled to bottom"))
+			}
+
+		case tea.KeyF1:
+			// Show help or easter egg
+			if !m.isThinking {
+				m.addSystemMessage("💡 Tip: Use Tab to switch focus, arrows to scroll, Enter to send messages")
+			}
+
+		case tea.KeyF5:
+			// Refresh/clear screen effect
+			if !m.isThinking {
+				m.addSystemMessage("🔄 Interface refreshed")
 			}
 		}
 
@@ -270,6 +310,8 @@ func (m *agentUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.isThinking {
 			m.textInput.Blur()
 			m.textInput.Placeholder = "Please wait while agent is responding..."
+			m.thinkingFrame = 0
+			cmds = append(cmds, m.tickThinking())
 		} else {
 			// Re-focus input when thinking stops and restore placeholder
 			m.textInput.Placeholder = "Ask me anything about your security data..."
@@ -287,6 +329,20 @@ func (m *agentUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case agentToolCallMsg:
 		m.updateStatus("Agent is using tools...")
 		m.addToolCallMessage(fmt.Sprintf("🔧 %s", msg.toolName), msg.toolArgs)
+		m.toolProgress = 0
+		cmds = append(cmds, m.tickToolProgress())
+
+	case thinkingTickMsg:
+		if m.isThinking {
+			m.thinkingFrame = (m.thinkingFrame + 1) % 4
+			cmds = append(cmds, m.tickThinking())
+		}
+
+	case toolProgressMsg:
+		if m.toolProgress < 100 {
+			m.toolProgress = (m.toolProgress + 10) % 101
+			cmds = append(cmds, m.tickToolProgress())
+		}
 	}
 
 	// Update child components
@@ -313,14 +369,16 @@ func (m *agentUI) View() string {
 		return "Initializing..."
 	}
 
-	// Header - make it more prominent
+	// Header - make it more prominent with gradient and effects
 	headerStyle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color("62")).
-		Background(lipgloss.Color("235")).
+		Foreground(lipgloss.Color("230")).
+		Background(lipgloss.Color("62")).
 		Align(lipgloss.Center).
 		Width(m.width).
-		Padding(1, 1)
+		Padding(1, 2).
+		Border(lipgloss.NormalBorder(), false, false, true, false).
+		BorderForeground(lipgloss.Color("39"))
 
 	header := headerStyle.Render(m.config.TitleText)
 
@@ -343,17 +401,26 @@ func (m *agentUI) View() string {
 			Render(m.textInput.View())
 	}
 
-	helpContent := "Tab: Switch focus • Enter: Send message • ↑↓/PgUp/PgDown: Scroll • Home/End: Top/Bottom • Ctrl+C/Esc: Quit"
+	// Enhanced help text with better formatting
+	helpContent := "Tab: Focus • Enter: Send • ↑↓/PgUp/PgDown: Scroll • Home/End: Top/Bottom • F1: Help • F5: Refresh • Ctrl+C/Esc: Quit"
 	helpText := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("241")).
 		Align(lipgloss.Center).
 		Width(m.width).
+		Border(lipgloss.NormalBorder(), true, false, false, false).
+		BorderForeground(lipgloss.Color("240")).
+		Padding(0, 1).
 		Render(helpContent)
 
-	// Status bar
+	// Status bar with animated thinking indicator
 	statusContent := m.statusMessage
 	if m.isThinking {
-		statusContent = thinkingStyle.Render("🤔 Agent is working...") + " " + statusContent
+		thinkingFrames := []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
+		spinner := thinkingFrames[m.thinkingFrame%len(thinkingFrames)]
+		statusContent = thinkingStyle.Render(fmt.Sprintf("%s Thinking...", spinner)) + " " + statusContent
+	} else if m.toolProgress > 0 && m.toolProgress < 100 {
+		progressBar := m.renderProgressBar(m.toolProgress, 20)
+		statusContent = thinkingStyle.Render(fmt.Sprintf("🔧 Tools %s", progressBar)) + " " + statusContent
 	}
 
 	statusBar := statusBarStyle.
@@ -449,9 +516,21 @@ func (m *agentUI) renderMessages() string {
 
 		switch msg.Role {
 		case "user":
+			// Enhanced user message with subtle border
+			userHeaderStyle := lipgloss.NewStyle().
+				Foreground(lipgloss.Color("86")).
+				Bold(true).
+				Border(lipgloss.NormalBorder(), false, false, false, true).
+				BorderForeground(lipgloss.Color("86")).
+				Padding(0, 1)
+
+			userContentStyle := lipgloss.NewStyle().
+				Foreground(lipgloss.Color("255")).
+				Padding(0, 2)
+
 			rendered = append(rendered,
-				userMessageStyle.Render(fmt.Sprintf("[%s] You:", timestamp)),
-				msg.Content,
+				userHeaderStyle.Render(fmt.Sprintf("[%s] → You:", timestamp)),
+				userContentStyle.Render(msg.Content),
 				"",
 			)
 		case "agent":
@@ -468,19 +547,48 @@ func (m *agentUI) renderMessages() string {
 				content = msg.Content
 			}
 
+			// Enhanced agent message with professional styling
+			agentHeaderStyle := lipgloss.NewStyle().
+				Foreground(lipgloss.Color("39")).
+				Bold(true).
+				Border(lipgloss.NormalBorder(), false, false, false, true).
+				BorderForeground(lipgloss.Color("39")).
+				Padding(0, 1)
+
+			agentContentStyle := lipgloss.NewStyle().
+				Foreground(lipgloss.Color("255")).
+				Padding(0, 2)
+
 			rendered = append(rendered,
-				agentMessageStyle.Render(fmt.Sprintf("[%s] Agent:", timestamp)),
-				content,
+				agentHeaderStyle.Render(fmt.Sprintf("[%s] ← Agent:", timestamp)),
+				agentContentStyle.Render(content),
 				"",
 			)
 		case "system":
+			// Enhanced system message with distinctive styling
+			systemStyle := lipgloss.NewStyle().
+				Foreground(lipgloss.Color("241")).
+				Italic(true).
+				Border(lipgloss.NormalBorder(), false, false, false, true).
+				BorderForeground(lipgloss.Color("241")).
+				Padding(0, 1)
+
 			rendered = append(rendered,
-				systemMessageStyle.Render(fmt.Sprintf("[%s] %s", timestamp, msg.Content)),
+				systemStyle.Render(fmt.Sprintf("[%s] ℹ %s", timestamp, msg.Content)),
 				"",
 			)
 		case "tool":
+			// Enhanced tool message with tech-inspired styling
+			toolStyle := lipgloss.NewStyle().
+				Foreground(lipgloss.Color("245")).
+				Italic(true).
+				Faint(true).
+				Border(lipgloss.NormalBorder(), false, false, false, true).
+				BorderForeground(lipgloss.Color("245")).
+				Padding(0, 1)
+
 			rendered = append(rendered,
-				toolCallStyle.Render(fmt.Sprintf("[%s] %s", timestamp, msg.Content)),
+				toolStyle.Render(fmt.Sprintf("[%s] %s", timestamp, msg.Content)),
 				"",
 			)
 		}
@@ -547,4 +655,24 @@ func StartUIWithConfig(agent Agent, session Session, config AgentUIConfig) error
 
 	_, err := p.Run()
 	return err
+}
+
+// Animation helper functions
+
+func (m *agentUI) tickThinking() tea.Cmd {
+	return tea.Tick(150*time.Millisecond, func(time.Time) tea.Msg {
+		return thinkingTickMsg{}
+	})
+}
+
+func (m *agentUI) tickToolProgress() tea.Cmd {
+	return tea.Tick(100*time.Millisecond, func(time.Time) tea.Msg {
+		return toolProgressMsg{progress: m.toolProgress}
+	})
+}
+
+func (m *agentUI) renderProgressBar(progress, width int) string {
+	filledWidth := int(float64(width) * float64(progress) / 100.0)
+	bar := strings.Repeat("█", filledWidth) + strings.Repeat("░", width-filledWidth)
+	return fmt.Sprintf("%s %d%%", bar, progress)
 }

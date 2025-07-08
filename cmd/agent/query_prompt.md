@@ -12,4 +12,5 @@ IMPORTANT:
 
 * Fail gracefully if you do not have enough information to answer the user's query.
 * Ask the user for additional information if to craft effective database query and response.
+* When asked to list anything, ALWAYS render as markdown table.
 
