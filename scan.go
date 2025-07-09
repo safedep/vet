@@ -88,6 +88,8 @@ var (
 	malwareAnalysisMinimumConfidence string
 	gitlabReportPath                 string
 	sqlite3ReportPath                string
+	sqlite3ReportOverwrite           bool
+	sqlite3ReportAppend              bool
 	scanImageTarget                  string
 	scanImageNoRemote                bool
 )
@@ -217,6 +219,10 @@ func newScanCommand() *cobra.Command {
 		"Generate GitLab dependency scanning report to file")
 	cmd.Flags().StringVarP(&sqlite3ReportPath, "report-sqlite3", "", "",
 		"Generate SQLite3 database report to file")
+	cmd.Flags().BoolVarP(&sqlite3ReportOverwrite, "report-sqlite3-overwrite", "", false,
+		"Overwrite existing SQLite3 database report")
+	cmd.Flags().BoolVarP(&sqlite3ReportAppend, "report-sqlite3-append", "", false,
+		"Append to existing SQLite3 database report")
 	cmd.Flags().StringVarP(&malwareAnalysisMinimumConfidence, "malware-analysis-min-confidence", "", "HIGH",
 		"Minimum confidence level for malicious package analysis result to fail fast")
 	cmd.Flags().StringVarP(&scanImageTarget, "image", "", "",
@@ -644,11 +650,13 @@ func internalStartScan() error {
 
 	if !utils.IsEmptyString(sqlite3ReportPath) {
 		rp, err := reporter.NewSqlite3Reporter(reporter.Sqlite3ReporterConfig{
-			Path: sqlite3ReportPath,
-			Tool: toolMetadata,
+			Path:      sqlite3ReportPath,
+			Tool:      toolMetadata,
+			Overwrite: sqlite3ReportOverwrite,
+			Append:    sqlite3ReportAppend,
 		})
 		if err != nil {
-			return err
+			return fmt.Errorf("%w: Use --report-sqlite3-overwrite or --report-sqlite3-append overwrite or append", err)
 		}
 
 		reporters = append(reporters, rp)

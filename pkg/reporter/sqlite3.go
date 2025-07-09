@@ -18,8 +18,10 @@ import (
 )
 
 type Sqlite3ReporterConfig struct {
-	Path string
-	Tool ToolMetadata
+	Path      string
+	Tool      ToolMetadata
+	Overwrite bool
+	Append    bool
 }
 
 type sqlite3Reporter struct {
@@ -32,11 +34,19 @@ type sqlite3Reporter struct {
 }
 
 func NewSqlite3Reporter(config Sqlite3ReporterConfig) (Reporter, error) {
-	entStorage, err := storage.NewEntSqliteStorage(storage.EntSqliteClientConfig{
+	storageConfig := storage.EntSqliteClientConfig{
 		Path:               config.Path,
 		ReadOnly:           false,
 		SkipSchemaCreation: false,
-	})
+	}
+
+	if config.Overwrite {
+		storageConfig.OverwriteIfPathExists = true
+	} else if !config.Append {
+		storageConfig.FailIfPathExists = true
+	}
+
+	entStorage, err := storage.NewEntSqliteStorage(storageConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create SQLite storage: %w", err)
 	}
