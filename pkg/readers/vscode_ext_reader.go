@@ -12,6 +12,12 @@ import (
 
 const (
 	vsCodeExtensionExtensionsFileName = "extensions.json"
+
+	// Default paths for IDE extension directories relative to home directory
+	vsCodeExtPath   = ".vscode/extensions"
+	vscodiumExtPath = ".vscode-oss/extensions"
+	cursorExtPath   = ".cursor/extensions"
+	windsurfExtPath = ".windsurf/extensions"
 )
 
 type vsCodeExtensionIdentifier struct {
@@ -35,16 +41,24 @@ type vsCodeExtensionList struct {
 	Extensions []vsCodeExtension
 }
 
+type distributionInfo struct {
+	FilePath  string // Path to the extensions directory
+	Ecosystem string // Type of extension marketplace (VSCode or OpenVSX)
+}
+
 type vscodeExtReader struct {
-	distributionHomeDir map[string]string
+	distributions map[string]distributionInfo
 }
 
 var _ PackageManifestReader = (*vscodeExtReader)(nil)
 
 func NewVSCodeExtReader(distributions []string) (*vscodeExtReader, error) {
-	customDistributions := make(map[string]string)
+	customDistributions := make(map[string]distributionInfo)
 	for i, distribution := range distributions {
-		customDistributions[fmt.Sprintf("custom-%d", i)] = distribution
+		customDistributions[fmt.Sprintf("custom-%d", i)] = distributionInfo{
+			FilePath:  distribution,
+			Ecosystem: models.EcosystemVSCodeExtensions,
+		}
 	}
 
 	return newVSCodeExtReaderFromDistributions(customDistributions)
@@ -56,16 +70,30 @@ func NewVSCodeExtReaderFromDefaultDistributions() (*vscodeExtReader, error) {
 		return nil, fmt.Errorf("failed to get user home directory: %w", err)
 	}
 
-	distributionHomeDir := map[string]string{
-		"code":   filepath.Join(homeDir, ".vscode", "extensions"),
-		"cursor": filepath.Join(homeDir, ".cursor", "extensions"),
+	distributions := map[string]distributionInfo{
+		"code": {
+			FilePath:  filepath.Join(homeDir, vsCodeExtPath),
+			Ecosystem: models.EcosystemVSCodeExtensions,
+		},
+		"cursor": {
+			FilePath:  filepath.Join(homeDir, cursorExtPath),
+			Ecosystem: models.EcosystemOpenVSXExtensions,
+		},
+		"vscodium": {
+			FilePath:  filepath.Join(homeDir, vscodiumExtPath),
+			Ecosystem: models.EcosystemOpenVSXExtensions,
+		},
+		"windsurf": {
+			FilePath:  filepath.Join(homeDir, windsurfExtPath),
+			Ecosystem: models.EcosystemOpenVSXExtensions,
+		},
 	}
 
-	return &vscodeExtReader{distributionHomeDir: distributionHomeDir}, nil
+	return &vscodeExtReader{distributions: distributions}, nil
 }
 
-func newVSCodeExtReaderFromDistributions(d map[string]string) (*vscodeExtReader, error) {
-	return &vscodeExtReader{distributionHomeDir: d}, nil
+func newVSCodeExtReaderFromDistributions(d map[string]distributionInfo) (*vscodeExtReader, error) {
+	return &vscodeExtReader{distributions: d}, nil
 }
 
 func (r *vscodeExtReader) Name() string {
@@ -77,17 +105,18 @@ func (r *vscodeExtReader) ApplicationName() (string, error) {
 }
 
 func (r *vscodeExtReader) EnumManifests(handler func(*models.PackageManifest, PackageReader) error) error {
-	for distribution := range r.distributionHomeDir {
+	for distribution := range r.distributions {
 		extensions, path, err := r.readExtensions(distribution)
 		if err != nil {
 			logger.Errorf("failed to read extensions for distribution %s: %v", distribution, err)
 			continue
 		}
 
-		manifest := models.NewPackageManifestFromLocal(path, models.EcosystemVSCodeExtensions)
+		info := r.distributions[distribution]
+		manifest := models.NewPackageManifestFromLocal(path, info.Ecosystem)
 		for _, extension := range extensions.Extensions {
 			pkg := &models.Package{
-				PackageDetails: models.NewPackageDetail(models.EcosystemVSCodeExtensions, extension.Identifier.Id, extension.Version),
+				PackageDetails: models.NewPackageDetail(info.Ecosystem, extension.Identifier.Id, extension.Version),
 			}
 
 			manifest.AddPackage(pkg)
@@ -103,11 +132,12 @@ func (r *vscodeExtReader) EnumManifests(handler func(*models.PackageManifest, Pa
 }
 
 func (r *vscodeExtReader) readExtensions(distribution string) (*vsCodeExtensionList, string, error) {
-	if _, ok := r.distributionHomeDir[distribution]; !ok {
+	info, ok := r.distributions[distribution]
+	if !ok {
 		return nil, "", fmt.Errorf("distribution %s not supported", distribution)
 	}
 
-	extensionsFile := filepath.Join(r.distributionHomeDir[distribution], vsCodeExtensionExtensionsFileName)
+	extensionsFile := filepath.Join(info.FilePath, vsCodeExtensionExtensionsFileName)
 	if _, err := os.Stat(extensionsFile); os.IsNotExist(err) {
 		return nil, "", fmt.Errorf("extensions file does not exist: %w", err)
 	}
