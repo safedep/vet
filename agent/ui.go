@@ -302,7 +302,14 @@ func (m *agentUI) View() string {
 		return "Initializing..."
 	}
 
-	header := headerStyle.Render(fmt.Sprintf("%s %s", m.config.TitleText, m.config.ModelName))
+	modelAbility := "fast"
+	if !m.config.ModelFast {
+		modelAbility = "slow"
+	}
+
+	modelStatusLine := fmt.Sprintf("%s/%s (%s)", m.config.ModelVendor, m.config.ModelName, modelAbility)
+
+	header := headerStyle.Render(fmt.Sprintf("%s %s", m.config.TitleText, modelStatusLine))
 
 	content := m.viewport.View()
 
@@ -319,10 +326,11 @@ func (m *agentUI) View() string {
 	if m.textInput.Focused() && !m.isThinking {
 		cursor = inputCursorStyle.Render("▊")
 	}
+
 	inputContent := fmt.Sprintf("%s%s%s", inputPromptStyle.Render("> "), userInput, cursor)
 	inputArea = inputBorderStyle.Width(m.width - 2).Render(inputContent)
 
-	statusLine := inputPromptStyle.Render("ctrl+? help")
+	statusLine := inputPromptStyle.Render(fmt.Sprintf("** %s | ctrl+c to exit", modelStatusLine))
 
 	var components []string
 	components = append(components, header, "", content, "")
