@@ -164,6 +164,10 @@ func (r *sqlite3Reporter) addPackage(pkg *models.Package, manifest *ent.ReportPa
 }
 
 func (r *sqlite3Reporter) addInsightsV2Data(entPackage *ent.ReportPackage, insights *packagev1.PackageVersionInsight) {
+	if insights == nil {
+		return
+	}
+
 	ctx := context.Background()
 
 	// Store the full insights as JSON - this is simpler and more robust
@@ -207,6 +211,10 @@ func (r *sqlite3Reporter) addInsightsV2Data(entPackage *ent.ReportPackage, insig
 }
 
 func (r *sqlite3Reporter) addVulnerability(entPackage *ent.ReportPackage, vuln *vulnerabilityv1.Vulnerability) {
+	if vuln == nil {
+		return
+	}
+
 	now := time.Now()
 	ctx := context.Background()
 
@@ -234,39 +242,40 @@ func (r *sqlite3Reporter) addVulnerability(entPackage *ent.ReportPackage, vuln *
 
 	if len(vuln.Severities) > 0 {
 		firstSeverity := vuln.Severities[0]
+		if firstSeverity != nil {
+			// Map severity risk enum to string
+			switch firstSeverity.Risk {
+			case vulnerabilityv1.Severity_RISK_CRITICAL:
+				severity = "CRITICAL"
+			case vulnerabilityv1.Severity_RISK_HIGH:
+				severity = "HIGH"
+			case vulnerabilityv1.Severity_RISK_MEDIUM:
+				severity = "MEDIUM"
+			case vulnerabilityv1.Severity_RISK_LOW:
+				severity = "LOW"
+			default:
+				severity = "UNKNOWN"
+			}
 
-		// Map severity risk enum to string
-		switch firstSeverity.Risk {
-		case vulnerabilityv1.Severity_RISK_CRITICAL:
-			severity = "CRITICAL"
-		case vulnerabilityv1.Severity_RISK_HIGH:
-			severity = "HIGH"
-		case vulnerabilityv1.Severity_RISK_MEDIUM:
-			severity = "MEDIUM"
-		case vulnerabilityv1.Severity_RISK_LOW:
-			severity = "LOW"
-		default:
-			severity = "UNKNOWN"
-		}
+			// Map severity type enum to string
+			switch firstSeverity.Type {
+			case vulnerabilityv1.Severity_TYPE_CVSS_V2:
+				severityType = "CVSS_V2"
+			case vulnerabilityv1.Severity_TYPE_CVSS_V3:
+				severityType = "CVSS_V3"
+			default:
+				severityType = "UNSPECIFIED"
+			}
 
-		// Map severity type enum to string
-		switch firstSeverity.Type {
-		case vulnerabilityv1.Severity_TYPE_CVSS_V2:
-			severityType = "CVSS_V2"
-		case vulnerabilityv1.Severity_TYPE_CVSS_V3:
-			severityType = "CVSS_V3"
-		default:
-			severityType = "UNSPECIFIED"
-		}
+			// Parse CVSS score
+			if score, err := strconv.ParseFloat(firstSeverity.Score, 64); err == nil {
+				cvssScore = score
+			}
 
-		// Parse CVSS score
-		if score, err := strconv.ParseFloat(firstSeverity.Score, 64); err == nil {
-			cvssScore = score
-		}
-
-		// Store all severity details as JSON
-		severityDetails = map[string]interface{}{
-			"severities": vuln.Severities,
+			// Store all severity details as JSON
+			severityDetails = map[string]interface{}{
+				"severities": vuln.Severities,
+			}
 		}
 	}
 
@@ -289,6 +298,10 @@ func (r *sqlite3Reporter) addVulnerability(entPackage *ent.ReportPackage, vuln *
 }
 
 func (r *sqlite3Reporter) addLicense(entPackage *ent.ReportPackage, license *packagev1.LicenseMeta) {
+	if license == nil {
+		return
+	}
+
 	now := time.Now()
 	ctx := context.Background()
 
@@ -314,6 +327,10 @@ func (r *sqlite3Reporter) addLicense(entPackage *ent.ReportPackage, license *pac
 }
 
 func (r *sqlite3Reporter) addProjectInsight(entPackage *ent.ReportPackage, projectInsight *packagev1.ProjectInsight) {
+	if projectInsight == nil {
+		return
+	}
+
 	now := time.Now()
 	ctx := context.Background()
 
@@ -360,20 +377,34 @@ func (r *sqlite3Reporter) addProjectInsight(entPackage *ent.ReportPackage, proje
 }
 
 func (r *sqlite3Reporter) addScorecard(entProject *ent.ReportProject, scorecard *scorecardv1.Scorecard) {
+	if scorecard == nil {
+		return
+	}
+
 	now := time.Now()
 	ctx := context.Background()
 
 	// Extract scorecard information
-	score := scorecard.GetScore()
-	version := scorecard.GetScorecardVersion().GetVersion()
-	repoName := scorecard.GetRepo().GetName()
-	repoCommit := scorecard.GetRepo().GetCommit()
-	date := scorecard.GetDate()
+	score := scorecard.Score
+
+	// Check if Repo is nil before accessing its fields
+	var repoName, repoCommit string
+	if scorecard.Repo != nil {
+		repoName = scorecard.Repo.Name
+		repoCommit = scorecard.Repo.Commit
+	}
+
+	date := scorecard.Date
+
+	var scorecardVersion string
+	if scorecard.ScorecardVersion != nil {
+		scorecardVersion = scorecard.ScorecardVersion.Version
+	}
 
 	// Create scorecard record
 	entScorecard, err := r.client.ReportScorecard.Create().
 		SetScore(score).
-		SetScorecardVersion(version).
+		SetScorecardVersion(scorecardVersion).
 		SetRepoName(repoName).
 		SetRepoCommit(repoCommit).
 		SetDate(date).
@@ -388,18 +419,24 @@ func (r *sqlite3Reporter) addScorecard(entProject *ent.ReportProject, scorecard 
 
 	// Create scorecard check records
 	for _, check := range scorecard.Checks {
-		r.addScorecardCheck(entScorecard, check)
+		if check != nil {
+			r.addScorecardCheck(entScorecard, check)
+		}
 	}
 }
 
 func (r *sqlite3Reporter) addScorecardCheck(entScorecard *ent.ReportScorecard, check *scorecardv1.ScorecardCheck) {
+	if check == nil {
+		return
+	}
+
 	now := time.Now()
 	ctx := context.Background()
 
 	// Create scorecard check record
 	create := r.client.ReportScorecardCheck.Create().
-		SetName(check.GetName()).
-		SetScore(check.GetScore()).
+		SetName(check.Name).
+		SetScore(check.Score).
 		SetScorecard(entScorecard).
 		SetCreatedAt(now).
 		SetUpdatedAt(now)
@@ -416,15 +453,19 @@ func (r *sqlite3Reporter) addScorecardCheck(entScorecard *ent.ReportScorecard, c
 }
 
 func (r *sqlite3Reporter) addSlsaProvenance(entPackage *ent.ReportPackage, slsaProvenance *packagev1.PackageVersionSlsaProvenance) {
+	if slsaProvenance == nil {
+		return
+	}
+
 	now := time.Now()
 	ctx := context.Background()
 
 	// Create SLSA provenance record
 	_, err := r.client.ReportSlsaProvenance.Create().
-		SetSourceRepository(slsaProvenance.GetSourceRepository()).
-		SetCommitSha(slsaProvenance.GetCommitSha()).
-		SetURL(slsaProvenance.GetUrl()).
-		SetVerified(slsaProvenance.GetVerified()).
+		SetSourceRepository(slsaProvenance.SourceRepository).
+		SetCommitSha(slsaProvenance.CommitSha).
+		SetURL(slsaProvenance.Url).
+		SetVerified(slsaProvenance.Verified).
 		SetPackage(entPackage).
 		SetCreatedAt(now).
 		SetUpdatedAt(now).
@@ -435,6 +476,10 @@ func (r *sqlite3Reporter) addSlsaProvenance(entPackage *ent.ReportPackage, slsaP
 }
 
 func (r *sqlite3Reporter) addMalwareAnalysis(entPackage *ent.ReportPackage, malware *models.MalwareAnalysisResult) {
+	if malware == nil {
+		return
+	}
+
 	now := time.Now()
 	ctx := context.Background()
 
@@ -445,7 +490,6 @@ func (r *sqlite3Reporter) addMalwareAnalysis(entPackage *ent.ReportPackage, malw
 			"report": malware.Report,
 		}
 	}
-
 	if malware.VerificationRecord != nil {
 		verificationData = map[string]interface{}{
 			"verification_record": malware.VerificationRecord,
@@ -478,6 +522,10 @@ func (r *sqlite3Reporter) addDependencies(entPackage *ent.ReportPackage, pkg *mo
 	now := time.Now()
 
 	for _, dep := range dependencies {
+		if dep == nil {
+			continue
+		}
+
 		_, err := r.client.ReportDependency.Create().
 			SetDependencyPackageID(dep.Id()).
 			SetDependencyName(dep.GetName()).
@@ -519,7 +567,7 @@ func (r *sqlite3Reporter) addDependencyGraphEdges(entPackage *ent.ReportPackage,
 	var currentNode *models.DependencyGraphNode[*models.Package]
 	nodes := dependencyGraph.GetNodes()
 	for _, node := range nodes {
-		if node.Data.Id() == pkg.Id() {
+		if node != nil && node.Data != nil && node.Data.Id() == pkg.Id() {
 			currentNode = node
 			break
 		}
@@ -531,6 +579,10 @@ func (r *sqlite3Reporter) addDependencyGraphEdges(entPackage *ent.ReportPackage,
 
 	// Create edges for all dependencies of this package
 	for _, depPkg := range currentNode.Children {
+		if depPkg == nil {
+			continue
+		}
+
 		// Skip if the dependency package is the same as current package (cycle detection)
 		if depPkg.Id() == pkg.Id() {
 			continue
@@ -564,7 +616,7 @@ func (r *sqlite3Reporter) addDependencyGraphEdges(entPackage *ent.ReportPackage,
 	// Also create edges from Insights V2 dependencies if available
 	if pkg.InsightsV2 != nil && pkg.InsightsV2.Dependencies != nil {
 		for _, dep := range pkg.InsightsV2.Dependencies {
-			if dep.Package == nil {
+			if dep == nil || dep.Package == nil {
 				continue
 			}
 
