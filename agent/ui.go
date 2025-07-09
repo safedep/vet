@@ -49,24 +49,9 @@ var (
 				BorderForeground(lipgloss.Color("240")).
 				Padding(0, 1)
 
-	userMessageStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("255")).
-				Bold(true)
-
-	agentMessageStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("255"))
-
-	systemMessageStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("240")).
-				Italic(true)
-
 	thinkingStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("33")).
 			Bold(true)
-
-	toolCallStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("240")).
-			Italic(true)
 )
 
 // AgentUI represents the main TUI model
