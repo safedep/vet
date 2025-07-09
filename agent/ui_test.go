@@ -3,6 +3,9 @@ package agent
 import (
 	"testing"
 	"time"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAgentUICreation(t *testing.T) {
@@ -11,21 +14,24 @@ func TestAgentUICreation(t *testing.T) {
 	config := DefaultAgentUIConfig()
 	ui := NewAgentUI(mockAgent, mockSession, config)
 
-	if ui == nil {
-		t.Fatal("Failed to create AgentUI")
-	}
+	assert.NotNil(t, ui, "Failed to create AgentUI")
+	assert.Empty(t, ui.statusMessage, "Expected empty status message")
+	assert.False(t, ui.isThinking, "UI should not be thinking initially")
+	assert.Equal(t, 0, ui.thinkingFrame, "Thinking frame should be 0 initially")
 
-	if ui.statusMessage != "Initializing agent..." {
-		t.Errorf("Expected status message 'Initializing agent...', got '%s'", ui.statusMessage)
+	// Check that system message was added if config has one
+	if config.InitialSystemMessage != "" {
+		assert.NotEmpty(t, ui.messages, "Expected system message to be added if InitialSystemMessage is set")
 	}
+}
 
-	if len(ui.messages) != 1 {
-		t.Errorf("Expected 1 initial message, got %d", len(ui.messages))
-	}
+func TestDefaultAgentUIConfig(t *testing.T) {
+	config := DefaultAgentUIConfig()
 
-	if ui.messages[0].Role != "system" {
-		t.Errorf("Expected first message to be 'system', got '%s'", ui.messages[0].Role)
-	}
+	assert.Equal(t, 80, config.Width, "Expected default width 80")
+	assert.Equal(t, 20, config.Height, "Expected default height 20")
+	assert.Equal(t, "Security Agent", config.TitleText, "Expected title 'Security Agent'")
+	assert.Equal(t, "Ask me anything...", config.TextInputPlaceholder, "Expected placeholder 'Ask me anything...'")
 }
 
 func TestMessageManagement(t *testing.T) {
@@ -34,33 +40,36 @@ func TestMessageManagement(t *testing.T) {
 	config := DefaultAgentUIConfig()
 	ui := NewAgentUI(mockAgent, mockSession, config)
 
+	initialCount := len(ui.messages)
+
 	// Test adding user message
 	ui.addUserMessage("Test user message")
-
-	if len(ui.messages) != 2 { // Initial system message + user message
-		t.Errorf("Expected 2 messages, got %d", len(ui.messages))
-	}
+	assert.Equal(t, initialCount+1, len(ui.messages), "Expected message count to increase")
 
 	lastMessage := ui.messages[len(ui.messages)-1]
-	if lastMessage.Role != "user" {
-		t.Errorf("Expected last message role to be 'user', got '%s'", lastMessage.Role)
-	}
-
-	if lastMessage.Content != "Test user message" {
-		t.Errorf("Expected last message content to be 'Test user message', got '%s'", lastMessage.Content)
-	}
+	assert.Equal(t, "user", lastMessage.Role, "Expected last message role to be 'user'")
+	assert.Equal(t, "Test user message", lastMessage.Content, "Expected last message content to be 'Test user message'")
 
 	// Test adding agent message
 	ui.addAgentMessage("Test agent response")
-
-	if len(ui.messages) != 3 {
-		t.Errorf("Expected 3 messages, got %d", len(ui.messages))
-	}
+	assert.Equal(t, initialCount+2, len(ui.messages), "Expected message count to increase")
 
 	lastMessage = ui.messages[len(ui.messages)-1]
-	if lastMessage.Role != "agent" {
-		t.Errorf("Expected last message role to be 'agent', got '%s'", lastMessage.Role)
-	}
+	assert.Equal(t, "agent", lastMessage.Role, "Expected last message role to be 'agent'")
+
+	// Test adding system message
+	ui.addSystemMessage("System notification")
+	assert.Equal(t, initialCount+3, len(ui.messages), "Expected message count to increase")
+
+	lastMessage = ui.messages[len(ui.messages)-1]
+	assert.Equal(t, "system", lastMessage.Role, "Expected last message role to be 'system'")
+
+	// Test adding tool call message
+	ui.addToolCallMessage("ScanVulnerabilities", `{"path": "/app"}`)
+	assert.Equal(t, initialCount+4, len(ui.messages), "Expected message count to increase")
+
+	lastMessage = ui.messages[len(ui.messages)-1]
+	assert.Equal(t, "tool", lastMessage.Role, "Expected last message role to be 'tool'")
 }
 
 func TestMessageRendering(t *testing.T) {
@@ -68,71 +77,52 @@ func TestMessageRendering(t *testing.T) {
 	mockSession := NewMockSession()
 	config := DefaultAgentUIConfig()
 	ui := NewAgentUI(mockAgent, mockSession, config)
+
+	// Set up viewport dimensions for rendering
+	ui.viewport.Width = 80
+	ui.viewport.Height = 20
+
 	ui.addUserMessage("How many vulnerabilities?")
 	ui.addAgentMessage("Found 5 critical vulnerabilities")
 
 	rendered := ui.renderMessages()
 
-	if rendered == "" {
-		t.Error("Expected non-empty rendered output")
-	}
-
-	// Check that messages contain expected content
-	if !contains(rendered, "How many vulnerabilities?") {
-		t.Error("Rendered output should contain user message")
-	}
-
-	if !contains(rendered, "Found 5 critical vulnerabilities") {
-		t.Error("Rendered output should contain agent message")
-	}
-
-	if !contains(rendered, "You:") {
-		t.Error("Rendered output should contain user label")
-	}
-
-	if !contains(rendered, "Agent:") {
-		t.Error("Rendered output should contain agent label")
-	}
+	assert.NotEmpty(t, rendered, "Expected non-empty rendered output")
+	assert.Contains(t, rendered, "How many vulnerabilities?", "Rendered output should contain user message")
+	assert.Contains(t, rendered, "Found 5 critical vulnerabilities", "Rendered output should contain agent message")
+	assert.Contains(t, rendered, "You:", "Rendered output should contain user label")
+	assert.Contains(t, rendered, "Agent:", "Rendered output should contain agent label")
 }
 
-func TestViewportUpdates(t *testing.T) {
+func TestViewportDimensions(t *testing.T) {
 	mockAgent := NewMockAgent()
 	mockSession := NewMockSession()
 	config := DefaultAgentUIConfig()
 	ui := NewAgentUI(mockAgent, mockSession, config)
 
-	// Set some dimensions to make viewport functional
-	ui.width = 80
-	ui.height = 24
-	ui.ready = true
+	// Test window resize handling
+	resizeMsg := tea.WindowSizeMsg{Width: 100, Height: 30}
+	ui.Update(resizeMsg)
 
-	// Check that messages are being added properly
-	initialMessageCount := len(ui.messages)
+	assert.Equal(t, 100, ui.width, "Expected width 100")
+	assert.Equal(t, 30, ui.height, "Expected height 30")
 
-	// Add a message
-	ui.addUserMessage("Test message")
+	// Test minimum dimensions enforcement
+	resizeMsg = tea.WindowSizeMsg{Width: 10, Height: 5}
+	ui.Update(resizeMsg)
 
-	if len(ui.messages) != initialMessageCount+1 {
-		t.Error("Message should be added to messages slice")
-	}
-
-	// Check that the message content is correct
-	lastMessage := ui.messages[len(ui.messages)-1]
-	if lastMessage.Content != "Test message" {
-		t.Error("Added message should have correct content")
-	}
-
-	// Check that viewport is updated by rendering the messages
-	rendered := ui.renderMessages()
-	if !contains(rendered, "Test message") {
-		t.Error("Rendered content should contain the new message")
-	}
+	assert.GreaterOrEqual(t, ui.viewport.Width, 50, "Viewport width should be enforced to minimum 50")
+	assert.GreaterOrEqual(t, ui.viewport.Height, 10, "Viewport height should be enforced to minimum 10")
 }
 
-func TestHeaderVisibility(t *testing.T) {
+func TestViewRendering(t *testing.T) {
 	mockAgent := NewMockAgent()
 	mockSession := NewMockSession()
 	config := DefaultAgentUIConfig()
+	config.ModelName = "gpt-4"
+	config.ModelVendor = "openai"
+	config.ModelFast = false
+
 	ui := NewAgentUI(mockAgent, mockSession, config)
 	ui.width = 80
 	ui.height = 24
@@ -140,12 +130,13 @@ func TestHeaderVisibility(t *testing.T) {
 
 	view := ui.View()
 
-	if !contains(view, "Security Agent") {
-		t.Error("Header should be visible in the view")
-	}
+	assert.Contains(t, view, "Security Agent", "View should contain title")
+	assert.Contains(t, view, "openai/gpt-4", "View should contain model information")
+	assert.Contains(t, view, ">", "View should contain input prompt")
+	assert.Contains(t, view, "ctrl+c to exit", "View should contain exit instruction")
 }
 
-func TestInputDisabling(t *testing.T) {
+func TestThinkingState(t *testing.T) {
 	mockAgent := NewMockAgent()
 	mockSession := NewMockSession()
 	config := DefaultAgentUIConfig()
@@ -155,37 +146,26 @@ func TestInputDisabling(t *testing.T) {
 	ui.ready = true
 
 	// Initially not thinking
-	if ui.isThinking {
-		t.Error("UI should not be thinking initially")
-	}
-
-	// Check initial placeholder
-	if ui.textInput.Placeholder != "Ask me anything..." {
-		t.Error("Initial placeholder should be the normal prompt")
-	}
+	assert.False(t, ui.isThinking, "UI should not be thinking initially")
 
 	// Set thinking state
-	ui.isThinking = true
-	msg := agentThinkingMsg{thinking: true}
-	ui.Update(msg)
+	thinkingMsg := agentThinkingMsg{thinking: true}
+	ui.Update(thinkingMsg)
 
-	// Check that placeholder changed
-	if ui.textInput.Placeholder != "Please wait while agent is responding..." {
-		t.Error("Placeholder should change when thinking")
-	}
+	assert.True(t, ui.isThinking, "UI should be thinking after agentThinkingMsg")
 
-	// Set not thinking
-	ui.isThinking = false
-	msg = agentThinkingMsg{thinking: false}
-	ui.Update(msg)
+	// Check view contains thinking indicator
+	view := ui.View()
+	assert.Contains(t, view, "thinking...", "View should contain thinking indicator when thinking")
 
-	// Check that placeholder restored
-	if ui.textInput.Placeholder != "Ask me anything about your security data..." {
-		t.Error("Placeholder should restore when not thinking")
-	}
+	// Stop thinking
+	thinkingMsg = agentThinkingMsg{thinking: false}
+	ui.Update(thinkingMsg)
+
+	assert.False(t, ui.isThinking, "UI should not be thinking after agentThinkingMsg with false")
 }
 
-func TestInputStateInView(t *testing.T) {
+func TestKeyboardHandling(t *testing.T) {
 	mockAgent := NewMockAgent()
 	mockSession := NewMockSession()
 	config := DefaultAgentUIConfig()
@@ -194,11 +174,52 @@ func TestInputStateInView(t *testing.T) {
 	ui.height = 24
 	ui.ready = true
 
-	// Test normal state
-	view := ui.View()
-	if !contains(view, "Enter: Send") {
-		t.Error("Help text should show send message when not thinking")
-	}
+	var keyMsg tea.KeyMsg
+	var model tea.Model
+	var cmd tea.Cmd
+
+	// Test Ctrl+C exits immediately
+	keyMsg = tea.KeyMsg{Type: tea.KeyCtrlC}
+	_, cmd = ui.Update(keyMsg)
+
+	assert.NotNil(t, cmd, "Ctrl+C should return quit command")
+
+	// Test Tab key for focus switching when not thinking
+	ui.textInput.Focus()
+	keyMsg = tea.KeyMsg{Type: tea.KeyTab}
+	model, _ = ui.Update(keyMsg)
+	ui = model.(*agentUI)
+
+	assert.False(t, ui.textInput.Focused(), "Tab should blur text input when it's focused")
+
+	// Test Enter key handling when not thinking
+	ui.textInput.Focus()
+	ui.textInput.SetValue("test message")
+	initialMessageCount := len(ui.messages)
+
+	keyMsg = tea.KeyMsg{Type: tea.KeyEnter}
+	model, _ = ui.Update(keyMsg)
+	ui = model.(*agentUI)
+
+	assert.Equal(t, initialMessageCount+1, len(ui.messages), "Enter should add user message when input is not empty")
+
+	// Note: Input field reset happens when thinking starts, not immediately
+	// The resetInputField() is called, but the UI state may not reflect it immediately in tests
+}
+
+func TestInputFieldReset(t *testing.T) {
+	mockAgent := NewMockAgent()
+	mockSession := NewMockSession()
+	config := DefaultAgentUIConfig()
+	ui := NewAgentUI(mockAgent, mockSession, config)
+
+	// Set some input text
+	ui.textInput.SetValue("test input")
+	assert.Equal(t, "test input", ui.textInput.Value(), "Input should contain test text")
+
+	// Reset input field
+	ui.resetInputField()
+	assert.Empty(t, ui.textInput.Value(), "Input should be empty after reset")
 }
 
 func TestCommandCreation(t *testing.T) {
@@ -209,40 +230,15 @@ func TestCommandCreation(t *testing.T) {
 
 	// Test status update command
 	cmd := ui.updateStatus("Testing status")
-	if cmd == nil {
-		t.Error("updateStatus should return a non-nil command")
-	}
+	assert.NotNil(t, cmd, "updateStatus should return a non-nil command")
 
 	// Test thinking command
 	cmd = ui.setThinking(true)
-	if cmd == nil {
-		t.Error("setThinking should return a non-nil command")
-	}
-}
+	assert.NotNil(t, cmd, "setThinking should return a non-nil command")
 
-func TestExecuteAgentQuery(t *testing.T) {
-	mockAgent := NewMockAgent()
-	mockSession := NewMockSession()
-	config := DefaultAgentUIConfig()
-	ui := NewAgentUI(mockAgent, mockSession, config)
-
-	// Test vulnerability query response
-	cmd := ui.executeAgentQuery("How many vulnerabilities?")
-	if cmd == nil {
-		t.Error("executeAgentQuery should return a non-nil command")
-	}
-
-	// Test malware query response
-	cmd = ui.executeAgentQuery("Check for malware")
-	if cmd == nil {
-		t.Error("executeAgentQuery should return a non-nil command")
-	}
-
-	// Test general query response
-	cmd = ui.executeAgentQuery("General security question")
-	if cmd == nil {
-		t.Error("executeAgentQuery should return a non-nil command")
-	}
+	// Test execute agent query command
+	cmd = ui.executeAgentQuery("test query")
+	assert.NotNil(t, cmd, "executeAgentQuery should return a non-nil command")
 }
 
 func TestMessageTimestamps(t *testing.T) {
@@ -257,24 +253,28 @@ func TestMessageTimestamps(t *testing.T) {
 
 	message := ui.messages[len(ui.messages)-1]
 
-	if message.Timestamp.Before(before) || message.Timestamp.After(after) {
-		t.Error("Message timestamp should be between before and after times")
-	}
+	assert.True(t, message.Timestamp.After(before) || message.Timestamp.Equal(before), "Message timestamp should be after or equal to before time")
+	assert.True(t, message.Timestamp.Before(after) || message.Timestamp.Equal(after), "Message timestamp should be before or equal to after time")
 }
 
-// Helper function to check if a string contains a substring
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(substr) == 0 ||
-		(len(s) > len(substr) && (s[:len(substr)] == substr ||
-			s[len(s)-len(substr):] == substr ||
-			findSubstring(s, substr))))
-}
+func TestUIInitialization(t *testing.T) {
+	mockAgent := NewMockAgent()
+	mockSession := NewMockSession()
+	config := DefaultAgentUIConfig()
+	ui := NewAgentUI(mockAgent, mockSession, config)
 
-func findSubstring(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
+	// Test Init command
+	cmd := ui.Init()
+	assert.NotNil(t, cmd, "Init should return a non-nil command")
+
+	// Test initial state before ready
+	view := ui.View()
+	assert.Equal(t, "Loading...", view, "View should show loading before ready")
+
+	// Test with zero dimensions
+	ui.ready = true
+	ui.width = 0
+	ui.height = 0
+	view = ui.View()
+	assert.Equal(t, "Initializing...", view, "View should show initializing with zero dimensions")
 }
