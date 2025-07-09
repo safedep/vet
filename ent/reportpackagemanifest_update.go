@@ -300,10 +300,10 @@ func (rpmu *ReportPackageManifestUpdate) sqlSave(ctx context.Context) (n int, er
 	}
 	if rpmu.mutation.PackagesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   reportpackagemanifest.PackagesTable,
-			Columns: []string{reportpackagemanifest.PackagesColumn},
+			Columns: reportpackagemanifest.PackagesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt),
@@ -313,10 +313,10 @@ func (rpmu *ReportPackageManifestUpdate) sqlSave(ctx context.Context) (n int, er
 	}
 	if nodes := rpmu.mutation.RemovedPackagesIDs(); len(nodes) > 0 && !rpmu.mutation.PackagesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   reportpackagemanifest.PackagesTable,
-			Columns: []string{reportpackagemanifest.PackagesColumn},
+			Columns: reportpackagemanifest.PackagesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt),
@@ -329,10 +329,10 @@ func (rpmu *ReportPackageManifestUpdate) sqlSave(ctx context.Context) (n int, er
 	}
 	if nodes := rpmu.mutation.PackagesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   reportpackagemanifest.PackagesTable,
-			Columns: []string{reportpackagemanifest.PackagesColumn},
+			Columns: reportpackagemanifest.PackagesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt),
@@ -664,10 +664,10 @@ func (rpmuo *ReportPackageManifestUpdateOne) sqlSave(ctx context.Context) (_node
 	}
 	if rpmuo.mutation.PackagesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   reportpackagemanifest.PackagesTable,
-			Columns: []string{reportpackagemanifest.PackagesColumn},
+			Columns: reportpackagemanifest.PackagesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt),
@@ -677,10 +677,10 @@ func (rpmuo *ReportPackageManifestUpdateOne) sqlSave(ctx context.Context) (_node
 	}
 	if nodes := rpmuo.mutation.RemovedPackagesIDs(); len(nodes) > 0 && !rpmuo.mutation.PackagesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   reportpackagemanifest.PackagesTable,
-			Columns: []string{reportpackagemanifest.PackagesColumn},
+			Columns: reportpackagemanifest.PackagesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt),
@@ -693,10 +693,10 @@ func (rpmuo *ReportPackageManifestUpdateOne) sqlSave(ctx context.Context) (_node
 	}
 	if nodes := rpmuo.mutation.PackagesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   reportpackagemanifest.PackagesTable,
-			Columns: []string{reportpackagemanifest.PackagesColumn},
+			Columns: reportpackagemanifest.PackagesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt),

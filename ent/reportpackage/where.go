@@ -635,21 +635,21 @@ func UpdatedAtNotNil() predicate.ReportPackage {
 	return predicate.ReportPackage(sql.FieldNotNull(FieldUpdatedAt))
 }
 
-// HasManifest applies the HasEdge predicate on the "manifest" edge.
-func HasManifest() predicate.ReportPackage {
+// HasManifests applies the HasEdge predicate on the "manifests" edge.
+func HasManifests() predicate.ReportPackage {
 	return predicate.ReportPackage(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ManifestTable, ManifestColumn),
+			sqlgraph.Edge(sqlgraph.M2M, true, ManifestsTable, ManifestsPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasManifestWith applies the HasEdge predicate on the "manifest" edge with a given conditions (other predicates).
-func HasManifestWith(preds ...predicate.ReportPackageManifest) predicate.ReportPackage {
+// HasManifestsWith applies the HasEdge predicate on the "manifests" edge with a given conditions (other predicates).
+func HasManifestsWith(preds ...predicate.ReportPackageManifest) predicate.ReportPackage {
 	return predicate.ReportPackage(func(s *sql.Selector) {
-		step := newManifestStep()
+		step := newManifestsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

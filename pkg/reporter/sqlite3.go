@@ -10,6 +10,7 @@ import (
 	scorecardv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/scorecard/v1"
 	vulnerabilityv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/vulnerability/v1"
 	"github.com/safedep/vet/ent"
+	"github.com/safedep/vet/ent/reportpackage"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
@@ -109,32 +110,48 @@ func (r *sqlite3Reporter) addPackage(pkg *models.Package, manifest *ent.ReportPa
 	packageID := pkg.Id()
 	ctx := context.Background()
 
+	var entPackage *ent.ReportPackage
+	var err error
+
 	// Check if package already exists in cache
-	if _, exists := r.packageCache[packageID]; exists {
-		return
+	if cachedPackage, exists := r.packageCache[packageID]; exists {
+		entPackage = cachedPackage
+	} else {
+		// Try to find existing package in database
+		entPackage, err = r.client.ReportPackage.Query().
+			Where(reportpackage.PackageIDEQ(packageID)).
+			First(ctx)
+		if err != nil {
+			// Package doesn't exist, create it
+			entPackage, err = r.client.ReportPackage.Create().
+				SetPackageID(packageID).
+				SetName(pkg.GetName()).
+				SetVersion(pkg.GetVersion()).
+				SetEcosystem(string(pkg.Ecosystem)).
+				SetPackageURL(pkg.GetPackageUrl()).
+				SetDepth(pkg.Depth).
+				SetIsDirect(pkg.IsDirect()).
+				SetIsMalware(pkg.IsMalware()).
+				SetIsSuspicious(pkg.IsSuspicious()).
+				SetCreatedAt(now).
+				SetUpdatedAt(now).
+				Save(ctx)
+			if err != nil {
+				logger.Errorf("Failed to create package in database: %v", err)
+				return
+			}
+		}
+		r.packageCache[packageID] = entPackage
 	}
 
-	// Create package in database
-	entPackage, err := r.client.ReportPackage.Create().
-		SetPackageID(packageID).
-		SetName(pkg.GetName()).
-		SetVersion(pkg.GetVersion()).
-		SetEcosystem(string(pkg.Ecosystem)).
-		SetPackageURL(pkg.GetPackageUrl()).
-		SetDepth(pkg.Depth).
-		SetIsDirect(pkg.IsDirect()).
-		SetIsMalware(pkg.IsMalware()).
-		SetIsSuspicious(pkg.IsSuspicious()).
-		SetManifest(manifest).
-		SetCreatedAt(now).
-		SetUpdatedAt(now).
-		Save(ctx)
+	// Add manifest association (many-to-many relationship)
+	err = r.client.ReportPackageManifest.UpdateOne(manifest).
+		AddPackages(entPackage).
+		Exec(ctx)
 	if err != nil {
-		logger.Errorf("Failed to create package in database: %v", err)
+		logger.Errorf("Failed to associate package with manifest: %v", err)
 		return
 	}
-
-	r.packageCache[packageID] = entPackage
 
 	// Add package details as JSON if available
 	if pkg.PackageDetails.Name != "" {

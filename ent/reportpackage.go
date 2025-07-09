@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/safedep/vet/ent/reportmalware"
 	"github.com/safedep/vet/ent/reportpackage"
-	"github.com/safedep/vet/ent/reportpackagemanifest"
 )
 
 // ReportPackage is the model entity for the ReportPackage schema.
@@ -50,15 +49,14 @@ type ReportPackage struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ReportPackageQuery when eager-loading is set.
-	Edges                            ReportPackageEdges `json:"edges"`
-	report_package_manifest_packages *int
-	selectValues                     sql.SelectValues
+	Edges        ReportPackageEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // ReportPackageEdges holds the relations/edges for other nodes in the graph.
 type ReportPackageEdges struct {
-	// Manifest holds the value of the manifest edge.
-	Manifest *ReportPackageManifest `json:"manifest,omitempty"`
+	// Manifests holds the value of the manifests edge.
+	Manifests []*ReportPackageManifest `json:"manifests,omitempty"`
 	// Vulnerabilities holds the value of the vulnerabilities edge.
 	Vulnerabilities []*ReportVulnerability `json:"vulnerabilities,omitempty"`
 	// Licenses holds the value of the licenses edge.
@@ -76,15 +74,13 @@ type ReportPackageEdges struct {
 	loadedTypes [7]bool
 }
 
-// ManifestOrErr returns the Manifest value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e ReportPackageEdges) ManifestOrErr() (*ReportPackageManifest, error) {
-	if e.Manifest != nil {
-		return e.Manifest, nil
-	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: reportpackagemanifest.Label}
+// ManifestsOrErr returns the Manifests value or an error if the edge
+// was not loaded in eager-loading.
+func (e ReportPackageEdges) ManifestsOrErr() ([]*ReportPackageManifest, error) {
+	if e.loadedTypes[0] {
+		return e.Manifests, nil
 	}
-	return nil, &NotLoadedError{edge: "manifest"}
+	return nil, &NotLoadedError{edge: "manifests"}
 }
 
 // VulnerabilitiesOrErr returns the Vulnerabilities value or an error if the edge
@@ -158,8 +154,6 @@ func (*ReportPackage) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case reportpackage.FieldCreatedAt, reportpackage.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case reportpackage.ForeignKeys[0]: // report_package_manifest_packages
-			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -271,13 +265,6 @@ func (rp *ReportPackage) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				rp.UpdatedAt = value.Time
 			}
-		case reportpackage.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field report_package_manifest_packages", value)
-			} else if value.Valid {
-				rp.report_package_manifest_packages = new(int)
-				*rp.report_package_manifest_packages = int(value.Int64)
-			}
 		default:
 			rp.selectValues.Set(columns[i], values[i])
 		}
@@ -291,9 +278,9 @@ func (rp *ReportPackage) Value(name string) (ent.Value, error) {
 	return rp.selectValues.Get(name)
 }
 
-// QueryManifest queries the "manifest" edge of the ReportPackage entity.
-func (rp *ReportPackage) QueryManifest() *ReportPackageManifestQuery {
-	return NewReportPackageClient(rp.config).QueryManifest(rp)
+// QueryManifests queries the "manifests" edge of the ReportPackage entity.
+func (rp *ReportPackage) QueryManifests() *ReportPackageManifestQuery {
+	return NewReportPackageClient(rp.config).QueryManifests(rp)
 }
 
 // QueryVulnerabilities queries the "vulnerabilities" edge of the ReportPackage entity.

@@ -35,9 +35,8 @@ func (ReportPackage) Fields() []ent.Field {
 // Edges of the ReportPackage.
 func (ReportPackage) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("manifest", ReportPackageManifest.Type).
-			Ref("packages").
-			Unique(),
+		edge.From("manifests", ReportPackageManifest.Type).
+			Ref("packages"),
 		edge.To("vulnerabilities", ReportVulnerability.Type).
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,

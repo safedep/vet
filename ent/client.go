@@ -1293,15 +1293,15 @@ func (c *ReportPackageClient) GetX(ctx context.Context, id int) *ReportPackage {
 	return obj
 }
 
-// QueryManifest queries the manifest edge of a ReportPackage.
-func (c *ReportPackageClient) QueryManifest(rp *ReportPackage) *ReportPackageManifestQuery {
+// QueryManifests queries the manifests edge of a ReportPackage.
+func (c *ReportPackageClient) QueryManifests(rp *ReportPackage) *ReportPackageManifestQuery {
 	query := (&ReportPackageManifestClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := rp.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, id),
 			sqlgraph.To(reportpackagemanifest.Table, reportpackagemanifest.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, reportpackage.ManifestTable, reportpackage.ManifestColumn),
+			sqlgraph.Edge(sqlgraph.M2M, true, reportpackage.ManifestsTable, reportpackage.ManifestsPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(rp.driver.Dialect(), step)
 		return fromV, nil
@@ -1546,7 +1546,7 @@ func (c *ReportPackageManifestClient) QueryPackages(rpm *ReportPackageManifest) 
 		step := sqlgraph.NewStep(
 			sqlgraph.From(reportpackagemanifest.Table, reportpackagemanifest.FieldID, id),
 			sqlgraph.To(reportpackage.Table, reportpackage.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, reportpackagemanifest.PackagesTable, reportpackagemanifest.PackagesColumn),
+			sqlgraph.Edge(sqlgraph.M2M, false, reportpackagemanifest.PackagesTable, reportpackagemanifest.PackagesPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(rpm.driver.Dialect(), step)
 		return fromV, nil

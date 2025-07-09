@@ -40,8 +40,8 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// EdgeManifest holds the string denoting the manifest edge name in mutations.
-	EdgeManifest = "manifest"
+	// EdgeManifests holds the string denoting the manifests edge name in mutations.
+	EdgeManifests = "manifests"
 	// EdgeVulnerabilities holds the string denoting the vulnerabilities edge name in mutations.
 	EdgeVulnerabilities = "vulnerabilities"
 	// EdgeLicenses holds the string denoting the licenses edge name in mutations.
@@ -56,13 +56,11 @@ const (
 	EdgeSlsaProvenances = "slsa_provenances"
 	// Table holds the table name of the reportpackage in the database.
 	Table = "report_packages"
-	// ManifestTable is the table that holds the manifest relation/edge.
-	ManifestTable = "report_packages"
-	// ManifestInverseTable is the table name for the ReportPackageManifest entity.
+	// ManifestsTable is the table that holds the manifests relation/edge. The primary key declared below.
+	ManifestsTable = "report_package_manifest_packages"
+	// ManifestsInverseTable is the table name for the ReportPackageManifest entity.
 	// It exists in this package in order to avoid circular dependency with the "reportpackagemanifest" package.
-	ManifestInverseTable = "report_package_manifests"
-	// ManifestColumn is the table column denoting the manifest relation/edge.
-	ManifestColumn = "report_package_manifest_packages"
+	ManifestsInverseTable = "report_package_manifests"
 	// VulnerabilitiesTable is the table that holds the vulnerabilities relation/edge.
 	VulnerabilitiesTable = "report_vulnerabilities"
 	// VulnerabilitiesInverseTable is the table name for the ReportVulnerability entity.
@@ -126,21 +124,16 @@ var Columns = []string{
 	FieldUpdatedAt,
 }
 
-// ForeignKeys holds the SQL foreign-keys that are owned by the "report_packages"
-// table and are not defined as standalone fields in the schema.
-var ForeignKeys = []string{
-	"report_package_manifest_packages",
-}
+var (
+	// ManifestsPrimaryKey and ManifestsColumn2 are the table columns denoting the
+	// primary key for the manifests relation (M2M).
+	ManifestsPrimaryKey = []string{"report_package_manifest_id", "report_package_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
-			return true
-		}
-	}
-	for i := range ForeignKeys {
-		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -231,10 +224,17 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
-// ByManifestField orders the results by manifest field.
-func ByManifestField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByManifestsCount orders the results by manifests count.
+func ByManifestsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newManifestStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborsCount(s, newManifestsStep(), opts...)
+	}
+}
+
+// ByManifests orders the results by manifests terms.
+func ByManifests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newManifestsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -314,11 +314,11 @@ func BySlsaProvenances(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newSlsaProvenancesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newManifestStep() *sqlgraph.Step {
+func newManifestsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ManifestInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, ManifestTable, ManifestColumn),
+		sqlgraph.To(ManifestsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, ManifestsTable, ManifestsPrimaryKey...),
 	)
 }
 func newVulnerabilitiesStep() *sqlgraph.Step {

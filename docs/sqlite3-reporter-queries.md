@@ -22,7 +22,8 @@ ORDER BY name;
 ```sql
 SELECT p.name, p.version, p.ecosystem, m.display_path
 FROM report_packages p
-JOIN report_package_manifests m ON p.report_package_manifest_packages = m.id
+JOIN report_package_manifest_packages mp ON p.id = mp.report_package_id
+JOIN report_package_manifests m ON mp.report_package_manifest_id = m.id
 WHERE p.is_direct = 1
 ORDER BY p.name;
 ```
@@ -42,7 +43,8 @@ ORDER BY v.severity DESC, v.cvss_score DESC;
 SELECT p.name, p.version, v.vulnerability_id, v.title, v.severity, m.display_path
 FROM report_packages p
 JOIN report_vulnerabilities v ON p.id = v.report_package_vulnerabilities
-JOIN report_package_manifests m ON p.report_package_manifest_packages = m.id
+JOIN report_package_manifest_packages mp ON p.id = mp.report_package_id
+JOIN report_package_manifests m ON mp.report_package_manifest_id = m.id
 WHERE v.severity IN ('CRITICAL', 'HIGH')
 ORDER BY v.severity DESC;
 ```
@@ -97,7 +99,8 @@ ORDER BY package_count DESC;
 SELECT p.name, p.version, p.ecosystem, m.display_path
 FROM report_packages p
 JOIN report_licenses l ON p.id = l.report_package_licenses
-JOIN report_package_manifests m ON p.report_package_manifest_packages = m.id
+JOIN report_package_manifest_packages mp ON p.id = mp.report_package_id
+JOIN report_package_manifests m ON mp.report_package_manifest_id = m.id
 WHERE l.license_id IN ('MIT', 'Apache-2.0', 'GPL-3.0')
 ORDER BY l.license_id, p.name;
 ```
@@ -110,7 +113,8 @@ SELECT
     COUNT(DISTINCT l.license_id) as unique_licenses,
     GROUP_CONCAT(DISTINCT l.license_id) as all_licenses
 FROM report_package_manifests m
-LEFT JOIN report_packages p ON m.id = p.report_package_manifest_packages
+LEFT JOIN report_package_manifest_packages mp ON m.id = mp.report_package_manifest_id
+LEFT JOIN report_packages p ON mp.report_package_id = p.id
 LEFT JOIN report_licenses l ON p.id = l.report_package_licenses
 GROUP BY m.id, m.display_path
 ORDER BY unique_licenses DESC;
@@ -120,7 +124,8 @@ ORDER BY unique_licenses DESC;
 ```sql
 SELECT p.name, p.version, p.ecosystem, m.display_path
 FROM report_packages p
-JOIN report_package_manifests m ON p.report_package_manifest_packages = m.id
+JOIN report_package_manifest_packages mp ON p.id = mp.report_package_id
+JOIN report_package_manifests m ON mp.report_package_manifest_id = m.id
 LEFT JOIN report_licenses l ON p.id = l.report_package_licenses
 WHERE l.id IS NULL;
 ```
@@ -130,7 +135,8 @@ WHERE l.id IS NULL;
 SELECT p.name, p.version, l.license_id, m.display_path
 FROM report_packages p
 JOIN report_licenses l ON p.id = l.report_package_licenses
-JOIN report_package_manifests m ON p.report_package_manifest_packages = m.id
+JOIN report_package_manifest_packages mp ON p.id = mp.report_package_id
+JOIN report_package_manifests m ON mp.report_package_manifest_id = m.id
 WHERE l.license_id LIKE '%GPL%' 
    OR l.license_id LIKE '%AGPL%' 
    OR l.license_id LIKE '%LGPL%'
@@ -142,7 +148,8 @@ ORDER BY l.license_id, p.name;
 ```sql
 SELECT p.name, p.version, p.ecosystem, m.display_path
 FROM report_packages p
-JOIN report_package_manifests m ON p.report_package_manifest_packages = m.id
+JOIN report_package_manifest_packages mp ON p.id = mp.report_package_id
+JOIN report_package_manifests m ON mp.report_package_manifest_id = m.id
 WHERE p.is_malware = 1;
 ```
 
@@ -150,7 +157,8 @@ WHERE p.is_malware = 1;
 ```sql
 SELECT p.name, p.version, p.ecosystem, m.display_path
 FROM report_packages p
-JOIN report_package_manifests m ON p.report_package_manifest_packages = m.id
+JOIN report_package_manifest_packages mp ON p.id = mp.report_package_id
+JOIN report_package_manifests m ON mp.report_package_manifest_id = m.id
 WHERE p.is_suspicious = 1;
 ```
 
@@ -209,8 +217,9 @@ ORDER BY name;
 
 ### Find packages used across multiple manifests
 ```sql
-SELECT p.name, p.version, p.ecosystem, COUNT(DISTINCT p.report_package_manifest_packages) as manifest_count
+SELECT p.name, p.version, p.ecosystem, COUNT(DISTINCT mp.report_package_manifest_id) as manifest_count
 FROM report_packages p
+JOIN report_package_manifest_packages mp ON p.id = mp.report_package_id
 GROUP BY p.name, p.version, p.ecosystem
 HAVING manifest_count > 1
 ORDER BY manifest_count DESC;
@@ -224,7 +233,8 @@ SELECT
     p.version,
     p.ecosystem
 FROM report_packages p
-JOIN report_package_manifests m ON p.report_package_manifest_packages = m.id
+JOIN report_package_manifest_packages mp ON p.id = mp.report_package_id
+JOIN report_package_manifests m ON mp.report_package_manifest_id = m.id
 WHERE p.is_direct = 1
 ORDER BY m.display_path, p.name;
 ```
@@ -389,7 +399,8 @@ ORDER BY provenance_count DESC;
 ```sql
 SELECT p.name, p.version, p.ecosystem, m.display_path
 FROM report_packages p
-JOIN report_package_manifests m ON p.report_package_manifest_packages = m.id
+JOIN report_package_manifest_packages mp ON p.id = mp.report_package_id
+JOIN report_package_manifests m ON mp.report_package_manifest_id = m.id
 LEFT JOIN report_slsa_provenances slsa ON p.id = slsa.report_package_slsa_provenances
 WHERE slsa.id IS NULL
 ORDER BY p.name;
@@ -436,7 +447,8 @@ ORDER BY provenance_coverage_percent DESC;
 ```sql
 SELECT p.name, p.version, p.ecosystem, m.display_path
 FROM report_packages p
-JOIN report_package_manifests m ON p.report_package_manifest_packages = m.id
+JOIN report_package_manifest_packages mp ON p.id = mp.report_package_id
+JOIN report_package_manifests m ON mp.report_package_manifest_id = m.id
 LEFT JOIN report_slsa_provenances slsa ON p.id = slsa.report_package_slsa_provenances
 WHERE p.is_direct = 1 AND slsa.id IS NULL
 ORDER BY p.ecosystem, p.name;
@@ -489,7 +501,8 @@ SELECT
         (COUNT(DISTINCT CASE WHEN slsa.verified = true THEN p.id END) * 100.0) / COUNT(DISTINCT p.id), 2
     ) as supply_chain_security_score
 FROM report_package_manifests m
-LEFT JOIN report_packages p ON m.id = p.report_package_manifest_packages
+LEFT JOIN report_package_manifest_packages mp ON m.id = mp.report_package_manifest_id
+LEFT JOIN report_packages p ON mp.report_package_id = p.id
 LEFT JOIN report_slsa_provenances slsa ON p.id = slsa.report_package_slsa_provenances
 LEFT JOIN report_vulnerabilities v ON p.id = v.report_package_vulnerabilities
 GROUP BY m.id, m.display_path
@@ -530,7 +543,8 @@ SELECT
     SUM(CASE WHEN v.severity = 'MEDIUM' THEN 1 ELSE 0 END) as medium_vulns,
     SUM(CASE WHEN v.severity = 'LOW' THEN 1 ELSE 0 END) as low_vulns
 FROM report_package_manifests m
-LEFT JOIN report_packages p ON m.id = p.report_package_manifest_packages
+LEFT JOIN report_package_manifest_packages mp ON m.id = mp.report_package_manifest_id
+LEFT JOIN report_packages p ON mp.report_package_id = p.id
 LEFT JOIN report_vulnerabilities v ON p.id = v.report_package_vulnerabilities
 GROUP BY m.id, m.display_path, m.ecosystem
 ORDER BY critical_vulns DESC, high_vulns DESC;
@@ -596,7 +610,8 @@ SELECT
     SUM(CASE WHEN p.is_suspicious = 1 THEN 1 ELSE 0 END) as suspicious_count,
     SUM(CASE WHEN p.is_direct = 1 THEN 1 ELSE 0 END) as direct_deps
 FROM report_package_manifests m
-LEFT JOIN report_packages p ON m.id = p.report_package_manifest_packages
+LEFT JOIN report_package_manifest_packages mp ON m.id = mp.report_package_manifest_id
+LEFT JOIN report_packages p ON mp.report_package_id = p.id
 GROUP BY m.id, m.display_path, m.ecosystem
 ORDER BY malware_count DESC, suspicious_count DESC;
 ```
@@ -612,7 +627,8 @@ SELECT
     m.display_path as found_in_manifest,
     p.created_at
 FROM report_packages p
-JOIN report_package_manifests m ON p.report_package_manifest_packages = m.id
+JOIN report_package_manifest_packages mp ON p.id = mp.report_package_id
+JOIN report_package_manifests m ON mp.report_package_manifest_id = m.id
 ORDER BY p.ecosystem, p.name, m.display_path;
 ```
 
@@ -1032,7 +1048,8 @@ SELECT
     m.display_path,
     m.ecosystem as manifest_ecosystem
 FROM report_packages p
-JOIN report_package_manifests m ON p.report_package_manifest_packages = m.id;
+JOIN report_package_manifest_packages mp ON p.id = mp.report_package_id
+JOIN report_package_manifests m ON mp.report_package_manifest_id = m.id;
 
 -- Create a view for vulnerability impact analysis
 CREATE VIEW vulnerability_impact AS

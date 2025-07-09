@@ -75,7 +75,7 @@ func (rpmq *ReportPackageManifestQuery) QueryPackages() *ReportPackageQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(reportpackagemanifest.Table, reportpackagemanifest.FieldID, selector),
 			sqlgraph.To(reportpackage.Table, reportpackage.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, reportpackagemanifest.PackagesTable, reportpackagemanifest.PackagesColumn),
+			sqlgraph.Edge(sqlgraph.M2M, false, reportpackagemanifest.PackagesTable, reportpackagemanifest.PackagesPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(rpmq.driver.Dialect(), step)
 		return fromU, nil
@@ -404,33 +404,63 @@ func (rpmq *ReportPackageManifestQuery) sqlAll(ctx context.Context, hooks ...que
 }
 
 func (rpmq *ReportPackageManifestQuery) loadPackages(ctx context.Context, query *ReportPackageQuery, nodes []*ReportPackageManifest, init func(*ReportPackageManifest), assign func(*ReportPackageManifest, *ReportPackage)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*ReportPackageManifest)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*ReportPackageManifest)
+	nids := make(map[int]map[*ReportPackageManifest]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
 		if init != nil {
-			init(nodes[i])
+			init(node)
 		}
 	}
-	query.withFKs = true
-	query.Where(predicate.ReportPackage(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(reportpackagemanifest.PackagesColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(reportpackagemanifest.PackagesTable)
+		s.Join(joinT).On(s.C(reportpackage.FieldID), joinT.C(reportpackagemanifest.PackagesPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(reportpackagemanifest.PackagesPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(reportpackagemanifest.PackagesPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*ReportPackageManifest]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*ReportPackage](ctx, query, qr, query.inters)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.report_package_manifest_packages
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "report_package_manifest_packages" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		nodes, ok := nids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "report_package_manifest_packages" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected "packages" node returned %v`, n.ID)
 		}
-		assign(node, n)
+		for kn := range nodes {
+			assign(kn, n)
+		}
 	}
 	return nil
 }

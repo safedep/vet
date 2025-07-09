@@ -32,13 +32,11 @@ const (
 	EdgePackages = "packages"
 	// Table holds the table name of the reportpackagemanifest in the database.
 	Table = "report_package_manifests"
-	// PackagesTable is the table that holds the packages relation/edge.
-	PackagesTable = "report_packages"
+	// PackagesTable is the table that holds the packages relation/edge. The primary key declared below.
+	PackagesTable = "report_package_manifest_packages"
 	// PackagesInverseTable is the table name for the ReportPackage entity.
 	// It exists in this package in order to avoid circular dependency with the "reportpackage" package.
 	PackagesInverseTable = "report_packages"
-	// PackagesColumn is the table column denoting the packages relation/edge.
-	PackagesColumn = "report_package_manifest_packages"
 )
 
 // Columns holds all SQL columns for reportpackagemanifest fields.
@@ -53,6 +51,12 @@ var Columns = []string{
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
+
+var (
+	// PackagesPrimaryKey and PackagesColumn2 are the table columns denoting the
+	// primary key for the packages relation (M2M).
+	PackagesPrimaryKey = []string{"report_package_manifest_id", "report_package_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -144,6 +148,6 @@ func newPackagesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PackagesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, PackagesTable, PackagesColumn),
+		sqlgraph.Edge(sqlgraph.M2M, false, PackagesTable, PackagesPrimaryKey...),
 	)
 }

@@ -242,10 +242,10 @@ func (rpmc *ReportPackageManifestCreate) createSpec() (*ReportPackageManifest, *
 	}
 	if nodes := rpmc.mutation.PackagesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   reportpackagemanifest.PackagesTable,
-			Columns: []string{reportpackagemanifest.PackagesColumn},
+			Columns: reportpackagemanifest.PackagesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt),

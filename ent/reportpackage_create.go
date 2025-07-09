@@ -159,23 +159,19 @@ func (rpc *ReportPackageCreate) SetNillableUpdatedAt(t *time.Time) *ReportPackag
 	return rpc
 }
 
-// SetManifestID sets the "manifest" edge to the ReportPackageManifest entity by ID.
-func (rpc *ReportPackageCreate) SetManifestID(id int) *ReportPackageCreate {
-	rpc.mutation.SetManifestID(id)
+// AddManifestIDs adds the "manifests" edge to the ReportPackageManifest entity by IDs.
+func (rpc *ReportPackageCreate) AddManifestIDs(ids ...int) *ReportPackageCreate {
+	rpc.mutation.AddManifestIDs(ids...)
 	return rpc
 }
 
-// SetNillableManifestID sets the "manifest" edge to the ReportPackageManifest entity by ID if the given value is not nil.
-func (rpc *ReportPackageCreate) SetNillableManifestID(id *int) *ReportPackageCreate {
-	if id != nil {
-		rpc = rpc.SetManifestID(*id)
+// AddManifests adds the "manifests" edges to the ReportPackageManifest entity.
+func (rpc *ReportPackageCreate) AddManifests(r ...*ReportPackageManifest) *ReportPackageCreate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return rpc
-}
-
-// SetManifest sets the "manifest" edge to the ReportPackageManifest entity.
-func (rpc *ReportPackageCreate) SetManifest(r *ReportPackageManifest) *ReportPackageCreate {
-	return rpc.SetManifestID(r.ID)
+	return rpc.AddManifestIDs(ids...)
 }
 
 // AddVulnerabilityIDs adds the "vulnerabilities" edge to the ReportVulnerability entity by IDs.
@@ -461,12 +457,12 @@ func (rpc *ReportPackageCreate) createSpec() (*ReportPackage, *sqlgraph.CreateSp
 		_spec.SetField(reportpackage.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := rpc.mutation.ManifestIDs(); len(nodes) > 0 {
+	if nodes := rpc.mutation.ManifestsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   reportpackage.ManifestTable,
-			Columns: []string{reportpackage.ManifestColumn},
+			Table:   reportpackage.ManifestsTable,
+			Columns: reportpackage.ManifestsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reportpackagemanifest.FieldID, field.TypeInt),
@@ -475,7 +471,6 @@ func (rpc *ReportPackageCreate) createSpec() (*ReportPackage, *sqlgraph.CreateSp
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.report_package_manifest_packages = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := rpc.mutation.VulnerabilitiesIDs(); len(nodes) > 0 {

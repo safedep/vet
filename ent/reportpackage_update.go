@@ -244,23 +244,19 @@ func (rpu *ReportPackageUpdate) ClearUpdatedAt() *ReportPackageUpdate {
 	return rpu
 }
 
-// SetManifestID sets the "manifest" edge to the ReportPackageManifest entity by ID.
-func (rpu *ReportPackageUpdate) SetManifestID(id int) *ReportPackageUpdate {
-	rpu.mutation.SetManifestID(id)
+// AddManifestIDs adds the "manifests" edge to the ReportPackageManifest entity by IDs.
+func (rpu *ReportPackageUpdate) AddManifestIDs(ids ...int) *ReportPackageUpdate {
+	rpu.mutation.AddManifestIDs(ids...)
 	return rpu
 }
 
-// SetNillableManifestID sets the "manifest" edge to the ReportPackageManifest entity by ID if the given value is not nil.
-func (rpu *ReportPackageUpdate) SetNillableManifestID(id *int) *ReportPackageUpdate {
-	if id != nil {
-		rpu = rpu.SetManifestID(*id)
+// AddManifests adds the "manifests" edges to the ReportPackageManifest entity.
+func (rpu *ReportPackageUpdate) AddManifests(r ...*ReportPackageManifest) *ReportPackageUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return rpu
-}
-
-// SetManifest sets the "manifest" edge to the ReportPackageManifest entity.
-func (rpu *ReportPackageUpdate) SetManifest(r *ReportPackageManifest) *ReportPackageUpdate {
-	return rpu.SetManifestID(r.ID)
+	return rpu.AddManifestIDs(ids...)
 }
 
 // AddVulnerabilityIDs adds the "vulnerabilities" edge to the ReportVulnerability entity by IDs.
@@ -362,10 +358,25 @@ func (rpu *ReportPackageUpdate) Mutation() *ReportPackageMutation {
 	return rpu.mutation
 }
 
-// ClearManifest clears the "manifest" edge to the ReportPackageManifest entity.
-func (rpu *ReportPackageUpdate) ClearManifest() *ReportPackageUpdate {
-	rpu.mutation.ClearManifest()
+// ClearManifests clears all "manifests" edges to the ReportPackageManifest entity.
+func (rpu *ReportPackageUpdate) ClearManifests() *ReportPackageUpdate {
+	rpu.mutation.ClearManifests()
 	return rpu
+}
+
+// RemoveManifestIDs removes the "manifests" edge to ReportPackageManifest entities by IDs.
+func (rpu *ReportPackageUpdate) RemoveManifestIDs(ids ...int) *ReportPackageUpdate {
+	rpu.mutation.RemoveManifestIDs(ids...)
+	return rpu
+}
+
+// RemoveManifests removes "manifests" edges to ReportPackageManifest entities.
+func (rpu *ReportPackageUpdate) RemoveManifests(r ...*ReportPackageManifest) *ReportPackageUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpu.RemoveManifestIDs(ids...)
 }
 
 // ClearVulnerabilities clears all "vulnerabilities" edges to the ReportVulnerability entity.
@@ -608,12 +619,12 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	if rpu.mutation.UpdatedAtCleared() {
 		_spec.ClearField(reportpackage.FieldUpdatedAt, field.TypeTime)
 	}
-	if rpu.mutation.ManifestCleared() {
+	if rpu.mutation.ManifestsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   reportpackage.ManifestTable,
-			Columns: []string{reportpackage.ManifestColumn},
+			Table:   reportpackage.ManifestsTable,
+			Columns: reportpackage.ManifestsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reportpackagemanifest.FieldID, field.TypeInt),
@@ -621,12 +632,28 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpu.mutation.ManifestIDs(); len(nodes) > 0 {
+	if nodes := rpu.mutation.RemovedManifestsIDs(); len(nodes) > 0 && !rpu.mutation.ManifestsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   reportpackage.ManifestTable,
-			Columns: []string{reportpackage.ManifestColumn},
+			Table:   reportpackage.ManifestsTable,
+			Columns: reportpackage.ManifestsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportpackagemanifest.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpu.mutation.ManifestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   reportpackage.ManifestsTable,
+			Columns: reportpackage.ManifestsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reportpackagemanifest.FieldID, field.TypeInt),
@@ -1120,23 +1147,19 @@ func (rpuo *ReportPackageUpdateOne) ClearUpdatedAt() *ReportPackageUpdateOne {
 	return rpuo
 }
 
-// SetManifestID sets the "manifest" edge to the ReportPackageManifest entity by ID.
-func (rpuo *ReportPackageUpdateOne) SetManifestID(id int) *ReportPackageUpdateOne {
-	rpuo.mutation.SetManifestID(id)
+// AddManifestIDs adds the "manifests" edge to the ReportPackageManifest entity by IDs.
+func (rpuo *ReportPackageUpdateOne) AddManifestIDs(ids ...int) *ReportPackageUpdateOne {
+	rpuo.mutation.AddManifestIDs(ids...)
 	return rpuo
 }
 
-// SetNillableManifestID sets the "manifest" edge to the ReportPackageManifest entity by ID if the given value is not nil.
-func (rpuo *ReportPackageUpdateOne) SetNillableManifestID(id *int) *ReportPackageUpdateOne {
-	if id != nil {
-		rpuo = rpuo.SetManifestID(*id)
+// AddManifests adds the "manifests" edges to the ReportPackageManifest entity.
+func (rpuo *ReportPackageUpdateOne) AddManifests(r ...*ReportPackageManifest) *ReportPackageUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return rpuo
-}
-
-// SetManifest sets the "manifest" edge to the ReportPackageManifest entity.
-func (rpuo *ReportPackageUpdateOne) SetManifest(r *ReportPackageManifest) *ReportPackageUpdateOne {
-	return rpuo.SetManifestID(r.ID)
+	return rpuo.AddManifestIDs(ids...)
 }
 
 // AddVulnerabilityIDs adds the "vulnerabilities" edge to the ReportVulnerability entity by IDs.
@@ -1238,10 +1261,25 @@ func (rpuo *ReportPackageUpdateOne) Mutation() *ReportPackageMutation {
 	return rpuo.mutation
 }
 
-// ClearManifest clears the "manifest" edge to the ReportPackageManifest entity.
-func (rpuo *ReportPackageUpdateOne) ClearManifest() *ReportPackageUpdateOne {
-	rpuo.mutation.ClearManifest()
+// ClearManifests clears all "manifests" edges to the ReportPackageManifest entity.
+func (rpuo *ReportPackageUpdateOne) ClearManifests() *ReportPackageUpdateOne {
+	rpuo.mutation.ClearManifests()
 	return rpuo
+}
+
+// RemoveManifestIDs removes the "manifests" edge to ReportPackageManifest entities by IDs.
+func (rpuo *ReportPackageUpdateOne) RemoveManifestIDs(ids ...int) *ReportPackageUpdateOne {
+	rpuo.mutation.RemoveManifestIDs(ids...)
+	return rpuo
+}
+
+// RemoveManifests removes "manifests" edges to ReportPackageManifest entities.
+func (rpuo *ReportPackageUpdateOne) RemoveManifests(r ...*ReportPackageManifest) *ReportPackageUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return rpuo.RemoveManifestIDs(ids...)
 }
 
 // ClearVulnerabilities clears all "vulnerabilities" edges to the ReportVulnerability entity.
@@ -1514,12 +1552,12 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 	if rpuo.mutation.UpdatedAtCleared() {
 		_spec.ClearField(reportpackage.FieldUpdatedAt, field.TypeTime)
 	}
-	if rpuo.mutation.ManifestCleared() {
+	if rpuo.mutation.ManifestsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   reportpackage.ManifestTable,
-			Columns: []string{reportpackage.ManifestColumn},
+			Table:   reportpackage.ManifestsTable,
+			Columns: reportpackage.ManifestsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reportpackagemanifest.FieldID, field.TypeInt),
@@ -1527,12 +1565,28 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpuo.mutation.ManifestIDs(); len(nodes) > 0 {
+	if nodes := rpuo.mutation.RemovedManifestsIDs(); len(nodes) > 0 && !rpuo.mutation.ManifestsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   reportpackage.ManifestTable,
-			Columns: []string{reportpackage.ManifestColumn},
+			Table:   reportpackage.ManifestsTable,
+			Columns: reportpackage.ManifestsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportpackagemanifest.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := rpuo.mutation.ManifestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   reportpackage.ManifestsTable,
+			Columns: reportpackage.ManifestsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(reportpackagemanifest.FieldID, field.TypeInt),

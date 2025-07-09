@@ -590,7 +590,7 @@ func HasPackages() predicate.ReportPackageManifest {
 	return predicate.ReportPackageManifest(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, PackagesTable, PackagesColumn),
+			sqlgraph.Edge(sqlgraph.M2M, false, PackagesTable, PackagesPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})

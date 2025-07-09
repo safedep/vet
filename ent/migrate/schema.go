@@ -210,21 +210,12 @@ var (
 		{Name: "code_analysis", Type: field.TypeJSON, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime, Nullable: true},
 		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
-		{Name: "report_package_manifest_packages", Type: field.TypeInt, Nullable: true},
 	}
 	// ReportPackagesTable holds the schema information for the "report_packages" table.
 	ReportPackagesTable = &schema.Table{
 		Name:       "report_packages",
 		Columns:    ReportPackagesColumns,
 		PrimaryKey: []*schema.Column{ReportPackagesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "report_packages_report_package_manifests_packages",
-				Columns:    []*schema.Column{ReportPackagesColumns[15]},
-				RefColumns: []*schema.Column{ReportPackageManifestsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
 	}
 	// ReportPackageManifestsColumns holds the columns for the "report_package_manifests" table.
 	ReportPackageManifestsColumns = []*schema.Column{
@@ -374,6 +365,31 @@ var (
 			},
 		},
 	}
+	// ReportPackageManifestPackagesColumns holds the columns for the "report_package_manifest_packages" table.
+	ReportPackageManifestPackagesColumns = []*schema.Column{
+		{Name: "report_package_manifest_id", Type: field.TypeInt},
+		{Name: "report_package_id", Type: field.TypeInt},
+	}
+	// ReportPackageManifestPackagesTable holds the schema information for the "report_package_manifest_packages" table.
+	ReportPackageManifestPackagesTable = &schema.Table{
+		Name:       "report_package_manifest_packages",
+		Columns:    ReportPackageManifestPackagesColumns,
+		PrimaryKey: []*schema.Column{ReportPackageManifestPackagesColumns[0], ReportPackageManifestPackagesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "report_package_manifest_packages_report_package_manifest_id",
+				Columns:    []*schema.Column{ReportPackageManifestPackagesColumns[0]},
+				RefColumns: []*schema.Column{ReportPackageManifestsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "report_package_manifest_packages_report_package_id",
+				Columns:    []*schema.Column{ReportPackageManifestPackagesColumns[1]},
+				RefColumns: []*schema.Column{ReportPackagesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		CodeSourceFilesTable,
@@ -389,6 +405,7 @@ var (
 		ReportScorecardChecksTable,
 		ReportSlsaProvenancesTable,
 		ReportVulnerabilitiesTable,
+		ReportPackageManifestPackagesTable,
 	}
 )
 
@@ -397,10 +414,11 @@ func init() {
 	ReportDependenciesTable.ForeignKeys[0].RefTable = ReportPackagesTable
 	ReportLicensesTable.ForeignKeys[0].RefTable = ReportPackagesTable
 	ReportMalwaresTable.ForeignKeys[0].RefTable = ReportPackagesTable
-	ReportPackagesTable.ForeignKeys[0].RefTable = ReportPackageManifestsTable
 	ReportProjectsTable.ForeignKeys[0].RefTable = ReportPackagesTable
 	ReportScorecardsTable.ForeignKeys[0].RefTable = ReportProjectsTable
 	ReportScorecardChecksTable.ForeignKeys[0].RefTable = ReportScorecardsTable
 	ReportSlsaProvenancesTable.ForeignKeys[0].RefTable = ReportPackagesTable
 	ReportVulnerabilitiesTable.ForeignKeys[0].RefTable = ReportPackagesTable
+	ReportPackageManifestPackagesTable.ForeignKeys[0].RefTable = ReportPackageManifestsTable
+	ReportPackageManifestPackagesTable.ForeignKeys[1].RefTable = ReportPackagesTable
 }
