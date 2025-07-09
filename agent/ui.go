@@ -411,7 +411,7 @@ func (m *agentUI) renderMessages() string {
 	}
 
 	r, err := glamour.NewTermRenderer(
-		glamour.WithAutoStyle(),
+		glamour.WithStandardStyle("notty"),
 		glamour.WithWordWrap(contentWidth),
 	)
 	if err != nil {
