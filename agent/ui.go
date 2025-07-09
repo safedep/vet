@@ -33,72 +33,40 @@ type agentToolCallMsg struct {
 
 type thinkingTickMsg struct{}
 
-type toolProgressMsg struct {
-	progress int
-}
-
-// Styles using Lipgloss
 var (
-	// Main panel styles with enhanced visuals
-	mainPanelStyle = lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("62")).
-			Padding(1, 2).
-			Margin(0, 1)
+	headerStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("240")).
+			Padding(0, 1)
 
-	// Chat input styles with focus animation
-	inputPanelStyle = lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("39")).
-			Padding(0, 1).
-			Margin(0, 1)
+	inputPromptStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("240"))
 
-	// Disabled input styles with subtle animation
-	inputPanelDisabledStyle = lipgloss.NewStyle().
-				Border(lipgloss.RoundedBorder()).
-				BorderForeground(lipgloss.Color("238")).
-				Foreground(lipgloss.Color("243")).
-				Padding(0, 1).
-				Margin(0, 1)
+	inputCursorStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("255"))
 
-	// Status bar styles with gradient effect
-	statusBarStyle = lipgloss.NewStyle().
-			Background(lipgloss.Color("62")).
-			Foreground(lipgloss.Color("230")).
-			Padding(0, 1).
-			Bold(true)
+	inputBorderStyle = lipgloss.NewStyle().
+				Border(lipgloss.NormalBorder()).
+				BorderForeground(lipgloss.Color("240")).
+				Padding(0, 1)
 
-	// Message styles with enhanced colors
 	userMessageStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("86")).
-				Bold(true).
-				Padding(0, 1).
-				Margin(0, 0, 1, 0)
+				Foreground(lipgloss.Color("255")).
+				Bold(true)
 
 	agentMessageStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("39")).
-				Padding(0, 1).
-				Margin(0, 0, 1, 0)
+				Foreground(lipgloss.Color("255"))
 
 	systemMessageStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("241")).
-				Italic(true).
-				Padding(0, 1).
-				Margin(0, 0, 1, 0)
+				Foreground(lipgloss.Color("240")).
+				Italic(true)
 
-	// Thinking indicator style with pulsing effect
 	thinkingStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("214")).
-			Italic(true).
+			Foreground(lipgloss.Color("33")).
 			Bold(true)
 
-	// Tool call message style - subtle and less prominent
 	toolCallStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("245")).
-			Italic(true).
-			Faint(true).
-			Padding(0, 1).
-			Margin(0, 0, 1, 0)
+			Foreground(lipgloss.Color("240")).
+			Italic(true)
 )
 
 // AgentUI represents the main TUI model
@@ -114,9 +82,7 @@ type agentUI struct {
 	agent         Agent
 	session       Session
 	config        AgentUIConfig
-	// Animation state
 	thinkingFrame int
-	toolProgress  int
 }
 
 // Message represents a chat message
@@ -153,31 +119,27 @@ func DefaultAgentUIConfig() AgentUIConfig {
 
 // NewAgentUI creates a new agent UI instance
 func NewAgentUI(agent Agent, session Session, config AgentUIConfig) *agentUI {
-	// Create viewport for main content
 	vp := viewport.New(config.Width, config.Height)
-	vp.Style = mainPanelStyle
 
-	// Create text input for chat
 	ta := textarea.New()
-	ta.Placeholder = config.TextInputPlaceholder
+	ta.Placeholder = ""
 	ta.Focus()
-	ta.SetHeight(3)
+	ta.SetHeight(1)
 	ta.SetWidth(80)
 	ta.CharLimit = 1000
+	ta.ShowLineNumbers = false
 
 	ui := &agentUI{
 		viewport:      vp,
 		textInput:     ta,
-		statusMessage: "Initializing agent...",
+		statusMessage: "",
 		messages:      []uiMessage{},
 		agent:         agent,
 		session:       session,
 		config:        config,
 		thinkingFrame: 0,
-		toolProgress:  0,
 	}
 
-	// Add welcome message
 	ui.addSystemMessage(config.InitialSystemMessage)
 
 	return ui
@@ -187,7 +149,6 @@ func NewAgentUI(agent Agent, session Session, config AgentUIConfig) *agentUI {
 func (m *agentUI) Init() tea.Cmd {
 	return tea.Batch(
 		textarea.Blink,
-		m.updateStatus("Ready - Ask me anything!"),
 		m.tickThinking(),
 	)
 }
@@ -205,15 +166,14 @@ func (m *agentUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case tea.KeyEnter:
 			if m.textInput.Focused() && !m.isThinking {
-				// Handle user input only if agent is not thinking
+				// Handle user input only if agent is not in thinking mode
 				userInput := strings.TrimSpace(m.textInput.Value())
 				if userInput != "" {
 					m.addUserMessage(userInput)
-					m.textInput.Reset()
+					m.resetInputField()
 
 					// Execute agent query
 					cmds = append(cmds,
-						m.updateStatus("Agent is analyzing your question..."),
 						m.setThinking(true),
 						m.executeAgentQuery(userInput),
 					)
@@ -239,29 +199,13 @@ func (m *agentUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case tea.KeyHome:
-			// Go to top of viewport with smooth scrolling indication
 			if !m.textInput.Focused() {
 				m.viewport.GotoTop()
-				cmds = append(cmds, m.updateStatus("Scrolled to top"))
 			}
 
 		case tea.KeyEnd:
-			// Go to bottom of viewport with smooth scrolling indication
 			if !m.textInput.Focused() {
 				m.viewport.GotoBottom()
-				cmds = append(cmds, m.updateStatus("Scrolled to bottom"))
-			}
-
-		case tea.KeyF1:
-			// Show help or easter egg
-			if !m.isThinking {
-				m.addSystemMessage("💡 Tip: Use Tab to switch focus, arrows to scroll, Enter to send messages")
-			}
-
-		case tea.KeyF5:
-			// Refresh/clear screen effect
-			if !m.isThinking {
-				m.addSystemMessage("🔄 Interface refreshed")
 			}
 		}
 
@@ -270,34 +214,30 @@ func (m *agentUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 
-		// Calculate dimensions more accurately
-		headerHeight := 3 // Header with padding and spacing
-		helpHeight := 1   // Help text line
-		statusHeight := 1 // Status bar
-		inputHeight := 7  // Text input area with borders and padding
+		// Calculate dimensions for minimal UI
+		headerHeight := 2 // Header + blank line
+		inputHeight := 2  // Input area + status
+		spacing := 1      // Bottom spacing
 
-		// Account for main panel borders and padding (2 lines for borders + 2 lines for padding)
-		mainPanelDecorations := 4
-
-		// Calculate viewport dimensions
-		viewportHeight := m.height - headerHeight - helpHeight - statusHeight - inputHeight - mainPanelDecorations
+		// Calculate viewport dimensions to maximize output area
+		viewportHeight := m.height - headerHeight - inputHeight - spacing
 
 		// Ensure minimum height
-		if viewportHeight < 8 {
-			viewportHeight = 8
+		if viewportHeight < 10 {
+			viewportHeight = 10
 		}
 
-		// Account for main panel padding (4 characters total: 2 left + 2 right)
-		viewportWidth := m.width - 8
+		// Full width utilization
+		viewportWidth := m.width
 
 		// Ensure minimum width
-		if viewportWidth < 40 {
-			viewportWidth = 40
+		if viewportWidth < 50 {
+			viewportWidth = 50
 		}
 
 		m.viewport.Width = viewportWidth
 		m.viewport.Height = viewportHeight
-		m.textInput.SetWidth(m.width - 4)
+		m.textInput.SetWidth(m.width - 3)
 
 		// Update content when dimensions change
 		m.viewport.SetContent(m.renderMessages())
@@ -311,31 +251,25 @@ func (m *agentUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case agentThinkingMsg:
 		m.isThinking = msg.thinking
-		// When agent starts thinking, blur the input and update placeholder
+
+		// When agent starts thinking, blur the input
 		if m.isThinking {
+			m.resetInputField()
 			m.textInput.Blur()
-			m.textInput.Placeholder = "Please wait while agent is responding..."
 			m.thinkingFrame = 0
 			cmds = append(cmds, m.tickThinking())
 		} else {
-			// Re-focus input when thinking stops and restore placeholder
-			m.textInput.Placeholder = "Ask me anything about your security data..."
+			// Re-focus input when thinking stops
 			m.textInput.Focus()
 			cmds = append(cmds, textarea.Blink)
 		}
 
 	case agentResponseMsg:
 		m.addAgentMessage(msg.content)
-		cmds = append(cmds,
-			m.setThinking(false),
-			m.updateStatus("Ready - Ask me anything!"),
-		)
+		cmds = append(cmds, m.setThinking(false))
 
 	case agentToolCallMsg:
-		m.updateStatus("Agent is using tools...")
 		m.addToolCallMessage(fmt.Sprintf("🔧 %s", msg.toolName), msg.toolArgs)
-		m.toolProgress = 0
-		cmds = append(cmds, m.tickToolProgress())
 
 	case thinkingTickMsg:
 		if m.isThinking {
@@ -343,11 +277,6 @@ func (m *agentUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, m.tickThinking())
 		}
 
-	case toolProgressMsg:
-		if m.toolProgress < 100 {
-			m.toolProgress = (m.toolProgress + 10) % 101
-			cmds = append(cmds, m.tickToolProgress())
-		}
 	}
 
 	// Update child components
@@ -369,87 +298,57 @@ func (m *agentUI) View() string {
 		return "Loading..."
 	}
 
-	// Calculate available space properly
 	if m.width == 0 || m.height == 0 {
 		return "Initializing..."
 	}
 
-	// Header - make it more prominent with gradient and effects
-	headerStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("230")).
-		Background(lipgloss.Color("62")).
-		Align(lipgloss.Center).
-		Width(m.width).
-		Padding(1, 2).
-		Border(lipgloss.NormalBorder(), false, false, true, false).
-		BorderForeground(lipgloss.Color("39"))
+	header := headerStyle.Render(fmt.Sprintf("%s %s", m.config.TitleText, m.config.ModelName))
 
-	header := headerStyle.Render(m.config.TitleText)
+	content := m.viewport.View()
 
-	// Main viewport with messages - use exact viewport dimensions
-	mainPanel := mainPanelStyle.
-		Width(m.width - 4).
-		Render(m.viewport.View())
-
-	// Input panel - style based on thinking state
-	var inputPanel string
-	if m.isThinking {
-		// Use disabled style when agent is thinking
-		inputPanel = inputPanelDisabledStyle.
-			Width(m.width - 4).
-			Render(m.textInput.View())
-	} else {
-		// Use normal style when ready for input
-		inputPanel = inputPanelStyle.
-			Width(m.width - 4).
-			Render(m.textInput.View())
-	}
-
-	// Enhanced help text with better formatting
-	helpContent := "Tab: Focus • Enter: Send • ↑↓/PgUp/PgDown: Scroll • Home/End: Top/Bottom • F1: Help • F5: Refresh • Ctrl+C/Esc: Quit"
-	helpText := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("241")).
-		Align(lipgloss.Center).
-		Width(m.width).
-		Border(lipgloss.NormalBorder(), true, false, false, false).
-		BorderForeground(lipgloss.Color("240")).
-		Padding(0, 1).
-		Render(helpContent)
-
-	// Status bar with animated thinking indicator
-	statusContent := m.statusMessage
+	var thinkingIndicator string
 	if m.isThinking {
 		thinkingFrames := []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
 		spinner := thinkingFrames[m.thinkingFrame%len(thinkingFrames)]
-		statusContent = thinkingStyle.Render(fmt.Sprintf("%s Thinking...", spinner)) + " " + statusContent
-	} else if m.toolProgress > 0 && m.toolProgress < 100 {
-		progressBar := m.renderProgressBar(m.toolProgress, 20)
-		statusContent = thinkingStyle.Render(fmt.Sprintf("🔧 Tools %s", progressBar)) + " " + statusContent
+		thinkingIndicator = thinkingStyle.Render(fmt.Sprintf("%s thinking...", spinner))
 	}
 
-	statusBar := statusBarStyle.
-		Width(m.width).
-		Render(statusContent)
+	var inputArea string
+	userInput := m.textInput.Value()
+	cursor := ""
+	if m.textInput.Focused() && !m.isThinking {
+		cursor = inputCursorStyle.Render("▊")
+	}
+	inputContent := fmt.Sprintf("%s%s%s", inputPromptStyle.Render("> "), userInput, cursor)
+	inputArea = inputBorderStyle.Width(m.width - 2).Render(inputContent)
 
-	return lipgloss.JoinVertical(
-		lipgloss.Left,
-		header,
-		mainPanel,
-		inputPanel,
-		helpText,
-		statusBar,
-	)
+	statusLine := inputPromptStyle.Render("ctrl+? help")
+
+	var components []string
+	components = append(components, header, "", content, "")
+
+	if thinkingIndicator != "" {
+		components = append(components, thinkingIndicator)
+	}
+
+	components = append(components, inputArea, statusLine)
+
+	return lipgloss.JoinVertical(lipgloss.Left, components...)
 }
 
-// Helper methods for message management
+func (m *agentUI) resetInputField() {
+	m.textInput.Reset()
+	m.textInput.SetValue("")
+	m.textInput.CursorStart()
+}
+
 func (m *agentUI) addUserMessage(content string) {
 	m.messages = append(m.messages, uiMessage{
 		Role:      "user",
 		Content:   content,
 		Timestamp: time.Now(),
 	})
-	// Update viewport content and scroll to bottom
+
 	m.viewport.SetContent(m.renderMessages())
 	m.viewport.GotoBottom()
 }
@@ -460,7 +359,7 @@ func (m *agentUI) addAgentMessage(content string) {
 		Content:   content,
 		Timestamp: time.Now(),
 	})
-	// Update viewport content and scroll to bottom
+
 	m.viewport.SetContent(m.renderMessages())
 	m.viewport.GotoBottom()
 }
@@ -471,13 +370,12 @@ func (m *agentUI) addSystemMessage(content string) {
 		Content:   content,
 		Timestamp: time.Now(),
 	})
-	// Update viewport content and scroll to bottom
+
 	m.viewport.SetContent(m.renderMessages())
 	m.viewport.GotoBottom()
 }
 
 func (m *agentUI) addToolCallMessage(toolName string, toolArgs string) {
-	// Format the tool call message in a subtle, developer-friendly way
 	content := fmt.Sprintf("    %s", toolName)
 	if toolArgs != "" && toolArgs != "{}" {
 		content += fmt.Sprintf("\n    └─ %s", toolArgs)
@@ -488,7 +386,7 @@ func (m *agentUI) addToolCallMessage(toolName string, toolArgs string) {
 		Content:   content,
 		Timestamp: time.Now(),
 	})
-	// Update viewport content and scroll to bottom
+
 	m.viewport.SetContent(m.renderMessages())
 	m.viewport.GotoBottom()
 }
@@ -497,22 +395,18 @@ func (m *agentUI) addToolCallMessage(toolName string, toolArgs string) {
 func (m *agentUI) renderMessages() string {
 	var rendered []string
 
-	// Add adequate top spacing to prevent text cutoff
 	rendered = append(rendered, "", "")
 
-	// Calculate proper width for content, accounting for main panel padding
 	contentWidth := m.viewport.Width - 2 // Account for internal padding
 	if contentWidth < 40 {
 		contentWidth = 40
 	}
 
-	// Create a glamour renderer for markdown with proper width
 	r, err := glamour.NewTermRenderer(
 		glamour.WithAutoStyle(),
 		glamour.WithWordWrap(contentWidth),
 	)
 	if err != nil {
-		// Fallback to plain text if glamour fails
 		r = nil
 	}
 
@@ -521,7 +415,6 @@ func (m *agentUI) renderMessages() string {
 
 		switch msg.Role {
 		case "user":
-			// Enhanced user message with subtle border
 			userHeaderStyle := lipgloss.NewStyle().
 				Foreground(lipgloss.Color("86")).
 				Bold(true).
@@ -539,7 +432,6 @@ func (m *agentUI) renderMessages() string {
 				"",
 			)
 		case "agent":
-			// Use glamour to render markdown for agent messages
 			var content string
 			if r != nil {
 				renderedMarkdown, err := r.Render(msg.Content)
@@ -552,7 +444,6 @@ func (m *agentUI) renderMessages() string {
 				content = msg.Content
 			}
 
-			// Enhanced agent message with professional styling
 			agentHeaderStyle := lipgloss.NewStyle().
 				Foreground(lipgloss.Color("39")).
 				Bold(true).
@@ -570,7 +461,6 @@ func (m *agentUI) renderMessages() string {
 				"",
 			)
 		case "system":
-			// Enhanced system message with distinctive styling
 			systemStyle := lipgloss.NewStyle().
 				Foreground(lipgloss.Color("241")).
 				Italic(true).
@@ -583,7 +473,6 @@ func (m *agentUI) renderMessages() string {
 				"",
 			)
 		case "tool":
-			// Enhanced tool message with tech-inspired styling
 			toolStyle := lipgloss.NewStyle().
 				Foreground(lipgloss.Color("245")).
 				Italic(true).
@@ -599,13 +488,11 @@ func (m *agentUI) renderMessages() string {
 		}
 	}
 
-	// Add bottom spacing for better scrolling
 	rendered = append(rendered, "", "")
 
 	return strings.Join(rendered, "\n")
 }
 
-// Command creators for Bubbletea
 func (m *agentUI) updateStatus(message string) tea.Cmd {
 	return func() tea.Msg {
 		return statusUpdateMsg{message: message}
@@ -618,7 +505,6 @@ func (m *agentUI) setThinking(thinking bool) tea.Cmd {
 	}
 }
 
-// executeAgentQuery executes a query using the agent interface
 func (m *agentUI) executeAgentQuery(userInput string) tea.Cmd {
 	return func() tea.Msg {
 		ctx := context.Background()
@@ -645,6 +531,7 @@ func (m *agentUI) executeAgentQuery(userInput string) tea.Cmd {
 // StartUI starts the TUI application with the default configuration
 func StartUI(agent Agent, session Session) error {
 	config := DefaultAgentUIConfig()
+	config.InitialSystemMessage = ""
 	return StartUIWithConfig(agent, session, config)
 }
 
@@ -662,22 +549,8 @@ func StartUIWithConfig(agent Agent, session Session, config AgentUIConfig) error
 	return err
 }
 
-// Animation helper functions
-
 func (m *agentUI) tickThinking() tea.Cmd {
 	return tea.Tick(150*time.Millisecond, func(time.Time) tea.Msg {
 		return thinkingTickMsg{}
 	})
-}
-
-func (m *agentUI) tickToolProgress() tea.Cmd {
-	return tea.Tick(100*time.Millisecond, func(time.Time) tea.Msg {
-		return toolProgressMsg{progress: m.toolProgress}
-	})
-}
-
-func (m *agentUI) renderProgressBar(progress, width int) string {
-	filledWidth := int(float64(width) * float64(progress) / 100.0)
-	bar := strings.Repeat("█", filledWidth) + strings.Repeat("░", width-filledWidth)
-	return fmt.Sprintf("%s %d%%", bar, progress)
 }
