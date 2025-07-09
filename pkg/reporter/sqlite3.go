@@ -364,11 +364,11 @@ func (r *sqlite3Reporter) addScorecard(entProject *ent.ReportProject, scorecard 
 	ctx := context.Background()
 
 	// Extract scorecard information
-	score := scorecard.Score
-	version := scorecard.ScorecardVersion.Version
-	repoName := scorecard.Repo.Name
-	repoCommit := scorecard.Repo.Commit
-	date := scorecard.Date
+	score := scorecard.GetScore()
+	version := scorecard.GetScorecardVersion().GetVersion()
+	repoName := scorecard.GetRepo().GetName()
+	repoCommit := scorecard.GetRepo().GetCommit()
+	date := scorecard.GetDate()
 
 	// Create scorecard record
 	entScorecard, err := r.client.ReportScorecard.Create().
@@ -398,8 +398,8 @@ func (r *sqlite3Reporter) addScorecardCheck(entScorecard *ent.ReportScorecard, c
 
 	// Create scorecard check record
 	create := r.client.ReportScorecardCheck.Create().
-		SetName(check.Name).
-		SetScore(check.Score).
+		SetName(check.GetName()).
+		SetScore(check.GetScore()).
 		SetScorecard(entScorecard).
 		SetCreatedAt(now).
 		SetUpdatedAt(now)
@@ -421,10 +421,10 @@ func (r *sqlite3Reporter) addSlsaProvenance(entPackage *ent.ReportPackage, slsaP
 
 	// Create SLSA provenance record
 	_, err := r.client.ReportSlsaProvenance.Create().
-		SetSourceRepository(slsaProvenance.SourceRepository).
-		SetCommitSha(slsaProvenance.CommitSha).
-		SetURL(slsaProvenance.Url).
-		SetVerified(slsaProvenance.Verified).
+		SetSourceRepository(slsaProvenance.GetSourceRepository()).
+		SetCommitSha(slsaProvenance.GetCommitSha()).
+		SetURL(slsaProvenance.GetUrl()).
+		SetVerified(slsaProvenance.GetVerified()).
 		SetPackage(entPackage).
 		SetCreatedAt(now).
 		SetUpdatedAt(now).
@@ -445,6 +445,7 @@ func (r *sqlite3Reporter) addMalwareAnalysis(entPackage *ent.ReportPackage, malw
 			"report": malware.Report,
 		}
 	}
+
 	if malware.VerificationRecord != nil {
 		verificationData = map[string]interface{}{
 			"verification_record": malware.VerificationRecord,
