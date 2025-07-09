@@ -58,12 +58,12 @@ func executeQueryAgent() error {
 		return fmt.Errorf("failed to build tools: %w", err)
 	}
 
-	model, err := agent.BuildModelFromEnvironment()
+	model, err := agent.BuildModelFromEnvironment(fastMode)
 	if err != nil {
 		return fmt.Errorf("failed to build LLM model adapter using environment configuration: %w", err)
 	}
 
-	agentExecutor, err := agent.NewReactQueryAgent(model, agent.ReactQueryAgentConfig{
+	agentExecutor, err := agent.NewReactQueryAgent(model.Client, agent.ReactQueryAgentConfig{
 		MaxSteps:     maxAgentSteps,
 		SystemPrompt: querySystemPrompt,
 	}, agent.WithTools(tools))
@@ -92,6 +92,9 @@ func executeQueryAgent() error {
 		uiConfig.TitleText = "🔍 Query Agent - Interactive Query Mode"
 		uiConfig.TextInputPlaceholder = "Ask me anything about your scan data..."
 		uiConfig.InitialSystemMessage = "🤖 Query Agent initialized. Ask me anything about your dependencies, vulnerabilities and other supply chain risks."
+		uiConfig.ModelName = model.Name
+		uiConfig.ModelVendor = model.Vendor
+		uiConfig.ModelFast = model.Fast
 
 		err = agent.StartUIWithConfig(agentExecutor, session, uiConfig)
 		if err != nil {

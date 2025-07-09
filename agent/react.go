@@ -2,10 +2,12 @@ package agent
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/cloudwego/eino/components/model"
 	"github.com/cloudwego/eino/components/tool"
+	einoutils "github.com/cloudwego/eino/components/tool/utils"
 	"github.com/cloudwego/eino/compose"
 	"github.com/cloudwego/eino/flow/agent/react"
 	"github.com/cloudwego/eino/schema"
@@ -60,7 +62,7 @@ func (a *reactQueryAgent) Execute(ctx context.Context, session Session, input In
 	agent, err := react.NewAgent(ctx, &react.AgentConfig{
 		ToolCallingModel: a.model,
 		ToolsConfig: compose.ToolsNodeConfig{
-			Tools: a.tools,
+			Tools: a.wrapToolsForError(a.tools),
 			ToolArgumentsHandler: func(ctx context.Context, name string, arguments string) (string, error) {
 				// Only allow introspection if the function is provided. Do not allow mutation.
 				if executionContext.OnToolCall != nil {
@@ -124,6 +126,28 @@ func (a *reactQueryAgent) Execute(ctx context.Context, session Session, input In
 	return Output{
 		Answer: a.schemaContent(msg),
 	}, nil
+}
+
+func (a *reactQueryAgent) wrapToolsForError(tools []tool.BaseTool) []tool.BaseTool {
+	wrappedTools := make([]tool.BaseTool, len(tools))
+
+	for i, tool := range tools {
+		wrappedTools[i] = einoutils.WrapToolWithErrorHandler(tool, func(_ context.Context, err error) string {
+			errorMessage := map[string]string{
+				"error":      err.Error(),
+				"suggestion": "Tool call failed, Please try a different approach or check your input.",
+			}
+
+			encodedError, err := json.Marshal(errorMessage)
+			if err != nil {
+				return ""
+			}
+
+			return string(encodedError)
+		})
+	}
+
+	return wrappedTools
 }
 
 func (a *reactQueryAgent) schemaContent(msg *schema.Message) string {

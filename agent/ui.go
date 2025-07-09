@@ -133,6 +133,11 @@ type AgentUIConfig struct {
 	InitialSystemMessage string
 	TextInputPlaceholder string
 	TitleText            string
+
+	// Only for informational purposes.
+	ModelName   string
+	ModelVendor string
+	ModelFast   bool
 }
 
 // DefaultAgentUIConfig returns the opinionated default configuration for the UI
