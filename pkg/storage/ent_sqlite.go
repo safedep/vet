@@ -19,6 +19,12 @@ type EntSqliteClientConfig struct {
 
 	// Skip schema creation
 	SkipSchemaCreation bool
+
+	// Fail if path already exists
+	FailIfPathExists bool
+
+	// Overwrite if path already exists
+	OverwriteIfPathExists bool
 }
 
 type entSqliteClient struct {
@@ -26,15 +32,32 @@ type entSqliteClient struct {
 }
 
 func NewEntSqliteStorage(config EntSqliteClientConfig) (Storage[*ent.Client], error) {
-	mode := "rwc"
-	if config.ReadOnly {
-		mode = "ro"
+	if config.FailIfPathExists && config.OverwriteIfPathExists {
+		return nil, fmt.Errorf("both FailIfPathExists and OverwriteIfPathExists cannot be true")
 	}
 
-	// Ensure the path exists
+	// Ensure the directory exists
 	dir := filepath.Dir(config.Path)
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return nil, fmt.Errorf("failed to create DB path %s: %w", dir, err)
+	}
+
+	if _, err := os.Stat(config.Path); err == nil {
+		// Always fail fast if the path already exists to be safe and defensive
+		if config.FailIfPathExists {
+			return nil, fmt.Errorf("path %s already exists", config.Path)
+		}
+
+		if config.OverwriteIfPathExists {
+			if err := os.Remove(config.Path); err != nil {
+				return nil, fmt.Errorf("failed to remove existing file %s: %w", config.Path, err)
+			}
+		}
+	}
+
+	mode := "rwc"
+	if config.ReadOnly {
+		mode = "ro"
 	}
 
 	dbConn := fmt.Sprintf("file:%s?mode=%s&cache=private&_fk=1", config.Path, mode)

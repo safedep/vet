@@ -19,9 +19,10 @@ func (ev *AnalyzerEvent) IsLockfilePoisoningSignal() bool {
 	return ev.Type == ET_LockfilePoisoningSignal
 }
 
-func ThreatInstanceId(id jsonreportspec.ReportThreat_ReportThreatId,
+// ThreatInstanceID generates a unique identifier for a threat instance
+func ThreatInstanceID(id jsonreportspec.ReportThreat_ReportThreatId,
 	st jsonreportspec.ReportThreat_SubjectType,
 	s string,
 ) string {
-	return models.IdGen(fmt.Sprintf("%s-%s-%s", id.String(), st.String(), s))
+	return models.IDGen(fmt.Sprintf("%s-%s-%s", id.String(), st.String(), s))
 }

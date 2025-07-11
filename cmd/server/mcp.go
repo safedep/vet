@@ -16,8 +16,11 @@ import (
 )
 
 var (
-	mcpServerSseServerAddr string
-	mcpServerServerType    string
+	mcpServerSseServerAddr  string
+	mcpServerServerType     string
+	skipDefaultTools        bool
+	registerVetSQLQueryTool bool
+	vetSQLQueryToolDBPath   string
 )
 
 func newMcpServerCommand() *cobra.Command {
@@ -37,6 +40,18 @@ func newMcpServerCommand() *cobra.Command {
 
 	cmd.Flags().StringVar(&mcpServerSseServerAddr, "sse-server-addr", "localhost:9988", "The address to listen for SSE connections")
 	cmd.Flags().StringVar(&mcpServerServerType, "server-type", "stdio", "The type of server to start (stdio, sse)")
+	cmd.Flags().BoolVar(&skipDefaultTools, "skip-default-tools", false, "Skip registering default tools")
+
+	cmd.Flags().BoolVar(&registerVetSQLQueryTool, "sql-query-tool", false, "Register the vet report query by SQL tool (requires database path)")
+	cmd.Flags().StringVar(&vetSQLQueryToolDBPath, "sql-query-tool-db-path", "", "The path to the vet SQLite3 database file")
+
+	cmd.PreRunE = func(cmd *cobra.Command, args []string) error {
+		if registerVetSQLQueryTool && vetSQLQueryToolDBPath == "" {
+			return fmt.Errorf("database path is required for SQL query tool")
+		}
+
+		return nil
+	}
 
 	return cmd
 }
@@ -61,7 +76,30 @@ func startMcpServer() error {
 		return fmt.Errorf("failed to create MCP server: %w", err)
 	}
 
-	err = mcpSrv.RegisterTool(tools.NewPackageInsightsTool(driver))
+	if !skipDefaultTools {
+		err = doRegisterDefaultTools(mcpSrv, driver)
+		if err != nil {
+			return fmt.Errorf("failed to register default tools: %w", err)
+		}
+	}
+
+	if registerVetSQLQueryTool {
+		err = doRegisterVetSQLQueryTool(mcpSrv)
+		if err != nil {
+			return fmt.Errorf("failed to register vet SQL query tool: %w", err)
+		}
+	}
+
+	err = mcpSrv.Start()
+	if err != nil {
+		return fmt.Errorf("failed to start MCP server: %w", err)
+	}
+
+	return nil
+}
+
+func doRegisterDefaultTools(mcpSrv server.McpServer, driver mcp.Driver) error {
+	err := mcpSrv.RegisterTool(tools.NewPackageInsightsTool(driver))
 	if err != nil {
 		return fmt.Errorf("failed to register package insights tool: %w", err)
 	}
@@ -76,12 +114,16 @@ func startMcpServer() error {
 		return fmt.Errorf("failed to register package malware tool: %w", err)
 	}
 
-	err = mcpSrv.Start()
+	return nil
+}
+
+func doRegisterVetSQLQueryTool(mcpSrv server.McpServer) error {
+	tool, err := tools.NewVetSQLQueryTool(vetSQLQueryToolDBPath)
 	if err != nil {
-		return fmt.Errorf("failed to start MCP server: %w", err)
+		return fmt.Errorf("failed to create vet SQL query tool: %w", err)
 	}
 
-	return nil
+	return mcpSrv.RegisterTool(tool)
 }
 
 func buildMcpDriver() (mcp.Driver, error) {

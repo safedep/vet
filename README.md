@@ -37,6 +37,7 @@
 ✅ **Multi-ecosystem support** — npm, PyPI, Maven, Go, Docker, GitHub Actions, and more    
 ✅ **CI/CD native** — Built for DevSecOps workflows with support for GitHub Actions, GitLab CI, and more   
 ✅ **MCP Server** — Run `vet` as a MCP server to vet open source packages from AI suggested code   
+✅ **Agents** — Run AI agents to query and analyze scan results   
 
 ## ⚡ Quick Start
 
@@ -166,6 +167,7 @@ docker run --rm -v $(pwd):/app ghcr.io/safedep/vet:latest scan -D /app
   - [📋 **Report Formats**](#-report-formats)
   - [🎯 **Report Examples**](#-report-examples)
   - [🤖 **MCP Server**](#-mcp-server)
+  - [🤖 **Agents**](#-agents)
 - [🛡️ Malicious Package Detection](#️-malicious-package-detection-1)
   - [🚀 **Quick Setup**](#-quick-setup)
   - [🎯 **Advanced Malicious Package Analysis**](#-advanced-malicious-package-analysis)
@@ -405,6 +407,10 @@ vet server mcp --server-type sse
 ```
 
 For more details, see [vet MCP Server](./docs/mcp.md) documentation.
+
+### 🤖 **Agents**
+
+See [vet Agents](./docs/agent.md) documentation for more details.
 
 ## 🛡️ Malicious Package Detection
 

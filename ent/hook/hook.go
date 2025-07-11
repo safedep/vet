@@ -33,6 +33,138 @@ func (f DepsUsageEvidenceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DepsUsageEvidenceMutation", m)
 }
 
+// The ReportDependencyFunc type is an adapter to allow the use of ordinary
+// function as ReportDependency mutator.
+type ReportDependencyFunc func(context.Context, *ent.ReportDependencyMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ReportDependencyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ReportDependencyMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ReportDependencyMutation", m)
+}
+
+// The ReportDependencyGraphFunc type is an adapter to allow the use of ordinary
+// function as ReportDependencyGraph mutator.
+type ReportDependencyGraphFunc func(context.Context, *ent.ReportDependencyGraphMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ReportDependencyGraphFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ReportDependencyGraphMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ReportDependencyGraphMutation", m)
+}
+
+// The ReportLicenseFunc type is an adapter to allow the use of ordinary
+// function as ReportLicense mutator.
+type ReportLicenseFunc func(context.Context, *ent.ReportLicenseMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ReportLicenseFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ReportLicenseMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ReportLicenseMutation", m)
+}
+
+// The ReportMalwareFunc type is an adapter to allow the use of ordinary
+// function as ReportMalware mutator.
+type ReportMalwareFunc func(context.Context, *ent.ReportMalwareMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ReportMalwareFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ReportMalwareMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ReportMalwareMutation", m)
+}
+
+// The ReportPackageFunc type is an adapter to allow the use of ordinary
+// function as ReportPackage mutator.
+type ReportPackageFunc func(context.Context, *ent.ReportPackageMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ReportPackageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ReportPackageMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ReportPackageMutation", m)
+}
+
+// The ReportPackageManifestFunc type is an adapter to allow the use of ordinary
+// function as ReportPackageManifest mutator.
+type ReportPackageManifestFunc func(context.Context, *ent.ReportPackageManifestMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ReportPackageManifestFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ReportPackageManifestMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ReportPackageManifestMutation", m)
+}
+
+// The ReportProjectFunc type is an adapter to allow the use of ordinary
+// function as ReportProject mutator.
+type ReportProjectFunc func(context.Context, *ent.ReportProjectMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ReportProjectFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ReportProjectMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ReportProjectMutation", m)
+}
+
+// The ReportScorecardFunc type is an adapter to allow the use of ordinary
+// function as ReportScorecard mutator.
+type ReportScorecardFunc func(context.Context, *ent.ReportScorecardMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ReportScorecardFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ReportScorecardMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ReportScorecardMutation", m)
+}
+
+// The ReportScorecardCheckFunc type is an adapter to allow the use of ordinary
+// function as ReportScorecardCheck mutator.
+type ReportScorecardCheckFunc func(context.Context, *ent.ReportScorecardCheckMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ReportScorecardCheckFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ReportScorecardCheckMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ReportScorecardCheckMutation", m)
+}
+
+// The ReportSlsaProvenanceFunc type is an adapter to allow the use of ordinary
+// function as ReportSlsaProvenance mutator.
+type ReportSlsaProvenanceFunc func(context.Context, *ent.ReportSlsaProvenanceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ReportSlsaProvenanceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ReportSlsaProvenanceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ReportSlsaProvenanceMutation", m)
+}
+
+// The ReportVulnerabilityFunc type is an adapter to allow the use of ordinary
+// function as ReportVulnerability mutator.
+type ReportVulnerabilityFunc func(context.Context, *ent.ReportVulnerabilityMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ReportVulnerabilityFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ReportVulnerabilityMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ReportVulnerabilityMutation", m)
+}
+
 // Condition is a hook condition function.
 type Condition func(context.Context, ent.Mutation) bool
 

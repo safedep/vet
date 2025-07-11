@@ -206,7 +206,7 @@ func (pm *PackageManifest) GetPackages() []*Package {
 }
 
 func (pm *PackageManifest) Id() string {
-	return hashedId(fmt.Sprintf("%s/%s",
+	return hashedID(fmt.Sprintf("%s/%s",
 		pm.Ecosystem, pm.Path))
 }
 
@@ -388,7 +388,7 @@ type Package struct {
 // It is used to identify a package in the dependency graph
 // It should be reproducible across multiple runs
 func (p *Package) Id() string {
-	return hashedId(fmt.Sprintf("%s/%s/%s",
+	return hashedID(fmt.Sprintf("%s/%s/%s",
 		strings.ToLower(string(p.PackageDetails.Ecosystem)),
 		strings.ToLower(p.PackageDetails.Name),
 		strings.ToLower(p.PackageDetails.Version)))
@@ -518,15 +518,25 @@ func NewPackageDetail(ecosystem, name, version string) lockfile.PackageDetails {
 	}
 }
 
+// IDGen generates a unique identifier for a given data
 // This is probably not the best place for IdGen but keeping it here
 // since this package is the most stable (SDP)
-func IdGen(data string) string {
-	return hashedId(data)
+func IDGen(data string) string {
+	return hashedID(data)
 }
 
-func hashedId(str string) string {
+func hashedID(str string) string {
 	h := fnv.New64a()
 	h.Write([]byte(str))
 
 	return strconv.FormatUint(h.Sum64(), 16)
+}
+
+// ControlTowerPackageID generates an unique identifier for a package
+// using the same logic as `Package.Id()` but for the Control Tower spec.
+func ControlTowerPackageID(p *packagev1.PackageVersion) string {
+	return fmt.Sprintf("%s/%s/%s",
+		strings.ToLower(GetModelEcosystem(p.GetPackage().GetEcosystem())),
+		strings.ToLower(p.GetPackage().GetName()),
+		strings.ToLower(p.GetVersion()))
 }
