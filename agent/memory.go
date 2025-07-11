@@ -15,7 +15,9 @@ type simpleMemory struct {
 var _ Memory = (*simpleMemory)(nil)
 
 func NewSimpleMemory() (*simpleMemory, error) {
-	return &simpleMemory{}, nil
+	return &simpleMemory{
+		interactions: make([]*schema.Message, 0),
+	}, nil
 }
 
 func (m *simpleMemory) AddInteraction(ctx context.Context, interaction *schema.Message) error {
