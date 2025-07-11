@@ -341,6 +341,6 @@ func persistConfiguration() error {
 
 	path = filepath.Join(path, homeRelativeConfigPath)
 
-	os.MkdirAll(filepath.Dir(path), os.ModePerm)
+	_ = os.MkdirAll(filepath.Dir(path), os.ModePerm)
 	return os.WriteFile(path, data, 0o600)
 }

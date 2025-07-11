@@ -9,6 +9,15 @@ import (
 	"github.com/safedep/vet/agent"
 )
 
+func buildModelFromEnvironment() (*agent.Model, error) {
+	model, err := agent.BuildModelFromEnvironment(fastMode)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build LLM model adapter using environment configuration: %w", err)
+	}
+
+	return model, nil
+}
+
 func executeAgentPrompt(agentExecutor agent.Agent, session agent.Session, prompt string) error {
 	output, err := agentExecutor.Execute(context.Background(), session, agent.Input{
 		Query: prompt,

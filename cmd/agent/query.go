@@ -58,7 +58,7 @@ func executeQueryAgent() error {
 		return fmt.Errorf("failed to build tools: %w", err)
 	}
 
-	model, err := agent.BuildModelFromEnvironment(fastMode)
+	model, err := buildModelFromEnvironment()
 	if err != nil {
 		return fmt.Errorf("failed to build LLM model adapter using environment configuration: %w", err)
 	}
