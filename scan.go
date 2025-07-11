@@ -396,12 +396,12 @@ func internalStartScan() error {
 			analytics.TrackCommandScanVSCodeExtScan()
 
 			// nolint:ineffassign,staticcheck
-			reader, err = readers.NewVSCodeExtReaderFromDefaultDistributions()
+			reader, err = readers.NewVSIXExtReaderFromDefaultDistributions()
 		} else {
 			analytics.TrackCommandScanVSCodeExtScan()
 
 			// nolint:ineffassign,staticcheck
-			reader, err = readers.NewVSCodeExtReader(vsxDirectories)
+			reader, err = readers.NewVSIXExtReader(vsxDirectories)
 		}
 	} else if len(scanImageTarget) != 0 {
 		analytics.TrackCommandImageScan()

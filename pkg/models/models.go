@@ -35,6 +35,7 @@ const (
 	EcosystemTerraformModule   = "TerraformModule"
 	EcosystemTerraformProvider = "TerraformProvider"
 	EcosystemVSCodeExtensions  = "VSCodeExtensions"
+	EcosystemOpenVSXExtensions = "OpenVSXExtensions"
 )
 
 type ManifestSourceType string
@@ -240,6 +241,8 @@ func (pm *PackageManifest) GetControlTowerSpecEcosystem() packagev1.Ecosystem {
 		return packagev1.Ecosystem_ECOSYSTEM_TERRAFORM_PROVIDER
 	case EcosystemVSCodeExtensions:
 		return packagev1.Ecosystem_ECOSYSTEM_VSCODE
+	case EcosystemOpenVSXExtensions:
+		return packagev1.Ecosystem_ECOSYSTEM_OPENVSX
 	default:
 		return packagev1.Ecosystem_ECOSYSTEM_UNSPECIFIED
 	}

@@ -8,13 +8,13 @@ import (
 )
 
 func TestVSCodeExtReaderInit(t *testing.T) {
-	reader, err := NewVSCodeExtReaderFromDefaultDistributions()
+	reader, err := NewVSIXExtReaderFromDefaultDistributions()
 	assert.NoError(t, err)
 	assert.NotNil(t, reader)
 }
 
 func TestVSCodeExtReaderEnumManifests(t *testing.T) {
-	reader, err := NewVSCodeExtReader([]string{"./fixtures/vsx"})
+	reader, err := NewVSIXExtReader([]string{"./fixtures/vsx"})
 	assert.NoError(t, err)
 	assert.NotNil(t, reader)
 
