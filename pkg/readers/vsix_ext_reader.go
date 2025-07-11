@@ -52,7 +52,7 @@ type vscodeExtReader struct {
 
 var _ PackageManifestReader = (*vscodeExtReader)(nil)
 
-func NewVSCodeExtReader(distributions []string) (*vscodeExtReader, error) {
+func NewVSIXExtReader(distributions []string) (*vscodeExtReader, error) {
 	customDistributions := make(map[string]distributionInfo)
 	for i, distribution := range distributions {
 		customDistributions[fmt.Sprintf("custom-%d", i)] = distributionInfo{
@@ -64,7 +64,7 @@ func NewVSCodeExtReader(distributions []string) (*vscodeExtReader, error) {
 	return newVSCodeExtReaderFromDistributions(customDistributions)
 }
 
-func NewVSCodeExtReaderFromDefaultDistributions() (*vscodeExtReader, error) {
+func NewVSIXExtReaderFromDefaultDistributions() (*vscodeExtReader, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user home directory: %w", err)
