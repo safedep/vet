@@ -5,6 +5,7 @@ import (
 	"os"
 	runtimeDebug "runtime/debug"
 
+	"github.com/safedep/vet/internal/command"
 	"github.com/spf13/cobra"
 )
 
@@ -23,6 +24,8 @@ func init() {
 		buildInfo, _ := runtimeDebug.ReadBuildInfo()
 		version = buildInfo.Main.Version
 	}
+
+	command.SetVersion(version)
 }
 
 func newVersionCommand() *cobra.Command {

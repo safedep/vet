@@ -63,7 +63,7 @@ type Config struct {
 var globalConfig *Config
 
 func init() {
-	loadConfiguration()
+	_ = loadConfiguration()
 }
 
 func DefaultConfig() Config {
@@ -291,8 +291,8 @@ func CommunityMode() bool {
 	return false
 }
 
-// Set the runtime mode to community without
-// persisting it to the configuration file
+// SetRuntimeCommunityMode sets the runtime mode to community without
+// persisting it to the configuration file.
 func SetRuntimeCommunityMode() {
 	os.Setenv(communityModeEnvKey, "true")
 }
@@ -341,6 +341,6 @@ func persistConfiguration() error {
 
 	path = filepath.Join(path, homeRelativeConfigPath)
 
-	os.MkdirAll(filepath.Dir(path), os.ModePerm)
+	_ = os.MkdirAll(filepath.Dir(path), os.ModePerm)
 	return os.WriteFile(path, data, 0o600)
 }

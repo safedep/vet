@@ -10,5 +10,5 @@ fi
 $(echo \
 $E2E_VET_SCAN_CMD \
   scan --purl pkg:/npm/@clerk/nextjs@6.9.6
-) | grep "slsa: verified"
+) | grep "Provenance: 1 verified"
 
