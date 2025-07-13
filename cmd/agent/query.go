@@ -43,11 +43,12 @@ func executeQueryAgent() error {
 	analytics.TrackAgentQuery()
 
 	toolBuilder, err := agent.NewMcpClientToolBuilder(agent.McpClientToolBuilderConfig{
-		ClientName:          "vet-query-agent",
-		ClientVersion:       command.GetVersion(),
-		SkipDefaultTools:    true,
-		SQLQueryToolEnabled: true,
-		SQLQueryToolDBPath:  queryAgentDBPath,
+		ClientName:                 "vet-query-agent",
+		ClientVersion:              command.GetVersion(),
+		SkipDefaultTools:           true,
+		SQLQueryToolEnabled:        true,
+		SQLQueryToolDBPath:         queryAgentDBPath,
+		PackageRegistryToolEnabled: true,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create MCP client tool builder: %w", err)

@@ -16,11 +16,12 @@ import (
 )
 
 var (
-	mcpServerSseServerAddr  string
-	mcpServerServerType     string
-	skipDefaultTools        bool
-	registerVetSQLQueryTool bool
-	vetSQLQueryToolDBPath   string
+	mcpServerSseServerAddr      string
+	mcpServerServerType         string
+	skipDefaultTools            bool
+	registerVetSQLQueryTool     bool
+	vetSQLQueryToolDBPath       string
+	registerPackageRegistryTool bool
 )
 
 func newMcpServerCommand() *cobra.Command {
@@ -40,10 +41,17 @@ func newMcpServerCommand() *cobra.Command {
 
 	cmd.Flags().StringVar(&mcpServerSseServerAddr, "sse-server-addr", "localhost:9988", "The address to listen for SSE connections")
 	cmd.Flags().StringVar(&mcpServerServerType, "server-type", "stdio", "The type of server to start (stdio, sse)")
+
+	// We allow skipping default tools to allow for custom tools to be registered when the server starts.
+	// This is useful for agents to avoid unnecessary tool registration.
 	cmd.Flags().BoolVar(&skipDefaultTools, "skip-default-tools", false, "Skip registering default tools")
 
+	// Options to register sqlite3 query tool
 	cmd.Flags().BoolVar(&registerVetSQLQueryTool, "sql-query-tool", false, "Register the vet report query by SQL tool (requires database path)")
 	cmd.Flags().StringVar(&vetSQLQueryToolDBPath, "sql-query-tool-db-path", "", "The path to the vet SQLite3 database file")
+
+	// Options to register package registry tool
+	cmd.Flags().BoolVar(&registerPackageRegistryTool, "package-registry-tool", false, "Register the package registry tool")
 
 	cmd.PreRunE = func(cmd *cobra.Command, args []string) error {
 		if registerVetSQLQueryTool && vetSQLQueryToolDBPath == "" {
@@ -90,6 +98,13 @@ func startMcpServer() error {
 		}
 	}
 
+	if registerPackageRegistryTool {
+		err = doRegisterPackageRegistryTool(mcpSrv, driver)
+		if err != nil {
+			return fmt.Errorf("failed to register package registry tool: %w", err)
+		}
+	}
+
 	err = mcpSrv.Start()
 	if err != nil {
 		return fmt.Errorf("failed to start MCP server: %w", err)
@@ -124,6 +139,15 @@ func doRegisterVetSQLQueryTool(mcpSrv server.McpServer) error {
 	}
 
 	return mcpSrv.RegisterTool(tool)
+}
+
+func doRegisterPackageRegistryTool(mcpSrv server.McpServer, driver mcp.Driver) error {
+	err := mcpSrv.RegisterTool(tools.NewPackageRegistryTool(driver))
+	if err != nil {
+		return fmt.Errorf("failed to register package registry tool: %w", err)
+	}
+
+	return nil
 }
 
 func buildMcpDriver() (mcp.Driver, error) {
