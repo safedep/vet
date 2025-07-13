@@ -154,14 +154,26 @@ func (m *agentUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				// Handle user input only if agent is not in thinking mode
 				userInput := strings.TrimSpace(m.textInput.Value())
 				if userInput != "" {
-					m.addUserMessage(userInput)
-					m.resetInputField()
+					// Check if it's a slash command
+					if strings.HasPrefix(userInput, "/") {
+						m.addUserMessage(userInput)
+						m.resetInputField()
 
-					// Execute agent query
-					cmds = append(cmds,
-						m.setThinking(true),
-						m.executeAgentQuery(userInput),
-					)
+						// Handle slash command
+						cmd := m.handleSlashCommand(userInput)
+						if cmd != nil {
+							cmds = append(cmds, cmd)
+						}
+					} else {
+						m.addUserMessage(userInput)
+						m.resetInputField()
+
+						// Execute agent query
+						cmds = append(cmds,
+							m.setThinking(true),
+							m.executeAgentQuery(userInput),
+						)
+					}
 				}
 			}
 
@@ -546,4 +558,16 @@ func (m *agentUI) tickThinking() tea.Cmd {
 	return tea.Tick(150*time.Millisecond, func(time.Time) tea.Msg {
 		return thinkingTickMsg{}
 	})
+}
+
+// handleSlashCommand processes commands that start with '/'
+func (m *agentUI) handleSlashCommand(command string) tea.Cmd {
+	switch command {
+	case "/exit":
+		m.addSystemMessage("Goodbye! Exiting gracefully...")
+		return tea.Quit
+	default:
+		m.addSystemMessage(fmt.Sprintf("Unknown command: %s", command))
+		return nil
+	}
 }
