@@ -68,6 +68,9 @@ type agentUI struct {
 	session       Session
 	config        AgentUIConfig
 	thinkingFrame int
+	inputHistory  []string
+	historyIndex  int
+	currentInput  string
 }
 
 // Message represents a chat message
@@ -84,6 +87,7 @@ type AgentUIConfig struct {
 	InitialSystemMessage string
 	TextInputPlaceholder string
 	TitleText            string
+	MaxHistory           int
 
 	// Only for informational purposes.
 	ModelName   string
@@ -96,6 +100,7 @@ func DefaultAgentUIConfig() AgentUIConfig {
 	return AgentUIConfig{
 		Width:                80,
 		Height:               20,
+		MaxHistory:           50,
 		InitialSystemMessage: "Security Agent initialized",
 		TextInputPlaceholder: "Ask me anything...",
 		TitleText:            "Security Agent",
@@ -123,6 +128,9 @@ func NewAgentUI(agent Agent, session Session, config AgentUIConfig) *agentUI {
 		session:       session,
 		config:        config,
 		thinkingFrame: 0,
+		inputHistory:  []string{},
+		historyIndex:  -1,
+		currentInput:  "",
 	}
 
 	ui.addSystemMessage(config.InitialSystemMessage)
@@ -154,6 +162,9 @@ func (m *agentUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				// Handle user input only if agent is not in thinking mode
 				userInput := strings.TrimSpace(m.textInput.Value())
 				if userInput != "" {
+					// Add to history and reset navigation
+					m.addToHistory(userInput)
+
 					// Check if it's a slash command
 					if strings.HasPrefix(userInput, "/") {
 						m.addUserMessage(userInput)
@@ -188,7 +199,26 @@ func (m *agentUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 
-		case tea.KeyUp, tea.KeyDown, tea.KeyPgUp, tea.KeyPgDown:
+		case tea.KeyUp, tea.KeyDown:
+			if m.textInput.Focused() && !m.isThinking {
+				// Navigate input history when text input is focused
+				var direction int
+				if msg.Type == tea.KeyUp {
+					direction = 1 // Go back in history
+				} else {
+					direction = -1 // Go forward in history
+				}
+
+				historyEntry := m.navigateHistory(direction)
+				m.textInput.SetValue(historyEntry)
+				m.textInput.CursorEnd()
+			} else if !m.textInput.Focused() {
+				// Allow scrolling in viewport when not focused on text input
+				m.viewport, cmd = m.viewport.Update(msg)
+				cmds = append(cmds, cmd)
+			}
+
+		case tea.KeyPgUp, tea.KeyPgDown:
 			// Allow scrolling in viewport when not focused on text input
 			if !m.textInput.Focused() {
 				m.viewport, cmd = m.viewport.Update(msg)
@@ -570,4 +600,54 @@ func (m *agentUI) handleSlashCommand(command string) tea.Cmd {
 		m.addSystemMessage(fmt.Sprintf("Unknown command: %s", command))
 		return nil
 	}
+}
+
+// addToHistory adds input to history buffer with a maximum of 50 entries
+func (m *agentUI) addToHistory(input string) {
+	// Don't add empty strings or duplicates of the last entry
+	if input == "" || (len(m.inputHistory) > 0 && m.inputHistory[len(m.inputHistory)-1] == input) {
+		return
+	}
+
+	m.inputHistory = append(m.inputHistory, input)
+
+	// Keep only the last maxHistory entries
+	if len(m.inputHistory) > m.config.MaxHistory {
+		m.inputHistory = m.inputHistory[len(m.inputHistory)-m.config.MaxHistory:]
+	}
+
+	// Reset history navigation
+	m.historyIndex = -1
+	m.currentInput = ""
+}
+
+// navigateHistory moves through input history and returns the selected entry
+func (m *agentUI) navigateHistory(direction int) string {
+	if len(m.inputHistory) == 0 {
+		return ""
+	}
+
+	// Save current input when starting navigation
+	if m.historyIndex == -1 {
+		m.currentInput = m.textInput.Value()
+	}
+
+	// Calculate new index
+	newIndex := m.historyIndex + direction
+
+	// Handle boundaries
+	if newIndex < -1 {
+		newIndex = -1
+	} else if newIndex >= len(m.inputHistory) {
+		newIndex = len(m.inputHistory) - 1
+	}
+
+	m.historyIndex = newIndex
+
+	// Return the appropriate entry
+	if m.historyIndex == -1 {
+		return m.currentInput
+	}
+
+	return m.inputHistory[len(m.inputHistory)-1-m.historyIndex]
 }
