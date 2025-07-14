@@ -9,6 +9,10 @@ import (
 
 type githubActionResolver struct{}
 
+func GHASyncReporterReolver() SyncReporterEnvResolver {
+	return &githubActionResolver{}
+}
+
 var _ SyncReporterEnvResolver = &githubActionResolver{}
 
 func (g *githubActionResolver) GetProjectSource() controltowerv1pb.Project_Source {
