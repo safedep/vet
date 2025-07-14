@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
@@ -12,13 +13,26 @@ import (
 
 const (
 	vsCodeExtensionExtensionsFileName = "extensions.json"
-
-	// Default paths for IDE extension directories relative to home directory
-	vsCodeExtPath   = ".vscode/extensions"
-	vscodiumExtPath = ".vscode-oss/extensions"
-	cursorExtPath   = ".cursor/extensions"
-	windsurfExtPath = ".windsurf/extensions"
 )
+
+var editors = map[string]distributionInfo{
+	"code": {
+		FilePath:  ".vscode/extensions",
+		Ecosystem: models.EcosystemVSCodeExtensions,
+	},
+	"vscodium": {
+		FilePath:  ".vscode-oss/extensions",
+		Ecosystem: models.EcosystemOpenVSXExtensions,
+	},
+	"cursor": {
+		FilePath:  ".cursor/extensions",
+		Ecosystem: models.EcosystemOpenVSXExtensions,
+	},
+	"windsurf": {
+		FilePath:  ".windsurf/extensions",
+		Ecosystem: models.EcosystemOpenVSXExtensions,
+	},
+}
 
 type vsCodeExtensionIdentifier struct {
 	Id   string `json:"id"`
@@ -46,65 +60,62 @@ type distributionInfo struct {
 	Ecosystem string // Type of extension marketplace (VSCode or OpenVSX)
 }
 
-type vscodeExtReader struct {
+type vsixExtReader struct {
 	distributions map[string]distributionInfo
 }
 
-var _ PackageManifestReader = (*vscodeExtReader)(nil)
+var _ PackageManifestReader = (*vsixExtReader)(nil)
 
-func NewVSIXExtReader(distributions []string) (*vscodeExtReader, error) {
+func NewVSIXExtReader(distributions []string) (*vsixExtReader, error) {
 	customDistributions := make(map[string]distributionInfo)
+	ecosystem := models.EcosystemVSCodeExtensions
+
 	for i, distribution := range distributions {
+		for _, eco := range editors {
+			if strings.Contains(distribution, eco.FilePath) {
+				ecosystem = eco.Ecosystem
+				break
+			}
+		}
 		customDistributions[fmt.Sprintf("custom-%d", i)] = distributionInfo{
 			FilePath:  distribution,
-			Ecosystem: models.EcosystemVSCodeExtensions,
+			Ecosystem: ecosystem,
 		}
 	}
 
 	return newVSCodeExtReaderFromDistributions(customDistributions)
 }
 
-func NewVSIXExtReaderFromDefaultDistributions() (*vscodeExtReader, error) {
+func NewVSIXExtReaderFromDefaultDistributions() (*vsixExtReader, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user home directory: %w", err)
 	}
 
-	distributions := map[string]distributionInfo{
-		"code": {
-			FilePath:  filepath.Join(homeDir, vsCodeExtPath),
-			Ecosystem: models.EcosystemVSCodeExtensions,
-		},
-		"cursor": {
-			FilePath:  filepath.Join(homeDir, cursorExtPath),
-			Ecosystem: models.EcosystemOpenVSXExtensions,
-		},
-		"vscodium": {
-			FilePath:  filepath.Join(homeDir, vscodiumExtPath),
-			Ecosystem: models.EcosystemOpenVSXExtensions,
-		},
-		"windsurf": {
-			FilePath:  filepath.Join(homeDir, windsurfExtPath),
-			Ecosystem: models.EcosystemOpenVSXExtensions,
-		},
+	distributions := make(map[string]distributionInfo)
+	for editorName, config := range editors {
+		distributions[editorName] = distributionInfo{
+			FilePath:  filepath.Join(homeDir, config.FilePath),
+			Ecosystem: config.Ecosystem,
+		}
 	}
 
-	return &vscodeExtReader{distributions: distributions}, nil
+	return &vsixExtReader{distributions: distributions}, nil
 }
 
-func newVSCodeExtReaderFromDistributions(d map[string]distributionInfo) (*vscodeExtReader, error) {
-	return &vscodeExtReader{distributions: d}, nil
+func newVSCodeExtReaderFromDistributions(d map[string]distributionInfo) (*vsixExtReader, error) {
+	return &vsixExtReader{distributions: d}, nil
 }
 
-func (r *vscodeExtReader) Name() string {
-	return "VSCode Extensions Reader"
+func (r *vsixExtReader) Name() string {
+	return "VSIX Extensions Reader"
 }
 
-func (r *vscodeExtReader) ApplicationName() (string, error) {
-	return "installed-vscode-extensions", nil
+func (r *vsixExtReader) ApplicationName() (string, error) {
+	return "installed-vsix-extensions", nil
 }
 
-func (r *vscodeExtReader) EnumManifests(handler func(*models.PackageManifest, PackageReader) error) error {
+func (r *vsixExtReader) EnumManifests(handler func(*models.PackageManifest, PackageReader) error) error {
 	for distribution := range r.distributions {
 		extensions, path, err := r.readExtensions(distribution)
 		if err != nil {
@@ -131,7 +142,7 @@ func (r *vscodeExtReader) EnumManifests(handler func(*models.PackageManifest, Pa
 	return nil
 }
 
-func (r *vscodeExtReader) readExtensions(distribution string) (*vsCodeExtensionList, string, error) {
+func (r *vsixExtReader) readExtensions(distribution string) (*vsCodeExtensionList, string, error) {
 	info, ok := r.distributions[distribution]
 	if !ok {
 		return nil, "", fmt.Errorf("distribution %s not supported", distribution)
