@@ -165,20 +165,18 @@ func (m *agentUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					// Add to history and reset navigation
 					m.addToHistory(userInput)
 
+					// Add the input to the message list and reset user input field
+					m.addUserMessage(userInput)
+					m.resetInputField()
+
 					// Check if it's a slash command
 					if strings.HasPrefix(userInput, "/") {
-						m.addUserMessage(userInput)
-						m.resetInputField()
-
 						// Handle slash command
 						cmd := m.handleSlashCommand(userInput)
 						if cmd != nil {
 							cmds = append(cmds, cmd)
 						}
 					} else {
-						m.addUserMessage(userInput)
-						m.resetInputField()
-
 						// Execute agent query
 						cmds = append(cmds,
 							m.setThinking(true),
