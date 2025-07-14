@@ -32,6 +32,7 @@ func executeAgentPrompt(agentExecutor agent.Agent, session agent.Session, prompt
 	terminalRenderer, err := glamour.NewTermRenderer(
 		glamour.WithAutoStyle(),
 		glamour.WithWordWrap(80),
+		glamour.WithEmoji(),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create glamour renderer: %w", err)

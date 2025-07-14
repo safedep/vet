@@ -23,9 +23,10 @@ type McpClientToolBuilderConfig struct {
 	Headers map[string]string
 
 	// Stdout client config
-	SkipDefaultTools    bool
-	SQLQueryToolEnabled bool
-	SQLQueryToolDBPath  string
+	SkipDefaultTools           bool
+	SQLQueryToolEnabled        bool
+	SQLQueryToolDBPath         string
+	PackageRegistryToolEnabled bool
 }
 
 type mcpClientToolBuilder struct {
@@ -34,6 +35,12 @@ type mcpClientToolBuilder struct {
 
 var _ ToolBuilder = (*mcpClientToolBuilder)(nil)
 
+// NewMcpClientToolBuilder creates a new MCP client tool builder for `vet` MCP server.
+// This basically connects to vet MCP server over SSE or executes the `vet server mcp` command
+// to start a MCP server in stdio mode. We maintain loose coupling between the MCP client and the MCP server
+// by allowing the client to be configured with a set of flags to enable/disable specific tools. We do this
+// to ensure vet MCP contract is not violated and evolves independently. vet Agents will in turn depend on
+// vet MCP server for data access.
 func NewMcpClientToolBuilder(config McpClientToolBuilderConfig) (*mcpClientToolBuilder, error) {
 	return &mcpClientToolBuilder{
 		config: config,
@@ -109,6 +116,10 @@ func (b *mcpClientToolBuilder) buildStdioClient() (*client.Client, error) {
 	if b.config.SQLQueryToolEnabled {
 		vetMcpServerCommandArgs = append(vetMcpServerCommandArgs, "--sql-query-tool")
 		vetMcpServerCommandArgs = append(vetMcpServerCommandArgs, "--sql-query-tool-db-path", b.config.SQLQueryToolDBPath)
+	}
+
+	if b.config.PackageRegistryToolEnabled {
+		vetMcpServerCommandArgs = append(vetMcpServerCommandArgs, "--package-registry-tool")
 	}
 
 	if b.config.SkipDefaultTools {
