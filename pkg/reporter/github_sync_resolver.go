@@ -9,7 +9,7 @@ import (
 
 type githubActionResolver struct{}
 
-func GHASyncReporterResolver() SyncReporterEnvResolver {
+func GithubActionsSyncReporterResolver() SyncReporterEnvResolver {
 	return &githubActionResolver{}
 }
 

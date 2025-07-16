@@ -3,6 +3,7 @@ package reporter
 import (
 	"context"
 	"errors"
+	"os"
 	"testing"
 
 	controltowerv1pb "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
@@ -109,6 +110,96 @@ func mockDependencyGraph(pkg *models.Package) {
 
 	// Set the dependency graph in the manifest
 	pkg.Manifest.DependencyGraph = dg
+}
+
+func TestNewSyncReporterEnvironmentResolver(t *testing.T) {
+	tests := []struct {
+		name                  string
+		setupEnv              func()
+		cleanupEnv            func()
+		expectedProjectSource controltowerv1pb.Project_Source
+		expectedProjectUrl    string
+		expectedTrigger       controltowerv1.ToolTrigger
+		expectedGitRef        string
+		expectedGitSha        string
+	}{
+		{
+			name: "should return GitHub Actions values when GITHUB_ACTIONS is set",
+			setupEnv: func() {
+				os.Setenv("GITHUB_ACTIONS", "true")
+				os.Setenv("GITHUB_SERVER_URL", "https://github.com")
+				os.Setenv("GITHUB_REPOSITORY", "safedep/vet")
+				os.Setenv("GITHUB_EVENT_NAME", "push")
+				os.Setenv("GITHUB_REF", "refs/heads/main")
+				os.Setenv("GITHUB_SHA", "abc123")
+			},
+			cleanupEnv: func() {
+				os.Unsetenv("GITHUB_ACTIONS")
+				os.Unsetenv("GITHUB_SERVER_URL")
+				os.Unsetenv("GITHUB_REPOSITORY")
+				os.Unsetenv("GITHUB_EVENT_NAME")
+				os.Unsetenv("GITHUB_REF")
+				os.Unsetenv("GITHUB_SHA")
+			},
+			expectedProjectSource: controltowerv1pb.Project_SOURCE_GITHUB,
+			expectedTrigger:       controltowerv1.ToolTrigger_TOOL_TRIGGER_PUSH,
+			expectedProjectUrl:    "https://github.com/safedep/vet",
+			expectedGitRef:        "refs/heads/main",
+			expectedGitSha:        "abc123",
+		},
+		{
+			name: "should return default values when GITHUB_ACTIONS is not set",
+			setupEnv: func() {
+				// No environment setup needed
+			},
+			cleanupEnv: func() {
+				// No cleanup needed
+			},
+			expectedProjectSource: controltowerv1pb.Project_SOURCE_UNSPECIFIED,
+			expectedTrigger:       controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL,
+			expectedProjectUrl:    "",
+			expectedGitRef:        "",
+			expectedGitSha:        "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Setup test environment
+			tt.setupEnv()
+
+			// Cleanup after test
+			defer tt.cleanupEnv()
+
+			// Get the resolver
+			resolver := NewSyncReporterEnvironmentResolver()
+
+			source := resolver.GetProjectSource()
+			if source != tt.expectedProjectSource {
+				t.Errorf("expected %s project source got %s", tt.expectedProjectSource, source)
+			}
+
+			url := resolver.GetProjectURL()
+			if url != tt.expectedProjectUrl {
+				t.Errorf("expected %s project URL got %s", tt.expectedProjectUrl, url)
+			}
+
+			trigger := resolver.Trigger()
+			if trigger != tt.expectedTrigger {
+				t.Errorf("expected %s trigger got %s", tt.expectedTrigger, trigger)
+			}
+
+			gitRef := resolver.GitRef()
+			if gitRef != tt.expectedGitRef {
+				t.Errorf("expected %s git ref got %s", tt.expectedGitRef, gitRef)
+			}
+
+			gitSha := resolver.GitSha()
+			if gitSha != tt.expectedGitSha {
+				t.Errorf("expected %s git sha got %s", tt.expectedGitSha, gitSha)
+			}
+		})
+	}
 }
 
 func TestSyncPackage(t *testing.T) {
