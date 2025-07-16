@@ -175,29 +175,19 @@ func TestNewSyncReporterEnvironmentResolver(t *testing.T) {
 			resolver := NewSyncReporterEnvironmentResolver()
 
 			source := resolver.GetProjectSource()
-			if source != tt.expectedProjectSource {
-				t.Errorf("expected %s project source got %s", tt.expectedProjectSource, source)
-			}
+			assert.Equal(t, tt.expectedProjectSource, source, "unexpected project source")
 
 			url := resolver.GetProjectURL()
-			if url != tt.expectedProjectUrl {
-				t.Errorf("expected %s project URL got %s", tt.expectedProjectUrl, url)
-			}
+			assert.Equal(t, tt.expectedProjectUrl, url, "unexpected project URL")
 
 			trigger := resolver.Trigger()
-			if trigger != tt.expectedTrigger {
-				t.Errorf("expected %s trigger got %s", tt.expectedTrigger, trigger)
-			}
+			assert.Equal(t, tt.expectedTrigger, trigger, "unexpected trigger")
 
 			gitRef := resolver.GitRef()
-			if gitRef != tt.expectedGitRef {
-				t.Errorf("expected %s git ref got %s", tt.expectedGitRef, gitRef)
-			}
+			assert.Equal(t, tt.expectedGitRef, gitRef, "unexpected git ref")
 
 			gitSha := resolver.GitSha()
-			if gitSha != tt.expectedGitSha {
-				t.Errorf("expected %s git sha got %s", tt.expectedGitSha, gitSha)
-			}
+			assert.Equal(t, tt.expectedGitSha, gitSha, "unexpected git sha")
 		})
 	}
 }
