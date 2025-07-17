@@ -3,7 +3,6 @@ package reporter
 import (
 	"context"
 	"errors"
-	"os"
 	"testing"
 
 	controltowerv1pb "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
@@ -115,8 +114,7 @@ func mockDependencyGraph(pkg *models.Package) {
 func TestNewSyncReporterEnvironmentResolver(t *testing.T) {
 	tests := []struct {
 		name                  string
-		setupEnv              func()
-		cleanupEnv            func()
+		setupEnv              func(t *testing.T)
 		expectedProjectSource controltowerv1pb.Project_Source
 		expectedProjectUrl    string
 		expectedTrigger       controltowerv1.ToolTrigger
@@ -125,21 +123,13 @@ func TestNewSyncReporterEnvironmentResolver(t *testing.T) {
 	}{
 		{
 			name: "should return GitHub Actions values when GITHUB_ACTIONS is set",
-			setupEnv: func() {
-				os.Setenv("GITHUB_ACTIONS", "true")
-				os.Setenv("GITHUB_SERVER_URL", "https://github.com")
-				os.Setenv("GITHUB_REPOSITORY", "safedep/vet")
-				os.Setenv("GITHUB_EVENT_NAME", "push")
-				os.Setenv("GITHUB_REF", "refs/heads/main")
-				os.Setenv("GITHUB_SHA", "abc123")
-			},
-			cleanupEnv: func() {
-				os.Unsetenv("GITHUB_ACTIONS")
-				os.Unsetenv("GITHUB_SERVER_URL")
-				os.Unsetenv("GITHUB_REPOSITORY")
-				os.Unsetenv("GITHUB_EVENT_NAME")
-				os.Unsetenv("GITHUB_REF")
-				os.Unsetenv("GITHUB_SHA")
+			setupEnv: func(t *testing.T) {
+				t.Setenv("GITHUB_ACTIONS", "true")
+				t.Setenv("GITHUB_SERVER_URL", "https://github.com")
+				t.Setenv("GITHUB_REPOSITORY", "safedep/vet")
+				t.Setenv("GITHUB_EVENT_NAME", "push")
+				t.Setenv("GITHUB_REF", "refs/heads/main")
+				t.Setenv("GITHUB_SHA", "abc123")
 			},
 			expectedProjectSource: controltowerv1pb.Project_SOURCE_GITHUB,
 			expectedTrigger:       controltowerv1.ToolTrigger_TOOL_TRIGGER_PUSH,
@@ -149,11 +139,8 @@ func TestNewSyncReporterEnvironmentResolver(t *testing.T) {
 		},
 		{
 			name: "should return default values when GITHUB_ACTIONS is not set",
-			setupEnv: func() {
+			setupEnv: func(t *testing.T) {
 				// No environment setup needed
-			},
-			cleanupEnv: func() {
-				// No cleanup needed
 			},
 			expectedProjectSource: controltowerv1pb.Project_SOURCE_UNSPECIFIED,
 			expectedTrigger:       controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL,
@@ -166,10 +153,7 @@ func TestNewSyncReporterEnvironmentResolver(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup test environment
-			tt.setupEnv()
-
-			// Cleanup after test
-			defer tt.cleanupEnv()
+			tt.setupEnv(t)
 
 			// Get the resolver
 			resolver := NewSyncReporterEnvironmentResolver()
