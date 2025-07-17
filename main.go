@@ -7,9 +7,11 @@ import (
 	"strconv"
 
 	"github.com/safedep/dry/utils"
+	"github.com/safedep/vet/cmd/agent"
 	"github.com/safedep/vet/cmd/cloud"
 	"github.com/safedep/vet/cmd/code"
 	"github.com/safedep/vet/cmd/inspect"
+	"github.com/safedep/vet/cmd/server"
 	"github.com/safedep/vet/internal/analytics"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -29,7 +31,7 @@ var (
 const (
 	vetName                 = "vet"
 	vetInformationURI       = "https://github.com/safedep/vet"
-	vetVendorName           = "Safedep"
+	vetVendorName           = "SafeDep"
 	vetVendorInformationURI = "https://safedep.io"
 )
 
@@ -71,9 +73,14 @@ func main() {
 	cmd.AddCommand(newConnectCommand())
 	cmd.AddCommand(cloud.NewCloudCommand())
 	cmd.AddCommand(code.NewCodeCommand())
+	cmd.AddCommand(agent.NewAgentCommand())
 
 	if checkIfPackageInspectCommandEnabled() {
 		cmd.AddCommand(inspect.NewPackageInspectCommand())
+	}
+
+	if checkIfServerCommandEnabled() {
+		cmd.AddCommand(server.NewServerCommand())
 	}
 
 	cobra.OnInitialize(func() {
@@ -131,6 +138,12 @@ func printBanner() {
 
 func checkIfPackageInspectCommandEnabled() bool {
 	// Enabled by default now that we have tested this for a while
+	return true
+}
+
+func checkIfServerCommandEnabled() bool {
+	// Enabled by default but keep option open for disabling
+	// based on remote config or user preference
 	return true
 }
 

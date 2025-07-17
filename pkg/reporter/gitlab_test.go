@@ -10,11 +10,11 @@ import (
 
 	malysisv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
 	"github.com/google/osv-scanner/pkg/lockfile"
+	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/checks"
 	"github.com/safedep/vet/gen/filtersuite"
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/analyzer"
-	"github.com/safedep/vet/pkg/common/utils"
 	"github.com/safedep/vet/pkg/malysis"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -28,7 +28,7 @@ func getGitLabReporter(reportPath string) (*gitLabReporter, error) {
 			Name:           "vet",
 			Version:        "latest",
 			InformationURI: "https://github.com/safedep/vet",
-			VendorName:     "safedep",
+			VendorName:     "SafeDep",
 		},
 	})
 }
@@ -66,7 +66,7 @@ func TestGitLabReporter(t *testing.T) {
 		assert.Equal(t, "15.2.1", report.Version)
 		assert.Equal(t, "dependency_scanning", report.Scan.Type)
 		assert.Equal(t, "vet", report.Scan.Scanner.ID)
-		assert.Equal(t, "safedep", report.Scan.Scanner.Vendor.Name)
+		assert.Equal(t, "SafeDep", report.Scan.Scanner.Vendor.Name)
 		assert.Empty(t, report.Vulnerabilities)
 	})
 

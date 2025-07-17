@@ -1,485 +1,556 @@
-<h1 align="center">
-    <img alt="SafeDep vet" src="./docs/assets/vet-logo-light.png#gh-light-mode-only" max-height="150px" width="auto" />
-    <img alt="SafeDep vet" src="./docs/assets/vet-logo-dark.png#gh-dark-mode-only" max-height="150px" width="auto" />
-</h1>
+<div align="center">
+  <h1>🔍 vet</h1>
+  
+  <p><strong>🚀 Enterprise grade open source software supply chain security</strong></p>
+  
+  <p>
+    <a href="https://github.com/safedep/vet/releases"><strong>Download</strong></a> •
+    <a href="#-quick-start"><strong>Quick Start</strong></a> •
+    <a href="https://docs.safedep.io/"><strong>Documentation</strong></a> •
+    <a href="#-community"><strong>Community</strong></a>
+  </p>
+</div>
 
-<p align="center">
-    Created and maintained by <b><a href="https://safedep.io/">https://safedep.io</a></b> with contributions from the community 🚀
-</p>
+<div align="center">
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/safedep/vet)](https://goreportcard.com/report/github.com/safedep/vet)
-![License](https://img.shields.io/github/license/safedep/vet)
-![Release](https://img.shields.io/github/v/release/safedep/vet)
+[![License](https://img.shields.io/github/license/safedep/vet)](https://github.com/safedep/vet/blob/main/LICENSE)
+[![Release](https://img.shields.io/github/v/release/safedep/vet)](https://github.com/safedep/vet/releases)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/safedep/vet/badge)](https://api.securityscorecards.dev/projects/github.com/safedep/vet)
-[![CodeQL](https://github.com/safedep/vet/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/safedep/vet/actions/workflows/codeql.yml)
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
-[![Scorecard supply-chain security](https://github.com/safedep/vet/actions/workflows/scorecard.yml/badge.svg)](https://github.com/safedep/vet/actions/workflows/scorecard.yml)
-[![Twitter](https://img.shields.io/twitter/follow/safedepio?style=social)](https://twitter.com/intent/follow?screen_name=safedepio)
+[![CodeQL](https://github.com/safedep/vet/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/safedep/vet/actions/workflows/codeql.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/safedep/vet.svg)](https://pkg.go.dev/github.com/safedep/vet)
 
-# 🔍 vet
+</div>
 
-`vet` is a tool for **protecting against open source software supply chain attacks**. To adapt to organizational needs, it uses
-an opinionated policy expressed as [Common Expressions Language](https://cel.dev/) and extensive
-package security metadata including
+---
 
-- **Code Analysis** to guard against risks that actually matter
-- **Vulnerabilities** from [OSV](https://osv.dev)
-- **Popularity** based guardrails to prevent unvetted or risky packages
-- **Maintenance** status of the package
-- **Extended License Attributes** based compliance
-- **OpenSSF Scorecard** based 3rd party OSS risk management
-- **Direct** and **Transitive** dependency analysis for coverage
+## 🎯 Why vet?
 
-## 🐞 Malicious Code Analysis
+> **70-90% of modern software constitute code from open sources** — How do we know if it's safe?
 
-`vet` is integrated with [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis) for real time protection against
-malicious open source packages through active code scanning and analysis. [vet-action](https://github.com/safedep/vet-action)
-seamlessly integrates `vet` in GitHub Action for proactive guardrails against malicious code from open sources.
+**vet** is an open source software supply chain security tool built for **developers and security engineers** who need:
 
-## 🎯 Policy as Code
+✅ **Next-gen Software Composition Analysis** — Vulnerability and malicious package detection  
+✅ **Policy as Code** — Express opinionated security policies using [CEL](https://cel.dev/)    
+✅ **Real-time malicious package detection** — Powered by [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis) active scanning   
+✅ **Multi-ecosystem support** — npm, PyPI, Maven, Go, Docker, GitHub Actions, and more    
+✅ **CI/CD native** — Built for DevSecOps workflows with support for GitHub Actions, GitLab CI, and more   
+✅ **MCP Server** — Run `vet` as a MCP server to vet open source packages from AI suggested code   
+✅ **Agents** — Run AI agents to query and analyze scan results   
 
-`vet` is built for users who intend to enforce guardrails against open source supply chain attacks using their opinionated
-policies. Security guardrails can be built by expressing policies as [CEL](https://cel.dev/) which `vet` enforces in CI/CD.
+## ⚡ Quick Start
 
+**Install in seconds:**
 
-## 🔥 vet in action
+```bash
+# macOS & Linux
+brew install safedep/tap/vet
+```
 
-![vet Demo](./docs/assets/vet-demo.gif)
+or download a [pre-built binary](https://github.com/safedep/vet/releases)
 
-# 🚀 Let's go!
+**Scan your project:**
 
-- [🔍 vet](#-vet)
-  - [🐞 Malicious Code Analysis](#-malicious-code-analysis)
-  - [🎯 Policy as Code](#-policy-as-code)
-  - [🔥 vet in action](#-vet-in-action)
-- [🚀 Let's go!](#-lets-go)
-  - [Installation](#installation)
-  - [Running Scans](#running-scans)
-    - [Scanning Binary Artifacts](#scanning-binary-artifacts)
-    - [Scanning SBOM](#scanning-sbom)
-    - [Scanning Github Repositories](#scanning-github-repositories)
-    - [Scanning Github Organization](#scanning-github-organization)
-    - [Other scanning options](#other-scanning-options)
-  - [Policy as Code](#policy-as-code)
-  - [Query Mode](#query-mode)
-  - [Reporting](#reporting)
-  - [CI/CD Integration](#cicd-integration)
-    - [📦 GitHub Action](#-github-action)
-    - [🚀 GitLab CI](#-gitlab-ci)
-  - [🐙 Malicious Package Analysis](#-malicious-package-analysis)
-    - [🔍 Malicious Package Query](#-malicious-package-query)
-  - [🛠️ Advanced Usage](#️-advanced-usage)
-  - [📖 Documentation](#-documentation)
-  - [📊 Telemetry](#-telemetry)
-  - [🎊 Community](#-community)
-  - [💻 Development](#-development)
-  - [Support](#support)
-  - [🌟 Star History](#-star-history)
-  - [🔖 References](#-references)
+```bash
+# Scan current directory
+vet scan -D .
 
-## Installation
+# Scan a single file
+vet scan -M package-lock.json
 
-- You can also install `vet` using homebrew in MacOS and Linux
+# Fail CI on critical vulnerabilities
+vet scan -D . --filter 'vulns.critical.exists(p, true)' --filter-fail
 
+# Fail CI on OpenSSF Scorecard requirements
+vet scan -D . --filter 'scorecard.scores.Maintained < 5' --filter-fail
+
+# Fail CI if a package is published from a GitHub repository with less than 5 stars
+vet scan -D . --filter 'projects.exists(p, p.type == "GITHUB" && p.stars < 5)' --filter-fail
+```
+
+## 🔒 Key Features
+
+### 🕵️ **Code Analysis**
+Unlike dependency scanners that flood you with noise, `vet` analyzes your **actual code usage** to prioritize real risks. See [dependency usage evidence](https://docs.safedep.io/guides/dependency-usage-identification) for more details.
+
+### 🛡️ **Malicious Package Detection**
+Integrated with [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis) for real-time protection against malicious packages in the wild. Free for open source projects. Fallback to *Query Mode* when API key is not provided. Read more [about malicious package scanning](#️-malicious-package-detection-1).
+
+### 📋 **Policy as Code**
+Define security policies using CEL expressions to enforce context specific security requirements.
+
+```bash
+# Block packages with critical CVEs
+vet scan \
+--filter 'vulns.critical.exists(p, true)'
+
+# Enforce license compliance
+vet scan \
+--filter 'licenses.contains_license("GPL-3.0")'
+
+# Enforce OpenSSF Scorecard requirements
+# Require minimum OpenSSF Scorecard scores
+vet scan \
+--filter 'scorecard.scores.Maintained < 5'
+```
+
+### 🎯 **Multi-Format Support**
+- **Package Managers**: npm, PyPI, Maven, Go, Ruby, Rust, PHP
+- **Container Images**: Docker, OCI
+- **SBOMs**: CycloneDX, SPDX
+- **Binary Artifacts**: JAR files, Python wheels
+- **Source Code**: Direct repository scanning
+
+## 🔥 See vet in Action
+
+<div align="center">
+  <img src="./docs/assets/vet-demo.gif" alt="vet Demo" width="100%" />
+</div>
+
+## 🚀 Production Ready Integrations
+
+### 📦 **GitHub Actions**
+Zero config security guardrails against vulnerabilities and malicious packages in your CI/CD pipeline
+**with your own opinionated policies**:
+
+```yaml
+- uses: safedep/vet-action@v1
+  with:
+    policy: '.github/vet/policy.yml'
+```
+
+See more in [vet-action](https://github.com/safedep/vet-action) documentation.
+
+### 🔧 **GitLab CI**
+Enterprise grade scanning with [vet CI Component](https://gitlab.com/explore/catalog/safedep/ci-components/vet):
+
+```yaml
+include:
+  - component: gitlab.com/safedep/ci-components/vet@main
+```
+
+### 🐳 **Container Integration**
+Run `vet` anywhere, even your internal developer platform or custom CI/CD environment using our container image.
+
+```bash
+docker run --rm -v $(pwd):/app ghcr.io/safedep/vet:latest scan -D /app
+```
+
+## 📚 Table of Contents
+
+- [🎯 Why vet?](#-why-vet)
+- [⚡ Quick Start](#-quick-start)
+- [🔒 Key Features](#-key-features)
+  - [🕵️ **Code Analysis**](#️-code-analysis)
+  - [🛡️ **Malicious Package Detection**](#️-malicious-package-detection)
+  - [📋 **Policy as Code**](#-policy-as-code)
+  - [🎯 **Multi-Format Support**](#-multi-format-support)
+- [🔥 See vet in Action](#-see-vet-in-action)
+- [🚀 Production Ready Integrations](#-production-ready-integrations)
+  - [📦 **GitHub Actions**](#-github-actions)
+  - [🔧 **GitLab CI**](#-gitlab-ci)
+  - [🐳 **Container Integration**](#-container-integration)
+- [📚 Table of Contents](#-table-of-contents)
+- [📦 Installation Options](#-installation-options)
+  - [🍺 **Homebrew (Recommended)**](#-homebrew-recommended)
+  - [📥 **Direct Download**](#-direct-download)
+  - [🐹 **Go Install**](#-go-install)
+  - [🐳 **Container Image**](#-container-image)
+  - [⚙️ **Verify Installation**](#️-verify-installation)
+- [🎮 Advanced Usage](#-advanced-usage)
+  - [🔍 **Scanning Options**](#-scanning-options)
+  - [🎯 **Policy Enforcement Examples**](#-policy-enforcement-examples)
+  - [🔧 **SBOM Support**](#-sbom-support)
+  - [📊 **Query Mode \& Data Persistence**](#-query-mode--data-persistence)
+- [📊 Reporting](#-reporting)
+  - [📋 **Report Formats**](#-report-formats)
+  - [🎯 **Report Examples**](#-report-examples)
+  - [🤖 **MCP Server**](#-mcp-server)
+  - [🤖 **Agents**](#-agents)
+- [🛡️ Malicious Package Detection](#️-malicious-package-detection-1)
+  - [🚀 **Quick Setup**](#-quick-setup)
+  - [🎯 **Advanced Malicious Package Analysis**](#-advanced-malicious-package-analysis)
+  - [🔒 **Security Features**](#-security-features)
+- [📊 Privacy and Telemetry](#-privacy-and-telemetry)
+- [🎊 Community \& Support](#-community--support)
+  - [🌟 **Join the Community**](#-join-the-community)
+  - [💡 **Get Help \& Share Ideas**](#-get-help--share-ideas)
+  - [⭐ **Star History**](#-star-history)
+  - [🙏 **Built With Open Source**](#-built-with-open-source)
+
+## 📦 Installation Options
+
+### 🍺 **Homebrew (Recommended)**
 ```bash
 brew tap safedep/tap
 brew install safedep/tap/vet
 ```
 
-<details>
-<summary>Other Installation Options</summary>
+### 📥 **Direct Download**
+See [releases](https://github.com/safedep/vet/releases) for the latest version.
 
-- Download the binary file for your operating system / architecture from the [Official GitHub Releases](https://github.com/safedep/vet/releases)
-
-- Build from source
-
-> Ensure $(go env GOPATH)/bin is in your $PATH
-
+### 🐹 **Go Install**
 ```bash
 go install github.com/safedep/vet@latest
 ```
 
-- Use a pre-built container image
-
+### 🐳 **Container Image**
 ```bash
-docker run --rm -it ghcr.io/safedep/vet:latest version
+# Quick test
+docker run --rm ghcr.io/safedep/vet:latest version
+
+# Scan local directory
+docker run --rm -v $(pwd):/workspace ghcr.io/safedep/vet:latest scan -D /workspace
 ```
 
-> **Note:** Container image is built for x86_64 Linux only. Use a
-> [pre-built binary](https://github.com/safedep/vet/releases) or
-> build from source for other platforms.
-
-</details>
-
-## Running Scans
-
-- Run `vet` to identify open source risks by scanning your codebase
-
+### ⚙️ **Verify Installation**
 ```bash
-vet scan -D /path/to/repository
+vet version
+# Should display version and build information
 ```
 
-![vet scan directory](./docs/assets/vet-scan-directory.png)
+## 🎮 Advanced Usage
 
-<details>
-<summary>Scanning Specific Package Manifests</summary>
+### 🔍 **Scanning Options**
 
+<table>
+<tr>
+<td width="50%">
+
+**📁 Directory Scanning**
 ```bash
-vet scan -M /path/to/pom.xml
-vet scan -M /path/to/requirements.txt
-vet scan -M /path/to/package-lock.json
+# Scan current directory
+vet scan
+
+# Scan a given directory
+vet scan -D /path/to/project
+
+# Resolve and scan transitive dependencies
+vet scan -D . --transitive
 ```
 
-**Note:** `--lockfiles` is generalized to `-M` or `--manifests` to support additional
-types of package manifests or other artifacts in future.
-</details>
-
-### Scanning Binary Artifacts
-
-<details>
-<summary>Scanning Java JAR files</summary>
-
-- Scan a single JAR file
-
+**📄 Manifest Files**
 ```bash
-vet scan -M /path/to/app.jar
+# Package managers
+vet scan -M package-lock.json
+vet scan -M requirements.txt
+vet scan -M pom.xml
+vet scan -M go.mod
+vet scan -M Gemfile.lock
 ```
 
-> Suitable for scanning bootable JARs with embedded dependencies
+</td>
+<td width="50%">
 
-- Scan a directory with JAR files
-
+**🐙 GitHub Integration**
 ```bash
-vet scan -D /path/to/jars --type jar
-```
-</details>
-
-<details>
-<summary>Scanning Python Wheels</summary>
-
-```bash
-vet scan -M /path/to/app.whl
-```
-
-> Suitable for scanning Python wheels with embedded dependencies
-
-</details>
-
-### Scanning SBOM
-
-<details>
-<summary>Scanning CycloneDX SBOMs</summary>
-
-```bash
-vet scan -M /path/to/cyclonedx-sbom.json --type bom-cyclonedx
-```
-
-**Note:** `--type` is a generalized version of `--lockfile-as` to support additional
-artifact types in future.
-
-</details>
-
-<details>
-<summary>Scanning SPDX SBOMs</summary>
-
-```bash
-vet scan -M /path/to/spdx-sbom.json --type bom-spdx
-```
-
-</details>
-
-> **Note:** SBOM scanning feature is currently in experimental stage
-
-### Scanning Github Repositories
-
-<details>
-<summary>Scanning Github Repositories</summary>
-
-- Setup github access token to scan private repo
-
-```bash
+# Setup GitHub access
 vet connect github
+
+# Scan repositories
+vet scan --github https://github.com/user/repo
+
+# Organization scanning
+vet scan --github-org https://github.com/org
 ```
 
-Alternatively, set `GITHUB_TOKEN` environment variable with [Github PAT](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
-
-- To scan remote Github repositories, including private ones
-
+**📦 Artifact Scanning**
 ```bash
-vet scan --github https://github.com/safedep/vet
+# Container images
+vet scan --image nginx:latest
+vet scan --image /path/to/image-saved-file.tar
+
+# Binary artifacts
+vet scan -M app.jar
+vet scan -M package.whl
 ```
 
-**Note:** You may need to enable [Dependency Graph](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-the-dependency-graph) at repository or organization level for Github repository scanning to work.
-</details>
+</td>
+</tr>
+</table>
 
-### Scanning Github Organization
-
-<details>
-<summary>Scanning Github Organizations</summary>
-
-> You must setup the required access for scanning private repositories
-> before scanning organizations
+### 🎯 **Policy Enforcement Examples**
 
 ```bash
-vet scan --github-org https://github.com/safedep
+# Security-first scanning
+vet scan -D . \
+  --filter 'vulns.critical.exists(p, true) || vulns.high.exists(p, true)' \
+  --filter-fail
+
+# License compliance
+vet scan -D . \
+  --filter 'licenses.contains_license("GPL-3.0")' \
+  --filter-fail
+
+# OpenSSF Scorecard requirements
+vet scan -D . \
+  --filter 'scorecard.scores.Maintained < 5' \
+  --filter-fail
+
+# Popularity-based filtering
+vet scan -D . \
+  --filter 'projects.exists(p, p.type == "GITHUB" && p.stars < 50)' \
+  --filter-fail
 ```
 
-> **Note:** `vet` will block and wait if it encounters Github secondary rate limit.
-
-</details>
-
-### Other scanning options
-
-<details>
-<summary>Scanning Package URL</summary>
-
-- To scan a [purl](https://github.com/package-url/purl-spec)
+### 🔧 **SBOM Support**
 
 ```bash
-vet scan --purl pkg:/gem/nokogiri@1.10.4
+# Scan a CycloneDX SBOM
+vet scan -M sbom.json --type bom-cyclonedx
+
+# Scan a SPDX SBOM
+vet scan -M sbom.spdx.json --type bom-spdx
+
+# Generate SBOM output
+vet scan -D . --report-cdx=output.sbom.json
+
+# Package URL scanning
+vet scan --purl pkg:npm/lodash@4.17.21
 ```
 
-</details>
+### 📊 **Query Mode & Data Persistence**
 
-<details>
-<summary>List supported package manifest parsers</summary>
-
-- List supported package manifest parsers including experimental modules
+For large codebases and repeated analysis:
 
 ```bash
-vet scan parsers --experimental
-```
-</details>
+# Scan once, query multiple times
+vet scan -D . --json-dump-dir ./scan-data
 
-## Policy as Code
+# Query with different filters
+vet query --from ./scan-data \
+  --filter 'vulns.critical.exists(p, true)'
 
-`vet` uses [Common Expressions Language](https://github.com/google/cel-spec)
-(CEL) as the policy language. Policies can be defined to build guardrails
-preventing introduction of insecure components.
-
-<details>
-<summary>Vulnerability</summary>
-
-- Run `vet` and fail if a critical or high vulnerability was detected
-
-```bash
-vet scan -D /path/to/code \
-    --filter 'vulns.critical.exists(p, true) || vulns.high.exists(p, true)' \
-    --filter-fail
-```
-</details>
-
-<details>
-<summary>License</summary>
-
-- Run `vet` and fail if a package with a specific license was detected
-
-```bash
-vet scan -D /path/to/code \
-    --filter 'licenses.exists(p, "GPL-2.0")' \
-    --filter-fail
+# Generate focused reports
+vet query --from ./scan-data \
+  --filter 'licenses.contains_license("GPL")' \
+  --report-json license-violations.json
 ```
 
-**Note:** Using `licenses.contains_license(...)` is recommended for license matching due
-to its support for SPDX expressions.
+## 📊 Reporting
 
-- `vet` supports [SPDX License Expressions](https://spdx.github.io/spdx-spec/v2.3/SPDX-license-expressions/) at package license and policy level
+**vet** generate reports that are tailored for different stakeholders:
 
-```bash
-vet scan -D /path/to/code \
-    --filter 'licenses.contains_license("LGPL-2.1+")' \
-    --filter-fail
-```
-</details>
+### 📋 **Report Formats**
 
-<details>
-<summary>Scorecard</summary>
-
-Run `vet` and fail based on [OpenSSF Scorecard](https://securityscorecards.dev/) attributes
+<table>
+<tr>
+<td width="30%"><strong>🔍 For Security Teams</strong></td>
+<td width="70%">
 
 ```bash
-vet scan -D /path/to/code \
-    --filter 'scorecard.scores.Maintained == 0' \
-    --filter-fail
-```
+# SARIF for GitHub Security tab
+vet scan -D . --report-sarif=report.sarif
 
-For more examples, refer to [documentation](https://docs.safedep.io/advanced/policy-as-code)
-</details>
+# JSON for custom tooling
+vet scan -D . --report-json=report.json
 
-## Query Mode
-
-Query mode helps querying the data gathered by `vet` multiple times without running the scan again.
-
-<details>
-<summary>Run scan and dump internal data structures to a file for further querying</summary>
-
-```bash
-vet scan -D /path/to/code --json-dump-dir /path/to/dump
+# CSV for spreadsheet analysis
+vet scan -D . --report-csv=report.csv
 ```
 
-</details>
-
-<details>
-<summary>Filter results using query command</summary>
+</td>
+</tr>
+<tr>
+<td><strong>📖 For Developers</strong></td>
+<td>
 
 ```bash
-vet query --from /path/to/dump \
-    --filter 'vulns.critical.exists(p, true) || vulns.high.exists(p, true)'
+# Markdown reports for PRs
+vet scan -D . --report-markdown=report.md
+
+# Console summary (default)
+vet scan -D . --report-summary
 ```
 
-</details>
-
-<details>
-<summary>Generate report from dumped data</summary>
+</td>
+</tr>
+<tr>
+<td><strong>🏢 For Compliance</strong></td>
+<td>
 
 ```bash
-vet query --from /path/to/dump --report-json /path/to/report.json
+# SBOM generation
+vet scan -D . --report-cdx=sbom.json
+
+# Dependency graphs
+vet scan -D . --report-graph=dependencies.dot
 ```
 
-</details>
+</td>
+</tr>
+</table>
 
-## Reporting
-
-`vet` supports generating reports in multiple formats during `scan` or `query`
-execution.
-
-| Format   | Description                                                                    |
-|----------|--------------------------------------------------------------------------------|
-| Markdown | Human readable report for vulnerabilities, licenses, and more                  |
-| CSV      | Export data to CSV format for manual slicing and dicing                        |
-| JSON     | Machine readable JSON format following internal schema (maximum data)          |
-| SARIF    | Useful for integration with Github Code Scanning and other tools               |
-| Graph    | Dependency graph in DOT format for risk and package relationship visualization |
-| CycloneDX | Software Bill of Materials (SBOM) in CycloneDX format |
-| Summary  | Default console report with summary of vulnerabilities, licenses, and more     |
-
-## CI/CD Integration
-
-### 📦 GitHub Action
-
-- `vet` is available as a GitHub Action, refer to [vet-action](https://github.com/safedep/vet-action)
-
-### 🚀 GitLab CI
-
-- `vet` can be integrated with GitLab CI, refer to [vet CI Component](https://gitlab.com/explore/catalog/safedep/ci-components/vet)
-
-## 🐙 Malicious Package Analysis
-
-`vet` supports scanning for malicious packages using [SafeDep Cloud API](https://docs.safedep.io/cloud/malware-analysis)
-which requires an API key.
-
-- To setup an API key for malicious package scanning
+### 🎯 **Report Examples**
 
 ```bash
+# Multi-format output
+vet scan -D . \
+  --report-json=report.json \
+  --report-sarif=report.sarif \
+  --report-markdown=report.md
+
+# Focus on specific issues
+vet scan -D . \
+  --filter 'vulns.high.exists(p, true)' \
+  --report-json=report.json
+```
+
+### 🤖 **MCP Server**
+
+**vet** can be used as an MCP server to vet open source packages from AI suggested code.
+
+```bash
+# Start the MCP server with SSE transport
+vet server mcp --server-type sse
+```
+
+For more details, see [vet MCP Server](./docs/mcp.md) documentation.
+
+### 🤖 **Agents**
+
+See [vet Agents](./docs/agent.md) documentation for more details.
+
+## 🛡️ Malicious Package Detection
+
+**Malicious package detection through active scanning and code analysis** powered by 
+[SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis). `vet` requires an API
+key for active scanning of unknown packages. When API key is not provided, `vet` will
+fallback to *Query Mode* which detects known malicious packages from [SafeDep](https://safedep.io)
+and [OSV](https://osv.dev) databases.
+
+- Grab a free API key from [SafeDep Platform App](https://platform.safedep.io) or use `vet cloud quickstart`
+- API access is free forever for open source projects
+- No proprietary code is collected for malicious package detection
+- Only open source package scanning from public repositories is supported
+
+### 🚀 **Quick Setup**
+
+> Malicious package detection requires an API key for [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis).
+
+```bash
+# One-time setup
 vet cloud quickstart
+
+# Enable malware scanning
+vet scan -D . --malware
+
+# Query for known malicious packages without API key
+vet scan -D . --malware-query
 ```
 
-- Run a scan and check for malicious packages
+Example malicious packages detected and reported by [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis)
+malicious package detection:
 
+- [MAL-2025-3541: express-cookie-parser](https://safedep.io/malicious-npm-package-express-cookie-parser/)
+- [MAL-2025-4339: eslint-config-airbnb-compat](https://safedep.io/digging-into-dynamic-malware-analysis-signals/)
+- [MAL-2025-4029: ts-runtime-compat-check](https://safedep.io/digging-into-dynamic-malware-analysis-signals/)
+- [MAL-2025-2227: nyc-config](https://safedep.io/nyc-config-malicious-package/)
+
+### 🎯 **Advanced Malicious Package Analysis**
+
+<table>
+<tr>
+<td width="50%">
+
+**🔍 Scan packages with malicious package detection enabled**
 ```bash
-vet scan -D /path/to/code --malware
+# Real-time scanning
+vet scan -D . --malware
+
+# Timeout adjustment
+vet scan -D . --malware \
+  --malware-analysis-timeout=300s
+
+# Batch analysis
+vet scan -D . --malware \
+  --json-dump-dir=./analysis
 ```
 
-**Note**: `vet` will submit identified packages to SafeDep Cloud for analysis and wait
-for a `timeout` period for response. Not all package analysis may be completed
-within the timeout period. However, subsequent scans will fetch the results if
-available and lead to increased coverage over time. Adjust the timeout using
-`--malware-analysis-timeout` flag.
+</td>
+<td width="50%">
 
-<details>
-<summary>Scanning Visual Studio Code Extensions</summary>
-
-- Auto-discover and scan Visual Studio Code extensions in the local system
-
+**🎭 Specialized Scans**
 ```bash
+# VS Code extensions
 vet scan --vsx --malware
-```
 
-</details>
-
-<details>
-<summary>Scanning GitHub Actions</summary>
-
-- Scan a single GitHub Actions workflow using `inspect` command
-
-```bash
-vet inspect malware --purl pkg:github/safedep/vet-action@v1
-```
-
-- Scan all GitHub Actions workflows in a repository
-
-```bash
+# GitHub Actions
 vet scan -D .github/workflows --malware
+
+# Container Images
+vet scan --image nats:2.10 --malware
+
+# Scan a single package and fail if its malicious
+vet scan --purl pkg:/npm/nyc-config@10.0.0 --fail-fast
+
+# Active scanning of a single package (requires API key)
+vet inspect malware \
+  --purl pkg:npm/nyc-config@10.0.0
 ```
 
-- The same convention can be used to inspect any GitHub repository reference
+</td>
+</tr>
+</table>
+
+### 🔒 **Security Features**
+
+- ✅ **Real-time analysis** of packages against known malware databases
+- ✅ **Behavioral analysis** using static and dynamic analysis
+- ✅ **Zero day protection** through active code scanning
+- ✅ **Human in the loop** for triaging and investigation of high impact findings
+- ✅ **Real time analysis** with public [analysis log](https://vetpkg.dev/mal)
+
+## 📊 Privacy and Telemetry
+
+`vet` collects anonymous usage telemetry to improve the product. **Your code and package information is never transmitted.**
 
 ```bash
-vet inspect malware --purl pkg:github/safedep/vet@v1.9.5
-```
-
-**Note:** `vet` will resolve the commit hash for the given version and use it for malware analysis.
-This is because GitHub repository tags are mutable and can be changed.
-
-</details>
-
-### 🔍 Malicious Package Query
-
-If active analysis is not enabled using `vet scan --malware` flag, `vet` will fallback to query known
-malicious packages data from community instance of [Malysis service](https://docs.safedep.io/cloud/malware-analysis).
-
-## 🛠️ Advanced Usage
-
-- [Threat Hunting with vet](https://docs.safedep.io/advanced/filtering)
-- [Policy as Code](https://docs.safedep.io/advanced/policy-as-code)
-- [Exceptions and Overrides](https://docs.safedep.io/advanced/exceptions)
-
-## 📖 Documentation
-
-- Try out the [interactive tutorial](https://killercoda.com/safedep/scenario/101-intro) to get started with `vet`
-
-- Refer to [https://safedep.io/docs](https://safedep.io/docs) for the detailed documentation
-
-[![vet docs](./docs/assets/vet-docs.png)](https://safedep.io/docs)
-
-## 📊 Telemetry
-
-`vet` collects anonymous telemetry to help us understand how it is used and
-improve the product. To disable telemetry, set `VET_DISABLE_TELEMETRY` environment
-variable to `true`.
-
-```bash
+# Disable telemetry (optional)
 export VET_DISABLE_TELEMETRY=true
 ```
 
-## 🎊 Community
+## 🎊 Community & Support
 
-First of all, thank you so much for showing interest in `vet`, we appreciate it ❤️
+<div align="center">
+  
+### 🌟 **Join the Community**
 
-- Join the Discord server using the link - [https://rebrand.ly/safedep-community](https://rebrand.ly/safedep-community)
+[![Discord](https://img.shields.io/discord/1090352019379851304?color=7289da&label=Discord&logo=discord&logoColor=white)](https://rebrand.ly/safedep-community)
+[![GitHub Discussions](https://img.shields.io/badge/GitHub-Discussions-green?logo=github)](https://github.com/safedep/vet/discussions)
+[![Twitter Follow](https://img.shields.io/twitter/follow/safedepio?style=social)](https://twitter.com/safedepio)
 
-[![SafeDep Discord](./docs/assets/safedep-discord.png)](https://rebrand.ly/safedep-community)
+</div>
 
-## 💻 Development
+### 💡 **Get Help & Share Ideas**
 
-Refer to [CONTRIBUTING.md](CONTRIBUTING.md)
+- 🚀 **[Interactive Tutorial](https://killercoda.com/safedep/scenario/101-intro)** - Learn vet hands-on
+- 📚 **[Complete Documentation](https://docs.safedep.io/)** - Comprehensive guides
+- 💬 **[Discord Community](https://rebrand.ly/safedep-community)** - Real-time support
+- 🐛 **[Issue Tracker](https://github.com/safedep/vet/issues)** - Bug reports & feature requests
+- 🤝 **[Contributing Guide](CONTRIBUTING.md)** - Join the development
 
-## Support
+---
 
-[SafeDep](https://safedep.io) provides enterprise support for `vet`
-deployments. Check out [SafeDep Cloud](https://safedep.io) for large scale
-deployment and management of `vet` in your organization.
+<div align="center">
 
-## 🌟 Star History
+### ⭐ **Star History**
 
 [![Star History Chart](https://api.star-history.com/svg?repos=safedep/vet&type=Date)](https://star-history.com/#safedep/vet&Date)
 
-## 🔖 References
+### 🙏 **Built With Open Source**
 
-- https://github.com/google/osv-scanner
-- https://github.com/anchore/syft
-- https://deps.dev/
-- https://securityscorecards.dev/
-- https://slsa.dev/
+vet stands on the shoulders of giants:
+
+[OSV](https://osv.dev) • [OpenSSF Scorecard](https://securityscorecards.dev/) • [SLSA](https://slsa.dev/) • [OSV-SCALIBR](https://github.com/google/osv-scalibr) • [Syft](https://github.com/anchore/syft)
+
+---
+
+<p><strong>⚡ Secure your supply chain today. Star the repo ⭐ and get started!</strong></p>
+
+Created with ❤️ by [SafeDep](https://safedep.io) and the open source community
+
+</div>
 
 <img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=304d1856-fcb3-4166-bfbf-b3e40d0f1e3b" />

@@ -24,6 +24,7 @@ import (
 	"github.com/safedep/vet/pkg/scanner"
 	"github.com/safedep/vet/pkg/storage"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 )
 
 var (
@@ -86,6 +87,11 @@ var (
 	malwareAnalysisTimeout           time.Duration
 	malwareAnalysisMinimumConfidence string
 	gitlabReportPath                 string
+	sqlite3ReportPath                string
+	sqlite3ReportOverwrite           bool
+	sqlite3ReportAppend              bool
+	scanImageTarget                  string
+	scanImageNoRemote                bool
 )
 
 func newScanCommand() *cobra.Command {
@@ -211,8 +217,18 @@ func newScanCommand() *cobra.Command {
 		"Timeout for malicious package analysis")
 	cmd.Flags().StringVarP(&gitlabReportPath, "report-gitlab", "", "",
 		"Generate GitLab dependency scanning report to file")
+	cmd.Flags().StringVarP(&sqlite3ReportPath, "report-sqlite3", "", "",
+		"Generate SQLite3 database report to file")
+	cmd.Flags().BoolVarP(&sqlite3ReportOverwrite, "report-sqlite3-overwrite", "", false,
+		"Overwrite existing SQLite3 database report")
+	cmd.Flags().BoolVarP(&sqlite3ReportAppend, "report-sqlite3-append", "", false,
+		"Append to existing SQLite3 database report")
 	cmd.Flags().StringVarP(&malwareAnalysisMinimumConfidence, "malware-analysis-min-confidence", "", "HIGH",
 		"Minimum confidence level for malicious package analysis result to fail fast")
+	cmd.Flags().StringVarP(&scanImageTarget, "image", "", "",
+		"Image reference to run container image scanning (eg. node:latest)")
+	cmd.Flags().BoolVarP(&scanImageNoRemote, "image-no-remote", "", false,
+		"Disable container image pulling when not found locally")
 
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
@@ -380,13 +396,23 @@ func internalStartScan() error {
 			analytics.TrackCommandScanVSCodeExtScan()
 
 			// nolint:ineffassign,staticcheck
-			reader, err = readers.NewVSCodeExtReaderFromDefaultDistributions()
+			reader, err = readers.NewVSIXExtReaderFromDefaultDistributions()
 		} else {
 			analytics.TrackCommandScanVSCodeExtScan()
 
 			// nolint:ineffassign,staticcheck
-			reader, err = readers.NewVSCodeExtReader(vsxDirectories)
+			reader, err = readers.NewVSIXExtReader(vsxDirectories)
 		}
+	} else if len(scanImageTarget) != 0 {
+		analytics.TrackCommandImageScan()
+
+		readerConfig := readers.DefaultContainerImageReaderConfig()
+
+		if scanImageNoRemote {
+			readerConfig.RemoteImageFetch = false
+		}
+
+		reader, err = readers.NewContainerImageReader(scanImageTarget, readerConfig)
 	} else {
 		analytics.TrackCommandScanDirectoryScan()
 
@@ -622,6 +648,20 @@ func internalStartScan() error {
 		reporters = append(reporters, rp)
 	}
 
+	if !utils.IsEmptyString(sqlite3ReportPath) {
+		rp, err := reporter.NewSqlite3Reporter(reporter.Sqlite3ReporterConfig{
+			Path:      sqlite3ReportPath,
+			Tool:      toolMetadata,
+			Overwrite: sqlite3ReportOverwrite,
+			Append:    sqlite3ReportAppend,
+		})
+		if err != nil {
+			return fmt.Errorf("%w: Use --report-sqlite3-overwrite or --report-sqlite3-append overwrite or append", err)
+		}
+
+		reporters = append(reporters, rp)
+	}
+
 	// UI tracker (progress bar) for cloud report syncing
 	var syncReportTracker any
 
@@ -639,7 +679,7 @@ func internalStartScan() error {
 			ProjectVersion:         syncReportStream,
 			EnableMultiProjectSync: syncEnableMultiProject,
 			ClientConnection:       clientConn,
-		}, reporter.SyncReporterCallbacks{
+		}, reporter.DefaultSyncReporterEnvResolver(), reporter.SyncReporterCallbacks{
 			OnSyncStart: func() {
 				ui.PrintMsg("🌐 Syncing data to SafeDep Cloud...")
 			},
@@ -672,14 +712,17 @@ func internalStartScan() error {
 		if enrichUsingInsightsV2 {
 			analytics.TrackCommandScanInsightsV2()
 
-			// We will enforce auth for Insights v2 during the experimental period.
-			// Once we have an understanding on the usage and capacity, we will open
-			// up for community usage.
+			var client *grpc.ClientConn
+			var err error
+
+			// We have two endpoints for accessing the insights v2 service. The authenticated endpoints
+			// have higher rate limits and better latency guarantees
 			if auth.CommunityMode() {
-				return fmt.Errorf("access to Insights v2 requires an API key. For more details: https://docs.safedep.io/cloud/quickstart/")
+				client, err = auth.InsightsV2CommunityClientConnection("vet-insights-v2")
+			} else {
+				client, err = auth.InsightsV2ClientConnection("vet-insights-v2")
 			}
 
-			client, err := auth.InsightsV2ClientConnection("vet-insights-v2")
 			if err != nil {
 				return err
 			}

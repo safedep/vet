@@ -1,0 +1,13 @@
+<project>
+    <properties>
+        <mavenVersion>3.0</mavenVersion>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.12.2</version>
+        </dependency>
+    </dependencies>
+</project>

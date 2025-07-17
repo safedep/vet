@@ -76,7 +76,9 @@ func TestDirectoryReaderEnumPackages(t *testing.T) {
 			[]string{},
 			"java-multi",
 			2,
-			[]int{3, 1},
+			// for pom.xml we have 4 dependencies = 1 Direct + 3 Transitive Dependencies
+			// Since It's not a lockfile, these transitive dependencies are calculated at runtime
+			[]int{3, 4},
 			nil,
 			nil,
 		},
@@ -86,7 +88,9 @@ func TestDirectoryReaderEnumPackages(t *testing.T) {
 			[]string{},
 			"multi-with-invalid",
 			2,
-			[]int{1, 13},
+			// for pom.xml we have 4 dependencies = 1 Direct + 3 Transitive Dependencies
+			// Since It's not a lockfile, these transitive dependencies are calculated at runtime
+			[]int{4, 13},
 			nil,
 			nil,
 		},
@@ -96,7 +100,9 @@ func TestDirectoryReaderEnumPackages(t *testing.T) {
 			[]string{"requirements.txt"},
 			"multi-with-invalid",
 			1,
-			[]int{1},
+			// for pom.xml we have 4 dependencies = 1 Direct + 3 Transitive Dependencies
+			// Since It's not a lockfile, these transitive dependencies are calculated at runtime
+			[]int{4},
 			nil,
 			nil,
 		},
@@ -106,7 +112,9 @@ func TestDirectoryReaderEnumPackages(t *testing.T) {
 			[]string{},
 			"multi-with-invalid",
 			1,
-			[]int{1},
+			// for pom.xml we have 4 dependencies = 1 Direct + 3 Transitive Dependencies
+			// Since It's not a lockfile, these transitive dependencies are calculated at runtime
+			[]int{4},
 			errors.New("callback error"),
 			errors.New("callback error"),
 		},
