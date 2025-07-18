@@ -124,7 +124,7 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&baseDirectory, "directory", "D", wd,
 		"The directory to scan for package manifests")
 	cmd.Flags().StringArrayVarP(&scanExclude, "exclude", "", []string{},
-		"Name patterns to ignore while scanning a directory")
+		"Name patterns to ignore while scanning")
 	cmd.Flags().StringArrayVarP(&lockfiles, "lockfiles", "L", []string{},
 		"List of lockfiles to scan")
 	cmd.Flags().StringArrayVarP(&manifests, "manifests", "M", []string{},
@@ -351,7 +351,11 @@ func internalStartScan() error {
 		analytics.TrackCommandScanPackageManifestScan()
 
 		// nolint:ineffassign,staticcheck
-		reader, err = readers.NewLockfileReader(lockfiles, manifestType)
+		reader, err = readers.NewLockfileReader(readers.LockfileReaderConfig{
+			Lockfiles:  lockfiles,
+			LockfileAs: manifestType,
+			Exclusions: scanExclude,
+		})
 	} else if len(manifests) > 0 {
 		analytics.TrackCommandScanPackageManifestScan()
 
@@ -361,7 +365,11 @@ func internalStartScan() error {
 		}
 
 		// nolint:ineffassign,staticcheck
-		reader, err = readers.NewLockfileReader(manifests, manifestType)
+		reader, err = readers.NewLockfileReader(readers.LockfileReaderConfig{
+			Lockfiles:  manifests,
+			LockfileAs: manifestType,
+			Exclusions: scanExclude,
+		})
 	} else if len(githubRepoUrls) > 0 {
 		analytics.TrackCommandScanGitHubScan()
 
