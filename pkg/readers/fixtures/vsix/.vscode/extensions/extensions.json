@@ -1,0 +1,14 @@
+[
+  {
+    "identifier": {
+      "id": "ms-python.python",
+      "uuid": "f1f59ae4-9318-4f3c-a9b5-81b2eaa5f8a3"
+    },
+    "version": "2023.20.0",
+    "location": {
+      "path": "/home/user/.vscode/extensions/ms-python.python-2023.20.0",
+      "scheme": "file"
+    },
+    "relativeLocation": "ms-python.python-2023.20.0"
+  }
+]

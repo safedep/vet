@@ -1,0 +1,15 @@
+
+[
+  {
+    "identifier": {
+      "id": "rust-lang.rust",
+      "uuid": "3f899f2a-4d01-4718-ac18-4e5832cf5e6b"
+    },
+    "version": "0.7.9",
+    "location": {
+      "path": "/home/user/.windsurf/extensions/rust-lang.rust-0.7.9",
+      "scheme": "file"
+    },
+    "relativeLocation": "rust-lang.rust-0.7.9"
+  }
+]
