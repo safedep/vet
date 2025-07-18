@@ -3,6 +3,7 @@ package reporter
 import (
 	"context"
 	"errors"
+	"os"
 	"testing"
 
 	controltowerv1pb "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
@@ -141,6 +142,12 @@ func TestNewSyncReporterEnvironmentResolver(t *testing.T) {
 			name: "should return default values when GITHUB_ACTIONS is not set",
 			setupEnv: func(t *testing.T) {
 				// No environment setup needed
+				os.Unsetenv("GITHUB_ACTIONS")
+				os.Unsetenv("GITHUB_REPOSITORY")
+				os.Unsetenv("GITHUB_SERVER_URL")
+				os.Unsetenv("GITHUB_REF")
+				os.Unsetenv("GITHUB_SHA")
+				os.Unsetenv("GITHUB_EVENT_NAME")
 			},
 			expectedProjectSource: controltowerv1pb.Project_SOURCE_UNSPECIFIED,
 			expectedTrigger:       controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL,
