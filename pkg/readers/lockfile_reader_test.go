@@ -110,7 +110,11 @@ func TestLockfileReaderEnumManifests(t *testing.T) {
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
-			r, err := NewLockfileReader(test.lockfiles, test.lockfileAs)
+			r, err := NewLockfileReader(LockfileReaderConfig{
+				Lockfiles:  test.lockfiles,
+				LockfileAs: test.lockfileAs,
+				Exclusions: []string{},
+			})
 			assert.Nil(t, err)
 
 			manifestCount := 0
@@ -142,7 +146,12 @@ func TestLockfileReaderEnumManifests(t *testing.T) {
 func TestLockfileReaderDeduplication(t *testing.T) {
 	// Test specifically for GitHub issue #343 - duplicate packages with extras
 	t.Run("Deduplicates packages with extras syntax", func(t *testing.T) {
-		r, err := NewLockfileReader([]string{"./fixtures/duplicate-packages/requirements.txt"}, "")
+
+		r, err := NewLockfileReader(LockfileReaderConfig{
+			Lockfiles:  []string{"./fixtures/duplicate-packages/requirements.txt"},
+			LockfileAs: "",
+			Exclusions: []string{},
+		})
 		assert.Nil(t, err)
 
 		var packages []*models.Package
@@ -164,7 +173,7 @@ func TestLockfileReaderDeduplication(t *testing.T) {
 		assert.Contains(t, packageNames, "bleach")
 		assert.Equal(t, "3.1.2", packageNames["bleach"], "bleach should have explicit version 3.1.2")
 
-		// Verify requests has explicit version, not 0.0.0  
+		// Verify requests has explicit version, not 0.0.0
 		assert.Contains(t, packageNames, "requests")
 		assert.Equal(t, "2.25.1", packageNames["requests"], "requests should have explicit version 2.25.1")
 
