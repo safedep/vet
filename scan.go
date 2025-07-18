@@ -679,7 +679,7 @@ func internalStartScan() error {
 			ProjectVersion:         syncReportStream,
 			EnableMultiProjectSync: syncEnableMultiProject,
 			ClientConnection:       clientConn,
-		}, reporter.DefaultSyncReporterEnvResolver(), reporter.SyncReporterCallbacks{
+		}, reporter.NewSyncReporterEnvironmentResolver(), reporter.SyncReporterCallbacks{
 			OnSyncStart: func() {
 				ui.PrintMsg("🌐 Syncing data to SafeDep Cloud...")
 			},
