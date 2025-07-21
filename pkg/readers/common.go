@@ -1,6 +1,8 @@
 package readers
 
 import (
+	"path/filepath"
+
 	"github.com/bmatcuk/doublestar/v4"
 	"github.com/safedep/vet/pkg/common/logger"
 )
@@ -19,15 +21,30 @@ func newPathExclusionMatcher(exclusions []string) *exclusionMatcher {
 
 func (ex *exclusionMatcher) Match(term string) bool {
 	for _, exclusionPattern := range ex.Exclusions {
-		m, err := doublestar.Match(exclusionPattern, term)
-		if err != nil {
-			logger.Warnf("Invalid path pattern: %s: %v", exclusionPattern, err)
-			continue
-		}
-
-		if m {
+		// Try matching in current form first
+		if m, err := doublestar.Match(exclusionPattern, term); err == nil && m {
 			return true
 		}
+
+		// If term is relative and pattern is absolute, convert term to absolute
+		if !filepath.IsAbs(term) && filepath.IsAbs(exclusionPattern) {
+			if abs, err := filepath.Abs(term); err == nil {
+				if m, err := doublestar.Match(exclusionPattern, abs); err == nil && m {
+					return true
+				}
+			}
+		}
+
+		// If term is absolute and pattern is relative, convert pattern to absolute
+		if filepath.IsAbs(term) && !filepath.IsAbs(exclusionPattern) {
+			if abs, err := filepath.Abs(exclusionPattern); err == nil {
+				if m, err := doublestar.Match(abs, term); err == nil && m {
+					return true
+				}
+			}
+		}
+
+		logger.Debugf("No match for pattern '%s' against '%s'", exclusionPattern, term)
 	}
 
 	return false
