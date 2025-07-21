@@ -76,13 +76,13 @@ func TestExcludedPath(t *testing.T) {
 			shouldBeExcluded: true,
 		},
 		{
-			name:             "File characters missing",
+			name:             "matches wildcard with missing characters in filename",
 			path:             "pom.xml",
 			patterns:         []string{"p*.xml"},
 			shouldBeExcluded: true,
 		},
 		{
-			name:             "Subdirectory with characters missing match",
+			name:             "matches wildcard across nested subdirectories",
 			path:             "pkg/readers/fixtures/requirements.txt",
 			patterns:         []string{"pkg/readers/**/*.txt"},
 			shouldBeExcluded: true,
