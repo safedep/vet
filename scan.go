@@ -349,7 +349,6 @@ func internalStartScan() error {
 	// for now and figure out UX improvement later
 	if len(lockfiles) > 0 {
 		analytics.TrackCommandScanPackageManifestScan()
-		fmt.Printf("Exclusions asked: %v \n", scanExclude)
 
 		// nolint:ineffassign,staticcheck
 		reader, err = readers.NewLockfileReader(readers.LockfileReaderConfig{
@@ -862,7 +861,6 @@ func internalStartScan() error {
 			manifestsCount = manifestsCount + 1
 			ui.SetPinnedMessageOnProgressWriter(fmt.Sprintf("Scanning %d discovered manifest(s)",
 				manifestsCount))
-			fmt.Printf("Manifest: %s\n", manifest.Path)
 		},
 		OnStart: func() {
 			if !silentScan {
