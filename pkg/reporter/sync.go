@@ -3,6 +3,7 @@ package reporter
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 
@@ -186,6 +187,15 @@ type syncReporter struct {
 
 // Verify syncReporter implements the Reporter interface
 var _ Reporter = (*syncReporter)(nil)
+
+func NewSyncReporterEnvironmentResolver() SyncReporterEnvResolver {
+	// The `GITHUB_ACTIONS` environment variable is always set to true when GitHub Actions is running the workflow
+	if _, exists := os.LookupEnv("GITHUB_ACTIONS"); exists {
+		return GithubActionsSyncReporterResolver()
+	}
+
+	return DefaultSyncReporterEnvResolver()
+}
 
 // NewSyncReporter creates a new sync reporter.
 func NewSyncReporter(config SyncReporterConfig, envResolver SyncReporterEnvResolver, callbacks SyncReporterCallbacks) (*syncReporter, error) {
