@@ -68,15 +68,24 @@ var _ PackageManifestReader = (*vsixExtReader)(nil)
 
 func NewVSIXExtReader(distributions []string) (*vsixExtReader, error) {
 	customDistributions := make(map[string]distributionInfo)
-	ecosystem := models.EcosystemVSCodeExtensions
 
 	for i, distribution := range distributions {
+		// Check if the path matches any supported editor
+		foundMatch := false
+		ecosystem := models.EcosystemVSCodeExtensions
+
 		for _, eco := range editors {
 			if strings.Contains(distribution, eco.FilePath) {
 				ecosystem = eco.Ecosystem
+				foundMatch = true
 				break
 			}
 		}
+
+		if !foundMatch {
+			return nil, fmt.Errorf("unsupported editor path: %s", distribution)
+		}
+
 		customDistributions[fmt.Sprintf("custom-%d", i)] = distributionInfo{
 			FilePath:  distribution,
 			Ecosystem: ecosystem,

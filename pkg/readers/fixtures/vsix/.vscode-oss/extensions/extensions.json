@@ -1,0 +1,15 @@
+
+[
+  {
+    "identifier": {
+      "id": "redhat.java",
+      "uuid": "198a707e-28af-4e84-8610-6e2f628dd12d"
+    },
+    "version": "1.20.0",
+    "location": {
+      "path": "/home/user/.vscode-oss/extensions/redhat.java-1.20.0",
+      "scheme": "file"
+    },
+    "relativeLocation": "redhat.java-1.20.0"
+  }
+]
