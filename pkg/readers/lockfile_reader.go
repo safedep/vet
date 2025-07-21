@@ -49,8 +49,9 @@ func (p *lockfileReader) ApplicationName() (string, error) {
 func (p *lockfileReader) EnumManifests(handler func(*models.PackageManifest,
 	PackageReader) error,
 ) error {
+	exclusionMatcher := newPathExclusionMatcher(p.config.Exclusions)
 	for _, lf := range p.config.Lockfiles {
-		if p.excludedPath(lf) {
+		if exclusionMatcher.Match(lf) {
 			logger.Debugf("Ignoring excluded path: %s", lf)
 			continue
 		}
