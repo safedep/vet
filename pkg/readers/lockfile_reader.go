@@ -1,8 +1,6 @@
 package readers
 
 import (
-	"regexp"
-
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/parser"
@@ -20,7 +18,7 @@ type LockfileReaderConfig struct {
 	Lockfiles  []string
 	LockfileAs string
 
-	// Exclusions are regex patterns to ignore paths
+	// Exclusions are glob patterns to ignore paths
 	Exclusions []string
 }
 
@@ -112,20 +110,4 @@ func (p *lockfileReader) EnumManifests(handler func(*models.PackageManifest,
 	}
 
 	return nil
-}
-
-func (p *lockfileReader) excludedPath(path string) bool {
-	for _, pattern := range p.config.Exclusions {
-		m, err := regexp.MatchString(pattern, path)
-		if err != nil {
-			logger.Warnf("Invalid regex pattern: %s: %v", pattern, err)
-			continue
-		}
-
-		if m {
-			return true
-		}
-	}
-
-	return false
 }

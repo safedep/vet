@@ -87,6 +87,12 @@ func TestExcludedPath(t *testing.T) {
 			patterns:         []string{"pkg/readers/**/*.txt"},
 			shouldBeExcluded: true,
 		},
+		{
+			name:             "should exclude deeply nested file with recursive glob",
+			path:             "dir1/subdirA/subdirB/requirements.txt",
+			patterns:         []string{"**/requirements.txt"},
+			shouldBeExcluded: true,
+		},
 	}
 
 	for _, tc := range cases {
