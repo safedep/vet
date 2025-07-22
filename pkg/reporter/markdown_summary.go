@@ -44,12 +44,12 @@ type vetResultInternalModel struct {
 }
 
 type markdownSummaryPackageMalwareInfo struct {
-	ecosystem     string
-	name          string
-	version       string
-	is_malicious  bool
-	is_suspicious bool
-	referenceUrl  string
+	ecosystem    string
+	name         string
+	version      string
+	isMalicious  bool
+	isSuspicious bool
+	referenceURL string
 }
 
 type markdownSummaryMalwareInfo struct {
@@ -181,6 +181,11 @@ func (r *markdownSummaryReporter) buildMarkdownReport(builder *markdown.Markdown
 	err = r.addPolicyCheckSection(builder, internalModel)
 	if err != nil {
 		return fmt.Errorf("failed to add policy section: %w", err)
+	}
+
+	// Add note in the report some suspicious packages are found and human review is required.
+	if r.malwareInfo.suspiciousPackages > 0 {
+		builder.AddParagraph(fmt.Sprintf("\n%s %d packages are identified as suspicious. Human review is recommended.", markdown.EmojiWarning, r.malwareInfo.suspiciousPackages))
 	}
 
 	err = r.addThreatsSection(builder, internalModel)
@@ -547,12 +552,12 @@ func (m *markdownSummaryMalwareInfo) handlePackage(pkg *models.Package) error {
 		}
 
 		m.malwareInfo[pkg.Id()] = &markdownSummaryPackageMalwareInfo{
-			ecosystem:     pkg.GetControlTowerSpecEcosystem().String(),
-			name:          pkg.GetName(),
-			version:       pkg.GetVersion(),
-			is_malicious:  ma.IsMalware,
-			is_suspicious: ma.IsSuspicious,
-			referenceUrl:  malysis.ReportURL(ma.AnalysisId),
+			ecosystem:    pkg.GetControlTowerSpecEcosystem().String(),
+			name:         pkg.GetName(),
+			version:      pkg.GetVersion(),
+			isMalicious:  ma.IsMalware,
+			isSuspicious: ma.IsSuspicious,
+			referenceURL: malysis.ReportURL(ma.AnalysisId),
 		}
 	}
 
@@ -566,9 +571,9 @@ func (m *markdownSummaryMalwareInfo) renderMalwareInfoTable() (string, error) {
 
 	for _, info := range m.malwareInfo {
 		emoji := markdown.EmojiWhiteCheckMark
-		if info.is_malicious {
+		if info.isMalicious {
 			emoji = markdown.EmojiCrossMark
-		} else if info.is_suspicious {
+		} else if info.isSuspicious {
 			emoji = markdown.EmojiWarning
 		}
 
@@ -577,7 +582,7 @@ func (m *markdownSummaryMalwareInfo) renderMalwareInfoTable() (string, error) {
 			info.name,
 			info.version,
 			emoji,
-			fmt.Sprintf("[%s](%s)", markdown.EmojiLink, info.referenceUrl),
+			fmt.Sprintf("[%s](%s)", markdown.EmojiLink, info.referenceURL),
 		})
 	}
 
