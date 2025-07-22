@@ -24,7 +24,8 @@ type DirectoryReaderConfig struct {
 }
 
 type directoryReader struct {
-	config DirectoryReaderConfig
+	config           DirectoryReaderConfig
+	exclusionMatcher *exclusionMatcher
 }
 
 // NewDirectoryReader creates a [PackageManifestReader] that can scan a directory
@@ -33,8 +34,11 @@ type directoryReader struct {
 // returns an error. Exclusion strings are treated as glob patterns and applied
 // on the absolute file path discovered while talking the directory.
 func NewDirectoryReader(config DirectoryReaderConfig) (PackageManifestReader, error) {
+	ex := newPathExclusionMatcher(config.Exclusions)
+
 	return &directoryReader{
-		config: config,
+		config:           config,
+		exclusionMatcher: ex,
 	}, nil
 }
 
@@ -53,8 +57,6 @@ func (p *directoryReader) ApplicationName() (string, error) {
 func (p *directoryReader) EnumManifests(handler func(*models.PackageManifest,
 	PackageReader) error,
 ) error {
-	exclusionMatcher := newPathExclusionMatcher(p.config.Exclusions)
-
 	err := filepath.WalkDir(p.config.Path, func(path string, info os.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -70,7 +72,7 @@ func (p *directoryReader) EnumManifests(handler func(*models.PackageManifest,
 			return err
 		}
 
-		if exclusionMatcher.Match(path) {
+		if p.exclusionMatcher.Match(path) {
 			logger.Debugf("Ignoring excluded path: %s", path)
 			return filepath.SkipDir
 		}

@@ -11,7 +11,8 @@ const (
 )
 
 type lockfileReader struct {
-	config LockfileReaderConfig
+	config           LockfileReaderConfig
+	exclusionMatcher *exclusionMatcher
 }
 
 type LockfileReaderConfig struct {
@@ -27,8 +28,10 @@ type LockfileReaderConfig struct {
 // the parser auto-detects the format based on file name. This reader fails and
 // returns an error on first error encountered while parsing lockfiles
 func NewLockfileReader(config LockfileReaderConfig) (PackageManifestReader, error) {
+	ex := newPathExclusionMatcher(config.Exclusions)
 	return &lockfileReader{
-		config: config,
+		config:           config,
+		exclusionMatcher: ex,
 	}, nil
 }
 
@@ -47,9 +50,8 @@ func (p *lockfileReader) ApplicationName() (string, error) {
 func (p *lockfileReader) EnumManifests(handler func(*models.PackageManifest,
 	PackageReader) error,
 ) error {
-	exclusionMatcher := newPathExclusionMatcher(p.config.Exclusions)
 	for _, lf := range p.config.Lockfiles {
-		if exclusionMatcher.Match(lf) {
+		if p.exclusionMatcher.Match(lf) {
 			logger.Debugf("Ignoring excluded path: %s", lf)
 			continue
 		}
