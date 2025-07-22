@@ -1,6 +1,7 @@
 package readers
 
 import (
+	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/parser"
 )
@@ -10,18 +11,24 @@ const (
 )
 
 type lockfileReader struct {
-	lockfiles  []string
-	lockfileAs string
+	config LockfileReaderConfig
+}
+
+type LockfileReaderConfig struct {
+	Lockfiles  []string
+	LockfileAs string
+
+	// Exclusions are glob patterns to ignore paths
+	Exclusions []string
 }
 
 // NewLockfileReader creates a [PackageManifestReader] that can be used to read
 // one or more `lockfiles` interpreted as `lockfileAs`. When `lockfileAs` is empty
 // the parser auto-detects the format based on file name. This reader fails and
 // returns an error on first error encountered while parsing lockfiles
-func NewLockfileReader(lockfiles []string, lockfileAs string) (PackageManifestReader, error) {
+func NewLockfileReader(config LockfileReaderConfig) (PackageManifestReader, error) {
 	return &lockfileReader{
-		lockfiles:  lockfiles,
-		lockfileAs: lockfileAs,
+		config: config,
 	}, nil
 }
 
@@ -40,8 +47,14 @@ func (p *lockfileReader) ApplicationName() (string, error) {
 func (p *lockfileReader) EnumManifests(handler func(*models.PackageManifest,
 	PackageReader) error,
 ) error {
-	for _, lf := range p.lockfiles {
-		rf, rt, err := parser.ResolveParseTarget(lf, p.lockfileAs,
+	exclusionMatcher := newPathExclusionMatcher(p.config.Exclusions)
+	for _, lf := range p.config.Lockfiles {
+		if exclusionMatcher.Match(lf) {
+			logger.Debugf("Ignoring excluded path: %s", lf)
+			continue
+		}
+
+		rf, rt, err := parser.ResolveParseTarget(lf, p.config.LockfileAs,
 			[]parser.TargetScopeType{parser.TargetScopeAll})
 		if err != nil {
 			return err

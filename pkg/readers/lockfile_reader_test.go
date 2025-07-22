@@ -15,6 +15,7 @@ func TestLockfileReaderEnumManifests(t *testing.T) {
 		// Input
 		lockfiles  []string
 		lockfileAs string
+		exclusions []string
 
 		// Output
 		cbRet error
@@ -28,6 +29,7 @@ func TestLockfileReaderEnumManifests(t *testing.T) {
 			"Single lockfile parse",
 			[]string{"./fixtures/java/gradle.lockfile"},
 			"", // Auto detect from name
+			[]string{},
 			nil,
 			nil,
 			1,
@@ -40,6 +42,7 @@ func TestLockfileReaderEnumManifests(t *testing.T) {
 				"./fixtures/multi-with-invalid/requirements.txt",
 			},
 			"", // Auto detect from name
+			[]string{},
 			nil,
 			nil,
 			2,
@@ -49,6 +52,7 @@ func TestLockfileReaderEnumManifests(t *testing.T) {
 			"Lockfile parse with non_standard name",
 			[]string{"./fixtures/custom-lockfiles/1-gradle.txt"},
 			"gradle.lockfile",
+			[]string{},
 			nil,
 			nil,
 			1,
@@ -62,10 +66,24 @@ func TestLockfileReaderEnumManifests(t *testing.T) {
 				"./fixtures/java/gradle.lockfile",
 			},
 			"", // Auto detect from name
+			[]string{},
 			nil,
 			errors.New("invalid character"),
 			0,
 			[]int{13},
+		},
+		{
+			"Multiple lockfile parse with exclusion",
+			[]string{
+				"./fixtures/java/gradle.lockfile",
+				"./fixtures/multi-with-invalid/requirements.txt",
+			},
+			"", // Auto detect from name
+			[]string{"./fixtures/multi-with-invalid/requirements.txt"},
+			nil,
+			nil,
+			1,
+			[]int{3},
 		},
 		{
 			"Callback returns an error",
@@ -74,6 +92,7 @@ func TestLockfileReaderEnumManifests(t *testing.T) {
 				"./fixtures/java/gradle.lockfile",
 			},
 			"", // Auto detect from name
+			[]string{},
 			errors.New("callback error"),
 			errors.New("callback error"),
 			1,
@@ -83,6 +102,7 @@ func TestLockfileReaderEnumManifests(t *testing.T) {
 			"Lockfile has non_standard name and no hint",
 			[]string{"./a.txt"},
 			"",
+			[]string{},
 			nil,
 			errors.New("no parser found"),
 			0,
@@ -92,6 +112,7 @@ func TestLockfileReaderEnumManifests(t *testing.T) {
 			"Lockfile does not exists",
 			[]string{"./a.txt"},
 			"gradle.lockfile",
+			[]string{},
 			nil,
 			errors.New("no such file or directory"),
 			0,
@@ -101,6 +122,7 @@ func TestLockfileReaderEnumManifests(t *testing.T) {
 			"Duplicate packages with extras (GitHub issue #343)",
 			[]string{"./fixtures/duplicate-packages/requirements.txt"},
 			"",
+			[]string{},
 			nil,
 			nil,
 			1,
@@ -110,7 +132,11 @@ func TestLockfileReaderEnumManifests(t *testing.T) {
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
-			r, err := NewLockfileReader(test.lockfiles, test.lockfileAs)
+			r, err := NewLockfileReader(LockfileReaderConfig{
+				Lockfiles:  test.lockfiles,
+				LockfileAs: test.lockfileAs,
+				Exclusions: test.exclusions,
+			})
 			assert.Nil(t, err)
 
 			manifestCount := 0
@@ -142,7 +168,12 @@ func TestLockfileReaderEnumManifests(t *testing.T) {
 func TestLockfileReaderDeduplication(t *testing.T) {
 	// Test specifically for GitHub issue #343 - duplicate packages with extras
 	t.Run("Deduplicates packages with extras syntax", func(t *testing.T) {
-		r, err := NewLockfileReader([]string{"./fixtures/duplicate-packages/requirements.txt"}, "")
+
+		r, err := NewLockfileReader(LockfileReaderConfig{
+			Lockfiles:  []string{"./fixtures/duplicate-packages/requirements.txt"},
+			LockfileAs: "",
+			Exclusions: []string{},
+		})
 		assert.Nil(t, err)
 
 		var packages []*models.Package
@@ -164,7 +195,7 @@ func TestLockfileReaderDeduplication(t *testing.T) {
 		assert.Contains(t, packageNames, "bleach")
 		assert.Equal(t, "3.1.2", packageNames["bleach"], "bleach should have explicit version 3.1.2")
 
-		// Verify requests has explicit version, not 0.0.0  
+		// Verify requests has explicit version, not 0.0.0
 		assert.Contains(t, packageNames, "requests")
 		assert.Equal(t, "2.25.1", packageNames["requests"], "requests should have explicit version 2.25.1")
 

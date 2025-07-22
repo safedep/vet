@@ -3,7 +3,6 @@ package readers
 import (
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/safedep/vet/pkg/common/logger"
@@ -15,7 +14,7 @@ type DirectoryReaderConfig struct {
 	// Path to enumerate
 	Path string
 
-	// Exclusions are regex patterns to ignore paths
+	// Exclusions are glob patterns to ignore paths
 	Exclusions []string
 
 	// Explicitly walk for the given manifest type. If this is empty
@@ -31,7 +30,7 @@ type directoryReader struct {
 // NewDirectoryReader creates a [PackageManifestReader] that can scan a directory
 // for package manifests while honoring exclusion rules. This reader will log
 // and ignore parser failure. But it will fail in case the manifest handler
-// returns an error. Exclusion strings are treated as regex patterns and applied
+// returns an error. Exclusion strings are treated as glob patterns and applied
 // on the absolute file path discovered while talking the directory.
 func NewDirectoryReader(config DirectoryReaderConfig) (PackageManifestReader, error) {
 	return &directoryReader{
@@ -54,6 +53,8 @@ func (p *directoryReader) ApplicationName() (string, error) {
 func (p *directoryReader) EnumManifests(handler func(*models.PackageManifest,
 	PackageReader) error,
 ) error {
+	exclusionMatcher := newPathExclusionMatcher(p.config.Exclusions)
+
 	err := filepath.WalkDir(p.config.Path, func(path string, info os.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -69,7 +70,7 @@ func (p *directoryReader) EnumManifests(handler func(*models.PackageManifest,
 			return err
 		}
 
-		if p.excludedPath(path) {
+		if exclusionMatcher.Match(path) {
 			logger.Debugf("Ignoring excluded path: %s", path)
 			return filepath.SkipDir
 		}
@@ -102,23 +103,6 @@ func (p *directoryReader) EnumManifests(handler func(*models.PackageManifest,
 	})
 
 	return err
-}
-
-// TODO: Build a precompiled cache of regex patterns
-func (p *directoryReader) excludedPath(path string) bool {
-	for _, pattern := range p.config.Exclusions {
-		m, err := regexp.MatchString(pattern, path)
-		if err != nil {
-			logger.Warnf("Invalid regex pattern: %s: %v", pattern, err)
-			continue
-		}
-
-		if m {
-			return true
-		}
-	}
-
-	return false
 }
 
 func (p *directoryReader) ignorableDirectory(name string) bool {
