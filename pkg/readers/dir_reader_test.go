@@ -97,7 +97,7 @@ func TestDirectoryReaderEnumPackages(t *testing.T) {
 		{
 			"Directory enumeration with exclusion patterns",
 			"./fixtures/multi-with-invalid",
-			[]string{"requirements.txt"},
+			[]string{"**/requirements.txt"},
 			"multi-with-invalid",
 			1,
 			// for pom.xml we have 4 dependencies = 1 Direct + 3 Transitive Dependencies
@@ -192,26 +192,14 @@ func TestDirectoryReaderExcludedPath(t *testing.T) {
 			"not.json",
 		},
 		{
-			"Regular Expression Match 1",
-			[]string{"^f[a-z]+.json$"},
-			"file.json",
-			"file.txt",
+			"match json in specific recursive subdirectory",
+			[]string{"docs/a/**/*.json"},
+			"docs/a/sample.json",
+			"docs/b/sample.json",
 		},
 		{
-			"Regular Expression Match 2",
-			[]string{"^f[a-z]+.json$"},
-			"file.json",
-			"afile.json",
-		},
-		{
-			"Regular Expression Match 3",
-			[]string{"^f[a-z]+.json$"},
-			"file.json",
-			"file.jsons",
-		},
-		{
-			"Subdirectory Match",
-			[]string{"docs\\/a\\/.*\\.json"},
+			"match full path json in specific recursive subdirectory",
+			[]string{"**/docs/a/**/*.json"},
 			"/a/b/docs/a/sample.json",
 			"/a/b/docs/b/sample.json",
 		},
@@ -219,17 +207,13 @@ func TestDirectoryReaderExcludedPath(t *testing.T) {
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
-			r, err := NewDirectoryReader(DirectoryReaderConfig{
-				Path:       "test-path",
-				Exclusions: test.patterns,
-			})
-			assert.Nil(t, err)
+			m := newPathExclusionMatcher(test.patterns)
 
 			var ret bool
-			ret = r.(*directoryReader).excludedPath(test.matchInput)
+			ret = m.Match(test.matchInput)
 			assert.True(t, ret)
 
-			ret = r.(*directoryReader).excludedPath(test.noMatchInput)
+			ret = m.Match(test.noMatchInput)
 			assert.False(t, ret)
 		})
 	}
