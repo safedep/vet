@@ -10,46 +10,48 @@ import (
 
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
-	"google.golang.org/protobuf/encoding/protojson"
 	"github.com/google/cel-go/cel"
 	"github.com/google/cel-go/common/types"
 	"github.com/google/cel-go/common/types/ref"
 	"github.com/google/cel-go/common/types/traits"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/github/go-spdx/v2/spdxexp"
 )
 
 const (
 	// Policy Input v2 variable names for CEL expressions
-	policyInputVarRoot       = "_"
-	policyInputVarPackage    = "package"
-	policyInputVarProject    = "project"
-	policyInputVarManifest   = "manifest"
+	policyInputVarRoot     = "_"
+	policyInputVarPackage  = "package"
+	policyInputVarProject  = "project"
+	policyInputVarManifest = "manifest"
 
 	// Soft limit to start with
-	filterEvalMaxFilters = 50
+	filterEvalMaxRules = 150
 )
 
 var errMaxFilter = errors.New("max filter limit has reached")
 
-// EvaluatorV2 interface for the new policy system using Insights v2 data model
-type EvaluatorV2 interface {
+// Evaluator interface for the new policy system using Insights v2 data model
+type Evaluator interface {
 	AddRule(rule *policyv1.Rule) error
 	AddPolicy(policy *policyv1.Policy) error
 	EvalPackage(pkg *models.Package) (*FilterEvaluationResult, error)
 }
 
-type filterEvaluatorV2 struct {
+type filterEvaluator struct {
 	name        string
 	env         *cel.Env
 	programs    []*FilterProgram
 	ignoreError bool
 }
 
-// NewEvaluatorV2 creates a new CEL evaluator for the policy system v2
-func NewEvaluatorV2(name string, ignoreError bool) (EvaluatorV2, error) {
+var _ Evaluator = (*filterEvaluator)(nil)
+
+// NewEvaluator creates a new CEL evaluator for the policy system v2
+func NewEvaluator(name string, ignoreError bool) (*filterEvaluator, error) {
 	env, err := cel.NewEnv(
 		cel.Variable(policyInputVarRoot, cel.DynType),
 		cel.Variable(policyInputVarPackage, cel.DynType),
@@ -63,7 +65,7 @@ func NewEvaluatorV2(name string, ignoreError bool) (EvaluatorV2, error) {
 		return nil, err
 	}
 
-	return &filterEvaluatorV2{
+	return &filterEvaluator{
 		name:        name,
 		env:         env,
 		programs:    []*FilterProgram{},
@@ -71,8 +73,8 @@ func NewEvaluatorV2(name string, ignoreError bool) (EvaluatorV2, error) {
 	}, nil
 }
 
-func (f *filterEvaluatorV2) AddRule(rule *policyv1.Rule) error {
-	if len(f.programs) >= filterEvalMaxFilters {
+func (f *filterEvaluator) AddRule(rule *policyv1.Rule) error {
+	if len(f.programs) >= filterEvalMaxRules {
 		return errMaxFilter
 	}
 
@@ -94,16 +96,17 @@ func (f *filterEvaluatorV2) AddRule(rule *policyv1.Rule) error {
 	return nil
 }
 
-func (f *filterEvaluatorV2) AddPolicy(policy *policyv1.Policy) error {
+func (f *filterEvaluator) AddPolicy(policy *policyv1.Policy) error {
 	for _, rule := range policy.GetRules() {
 		if err := f.AddRule(rule); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
-func (f *filterEvaluatorV2) EvalPackage(pkg *models.Package) (*FilterEvaluationResult, error) {
+func (f *filterEvaluator) EvalPackage(pkg *models.Package) (*FilterEvaluationResult, error) {
 	policyInput, err := f.buildPolicyInput(pkg)
 	if err != nil {
 		return nil, err
@@ -148,7 +151,7 @@ func (f *filterEvaluatorV2) EvalPackage(pkg *models.Package) (*FilterEvaluationR
 
 // TODO: Fix this JSON round-trip problem by directly configuring CEL env to
 // work with Protobuf messages
-func (f *filterEvaluatorV2) serializePolicyInput(pi *policyv1.Input) (map[string]interface{}, error) {
+func (f *filterEvaluator) serializePolicyInput(pi *policyv1.Input) (map[string]interface{}, error) {
 	var ret map[string]interface{}
 
 	data, err := protojson.Marshal(pi)
@@ -166,7 +169,7 @@ func (f *filterEvaluatorV2) serializePolicyInput(pi *policyv1.Input) (map[string
 	return ret, nil
 }
 
-func (f *filterEvaluatorV2) buildPolicyInput(pkg *models.Package) (*policyv1.Input, error) {
+func (f *filterEvaluator) buildPolicyInput(pkg *models.Package) (*policyv1.Input, error) {
 	// Check if we have insights v2 data
 	if pkg.InsightsV2 == nil {
 		return nil, fmt.Errorf("package does not have insights v2 data required for policy evaluation")
@@ -222,6 +225,8 @@ func (f *filterEvaluatorV2) buildPolicyInput(pkg *models.Package) (*policyv1.Inp
 
 		vulnerabilities = append(vulnerabilities, policyVuln)
 	}
+
+	// Add vulnerabilities to policy input
 	policyInput.Package.Vulnerabilities = vulnerabilities
 
 	// Add package attributes
