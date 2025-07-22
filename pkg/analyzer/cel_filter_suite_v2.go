@@ -15,7 +15,7 @@ import (
 )
 
 type celFilterSuiteV2Analyzer struct {
-	evaluator   filterv2.EvaluatorV2
+	evaluator   filterv2.Evaluator
 	failOnMatch bool
 
 	packages map[string]*models.Package
@@ -23,7 +23,7 @@ type celFilterSuiteV2Analyzer struct {
 }
 
 func NewCelFilterSuiteV2Analyzer(filePath string, failOnMatch bool) (Analyzer, error) {
-	evaluator, err := filterv2.NewEvaluatorV2("filter-suite-v2", true)
+	evaluator, err := filterv2.NewEvaluator("filter-suite-v2", true)
 	if err != nil {
 		return nil, err
 	}
