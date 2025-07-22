@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jedib0t/go-pretty/v6/table"
 	policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/safedep/vet/gen/filtersuite"
 	"github.com/safedep/vet/pkg/analyzer/filterv2"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -14,7 +14,7 @@ import (
 )
 
 type celFilterV2Analyzer struct {
-	evaluator   filterv2.EvaluatorV2
+	evaluator   filterv2.Evaluator
 	failOnMatch bool
 
 	packages map[string]*models.Package
@@ -22,7 +22,7 @@ type celFilterV2Analyzer struct {
 }
 
 func NewCelFilterV2Analyzer(fl string, failOnMatch bool) (Analyzer, error) {
-	evaluator, err := filterv2.NewEvaluatorV2("single-filter-v2", true)
+	evaluator, err := filterv2.NewEvaluator("single-filter-v2", true)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (f *celFilterV2Analyzer) Analyze(manifest *models.PackageManifest,
 				Name:  rule.GetName(),
 				Value: rule.GetValue(),
 			}
-			
+
 			if err := handler(&AnalyzerEvent{
 				Source:   f.Name(),
 				Type:     ET_FilterExpressionMatched,
