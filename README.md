@@ -21,6 +21,7 @@
 [![CodeQL](https://github.com/safedep/vet/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/safedep/vet/actions/workflows/codeql.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/safedep/vet.svg)](https://pkg.go.dev/github.com/safedep/vet)
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/safedep/vet)
 </div>
 
 ---
