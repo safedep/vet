@@ -5,9 +5,9 @@ import (
 	"errors"
 	"testing"
 
-	mcpgo "github.com/mark3labs/mcp-go/mcp"
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	vulnerabilityv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/vulnerability/v1"
+	mcpgo "github.com/mark3labs/mcp-go/mcp"
 	"github.com/safedep/vet/mcp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -293,6 +293,19 @@ func TestPackageInsightsTool_ExecuteGetPackageLicenseInfo(t *testing.T) {
 			},
 			expectedContains: "",
 			expectedError:    "failed to get package license info",
+		},
+
+		{
+			name: "driver returns nil license info",
+			requestArgs: map[string]interface{}{
+				"purl": "pkg:npm/express@4.17.1",
+			},
+			setupDriver: func(driver *MockDriver) {
+				driver.On("GetPackageVersionLicenseInfo", mock.Anything, mock.AnythingOfType("*packagev1.PackageVersion")).
+					Return(nil, nil)
+			},
+			expectedContains: "",
+			expectedError:    "no license info returned for package",
 		},
 	}
 
