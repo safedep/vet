@@ -129,6 +129,10 @@ func (t *packageInsightsTool) executeGetPackageLicenseInfo(ctx context.Context,
 		return nil, fmt.Errorf("failed to get package license info: %w", err)
 	}
 
+	if licenseInfo == nil {
+		return nil, fmt.Errorf("no license info returned for package: %s", purl)
+	}
+
 	logger.Debugf("Found %d license info for package: %s", len(licenseInfo.Licenses), purl)
 
 	licenseInfoJson, err := serializeForLlm(licenseInfo)
