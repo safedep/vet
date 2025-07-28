@@ -11,9 +11,11 @@ import (
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
 	"github.com/google/cel-go/cel"
+	"github.com/google/cel-go/common/decls"
 	"github.com/google/cel-go/common/types"
 	"github.com/google/cel-go/common/types/ref"
 	"github.com/google/cel-go/common/types/traits"
+	"github.com/google/cel-go/ext"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -53,16 +55,30 @@ var _ Evaluator = (*filterEvaluator)(nil)
 // NewEvaluator creates a new CEL evaluator for the policy system v2
 func NewEvaluator(name string, ignoreError bool) (*filterEvaluator, error) {
 	env, err := cel.NewEnv(
-		cel.Variable(policyInputVarRoot, cel.DynType),
-		cel.Variable(policyInputVarPackage, cel.DynType),
-		cel.Variable(policyInputVarProject, cel.DynType),
-		cel.Variable(policyInputVarManifest, cel.DynType),
+		cel.Macros(cel.StandardMacros...),
+		cel.EnableMacroCallTracking(),
+		ext.Strings(),
+		ext.Encoders(),
+		ext.Math(),
+		ext.Lists(),
+		ext.Sets(),
+		ext.Protos(),
+
+		// Input var declarations
+		cel.VariableDecls(
+			decls.NewVariableWithDoc(policyInputVarRoot, types.DynType, "root object"),
+			decls.NewVariableWithDoc(policyInputVarPackage, types.DynType, "package object"),
+			decls.NewVariableWithDoc(policyInputVarProject, types.DynType, "project object"),
+			decls.NewVariableWithDoc(policyInputVarManifest, types.DynType, "manifest object"),
+		),
+
+		// Custom function declarations
 		cel.Function("contains_license",
 			cel.MemberOverload("list_string_contains_license_string",
 				[]*cel.Type{cel.ListType(cel.StringType), cel.StringType}, cel.BoolType,
 				cel.BinaryBinding(celFuncLicenseExpressionMatch()))))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create CEL environment: %w", err)
 	}
 
 	return &filterEvaluator{
