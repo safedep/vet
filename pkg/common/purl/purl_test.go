@@ -83,7 +83,7 @@ func TestParsePackageUrl(t *testing.T) {
 			nil,
 		},
 		{
-			"Parse openvsx Extensions PURL with empty verison",
+			"Parse openvsx Extensions PURL with empty version",
 			"pkg:openvsx/streetsidesoftware.code-spell-checker",
 			models.EcosystemOpenVSXExtensions,
 			"streetsidesoftware.code-spell-checker",
