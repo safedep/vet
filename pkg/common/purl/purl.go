@@ -77,6 +77,10 @@ func PurlTypeToEcosystem(purlType string) (lockfile.Ecosystem, error) {
 		"rubygems":              lockfile.BundlerEcosystem,
 		packageurl.TypeGithub:   models.EcosystemGitHubActions,
 		"actions":               models.EcosystemGitHubActions,
+		"vscode":                models.EcosystemVSCodeExtensions,
+		"vsx":                   models.EcosystemVSCodeExtensions,
+		"vsix":                  models.EcosystemVSCodeExtensions,
+		"openvsx":               models.EcosystemOpenVSXExtensions,
 	}
 
 	ecosystem, ok := knownTypes[purlType]

@@ -47,7 +47,7 @@ require (
 	github.com/pandatix/go-cvss v0.6.2
 	github.com/posthog/posthog-go v1.5.11
 	github.com/safedep/code v0.0.0-20250619080228-57f5b7b5e58c
-	github.com/safedep/dry v0.0.0-20250618113059-9f8b677e299c
+	github.com/safedep/dry v0.0.0-20250716064316-9afa8962ced6
 	github.com/sirupsen/logrus v1.9.3
 	github.com/smacker/go-tree-sitter v0.0.0-20240827094217-dd81d9e9be82
 	github.com/spdx/tools-golang v0.5.5
