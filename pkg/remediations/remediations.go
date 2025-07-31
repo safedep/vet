@@ -40,6 +40,7 @@ func (r *staticRemediationGenerator) vulnerabilityRemediationGenerator(pkg *mode
 	insights := utils.SafelyGetValue(pkg.Insights)
 	currentVersion := utils.SafelyGetValue(insights.PackageCurrentVersion)
 
+	// Only create upgrade advice if we have a valid target version
 	if !utils.IsEmptyString(currentVersion) && (pkg.Version != currentVersion) {
 		return &jsonreportspec.RemediationAdvice{
 			Type:                 jsonreportspec.RemediationAdviceType_UpgradePackage,
@@ -51,7 +52,7 @@ func (r *staticRemediationGenerator) vulnerabilityRemediationGenerator(pkg *mode
 	return nil, fmt.Errorf("target version not available for %s", pkg.ShortName())
 }
 
-func (r *staticRemediationGenerator) lowPopularityRemediationGenerator(pkg *models.Package) (*jsonreportspec.RemediationAdvice, error) {
+func (r *staticRemediationGenerator) lowPopularityRemediationGenerator(_ *models.Package) (*jsonreportspec.RemediationAdvice, error) {
 	return &jsonreportspec.RemediationAdvice{
 		Type: jsonreportspec.RemediationAdviceType_AlternatePopularPackage,
 	}, nil

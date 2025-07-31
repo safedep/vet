@@ -3,8 +3,10 @@ package reporter
 import (
 	"context"
 	"errors"
+	"os"
 	"testing"
 
+	controltowerv1pb "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
 	malysisv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	vulnerabilityv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/vulnerability/v1"
@@ -108,6 +110,77 @@ func mockDependencyGraph(pkg *models.Package) {
 
 	// Set the dependency graph in the manifest
 	pkg.Manifest.DependencyGraph = dg
+}
+
+func TestNewSyncReporterEnvironmentResolver(t *testing.T) {
+	tests := []struct {
+		name                  string
+		setupEnv              func(t *testing.T)
+		expectedProjectSource controltowerv1pb.Project_Source
+		expectedProjectUrl    string
+		expectedTrigger       controltowerv1.ToolTrigger
+		expectedGitRef        string
+		expectedGitSha        string
+	}{
+		{
+			name: "should return GitHub Actions values when GITHUB_ACTIONS is set",
+			setupEnv: func(t *testing.T) {
+				t.Setenv("GITHUB_ACTIONS", "true")
+				t.Setenv("GITHUB_SERVER_URL", "https://github.com")
+				t.Setenv("GITHUB_REPOSITORY", "safedep/vet")
+				t.Setenv("GITHUB_EVENT_NAME", "push")
+				t.Setenv("GITHUB_REF", "refs/heads/main")
+				t.Setenv("GITHUB_SHA", "abc123")
+			},
+			expectedProjectSource: controltowerv1pb.Project_SOURCE_GITHUB,
+			expectedTrigger:       controltowerv1.ToolTrigger_TOOL_TRIGGER_PUSH,
+			expectedProjectUrl:    "https://github.com/safedep/vet",
+			expectedGitRef:        "refs/heads/main",
+			expectedGitSha:        "abc123",
+		},
+		{
+			name: "should return default values when GITHUB_ACTIONS is not set",
+			setupEnv: func(t *testing.T) {
+				// No environment setup needed
+				os.Unsetenv("GITHUB_ACTIONS")
+				os.Unsetenv("GITHUB_REPOSITORY")
+				os.Unsetenv("GITHUB_SERVER_URL")
+				os.Unsetenv("GITHUB_REF")
+				os.Unsetenv("GITHUB_SHA")
+				os.Unsetenv("GITHUB_EVENT_NAME")
+			},
+			expectedProjectSource: controltowerv1pb.Project_SOURCE_UNSPECIFIED,
+			expectedTrigger:       controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL,
+			expectedProjectUrl:    "",
+			expectedGitRef:        "",
+			expectedGitSha:        "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Setup test environment
+			tt.setupEnv(t)
+
+			// Get the resolver
+			resolver := NewSyncReporterEnvironmentResolver()
+
+			source := resolver.GetProjectSource()
+			assert.Equal(t, tt.expectedProjectSource, source, "unexpected project source")
+
+			url := resolver.GetProjectURL()
+			assert.Equal(t, tt.expectedProjectUrl, url, "unexpected project URL")
+
+			trigger := resolver.Trigger()
+			assert.Equal(t, tt.expectedTrigger, trigger, "unexpected trigger")
+
+			gitRef := resolver.GitRef()
+			assert.Equal(t, tt.expectedGitRef, gitRef, "unexpected git ref")
+
+			gitSha := resolver.GitSha()
+			assert.Equal(t, tt.expectedGitSha, gitSha, "unexpected git sha")
+		})
+	}
 }
 
 func TestSyncPackage(t *testing.T) {
@@ -290,7 +363,7 @@ func TestSyncPackage(t *testing.T) {
 				sessions: &syncSessionPool{
 					syncSessions: map[string]syncSession{
 						tt.pkg.Manifest.Path: {
-							sessionId:         tt.sessionID,
+							sessionID:         tt.sessionID,
 							toolServiceClient: mockClient,
 						},
 					},
@@ -417,7 +490,7 @@ func TestSyncSessionPoolForEach(t *testing.T) {
 
 	err := pool.forEach(func(key string, session *syncSession) error {
 		processedKeys[key] = true
-		processedSessions[session.sessionId] = true
+		processedSessions[session.sessionID] = true
 		return nil
 	})
 
@@ -545,7 +618,7 @@ func TestSyncEvent(t *testing.T) {
 				sessions: &syncSessionPool{
 					syncSessions: map[string]syncSession{
 						tt.event.Package.Manifest.Path: {
-							sessionId:         tt.sessionID,
+							sessionID:         tt.sessionID,
 							toolServiceClient: mockClient,
 						},
 					},
@@ -568,6 +641,110 @@ func TestSyncEvent(t *testing.T) {
 
 			// Verify all expectations
 			mockClient.AssertExpectations(t)
+		})
+	}
+}
+
+type testEnvResolver struct {
+	projectSource controltowerv1pb.Project_Source
+	projectURL    string
+	trigger       controltowerv1.ToolTrigger
+	gitRef        string
+	gitSha        string
+}
+
+func (r *testEnvResolver) GetProjectSource() controltowerv1pb.Project_Source {
+	return r.projectSource
+}
+
+func (r *testEnvResolver) GetProjectURL() string {
+	return r.projectURL
+}
+
+func (r *testEnvResolver) Trigger() controltowerv1.ToolTrigger {
+	return r.trigger
+}
+
+func (r *testEnvResolver) GitRef() string {
+	return r.gitRef
+}
+
+func (r *testEnvResolver) GitSha() string {
+	return r.gitSha
+}
+
+func TestCreateToolSessionRequestForProjectVersion(t *testing.T) {
+	cases := []struct {
+		name        string
+		envResolver SyncReporterEnvResolver
+		config      *SyncReporterConfig
+		assertFn    func(t *testing.T, request *controltowerv1.CreateToolSessionRequest)
+	}{
+		{
+			name: "default",
+			config: &SyncReporterConfig{
+				Tool: ToolMetadata{
+					Name:    "test-tool",
+					Version: "1.0.0",
+				},
+				ProjectName:    "test-project",
+				ProjectVersion: "1.0.0",
+			},
+			envResolver: DefaultSyncReporterEnvResolver(),
+			assertFn: func(t *testing.T, request *controltowerv1.CreateToolSessionRequest) {
+				assert.Equal(t, "test-tool", request.ToolName)
+				assert.Equal(t, "1.0.0", request.ToolVersion)
+				assert.Equal(t, "test-project", request.ProjectName)
+				assert.Equal(t, "1.0.0", *request.ProjectVersion)
+				assert.Equal(t, packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_UNSPECIFIED, *request.ProjectSource)
+				assert.Equal(t, controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL, *request.Trigger)
+				assert.Nil(t, request.OriginProjectSource)
+				assert.Nil(t, request.OriginProjectUrl)
+				assert.Nil(t, request.GitRef)
+				assert.Nil(t, request.GitSha)
+			},
+		},
+		{
+			name: "with resolved attributes",
+			config: &SyncReporterConfig{
+				Tool: ToolMetadata{
+					Name:    "test-tool",
+					Version: "1.0.0",
+				},
+				ProjectName:    "test-project",
+				ProjectVersion: "1.0.0",
+			},
+			envResolver: &testEnvResolver{
+				projectSource: controltowerv1pb.Project_SOURCE_GITHUB,
+				projectURL:    "https://github.com/test/test",
+				trigger:       controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL,
+				gitRef:        "refs/heads/main",
+				gitSha:        "1234567890",
+			},
+			assertFn: func(t *testing.T, request *controltowerv1.CreateToolSessionRequest) {
+				assert.Equal(t, "test-tool", request.ToolName)
+				assert.Equal(t, "1.0.0", request.ToolVersion)
+				assert.Equal(t, "test-project", request.ProjectName)
+				assert.Equal(t, "1.0.0", *request.ProjectVersion)
+				assert.Equal(t, packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_UNSPECIFIED, *request.ProjectSource)
+				assert.Equal(t, controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL, *request.Trigger)
+				assert.Equal(t, controltowerv1pb.Project_SOURCE_GITHUB, *request.OriginProjectSource)
+				assert.Equal(t, "https://github.com/test/test", *request.OriginProjectUrl)
+				assert.Equal(t, "refs/heads/main", *request.GitRef)
+				assert.Equal(t, "1234567890", *request.GitSha)
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			sr := &syncReporter{
+				config:      tc.config,
+				envResolver: tc.envResolver,
+			}
+
+			request := sr.createToolSessionRequestForProjectVersion(tc.config.ProjectName, tc.config.ProjectVersion)
+			tc.assertFn(t, request)
 		})
 	}
 }

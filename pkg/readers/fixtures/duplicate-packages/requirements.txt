@@ -1,0 +1,4 @@
+bleach==3.1.2
+bleach[css]
+requests==2.25.1
+requests[security]

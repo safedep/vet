@@ -44,8 +44,11 @@ func SetPinnedMessageOnProgressWriter(msg string) {
 }
 
 func TrackProgress(message string, total int) any {
-	tracker := progress.Tracker{Message: message, Total: int64(total),
-		Units: progress.UnitsDefault}
+	tracker := progress.Tracker{
+		Message: message,
+		Total:   int64(total),
+		Units:   progress.UnitsDefault,
+	}
 
 	if progressWriter != nil {
 		progressWriter.AppendTracker(&tracker)

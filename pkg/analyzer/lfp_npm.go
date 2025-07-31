@@ -145,7 +145,7 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 				Package:  pkg,
 				Threat: &jsonreportspec.ReportThreat{
 					Id: jsonreportspec.ReportThreat_LockfilePoisoning,
-					InstanceId: ThreatInstanceId(jsonreportspec.ReportThreat_LockfilePoisoning,
+					InstanceId: ThreatInstanceID(jsonreportspec.ReportThreat_LockfilePoisoning,
 						jsonreportspec.ReportThreat_Manifest,
 						manifest.GetDisplayPath()),
 					Message:     message,
@@ -173,7 +173,7 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 				Package:  pkg,
 				Threat: &jsonreportspec.ReportThreat{
 					Id: jsonreportspec.ReportThreat_LockfilePoisoning,
-					InstanceId: ThreatInstanceId(jsonreportspec.ReportThreat_LockfilePoisoning,
+					InstanceId: ThreatInstanceID(jsonreportspec.ReportThreat_LockfilePoisoning,
 						jsonreportspec.ReportThreat_Manifest,
 						manifest.GetDisplayPath()),
 					Message:     message,

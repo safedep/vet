@@ -13,6 +13,26 @@ import (
 	"github.com/safedep/vet/pkg/reporter/markdown"
 )
 
+// Internal rules apart from policy violations
+const (
+	ruleIdVulnerabilityRecord = "vulnerability-record"
+	ruleIdMaliciousPackage    = "malicious-package"
+)
+
+var internalRules = map[string]struct {
+	description string
+	properties  sarif.Properties
+}{
+	ruleIdVulnerabilityRecord: {
+		description: "Vulnerability record",
+		properties:  sarif.Properties{"type": "vulnerability"},
+	},
+	ruleIdMaliciousPackage: {
+		description: "Malicious package",
+		properties:  sarif.Properties{"type": "malicious-package"},
+	},
+}
+
 type sarifBuilderConfig struct {
 	Tool           ToolMetadata
 	IncludeVulns   bool
@@ -45,6 +65,18 @@ func newSarifBuilder(config sarifBuilderConfig) (*sarifBuilder, error) {
 		"version": config.Tool.Version,
 	}
 
+	// Add the internal rules to the run
+	for ruleId, ruleInfo := range internalRules {
+		rule := sarif.NewRule(ruleId)
+		rule.ShortDescription = sarif.NewMultiformatMessageString(ruleInfo.description)
+		rule.Properties = ruleInfo.properties
+		run.Tool.Driver.Rules = append(run.Tool.Driver.Rules, rule)
+	}
+
+	// Add the run pointer to the report. We will be updating the run
+	// information as we add more results to it.
+	report.AddRun(run)
+
 	return &sarifBuilder{
 		report:          report,
 		run:             run,
@@ -76,8 +108,8 @@ func (b *sarifBuilder) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 	b.recordThreatEvent(event)
 }
 
+// This should be idempotent. We should not mutate the state here
 func (b *sarifBuilder) GetSarifReport() (*sarif.Report, error) {
-	b.report.AddRun(b.run)
 	return b.report, nil
 }
 
@@ -201,13 +233,18 @@ func (b *sarifBuilder) recordVulnerabilities(pkg *models.Package) {
 
 		b.vulnCache[vulnId] = true
 
-		result := sarif.NewRuleResult(vulnId)
+		result := sarif.NewRuleResult(ruleIdVulnerabilityRecord)
 		result.WithLevel(sarifErrorLevel)
 
 		vulnerabilitySummary := utils.SafelyGetValue(vuln.Summary)
 		if utils.IsEmptyString(vulnerabilitySummary) {
-			vulnerabilitySummary = fmt.Sprintf("Vulnerability in %s (%s)", pkg.GetName(), pkg.Ecosystem)
+			vulnerabilitySummary = fmt.Sprintf("Package %s@%s is vulnerable to %s",
+				pkg.GetName(), pkg.GetVersion(), vulnId)
+		} else {
+			vulnerabilitySummary = fmt.Sprintf("Package %s@%s is vulnerable to %s. Following details are available:\n%s",
+				pkg.GetName(), pkg.GetVersion(), vulnId, vulnerabilitySummary)
 		}
+
 		result.WithMessage(sarif.NewMessage().WithText(vulnerabilitySummary))
 
 		pLocation := sarif.NewPhysicalLocation().
@@ -227,7 +264,7 @@ func (b *sarifBuilder) recordMalware(pkg *models.Package) {
 
 	if malwareAnalysis.IsMalware {
 		inference := utils.SafelyGetValue(malwareAnalysis.Report.GetInference())
-		result := sarif.NewRuleResult(malwareAnalysis.AnalysisId)
+		result := sarif.NewRuleResult(ruleIdMaliciousPackage)
 		result.WithLevel(sarifErrorLevel)
 
 		malwareSummary := inference.GetSummary()

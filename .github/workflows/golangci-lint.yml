@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
         with:
-          go-version: 1.24
+          go-version: 1.24.3
           cache: false
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744
       - name: golangci-lint
