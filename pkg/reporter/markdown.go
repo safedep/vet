@@ -129,7 +129,7 @@ func (r *markdownReportGenerator) Finish() error {
 			Pkg:                s.pkg,
 			PkgRemediationName: sr.packageNameForRemediationAdvice(s.pkg),
 			Score:              s.score,
-			Tags:               fmt.Sprintf("%s", strings.Join(s.tags, ", ")),
+			Tags:               strings.Join(s.tags, ", "),
 		})
 
 		if _, ok := summaries[mp]; !ok {
