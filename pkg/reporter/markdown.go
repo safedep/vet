@@ -5,6 +5,7 @@ import (
 	"os"
 	"sync"
 	"text/template"
+	"strings"
 
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -128,7 +129,7 @@ func (r *markdownReportGenerator) Finish() error {
 			Pkg:                s.pkg,
 			PkgRemediationName: sr.packageNameForRemediationAdvice(s.pkg),
 			Score:              s.score,
-			Tags:               fmt.Sprintf("%s", s.tags),
+			Tags:               fmt.Sprintf("%s", strings.Join(s.tags, ", ")),
 		})
 
 		if _, ok := summaries[mp]; !ok {
