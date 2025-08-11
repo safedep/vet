@@ -92,6 +92,7 @@ var (
 	sqlite3ReportAppend              bool
 	scanImageTarget                  string
 	scanImageNoRemote                bool
+	reportHtmlPath                   string
 )
 
 func newScanCommand() *cobra.Command {
@@ -229,6 +230,7 @@ func newScanCommand() *cobra.Command {
 		"Image reference to run container image scanning (eg. node:latest)")
 	cmd.Flags().BoolVarP(&scanImageNoRemote, "image-no-remote", "", false,
 		"Disable container image pulling when not found locally")
+	cmd.Flags().StringVar(&reportHtmlPath, "report-html", "", "Path to write HTML report output")
 
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
@@ -668,6 +670,19 @@ func internalStartScan() error {
 		}
 
 		reporters = append(reporters, rp)
+	}
+
+	if !utils.IsEmptyString(reportHtmlPath) {
+		htmlReporter, err := reporter.NewHtmlReporter(reporter.HtmlReportingConfig{
+			Path: reportHtmlPath,
+		})
+
+		if err != nil {
+			logger.Fatalf("failed to create HTML reporter: %v", err)
+			return err
+		}
+
+		reporters = append(reporters, htmlReporter)
 	}
 
 	// UI tracker (progress bar) for cloud report syncing
