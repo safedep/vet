@@ -27,10 +27,20 @@ func NewCelFilterV2Analyzer(fl string, failOnMatch bool) (Analyzer, error) {
 		return nil, err
 	}
 
-	err = evaluator.AddRule(&policyv1.Rule{
-		Name:  "filter-v2-query",
-		Value: fl,
-	})
+	policy := &policyv1.Policy{
+		Version: policyv1.PolicyVersion_POLICY_VERSION_V2,
+		Target:  policyv1.PolicyTarget_POLICY_TARGET_VET,
+		Type:    policyv1.PolicyType_POLICY_TYPE_DENY,
+		Name:    "filter-v2-policy",
+		Rules: []*policyv1.Rule{
+			{
+				Name:  "filter-v2-rule",
+				Value: fl,
+			},
+		},
+	}
+
+	err = evaluator.AddPolicy(policy)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +73,7 @@ func (f *celFilterV2Analyzer) Analyze(manifest *models.PackageManifest,
 			return nil
 		}
 
-		evalResult, err := f.evaluator.EvalPackage(pkg)
+		evalResult, err := f.evaluator.EvaluatePackage(pkg)
 		if err != nil {
 			f.stat.IncError(err)
 			logger.Errorf("Failed to evaluate CEL v2 for %s:%s : %v",
