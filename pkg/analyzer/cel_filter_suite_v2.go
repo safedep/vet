@@ -28,7 +28,7 @@ func NewCelFilterSuiteV2Analyzer(filePath string, failOnMatch bool) (Analyzer, e
 		return nil, err
 	}
 
-	policy, err := loadPolicyFromFile(filePath)
+	policy, err := policyV2LoadPolicyFromFile(filePath)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (f *celFilterSuiteV2Analyzer) Analyze(manifest *models.PackageManifest,
 			return nil
 		}
 
-		evalResult, err := f.evaluator.EvalPackage(pkg)
+		evalResult, err := f.evaluator.EvaluatePackage(pkg)
 		if err != nil {
 			f.stat.IncError(err)
 			logger.Errorf("Failed to evaluate CEL v2 policy suite for %s:%s : %v",
@@ -154,8 +154,9 @@ func (f *celFilterSuiteV2Analyzer) notifyCaller(manifest *models.PackageManifest
 }
 
 // loadPolicyFromFile loads a policy from a file path
-func loadPolicyFromFile(filePath string) (*policyv1.Policy, error) {
+func policyV2LoadPolicyFromFile(filePath string) (*policyv1.Policy, error) {
 	logger.Debugf("CEL Policy Suite: Loading policy from file: %s", filePath)
+
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
@@ -167,5 +168,6 @@ func loadPolicyFromFile(filePath string) (*policyv1.Policy, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &policy, nil
 }

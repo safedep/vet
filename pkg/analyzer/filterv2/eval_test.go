@@ -29,6 +29,45 @@ func TestEvaluator_AddRule(t *testing.T) {
 			policies: make([]*policyv1.Policy, 0),
 			match:    false,
 		},
+		{
+			name: "Package Name Match",
+			input: &models.Package{
+				PackageDetails: models.NewPackageDetail(models.EcosystemGo, "test", "1.0.0"),
+				Manifest: &models.PackageManifest{
+					Ecosystem: models.EcosystemGo,
+				},
+				InsightsV2: &packagev1.PackageVersionInsight{},
+			},
+			policies: []*policyv1.Policy{
+				{
+					Rules: []*policyv1.Rule{
+						{
+							Value: "_.package.name ==  \"test\"",
+						},
+					},
+				},
+			},
+			match: true,
+		},
+		{
+			name: "Package name does not match",
+			input: &models.Package{
+				PackageDetails: models.NewPackageDetail(models.EcosystemGo, "test2", "1.0.0"),
+				Manifest: &models.PackageManifest{
+					Ecosystem: models.EcosystemGo,
+				},
+				InsightsV2: &packagev1.PackageVersionInsight{},
+			},
+			policies: []*policyv1.Policy{
+				{
+					Rules: []*policyv1.Rule{
+						{
+							Value: "_.package.name ==  \"test\"",
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tc := range cases {
@@ -42,7 +81,7 @@ func TestEvaluator_AddRule(t *testing.T) {
 				assert.NoError(t, err)
 			}
 
-			result, err := evaluator.EvalPackage(tc.input)
+			result, err := evaluator.EvaluatePackage(tc.input)
 			if tc.errMsg != "" {
 				assert.Error(t, err)
 				assert.Contains(t, err.Error(), tc.errMsg)
