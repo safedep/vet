@@ -38,9 +38,11 @@ var errMaxFilter = errors.New("max filter limit has reached")
 
 // Evaluator interface for the new policy system using Insights v2 data model
 type Evaluator interface {
-	AddRule(rule *policyv1.Rule) error
+	// AddPolicy adds a policy to the evaluator
 	AddPolicy(policy *policyv1.Policy) error
-	EvalPackage(pkg *models.Package) (*FilterEvaluationResult, error)
+
+	// EvaluatePackage evaluates a package against the policies
+	EvaluatePackage(pkg *models.Package) (*FilterEvaluationResult, error)
 }
 
 type filterEvaluator struct {
@@ -76,7 +78,10 @@ func NewEvaluator(name string, ignoreError bool) (*filterEvaluator, error) {
 		cel.Function("contains_license",
 			cel.MemberOverload("list_string_contains_license_string",
 				[]*cel.Type{cel.ListType(cel.StringType), cel.StringType}, cel.BoolType,
-				cel.BinaryBinding(celFuncLicenseExpressionMatch()))))
+				cel.BinaryBinding(celFuncLicenseExpressionMatch()))),
+
+		// More custom functions goes here
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create CEL environment: %w", err)
 	}
@@ -89,7 +94,7 @@ func NewEvaluator(name string, ignoreError bool) (*filterEvaluator, error) {
 	}, nil
 }
 
-func (f *filterEvaluator) AddRule(rule *policyv1.Rule) error {
+func (f *filterEvaluator) AddRule(policy *policyv1.Policy, rule *policyv1.Rule) error {
 	if len(f.programs) >= filterEvalMaxRules {
 		return errMaxFilter
 	}
@@ -106,6 +111,7 @@ func (f *filterEvaluator) AddRule(rule *policyv1.Rule) error {
 
 	f.programs = append(f.programs, &FilterProgram{
 		rule:    rule,
+		policy:  policy,
 		program: prog,
 	})
 
@@ -114,7 +120,7 @@ func (f *filterEvaluator) AddRule(rule *policyv1.Rule) error {
 
 func (f *filterEvaluator) AddPolicy(policy *policyv1.Policy) error {
 	for _, rule := range policy.GetRules() {
-		if err := f.AddRule(rule); err != nil {
+		if err := f.AddRule(policy, rule); err != nil {
 			return err
 		}
 	}
@@ -122,7 +128,7 @@ func (f *filterEvaluator) AddPolicy(policy *policyv1.Policy) error {
 	return nil
 }
 
-func (f *filterEvaluator) EvalPackage(pkg *models.Package) (*FilterEvaluationResult, error) {
+func (f *filterEvaluator) EvaluatePackage(pkg *models.Package) (*FilterEvaluationResult, error) {
 	policyInput, err := f.buildPolicyInput(pkg)
 	if err != nil {
 		return nil, err

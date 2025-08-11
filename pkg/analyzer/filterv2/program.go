@@ -8,6 +8,7 @@ import (
 // FilterProgram holds a rule and its compiled CEL program
 // for fast evaluation of the expression
 type FilterProgram struct {
+	policy  *policyv1.Policy
 	rule    *policyv1.Rule
 	program cel.Program
 }
