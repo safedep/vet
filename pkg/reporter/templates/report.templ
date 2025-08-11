@@ -119,48 +119,6 @@ templ VetScanReport(data ReportData) {
 	</html>
 }
 
-templ PolicyTab(policyEvents []PolicyEvent) {
-	<div class="tab-pane fade" id="policy" role="tabpanel" aria-labelledby="policy-tab">
-		<div class="card mt-4">
-			<div class="card-header">
-				<h5 class="mb-0">Policy Violations</h5>
-			</div>
-			<div class="card-body">
-				if len(policyEvents) > 0 {
-					<table class="table table-striped" id="policyTable">
-						<thead>
-							<tr>
-								<th>Policy</th>
-								<th>Package</th>
-								<th>Severity</th>
-								<th>Description</th>
-							</tr>
-						</thead>
-						<tbody>
-							for _, policy := range policyEvents {
-								<tr>
-									<td>{ policy.PolicyName }</td>
-									<td>{ fmt.Sprintf("%s@%s", policy.Package, policy.Version) }</td>
-									<td>
-										<span class={ fmt.Sprintf("badge rounded-pill %s", getSeverityBadgeClassFromString(policy.Severity)) }>
-											{ policy.Severity }
-										</span>
-									</td>
-									<td>{ policy.Description }</td>
-								</tr>
-							}
-						</tbody>
-					</table>
-				} else {
-					<div class="alert alert-success">
-						<i class="bi bi-check-circle"></i> No policy violations found.
-					</div>
-				}
-			</div>
-		</div>
-	</div>
-}
-
 templ VetScanFooter() {
 	<footer>
 		<div class="container">
@@ -237,8 +195,6 @@ templ VetScanScripts(data ReportData) {
 			$('#popularityTable').DataTable({
 				order: [[1, 'desc']]
 			});
-
-			$('#policyTable').DataTable();
 
 			// Filter functionality
 			$('#packageSearch').on('keyup', function() {
@@ -389,6 +345,7 @@ templ VetScanStyles() {
 	<style>
 		:root {
 			--primary-color: #0366d6;
+			--primary-rgb: 3, 102, 214;
 			--danger-color: #dc3545;
 			--warning-color: #f0ad4e;
 			--info-color: #5bc0de;
@@ -527,13 +484,12 @@ templ VetScanStyles() {
 
 		.table th {
 			font-weight: 600;
-			background-color: rgba(0, 0, 0, 0.02);
 			border-top: none;
 			border-bottom-width: 1px;
 			text-transform: uppercase;
 			font-size: 0.8rem;
 			letter-spacing: 0.5px;
-			color: #666;
+			color: #23272b !important;
 		}
 
 		.code-snippet {
@@ -682,6 +638,7 @@ templ VetScanStyles() {
 				--card-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 				--hover-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 				--primary-color: #58a6ff;
+				--primary-rgb: 88, 166, 255;
 				--stats-primary: #58a6ff;
 				--stats-info: #56d4fa;
 				--stats-danger: #f85149;
@@ -689,17 +646,15 @@ templ VetScanStyles() {
 			}
 
 			.table th {
-				background-color: rgba(255, 255, 255, 0.05);
-				color: #8b949e;
+                background-color: #22304e !important;
+                color: #f5f7fa !important;
 			}
 
 			/* Dark theme table striping */
-			.table-striped > tbody > tr:nth-of-type(odd) {
-				background-color: rgba(255, 255, 255, 0.03);
-			}
-
-			.table-striped > tbody > tr:nth-of-type(even) {
-				background-color: rgba(0, 0, 0, 0.2);
+			/* Unified table row background for all data rows in dark mode */
+			table tbody tr td {
+				background-color: #23272b !important;
+				color: #f5f7fa !important;
 			}
 
 			/* Hover effect for table rows in dark mode */
@@ -829,7 +784,7 @@ templ ManifestsTab(manifests []Manifest) {
 	<div class="tab-pane fade show active" id="manifests" role="tabpanel" aria-labelledby="manifests-tab">
 		<div class="card mt-4">
 			<div class="card-header d-flex justify-content-between align-items-center">
-				<h5 class="mb-0"><i class="bi bi-file-text me-2"></i>Manifest Files</h5>
+				<h5 class="mb-0 text-white"><i class="bi bi-file-text me-2 text-white"></i>Manifest Files</h5>
 				<button class="btn btn-sm btn-outline-primary" id="exportManifestsBtn">
 					<i class="bi bi-download me-1"></i> Export
 				</button>
@@ -845,7 +800,7 @@ templ ManifestsTab(manifests []Manifest) {
 					</thead>
 					<tbody>
 						for _, manifest := range manifests {
-							<tr>
+							<tr class="">
 								<td>{ manifest.Path }</td>
 								<td>{ manifest.Ecosystem }</td>
 								<td>{ fmt.Sprintf("%d", len(manifest.Packages)) }</td>
@@ -891,7 +846,7 @@ templ PackagesTab(packages []Package, ecosystems []string) {
 		</div>
 		<div class="card">
 			<div class="card-header">
-				<h5 class="mb-0">Packages</h5>
+				<h5 class="mb-0 text-white">Packages</h5>
 			</div>
 			<div class="card-body">
 				<table class="table table-striped" id="packagesTable">
@@ -955,7 +910,7 @@ templ VulnerabilitiesTab(vulnerabilities []Vulnerability) {
 		</div>
 		<div class="card">
 			<div class="card-header">
-				<h5 class="mb-0">Vulnerabilities</h5>
+				<h5 class="mb-0 text-white">Vulnerabilities</h5>
 			</div>
 			<div class="card-body">
 				<table class="table table-striped" id="vulnsTable">
@@ -970,11 +925,11 @@ templ VulnerabilitiesTab(vulnerabilities []Vulnerability) {
 					</thead>
 					<tbody>
 						for _, vuln := range vulnerabilities {
-							<tr>
+							<tr class="">
 								<td>
-									<a href={ templ.URL(vuln.Link) } target="_blank" rel="noopener">{ vuln.ID }</a>
+									<a href={ vuln.Link } target="_blank">{ vuln.ID }</a>
 								</td>
-								<td>{ fmt.Sprintf("%s@%s", vuln.Package, vuln.Version) }</td>
+								<td>{ vuln.Package }</td>
 								<td>
 									<span class={ fmt.Sprintf("badge rounded-pill %s", getSeverityBadgeClassFromString(vuln.Severity)) }>
 										{ vuln.Severity }
@@ -995,7 +950,7 @@ templ MalwareTab(malwareDetections []MalwareDetection) {
 	<div class="tab-pane fade" id="malware" role="tabpanel" aria-labelledby="malware-tab">
 		<div class="card mt-4">
 			<div class="card-header">
-				<h5 class="mb-0">Malware Detection</h5>
+				<h5 class="mb-0 text-white">Malware Detection</h5>
 			</div>
 			<div class="card-body">
 				if len(malwareDetections) > 0 {
@@ -1010,7 +965,7 @@ templ MalwareTab(malwareDetections []MalwareDetection) {
 						</thead>
 						<tbody>
 							for _, malware := range malwareDetections {
-								<tr>
+								<tr class="">
 									<td>{ fmt.Sprintf("%s@%s", malware.Package, malware.Version) }</td>
 									<td>{ malware.Type }</td>
 									<td>{ malware.Source }</td>
@@ -1031,19 +986,11 @@ templ MalwareTab(malwareDetections []MalwareDetection) {
 
 templ PopularityTab(metrics []PopularityMetric) {
 	<div class="tab-pane fade" id="popularity" role="tabpanel" aria-labelledby="popularity-tab">
-		<div class="container mt-4">
-			<div class="d-flex justify-content-between mb-3">
-				<h5>Package Popularity Metrics</h5>
-				if len(metrics) > 0 {
-					<button
-						class="btn btn-primary"
-						onclick="exportPopularityData()"
-					>
-						<i class="bi bi-download me-1"></i>Export
-					</button>
-				}
+		<div class="card">
+			<div class="card-header">
+				<h5 class="mb-0 text-white">Popularity Metrics</h5>
 			</div>
-			<div class="table-responsive">
+			<div class="card-body">
 				if len(metrics) > 0 {
 					<table class="table table-striped" id="popularityTable">
 						<thead>
