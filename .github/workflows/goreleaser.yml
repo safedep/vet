@@ -3,7 +3,7 @@ name: Release Automation
 on:
   push:
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - "v[0-9]+.[0-9]+.[0-9]+"
 
 concurrency: ci-release-automation
 
@@ -20,7 +20,7 @@ jobs:
     outputs:
       hashes: ${{ steps.hash.outputs.hashes }}
     permissions:
-      contents: write  # for goreleaser/goreleaser-action to create a GitHub release
+      contents: write # for goreleaser/goreleaser-action to create a GitHub release
       packages: write # for goreleaser/goreleaser-action to publish docker images
     runs-on: ubuntu-latest
     env:
@@ -75,7 +75,7 @@ jobs:
         uses: goreleaser/goreleaser-action@286f3b13b1b49da4ac219696163fb8c1c93e1200 # v6.0.0
         with:
           distribution: goreleaser
-          version: '~> v2'
+          version: "~> v2"
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
@@ -94,7 +94,7 @@ jobs:
       actions: read # To read the workflow path.
       id-token: write # To sign the provenance.
       contents: write # To add assets to a release.
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@f7dd8c54c2067bafc12ca7a55595d5ee9b75204a # v2.1.0
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
     with:
       base64-subjects: "${{ needs.goreleaser.outputs.hashes }}"
       upload-assets: true
