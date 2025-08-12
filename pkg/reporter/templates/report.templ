@@ -5,7 +5,6 @@ import (
 	"time"
 )
 
-// Define your data structures - adjust according to your actual Go structs
 type ReportData struct {
 	GeneratedAt        time.Time
 	Manifests         []Manifest
@@ -143,202 +142,6 @@ templ VetScanScripts(data ReportData) {
 	<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
-	<script>
-		// Convert Go data to JavaScript
-		const reportData = {
-			PackageCount: parseInt("{ fmt.Sprintf("%d", data.PackageCount) }"),
-			VulnCount: parseInt("{ fmt.Sprintf("%d", data.VulnCount) }"),
-			MalwareDetections: parseInt("{ fmt.Sprintf("%d", len(data.MalwareDetections)) }"),
-			// PolicyEvents removed as per request
-			Vulnerabilities: [
-				{ for i, vuln := range data.Vulnerabilities }
-					{ if i > 0 },{ end }
-					{
-						ID: "{ vuln.ID }",
-						Package: "{ vuln.Package }",
-						Version: "{ vuln.Version }",
-						Severity: "{ vuln.Severity }",
-						Description: "{ vuln.Description }",
-						Link: "{ vuln.Link }"
-					}
-				{ end }
-			],
-			Packages: [
-				{ for i, pkg := range data.Packages }
-					{ if i > 0 },{ end }
-					{
-						Name: "{ pkg.Name }",
-						Version: "{ pkg.Version }",
-						Ecosystem: "{ pkg.Ecosystem }",
-						VulnCount: parseInt("{ fmt.Sprintf("%d", pkg.VulnCount) }"),
-						Source: "{ pkg.Source }"
-					}
-				{ end }
-			]
-		};
-
-		$(document).ready(function() {
-			// Initialize DataTables
-			$('#manifestsTable').DataTable({
-				order: [[0, 'asc']]
-			});
-
-			$('#packagesTable').DataTable({
-				order: [[0, 'asc']]
-			});
-
-			$('#vulnsTable').DataTable({
-				order: [[2, 'desc']]
-			});
-
-			$('#malwareTable').DataTable();
-			$('#popularityTable').DataTable({
-				order: [[1, 'desc']]
-			});
-
-			// Filter functionality
-			$('#packageSearch').on('keyup', function() {
-				$('#packagesTable').DataTable().search($(this).val()).draw();
-			});
-
-			$('#vulnSearch').on('keyup', function() {
-				$('#vulnsTable').DataTable().search($(this).val()).draw();
-			});
-
-			$('#ecosystemFilter').on('change', function() {
-				var value = $(this).val();
-				$('#packagesTable').DataTable().column(2).search(value).draw();
-			});
-
-			$('#severityFilter').on('change', function() {
-				var value = $(this).val();
-				$('#vulnsTable').DataTable().column(2).search(value).draw();
-			});
-
-			// Chart functionality removed as charts aren't being shown
-
-			// Top Affected Packages
-			const showTopVulnPackages = () => {
-				try {
-					const packages = reportData.Packages || [];
-					const vulnPackages = packages.filter(pkg => pkg.VulnCount > 0)
-						.sort((a, b) => b.VulnCount - a.VulnCount)
-						.slice(0, 5);
-
-					const topVulnDiv = document.getElementById('topVulnPackages');
-					if (!topVulnDiv) {
-						console.error("Top vulnerabilities div not found");
-						return;
-					}
-				if (vulnPackages.length === 0) {
-					topVulnDiv.innerHTML = '<div class="alert alert-success">No vulnerabilities detected</div>';
-					return;
-				}
-
-				let html = '<ul class="list-group">';
-				vulnPackages.forEach(pkg => {
-					html += `
-						<li class="list-group-item d-flex justify-content-between align-items-center">
-							<div>
-								<strong>${pkg.Name}</strong>
-								<small class="d-block text-muted">${pkg.Version}</small>
-							</div>
-							<span class="badge bg-danger rounded-pill">${pkg.VulnCount}</span>
-						</li>
-					`;
-				});
-				html += '</ul>';
-				topVulnDiv.innerHTML = html;
-				} catch (error) {
-					console.error("Error displaying top vulnerable packages:", error);
-				}
-			};
-
-			// Export functionality
-			$('#exportManifestsBtn').on('click', function() {
-				const data = [];
-				$('#manifestsTable tbody tr').each(function() {
-					const row = [];
-					$(this).find('td').each(function() {
-						row.push($(this).text());
-					});
-					data.push(row);
-				});
-
-				exportToCSV('manifests.csv', ['Path', 'Ecosystem', 'Package Count'], data);
-			});
-
-			$('#exportPackagesBtn').on('click', function() {
-				const data = [];
-				$('#packagesTable tbody tr').each(function() {
-					const row = [];
-					$(this).find('td').each(function() {
-						row.push($(this).text());
-					});
-					data.push(row);
-				});
-
-				exportToCSV('packages.csv', ['Name', 'Version', 'Ecosystem', 'Vulnerabilities', 'Source'], data);
-			});
-
-			function exportToCSV(filename, headers, rows) {
-				let csvContent = headers.join(',') + '\n';
-
-				rows.forEach(row => {
-					// Quote cells that contain commas
-					const processedRow = row.map(cell => {
-						if (cell.includes(',')) {
-							return `"${cell}"`;
-						}
-						return cell;
-					});
-					csvContent += processedRow.join(',') + '\n';
-				});
-
-				const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
-				saveAs(blob, filename);
-			}
-
-			// Initialize components
-			// Wait for DOM to be fully loaded
-			$(document).ready(() => {
-				// Give a bit more time to ensure DOM is fully rendered
-				setTimeout(() => {
-					try {
-						showTopVulnPackages();
-					} catch (error) {
-						console.error("Error initializing data:", error);
-					}
-				}, 500);
-			});
-
-			// Sort functionality
-			$('#packageSort').on('change', function() {
-				var value = $(this).val();
-				var table = $('#packagesTable').DataTable();
-				if (value === 'name') {
-					table.order([0, 'asc']).draw();
-				} else if (value === 'vulns') {
-					table.order([3, 'desc']).draw();
-				}
-			});
-
-			$('#vulnSort').on('change', function() {
-				var value = $(this).val();
-				var table = $('#vulnsTable').DataTable();
-				if (value === 'severity') {
-					table.order([2, 'desc']).draw();
-				} else if (value === 'id') {
-					table.order([0, 'asc']).draw();
-				}
-			});
-
-			// Tab change handler to fix table width when switching tabs
-			$('button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
-				$.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
-			});
-		});
-	</script>
 }
 
 templ VetScanStyles() {
@@ -733,7 +536,7 @@ templ VetScanSummary(data ReportData) {
 								<i class="bi bi-bug"></i>
 							</div>
 							<div class="number">{ fmt.Sprintf("%d", len(data.MalwareDetections)) }</div>
-							<div class="label">Malware<span class="d-none d-sm-inline"> Detections</span></div>
+							<div class="label">Malware<span class="d-none d-sm-inline">&nbsp; Detections</span></div>
 						</div>
 					</div>
 				</div>
