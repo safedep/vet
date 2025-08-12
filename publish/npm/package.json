@@ -1,0 +1,58 @@
+{
+  "name": "@safedep/vet",
+  "description": "An open source software supply chain security tool built for developers and security engineers",
+  "main": "bin/vet.js",
+  "bin": {
+    "vet": "bin/vet.js"
+  },
+  "scripts": {
+    "preinstall": "echo \"Installing VET binary for your platform...\"",
+    "postinstall": "node install.js"
+  },
+  "keywords": [
+    "security",
+    "malicious-packages",
+    "malware",
+    "npm",
+    "cli",
+    "ci-cd",
+    "vulnerability",
+    "dependency-security",
+    "safedep"
+  ],
+  "author": "SafeDep <devops@safedep.io>",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/safedep/vet#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/safedep/vet.git"
+  },
+  "bugs": {
+    "url": "https://github.com/safedep/vet/issues"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64",
+    "ia32"
+  ],
+  "files": [
+    "bin/vet.js",
+    "install.js",
+    "config.js",
+    "test.js",
+    "README.md",
+    ".npmignore"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {}
+}
