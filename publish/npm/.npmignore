@@ -1,0 +1,17 @@
+# Exclude the actual binary (but keep the wrapper script)
+bin/vet
+bin/vet.exe
+
+# Exclude temp files and directories
+temp/
+.temp/
+
+# Exclude development files
+node_modules/
+.git/
+.gitignore
+*.log
+.DS_Store
+
+# Keep only the wrapper script in bin/
+!bin/vet.js
