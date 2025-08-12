@@ -3,7 +3,7 @@
 Enterprise-grade open source software supply chain security in one CLI.
 
 This package delivers the `vet` binary via npm for teams that prefer Node.js tooling for install & upgrades.
-Full project: https://github.com/safedep/vet • Docs: https://docs.safedep.io/
+
 
 ## ✨ What It Does
 
@@ -19,12 +19,19 @@ Full project: https://github.com/safedep/vet • Docs: https://docs.safedep.io/
 npm install -g @safedep/vet
 ```
 
+Or using Homebrew:
+
+```bash
+brew tap safedep/tap
+brew install safedep/tap/vet
+```
+
 Check:
 ```bash
 vet version
 ```
 
-(Alternative installs: brew, direct binary, see upstream README.)
+(Alternative installs: brew, direct binary, see upstream [README](https://github.com/safedep/vet/?tab=readme-ov-file#-vet))
 
 ## ⚡ Quick Start
 
@@ -85,11 +92,11 @@ vet query --from ./.vet-scan --filter 'vulns.high.exists(p, true)'
 
 ## 🤖 Integrations
 
-GitHub Action: safedep/vet-action
+GitHub Action: **[safedep/vet-action](https://github.com/safedep/vet-action)**
 
-GitLab Component: safedep/ci-components/vet
+GitLab Component: **[safedep/ci-components/vet](https://gitlab.com/safedep/ci-components/vet)**
 
-Container: ghcr.io/safedep/vet:latest
+Container: **[ghcr.io/safedep/vet](https://ghcr.io/safedep/vet)**
 
 ---
-For complete documentation, advanced usage, troubleshooting, and more information, please visit: github.com/safedep/vet
+For complete documentation, advanced usage, troubleshooting, and more information, please visit: **[github.com/safedep/vet](https://github.com/safedep/vet)**
