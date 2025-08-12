@@ -10,6 +10,7 @@ import (
 
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
+	vulnerabilityv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/vulnerability/v1"
 	"github.com/google/cel-go/cel"
 	"github.com/google/cel-go/common/decls"
 	"github.com/google/cel-go/common/types"
@@ -140,7 +141,7 @@ func (f *filterEvaluator) EvaluatePackage(pkg *models.Package) (*FilterEvaluatio
 	}
 
 	for _, prog := range f.programs {
-		out, _, err := prog.program.Eval(map[string]interface{}{
+		out, _, err := prog.program.Eval(map[string]any{
 			policyInputVarRoot:     serializedInput,
 			policyInputVarPackage:  serializedInput["package"],
 			policyInputVarProject:  serializedInput["project"],
@@ -174,7 +175,7 @@ func (f *filterEvaluator) EvaluatePackage(pkg *models.Package) (*FilterEvaluatio
 // TODO: Fix this JSON round-trip problem by directly configuring CEL env to
 // work with Protobuf messages
 func (f *filterEvaluator) serializePolicyInput(pi *policyv1.Input) (map[string]interface{}, error) {
-	var ret map[string]interface{}
+	var ret map[string]any
 
 	data, err := protojson.Marshal(pi)
 	if err != nil {
@@ -237,7 +238,22 @@ func (f *filterEvaluator) buildPolicyInput(pkg *models.Package) (*policyv1.Input
 		// Add severity and score from the first available severity
 		if len(vuln.GetSeverities()) > 0 {
 			sev := vuln.GetSeverities()[0]
-			policyVuln.Severity = string(sev.GetRisk())
+
+			// Transform into human readable severity as per contract
+			// https://buf.build/safedep/api/docs/main:safedep.messages.policy.v1#safedep.messages.policy.v1.Input.Vulnerability
+			switch sev.GetRisk() {
+			case vulnerabilityv1.Severity_RISK_CRITICAL:
+				policyVuln.Severity = "CRITICAL"
+			case vulnerabilityv1.Severity_RISK_HIGH:
+				policyVuln.Severity = "HIGH"
+			case vulnerabilityv1.Severity_RISK_MEDIUM:
+				policyVuln.Severity = "MEDIUM"
+			case vulnerabilityv1.Severity_RISK_LOW:
+				policyVuln.Severity = "LOW"
+			case vulnerabilityv1.Severity_RISK_UNSPECIFIED:
+				policyVuln.Severity = "UNSPECIFIED"
+			}
+
 			if score := sev.GetScore(); score != "" {
 				if val, err := strconv.ParseFloat(score, 32); err == nil {
 					policyVuln.CvssScore = float32(val)
