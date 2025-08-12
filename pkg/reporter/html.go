@@ -179,11 +179,9 @@ func (r *htmlReporter) convertPolicyViolations() []templates.PolicyViolation {
 			continue
 		}
 
-		policyViolId := fmt.Sprintf("%s-%s", gitlabCustomPolicySuffix, event.Package.Id())
-
 		// Create a vulnerability entry for the policy violation
 		policyViolation := templates.PolicyViolation{
-			ID:         policyViolId,
+			ID:         event.Package.Id(),
 			PolicyName: event.Filter.GetName(),
 			Description: fmt.Sprintf("%s \n\n %s \n\n The CEL expression is:  \n\n ```yaml\n%s\n```\n\n",
 				event.Filter.GetSummary(),
@@ -346,10 +344,7 @@ func (r *htmlReporter) getPackages() []templates.Package {
 			}
 
 			// Use the larger count between insights and counted vulnerabilities
-			vulnCount := vulnCountMap[key]
-			if insightVulnCount > vulnCount {
-				vulnCount = insightVulnCount
-			}
+			vulnCount := max(insightVulnCount, vulnCountMap[key])
 
 			packages = append(packages, templates.Package{
 				Name:      pkg.Name,
