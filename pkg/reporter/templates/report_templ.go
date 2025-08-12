@@ -13,7 +13,6 @@ import (
 	"time"
 )
 
-// Define your data structures - adjust according to your actual Go structs
 type ReportData struct {
 	GeneratedAt       time.Time
 	Manifests         []Manifest
@@ -221,7 +220,7 @@ func VetScanScripts(data ReportData) templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<!-- JavaScript Libraries --><script src=\"https://code.jquery.com/jquery-3.6.0.min.js\"></script><script src=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js\"></script><script src=\"https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js\"></script><script src=\"https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js\"></script><script src=\"https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js\"></script><script>\n\t\t// Convert Go data to JavaScript\n\t\tconst reportData = {\n\t\t\tPackageCount: parseInt(\"{ fmt.Sprintf(\"%d\", data.PackageCount) }\"),\n\t\t\tVulnCount: parseInt(\"{ fmt.Sprintf(\"%d\", data.VulnCount) }\"),\n\t\t\tMalwareDetections: parseInt(\"{ fmt.Sprintf(\"%d\", len(data.MalwareDetections)) }\"),\n\t\t\t// PolicyEvents removed as per request\n\t\t\tVulnerabilities: [\n\t\t\t\t{ for i, vuln := range data.Vulnerabilities }\n\t\t\t\t\t{ if i > 0 },{ end }\n\t\t\t\t\t{\n\t\t\t\t\t\tID: \"{ vuln.ID }\",\n\t\t\t\t\t\tPackage: \"{ vuln.Package }\",\n\t\t\t\t\t\tVersion: \"{ vuln.Version }\",\n\t\t\t\t\t\tSeverity: \"{ vuln.Severity }\",\n\t\t\t\t\t\tDescription: \"{ vuln.Description }\",\n\t\t\t\t\t\tLink: \"{ vuln.Link }\"\n\t\t\t\t\t}\n\t\t\t\t{ end }\n\t\t\t],\n\t\t\tPackages: [\n\t\t\t\t{ for i, pkg := range data.Packages }\n\t\t\t\t\t{ if i > 0 },{ end }\n\t\t\t\t\t{\n\t\t\t\t\t\tName: \"{ pkg.Name }\",\n\t\t\t\t\t\tVersion: \"{ pkg.Version }\",\n\t\t\t\t\t\tEcosystem: \"{ pkg.Ecosystem }\",\n\t\t\t\t\t\tVulnCount: parseInt(\"{ fmt.Sprintf(\"%d\", pkg.VulnCount) }\"),\n\t\t\t\t\t\tSource: \"{ pkg.Source }\"\n\t\t\t\t\t}\n\t\t\t\t{ end }\n\t\t\t]\n\t\t};\n\n\t\t$(document).ready(function() {\n\t\t\t// Initialize DataTables\n\t\t\t$('#manifestsTable').DataTable({\n\t\t\t\torder: [[0, 'asc']]\n\t\t\t});\n\n\t\t\t$('#packagesTable').DataTable({\n\t\t\t\torder: [[0, 'asc']]\n\t\t\t});\n\n\t\t\t$('#vulnsTable').DataTable({\n\t\t\t\torder: [[2, 'desc']]\n\t\t\t});\n\n\t\t\t$('#malwareTable').DataTable();\n\t\t\t$('#popularityTable').DataTable({\n\t\t\t\torder: [[1, 'desc']]\n\t\t\t});\n\n\t\t\t// Filter functionality\n\t\t\t$('#packageSearch').on('keyup', function() {\n\t\t\t\t$('#packagesTable').DataTable().search($(this).val()).draw();\n\t\t\t});\n\n\t\t\t$('#vulnSearch').on('keyup', function() {\n\t\t\t\t$('#vulnsTable').DataTable().search($(this).val()).draw();\n\t\t\t});\n\n\t\t\t$('#ecosystemFilter').on('change', function() {\n\t\t\t\tvar value = $(this).val();\n\t\t\t\t$('#packagesTable').DataTable().column(2).search(value).draw();\n\t\t\t});\n\n\t\t\t$('#severityFilter').on('change', function() {\n\t\t\t\tvar value = $(this).val();\n\t\t\t\t$('#vulnsTable').DataTable().column(2).search(value).draw();\n\t\t\t});\n\n\t\t\t// Chart functionality removed as charts aren't being shown\n\n\t\t\t// Top Affected Packages\n\t\t\tconst showTopVulnPackages = () => {\n\t\t\t\ttry {\n\t\t\t\t\tconst packages = reportData.Packages || [];\n\t\t\t\t\tconst vulnPackages = packages.filter(pkg => pkg.VulnCount > 0)\n\t\t\t\t\t\t.sort((a, b) => b.VulnCount - a.VulnCount)\n\t\t\t\t\t\t.slice(0, 5);\n\n\t\t\t\t\tconst topVulnDiv = document.getElementById('topVulnPackages');\n\t\t\t\t\tif (!topVulnDiv) {\n\t\t\t\t\t\tconsole.error(\"Top vulnerabilities div not found\");\n\t\t\t\t\t\treturn;\n\t\t\t\t\t}\n\t\t\t\tif (vulnPackages.length === 0) {\n\t\t\t\t\ttopVulnDiv.innerHTML = '<div class=\"alert alert-success\">No vulnerabilities detected</div>';\n\t\t\t\t\treturn;\n\t\t\t\t}\n\n\t\t\t\tlet html = '<ul class=\"list-group\">';\n\t\t\t\tvulnPackages.forEach(pkg => {\n\t\t\t\t\thtml += `\n\t\t\t\t\t\t<li class=\"list-group-item d-flex justify-content-between align-items-center\">\n\t\t\t\t\t\t\t<div>\n\t\t\t\t\t\t\t\t<strong>${pkg.Name}</strong>\n\t\t\t\t\t\t\t\t<small class=\"d-block text-muted\">${pkg.Version}</small>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<span class=\"badge bg-danger rounded-pill\">${pkg.VulnCount}</span>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t`;\n\t\t\t\t});\n\t\t\t\thtml += '</ul>';\n\t\t\t\ttopVulnDiv.innerHTML = html;\n\t\t\t\t} catch (error) {\n\t\t\t\t\tconsole.error(\"Error displaying top vulnerable packages:\", error);\n\t\t\t\t}\n\t\t\t};\n\n\t\t\t// Export functionality\n\t\t\t$('#exportManifestsBtn').on('click', function() {\n\t\t\t\tconst data = [];\n\t\t\t\t$('#manifestsTable tbody tr').each(function() {\n\t\t\t\t\tconst row = [];\n\t\t\t\t\t$(this).find('td').each(function() {\n\t\t\t\t\t\trow.push($(this).text());\n\t\t\t\t\t});\n\t\t\t\t\tdata.push(row);\n\t\t\t\t});\n\n\t\t\t\texportToCSV('manifests.csv', ['Path', 'Ecosystem', 'Package Count'], data);\n\t\t\t});\n\n\t\t\t$('#exportPackagesBtn').on('click', function() {\n\t\t\t\tconst data = [];\n\t\t\t\t$('#packagesTable tbody tr').each(function() {\n\t\t\t\t\tconst row = [];\n\t\t\t\t\t$(this).find('td').each(function() {\n\t\t\t\t\t\trow.push($(this).text());\n\t\t\t\t\t});\n\t\t\t\t\tdata.push(row);\n\t\t\t\t});\n\n\t\t\t\texportToCSV('packages.csv', ['Name', 'Version', 'Ecosystem', 'Vulnerabilities', 'Source'], data);\n\t\t\t});\n\n\t\t\tfunction exportToCSV(filename, headers, rows) {\n\t\t\t\tlet csvContent = headers.join(',') + '\\n';\n\n\t\t\t\trows.forEach(row => {\n\t\t\t\t\t// Quote cells that contain commas\n\t\t\t\t\tconst processedRow = row.map(cell => {\n\t\t\t\t\t\tif (cell.includes(',')) {\n\t\t\t\t\t\t\treturn `\"${cell}\"`;\n\t\t\t\t\t\t}\n\t\t\t\t\t\treturn cell;\n\t\t\t\t\t});\n\t\t\t\t\tcsvContent += processedRow.join(',') + '\\n';\n\t\t\t\t});\n\n\t\t\t\tconst blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });\n\t\t\t\tsaveAs(blob, filename);\n\t\t\t}\n\n\t\t\t// Initialize components\n\t\t\t// Wait for DOM to be fully loaded\n\t\t\t$(document).ready(() => {\n\t\t\t\t// Give a bit more time to ensure DOM is fully rendered\n\t\t\t\tsetTimeout(() => {\n\t\t\t\t\ttry {\n\t\t\t\t\t\tshowTopVulnPackages();\n\t\t\t\t\t} catch (error) {\n\t\t\t\t\t\tconsole.error(\"Error initializing data:\", error);\n\t\t\t\t\t}\n\t\t\t\t}, 500);\n\t\t\t});\n\n\t\t\t// Sort functionality\n\t\t\t$('#packageSort').on('change', function() {\n\t\t\t\tvar value = $(this).val();\n\t\t\t\tvar table = $('#packagesTable').DataTable();\n\t\t\t\tif (value === 'name') {\n\t\t\t\t\ttable.order([0, 'asc']).draw();\n\t\t\t\t} else if (value === 'vulns') {\n\t\t\t\t\ttable.order([3, 'desc']).draw();\n\t\t\t\t}\n\t\t\t});\n\n\t\t\t$('#vulnSort').on('change', function() {\n\t\t\t\tvar value = $(this).val();\n\t\t\t\tvar table = $('#vulnsTable').DataTable();\n\t\t\t\tif (value === 'severity') {\n\t\t\t\t\ttable.order([2, 'desc']).draw();\n\t\t\t\t} else if (value === 'id') {\n\t\t\t\t\ttable.order([0, 'asc']).draw();\n\t\t\t\t}\n\t\t\t});\n\n\t\t\t// Tab change handler to fix table width when switching tabs\n\t\t\t$('button[data-bs-toggle=\"tab\"]').on('shown.bs.tab', function (e) {\n\t\t\t\t$.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();\n\t\t\t});\n\t\t});\n\t</script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<!-- JavaScript Libraries --><script src=\"https://code.jquery.com/jquery-3.6.0.min.js\"></script><script src=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js\"></script><script src=\"https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js\"></script><script src=\"https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js\"></script><script src=\"https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js\"></script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -286,7 +285,7 @@ func VetScanHeader(generatedAt time.Time) templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(generatedAt.Format("2006-01-02 15:04:05"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 691, Col: 83}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 494, Col: 83}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -328,7 +327,7 @@ func VetScanSummary(data ReportData) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(data.Manifests)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 708, Col: 67}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 511, Col: 67}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -341,7 +340,7 @@ func VetScanSummary(data ReportData) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", data.PackageCount))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 717, Col: 65}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 520, Col: 65}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -354,7 +353,7 @@ func VetScanSummary(data ReportData) templ.Component {
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", data.VulnCount))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 726, Col: 62}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 529, Col: 62}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -367,13 +366,13 @@ func VetScanSummary(data ReportData) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(data.MalwareDetections)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 735, Col: 75}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 538, Col: 75}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div><div class=\"label\">Malware<span class=\"d-none d-sm-inline\">Detections</span></div></div></div></div></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div><div class=\"label\">Malware<span class=\"d-none d-sm-inline\">&nbsp; Detections</span></div></div></div></div></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -467,7 +466,7 @@ func ManifestsTab(manifests []Manifest) templ.Component {
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(manifest.Path)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 804, Col: 27}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 607, Col: 27}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -480,7 +479,7 @@ func ManifestsTab(manifests []Manifest) templ.Component {
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(manifest.Ecosystem)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 805, Col: 32}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 608, Col: 32}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -493,7 +492,7 @@ func ManifestsTab(manifests []Manifest) templ.Component {
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(manifest.Packages)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 806, Col: 55}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 609, Col: 55}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
@@ -545,7 +544,7 @@ func PackagesTab(packages []Package, ecosystems []string) templ.Component {
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(ecosystem)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 830, Col: 32}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 633, Col: 32}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
@@ -558,7 +557,7 @@ func PackagesTab(packages []Package, ecosystems []string) templ.Component {
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(ecosystem)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 830, Col: 46}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 633, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -581,7 +580,7 @@ func PackagesTab(packages []Package, ecosystems []string) templ.Component {
 			var templ_7745c5c3_Var20 string
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(pkg.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 865, Col: 22}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 668, Col: 22}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 			if templ_7745c5c3_Err != nil {
@@ -594,7 +593,7 @@ func PackagesTab(packages []Package, ecosystems []string) templ.Component {
 			var templ_7745c5c3_Var21 string
 			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(pkg.Version)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 866, Col: 25}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 669, Col: 25}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 			if templ_7745c5c3_Err != nil {
@@ -607,7 +606,7 @@ func PackagesTab(packages []Package, ecosystems []string) templ.Component {
 			var templ_7745c5c3_Var22 string
 			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(pkg.Ecosystem)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 867, Col: 27}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 670, Col: 27}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 			if templ_7745c5c3_Err != nil {
@@ -643,7 +642,7 @@ func PackagesTab(packages []Package, ecosystems []string) templ.Component {
 				var templ_7745c5c3_Var25 string
 				templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", pkg.VulnCount))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 871, Col: 45}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 674, Col: 45}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 				if templ_7745c5c3_Err != nil {
@@ -666,7 +665,7 @@ func PackagesTab(packages []Package, ecosystems []string) templ.Component {
 			var templ_7745c5c3_Var26 string
 			templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(pkg.Source)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 877, Col: 24}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 680, Col: 24}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 			if templ_7745c5c3_Err != nil {
@@ -706,7 +705,7 @@ func VulnerabilitiesTab(vulnerabilities []Vulnerability) templ.Component {
 			templ_7745c5c3_Var27 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<div class=\"tab-pane fade\" id=\"vulns\" role=\"tabpanel\" aria-labelledby=\"vulns-tab\"><div class=\"filter-bar\"><div class=\"row\"><div class=\"col-md-4\"><input type=\"text\" id=\"vulnSearch\" class=\"form-control\" placeholder=\"Search vulnerabilities...\"></div><div class=\"col-md-4\"><select id=\"severityFilter\" class=\"form-select\"><option value=\"\">All Severities</option> <option value=\"CRITICAL\">Critical</option> <option value=\"HIGH\">High</option> <option value=\"MEDIUM\">Medium</option> <option value=\"LOW\">Low</option></select></div><div class=\"col-md-4\"><select id=\"vulnSort\" class=\"form-select\"><option value=\"severity\">Sort by Severity</option> <option value=\"id\">Sort by ID</option></select></div></div></div><div class=\"card\"><div class=\"card-header\"><h5 class=\"mb-0 text-white\">Vulnerabilities</h5></div><div class=\"card-body\"><table class=\"table table-striped\" id=\"vulnsTable\"><thead><tr><th>ID</th><th>Package</th><th>Severity</th><th>Description</th><th>Fixed Version</th></tr></thead> <tbody>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<div class=\"tab-pane fade\" id=\"vulns\" role=\"tabpanel\" aria-labelledby=\"vulns-tab\"><div class=\"filter-bar\"><div class=\"row\"><form onSubmit=\"event.preventDefault(); searchVulnerabilities();\" class=\"col-md-4\"><input type=\"text\" id=\"vulnSearch\" class=\"form-control\" placeholder=\"Search vulnerabilities...\"></form><div class=\"col-md-4\"><select id=\"severityFilter\" class=\"form-select\"><option value=\"\">All Severities</option> <option value=\"CRITICAL\">Critical</option> <option value=\"HIGH\">High</option> <option value=\"MEDIUM\">Medium</option> <option value=\"LOW\">Low</option></select></div><div class=\"col-md-4\"><select id=\"vulnSort\" class=\"form-select\"><option value=\"severity\">Sort by Severity</option> <option value=\"id\">Sort by ID</option></select></div></div></div><div class=\"card\"><div class=\"card-header\"><h5 class=\"mb-0 text-white\">Vulnerabilities</h5></div><div class=\"card-body\"><table class=\"table table-striped\" id=\"vulnsTable\"><thead><tr><th>ID</th><th>Package</th><th>Severity</th><th>Description</th><th>Fixed Version</th></tr></thead> <tbody>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -718,7 +717,7 @@ func VulnerabilitiesTab(vulnerabilities []Vulnerability) templ.Component {
 			var templ_7745c5c3_Var28 templ.SafeURL
 			templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinURLErrs(vuln.Link)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 930, Col: 28}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 733, Col: 28}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 			if templ_7745c5c3_Err != nil {
@@ -731,7 +730,7 @@ func VulnerabilitiesTab(vulnerabilities []Vulnerability) templ.Component {
 			var templ_7745c5c3_Var29 string
 			templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(vuln.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 930, Col: 56}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 733, Col: 56}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 			if templ_7745c5c3_Err != nil {
@@ -744,7 +743,7 @@ func VulnerabilitiesTab(vulnerabilities []Vulnerability) templ.Component {
 			var templ_7745c5c3_Var30 string
 			templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(vuln.Package)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 932, Col: 26}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 735, Col: 26}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 			if templ_7745c5c3_Err != nil {
@@ -779,7 +778,7 @@ func VulnerabilitiesTab(vulnerabilities []Vulnerability) templ.Component {
 			var templ_7745c5c3_Var33 string
 			templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(vuln.Severity)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 935, Col: 25}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 738, Col: 25}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 			if templ_7745c5c3_Err != nil {
@@ -792,7 +791,7 @@ func VulnerabilitiesTab(vulnerabilities []Vulnerability) templ.Component {
 			var templ_7745c5c3_Var34 string
 			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(vuln.Description)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 938, Col: 30}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 741, Col: 30}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 			if templ_7745c5c3_Err != nil {
@@ -805,7 +804,7 @@ func VulnerabilitiesTab(vulnerabilities []Vulnerability) templ.Component {
 			var templ_7745c5c3_Var35 string
 			templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(vuln.Version)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 939, Col: 26}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 742, Col: 26}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 			if templ_7745c5c3_Err != nil {
@@ -862,7 +861,7 @@ func MalwareTab(malwareDetections []MalwareDetection) templ.Component {
 				var templ_7745c5c3_Var37 string
 				templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%s@%s", malware.Package, malware.Version))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 969, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 772, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
 				if templ_7745c5c3_Err != nil {
@@ -875,7 +874,7 @@ func MalwareTab(malwareDetections []MalwareDetection) templ.Component {
 				var templ_7745c5c3_Var38 string
 				templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(malware.Type)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 970, Col: 27}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 773, Col: 27}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 				if templ_7745c5c3_Err != nil {
@@ -888,7 +887,7 @@ func MalwareTab(malwareDetections []MalwareDetection) templ.Component {
 				var templ_7745c5c3_Var39 string
 				templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(malware.Source)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 971, Col: 29}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 774, Col: 29}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 				if templ_7745c5c3_Err != nil {
@@ -901,7 +900,7 @@ func MalwareTab(malwareDetections []MalwareDetection) templ.Component {
 				var templ_7745c5c3_Var40 string
 				templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(malware.Details)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 972, Col: 30}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 775, Col: 30}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 				if templ_7745c5c3_Err != nil {
@@ -968,7 +967,7 @@ func PopularityTab(metrics []PopularityMetric) templ.Component {
 				var templ_7745c5c3_Var42 string
 				templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(metric.Package + "@" + metric.Version)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 1008, Col: 52}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 811, Col: 52}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 				if templ_7745c5c3_Err != nil {
@@ -981,7 +980,7 @@ func PopularityTab(metrics []PopularityMetric) templ.Component {
 				var templ_7745c5c3_Var43 string
 				templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", metric.Downloads))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 1009, Col: 50}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 812, Col: 50}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 				if templ_7745c5c3_Err != nil {
@@ -994,7 +993,7 @@ func PopularityTab(metrics []PopularityMetric) templ.Component {
 				var templ_7745c5c3_Var44 string
 				templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", metric.Stars))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 1010, Col: 46}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 813, Col: 46}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 				if templ_7745c5c3_Err != nil {
@@ -1007,7 +1006,7 @@ func PopularityTab(metrics []PopularityMetric) templ.Component {
 				var templ_7745c5c3_Var45 string
 				templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", metric.Contributors))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 1011, Col: 53}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 814, Col: 53}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
 				if templ_7745c5c3_Err != nil {
@@ -1020,7 +1019,7 @@ func PopularityTab(metrics []PopularityMetric) templ.Component {
 				var templ_7745c5c3_Var46 string
 				templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(metric.LastUpdated)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 1012, Col: 33}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 815, Col: 33}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
 				if templ_7745c5c3_Err != nil {
