@@ -3,6 +3,7 @@ package templates
 import (
 	"fmt"
 	"time"
+	"strings"
 )
 
 type ReportData struct {
@@ -12,7 +13,7 @@ type ReportData struct {
 	Vulnerabilities   []Vulnerability
 	MalwareDetections []MalwareDetection
 	PackagePopularity []PopularityMetric
-	PolicyEvents      []PolicyEvent
+	PolicyViolations  []PolicyViolation
 	PackageCount      int
 	VulnCount         int
 	Ecosystems        []string
@@ -58,12 +59,13 @@ type PopularityMetric struct {
 	LastUpdated  string
 }
 
-type PolicyEvent struct {
-	PolicyName  string
-	Package     string
-	Version     string
-	Severity    string
-	Description string
+type PolicyViolation struct {
+	ID             string
+	PolicyName     string
+	Description    string
+	Solution       string
+	PackageName    string
+	PackageVersion string
 }
 
 // Helper functions for badge classes
@@ -79,18 +81,29 @@ func getSeverityBadgeClass(vulnCount int) string {
 }
 
 func getSeverityBadgeClassFromString(severity string) string {
-	switch severity {
-	case "CRITICAL":
-		return "badge-critical"
-	case "HIGH":
-		return "badge-high"
-	case "MEDIUM":
-		return "badge-medium"
-	case "LOW":
-		return "badge-low"
-	default:
-		return "badge-info"
-	}
+    switch strings.ToUpper(severity) {
+    case "CRITICAL":
+        return "badge-critical"
+    case "HIGH":
+        return "badge-high"
+    case "MEDIUM":
+        return "badge-medium"
+    case "LOW":
+        return "badge-low"
+    default:
+        return "badge-info"
+    }
+}
+
+func getMalwareBadgeClass(malType string) string {
+    switch strings.ToUpper(malType) {
+    case "MALWARE":
+        return "badge-malware"
+    case "SUSPICIOUS":
+        return "badge-suspicious"
+    default:
+        return "badge-info"
+    }
 }
 
 templ VetScanReport(data ReportData) {
@@ -279,6 +292,22 @@ templ VetScanStyles() {
 
 		.badge-info {
 			background-color: var(--info-color);
+			color: white;
+			font-weight: 600;
+			padding: 0.35em 0.65em;
+			border-radius: 4px;
+		}
+
+		.badge-malware {
+			background-color: var(--danger-color);
+			color: white;
+			font-weight: 600;
+			padding: 0.35em 0.65em;
+			border-radius: 4px;
+		}
+
+		.badge-suspicious {
+			background-color: var(--warning-color);
 			color: white;
 			font-weight: 600;
 			padding: 0.35em 0.65em;
@@ -568,6 +597,11 @@ templ VetScanTabs(data ReportData) {
 			</button>
 		</li>
 		<li class="nav-item" role="presentation">
+		  <button class="nav-link" id="policy-tab" data-bs-toggle="tab" data-bs-target="#policy" type="button" role="tab" aria-controls="policy" aria-selected="false">
+		    <i class="bi bi-shield-exclamation"></i> Policy Violations
+		  </button>
+		</li>
+		<li class="nav-item" role="presentation">
 			<button class="nav-link" id="popularity-tab" data-bs-toggle="tab" data-bs-target="#popularity" type="button" role="tab" aria-controls="popularity" aria-selected="false">
 				<i class="bi bi-graph-up"></i>Popularity
 			</button>
@@ -580,6 +614,7 @@ templ VetScanTabs(data ReportData) {
 		@VulnerabilitiesTab(data.Vulnerabilities)
 		@MalwareTab(data.MalwareDetections)
 		@PopularityTab(data.PackagePopularity)
+		@PolicyViolationsTab(data.PolicyViolations)
 	</div>
 }
 
@@ -588,9 +623,6 @@ templ ManifestsTab(manifests []Manifest) {
 		<div class="card mt-4">
 			<div class="card-header d-flex justify-content-between align-items-center">
 				<h5 class="mb-0 text-white"><i class="bi bi-file-text me-2 text-white"></i>Manifest Files</h5>
-				<button class="btn btn-sm btn-outline-primary" id="exportManifestsBtn">
-					<i class="bi bi-download me-1"></i> Export
-				</button>
 			</div>
 			<div class="card-body">
 				<table class="table table-striped" id="manifestsTable">
@@ -620,32 +652,6 @@ templ PackagesTab(packages []Package, ecosystems []string) {
 	<div class="tab-pane fade" id="packages" role="tabpanel" aria-labelledby="packages-tab">
 		<div class="alert alert-info mb-3">
 			<i class="bi bi-info-circle me-2"></i> This tab shows all detected packages across all manifests.
-		</div>
-		<div class="filter-bar">
-			<div class="row">
-				<div class="col-md-6">
-					<input type="text" id="packageSearch" class="form-control" placeholder="Search packages..."/>
-				</div>
-				<div class="col-md-3">
-					<select id="ecosystemFilter" class="form-select">
-						<option value="">All Ecosystems</option>
-						for _, ecosystem := range ecosystems {
-							<option value={ ecosystem }>{ ecosystem }</option>
-						}
-					</select>
-				</div>
-				<div class="col-md-2">
-					<select id="packageSort" class="form-select">
-						<option value="name">Sort by Name</option>
-						<option value="vulns">Sort by Vulnerabilities</option>
-					</select>
-				</div>
-				<div class="col-md-1">
-					<button class="btn btn-outline-primary w-100" id="exportPackagesBtn">
-						<i class="bi bi-download"></i>
-					</button>
-				</div>
-			</div>
 		</div>
 		<div class="card">
 			<div class="card-header">
@@ -689,28 +695,6 @@ templ PackagesTab(packages []Package, ecosystems []string) {
 
 templ VulnerabilitiesTab(vulnerabilities []Vulnerability) {
 	<div class="tab-pane fade" id="vulns" role="tabpanel" aria-labelledby="vulns-tab">
-		<div class="filter-bar">
-			<div class="row">
-				<div class="col-md-4">
-					<input type="text" id="vulnSearch" class="form-control" placeholder="Search vulnerabilities..."/>
-				</div>
-				<div class="col-md-4">
-					<select id="severityFilter" class="form-select">
-						<option value="">All Severities</option>
-						<option value="CRITICAL">Critical</option>
-						<option value="HIGH">High</option>
-						<option value="MEDIUM">Medium</option>
-						<option value="LOW">Low</option>
-					</select>
-				</div>
-				<div class="col-md-4">
-					<select id="vulnSort" class="form-select">
-						<option value="severity">Sort by Severity</option>
-						<option value="id">Sort by ID</option>
-					</select>
-				</div>
-			</div>
-		</div>
 		<div class="card">
 			<div class="card-header">
 				<h5 class="mb-0 text-white">Vulnerabilities</h5>
@@ -770,7 +754,11 @@ templ MalwareTab(malwareDetections []MalwareDetection) {
 							for _, malware := range malwareDetections {
 								<tr class="">
 									<td>{ fmt.Sprintf("%s@%s", malware.Package, malware.Version) }</td>
-									<td>{ malware.Type }</td>
+									<td>
+										<span class={ fmt.Sprintf("badge %s", getMalwareBadgeClass(malware.Type)) }>
+											{ malware.Type }
+										</span>
+									</td>
 									<td>{ malware.Source }</td>
 									<td>{ malware.Details }</td>
 								</tr>
@@ -825,4 +813,45 @@ templ PopularityTab(metrics []PopularityMetric) {
 			</div>
 		</div>
 	</div>
+}
+
+templ PolicyViolationsTab(policyViolations []PolicyViolation) {
+  <div class="tab-pane fade" id="policy" role="tabpanel" aria-labelledby="policy-tab">
+    <div class="card mt-3">
+      <div class="card-header">
+        <h5 class="text-white"><i class="bi bi-shield-exclamation text-white"></i> Policy Violations</h5>
+      </div>
+      <div class="card-body">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Policy Violated</th>
+              <th>Package</th>
+              <th>Version</th>
+              <th>Solution</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            for _, event := range policyViolations {
+              <tr>
+                <td>{event.PolicyName}</td>
+                <td>{event.PackageName}</td>
+                <td>{event.PackageVersion}</td>
+                <td>
+                  <span>
+                    {event.Solution}
+                  </span>
+                </td>
+                <td>{event.Description}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        if len(policyViolations ) == 0 {
+          <div class="text-white">No policy violations detected.</div>
+        }
+      </div>
+    </div>
+  </div>
 }

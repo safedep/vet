@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -18,11 +19,10 @@ type HtmlReportingConfig struct {
 	Path string // Output path for HTML file
 }
 
-type HTMLReporter struct {
+type htmlReporter struct {
 	config         HtmlReportingConfig
 	manifests      []*models.PackageManifest
 	analyzerEvents []*analyzer.AnalyzerEvent
-	policyEvents   []*policy.PolicyEvent
 }
 
 // Helper function to get NVD link from CVE ID
@@ -34,31 +34,28 @@ func getNvdLinkFromCveID(cveID string) string {
 }
 
 func NewHtmlReporter(config HtmlReportingConfig) (Reporter, error) {
-	return &HTMLReporter{
+	return &htmlReporter{
 		config:         config,
 		manifests:      []*models.PackageManifest{},
 		analyzerEvents: []*analyzer.AnalyzerEvent{},
-		policyEvents:   []*policy.PolicyEvent{},
 	}, nil
 }
 
-func (r *HTMLReporter) Name() string {
+func (r *htmlReporter) Name() string {
 	return "html"
 }
 
-func (r *HTMLReporter) AddManifest(manifest *models.PackageManifest) {
+func (r *htmlReporter) AddManifest(manifest *models.PackageManifest) {
 	r.manifests = append(r.manifests, manifest)
 }
 
-func (r *HTMLReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
+func (r *htmlReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 	r.analyzerEvents = append(r.analyzerEvents, event)
 }
 
-func (r *HTMLReporter) AddPolicyEvent(event *policy.PolicyEvent) {
-	r.policyEvents = append(r.policyEvents, event)
-}
+func (r *htmlReporter) AddPolicyEvent(event *policy.PolicyEvent) {}
 
-func (r *HTMLReporter) Finish() error {
+func (r *htmlReporter) Finish() error {
 	// Create the directory if it doesn't exist
 	dir := filepath.Dir(r.config.Path)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
@@ -107,7 +104,7 @@ func (r *HTMLReporter) Finish() error {
 		Vulnerabilities:   r.getVulnerabilities(),
 		MalwareDetections: r.getMalwareDetections(),
 		PackagePopularity: r.getPopularityInfo(),
-		PolicyEvents:      r.convertPolicyEvents(),
+		PolicyViolations:  r.convertPolicyViolations(),
 		PackageCount:      r.getPackageCount(),
 		VulnCount:         r.getVulnCount(),
 		Ecosystems:        r.getEcosystems(),
@@ -124,7 +121,7 @@ func (r *HTMLReporter) Finish() error {
 
 // Helper methods to prepare data for the HTML template
 
-func (r *HTMLReporter) getEcosystems() []string {
+func (r *htmlReporter) getEcosystems() []string {
 	ecosystemsMap := make(map[string]bool)
 
 	for _, manifest := range r.manifests {
@@ -139,7 +136,7 @@ func (r *HTMLReporter) getEcosystems() []string {
 	return ecosystems
 }
 
-func (r *HTMLReporter) getPackageCount() int {
+func (r *htmlReporter) getPackageCount() int {
 	count := 0
 	for _, manifest := range r.manifests {
 		count += len(manifest.Packages)
@@ -147,7 +144,7 @@ func (r *HTMLReporter) getPackageCount() int {
 	return count
 }
 
-func (r *HTMLReporter) convertManifests() []templates.Manifest {
+func (r *htmlReporter) convertManifests() []templates.Manifest {
 	manifests := []templates.Manifest{}
 	for _, m := range r.manifests {
 		packages := []templates.Package{}
@@ -167,19 +164,43 @@ func (r *HTMLReporter) convertManifests() []templates.Manifest {
 			Packages:  packages,
 		})
 	}
+
+	sort.Slice(manifests, func(i, j int) bool {
+		return len(manifests[i].Packages) > len(manifests[j].Packages)
+	})
 	return manifests
 }
 
-func (r *HTMLReporter) convertPolicyEvents() []templates.PolicyEvent {
-	events := []templates.PolicyEvent{}
+func (r *htmlReporter) convertPolicyViolations() []templates.PolicyViolation {
+	events := []templates.PolicyViolation{}
 
-	// Since PolicyEvent is currently empty in the policy package,
-	// we'll have to adapt once it has actual fields
-	// For now, return an empty slice to avoid nil issues
+	for _, event := range r.analyzerEvents {
+		if !event.IsFilterMatch() {
+			continue
+		}
+
+		policyViolId := fmt.Sprintf("%s-%s", gitlabCustomPolicySuffix, event.Package.Id())
+
+		// Create a vulnerability entry for the policy violation
+		policyViolation := templates.PolicyViolation{
+			ID:         policyViolId,
+			PolicyName: event.Filter.GetName(),
+			Description: fmt.Sprintf("%s \n\n %s \n\n The CEL expression is:  \n\n ```yaml\n%s\n```\n\n",
+				event.Filter.GetSummary(),
+				event.Filter.GetDescription(),
+				event.Filter.GetValue(),
+			),
+			Solution:       getPolicyViolationSolution(event),
+			PackageName:    event.Package.Name,
+			PackageVersion: event.Package.Version,
+		}
+
+		events = append(events, policyViolation)
+	}
 	return events
 }
 
-func (r *HTMLReporter) getVulnerabilities() []templates.Vulnerability {
+func (r *htmlReporter) getVulnerabilities() []templates.Vulnerability {
 	vulns := []templates.Vulnerability{}
 
 	// First try to extract vulnerabilities from package insights (preferred method)
@@ -276,14 +297,34 @@ func (r *HTMLReporter) getVulnerabilities() []templates.Vulnerability {
 		}
 	}
 
+	severityRank := map[string]int{
+		"CRITICAL": 0,
+		"HIGH":     1,
+		"MEDIUM":   2,
+		"LOW":      3,
+		"UNKNOWN":  4,
+	}
+
+	sort.Slice(vulns, func(i, j int) bool {
+		rankI, okI := severityRank[strings.ToUpper(vulns[i].Severity)]
+		rankJ, okJ := severityRank[strings.ToUpper(vulns[j].Severity)]
+		if !okI {
+			rankI = severityRank["UNKNOWN"]
+		}
+		if !okJ {
+			rankJ = severityRank["UNKNOWN"]
+		}
+		return rankI < rankJ
+	})
+
 	return vulns
 }
 
-func (r *HTMLReporter) getVulnCount() int {
+func (r *htmlReporter) getVulnCount() int {
 	return len(r.getVulnerabilities())
 }
 
-func (r *HTMLReporter) getPackages() []templates.Package {
+func (r *htmlReporter) getPackages() []templates.Package {
 	packages := []templates.Package{}
 	vulnCountMap := make(map[string]int)
 
@@ -320,10 +361,14 @@ func (r *HTMLReporter) getPackages() []templates.Package {
 		}
 	}
 
+	sort.Slice(packages, func(i, j int) bool {
+		return packages[i].VulnCount > packages[j].VulnCount
+	})
+
 	return packages
 }
 
-func (r *HTMLReporter) getMalwareDetections() []templates.MalwareDetection {
+func (r *htmlReporter) getMalwareDetections() []templates.MalwareDetection {
 	malware := []templates.MalwareDetection{}
 
 	for _, manifest := range r.manifests {
@@ -392,10 +437,27 @@ func (r *HTMLReporter) getMalwareDetections() []templates.MalwareDetection {
 		}
 	}
 
+	typeRank := map[string]int{
+		"Malware":            0,
+		"Suspicious":         1,
+		"Lockfile Poisoning": 2,
+	}
+
+	sort.Slice(malware, func(i, j int) bool {
+		rankI, okI := typeRank[malware[i].Type]
+		rankJ, okJ := typeRank[malware[j].Type]
+		if !okI {
+			rankI = 99 // unknown types go last
+		}
+		if !okJ {
+			rankJ = 99
+		}
+		return rankI < rankJ
+	})
 	return malware
 }
 
-func (r *HTMLReporter) getPopularityInfo() []templates.PopularityMetric {
+func (r *htmlReporter) getPopularityInfo() []templates.PopularityMetric {
 	popularity := []templates.PopularityMetric{}
 
 	// Limit to maximum 1000 packages to avoid memory issues
