@@ -262,7 +262,7 @@ func VetScanStyles() templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<style>\n\t\t:root {\n\t\t\t--primary-color: #0366d6;\n\t\t\t--primary-rgb: 3, 102, 214;\n\t\t\t--danger-color: #dc3545;\n\t\t\t--warning-color: #f0ad4e;\n\t\t\t--info-color: #5bc0de;\n\t\t\t--success-color: #28a745;\n\t\t\t--low-severity: #5bc0de;\n\t\t\t--medium-severity: #f0ad4e;\n\t\t\t--high-severity: #fd7e14;\n\t\t\t--critical-severity: #dc3545;\n\t\t\t--bg-color: #f6f8fa;\n\t\t\t--card-bg: #ffffff;\n\t\t\t--text-color: #f0f6fc;\n\t\t\t--border-color: #e1e4e8;\n\t\t\t--card-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);\n\t\t\t--hover-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);\n\t\t\t--stats-primary: #0366d6;\n\t\t\t--stats-info: #5bc0de;\n\t\t\t--stats-danger: #dc3545;\n\t\t\t--stats-warning: #f0ad4e;\n\t\t}\n\n\t\tbody {\n\t\t\tfont-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, Arial, sans-serif;\n\t\t\tline-height: 1.6;\n\t\t\tcolor: var(--text-color);\n\t\t\tbackground-color: var(--bg-color);\n\t\t\tmargin: 0;\n\t\t\tpadding: 0;\n\t\t\ttransition: background-color 0.3s ease, color 0.3s ease;\n\t\t}\n\n\t\t.header {\n\t\t\tbackground: linear-gradient(135deg, #051937, #004d7a, #0077B6);\n\t\t\tcolor: white;\n\t\t\tpadding: 30px 0;\n\t\t\tmargin-bottom: 40px;\n\t\t\tborder-bottom: 1px solid rgba(255, 255, 255, 0.1);\n\t\t\tbox-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);\n\t\t}\n\n\t\t.nav-tabs {\n\t\t\tborder-bottom: 1px solid var(--border-color);\n\t\t\tmargin-bottom: 25px;\n\t\t}\n\n\t\t.nav-tabs .nav-link {\n\t\t\tfont-weight: 600;\n\t\t\tpadding: 10px 16px;\n\t\t\tborder-radius: 6px 6px 0 0;\n\t\t\tcolor: var(--text-color);\n\t\t\topacity: 0.8;\n\t\t\tmargin-right: 5px;\n\t\t\tborder: 1px solid transparent;\n\t\t\ttransition: all 0.2s ease;\n\t\t}\n\n\t\t.nav-tabs .nav-link:hover:not(.active) {\n\t\t\tborder-color: rgba(0,0,0,0.05);\n\t\t\tbackground-color: rgba(0,0,0,0.02);\n\t\t\topacity: 0.9;\n\t\t}\n\n\t\t.nav-tabs .nav-link.active {\n\t\t\tbackground-color: var(--card-bg);\n\t\t\tborder-color: var(--border-color) var(--border-color) var(--card-bg);\n\t\t\tcolor: var(--primary-color);\n\t\t\tfont-weight: 700;\n\t\t\ttransform: translateY(-2px);\n\t\t\topacity: 1;\n\t\t\ttransition: transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease;\n\t\t}\n\n\t\t.nav-tabs .nav-link i {\n\t\t\tmargin-right: 6px;\n\t\t}\n\n\t\t.card {\n\t\t\tborder-radius: 10px;\n\t\t\tbox-shadow: var(--card-shadow);\n\t\t\tmargin-bottom: 20px;\n\t\t\tborder: 1px solid var(--border-color);\n\t\t\tbackground-color: var(--card-bg);\n\t\t\ttransition: transform 0.2s, box-shadow 0.2s, background-color 0.3s ease;\n\t\t}\n\n\t\t.card:hover {\n\t\t\ttransform: translateY(-2px);\n\t\t\tbox-shadow: var(--hover-shadow);\n\t\t}\n\n\t\t.card-header {\n\t\t\tbackground-color: var(--bg-color);\n\t\t\tborder-bottom: 1px solid var(--border-color);\n\t\t\tfont-weight: 600;\n\t\t\ttransition: background-color 0.3s ease;\n\t\t}\n\n\t\t.badge-critical {\n\t\t\tbackground-color: var(--critical-severity);\n\t\t\tcolor: white;\n\t\t\tfont-weight: 600;\n\t\t\tpadding: 0.35em 0.65em;\n\t\t\tborder-radius: 4px;\n\t\t}\n\n\t\t.badge-high {\n\t\t\tbackground-color: var(--high-severity);\n\t\t\tcolor: white;\n\t\t\tfont-weight: 600;\n\t\t\tpadding: 0.35em 0.65em;\n\t\t\tborder-radius: 4px;\n\t\t}\n\n\t\t.badge-medium {\n\t\t\tbackground-color: var(--medium-severity);\n\t\t\tcolor: white;\n\t\t\tfont-weight: 600;\n\t\t\tpadding: 0.35em 0.65em;\n\t\t\tborder-radius: 4px;\n\t\t}\n\n\t\t.badge-low {\n\t\t\tbackground-color: var(--low-severity);\n\t\t\tcolor: white;\n\t\t\tfont-weight: 600;\n\t\t\tpadding: 0.35em 0.65em;\n\t\t\tborder-radius: 4px;\n\t\t}\n\n\t\t.badge-info {\n\t\t\tbackground-color: var(--info-color);\n\t\t\tcolor: white;\n\t\t\tfont-weight: 600;\n\t\t\tpadding: 0.35em 0.65em;\n\t\t\tborder-radius: 4px;\n\t\t}\n\n\t\t.badge-malware {\n\t\t\tbackground-color: var(--danger-color);\n\t\t\tcolor: white;\n\t\t\tfont-weight: 600;\n\t\t\tpadding: 0.35em 0.65em;\n\t\t\tborder-radius: 4px;\n\t\t}\n\n\t\t.badge-suspicious {\n\t\t\tbackground-color: var(--warning-color);\n\t\t\tcolor: white;\n\t\t\tfont-weight: 600;\n\t\t\tpadding: 0.35em 0.65em;\n\t\t\tborder-radius: 4px;\n\t\t}\n\n\t\t.table th {\n\t\t\tfont-weight: 600;\n\t\t\tborder-top: none;\n\t\t\tborder-bottom-width: 1px;\n\t\t\ttext-transform: uppercase;\n\t\t\tfont-size: 0.8rem;\n\t\t\tletter-spacing: 0.5px;\n\t\t\tcolor: #23272b !important;\n\t\t}\n\n\t\t.code-snippet {\n\t\t\tbackground-color: var(--bg-color);\n\t\t\tborder: 1px solid var(--border-color);\n\t\t\tborder-radius: 6px;\n\t\t\tmargin: 10px 0;\n\t\t\toverflow-x: auto;\n\t\t\tfont-family: SFMono-Regular, Consolas, \"Liberation Mono\", Menlo, monospace;\n\t\t\ttransition: background-color 0.3s ease, border-color 0.3s ease;\n\t\t}\n\n\t\t.code-snippet pre {\n\t\t\tmargin: 0;\n\t\t\tpadding: 10px;\n\t\t\tfont-size: 0.85em;\n\t\t\ttab-size: 4;\n\t\t}\n\n\t\t.code-snippet .line-number {\n\t\t\tcolor: #57606a;\n\t\t\ttext-align: right;\n\t\t\tpadding-right: 10px;\n\t\t\tuser-select: none;\n\t\t\tborder-right: 1px solid #ddd;\n\t\t}\n\n\t\t.stats-card {\n\t\t\ttext-align: center;\n\t\t\tpadding: 20px 15px;\n\t\t\ttransition: all 0.3s ease;\n\t\t\tborder-radius: 10px;\n\t\t\theight: 100%;\n\t\t\tdisplay: flex;\n\t\t\tflex-direction: column;\n\t\t\talign-items: center;\n\t\t\tjustify-content: center;\n\t\t}\n\n\t\t.stats-card:hover {\n\t\t\ttransform: translateY(-5px);\n\t\t\tbox-shadow: var(--hover-shadow);\n\t\t}\n\n\t\t.stats-card .icon {\n\t\t\tfont-size: 2.2rem;\n\t\t\tmargin-bottom: 12px;\n\t\t\topacity: 0.9;\n\t\t}\n\n\t\t.number {\n\t\t\tfont-size: 1.8rem;\n\t\t\tfont-weight: 700;\n\t\t\tmargin-bottom: 5px;\n\t\t\tcolor: #f0f6fc;\n\t\t}\n\n\t\t.stats-card .label {\n\t\t\tfont-size: 0.95rem;\n\t\t\tcolor: #6a737d;\n\t\t\tfont-weight: 500;\n\t\t}\n\n\t\t.filter-bar {\n\t\t\tbackground-color: var(--card-bg);\n\t\t\tpadding: 15px;\n\t\t\tborder-radius: 8px;\n\t\t\tmargin-bottom: 20px;\n\t\t\tborder: 1px solid var(--border-color);\n\t\t\ttransition: background-color 0.3s ease, border-color 0.3s ease;\n\t\t}\n\n\t\t.summary-box {\n\t\t\tpadding: 25px;\n\t\t\tmargin-bottom: 30px;\n\t\t\tborder-radius: 10px;\n\t\t\tbackground-color: var(--card-bg);\n\t\t\tborder: 1px solid var(--border-color);\n\t\t\tbox-shadow: var(--card-shadow);\n\t\t\ttransition: background-color 0.3s ease, border-color 0.3s ease;\n\t\t}\n\n\t\t.tab-pane {\n\t\t\tpadding: 20px 0;\n\t\t\tanimation: fadeIn 0.5s;\n\t\t\tmin-height: 300px;\n\t\t}\n\n\t\t@keyframes fadeIn {\n\t\t\tfrom { opacity: 0; transform: translateY(10px); }\n\t\t\tto { opacity: 1; transform: translateY(0); }\n\t\t}\n\n\t\tfooter {\n\t\t\tbackground-color: #24292e;\n\t\t\tcolor: #fff;\n\t\t\tpadding: 35px 0;\n\t\t\tmargin-top: 60px;\n\t\t\tborder-top: 1px solid rgba(255, 255, 255, 0.1);\n\t\t\tbox-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);\n\t\t}\n\n\t\tfooter h5 {\n\t\t\tfont-weight: 600;\n\t\t\tcolor: #fff;\n\t\t}\n\n\t\tfooter p {\n\t\t\tcolor: rgba(255, 255, 255, 0.8);\n\t\t\tfont-size: 0.9rem;\n\t\t}\n\n\t\tfooter a {\n\t\t\tcolor: var(--primary-color);\n\t\t\ttext-decoration: none;\n\t\t\ttransition: color 0.2s ease;\n\t\t}\n\n\t\tfooter a:hover {\n\t\t\tcolor: var(--primary-color);\n\t\t\ttext-decoration: underline;\n\t\t}\n\n\t\t.btn-primary {\n\t\t\tbackground-color: var(--primary-color);\n\t\t\tborder-color: var(--primary-color);\n\t\t\tbox-shadow: 0 2px 4px rgba(3, 102, 214, 0.2);\n\t\t\tfont-weight: 500;\n\t\t\ttransition: all 0.2s ease;\n\t\t}\n\n\t\t.btn-primary:hover {\n\t\t\ttransform: translateY(-1px);\n\t\t\tbox-shadow: 0 4px 8px rgba(3, 102, 214, 0.3);\n\t\t\tbackground-color: var(--primary-color);\n\t\t\tfilter: brightness(110%);\n\t\t}\n\n\t\t/* Dark mode styles */\n\t\t@media (prefers-color-scheme: dark) {\n\t\t\t:root {\n\t\t\t\t--bg-color: #0d1117;\n\t\t\t\t--card-bg: #161b22;\n\t\t\t\t--text-color: #e6edf3;\n\t\t\t\t--border-color: #30363d;\n\t\t\t\t--card-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);\n\t\t\t\t--hover-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);\n\t\t\t\t--primary-color: #58a6ff;\n\t\t\t\t--primary-rgb: 88, 166, 255;\n\t\t\t\t--stats-primary: #58a6ff;\n\t\t\t\t--stats-info: #56d4fa;\n\t\t\t\t--stats-danger: #f85149;\n\t\t\t\t--stats-warning: #e3b341;\n\t\t\t}\n\n\t\t\t.table th {\n                background-color: #22304e !important;\n                color: #f5f7fa !important;\n\t\t\t}\n\n\t\t\t/* Dark theme table striping */\n\t\t\t/* Unified table row background for all data rows in dark mode */\n\t\t\ttable tbody tr td {\n\t\t\t\tbackground-color: #23272b !important;\n\t\t\t\tcolor: #f5f7fa !important;\n\t\t\t}\n\n\t\t\t/* Hover effect for table rows in dark mode */\n\t\t\t.table-stripe\n\n\t\t\t.btn-primary {\n\t\t\t\tbox-shadow: 0 2px 4px rgba(88, 166, 255, 0.2);\n\t\t\t}\n\n\t\t\t.btn-primary:hover {\n\t\t\t\tbox-shadow: 0 4px 8px rgba(88, 166, 255, 0.3);\n\t\t\t}\n\n\t\t\tfooter {\n\t\t\t\tbackground-color: #161b22;\n\t\t\t\tborder-top: 1px solid var(--border-color);\n\t\t\t}\n\n\t\t\tfooter a {\n\t\t\t\tcolor: var(--primary-color);\n\t\t\t}\n\t\t}\n\t</style>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<style>\n\t\t:root {\n\t\t\t--primary-color: #0366d6;\n\t\t\t--primary-rgb: 3, 102, 214;\n\t\t\t--danger-color: #dc3545;\n\t\t\t--warning-color: #f0ad4e;\n\t\t\t--info-color: #5bc0de;\n\t\t\t--success-color: #28a745;\n\t\t\t--low-severity: #5bc0de;\n\t\t\t--medium-severity: #f0ad4e;\n\t\t\t--high-severity: #fd7e14;\n\t\t\t--critical-severity: #dc3545;\n\t\t\t--bg-color: #f6f8fa;\n\t\t\t--card-bg: #ffffff;\n\t\t\t--text-color: #f0f6fc;\n\t\t\t--border-color: #e1e4e8;\n\t\t\t--card-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);\n\t\t\t--hover-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);\n\t\t\t--stats-primary: #0366d6;\n\t\t\t--stats-info: #5bc0de;\n\t\t\t--stats-danger: #dc3545;\n\t\t\t--stats-warning: #f0ad4e;\n\t\t}\n\n\t\tbody {\n\t\t\tfont-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, Arial, sans-serif;\n\t\t\tline-height: 1.6;\n\t\t\tcolor: var(--text-color);\n\t\t\tbackground-color: var(--bg-color);\n\t\t\tmargin: 0;\n\t\t\tpadding: 0;\n\t\t\ttransition: background-color 0.3s ease, color 0.3s ease;\n\t\t}\n\n\t\t.header {\n\t\t\tbackground: linear-gradient(135deg, #051937, #004d7a, #0077B6);\n\t\t\tcolor: white;\n\t\t\tpadding: 30px 0;\n\t\t\tmargin-bottom: 40px;\n\t\t\tborder-bottom: 1px solid rgba(255, 255, 255, 0.1);\n\t\t\tbox-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);\n\t\t}\n\n\t\t.nav-tabs {\n\t\t\tborder-bottom: 1px solid var(--border-color);\n\t\t\tmargin-bottom: 25px;\n\t\t}\n\n\t\t.nav-tabs .nav-link {\n\t\t\tfont-weight: 600;\n\t\t\tpadding: 10px 16px;\n\t\t\tborder-radius: 6px 6px 0 0;\n\t\t\tcolor: var(--text-color);\n\t\t\topacity: 0.8;\n\t\t\tmargin-right: 5px;\n\t\t\tborder: 1px solid transparent;\n\t\t\ttransition: all 0.2s ease;\n\t\t}\n\n\t\t.nav-tabs .nav-link:hover:not(.active) {\n\t\t\tborder-color: rgba(0,0,0,0.05);\n\t\t\tbackground-color: rgba(0,0,0,0.02);\n\t\t\topacity: 0.9;\n\t\t}\n\n\t\t.nav-tabs .nav-link.active {\n\t\t\tbackground-color: var(--card-bg);\n\t\t\tborder-color: var(--border-color) var(--border-color) var(--card-bg);\n\t\t\tcolor: var(--primary-color);\n\t\t\tfont-weight: 700;\n\t\t\ttransform: translateY(-2px);\n\t\t\topacity: 1;\n\t\t\ttransition: transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease;\n\t\t}\n\n\t\t.nav-tabs .nav-link i {\n\t\t\tmargin-right: 6px;\n\t\t}\n\n\t\t.card {\n\t\t\tborder-radius: 10px;\n\t\t\tbox-shadow: var(--card-shadow);\n\t\t\tmargin-bottom: 20px;\n\t\t\tborder: 1px solid var(--border-color);\n\t\t\tbackground-color: var(--card-bg);\n\t\t\ttransition: transform 0.2s, box-shadow 0.2s, background-color 0.3s ease;\n\t\t}\n\n\t\t.card:hover {\n\t\t\ttransform: translateY(-2px);\n\t\t\tbox-shadow: var(--hover-shadow);\n\t\t}\n\n\t\t.card-header {\n\t\t\tbackground-color: var(--bg-color);\n\t\t\tborder-bottom: 1px solid var(--border-color);\n\t\t\tfont-weight: 600;\n\t\t\ttransition: background-color 0.3s ease;\n\t\t}\n\n\t\t.badge-critical {\n\t\t\tbackground-color: var(--critical-severity);\n\t\t\tcolor: white;\n\t\t\tfont-weight: 600;\n\t\t\tpadding: 0.35em 0.65em;\n\t\t\tborder-radius: 4px;\n\t\t}\n\n\t\t.badge-high {\n\t\t\tbackground-color: var(--high-severity);\n\t\t\tcolor: white;\n\t\t\tfont-weight: 600;\n\t\t\tpadding: 0.35em 0.65em;\n\t\t\tborder-radius: 4px;\n\t\t}\n\n\t\t.badge-medium {\n\t\t\tbackground-color: var(--medium-severity);\n\t\t\tcolor: white;\n\t\t\tfont-weight: 600;\n\t\t\tpadding: 0.35em 0.65em;\n\t\t\tborder-radius: 4px;\n\t\t}\n\n\t\t.badge-low {\n\t\t\tbackground-color: var(--low-severity);\n\t\t\tcolor: white;\n\t\t\tfont-weight: 600;\n\t\t\tpadding: 0.35em 0.65em;\n\t\t\tborder-radius: 4px;\n\t\t}\n\n\t\t.badge-info {\n\t\t\tbackground-color: var(--info-color);\n\t\t\tcolor: white;\n\t\t\tfont-weight: 600;\n\t\t\tpadding: 0.35em 0.65em;\n\t\t\tborder-radius: 4px;\n\t\t}\n\n\t\t.badge-malware {\n\t\t\tbackground-color: var(--danger-color);\n\t\t\tcolor: white;\n\t\t\tfont-weight: 600;\n\t\t\tpadding: 0.35em 0.65em;\n\t\t\tborder-radius: 4px;\n\t\t}\n\n\t\t.badge-suspicious {\n\t\t\tbackground-color: var(--warning-color);\n\t\t\tcolor: white;\n\t\t\tfont-weight: 600;\n\t\t\tpadding: 0.35em 0.65em;\n\t\t\tborder-radius: 4px;\n\t\t}\n\n\t\t.table th {\n\t\t\tfont-weight: 600;\n\t\t\tborder-top: none;\n\t\t\tborder-bottom-width: 1px;\n\t\t\ttext-transform: uppercase;\n\t\t\tfont-size: 0.8rem;\n\t\t\tletter-spacing: 0.5px;\n\t\t\tcolor: #23272b !important;\n\t\t}\n\n\t\t.code-snippet {\n\t\t\tbackground-color: var(--bg-color);\n\t\t\tborder: 1px solid var(--border-color);\n\t\t\tborder-radius: 6px;\n\t\t\tmargin: 10px 0;\n\t\t\toverflow-x: auto;\n\t\t\tfont-family: SFMono-Regular, Consolas, \"Liberation Mono\", Menlo, monospace;\n\t\t\ttransition: background-color 0.3s ease, border-color 0.3s ease;\n\t\t}\n\n\t\t.code-snippet pre {\n\t\t\tmargin: 0;\n\t\t\tpadding: 10px;\n\t\t\tfont-size: 0.85em;\n\t\t\ttab-size: 4;\n\t\t}\n\n\t\t.code-snippet .line-number {\n\t\t\tcolor: #57606a;\n\t\t\ttext-align: right;\n\t\t\tpadding-right: 10px;\n\t\t\tuser-select: none;\n\t\t\tborder-right: 1px solid #ddd;\n\t\t}\n\n\t\t.stats-card {\n\t\t\ttext-align: center;\n\t\t\tpadding: 20px 15px;\n\t\t\ttransition: all 0.3s ease;\n\t\t\tborder-radius: 10px;\n\t\t\theight: 100%;\n\t\t\tdisplay: flex;\n\t\t\tflex-direction: column;\n\t\t\talign-items: center;\n\t\t\tjustify-content: center;\n\t\t}\n\n\t\t.stats-card:hover {\n\t\t\ttransform: translateY(-5px);\n\t\t\tbox-shadow: var(--hover-shadow);\n\t\t}\n\n\t\t.stats-card .icon {\n\t\t\tfont-size: 2.2rem;\n\t\t\tmargin-bottom: 12px;\n\t\t\topacity: 0.9;\n\t\t}\n\n\t\t.number {\n\t\t\tfont-size: 1.8rem;\n\t\t\tfont-weight: 700;\n\t\t\tmargin-bottom: 5px;\n\t\t\tcolor: #f0f6fc;\n\t\t}\n\n\t\t.stats-card .label {\n\t\t\tfont-size: 0.95rem;\n\t\t\tcolor: #6a737d;\n\t\t\tfont-weight: 500;\n\t\t}\n\n\t\t.filter-bar {\n\t\t\tbackground-color: var(--card-bg);\n\t\t\tpadding: 15px;\n\t\t\tborder-radius: 8px;\n\t\t\tmargin-bottom: 20px;\n\t\t\tborder: 1px solid var(--border-color);\n\t\t\ttransition: background-color 0.3s ease, border-color 0.3s ease;\n\t\t}\n\n\t\t.summary-box {\n\t\t\tpadding: 25px;\n\t\t\tmargin-bottom: 30px;\n\t\t\tborder-radius: 10px;\n\t\t\tbackground-color: var(--card-bg);\n\t\t\tborder: 1px solid var(--border-color);\n\t\t\tbox-shadow: var(--card-shadow);\n\t\t\ttransition: background-color 0.3s ease, border-color 0.3s ease;\n\t\t}\n\n\t\t.tab-pane {\n\t\t\tpadding: 20px 0;\n\t\t\tanimation: fadeIn 0.5s;\n\t\t\tmin-height: 300px;\n\t\t}\n\n\t\t@keyframes fadeIn {\n\t\t\tfrom { opacity: 0; transform: translateY(10px); }\n\t\t\tto { opacity: 1; transform: translateY(0); }\n\t\t}\n\n\t\tfooter {\n\t\t\tbackground-color: #24292e;\n\t\t\tcolor: #fff;\n\t\t\tpadding: 35px 0;\n\t\t\tmargin-top: 60px;\n\t\t\tborder-top: 1px solid rgba(255, 255, 255, 0.1);\n\t\t\tbox-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);\n\t\t}\n\n\t\tfooter h5 {\n\t\t\tfont-weight: 600;\n\t\t\tcolor: #fff;\n\t\t}\n\n\t\tfooter p {\n\t\t\tcolor: rgba(255, 255, 255, 0.8);\n\t\t\tfont-size: 0.9rem;\n\t\t}\n\n\t\tfooter a {\n\t\t\tcolor: var(--primary-color);\n\t\t\ttext-decoration: none;\n\t\t\ttransition: color 0.2s ease;\n\t\t}\n\n\t\tfooter a:hover {\n\t\t\tcolor: var(--primary-color);\n\t\t\ttext-decoration: underline;\n\t\t}\n\n\t\t.btn-primary {\n\t\t\tbackground-color: var(--primary-color);\n\t\t\tborder-color: var(--primary-color);\n\t\t\tbox-shadow: 0 2px 4px rgba(3, 102, 214, 0.2);\n\t\t\tfont-weight: 500;\n\t\t\ttransition: all 0.2s ease;\n\t\t}\n\n\t\t.btn-primary:hover {\n\t\t\ttransform: translateY(-1px);\n\t\t\tbox-shadow: 0 4px 8px rgba(3, 102, 214, 0.3);\n\t\t\tbackground-color: var(--primary-color);\n\t\t\tfilter: brightness(110%);\n\t\t}\n\n\t\t/* Dark mode styles */\n\t\t@media (prefers-color-scheme: dark) {\n\t\t\t:root {\n\t\t\t\t--bg-color: #0d1117;\n\t\t\t\t--card-bg: #161b22;\n\t\t\t\t--text-color: #e6edf3;\n\t\t\t\t--border-color: #30363d;\n\t\t\t\t--card-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);\n\t\t\t\t--hover-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);\n\t\t\t\t--primary-color: #58a6ff;\n\t\t\t\t--primary-rgb: 88, 166, 255;\n\t\t\t\t--stats-primary: #58a6ff;\n\t\t\t\t--stats-info: #56d4fa;\n\t\t\t\t--stats-danger: #f85149;\n\t\t\t\t--stats-warning: #e3b341;\n\t\t\t}\n\n\t\t\t.table th {\n                background-color: #22304e !important;\n                color: #f5f7fa !important;\n\t\t\t}\n\n\t\t\t/* Dark theme table striping */\n\t\t\t/* Unified table row background for all data rows in dark mode */\n\t\t\ttable tbody tr td {\n\t\t\t\tbackground-color: #23272b !important;\n\t\t\t\tcolor: #f5f7fa !important;\n\t\t\t}\n\n\t\t\t.btn-primary {\n\t\t\t\tbox-shadow: 0 2px 4px rgba(88, 166, 255, 0.2);\n\t\t\t}\n\n\t\t\t.btn-primary:hover {\n\t\t\t\tbox-shadow: 0 4px 8px rgba(88, 166, 255, 0.3);\n\t\t\t}\n\n\t\t\tfooter {\n\t\t\t\tbackground-color: #161b22;\n\t\t\t\tborder-top: 1px solid var(--border-color);\n\t\t\t}\n\n\t\t\tfooter a {\n\t\t\t\tcolor: var(--primary-color);\n\t\t\t}\n\t\t}\n\t</style>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -298,7 +298,7 @@ func VetScanHeader(generatedAt time.Time) templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(generatedAt.Format("2006-01-02 15:04:05"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 523, Col: 83}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 519, Col: 83}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -340,7 +340,7 @@ func VetScanSummary(data ReportData) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(data.Manifests)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 540, Col: 67}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 536, Col: 67}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -353,7 +353,7 @@ func VetScanSummary(data ReportData) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", data.PackageCount))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 549, Col: 65}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 545, Col: 65}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -366,7 +366,7 @@ func VetScanSummary(data ReportData) templ.Component {
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", data.VulnCount))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 558, Col: 62}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 554, Col: 62}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -379,7 +379,7 @@ func VetScanSummary(data ReportData) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(data.MalwareDetections)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 567, Col: 75}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 563, Col: 75}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -483,7 +483,7 @@ func ManifestsTab(manifests []Manifest) templ.Component {
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(manifest.Path)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 639, Col: 27}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 635, Col: 27}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -496,7 +496,7 @@ func ManifestsTab(manifests []Manifest) templ.Component {
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(manifest.Ecosystem)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 640, Col: 32}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 636, Col: 32}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -509,7 +509,7 @@ func ManifestsTab(manifests []Manifest) templ.Component {
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(manifest.Packages)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 641, Col: 55}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 637, Col: 55}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
@@ -561,7 +561,7 @@ func PackagesTab(packages []Package, ecosystems []string) templ.Component {
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(pkg.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 674, Col: 22}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 670, Col: 22}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
@@ -574,7 +574,7 @@ func PackagesTab(packages []Package, ecosystems []string) templ.Component {
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(pkg.Version)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 675, Col: 25}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 671, Col: 25}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -587,7 +587,7 @@ func PackagesTab(packages []Package, ecosystems []string) templ.Component {
 			var templ_7745c5c3_Var20 string
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(pkg.Ecosystem)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 676, Col: 27}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 672, Col: 27}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 			if templ_7745c5c3_Err != nil {
@@ -623,7 +623,7 @@ func PackagesTab(packages []Package, ecosystems []string) templ.Component {
 				var templ_7745c5c3_Var23 string
 				templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", pkg.VulnCount))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 680, Col: 45}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 676, Col: 45}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 				if templ_7745c5c3_Err != nil {
@@ -646,7 +646,7 @@ func PackagesTab(packages []Package, ecosystems []string) templ.Component {
 			var templ_7745c5c3_Var24 string
 			templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(pkg.Source)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 686, Col: 24}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 682, Col: 24}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 			if templ_7745c5c3_Err != nil {
@@ -698,7 +698,7 @@ func VulnerabilitiesTab(vulnerabilities []Vulnerability) templ.Component {
 			var templ_7745c5c3_Var26 templ.SafeURL
 			templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinURLErrs(vuln.Link)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 717, Col: 28}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 713, Col: 28}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 			if templ_7745c5c3_Err != nil {
@@ -711,7 +711,7 @@ func VulnerabilitiesTab(vulnerabilities []Vulnerability) templ.Component {
 			var templ_7745c5c3_Var27 string
 			templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(vuln.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 717, Col: 56}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 713, Col: 56}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 			if templ_7745c5c3_Err != nil {
@@ -724,7 +724,7 @@ func VulnerabilitiesTab(vulnerabilities []Vulnerability) templ.Component {
 			var templ_7745c5c3_Var28 string
 			templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(vuln.Package)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 719, Col: 26}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 715, Col: 26}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 			if templ_7745c5c3_Err != nil {
@@ -759,7 +759,7 @@ func VulnerabilitiesTab(vulnerabilities []Vulnerability) templ.Component {
 			var templ_7745c5c3_Var31 string
 			templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(vuln.Severity)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 722, Col: 25}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 718, Col: 25}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 			if templ_7745c5c3_Err != nil {
@@ -772,7 +772,7 @@ func VulnerabilitiesTab(vulnerabilities []Vulnerability) templ.Component {
 			var templ_7745c5c3_Var32 string
 			templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(vuln.Description)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 725, Col: 30}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 721, Col: 30}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 			if templ_7745c5c3_Err != nil {
@@ -785,7 +785,7 @@ func VulnerabilitiesTab(vulnerabilities []Vulnerability) templ.Component {
 			var templ_7745c5c3_Var33 string
 			templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(vuln.Version)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 726, Col: 26}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 722, Col: 26}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 			if templ_7745c5c3_Err != nil {
@@ -842,7 +842,7 @@ func MalwareTab(malwareDetections []MalwareDetection) templ.Component {
 				var templ_7745c5c3_Var35 string
 				templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%s@%s", malware.Package, malware.Version))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 756, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 752, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 				if templ_7745c5c3_Err != nil {
@@ -877,7 +877,7 @@ func MalwareTab(malwareDetections []MalwareDetection) templ.Component {
 				var templ_7745c5c3_Var38 string
 				templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(malware.Type)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 759, Col: 25}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 755, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 				if templ_7745c5c3_Err != nil {
@@ -890,7 +890,7 @@ func MalwareTab(malwareDetections []MalwareDetection) templ.Component {
 				var templ_7745c5c3_Var39 string
 				templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(malware.Source)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 762, Col: 29}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 758, Col: 29}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 				if templ_7745c5c3_Err != nil {
@@ -903,7 +903,7 @@ func MalwareTab(malwareDetections []MalwareDetection) templ.Component {
 				var templ_7745c5c3_Var40 string
 				templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(malware.Details)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 763, Col: 30}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 759, Col: 30}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 				if templ_7745c5c3_Err != nil {
@@ -970,7 +970,7 @@ func PopularityTab(metrics []PopularityMetric) templ.Component {
 				var templ_7745c5c3_Var42 string
 				templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(metric.Package + "@" + metric.Version)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 799, Col: 52}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 795, Col: 52}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 				if templ_7745c5c3_Err != nil {
@@ -983,7 +983,7 @@ func PopularityTab(metrics []PopularityMetric) templ.Component {
 				var templ_7745c5c3_Var43 string
 				templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", metric.Downloads))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 800, Col: 50}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 796, Col: 50}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 				if templ_7745c5c3_Err != nil {
@@ -996,7 +996,7 @@ func PopularityTab(metrics []PopularityMetric) templ.Component {
 				var templ_7745c5c3_Var44 string
 				templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", metric.Stars))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 801, Col: 46}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 797, Col: 46}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 				if templ_7745c5c3_Err != nil {
@@ -1009,7 +1009,7 @@ func PopularityTab(metrics []PopularityMetric) templ.Component {
 				var templ_7745c5c3_Var45 string
 				templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", metric.Contributors))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 802, Col: 53}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 798, Col: 53}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
 				if templ_7745c5c3_Err != nil {
@@ -1022,7 +1022,7 @@ func PopularityTab(metrics []PopularityMetric) templ.Component {
 				var templ_7745c5c3_Var46 string
 				templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(metric.LastUpdated)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 803, Col: 33}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 799, Col: 33}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
 				if templ_7745c5c3_Err != nil {
@@ -1084,7 +1084,7 @@ func PolicyViolationsTab(policyViolations []PolicyViolation) templ.Component {
 			var templ_7745c5c3_Var48 string
 			templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(event.PolicyName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 838, Col: 37}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 834, Col: 37}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 			if templ_7745c5c3_Err != nil {
@@ -1097,7 +1097,7 @@ func PolicyViolationsTab(policyViolations []PolicyViolation) templ.Component {
 			var templ_7745c5c3_Var49 string
 			templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.JoinStringErrs(event.PackageName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 839, Col: 38}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 835, Col: 38}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var49))
 			if templ_7745c5c3_Err != nil {
@@ -1110,7 +1110,7 @@ func PolicyViolationsTab(policyViolations []PolicyViolation) templ.Component {
 			var templ_7745c5c3_Var50 string
 			templ_7745c5c3_Var50, templ_7745c5c3_Err = templ.JoinStringErrs(event.PackageVersion)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 840, Col: 41}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 836, Col: 41}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var50))
 			if templ_7745c5c3_Err != nil {
@@ -1123,7 +1123,7 @@ func PolicyViolationsTab(policyViolations []PolicyViolation) templ.Component {
 			var templ_7745c5c3_Var51 string
 			templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.JoinStringErrs(event.Solution)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 843, Col: 35}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 839, Col: 35}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var51))
 			if templ_7745c5c3_Err != nil {
@@ -1136,7 +1136,7 @@ func PolicyViolationsTab(policyViolations []PolicyViolation) templ.Component {
 			var templ_7745c5c3_Var52 string
 			templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.JoinStringErrs(event.Description)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 846, Col: 38}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/reporter/templates/report.templ`, Line: 842, Col: 38}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var52))
 			if templ_7745c5c3_Err != nil {
