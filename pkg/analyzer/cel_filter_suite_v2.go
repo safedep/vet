@@ -6,7 +6,7 @@ import (
 
 	policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
 	"github.com/jedib0t/go-pretty/v6/table"
-	"github.com/safedep/dry/utils"
+	"github.com/safedep/dry/api/pb"
 	"github.com/safedep/vet/gen/filtersuite"
 	"github.com/safedep/vet/pkg/analyzer/filterv2"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -63,14 +63,17 @@ func (f *celFilterSuiteV2Analyzer) Analyze(manifest *models.PackageManifest,
 		if pkg.InsightsV2 == nil {
 			logger.Warnf("Package %s/%s does not have insights v2 data required for policy evaluation",
 				pkg.GetName(), pkg.GetVersion())
+
 			return nil
 		}
 
 		evalResult, err := f.evaluator.EvaluatePackage(pkg)
 		if err != nil {
 			f.stat.IncError(err)
+
 			logger.Errorf("Failed to evaluate CEL v2 policy suite for %s:%s : %v",
 				pkg.GetName(), pkg.GetVersion(), err)
+
 			return nil
 		}
 
@@ -164,7 +167,7 @@ func policyV2LoadPolicyFromFile(filePath string) (*policyv1.Policy, error) {
 	defer file.Close()
 
 	var policy policyv1.Policy
-	err = utils.FromYamlToPb(file, &policy)
+	err = pb.FromYaml(file, &policy)
 	if err != nil {
 		return nil, err
 	}
