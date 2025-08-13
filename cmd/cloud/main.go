@@ -1,7 +1,10 @@
 package cloud
 
 import (
+	"fmt"
+
 	"github.com/safedep/vet/internal/auth"
+	"github.com/safedep/vet/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -60,8 +63,18 @@ func NewCloudCommand() *cobra.Command {
 }
 
 func RequireAccessTokenCheck(cmd *cobra.Command, args []string) error {
+	// Check if token was obtained/refreshed 5 mins ago
+	// If > 5 mins, check the access token expiry
+	// else return
 	if auth.ShouldCheckAccessTokenExpiry() {
-		return auth.RefreshCloudSession()
+		// Check if access token is expired
+		// If expired (ok), refresh the session
+		if ok, err := auth.IsAccessTokenExpired(); err != nil {
+			return fmt.Errorf("failed to check access token expiry: %w", err)
+		} else if ok {
+			ui.PrintMsg("Refreshing Access Token")
+			return auth.RefreshCloudSession()
+		}
 	}
 	return nil
 }

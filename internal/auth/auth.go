@@ -355,16 +355,8 @@ func persistConfiguration() error {
 
 func RefreshCloudSession() error {
 	if globalConfig == nil {
-		return nil
-	}
-
-	isAccessTokenExpired, err := isAccessTokenExpired()
-	if err != nil {
-		return err
-	}
-
-	if !isAccessTokenExpired {
-		return nil
+		c := DefaultConfig()
+		globalConfig = &c
 	}
 
 	data := url.Values{}
@@ -397,9 +389,10 @@ func RefreshCloudSession() error {
 	return persistConfiguration()
 }
 
-func isAccessTokenExpired() (bool, error) {
+func IsAccessTokenExpired() (bool, error) {
 	if globalConfig == nil {
-		return false, nil
+		c := DefaultConfig()
+		globalConfig = &c
 	}
 
 	claims := jwt.MapClaims{}
@@ -418,7 +411,8 @@ func isAccessTokenExpired() (bool, error) {
 
 func ShouldCheckAccessTokenExpiry() bool {
 	if globalConfig == nil {
-		return false
+		c := DefaultConfig()
+		globalConfig = &c
 	}
 	// Only check expiry if token was updated more than 5 minutes ago
 	return time.Since(globalConfig.CloudAccessTokenUpdatedAt) > accessTokenExpiryCheckInterval
