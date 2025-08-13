@@ -414,6 +414,6 @@ func ShouldCheckAccessTokenExpiry() bool {
 		c := DefaultConfig()
 		globalConfig = &c
 	}
-	// Only check expiry if token was updated more than 5 minutes ago
+
 	return time.Since(globalConfig.CloudAccessTokenUpdatedAt) > accessTokenExpiryCheckInterval
 }
