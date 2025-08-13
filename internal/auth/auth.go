@@ -1,12 +1,18 @@
 package auth
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/cli/oauth/api"
+	"github.com/golang-jwt/jwt/v5"
 	"gopkg.in/yaml.v2"
 )
 
@@ -42,6 +48,8 @@ const (
 	cloudIdentityServiceBaseUrl       = "https://auth.safedep.io"
 	cloudIdentityServiceDeviceCodeUrl = "https://auth.safedep.io/oauth/device/code"
 	cloudIdentityServiceTokenUrl      = "https://auth.safedep.io/oauth/token"
+
+	accessTokenExpiryCheckInterval = 5 * time.Minute
 )
 
 type Config struct {
@@ -343,4 +351,75 @@ func persistConfiguration() error {
 
 	_ = os.MkdirAll(filepath.Dir(path), os.ModePerm)
 	return os.WriteFile(path, data, 0o600)
+}
+
+func RefreshCloudSession() error {
+	if globalConfig == nil {
+		return nil
+	}
+
+	isAccessTokenExpired, err := isAccessTokenExpired()
+	if err != nil {
+		return err
+	}
+
+	if !isAccessTokenExpired {
+		return nil
+	}
+
+	data := url.Values{}
+	data.Set("refresh_token", globalConfig.CloudRefreshToken)
+	data.Set("client_id", cloudIdentityServiceClientId)
+	data.Set("grant_type", "refresh_token")
+
+	req, err := http.NewRequest("POST", cloudIdentityServiceTokenUrl, strings.NewReader(data.Encode()))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send post request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var response *api.AccessToken
+
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	if err != nil {
+		return fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	globalConfig.CloudAccessToken = response.Token
+	globalConfig.CloudRefreshToken = response.RefreshToken
+
+	return persistConfiguration()
+}
+
+func isAccessTokenExpired() (bool, error) {
+	if globalConfig == nil {
+		return false, nil
+	}
+
+	claims := jwt.MapClaims{}
+	_, _, err := jwt.NewParser().ParseUnverified(globalConfig.CloudAccessToken, claims)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse jwt token: %w", err)
+	}
+
+	exp, ok := claims["exp"].(float64)
+	if !ok {
+		return false, fmt.Errorf("invalid jwt token")
+	}
+
+	return time.Now().Unix() > int64(exp), nil
+}
+
+func ShouldCheckAccessTokenExpiry() bool {
+	if globalConfig == nil {
+		return false
+	}
+	// Only check expiry if token was updated more than 5 minutes ago
+	return time.Since(globalConfig.CloudAccessTokenUpdatedAt) > accessTokenExpiryCheckInterval
 }

@@ -31,11 +31,24 @@ func NewCloudCommand() *cobra.Command {
 
 	cmd.AddCommand(newCloudLoginCommand())
 	cmd.AddCommand(newRegisterCommand())
-	cmd.AddCommand(newQueryCommand())
-	cmd.AddCommand(newPingCommand())
-	cmd.AddCommand(newWhoamiCommand())
-	cmd.AddCommand(newKeyCommand())
 	cmd.AddCommand(newCloudQuickstartCommand())
+
+	queryCmd := newQueryCommand()
+	queryCmd.PreRunE = RequireAccessTokenCheck
+
+	pingCmd := newPingCommand()
+	pingCmd.PreRunE = RequireAccessTokenCheck
+
+	whoamiCmd := newWhoamiCommand()
+	whoamiCmd.PreRunE = RequireAccessTokenCheck
+
+	keyCmd := newKeyCommand()
+	keyCmd.PreRunE = RequireAccessTokenCheck
+
+	cmd.AddCommand(queryCmd)
+	cmd.AddCommand(pingCmd)
+	cmd.AddCommand(whoamiCmd)
+	cmd.AddCommand(keyCmd)
 
 	cmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		if tenantDomain != "" {
@@ -44,4 +57,11 @@ func NewCloudCommand() *cobra.Command {
 	}
 
 	return cmd
+}
+
+func RequireAccessTokenCheck(cmd *cobra.Command, args []string) error {
+	if auth.ShouldCheckAccessTokenExpiry() {
+		return auth.RefreshCloudSession()
+	}
+	return nil
 }
