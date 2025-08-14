@@ -37,16 +37,16 @@ func NewCloudCommand() *cobra.Command {
 	cmd.AddCommand(newCloudQuickstartCommand())
 
 	queryCmd := newQueryCommand()
-	queryCmd.PreRunE = RequireAccessTokenCheck
+	queryCmd.PreRunE = requireAccessTokenCheck
 
 	pingCmd := newPingCommand()
-	pingCmd.PreRunE = RequireAccessTokenCheck
+	pingCmd.PreRunE = requireAccessTokenCheck
 
 	whoamiCmd := newWhoamiCommand()
-	whoamiCmd.PreRunE = RequireAccessTokenCheck
+	whoamiCmd.PreRunE = requireAccessTokenCheck
 
 	keyCmd := newKeyCommand()
-	keyCmd.PreRunE = RequireAccessTokenCheck
+	keyCmd.PreRunE = requireAccessTokenCheck
 
 	cmd.AddCommand(queryCmd)
 	cmd.AddCommand(pingCmd)
@@ -62,7 +62,7 @@ func NewCloudCommand() *cobra.Command {
 	return cmd
 }
 
-func RequireAccessTokenCheck(cmd *cobra.Command, args []string) error {
+func requireAccessTokenCheck(cmd *cobra.Command, args []string) error {
 	// Check if token was obtained/refreshed 5 mins ago
 	// If > 5 mins, check the access token expiry
 	// else return

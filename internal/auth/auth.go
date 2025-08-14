@@ -72,6 +72,11 @@ var globalConfig *Config
 
 func init() {
 	_ = loadConfiguration()
+
+	if globalConfig == nil {
+		c := DefaultConfig()
+		globalConfig = &c
+	}
 }
 
 func DefaultConfig() Config {
@@ -354,9 +359,8 @@ func persistConfiguration() error {
 }
 
 func RefreshCloudSession() error {
-	if globalConfig == nil {
-		c := DefaultConfig()
-		globalConfig = &c
+	if globalConfig.CloudRefreshToken == "" {
+		return fmt.Errorf("cannot refresh session: require new login session")
 	}
 
 	data := url.Values{}
@@ -390,9 +394,8 @@ func RefreshCloudSession() error {
 }
 
 func IsAccessTokenExpired() (bool, error) {
-	if globalConfig == nil {
-		c := DefaultConfig()
-		globalConfig = &c
+	if globalConfig.CloudAccessToken == "" {
+		return true, nil
 	}
 
 	claims := jwt.MapClaims{}
@@ -410,10 +413,5 @@ func IsAccessTokenExpired() (bool, error) {
 }
 
 func ShouldCheckAccessTokenExpiry() bool {
-	if globalConfig == nil {
-		c := DefaultConfig()
-		globalConfig = &c
-	}
-
 	return time.Since(globalConfig.CloudAccessTokenUpdatedAt) > accessTokenExpiryCheckInterval
 }
