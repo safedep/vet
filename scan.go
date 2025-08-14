@@ -678,8 +678,7 @@ func internalStartScan() error {
 		})
 
 		if err != nil {
-			logger.Fatalf("failed to create HTML reporter: %v", err)
-			return err
+			return fmt.Errorf("failed to create HTML reporter: %v", err)
 		}
 
 		reporters = append(reporters, htmlReporter)
