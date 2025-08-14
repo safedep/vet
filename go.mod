@@ -10,6 +10,7 @@ require (
 	github.com/BurntSushi/toml v1.5.0
 	github.com/CycloneDX/cyclonedx-go v0.9.2
 	github.com/anchore/syft v1.26.1
+	github.com/bmatcuk/doublestar/v4 v4.9.0
 	github.com/cayleygraph/cayley v0.7.7-0.20240706181042-81dcd7d73e45
 	github.com/cayleygraph/quad v1.3.0
 	github.com/charmbracelet/bubbles v0.21.0
@@ -29,6 +30,7 @@ require (
 	github.com/gofri/go-github-ratelimit v1.1.1
 	github.com/gojek/heimdall v5.0.2+incompatible
 	github.com/gojek/heimdall/v7 v7.0.3
+	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/golang/protobuf v1.5.4
 	github.com/google/cel-go v0.25.0
 	github.com/google/go-github/v70 v70.0.0
@@ -143,7 +145,6 @@ require (
 	github.com/bkielbasa/cyclop v1.2.3 // indirect
 	github.com/blizzy78/varnamelen v0.8.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
-	github.com/bmatcuk/doublestar/v4 v4.9.0 // indirect
 	github.com/boltdb/bolt v1.3.1 // indirect
 	github.com/bombsimon/wsl/v4 v4.5.0 // indirect
 	github.com/breml/bidichk v0.3.2 // indirect
