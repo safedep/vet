@@ -8,8 +8,6 @@ buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.6-2025042515311
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.6-20250425153114-8976f5be98c1.1/go.mod h1:avRlCjnFzl98VPaeCtJ24RrV/wwHFzB8sWXhj26+n/U=
 buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250610075857-7cfdb61a0bfa.2 h1:ENbt9SmU2gh4YhjcFqzceJRlg80hsD28M+Oon9l752A=
 buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250610075857-7cfdb61a0bfa.2/go.mod h1:WDOWZglnweQ4njVEJpLYYpLMx9fD+e94KbKdt8oJrxY=
-buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.6-20250610075857-7cfdb61a0bfa.1 h1:wOZtKj81Wq5fvHf4STR0vxEl8/peoEJkRzuQI+zwE2I=
-buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.6-20250610075857-7cfdb61a0bfa.1/go.mod h1:uR95GqsnNCRn6cTyRBte6uMJMm0rEBRxTGpakKCNL9I=
 buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.6-20250705071048-7ad8e6be7c05.1 h1:4sM5O5dx0yUucJ1trjZ8Cm9IGX2loEc4cUyh3Xy+5eU=
 buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.6-20250705071048-7ad8e6be7c05.1/go.mod h1:uR95GqsnNCRn6cTyRBte6uMJMm0rEBRxTGpakKCNL9I=
 cel.dev/expr v0.24.0 h1:56OvJKSH3hDGL0ml5uSxZmz3/3Pq4tJ+fb1unVLAFcY=
@@ -143,6 +141,10 @@ github.com/OpenPeeDeeP/depguard/v2 v2.2.1/go.mod h1:q4DKzC4UcVaAvcfd41CZh0PWpGgz
 github.com/RaveNoX/go-jsoncommentstrip v1.0.0/go.mod h1:78ihd09MekBnJnxpICcwzCMzGrKSKYe4AqU6PDYYpjk=
 github.com/Shopify/goreferrer v0.0.0-20250513162709-b78e2829e40b h1:3QuwXO2TnDssBmmNKfRlO3ur9zOupJRdM7evq61Oi84=
 github.com/Shopify/goreferrer v0.0.0-20250513162709-b78e2829e40b/go.mod h1:NYezi6wtnJtBm5btoprXc5SvAdqH0XTXWnUup0MptAI=
+github.com/a-h/parse v0.0.0-20250122154542-74294addb73e h1:HjVbSQHy+dnlS6C3XajZ69NYAb5jbGNfHanvm1+iYlo=
+github.com/a-h/parse v0.0.0-20250122154542-74294addb73e/go.mod h1:3mnrkvGpurZ4ZrTDbYU84xhwXW2TjTKShSwjRi2ihfQ=
+github.com/a-h/templ v0.3.924 h1:t5gZqTneXqvehpNZsgtnlOscnBboNh9aASBH2MgV/0k=
+github.com/a-h/templ v0.3.924/go.mod h1:FFAu4dI//ESmEN7PQkJ7E7QfnSEMdcnu7QrAY8Dn334=
 github.com/acobaugh/osrelease v0.1.0 h1:Yb59HQDGGNhCj4suHaFQQfBps5wyoKLSSX/J/+UifRE=
 github.com/acobaugh/osrelease v0.1.0/go.mod h1:4bFEs0MtgHNHBrmHCt67gNisnabCRAlzdVasCEGHTWY=
 github.com/adrg/xdg v0.5.3 h1:xRnxJXne7+oWDatRhR1JLnvuccuIeCoBu2rtuLqQB78=
@@ -275,8 +277,6 @@ github.com/blizzy78/varnamelen v0.8.0/go.mod h1:V9TzQZ4fLJ1DSrjVDfl89H7aMnTvKkAp
 github.com/bmatcuk/doublestar v1.1.1/go.mod h1:UD6OnuiIn0yFxxA2le/rnRU1G4RaI4UvFv1sNto9p6w=
 github.com/bmatcuk/doublestar v1.3.4 h1:gPypJ5xD31uhX6Tf54sDPUOBXTqKH4c9aPY66CyQrS0=
 github.com/bmatcuk/doublestar v1.3.4/go.mod h1:wiQtGV+rzVYxB7WIlirSN++5HPtPlXEo9MEoZQC/PmE=
-github.com/bmatcuk/doublestar/v4 v4.8.1 h1:54Bopc5c2cAvhLRAzqOGCYHYyhcDHsFF4wWIR5wKP38=
-github.com/bmatcuk/doublestar/v4 v4.8.1/go.mod h1:xBQ8jztBU6kakFMg+8WGxn0c6z1fTSPVIjEY1Wr7jzc=
 github.com/bmatcuk/doublestar/v4 v4.9.0 h1:DBvuZxjdKkRP/dr4GVV4w2fnmrk5Hxc90T51LZjv0JA=
 github.com/bmatcuk/doublestar/v4 v4.9.0/go.mod h1:xBQ8jztBU6kakFMg+8WGxn0c6z1fTSPVIjEY1Wr7jzc=
 github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869/go.mod h1:Ekp36dRnpXw/yCqJaO+ZrUyxD+3VXMFFr56k5XYrpB4=
@@ -313,7 +313,6 @@ github.com/cayleygraph/quad v1.3.0 h1:xg7HOLWWPgvZ4CcvzEpfCwq42L8mzYUR+8V0jtYoBz
 github.com/cayleygraph/quad v1.3.0/go.mod h1:NadtM7uMm78FskmX++XiOOrNvgkq0E1KvvhQdMseMz4=
 github.com/ccojocar/zxcvbn-go v1.0.2 h1:na/czXU8RrhXO4EZme6eQJLR4PzcGsahsBOAwU6I3Vg=
 github.com/ccojocar/zxcvbn-go v1.0.2/go.mod h1:g1qkXtUSvHP8lhHp5GrSmTz6uWALGRMQdw6Qnz/hi60=
-github.com/cenkalti/backoff v2.2.1+incompatible h1:tNowT99t7UNflLxfYYSlKYsBpXdEet03Pg2g16Swow4=
 github.com/cenkalti/backoff/v4 v4.3.0 h1:MyRJ/UdXutAwSAT+s3wNd7MfTIcy71VQueUuFK343L8=
 github.com/cenkalti/backoff/v4 v4.3.0/go.mod h1:Y3VNntkOUPxTVeUxJ/G5vcM//AlwfmyYozVcomhLiZE=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
@@ -362,6 +361,8 @@ github.com/circonus-labs/circonusllhist v0.1.3/go.mod h1:kMXHVDlOchFAehlya5ePtbp
 github.com/ckaznocha/intrange v0.3.0 h1:VqnxtK32pxgkhJgYQEeOArVidIPg+ahLP7WBOXZd5ZY=
 github.com/ckaznocha/intrange v0.3.0/go.mod h1:+I/o2d2A1FBHgGELbGxzIcyd3/9l9DuwjM8FsbSS3Lo=
 github.com/cli/browser v1.0.0/go.mod h1:IEWkHYbLjkhtjwwWlwTHW2lGxeS5gezEQBMLTwDHf5Q=
+github.com/cli/browser v1.3.0 h1:LejqCrpWr+1pRqmEPDGnTZOjsMe7sehifLynZJuqJpo=
+github.com/cli/browser v1.3.0/go.mod h1:HH8s+fOAxjhQoBUAsKuPCbqUuxZDhQ2/aD+SzsEfBTk=
 github.com/cli/oauth v1.2.0 h1:9Bb7nWsgi92Xy5Ifa0oKfW6D1+hNAsO6OWSCx7FJdKA=
 github.com/cli/oauth v1.2.0/go.mod h1:qd/FX8ZBD6n1sVNQO3aIdRxeu5LGw9WhKnYhIIoC2A4=
 github.com/cli/safeexec v1.0.0/go.mod h1:Z/D4tTN8Vs5gXYHDCbaM1S/anmEDnJb1iW0+EJ5zx3Q=
@@ -1100,6 +1101,8 @@ github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8m
 github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
 github.com/nakabonne/nestif v0.3.1 h1:wm28nZjhQY5HyYPx+weN3Q65k6ilSBxDb8v5S81B81U=
 github.com/nakabonne/nestif v0.3.1/go.mod h1:9EtoZochLn5iUprVDmDjqGKPofoUEBL8U4Ngq6aY7OE=
+github.com/natefinch/atomic v1.0.1 h1:ZPYKxkqQOx3KZ+RsbnP/YsgvxWQPGxjC0oBt2AhwV0A=
+github.com/natefinch/atomic v1.0.1/go.mod h1:N/D/ELrljoqDyT3rZrsUmtsuzvHkeB/wWjHV22AZRbM=
 github.com/ncruces/go-strftime v0.1.9 h1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=
 github.com/ncruces/go-strftime v0.1.9/go.mod h1:Fwc5htZGVVkseilnfgOVb9mKy6w1naJmn9CehxcKcls=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
@@ -1246,8 +1249,6 @@ github.com/ryanrolds/sqlclosecheck v0.5.1/go.mod h1:2g3dUjoS6AL4huFdv6wn55WpLIDj
 github.com/ryanuber/columnize v0.0.0-20160712163229-9b3edd62028f/go.mod h1:sm1tb6uqfes/u+d4ooFouqFdy9/2g9QGwK3SQygK0Ts=
 github.com/safedep/code v0.0.0-20250619080228-57f5b7b5e58c h1:ao6OCJyNomRFgpRtVbTEa5KetcPlinf/3rJEkL0Pgz8=
 github.com/safedep/code v0.0.0-20250619080228-57f5b7b5e58c/go.mod h1:5gnHWxq6kbun+r3qf52UHD5f9bd36sWhkDLXvPRd4ZA=
-github.com/safedep/dry v0.0.0-20250618113059-9f8b677e299c h1:xr6P3xzQqxPx93qbH/LPjyK46oEEA6N0nYyiQSjikkI=
-github.com/safedep/dry v0.0.0-20250618113059-9f8b677e299c/go.mod h1:8GbUOzdf46FT4j5h9lw9DdA3wM9NgIVEZjTfkzNe+Cw=
 github.com/safedep/dry v0.0.0-20250716064316-9afa8962ced6 h1:1RY9Q9ObuziUfzfN/Ov2JVNR8o4CljNemilRVSoSN8w=
 github.com/safedep/dry v0.0.0-20250716064316-9afa8962ced6/go.mod h1:JYHgU3vlgDE14Sb7NjytF+clPr+3jGCoS1HIkHn2xLE=
 github.com/saferwall/pe v1.5.6 h1:DrRLnoQFxHWJ5lJUmrH7X2L0xeUu6SUS95Dc61eW2Yc=
