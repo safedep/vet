@@ -22,6 +22,9 @@ const (
 	communityModeEnvKey           = "VET_COMMUNITY_MODE"
 	controlTowerTenantEnvKey      = "VET_CONTROL_TOWER_TENANT_ID"
 
+	defaultSafeDepApiKeyEnvKey   = "SAFEDEP_API_KEY"
+	defaultSafeDepTenantIdEnvKey = "SAFEDEP_TENANT_ID"
+
 	defaultApiUrl          = "https://api.safedep.io/insights/v1"
 	defaultCommunityApiUrl = "https://api.safedep.io/insights-community/v1"
 
@@ -234,8 +237,11 @@ func CommunityServicesApiUrl() string {
 }
 
 func TenantDomain() string {
-	tenantFromEnv := os.Getenv(controlTowerTenantEnvKey)
-	if tenantFromEnv != "" {
+	if tenantFromEnv, ok := os.LookupEnv(controlTowerTenantEnvKey); ok && tenantFromEnv != "" {
+		return tenantFromEnv
+	}
+
+	if tenantFromEnv, ok := os.LookupEnv(defaultSafeDepTenantIdEnvKey); ok && tenantFromEnv != "" {
 		return tenantFromEnv
 	}
 
@@ -268,6 +274,10 @@ func ApiKey() string {
 	}
 
 	if key, ok := os.LookupEnv(apiKeyAlternateEnvKey); ok {
+		return key
+	}
+
+	if key, ok := os.LookupEnv(defaultSafeDepApiKeyEnvKey); ok {
 		return key
 	}
 

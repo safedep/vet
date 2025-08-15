@@ -22,6 +22,11 @@ func getLogLevelFromEnv() logrus.Level {
 		envLogLevel = strings.ToLower(os.Getenv("VET_LOG_LEVEL"))
 	}
 
+	// Fallback to safedep defaults
+	if envLogLevel == "" {
+		envLogLevel = strings.ToLower(os.Getenv("APP_LOG_LEVEL"))
+	}
+
 	switch envLogLevel {
 	case "debug":
 		return logrus.DebugLevel
