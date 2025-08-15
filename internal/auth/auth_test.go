@@ -6,6 +6,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func withGlobalConfig(t *testing.T, fn func() *Config) {
+	oldConfig := globalConfig
+	t.Cleanup(func() {
+		globalConfig = oldConfig
+	})
+
+	globalConfig = fn()
+}
+
 func TestDefaultConfig(t *testing.T) {
 	config := DefaultConfig()
 
@@ -73,12 +82,10 @@ func TestTenantDomain(t *testing.T) {
 	})
 
 	t.Run("should fallback to default from global config", func(t *testing.T) {
-		oldVal := globalConfig.TenantDomain
-		t.Cleanup(func() {
-			globalConfig.TenantDomain = oldVal
+		withGlobalConfig(t, func() *Config {
+			return &Config{TenantDomain: "test-tenant-from-config"}
 		})
 
-		globalConfig.TenantDomain = "test-tenant-from-config"
 		assert.Equal(t, "test-tenant-from-config", TenantDomain())
 	})
 }
@@ -100,12 +107,10 @@ func TestApiKey(t *testing.T) {
 	})
 
 	t.Run("should fallback to default from global config", func(t *testing.T) {
-		oldVal := globalConfig.ApiKey
-		t.Cleanup(func() {
-			globalConfig.ApiKey = oldVal
+		withGlobalConfig(t, func() *Config {
+			return &Config{ApiKey: "test-api-key-from-config"}
 		})
 
-		globalConfig.ApiKey = "test-api-key-from-config"
 		assert.Equal(t, "test-api-key-from-config", ApiKey())
 	})
 }
@@ -122,21 +127,16 @@ func TestApiUrl(t *testing.T) {
 	})
 
 	t.Run("should fallback to default from global config", func(t *testing.T) {
-		oldVal := globalConfig.ApiUrl
-		t.Cleanup(func() {
-			globalConfig.ApiUrl = oldVal
+		withGlobalConfig(t, func() *Config {
+			return &Config{ApiUrl: "https://test-api-from-config.safedep.io"}
 		})
 
-		globalConfig.ApiUrl = "https://test-api-from-config.safedep.io"
 		assert.Equal(t, "https://test-api-from-config.safedep.io", ApiUrl())
 	})
 
 	t.Run("should return default API URL when no config is set", func(t *testing.T) {
-		// Clear global config temporarily
-		oldConfig := globalConfig
-		globalConfig = nil
-		t.Cleanup(func() {
-			globalConfig = oldConfig
+		withGlobalConfig(t, func() *Config {
+			return nil
 		})
 
 		assert.Equal(t, defaultApiUrl, ApiUrl())
@@ -165,21 +165,16 @@ func TestCommunityMode(t *testing.T) {
 	})
 
 	t.Run("should fallback to default from global config", func(t *testing.T) {
-		oldVal := globalConfig.Community
-		t.Cleanup(func() {
-			globalConfig.Community = oldVal
+		withGlobalConfig(t, func() *Config {
+			return &Config{Community: true}
 		})
 
-		globalConfig.Community = true
 		assert.True(t, CommunityMode())
 	})
 
 	t.Run("should return false when no config is set", func(t *testing.T) {
-		// Clear global config temporarily
-		oldConfig := globalConfig
-		globalConfig = nil
-		t.Cleanup(func() {
-			globalConfig = oldConfig
+		withGlobalConfig(t, func() *Config {
+			return nil
 		})
 
 		assert.False(t, CommunityMode())
