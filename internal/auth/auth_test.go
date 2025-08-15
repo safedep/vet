@@ -61,3 +61,128 @@ func TestInsightsApiV2Url(t *testing.T) {
 		assert.Equal(t, "https://test.safedep.io", InsightsApiV2Url())
 	})
 }
+
+func TestTenantDomain(t *testing.T) {
+	t.Run("should return the env variable if set", func(t *testing.T) {
+		t.Setenv("VET_CONTROL_TOWER_TENANT_ID", "test-tenant")
+		assert.Equal(t, "test-tenant", TenantDomain())
+	})
+
+	t.Run("should return env value when alternate env variable is set", func(t *testing.T) {
+		t.Setenv("SAFEDEP_TENANT_ID", "test-tenant")
+		assert.Equal(t, "test-tenant", TenantDomain())
+	})
+
+	t.Run("should fallback to default from global config", func(t *testing.T) {
+		oldVal := globalConfig.TenantDomain
+		t.Cleanup(func() {
+			globalConfig.TenantDomain = oldVal
+		})
+
+		globalConfig.TenantDomain = "test-tenant-from-config"
+		assert.Equal(t, "test-tenant-from-config", TenantDomain())
+	})
+}
+
+func TestApiKey(t *testing.T) {
+	t.Run("should return the env variable if set", func(t *testing.T) {
+		t.Setenv("VET_API_KEY", "test-api-key")
+		assert.Equal(t, "test-api-key", ApiKey())
+	})
+
+	t.Run("should return the env value when alternate env variable is set", func(t *testing.T) {
+		t.Setenv("VET_INSIGHTS_API_KEY", "test-api-key-alt")
+		assert.Equal(t, "test-api-key-alt", ApiKey())
+	})
+
+	t.Run("should return other alternate env variable if set", func(t *testing.T) {
+		t.Setenv("SAFEDEP_API_KEY", "test-api-key-safe")
+		assert.Equal(t, "test-api-key-safe", ApiKey())
+	})
+
+	t.Run("should fallback to default from global config", func(t *testing.T) {
+		oldVal := globalConfig.ApiKey
+		t.Cleanup(func() {
+			globalConfig.ApiKey = oldVal
+		})
+
+		globalConfig.ApiKey = "test-api-key-from-config"
+		assert.Equal(t, "test-api-key-from-config", ApiKey())
+	})
+}
+
+func TestApiUrl(t *testing.T) {
+	t.Run("should return the env variable if set", func(t *testing.T) {
+		t.Setenv("VET_INSIGHTS_API_URL", "https://test-api.safedep.io")
+		assert.Equal(t, "https://test-api.safedep.io", ApiUrl())
+	})
+
+	t.Run("should return community API URL when in community mode", func(t *testing.T) {
+		t.Setenv("VET_COMMUNITY_MODE", "true")
+		assert.Equal(t, defaultCommunityApiUrl, ApiUrl())
+	})
+
+	t.Run("should fallback to default from global config", func(t *testing.T) {
+		oldVal := globalConfig.ApiUrl
+		t.Cleanup(func() {
+			globalConfig.ApiUrl = oldVal
+		})
+
+		globalConfig.ApiUrl = "https://test-api-from-config.safedep.io"
+		assert.Equal(t, "https://test-api-from-config.safedep.io", ApiUrl())
+	})
+
+	t.Run("should return default API URL when no config is set", func(t *testing.T) {
+		// Clear global config temporarily
+		oldConfig := globalConfig
+		globalConfig = nil
+		t.Cleanup(func() {
+			globalConfig = oldConfig
+		})
+
+		assert.Equal(t, defaultApiUrl, ApiUrl())
+	})
+}
+
+func TestCommunityMode(t *testing.T) {
+	t.Run("should return true when env variable is set to true", func(t *testing.T) {
+		t.Setenv("VET_COMMUNITY_MODE", "true")
+		assert.True(t, CommunityMode())
+	})
+
+	t.Run("should return true when env variable is set to 1", func(t *testing.T) {
+		t.Setenv("VET_COMMUNITY_MODE", "1")
+		assert.True(t, CommunityMode())
+	})
+
+	t.Run("should return false when env variable is set to false", func(t *testing.T) {
+		t.Setenv("VET_COMMUNITY_MODE", "false")
+		assert.False(t, CommunityMode())
+	})
+
+	t.Run("should return false when env variable is set to invalid value", func(t *testing.T) {
+		t.Setenv("VET_COMMUNITY_MODE", "invalid")
+		assert.False(t, CommunityMode())
+	})
+
+	t.Run("should fallback to default from global config", func(t *testing.T) {
+		oldVal := globalConfig.Community
+		t.Cleanup(func() {
+			globalConfig.Community = oldVal
+		})
+
+		globalConfig.Community = true
+		assert.True(t, CommunityMode())
+	})
+
+	t.Run("should return false when no config is set", func(t *testing.T) {
+		// Clear global config temporarily
+		oldConfig := globalConfig
+		globalConfig = nil
+		t.Cleanup(func() {
+			globalConfig = oldConfig
+		})
+
+		assert.False(t, CommunityMode())
+	})
+}
