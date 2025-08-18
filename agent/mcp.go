@@ -27,6 +27,9 @@ type McpClientToolBuilderConfig struct {
 	SQLQueryToolEnabled        bool
 	SQLQueryToolDBPath         string
 	PackageRegistryToolEnabled bool
+
+	// Enable debug mode for the MCP client.
+	Debug bool
 }
 
 type mcpClientToolBuilder struct {
@@ -107,15 +110,18 @@ func (b *mcpClientToolBuilder) buildStdioClient() (*client.Client, error) {
 		return nil, fmt.Errorf("failed to get running binary path: %w", err)
 	}
 
-	// TODO: We should not log by default. This is only for debugging purposes.
-	vetMcpServerLogFile := filepath.Join(os.TempDir(), "vet-mcp-server.log")
-
 	// vet-mcp server defaults to stdio transport. See cmd/server/mcp.go
-	vetMcpServerCommandArgs := []string{"server", "mcp", "-l", vetMcpServerLogFile}
+	vetMcpServerCommandArgs := []string{"server", "mcp"}
+
+	if b.config.Debug {
+		vetMcpServerLogFile := filepath.Join(os.TempDir(), "vet-mcp-server.log")
+		vetMcpServerCommandArgs = append(vetMcpServerCommandArgs, "-l", vetMcpServerLogFile)
+	}
 
 	if b.config.SQLQueryToolEnabled {
 		vetMcpServerCommandArgs = append(vetMcpServerCommandArgs, "--sql-query-tool")
-		vetMcpServerCommandArgs = append(vetMcpServerCommandArgs, "--sql-query-tool-db-path", b.config.SQLQueryToolDBPath)
+		vetMcpServerCommandArgs = append(vetMcpServerCommandArgs, "--sql-query-tool-db-path",
+			b.config.SQLQueryToolDBPath)
 	}
 
 	if b.config.PackageRegistryToolEnabled {
@@ -126,9 +132,12 @@ func (b *mcpClientToolBuilder) buildStdioClient() (*client.Client, error) {
 		vetMcpServerCommandArgs = append(vetMcpServerCommandArgs, "--skip-default-tools")
 	}
 
-	cli, err := client.NewStdioMCPClient(binaryPath, []string{
-		"APP_LOG_LEVEL=debug",
-	}, vetMcpServerCommandArgs...)
+	environmentVariables := []string{}
+	if b.config.Debug {
+		environmentVariables = append(environmentVariables, "APP_LOG_LEVEL=debug")
+	}
+
+	cli, err := client.NewStdioMCPClient(binaryPath, environmentVariables, vetMcpServerCommandArgs...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create stdio client: %w", err)
 	}
