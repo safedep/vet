@@ -70,6 +70,12 @@ func requireAccessTokenCheck(cmd *cobra.Command, args []string) error {
 		// Check if access token is expired
 		// If expired (ok), refresh the session
 		if ok, err := auth.IsAccessTokenExpired(); err != nil {
+			tenantDomainPlaceholder := auth.TenantDomain()
+			if tenantDomainPlaceholder == "" {
+				tenantDomainPlaceholder = "<your-tenant-domain>"
+			}
+
+			ui.PrintError("Automatic token refresh failed, please re-login using `vet cloud login --tenant %s`", tenantDomainPlaceholder)
 			return fmt.Errorf("failed to check access token expiry: %w", err)
 		} else if ok {
 			ui.PrintMsg("Refreshing Access Token")
