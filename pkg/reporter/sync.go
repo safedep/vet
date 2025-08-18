@@ -569,7 +569,7 @@ func (s *syncReporter) syncPackage(pkg *models.Package) error {
 	if mar := pkg.GetMalwareAnalysisResult(); mar != nil {
 		req.MaliciousPackageInsight = &controltowerv1.PublishPackageInsightRequest_MaliciousPackageInsight{
 			AnalysisId: mar.AnalysisId,
-			IsMalware:  mar.IsMalware,
+			IsMalware:  mar.IsMalware || mar.IsSuspicious,
 			IsVerified: mar.VerificationRecord != nil,
 		}
 
@@ -580,7 +580,7 @@ func (s *syncReporter) syncPackage(pkg *models.Package) error {
 
 		logger.Debugf("Report Sync: Added malware analysis for package: %s/%s/%s (malware: %t, verified: %t)",
 			pkg.GetControlTowerSpecEcosystem(), pkg.GetName(), pkg.GetVersion(),
-			mar.IsMalware, req.MaliciousPackageInsight.IsVerified)
+			mar.IsMalware || mar.IsSuspicious, req.MaliciousPackageInsight.IsVerified)
 	}
 
 	// OpenSSF
