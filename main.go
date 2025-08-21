@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/fatih/color"
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/cmd/agent"
 	"github.com/safedep/vet/cmd/cloud"
@@ -28,6 +29,13 @@ var (
 	globalExceptionsExtra []string
 )
 
+// Colors
+var (
+	cyanBold  = color.New(color.Bold, color.FgCyan).SprintFunc()
+	whiteDim  = color.New(color.Faint).SprintFunc()
+	whiteBold = color.New(color.Bold).SprintFunc()
+)
+
 const (
 	vetName                 = "vet"
 	vetInformationURI       = "https://github.com/safedep/vet"
@@ -37,13 +45,20 @@ const (
 
 var vetPurl = "pkg:golang/safedep/vet@" + version
 
-const banner string = `
-Yb    dP 888888 888888
- Yb  dP  88__     88
-  YbdP   88""     88
-   YP    888888   88
+func generateVetBanner(version, commit string) string {
+	var vetASCIIText = `
+█░█ █▀▀ ▀█▀	From SafeDep
+▀▄▀ ██▄ ░█░` // backtick should end here, no \n
 
-`
+	if len(commit) >= 6 {
+		commit = commit[:6]
+	}
+
+	return fmt.Sprintf("%s \t%s: %s %s: %s\n\n", cyanBold(vetASCIIText),
+		whiteDim("version"), whiteBold(version),
+		whiteDim("commit"), whiteBold(commit),
+	)
+}
 
 func main() {
 	cmd := &cobra.Command{
@@ -133,7 +148,7 @@ func printBanner() {
 		return
 	}
 
-	ui.PrintBanner(banner)
+	ui.PrintBanner(generateVetBanner(version, commit))
 }
 
 func checkIfPackageInspectCommandEnabled() bool {
