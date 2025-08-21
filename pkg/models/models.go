@@ -44,6 +44,7 @@ const (
 	ManifestSourceLocal         = ManifestSourceType("local")
 	ManifestSourcePurl          = ManifestSourceType("purl")
 	ManifestSourceGitRepository = ManifestSourceType("git_repository")
+	ManifestSourceHomebrew      = ManifestSourceType("homebrew")
 )
 
 // We now have different sources from where a package
@@ -139,6 +140,14 @@ func NewPackageManifestFromGitHub(repo, repoRelativePath, realPath, ecosystem st
 		Namespace: repo,
 		Path:      repoRelativePath,
 	}, realPath, ecosystem)
+}
+
+func NewPackageManifestFromHomebrew() *PackageManifest {
+	return newPackageManifest(PackageManifestSource{
+		Type:      ManifestSourceHomebrew,
+		Namespace: "brew.sh",
+		Path:      "homebrew",
+	}, "brew info --installed --json", "homebrew")
 }
 
 func newPackageManifest(source PackageManifestSource, path, ecosystem string) *PackageManifest {

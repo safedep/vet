@@ -93,6 +93,7 @@ var (
 	scanImageTarget                  string
 	scanImageNoRemote                bool
 	reportHtmlPath                   string
+	brewSpec                         bool
 )
 
 func newScanCommand() *cobra.Command {
@@ -231,6 +232,7 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().BoolVarP(&scanImageNoRemote, "image-no-remote", "", false,
 		"Disable container image pulling when not found locally")
 	cmd.Flags().StringVar(&reportHtmlPath, "report-html", "", "Path to write HTML report output")
+	cmd.Flags().BoolVar(&brewSpec, "brew", true, "")
 
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
@@ -423,6 +425,13 @@ func internalStartScan() error {
 		}
 
 		reader, err = readers.NewContainerImageReader(scanImageTarget, readerConfig)
+	} else if brewSpec {
+		analytics.TrackCommandScanBrewScan()
+
+		// We do not have anything to enrich for homebrew & it leads to data overriden by the insights API
+		enrich = false
+
+		reader, err = readers.NewBrewReader(readers.BrewReaderConfig{})
 	} else {
 		analytics.TrackCommandScanDirectoryScan()
 

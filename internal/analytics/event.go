@@ -22,6 +22,7 @@ const (
 	eventScanEnvDocker           = "command_scan_env_docker"
 	eventScanEnvGitHubActions    = "command_scan_env_github_actions"
 	eventScanEnvGitLabCI         = "command_scan_env_gitlab_ci"
+	eventScanBrewScan            = "command_scan_brew_scan"
 
 	eventInspectMalwareAnalysis = "command_inspect_malware_analysis"
 
@@ -146,4 +147,8 @@ func TrackCommandImageScan() {
 
 func TrackAgentQuery() {
 	TrackEvent(eventAgentQuery)
+}
+
+func TrackCommandScanBrewScan() {
+	TrackEvent(eventScanBrewScan)
 }
