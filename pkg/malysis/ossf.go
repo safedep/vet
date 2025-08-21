@@ -156,7 +156,7 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 
 var maliciousPackagesEcosystemMap = map[packagev1.Ecosystem]string{
 	packagev1.Ecosystem_ECOSYSTEM_NPM:      "npm",
-	packagev1.Ecosystem_ECOSYSTEM_PYPI:     "pypi",
+	packagev1.Ecosystem_ECOSYSTEM_PYPI:     "PyPI",
 	packagev1.Ecosystem_ECOSYSTEM_RUBYGEMS: "rubygems",
 	packagev1.Ecosystem_ECOSYSTEM_GO:       "go",
 	packagev1.Ecosystem_ECOSYSTEM_MAVEN:    "maven",
@@ -190,7 +190,7 @@ func (g *openSSFMaliciousPackageReportGenerator) relativeFilePath(ecosystem pack
 	switch ecosystemStr {
 	case "npm":
 		return fmt.Sprintf("%s/npm/%s/MAL-0000-%s.json", prefix, packageName, packageFileName), nil
-	case "pypi":
+	case "PyPI":
 		return fmt.Sprintf("%s/pypi/%s/MAL-0000-%s.json", prefix, packageName, packageFileName), nil
 	case "rubygems":
 		return fmt.Sprintf("%s/rubygems/%s/MAL-0000-%s.json", prefix, packageName, packageFileName), nil

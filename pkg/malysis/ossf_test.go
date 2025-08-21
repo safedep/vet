@@ -170,6 +170,44 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 				assert.Equal(t, "0", vuln.Affected[0].Ranges[0].Events[0].Introduced, "introduced version should be '0' according to OSV schema")
 			},
 		},
+		{
+			name: "PyPI ecosystem should be capitalized as 'PyPI' in OSV report",
+			report: &malysisv1pb.Report{
+				PackageVersion: &packagev1.PackageVersion{
+					Package: &packagev1.Package{
+						Ecosystem: packagev1.Ecosystem_ECOSYSTEM_PYPI,
+						Name:      "test-python-package",
+					},
+					Version: "1.0.0",
+				},
+				Inference: &malysisv1pb.Report_Inference{
+					Summary: "Test malicious PyPI package",
+					Details: "Test details",
+				},
+			},
+			params: OpenSSFMaliciousPackageReportParams{},
+			setup: func(t *testing.T, dir string) {
+				_ = os.MkdirAll(dir, 0o755)
+			},
+			assert: func(t *testing.T, dir string, err error) {
+				assert.NoError(t, err)
+				filePath := filepath.Join(dir, "osv/malicious/pypi/test-python-package/MAL-0000-test-python-package.json")
+				assert.FileExists(t, filePath)
+
+				// Read and validate the OSV report
+				jsonFile, err := os.ReadFile(filePath)
+				assert.NoError(t, err)
+
+				var vuln osvschema.Vulnerability
+				err = json.Unmarshal(jsonFile, &vuln)
+				assert.NoError(t, err)
+
+				// Verify the ecosystem is "PyPI" not "pypi"
+				assert.Len(t, vuln.Affected, 1, "should have one affected package")
+				assert.Equal(t, "PyPI", vuln.Affected[0].Package.Ecosystem, "ecosystem should be 'PyPI' according to OSV schema")
+				assert.Equal(t, "test-python-package", vuln.Affected[0].Package.Name, "package name should match")
+			},
+		},
 	}
 
 	for _, tc := range cases {
