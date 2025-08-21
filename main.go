@@ -50,9 +50,13 @@ func generateVetBanner(version, commit string) string {
 █░█ █▀▀ ▀█▀	From SafeDep
 ▀▄▀ ██▄ ░█░` // backtick should end here, no \n
 
+	if len(commit) >= 6 {
+		commit = commit[:6]
+	}
+
 	return fmt.Sprintf("%s \t%s: %s %s: %s\n\n", cyanBold(vetASCIIText),
 		whiteDim("version"), whiteBold(version),
-		whiteDim("commit"), whiteBold(commit[:6]),
+		whiteDim("commit"), whiteBold(commit),
 	)
 }
 
