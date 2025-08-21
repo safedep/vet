@@ -2,6 +2,7 @@ package readers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os/exec"
 
@@ -47,6 +48,9 @@ func (b *brewReader) EnumManifests(handler func(*models.PackageManifest, Package
 	cmd := exec.Command("brew", "info", "--installed", "--json")
 	output, err := cmd.Output()
 	if err != nil {
+		if errors.Is(err, exec.ErrNotFound) {
+			return fmt.Errorf("brew command not found: please ensure Homebrew is installed and available in your PATH")
+		}
 		return fmt.Errorf("failed to execute brew command: %w", err)
 	}
 
@@ -59,8 +63,8 @@ func (b *brewReader) EnumManifests(handler func(*models.PackageManifest, Package
 	// Convert brew info to packages
 	for _, brewPkg := range brewPackages {
 		version := ""
-		for _, installed := range brewPkg.InstalledVersions {
-			version = installed.Version
+		if len(brewPkg.InstalledVersions) > 0 {
+			version = brewPkg.InstalledVersions[0].Version
 		}
 		pkg := &models.Package{
 			PackageDetails: lockfile.PackageDetails{
