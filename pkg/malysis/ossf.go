@@ -58,9 +58,9 @@ func NewOpenSSFMaliciousPackageReportGenerator(config OpenSSFMaliciousPackageRep
 func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Context,
 	report *malysisv1pb.Report, params OpenSSFMaliciousPackageReportParams,
 ) error {
-	ecosystem, err := g.ecosystemFor(report.GetPackageVersion().GetPackage().GetEcosystem())
+	osvEcosystem, err := g.osvEcosystemFor(report.GetPackageVersion().GetPackage().GetEcosystem())
 	if err != nil {
-		return fmt.Errorf("failed to get ecosystem: %w", err)
+		return fmt.Errorf("failed to get OSV ecosystem: %w", err)
 	}
 
 	versionIntroduced := params.VersionIntroduced
@@ -80,11 +80,17 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 		contacts = []string{defaultCreditURL}
 	}
 
+	// Determine the appropriate range type based on ecosystem
+	rangeType := osvschema.RangeSemVer
+	if report.GetPackageVersion().GetPackage().GetEcosystem() == packagev1.Ecosystem_ECOSYSTEM_PYPI {
+		rangeType = osvschema.RangeEcosystem
+	}
+
 	vuln := osvschema.Vulnerability{
 		SchemaVersion: osvschema.SchemaVersion,
 		Modified:      time.Now(),
 		Published:     time.Now(),
-		Summary:       fmt.Sprintf("Malicious code in %s package (%s)", report.GetPackageVersion().GetPackage().GetName(), ecosystem),
+		Summary:       fmt.Sprintf("Malicious code in %s package (%s)", report.GetPackageVersion().GetPackage().GetName(), osvEcosystem),
 		Details:       report.GetInference().GetSummary(), // This is intentional to map our summary with OSV details
 		References: []osvschema.Reference{
 			{
@@ -102,12 +108,12 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 		Affected: []osvschema.Affected{
 			{
 				Package: osvschema.Package{
-					Ecosystem: ecosystem,
+					Ecosystem: osvEcosystem,
 					Name:      report.GetPackageVersion().GetPackage().GetName(),
 				},
 				Ranges: []osvschema.Range{
 					{
-						Type: osvschema.RangeSemVer,
+						Type: rangeType,
 						Events: []osvschema.Event{
 							{
 								Introduced: versionIntroduced,
@@ -154,7 +160,9 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 	return nil
 }
 
-var maliciousPackagesEcosystemMap = map[packagev1.Ecosystem]string{
+// File path ecosystem mapping used for generating directory structure in malicious packages repository.
+// This uses lowercase names to maintain consistency with existing file paths.
+var filePathEcosystemMap = map[packagev1.Ecosystem]string{
 	packagev1.Ecosystem_ECOSYSTEM_NPM:      "npm",
 	packagev1.Ecosystem_ECOSYSTEM_PYPI:     "pypi",
 	packagev1.Ecosystem_ECOSYSTEM_RUBYGEMS: "rubygems",
@@ -163,8 +171,28 @@ var maliciousPackagesEcosystemMap = map[packagev1.Ecosystem]string{
 	packagev1.Ecosystem_ECOSYSTEM_CARGO:    "crates-io",
 }
 
+// OSV schema ecosystem mapping with proper case-sensitive ecosystem names for OSV JSON schema compliance.
+// This is separate from filePathEcosystemMap because OSV schema requires specific casing (e.g., "PyPI" not "pypi").
+var osvEcosystemMap = map[packagev1.Ecosystem]string{
+	packagev1.Ecosystem_ECOSYSTEM_NPM:      "npm",
+	packagev1.Ecosystem_ECOSYSTEM_PYPI:     "PyPI",
+	packagev1.Ecosystem_ECOSYSTEM_RUBYGEMS: "RubyGems",
+	packagev1.Ecosystem_ECOSYSTEM_GO:       "Go",
+	packagev1.Ecosystem_ECOSYSTEM_MAVEN:    "Maven",
+	packagev1.Ecosystem_ECOSYSTEM_CARGO:    "crates.io",
+}
+
 func (g *openSSFMaliciousPackageReportGenerator) ecosystemFor(ecosystem packagev1.Ecosystem) (string, error) {
-	ecosystemStr, ok := maliciousPackagesEcosystemMap[ecosystem]
+	ecosystemStr, ok := filePathEcosystemMap[ecosystem]
+	if !ok {
+		return "", fmt.Errorf("unsupported ecosystem: %s", ecosystem)
+	}
+
+	return ecosystemStr, nil
+}
+
+func (g *openSSFMaliciousPackageReportGenerator) osvEcosystemFor(ecosystem packagev1.Ecosystem) (string, error) {
+	ecosystemStr, ok := osvEcosystemMap[ecosystem]
 	if !ok {
 		return "", fmt.Errorf("unsupported ecosystem: %s", ecosystem)
 	}
@@ -175,7 +203,7 @@ func (g *openSSFMaliciousPackageReportGenerator) ecosystemFor(ecosystem packagev
 // Generate relative file path for the report based on package ecosystem
 // and conventions followed in https://github.com/ossf/malicious-packages
 func (g *openSSFMaliciousPackageReportGenerator) relativeFilePath(ecosystem packagev1.Ecosystem, packageName string) (string, error) {
-	ecosystemStr, ok := maliciousPackagesEcosystemMap[ecosystem]
+	ecosystemStr, ok := filePathEcosystemMap[ecosystem]
 	if !ok {
 		return "", fmt.Errorf("unsupported ecosystem: %s", ecosystem)
 	}

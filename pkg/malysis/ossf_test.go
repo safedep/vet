@@ -170,6 +170,102 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 				assert.Equal(t, "0", vuln.Affected[0].Ranges[0].Events[0].Introduced, "introduced version should be '0' according to OSV schema")
 			},
 		},
+		{
+			name: "PyPI ecosystem should use proper case and ECOSYSTEM range type",
+			report: &malysisv1pb.Report{
+				PackageVersion: &packagev1.PackageVersion{
+					Package: &packagev1.Package{
+						Ecosystem: packagev1.Ecosystem_ECOSYSTEM_PYPI,
+						Name:      "test-pypi-package",
+					},
+					Version: "1.0.0",
+				},
+				Inference: &malysisv1pb.Report_Inference{
+					Summary: "Test malicious PyPI package",
+					Details: "Test details for PyPI",
+				},
+			},
+			params: OpenSSFMaliciousPackageReportParams{
+				VersionIntroduced: "1.0.0",
+			},
+			setup: func(t *testing.T, dir string) {
+				_ = os.MkdirAll(dir, 0o755)
+			},
+			assert: func(t *testing.T, dir string, err error) {
+				assert.NoError(t, err)
+				filePath := filepath.Join(dir, "osv/malicious/pypi/test-pypi-package/MAL-0000-test-pypi-package.json")
+				assert.FileExists(t, filePath)
+
+				// Read and validate the OSV report
+				jsonFile, err := os.ReadFile(filePath)
+				assert.NoError(t, err)
+
+				var vuln osvschema.Vulnerability
+				err = json.Unmarshal(jsonFile, &vuln)
+				assert.NoError(t, err)
+
+				// Verify PyPI ecosystem is properly cased
+				assert.Len(t, vuln.Affected, 1, "should have one affected package")
+				assert.Equal(t, "PyPI", vuln.Affected[0].Package.Ecosystem, "ecosystem should be 'PyPI' with proper case")
+				assert.Equal(t, "test-pypi-package", vuln.Affected[0].Package.Name, "package name should match")
+
+				// Verify ECOSYSTEM range type is used for PyPI
+				assert.Len(t, vuln.Affected[0].Ranges, 1, "should have one range")
+				assert.Equal(t, osvschema.RangeEcosystem, vuln.Affected[0].Ranges[0].Type, "PyPI should use ECOSYSTEM range type")
+				
+				// Verify version information
+				assert.Len(t, vuln.Affected[0].Ranges[0].Events, 1, "should have one event")
+				assert.Equal(t, "1.0.0", vuln.Affected[0].Ranges[0].Events[0].Introduced, "introduced version should match")
+			},
+		},
+		{
+			name: "NPM ecosystem should use proper case and SEMVER range type",
+			report: &malysisv1pb.Report{
+				PackageVersion: &packagev1.PackageVersion{
+					Package: &packagev1.Package{
+						Ecosystem: packagev1.Ecosystem_ECOSYSTEM_NPM,
+						Name:      "test-npm-package",
+					},
+					Version: "1.0.0",
+				},
+				Inference: &malysisv1pb.Report_Inference{
+					Summary: "Test malicious NPM package",
+					Details: "Test details for NPM",
+				},
+			},
+			params: OpenSSFMaliciousPackageReportParams{
+				VersionIntroduced: "1.0.0",
+			},
+			setup: func(t *testing.T, dir string) {
+				_ = os.MkdirAll(dir, 0o755)
+			},
+			assert: func(t *testing.T, dir string, err error) {
+				assert.NoError(t, err)
+				filePath := filepath.Join(dir, "osv/malicious/npm/test-npm-package/MAL-0000-test-npm-package.json")
+				assert.FileExists(t, filePath)
+
+				// Read and validate the OSV report
+				jsonFile, err := os.ReadFile(filePath)
+				assert.NoError(t, err)
+
+				var vuln osvschema.Vulnerability
+				err = json.Unmarshal(jsonFile, &vuln)
+				assert.NoError(t, err)
+
+				// Verify NPM ecosystem name
+				assert.Len(t, vuln.Affected, 1, "should have one affected package")
+				assert.Equal(t, "npm", vuln.Affected[0].Package.Ecosystem, "ecosystem should be 'npm'")
+				assert.Equal(t, "test-npm-package", vuln.Affected[0].Package.Name, "package name should match")
+
+				// Verify SEMVER range type is used for NPM
+				assert.Len(t, vuln.Affected[0].Ranges, 1, "should have one range")
+				assert.Equal(t, osvschema.RangeSemVer, vuln.Affected[0].Ranges[0].Type, "NPM should use SEMVER range type")
+				
+				// Verify version information
+				assert.Len(t, vuln.Affected[0].Ranges[0].Events, 1, "should have one event")
+				assert.Equal(t, "1.0.0", vuln.Affected[0].Ranges[0].Events[0].Introduced, "introduced version should match")
+			},
+		},
 	}
 
 	for _, tc := range cases {
