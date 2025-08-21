@@ -160,7 +160,9 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 	return nil
 }
 
-var maliciousPackagesEcosystemMap = map[packagev1.Ecosystem]string{
+// File path ecosystem mapping used for generating directory structure in malicious packages repository.
+// This uses lowercase names to maintain consistency with existing file paths.
+var filePathEcosystemMap = map[packagev1.Ecosystem]string{
 	packagev1.Ecosystem_ECOSYSTEM_NPM:      "npm",
 	packagev1.Ecosystem_ECOSYSTEM_PYPI:     "pypi",
 	packagev1.Ecosystem_ECOSYSTEM_RUBYGEMS: "rubygems",
@@ -169,7 +171,8 @@ var maliciousPackagesEcosystemMap = map[packagev1.Ecosystem]string{
 	packagev1.Ecosystem_ECOSYSTEM_CARGO:    "crates-io",
 }
 
-// OSV schema ecosystem mapping with proper case for ecosystem names
+// OSV schema ecosystem mapping with proper case-sensitive ecosystem names for OSV JSON schema compliance.
+// This is separate from filePathEcosystemMap because OSV schema requires specific casing (e.g., "PyPI" not "pypi").
 var osvEcosystemMap = map[packagev1.Ecosystem]string{
 	packagev1.Ecosystem_ECOSYSTEM_NPM:      "npm",
 	packagev1.Ecosystem_ECOSYSTEM_PYPI:     "PyPI",
@@ -180,7 +183,7 @@ var osvEcosystemMap = map[packagev1.Ecosystem]string{
 }
 
 func (g *openSSFMaliciousPackageReportGenerator) ecosystemFor(ecosystem packagev1.Ecosystem) (string, error) {
-	ecosystemStr, ok := maliciousPackagesEcosystemMap[ecosystem]
+	ecosystemStr, ok := filePathEcosystemMap[ecosystem]
 	if !ok {
 		return "", fmt.Errorf("unsupported ecosystem: %s", ecosystem)
 	}
@@ -200,7 +203,7 @@ func (g *openSSFMaliciousPackageReportGenerator) osvEcosystemFor(ecosystem packa
 // Generate relative file path for the report based on package ecosystem
 // and conventions followed in https://github.com/ossf/malicious-packages
 func (g *openSSFMaliciousPackageReportGenerator) relativeFilePath(ecosystem packagev1.Ecosystem, packageName string) (string, error) {
-	ecosystemStr, ok := maliciousPackagesEcosystemMap[ecosystem]
+	ecosystemStr, ok := filePathEcosystemMap[ecosystem]
 	if !ok {
 		return "", fmt.Errorf("unsupported ecosystem: %s", ecosystem)
 	}
