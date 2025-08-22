@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -32,8 +33,24 @@ func StartProgressWriter() {
 
 func StopProgressWriter() {
 	if progressWriter != nil {
+		// Wait a bit for final updates
+		time.Sleep(100 * time.Millisecond)
+
+		// Stop the writer
 		progressWriter.Stop()
-		time.Sleep(1 * time.Second)
+
+		// Wait for final render
+		time.Sleep(100 * time.Millisecond)
+
+		// Clear the last line of progress output
+		fmt.Fprintf(os.Stderr, "\033[2K\r")
+
+		// Clear any remaining progress output
+		os.Stderr.WriteString("\033[2K\r") // Clear line and return carriage
+		os.Stderr.WriteString("\n")        // Move to next line
+
+		// Reset the writer
+		progressWriter = nil
 	}
 }
 
