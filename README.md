@@ -106,7 +106,7 @@ vet scan \
 ## 🔥 See vet in Action
 
 <div align="center">
-  <img src="./docs/assets/vet-demo-new-banner.gif" alt="vet Demo" width="100%" />
+  <img src="./docs/assets/vet-demo.gif" alt="vet Demo" width="100%" />
 </div>
 
 ## 🚀 Production Ready Integrations
