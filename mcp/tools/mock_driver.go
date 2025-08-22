@@ -46,6 +46,14 @@ func (m *MockDriver) GetPackageVersionVulnerabilities(ctx context.Context, pv *p
 	return args.Get(0).([]*vulnerabilityv1.Vulnerability), args.Error(1)
 }
 
+func (m *MockDriver) GetPackageVersionVulnerabilitiesOnly(ctx context.Context, pv *packagev1.PackageVersion) ([]*vulnerabilityv1.Vulnerability, error) {
+	args := m.Called(ctx, pv)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*vulnerabilityv1.Vulnerability), args.Error(1)
+}
+
 func (m *MockDriver) GetPackageVersionPopularity(ctx context.Context, pv *packagev1.PackageVersion) ([]*packagev1.ProjectInsight, error) {
 	args := m.Called(ctx, pv)
 	if args.Get(0) == nil {
