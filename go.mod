@@ -3,8 +3,13 @@ module github.com/safedep/vet
 go 1.24.3
 
 require (
+<<<<<<< HEAD
 	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250819072717-b69aa2c62a0d.2
 	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.8-20250819072717-b69aa2c62a0d.1
+=======
+	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250610075857-7cfdb61a0bfa.2
+	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.8-20250822112533-a008e1948f1d.1
+>>>>>>> 955e697 (add brew ecosystem)
 	entgo.io/ent v0.14.4
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/BurntSushi/toml v1.5.0
