@@ -208,90 +208,6 @@ func TestDefaultDriver_GetPackageVersionVulnerabilities(t *testing.T) {
 			name:           "successful vulnerabilities retrieval",
 			packageVersion: createTestPackageVersion(),
 			setupMock: func(m *mockInsightServiceClient) {
-				response := &insightsv2.GetPackageVersionInsightResponse{
-					Insight: &packagev1.PackageVersionInsight{
-						Vulnerabilities: []*vulnerabilityv1.Vulnerability{
-							{
-								Id: &vulnerabilityv1.VulnerabilityIdentifier{
-									Value: "CVE-2021-1234",
-								},
-								Summary: "Test vulnerability",
-							},
-						},
-					},
-				}
-				m.On("GetPackageVersionInsight", mock.Anything,
-					mock.AnythingOfType("*insightsv2.GetPackageVersionInsightRequest"), mock.Anything).Return(response, nil)
-			},
-			expectedError: nil,
-			expectVulns:   true,
-		},
-		{
-			name:           "package version not found",
-			packageVersion: createTestPackageVersion(),
-			setupMock: func(m *mockInsightServiceClient) {
-				m.On("GetPackageVersionInsight", mock.Anything,
-					mock.AnythingOfType("*insightsv2.GetPackageVersionInsightRequest"), mock.Anything).
-					Return((*insightsv2.GetPackageVersionInsightResponse)(nil), status.Error(codes.NotFound, "not found"))
-			},
-			expectedError: ErrPackageVersionInsightNotFound,
-			expectVulns:   false,
-		},
-		{
-			name:           "grpc error",
-			packageVersion: createTestPackageVersion(),
-			setupMock: func(m *mockInsightServiceClient) {
-				m.On("GetPackageVersionInsight", mock.Anything,
-					mock.AnythingOfType("*insightsv2.GetPackageVersionInsightRequest"), mock.Anything).
-					Return((*insightsv2.GetPackageVersionInsightResponse)(nil), status.Error(codes.Internal, "internal error"))
-			},
-			expectedError: errors.New("failed to get package version insight"),
-			expectVulns:   false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mockInsightsClient := &mockInsightServiceClient{}
-			mockMalysisClient := &mockMalwareAnalysisServiceClient{}
-			tt.setupMock(mockInsightsClient)
-
-			driver, err := NewDefaultDriver(mockInsightsClient, mockMalysisClient, &adapters.GithubClient{})
-			require.NoError(t, err)
-
-			vulns, err := driver.GetPackageVersionVulnerabilities(context.Background(), tt.packageVersion)
-
-			if tt.expectedError != nil {
-				assert.Error(t, err)
-				assert.Contains(t, err.Error(), tt.expectedError.Error())
-			} else {
-				assert.NoError(t, err)
-			}
-
-			if tt.expectVulns {
-				assert.NotNil(t, vulns)
-				assert.Len(t, vulns, 1)
-			} else {
-				assert.Nil(t, vulns)
-			}
-
-			mockInsightsClient.AssertExpectations(t)
-		})
-	}
-}
-
-func TestDefaultDriver_GetPackageVersionVulnerabilitiesOnly(t *testing.T) {
-	tests := []struct {
-		name           string
-		packageVersion *packagev1.PackageVersion
-		setupMock      func(*mockInsightServiceClient)
-		expectedError  error
-		expectVulns    bool
-	}{
-		{
-			name:           "successful vulnerabilities retrieval",
-			packageVersion: createTestPackageVersion(),
-			setupMock: func(m *mockInsightServiceClient) {
 				response := &insightsv2.GetPackageVersionVulnerabilitiesResponse{
 					Vulnerabilities: []*vulnerabilityv1.Vulnerability{
 						{
@@ -341,7 +257,7 @@ func TestDefaultDriver_GetPackageVersionVulnerabilitiesOnly(t *testing.T) {
 			driver, err := NewDefaultDriver(mockInsightsClient, mockMalysisClient, &adapters.GithubClient{})
 			require.NoError(t, err)
 
-			vulns, err := driver.GetPackageVersionVulnerabilitiesOnly(context.Background(), tt.packageVersion)
+			vulns, err := driver.GetPackageVersionVulnerabilities(context.Background(), tt.packageVersion)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -361,6 +277,8 @@ func TestDefaultDriver_GetPackageVersionVulnerabilitiesOnly(t *testing.T) {
 		})
 	}
 }
+
+
 
 func TestDefaultDriver_GetPackageVersionPopularity(t *testing.T) {
 	tests := []struct {
@@ -543,10 +461,6 @@ func TestDefaultDriver_NilInputHandling(t *testing.T) {
 	vulns, err := driver.GetPackageVersionVulnerabilities(context.Background(), nil)
 	assert.Error(t, err)
 	assert.Nil(t, vulns)
-
-	vulnsOnly, err := driver.GetPackageVersionVulnerabilitiesOnly(context.Background(), nil)
-	assert.Error(t, err)
-	assert.Nil(t, vulnsOnly)
 
 	insights, err := driver.GetPackageVersionPopularity(context.Background(), nil)
 	assert.Error(t, err)

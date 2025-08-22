@@ -47,9 +47,6 @@ type Driver interface {
 	// Return vulnerabilities for a package version
 	GetPackageVersionVulnerabilities(ctx context.Context, pv *packagev1.PackageVersion) ([]*vulnerabilityv1.Vulnerability, error)
 
-	// Return vulnerabilities for a package version using the dedicated vulnerabilities API
-	GetPackageVersionVulnerabilitiesOnly(ctx context.Context, pv *packagev1.PackageVersion) ([]*vulnerabilityv1.Vulnerability, error)
-
 	// Return popularity insights for a package version
 	GetPackageVersionPopularity(ctx context.Context, pv *packagev1.PackageVersion) ([]*packagev1.ProjectInsight, error)
 
@@ -170,15 +167,6 @@ func (d *defaultDriver) GetPackageVersionMalwareReport(ctx context.Context, pv *
 }
 
 func (d *defaultDriver) GetPackageVersionVulnerabilities(ctx context.Context, pv *packagev1.PackageVersion) ([]*vulnerabilityv1.Vulnerability, error) {
-	insight, err := d.getPackageVersionInsight(ctx, pv)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get package version insight: %w", err)
-	}
-
-	return insight.GetVulnerabilities(), nil
-}
-
-func (d *defaultDriver) GetPackageVersionVulnerabilitiesOnly(ctx context.Context, pv *packagev1.PackageVersion) ([]*vulnerabilityv1.Vulnerability, error) {
 	if pv == nil {
 		return nil, ErrInvalidParameters
 	}
@@ -198,6 +186,7 @@ func (d *defaultDriver) GetPackageVersionVulnerabilitiesOnly(ctx context.Context
 
 	return res.GetVulnerabilities(), nil
 }
+
 
 func (d *defaultDriver) GetPackageVersionPopularity(ctx context.Context, pv *packagev1.PackageVersion) ([]*packagev1.ProjectInsight, error) {
 	insight, err := d.getPackageVersionInsight(ctx, pv)

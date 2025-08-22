@@ -38,7 +38,6 @@ func TestRegisterAll_Success(t *testing.T) {
 	mockServer.On("RegisterTool", mock.AnythingOfType("*tools.packageMalwareTool")).Return(nil)
 	mockServer.On("RegisterTool", mock.AnythingOfType("*tools.packageInsightsTool")).Return(nil)
 	mockServer.On("RegisterTool", mock.AnythingOfType("*tools.packageRegistryTool")).Return(nil)
-	mockServer.On("RegisterTool", mock.AnythingOfType("*tools.vulnerabilityTool")).Return(nil)
 
 	// Execute the function
 	err := RegisterAll(mockServer, mockDriver)
@@ -110,24 +109,3 @@ func TestRegisterAll_RegistryToolRegistrationFails(t *testing.T) {
 	mockServer.AssertExpectations(t)
 }
 
-func TestRegisterAll_VulnerabilityToolRegistrationFails(t *testing.T) {
-	// Create mocks
-	mockServer := &MockMcpServer{}
-	mockDriver := NewMockDriver()
-
-	// Setup expectations - first three tools succeed, vulnerability tool fails
-	mockServer.On("RegisterTool", mock.AnythingOfType("*tools.packageMalwareTool")).Return(nil)
-	mockServer.On("RegisterTool", mock.AnythingOfType("*tools.packageInsightsTool")).Return(nil)
-	mockServer.On("RegisterTool", mock.AnythingOfType("*tools.packageRegistryTool")).Return(nil)
-	mockServer.On("RegisterTool", mock.AnythingOfType("*tools.vulnerabilityTool")).Return(errors.New("vulnerability tool registration failed"))
-
-	// Execute the function
-	err := RegisterAll(mockServer, mockDriver)
-
-	// Verify results
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "vulnerability tool registration failed")
-
-	// Verify expectations were met
-	mockServer.AssertExpectations(t)
-}
