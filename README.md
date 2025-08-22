@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="3024" height="1964" alt="image" src="https://github.com/user-attachments/assets/bd841d49-91e4-4c96-9c79-9c4cb4a4c499" />
+  <img width="3024" height="1964" alt="image" src="./docs/assets/vet-terminal.png" />
 
   <h1>SafeDep VET</h1>
   
