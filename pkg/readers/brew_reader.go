@@ -70,7 +70,7 @@ func (b *brewReader) EnumManifests(handler func(*models.PackageManifest, Package
 			PackageDetails: lockfile.PackageDetails{
 				Name:      brewPkg.FullName,
 				Version:   version,
-				Ecosystem: lockfile.Ecosystem("brew"),
+				Ecosystem: lockfile.Ecosystem("Homebrew"),
 			},
 			Insights: &insightapi.PackageVersionInsight{
 				Licenses: &[]insightapi.License{
