@@ -232,7 +232,7 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().BoolVarP(&scanImageNoRemote, "image-no-remote", "", false,
 		"Disable container image pulling when not found locally")
 	cmd.Flags().StringVar(&reportHtmlPath, "report-html", "", "Path to write HTML report output")
-	cmd.Flags().BoolVar(&brewSpec, "brew", false, "Enable scanning for Homebrew packages")
+	cmd.Flags().BoolVar(&brewSpec, "homebrew", false, "Enable scanning for Homebrew packages")
 
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
