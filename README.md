@@ -130,7 +130,7 @@ Enterprise grade scanning with [vet CI Component](https://gitlab.com/explore/cat
 
 ```yaml
 include:
-  - component: gitlab.com/safedep/ci-components/vet@main
+  - component: gitlab.com/safedep/ci-components/vet/scan@main
 ```
 
 ### 🐳 **Container Integration**
