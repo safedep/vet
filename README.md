@@ -1,5 +1,7 @@
 <div align="center">
-  <h1>🔍 vet</h1>
+  <img width="3024" height="1964" alt="image" src="./docs/assets/vet-terminal.png" />
+
+  <h1>SafeDep VET</h1>
   
   <p><strong>🚀 Enterprise grade open source software supply chain security</strong></p>
   
