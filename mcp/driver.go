@@ -167,13 +167,26 @@ func (d *defaultDriver) GetPackageVersionMalwareReport(ctx context.Context, pv *
 }
 
 func (d *defaultDriver) GetPackageVersionVulnerabilities(ctx context.Context, pv *packagev1.PackageVersion) ([]*vulnerabilityv1.Vulnerability, error) {
-	insight, err := d.getPackageVersionInsight(ctx, pv)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get package version insight: %w", err)
+	if pv == nil {
+		return nil, ErrInvalidParameters
 	}
 
-	return insight.GetVulnerabilities(), nil
+	res, err := d.insightsClient.GetPackageVersionVulnerabilities(ctx, &insightsv2.GetPackageVersionVulnerabilitiesRequest{
+		PackageVersion: pv,
+	})
+	if err != nil {
+		// Handle the case where the package version is not found. This is required otherwise
+		// LLMs hallucinates
+		if s, ok := status.FromError(err); ok && s.Code() == codes.NotFound {
+			return nil, ErrPackageVersionInsightNotFound
+		}
+
+		return nil, fmt.Errorf("failed to get package version vulnerabilities: %w", err)
+	}
+
+	return res.GetVulnerabilities(), nil
 }
+
 
 func (d *defaultDriver) GetPackageVersionPopularity(ctx context.Context, pv *packagev1.PackageVersion) ([]*packagev1.ProjectInsight, error) {
 	insight, err := d.getPackageVersionInsight(ctx, pv)

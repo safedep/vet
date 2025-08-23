@@ -31,6 +31,11 @@ func (m *mockInsightServiceClient) GetPackageVersionInsight(ctx context.Context,
 	return args.Get(0).(*insightsv2.GetPackageVersionInsightResponse), args.Error(1)
 }
 
+func (m *mockInsightServiceClient) GetPackageVersionVulnerabilities(ctx context.Context, req *insightsv2.GetPackageVersionVulnerabilitiesRequest, opts ...grpc.CallOption) (*insightsv2.GetPackageVersionVulnerabilitiesResponse, error) {
+	args := m.Called(ctx, req, opts)
+	return args.Get(0).(*insightsv2.GetPackageVersionVulnerabilitiesResponse), args.Error(1)
+}
+
 type mockMalwareAnalysisServiceClient struct {
 	mock.Mock
 }
@@ -58,6 +63,11 @@ func (m *mockMalwareAnalysisServiceClient) InternalAnalyzePackage(ctx context.Co
 func (m *mockMalwareAnalysisServiceClient) ListPackageAnalysisRecords(ctx context.Context, req *malysisv1.ListPackageAnalysisRecordsRequest, opts ...grpc.CallOption) (*malysisv1.ListPackageAnalysisRecordsResponse, error) {
 	args := m.Called(ctx, req, opts)
 	return args.Get(0).(*malysisv1.ListPackageAnalysisRecordsResponse), args.Error(1)
+}
+
+func (m *mockMalwareAnalysisServiceClient) InternalAgenticAnalyzePackage(ctx context.Context, req *malysisv1.InternalAgenticAnalyzePackageRequest, opts ...grpc.CallOption) (*malysisv1.InternalAgenticAnalyzePackageResponse, error) {
+	args := m.Called(ctx, req, opts)
+	return args.Get(0).(*malysisv1.InternalAgenticAnalyzePackageResponse), args.Error(1)
 }
 
 // Test helper functions
@@ -198,20 +208,18 @@ func TestDefaultDriver_GetPackageVersionVulnerabilities(t *testing.T) {
 			name:           "successful vulnerabilities retrieval",
 			packageVersion: createTestPackageVersion(),
 			setupMock: func(m *mockInsightServiceClient) {
-				response := &insightsv2.GetPackageVersionInsightResponse{
-					Insight: &packagev1.PackageVersionInsight{
-						Vulnerabilities: []*vulnerabilityv1.Vulnerability{
-							{
-								Id: &vulnerabilityv1.VulnerabilityIdentifier{
-									Value: "CVE-2021-1234",
-								},
-								Summary: "Test vulnerability",
+				response := &insightsv2.GetPackageVersionVulnerabilitiesResponse{
+					Vulnerabilities: []*vulnerabilityv1.Vulnerability{
+						{
+							Id: &vulnerabilityv1.VulnerabilityIdentifier{
+								Value: "CVE-2021-1234",
 							},
+							Summary: "Test vulnerability",
 						},
 					},
 				}
-				m.On("GetPackageVersionInsight", mock.Anything,
-					mock.AnythingOfType("*insightsv2.GetPackageVersionInsightRequest"), mock.Anything).Return(response, nil)
+				m.On("GetPackageVersionVulnerabilities", mock.Anything,
+					mock.AnythingOfType("*insightsv2.GetPackageVersionVulnerabilitiesRequest"), mock.Anything).Return(response, nil)
 			},
 			expectedError: nil,
 			expectVulns:   true,
@@ -220,9 +228,9 @@ func TestDefaultDriver_GetPackageVersionVulnerabilities(t *testing.T) {
 			name:           "package version not found",
 			packageVersion: createTestPackageVersion(),
 			setupMock: func(m *mockInsightServiceClient) {
-				m.On("GetPackageVersionInsight", mock.Anything,
-					mock.AnythingOfType("*insightsv2.GetPackageVersionInsightRequest"), mock.Anything).
-					Return((*insightsv2.GetPackageVersionInsightResponse)(nil), status.Error(codes.NotFound, "not found"))
+				m.On("GetPackageVersionVulnerabilities", mock.Anything,
+					mock.AnythingOfType("*insightsv2.GetPackageVersionVulnerabilitiesRequest"), mock.Anything).
+					Return((*insightsv2.GetPackageVersionVulnerabilitiesResponse)(nil), status.Error(codes.NotFound, "not found"))
 			},
 			expectedError: ErrPackageVersionInsightNotFound,
 			expectVulns:   false,
@@ -231,11 +239,11 @@ func TestDefaultDriver_GetPackageVersionVulnerabilities(t *testing.T) {
 			name:           "grpc error",
 			packageVersion: createTestPackageVersion(),
 			setupMock: func(m *mockInsightServiceClient) {
-				m.On("GetPackageVersionInsight", mock.Anything,
-					mock.AnythingOfType("*insightsv2.GetPackageVersionInsightRequest"), mock.Anything).
-					Return((*insightsv2.GetPackageVersionInsightResponse)(nil), status.Error(codes.Internal, "internal error"))
+				m.On("GetPackageVersionVulnerabilities", mock.Anything,
+					mock.AnythingOfType("*insightsv2.GetPackageVersionVulnerabilitiesRequest"), mock.Anything).
+					Return((*insightsv2.GetPackageVersionVulnerabilitiesResponse)(nil), status.Error(codes.Internal, "internal error"))
 			},
-			expectedError: errors.New("failed to get package version insight"),
+			expectedError: errors.New("failed to get package version vulnerabilities"),
 			expectVulns:   false,
 		},
 	}
@@ -269,6 +277,8 @@ func TestDefaultDriver_GetPackageVersionVulnerabilities(t *testing.T) {
 		})
 	}
 }
+
+
 
 func TestDefaultDriver_GetPackageVersionPopularity(t *testing.T) {
 	tests := []struct {

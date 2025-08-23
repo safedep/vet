@@ -114,22 +114,7 @@ func startMcpServer() error {
 }
 
 func doRegisterDefaultTools(mcpSrv server.McpServer, driver mcp.Driver) error {
-	err := mcpSrv.RegisterTool(tools.NewPackageInsightsTool(driver))
-	if err != nil {
-		return fmt.Errorf("failed to register package insights tool: %w", err)
-	}
-
-	err = mcpSrv.RegisterTool(tools.NewPackageRegistryTool(driver))
-	if err != nil {
-		return fmt.Errorf("failed to register package registry tool: %w", err)
-	}
-
-	err = mcpSrv.RegisterTool(tools.NewPackageMalwareTool(driver))
-	if err != nil {
-		return fmt.Errorf("failed to register package malware tool: %w", err)
-	}
-
-	return nil
+	return tools.RegisterAll(mcpSrv, driver)
 }
 
 func doRegisterVetSQLQueryTool(mcpSrv server.McpServer) error {

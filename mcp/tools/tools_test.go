@@ -108,3 +108,4 @@ func TestRegisterAll_RegistryToolRegistrationFails(t *testing.T) {
 	// Verify expectations were met
 	mockServer.AssertExpectations(t)
 }
+
