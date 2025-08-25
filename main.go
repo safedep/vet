@@ -46,7 +46,7 @@ const (
 var vetPurl = "pkg:golang/safedep/vet@" + version
 
 func generateVetBanner(version, commit string) string {
-	var vetASCIIText = `
+	vetASCIIText := `
 █░█ █▀▀ ▀█▀	From SafeDep
 ▀▄▀ ██▄ ░█░` // backtick should end here, no \n
 
@@ -54,7 +54,7 @@ func generateVetBanner(version, commit string) string {
 		commit = commit[:6]
 	}
 
-	return fmt.Sprintf("%s \t%s: %s %s: %s\n\n", cyanBold(vetASCIIText),
+	return fmt.Sprintf("%s\t%s: %s %s: %s\n\n", cyanBold(vetASCIIText),
 		whiteDim("version"), whiteBold(version),
 		whiteDim("commit"), whiteBold(commit),
 	)
