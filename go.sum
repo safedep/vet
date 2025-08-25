@@ -8,6 +8,8 @@ buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.6-2025042515311
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.6-20250425153114-8976f5be98c1.1/go.mod h1:avRlCjnFzl98VPaeCtJ24RrV/wwHFzB8sWXhj26+n/U=
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.8-20240508200655-46a4cf4ba109.1 h1:7JbSS7TE2PJR4d/qRtynipwLl/CBFoTB69pX7xlhcJM=
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.8-20240508200655-46a4cf4ba109.1/go.mod h1:8EQ5GzyGJQ5tEIwMSxCl8RKJYsjCpAwkdcENoioXT6g=
+buf.build/gen/go/safedep/api/connectrpc/go v1.18.1-20250822112533-a008e1948f1d.1 h1:l2Fuy7PMz0wR8sQVQlhMnm6fxr6ZLdWeAR7NzZ5w2jI=
+buf.build/gen/go/safedep/api/connectrpc/go v1.18.1-20250822112533-a008e1948f1d.1/go.mod h1:W2eqH9M5zldL2cDL9xqE/HsWe2FoWw+Bwzaul95RQko=
 buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250610075857-7cfdb61a0bfa.2 h1:ENbt9SmU2gh4YhjcFqzceJRlg80hsD28M+Oon9l752A=
 buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250610075857-7cfdb61a0bfa.2/go.mod h1:WDOWZglnweQ4njVEJpLYYpLMx9fD+e94KbKdt8oJrxY=
 buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250819072717-b69aa2c62a0d.2 h1:A4enKVmVf69uVSG88POR59z5YE6dhATNLpL8+DmZtsg=
@@ -16,6 +18,8 @@ buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.6-20250705071048-7ad8e6be7
 buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.6-20250705071048-7ad8e6be7c05.1/go.mod h1:uR95GqsnNCRn6cTyRBte6uMJMm0rEBRxTGpakKCNL9I=
 buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.8-20250819072717-b69aa2c62a0d.1 h1:fRdyfm5aiolcZmJuWPzbbI4cSYJlssvBZXi/BQUfMWc=
 buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.8-20250819072717-b69aa2c62a0d.1/go.mod h1:Q5oZou54kSUyZHl4RSPY93qr3b1ssj3ZvdBAhRAdlJA=
+buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.8-20250822112533-a008e1948f1d.1 h1:XqV9omaTxxXaI9VvS87PX4Uw6h927UycRR7SfwENSHU=
+buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.8-20250822112533-a008e1948f1d.1/go.mod h1:Q5oZou54kSUyZHl4RSPY93qr3b1ssj3ZvdBAhRAdlJA=
 cel.dev/expr v0.24.0 h1:56OvJKSH3hDGL0ml5uSxZmz3/3Pq4tJ+fb1unVLAFcY=
 cel.dev/expr v0.24.0/go.mod h1:hLPLo1W4QUmuYdA72RBX06QTs6MXw941piREPl3Yfiw=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=

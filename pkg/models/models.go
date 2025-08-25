@@ -36,6 +36,7 @@ const (
 	EcosystemTerraformProvider = "TerraformProvider"
 	EcosystemVSCodeExtensions  = "VSCodeExtensions"
 	EcosystemOpenVSXExtensions = "OpenVSXExtensions"
+	EcosystemHomebrew          = "Homebrew"
 )
 
 type ManifestSourceType string
@@ -44,6 +45,7 @@ const (
 	ManifestSourceLocal         = ManifestSourceType("local")
 	ManifestSourcePurl          = ManifestSourceType("purl")
 	ManifestSourceGitRepository = ManifestSourceType("git_repository")
+	ManifestSourceHomebrew      = ManifestSourceType("homebrew")
 )
 
 // We now have different sources from where a package
@@ -139,6 +141,14 @@ func NewPackageManifestFromGitHub(repo, repoRelativePath, realPath, ecosystem st
 		Namespace: repo,
 		Path:      repoRelativePath,
 	}, realPath, ecosystem)
+}
+
+func NewPackageManifestFromHomebrew() *PackageManifest {
+	return newPackageManifest(PackageManifestSource{
+		Type:      ManifestSourceHomebrew,
+		Namespace: "brew.sh",
+		Path:      "homebrew",
+	}, "brew info --installed --json", EcosystemHomebrew)
 }
 
 func newPackageManifest(source PackageManifestSource, path, ecosystem string) *PackageManifest {
@@ -243,6 +253,8 @@ func (pm *PackageManifest) GetControlTowerSpecEcosystem() packagev1.Ecosystem {
 		return packagev1.Ecosystem_ECOSYSTEM_VSCODE
 	case EcosystemOpenVSXExtensions:
 		return packagev1.Ecosystem_ECOSYSTEM_OPENVSX
+	case EcosystemHomebrew:
+		return packagev1.Ecosystem_ECOSYSTEM_HOMEBREW
 	default:
 		return packagev1.Ecosystem_ECOSYSTEM_UNSPECIFIED
 	}

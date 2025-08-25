@@ -4,7 +4,7 @@ go 1.24.3
 
 require (
 	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250819072717-b69aa2c62a0d.2
-	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.8-20250819072717-b69aa2c62a0d.1
+	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.8-20250822112533-a008e1948f1d.1
 	entgo.io/ent v0.14.4
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/BurntSushi/toml v1.5.0
@@ -69,6 +69,7 @@ require (
 	4d63.com/gochecknoglobals v0.2.2 // indirect
 	ariga.io/atlas v0.34.0 // indirect
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.8-20240508200655-46a4cf4ba109.1 // indirect
+	buf.build/gen/go/safedep/api/connectrpc/go v1.18.1-20250822112533-a008e1948f1d.1 // indirect
 	cel.dev/expr v0.24.0 // indirect
 	cloud.google.com/go v0.121.2 // indirect
 	cloud.google.com/go/auth v0.16.1 // indirect
