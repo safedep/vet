@@ -55,6 +55,10 @@ var (
 	celFilterExpression              string
 	celFilterSuiteFile               string
 	celFilterFailOnMatch             bool
+	celFilterV2Expression            string
+	celFilterV2SuiteFile             string
+	celPolicyExpression              string
+	celPolicySuiteFile               string
 	markdownReportPath               string
 	markdownSummaryReportPath        string
 	jsonReportPath                   string
@@ -162,11 +166,19 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&dumpJsonManifestDir, "json-dump-dir", "", "",
 		"Dump enriched package manifests as JSON files to dir")
 	cmd.Flags().StringVarP(&celFilterExpression, "filter", "", "",
-		"Filter and print packages using CEL")
+		"Filter and print packages using CEL (DEPRECATED: use --policy instead)")
 	cmd.Flags().StringVarP(&celFilterSuiteFile, "filter-suite", "", "",
-		"Filter packages using CEL Filter Suite from file")
+		"Filter packages using CEL Filter Suite from file (DEPRECATED: use --policy-suite instead)")
 	cmd.Flags().BoolVarP(&celFilterFailOnMatch, "filter-fail", "", false,
 		"Fail the scan if the filter match any package (security gate)")
+	cmd.Flags().StringVarP(&celFilterV2Expression, "filter-v2", "", "",
+		"Filter and print packages using CEL with Insights v2 data model (alias for --policy)")
+	cmd.Flags().StringVarP(&celFilterV2SuiteFile, "filter-v2-suite", "", "",
+		"Filter packages using CEL Filter Suite from file with Insights v2 data model (alias for --policy-suite)")
+	cmd.Flags().StringVarP(&celPolicyExpression, "policy", "", "",
+		"Filter and print packages using CEL with Policy Input schema")
+	cmd.Flags().StringVarP(&celPolicySuiteFile, "policy-suite", "", "",
+		"Filter packages using CEL Filter Suite from file with Policy Input schema")
 	cmd.Flags().BoolVarP(&disableAuthVerifyBeforeScan, "no-verify-auth", "", false,
 		"Do not verify auth token before starting scan")
 	cmd.Flags().StringVarP(&markdownReportPath, "report-markdown", "", "",
@@ -249,6 +261,15 @@ func newScanCommand() *cobra.Command {
 
 			if reportDefectDojo && (defectDojoProductID == -1 || utils.IsEmptyString(defectDojoHostUrl)) {
 				return fmt.Errorf("defect dojo Host URL & product ID are required for defect dojo report")
+			}
+
+			// Validate filter/policy flags
+			if !utils.IsEmptyString(celFilterV2Expression) && !utils.IsEmptyString(celPolicyExpression) {
+				return fmt.Errorf("cannot use both --filter-v2 and --policy flags simultaneously")
+			}
+
+			if !utils.IsEmptyString(celFilterV2SuiteFile) && !utils.IsEmptyString(celPolicySuiteFile) {
+				return fmt.Errorf("cannot use both --filter-v2-suite and --policy-suite flags simultaneously")
 			}
 
 			return nil
@@ -484,6 +505,52 @@ func internalStartScan() error {
 		analytics.TrackCommandScanFilterSuite()
 
 		task, err := analyzer.NewCelFilterSuiteAnalyzer(celFilterSuiteFile,
+			failFast || celFilterFailOnMatch)
+		if err != nil {
+			return err
+		}
+
+		analyzers = append(analyzers, task)
+	}
+
+	// Handle filter-v2 and policy flags (they are aliases)
+	policyExpr := celPolicyExpression
+	if !utils.IsEmptyString(celFilterV2Expression) {
+		policyExpr = celFilterV2Expression
+	}
+
+	if !utils.IsEmptyString(policyExpr) {
+		analytics.TrackCommandScanFilterArgs()
+
+		// Force insights v2 to be enabled for policy evaluation
+		if !enrichUsingInsightsV2 {
+			return fmt.Errorf("policy evaluation requires insights v2 to be enabled, use --insights-v2 flag")
+		}
+
+		task, err := analyzer.NewCelFilterV2Analyzer(policyExpr,
+			failFast || celFilterFailOnMatch)
+		if err != nil {
+			return err
+		}
+
+		analyzers = append(analyzers, task)
+	}
+
+	// Handle filter-v2-suite and policy-suite flags (they are aliases)
+	policySuite := celPolicySuiteFile
+	if !utils.IsEmptyString(celFilterV2SuiteFile) {
+		policySuite = celFilterV2SuiteFile
+	}
+
+	if !utils.IsEmptyString(policySuite) {
+		analytics.TrackCommandScanFilterSuite()
+
+		// Force insights v2 to be enabled for policy evaluation
+		if !enrichUsingInsightsV2 {
+			return fmt.Errorf("policy evaluation requires insights v2 to be enabled, use --insights-v2 flag")
+		}
+
+		task, err := analyzer.NewCelFilterSuiteV2Analyzer(policySuite,
 			failFast || celFilterFailOnMatch)
 		if err != nil {
 			return err
