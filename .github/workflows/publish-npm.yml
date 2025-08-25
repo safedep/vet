@@ -1,53 +1,40 @@
 name: Publish NPM Package
 
 on:
-  push:
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
+  workflow_run:
+    workflows: ["Release Automation"]
+    types:
+      - completed
 
 jobs:
   publish-npm:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     permissions:
       contents: read
       id-token: write
-
+    outputs:
+      package_version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: "18"
           registry-url: "https://registry.npmjs.org"
-
-      - name: Extract version from tag
+      - name: Extract Tag Version
         id: version
         run: |
-          echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
-      - name: Wait for GitHub release
-        run: |
-          echo "Waiting for GitHub release v${{ steps.version.outputs.version }}..."
-          i=1
-          while [ $i -le 30 ]; do
-            if curl -s -f "https://api.github.com/repos/safedep/vet/releases/tags/v${{ steps.version.outputs.version }}" > /dev/null; then
-              echo "Release found!"
-              break
-            fi
-            if [ $i -eq 30 ]; then
-              echo "Release not found after 10 minutes"
-              exit 1
-            fi
-            echo "Waiting... ($i/30)"
-            sleep 20
-            i=$((i + 1))
-          done
-
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG_VERSION="${{ github.ref#refs/tags/ }}"
+            echo "version=$TAG_VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "No tag found."
+            exit 1
+          fi
       - name: Prepare package
         run: |
           cd publish/npm
           npm version ${{ steps.version.outputs.version }} --no-git-tag-version
-
       - name: Publish to npm
         run: |
           cd publish/npm
@@ -68,31 +55,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Extract version from tag
-        id: version
-        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
-      - name: Wait for npm package
-        shell: bash
-        run: |
-          echo "Waiting for npm package..."
-          i=1
-          while [ $i -le 20 ]; do
-            if npm view @safedep/vet@${{ steps.version.outputs.version }} > /dev/null 2>&1; then
-              echo "Package available!"
-              break
-            fi
-            if [ $i -eq 20 ]; then
-              echo "Package not available after 10 minutes"
-              exit 1
-            fi
-            echo "Waiting... ($i/20)"
-            sleep 30
-            i=$((i + 1))
-          done
-
       - name: Test installation
         run: |
-          npm install -g @safedep/vet@${{ steps.version.outputs.version }}
+          npm install -g @safedep/vet@${{ needs.publish-npm.outputs.package_version }}
           vet version
           vet --help || true
