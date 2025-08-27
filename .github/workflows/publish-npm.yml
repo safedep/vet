@@ -25,7 +25,8 @@ jobs:
         id: version
         run: |
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            TAG_VERSION="${{ github.ref#refs/tags/ }}"
+            TAG_VERSION="${{ github.ref }}"
+            TAG_VERSION="${TAG_VERSION#refs/tags/}"
             echo "version=$TAG_VERSION" >> $GITHUB_OUTPUT
           else
             echo "No tag found."
