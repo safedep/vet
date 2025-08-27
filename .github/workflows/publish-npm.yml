@@ -24,12 +24,12 @@ jobs:
       - name: Extract Tag Version
         id: version
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            TAG_VERSION="${{ github.ref }}"
-            TAG_VERSION="${TAG_VERSION#refs/tags/}"
-            echo "version=$TAG_VERSION" >> $GITHUB_OUTPUT
+          TAG_VERSION="${{ github.event.workflow_run.head_branch }}"
+          if [[ "$TAG_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            VERSION="${TAG_VERSION#v}"  # Remove leading 'v'
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
           else
-            echo "No tag found."
+            echo "No valid tag found in head_branch: $TAG_VERSION"
             exit 1
           fi
       - name: Prepare package
