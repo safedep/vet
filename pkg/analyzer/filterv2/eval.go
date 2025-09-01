@@ -35,7 +35,7 @@ const (
 	filterEvalMaxRules = 150
 )
 
-var errMaxFilter = errors.New("max filter limit has reached")
+var errMaxFilter = errors.New("max filter limit has been reached")
 
 // Evaluator interface for the new policy system using Insights v2 data model
 type Evaluator interface {
@@ -306,6 +306,7 @@ func celFuncLicenseExpressionMatch() func(ref.Val, ref.Val) ref.Val {
 				break
 			}
 
+			// Value is `any` which is why we are explicitly checking for false
 			if iter.HasNext().Value() == false {
 				break
 			}
