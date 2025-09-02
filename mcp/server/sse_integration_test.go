@@ -29,7 +29,7 @@ func TestSSEServerIntegration(t *testing.T) {
 
 	// Apply guards in the same order as production code: origin, then host
 	config := McpServerConfig{
-		SseServerAllowedHosts: []string{allowedHost},
+		SseServerAllowedHosts:         []string{allowedHost},
 		SseServerAllowedOriginsPrefix: []string{allowedHost},
 	}
 	wrappedHandler := originGuard(config, baseHandler)
@@ -153,5 +153,56 @@ func TestSSEServerIntegration(t *testing.T) {
 		// HEAD requests to message endpoint should be handled by original SSE server handler
 		// which returns 400 Bad Request because message handler expects POST with sessionId parameter
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+}
+
+func TestSSEServer_AllowsCustomConfiguredOrigin(t *testing.T) {
+	// Create a test MCP server
+	mcpServer := server.NewMCPServer("test-vet-mcp", "0.0.1",
+		server.WithInstructions("Test MCP server for allowed origin"))
+
+	// Create SSE server and base handler
+	sseServer := server.NewSSEServer(mcpServer, server.WithStaticBasePath(""))
+	baseHandler := sseHandlerWithHeadSupport(sseServer)
+
+	// Bind to a random local port and capture host:port for allowed list
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	allowedHost := listener.Addr().String()
+
+	// Configure guards to allow origins that start with a custom domain (non-default)
+	customOriginPrefix := "http://custom-origin.test:"
+	config := McpServerConfig{
+		SseServerAllowedHosts:         []string{allowedHost},
+		SseServerAllowedOriginsPrefix: []string{customOriginPrefix},
+	}
+
+	// Apply origin then host guard as in production
+	wrapped := originGuard(config, baseHandler)
+	wrapped = hostGuard(config, wrapped)
+
+	// Start test server with the custom listener
+	testServer := httptest.NewUnstartedServer(wrapped)
+	testServer.Listener = listener
+	testServer.Start()
+	t.Cleanup(func() { testServer.Close() })
+
+	t.Run("GET to /sse with allowed custom origin should succeed", func(t *testing.T) {
+		req, err := http.NewRequest(http.MethodGet, testServer.URL+"/sse", nil)
+		require.NoError(t, err)
+		req.Header.Set("Origin", customOriginPrefix+"3000")
+
+		// Use timeout to avoid hanging on SSE
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		req = req.WithContext(ctx)
+
+		client := &http.Client{Timeout: 3 * time.Second}
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+		t.Cleanup(func() { assert.NoError(t, resp.Body.Close()) })
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, "text/event-stream", resp.Header.Get("Content-Type"))
 	})
 }
