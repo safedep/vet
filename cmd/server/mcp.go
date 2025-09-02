@@ -95,7 +95,7 @@ func startMcpServer() error {
 		// Override with user supplied config
 		config.SseServerAddr = mcpServerSseServerAddr
 		if len(sseServerAllowedOrigins) > 0 {
-			config.SseServerAllowedOrigins = sseServerAllowedOrigins
+			config.SseServerAllowedOriginsPrefix = sseServerAllowedOrigins
 		}
 		if len(sseServerAllowedHosts) > 0 {
 			config.SseServerAllowedHosts = sseServerAllowedHosts

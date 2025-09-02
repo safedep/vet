@@ -41,8 +41,8 @@ func NewMcpServerWithSseTransport(config McpServerConfig) (*mcpServer, error) {
 
 			// Wrap the SSE server with HEAD request support
 			wrappedHandler := sseHandlerWithHeadSupport(s)
-			wrappedHandler = originGuard(config.SseServerAllowedOrigins, wrappedHandler)
-			wrappedHandler = hostGuard(config.SseServerAllowedHosts, wrappedHandler)
+			wrappedHandler = originGuard(config, wrappedHandler)
+			wrappedHandler = hostGuard(config, wrappedHandler)
 
 			httpServer := &http.Server{
 				Addr:    config.SseServerAddr,

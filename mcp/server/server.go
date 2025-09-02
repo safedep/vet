@@ -14,8 +14,8 @@ type McpServerConfig struct {
 	SseServerAddr     string
 
 	// For security reasons, restrict allowed origins and hosts for SSE connections
-	SseServerAllowedOrigins []string
-	SseServerAllowedHosts   []string
+	SseServerAllowedOriginsPrefix []string
+	SseServerAllowedHosts         []string
 }
 
 func DefaultMcpServerConfig() McpServerConfig {
@@ -35,7 +35,7 @@ func DefaultMcpServerConfig() McpServerConfig {
 
 		// We allow common localhost origins by default for better usability
 		// Users should explicitly set allowed origins based on their deployment environment
-		SseServerAllowedOrigins: []string{
+		SseServerAllowedOriginsPrefix: []string{
 			"http://localhost:",
 			"http://127.0.0.1:",
 			"https://localhost:",

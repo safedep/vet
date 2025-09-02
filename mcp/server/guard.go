@@ -18,16 +18,16 @@ var (
 // hostGuard is a middleware that allows only the allowed hosts to access the
 // MCP server. nil allowedHosts will use the default allowed hosts.  Empty
 // allowedHosts will block all hosts.
-func hostGuard(allowedHosts []string, next http.Handler) http.Handler {
-	if allowedHosts == nil {
+func hostGuard(config McpServerConfig, next http.Handler) http.Handler {
+	allowedHosts := config.SseServerAllowedHosts
+	if config.SseServerAllowedHosts == nil {
 		allowedHosts = defaultAllowedHosts
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// contains is faster than a map lookup for small lists
 		if !slices.Contains(allowedHosts, r.Host) {
-			// 421 (misdirected request) is ideal; 403 (forbidden) is fine too.
-			w.WriteHeader(http.StatusMisdirectedRequest)
+			w.WriteHeader(http.StatusForbidden)
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -37,7 +37,12 @@ func hostGuard(allowedHosts []string, next http.Handler) http.Handler {
 // originGuard is a middleware that allows only the allowed origins to access
 // the MCP server. nil allowedOriginsPrefix will use the default allowed origins
 // prefix. Empty allowedOriginsPrefix will block all origins.
-func originGuard(allowedOriginsPrefix []string, next http.Handler) http.Handler {
+func originGuard(config McpServerConfig, next http.Handler) http.Handler {
+	allowedOriginsPrefix := config.SseServerAllowedOriginsPrefix
+	if config.SseServerAllowedOriginsPrefix == nil {
+		allowedOriginsPrefix = defaultAllowedOriginsPrefix
+	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		o := r.Header.Get("Origin")
 		if o == "" {
@@ -47,9 +52,6 @@ func originGuard(allowedOriginsPrefix []string, next http.Handler) http.Handler 
 			return
 		}
 
-		if allowedOriginsPrefix == nil {
-			allowedOriginsPrefix = defaultAllowedOriginsPrefix
-		}
 		if !isAllowedOrigin(o, allowedOriginsPrefix) {
 			http.Error(w, "forbidden origin", http.StatusForbidden)
 			return

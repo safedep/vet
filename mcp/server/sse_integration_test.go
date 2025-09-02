@@ -28,8 +28,12 @@ func TestSSEServerIntegration(t *testing.T) {
 	allowedHost := listener.Addr().String()
 
 	// Apply guards in the same order as production code: origin, then host
-	wrappedHandler := originGuard(nil, baseHandler)
-	wrappedHandler = hostGuard([]string{allowedHost}, wrappedHandler)
+	config := McpServerConfig{
+		SseServerAllowedHosts: []string{allowedHost},
+		SseServerAllowedOriginsPrefix: []string{allowedHost},
+	}
+	wrappedHandler := originGuard(config, baseHandler)
+	wrappedHandler = hostGuard(config, wrappedHandler)
 
 	// Create and start test server
 	testServer := httptest.NewUnstartedServer(wrappedHandler)
@@ -76,7 +80,7 @@ func TestSSEServerIntegration(t *testing.T) {
 			assert.NoError(t, resp.Body.Close())
 		})
 
-		assert.Equal(t, http.StatusMisdirectedRequest, resp.StatusCode)
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
 
 	t.Run("GET request with invalid origin should be blocked", func(t *testing.T) {

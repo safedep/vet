@@ -15,8 +15,10 @@ func TestHostGuard(t *testing.T) {
 	})
 
 	// Wrap with host guard (using default hardcoded hosts for backwards compatibility)
-	allowedHosts := []string{"localhost:9988", "127.0.0.1:9988", "[::1]:9988"}
-	hostGuardedHandler := hostGuard(allowedHosts, mockHandler)
+	config := McpServerConfig{
+		SseServerAllowedHosts: []string{"localhost:9988", "127.0.0.1:9988", "[::1]:9988"},
+	}
+	hostGuardedHandler := hostGuard(config, mockHandler)
 
 	tests := []struct {
 		name           string
@@ -45,37 +47,37 @@ func TestHostGuard(t *testing.T) {
 		{
 			name:           "different host should be blocked",
 			host:           "example.com:9988",
-			expectedStatus: http.StatusMisdirectedRequest,
+			expectedStatus: http.StatusForbidden,
 			shouldAllow:    false,
 		},
 		{
 			name:           "localhost with different port should be blocked",
 			host:           "localhost:9999",
-			expectedStatus: http.StatusMisdirectedRequest,
+			expectedStatus: http.StatusForbidden,
 			shouldAllow:    false,
 		},
 		{
 			name:           "127.0.0.1 with different port should be blocked",
 			host:           "127.0.0.1:9999",
-			expectedStatus: http.StatusMisdirectedRequest,
+			expectedStatus: http.StatusForbidden,
 			shouldAllow:    false,
 		},
 		{
 			name:           "IPv6 localhost with different port should be blocked",
 			host:           "[::1]:9999",
-			expectedStatus: http.StatusMisdirectedRequest,
+			expectedStatus: http.StatusForbidden,
 			shouldAllow:    false,
 		},
 		{
 			name:           "malicious host should be blocked",
 			host:           "evil.com:9988",
-			expectedStatus: http.StatusMisdirectedRequest,
+			expectedStatus: http.StatusForbidden,
 			shouldAllow:    false,
 		},
 		{
 			name:           "host without port should be blocked",
 			host:           "localhost",
-			expectedStatus: http.StatusMisdirectedRequest,
+			expectedStatus: http.StatusForbidden,
 			shouldAllow:    false,
 		},
 	}
@@ -98,7 +100,7 @@ func TestHostGuard(t *testing.T) {
 					tt.host,
 				)
 			} else {
-				assert.Equal(t, http.StatusMisdirectedRequest, w.Code, "Request should be blocked for host: %s", tt.host)
+				assert.Equal(t, http.StatusForbidden, w.Code, "Request should be blocked for host: %s", tt.host)
 			}
 		})
 	}
@@ -111,7 +113,9 @@ func TestOriginGuard(t *testing.T) {
 	})
 
 	// Wrap with origin guard (using empty list to fall back to default localhost logic)
-	originGuardedHandler := originGuard(nil, mockHandler)
+	originGuardedHandler := originGuard(McpServerConfig{
+		SseServerAllowedOriginsPrefix: nil,
+	}, mockHandler)
 
 	tests := []struct {
 		name           string
@@ -214,10 +218,12 @@ func TestGuardsIntegration(t *testing.T) {
 	})
 
 	// Wrap with both guards (in the same order as used in sse.go)
-	allowedOrigins := []string{"http://localhost:"}
-	allowedHosts := []string{"localhost:9988", "127.0.0.1:9988", "[::1]:9988"}
-	wrappedHandler := originGuard(allowedOrigins, mockHandler)
-	wrappedHandler = hostGuard(allowedHosts, wrappedHandler)
+	config := McpServerConfig{
+		SseServerAllowedOriginsPrefix: []string{"http://localhost:"},
+		SseServerAllowedHosts: []string{"localhost:9988", "127.0.0.1:9988", "[::1]:9988"},
+	}
+	wrappedHandler := originGuard(config, mockHandler)
+	wrappedHandler = hostGuard(config, wrappedHandler)
 
 	tests := []struct {
 		name           string
@@ -237,7 +243,7 @@ func TestGuardsIntegration(t *testing.T) {
 			name:           "invalid host should be blocked regardless of origin",
 			host:           "example.com:9988",
 			origin:         "http://localhost:3000",
-			expectedStatus: http.StatusMisdirectedRequest,
+			expectedStatus: http.StatusForbidden,
 			shouldAllow:    false,
 		},
 		{
