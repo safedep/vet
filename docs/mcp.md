@@ -60,7 +60,7 @@ customize them with flags when starting the server.
 - **Allowed hosts**: `localhost:9988`, `127.0.0.1:9988`, `[::1]:9988`
 - **Allowed origin prefixes**: `http://localhost:`, `http://127.0.0.1:`, `https://localhost:`
 
-Requests that fail the host check are rejected with status `421`, and requests
+Requests that fail the host check are rejected with status `403`, and requests
 that fail the origin check are rejected with status `403`.
 
 #### Customize allowed hosts and origins
