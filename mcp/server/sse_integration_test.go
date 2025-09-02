@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -17,12 +18,23 @@ func TestSSEServerIntegration(t *testing.T) {
 	mcpServer := server.NewMCPServer("test-vet-mcp", "0.0.1",
 		server.WithInstructions("Test MCP server for integration testing"))
 
-	// Create SSE server with our custom handler
+	// Create SSE server with our custom handler and wrap with guards
 	sseServer := server.NewSSEServer(mcpServer, server.WithStaticBasePath(""))
-	wrappedHandler := sseHandlerWithHeadSupport(sseServer)
+	baseHandler := sseHandlerWithHeadSupport(sseServer)
 
-	// Create test server
-	testServer := httptest.NewServer(wrappedHandler)
+	// Use an unstarted server with a custom listener so we know the allowed host
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	allowedHost := listener.Addr().String()
+
+	// Apply guards in the same order as production code: origin, then host
+	wrappedHandler := originGuard(nil, baseHandler)
+	wrappedHandler = hostGuard([]string{allowedHost}, wrappedHandler)
+
+	// Create and start test server
+	testServer := httptest.NewUnstartedServer(wrappedHandler)
+	testServer.Listener = listener
+	testServer.Start()
 	t.Cleanup(func() {
 		testServer.Close()
 	})
@@ -49,6 +61,37 @@ func TestSSEServerIntegration(t *testing.T) {
 
 		// Verify no body was returned for HEAD request (ContentLength -1 is expected for HEAD)
 		assert.True(t, resp.ContentLength <= 0, "HEAD request should not have content length > 0")
+	})
+
+	t.Run("GET request with invalid host should be blocked", func(t *testing.T) {
+		req, err := http.NewRequest(http.MethodGet, testServer.URL+"/sse", nil)
+		require.NoError(t, err)
+		// Override host header to simulate a different host
+		req.Host = "example.com:9988"
+
+		client := &http.Client{Timeout: 3 * time.Second}
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			assert.NoError(t, resp.Body.Close())
+		})
+
+		assert.Equal(t, http.StatusMisdirectedRequest, resp.StatusCode)
+	})
+
+	t.Run("GET request with invalid origin should be blocked", func(t *testing.T) {
+		req, err := http.NewRequest(http.MethodGet, testServer.URL+"/sse", nil)
+		require.NoError(t, err)
+		req.Header.Set("Origin", "http://example.com")
+
+		client := &http.Client{Timeout: 3 * time.Second}
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			assert.NoError(t, resp.Body.Close())
+		})
+
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
 
 	t.Run("GET request to SSE endpoint", func(t *testing.T) {
