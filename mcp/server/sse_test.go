@@ -30,6 +30,7 @@ func TestSSEHandlerWithHeadSupport(t *testing.T) {
 		name            string
 		method          string
 		path            string
+		origin          string
 		expectedStatus  int
 		expectedHeaders map[string]string
 		expectBody      bool
@@ -38,12 +39,27 @@ func TestSSEHandlerWithHeadSupport(t *testing.T) {
 			name:           "HEAD request to SSE endpoint should return SSE headers without body",
 			method:         http.MethodHead,
 			path:           "/sse",
+			origin:         "", // No origin header - non-browser request
+			expectedStatus: http.StatusOK,
+			expectedHeaders: map[string]string{
+				"Content-Type":  "text/event-stream",
+				"Cache-Control": "no-cache",
+				"Connection":    "keep-alive",
+				// No CORS header expected for non-browser requests
+			},
+			expectBody: false,
+		},
+		{
+			name:           "HEAD request to SSE endpoint with origin should return SSE headers with CORS",
+			method:         http.MethodHead,
+			path:           "/sse",
+			origin:         "http://localhost:3000",
 			expectedStatus: http.StatusOK,
 			expectedHeaders: map[string]string{
 				"Content-Type":                "text/event-stream",
 				"Cache-Control":               "no-cache",
 				"Connection":                  "keep-alive",
-				"Access-Control-Allow-Origin": "*",
+				"Access-Control-Allow-Origin": "http://localhost:3000",
 			},
 			expectBody: false,
 		},
@@ -51,12 +67,13 @@ func TestSSEHandlerWithHeadSupport(t *testing.T) {
 			name:           "GET request to SSE endpoint should work normally",
 			method:         http.MethodGet,
 			path:           "/sse",
+			origin:         "", // No origin header - handled by mock handler
 			expectedStatus: http.StatusOK,
 			expectedHeaders: map[string]string{
 				"Content-Type":                "text/event-stream",
 				"Cache-Control":               "no-cache",
 				"Connection":                  "keep-alive",
-				"Access-Control-Allow-Origin": "*",
+				"Access-Control-Allow-Origin": "*", // Set by mock handler for GET
 			},
 			expectBody: true,
 		},
@@ -64,6 +81,7 @@ func TestSSEHandlerWithHeadSupport(t *testing.T) {
 			name:            "POST request to SSE endpoint should be rejected",
 			method:          http.MethodPost,
 			path:            "/sse",
+			origin:          "",
 			expectedStatus:  http.StatusMethodNotAllowed,
 			expectedHeaders: map[string]string{},
 			expectBody:      true, // Error message body
@@ -72,6 +90,7 @@ func TestSSEHandlerWithHeadSupport(t *testing.T) {
 			name:            "HEAD request to non-SSE endpoint should be passed through",
 			method:          http.MethodHead,
 			path:            "/message",
+			origin:          "",
 			expectedStatus:  http.StatusMethodNotAllowed,
 			expectedHeaders: map[string]string{},
 			expectBody:      true, // Error message body
@@ -81,6 +100,9 @@ func TestSSEHandlerWithHeadSupport(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest(tt.method, tt.path, nil)
+			if tt.origin != "" {
+				req.Header.Set("Origin", tt.origin)
+			}
 			w := httptest.NewRecorder()
 
 			wrappedHandler.ServeHTTP(w, req)

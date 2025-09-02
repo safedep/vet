@@ -61,7 +61,8 @@ func TestSSEServerIntegration(t *testing.T) {
 		assert.Equal(t, "text/event-stream", resp.Header.Get("Content-Type"))
 		assert.Equal(t, "no-cache", resp.Header.Get("Cache-Control"))
 		assert.Equal(t, "keep-alive", resp.Header.Get("Connection"))
-		assert.Equal(t, "*", resp.Header.Get("Access-Control-Allow-Origin"))
+		// No Origin header was sent, so no CORS header should be set for non-browser requests
+		assert.Equal(t, "", resp.Header.Get("Access-Control-Allow-Origin"))
 
 		// Verify no body was returned for HEAD request (ContentLength -1 is expected for HEAD)
 		assert.True(t, resp.ContentLength <= 0, "HEAD request should not have content length > 0")
