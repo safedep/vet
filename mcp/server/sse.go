@@ -34,12 +34,15 @@ func NewMcpServerWithSseTransport(config McpServerConfig) (*mcpServer, error) {
 		server: srv,
 		servingFunc: func(srv *mcpServer) error {
 			logger.Infof("Starting MCP server with SSE transport: %s", config.SseServerAddr)
-			s := server.NewSSEServer(srv.server, server.WithStaticBasePath(config.SseServerBasePath))
+			s := server.NewSSEServer(
+				srv.server,
+				server.WithStaticBasePath(config.SseServerBasePath),
+			)
 
 			// Wrap the SSE server with HEAD request support
 			wrappedHandler := sseHandlerWithHeadSupport(s)
-			wrappedHandler = originGuard(wrappedHandler)
-			wrappedHandler = hostGuard(wrappedHandler)
+			wrappedHandler = originGuard(config.SseServerAllowedOrigins, wrappedHandler)
+			wrappedHandler = hostGuard(config.SseServerAllowedHosts, wrappedHandler)
 
 			httpServer := &http.Server{
 				Addr:    config.SseServerAddr,

@@ -27,12 +27,12 @@ func TestSSEHandlerWithHeadSupport(t *testing.T) {
 	wrappedHandler := sseHandlerWithHeadSupport(mockSSEHandler)
 
 	tests := []struct {
-		name           string
-		method         string
-		path           string
-		expectedStatus int
+		name            string
+		method          string
+		path            string
+		expectedStatus  int
 		expectedHeaders map[string]string
-		expectBody     bool
+		expectBody      bool
 	}{
 		{
 			name:           "HEAD request to SSE endpoint should return SSE headers without body",
@@ -61,20 +61,20 @@ func TestSSEHandlerWithHeadSupport(t *testing.T) {
 			expectBody: true,
 		},
 		{
-			name:           "POST request to SSE endpoint should be rejected",
-			method:         http.MethodPost,
-			path:           "/sse",
-			expectedStatus: http.StatusMethodNotAllowed,
+			name:            "POST request to SSE endpoint should be rejected",
+			method:          http.MethodPost,
+			path:            "/sse",
+			expectedStatus:  http.StatusMethodNotAllowed,
 			expectedHeaders: map[string]string{},
-			expectBody:     true, // Error message body
+			expectBody:      true, // Error message body
 		},
 		{
-			name:           "HEAD request to non-SSE endpoint should be passed through",
-			method:         http.MethodHead,
-			path:           "/message",
-			expectedStatus: http.StatusMethodNotAllowed,
+			name:            "HEAD request to non-SSE endpoint should be passed through",
+			method:          http.MethodHead,
+			path:            "/message",
+			expectedStatus:  http.StatusMethodNotAllowed,
 			expectedHeaders: map[string]string{},
-			expectBody:     true, // Error message body
+			expectBody:      true, // Error message body
 		},
 	}
 

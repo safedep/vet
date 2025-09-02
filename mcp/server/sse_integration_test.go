@@ -23,7 +23,9 @@ func TestSSEServerIntegration(t *testing.T) {
 
 	// Create test server
 	testServer := httptest.NewServer(wrappedHandler)
-	defer testServer.Close()
+	t.Cleanup(func() {
+		testServer.Close()
+	})
 
 	t.Run("HEAD request to SSE endpoint", func(t *testing.T) {
 		req, err := http.NewRequest(http.MethodHead, testServer.URL+"/sse", nil)
@@ -32,7 +34,9 @@ func TestSSEServerIntegration(t *testing.T) {
 		client := &http.Client{Timeout: 5 * time.Second}
 		resp, err := client.Do(req)
 		require.NoError(t, err)
-		defer resp.Body.Close()
+		t.Cleanup(func() {
+			assert.NoError(t, resp.Body.Close())
+		})
 
 		// Check status code
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -59,7 +63,9 @@ func TestSSEServerIntegration(t *testing.T) {
 		client := &http.Client{Timeout: 3 * time.Second}
 		resp, err := client.Do(req)
 		require.NoError(t, err)
-		defer resp.Body.Close()
+		t.Cleanup(func() {
+			assert.NoError(t, resp.Body.Close())
+		})
 
 		// Check status code
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -78,7 +84,9 @@ func TestSSEServerIntegration(t *testing.T) {
 		client := &http.Client{Timeout: 5 * time.Second}
 		resp, err := client.Do(req)
 		require.NoError(t, err)
-		defer resp.Body.Close()
+		t.Cleanup(func() {
+			assert.NoError(t, resp.Body.Close())
+		})
 
 		// POST to SSE endpoint should return 405 Method Not Allowed since SSE only accepts GET/HEAD
 		assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
@@ -91,7 +99,9 @@ func TestSSEServerIntegration(t *testing.T) {
 		client := &http.Client{Timeout: 5 * time.Second}
 		resp, err := client.Do(req)
 		require.NoError(t, err)
-		defer resp.Body.Close()
+		t.Cleanup(func() {
+			assert.NoError(t, resp.Body.Close())
+		})
 
 		// HEAD requests to message endpoint should be handled by original SSE server handler
 		// which returns 400 Bad Request because message handler expects POST with sessionId parameter

@@ -12,6 +12,10 @@ type McpServerConfig struct {
 
 	SseServerBasePath string
 	SseServerAddr     string
+
+	// For security reasons, restrict allowed origins and hosts for SSE connections
+	SseServerAllowedOrigins []string
+	SseServerAllowedHosts   []string
 }
 
 func DefaultMcpServerConfig() McpServerConfig {
@@ -24,6 +28,18 @@ func DefaultMcpServerConfig() McpServerConfig {
 		// SSE server will automatically add `/sse` to the base path
 		SseServerBasePath: "",
 		SseServerAddr:     "localhost:9988",
+
+		// By default, we use the current hardcoded values for backwards compatibility
+		// Users can customize these lists as needed for their deployment environment
+		SseServerAllowedHosts: []string{"localhost:9988", "127.0.0.1:9988", "[::1]:9988"},
+
+		// We allow common localhost origins by default for better usability
+		// Users should explicitly set allowed origins based on their deployment environment
+		SseServerAllowedOrigins: []string{
+			"http://localhost:",
+			"http://127.0.0.1:",
+			"https://localhost:",
+		},
 	}
 }
 

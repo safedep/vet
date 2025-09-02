@@ -14,8 +14,9 @@ func TestHostGuard(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	// Wrap with host guard
-	hostGuardedHandler := hostGuard(mockHandler)
+	// Wrap with host guard (using default hardcoded hosts for backwards compatibility)
+	allowedHosts := []string{"localhost:9988", "127.0.0.1:9988", "[::1]:9988"}
+	hostGuardedHandler := hostGuard(allowedHosts, mockHandler)
 
 	tests := []struct {
 		name           string
@@ -109,8 +110,8 @@ func TestOriginGuard(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	// Wrap with origin guard
-	originGuardedHandler := originGuard(mockHandler)
+	// Wrap with origin guard (using empty list to fall back to default localhost logic)
+	originGuardedHandler := originGuard(nil, mockHandler)
 
 	tests := []struct {
 		name           string
@@ -213,8 +214,10 @@ func TestGuardsIntegration(t *testing.T) {
 	})
 
 	// Wrap with both guards (in the same order as used in sse.go)
-	wrappedHandler := originGuard(mockHandler)
-	wrappedHandler = hostGuard(wrappedHandler)
+	allowedOrigins := []string{"http://localhost:"}
+	allowedHosts := []string{"localhost:9988", "127.0.0.1:9988", "[::1]:9988"}
+	wrappedHandler := originGuard(allowedOrigins, mockHandler)
+	wrappedHandler = hostGuard(allowedHosts, wrappedHandler)
 
 	tests := []struct {
 		name           string
