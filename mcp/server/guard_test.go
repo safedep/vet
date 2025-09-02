@@ -213,8 +213,8 @@ func TestGuardsIntegration(t *testing.T) {
 	})
 
 	// Wrap with both guards (in the same order as used in sse.go)
-	wrappedHandler := hostGuard(mockHandler)
-	wrappedHandler = originGuard(wrappedHandler)
+	wrappedHandler := originGuard(mockHandler)
+	wrappedHandler = hostGuard(wrappedHandler)
 
 	tests := []struct {
 		name           string
