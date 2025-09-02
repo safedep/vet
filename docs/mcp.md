@@ -42,6 +42,61 @@ The SSE (Server-Sent Events) transport supports:
 
 The SSE endpoint returns appropriate headers for HEAD requests without a body, allowing tools to verify endpoint availability and capabilities.
 
+### Security: Host and Origin Guards
+
+For SSE, the server enforces simple, user-configurable guards to reduce the risk
+of unauthorized cross-origin access and DNS rebinding attacks.
+
+- **Host guard**: Only allows connections whose `Host` header matches an allowed
+  host list.
+- **Origin guard**: For browser requests, only allows requests whose `Origin`
+  starts with an allowed prefix.
+
+These checks are on by default with sensible localhost defaults, and you can
+customize them with flags when starting the server.
+
+#### Defaults
+
+- **Allowed hosts**: `localhost:9988`, `127.0.0.1:9988`, `[::1]:9988`
+- **Allowed origin prefixes**: `http://localhost:`, `http://127.0.0.1:`, `https://localhost:`
+
+Requests that fail the host check are rejected with status `421`, and requests
+that fail the origin check are rejected with status `403`.
+
+#### Customize allowed hosts and origins
+
+You can override the defaults using the following flags:
+
+```bash
+vet server mcp \
+  --server-type sse \
+  --sse-allowed-hosts "localhost:8080,127.0.0.1:8080" \
+  --sse-allowed-origins "http://localhost:,https://localhost:"
+```
+
+If you are running behind a proxy or using a different port, set both lists to
+match your environment. For example, when exposing SSE on port 3001:
+
+```bash
+vet server mcp \
+  --server-type sse \
+  --sse-allowed-hosts "localhost:3001,127.0.0.1:3001" \
+  --sse-allowed-origins "http://localhost:,http://127.0.0.1:,https://localhost:"
+```
+
+With Docker, append the same flags to the container command:
+
+```bash
+docker run --rm -i ghcr.io/safedep/vet:latest \
+  server mcp \
+  --server-type sse \
+  --sse-allowed-hosts "localhost:9988,127.0.0.1:9988" \
+  --sse-allowed-origins "http://localhost:,http://127.0.0.1:,https://localhost:"
+```
+
+Tip: Non-browser clients may omit the `Origin` header. Those requests are
+allowed as long as the host guard passes.
+
 ## Configure MCP Client
 
 > **Note:** The example below uses pre-build docker image. You can build your own by running
@@ -146,7 +201,7 @@ Add `vet-mcp` server to `.vscode/mcp.json` (project specific configuration)
 }
 ```
 
-In order to use `vet-mcp` for all projects in Visual Studio Code, add following `mcp` setting in [Visual Studio Code User Settings](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server-to-your-user-settings) (`settings.json`) 
+In order to use `vet-mcp` for all projects in Visual Studio Code, add following `mcp` setting in [Visual Studio Code User Settings](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server-to-your-user-settings) (`settings.json`)
 
 ```json
 {
@@ -169,7 +224,6 @@ In order to use `vet-mcp` for all projects in Visual Studio Code, add following 
   }
 }
 ```
-
 
 Add the following to `.github/copilot-instructions.md` file:
 
