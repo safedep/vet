@@ -7,8 +7,8 @@ import (
 )
 
 // hostGuard is a middleware that allows only the allowed hosts to access the
-// MCP server. nil allowedHosts will use the default allowed hosts.  Empty
-// allowedHosts will block all hosts.
+// MCP server. nil config.SseServerAllowedHosts will use the default allowed hosts. Empty
+// config.SseServerAllowedHosts will block all hosts.
 func hostGuard(config McpServerConfig, next http.Handler) http.Handler {
 	allowedHosts := config.SseServerAllowedHosts
 
@@ -23,8 +23,7 @@ func hostGuard(config McpServerConfig, next http.Handler) http.Handler {
 }
 
 // originGuard is a middleware that allows only the allowed origins to access
-// the MCP server. nil allowedOriginsPrefix will use the default allowed origins
-// prefix. Empty allowedOriginsPrefix will block all origins.
+// the MCP server. If allowedOriginsPrefix is nil or empty, all origins will be blocked.
 func originGuard(config McpServerConfig, next http.Handler) http.Handler {
 	allowedOriginsPrefix := config.SseServerAllowedOriginsPrefix
 

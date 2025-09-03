@@ -39,7 +39,7 @@ func TestSSEHandlerWithHeadSupport(t *testing.T) {
 			name:           "HEAD request to SSE endpoint should return SSE headers without body",
 			method:         http.MethodHead,
 			path:           "/sse",
-			origin:         "", // No origin header - non-browser request
+			origin:         "", // non-browser request
 			expectedStatus: http.StatusOK,
 			expectedHeaders: map[string]string{
 				"Content-Type":  "text/event-stream",
