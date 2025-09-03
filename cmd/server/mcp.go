@@ -94,10 +94,15 @@ func startMcpServer() error {
 
 		// Override with user supplied config
 		config.SseServerAddr = mcpServerSseServerAddr
-		if len(sseServerAllowedOrigins) > 0 {
+
+		// override origins and hosts defaults only if user explicitly set them.
+		// When explicitly passed as cmd line args, cobra parses
+		// --sse-allowed-hosts='' as empty slice. Otherwise if not provided,
+		// sse-allowed-hosts will be nil.
+		if sseServerAllowedOrigins != nil {
 			config.SseServerAllowedOriginsPrefix = sseServerAllowedOrigins
 		}
-		if len(sseServerAllowedHosts) > 0 {
+		if sseServerAllowedHosts != nil {
 			config.SseServerAllowedHosts = sseServerAllowedHosts
 		}
 
