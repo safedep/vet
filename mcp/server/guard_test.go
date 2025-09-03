@@ -114,7 +114,11 @@ func TestOriginGuard(t *testing.T) {
 
 	// Wrap with origin guard (using empty list to fall back to default localhost logic)
 	originGuardedHandler := originGuard(McpServerConfig{
-		SseServerAllowedOriginsPrefix: nil,
+		SseServerAllowedOriginsPrefix: []string{
+			"http://localhost:",
+			"http://127.0.0.1:",
+			"https://localhost:",
+		},
 	}, mockHandler)
 
 	tests := []struct {
@@ -220,7 +224,7 @@ func TestGuardsIntegration(t *testing.T) {
 	// Wrap with both guards (in the same order as used in sse.go)
 	config := McpServerConfig{
 		SseServerAllowedOriginsPrefix: []string{"http://localhost:"},
-		SseServerAllowedHosts: []string{"localhost:9988", "127.0.0.1:9988", "[::1]:9988"},
+		SseServerAllowedHosts:         []string{"localhost:9988", "127.0.0.1:9988", "[::1]:9988"},
 	}
 	wrappedHandler := originGuard(config, mockHandler)
 	wrappedHandler = hostGuard(config, wrappedHandler)

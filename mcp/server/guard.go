@@ -6,23 +6,11 @@ import (
 	"strings"
 )
 
-var (
-	defaultAllowedOriginsPrefix = []string{
-		"http://localhost:",
-		"http://127.0.0.1:",
-		"https://localhost:",
-	}
-	defaultAllowedHosts = []string{"localhost:9988", "127.0.0.1:9988", "[::1]:9988"}
-)
-
 // hostGuard is a middleware that allows only the allowed hosts to access the
 // MCP server. nil allowedHosts will use the default allowed hosts.  Empty
 // allowedHosts will block all hosts.
 func hostGuard(config McpServerConfig, next http.Handler) http.Handler {
 	allowedHosts := config.SseServerAllowedHosts
-	if config.SseServerAllowedHosts == nil {
-		allowedHosts = defaultAllowedHosts
-	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// contains is faster than a map lookup for small lists
@@ -39,9 +27,6 @@ func hostGuard(config McpServerConfig, next http.Handler) http.Handler {
 // prefix. Empty allowedOriginsPrefix will block all origins.
 func originGuard(config McpServerConfig, next http.Handler) http.Handler {
 	allowedOriginsPrefix := config.SseServerAllowedOriginsPrefix
-	if config.SseServerAllowedOriginsPrefix == nil {
-		allowedOriginsPrefix = defaultAllowedOriginsPrefix
-	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		o := r.Header.Get("Origin")
