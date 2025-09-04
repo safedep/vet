@@ -22,6 +22,8 @@ var (
 	registerVetSQLQueryTool     bool
 	vetSQLQueryToolDBPath       string
 	registerPackageRegistryTool bool
+	sseServerAllowedOrigins     []string
+	sseServerAllowedHosts       []string
 )
 
 func newMcpServerCommand() *cobra.Command {
@@ -41,6 +43,19 @@ func newMcpServerCommand() *cobra.Command {
 
 	cmd.Flags().StringVar(&mcpServerSseServerAddr, "sse-server-addr", "localhost:9988", "The address to listen for SSE connections")
 	cmd.Flags().StringVar(&mcpServerServerType, "server-type", "stdio", "The type of server to start (stdio, sse)")
+
+	cmd.Flags().StringSliceVar(
+		&sseServerAllowedOrigins,
+		"sse-allowed-origins",
+		nil,
+		"List of allowed origin prefixes for SSE connections. By default, we allow http://localhost:, http://127.0.0.1: and https://localhost:.",
+	)
+	cmd.Flags().StringSliceVar(
+		&sseServerAllowedHosts,
+		"sse-allowed-hosts",
+		nil,
+		"List of allowed hosts for SSE connections. By default, we allow localhost:9988, 127.0.0.1:9988 and [::1]:9988.",
+	)
 
 	// We allow skipping default tools to allow for custom tools to be registered when the server starts.
 	// This is useful for agents to avoid unnecessary tool registration.
@@ -75,7 +90,23 @@ func startMcpServer() error {
 	case "stdio":
 		mcpSrv, err = server.NewMcpServerWithStdioTransport(server.DefaultMcpServerConfig())
 	case "sse":
-		mcpSrv, err = server.NewMcpServerWithSseTransport(server.DefaultMcpServerConfig())
+		config := server.DefaultMcpServerConfig()
+
+		// Override with user supplied config
+		config.SseServerAddr = mcpServerSseServerAddr
+
+		// override origins and hosts defaults only if user explicitly set them.
+		// When explicitly passed as cmd line args, cobra parses
+		// --sse-allowed-hosts='' as empty slice. Otherwise if not provided,
+		// sse-allowed-hosts will be nil.
+		if sseServerAllowedOrigins != nil {
+			config.SseServerAllowedOriginsPrefix = sseServerAllowedOrigins
+		}
+		if sseServerAllowedHosts != nil {
+			config.SseServerAllowedHosts = sseServerAllowedHosts
+		}
+
+		mcpSrv, err = server.NewMcpServerWithSseTransport(config)
 	default:
 		return fmt.Errorf("invalid server type: %s", mcpServerServerType)
 	}

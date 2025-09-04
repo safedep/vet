@@ -14,15 +14,23 @@ func sseHandlerWithHeadSupport(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Only handle HEAD requests to the SSE endpoint specifically
 		if r.Method == http.MethodHead && r.URL.Path == "/sse" {
-			// For HEAD requests to SSE endpoint, set the same headers as SSE connections but don't send a body
+			// For HEAD requests to SSE endpoint, set the same headers as SSE
+			// connections but don't send a body
 			w.Header().Set("Content-Type", "text/event-stream")
 			w.Header().Set("Cache-Control", "no-cache")
 			w.Header().Set("Connection", "keep-alive")
-			w.Header().Set("Access-Control-Allow-Origin", "*")
+
+			// Set CORS headers based on the request origin (will be validated
+			// by originGuard middleware)
+			if origin := r.Header.Get("Origin"); origin != "" {
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+			}
+
 			w.WriteHeader(http.StatusOK)
 			return
 		}
-		// For all other requests (including GET, and HEAD to other endpoints), delegate to the original handler
+		// For all other requests (including GET, and HEAD to other endpoints),
+		// delegate to the original handler
 		handler.ServeHTTP(w, r)
 	})
 }
@@ -34,10 +42,16 @@ func NewMcpServerWithSseTransport(config McpServerConfig) (*mcpServer, error) {
 		server: srv,
 		servingFunc: func(srv *mcpServer) error {
 			logger.Infof("Starting MCP server with SSE transport: %s", config.SseServerAddr)
-			s := server.NewSSEServer(srv.server, server.WithStaticBasePath(config.SseServerBasePath))
+			s := server.NewSSEServer(
+				srv.server,
+				server.WithStaticBasePath(config.SseServerBasePath),
+			)
 
 			// Wrap the SSE server with HEAD request support
 			wrappedHandler := sseHandlerWithHeadSupport(s)
+			wrappedHandler = originGuard(config, wrappedHandler)
+			wrappedHandler = hostGuard(config, wrappedHandler)
+
 			httpServer := &http.Server{
 				Addr:    config.SseServerAddr,
 				Handler: wrappedHandler,
