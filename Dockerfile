@@ -1,5 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.24.3-bullseye@sha256:abe2e2bb9bc0342dd1ba2f719af5c6b3859ca9ad93a7d9bcdd21310bda0327e1 AS build
-# Original: golang:1.24.3-bullseye
+FROM --platform=$BUILDPLATFORM golang:1.25-trixie AS build
 
 WORKDIR /build
 
@@ -28,7 +27,6 @@ RUN case "${TARGETPLATFORM}" in \
     esac
 
 FROM debian:11-slim@sha256:e4b93db6aad977a95aa103917f3de8a2b16ead91cf255c3ccdb300c5d20f3015
-# Original: debian:11-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
 	ca-certificates \
