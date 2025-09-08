@@ -166,7 +166,7 @@ func (c containerImageReader) getScalibrScanConfig() (*scalibr.ScanConfig, error
 		// For Remote Images (Current State), a running system should be false
 		// We're scanning a Linux container image whose filesystem is mounted to the host's disk.
 		// Ref: https://github.com/google/osv-scalibr/blob/a349e505ba1f0bba00c32d3f2df59807939b3db5/binary/cli/cli.go#L574
-		RunningSystem: true,
+		RunningSystem: false,
 	}
 
 	// Apply Capabilities
