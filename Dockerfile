@@ -29,7 +29,7 @@ RUN case "${TARGETPLATFORM}" in \
 FROM debian:11-slim@sha256:e4b93db6aad977a95aa103917f3de8a2b16ead91cf255c3ccdb300c5d20f3015
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-	ca-certificates \
+	ca-certificates libc6 \
 	&& rm -rf /var/lib/apt/lists/*
 
 ARG TARGETPLATFORM
