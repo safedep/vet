@@ -2,6 +2,7 @@ package readers
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/google/go-github/v70/github"
@@ -9,6 +10,12 @@ import (
 )
 
 func TestGithubReaderFetchRemoteFileToLocalFile(t *testing.T) {
+	// Skip test if we don't have GitHub token or if not in E2E environment
+	// This test requires real API access which is only available in CI with proper tokens
+	if os.Getenv("GITHUB_TOKEN") == "" || os.Getenv("VET_E2E") == "" {
+		t.Skip("Skipping GitHub reader test - requires GITHUB_TOKEN and VET_E2E environment")
+	}
+
 	client := github.NewClient(nil)
 
 	t.Run("should fetch a file from github", func(t *testing.T) {

@@ -1,6 +1,7 @@
 package readers
 
 import (
+	"os"
 	"testing"
 
 	"github.com/google/osv-scanner/pkg/lockfile"
@@ -70,6 +71,12 @@ func TestPurlReaderWithAutoResolveMissingVersions(t *testing.T) {
 }
 
 func TestPurlReaderWithMultiplePURLS(t *testing.T) {
+	// Skip test if we don't have GitHub token or if not in E2E environment
+	// This test requires real API access which is only available in CI with proper tokens
+	if os.Getenv("GITHUB_TOKEN") == "" || os.Getenv("VET_E2E") == "" {
+		t.Skip("Skipping PURL reader test with version resolution - requires GITHUB_TOKEN and VET_E2E environment")
+	}
+
 	cases := []struct {
 		name      string
 		purl      string

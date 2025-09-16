@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"os"
 	"testing"
 
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
@@ -10,6 +11,12 @@ import (
 
 // Just a sanity check. The adapters have their own tests.
 func TestPackageVersionResolver(t *testing.T) {
+	// Skip test if we don't have GitHub token or if not in E2E environment
+	// This test requires real API access which is only available in CI with proper tokens
+	if os.Getenv("GITHUB_TOKEN") == "" || os.Getenv("VET_E2E") == "" {
+		t.Skip("Skipping package version resolver test - requires GITHUB_TOKEN and VET_E2E environment")
+	}
+
 	gh, err := adapters.NewGithubClient(adapters.DefaultGitHubClientConfig())
 	assert.NoError(t, err)
 	assert.NotNil(t, gh)
