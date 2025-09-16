@@ -34,6 +34,8 @@ type OpenSSFMaliciousPackageReportParams struct {
 	Contacts          []string
 	VersionIntroduced string
 	VersionFixed      string
+	ReferenceURL      string
+	UseRange          bool
 }
 
 type openSSFMaliciousPackageReportGenerator struct {
@@ -80,10 +82,58 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 		contacts = []string{defaultCreditURL}
 	}
 
+	// Handle custom reference URL
+	reportURL := ReportURL(report.GetReportId())
+	if params.ReferenceURL != "" {
+		reportURL = ReportURLWithCustomBase(report.GetReportId(), params.ReferenceURL)
+	}
+
 	// Determine the appropriate range type based on ecosystem
 	rangeType := osvschema.RangeSemVer
 	if report.GetPackageVersion().GetPackage().GetEcosystem() == packagev1.Ecosystem_ECOSYSTEM_PYPI {
 		rangeType = osvschema.RangeEcosystem
+	}
+
+	affected := osvschema.Affected{
+		Package: osvschema.Package{
+			Ecosystem: osvEcosystem,
+			Name:      report.GetPackageVersion().GetPackage().GetName(),
+		},
+	}
+
+	// Decide between using ranges or explicit versions
+	if params.UseRange {
+		// Use range-based versioning (old behavior)
+		affected.Ranges = []osvschema.Range{
+			{
+				Type: rangeType,
+				Events: []osvschema.Event{
+					{
+						Introduced: versionIntroduced,
+						Fixed:      params.VersionFixed,
+					},
+				},
+			},
+		}
+	} else {
+		// Use explicit versions (new default behavior)
+		packageVersion := report.GetPackageVersion().GetVersion()
+		if packageVersion != "" {
+			affected.Versions = []string{packageVersion}
+		} else {
+			// Fallback to range mode if no specific version is available
+			affected.Ranges = []osvschema.Range{
+				{
+					Type: rangeType,
+					Events: []osvschema.Event{
+						{
+							Introduced: versionIntroduced,
+							Fixed:      params.VersionFixed,
+						},
+					},
+				},
+			}
+		}
 	}
 
 	vuln := osvschema.Vulnerability{
@@ -95,7 +145,7 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 		References: []osvschema.Reference{
 			{
 				Type: osvschema.ReferenceReport,
-				URL:  ReportURL(report.GetReportId()),
+				URL:  reportURL,
 			},
 		},
 		Credits: []osvschema.Credit{
@@ -105,25 +155,7 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 				Contact: contacts,
 			},
 		},
-		Affected: []osvschema.Affected{
-			{
-				Package: osvschema.Package{
-					Ecosystem: osvEcosystem,
-					Name:      report.GetPackageVersion().GetPackage().GetName(),
-				},
-				Ranges: []osvschema.Range{
-					{
-						Type: rangeType,
-						Events: []osvschema.Event{
-							{
-								Introduced: versionIntroduced,
-								Fixed:      params.VersionFixed,
-							},
-						},
-					},
-				},
-			},
-		},
+		Affected: []osvschema.Affected{affected},
 	}
 
 	relFilePath, err := g.relativeFilePath(report.GetPackageVersion().GetPackage().GetEcosystem(),

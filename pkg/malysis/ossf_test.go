@@ -130,7 +130,7 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 			},
 		},
 		{
-			name: "default introduced version should be '0' not '0.0.0'",
+			name: "default introduced version should be '0' not '0.0.0' when using range",
 			report: &malysisv1pb.Report{
 				PackageVersion: &packagev1.PackageVersion{
 					Package: &packagev1.Package{
@@ -146,6 +146,7 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 			},
 			params: OpenSSFMaliciousPackageReportParams{
 				// Deliberately leaving VersionIntroduced empty to test default
+				UseRange: true, // Use range mode for this test
 			},
 			setup: func(t *testing.T, dir string) {
 				_ = os.MkdirAll(dir, 0o755)
@@ -171,6 +172,47 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 			},
 		},
 		{
+			name: "default behavior should use explicit versions not ranges",
+			report: &malysisv1pb.Report{
+				PackageVersion: &packagev1.PackageVersion{
+					Package: &packagev1.Package{
+						Ecosystem: packagev1.Ecosystem_ECOSYSTEM_NPM,
+						Name:      "test-package-versions",
+					},
+					Version: "1.205.2",
+				},
+				Inference: &malysisv1pb.Report_Inference{
+					Summary: "Test malicious package",
+					Details: "Test details",
+				},
+			},
+			params: OpenSSFMaliciousPackageReportParams{
+				// UseRange is false by default
+			},
+			setup: func(t *testing.T, dir string) {
+				_ = os.MkdirAll(dir, 0o755)
+			},
+			assert: func(t *testing.T, dir string, err error) {
+				assert.NoError(t, err)
+				filePath := filepath.Join(dir, "osv/malicious/npm/test-package-versions/MAL-0000-test-package-versions.json")
+				assert.FileExists(t, filePath)
+
+				// Read and validate the OSV report
+				jsonFile, err := os.ReadFile(filePath)
+				assert.NoError(t, err)
+
+				var vuln osvschema.Vulnerability
+				err = json.Unmarshal(jsonFile, &vuln)
+				assert.NoError(t, err)
+
+				// Verify explicit versions are used
+				assert.Len(t, vuln.Affected, 1, "should have one affected package")
+				assert.Len(t, vuln.Affected[0].Versions, 1, "should have one explicit version")
+				assert.Equal(t, "1.205.2", vuln.Affected[0].Versions[0], "version should match package version")
+				assert.Len(t, vuln.Affected[0].Ranges, 0, "should not have ranges when using explicit versions")
+			},
+		},
+		{
 			name: "PyPI ecosystem should use proper case and ECOSYSTEM range type",
 			report: &malysisv1pb.Report{
 				PackageVersion: &packagev1.PackageVersion{
@@ -187,6 +229,7 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 			},
 			params: OpenSSFMaliciousPackageReportParams{
 				VersionIntroduced: "1.0.0",
+				UseRange:          true, // Test range behavior for PyPI
 			},
 			setup: func(t *testing.T, dir string) {
 				_ = os.MkdirAll(dir, 0o755)
@@ -235,6 +278,7 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 			},
 			params: OpenSSFMaliciousPackageReportParams{
 				VersionIntroduced: "1.0.0",
+				UseRange:          true, // Test range behavior for NPM
 			},
 			setup: func(t *testing.T, dir string) {
 				_ = os.MkdirAll(dir, 0o755)
@@ -264,6 +308,51 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 				// Verify version information
 				assert.Len(t, vuln.Affected[0].Ranges[0].Events, 1, "should have one event")
 				assert.Equal(t, "1.0.0", vuln.Affected[0].Ranges[0].Events[0].Introduced, "introduced version should match")
+			},
+		},
+		{
+			name: "custom reference URL should be used when provided",
+			report: &malysisv1pb.Report{
+				PackageVersion: &packagev1.PackageVersion{
+					Package: &packagev1.Package{
+						Ecosystem: packagev1.Ecosystem_ECOSYSTEM_NPM,
+						Name:      "test-custom-url",
+					},
+					Version: "1.0.0",
+				},
+				Inference: &malysisv1pb.Report_Inference{
+					Summary: "Test malicious package with custom URL",
+					Details: "Test details",
+				},
+				ReportId: "test-report-id",
+			},
+			params: OpenSSFMaliciousPackageReportParams{
+				ReferenceURL: "https://blog.example.com/malware-reports",
+			},
+			setup: func(t *testing.T, dir string) {
+				_ = os.MkdirAll(dir, 0o755)
+			},
+			assert: func(t *testing.T, dir string, err error) {
+				assert.NoError(t, err)
+				filePath := filepath.Join(dir, "osv/malicious/npm/test-custom-url/MAL-0000-test-custom-url.json")
+				assert.FileExists(t, filePath)
+
+				// Read and validate the OSV report
+				jsonFile, err := os.ReadFile(filePath)
+				assert.NoError(t, err)
+
+				var vuln osvschema.Vulnerability
+				err = json.Unmarshal(jsonFile, &vuln)
+				assert.NoError(t, err)
+
+				// Verify custom reference URL is used
+				assert.Len(t, vuln.References, 1, "should have one reference")
+				assert.Equal(t, "https://blog.example.com/malware-reports/test-report-id", vuln.References[0].URL, "should use custom reference URL")
+				
+				// Verify explicit versions are used (default behavior)
+				assert.Len(t, vuln.Affected, 1, "should have one affected package")
+				assert.Len(t, vuln.Affected[0].Versions, 1, "should have one explicit version")
+				assert.Equal(t, "1.0.0", vuln.Affected[0].Versions[0], "version should match package version")
 			},
 		},
 	}
