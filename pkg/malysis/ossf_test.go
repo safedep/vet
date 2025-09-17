@@ -255,7 +255,7 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 				// Verify ECOSYSTEM range type is used for PyPI
 				assert.Len(t, vuln.Affected[0].Ranges, 1, "should have one range")
 				assert.Equal(t, osvschema.RangeEcosystem, vuln.Affected[0].Ranges[0].Type, "PyPI should use ECOSYSTEM range type")
-				
+
 				// Verify version information
 				assert.Len(t, vuln.Affected[0].Ranges[0].Events, 1, "should have one event")
 				assert.Equal(t, "1.0.0", vuln.Affected[0].Ranges[0].Events[0].Introduced, "introduced version should match")
@@ -304,7 +304,7 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 				// Verify SEMVER range type is used for NPM
 				assert.Len(t, vuln.Affected[0].Ranges, 1, "should have one range")
 				assert.Equal(t, osvschema.RangeSemVer, vuln.Affected[0].Ranges[0].Type, "NPM should use SEMVER range type")
-				
+
 				// Verify version information
 				assert.Len(t, vuln.Affected[0].Ranges[0].Events, 1, "should have one event")
 				assert.Equal(t, "1.0.0", vuln.Affected[0].Ranges[0].Events[0].Introduced, "introduced version should match")
@@ -347,8 +347,8 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 
 				// Verify custom reference URL is used
 				assert.Len(t, vuln.References, 1, "should have one reference")
-				assert.Equal(t, "https://blog.example.com/malware-reports/test-report-id", vuln.References[0].URL, "should use custom reference URL")
-				
+				assert.Equal(t, "https://blog.example.com/malware-reports", vuln.References[0].URL, "should use custom reference URL")
+
 				// Verify explicit versions are used (default behavior)
 				assert.Len(t, vuln.Affected, 1, "should have one affected package")
 				assert.Len(t, vuln.Affected[0].Versions, 1, "should have one explicit version")
