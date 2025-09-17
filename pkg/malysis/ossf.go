@@ -82,10 +82,10 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 		contacts = []string{defaultCreditURL}
 	}
 
-	// Handle custom reference URL
 	reportURL := ReportURL(report.GetReportId())
+	// Handle custom reference URL
 	if params.ReferenceURL != "" {
-		reportURL = ReportURLWithCustomBase(report.GetReportId(), params.ReferenceURL)
+		reportURL = params.ReferenceURL
 	}
 
 	// Determine the appropriate range type based on ecosystem
