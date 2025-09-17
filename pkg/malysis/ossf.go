@@ -101,8 +101,9 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 		},
 	}
 
+	packageVersion := report.GetPackageVersion().GetVersion()
 	// Decide between using ranges or explicit versions
-	if params.UseRange {
+	if params.UseRange || packageVersion == "" {
 		// Use range-based versioning (old behavior)
 		affected.Ranges = []osvschema.Range{
 			{
@@ -117,23 +118,7 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 		}
 	} else {
 		// Use explicit versions (new default behavior)
-		packageVersion := report.GetPackageVersion().GetVersion()
-		if packageVersion != "" {
-			affected.Versions = []string{packageVersion}
-		} else {
-			// Fallback to range mode if no specific version is available
-			affected.Ranges = []osvschema.Range{
-				{
-					Type: rangeType,
-					Events: []osvschema.Event{
-						{
-							Introduced: versionIntroduced,
-							Fixed:      params.VersionFixed,
-						},
-					},
-				},
-			}
-		}
+		affected.Versions = []string{packageVersion}
 	}
 
 	vuln := osvschema.Vulnerability{
