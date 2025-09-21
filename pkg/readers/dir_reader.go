@@ -57,9 +57,18 @@ func (p *directoryReader) ApplicationName() (string, error) {
 func (p *directoryReader) EnumManifests(handler func(*models.PackageManifest,
 	PackageReader) error,
 ) error {
+	// Fail if the root path does not exist
+	if _, err := os.Stat(p.config.Path); err != nil {
+		return err
+	}
+
 	err := filepath.WalkDir(p.config.Path, func(path string, info os.DirEntry, err error) error {
+		// We don't fail the entire walk if we cannot access a path
+		// This is required when we are scanning a file system and some directories such as .Trash
+		// are not accessible
 		if err != nil {
-			return err
+			logger.Warnf("Failed to access path %s due to %v", path, err)
+			return nil
 		}
 
 		if info.IsDir() && p.ignorableDirectory(info.Name()) {
