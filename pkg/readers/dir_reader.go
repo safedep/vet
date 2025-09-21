@@ -59,7 +59,8 @@ func (p *directoryReader) EnumManifests(handler func(*models.PackageManifest,
 ) error {
 	err := filepath.WalkDir(p.config.Path, func(path string, info os.DirEntry, err error) error {
 		if err != nil {
-			return err
+			logger.Warnf("Failed to access path %s due to %v", path, err)
+			return nil
 		}
 
 		if info.IsDir() && p.ignorableDirectory(info.Name()) {
