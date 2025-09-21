@@ -1,6 +1,6 @@
 module github.com/safedep/vet
 
-go 1.24.3
+go 1.25.1
 
 require (
 	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250819072717-b69aa2c62a0d.2

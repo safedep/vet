@@ -21,8 +21,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
-          go-version: 1.24.3
-          check-latest: true
+          go-version-file: go.mod
 
       - name: Build and Test
         run: |
@@ -52,7 +51,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
-          go-version: 1.24.3
+          go-version-file: go.mod
           check-latest: true
 
       - name: Build vet
@@ -81,31 +80,30 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-    - name: Checkout Source
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Checkout Source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-    - name: Setup QEMU
-      uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3
 
-    - name: Setup Docker Buildx
-      uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3
 
-    - name: Build Multi-Platform Container Image (verification only)
-      run: |
-        docker buildx build --platform linux/amd64,linux/arm64 \
-        -t build-container-test:latest .
+      - name: Build Multi-Platform Container Image (verification only)
+        run: |
+          docker buildx build --platform linux/amd64,linux/arm64 \
+          -t build-container-test:latest .
 
-    - name: Build and Load Native Platform Image for Testing
-      run: |
-        docker buildx build --platform linux/amd64 --load \
-        -t build-container-test:latest .
+      - name: Build and Load Native Platform Image for Testing
+        run: |
+          docker buildx build --platform linux/amd64 --load \
+          -t build-container-test:latest .
 
-    - name: Test Container Image
-      if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-      run: |
-        docker run --rm \
-          -e VET_API_KEY=${{ secrets.SAFEDEP_CLOUD_API_KEY }} \
-          -e VET_CONTROL_TOWER_TENANT_ID=${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }} \
-          build-container-test:latest \
-          auth verify
-
+      - name: Test Container Image
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          docker run --rm \
+            -e VET_API_KEY=${{ secrets.SAFEDEP_CLOUD_API_KEY }} \
+            -e VET_CONTROL_TOWER_TENANT_ID=${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }} \
+            build-container-test:latest \
+            auth verify
