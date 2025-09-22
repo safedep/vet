@@ -66,26 +66,16 @@ func main() {
 		Short:            "[ Establish trust in open source software supply chain ]",
 		TraverseChildren: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			// Skip analytics for help and root-without-subcommand
-			if cmd.Flags().Changed("help") {
-				return nil
-			}
-			if cmd.Name() == "help" {
-				return nil
-			}
-
-			// Check any -h/--help on any subcommand by scanning argv
-			for _, a := range os.Args[1:] {
-				if a == "-h" || a == "--help" {
-					return nil
-				}
-			}
+			// Skip analytics for bare `vet` (no subcommand selected)
 			if cmd == cmd.Root() && len(args) == 0 {
 				return nil
 			}
 
+			// Initialize analytics for non-help commands
+			analytics.Init()
 			analytics.TrackCommandRun()
 			analytics.TrackCI()
+
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {

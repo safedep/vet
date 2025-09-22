@@ -24,7 +24,7 @@ var (
 	globalDistinctId string
 )
 
-func init() {
+func Init() {
 	if isTelemetryDisabled() {
 		return
 	}
