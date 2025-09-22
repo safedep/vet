@@ -79,6 +79,11 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
+      - name: Upload dist folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-artifacts
+          path: dist/
 
   provenance:
     needs: [goreleaser]
@@ -88,7 +93,13 @@ jobs:
       attestations: write # To write attestations
     runs-on: ubuntu-latest
     steps:
+      - name: Download dist folder
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-artifacts
+          path: dist/
+
       - name: Attest build provenance (checksums)
         uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
         with:
-          subject-checksums: ./dist/checksums.txt
+          subject-checksums: dist/checksums.txt
