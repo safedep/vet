@@ -65,6 +65,19 @@ func main() {
 		Use:              "vet [OPTIONS] COMMAND [ARG...]",
 		Short:            "[ Establish trust in open source software supply chain ]",
 		TraverseChildren: true,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			// Skip analytics for bare `vet` (no subcommand selected)
+			if cmd == cmd.Root() && len(args) == 0 {
+				return nil
+			}
+
+			// Initialize analytics for non-help commands
+			analytics.Init()
+			analytics.TrackCommandRun()
+			analytics.TrackCI()
+
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return cmd.Help()
@@ -73,7 +86,6 @@ func main() {
 			return fmt.Errorf("vet: %s is not a valid command", args[0])
 		},
 	}
-
 	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Show verbose logs")
 	cmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Show debug logs")
 	cmd.PersistentFlags().BoolVarP(&noBanner, "no-banner", "", false, "Do not display the vet banner")
@@ -105,9 +117,6 @@ func main() {
 	})
 
 	defer analytics.Close()
-
-	analytics.TrackCommandRun()
-	analytics.TrackCI()
 
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
