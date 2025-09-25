@@ -91,7 +91,7 @@ func executeCloudQuickstart() error {
 
 	// TODO: We need the ability to auto-detect the project name and version
 	// and then use that to sync the results to SafeDep Cloud
-	ui.PrintMsg("✨ Run `vet scan -D /path/to/code --report-sync to scan your code and sync the results to SafeDep Cloud")
+	ui.PrintMsg("✨ Run `vet scan -D /path/to/code --report-sync` to scan your code and sync the results to SafeDep Cloud")
 
 	return nil
 }
