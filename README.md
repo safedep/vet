@@ -351,6 +351,9 @@ vet scan -D . --report-json=report.json
 
 # CSV for spreadsheet analysis
 vet scan -D . --report-csv=report.csv
+
+# HTML for web-based analysis
+vet scan -D . --report-html=report.html
 ```
 
 </td>
@@ -392,7 +395,8 @@ vet scan -D . --report-graph=dependencies.dot
 vet scan -D . \
   --report-json=report.json \
   --report-sarif=report.sarif \
-  --report-markdown=report.md
+  --report-markdown=report.md \
+  --report-html=report.html
 
 # Focus on specific issues
 vet scan -D . \
