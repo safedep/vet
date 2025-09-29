@@ -126,7 +126,7 @@ func (f *celFilterSuiteV2Analyzer) Finish() error {
 
 	t.AppendHeader(table.Row{"Package", "Version", "Ecosystem"})
 	for _, pkg := range f.packages {
-		t.AppendRow(table.Row{pkg.GetName(), pkg.GetVersion(), string(pkg.PackageDetails.Ecosystem)})
+		t.AppendRow(table.Row{pkg.GetName(), pkg.GetVersion(), string(pkg.Ecosystem)})
 	}
 
 	t.AppendFooter(table.Row{"Total", f.stat.EvaluatedPackages(), ""})
@@ -164,7 +164,9 @@ func policyV2LoadPolicyFromFile(filePath string) (*policyv1.Policy, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	var policy policyv1.Policy
 	err = pb.FromYaml(file, &policy)

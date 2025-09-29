@@ -131,7 +131,7 @@ func (f *celFilterV2Analyzer) Finish() error {
 
 	t.AppendHeader(table.Row{"Package", "Version", "Ecosystem"})
 	for _, pkg := range f.packages {
-		t.AppendRow(table.Row{pkg.GetName(), pkg.GetVersion(), string(pkg.PackageDetails.Ecosystem)})
+		t.AppendRow(table.Row{pkg.GetName(), pkg.GetVersion(), string(pkg.Ecosystem)})
 	}
 
 	t.AppendFooter(table.Row{"Total", f.stat.EvaluatedPackages(), ""})
