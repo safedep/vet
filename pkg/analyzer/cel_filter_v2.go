@@ -24,7 +24,7 @@ type celFilterV2Analyzer struct {
 func NewCelFilterV2Analyzer(fl string, failOnMatch bool) (Analyzer, error) {
 	evaluator, err := filterv2.NewEvaluator("single-filter-v2", true)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create policy evaluator: %w", err)
 	}
 
 	policy := &policyv1.Policy{
@@ -102,6 +102,7 @@ func (f *celFilterV2Analyzer) Analyze(manifest *models.PackageManifest,
 				Type:     ET_FilterExpressionMatched,
 				Manifest: manifest,
 				Filter:   tempFilter,
+				FilterV2: evalResult.GetMatchedRule(),
 				Package:  pkg,
 				Message:  "policy-filter",
 			}); err != nil {

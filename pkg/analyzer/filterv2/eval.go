@@ -27,7 +27,7 @@ import (
 const (
 	// Policy Input v2 variable names for CEL expressions
 	policyInputVarRoot     = "_"
-	policyInputVarPackage  = "package"
+	policyInputVarPackage  = "pkg" // Can't use "package" as it's a reserved keyword
 	policyInputVarProject  = "project"
 	policyInputVarManifest = "manifest"
 
@@ -301,11 +301,7 @@ func celFuncLicenseExpressionMatch() func(ref.Val, ref.Val) ref.Val {
 		contains := false
 
 		i := 0
-		for {
-			if contains {
-				break
-			}
-
+		for !contains {
 			// Value is `any` which is why we are explicitly checking for false
 			if iter.HasNext().Value() == false {
 				break

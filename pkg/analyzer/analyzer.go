@@ -1,6 +1,7 @@
 package analyzer
 
 import (
+	policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
 	"github.com/safedep/vet/gen/filtersuite"
 	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
 	"github.com/safedep/vet/pkg/models"
@@ -25,20 +26,21 @@ type AnalyzerEvent struct {
 	Type AnalyzerEventType
 
 	// Message / Error / Filter
-	Message interface{}
-	Filter  *filtersuite.Filter
-	Threat  *jsonreportspec.ReportThreat
-	Err     error
+	Message  any
+	Filter   *filtersuite.Filter
+	FilterV2 *policyv1.Rule
+	Threat   *jsonreportspec.ReportThreat
+	Err      error
 
 	// Entities on which event was generated
 	Manifest *models.PackageManifest
 	Package  *models.Package
 }
 
-// Callback to receive events from analyzer
+// AnalyzerEventHandler defines the callback func to receive events from analyzer
 type AnalyzerEventHandler func(event *AnalyzerEvent) error
 
-// Contract for an analyzer
+// Analyzer is the contract for implementing an analyzer
 type Analyzer interface {
 	Name() string
 
