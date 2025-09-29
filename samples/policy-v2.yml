@@ -9,4 +9,4 @@ rules:
     description: This policy denies packages with high or critical vulnerabilities
     check: RULE_CHECK_VULNERABILITY
     value: |
-      _.package.vulnerabilities.exists(vuln, vuln.severity in ['HIGH', 'CRITICAL'])
+      pkg.vulnerabilities.exists(vuln, vuln.severity in ['HIGH', 'CRITICAL'])
