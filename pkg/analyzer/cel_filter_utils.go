@@ -113,7 +113,7 @@ func (c *celFilterV2MatchData) renderTable(writer io.Writer) error {
 	t.AppendFooter(table.Row{"Unmatched", c.stats.EvaluatedPackages() - c.stats.MatchedPackages(), ""})
 
 	if c.stats.MatchedPackages() > 0 {
-		fmt.Printf("\nPackages matched by filter suite (using Policy Input schema):\n")
+		fmt.Fprintf(writer, "\nPackages matched by filter suite (using Policy Input schema):\n")
 		t.Render()
 	}
 

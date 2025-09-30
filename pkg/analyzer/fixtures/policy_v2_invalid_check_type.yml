@@ -1,0 +1,8 @@
+version: POLICY_VERSION_V2
+type: POLICY_TYPE_DENY
+name: Invalid Check Type Policy
+rules:
+  - name: test-rule
+    description: Rule with invalid check type
+    check: "INVALID_CHECK_TYPE"
+    value: "true"
