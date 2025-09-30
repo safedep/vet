@@ -1,7 +1,6 @@
 package filterv2
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -12,14 +11,12 @@ import (
 	policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
 	vulnerabilityv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/vulnerability/v1"
 	"github.com/google/cel-go/cel"
-	"github.com/google/cel-go/common/decls"
 	"github.com/google/cel-go/common/types"
 	"github.com/google/cel-go/common/types/ref"
 	"github.com/google/cel-go/common/types/traits"
 	"github.com/google/cel-go/ext"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
-	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/github/go-spdx/v2/spdxexp"
 )
@@ -67,13 +64,23 @@ func NewEvaluator(name string, ignoreError bool) (*filterEvaluator, error) {
 		ext.Sets(),
 		ext.Protos(),
 
-		// Input var declarations
-		cel.VariableDecls(
-			decls.NewVariableWithDoc(policyInputVarRoot, types.DynType, "root object"),
-			decls.NewVariableWithDoc(policyInputVarPackage, types.DynType, "package object"),
-			decls.NewVariableWithDoc(policyInputVarProject, types.DynType, "project object"),
-			decls.NewVariableWithDoc(policyInputVarManifest, types.DynType, "manifest object"),
-		),
+		// Register protobuf message types for direct usage
+		// While this will avoid JSON round-trip problem, it will increase the
+		// maintenance overhead because we need to manually register types.
+		cel.Types(&policyv1.Input{}),
+		cel.Types(&policyv1.Input_Package{}),
+		cel.Types(&policyv1.Input_Vulnerability{}),
+		cel.Types(&policyv1.Input_PackageManifest{}),
+		cel.Types(&packagev1.PackageVersionInsight{}),
+		cel.Types(&packagev1.ProjectInsight{}),
+		cel.Types(&packagev1.LicenseMeta{}),
+
+		// Input var declarations using proto message types
+		// This is required only for the root object types.
+		cel.Variable(policyInputVarRoot, cel.ObjectType("safedep.messages.policy.v1.Input")),
+		cel.Variable(policyInputVarPackage, cel.ObjectType("safedep.messages.policy.v1.Input.Package")),
+		cel.Variable(policyInputVarProject, cel.ObjectType("safedep.messages.policy.v1.Input.Project")),
+		cel.Variable(policyInputVarManifest, cel.ObjectType("safedep.messages.policy.v1.Input.PackageManifest")),
 
 		// Custom function declarations
 		cel.Function("contains_license",
@@ -135,18 +142,16 @@ func (f *filterEvaluator) EvaluatePackage(pkg *models.Package) (*FilterEvaluatio
 		return nil, err
 	}
 
-	serializedInput, err := f.serializePolicyInput(policyInput)
-	if err != nil {
-		return nil, err
+	// Create evaluation input map with protobuf messages directly
+	evalInputMap := map[string]any{
+		policyInputVarRoot:     policyInput,
+		policyInputVarPackage:  policyInput.GetPackage(),
+		policyInputVarProject:  policyInput.GetProject(),
+		policyInputVarManifest: policyInput.GetManifest(),
 	}
 
 	for _, prog := range f.programs {
-		out, _, err := prog.program.Eval(map[string]any{
-			policyInputVarRoot:     serializedInput,
-			policyInputVarPackage:  serializedInput["package"],
-			policyInputVarProject:  serializedInput["project"],
-			policyInputVarManifest: serializedInput["manifest"],
-		})
+		out, _, err := prog.program.Eval(evalInputMap)
 		if err != nil {
 			logger.Warnf("CEL evaluator error: %s", err.Error())
 
@@ -172,26 +177,6 @@ func (f *filterEvaluator) EvaluatePackage(pkg *models.Package) (*FilterEvaluatio
 	}, nil
 }
 
-// TODO: Fix this JSON round-trip problem by directly configuring CEL env to
-// work with Protobuf messages
-func (f *filterEvaluator) serializePolicyInput(pi *policyv1.Input) (map[string]interface{}, error) {
-	var ret map[string]any
-
-	data, err := protojson.Marshal(pi)
-	if err != nil {
-		return ret, err
-	}
-
-	logger.Debugf("Serialized policy input: %s", data)
-
-	err = json.Unmarshal(data, &ret)
-	if err != nil {
-		return ret, err
-	}
-
-	return ret, nil
-}
-
 func (f *filterEvaluator) buildPolicyInput(pkg *models.Package) (*policyv1.Input, error) {
 	// Check if we have insights v2 data
 	if pkg.InsightsV2 == nil {
@@ -215,7 +200,7 @@ func (f *filterEvaluator) buildPolicyInput(pkg *models.Package) (*policyv1.Input
 	licenses = append(licenses, insight.GetLicenses().GetLicenses()...)
 	policyInput.Package.Licenses = licenses
 
-	// Add projects
+	// Add open source projects associated with the package
 	projects := make([]*packagev1.ProjectInsight, 0)
 	projects = append(projects, insight.GetProjectInsights()...)
 	policyInput.Package.Projects = projects

@@ -502,7 +502,7 @@ func TestFilterV2AnalyzerAnalyze(t *testing.T) {
 		},
 		{
 			name:             "Filter by CVSS score threshold",
-			filterExpression: "_.package.vulnerabilities.exists(v, v.cvssScore >= 7.0)",
+			filterExpression: "_.package.vulnerabilities.exists(v, v.cvss_score >= 7.0)",
 			failOnMatch:      false,
 			manifest: &models.PackageManifest{
 				Path:      "test/package.json",
@@ -593,6 +593,378 @@ func TestFilterV2AnalyzerAnalyze(t *testing.T) {
 				assert.Equal(t, "with-project", events[0].Package.GetName())
 			},
 		},
+		{
+			name:             "Filter by GitHub stars - high popularity",
+			filterExpression: "_.package.projects.exists(p, p.stars >= 10000)",
+			failOnMatch:      false,
+			manifest: &models.PackageManifest{
+				Path:      "test/package.json",
+				Ecosystem: models.EcosystemNpm,
+			},
+			setupPackages: func() []*models.Package {
+				lowStars := int64(1000)
+				highStars := int64(50000)
+				return []*models.Package{
+					{
+						PackageDetails: models.NewPackageDetail(models.EcosystemNpm, "low-popularity", "1.0.0"),
+						InsightsV2: &packagev1.PackageVersionInsight{
+							ProjectInsights: []*packagev1.ProjectInsight{
+								{
+									Project: &packagev1.Project{
+										Type: packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_GITHUB,
+										Name: "low-popularity/repo",
+										Url:  "https://github.com/low-popularity/repo",
+									},
+									Stars: &lowStars,
+								},
+							},
+						},
+					},
+					{
+						PackageDetails: models.NewPackageDetail(models.EcosystemNpm, "high-popularity", "1.0.0"),
+						InsightsV2: &packagev1.PackageVersionInsight{
+							ProjectInsights: []*packagev1.ProjectInsight{
+								{
+									Project: &packagev1.Project{
+										Type: packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_GITHUB,
+										Name: "high-popularity/repo",
+										Url:  "https://github.com/high-popularity/repo",
+									},
+									Stars: &highStars,
+								},
+							},
+						},
+					},
+				}
+			},
+			expectedMatches: 1,
+			expectedEvents:  []AnalyzerEventType{ET_FilterExpressionMatched},
+			expectError:     false,
+			validateEvents: func(t *testing.T, events []*AnalyzerEvent) {
+				require.Len(t, events, 1)
+				assert.Equal(t, "high-popularity", events[0].Package.GetName())
+			},
+		},
+		{
+			name:             "Filter by GitHub stars - low popularity threshold",
+			filterExpression: "_.package.projects.exists(p, p.stars < 1000)",
+			failOnMatch:      false,
+			manifest: &models.PackageManifest{
+				Path:      "test/package.json",
+				Ecosystem: models.EcosystemNpm,
+			},
+			setupPackages: func() []*models.Package {
+				veryLowStars := int64(50)
+				mediumStars := int64(5000)
+				return []*models.Package{
+					{
+						PackageDetails: models.NewPackageDetail(models.EcosystemNpm, "very-low-popularity", "1.0.0"),
+						InsightsV2: &packagev1.PackageVersionInsight{
+							ProjectInsights: []*packagev1.ProjectInsight{
+								{
+									Project: &packagev1.Project{
+										Type: packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_GITHUB,
+										Name: "very-low-popularity/repo",
+										Url:  "https://github.com/very-low-popularity/repo",
+									},
+									Stars: &veryLowStars,
+								},
+							},
+						},
+					},
+					{
+						PackageDetails: models.NewPackageDetail(models.EcosystemNpm, "medium-popularity", "1.0.0"),
+						InsightsV2: &packagev1.PackageVersionInsight{
+							ProjectInsights: []*packagev1.ProjectInsight{
+								{
+									Project: &packagev1.Project{
+										Type: packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_GITHUB,
+										Name: "medium-popularity/repo",
+										Url:  "https://github.com/medium-popularity/repo",
+									},
+									Stars: &mediumStars,
+								},
+							},
+						},
+					},
+				}
+			},
+			expectedMatches: 1,
+			expectedEvents:  []AnalyzerEventType{ET_FilterExpressionMatched},
+			expectError:     false,
+			validateEvents: func(t *testing.T, events []*AnalyzerEvent) {
+				require.Len(t, events, 1)
+				assert.Equal(t, "very-low-popularity", events[0].Package.GetName())
+			},
+		},
+		{
+			name:             "Filter by GitHub forks - high activity",
+			filterExpression: "_.package.projects.exists(p, p.forks >= 1000)",
+			failOnMatch:      false,
+			manifest: &models.PackageManifest{
+				Path:      "test/package.json",
+				Ecosystem: models.EcosystemNpm,
+			},
+			setupPackages: func() []*models.Package {
+				lowForks := int64(10)
+				highForks := int64(5000)
+				return []*models.Package{
+					{
+						PackageDetails: models.NewPackageDetail(models.EcosystemNpm, "low-activity", "1.0.0"),
+						InsightsV2: &packagev1.PackageVersionInsight{
+							ProjectInsights: []*packagev1.ProjectInsight{
+								{
+									Project: &packagev1.Project{
+										Type: packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_GITHUB,
+										Name: "low-activity/repo",
+										Url:  "https://github.com/low-activity/repo",
+									},
+									Forks: &lowForks,
+								},
+							},
+						},
+					},
+					{
+						PackageDetails: models.NewPackageDetail(models.EcosystemNpm, "high-activity", "1.0.0"),
+						InsightsV2: &packagev1.PackageVersionInsight{
+							ProjectInsights: []*packagev1.ProjectInsight{
+								{
+									Project: &packagev1.Project{
+										Type: packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_GITHUB,
+										Name: "high-activity/repo",
+										Url:  "https://github.com/high-activity/repo",
+									},
+									Forks: &highForks,
+								},
+							},
+						},
+					},
+				}
+			},
+			expectedMatches: 1,
+			expectedEvents:  []AnalyzerEventType{ET_FilterExpressionMatched},
+			expectError:     false,
+			validateEvents: func(t *testing.T, events []*AnalyzerEvent) {
+				require.Len(t, events, 1)
+				assert.Equal(t, "high-activity", events[0].Package.GetName())
+			},
+		},
+		{
+			name:             "Filter by GitHub contributors - active community",
+			filterExpression: "_.package.projects.exists(p, p.contributors >= 50)",
+			failOnMatch:      false,
+			manifest: &models.PackageManifest{
+				Path:      "test/package.json",
+				Ecosystem: models.EcosystemNpm,
+			},
+			setupPackages: func() []*models.Package {
+				lowContributors := int64(5)
+				highContributors := int64(200)
+				return []*models.Package{
+					{
+						PackageDetails: models.NewPackageDetail(models.EcosystemNpm, "small-community", "1.0.0"),
+						InsightsV2: &packagev1.PackageVersionInsight{
+							ProjectInsights: []*packagev1.ProjectInsight{
+								{
+									Project: &packagev1.Project{
+										Type: packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_GITHUB,
+										Name: "small-community/repo",
+										Url:  "https://github.com/small-community/repo",
+									},
+									Contributors: &lowContributors,
+								},
+							},
+						},
+					},
+					{
+						PackageDetails: models.NewPackageDetail(models.EcosystemNpm, "large-community", "1.0.0"),
+						InsightsV2: &packagev1.PackageVersionInsight{
+							ProjectInsights: []*packagev1.ProjectInsight{
+								{
+									Project: &packagev1.Project{
+										Type: packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_GITHUB,
+										Name: "large-community/repo",
+										Url:  "https://github.com/large-community/repo",
+									},
+									Contributors: &highContributors,
+								},
+							},
+						},
+					},
+				}
+			},
+			expectedMatches: 1,
+			expectedEvents:  []AnalyzerEventType{ET_FilterExpressionMatched},
+			expectError:     false,
+			validateEvents: func(t *testing.T, events []*AnalyzerEvent) {
+				require.Len(t, events, 1)
+				assert.Equal(t, "large-community", events[0].Package.GetName())
+			},
+		},
+		{
+			name:             "Filter by complex popularity metrics - stars and forks",
+			filterExpression: "_.package.projects.exists(p, p.stars >= 5000 && p.forks >= 500)",
+			failOnMatch:      false,
+			manifest: &models.PackageManifest{
+				Path:      "test/package.json",
+				Ecosystem: models.EcosystemNpm,
+			},
+			setupPackages: func() []*models.Package {
+				lowStars := int64(1000)
+				lowForks := int64(50)
+				highStars := int64(10000)
+				highForks := int64(2000)
+				return []*models.Package{
+					{
+						PackageDetails: models.NewPackageDetail(models.EcosystemNpm, "moderate-popularity", "1.0.0"),
+						InsightsV2: &packagev1.PackageVersionInsight{
+							ProjectInsights: []*packagev1.ProjectInsight{
+								{
+									Project: &packagev1.Project{
+										Type: packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_GITHUB,
+										Name: "moderate-popularity/repo",
+										Url:  "https://github.com/moderate-popularity/repo",
+									},
+									Stars: &lowStars,
+									Forks: &lowForks,
+								},
+							},
+						},
+					},
+					{
+						PackageDetails: models.NewPackageDetail(models.EcosystemNpm, "very-popular", "1.0.0"),
+						InsightsV2: &packagev1.PackageVersionInsight{
+							ProjectInsights: []*packagev1.ProjectInsight{
+								{
+									Project: &packagev1.Project{
+										Type: packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_GITHUB,
+										Name: "very-popular/repo",
+										Url:  "https://github.com/very-popular/repo",
+									},
+									Stars: &highStars,
+									Forks: &highForks,
+								},
+							},
+						},
+					},
+				}
+			},
+			expectedMatches: 1,
+			expectedEvents:  []AnalyzerEventType{ET_FilterExpressionMatched},
+			expectError:     false,
+			validateEvents: func(t *testing.T, events []*AnalyzerEvent) {
+				require.Len(t, events, 1)
+				assert.Equal(t, "very-popular", events[0].Package.GetName())
+			},
+		},
+		{
+			name:             "Filter by GitHub project type - only GitHub projects",
+			filterExpression: "_.package.projects.exists(p, p.project.type == 1)",
+			failOnMatch:      false,
+			manifest: &models.PackageManifest{
+				Path:      "test/package.json",
+				Ecosystem: models.EcosystemNpm,
+			},
+			setupPackages: func() []*models.Package {
+				return []*models.Package{
+					{
+						PackageDetails: models.NewPackageDetail(models.EcosystemNpm, "gitlab-project", "1.0.0"),
+						InsightsV2: &packagev1.PackageVersionInsight{
+							ProjectInsights: []*packagev1.ProjectInsight{
+								{
+									Project: &packagev1.Project{
+										Type: packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_GITLAB,
+										Name: "gitlab-project/repo",
+										Url:  "https://gitlab.com/gitlab-project/repo",
+									},
+								},
+							},
+						},
+					},
+					{
+						PackageDetails: models.NewPackageDetail(models.EcosystemNpm, "github-project", "1.0.0"),
+						InsightsV2: &packagev1.PackageVersionInsight{
+							ProjectInsights: []*packagev1.ProjectInsight{
+								{
+									Project: &packagev1.Project{
+										Type: packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_GITHUB,
+										Name: "github-project/repo",
+										Url:  "https://github.com/github-project/repo",
+									},
+								},
+							},
+						},
+					},
+				}
+			},
+			expectedMatches: 1,
+			expectedEvents:  []AnalyzerEventType{ET_FilterExpressionMatched},
+			expectError:     false,
+			validateEvents: func(t *testing.T, events []*AnalyzerEvent) {
+				require.Len(t, events, 1)
+				assert.Equal(t, "github-project", events[0].Package.GetName())
+			},
+		},
+		{
+			name:             "Filter by comprehensive popularity - stars, forks, and contributors",
+			filterExpression: "_.package.projects.exists(p, p.stars >= 1000 && p.forks >= 100 && p.contributors >= 10)",
+			failOnMatch:      false,
+			manifest: &models.PackageManifest{
+				Path:      "test/package.json",
+				Ecosystem: models.EcosystemNpm,
+			},
+			setupPackages: func() []*models.Package {
+				lowStars := int64(100)
+				lowForks := int64(10)
+				lowContributors := int64(2)
+				highStars := int64(5000)
+				highForks := int64(500)
+				highContributors := int64(50)
+				return []*models.Package{
+					{
+						PackageDetails: models.NewPackageDetail(models.EcosystemNpm, "new-project", "1.0.0"),
+						InsightsV2: &packagev1.PackageVersionInsight{
+							ProjectInsights: []*packagev1.ProjectInsight{
+								{
+									Project: &packagev1.Project{
+										Type: packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_GITHUB,
+										Name: "new-project/repo",
+										Url:  "https://github.com/new-project/repo",
+									},
+									Stars:        &lowStars,
+									Forks:        &lowForks,
+									Contributors: &lowContributors,
+								},
+							},
+						},
+					},
+					{
+						PackageDetails: models.NewPackageDetail(models.EcosystemNpm, "mature-project", "1.0.0"),
+						InsightsV2: &packagev1.PackageVersionInsight{
+							ProjectInsights: []*packagev1.ProjectInsight{
+								{
+									Project: &packagev1.Project{
+										Type: packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_GITHUB,
+										Name: "mature-project/repo",
+										Url:  "https://github.com/mature-project/repo",
+									},
+									Stars:        &highStars,
+									Forks:        &highForks,
+									Contributors: &highContributors,
+								},
+							},
+						},
+					},
+				}
+			},
+			expectedMatches: 1,
+			expectedEvents:  []AnalyzerEventType{ET_FilterExpressionMatched},
+			expectError:     false,
+			validateEvents: func(t *testing.T, events []*AnalyzerEvent) {
+				require.Len(t, events, 1)
+				assert.Equal(t, "mature-project", events[0].Package.GetName())
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -662,4 +1034,3 @@ func TestFilterV2AnalyzerAnalyze(t *testing.T) {
 		})
 	}
 }
-
