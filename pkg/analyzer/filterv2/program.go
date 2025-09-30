@@ -20,3 +20,7 @@ func (p *FilterProgram) Name() string {
 func (p *FilterProgram) GetRule() *policyv1.Rule {
 	return p.rule
 }
+
+func (p *FilterProgram) GetPolicy() *policyv1.Policy {
+	return p.policy
+}

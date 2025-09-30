@@ -5,7 +5,6 @@ import (
 	"os"
 
 	policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
-	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/safedep/vet/gen/filtersuite"
 	"github.com/safedep/vet/pkg/analyzer/filterv2"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -17,7 +16,7 @@ type celFilterV2Analyzer struct {
 	evaluator   filterv2.Evaluator
 	failOnMatch bool
 
-	packages map[string]*models.Package
+	packages map[string]*celFilterV2MatchedPackage
 	stat     celFilterStat
 }
 
@@ -48,7 +47,7 @@ func NewCelFilterV2Analyzer(fl string, failOnMatch bool) (Analyzer, error) {
 	return &celFilterV2Analyzer{
 		evaluator:   evaluator,
 		failOnMatch: failOnMatch,
-		packages:    make(map[string]*models.Package),
+		packages:    make(map[string]*celFilterV2MatchedPackage),
 		stat:        celFilterStat{},
 	}, nil
 }
@@ -88,7 +87,8 @@ func (f *celFilterV2Analyzer) Analyze(manifest *models.PackageManifest,
 			}
 
 			f.stat.IncMatchedPackage()
-			f.packages[pkg.Id()] = pkg
+			f.packages[pkg.Id()] = newCelFilterV2MatchedPackage(pkg,
+				evalResult.GetMatchedProgram().GetPolicy(), evalResult.GetMatchedProgram().GetRule())
 
 			// Create a temporary filter from the rule for compatibility
 			rule := evalResult.GetMatchedProgram().GetRule()
@@ -120,30 +120,13 @@ func (f *celFilterV2Analyzer) Analyze(manifest *models.PackageManifest,
 }
 
 func (f *celFilterV2Analyzer) Finish() error {
-	if f.stat.EvaluatedPackages() == 0 {
-		return nil
+	pkgs := []*celFilterV2MatchedPackage{}
+	for _, p := range f.packages {
+		pkgs = append(pkgs, p)
 	}
 
-	// Build table
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.SetStyle(table.StyleLight)
-
-	t.AppendHeader(table.Row{"Package", "Version", "Ecosystem"})
-	for _, pkg := range f.packages {
-		t.AppendRow(table.Row{pkg.GetName(), pkg.GetVersion(), string(pkg.Ecosystem)})
-	}
-
-	t.AppendFooter(table.Row{"Total", f.stat.EvaluatedPackages(), ""})
-	t.AppendFooter(table.Row{"Matched", f.stat.MatchedPackages(), ""})
-	t.AppendFooter(table.Row{"Unmatched", f.stat.EvaluatedPackages() - f.stat.MatchedPackages(), ""})
-
-	if f.stat.MatchedPackages() > 0 {
-		fmt.Printf("\nPackages matched by filter (using Policy Input schema):\n")
-		t.Render()
-	}
-
-	return nil
+	data := newCelFilterMatchData(pkgs, f.stat)
+	return data.renderTable(os.Stdout)
 }
 
 func (f *celFilterV2Analyzer) notifyCaller(manifest *models.PackageManifest, handler AnalyzerEventHandler) error {

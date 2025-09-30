@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"io"
 
+	policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
+	"github.com/safedep/vet/pkg/models"
 )
 
 type celFilterStat struct {
@@ -51,5 +54,68 @@ func (s *celFilterStat) PrintStatMessage(writer io.Writer) {
 		s.matchedPackages, " out of ", s.evaluatedPackages, " uniquely matched and ",
 		s.errCount, " error(s) ", "across ", s.evaluatedManifests,
 		" manifest(s)"))
+}
 
+// celFilterV2MatchedPackage holds information about a matched package
+type celFilterV2MatchedPackage struct {
+	pkg    *models.Package
+	policy *policyv1.Policy
+	rule   *policyv1.Rule
+}
+
+func newCelFilterV2MatchedPackage(p *models.Package,
+	policy *policyv1.Policy, rule *policyv1.Rule,
+) *celFilterV2MatchedPackage {
+	return &celFilterV2MatchedPackage{
+		pkg:    p,
+		policy: policy,
+		rule:   rule,
+	}
+}
+
+// celFilterMatchData holds information about a package matching the filter
+// This is a generic struct and can hold non-package matches as well for extensibility
+type celFilterV2MatchData struct {
+	packages []*celFilterV2MatchedPackage
+	stats    celFilterStat
+}
+
+func newCelFilterMatchData(pkgs []*celFilterV2MatchedPackage,
+	stats celFilterStat,
+) *celFilterV2MatchData {
+	return &celFilterV2MatchData{
+		packages: pkgs,
+		stats:    stats,
+	}
+}
+
+func (c *celFilterV2MatchData) renderTable(writer io.Writer) error {
+	if c.stats.EvaluatedPackages() == 0 {
+		return nil
+	}
+
+	// Build table
+	t := table.NewWriter()
+	t.SetOutputMirror(writer)
+	t.SetStyle(table.StyleLight)
+
+	t.AppendHeader(table.Row{"Package", "Version", "Ecosystem", "Policy"})
+	for _, mp := range c.packages {
+		pkg := mp.pkg
+		t.AppendRow(table.Row{
+			pkg.GetName(), pkg.GetVersion(), string(pkg.Ecosystem),
+			fmt.Sprintf("%s/%s", mp.policy.GetName(), mp.rule.GetName()),
+		})
+	}
+
+	t.AppendFooter(table.Row{"Total", c.stats.EvaluatedPackages(), ""})
+	t.AppendFooter(table.Row{"Matched", c.stats.MatchedPackages(), ""})
+	t.AppendFooter(table.Row{"Unmatched", c.stats.EvaluatedPackages() - c.stats.MatchedPackages(), ""})
+
+	if c.stats.MatchedPackages() > 0 {
+		fmt.Printf("\nPackages matched by filter suite (using Policy Input schema):\n")
+		t.Render()
+	}
+
+	return nil
 }
