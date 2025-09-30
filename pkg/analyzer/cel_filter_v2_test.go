@@ -859,7 +859,7 @@ func TestFilterV2AnalyzerAnalyze(t *testing.T) {
 		},
 		{
 			name:             "Filter by GitHub project type - only GitHub projects",
-			filterExpression: "_.package.projects.exists(p, p.project.type == 1)",
+			filterExpression: "_.package.projects.exists(p, p.project.type == ProjectSourceType.GITHUB)",
 			failOnMatch:      false,
 			manifest: &models.PackageManifest{
 				Path:      "test/package.json",

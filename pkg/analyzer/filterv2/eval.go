@@ -82,6 +82,10 @@ func NewEvaluator(name string, ignoreError bool) (*filterEvaluator, error) {
 		cel.Variable(policyInputVarProject, cel.ObjectType("safedep.messages.policy.v1.Input.Project")),
 		cel.Variable(policyInputVarManifest, cel.ObjectType("safedep.messages.policy.v1.Input.PackageManifest")),
 
+		// Declare enum constants for better UX
+		cel.Variable("ProjectSourceType", cel.MapType(cel.StringType, cel.IntType)),
+		cel.Variable("Ecosystem", cel.MapType(cel.StringType, cel.IntType)),
+
 		// Custom function declarations
 		cel.Function("contains_license",
 			cel.MemberOverload("list_string_contains_license_string",
@@ -142,12 +146,17 @@ func (f *filterEvaluator) EvaluatePackage(pkg *models.Package) (*FilterEvaluatio
 		return nil, err
 	}
 
-	// Create evaluation input map with protobuf messages directly
+	// Get enum constants
+	enumConstants := getEnumConstantsMap()
+
+	// Create evaluation input map with protobuf messages directly and enum constants
 	evalInputMap := map[string]any{
 		policyInputVarRoot:     policyInput,
 		policyInputVarPackage:  policyInput.GetPackage(),
 		policyInputVarProject:  policyInput.GetProject(),
 		policyInputVarManifest: policyInput.GetManifest(),
+		"ProjectSourceType":    enumConstants["ProjectSourceType"],
+		"Ecosystem":            enumConstants["Ecosystem"],
 	}
 
 	for _, prog := range f.programs {
@@ -310,5 +319,44 @@ func celFuncLicenseExpressionMatch() func(ref.Val, ref.Val) ref.Val {
 		}
 
 		return types.Bool(contains)
+	}
+}
+
+// getEnumConstantsMap returns a map of enum constants that should be added
+// to the evaluation context
+func getEnumConstantsMap() map[string]any {
+	// Define ProjectSourceType enum constants
+	projectSourceTypeEnums := map[string]int64{
+		"UNSPECIFIED": int64(packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_UNSPECIFIED),
+		"GITHUB":      int64(packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_GITHUB),
+		"GITLAB":      int64(packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_GITLAB),
+		"PRIVATE":     int64(packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_PRIVATE),
+		"BITBUCKET":   int64(packagev1.ProjectSourceType_PROJECT_SOURCE_TYPE_BITBUCKET),
+	}
+
+	// Define Ecosystem enum constants
+	ecosystemEnums := map[string]int64{
+		"UNSPECIFIED":         int64(packagev1.Ecosystem_ECOSYSTEM_UNSPECIFIED),
+		"MAVEN":               int64(packagev1.Ecosystem_ECOSYSTEM_MAVEN),
+		"NPM":                 int64(packagev1.Ecosystem_ECOSYSTEM_NPM),
+		"PYPI":                int64(packagev1.Ecosystem_ECOSYSTEM_PYPI),
+		"RUBYGEMS":            int64(packagev1.Ecosystem_ECOSYSTEM_RUBYGEMS),
+		"NUGET":               int64(packagev1.Ecosystem_ECOSYSTEM_NUGET),
+		"CARGO":               int64(packagev1.Ecosystem_ECOSYSTEM_CARGO),
+		"GO":                  int64(packagev1.Ecosystem_ECOSYSTEM_GO),
+		"GITHUB_ACTIONS":      int64(packagev1.Ecosystem_ECOSYSTEM_GITHUB_ACTIONS),
+		"PACKAGIST":           int64(packagev1.Ecosystem_ECOSYSTEM_PACKAGIST),
+		"TERRAFORM":           int64(packagev1.Ecosystem_ECOSYSTEM_TERRAFORM),
+		"TERRAFORM_MODULE":    int64(packagev1.Ecosystem_ECOSYSTEM_TERRAFORM_MODULE),
+		"TERRAFORM_PROVIDER":  int64(packagev1.Ecosystem_ECOSYSTEM_TERRAFORM_PROVIDER),
+		"VSCODE":              int64(packagev1.Ecosystem_ECOSYSTEM_VSCODE),
+		"GITHUB_REPOSITORY":   int64(packagev1.Ecosystem_ECOSYSTEM_GITHUB_REPOSITORY),
+		"OPENVSX":             int64(packagev1.Ecosystem_ECOSYSTEM_OPENVSX),
+		"HOMEBREW":            int64(packagev1.Ecosystem_ECOSYSTEM_HOMEBREW),
+	}
+
+	return map[string]any{
+		"ProjectSourceType": projectSourceTypeEnums,
+		"Ecosystem":         ecosystemEnums,
 	}
 }
