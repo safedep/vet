@@ -10,3 +10,10 @@ rules:
     check: RULE_CHECK_VULNERABILITY
     value: |
       pkg.vulnerabilities.exists(vuln, vuln.severity in ['HIGH', 'CRITICAL'])
+
+#  - name: Direct Dependency Popularity
+#    description: Direct dependencies should have 100 or more stars
+#    check: RULE_CHECK_POPULARITY
+#    value: |
+#      (pkg.attributes.direct == true) &&
+#        pkg.projects.exists(p, p.project.type == ProjectSourceType.GITHUB && p.stars < 100)
