@@ -28,7 +28,8 @@ const (
 	policyInputVarProject  = "project"
 	policyInputVarManifest = "manifest"
 
-	// Soft limit to start with
+	// Soft limit to start with till we have benchmarks to determine the performance
+	// impact as rules starts to grow
 	filterEvalMaxRules = 150
 )
 

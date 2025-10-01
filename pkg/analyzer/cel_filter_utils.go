@@ -7,6 +7,7 @@ import (
 	policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
+	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 )
 
@@ -113,7 +114,10 @@ func (c *celFilterV2MatchData) renderTable(writer io.Writer) error {
 	t.AppendFooter(table.Row{"Unmatched", c.stats.EvaluatedPackages() - c.stats.MatchedPackages(), ""})
 
 	if c.stats.MatchedPackages() > 0 {
-		fmt.Fprintf(writer, "\nPackages matched by filter suite (using Policy Input schema):\n")
+		if _, err := fmt.Fprintf(writer, "\nPackages matched by filter suite (using Policy Input schema):\n"); err != nil {
+			logger.Warnf("failed to write msg to writer: %s", err.Error())
+		}
+
 		t.Render()
 	}
 
