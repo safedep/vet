@@ -752,7 +752,6 @@ func internalStartScan() error {
 		htmlReporter, err := reporter.NewHtmlReporter(reporter.HtmlReportingConfig{
 			Path: reportHtmlPath,
 		})
-
 		if err != nil {
 			return fmt.Errorf("failed to create HTML reporter: %v", err)
 		}
@@ -902,7 +901,7 @@ func internalStartScan() error {
 		ui.PrintMsg("Using Malysis for malware analysis")
 		enrichers = append(enrichers, malwareEnricher)
 	} else if enrichMalwareQuery {
-		// If active analysis is not enable, we will use the query enricher to
+		// If active analysis is not enabled, we will use the query enricher to
 		// query known malicious packages data from the Malysis service. This is
 		// the default behavior unless explicitly disabled by user.
 		client, err := auth.MalwareAnalysisCommunityClientConnection("vet-malware-analysis")

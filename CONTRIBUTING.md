@@ -25,9 +25,10 @@ Create a new issue and add the label "enhancement".
 
 When contributing changes to repository, follow these steps:
 
-1. Ensure tests are passing
-2. Ensure you write test cases for new code
-3. `Signed-off-by` line is required in commit message (use `-s` flag while committing)
+1. If you modified code that requires generation (e.g., enum registrations, ent schemas), run `make generate` and commit the generated files
+2. Ensure tests are passing
+3. Ensure you write test cases for new code
+4. `Signed-off-by` line is required in commit message (use `-s` flag while committing)
 
 ## Developer Setup
 
@@ -46,16 +47,10 @@ asdf plugin add gitleaks
 asdf install
 ```
 
-* Install `lefthook`
+* Install git hooks (using Go toolchain)
 
 ```bash
-go install github.com/evilmartians/lefthook@latest
-```
-
-* Install git hooks
-
-```bash
-$(go env GOPATH)/bin/lefthook install
+go tool github.com/evilmartians/lefthook install
 ```
 
 ### Build
@@ -77,6 +72,16 @@ Quick build without regenerating code from API specs
 ```bash
 make quick-vet
 ```
+
+### Generate Code
+
+If you modify code that requires generation (enum registrations in `pkg/analyzer/filterv2/enums.go`, ent schemas in `ent/schema/*.go`), run:
+
+```bash
+make generate
+```
+
+**Important**: Generated files must be committed to the repository. CI will fail if generated code is out of sync.
 
 ### Run Tests
 

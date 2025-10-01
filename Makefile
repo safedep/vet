@@ -8,6 +8,12 @@ all: quick-vet
 ent:
 	go generate ./ent
 
+.PHONY: filterv2-gen
+filterv2-gen:
+	go generate ./pkg/analyzer/filterv2/...
+
+generate: ent filterv2-gen
+
 protoc-install:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 
