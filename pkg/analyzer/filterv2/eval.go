@@ -112,6 +112,14 @@ func (f *filterEvaluator) AddRule(policy *policyv1.Policy, rule *policyv1.Rule) 
 		return errMaxFilter
 	}
 
+	if policy == nil {
+		return fmt.Errorf("policy is required to add a rule")
+	}
+
+	if rule == nil {
+		return fmt.Errorf("rule is required to add a rule")
+	}
+
 	ast, issues := f.env.Compile(rule.GetValue())
 	if issues != nil && issues.Err() != nil {
 		return issues.Err()
@@ -123,8 +131,8 @@ func (f *filterEvaluator) AddRule(policy *policyv1.Policy, rule *policyv1.Rule) 
 	}
 
 	f.programs = append(f.programs, &FilterProgram{
-		rule:    rule,
 		policy:  policy,
+		rule:    rule,
 		program: prog,
 	})
 
@@ -132,6 +140,10 @@ func (f *filterEvaluator) AddRule(policy *policyv1.Policy, rule *policyv1.Rule) 
 }
 
 func (f *filterEvaluator) AddPolicy(policy *policyv1.Policy) error {
+	if policy == nil {
+		return fmt.Errorf("policy is nil")
+	}
+
 	for _, rule := range policy.GetRules() {
 		if err := f.AddRule(policy, rule); err != nil {
 			return err

@@ -14,6 +14,10 @@ type FilterProgram struct {
 }
 
 func (p *FilterProgram) Name() string {
+	if p.rule == nil {
+		return ""
+	}
+
 	return p.rule.GetName()
 }
 
