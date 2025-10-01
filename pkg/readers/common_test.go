@@ -93,6 +93,18 @@ func TestExcludedPath(t *testing.T) {
 			patterns:         []string{"**/requirements.txt"},
 			shouldBeExcluded: true,
 		},
+		{
+			name:             "path relative files does not match without double star",
+			path:             "/tmp/some/dir/our-dir/package-lock.json",
+			patterns:         []string{"our-dir/package-lock.json"},
+			shouldBeExcluded: false,
+		},
+		{
+			name:             "path relative files should match in tmp directory as well",
+			path:             "/tmp/some/dir/our-dir/package-lock.json",
+			patterns:         []string{"**/our-dir/package-lock.json"},
+			shouldBeExcluded: true,
+		},
 	}
 
 	for _, tc := range cases {
