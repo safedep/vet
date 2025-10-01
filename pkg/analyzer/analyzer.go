@@ -26,11 +26,13 @@ type AnalyzerEvent struct {
 	Type AnalyzerEventType
 
 	// Message / Error / Filter
-	Message  any
-	Filter   *filtersuite.Filter
-	FilterV2 *policyv1.Rule
-	Threat   *jsonreportspec.ReportThreat
-	Err      error
+	Message any
+	Filter  *filtersuite.Filter
+	Threat  *jsonreportspec.ReportThreat
+	Err     error
+
+	FilterV2Policy *policyv1.Policy
+	FilterV2Rule   *policyv1.Rule
 
 	// Entities on which event was generated
 	Manifest *models.PackageManifest

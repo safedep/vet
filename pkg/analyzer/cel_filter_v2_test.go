@@ -79,7 +79,8 @@ func TestFilterV2AnalyzerAnalyze(t *testing.T) {
 				assert.Equal(t, ET_FilterExpressionMatched, events[0].Type)
 				assert.Equal(t, "lodash", events[0].Package.GetName())
 				assert.NotNil(t, events[0].Filter)
-				assert.NotNil(t, events[0].FilterV2)
+				assert.NotNil(t, events[0].FilterV2Policy)
+				assert.NotNil(t, events[0].FilterV2Rule)
 			},
 		},
 		{

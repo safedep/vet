@@ -1,6 +1,6 @@
 package filterv2
 
-import policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
+import "fmt"
 
 // FilterEvaluationResult represents the result of evaluating a filter
 type FilterEvaluationResult struct {
@@ -12,16 +12,11 @@ func (r *FilterEvaluationResult) Matched() bool {
 	return r.match
 }
 
-func (r *FilterEvaluationResult) GetMatchedProgram() *FilterProgram {
+func (r *FilterEvaluationResult) GetMatchedProgram() (*FilterProgram, error) {
 	if r.program == nil {
-		return &FilterProgram{
-			rule: &policyv1.Rule{},
-		}
+		return nil, fmt.Errorf("no program available for this result")
 	}
 
-	return r.program
+	return r.program, nil
 }
 
-func (r *FilterEvaluationResult) GetMatchedRule() *policyv1.Rule {
-	return r.GetMatchedProgram().GetRule()
-}

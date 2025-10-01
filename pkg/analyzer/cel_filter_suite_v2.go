@@ -81,24 +81,32 @@ func (f *celFilterSuiteV2Analyzer) Analyze(manifest *models.PackageManifest,
 				return nil
 			}
 
+			prog, err := evalResult.GetMatchedProgram()
+			if err != nil {
+				logger.Warnf("failed to get matched program: %v", err)
+				return nil
+			}
+
 			f.stat.IncMatchedPackage()
 			f.packages[pkg.Id()] = newCelFilterV2MatchedPackage(pkg,
-				evalResult.GetMatchedProgram().GetPolicy(), evalResult.GetMatchedProgram().GetRule())
+				prog.GetPolicy(), prog.GetRule())
 
 			// Create a temporary filter from the rule for compatibility
-			rule := evalResult.GetMatchedProgram().GetRule()
+			rule := prog.GetRule()
 			tempFilter := &filtersuite.Filter{
 				Name:  rule.GetName(),
 				Value: rule.GetValue(),
 			}
 
 			if err := handler(&AnalyzerEvent{
-				Source:   f.Name(),
-				Type:     ET_FilterExpressionMatched,
-				Manifest: manifest,
-				Filter:   tempFilter,
-				Package:  pkg,
-				Message:  "policy-suite-filter",
+				Source:         f.Name(),
+				Type:           ET_FilterExpressionMatched,
+				Manifest:       manifest,
+				Filter:         tempFilter,
+				Package:        pkg,
+				Message:        "policy-suite-filter",
+				FilterV2Policy: prog.GetPolicy(),
+				FilterV2Rule:   prog.GetRule(),
 			}); err != nil {
 				return err
 			}
