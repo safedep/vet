@@ -35,7 +35,7 @@ func (r *consoleReporter) AddManifest(manifest *models.PackageManifest) {
 		return nil
 	})
 
-	fmt.Print(text.Bold.Sprint("Manifest: ", text.FgBlue.Sprint(manifest.Path)))
+	fmt.Print(text.Bold.Sprint("Manifest: ", InfoBgText(manifest.Path)))
 	fmt.Print("\n")
 
 	tbl.Render()
@@ -83,7 +83,7 @@ func (r *consoleReporter) report(tbl table.Writer, pkg *models.Package) {
 	if (sm["CRITICAL"] > 0) || (sm["HIGH"] > 0) {
 		headerAppender()
 		tbl.AppendRow(table.Row{"",
-			text.Bold.Sprint(text.BgRed.Sprint("Vulnerability")),
+			text.Bold.Sprint(ErrorBgText("Vulnerability")),
 			fmt.Sprintf("Critical:%d High:%d",
 				sm["CRITICAL"], sm["HIGH"])})
 	}
