@@ -53,8 +53,18 @@ type filterEvaluator struct {
 
 var _ Evaluator = (*filterEvaluator)(nil)
 
+// Option is a function type that can be used to configure the evaluator
+type Option func(*filterEvaluator)
+
+// WithIgnoreError configures the evaluator to ignore errors during evaluation
+func WithIgnoreError(ignore bool) Option {
+	return func(f *filterEvaluator) {
+		f.ignoreError = ignore
+	}
+}
+
 // NewEvaluator creates a new CEL evaluator for the policy system v2
-func NewEvaluator(name string, ignoreError bool) (*filterEvaluator, error) {
+func NewEvaluator(name string, opts ...Option) (*filterEvaluator, error) {
 	env, err := cel.NewEnv(
 		cel.Macros(cel.StandardMacros...),
 		cel.EnableMacroCallTracking(),
@@ -99,12 +109,19 @@ func NewEvaluator(name string, ignoreError bool) (*filterEvaluator, error) {
 		return nil, fmt.Errorf("failed to create CEL environment: %w", err)
 	}
 
-	return &filterEvaluator{
+	evaluator := &filterEvaluator{
 		name:        name,
 		env:         env,
 		programs:    []*FilterProgram{},
-		ignoreError: ignoreError,
-	}, nil
+		ignoreError: false, // default value
+	}
+
+	// Apply options
+	for _, opt := range opts {
+		opt(evaluator)
+	}
+
+	return evaluator, nil
 }
 
 func (f *filterEvaluator) AddRule(policy *policyv1.Policy, rule *policyv1.Rule) error {
@@ -162,14 +179,27 @@ func (f *filterEvaluator) EvaluatePackage(pkg *models.Package) (*FilterEvaluatio
 	// Get enum constants
 	enumConstants := getEnumConstantsMap()
 
+	// Defensive nil checks for enum constants
+	projectSourceType := enumConstants["ProjectSourceType"]
+	if projectSourceType == nil {
+		logger.Warnf("ProjectSourceType enum constants not found, using empty map")
+		projectSourceType = map[string]int64{}
+	}
+
+	ecosystem := enumConstants["Ecosystem"]
+	if ecosystem == nil {
+		logger.Warnf("Ecosystem enum constants not found, using empty map")
+		ecosystem = map[string]int64{}
+	}
+
 	// Create evaluation input map with protobuf messages directly and enum constants
 	evalInputMap := map[string]any{
 		policyInputVarRoot:     policyInput,
 		policyInputVarPackage:  policyInput.GetPackage(),
 		policyInputVarProject:  policyInput.GetProject(),
 		policyInputVarManifest: policyInput.GetManifest(),
-		"ProjectSourceType":    enumConstants["ProjectSourceType"],
-		"Ecosystem":            enumConstants["Ecosystem"],
+		"ProjectSourceType":    projectSourceType,
+		"Ecosystem":            ecosystem,
 	}
 
 	for _, prog := range f.programs {
