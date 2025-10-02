@@ -72,7 +72,7 @@ func TestEvaluator_AddRule(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			evaluator, err := NewEvaluator("test", true)
+			evaluator, err := NewEvaluator("test", WithIgnoreError(true))
 			assert.NoError(t, err)
 			assert.NotNil(t, evaluator)
 
@@ -91,4 +91,35 @@ func TestEvaluator_AddRule(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestEvaluator_Options(t *testing.T) {
+	t.Run("Default ignoreError is false", func(t *testing.T) {
+		evaluator, err := NewEvaluator("test")
+		assert.NoError(t, err)
+		assert.NotNil(t, evaluator)
+		assert.False(t, evaluator.ignoreError)
+	})
+
+	t.Run("WithIgnoreError sets ignoreError to true", func(t *testing.T) {
+		evaluator, err := NewEvaluator("test", WithIgnoreError(true))
+		assert.NoError(t, err)
+		assert.NotNil(t, evaluator)
+		assert.True(t, evaluator.ignoreError)
+	})
+
+	t.Run("WithIgnoreError sets ignoreError to false", func(t *testing.T) {
+		evaluator, err := NewEvaluator("test", WithIgnoreError(false))
+		assert.NoError(t, err)
+		assert.NotNil(t, evaluator)
+		assert.False(t, evaluator.ignoreError)
+	})
+
+	t.Run("Multiple options can be applied", func(t *testing.T) {
+		evaluator, err := NewEvaluator("test", WithIgnoreError(true))
+		assert.NoError(t, err)
+		assert.NotNil(t, evaluator)
+		assert.True(t, evaluator.ignoreError)
+		assert.Equal(t, "test", evaluator.name)
+	})
 }

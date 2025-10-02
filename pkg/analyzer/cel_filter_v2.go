@@ -21,7 +21,7 @@ type celFilterV2Analyzer struct {
 }
 
 func NewCelFilterV2Analyzer(fl string, failOnMatch bool) (Analyzer, error) {
-	evaluator, err := filterv2.NewEvaluator("single-filter-v2", true)
+	evaluator, err := filterv2.NewEvaluator("single-filter-v2", filterv2.WithIgnoreError(true))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create policy evaluator: %w", err)
 	}

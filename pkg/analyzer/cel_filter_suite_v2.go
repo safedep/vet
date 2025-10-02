@@ -21,7 +21,7 @@ type celFilterSuiteV2Analyzer struct {
 }
 
 func NewCelFilterSuiteV2Analyzer(filePath string, failOnMatch bool) (Analyzer, error) {
-	evaluator, err := filterv2.NewEvaluator("filter-suite-v2", true)
+	evaluator, err := filterv2.NewEvaluator("filter-suite-v2", filterv2.WithIgnoreError(true))
 	if err != nil {
 		return nil, err
 	}
