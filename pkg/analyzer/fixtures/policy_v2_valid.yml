@@ -1,0 +1,16 @@
+version: POLICY_VERSION_V2
+type: POLICY_TYPE_DENY
+name: Valid Policy V2
+labels:
+  - test
+  - valid
+rules:
+  - name: test-rule-1
+    description: Test rule 1
+    check: RULE_CHECK_VULNERABILITY
+    value: "true"
+  - name: test-rule-2
+    description: Test rule 2 with vulnerability check
+    check: RULE_CHECK_VULNERABILITY
+    value: |
+      pkg.vulnerabilities.exists(vuln, vuln.severity in ['HIGH', 'CRITICAL'])

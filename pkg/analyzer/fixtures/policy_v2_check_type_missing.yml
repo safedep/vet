@@ -1,0 +1,9 @@
+version: POLICY_VERSION_V2
+type: POLICY_TYPE_DENY
+name: Check Type Missing Policy
+labels:
+  - test
+rules:
+  - name: test-rule-without-check
+    description: Rule without check type
+    value: "true"

@@ -1,0 +1,7 @@
+version: POLICY_VERSION_V2
+type: POLICY_TYPE_DENY
+name: Invalid Policy V2
+invalid_field: this_should_not_be_here
+rules:
+  - name: test-rule
+    value: "true"
