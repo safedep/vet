@@ -9,6 +9,7 @@ import (
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/safedep/dry/log"
+	"github.com/safedep/dry/reporting/markdown"
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/checks"
 	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
@@ -20,7 +21,6 @@ import (
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
 	"github.com/safedep/vet/pkg/readers"
-	"github.com/safedep/vet/pkg/reporter/markdown"
 )
 
 const (
