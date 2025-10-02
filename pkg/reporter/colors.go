@@ -2,88 +2,25 @@ package reporter
 
 import (
 	"os"
-	"strings"
 
+	"github.com/charmbracelet/colorprofile"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/jedib0t/go-pretty/v6/text"
-	"golang.org/x/term"
-)
-
-// TerminalCapability represents the color capability of the terminal
-type TerminalCapability int
-
-const (
-	// CapabilityNone - No color support (NO_COLOR set or not a TTY)
-	CapabilityNone TerminalCapability = iota
-	// CapabilityANSI - Basic 16 color ANSI support
-	CapabilityANSI
-	// CapabilityANSI256 - 256 color support
-	CapabilityANSI256
-	// CapabilityTrueColor - 24-bit true color support
-	CapabilityTrueColor
 )
 
 // ColorConfig holds the terminal color configuration
 type ColorConfig struct {
-	capability TerminalCapability
+	profile           colorprofile.Profile
+	hasDarkBackground bool
 }
 
 var globalColorConfig *ColorConfig
 
 func init() {
-	globalColorConfig = detectTerminalCapability()
-}
-
-// detectTerminalCapability determines the color capability of the terminal
-func detectTerminalCapability() *ColorConfig {
-	// Respect NO_COLOR environment variable (https://no-color.org/)
-	if os.Getenv("NO_COLOR") != "" {
-		return &ColorConfig{capability: CapabilityNone}
+	globalColorConfig = &ColorConfig{
+		profile:           colorprofile.Detect(os.Stdout, os.Environ()),
+		hasDarkBackground: lipgloss.HasDarkBackground(),
 	}
-
-	// Check FORCE_COLOR for CI/CD environments
-	forceColor := os.Getenv("FORCE_COLOR")
-	if forceColor != "" && forceColor != "0" {
-		// FORCE_COLOR set, determine level based on value
-		if forceColor == "1" {
-			return &ColorConfig{capability: CapabilityANSI}
-		}
-		if forceColor == "2" {
-			return &ColorConfig{capability: CapabilityANSI256}
-		}
-		if forceColor == "3" {
-			return &ColorConfig{capability: CapabilityTrueColor}
-		}
-	}
-
-	// Check if stdout is a terminal
-	if !term.IsTerminal(int(os.Stdout.Fd())) {
-		return &ColorConfig{capability: CapabilityNone}
-	}
-
-	// Check COLORTERM for true color support
-	colorTerm := os.Getenv("COLORTERM")
-	if colorTerm == "truecolor" || colorTerm == "24bit" {
-		return &ColorConfig{capability: CapabilityTrueColor}
-	}
-
-	// Check TERM environment variable
-	termEnv := os.Getenv("TERM")
-	if termEnv == "" {
-		return &ColorConfig{capability: CapabilityANSI}
-	}
-
-	// Detect based on TERM value
-	if strings.Contains(termEnv, "256color") {
-		return &ColorConfig{capability: CapabilityANSI256}
-	}
-
-	if strings.Contains(termEnv, "color") || strings.HasPrefix(termEnv, "xterm") ||
-		strings.HasPrefix(termEnv, "screen") || strings.HasPrefix(termEnv, "tmux") {
-		return &ColorConfig{capability: CapabilityANSI}
-	}
-
-	// Default to basic ANSI colors
-	return &ColorConfig{capability: CapabilityANSI}
 }
 
 // GetColorConfig returns the global color configuration
@@ -94,110 +31,177 @@ func GetColorConfig() *ColorConfig {
 // Semantic color functions for consistent theming
 // These functions adapt colors based on terminal capability
 
-// CriticalBgText returns text with critical severity background (bright red with black text)
+// CriticalBgText returns text with critical severity background
 func (c *ColorConfig) CriticalBgText(s string) string {
-	if c.capability == CapabilityNone {
+	switch c.profile {
+	case colorprofile.NoTTY, colorprofile.Ascii:
+		return s
+	case colorprofile.ANSI:
+		return text.Colors{text.BgRed, text.FgWhite, text.Bold}.Sprint(s)
+	case colorprofile.ANSI256, colorprofile.TrueColor:
+		return text.Colors{text.BgHiRed, text.FgBlack}.Sprint(s)
+	default:
 		return s
 	}
-	// Use bright red background with black text for maximum contrast
-	return text.Colors{text.BgHiRed, text.FgBlack}.Sprint(s)
 }
 
-// CriticalText returns text with critical severity foreground (red)
+// CriticalText returns text with critical severity foreground
 func (c *ColorConfig) CriticalText(s string) string {
-	if c.capability == CapabilityNone {
+	switch c.profile {
+	case colorprofile.NoTTY, colorprofile.Ascii:
+		return s
+	case colorprofile.ANSI:
+		return text.Colors{text.FgRed, text.Bold}.Sprint(s)
+	case colorprofile.ANSI256, colorprofile.TrueColor:
+		return text.FgHiRed.Sprint(s)
+	default:
 		return s
 	}
-	return text.FgHiRed.Sprint(s)
 }
 
-// HighBgText returns text with high severity background (bright red with black text)
+// HighBgText returns text with high severity background
 func (c *ColorConfig) HighBgText(s string) string {
-	if c.capability == CapabilityNone {
+	switch c.profile {
+	case colorprofile.NoTTY, colorprofile.Ascii:
+		return s
+	case colorprofile.ANSI:
+		return text.Colors{text.BgRed, text.FgWhite, text.Bold}.Sprint(s)
+	case colorprofile.ANSI256, colorprofile.TrueColor:
+		return text.Colors{text.BgHiRed, text.FgBlack}.Sprint(s)
+	default:
 		return s
 	}
-	// Use bright red background with black text for better contrast
-	return text.Colors{text.BgHiRed, text.FgBlack}.Sprint(s)
 }
 
-// MediumBgText returns text with medium severity background (bright yellow with black text)
+// MediumBgText returns text with medium severity background
 func (c *ColorConfig) MediumBgText(s string) string {
-	if c.capability == CapabilityNone {
+	switch c.profile {
+	case colorprofile.NoTTY, colorprofile.Ascii:
+		return s
+	case colorprofile.ANSI:
+		return text.Colors{text.BgYellow, text.FgBlack, text.Bold}.Sprint(s)
+	case colorprofile.ANSI256, colorprofile.TrueColor:
+		return text.Colors{text.BgHiYellow, text.FgBlack}.Sprint(s)
+	default:
 		return s
 	}
-	// Use bright yellow background with black text for better visibility
-	return text.Colors{text.BgHiYellow, text.FgBlack}.Sprint(s)
 }
 
-// LowBgText returns text with low severity background (bright cyan with black text)
+// LowBgText returns text with low severity background
 func (c *ColorConfig) LowBgText(s string) string {
-	if c.capability == CapabilityNone {
+	switch c.profile {
+	case colorprofile.NoTTY, colorprofile.Ascii:
+		return s
+	case colorprofile.ANSI:
+		return text.Colors{text.BgBlue, text.FgWhite, text.Bold}.Sprint(s)
+	case colorprofile.ANSI256, colorprofile.TrueColor:
+		return text.Colors{text.BgHiCyan, text.FgBlack}.Sprint(s)
+	default:
 		return s
 	}
-	// Use cyan instead of blue for better visibility on dark backgrounds
-	return text.Colors{text.BgHiCyan, text.FgBlack}.Sprint(s)
 }
 
-// WarningText returns text with warning color (bright yellow)
+// WarningText returns text with warning color
 func (c *ColorConfig) WarningText(s string) string {
-	if c.capability == CapabilityNone {
+	switch c.profile {
+	case colorprofile.NoTTY, colorprofile.Ascii:
+		return s
+	case colorprofile.ANSI:
+		return text.Colors{text.FgYellow, text.Bold}.Sprint(s)
+	case colorprofile.ANSI256, colorprofile.TrueColor:
+		return text.FgHiYellow.Sprint(s)
+	default:
 		return s
 	}
-	return text.FgHiYellow.Sprint(s)
 }
 
-// WarningBgText returns text with warning background (bright yellow with black text)
+// WarningBgText returns text with warning background
 func (c *ColorConfig) WarningBgText(s string) string {
-	if c.capability == CapabilityNone {
+	switch c.profile {
+	case colorprofile.NoTTY, colorprofile.Ascii:
+		return s
+	case colorprofile.ANSI:
+		return text.Colors{text.BgYellow, text.FgBlack, text.Bold}.Sprint(s)
+	case colorprofile.ANSI256, colorprofile.TrueColor:
+		return text.Colors{text.BgHiYellow, text.FgBlack}.Sprint(s)
+	default:
 		return s
 	}
-	return text.Colors{text.BgHiYellow, text.FgBlack}.Sprint(s)
 }
 
-// SuccessBgText returns text with success background (bright green with black text)
+// SuccessBgText returns text with success background
 func (c *ColorConfig) SuccessBgText(s string) string {
-	if c.capability == CapabilityNone {
+	switch c.profile {
+	case colorprofile.NoTTY, colorprofile.Ascii:
+		return s
+	case colorprofile.ANSI:
+		return text.Colors{text.BgGreen, text.FgBlack, text.Bold}.Sprint(s)
+	case colorprofile.ANSI256, colorprofile.TrueColor:
+		return text.Colors{text.BgHiGreen, text.FgBlack}.Sprint(s)
+	default:
 		return s
 	}
-	return text.Colors{text.BgHiGreen, text.FgBlack}.Sprint(s)
 }
 
-// InfoBgText returns text with info background (bright cyan with black text)
+// InfoBgText returns text with info background
 func (c *ColorConfig) InfoBgText(s string) string {
-	if c.capability == CapabilityNone {
+	switch c.profile {
+	case colorprofile.NoTTY, colorprofile.Ascii:
+		return s
+	case colorprofile.ANSI:
+		return text.Colors{text.BgBlue, text.FgWhite, text.Bold}.Sprint(s)
+	case colorprofile.ANSI256, colorprofile.TrueColor:
+		return text.Colors{text.BgHiCyan, text.FgBlack}.Sprint(s)
+	default:
 		return s
 	}
-	return text.Colors{text.BgHiCyan, text.FgBlack}.Sprint(s)
 }
 
-// InfoText returns text with info foreground (bright cyan)
+// InfoText returns text with info foreground
 func (c *ColorConfig) InfoText(s string) string {
-	if c.capability == CapabilityNone {
+	switch c.profile {
+	case colorprofile.NoTTY, colorprofile.Ascii:
+		return s
+	case colorprofile.ANSI:
+		return text.Colors{text.FgBlue, text.Bold}.Sprint(s)
+	case colorprofile.ANSI256, colorprofile.TrueColor:
+		return text.FgHiCyan.Sprint(s)
+	default:
 		return s
 	}
-	return text.FgHiCyan.Sprint(s)
 }
 
-// MagentaBgText returns text with cyan background (better visibility than magenta)
+// MagentaBgText returns text with tag background
 func (c *ColorConfig) MagentaBgText(s string) string {
-	if c.capability == CapabilityNone {
+	switch c.profile {
+	case colorprofile.NoTTY, colorprofile.Ascii:
+		return s
+	case colorprofile.ANSI:
+		return text.Colors{text.BgMagenta, text.FgWhite, text.Bold}.Sprint(s)
+	case colorprofile.ANSI256, colorprofile.TrueColor:
+		return text.Colors{text.BgCyan, text.FgBlack}.Sprint(s)
+	default:
 		return s
 	}
-	// Use cyan instead of magenta for better visibility on dark backgrounds
-	return text.Colors{text.BgCyan, text.FgBlack}.Sprint(s)
 }
 
-// WhiteBgText returns text with white background and black text
+// WhiteBgText returns text with white background
 func (c *ColorConfig) WhiteBgText(s string) string {
-	if c.capability == CapabilityNone {
+	switch c.profile {
+	case colorprofile.NoTTY, colorprofile.Ascii:
+		return s
+	case colorprofile.ANSI:
+		return text.Colors{text.BgWhite, text.FgBlack, text.Bold}.Sprint(s)
+	case colorprofile.ANSI256, colorprofile.TrueColor:
+		return text.Colors{text.BgHiWhite, text.FgBlack}.Sprint(s)
+	default:
 		return s
 	}
-	return text.Colors{text.BgHiWhite, text.FgBlack}.Sprint(s)
 }
 
 // FaintText returns text with faint/dim styling
 func (c *ColorConfig) FaintText(s string) string {
-	if c.capability == CapabilityNone {
+	if c.profile == colorprofile.NoTTY || c.profile == colorprofile.Ascii {
 		return s
 	}
 	return text.Faint.Sprint(s)
@@ -205,7 +209,7 @@ func (c *ColorConfig) FaintText(s string) string {
 
 // BoldText returns text with bold styling
 func (c *ColorConfig) BoldText(s string) string {
-	if c.capability == CapabilityNone {
+	if c.profile == colorprofile.NoTTY || c.profile == colorprofile.Ascii {
 		return s
 	}
 	return text.Bold.Sprint(s)
