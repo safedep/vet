@@ -8,6 +8,19 @@ import (
 	"github.com/jedib0t/go-pretty/v6/text"
 )
 
+// Package reporter provides terminal color support with automatic capability detection
+// and dark/light mode awareness.
+//
+// Color Choice Philosophy:
+// For ANSI256/TrueColor terminals, this package prioritizes readability over strict
+// semantic color naming. Specifically:
+//   - Cyan is used instead of blue for better visibility on dark backgrounds
+//   - Cyan is used instead of magenta for better contrast on dark terminals
+//
+// This is an intentional UX decision to address issue #537 where blue and magenta
+// colors had poor visibility on dark terminal themes. The ANSI fallback still uses
+// traditional blue/magenta colors with bold styling for compatibility with older terminals.
+
 // ColorConfig holds the terminal color configuration
 type ColorConfig struct {
 	profile           colorprofile.Profile
@@ -88,6 +101,8 @@ func (c *ColorConfig) MediumBgText(s string) string {
 }
 
 // LowBgText returns text with low severity background
+// Note: Uses cyan instead of blue for ANSI256/TrueColor to improve visibility on dark terminals.
+// Blue backgrounds have poor contrast on dark terminal themes (see issue #537).
 func (c *ColorConfig) LowBgText(s string) string {
 	switch c.profile {
 	case colorprofile.NoTTY, colorprofile.Ascii:
@@ -144,6 +159,8 @@ func (c *ColorConfig) SuccessBgText(s string) string {
 }
 
 // InfoBgText returns text with info background
+// Note: Uses cyan instead of blue for ANSI256/TrueColor to improve visibility on dark terminals.
+// Blue backgrounds have poor contrast on dark terminal themes (see issue #537).
 func (c *ColorConfig) InfoBgText(s string) string {
 	switch c.profile {
 	case colorprofile.NoTTY, colorprofile.Ascii:
@@ -158,6 +175,8 @@ func (c *ColorConfig) InfoBgText(s string) string {
 }
 
 // InfoText returns text with info foreground
+// Note: Uses cyan instead of blue for ANSI256/TrueColor to improve visibility on dark terminals.
+// Blue text has poor contrast on dark terminal themes (see issue #537).
 func (c *ColorConfig) InfoText(s string) string {
 	switch c.profile {
 	case colorprofile.NoTTY, colorprofile.Ascii:
@@ -172,6 +191,8 @@ func (c *ColorConfig) InfoText(s string) string {
 }
 
 // MagentaBgText returns text with tag background
+// Note: Uses cyan instead of magenta for ANSI256/TrueColor to improve visibility on dark terminals.
+// Magenta/pink backgrounds have poor contrast on dark terminal themes (see issue #537).
 func (c *ColorConfig) MagentaBgText(s string) string {
 	switch c.profile {
 	case colorprofile.NoTTY, colorprofile.Ascii:
