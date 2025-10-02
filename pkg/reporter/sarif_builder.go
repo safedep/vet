@@ -5,12 +5,12 @@ import (
 	"strings"
 
 	"github.com/owenrumney/go-sarif/v2/sarif"
+	"github.com/safedep/dry/reporting/markdown"
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/checks"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
-	"github.com/safedep/vet/pkg/reporter/markdown"
 )
 
 // Internal rules apart from policy violations
