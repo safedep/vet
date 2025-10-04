@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/jedib0t/go-pretty/v6/table"
-	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/safedep/dry/semver"
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/pkg/analyzer"
@@ -35,7 +34,7 @@ func (r *consoleReporter) AddManifest(manifest *models.PackageManifest) {
 		return nil
 	})
 
-	fmt.Print(text.Bold.Sprint("Manifest: ", text.FgBlue.Sprint(manifest.Path)))
+	fmt.Print(BoldText("Manifest: " + InfoText(manifest.Path)))
 	fmt.Print("\n")
 
 	tbl.Render()
@@ -83,7 +82,7 @@ func (r *consoleReporter) report(tbl table.Writer, pkg *models.Package) {
 	if (sm["CRITICAL"] > 0) || (sm["HIGH"] > 0) {
 		headerAppender()
 		tbl.AppendRow(table.Row{"",
-			text.Bold.Sprint(text.BgRed.Sprint("Vulnerability")),
+			BoldText(HighBgText("Vulnerability")),
 			fmt.Sprintf("Critical:%d High:%d",
 				sm["CRITICAL"], sm["HIGH"])})
 	}
@@ -99,7 +98,7 @@ func (r *consoleReporter) report(tbl table.Writer, pkg *models.Package) {
 		if (sc > 0) && (sc < 10) && (ic > 0) && (ic < 5) {
 			headerAppender()
 			tbl.AppendRow(table.Row{"",
-				text.Bold.Sprint("Low Popularity"),
+				BoldText("Low Popularity"),
 				fmt.Sprintf("Stars:%d Issues:%d", sc, ic)})
 		}
 	}
@@ -112,7 +111,7 @@ func (r *consoleReporter) report(tbl table.Writer, pkg *models.Package) {
 	if driftType.IsMajor() {
 		headerAppender()
 		tbl.AppendRow(table.Row{"",
-			text.Bold.Sprint("Version Drift"),
+			BoldText("Version Drift"),
 			fmt.Sprintf("%s > %s", version, latestVersion),
 		})
 	}

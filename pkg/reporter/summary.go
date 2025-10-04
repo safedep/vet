@@ -386,44 +386,44 @@ func (r *summaryReporter) addPkgForVulnerabilityRisk(pkg *models.Package,
 }
 
 func (r *summaryReporter) Finish() error {
-	fmt.Println(summaryListPrependText, text.BgBlue.Sprint(" Summary of Findings "))
+	fmt.Println(summaryListPrependText, InfoBgText(" Summary of Findings "))
 	fmt.Println()
-	fmt.Println(text.FgHiRed.Sprint(summaryListPrependText, r.vulnSummaryStatement()))
+	fmt.Println(CriticalText(summaryListPrependText + r.vulnSummaryStatement()))
 	fmt.Println()
-	fmt.Println(text.FgHiYellow.Sprint(summaryListPrependText, r.popularityCountStatement()))
+	fmt.Println(WarningText(summaryListPrependText + r.popularityCountStatement()))
 	fmt.Println()
-	fmt.Println(text.FgHiYellow.Sprint(summaryListPrependText, r.provenanceStatement()))
+	fmt.Println(WarningText(summaryListPrependText + r.provenanceStatement()))
 	fmt.Println()
-	fmt.Println(text.FgHiYellow.Sprint(summaryListPrependText, r.depsusageEvidenceStatement()))
+	fmt.Println(WarningText(summaryListPrependText + r.depsusageEvidenceStatement()))
 	fmt.Println()
-	fmt.Println(text.FgHiYellow.Sprint(summaryListPrependText, r.malwareAnalysisStatement()))
+	fmt.Println(WarningText(summaryListPrependText + r.malwareAnalysisStatement()))
 	fmt.Println()
-	fmt.Println(text.FgHiYellow.Sprint(summaryListPrependText, r.majorVersionDriftStatement()))
+	fmt.Println(WarningText(summaryListPrependText + r.majorVersionDriftStatement()))
 	fmt.Println()
-	fmt.Println(text.Faint.Sprint(summaryListPrependText, r.manifestCountStatement()))
+	fmt.Println(FaintText(summaryListPrependText + r.manifestCountStatement()))
 	fmt.Println()
 
 	r.renderRemediationAdvice()
 	fmt.Println()
 
 	if exceptions.ActiveCount() > 0 {
-		fmt.Println(text.Faint.Sprint(summaryListPrependText, r.exceptionsCountStatement()))
+		fmt.Println(FaintText(summaryListPrependText + r.exceptionsCountStatement()))
 		fmt.Println()
 	}
 
 	if len(r.lockfilePoisoning) > 0 {
-		fmt.Println(summaryListPrependText, text.Bold.Sprint(" Lockfile Poisoning Detected "))
+		fmt.Println(summaryListPrependText, BoldText(" Lockfile Poisoning Detected "))
 		fmt.Println()
 
 		for _, msg := range r.lockfilePoisoning {
-			fmt.Println(text.WrapHard(text.BgRed.Sprint(summaryListPrependText, msg), 120))
+			fmt.Println(text.WrapHard(HighBgText(summaryListPrependText+msg), 120))
 		}
 
 		fmt.Println()
 	}
 
 	fmt.Println("Run with `vet --filter=\"...\"` for custom filters to identify risky libraries")
-	fmt.Println("For more details", text.Bold.Sprint("https://github.com/safedep/vet"))
+	fmt.Println("For more details", BoldText("https://github.com/safedep/vet"))
 	fmt.Println()
 
 	return nil
@@ -511,11 +511,11 @@ func (r *summaryReporter) sortedRemediationsGroupByDirectDependency() []*summary
 
 func (r *summaryReporter) renderRemediationAdvice() {
 	if len(r.remediationScores) == 0 {
-		fmt.Println(text.BgGreen.Sprint(" No risky libraries identified "))
+		fmt.Println(SuccessBgText(" No risky libraries identified "))
 		return
 	}
 
-	fmt.Println(text.Bold.Sprint(fmt.Sprintf("Top %d libraries to fix ...", r.config.MaxAdvice)))
+	fmt.Println(BoldText(fmt.Sprintf("Top %d libraries to fix ...", r.config.MaxAdvice)))
 	fmt.Println()
 
 	tbl := table.NewWriter()
@@ -534,12 +534,12 @@ func (r *summaryReporter) renderRemediationAdvice() {
 
 	if len(sortedPackages) > summaryReportMaxUpgradeAdvice {
 		fmt.Println()
-		fmt.Println(text.FgHiYellow.Sprint(
+		fmt.Println(WarningText(
 			fmt.Sprintf("There are %d more libraries that should be upgraded to reduce risk",
 				len(sortedPackages)-summaryReportMaxUpgradeAdvice),
 		))
 
-		fmt.Println(text.Bold.Sprint("Run vet with `--report-markdown=/path/to/report.md` for details"))
+		fmt.Println(BoldText("Run vet with `--report-markdown=/path/to/report.md` for details"))
 	}
 }
 
@@ -555,13 +555,13 @@ func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
 		for _, t := range tags {
 			switch t {
 			case tagMalware:
-				tagText += text.BgRed.Sprint(" "+t+" ") + " "
+				tagText += HighBgText(" "+t+" ") + " "
 			case tagMalwareSuspicious:
-				tagText += text.BgYellow.Sprint(" "+t+" ") + " "
+				tagText += WarningBgText(" "+t+" ") + " "
 			case tagUsedInCode:
-				tagText += text.BgBlue.Sprint(" "+t+" ") + " "
+				tagText += InfoBgText(" "+t+" ") + " "
 			default:
-				tagText += text.BgMagenta.Sprint(" "+t+" ") + " "
+				tagText += MagentaBgText(" "+t+" ") + " "
 			}
 		}
 
@@ -604,7 +604,7 @@ func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
 
 			// This is a grouped dependency so we will render the children
 			for _, rd := range remediatesSample {
-				remediatedPkgName := text.Faint.Sprint(r.packageNameForRemediationAdvice(rd.pkg))
+				remediatedPkgName := FaintText(r.packageNameForRemediationAdvice(rd.pkg))
 				vulnRisk := r.packageVulnerabilityRiskText(rd.pkg)
 				vulnRiskSample := r.packageVulnerabilitySampleText(rd.pkg)
 
@@ -629,7 +629,7 @@ func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
 				r.packageVulnerabilitySampleText(sp.pkg),
 			})
 
-			pathToRoot := text.Faint.Sprint(r.pathToPackageRoot(sp.pkg))
+			pathToRoot := FaintText(r.pathToPackageRoot(sp.pkg))
 			if pathToRoot != "" {
 				tbl.AppendRow(table.Row{
 					"", pathToRoot, "", "", "",
@@ -643,28 +643,28 @@ func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
 
 func (r *summaryReporter) packageVulnerabilityRiskText(pkg *models.Package) string {
 	if _, ok := r.vulnerabilityInfo[pkg.Id()]; !ok {
-		return text.BgGreen.Sprint(" None ")
+		return SuccessBgText(" None ")
 	}
 
 	vulnData := r.vulnerabilityInfo[pkg.Id()]
 
 	if len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskCRITICAL]) > 0 {
-		return text.BgHiRed.Sprint(" Critical ")
+		return CriticalBgText(" Critical ")
 	}
 
 	if len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskHIGH]) > 0 {
-		return text.BgRed.Sprint(" High ")
+		return HighBgText(" High ")
 	}
 
 	if len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskMEDIUM]) > 0 {
-		return text.BgYellow.Sprint(" Medium ")
+		return MediumBgText(" Medium ")
 	}
 
 	if len(vulnData.vulnerabilities[insightapi.PackageVulnerabilitySeveritiesRiskLOW]) > 0 {
-		return text.BgBlue.Sprint(" Low ")
+		return LowBgText(" Low ")
 	}
 
-	return text.BgWhite.Sprint(" Unknown ")
+	return WhiteBgText(" Unknown ")
 }
 
 func (r *summaryReporter) packageVulnerabilitySampleText(pkg *models.Package) string {
@@ -722,9 +722,9 @@ func (r *summaryReporter) slsaTagFor(pkg *models.Package) string {
 
 	if slsaProvenance != nil {
 		if slsaProvenance.Verified {
-			return text.BgGreen.Sprint(" slsa: verified ")
+			return SuccessBgText(" slsa: verified ")
 		} else {
-			return text.BgRed.Sprint(" slsa: unverified ")
+			return HighBgText(" slsa: unverified ")
 		}
 	}
 
