@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"fmt"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 
@@ -568,6 +569,12 @@ func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
 		return tagText
 	}
 
+	currentWorkingDirectory, err := os.Getwd()
+	if err != nil {
+		fmt.Println(text.FgRed.Sprint("Error getting current working directory: ", err.Error()))
+		currentWorkingDirectory = ""
+	}
+
 	for idx, sp := range sortedPackages {
 		if idx >= maxAdvice {
 			break
@@ -637,6 +644,21 @@ func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
 			}
 		}
 
+		manifestPath, err := r.packageManifestRelativePath(sp.pkg, currentWorkingDirectory)
+		if err != nil {
+			fmt.Println(text.FgRed.Sprint("error getting manifest relative path: ", err.Error()))
+			manifestPath = sp.pkg.Manifest.Path
+		}
+
+		// Add Manifest Path information just bellow package name
+		tbl.AppendRow(table.Row{
+			"", // Ecosystem
+			text.FgBlue.Sprint(manifestPath),
+			"", // Latest Version
+			"", // Score
+			"", // Vulnerability Info
+		})
+
 		tbl.AppendSeparator()
 	}
 }
@@ -665,6 +687,17 @@ func (r *summaryReporter) packageVulnerabilityRiskText(pkg *models.Package) stri
 	}
 
 	return text.BgWhite.Sprint(" Unknown ")
+}
+
+func (r *summaryReporter) packageManifestRelativePath(pkg *models.Package, currentWorkingDirectory string) (string, error) {
+	fullPath := pkg.Manifest.Path
+
+	relPath, err := filepath.Rel(currentWorkingDirectory, fullPath)
+	if err != nil {
+		return "", fmt.Errorf("error getting relative path: %w", err)
+	}
+
+	return relPath, nil
 }
 
 func (r *summaryReporter) packageVulnerabilitySampleText(pkg *models.Package) string {
