@@ -645,12 +645,13 @@ func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
 		}
 
 		manifestPath, err := r.packageManifestRelativePath(sp.pkg, currentWorkingDirectory)
+		// If failed to get relative path, fallback to absolute path
 		if err != nil {
 			fmt.Println(text.FgRed.Sprint("error getting manifest relative path: ", err.Error()))
 			manifestPath = sp.pkg.Manifest.Path
 		}
 
-		// Add Manifest Path information just bellow package name
+		// Add Manifest Path information just below package name
 		tbl.AppendRow(table.Row{
 			"", // Ecosystem
 			text.FgBlue.Sprint(manifestPath),

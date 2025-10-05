@@ -14,36 +14,36 @@ func TestManifestRelativePath(t *testing.T) {
 		pkg               *models.Package
 		currentWorkingDir string
 
-		expectError         bool
-		expctedRelativePath string
+		expectError          bool
+		expectedRelativePath string
 	}{
 		{
 			name: "valid current working directory",
 			pkg: &models.Package{
 				Manifest: &models.PackageManifest{
-					Path: "/home/user/work/company/project/soruce/package-lock.json",
+					Path: "/home/user/work/company/project/source/package-lock.json",
 				},
 			},
-			currentWorkingDir:   "/home/user/work/company/project/soruce",
-			expectError:         false,
-			expctedRelativePath: "package-lock.json",
+			currentWorkingDir:    "/home/user/work/company/project/source",
+			expectError:          false,
+			expectedRelativePath: "package-lock.json",
 		},
 		{
 			name: "valid current working directory with sub dir manifest path",
 			pkg: &models.Package{
 				Manifest: &models.PackageManifest{
-					Path: "/home/user/work/company/project/soruce/apps/cli/go.mod",
+					Path: "/home/user/work/company/project/source/apps/cli/go.mod",
 				},
 			},
-			currentWorkingDir:   "/home/user/work/company/project/soruce",
-			expectError:         false,
-			expctedRelativePath: "apps/cli/go.mod",
+			currentWorkingDir:    "/home/user/work/company/project/source",
+			expectError:          false,
+			expectedRelativePath: "apps/cli/go.mod",
 		},
 		{
 			name: "empty current working directory - error on os.Getwd()",
 			pkg: &models.Package{
 				Manifest: &models.PackageManifest{
-					Path: "/home/user/work/company/project/soruce/package-lock.json",
+					Path: "/home/user/work/company/project/source/package-lock.json",
 				},
 			},
 			currentWorkingDir: "", // os.Getwd() failed, then currentWorkingDir = ""
@@ -62,7 +62,7 @@ func TestManifestRelativePath(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, relativePath, test.expctedRelativePath)
+				assert.Equal(t, relativePath, test.expectedRelativePath)
 			}
 		})
 	}
