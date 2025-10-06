@@ -3,7 +3,6 @@ package reporter
 import (
 	"testing"
 
-	"github.com/safedep/vet/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -11,42 +10,32 @@ func TestManifestRelativePath(t *testing.T) {
 	testCases := []struct {
 		name string
 
-		pkg               *models.Package
 		currentWorkingDir string
+		manifestFullPath  string
 
 		expectError          bool
 		expectedRelativePath string
 	}{
 		{
-			name: "valid current working directory",
-			pkg: &models.Package{
-				Manifest: &models.PackageManifest{
-					Path: "/home/user/work/company/project/source/package-lock.json",
-				},
-			},
-			currentWorkingDir:    "/home/user/work/company/project/source",
+			name:              "valid current working directory",
+			currentWorkingDir: "/home/user/work/company/project/source",
+			manifestFullPath:  "/home/user/work/company/project/source/package-lock.json",
+
 			expectError:          false,
 			expectedRelativePath: "package-lock.json",
 		},
 		{
-			name: "valid current working directory with sub dir manifest path",
-			pkg: &models.Package{
-				Manifest: &models.PackageManifest{
-					Path: "/home/user/work/company/project/source/apps/cli/go.mod",
-				},
-			},
-			currentWorkingDir:    "/home/user/work/company/project/source",
+			name:              "valid current working directory with sub dir manifest path",
+			currentWorkingDir: "/home/user/work/company/project/source",
+			manifestFullPath:  "/home/user/work/company/project/source/apps/cli/go.mod",
+
 			expectError:          false,
 			expectedRelativePath: "apps/cli/go.mod",
 		},
 		{
-			name: "empty current working directory - error on os.Getwd()",
-			pkg: &models.Package{
-				Manifest: &models.PackageManifest{
-					Path: "/home/user/work/company/project/source/package-lock.json",
-				},
-			},
+			name:              "empty current working directory - error on os.Getwd()",
 			currentWorkingDir: "", // os.Getwd() failed, then currentWorkingDir = ""
+			manifestFullPath:  "/home/user/work/company/project/source/package-lock.json",
 			expectError:       true,
 		},
 	}
@@ -56,7 +45,7 @@ func TestManifestRelativePath(t *testing.T) {
 			t.Parallel()
 
 			r := &summaryReporter{}
-			relativePath, err := r.packageManifestRelativePath(test.pkg, test.currentWorkingDir)
+			relativePath, err := r.packageManifestRelativePath(test.currentWorkingDir, test.manifestFullPath)
 
 			if test.expectError {
 				assert.Error(t, err)

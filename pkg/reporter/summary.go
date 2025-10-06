@@ -572,7 +572,7 @@ func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
 
 	currentWorkingDirectory, err := os.Getwd()
 	if err != nil {
-		log.Warnf(WarningText(fmt.Sprintf("Error getting current working directory: %s", err.Error())))
+		log.Warnf("Error getting current working directory: %s", err.Error())
 		currentWorkingDirectory = ""
 	}
 
@@ -645,11 +645,10 @@ func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
 			}
 		}
 
-		manifestPath, err := r.packageManifestRelativePath(sp.pkg, currentWorkingDirectory)
-		// If failed to get relative path, fallback to absolute path
+		manifestPath, err := r.packageManifestRelativePath(currentWorkingDirectory, sp.pkg.Manifest.Path)
 		if err != nil {
-			log.Warnf(WarningText(fmt.Sprintf("Error getting manifest relative path: %s", err.Error())))
-			manifestPath = sp.pkg.Manifest.Path
+			log.Warnf("Error getting manifest relative path: %s", err.Error())
+			manifestPath = sp.pkg.Manifest.GetDisplayPath()
 		}
 
 		// Add Manifest Path information just below package name
@@ -691,10 +690,8 @@ func (r *summaryReporter) packageVulnerabilityRiskText(pkg *models.Package) stri
 	return WhiteBgText(" Unknown ")
 }
 
-func (r *summaryReporter) packageManifestRelativePath(pkg *models.Package, currentWorkingDirectory string) (string, error) {
-	fullPath := pkg.Manifest.Path
-
-	relPath, err := filepath.Rel(currentWorkingDirectory, fullPath)
+func (r *summaryReporter) packageManifestRelativePath(currentWorkingDirectory, manifestFullPath string) (string, error) {
+	relPath, err := filepath.Rel(currentWorkingDirectory, manifestFullPath)
 	if err != nil {
 		return "", fmt.Errorf("error getting relative path: %w", err)
 	}
