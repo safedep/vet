@@ -1,4 +1,4 @@
-// Package readers implements the various supported package manifest reader.
+// Package readers implement the various supported package manifest readers.
 // It defines an independent contract for implementing and reading packages
 // from one or more package manifest files. For more details, refer [TDD]
 //
@@ -15,6 +15,7 @@ type PackageManifestHandlerFn func(*models.PackageManifest, PackageReader) error
 type PackageManifestReader interface {
 	Name() string
 	EnumManifests(func(*models.PackageManifest, PackageReader) error) error
+	ApplicationName() (string, error)
 }
 
 // Contract for implementing a package reader. Enumerator should fail and return

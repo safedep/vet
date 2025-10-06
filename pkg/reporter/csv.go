@@ -26,6 +26,7 @@ type csvReporter struct {
 
 type csvRecord struct {
 	ecosystem           string
+	manifestNamespace   string
 	manifestPath        string
 	packageName         string
 	packageVersion      string
@@ -106,13 +107,14 @@ func (r *csvReporter) Finish() error {
 
 		// Base record
 		record := csvRecord{
-			ecosystem:       string(v.Package.Ecosystem),
-			manifestPath:    v.Manifest.GetDisplayPath(),
-			packageName:     v.Package.GetName(),
-			packageVersion:  v.Package.GetVersion(),
-			violationReason: msg,
-			introducedBy:    introducedBy,
-			pathToRoot:      pathToRoot,
+			ecosystem:         string(v.Package.Ecosystem),
+			manifestPath:      v.Manifest.GetDisplayPath(),
+			manifestNamespace: v.Manifest.GetSource().GetNamespace(),
+			packageName:       v.Package.GetName(),
+			packageVersion:    v.Package.GetVersion(),
+			violationReason:   msg,
+			introducedBy:      introducedBy,
+			pathToRoot:        pathToRoot,
 		}
 
 		// Flatten the vulnerabilities
@@ -190,6 +192,7 @@ func (r *csvReporter) persistCsvRecords(records []csvRecord) error {
 
 	err = w.Write([]string{
 		"Ecosystem",
+		"Manifest Namespace",
 		"Manifest Path",
 		"Package Name",
 		"Package Version",
@@ -209,7 +212,7 @@ func (r *csvReporter) persistCsvRecords(records []csvRecord) error {
 
 	for _, csvRecord := range records {
 		if err := w.Write([]string{
-			csvRecord.ecosystem, csvRecord.manifestPath,
+			csvRecord.ecosystem, csvRecord.manifestNamespace, csvRecord.manifestPath,
 			csvRecord.packageName, csvRecord.packageVersion,
 			csvRecord.violationReason,
 			csvRecord.introducedBy,

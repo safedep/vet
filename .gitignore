@@ -23,3 +23,9 @@
 dist/
 /.env.dev
 .vscode/
+
+# MacOS specific files
+**/.DS_Store
+
+# Auto-generated context files
+CLAUDE.md

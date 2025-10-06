@@ -6,10 +6,14 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/fatih/color"
 	"github.com/safedep/dry/utils"
+	"github.com/safedep/vet/cmd/agent"
 	"github.com/safedep/vet/cmd/cloud"
 	"github.com/safedep/vet/cmd/code"
 	"github.com/safedep/vet/cmd/inspect"
+	"github.com/safedep/vet/cmd/server"
+	"github.com/safedep/vet/internal/analytics"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/exceptions"
@@ -25,19 +29,55 @@ var (
 	globalExceptionsExtra []string
 )
 
-var banner string = `
-Yb    dP 888888 888888
- Yb  dP  88__     88
-  YbdP   88""     88
-   YP    888888   88
+// Colors
+var (
+	cyanBold  = color.New(color.Bold, color.FgCyan).SprintFunc()
+	whiteDim  = color.New(color.Faint).SprintFunc()
+	whiteBold = color.New(color.Bold).SprintFunc()
+)
 
-`
+const (
+	vetName                 = "vet"
+	vetInformationURI       = "https://github.com/safedep/vet"
+	vetVendorName           = "SafeDep"
+	vetVendorInformationURI = "https://safedep.io"
+)
+
+var vetPurl = "pkg:golang/safedep/vet@" + version
+
+func generateVetBanner(version, commit string) string {
+	vetASCIIText := `
+█░█ █▀▀ ▀█▀	From SafeDep
+▀▄▀ ██▄ ░█░` // backtick should end here, no \n
+
+	if len(commit) >= 6 {
+		commit = commit[:6]
+	}
+
+	return fmt.Sprintf("%s\t%s: %s %s: %s\n\n", cyanBold(vetASCIIText),
+		whiteDim("version"), whiteBold(version),
+		whiteDim("commit"), whiteBold(commit),
+	)
+}
 
 func main() {
 	cmd := &cobra.Command{
 		Use:              "vet [OPTIONS] COMMAND [ARG...]",
 		Short:            "[ Establish trust in open source software supply chain ]",
 		TraverseChildren: true,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			// Skip analytics for bare `vet` (no subcommand selected)
+			if cmd == cmd.Root() && len(args) == 0 {
+				return nil
+			}
+
+			// Initialize analytics for non-help commands
+			analytics.Init()
+			analytics.TrackCommandRun()
+			analytics.TrackCI()
+
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return cmd.Help()
@@ -46,7 +86,6 @@ func main() {
 			return fmt.Errorf("vet: %s is not a valid command", args[0])
 		},
 	}
-
 	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Show verbose logs")
 	cmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Show debug logs")
 	cmd.PersistentFlags().BoolVarP(&noBanner, "no-banner", "", false, "Do not display the vet banner")
@@ -61,9 +100,14 @@ func main() {
 	cmd.AddCommand(newConnectCommand())
 	cmd.AddCommand(cloud.NewCloudCommand())
 	cmd.AddCommand(code.NewCodeCommand())
+	cmd.AddCommand(agent.NewAgentCommand())
 
 	if checkIfPackageInspectCommandEnabled() {
 		cmd.AddCommand(inspect.NewPackageInspectCommand())
+	}
+
+	if checkIfServerCommandEnabled() {
+		cmd.AddCommand(server.NewServerCommand())
 	}
 
 	cobra.OnInitialize(func() {
@@ -71,6 +115,8 @@ func main() {
 		loadExceptions()
 		logger.SetLogLevel(verbose, debug)
 	})
+
+	defer analytics.Close()
 
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
@@ -111,11 +157,17 @@ func printBanner() {
 		return
 	}
 
-	ui.PrintBanner(banner)
+	ui.PrintBanner(generateVetBanner(version, commit))
 }
 
 func checkIfPackageInspectCommandEnabled() bool {
 	// Enabled by default now that we have tested this for a while
+	return true
+}
+
+func checkIfServerCommandEnabled() bool {
+	// Enabled by default but keep option open for disabling
+	// based on remote config or user preference
 	return true
 }
 

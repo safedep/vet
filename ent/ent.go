@@ -14,6 +14,17 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/safedep/vet/ent/codesourcefile"
 	"github.com/safedep/vet/ent/depsusageevidence"
+	"github.com/safedep/vet/ent/reportdependency"
+	"github.com/safedep/vet/ent/reportdependencygraph"
+	"github.com/safedep/vet/ent/reportlicense"
+	"github.com/safedep/vet/ent/reportmalware"
+	"github.com/safedep/vet/ent/reportpackage"
+	"github.com/safedep/vet/ent/reportpackagemanifest"
+	"github.com/safedep/vet/ent/reportproject"
+	"github.com/safedep/vet/ent/reportscorecard"
+	"github.com/safedep/vet/ent/reportscorecardcheck"
+	"github.com/safedep/vet/ent/reportslsaprovenance"
+	"github.com/safedep/vet/ent/reportvulnerability"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -74,8 +85,19 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			codesourcefile.Table:    codesourcefile.ValidColumn,
-			depsusageevidence.Table: depsusageevidence.ValidColumn,
+			codesourcefile.Table:        codesourcefile.ValidColumn,
+			depsusageevidence.Table:     depsusageevidence.ValidColumn,
+			reportdependency.Table:      reportdependency.ValidColumn,
+			reportdependencygraph.Table: reportdependencygraph.ValidColumn,
+			reportlicense.Table:         reportlicense.ValidColumn,
+			reportmalware.Table:         reportmalware.ValidColumn,
+			reportpackage.Table:         reportpackage.ValidColumn,
+			reportpackagemanifest.Table: reportpackagemanifest.ValidColumn,
+			reportproject.Table:         reportproject.ValidColumn,
+			reportscorecard.Table:       reportscorecard.ValidColumn,
+			reportscorecardcheck.Table:  reportscorecardcheck.ValidColumn,
+			reportslsaprovenance.Table:  reportslsaprovenance.ValidColumn,
+			reportvulnerability.Table:   reportvulnerability.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

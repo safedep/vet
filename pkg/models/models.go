@@ -35,6 +35,8 @@ const (
 	EcosystemTerraformModule   = "TerraformModule"
 	EcosystemTerraformProvider = "TerraformProvider"
 	EcosystemVSCodeExtensions  = "VSCodeExtensions"
+	EcosystemOpenVSXExtensions = "OpenVSXExtensions"
+	EcosystemHomebrew          = "Homebrew"
 )
 
 type ManifestSourceType string
@@ -43,6 +45,7 @@ const (
 	ManifestSourceLocal         = ManifestSourceType("local")
 	ManifestSourcePurl          = ManifestSourceType("purl")
 	ManifestSourceGitRepository = ManifestSourceType("git_repository")
+	ManifestSourceHomebrew      = ManifestSourceType("homebrew")
 )
 
 // We now have different sources from where a package
@@ -140,6 +143,14 @@ func NewPackageManifestFromGitHub(repo, repoRelativePath, realPath, ecosystem st
 	}, realPath, ecosystem)
 }
 
+func NewPackageManifestFromHomebrew() *PackageManifest {
+	return newPackageManifest(PackageManifestSource{
+		Type:      ManifestSourceHomebrew,
+		Namespace: "brew.sh",
+		Path:      "homebrew",
+	}, "brew info --installed --json", EcosystemHomebrew)
+}
+
 func newPackageManifest(source PackageManifestSource, path, ecosystem string) *PackageManifest {
 	return &PackageManifest{
 		Source:          source,
@@ -206,7 +217,7 @@ func (pm *PackageManifest) GetPackages() []*Package {
 }
 
 func (pm *PackageManifest) Id() string {
-	return hashedId(fmt.Sprintf("%s/%s",
+	return hashedID(fmt.Sprintf("%s/%s",
 		pm.Ecosystem, pm.Path))
 }
 
@@ -240,6 +251,10 @@ func (pm *PackageManifest) GetControlTowerSpecEcosystem() packagev1.Ecosystem {
 		return packagev1.Ecosystem_ECOSYSTEM_TERRAFORM_PROVIDER
 	case EcosystemVSCodeExtensions:
 		return packagev1.Ecosystem_ECOSYSTEM_VSCODE
+	case EcosystemOpenVSXExtensions:
+		return packagev1.Ecosystem_ECOSYSTEM_OPENVSX
+	case EcosystemHomebrew:
+		return packagev1.Ecosystem_ECOSYSTEM_HOMEBREW
 	default:
 		return packagev1.Ecosystem_ECOSYSTEM_UNSPECIFIED
 	}
@@ -340,6 +355,15 @@ type MalwareAnalysisResult struct {
 	VerificationRecord *malysisv1.VerificationRecord
 }
 
+// Id returns id for malware analysis result
+// Its Opinionated, we use SD-MAL- prefix for our malware analysis results
+// to prevent confusion against the MAL- prefix used by OSV.
+//
+//	Its not linked to any standard
+func (m *MalwareAnalysisResult) Id() string {
+	return fmt.Sprintf("SD-MAL-%s", m.AnalysisId)
+}
+
 type CodeAnalysisResult struct {
 	// Usage evidences of a package obtained by depsusage plugin
 	UsageEvidences []*ent.DepsUsageEvidence `json:"usage_evidences"`
@@ -379,7 +403,7 @@ type Package struct {
 // It is used to identify a package in the dependency graph
 // It should be reproducible across multiple runs
 func (p *Package) Id() string {
-	return hashedId(fmt.Sprintf("%s/%s/%s",
+	return hashedID(fmt.Sprintf("%s/%s/%s",
 		strings.ToLower(string(p.PackageDetails.Ecosystem)),
 		strings.ToLower(p.PackageDetails.Name),
 		strings.ToLower(p.PackageDetails.Version)))
@@ -399,6 +423,10 @@ func (p *Package) GetName() string {
 	return p.Name
 }
 
+func (p *Package) IsDirect() bool {
+	return p.Depth == 0
+}
+
 func (p *Package) GetVersion() string {
 	return p.Version
 }
@@ -407,10 +435,14 @@ func (p *Package) GetProvenances() []*Provenance {
 	return p.Provenances
 }
 
-func (p *Package) ShortName() string {
+func (p *Package) GetPackageUrl() string {
 	return fmt.Sprintf("pkg:%s/%s@%s",
 		strings.ToLower(string(p.Ecosystem)),
 		strings.ToLower(p.Name), p.Version)
+}
+
+func (p *Package) ShortName() string {
+	return p.GetPackageUrl()
 }
 
 func (p *Package) GetDependencyGraph() *DependencyGraph[*Package] {
@@ -449,16 +481,14 @@ func (p *Package) GetDependencies() ([]*Package, error) {
 
 	nodes := graph.GetNodes()
 	for _, node := range nodes {
-		if node.Root {
-			continue
-		}
-
 		if node.Data == nil {
 			continue
 		}
 
-		if p.GetName() != node.Data.GetName() &&
-			p.GetVersion() != node.Data.GetVersion() &&
+		// Multiple versions of the same package can exist in the graph,
+		// find the one that matches the package name, version & ecosystem
+		if p.GetName() != node.Data.GetName() ||
+			p.GetVersion() != node.Data.GetVersion() ||
 			p.GetSpecEcosystem() != node.Data.GetSpecEcosystem() {
 			continue
 		}
@@ -503,15 +533,25 @@ func NewPackageDetail(ecosystem, name, version string) lockfile.PackageDetails {
 	}
 }
 
+// IDGen generates a unique identifier for a given data
 // This is probably not the best place for IdGen but keeping it here
 // since this package is the most stable (SDP)
-func IdGen(data string) string {
-	return hashedId(data)
+func IDGen(data string) string {
+	return hashedID(data)
 }
 
-func hashedId(str string) string {
+func hashedID(str string) string {
 	h := fnv.New64a()
 	h.Write([]byte(str))
 
 	return strconv.FormatUint(h.Sum64(), 16)
+}
+
+// ControlTowerPackageID generates an unique identifier for a package
+// using the same logic as `Package.Id()` but for the Control Tower spec.
+func ControlTowerPackageID(p *packagev1.PackageVersion) string {
+	return fmt.Sprintf("%s/%s/%s",
+		strings.ToLower(GetModelEcosystem(p.GetPackage().GetEcosystem())),
+		strings.ToLower(p.GetPackage().GetName()),
+		strings.ToLower(p.GetVersion()))
 }

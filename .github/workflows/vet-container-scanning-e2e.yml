@@ -1,0 +1,34 @@
+name: Container Scan E2E
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  e2e-scan:
+    name: E2E Scan on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Set up Go
+        uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build and Test
+        run: |
+          make
+
+      - name: Run container scan tests
+        shell: bash
+        run: |
+          ./vet scan --image alpine:latest
+          ./vet scan --image ghcr.io/safedep/vet:latest
+          ./vet scan --image node:20

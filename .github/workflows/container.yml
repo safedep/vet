@@ -27,51 +27,43 @@ jobs:
       id-token: write
 
     steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: true
-        fetch-depth: 0
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744
+        with:
+          submodules: true
+          fetch-depth: 0
 
-    - name: Registry Login
-      uses: docker/login-action@v1
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Registry Login
+        uses: docker/login-action@dd4fa0671be5250ee6f50aedf4cb05514abda2c7
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Setup QEMU
-      uses: docker/setup-qemu-action@v2
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@2b82ce82d56a2a04d2637cd93a637ae1b359c0a7
 
-    - name: Setup Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@885d1462b80bc1c1c7f0b00334ad271f09369c55
 
-    - name: Build and Push Container Image
-      run: |
-        # Get the tag if this was a tag push event
-        if [[ "${{ github.ref_type }}" == "tag" ]]; then
-          TAG=${{ github.ref_name }}
-          # Validate tag format (must be vX.Y.Z)
-          if [[ $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            # Build and push with both version tag and latest
+      - name: Build and Push Container Image
+        run: |
+          # Get the tag if this was a tag push event
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            TAG=${{ github.ref_name }}
+            # Validate tag format (must be vX.Y.Z)
+            if [[ $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              # Build and push with both version tag and latest
+              docker buildx build --push --platform linux/amd64,linux/arm64 \
+                -t $REGISTRY/$IMAGE_NAME:$TAG \
+                -t $REGISTRY/$IMAGE_NAME:latest \
+                .
+            else
+              echo "Invalid tag format. Must be in format vX.Y.Z (e.g. v1.2.3)"
+              exit 1
+            fi
+          else
+            # For non-tag pushes, just use latest tag
             docker buildx build --push --platform linux/amd64,linux/arm64 \
-              -t $REGISTRY/$IMAGE_NAME:$TAG \
               -t $REGISTRY/$IMAGE_NAME:latest \
               .
-          else
-            echo "Invalid tag format. Must be in format vX.Y.Z (e.g. v1.2.3)"
-            exit 1
           fi
-        else
-          # For non-tag pushes, just use latest tag
-          docker buildx build --push --platform linux/amd64,linux/arm64 \
-            -t $REGISTRY/$IMAGE_NAME:latest \
-            .
-        fi
-
-    - uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5.0.0
-      name: Remove Old Container Images
-      with: 
-        package-name: vet
-        package-type: 'container'
-        delete-only-untagged-versions: 'true'
-

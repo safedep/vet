@@ -3,29 +3,60 @@ on:
   pull_request:
     branches:
       - main
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
 
 jobs:
+  check-generated-code:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Set up Go
+        uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+        with:
+          go-version-file: go.mod
+
+      - name: Run code generation
+        run: make generate
+
+      - name: Check for uncommitted changes
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "ERROR: Generated code is out of sync!"
+            echo "Please run 'make generate' and commit the changes."
+            echo ""
+            echo "Files with changes:"
+            git status --porcelain
+            echo ""
+            echo "Diff:"
+            git diff
+            exit 1
+          fi
+
   run-test:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v3
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       - name: Set up Go
-        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+        uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
-          go-version: 1.24
-          check-latest: true
+          go-version-file: go.mod
 
       - name: Build and Test
         run: |
           go mod tidy
           go build
-          go test -v ./...
+          go test -coverprofile=coverage.txt -v ./...
         env:
           VET_E2E: true
 
@@ -33,17 +64,23 @@ jobs:
           # test suites that use GitHub API
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Upload Coverage
+        if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || github.event_name == 'push'
+        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
   run-e2e:
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v3
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       - name: Set up Go
-        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+        uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
-          go-version: 1.24
+          go-version-file: go.mod
           check-latest: true
 
       - name: Build vet
@@ -68,21 +105,34 @@ jobs:
           VET_API_KEY: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
           VET_CONTROL_TOWER_TENANT_ID: ${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }}
 
-  build-container:
+  build-container-test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-    - name: Checkout Source
-      uses: actions/checkout@v3
+      - name: Checkout Source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-    - name: Setup QEMU
-      uses: docker/setup-qemu-action@v2
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3
 
-    - name: Setup Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3
 
-    - name: Build Container Image
-      run: |
-        docker buildx build --platform linux/amd64 --platform linux/arm64 \
-        -t build-container-test .
+      - name: Build Multi-Platform Container Image (verification only)
+        run: |
+          docker buildx build --platform linux/amd64,linux/arm64 \
+          -t build-container-test:latest .
 
+      - name: Build and Load Native Platform Image for Testing
+        run: |
+          docker buildx build --platform linux/amd64 --load \
+          -t build-container-test:latest .
+
+      - name: Test Container Image
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          docker run --rm \
+            -e VET_API_KEY=${{ secrets.SAFEDEP_CLOUD_API_KEY }} \
+            -e VET_CONTROL_TOWER_TENANT_ID=${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }} \
+            build-container-test:latest \
+            auth verify

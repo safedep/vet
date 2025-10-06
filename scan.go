@@ -5,9 +5,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/google/go-github/v54/github"
+	"github.com/google/go-github/v70/github"
 	"github.com/safedep/dry/adapters"
 	"github.com/safedep/dry/utils"
+	"github.com/safedep/vet/internal/analytics"
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/internal/command"
 	"github.com/safedep/vet/internal/connect"
@@ -15,6 +16,7 @@ import (
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/code"
 	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/pkg/common/registry"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/parser"
 	"github.com/safedep/vet/pkg/readers"
@@ -22,60 +24,80 @@ import (
 	"github.com/safedep/vet/pkg/scanner"
 	"github.com/safedep/vet/pkg/storage"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 )
 
 var (
-	manifests                      []string
-	manifestType                   string
-	lockfiles                      []string
-	lockfileAs                     string
-	enrich                         bool
-	enrichUsingInsightsV2          bool
-	enrichMalware                  bool
-	baseDirectory                  string
-	purlSpec                       string
-	vsxReader                      bool
-	vsxDirectories                 []string
-	githubRepoUrls                 []string
-	githubOrgUrl                   string
-	githubOrgMaxRepositories       int
-	githubSkipDependencyGraphAPI   bool
-	scanExclude                    []string
-	transitiveAnalysis             bool
-	transitiveDepth                int
-	dependencyUsageEvidence        bool
-	codeAnalysisDBPath             string
-	concurrency                    int
-	dumpJsonManifestDir            string
-	celFilterExpression            string
-	celFilterSuiteFile             string
-	celFilterFailOnMatch           bool
-	markdownReportPath             string
-	markdownSummaryReportPath      string
-	jsonReportPath                 string
-	consoleReport                  bool
-	summaryReport                  bool
-	summaryReportMaxAdvice         int
-	summaryReportGroupByDirectDeps bool
-	summaryReportUsedOnly          bool
-	csvReportPath                  string
-	reportDefectDojo               bool
-	defectDojoHostUrl              string
-	defectDojoProductID            int
-	sarifReportPath                string
-	silentScan                     bool
-	disableAuthVerifyBeforeScan    bool
-	syncReport                     bool
-	syncReportProject              string
-	syncEnableMultiProject         bool
-	graphReportDirectory           string
-	syncReportStream               string
-	listExperimentalParsers        bool
-	failFast                       bool
-	trustedRegistryUrls            []string
-	scannerExperimental            bool
-	malwareAnalyzerTrustToolResult bool
-	malwareAnalysisTimeout         time.Duration
+	manifests                        []string
+	manifestType                     string
+	lockfiles                        []string
+	lockfileAs                       string
+	enrich                           bool
+	enrichUsingInsightsV2            bool
+	enrichMalware                    bool
+	enrichMalwareQuery               bool
+	baseDirectory                    string
+	purlSpec                         string
+	vsxReader                        bool
+	vsxDirectories                   []string
+	githubRepoUrls                   []string
+	githubOrgUrl                     string
+	githubOrgMaxRepositories         int
+	githubOrgExcludedRepos           []string
+	githubSkipDependencyGraphAPI     bool
+	scanExclude                      []string
+	transitiveAnalysis               bool
+	transitiveDepth                  int
+	dependencyUsageEvidence          bool
+	codeAnalysisDBPath               string
+	concurrency                      int
+	dumpJsonManifestDir              string
+	celFilterExpression              string
+	celFilterSuiteFile               string
+	celFilterFailOnMatch             bool
+	celFilterV2Expression            string
+	celFilterV2SuiteFile             string
+	celPolicyExpression              string
+	celPolicySuiteFile               string
+	markdownReportPath               string
+	markdownSummaryReportPath        string
+	jsonReportPath                   string
+	consoleReport                    bool
+	summaryReport                    bool
+	summaryReportMaxAdvice           int
+	summaryReportGroupByDirectDeps   bool
+	summaryReportUsedOnly            bool
+	csvReportPath                    string
+	reportDefectDojo                 bool
+	defectDojoHostUrl                string
+	defectDojoProductID              int
+	sarifReportPath                  string
+	sarifIncludeVulns                bool
+	sarifIncludeMalware              bool
+	cyclonedxReportPath              string
+	cyclonedxReportApplicationName   string
+	silentScan                       bool
+	disableAuthVerifyBeforeScan      bool
+	syncReport                       bool
+	syncReportProject                string
+	syncEnableMultiProject           bool
+	graphReportDirectory             string
+	syncReportStream                 string
+	listExperimentalParsers          bool
+	failFast                         bool
+	trustedRegistryUrls              []string
+	scannerExperimental              bool
+	malwareAnalyzerTrustToolResult   bool
+	malwareAnalysisTimeout           time.Duration
+	malwareAnalysisMinimumConfidence string
+	gitlabReportPath                 string
+	sqlite3ReportPath                string
+	sqlite3ReportOverwrite           bool
+	sqlite3ReportAppend              bool
+	scanImageTarget                  string
+	scanImageNoRemote                bool
+	reportHtmlPath                   string
+	brewSpec                         bool
 )
 
 func newScanCommand() *cobra.Command {
@@ -102,11 +124,13 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().BoolVarP(&enrichUsingInsightsV2, "insights-v2", "", false,
 		"Enrich package metadata using Insights V2 API")
 	cmd.Flags().BoolVarP(&enrichMalware, "malware", "", false,
-		"Enrich package metadata with malware analysis results")
+		"Enrich package metadata with active malware analysis results")
+	cmd.Flags().BoolVarP(&enrichMalwareQuery, "malware-query", "", true,
+		"Enrich package metadata with known malicious packages data")
 	cmd.Flags().StringVarP(&baseDirectory, "directory", "D", wd,
 		"The directory to scan for package manifests")
 	cmd.Flags().StringArrayVarP(&scanExclude, "exclude", "", []string{},
-		"Name patterns to ignore while scanning a directory")
+		"Name patterns to ignore while scanning")
 	cmd.Flags().StringArrayVarP(&lockfiles, "lockfiles", "L", []string{},
 		"List of lockfiles to scan")
 	cmd.Flags().StringArrayVarP(&manifests, "manifests", "M", []string{},
@@ -123,6 +147,8 @@ func newScanCommand() *cobra.Command {
 		"Github organization URL (Example: https://github.com/safedep)")
 	cmd.Flags().IntVarP(&githubOrgMaxRepositories, "github-org-max-repo", "", 1000,
 		"Maximum number of repositories to process for the Github Org")
+	cmd.Flags().StringArrayVarP(&githubOrgExcludedRepos, "github-org-exclude-repos", "", []string{},
+		"Comma-separated list of GitHub repos to exclude during org scan (format: org/repo1,org/repo2)")
 	cmd.Flags().BoolVarP(&githubSkipDependencyGraphAPI, "skip-github-dependency-graph-api", "", false,
 		"Do not use GitHub Dependency Graph API to fetch dependencies")
 	cmd.Flags().StringVarP(&lockfileAs, "lockfile-as", "", "",
@@ -140,11 +166,19 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&dumpJsonManifestDir, "json-dump-dir", "", "",
 		"Dump enriched package manifests as JSON files to dir")
 	cmd.Flags().StringVarP(&celFilterExpression, "filter", "", "",
-		"Filter and print packages using CEL")
+		"Filter and print packages using CEL (DEPRECATED: use --policy instead)")
 	cmd.Flags().StringVarP(&celFilterSuiteFile, "filter-suite", "", "",
-		"Filter packages using CEL Filter Suite from file")
+		"Filter packages using CEL Filter Suite from file (DEPRECATED: use --policy-suite instead)")
 	cmd.Flags().BoolVarP(&celFilterFailOnMatch, "filter-fail", "", false,
 		"Fail the scan if the filter match any package (security gate)")
+	cmd.Flags().StringVarP(&celFilterV2Expression, "filter-v2", "", "",
+		"Filter and print packages using CEL with Insights v2 data model (alias for --policy)")
+	cmd.Flags().StringVarP(&celFilterV2SuiteFile, "filter-v2-suite", "", "",
+		"Filter packages using CEL Filter Suite from file with Insights v2 data model (alias for --policy-suite)")
+	cmd.Flags().StringVarP(&celPolicyExpression, "policy", "", "",
+		"Filter and print packages using CEL with Policy Input schema")
+	cmd.Flags().StringVarP(&celPolicySuiteFile, "policy-suite", "", "",
+		"Filter packages using CEL Filter Suite from file with Policy Input schema")
 	cmd.Flags().BoolVarP(&disableAuthVerifyBeforeScan, "no-verify-auth", "", false,
 		"Do not verify auth token before starting scan")
 	cmd.Flags().StringVarP(&markdownReportPath, "report-markdown", "", "",
@@ -170,7 +204,13 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&jsonReportPath, "report-json", "", "",
 		"Generate consolidated JSON report to file (EXPERIMENTAL schema)")
 	cmd.Flags().StringVarP(&sarifReportPath, "report-sarif", "", "",
-		"Generate SARIF report to file")
+		"Generate SARIF report to file (*.sarif or *.sarif.json)")
+	cmd.Flags().BoolVarP(&sarifIncludeVulns, "report-sarif-vulns", "", true, "Include vulnerabilities in SARIF report (Enabled by default)")
+	cmd.Flags().BoolVarP(&sarifIncludeMalware, "report-sarif-malware", "", true, "Include malware in SARIF report (Enabled by default)")
+	cmd.Flags().StringVarP(&cyclonedxReportPath, "report-cdx", "", "",
+		"Generate CycloneDX report to file")
+	cmd.Flags().StringVarP(&cyclonedxReportApplicationName, "report-cdx-app-name", "", "",
+		"Application name used as root application component in CycloneDX BOM")
 	cmd.Flags().StringVarP(&graphReportDirectory, "report-graph", "", "",
 		"Generate dependency graph (if available) as dot files to directory")
 	cmd.Flags().BoolVarP(&syncReport, "report-sync", "", false,
@@ -189,6 +229,22 @@ func newScanCommand() *cobra.Command {
 		"Trust malicious package analysis tool result without verification record")
 	cmd.Flags().DurationVarP(&malwareAnalysisTimeout, "malware-analysis-timeout", "", 5*time.Minute,
 		"Timeout for malicious package analysis")
+	cmd.Flags().StringVarP(&gitlabReportPath, "report-gitlab", "", "",
+		"Generate GitLab dependency scanning report to file")
+	cmd.Flags().StringVarP(&sqlite3ReportPath, "report-sqlite3", "", "",
+		"Generate SQLite3 database report to file")
+	cmd.Flags().BoolVarP(&sqlite3ReportOverwrite, "report-sqlite3-overwrite", "", false,
+		"Overwrite existing SQLite3 database report")
+	cmd.Flags().BoolVarP(&sqlite3ReportAppend, "report-sqlite3-append", "", false,
+		"Append to existing SQLite3 database report")
+	cmd.Flags().StringVarP(&malwareAnalysisMinimumConfidence, "malware-analysis-min-confidence", "", "HIGH",
+		"Minimum confidence level for malicious package analysis result to fail fast")
+	cmd.Flags().StringVarP(&scanImageTarget, "image", "", "",
+		"Image reference to run container image scanning (eg. node:latest)")
+	cmd.Flags().BoolVarP(&scanImageNoRemote, "image-no-remote", "", false,
+		"Disable container image pulling when not found locally")
+	cmd.Flags().StringVar(&reportHtmlPath, "report-html", "", "Path to write HTML report output")
+	cmd.Flags().BoolVar(&brewSpec, "homebrew", false, "Enable scanning for Homebrew packages")
 
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
@@ -205,6 +261,15 @@ func newScanCommand() *cobra.Command {
 
 			if reportDefectDojo && (defectDojoProductID == -1 || utils.IsEmptyString(defectDojoHostUrl)) {
 				return fmt.Errorf("defect dojo Host URL & product ID are required for defect dojo report")
+			}
+
+			// Validate filter/policy flags
+			if !utils.IsEmptyString(celFilterV2Expression) && !utils.IsEmptyString(celPolicyExpression) {
+				return fmt.Errorf("cannot use both --filter-v2 and --policy flags simultaneously")
+			}
+
+			if !utils.IsEmptyString(celFilterV2SuiteFile) && !utils.IsEmptyString(celPolicySuiteFile) {
+				return fmt.Errorf("cannot use both --filter-v2-suite and --policy-suite flags simultaneously")
 			}
 
 			return nil
@@ -240,6 +305,8 @@ func listParsersCommand() *cobra.Command {
 }
 
 func startScan() {
+	analytics.TrackCommandScan()
+
 	if !disableAuthVerifyBeforeScan {
 		err := auth.Verify()
 		// We will fallback to community mode by default to provide
@@ -259,6 +326,15 @@ func startScan() {
 }
 
 func internalStartScan() error {
+	toolMetadata := reporter.ToolMetadata{
+		Name:                 vetName,
+		Version:              version,
+		Purl:                 vetPurl,
+		InformationURI:       vetInformationURI,
+		VendorName:           vetVendorName,
+		VendorInformationURI: vetVendorInformationURI,
+	}
+
 	readerList := []readers.PackageManifestReader{}
 	var reader readers.PackageManifestReader
 	var err error
@@ -280,21 +356,48 @@ func internalStartScan() error {
 		manifestType = lockfileAs
 	}
 
+	// This is our standardized GitHub client.
+	// We need to unify the GitHub client interfaces across different parts of vet
+	// Current they depend on different versions of GitHub client
+	githubClient, err := adapters.NewGithubClient(adapters.DefaultGitHubClientConfig())
+	if err != nil {
+		return err
+	}
+
+	versionResolver, err := registry.NewPackageVersionResolver(githubClient)
+	if err != nil {
+		return err
+	}
+
 	// We can easily support both directory and lockfile reader. But current UX
 	// contract is to support one of them at a time. Lets not break the contract
 	// for now and figure out UX improvement later
 	if len(lockfiles) > 0 {
+		analytics.TrackCommandScanPackageManifestScan()
+
 		// nolint:ineffassign,staticcheck
-		reader, err = readers.NewLockfileReader(lockfiles, manifestType)
+		reader, err = readers.NewLockfileReader(readers.LockfileReaderConfig{
+			Lockfiles:  lockfiles,
+			LockfileAs: manifestType,
+			Exclusions: scanExclude,
+		})
 	} else if len(manifests) > 0 {
+		analytics.TrackCommandScanPackageManifestScan()
+
 		// We will make manifestType backward compatible with lockfileAs
 		if manifestType == "" {
 			manifestType = lockfileAs
 		}
 
 		// nolint:ineffassign,staticcheck
-		reader, err = readers.NewLockfileReader(manifests, manifestType)
+		reader, err = readers.NewLockfileReader(readers.LockfileReaderConfig{
+			Lockfiles:  manifests,
+			LockfileAs: manifestType,
+			Exclusions: scanExclude,
+		})
 	} else if len(githubRepoUrls) > 0 {
+		analytics.TrackCommandScanGitHubScan()
+
 		githubClient := githubClientBuilder()
 
 		// nolint:ineffassign,staticcheck
@@ -303,7 +406,9 @@ func internalStartScan() error {
 			LockfileAs:                   lockfileAs,
 			SkipGitHubDependencyGraphAPI: githubSkipDependencyGraphAPI,
 		})
-	} else if len(githubOrgUrl) > 0 {
+	} else if !utils.IsEmptyString(githubOrgUrl) {
+		analytics.TrackCommandScanGitHubOrgScan()
+
 		githubClient := githubClientBuilder()
 
 		// nolint:ineffassign,staticcheck
@@ -312,19 +417,45 @@ func internalStartScan() error {
 			IncludeArchived:        false,
 			MaxRepositories:        githubOrgMaxRepositories,
 			SkipDependencyGraphAPI: githubSkipDependencyGraphAPI,
+			ExcludeRepos:           githubOrgExcludedRepos,
 		})
 	} else if len(purlSpec) > 0 {
+		analytics.TrackCommandScanPurlScan()
+
 		// nolint:ineffassign,staticcheck
-		reader, err = readers.NewPurlReader(purlSpec)
+		reader, err = readers.NewPurlReader(purlSpec, readers.PurlReaderConfig{AutoResolveMissingVersions: true}, versionResolver)
 	} else if vsxReader {
 		if len(vsxDirectories) == 0 {
+			analytics.TrackCommandScanVSCodeExtScan()
+
 			// nolint:ineffassign,staticcheck
-			reader, err = readers.NewVSCodeExtReaderFromDefaultDistributions()
+			reader, err = readers.NewVSIXExtReaderFromDefaultDistributions()
 		} else {
+			analytics.TrackCommandScanVSCodeExtScan()
+
 			// nolint:ineffassign,staticcheck
-			reader, err = readers.NewVSCodeExtReader(vsxDirectories)
+			reader, err = readers.NewVSIXExtReader(vsxDirectories)
 		}
+	} else if len(scanImageTarget) != 0 {
+		analytics.TrackCommandImageScan()
+
+		readerConfig := readers.DefaultContainerImageReaderConfig()
+
+		if scanImageNoRemote {
+			readerConfig.RemoteImageFetch = false
+		}
+
+		reader, err = readers.NewContainerImageReader(scanImageTarget, readerConfig)
+	} else if brewSpec {
+		analytics.TrackCommandScanBrewScan()
+
+		// We do not have anything to enrich for homebrew & it leads to data overriden by the insights API
+		enrich = false
+
+		reader, err = readers.NewBrewReader(readers.BrewReaderConfig{})
 	} else {
+		analytics.TrackCommandScanDirectoryScan()
+
 		// nolint:ineffassign,staticcheck
 		reader, err = readers.NewDirectoryReader(readers.DirectoryReaderConfig{
 			Path:                 baseDirectory,
@@ -359,6 +490,8 @@ func internalStartScan() error {
 	}
 
 	if !utils.IsEmptyString(celFilterExpression) {
+		analytics.TrackCommandScanFilterArgs()
+
 		task, err := analyzer.NewCelFilterAnalyzer(celFilterExpression,
 			failFast || celFilterFailOnMatch)
 		if err != nil {
@@ -369,6 +502,8 @@ func internalStartScan() error {
 	}
 
 	if !utils.IsEmptyString(celFilterSuiteFile) {
+		analytics.TrackCommandScanFilterSuite()
+
 		task, err := analyzer.NewCelFilterSuiteAnalyzer(celFilterSuiteFile,
 			failFast || celFilterFailOnMatch)
 		if err != nil {
@@ -378,9 +513,56 @@ func internalStartScan() error {
 		analyzers = append(analyzers, task)
 	}
 
-	if enrichMalware {
+	// Handle filter-v2 and policy flags (they are aliases)
+	policyExpr := celPolicyExpression
+	if !utils.IsEmptyString(celFilterV2Expression) {
+		policyExpr = celFilterV2Expression
+	}
+
+	if !utils.IsEmptyString(policyExpr) {
+		analytics.TrackCommandScanFilterArgs()
+
+		// Force insights v2 to be enabled for policy evaluation
+		if !enrichUsingInsightsV2 {
+			return fmt.Errorf("policy evaluation requires insights v2 to be enabled, use --insights-v2 flag")
+		}
+
+		task, err := analyzer.NewCelFilterV2Analyzer(policyExpr,
+			failFast || celFilterFailOnMatch)
+		if err != nil {
+			return err
+		}
+
+		analyzers = append(analyzers, task)
+	}
+
+	// Handle filter-v2-suite and policy-suite flags (they are aliases)
+	policySuite := celPolicySuiteFile
+	if !utils.IsEmptyString(celFilterV2SuiteFile) {
+		policySuite = celFilterV2SuiteFile
+	}
+
+	if !utils.IsEmptyString(policySuite) {
+		analytics.TrackCommandScanFilterSuite()
+
+		// Force insights v2 to be enabled for policy evaluation
+		if !enrichUsingInsightsV2 {
+			return fmt.Errorf("policy evaluation requires insights v2 to be enabled, use --insights-v2 flag")
+		}
+
+		task, err := analyzer.NewCelFilterSuiteV2Analyzer(policySuite,
+			failFast || celFilterFailOnMatch)
+		if err != nil {
+			return err
+		}
+
+		analyzers = append(analyzers, task)
+	}
+
+	if enrichMalware || enrichMalwareQuery {
 		config := analyzer.DefaultMalwareAnalyzerConfig()
 		config.TrustAutomatedAnalysis = malwareAnalyzerTrustToolResult
+		config.MinimumConfidence = malwareAnalysisMinimumConfidence
 		config.FailFast = failFast
 
 		task, err := analyzer.NewMalwareAnalyzer(config)
@@ -426,9 +608,13 @@ func internalStartScan() error {
 	}
 
 	if !utils.IsEmptyString(markdownSummaryReportPath) {
+		analytics.TrackReporterMarkdownSummary()
+
 		rp, err := reporter.NewMarkdownSummaryReporter(reporter.MarkdownSummaryReporterConfig{
+			Tool:                   toolMetadata,
 			Path:                   markdownSummaryReportPath,
-			IncludeMalwareAnalysis: enrichMalware,
+			IncludeMalwareAnalysis: true,
+			ActiveMalwareAnalysis:  enrichMalware,
 		})
 		if err != nil {
 			return err
@@ -438,8 +624,11 @@ func internalStartScan() error {
 	}
 
 	if !utils.IsEmptyString(jsonReportPath) {
+		analytics.TrackReporterJSON()
+
 		rp, err := reporter.NewJsonReportGenerator(reporter.JsonReportingConfig{
 			Path: jsonReportPath,
+			Tool: toolMetadata,
 		})
 		if err != nil {
 			return err
@@ -449,12 +638,35 @@ func internalStartScan() error {
 	}
 
 	if !utils.IsEmptyString(sarifReportPath) {
+		analytics.TrackReporterSarif()
+
 		rp, err := reporter.NewSarifReporter(reporter.SarifReporterConfig{
-			Tool: reporter.SarifToolMetadata{
-				Name:    "vet",
-				Version: version,
-			},
-			Path: sarifReportPath,
+			Tool:           toolMetadata,
+			IncludeVulns:   sarifIncludeVulns,
+			IncludeMalware: sarifIncludeMalware,
+			Path:           sarifReportPath,
+		})
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if !utils.IsEmptyString(cyclonedxReportPath) {
+		analytics.TrackReporterCycloneDX()
+
+		if utils.IsEmptyString(cyclonedxReportApplicationName) {
+			cyclonedxReportApplicationName, err = reader.ApplicationName()
+			if err != nil {
+				return err
+			}
+		}
+
+		rp, err := reporter.NewCycloneDXReporter(reporter.CycloneDXReporterConfig{
+			Tool:                     toolMetadata,
+			Path:                     cyclonedxReportPath,
+			ApplicationComponentName: cyclonedxReportApplicationName,
 		})
 		if err != nil {
 			return err
@@ -464,6 +676,8 @@ func internalStartScan() error {
 	}
 
 	if reportDefectDojo {
+		analytics.TrackReporterDefectDojo()
+
 		defectDojoApiV2Key := os.Getenv("DEFECT_DOJO_APIV2_KEY")
 		if utils.IsEmptyString(defectDojoApiV2Key) {
 			return fmt.Errorf("please set DEFECT_DOJO_APIV2_KEY environment variable to enable defect-dojo reporting")
@@ -471,10 +685,9 @@ func internalStartScan() error {
 
 		engagementName := fmt.Sprintf("vet-report-%s", time.Now().Format("2006-01-02"))
 		rp, err := reporter.NewDefectDojoReporter(reporter.DefectDojoReporterConfig{
-			Tool: reporter.DefectDojoToolMetadata{
-				Name:    "vet",
-				Version: version,
-			},
+			Tool:               toolMetadata,
+			IncludeVulns:       true,
+			IncludeMalware:     true,
 			ProductID:          defectDojoProductID,
 			EngagementName:     engagementName,
 			DefectDojoHostUrl:  defectDojoHostUrl,
@@ -497,6 +710,8 @@ func internalStartScan() error {
 	}
 
 	if !utils.IsEmptyString(csvReportPath) {
+		analytics.TrackReporterCSV()
+
 		rp, err := reporter.NewCsvReporter(reporter.CsvReportingConfig{
 			Path: csvReportPath,
 		})
@@ -507,23 +722,61 @@ func internalStartScan() error {
 		reporters = append(reporters, rp)
 	}
 
+	if !utils.IsEmptyString(gitlabReportPath) {
+		rp, err := reporter.NewGitLabReporter(reporter.GitLabReporterConfig{
+			Path: gitlabReportPath,
+			Tool: toolMetadata,
+		})
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if !utils.IsEmptyString(sqlite3ReportPath) {
+		rp, err := reporter.NewSqlite3Reporter(reporter.Sqlite3ReporterConfig{
+			Path:      sqlite3ReportPath,
+			Tool:      toolMetadata,
+			Overwrite: sqlite3ReportOverwrite,
+			Append:    sqlite3ReportAppend,
+		})
+		if err != nil {
+			return fmt.Errorf("%w: Use --report-sqlite3-overwrite or --report-sqlite3-append overwrite or append", err)
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if !utils.IsEmptyString(reportHtmlPath) {
+		htmlReporter, err := reporter.NewHtmlReporter(reporter.HtmlReportingConfig{
+			Path: reportHtmlPath,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create HTML reporter: %v", err)
+		}
+
+		reporters = append(reporters, htmlReporter)
+	}
+
 	// UI tracker (progress bar) for cloud report syncing
 	var syncReportTracker any
 
 	if syncReport {
+		analytics.TrackReporterCloudSync()
+
 		clientConn, err := auth.SyncClientConnection("vet-sync")
 		if err != nil {
 			return err
 		}
 
 		rp, err := reporter.NewSyncReporter(reporter.SyncReporterConfig{
-			ToolName:               "vet",
-			ToolVersion:            version,
+			Tool:                   toolMetadata,
 			ProjectName:            syncReportProject,
 			ProjectVersion:         syncReportStream,
 			EnableMultiProjectSync: syncEnableMultiProject,
 			ClientConnection:       clientConn,
-		}, reporter.SyncReporterCallbacks{
+		}, reporter.NewSyncReporterEnvironmentResolver(), reporter.SyncReporterCallbacks{
 			OnSyncStart: func() {
 				ui.PrintMsg("🌐 Syncing data to SafeDep Cloud...")
 			},
@@ -554,14 +807,19 @@ func internalStartScan() error {
 	if enrich {
 		var enricher scanner.PackageMetaEnricher
 		if enrichUsingInsightsV2 {
-			// We will enforce auth for Insights v2 during the experimental period.
-			// Once we have an understanding on the usage and capacity, we will open
-			// up for community usage.
+			analytics.TrackCommandScanInsightsV2()
+
+			var client *grpc.ClientConn
+			var err error
+
+			// We have two endpoints for accessing the insights v2 service. The authenticated endpoints
+			// have higher rate limits and better latency guarantees
 			if auth.CommunityMode() {
-				return fmt.Errorf("access to Insights v2 requires an API key. For more details: https://docs.safedep.io/cloud/quickstart/")
+				client, err = auth.InsightsV2CommunityClientConnection("vet-insights-v2")
+			} else {
+				client, err = auth.InsightsV2ClientConnection("vet-insights-v2")
 			}
 
-			client, err := auth.InsightsV2ClientConnection("vet-insights-v2")
 			if err != nil {
 				return err
 			}
@@ -589,6 +847,8 @@ func internalStartScan() error {
 	}
 
 	if codeAnalysisDBPath != "" {
+		analytics.TrackCommandScanUsingCodeAnalysis()
+
 		entSqliteStorage, err := storage.NewEntSqliteStorage(storage.EntSqliteClientConfig{
 			Path:               codeAnalysisDBPath,
 			ReadOnly:           true,
@@ -618,6 +878,8 @@ func internalStartScan() error {
 	}
 
 	if enrichMalware {
+		analytics.TrackCommandScanMalwareAnalysis()
+
 		if auth.CommunityMode() {
 			return fmt.Errorf("access to Malicious Package Analysis requires an API key. " +
 				"For more details: https://docs.safedep.io/cloud/quickstart/")
@@ -626,11 +888,6 @@ func internalStartScan() error {
 		client, err := auth.MalwareAnalysisClientConnection("vet-malware-analysis")
 		if err != nil {
 			return err
-		}
-
-		githubClient, err := adapters.NewGithubClient(adapters.DefaultGitHubClientConfig())
-		if err != nil {
-			return fmt.Errorf("failed to create Github client: %w", err)
 		}
 
 		config := scanner.DefaultMalysisMalwareEnricherConfig()
@@ -643,6 +900,24 @@ func internalStartScan() error {
 
 		ui.PrintMsg("Using Malysis for malware analysis")
 		enrichers = append(enrichers, malwareEnricher)
+	} else if enrichMalwareQuery {
+		// If active analysis is not enabled, we will use the query enricher to
+		// query known malicious packages data from the Malysis service. This is
+		// the default behavior unless explicitly disabled by user.
+		client, err := auth.MalwareAnalysisCommunityClientConnection("vet-malware-analysis")
+		if err != nil {
+			return err
+		}
+
+		config := scanner.DefaultMalysisMalwareEnricherConfig()
+		config.Timeout = malwareAnalysisTimeout
+
+		queryEnricher, err := scanner.NewMalysisMalwareAnalysisQueryEnricher(client, githubClient, config)
+		if err != nil {
+			return err
+		}
+
+		enrichers = append(enrichers, queryEnricher)
 	}
 
 	pmScanner := scanner.NewPackageManifestScanner(scanner.Config{

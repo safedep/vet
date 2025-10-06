@@ -2,7 +2,6 @@ package connect
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sync"
@@ -21,8 +20,10 @@ type Config struct {
 
 type ConfigUpdaterFn func(*Config)
 
-var globalConfig *Config
-var globalConfigUpdaterMutex sync.Mutex
+var (
+	globalConfig             *Config
+	globalConfigUpdaterMutex sync.Mutex
+)
 
 func init() {
 	err := loadConfiguration()
@@ -54,7 +55,7 @@ func loadConfiguration() error {
 
 	path = filepath.Join(path, homeRelativeConfigPath)
 
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
@@ -87,5 +88,5 @@ func persistConfiguration() error {
 		logger.Debugf("Error while creatinng directory %s %v", filepath.Dir(path), err)
 	}
 
-	return ioutil.WriteFile(path, data, 0600)
+	return os.WriteFile(path, data, 0o600)
 }

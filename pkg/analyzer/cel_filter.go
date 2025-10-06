@@ -48,8 +48,8 @@ func (f *celFilterAnalyzer) Name() string {
 }
 
 func (f *celFilterAnalyzer) Analyze(manifest *models.PackageManifest,
-	handler AnalyzerEventHandler) error {
-
+	handler AnalyzerEventHandler,
+) error {
 	logger.Infof("CEL filtering manifest: %s", manifest.Path)
 	f.stat.IncScannedManifest()
 
@@ -96,11 +96,14 @@ func (f *celFilterAnalyzer) Finish() error {
 	tbl := table.NewWriter()
 	tbl.SetStyle(table.StyleLight)
 	tbl.SetOutputMirror(os.Stdout)
-	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Version",
-		"Source"})
+	tbl.AppendHeader(table.Row{
+		"Ecosystem", "Package", "Version",
+		"Source",
+	})
 
 	for _, pkg := range f.packages {
-		tbl.AppendRow(table.Row{pkg.PackageDetails.Ecosystem,
+		tbl.AppendRow(table.Row{
+			pkg.PackageDetails.Ecosystem,
 			pkg.PackageDetails.Name,
 			pkg.PackageDetails.Version,
 			f.pkgSource(pkg),
@@ -114,7 +117,8 @@ func (f *celFilterAnalyzer) Finish() error {
 }
 
 func (f *celFilterAnalyzer) notifyCaller(manifest *models.PackageManifest,
-	handler AnalyzerEventHandler) error {
+	handler AnalyzerEventHandler,
+) error {
 	if f.failOnMatch && (len(f.packages) > 0) {
 		handler(&AnalyzerEvent{
 			Source:   f.Name(),

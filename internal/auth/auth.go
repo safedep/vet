@@ -1,25 +1,35 @@
 package auth
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/cli/oauth/api"
+	"github.com/golang-jwt/jwt/v5"
 	"gopkg.in/yaml.v2"
 )
 
 const (
-	apiUrlEnvKey             = "VET_INSIGHTS_API_URL"
-	apiV2UrlEnvKey           = "VET_INSIGHTS_API_V2_URL" // gitleaks:allow
-	syncUrlEnvKey            = "VET_SYNC_API_URL"
-	controlPlaneUrlEnvKey    = "VET_CONTROL_PLANE_API_URL"
-	dataPlaneUrlEnvKey       = "VET_DATA_PLANE_API_URL"
-	apiKeyEnvKey             = "VET_API_KEY"
-	apiKeyAlternateEnvKey    = "VET_INSIGHTS_API_KEY"
-	communityModeEnvKey      = "VET_COMMUNITY_MODE"
-	controlTowerTenantEnvKey = "VET_CONTROL_TOWER_TENANT_ID"
+	apiUrlEnvKey                  = "VET_INSIGHTS_API_URL"
+	apiV2UrlEnvKey                = "VET_INSIGHTS_API_V2_URL" // gitleaks:allow
+	communityServicesApiUrlEnvKey = "VET_COMMUNITY_SERVICES_API_URL"
+	syncUrlEnvKey                 = "VET_SYNC_API_URL"
+	controlPlaneUrlEnvKey         = "VET_CONTROL_PLANE_API_URL"
+	dataPlaneUrlEnvKey            = "VET_DATA_PLANE_API_URL"
+	apiKeyEnvKey                  = "VET_API_KEY"
+	apiKeyAlternateEnvKey         = "VET_INSIGHTS_API_KEY"
+	communityModeEnvKey           = "VET_COMMUNITY_MODE"
+	controlTowerTenantEnvKey      = "VET_CONTROL_TOWER_TENANT_ID"
+
+	defaultSafeDepApiKeyEnvKey   = "SAFEDEP_API_KEY"
+	defaultSafeDepTenantIdEnvKey = "SAFEDEP_TENANT_ID"
 
 	defaultApiUrl          = "https://api.safedep.io/insights/v1"
 	defaultCommunityApiUrl = "https://api.safedep.io/insights-community/v1"
@@ -30,6 +40,10 @@ const (
 	defaultInsightsApiV2Url   = "https://api.safedep.io"
 	defaultControlPlaneApiUrl = "https://cloud.safedep.io"
 
+	// Community services is a new unauthenticated endpoint through
+	// which we can serve the community features without authentication.
+	defaultCommunityServicesApiUrl = "https://community-api.safedep.io"
+
 	homeRelativeConfigPath = ".safedep/vet-auth.yml"
 
 	cloudIdentityServiceClientId      = "QtXHUN3hOdbJbCiGU8FiNCnC2KtuROCu" // gitleaks:allow
@@ -37,6 +51,8 @@ const (
 	cloudIdentityServiceBaseUrl       = "https://auth.safedep.io"
 	cloudIdentityServiceDeviceCodeUrl = "https://auth.safedep.io/oauth/device/code"
 	cloudIdentityServiceTokenUrl      = "https://auth.safedep.io/oauth/token"
+
+	accessTokenExpiryCheckInterval = 5 * time.Minute
 )
 
 type Config struct {
@@ -47,6 +63,7 @@ type Config struct {
 	ControlPlaneApiUrl        string    `yaml:"control_api_url"`
 	SyncApiUrl                string    `yaml:"sync_api_url"`
 	InsightsApiV2Url          string    `yaml:"insights_api_v2_url"`
+	CommunityServicesApiUrl   string    `yaml:"community_services_api_url"`
 	TenantDomain              string    `yaml:"tenant_domain"`
 	CloudAccessToken          string    `yaml:"cloud_access_token"`
 	CloudRefreshToken         string    `yaml:"cloud_refresh_token"`
@@ -57,17 +74,23 @@ type Config struct {
 var globalConfig *Config
 
 func init() {
-	loadConfiguration()
+	_ = loadConfiguration()
+
+	if globalConfig == nil {
+		c := DefaultConfig()
+		globalConfig = &c
+	}
 }
 
 func DefaultConfig() Config {
 	return Config{
-		ApiUrl:             defaultApiUrl,
-		Community:          false,
-		DataPlaneApiUrl:    defaultDataPlaneApiUrl,
-		ControlPlaneApiUrl: defaultControlPlaneApiUrl,
-		SyncApiUrl:         defaultSyncApiUrl,
-		InsightsApiV2Url:   defaultInsightsApiV2Url,
+		ApiUrl:                  defaultApiUrl,
+		Community:               false,
+		DataPlaneApiUrl:         defaultDataPlaneApiUrl,
+		ControlPlaneApiUrl:      defaultControlPlaneApiUrl,
+		SyncApiUrl:              defaultSyncApiUrl,
+		InsightsApiV2Url:        defaultInsightsApiV2Url,
+		CommunityServicesApiUrl: defaultCommunityServicesApiUrl,
 	}
 }
 
@@ -168,7 +191,7 @@ func DataPlaneUrl() string {
 	}
 
 	if (globalConfig != nil) && (globalConfig.DataPlaneApiUrl != "") {
-		return globalConfig.ApiUrl
+		return globalConfig.DataPlaneApiUrl
 	}
 
 	return defaultDataPlaneApiUrl
@@ -213,9 +236,25 @@ func InsightsApiV2Url() string {
 	return defaultInsightsApiV2Url
 }
 
+func CommunityServicesApiUrl() string {
+	envOverride := os.Getenv(communityServicesApiUrlEnvKey)
+	if envOverride != "" {
+		return envOverride
+	}
+
+	if (globalConfig != nil) && (globalConfig.CommunityServicesApiUrl != "") {
+		return globalConfig.CommunityServicesApiUrl
+	}
+
+	return defaultCommunityServicesApiUrl
+}
+
 func TenantDomain() string {
-	tenantFromEnv := os.Getenv(controlTowerTenantEnvKey)
-	if tenantFromEnv != "" {
+	if tenantFromEnv, ok := os.LookupEnv(controlTowerTenantEnvKey); ok && tenantFromEnv != "" {
+		return tenantFromEnv
+	}
+
+	if tenantFromEnv, ok := os.LookupEnv(defaultSafeDepTenantIdEnvKey); ok && tenantFromEnv != "" {
 		return tenantFromEnv
 	}
 
@@ -251,6 +290,10 @@ func ApiKey() string {
 		return key
 	}
 
+	if key, ok := os.LookupEnv(defaultSafeDepApiKeyEnvKey); ok {
+		return key
+	}
+
 	if globalConfig != nil {
 		return globalConfig.ApiKey
 	}
@@ -271,8 +314,8 @@ func CommunityMode() bool {
 	return false
 }
 
-// Set the runtime mode to community without
-// persisting it to the configuration file
+// SetRuntimeCommunityMode sets the runtime mode to community without
+// persisting it to the configuration file.
 func SetRuntimeCommunityMode() {
 	os.Setenv(communityModeEnvKey, "true")
 }
@@ -321,6 +364,64 @@ func persistConfiguration() error {
 
 	path = filepath.Join(path, homeRelativeConfigPath)
 
-	os.MkdirAll(filepath.Dir(path), os.ModePerm)
-	return os.WriteFile(path, data, 0600)
+	_ = os.MkdirAll(filepath.Dir(path), os.ModePerm)
+	return os.WriteFile(path, data, 0o600)
+}
+
+func RefreshCloudSession() error {
+	if globalConfig.CloudRefreshToken == "" {
+		return fmt.Errorf("cannot refresh session: require new login session")
+	}
+
+	data := url.Values{}
+	data.Set("refresh_token", globalConfig.CloudRefreshToken)
+	data.Set("client_id", cloudIdentityServiceClientId)
+	data.Set("grant_type", "refresh_token")
+
+	req, err := http.NewRequest("POST", cloudIdentityServiceTokenUrl, strings.NewReader(data.Encode()))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send post request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var response *api.AccessToken
+
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	if err != nil {
+		return fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	globalConfig.CloudAccessToken = response.Token
+	globalConfig.CloudRefreshToken = response.RefreshToken
+
+	return persistConfiguration()
+}
+
+func IsAccessTokenExpired() (bool, error) {
+	if globalConfig.CloudAccessToken == "" {
+		return true, nil
+	}
+
+	claims := jwt.MapClaims{}
+	_, _, err := jwt.NewParser().ParseUnverified(globalConfig.CloudAccessToken, claims)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse jwt token: %w", err)
+	}
+
+	exp, ok := claims["exp"].(float64)
+	if !ok {
+		return false, fmt.Errorf("invalid jwt token")
+	}
+
+	return time.Now().Unix() > int64(exp), nil
+}
+
+func ShouldCheckAccessTokenExpiry() bool {
+	return time.Since(globalConfig.CloudAccessTokenUpdatedAt) > accessTokenExpiryCheckInterval
 }

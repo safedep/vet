@@ -9,6 +9,7 @@ import (
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/safedep/dry/log"
+	"github.com/safedep/dry/reporting/markdown"
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/checks"
 	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
@@ -20,7 +21,6 @@ import (
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
 	"github.com/safedep/vet/pkg/readers"
-	"github.com/safedep/vet/pkg/reporter/markdown"
 )
 
 const (
@@ -29,9 +29,11 @@ const (
 )
 
 type MarkdownSummaryReporterConfig struct {
+	Tool                   ToolMetadata
 	Path                   string
 	ReportTitle            string
 	IncludeMalwareAnalysis bool
+	ActiveMalwareAnalysis  bool
 }
 
 type vetResultInternalModel struct {
@@ -42,12 +44,12 @@ type vetResultInternalModel struct {
 }
 
 type markdownSummaryPackageMalwareInfo struct {
-	ecosystem     string
-	name          string
-	version       string
-	is_malicious  bool
-	is_suspicious bool
-	referenceUrl  string
+	ecosystem    string
+	name         string
+	version      string
+	isMalicious  bool
+	isSuspicious bool
+	referenceURL string
 }
 
 type markdownSummaryMalwareInfo struct {
@@ -79,8 +81,8 @@ func NewMarkdownSummaryReporter(config MarkdownSummaryReporterConfig) (Reporter,
 
 	jsonReporter, err := NewJsonReportGenerator(JsonReportingConfig{
 		Path: tmpFile.Name(),
+		Tool: config.Tool,
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +117,6 @@ func (r *markdownSummaryReporter) AddManifest(manifest *models.PackageManifest) 
 
 		return nil
 	})
-
 	if err != nil {
 		logger.Errorf("[Markdown Reporter]: Failed to enumerate packages in manifest %s: %v",
 			manifest.GetPath(), err)
@@ -158,7 +159,7 @@ func (r *markdownSummaryReporter) Finish() error {
 		return fmt.Errorf("failed to build markdown report: %w", err)
 	}
 
-	err = os.WriteFile(r.config.Path, []byte(builder.Build()), 0600)
+	err = os.WriteFile(r.config.Path, []byte(builder.Build()), 0o600)
 	if err != nil {
 		return fmt.Errorf("failed to write markdown summary to file: %w", err)
 	}
@@ -167,7 +168,8 @@ func (r *markdownSummaryReporter) Finish() error {
 }
 
 func (r *markdownSummaryReporter) buildMarkdownReport(builder *markdown.MarkdownBuilder,
-	report *jsonreportspec.Report) error {
+	report *jsonreportspec.Report,
+) error {
 	internalModel, err := r.buildInternalModel(report)
 	if err != nil {
 		return fmt.Errorf("failed to build internal data model: %w", err)
@@ -179,6 +181,11 @@ func (r *markdownSummaryReporter) buildMarkdownReport(builder *markdown.Markdown
 	err = r.addPolicyCheckSection(builder, internalModel)
 	if err != nil {
 		return fmt.Errorf("failed to add policy section: %w", err)
+	}
+
+	// Add note in the report some suspicious packages are found and human review is required.
+	if r.malwareInfo.suspiciousPackages > 0 {
+		builder.AddParagraph(fmt.Sprintf("\n%s %d packages are identified as suspicious. Human review is recommended.", markdown.EmojiWarning, r.malwareInfo.suspiciousPackages))
 	}
 
 	err = r.addThreatsSection(builder, internalModel)
@@ -240,8 +247,7 @@ func (r *markdownSummaryReporter) buildInternalModel(report *jsonreportspec.Repo
 				internalModel.violations[violation.GetCheckType()] = make([]*violations.Violation, 0)
 			}
 
-			internalModel.violations[violation.GetCheckType()] =
-				append(internalModel.violations[violation.GetCheckType()], violation)
+			internalModel.violations[violation.GetCheckType()] = append(internalModel.violations[violation.GetCheckType()], violation)
 		}
 
 		appendThreats(pkg.GetThreats())
@@ -251,7 +257,8 @@ func (r *markdownSummaryReporter) buildInternalModel(report *jsonreportspec.Repo
 }
 
 func (r *markdownSummaryReporter) addPolicyCheckSection(builder *markdown.MarkdownBuilder,
-	internalModel *vetResultInternalModel) error {
+	internalModel *vetResultInternalModel,
+) error {
 	builder.AddHeader(2, "Policy Checks")
 
 	builder.AddBulletPoint(fmt.Sprintf("%s Vulnerability",
@@ -273,7 +280,8 @@ func (r *markdownSummaryReporter) addPolicyCheckSection(builder *markdown.Markdo
 }
 
 func (r *markdownSummaryReporter) addThreatsSection(builder *markdown.MarkdownBuilder,
-	internalModel *vetResultInternalModel) error {
+	internalModel *vetResultInternalModel,
+) error {
 	if len(internalModel.threats) == 0 {
 		return nil
 	}
@@ -321,7 +329,8 @@ func (r *markdownSummaryReporter) addThreatsSection(builder *markdown.MarkdownBu
 }
 
 func (r *markdownSummaryReporter) addChangedPackageSection(builder *markdown.MarkdownBuilder,
-	internalModel *vetResultInternalModel) error {
+	internalModel *vetResultInternalModel,
+) error {
 	if len(internalModel.packages) == 0 {
 		return nil
 	}
@@ -351,8 +360,8 @@ func (r *markdownSummaryReporter) addChangedPackageSection(builder *markdown.Mar
 }
 
 func (r *markdownSummaryReporter) addViolationSection(builder *markdown.MarkdownBuilder,
-	internalModel *vetResultInternalModel) error {
-
+	internalModel *vetResultInternalModel,
+) error {
 	section := builder.StartCollapsibleSection("Policy Violations")
 	section.Builder().AddHeader(2, "Packages Violating Policy")
 
@@ -425,11 +434,18 @@ func (r *markdownSummaryReporter) addMalwareAnalysisReportSection(builder *markd
 	}
 
 	builder.AddHeader(2, "Malicious Package Analysis")
-	builder.AddParagraph("Malicious package analysis is performed using [SafeDep Cloud API](https://docs.safedep.io/cloud/malware-analysis).")
+
+	if r.config.ActiveMalwareAnalysis {
+		builder.AddParagraph("Malicious package analysis was performed using [SafeDep Cloud API](https://docs.safedep.io/cloud/malware-analysis)")
+	} else {
+		builder.AddParagraph("Active malicious package analysis was disabled. " +
+			"Learn more about [enabling active package analysis](https://docs.safedep.io/cloud/malware-analysis)")
+	}
 
 	reportSection := builder.StartCollapsibleSection("Malicious Package Analysis Report")
 	reportSection.Builder().AddRaw(malwareInfoTable)
 	reportSection.Builder().AddParagraph("")
+
 	builder.AddCollapsibleSection(reportSection)
 
 	builder.AddBulletPoint(fmt.Sprintf("%s %d packages have been actively analyzed for malicious behaviour.",
@@ -447,15 +463,21 @@ func (r *markdownSummaryReporter) addMalwareAnalysisReportSection(builder *markd
 	}
 
 	if r.malwareInfo.missingMalwareAnalysis > 0 {
-		builder.AddQuote("Note: Some of the package analysis jobs may still be running." +
-			"Please check back later. Consider increasing the timeout for better coverage.")
+		if r.config.ActiveMalwareAnalysis {
+			builder.AddQuote("Note: Some of the package analysis jobs may still be running." +
+				"Please check back later. Consider increasing the timeout for better coverage.")
+		} else {
+			builder.AddQuote("Note: Only known malicious packages were reported. " +
+				"Consider enabling active package analysis to get more accurate results.")
+		}
 	}
 
 	return nil
 }
 
 func (r *markdownSummaryReporter) getCheckIconByCheckType(internalModel *vetResultInternalModel,
-	ct checks.CheckType) string {
+	ct checks.CheckType,
+) string {
 	if _, ok := internalModel.violations[ct]; !ok {
 		return markdown.EmojiWhiteCheckMark
 	} else {
@@ -474,8 +496,13 @@ func (r *markdownSummaryReporter) getCheckIconForThreats(internalModel *vetResul
 func (r *markdownSummaryReporter) getAdviceSummary(adv *jsonreportspec.RemediationAdvice) (string, error) {
 	switch adv.Type {
 	case jsonreportspec.RemediationAdviceType_UpgradePackage:
-		return fmt.Sprintf("Upgrade to %s@%s", adv.GetTargetPackageName(),
-			adv.GetTargetPackageVersion()), nil
+		if adv.GetTargetPackageVersion() != "" {
+			return fmt.Sprintf("Upgrade to %s@%s", adv.GetTargetPackageName(),
+				adv.GetTargetPackageVersion()), nil
+		} else {
+			// We don't have a specific version to upgrade to. We should not given
+			// a generic advice to upgrade to latest version.
+		}
 	case jsonreportspec.RemediationAdviceType_AlternatePopularPackage:
 		return "Use an alternative package that is popular", nil
 	case jsonreportspec.RemediationAdviceType_AlternateSecurePackage:
@@ -525,12 +552,12 @@ func (m *markdownSummaryMalwareInfo) handlePackage(pkg *models.Package) error {
 		}
 
 		m.malwareInfo[pkg.Id()] = &markdownSummaryPackageMalwareInfo{
-			ecosystem:     pkg.GetControlTowerSpecEcosystem().String(),
-			name:          pkg.GetName(),
-			version:       pkg.GetVersion(),
-			is_malicious:  ma.IsMalware,
-			is_suspicious: ma.IsSuspicious,
-			referenceUrl:  malysis.ReportURL(ma.AnalysisId),
+			ecosystem:    pkg.GetControlTowerSpecEcosystem().String(),
+			name:         pkg.GetName(),
+			version:      pkg.GetVersion(),
+			isMalicious:  ma.IsMalware,
+			isSuspicious: ma.IsSuspicious,
+			referenceURL: malysis.ReportURL(ma.AnalysisId),
 		}
 	}
 
@@ -544,9 +571,9 @@ func (m *markdownSummaryMalwareInfo) renderMalwareInfoTable() (string, error) {
 
 	for _, info := range m.malwareInfo {
 		emoji := markdown.EmojiWhiteCheckMark
-		if info.is_malicious {
+		if info.isMalicious {
 			emoji = markdown.EmojiCrossMark
-		} else if info.is_suspicious {
+		} else if info.isSuspicious {
 			emoji = markdown.EmojiWarning
 		}
 
@@ -555,7 +582,7 @@ func (m *markdownSummaryMalwareInfo) renderMalwareInfoTable() (string, error) {
 			info.name,
 			info.version,
 			emoji,
-			fmt.Sprintf("[%s](%s)", markdown.EmojiLink, info.referenceUrl),
+			fmt.Sprintf("[%s](%s)", markdown.EmojiLink, info.referenceURL),
 		})
 	}
 

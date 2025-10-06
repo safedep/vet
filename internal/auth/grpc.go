@@ -30,6 +30,14 @@ func MalwareAnalysisClientConnection(name string) (*grpc.ClientConn, error) {
 	return cloudClientConnection(name, DataPlaneUrl(), ApiKey())
 }
 
+func MalwareAnalysisCommunityClientConnection(name string) (*grpc.ClientConn, error) {
+	return cloudClientConnection(name, CommunityServicesApiUrl(), "")
+}
+
+func InsightsV2CommunityClientConnection(name string) (*grpc.ClientConn, error) {
+	return cloudClientConnection(name, CommunityServicesApiUrl(), "")
+}
+
 func cloudClientConnection(name, loc, tok string) (*grpc.ClientConn, error) {
 	parsedUrl, err := url.Parse(loc)
 	if err != nil {

@@ -46,13 +46,379 @@ var (
 			},
 		},
 	}
+	// ReportDependenciesColumns holds the columns for the "report_dependencies" table.
+	ReportDependenciesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "dependency_package_id", Type: field.TypeString},
+		{Name: "dependency_name", Type: field.TypeString},
+		{Name: "dependency_version", Type: field.TypeString},
+		{Name: "dependency_ecosystem", Type: field.TypeString},
+		{Name: "dependency_type", Type: field.TypeString, Nullable: true},
+		{Name: "depth", Type: field.TypeInt, Default: 0},
+		{Name: "created_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "report_package_dependencies", Type: field.TypeInt, Nullable: true},
+	}
+	// ReportDependenciesTable holds the schema information for the "report_dependencies" table.
+	ReportDependenciesTable = &schema.Table{
+		Name:       "report_dependencies",
+		Columns:    ReportDependenciesColumns,
+		PrimaryKey: []*schema.Column{ReportDependenciesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "report_dependencies_report_packages_dependencies",
+				Columns:    []*schema.Column{ReportDependenciesColumns[9]},
+				RefColumns: []*schema.Column{ReportPackagesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// ReportDependencyGraphsColumns holds the columns for the "report_dependency_graphs" table.
+	ReportDependencyGraphsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "from_package_id", Type: field.TypeString},
+		{Name: "from_package_name", Type: field.TypeString},
+		{Name: "from_package_version", Type: field.TypeString},
+		{Name: "from_package_ecosystem", Type: field.TypeString},
+		{Name: "to_package_id", Type: field.TypeString},
+		{Name: "to_package_name", Type: field.TypeString},
+		{Name: "to_package_version", Type: field.TypeString},
+		{Name: "to_package_ecosystem", Type: field.TypeString},
+		{Name: "dependency_type", Type: field.TypeString, Nullable: true},
+		{Name: "version_constraint", Type: field.TypeString, Nullable: true},
+		{Name: "depth", Type: field.TypeInt, Default: 0},
+		{Name: "is_direct", Type: field.TypeBool, Default: false},
+		{Name: "is_root_edge", Type: field.TypeBool, Default: false},
+		{Name: "manifest_id", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+	}
+	// ReportDependencyGraphsTable holds the schema information for the "report_dependency_graphs" table.
+	ReportDependencyGraphsTable = &schema.Table{
+		Name:       "report_dependency_graphs",
+		Columns:    ReportDependencyGraphsColumns,
+		PrimaryKey: []*schema.Column{ReportDependencyGraphsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "reportdependencygraph_from_package_id",
+				Unique:  false,
+				Columns: []*schema.Column{ReportDependencyGraphsColumns[1]},
+			},
+			{
+				Name:    "reportdependencygraph_to_package_id",
+				Unique:  false,
+				Columns: []*schema.Column{ReportDependencyGraphsColumns[5]},
+			},
+			{
+				Name:    "reportdependencygraph_manifest_id",
+				Unique:  false,
+				Columns: []*schema.Column{ReportDependencyGraphsColumns[14]},
+			},
+			{
+				Name:    "reportdependencygraph_from_package_id_is_direct",
+				Unique:  false,
+				Columns: []*schema.Column{ReportDependencyGraphsColumns[1], ReportDependencyGraphsColumns[12]},
+			},
+			{
+				Name:    "reportdependencygraph_is_root_edge",
+				Unique:  false,
+				Columns: []*schema.Column{ReportDependencyGraphsColumns[13]},
+			},
+			{
+				Name:    "reportdependencygraph_from_package_id_to_package_id_manifest_id",
+				Unique:  false,
+				Columns: []*schema.Column{ReportDependencyGraphsColumns[1], ReportDependencyGraphsColumns[5], ReportDependencyGraphsColumns[14]},
+			},
+			{
+				Name:    "reportdependencygraph_dependency_type",
+				Unique:  false,
+				Columns: []*schema.Column{ReportDependencyGraphsColumns[9]},
+			},
+			{
+				Name:    "reportdependencygraph_depth",
+				Unique:  false,
+				Columns: []*schema.Column{ReportDependencyGraphsColumns[11]},
+			},
+		},
+	}
+	// ReportLicensesColumns holds the columns for the "report_licenses" table.
+	ReportLicensesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "license_id", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Nullable: true},
+		{Name: "spdx_id", Type: field.TypeString, Nullable: true},
+		{Name: "url", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "report_package_licenses", Type: field.TypeInt, Nullable: true},
+	}
+	// ReportLicensesTable holds the schema information for the "report_licenses" table.
+	ReportLicensesTable = &schema.Table{
+		Name:       "report_licenses",
+		Columns:    ReportLicensesColumns,
+		PrimaryKey: []*schema.Column{ReportLicensesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "report_licenses_report_packages_licenses",
+				Columns:    []*schema.Column{ReportLicensesColumns[7]},
+				RefColumns: []*schema.Column{ReportPackagesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// ReportMalwaresColumns holds the columns for the "report_malwares" table.
+	ReportMalwaresColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "analysis_id", Type: field.TypeString},
+		{Name: "is_malware", Type: field.TypeBool, Default: false},
+		{Name: "is_suspicious", Type: field.TypeBool, Default: false},
+		{Name: "confidence", Type: field.TypeString, Nullable: true},
+		{Name: "report", Type: field.TypeJSON, Nullable: true},
+		{Name: "verification_record", Type: field.TypeJSON, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "report_package_malware_analysis", Type: field.TypeInt, Unique: true, Nullable: true},
+	}
+	// ReportMalwaresTable holds the schema information for the "report_malwares" table.
+	ReportMalwaresTable = &schema.Table{
+		Name:       "report_malwares",
+		Columns:    ReportMalwaresColumns,
+		PrimaryKey: []*schema.Column{ReportMalwaresColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "report_malwares_report_packages_malware_analysis",
+				Columns:    []*schema.Column{ReportMalwaresColumns[9]},
+				RefColumns: []*schema.Column{ReportPackagesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// ReportPackagesColumns holds the columns for the "report_packages" table.
+	ReportPackagesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "package_id", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "version", Type: field.TypeString},
+		{Name: "ecosystem", Type: field.TypeString},
+		{Name: "package_url", Type: field.TypeString},
+		{Name: "depth", Type: field.TypeInt, Default: 0},
+		{Name: "is_direct", Type: field.TypeBool, Default: false},
+		{Name: "is_malware", Type: field.TypeBool, Default: false},
+		{Name: "is_suspicious", Type: field.TypeBool, Default: false},
+		{Name: "package_details", Type: field.TypeJSON, Nullable: true},
+		{Name: "insights_v2", Type: field.TypeJSON, Nullable: true},
+		{Name: "code_analysis", Type: field.TypeJSON, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+	}
+	// ReportPackagesTable holds the schema information for the "report_packages" table.
+	ReportPackagesTable = &schema.Table{
+		Name:       "report_packages",
+		Columns:    ReportPackagesColumns,
+		PrimaryKey: []*schema.Column{ReportPackagesColumns[0]},
+	}
+	// ReportPackageManifestsColumns holds the columns for the "report_package_manifests" table.
+	ReportPackageManifestsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "manifest_id", Type: field.TypeString, Unique: true},
+		{Name: "source_type", Type: field.TypeString},
+		{Name: "namespace", Type: field.TypeString},
+		{Name: "path", Type: field.TypeString},
+		{Name: "display_path", Type: field.TypeString},
+		{Name: "ecosystem", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+	}
+	// ReportPackageManifestsTable holds the schema information for the "report_package_manifests" table.
+	ReportPackageManifestsTable = &schema.Table{
+		Name:       "report_package_manifests",
+		Columns:    ReportPackageManifestsColumns,
+		PrimaryKey: []*schema.Column{ReportPackageManifestsColumns[0]},
+	}
+	// ReportProjectsColumns holds the columns for the "report_projects" table.
+	ReportProjectsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "url", Type: field.TypeString, Nullable: true},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "stars", Type: field.TypeInt32, Nullable: true},
+		{Name: "forks", Type: field.TypeInt32, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "report_package_projects", Type: field.TypeInt, Nullable: true},
+	}
+	// ReportProjectsTable holds the schema information for the "report_projects" table.
+	ReportProjectsTable = &schema.Table{
+		Name:       "report_projects",
+		Columns:    ReportProjectsColumns,
+		PrimaryKey: []*schema.Column{ReportProjectsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "report_projects_report_packages_projects",
+				Columns:    []*schema.Column{ReportProjectsColumns[8]},
+				RefColumns: []*schema.Column{ReportPackagesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// ReportScorecardsColumns holds the columns for the "report_scorecards" table.
+	ReportScorecardsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "score", Type: field.TypeFloat32},
+		{Name: "scorecard_version", Type: field.TypeString},
+		{Name: "repo_name", Type: field.TypeString},
+		{Name: "repo_commit", Type: field.TypeString},
+		{Name: "date", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "report_project_scorecard", Type: field.TypeInt, Unique: true, Nullable: true},
+	}
+	// ReportScorecardsTable holds the schema information for the "report_scorecards" table.
+	ReportScorecardsTable = &schema.Table{
+		Name:       "report_scorecards",
+		Columns:    ReportScorecardsColumns,
+		PrimaryKey: []*schema.Column{ReportScorecardsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "report_scorecards_report_projects_scorecard",
+				Columns:    []*schema.Column{ReportScorecardsColumns[8]},
+				RefColumns: []*schema.Column{ReportProjectsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// ReportScorecardChecksColumns holds the columns for the "report_scorecard_checks" table.
+	ReportScorecardChecksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "score", Type: field.TypeFloat32},
+		{Name: "reason", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "report_scorecard_checks", Type: field.TypeInt, Nullable: true},
+	}
+	// ReportScorecardChecksTable holds the schema information for the "report_scorecard_checks" table.
+	ReportScorecardChecksTable = &schema.Table{
+		Name:       "report_scorecard_checks",
+		Columns:    ReportScorecardChecksColumns,
+		PrimaryKey: []*schema.Column{ReportScorecardChecksColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "report_scorecard_checks_report_scorecards_checks",
+				Columns:    []*schema.Column{ReportScorecardChecksColumns[6]},
+				RefColumns: []*schema.Column{ReportScorecardsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// ReportSlsaProvenancesColumns holds the columns for the "report_slsa_provenances" table.
+	ReportSlsaProvenancesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "source_repository", Type: field.TypeString},
+		{Name: "commit_sha", Type: field.TypeString},
+		{Name: "url", Type: field.TypeString},
+		{Name: "verified", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "report_package_slsa_provenances", Type: field.TypeInt, Nullable: true},
+	}
+	// ReportSlsaProvenancesTable holds the schema information for the "report_slsa_provenances" table.
+	ReportSlsaProvenancesTable = &schema.Table{
+		Name:       "report_slsa_provenances",
+		Columns:    ReportSlsaProvenancesColumns,
+		PrimaryKey: []*schema.Column{ReportSlsaProvenancesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "report_slsa_provenances_report_packages_slsa_provenances",
+				Columns:    []*schema.Column{ReportSlsaProvenancesColumns[7]},
+				RefColumns: []*schema.Column{ReportPackagesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// ReportVulnerabilitiesColumns holds the columns for the "report_vulnerabilities" table.
+	ReportVulnerabilitiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "vulnerability_id", Type: field.TypeString},
+		{Name: "title", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "aliases", Type: field.TypeJSON, Nullable: true},
+		{Name: "severity", Type: field.TypeString, Nullable: true},
+		{Name: "severity_type", Type: field.TypeString, Nullable: true},
+		{Name: "cvss_score", Type: field.TypeFloat64, Nullable: true},
+		{Name: "severity_details", Type: field.TypeJSON, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "report_package_vulnerabilities", Type: field.TypeInt, Nullable: true},
+	}
+	// ReportVulnerabilitiesTable holds the schema information for the "report_vulnerabilities" table.
+	ReportVulnerabilitiesTable = &schema.Table{
+		Name:       "report_vulnerabilities",
+		Columns:    ReportVulnerabilitiesColumns,
+		PrimaryKey: []*schema.Column{ReportVulnerabilitiesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "report_vulnerabilities_report_packages_vulnerabilities",
+				Columns:    []*schema.Column{ReportVulnerabilitiesColumns[11]},
+				RefColumns: []*schema.Column{ReportPackagesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// ReportPackageManifestPackagesColumns holds the columns for the "report_package_manifest_packages" table.
+	ReportPackageManifestPackagesColumns = []*schema.Column{
+		{Name: "report_package_manifest_id", Type: field.TypeInt},
+		{Name: "report_package_id", Type: field.TypeInt},
+	}
+	// ReportPackageManifestPackagesTable holds the schema information for the "report_package_manifest_packages" table.
+	ReportPackageManifestPackagesTable = &schema.Table{
+		Name:       "report_package_manifest_packages",
+		Columns:    ReportPackageManifestPackagesColumns,
+		PrimaryKey: []*schema.Column{ReportPackageManifestPackagesColumns[0], ReportPackageManifestPackagesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "report_package_manifest_packages_report_package_manifest_id",
+				Columns:    []*schema.Column{ReportPackageManifestPackagesColumns[0]},
+				RefColumns: []*schema.Column{ReportPackageManifestsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "report_package_manifest_packages_report_package_id",
+				Columns:    []*schema.Column{ReportPackageManifestPackagesColumns[1]},
+				RefColumns: []*schema.Column{ReportPackagesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		CodeSourceFilesTable,
 		DepsUsageEvidencesTable,
+		ReportDependenciesTable,
+		ReportDependencyGraphsTable,
+		ReportLicensesTable,
+		ReportMalwaresTable,
+		ReportPackagesTable,
+		ReportPackageManifestsTable,
+		ReportProjectsTable,
+		ReportScorecardsTable,
+		ReportScorecardChecksTable,
+		ReportSlsaProvenancesTable,
+		ReportVulnerabilitiesTable,
+		ReportPackageManifestPackagesTable,
 	}
 )
 
 func init() {
 	DepsUsageEvidencesTable.ForeignKeys[0].RefTable = CodeSourceFilesTable
+	ReportDependenciesTable.ForeignKeys[0].RefTable = ReportPackagesTable
+	ReportLicensesTable.ForeignKeys[0].RefTable = ReportPackagesTable
+	ReportMalwaresTable.ForeignKeys[0].RefTable = ReportPackagesTable
+	ReportProjectsTable.ForeignKeys[0].RefTable = ReportPackagesTable
+	ReportScorecardsTable.ForeignKeys[0].RefTable = ReportProjectsTable
+	ReportScorecardChecksTable.ForeignKeys[0].RefTable = ReportScorecardsTable
+	ReportSlsaProvenancesTable.ForeignKeys[0].RefTable = ReportPackagesTable
+	ReportVulnerabilitiesTable.ForeignKeys[0].RefTable = ReportPackagesTable
+	ReportPackageManifestPackagesTable.ForeignKeys[0].RefTable = ReportPackageManifestsTable
+	ReportPackageManifestPackagesTable.ForeignKeys[1].RefTable = ReportPackagesTable
 }

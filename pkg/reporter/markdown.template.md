@@ -11,7 +11,7 @@
 | Major Version Differences  | {{ .DriftLibsCount }}  |
 | Manifests | {{ .ManifestsCount }} |
 | Total Packages  | {{ .PackagesCount }}  |
-| Exepmted Packages | {{.ExemptedLibs}} |
+| Exempted Packages | {{.ExemptedLibs}} |
 
 
 

@@ -58,8 +58,8 @@ func (f *celFilterSuiteAnalyzer) Name() string {
 }
 
 func (f *celFilterSuiteAnalyzer) Analyze(manifest *models.PackageManifest,
-	handler AnalyzerEventHandler) error {
-
+	handler AnalyzerEventHandler,
+) error {
 	logger.Infof("CEL Filter Suite: Analyzing manifest: %s", manifest.Path)
 
 	f.stat.IncScannedManifest()
@@ -105,8 +105,10 @@ func (f *celFilterSuiteAnalyzer) renderMatchTable() {
 	tbl := table.NewWriter()
 	tbl.SetStyle(table.StyleLight)
 	tbl.SetOutputMirror(os.Stdout)
-	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Latest",
-		"Filter", "Summary"})
+	tbl.AppendHeader(table.Row{
+		"Ecosystem", "Package", "Latest",
+		"Filter", "Summary",
+	})
 
 	for _, mp := range f.matchedPackages {
 		insights := utils.SafelyGetValue(mp.pkg.Insights)
@@ -125,7 +127,8 @@ func (f *celFilterSuiteAnalyzer) renderMatchTable() {
 }
 
 func (f *celFilterSuiteAnalyzer) handleMatchedPkg(pkg *models.Package,
-	filter *filtersuite.Filter, handler AnalyzerEventHandler) {
+	filter *filtersuite.Filter, handler AnalyzerEventHandler,
+) {
 	err := handler(&AnalyzerEvent{
 		Source:   f.Name(),
 		Type:     ET_FilterExpressionMatched,

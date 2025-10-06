@@ -1,7 +1,10 @@
 package cloud
 
 import (
+	"fmt"
+
 	"github.com/safedep/vet/internal/auth"
+	"github.com/safedep/vet/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -31,11 +34,24 @@ func NewCloudCommand() *cobra.Command {
 
 	cmd.AddCommand(newCloudLoginCommand())
 	cmd.AddCommand(newRegisterCommand())
-	cmd.AddCommand(newQueryCommand())
-	cmd.AddCommand(newPingCommand())
-	cmd.AddCommand(newWhoamiCommand())
-	cmd.AddCommand(newKeyCommand())
 	cmd.AddCommand(newCloudQuickstartCommand())
+
+	queryCmd := newQueryCommand()
+	queryCmd.PreRunE = requireAccessTokenCheck
+
+	pingCmd := newPingCommand()
+	pingCmd.PreRunE = requireAccessTokenCheck
+
+	whoamiCmd := newWhoamiCommand()
+	whoamiCmd.PreRunE = requireAccessTokenCheck
+
+	keyCmd := newKeyCommand()
+	keyCmd.PreRunE = requireAccessTokenCheck
+
+	cmd.AddCommand(queryCmd)
+	cmd.AddCommand(pingCmd)
+	cmd.AddCommand(whoamiCmd)
+	cmd.AddCommand(keyCmd)
 
 	cmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		if tenantDomain != "" {
@@ -44,4 +60,27 @@ func NewCloudCommand() *cobra.Command {
 	}
 
 	return cmd
+}
+
+func requireAccessTokenCheck(cmd *cobra.Command, args []string) error {
+	// Check if token was obtained/refreshed 5 mins ago
+	// If > 5 mins, check the access token expiry
+	// else return
+	if auth.ShouldCheckAccessTokenExpiry() {
+		// Check if access token is expired
+		// If expired (ok), refresh the session
+		if ok, err := auth.IsAccessTokenExpired(); err != nil {
+			tenantDomainPlaceholder := auth.TenantDomain()
+			if tenantDomainPlaceholder == "" {
+				tenantDomainPlaceholder = "<your-tenant-domain>"
+			}
+
+			ui.PrintError("Automatic token refresh failed, please re-login using `vet cloud login --tenant %s`", tenantDomainPlaceholder)
+			return fmt.Errorf("failed to check access token expiry: %w", err)
+		} else if ok {
+			ui.PrintMsg("Refreshing Access Token")
+			return auth.RefreshCloudSession()
+		}
+	}
+	return nil
 }

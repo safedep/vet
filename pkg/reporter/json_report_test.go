@@ -27,7 +27,7 @@ func TestJsonRepoGenerator(t *testing.T) {
 		{
 			"Verify sanity of test",
 			[]*models.PackageManifest{
-				&models.PackageManifest{
+				{
 					Source: models.PackageManifestSource{
 						Type:        models.ManifestSourceLocal,
 						Namespace:   "/namespace/1",
@@ -37,7 +37,7 @@ func TestJsonRepoGenerator(t *testing.T) {
 					Path:      "/real/path",
 					Ecosystem: models.EcosystemGo,
 					Packages: []*models.Package{
-						&models.Package{
+						{
 							PackageDetails: lockfile.PackageDetails{
 								Name:    "golib1",
 								Version: "0.1.2",
@@ -62,7 +62,7 @@ func TestJsonRepoGenerator(t *testing.T) {
 		{
 			"Verify GitHub manifest",
 			[]*models.PackageManifest{
-				&models.PackageManifest{
+				{
 					Source: models.PackageManifestSource{
 						Type:        models.ManifestSourceGitRepository,
 						Namespace:   "/namespace/1",
@@ -72,7 +72,7 @@ func TestJsonRepoGenerator(t *testing.T) {
 					Path:      "/real/path",
 					Ecosystem: models.EcosystemGo,
 					Packages: []*models.Package{
-						&models.Package{
+						{
 							PackageDetails: lockfile.PackageDetails{
 								Name:    "golib1",
 								Version: "0.1.2",
@@ -100,6 +100,12 @@ func TestJsonRepoGenerator(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			r, err := NewJsonReportGenerator(JsonReportingConfig{
 				Path: tmpFile.Name(),
+				Tool: ToolMetadata{
+					Name:           "vet",
+					Version:        "latest",
+					InformationURI: "https://github.com/safedep/vet",
+					VendorName:     "SafeDep",
+				},
 			})
 
 			assert.Nil(t, err)

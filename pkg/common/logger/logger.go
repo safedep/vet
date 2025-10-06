@@ -16,6 +16,17 @@ func init() {
 func getLogLevelFromEnv() logrus.Level {
 	envLogLevel := strings.ToLower(os.Getenv("LOG_LEVEL"))
 
+	// This is more aligned with our naming conventions but we cannot
+	// change the previous environment variable name without breaking contract
+	if envLogLevel == "" {
+		envLogLevel = strings.ToLower(os.Getenv("VET_LOG_LEVEL"))
+	}
+
+	// Fallback to safedep defaults
+	if envLogLevel == "" {
+		envLogLevel = strings.ToLower(os.Getenv("APP_LOG_LEVEL"))
+	}
+
 	switch envLogLevel {
 	case "debug":
 		return logrus.DebugLevel
@@ -35,7 +46,7 @@ func getLogLevelFromEnv() logrus.Level {
 }
 
 func LogToFile(path string) {
-	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
 	if err != nil {
 		panic(err)
 	}

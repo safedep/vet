@@ -2,7 +2,7 @@ package utils
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 
@@ -31,7 +31,7 @@ func TestCreateEmptyTempFile(t *testing.T) {
 
 func TestCopyToTempFile(t *testing.T) {
 	srcContent := []byte("Hello, this is the source content")
-	src := ioutil.NopCloser(bytes.NewReader(srcContent))
+	src := io.NopCloser(bytes.NewReader(srcContent))
 	dir := os.TempDir()
 	pattern := "temp-file-test-"
 
@@ -41,7 +41,7 @@ func TestCopyToTempFile(t *testing.T) {
 
 	assert.FileExists(t, file.Name())
 
-	fileContent, err := ioutil.ReadFile(file.Name())
+	fileContent, err := os.ReadFile(file.Name())
 	assert.NoError(t, err)
 	assert.Equal(t, srcContent, fileContent)
 }

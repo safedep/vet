@@ -3,7 +3,6 @@ package readers
 import (
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/safedep/vet/pkg/common/logger"
@@ -15,7 +14,7 @@ type DirectoryReaderConfig struct {
 	// Path to enumerate
 	Path string
 
-	// Exclusions are regex patterns to ignore paths
+	// Exclusions are glob patterns to ignore paths
 	Exclusions []string
 
 	// Explicitly walk for the given manifest type. If this is empty
@@ -25,17 +24,21 @@ type DirectoryReaderConfig struct {
 }
 
 type directoryReader struct {
-	config DirectoryReaderConfig
+	config           DirectoryReaderConfig
+	exclusionMatcher *exclusionMatcher
 }
 
 // NewDirectoryReader creates a [PackageManifestReader] that can scan a directory
 // for package manifests while honoring exclusion rules. This reader will log
 // and ignore parser failure. But it will fail in case the manifest handler
-// returns an error. Exclusion strings are treated as regex patterns and applied
+// returns an error. Exclusion strings are treated as glob patterns and applied
 // on the absolute file path discovered while talking the directory.
 func NewDirectoryReader(config DirectoryReaderConfig) (PackageManifestReader, error) {
+	ex := newPathExclusionMatcher(config.Exclusions)
+
 	return &directoryReader{
-		config: config,
+		config:           config,
+		exclusionMatcher: ex,
 	}, nil
 }
 
@@ -44,14 +47,28 @@ func (p *directoryReader) Name() string {
 	return "Directory Based Package Manifest Reader"
 }
 
+func (p *directoryReader) ApplicationName() (string, error) {
+	return filepath.Base(p.config.Path), nil
+}
+
 // EnumManifests discovers package manifests in a directory using conventional
 // lockfile names. For each manifest discovered, it invokes the callback handler
 // with the manifest model and a default package reader implementation.
 func (p *directoryReader) EnumManifests(handler func(*models.PackageManifest,
-	PackageReader) error) error {
+	PackageReader) error,
+) error {
+	// Fail if the root path does not exist
+	if _, err := os.Stat(p.config.Path); err != nil {
+		return err
+	}
+
 	err := filepath.WalkDir(p.config.Path, func(path string, info os.DirEntry, err error) error {
+		// We don't fail the entire walk if we cannot access a path
+		// This is required when we are scanning a file system and some directories such as .Trash
+		// are not accessible
 		if err != nil {
-			return err
+			logger.Warnf("Failed to access path %s due to %v", path, err)
+			return nil
 		}
 
 		if info.IsDir() && p.ignorableDirectory(info.Name()) {
@@ -64,7 +81,7 @@ func (p *directoryReader) EnumManifests(handler func(*models.PackageManifest,
 			return err
 		}
 
-		if p.excludedPath(path) {
+		if p.exclusionMatcher.Match(path) {
 			logger.Debugf("Ignoring excluded path: %s", path)
 			return filepath.SkipDir
 		}
@@ -97,23 +114,6 @@ func (p *directoryReader) EnumManifests(handler func(*models.PackageManifest,
 	})
 
 	return err
-}
-
-// TODO: Build a precompiled cache of regex patterns
-func (p *directoryReader) excludedPath(path string) bool {
-	for _, pattern := range p.config.Exclusions {
-		m, err := regexp.MatchString(pattern, path)
-		if err != nil {
-			logger.Warnf("Invalid regex pattern: %s: %v", pattern, err)
-			continue
-		}
-
-		if m {
-			return true
-		}
-	}
-
-	return false
 }
 
 func (p *directoryReader) ignorableDirectory(name string) bool {

@@ -5,12 +5,15 @@ import (
 	"os"
 	runtimeDebug "runtime/debug"
 
+	"github.com/safedep/vet/internal/command"
 	"github.com/spf13/cobra"
 )
 
 // When building with CI or Make, version is set using `ldflags`
-var version string
-var commit string
+var (
+	version string
+	commit  string
+)
 
 func init() {
 	// Only use buildInfo if version wasn't set by ldflags, that is its being build by `go install`
@@ -18,9 +21,11 @@ func init() {
 		// Main.Version is based on the version control system tag or commit.
 		// This useful when app is build with `go install`
 		// See: https://antonz.org/go-1-24/#main-modules-version
-		var buildInfo, _ = runtimeDebug.ReadBuildInfo()
+		buildInfo, _ := runtimeDebug.ReadBuildInfo()
 		version = buildInfo.Main.Version
 	}
+
+	command.SetVersion(version)
 }
 
 func newVersionCommand() *cobra.Command {
@@ -31,7 +36,6 @@ func newVersionCommand() *cobra.Command {
 			fmt.Fprintf(os.Stdout, "Version: %s\n", version)
 			fmt.Fprintf(os.Stdout, "CommitSHA: %s\n", commit)
 
-			os.Exit(1)
 			return nil
 		},
 	}

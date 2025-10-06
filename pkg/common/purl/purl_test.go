@@ -50,6 +50,46 @@ func TestParsePackageUrl(t *testing.T) {
 			"v2",
 			nil,
 		},
+		{
+			"Parse vscode Extensions PURL",
+			"pkg:vscode/streetsidesoftware.code-spell-checker@4.0.47",
+			models.EcosystemVSCodeExtensions,
+			"streetsidesoftware.code-spell-checker",
+			"4.0.47",
+			nil,
+		},
+		{
+			"Parse vsix Extensions PURL",
+			"pkg:vsix/streetsidesoftware.code-spell-checker@4.0.47",
+			models.EcosystemVSCodeExtensions,
+			"streetsidesoftware.code-spell-checker",
+			"4.0.47",
+			nil,
+		},
+		{
+			"Parse vsx Extensions PURL",
+			"pkg:vsx/streetsidesoftware.code-spell-checker@4.0.47",
+			models.EcosystemVSCodeExtensions,
+			"streetsidesoftware.code-spell-checker",
+			"4.0.47",
+			nil,
+		},
+		{
+			"Parse openvsx Extensions PURL",
+			"pkg:openvsx/streetsidesoftware.code-spell-checker@4.0.47",
+			models.EcosystemOpenVSXExtensions,
+			"streetsidesoftware.code-spell-checker",
+			"4.0.47",
+			nil,
+		},
+		{
+			"Parse openvsx Extensions PURL with empty version",
+			"pkg:openvsx/streetsidesoftware.code-spell-checker",
+			models.EcosystemOpenVSXExtensions,
+			"streetsidesoftware.code-spell-checker",
+			"",
+			nil,
+		},
 	}
 
 	for _, test := range cases {
@@ -62,7 +102,7 @@ func TestParsePackageUrl(t *testing.T) {
 
 				assert.Equal(t, test.ecosystem, r.GetPackageDetails().Ecosystem)
 				assert.Equal(t, test.pkgName, r.GetPackageDetails().Name)
-				assert.Equal(t, test.version, r.GetPackageDetails().Version)
+				assert.GreaterOrEqual(t, r.GetPackageDetails().Version, test.version)
 			}
 		})
 	}

@@ -3,10 +3,11 @@ package readers
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/url"
 	"strings"
 
-	"github.com/google/go-github/v54/github"
+	"github.com/google/go-github/v70/github"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 )
@@ -20,6 +21,7 @@ type GithubOrgReaderConfig struct {
 	IncludeArchived        bool
 	MaxRepositories        int
 	SkipDependencyGraphAPI bool
+	ExcludeRepos           []string
 }
 
 type githubOrgReader struct {
@@ -31,7 +33,8 @@ type githubOrgReader struct {
 // NewGithubOrgReader creates a [PackageManifestReader] which enumerates
 // a Github org, identifying repositories and scanning them using [githubReader]
 func NewGithubOrgReader(client *github.Client,
-	config *GithubOrgReaderConfig) (PackageManifestReader, error) {
+	config *GithubOrgReaderConfig,
+) (PackageManifestReader, error) {
 	return &githubOrgReader{
 		client:             client,
 		config:             config,
@@ -43,8 +46,18 @@ func (p *githubOrgReader) Name() string {
 	return "Github Organization Package Manifest Reader"
 }
 
+func (p *githubOrgReader) ApplicationName() (string, error) {
+	orgName, err := githubOrgFromURL(p.config.OrganizationURL)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("vet-scanned-%s-projects", orgName), nil
+}
+
 func (p *githubOrgReader) EnumManifests(handler func(*models.PackageManifest,
-	PackageReader) error) error {
+	PackageReader) error,
+) error {
 	ctx := context.Background()
 
 	gitOrg, err := githubOrgFromURL(p.config.OrganizationURL)
@@ -73,7 +86,6 @@ func (p *githubOrgReader) EnumManifests(handler func(*models.PackageManifest,
 			&github.RepositoryListByOrgOptions{
 				ListOptions: *listOptions,
 			})
-
 		if err != nil {
 			logger.Errorf("Failed to list Github org: %v", err)
 			break
@@ -113,10 +125,17 @@ func (p *githubOrgReader) withIncrementedRepoCount(fn func()) bool {
 }
 
 func (p *githubOrgReader) handleRepositoryBatch(repositories []*github.Repository,
-	handler PackageManifestHandlerFn) error {
-
+	handler PackageManifestHandlerFn,
+) error {
 	var repoUrls []string
+
 	for _, repo := range repositories {
+		fullName := repo.GetFullName()
+		if githubIsExcludedRepo(fullName, p.config.ExcludeRepos) {
+			logger.Infof("Skipping excluded repo: %s", fullName)
+			continue
+		}
+
 		breach := p.withIncrementedRepoCount(func() {
 			repoUrls = append(repoUrls, repo.GetCloneURL())
 		})
@@ -134,7 +153,6 @@ func (p *githubOrgReader) handleRepositoryBatch(repositories []*github.Repositor
 		Urls:                         repoUrls,
 		SkipGitHubDependencyGraphAPI: p.config.SkipDependencyGraphAPI,
 	})
-
 	if err != nil {
 		return err
 	}
@@ -160,4 +178,21 @@ func githubOrgFromURL(githubUrl string) (string, error) {
 	}
 
 	return parts[1], nil
+}
+
+// To exclude specific repo using github org scanner
+func githubIsExcludedRepo(repoName string, excludedRepositories []string) bool {
+	if len(excludedRepositories) == 0 {
+		return false
+	}
+
+	logger.Debugf("Checking if repo %s is excluded", repoName)
+
+	for _, ex := range excludedRepositories {
+		if strings.TrimSpace(repoName) == strings.TrimSpace(ex) {
+			return true
+		}
+	}
+
+	return false
 }

@@ -46,6 +46,7 @@ var supportedEcosystems map[string]bool = map[string]bool{
 	models.EcosystemNpm:           true,
 	models.EcosystemPyPI:          true,
 	models.EcosystemRubyGems:      true,
+	models.EcosystemCargo:         true,
 	models.EcosystemPackagist:     true,
 	models.EcosystemCyDxSBOM:      true,
 	models.EcosystemSpdxSBOM:      true,
@@ -88,6 +89,8 @@ var dependencyGraphParsers map[string]dependencyGraphParser = map[string]depende
 	"package.json":                    parseNpmPackageJsonAsGraph,
 	"package-lock.json":               parseNpmPackageLockAsGraph,
 	"uv.lock":                         parseUvPackageLockAsGraph,
+	"pom.xml":                         parseMavenPomXmlFile,
+	"Cargo.lock":                      parseCargoLockFile,
 	customParserCycloneDXSBOM:         parseSbomCycloneDxAsGraph,
 	customParserTypeJavaArchive:       parseJavaArchiveAsGraph,
 	customParserTypeJavaWebAppArchive: parseJavaArchiveAsGraph,
@@ -103,7 +106,7 @@ var lockfileAsMapByExtension map[string]string = map[string]string{
 }
 
 // Maintain a map of standard filenames to a custom parser. This has
-// higher precendence that lockfile package. Graph parsers discover
+// a higher precedence than lockfile package. Graph parsers discover
 // reference to this map to resolve the lockfileAs from base filename
 var lockfileAsMapByPath map[string]string = map[string]string{
 	".terraform.lock.hcl": customParserTerraform,

@@ -1,0 +1,63 @@
+name: Publish NPM Package
+
+on:
+  workflow_run:
+    workflows: ["Release Automation"]
+    types:
+      - completed
+
+jobs:
+  publish-npm:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      package_version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          registry-url: "https://registry.npmjs.org"
+      - name: Extract Tag Version
+        id: version
+        run: |
+          TAG_VERSION="${{ github.event.workflow_run.head_branch }}"
+          if [[ "$TAG_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            VERSION="${TAG_VERSION#v}"  # Remove leading 'v'
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "No valid tag found in head_branch: $TAG_VERSION"
+            exit 1
+          fi
+      - name: Prepare package
+        run: |
+          cd publish/npm
+          npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+      - name: Publish to npm
+        run: |
+          cd publish/npm
+          npm publish --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  test-installation:
+    needs: publish-npm
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: ["14", "18", "20"]
+
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Test installation
+        run: |
+          npm install -g @safedep/vet@${{ needs.publish-npm.outputs.package_version }}
+          vet version
+          vet --help || true
