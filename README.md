@@ -28,7 +28,7 @@
 
 ---
 
-## 🎯 Why vet?
+## 🎯 Why vet
 
 > **70-90% of modern software constitute code from open sources** — How do we know if it's safe?
 
