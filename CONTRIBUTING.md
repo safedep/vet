@@ -34,12 +34,12 @@ When contributing changes to repository, follow these steps:
 
 ### Requirements
 
-* Go 1.24.3+
+- Go 1.24.3+
 
 ### Install Dependencies
 
-* Install [ASDF](https://asdf-vm.com/)
-* Install the development tools
+- Install [ASDF](https://asdf-vm.com/)
+- Install the development tools
 
 ```bash
 asdf plugin add golang
@@ -47,10 +47,16 @@ asdf plugin add gitleaks
 asdf install
 ```
 
-* Install git hooks (using Go toolchain)
+- Install git hooks (using Go toolchain)
 
 ```bash
 go tool github.com/evilmartians/lefthook install
+```
+
+Install `golangci-lint`
+
+```shell
+go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.5.0
 ```
 
 ### Build
@@ -88,6 +94,3 @@ make generate
 ```bash
 make test
 ```
-
-
-
