@@ -4,11 +4,13 @@ import (
 	"cmp"
 	"fmt"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
+	"github.com/safedep/dry/log"
 	"github.com/safedep/dry/semver"
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/insightapi"
@@ -568,6 +570,12 @@ func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
 		return tagText
 	}
 
+	currentWorkingDirectory, err := os.Getwd()
+	if err != nil {
+		log.Warnf("Error getting current working directory: %s", err.Error())
+		currentWorkingDirectory = ""
+	}
+
 	for idx, sp := range sortedPackages {
 		if idx >= maxAdvice {
 			break
@@ -637,6 +645,21 @@ func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
 			}
 		}
 
+		manifestPath, err := r.packageManifestRelativePath(currentWorkingDirectory, sp.pkg.Manifest.Path)
+		if err != nil {
+			log.Warnf("Error getting manifest relative path: %s", err.Error())
+			manifestPath = sp.pkg.Manifest.GetDisplayPath()
+		}
+
+		// Add Manifest Path information just below package name
+		tbl.AppendRow(table.Row{
+			"", // Ecosystem
+			InfoText(manifestPath),
+			"", // Latest Version
+			"", // Score
+			"", // Vulnerability Info
+		})
+
 		tbl.AppendSeparator()
 	}
 }
@@ -665,6 +688,15 @@ func (r *summaryReporter) packageVulnerabilityRiskText(pkg *models.Package) stri
 	}
 
 	return WhiteBgText(" Unknown ")
+}
+
+func (r *summaryReporter) packageManifestRelativePath(currentWorkingDirectory, manifestFullPath string) (string, error) {
+	relPath, err := filepath.Rel(currentWorkingDirectory, manifestFullPath)
+	if err != nil {
+		return "", fmt.Errorf("error getting relative path: %w", err)
+	}
+
+	return relPath, nil
 }
 
 func (r *summaryReporter) packageVulnerabilitySampleText(pkg *models.Package) string {
