@@ -10,6 +10,7 @@ import (
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
+	"github.com/safedep/dry/log"
 	"github.com/safedep/dry/semver"
 	"github.com/safedep/dry/utils"
 	"github.com/safedep/vet/gen/insightapi"
@@ -571,7 +572,7 @@ func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
 
 	currentWorkingDirectory, err := os.Getwd()
 	if err != nil {
-		fmt.Println(text.FgRed.Sprint("Error getting current working directory: ", err.Error()))
+		log.Warnf(WarningText(fmt.Sprintf("Error getting current working directory: %s", err.Error())))
 		currentWorkingDirectory = ""
 	}
 
@@ -647,14 +648,14 @@ func (r *summaryReporter) addRemediationAdviceTableRows(tbl table.Writer,
 		manifestPath, err := r.packageManifestRelativePath(sp.pkg, currentWorkingDirectory)
 		// If failed to get relative path, fallback to absolute path
 		if err != nil {
-			fmt.Println(text.FgRed.Sprint("error getting manifest relative path: ", err.Error()))
+			log.Warnf(WarningText(fmt.Sprintf("Error getting manifest relative path: %s", err.Error())))
 			manifestPath = sp.pkg.Manifest.Path
 		}
 
 		// Add Manifest Path information just below package name
 		tbl.AppendRow(table.Row{
 			"", // Ecosystem
-			text.FgBlue.Sprint(manifestPath),
+			InfoText(manifestPath),
 			"", // Latest Version
 			"", // Score
 			"", // Vulnerability Info
