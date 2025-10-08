@@ -120,11 +120,6 @@ func main() {
 
 	defer analytics.Close()
 
-	// err := doc.GenMarkdownTree(cmd, "./man")
-	// if err != nil {
-	// 	panic(err)
-	// }
-
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
 	}
