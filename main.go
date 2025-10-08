@@ -12,6 +12,7 @@ import (
 	"github.com/safedep/vet/cmd/cloud"
 	"github.com/safedep/vet/cmd/code"
 	"github.com/safedep/vet/cmd/inspect"
+	"github.com/safedep/vet/cmd/manual"
 	"github.com/safedep/vet/cmd/server"
 	"github.com/safedep/vet/internal/analytics"
 	"github.com/safedep/vet/internal/ui"
@@ -101,6 +102,7 @@ func main() {
 	cmd.AddCommand(cloud.NewCloudCommand())
 	cmd.AddCommand(code.NewCodeCommand())
 	cmd.AddCommand(agent.NewAgentCommand())
+	cmd.AddCommand(manual.NewManualCommand())
 
 	if checkIfPackageInspectCommandEnabled() {
 		cmd.AddCommand(inspect.NewPackageInspectCommand())
@@ -117,6 +119,11 @@ func main() {
 	})
 
 	defer analytics.Close()
+
+	// err := doc.GenMarkdownTree(cmd, "./man")
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
