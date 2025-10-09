@@ -10,7 +10,7 @@ var languageCodes []string
 func NewCodeCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "code",
-		Short: "Analyze souce code",
+		Short: "Analyze source code",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return cmd.Help()
 		},
