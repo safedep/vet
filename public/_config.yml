@@ -1,0 +1,43 @@
+title: VET Manual
+description: SafeDep Vulnerability and Dependency Scanner
+remote_theme: just-the-docs/just-the-docs@v0.8.0
+
+# GitHub repo link (appears in top right)
+repo_url: https://github.com/safedep/vet
+
+# Search functionality
+search_enabled: true
+search.heading_level: 2
+
+# Aux links (top navigation bar)
+aux_links:
+  "GitHub": https://github.com/safedep/vet
+
+aux_links_new_tab: true
+
+# Footer
+footer_content: "Copyright &copy; 2024 SafeDep Inc."
+
+# Logo (if you have one)
+logo: "/assets/logo.png"
+
+# Heading anchor links
+heading_anchors: true
+
+# Back to top button
+back_to_top: true
+back_to_top_text: "Back to top"
+
+# Mermaid diagrams (for flowcharts, etc.)
+ermaid:
+  version: 2
+
+# Syntax highlighting
+highlighter: rouge
+
+plugins:
+  - jekyll-seo-tag
+  - jekyll-github-metadata
+  - jekyll-include-cache
+  - jekyll-sitemap
+
