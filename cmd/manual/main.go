@@ -21,7 +21,7 @@ func NewManualCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:    "manual",
 		Short:  "Create docs / manual artifacts",
-		Hidden: true, // hide from vet core commands, since its only build utility
+		Hidden: true, // Hide from vet core commands and docs itshelf, since its only build utility
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// we specify the root (see, not parent) command since its the starting point for docs
 			return createManualsCmd(cmd.Root())
@@ -56,7 +56,7 @@ func createManualsCmd(rootCmd *cobra.Command) error {
 		// Create Troff (man markup) Manual
 		manHeader := &doc.GenManHeader{
 			Title:  "VET",
-			Source: "SafeDep", // TODO: user application version
+			Source: "SafeDep",
 			Manual: "VET Manual",
 		}
 
