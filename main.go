@@ -11,8 +11,8 @@ import (
 	"github.com/safedep/vet/cmd/agent"
 	"github.com/safedep/vet/cmd/cloud"
 	"github.com/safedep/vet/cmd/code"
+	"github.com/safedep/vet/cmd/doc"
 	"github.com/safedep/vet/cmd/inspect"
-	"github.com/safedep/vet/cmd/manual"
 	"github.com/safedep/vet/cmd/server"
 	"github.com/safedep/vet/internal/analytics"
 	"github.com/safedep/vet/internal/ui"
@@ -102,7 +102,7 @@ func main() {
 	cmd.AddCommand(cloud.NewCloudCommand())
 	cmd.AddCommand(code.NewCodeCommand())
 	cmd.AddCommand(agent.NewAgentCommand())
-	cmd.AddCommand(manual.NewManualCommand())
+	cmd.AddCommand(doc.NewDocCommand())
 
 	if checkIfPackageInspectCommandEnabled() {
 		cmd.AddCommand(inspect.NewPackageInspectCommand())
