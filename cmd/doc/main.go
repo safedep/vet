@@ -2,7 +2,6 @@ package doc
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/spf13/cobra/doc"
 )
 
 func NewDocCommand() *cobra.Command {
@@ -13,10 +12,6 @@ func NewDocCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(newGenerateCommand())
-
-	if err := doc.GenMarkdownTree(cmd, "./k9"); err != nil {
-		panic(err)
-	}
 
 	return cmd
 }
