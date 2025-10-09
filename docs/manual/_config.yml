@@ -1,0 +1,35 @@
+title: SafeDep/vet manual
+description: CLI Reference Manual for SafeDep/vet, an Open Source malicious package detection and software supply chain security tool.
+remote_theme: just-the-docs/just-the-docs@v0.8.0
+markdown: kramdown
+
+# GitHub repo link (appears in top right)
+repo_url: https://github.com/safedep/vet
+# Aux links (top navigation bar)
+aux_links:
+  "GitHub": https://github.com/safedep/vet
+aux_links_new_tab: true
+# Heading anchor links (h1, h2, h3...)
+heading_anchors: true
+
+# Search functionality
+search_enabled: true
+search.heading_level: 2
+
+
+# Logo (if you have one)
+logo: "/assets/logo.png"
+favicon_ico: "/assets/favicon.png"
+# Footer
+footer_content: "Copyright &copy; 2025 [SafeDep Inc.](https://safedep.io)"
+
+# Back to top button
+back_to_top: true
+back_to_top_text: "Back to top"
+
+plugins:
+  - jekyll-seo-tag
+  - jekyll-github-metadata
+  - jekyll-include-cache
+  - jekyll-sitemap
+

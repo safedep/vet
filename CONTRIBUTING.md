@@ -89,6 +89,23 @@ make generate
 
 **Important**: Generated files must be committed to the repository. CI will fail if generated code is out of sync.
 
+### Generate Docs
+
+If you modify the CLI tree, i.e add, update or remove any CLI commands or descriptions.
+You have to regenerate the manual in the [docs/manual directory](./docs/manual) with `markdown` format.
+
+```bash
+./vet doc generate --markdown ./docs/manual
+```
+
+Or simply run:
+
+```bash
+make docgen
+```
+
+**Important**: Generated files must be committed to the repository. CI will fail if generated code is out of sync.
+
 ### Run Tests
 
 ```bash
