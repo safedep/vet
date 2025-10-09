@@ -30,3 +30,6 @@ doc generate [flags]
       --man string        The output directory for troff (man markup) doc files
       --markdown string   The output directory for markdown doc files
 ```
+
+> [!IMPORTANT]
+> At least one of the output directory is required
