@@ -1,6 +1,7 @@
 title: VET Manual
 description: SafeDep Vulnerability and Dependency Scanner
 remote_theme: just-the-docs/just-the-docs@v0.8.0
+markdown: kramdown
 
 # GitHub repo link (appears in top right)
 repo_url: https://github.com/safedep/vet
