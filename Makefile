@@ -15,7 +15,7 @@ filterv2-gen:
 generate: ent filterv2-gen
 
 docgen: quick-vet
-	./vet doc generate --markdown ./docs/manual
+	./vet doc generate --markdown ./docs/manual/gen
 
 protoc-install:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest

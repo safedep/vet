@@ -3,8 +3,8 @@
 # Usage:
 #   $ bash ./diff_docgen.sh SOURCE_DIR TARGET_DIR
 # like:
-#   $ bash ./diff_docgen.sh ./docs/manual ./temp-dir/
-# Check diff between ./docs/manual and ./temp-dir/ considering some ignore patterns (see below)
+#   $ bash ./diff_docgen.sh ./docs/manual/gen ./temp-dir/
+# Check diff between ./docs/manual/gen and ./temp-dir/ considering some ignore patterns (see below)
 
 
 
@@ -19,10 +19,6 @@
 # Configuration
 SOURCE_DIR="${1:-}"
 TARGET_DIR="${2:-}"
-
-# Since ./docs/manual can have other `github pages` related files, we strictly use `vet*.md` regex
-# This ensure only files which are on docgen concern are being matched
-SOURCE_FILE_PATTERN="vet*.md"
 
 # Define ignore patterns for diff (lines to ignore during comparison)
 IGNORE_PATTERNS=(
@@ -65,7 +61,7 @@ done
 EXIT_CODE=0
 
 # First, check if the same files exist
-for file in "$SOURCE_DIR"/$SOURCE_FILE_PATTERN; do
+for file in "$SOURCE_DIR"/*; do
   basename_file=$(basename "$file")
   if [ ! -f "$TARGET_DIR/$basename_file" ]; then
     echo "❌ Missing in $TARGET_DIR/: $basename_file"
@@ -74,7 +70,7 @@ for file in "$SOURCE_DIR"/$SOURCE_FILE_PATTERN; do
 done
 
 # Then compare content of matching files (ignoring dynamic lines)
-for file in "$SOURCE_DIR"/$SOURCE_FILE_PATTERN; do
+for file in "$SOURCE_DIR"/*; do
   basename_file=$(basename "$file")
   if [ -f "$TARGET_DIR/$basename_file" ]; then
     if ! diff -q "${DIFF_IGNORE_FLAGS[@]}" "$file" "$TARGET_DIR/$basename_file" > /dev/null; then

@@ -23,7 +23,7 @@ vet code scan [flags]
   -d, --debug                      Show debug logs
   -e, --exceptions string          Load exceptions from file
       --exceptions-extra strings   Load additional exceptions from file
-      --lang stringArray           Source code languages to analyze (default [go,java,python,javascript])
+      --lang stringArray           Source code languages to analyze (default [python,javascript,go,java])
   -l, --log string                 Write command logs to file, use - as for stdout
       --no-banner                  Do not display the vet banner
   -v, --verbose                    Show verbose logs

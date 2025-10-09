@@ -7,7 +7,8 @@ on:
 
 env:
   SOURCE_MANUAL_DIR: ./docs/manual
-  TEMP_MANUAL_DIR: /tmp/new-manual-gen
+  SOURCE_GEN_DIR: ./docs/manual/gen
+  TEMP_GEN_DIR: /tmp/new-manual-gen
 
 jobs:
   deploy:
@@ -26,11 +27,11 @@ jobs:
 
       - name: Generate MD Docs in temporary directory for diff check
         run: |
-          mkdir ${{ env.TEMP_MANUAL_DIR }}
-          ./vet doc generate --markdown ${{ env.TEMP_MANUAL_DIR }}
+          mkdir ${{ env.TEMP_GEN_DIR }}
+          ./vet doc generate --markdown ${{ env.TEMP_GEN_DIR }}
 
-      - name: Run diff check against ${{ env.SOURCE_MANUAL_DIR }}
-        run: bash ./scripts/diff_docgen.sh ${{ env.SOURCE_MANUAL_DIR }} ${{ env.TEMP_MANUAL_DIR }}
+      - name: Run diff check against ${{ env.SOURCE_GEN_DIR }}
+        run: bash ./scripts/diff_docgen.sh ${{ env.SOURCE_GEN_DIR }} ${{ env.TEMP_GEN_DIR }}
 
       - name: Deploy to Github Pages
         uses: peaceiris/actions-gh-pages@v4

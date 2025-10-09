@@ -92,10 +92,10 @@ make generate
 ### Generate Docs
 
 If you modify the CLI tree, i.e add, update or remove any CLI commands or descriptions.
-You have to regenerate the manual in the [docs/manual directory](./docs/manual) with `markdown` format.
+You have to regenerate the manual in the [./docs/manual/gen directory](./docs/manual/gen) with `markdown` format.
 
 ```bash
-./vet doc generate --markdown ./docs/manual
+./vet doc generate --markdown ./docs/manual/gen
 ```
 
 Or simply run:
