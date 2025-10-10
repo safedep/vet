@@ -6,8 +6,6 @@
 #   $ bash ./diff_docgen.sh ./docs/manual/gen ./temp-dir/
 # Check diff between ./docs/manual/gen and ./temp-dir/ considering some ignore patterns (see below)
 
-
-
 # We have few issues in exact diffing / and matching of this type of generated files
 #
 # 1. Enum values can change the order, example if a cli flag support enums values, like [`PYTHON`, `GO`, `JAVA`]
