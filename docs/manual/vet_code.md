@@ -10,7 +10,7 @@ vet code [flags]
 
 ```
   -h, --help               help for code
-      --lang stringArray   Source code languages to analyze (default [python,javascript,go,java])
+      --lang stringArray   Source code languages to analyze (default [java,python,javascript,go])
 ```
 
 ### Options inherited from parent commands

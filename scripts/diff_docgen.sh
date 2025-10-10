@@ -3,8 +3,11 @@
 # Usage:
 #   $ bash ./diff_docgen.sh SOURCE_DIR TARGET_DIR
 # like:
-#   $ bash ./diff_docgen.sh ./docs/manual/gen ./temp-dir/
-# Check diff between ./docs/manual/gen and ./temp-dir/ considering some ignore patterns (see below)
+#   $ bash ./diff_docgen.sh ./docs/manual ./temp-dir/
+# Check diff between ./docs/manual and ./temp-dir/ considering some ignore patterns (see below)
+#
+# IMPORTANT:
+# We have to do  vet*.md in this script because there we non-generated files also like index.md and _config.yaml
 
 # We have few issues in exact diffing / and matching of this type of generated files
 #
@@ -59,7 +62,7 @@ done
 EXIT_CODE=0
 
 # First, check if the same files exist
-for file in "$SOURCE_DIR"/*; do
+for file in "$SOURCE_DIR"/vet*.md; do
   basename_file=$(basename "$file")
   if [ ! -f "$TARGET_DIR/$basename_file" ]; then
     echo "❌ Missing in $TARGET_DIR/: $basename_file"
@@ -68,7 +71,7 @@ for file in "$SOURCE_DIR"/*; do
 done
 
 # Then compare content of matching files (ignoring dynamic lines)
-for file in "$SOURCE_DIR"/*; do
+for file in "$SOURCE_DIR"/vet*.md; do
   basename_file=$(basename "$file")
   if [ -f "$TARGET_DIR/$basename_file" ]; then
     if ! diff -q "${DIFF_IGNORE_FLAGS[@]}" "$file" "$TARGET_DIR/$basename_file" > /dev/null; then

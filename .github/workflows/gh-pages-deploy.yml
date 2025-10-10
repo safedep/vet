@@ -6,8 +6,7 @@ on:
       - main
 
 env:
-  SOURCE_MANUAL_DIR: ./docs/manual
-  SOURCE_GEN_DIR: ./docs/manual/gen
+  SOURCE_GEN_DIR: ./docs/manual
   TEMP_GEN_DIR: /tmp/new-manual-gen
 
 jobs:
@@ -37,4 +36,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ${{ env.SOURCE_MANUAL_DIR }}
+          publish_dir: ${{ env.SOURCE_GEN_DIR }}

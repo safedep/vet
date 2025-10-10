@@ -11,7 +11,7 @@ nav_order: 1
 <br />
 > _This CLI reference provides detailed documentation for all vet commands, flags, and options._
 
-[Go to CLI Manual](vet.md){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
+[Go to CLI Manual](vet){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
 
 ## `vet` Installation
 
