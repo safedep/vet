@@ -1,12 +1,12 @@
 ---
-title: SafeDep/vet manual
+title: SafeDep/vet Manual
 layout: home
 nav_order: 1
 ---
 
 # SafeDep `vet` CLI manual
 
-[`vet`](https://github.com/safedep/vet) is a free and open source tool for identifying risks in open source software supply chain. It helps security engineering teams to establish policy driven guard rails against risky OSS components.
+[`vet`](https://github.com/safedep/vet) is a free and open source software supply chain security tool. It helps developers and security engineers protect against malicious open source packages and establish policy driven guardrails.
 
 <br />
 > _This CLI reference provides detailed documentation for all vet commands, flags, and options._
@@ -19,10 +19,10 @@ nav_order: 1
 brew install safedep/tap/vet
 ```
 
-Go to [More Installation Options](https://github.com/safedep/vet?tab=readme-ov-file#-installation-options)
+See [other installation options](https://github.com/safedep/vet?tab=readme-ov-file#-installation-options)
 
 ## Other Resources
 
-Website: <https://SafeDep.io>
+Website: <https://safedep.io>
 
-Docs: [https://docs.SafeDep.io](https://docs.safedep.io/introduction)
+Docs: [https://docs.safedep.io](https://docs.safedep.io/introduction)

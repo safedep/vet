@@ -1,5 +1,5 @@
-title: SafeDep/vet manual
-description: CLI Reference Manual for SafeDep/vet, an Open Source malicious package detection and software supply chain security tool.
+title: SafeDep/vet Manual
+description: CLI reference manual for SafeDep/vet. Next-gen software composition analysis and malicious package protection tool.
 remote_theme: just-the-docs/just-the-docs@v0.8.0
 markdown: kramdown
 
