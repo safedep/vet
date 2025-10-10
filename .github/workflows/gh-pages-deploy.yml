@@ -23,7 +23,7 @@ env:
 
 jobs:
   check-generated-drift:
-    name: Check Generaed Files Drift
+    name: Check Generated Files Drift
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -44,7 +44,7 @@ jobs:
       - name: Run diff check against ${{ env.SOURCE_GEN_DIR }}
         run: bash ./scripts/diff_docgen.sh ${{ env.SOURCE_GEN_DIR }} ${{ env.TEMP_GEN_DIR }}
 
-  # Build jenkll (md -> html)
+  # Build Jekkll (md -> html)
   build:
     runs-on: ubuntu-latest
     steps:
