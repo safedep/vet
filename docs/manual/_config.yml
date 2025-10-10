@@ -20,7 +20,7 @@ search.heading_level: 2
 logo: "/assets/logo.png"
 favicon_ico: "/assets/favicon.png"
 # Footer
-footer_content: "Copyright &copy; 2025 [SafeDep Inc.](https://safedep.io)"
+footer_content: "Copyright &copy; 2025 SafeDep Inc."
 
 # Back to top button
 back_to_top: true
