@@ -19,14 +19,14 @@ concurrency:
 
 env:
   SOURCE_GEN_DIR: ./docs/manual
-  TEMP_GEN_DIR: /tmp/new-manual-gen
 
 jobs:
-  check-generated-drift:
-    name: Check Generated Files Drift
+  # Build Jekkll (md -> html)
+  build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout
+        uses: actions/checkout@v5
 
       - name: Set up Go
         uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
@@ -36,21 +36,9 @@ jobs:
       - name: Build vet
         run: go build
 
-      - name: Generate MD Docs in temporary directory for diff check
-        run: |
-          mkdir ${{ env.TEMP_GEN_DIR }}
-          ./vet doc generate --markdown ${{ env.TEMP_GEN_DIR }}
-
-      - name: Run diff check against ${{ env.SOURCE_GEN_DIR }}
-        run: bash ./scripts/diff_docgen.sh ${{ env.SOURCE_GEN_DIR }} ${{ env.TEMP_GEN_DIR }}
-
-  # Build Jekkll (md -> html)
-  build:
-    needs: check-generated-drift
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+      - name: Generate MD Docs in ${{ env.SOURCE_GEN_DIR }}
+        run:
+          ./vet doc generate --markdown ${{ env.SOURCE_GEN_DIR }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
