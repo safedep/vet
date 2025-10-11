@@ -1,0 +1,19 @@
+// Change Default Theme (purple's variable) to branding color
+
+// SafeDep Brand Color is #0d9488
+$safedep-brand: #0d9488;
+
+// This will override the the default color schema
+$purple-000: #0c8d75; // A little bit dark in that color for links (much better for links)
+$purple-100: #0a7562; // A little more dark on that link color for hover effect
+$link-color: $purple-000; // Set Link Color
+
+// Override variables for the .btn-primary button
+$btn-primary-color: $safedep-brand;
+$btn-primary-bg: $safedep-brand; // Background color of the button
+$btn-primary-border: $safedep-brand; // Border color of the button
+
+$btn-hover-color: #10bcad;
+$btn-primary-hover-bg: $btn-hover-color; // Background color on hover
+$btn-primary-hover-border: $btn-hover-color; // Border color on hover
+

@@ -3,6 +3,9 @@ description: CLI reference manual for SafeDep/vet. Next-gen software composition
 remote_theme: just-the-docs/just-the-docs@v0.8.0
 markdown: kramdown
 
+# Custom Color Schema, defined in _sass/color_schemes/safedep.scss
+color_scheme: safedep
+
 # GitHub repo link (appears in top right)
 repo_url: https://github.com/safedep/vet
 # Aux links (top navigation bar)
