@@ -13,7 +13,7 @@ import (
 )
 
 // jsonString is a lenient string type that ignores non-string JSON values when unmarshaling.
-// This helps with fields like "license" that can appear as objects/arrays from older versions.
+// This helps with fields like "license" that can appear as objects/arrays from older versions which are deprecated.
 type jsonString string
 
 func (s *jsonString) UnmarshalJSON(b []byte) error {
