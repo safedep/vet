@@ -12,9 +12,22 @@ import (
 	"github.com/safedep/vet/pkg/models"
 )
 
+// jsonString is a lenient string type that ignores non-string JSON values when unmarshaling.
+// This helps with fields like "license" that can appear as objects/arrays from older versions.
+type jsonString string
+
+func (s *jsonString) UnmarshalJSON(b []byte) error {
+	var str string
+	if err := json.Unmarshal(b, &str); err == nil {
+		*s = jsonString(str)
+		return nil
+	}
+	return nil
+}
+
 type npmPackageLockPackage struct {
 	Version         string            `json:"version"`
-	License         string            `json:"license"`
+	License         jsonString        `json:"license"`
 	Resolved        string            `json:"resolved"`
 	Integrity       string            `json:"integrity"`
 	Link            bool              `json:"link"`
