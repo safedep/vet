@@ -1,0 +1,9 @@
+{
+  "name": "test-package-string-license",
+  "version": "1.0.0",
+  "description": "Test package with string license",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.0"
+  }
+}

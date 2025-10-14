@@ -12,22 +12,60 @@ import (
 	"github.com/safedep/vet/pkg/models"
 )
 
-// jsonString is a lenient string type that ignores non-string JSON values when unmarshaling.
-// This helps with fields like "license" that can appear as objects/arrays from older versions which are deprecated.
-type jsonString string
+// https://docs.npmjs.com/cli/v10/configuring-npm/package-json#license
+type npmLicenseObject struct {
+	Type string `json:"type"`
+	URL  string `json:"url"`
+}
 
-func (s *jsonString) UnmarshalJSON(b []byte) error {
+// npmLicenseType is a lenient string type that ignores non-string JSON values when unmarshaling.
+// This helps with fields like "license" that can appear as objects/arrays from older versions which are deprecated.
+type npmLicenseType string
+
+// UnmarshalJSON handles both string and array of license objects
+// The objective is to extract the type of the license from the object
+func (s *npmLicenseType) UnmarshalJSON(b []byte) error {
 	var str string
+
+	// The default case is a string
 	if err := json.Unmarshal(b, &str); err == nil {
-		*s = jsonString(str)
+		*s = npmLicenseType(str)
 		return nil
 	}
+
+	// Handle array of strings
+	var strList []string
+	if err := json.Unmarshal(b, &strList); err == nil {
+		if len(strList) > 0 {
+			*s = npmLicenseType(strList[0])
+		}
+
+		return nil
+	}
+
+	// Handle array of license objects
+	var objList []npmLicenseObject
+	if err := json.Unmarshal(b, &objList); err == nil {
+		if len(objList) > 0 {
+			*s = npmLicenseType(objList[0].Type)
+		}
+
+		return nil
+	}
+
+	// Handle the case of a single license object
+	var obj npmLicenseObject
+	if err := json.Unmarshal(b, &obj); err == nil {
+		*s = npmLicenseType(obj.Type)
+		return nil
+	}
+
 	return nil
 }
 
 type npmPackageLockPackage struct {
 	Version         string            `json:"version"`
-	License         jsonString        `json:"license"`
+	License         npmLicenseType    `json:"license"`
 	Resolved        string            `json:"resolved"`
 	Integrity       string            `json:"integrity"`
 	Link            bool              `json:"link"`
@@ -52,7 +90,7 @@ type npmPackageJson struct {
 	Version         string            `json:"version"`
 	Author          string            `json:"author"`
 	Contributors    []string          `json:"contributors"`
-	License         string            `json:"license"`
+	License         npmLicenseType    `json:"license"`
 	Repository      string            `json:"repository"`
 	Homepage        string            `json:"homepage"`
 	Keywords        []string          `json:"keywords"`
@@ -206,7 +244,8 @@ func parseNpmPackageLockAsGraph(lockfilePath string, config *ParserConfig) (*mod
 // npmGraphAddDependencyRelation enumerates all nodes in the graph to find a node that matches semver constraint
 // If found, it adds an edge from the node to the dependency node
 func npmGraphAddDependencyRelation(graph *models.DependencyGraph[*models.Package],
-	from *models.Package, name, semver string) {
+	from *models.Package, name, semver string,
+) {
 	nodeTarget := npmGraphFindBySemverRange(graph, name, semver)
 	if nodeTarget == nil {
 		logger.Debugf("npmGraphParser: Could not find a node that matches semver constraint %s for dependency %s",
@@ -222,7 +261,8 @@ func npmGraphAddDependencyRelation(graph *models.DependencyGraph[*models.Package
 }
 
 func npmGraphFindBySemverRange(graph *models.DependencyGraph[*models.Package],
-	name, semver string) *models.DependencyGraphNode[*models.Package] {
+	name, semver string,
+) *models.DependencyGraphNode[*models.Package] {
 	return utils.FindDependencyGraphNodeBySemverRange(graph, name, semver)
 }
 

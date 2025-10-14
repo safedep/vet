@@ -1,0 +1,23 @@
+{
+  "name": "test-app",
+  "version": "1.0.0",
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {
+    "": {
+      "name": "test-app",
+      "version": "1.0.0",
+      "license": "MIT",
+      "dependencies": {
+        "string-license": "^1.0.0"
+      }
+    },
+    "node_modules/string-license": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/string-license/-/string-license-1.0.0.tgz",
+      "integrity": "sha512-test",
+      "license": "MIT",
+      "dependencies": {}
+    }
+  }
+}

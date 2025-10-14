@@ -1,8 +1,11 @@
 package parser
 
 import (
+	"encoding/json"
+	"os"
 	"testing"
 
+	"github.com/safedep/vet/pkg/common/utils"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -280,5 +283,176 @@ func TestNpmPackageJsonDependencies(t *testing.T) {
 	for pkg, ver := range expectedPackages {
 		assert.Contains(t, actualPackages, pkg)
 		assert.Equal(t, ver, actualPackages[pkg])
+	}
+}
+
+func TestNpmLicenseTypeUnmarshalJSON(t *testing.T) {
+	cases := []struct {
+		name   string
+		input  string
+		output npmLicenseType
+	}{
+		{
+			name:   "string",
+			input:  `"MIT"`,
+			output: npmLicenseType("MIT"),
+		},
+		{
+			name:   "array",
+			input:  `["MIT"]`,
+			output: npmLicenseType("MIT"),
+		},
+		{
+			name:   "object",
+			input:  `{"type": "MIT"}`,
+			output: npmLicenseType("MIT"),
+		},
+		{
+			name:   "array of objects",
+			input:  `[{"type": "MIT"}, {"type": "ISC"}]`,
+			output: npmLicenseType("MIT"),
+		},
+		{
+			name:   "object with url",
+			input:  `{"type": "MIT", "url": "https://opensource.org/licenses/MIT"}`,
+			output: npmLicenseType("MIT"),
+		},
+		{
+			name:   "array of objects with url",
+			input:  `[{"type": "MIT", "url": "https://opensource.org/licenses/MIT"}, {"type": "ISC", "url": "https://opensource.org/licenses/ISC"}]`,
+			output: npmLicenseType("MIT"),
+		},
+	}
+
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+			var output npmLicenseType
+			err := json.Unmarshal([]byte(test.input), &output)
+			assert.NoError(t, err)
+			assert.Equal(t, test.output, output)
+		})
+	}
+}
+
+func TestNpmPackageLockLicenseHandling(t *testing.T) {
+	cases := []struct {
+		name    string
+		fixture string
+
+		// Map of package name to expected license in fixture
+		expectedPackages map[string]string
+	}{
+		{
+			name:    "string license",
+			fixture: "./fixtures/package-lock-license-string.json",
+			expectedPackages: map[string]string{
+				"string-license": "MIT",
+			},
+		},
+		{
+			name:    "object license",
+			fixture: "./fixtures/package-lock-license-object.json",
+			expectedPackages: map[string]string{
+				"object-license": "ISC",
+			},
+		},
+		{
+			name:    "array of strings license",
+			fixture: "./fixtures/package-lock-license-array-strings.json",
+			expectedPackages: map[string]string{
+				"array-string-license": "Apache-2.0",
+			},
+		},
+		{
+			name:    "array of objects license",
+			fixture: "./fixtures/package-lock-license-array-objects.json",
+			expectedPackages: map[string]string{
+				"array-object-license": "BSD-3-Clause",
+			},
+		},
+	}
+
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+			pm, err := parseNpmPackageLockAsGraph(test.fixture, defaultParserConfigForTest)
+			assert.NoError(t, err)
+			assert.NotNil(t, pm)
+
+			// We have to load the actual lockfile to get the license info
+			// because the parser does not expose the license info
+			actualLicenses := make(map[string]string)
+			for _, pkg := range pm.GetPackages() {
+				// Access the license through the underlying struct
+				// We need to find the package in the original lockfile data to get license info
+				data, readErr := os.ReadFile(test.fixture)
+				assert.NoError(t, readErr)
+
+				var lockfile npmPackageLock
+				unmarshalErr := json.Unmarshal(data, &lockfile)
+				assert.NoError(t, unmarshalErr)
+
+				// Find the package in the lockfile packages
+				for location, pkgInfo := range lockfile.Packages {
+					if location == "" {
+						continue // Skip root package
+					}
+					pkgName := utils.NpmNodeModulesPackagePathToName(location)
+					if pkgName == pkg.GetName() && pkgInfo.Version == pkg.GetVersion() {
+						actualLicenses[pkg.GetName()] = string(pkgInfo.License)
+						break
+					}
+				}
+			}
+
+			for expectedPkg, expectedLicense := range test.expectedPackages {
+				actualLicense, found := actualLicenses[expectedPkg]
+				assert.True(t, found, "Package %s not found in parsed packages", expectedPkg)
+				assert.Equal(t, expectedLicense, actualLicense, "License mismatch for package %s", expectedPkg)
+			}
+		})
+	}
+}
+
+func TestNpmPackageJsonLicenseHandling(t *testing.T) {
+	cases := []struct {
+		name            string
+		fixture         string
+		expectedLicense string
+	}{
+		{
+			name:            "string license in package.json",
+			fixture:         "./fixtures/package-json-license-string.json",
+			expectedLicense: "MIT",
+		},
+		{
+			name:            "object license in package.json",
+			fixture:         "./fixtures/package-json-license-object.json",
+			expectedLicense: "Apache-2.0",
+		},
+		{
+			name:            "array license in package.json",
+			fixture:         "./fixtures/package-json-license-array.json",
+			expectedLicense: "BSD-2-Clause",
+		},
+	}
+
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+			// Read and parse the package.json directly to test license parsing
+			data, err := os.ReadFile(test.fixture)
+			assert.NoError(t, err)
+
+			var packageJson npmPackageJson
+			err = json.Unmarshal(data, &packageJson)
+			assert.NoError(t, err)
+
+			assert.Equal(t, test.expectedLicense, string(packageJson.License))
+
+			// Also test that the parser function works
+			pm, err := parseNpmPackageJsonAsGraph(test.fixture, defaultParserConfigForTest)
+			assert.NoError(t, err)
+			assert.NotNil(t, pm)
+			assert.NotEmpty(t, pm.GetPackages(), "Should have parsed dependencies")
+		})
 	}
 }
