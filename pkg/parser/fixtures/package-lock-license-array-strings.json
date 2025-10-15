@@ -1,0 +1,23 @@
+{
+  "name": "test-app",
+  "version": "1.0.0",
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {
+    "": {
+      "name": "test-app",
+      "version": "1.0.0",
+      "license": "MIT",
+      "dependencies": {
+        "array-string-license": "^1.0.0"
+      }
+    },
+    "node_modules/array-string-license": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/array-string-license/-/array-string-license-1.0.0.tgz",
+      "integrity": "sha512-test",
+      "license": ["Apache-2.0", "MIT"],
+      "dependencies": {}
+    }
+  }
+}

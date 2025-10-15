@@ -1,0 +1,9 @@
+{
+  "name": "test-package-array-license",
+  "version": "1.0.0",
+  "description": "Test package with array license",
+  "license": ["BSD-2-Clause", "GPL-3.0"],
+  "dependencies": {
+    "moment": "^2.29.0"
+  }
+}
