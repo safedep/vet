@@ -24,6 +24,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/safedep/vet.svg)](https://pkg.go.dev/github.com/safedep/vet)
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/safedep/vet)
+
 </div>
 
 ---
@@ -35,12 +36,12 @@
 **vet** is an open source software supply chain security tool built for **developers and security engineers** who need:
 
 ✅ **Next-gen Software Composition Analysis** — Vulnerability and malicious package detection  
-✅ **Policy as Code** — Express opinionated security policies using [CEL](https://cel.dev/)    
-✅ **Real-time malicious package detection** — Powered by [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis) active scanning   
-✅ **Multi-ecosystem support** — npm, PyPI, Maven, Go, Docker, GitHub Actions, and more    
-✅ **CI/CD native** — Built for DevSecOps workflows with support for GitHub Actions, GitLab CI, and more   
-✅ **MCP Server** — Run `vet` as a MCP server to vet open source packages from AI suggested code   
-✅ **Agents** — Run AI agents to query and analyze scan results   
+✅ **Policy as Code** — Express opinionated security policies using [CEL](https://cel.dev/)  
+✅ **Real-time malicious package detection** — Powered by [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis) active scanning  
+✅ **Multi-ecosystem support** — npm, PyPI, Maven, Go, Docker, GitHub Actions, and more  
+✅ **CI/CD native** — Built for DevSecOps workflows with support for GitHub Actions, GitLab CI, and more  
+✅ **MCP Server** — Run `vet` as a MCP server to vet open source packages from AI suggested code  
+✅ **Agents** — Run AI agents to query and analyze scan results
 
 ## ⚡ Quick Start
 
@@ -75,12 +76,15 @@ vet scan -D . --filter 'projects.exists(p, p.type == "GITHUB" && p.stars < 5)' -
 ## 🔒 Key Features
 
 ### 🕵️ **Code Analysis**
+
 Unlike dependency scanners that flood you with noise, `vet` analyzes your **actual code usage** to prioritize real risks. See [dependency usage evidence](https://docs.safedep.io/guides/dependency-usage-identification) for more details.
 
 ### 🛡️ **Malicious Package Detection**
-Integrated with [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis) for real-time protection against malicious packages in the wild. Free for open source projects. Fallback to *Query Mode* when API key is not provided. Read more [about malicious package scanning](#️-malicious-package-detection-1).
+
+Integrated with [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis) for real-time protection against malicious packages in the wild. Free for open source projects. Fallback to _Query Mode_ when API key is not provided. Read more [about malicious package scanning](#️-malicious-package-detection-1).
 
 ### 📋 **Policy as Code**
+
 Define security policies using CEL expressions to enforce context specific security requirements.
 
 ```bash
@@ -99,6 +103,7 @@ vet scan \
 ```
 
 ### 🎯 **Multi-Format Support**
+
 - **Package Managers**: npm, PyPI, Maven, Go, Ruby, Rust, PHP
 - **Container Images**: Docker, OCI
 - **SBOMs**: CycloneDX, SPDX
@@ -114,18 +119,20 @@ vet scan \
 ## 🚀 Production Ready Integrations
 
 ### 📦 **GitHub Actions**
+
 Zero config security guardrails against vulnerabilities and malicious packages in your CI/CD pipeline
 **with your own opinionated policies**:
 
 ```yaml
 - uses: safedep/vet-action@v1
   with:
-    policy: '.github/vet/policy.yml'
+    policy: ".github/vet/policy.yml"
 ```
 
 See more in [vet-action](https://github.com/safedep/vet-action) documentation.
 
 ### 🔧 **GitLab CI**
+
 Enterprise grade scanning with [vet CI Component](https://gitlab.com/explore/catalog/safedep/ci-components/vet):
 
 ```yaml
@@ -134,6 +141,7 @@ include:
 ```
 
 ### 🐳 **Container Integration**
+
 Run `vet` anywhere, even your internal developer platform or custom CI/CD environment using our container image.
 
 ```bash
@@ -185,20 +193,24 @@ docker run --rm -v $(pwd):/app ghcr.io/safedep/vet:latest scan -D /app
 ## 📦 Installation Options
 
 ### 🍺 **Homebrew (Recommended)**
+
 ```bash
 brew tap safedep/tap
 brew install safedep/tap/vet
 ```
 
 ### 📥 **Direct Download**
+
 See [releases](https://github.com/safedep/vet/releases) for the latest version.
 
 ### 🐹 **Go Install**
+
 ```bash
 go install github.com/safedep/vet@latest
 ```
 
 ### 🐳 **Container Image**
+
 ```bash
 # Quick test
 docker run --rm ghcr.io/safedep/vet:latest version
@@ -208,6 +220,7 @@ docker run --rm -v $(pwd):/workspace ghcr.io/safedep/vet:latest scan -D /workspa
 ```
 
 ### ⚙️ **Verify Installation**
+
 ```bash
 vet version
 # Should display version and build information
@@ -222,6 +235,7 @@ vet version
 <td width="50%">
 
 **📁 Directory Scanning**
+
 ```bash
 # Scan current directory
 vet scan
@@ -234,6 +248,7 @@ vet scan -D . --transitive
 ```
 
 **📄 Manifest Files**
+
 ```bash
 # Package managers
 vet scan -M package-lock.json
@@ -247,6 +262,7 @@ vet scan -M Gemfile.lock
 <td width="50%">
 
 **🐙 GitHub Integration**
+
 ```bash
 # Setup GitHub access
 vet connect github
@@ -259,6 +275,7 @@ vet scan --github-org https://github.com/org
 ```
 
 **📦 Artifact Scanning**
+
 ```bash
 # Container images
 vet scan --image nginx:latest
@@ -421,13 +438,13 @@ See [vet Agents](./docs/agent.md) documentation for more details.
 
 ## 🛡️ Malicious Package Detection
 
-**Malicious package detection through active scanning and code analysis** powered by 
+**Malicious package detection through active scanning and code analysis** powered by
 [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis). `vet` requires an API
 key for active scanning of unknown packages. When API key is not provided, `vet` will
-fallback to *Query Mode* which detects known malicious packages from [SafeDep](https://safedep.io)
+fallback to _Query Mode_ which detects known malicious packages from [SafeDep](https://safedep.io)
 and [OSV](https://osv.dev) databases.
 
-- Grab a free API key from [SafeDep Platform App](https://platform.safedep.io) or use `vet cloud quickstart`
+- Grab a free API key by running `vet cloud quickstart`
 - API access is free forever for open source projects
 - No proprietary code is collected for malicious package detection
 - Only open source package scanning from public repositories is supported
@@ -462,6 +479,7 @@ malicious package detection:
 <td width="50%">
 
 **🔍 Scan packages with malicious package detection enabled**
+
 ```bash
 # Real-time scanning
 vet scan -D . --malware
@@ -479,6 +497,7 @@ vet scan -D . --malware \
 <td width="50%">
 
 **🎭 Specialized Scans**
+
 ```bash
 # VS Code extensions
 vet scan --vsx --malware

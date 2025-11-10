@@ -13,9 +13,9 @@ it automatically places the JSON report in correct location, like `osv/malicious
 
 Flags:
 
-| Flag                       | Usage                               | Default Value                                      |
-|----------------------------|-------------------------------------|----------------------------------------------------|
-| `report-osv-finder-name`   | Name of finder                      | `SafeDep`                                          |
-| `report-osv-contacts`      | Contact Info, email, website etc    | `https://safedep.io`                               |
+| Flag                       | Usage                               | Default Value                                 |
+| -------------------------- | ----------------------------------- | --------------------------------------------- |
+| `report-osv-finder-name`   | Name of finder                      | `SafeDep`                                     |
+| `report-osv-contacts`      | Contact Info, email, website etc    | `https://safedep.io`                          |
 | `report-osv-reference-url` | Report Reference URL, like blog etc | `https://app.safedep.io/community/malysis/ID` |
-| `report-osv-with-ranges`   | Use `ranges` affected property      | discrete `versions`                                |
+| `report-osv-with-ranges`   | Use `ranges` affected property      | discrete `versions`                           |
