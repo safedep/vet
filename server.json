@@ -1,0 +1,71 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "name": "io.github.safedep/vet-mcp",
+  "title": "SafeDep Vet MCP",
+  "description": "The Vet MCP server helps in vetting open source packages before they are used in a project through AI generated code. Vet MCP server can protect against Slopsquatting attacks, malicious packages, vulnerabilities and other security risks.",
+  "version": "1.12.8", 
+  "websiteUrl": "https://safedep.io",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/safedep/.github/996c2f04a3143775021566954dbcb86d8a536b79/assets/logo/safedep-logo-darkshade.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": [
+        "48x48",
+        "96x96"
+      ],
+      "theme": "light"
+    },
+    {
+      "src": "https://raw.githubusercontent.com/safedep/.github/996c2f04a3143775021566954dbcb86d8a536b79/assets/logo/safedep-logo.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": [
+        "48x48",
+        "96x96"
+      ],
+      "theme": "dark"
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "oci",
+      "identifier": "ghcr.io/safedep/vet:v1.12.8",
+      "version": "v1.12.8",
+      "runtimeHint": "docker",
+      "runtimeArguments": [
+        {
+          "type": "named",
+          "name": "--rm",
+          "value": ""
+        },
+        {
+          "type": "named",
+          "name": "-i",
+          "value": ""
+        }
+      ],
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "-s"
+        },
+        {
+          "type": "named",
+          "name": "-l",
+          "value": "/tmp/vet-mcp.log"
+        },
+        {
+          "type": "positional",
+          "value": "server"
+        },
+        {
+          "type": "positional",
+          "value": "mcp"
+        }
+      ],
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}
+
