@@ -1,7 +1,7 @@
 name: Publish to MCP Registry
 
 on:
-  workflow_dispatch: # Manually publishing, since we have to update haredcoded version in server.json (mcp registry)
+  workflow_dispatch: # Manually publishing, since we have to update hardcoded version in server.json (mcp registry)
 
 jobs:
   publish:
