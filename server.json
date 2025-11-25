@@ -3,7 +3,7 @@
   "name": "io.github.safedep/vet-mcp",
   "title": "SafeDep Vet MCP",
   "description": "The Vet MCP server helps in vetting open source packages before they are used in a project through AI generated code. Vet MCP server can protect against Slopsquatting attacks, malicious packages, vulnerabilities and other security risks.",
-  "version": "1.12.8", 
+  "version": "VERSION_FROM_ENV",
   "websiteUrl": "https://safedep.io",
   "icons": [
     {
@@ -28,8 +28,8 @@
   "packages": [
     {
       "registryType": "oci",
-      "identifier": "ghcr.io/safedep/vet:v1.12.8",
-      "version": "v1.12.8",
+      "identifier": "ghcr.io/safedep/vet:VERSION_FROM_ENV",
+      "version": "VERSION_FROM_ENV",
       "runtimeHint": "docker",
       "runtimeArguments": [
         {
