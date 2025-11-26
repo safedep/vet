@@ -2,9 +2,13 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
   "name": "io.github.safedep/vet-mcp",
   "title": "SafeDep Vet MCP",
-  "description": "The Vet MCP server helps in vetting open source packages before they are used in a project through AI generated code. Vet MCP server can protect against Slopsquatting attacks, malicious packages, vulnerabilities and other security risks.",
+  "description": "Protect your AI agents and IDEs from malicious open-source packages.",
   "version": "VERSION_FROM_ENV",
   "websiteUrl": "https://safedep.io",
+  "repository": {
+    "url": "https://github.com/safedep/vet",
+    "source": "github"
+  },
   "icons": [
     {
       "src": "https://raw.githubusercontent.com/safedep/.github/9275c7d1b59f718d73e47cecd93df92e7bfbea25/assets/logo/safedep-logo-darkshade.svg",
