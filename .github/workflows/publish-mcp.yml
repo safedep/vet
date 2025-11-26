@@ -22,8 +22,11 @@ jobs:
       - name: Get version from tag
         run: echo "VET_VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
-      - name: fill version in server.json 
+      - name: fill version in server.json
         run: sed -i "s/VERSION_FROM_ENV/$VET_VERSION/g" server.json
+
+      - name: Go to .mcp-publisher directory
+        run: cd .mcp-publisher
 
       # publish mcp server
       - name: Install mcp-publisher
@@ -39,6 +42,8 @@ jobs:
   verify-publish:
     runs-on: ubuntu-latest
     needs: publish
+    permissions:
+      contents: read
 
     steps:
       - name: Ensure jq is installed
