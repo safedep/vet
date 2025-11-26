@@ -33,7 +33,6 @@
     {
       "registryType": "oci",
       "identifier": "ghcr.io/safedep/vet:VERSION_FROM_ENV",
-      "version": "VERSION_FROM_ENV",
       "runtimeHint": "docker",
       "runtimeArguments": [
         {
