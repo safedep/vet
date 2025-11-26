@@ -78,7 +78,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./.mcp-publisher
+        working-directory: .mcp-publisher
 
     steps:
       - name: Checkout code
