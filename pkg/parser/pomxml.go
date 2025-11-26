@@ -3,11 +3,13 @@ package parser
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/google/osv-scalibr/extractor/filesystem"
 	"github.com/google/osv-scalibr/extractor/filesystem/language/java/pomxmlnet"
 	"github.com/google/osv-scalibr/fs"
+
 	"github.com/safedep/vet/pkg/models"
-	"os"
 )
 
 // parseMavenPomXmlFile parses the pom.xml file in a maven project.

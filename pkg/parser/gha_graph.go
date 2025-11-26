@@ -7,6 +7,7 @@ import (
 
 	"github.com/anchore/syft/syft/pkg/cataloger/githubactions"
 	"github.com/anchore/syft/syft/source/filesource"
+
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/common/purl"
 	"github.com/safedep/vet/pkg/models"
@@ -53,5 +54,4 @@ func parseGithubActionWorkflowAsGraph(path string, _ *ParserConfig) (*models.Pac
 	}
 
 	return manifest, nil
-
 }

@@ -77,7 +77,6 @@ func TestGithubOrgReader(t *testing.T) {
 			}
 		})
 	}
-	
 }
 
 func TestGithubIsExcludedRepo(t *testing.T) {

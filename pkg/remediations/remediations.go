@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/safedep/dry/utils"
+
 	"github.com/safedep/vet/gen/checks"
 	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
 	"github.com/safedep/vet/gen/violations"
@@ -25,7 +26,8 @@ func NewStaticRemediationGenerator() RemediationGenerator {
 }
 
 func (r *staticRemediationGenerator) Advice(pkg *models.Package,
-	violation *violations.Violation) (*jsonreportspec.RemediationAdvice, error) {
+	violation *violations.Violation,
+) (*jsonreportspec.RemediationAdvice, error) {
 	switch violation.CheckType {
 	case checks.CheckType_CheckTypeVulnerability:
 		return r.vulnerabilityRemediationGenerator(pkg)

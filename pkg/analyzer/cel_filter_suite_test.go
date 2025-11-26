@@ -3,9 +3,10 @@ package analyzer
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/safedep/vet/gen/checks"
 	"github.com/safedep/vet/gen/filtersuite"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestLoadFilterSuiteFromFile(t *testing.T) {

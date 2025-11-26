@@ -8,10 +8,11 @@ import (
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	vulnerabilityv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/vulnerability/v1"
 	mcpgo "github.com/mark3labs/mcp-go/mcp"
-	"github.com/safedep/vet/mcp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/safedep/vet/mcp"
 )
 
 func TestPackageInsightsTool_ExecuteGetPackageVulnerabilities(t *testing.T) {

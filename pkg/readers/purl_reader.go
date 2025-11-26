@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/google/osv-scanner/pkg/lockfile"
+
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/common/purl"
 	"github.com/safedep/vet/pkg/common/registry"

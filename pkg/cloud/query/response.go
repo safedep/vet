@@ -1,7 +1,9 @@
 package query
 
-type QueryRow map[string]interface{}
-type QueryResponse []QueryRow
+type (
+	QueryRow      map[string]interface{}
+	QueryResponse []QueryRow
+)
 
 func (q *QueryResponse) Count() int {
 	if q == nil {

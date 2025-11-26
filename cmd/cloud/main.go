@@ -3,9 +3,10 @@ package cloud
 import (
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/internal/ui"
-	"github.com/spf13/cobra"
 )
 
 var (

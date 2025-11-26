@@ -7,6 +7,7 @@ import (
 	mcpgo "github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/safedep/dry/api/pb"
+
 	"github.com/safedep/vet/mcp"
 	"github.com/safedep/vet/pkg/common/logger"
 )

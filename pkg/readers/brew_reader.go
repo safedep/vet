@@ -7,6 +7,7 @@ import (
 	"os/exec"
 
 	"github.com/google/osv-scanner/pkg/lockfile"
+
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/models"
 )

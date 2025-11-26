@@ -278,8 +278,6 @@ func TestDefaultDriver_GetPackageVersionVulnerabilities(t *testing.T) {
 	}
 }
 
-
-
 func TestDefaultDriver_GetPackageVersionPopularity(t *testing.T) {
 	tests := []struct {
 		name           string

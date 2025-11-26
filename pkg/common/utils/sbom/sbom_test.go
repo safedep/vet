@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	"github.com/google/osv-scanner/pkg/lockfile"
-	"github.com/safedep/vet/pkg/models"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/safedep/vet/pkg/models"
 )
 
 func TestParsePurlType(t *testing.T) {

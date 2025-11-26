@@ -1,8 +1,9 @@
 package py
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // Set difference: A - B

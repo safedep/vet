@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/safedep/dry/utils"
+
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"

@@ -5,9 +5,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/safedep/vet/pkg/common/utils"
 	"github.com/safedep/vet/pkg/models"
-	"github.com/stretchr/testify/assert"
 )
 
 var defaultParserConfigForTest = &ParserConfig{}

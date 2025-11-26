@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/mark3labs/mcp-go/server"
+
 	"github.com/safedep/vet/mcp"
 )
 

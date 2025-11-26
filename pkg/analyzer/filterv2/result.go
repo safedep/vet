@@ -19,4 +19,3 @@ func (r *FilterEvaluationResult) GetMatchedProgram() (*FilterProgram, error) {
 
 	return r.program, nil
 }
-

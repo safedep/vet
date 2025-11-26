@@ -4,11 +4,12 @@ import (
 	"errors"
 	"sort"
 
+	"github.com/spf13/cobra"
+
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/cloud/query"
 	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/spf13/cobra"
 )
 
 var (
