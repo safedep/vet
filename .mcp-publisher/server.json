@@ -7,7 +7,7 @@
   "websiteUrl": "https://safedep.io",
   "icons": [
     {
-      "src": "https://raw.githubusercontent.com/safedep/.github/996c2f04a3143775021566954dbcb86d8a536b79/assets/logo/safedep-logo-darkshade.svg",
+      "src": "https://raw.githubusercontent.com/safedep/.github/9275c7d1b59f718d73e47cecd93df92e7bfbea25/assets/logo/safedep-logo-darkshade.svg",
       "mimeType": "image/svg+xml",
       "sizes": [
         "48x48",
@@ -16,7 +16,7 @@
       "theme": "light"
     },
     {
-      "src": "https://raw.githubusercontent.com/safedep/.github/996c2f04a3143775021566954dbcb86d8a536b79/assets/logo/safedep-logo.svg",
+      "src": "https://raw.githubusercontent.com/safedep/.github/9275c7d1b59f718d73e47cecd93df92e7bfbea25/assets/logo/safedep-logo.svg",
       "mimeType": "image/svg+xml",
       "sizes": [
         "48x48",
