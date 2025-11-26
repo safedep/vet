@@ -88,6 +88,9 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Get version from tag
+        # Strip 'v' prefix from tag (e.g., v1.0.0 -> 1.0.0) as 
+        # - we want clean version (x.y.z) without v prefix, since its already added by registry UI
+        # - in case of docker image, we hardcod in server.json docker image identifier
         run: echo "VET_VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
       - name: fill version in server.json
@@ -115,6 +118,9 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Get version from tag
+        # Strip 'v' prefix from tag (e.g., v1.0.0 -> 1.0.0) as 
+        # - we want clean version (x.y.z) without v prefix, since its already added by registry UI
+        # - in case of docker image, we hardcod in server.json docker image identifier
         run: echo "VET_VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
       - name: Query MCP Registry and verify server is published
