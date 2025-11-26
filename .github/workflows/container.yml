@@ -81,11 +81,11 @@ jobs:
         working-directory: ./.mcp-publisher
 
     steps:
-      - name: Ensure jq is installed
-        run: sudo apt-get update && sudo apt-get install -y jq
-
       - name: Checkout code
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
+
+      - name: Ensure jq is installed
+        run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Get version from tag
         run: echo "VET_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
