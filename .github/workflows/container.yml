@@ -76,6 +76,10 @@ jobs:
       id-token: write # Required for OIDC authentication
       contents: read
 
+    defaults:
+      run:
+        working-directory: .mcp-publisher
+
     steps:
       - name: Ensure jq is installed
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -85,9 +89,6 @@ jobs:
 
       - name: Get version from tag
         run: echo "VET_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
-      - name: Go to .mcp-publisher directory
-        run: cd .mcp-publisher
 
       - name: fill version in server.json
         run: sed -i "s/VERSION_FROM_ENV/$VET_VERSION/g" server.json
