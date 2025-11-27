@@ -7,6 +7,8 @@ pre-push:
 pre-commit:
   parallel: true
   commands:
+    linter-fmt:
+      run: golangci-lint fmt
     linter:
       run: golangci-lint run -n
     secrets-scanning:
