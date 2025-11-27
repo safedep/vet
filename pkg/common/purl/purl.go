@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/package-url/packageurl-go"
+
 	"github.com/safedep/vet/pkg/models"
 )
 

@@ -5,8 +5,9 @@ import (
 	"os"
 	runtimeDebug "runtime/debug"
 
-	"github.com/safedep/vet/internal/command"
 	"github.com/spf13/cobra"
+
+	"github.com/safedep/vet/internal/command"
 )
 
 // When building with CI or Make, version is set using `ldflags`

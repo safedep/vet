@@ -3,10 +3,11 @@ package filter
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/safedep/vet/gen/filtersuite"
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/models"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestEvaluatorLicenseExpression(t *testing.T) {

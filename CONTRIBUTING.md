@@ -89,6 +89,12 @@ make generate
 
 **Important**: Generated files must be committed to the repository. CI will fail if generated code is out of sync.
 
+### Format Code
+
+```bash
+golangci-lint fmt
+```
+
 ### Run Tests
 
 ```bash

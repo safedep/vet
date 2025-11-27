@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
-	"github.com/safedep/vet/pkg/models"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/safedep/vet/pkg/models"
 )
 
 func findPackageInManifest(manifest *models.PackageManifest, name, version string) *models.Package {

@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	_ "github.com/cayleygraph/cayley/graph/kv/bolt"
-
 	"github.com/cayleygraph/cayley"
 	"github.com/cayleygraph/cayley/graph"
+	_ "github.com/cayleygraph/cayley/graph/kv/bolt"
 	"github.com/cayleygraph/cayley/query"
 	"github.com/cayleygraph/cayley/query/gizmo"
 	"github.com/cayleygraph/quad"

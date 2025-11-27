@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/safedep/dry/utils"
+
 	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
 	schema "github.com/safedep/vet/gen/jsonreport"
 	modelspec "github.com/safedep/vet/gen/models"

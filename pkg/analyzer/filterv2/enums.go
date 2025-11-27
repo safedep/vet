@@ -25,4 +25,3 @@ var RegisteredEnums = []EnumRegistration{
 		ValueMap: packagev1.Ecosystem_value,
 	},
 }
-

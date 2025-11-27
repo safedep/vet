@@ -272,7 +272,7 @@ func TestParseSpdxSBOM(t *testing.T) {
 		]
 	  }`
 
-	err := os.WriteFile(tempFile.Name(), []byte(sbomContent), 0644)
+	err := os.WriteFile(tempFile.Name(), []byte(sbomContent), 0o644)
 	assert.Nil(t, err)
 
 	packages, err := Parse(tempFile.Name())

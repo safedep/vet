@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/mark3labs/mcp-go/server"
+
 	"github.com/safedep/vet/pkg/common/logger"
 )
 

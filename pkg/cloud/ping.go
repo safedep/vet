@@ -32,7 +32,6 @@ func (p *pingService) Ping() (*PingResponse, error) {
 	_, err := pingService.Ping(context.Background(), &controltowerv1.PingRequest{
 		Id: ulid.MustNew(ulid.Now(), nil).String(),
 	})
-
 	if err != nil {
 		return nil, err
 	}

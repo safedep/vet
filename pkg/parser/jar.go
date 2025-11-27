@@ -7,6 +7,7 @@ import (
 
 	"github.com/anchore/syft/syft/pkg/cataloger/java"
 	"github.com/anchore/syft/syft/source/filesource"
+
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/common/purl"
 	"github.com/safedep/vet/pkg/models"

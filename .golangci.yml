@@ -5,3 +5,14 @@ version: "2"
 linters:
   exclusions:
     paths: []
+
+formatters:
+  enable:
+    - gci
+    - gofumpt
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - localmodule

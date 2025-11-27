@@ -63,7 +63,6 @@ func (a *apiKeyService) ListKeys(req *ListApiKeyRequest) (*ListApiKeyResponse, e
 			IncludeCurrentUser: req.OnlyMine,
 		},
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +87,6 @@ func (a *apiKeyService) CreateApiKey(req *CreateApiKeyRequest) (*CreateApiKeyRes
 		Description: &req.Desc,
 		ExpiryDays:  int32(req.ExpiryInDays),
 	})
-
 	if err != nil {
 		return nil, err
 	}

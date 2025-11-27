@@ -12,6 +12,7 @@ import (
 	malysisv1pb "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	"github.com/ossf/osv-schema/bindings/go/osvschema"
+
 	"github.com/safedep/vet/pkg/common/logger"
 )
 

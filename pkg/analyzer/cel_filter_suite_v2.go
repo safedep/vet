@@ -5,6 +5,7 @@ import (
 
 	policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
 	"github.com/safedep/dry/api/pb"
+
 	"github.com/safedep/vet/gen/filtersuite"
 	"github.com/safedep/vet/pkg/analyzer/filterv2"
 	"github.com/safedep/vet/pkg/common/logger"
