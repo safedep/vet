@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/charmbracelet/glamour"
+
 	"github.com/safedep/vet/agent"
 )
 

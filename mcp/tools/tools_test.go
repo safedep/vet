@@ -4,9 +4,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/safedep/vet/mcp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
+	"github.com/safedep/vet/mcp"
 )
 
 // MockMcpServer is a mock implementation of server.McpServer
@@ -108,4 +109,3 @@ func TestRegisterAll_RegistryToolRegistrationFails(t *testing.T) {
 	// Verify expectations were met
 	mockServer.AssertExpectations(t)
 }
-

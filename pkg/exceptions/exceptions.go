@@ -13,9 +13,7 @@ import (
 	"github.com/safedep/vet/pkg/models"
 )
 
-var (
-	jitter = 5 * time.Second
-)
+var jitter = 5 * time.Second
 
 // Represents an exception rule as per spec with additional details
 type exceptionRule struct {

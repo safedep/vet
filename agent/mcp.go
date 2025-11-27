@@ -6,11 +6,10 @@ import (
 	"os"
 	"path/filepath"
 
+	einomcp "github.com/cloudwego/eino-ext/components/tool/mcp"
 	"github.com/cloudwego/eino/components/tool"
 	"github.com/mark3labs/mcp-go/client"
 	"github.com/mark3labs/mcp-go/mcp"
-
-	einomcp "github.com/cloudwego/eino-ext/components/tool/mcp"
 )
 
 type McpClientToolBuilderConfig struct {

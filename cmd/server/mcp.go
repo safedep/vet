@@ -7,12 +7,13 @@ import (
 	"buf.build/gen/go/safedep/api/grpc/go/safedep/services/insights/v2/insightsv2grpc"
 	"buf.build/gen/go/safedep/api/grpc/go/safedep/services/malysis/v1/malysisv1grpc"
 	"github.com/safedep/dry/adapters"
+	"github.com/spf13/cobra"
+
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/mcp"
 	"github.com/safedep/vet/mcp/server"
 	"github.com/safedep/vet/mcp/tools"
 	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/spf13/cobra"
 )
 
 var (

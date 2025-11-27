@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	mcpgo "github.com/mark3labs/mcp-go/mcp"
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
+	mcpgo "github.com/mark3labs/mcp-go/mcp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

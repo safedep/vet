@@ -3,11 +3,13 @@ package parser
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/google/osv-scalibr/extractor/filesystem"
 	"github.com/google/osv-scalibr/extractor/filesystem/language/rust/cargolock"
 	"github.com/google/osv-scalibr/fs"
+
 	"github.com/safedep/vet/pkg/models"
-	"os"
 )
 
 // parserCargoLockFile using osv-scalibr to parse rust projects Cargo.lock file and find dependencies

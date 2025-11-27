@@ -11,9 +11,9 @@ import (
 	malysisv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	"github.com/google/osv-scanner/pkg/lockfile"
+
 	"github.com/safedep/vet/ent"
 	"github.com/safedep/vet/gen/insightapi"
-
 	modelspec "github.com/safedep/vet/gen/models"
 )
 

@@ -10,11 +10,11 @@ import (
 	scorecardv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/scorecard/v1"
 	vulnerabilityv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/vulnerability/v1"
 	"github.com/google/osv-scanner/pkg/lockfile"
-	"github.com/safedep/vet/pkg/models"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/safedep/vet/pkg/models"
 )
 
 func TestSqlite3Reporter_ExpectedTables(t *testing.T) {
@@ -99,7 +99,7 @@ func TestSqlite3ReporterPersistence(t *testing.T) {
 				assert.NoError(t, err)
 				defer rows.Close()
 				assert.True(t, rows.Next())
-				
+
 				var name, version string
 				err = rows.Scan(&name, &version)
 				assert.NoError(t, err)
@@ -154,7 +154,7 @@ func TestSqlite3ReporterPersistence(t *testing.T) {
 				assert.NoError(t, err)
 				defer rows.Close()
 				assert.True(t, rows.Next())
-				
+
 				var vulnID, title, severity string
 				var cvssScore float64
 				err = rows.Scan(&vulnID, &title, &severity, &cvssScore)
@@ -201,7 +201,7 @@ func TestSqlite3ReporterPersistence(t *testing.T) {
 				assert.NoError(t, err)
 				defer rows.Close()
 				assert.True(t, rows.Next())
-				
+
 				var licenseID, name, spdxID, url string
 				err = rows.Scan(&licenseID, &name, &spdxID, &url)
 				assert.NoError(t, err)
@@ -273,7 +273,7 @@ func TestSqlite3ReporterPersistence(t *testing.T) {
 				assert.NoError(t, err)
 				defer rows.Close()
 				assert.True(t, rows.Next())
-				
+
 				var projectName, projectURL string
 				var stars, forks int32
 				err = rows.Scan(&projectName, &projectURL, &stars, &forks)
@@ -289,7 +289,7 @@ func TestSqlite3ReporterPersistence(t *testing.T) {
 				assert.NoError(t, err)
 				defer rows.Close()
 				assert.True(t, rows.Next())
-				
+
 				var score float32
 				var version, repoName, repoCommit, date string
 				err = rows.Scan(&score, &version, &repoName, &repoCommit, &date)
@@ -305,7 +305,7 @@ func TestSqlite3ReporterPersistence(t *testing.T) {
 				rows, err = db.Query(`SELECT name, score, reason FROM report_scorecard_checks ORDER BY name`)
 				assert.NoError(t, err)
 				defer rows.Close()
-				
+
 				// First check
 				assert.True(t, rows.Next())
 				var checkName, reason string
@@ -315,7 +315,7 @@ func TestSqlite3ReporterPersistence(t *testing.T) {
 				assert.Equal(t, "Maintained", checkName)
 				assert.Equal(t, float32(10.0), checkScore)
 				assert.Equal(t, "30 commits in the last 90 days", reason)
-				
+
 				// Second check
 				assert.True(t, rows.Next())
 				err = rows.Scan(&checkName, &checkScore, &reason)
@@ -365,7 +365,7 @@ func TestSqlite3ReporterPersistence(t *testing.T) {
 				rows, err := db.Query(`SELECT source_repository, commit_sha, url, verified FROM report_slsa_provenances ORDER BY verified DESC`)
 				assert.NoError(t, err)
 				defer rows.Close()
-				
+
 				// First provenance (verified)
 				assert.True(t, rows.Next())
 				var sourceRepo, commitSha, url string
@@ -376,7 +376,7 @@ func TestSqlite3ReporterPersistence(t *testing.T) {
 				assert.Equal(t, "abc123def456", commitSha)
 				assert.Equal(t, "https://github.com/test/repo/attestations/1234", url)
 				assert.True(t, verified)
-				
+
 				// Second provenance (unverified)
 				assert.True(t, rows.Next())
 				err = rows.Scan(&sourceRepo, &commitSha, &url, &verified)

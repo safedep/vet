@@ -36,7 +36,6 @@ func (q *queryService) ExecuteSql(sql string, pageSize int) (*QueryResponse, err
 		Query:    sql,
 		PageSize: int32(pageSize),
 	})
-
 	if err != nil {
 		return nil, err
 	}

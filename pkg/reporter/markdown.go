@@ -1,19 +1,18 @@
 package reporter
 
 import (
+	_ "embed"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 	"text/template"
-	"strings"
 
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/exceptions"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
-
-	_ "embed"
 )
 
 //go:embed markdown.template.md

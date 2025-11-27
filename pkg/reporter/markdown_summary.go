@@ -11,6 +11,7 @@ import (
 	"github.com/safedep/dry/log"
 	"github.com/safedep/dry/reporting/markdown"
 	"github.com/safedep/dry/utils"
+
 	"github.com/safedep/vet/gen/checks"
 	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
 	specmodels "github.com/safedep/vet/gen/models"

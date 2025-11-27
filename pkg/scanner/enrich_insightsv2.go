@@ -1,17 +1,19 @@
 package scanner
 
 import (
+	"context"
+	"strings"
+
 	"buf.build/gen/go/safedep/api/grpc/go/safedep/services/insights/v2/insightsv2grpc"
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	vulnerabilityv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/vulnerability/v1"
 	insightsv2 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/insights/v2"
-	"context"
 	"github.com/safedep/dry/semver"
+	"google.golang.org/grpc"
+
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
-	"google.golang.org/grpc"
-	"strings"
 )
 
 type insightsBasedPackageEnricherV2 struct {

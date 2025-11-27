@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/google/osv-scanner/pkg/lockfile"
+
 	"github.com/safedep/vet/pkg/common/logger"
 	regex_utils "github.com/safedep/vet/pkg/common/utils/regex"
 )

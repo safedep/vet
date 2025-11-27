@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/safedep/dry/utils"
+
 	"github.com/safedep/vet/gen/exceptionsapi"
 	"github.com/safedep/vet/gen/filtersuite"
 	"github.com/safedep/vet/pkg/analyzer/filter"
@@ -71,7 +72,8 @@ func (f *exceptionsGenerator) Name() string {
 }
 
 func (f *exceptionsGenerator) Analyze(manifest *models.PackageManifest,
-	handler AnalyzerEventHandler) error {
+	handler AnalyzerEventHandler,
+) error {
 	readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
 		res, err := f.filterEvaluator.EvalPackage(pkg)
 		if err != nil {

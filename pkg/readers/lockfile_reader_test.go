@@ -4,8 +4,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/safedep/vet/pkg/models"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/safedep/vet/pkg/models"
 )
 
 func TestLockfileReaderEnumManifests(t *testing.T) {
@@ -168,7 +169,6 @@ func TestLockfileReaderEnumManifests(t *testing.T) {
 func TestLockfileReaderDeduplication(t *testing.T) {
 	// Test specifically for GitHub issue #343 - duplicate packages with extras
 	t.Run("Deduplicates packages with extras syntax", func(t *testing.T) {
-
 		r, err := NewLockfileReader(LockfileReaderConfig{
 			Lockfiles:  []string{"./fixtures/duplicate-packages/requirements.txt"},
 			LockfileAs: "",

@@ -9,6 +9,7 @@ import (
 	mcpgo "github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 	_ "github.com/mattn/go-sqlite3"
+
 	"github.com/safedep/vet/mcp"
 )
 

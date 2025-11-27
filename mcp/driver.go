@@ -187,7 +187,6 @@ func (d *defaultDriver) GetPackageVersionVulnerabilities(ctx context.Context, pv
 	return res.GetVulnerabilities(), nil
 }
 
-
 func (d *defaultDriver) GetPackageVersionPopularity(ctx context.Context, pv *packagev1.PackageVersion) ([]*packagev1.ProjectInsight, error) {
 	insight, err := d.getPackageVersionInsight(ctx, pv)
 	if err != nil {

@@ -7,9 +7,10 @@ import (
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/google/osv-scanner/pkg/lockfile"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/safedep/vet/pkg/common/purl"
 	"github.com/safedep/vet/pkg/models"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestParseCyclonedxSBOM(t *testing.T) {
@@ -44,7 +45,7 @@ func TestParseCyclonedxSBOM(t *testing.T) {
 		]
 	}`
 
-	err := os.WriteFile(tempFile.Name(), []byte(sbomContent), 0644)
+	err := os.WriteFile(tempFile.Name(), []byte(sbomContent), 0o644)
 	assert.Nil(t, err)
 
 	manifest, err := parseSbomCycloneDxAsGraph(tempFile.Name(), &ParserConfig{})
@@ -94,7 +95,7 @@ func TestParseCyclonedxSBOMWithEmptyComponents(t *testing.T) {
 	defer tempFile.Close()
 
 	sbomContent := `{}`
-	err := os.WriteFile(tempFile.Name(), []byte(sbomContent), 0644)
+	err := os.WriteFile(tempFile.Name(), []byte(sbomContent), 0o644)
 	assert.Nil(t, err)
 
 	_, err = parseSbomCycloneDxAsGraph(tempFile.Name(), &ParserConfig{})

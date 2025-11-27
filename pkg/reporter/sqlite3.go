@@ -9,6 +9,7 @@ import (
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	scorecardv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/scorecard/v1"
 	vulnerabilityv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/vulnerability/v1"
+
 	"github.com/safedep/vet/ent"
 	"github.com/safedep/vet/ent/reportpackage"
 	"github.com/safedep/vet/pkg/analyzer"

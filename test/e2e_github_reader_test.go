@@ -6,10 +6,11 @@ import (
 	"testing"
 
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/safedep/vet/internal/connect"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/readers"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestGithubReaderWithVetPublicRepository(t *testing.T) {
@@ -31,7 +32,8 @@ func TestGithubReaderWithVetPublicRepository(t *testing.T) {
 			Urls: []string{
 				"https://github.com/safedep/vet",
 				"https://github.com/safedep/demo-client-java",
-			}, LockfileAs: "", SkipGitHubDependencyGraphAPI: true})
+			}, LockfileAs: "", SkipGitHubDependencyGraphAPI: true,
+		})
 
 		assert.Nil(t, err, "github reader builder error")
 
