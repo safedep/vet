@@ -5,8 +5,9 @@ import (
 
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
-	"github.com/safedep/vet/pkg/models"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/safedep/vet/pkg/models"
 )
 
 func TestEvaluator_AddRule(t *testing.T) {

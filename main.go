@@ -8,6 +8,8 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/safedep/dry/utils"
+	"github.com/spf13/cobra"
+
 	"github.com/safedep/vet/cmd/agent"
 	"github.com/safedep/vet/cmd/cloud"
 	"github.com/safedep/vet/cmd/code"
@@ -18,7 +20,6 @@ import (
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/exceptions"
-	"github.com/spf13/cobra"
 )
 
 var (

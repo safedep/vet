@@ -5,8 +5,9 @@ import (
 	"testing"
 
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
-	"github.com/safedep/vet/test"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/safedep/vet/test"
 )
 
 func TestMcpDriver(t *testing.T) {

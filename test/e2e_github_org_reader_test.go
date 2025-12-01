@@ -4,10 +4,11 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/safedep/vet/internal/connect"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/readers"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestGithubOrgReaderWithSafeDepOrg(t *testing.T) {

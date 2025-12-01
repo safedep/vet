@@ -34,7 +34,7 @@ When contributing changes to repository, follow these steps:
 
 ### Requirements
 
-- Go 1.24.3+
+- Go 1.25.0+
 
 ### Install Dependencies
 
@@ -88,6 +88,12 @@ make generate
 ```
 
 **Important**: Generated files must be committed to the repository. CI will fail if generated code is out of sync.
+
+### Format Code
+
+```bash
+golangci-lint fmt
+```
 
 ### Run Tests
 

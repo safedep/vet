@@ -15,6 +15,7 @@ import (
 	sl "github.com/google/osv-scalibr/extractor/standalone/list"
 	scalibrfs "github.com/google/osv-scalibr/fs"
 	"github.com/google/osv-scalibr/plugin"
+
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 )

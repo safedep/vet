@@ -7,6 +7,7 @@ import (
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/safedep/dry/semver"
 	"github.com/safedep/dry/utils"
+
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
@@ -81,10 +82,12 @@ func (r *consoleReporter) report(tbl table.Writer, pkg *models.Package) {
 
 	if (sm["CRITICAL"] > 0) || (sm["HIGH"] > 0) {
 		headerAppender()
-		tbl.AppendRow(table.Row{"",
+		tbl.AppendRow(table.Row{
+			"",
 			BoldText(HighBgText("Vulnerability")),
 			fmt.Sprintf("Critical:%d High:%d",
-				sm["CRITICAL"], sm["HIGH"])})
+				sm["CRITICAL"], sm["HIGH"]),
+		})
 	}
 
 	// Popularity
@@ -97,9 +100,11 @@ func (r *consoleReporter) report(tbl table.Writer, pkg *models.Package) {
 
 		if (sc > 0) && (sc < 10) && (ic > 0) && (ic < 5) {
 			headerAppender()
-			tbl.AppendRow(table.Row{"",
+			tbl.AppendRow(table.Row{
+				"",
 				BoldText("Low Popularity"),
-				fmt.Sprintf("Stars:%d Issues:%d", sc, ic)})
+				fmt.Sprintf("Stars:%d Issues:%d", sc, ic),
+			})
 		}
 	}
 
@@ -110,7 +115,8 @@ func (r *consoleReporter) report(tbl table.Writer, pkg *models.Package) {
 	driftType, _ := semver.Diff(version, latestVersion)
 	if driftType.IsMajor() {
 		headerAppender()
-		tbl.AppendRow(table.Row{"",
+		tbl.AppendRow(table.Row{
+			"",
 			BoldText("Version Drift"),
 			fmt.Sprintf("%s > %s", version, latestVersion),
 		})

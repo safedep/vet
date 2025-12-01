@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/go-github/v70/github"
 	giturl "github.com/kubescape/go-git-url"
+
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/parser"

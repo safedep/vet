@@ -2,10 +2,11 @@ package py
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestParseRequirementsFileLine(t *testing.T) {

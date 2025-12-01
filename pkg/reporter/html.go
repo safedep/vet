@@ -8,11 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/safedep/vet/pkg/reporter/templates"
-
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
+	"github.com/safedep/vet/pkg/reporter/templates"
 )
 
 type HtmlReportingConfig struct {
@@ -59,7 +58,7 @@ func (r *htmlReporter) Finish() error {
 	// Create the directory if it doesn't exist
 	dir := filepath.Dir(r.config.Path)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		if err := os.MkdirAll(dir, 0755); err != nil {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
 			return fmt.Errorf("failed to create directory for HTML report: %w", err)
 		}
 	}

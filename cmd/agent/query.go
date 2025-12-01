@@ -2,15 +2,15 @@ package agent
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
+
+	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/agent"
 	"github.com/safedep/vet/internal/analytics"
 	"github.com/safedep/vet/internal/command"
 	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/spf13/cobra"
-
-	_ "embed"
 )
 
 //go:embed query_prompt.md

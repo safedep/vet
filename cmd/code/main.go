@@ -1,8 +1,9 @@
 package code
 
 import (
-	"github.com/safedep/vet/internal/command"
 	"github.com/spf13/cobra"
+
+	"github.com/safedep/vet/internal/command"
 )
 
 var languageCodes []string

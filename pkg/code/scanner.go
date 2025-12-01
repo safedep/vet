@@ -10,6 +10,7 @@ import (
 	"github.com/safedep/code/parser"
 	"github.com/safedep/code/plugin"
 	"github.com/safedep/code/plugin/depsusage"
+
 	"github.com/safedep/vet/ent"
 	"github.com/safedep/vet/pkg/storage"
 )

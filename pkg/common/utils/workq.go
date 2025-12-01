@@ -31,7 +31,8 @@ type WorkQueue[T WorkQueueItem] struct {
 }
 
 func NewWorkQueue[T WorkQueueItem](bufferSize int, concurrency int,
-	handler WorkQueueFn[T]) *WorkQueue[T] {
+	handler WorkQueueFn[T],
+) *WorkQueue[T] {
 	return &WorkQueue[T]{
 		handler:     handler,
 		concurrency: concurrency,

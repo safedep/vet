@@ -7,10 +7,11 @@ import (
 
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/safedep/dry/utils"
+	"github.com/stretchr/testify/assert"
+
 	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/models"
-	"github.com/stretchr/testify/assert"
 )
 
 // We are going to expose this as a contract eventually for other tools

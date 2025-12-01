@@ -6,9 +6,10 @@ import (
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/package-url/packageurl-go"
+	"github.com/spdx/tools-golang/spdx"
+
 	"github.com/safedep/vet/pkg/common/logger"
 	sbom_utils "github.com/safedep/vet/pkg/common/utils/sbom"
-	"github.com/spdx/tools-golang/spdx"
 )
 
 // Source from which PackageDetails will be created such as spdx, cyclone_dx, packagefile
@@ -32,7 +33,7 @@ PackageDetails
 */
 type PackageDetails struct {
 	Name  string `json:"name"`
-	Group string `json:"group"` //Namespace or Group if available
+	Group string `json:"group"` // Namespace or Group if available
 	// Version extracted. It can be min, max or exact. It can be empty or exact version string
 	Version string `json:"version"`
 	// Specs specific version string with operators

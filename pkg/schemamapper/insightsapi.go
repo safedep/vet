@@ -2,6 +2,7 @@ package schemamapper
 
 import (
 	"github.com/safedep/dry/utils"
+
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/gen/models"
 )

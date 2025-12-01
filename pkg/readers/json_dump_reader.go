@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/safedep/dry/utils"
+
 	"github.com/safedep/vet/pkg/models"
 )
 

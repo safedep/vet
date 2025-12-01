@@ -4,12 +4,13 @@ import (
 	"context"
 	"regexp"
 
+	"github.com/spf13/cobra"
+
 	"github.com/safedep/vet/internal/command"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/code"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/storage"
-	"github.com/spf13/cobra"
 )
 
 var (

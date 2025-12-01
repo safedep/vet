@@ -7,6 +7,7 @@ import (
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/safedep/dry/utils"
+
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/common/purl"
 	"github.com/safedep/vet/pkg/models"
@@ -124,7 +125,6 @@ func cdxExtractPackageFromComponent(component cdx.Component) (string, *models.Pa
 	if pUrl == "" {
 		return "", nil, fmt.Errorf("Invalid CycloneDX SBOM: PackageURL or BOMRef is nil")
 	}
-
 	parsedPurl, err := purl.ParsePackageUrl(pUrl)
 	if err != nil {
 		return "", nil, err

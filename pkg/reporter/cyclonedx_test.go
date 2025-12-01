@@ -9,9 +9,10 @@ import (
 	malysisv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/safedep/dry/utils"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/models"
-	"github.com/stretchr/testify/assert"
 )
 
 var cdxTestToolMetaData = ToolMetadata{

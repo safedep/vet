@@ -4,12 +4,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/safedep/vet/gen/checks"
 	"github.com/safedep/vet/gen/filtersuite"
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/models"
-	"github.com/stretchr/testify/assert"
 )
 
 var licenses = []insightapi.License{

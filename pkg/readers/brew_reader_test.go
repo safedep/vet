@@ -6,10 +6,11 @@ import (
 	"testing"
 
 	"github.com/google/osv-scanner/pkg/lockfile"
-	"github.com/safedep/vet/gen/insightapi"
-	"github.com/safedep/vet/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/safedep/vet/gen/insightapi"
+	"github.com/safedep/vet/pkg/models"
 )
 
 // Test data

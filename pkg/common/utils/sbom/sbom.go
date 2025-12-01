@@ -8,6 +8,7 @@ import (
 	gocvss30 "github.com/pandatix/go-cvss/30"
 	gocvss31 "github.com/pandatix/go-cvss/31"
 	gocvss40 "github.com/pandatix/go-cvss/40"
+
 	"github.com/safedep/vet/pkg/common/purl"
 )
 

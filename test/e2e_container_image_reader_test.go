@@ -1,10 +1,12 @@
 package test
 
 import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/readers"
-	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestContainerImageReaderEnumManifest(t *testing.T) {

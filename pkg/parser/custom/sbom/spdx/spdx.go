@@ -7,11 +7,12 @@ import (
 	"strings"
 
 	"github.com/google/osv-scanner/pkg/lockfile"
+	spdx_json "github.com/spdx/tools-golang/json"
+	spdx_go "github.com/spdx/tools-golang/spdx"
+
 	"github.com/safedep/vet/pkg/common/logger"
 	sbom_utils "github.com/safedep/vet/pkg/common/utils/sbom"
 	"github.com/safedep/vet/pkg/parser/custom/packagefile"
-	spdx_json "github.com/spdx/tools-golang/json"
-	spdx_go "github.com/spdx/tools-golang/spdx"
 )
 
 /*

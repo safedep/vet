@@ -7,21 +7,20 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/github/go-spdx/v2/spdxexp"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/google/cel-go/cel"
+	"github.com/google/cel-go/common/types"
+	"github.com/google/cel-go/common/types/ref"
+	"github.com/google/cel-go/common/types/traits"
 	"github.com/safedep/dry/utils"
+
 	"github.com/safedep/vet/gen/filterinput"
 	"github.com/safedep/vet/gen/filtersuite"
 	"github.com/safedep/vet/gen/insightapi"
 	specmodels "github.com/safedep/vet/gen/models"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
-
-	"github.com/google/cel-go/common/types"
-	"github.com/google/cel-go/common/types/ref"
-	"github.com/google/cel-go/common/types/traits"
-
-	"github.com/github/go-spdx/v2/spdxexp"
 )
 
 const (

@@ -9,11 +9,12 @@ import (
 	controltowerv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/controltower/v1"
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/jedib0t/go-pretty/v6/text"
+	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
+
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/cloud"
-	"github.com/spf13/cobra"
-	"google.golang.org/grpc"
 )
 
 func newCloudQuickstartCommand() *cobra.Command {

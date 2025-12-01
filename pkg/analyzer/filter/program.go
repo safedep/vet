@@ -2,6 +2,7 @@ package filter
 
 import (
 	"github.com/google/cel-go/cel"
+
 	"github.com/safedep/vet/gen/filtersuite"
 )
 

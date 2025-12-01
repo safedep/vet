@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	dryutils "github.com/safedep/dry/utils"
+
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/common/utils"
