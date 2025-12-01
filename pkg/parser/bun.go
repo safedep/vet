@@ -8,6 +8,7 @@ import (
 	"github.com/google/osv-scalibr/extractor/filesystem"
 	"github.com/google/osv-scalibr/extractor/filesystem/language/javascript/bunlock"
 	"github.com/google/osv-scalibr/fs"
+
 	"github.com/safedep/vet/pkg/models"
 )
 
