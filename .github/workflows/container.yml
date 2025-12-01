@@ -146,23 +146,11 @@ jobs:
           echo "Registry response (truncated):"
           jq 'if .servers then {servers: (.servers | length)} else . end' response.json
 
-          # Verify server name exists in servers array
-          if [ -z "$EXPECTED_VERSION" ]; then
-            # Only check for presence by name
-            jq -e --arg name "$SERVER_NAME" '.servers[]? | select(.name == $name)' response.json >/dev/null || {
-              echo "ERROR: Server $SERVER_NAME not found in registry response"
-              echo "Full response:"
-              cat response.json
-              exit 1
-            }
-            echo "Found server $SERVER_NAME"
-          else
-            # Check for both name and version match
-            jq -e --arg name "$SERVER_NAME" --arg ver "$EXPECTED_VERSION" '.servers[]? | select(.name == $name and (.version == $ver or (.packages[]? | select(.version==$ver) // empty)))' response.json >/dev/null || {
-              echo "ERROR: Server $SERVER_NAME with version $EXPECTED_VERSION not found"
-              echo "Full response:"
-              cat response.json
-              exit 1
-            }
-            echo "Found server $SERVER_NAME with version $EXPECTED_VERSION"
-          fi
+          # Check for name and version match
+          jq -e --arg name "$SERVER_NAME" --arg ver "$EXPECTED_VERSION" 'any(.servers[]; .server.name == $name and .server.version == $ver)' response.json >/dev/null || {
+            echo "ERROR: Server $SERVER_NAME with version $EXPECTED_VERSION not found"
+            echo "Full response:"
+            cat response.json
+            exit 1
+          }
+          echo "Found server $SERVER_NAME with version $EXPECTED_VERSION"
