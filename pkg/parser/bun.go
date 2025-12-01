@@ -18,7 +18,9 @@ func parseBunLockFile(lockfilePath string, _ *ParserConfig) (*models.PackageMani
 	if err != nil {
 		return nil, fmt.Errorf("failed to open lockfile: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	inputConfig := &filesystem.ScanInput{
 		FS:     fs.DirFS("."),
