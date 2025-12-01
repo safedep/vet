@@ -35,7 +35,6 @@ func (s *onboardingService) Register(req *RegisterRequest) (*RegisterResponse, e
 		OrganizationName:   req.OrgName,
 		OrganizationDomain: req.OrgDomain,
 	})
-
 	if err != nil {
 		return nil, err
 	}

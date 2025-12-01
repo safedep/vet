@@ -8,7 +8,8 @@ import (
 // AllowedPackages iterates over packages in the manifest and call handler
 // only for packages not in the exempted by exception rules
 func AllowedPackages(manifest *models.PackageManifest,
-	handler func(pkg *models.Package) error) error {
+	handler func(pkg *models.Package) error,
+) error {
 	packages := manifest.GetPackages()
 	for _, pkg := range packages {
 		res, err := Apply(pkg)

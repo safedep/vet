@@ -3,11 +3,13 @@ package py
 import (
 	"context"
 	"fmt"
-	"github.com/safedep/vet/pkg/common/logger"
-	treesitter "github.com/smacker/go-tree-sitter"
-	"github.com/smacker/go-tree-sitter/python"
 	"os"
 	"strings"
+
+	treesitter "github.com/smacker/go-tree-sitter"
+	"github.com/smacker/go-tree-sitter/python"
+
+	"github.com/safedep/vet/pkg/common/logger"
 )
 
 const (
@@ -201,7 +203,6 @@ func (s *setuppyParserViaSyntaxTree) aggStringConstants(src string) []string {
 - "tldextract>=2.2.0"
 */
 func (s *setuppyParserViaSyntaxTree) getDependencyStrings(filepath string) ([]string, error) {
-
 	var dependencies []string
 	var code []byte
 
@@ -214,7 +215,6 @@ func (s *setuppyParserViaSyntaxTree) getDependencyStrings(filepath string) ([]st
 
 	ctx := context.Background()
 	tree, err := s.Parser.ParseCtx(ctx, nil, code)
-
 	if err != nil {
 		logger.Warnf("Error while creating parser %v", err)
 		return dependencies, err

@@ -1,19 +1,19 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"os"
-
-	"context"
 	"net/http"
+	"os"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/cli/oauth/device"
+	"github.com/spf13/cobra"
+
 	"github.com/safedep/vet/internal/connect"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/spf13/cobra"
 )
 
 func newConnectCommand() *cobra.Command {
@@ -143,7 +143,6 @@ func connectGithubWithDeviceFlow() (string, error) {
 			ClientID:   clientID,
 			DeviceCode: code,
 		})
-
 	if err != nil {
 		return "", err
 	}

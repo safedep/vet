@@ -6,12 +6,13 @@ import (
 	"time"
 
 	"github.com/safedep/dry/utils"
+	"github.com/spf13/cobra"
+
 	"github.com/safedep/vet/internal/command"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/readers"
 	"github.com/safedep/vet/pkg/reporter"
 	"github.com/safedep/vet/pkg/scanner"
-	"github.com/spf13/cobra"
 )
 
 var (

@@ -9,8 +9,10 @@ import (
 	"github.com/safedep/vet/pkg/models"
 )
 
-const lfpAnalyzerName = "LockfilePoisoningAnalyzer"
-const lfpThreatSource = jsonreportspec.ReportThreat_CWE
+const (
+	lfpAnalyzerName = "LockfilePoisoningAnalyzer"
+	lfpThreatSource = jsonreportspec.ReportThreat_CWE
+)
 
 // https://cwe.mitre.org/data/definitions/349.html
 // Acceptance of Extraneous Untrusted Data With Trusted Data
@@ -52,7 +54,8 @@ func (lfp *lockfilePoisoningAnalyzer) Name() string {
 }
 
 func (lfp *lockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifest,
-	handler AnalyzerEventHandler) error {
+	handler AnalyzerEventHandler,
+) error {
 	logger.Debugf("LockfilePoisoningAnalyzer: Analyzing [%s] %s",
 		manifest.GetSpecEcosystem(), manifest.GetDisplayPath())
 
@@ -72,7 +75,6 @@ func (lfp *lockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifest,
 				Message: "Identified lockfile poisoning attempt in " + manifest.GetDisplayPath(),
 				Err:     fmt.Errorf("fail-fast on lockfile poisoning at %s", manifest.GetDisplayPath()),
 			})
-
 			if err != nil {
 				logger.Errorf("LockfilePoisoningAnalyzer: Error handling fail-fast event: %v", err)
 			}

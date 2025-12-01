@@ -24,7 +24,7 @@ type dotGraphReporter struct {
 
 func NewDotGraphReporter(directory string) (Reporter, error) {
 	if _, err := os.Stat(directory); err != nil {
-		err := os.MkdirAll(directory, 0755)
+		err := os.MkdirAll(directory, 0o755)
 		if err != nil {
 			return nil, err
 		}

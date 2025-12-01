@@ -11,14 +11,15 @@ import (
 	malysisv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/safedep/dry/utils"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/safedep/vet/gen/checks"
 	"github.com/safedep/vet/gen/filtersuite"
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/malysis"
 	"github.com/safedep/vet/pkg/models"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func getGitLabReporter(reportPath string) (*gitLabReporter, error) {

@@ -7,9 +7,9 @@ import (
 	"regexp"
 
 	"github.com/google/osv-scanner/pkg/lockfile"
+
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
-
 	"github.com/safedep/vet/pkg/parser/custom/py"
 	"github.com/safedep/vet/pkg/parser/custom/sbom/spdx"
 )
@@ -25,9 +25,7 @@ const (
 	customParserTerraform             = "terraform"
 )
 
-var (
-	errUnsupportedFormat = errors.New("unsupported format")
-)
+var errUnsupportedFormat = errors.New("unsupported format")
 
 // Exporting as constants for use outside this package to refer to specific
 // parsers. For example: Github reader
@@ -181,8 +179,10 @@ func FindParser(lockfilePath, lockfileAs string) (Parser, error) {
 
 	// Check special case of GitHub actions
 	if m, err := regexp.Match(`\.github/(workflows|actions)/.*\.(yml|yaml)`, []byte(lockfilePath)); m && err == nil {
-		pw := &parserWrapper{graphParser: parseGithubActionWorkflowAsGraph,
-			parseAs: customParserGitHubActions}
+		pw := &parserWrapper{
+			graphParser: parseGithubActionWorkflowAsGraph,
+			parseAs:     customParserGitHubActions,
+		}
 		if pw.supported() {
 			return pw, nil
 		}

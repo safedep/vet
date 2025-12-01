@@ -3,8 +3,9 @@ package exceptions
 import (
 	"testing"
 
-	"github.com/safedep/vet/pkg/models"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/safedep/vet/pkg/models"
 )
 
 func TestNewExceptionsFileLoader(t *testing.T) {

@@ -52,7 +52,6 @@ func ResolveParseTarget(path, lockfileAs string, scopes []TargetScopeType) (stri
 
 	// Fallback to having parser auto-discover based on file name
 	return path, "", nil
-
 }
 
 func resolveTargetScopeAllows(scopes []TargetScopeType, required TargetScopeType) bool {

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/safedep/code/plugin/depsusage"
+
 	"github.com/safedep/vet/ent"
 )
 

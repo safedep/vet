@@ -11,6 +11,7 @@ import (
 	"github.com/gojek/heimdall/v7/hystrix"
 	"github.com/safedep/dry/errors"
 	"github.com/safedep/dry/utils"
+
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"

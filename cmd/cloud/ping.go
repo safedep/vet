@@ -3,11 +3,12 @@ package cloud
 import (
 	"time"
 
+	"github.com/spf13/cobra"
+
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/cloud"
 	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/spf13/cobra"
 )
 
 func newPingCommand() *cobra.Command {

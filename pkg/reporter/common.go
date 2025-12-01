@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/safedep/dry/utils"
+
 	"github.com/safedep/vet/gen/checks"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/models"

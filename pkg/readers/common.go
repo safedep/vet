@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 
 	"github.com/bmatcuk/doublestar/v4"
+
 	"github.com/safedep/vet/pkg/common/logger"
 )
 

@@ -2,6 +2,7 @@ package analyzer
 
 import (
 	policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
+
 	"github.com/safedep/vet/gen/filtersuite"
 	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
 	"github.com/safedep/vet/pkg/models"

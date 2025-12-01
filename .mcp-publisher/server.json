@@ -1,0 +1,74 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "name": "io.github.safedep/vet-mcp",
+  "title": "SafeDep Vet MCP",
+  "description": "Protect your AI agents and IDEs from malicious open-source packages.",
+  "version": "VERSION_FROM_ENV",
+  "websiteUrl": "https://safedep.io",
+  "repository": {
+    "url": "https://github.com/safedep/vet",
+    "source": "github"
+  },
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/safedep/.github/9275c7d1b59f718d73e47cecd93df92e7bfbea25/assets/logo/safedep-logo-darkshade.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": [
+        "48x48",
+        "96x96"
+      ],
+      "theme": "light"
+    },
+    {
+      "src": "https://raw.githubusercontent.com/safedep/.github/9275c7d1b59f718d73e47cecd93df92e7bfbea25/assets/logo/safedep-logo.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": [
+        "48x48",
+        "96x96"
+      ],
+      "theme": "dark"
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "oci",
+      "identifier": "ghcr.io/safedep/vet:vVERSION_FROM_ENV",
+      "runtimeHint": "docker",
+      "runtimeArguments": [
+        {
+          "type": "named",
+          "name": "--rm",
+          "value": ""
+        },
+        {
+          "type": "named",
+          "name": "-i",
+          "value": ""
+        }
+      ],
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "-s"
+        },
+        {
+          "type": "named",
+          "name": "-l",
+          "value": "/tmp/vet-mcp.log"
+        },
+        {
+          "type": "positional",
+          "value": "server"
+        },
+        {
+          "type": "positional",
+          "value": "mcp"
+        }
+      ],
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}
+

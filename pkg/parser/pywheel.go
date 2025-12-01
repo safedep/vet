@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/google/osv-scanner/pkg/lockfile"
+
 	"github.com/safedep/vet/pkg/common/logger"
 )
 

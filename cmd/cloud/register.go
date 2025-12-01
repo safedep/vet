@@ -3,11 +3,12 @@ package cloud
 import (
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/cloud"
 	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/spf13/cobra"
 )
 
 var (
@@ -60,7 +61,6 @@ func registerUserTenant() error {
 		OrgName:   registerOrgName,
 		OrgDomain: registerOrgDomain,
 	})
-
 	if err != nil {
 		return err
 	}

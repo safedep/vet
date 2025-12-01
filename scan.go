@@ -8,6 +8,9 @@ import (
 	"github.com/google/go-github/v70/github"
 	"github.com/safedep/dry/adapters"
 	"github.com/safedep/dry/utils"
+	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
+
 	"github.com/safedep/vet/internal/analytics"
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/internal/command"
@@ -23,8 +26,6 @@ import (
 	"github.com/safedep/vet/pkg/reporter"
 	"github.com/safedep/vet/pkg/scanner"
 	"github.com/safedep/vet/pkg/storage"
-	"github.com/spf13/cobra"
-	"google.golang.org/grpc"
 )
 
 var (

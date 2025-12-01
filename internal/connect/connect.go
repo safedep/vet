@@ -6,8 +6,9 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/safedep/vet/pkg/common/logger"
 	"gopkg.in/yaml.v2"
+
+	"github.com/safedep/vet/pkg/common/logger"
 )
 
 const (

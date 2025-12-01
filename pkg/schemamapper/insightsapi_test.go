@@ -3,9 +3,10 @@ package schemamapper
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/gen/models"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestInsightsVulnerabilitySeverityToModelSeverity(t *testing.T) {

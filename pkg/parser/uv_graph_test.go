@@ -3,8 +3,9 @@ package parser
 import (
 	"testing"
 
-	"github.com/safedep/vet/pkg/models"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/safedep/vet/pkg/models"
 )
 
 func findPackageInUvGraph(graph *models.DependencyGraph[*models.Package], name, version string) *models.Package {
