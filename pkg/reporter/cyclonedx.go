@@ -20,7 +20,6 @@ import (
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
 	"github.com/safedep/vet/pkg/readers"
-	"github.com/safedep/vet/pkg/reporter/data"
 )
 
 // CycloneDXReporterConfig contains configuration parameters for the CycloneDX reporter
@@ -46,6 +45,8 @@ type cycloneDXReporter struct {
 	rootComponentBomref       string
 	bomEcosystems             map[string]bool
 	bomVulnerabilitiesBomrefs map[string]bool
+
+	bomPackageRef map[string]struct{}
 }
 
 var cdxUUIDRegexp = regex.MustCompileAndCache(`^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
@@ -110,6 +111,7 @@ func NewCycloneDXReporter(config CycloneDXReporterConfig) (Reporter, error) {
 		rootComponentBomref:       rootComponentBomref,
 		bomEcosystems:             map[string]bool{},
 		bomVulnerabilitiesBomrefs: map[string]bool{},
+		bomPackageRef:             map[string]struct{}{},
 	}, nil
 }
 
@@ -132,7 +134,16 @@ func (r *cycloneDXReporter) AddManifest(manifest *models.PackageManifest) {
 	}))
 
 	err := readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
+		_, ok := r.bomPackageRef[pkg.GetPackageUrl()]
+
+		// If package already visited, skip adding it
+		if ok {
+			return nil
+		}
+
 		r.addPackage(pkg)
+
+		r.bomPackageRef[pkg.GetPackageUrl()] = struct{}{}
 		return nil
 	})
 	if err != nil {
@@ -188,14 +199,8 @@ func (r *cycloneDXReporter) resolvePackageLicenses(pkg *models.Package) []cdx.Li
 	for _, license := range *pkg.Insights.Licenses {
 		licenseChoice := cdx.LicenseChoice{
 			License: &cdx.License{
-				Name: string(license),
-				ID:   string(license),
+				ID: string(license),
 			},
-		}
-		spdxLicense, availableSpdxLicense := data.SpdxLicenses[string(license)]
-		if availableSpdxLicense {
-			licenseChoice.License.URL = spdxLicense.Reference
-			licenseChoice.License.Name = spdxLicense.Name
 		}
 		licenses = append(licenses, licenseChoice)
 	}
