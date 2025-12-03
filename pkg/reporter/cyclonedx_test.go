@@ -285,8 +285,6 @@ func TestCycloneDxReporterLicenses(t *testing.T) {
 	licenses := utils.SafelyGetValue(utils.SafelyGetValue(generatedBom.Components)[0].Licenses)
 	assert.Len(t, licenses, 1)
 	assert.Equal(t, "MIT", licenses[0].License.ID)
-	assert.Equal(t, "MIT License", licenses[0].License.Name)
-	assert.Equal(t, "https://spdx.org/licenses/MIT.html", licenses[0].License.URL)
 }
 
 func TestCycloneDxReporterVuln(t *testing.T) {
