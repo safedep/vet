@@ -45,8 +45,7 @@ type cycloneDXReporter struct {
 	rootComponentBomref       string
 	bomEcosystems             map[string]bool
 	bomVulnerabilitiesBomrefs map[string]bool
-
-	bomPackageRef map[string]struct{}
+	bomPackageRef             map[string]bool
 }
 
 var cdxUUIDRegexp = regex.MustCompileAndCache(`^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
@@ -111,7 +110,7 @@ func NewCycloneDXReporter(config CycloneDXReporterConfig) (Reporter, error) {
 		rootComponentBomref:       rootComponentBomref,
 		bomEcosystems:             map[string]bool{},
 		bomVulnerabilitiesBomrefs: map[string]bool{},
-		bomPackageRef:             map[string]struct{}{},
+		bomPackageRef:             map[string]bool{},
 	}, nil
 }
 
@@ -134,16 +133,14 @@ func (r *cycloneDXReporter) AddManifest(manifest *models.PackageManifest) {
 	}))
 
 	err := readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
-		_, ok := r.bomPackageRef[pkg.GetPackageUrl()]
-
 		// If package already visited, skip adding it
-		if ok {
+		if r.bomPackageRef[pkg.GetPackageUrl()] {
 			return nil
 		}
 
 		r.addPackage(pkg)
 
-		r.bomPackageRef[pkg.GetPackageUrl()] = struct{}{}
+		r.bomPackageRef[pkg.GetPackageUrl()] = true
 		return nil
 	})
 	if err != nil {
