@@ -156,7 +156,7 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().BoolVarP(&githubOrgIncludeArchived, "github-org-include-archived", "", false,
 		"Include archived repositories when scanning a GitHub organization")
 	cmd.Flags().BoolVarP(&githubOrgIncludeForks, "github-org-include-forks", "", false,
-		"Exclude forked repositories when scanning a GitHub organization")
+		"Include forked repositories when scanning a GitHub organization")
 	cmd.Flags().BoolVarP(&githubOrgPrivateOnly, "github-org-private-only", "", false,
 		"Only scan private repositories in the GitHub organization")
 	cmd.Flags().BoolVarP(&githubSkipDependencyGraphAPI, "skip-github-dependency-graph-api", "", false,
