@@ -46,7 +46,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install OSX Cross Compiler Build Tools
-        run: sudo apt-get install -y -qq build-essential clang gcc g++ gcc-mingw-w64 zlib1g-dev libmpc-dev libmpfr-dev libgmp-dev cmake libxml2-dev libssl-dev xz-utils
+        run: sudo apt-get install -y -qq build-essential clang gcc g++ gcc-mingw-w64 zlib1g-dev libmpc-dev libmpfr-dev libgmp-dev cmake libxml2-dev libssl-dev xz-utils gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 
       - name: Setup OSX Cross Compiler Tool Chain Environment
         run: |

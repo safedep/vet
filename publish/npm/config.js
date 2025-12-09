@@ -16,6 +16,7 @@ const BINARY_PATTERNS = {
   "darwin-x64": `${BINARY_NAME}_Darwin_x86_64.tar.gz`,
   "darwin-arm64": `${BINARY_NAME}_Darwin_arm64.tar.gz`,
   "linux-x64": `${BINARY_NAME}_Linux_x86_64.tar.gz`,
+  "linux-arm64": `${BINARY_NAME}_Linux_arm64.tar.gz`,
   "win32-x64": `${BINARY_NAME}_Windows_x86_64.zip`,
 };
 
