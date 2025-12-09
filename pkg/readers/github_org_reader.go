@@ -23,6 +23,8 @@ type GithubOrgReaderConfig struct {
 	MaxRepositories        int
 	SkipDependencyGraphAPI bool
 	ExcludeRepos           []string
+	PrivateOnly            bool // only scan private repos
+	ExcludeForks           bool // skip forked repos    
 }
 
 type githubOrgReader struct {
@@ -136,6 +138,24 @@ func (p *githubOrgReader) handleRepositoryBatch(repositories []*github.Repositor
 			logger.Infof("Skipping excluded repo: %s", fullName)
 			continue
 		}
+
+		// Skip archived if IncludeArchived is false
+		if !p.config.IncludeArchived && repo.GetArchived() {
+            logger.Infof("Skipping archived repo: %s", fullName)
+            continue
+        }
+
+		// Skip forks if ExcludeForks is true
+        if p.config.ExcludeForks && repo.GetFork() {
+            logger.Infof("Skipping forked repo: %s", fullName)
+            continue
+        }
+
+		// Only private repos if PrivateOnly is true
+        if p.config.PrivateOnly && !repo.GetPrivate() {
+            logger.Infof("Skipping non-private repo: %s", fullName)
+            continue
+        }
 
 		breach := p.withIncrementedRepoCount(func() {
 			repoUrls = append(repoUrls, repo.GetCloneURL())

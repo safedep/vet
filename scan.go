@@ -46,6 +46,9 @@ var (
 	githubOrgMaxRepositories         int
 	githubOrgExcludedRepos           []string
 	githubSkipDependencyGraphAPI     bool
+	githubOrgIncludeArchived         bool
+	githubOrgExcludeForks            bool
+    githubOrgPrivateOnly             bool
 	scanExclude                      []string
 	transitiveAnalysis               bool
 	transitiveDepth                  int
@@ -150,6 +153,12 @@ func newScanCommand() *cobra.Command {
 		"Maximum number of repositories to process for the Github Org")
 	cmd.Flags().StringArrayVarP(&githubOrgExcludedRepos, "github-org-exclude-repos", "", []string{},
 		"Comma-separated list of GitHub repos to exclude during org scan (format: org/repo1,org/repo2)")
+	cmd.Flags().BoolVarP(&githubOrgIncludeArchived, "github-org-include-archived", "", true,
+    	"Include archived repositories when scanning a GitHub organization",)
+	cmd.Flags().BoolVarP(&githubOrgExcludeForks, "github-org-exclude-forks", "", false,
+    	"Exclude forked repositories when scanning a GitHub organization",)
+	cmd.Flags().BoolVarP(&githubOrgPrivateOnly, "github-org-private-only", "", false,
+    "Only scan private repositories in the GitHub organization",)
 	cmd.Flags().BoolVarP(&githubSkipDependencyGraphAPI, "skip-github-dependency-graph-api", "", false,
 		"Do not use GitHub Dependency Graph API to fetch dependencies")
 	cmd.Flags().StringVarP(&lockfileAs, "lockfile-as", "", "",
@@ -419,6 +428,9 @@ func internalStartScan() error {
 			MaxRepositories:        githubOrgMaxRepositories,
 			SkipDependencyGraphAPI: githubSkipDependencyGraphAPI,
 			ExcludeRepos:           githubOrgExcludedRepos,
+			PrivateOnly:            githubOrgPrivateOnly,
+            ExcludeForks:           githubOrgExcludeForks,
+			
 		})
 	} else if len(purlSpec) > 0 {
 		analytics.TrackCommandScanPurlScan()
