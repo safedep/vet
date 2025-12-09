@@ -4,6 +4,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/google/go-github/v70/github"
+	"github.com/safedep/dry/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -81,41 +83,240 @@ func TestGithubOrgReader(t *testing.T) {
 
 func TestGithubIsExcludedRepo(t *testing.T) {
 	cases := []struct {
-		name        string
-		fullName    string
-		excluded    []string
-		expectedVal bool
+		name           string
+		repo           *github.Repository
+		config         *GithubOrgReaderConfig
+		expectedExcl   bool
+		expectedReason string
 	}{
 		{
-			name:        "no excluded repo configured",
-			fullName:    "x/y",
-			excluded:    []string{},
-			expectedVal: false,
+			name: "no exclusion - default config",
+			repo: &github.Repository{
+				FullName: utils.PtrTo("org/repo1"),
+				Archived: utils.PtrTo(false),
+				Fork:     utils.PtrTo(false),
+				Private:  utils.PtrTo(false),
+			},
+			config: &GithubOrgReaderConfig{
+				ExcludeRepos:    []string{},
+				IncludeArchived: true,
+				IncludeForks:    true,
+				PrivateOnly:     false,
+			},
+			expectedExcl:   false,
+			expectedReason: "",
 		},
 		{
-			name:        "match excluded",
-			fullName:    "x/y",
-			excluded:    []string{"y/z", "x/y"},
-			expectedVal: true,
+			name: "explicitly excluded - exact match",
+			repo: &github.Repository{
+				FullName: utils.PtrTo("org/repo1"),
+				Archived: utils.PtrTo(false),
+				Fork:     utils.PtrTo(false),
+				Private:  utils.PtrTo(false),
+			},
+			config: &GithubOrgReaderConfig{
+				ExcludeRepos:    []string{"org/repo1"},
+				IncludeArchived: true,
+				IncludeForks:    true,
+				PrivateOnly:     false,
+			},
+			expectedExcl:   true,
+			expectedReason: "explicitly excluded",
 		},
 		{
-			name:        "match with ignore whitespace",
-			fullName:    "x/y",
-			excluded:    []string{"  x/y  ", "b", "c"},
-			expectedVal: true,
+			name: "explicitly excluded - with whitespace",
+			repo: &github.Repository{
+				FullName: utils.PtrTo("org/repo1"),
+				Archived: utils.PtrTo(false),
+				Fork:     utils.PtrTo(false),
+				Private:  utils.PtrTo(false),
+			},
+			config: &GithubOrgReaderConfig{
+				ExcludeRepos:    []string{"  org/repo1  ", "org/other"},
+				IncludeArchived: true,
+				IncludeForks:    true,
+				PrivateOnly:     false,
+			},
+			expectedExcl:   true,
+			expectedReason: "explicitly excluded",
 		},
 		{
-			name:        "no match",
-			fullName:    "x/u",
-			excluded:    []string{"x/y"},
-			expectedVal: false,
+			name: "not in exclusion list",
+			repo: &github.Repository{
+				FullName: utils.PtrTo("org/repo1"),
+				Archived: utils.PtrTo(false),
+				Fork:     utils.PtrTo(false),
+				Private:  utils.PtrTo(false),
+			},
+			config: &GithubOrgReaderConfig{
+				ExcludeRepos:    []string{"org/repo2", "org/repo3"},
+				IncludeArchived: true,
+				IncludeForks:    true,
+				PrivateOnly:     false,
+			},
+			expectedExcl:   false,
+			expectedReason: "",
+		},
+		{
+			name: "archived repo excluded when IncludeArchived is false",
+			repo: &github.Repository{
+				FullName: utils.PtrTo("org/archived-repo"),
+				Archived: utils.PtrTo(true),
+				Fork:     utils.PtrTo(false),
+				Private:  utils.PtrTo(false),
+			},
+			config: &GithubOrgReaderConfig{
+				ExcludeRepos:    []string{},
+				IncludeArchived: false,
+				IncludeForks:    true,
+				PrivateOnly:     false,
+			},
+			expectedExcl:   true,
+			expectedReason: "archived",
+		},
+		{
+			name: "archived repo included when IncludeArchived is true",
+			repo: &github.Repository{
+				FullName: utils.PtrTo("org/archived-repo"),
+				Archived: utils.PtrTo(true),
+				Fork:     utils.PtrTo(false),
+				Private:  utils.PtrTo(false),
+			},
+			config: &GithubOrgReaderConfig{
+				ExcludeRepos:    []string{},
+				IncludeArchived: true,
+				IncludeForks:    true,
+				PrivateOnly:     false,
+			},
+			expectedExcl:   false,
+			expectedReason: "",
+		},
+		{
+			name: "forked repo excluded when IncludeForks is false",
+			repo: &github.Repository{
+				FullName: utils.PtrTo("org/forked-repo"),
+				Archived: utils.PtrTo(false),
+				Fork:     utils.PtrTo(true),
+				Private:  utils.PtrTo(false),
+			},
+			config: &GithubOrgReaderConfig{
+				ExcludeRepos:    []string{},
+				IncludeArchived: true,
+				IncludeForks:    false,
+				PrivateOnly:     false,
+			},
+			expectedExcl:   true,
+			expectedReason: "forked",
+		},
+		{
+			name: "forked repo included when IncludeForks is true",
+			repo: &github.Repository{
+				FullName: utils.PtrTo("org/forked-repo"),
+				Archived: utils.PtrTo(false),
+				Fork:     utils.PtrTo(true),
+				Private:  utils.PtrTo(false),
+			},
+			config: &GithubOrgReaderConfig{
+				ExcludeRepos:    []string{},
+				IncludeArchived: true,
+				IncludeForks:    true,
+				PrivateOnly:     false,
+			},
+			expectedExcl:   false,
+			expectedReason: "",
+		},
+		{
+			name: "public repo excluded when PrivateOnly is true",
+			repo: &github.Repository{
+				FullName: utils.PtrTo("org/public-repo"),
+				Archived: utils.PtrTo(false),
+				Fork:     utils.PtrTo(false),
+				Private:  utils.PtrTo(false),
+			},
+			config: &GithubOrgReaderConfig{
+				ExcludeRepos:    []string{},
+				IncludeArchived: true,
+				IncludeForks:    true,
+				PrivateOnly:     true,
+			},
+			expectedExcl:   true,
+			expectedReason: "not private",
+		},
+		{
+			name: "private repo included when PrivateOnly is true",
+			repo: &github.Repository{
+				FullName: utils.PtrTo("org/private-repo"),
+				Archived: utils.PtrTo(false),
+				Fork:     utils.PtrTo(false),
+				Private:  utils.PtrTo(true),
+			},
+			config: &GithubOrgReaderConfig{
+				ExcludeRepos:    []string{},
+				IncludeArchived: true,
+				IncludeForks:    true,
+				PrivateOnly:     true,
+			},
+			expectedExcl:   false,
+			expectedReason: "",
+		},
+		{
+			name: "public repo included when PrivateOnly is false",
+			repo: &github.Repository{
+				FullName: utils.PtrTo("org/public-repo"),
+				Archived: utils.PtrTo(false),
+				Fork:     utils.PtrTo(false),
+				Private:  utils.PtrTo(false),
+			},
+			config: &GithubOrgReaderConfig{
+				ExcludeRepos:    []string{},
+				IncludeArchived: true,
+				IncludeForks:    true,
+				PrivateOnly:     false,
+			},
+			expectedExcl:   false,
+			expectedReason: "",
+		},
+		{
+			name: "multiple exclusion criteria - archived and forked",
+			repo: &github.Repository{
+				FullName: utils.PtrTo("org/archived-fork"),
+				Archived: utils.PtrTo(true),
+				Fork:     utils.PtrTo(true),
+				Private:  utils.PtrTo(false),
+			},
+			config: &GithubOrgReaderConfig{
+				ExcludeRepos:    []string{},
+				IncludeArchived: false,
+				IncludeForks:    false,
+				PrivateOnly:     false,
+			},
+			expectedExcl:   true,
+			expectedReason: "archived", // First check that matches
+		},
+		{
+			name: "explicit exclusion takes precedence",
+			repo: &github.Repository{
+				FullName: utils.PtrTo("org/excluded-repo"),
+				Archived: utils.PtrTo(false),
+				Fork:     utils.PtrTo(false),
+				Private:  utils.PtrTo(true),
+			},
+			config: &GithubOrgReaderConfig{
+				ExcludeRepos:    []string{"org/excluded-repo"},
+				IncludeArchived: true,
+				IncludeForks:    true,
+				PrivateOnly:     false,
+			},
+			expectedExcl:   true,
+			expectedReason: "explicitly excluded",
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			ret := githubIsExcludedRepo(tc.fullName, tc.excluded)
-			assert.Equal(t, tc.expectedVal, ret)
+			excluded, reason := githubIsExcludedRepo(tc.repo, tc.config)
+			assert.Equal(t, tc.expectedExcl, excluded, "Expected exclusion status mismatch")
+			assert.Equal(t, tc.expectedReason, reason, "Expected exclusion reason mismatch")
 		})
 	}
 }

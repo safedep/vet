@@ -23,6 +23,8 @@ type GithubOrgReaderConfig struct {
 	MaxRepositories        int
 	SkipDependencyGraphAPI bool
 	ExcludeRepos           []string
+	PrivateOnly            bool
+	IncludeForks           bool
 }
 
 type githubOrgReader struct {
@@ -131,9 +133,9 @@ func (p *githubOrgReader) handleRepositoryBatch(repositories []*github.Repositor
 	var repoUrls []string
 
 	for _, repo := range repositories {
-		fullName := repo.GetFullName()
-		if githubIsExcludedRepo(fullName, p.config.ExcludeRepos) {
-			logger.Infof("Skipping excluded repo: %s", fullName)
+		excluded, reason := githubIsExcludedRepo(repo, p.config)
+		if excluded {
+			logger.Infof("Skipping github org repo %s: %s", repo.GetFullName(), reason)
 			continue
 		}
 
@@ -162,8 +164,8 @@ func (p *githubOrgReader) handleRepositoryBatch(repositories []*github.Repositor
 }
 
 // Making this exposed so that we can test this independently
-func githubOrgFromURL(githubUrl string) (string, error) {
-	u, err := url.Parse(githubUrl)
+func githubOrgFromURL(githubURL string) (string, error) {
+	u, err := url.Parse(githubURL)
 	if err != nil {
 		return "", err
 	}
@@ -181,19 +183,32 @@ func githubOrgFromURL(githubUrl string) (string, error) {
 	return parts[1], nil
 }
 
-// To exclude specific repo using github org scanner
-func githubIsExcludedRepo(repoName string, excludedRepositories []string) bool {
-	if len(excludedRepositories) == 0 {
-		return false
-	}
+// githubIsExcludedRepo checks if a repository should be excluded based on
+// various criteria defined in the config. It returns a boolean indicating
+// if the repo should be excluded and a reason string explaining why.
+func githubIsExcludedRepo(repo *github.Repository, config *GithubOrgReaderConfig) (bool, string) {
+	fullName := repo.GetFullName()
 
-	logger.Debugf("Checking if repo %s is excluded", repoName)
-
-	for _, ex := range excludedRepositories {
-		if strings.TrimSpace(repoName) == strings.TrimSpace(ex) {
-			return true
+	if len(config.ExcludeRepos) > 0 {
+		logger.Debugf("Checking if repo %s is in exclusion list", fullName)
+		for _, ex := range config.ExcludeRepos {
+			if strings.TrimSpace(fullName) == strings.TrimSpace(ex) {
+				return true, "explicitly excluded"
+			}
 		}
 	}
 
-	return false
+	if !config.IncludeArchived && repo.GetArchived() {
+		return true, "archived"
+	}
+
+	if !config.IncludeForks && repo.GetFork() {
+		return true, "forked"
+	}
+
+	if config.PrivateOnly && !repo.GetPrivate() {
+		return true, "not private"
+	}
+
+	return false, ""
 }
