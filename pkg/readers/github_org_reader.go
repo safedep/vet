@@ -23,8 +23,8 @@ type GithubOrgReaderConfig struct {
 	MaxRepositories        int
 	SkipDependencyGraphAPI bool
 	ExcludeRepos           []string
-	PrivateOnly            bool // only scan private repos
-	ExcludeForks           bool // skip forked repos    
+	PrivateOnly            bool 
+	ExcludeForks           bool   
 }
 
 type githubOrgReader struct {
