@@ -12,15 +12,26 @@ env:
 builds:
   - id: linux
     goos: [linux]
-    goarch: [amd64]
+    goarch: [amd64, arm64]
     env:
-      - CC=x86_64-linux-gnu-gcc
-      - CXX=x86_64-linux-gnu-g++
+      - CGO_ENABLED=1
+    overrides:
+      - goos: linux
+        goarch: amd64
+        env:
+          - CC=x86_64-linux-gnu-gcc
+          - CXX=x86_64-linux-gnu-g++
+      - goos: linux
+        goarch: arm64
+        env:
+          - CC=aarch64-linux-gnu-gcc
+          - CXX=aarch64-linux-gnu-g++
 
   - id: darwin
     goos: [darwin]
     goarch: [amd64, arm64]
     env:
+      - CGO_ENABLED=1
       - CC=o64-clang
       - CXX=o64-clang++
 
@@ -28,6 +39,7 @@ builds:
     goos: [windows]
     goarch: [amd64]
     env:
+      - CGO_ENABLED=1
       - CC=x86_64-w64-mingw32-gcc
       - CXX=x86_64-w64-mingw32-g++
 
@@ -64,10 +76,10 @@ archives:
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
     format_overrides:
-    - goos: windows
-      format: zip
+      - goos: windows
+        format: zip
 checksum:
-  name_template: 'checksums.txt'
+  name_template: "checksums.txt"
   algorithm: sha256
 snapshot:
   version_template: "{{ incpatch .Version }}-next"
@@ -75,9 +87,8 @@ changelog:
   sort: asc
   filters:
     exclude:
-      - '^docs:'
-      - '^test:'
-
+      - "^docs:"
+      - "^test:"
 # The lines beneath this are called `modelines`. See `:help modeline`
 # Feel free to remove those if you don't want/use them.
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
