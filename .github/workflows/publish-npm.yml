@@ -21,6 +21,7 @@ jobs:
         with:
           node-version: "18"
           registry-url: "https://registry.npmjs.org"
+
       - name: Extract Tag Version
         id: version
         run: |
@@ -32,16 +33,16 @@ jobs:
             echo "No valid tag found in head_branch: $TAG_VERSION"
             exit 1
           fi
+
       - name: Prepare package
         run: |
           cd publish/npm
           npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+
       - name: Publish to npm
         run: |
           cd publish/npm
           npm publish --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   test-installation:
     needs: publish-npm
