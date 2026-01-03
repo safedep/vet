@@ -96,12 +96,12 @@ graph TB
     S -->|Analysis Results| P
     P -->|Policy Decisions| O
     
-    style M fill:#2196F3,stroke:#1565C0,color:#fff
-    style A fill:#FF5722,stroke:#D84315,color:#fff
-    style T fill:#2196F3,stroke:#1565C0,color:#fff
-    style S fill:#4CAF50,stroke:#2E7D32,color:#fff
-    style P fill:#FF9800,stroke:#E65100,color:#fff
-    style O fill:#9C27B0,stroke:#6A1B9A,color:#fff
+    style M fill:#7CB9E8,stroke:#5A8DB8,color:#1a1a1a
+    style A fill:#E8A87C,stroke:#B88A5A,color:#1a1a1a
+    style T fill:#7CB9E8,stroke:#5A8DB8,color:#1a1a1a
+    style S fill:#90C695,stroke:#6B9870,color:#1a1a1a
+    style P fill:#E8C47C,stroke:#B89B5A,color:#1a1a1a
+    style O fill:#B8A3D4,stroke:#9478AA,color:#1a1a1a
 ```
 
 ## 🔒 Key Features
