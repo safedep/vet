@@ -256,7 +256,7 @@ vet version
 
 - **[MCP Server](./docs/mcp.md)** - Run vet as an MCP server for AI-assisted code analysis
 - **[AI Agent Mode](./docs/agent.md)** - Run vet as an AI agent
-- **[Reporting](https://docs.safedep.io/)** - SARIF, JSON, CSV, HTML, Markdown formats
+- **[Reporting](./docs/reporting.md)** - SARIF, JSON, CSV, HTML, Markdown formats
 - **[SBOM Support](https://docs.safedep.io/vet/guides/cyclonedx-sbom)** - CycloneDX, SPDX import/export
 - **[Query Mode](https://docs.safedep.io/cloud/quickstart#query-your-data)** - Scan once, analyze multiple times
 - **[GitHub Integration](https://docs.safedep.io/)** - Repository and organization scanning
