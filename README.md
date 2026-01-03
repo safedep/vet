@@ -61,6 +61,49 @@ vet scan -D . --filter 'vulns.critical.exists(p, true)' --filter-fail
 vet cloud quickstart
 ```
 
+## 📦 Architecture
+
+```mermaid
+graph TB
+    subgraph "OSS Ecosystem"
+        R1[npm Registry]
+        R2[PyPI Registry]
+        R3[Maven Central]
+        R4[Other Registries]
+    end
+    
+    subgraph "SafeDep Cloud"
+        M[Continuous Monitoring]
+        A[Real-time Code Analysis<br/>Malware Detection]
+        T[Threat Intelligence DB<br/>Vulnerabilities • Malware • Scorecard]
+    end
+    
+    subgraph "vet CLI"
+        S[Source Repository<br/>Scanner]
+        P[CEL Policy Engine]
+        O[Reports & Actions<br/>SARIF/JSON/CSV]
+    end
+    
+    R1 -->|New Packages| M
+    R2 -->|New Packages| M
+    R3 -->|New Packages| M
+    R4 -->|New Packages| M
+    M -->|Behavioral Analysis| A
+    A -->|Malware Signals| T
+    
+    S -->|Query Package Info| T
+    T -->|Security Intelligence| S
+    S -->|Analysis Results| P
+    P -->|Policy Decisions| O
+    
+    style M fill:#2196F3,stroke:#1565C0,color:#fff
+    style A fill:#FF5722,stroke:#D84315,color:#fff
+    style T fill:#2196F3,stroke:#1565C0,color:#fff
+    style S fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style P fill:#FF9800,stroke:#E65100,color:#fff
+    style O fill:#9C27B0,stroke:#6A1B9A,color:#fff
+```
+
 ## 🔒 Key Features
 
 ### 🛡️ **Malicious Package Detection**
