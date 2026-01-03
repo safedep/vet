@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="40" height="40" alt="image" src="./docs/assets/logo.png" />
+  <img width="60" height="60" alt="image" src="./docs/assets/logo.png" />
 
   <h1>SafeDep VET</h1>
   
