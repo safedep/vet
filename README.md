@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="3024" height="1964" alt="image" src="./docs/assets/vet-terminal.png" />
+  <img width="40" height="40" alt="image" src="./docs/assets/logo.png" />
 
   <h1>SafeDep VET</h1>
   
@@ -34,6 +34,9 @@
 ✅ **Modern SCA with actual usage analysis** — Prioritize real risks over vulnerability noise  
 ✅ **Policy as Code** — Express security requirements using [CEL](https://cel.dev/) expressions  
 
+Hosted SaaS version available at [SafeDep Cloud](https://app.safedep.io). 
+Get started with [GitHub App](https://github.com/apps/safedep) and other integrations.
+
 ## ⚡ Quick Start
 
 **Install in seconds:**
@@ -49,7 +52,7 @@ or download a [pre-built binary](https://github.com/safedep/vet/releases)
 
 ```bash
 # Scan for malware in your dependencies
-vet scan -D . --malware
+vet scan -D . --malware-query
 
 # Fail CI on critical vulnerabilities
 vet scan -D . --filter 'vulns.critical.exists(p, true)' --filter-fail
@@ -62,11 +65,13 @@ vet cloud quickstart
 
 ### 🛡️ **Malicious Package Detection**
 
-Real-time protection against malicious packages powered by [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis). Free for open source projects. Detects zero-day malware through active code analysis.
+Real-time protection against malicious packages powered by [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis). 
+Free for open source projects. Detects zero-day malware through active code analysis.
 
 ### 🕵️ **Smart Vulnerability Analysis**
 
-Unlike dependency scanners that flood you with noise, `vet` analyzes your **actual code usage** to prioritize real risks. See [dependency usage evidence](https://docs.safedep.io/guides/dependency-usage-identification) for details.
+Unlike dependency scanners that flood you with noise, `vet` analyzes your **actual code usage** to prioritize real risks. 
+See [dependency usage evidence](https://docs.safedep.io/vet/guides/dependency-usage-identification) for details.
 
 ### 📋 **Policy as Code**
 
@@ -85,10 +90,10 @@ vet scan --filter 'scorecard.scores.Maintained < 5' --filter-fail
 
 ### 🎯 **Multi-Ecosystem Support**
 
-Package managers: npm, PyPI, Maven, Go, Ruby, Rust, PHP  
-Container images: Docker, OCI  
-SBOM formats: CycloneDX, SPDX  
-Source repositories: GitHub, GitLab
+Package managers: **npm**, **PyPI**, **Maven**, **Go**, **Ruby**, **Rust**, **PHP**  
+Container images: **Docker**, **OCI**  
+SBOM formats: **CycloneDX**, **SPDX**  
+Source repositories: **GitHub**, **GitLab**
 
 ## 🛡️ Malicious Package Detection
 
@@ -100,7 +105,7 @@ Source repositories: GitHub, GitLab
 # One-time setup for advanced scanning
 vet cloud quickstart
 
-# Scan for malware
+# Scan for malware with active scanning (requires API key)
 vet scan -D . --malware
 
 # Query known malicious packages (no API key needed)
@@ -147,7 +152,7 @@ See [vet-action](https://github.com/safedep/vet-action) documentation.
 
 ### 🔧 GitLab CI
 
-Enterprise scanning with [vet CI Component](https://gitlab.com/explore/catalog/safedep/ci-components/vet):
+Enterprise scanning with [vet CI Component](https://docs.safedep.io/vet/guides/gitlab-dependency-scanning):
 
 ```yaml
 include:
@@ -203,9 +208,10 @@ vet version
 **Learn more in our comprehensive documentation:**
 
 - **[MCP Server](./docs/mcp.md)** - Run vet as an MCP server for AI-assisted code analysis
+- **[AI Agent Mode](./docs/agent.md)** - Run vet as an AI agent
 - **[Reporting](https://docs.safedep.io/)** - SARIF, JSON, CSV, HTML, Markdown formats
-- **[SBOM Support](https://docs.safedep.io/)** - CycloneDX, SPDX import/export
-- **[Query Mode](https://docs.safedep.io/)** - Scan once, analyze multiple times
+- **[SBOM Support](https://docs.safedep.io/vet/guides/cyclonedx-sbom)** - CycloneDX, SPDX import/export
+- **[Query Mode](https://docs.safedep.io/cloud/quickstart#query-your-data)** - Scan once, analyze multiple times
 - **[GitHub Integration](https://docs.safedep.io/)** - Repository and organization scanning
 
 ## 📊 Privacy
