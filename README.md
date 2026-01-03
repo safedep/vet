@@ -122,7 +122,7 @@ See [dependency usage evidence](https://docs.safedep.io/vet/guides/dependency-us
 
 ### 📋 **Policy as Code**
 
-Define security policies using CEL expressions to enforce context-specific requirements:
+Define security policies using CEL expressions to enforce context specific requirements:
 
 ```bash
 # Block packages with critical CVEs
