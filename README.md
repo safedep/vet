@@ -8,7 +8,7 @@
   <p>
     <a href="#-quick-start"><strong>Quick Start</strong></a> •
     <a href="https://docs.safedep.io/"><strong>Documentation</strong></a> •
-    <a href="#-community"><strong>Community</strong></a>
+    <a href="#-community--support"><strong>Community</strong></a>
   </p>
 </div>
 
