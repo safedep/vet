@@ -281,7 +281,7 @@ args = [
 startup_timeout_sec = 30
 ```
 
-This enables Codex to automatically vet packages during AI-assisted development, protecting against malicious packages and vulnerabilities.
+This enables Codex CLI to automatically vet packages during AI-assisted development, protecting against malicious packages and vulnerabilities.
 
 ## 📊 Privacy
 
