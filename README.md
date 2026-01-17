@@ -263,7 +263,7 @@ vet version
 
 ### Codex CLI Integration
 
-Use `vet` as an MCP server in [Codex CLI](https://github.com/thecodexapp/codex). Add the following to `~/.codex/config.toml`:
+Use `vet` as an MCP server in [Codex CLI](https://github.com/openai/codex). Add the following to `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.vet-mcp]
