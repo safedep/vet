@@ -261,28 +261,6 @@ vet version
 - **[Query Mode](https://docs.safedep.io/cloud/quickstart#query-your-data)** - Scan once, analyze multiple times
 - **[GitHub Integration](https://docs.safedep.io/)** - Repository and organization scanning
 
-### Codex CLI Integration
-
-Use `vet` as an MCP server in [Codex CLI](https://github.com/openai/codex). Add the following to `~/.codex/config.toml`:
-
-```toml
-[mcp_servers.vet-mcp]
-command = "docker"
-args = [
-  "run",
-  "--rm",
-  "-i",
-  "ghcr.io/safedep/vet:latest",
-  "-l",
-  "/tmp/vet-mcp.log",
-  "server",
-  "mcp"
-]
-startup_timeout_sec = 30
-```
-
-This enables Codex CLI to automatically vet packages during AI-assisted development, protecting against malicious packages and vulnerabilities.
-
 ## 📊 Privacy
 
 `vet` collects anonymous usage telemetry to improve the product. **Your code and package information is never transmitted.**
