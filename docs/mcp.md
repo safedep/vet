@@ -264,3 +264,25 @@ Add the following to `.mcp.json` in your Claude Code project:
 ```
 
 **Note:** You can also use `vet` binary directly as an MCP server using `stdio` transport.
+
+#### Codex CLI
+
+Add the following to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.vet-mcp]
+command = "docker"
+args = [
+  "run",
+  "--rm",
+  "-i",
+  "ghcr.io/safedep/vet:latest",
+  "-l",
+  "/tmp/vet-mcp.log",
+  "server",
+  "mcp"
+]
+startup_timeout_sec = 30
+```
+
+This configuration enables Codex CLI to use vet as an MCP server, allowing AI-assisted development with automatic package vetting for malicious packages and vulnerabilities.
