@@ -231,6 +231,7 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 		Licenses:        make([]*modelspec.InsightLicenseInfo, 0),
 		Projects:        make([]*modelspec.InsightProjectInfo, 0),
 		Threats:         make([]*schema.ReportThreat, 0),
+		MalwareInfo:     make([]*schema.MalwareInfo, 0),
 	}
 
 	insights := utils.SafelyGetValue(p.Insights)
@@ -315,6 +316,24 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 				Url:  projectUrl,
 			})
 		}
+	}
+
+	malwareAnalysis := p.GetMalwareAnalysisResult()
+	if malwareAnalysis != nil {
+		malwareInfo := &schema.MalwareInfo{}
+
+		if malwareAnalysis.IsMalware {
+			malwareInfo.Type = "Malware"
+		} else if malwareAnalysis.IsSuspicious {
+			malwareInfo.Type = "Suspicious"
+		} else {
+			malwareInfo.Type = "Unknown"
+		}
+
+		malwareInfo.Confidence = "HIGH"
+		malwareInfo.ThreatId = malwareAnalysis.Id()
+
+		pkg.MalwareInfo = append(pkg.MalwareInfo, malwareInfo)
 	}
 
 	if len(pkg.Vulnerabilities) > 0 {

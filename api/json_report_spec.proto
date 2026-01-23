@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-option go_package = "github.com/safedep/vet/gen/jsonreportspec";
-
-import "models.proto";
 import "insights_models.proto";
+import "models.proto";
 import "violations.proto";
+
+option go_package = "github.com/safedep/vet/gen/jsonreportspec";
 
 enum RemediationAdviceType {
   UnknownAdviceType = 0;
@@ -92,9 +92,16 @@ message PackageReport {
   repeated InsightVulnerability vulnerabilities = 5;
   repeated InsightLicenseInfo licenses = 6;
   repeated InsightProjectInfo projects = 8;
+  repeated MalwareInfo malware_info = 9;
 
   // Threats
   repeated ReportThreat threats = 7;
+}
+
+message MalwareInfo {
+  string type = 1;
+  string confidence = 2;
+  string threat_id = 4;
 }
 
 message ReportMeta {
