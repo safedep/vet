@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/google/osv-scanner/pkg/lockfile"
-	"github.com/safedep/dry/utils"
+	"github.com/safedep/dry/api/pb"
 	"github.com/stretchr/testify/assert"
 
 	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
@@ -78,6 +78,11 @@ func TestJsonRepoGenerator(t *testing.T) {
 								Name:    "golib1",
 								Version: "0.1.2",
 							},
+							MalwareAnalysis: &models.MalwareAnalysisResult{
+								AnalysisId:   "TESTID",
+								IsSuspicious: true,
+								IsMalware:    false,
+							},
 						},
 					},
 				},
@@ -131,7 +136,7 @@ func TestJsonRepoGenerator(t *testing.T) {
 			assert.Nil(t, err)
 
 			var report jsonreportspec.Report
-			err = utils.FromPbJson(bytes.NewReader(data), &report)
+			err = pb.FromJson(bytes.NewReader(data), &report)
 			assert.Nil(t, err)
 
 			test.assertFn(t, &report)

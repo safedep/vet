@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	malysisv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
 	"github.com/safedep/dry/utils"
 
 	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
@@ -231,6 +232,7 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 		Licenses:        make([]*modelspec.InsightLicenseInfo, 0),
 		Projects:        make([]*modelspec.InsightProjectInfo, 0),
 		Threats:         make([]*schema.ReportThreat, 0),
+		MalwareInfo:     make([]*schema.MalwareInfo, 0),
 	}
 
 	insights := utils.SafelyGetValue(p.Insights)
@@ -315,6 +317,35 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 				Url:  projectUrl,
 			})
 		}
+	}
+
+	malwareAnalysis := p.GetMalwareAnalysisResult()
+	if malwareAnalysis != nil &&
+		malwareAnalysis.Report != nil &&
+		malwareAnalysis.Report.Inference != nil {
+		malwareInfo := &schema.MalwareInfo{}
+
+		if malwareAnalysis.IsMalware {
+			malwareInfo.Type = schema.MalwareType_MALICIOUS
+		} else if malwareAnalysis.IsSuspicious {
+			malwareInfo.Type = schema.MalwareType_SUSPICIOUS
+		} else {
+			malwareInfo.Type = schema.MalwareType_SAFE
+		}
+
+		switch malwareAnalysis.Report.Inference.Confidence {
+		case malysisv1.Report_Evidence_CONFIDENCE_HIGH:
+			malwareInfo.Confidence = schema.MalwareConfidence_HIGH
+		case malysisv1.Report_Evidence_CONFIDENCE_MEDIUM:
+			malwareInfo.Confidence = schema.MalwareConfidence_MEDIUM
+		case malysisv1.Report_Evidence_CONFIDENCE_LOW:
+			malwareInfo.Confidence = schema.MalwareConfidence_LOW
+		default:
+			malwareInfo.Confidence = schema.MalwareConfidence_UnknownConfidence
+		}
+
+		malwareInfo.ThreatId = malwareAnalysis.Id()
+		pkg.MalwareInfo = append(pkg.MalwareInfo, malwareInfo)
 	}
 
 	if len(pkg.Vulnerabilities) > 0 {
