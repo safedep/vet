@@ -7,13 +7,14 @@
 package jsonreportspec
 
 import (
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
+
 	models "github.com/safedep/vet/gen/models"
 	violations "github.com/safedep/vet/gen/violations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
 )
 
 const (
@@ -75,6 +76,110 @@ func (RemediationAdviceType) EnumDescriptor() ([]byte, []int) {
 	return file_json_report_spec_proto_rawDescGZIP(), []int{0}
 }
 
+type MalwareType int32
+
+const (
+	MalwareType_MALWARE_TYPE_UNSPECIFIED MalwareType = 0
+	MalwareType_SAFE                     MalwareType = 1
+	MalwareType_SUSPICIOUS               MalwareType = 2
+	MalwareType_MALICIOUS                MalwareType = 3
+)
+
+// Enum value maps for MalwareType.
+var (
+	MalwareType_name = map[int32]string{
+		0: "MALWARE_TYPE_UNSPECIFIED",
+		1: "SAFE",
+		2: "SUSPICIOUS",
+		3: "MALICIOUS",
+	}
+	MalwareType_value = map[string]int32{
+		"MALWARE_TYPE_UNSPECIFIED": 0,
+		"SAFE":                     1,
+		"SUSPICIOUS":               2,
+		"MALICIOUS":                3,
+	}
+)
+
+func (x MalwareType) Enum() *MalwareType {
+	p := new(MalwareType)
+	*p = x
+	return p
+}
+
+func (x MalwareType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (MalwareType) Descriptor() protoreflect.EnumDescriptor {
+	return file_json_report_spec_proto_enumTypes[1].Descriptor()
+}
+
+func (MalwareType) Type() protoreflect.EnumType {
+	return &file_json_report_spec_proto_enumTypes[1]
+}
+
+func (x MalwareType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use MalwareType.Descriptor instead.
+func (MalwareType) EnumDescriptor() ([]byte, []int) {
+	return file_json_report_spec_proto_rawDescGZIP(), []int{1}
+}
+
+type MalwareConfidence int32
+
+const (
+	MalwareConfidence_MALWARE_CONFIDENCE_UNSPECIFIED MalwareConfidence = 0
+	MalwareConfidence_HIGH                           MalwareConfidence = 1
+	MalwareConfidence_MEDIUM                         MalwareConfidence = 2
+	MalwareConfidence_LOW                            MalwareConfidence = 3
+)
+
+// Enum value maps for MalwareConfidence.
+var (
+	MalwareConfidence_name = map[int32]string{
+		0: "MALWARE_CONFIDENCE_UNSPECIFIED",
+		1: "HIGH",
+		2: "MEDIUM",
+		3: "LOW",
+	}
+	MalwareConfidence_value = map[string]int32{
+		"MALWARE_CONFIDENCE_UNSPECIFIED": 0,
+		"HIGH":                           1,
+		"MEDIUM":                         2,
+		"LOW":                            3,
+	}
+)
+
+func (x MalwareConfidence) Enum() *MalwareConfidence {
+	p := new(MalwareConfidence)
+	*p = x
+	return p
+}
+
+func (x MalwareConfidence) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (MalwareConfidence) Descriptor() protoreflect.EnumDescriptor {
+	return file_json_report_spec_proto_enumTypes[2].Descriptor()
+}
+
+func (MalwareConfidence) Type() protoreflect.EnumType {
+	return &file_json_report_spec_proto_enumTypes[2]
+}
+
+func (x MalwareConfidence) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use MalwareConfidence.Descriptor instead.
+func (MalwareConfidence) EnumDescriptor() ([]byte, []int) {
+	return file_json_report_spec_proto_rawDescGZIP(), []int{2}
+}
+
 type ReportThreat_Confidence int32
 
 const (
@@ -111,11 +216,11 @@ func (x ReportThreat_Confidence) String() string {
 }
 
 func (ReportThreat_Confidence) Descriptor() protoreflect.EnumDescriptor {
-	return file_json_report_spec_proto_enumTypes[1].Descriptor()
+	return file_json_report_spec_proto_enumTypes[3].Descriptor()
 }
 
 func (ReportThreat_Confidence) Type() protoreflect.EnumType {
-	return &file_json_report_spec_proto_enumTypes[1]
+	return &file_json_report_spec_proto_enumTypes[3]
 }
 
 func (x ReportThreat_Confidence) Number() protoreflect.EnumNumber {
@@ -157,11 +262,11 @@ func (x ReportThreat_Source) String() string {
 }
 
 func (ReportThreat_Source) Descriptor() protoreflect.EnumDescriptor {
-	return file_json_report_spec_proto_enumTypes[2].Descriptor()
+	return file_json_report_spec_proto_enumTypes[4].Descriptor()
 }
 
 func (ReportThreat_Source) Type() protoreflect.EnumType {
-	return &file_json_report_spec_proto_enumTypes[2]
+	return &file_json_report_spec_proto_enumTypes[4]
 }
 
 func (x ReportThreat_Source) Number() protoreflect.EnumNumber {
@@ -206,11 +311,11 @@ func (x ReportThreat_SubjectType) String() string {
 }
 
 func (ReportThreat_SubjectType) Descriptor() protoreflect.EnumDescriptor {
-	return file_json_report_spec_proto_enumTypes[3].Descriptor()
+	return file_json_report_spec_proto_enumTypes[5].Descriptor()
 }
 
 func (ReportThreat_SubjectType) Type() protoreflect.EnumType {
-	return &file_json_report_spec_proto_enumTypes[3]
+	return &file_json_report_spec_proto_enumTypes[5]
 }
 
 func (x ReportThreat_SubjectType) Number() protoreflect.EnumNumber {
@@ -252,11 +357,11 @@ func (x ReportThreat_ReportThreatId) String() string {
 }
 
 func (ReportThreat_ReportThreatId) Descriptor() protoreflect.EnumDescriptor {
-	return file_json_report_spec_proto_enumTypes[4].Descriptor()
+	return file_json_report_spec_proto_enumTypes[6].Descriptor()
 }
 
 func (ReportThreat_ReportThreatId) Type() protoreflect.EnumType {
-	return &file_json_report_spec_proto_enumTypes[4]
+	return &file_json_report_spec_proto_enumTypes[6]
 }
 
 func (x ReportThreat_ReportThreatId) Number() protoreflect.EnumNumber {
@@ -666,8 +771,8 @@ func (x *PackageReport) GetThreats() []*ReportThreat {
 
 type MalwareInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Type          string                 `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
-	Confidence    string                 `protobuf:"bytes,2,opt,name=confidence,proto3" json:"confidence,omitempty"`
+	Type          MalwareType            `protobuf:"varint,1,opt,name=type,proto3,enum=MalwareType" json:"type,omitempty"`
+	Confidence    MalwareConfidence      `protobuf:"varint,2,opt,name=confidence,proto3,enum=MalwareConfidence" json:"confidence,omitempty"`
 	ThreatId      string                 `protobuf:"bytes,4,opt,name=threat_id,json=threatId,proto3" json:"threat_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -703,18 +808,18 @@ func (*MalwareInfo) Descriptor() ([]byte, []int) {
 	return file_json_report_spec_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *MalwareInfo) GetType() string {
+func (x *MalwareInfo) GetType() MalwareType {
 	if x != nil {
 		return x.Type
 	}
-	return ""
+	return MalwareType_MALWARE_TYPE_UNSPECIFIED
 }
 
-func (x *MalwareInfo) GetConfidence() string {
+func (x *MalwareInfo) GetConfidence() MalwareConfidence {
 	if x != nil {
 		return x.Confidence
 	}
-	return ""
+	return MalwareConfidence_MALWARE_CONFIDENCE_UNSPECIFIED
 }
 
 func (x *MalwareInfo) GetThreatId() string {
@@ -908,11 +1013,11 @@ const file_json_report_spec_proto_rawDesc = "" +
 	"\blicenses\x18\x06 \x03(\v2\x13.InsightLicenseInfoR\blicenses\x12/\n" +
 	"\bprojects\x18\b \x03(\v2\x13.InsightProjectInfoR\bprojects\x12/\n" +
 	"\fmalware_info\x18\t \x03(\v2\f.MalwareInfoR\vmalwareInfo\x12'\n" +
-	"\athreats\x18\a \x03(\v2\r.ReportThreatR\athreats\"^\n" +
-	"\vMalwareInfo\x12\x12\n" +
-	"\x04type\x18\x01 \x01(\tR\x04type\x12\x1e\n" +
+	"\athreats\x18\a \x03(\v2\r.ReportThreatR\athreats\"\x80\x01\n" +
+	"\vMalwareInfo\x12 \n" +
+	"\x04type\x18\x01 \x01(\x0e2\f.MalwareTypeR\x04type\x122\n" +
 	"\n" +
-	"confidence\x18\x02 \x01(\tR\n" +
+	"confidence\x18\x02 \x01(\x0e2\x12.MalwareConfidenceR\n" +
 	"confidence\x12\x1b\n" +
 	"\tthreat_id\x18\x04 \x01(\tR\bthreatId\"k\n" +
 	"\n" +
@@ -929,7 +1034,19 @@ const file_json_report_spec_proto_rawDesc = "" +
 	"\x11UnknownAdviceType\x10\x00\x12\x12\n" +
 	"\x0eUpgradePackage\x10\x01\x12\x1b\n" +
 	"\x17AlternatePopularPackage\x10\x02\x12\x1a\n" +
-	"\x16AlternateSecurePackage\x10\x03B+Z)github.com/safedep/vet/gen/jsonreportspecb\x06proto3"
+	"\x16AlternateSecurePackage\x10\x03*T\n" +
+	"\vMalwareType\x12\x1c\n" +
+	"\x18MALWARE_TYPE_UNSPECIFIED\x10\x00\x12\b\n" +
+	"\x04SAFE\x10\x01\x12\x0e\n" +
+	"\n" +
+	"SUSPICIOUS\x10\x02\x12\r\n" +
+	"\tMALICIOUS\x10\x03*V\n" +
+	"\x11MalwareConfidence\x12\"\n" +
+	"\x1eMALWARE_CONFIDENCE_UNSPECIFIED\x10\x00\x12\b\n" +
+	"\x04HIGH\x10\x01\x12\n" +
+	"\n" +
+	"\x06MEDIUM\x10\x02\x12\a\n" +
+	"\x03LOW\x10\x03B+Z)github.com/safedep/vet/gen/jsonreportspecb\x06proto3"
 
 var (
 	file_json_report_spec_proto_rawDescOnce sync.Once
@@ -943,53 +1060,57 @@ func file_json_report_spec_proto_rawDescGZIP() []byte {
 	return file_json_report_spec_proto_rawDescData
 }
 
-var file_json_report_spec_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_json_report_spec_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
 var file_json_report_spec_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_json_report_spec_proto_goTypes = []any{
 	(RemediationAdviceType)(0),          // 0: RemediationAdviceType
-	(ReportThreat_Confidence)(0),        // 1: ReportThreat.Confidence
-	(ReportThreat_Source)(0),            // 2: ReportThreat.Source
-	(ReportThreat_SubjectType)(0),       // 3: ReportThreat.SubjectType
-	(ReportThreat_ReportThreatId)(0),    // 4: ReportThreat.ReportThreatId
-	(*RemediationAdvice)(nil),           // 5: RemediationAdvice
-	(*ReportThreat)(nil),                // 6: ReportThreat
-	(*PackageManifestReport)(nil),       // 7: PackageManifestReport
-	(*PackageReport)(nil),               // 8: PackageReport
-	(*MalwareInfo)(nil),                 // 9: MalwareInfo
-	(*ReportMeta)(nil),                  // 10: ReportMeta
-	(*Report)(nil),                      // 11: Report
-	(*models.Package)(nil),              // 12: Package
-	(models.Ecosystem)(0),               // 13: Ecosystem
-	(*violations.Violation)(nil),        // 14: Violation
-	(*models.InsightVulnerability)(nil), // 15: InsightVulnerability
-	(*models.InsightLicenseInfo)(nil),   // 16: InsightLicenseInfo
-	(*models.InsightProjectInfo)(nil),   // 17: InsightProjectInfo
+	(MalwareType)(0),                    // 1: MalwareType
+	(MalwareConfidence)(0),              // 2: MalwareConfidence
+	(ReportThreat_Confidence)(0),        // 3: ReportThreat.Confidence
+	(ReportThreat_Source)(0),            // 4: ReportThreat.Source
+	(ReportThreat_SubjectType)(0),       // 5: ReportThreat.SubjectType
+	(ReportThreat_ReportThreatId)(0),    // 6: ReportThreat.ReportThreatId
+	(*RemediationAdvice)(nil),           // 7: RemediationAdvice
+	(*ReportThreat)(nil),                // 8: ReportThreat
+	(*PackageManifestReport)(nil),       // 9: PackageManifestReport
+	(*PackageReport)(nil),               // 10: PackageReport
+	(*MalwareInfo)(nil),                 // 11: MalwareInfo
+	(*ReportMeta)(nil),                  // 12: ReportMeta
+	(*Report)(nil),                      // 13: Report
+	(*models.Package)(nil),              // 14: Package
+	(models.Ecosystem)(0),               // 15: Ecosystem
+	(*violations.Violation)(nil),        // 16: Violation
+	(*models.InsightVulnerability)(nil), // 17: InsightVulnerability
+	(*models.InsightLicenseInfo)(nil),   // 18: InsightLicenseInfo
+	(*models.InsightProjectInfo)(nil),   // 19: InsightProjectInfo
 }
 var file_json_report_spec_proto_depIdxs = []int32{
 	0,  // 0: RemediationAdvice.type:type_name -> RemediationAdviceType
-	12, // 1: RemediationAdvice.package:type_name -> Package
-	4,  // 2: ReportThreat.id:type_name -> ReportThreat.ReportThreatId
-	3,  // 3: ReportThreat.subject_type:type_name -> ReportThreat.SubjectType
-	1,  // 4: ReportThreat.confidence:type_name -> ReportThreat.Confidence
-	2,  // 5: ReportThreat.source:type_name -> ReportThreat.Source
-	13, // 6: PackageManifestReport.ecosystem:type_name -> Ecosystem
-	6,  // 7: PackageManifestReport.threats:type_name -> ReportThreat
-	12, // 8: PackageReport.package:type_name -> Package
-	14, // 9: PackageReport.violations:type_name -> Violation
-	5,  // 10: PackageReport.advices:type_name -> RemediationAdvice
-	15, // 11: PackageReport.vulnerabilities:type_name -> InsightVulnerability
-	16, // 12: PackageReport.licenses:type_name -> InsightLicenseInfo
-	17, // 13: PackageReport.projects:type_name -> InsightProjectInfo
-	9,  // 14: PackageReport.malware_info:type_name -> MalwareInfo
-	6,  // 15: PackageReport.threats:type_name -> ReportThreat
-	10, // 16: Report.meta:type_name -> ReportMeta
-	7,  // 17: Report.manifests:type_name -> PackageManifestReport
-	8,  // 18: Report.packages:type_name -> PackageReport
-	19, // [19:19] is the sub-list for method output_type
-	19, // [19:19] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	14, // 1: RemediationAdvice.package:type_name -> Package
+	6,  // 2: ReportThreat.id:type_name -> ReportThreat.ReportThreatId
+	5,  // 3: ReportThreat.subject_type:type_name -> ReportThreat.SubjectType
+	3,  // 4: ReportThreat.confidence:type_name -> ReportThreat.Confidence
+	4,  // 5: ReportThreat.source:type_name -> ReportThreat.Source
+	15, // 6: PackageManifestReport.ecosystem:type_name -> Ecosystem
+	8,  // 7: PackageManifestReport.threats:type_name -> ReportThreat
+	14, // 8: PackageReport.package:type_name -> Package
+	16, // 9: PackageReport.violations:type_name -> Violation
+	7,  // 10: PackageReport.advices:type_name -> RemediationAdvice
+	17, // 11: PackageReport.vulnerabilities:type_name -> InsightVulnerability
+	18, // 12: PackageReport.licenses:type_name -> InsightLicenseInfo
+	19, // 13: PackageReport.projects:type_name -> InsightProjectInfo
+	11, // 14: PackageReport.malware_info:type_name -> MalwareInfo
+	8,  // 15: PackageReport.threats:type_name -> ReportThreat
+	1,  // 16: MalwareInfo.type:type_name -> MalwareType
+	2,  // 17: MalwareInfo.confidence:type_name -> MalwareConfidence
+	12, // 18: Report.meta:type_name -> ReportMeta
+	9,  // 19: Report.manifests:type_name -> PackageManifestReport
+	10, // 20: Report.packages:type_name -> PackageReport
+	21, // [21:21] is the sub-list for method output_type
+	21, // [21:21] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_json_report_spec_proto_init() }
@@ -1002,7 +1123,7 @@ func file_json_report_spec_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_json_report_spec_proto_rawDesc), len(file_json_report_spec_proto_rawDesc)),
-			NumEnums:      5,
+			NumEnums:      7,
 			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,

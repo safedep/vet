@@ -323,16 +323,15 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 		malwareInfo := &schema.MalwareInfo{}
 
 		if malwareAnalysis.IsMalware {
-			malwareInfo.Type = "Malware"
+			malwareInfo.Type = schema.MalwareType_MALICIOUS
 		} else if malwareAnalysis.IsSuspicious {
-			malwareInfo.Type = "Suspicious"
+			malwareInfo.Type = schema.MalwareType_SUSPICIOUS
 		} else {
-			malwareInfo.Type = "Unknown"
+			malwareInfo.Type = schema.MalwareType_SAFE
 		}
 
-		malwareInfo.Confidence = "HIGH"
+		malwareInfo.Confidence = schema.MalwareConfidence_HIGH
 		malwareInfo.ThreatId = malwareAnalysis.Id()
-
 		pkg.MalwareInfo = append(pkg.MalwareInfo, malwareInfo)
 	}
 

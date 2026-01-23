@@ -98,9 +98,23 @@ message PackageReport {
   repeated ReportThreat threats = 7;
 }
 
+enum MalwareType {
+  MALWARE_TYPE_UNSPECIFIED = 0;
+  SAFE = 1;
+  SUSPICIOUS = 2;
+  MALICIOUS = 3;
+}
+
+enum MalwareConfidence {
+  MALWARE_CONFIDENCE_UNSPECIFIED = 0;
+  HIGH = 1;
+  MEDIUM = 2;
+  LOW = 3;
+}
+
 message MalwareInfo {
-  string type = 1;
-  string confidence = 2;
+  MalwareType type = 1;
+  MalwareConfidence confidence = 2;
   string threat_id = 4;
 }
 
