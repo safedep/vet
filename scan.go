@@ -338,7 +338,6 @@ func startScan() {
 }
 
 func internalStartScan() error {
-	// Route to skill scanner if --skill flag is provided
 	if agentSkillSpec != "" {
 		return runAgentSkillScan()
 	}
@@ -1011,8 +1010,6 @@ func internalStartScan() error {
 
 // runAgentSkillScan executes the skill scanning workflow
 func runAgentSkillScan() error {
-	analytics.TrackCommandScan()
-
 	ui.PrintMsg("Scanning skill: %s", agentSkillSpec)
 	fmt.Fprintln(os.Stderr)
 
@@ -1092,8 +1089,6 @@ func runAgentSkillScan() error {
 	skillReporter := reporter.NewSkillReporter(reporter.DefaultSkillReporterConfig())
 
 	scannerConfig := scanner.DefaultAgentSkillScannerConfig()
-	scannerConfig.FailFast = failFast
-
 	skillScanner := scanner.NewAgentSkillScanner(
 		scannerConfig,
 		skillReader,

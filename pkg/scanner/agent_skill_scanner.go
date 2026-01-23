@@ -15,15 +15,12 @@ import (
 
 // AgentSkillScannerConfig configures the skill scanner
 type AgentSkillScannerConfig struct {
-	// Whether to fail fast on malware detection
-	FailFast bool
+	// Placeholder for future configuration
 }
 
 // DefaultAgentSkillScannerConfig returns the default configuration
 func DefaultAgentSkillScannerConfig() AgentSkillScannerConfig {
-	return AgentSkillScannerConfig{
-		FailFast: true,
-	}
+	return AgentSkillScannerConfig{}
 }
 
 // agentSkillScanner is a purpose-built scanner for Agent Skills
