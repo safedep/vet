@@ -102,7 +102,7 @@ var (
 	scanImageNoRemote                bool
 	reportHtmlPath                   string
 	brewSpec                         bool
-	skillSpec                        string
+	agentSkillSpec                   string
 )
 
 func newScanCommand() *cobra.Command {
@@ -256,7 +256,7 @@ func newScanCommand() *cobra.Command {
 		"Disable container image pulling when not found locally")
 	cmd.Flags().StringVar(&reportHtmlPath, "report-html", "", "Path to write HTML report output")
 	cmd.Flags().BoolVar(&brewSpec, "homebrew", false, "Enable scanning for Homebrew packages")
-	cmd.Flags().StringVar(&skillSpec, "skill", "", "Scan an Agent Skill (format: owner/repo or GitHub URL)")
+	cmd.Flags().StringVar(&agentSkillSpec, "agent-skill", "", "Scan an Agent Skill (format: owner/repo or GitHub URL)")
 
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
@@ -339,7 +339,7 @@ func startScan() {
 
 func internalStartScan() error {
 	// Route to skill scanner if --skill flag is provided
-	if skillSpec != "" {
+	if agentSkillSpec != "" {
 		return runAgentSkillScan()
 	}
 
@@ -1013,10 +1013,10 @@ func internalStartScan() error {
 func runAgentSkillScan() error {
 	analytics.TrackCommandScan()
 
-	ui.PrintMsg("Scanning skill: %s", skillSpec)
+	ui.PrintMsg("Scanning skill: %s", agentSkillSpec)
 	fmt.Fprintln(os.Stderr)
 
-	// Create GitHub client
+	// Create DRY GitHub client, required by Malysis enricher
 	githubClient, err := adapters.NewGithubClient(adapters.DefaultGitHubClientConfig())
 	if err != nil {
 		return fmt.Errorf("failed to create GitHub client: %w", err)
@@ -1028,21 +1028,20 @@ func runAgentSkillScan() error {
 		return fmt.Errorf("failed to create Google GitHub client: %w", err)
 	}
 
-	// Create skill reader
 	skillReader, err := readers.NewSkillReader(googleGithubClient, readers.SkillReaderConfig{
-		SkillSpec: skillSpec,
+		SkillSpec: agentSkillSpec,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create skill reader: %w", err)
 	}
 
-	// Determine auth mode and create appropriate Malysis enricher
 	var enricher scanner.PackageMetaEnricher
 	var scanMode string
 
 	if auth.CommunityMode() {
-		// Use query mode (read-only access to known malware database)
 		ui.PrintMsg("Note: Running in query mode (limited to known malware database)")
+		ui.PrintMsg("See 'vet cloud quickstart' to sign up for full malware analysis")
+
 		fmt.Fprintln(os.Stderr)
 
 		client, err := auth.MalwareAnalysisCommunityClientConnection("vet-malware-analysis")
@@ -1060,7 +1059,6 @@ func runAgentSkillScan() error {
 
 		scanMode = "query"
 	} else {
-		// Use active scanning mode (authenticated)
 		ui.PrintMsg("Submitting for active malware analysis...")
 		fmt.Fprintln(os.Stderr)
 
@@ -1082,10 +1080,8 @@ func runAgentSkillScan() error {
 
 	logger.Infof("Skill scan mode: %s", scanMode)
 
-	// Create malware analyzer
 	analyzerConfig := analyzer.DefaultMalwareAnalyzerConfig()
 	analyzerConfig.FailFast = failFast
-	analyzerConfig.MinimumConfidence = malwareAnalysisMinimumConfidence
 	analyzerConfig.TrustAutomatedAnalysis = malwareAnalyzerTrustToolResult
 
 	malwareAnalyzer, err := analyzer.NewMalwareAnalyzer(analyzerConfig)
@@ -1093,13 +1089,10 @@ func runAgentSkillScan() error {
 		return fmt.Errorf("failed to create malware analyzer: %w", err)
 	}
 
-	// Create skill reporter
 	skillReporter := reporter.NewSkillReporter(reporter.DefaultSkillReporterConfig())
 
-	// Create skill scanner
 	scannerConfig := scanner.DefaultAgentSkillScannerConfig()
 	scannerConfig.FailFast = failFast
-	scannerConfig.MinimumConfidence = malwareAnalysisMinimumConfidence
 
 	skillScanner := scanner.NewAgentSkillScanner(
 		scannerConfig,
@@ -1111,7 +1104,6 @@ func runAgentSkillScan() error {
 
 	redirectLogToFile(logFile)
 
-	// Execute scan
 	logger.Infof("Starting skill scan")
 	err = skillScanner.Start()
 	if err != nil {

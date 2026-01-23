@@ -34,7 +34,7 @@ type skillReporter struct {
 	manifest      *models.PackageManifest
 	events        []*analyzer.AnalyzerEvent
 	malwareReport *malysisv1.Report
-	analysisId    string
+	analysisID    string
 	mdRenderer    *glamour.TermRenderer
 }
 
@@ -68,7 +68,7 @@ func (r *skillReporter) AddManifest(manifest *models.PackageManifest) {
 		pkg := packages[0]
 		if ma := pkg.GetMalwareAnalysisResult(); ma != nil {
 			r.malwareReport = ma.Report
-			r.analysisId = ma.AnalysisId
+			r.analysisID = ma.AnalysisId
 		}
 	}
 }
@@ -312,8 +312,8 @@ func (r *skillReporter) printRecommendation(pkg *models.Package) {
 
 // printFooter prints the analysis URL
 func (r *skillReporter) printFooter() {
-	if r.analysisId != "" {
-		reportURL := malysis.ReportURL(r.analysisId)
+	if r.analysisID != "" {
+		reportURL := malysis.ReportURL(r.analysisID)
 		fmt.Fprintf(os.Stderr, "%s\n\n",
 			text.Faint.Sprint("→ View detailed analysis: "+reportURL))
 	}

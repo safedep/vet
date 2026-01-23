@@ -10,7 +10,6 @@ func TestDefaultAgentSkillScannerConfig(t *testing.T) {
 	config := DefaultAgentSkillScannerConfig()
 
 	assert.True(t, config.FailFast, "Default config should have FailFast enabled")
-	assert.Equal(t, "HIGH", config.MinimumConfidence, "Default minimum confidence should be HIGH")
 }
 
 func TestNewAgentSkillScanner(t *testing.T) {

@@ -3,29 +3,26 @@ package scanner
 import (
 	"fmt"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/readers"
 	"github.com/safedep/vet/pkg/reporter"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 // AgentSkillScannerConfig configures the skill scanner
 type AgentSkillScannerConfig struct {
 	// Whether to fail fast on malware detection
 	FailFast bool
-
-	// Minimum confidence for malware classification
-	MinimumConfidence string
 }
 
 // DefaultAgentSkillScannerConfig returns the default configuration
 func DefaultAgentSkillScannerConfig() AgentSkillScannerConfig {
 	return AgentSkillScannerConfig{
-		FailFast:          true,
-		MinimumConfidence: "HIGH",
+		FailFast: true,
 	}
 }
 
@@ -63,7 +60,6 @@ func NewAgentSkillScanner(
 func (s *agentSkillScanner) Start() error {
 	logger.Infof("Starting Agent Skill scan")
 
-	// Read the skill manifest
 	var manifest *models.PackageManifest
 	err := s.reader.EnumManifests(func(pm *models.PackageManifest, _ readers.PackageReader) error {
 		manifest = pm
