@@ -341,7 +341,7 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 		case malysisv1.Report_Evidence_CONFIDENCE_LOW:
 			malwareInfo.Confidence = schema.MalwareConfidence_LOW
 		default:
-			malwareInfo.Confidence = schema.MalwareConfidence_MALWARE_CONFIDENCE_UNSPECIFIED
+			malwareInfo.Confidence = schema.MalwareConfidence_UnknownConfidence
 		}
 
 		malwareInfo.ThreatId = malwareAnalysis.Id()

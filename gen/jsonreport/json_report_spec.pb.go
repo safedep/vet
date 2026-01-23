@@ -7,14 +7,13 @@
 package jsonreportspec
 
 import (
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
-
 	models "github.com/safedep/vet/gen/models"
 	violations "github.com/safedep/vet/gen/violations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
 )
 
 const (
@@ -79,25 +78,25 @@ func (RemediationAdviceType) EnumDescriptor() ([]byte, []int) {
 type MalwareType int32
 
 const (
-	MalwareType_MALWARE_TYPE_UNSPECIFIED MalwareType = 0
-	MalwareType_SAFE                     MalwareType = 1
-	MalwareType_SUSPICIOUS               MalwareType = 2
-	MalwareType_MALICIOUS                MalwareType = 3
+	MalwareType_UnknownMalwareType MalwareType = 0
+	MalwareType_SAFE               MalwareType = 1
+	MalwareType_SUSPICIOUS         MalwareType = 2
+	MalwareType_MALICIOUS          MalwareType = 3
 )
 
 // Enum value maps for MalwareType.
 var (
 	MalwareType_name = map[int32]string{
-		0: "MALWARE_TYPE_UNSPECIFIED",
+		0: "UnknownMalwareType",
 		1: "SAFE",
 		2: "SUSPICIOUS",
 		3: "MALICIOUS",
 	}
 	MalwareType_value = map[string]int32{
-		"MALWARE_TYPE_UNSPECIFIED": 0,
-		"SAFE":                     1,
-		"SUSPICIOUS":               2,
-		"MALICIOUS":                3,
+		"UnknownMalwareType": 0,
+		"SAFE":               1,
+		"SUSPICIOUS":         2,
+		"MALICIOUS":          3,
 	}
 )
 
@@ -131,25 +130,25 @@ func (MalwareType) EnumDescriptor() ([]byte, []int) {
 type MalwareConfidence int32
 
 const (
-	MalwareConfidence_MALWARE_CONFIDENCE_UNSPECIFIED MalwareConfidence = 0
-	MalwareConfidence_HIGH                           MalwareConfidence = 1
-	MalwareConfidence_MEDIUM                         MalwareConfidence = 2
-	MalwareConfidence_LOW                            MalwareConfidence = 3
+	MalwareConfidence_UnknownConfidence MalwareConfidence = 0
+	MalwareConfidence_HIGH              MalwareConfidence = 1
+	MalwareConfidence_MEDIUM            MalwareConfidence = 2
+	MalwareConfidence_LOW               MalwareConfidence = 3
 )
 
 // Enum value maps for MalwareConfidence.
 var (
 	MalwareConfidence_name = map[int32]string{
-		0: "MALWARE_CONFIDENCE_UNSPECIFIED",
+		0: "UnknownConfidence",
 		1: "HIGH",
 		2: "MEDIUM",
 		3: "LOW",
 	}
 	MalwareConfidence_value = map[string]int32{
-		"MALWARE_CONFIDENCE_UNSPECIFIED": 0,
-		"HIGH":                           1,
-		"MEDIUM":                         2,
-		"LOW":                            3,
+		"UnknownConfidence": 0,
+		"HIGH":              1,
+		"MEDIUM":            2,
+		"LOW":               3,
 	}
 )
 
@@ -812,14 +811,14 @@ func (x *MalwareInfo) GetType() MalwareType {
 	if x != nil {
 		return x.Type
 	}
-	return MalwareType_MALWARE_TYPE_UNSPECIFIED
+	return MalwareType_UnknownMalwareType
 }
 
 func (x *MalwareInfo) GetConfidence() MalwareConfidence {
 	if x != nil {
 		return x.Confidence
 	}
-	return MalwareConfidence_MALWARE_CONFIDENCE_UNSPECIFIED
+	return MalwareConfidence_UnknownConfidence
 }
 
 func (x *MalwareInfo) GetThreatId() string {
@@ -1034,15 +1033,15 @@ const file_json_report_spec_proto_rawDesc = "" +
 	"\x11UnknownAdviceType\x10\x00\x12\x12\n" +
 	"\x0eUpgradePackage\x10\x01\x12\x1b\n" +
 	"\x17AlternatePopularPackage\x10\x02\x12\x1a\n" +
-	"\x16AlternateSecurePackage\x10\x03*T\n" +
-	"\vMalwareType\x12\x1c\n" +
-	"\x18MALWARE_TYPE_UNSPECIFIED\x10\x00\x12\b\n" +
+	"\x16AlternateSecurePackage\x10\x03*N\n" +
+	"\vMalwareType\x12\x16\n" +
+	"\x12UnknownMalwareType\x10\x00\x12\b\n" +
 	"\x04SAFE\x10\x01\x12\x0e\n" +
 	"\n" +
 	"SUSPICIOUS\x10\x02\x12\r\n" +
-	"\tMALICIOUS\x10\x03*V\n" +
-	"\x11MalwareConfidence\x12\"\n" +
-	"\x1eMALWARE_CONFIDENCE_UNSPECIFIED\x10\x00\x12\b\n" +
+	"\tMALICIOUS\x10\x03*I\n" +
+	"\x11MalwareConfidence\x12\x15\n" +
+	"\x11UnknownConfidence\x10\x00\x12\b\n" +
 	"\x04HIGH\x10\x01\x12\n" +
 	"\n" +
 	"\x06MEDIUM\x10\x02\x12\a\n" +
