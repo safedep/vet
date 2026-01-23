@@ -8,6 +8,8 @@ import (
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/readers"
 	"github.com/safedep/vet/pkg/reporter"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // AgentSkillScannerConfig configures the skill scanner
@@ -123,6 +125,12 @@ func (s *agentSkillScanner) enrichSkill(manifest *models.PackageManifest) error 
 		return nil
 	})
 	if err != nil {
+		// Check if its gRPC not found. This is expected for some packages
+		// especially in query mode.
+		if st, ok := status.FromError(err); ok && st.Code() == codes.NotFound {
+			return nil
+		}
+
 		return fmt.Errorf("failed to enrich package: %w", err)
 	}
 

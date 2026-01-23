@@ -119,3 +119,52 @@ func TestSkillReporterColorizeConfidence(t *testing.T) {
 		})
 	}
 }
+
+func TestSkillReporterTrimText(t *testing.T) {
+	reporter := NewSkillReporter(DefaultSkillReporterConfig())
+
+	tests := []struct {
+		name     string
+		input    string
+		maxLen   int
+		expected string
+	}{
+		{
+			name:     "text shorter than max",
+			input:    "Hello world",
+			maxLen:   20,
+			expected: "Hello world",
+		},
+		{
+			name:     "text exactly at max",
+			input:    "Hello",
+			maxLen:   5,
+			expected: "Hello",
+		},
+		{
+			name:     "text needs trimming",
+			input:    "This is a very long text that needs to be trimmed",
+			maxLen:   20,
+			expected: "This is a very lo...",
+		},
+		{
+			name:     "empty text",
+			input:    "",
+			maxLen:   20,
+			expected: "",
+		},
+		{
+			name:     "max length less than 3",
+			input:    "Hello",
+			maxLen:   2,
+			expected: "...",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := reporter.trimText(tt.input, tt.maxLen)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}

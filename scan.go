@@ -1013,8 +1013,7 @@ func internalStartScan() error {
 func runAgentSkillScan() error {
 	analytics.TrackCommandScan()
 
-	ui.PrintMsg("🔍 Agent Skill Security Scan")
-	ui.PrintMsg("Skill: %s", skillSpec)
+	ui.PrintMsg("Scanning skill: %s", skillSpec)
 	fmt.Fprintln(os.Stderr)
 
 	// Create GitHub client
@@ -1043,9 +1042,7 @@ func runAgentSkillScan() error {
 
 	if auth.CommunityMode() {
 		// Use query mode (read-only access to known malware database)
-		ui.PrintWarning("⚠️  Running in Query Mode")
-		ui.PrintWarning("Active malware scanning requires authentication. Currently querying known malware database.")
-		ui.PrintWarning("For active scanning, authenticate with: vet auth login")
+		ui.PrintMsg("Note: Running in query mode (limited to known malware database)")
 		fmt.Fprintln(os.Stderr)
 
 		client, err := auth.MalwareAnalysisCommunityClientConnection("vet-malware-analysis")
@@ -1064,8 +1061,7 @@ func runAgentSkillScan() error {
 		scanMode = "query"
 	} else {
 		// Use active scanning mode (authenticated)
-		ui.PrintSuccess("🔐 Running in Active Scanning Mode")
-		ui.PrintMsg("Submitting skill for active malware analysis...")
+		ui.PrintMsg("Submitting for active malware analysis...")
 		fmt.Fprintln(os.Stderr)
 
 		client, err := auth.MalwareAnalysisClientConnection("vet-malware-analysis")
@@ -1112,6 +1108,8 @@ func runAgentSkillScan() error {
 		malwareAnalyzer,
 		[]reporter.Reporter{skillReporter},
 	)
+
+	redirectLogToFile(logFile)
 
 	// Execute scan
 	logger.Infof("Starting skill scan")
