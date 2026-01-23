@@ -102,6 +102,7 @@ var (
 	scanImageNoRemote                bool
 	reportHtmlPath                   string
 	brewSpec                         bool
+	skillSpec                        string
 )
 
 func newScanCommand() *cobra.Command {
@@ -255,6 +256,7 @@ func newScanCommand() *cobra.Command {
 		"Disable container image pulling when not found locally")
 	cmd.Flags().StringVar(&reportHtmlPath, "report-html", "", "Path to write HTML report output")
 	cmd.Flags().BoolVar(&brewSpec, "homebrew", false, "Enable scanning for Homebrew packages")
+	cmd.Flags().StringVar(&skillSpec, "skill", "", "Scan an Agent Skill (format: owner/repo or GitHub URL)")
 
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
@@ -336,6 +338,11 @@ func startScan() {
 }
 
 func internalStartScan() error {
+	// Route to skill scanner if --skill flag is provided
+	if skillSpec != "" {
+		return runAgentSkillScan()
+	}
+
 	toolMetadata := reporter.ToolMetadata{
 		Name:                 vetName,
 		Version:              version,
@@ -1000,4 +1007,118 @@ func internalStartScan() error {
 	})
 
 	return pmScanner.Start()
+}
+
+// runAgentSkillScan executes the skill scanning workflow
+func runAgentSkillScan() error {
+	analytics.TrackCommandScan()
+
+	ui.PrintMsg("🔍 Agent Skill Security Scan")
+	ui.PrintMsg("Skill: %s", skillSpec)
+	fmt.Fprintln(os.Stderr)
+
+	// Create GitHub client
+	githubClient, err := adapters.NewGithubClient(adapters.DefaultGitHubClientConfig())
+	if err != nil {
+		return fmt.Errorf("failed to create GitHub client: %w", err)
+	}
+
+	// Create Google GitHub client (required by skill reader)
+	googleGithubClient, err := connect.GetGithubClient()
+	if err != nil {
+		return fmt.Errorf("failed to create Google GitHub client: %w", err)
+	}
+
+	// Create skill reader
+	skillReader, err := readers.NewSkillReader(googleGithubClient, readers.SkillReaderConfig{
+		SkillSpec: skillSpec,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create skill reader: %w", err)
+	}
+
+	// Determine auth mode and create appropriate Malysis enricher
+	var enricher scanner.PackageMetaEnricher
+	var scanMode string
+
+	if auth.CommunityMode() {
+		// Use query mode (read-only access to known malware database)
+		ui.PrintWarning("⚠️  Running in Query Mode")
+		ui.PrintWarning("Active malware scanning requires authentication. Currently querying known malware database.")
+		ui.PrintWarning("For active scanning, authenticate with: vet auth login")
+		fmt.Fprintln(os.Stderr)
+
+		client, err := auth.MalwareAnalysisCommunityClientConnection("vet-malware-analysis")
+		if err != nil {
+			return fmt.Errorf("failed to create malware analysis client: %w", err)
+		}
+
+		config := scanner.DefaultMalysisMalwareEnricherConfig()
+		config.Timeout = malwareAnalysisTimeout
+
+		enricher, err = scanner.NewMalysisMalwareAnalysisQueryEnricher(client, githubClient, config)
+		if err != nil {
+			return fmt.Errorf("failed to create malware query enricher: %w", err)
+		}
+
+		scanMode = "query"
+	} else {
+		// Use active scanning mode (authenticated)
+		ui.PrintSuccess("🔐 Running in Active Scanning Mode")
+		ui.PrintMsg("Submitting skill for active malware analysis...")
+		fmt.Fprintln(os.Stderr)
+
+		client, err := auth.MalwareAnalysisClientConnection("vet-malware-analysis")
+		if err != nil {
+			return fmt.Errorf("failed to create malware analysis client: %w", err)
+		}
+
+		config := scanner.DefaultMalysisMalwareEnricherConfig()
+		config.Timeout = malwareAnalysisTimeout
+
+		enricher, err = scanner.NewMalysisMalwareEnricher(client, githubClient, config)
+		if err != nil {
+			return fmt.Errorf("failed to create malware enricher: %w", err)
+		}
+
+		scanMode = "active"
+	}
+
+	logger.Infof("Skill scan mode: %s", scanMode)
+
+	// Create malware analyzer
+	analyzerConfig := analyzer.DefaultMalwareAnalyzerConfig()
+	analyzerConfig.FailFast = failFast
+	analyzerConfig.MinimumConfidence = malwareAnalysisMinimumConfidence
+	analyzerConfig.TrustAutomatedAnalysis = malwareAnalyzerTrustToolResult
+
+	malwareAnalyzer, err := analyzer.NewMalwareAnalyzer(analyzerConfig)
+	if err != nil {
+		return fmt.Errorf("failed to create malware analyzer: %w", err)
+	}
+
+	// Create skill reporter
+	skillReporter := reporter.NewSkillReporter(reporter.DefaultSkillReporterConfig())
+
+	// Create skill scanner
+	scannerConfig := scanner.DefaultAgentSkillScannerConfig()
+	scannerConfig.FailFast = failFast
+	scannerConfig.MinimumConfidence = malwareAnalysisMinimumConfidence
+
+	skillScanner := scanner.NewAgentSkillScanner(
+		scannerConfig,
+		skillReader,
+		enricher,
+		malwareAnalyzer,
+		[]reporter.Reporter{skillReporter},
+	)
+
+	// Execute scan
+	logger.Infof("Starting skill scan")
+	err = skillScanner.Start()
+	if err != nil {
+		return fmt.Errorf("skill scan failed: %w", err)
+	}
+
+	return nil
 }
