@@ -28,6 +28,11 @@
 
 ---
 
+> [!NOTE]
+> `vet` supports special mode for Agent Skills.
+> Run `vet scan --agent-skill <owner/repo>` to scan an Agent Skill hosted in a GitHub repository.
+
+
 ## 🎯 Why vet?
 
 > **70-90% of modern software constitute code from open sources** — How do we know if it's safe?
