@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	malysisv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
+	"github.com/charmbracelet/glamour"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
 
@@ -35,15 +36,23 @@ type skillReporter struct {
 	events        []*analyzer.AnalyzerEvent
 	malwareReport *malysisv1.Report
 	analysisId    string
+	mdRenderer    *glamour.TermRenderer
 }
 
 var _ Reporter = (*skillReporter)(nil)
 
 // NewSkillReporter creates a new skill reporter
 func NewSkillReporter(config SkillReporterConfig) *skillReporter {
+	// Create a glamour renderer with a compact style for evidence rendering
+	renderer, _ := glamour.NewTermRenderer(
+		glamour.WithAutoStyle(),
+		glamour.WithWordWrap(70),
+	)
+
 	return &skillReporter{
-		config: config,
-		events: make([]*analyzer.AnalyzerEvent, 0),
+		config:     config,
+		events:     make([]*analyzer.AnalyzerEvent, 0),
+		mdRenderer: renderer,
 	}
 }
 
@@ -130,6 +139,12 @@ func (r *skillReporter) printSkillInfo(pkg *models.Package) {
 	t.SetStyle(table.StyleLight)
 	t.Style().Options.SeparateRows = false
 
+	// Set consistent column widths
+	t.SetColumnConfigs([]table.ColumnConfig{
+		{Number: 1, WidthMax: 18},  // Label column
+		{Number: 2, WidthMax: 65},  // Value column
+	})
+
 	t.AppendRow(table.Row{"Skill", pkg.GetName()})
 	t.AppendRow(table.Row{"Version", pkg.GetVersion()})
 	t.AppendRow(table.Row{"Ecosystem", pkg.Manifest.Ecosystem})
@@ -182,6 +197,12 @@ func (r *skillReporter) printAnalysisDetails() {
 	t.SetTitle("Analysis Details")
 	t.Style().Options.SeparateRows = false
 
+	// Set column width to match metadata table (approximately 50 chars for value column)
+	t.SetColumnConfigs([]table.ColumnConfig{
+		{Number: 1, WidthMax: 18},  // Label column
+		{Number: 2, WidthMax: 65},  // Value column - allows for wrapping
+	})
+
 	// Show malware classification
 	isMalware := "No"
 	if inference.GetIsMalware() {
@@ -195,9 +216,12 @@ func (r *skillReporter) printAnalysisDetails() {
 	confidenceDisplay := r.colorizeConfidence(confidence)
 	t.AppendRow(table.Row{"Confidence", confidenceDisplay})
 
-	// Show summary if available
+	// Show summary if available with wrapping
 	if summary := inference.GetSummary(); summary != "" {
-		t.AppendRow(table.Row{"Summary", summary})
+		// Wrap summary text to fit within table width
+		wrappedLines := r.wrapText(summary, 65)
+		summaryText := strings.Join(wrappedLines, "\n")
+		t.AppendRow(table.Row{"Summary", summaryText})
 	}
 
 	t.Render()
@@ -257,14 +281,40 @@ func (r *skillReporter) printEvidence() {
 		}
 
 		if title := evidence.GetTitle(); title != "" {
-			fmt.Fprintf(os.Stderr, "     %s\n", title)
+			// Wrap title if it's too long
+			if len(title) > 70 {
+				wrappedTitle := r.wrapText(title, 70)
+				for _, line := range wrappedTitle {
+					fmt.Fprintf(os.Stderr, "     %s\n", line)
+				}
+			} else {
+				fmt.Fprintf(os.Stderr, "     %s\n", title)
+			}
 		}
 
 		if details := evidence.GetDetails(); details != "" {
-			// Wrap long descriptions
-			wrapped := r.wrapText(details, 70)
-			for _, line := range wrapped {
-				fmt.Fprintf(os.Stderr, "     %s\n", text.Faint.Sprint(line))
+			// Try to render as markdown using glamour, fallback to plain text wrapping
+			if r.mdRenderer != nil {
+				rendered, err := r.mdRenderer.Render(details)
+				if err == nil {
+					// Add indentation to each line of rendered markdown
+					lines := strings.Split(strings.TrimSpace(rendered), "\n")
+					for _, line := range lines {
+						fmt.Fprintf(os.Stderr, "     %s\n", text.Faint.Sprint(line))
+					}
+				} else {
+					// Fallback to plain text wrapping
+					wrapped := r.wrapText(details, 70)
+					for _, line := range wrapped {
+						fmt.Fprintf(os.Stderr, "     %s\n", text.Faint.Sprint(line))
+					}
+				}
+			} else {
+				// Fallback to plain text wrapping
+				wrapped := r.wrapText(details, 70)
+				for _, line := range wrapped {
+					fmt.Fprintf(os.Stderr, "     %s\n", text.Faint.Sprint(line))
+				}
 			}
 		}
 
@@ -326,14 +376,40 @@ func (r *skillReporter) printEvidence() {
 		}
 
 		if title := evidence.GetTitle(); title != "" {
-			fmt.Fprintf(os.Stderr, "     %s\n", title)
+			// Wrap title if it's too long
+			if len(title) > 70 {
+				wrappedTitle := r.wrapText(title, 70)
+				for _, line := range wrappedTitle {
+					fmt.Fprintf(os.Stderr, "     %s\n", line)
+				}
+			} else {
+				fmt.Fprintf(os.Stderr, "     %s\n", title)
+			}
 		}
 
 		if details := evidence.GetDetails(); details != "" {
-			// Wrap long descriptions
-			wrapped := r.wrapText(details, 70)
-			for _, line := range wrapped {
-				fmt.Fprintf(os.Stderr, "     %s\n", text.Faint.Sprint(line))
+			// Try to render as markdown using glamour, fallback to plain text wrapping
+			if r.mdRenderer != nil {
+				rendered, err := r.mdRenderer.Render(details)
+				if err == nil {
+					// Add indentation to each line of rendered markdown
+					lines := strings.Split(strings.TrimSpace(rendered), "\n")
+					for _, line := range lines {
+						fmt.Fprintf(os.Stderr, "     %s\n", text.Faint.Sprint(line))
+					}
+				} else {
+					// Fallback to plain text wrapping
+					wrapped := r.wrapText(details, 70)
+					for _, line := range wrapped {
+						fmt.Fprintf(os.Stderr, "     %s\n", text.Faint.Sprint(line))
+					}
+				}
+			} else {
+				// Fallback to plain text wrapping
+				wrapped := r.wrapText(details, 70)
+				for _, line := range wrapped {
+					fmt.Fprintf(os.Stderr, "     %s\n", text.Faint.Sprint(line))
+				}
 			}
 		}
 

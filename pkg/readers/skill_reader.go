@@ -24,8 +24,10 @@ type skillReader struct {
 	config SkillReaderConfig
 }
 
-var _ PackageManifestReader = &skillReader{}
-var _ PackageReader = &skillReader{}
+var (
+	_ PackageManifestReader = &skillReader{}
+	_ PackageReader         = &skillReader{}
+)
 
 // NewSkillReader creates a PackageManifestReader for Agent Skills
 // Skills are represented as GitHub repositories and treated as GitHub Actions packages

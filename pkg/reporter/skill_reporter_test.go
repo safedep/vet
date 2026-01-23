@@ -39,7 +39,7 @@ func TestSkillReporterAddManifest(t *testing.T) {
 }
 
 func TestSkillReporterWrapText(t *testing.T) {
-	reporter := &skillReporter{}
+	reporter := NewSkillReporter(DefaultSkillReporterConfig())
 
 	tests := []struct {
 		name     string
@@ -60,9 +60,9 @@ func TestSkillReporterWrapText(t *testing.T) {
 			expected: []string{"Hello"},
 		},
 		{
-			name:     "text needs wrapping",
-			input:    "This is a long sentence that needs to be wrapped",
-			width:    20,
+			name:  "text needs wrapping",
+			input: "This is a long sentence that needs to be wrapped",
+			width: 20,
 			expected: []string{
 				"This is a long",
 				"sentence that needs",
@@ -86,7 +86,7 @@ func TestSkillReporterWrapText(t *testing.T) {
 }
 
 func TestSkillReporterColorizeConfidence(t *testing.T) {
-	reporter := &skillReporter{}
+	reporter := NewSkillReporter(DefaultSkillReporterConfig())
 
 	tests := []struct {
 		name       string
