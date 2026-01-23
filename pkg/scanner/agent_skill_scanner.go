@@ -32,6 +32,9 @@ type agentSkillScanner struct {
 	analyzer  analyzer.Analyzer
 	reporters []reporter.Reporter
 
+	// Callbacks for progress tracking
+	callbacks SkillScannerCallbacks
+
 	// Error state
 	failOnError error
 }
@@ -53,8 +56,16 @@ func NewAgentSkillScanner(
 	}
 }
 
+// WithCallbacks sets the callbacks for progress tracking
+func (s *agentSkillScanner) WithCallbacks(callbacks SkillScannerCallbacks) {
+	s.callbacks = callbacks
+}
+
 // Start begins the skill scanning process
 func (s *agentSkillScanner) Start() error {
+	s.dispatchOnStart()
+	defer s.dispatchOnStop(s.error())
+
 	logger.Infof("Starting Agent Skill scan")
 
 	var manifest *models.PackageManifest
@@ -98,6 +109,9 @@ func (s *agentSkillScanner) Start() error {
 
 // enrichSkill enriches the skill package with malware analysis data
 func (s *agentSkillScanner) enrichSkill(manifest *models.PackageManifest) error {
+	s.dispatchOnStartEnrich()
+	defer s.dispatchOnDoneEnrich()
+
 	if s.enricher == nil {
 		return fmt.Errorf("no enricher configured")
 	}
@@ -140,6 +154,9 @@ func (s *agentSkillScanner) enrichSkill(manifest *models.PackageManifest) error 
 
 // analyzeSkill analyzes the enriched skill for malware
 func (s *agentSkillScanner) analyzeSkill(manifest *models.PackageManifest) error {
+	s.dispatchOnStartAnalyze()
+	defer s.dispatchOnDoneAnalyze()
+
 	if s.analyzer == nil {
 		// No analyzer configured, skip analysis
 		return nil
@@ -177,6 +194,8 @@ func (s *agentSkillScanner) analyzeSkill(manifest *models.PackageManifest) error
 
 // reportSkill sends the manifest to all reporters
 func (s *agentSkillScanner) reportSkill(manifest *models.PackageManifest) error {
+	s.dispatchOnStartReport()
+
 	logger.Debugf("Generating reports")
 
 	for _, r := range s.reporters {
@@ -188,6 +207,8 @@ func (s *agentSkillScanner) reportSkill(manifest *models.PackageManifest) error 
 
 // finishReporting finalizes all reporters
 func (s *agentSkillScanner) finishReporting() {
+	defer s.dispatchOnDoneReport()
+
 	for _, r := range s.reporters {
 		err := r.Finish()
 		if err != nil {
@@ -204,4 +225,53 @@ func (s *agentSkillScanner) failWith(err error) {
 // error returns the current error state
 func (s *agentSkillScanner) error() error {
 	return s.failOnError
+}
+
+// Callback dispatch methods
+func (s *agentSkillScanner) dispatchOnStart() {
+	if s.callbacks.OnStart != nil {
+		s.callbacks.OnStart()
+	}
+}
+
+func (s *agentSkillScanner) dispatchOnStartEnrich() {
+	if s.callbacks.OnStartEnrich != nil {
+		s.callbacks.OnStartEnrich()
+	}
+}
+
+func (s *agentSkillScanner) dispatchOnDoneEnrich() {
+	if s.callbacks.OnDoneEnrich != nil {
+		s.callbacks.OnDoneEnrich()
+	}
+}
+
+func (s *agentSkillScanner) dispatchOnStartAnalyze() {
+	if s.callbacks.OnStartAnalyze != nil {
+		s.callbacks.OnStartAnalyze()
+	}
+}
+
+func (s *agentSkillScanner) dispatchOnDoneAnalyze() {
+	if s.callbacks.OnDoneAnalyze != nil {
+		s.callbacks.OnDoneAnalyze()
+	}
+}
+
+func (s *agentSkillScanner) dispatchOnStartReport() {
+	if s.callbacks.OnStartReport != nil {
+		s.callbacks.OnStartReport()
+	}
+}
+
+func (s *agentSkillScanner) dispatchOnDoneReport() {
+	if s.callbacks.OnDoneReport != nil {
+		s.callbacks.OnDoneReport()
+	}
+}
+
+func (s *agentSkillScanner) dispatchOnStop(err error) {
+	if s.callbacks.OnStop != nil {
+		s.callbacks.OnStop(err)
+	}
 }

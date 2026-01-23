@@ -1038,7 +1038,6 @@ func runAgentSkillScan() error {
 	if auth.CommunityMode() {
 		ui.PrintMsg("Note: Running in query mode (limited to known malware database)")
 		ui.PrintMsg("See 'vet cloud quickstart' to sign up for full malware analysis")
-
 		fmt.Fprintln(os.Stderr)
 
 		client, err := auth.MalwareAnalysisCommunityClientConnection("vet-malware-analysis")
@@ -1056,9 +1055,6 @@ func runAgentSkillScan() error {
 
 		scanMode = "query"
 	} else {
-		ui.PrintMsg("Submitting for active malware analysis...")
-		fmt.Fprintln(os.Stderr)
-
 		client, err := auth.MalwareAnalysisClientConnection("vet-malware-analysis")
 		if err != nil {
 			return fmt.Errorf("failed to create malware analysis client: %w", err)
@@ -1097,9 +1093,46 @@ func runAgentSkillScan() error {
 		[]reporter.Reporter{skillReporter},
 	)
 
+	// Setup callbacks for progress tracking
+	skillScanner.WithCallbacks(scanner.SkillScannerCallbacks{
+		OnStart: func() {
+			logger.Infof("Starting skill scan")
+		},
+		OnStartEnrich: func() {
+			var msg string
+			if scanMode == "query" {
+				msg = "Querying known malware database"
+			} else {
+				msg = "Submitting for active malware analysis"
+			}
+			ui.StartSpinner(msg)
+		},
+		OnDoneEnrich: func() {
+			ui.StopSpinner()
+		},
+		OnStartAnalyze: func() {
+			ui.StartSpinner("Evaluating security findings")
+		},
+		OnDoneAnalyze: func() {
+			ui.StopSpinner()
+		},
+		OnStartReport: func() {
+			ui.StartSpinner("Generating report")
+		},
+		OnDoneReport: func() {
+			ui.StopSpinner()
+			ui.PrintSuccess("Scan completed successfully")
+		},
+		OnStop: func(err error) {
+			if err != nil {
+				ui.StopSpinner()
+				logger.Errorf("Skill scan failed: %v", err)
+			}
+		},
+	})
+
 	redirectLogToFile(logFile)
 
-	logger.Infof("Starting skill scan")
 	err = skillScanner.Start()
 	if err != nil {
 		return fmt.Errorf("skill scan failed: %w", err)
