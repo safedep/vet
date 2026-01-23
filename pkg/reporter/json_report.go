@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	malysisv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
 	"github.com/safedep/dry/utils"
 
 	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
@@ -319,7 +320,9 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 	}
 
 	malwareAnalysis := p.GetMalwareAnalysisResult()
-	if malwareAnalysis != nil {
+	if malwareAnalysis != nil &&
+		malwareAnalysis.Report != nil &&
+		malwareAnalysis.Report.Inference != nil {
 		malwareInfo := &schema.MalwareInfo{}
 
 		if malwareAnalysis.IsMalware {
@@ -330,7 +333,17 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 			malwareInfo.Type = schema.MalwareType_SAFE
 		}
 
-		malwareInfo.Confidence = schema.MalwareConfidence_HIGH
+		switch malwareAnalysis.Report.Inference.Confidence {
+		case malysisv1.Report_Evidence_CONFIDENCE_HIGH:
+			malwareInfo.Confidence = schema.MalwareConfidence_HIGH
+		case malysisv1.Report_Evidence_CONFIDENCE_MEDIUM:
+			malwareInfo.Confidence = schema.MalwareConfidence_MEDIUM
+		case malysisv1.Report_Evidence_CONFIDENCE_LOW:
+			malwareInfo.Confidence = schema.MalwareConfidence_LOW
+		default:
+			malwareInfo.Confidence = schema.MalwareConfidence_MALWARE_CONFIDENCE_UNSPECIFIED
+		}
+
 		malwareInfo.ThreatId = malwareAnalysis.Id()
 		pkg.MalwareInfo = append(pkg.MalwareInfo, malwareInfo)
 	}
