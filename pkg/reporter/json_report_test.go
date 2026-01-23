@@ -78,6 +78,11 @@ func TestJsonRepoGenerator(t *testing.T) {
 								Name:    "golib1",
 								Version: "0.1.2",
 							},
+							MalwareAnalysis: &models.MalwareAnalysisResult{
+								AnalysisId:   "TESTID",
+								IsSuspicious: true,
+								IsMalware:    false,
+							},
 						},
 					},
 				},
