@@ -24,6 +24,7 @@ import (
 	"github.com/safedep/vet/pkg/parser"
 	"github.com/safedep/vet/pkg/readers"
 	"github.com/safedep/vet/pkg/reporter"
+	"github.com/safedep/vet/pkg/reporter/bitbucket"
 	"github.com/safedep/vet/pkg/scanner"
 	"github.com/safedep/vet/pkg/storage"
 )
@@ -95,6 +96,8 @@ var (
 	malwareAnalysisTimeout           time.Duration
 	malwareAnalysisMinimumConfidence string
 	gitlabReportPath                 string
+	bitbucketMetaReportPath          string
+	bitbucketAnnotationsReportPath   string
 	sqlite3ReportPath                string
 	sqlite3ReportOverwrite           bool
 	sqlite3ReportAppend              bool
@@ -242,6 +245,10 @@ func newScanCommand() *cobra.Command {
 		"Timeout for malicious package analysis")
 	cmd.Flags().StringVarP(&gitlabReportPath, "report-gitlab", "", "",
 		"Generate GitLab dependency scanning report to file")
+	cmd.Flags().StringVarP(&bitbucketMetaReportPath, "report-bitbucket-meta", "", "",
+		"Generate BitBucket code insights meta report to file")
+	cmd.Flags().StringVarP(&bitbucketAnnotationsReportPath, "report-bitbucket-annotations", "", "",
+		"Generate BitBucket code insights annotations report to file")
 	cmd.Flags().StringVarP(&sqlite3ReportPath, "report-sqlite3", "", "",
 		"Generate SQLite3 database report to file")
 	cmd.Flags().BoolVarP(&sqlite3ReportOverwrite, "report-sqlite3-overwrite", "", false,
@@ -744,6 +751,19 @@ func internalStartScan() error {
 		rp, err := reporter.NewGitLabReporter(reporter.GitLabReporterConfig{
 			Path: gitlabReportPath,
 			Tool: toolMetadata,
+		})
+		if err != nil {
+			return err
+		}
+
+		reporters = append(reporters, rp)
+	}
+
+	if !utils.IsEmptyString(bitbucketMetaReportPath) || !utils.IsEmptyString(bitbucketAnnotationsReportPath) {
+		rp, err := bitbucket.NewBitBucketReporter(bitbucket.BitBucketReporterConfig{
+			MetaReportPath:        bitbucketMetaReportPath,
+			AnnotationsReportPath: bitbucketAnnotationsReportPath,
+			Tool:                  toolMetadata,
 		})
 		if err != nil {
 			return err
