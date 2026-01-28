@@ -139,8 +139,13 @@ func (r *exceptionMatchResult) Matched() bool {
 
 func pkgHash(ecosystem, name string) string {
 	h := fnv.New64a()
-	fmt.Fprintf(h, "%s/%s",
+	_, err := fmt.Fprintf(h, "%s/%s",
 		strings.ToLower(ecosystem), strings.ToLower(name))
+
+	// fixing linter issue
+	if err != nil {
+		return err.Error()
+	}
 
 	return strconv.FormatUint(h.Sum64(), 16)
 }
