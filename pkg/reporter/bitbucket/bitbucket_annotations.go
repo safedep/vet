@@ -5,8 +5,10 @@ import (
 	"strings"
 
 	"github.com/safedep/dry/utils"
+
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/analyzer"
+	"github.com/safedep/vet/pkg/malysis"
 	"github.com/safedep/vet/pkg/models"
 )
 
@@ -40,7 +42,7 @@ func newBitBucketAnnotationForPackage(pkg *models.Package) []*CodeInsightsAnnota
 	}
 
 	malwareInfo := utils.SafelyGetValue(pkg.MalwareAnalysis)
-	threatLink := "https://app.safedep.io/community/malysis/" + strings.TrimPrefix(malwareInfo.Id(), "SD-MAL-")
+	threatLink := malysis.ReportURL(strings.TrimPrefix(malwareInfo.Id(), "SD-MAL-"))
 
 	if malwareInfo.IsMalware {
 		annotations = append(annotations, &CodeInsightsAnnotation{
@@ -67,6 +69,10 @@ func newBitBucketAnnotationForPackage(pkg *models.Package) []*CodeInsightsAnnota
 }
 
 func newBitBucketAnnotationForAnalyzerEvent(event *analyzer.AnalyzerEvent) *CodeInsightsAnnotation {
+	if event.Package.Manifest == nil {
+		return nil
+	}
+
 	return &CodeInsightsAnnotation{
 		Title:          event.Filter.GetSummary(),
 		AnnotationType: AnnotationTypeBug,

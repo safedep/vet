@@ -106,7 +106,7 @@ func (s *exceptionStore) Match(pkg *models.Package) (*exceptionMatchResult, erro
 	s.m.RLock()
 	defer s.m.RUnlock()
 
-	h := pkgHash(string(pkg.PackageDetails.Ecosystem), pkg.PackageDetails.Name)
+	h := pkgHash(string(pkg.Ecosystem), pkg.Name)
 	if _, ok := s.rules[h]; !ok {
 		return &result, nil
 	}
@@ -128,9 +128,9 @@ func (r *exceptionRule) matchByPattern(_ *models.Package) bool {
 }
 
 func (r *exceptionRule) matchByVersion(pkg *models.Package) bool {
-	return strings.EqualFold(string(pkg.PackageDetails.Ecosystem), r.spec.GetEcosystem()) &&
-		strings.EqualFold(pkg.PackageDetails.Name, r.spec.GetName()) &&
-		((r.spec.GetVersion() == "*") || (r.spec.GetVersion() == pkg.PackageDetails.Version))
+	return strings.EqualFold(string(pkg.Ecosystem), r.spec.GetEcosystem()) &&
+		strings.EqualFold(pkg.Name, r.spec.GetName()) &&
+		((r.spec.GetVersion() == "*") || (r.spec.GetVersion() == pkg.Version))
 }
 
 func (r *exceptionMatchResult) Matched() bool {
@@ -139,8 +139,8 @@ func (r *exceptionMatchResult) Matched() bool {
 
 func pkgHash(ecosystem, name string) string {
 	h := fnv.New64a()
-	h.Write([]byte(fmt.Sprintf("%s/%s",
-		strings.ToLower(ecosystem), strings.ToLower(name))))
+	fmt.Fprintf(h, "%s/%s",
+		strings.ToLower(ecosystem), strings.ToLower(name))
 
 	return strconv.FormatUint(h.Sum64(), 16)
 }

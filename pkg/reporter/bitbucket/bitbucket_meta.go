@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/safedep/dry/utils"
+
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/reporter"
@@ -12,11 +13,11 @@ import (
 type DataPoint string
 
 const (
-	dataPointMaliciousPackages  DataPoint = "Malicious Pacakges"
+	dataPointMaliciousPackages  DataPoint = "Malicious Packages"
 	dataPointVulnerabilities    DataPoint = "Vulnerabilities"
-	dataPointSuspiciousPackages DataPoint = "Suspicious Pacakges"
+	dataPointSuspiciousPackages DataPoint = "Suspicious Packages"
 	dataPointViolations         DataPoint = "Violations"
-	dataPointThreats            DataPoint = "Theats"
+	dataPointThreats            DataPoint = "Threats"
 )
 
 func newBitBucketCodeInsightsReport(tool reporter.ToolMetadata) *CodeInsightsReport {
@@ -32,7 +33,12 @@ func newBitBucketCodeInsightsReport(tool reporter.ToolMetadata) *CodeInsightsRep
 
 func (r *CodeInsightsReport) addManifest(manifest *models.PackageManifest) {
 	for _, pkg := range manifest.Packages {
-		var vulneravilitiesCnt = len(utils.SafelyGetValue(pkg.Insights.Vulnerabilities))
+		vulneravilitiesCnt := 0
+
+		if pkg.Insights != nil {
+			vulneravilitiesCnt = len(utils.SafelyGetValue(pkg.Insights.Vulnerabilities))
+		}
+
 		upsertDataPointInReport(r, vulneravilitiesCnt, dataPointVulnerabilities)
 
 		malwareInfo := utils.SafelyGetValue(pkg.MalwareAnalysis)
@@ -78,11 +84,11 @@ func upsertDataPointInReport(report *CodeInsightsReport, value int, dataPoint Da
 
 func markReportFailed(report *CodeInsightsReport, dataPoint DataPoint) {
 	if dataPoint == dataPointSuspiciousPackages {
-		// if only for suspicious packages, we dont mark the Reprort as "FAILED"
+		// if only for suspicious packages, we dont mark the report as "FAILED"
 		return
 	}
 
-	// else for all other cases, i.e found vulnerabilty, threat, vilations or verified malicious package
+	// else for all other cases, i.e found vulnerability, threat, violations or verified malicious package
 	// we make the report as "FAILED"
 	report.Result = ReportResultFailed
 }

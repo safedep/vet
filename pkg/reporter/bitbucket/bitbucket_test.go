@@ -7,13 +7,14 @@ import (
 	"testing"
 
 	"github.com/safedep/dry/utils"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/safedep/vet/gen/checks"
 	"github.com/safedep/vet/gen/filtersuite"
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/reporter"
-	"github.com/stretchr/testify/assert"
 )
 
 func getBitbucketReporter(metaReportPath, annotationsReportPath string) (reporter.Reporter, error) {
@@ -30,7 +31,11 @@ func getBitbucketReporter(metaReportPath, annotationsReportPath string) (reporte
 func TestBitBucketReporter(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "bitbucket-reporter-test-*")
 	assert.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		if err := os.RemoveAll(tmpDir); err != nil {
+			t.Fatal(err.Error())
+		}
+	}()
 
 	metaReportPath := filepath.Join(tmpDir, "meta.json")
 	annotationsReportPath := filepath.Join(tmpDir, "annotations.json")

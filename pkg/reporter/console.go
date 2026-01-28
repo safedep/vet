@@ -62,7 +62,7 @@ func (r *consoleReporter) report(tbl table.Writer, pkg *models.Package) {
 
 		// Header for this package
 		tbl.AppendRow(table.Row{
-			fmt.Sprintf("%s/%s", pkg.PackageDetails.Name, pkg.PackageDetails.Version),
+			fmt.Sprintf("%s/%s", pkg.Name, pkg.Version),
 			"", "",
 		})
 
@@ -109,7 +109,7 @@ func (r *consoleReporter) report(tbl table.Writer, pkg *models.Package) {
 	}
 
 	// High version drift
-	version := pkg.PackageDetails.Version
+	version := pkg.Version
 	latestVersion := utils.SafelyGetValue(insight.PackageCurrentVersion)
 
 	driftType, _ := semver.Diff(version, latestVersion)

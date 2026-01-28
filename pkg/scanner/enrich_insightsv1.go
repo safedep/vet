@@ -64,10 +64,10 @@ func (e *insightsBasedPackageEnricher) Enrich(pkg *models.Package,
 	cb PackageDependencyCallbackFn,
 ) error {
 	logger.Infof("[%s] Enriching %s/%s", pkg.Manifest.Ecosystem,
-		pkg.PackageDetails.Name, pkg.PackageDetails.Version)
+		pkg.Name, pkg.Version)
 
 	res, err := e.client.GetPackageVersionInsightWithResponse(context.Background(),
-		string(pkg.PackageDetails.Ecosystem),
+		string(pkg.Ecosystem),
 		pkg.Name, pkg.Version)
 	if err != nil {
 		logger.Errorf("Failed to enrich package: %v", err)
@@ -81,11 +81,11 @@ func (e *insightsBasedPackageEnricher) Enrich(pkg *models.Package,
 
 	if res.JSON200 == nil {
 		return fmt.Errorf("unexpected nil response for: %s/%s/%s",
-			pkg.Manifest.Ecosystem, pkg.PackageDetails.Name, pkg.Insights.PackageVersion.Version)
+			pkg.Manifest.Ecosystem, pkg.Name, pkg.Insights.PackageVersion.Version)
 	}
 
 	for _, dep := range utils.SafelyGetValue(res.JSON200.Dependencies) {
-		if strings.EqualFold(dep.PackageVersion.Name, pkg.PackageDetails.Name) {
+		if strings.EqualFold(dep.PackageVersion.Name, pkg.Name) {
 			// Skip self references in dependency
 			continue
 		}

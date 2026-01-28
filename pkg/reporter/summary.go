@@ -213,7 +213,7 @@ func (r *summaryReporter) usedInCode(pkg *models.Package) bool {
 func (r *summaryReporter) processForVersionDrift(pkg *models.Package) {
 	insight := utils.SafelyGetValue(pkg.Insights)
 
-	version := pkg.PackageDetails.Version
+	version := pkg.Version
 	latestVersion := utils.SafelyGetValue(insight.PackageCurrentVersion)
 
 	// Ignore for transitive dependencies
@@ -740,8 +740,8 @@ func (r *summaryReporter) packageVulnerabilitySampleText(pkg *models.Package) st
 }
 
 func (r *summaryReporter) packageNameForRemediationAdvice(pkg *models.Package) string {
-	return fmt.Sprintf("%s@%s", pkg.PackageDetails.Name,
-		pkg.PackageDetails.Version)
+	return fmt.Sprintf("%s@%s", pkg.Name,
+		pkg.Version)
 }
 
 func (r *summaryReporter) slsaTagFor(pkg *models.Package) string {
@@ -772,7 +772,7 @@ func (r *summaryReporter) packageUpdateVersionForRemediationAdvice(pkg *models.P
 		return "Not Available"
 	}
 
-	sver, _ := semver.Diff(pkg.PackageDetails.Version, insightsCurrentVersion)
+	sver, _ := semver.Diff(pkg.Version, insightsCurrentVersion)
 	if sver.IsNone() {
 		return "-"
 	}

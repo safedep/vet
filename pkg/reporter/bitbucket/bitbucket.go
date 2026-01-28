@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/safedep/dry/utils"
+
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
@@ -45,10 +46,6 @@ func (r *bitbucketReporter) AddManifest(manifest *models.PackageManifest) {
 }
 
 func (r *bitbucketReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
-	if !event.IsFilterMatch() {
-		return
-	}
-
 	if event.Package == nil || event.Filter == nil {
 		return
 	}
@@ -86,7 +83,7 @@ func (r *bitbucketReporter) writeReport(path string, data any) error {
 		return fmt.Errorf("failed to marshal BitBucket report: %w", err)
 	}
 
-	err = os.WriteFile(path, content, 0644)
+	err = os.WriteFile(path, content, 0o644)
 	if err != nil {
 		return fmt.Errorf("failed to write BitBucket report: %w", err)
 	}
