@@ -51,7 +51,10 @@ func (r *bitbucketReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 	}
 
 	r.metaReport.addAnalyzerEvent(event)
-	r.annotationsReport = append(r.annotationsReport, newBitBucketAnnotationForAnalyzerEvent(event))
+
+	if annotation := newBitBucketAnnotationForAnalyzerEvent(event); annotation != nil {
+		r.annotationsReport = append(r.annotationsReport, annotation)
+	}
 }
 
 func (r *bitbucketReporter) AddPolicyEvent(event *policy.PolicyEvent) {}

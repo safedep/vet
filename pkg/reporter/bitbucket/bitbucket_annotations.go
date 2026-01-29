@@ -15,7 +15,7 @@ import (
 func newBitBucketAnnotationForPackage(pkg *models.Package) []*CodeInsightsAnnotation {
 	annotations := make([]*CodeInsightsAnnotation, 0)
 
-	if (pkg == nil) || (pkg.Insights == nil) {
+	if pkg == nil || pkg.Insights == nil || pkg.Manifest == nil {
 		return annotations
 	}
 
@@ -73,8 +73,13 @@ func newBitBucketAnnotationForAnalyzerEvent(event *analyzer.AnalyzerEvent) *Code
 		return nil
 	}
 
+	title := event.Filter.GetSummary()
+	if title == "" {
+		title = "Filter Matched"
+	}
+
 	return &CodeInsightsAnnotation{
-		Title:          event.Filter.GetSummary(),
+		Title:          title,
 		AnnotationType: AnnotationTypeBug,
 		Summary:        event.Filter.GetDescription(),
 		Severity:       AnnotationSeverityMedium, // Default severity for policy violations
