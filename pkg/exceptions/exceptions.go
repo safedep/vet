@@ -141,7 +141,6 @@ func pkgHash(ecosystem, name string) string {
 	h := fnv.New64a()
 	_, err := fmt.Fprintf(h, "%s/%s",
 		strings.ToLower(ecosystem), strings.ToLower(name))
-
 	// fixing linter issue
 	if err != nil {
 		return err.Error()
