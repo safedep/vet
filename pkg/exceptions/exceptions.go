@@ -73,7 +73,11 @@ func Load(loader exceptionsLoader) error {
 			continue
 		}
 
-		h := pkgHash(rule.spec.GetEcosystem(), rule.spec.GetName())
+		h, err := pkgHash(rule.spec.GetEcosystem(), rule.spec.GetName())
+		if err != nil {
+			return fmt.Errorf("failed to perform Load: %w", err)
+		}
+
 		if _, ok := globalExceptions.rules[h]; ok {
 			if _, ok = globalExceptions.rules[h][rule.spec.GetId()]; ok {
 				continue
@@ -106,7 +110,11 @@ func (s *exceptionStore) Match(pkg *models.Package) (*exceptionMatchResult, erro
 	s.m.RLock()
 	defer s.m.RUnlock()
 
-	h := pkgHash(string(pkg.Ecosystem), pkg.Name)
+	h, err := pkgHash(string(pkg.Ecosystem), pkg.Name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to perform Match: %w", err)
+	}
+
 	if _, ok := s.rules[h]; !ok {
 		return &result, nil
 	}
@@ -137,14 +145,13 @@ func (r *exceptionMatchResult) Matched() bool {
 	return (r == nil) || ((r.pkg != nil) && (r.rule != nil))
 }
 
-func pkgHash(ecosystem, name string) string {
+func pkgHash(ecosystem, name string) (string, error) {
 	h := fnv.New64a()
 	_, err := fmt.Fprintf(h, "%s/%s",
 		strings.ToLower(ecosystem), strings.ToLower(name))
-	// fixing linter issue
 	if err != nil {
-		return err.Error()
+		return "", fmt.Errorf("failed to create package hash: %w", err)
 	}
 
-	return strconv.FormatUint(h.Sum64(), 16)
+	return strconv.FormatUint(h.Sum64(), 16), nil
 }
