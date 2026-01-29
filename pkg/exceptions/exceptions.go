@@ -73,7 +73,11 @@ func Load(loader exceptionsLoader) error {
 			continue
 		}
 
-		h := pkgHash(rule.spec.GetEcosystem(), rule.spec.GetName())
+		h, err := pkgHash(rule.spec.GetEcosystem(), rule.spec.GetName())
+		if err != nil {
+			return fmt.Errorf("failed to perform Load: %w", err)
+		}
+
 		if _, ok := globalExceptions.rules[h]; ok {
 			if _, ok = globalExceptions.rules[h][rule.spec.GetId()]; ok {
 				continue
@@ -106,7 +110,11 @@ func (s *exceptionStore) Match(pkg *models.Package) (*exceptionMatchResult, erro
 	s.m.RLock()
 	defer s.m.RUnlock()
 
-	h := pkgHash(string(pkg.PackageDetails.Ecosystem), pkg.PackageDetails.Name)
+	h, err := pkgHash(string(pkg.Ecosystem), pkg.Name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to perform Match: %w", err)
+	}
+
 	if _, ok := s.rules[h]; !ok {
 		return &result, nil
 	}
@@ -128,19 +136,22 @@ func (r *exceptionRule) matchByPattern(_ *models.Package) bool {
 }
 
 func (r *exceptionRule) matchByVersion(pkg *models.Package) bool {
-	return strings.EqualFold(string(pkg.PackageDetails.Ecosystem), r.spec.GetEcosystem()) &&
-		strings.EqualFold(pkg.PackageDetails.Name, r.spec.GetName()) &&
-		((r.spec.GetVersion() == "*") || (r.spec.GetVersion() == pkg.PackageDetails.Version))
+	return strings.EqualFold(string(pkg.Ecosystem), r.spec.GetEcosystem()) &&
+		strings.EqualFold(pkg.Name, r.spec.GetName()) &&
+		((r.spec.GetVersion() == "*") || (r.spec.GetVersion() == pkg.Version))
 }
 
 func (r *exceptionMatchResult) Matched() bool {
 	return (r == nil) || ((r.pkg != nil) && (r.rule != nil))
 }
 
-func pkgHash(ecosystem, name string) string {
+func pkgHash(ecosystem, name string) (string, error) {
 	h := fnv.New64a()
-	h.Write([]byte(fmt.Sprintf("%s/%s",
-		strings.ToLower(ecosystem), strings.ToLower(name))))
+	_, err := fmt.Fprintf(h, "%s/%s",
+		strings.ToLower(ecosystem), strings.ToLower(name))
+	if err != nil {
+		return "", fmt.Errorf("failed to create package hash: %w", err)
+	}
 
-	return strconv.FormatUint(h.Sum64(), 16)
+	return strconv.FormatUint(h.Sum64(), 16), nil
 }

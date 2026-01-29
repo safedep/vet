@@ -72,8 +72,8 @@ func (f *celFilterSuiteAnalyzer) Analyze(manifest *models.PackageManifest,
 			f.stat.IncError(err)
 
 			logger.Errorf("Failed to evaluate CEL for %s:%s : %v",
-				pkg.PackageDetails.Name,
-				pkg.PackageDetails.Version, err)
+				pkg.Name,
+				pkg.Version, err)
 
 			return nil
 		}
@@ -114,9 +114,9 @@ func (f *celFilterSuiteAnalyzer) renderMatchTable() {
 	for _, mp := range f.matchedPackages {
 		insights := utils.SafelyGetValue(mp.pkg.Insights)
 		tbl.AppendRow(table.Row{
-			mp.pkg.PackageDetails.Ecosystem,
-			fmt.Sprintf("%s@%s", mp.pkg.PackageDetails.Name,
-				mp.pkg.PackageDetails.Version),
+			mp.pkg.Ecosystem,
+			fmt.Sprintf("%s@%s", mp.pkg.Name,
+				mp.pkg.Version),
 			utils.SafelyGetValue(insights.PackageCurrentVersion),
 			mp.flt.GetName(),
 			mp.flt.GetSummary(),

@@ -155,13 +155,13 @@ func (r *sqlite3Reporter) addPackage(pkg *models.Package, manifest *ent.ReportPa
 	}
 
 	// Add package details as JSON if available
-	if pkg.PackageDetails.Name != "" {
+	if pkg.Name != "" {
 		packageDetails := map[string]interface{}{
-			"ecosystem":  string(pkg.PackageDetails.Ecosystem),
-			"name":       pkg.PackageDetails.Name,
-			"version":    pkg.PackageDetails.Version,
-			"compare_as": string(pkg.PackageDetails.CompareAs),
-			"commit":     pkg.PackageDetails.Commit,
+			"ecosystem":  string(pkg.Ecosystem),
+			"name":       pkg.Name,
+			"version":    pkg.Version,
+			"compare_as": string(pkg.CompareAs),
+			"commit":     pkg.Commit,
 		}
 		entPackage.Update().SetPackageDetails(packageDetails).ExecX(ctx)
 	}

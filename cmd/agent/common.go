@@ -23,7 +23,7 @@ func executeAgentPrompt(agentExecutor agent.Agent, session agent.Session, prompt
 	output, err := agentExecutor.Execute(context.Background(), session, agent.Input{
 		Query: prompt,
 	}, agent.WithToolCallHook(func(ctx context.Context, session agent.Session, input agent.Input, toolName string, toolArgs string) error {
-		os.Stderr.WriteString(fmt.Sprintf("Tool called: %s with args: %s\n", toolName, toolArgs))
+		fmt.Fprintf(os.Stderr, "Tool called: %s with args: %s\n", toolName, toolArgs)
 		return nil
 	}))
 	if err != nil {

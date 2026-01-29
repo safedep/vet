@@ -404,9 +404,9 @@ type Package struct {
 // It should be reproducible across multiple runs
 func (p *Package) Id() string {
 	return hashedID(fmt.Sprintf("%s/%s/%s",
-		strings.ToLower(string(p.PackageDetails.Ecosystem)),
-		strings.ToLower(p.PackageDetails.Name),
-		strings.ToLower(p.PackageDetails.Version)))
+		strings.ToLower(string(p.Ecosystem)),
+		strings.ToLower(p.Name),
+		strings.ToLower(p.Version)))
 }
 
 // FIXME: For SPDX/CycloneDX, package ecosystem may be different

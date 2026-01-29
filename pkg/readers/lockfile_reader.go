@@ -76,20 +76,20 @@ func (p *lockfileReader) EnumManifests(handler func(*models.PackageManifest,
 		// See GitHub issue #343
 		packageMap := make(map[string]*models.Package)
 		for _, pkg := range manifest.Packages {
-			name := pkg.PackageDetails.Name
+			name := pkg.Name
 
 			existing, exists := packageMap[name]
 			if !exists {
 				// Only add if version is not unknown
-				if pkg.PackageDetails.Version != unknownVersion && pkg.PackageDetails.Version != "" {
+				if pkg.Version != unknownVersion && pkg.Version != "" {
 					packageMap[name] = pkg
 				}
 			} else {
 				// Prefer explicit versions over unknown versions
-				if pkg.PackageDetails.Version != unknownVersion &&
-					pkg.PackageDetails.Version != "" &&
-					(existing.PackageDetails.Version == unknownVersion ||
-						existing.PackageDetails.Version == "") {
+				if pkg.Version != unknownVersion &&
+					pkg.Version != "" &&
+					(existing.Version == unknownVersion ||
+						existing.Version == "") {
 					packageMap[name] = pkg
 				}
 			}
