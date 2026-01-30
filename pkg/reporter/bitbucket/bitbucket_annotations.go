@@ -47,7 +47,7 @@ func newBitBucketAnnotationForPackage(pkg *models.Package) []*CodeInsightsAnnota
 	if malwareInfo.IsMalware {
 		annotations = append(annotations, &CodeInsightsAnnotation{
 			Title:          fmt.Sprintf("Malware Package %s@%s", pkg.Name, pkg.Version),
-			AnnotationType: AnnotationTypeBug,
+			AnnotationType: AnnotationTypeCodeSmell,
 			Summary:        fmt.Sprintf("Package %s@%s is malicious", pkg.Name, pkg.Version),
 			Severity:       AnnotationSeverityCritical,
 			FilePath:       packagePath,
@@ -75,15 +75,21 @@ func newBitBucketAnnotationForAnalyzerEvent(event *analyzer.AnalyzerEvent) *Code
 
 	title := event.Filter.GetSummary()
 	if title == "" {
-		title = "Filter Matched"
+		title = fmt.Sprintf("Filter %s matched for %s@%s", event.Filter.Name, event.Package.Name, event.Package.Version)
+	}
+
+	summary := event.Filter.GetDescription()
+	if summary == "" {
+		summary = fmt.Sprintf("Source: %s", event.Source)
 	}
 
 	return &CodeInsightsAnnotation{
 		Title:          title,
-		AnnotationType: AnnotationTypeBug,
-		Summary:        event.Filter.GetDescription(),
+		AnnotationType: AnnotationTypeCodeSmell,
+		Summary:        summary,
 		Severity:       AnnotationSeverityMedium, // Default severity for policy violations
 		FilePath:       event.Package.Manifest.Source.Path,
+		ExternalID:     utils.NewUniqueId(),
 	}
 }
 
