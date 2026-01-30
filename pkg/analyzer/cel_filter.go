@@ -62,8 +62,8 @@ func (f *celFilterAnalyzer) Analyze(manifest *models.PackageManifest,
 			f.stat.IncError(err)
 
 			logger.Errorf("Failed to evaluate CEL for %s:%s : %v",
-				pkg.PackageDetails.Name,
-				pkg.PackageDetails.Version, err)
+				pkg.Name,
+				pkg.Version, err)
 
 			return nil
 		}
@@ -104,9 +104,9 @@ func (f *celFilterAnalyzer) Finish() error {
 
 	for _, pkg := range f.packages {
 		tbl.AppendRow(table.Row{
-			pkg.PackageDetails.Ecosystem,
-			pkg.PackageDetails.Name,
-			pkg.PackageDetails.Version,
+			pkg.Ecosystem,
+			pkg.Name,
+			pkg.Version,
 			f.pkgSource(pkg),
 		})
 	}

@@ -188,7 +188,7 @@ func TestLockfileReaderDeduplication(t *testing.T) {
 		// Check that we have the expected packages with correct versions
 		packageNames := make(map[string]string)
 		for _, pkg := range packages {
-			packageNames[pkg.PackageDetails.Name] = pkg.PackageDetails.Version
+			packageNames[pkg.Name] = pkg.Version
 		}
 
 		// Verify bleach has explicit version, not 0.0.0

@@ -167,9 +167,9 @@ func (f *filterEvaluator) serializeFilterInput(fi *filterinput.FilterInput) (map
 func (f *filterEvaluator) buildFilterInput(pkg *models.Package) (*filterinput.FilterInput, error) {
 	fi := filterinput.FilterInput{
 		Pkg: &filterinput.FilterInputPackageVersion{
-			Ecosystem: strings.ToLower(string(pkg.PackageDetails.Ecosystem)),
-			Name:      pkg.PackageDetails.Name,
-			Version:   pkg.PackageDetails.Version,
+			Ecosystem: strings.ToLower(string(pkg.Ecosystem)),
+			Name:      pkg.Name,
+			Version:   pkg.Version,
 		},
 		Projects: []*specmodels.InsightProjectInfo{},
 		Vulns: &filterinput.FilterInputVulnerabilities{
@@ -282,10 +282,7 @@ func celFuncLicenseExpressionMatch() func(ref.Val, ref.Val) ref.Val {
 		contains := false
 
 		i := 0
-		for {
-			if contains {
-				break
-			}
+		for !contains {
 
 			if iter.HasNext().Value() == false {
 				break
