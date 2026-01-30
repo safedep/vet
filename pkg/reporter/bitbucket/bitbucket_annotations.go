@@ -86,7 +86,7 @@ func newBitBucketAnnotationForAnalyzerEvent(event *analyzer.AnalyzerEvent) *Code
 	return &CodeInsightsAnnotation{
 		Title:          title,
 		AnnotationType: AnnotationTypeCodeSmell,
-		Summary:        event.Filter.GetDescription(),
+		Summary:        summary,
 		Severity:       AnnotationSeverityMedium, // Default severity for policy violations
 		FilePath:       event.Package.Manifest.Source.Path,
 		ExternalID:     utils.NewUniqueId(),
