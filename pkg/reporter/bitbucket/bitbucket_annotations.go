@@ -75,7 +75,7 @@ func newBitBucketAnnotationForAnalyzerEvent(event *analyzer.AnalyzerEvent) *Code
 
 	title := event.Filter.GetSummary()
 	if title == "" {
-		title = fmt.Sprintf("Filter %s matched for %s@%s", event.Filter.Name, event.Filter.Name, event.Filter.Value)
+		title = fmt.Sprintf("Filter %s matched for %s@%s", event.Filter.Name, event.Package.Name, event.Package.Version)
 	}
 
 	summary := event.Filter.GetDescription()
