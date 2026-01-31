@@ -34,10 +34,10 @@ func newBitBucketAnnotationForPackage(pkg *models.Package) []*CodeInsightsAnnota
 		annotations = append(annotations, &CodeInsightsAnnotation{
 			Title:          title,
 			AnnotationType: AnnotationTypeVulnerability,
-			Summary:        fmt.Sprintf("Vulnerability in %s@%s", pkg.GetName(), pkg.GetVersion()),
+			Summary:        fmt.Sprintf("%s vulnerability in %s@%s", vulId, pkg.GetName(), pkg.GetVersion()),
 			Severity:       vulnerabilitySeverityToBitBucketAnnotationSeverity(v),
 			FilePath:       packagePath,
-			ExternalID:     vulId,
+			ExternalID:     utils.NewUniqueId(),
 		})
 	}
 
@@ -52,6 +52,7 @@ func newBitBucketAnnotationForPackage(pkg *models.Package) []*CodeInsightsAnnota
 			Severity:       AnnotationSeverityCritical,
 			FilePath:       packagePath,
 			Link:           threatLink,
+			ExternalID:     utils.NewUniqueId(),
 		})
 	}
 	if malwareInfo.IsSuspicious {
@@ -62,6 +63,7 @@ func newBitBucketAnnotationForPackage(pkg *models.Package) []*CodeInsightsAnnota
 			Severity:       AnnotationSeverityHigh,
 			FilePath:       packagePath,
 			Link:           threatLink,
+			ExternalID:     utils.NewUniqueId(),
 		})
 	}
 
