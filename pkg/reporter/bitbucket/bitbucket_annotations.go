@@ -84,7 +84,7 @@ func newBitBucketAnnotationForAnalyzerEvent(event *analyzer.AnalyzerEvent) *Code
 	} else {
 		// "Component appears to be unmaintained"
 		// summary does not include package info
-		summary += fmt.Sprintf(": %s@%s", event.Package.Name, event.Package.Version)
+		summary = fmt.Sprintf("%s: %s@%s", summary, event.Package.Name, event.Package.Version)
 	}
 
 	return &CodeInsightsAnnotation{
