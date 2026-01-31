@@ -23,21 +23,24 @@ func newBitBucketAnnotationForPackage(pkg *models.Package) []*CodeInsightsAnnota
 	packagePath := pkg.Manifest.GetSource().GetPath()
 
 	for _, v := range vulnerabilities {
-		title := utils.SafelyGetValue(v.Summary)
+		summary := utils.SafelyGetValue(v.Summary)
 		vulId := utils.SafelyGetValue(v.Id)
 
 		// common in PYSEC vuls
-		if title == "" {
-			title = fmt.Sprintf("Package %s is vulnerable to %s", pkg.Name, vulId)
+		if summary == "" {
+			summary = fmt.Sprintf("Package %s@%s is vulnerable to %s", pkg.Name, pkg.Version, vulId)
 		}
 
+		link := fmt.Sprintf("https://osv.dev/vulnerability/%s", vulId)
+
 		annotations = append(annotations, &CodeInsightsAnnotation{
-			Title:          title,
+			Title:          summary,
 			AnnotationType: AnnotationTypeVulnerability,
-			Summary:        fmt.Sprintf("%s vulnerability in %s@%s", vulId, pkg.GetName(), pkg.GetVersion()),
+			Summary:        summary,
 			Severity:       vulnerabilitySeverityToBitBucketAnnotationSeverity(v),
 			FilePath:       packagePath,
 			ExternalID:     utils.NewUniqueId(),
+			Link:           link,
 		})
 	}
 
@@ -75,18 +78,17 @@ func newBitBucketAnnotationForAnalyzerEvent(event *analyzer.AnalyzerEvent) *Code
 		return nil
 	}
 
-	title := event.Filter.GetSummary()
-	if title == "" {
-		title = fmt.Sprintf("Filter %s matched for %s@%s", event.Filter.Name, event.Package.Name, event.Package.Version)
-	}
-
-	summary := event.Filter.GetDescription()
+	summary := event.Filter.GetSummary()
 	if summary == "" {
-		summary = fmt.Sprintf("Source: %s", event.Source)
+		summary = fmt.Sprintf("Filter %s matched for %s@%s", event.Filter.Name, event.Package.Name, event.Package.Version)
+	} else {
+		// "Component appears to be unmaintained"
+		// summary does not include package info
+		summary += fmt.Sprintf(": %s@%s", event.Package.Name, event.Package.Version)
 	}
 
 	return &CodeInsightsAnnotation{
-		Title:          title,
+		Title:          summary,
 		AnnotationType: AnnotationTypeCodeSmell,
 		Summary:        summary,
 		Severity:       AnnotationSeverityMedium, // Default severity for policy violations
