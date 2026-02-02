@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/fatih/color"
+	"github.com/safedep/dry/tui"
 	"github.com/safedep/dry/utils"
 	"github.com/spf13/cobra"
 
@@ -114,6 +115,11 @@ func main() {
 	}
 
 	cobra.OnInitialize(func() {
+		if verbose {
+			// Default verbosity level is Normal
+			tui.SetVerbosityLevel(tui.VerbosityLevelVerbose)
+		}
+
 		printBanner()
 		loadExceptions()
 		logger.SetLogLevel(verbose, debug)
