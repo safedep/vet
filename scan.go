@@ -915,6 +915,24 @@ func internalStartScan() error {
 		enrichers = append(enrichers, codeAnalysisEnricher)
 	}
 
+	// Common Model to be used as "Fallback" for enrichMalware and enrichMalwareQuery
+	//
+	// If active analysis is not enabled, we will use the query enricher to
+	// query known malicious packages data from the Malysis service. This is
+	// the default behavior unless explicitly disabled by user.
+	client, err := auth.MalwareAnalysisCommunityClientConnection("vet-malware-analysis")
+	if err != nil {
+		return err
+	}
+
+	config := scanner.DefaultMalysisMalwareEnricherConfig()
+	config.Timeout = malwareAnalysisTimeout
+
+	malwareQueryEnricher, err := scanner.NewMalysisMalwareAnalysisQueryEnricher(client, githubClient, config)
+	if err != nil {
+		return err
+	}
+
 	if enrichMalware {
 		analytics.TrackCommandScanMalwareAnalysis()
 
@@ -931,7 +949,7 @@ func internalStartScan() error {
 		config := scanner.DefaultMalysisMalwareEnricherConfig()
 		config.Timeout = malwareAnalysisTimeout
 
-		malwareEnricher, err := scanner.NewMalysisMalwareEnricher(client, githubClient, config)
+		malwareEnricher, err := scanner.NewMalysisMalwareEnricher(client, githubClient, malwareQueryEnricher, config)
 		if err != nil {
 			return err
 		}
@@ -939,23 +957,8 @@ func internalStartScan() error {
 		ui.PrintMsg("Using Malysis for malware analysis")
 		enrichers = append(enrichers, malwareEnricher)
 	} else if enrichMalwareQuery {
-		// If active analysis is not enabled, we will use the query enricher to
-		// query known malicious packages data from the Malysis service. This is
-		// the default behavior unless explicitly disabled by user.
-		client, err := auth.MalwareAnalysisCommunityClientConnection("vet-malware-analysis")
-		if err != nil {
-			return err
-		}
-
-		config := scanner.DefaultMalysisMalwareEnricherConfig()
-		config.Timeout = malwareAnalysisTimeout
-
-		queryEnricher, err := scanner.NewMalysisMalwareAnalysisQueryEnricher(client, githubClient, config)
-		if err != nil {
-			return err
-		}
-
-		enrichers = append(enrichers, queryEnricher)
+		ui.PrintMsg("Using Malysis for malware analysis (query only)")
+		enrichers = append(enrichers, malwareQueryEnricher)
 	}
 
 	pmScanner := scanner.NewPackageManifestScanner(scanner.Config{
@@ -1055,23 +1058,23 @@ func runAgentSkillScan() error {
 	var enricher scanner.PackageMetaEnricher
 	var scanMode string
 
+	client, err := auth.MalwareAnalysisCommunityClientConnection("vet-malware-analysis")
+	if err != nil {
+		return fmt.Errorf("failed to create malware analysis client: %w", err)
+	}
+
+	config := scanner.DefaultMalysisMalwareEnricherConfig()
+	config.Timeout = malwareAnalysisTimeout
+
+	enricher, err = scanner.NewMalysisMalwareAnalysisQueryEnricher(client, githubClient, config)
+	if err != nil {
+		return fmt.Errorf("failed to create malware query enricher: %w", err)
+	}
+
 	if auth.CommunityMode() {
 		ui.PrintMsg("Note: Running in query mode (limited to known malware database)")
 		ui.PrintMsg("See 'vet cloud quickstart' to sign up for full malware analysis")
 		fmt.Fprintln(os.Stderr)
-
-		client, err := auth.MalwareAnalysisCommunityClientConnection("vet-malware-analysis")
-		if err != nil {
-			return fmt.Errorf("failed to create malware analysis client: %w", err)
-		}
-
-		config := scanner.DefaultMalysisMalwareEnricherConfig()
-		config.Timeout = malwareAnalysisTimeout
-
-		enricher, err = scanner.NewMalysisMalwareAnalysisQueryEnricher(client, githubClient, config)
-		if err != nil {
-			return fmt.Errorf("failed to create malware query enricher: %w", err)
-		}
 
 		scanMode = "query"
 	} else {
@@ -1083,7 +1086,7 @@ func runAgentSkillScan() error {
 		config := scanner.DefaultMalysisMalwareEnricherConfig()
 		config.Timeout = malwareAnalysisTimeout
 
-		enricher, err = scanner.NewMalysisMalwareEnricher(client, githubClient, config)
+		enricher, err = scanner.NewMalysisMalwareEnricher(client, githubClient, enricher, config)
 		if err != nil {
 			return fmt.Errorf("failed to create malware enricher: %w", err)
 		}

@@ -57,3 +57,9 @@ func getVulnerabilitySolution(pkg *models.Package) string {
 
 	return solution
 }
+
+func renderInternalErrroMessages(quotaExceededErrCnt int) string {
+	return fmt.Sprintf("You have reached your quota for on-demand malicious package "+
+		"scanning. %d on-demand analysis requests were denied. Please see safedep.io/pricing for "+
+		"upgrade.", quotaExceededErrCnt)
+}

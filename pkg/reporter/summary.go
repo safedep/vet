@@ -114,6 +114,10 @@ type summaryReporter struct {
 			used    int
 			unknown int
 		}
+
+		internalErrors struct {
+			malwareAnalysisQuotaLimitErrorCount int
+		}
 	}
 
 	// Map of pkgId and associated meta for building remediation advice
@@ -164,6 +168,8 @@ func (r *summaryReporter) AddManifest(manifest *models.PackageManifest) {
 	})
 
 	r.summary.manifests += 1
+
+	r.summary.internalErrors.malwareAnalysisQuotaLimitErrorCount += manifest.GetQuotaErrorCount()
 }
 
 func (r *summaryReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
@@ -428,6 +434,12 @@ func (r *summaryReporter) Finish() error {
 	fmt.Println("Run with `vet --filter=\"...\"` for custom filters to identify risky libraries")
 	fmt.Println("For more details", BoldText("https://github.com/safedep/vet"))
 	fmt.Println()
+
+	// Add error for quota exceeded
+	quotaErrorCnt := r.summary.internalErrors.malwareAnalysisQuotaLimitErrorCount
+	if quotaErrorCnt > 0 {
+		fmt.Println(renderInternalErrroMessages(quotaErrorCnt))
+	}
 
 	return nil
 }

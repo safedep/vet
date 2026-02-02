@@ -111,7 +111,15 @@ type PackageManifest struct {
 	DependencyGraph *DependencyGraph[*Package] `json:"dependency_graph"`
 
 	// Lock to serialize updating packages
-	m sync.Mutex
+	m sync.RWMutex
+
+	internalErrorCounter struct {
+		// Entitlement error count for malware analysis api
+		malwareAnalysisEntitlementErrorCount int
+
+		// Quota error count for malware analysis api
+		malwareAnalysisQuotaErrorCount int
+	}
 }
 
 // Deprecated: Use NewPackageManifest* initializers
@@ -223,6 +231,30 @@ func (pm *PackageManifest) Id() string {
 
 func (pm *PackageManifest) GetPackagesCount() int {
 	return len(pm.GetPackages())
+}
+
+func (pm *PackageManifest) IncrementEntitlementError() {
+	pm.m.Lock()
+	defer pm.m.Unlock()
+	pm.internalErrorCounter.malwareAnalysisEntitlementErrorCount++
+}
+
+func (pm *PackageManifest) IncrementQuotaError() {
+	pm.m.Lock()
+	defer pm.m.Unlock()
+	pm.internalErrorCounter.malwareAnalysisQuotaErrorCount++
+}
+
+func (pm *PackageManifest) GetEntitlementErrorCount() int {
+	pm.m.RLock()
+	defer pm.m.RUnlock()
+	return pm.internalErrorCounter.malwareAnalysisEntitlementErrorCount
+}
+
+func (pm *PackageManifest) GetQuotaErrorCount() int {
+	pm.m.RLock()
+	defer pm.m.RUnlock()
+	return pm.internalErrorCounter.malwareAnalysisQuotaErrorCount
 }
 
 func (pm *PackageManifest) GetControlTowerSpecEcosystem() packagev1.Ecosystem {
