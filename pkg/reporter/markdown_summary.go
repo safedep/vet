@@ -167,7 +167,7 @@ func (r *markdownSummaryReporter) Finish() error {
 	quotaLimitErrorCount := r.internalErrorCounter.malwareAnalysisQuotaLimitErrorCount
 	if quotaLimitErrorCount > 0 {
 		builder.AddHorizontalRule()
-		builder.AddParagraph(renderQuotaLimitErrorMessages(quotaLimitErrorCount))
+		builder.AddParagraph(renderMarkdownQuotaLimitErrorMessages(quotaLimitErrorCount))
 	}
 
 	err = os.WriteFile(r.config.Path, []byte(builder.Build()), 0o600)
@@ -598,4 +598,10 @@ func (m *markdownSummaryMalwareInfo) renderMalwareInfoTable() (string, error) {
 	}
 
 	return tbl.RenderMarkdown(), nil
+}
+
+func renderMarkdownQuotaLimitErrorMessages(quotaExceededErrCnt int) string {
+	return fmt.Sprintf("⚠️ You have reached your **quota** for on-demand malicious package "+
+		"scanning. `%d` on-demand analysis requests were **denied**. Please see [safedep.io/pricing](https://safedep.io/pricing) for "+
+		"upgrade.", quotaExceededErrCnt)
 }

@@ -113,7 +113,7 @@ type PackageManifest struct {
 	// Lock to serialize updating packages
 	m sync.RWMutex
 
-	// internal state to be passed from encrichers to reproters via package manifest
+	// internal state to be passed from enrichers to reporters via package manifest
 	internalState internalState
 }
 
