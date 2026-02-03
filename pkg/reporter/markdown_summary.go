@@ -67,9 +67,7 @@ type markdownSummaryReporter struct {
 	jsonReporter   Reporter
 	malwareInfo    *markdownSummaryMalwareInfo
 
-	internalErrorCounter struct {
-		malwareAnalysisQuotaLimitErrorCount int
-	}
+	internalErrorCounter internalErrorCounter
 }
 
 // NewMarkdownSummaryReporter creates a new markdown summary reporter. This reporter
@@ -127,7 +125,7 @@ func (r *markdownSummaryReporter) AddManifest(manifest *models.PackageManifest) 
 			manifest.GetPath(), err)
 	}
 
-	r.internalErrorCounter.malwareAnalysisQuotaLimitErrorCount += manifest.GetQuotaErrorCount()
+	r.internalErrorCounter.malwareAnalysisQuotaLimitErrorCount += manifest.GetMalwareAnalysisQuotaErrorCount()
 }
 
 func (r *markdownSummaryReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
@@ -169,7 +167,7 @@ func (r *markdownSummaryReporter) Finish() error {
 	quotaLimitErrorCount := r.internalErrorCounter.malwareAnalysisQuotaLimitErrorCount
 	if quotaLimitErrorCount > 0 {
 		builder.AddHorizontalRule()
-		builder.AddParagraph(renderInternalErrroMessages(quotaLimitErrorCount))
+		builder.AddParagraph(renderQuotaLimitErrorMessages(quotaLimitErrorCount))
 	}
 
 	err = os.WriteFile(r.config.Path, []byte(builder.Build()), 0o600)

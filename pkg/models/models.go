@@ -113,13 +113,13 @@ type PackageManifest struct {
 	// Lock to serialize updating packages
 	m sync.RWMutex
 
-	internalErrorCounter struct {
-		// Entitlement error count for malware analysis api
-		malwareAnalysisEntitlementErrorCount int
+	// internal state to be passed from encrichers to reproters via package manifest
+	internalState internalState
+}
 
-		// Quota error count for malware analysis api
-		malwareAnalysisQuotaErrorCount int
-	}
+type internalState struct {
+	// Quota error count for malware analysis api
+	malwareAnalysisQuotaErrorCount int
 }
 
 // Deprecated: Use NewPackageManifest* initializers
@@ -233,28 +233,16 @@ func (pm *PackageManifest) GetPackagesCount() int {
 	return len(pm.GetPackages())
 }
 
-func (pm *PackageManifest) IncrementEntitlementError() {
+func (pm *PackageManifest) IncrementMalwareAnalysisQuotaError() {
 	pm.m.Lock()
 	defer pm.m.Unlock()
-	pm.internalErrorCounter.malwareAnalysisEntitlementErrorCount++
+	pm.internalState.malwareAnalysisQuotaErrorCount++
 }
 
-func (pm *PackageManifest) IncrementQuotaError() {
-	pm.m.Lock()
-	defer pm.m.Unlock()
-	pm.internalErrorCounter.malwareAnalysisQuotaErrorCount++
-}
-
-func (pm *PackageManifest) GetEntitlementErrorCount() int {
+func (pm *PackageManifest) GetMalwareAnalysisQuotaErrorCount() int {
 	pm.m.RLock()
 	defer pm.m.RUnlock()
-	return pm.internalErrorCounter.malwareAnalysisEntitlementErrorCount
-}
-
-func (pm *PackageManifest) GetQuotaErrorCount() int {
-	pm.m.RLock()
-	defer pm.m.RUnlock()
-	return pm.internalErrorCounter.malwareAnalysisQuotaErrorCount
+	return pm.internalState.malwareAnalysisQuotaErrorCount
 }
 
 func (pm *PackageManifest) GetControlTowerSpecEcosystem() packagev1.Ecosystem {
