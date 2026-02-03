@@ -176,7 +176,7 @@ func (r *markdownSummaryReporter) Finish() error {
 
 	if r.internalErrorCounter.malwareAnalysisEntitlementAutoSwitchEnabled {
 		builder.AddHorizontalRule()
-		builder.AddParagraph(renderMarkdownmEntitlementAutoSwitchEnabled())
+		builder.AddParagraph(renderMarkdownEntitlementAutoSwitchEnabled())
 	}
 
 	err = os.WriteFile(r.config.Path, []byte(builder.Build()), 0o600)
