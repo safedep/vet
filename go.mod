@@ -3,8 +3,8 @@ module github.com/safedep/vet
 go 1.25.1
 
 require (
-	buf.build/gen/go/safedep/api/grpc/go v1.5.1-20250819072717-b69aa2c62a0d.2
-	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.8-20250822112533-a008e1948f1d.1
+	buf.build/gen/go/safedep/api/grpc/go v1.6.0-20260203063759-8d90bd2a65ea.1
+	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.11-20260203063759-8d90bd2a65ea.1
 	entgo.io/ent v0.14.4
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/BurntSushi/toml v1.5.0
@@ -62,13 +62,13 @@ require (
 	golang.org/x/oauth2 v0.32.0
 	google.golang.org/genai v1.21.0
 	google.golang.org/grpc v1.78.0
-	google.golang.org/protobuf v1.36.10
+	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
 	ariga.io/atlas v0.34.0 // indirect
-	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.8-20240508200655-46a4cf4ba109.1 // indirect
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.11-20240508200655-46a4cf4ba109.1 // indirect
 	cel.dev/expr v0.24.0 // indirect
 	cloud.google.com/go v0.121.2 // indirect
 	cloud.google.com/go/auth v0.16.1 // indirect
