@@ -76,17 +76,16 @@ func LoadEntitlements() error {
 		return fmt.Errorf("failed to get entitlements for tool: response is nil")
 	}
 
-	entitlementsToCache := make([]v1.Entitlement, len(response.GetEntitlements()))
-
-	for i, entitlement := range response.GetEntitlements() {
+	entitlementsToCache := make([]v1.Entitlement, 0, len(response.GetEntitlements()))
+	for _, entitlement := range response.GetEntitlements() {
 		if entitlement.Entitlement == nil {
-			continue // or return an error
+			continue
 		}
-		entitlementsToCache[i] = v1.Entitlement{
+		entitlementsToCache = append(entitlementsToCache, v1.Entitlement{
 			Feature:    entitlement.Entitlement.Feature,
 			Limit:      entitlement.Entitlement.Limit,
 			Attributes: entitlement.Entitlement.Attributes,
-		}
+		})
 	}
 
 	// Cache the entitlements
