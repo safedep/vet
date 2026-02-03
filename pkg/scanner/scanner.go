@@ -110,11 +110,6 @@ func (s *packageManifestScanner) startManifestScanner(ctx context.Context,
 			break
 		}
 
-		// Stop scan if there is a pending error
-		if s.hasError() {
-			break
-		}
-
 		manifest, ok := <-incoming
 		if !ok {
 			break
