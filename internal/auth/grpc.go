@@ -6,9 +6,10 @@ import (
 	"net/url"
 	"os"
 
+	"google.golang.org/grpc"
+
 	drygrpc "github.com/safedep/dry/adapters/grpc"
 	"github.com/safedep/vet/pkg/common/logger"
-	"google.golang.org/grpc"
 )
 
 // Create a gRPC client connection for the control plane
