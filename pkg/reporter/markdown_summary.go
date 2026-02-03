@@ -30,11 +30,12 @@ const (
 )
 
 type MarkdownSummaryReporterConfig struct {
-	Tool                   ToolMetadata
-	Path                   string
-	ReportTitle            string
-	IncludeMalwareAnalysis bool
-	ActiveMalwareAnalysis  bool
+	Tool                                        ToolMetadata
+	Path                                        string
+	ReportTitle                                 string
+	IncludeMalwareAnalysis                      bool
+	ActiveMalwareAnalysis                       bool
+	MalwareAnalysisEntitlementAutoSwitchEnabled bool
 }
 
 type vetResultInternalModel struct {
@@ -100,6 +101,9 @@ func NewMarkdownSummaryReporter(config MarkdownSummaryReporterConfig) (Reporter,
 		jsonReporter:   jsonReporter,
 		malwareInfo: &markdownSummaryMalwareInfo{
 			malwareInfo: make(map[string]*markdownSummaryPackageMalwareInfo),
+		},
+		internalErrorCounter: internalErrorCounter{
+			malwareAnalysisEntitlementAutoSwitchEnabled: config.MalwareAnalysisEntitlementAutoSwitchEnabled,
 		},
 	}, nil
 }
@@ -168,6 +172,11 @@ func (r *markdownSummaryReporter) Finish() error {
 	if quotaLimitErrorCount > 0 {
 		builder.AddHorizontalRule()
 		builder.AddParagraph(renderMarkdownQuotaLimitErrorMessages(quotaLimitErrorCount))
+	}
+
+	if r.internalErrorCounter.malwareAnalysisEntitlementAutoSwitchEnabled {
+		builder.AddHorizontalRule()
+		builder.AddParagraph(renderMarkdownmEntitlementAutoSwitchEnabled())
 	}
 
 	err = os.WriteFile(r.config.Path, []byte(builder.Build()), 0o600)

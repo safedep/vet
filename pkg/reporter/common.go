@@ -59,7 +59,8 @@ func getVulnerabilitySolution(pkg *models.Package) string {
 }
 
 type internalErrorCounter struct {
-	malwareAnalysisQuotaLimitErrorCount int
+	malwareAnalysisQuotaLimitErrorCount         int
+	malwareAnalysisEntitlementAutoSwitchEnabled bool
 }
 
 func renderQuotaLimitErrorMessages(quotaExceededErrCnt int) string {
@@ -72,4 +73,9 @@ func renderMarkdownQuotaLimitErrorMessages(quotaExceededErrCnt int) string {
 	return fmt.Sprintf("⚠️ You have reached your **quota** for on-demand malicious package "+
 		"scanning. `%d` on-demand analysis requests were **denied**. Please see [safedep.io/pricing](https://safedep.io/pricing) for "+
 		"upgrade.", quotaExceededErrCnt)
+}
+
+func renderMarkdownmEntitlementAutoSwitchEnabled() string {
+	return fmt.Sprintln("🔀 You are **not entitled** for **on-demand** malicious package scanning." +
+		" The scan is auto-configured to use malicious package **query** only. See [safedep.io/pricing](https://safedep.io/pricing) for upgrade.")
 }

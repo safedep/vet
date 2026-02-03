@@ -87,11 +87,11 @@ func LoadEntitlements() error {
 
 // HasEntitlements checks if the current tenant has the specified entitlements
 // This always depends on cached entitlements and never calls the API directly
-func HasEntitlements(entitlementsFeatures ...v1.Feature) (bool, error) {
+func HasEntitlements(entitlementsFeatures ...v1.Feature) bool {
 	if !globalEntitlementsManager.loaded {
-		logger.Debugf("Entitlements not loaded, please call LoadEntitlements() first")
-		return false, fmt.Errorf("entitlements not loaded")
+		logger.Debugf("Entitlements not loaded, please call LoadEntitlements() first, returning false")
+		return false
 	}
 
-	return globalEntitlementsManager.hasEntitlement(entitlementsFeatures...), nil
+	return globalEntitlementsManager.hasEntitlement(entitlementsFeatures...)
 }

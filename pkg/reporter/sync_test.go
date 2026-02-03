@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"buf.build/gen/go/safedep/api/grpc/go/safedep/services/controltower/v1/controltowerv1grpc"
 	controltowerv1pb "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
 	malysisv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
@@ -26,6 +27,8 @@ import (
 type MockToolServiceClient struct {
 	mock.Mock
 }
+
+var _ controltowerv1grpc.ToolServiceClient = &MockToolServiceClient{}
 
 func (m *MockToolServiceClient) CreateToolSession(
 	ctx context.Context,
@@ -69,6 +72,15 @@ func (m *MockToolServiceClient) PublishPolicyViolation(
 	return args.Get(0).(*controltowerv1.PublishPolicyViolationResponse), args.Error(
 		1,
 	)
+}
+
+func (m *MockToolServiceClient) GetEntitlementsForTool(
+	ctx context.Context,
+	in *controltowerv1.GetEntitlementsForToolRequest,
+	opts ...grpc.CallOption,
+) (*controltowerv1.GetEntitlementsForToolResponse, error) {
+	args := m.Called(ctx, in)
+	return args.Get(0).(*controltowerv1.GetEntitlementsForToolResponse), args.Error(1)
 }
 
 // MockCallbacks implements SyncReporterCallbacks for testing

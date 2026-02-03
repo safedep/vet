@@ -929,12 +929,8 @@ func internalStartScan() error {
 				"For more details: https://docs.safedep.io/cloud/quickstart/")
 		}
 
-		hasActiveMalwareScanningEntitlements, err := auth.HasEntitlements(controltowerv1.Feature_FEATURE_ACTIVE_MALICIOUS_PACKAGE_SCANNING)
-		if err != nil {
-			return fmt.Errorf("failed to chech entitlement: %w", err)
-		}
-
-		if !hasActiveMalwareScanningEntitlements {
+		found := auth.HasEntitlements(controltowerv1.Feature_FEATURE_ACTIVE_MALICIOUS_PACKAGE_SCANNING)
+		if !found {
 			ui.PrintWarning("You are not entitled for on-demand malicious package scanning. The scan is auto-configured to use malicious package query only. See safedep.io/pricing for upgrade.")
 
 			// auto-switch to enrichMalwareQuery mode
