@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	controltowerv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
 	"github.com/google/go-github/v70/github"
 	"github.com/safedep/dry/adapters"
 	"github.com/safedep/dry/utils"
@@ -327,7 +328,7 @@ func startScan() {
 	analytics.TrackCommandScan()
 
 	if !disableAuthVerifyBeforeScan {
-		err := auth.Verify()
+		err := auth.LoadEntitlements()
 		// We will fallback to community mode by default to provide
 		// a seamless user experience
 		if err != nil {
@@ -915,12 +916,25 @@ func internalStartScan() error {
 		enrichers = append(enrichers, codeAnalysisEnricher)
 	}
 
+	// If --malware-query then it will be set to true
+	// if --malware then it we dont have entitlements for on-demand scanning, then it will be set to true (auto-switch)
+	// otherwise it will be not enabled
+	enableEnrichQueryMalware := false
+
 	if enrichMalware {
 		analytics.TrackCommandScanMalwareAnalysis()
 
 		if auth.CommunityMode() {
 			return fmt.Errorf("access to Malicious Package Analysis requires an API key. " +
 				"For more details: https://docs.safedep.io/cloud/quickstart/")
+		}
+
+		hasActiveMalwareScanningEntitlments := auth.HasEntitlements(controltowerv1.Feature_FEATURE_ACTIVE_MALICIOUS_PACKAGE_SCANNING)
+		if !hasActiveMalwareScanningEntitlments {
+			ui.PrintWarning("You are not entitled for on-demand malicious package scanning. The scan is auto-configured to use malicious package query only. See safedep.io/pricing for upgrade.")
+
+			// auto-switch to enrichMalwareQuery mode
+			enableEnrichQueryMalware = true
 		}
 
 		client, err := auth.MalwareAnalysisClientConnection("vet-malware-analysis")
@@ -939,6 +953,10 @@ func internalStartScan() error {
 		ui.PrintMsg("Using Malysis for malware analysis")
 		enrichers = append(enrichers, malwareEnricher)
 	} else if enrichMalwareQuery {
+		enableEnrichQueryMalware = true
+	}
+
+	if enableEnrichQueryMalware {
 		// If active analysis is not enabled, we will use the query enricher to
 		// query known malicious packages data from the Malysis service. This is
 		// the default behavior unless explicitly disabled by user.
