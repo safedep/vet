@@ -36,6 +36,11 @@ func (g *entitlementsManager) cache(entitlements []v1.Entitlement) {
 
 // hasEntitlement checks if the entitlements manager has the specified entitlement
 func (g *entitlementsManager) hasEntitlement(entitlementsFeatures ...v1.Feature) bool {
+	if !g.loaded {
+		logger.Debugf("Entitlements not loaded, please call LoadEntitlements() first, returning false")
+		return false
+	}
+
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
@@ -74,6 +79,9 @@ func LoadEntitlements() error {
 	entitlementsToCache := make([]v1.Entitlement, len(response.GetEntitlements()))
 
 	for i, entitlement := range response.GetEntitlements() {
+		if entitlement.Entitlement == nil {
+			continue // or return an error
+		}
 		entitlementsToCache[i] = v1.Entitlement{
 			Feature:    entitlement.Entitlement.Feature,
 			Limit:      entitlement.Entitlement.Limit,
@@ -89,10 +97,5 @@ func LoadEntitlements() error {
 // HasEntitlements checks if the current tenant has the specified entitlements
 // This always depends on cached entitlements and never calls the API directly
 func HasEntitlements(entitlementsFeatures ...v1.Feature) bool {
-	if !globalEntitlementsManager.loaded {
-		logger.Debugf("Entitlements not loaded, please call LoadEntitlements() first, returning false")
-		return false
-	}
-
 	return globalEntitlementsManager.hasEntitlement(entitlementsFeatures...)
 }
