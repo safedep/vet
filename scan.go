@@ -917,7 +917,7 @@ func internalStartScan() error {
 	}
 
 	// If --malware-query then it will be set to true
-	// if --malware then it we dont have entitlements for on-demand scanning, then it will be set to true (auto-switch)
+	// if --malware then if we don't have entitlements for on-demand scanning, then it will be set to true (auto-switch)
 	// otherwise it will be not enabled
 	enableEnrichQueryMalware := false
 
@@ -929,8 +929,12 @@ func internalStartScan() error {
 				"For more details: https://docs.safedep.io/cloud/quickstart/")
 		}
 
-		hasActiveMalwareScanningEntitlments := auth.HasEntitlements(controltowerv1.Feature_FEATURE_ACTIVE_MALICIOUS_PACKAGE_SCANNING)
-		if !hasActiveMalwareScanningEntitlments {
+		hasActiveMalwareScanningEntitlements, err := auth.HasEntitlements(controltowerv1.Feature_FEATURE_ACTIVE_MALICIOUS_PACKAGE_SCANNING)
+		if err != nil {
+			return fmt.Errorf("failed to chech entitlement: %w", err)
+		}
+
+		if !hasActiveMalwareScanningEntitlements {
 			ui.PrintWarning("You are not entitled for on-demand malicious package scanning. The scan is auto-configured to use malicious package query only. See safedep.io/pricing for upgrade.")
 
 			// auto-switch to enrichMalwareQuery mode
