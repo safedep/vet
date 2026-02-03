@@ -56,3 +56,18 @@ func TestManifestRelativePath(t *testing.T) {
 		})
 	}
 }
+
+func TestRenderInternalErrorMessages(t *testing.T) {
+	t.Run("when quota exceeded error count is greater than 0", func(t *testing.T) {
+		t.Parallel()
+
+		r := &summaryReporter{}
+		r.internalErrorCounter.malwareAnalysisQuotaLimitErrorCount = 5
+
+		expectedErrorMessage := "You have reached your quota for on-demand malicious package scanning. 5 on-demand analysis requests were denied. Please see safedep.io/pricing for upgrade."
+
+		actualErrorMessage := renderQuotaLimitErrorMessages(5)
+
+		assert.Equal(t, expectedErrorMessage, actualErrorMessage)
+	})
+}

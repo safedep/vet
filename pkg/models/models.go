@@ -111,7 +111,15 @@ type PackageManifest struct {
 	DependencyGraph *DependencyGraph[*Package] `json:"dependency_graph"`
 
 	// Lock to serialize updating packages
-	m sync.Mutex
+	m sync.RWMutex
+
+	// internal state to be passed from enrichers to reporters via package manifest
+	internalState internalState
+}
+
+type internalState struct {
+	// Quota error count for malware analysis api
+	malwareAnalysisQuotaErrorCount int
 }
 
 // Deprecated: Use NewPackageManifest* initializers
@@ -223,6 +231,18 @@ func (pm *PackageManifest) Id() string {
 
 func (pm *PackageManifest) GetPackagesCount() int {
 	return len(pm.GetPackages())
+}
+
+func (pm *PackageManifest) IncrementMalwareAnalysisQuotaError() {
+	pm.m.Lock()
+	defer pm.m.Unlock()
+	pm.internalState.malwareAnalysisQuotaErrorCount++
+}
+
+func (pm *PackageManifest) GetMalwareAnalysisQuotaErrorCount() int {
+	pm.m.RLock()
+	defer pm.m.RUnlock()
+	return pm.internalState.malwareAnalysisQuotaErrorCount
 }
 
 func (pm *PackageManifest) GetControlTowerSpecEcosystem() packagev1.Ecosystem {

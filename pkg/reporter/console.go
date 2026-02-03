@@ -14,7 +14,9 @@ import (
 	"github.com/safedep/vet/pkg/readers"
 )
 
-type consoleReporter struct{}
+type consoleReporter struct {
+	internalErrorCounter internalErrorCounter
+}
 
 func NewConsoleReporter() (Reporter, error) {
 	return &consoleReporter{}, nil
@@ -39,6 +41,8 @@ func (r *consoleReporter) AddManifest(manifest *models.PackageManifest) {
 	fmt.Print("\n")
 
 	tbl.Render()
+
+	r.internalErrorCounter.malwareAnalysisQuotaLimitErrorCount += manifest.GetMalwareAnalysisQuotaErrorCount()
 }
 
 func (r *consoleReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
@@ -48,6 +52,11 @@ func (r *consoleReporter) AddPolicyEvent(event *policy.PolicyEvent) {
 }
 
 func (r *consoleReporter) Finish() error {
+	quotaErrorCnt := r.internalErrorCounter.malwareAnalysisQuotaLimitErrorCount
+	if quotaErrorCnt > 0 {
+		fmt.Println(CriticalBgText((renderQuotaLimitErrorMessages(quotaErrorCnt))))
+		fmt.Println()
+	}
 	return nil
 }
 

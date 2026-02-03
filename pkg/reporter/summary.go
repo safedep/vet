@@ -127,6 +127,8 @@ type summaryReporter struct {
 
 	// List of lockfile poisoning detection signals
 	lockfilePoisoning []string
+
+	internalErrorCounter internalErrorCounter
 }
 
 func NewSummaryReporter(config SummaryReporterConfig) (Reporter, error) {
@@ -164,6 +166,8 @@ func (r *summaryReporter) AddManifest(manifest *models.PackageManifest) {
 	})
 
 	r.summary.manifests += 1
+
+	r.internalErrorCounter.malwareAnalysisQuotaLimitErrorCount += manifest.GetMalwareAnalysisQuotaErrorCount()
 }
 
 func (r *summaryReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
@@ -428,6 +432,13 @@ func (r *summaryReporter) Finish() error {
 	fmt.Println("Run with `vet --filter=\"...\"` for custom filters to identify risky libraries")
 	fmt.Println("For more details", BoldText("https://github.com/safedep/vet"))
 	fmt.Println()
+
+	// Add error for quota exceeded
+	quotaErrorCnt := r.internalErrorCounter.malwareAnalysisQuotaLimitErrorCount
+	if quotaErrorCnt > 0 {
+		fmt.Println(CriticalBgText((renderQuotaLimitErrorMessages(quotaErrorCnt))))
+		fmt.Println()
+	}
 
 	return nil
 }

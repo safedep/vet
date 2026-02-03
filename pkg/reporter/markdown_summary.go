@@ -66,6 +66,8 @@ type markdownSummaryReporter struct {
 	jsonReportPath string
 	jsonReporter   Reporter
 	malwareInfo    *markdownSummaryMalwareInfo
+
+	internalErrorCounter internalErrorCounter
 }
 
 // NewMarkdownSummaryReporter creates a new markdown summary reporter. This reporter
@@ -122,6 +124,8 @@ func (r *markdownSummaryReporter) AddManifest(manifest *models.PackageManifest) 
 		logger.Errorf("[Markdown Reporter]: Failed to enumerate packages in manifest %s: %v",
 			manifest.GetPath(), err)
 	}
+
+	r.internalErrorCounter.malwareAnalysisQuotaLimitErrorCount += manifest.GetMalwareAnalysisQuotaErrorCount()
 }
 
 func (r *markdownSummaryReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
@@ -158,6 +162,12 @@ func (r *markdownSummaryReporter) Finish() error {
 	err = r.buildMarkdownReport(builder, &report)
 	if err != nil {
 		return fmt.Errorf("failed to build markdown report: %w", err)
+	}
+
+	quotaLimitErrorCount := r.internalErrorCounter.malwareAnalysisQuotaLimitErrorCount
+	if quotaLimitErrorCount > 0 {
+		builder.AddHorizontalRule()
+		builder.AddParagraph(renderMarkdownQuotaLimitErrorMessages(quotaLimitErrorCount))
 	}
 
 	err = os.WriteFile(r.config.Path, []byte(builder.Build()), 0o600)
