@@ -25,4 +25,7 @@ bash $E2E_THIS_DIR/scenario-11-code-csvreport.sh
 bash $E2E_THIS_DIR/scenario-12-image-scan-local-docker-image.sh
 bash $E2E_THIS_DIR/scenario-13-image-scan-with-local-tar.sh
 bash $E2E_THIS_DIR/scenario-14-image-scan-with-remote-registry.sh
-bash $E2E_THIS_DIR/scenario-15-enricher-auto-switch.sh
+
+# TODO: Once Backend has inforced on-demand entitlement, then source this,currently we can't test enricher auto-switch since
+# all tenants have on-demand capabilities. 
+# bash $E2E_THIS_DIR/scenario-15-enricher-auto-switch.sh

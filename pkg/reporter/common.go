@@ -58,7 +58,7 @@ func getVulnerabilitySolution(pkg *models.Package) string {
 	return solution
 }
 
-type internalErrorCounter struct {
+type internalReportConfig struct {
 	malwareAnalysisQuotaLimitErrorCount         int
 	malwareAnalysisEntitlementAutoSwitchEnabled bool
 }
