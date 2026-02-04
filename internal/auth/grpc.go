@@ -6,9 +6,9 @@ import (
 	"net/url"
 	"os"
 
+	drygrpc "github.com/safedep/dry/adapters/grpc"
 	"google.golang.org/grpc"
 
-	drygrpc "github.com/safedep/dry/adapters/grpc"
 	"github.com/safedep/vet/pkg/common/logger"
 )
 
