@@ -128,7 +128,7 @@ type summaryReporter struct {
 	// List of lockfile poisoning detection signals
 	lockfilePoisoning []string
 
-	internalErrorCounter internalErrorCounter
+	internalReportConfig internalReportConfig
 }
 
 func NewSummaryReporter(config SummaryReporterConfig) (Reporter, error) {
@@ -167,7 +167,7 @@ func (r *summaryReporter) AddManifest(manifest *models.PackageManifest) {
 
 	r.summary.manifests += 1
 
-	r.internalErrorCounter.malwareAnalysisQuotaLimitErrorCount += manifest.GetMalwareAnalysisQuotaErrorCount()
+	r.internalReportConfig.malwareAnalysisQuotaLimitErrorCount += manifest.GetMalwareAnalysisQuotaErrorCount()
 }
 
 func (r *summaryReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
@@ -434,7 +434,7 @@ func (r *summaryReporter) Finish() error {
 	fmt.Println()
 
 	// Add error for quota exceeded
-	quotaErrorCnt := r.internalErrorCounter.malwareAnalysisQuotaLimitErrorCount
+	quotaErrorCnt := r.internalReportConfig.malwareAnalysisQuotaLimitErrorCount
 	if quotaErrorCnt > 0 {
 		fmt.Println(CriticalBgText((renderQuotaLimitErrorMessages(quotaErrorCnt))))
 		fmt.Println()

@@ -30,11 +30,12 @@ const (
 )
 
 type MarkdownSummaryReporterConfig struct {
-	Tool                   ToolMetadata
-	Path                   string
-	ReportTitle            string
-	IncludeMalwareAnalysis bool
-	ActiveMalwareAnalysis  bool
+	Tool                                        ToolMetadata
+	Path                                        string
+	ReportTitle                                 string
+	IncludeMalwareAnalysis                      bool
+	ActiveMalwareAnalysis                       bool
+	MalwareAnalysisEntitlementAutoSwitchEnabled bool
 }
 
 type vetResultInternalModel struct {
@@ -67,7 +68,7 @@ type markdownSummaryReporter struct {
 	jsonReporter   Reporter
 	malwareInfo    *markdownSummaryMalwareInfo
 
-	internalErrorCounter internalErrorCounter
+	internalReportConfig internalReportConfig
 }
 
 // NewMarkdownSummaryReporter creates a new markdown summary reporter. This reporter
@@ -101,6 +102,9 @@ func NewMarkdownSummaryReporter(config MarkdownSummaryReporterConfig) (Reporter,
 		malwareInfo: &markdownSummaryMalwareInfo{
 			malwareInfo: make(map[string]*markdownSummaryPackageMalwareInfo),
 		},
+		internalReportConfig: internalReportConfig{
+			malwareAnalysisEntitlementAutoSwitchEnabled: config.MalwareAnalysisEntitlementAutoSwitchEnabled,
+		},
 	}, nil
 }
 
@@ -125,7 +129,7 @@ func (r *markdownSummaryReporter) AddManifest(manifest *models.PackageManifest) 
 			manifest.GetPath(), err)
 	}
 
-	r.internalErrorCounter.malwareAnalysisQuotaLimitErrorCount += manifest.GetMalwareAnalysisQuotaErrorCount()
+	r.internalReportConfig.malwareAnalysisQuotaLimitErrorCount += manifest.GetMalwareAnalysisQuotaErrorCount()
 }
 
 func (r *markdownSummaryReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
@@ -164,10 +168,15 @@ func (r *markdownSummaryReporter) Finish() error {
 		return fmt.Errorf("failed to build markdown report: %w", err)
 	}
 
-	quotaLimitErrorCount := r.internalErrorCounter.malwareAnalysisQuotaLimitErrorCount
+	quotaLimitErrorCount := r.internalReportConfig.malwareAnalysisQuotaLimitErrorCount
 	if quotaLimitErrorCount > 0 {
 		builder.AddHorizontalRule()
 		builder.AddParagraph(renderMarkdownQuotaLimitErrorMessages(quotaLimitErrorCount))
+	}
+
+	if r.internalReportConfig.malwareAnalysisEntitlementAutoSwitchEnabled {
+		builder.AddHorizontalRule()
+		builder.AddParagraph(renderMarkdownEntitlementAutoSwitchEnabled())
 	}
 
 	err = os.WriteFile(r.config.Path, []byte(builder.Build()), 0o600)

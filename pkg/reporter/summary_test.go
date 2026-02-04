@@ -62,9 +62,9 @@ func TestRenderInternalErrorMessages(t *testing.T) {
 		t.Parallel()
 
 		r := &summaryReporter{}
-		r.internalErrorCounter.malwareAnalysisQuotaLimitErrorCount = 5
+		r.internalReportConfig.malwareAnalysisQuotaLimitErrorCount = 5
 
-		expectedErrorMessage := "You have reached your quota for on-demand malicious package scanning. 5 on-demand analysis requests were denied. Please see safedep.io/pricing for upgrade."
+		expectedErrorMessage := "You have reached your quota for on-demand malicious package scanning.\n5 on-demand analysis requests were denied. Please see safedep.io/pricing for upgrade."
 
 		actualErrorMessage := renderQuotaLimitErrorMessages(5)
 

@@ -15,7 +15,7 @@ import (
 )
 
 type consoleReporter struct {
-	internalErrorCounter internalErrorCounter
+	internalReportConfig internalReportConfig
 }
 
 func NewConsoleReporter() (Reporter, error) {
@@ -42,7 +42,7 @@ func (r *consoleReporter) AddManifest(manifest *models.PackageManifest) {
 
 	tbl.Render()
 
-	r.internalErrorCounter.malwareAnalysisQuotaLimitErrorCount += manifest.GetMalwareAnalysisQuotaErrorCount()
+	r.internalReportConfig.malwareAnalysisQuotaLimitErrorCount += manifest.GetMalwareAnalysisQuotaErrorCount()
 }
 
 func (r *consoleReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
@@ -52,7 +52,7 @@ func (r *consoleReporter) AddPolicyEvent(event *policy.PolicyEvent) {
 }
 
 func (r *consoleReporter) Finish() error {
-	quotaErrorCnt := r.internalErrorCounter.malwareAnalysisQuotaLimitErrorCount
+	quotaErrorCnt := r.internalReportConfig.malwareAnalysisQuotaLimitErrorCount
 	if quotaErrorCnt > 0 {
 		fmt.Println(CriticalBgText((renderQuotaLimitErrorMessages(quotaErrorCnt))))
 		fmt.Println()
