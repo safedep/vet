@@ -904,11 +904,8 @@ func internalStartScan() error {
 		enrichers = append(enrichers, codeAnalysisEnricher)
 	}
 
-	// If --malware-query then it will be set to true
-	// if --malware then if we don't have entitlements for on-demand scanning, then it will be set to true (auto-switch)
-	// otherwise it will be not enabled
-	enableEnrichQueryMalware := false
-	switchToEnrichQueryMalware := false
+	// used as flag in --report-malware-summary reporter to notify user about enricher auto-switching
+	switchedToEnrichQueryMalware := false
 
 	if enrichMalware {
 		analytics.TrackCommandScanMalwareAnalysis()
@@ -923,7 +920,15 @@ func internalStartScan() error {
 			ui.PrintWarning("%s", getOnDemandMalwareAnalysisMissingEntitlementMessage())
 
 			// auto-switch to enrichMalwareQuery mode
-			switchToEnrichQueryMalware = true
+			switchedToEnrichQueryMalware = true
+
+			// fallback to query
+			queryEnricher, err := createMalwareQueryEnricher(githubClient)
+			if err != nil {
+				return fmt.Errorf("failed to create malware query enricher: %w", err)
+			}
+
+			enrichers = append(enrichers, queryEnricher)
 		} else {
 			malwareEnricher, err := createMalwareAnalysisEnricher(githubClient)
 			if err != nil {
@@ -934,13 +939,6 @@ func internalStartScan() error {
 			enrichers = append(enrichers, malwareEnricher)
 		}
 	} else if enrichMalwareQuery {
-		enableEnrichQueryMalware = true
-	}
-
-	if enableEnrichQueryMalware || switchToEnrichQueryMalware {
-		// If active analysis is not enabled, we will use the query enricher to
-		// query known malicious packages data from the Malysis service. This is
-		// the default behavior unless explicitly disabled by user.
 		queryEnricher, err := createMalwareQueryEnricher(githubClient)
 		if err != nil {
 			return fmt.Errorf("failed to create malware query enricher: %w", err)
@@ -957,7 +955,7 @@ func internalStartScan() error {
 			Path:                   markdownSummaryReportPath,
 			IncludeMalwareAnalysis: true,
 			ActiveMalwareAnalysis:  enrichMalware,
-			MalwareAnalysisEntitlementAutoSwitchEnabled: switchToEnrichQueryMalware,
+			MalwareAnalysisEntitlementAutoSwitchEnabled: switchedToEnrichQueryMalware,
 		})
 		if err != nil {
 			return err
