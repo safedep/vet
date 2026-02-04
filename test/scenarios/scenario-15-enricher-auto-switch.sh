@@ -2,8 +2,16 @@
 
 set -x
 
+# We need API key to run this test
+# hence we are checking if E2E_VET_INSIGHTS_V2 is set to true
+# because API key is available for Insights v2
+if [ "$E2E_VET_INSIGHTS_V2" != "true" ]; then
+  echo "Skipping scenario-15-enricher-auto-switch.sh as E2E_INSIGHTS_V2 is not set to true"
+  exit 0
+fi
+
 # Run the command and capture output
-$E2E_VET_SCAN_CMD \
+$E2E_VET_SCAN_CMD --purl pkg:/npm/@clerk/nextjs@6.9.6 \
   --malware \
   --report-markdown-summary=sum.md 2>&1 | tee scenario-output.log
 
