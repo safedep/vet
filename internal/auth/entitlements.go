@@ -16,22 +16,30 @@ import (
 type entitlementsManager struct {
 	mu           sync.RWMutex
 	loaded       bool
-	entitlements []v1.Entitlement
+	entitlements map[v1.Feature]*v1.Entitlement
 }
 
 // Global instance of the entitlements manager
 var globalEntitlementsManager = &entitlementsManager{}
 
-// cache caches the entitlements, ie save them
-func (g *entitlementsManager) store(entitlements []v1.Entitlement) {
+// store caches the entitlements, adding them to the existing map while avoiding duplicates
+func (g *entitlementsManager) store(entitlements []*v1.Entitlement) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	g.loaded = true
-	g.entitlements = entitlements
+	// Initialize map if not already done
+	if !g.loaded || g.entitlements == nil {
+		g.loaded = true
+		g.entitlements = make(map[v1.Feature]*v1.Entitlement)
+	}
 
-	logger.Debugf("Successfully loaded %d entitlements",
-		len(g.entitlements))
+	// Add entitlements to the map (automatically avoids duplicates)
+	for _, entitlement := range entitlements {
+		// Store pointer to avoid copying mutex lock from protocolbuffer object
+		g.entitlements[entitlement.Feature] = entitlement
+	}
+
+	logger.Debugf("Successfully added new entitlements (total: %d)", len(g.entitlements))
 }
 
 // hasEntitlement checks if the entitlements manager has the specified entitlement
@@ -45,11 +53,8 @@ func (g *entitlementsManager) hasEntitlement(entitlementsFeatures ...v1.Feature)
 	defer g.mu.RUnlock()
 
 	for _, feature := range entitlementsFeatures {
-		for i := range g.entitlements {
-			entitlement := &g.entitlements[i]
-			if entitlement.Feature == feature {
-				return true
-			}
+		if _, ok := g.entitlements[feature]; ok {
+			return true
 		}
 	}
 	logger.Debugf("Entitlements not found for tenant")
@@ -76,12 +81,12 @@ func LoadEntitlements() error {
 		return fmt.Errorf("failed to get entitlements for tool: response is nil")
 	}
 
-	entitlementsToCache := make([]v1.Entitlement, 0, len(response.GetEntitlements()))
+	entitlementsToCache := make([]*v1.Entitlement, 0, len(response.GetEntitlements()))
 	for _, entitlement := range response.GetEntitlements() {
 		if entitlement.Entitlement == nil {
 			continue
 		}
-		entitlementsToCache = append(entitlementsToCache, v1.Entitlement{
+		entitlementsToCache = append(entitlementsToCache, &v1.Entitlement{
 			Feature:    entitlement.Entitlement.Feature,
 			Limit:      entitlement.Entitlement.Limit,
 			Attributes: entitlement.Entitlement.Attributes,
