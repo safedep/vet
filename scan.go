@@ -1068,34 +1068,20 @@ func runAgentSkillScan() error {
 		ui.PrintMsg("See 'vet cloud quickstart' to sign up for full malware analysis")
 		fmt.Fprintln(os.Stderr)
 
-		client, err := auth.MalwareAnalysisCommunityClientConnection("vet-malware-analysis")
-		if err != nil {
-			return fmt.Errorf("failed to create malware analysis client: %w", err)
-		}
-
-		config := scanner.DefaultMalysisMalwareEnricherConfig()
-		config.Timeout = malwareAnalysisTimeout
-
-		enricher, err = scanner.NewMalysisMalwareAnalysisQueryEnricher(client, githubClient, config)
+		queryEnricher, err := createMalwareQueryEnricher(githubClient)
 		if err != nil {
 			return fmt.Errorf("failed to create malware query enricher: %w", err)
 		}
 
+		enricher = queryEnricher
 		scanMode = "query"
 	} else {
-		client, err := auth.MalwareAnalysisClientConnection("vet-malware-analysis")
-		if err != nil {
-			return fmt.Errorf("failed to create malware analysis client: %w", err)
-		}
-
-		config := scanner.DefaultMalysisMalwareEnricherConfig()
-		config.Timeout = malwareAnalysisTimeout
-
-		enricher, err = scanner.NewMalysisMalwareEnricher(client, githubClient, config)
+		malwareEnricher, err := createMalwareAnalysisEnricher(githubClient)
 		if err != nil {
 			return fmt.Errorf("failed to create malware enricher: %w", err)
 		}
 
+		enricher = malwareEnricher
 		scanMode = "active"
 	}
 
