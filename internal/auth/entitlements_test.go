@@ -237,18 +237,6 @@ func TestEntitlementsManager_hasEntitlement(t *testing.T) {
 	})
 }
 
-func TestLoadEntitlements(t *testing.T) {
-	// This test would require mocking the SyncClientConnection function
-	// Since it's not easily mockable without refactoring, we'll test the error cases
-	// and assume the success case works with proper integration testing
-
-	t.Run("should handle client connection error", func(t *testing.T) {
-		// This test would need to mock SyncClientConnection
-		// For now, we'll skip this test as it requires more complex mocking
-		t.Skip("Requires mocking of SyncClientConnection function")
-	})
-}
-
 func TestHasEntitlements(t *testing.T) {
 	t.Run("should return false when entitlements not loaded", func(t *testing.T) {
 		manager := &entitlementsManager{loaded: false}

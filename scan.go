@@ -352,6 +352,7 @@ func internalStartScan() error {
 			tui.ErrorExit(err)
 			return err
 		}
+		return nil
 	}
 
 	toolMetadata := reporter.ToolMetadata{
