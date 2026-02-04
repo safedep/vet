@@ -64,7 +64,7 @@ type internalReportConfig struct {
 }
 
 func renderQuotaLimitErrorMessages(quotaExceededErrCnt int) string {
-	return fmt.Sprintf("You have reached your quota for on-demand malicious package "+
+	return fmt.Sprintf("You have reached your quota for on-demand malicious package.\n"+
 		"scanning. %d on-demand analysis requests were denied. Please see safedep.io/pricing for "+
 		"upgrade.", quotaExceededErrCnt)
 }

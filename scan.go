@@ -1188,6 +1188,6 @@ func createMalwareQueryEnricher(githubClient *adapters.GithubClient) (scanner.Pa
 }
 
 func getOnDemandMalwareAnalysisMissingEntitlementMessage() string {
-	return "On-demand malicious package scanning is not available on the Free plan. " +
-		"Your scan was configured to use known malicious packages feed. Upgrade: https://safedep.io/pricing"
+	return "On-demand malicious package scanning is not available on the Free plan.\n" +
+		"Your scan was configured to use known malicious packages feed. Upgrade: https://safedep.io/pricing. \n"
 }
