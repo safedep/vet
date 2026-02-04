@@ -8,6 +8,7 @@ import (
 	controltowerv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
 	"github.com/google/go-github/v70/github"
 	"github.com/safedep/dry/adapters"
+	"github.com/safedep/dry/tui"
 	"github.com/safedep/dry/utils"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
@@ -347,7 +348,10 @@ func startScan() {
 
 func internalStartScan() error {
 	if agentSkillSpec != "" {
-		return runAgentSkillScan()
+		if err := runAgentSkillScan(); err != nil {
+			tui.ErrorExit(err)
+			return err
+		}
 	}
 
 	toolMetadata := reporter.ToolMetadata{
@@ -1064,31 +1068,35 @@ func runAgentSkillScan() error {
 		ui.PrintMsg("See 'vet cloud quickstart' to sign up for full malware analysis")
 		fmt.Fprintln(os.Stderr)
 
-		queryEnricher, err := createMalwareQueryEnricher(githubClient)
+		client, err := auth.MalwareAnalysisCommunityClientConnection("vet-malware-analysis")
 		if err != nil {
-			return fmt.Errorf("failed to create malware analysis query enricher: %w", err)
+			return fmt.Errorf("failed to create malware analysis client: %w", err)
 		}
-		enricher = queryEnricher
+
+		config := scanner.DefaultMalysisMalwareEnricherConfig()
+		config.Timeout = malwareAnalysisTimeout
+
+		enricher, err = scanner.NewMalysisMalwareAnalysisQueryEnricher(client, githubClient, config)
+		if err != nil {
+			return fmt.Errorf("failed to create malware query enricher: %w", err)
+		}
+
 		scanMode = "query"
 	} else {
-		found := auth.HasEntitlements(controltowerv1.Feature_FEATURE_ACTIVE_MALICIOUS_PACKAGE_SCANNING)
-		if !found {
-			ui.PrintWarning("%s", getOnDemandMalwareAnalysisMissingEntitlementMessage())
-
-			queryEnricher, err := createMalwareQueryEnricher(githubClient)
-			if err != nil {
-				return fmt.Errorf("failed to create malware analysis query enricher: %w", err)
-			}
-			enricher = queryEnricher
-			scanMode = "query"
-		} else {
-			malwareEnricher, err := createMalwareAnalysisEnricher(githubClient)
-			if err != nil {
-				return fmt.Errorf("failed to crate malware enricher: %w", err)
-			}
-			enricher = malwareEnricher
-			scanMode = "active"
+		client, err := auth.MalwareAnalysisClientConnection("vet-malware-analysis")
+		if err != nil {
+			return fmt.Errorf("failed to create malware analysis client: %w", err)
 		}
+
+		config := scanner.DefaultMalysisMalwareEnricherConfig()
+		config.Timeout = malwareAnalysisTimeout
+
+		enricher, err = scanner.NewMalysisMalwareEnricher(client, githubClient, config)
+		if err != nil {
+			return fmt.Errorf("failed to create malware enricher: %w", err)
+		}
+
+		scanMode = "active"
 	}
 
 	logger.Infof("Skill scan mode: %s", scanMode)
