@@ -916,7 +916,7 @@ func internalStartScan() error {
 
 		found := auth.HasEntitlements(controltowerv1.Feature_FEATURE_ACTIVE_MALICIOUS_PACKAGE_SCANNING)
 		if !found {
-			ui.PrintWarning("You are not entitled for on-demand malicious package scanning. The scan is auto-configured to use malicious package query only. See safedep.io/pricing for upgrade.")
+			ui.PrintWarning("%s", getOnDemandMalwareAnalysisMissingEntitlementMessage())
 
 			// auto-switch to enrichMalwareQuery mode
 			switchToEnrichQueryMalware = true
@@ -926,7 +926,7 @@ func internalStartScan() error {
 				return fmt.Errorf("failed to create malware enricher: %w", err)
 			}
 
-			ui.PrintMsg("Using Malysis for malware analysis")
+			ui.PrintMsg("Using On-demand malware analysis")
 			enrichers = append(enrichers, malwareEnricher)
 		}
 	} else if enrichMalwareQuery {
@@ -1073,7 +1073,7 @@ func runAgentSkillScan() error {
 	} else {
 		found := auth.HasEntitlements(controltowerv1.Feature_FEATURE_ACTIVE_MALICIOUS_PACKAGE_SCANNING)
 		if !found {
-			ui.PrintWarning("You are not entitled for on-demand malicious package scanning. The scan is auto-configured to use malicious package query only. See safedep.io/pricing for upgrade.")
+			ui.PrintWarning("%s", getOnDemandMalwareAnalysisMissingEntitlementMessage())
 
 			queryEnricher, err := createMalwareQueryEnricher(githubClient)
 			if err != nil {
@@ -1192,4 +1192,9 @@ func createMalwareQueryEnricher(githubClient *adapters.GithubClient) (scanner.Pa
 	}
 
 	return enricher, nil
+}
+
+func getOnDemandMalwareAnalysisMissingEntitlementMessage() string {
+	return "On-demand malicious package scanning is not available on the Free plan. " +
+		"Your scan was configured to use known malicious packages feed. Upgrade: https://safedep.io/pricing"
 }

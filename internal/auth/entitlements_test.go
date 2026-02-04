@@ -56,7 +56,7 @@ func TestEntitlementsManager_cache(t *testing.T) {
 			{Feature: v1.Feature_FEATURE_STANDARD_DASHBOARD},
 		}
 
-		manager.cache(entitlements)
+		manager.store(entitlements)
 
 		assert.True(t, manager.loaded)
 		assert.Equal(t, entitlements, manager.entitlements)
@@ -67,7 +67,7 @@ func TestEntitlementsManager_cache(t *testing.T) {
 		manager := &entitlementsManager{}
 		entitlements := []v1.Entitlement{}
 
-		manager.cache(entitlements)
+		manager.store(entitlements)
 
 		assert.True(t, manager.loaded)
 		assert.Equal(t, entitlements, manager.entitlements)
@@ -79,13 +79,13 @@ func TestEntitlementsManager_cache(t *testing.T) {
 		initialEntitlements := []v1.Entitlement{
 			{Feature: v1.Feature_FEATURE_ACTIVE_MALICIOUS_PACKAGE_SCANNING},
 		}
-		manager.cache(initialEntitlements)
+		manager.store(initialEntitlements)
 
 		newEntitlements := []v1.Entitlement{
 			{Feature: v1.Feature_FEATURE_ACTIVE_MALICIOUS_PACKAGE_SCANNING},
 			{Feature: v1.Feature_FEATURE_ENTERPRISE_DASHBOARD},
 		}
-		manager.cache(newEntitlements)
+		manager.store(newEntitlements)
 
 		assert.True(t, manager.loaded)
 		assert.Equal(t, newEntitlements, manager.entitlements)
@@ -100,7 +100,7 @@ func TestEntitlementsManager_hasEntitlement(t *testing.T) {
 			{Feature: v1.Feature_FEATURE_ACTIVE_MALICIOUS_PACKAGE_SCANNING},
 			{Feature: v1.Feature_FEATURE_ENTERPRISE_DASHBOARD},
 		}
-		manager.cache(entitlements)
+		manager.store(entitlements)
 
 		result := manager.hasEntitlement(v1.Feature_FEATURE_ACTIVE_MALICIOUS_PACKAGE_SCANNING)
 
@@ -112,7 +112,7 @@ func TestEntitlementsManager_hasEntitlement(t *testing.T) {
 		entitlements := []v1.Entitlement{
 			{Feature: v1.Feature_FEATURE_ACTIVE_MALICIOUS_PACKAGE_SCANNING},
 		}
-		manager.cache(entitlements)
+		manager.store(entitlements)
 
 		result := manager.hasEntitlement(
 			v1.Feature_FEATURE_ENTERPRISE_DASHBOARD,
@@ -127,7 +127,7 @@ func TestEntitlementsManager_hasEntitlement(t *testing.T) {
 		entitlements := []v1.Entitlement{
 			{Feature: v1.Feature_FEATURE_ENTERPRISE_DASHBOARD},
 		}
-		manager.cache(entitlements)
+		manager.store(entitlements)
 
 		result := manager.hasEntitlement(v1.Feature_FEATURE_ACTIVE_MALICIOUS_PACKAGE_SCANNING)
 
@@ -139,7 +139,7 @@ func TestEntitlementsManager_hasEntitlement(t *testing.T) {
 		entitlements := []v1.Entitlement{
 			{Feature: v1.Feature_FEATURE_ENTERPRISE_DASHBOARD},
 		}
-		manager.cache(entitlements)
+		manager.store(entitlements)
 
 		result := manager.hasEntitlement(
 			v1.Feature_FEATURE_ACTIVE_MALICIOUS_PACKAGE_SCANNING,
@@ -160,7 +160,7 @@ func TestEntitlementsManager_hasEntitlement(t *testing.T) {
 	t.Run("should handle empty entitlements list", func(t *testing.T) {
 		manager := &entitlementsManager{}
 		entitlements := []v1.Entitlement{}
-		manager.cache(entitlements)
+		manager.store(entitlements)
 
 		result := manager.hasEntitlement(v1.Feature_FEATURE_ACTIVE_MALICIOUS_PACKAGE_SCANNING)
 
@@ -172,7 +172,7 @@ func TestEntitlementsManager_hasEntitlement(t *testing.T) {
 		entitlements := []v1.Entitlement{
 			{Feature: v1.Feature_FEATURE_ACTIVE_MALICIOUS_PACKAGE_SCANNING},
 		}
-		manager.cache(entitlements)
+		manager.store(entitlements)
 
 		done := make(chan bool, 10)
 		for i := 0; i < 10; i++ {
@@ -218,7 +218,7 @@ func TestHasEntitlements(t *testing.T) {
 		entitlements := []v1.Entitlement{
 			{Feature: v1.Feature_FEATURE_ACTIVE_MALICIOUS_PACKAGE_SCANNING},
 		}
-		manager.cache(entitlements)
+		manager.store(entitlements)
 
 		withGlobalEntitlementsManager(t, func() *entitlementsManager {
 			return manager
@@ -234,7 +234,7 @@ func TestHasEntitlements(t *testing.T) {
 		entitlements := []v1.Entitlement{
 			{Feature: v1.Feature_FEATURE_ACTIVE_MALICIOUS_PACKAGE_SCANNING},
 		}
-		manager.cache(entitlements)
+		manager.store(entitlements)
 
 		withGlobalEntitlementsManager(t, func() *entitlementsManager {
 			return manager
@@ -251,7 +251,7 @@ func TestHasEntitlements(t *testing.T) {
 			{Feature: v1.Feature_FEATURE_ACTIVE_MALICIOUS_PACKAGE_SCANNING},
 			{Feature: v1.Feature_FEATURE_ENTERPRISE_DASHBOARD},
 		}
-		manager.cache(entitlements)
+		manager.store(entitlements)
 
 		withGlobalEntitlementsManager(t, func() *entitlementsManager {
 			return manager
@@ -268,7 +268,7 @@ func TestHasEntitlements(t *testing.T) {
 	t.Run("should return false for empty entitlements list when loaded", func(t *testing.T) {
 		manager := &entitlementsManager{}
 		entitlements := []v1.Entitlement{}
-		manager.cache(entitlements)
+		manager.store(entitlements)
 
 		withGlobalEntitlementsManager(t, func() *entitlementsManager {
 			return manager

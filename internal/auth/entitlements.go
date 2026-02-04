@@ -23,7 +23,7 @@ type entitlementsManager struct {
 var globalEntitlementsManager = &entitlementsManager{}
 
 // cache caches the entitlements, ie save them
-func (g *entitlementsManager) cache(entitlements []v1.Entitlement) {
+func (g *entitlementsManager) store(entitlements []v1.Entitlement) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
@@ -89,7 +89,7 @@ func LoadEntitlements() error {
 	}
 
 	// Cache the entitlements
-	globalEntitlementsManager.cache(entitlementsToCache)
+	globalEntitlementsManager.store(entitlementsToCache)
 	return nil
 }
 

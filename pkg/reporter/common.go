@@ -76,6 +76,6 @@ func renderMarkdownQuotaLimitErrorMessages(quotaExceededErrCnt int) string {
 }
 
 func renderMarkdownEntitlementAutoSwitchEnabled() string {
-	return fmt.Sprintln("🔀 You are **not entitled** for **on-demand** malicious package scanning." +
-		" The scan is auto-configured to use malicious package **query** only. See [safedep.io/pricing](https://safedep.io/pricing) for upgrade.")
+	return fmt.Sprintln("🔀 **On-demand** malicious package scanning is not available on the **Free plan**. " +
+		"Your scan was configured to use known malicious packages feed. **[Upgrade](https://safedep.io/pricing)** to enable on-demand scanning.")
 }
