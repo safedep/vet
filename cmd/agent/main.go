@@ -29,6 +29,7 @@ func NewAgentCommand() *cobra.Command {
 	cmd.PersistentFlags().BoolVar(&fastMode, "fast", false, "Prefer a fast model when available (compromises on advanced reasoning)")
 
 	cmd.AddCommand(newQueryAgentCommand())
+	cmd.AddCommand(newClawHubScannerCommand())
 
 	return cmd
 }
