@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"sync/atomic"
 
 	"github.com/cloudwego/eino/components/model"
 	"github.com/cloudwego/eino/components/tool"
@@ -11,6 +13,7 @@ import (
 	"github.com/cloudwego/eino/compose"
 	"github.com/cloudwego/eino/flow/agent/react"
 	"github.com/cloudwego/eino/schema"
+	"github.com/google/uuid"
 )
 
 type ReactQueryAgentConfig struct {
@@ -20,9 +23,11 @@ type ReactQueryAgentConfig struct {
 }
 
 type reactQueryAgent struct {
-	config ReactQueryAgentConfig
-	model  model.ToolCallingChatModel
-	tools  []tool.BaseTool
+	config    ReactQueryAgentConfig
+	model     model.ToolCallingChatModel
+	tools     []tool.BaseTool
+	id        string
+	debugStep atomic.Uint64
 }
 
 var _ Agent = (*reactQueryAgent)(nil)
@@ -41,6 +46,7 @@ func NewReactQueryAgent(model model.ToolCallingChatModel,
 	a := &reactQueryAgent{
 		config: config,
 		model:  model,
+		id:     uuid.New().String(),
 	}
 
 	for _, opt := range opts {
@@ -78,6 +84,10 @@ func (a *reactQueryAgent) Execute(ctx context.Context, session Session, input In
 
 	if a.config.MessageRewriter != nil {
 		agentConfig.MessageRewriter = a.config.MessageRewriter
+	}
+
+	if debugDir := os.Getenv("VET_AGENT_DEBUG_PROMPT_DIR"); debugDir != "" {
+		agentConfig.MessageModifier = a.newDebugPromptDumper(debugDir)
 	}
 
 	agent, err := react.NewAgent(ctx, agentConfig)
