@@ -54,10 +54,18 @@ func executeClawHubScanner() error {
 		return fmt.Errorf("failed to build LLM model adapter using environment configuration: %w", err)
 	}
 
-	agentExecutor, err := agent.NewReactQueryAgent(model.Client, agent.ReactQueryAgentConfig{
+	agentConfig := agent.ReactQueryAgentConfig{
 		MaxSteps:     maxAgentSteps,
 		SystemPrompt: clawHubScannerSystemPrompt,
-	}, agent.WithTools(tools))
+	}
+
+	if compactContext {
+		compactorConfig := agent.DefaultToolContentCompactorConfig()
+		compactorConfig.ToolNames = []string{"clawhub_read_skill_file"}
+		agentConfig.MessageRewriter = agent.NewToolContentCompactor(compactorConfig)
+	}
+
+	agentExecutor, err := agent.NewReactQueryAgent(model.Client, agentConfig, agent.WithTools(tools))
 	if err != nil {
 		return fmt.Errorf("failed to create agent: %w", err)
 	}

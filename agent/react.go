@@ -14,8 +14,9 @@ import (
 )
 
 type ReactQueryAgentConfig struct {
-	MaxSteps     int
-	SystemPrompt string
+	MaxSteps        int
+	SystemPrompt    string
+	MessageRewriter func(ctx context.Context, messages []*schema.Message) []*schema.Message
 }
 
 type reactQueryAgent struct {
@@ -59,7 +60,7 @@ func (a *reactQueryAgent) Execute(ctx context.Context, session Session, input In
 		opt(executionContext)
 	}
 
-	agent, err := react.NewAgent(ctx, &react.AgentConfig{
+	agentConfig := &react.AgentConfig{
 		ToolCallingModel: a.model,
 		ToolsConfig: compose.ToolsNodeConfig{
 			Tools: a.wrapToolsForError(a.tools),
@@ -73,7 +74,13 @@ func (a *reactQueryAgent) Execute(ctx context.Context, session Session, input In
 			},
 		},
 		MaxStep: a.config.MaxSteps,
-	})
+	}
+
+	if a.config.MessageRewriter != nil {
+		agentConfig.MessageRewriter = a.config.MessageRewriter
+	}
+
+	agent, err := react.NewAgent(ctx, agentConfig)
 	if err != nil {
 		return Output{}, fmt.Errorf("failed to create react agent: %w", err)
 	}
