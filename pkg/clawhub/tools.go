@@ -75,6 +75,10 @@ func (e *skillCacheEntry) readFile(filePath string) ([]byte, error) {
 		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
 
+	if len(data) > maxFileReadSize {
+		return nil, fmt.Errorf("file too large (%d bytes, max %d)", len(data), maxFileReadSize)
+	}
+
 	return data, nil
 }
 
