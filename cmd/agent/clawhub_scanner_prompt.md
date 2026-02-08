@@ -43,4 +43,9 @@ Keep the report minimal and developer-friendly. No filler or boilerplate.
 If the skill is clean, say so briefly. Do not pad the report.
 
 IMPORTANT: Read EVERY file in the skill. Do not skip any files.
+If you are unable to read a file (due to errors, file size limits, binary content, or any other reason),
+you MUST explicitly call it out in the report. Add an **Unreadable Files** section listing each file
+you could not read, the reason it failed, and a note that it was NOT analyzed. Unreadable files should
+raise the risk rating — files that cannot be inspected cannot be trusted.
+
 Only report actual findings backed by evidence from the code. Do not hallucinate issues.
