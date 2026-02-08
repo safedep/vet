@@ -1,14 +1,18 @@
-<div align="center">
-  <img width="60" height="60" alt="image" src="./docs/assets/logo.png" />
+<p align="center">
+  <a href="https://safedep.io">
+    <picture>
+      <source srcset="docs/assets/vet-banner-dark.svg" media="(prefers-color-scheme: dark)">
+      <source srcset="docs/assets/vet-banner-light.svg" media="(prefers-color-scheme: light)">
+      <img src="docs/assets/vet-banner-light.svg" alt="SafeDep VET - Real-time malicious package detection & software supply chain security" width="100%">
+    </picture>
+  </a>
+</p>
 
-  <h1>SafeDep VET</h1>
-  
-  <p><strong>🛡️ Real-time malicious package detection & software supply chain security</strong></p>
-  
+<div align="center">
   <p>
-    <a href="#-quick-start"><strong>Quick Start</strong></a> •
+    <a href="#quick-start"><strong>Quick Start</strong></a> •
     <a href="https://docs.safedep.io/"><strong>Documentation</strong></a> •
-    <a href="#-community--support"><strong>Community</strong></a>
+    <a href="#community--support"><strong>Community</strong></a>
   </p>
 </div>
 
@@ -33,26 +37,29 @@
 > Run `vet scan --agent-skill <owner/repo>` to scan an Agent Skill hosted in a GitHub repository.
 
 
-## 🎯 Why vet?
+## Why vet?
 
-> **70-90% of modern software constitute code from open sources** — How do we know if it's safe?
+> **70-90% of modern software is open source code** — how do you know it's safe?
 
-**vet** is an open source software supply chain security tool built for **developers and security engineers** who need:
+Traditional SCA tools drown you in CVE noise. **vet** takes a different approach:
 
-✅ **Real-time malicious package detection** — Active scanning and analysis of unknown packages  
-✅ **Modern SCA with actual usage analysis** — Prioritize real risks over vulnerability noise  
-✅ **Policy as Code** — Express security requirements using [CEL](https://cel.dev/) expressions  
+- **Catch malware before it ships** — Zero-day detection through static and dynamic behavioral analysis, not just advisory lookups
+- **Cut through vulnerability noise** — Analyzes your actual code usage to surface only the risks that matter
+- **Secure AI-generated code** — [MCP server](./docs/mcp.md) integration protects against [slopsquatting](https://en.wikipedia.org/wiki/Slopsquatting) in tools like Cursor, VS Code, and Claude Code
+- **Enforce policy as code** — Express security, license, and quality requirements as [CEL](https://cel.dev/) expressions that gate your CI/CD pipeline
 
-Hosted SaaS version available at [SafeDep Cloud](https://app.safedep.io). 
-Get started with [GitHub App](https://github.com/apps/safedep) and other integrations.
+Free for open source. Hosted SaaS available at [SafeDep](https://safedep.io).
 
-## ⚡ Quick Start
+## Quick Start
 
 **Install in seconds:**
 
 ```bash
 # macOS & Linux
 brew install safedep/tap/vet
+
+# Using npm
+npm install @safedep/vet
 ```
 
 or download a [pre-built binary](https://github.com/safedep/vet/releases)
@@ -70,7 +77,12 @@ vet scan -D . --filter 'vulns.critical.exists(p, true)' --filter-fail
 vet cloud quickstart
 ```
 
-## 📦 Architecture
+## Architecture
+
+`vet` follows a pipeline architecture: **readers** ingest package manifests from diverse sources (directories, repositories, container images, SBOMs), **enrichers** augment each package with vulnerability, malware, and scorecard data from SafeDep Cloud, the **CEL policy engine** evaluates security policies against enriched data, and **reporters** produce actionable output in formats like SARIF, JSON, and Markdown.
+
+<details>
+<summary>View architecture diagram</summary>
 
 ```mermaid
 graph TB
@@ -80,31 +92,31 @@ graph TB
         R3[Maven Central]
         R4[Other Registries]
     end
-    
+
     subgraph "SafeDep Cloud"
         M[Continuous Monitoring]
         A[Real-time Code Analysis<br/>Malware Detection]
         T[Threat Intelligence DB<br/>Vulnerabilities • Malware • Scorecard]
     end
-    
+
     subgraph "vet CLI"
         S[Source Repository<br/>Scanner]
         P[CEL Policy Engine]
         O[Reports & Actions<br/>SARIF/JSON/CSV]
     end
-    
+
     R1 -->|New Packages| M
     R2 -->|New Packages| M
     R3 -->|New Packages| M
     R4 -->|New Packages| M
     M -->|Behavioral Analysis| A
     A -->|Malware Signals| T
-    
+
     S -->|Query Package Info| T
     T -->|Security Intelligence| S
     S -->|Analysis Results| P
     P -->|Policy Decisions| O
-    
+
     style M fill:#7CB9E8,stroke:#5A8DB8,color:#1a1a1a
     style A fill:#E8A87C,stroke:#B88A5A,color:#1a1a1a
     style T fill:#7CB9E8,stroke:#5A8DB8,color:#1a1a1a
@@ -113,19 +125,21 @@ graph TB
     style O fill:#B8A3D4,stroke:#9478AA,color:#1a1a1a
 ```
 
-## 🔒 Key Features
+</details>
 
-### 🛡️ **Malicious Package Detection**
+## Key Features
 
-Real-time protection against malicious packages powered by [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis). 
+### **Malicious Package Detection**
+
+Real-time protection against malicious packages powered by [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis).
 Free for open source projects. Detects zero-day malware through active code analysis.
 
-### 🕵️ **Smart Vulnerability Analysis**
+### **Smart Vulnerability Analysis**
 
-Unlike dependency scanners that flood you with noise, `vet` analyzes your **actual code usage** to prioritize real risks. 
+Unlike dependency scanners that flood you with noise, `vet` analyzes your **actual code usage** to prioritize real risks.
 See [dependency usage evidence](https://docs.safedep.io/vet/guides/dependency-usage-identification) for details.
 
-### 📋 **Policy as Code**
+### **Policy as Code**
 
 Define security policies using CEL expressions to enforce context specific requirements:
 
@@ -140,18 +154,18 @@ vet scan --filter 'licenses.contains_license("GPL-3.0")' --filter-fail
 vet scan --filter 'scorecard.scores.Maintained < 5' --filter-fail
 ```
 
-### 🎯 **Multi-Ecosystem Support**
+### **Multi-Ecosystem Support**
 
-Package managers: **npm**, **PyPI**, **Maven**, **Go**, **Ruby**, **Rust**, **PHP**  
-Container images: **Docker**, **OCI**  
-SBOM formats: **CycloneDX**, **SPDX**  
+Package managers: **npm**, **PyPI**, **Maven**, **Go**, **Ruby**, **Rust**, **PHP**
+Container images: **Docker**, **OCI**
+SBOM formats: **CycloneDX**, **SPDX**
 Source repositories: **GitHub**, **GitLab**
 
-## 🛡️ Malicious Package Detection
+## Malicious Package Detection
 
 **Real-time protection against malicious packages** with active scanning and behavioral analysis.
 
-### 🚀 Quick Setup
+### Quick Setup
 
 ```bash
 # One-time setup for advanced scanning
@@ -170,13 +184,13 @@ vet scan -D . --malware-query
 - [MAL-2025-4029: ts-runtime-compat-check](https://safedep.io/digging-into-dynamic-malware-analysis-signals/)
 
 **Key security features:**
-- ✅ Real-time analysis against known malware databases
-- ✅ Behavioral analysis using static and dynamic analysis
-- ✅ Zero-day protection through active code scanning
-- ✅ Human-in-the-loop triaging for high-impact findings
-- ✅ Public [analysis log](https://vetpkg.dev/mal) for transparency
+- Real-time analysis against known malware databases
+- Behavioral analysis using static and dynamic analysis
+- Zero-day protection through active code scanning
+- Human-in-the-loop triaging for high-impact findings
+- Public [analysis log](https://vetpkg.dev/mal) for transparency
 
-### 🎯 Advanced Usage
+### Advanced Usage
 
 ```bash
 # Specialized scans
@@ -188,9 +202,9 @@ vet scan --image nats:2.10 --malware        # Container images
 vet inspect malware --purl pkg:npm/nyc-config@10.0.0
 ```
 
-## 🚀 Production Ready Integrations
+## Production Ready Integrations
 
-### 📦 GitHub Actions
+### GitHub Actions
 
 Zero-config security guardrails in CI/CD:
 
@@ -202,7 +216,7 @@ Zero-config security guardrails in CI/CD:
 
 See [vet-action](https://github.com/safedep/vet-action) documentation.
 
-### 🔧 GitLab CI
+### GitLab CI
 
 Enterprise scanning with [vet CI Component](https://docs.safedep.io/vet/guides/gitlab-dependency-scanning):
 
@@ -211,7 +225,7 @@ include:
   - component: gitlab.com/safedep/ci-components/vet/scan@main
 ```
 
-### 🐳 Container Integration
+### Container Integration
 
 Run `vet` anywhere using our container image:
 
@@ -219,26 +233,31 @@ Run `vet` anywhere using our container image:
 docker run --rm -v $(pwd):/app ghcr.io/safedep/vet:latest scan -D /app --malware
 ```
 
-## 📦 Installation
+## Installation
 
-### 🍺 Homebrew (Recommended)
+### Homebrew (Recommended)
 
 ```bash
-brew tap safedep/tap
 brew install safedep/tap/vet
 ```
 
-### 📥 Direct Download
+### npm
+
+```bash
+npm install @safedep/vet
+```
+
+### Direct Download
 
 See [releases](https://github.com/safedep/vet/releases) for pre-built binaries.
 
-### 🐹 Go Install
+### Go Install
 
 ```bash
 go install github.com/safedep/vet@latest
 ```
 
-### 🐳 Container Image
+### Container Image
 
 ```bash
 # Quick test
@@ -248,14 +267,14 @@ docker run --rm ghcr.io/safedep/vet:latest version
 docker run --rm -v $(pwd):/workspace ghcr.io/safedep/vet:latest scan -D /workspace
 ```
 
-### ⚙️ Verify Installation
+### Verify Installation
 
 ```bash
 vet version
 # Should display version and build information
 ```
 
-## 📚 Advanced Features
+## Advanced Features
 
 **Learn more in our comprehensive documentation:**
 
@@ -266,7 +285,7 @@ vet version
 - **[Query Mode](https://docs.safedep.io/cloud/quickstart#query-your-data)** - Scan once, analyze multiple times
 - **[GitHub Integration](https://docs.safedep.io/)** - Repository and organization scanning
 
-## 📊 Privacy
+## Privacy
 
 `vet` collects anonymous usage telemetry to improve the product. **Your code and package information is never transmitted.**
 
@@ -275,11 +294,11 @@ vet version
 export VET_DISABLE_TELEMETRY=true
 ```
 
-## 🎊 Community & Support
+## Community & Support
 
 <div align="center">
 
-### 🌟 Join the Community
+### Join the Community
 
 [![Discord](https://img.shields.io/discord/1090352019379851304?color=7289da&label=Discord&logo=discord&logoColor=white)](https://rebrand.ly/safedep-community)
 [![GitHub Discussions](https://img.shields.io/badge/GitHub-Discussions-green?logo=github)](https://github.com/safedep/vet/discussions)
@@ -287,23 +306,23 @@ export VET_DISABLE_TELEMETRY=true
 
 </div>
 
-### 💡 Get Help & Share Ideas
+### Get Help & Share Ideas
 
-- 🚀 **[Interactive Tutorial](https://killercoda.com/safedep/scenario/101-intro)** - Learn vet hands-on
-- 📚 **[Complete Documentation](https://docs.safedep.io/)** - Comprehensive guides
-- 💬 **[Discord Community](https://rebrand.ly/safedep-community)** - Real-time support
-- 🐛 **[Issue Tracker](https://github.com/safedep/vet/issues)** - Bug reports & feature requests
-- 🤝 **[Contributing Guide](CONTRIBUTING.md)** - Join the development
+- **[Interactive Tutorial](https://killercoda.com/safedep/scenario/101-intro)** - Learn vet hands-on
+- **[Complete Documentation](https://docs.safedep.io/)** - Comprehensive guides
+- **[Discord Community](https://rebrand.ly/safedep-community)** - Real-time support
+- **[Issue Tracker](https://github.com/safedep/vet/issues)** - Bug reports & feature requests
+- **[Contributing Guide](CONTRIBUTING.md)** - Join the development
 
 ---
 
 <div align="center">
 
-### ⭐ Star History
+### Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=safedep/vet&type=Date)](https://star-history.com/#safedep/vet&Date)
 
-### 🙏 Built With Open Source
+### Built With Open Source
 
 vet stands on the shoulders of giants:
 
@@ -311,9 +330,9 @@ vet stands on the shoulders of giants:
 
 ---
 
-<p><strong>⚡ Secure your supply chain today. Star the repo ⭐ and get started!</strong></p>
+<p><strong>Secure your supply chain today. Star the repo and get started!</strong></p>
 
-Created with ❤️ by [SafeDep](https://safedep.io) and the open source community
+Created with love by [SafeDep](https://safedep.io) and the open source community
 
 </div>
 

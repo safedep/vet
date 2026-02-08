@@ -1,7 +1,6 @@
 package analytics
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,8 +8,7 @@ import (
 
 func TestIsDisabled(t *testing.T) {
 	t.Run("returns true if VET_DISABLE_TELEMETRY is set to true", func(t *testing.T) {
-		os.Setenv(telemetryDisableEnvKey, "true")
-		defer os.Unsetenv(telemetryDisableEnvKey)
+		t.Setenv(telemetryDisableEnvKey, "true")
 
 		assert.True(t, IsDisabled())
 	})
