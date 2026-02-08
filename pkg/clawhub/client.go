@@ -13,6 +13,8 @@ import (
 
 const defaultBaseURL = "https://clawhub.ai"
 
+const maxDownloadSize = 50 * 1024 * 1024 // 50MB
+
 // Client is an HTTP client for the ClawHub V1 API.
 type Client struct {
 	baseURL    string
@@ -138,9 +140,13 @@ func (c *Client) DownloadSkillZip(ctx context.Context, slug string) ([]byte, err
 		return nil, fmt.Errorf("unexpected status code %d downloading skill %q", resp.StatusCode, slug)
 	}
 
-	data, err := io.ReadAll(resp.Body)
+	data, err := io.ReadAll(io.LimitReader(resp.Body, maxDownloadSize+1))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read download response: %w", err)
+	}
+
+	if len(data) > maxDownloadSize {
+		return nil, fmt.Errorf("skill zip too large (max %d bytes)", maxDownloadSize)
 	}
 
 	return data, nil
