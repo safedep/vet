@@ -1,10 +1,14 @@
+<p align="center">
+  <a href="https://safedep.io">
+    <picture>
+      <source srcset="docs/assets/vet-banner-dark.svg" media="(prefers-color-scheme: dark)">
+      <source srcset="docs/assets/vet-banner-light.svg" media="(prefers-color-scheme: light)">
+      <img src="docs/assets/vet-banner-light.svg" alt="SafeDep VET - Real-time malicious package detection & software supply chain security" width="100%">
+    </picture>
+  </a>
+</p>
+
 <div align="center">
-  <img width="60" height="60" alt="image" src="./docs/assets/logo.png" />
-
-  <h1>SafeDep VET</h1>
-
-  <p><strong>Real-time malicious package detection & software supply chain security</strong></p>
-
   <p>
     <a href="#quick-start"><strong>Quick Start</strong></a> •
     <a href="https://docs.safedep.io/"><strong>Documentation</strong></a> •
