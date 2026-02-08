@@ -6,7 +6,10 @@ import (
 	"github.com/cloudwego/eino/schema"
 )
 
-const defaultCompactMessage = "[Content compacted — call the tool again to re-read this file]"
+const (
+	defaultCompactMessage              = "[Content compacted — call the tool again to re-read this file]"
+	defaultMinContentSizeForCompaction = 50 * 1024
+)
 
 // ToolContentCompactorConfig configures the behavior of NewToolContentCompactor.
 type ToolContentCompactorConfig struct {
@@ -24,7 +27,10 @@ type ToolContentCompactorConfig struct {
 // DefaultToolContentCompactorConfig returns a baseline config with sensible defaults.
 // Callers should set ToolNames for their specific agent.
 func DefaultToolContentCompactorConfig() ToolContentCompactorConfig {
-	return ToolContentCompactorConfig{}
+	return ToolContentCompactorConfig{
+		CompactMessage: defaultCompactMessage,
+		MinContentSize: defaultMinContentSizeForCompaction,
+	}
 }
 
 // NewToolContentCompactor returns a MessageRewriter that compacts tool result

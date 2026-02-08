@@ -59,12 +59,12 @@ type toolCallEntry struct {
 }
 
 type model struct {
-	config    Config
-	styles    Styles
-	ctx       context.Context
-	exec      ExecFunc
-	program   atomic.Pointer[tea.Program]
-	toolCalls []toolCallEntry
+	config         Config
+	styles         Styles
+	ctx            context.Context
+	exec           ExecFunc
+	program        atomic.Pointer[tea.Program]
+	toolCalls      []toolCallEntry
 	status         string
 	thinking       string
 	rawResult      string
