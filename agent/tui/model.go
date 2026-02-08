@@ -3,6 +3,7 @@ package tui
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -11,6 +12,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
 	"github.com/muesli/termenv"
+	"golang.org/x/term"
 )
 
 // Run starts the TUI, executes the provided function, and displays progress
@@ -99,6 +101,11 @@ func newModel(ctx context.Context, exec ExecFunc, config Config) *model {
 		glamourStyle = "light"
 	}
 
+	width := 80
+	if w, _, err := term.GetSize(int(os.Stdout.Fd())); err == nil && w > 0 {
+		width = w
+	}
+
 	return &model{
 		config:       config,
 		styles:       styles,
@@ -107,7 +114,7 @@ func newModel(ctx context.Context, exec ExecFunc, config Config) *model {
 		startTime:    time.Now(),
 		spinner:      s,
 		glamourStyle: glamourStyle,
-		width:        80,
+		width:        width,
 	}
 }
 
@@ -139,6 +146,9 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
+		if m.rawResult != "" {
+			return m, m.renderResultCmd()
+		}
 
 	case spinner.TickMsg:
 		if !m.done {
@@ -291,7 +301,7 @@ func (m *model) renderResultCmd() tea.Cmd {
 	return func() tea.Msg {
 		renderer, err := glamour.NewTermRenderer(
 			glamour.WithStylePath(style),
-			glamour.WithWordWrap(width),
+			glamour.WithWordWrap(width-2),
 			glamour.WithEmoji(),
 		)
 		if err != nil {

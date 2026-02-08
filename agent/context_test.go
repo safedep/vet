@@ -214,6 +214,6 @@ func TestDefaultToolContentCompactorConfig(t *testing.T) {
 	config := DefaultToolContentCompactorConfig()
 
 	assert.Nil(t, config.ToolNames)
-	assert.Equal(t, 0, config.MinContentSize)
-	assert.Equal(t, "", config.CompactMessage)
+	assert.Equal(t, defaultMinContentSizeForCompaction, config.MinContentSize)
+	assert.Equal(t, defaultCompactMessage, config.CompactMessage)
 }

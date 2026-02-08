@@ -135,6 +135,30 @@ func TestModelWindowSize(t *testing.T) {
 	assert.Equal(t, 120, model.width)
 }
 
+func TestModelWindowSizeReRendersResult(t *testing.T) {
+	m := newModel(context.Background(), nil, Config{Title: "Test"})
+
+	// Simulate a result already rendered
+	m.rawResult = "# Report\nAll clear."
+	m.renderedResult = "old rendered content"
+
+	updated, cmd := m.Update(tea.WindowSizeMsg{Width: 100, Height: 50})
+	model := updated.(*model)
+
+	assert.Equal(t, 100, model.width)
+	assert.NotNil(t, cmd, "should return a re-render command when result exists")
+}
+
+func TestModelWindowSizeNoReRenderWithoutResult(t *testing.T) {
+	m := newModel(context.Background(), nil, Config{Title: "Test"})
+
+	updated, cmd := m.Update(tea.WindowSizeMsg{Width: 100, Height: 50})
+	model := updated.(*model)
+
+	assert.Equal(t, 100, model.width)
+	assert.Nil(t, cmd, "should not return a command when no result exists")
+}
+
 func TestViewInProgress(t *testing.T) {
 	m := newModel(context.Background(), nil, Config{
 		Title:    "ClawHub Skill Scanner",
