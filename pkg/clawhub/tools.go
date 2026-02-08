@@ -2,130 +2,207 @@ package clawhub
 
 import (
 	"archive/zip"
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
-	"path/filepath"
+	"path"
 	"strings"
 	"sync"
 
 	"github.com/cloudwego/eino/components/tool"
 	"github.com/cloudwego/eino/schema"
+
+	"github.com/safedep/vet/pkg/common/logger"
 )
 
 const maxFileReadSize = 200 * 1024 // 200KB
 
-// skillCache caches downloaded and extracted skill zip archives.
+// skillCacheEntry holds a temp file containing the raw zip archive and a
+// pre-built index of valid file entries. The zip.File entries read from
+// the temp file on demand via the io.ReaderAt interface, avoiding holding
+// the entire zip contents in memory.
+type skillCacheEntry struct {
+	zipFile   *os.File             // temp file backing the zip.Reader
+	fileIndex map[string]*zip.File // clean path → zip.File (directories excluded)
+}
+
+// fileListEntry describes a single file in a skill package.
+type fileListEntry struct {
+	Path string `json:"path"`
+	Size int64  `json:"size"`
+}
+
+// listFiles returns all files in the cached zip as fileListEntry values.
+func (e *skillCacheEntry) listFiles() []fileListEntry {
+	files := make([]fileListEntry, 0, len(e.fileIndex))
+	for p, f := range e.fileIndex {
+		files = append(files, fileListEntry{
+			Path: p,
+			Size: int64(f.UncompressedSize64),
+		})
+	}
+	return files
+}
+
+// readFile reads the contents of a single file from the zip backed by
+// the temp file on disk.
+func (e *skillCacheEntry) readFile(filePath string) ([]byte, error) {
+	clean := path.Clean(filePath)
+	f, ok := e.fileIndex[clean]
+	if !ok {
+		return nil, fmt.Errorf("file not found: %s", filePath)
+	}
+
+	if f.UncompressedSize64 > maxFileReadSize {
+		return nil, fmt.Errorf("file too large (%d bytes, max %d)", f.UncompressedSize64, maxFileReadSize)
+	}
+
+	rc, err := f.Open()
+	if err != nil {
+		return nil, fmt.Errorf("failed to open zip entry: %w", err)
+	}
+	defer func() {
+		if err := rc.Close(); err != nil {
+			logger.Warnf("failed to close zip entry reader: %v", err)
+		}
+	}()
+
+	data, err := io.ReadAll(io.LimitReader(rc, int64(maxFileReadSize)+1))
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file: %w", err)
+	}
+
+	return data, nil
+}
+
+// skillCache caches downloaded skill zips as temp-file-backed zip readers.
 type skillCache struct {
 	mu      sync.Mutex
 	client  *Client
-	entries map[string]string // slug -> temp dir path
+	entries map[string]*skillCacheEntry
 }
 
 func newSkillCache(client *Client) *skillCache {
 	return &skillCache{
 		client:  client,
-		entries: make(map[string]string),
+		entries: make(map[string]*skillCacheEntry),
 	}
 }
 
-// getExtractDir downloads and extracts the skill zip if not already cached,
-// then returns the path to the extraction directory.
-func (sc *skillCache) getExtractDir(ctx context.Context, slug string) (string, error) {
+// get downloads and indexes the skill zip if not already cached,
+// then returns the cached entry.
+func (sc *skillCache) get(ctx context.Context, slug string) (*skillCacheEntry, error) {
+	slug = normalizeSlug(slug)
+
 	sc.mu.Lock()
 	defer sc.mu.Unlock()
 
-	if dir, ok := sc.entries[slug]; ok {
-		return dir, nil
+	if entry, ok := sc.entries[slug]; ok {
+		return entry, nil
 	}
 
 	data, err := sc.client.DownloadSkillZip(ctx, slug)
 	if err != nil {
-		return "", fmt.Errorf("failed to download skill zip: %w", err)
+		return nil, fmt.Errorf("failed to download skill zip: %w", err)
 	}
 
-	tmpDir, err := os.MkdirTemp("", "vet-clawhub-*")
+	tmpFile, err := os.CreateTemp("", "vet-clawhub-*.zip")
 	if err != nil {
-		return "", fmt.Errorf("failed to create temp dir: %w", err)
+		return nil, fmt.Errorf("failed to create temp file: %w", err)
 	}
 
-	if err := extractZip(data, tmpDir); err != nil {
-		_ = os.RemoveAll(tmpDir)
-		return "", fmt.Errorf("failed to extract skill zip: %w", err)
+	committed := false
+	defer func() {
+		if !committed {
+			closeTempFile(tmpFile)
+		}
+	}()
+
+	if _, err := tmpFile.Write(data); err != nil {
+		return nil, fmt.Errorf("failed to write zip to temp file: %w", err)
 	}
 
-	sc.entries[slug] = tmpDir
-	return tmpDir, nil
+	fileIndex, err := buildFileIndex(tmpFile, int64(len(data)))
+	if err != nil {
+		return nil, fmt.Errorf("failed to index skill zip: %w", err)
+	}
+
+	entry := &skillCacheEntry{
+		zipFile:   tmpFile,
+		fileIndex: fileIndex,
+	}
+
+	sc.entries[slug] = entry
+	committed = true
+
+	return entry, nil
 }
 
-// Cleanup removes all cached extraction directories.
+// Cleanup closes and removes all cached temp files.
 func (sc *skillCache) Cleanup() {
 	sc.mu.Lock()
 	defer sc.mu.Unlock()
 
-	for _, dir := range sc.entries {
-		_ = os.RemoveAll(dir)
+	for _, entry := range sc.entries {
+		closeTempFile(entry.zipFile)
 	}
-
-	sc.entries = make(map[string]string)
+	sc.entries = make(map[string]*skillCacheEntry)
 }
 
-func extractZip(data []byte, destDir string) error {
-	reader, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
-	if err != nil {
-		return fmt.Errorf("failed to open zip: %w", err)
+// closeTempFile closes and removes a temp file, logging warnings on errors.
+func closeTempFile(f *os.File) {
+	if err := f.Close(); err != nil {
+		logger.Warnf("failed to close zip temp file: %v", err)
 	}
 
-	for _, f := range reader.File {
-		// Protect against zip slip
-		targetPath := filepath.Join(destDir, f.Name) //nolint:gosec
-		if !strings.HasPrefix(filepath.Clean(targetPath), filepath.Clean(destDir)+string(os.PathSeparator)) {
-			return fmt.Errorf("invalid zip entry path: %s", f.Name)
-		}
+	if err := os.Remove(f.Name()); err != nil {
+		logger.Warnf("failed to remove zip temp file: %v", err)
+	}
+}
 
+// isValidZipEntry returns true if the zip entry name is safe to index.
+// It rejects absolute paths, path traversal components, and symlinks.
+func isValidZipEntry(name string, mode fs.FileMode) bool {
+	if strings.HasPrefix(name, "/") {
+		return false
+	}
+	for _, part := range strings.Split(name, "/") {
+		if part == ".." {
+			return false
+		}
+	}
+	return mode&fs.ModeSymlink == 0
+}
+
+// buildFileIndex creates a zip.Reader from the given io.ReaderAt and builds
+// a map of clean file paths to their zip.File entries, skipping directories
+// and invalid entries.
+func buildFileIndex(r io.ReaderAt, size int64) (map[string]*zip.File, error) {
+	reader, err := zip.NewReader(r, size)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open zip: %w", err)
+	}
+
+	index := make(map[string]*zip.File, len(reader.File))
+	for _, f := range reader.File {
 		if f.FileInfo().IsDir() {
-			if err := os.MkdirAll(targetPath, 0o750); err != nil {
-				return fmt.Errorf("failed to create directory: %w", err)
-			}
 			continue
 		}
-
-		if err := os.MkdirAll(filepath.Dir(targetPath), 0o750); err != nil {
-			return fmt.Errorf("failed to create parent directory: %w", err)
+		if !isValidZipEntry(f.Name, f.Mode()) {
+			continue
 		}
-
-		outFile, err := os.OpenFile(targetPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
-		if err != nil {
-			return fmt.Errorf("failed to create file: %w", err)
-		}
-
-		rc, err := f.Open()
-		if err != nil {
-			_ = outFile.Close()
-			return fmt.Errorf("failed to open zip entry: %w", err)
-		}
-
-		_, err = io.Copy(outFile, rc) //nolint:gosec
-		_ = rc.Close()
-		closeErr := outFile.Close()
-
-		if err != nil {
-			return fmt.Errorf("failed to extract file: %w", err)
-		}
-
-		if closeErr != nil {
-			return fmt.Errorf("failed to close extracted file: %w", closeErr)
-		}
+		clean := path.Clean(f.Name)
+		index[clean] = f
 	}
 
-	return nil
+	return index, nil
 }
 
 // NewSkillTools creates the set of ClawHub skill tools for use with the agent.
-// The returned cleanup function removes all cached temporary directories and
+// The returned cleanup function closes and removes all cached temp files and
 // must be called when the tools are no longer needed.
 func NewSkillTools(client *Client) (tools []tool.BaseTool, cleanup func()) {
 	cache := newSkillCache(client)
@@ -190,15 +267,10 @@ type listSkillFilesParams struct {
 	Slug string `json:"slug"`
 }
 
-type fileListEntry struct {
-	Path string `json:"path"`
-	Size int64  `json:"size"`
-}
-
 func (t *listSkillFilesTool) Info(_ context.Context) (*schema.ToolInfo, error) {
 	return &schema.ToolInfo{
 		Name: "clawhub_list_skill_files",
-		Desc: "List all files in a ClawHub skill package. Downloads and extracts the skill zip on first call.",
+		Desc: "List all files in a ClawHub skill package. Downloads the skill zip on first call.",
 		ParamsOneOf: schema.NewParamsOneOfByParams(map[string]*schema.ParameterInfo{
 			"slug": {Type: schema.String, Desc: "The ClawHub skill slug", Required: true},
 		}),
@@ -215,34 +287,12 @@ func (t *listSkillFilesTool) InvokableRun(ctx context.Context, argumentsInJSON s
 		return "", fmt.Errorf("slug is required")
 	}
 
-	dir, err := t.cache.getExtractDir(ctx, params.Slug)
+	entry, err := t.cache.get(ctx, params.Slug)
 	if err != nil {
 		return "", err
 	}
 
-	var files []fileListEntry
-	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if info.IsDir() {
-			return nil
-		}
-
-		relPath, err := filepath.Rel(dir, path)
-		if err != nil {
-			return err
-		}
-
-		files = append(files, fileListEntry{
-			Path: relPath,
-			Size: info.Size(),
-		})
-		return nil
-	})
-	if err != nil {
-		return "", fmt.Errorf("failed to walk extracted directory: %w", err)
-	}
+	files := entry.listFiles()
 
 	out, err := json.MarshalIndent(files, "", "  ")
 	if err != nil {
@@ -288,32 +338,14 @@ func (t *readSkillFileTool) InvokableRun(ctx context.Context, argumentsInJSON st
 		return "", fmt.Errorf("path is required")
 	}
 
-	dir, err := t.cache.getExtractDir(ctx, params.Slug)
+	entry, err := t.cache.get(ctx, params.Slug)
 	if err != nil {
 		return "", err
 	}
 
-	targetPath := filepath.Join(dir, params.Path)
-
-	// Protect against path traversal
-	cleanTarget := filepath.Clean(targetPath)
-	cleanDir := filepath.Clean(dir)
-	if !strings.HasPrefix(cleanTarget, cleanDir+string(os.PathSeparator)) {
-		return "", fmt.Errorf("invalid file path: %s", params.Path)
-	}
-
-	info, err := os.Stat(targetPath)
+	data, err := entry.readFile(params.Path)
 	if err != nil {
-		return "", fmt.Errorf("file not found: %s", params.Path)
-	}
-
-	if info.Size() > maxFileReadSize {
-		return "", fmt.Errorf("file too large (%d bytes, max %d)", info.Size(), maxFileReadSize)
-	}
-
-	data, err := os.ReadFile(targetPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to read file: %w", err)
+		return "", err
 	}
 
 	return string(data), nil

@@ -53,6 +53,9 @@ Free for open source. Hosted SaaS available at [SafeDep](https://safedep.io).
 ```bash
 # macOS & Linux
 brew install safedep/tap/vet
+
+# Using npm
+npm install @safedep/vet
 ```
 
 or download a [pre-built binary](https://github.com/safedep/vet/releases)
@@ -231,8 +234,13 @@ docker run --rm -v $(pwd):/app ghcr.io/safedep/vet:latest scan -D /app --malware
 ### Homebrew (Recommended)
 
 ```bash
-brew tap safedep/tap
 brew install safedep/tap/vet
+```
+
+### npm
+
+```bash
+npm install @safedep/vet
 ```
 
 ### Direct Download

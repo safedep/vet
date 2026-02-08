@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -57,15 +58,16 @@ func normalizeSlug(slug string) string {
 	if parts := strings.SplitN(slug, "/", 2); len(parts) == 2 {
 		return parts[1]
 	}
+
 	return slug
 }
 
 // GetSkill fetches metadata for a skill by its slug.
 func (c *Client) GetSkill(ctx context.Context, slug string) (*SkillResponse, error) {
 	slug = normalizeSlug(slug)
-	url := fmt.Sprintf("%s/api/v1/skills/%s", c.baseURL, slug)
+	reqURL := fmt.Sprintf("%s/api/v1/skills/%s", c.baseURL, url.PathEscape(slug))
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -91,9 +93,9 @@ func (c *Client) GetSkill(ctx context.Context, slug string) (*SkillResponse, err
 // GetVersion fetches metadata for a specific skill version.
 func (c *Client) GetVersion(ctx context.Context, slug, version string) (*VersionResponse, error) {
 	slug = normalizeSlug(slug)
-	url := fmt.Sprintf("%s/api/v1/skills/%s/versions/%s", c.baseURL, slug, version)
+	reqURL := fmt.Sprintf("%s/api/v1/skills/%s/versions/%s", c.baseURL, url.PathEscape(slug), url.PathEscape(version))
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -119,9 +121,9 @@ func (c *Client) GetVersion(ctx context.Context, slug, version string) (*Version
 // DownloadSkillZip downloads the skill package as a zip archive.
 func (c *Client) DownloadSkillZip(ctx context.Context, slug string) ([]byte, error) {
 	slug = normalizeSlug(slug)
-	url := fmt.Sprintf("%s/api/v1/download?slug=%s", c.baseURL, slug)
+	reqURL := fmt.Sprintf("%s/api/v1/download?slug=%s", c.baseURL, url.QueryEscape(slug))
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
