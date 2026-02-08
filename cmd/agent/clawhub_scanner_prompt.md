@@ -21,6 +21,7 @@ Your task is to analyze ClawHub skills for security issues.
 - Obfuscated code or encoded payloads
 - File system access beyond the skill's stated purpose
 - Data theft (reading sensitive files, browser data, SSH keys)
+- Downloading and executing external binaries (e.g. curl|sh, wget+chmod+exec, fetching ELF/PE/Mach-O files). This is a top attack vector in malicious skills — flag any download-then-execute pattern as CRITICAL.
 
 ### Configuration/Data Files
 - Hardcoded secrets, API keys, tokens

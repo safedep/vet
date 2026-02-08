@@ -1,12 +1,14 @@
 package agent
 
 import (
+	"context"
 	_ "embed"
 	"fmt"
 
 	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/agent"
+	"github.com/safedep/vet/agent/tui"
 	"github.com/safedep/vet/internal/analytics"
 	"github.com/safedep/vet/pkg/clawhub"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -97,5 +99,29 @@ func executeClawHubScanner() error {
 		prompt = fmt.Sprintf("Analyze the ClawHub skill '%s' for security issues.", clawHubSkillSlug)
 	}
 
-	return executeAgentPrompt(agentExecutor, session, prompt)
+	if !tui.IsTerminal() {
+		return executeAgentPrompt(agentExecutor, session, prompt)
+	}
+
+	tuiConfig := tui.Config{
+		Title:    "ClawHub Skill Scanner",
+		Subtitle: fmt.Sprintf("%s/%s", model.Vendor, model.Name),
+	}
+
+	return tui.Run(context.Background(), func(ctx context.Context, sink tui.EventSink) error {
+		sink.Status(fmt.Sprintf("Analyzing skill: %s", clawHubSkillSlug))
+
+		output, err := agentExecutor.Execute(ctx, session, agent.Input{Query: prompt},
+			agent.WithToolCallHook(func(_ context.Context, _ agent.Session, _ agent.Input, name, args string) error {
+				sink.ToolCall(name, args)
+				return nil
+			}),
+		)
+		if err != nil {
+			return err
+		}
+
+		sink.Result(output.Answer)
+		return nil
+	}, tuiConfig)
 }
