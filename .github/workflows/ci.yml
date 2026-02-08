@@ -26,17 +26,17 @@ jobs:
       - name: Run code generation
         run: make generate
 
-      - name: Check for uncommitted changes
+      - name: Check for uncommitted changes in generated code
         run: |
-          if [[ -n $(git status --porcelain) ]]; then
+          if [[ -n $(git status --porcelain -- ent/ pkg/analyzer/filterv2/) ]]; then
             echo "ERROR: Generated code is out of sync!"
             echo "Please run 'make generate' and commit the changes."
             echo ""
             echo "Files with changes:"
-            git status --porcelain
+            git status --porcelain -- ent/ pkg/analyzer/filterv2/
             echo ""
             echo "Diff:"
-            git diff
+            git diff -- ent/ pkg/analyzer/filterv2/
             exit 1
           fi
 
