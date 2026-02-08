@@ -116,6 +116,10 @@ func executeClawHubScanner() error {
 				sink.ToolCall(name, args)
 				return nil
 			}),
+			agent.WithThinkingHook(func(_ context.Context, content string) error {
+				sink.Thinking(content)
+				return nil
+			}),
 		)
 		if err != nil {
 			return err

@@ -66,8 +66,13 @@ func (a *reactQueryAgent) Execute(ctx context.Context, session Session, input In
 		opt(executionContext)
 	}
 
+	m := a.model
+	if executionContext.OnThinking != nil {
+		m = &thinkingAwareModel{inner: m, onThinking: executionContext.OnThinking}
+	}
+
 	agentConfig := &react.AgentConfig{
-		ToolCallingModel: a.model,
+		ToolCallingModel: m,
 		ToolsConfig: compose.ToolsNodeConfig{
 			Tools: a.wrapToolsForError(a.tools),
 			ToolArgumentsHandler: func(ctx context.Context, name string, arguments string) (string, error) {
@@ -165,6 +170,35 @@ func (a *reactQueryAgent) wrapToolsForError(tools []tool.BaseTool) []tool.BaseTo
 	}
 
 	return wrappedTools
+}
+
+// thinkingAwareModel wraps a ToolCallingChatModel and fires a callback
+// when the model produces reasoning/thinking content.
+type thinkingAwareModel struct {
+	inner      model.ToolCallingChatModel
+	onThinking func(ctx context.Context, content string) error
+}
+
+func (m *thinkingAwareModel) Generate(ctx context.Context, input []*schema.Message, opts ...model.Option) (*schema.Message, error) {
+	msg, err := m.inner.Generate(ctx, input, opts...)
+	if err == nil && msg != nil && msg.ReasoningContent != "" && m.onThinking != nil {
+		_ = m.onThinking(ctx, msg.ReasoningContent)
+	}
+
+	return msg, err
+}
+
+func (m *thinkingAwareModel) Stream(ctx context.Context, input []*schema.Message, opts ...model.Option) (*schema.StreamReader[*schema.Message], error) {
+	return m.inner.Stream(ctx, input, opts...)
+}
+
+func (m *thinkingAwareModel) WithTools(tools []*schema.ToolInfo) (model.ToolCallingChatModel, error) {
+	inner, err := m.inner.WithTools(tools)
+	if err != nil {
+		return nil, err
+	}
+
+	return &thinkingAwareModel{inner: inner, onThinking: m.onThinking}, nil
 }
 
 func (a *reactQueryAgent) schemaContent(msg *schema.Message) string {

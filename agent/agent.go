@@ -43,6 +43,10 @@ type AgentExecutionContext struct {
 	// OnToolCall is called when the agent is about to call a tool.
 	// This is used for introspection only and not to mutate the agent's behavior.
 	OnToolCall func(context.Context, Session, Input, string, string) error
+
+	// OnThinking is called when the model produces reasoning/thinking content.
+	// This is used for introspection only and not to mutate the agent's behavior.
+	OnThinking func(ctx context.Context, content string) error
 }
 
 type AgentExecutionContextOpt func(*AgentExecutionContext)
@@ -50,6 +54,12 @@ type AgentExecutionContextOpt func(*AgentExecutionContext)
 func WithToolCallHook(fn func(context.Context, Session, Input, string, string) error) AgentExecutionContextOpt {
 	return func(a *AgentExecutionContext) {
 		a.OnToolCall = fn
+	}
+}
+
+func WithThinkingHook(fn func(ctx context.Context, content string) error) AgentExecutionContextOpt {
+	return func(a *AgentExecutionContext) {
+		a.OnThinking = fn
 	}
 }
 

@@ -27,6 +27,10 @@ type EventSink interface {
 
 	// Error reports a terminal error from the agent execution.
 	Error(err error)
+
+	// Thinking reports model reasoning/thinking content. The content is
+	// transient and will be replaced by the next tool call or result.
+	Thinking(content string)
 }
 
 // ExecFunc is the function signature for the caller's agent execution logic.

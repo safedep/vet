@@ -25,20 +25,22 @@ var DefaultProfile = ColorProfile{
 
 // Styles holds all pre-built lipgloss styles derived from a ColorProfile.
 type Styles struct {
-	HeaderBox     lipgloss.Style
-	Title         lipgloss.Style
-	Subtitle      lipgloss.Style
-	ToolBullet    lipgloss.Style
-	ToolName      lipgloss.Style
-	ToolArgs      lipgloss.Style
-	ToolConnector lipgloss.Style
-	Status        lipgloss.Style
-	SuccessIcon   lipgloss.Style
-	SuccessText   lipgloss.Style
-	ErrorIcon     lipgloss.Style
-	ErrorText     lipgloss.Style
-	Meta          lipgloss.Style
-	Spinner       lipgloss.Style
+	HeaderBox      lipgloss.Style
+	Title          lipgloss.Style
+	Subtitle       lipgloss.Style
+	ToolBullet     lipgloss.Style
+	ToolName       lipgloss.Style
+	ToolArgs       lipgloss.Style
+	ToolConnector  lipgloss.Style
+	ThinkingBullet lipgloss.Style
+	ThinkingText   lipgloss.Style
+	Status         lipgloss.Style
+	SuccessIcon    lipgloss.Style
+	SuccessText    lipgloss.Style
+	ErrorIcon      lipgloss.Style
+	ErrorText      lipgloss.Style
+	Meta           lipgloss.Style
+	Spinner        lipgloss.Style
 }
 
 // NewStyles builds all TUI styles from the given color profile.
@@ -71,6 +73,14 @@ func NewStyles(p ColorProfile) Styles {
 		ToolConnector: lipgloss.NewStyle().
 			Foreground(p.Dim).
 			SetString("  └─ "),
+
+		ThinkingBullet: lipgloss.NewStyle().
+			Foreground(p.Dim).
+			SetString("◈"),
+
+		ThinkingText: lipgloss.NewStyle().
+			Foreground(p.Dim).
+			Italic(true),
 
 		Status: lipgloss.NewStyle().
 			Foreground(p.Info),

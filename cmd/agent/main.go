@@ -16,6 +16,9 @@ var (
 
 	// Enable context compaction to reduce LLM context window usage.
 	compactContext bool
+
+	// Enable model thinking/reasoning output for models that support it.
+	enableThinking bool
 )
 
 func NewAgentCommand() *cobra.Command {
@@ -31,6 +34,7 @@ func NewAgentCommand() *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&singlePrompt, "prompt", "p", "", "A single prompt to run the agent with")
 	cmd.PersistentFlags().BoolVar(&fastMode, "fast", false, "Prefer a fast model when available (compromises on advanced reasoning)")
 	cmd.PersistentFlags().BoolVar(&compactContext, "compact", true, "Enable context compaction to reduce LLM context window usage")
+	cmd.PersistentFlags().BoolVar(&enableThinking, "thinking", true, "Enable model thinking/reasoning output (disable with --thinking=false)")
 
 	cmd.AddCommand(newQueryAgentCommand())
 	cmd.AddCommand(newClawHubScannerCommand())

@@ -224,7 +224,81 @@ func TestEventSinkNilProgram(t *testing.T) {
 		sink.Status("test")
 		sink.Result("test")
 		sink.Error(errors.New("test"))
+		sink.Thinking("thinking about it")
 	})
+}
+
+func TestModelThinkingMsg(t *testing.T) {
+	m := newModel(context.Background(), nil, Config{Title: "Test"})
+
+	updated, _ := m.Update(thinkingMsg("I need to analyze the file structure"))
+	model := updated.(*model)
+
+	assert.Equal(t, "I need to analyze the file structure", model.thinking)
+}
+
+func TestModelThinkingClearedOnToolCall(t *testing.T) {
+	m := newModel(context.Background(), nil, Config{Title: "Test"})
+
+	m.Update(thinkingMsg("Considering approach..."))
+	updated, _ := m.Update(toolCallMsg{name: "read_file", args: `{"path": "main.py"}`})
+	model := updated.(*model)
+
+	assert.Equal(t, "", model.thinking)
+}
+
+func TestModelThinkingClearedOnResult(t *testing.T) {
+	m := newModel(context.Background(), nil, Config{Title: "Test"})
+
+	m.Update(thinkingMsg("Wrapping up analysis..."))
+	updated, _ := m.Update(resultMsg("# Report\nDone."))
+	model := updated.(*model)
+
+	assert.Equal(t, "", model.thinking)
+}
+
+func TestViewThinking(t *testing.T) {
+	m := newModel(context.Background(), nil, Config{Title: "Test"})
+	m.Update(thinkingMsg("Analyzing the security implications of this dependency"))
+
+	view := m.View()
+
+	assert.Contains(t, view, "◈")
+	assert.Contains(t, view, "Analyzing the security implications")
+}
+
+func TestViewThinkingTruncation(t *testing.T) {
+	m := newModel(context.Background(), nil, Config{Title: "Test"})
+	m.width = 30
+	m.Update(thinkingMsg("This is a very long thinking content that should be truncated"))
+
+	view := m.viewThinking()
+
+	assert.Contains(t, view, "…")
+}
+
+func TestViewThinkingMultiline(t *testing.T) {
+	m := newModel(context.Background(), nil, Config{Title: "Test"})
+	m.Update(thinkingMsg("First line of thinking\nSecond line\nThird line"))
+
+	view := m.viewThinking()
+
+	assert.Contains(t, view, "First line of thinking")
+	assert.NotContains(t, view, "Second line")
+}
+
+func TestViewThinkingEmpty(t *testing.T) {
+	m := newModel(context.Background(), nil, Config{Title: "Test"})
+
+	view := m.viewThinking()
+
+	assert.Equal(t, "", view)
+}
+
+func TestFirstLine(t *testing.T) {
+	assert.Equal(t, "hello", firstLine("hello\nworld"))
+	assert.Equal(t, "single", firstLine("single"))
+	assert.Equal(t, "", firstLine(""))
 }
 
 // Integration tests for Run() require a TTY, so they are skipped in CI

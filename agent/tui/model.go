@@ -44,6 +44,8 @@ type statusMsg string
 
 type resultMsg string
 
+type thinkingMsg string
+
 type errorMsg struct{ err error }
 
 type execDoneMsg struct{}
@@ -61,6 +63,7 @@ type model struct {
 	program   atomic.Pointer[tea.Program]
 	toolCalls []toolCallEntry
 	status    string
+	thinking  string
 	result    string
 	err       error
 	steps     int
@@ -131,12 +134,17 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case toolCallMsg:
 		m.steps++
+		m.thinking = ""
 		m.toolCalls = append(m.toolCalls, toolCallEntry(msg))
+
+	case thinkingMsg:
+		m.thinking = string(msg)
 
 	case statusMsg:
 		m.status = string(msg)
 
 	case resultMsg:
+		m.thinking = ""
 		m.result = string(msg)
 
 	case errorMsg:
@@ -159,6 +167,7 @@ func (m *model) View() string {
 		b.WriteString(m.viewHeader())
 		b.WriteString("\n\n")
 		b.WriteString(m.viewToolCalls())
+		b.WriteString(m.viewThinking())
 		b.WriteString(m.viewSpinner())
 	} else {
 		b.WriteString(m.viewToolCalls())
@@ -266,6 +275,32 @@ func (m *model) viewResult() string {
 	return "\n" + rendered
 }
 
+func (m *model) viewThinking() string {
+	if m.thinking == "" {
+		return ""
+	}
+
+	line := firstLine(m.thinking)
+	maxLen := m.width - 10
+	if maxLen < 20 {
+		maxLen = 20
+	}
+	if len(line) > maxLen {
+		line = line[:maxLen] + "…"
+	}
+
+	return fmt.Sprintf("  %s %s\n",
+		m.styles.ThinkingBullet.String(),
+		m.styles.ThinkingText.Render(line))
+}
+
+func firstLine(s string) string {
+	if i := strings.IndexByte(s, '\n'); i >= 0 {
+		return s[:i]
+	}
+	return s
+}
+
 type eventSink struct {
 	program *atomic.Pointer[tea.Program]
 }
@@ -293,4 +328,8 @@ func (s *eventSink) Result(content string) {
 
 func (s *eventSink) Error(err error) {
 	s.send(errorMsg{err: err})
+}
+
+func (s *eventSink) Thinking(content string) {
+	s.send(thinkingMsg(content))
 }
