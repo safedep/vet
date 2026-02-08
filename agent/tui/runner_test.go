@@ -3,7 +3,6 @@ package tui
 import (
 	"context"
 	"errors"
-	"strings"
 	"testing"
 	"time"
 
@@ -47,10 +46,37 @@ func TestModelStatusMsg(t *testing.T) {
 func TestModelResultMsg(t *testing.T) {
 	m := newModel(context.Background(), nil, Config{Title: "Test"})
 
-	updated, _ := m.Update(resultMsg("# Report\nAll clear."))
+	updated, cmd := m.Update(resultMsg("# Report\nAll clear."))
 	model := updated.(*model)
 
-	assert.Equal(t, "# Report\nAll clear.", model.result)
+	assert.Equal(t, "# Report\nAll clear.", model.rawResult)
+	assert.Equal(t, "Rendering report...", model.status)
+	assert.NotNil(t, cmd, "should return a render command")
+}
+
+func TestModelRenderedResultMsg(t *testing.T) {
+	m := newModel(context.Background(), nil, Config{Title: "Test"})
+
+	// Simulate result followed by rendered result
+	m.Update(resultMsg("# Report\nAll clear."))
+	updated, _ := m.Update(renderedResultMsg("rendered content"))
+	model := updated.(*model)
+
+	assert.Equal(t, "rendered content", model.renderedResult)
+	assert.False(t, model.done, "should not quit until execDone")
+}
+
+func TestModelRenderedResultAfterExecDone(t *testing.T) {
+	m := newModel(context.Background(), nil, Config{Title: "Test"})
+
+	// Result arrives, then exec completes, then render finishes
+	m.Update(resultMsg("# Report"))
+	m.Update(execDoneMsg{})
+	updated, cmd := m.Update(renderedResultMsg("rendered"))
+	model := updated.(*model)
+
+	assert.True(t, model.done)
+	assert.NotNil(t, cmd, "should return tea.Quit")
 }
 
 func TestModelErrorMsg(t *testing.T) {
@@ -67,12 +93,27 @@ func TestModelErrorMsg(t *testing.T) {
 func TestModelExecDoneMsg(t *testing.T) {
 	m := newModel(context.Background(), nil, Config{Title: "Test"})
 
+	// No result pending, so execDone should quit immediately
 	updated, cmd := m.Update(execDoneMsg{})
 	model := updated.(*model)
 
+	assert.True(t, model.execDone)
 	assert.True(t, model.done)
 	assert.Nil(t, model.err)
 	assert.NotNil(t, cmd) // should be tea.Quit
+}
+
+func TestModelExecDoneWaitsForRender(t *testing.T) {
+	m := newModel(context.Background(), nil, Config{Title: "Test"})
+
+	// Result is pending but not yet rendered
+	m.Update(resultMsg("# Report"))
+	updated, cmd := m.Update(execDoneMsg{})
+	model := updated.(*model)
+
+	assert.True(t, model.execDone)
+	assert.False(t, model.done, "should wait for render to complete")
+	assert.Nil(t, cmd, "should not quit yet")
 }
 
 func TestModelCtrlC(t *testing.T) {
@@ -128,15 +169,16 @@ func TestViewDoneSuccess(t *testing.T) {
 	m := newModel(context.Background(), nil, Config{Title: "Test"})
 	m.done = true
 	m.steps = 6
-	m.result = "# Report\nAll good."
+	m.rawResult = "# Report\nAll good."
+	m.renderedResult = "Report\nAll good.\n"
 
 	view := m.View()
 
 	assert.Contains(t, view, "✓")
 	assert.Contains(t, view, "Complete")
 	assert.Contains(t, view, "6 steps")
-	// Should contain glamour-rendered result (or raw fallback)
-	assert.True(t, strings.Contains(view, "Report") || strings.Contains(view, "All good"))
+	assert.Contains(t, view, "Report")
+	assert.Contains(t, view, "All good")
 }
 
 func TestViewDoneError(t *testing.T) {
@@ -156,7 +198,7 @@ func TestViewDoneError(t *testing.T) {
 func TestViewNoToolCalls(t *testing.T) {
 	m := newModel(context.Background(), nil, Config{Title: "Test"})
 	m.done = true
-	m.result = "Done"
+	m.rawResult = "Done"
 
 	view := m.View()
 
@@ -251,10 +293,11 @@ func TestModelThinkingClearedOnResult(t *testing.T) {
 	m := newModel(context.Background(), nil, Config{Title: "Test"})
 
 	m.Update(thinkingMsg("Wrapping up analysis..."))
-	updated, _ := m.Update(resultMsg("# Report\nDone."))
+	updated, cmd := m.Update(resultMsg("# Report\nDone."))
 	model := updated.(*model)
 
 	assert.Equal(t, "", model.thinking)
+	assert.NotNil(t, cmd, "should return a render command")
 }
 
 func TestViewThinking(t *testing.T) {

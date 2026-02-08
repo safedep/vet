@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
+	"github.com/muesli/termenv"
 )
 
 // Run starts the TUI, executes the provided function, and displays progress
@@ -48,6 +49,8 @@ type thinkingMsg string
 
 type errorMsg struct{ err error }
 
+type renderedResultMsg string
+
 type execDoneMsg struct{}
 
 type toolCallEntry struct {
@@ -62,15 +65,18 @@ type model struct {
 	exec      ExecFunc
 	program   atomic.Pointer[tea.Program]
 	toolCalls []toolCallEntry
-	status    string
-	thinking  string
-	result    string
-	err       error
-	steps     int
-	startTime time.Time
-	done      bool
-	spinner   spinner.Model
-	width     int
+	status         string
+	thinking       string
+	rawResult      string
+	renderedResult string
+	err            error
+	steps          int
+	startTime      time.Time
+	execDone       bool
+	done           bool
+	spinner        spinner.Model
+	glamourStyle   string
+	width          int
 }
 
 func newModel(ctx context.Context, exec ExecFunc, config Config) *model {
@@ -85,14 +91,23 @@ func newModel(ctx context.Context, exec ExecFunc, config Config) *model {
 	s.Spinner = spinner.MiniDot
 	s.Style = styles.Spinner
 
+	// Detect terminal background now, before bubbletea takes over stdin.
+	// glamour.WithAutoStyle() queries the terminal via termenv which
+	// deadlocks or stalls inside bubbletea's raw-mode event loop.
+	glamourStyle := "dark"
+	if !termenv.HasDarkBackground() {
+		glamourStyle = "light"
+	}
+
 	return &model{
-		config:    config,
-		styles:    styles,
-		ctx:       ctx,
-		exec:      exec,
-		startTime: time.Now(),
-		spinner:   s,
-		width:     80,
+		config:       config,
+		styles:       styles,
+		ctx:          ctx,
+		exec:         exec,
+		startTime:    time.Now(),
+		spinner:      s,
+		glamourStyle: glamourStyle,
+		width:        80,
 	}
 }
 
@@ -145,7 +160,16 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case resultMsg:
 		m.thinking = ""
-		m.result = string(msg)
+		m.rawResult = string(msg)
+		m.status = "Rendering report..."
+		return m, m.renderResultCmd()
+
+	case renderedResultMsg:
+		m.renderedResult = string(msg)
+		if m.execDone {
+			m.done = true
+			return m, tea.Quit
+		}
 
 	case errorMsg:
 		m.err = msg.err
@@ -153,8 +177,11 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 
 	case execDoneMsg:
-		m.done = true
-		return m, tea.Quit
+		m.execDone = true
+		if m.rawResult == "" || m.renderedResult != "" {
+			m.done = true
+			return m, tea.Quit
+		}
 	}
 
 	return m, nil
@@ -172,7 +199,7 @@ func (m *model) View() string {
 	} else {
 		b.WriteString(m.viewToolCalls())
 		b.WriteString(m.viewCompletion())
-		if m.result != "" {
+		if m.rawResult != "" {
 			b.WriteString(m.viewResult())
 		}
 	}
@@ -257,22 +284,34 @@ func (m *model) viewCompletion() string {
 	)
 }
 
+func (m *model) renderResultCmd() tea.Cmd {
+	raw := m.rawResult
+	width := m.width
+	style := m.glamourStyle
+	return func() tea.Msg {
+		renderer, err := glamour.NewTermRenderer(
+			glamour.WithStylePath(style),
+			glamour.WithWordWrap(width),
+			glamour.WithEmoji(),
+		)
+		if err != nil {
+			return renderedResultMsg(raw)
+		}
+
+		rendered, err := renderer.Render(raw)
+		if err != nil {
+			return renderedResultMsg(raw)
+		}
+
+		return renderedResultMsg(rendered)
+	}
+}
+
 func (m *model) viewResult() string {
-	renderer, err := glamour.NewTermRenderer(
-		glamour.WithAutoStyle(),
-		glamour.WithWordWrap(m.width),
-		glamour.WithEmoji(),
-	)
-	if err != nil {
-		return "\n" + m.result + "\n"
+	if m.renderedResult != "" {
+		return "\n" + m.renderedResult
 	}
-
-	rendered, err := renderer.Render(m.result)
-	if err != nil {
-		return "\n" + m.result + "\n"
-	}
-
-	return "\n" + rendered
+	return "\n" + m.rawResult + "\n"
 }
 
 func (m *model) viewThinking() string {
