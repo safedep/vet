@@ -30,7 +30,7 @@ func NewAgentCommand() *cobra.Command {
 	cmd.PersistentFlags().IntVar(&maxAgentSteps, "max-steps", 50, "The maximum number of steps for the agent executor")
 	cmd.PersistentFlags().StringVarP(&singlePrompt, "prompt", "p", "", "A single prompt to run the agent with")
 	cmd.PersistentFlags().BoolVar(&fastMode, "fast", false, "Prefer a fast model when available (compromises on advanced reasoning)")
-	cmd.PersistentFlags().BoolVar(&compactContext, "compact", false, "Enable context compaction to reduce LLM context window usage")
+	cmd.PersistentFlags().BoolVar(&compactContext, "compact", true, "Enable context compaction to reduce LLM context window usage")
 
 	cmd.AddCommand(newQueryAgentCommand())
 	cmd.AddCommand(newClawHubScannerCommand())

@@ -94,8 +94,6 @@ func TestModelWindowSize(t *testing.T) {
 	assert.Equal(t, 120, model.width)
 }
 
-// --- View tests ---
-
 func TestViewInProgress(t *testing.T) {
 	m := newModel(context.Background(), nil, Config{
 		Title:    "ClawHub Skill Scanner",
@@ -203,8 +201,6 @@ func TestViewBlankArgs(t *testing.T) {
 	assert.NotContains(t, view, "└─")
 }
 
-// --- Config tests ---
-
 func TestConfigMaxArgLenDefault(t *testing.T) {
 	c := Config{}
 	assert.Equal(t, 80, c.maxArgLen())
@@ -220,8 +216,6 @@ func TestConfigMaxArgLenZero(t *testing.T) {
 	assert.Equal(t, 80, c.maxArgLen())
 }
 
-// --- eventSink tests ---
-
 func TestEventSinkNilProgram(t *testing.T) {
 	// Should not panic when program is nil
 	sink := &eventSink{}
@@ -232,8 +226,6 @@ func TestEventSinkNilProgram(t *testing.T) {
 		sink.Error(errors.New("test"))
 	})
 }
-
-// --- Integration test ---
 
 // Integration tests for Run() require a TTY, so they are skipped in CI
 // and headless environments. To run them locally: go test -run TestRun -count=1

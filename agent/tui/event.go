@@ -44,6 +44,9 @@ type Config struct {
 
 	// MaxToolArgLength truncates tool argument display. Defaults to 80.
 	MaxToolArgLength int
+
+	// Profile overrides the default color scheme. Nil uses DefaultProfile.
+	Profile *ColorProfile
 }
 
 // IsTerminal reports whether stdin is connected to a terminal,

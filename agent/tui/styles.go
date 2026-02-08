@@ -2,59 +2,101 @@ package tui
 
 import "github.com/charmbracelet/lipgloss"
 
-var (
-	purple = lipgloss.Color("99")
-	green  = lipgloss.Color("42")
-	red    = lipgloss.Color("196")
-	blue   = lipgloss.Color("39")
-	dim    = lipgloss.Color("245")
+// ColorProfile defines semantic colors for the TUI theme.
+// Swap profiles to change the entire color scheme.
+type ColorProfile struct {
+	Accent  lipgloss.Color // Borders, bullets
+	Bright  lipgloss.Color // Titles, tool names
+	Info    lipgloss.Color // Spinner, status text
+	Success lipgloss.Color // Success icon/text
+	Error   lipgloss.Color // Error icon/text
+	Dim     lipgloss.Color // Subtitles, args, metadata
+}
 
-	headerBoxStyle = lipgloss.NewStyle().
+// DefaultProfile is the built-in purple/blue color scheme.
+var DefaultProfile = ColorProfile{
+	Accent:  lipgloss.Color("99"),
+	Bright:  lipgloss.Color("255"),
+	Info:    lipgloss.Color("39"),
+	Success: lipgloss.Color("42"),
+	Error:   lipgloss.Color("196"),
+	Dim:     lipgloss.Color("245"),
+}
+
+// Styles holds all pre-built lipgloss styles derived from a ColorProfile.
+type Styles struct {
+	HeaderBox     lipgloss.Style
+	Title         lipgloss.Style
+	Subtitle      lipgloss.Style
+	ToolBullet    lipgloss.Style
+	ToolName      lipgloss.Style
+	ToolArgs      lipgloss.Style
+	ToolConnector lipgloss.Style
+	Status        lipgloss.Style
+	SuccessIcon   lipgloss.Style
+	SuccessText   lipgloss.Style
+	ErrorIcon     lipgloss.Style
+	ErrorText     lipgloss.Style
+	Meta          lipgloss.Style
+	Spinner       lipgloss.Style
+}
+
+// NewStyles builds all TUI styles from the given color profile.
+func NewStyles(p ColorProfile) Styles {
+	return Styles{
+		HeaderBox: lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(purple).
-			Padding(0, 1)
+			BorderForeground(p.Accent).
+			Padding(0, 1),
 
-	titleStyle = lipgloss.NewStyle().
+		Title: lipgloss.NewStyle().
 			Bold(true).
-			Foreground(lipgloss.Color("255"))
+			Foreground(p.Bright),
 
-	subtitleStyle = lipgloss.NewStyle().
-			Foreground(dim).
-			Italic(true)
+		Subtitle: lipgloss.NewStyle().
+			Foreground(p.Dim).
+			Italic(true),
 
-	toolBulletStyle = lipgloss.NewStyle().
-			Foreground(purple).
-			SetString("● ")
+		ToolBullet: lipgloss.NewStyle().
+			Foreground(p.Accent).
+			SetString("● "),
 
-	toolNameStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("255"))
+		ToolName: lipgloss.NewStyle().
+			Foreground(p.Bright),
 
-	toolArgsStyle = lipgloss.NewStyle().
-			Foreground(dim).
-			Italic(true)
+		ToolArgs: lipgloss.NewStyle().
+			Foreground(p.Dim).
+			Italic(true),
 
-	toolArgsConnector = lipgloss.NewStyle().
-				Foreground(dim).
-				SetString("  └─ ")
+		ToolConnector: lipgloss.NewStyle().
+			Foreground(p.Dim).
+			SetString("  └─ "),
 
-	statusStyle = lipgloss.NewStyle().
-			Foreground(blue)
+		Status: lipgloss.NewStyle().
+			Foreground(p.Info),
 
-	successIcon = lipgloss.NewStyle().
-			Foreground(green).
+		SuccessIcon: lipgloss.NewStyle().
+			Foreground(p.Success).
 			Bold(true).
-			SetString("✓")
+			SetString("✓"),
 
-	successTextStyle = lipgloss.NewStyle().
-				Foreground(green).
-				Bold(true)
+		SuccessText: lipgloss.NewStyle().
+			Foreground(p.Success).
+			Bold(true),
 
-	errorIcon = lipgloss.NewStyle().
-			Foreground(red).
+		ErrorIcon: lipgloss.NewStyle().
+			Foreground(p.Error).
 			Bold(true).
-			SetString("✗")
+			SetString("✗"),
 
-	errorTextStyle = lipgloss.NewStyle().
-			Foreground(red).
-			Bold(true)
-)
+		ErrorText: lipgloss.NewStyle().
+			Foreground(p.Error).
+			Bold(true),
+
+		Meta: lipgloss.NewStyle().
+			Foreground(p.Dim),
+
+		Spinner: lipgloss.NewStyle().
+			Foreground(p.Info),
+	}
+}

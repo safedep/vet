@@ -10,7 +10,6 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
-	"github.com/charmbracelet/lipgloss"
 )
 
 // Run starts the TUI, executes the provided function, and displays progress
@@ -36,8 +35,6 @@ func Run(ctx context.Context, exec ExecFunc, config Config) error {
 	return nil
 }
 
-// --- bubbletea messages ---
-
 type toolCallMsg struct {
 	name string
 	args string
@@ -51,17 +48,14 @@ type errorMsg struct{ err error }
 
 type execDoneMsg struct{}
 
-// --- toolCallEntry stores a single tool invocation for display ---
-
 type toolCallEntry struct {
 	name string
 	args string
 }
 
-// --- model implements tea.Model ---
-
 type model struct {
 	config    Config
+	styles    Styles
 	ctx       context.Context
 	exec      ExecFunc
 	program   atomic.Pointer[tea.Program]
@@ -77,12 +71,20 @@ type model struct {
 }
 
 func newModel(ctx context.Context, exec ExecFunc, config Config) *model {
+	profile := DefaultProfile
+	if config.Profile != nil {
+		profile = *config.Profile
+	}
+
+	styles := NewStyles(profile)
+
 	s := spinner.New()
 	s.Spinner = spinner.MiniDot
-	s.Style = lipgloss.NewStyle().Foreground(blue)
+	s.Style = styles.Spinner
 
 	return &model{
 		config:    config,
+		styles:    styles,
 		ctx:       ctx,
 		exec:      exec,
 		startTime: time.Now(),
@@ -170,10 +172,10 @@ func (m *model) View() string {
 }
 
 func (m *model) viewHeader() string {
-	title := titleStyle.Render(m.config.Title)
+	title := m.styles.Title.Render(m.config.Title)
 	var content string
 	if m.config.Subtitle != "" {
-		content = title + "\n" + subtitleStyle.Render(m.config.Subtitle)
+		content = title + "\n" + m.styles.Subtitle.Render(m.config.Subtitle)
 	} else {
 		content = title
 	}
@@ -181,7 +183,7 @@ func (m *model) viewHeader() string {
 	if boxWidth < 40 {
 		boxWidth = 40
 	}
-	return headerBoxStyle.Width(boxWidth).Render(content)
+	return m.styles.HeaderBox.Width(boxWidth).Render(content)
 }
 
 func (m *model) viewToolCalls() string {
@@ -194,8 +196,8 @@ func (m *model) viewToolCalls() string {
 
 	for _, tc := range m.toolCalls {
 		b.WriteString("  ")
-		b.WriteString(toolBulletStyle.String())
-		b.WriteString(toolNameStyle.Render(tc.name))
+		b.WriteString(m.styles.ToolBullet.String())
+		b.WriteString(m.styles.ToolName.Render(tc.name))
 		b.WriteString("\n")
 
 		if tc.args != "" && tc.args != "{}" {
@@ -203,8 +205,8 @@ func (m *model) viewToolCalls() string {
 			if len(args) > maxArgLen {
 				args = args[:maxArgLen] + "…"
 			}
-			b.WriteString(toolArgsConnector.String())
-			b.WriteString(toolArgsStyle.Render(args))
+			b.WriteString(m.styles.ToolConnector.String())
+			b.WriteString(m.styles.ToolArgs.Render(args))
 			b.WriteString("\n")
 		}
 	}
@@ -224,8 +226,8 @@ func (m *model) viewSpinner() string {
 
 	return fmt.Sprintf("\n  %s %s  %s\n",
 		m.spinner.View(),
-		statusStyle.Render(status),
-		lipgloss.NewStyle().Foreground(dim).Render(meta),
+		m.styles.Status.Render(status),
+		m.styles.Meta.Render(meta),
 	)
 }
 
@@ -234,15 +236,15 @@ func (m *model) viewCompletion() string {
 
 	if m.err != nil {
 		return fmt.Sprintf("\n  %s %s: %s\n",
-			errorIcon.String(),
-			errorTextStyle.Render(fmt.Sprintf("Failed (%s, %d steps)", elapsed, m.steps)),
+			m.styles.ErrorIcon.String(),
+			m.styles.ErrorText.Render(fmt.Sprintf("Failed (%s, %d steps)", elapsed, m.steps)),
 			m.err.Error(),
 		)
 	}
 
 	return fmt.Sprintf("\n  %s %s\n",
-		successIcon.String(),
-		successTextStyle.Render(fmt.Sprintf("Complete (%s, %d steps)", elapsed, m.steps)),
+		m.styles.SuccessIcon.String(),
+		m.styles.SuccessText.Render(fmt.Sprintf("Complete (%s, %d steps)", elapsed, m.steps)),
 	)
 }
 
@@ -263,8 +265,6 @@ func (m *model) viewResult() string {
 
 	return "\n" + rendered
 }
-
-// --- eventSink bridges goroutine calls into bubbletea messages ---
 
 type eventSink struct {
 	program *atomic.Pointer[tea.Program]

@@ -9,6 +9,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/safedep/vet/pkg/common/logger"
 )
 
 const defaultBaseURL = "https://clawhub.ai"
@@ -78,7 +80,11 @@ func (c *Client) GetSkill(ctx context.Context, slug string) (*SkillResponse, err
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch skill: %w", err)
 	}
-	defer func() { _ = resp.Body.Close() }()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			logger.Errorf("failed to close response body for skill %q: %v", slug, err)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status code %d for skill %q", resp.StatusCode, slug)
@@ -106,7 +112,11 @@ func (c *Client) GetVersion(ctx context.Context, slug, version string) (*Version
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch version: %w", err)
 	}
-	defer func() { _ = resp.Body.Close() }()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			logger.Errorf("failed to close response body for version %s/%s: %v", slug, version, err)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status code %d for version %s/%s", resp.StatusCode, slug, version)
@@ -134,7 +144,11 @@ func (c *Client) DownloadSkillZip(ctx context.Context, slug string) ([]byte, err
 	if err != nil {
 		return nil, fmt.Errorf("failed to download skill: %w", err)
 	}
-	defer func() { _ = resp.Body.Close() }()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			logger.Errorf("failed to close response body for skill download %q: %v", slug, err)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status code %d downloading skill %q", resp.StatusCode, slug)
