@@ -11,7 +11,7 @@ import (
 )
 
 func buildModelFromEnvironment() (*agent.Model, error) {
-	model, err := agent.BuildModelFromEnvironment(fastMode)
+	model, err := agent.BuildModelFromEnvironment(fastMode, enableThinking)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build LLM model adapter using environment configuration: %w", err)
 	}

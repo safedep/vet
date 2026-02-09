@@ -41,7 +41,10 @@ type Model struct {
 // 2. Claude
 // 3. Gemini
 // 4. Others..
-func BuildModelFromEnvironment(fastMode bool) (*Model, error) {
+//
+// When enableThinking is true, models that support reasoning/thinking content
+// will be configured to include it in responses (e.g. Gemini's IncludeThoughts).
+func BuildModelFromEnvironment(fastMode bool, enableThinking bool) (*Model, error) {
 	if model, err := buildOpenAIModelFromEnvironment(fastMode); err == nil {
 		return model, nil
 	}
@@ -50,7 +53,7 @@ func BuildModelFromEnvironment(fastMode bool) (*Model, error) {
 		return model, nil
 	}
 
-	if model, err := buildGeminiModelFromEnvironment(fastMode); err == nil {
+	if model, err := buildGeminiModelFromEnvironment(fastMode, enableThinking); err == nil {
 		return model, nil
 	}
 
@@ -121,7 +124,7 @@ func buildClaudeModelFromEnvironment(fastMode bool) (*Model, error) {
 	}, nil
 }
 
-func buildGeminiModelFromEnvironment(fastMode bool) (*Model, error) {
+func buildGeminiModelFromEnvironment(fastMode bool, enableThinking bool) (*Model, error) {
 	defaultModel := defaultModelMap["gemini"]["default"]
 	if fastMode {
 		defaultModel = defaultModelMap["gemini"]["fast"]
@@ -144,13 +147,17 @@ func buildGeminiModelFromEnvironment(fastMode bool) (*Model, error) {
 		return nil, fmt.Errorf("failed to create gemini client: %w", err)
 	}
 
+	var thinkingConfig *genai.ThinkingConfig
+	if enableThinking {
+		thinkingConfig = &genai.ThinkingConfig{
+			IncludeThoughts: true,
+		}
+	}
+
 	model, err := gemini.NewChatModel(context.Background(), &gemini.Config{
-		Model:  modelName,
-		Client: client,
-		ThinkingConfig: &genai.ThinkingConfig{
-			IncludeThoughts: false,
-			ThinkingBudget:  nil,
-		},
+		Model:          modelName,
+		Client:         client,
+		ThinkingConfig: thinkingConfig,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create gemini model: %w", err)

@@ -38,3 +38,22 @@ vet agent query --db report.db
 
 * Thats it! Start asking questions about the scan results.
 
+### ClawHub Skill Scanner
+
+The ClawHub skill scanner agent analyzes [ClawHub](https://clawhub.ai) skills for security issues using AI. It reads skill metadata, lists files, and inspects source code to produce a security assessment.
+
+```bash
+vet agent clawhub-scanner --skill <skill-slug>
+```
+
+Use `--interactive` to start a conversational TUI where you can ask follow-up questions about the skill's security:
+
+```bash
+vet agent clawhub-scanner --skill <skill-slug> --interactive
+```
+
+Use `--prompt` to provide a custom analysis prompt instead of the default:
+
+```bash
+vet agent clawhub-scanner --skill <skill-slug> --prompt "Check for credential leaks"
+```

@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"sync/atomic"
 
 	"github.com/cloudwego/eino/components/model"
 	"github.com/cloudwego/eino/components/tool"
@@ -11,17 +13,21 @@ import (
 	"github.com/cloudwego/eino/compose"
 	"github.com/cloudwego/eino/flow/agent/react"
 	"github.com/cloudwego/eino/schema"
+	"github.com/google/uuid"
 )
 
 type ReactQueryAgentConfig struct {
-	MaxSteps     int
-	SystemPrompt string
+	MaxSteps        int
+	SystemPrompt    string
+	MessageRewriter func(ctx context.Context, messages []*schema.Message) []*schema.Message
 }
 
 type reactQueryAgent struct {
-	config ReactQueryAgentConfig
-	model  model.ToolCallingChatModel
-	tools  []tool.BaseTool
+	config    ReactQueryAgentConfig
+	model     model.ToolCallingChatModel
+	tools     []tool.BaseTool
+	id        string
+	debugStep atomic.Uint64
 }
 
 var _ Agent = (*reactQueryAgent)(nil)
@@ -40,6 +46,7 @@ func NewReactQueryAgent(model model.ToolCallingChatModel,
 	a := &reactQueryAgent{
 		config: config,
 		model:  model,
+		id:     uuid.New().String(),
 	}
 
 	for _, opt := range opts {
@@ -59,8 +66,13 @@ func (a *reactQueryAgent) Execute(ctx context.Context, session Session, input In
 		opt(executionContext)
 	}
 
-	agent, err := react.NewAgent(ctx, &react.AgentConfig{
-		ToolCallingModel: a.model,
+	m := a.model
+	if executionContext.OnThinking != nil {
+		m = &thinkingAwareModel{inner: m, onThinking: executionContext.OnThinking}
+	}
+
+	agentConfig := &react.AgentConfig{
+		ToolCallingModel: m,
 		ToolsConfig: compose.ToolsNodeConfig{
 			Tools: a.wrapToolsForError(a.tools),
 			ToolArgumentsHandler: func(ctx context.Context, name string, arguments string) (string, error) {
@@ -73,7 +85,17 @@ func (a *reactQueryAgent) Execute(ctx context.Context, session Session, input In
 			},
 		},
 		MaxStep: a.config.MaxSteps,
-	})
+	}
+
+	if a.config.MessageRewriter != nil {
+		agentConfig.MessageRewriter = a.config.MessageRewriter
+	}
+
+	if debugDir := os.Getenv("VET_AGENT_DEBUG_PROMPT_DIR"); debugDir != "" {
+		agentConfig.MessageModifier = a.newDebugPromptDumper(debugDir)
+	}
+
+	agent, err := react.NewAgent(ctx, agentConfig)
 	if err != nil {
 		return Output{}, fmt.Errorf("failed to create react agent: %w", err)
 	}
@@ -148,6 +170,35 @@ func (a *reactQueryAgent) wrapToolsForError(tools []tool.BaseTool) []tool.BaseTo
 	}
 
 	return wrappedTools
+}
+
+// thinkingAwareModel wraps a ToolCallingChatModel and fires a callback
+// when the model produces reasoning/thinking content.
+type thinkingAwareModel struct {
+	inner      model.ToolCallingChatModel
+	onThinking func(ctx context.Context, content string) error
+}
+
+func (m *thinkingAwareModel) Generate(ctx context.Context, input []*schema.Message, opts ...model.Option) (*schema.Message, error) {
+	msg, err := m.inner.Generate(ctx, input, opts...)
+	if err == nil && msg != nil && msg.ReasoningContent != "" && m.onThinking != nil {
+		_ = m.onThinking(ctx, msg.ReasoningContent)
+	}
+
+	return msg, err
+}
+
+func (m *thinkingAwareModel) Stream(ctx context.Context, input []*schema.Message, opts ...model.Option) (*schema.StreamReader[*schema.Message], error) {
+	return m.inner.Stream(ctx, input, opts...)
+}
+
+func (m *thinkingAwareModel) WithTools(tools []*schema.ToolInfo) (model.ToolCallingChatModel, error) {
+	inner, err := m.inner.WithTools(tools)
+	if err != nil {
+		return nil, err
+	}
+
+	return &thinkingAwareModel{inner: inner, onThinking: m.onThinking}, nil
 }
 
 func (a *reactQueryAgent) schemaContent(msg *schema.Message) string {
