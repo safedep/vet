@@ -1,6 +1,7 @@
-# vet MCP Server
+> [!NOTE]
+> SafeDep offers a hosted MCP server optimised for lower latency, context efficiency and real time malicious package protection for AI coding agents. See more details at https://docs.safedep.io/apps/mcp/overview
 
-[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](cursor://anysphere.cursor-deeplink/mcp/install?name=vet-mcp&config=eyJjb21tYW5kIjoiZG9ja2VyIHJ1biAtLXJtIC1pIGdoY3IuaW8vc2FmZWRlcC92ZXQ6bGF0ZXN0IC1zIC1sIC90bXAvdmV0LW1jcC5sb2cgc2VydmVyIG1jcCJ9)
+# vet MCP Server
 
 The `vet` MCP server is designed to run locally using `stdio` or `sse` transports.
 It provides tools for MCP clients such as Claude Code, Cursor and others to vet
