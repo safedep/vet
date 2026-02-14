@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
@@ -104,7 +105,15 @@ func NewEvaluator(name string, opts ...Option) (*filterEvaluator, error) {
 				cel.BinaryBinding(celFuncLicenseExpressionMatch()))),
 
 		// More custom functions goes here
-	)
+		cel.Function("now",
+			cel.Overload(
+				"now_default_utc_timezone",
+				[]*cel.Type{}, cel.TimestampType,
+				cel.FunctionBinding(func(args ...ref.Val) ref.Val {
+					return types.Timestamp{
+						Time: time.Now().UTC(),
+					}
+				}))))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create CEL environment: %w", err)
 	}

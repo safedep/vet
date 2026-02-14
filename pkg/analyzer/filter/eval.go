@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/github/go-spdx/v2/spdxexp"
 	"github.com/golang/protobuf/jsonpb"
@@ -62,7 +63,16 @@ func NewEvaluator(name string, ignoreError bool) (Evaluator, error) {
 		cel.Function("contains_license",
 			cel.MemberOverload("list_string_contains_license_string",
 				[]*cel.Type{cel.ListType(cel.StringType), cel.StringType}, cel.BoolType,
-				cel.BinaryBinding(celFuncLicenseExpressionMatch()))))
+				cel.BinaryBinding(celFuncLicenseExpressionMatch()))),
+		cel.Function("now",
+			cel.Overload(
+				"now_default_utc_timezone",
+				[]*cel.Type{}, cel.TimestampType,
+				cel.FunctionBinding(func(args ...ref.Val) ref.Val {
+					return types.Timestamp{
+						Time: time.Now().UTC(),
+					}
+				}))))
 	if err != nil {
 		return nil, err
 	}
