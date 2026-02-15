@@ -16,8 +16,8 @@ import (
 	"github.com/google/cel-go/common/types/ref"
 	"github.com/google/cel-go/common/types/traits"
 	"github.com/google/cel-go/ext"
-	"k8s.io/utils/clock"
 
+	"github.com/safedep/vet/pkg/common/clock"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 )
@@ -54,7 +54,7 @@ type filterEvaluator struct {
 
 type filterEvaluatorOptions struct {
 	ignoreError bool
-	clock       clock.PassiveClock
+	clock       clock.Clock
 }
 
 var _ Evaluator = (*filterEvaluator)(nil)
@@ -69,7 +69,7 @@ func WithIgnoreError(ignore bool) Option {
 	}
 }
 
-func WithClock(c clock.PassiveClock) Option {
+func WithClock(c clock.Clock) Option {
 	return func(f *filterEvaluatorOptions) {
 		f.clock = c
 	}

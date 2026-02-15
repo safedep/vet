@@ -7,8 +7,8 @@ import (
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
 	"github.com/stretchr/testify/assert"
-	testing2 "k8s.io/utils/clock/testing"
 
+	"github.com/safedep/vet/pkg/common/clock"
 	"github.com/safedep/vet/pkg/models"
 )
 
@@ -102,7 +102,7 @@ func TestEvaluator_NowFunction(t *testing.T) {
 		Manifest:       &models.PackageManifest{Ecosystem: models.EcosystemGo},
 		InsightsV2:     &packagev1.PackageVersionInsight{},
 	}
-	testClock := testing2.NewFakePassiveClock(
+	testClock := clock.NewFakePassiveClock(
 		time.Date(2026, 2, 15, 13, 0, 0, 0, time.UTC),
 	)
 

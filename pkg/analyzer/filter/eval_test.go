@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	testing2 "k8s.io/utils/clock/testing"
 
 	"github.com/safedep/vet/gen/filtersuite"
 	"github.com/safedep/vet/gen/insightapi"
+	"github.com/safedep/vet/pkg/common/clock"
 	"github.com/safedep/vet/pkg/models"
 )
 
@@ -93,7 +93,7 @@ func TestEvaluator_NowFunction(t *testing.T) {
 		PackageDetails: models.NewPackageDetail(models.EcosystemGo, "test2", "1.0.0"),
 		Manifest:       &models.PackageManifest{Ecosystem: models.EcosystemGo},
 	}
-	testClock := testing2.NewFakePassiveClock(
+	testClock := clock.NewFakePassiveClock(
 		time.Date(2026, 2, 15, 13, 0, 0, 0, time.UTC),
 	)
 
