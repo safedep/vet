@@ -23,7 +23,7 @@ type celFilterAnalyzer struct {
 }
 
 func NewCelFilterAnalyzer(fl string, failOnMatch bool) (Analyzer, error) {
-	evaluator, err := filter.NewEvaluator("single-filter", true)
+	evaluator, err := filter.NewEvaluator("single-filter", filter.WithIgnoreError(true))
 	if err != nil {
 		return nil, err
 	}
