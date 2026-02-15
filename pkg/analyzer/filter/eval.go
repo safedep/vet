@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/github/go-spdx/v2/spdxexp"
 	"github.com/golang/protobuf/jsonpb"
@@ -15,6 +14,7 @@ import (
 	"github.com/google/cel-go/common/types/ref"
 	"github.com/google/cel-go/common/types/traits"
 	"github.com/safedep/dry/utils"
+	"k8s.io/utils/clock"
 
 	"github.com/safedep/vet/gen/filterinput"
 	"github.com/safedep/vet/gen/filtersuite"
@@ -52,7 +52,34 @@ type filterEvaluator struct {
 	ignoreError bool
 }
 
-func NewEvaluator(name string, ignoreError bool) (Evaluator, error) {
+type filterEvaluatorOptions struct {
+	ignoreError bool
+	clock       clock.PassiveClock
+}
+
+type Option func(*filterEvaluatorOptions)
+
+func WithIgnoreError(ignore bool) Option {
+	return func(f *filterEvaluatorOptions) {
+		f.ignoreError = ignore
+	}
+}
+
+func WithClock(c clock.PassiveClock) Option {
+	return func(f *filterEvaluatorOptions) {
+		f.clock = c
+	}
+}
+
+func NewEvaluator(name string, opts ...Option) (Evaluator, error) {
+	options := &filterEvaluatorOptions{
+		ignoreError: false,
+		clock:       clock.RealClock{},
+	}
+	for _, customize := range opts {
+		customize(options)
+	}
+
 	env, err := cel.NewEnv(
 		cel.Variable(filterInputVarPkg, cel.DynType),
 		cel.Variable(filterInputVarVulns, cel.DynType),
@@ -70,7 +97,7 @@ func NewEvaluator(name string, ignoreError bool) (Evaluator, error) {
 				[]*cel.Type{}, cel.TimestampType,
 				cel.FunctionBinding(func(args ...ref.Val) ref.Val {
 					return types.Timestamp{
-						Time: time.Now().UTC(),
+						Time: options.clock.Now().UTC(),
 					}
 				}))))
 	if err != nil {
@@ -81,7 +108,7 @@ func NewEvaluator(name string, ignoreError bool) (Evaluator, error) {
 		name:        name,
 		env:         env,
 		programs:    []*filterProgram{},
-		ignoreError: ignoreError,
+		ignoreError: options.ignoreError,
 	}, nil
 }
 

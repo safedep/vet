@@ -59,7 +59,7 @@ func TestEvaluatorLicenseExpression(t *testing.T) {
 				t.Skip(c.skipReason)
 			}
 
-			f, err := NewEvaluator("test", false)
+			f, err := NewEvaluator("test", WithIgnoreError(false))
 			assert.NoError(t, err)
 
 			err = f.AddFilter(&filtersuite.Filter{

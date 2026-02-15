@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"time"
 
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
@@ -17,9 +16,9 @@ import (
 	"github.com/google/cel-go/common/types/ref"
 	"github.com/google/cel-go/common/types/traits"
 	"github.com/google/cel-go/ext"
-
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
+	"k8s.io/utils/clock"
 )
 
 const (
@@ -52,20 +51,39 @@ type filterEvaluator struct {
 	ignoreError bool
 }
 
+type filterEvaluatorOptions struct {
+	ignoreError bool
+	clock       clock.PassiveClock
+}
+
 var _ Evaluator = (*filterEvaluator)(nil)
 
 // Option is a function type that can be used to configure the evaluator
-type Option func(*filterEvaluator)
+type Option func(*filterEvaluatorOptions)
 
 // WithIgnoreError configures the evaluator to ignore errors during evaluation
 func WithIgnoreError(ignore bool) Option {
-	return func(f *filterEvaluator) {
+	return func(f *filterEvaluatorOptions) {
 		f.ignoreError = ignore
+	}
+}
+
+func WithClock(c clock.PassiveClock) Option {
+	return func(f *filterEvaluatorOptions) {
+		f.clock = c
 	}
 }
 
 // NewEvaluator creates a new CEL evaluator for the policy system v2
 func NewEvaluator(name string, opts ...Option) (*filterEvaluator, error) {
+	options := &filterEvaluatorOptions{
+		ignoreError: false,
+		clock:       clock.RealClock{},
+	}
+	for _, customize := range opts {
+		customize(options)
+	}
+
 	env, err := cel.NewEnv(
 		cel.Macros(cel.StandardMacros...),
 		cel.EnableMacroCallTracking(),
@@ -111,7 +129,7 @@ func NewEvaluator(name string, opts ...Option) (*filterEvaluator, error) {
 				[]*cel.Type{}, cel.TimestampType,
 				cel.FunctionBinding(func(args ...ref.Val) ref.Val {
 					return types.Timestamp{
-						Time: time.Now().UTC(),
+						Time: options.clock.Now().UTC(),
 					}
 				}))))
 	if err != nil {
@@ -122,12 +140,7 @@ func NewEvaluator(name string, opts ...Option) (*filterEvaluator, error) {
 		name:        name,
 		env:         env,
 		programs:    []*FilterProgram{},
-		ignoreError: false, // default value
-	}
-
-	// Apply options
-	for _, opt := range opts {
-		opt(evaluator)
+		ignoreError: options.ignoreError,
 	}
 
 	return evaluator, nil
