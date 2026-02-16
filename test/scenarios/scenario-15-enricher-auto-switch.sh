@@ -6,7 +6,7 @@ set -x
 # hence we are checking if E2E_VET_INSIGHTS_V2 is set to true
 # because API key is available for Insights v2
 if [ "$E2E_VET_INSIGHTS_V2" != "true" ]; then
-  echo "Skipping scenario-15-enricher-auto-switch.sh as E2E_INSIGHTS_V2 is not set to true"
+  echo "Skipping scenario-15-enricher-auto-switch.sh as E2E_VET_INSIGHTS_V2 is not set to true"
   exit 0
 fi
 
