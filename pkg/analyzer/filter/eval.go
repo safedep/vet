@@ -19,6 +19,7 @@ import (
 	"github.com/safedep/vet/gen/filtersuite"
 	"github.com/safedep/vet/gen/insightapi"
 	specmodels "github.com/safedep/vet/gen/models"
+	"github.com/safedep/vet/pkg/common/clock"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 )
@@ -51,7 +52,34 @@ type filterEvaluator struct {
 	ignoreError bool
 }
 
-func NewEvaluator(name string, ignoreError bool) (Evaluator, error) {
+type filterEvaluatorOptions struct {
+	ignoreError bool
+	clock       clock.Clock
+}
+
+type Option func(*filterEvaluatorOptions)
+
+func WithIgnoreError(ignore bool) Option {
+	return func(f *filterEvaluatorOptions) {
+		f.ignoreError = ignore
+	}
+}
+
+func WithClock(c clock.Clock) Option {
+	return func(f *filterEvaluatorOptions) {
+		f.clock = c
+	}
+}
+
+func NewEvaluator(name string, opts ...Option) (Evaluator, error) {
+	options := &filterEvaluatorOptions{
+		ignoreError: false,
+		clock:       clock.RealClock{},
+	}
+	for _, customize := range opts {
+		customize(options)
+	}
+
 	env, err := cel.NewEnv(
 		cel.Variable(filterInputVarPkg, cel.DynType),
 		cel.Variable(filterInputVarVulns, cel.DynType),
@@ -62,7 +90,16 @@ func NewEvaluator(name string, ignoreError bool) (Evaluator, error) {
 		cel.Function("contains_license",
 			cel.MemberOverload("list_string_contains_license_string",
 				[]*cel.Type{cel.ListType(cel.StringType), cel.StringType}, cel.BoolType,
-				cel.BinaryBinding(celFuncLicenseExpressionMatch()))))
+				cel.BinaryBinding(celFuncLicenseExpressionMatch()))),
+		cel.Function("now",
+			cel.Overload(
+				"now_default_utc_timezone",
+				[]*cel.Type{}, cel.TimestampType,
+				cel.FunctionBinding(func(args ...ref.Val) ref.Val {
+					return types.Timestamp{
+						Time: options.clock.Now().UTC(),
+					}
+				}))))
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +108,7 @@ func NewEvaluator(name string, ignoreError bool) (Evaluator, error) {
 		name:        name,
 		env:         env,
 		programs:    []*filterProgram{},
-		ignoreError: ignoreError,
+		ignoreError: options.ignoreError,
 	}, nil
 }
 

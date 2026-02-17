@@ -2,11 +2,13 @@ package filterv2
 
 import (
 	"testing"
+	"time"
 
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	policyv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/policy/v1"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/safedep/vet/pkg/common/clock"
 	"github.com/safedep/vet/pkg/models"
 )
 
@@ -92,6 +94,64 @@ func TestEvaluator_AddRule(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestEvaluator_NowFunction(t *testing.T) {
+	pack := &models.Package{
+		PackageDetails: models.NewPackageDetail(models.EcosystemGo, "test2", "1.0.0"),
+		Manifest:       &models.PackageManifest{Ecosystem: models.EcosystemGo},
+		InsightsV2:     &packagev1.PackageVersionInsight{},
+	}
+	testClock := clock.NewFakePassiveClock(
+		time.Date(2026, 2, 15, 13, 0, 0, 0, time.UTC),
+	)
+
+	t.Run("Function now() returns a timestamp", func(t *testing.T) {
+		eval, _ := NewEvaluator("test", WithClock(testClock))
+		policy := &policyv1.Policy{
+			Rules: []*policyv1.Rule{
+				{
+					Value: "now() == timestamp(\"2026-02-15T13:00:00Z\")",
+				},
+			},
+		}
+		err := eval.AddPolicy(policy)
+		assert.NoError(t, err)
+
+		result, err := eval.EvaluatePackage(pack)
+		assert.NoError(t, err)
+		assert.Equal(t, true, result.Matched())
+	})
+
+	t.Run("Function now() can be converted to a duration", func(t *testing.T) {
+		eval, _ := NewEvaluator("test", WithClock(testClock))
+		policy := &policyv1.Policy{
+			Rules: []*policyv1.Rule{
+				{
+					Value: "(now() - timestamp(\"2026-02-15T10:00:00Z\")).getHours() == 3",
+				},
+			},
+		}
+		err := eval.AddPolicy(policy)
+		assert.NoError(t, err)
+
+		result, err := eval.EvaluatePackage(pack)
+		assert.NoError(t, err)
+		assert.Equal(t, true, result.Matched())
+	})
+
+	t.Run("Now is a function", func(t *testing.T) {
+		eval, _ := NewEvaluator("test", WithClock(testClock))
+		policy := &policyv1.Policy{
+			Rules: []*policyv1.Rule{
+				{
+					Value: "now == timestamp(\"2026-02-15T10:00:00Z\")",
+				},
+			},
+		}
+		err := eval.AddPolicy(policy)
+		assert.Error(t, err, "ERROR: <input>:1:1: undeclared reference to 'now'")
+	})
 }
 
 func TestEvaluator_Options(t *testing.T) {
