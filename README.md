@@ -6,7 +6,7 @@
       <img src="docs/assets/vet-banner-light.svg" alt="SafeDep VET - Real-time malicious package detection & software supply chain security" width="100%">
     </picture>
   </a>
-</p>
+</p>ddd
 
 <div align="center">
   <p>
