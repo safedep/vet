@@ -33,7 +33,7 @@ func NewCelFilterSuiteAnalyzer(path string, failOnMatch bool) (Analyzer, error) 
 		return nil, err
 	}
 
-	evaluator, err := filter.NewEvaluator(fs.GetName(), true)
+	evaluator, err := filter.NewEvaluator(fs.GetName(), filter.WithIgnoreError(true))
 	if err != nil {
 		return nil, err
 	}

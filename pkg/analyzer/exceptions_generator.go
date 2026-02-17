@@ -39,7 +39,7 @@ func NewExceptionsGenerator(config ExceptionsGeneratorConfig) (Analyzer, error) 
 		return nil, err
 	}
 
-	filterEvaluator, err := filter.NewEvaluator("exceptions-generator", true)
+	filterEvaluator, err := filter.NewEvaluator("exceptions-generator", filter.WithIgnoreError(true))
 	if err != nil {
 		return nil, err
 	}
