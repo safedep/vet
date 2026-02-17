@@ -11,7 +11,7 @@ if [ "$E2E_VET_INSIGHTS_V2" != "true" ]; then
 fi
 
 if [ -z "$VET_API_KEY_FREE" ] || [ -z "$VET_CONTROL_TOWER_TENANT_ID_FREE" ]; then
-  echo "Error: scenario-15-enricher-auto-switch.sh requires VET_API_KEY_FREE or VET_CONTROL_TOWER_TENANT_ID_FREE to be set"
+  echo "Error: scenario-15-enricher-auto-switch.sh requires VET_API_KEY_FREE and VET_CONTROL_TOWER_TENANT_ID_FREE to be set"
   exit 1
 fi
 
