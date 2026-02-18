@@ -10,8 +10,16 @@ if [ "$E2E_VET_INSIGHTS_V2" != "true" ]; then
   exit 0
 fi
 
+if [ -z "$VET_API_KEY_FREE" ] || [ -z "$VET_CONTROL_TOWER_TENANT_ID_FREE" ]; then
+  echo "Error: scenario-15-enricher-auto-switch.sh requires VET_API_KEY_FREE and VET_CONTROL_TOWER_TENANT_ID_FREE to be set"
+  exit 1
+fi
+
 # Run the command and capture output
-$E2E_VET_SCAN_CMD --purl pkg:/npm/@clerk/nextjs@6.9.6 \
+# use free user api keys and tenant id to test entitlement warning messages
+env VET_API_KEY=$VET_API_KEY_FREE \
+  VET_CONTROL_TOWER_TENANT_ID=$VET_CONTROL_TOWER_TENANT_ID_FREE \
+  $E2E_VET_SCAN_CMD --purl pkg:/npm/@clerk/nextjs@6.9.6 \
   --malware \
   --report-markdown-summary=sum.md 2>&1 | tee scenario-output.log
 

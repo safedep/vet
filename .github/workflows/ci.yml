@@ -104,6 +104,9 @@ jobs:
           # This will not be available when there is a PR from a forked repository
           VET_API_KEY: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
           VET_CONTROL_TOWER_TENANT_ID: ${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }}
+          # Free tier keys, used in e2e test scenerio 15
+          VET_API_KEY_FREE: ${{ secrets.SAFEDEP_CLOUD_API_KEY_FREE }}
+          VET_CONTROL_TOWER_TENANT_ID_FREE: ${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN_FREE }}
 
   build-container-test:
     runs-on: ubuntu-latest
