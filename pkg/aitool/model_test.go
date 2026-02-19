@@ -21,7 +21,7 @@ func TestGenerateID_CaseInsensitive(t *testing.T) {
 func TestGenerateID_DifferentInputs(t *testing.T) {
 	id1 := GenerateID("claude_code", "mcp_server", "project", "safedep", "/path/.mcp.json")
 	id2 := GenerateID("cursor", "mcp_server", "project", "safedep", "/path/.mcp.json")
-	assert.NotEqual(t, id1, id2, "different hosts should produce different IDs")
+	assert.NotEqual(t, id1, id2, "different apps should produce different IDs")
 }
 
 func TestGenerateSourceID_Deterministic(t *testing.T) {
@@ -30,7 +30,7 @@ func TestGenerateSourceID_Deterministic(t *testing.T) {
 	assert.Equal(t, id1, id2)
 }
 
-func TestGenerateSourceID_SameHostDifferentPath(t *testing.T) {
+func TestGenerateSourceID_SameAppDifferentPath(t *testing.T) {
 	id1 := GenerateSourceID("claude_code", "/path/.mcp.json")
 	id2 := GenerateSourceID("claude_code", "/other/.mcp.json")
 	assert.NotEqual(t, id1, id2)
@@ -56,7 +56,7 @@ func TestAITool_Metadata(t *testing.T) {
 
 func TestAIToolInventory_Add(t *testing.T) {
 	inv := NewAIToolInventory()
-	tool := &AITool{Name: "test", Type: AIToolTypeMCPServer, Host: "claude_code", Scope: AIToolScopeProject}
+	tool := &AITool{Name: "test", Type: AIToolTypeMCPServer, App: "claude_code", Scope: AIToolScopeProject}
 	inv.Add(tool)
 	assert.Len(t, inv.Tools, 1)
 }
@@ -73,13 +73,13 @@ func TestAIToolInventory_FilterByType(t *testing.T) {
 	assert.Len(t, agents, 1)
 }
 
-func TestAIToolInventory_FilterByHost(t *testing.T) {
+func TestAIToolInventory_FilterByApp(t *testing.T) {
 	inv := NewAIToolInventory()
-	inv.Add(&AITool{Name: "tool1", Host: "claude_code"})
-	inv.Add(&AITool{Name: "tool2", Host: "cursor"})
-	inv.Add(&AITool{Name: "tool3", Host: "claude_code"})
+	inv.Add(&AITool{Name: "tool1", App: "claude_code"})
+	inv.Add(&AITool{Name: "tool2", App: "cursor"})
+	inv.Add(&AITool{Name: "tool3", App: "claude_code"})
 
-	result := inv.FilterByHost("claude_code")
+	result := inv.FilterByApp("claude_code")
 	assert.Len(t, result, 2)
 }
 
@@ -103,13 +103,13 @@ func TestAIToolInventory_FilterBySourceID(t *testing.T) {
 	assert.Len(t, result, 2)
 }
 
-func TestAIToolInventory_GroupByHost(t *testing.T) {
+func TestAIToolInventory_GroupByApp(t *testing.T) {
 	inv := NewAIToolInventory()
-	inv.Add(&AITool{Name: "tool1", Host: "claude_code"})
-	inv.Add(&AITool{Name: "tool2", Host: "cursor"})
-	inv.Add(&AITool{Name: "tool3", Host: "claude_code"})
+	inv.Add(&AITool{Name: "tool1", App: "claude_code"})
+	inv.Add(&AITool{Name: "tool2", App: "cursor"})
+	inv.Add(&AITool{Name: "tool3", App: "claude_code"})
 
-	groups := inv.GroupByHost()
+	groups := inv.GroupByApp()
 	assert.Len(t, groups, 2)
 	assert.Len(t, groups["claude_code"], 2)
 	assert.Len(t, groups["cursor"], 1)

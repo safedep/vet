@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 )
 
-const cursorHost = "cursor"
+const cursorApp = "cursor"
 
 type cursorDiscoverer struct {
 	homeDir    string
@@ -31,7 +31,7 @@ func NewCursorDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
 }
 
 func (d *cursorDiscoverer) Name() string { return "Cursor Config" }
-func (d *cursorDiscoverer) Host() string { return cursorHost }
+func (d *cursorDiscoverer) App() string { return cursorApp }
 
 func (d *cursorDiscoverer) EnumTools(handler AIToolHandlerFn) error {
 	if d.config.ScopeEnabled(AIToolScopeSystem) {
@@ -39,8 +39,8 @@ func (d *cursorDiscoverer) EnumTools(handler AIToolHandlerFn) error {
 		systemMCPPath := filepath.Join(cursorDir, "mcp.json")
 
 		// System-level: ~/.cursor/mcp.json
-		if cfg, err := parseMCPHostConfig(systemMCPPath); err == nil {
-			if err := emitMCPServers(cfg, systemMCPPath, AIToolScopeSystem, cursorHost, handler); err != nil {
+		if cfg, err := parseMCPAppConfig(systemMCPPath); err == nil {
+			if err := emitMCPServers(cfg, systemMCPPath, AIToolScopeSystem, cursorApp, handler); err != nil {
 				return err
 			}
 		}
@@ -51,12 +51,12 @@ func (d *cursorDiscoverer) EnumTools(handler AIToolHandlerFn) error {
 				Name:       "Cursor",
 				Type:       AIToolTypeCodingAgent,
 				Scope:      AIToolScopeSystem,
-				Host:       cursorHost,
+				App:       cursorApp,
 				ConfigPath: cursorDir,
 				Agent:      &AgentConfig{},
 			}
-			agent.ID = GenerateID(agent.Host, string(agent.Type), string(agent.Scope), agent.Name, agent.ConfigPath)
-			agent.SourceID = GenerateSourceID(agent.Host, agent.ConfigPath)
+			agent.ID = GenerateID(agent.App, string(agent.Type), string(agent.Scope), agent.Name, agent.ConfigPath)
+			agent.SourceID = GenerateSourceID(agent.App, agent.ConfigPath)
 
 			if err := handler(agent); err != nil {
 				return err
@@ -76,8 +76,8 @@ func (d *cursorDiscoverer) EnumTools(handler AIToolHandlerFn) error {
 func (d *cursorDiscoverer) processProjectConfigs(handler AIToolHandlerFn) error {
 	// .cursor/mcp.json (project-scoped)
 	projectMCPPath := filepath.Join(d.projectDir, ".cursor", "mcp.json")
-	if cfg, err := parseMCPHostConfig(projectMCPPath); err == nil {
-		if err := emitMCPServers(cfg, projectMCPPath, AIToolScopeProject, cursorHost, handler); err != nil {
+	if cfg, err := parseMCPAppConfig(projectMCPPath); err == nil {
+		if err := emitMCPServers(cfg, projectMCPPath, AIToolScopeProject, cursorApp, handler); err != nil {
 			return err
 		}
 	}
@@ -107,14 +107,14 @@ func (d *cursorDiscoverer) processProjectConfigs(handler AIToolHandlerFn) error 
 			Name:       "Cursor",
 			Type:       AIToolTypeProjectConfig,
 			Scope:      AIToolScopeProject,
-			Host:       cursorHost,
+			App:       cursorApp,
 			ConfigPath: d.projectDir,
 			Agent: &AgentConfig{
 				InstructionFiles: instructionFiles,
 			},
 		}
-		tool.ID = GenerateID(tool.Host, string(tool.Type), string(tool.Scope), tool.Name, tool.ConfigPath)
-		tool.SourceID = GenerateSourceID(tool.Host, tool.ConfigPath)
+		tool.ID = GenerateID(tool.App, string(tool.Type), string(tool.Scope), tool.Name, tool.ConfigPath)
+		tool.SourceID = GenerateSourceID(tool.App, tool.ConfigPath)
 
 		if err := handler(tool); err != nil {
 			return err

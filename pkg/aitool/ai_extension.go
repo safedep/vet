@@ -18,7 +18,7 @@ var ideDirNames = map[string]string{
 	".windsurf":   "Windsurf",
 }
 
-const ideExtensionsHost = "ide_extensions"
+const ideExtensionsApp = "ide_extensions"
 
 type aiExtensionDiscoverer struct {
 	config DiscoveryConfig
@@ -31,7 +31,7 @@ func NewAIExtensionDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
 }
 
 func (d *aiExtensionDiscoverer) Name() string { return "AI IDE Extensions" }
-func (d *aiExtensionDiscoverer) Host() string { return ideExtensionsHost }
+func (d *aiExtensionDiscoverer) App() string { return ideExtensionsApp }
 
 func (d *aiExtensionDiscoverer) EnumTools(handler AIToolHandlerFn) error {
 	// IDE extensions are system-scoped; skip when system scope is not enabled
@@ -56,11 +56,11 @@ func (d *aiExtensionDiscoverer) EnumTools(handler AIToolHandlerFn) error {
 				Name:       info.DisplayName,
 				Type:       AIToolTypeAIExtension,
 				Scope:      AIToolScopeSystem,
-				Host:       ideExtensionsHost,
+				App:       ideExtensionsApp,
 				ConfigPath: manifest.GetPath(),
 			}
-			tool.ID = GenerateID(tool.Host, string(tool.Type), string(tool.Scope), pkg.Name, tool.ConfigPath)
-			tool.SourceID = GenerateSourceID(tool.Host, tool.ConfigPath)
+			tool.ID = GenerateID(tool.App, string(tool.Type), string(tool.Scope), pkg.Name, tool.ConfigPath)
+			tool.SourceID = GenerateSourceID(tool.App, tool.ConfigPath)
 			tool.SetMeta("extension.id", pkg.Name)
 			tool.SetMeta("extension.version", pkg.Version)
 			tool.SetMeta("extension.ecosystem", manifest.Ecosystem)

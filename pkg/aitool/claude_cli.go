@@ -7,7 +7,7 @@ type claudeCLIVerifier struct{}
 func (d *claudeCLIVerifier) BinaryNames() []string { return []string{"claude"} }
 func (d *claudeCLIVerifier) VerifyArgs() []string  { return []string{"--version"} }
 func (d *claudeCLIVerifier) DisplayName() string   { return "Claude Code" }
-func (d *claudeCLIVerifier) Host() string          { return claudeCodeHost }
+func (d *claudeCLIVerifier) App() string           { return claudeCodeApp }
 
 func (d *claudeCLIVerifier) VerifyOutput(stdout, stderr string) (string, bool) {
 	combined := stdout + stderr

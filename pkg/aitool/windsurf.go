@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 )
 
-const windsurfHost = "windsurf"
+const windsurfApp = "windsurf"
 
 type windsurfDiscoverer struct {
 	homeDir string
@@ -26,7 +26,7 @@ func NewWindsurfDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
 }
 
 func (d *windsurfDiscoverer) Name() string { return "Windsurf Config" }
-func (d *windsurfDiscoverer) Host() string { return windsurfHost }
+func (d *windsurfDiscoverer) App() string { return windsurfApp }
 
 func (d *windsurfDiscoverer) EnumTools(handler AIToolHandlerFn) error {
 	if !d.config.ScopeEnabled(AIToolScopeSystem) {
@@ -37,8 +37,8 @@ func (d *windsurfDiscoverer) EnumTools(handler AIToolHandlerFn) error {
 	mcpConfigPath := filepath.Join(windsurfDir, "mcp_config.json")
 
 	// System-level: ~/.codeium/windsurf/mcp_config.json
-	if cfg, err := parseMCPHostConfig(mcpConfigPath); err == nil {
-		if err := emitMCPServers(cfg, mcpConfigPath, AIToolScopeSystem, windsurfHost, handler); err != nil {
+	if cfg, err := parseMCPAppConfig(mcpConfigPath); err == nil {
+		if err := emitMCPServers(cfg, mcpConfigPath, AIToolScopeSystem, windsurfApp, handler); err != nil {
 			return err
 		}
 	}
@@ -49,12 +49,12 @@ func (d *windsurfDiscoverer) EnumTools(handler AIToolHandlerFn) error {
 			Name:       "Windsurf",
 			Type:       AIToolTypeCodingAgent,
 			Scope:      AIToolScopeSystem,
-			Host:       windsurfHost,
+			App:       windsurfApp,
 			ConfigPath: windsurfDir,
 			Agent:      &AgentConfig{},
 		}
-		agent.ID = GenerateID(agent.Host, string(agent.Type), string(agent.Scope), agent.Name, agent.ConfigPath)
-		agent.SourceID = GenerateSourceID(agent.Host, agent.ConfigPath)
+		agent.ID = GenerateID(agent.App, string(agent.Type), string(agent.Scope), agent.Name, agent.ConfigPath)
+		agent.SourceID = GenerateSourceID(agent.App, agent.ConfigPath)
 
 		if err := handler(agent); err != nil {
 			return err

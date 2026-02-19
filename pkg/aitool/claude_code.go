@@ -7,7 +7,7 @@ import (
 	"github.com/safedep/vet/pkg/common/logger"
 )
 
-const claudeCodeHost = "claude_code"
+const claudeCodeApp = "claude_code"
 
 type claudeCodeDiscoverer struct {
 	homeDir    string
@@ -34,7 +34,7 @@ func NewClaudeCodeDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
 }
 
 func (d *claudeCodeDiscoverer) Name() string { return "Claude Code Config" }
-func (d *claudeCodeDiscoverer) Host() string { return claudeCodeHost }
+func (d *claudeCodeDiscoverer) App() string { return claudeCodeApp }
 
 func (d *claudeCodeDiscoverer) EnumTools(handler AIToolHandlerFn) error {
 	if d.config.ScopeEnabled(AIToolScopeSystem) {
@@ -60,7 +60,7 @@ func (d *claudeCodeDiscoverer) EnumTools(handler AIToolHandlerFn) error {
 }
 
 func (d *claudeCodeDiscoverer) processSystemSettings(path string, handler AIToolHandlerFn) error {
-	cfg, err := parseMCPHostConfig(path)
+	cfg, err := parseMCPAppConfig(path)
 	if err != nil {
 		logger.Debugf("Claude Code system settings not found or unreadable: %s", path)
 		return nil
@@ -71,7 +71,7 @@ func (d *claudeCodeDiscoverer) processSystemSettings(path string, handler AITool
 		Name:       "Claude Code",
 		Type:       AIToolTypeCodingAgent,
 		Scope:      AIToolScopeSystem,
-		Host:       claudeCodeHost,
+		App:       claudeCodeApp,
 		ConfigPath: path,
 		Agent:      &AgentConfig{},
 	}
@@ -84,15 +84,15 @@ func (d *claudeCodeDiscoverer) processSystemSettings(path string, handler AITool
 		agent.Agent.PermissionMode = mode
 	}
 
-	agent.ID = GenerateID(agent.Host, string(agent.Type), string(agent.Scope), agent.Name, agent.ConfigPath)
-	agent.SourceID = GenerateSourceID(agent.Host, agent.ConfigPath)
+	agent.ID = GenerateID(agent.App, string(agent.Type), string(agent.Scope), agent.Name, agent.ConfigPath)
+	agent.SourceID = GenerateSourceID(agent.App, agent.ConfigPath)
 
 	if err := handler(agent); err != nil {
 		return err
 	}
 
 	// Emit MCP servers from system settings
-	return emitMCPServers(cfg, path, AIToolScopeSystem, claudeCodeHost, handler)
+	return emitMCPServers(cfg, path, AIToolScopeSystem, claudeCodeApp, handler)
 }
 
 func (d *claudeCodeDiscoverer) walkProjectSettings(handler AIToolHandlerFn) error {
@@ -109,12 +109,12 @@ func (d *claudeCodeDiscoverer) walkProjectSettings(handler AIToolHandlerFn) erro
 		}
 
 		settingsPath := filepath.Join(projectsDir, entry.Name(), "settings.json")
-		cfg, err := parseMCPHostConfig(settingsPath)
+		cfg, err := parseMCPAppConfig(settingsPath)
 		if err != nil {
 			continue
 		}
 
-		if err := emitMCPServers(cfg, settingsPath, AIToolScopeProject, claudeCodeHost, handler); err != nil {
+		if err := emitMCPServers(cfg, settingsPath, AIToolScopeProject, claudeCodeApp, handler); err != nil {
 			return err
 		}
 	}
@@ -125,16 +125,16 @@ func (d *claudeCodeDiscoverer) walkProjectSettings(handler AIToolHandlerFn) erro
 func (d *claudeCodeDiscoverer) processProjectConfigs(handler AIToolHandlerFn) error {
 	// .mcp.json
 	mcpJSONPath := filepath.Join(d.projectDir, ".mcp.json")
-	if cfg, err := parseMCPHostConfig(mcpJSONPath); err == nil {
-		if err := emitMCPServers(cfg, mcpJSONPath, AIToolScopeProject, claudeCodeHost, handler); err != nil {
+	if cfg, err := parseMCPAppConfig(mcpJSONPath); err == nil {
+		if err := emitMCPServers(cfg, mcpJSONPath, AIToolScopeProject, claudeCodeApp, handler); err != nil {
 			return err
 		}
 	}
 
 	// .claude/settings.json (project-scoped)
 	projectSettingsPath := filepath.Join(d.projectDir, ".claude", "settings.json")
-	if cfg, err := parseMCPHostConfig(projectSettingsPath); err == nil {
-		if err := emitMCPServers(cfg, projectSettingsPath, AIToolScopeProject, claudeCodeHost, handler); err != nil {
+	if cfg, err := parseMCPAppConfig(projectSettingsPath); err == nil {
+		if err := emitMCPServers(cfg, projectSettingsPath, AIToolScopeProject, claudeCodeApp, handler); err != nil {
 			return err
 		}
 	}
@@ -151,14 +151,14 @@ func (d *claudeCodeDiscoverer) processProjectConfigs(handler AIToolHandlerFn) er
 			Name:       "Claude Code",
 			Type:       AIToolTypeProjectConfig,
 			Scope:      AIToolScopeProject,
-			Host:       claudeCodeHost,
+			App:       claudeCodeApp,
 			ConfigPath: d.projectDir,
 			Agent: &AgentConfig{
 				InstructionFiles: instructionFiles,
 			},
 		}
-		tool.ID = GenerateID(tool.Host, string(tool.Type), string(tool.Scope), tool.Name, tool.ConfigPath)
-		tool.SourceID = GenerateSourceID(tool.Host, tool.ConfigPath)
+		tool.ID = GenerateID(tool.App, string(tool.Type), string(tool.Scope), tool.Name, tool.ConfigPath)
+		tool.SourceID = GenerateSourceID(tool.App, tool.ConfigPath)
 
 		if err := handler(tool); err != nil {
 			return err
@@ -170,7 +170,7 @@ func (d *claudeCodeDiscoverer) processProjectConfigs(handler AIToolHandlerFn) er
 
 // claudeCodePermissionMode extracts the permission mode string from a parsed config.
 // Claude Code stores this as {"permissions": {"defaultMode": "..."}}.
-func claudeCodePermissionMode(cfg *mcpHostConfig) string {
+func claudeCodePermissionMode(cfg *mcpAppConfig) string {
 	if cfg.Permissions == nil {
 		return ""
 	}

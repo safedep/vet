@@ -30,5 +30,5 @@ func TestKnownAIExtensions_HasExpectedEntries(t *testing.T) {
 func TestAIExtensionDiscoverer_Interface(t *testing.T) {
 	d := &aiExtensionDiscoverer{}
 	assert.Equal(t, "AI IDE Extensions", d.Name())
-	assert.Equal(t, ideExtensionsHost, d.Host())
+	assert.Equal(t, ideExtensionsApp, d.App())
 }

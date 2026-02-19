@@ -57,7 +57,7 @@ func TestClaudeCodeDiscoverer_SystemSettings(t *testing.T) {
 		}
 		require.NotEmpty(t, agents)
 		assert.Equal(t, "Claude Code", agents[0].Name)
-		assert.Equal(t, claudeCodeHost, agents[0].Host)
+		assert.Equal(t, claudeCodeApp, agents[0].App)
 		assert.Equal(t, AIToolScopeSystem, agents[0].Scope)
 		require.NotNil(t, agents[0].Agent)
 		assert.Equal(t, "allowedTools", agents[0].Agent.PermissionMode)

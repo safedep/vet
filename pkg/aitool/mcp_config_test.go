@@ -8,10 +8,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestParseMCPHostConfig(t *testing.T) {
+func TestParseMCPAppConfig(t *testing.T) {
 	fixtures := fixturesDir(t)
 
-	cfg, err := parseMCPHostConfig(filepath.Join(fixtures, "claude", "settings.json"))
+	cfg, err := parseMCPAppConfig(filepath.Join(fixtures, "claude", "settings.json"))
 	require.NoError(t, err)
 
 	assert.Equal(t, "claude-sonnet-4-20250514", cfg.Model)

@@ -41,7 +41,7 @@ func TestWindsurfDiscoverer_WithFixtures(t *testing.T) {
 	}
 	require.Len(t, agents, 1)
 	assert.Equal(t, "Windsurf", agents[0].Name)
-	assert.Equal(t, windsurfHost, agents[0].Host)
+	assert.Equal(t, windsurfApp, agents[0].App)
 	assert.Equal(t, AIToolScopeSystem, agents[0].Scope)
 
 	// Check MCP servers

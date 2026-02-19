@@ -10,7 +10,7 @@ type ghCopilotVerifier struct{}
 func (d *ghCopilotVerifier) BinaryNames() []string { return []string{"gh"} }
 func (d *ghCopilotVerifier) VerifyArgs() []string  { return []string{"extension", "list"} }
 func (d *ghCopilotVerifier) DisplayName() string   { return "GitHub Copilot CLI" }
-func (d *ghCopilotVerifier) Host() string          { return "gh_copilot" }
+func (d *ghCopilotVerifier) App() string           { return "gh_copilot" }
 
 func (d *ghCopilotVerifier) VerifyOutput(stdout, _ string) (string, bool) {
 	for _, line := range strings.Split(stdout, "\n") {

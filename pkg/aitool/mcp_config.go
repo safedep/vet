@@ -9,7 +9,7 @@ import (
 	"github.com/safedep/vet/pkg/common/logger"
 )
 
-// mcpServerEntry represents a single MCP server entry in a host config file.
+// mcpServerEntry represents a single MCP server entry in an app config file.
 // This format is shared across Claude Code, Cursor, and Windsurf. Windsurf uses
 // "serverUrl" instead of "url" for remote servers; resolvedURL() normalizes this.
 type mcpServerEntry struct {
@@ -32,23 +32,23 @@ func (e mcpServerEntry) resolvedURL() string {
 	return e.ServerURL
 }
 
-// mcpHostConfig represents a host application's JSON config file containing
+// mcpAppConfig represents an application's JSON config file containing
 // MCP servers. The Permissions and Model fields are used by Claude Code;
-// other hosts ignore them during JSON unmarshaling.
-type mcpHostConfig struct {
+// other apps ignore them during JSON unmarshaling.
+type mcpAppConfig struct {
 	MCPServers  map[string]mcpServerEntry `json:"mcpServers,omitempty"`
 	Permissions map[string]any            `json:"permissions,omitempty"`
 	Model       string                    `json:"model,omitempty"`
 }
 
-// parseMCPHostConfig reads and parses a JSON config file that contains mcpServers.
-func parseMCPHostConfig(path string) (*mcpHostConfig, error) {
+// parseMCPAppConfig reads and parses a JSON config file that contains mcpServers.
+func parseMCPAppConfig(path string) (*mcpAppConfig, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
-	var cfg mcpHostConfig
+	var cfg mcpAppConfig
 	if err := json.Unmarshal(data, &cfg); err != nil {
 		logger.Warnf("Failed to parse config file %s: %v", path, err)
 		return nil, err
@@ -84,7 +84,7 @@ func detectTransport(entry mcpServerEntry) MCPTransport {
 }
 
 // emitMCPServers creates and emits AITool entries for all MCP servers in a config.
-func emitMCPServers(cfg *mcpHostConfig, configPath string, scope AIToolScope, host string, handler AIToolHandlerFn) error {
+func emitMCPServers(cfg *mcpAppConfig, configPath string, scope AIToolScope, app string, handler AIToolHandlerFn) error {
 	for _, name := range sortedKeys(cfg.MCPServers) {
 		entry := cfg.MCPServers[name]
 
@@ -104,7 +104,7 @@ func emitMCPServers(cfg *mcpHostConfig, configPath string, scope AIToolScope, ho
 			Name:       name,
 			Type:       AIToolTypeMCPServer,
 			Scope:      scope,
-			Host:       host,
+			App:        app,
 			ConfigPath: configPath,
 			MCPServer:  mcpCfg,
 		}
@@ -114,8 +114,8 @@ func emitMCPServers(cfg *mcpHostConfig, configPath string, scope AIToolScope, ho
 			tool.Enabled = &enabled
 		}
 
-		tool.ID = GenerateID(tool.Host, string(tool.Type), string(tool.Scope), tool.Name, tool.ConfigPath)
-		tool.SourceID = GenerateSourceID(tool.Host, tool.ConfigPath)
+		tool.ID = GenerateID(tool.App, string(tool.Type), string(tool.Scope), tool.Name, tool.ConfigPath)
+		tool.SourceID = GenerateSourceID(tool.App, tool.ConfigPath)
 
 		if err := handler(tool); err != nil {
 			return err

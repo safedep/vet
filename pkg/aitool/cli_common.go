@@ -24,8 +24,8 @@ type CLIToolVerifier interface {
 	// DisplayName returns the human-readable name for reporting.
 	DisplayName() string
 
-	// Host returns the discoverer host identifier.
-	Host() string
+	// App returns the application identifier.
+	App() string
 }
 
 // ProbeAndVerify runs a CLI tool discoverer through the standard
@@ -60,11 +60,11 @@ func ProbeAndVerify(verifier CLIToolVerifier, handler AIToolHandlerFn) error {
 			Name:       verifier.DisplayName(),
 			Type:       AIToolTypeCLITool,
 			Scope:      AIToolScopeSystem,
-			Host:       verifier.Host(),
+			App:        verifier.App(),
 			ConfigPath: binPath,
 		}
-		tool.ID = GenerateID(tool.Host, string(tool.Type), string(tool.Scope), tool.Name, tool.ConfigPath)
-		tool.SourceID = GenerateSourceID(tool.Host, tool.ConfigPath)
+		tool.ID = GenerateID(tool.App, string(tool.Type), string(tool.Scope), tool.Name, tool.ConfigPath)
+		tool.SourceID = GenerateSourceID(tool.App, tool.ConfigPath)
 
 		if version != "" {
 			tool.SetMeta("binary.version", version)
@@ -84,7 +84,7 @@ type cliToolDiscoverer struct {
 }
 
 func (d *cliToolDiscoverer) Name() string { return d.verifier.DisplayName() + " CLI" }
-func (d *cliToolDiscoverer) Host() string { return d.verifier.Host() }
+func (d *cliToolDiscoverer) App() string { return d.verifier.App() }
 func (d *cliToolDiscoverer) EnumTools(handler AIToolHandlerFn) error {
 	// CLI tools are system-scoped; skip when system scope is not enabled
 	if !d.config.ScopeEnabled(AIToolScopeSystem) {

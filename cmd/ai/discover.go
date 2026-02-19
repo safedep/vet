@@ -85,10 +85,10 @@ func runDiscover() error {
 }
 
 func printSummaryTable(inventory *aitool.AIToolInventory) {
-	hosts := inventory.GroupByHost()
+	apps := inventory.GroupByApp()
 
-	fmt.Fprintf(os.Stderr, "\nDiscovered %d AI tool usage(s) across %d host(s)\n\n",
-		len(inventory.Tools), len(hosts))
+	fmt.Fprintf(os.Stderr, "\nDiscovered %d AI tool usage(s) across %d app(s)\n\n",
+		len(inventory.Tools), len(apps))
 
 	if len(inventory.Tools) == 0 {
 		return
@@ -98,14 +98,14 @@ func printSummaryTable(inventory *aitool.AIToolInventory) {
 	tbl.SetOutputMirror(os.Stderr)
 	tbl.SetStyle(table.StyleLight)
 
-	tbl.AppendHeader(table.Row{"TYPE", "NAME", "HOST", "SCOPE", "DETAIL"})
+	tbl.AppendHeader(table.Row{"TYPE", "NAME", "APP", "SCOPE", "DETAIL"})
 
 	for _, tool := range inventory.Tools {
 		detail := toolDetail(tool)
 		tbl.AppendRow(table.Row{
 			string(tool.Type),
 			tool.Name,
-			tool.Host,
+			tool.App,
 			string(tool.Scope),
 			detail,
 		})

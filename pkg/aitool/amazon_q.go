@@ -10,7 +10,7 @@ type amazonQVerifier struct{}
 func (d *amazonQVerifier) BinaryNames() []string { return []string{"q", "amazon-q"} }
 func (d *amazonQVerifier) VerifyArgs() []string  { return []string{"--version"} }
 func (d *amazonQVerifier) DisplayName() string   { return "Amazon Q" }
-func (d *amazonQVerifier) Host() string          { return "amazon_q" }
+func (d *amazonQVerifier) App() string           { return "amazon_q" }
 
 func (d *amazonQVerifier) VerifyOutput(stdout, stderr string) (string, bool) {
 	combined := stdout + stderr

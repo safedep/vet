@@ -24,7 +24,7 @@ Note that `coding_agent` is only emitted when the tool is actually installed on 
 **Type** classifies the kind of AI tool usage detected:
 
 - `coding_agent` is an AI coding assistant installed on the system, detected via system-level configuration directories.
-- `mcp_server` is a Model Context Protocol server configured for a host application.
+- `mcp_server` is a Model Context Protocol server configured for an application.
 - `cli_tool` is a standalone AI CLI binary found on `$PATH`. Each candidate is executed with a version flag and the output is verified against known patterns.
 - `ai_extension` is an AI-related IDE extension detected from installed extension manifests.
 - `project_config` is an AI tool configuration or instruction file found in a project repository. It indicates the project is set up for a particular AI tool but does not prove the current developer uses it.
@@ -34,7 +34,7 @@ Note that `coding_agent` is only emitted when the tool is actually installed on 
 - `system` refers to user-global config (e.g. `~/.claude/settings.json`, `~/.cursor/mcp.json`).
 - `project` refers to repo-scoped config (e.g. `.mcp.json`, `.cursorrules`, `CLAUDE.md`).
 
-**Host** is the application that owns the configuration (e.g. `claude_code`, `cursor`). Tools from the same host share an integration surface.
+**App** is the application that owns the configuration (e.g. `claude_code`, `cursor`). Tools from the same app share an integration surface.
 
 **MCP (Model Context Protocol)** is a protocol that lets coding agents call external tool servers. MCP servers can use `stdio`, `sse`, or `streamable_http` transports. The discovery reports the server name, transport, command or URL, and which environment variable names are referenced. Values are never captured.
 
@@ -59,7 +59,7 @@ vet ai discover --report-json inventory.json --silent
 
 ## What is scanned
 
-**Host configuration** is read from well-known system and project-level config paths for each supported host application. System-level configs (e.g. `~/.claude/settings.json`, `~/.cursor/mcp.json`) indicate the tool is installed. Project-level configs (e.g. `.mcp.json`, `.cursorrules`) indicate the project is set up for a tool.
+**App configuration** is read from well-known system and project-level config paths for each supported application. System-level configs (e.g. `~/.claude/settings.json`, `~/.cursor/mcp.json`) indicate the tool is installed. Project-level configs (e.g. `.mcp.json`, `.cursorrules`) indicate the project is set up for a tool.
 
 **CLI binaries** are discovered by searching `$PATH` for known binary names. Each candidate is executed with a version flag and the output is verified against known patterns to confirm identity and extract the version number.
 

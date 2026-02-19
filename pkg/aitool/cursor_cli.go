@@ -10,7 +10,7 @@ type cursorCLIVerifier struct{}
 func (d *cursorCLIVerifier) BinaryNames() []string { return []string{"cursor"} }
 func (d *cursorCLIVerifier) VerifyArgs() []string  { return []string{"--version"} }
 func (d *cursorCLIVerifier) DisplayName() string   { return "Cursor" }
-func (d *cursorCLIVerifier) Host() string          { return cursorHost }
+func (d *cursorCLIVerifier) App() string           { return cursorApp }
 
 func (d *cursorCLIVerifier) VerifyOutput(stdout, stderr string) (string, bool) {
 	// Output format: "2.4.37\n<commit-hash>\n<arch>"

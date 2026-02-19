@@ -10,7 +10,7 @@ type windsurfCLIVerifier struct{}
 func (d *windsurfCLIVerifier) BinaryNames() []string { return []string{"windsurf"} }
 func (d *windsurfCLIVerifier) VerifyArgs() []string  { return []string{"--version"} }
 func (d *windsurfCLIVerifier) DisplayName() string   { return "Windsurf" }
-func (d *windsurfCLIVerifier) Host() string          { return windsurfHost }
+func (d *windsurfCLIVerifier) App() string           { return windsurfApp }
 
 func (d *windsurfCLIVerifier) VerifyOutput(stdout, stderr string) (string, bool) {
 	// Output format: "1.107.0\n<commit-hash>\n<arch>"

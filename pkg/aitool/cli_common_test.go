@@ -104,5 +104,5 @@ func TestCLIToolDiscoverer_Interface(t *testing.T) {
 	d := &cliToolDiscoverer{verifier: v}
 
 	assert.Equal(t, "Aider CLI", d.Name())
-	assert.Equal(t, "aider", d.Host())
+	assert.Equal(t, "aider", d.App())
 }

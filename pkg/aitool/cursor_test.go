@@ -41,7 +41,7 @@ func TestCursorDiscoverer_WithFixtures(t *testing.T) {
 	}
 	require.NotEmpty(t, systemMCPServers)
 	assert.Equal(t, "database", systemMCPServers[0].Name)
-	assert.Equal(t, cursorHost, systemMCPServers[0].Host)
+	assert.Equal(t, cursorApp, systemMCPServers[0].App)
 
 	// Check for coding agents
 	var agents []*AITool

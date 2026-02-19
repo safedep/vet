@@ -10,12 +10,12 @@ import (
 
 type mockReader struct {
 	name  string
-	host  string
+	app   string
 	tools []*AITool
 }
 
 func (m *mockReader) Name() string { return m.name }
-func (m *mockReader) Host() string { return m.host }
+func (m *mockReader) App() string { return m.app }
 func (m *mockReader) EnumTools(handler AIToolHandlerFn) error {
 	for _, tool := range m.tools {
 		if err := handler(tool); err != nil {
@@ -31,9 +31,9 @@ func TestRegistry_DiscoverCallsAllFactories(t *testing.T) {
 	r.Register("reader1", func(_ DiscoveryConfig) (AIToolReader, error) {
 		return &mockReader{
 			name: "reader1",
-			host: "host1",
+			app: "host1",
 			tools: []*AITool{
-				{Name: "tool1", Host: "host1"},
+				{Name: "tool1", App: "host1"},
 			},
 		}, nil
 	})
@@ -41,9 +41,9 @@ func TestRegistry_DiscoverCallsAllFactories(t *testing.T) {
 	r.Register("reader2", func(_ DiscoveryConfig) (AIToolReader, error) {
 		return &mockReader{
 			name: "reader2",
-			host: "host2",
+			app: "host2",
 			tools: []*AITool{
-				{Name: "tool2", Host: "host2"},
+				{Name: "tool2", App: "host2"},
 			},
 		}, nil
 	})
@@ -70,7 +70,7 @@ func TestRegistry_FactoryErrorSkipped(t *testing.T) {
 	r.Register("working", func(_ DiscoveryConfig) (AIToolReader, error) {
 		return &mockReader{
 			name:  "working",
-			host:  "host",
+			app:   "host",
 			tools: []*AITool{{Name: "tool1"}},
 		}, nil
 	})
@@ -91,7 +91,7 @@ func TestRegistry_HandlerErrorPropagated(t *testing.T) {
 	r.Register("reader", func(_ DiscoveryConfig) (AIToolReader, error) {
 		return &mockReader{
 			name:  "reader",
-			host:  "host",
+			app:   "host",
 			tools: []*AITool{{Name: "tool1"}, {Name: "tool2"}},
 		}, nil
 	})
@@ -113,8 +113,8 @@ func TestRegistry_DeterministicOrder(t *testing.T) {
 		r.Register(n, func(_ DiscoveryConfig) (AIToolReader, error) {
 			return &mockReader{
 				name:  n,
-				host:  n,
-				tools: []*AITool{{Name: n, Host: n, Metadata: map[string]any{"order": idx}}},
+				app:   n,
+				tools: []*AITool{{Name: n, App: n, Metadata: map[string]any{"order": idx}}},
 			}, nil
 		})
 	}

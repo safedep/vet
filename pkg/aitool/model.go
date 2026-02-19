@@ -64,7 +64,7 @@ type AITool struct {
 	Name       string      `json:"name"`
 	Type       AIToolType  `json:"type"`
 	Scope      AIToolScope `json:"scope"`
-	Host       string      `json:"host"`
+	App        string      `json:"app"`
 	ConfigPath string      `json:"config_path"`
 
 	MCPServer *MCPServerConfig `json:"mcp_server,omitempty"`
@@ -97,9 +97,9 @@ func (t *AITool) GetMetaString(key string) string {
 }
 
 // GenerateID produces a deterministic ID for an AITool from its identity fields.
-func GenerateID(host, toolType, scope, name, configPath string) string {
+func GenerateID(app, toolType, scope, name, configPath string) string {
 	data := fmt.Sprintf("%s/%s/%s/%s/%s",
-		strings.ToLower(host),
+		strings.ToLower(app),
 		strings.ToLower(toolType),
 		strings.ToLower(scope),
 		strings.ToLower(name),
@@ -110,10 +110,10 @@ func GenerateID(host, toolType, scope, name, configPath string) string {
 }
 
 // GenerateSourceID produces a deterministic source grouping ID.
-// Tools from the same host + config file share a SourceID.
-func GenerateSourceID(host, configPath string) string {
+// Tools from the same app + config file share a SourceID.
+func GenerateSourceID(app, configPath string) string {
 	data := fmt.Sprintf("%s/%s",
-		strings.ToLower(host),
+		strings.ToLower(app),
 		strings.ToLower(configPath))
 	h := fnv.New64a()
 	h.Write([]byte(data))
@@ -146,11 +146,11 @@ func (inv *AIToolInventory) FilterByType(t AIToolType) []*AITool {
 	return result
 }
 
-// FilterByHost returns tools matching the given host.
-func (inv *AIToolInventory) FilterByHost(host string) []*AITool {
+// FilterByApp returns tools matching the given app.
+func (inv *AIToolInventory) FilterByApp(app string) []*AITool {
 	var result []*AITool
 	for _, tool := range inv.Tools {
-		if tool.Host == host {
+		if tool.App == app {
 			result = append(result, tool)
 		}
 	}
@@ -179,11 +179,11 @@ func (inv *AIToolInventory) FilterBySourceID(sourceID string) []*AITool {
 	return result
 }
 
-// GroupByHost returns tools grouped by host name.
-func (inv *AIToolInventory) GroupByHost() map[string][]*AITool {
+// GroupByApp returns tools grouped by app name.
+func (inv *AIToolInventory) GroupByApp() map[string][]*AITool {
 	result := make(map[string][]*AITool)
 	for _, tool := range inv.Tools {
-		result[tool.Host] = append(result[tool.Host], tool)
+		result[tool.App] = append(result[tool.App], tool)
 	}
 	return result
 }
