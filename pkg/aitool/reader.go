@@ -1,5 +1,7 @@
 package aitool
 
+import "context"
+
 // AIToolHandlerFn is called for each discovered AI tool.
 // Return an error to stop enumeration.
 type AIToolHandlerFn func(*AITool) error
@@ -16,5 +18,5 @@ type AIToolReader interface {
 
 	// EnumTools discovers AI tools and calls handler for each one found.
 	// Enumeration stops on first handler error.
-	EnumTools(handler AIToolHandlerFn) error
+	EnumTools(ctx context.Context, handler AIToolHandlerFn) error
 }

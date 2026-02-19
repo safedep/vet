@@ -1,6 +1,7 @@
 package aitool
 
 import (
+	"context"
 	"path/filepath"
 	"testing"
 
@@ -23,7 +24,7 @@ func TestCursorDiscoverer_WithFixtures(t *testing.T) {
 	require.NoError(t, err)
 
 	var tools []*AITool
-	err = reader.EnumTools(func(tool *AITool) error {
+	err = reader.EnumTools(context.Background(), func(tool *AITool) error {
 		tools = append(tools, tool)
 		return nil
 	})
@@ -107,7 +108,7 @@ func TestCursorDiscoverer_MissingConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	var tools []*AITool
-	err = reader.EnumTools(func(tool *AITool) error {
+	err = reader.EnumTools(context.Background(), func(tool *AITool) error {
 		tools = append(tools, tool)
 		return nil
 	})
@@ -128,7 +129,7 @@ func TestCursorDiscoverer_DirExistsButNoMCPJson(t *testing.T) {
 	require.NoError(t, err)
 
 	var tools []*AITool
-	err = reader.EnumTools(func(tool *AITool) error {
+	err = reader.EnumTools(context.Background(), func(tool *AITool) error {
 		tools = append(tools, tool)
 		return nil
 	})

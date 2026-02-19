@@ -1,6 +1,7 @@
 package aitool
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 
@@ -34,9 +35,9 @@ func NewClaudeCodeDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
 }
 
 func (d *claudeCodeDiscoverer) Name() string { return "Claude Code Config" }
-func (d *claudeCodeDiscoverer) App() string { return claudeCodeApp }
+func (d *claudeCodeDiscoverer) App() string  { return claudeCodeApp }
 
-func (d *claudeCodeDiscoverer) EnumTools(handler AIToolHandlerFn) error {
+func (d *claudeCodeDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn) error {
 	if d.config.ScopeEnabled(AIToolScopeSystem) {
 		// System-level: ~/.claude/settings.json
 		systemSettingsPath := filepath.Join(d.homeDir, ".claude", "settings.json")
@@ -71,7 +72,7 @@ func (d *claudeCodeDiscoverer) processSystemSettings(path string, handler AITool
 		Name:       "Claude Code",
 		Type:       AIToolTypeCodingAgent,
 		Scope:      AIToolScopeSystem,
-		App:       claudeCodeApp,
+		App:        claudeCodeApp,
 		ConfigPath: path,
 		Agent:      &AgentConfig{},
 	}
@@ -151,7 +152,7 @@ func (d *claudeCodeDiscoverer) processProjectConfigs(handler AIToolHandlerFn) er
 			Name:       "Claude Code",
 			Type:       AIToolTypeProjectConfig,
 			Scope:      AIToolScopeProject,
-			App:       claudeCodeApp,
+			App:        claudeCodeApp,
 			ConfigPath: d.projectDir,
 			Agent: &AgentConfig{
 				InstructionFiles: instructionFiles,

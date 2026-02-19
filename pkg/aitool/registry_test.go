@@ -1,6 +1,7 @@
 package aitool
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -15,8 +16,8 @@ type mockReader struct {
 }
 
 func (m *mockReader) Name() string { return m.name }
-func (m *mockReader) App() string { return m.app }
-func (m *mockReader) EnumTools(handler AIToolHandlerFn) error {
+func (m *mockReader) App() string  { return m.app }
+func (m *mockReader) EnumTools(_ context.Context, handler AIToolHandlerFn) error {
 	for _, tool := range m.tools {
 		if err := handler(tool); err != nil {
 			return err
@@ -31,7 +32,7 @@ func TestRegistry_DiscoverCallsAllFactories(t *testing.T) {
 	r.Register("reader1", func(_ DiscoveryConfig) (AIToolReader, error) {
 		return &mockReader{
 			name: "reader1",
-			app: "host1",
+			app:  "host1",
 			tools: []*AITool{
 				{Name: "tool1", App: "host1"},
 			},
@@ -41,7 +42,7 @@ func TestRegistry_DiscoverCallsAllFactories(t *testing.T) {
 	r.Register("reader2", func(_ DiscoveryConfig) (AIToolReader, error) {
 		return &mockReader{
 			name: "reader2",
-			app: "host2",
+			app:  "host2",
 			tools: []*AITool{
 				{Name: "tool2", App: "host2"},
 			},
@@ -49,7 +50,7 @@ func TestRegistry_DiscoverCallsAllFactories(t *testing.T) {
 	})
 
 	var collected []*AITool
-	err := r.Discover(DiscoveryConfig{}, func(tool *AITool) error {
+	err := r.Discover(context.Background(), DiscoveryConfig{}, func(tool *AITool) error {
 		collected = append(collected, tool)
 		return nil
 	})
@@ -76,7 +77,7 @@ func TestRegistry_FactoryErrorSkipped(t *testing.T) {
 	})
 
 	var collected []*AITool
-	err := r.Discover(DiscoveryConfig{}, func(tool *AITool) error {
+	err := r.Discover(context.Background(), DiscoveryConfig{}, func(tool *AITool) error {
 		collected = append(collected, tool)
 		return nil
 	})
@@ -97,7 +98,7 @@ func TestRegistry_HandlerErrorPropagated(t *testing.T) {
 	})
 
 	handlerErr := errors.New("handler error")
-	err := r.Discover(DiscoveryConfig{}, func(tool *AITool) error {
+	err := r.Discover(context.Background(), DiscoveryConfig{}, func(tool *AITool) error {
 		return handlerErr
 	})
 
@@ -120,7 +121,7 @@ func TestRegistry_DeterministicOrder(t *testing.T) {
 	}
 
 	var names []string
-	err := r.Discover(DiscoveryConfig{}, func(tool *AITool) error {
+	err := r.Discover(context.Background(), DiscoveryConfig{}, func(tool *AITool) error {
 		names = append(names, tool.Name)
 		return nil
 	})

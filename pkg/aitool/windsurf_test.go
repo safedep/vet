@@ -1,6 +1,7 @@
 package aitool
 
 import (
+	"context"
 	"path/filepath"
 	"testing"
 
@@ -25,7 +26,7 @@ func TestWindsurfDiscoverer_WithFixtures(t *testing.T) {
 	require.NoError(t, err)
 
 	var tools []*AITool
-	err = reader.EnumTools(func(tool *AITool) error {
+	err = reader.EnumTools(context.Background(), func(tool *AITool) error {
 		tools = append(tools, tool)
 		return nil
 	})
@@ -81,7 +82,7 @@ func TestWindsurfDiscoverer_MissingConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	var tools []*AITool
-	err = reader.EnumTools(func(tool *AITool) error {
+	err = reader.EnumTools(context.Background(), func(tool *AITool) error {
 		tools = append(tools, tool)
 		return nil
 	})

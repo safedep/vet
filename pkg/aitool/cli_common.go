@@ -28,25 +28,25 @@ type CLIToolVerifier interface {
 	App() string
 }
 
-// ProbeAndVerify runs a CLI tool discoverer through the standard
+// probeAndVerify runs a CLI tool discoverer through the standard
 // lookup → execute → verify → emit pipeline.
-func ProbeAndVerify(verifier CLIToolVerifier, handler AIToolHandlerFn) error {
+func probeAndVerify(ctx context.Context, verifier CLIToolVerifier, handler AIToolHandlerFn) error {
 	for _, name := range verifier.BinaryNames() {
 		binPath, err := exec.LookPath(name)
 		if err != nil {
 			continue
 		}
 
-		ctx, cancel := context.WithTimeout(context.Background(), cliProbeTimeout)
+		probeCtx, cancel := context.WithTimeout(ctx, cliProbeTimeout)
+		defer cancel()
+
 		var stdout, stderr bytes.Buffer
 
-		cmd := exec.CommandContext(ctx, binPath, verifier.VerifyArgs()...)
+		cmd := exec.CommandContext(probeCtx, binPath, verifier.VerifyArgs()...)
 		cmd.Stdout = &stdout
 		cmd.Stderr = &stderr
 
 		err = cmd.Run()
-		cancel()
-
 		if err != nil {
 			continue
 		}
@@ -74,6 +74,7 @@ func ProbeAndVerify(verifier CLIToolVerifier, handler AIToolHandlerFn) error {
 
 		return handler(tool)
 	}
+
 	return nil
 }
 
@@ -84,11 +85,11 @@ type cliToolDiscoverer struct {
 }
 
 func (d *cliToolDiscoverer) Name() string { return d.verifier.DisplayName() + " CLI" }
-func (d *cliToolDiscoverer) App() string { return d.verifier.App() }
-func (d *cliToolDiscoverer) EnumTools(handler AIToolHandlerFn) error {
+func (d *cliToolDiscoverer) App() string  { return d.verifier.App() }
+func (d *cliToolDiscoverer) EnumTools(ctx context.Context, handler AIToolHandlerFn) error {
 	// CLI tools are system-scoped; skip when system scope is not enabled
 	if !d.config.ScopeEnabled(AIToolScopeSystem) {
 		return nil
 	}
-	return ProbeAndVerify(d.verifier, handler)
+	return probeAndVerify(ctx, d.verifier, handler)
 }

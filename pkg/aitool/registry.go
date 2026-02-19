@@ -1,6 +1,8 @@
 package aitool
 
 import (
+	"context"
+
 	"github.com/safedep/vet/pkg/common/logger"
 )
 
@@ -52,7 +54,7 @@ func (r *Registry) Register(name string, factory AIToolDiscovererFactory) {
 
 // Discover runs all registered discoverers and calls handler for each tool found.
 // Factory or discoverer errors are logged and skipped; handler errors propagate immediately.
-func (r *Registry) Discover(config DiscoveryConfig, handler AIToolHandlerFn) error {
+func (r *Registry) Discover(ctx context.Context, config DiscoveryConfig, handler AIToolHandlerFn) error {
 	for _, entry := range r.entries {
 		reader, err := entry.factory(config)
 		if err != nil {
@@ -60,7 +62,7 @@ func (r *Registry) Discover(config DiscoveryConfig, handler AIToolHandlerFn) err
 			continue
 		}
 
-		err = reader.EnumTools(handler)
+		err = reader.EnumTools(ctx, handler)
 		if err != nil {
 			return err
 		}

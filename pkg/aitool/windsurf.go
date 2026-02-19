@@ -1,6 +1,7 @@
 package aitool
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 )
@@ -26,9 +27,9 @@ func NewWindsurfDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
 }
 
 func (d *windsurfDiscoverer) Name() string { return "Windsurf Config" }
-func (d *windsurfDiscoverer) App() string { return windsurfApp }
+func (d *windsurfDiscoverer) App() string  { return windsurfApp }
 
-func (d *windsurfDiscoverer) EnumTools(handler AIToolHandlerFn) error {
+func (d *windsurfDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn) error {
 	if !d.config.ScopeEnabled(AIToolScopeSystem) {
 		return nil
 	}
@@ -49,7 +50,7 @@ func (d *windsurfDiscoverer) EnumTools(handler AIToolHandlerFn) error {
 			Name:       "Windsurf",
 			Type:       AIToolTypeCodingAgent,
 			Scope:      AIToolScopeSystem,
-			App:       windsurfApp,
+			App:        windsurfApp,
 			ConfigPath: windsurfDir,
 			Agent:      &AgentConfig{},
 		}

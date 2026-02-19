@@ -1,6 +1,7 @@
 package aitool
 
 import (
+	"context"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -38,7 +39,7 @@ func TestClaudeCodeDiscoverer_SystemSettings(t *testing.T) {
 		require.NoError(t, err)
 
 		var tools []*AITool
-		err = reader.EnumTools(func(tool *AITool) error {
+		err = reader.EnumTools(context.Background(), func(tool *AITool) error {
 			tools = append(tools, tool)
 			return nil
 		})
@@ -125,7 +126,7 @@ func TestClaudeCodeDiscoverer_SystemSettings(t *testing.T) {
 
 		// Should not error with non-existent paths
 		var tools []*AITool
-		err = reader.EnumTools(func(tool *AITool) error {
+		err = reader.EnumTools(context.Background(), func(tool *AITool) error {
 			tools = append(tools, tool)
 			return nil
 		})

@@ -1,6 +1,7 @@
 package aitool
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 )
@@ -31,9 +32,9 @@ func NewCursorDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
 }
 
 func (d *cursorDiscoverer) Name() string { return "Cursor Config" }
-func (d *cursorDiscoverer) App() string { return cursorApp }
+func (d *cursorDiscoverer) App() string  { return cursorApp }
 
-func (d *cursorDiscoverer) EnumTools(handler AIToolHandlerFn) error {
+func (d *cursorDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn) error {
 	if d.config.ScopeEnabled(AIToolScopeSystem) {
 		cursorDir := filepath.Join(d.homeDir, ".cursor")
 		systemMCPPath := filepath.Join(cursorDir, "mcp.json")
@@ -51,7 +52,7 @@ func (d *cursorDiscoverer) EnumTools(handler AIToolHandlerFn) error {
 				Name:       "Cursor",
 				Type:       AIToolTypeCodingAgent,
 				Scope:      AIToolScopeSystem,
-				App:       cursorApp,
+				App:        cursorApp,
 				ConfigPath: cursorDir,
 				Agent:      &AgentConfig{},
 			}
@@ -107,7 +108,7 @@ func (d *cursorDiscoverer) processProjectConfigs(handler AIToolHandlerFn) error 
 			Name:       "Cursor",
 			Type:       AIToolTypeProjectConfig,
 			Scope:      AIToolScopeProject,
-			App:       cursorApp,
+			App:        cursorApp,
 			ConfigPath: d.projectDir,
 			Agent: &AgentConfig{
 				InstructionFiles: instructionFiles,

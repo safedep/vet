@@ -1,6 +1,7 @@
 package aitool
 
 import (
+	"context"
 	"path/filepath"
 	"strings"
 
@@ -31,9 +32,9 @@ func NewAIExtensionDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
 }
 
 func (d *aiExtensionDiscoverer) Name() string { return "AI IDE Extensions" }
-func (d *aiExtensionDiscoverer) App() string { return ideExtensionsApp }
+func (d *aiExtensionDiscoverer) App() string  { return ideExtensionsApp }
 
-func (d *aiExtensionDiscoverer) EnumTools(handler AIToolHandlerFn) error {
+func (d *aiExtensionDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn) error {
 	// IDE extensions are system-scoped; skip when system scope is not enabled
 	if !d.config.ScopeEnabled(AIToolScopeSystem) {
 		return nil
@@ -56,7 +57,7 @@ func (d *aiExtensionDiscoverer) EnumTools(handler AIToolHandlerFn) error {
 				Name:       info.DisplayName,
 				Type:       AIToolTypeAIExtension,
 				Scope:      AIToolScopeSystem,
-				App:       ideExtensionsApp,
+				App:        ideExtensionsApp,
 				ConfigPath: manifest.GetPath(),
 			}
 			tool.ID = GenerateID(tool.App, string(tool.Type), string(tool.Scope), pkg.Name, tool.ConfigPath)

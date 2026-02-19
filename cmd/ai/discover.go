@@ -1,6 +1,7 @@
 package ai
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -28,7 +29,7 @@ func newDiscoverCommand() *cobra.Command {
 		Short: "Discover AI tools usage, MCP servers, and coding agents",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			redirectLogOutput(cmd)
-			return runDiscover()
+			return runDiscover(cmd.Context())
 		},
 	}
 
@@ -40,7 +41,7 @@ func newDiscoverCommand() *cobra.Command {
 	return cmd
 }
 
-func runDiscover() error {
+func runDiscover(ctx context.Context) error {
 	projectDir := discoverProjectDir
 	if projectDir == "" {
 		var err error
@@ -63,7 +64,7 @@ func runDiscover() error {
 	registry := aitool.DefaultRegistry()
 	inventory := aitool.NewAIToolInventory()
 
-	err = registry.Discover(config, func(tool *aitool.AITool) error {
+	err = registry.Discover(ctx, config, func(tool *aitool.AITool) error {
 		inventory.Add(tool)
 		return nil
 	})
