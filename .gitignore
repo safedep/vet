@@ -28,5 +28,5 @@ dist/
 **/.DS_Store
 
 # Auto-generated context files
-CLAUDE.md
+/CLAUDE.md
 .devcontainer
