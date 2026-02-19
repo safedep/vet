@@ -36,7 +36,7 @@ func (d *cursorDiscoverer) EnumTools(handler AIToolHandlerFn) error {
 	systemMCPPath := filepath.Join(cursorDir, "mcp.json")
 
 	// System-level: ~/.cursor/mcp.json
-	if cfg, err := parseClaudeCodeConfig(systemMCPPath); err == nil {
+	if cfg, err := parseMCPHostConfig(systemMCPPath); err == nil {
 		if err := emitMCPServers(cfg, systemMCPPath, AIToolScopeSystem, cursorHost, handler); err != nil {
 			return err
 		}
@@ -74,7 +74,7 @@ func (d *cursorDiscoverer) EnumTools(handler AIToolHandlerFn) error {
 func (d *cursorDiscoverer) processProjectConfigs(handler AIToolHandlerFn) error {
 	// .cursor/mcp.json (project-scoped)
 	projectMCPPath := filepath.Join(d.projectDir, ".cursor", "mcp.json")
-	if cfg, err := parseClaudeCodeConfig(projectMCPPath); err == nil {
+	if cfg, err := parseMCPHostConfig(projectMCPPath); err == nil {
 		if err := emitMCPServers(cfg, projectMCPPath, AIToolScopeProject, cursorHost, handler); err != nil {
 			return err
 		}

@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "local-server": {
+      "command": "npx",
+      "args": ["-y", "@example/mcp-server"],
+      "env": {
+        "API_KEY": "test-key"
+      }
+    },
+    "remote-http-mcp": {
+      "serverUrl": "https://example.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:AUTH_TOKEN}"
+      }
+    }
+  }
+}

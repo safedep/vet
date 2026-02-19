@@ -41,6 +41,17 @@ func TestCLIVerifiers_VerifyOutput(t *testing.T) {
 		assert.False(t, ok)
 	})
 
+	t.Run("WindsurfCLI", func(t *testing.T) {
+		v := &windsurfCLIVerifier{}
+
+		version, ok := v.VerifyOutput("1.107.0\n16cc024632923bc387171d59cf5638057d4c8918\nx64\n", "")
+		assert.True(t, ok)
+		assert.Equal(t, "1.107.0", version)
+
+		_, ok = v.VerifyOutput("not a version", "")
+		assert.False(t, ok)
+	})
+
 	t.Run("Aider", func(t *testing.T) {
 		v := &aiderVerifier{}
 
