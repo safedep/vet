@@ -25,6 +25,6 @@ func (d *windsurfCLIVerifier) VerifyOutput(stdout, stderr string) (string, bool)
 }
 
 // NewWindsurfCLIDiscoverer creates a discoverer for the Windsurf CLI binary.
-func NewWindsurfCLIDiscoverer(_ DiscoveryConfig) (AIToolReader, error) {
-	return &cliToolDiscoverer{verifier: &windsurfCLIVerifier{}}, nil
+func NewWindsurfCLIDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
+	return &cliToolDiscoverer{verifier: &windsurfCLIVerifier{}, config: config}, nil
 }

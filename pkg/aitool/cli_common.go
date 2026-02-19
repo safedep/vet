@@ -80,10 +80,15 @@ func ProbeAndVerify(verifier CLIToolVerifier, handler AIToolHandlerFn) error {
 // cliToolDiscoverer wraps a CLIToolVerifier as an AIToolReader.
 type cliToolDiscoverer struct {
 	verifier CLIToolVerifier
+	config   DiscoveryConfig
 }
 
 func (d *cliToolDiscoverer) Name() string { return d.verifier.DisplayName() + " CLI" }
 func (d *cliToolDiscoverer) Host() string { return d.verifier.Host() }
 func (d *cliToolDiscoverer) EnumTools(handler AIToolHandlerFn) error {
+	// CLI tools are system-scoped; skip when system scope is not enabled
+	if !d.config.ScopeEnabled(AIToolScopeSystem) {
+		return nil
+	}
 	return ProbeAndVerify(d.verifier, handler)
 }

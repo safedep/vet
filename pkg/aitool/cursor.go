@@ -10,6 +10,7 @@ const cursorHost = "cursor"
 type cursorDiscoverer struct {
 	homeDir    string
 	projectDir string
+	config     DiscoveryConfig
 }
 
 // NewCursorDiscoverer creates a Cursor config discoverer.
@@ -25,6 +26,7 @@ func NewCursorDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
 	return &cursorDiscoverer{
 		homeDir:    homeDir,
 		projectDir: config.ProjectDir,
+		config:     config,
 	}, nil
 }
 
@@ -32,37 +34,37 @@ func (d *cursorDiscoverer) Name() string { return "Cursor Config" }
 func (d *cursorDiscoverer) Host() string { return cursorHost }
 
 func (d *cursorDiscoverer) EnumTools(handler AIToolHandlerFn) error {
-	cursorDir := filepath.Join(d.homeDir, ".cursor")
-	systemMCPPath := filepath.Join(cursorDir, "mcp.json")
+	if d.config.ScopeEnabled(AIToolScopeSystem) {
+		cursorDir := filepath.Join(d.homeDir, ".cursor")
+		systemMCPPath := filepath.Join(cursorDir, "mcp.json")
 
-	// System-level: ~/.cursor/mcp.json
-	if cfg, err := parseMCPHostConfig(systemMCPPath); err == nil {
-		if err := emitMCPServers(cfg, systemMCPPath, AIToolScopeSystem, cursorHost, handler); err != nil {
-			return err
+		// System-level: ~/.cursor/mcp.json
+		if cfg, err := parseMCPHostConfig(systemMCPPath); err == nil {
+			if err := emitMCPServers(cfg, systemMCPPath, AIToolScopeSystem, cursorHost, handler); err != nil {
+				return err
+			}
+		}
+
+		// Emit coding_agent for Cursor if the ~/.cursor/ directory exists
+		if info, err := os.Stat(cursorDir); err == nil && info.IsDir() {
+			agent := &AITool{
+				Name:       "Cursor",
+				Type:       AIToolTypeCodingAgent,
+				Scope:      AIToolScopeSystem,
+				Host:       cursorHost,
+				ConfigPath: cursorDir,
+				Agent:      &AgentConfig{},
+			}
+			agent.ID = GenerateID(agent.Host, string(agent.Type), string(agent.Scope), agent.Name, agent.ConfigPath)
+			agent.SourceID = GenerateSourceID(agent.Host, agent.ConfigPath)
+
+			if err := handler(agent); err != nil {
+				return err
+			}
 		}
 	}
 
-	// Emit coding_agent for Cursor if the ~/.cursor/ directory exists,
-	// regardless of whether mcp.json is present.
-	if info, err := os.Stat(cursorDir); err == nil && info.IsDir() {
-		agent := &AITool{
-			Name:       "Cursor",
-			Type:       AIToolTypeCodingAgent,
-			Scope:      AIToolScopeSystem,
-			Host:       cursorHost,
-			ConfigPath: cursorDir,
-			Agent:      &AgentConfig{},
-		}
-		agent.ID = GenerateID(agent.Host, string(agent.Type), string(agent.Scope), agent.Name, agent.ConfigPath)
-		agent.SourceID = GenerateSourceID(agent.Host, agent.ConfigPath)
-
-		if err := handler(agent); err != nil {
-			return err
-		}
-	}
-
-	// Project-level configs
-	if d.projectDir != "" {
+	if d.config.ScopeEnabled(AIToolScopeProject) && d.projectDir != "" {
 		if err := d.processProjectConfigs(handler); err != nil {
 			return err
 		}

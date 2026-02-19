@@ -26,6 +26,6 @@ func (d *ghCopilotVerifier) VerifyOutput(stdout, _ string) (string, bool) {
 }
 
 // NewGhCopilotDiscoverer creates a discoverer for the GitHub Copilot gh extension.
-func NewGhCopilotDiscoverer(_ DiscoveryConfig) (AIToolReader, error) {
-	return &cliToolDiscoverer{verifier: &ghCopilotVerifier{}}, nil
+func NewGhCopilotDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
+	return &cliToolDiscoverer{verifier: &ghCopilotVerifier{}, config: config}, nil
 }

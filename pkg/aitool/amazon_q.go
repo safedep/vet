@@ -26,6 +26,6 @@ func (d *amazonQVerifier) VerifyOutput(stdout, stderr string) (string, bool) {
 }
 
 // NewAmazonQDiscoverer creates a discoverer for the Amazon Q CLI binary.
-func NewAmazonQDiscoverer(_ DiscoveryConfig) (AIToolReader, error) {
-	return &cliToolDiscoverer{verifier: &amazonQVerifier{}}, nil
+func NewAmazonQDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
+	return &cliToolDiscoverer{verifier: &amazonQVerifier{}, config: config}, nil
 }

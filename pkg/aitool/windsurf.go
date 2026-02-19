@@ -9,6 +9,7 @@ const windsurfHost = "windsurf"
 
 type windsurfDiscoverer struct {
 	homeDir string
+	config  DiscoveryConfig
 }
 
 // NewWindsurfDiscoverer creates a Windsurf config discoverer.
@@ -21,13 +22,17 @@ func NewWindsurfDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
 			return nil, err
 		}
 	}
-	return &windsurfDiscoverer{homeDir: homeDir}, nil
+	return &windsurfDiscoverer{homeDir: homeDir, config: config}, nil
 }
 
 func (d *windsurfDiscoverer) Name() string { return "Windsurf Config" }
 func (d *windsurfDiscoverer) Host() string { return windsurfHost }
 
 func (d *windsurfDiscoverer) EnumTools(handler AIToolHandlerFn) error {
+	if !d.config.ScopeEnabled(AIToolScopeSystem) {
+		return nil
+	}
+
 	windsurfDir := filepath.Join(d.homeDir, ".codeium", "windsurf")
 	mcpConfigPath := filepath.Join(windsurfDir, "mcp_config.json")
 

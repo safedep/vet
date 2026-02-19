@@ -25,6 +25,6 @@ func (d *cursorCLIVerifier) VerifyOutput(stdout, stderr string) (string, bool) {
 }
 
 // NewCursorCLIDiscoverer creates a discoverer for the Cursor CLI binary.
-func NewCursorCLIDiscoverer(_ DiscoveryConfig) (AIToolReader, error) {
-	return &cliToolDiscoverer{verifier: &cursorCLIVerifier{}}, nil
+func NewCursorCLIDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
+	return &cliToolDiscoverer{verifier: &cursorCLIVerifier{}, config: config}, nil
 }

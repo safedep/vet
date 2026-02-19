@@ -18,6 +18,6 @@ func (d *aiderVerifier) VerifyOutput(stdout, stderr string) (string, bool) {
 }
 
 // NewAiderDiscoverer creates a discoverer for the Aider CLI binary.
-func NewAiderDiscoverer(_ DiscoveryConfig) (AIToolReader, error) {
-	return &cliToolDiscoverer{verifier: &aiderVerifier{}}, nil
+func NewAiderDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
+	return &cliToolDiscoverer{verifier: &aiderVerifier{}, config: config}, nil
 }

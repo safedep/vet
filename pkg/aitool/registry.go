@@ -12,6 +12,19 @@ type DiscoveryConfig struct {
 	// ProjectDir is the project root for project-level discovery.
 	// Empty string means skip project-level discovery.
 	ProjectDir string
+
+	// Scope controls which scopes are active during discovery.
+	// Nil means all scopes are enabled.
+	Scope *DiscoveryScope
+}
+
+// ScopeEnabled is a convenience method that checks whether the given scope
+// is active in this config. Returns true when Scope is nil (all enabled).
+func (c DiscoveryConfig) ScopeEnabled(scope AIToolScope) bool {
+	if c.Scope == nil {
+		return true
+	}
+	return c.Scope.IsEnabled(scope)
 }
 
 // AIToolDiscovererFactory creates a reader given a config.

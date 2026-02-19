@@ -28,6 +28,6 @@ func (d *claudeCLIVerifier) VerifyOutput(stdout, stderr string) (string, bool) {
 }
 
 // NewClaudeCLIDiscoverer creates a discoverer for the Claude Code CLI binary.
-func NewClaudeCLIDiscoverer(_ DiscoveryConfig) (AIToolReader, error) {
-	return &cliToolDiscoverer{verifier: &claudeCLIVerifier{}}, nil
+func NewClaudeCLIDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
+	return &cliToolDiscoverer{verifier: &claudeCLIVerifier{}, config: config}, nil
 }

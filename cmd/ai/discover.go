@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	discoverScope      string
+	discoverScopes     []string
 	discoverProjectDir string
 	discoverReportJSON string
 	discoverSilent     bool
@@ -25,14 +25,14 @@ var (
 func newDiscoverCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "discover",
-		Short: "Discover AI tools, MCP servers, and coding agents",
+		Short: "Discover AI tools usage, MCP servers, and coding agents",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			redirectLogOutput(cmd)
 			return runDiscover()
 		},
 	}
 
-	cmd.Flags().StringVar(&discoverScope, "scope", "", "Limit scope: system, project, or empty for both")
+	cmd.Flags().StringArrayVar(&discoverScopes, "scope", nil, "Limit to specific scopes (system, project); repeatable, empty for all")
 	cmd.Flags().StringVarP(&discoverProjectDir, "project-dir", "D", "", "Project root for project-level discovery (default: cwd)")
 	cmd.Flags().StringVar(&discoverReportJSON, "report-json", "", "Write JSON inventory to file")
 	cmd.Flags().BoolVarP(&discoverSilent, "silent", "s", false, "Suppress default summary output")
@@ -50,18 +50,20 @@ func runDiscover() error {
 		}
 	}
 
+	scope, err := buildDiscoveryScope(discoverScopes)
+	if err != nil {
+		return err
+	}
+
 	config := aitool.DiscoveryConfig{
 		ProjectDir: projectDir,
+		Scope:      scope,
 	}
 
 	registry := aitool.DefaultRegistry()
 	inventory := aitool.NewAIToolInventory()
 
-	err := registry.Discover(config, func(tool *aitool.AITool) error {
-		if discoverScope != "" && string(tool.Scope) != discoverScope {
-			return nil
-		}
-
+	err = registry.Discover(config, func(tool *aitool.AITool) error {
 		inventory.Add(tool)
 		return nil
 	})
@@ -186,4 +188,17 @@ func fileBaseNames(paths []string) []string {
 		names[i] = filepath.Base(p)
 	}
 	return names
+}
+
+// buildDiscoveryScope converts CLI --scope flag values to a DiscoveryScope.
+// Returns nil (all scopes) when no scopes are specified.
+func buildDiscoveryScope(scopes []string) (*aitool.DiscoveryScope, error) {
+	if len(scopes) == 0 {
+		return nil, nil
+	}
+	parsed := make([]aitool.AIToolScope, len(scopes))
+	for i, s := range scopes {
+		parsed[i] = aitool.AIToolScope(s)
+	}
+	return aitool.NewDiscoveryScope(parsed...)
 }

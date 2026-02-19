@@ -12,6 +12,7 @@ const claudeCodeHost = "claude_code"
 type claudeCodeDiscoverer struct {
 	homeDir    string
 	projectDir string
+	config     DiscoveryConfig
 }
 
 // NewClaudeCodeDiscoverer creates a Claude Code config discoverer.
@@ -28,6 +29,7 @@ func NewClaudeCodeDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
 	return &claudeCodeDiscoverer{
 		homeDir:    homeDir,
 		projectDir: config.ProjectDir,
+		config:     config,
 	}, nil
 }
 
@@ -35,19 +37,20 @@ func (d *claudeCodeDiscoverer) Name() string { return "Claude Code Config" }
 func (d *claudeCodeDiscoverer) Host() string { return claudeCodeHost }
 
 func (d *claudeCodeDiscoverer) EnumTools(handler AIToolHandlerFn) error {
-	// System-level: ~/.claude/settings.json
-	systemSettingsPath := filepath.Join(d.homeDir, ".claude", "settings.json")
-	if err := d.processSystemSettings(systemSettingsPath, handler); err != nil {
-		return err
+	if d.config.ScopeEnabled(AIToolScopeSystem) {
+		// System-level: ~/.claude/settings.json
+		systemSettingsPath := filepath.Join(d.homeDir, ".claude", "settings.json")
+		if err := d.processSystemSettings(systemSettingsPath, handler); err != nil {
+			return err
+		}
+
+		// System-level: walk ~/.claude/projects/*/settings.json
+		if err := d.walkProjectSettings(handler); err != nil {
+			return err
+		}
 	}
 
-	// System-level: walk ~/.claude/projects/*/settings.json
-	if err := d.walkProjectSettings(handler); err != nil {
-		return err
-	}
-
-	// Project-level configs
-	if d.projectDir != "" {
+	if d.config.ScopeEnabled(AIToolScopeProject) && d.projectDir != "" {
 		if err := d.processProjectConfigs(handler); err != nil {
 			return err
 		}

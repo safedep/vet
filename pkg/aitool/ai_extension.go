@@ -20,18 +20,25 @@ var ideDirNames = map[string]string{
 
 const ideExtensionsHost = "ide_extensions"
 
-type aiExtensionDiscoverer struct{}
+type aiExtensionDiscoverer struct {
+	config DiscoveryConfig
+}
 
 // NewAIExtensionDiscoverer creates a discoverer that bridges the VSIX extension reader
 // to find AI-specific IDE extensions.
-func NewAIExtensionDiscoverer(_ DiscoveryConfig) (AIToolReader, error) {
-	return &aiExtensionDiscoverer{}, nil
+func NewAIExtensionDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
+	return &aiExtensionDiscoverer{config: config}, nil
 }
 
 func (d *aiExtensionDiscoverer) Name() string { return "AI IDE Extensions" }
 func (d *aiExtensionDiscoverer) Host() string { return ideExtensionsHost }
 
 func (d *aiExtensionDiscoverer) EnumTools(handler AIToolHandlerFn) error {
+	// IDE extensions are system-scoped; skip when system scope is not enabled
+	if !d.config.ScopeEnabled(AIToolScopeSystem) {
+		return nil
+	}
+
 	vsixReader, err := readers.NewVSIXExtReaderFromDefaultDistributions()
 	if err != nil {
 		logger.Debugf("No IDE extensions found: %v", err)
