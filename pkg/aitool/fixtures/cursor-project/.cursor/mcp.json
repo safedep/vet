@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "project-tool": {
+      "command": "python",
+      "args": ["tool.py"],
+      "env": {
+        "TOOL_KEY": "key-value"
+      }
+    }
+  }
+}

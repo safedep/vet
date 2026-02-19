@@ -1,0 +1,127 @@
+package aitool
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
+func TestGenerateID_Deterministic(t *testing.T) {
+	id1 := GenerateID("claude_code", "mcp_server", "project", "safedep", "/path/.mcp.json")
+	id2 := GenerateID("claude_code", "mcp_server", "project", "safedep", "/path/.mcp.json")
+	assert.Equal(t, id1, id2, "same inputs should produce same ID")
+}
+
+func TestGenerateID_CaseInsensitive(t *testing.T) {
+	id1 := GenerateID("Claude_Code", "MCP_Server", "Project", "SafeDep", "/Path/.mcp.json")
+	id2 := GenerateID("claude_code", "mcp_server", "project", "safedep", "/path/.mcp.json")
+	assert.Equal(t, id1, id2, "IDs should be case-insensitive")
+}
+
+func TestGenerateID_DifferentInputs(t *testing.T) {
+	id1 := GenerateID("claude_code", "mcp_server", "project", "safedep", "/path/.mcp.json")
+	id2 := GenerateID("cursor", "mcp_server", "project", "safedep", "/path/.mcp.json")
+	assert.NotEqual(t, id1, id2, "different hosts should produce different IDs")
+}
+
+func TestGenerateSourceID_Deterministic(t *testing.T) {
+	id1 := GenerateSourceID("claude_code", "/path/.mcp.json")
+	id2 := GenerateSourceID("claude_code", "/path/.mcp.json")
+	assert.Equal(t, id1, id2)
+}
+
+func TestGenerateSourceID_SameHostDifferentPath(t *testing.T) {
+	id1 := GenerateSourceID("claude_code", "/path/.mcp.json")
+	id2 := GenerateSourceID("claude_code", "/other/.mcp.json")
+	assert.NotEqual(t, id1, id2)
+}
+
+func TestAITool_Metadata(t *testing.T) {
+	tool := &AITool{}
+
+	// GetMeta on nil map returns nil
+	assert.Nil(t, tool.GetMeta("key"))
+	assert.Equal(t, "", tool.GetMetaString("key"))
+
+	// SetMeta initializes the map
+	tool.SetMeta("test.key", "value")
+	assert.Equal(t, "value", tool.GetMeta("test.key"))
+	assert.Equal(t, "value", tool.GetMetaString("test.key"))
+
+	// Non-string metadata
+	tool.SetMeta("test.bool", true)
+	assert.Equal(t, true, tool.GetMeta("test.bool"))
+	assert.Equal(t, "", tool.GetMetaString("test.bool"))
+}
+
+func TestAIToolInventory_Add(t *testing.T) {
+	inv := NewAIToolInventory()
+	tool := &AITool{Name: "test", Type: AIToolTypeMCPServer, Host: "claude_code", Scope: AIToolScopeProject}
+	inv.Add(tool)
+	assert.Len(t, inv.Tools, 1)
+}
+
+func TestAIToolInventory_FilterByType(t *testing.T) {
+	inv := NewAIToolInventory()
+	inv.Add(&AITool{Name: "server1", Type: AIToolTypeMCPServer})
+	inv.Add(&AITool{Name: "agent1", Type: AIToolTypeCodingAgent})
+	inv.Add(&AITool{Name: "server2", Type: AIToolTypeMCPServer})
+
+	servers := inv.FilterByType(AIToolTypeMCPServer)
+	assert.Len(t, servers, 2)
+	agents := inv.FilterByType(AIToolTypeCodingAgent)
+	assert.Len(t, agents, 1)
+}
+
+func TestAIToolInventory_FilterByHost(t *testing.T) {
+	inv := NewAIToolInventory()
+	inv.Add(&AITool{Name: "tool1", Host: "claude_code"})
+	inv.Add(&AITool{Name: "tool2", Host: "cursor"})
+	inv.Add(&AITool{Name: "tool3", Host: "claude_code"})
+
+	result := inv.FilterByHost("claude_code")
+	assert.Len(t, result, 2)
+}
+
+func TestAIToolInventory_FilterByScope(t *testing.T) {
+	inv := NewAIToolInventory()
+	inv.Add(&AITool{Name: "tool1", Scope: AIToolScopeSystem})
+	inv.Add(&AITool{Name: "tool2", Scope: AIToolScopeProject})
+
+	result := inv.FilterByScope(AIToolScopeSystem)
+	assert.Len(t, result, 1)
+	assert.Equal(t, "tool1", result[0].Name)
+}
+
+func TestAIToolInventory_FilterBySourceID(t *testing.T) {
+	inv := NewAIToolInventory()
+	inv.Add(&AITool{Name: "tool1", SourceID: "abc"})
+	inv.Add(&AITool{Name: "tool2", SourceID: "def"})
+	inv.Add(&AITool{Name: "tool3", SourceID: "abc"})
+
+	result := inv.FilterBySourceID("abc")
+	assert.Len(t, result, 2)
+}
+
+func TestAIToolInventory_GroupByHost(t *testing.T) {
+	inv := NewAIToolInventory()
+	inv.Add(&AITool{Name: "tool1", Host: "claude_code"})
+	inv.Add(&AITool{Name: "tool2", Host: "cursor"})
+	inv.Add(&AITool{Name: "tool3", Host: "claude_code"})
+
+	groups := inv.GroupByHost()
+	assert.Len(t, groups, 2)
+	assert.Len(t, groups["claude_code"], 2)
+	assert.Len(t, groups["cursor"], 1)
+}
+
+func TestAIToolInventory_GroupBySourceID(t *testing.T) {
+	inv := NewAIToolInventory()
+	inv.Add(&AITool{Name: "tool1", SourceID: "src1"})
+	inv.Add(&AITool{Name: "tool2", SourceID: "src2"})
+	inv.Add(&AITool{Name: "tool3", SourceID: "src1"})
+
+	groups := inv.GroupBySourceID()
+	assert.Len(t, groups, 2)
+	assert.Len(t, groups["src1"], 2)
+}
