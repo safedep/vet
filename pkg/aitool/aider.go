@@ -2,6 +2,8 @@ package aitool
 
 import "regexp"
 
+var aiderVersionRe = regexp.MustCompile(`aider\s+v?(\d+\.\d+\.\d+)`)
+
 type aiderVerifier struct{}
 
 func (d *aiderVerifier) BinaryNames() []string { return []string{"aider"} }
@@ -10,8 +12,7 @@ func (d *aiderVerifier) DisplayName() string   { return "Aider" }
 func (d *aiderVerifier) App() string           { return "aider" }
 
 func (d *aiderVerifier) VerifyOutput(stdout, stderr string) (string, bool) {
-	re := regexp.MustCompile(`aider\s+v?(\d+\.\d+\.\d+)`)
-	if m := re.FindStringSubmatch(stdout); len(m) > 1 {
+	if m := aiderVersionRe.FindStringSubmatch(stdout); len(m) > 1 {
 		return m[1], true
 	}
 	return "", false

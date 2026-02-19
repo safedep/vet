@@ -4,10 +4,15 @@ import (
 	"bytes"
 	"context"
 	"os/exec"
+	"regexp"
 	"time"
 )
 
 const cliProbeTimeout = 5 * time.Second
+
+// semverLineRe matches a standalone semver string on a line. Shared by
+// CLI verifiers whose --version output has the version on the first line.
+var semverLineRe = regexp.MustCompile(`^(\d+\.\d+\.\d+)$`)
 
 // CLIToolVerifier is implemented by each AI CLI tool plugin.
 type CLIToolVerifier interface {

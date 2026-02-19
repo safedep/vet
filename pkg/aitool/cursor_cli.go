@@ -1,9 +1,6 @@
 package aitool
 
-import (
-	"regexp"
-	"strings"
-)
+import "strings"
 
 type cursorCLIVerifier struct{}
 
@@ -17,8 +14,7 @@ func (d *cursorCLIVerifier) VerifyOutput(stdout, stderr string) (string, bool) {
 	// Version is on the first line.
 	combined := stdout + stderr
 	firstLine := strings.SplitN(combined, "\n", 2)[0]
-	re := regexp.MustCompile(`^(\d+\.\d+\.\d+)$`)
-	if m := re.FindStringSubmatch(strings.TrimSpace(firstLine)); len(m) > 1 {
+	if m := semverLineRe.FindStringSubmatch(strings.TrimSpace(firstLine)); len(m) > 1 {
 		return m[1], true
 	}
 	return "", false

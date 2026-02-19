@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+var amazonQVersionRe = regexp.MustCompile(`(\d+\.\d+\.\d+)`)
+
 type amazonQVerifier struct{}
 
 func (d *amazonQVerifier) BinaryNames() []string { return []string{"q", "amazon-q"} }
@@ -18,8 +20,7 @@ func (d *amazonQVerifier) VerifyOutput(stdout, stderr string) (string, bool) {
 		!strings.Contains(strings.ToLower(combined), "aws") {
 		return "", false
 	}
-	re := regexp.MustCompile(`(\d+\.\d+\.\d+)`)
-	if m := re.FindStringSubmatch(combined); len(m) > 1 {
+	if m := amazonQVersionRe.FindStringSubmatch(combined); len(m) > 1 {
 		return m[1], true
 	}
 	return "", true
