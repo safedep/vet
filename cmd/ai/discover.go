@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
@@ -148,6 +150,11 @@ func toolDetail(tool *aitool.AITool) string {
 			detail += " (" + ide + ")"
 		}
 		return detail
+	case aitool.AIToolTypeProjectConfig:
+		if tool.Agent != nil && len(tool.Agent.InstructionFiles) > 0 {
+			return strings.Join(fileBaseNames(tool.Agent.InstructionFiles), ", ")
+		}
+		return tool.ConfigPath
 	default:
 		return tool.ConfigPath
 	}
@@ -171,4 +178,12 @@ func redirectLogOutput(cmd *cobra.Command) {
 	} else {
 		logger.MigrateTo(io.Discard)
 	}
+}
+
+func fileBaseNames(paths []string) []string {
+	names := make([]string, len(paths))
+	for i, p := range paths {
+		names[i] = filepath.Base(p)
+	}
+	return names
 }

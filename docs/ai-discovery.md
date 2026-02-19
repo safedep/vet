@@ -1,6 +1,6 @@
 # AI Tool Discovery
 
-The `vet ai discover` command scans the local system and project directory to build an inventory of AI tool **usage signals**, including coding agents, MCP servers, CLI tools, and IDE extensions that are installed or configured. It is useful for auditing what AI tooling is active across a development environment.
+The `vet ai discover` command scans the local system and project directory to build an inventory of AI tool **usage signals**, including coding agents, MCP servers, CLI tools, IDE extensions, and project configuration files. It is useful for auditing what AI tooling is active across a development environment.
 
 ## What it discovers
 
@@ -11,27 +11,30 @@ For example, Claude Code might appear as:
 | TYPE | NAME | SCOPE | Why |
 |------|------|-------|-----|
 | coding_agent | Claude Code | system | `~/.claude/settings.json` exists |
-| coding_agent | Claude Code | project | Project has a `CLAUDE.md` |
+| project_config | Claude Code | project | Project has a `CLAUDE.md` |
 | mcp_server | my-server | system | Configured in `~/.claude/settings.json` |
 | mcp_server | my-server | project | Also configured in `.mcp.json` |
 
 These are **not duplicates**. They represent separate configuration surfaces that may carry different settings, permissions, or MCP server wiring.
 
+Note that `coding_agent` is only emitted when the tool is actually installed on the system (detected via system-level config or CLI binary). Project-level instruction and rule files such as `CLAUDE.md` or `.cursorrules` are reported as `project_config` instead, because these files are typically checked into version control and do not indicate that the current system has the tool.
+
 ## Key concepts
 
 **Type** classifies the kind of AI tool usage detected:
 
-- `coding_agent` is an AI coding assistant such as Claude Code or Cursor.
-- `mcp_server` is a Model Context Protocol server configured for a host.
-- `cli_tool` is a standalone AI CLI binary found on `$PATH` such as Aider, Amazon Q, or GitHub Copilot CLI.
-- `ai_extension` is an AI-related IDE extension such as Copilot, Cody, or Cline.
+- `coding_agent` is an AI coding assistant installed on the system, detected via system-level configuration directories.
+- `mcp_server` is a Model Context Protocol server configured for a host application.
+- `cli_tool` is a standalone AI CLI binary found on `$PATH`. Each candidate is executed with a version flag and the output is verified against known patterns.
+- `ai_extension` is an AI-related IDE extension detected from installed extension manifests.
+- `project_config` is an AI tool configuration or instruction file found in a project repository. It indicates the project is set up for a particular AI tool but does not prove the current developer uses it.
 
 **Scope** indicates where the configuration lives:
 
 - `system` refers to user-global config (e.g. `~/.claude/settings.json`, `~/.cursor/mcp.json`).
 - `project` refers to repo-scoped config (e.g. `.mcp.json`, `.cursorrules`, `CLAUDE.md`).
 
-**Host** is the application that owns the configuration. Examples include `claude_code`, `cursor`, `aider`, and `ide_extensions`. Tools from the same host share an integration surface.
+**Host** is the application that owns the configuration (e.g. `claude_code`, `cursor`). Tools from the same host share an integration surface.
 
 **MCP (Model Context Protocol)** is a protocol that lets coding agents call external tool servers. MCP servers can use `stdio`, `sse`, or `streamable_http` transports. The discovery reports the server name, transport, command or URL, and which environment variable names are referenced. Values are never captured.
 
@@ -56,13 +59,11 @@ vet ai discover --report-json inventory.json --silent
 
 ## What is scanned
 
-**Claude Code** reads `~/.claude/settings.json`, `~/.claude/projects/*/settings.json`, `{project}/.mcp.json`, `{project}/.claude/settings.json`, and `CLAUDE.md`.
+**Host configuration** is read from well-known system and project-level config paths for each supported host application. System-level configs (e.g. `~/.claude/settings.json`, `~/.cursor/mcp.json`) indicate the tool is installed. Project-level configs (e.g. `.mcp.json`, `.cursorrules`) indicate the project is set up for a tool.
 
-**Cursor** reads `~/.cursor/mcp.json`, `{project}/.cursor/mcp.json`, `.cursorrules`, and `.cursor/rules/*`.
+**CLI binaries** are discovered by searching `$PATH` for known binary names. Each candidate is executed with a version flag and the output is verified against known patterns to confirm identity and extract the version number.
 
-**CLI tools** are detected by looking for `claude`, `aider`, `gh` (with copilot extension), and `q` or `amazon-q` on `$PATH`.
-
-**IDE extensions** are detected by reading extension manifests from VS Code, VSCodium, Cursor, and Windsurf and matching against known AI extension IDs such as GitHub Copilot, Cody, Cline, Continue, and Tabnine.
+**IDE extensions** are discovered by reading extension manifests from supported IDE distributions and matching against a curated list of known AI extension identifiers.
 
 ## Security
 

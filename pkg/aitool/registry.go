@@ -66,6 +66,7 @@ func DefaultRegistry() *Registry {
 
 	// CLI tool discoverers
 	r.Register("claude_code_cli", NewClaudeCLIDiscoverer)
+	r.Register("cursor_cli", NewCursorCLIDiscoverer)
 	r.Register("aider", NewAiderDiscoverer)
 	r.Register("gh_copilot", NewGhCopilotDiscoverer)
 	r.Register("amazon_q", NewAmazonQDiscoverer)

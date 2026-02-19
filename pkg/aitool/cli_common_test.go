@@ -18,7 +18,26 @@ func TestCLIVerifiers_VerifyOutput(t *testing.T) {
 		assert.True(t, ok)
 		assert.Equal(t, "0.9.1", version)
 
+		version, ok = v.VerifyOutput("2.1.47 (Claude Code)", "")
+		assert.True(t, ok)
+		assert.Equal(t, "2.1.47", version)
+
 		_, ok = v.VerifyOutput("some other tool", "")
+		assert.False(t, ok)
+	})
+
+	t.Run("CursorCLI", func(t *testing.T) {
+		v := &cursorCLIVerifier{}
+
+		version, ok := v.VerifyOutput("2.4.37\n7b9c34466f5c119e93c3e654bb80fe9306b6cc70\narm64\n", "")
+		assert.True(t, ok)
+		assert.Equal(t, "2.4.37", version)
+
+		version, ok = v.VerifyOutput("1.0.0\n", "")
+		assert.True(t, ok)
+		assert.Equal(t, "1.0.0", version)
+
+		_, ok = v.VerifyOutput("not a version", "")
 		assert.False(t, ok)
 	})
 

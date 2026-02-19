@@ -11,10 +11,19 @@ func (d *claudeCLIVerifier) Host() string          { return claudeCodeHost }
 
 func (d *claudeCLIVerifier) VerifyOutput(stdout, stderr string) (string, bool) {
 	combined := stdout + stderr
-	re := regexp.MustCompile(`(?i)claude[^\d]*v?(\d+\.\d+\.\d+)`)
-	if m := re.FindStringSubmatch(combined); len(m) > 1 {
+
+	// Match "Claude Code v1.2.3" or "claude v1.2.3"
+	re1 := regexp.MustCompile(`(?i)claude[^\d]*v?(\d+\.\d+\.\d+)`)
+	if m := re1.FindStringSubmatch(combined); len(m) > 1 {
 		return m[1], true
 	}
+
+	// Match "1.2.3 (Claude Code)" format
+	re2 := regexp.MustCompile(`(\d+\.\d+\.\d+)\s*\(.*(?i)claude`)
+	if m := re2.FindStringSubmatch(combined); len(m) > 1 {
+		return m[1], true
+	}
+
 	return "", false
 }
 

@@ -29,3 +29,4 @@ dist/
 
 # Auto-generated context files
 CLAUDE.md
+.devcontainer
