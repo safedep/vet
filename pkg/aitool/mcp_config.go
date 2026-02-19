@@ -114,8 +114,8 @@ func emitMCPServers(cfg *mcpAppConfig, configPath string, scope AIToolScope, app
 			tool.Enabled = &enabled
 		}
 
-		tool.ID = GenerateID(tool.App, string(tool.Type), string(tool.Scope), tool.Name, tool.ConfigPath)
-		tool.SourceID = GenerateSourceID(tool.App, tool.ConfigPath)
+		tool.ID = generateID(tool.App, string(tool.Type), string(tool.Scope), tool.Name, tool.ConfigPath)
+		tool.SourceID = generateSourceID(tool.App, tool.ConfigPath)
 
 		if err := handler(tool); err != nil {
 			return err

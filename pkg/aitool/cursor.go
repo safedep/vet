@@ -56,8 +56,8 @@ func (d *cursorDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn)
 				ConfigPath: cursorDir,
 				Agent:      &AgentConfig{},
 			}
-			agent.ID = GenerateID(agent.App, string(agent.Type), string(agent.Scope), agent.Name, agent.ConfigPath)
-			agent.SourceID = GenerateSourceID(agent.App, agent.ConfigPath)
+			agent.ID = generateID(agent.App, string(agent.Type), string(agent.Scope), agent.Name, agent.ConfigPath)
+			agent.SourceID = generateSourceID(agent.App, agent.ConfigPath)
 
 			if err := handler(agent); err != nil {
 				return err
@@ -114,8 +114,8 @@ func (d *cursorDiscoverer) processProjectConfigs(handler AIToolHandlerFn) error 
 				InstructionFiles: instructionFiles,
 			},
 		}
-		tool.ID = GenerateID(tool.App, string(tool.Type), string(tool.Scope), tool.Name, tool.ConfigPath)
-		tool.SourceID = GenerateSourceID(tool.App, tool.ConfigPath)
+		tool.ID = generateID(tool.App, string(tool.Type), string(tool.Scope), tool.Name, tool.ConfigPath)
+		tool.SourceID = generateSourceID(tool.App, tool.ConfigPath)
 
 		if err := handler(tool); err != nil {
 			return err

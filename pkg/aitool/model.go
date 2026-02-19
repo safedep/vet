@@ -96,8 +96,8 @@ func (t *AITool) GetMetaString(key string) string {
 	return v
 }
 
-// GenerateID produces a deterministic ID for an AITool from its identity fields.
-func GenerateID(app, toolType, scope, name, configPath string) string {
+// generateID produces a deterministic ID for an AITool from its identity fields.
+func generateID(app, toolType, scope, name, configPath string) string {
 	data := fmt.Sprintf("%s/%s/%s/%s/%s",
 		strings.ToLower(app),
 		strings.ToLower(toolType),
@@ -109,9 +109,9 @@ func GenerateID(app, toolType, scope, name, configPath string) string {
 	return strconv.FormatUint(h.Sum64(), 16)
 }
 
-// GenerateSourceID produces a deterministic source grouping ID.
+// generateSourceID produces a deterministic source grouping ID.
 // Tools from the same app + config file share a SourceID.
-func GenerateSourceID(app, configPath string) string {
+func generateSourceID(app, configPath string) string {
 	data := fmt.Sprintf("%s/%s",
 		strings.ToLower(app),
 		strings.ToLower(configPath))

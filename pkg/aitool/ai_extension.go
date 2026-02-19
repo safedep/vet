@@ -60,11 +60,13 @@ func (d *aiExtensionDiscoverer) EnumTools(_ context.Context, handler AIToolHandl
 				App:        ideExtensionsApp,
 				ConfigPath: manifest.GetPath(),
 			}
-			tool.ID = GenerateID(tool.App, string(tool.Type), string(tool.Scope), pkg.Name, tool.ConfigPath)
-			tool.SourceID = GenerateSourceID(tool.App, tool.ConfigPath)
+
+			tool.ID = generateID(tool.App, string(tool.Type), string(tool.Scope), pkg.Name, tool.ConfigPath)
+			tool.SourceID = generateSourceID(tool.App, tool.ConfigPath)
 			tool.SetMeta("extension.id", pkg.Name)
 			tool.SetMeta("extension.version", pkg.Version)
 			tool.SetMeta("extension.ecosystem", manifest.Ecosystem)
+
 			if ide := ideNameFromPath(manifest.GetPath()); ide != "" {
 				tool.SetMeta("extension.ide", ide)
 			}
@@ -80,8 +82,10 @@ func ideNameFromPath(configPath string) string {
 	dir := filepath.Dir(configPath) // .../extensions
 	dir = filepath.Dir(dir)         // .../.vscode
 	base := filepath.Base(dir)
+
 	if name, ok := ideDirNames[base]; ok {
 		return name
 	}
+
 	return ""
 }

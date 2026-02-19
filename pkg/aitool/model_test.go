@@ -6,33 +6,33 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGenerateID_Deterministic(t *testing.T) {
-	id1 := GenerateID("claude_code", "mcp_server", "project", "safedep", "/path/.mcp.json")
-	id2 := GenerateID("claude_code", "mcp_server", "project", "safedep", "/path/.mcp.json")
+func Test_generateID_Deterministic(t *testing.T) {
+	id1 := generateID("claude_code", "mcp_server", "project", "safedep", "/path/.mcp.json")
+	id2 := generateID("claude_code", "mcp_server", "project", "safedep", "/path/.mcp.json")
 	assert.Equal(t, id1, id2, "same inputs should produce same ID")
 }
 
-func TestGenerateID_CaseInsensitive(t *testing.T) {
-	id1 := GenerateID("Claude_Code", "MCP_Server", "Project", "SafeDep", "/Path/.mcp.json")
-	id2 := GenerateID("claude_code", "mcp_server", "project", "safedep", "/path/.mcp.json")
+func Test_generateID_CaseInsensitive(t *testing.T) {
+	id1 := generateID("Claude_Code", "MCP_Server", "Project", "SafeDep", "/Path/.mcp.json")
+	id2 := generateID("claude_code", "mcp_server", "project", "safedep", "/path/.mcp.json")
 	assert.Equal(t, id1, id2, "IDs should be case-insensitive")
 }
 
-func TestGenerateID_DifferentInputs(t *testing.T) {
-	id1 := GenerateID("claude_code", "mcp_server", "project", "safedep", "/path/.mcp.json")
-	id2 := GenerateID("cursor", "mcp_server", "project", "safedep", "/path/.mcp.json")
+func Test_generateID_DifferentInputs(t *testing.T) {
+	id1 := generateID("claude_code", "mcp_server", "project", "safedep", "/path/.mcp.json")
+	id2 := generateID("cursor", "mcp_server", "project", "safedep", "/path/.mcp.json")
 	assert.NotEqual(t, id1, id2, "different apps should produce different IDs")
 }
 
-func TestGenerateSourceID_Deterministic(t *testing.T) {
-	id1 := GenerateSourceID("claude_code", "/path/.mcp.json")
-	id2 := GenerateSourceID("claude_code", "/path/.mcp.json")
+func Test_generateSourceID_Deterministic(t *testing.T) {
+	id1 := generateSourceID("claude_code", "/path/.mcp.json")
+	id2 := generateSourceID("claude_code", "/path/.mcp.json")
 	assert.Equal(t, id1, id2)
 }
 
-func TestGenerateSourceID_SameAppDifferentPath(t *testing.T) {
-	id1 := GenerateSourceID("claude_code", "/path/.mcp.json")
-	id2 := GenerateSourceID("claude_code", "/other/.mcp.json")
+func Test_generateSourceID_SameAppDifferentPath(t *testing.T) {
+	id1 := generateSourceID("claude_code", "/path/.mcp.json")
+	id2 := generateSourceID("claude_code", "/other/.mcp.json")
 	assert.NotEqual(t, id1, id2)
 }
 

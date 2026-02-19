@@ -63,8 +63,8 @@ func probeAndVerify(ctx context.Context, verifier CLIToolVerifier, handler AIToo
 			App:        verifier.App(),
 			ConfigPath: binPath,
 		}
-		tool.ID = GenerateID(tool.App, string(tool.Type), string(tool.Scope), tool.Name, tool.ConfigPath)
-		tool.SourceID = GenerateSourceID(tool.App, tool.ConfigPath)
+		tool.ID = generateID(tool.App, string(tool.Type), string(tool.Scope), tool.Name, tool.ConfigPath)
+		tool.SourceID = generateSourceID(tool.App, tool.ConfigPath)
 
 		if version != "" {
 			tool.SetMeta("binary.version", version)

@@ -54,8 +54,8 @@ func (d *windsurfDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerF
 			ConfigPath: windsurfDir,
 			Agent:      &AgentConfig{},
 		}
-		agent.ID = GenerateID(agent.App, string(agent.Type), string(agent.Scope), agent.Name, agent.ConfigPath)
-		agent.SourceID = GenerateSourceID(agent.App, agent.ConfigPath)
+		agent.ID = generateID(agent.App, string(agent.Type), string(agent.Scope), agent.Name, agent.ConfigPath)
+		agent.SourceID = generateSourceID(agent.App, agent.ConfigPath)
 
 		if err := handler(agent); err != nil {
 			return err
