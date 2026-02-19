@@ -115,7 +115,7 @@ func (d *claudeCodeDiscoverer) walkProjectSettings(handler AIToolHandlerFn) erro
 			continue
 		}
 
-		if err := emitMCPServers(cfg, settingsPath, AIToolScopeProject, claudeCodeApp, handler); err != nil {
+		if err := emitMCPServers(cfg, settingsPath, AIToolScopeSystem, claudeCodeApp, handler); err != nil {
 			return err
 		}
 	}
