@@ -3,10 +3,15 @@ package aitool
 import (
 	"bytes"
 	"context"
+	"errors"
 	"os/exec"
 	"regexp"
 	"time"
+
+	"github.com/safedep/vet/pkg/common/logger"
 )
+
+var errNotVerified = errors.New("binary output did not match expected pattern")
 
 const cliProbeTimeout = 5 * time.Second
 
@@ -37,50 +42,63 @@ type CLIToolVerifier interface {
 // lookup → execute → verify → emit pipeline.
 func probeAndVerify(ctx context.Context, verifier CLIToolVerifier, handler AIToolHandlerFn) error {
 	for _, name := range verifier.BinaryNames() {
-		binPath, err := exec.LookPath(name)
+		tool, err := probeBinary(ctx, name, verifier)
 		if err != nil {
+			logger.Errorf("Failed to probe binary: %s err: %v", name, err)
 			continue
 		}
-
-		probeCtx, cancel := context.WithTimeout(ctx, cliProbeTimeout)
-		defer cancel()
-
-		var stdout, stderr bytes.Buffer
-
-		cmd := exec.CommandContext(probeCtx, binPath, verifier.VerifyArgs()...)
-		cmd.Stdout = &stdout
-		cmd.Stderr = &stderr
-
-		err = cmd.Run()
-		if err != nil {
-			continue
-		}
-
-		version, verified := verifier.VerifyOutput(stdout.String(), stderr.String())
-		if !verified {
-			continue
-		}
-
-		tool := &AITool{
-			Name:       verifier.DisplayName(),
-			Type:       AIToolTypeCLITool,
-			Scope:      AIToolScopeSystem,
-			App:        verifier.App(),
-			ConfigPath: binPath,
-		}
-		tool.ID = generateID(tool.App, string(tool.Type), string(tool.Scope), tool.Name, tool.ConfigPath)
-		tool.SourceID = generateSourceID(tool.App, tool.ConfigPath)
-
-		if version != "" {
-			tool.SetMeta("binary.version", version)
-		}
-		tool.SetMeta("binary.path", binPath)
-		tool.SetMeta("binary.verified", true)
 
 		return handler(tool)
 	}
 
 	return nil
+}
+
+// probeBinary probes a single binary candidate. Returns the discovered tool
+// or an error if the binary was not found, failed to run, or did not verify.
+func probeBinary(ctx context.Context, name string, verifier CLIToolVerifier) (*AITool, error) {
+	binPath, err := exec.LookPath(name)
+	if err != nil {
+		return nil, err
+	}
+
+	probeCtx, cancel := context.WithTimeout(ctx, cliProbeTimeout)
+	defer cancel()
+
+	var stdout, stderr bytes.Buffer
+
+	cmd := exec.CommandContext(probeCtx, binPath, verifier.VerifyArgs()...)
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		return nil, err
+	}
+
+	version, verified := verifier.VerifyOutput(stdout.String(), stderr.String())
+	if !verified {
+		return nil, errNotVerified
+	}
+
+	tool := &AITool{
+		Name:       verifier.DisplayName(),
+		Type:       AIToolTypeCLITool,
+		Scope:      AIToolScopeSystem,
+		App:        verifier.App(),
+		ConfigPath: binPath,
+	}
+
+	tool.ID = generateID(tool.App, string(tool.Type), string(tool.Scope), tool.Name, tool.ConfigPath)
+	tool.SourceID = generateSourceID(tool.App, tool.ConfigPath)
+
+	if version != "" {
+		tool.SetMeta("binary.version", version)
+	}
+
+	tool.SetMeta("binary.path", binPath)
+	tool.SetMeta("binary.verified", true)
+
+	return tool, nil
 }
 
 // cliToolDiscoverer wraps a CLIToolVerifier as an AIToolReader.
