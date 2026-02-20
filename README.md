@@ -43,10 +43,11 @@
 
 Traditional SCA tools drown you in CVE noise. **vet** takes a different approach:
 
-- **Catch malware before it ships** — Zero-day detection through static and dynamic behavioral analysis, not just advisory lookups
-- **Cut through vulnerability noise** — Analyzes your actual code usage to surface only the risks that matter
-- **Secure AI-generated code** — [MCP server](./docs/mcp.md) integration protects against [slopsquatting](https://en.wikipedia.org/wiki/Slopsquatting) in tools like Cursor, VS Code, and Claude Code
-- **Enforce policy as code** — Express security, license, and quality requirements as [CEL](https://cel.dev/) expressions that gate your CI/CD pipeline
+- **Shadow AI discovery** — Discover AI tool usage signals across various tools and configurations
+- **Catch malware before it ships** — Zero-day detection through static and dynamic behavioral analysis (requires SafeDep Cloud access)
+- **Cut through vulnerability noise** — Analyzes actual code usage to surface only the risks that matter
+- **Enforce policy as code** — Express security, license, and quality requirements as [CEL](https://cel.dev/) expressions
+- **CI/CD integration** — Zero-config security guardrails in CI/CD
 
 Free for open source. Hosted SaaS available at [SafeDep](https://safedep.io).
 
@@ -278,8 +279,9 @@ vet version
 
 **Learn more in our comprehensive documentation:**
 
-- **[MCP Server](./docs/mcp.md)** - Run vet as an MCP server for AI-assisted code analysis
+- **[AI Usage Discovery](./docs/ai-discovery.md)** - Discover AI tool usage signals across various tools and configurations
 - **[AI Agent Mode](./docs/agent.md)** - Run vet as an AI agent
+- **[MCP Server](./docs/mcp.md)** - Run vet as an MCP server for AI-assisted code analysis
 - **[Reporting](./docs/reporting.md)** - SARIF, JSON, CSV, HTML, Markdown formats
 - **[SBOM Support](https://docs.safedep.io/vet/guides/cyclonedx-sbom)** - CycloneDX, SPDX import/export
 - **[Query Mode](https://docs.safedep.io/cloud/quickstart#query-your-data)** - Scan once, analyze multiple times

@@ -1,0 +1,24 @@
+package aitool
+
+import "regexp"
+
+var aiderVersionRe = regexp.MustCompile(`aider\s+v?(\d+\.\d+\.\d+)`)
+
+type aiderVerifier struct{}
+
+func (d *aiderVerifier) BinaryNames() []string { return []string{"aider"} }
+func (d *aiderVerifier) VerifyArgs() []string  { return []string{"--version"} }
+func (d *aiderVerifier) DisplayName() string   { return "Aider" }
+func (d *aiderVerifier) App() string           { return "aider" }
+
+func (d *aiderVerifier) VerifyOutput(stdout, stderr string) (string, bool) {
+	if m := aiderVersionRe.FindStringSubmatch(stdout); len(m) > 1 {
+		return m[1], true
+	}
+	return "", false
+}
+
+// NewAiderDiscoverer creates a discoverer for the Aider CLI binary.
+func NewAiderDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
+	return &cliToolDiscoverer{verifier: &aiderVerifier{}, config: config}, nil
+}

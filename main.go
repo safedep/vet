@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/cmd/agent"
+	"github.com/safedep/vet/cmd/ai"
 	"github.com/safedep/vet/cmd/cloud"
 	"github.com/safedep/vet/cmd/code"
 	"github.com/safedep/vet/cmd/doc"
@@ -105,6 +106,7 @@ func main() {
 	cmd.AddCommand(code.NewCodeCommand())
 	cmd.AddCommand(agent.NewAgentCommand())
 	cmd.AddCommand(doc.NewDocCommand())
+	cmd.AddCommand(ai.NewAICommand())
 
 	if checkIfPackageInspectCommandEnabled() {
 		cmd.AddCommand(inspect.NewPackageInspectCommand())

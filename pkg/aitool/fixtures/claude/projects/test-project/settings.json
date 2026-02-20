@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "project-server": {
+      "command": "node",
+      "args": ["server.js"],
+      "env": {
+        "DB_URL": "postgres://localhost/test"
+      }
+    }
+  }
+}
