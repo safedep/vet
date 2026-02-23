@@ -22,6 +22,7 @@ import (
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
 	"github.com/safedep/vet/pkg/readers"
+	xbomsig "github.com/safedep/vet/pkg/xbom/signatures"
 )
 
 // CycloneDXReporterConfig contains configuration parameters for the CycloneDX reporter
@@ -499,19 +500,8 @@ func (r *cycloneDXReporter) recordApplicationSignatureMatches() {
 }
 
 func getKnownTaggedProperties(tags []string) []cdx.Property {
-	knownTags := []string{
-		"ai",
-		"cryptography",
-		"encryption",
-		"hash",
-		"ml",
-		"iaas",
-		"paas",
-		"saas",
-	}
-
 	properties := []cdx.Property{}
-	for _, tag := range knownTags {
+	for _, tag := range xbomsig.KnownTags() {
 		if slices.Contains(tags, tag) {
 			properties = append(properties, cdx.Property{
 				Name:  tag,

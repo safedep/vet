@@ -110,6 +110,21 @@ func loadSignatureFile(file string) ([]*callgraphv1.Signature, error) {
 	return parsedSignatures, nil
 }
 
+// KnownTags returns the set of signature tags that have well-defined semantics
+// and are suitable for use as CycloneDX component properties.
+func KnownTags() []string {
+	return []string{
+		"ai",
+		"cryptography",
+		"encryption",
+		"hash",
+		"ml",
+		"iaas",
+		"paas",
+		"saas",
+	}
+}
+
 func checkDuplicateSignatures(signatures []*callgraphv1.Signature) error {
 	signatureMap := make(map[string]bool)
 	for _, signature := range signatures {
