@@ -425,6 +425,9 @@ func (r *cycloneDXReporter) SetApplicationSignatureMatches(matches []*ent.CodeSi
 }
 
 func (r *cycloneDXReporter) recordApplicationSignatureMatches() {
+	r.Lock()
+	defer r.Unlock()
+
 	if len(r.appSignatureMatches) == 0 {
 		return
 	}

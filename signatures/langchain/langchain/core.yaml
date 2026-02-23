@@ -82,7 +82,6 @@ signatures:
           - type: call
             value: "langchain_core.example_selectors.*"
 
-
   - id: langchain_core.exceptions
     description: "Custom exceptions for LangChain"
     vendor: "Langchain"
@@ -321,8 +320,8 @@ signatures:
     description: "Tools are classes that an Agent uses to interact with the world."
     vendor: "Langchain"
     product: "Langchain Core Library"
-    service: "Sys Info"
-    tags: [ai, sys-info, langchain, langchain-core]
+    service: "Tools"
+    tags: [ai, tools, langchain, langchain-core]
     languages:
       python:
         match: any

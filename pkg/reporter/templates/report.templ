@@ -17,6 +17,7 @@ type ReportData struct {
 	PackageCount      int
 	VulnCount         int
 	Ecosystems        []string
+	SignatureMatches  []SignatureMatchEntry
 }
 
 type Manifest struct {
@@ -68,6 +69,20 @@ type PolicyViolation struct {
 	PackageVersion string
 }
 
+type SignatureMatchEntry struct {
+	SignatureID  string
+	Vendor       string
+	Product      string
+	Service      string
+	Description  string
+	Tags         []string
+	FilePath     string
+	Language     string
+	Line         uint
+	MatchedCall  string
+	PackageName  string // non-empty = package-level, empty = app-level
+}
+
 // Helper functions for badge classes
 func getSeverityBadgeClass(vulnCount int) string {
 	if vulnCount >= 5 {
@@ -103,6 +118,21 @@ func getMalwareBadgeClass(malType string) string {
         return "badge-suspicious"
     default:
         return "badge-info"
+    }
+}
+
+func getTagBadgeClass(tag string) string {
+    switch strings.ToLower(tag) {
+    case "ai", "llm", "ml":
+        return "badge-high"
+    case "cryptography", "crypto":
+        return "badge-critical"
+    case "network", "http", "grpc":
+        return "badge-medium"
+    case "storage", "database", "db":
+        return "badge-info"
+    default:
+        return "badge-low"
     }
 }
 
@@ -528,7 +558,7 @@ templ VetScanSummary(data ReportData) {
 			<div class="summary-box animate__animated animate__fadeInUp">
 				<h2 class="mb-4"><i class="bi bi-clipboard-data me-2"></i>Summary</h2>
 				<div class="row">
-					<div class="col-md-3 mb-3">
+					<div class="col mb-3">
 						<div class="card stats-card h-100">
 							<div class="icon" style="color: var(--stats-primary)">
 								<i class="bi bi-file-text"></i>
@@ -537,7 +567,7 @@ templ VetScanSummary(data ReportData) {
 							<div class="label">Manifest<span class="d-none d-sm-inline">s</span></div>
 						</div>
 					</div>
-					<div class="col-md-3 mb-3">
+					<div class="col mb-3">
 						<div class="card stats-card h-100">
 							<div class="icon" style="color: var(--stats-info)">
 								<i class="bi bi-box"></i>
@@ -546,7 +576,7 @@ templ VetScanSummary(data ReportData) {
 							<div class="label">Package<span class="d-none d-sm-inline">s</span></div>
 						</div>
 					</div>
-					<div class="col-md-3 mb-3">
+					<div class="col mb-3">
 						<div class="card stats-card h-100">
 							<div class="icon" style="color: var(--stats-danger)">
 								<i class="bi bi-exclamation-triangle"></i>
@@ -555,13 +585,22 @@ templ VetScanSummary(data ReportData) {
 							<div class="label">Vuln<span class="d-none d-sm-inline">erabilities</span></div>
 						</div>
 					</div>
-					<div class="col-md-3 mb-3">
+					<div class="col mb-3">
 						<div class="card stats-card h-100">
 							<div class="icon" style="color: var(--stats-warning)">
 								<i class="bi bi-bug"></i>
 							</div>
 							<div class="number">{ fmt.Sprintf("%d", len(data.MalwareDetections)) }</div>
-							<div class="label">Malware<span class="d-none d-sm-inline">&nbsp; Detections</span></div>
+							<div class="label">Malware<span class="d-none d-sm-inline">&nbsp;Detections</span></div>
+						</div>
+					</div>
+					<div class="col mb-3">
+						<div class="card stats-card h-100">
+							<div class="icon" style="color: var(--stats-info)">
+								<i class="bi bi-cpu"></i>
+							</div>
+							<div class="number">{ fmt.Sprintf("%d", len(data.SignatureMatches)) }</div>
+							<div class="label">xBOM<span class="d-none d-sm-inline"> Findings</span></div>
 						</div>
 					</div>
 				</div>
@@ -602,7 +641,11 @@ templ VetScanTabs(data ReportData) {
 				<i class="bi bi-graph-up"></i>Popularity
 			</button>
 		</li>
-
+		<li class="nav-item" role="presentation">
+			<button class="nav-link" id="xbom-tab" data-bs-toggle="tab" data-bs-target="#xbom" type="button" role="tab" aria-controls="xbom" aria-selected="false">
+				<i class="bi bi-cpu"></i>xBOM
+			</button>
+		</li>
 	</ul>
 	<div class="tab-content">
 		@ManifestsTab(data.Manifests)
@@ -611,6 +654,7 @@ templ VetScanTabs(data ReportData) {
 		@MalwareTab(data.MalwareDetections)
 		@PopularityTab(data.PackagePopularity)
 		@PolicyViolationsTab(data.PolicyViolations)
+		@XBOMTab(data.SignatureMatches)
 	</div>
 }
 
@@ -850,4 +894,60 @@ templ PolicyViolationsTab(policyViolations []PolicyViolation) {
       </div>
     </div>
   </div>
+}
+
+templ XBOMTab(matches []SignatureMatchEntry) {
+	<div class="tab-pane fade" id="xbom" role="tabpanel" aria-labelledby="xbom-tab">
+		<div class="card mt-4">
+			<div class="card-header">
+				<h5 class="mb-0 text-white"><i class="bi bi-cpu me-2"></i>xBOM - API Usage Detection</h5>
+			</div>
+			<div class="card-body">
+				if len(matches) > 0 {
+					<table class="table table-striped" id="xbomTable">
+						<thead>
+							<tr>
+								<th>Signature</th>
+								<th>Vendor / Product / Service</th>
+								<th>Tags</th>
+								<th>File</th>
+								<th>Line</th>
+								<th>Matched Call</th>
+								<th>Package</th>
+							</tr>
+						</thead>
+						<tbody>
+							for _, m := range matches {
+								<tr>
+									<td>{ m.SignatureID }</td>
+									<td>{ m.Vendor } / { m.Product } / { m.Service }</td>
+									<td>
+										for _, tag := range m.Tags {
+											<span class={ fmt.Sprintf("badge rounded-pill %s me-1", getTagBadgeClass(tag)) }>
+												{ tag }
+											</span>
+										}
+									</td>
+									<td><code>{ m.FilePath }</code></td>
+									<td>{ fmt.Sprintf("%d", m.Line) }</td>
+									<td><code>{ m.MatchedCall }</code></td>
+									<td>
+										if m.PackageName != "" {
+											{ m.PackageName }
+										} else {
+											<span class="badge badge-info">App-level</span>
+										}
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				} else {
+					<div class="alert alert-info">
+						<i class="bi bi-info-circle me-2"></i>No xBOM findings. Run scanning with <code>--code</code> flag to detect API usage patterns.
+					</div>
+				}
+			</div>
+		</div>
+	</div>
 }
