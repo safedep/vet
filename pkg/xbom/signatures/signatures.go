@@ -43,41 +43,43 @@ func LoadSignatures(vendor string, product string, service string) ([]*callgraph
 
 	log.Debugf("Reading signatures from: %s (%t)", signaturesPath, isSingleSignatureFile)
 
+	var targetSignatures []*callgraphv1.Signature
+
 	if isSingleSignatureFile {
-		return loadSignatureFile(signaturesPath)
-	}
-
-	targetSignatures := []*callgraphv1.Signature{}
-
-	err := fs.WalkDir(signatureFiles, signaturesPath, func(path string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() {
-			return nil
-		}
-
-		if filepath.Ext(path) != ".yaml" && filepath.Ext(path) != ".yml" {
-			return nil
-		}
-
-		signatures, err := loadSignatureFile(path)
+		sigs, err := loadSignatureFile(signaturesPath)
 		if err != nil {
-			return fmt.Errorf("failed to load signature file %s: %v", path, err)
+			return nil, err
 		}
+		targetSignatures = sigs
+	} else {
+		err := fs.WalkDir(signatureFiles, signaturesPath, func(path string, d fs.DirEntry, err error) error {
+			if err != nil || d.IsDir() {
+				return nil
+			}
 
-		targetSignatures = append(targetSignatures, signatures...)
-		return nil
-	})
-	if err != nil {
-		return []*callgraphv1.Signature{}, fmt.Errorf("failed to walk through signature files: %w", err)
+			if filepath.Ext(path) != ".yaml" && filepath.Ext(path) != ".yml" {
+				return nil
+			}
+
+			signatures, err := loadSignatureFile(path)
+			if err != nil {
+				return fmt.Errorf("failed to load signature file %s: %v", path, err)
+			}
+
+			targetSignatures = append(targetSignatures, signatures...)
+			return nil
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to walk through signature files: %w", err)
+		}
 	}
 
-	validationErr := callgraph.ValidateSignatures(targetSignatures)
-	if validationErr != nil {
-		return []*callgraphv1.Signature{}, fmt.Errorf("invalid signatures: %w", validationErr)
+	if err := callgraph.ValidateSignatures(targetSignatures); err != nil {
+		return nil, fmt.Errorf("invalid signatures: %w", err)
 	}
 
-	duplicationErr := checkDuplicateSignatures(targetSignatures)
-	if duplicationErr != nil {
-		return []*callgraphv1.Signature{}, fmt.Errorf("duplicate signatures found: %w", duplicationErr)
+	if err := checkDuplicateSignatures(targetSignatures); err != nil {
+		return nil, fmt.Errorf("duplicate signatures found: %w", err)
 	}
 
 	return targetSignatures, nil
