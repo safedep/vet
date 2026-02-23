@@ -19,7 +19,7 @@ import (
 	"github.com/safedep/vet/pkg/storage"
 )
 
-// User define configuration for the scanner
+// ScannerConfig define configuration for the scanner
 type ScannerConfig struct {
 	// First party application code directories
 	AppDirectories []string
@@ -111,7 +111,6 @@ func (s *scanner) Scan(ctx context.Context) error {
 		return fmt.Errorf("failed to create tree walker: %w", err)
 	}
 
-	// Configure plugins
 	plugins := []core.Plugin{}
 
 	if !s.config.SkipDependencyUsagePlugin {
@@ -122,6 +121,7 @@ func (s *scanner) Scan(ctx context.Context) error {
 			}
 			return nil
 		}
+
 		plugins = append(plugins, depsusage.NewDependencyUsagePlugin(usageCallback))
 	}
 
@@ -158,10 +158,12 @@ func (s *scanner) Scan(ctx context.Context) error {
 							CalleeNamespace:      metadata.CalleeNamespace,
 							MatchedCall:          condition.Condition.GetValue(),
 						}
+
 						if metadata.CallerIdentifierMetadata != nil {
 							data.Line = uint(metadata.CallerIdentifierMetadata.StartLine + 1)
 							data.Column = uint(metadata.CallerIdentifierMetadata.StartColumn + 1)
 						}
+
 						data.PackageHint = s.derivePackageHint(match.FilePath)
 
 						if _, err := s.writer.SaveSignatureMatch(ctx, data); err != nil {
@@ -223,5 +225,6 @@ func (s *scanner) derivePackageHint(filePath string) string {
 			return parts[0]
 		}
 	}
+
 	return ""
 }
