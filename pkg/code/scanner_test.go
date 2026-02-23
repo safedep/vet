@@ -55,7 +55,7 @@ func TestScannerSignatureMatching(t *testing.T) {
 	}{
 		{
 			name:       "Go capabilities detection",
-			fixtureDir: "../../xbom/test/fixtures/test_go_capabilities",
+			fixtureDir: "testdata/test_go_capabilities",
 			vendor:     "lang/golang",
 			expectedMatches: []expectedMatch{
 				{signatureID: "golang.filesystem.write", language: "go", matchedCall: "os/WriteFile"},
@@ -76,7 +76,7 @@ func TestScannerSignatureMatching(t *testing.T) {
 		},
 		{
 			name:       "Python capabilities detection",
-			fixtureDir: "../../xbom/test/fixtures/test_python_capabilities",
+			fixtureDir: "testdata/test_python_capabilities",
 			vendor:     "lang/python",
 			expectedMatches: []expectedMatch{
 				{signatureID: "python.filesystem.delete", language: "python", matchedCall: "os.remove"},
@@ -91,7 +91,7 @@ func TestScannerSignatureMatching(t *testing.T) {
 		},
 		{
 			name:       "JavaScript capabilities detection",
-			fixtureDir: "../../xbom/test/fixtures/test_javascript_capabilities",
+			fixtureDir: "testdata/test_javascript_capabilities",
 			vendor:     "lang/javascript",
 			expectedMatches: []expectedMatch{
 				{signatureID: "javascript.filesystem.write", language: "javascript", matchedCall: "fs/writeFileSync"},
@@ -200,7 +200,7 @@ func TestScannerSignatureMatching(t *testing.T) {
 func TestScannerSkipSignatureMatching(t *testing.T) {
 	dbPath := filepath.Join(t.TempDir(), "test.db")
 
-	fixtureAbs, err := filepath.Abs("../../xbom/test/fixtures/test_go_capabilities")
+	fixtureAbs, err := filepath.Abs("testdata/test_go_capabilities")
 	require.NoError(t, err)
 
 	sigs, err := xbomsig.LoadSignatures("lang/golang", "", "")
