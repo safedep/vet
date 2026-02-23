@@ -16,6 +16,8 @@ const (
 	FieldPath = "path"
 	// EdgeDepsUsageEvidences holds the string denoting the deps_usage_evidences edge name in mutations.
 	EdgeDepsUsageEvidences = "deps_usage_evidences"
+	// EdgeSignatureMatches holds the string denoting the signature_matches edge name in mutations.
+	EdgeSignatureMatches = "signature_matches"
 	// Table holds the table name of the codesourcefile in the database.
 	Table = "code_source_files"
 	// DepsUsageEvidencesTable is the table that holds the deps_usage_evidences relation/edge.
@@ -25,6 +27,13 @@ const (
 	DepsUsageEvidencesInverseTable = "deps_usage_evidences"
 	// DepsUsageEvidencesColumn is the table column denoting the deps_usage_evidences relation/edge.
 	DepsUsageEvidencesColumn = "deps_usage_evidence_used_in"
+	// SignatureMatchesTable is the table that holds the signature_matches relation/edge.
+	SignatureMatchesTable = "code_signature_matches"
+	// SignatureMatchesInverseTable is the table name for the CodeSignatureMatch entity.
+	// It exists in this package in order to avoid circular dependency with the "codesignaturematch" package.
+	SignatureMatchesInverseTable = "code_signature_matches"
+	// SignatureMatchesColumn is the table column denoting the signature_matches relation/edge.
+	SignatureMatchesColumn = "code_signature_match_source_file"
 )
 
 // Columns holds all SQL columns for codesourcefile fields.
@@ -74,10 +83,31 @@ func ByDepsUsageEvidences(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOptio
 		sqlgraph.OrderByNeighborTerms(s, newDepsUsageEvidencesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// BySignatureMatchesCount orders the results by signature_matches count.
+func BySignatureMatchesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSignatureMatchesStep(), opts...)
+	}
+}
+
+// BySignatureMatches orders the results by signature_matches terms.
+func BySignatureMatches(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSignatureMatchesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newDepsUsageEvidencesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(DepsUsageEvidencesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, true, DepsUsageEvidencesTable, DepsUsageEvidencesColumn),
+	)
+}
+func newSignatureMatchesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SignatureMatchesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, SignatureMatchesTable, SignatureMatchesColumn),
 	)
 }

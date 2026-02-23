@@ -1,0 +1,203 @@
+version: 0.1
+
+# Node.js/JavaScript database operations
+# References:
+# - https://www.npmjs.com/package/sqlite3
+# - https://www.npmjs.com/package/mysql
+# - https://www.npmjs.com/package/pg
+# - https://www.npmjs.com/package/mongodb
+
+signatures:
+  - id: javascript.database.sql
+    description: "SQL database operations (SQLite)"
+    vendor: "SQLite"
+    product: "sqlite3"
+    service: "SQLite"
+    tags: [database, sql, sqlite, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "sqlite3/Database"
+          - type: call
+            value: "sqlite3/verbose"
+
+  - id: javascript.database.postgres
+    description: "PostgreSQL database operations"
+    vendor: "PostgreSQL"
+    product: "pg"
+    service: "PostgreSQL"
+    tags: [database, postgres, sql, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "pg/Client"
+          - type: call
+            value: "pg/Pool"
+          - type: call
+            value: "pg/connect"
+
+  - id: javascript.database.mysql
+    description: "MySQL database operations"
+    vendor: "MySQL"
+    product: "mysql/mysql2"
+    service: "MySQL"
+    tags: [database, mysql, sql, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "mysql/createConnection"
+          - type: call
+            value: "mysql/createPool"
+          - type: call
+            value: "mysql2/createConnection"
+          - type: call
+            value: "mysql2/createPool"
+
+  - id: javascript.database.sequelize
+    description: "Sequelize ORM operations"
+    vendor: "Sequelize"
+    product: "Sequelize"
+    service: "Sequelize ORM"
+    tags: [database, sequelize, orm, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "sequelize/Sequelize"
+          - type: call
+            value: "Sequelize"
+
+  - id: javascript.database.typeorm
+    description: "TypeORM operations"
+    vendor: "TypeORM"
+    product: "TypeORM"
+    service: "TypeORM"
+    tags: [database, typeorm, orm, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "typeorm/createConnection"
+          - type: call
+            value: "typeorm/getConnection"
+          - type: call
+            value: "typeorm/DataSource"
+
+  - id: javascript.database.mongodb
+    description: "MongoDB operations"
+    vendor: "MongoDB"
+    product: "mongodb"
+    service: "MongoDB"
+    tags: [database, mongodb, nosql, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "mongodb/MongoClient"
+          - type: call
+            value: "mongodb/Db"
+          - type: call
+            value: "mongodb/Collection"
+
+  - id: javascript.database.mongoose
+    description: "Mongoose ODM operations"
+    vendor: "MongoDB"
+    product: "mongoose"
+    service: "Mongoose"
+    tags: [database, mongoose, mongodb, odm, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "mongoose/connect"
+          - type: call
+            value: "mongoose/createConnection"
+          - type: call
+            value: "mongoose/model"
+          - type: call
+            value: "mongoose/Schema"
+
+  - id: javascript.database.redis
+    description: "Redis operations"
+    vendor: "Redis"
+    product: "redis/ioredis"
+    service: "Redis"
+    tags: [database, redis, cache, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "redis/createClient"
+          - type: call
+            value: "ioredis/Redis"
+          - type: call
+            value: "ioredis/Cluster"
+
+  - id: javascript.database.elasticsearch
+    description: "Elasticsearch operations"
+    vendor: "Elasticsearch"
+    product: "@elastic/elasticsearch"
+    service: "Elasticsearch"
+    tags: [database, elasticsearch, search, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@elastic/elasticsearch.Client"
+          - type: call
+            value: "elasticsearch.Client"
+
+  - id: javascript.database.cassandra
+    description: "Cassandra operations"
+    vendor: "Apache Cassandra"
+    product: "cassandra-driver"
+    service: "Cassandra"
+    tags: [database, cassandra, nosql, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "cassandra-driver/Client"
+
+  - id: javascript.database.dynamodb
+    description: "AWS DynamoDB operations"
+    vendor: "AWS"
+    product: "aws-sdk"
+    service: "DynamoDB"
+    tags: [database, dynamodb, nosql, aws, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "aws-sdk.DynamoDB"
+          - type: call
+            value: "@aws-sdk/client-dynamodb.DynamoDBClient"
+
+  - id: javascript.database.neo4j
+    description: "Neo4j graph database operations"
+    vendor: "Neo4j"
+    product: "neo4j-driver"
+    service: "Neo4j"
+    tags: [database, neo4j, graph, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "neo4j-driver.driver"
+          - type: call
+            value: "neo4j.driver"

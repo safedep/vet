@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/safedep/vet/ent/codesignaturematch"
 	"github.com/safedep/vet/ent/codesourcefile"
 	"github.com/safedep/vet/ent/depsusageevidence"
 )
@@ -39,6 +40,21 @@ func (csfc *CodeSourceFileCreate) AddDepsUsageEvidences(d ...*DepsUsageEvidence)
 		ids[i] = d[i].ID
 	}
 	return csfc.AddDepsUsageEvidenceIDs(ids...)
+}
+
+// AddSignatureMatchIDs adds the "signature_matches" edge to the CodeSignatureMatch entity by IDs.
+func (csfc *CodeSourceFileCreate) AddSignatureMatchIDs(ids ...int) *CodeSourceFileCreate {
+	csfc.mutation.AddSignatureMatchIDs(ids...)
+	return csfc
+}
+
+// AddSignatureMatches adds the "signature_matches" edges to the CodeSignatureMatch entity.
+func (csfc *CodeSourceFileCreate) AddSignatureMatches(c ...*CodeSignatureMatch) *CodeSourceFileCreate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return csfc.AddSignatureMatchIDs(ids...)
 }
 
 // Mutation returns the CodeSourceFileMutation object of the builder.
@@ -122,6 +138,22 @@ func (csfc *CodeSourceFileCreate) createSpec() (*CodeSourceFile, *sqlgraph.Creat
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(depsusageevidence.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := csfc.mutation.SignatureMatchesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   codesourcefile.SignatureMatchesTable,
+			Columns: []string{codesourcefile.SignatureMatchesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(codesignaturematch.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

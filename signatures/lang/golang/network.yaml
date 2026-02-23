@@ -1,0 +1,234 @@
+version: 0.1
+
+# Go standard library network operations
+# References:
+# - https://pkg.go.dev/net/http
+# - https://pkg.go.dev/net
+# - https://pkg.go.dev/google.golang.org/grpc
+
+signatures:
+  - id: golang.network.http.client
+    description: "HTTP client operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "HTTP client"
+    tags: [network, http, client, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "net/http/Get"
+          - type: call
+            value: "net/http/Post"
+          - type: call
+            value: "net/http/PostForm"
+          - type: call
+            value: "net/http/Head"
+          - type: call
+            value: "net/http/NewRequest"
+          - type: call
+            value: "net/http/Client.Do"
+          - type: call
+            value: "net/http/Client.Get"
+          - type: call
+            value: "net/http/Client.Post"
+          - type: call
+            value: "net/http/Client.Head"
+          - type: call
+            value: "net/http/Client.PostForm"
+
+  - id: golang.network.http.server
+    description: "HTTP server operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "HTTP server"
+    tags: [network, http, server, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "net/http/ListenAndServe"
+          - type: call
+            value: "net/http/ListenAndServeTLS"
+          - type: call
+            value: "net/http/Serve"
+          - type: call
+            value: "net/http/ServeTLS"
+          - type: call
+            value: "net/http/Server.ListenAndServe"
+          - type: call
+            value: "net/http/Server.ListenAndServeTLS"
+          - type: call
+            value: "net/http/HandleFunc"
+          - type: call
+            value: "net/http/Handle"
+
+  - id: golang.network.tcp
+    description: "TCP network operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "TCP networking"
+    tags: [network, tcp, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "net/Dial"
+          - type: call
+            value: "net/DialTCP"
+          - type: call
+            value: "net/DialTimeout"
+          - type: call
+            value: "net/Listen"
+          - type: call
+            value: "net/ListenTCP"
+          - type: call
+            value: "net/TCPConn.*"
+          - type: call
+            value: "net/TCPListener.*"
+
+  - id: golang.network.udp
+    description: "UDP network operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "UDP networking"
+    tags: [network, udp, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "net/DialUDP"
+          - type: call
+            value: "net/ListenUDP"
+          - type: call
+            value: "net/UDPConn.*"
+          - type: call
+            value: "net/ListenMulticastUDP"
+
+  - id: golang.network.unix
+    description: "Unix domain socket operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Unix sockets"
+    tags: [network, unix, socket, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "net/DialUnix"
+          - type: call
+            value: "net/ListenUnix"
+          - type: call
+            value: "net/UnixConn.*"
+          - type: call
+            value: "net/UnixListener.*"
+
+  - id: golang.network.dns
+    description: "DNS lookup operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "DNS resolution"
+    tags: [network, dns, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "net/LookupHost"
+          - type: call
+            value: "net/LookupIP"
+          - type: call
+            value: "net/LookupAddr"
+          - type: call
+            value: "net/LookupCNAME"
+          - type: call
+            value: "net/LookupMX"
+          - type: call
+            value: "net/LookupNS"
+          - type: call
+            value: "net/LookupTXT"
+          - type: call
+            value: "net/Resolver.*"
+
+  - id: golang.network.tls
+    description: "TLS/SSL operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "TLS/SSL"
+    tags: [network, tls, ssl, security, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/tls/Dial"
+          - type: call
+            value: "crypto/tls/Listen"
+          - type: call
+            value: "crypto/tls/Client"
+          - type: call
+            value: "crypto/tls/Server"
+          - type: call
+            value: "crypto/tls/Conn.*"
+
+  - id: golang.network.grpc
+    description: "gRPC operations"
+    vendor: "gRPC"
+    product: "gRPC Go"
+    service: "gRPC"
+    tags: [network, grpc, rpc, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "google.golang.org/grpc/Dial"
+          - type: call
+            value: "google.golang.org/grpc/DialContext"
+          - type: call
+            value: "google.golang.org/grpc/NewServer"
+          - type: call
+            value: "google.golang.org/grpc/ClientConn.*"
+          - type: call
+            value: "google.golang.org/grpc/Server.*"
+
+  - id: golang.network.websocket
+    description: "WebSocket operations"
+    vendor: "Go"
+    product: "golang.org/x/net/websocket"
+    service: "WebSocket"
+    tags: [network, websocket, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "golang.org/x/net/websocket/Dial"
+          - type: call
+            value: "golang.org/x/net/websocket/Handler"
+          - type: call
+            value: "golang.org/x/net/websocket/Conn.*"
+
+  - id: golang.network.url
+    description: "URL parsing and manipulation"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "URL handling"
+    tags: [network, url, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "net/url/Parse"
+          - type: call
+            value: "net/url/ParseRequestURI"
+          - type: call
+            value: "net/url/QueryEscape"
+          - type: call
+            value: "net/url/QueryUnescape"

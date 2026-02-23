@@ -1,0 +1,114 @@
+version: 0.1
+# References -
+# https://pypi.org/project/openai/
+# https://github.com/openai/openai-java
+# https://learn.microsoft.com/en-us/java/api/overview/azure/ai-openai-readme?view=azure-java-preview
+
+signatures:
+  - id: openai.client
+    description: "OpenAI client"
+    vendor: "OpenAI"
+    product: "OpenAI"
+    service: "AI client"
+    tags: [ai, text, llm]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "openai.*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.openai.client.*"
+
+  - id: openai.sync
+    description: "OpenAI AI Sync Responses"
+    vendor: "OpenAI"
+    product: "OpenAI API"
+    service: "AI response"
+    tags: [ai, text, llm]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "openai.OpenAI"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.openai.client.okhttp.OpenAIOkHttpClient.builder"
+          - type: call
+            value: "com.openai.client.okhttp.OpenAIOkHttpClient.fromEnv"
+
+  - id: openai.async
+    description: "OpenAI AI Async Responses"
+    vendor: "OpenAI"
+    product: "OpenAI API"
+    service: "Async AI response"
+    tags: [ai, text, llm, async]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "openai.AsyncOpenAI"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.openai.client.okhttp.OpenAIOkHttpClientAsync.builder"
+          - type: call
+            value: "com.openai.client.okhttp.OpenAIOkHttpClientAsync.fromEnv"
+
+  - id: openai.azure
+    description: "Azure OpenAI AI Responses"
+    vendor: "Azure OpenAI"
+    product: "Azure OpenAI API"
+    service: "AI response"
+    tags: [ai, text, llm, azure]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "openai.AzureOpenAI"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.azure.ai.openai.OpenAIClientBuilder"
+          - type: call
+            value: "com.azure.ai.openai.OpenAIAsyncClient"
+          - type: call
+            value: "com.azure.ai.openai.OpenAIClient"
+
+  - id: openai.embeddings
+    description: "OpenAI Embedding models and vectorization"
+    vendor: "OpenAI"
+    product: "OpenAI API"
+    service: "Embedding model and vectorization"
+    tags: [ai, embeddings, text, vectorization, vectors]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.openai.models.embeddings.*"
+
+  - id: openai.function_calling
+    description: "OpenAI Function Calling capabilities"
+    vendor: "OpenAI"
+    product: "OpenAI API"
+    service: "Function calling capabilities"
+    tags: [ai, function, calling, functions]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.openai.models.FunctionDefinition.*"
+          - type: call
+            value: "com.openai.models.FunctionParameters.*"

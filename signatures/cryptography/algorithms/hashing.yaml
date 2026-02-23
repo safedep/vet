@@ -1,0 +1,290 @@
+version: 0.1
+
+# References -
+# https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html#messagedigest-algorithms
+# https://docs.python.org/3/library/hashlib.html
+
+signatures:
+  - id: crypto.md5
+    description: "MD5 hash"
+    vendor: ""
+    product: "Hashing algorithm"
+    service: "MD5 hash"
+    tags: [cryptography, hash]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"md5\"", "\"MD5\"", "\"mD5\"", "\"Md5\""]
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.md5"
+          - type: call
+            value: "hashlib.new"
+            args:
+              - index: 0
+                values: ["\"md5\"", "\"MD5\"", "\"mD5\"", "\"Md5\""]
+
+  - id: crypto.md2
+    description: "MD2 hash"
+    vendor: ""
+    product: "Hashing algorithm"
+    service: "MD2 hash"
+    tags: [cryptography, hash, weak]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"md2\"", "\"MD2\"", "\"mD2\"", "\"Md2\""]
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.new"
+            args:
+              - index: 0
+                values: ["\"md2\"", "\"MD2\"", "\"mD2\"", "\"Md2\""]
+
+  - id: crypto.sha1
+    description: "SHA-1 hash"
+    vendor: ""
+    product: "Hashing algorithm"
+    service: "SHA-1 hash"
+    tags: [cryptography, hash, weak]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"SHA\"", "\"sha\"", "\"Sha\"", "\"sha-1\"", "\"SHA-1\"", "\"Sha-1\""]
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.sha1"
+          - type: call
+            value: "hashlib.new"
+            args:
+              - index: 0
+                values: ["\"sha1\"", "\"SHA1\"", "\"sha-1\"", "\"SHA-1\""]
+
+  - id: crypto.sha224
+    description: "SHA-224 hash"
+    vendor: ""
+    product: "Hashing algorithm"
+    service: "SHA-224 hash"
+    tags: [cryptography, hash]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"sha-224\"", "\"SHA-224\"", "\"Sha-224\""]
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.sha224"
+          - type: call
+            value: "hashlib.new"
+            args:
+              - index: 0
+                values: ["\"sha224\"", "\"SHA224\"", "\"sha-224\"", "\"SHA-224\""]
+
+  - id: crypto.sha256
+    description: "SHA-256 hash"
+    vendor: ""
+    product: "Hashing algorithm"
+    service: "SHA-256 hash"
+    tags: [cryptography, hash]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"sha-256\"", "\"SHA-256\"", "\"Sha-256\""]
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.sha256"
+          - type: call
+            value: "hashlib.new"
+            args:
+              - index: 0
+                values: ["\"sha256\"", "\"SHA256\"", "\"sha-256\"", "\"SHA-256\""]
+
+  - id: crypto.sha384
+    description: "SHA-384 hash"
+    vendor: ""
+    product: "Hashing algorithm"
+    service: "SHA-384 hash"
+    tags: [cryptography, hash]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"sha-384\"", "\"SHA-384\"", "\"Sha384\""]
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.sha384"
+          - type: call
+            value: "hashlib.new"
+            args:
+              - index: 0
+                values: ["\"sha384\"", "\"SHA384\"", "\"sha-384\"", "\"SHA-384\""]
+
+  - id: crypto.sha512
+    description: "SHA-512 hash"
+    vendor: ""
+    product: "Hashing algorithm"
+    service: "SHA-512 hash"
+    tags: [cryptography, hash]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"sha-512\"", "\"SHA-512\"", "\"Sha512\""]
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.sha512"
+          - type: call
+            value: "hashlib.new"
+            args:
+              - index: 0
+                values: ["\"sha512\"", "\"SHA512\"", "\"sha-512\"", "\"SHA-512\""]
+
+  - id: crypto.sha3-224
+    description: "SHA3-224 hash"
+    vendor: ""
+    product: "Hashing algorithm"
+    service: "SHA3-224 hash"
+    tags: [cryptography, hash, sha3]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"sha3-224\"", "\"SHA3-224\"", "\"Sha3-224\""]
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.sha3_224"
+          - type: call
+            value: "hashlib.new"
+            args:
+              - index: 0
+                values: ["\"Sha3-224\"", "\"sha3-224\"", "\"SHA3-224\""]
+
+  - id: crypto.sha3-256
+    description: "SHA3-256 hash"
+    vendor: ""
+    product: "Hashing algorithm"
+    service: "SHA3-256 hash"
+    tags: [cryptography, hash, sha3]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"sha3-256\"", "\"SHA3-256\"", "\"Sha3-256\""]
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.sha3_256"
+          - type: call
+            value: "hashlib.new"
+            args:
+              - index: 0
+                values: ["\"sha3-256\"", "\"SHA3-256\"", "\"Sha3-256\""]
+
+  - id: crypto.sha3-384
+    description: "SHA3-384 hash"
+    vendor: ""
+    product: "Hashing algorithm"
+    service: "SHA3-384 hash"
+    tags: [cryptography, hash, sha3]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"sha3-384\"", "\"SHA3-384\"", "\"Sha3-384\""]
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.sha3_384"
+          - type: call
+            value: "hashlib.new"
+            args:
+              - index: 0
+                values: ["\"sha3-384\"", "\"SHA3-384\"", "\"Sha3-384\""]
+
+  - id: crypto.sha3-512
+    description: "SHA3-512 hash"
+    vendor: ""
+    product: "Hashing algorithm"
+    service: "SHA3-512 hash"
+    tags: [cryptography, hash, sha3]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"sha3-512\"", "\"SHA3-512\"", "\"Sha3-512\""]
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.sha3_512"
+          - type: call
+            value: "hashlib.new"
+            args:
+              - index: 0
+                values: ["\"sha3-512\"", "\"SHA3-512\"", "\"Sha3-512\""]

@@ -12,6 +12,8 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// CodeSignatureMatch is the client for interacting with the CodeSignatureMatch builders.
+	CodeSignatureMatch *CodeSignatureMatchClient
 	// CodeSourceFile is the client for interacting with the CodeSourceFile builders.
 	CodeSourceFile *CodeSourceFileClient
 	// DepsUsageEvidence is the client for interacting with the DepsUsageEvidence builders.
@@ -169,6 +171,7 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.CodeSignatureMatch = NewCodeSignatureMatchClient(tx.config)
 	tx.CodeSourceFile = NewCodeSourceFileClient(tx.config)
 	tx.DepsUsageEvidence = NewDepsUsageEvidenceClient(tx.config)
 	tx.ReportDependency = NewReportDependencyClient(tx.config)
@@ -191,7 +194,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: CodeSourceFile.QueryXXX(), the query will be executed
+// applies a query, for example: CodeSignatureMatch.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

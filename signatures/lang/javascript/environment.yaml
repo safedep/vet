@@ -1,0 +1,32 @@
+version: 0.1
+
+# Node.js/JavaScript environment variable operations
+# References:
+# - https://nodejs.org/api/process.html#processenv
+
+signatures:
+  - id: javascript.environment.read
+    description: "Environment variable read operations"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Environment read"
+    tags: [environment, read, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "process/env.*"
+
+  - id: javascript.environment.write
+    description: "Environment variable write operations"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Environment write"
+    tags: [environment, write, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "process/env.*"

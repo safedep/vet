@@ -387,6 +387,9 @@ func (m *MalwareAnalysisResult) Id() string {
 type CodeAnalysisResult struct {
 	// Usage evidences of a package obtained by depsusage plugin
 	UsageEvidences []*ent.DepsUsageEvidence `json:"usage_evidences"`
+
+	// Signature matches obtained by xBOM callgraph analysis
+	SignatureMatches []*ent.CodeSignatureMatch `json:"signature_matches"`
 }
 
 // Represents a package such as a version of a library defined as a dependency

@@ -1,0 +1,373 @@
+version: 0.1
+
+# References -
+# https://api.python.langchain.com/en/latest/community_api_reference.html
+
+signatures:
+  - id: langchain_community.adapters
+    description: "Adapters are used to adapt LangChain models to other APIs. LangChain integrates with many model providers. While LangChain has its own message and model APIs, LangChain has also made it as easy as possible to explore other models by exposing an adapter to adapt LangChain models to the other APIs, as to the OpenAI API."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Adapters"
+    tags: [ai, langchain, langchain-community]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.adapters.*"
+
+  - id: langchain_community.agent_toolkits
+    description: "Toolkits are sets of tools that can be used to interact with various services and APIs."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Agents Toolkits"
+    tags: [ai, langchain, langchain-community, agents, toolkits]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.agent_toolkits.*"
+
+  - id: langchain_community.agents
+    description: "Agents are a key component of LangChain, allowing for the creation of applications that can interact with users and other systems in a more dynamic and flexible way."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Agents"
+    tags: [ai, langchain, langchain-community, agents]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.agents.*"
+
+  - id: langchain_community.cache
+    description: "Cache provides an optional caching layer for LLMs."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Cache"
+    tags: [ai, langchain, langchain-community, cache]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.cache.*"
+
+  - id: langchain_community.callbacks
+    description: "Callback handlers allow listening to events in LangChain."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "callbacks"
+    tags: [ai, langchain, langchain-community, callbacks]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.callbacks.*"
+  
+  - id: langchain_community.chains
+    description: "Callback handlers allow listening to events in LangChain."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "chains"
+    tags: [ai, langchain, langchain-community, chains]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.chains.*"
+      
+  - id: langchain_community.chat_loaders
+    description: "Chat Loaders load chat messages from common communications platforms. Load chat messages from various communications platforms such as Facebook Messenger, Telegram, and WhatsApp. The loaded chat messages can be used for fine-tuning models."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Chat Loaders"
+    tags: [ai, langchain, langchain-community, chat, loaders]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.chat_loaders.*"
+      
+  - id: langchain_community.chat_message_histories
+    description: "Chat message history stores a history of the message interactions in a chat."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Message Histories"
+    tags: [ai, langchain, langchain-community, message-histories]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.chat_message_histories.*"
+
+  - id: langchain_community.chat_models
+    description: "Chat Models are a variation on language models. While Chat Models use language models under the hood, the interface they expose is a bit different. Rather than expose a “text in, text out” API, they expose an interface where “chat messages” are the inputs and outputs."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Chat Models"
+    tags: [ai, langchain, langchain-community, chat, models]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.chat_models.*"
+
+  - id: langchain_community.cross_encoders
+    description: "Cross encoders are wrappers around cross encoder models from different APIs and services."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Cross Encoders"
+    tags: [ai, langchain, langchain-community, cross-encoders]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.cross_encoders.*"
+
+  - id: langchain_community.docstore
+    description: "Docstores are classes to store and load Documents. The Docstore is a simplified version of the Document Loader."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Docstore"
+    tags: [ai, langchain, langchain-community, documents, docstore]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.docstore.*"
+
+  - id: langchain_community.document_compressors
+    description: "Document compressors are used to compress documents to reduce their size and improve performance. They can be used to compress text, images, and other types of documents."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Document Compressors"
+    tags: [ai, langchain, langchain-community, documents, compressors]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.document_compressors.*"
+
+  - id: langchain_community.document_loaders    
+    description: "Document Loaders are classes to load Documents. Document Loaders are usually used to load a lot of Documents in a single run."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Document Loaders"
+    tags: [ai, langchain, langchain-community, documents, loaders]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.document_loaders.*"
+
+  - id: langchain_community.embeddings   
+    description: "Embedding models are wrappers around embedding models from different APIs and services."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Embeddings"
+    tags: [ai, langchain, langchain-community, embeddings]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.embeddings.*"
+
+  - id: langchain_community.example_selectors   
+    description: "Example selector implements logic for selecting examples to include them in prompts. This allows us to select examples that are most relevant to the input."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Example Selectors"
+    tags: [ai, langchain, langchain-community, example, selectors]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.example_selectors.*"
+
+  - id: langchain_community.graph_vectorstores 
+    description: "Sometimes embedding models don’t capture all the important relationships between documents. Graph Vector Stores are an extension to both vector stores and retrievers that allow documents to be explicitly connected to each other. Graph vector store retrievers use both vector similarity and links to find documents related to an unstructured query."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Graph Vector Stores"
+    tags: [ai, langchain, langchain-community, graph, vectorstores]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.graph_vectorstores.*"
+
+  - id: langchain_community.graphs
+    description: "Graphs provide a natural language interface to graph databases."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Graphs"
+    tags: [ai, langchain, langchain-community, graph]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.graphs.*"
+
+
+  - id: langchain_community.indexes
+    description: "Index is used to avoid writing duplicated content into the vector store and to avoid over-writing content if it’s unchanged."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Indexes"
+    tags: [ai, langchain, langchain-community, indexes]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.indexes.*"
+
+  - id: langchain_community.llms
+    description: "LLM classes provide access to the large language model (LLM) APIs and services."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "LLM"
+    tags: [ai, langchain, langchain-community, llm]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.llms.*"
+
+  - id: langchain_community.memory
+    description: "Memory is used to store information about the conversation history and the user’s preferences. It allows the model to remember previous interactions and provide more personalized responses."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Memory"
+    tags: [ai, langchain, langchain-community, memory]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.memory.*"
+
+  - id: langchain_community.output_parsers
+    description: "OutputParser classes parse the output of an LLM call."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Output Parsers"
+    tags: [ai, langchain, langchain-community, output, parsers]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.output_parsers.*"
+
+
+  - id: langchain_community.query_constructors
+    description: "Query constructors are used to construct queries for various APIs and services. They allow you to build queries in a structured way, making it easier to interact with different data sources."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Query Constructors"
+    tags: [ai, langchain, langchain-community, query, constructors]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.query_constructors.*"
+
+  - id: langchain_community.retrievers
+    description: "Retriever class returns Documents given a text query."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Retrievers"
+    tags: [ai, langchain, langchain-community, retrievers]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.retrievers.*"
+
+  - id: langchain_community.storage
+    description: "Storage is an implementation of key-value store. Storage module provides implementations of various key-value stores that conform to a simple key-value interface. The primary goal of these storages is to support caching."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Storage"
+    tags: [ai, langchain, langchain-community, storage]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.storage.*"
+
+  - id: langchain_community.tools
+    description: "Tools are classes that an Agent uses to interact with the world. Each tool has a description. Agent uses the description to choose the right tool for the job."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Tools"
+    tags: [ai, langchain, langchain-community, tools]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.tools.*"
+
+  - id: langchain_community.utilities
+    description: "Utilities are the integrations with third-part systems and packages. Other LangChain classes use Utilities to interact with third-part systems and packages."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Utilities"
+    tags: [ai, langchain, langchain-community, utilities]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.utilities.*"
+
+  - id: langchain_community.utils
+    description: "Utility functions for LangChain."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Utilities"
+    tags: [ai, langchain, langchain-community, utilities]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.utils.*"
+
+  - id: langchain_community.vectorstores
+    description: "Vector store stores embedded data and performs vector search. One of the most common ways to store and search over unstructured data is to embed it and store the resulting embedding vectors, and then query the store and retrieve the data that are ‘most similar’ to the embedded query."
+    vendor: "Langchain"
+    product: "Langchain Community Library"
+    service: "Vector Stores"
+    tags: [ai, langchain, langchain-community, vectorstores]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_community.vectorstores.*"
+
+

@@ -1,0 +1,275 @@
+version: 0.1
+
+# Python cryptographic operations
+# References:
+# - https://docs.python.org/3/library/hashlib.html
+# - https://docs.python.org/3/library/hmac.html
+# - https://docs.python.org/3/library/secrets.html
+# - https://cryptography.io/
+# - https://pycryptodome.readthedocs.io/
+
+signatures:
+  - id: python.crypto.hash
+    description: "Cryptographic hash operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Cryptographic hashing"
+    tags: [crypto, hash, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.md5"
+          - type: call
+            value: "hashlib.sha1"
+          - type: call
+            value: "hashlib.sha224"
+          - type: call
+            value: "hashlib.sha256"
+          - type: call
+            value: "hashlib.sha384"
+          - type: call
+            value: "hashlib.sha512"
+          - type: call
+            value: "hashlib.blake2b"
+          - type: call
+            value: "hashlib.blake2s"
+          - type: call
+            value: "hashlib.sha3_224"
+          - type: call
+            value: "hashlib.sha3_256"
+          - type: call
+            value: "hashlib.sha3_384"
+          - type: call
+            value: "hashlib.sha3_512"
+          - type: call
+            value: "hashlib.new"
+
+  - id: python.crypto.hmac
+    description: "HMAC operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "HMAC"
+    tags: [crypto, hmac, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hmac.new"
+          - type: call
+            value: "hmac.digest"
+          - type: call
+            value: "hmac.compare_digest"
+
+  - id: python.crypto.aes
+    description: "AES encryption/decryption"
+    vendor: "Python"
+    product: "cryptography"
+    service: "AES"
+    tags: [crypto, aes, encryption, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "cryptography.hazmat.primitives.ciphers.Cipher"
+          - type: call
+            value: "cryptography.hazmat.primitives.ciphers.algorithms.AES"
+          - type: call
+            value: "Crypto.Cipher.AES.new"
+          - type: call
+            value: "Cryptodome.Cipher.AES.new"
+
+  - id: python.crypto.rsa
+    description: "RSA encryption/decryption and signing"
+    vendor: "Python"
+    product: "cryptography"
+    service: "RSA"
+    tags: [crypto, rsa, encryption, signing, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "cryptography.hazmat.primitives.asymmetric.rsa.generate_private_key"
+          - type: call
+            value: "cryptography.hazmat.primitives.asymmetric.rsa.RSAPrivateKey"
+          - type: call
+            value: "cryptography.hazmat.primitives.asymmetric.rsa.RSAPublicKey"
+          - type: call
+            value: "Crypto.PublicKey.RSA.generate"
+          - type: call
+            value: "Crypto.PublicKey.RSA.import_key"
+          - type: call
+            value: "Crypto.Cipher.PKCS1_OAEP.new"
+          - type: call
+            value: "Crypto.Signature.pkcs1_15.new"
+
+  - id: python.crypto.ecdsa
+    description: "ECDSA signing and verification"
+    vendor: "Python"
+    product: "cryptography"
+    service: "ECDSA"
+    tags: [crypto, ecdsa, signing, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "cryptography.hazmat.primitives.asymmetric.ec.generate_private_key"
+          - type: call
+            value: "cryptography.hazmat.primitives.asymmetric.ec.EllipticCurvePrivateKey"
+          - type: call
+            value: "cryptography.hazmat.primitives.asymmetric.ec.EllipticCurvePublicKey"
+          - type: call
+            value: "Crypto.PublicKey.ECC.generate"
+          - type: call
+            value: "Crypto.PublicKey.ECC.import_key"
+
+  - id: python.crypto.ed25519
+    description: "Ed25519 signing and verification"
+    vendor: "Python"
+    product: "cryptography"
+    service: "Ed25519"
+    tags: [crypto, ed25519, signing, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey"
+          - type: call
+            value: "cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PublicKey"
+
+  - id: python.crypto.rand
+    description: "Cryptographically secure random number generation"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Crypto random"
+    tags: [crypto, random, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "secrets.token_bytes"
+          - type: call
+            value: "secrets.token_hex"
+          - type: call
+            value: "secrets.token_urlsafe"
+          - type: call
+            value: "secrets.randbelow"
+          - type: call
+            value: "secrets.choice"
+          - type: call
+            value: "os.urandom"
+          - type: call
+            value: "Crypto.Random.get_random_bytes"
+
+  - id: python.crypto.x509
+    description: "X.509 certificate operations"
+    vendor: "Python"
+    product: "cryptography"
+    service: "X.509 certificates"
+    tags: [crypto, x509, certificate, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "cryptography.x509.load_pem_x509_certificate"
+          - type: call
+            value: "cryptography.x509.load_der_x509_certificate"
+          - type: call
+            value: "cryptography.x509.CertificateBuilder"
+          - type: call
+            value: "cryptography.x509.CertificateSigningRequestBuilder"
+
+  - id: python.crypto.des
+    description: "DES/3DES encryption (legacy)"
+    vendor: "Python"
+    product: "pycryptodome"
+    service: "DES/3DES"
+    tags: [crypto, des, encryption, legacy, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "Crypto.Cipher.DES.new"
+          - type: call
+            value: "Crypto.Cipher.DES3.new"
+          - type: call
+            value: "Cryptodome.Cipher.DES.new"
+          - type: call
+            value: "Cryptodome.Cipher.DES3.new"
+
+  - id: python.crypto.pbkdf2
+    description: "PBKDF2 key derivation"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "PBKDF2"
+    tags: [crypto, pbkdf2, kdf, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.pbkdf2_hmac"
+          - type: call
+            value: "cryptography.hazmat.primitives.kdf.pbkdf2.PBKDF2HMAC"
+          - type: call
+            value: "Crypto.Protocol.KDF.PBKDF2"
+
+  - id: python.crypto.bcrypt
+    description: "Bcrypt password hashing"
+    vendor: "Python"
+    product: "bcrypt"
+    service: "Bcrypt"
+    tags: [crypto, bcrypt, password, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "bcrypt.hashpw"
+          - type: call
+            value: "bcrypt.checkpw"
+          - type: call
+            value: "bcrypt.gensalt"
+          - type: call
+            value: "bcrypt.kdf"
+
+  - id: python.crypto.argon2
+    description: "Argon2 password hashing"
+    vendor: "Python"
+    product: "argon2"
+    service: "Argon2"
+    tags: [crypto, argon2, password, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "argon2.PasswordHasher"
+          - type: call
+            value: "argon2.hash_password"
+          - type: call
+            value: "argon2.verify_password"
+
+  - id: python.crypto.scrypt
+    description: "Scrypt key derivation"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Scrypt"
+    tags: [crypto, scrypt, kdf, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.scrypt"
+          - type: call
+            value: "cryptography.hazmat.primitives.kdf.scrypt.Scrypt"

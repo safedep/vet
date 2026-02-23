@@ -1,0 +1,103 @@
+version: 0.1
+# References -
+# https://github.com/anthropics/anthropic-sdk-python
+# https://github.com/anthropics/anthropic-sdk-java
+# https://javadoc.io/doc/com.anthropic/anthropic-java/latest/index.html
+
+signatures:
+  - id: anthropic.client
+    description: "Anthropic client"
+    vendor: "Anthropic"
+    product: "Anthropic API"
+    service: "AI client"
+    tags: [ai, text, llm]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "anthropic.Anthropic"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.anthropic.client.okhttp.AnthropicOkHttpClient.fromEnv"
+          - type: call
+            value: "com.anthropic.client.okhttp.AnthropicOkHttpClient.builder"
+          - type: call
+            value: "com.anthropic.client.AnthropicClient.*"
+
+  - id: anthropic.async
+    description: "Anthropic async client"
+    vendor: "Anthropic"
+    product: "Anthropic API"
+    service: "Async AI client"
+    tags: [ai, text, llm]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "anthropic.AsyncAnthropic"
+          - type: call
+            value: "anthropic.AsyncAnthropicVertex"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.anthropic.client.okhttp.AnthropicOkHttpClientAsync.fromEnv"
+          - type: call
+            value: "com.anthropic.client.okhttp.AnthropicOkHttpClientAsync.builder"
+          - type: call
+            value: "com.anthropic.client.AnthropicClientAsync.*"
+
+  - id: anthropic.bedrock
+    description: "Anthropic Bedrock AI client for Integration with AWS Bedrock"
+    vendor: "Anthropic"
+    product: "Anthropic Bedrock Integration"
+    service: "Anthropic AWS Bedrock AI client"
+    tags: [ai, text, llm, bedrock]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "anthropic.AnthropicBedrock"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.anthropic.bedrock.*"
+
+  - id: anthropic.vertexai
+    description: "Anthropic client for Integration with Claude on Vertex AI"
+    vendor: "Anthropic"
+    product: "Anthropic VertexAI Integration"
+    service: "Anthropic VertexAI client"
+    tags: [ai, text, llm, vertexai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "anthropic.AnthropicVertex"
+          - type: call
+            value: "anthropic.AsyncAnthropicVertex"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.anthropic.vertex.*"
+
+  - id: anthropic.batch
+    description: "Anthropic batch processing"
+    vendor: "Anthropic"
+    product: "Anthropic API"
+    service: "Anthropic batch responses"
+    tags: [ai, text, llm, batch]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.anthropic.models.messages.batches.*"

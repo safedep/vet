@@ -10,6 +10,7 @@ import (
 
 type CodeAnalysisEnricherConfig struct {
 	EnableDepsUsageEvidence bool
+	EnableSignatureMatches  bool
 }
 type codeAnalysisEnricher struct {
 	config           CodeAnalysisEnricherConfig
@@ -41,6 +42,12 @@ func (e *codeAnalysisEnricher) Enrich(pkg *models.Package,
 		}
 	}
 
+	if e.config.EnableSignatureMatches {
+		if err := e.EnrichSignatureMatches(pkg); err != nil {
+			return fmt.Errorf("failed to enrich signature matches: %w", err)
+		}
+	}
+
 	return nil
 }
 
@@ -55,5 +62,15 @@ func (e *codeAnalysisEnricher) EnrichDependencyUsageEvidence(pkg *models.Package
 	}
 
 	pkg.CodeAnalysis.UsageEvidences = evidences
+	return nil
+}
+
+func (e *codeAnalysisEnricher) EnrichSignatureMatches(pkg *models.Package) error {
+	matches, err := e.ReaderRepository.GetSignatureMatchesByPackageHint(context.Background(), pkg.GetName())
+	if err != nil {
+		return fmt.Errorf("failed to fetch signature matches: %w", err)
+	}
+
+	pkg.CodeAnalysis.SignatureMatches = matches
 	return nil
 }

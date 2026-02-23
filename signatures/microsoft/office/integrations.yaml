@@ -1,0 +1,106 @@
+version: 0.1
+signatures:
+  - id: msoffice.graph
+    description: "Microsoft Graph SDK Client"
+    vendor: "Microsoft"
+    product: "Microsoft Office"
+    service: "Graph SDK client"
+    tags: [graph, microsoft, api, users, mail, saas]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "msgraph.core.GraphClient"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@microsoft/microsoft-graph-client.Client"
+
+  - id: msoffice.office365.outlook
+    description: "Office 365 Outlook API Client"
+    vendor: "Microsoft"
+    product: "Microsoft Office"
+    service: "Outlook API client"
+    tags: [office365, email, outlook, microsoft, saas]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: import
+            value: "O365.Account"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@microsoft/microsoft-graph-client.Client"
+
+  - id: msoffice.teams.botbuilder
+    description: "Microsoft Teams Bot Builder SDK"
+    vendor: "Microsoft"
+    product: "Microsoft Office"
+    service: "Teams Bot Builder SDK"
+    tags: [teams, bot, chat, microsoft, saas]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: import
+            value: "botbuilder.core"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "botbuilder.core.TurnContext"
+
+  - id: msoffice.powerbi.client
+    description: "Power BI Embedded Client SDK"
+    vendor: "Microsoft"
+    product: "Microsoft Office"
+    service: "Power BI Embedded client"
+    tags: [powerbi, visualization, dashboard, microsoft, saas]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: import
+            value: "powerbi-client"
+          - type: call
+            value: "powerbi.embed"
+
+  - id: msoffice.auth.msal
+    description: "Microsoft Authentication Library (MSAL)"
+    vendor: "Microsoft"
+    product: "Microsoft Office"
+    service: "MSAL client"
+    tags: [msal, authentication, oauth, login, microsoft, saas]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "msal.PublicClientApplication"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@azure/msal-browser.PublicClientApplication"
+
+  - id: msoffice.onedrive.sdk
+    description: "OneDrive SDK Client"
+    vendor: "Microsoft"
+    product: "Microsoft Office"
+    service: "OneDrive SDK client"
+    tags: [onedrive, microsoft, sdk, storage, saas]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: import
+            value: "O365.Account"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@microsoft/microsoft-graph-client.Client"

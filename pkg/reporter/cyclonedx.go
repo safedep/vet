@@ -3,6 +3,7 @@ package reporter
 import (
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/safedep/dry/utils"
 
+	"github.com/safedep/vet/ent"
 	"github.com/safedep/vet/gen/insightapi"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -46,6 +48,7 @@ type cycloneDXReporter struct {
 	bomEcosystems             map[string]bool
 	bomVulnerabilitiesBomrefs map[string]bool
 	bomPackageRef             map[string]bool
+	appSignatureMatches       []*ent.CodeSignatureMatch
 }
 
 var cdxUUIDRegexp = regex.MustCompileAndCache(`^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
@@ -183,6 +186,10 @@ func (r *cycloneDXReporter) addPackage(pkg *models.Package) {
 	r.recordDependencies(pkg)
 	r.recordVulnerabilities(pkg)
 	r.recordMalware(pkg)
+
+	if pkg.CodeAnalysis != nil && len(pkg.CodeAnalysis.SignatureMatches) > 0 {
+		r.addSignatureMatchProperties(&component, pkg.CodeAnalysis.SignatureMatches)
+	}
 
 	*r.bom.Components = append(*r.bom.Components, component)
 }
@@ -343,10 +350,141 @@ func (r *cycloneDXReporter) recordMalware(pkg *models.Package) {
 	}
 }
 
+func (r *cycloneDXReporter) addSignatureMatchProperties(component *cdx.Component, matches []*ent.CodeSignatureMatch) {
+	// Collect all unique tags from all matches for this package
+	tagSet := map[string]bool{}
+	for _, m := range matches {
+		for _, tag := range m.Tags {
+			tagSet[tag] = true
+		}
+	}
+
+	tags := make([]string, 0, len(tagSet))
+	for tag := range tagSet {
+		tags = append(tags, tag)
+	}
+
+	props := getKnownTaggedProperties(tags)
+	if len(props) > 0 {
+		if component.Properties == nil {
+			component.Properties = &[]cdx.Property{}
+		}
+		*component.Properties = append(*component.Properties, props...)
+	}
+}
+
 func (r *cycloneDXReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 }
 
 func (r *cycloneDXReporter) AddPolicyEvent(event *policy.PolicyEvent) {}
+
+// SetApplicationSignatureMatches sets application-level (non-package) signature matches
+// to be recorded in the CycloneDX BOM as top-level components.
+func (r *cycloneDXReporter) SetApplicationSignatureMatches(matches []*ent.CodeSignatureMatch) {
+	r.Lock()
+	defer r.Unlock()
+	r.appSignatureMatches = matches
+}
+
+func (r *cycloneDXReporter) recordApplicationSignatureMatches() {
+	if len(r.appSignatureMatches) == 0 {
+		return
+	}
+
+	// Group matches by signature_id
+	type signatureGroup struct {
+		matches []*ent.CodeSignatureMatch
+	}
+	groups := map[string]*signatureGroup{}
+	groupOrder := []string{}
+	for _, m := range r.appSignatureMatches {
+		g, ok := groups[m.SignatureID]
+		if !ok {
+			g = &signatureGroup{}
+			groups[m.SignatureID] = g
+			groupOrder = append(groupOrder, m.SignatureID)
+		}
+		g.matches = append(g.matches, m)
+	}
+
+	for _, sigID := range groupOrder {
+		g := groups[sigID]
+		first := g.matches[0]
+
+		occurrences := &[]cdx.EvidenceOccurrence{}
+		for _, m := range g.matches {
+			occ := cdx.EvidenceOccurrence{
+				Location:          m.FilePath,
+				AdditionalContext: m.CalleeNamespace,
+			}
+			if m.Line > 0 {
+				occ.Line = utils.PtrTo(int(m.Line))
+			}
+			if m.Column > 0 {
+				occ.Offset = utils.PtrTo(int(m.Column))
+			}
+			*occurrences = append(*occurrences, occ)
+		}
+
+		component := cdx.Component{
+			BOMRef:      "xbom:" + sigID,
+			Name:        first.SignatureProduct + " - " + first.SignatureService,
+			Type:        cdx.ComponentTypeLibrary,
+			Description: first.SignatureDescription,
+			Publisher:   first.SignatureVendor,
+			Manufacturer: &cdx.OrganizationalEntity{
+				Name:   first.SignatureVendor,
+				BOMRef: first.SignatureVendor,
+			},
+			Evidence: &cdx.Evidence{
+				Identity: utils.PtrTo([]cdx.EvidenceIdentity{
+					{
+						Methods: utils.PtrTo([]cdx.EvidenceIdentityMethod{
+							{
+								Technique:  cdx.EvidenceIdentityTechniqueSourceCodeAnalysis,
+								Confidence: utils.PtrTo(float32(1.0)),
+							},
+						}),
+						Tools: utils.PtrTo([]cdx.BOMReference{
+							cdx.BOMReference(r.toolComponent.BOMRef),
+						}),
+					},
+				}),
+				Occurrences: occurrences,
+			},
+			Properties: &[]cdx.Property{},
+		}
+
+		*component.Properties = append(*component.Properties, getKnownTaggedProperties(first.Tags)...)
+
+		*r.bom.Components = append(*r.bom.Components, component)
+	}
+}
+
+func getKnownTaggedProperties(tags []string) []cdx.Property {
+	knownTags := []string{
+		"ai",
+		"cryptography",
+		"encryption",
+		"hash",
+		"ml",
+		"iaas",
+		"paas",
+		"saas",
+	}
+
+	properties := []cdx.Property{}
+	for _, tag := range knownTags {
+		if slices.Contains(tags, tag) {
+			properties = append(properties, cdx.Property{
+				Name:  tag,
+				Value: "true",
+			})
+		}
+	}
+
+	return properties
+}
 
 func (r *cycloneDXReporter) finaliseBom() {
 	bomGenerationTime := time.Now().UTC()
@@ -369,6 +507,7 @@ func (r *cycloneDXReporter) finaliseBom() {
 }
 
 func (r *cycloneDXReporter) Finish() error {
+	r.recordApplicationSignatureMatches()
 	r.finaliseBom()
 
 	logger.Infof("Writing CycloneDX report to %s", r.config.Path)

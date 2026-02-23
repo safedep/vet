@@ -3,12 +3,16 @@ package code
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"regexp"
+	"strings"
 
+	callgraphv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/code/callgraph/v1"
 	"github.com/safedep/code/core"
 	"github.com/safedep/code/fs"
 	"github.com/safedep/code/parser"
 	"github.com/safedep/code/plugin"
+	"github.com/safedep/code/plugin/callgraph"
 	"github.com/safedep/code/plugin/depsusage"
 
 	"github.com/safedep/vet/ent"
@@ -35,6 +39,10 @@ type ScannerConfig struct {
 
 	// Plugin specific configuration
 	SkipDependencyUsagePlugin bool
+
+	// Signature matching configuration
+	SkipSignatureMatching bool
+	SignaturesToMatch     []*callgraphv1.Signature
 }
 
 type ScannerCallbackRegistry struct {
@@ -117,6 +125,56 @@ func (s *scanner) Scan(ctx context.Context) error {
 		plugins = append(plugins, depsusage.NewDependencyUsagePlugin(usageCallback))
 	}
 
+	if !s.config.SkipSignatureMatching && len(s.config.SignaturesToMatch) > 0 {
+		signatureMatcher, err := callgraph.NewSignatureMatcher(s.config.SignaturesToMatch)
+		if err != nil {
+			return fmt.Errorf("failed to create signature matcher: %w", err)
+		}
+
+		var cgCallback callgraph.CallgraphCallback = func(ctx context.Context, cg *callgraph.CallGraph) error {
+			treeData, err := cg.Tree.Data()
+			if err != nil {
+				return fmt.Errorf("failed to get tree data: %w", err)
+			}
+
+			matches, err := signatureMatcher.MatchSignatures(cg)
+			if err != nil {
+				return fmt.Errorf("failed to match signatures: %w", err)
+			}
+
+			for _, match := range matches {
+				for _, condition := range match.MatchedConditions {
+					for _, evidence := range condition.Evidences {
+						metadata := evidence.Metadata(treeData)
+						data := &SignatureMatchData{
+							SignatureID:          match.MatchedSignature.Id,
+							SignatureVendor:      match.MatchedSignature.GetVendor(),
+							SignatureProduct:     match.MatchedSignature.GetProduct(),
+							SignatureService:     match.MatchedSignature.GetService(),
+							SignatureDescription: match.MatchedSignature.GetDescription(),
+							Tags:                 match.MatchedSignature.Tags,
+							FilePath:             match.FilePath,
+							Language:             string(match.MatchedLanguageCode),
+							CalleeNamespace:      metadata.CalleeNamespace,
+							MatchedCall:          condition.Condition.GetValue(),
+						}
+						if metadata.CallerIdentifierMetadata != nil {
+							data.Line = uint(metadata.CallerIdentifierMetadata.StartLine + 1)
+							data.Column = uint(metadata.CallerIdentifierMetadata.StartColumn + 1)
+						}
+						data.PackageHint = s.derivePackageHint(match.FilePath)
+
+						if _, err := s.writer.SaveSignatureMatch(ctx, data); err != nil {
+							return fmt.Errorf("failed to save signature match: %w", err)
+						}
+					}
+				}
+			}
+			return nil
+		}
+		plugins = append(plugins, callgraph.NewCallGraphPlugin(cgCallback))
+	}
+
 	// Execute plugins
 	pluginExecutor, err := plugin.NewTreeWalkPluginExecutor(treeWalker, plugins)
 	if err != nil {
@@ -134,4 +192,36 @@ func (s *scanner) Scan(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// derivePackageHint checks if filePath is under any configured ImportDirectory
+// and extracts the first path component after the import directory as the package hint.
+// Returns empty string for app-level findings (files not under import directories).
+func (s *scanner) derivePackageHint(filePath string) string {
+	for _, importDir := range s.config.ImportDirectories {
+		absImportDir, err := filepath.Abs(importDir)
+		if err != nil {
+			continue
+		}
+		absFilePath, err := filepath.Abs(filePath)
+		if err != nil {
+			continue
+		}
+
+		if !strings.HasPrefix(absFilePath, absImportDir+string(filepath.Separator)) {
+			continue
+		}
+
+		rel, err := filepath.Rel(absImportDir, absFilePath)
+		if err != nil {
+			continue
+		}
+
+		// Extract first component of the relative path as the package hint
+		parts := strings.SplitN(filepath.ToSlash(rel), "/", 2)
+		if len(parts) > 0 && parts[0] != "" {
+			return parts[0]
+		}
+	}
+	return ""
 }

@@ -1,0 +1,341 @@
+version: 0.1
+
+# References -
+# https://api.python.langchain.com/en/latest/langchain_api_reference.html
+# https://docs.langchain4j.dev/apidocs/index.html
+
+signatures:
+  - id: langchain.agents
+    description: "Agent is a class that uses an LLM to choose a sequence of actions to take"
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Language Models"
+    tags: [ai, text, langchain]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain.agents.*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "dev.langchain4j.agent.*"
+
+  - id: langchain.mcp
+    description: "Model Context Protocol support in Langchain"
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Langchain MCP Support"
+    tags: [ai, mcp, langchain]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_mcp_adapters.*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "dev.langchain4j.mcp.*"
+
+  - id: langchain.callbacks
+    description: "Callback handlers allow listening to events in LangChain"
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Language Models"
+    tags: [ai, text, langchain]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain.callbacks.*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "dev.langchain4j.model.chat.listener.*"
+
+  - id: langchain.chains
+    description: "Chains are easily reusable components linked together. While Chat Models use language models under the hood, the interface they expose is a bit different. Rather than expose a “text in, text out” API, they expose an interface where “chat messages” are the inputs and outputs."
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Language Models"
+    tags: [ai, text, langchain]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain.chains.*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "dev.langchain4j.chain.*"
+
+  - id: langchain.chat_models
+    description: "Chat Models are a variation on language models, While Chat Models use language models under the hood, the interface they expose is a bit different. Rather than expose a “text in, text out” API, they expose an interface where “chat messages” are the inputs and outputs"
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Chat Models"
+    tags: [ai, chat, langchain]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain.chat_models.*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "dev.langchain4j.model.chat.*"
+
+  - id: langchain.embeddings
+    description: "Embedding models are wrappers around embedding models from different APIs and services. Embedding models can be LLMs or not."
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Embeddings"
+    tags: [ai, embeddings, langchain]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain.embeddings.*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "dev.langchain4j.data.embedding.*"
+          - type: call
+            value: "dev.langchain4j.store.embedding.*"
+          - type: call
+            value: "dev.langchain4j.spi.model.embedding.*"
+          - type: call
+            value: "dev.langchain4j.spi.store.embedding.*"
+
+  - id: langchain.evaluation
+    description: "Evaluation chains for grading LLM and Chain outputs."
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Evaluation"
+    tags: [ai, evaluation, langchain]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain.evaluation.*"
+
+  - id: langchain.globals
+    description: "Global values and configuration that apply to all of LangChain"
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "LLM"
+    tags: [ai, llm, langchain]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain.globals.*"
+
+  - id: langchain.hub
+    description: "Interface with LangChain Hub"
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Hub Interface"
+    tags: [ai, hub, langchain]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain.hub.*"
+
+  - id: langchain.indexes
+    description: "Index is used to avoid writing duplicated content into the vectostore and to avoid over-writing content if it’s unchanged"
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Indexes"
+    tags: [ai, indexes, langchain]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain.indexes.*"
+
+  - id: langchain.memory
+    description: "Memory maintains Chain state, incorporating context from past runs"
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Memory"
+    tags: [ai, memory, langchain]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain.memory.*"
+
+  - id: langchain.model_laboratory
+    description: "Experiment with different models"
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Model Laboratory"
+    tags: [ai, models, langchain]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain.model_laboratory.*"
+
+  - id: langchain.output_parsers
+    description: "OutputParser classes parse the output of an LLM call"
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Parsers"
+    tags: [ai, parsers, langchain]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain.output_parsers.*"
+
+  - id: langchain.retrievers
+    description: "Retriever class returns Documents given a text query"
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Retrievers"
+    tags: [ai, retrievers, langchain]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain.retrievers.*"
+
+  - id: langchain.runnables
+    description: "LangChain Runnables and the LangChain Expression Language (LCEL) provide a declarative way to compose and orchestrate LLM-powered programs that natively support synchronous, asynchronous, batch, and streaming operations for scalable, production-grade applications"
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Runnables"
+    tags: [ai, runnables, langchain]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain.runnables.*"
+
+  - id: langchain.smith
+    description: "This module provides utilities for connecting to LangSmith"
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Smith Interface"
+    tags: [ai, smith, interface, langchain]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain.smith.*"
+
+  - id: langchain.storage
+    description: "Module provides implementations of various key-value stores that conform to a simple key-value interface"
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Storage"
+    tags: [ai, storage, langchain]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain.storage.*"
+
+  - id: langchain.code_execution
+    description: "Code execution with LangChain"
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Langchain Code Execution"
+    tags: [ai, code, langchain]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "dev.langchain4j.code.*"
+
+  - id: langchain.audio
+    description: "Audio processing with LangChain"
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Langchain Audio Processing"
+    tags: [ai, audio, langchain]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "dev.langchain4j.data.audio.*"
+
+  - id: langchain.document
+    description: "Document processing with LangChain"
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Langchain Document Processing"
+    tags: [ai, document, langchain]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "dev.langchain4j.data.document.*"
+
+  - id: langchain.image
+    description: "Image processing with LangChain"
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Langchain Image Processing"
+    tags: [ai, image, langchain]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "dev.langchain4j.data.image.*"
+
+  - id: langchain.pdf
+    description: "PDF processing with LangChain"
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Langchain PDF Processing"
+    tags: [ai, pdf, langchain]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "dev.langchain4j.data.pdf.*"
+
+  - id: langchain.video
+    description: "Video processing with LangChain"
+    vendor: "Langchain"
+    product: "Langchain"
+    service: "Langchain Video Processing"
+    tags: [ai, video, langchain]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "dev.langchain4j.data.video.*"

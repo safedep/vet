@@ -1,0 +1,232 @@
+version: 0.1
+
+# Python standard library filesystem operations
+# References:
+# - https://docs.python.org/3/library/os.html
+# - https://docs.python.org/3/library/pathlib.html
+# - https://docs.python.org/3/library/shutil.html
+# - https://docs.python.org/3/library/tempfile.html
+
+signatures:
+  - id: python.filesystem.read
+    description: "File read operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Filesystem read"
+    tags: [filesystem, read, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "builtins.open"
+          - type: call
+            value: "os.read"
+          - type: call
+            value: "os.listdir"
+          - type: call
+            value: "os.scandir"
+          - type: call
+            value: "pathlib.Path.read_text"
+          - type: call
+            value: "pathlib.Path.read_bytes"
+          - type: call
+            value: "pathlib.Path.open"
+
+  - id: python.filesystem.write
+    description: "File write operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Filesystem write"
+    tags: [filesystem, write, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "os.write"
+          - type: call
+            value: "pathlib.Path.write_text"
+          - type: call
+            value: "pathlib.Path.write_bytes"
+
+  - id: python.filesystem.delete
+    description: "File and directory deletion"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Filesystem delete"
+    tags: [filesystem, delete, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "os.remove"
+          - type: call
+            value: "os.unlink"
+          - type: call
+            value: "os.rmdir"
+          - type: call
+            value: "shutil.rmtree"
+          - type: call
+            value: "pathlib.Path.unlink"
+          - type: call
+            value: "pathlib.Path.rmdir"
+
+  - id: python.filesystem.mkdir
+    description: "Directory creation"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Filesystem mkdir"
+    tags: [filesystem, mkdir, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "os.mkdir"
+          - type: call
+            value: "os.makedirs"
+          - type: call
+            value: "pathlib.Path.mkdir"
+
+  - id: python.filesystem.rename
+    description: "File and directory rename/move operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Filesystem rename"
+    tags: [filesystem, rename, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "os.rename"
+          - type: call
+            value: "os.renames"
+          - type: call
+            value: "shutil.move"
+          - type: call
+            value: "pathlib.Path.rename"
+          - type: call
+            value: "pathlib.Path.replace"
+
+  - id: python.filesystem.stat
+    description: "File and directory stat operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Filesystem stat"
+    tags: [filesystem, stat, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "os.stat"
+          - type: call
+            value: "os.lstat"
+          - type: call
+            value: "os.fstat"
+          - type: call
+            value: "pathlib.Path.stat"
+          - type: call
+            value: "pathlib.Path.lstat"
+          - type: call
+            value: "pathlib.Path.exists"
+          - type: call
+            value: "pathlib.Path.is_file"
+          - type: call
+            value: "pathlib.Path.is_dir"
+
+  - id: python.filesystem.chmod
+    description: "File permission changes"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Filesystem chmod"
+    tags: [filesystem, chmod, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "os.chmod"
+          - type: call
+            value: "pathlib.Path.chmod"
+
+  - id: python.filesystem.chown
+    description: "File ownership changes"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Filesystem chown"
+    tags: [filesystem, chown, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "os.chown"
+          - type: call
+            value: "os.lchown"
+          - type: call
+            value: "shutil.chown"
+
+  - id: python.filesystem.symlink
+    description: "Symbolic link operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Filesystem symlink"
+    tags: [filesystem, symlink, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "os.symlink"
+          - type: call
+            value: "os.readlink"
+          - type: call
+            value: "pathlib.Path.symlink_to"
+          - type: call
+            value: "pathlib.Path.readlink"
+          - type: call
+            value: "pathlib.Path.is_symlink"
+
+  - id: python.filesystem.temp
+    description: "Temporary file/directory creation"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Filesystem temp"
+    tags: [filesystem, temp, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "tempfile.mkstemp"
+          - type: call
+            value: "tempfile.mkdtemp"
+          - type: call
+            value: "tempfile.NamedTemporaryFile"
+          - type: call
+            value: "tempfile.TemporaryFile"
+          - type: call
+            value: "tempfile.TemporaryDirectory"
+
+  - id: python.filesystem.copy
+    description: "File and directory copy operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Filesystem copy"
+    tags: [filesystem, copy, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "shutil.copy"
+          - type: call
+            value: "shutil.copy2"
+          - type: call
+            value: "shutil.copyfile"
+          - type: call
+            value: "shutil.copytree"

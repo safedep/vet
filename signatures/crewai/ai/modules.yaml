@@ -1,0 +1,200 @@
+version: 0.1
+
+# References -
+# https://docs.crewai.com/
+
+signatures:
+  - id: crewai.agent-module
+    description: "Provides classes and functions for creating and managing autonomous agents in CrewAI."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [agents, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.agents.*"
+
+  - id: crewai.crew-module
+    description: "Defines and manages groups of agents (crews) for collaborative task execution."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [crews, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.crews.*"
+
+  - id: crewai.cli-module
+    description: "Command-line interface utilities for interacting with CrewAI projects and agents."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [cli, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.cli.*"
+
+  - id: crewai.flow-module
+    description: "Manages workflows and task flows for orchestrating agent activities."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [flow, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.flow.*"
+
+  - id: crewai.knowledge-module
+    description: "Handles knowledge management, retrieval, and storage for CrewAI agents."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [knowledge, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.knowledge.*"
+
+  - id: crewai.llms-module
+    description: "Integrates large language models (LLMs) for agent reasoning and communication."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [llms, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.llms.*"
+
+  - id: crewai.memory-module
+    description: "Provides memory management for agents, enabling context retention and recall."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [memory, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.memory.*"
+
+  - id: crewai.project-module
+    description: "Project-level configuration and management utilities for CrewAI."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [project, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.project.*"
+
+  - id: crewai.security-module
+    description: "Security features and access control for CrewAI agents and workflows."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [security, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.security.*"
+
+  - id: crewai.tasks-module
+    description: "Task definition, assignment, and management for CrewAI agents and crews."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tasks, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.tasks.*"
+
+  - id: crewai.telemetry-module
+    description: "Telemetry and monitoring tools for tracking agent and crew performance."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [telemetry, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.telemetry.*"
+
+  - id: crewai.tools-module
+    description: "Provides access to various tools and integrations for CrewAI agents."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.tools.*"
+
+  - id: crewai.translations-module
+    description: "Translation utilities for multilingual agent communication and content."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [translations, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.translations.*"
+
+  - id: crewai.types-module
+    description: "Type definitions and data structures used throughout CrewAI."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [types, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.types.*"
+
+  - id: crewai.utilities-module
+    description: "Utility functions and helpers for CrewAI modules and agents."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [utilities, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.utilities.*"

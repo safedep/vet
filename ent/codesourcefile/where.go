@@ -146,6 +146,29 @@ func HasDepsUsageEvidencesWith(preds ...predicate.DepsUsageEvidence) predicate.C
 	})
 }
 
+// HasSignatureMatches applies the HasEdge predicate on the "signature_matches" edge.
+func HasSignatureMatches() predicate.CodeSourceFile {
+	return predicate.CodeSourceFile(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, SignatureMatchesTable, SignatureMatchesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSignatureMatchesWith applies the HasEdge predicate on the "signature_matches" edge with a given conditions (other predicates).
+func HasSignatureMatchesWith(preds ...predicate.CodeSignatureMatch) predicate.CodeSourceFile {
+	return predicate.CodeSourceFile(func(s *sql.Selector) {
+		step := newSignatureMatchesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.CodeSourceFile) predicate.CodeSourceFile {
 	return predicate.CodeSourceFile(sql.AndPredicates(predicates...))

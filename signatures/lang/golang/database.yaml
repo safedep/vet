@@ -1,0 +1,162 @@
+version: 0.1
+
+# Go database operations
+# References:
+# - https://pkg.go.dev/database/sql
+# - Popular database drivers
+
+signatures:
+  - id: golang.database.sql
+    description: "SQL database operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "SQL database"
+    tags: [database, sql, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "database/sql/Open"
+          - type: call
+            value: "database/sql/DB.Query"
+          - type: call
+            value: "database/sql/DB.QueryRow"
+          - type: call
+            value: "database/sql/DB.QueryContext"
+          - type: call
+            value: "database/sql/DB.QueryRowContext"
+          - type: call
+            value: "database/sql/DB.Exec"
+          - type: call
+            value: "database/sql/DB.ExecContext"
+          - type: call
+            value: "database/sql/DB.Prepare"
+          - type: call
+            value: "database/sql/DB.PrepareContext"
+          - type: call
+            value: "database/sql/DB.Begin"
+          - type: call
+            value: "database/sql/DB.BeginTx"
+
+  - id: golang.database.postgres
+    description: "PostgreSQL database driver"
+    vendor: "PostgreSQL"
+    product: "pq driver"
+    service: "PostgreSQL"
+    tags: [database, postgres, sql, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "pq/Open"
+          - type: call
+            value: "pgx/Connect"
+          - type: call
+            value: "pgx/ConnectConfig"
+
+  - id: golang.database.mysql
+    description: "MySQL database driver"
+    vendor: "MySQL"
+    product: "go-sql-driver/mysql"
+    service: "MySQL"
+    tags: [database, mysql, sql, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "mysql/Open"
+
+  - id: golang.database.sqlite
+    description: "SQLite database driver"
+    vendor: "SQLite"
+    product: "go-sqlite3"
+    service: "SQLite"
+    tags: [database, sqlite, sql, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "sqlite3/Open"
+
+  - id: golang.database.mongodb
+    description: "MongoDB operations"
+    vendor: "MongoDB"
+    product: "mongo-go-driver"
+    service: "MongoDB"
+    tags: [database, mongodb, nosql, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "mongo/Connect"
+          - type: call
+            value: "mongo/NewClient"
+          - type: call
+            value: "mongo/Client.*"
+
+  - id: golang.database.redis
+    description: "Redis operations"
+    vendor: "Redis"
+    product: "go-redis"
+    service: "Redis"
+    tags: [database, redis, cache, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "redis/NewClient"
+          - type: call
+            value: "redis/NewClusterClient"
+          - type: call
+            value: "redis/Client.*"
+
+  - id: golang.database.elasticsearch
+    description: "Elasticsearch operations"
+    vendor: "Elasticsearch"
+    product: "go-elasticsearch"
+    service: "Elasticsearch"
+    tags: [database, elasticsearch, search, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "elasticsearch/NewClient"
+          - type: call
+            value: "elasticsearch/NewDefaultClient"
+
+  - id: golang.database.cassandra
+    description: "Cassandra operations"
+    vendor: "Apache Cassandra"
+    product: "gocql"
+    service: "Cassandra"
+    tags: [database, cassandra, nosql, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "gocql/NewCluster"
+          - type: call
+            value: "gocql/NewSession"
+
+  - id: golang.database.etcd
+    description: "etcd operations"
+    vendor: "etcd"
+    product: "etcd client"
+    service: "etcd"
+    tags: [database, etcd, kvstore, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "clientv3/New"
+          - type: call
+            value: "clientv3/NewFromURL"

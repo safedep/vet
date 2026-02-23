@@ -1,0 +1,33 @@
+version: 0.1
+# References -
+# https://pypi.org/project/openai/
+# https://github.com/openai/openai-java
+
+signatures:
+  - id: openai.image_generation
+    description: "OpenAI Image Generation models"
+    vendor: "OpenAI"
+    product: "OpenAI API"
+    service: "Image generation"
+    tags: [ai, image, generation, images]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.openai.models.images.ImageGenerateParams.*"
+          - type: call
+            value: "com.openai.models.images.ImageModel.*"
+
+  - id: openai.audio
+    description: "OpenAI Audio Transcription service"
+    vendor: "OpenAI"
+    product: "OpenAI API"
+    service: "Audio transcription"
+    tags: [ai, audio, transcription]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.openai.models.audio.*"

@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"github.com/safedep/vet/ent/codesignaturematch"
 	"github.com/safedep/vet/ent/codesourcefile"
 	"github.com/safedep/vet/ent/depsusageevidence"
 	"github.com/safedep/vet/ent/reportdependency"
@@ -21,6 +22,20 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	codesignaturematchFields := schema.CodeSignatureMatch{}.Fields()
+	_ = codesignaturematchFields
+	// codesignaturematchDescSignatureID is the schema descriptor for signature_id field.
+	codesignaturematchDescSignatureID := codesignaturematchFields[0].Descriptor()
+	// codesignaturematch.SignatureIDValidator is a validator for the "signature_id" field. It is called by the builders before save.
+	codesignaturematch.SignatureIDValidator = codesignaturematchDescSignatureID.Validators[0].(func(string) error)
+	// codesignaturematchDescFilePath is the schema descriptor for file_path field.
+	codesignaturematchDescFilePath := codesignaturematchFields[6].Descriptor()
+	// codesignaturematch.FilePathValidator is a validator for the "file_path" field. It is called by the builders before save.
+	codesignaturematch.FilePathValidator = codesignaturematchDescFilePath.Validators[0].(func(string) error)
+	// codesignaturematchDescLanguage is the schema descriptor for language field.
+	codesignaturematchDescLanguage := codesignaturematchFields[7].Descriptor()
+	// codesignaturematch.LanguageValidator is a validator for the "language" field. It is called by the builders before save.
+	codesignaturematch.LanguageValidator = codesignaturematchDescLanguage.Validators[0].(func(string) error)
 	codesourcefileFields := schema.CodeSourceFile{}.Fields()
 	_ = codesourcefileFields
 	// codesourcefileDescPath is the schema descriptor for path field.

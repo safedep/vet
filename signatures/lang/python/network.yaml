@@ -1,0 +1,231 @@
+version: 0.1
+
+# Python network operations
+# References:
+# - https://docs.python.org/3/library/urllib.html
+# - https://docs.python.org/3/library/http.html
+# - https://docs.python.org/3/library/socket.html
+# - https://docs.python.org/3/library/ssl.html
+
+signatures:
+  - id: python.network.http.client
+    description: "HTTP client operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "HTTP client"
+    tags: [network, http, client, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "urllib.request.urlopen"
+          - type: call
+            value: "urllib.request.urlretrieve"
+          - type: call
+            value: "urllib.request.Request"
+          - type: call
+            value: "http.client.HTTPConnection"
+          - type: call
+            value: "http.client.HTTPSConnection"
+          - type: call
+            value: "requests.get"
+          - type: call
+            value: "requests.post"
+          - type: call
+            value: "requests.put"
+          - type: call
+            value: "requests.delete"
+          - type: call
+            value: "requests.request"
+          - type: call
+            value: "httpx.get"
+          - type: call
+            value: "httpx.post"
+          - type: call
+            value: "httpx.Client"
+          - type: call
+            value: "httpx.AsyncClient"
+
+  - id: python.network.http.server
+    description: "HTTP server operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "HTTP server"
+    tags: [network, http, server, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "http.server.HTTPServer"
+          - type: call
+            value: "http.server.SimpleHTTPRequestHandler"
+          - type: call
+            value: "socketserver.TCPServer"
+          - type: call
+            value: "socketserver.UDPServer"
+          - type: call
+            value: "flask.Flask"
+          - type: call
+            value: "flask.run"
+          - type: call
+            value: "fastapi.FastAPI"
+          - type: call
+            value: "django.core.servers.basehttp.run"
+
+  - id: python.network.tcp
+    description: "TCP network operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "TCP networking"
+    tags: [network, tcp, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "socket.socket"
+          - type: call
+            value: "socket.create_connection"
+          - type: call
+            value: "socket.create_server"
+          - type: call
+            value: "socket.socket.connect"
+          - type: call
+            value: "socket.socket.bind"
+          - type: call
+            value: "socket.socket.listen"
+          - type: call
+            value: "socket.socket.accept"
+
+  - id: python.network.udp
+    description: "UDP network operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "UDP networking"
+    tags: [network, udp, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "socket.socket.sendto"
+          - type: call
+            value: "socket.socket.recvfrom"
+
+  - id: python.network.dns
+    description: "DNS lookup operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "DNS resolution"
+    tags: [network, dns, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "socket.gethostbyname"
+          - type: call
+            value: "socket.gethostbyaddr"
+          - type: call
+            value: "socket.getaddrinfo"
+          - type: call
+            value: "socket.gethostname"
+          - type: call
+            value: "socket.getfqdn"
+
+  - id: python.network.tls
+    description: "TLS/SSL operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "TLS/SSL"
+    tags: [network, tls, ssl, security, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "ssl.wrap_socket"
+          - type: call
+            value: "ssl.SSLContext"
+          - type: call
+            value: "ssl.create_default_context"
+          - type: call
+            value: "ssl.SSLSocket"
+
+  - id: python.network.websocket
+    description: "WebSocket operations"
+    vendor: "Python"
+    product: "websockets"
+    service: "WebSocket"
+    tags: [network, websocket, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "websockets.connect"
+          - type: call
+            value: "websockets.serve"
+          - type: call
+            value: "websocket.WebSocket"
+          - type: call
+            value: "websocket.create_connection"
+
+  - id: python.network.url
+    description: "URL parsing and manipulation"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "URL handling"
+    tags: [network, url, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "urllib.parse.urlparse"
+          - type: call
+            value: "urllib.parse.urlunparse"
+          - type: call
+            value: "urllib.parse.urljoin"
+          - type: call
+            value: "urllib.parse.quote"
+          - type: call
+            value: "urllib.parse.unquote"
+          - type: call
+            value: "urllib.parse.parse_qs"
+
+  - id: python.network.ftp
+    description: "FTP operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "FTP"
+    tags: [network, ftp, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "ftplib.FTP"
+          - type: call
+            value: "ftplib.FTP_TLS"
+
+  - id: python.network.smtp
+    description: "SMTP email operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "SMTP"
+    tags: [network, smtp, email, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "smtplib.SMTP"
+          - type: call
+            value: "smtplib.SMTP_SSL"
+          - type: call
+            value: "email.mime.MIMEText"
+          - type: call
+            value: "email.mime.MIMEMultipart"
