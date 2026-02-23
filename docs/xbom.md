@@ -1,6 +1,6 @@
 # xBOM: Component Detection using Static Code Analysis
 
-vet can analyze source code to detect what APIs and libraries your application actually calls. This produces an extended Bill of Materials (xBOM) covering AI/ML services, cryptographic operations, cloud integrations, and standard library capabilities, persisted in the CycloneDX SBOM output.
+vet analyzes source code to detect what APIs and libraries an application actually calls. It produces an extended Bill of Materials (xBOM) covering AI/ML services, cryptographic operations, cloud integrations, and standard library capabilities, persisted in the CycloneDX SBOM output.
 
 ## Quick Start
 
@@ -14,7 +14,7 @@ vet scan -D ./src --code code.db --report-cdx sbom.json
 
 ## Examples
 
-Scan a Python project, excluding tests and virtualenv:
+Scanning a Python project, excluding tests and virtualenv:
 
 ```bash
 vet code scan --db code.db \
@@ -25,7 +25,7 @@ vet code scan --db code.db \
 vet scan -D ./src --code code.db --report-cdx sbom.json
 ```
 
-Scan a Go monorepo with vendored dependencies:
+Scanning a Go monorepo with vendored dependencies:
 
 ```bash
 vet code scan --db code.db \
@@ -36,20 +36,20 @@ vet code scan --db code.db \
 vet scan -D . --code code.db --report-cdx sbom.json
 ```
 
-Only show packages that are actually used in code:
+Showing only packages that are actually used in code:
 
 ```bash
 vet scan -D . --code code.db \
   --report-summary --report-summary-used-only
 ```
 
-Validate that all embedded signatures are well-formed:
+Validating that all embedded signatures are well-formed:
 
 ```bash
 vet code validate
 ```
 
-Use `vet code scan --help` and `vet scan --help` for the full list of flags.
+The full list of flags is available via `vet code scan --help` and `vet scan --help`.
 
 ## What Gets Detected
 
@@ -67,8 +67,8 @@ Signatures cover three language ecosystems (**Go**, **Python**, **JavaScript/Typ
 
 ## How It Works
 
-1. **Code scan** parses source files, builds call graphs, and matches function calls against embedded signature patterns
-2. Matches are stored with file path, line number, and the matched call pattern
+1. The **code scanner** parses source files, builds call graphs, and matches function calls against embedded signature patterns
+2. It stores matches with file path, line number, and the matched call pattern
 3. Matches under `--import-dir` directories are tagged with a package hint (linked to a dependency); matches under `--app` directories are tagged as application-level
 4. During `vet scan --code`, package-level matches enrich the corresponding dependency with evidence; application-level matches appear as standalone xBOM components
 
@@ -76,7 +76,7 @@ Signatures cover three language ecosystems (**Go**, **Python**, **JavaScript/Typ
 
 ### Package-level matches
 
-Dependencies with detected code usage get `source-code-analysis` evidence with file locations:
+Dependencies with detected code usage receive `source-code-analysis` evidence with file locations:
 
 ```json
 {
@@ -103,7 +103,7 @@ Capabilities detected in first-party code (not tied to a specific dependency) ap
 {
   "bom-ref": "xbom:golang.network.http.server",
   "type": "library",
-  "name": "Standard Library - HTTP server",
+  "name": "Standard Library HTTP server",
   "publisher": "Go",
   "evidence": {
     "occurrences": [
