@@ -351,19 +351,56 @@ func (r *cycloneDXReporter) recordMalware(pkg *models.Package) {
 }
 
 func (r *cycloneDXReporter) addSignatureMatchProperties(component *cdx.Component, matches []*ent.CodeSignatureMatch) {
-	// Collect all unique tags from all matches for this package
+	// Collect all unique tags and build evidence occurrences
 	tagSet := map[string]bool{}
+	occurrences := []cdx.EvidenceOccurrence{}
 	for _, m := range matches {
 		for _, tag := range m.Tags {
 			tagSet[tag] = true
 		}
+		occ := cdx.EvidenceOccurrence{
+			Location:          m.FilePath,
+			AdditionalContext: m.CalleeNamespace,
+		}
+		if m.Line > 0 {
+			occ.Line = utils.PtrTo(int(m.Line))
+		}
+		if m.Column > 0 {
+			occ.Offset = utils.PtrTo(int(m.Column))
+		}
+		occurrences = append(occurrences, occ)
 	}
 
+	// Add source-code-analysis identity and occurrences to evidence
+	if component.Evidence == nil {
+		component.Evidence = &cdx.Evidence{}
+	}
+	if component.Evidence.Identity == nil {
+		component.Evidence.Identity = utils.PtrTo([]cdx.EvidenceIdentity{})
+	}
+	*component.Evidence.Identity = append(*component.Evidence.Identity, cdx.EvidenceIdentity{
+		Methods: utils.PtrTo([]cdx.EvidenceIdentityMethod{
+			{
+				Technique:  cdx.EvidenceIdentityTechniqueSourceCodeAnalysis,
+				Confidence: utils.PtrTo(float32(1.0)),
+			},
+		}),
+		Tools: utils.PtrTo([]cdx.BOMReference{
+			cdx.BOMReference(r.toolComponent.BOMRef),
+		}),
+	})
+	if len(occurrences) > 0 {
+		if component.Evidence.Occurrences == nil {
+			component.Evidence.Occurrences = &[]cdx.EvidenceOccurrence{}
+		}
+		*component.Evidence.Occurrences = append(*component.Evidence.Occurrences, occurrences...)
+	}
+
+	// Add tag-based properties
 	tags := make([]string, 0, len(tagSet))
 	for tag := range tagSet {
 		tags = append(tags, tag)
 	}
-
 	props := getKnownTaggedProperties(tags)
 	if len(props) > 0 {
 		if component.Properties == nil {
