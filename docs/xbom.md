@@ -135,3 +135,73 @@ Capabilities detected in first-party code (not tied to a specific dependency) ap
 ### Tag properties
 
 Matched signatures with known tags produce CycloneDX properties: `ai`, `cryptography`, `encryption`, `hash`, `ml`, `iaas`, `paas`, `saas`.
+
+## Signatures
+
+Signatures are YAML files that define function call patterns to detect. They are embedded into the binary at build time from `signatures/`.
+
+### Directory layout
+
+```
+signatures/
+├── lang/                    # Standard library capabilities
+│   ├── golang/              #   crypto.yaml, network.yaml, filesystem.yaml, ...
+│   ├── python/
+│   └── javascript/
+├── openai/                  # Third-party vendors
+│   └── llm/
+├── anthropic/
+│   └── ai/
+├── langchain/
+├── crewai/
+├── google/
+│   └── gcp/
+├── microsoft/
+│   ├── azure/
+│   └── office/
+├── cryptography/
+│   └── algorithms/
+└── loader.go                # Registers embedded files via go:embed
+```
+
+The path hierarchy is `<vendor>/<product>/<service>.yaml`.
+
+### Signature format
+
+```yaml
+version: 0.1
+
+signatures:
+  - id: golang.crypto.hash
+    description: "Cryptographic hash operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Cryptographic hashing"
+    tags: [crypto, hash, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/sha256/New"
+          - type: call
+            value: "crypto/sha256/Sum256"
+```
+
+**Fields:**
+
+| Field | Description |
+|-------|-------------|
+| `id` | Unique identifier, follows `<vendor>.<product>.<service>` convention |
+| `description` | What this signature detects |
+| `vendor`, `product`, `service` | Categorization metadata |
+| `tags` | Classification labels used in reports and CycloneDX output |
+| `languages.<lang>.match` | `any` (match at least one condition) or `all` (match every condition) |
+| `languages.<lang>.conditions` | List of call patterns. `type` is always `call`. `value` supports wildcards (`openai.*`) |
+
+### Contributing signatures
+
+1. Create or edit a YAML file under `signatures/<vendor>/<product>/`. Follow the naming convention above.
+2. If adding a new top-level vendor directory, add it to the `//go:embed` directive in `signatures/loader.go`.
+3. Run `vet code validate` to check that all signatures are well-formed and have no duplicate IDs.
+4. Test with a real codebase: `vet code scan --db /tmp/test.db --app ./path && vet code query --db /tmp/test.db`
