@@ -152,32 +152,6 @@ func TestViewScanningPhase(t *testing.T) {
 	assert.Contains(t, view, "src/main.py")
 }
 
-func TestViewSummaryPhase(t *testing.T) {
-	m := newTestModel()
-
-	// Simulate some matches
-	m.Update(matchFoundMsg{signatureID: "openai.client", tags: []string{"ai", "llm"}, language: "python", filePath: "a.py"})
-	m.Update(matchFoundMsg{signatureID: "openai.client", tags: []string{"ai", "llm"}, language: "python", filePath: "b.py"})
-	m.Update(matchFoundMsg{signatureID: "aws.s3", tags: []string{"cloud"}, language: "python", filePath: "a.py"})
-
-	// Transition to summary
-	m.Update(scanDoneMsg{err: nil})
-
-	view := m.View()
-
-	assert.Contains(t, view, "Code Scan Summary")
-	assert.Contains(t, view, "Findings:")
-	assert.Contains(t, view, "3")
-	assert.Contains(t, view, "Files:")
-	assert.Contains(t, view, "2")
-	assert.Contains(t, view, "Top Signatures")
-	assert.Contains(t, view, "openai.client")
-	assert.Contains(t, view, "aws.s3")
-	assert.Contains(t, view, "█")
-	assert.Contains(t, view, "[ai]")
-	assert.Contains(t, view, "[cloud]")
-}
-
 func TestViewSummaryNoMatches(t *testing.T) {
 	m := newTestModel()
 
@@ -187,7 +161,10 @@ func TestViewSummaryNoMatches(t *testing.T) {
 
 	assert.Contains(t, view, "Code Scan Summary")
 	assert.Contains(t, view, "0") // findings count
-	assert.NotContains(t, view, "Top Signatures")
+	assert.NotContains(t, view, "AI BOM")
+	assert.NotContains(t, view, "CryptoBOM")
+	assert.NotContains(t, view, "Cloud BOM")
+	assert.NotContains(t, view, "Language Capabilities")
 }
 
 func TestViewSummaryWithError(t *testing.T) {
@@ -210,51 +187,202 @@ func TestEventSinkNilProgram(t *testing.T) {
 	})
 }
 
-func TestBuildSignaturesContentOrdering(t *testing.T) {
-	m := newTestModel()
+// --- Category classification tests ---
 
-	// Add signatures with different counts
-	for i := 0; i < 15; i++ {
-		m.Update(matchFoundMsg{signatureID: "openai.client", tags: []string{"ai"}, language: "python", filePath: "a.py"})
-	}
-	for i := 0; i < 8; i++ {
-		m.Update(matchFoundMsg{signatureID: "aws.s3", tags: []string{"cloud"}, language: "python", filePath: "b.py"})
-	}
-	for i := 0; i < 2; i++ {
-		m.Update(matchFoundMsg{signatureID: "jwt.sign", tags: []string{"crypto"}, language: "javascript", filePath: "c.js"})
-	}
-
-	m.phase = phaseSummary
-	content := m.buildSignaturesContent()
-
-	// openai.client should appear before aws.s3, which should appear before jwt.sign
-	openaiIdx := strings.Index(content, "openai.client")
-	awsIdx := strings.Index(content, "aws.s3")
-	jwtIdx := strings.Index(content, "jwt.sign")
-
-	assert.Greater(t, awsIdx, openaiIdx, "openai.client should appear before aws.s3")
-	assert.Greater(t, jwtIdx, awsIdx, "aws.s3 should appear before jwt.sign")
+func TestClassifySignatureAI(t *testing.T) {
+	assert.Equal(t, categoryAI, classifySignature([]string{"ai", "llm"}))
+	assert.Equal(t, categoryAI, classifySignature([]string{"ml"}))
+	assert.Equal(t, categoryAI, classifySignature([]string{"capability", "ai"}))
 }
 
-func TestBuildSignaturesContentTopFiveLimit(t *testing.T) {
+func TestClassifySignatureCrypto(t *testing.T) {
+	assert.Equal(t, categoryCrypto, classifySignature([]string{"cryptography", "encryption"}))
+	assert.Equal(t, categoryCrypto, classifySignature([]string{"hash"}))
+	assert.Equal(t, categoryCrypto, classifySignature([]string{"crypto"}))
+}
+
+func TestClassifySignatureCloud(t *testing.T) {
+	assert.Equal(t, categoryCloud, classifySignature([]string{"iaas"}))
+	assert.Equal(t, categoryCloud, classifySignature([]string{"paas"}))
+	assert.Equal(t, categoryCloud, classifySignature([]string{"saas"}))
+	assert.Equal(t, categoryCloud, classifySignature([]string{"cloud"}))
+}
+
+func TestClassifySignatureCapability(t *testing.T) {
+	assert.Equal(t, categoryCapability, classifySignature([]string{"capability"}))
+	assert.Equal(t, categoryCapability, classifySignature([]string{"network", "http"}))
+	assert.Equal(t, categoryCapability, classifySignature([]string{}))
+}
+
+func TestClassifySignatureAIPrecedence(t *testing.T) {
+	// AI takes precedence over crypto and cloud tags
+	assert.Equal(t, categoryAI, classifySignature([]string{"cryptography", "ai"}))
+	assert.Equal(t, categoryAI, classifySignature([]string{"cloud", "ml"}))
+}
+
+func TestClassifySignatureCryptoPrecedence(t *testing.T) {
+	// Crypto takes precedence over cloud
+	assert.Equal(t, categoryCrypto, classifySignature([]string{"cloud", "encryption"}))
+}
+
+// --- Per-category box rendering tests ---
+
+func TestViewSummaryAIBOMBox(t *testing.T) {
 	m := newTestModel()
 
-	// Add 7 different signatures
-	sigs := []string{"sig1", "sig2", "sig3", "sig4", "sig5", "sig6", "sig7"}
-	for i, sig := range sigs {
-		for j := 0; j < len(sigs)-i; j++ {
-			m.Update(matchFoundMsg{signatureID: sig, language: "go", filePath: "x.go"})
+	m.Update(matchFoundMsg{signatureID: "openai.client", tags: []string{"ai", "llm"}, language: "python", filePath: "a.py"})
+	m.Update(matchFoundMsg{signatureID: "anthropic.client", tags: []string{"ai", "llm"}, language: "python", filePath: "b.py"})
+	m.Update(scanDoneMsg{err: nil})
+
+	view := m.View()
+
+	assert.Contains(t, view, "AI BOM")
+	assert.Contains(t, view, "openai.client")
+	assert.Contains(t, view, "anthropic.client")
+	assert.NotContains(t, view, "CryptoBOM")
+	assert.NotContains(t, view, "Cloud BOM")
+	assert.NotContains(t, view, "Language Capabilities")
+}
+
+func TestViewSummaryCryptoBOMBox(t *testing.T) {
+	m := newTestModel()
+
+	m.Update(matchFoundMsg{signatureID: "crypto.aes", tags: []string{"cryptography", "encryption"}, language: "go", filePath: "a.go"})
+	m.Update(matchFoundMsg{signatureID: "crypto.rsa", tags: []string{"cryptography", "signing"}, language: "go", filePath: "b.go"})
+	m.Update(scanDoneMsg{err: nil})
+
+	view := m.View()
+
+	assert.Contains(t, view, "CryptoBOM")
+	assert.Contains(t, view, "crypto.aes")
+	assert.Contains(t, view, "crypto.rsa")
+	assert.NotContains(t, view, "AI BOM")
+}
+
+func TestViewSummaryCloudBOMBox(t *testing.T) {
+	m := newTestModel()
+
+	m.Update(matchFoundMsg{signatureID: "gcp.storage", tags: []string{"iaas", "storage"}, language: "python", filePath: "a.py"})
+	m.Update(scanDoneMsg{err: nil})
+
+	view := m.View()
+
+	assert.Contains(t, view, "Cloud BOM")
+	assert.Contains(t, view, "gcp.storage")
+	assert.NotContains(t, view, "AI BOM")
+	assert.NotContains(t, view, "CryptoBOM")
+}
+
+func TestViewSummaryCapabilitiesBox(t *testing.T) {
+	m := newTestModel()
+
+	m.Update(matchFoundMsg{signatureID: "golang.filesystem.read", tags: []string{"capability", "filesystem"}, language: "go", filePath: "a.go"})
+	m.Update(scanDoneMsg{err: nil})
+
+	view := m.View()
+
+	assert.Contains(t, view, "Language Capabilities")
+	assert.Contains(t, view, "golang.filesystem.read")
+	assert.NotContains(t, view, "AI BOM")
+}
+
+func TestViewSummaryMultipleCategoryBoxes(t *testing.T) {
+	m := newTestModel()
+
+	// AI matches
+	m.Update(matchFoundMsg{signatureID: "openai.client", tags: []string{"ai", "llm"}, language: "python", filePath: "a.py"})
+	// Crypto matches
+	m.Update(matchFoundMsg{signatureID: "crypto.aes", tags: []string{"cryptography", "encryption"}, language: "go", filePath: "b.go"})
+	// Capability matches
+	m.Update(matchFoundMsg{signatureID: "golang.network.http", tags: []string{"capability", "network"}, language: "go", filePath: "c.go"})
+	m.Update(scanDoneMsg{err: nil})
+
+	view := m.View()
+
+	assert.Contains(t, view, "AI BOM")
+	assert.Contains(t, view, "CryptoBOM")
+	assert.Contains(t, view, "Language Capabilities")
+	assert.NotContains(t, view, "Cloud BOM") // no cloud matches
+
+	// AI BOM should appear before CryptoBOM, which should appear before Capabilities
+	aiIdx := strings.Index(view, "AI BOM")
+	cryptoIdx := strings.Index(view, "CryptoBOM")
+	capIdx := strings.Index(view, "Language Capabilities")
+
+	assert.Greater(t, cryptoIdx, aiIdx, "AI BOM should appear before CryptoBOM")
+	assert.Greater(t, capIdx, cryptoIdx, "CryptoBOM should appear before Language Capabilities")
+}
+
+func TestViewSummaryAllFourCategories(t *testing.T) {
+	m := newTestModel()
+
+	m.Update(matchFoundMsg{signatureID: "openai.client", tags: []string{"ai"}, language: "python", filePath: "a.py"})
+	m.Update(matchFoundMsg{signatureID: "crypto.aes", tags: []string{"cryptography"}, language: "go", filePath: "b.go"})
+	m.Update(matchFoundMsg{signatureID: "gcp.storage", tags: []string{"iaas"}, language: "python", filePath: "c.py"})
+	m.Update(matchFoundMsg{signatureID: "golang.filesystem.read", tags: []string{"capability"}, language: "go", filePath: "d.go"})
+	m.Update(scanDoneMsg{err: nil})
+
+	view := m.View()
+
+	assert.Contains(t, view, "AI BOM")
+	assert.Contains(t, view, "CryptoBOM")
+	assert.Contains(t, view, "Cloud BOM")
+	assert.Contains(t, view, "Language Capabilities")
+
+	// Verify priority ordering: AI < Crypto < Cloud < Capabilities
+	aiIdx := strings.Index(view, "AI BOM")
+	cryptoIdx := strings.Index(view, "CryptoBOM")
+	cloudIdx := strings.Index(view, "Cloud BOM")
+	capIdx := strings.Index(view, "Language Capabilities")
+
+	assert.Greater(t, cryptoIdx, aiIdx)
+	assert.Greater(t, cloudIdx, cryptoIdx)
+	assert.Greater(t, capIdx, cloudIdx)
+}
+
+func TestGroupByCategoryTopFivePerCategory(t *testing.T) {
+	m := newTestModel()
+
+	// Add 7 AI signatures with decreasing counts
+	aiSigs := []string{"ai.sig1", "ai.sig2", "ai.sig3", "ai.sig4", "ai.sig5", "ai.sig6", "ai.sig7"}
+	for i, sig := range aiSigs {
+		for j := 0; j < len(aiSigs)-i; j++ {
+			m.Update(matchFoundMsg{signatureID: sig, tags: []string{"ai"}, language: "python", filePath: "x.py"})
 		}
 	}
 
 	m.phase = phaseSummary
-	content := m.buildSignaturesContent()
+	content := m.buildCategoryContent("AI BOM", m.groupByCategory()[categoryAI])
 
 	// Top 5 should be present
-	for _, sig := range sigs[:5] {
+	for _, sig := range aiSigs[:5] {
 		assert.Contains(t, content, sig)
 	}
 	// 6th and 7th should not
-	assert.NotContains(t, content, "sig6")
-	assert.NotContains(t, content, "sig7")
+	assert.NotContains(t, content, "ai.sig6")
+	assert.NotContains(t, content, "ai.sig7")
+}
+
+func TestBuildCategoryContentOrdering(t *testing.T) {
+	m := newTestModel()
+
+	for i := 0; i < 15; i++ {
+		m.Update(matchFoundMsg{signatureID: "openai.client", tags: []string{"ai"}, language: "python", filePath: "a.py"})
+	}
+	for i := 0; i < 8; i++ {
+		m.Update(matchFoundMsg{signatureID: "anthropic.client", tags: []string{"ai"}, language: "python", filePath: "b.py"})
+	}
+	for i := 0; i < 2; i++ {
+		m.Update(matchFoundMsg{signatureID: "crewai.agent", tags: []string{"ai"}, language: "python", filePath: "c.py"})
+	}
+
+	m.phase = phaseSummary
+	content := m.buildCategoryContent("AI BOM", m.groupByCategory()[categoryAI])
+
+	openaiIdx := strings.Index(content, "openai.client")
+	anthropicIdx := strings.Index(content, "anthropic.client")
+	crewaiIdx := strings.Index(content, "crewai.agent")
+
+	assert.Greater(t, anthropicIdx, openaiIdx)
+	assert.Greater(t, crewaiIdx, anthropicIdx)
 }

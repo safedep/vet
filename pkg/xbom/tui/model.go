@@ -27,6 +27,53 @@ const (
 
 const maxBarLen = 12
 
+// bomCategory represents a high-level grouping of signatures.
+type bomCategory int
+
+const (
+	categoryAI bomCategory = iota
+	categoryCrypto
+	categoryCloud
+	categoryCapability
+)
+
+// categoryMeta holds display metadata for each category.
+type categoryMeta struct {
+	title    string
+	priority int // lower = rendered first
+}
+
+var categoryInfo = map[bomCategory]categoryMeta{
+	categoryAI:         {title: "AI BOM", priority: 0},
+	categoryCrypto:     {title: "CryptoBOM", priority: 1},
+	categoryCloud:      {title: "Cloud BOM", priority: 2},
+	categoryCapability: {title: "Language Capabilities", priority: 3},
+}
+
+// classifySignature determines the category for a signature based on its tags.
+// High-interest categories take precedence over generic "capability".
+func classifySignature(tags []string) bomCategory {
+	for _, tag := range tags {
+		switch tag {
+		case "ai", "ml", "llm":
+			return categoryAI
+		}
+	}
+	for _, tag := range tags {
+		switch tag {
+		case "cryptography", "encryption", "hash", "crypto":
+			return categoryCrypto
+		}
+	}
+	for _, tag := range tags {
+		switch tag {
+		case "iaas", "paas", "saas", "cloud":
+			return categoryCloud
+		}
+	}
+	return categoryCapability
+}
+
 type scanStats struct {
 	filesScanned    int
 	totalMatches    int
@@ -221,21 +268,31 @@ func (m *model) viewSummary() string {
 		return b.String()
 	}
 
-	// Summary box
-	summaryContent := m.buildSummaryContent()
 	boxWidth := m.width - 4
 	if boxWidth < 40 {
 		boxWidth = 40
 	}
+
+	// Summary box
+	summaryContent := m.buildSummaryContent()
 	b.WriteString("\n")
 	b.WriteString(m.styles.SummaryBox.Width(boxWidth).Render(summaryContent))
 	b.WriteString("\n")
 
-	// Top signatures box (only if there are matches)
+	// Per-category signature boxes (only categories with matches)
 	if m.stats.totalMatches > 0 {
-		sigContent := m.buildSignaturesContent()
-		b.WriteString(m.styles.SignatureBox.Width(boxWidth).Render(sigContent))
-		b.WriteString("\n")
+		grouped := m.groupByCategory()
+		// Render in priority order
+		orderedCats := []bomCategory{categoryAI, categoryCrypto, categoryCloud, categoryCapability}
+		for _, cat := range orderedCats {
+			entries, ok := grouped[cat]
+			if !ok || len(entries) == 0 {
+				continue
+			}
+			content := m.buildCategoryContent(categoryInfo[cat].title, entries)
+			b.WriteString(m.styles.SignatureBox.Width(boxWidth).Render(content))
+			b.WriteString("\n")
+		}
 	}
 
 	return b.String()
@@ -270,26 +327,34 @@ type sigEntry struct {
 	tags  []string
 }
 
-func (m *model) buildSignaturesContent() string {
-	var b strings.Builder
-
-	title := m.styles.Title.Render("Top Signatures")
-	b.WriteString(fmt.Sprintf("  %s\n\n", title))
-
-	// Sort signatures by count descending
-	entries := make([]sigEntry, 0, len(m.stats.signatureCounts))
+// groupByCategory partitions all signatures into their BOM categories.
+func (m *model) groupByCategory() map[bomCategory][]sigEntry {
+	grouped := make(map[bomCategory][]sigEntry)
 	for name, count := range m.stats.signatureCounts {
-		entries = append(entries, sigEntry{
+		tags := m.stats.signatureTags[name]
+		cat := classifySignature(tags)
+		grouped[cat] = append(grouped[cat], sigEntry{
 			name:  name,
 			count: count,
-			tags:  m.stats.signatureTags[name],
+			tags:  tags,
 		})
 	}
-	sort.Slice(entries, func(i, j int) bool {
-		return entries[i].count > entries[j].count
-	})
+	// Sort each category by count descending
+	for cat := range grouped {
+		sort.Slice(grouped[cat], func(i, j int) bool {
+			return grouped[cat][i].count > grouped[cat][j].count
+		})
+	}
+	return grouped
+}
 
-	// Show top 5
+// buildCategoryContent renders a titled signature list for one BOM category.
+func (m *model) buildCategoryContent(title string, entries []sigEntry) string {
+	var b strings.Builder
+
+	b.WriteString(fmt.Sprintf("  %s\n\n", m.styles.Title.Render(title)))
+
+	// Show top 5 within category
 	limit := 5
 	if len(entries) < limit {
 		limit = len(entries)
@@ -311,10 +376,8 @@ func (m *model) buildSignaturesContent() string {
 	for i := 0; i < limit; i++ {
 		e := entries[i]
 
-		// Pad name for alignment
 		name := m.styles.SigName.Render(fmt.Sprintf("%-*s", maxNameLen, e.name))
 
-		// Bar chart
 		barLen := maxBarLen
 		if maxCount > 0 {
 			barLen = (e.count * maxBarLen) / maxCount
@@ -325,17 +388,15 @@ func (m *model) buildSignaturesContent() string {
 		bar := m.styles.BarFull.Render(strings.Repeat("█", barLen))
 		barPad := strings.Repeat(" ", maxBarLen-barLen)
 
-		// Count
 		count := m.styles.SigCount.Render(fmt.Sprintf("%-3d", e.count))
 
-		// Tags
 		tagStr := ""
 		if len(e.tags) > 0 {
 			tagParts := make([]string, len(e.tags))
 			for j, tag := range e.tags {
-				tagParts[j] = "[" + tag + "]"
+				tagParts[j] = m.styles.TagBadge.Render(tag)
 			}
-			tagStr = m.styles.TagBadge.Render(strings.Join(tagParts, ""))
+			tagStr = strings.Join(tagParts, " ")
 		}
 
 		b.WriteString(fmt.Sprintf("  %s  %s%s  %s  %s\n", name, bar, barPad, count, tagStr))

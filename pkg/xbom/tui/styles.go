@@ -78,7 +78,9 @@ func NewStyles(p ColorProfile) Styles {
 			Foreground(p.Bar),
 
 		TagBadge: lipgloss.NewStyle().
-			Foreground(p.Dim),
+			Foreground(p.Bright).
+			Background(p.Accent).
+			Padding(0, 1),
 
 		FileName: lipgloss.NewStyle().
 			Foreground(p.Dim).
