@@ -74,6 +74,11 @@ func internalStartScan() error {
 		logger.Fatalf("failed to create ent sqlite storage: %v", err)
 		return err
 	}
+	defer func() {
+		if err := entSqliteStorage.Close(); err != nil {
+			logger.Warnf("failed to close storage: %v", err)
+		}
+	}()
 
 	excludePatternsRegexps := []*regexp.Regexp{}
 	for _, pattern := range excludePatterns {
