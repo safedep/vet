@@ -24,6 +24,7 @@ func NewCodeCommand() *cobra.Command {
 
 	cmd.AddCommand(newScanCommand())
 	cmd.AddCommand(newValidateCommand())
+	cmd.AddCommand(newQueryCommand())
 
 	return cmd
 }
