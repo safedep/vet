@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// CodeSignatureMatch is the predicate function for codesignaturematch builders.
+type CodeSignatureMatch func(*sql.Selector)
+
 // CodeSourceFile is the predicate function for codesourcefile builders.
 type CodeSourceFile func(*sql.Selector)
 

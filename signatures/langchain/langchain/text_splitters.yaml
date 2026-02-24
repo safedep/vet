@@ -1,0 +1,149 @@
+version: 0.1
+
+# References -
+# LangChain Text Splitters contains utilities for splitting into chunks a wide variety of text documents.
+# https://api.python.langchain.com/en/latest/text_splitters_api_reference.html
+
+signatures:
+  - id: langchain_text_splitters.base
+    description: "Langchain Text Splitters Base"
+    vendor: "Langchain"
+    product: "Langchain Text Splitter Library"
+    service: "Base Text Splitter"
+    tags: [ai, langchain, langchain-text-splitters, text-splitters]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_text_splitters.base.*"
+
+  - id: langchain_text_splitters.character
+    description: "Langchain Text Splitters Character"
+    vendor: "Langchain"
+    product: "Langchain Text Splitter Library"
+    service: "Character Text Splitter"
+    tags: [ai, langchain, langchain-text-splitters, text-splitters, character]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_text_splitters.character.*"
+
+  - id: langchain_text_splitters.html
+    description: "Langchain HTML Text Splitters"
+    vendor: "Langchain"
+    product: "Langchain Text Splitter Library"
+    service: "HTML Text Splitter"
+    tags: [ai, langchain, langchain-text-splitters, text-splitters, html]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_text_splitters.html.*"
+
+  - id: langchain_text_splitters.json
+    description: "Langchain JSON Text Splitters"
+    vendor: "Langchain"
+    product: "Langchain Text Splitter Library"
+    service: "JSON Text Splitter"
+    tags: [ai, langchain, langchain-text-splitters, text-splitters, JSON]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_text_splitters.json.*"
+        
+  - id: langchain_text_splitters.konlpy
+    description: "Langchain JSON Text Splitters"
+    vendor: "Langchain"
+    product: "Langchain Text Splitter Library"
+    service: "Konlpy Text Splitter"
+    tags: [ai, langchain, langchain-text-splitters, text-splitters, konlpy]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_text_splitters.konlpy.*"
+
+  - id: langchain_text_splitters.latex
+    description: "Langchain LaTeX Text Splitters"
+    vendor: "Langchain"
+    product: "Langchain Text Splitter Library"
+    service: "LaTeX Text Splitter"
+    tags: [ai, langchain, langchain-text-splitters, text-splitters, latex]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_text_splitters.latex.*"
+
+  - id: langchain_text_splitters.markdown
+    description: "Langchain Markdown Text Splitters"
+    vendor: "Langchain"
+    product: "Langchain Text Splitter Library"
+    service: "Markdown Text Splitter"
+    tags: [ai, langchain, langchain-text-splitters, text-splitters, markdown]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_text_splitters.markdown.*"
+
+  - id: langchain_text_splitters.nltk
+    description: "Langchain NLTK Text Splitters"
+    vendor: "Langchain"
+    product: "Langchain Text Splitter Library"
+    service: "NLTK Text Splitter"
+    tags: [ai, langchain, langchain-text-splitters, text-splitters, nltk]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_text_splitters.nltk.*"
+
+  - id: langchain_text_splitters.python
+    description: "Langchain Python Text Splitters"
+    vendor: "Langchain"
+    product: "Langchain Text Splitter Library"
+    service: "Python Text Splitter"
+    tags: [ai, langchain, langchain-text-splitters, text-splitters, python]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_text_splitters.python.*"
+
+  - id: langchain_text_splitters.sentence_transformers
+    description: "Langchain Sentence Transformers Text Splitters"
+    vendor: "Langchain"
+    product: "Langchain Text Splitter Library"
+    service: "Sentence Transformers Text Splitter"
+    tags: [ai, langchain, langchain-text-splitters, text-splitters, sentence-transformers]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_text_splitters.sentence_transformers.*"
+
+  - id: langchain_text_splitters.spacy
+    description: "Langchain spaCy Text Splitters"
+    vendor: "Langchain"
+    product: "Langchain Text Splitter Library"
+    service: "spaCy Text Splitter"
+    tags: [ai, langchain, langchain-text-splitters, text-splitters, spacy]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_text_splitters.spacy.*"

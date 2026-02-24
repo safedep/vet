@@ -1,0 +1,125 @@
+version: 0.1
+
+# Node.js/JavaScript process execution and management
+# References:
+# - https://nodejs.org/api/child_process.html
+# - https://nodejs.org/api/process.html
+
+signatures:
+  - id: javascript.process.exec
+    description: "Process execution"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Process execution"
+    tags: [process, exec, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "child_process/exec"
+          - type: call
+            value: "child_process/execSync"
+          - type: call
+            value: "child_process/execFile"
+          - type: call
+            value: "child_process/execFileSync"
+          - type: call
+            value: "child_process/spawn"
+          - type: call
+            value: "child_process/spawnSync"
+          - type: call
+            value: "child_process/fork"
+          - type: call
+            value: "child_process/promises.exec"
+          - type: call
+            value: "child_process/promises.execFile"
+          - type: call
+            value: "child_process/promises.spawn"
+
+  - id: javascript.process.info
+    description: "Process information"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Process info"
+    tags: [process, info, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "process/pid"
+          - type: call
+            value: "process/ppid"
+          - type: call
+            value: "process/getuid"
+          - type: call
+            value: "process/getgid"
+          - type: call
+            value: "process/geteuid"
+          - type: call
+            value: "process/getegid"
+          - type: call
+            value: "process/getgroups"
+
+  - id: javascript.process.signal
+    description: "Process signal handling"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Signal handling"
+    tags: [process, signal, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "process/on"
+          - type: call
+            value: "process/kill"
+          - type: call
+            value: "process/send"
+
+  - id: javascript.process.exit
+    description: "Process exit operations"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Process exit"
+    tags: [process, exit, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "process/exit"
+          - type: call
+            value: "process/abort"
+
+  - id: javascript.process.workdir
+    description: "Working directory operations"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Working directory"
+    tags: [process, workdir, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "process/cwd"
+          - type: call
+            value: "process/chdir"
+
+  - id: javascript.process.priority
+    description: "Process priority/scheduling"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Process priority"
+    tags: [process, priority, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "process/getpriority"
+          - type: call
+            value: "process/setpriority"

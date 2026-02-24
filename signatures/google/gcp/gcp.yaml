@@ -1,0 +1,140 @@
+version: 0.1
+
+# References -
+# https://cloud.google.com/python/docs/reference/
+# https://cloud.google.com/nodejs/docs/reference
+
+signatures:
+  - id: gcp.storage
+    description: "Google Cloud Storage"
+    vendor: "Google"
+    product: "Google Cloud Platform"
+    service: "GCP Storage"
+    tags: [storage, iaas]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "google.cloud.storage.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@google-cloud/storage.*"
+
+  - id: gcp.bigquery
+    description: "Google Cloud BigQuery"
+    vendor: "Google"
+    product: "Google Cloud Platform"
+    service: "BigQuery"
+    tags: [bigquery, data, paas]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "google.cloud.bigquery.*"
+          - type: call
+            value: "google.cloud.bigquery_v2.*"
+          - type: call
+            value: "google.cloud.bigquery_storage.*"
+          - type: call
+            value: "google.cloud.bigquery_storage_v1.*"
+          - type: call
+            value: "google.cloud.bigquery_storage_v1beta2.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@google-cloud/bigquery.*"
+
+  - id: gcp.firestore
+    description: "Google Cloud Firestore"
+    vendor: "Google"
+    product: "Google Cloud Platform"
+    service: "GCP Firestore"
+    tags: [firestore, database, paas]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "google.cloud.firestore.*"
+          - type: call
+            value: "google.cloud.firestore_v1.*"
+          - type: call
+            value: "google.cloud.firestore_admin_v1.*"
+          - type: call
+            value: "google.cloud.firestore_bundle.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@google-cloud/firestore.*"
+
+  - id: gcp.vision
+    description: "Google Cloud Vision API"
+    vendor: "Google"
+    product: "Google Cloud Platform"
+    service: "GCP Vision"
+    tags: [vision, image-analysis, ai, saas]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "google.cloud.vision.*"
+          - type: call
+            value: "google.cloud.vision_v1.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@google-cloud/vision.*"
+
+  - id: gcp.translate
+    description: "Google Cloud Translation"
+    vendor: "Google"
+    product: "Google Cloud Platform"
+    service: "GCP Language translation"
+    tags: [translate, nlp, language, ai, saas]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "google.cloud.translate.*"
+          - type: call
+            value: "google.cloud.translate_v2.*"
+          - type: call
+            value: "google.cloud.translate_v3.*"
+          - type: call
+            value: "google.cloud.translate_v3beta1.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@google-cloud/translate.*"
+
+  - id: gcp.secretmanager
+    description: "Google Cloud Secret Manager"
+    vendor: "Google"
+    product: "Google Cloud Platform"
+    service: "GCP Secret Manager"
+    tags: [secret-manager, paas]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "google.cloud.secretmanager.*"
+          - type: call
+            value: "google.cloud.secretmanager_v1.*"
+          - type: call
+            value: "google.cloud.secretmanager.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@google-cloud/secret-manager.*"

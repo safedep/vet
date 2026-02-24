@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/safedep/vet/ent/codesignaturematch"
 	"github.com/safedep/vet/ent/codesourcefile"
 	"github.com/safedep/vet/ent/depsusageevidence"
 	"github.com/safedep/vet/ent/predicate"
@@ -25,6 +26,7 @@ type CodeSourceFileQuery struct {
 	inters                 []Interceptor
 	predicates             []predicate.CodeSourceFile
 	withDepsUsageEvidences *DepsUsageEvidenceQuery
+	withSignatureMatches   *CodeSignatureMatchQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +78,28 @@ func (csfq *CodeSourceFileQuery) QueryDepsUsageEvidences() *DepsUsageEvidenceQue
 			sqlgraph.From(codesourcefile.Table, codesourcefile.FieldID, selector),
 			sqlgraph.To(depsusageevidence.Table, depsusageevidence.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, codesourcefile.DepsUsageEvidencesTable, codesourcefile.DepsUsageEvidencesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(csfq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySignatureMatches chains the current query on the "signature_matches" edge.
+func (csfq *CodeSourceFileQuery) QuerySignatureMatches() *CodeSignatureMatchQuery {
+	query := (&CodeSignatureMatchClient{config: csfq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := csfq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := csfq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(codesourcefile.Table, codesourcefile.FieldID, selector),
+			sqlgraph.To(codesignaturematch.Table, codesignaturematch.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, codesourcefile.SignatureMatchesTable, codesourcefile.SignatureMatchesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(csfq.driver.Dialect(), step)
 		return fromU, nil
@@ -276,6 +300,7 @@ func (csfq *CodeSourceFileQuery) Clone() *CodeSourceFileQuery {
 		inters:                 append([]Interceptor{}, csfq.inters...),
 		predicates:             append([]predicate.CodeSourceFile{}, csfq.predicates...),
 		withDepsUsageEvidences: csfq.withDepsUsageEvidences.Clone(),
+		withSignatureMatches:   csfq.withSignatureMatches.Clone(),
 		// clone intermediate query.
 		sql:  csfq.sql.Clone(),
 		path: csfq.path,
@@ -290,6 +315,17 @@ func (csfq *CodeSourceFileQuery) WithDepsUsageEvidences(opts ...func(*DepsUsageE
 		opt(query)
 	}
 	csfq.withDepsUsageEvidences = query
+	return csfq
+}
+
+// WithSignatureMatches tells the query-builder to eager-load the nodes that are connected to
+// the "signature_matches" edge. The optional arguments are used to configure the query builder of the edge.
+func (csfq *CodeSourceFileQuery) WithSignatureMatches(opts ...func(*CodeSignatureMatchQuery)) *CodeSourceFileQuery {
+	query := (&CodeSignatureMatchClient{config: csfq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	csfq.withSignatureMatches = query
 	return csfq
 }
 
@@ -371,8 +407,9 @@ func (csfq *CodeSourceFileQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 	var (
 		nodes       = []*CodeSourceFile{}
 		_spec       = csfq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			csfq.withDepsUsageEvidences != nil,
+			csfq.withSignatureMatches != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -398,6 +435,15 @@ func (csfq *CodeSourceFileQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 			func(n *CodeSourceFile) { n.Edges.DepsUsageEvidences = []*DepsUsageEvidence{} },
 			func(n *CodeSourceFile, e *DepsUsageEvidence) {
 				n.Edges.DepsUsageEvidences = append(n.Edges.DepsUsageEvidences, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := csfq.withSignatureMatches; query != nil {
+		if err := csfq.loadSignatureMatches(ctx, query, nodes,
+			func(n *CodeSourceFile) { n.Edges.SignatureMatches = []*CodeSignatureMatch{} },
+			func(n *CodeSourceFile, e *CodeSignatureMatch) {
+				n.Edges.SignatureMatches = append(n.Edges.SignatureMatches, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -431,6 +477,37 @@ func (csfq *CodeSourceFileQuery) loadDepsUsageEvidences(ctx context.Context, que
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "deps_usage_evidence_used_in" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (csfq *CodeSourceFileQuery) loadSignatureMatches(ctx context.Context, query *CodeSignatureMatchQuery, nodes []*CodeSourceFile, init func(*CodeSourceFile), assign func(*CodeSourceFile, *CodeSignatureMatch)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*CodeSourceFile)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.CodeSignatureMatch(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(codesourcefile.SignatureMatchesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.code_signature_match_source_file
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "code_signature_match_source_file" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "code_signature_match_source_file" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

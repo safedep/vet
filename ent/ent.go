@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/safedep/vet/ent/codesignaturematch"
 	"github.com/safedep/vet/ent/codesourcefile"
 	"github.com/safedep/vet/ent/depsusageevidence"
 	"github.com/safedep/vet/ent/reportdependency"
@@ -85,6 +86,7 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			codesignaturematch.Table:    codesignaturematch.ValidColumn,
 			codesourcefile.Table:        codesourcefile.ValidColumn,
 			depsusageevidence.Table:     depsusageevidence.ValidColumn,
 			reportdependency.Table:      reportdependency.ValidColumn,

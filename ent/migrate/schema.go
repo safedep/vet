@@ -8,6 +8,38 @@ import (
 )
 
 var (
+	// CodeSignatureMatchesColumns holds the columns for the "code_signature_matches" table.
+	CodeSignatureMatchesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "signature_id", Type: field.TypeString},
+		{Name: "signature_vendor", Type: field.TypeString, Nullable: true},
+		{Name: "signature_product", Type: field.TypeString, Nullable: true},
+		{Name: "signature_service", Type: field.TypeString, Nullable: true},
+		{Name: "signature_description", Type: field.TypeString, Nullable: true},
+		{Name: "tags", Type: field.TypeJSON, Nullable: true},
+		{Name: "file_path", Type: field.TypeString},
+		{Name: "language", Type: field.TypeString},
+		{Name: "line", Type: field.TypeUint, Nullable: true},
+		{Name: "column", Type: field.TypeUint, Nullable: true},
+		{Name: "callee_namespace", Type: field.TypeString, Nullable: true},
+		{Name: "matched_call", Type: field.TypeString, Nullable: true},
+		{Name: "package_hint", Type: field.TypeString, Nullable: true},
+		{Name: "code_signature_match_source_file", Type: field.TypeInt},
+	}
+	// CodeSignatureMatchesTable holds the schema information for the "code_signature_matches" table.
+	CodeSignatureMatchesTable = &schema.Table{
+		Name:       "code_signature_matches",
+		Columns:    CodeSignatureMatchesColumns,
+		PrimaryKey: []*schema.Column{CodeSignatureMatchesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "code_signature_matches_code_source_files_source_file",
+				Columns:    []*schema.Column{CodeSignatureMatchesColumns[14]},
+				RefColumns: []*schema.Column{CodeSourceFilesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// CodeSourceFilesColumns holds the columns for the "code_source_files" table.
 	CodeSourceFilesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -392,6 +424,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		CodeSignatureMatchesTable,
 		CodeSourceFilesTable,
 		DepsUsageEvidencesTable,
 		ReportDependenciesTable,
@@ -410,6 +443,7 @@ var (
 )
 
 func init() {
+	CodeSignatureMatchesTable.ForeignKeys[0].RefTable = CodeSourceFilesTable
 	DepsUsageEvidencesTable.ForeignKeys[0].RefTable = CodeSourceFilesTable
 	ReportDependenciesTable.ForeignKeys[0].RefTable = ReportPackagesTable
 	ReportLicensesTable.ForeignKeys[0].RefTable = ReportPackagesTable

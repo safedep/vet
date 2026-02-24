@@ -9,6 +9,18 @@ import (
 	"github.com/safedep/vet/ent"
 )
 
+// The CodeSignatureMatchFunc type is an adapter to allow the use of ordinary
+// function as CodeSignatureMatch mutator.
+type CodeSignatureMatchFunc func(context.Context, *ent.CodeSignatureMatchMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CodeSignatureMatchFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CodeSignatureMatchMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CodeSignatureMatchMutation", m)
+}
+
 // The CodeSourceFileFunc type is an adapter to allow the use of ordinary
 // function as CodeSourceFile mutator.
 type CodeSourceFileFunc func(context.Context, *ent.CodeSourceFileMutation) (ent.Value, error)

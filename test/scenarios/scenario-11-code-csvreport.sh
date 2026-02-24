@@ -29,6 +29,7 @@ ls $E2E_VET_CSV_REPORT || exit 1
 
 cat > $E2E_VET_EXPECTED_CSV << EOL
 Ecosystem,Manifest Namespace,Manifest Path,Package Name,Package Version,Violation,Introduced By,Path To Root,OSV ID,CVE ID,Vulnerability Severity,Vulnerability Summary,Usage Evidence count,Sample Usage Evidence
+PyPI,*,*,flask,1.0.4,cli-filter,flask,flask,GHSA-68rp-wp8r-4726,CVE-2026-27205,,Flask session does not add \`Vary: Cookie\` header when accessed in some ways,1,$E2E_CODEPATH/usage.py:4
 PyPI,*,*,flask,1.0.4,cli-filter,flask,flask,GHSA-m2qf-hxjv-5gpq,CVE-2023-30861,HIGH,Flask vulnerable to possible disclosure of permanent session cookie due to missing Vary: Cookie header,1,$E2E_CODEPATH/usage.py:4
 PyPI,*,*,flask,1.0.4,cli-filter,flask,flask,PYSEC-2023-62,CVE-2023-30861,,,1,$E2E_CODEPATH/usage.py:4
 PyPI,*,*,langchain,0.2.1,cli-filter,langchain,langchain,GHSA-3hjh-jh2h-vrg6,CVE-2024-2965,MEDIUM,Denial of service in langchain-community,0,

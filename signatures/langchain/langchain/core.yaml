@@ -1,0 +1,369 @@
+version: 0.1
+
+# References -
+# https://api.python.langchain.com/en/latest/core_api_reference.html
+
+signatures:
+  - id: langchain_core.agents
+    description: "Schema definitions for representing agent actions, observations, and return values"
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Agents"
+    tags: [ai, text, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.agents.*"
+
+  - id: langchain_core.beta
+    description: "Some beta features that are not yet ready for production"
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Beta"
+    tags: [ai, text, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.beta.*"
+
+  - id: langchain_core.document_loaders
+    description: "Document loaders"
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Document Loaders"
+    tags: [ai, documents, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.document_loaders.*"
+
+  - id: langchain_core.documents
+    description: "Document module is a collection of classes that handle documents and their transformations."
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Documents"
+    tags: [ai, documents, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.documents.*"
+
+  - id: langchain_core.embeddings
+    description: "Interface for embedding models."
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Embeddings"
+    tags: [ai, embeddings, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.embeddings.*"
+
+  - id: langchain_core.example_selectors
+    description: "Example selector implements logic for selecting examples to include them in prompts. This allows us to select examples that are most relevant to the input."
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Example Selectors"
+    tags: [ai, example-selector, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.example_selectors.*"
+
+  - id: langchain_core.exceptions
+    description: "Custom exceptions for LangChain"
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Exceptions"
+    tags: [ai, exceptions, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.exceptions.*"
+
+  - id: langchain_core.globals
+    description: "Global values and configuration that apply to all of LangChain."
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Globals Values"
+    tags: [ai, global, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.globals.*"
+
+  - id: langchain_core.graph_vectorstores
+    description: "Langchain Core graph vector store interface"
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Graph VectorStore"
+    tags: [ai, graph, vector-store, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.graph_vectorstores.*"
+
+  - id: langchain_core.indexing
+    description: "Code to help indexing data into a vectorstore. This package contains helper logic to help deal with indexing data into a vectorstore while avoiding duplicated content and over-writing content if it’s unchanged."
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Indexing"
+    tags: [ai, indexing, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.indexing.*"
+
+  - id: langchain_core.language_models
+    description: "Language Model is a type of model that can generate text or complete text prompts."
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Language Models"
+    tags: [ai, language-models, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.language_models.*"
+
+  - id: langchain_core.load
+    description: "Load module helps with serialization and deserialization."
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Load"
+    tags: [ai, load, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.load.*"
+
+  - id: langchain_core.memory
+    description: "Memory maintains Chain state, incorporating context from past runs"
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Memory"
+    tags: [ai, memory, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.memory.*"
+
+  - id: langchain_core.messages
+    description: "Messages are objects used in prompts and chat conversations."
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Messages"
+    tags: [ai, Messages, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.messages.*"
+
+  - id: langchain_core.output_parsers
+    description: "OutputParser classes parse the output of an LLM call."
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Parsers"
+    tags: [ai, Parsers, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.output_parsers.*"
+
+  - id: langchain_core.output
+    description: "Output classes are used to represent the output of a language model call and the output of a chat."
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Output"
+    tags: [ai, output, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.output.*"
+
+  - id: langchain_core.prompt_values
+    description: "Prompt values for language model prompts. Prompt values are used to represent different pieces of prompts. They can be used to represent text, images, or chat message pieces."
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Prompt Values"
+    tags: [ai, prompt-values, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.prompt_values.*"
+
+  - id: langchain_core.prompt
+    description: "Prompt is the input to the model. Prompt is often constructed from multiple components and prompt values. Prompt classes and functions make constructing"
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Prompt"
+    tags: [ai, prompt, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.prompt.*"
+
+  - id: langchain_core.rate_limiters
+    description: "Interface for a rate limiter and an in-memory rate limiter."
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Rate Limiters"
+    tags: [ai, rate-limiting, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.rate_limiters.*"
+
+  - id: langchain_core.retrievers
+    description: "Retriever class returns Documents given a text query."
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Retrievers"
+    tags: [ai, retrievers, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.retrievers.*"
+
+  - id: langchain_core.runnables
+    description: "LangChain Runnable and the LangChain Expression Language (LCEL). The LangChain Expression Language (LCEL) offers a declarative method to build production-grade programs that harness the power of LLMs."
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Runnables"
+    tags: [ai, runnables, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.runnables.*"
+
+  - id: langchain_core.stores
+    description: "Store implements the key-value stores and storage helpers."
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Store"
+    tags: [ai, store, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.stores.*"
+
+  - id: langchain_core.structured_query
+    description: "Internal representation of a structured query language."
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Structured Query"
+    tags: [ai, structured-query, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.structured_query.*"
+
+  - id: langchain_core.sys_info
+    description: "sys_info prints information about the system and langchain packages for debugging purposes."
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Sys Info"
+    tags: [ai, sys-info, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.sys_info.*"
+
+  - id: langchain_core.tools
+    description: "Tools are classes that an Agent uses to interact with the world."
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Tools"
+    tags: [ai, tools, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.tools.*"
+
+  - id: langchain_core.tracers
+    description: "Tracers are classes for tracing runs."
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Tracers"
+    tags: [ai, tracers, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.tracers.*"
+
+  - id: langchain_core.utils
+    description: "Utility functions for LangChain."
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Utils"
+    tags: [ai, utils, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.utils.*"
+
+  - id: langchain_core.vectorstores
+    description: "LangChain Core vector store"
+    vendor: "Langchain"
+    product: "Langchain Core Library"
+    service: "Vector Stores"
+    tags: [ai, vector-stores, langchain, langchain-core]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain_core.vectorstores.*"

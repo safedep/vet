@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/safedep/vet/ent/codesignaturematch"
 	"github.com/safedep/vet/ent/codesourcefile"
 	"github.com/safedep/vet/ent/depsusageevidence"
 	"github.com/safedep/vet/ent/reportdependency"
@@ -35,6 +36,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// CodeSignatureMatch is the client for interacting with the CodeSignatureMatch builders.
+	CodeSignatureMatch *CodeSignatureMatchClient
 	// CodeSourceFile is the client for interacting with the CodeSourceFile builders.
 	CodeSourceFile *CodeSourceFileClient
 	// DepsUsageEvidence is the client for interacting with the DepsUsageEvidence builders.
@@ -72,6 +75,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.CodeSignatureMatch = NewCodeSignatureMatchClient(c.config)
 	c.CodeSourceFile = NewCodeSourceFileClient(c.config)
 	c.DepsUsageEvidence = NewDepsUsageEvidenceClient(c.config)
 	c.ReportDependency = NewReportDependencyClient(c.config)
@@ -177,6 +181,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:                   ctx,
 		config:                cfg,
+		CodeSignatureMatch:    NewCodeSignatureMatchClient(cfg),
 		CodeSourceFile:        NewCodeSourceFileClient(cfg),
 		DepsUsageEvidence:     NewDepsUsageEvidenceClient(cfg),
 		ReportDependency:      NewReportDependencyClient(cfg),
@@ -209,6 +214,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:                   ctx,
 		config:                cfg,
+		CodeSignatureMatch:    NewCodeSignatureMatchClient(cfg),
 		CodeSourceFile:        NewCodeSourceFileClient(cfg),
 		DepsUsageEvidence:     NewDepsUsageEvidenceClient(cfg),
 		ReportDependency:      NewReportDependencyClient(cfg),
@@ -228,7 +234,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		CodeSourceFile.
+//		CodeSignatureMatch.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -251,7 +257,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.CodeSourceFile, c.DepsUsageEvidence, c.ReportDependency,
+		c.CodeSignatureMatch, c.CodeSourceFile, c.DepsUsageEvidence, c.ReportDependency,
 		c.ReportDependencyGraph, c.ReportLicense, c.ReportMalware, c.ReportPackage,
 		c.ReportPackageManifest, c.ReportProject, c.ReportScorecard,
 		c.ReportScorecardCheck, c.ReportSlsaProvenance, c.ReportVulnerability,
@@ -264,7 +270,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.CodeSourceFile, c.DepsUsageEvidence, c.ReportDependency,
+		c.CodeSignatureMatch, c.CodeSourceFile, c.DepsUsageEvidence, c.ReportDependency,
 		c.ReportDependencyGraph, c.ReportLicense, c.ReportMalware, c.ReportPackage,
 		c.ReportPackageManifest, c.ReportProject, c.ReportScorecard,
 		c.ReportScorecardCheck, c.ReportSlsaProvenance, c.ReportVulnerability,
@@ -276,6 +282,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *CodeSignatureMatchMutation:
+		return c.CodeSignatureMatch.mutate(ctx, m)
 	case *CodeSourceFileMutation:
 		return c.CodeSourceFile.mutate(ctx, m)
 	case *DepsUsageEvidenceMutation:
@@ -304,6 +312,155 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ReportVulnerability.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// CodeSignatureMatchClient is a client for the CodeSignatureMatch schema.
+type CodeSignatureMatchClient struct {
+	config
+}
+
+// NewCodeSignatureMatchClient returns a client for the CodeSignatureMatch from the given config.
+func NewCodeSignatureMatchClient(c config) *CodeSignatureMatchClient {
+	return &CodeSignatureMatchClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `codesignaturematch.Hooks(f(g(h())))`.
+func (c *CodeSignatureMatchClient) Use(hooks ...Hook) {
+	c.hooks.CodeSignatureMatch = append(c.hooks.CodeSignatureMatch, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `codesignaturematch.Intercept(f(g(h())))`.
+func (c *CodeSignatureMatchClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CodeSignatureMatch = append(c.inters.CodeSignatureMatch, interceptors...)
+}
+
+// Create returns a builder for creating a CodeSignatureMatch entity.
+func (c *CodeSignatureMatchClient) Create() *CodeSignatureMatchCreate {
+	mutation := newCodeSignatureMatchMutation(c.config, OpCreate)
+	return &CodeSignatureMatchCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CodeSignatureMatch entities.
+func (c *CodeSignatureMatchClient) CreateBulk(builders ...*CodeSignatureMatchCreate) *CodeSignatureMatchCreateBulk {
+	return &CodeSignatureMatchCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CodeSignatureMatchClient) MapCreateBulk(slice any, setFunc func(*CodeSignatureMatchCreate, int)) *CodeSignatureMatchCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CodeSignatureMatchCreateBulk{err: fmt.Errorf("calling to CodeSignatureMatchClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CodeSignatureMatchCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CodeSignatureMatchCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CodeSignatureMatch.
+func (c *CodeSignatureMatchClient) Update() *CodeSignatureMatchUpdate {
+	mutation := newCodeSignatureMatchMutation(c.config, OpUpdate)
+	return &CodeSignatureMatchUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CodeSignatureMatchClient) UpdateOne(csm *CodeSignatureMatch) *CodeSignatureMatchUpdateOne {
+	mutation := newCodeSignatureMatchMutation(c.config, OpUpdateOne, withCodeSignatureMatch(csm))
+	return &CodeSignatureMatchUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CodeSignatureMatchClient) UpdateOneID(id int) *CodeSignatureMatchUpdateOne {
+	mutation := newCodeSignatureMatchMutation(c.config, OpUpdateOne, withCodeSignatureMatchID(id))
+	return &CodeSignatureMatchUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CodeSignatureMatch.
+func (c *CodeSignatureMatchClient) Delete() *CodeSignatureMatchDelete {
+	mutation := newCodeSignatureMatchMutation(c.config, OpDelete)
+	return &CodeSignatureMatchDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CodeSignatureMatchClient) DeleteOne(csm *CodeSignatureMatch) *CodeSignatureMatchDeleteOne {
+	return c.DeleteOneID(csm.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CodeSignatureMatchClient) DeleteOneID(id int) *CodeSignatureMatchDeleteOne {
+	builder := c.Delete().Where(codesignaturematch.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CodeSignatureMatchDeleteOne{builder}
+}
+
+// Query returns a query builder for CodeSignatureMatch.
+func (c *CodeSignatureMatchClient) Query() *CodeSignatureMatchQuery {
+	return &CodeSignatureMatchQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCodeSignatureMatch},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CodeSignatureMatch entity by its id.
+func (c *CodeSignatureMatchClient) Get(ctx context.Context, id int) (*CodeSignatureMatch, error) {
+	return c.Query().Where(codesignaturematch.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CodeSignatureMatchClient) GetX(ctx context.Context, id int) *CodeSignatureMatch {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QuerySourceFile queries the source_file edge of a CodeSignatureMatch.
+func (c *CodeSignatureMatchClient) QuerySourceFile(csm *CodeSignatureMatch) *CodeSourceFileQuery {
+	query := (&CodeSourceFileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := csm.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(codesignaturematch.Table, codesignaturematch.FieldID, id),
+			sqlgraph.To(codesourcefile.Table, codesourcefile.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, codesignaturematch.SourceFileTable, codesignaturematch.SourceFileColumn),
+		)
+		fromV = sqlgraph.Neighbors(csm.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CodeSignatureMatchClient) Hooks() []Hook {
+	return c.hooks.CodeSignatureMatch
+}
+
+// Interceptors returns the client interceptors.
+func (c *CodeSignatureMatchClient) Interceptors() []Interceptor {
+	return c.inters.CodeSignatureMatch
+}
+
+func (c *CodeSignatureMatchClient) mutate(ctx context.Context, m *CodeSignatureMatchMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CodeSignatureMatchCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CodeSignatureMatchUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CodeSignatureMatchUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CodeSignatureMatchDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown CodeSignatureMatch mutation op: %q", m.Op())
 	}
 }
 
@@ -424,6 +581,22 @@ func (c *CodeSourceFileClient) QueryDepsUsageEvidences(csf *CodeSourceFile) *Dep
 			sqlgraph.From(codesourcefile.Table, codesourcefile.FieldID, id),
 			sqlgraph.To(depsusageevidence.Table, depsusageevidence.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, codesourcefile.DepsUsageEvidencesTable, codesourcefile.DepsUsageEvidencesColumn),
+		)
+		fromV = sqlgraph.Neighbors(csf.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySignatureMatches queries the signature_matches edge of a CodeSourceFile.
+func (c *CodeSourceFileClient) QuerySignatureMatches(csf *CodeSourceFile) *CodeSignatureMatchQuery {
+	query := (&CodeSignatureMatchClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := csf.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(codesourcefile.Table, codesourcefile.FieldID, id),
+			sqlgraph.To(codesignaturematch.Table, codesignaturematch.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, codesourcefile.SignatureMatchesTable, codesourcefile.SignatureMatchesColumn),
 		)
 		fromV = sqlgraph.Neighbors(csf.driver.Dialect(), step)
 		return fromV, nil
@@ -2359,15 +2532,15 @@ func (c *ReportVulnerabilityClient) mutate(ctx context.Context, m *ReportVulnera
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		CodeSourceFile, DepsUsageEvidence, ReportDependency, ReportDependencyGraph,
-		ReportLicense, ReportMalware, ReportPackage, ReportPackageManifest,
-		ReportProject, ReportScorecard, ReportScorecardCheck, ReportSlsaProvenance,
-		ReportVulnerability []ent.Hook
+		CodeSignatureMatch, CodeSourceFile, DepsUsageEvidence, ReportDependency,
+		ReportDependencyGraph, ReportLicense, ReportMalware, ReportPackage,
+		ReportPackageManifest, ReportProject, ReportScorecard, ReportScorecardCheck,
+		ReportSlsaProvenance, ReportVulnerability []ent.Hook
 	}
 	inters struct {
-		CodeSourceFile, DepsUsageEvidence, ReportDependency, ReportDependencyGraph,
-		ReportLicense, ReportMalware, ReportPackage, ReportPackageManifest,
-		ReportProject, ReportScorecard, ReportScorecardCheck, ReportSlsaProvenance,
-		ReportVulnerability []ent.Interceptor
+		CodeSignatureMatch, CodeSourceFile, DepsUsageEvidence, ReportDependency,
+		ReportDependencyGraph, ReportLicense, ReportMalware, ReportPackage,
+		ReportPackageManifest, ReportProject, ReportScorecard, ReportScorecardCheck,
+		ReportSlsaProvenance, ReportVulnerability []ent.Interceptor
 	}
 )

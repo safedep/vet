@@ -11,6 +11,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/safedep/vet/ent/codesignaturematch"
 	"github.com/safedep/vet/ent/codesourcefile"
 	"github.com/safedep/vet/ent/depsusageevidence"
 	"github.com/safedep/vet/ent/predicate"
@@ -36,6 +37,7 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
+	TypeCodeSignatureMatch    = "CodeSignatureMatch"
 	TypeCodeSourceFile        = "CodeSourceFile"
 	TypeDepsUsageEvidence     = "DepsUsageEvidence"
 	TypeReportDependency      = "ReportDependency"
@@ -51,6 +53,1328 @@ const (
 	TypeReportVulnerability   = "ReportVulnerability"
 )
 
+// CodeSignatureMatchMutation represents an operation that mutates the CodeSignatureMatch nodes in the graph.
+type CodeSignatureMatchMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *int
+	signature_id          *string
+	signature_vendor      *string
+	signature_product     *string
+	signature_service     *string
+	signature_description *string
+	tags                  *[]string
+	appendtags            []string
+	file_path             *string
+	language              *string
+	line                  *uint
+	addline               *int
+	column                *uint
+	addcolumn             *int
+	callee_namespace      *string
+	matched_call          *string
+	package_hint          *string
+	clearedFields         map[string]struct{}
+	source_file           *int
+	clearedsource_file    bool
+	done                  bool
+	oldValue              func(context.Context) (*CodeSignatureMatch, error)
+	predicates            []predicate.CodeSignatureMatch
+}
+
+var _ ent.Mutation = (*CodeSignatureMatchMutation)(nil)
+
+// codesignaturematchOption allows management of the mutation configuration using functional options.
+type codesignaturematchOption func(*CodeSignatureMatchMutation)
+
+// newCodeSignatureMatchMutation creates new mutation for the CodeSignatureMatch entity.
+func newCodeSignatureMatchMutation(c config, op Op, opts ...codesignaturematchOption) *CodeSignatureMatchMutation {
+	m := &CodeSignatureMatchMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCodeSignatureMatch,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCodeSignatureMatchID sets the ID field of the mutation.
+func withCodeSignatureMatchID(id int) codesignaturematchOption {
+	return func(m *CodeSignatureMatchMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CodeSignatureMatch
+		)
+		m.oldValue = func(ctx context.Context) (*CodeSignatureMatch, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CodeSignatureMatch.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCodeSignatureMatch sets the old CodeSignatureMatch of the mutation.
+func withCodeSignatureMatch(node *CodeSignatureMatch) codesignaturematchOption {
+	return func(m *CodeSignatureMatchMutation) {
+		m.oldValue = func(context.Context) (*CodeSignatureMatch, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CodeSignatureMatchMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CodeSignatureMatchMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CodeSignatureMatchMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CodeSignatureMatchMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CodeSignatureMatch.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetSignatureID sets the "signature_id" field.
+func (m *CodeSignatureMatchMutation) SetSignatureID(s string) {
+	m.signature_id = &s
+}
+
+// SignatureID returns the value of the "signature_id" field in the mutation.
+func (m *CodeSignatureMatchMutation) SignatureID() (r string, exists bool) {
+	v := m.signature_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSignatureID returns the old "signature_id" field's value of the CodeSignatureMatch entity.
+// If the CodeSignatureMatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSignatureMatchMutation) OldSignatureID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSignatureID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSignatureID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSignatureID: %w", err)
+	}
+	return oldValue.SignatureID, nil
+}
+
+// ResetSignatureID resets all changes to the "signature_id" field.
+func (m *CodeSignatureMatchMutation) ResetSignatureID() {
+	m.signature_id = nil
+}
+
+// SetSignatureVendor sets the "signature_vendor" field.
+func (m *CodeSignatureMatchMutation) SetSignatureVendor(s string) {
+	m.signature_vendor = &s
+}
+
+// SignatureVendor returns the value of the "signature_vendor" field in the mutation.
+func (m *CodeSignatureMatchMutation) SignatureVendor() (r string, exists bool) {
+	v := m.signature_vendor
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSignatureVendor returns the old "signature_vendor" field's value of the CodeSignatureMatch entity.
+// If the CodeSignatureMatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSignatureMatchMutation) OldSignatureVendor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSignatureVendor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSignatureVendor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSignatureVendor: %w", err)
+	}
+	return oldValue.SignatureVendor, nil
+}
+
+// ClearSignatureVendor clears the value of the "signature_vendor" field.
+func (m *CodeSignatureMatchMutation) ClearSignatureVendor() {
+	m.signature_vendor = nil
+	m.clearedFields[codesignaturematch.FieldSignatureVendor] = struct{}{}
+}
+
+// SignatureVendorCleared returns if the "signature_vendor" field was cleared in this mutation.
+func (m *CodeSignatureMatchMutation) SignatureVendorCleared() bool {
+	_, ok := m.clearedFields[codesignaturematch.FieldSignatureVendor]
+	return ok
+}
+
+// ResetSignatureVendor resets all changes to the "signature_vendor" field.
+func (m *CodeSignatureMatchMutation) ResetSignatureVendor() {
+	m.signature_vendor = nil
+	delete(m.clearedFields, codesignaturematch.FieldSignatureVendor)
+}
+
+// SetSignatureProduct sets the "signature_product" field.
+func (m *CodeSignatureMatchMutation) SetSignatureProduct(s string) {
+	m.signature_product = &s
+}
+
+// SignatureProduct returns the value of the "signature_product" field in the mutation.
+func (m *CodeSignatureMatchMutation) SignatureProduct() (r string, exists bool) {
+	v := m.signature_product
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSignatureProduct returns the old "signature_product" field's value of the CodeSignatureMatch entity.
+// If the CodeSignatureMatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSignatureMatchMutation) OldSignatureProduct(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSignatureProduct is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSignatureProduct requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSignatureProduct: %w", err)
+	}
+	return oldValue.SignatureProduct, nil
+}
+
+// ClearSignatureProduct clears the value of the "signature_product" field.
+func (m *CodeSignatureMatchMutation) ClearSignatureProduct() {
+	m.signature_product = nil
+	m.clearedFields[codesignaturematch.FieldSignatureProduct] = struct{}{}
+}
+
+// SignatureProductCleared returns if the "signature_product" field was cleared in this mutation.
+func (m *CodeSignatureMatchMutation) SignatureProductCleared() bool {
+	_, ok := m.clearedFields[codesignaturematch.FieldSignatureProduct]
+	return ok
+}
+
+// ResetSignatureProduct resets all changes to the "signature_product" field.
+func (m *CodeSignatureMatchMutation) ResetSignatureProduct() {
+	m.signature_product = nil
+	delete(m.clearedFields, codesignaturematch.FieldSignatureProduct)
+}
+
+// SetSignatureService sets the "signature_service" field.
+func (m *CodeSignatureMatchMutation) SetSignatureService(s string) {
+	m.signature_service = &s
+}
+
+// SignatureService returns the value of the "signature_service" field in the mutation.
+func (m *CodeSignatureMatchMutation) SignatureService() (r string, exists bool) {
+	v := m.signature_service
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSignatureService returns the old "signature_service" field's value of the CodeSignatureMatch entity.
+// If the CodeSignatureMatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSignatureMatchMutation) OldSignatureService(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSignatureService is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSignatureService requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSignatureService: %w", err)
+	}
+	return oldValue.SignatureService, nil
+}
+
+// ClearSignatureService clears the value of the "signature_service" field.
+func (m *CodeSignatureMatchMutation) ClearSignatureService() {
+	m.signature_service = nil
+	m.clearedFields[codesignaturematch.FieldSignatureService] = struct{}{}
+}
+
+// SignatureServiceCleared returns if the "signature_service" field was cleared in this mutation.
+func (m *CodeSignatureMatchMutation) SignatureServiceCleared() bool {
+	_, ok := m.clearedFields[codesignaturematch.FieldSignatureService]
+	return ok
+}
+
+// ResetSignatureService resets all changes to the "signature_service" field.
+func (m *CodeSignatureMatchMutation) ResetSignatureService() {
+	m.signature_service = nil
+	delete(m.clearedFields, codesignaturematch.FieldSignatureService)
+}
+
+// SetSignatureDescription sets the "signature_description" field.
+func (m *CodeSignatureMatchMutation) SetSignatureDescription(s string) {
+	m.signature_description = &s
+}
+
+// SignatureDescription returns the value of the "signature_description" field in the mutation.
+func (m *CodeSignatureMatchMutation) SignatureDescription() (r string, exists bool) {
+	v := m.signature_description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSignatureDescription returns the old "signature_description" field's value of the CodeSignatureMatch entity.
+// If the CodeSignatureMatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSignatureMatchMutation) OldSignatureDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSignatureDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSignatureDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSignatureDescription: %w", err)
+	}
+	return oldValue.SignatureDescription, nil
+}
+
+// ClearSignatureDescription clears the value of the "signature_description" field.
+func (m *CodeSignatureMatchMutation) ClearSignatureDescription() {
+	m.signature_description = nil
+	m.clearedFields[codesignaturematch.FieldSignatureDescription] = struct{}{}
+}
+
+// SignatureDescriptionCleared returns if the "signature_description" field was cleared in this mutation.
+func (m *CodeSignatureMatchMutation) SignatureDescriptionCleared() bool {
+	_, ok := m.clearedFields[codesignaturematch.FieldSignatureDescription]
+	return ok
+}
+
+// ResetSignatureDescription resets all changes to the "signature_description" field.
+func (m *CodeSignatureMatchMutation) ResetSignatureDescription() {
+	m.signature_description = nil
+	delete(m.clearedFields, codesignaturematch.FieldSignatureDescription)
+}
+
+// SetTags sets the "tags" field.
+func (m *CodeSignatureMatchMutation) SetTags(s []string) {
+	m.tags = &s
+	m.appendtags = nil
+}
+
+// Tags returns the value of the "tags" field in the mutation.
+func (m *CodeSignatureMatchMutation) Tags() (r []string, exists bool) {
+	v := m.tags
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTags returns the old "tags" field's value of the CodeSignatureMatch entity.
+// If the CodeSignatureMatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSignatureMatchMutation) OldTags(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTags is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTags requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTags: %w", err)
+	}
+	return oldValue.Tags, nil
+}
+
+// AppendTags adds s to the "tags" field.
+func (m *CodeSignatureMatchMutation) AppendTags(s []string) {
+	m.appendtags = append(m.appendtags, s...)
+}
+
+// AppendedTags returns the list of values that were appended to the "tags" field in this mutation.
+func (m *CodeSignatureMatchMutation) AppendedTags() ([]string, bool) {
+	if len(m.appendtags) == 0 {
+		return nil, false
+	}
+	return m.appendtags, true
+}
+
+// ClearTags clears the value of the "tags" field.
+func (m *CodeSignatureMatchMutation) ClearTags() {
+	m.tags = nil
+	m.appendtags = nil
+	m.clearedFields[codesignaturematch.FieldTags] = struct{}{}
+}
+
+// TagsCleared returns if the "tags" field was cleared in this mutation.
+func (m *CodeSignatureMatchMutation) TagsCleared() bool {
+	_, ok := m.clearedFields[codesignaturematch.FieldTags]
+	return ok
+}
+
+// ResetTags resets all changes to the "tags" field.
+func (m *CodeSignatureMatchMutation) ResetTags() {
+	m.tags = nil
+	m.appendtags = nil
+	delete(m.clearedFields, codesignaturematch.FieldTags)
+}
+
+// SetFilePath sets the "file_path" field.
+func (m *CodeSignatureMatchMutation) SetFilePath(s string) {
+	m.file_path = &s
+}
+
+// FilePath returns the value of the "file_path" field in the mutation.
+func (m *CodeSignatureMatchMutation) FilePath() (r string, exists bool) {
+	v := m.file_path
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFilePath returns the old "file_path" field's value of the CodeSignatureMatch entity.
+// If the CodeSignatureMatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSignatureMatchMutation) OldFilePath(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFilePath is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFilePath requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFilePath: %w", err)
+	}
+	return oldValue.FilePath, nil
+}
+
+// ResetFilePath resets all changes to the "file_path" field.
+func (m *CodeSignatureMatchMutation) ResetFilePath() {
+	m.file_path = nil
+}
+
+// SetLanguage sets the "language" field.
+func (m *CodeSignatureMatchMutation) SetLanguage(s string) {
+	m.language = &s
+}
+
+// Language returns the value of the "language" field in the mutation.
+func (m *CodeSignatureMatchMutation) Language() (r string, exists bool) {
+	v := m.language
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLanguage returns the old "language" field's value of the CodeSignatureMatch entity.
+// If the CodeSignatureMatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSignatureMatchMutation) OldLanguage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLanguage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLanguage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLanguage: %w", err)
+	}
+	return oldValue.Language, nil
+}
+
+// ResetLanguage resets all changes to the "language" field.
+func (m *CodeSignatureMatchMutation) ResetLanguage() {
+	m.language = nil
+}
+
+// SetLine sets the "line" field.
+func (m *CodeSignatureMatchMutation) SetLine(u uint) {
+	m.line = &u
+	m.addline = nil
+}
+
+// Line returns the value of the "line" field in the mutation.
+func (m *CodeSignatureMatchMutation) Line() (r uint, exists bool) {
+	v := m.line
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLine returns the old "line" field's value of the CodeSignatureMatch entity.
+// If the CodeSignatureMatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSignatureMatchMutation) OldLine(ctx context.Context) (v uint, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLine is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLine requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLine: %w", err)
+	}
+	return oldValue.Line, nil
+}
+
+// AddLine adds u to the "line" field.
+func (m *CodeSignatureMatchMutation) AddLine(u int) {
+	if m.addline != nil {
+		*m.addline += u
+	} else {
+		m.addline = &u
+	}
+}
+
+// AddedLine returns the value that was added to the "line" field in this mutation.
+func (m *CodeSignatureMatchMutation) AddedLine() (r int, exists bool) {
+	v := m.addline
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearLine clears the value of the "line" field.
+func (m *CodeSignatureMatchMutation) ClearLine() {
+	m.line = nil
+	m.addline = nil
+	m.clearedFields[codesignaturematch.FieldLine] = struct{}{}
+}
+
+// LineCleared returns if the "line" field was cleared in this mutation.
+func (m *CodeSignatureMatchMutation) LineCleared() bool {
+	_, ok := m.clearedFields[codesignaturematch.FieldLine]
+	return ok
+}
+
+// ResetLine resets all changes to the "line" field.
+func (m *CodeSignatureMatchMutation) ResetLine() {
+	m.line = nil
+	m.addline = nil
+	delete(m.clearedFields, codesignaturematch.FieldLine)
+}
+
+// SetColumn sets the "column" field.
+func (m *CodeSignatureMatchMutation) SetColumn(u uint) {
+	m.column = &u
+	m.addcolumn = nil
+}
+
+// Column returns the value of the "column" field in the mutation.
+func (m *CodeSignatureMatchMutation) Column() (r uint, exists bool) {
+	v := m.column
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldColumn returns the old "column" field's value of the CodeSignatureMatch entity.
+// If the CodeSignatureMatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSignatureMatchMutation) OldColumn(ctx context.Context) (v uint, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldColumn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldColumn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldColumn: %w", err)
+	}
+	return oldValue.Column, nil
+}
+
+// AddColumn adds u to the "column" field.
+func (m *CodeSignatureMatchMutation) AddColumn(u int) {
+	if m.addcolumn != nil {
+		*m.addcolumn += u
+	} else {
+		m.addcolumn = &u
+	}
+}
+
+// AddedColumn returns the value that was added to the "column" field in this mutation.
+func (m *CodeSignatureMatchMutation) AddedColumn() (r int, exists bool) {
+	v := m.addcolumn
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearColumn clears the value of the "column" field.
+func (m *CodeSignatureMatchMutation) ClearColumn() {
+	m.column = nil
+	m.addcolumn = nil
+	m.clearedFields[codesignaturematch.FieldColumn] = struct{}{}
+}
+
+// ColumnCleared returns if the "column" field was cleared in this mutation.
+func (m *CodeSignatureMatchMutation) ColumnCleared() bool {
+	_, ok := m.clearedFields[codesignaturematch.FieldColumn]
+	return ok
+}
+
+// ResetColumn resets all changes to the "column" field.
+func (m *CodeSignatureMatchMutation) ResetColumn() {
+	m.column = nil
+	m.addcolumn = nil
+	delete(m.clearedFields, codesignaturematch.FieldColumn)
+}
+
+// SetCalleeNamespace sets the "callee_namespace" field.
+func (m *CodeSignatureMatchMutation) SetCalleeNamespace(s string) {
+	m.callee_namespace = &s
+}
+
+// CalleeNamespace returns the value of the "callee_namespace" field in the mutation.
+func (m *CodeSignatureMatchMutation) CalleeNamespace() (r string, exists bool) {
+	v := m.callee_namespace
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCalleeNamespace returns the old "callee_namespace" field's value of the CodeSignatureMatch entity.
+// If the CodeSignatureMatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSignatureMatchMutation) OldCalleeNamespace(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCalleeNamespace is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCalleeNamespace requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCalleeNamespace: %w", err)
+	}
+	return oldValue.CalleeNamespace, nil
+}
+
+// ClearCalleeNamespace clears the value of the "callee_namespace" field.
+func (m *CodeSignatureMatchMutation) ClearCalleeNamespace() {
+	m.callee_namespace = nil
+	m.clearedFields[codesignaturematch.FieldCalleeNamespace] = struct{}{}
+}
+
+// CalleeNamespaceCleared returns if the "callee_namespace" field was cleared in this mutation.
+func (m *CodeSignatureMatchMutation) CalleeNamespaceCleared() bool {
+	_, ok := m.clearedFields[codesignaturematch.FieldCalleeNamespace]
+	return ok
+}
+
+// ResetCalleeNamespace resets all changes to the "callee_namespace" field.
+func (m *CodeSignatureMatchMutation) ResetCalleeNamespace() {
+	m.callee_namespace = nil
+	delete(m.clearedFields, codesignaturematch.FieldCalleeNamespace)
+}
+
+// SetMatchedCall sets the "matched_call" field.
+func (m *CodeSignatureMatchMutation) SetMatchedCall(s string) {
+	m.matched_call = &s
+}
+
+// MatchedCall returns the value of the "matched_call" field in the mutation.
+func (m *CodeSignatureMatchMutation) MatchedCall() (r string, exists bool) {
+	v := m.matched_call
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMatchedCall returns the old "matched_call" field's value of the CodeSignatureMatch entity.
+// If the CodeSignatureMatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSignatureMatchMutation) OldMatchedCall(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMatchedCall is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMatchedCall requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMatchedCall: %w", err)
+	}
+	return oldValue.MatchedCall, nil
+}
+
+// ClearMatchedCall clears the value of the "matched_call" field.
+func (m *CodeSignatureMatchMutation) ClearMatchedCall() {
+	m.matched_call = nil
+	m.clearedFields[codesignaturematch.FieldMatchedCall] = struct{}{}
+}
+
+// MatchedCallCleared returns if the "matched_call" field was cleared in this mutation.
+func (m *CodeSignatureMatchMutation) MatchedCallCleared() bool {
+	_, ok := m.clearedFields[codesignaturematch.FieldMatchedCall]
+	return ok
+}
+
+// ResetMatchedCall resets all changes to the "matched_call" field.
+func (m *CodeSignatureMatchMutation) ResetMatchedCall() {
+	m.matched_call = nil
+	delete(m.clearedFields, codesignaturematch.FieldMatchedCall)
+}
+
+// SetPackageHint sets the "package_hint" field.
+func (m *CodeSignatureMatchMutation) SetPackageHint(s string) {
+	m.package_hint = &s
+}
+
+// PackageHint returns the value of the "package_hint" field in the mutation.
+func (m *CodeSignatureMatchMutation) PackageHint() (r string, exists bool) {
+	v := m.package_hint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPackageHint returns the old "package_hint" field's value of the CodeSignatureMatch entity.
+// If the CodeSignatureMatch object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeSignatureMatchMutation) OldPackageHint(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPackageHint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPackageHint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPackageHint: %w", err)
+	}
+	return oldValue.PackageHint, nil
+}
+
+// ClearPackageHint clears the value of the "package_hint" field.
+func (m *CodeSignatureMatchMutation) ClearPackageHint() {
+	m.package_hint = nil
+	m.clearedFields[codesignaturematch.FieldPackageHint] = struct{}{}
+}
+
+// PackageHintCleared returns if the "package_hint" field was cleared in this mutation.
+func (m *CodeSignatureMatchMutation) PackageHintCleared() bool {
+	_, ok := m.clearedFields[codesignaturematch.FieldPackageHint]
+	return ok
+}
+
+// ResetPackageHint resets all changes to the "package_hint" field.
+func (m *CodeSignatureMatchMutation) ResetPackageHint() {
+	m.package_hint = nil
+	delete(m.clearedFields, codesignaturematch.FieldPackageHint)
+}
+
+// SetSourceFileID sets the "source_file" edge to the CodeSourceFile entity by id.
+func (m *CodeSignatureMatchMutation) SetSourceFileID(id int) {
+	m.source_file = &id
+}
+
+// ClearSourceFile clears the "source_file" edge to the CodeSourceFile entity.
+func (m *CodeSignatureMatchMutation) ClearSourceFile() {
+	m.clearedsource_file = true
+}
+
+// SourceFileCleared reports if the "source_file" edge to the CodeSourceFile entity was cleared.
+func (m *CodeSignatureMatchMutation) SourceFileCleared() bool {
+	return m.clearedsource_file
+}
+
+// SourceFileID returns the "source_file" edge ID in the mutation.
+func (m *CodeSignatureMatchMutation) SourceFileID() (id int, exists bool) {
+	if m.source_file != nil {
+		return *m.source_file, true
+	}
+	return
+}
+
+// SourceFileIDs returns the "source_file" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SourceFileID instead. It exists only for internal usage by the builders.
+func (m *CodeSignatureMatchMutation) SourceFileIDs() (ids []int) {
+	if id := m.source_file; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSourceFile resets all changes to the "source_file" edge.
+func (m *CodeSignatureMatchMutation) ResetSourceFile() {
+	m.source_file = nil
+	m.clearedsource_file = false
+}
+
+// Where appends a list predicates to the CodeSignatureMatchMutation builder.
+func (m *CodeSignatureMatchMutation) Where(ps ...predicate.CodeSignatureMatch) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CodeSignatureMatchMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CodeSignatureMatchMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.CodeSignatureMatch, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CodeSignatureMatchMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CodeSignatureMatchMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (CodeSignatureMatch).
+func (m *CodeSignatureMatchMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CodeSignatureMatchMutation) Fields() []string {
+	fields := make([]string, 0, 13)
+	if m.signature_id != nil {
+		fields = append(fields, codesignaturematch.FieldSignatureID)
+	}
+	if m.signature_vendor != nil {
+		fields = append(fields, codesignaturematch.FieldSignatureVendor)
+	}
+	if m.signature_product != nil {
+		fields = append(fields, codesignaturematch.FieldSignatureProduct)
+	}
+	if m.signature_service != nil {
+		fields = append(fields, codesignaturematch.FieldSignatureService)
+	}
+	if m.signature_description != nil {
+		fields = append(fields, codesignaturematch.FieldSignatureDescription)
+	}
+	if m.tags != nil {
+		fields = append(fields, codesignaturematch.FieldTags)
+	}
+	if m.file_path != nil {
+		fields = append(fields, codesignaturematch.FieldFilePath)
+	}
+	if m.language != nil {
+		fields = append(fields, codesignaturematch.FieldLanguage)
+	}
+	if m.line != nil {
+		fields = append(fields, codesignaturematch.FieldLine)
+	}
+	if m.column != nil {
+		fields = append(fields, codesignaturematch.FieldColumn)
+	}
+	if m.callee_namespace != nil {
+		fields = append(fields, codesignaturematch.FieldCalleeNamespace)
+	}
+	if m.matched_call != nil {
+		fields = append(fields, codesignaturematch.FieldMatchedCall)
+	}
+	if m.package_hint != nil {
+		fields = append(fields, codesignaturematch.FieldPackageHint)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CodeSignatureMatchMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case codesignaturematch.FieldSignatureID:
+		return m.SignatureID()
+	case codesignaturematch.FieldSignatureVendor:
+		return m.SignatureVendor()
+	case codesignaturematch.FieldSignatureProduct:
+		return m.SignatureProduct()
+	case codesignaturematch.FieldSignatureService:
+		return m.SignatureService()
+	case codesignaturematch.FieldSignatureDescription:
+		return m.SignatureDescription()
+	case codesignaturematch.FieldTags:
+		return m.Tags()
+	case codesignaturematch.FieldFilePath:
+		return m.FilePath()
+	case codesignaturematch.FieldLanguage:
+		return m.Language()
+	case codesignaturematch.FieldLine:
+		return m.Line()
+	case codesignaturematch.FieldColumn:
+		return m.Column()
+	case codesignaturematch.FieldCalleeNamespace:
+		return m.CalleeNamespace()
+	case codesignaturematch.FieldMatchedCall:
+		return m.MatchedCall()
+	case codesignaturematch.FieldPackageHint:
+		return m.PackageHint()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CodeSignatureMatchMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case codesignaturematch.FieldSignatureID:
+		return m.OldSignatureID(ctx)
+	case codesignaturematch.FieldSignatureVendor:
+		return m.OldSignatureVendor(ctx)
+	case codesignaturematch.FieldSignatureProduct:
+		return m.OldSignatureProduct(ctx)
+	case codesignaturematch.FieldSignatureService:
+		return m.OldSignatureService(ctx)
+	case codesignaturematch.FieldSignatureDescription:
+		return m.OldSignatureDescription(ctx)
+	case codesignaturematch.FieldTags:
+		return m.OldTags(ctx)
+	case codesignaturematch.FieldFilePath:
+		return m.OldFilePath(ctx)
+	case codesignaturematch.FieldLanguage:
+		return m.OldLanguage(ctx)
+	case codesignaturematch.FieldLine:
+		return m.OldLine(ctx)
+	case codesignaturematch.FieldColumn:
+		return m.OldColumn(ctx)
+	case codesignaturematch.FieldCalleeNamespace:
+		return m.OldCalleeNamespace(ctx)
+	case codesignaturematch.FieldMatchedCall:
+		return m.OldMatchedCall(ctx)
+	case codesignaturematch.FieldPackageHint:
+		return m.OldPackageHint(ctx)
+	}
+	return nil, fmt.Errorf("unknown CodeSignatureMatch field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CodeSignatureMatchMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case codesignaturematch.FieldSignatureID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSignatureID(v)
+		return nil
+	case codesignaturematch.FieldSignatureVendor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSignatureVendor(v)
+		return nil
+	case codesignaturematch.FieldSignatureProduct:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSignatureProduct(v)
+		return nil
+	case codesignaturematch.FieldSignatureService:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSignatureService(v)
+		return nil
+	case codesignaturematch.FieldSignatureDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSignatureDescription(v)
+		return nil
+	case codesignaturematch.FieldTags:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTags(v)
+		return nil
+	case codesignaturematch.FieldFilePath:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFilePath(v)
+		return nil
+	case codesignaturematch.FieldLanguage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLanguage(v)
+		return nil
+	case codesignaturematch.FieldLine:
+		v, ok := value.(uint)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLine(v)
+		return nil
+	case codesignaturematch.FieldColumn:
+		v, ok := value.(uint)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetColumn(v)
+		return nil
+	case codesignaturematch.FieldCalleeNamespace:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCalleeNamespace(v)
+		return nil
+	case codesignaturematch.FieldMatchedCall:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMatchedCall(v)
+		return nil
+	case codesignaturematch.FieldPackageHint:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPackageHint(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CodeSignatureMatch field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CodeSignatureMatchMutation) AddedFields() []string {
+	var fields []string
+	if m.addline != nil {
+		fields = append(fields, codesignaturematch.FieldLine)
+	}
+	if m.addcolumn != nil {
+		fields = append(fields, codesignaturematch.FieldColumn)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CodeSignatureMatchMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case codesignaturematch.FieldLine:
+		return m.AddedLine()
+	case codesignaturematch.FieldColumn:
+		return m.AddedColumn()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CodeSignatureMatchMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case codesignaturematch.FieldLine:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLine(v)
+		return nil
+	case codesignaturematch.FieldColumn:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddColumn(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CodeSignatureMatch numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CodeSignatureMatchMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(codesignaturematch.FieldSignatureVendor) {
+		fields = append(fields, codesignaturematch.FieldSignatureVendor)
+	}
+	if m.FieldCleared(codesignaturematch.FieldSignatureProduct) {
+		fields = append(fields, codesignaturematch.FieldSignatureProduct)
+	}
+	if m.FieldCleared(codesignaturematch.FieldSignatureService) {
+		fields = append(fields, codesignaturematch.FieldSignatureService)
+	}
+	if m.FieldCleared(codesignaturematch.FieldSignatureDescription) {
+		fields = append(fields, codesignaturematch.FieldSignatureDescription)
+	}
+	if m.FieldCleared(codesignaturematch.FieldTags) {
+		fields = append(fields, codesignaturematch.FieldTags)
+	}
+	if m.FieldCleared(codesignaturematch.FieldLine) {
+		fields = append(fields, codesignaturematch.FieldLine)
+	}
+	if m.FieldCleared(codesignaturematch.FieldColumn) {
+		fields = append(fields, codesignaturematch.FieldColumn)
+	}
+	if m.FieldCleared(codesignaturematch.FieldCalleeNamespace) {
+		fields = append(fields, codesignaturematch.FieldCalleeNamespace)
+	}
+	if m.FieldCleared(codesignaturematch.FieldMatchedCall) {
+		fields = append(fields, codesignaturematch.FieldMatchedCall)
+	}
+	if m.FieldCleared(codesignaturematch.FieldPackageHint) {
+		fields = append(fields, codesignaturematch.FieldPackageHint)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CodeSignatureMatchMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CodeSignatureMatchMutation) ClearField(name string) error {
+	switch name {
+	case codesignaturematch.FieldSignatureVendor:
+		m.ClearSignatureVendor()
+		return nil
+	case codesignaturematch.FieldSignatureProduct:
+		m.ClearSignatureProduct()
+		return nil
+	case codesignaturematch.FieldSignatureService:
+		m.ClearSignatureService()
+		return nil
+	case codesignaturematch.FieldSignatureDescription:
+		m.ClearSignatureDescription()
+		return nil
+	case codesignaturematch.FieldTags:
+		m.ClearTags()
+		return nil
+	case codesignaturematch.FieldLine:
+		m.ClearLine()
+		return nil
+	case codesignaturematch.FieldColumn:
+		m.ClearColumn()
+		return nil
+	case codesignaturematch.FieldCalleeNamespace:
+		m.ClearCalleeNamespace()
+		return nil
+	case codesignaturematch.FieldMatchedCall:
+		m.ClearMatchedCall()
+		return nil
+	case codesignaturematch.FieldPackageHint:
+		m.ClearPackageHint()
+		return nil
+	}
+	return fmt.Errorf("unknown CodeSignatureMatch nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CodeSignatureMatchMutation) ResetField(name string) error {
+	switch name {
+	case codesignaturematch.FieldSignatureID:
+		m.ResetSignatureID()
+		return nil
+	case codesignaturematch.FieldSignatureVendor:
+		m.ResetSignatureVendor()
+		return nil
+	case codesignaturematch.FieldSignatureProduct:
+		m.ResetSignatureProduct()
+		return nil
+	case codesignaturematch.FieldSignatureService:
+		m.ResetSignatureService()
+		return nil
+	case codesignaturematch.FieldSignatureDescription:
+		m.ResetSignatureDescription()
+		return nil
+	case codesignaturematch.FieldTags:
+		m.ResetTags()
+		return nil
+	case codesignaturematch.FieldFilePath:
+		m.ResetFilePath()
+		return nil
+	case codesignaturematch.FieldLanguage:
+		m.ResetLanguage()
+		return nil
+	case codesignaturematch.FieldLine:
+		m.ResetLine()
+		return nil
+	case codesignaturematch.FieldColumn:
+		m.ResetColumn()
+		return nil
+	case codesignaturematch.FieldCalleeNamespace:
+		m.ResetCalleeNamespace()
+		return nil
+	case codesignaturematch.FieldMatchedCall:
+		m.ResetMatchedCall()
+		return nil
+	case codesignaturematch.FieldPackageHint:
+		m.ResetPackageHint()
+		return nil
+	}
+	return fmt.Errorf("unknown CodeSignatureMatch field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CodeSignatureMatchMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.source_file != nil {
+		edges = append(edges, codesignaturematch.EdgeSourceFile)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CodeSignatureMatchMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case codesignaturematch.EdgeSourceFile:
+		if id := m.source_file; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CodeSignatureMatchMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CodeSignatureMatchMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CodeSignatureMatchMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedsource_file {
+		edges = append(edges, codesignaturematch.EdgeSourceFile)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CodeSignatureMatchMutation) EdgeCleared(name string) bool {
+	switch name {
+	case codesignaturematch.EdgeSourceFile:
+		return m.clearedsource_file
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CodeSignatureMatchMutation) ClearEdge(name string) error {
+	switch name {
+	case codesignaturematch.EdgeSourceFile:
+		m.ClearSourceFile()
+		return nil
+	}
+	return fmt.Errorf("unknown CodeSignatureMatch unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CodeSignatureMatchMutation) ResetEdge(name string) error {
+	switch name {
+	case codesignaturematch.EdgeSourceFile:
+		m.ResetSourceFile()
+		return nil
+	}
+	return fmt.Errorf("unknown CodeSignatureMatch edge %s", name)
+}
+
 // CodeSourceFileMutation represents an operation that mutates the CodeSourceFile nodes in the graph.
 type CodeSourceFileMutation struct {
 	config
@@ -62,6 +1386,9 @@ type CodeSourceFileMutation struct {
 	deps_usage_evidences        map[int]struct{}
 	removeddeps_usage_evidences map[int]struct{}
 	cleareddeps_usage_evidences bool
+	signature_matches           map[int]struct{}
+	removedsignature_matches    map[int]struct{}
+	clearedsignature_matches    bool
 	done                        bool
 	oldValue                    func(context.Context) (*CodeSourceFile, error)
 	predicates                  []predicate.CodeSourceFile
@@ -255,6 +1582,60 @@ func (m *CodeSourceFileMutation) ResetDepsUsageEvidences() {
 	m.removeddeps_usage_evidences = nil
 }
 
+// AddSignatureMatchIDs adds the "signature_matches" edge to the CodeSignatureMatch entity by ids.
+func (m *CodeSourceFileMutation) AddSignatureMatchIDs(ids ...int) {
+	if m.signature_matches == nil {
+		m.signature_matches = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.signature_matches[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSignatureMatches clears the "signature_matches" edge to the CodeSignatureMatch entity.
+func (m *CodeSourceFileMutation) ClearSignatureMatches() {
+	m.clearedsignature_matches = true
+}
+
+// SignatureMatchesCleared reports if the "signature_matches" edge to the CodeSignatureMatch entity was cleared.
+func (m *CodeSourceFileMutation) SignatureMatchesCleared() bool {
+	return m.clearedsignature_matches
+}
+
+// RemoveSignatureMatchIDs removes the "signature_matches" edge to the CodeSignatureMatch entity by IDs.
+func (m *CodeSourceFileMutation) RemoveSignatureMatchIDs(ids ...int) {
+	if m.removedsignature_matches == nil {
+		m.removedsignature_matches = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.signature_matches, ids[i])
+		m.removedsignature_matches[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSignatureMatches returns the removed IDs of the "signature_matches" edge to the CodeSignatureMatch entity.
+func (m *CodeSourceFileMutation) RemovedSignatureMatchesIDs() (ids []int) {
+	for id := range m.removedsignature_matches {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SignatureMatchesIDs returns the "signature_matches" edge IDs in the mutation.
+func (m *CodeSourceFileMutation) SignatureMatchesIDs() (ids []int) {
+	for id := range m.signature_matches {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSignatureMatches resets all changes to the "signature_matches" edge.
+func (m *CodeSourceFileMutation) ResetSignatureMatches() {
+	m.signature_matches = nil
+	m.clearedsignature_matches = false
+	m.removedsignature_matches = nil
+}
+
 // Where appends a list predicates to the CodeSourceFileMutation builder.
 func (m *CodeSourceFileMutation) Where(ps ...predicate.CodeSourceFile) {
 	m.predicates = append(m.predicates, ps...)
@@ -388,9 +1769,12 @@ func (m *CodeSourceFileMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CodeSourceFileMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.deps_usage_evidences != nil {
 		edges = append(edges, codesourcefile.EdgeDepsUsageEvidences)
+	}
+	if m.signature_matches != nil {
+		edges = append(edges, codesourcefile.EdgeSignatureMatches)
 	}
 	return edges
 }
@@ -405,15 +1789,24 @@ func (m *CodeSourceFileMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case codesourcefile.EdgeSignatureMatches:
+		ids := make([]ent.Value, 0, len(m.signature_matches))
+		for id := range m.signature_matches {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CodeSourceFileMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removeddeps_usage_evidences != nil {
 		edges = append(edges, codesourcefile.EdgeDepsUsageEvidences)
+	}
+	if m.removedsignature_matches != nil {
+		edges = append(edges, codesourcefile.EdgeSignatureMatches)
 	}
 	return edges
 }
@@ -428,15 +1821,24 @@ func (m *CodeSourceFileMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case codesourcefile.EdgeSignatureMatches:
+		ids := make([]ent.Value, 0, len(m.removedsignature_matches))
+		for id := range m.removedsignature_matches {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CodeSourceFileMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cleareddeps_usage_evidences {
 		edges = append(edges, codesourcefile.EdgeDepsUsageEvidences)
+	}
+	if m.clearedsignature_matches {
+		edges = append(edges, codesourcefile.EdgeSignatureMatches)
 	}
 	return edges
 }
@@ -447,6 +1849,8 @@ func (m *CodeSourceFileMutation) EdgeCleared(name string) bool {
 	switch name {
 	case codesourcefile.EdgeDepsUsageEvidences:
 		return m.cleareddeps_usage_evidences
+	case codesourcefile.EdgeSignatureMatches:
+		return m.clearedsignature_matches
 	}
 	return false
 }
@@ -465,6 +1869,9 @@ func (m *CodeSourceFileMutation) ResetEdge(name string) error {
 	switch name {
 	case codesourcefile.EdgeDepsUsageEvidences:
 		m.ResetDepsUsageEvidences()
+		return nil
+	case codesourcefile.EdgeSignatureMatches:
+		m.ResetSignatureMatches()
 		return nil
 	}
 	return fmt.Errorf("unknown CodeSourceFile edge %s", name)

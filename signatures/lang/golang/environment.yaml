@@ -1,0 +1,55 @@
+version: 0.1
+
+# Go standard library environment variable operations
+# References:
+# - https://pkg.go.dev/os
+
+signatures:
+  - id: golang.environment.read
+    description: "Environment variable read operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Environment read"
+    tags: [environment, read, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "os/Getenv"
+          - type: call
+            value: "os/LookupEnv"
+          - type: call
+            value: "os/Environ"
+
+  - id: golang.environment.write
+    description: "Environment variable write operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Environment write"
+    tags: [environment, write, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "os/Setenv"
+          - type: call
+            value: "os/Unsetenv"
+          - type: call
+            value: "os/Clearenv"
+
+  - id: golang.environment.expand
+    description: "Environment variable expansion"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Environment expansion"
+    tags: [environment, expansion, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "os/Expand"
+          - type: call
+            value: "os/ExpandEnv"

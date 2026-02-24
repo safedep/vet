@@ -1,0 +1,256 @@
+version: 0.1
+
+# Node.js/JavaScript filesystem operations
+# References:
+# - https://nodejs.org/api/fs.html
+# - https://nodejs.org/api/fs.html#promises-api
+
+signatures:
+  - id: javascript.filesystem.read
+    description: "File read operations"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Filesystem read"
+    tags: [filesystem, read, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "fs/readFile"
+          - type: call
+            value: "fs/readFileSync"
+          - type: call
+            value: "fs/readdir"
+          - type: call
+            value: "fs/readdirSync"
+          - type: call
+            value: "fs/readSync"
+          - type: call
+            value: "fs/promises.readFile"
+          - type: call
+            value: "fs/promises.readdir"
+
+  - id: javascript.filesystem.write
+    description: "File write operations"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Filesystem write"
+    tags: [filesystem, write, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "fs/writeFile"
+          - type: call
+            value: "fs/writeFileSync"
+          - type: call
+            value: "fs/appendFile"
+          - type: call
+            value: "fs/appendFileSync"
+          - type: call
+            value: "fs/writeSync"
+          - type: call
+            value: "fs/promises.writeFile"
+          - type: call
+            value: "fs/promises.appendFile"
+
+  - id: javascript.filesystem.delete
+    description: "File and directory deletion"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Filesystem delete"
+    tags: [filesystem, delete, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "fs/unlink"
+          - type: call
+            value: "fs/unlinkSync"
+          - type: call
+            value: "fs/rmdir"
+          - type: call
+            value: "fs/rmdirSync"
+          - type: call
+            value: "fs/rm"
+          - type: call
+            value: "fs/rmSync"
+          - type: call
+            value: "fs/promises.unlink"
+          - type: call
+            value: "fs/promises.rmdir"
+          - type: call
+            value: "fs/promises.rm"
+
+  - id: javascript.filesystem.mkdir
+    description: "Directory creation"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Filesystem mkdir"
+    tags: [filesystem, mkdir, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "fs/mkdir"
+          - type: call
+            value: "fs/mkdirSync"
+          - type: call
+            value: "fs/promises.mkdir"
+
+  - id: javascript.filesystem.rename
+    description: "File and directory rename/move operations"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Filesystem rename"
+    tags: [filesystem, rename, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "fs/rename"
+          - type: call
+            value: "fs/renameSync"
+          - type: call
+            value: "fs/promises.rename"
+
+  - id: javascript.filesystem.stat
+    description: "File and directory stat operations"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Filesystem stat"
+    tags: [filesystem, stat, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "fs/stat"
+          - type: call
+            value: "fs/statSync"
+          - type: call
+            value: "fs/lstat"
+          - type: call
+            value: "fs/lstatSync"
+          - type: call
+            value: "fs/fstat"
+          - type: call
+            value: "fs/fstatSync"
+          - type: call
+            value: "fs/exists"
+          - type: call
+            value: "fs/existsSync"
+          - type: call
+            value: "fs/promises.stat"
+          - type: call
+            value: "fs/promises.lstat"
+
+  - id: javascript.filesystem.chmod
+    description: "File permission changes"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Filesystem chmod"
+    tags: [filesystem, chmod, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "fs/chmod"
+          - type: call
+            value: "fs/chmodSync"
+          - type: call
+            value: "fs/fchmod"
+          - type: call
+            value: "fs/promises.chmod"
+
+  - id: javascript.filesystem.chown
+    description: "File ownership changes"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Filesystem chown"
+    tags: [filesystem, chown, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "fs/chown"
+          - type: call
+            value: "fs/chownSync"
+          - type: call
+            value: "fs/fchown"
+          - type: call
+            value: "fs/lchown"
+          - type: call
+            value: "fs/promises.chown"
+          - type: call
+            value: "fs/promises.lchown"
+
+  - id: javascript.filesystem.symlink
+    description: "Symbolic link operations"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Filesystem symlink"
+    tags: [filesystem, symlink, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "fs/symlink"
+          - type: call
+            value: "fs/symlinkSync"
+          - type: call
+            value: "fs/readlink"
+          - type: call
+            value: "fs/readlinkSync"
+          - type: call
+            value: "fs/promises.symlink"
+          - type: call
+            value: "fs/promises.readlink"
+
+  - id: javascript.filesystem.temp
+    description: "Temporary file/directory creation"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Filesystem temp"
+    tags: [filesystem, temp, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "fs/mkdtemp"
+          - type: call
+            value: "fs/mkdtempSync"
+          - type: call
+            value: "fs/promises.mkdtemp"
+
+  - id: javascript.filesystem.copy
+    description: "File and directory copy operations"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Filesystem copy"
+    tags: [filesystem, copy, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "fs/copyFile"
+          - type: call
+            value: "fs/copyFileSync"
+          - type: call
+            value: "fs/cp"
+          - type: call
+            value: "fs/cpSync"
+          - type: call
+            value: "fs/promises.copyFile"
+          - type: call
+            value: "fs/promises.cp"

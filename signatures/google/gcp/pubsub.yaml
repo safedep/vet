@@ -1,0 +1,66 @@
+version: 0.1
+
+# References -
+# https://cloud.google.com/python/docs/reference/pubsub/latest
+# https://cloud.google.com/nodejs/docs/reference/pubsub/latest
+
+signatures:
+  - id: gcp.pubsub
+    description: "Google Cloud Pub/Sub"
+    vendor: "Google"
+    product: "Google Cloud Platform"
+    service: "GCP PubSub"
+    tags: [pubsub, messaging, paas]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "google.cloud.pubsub.*"
+          - type: call
+            value: "google.cloud.pubsub_v1.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@google-cloud/pubsub.*"
+
+  - id: gcp.pubsub.publisher
+    description: "Google Cloud Pub/Sub Publisher"
+    vendor: "Google"
+    product: "Google Cloud Platform"
+    service: "GCP PubSub"
+    tags: [pubsub, messaging, paas]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "google.cloud.pubsub.PublisherClient"
+          - type: call
+            value: "google.cloud.pubsub_v1.PublisherClient"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@google-cloud/pubsub.v1.PublisherClient"
+
+  - id: gcp.pubsub_v1.subscriber
+    description: "Google Cloud Pub/Sub Subscriber"
+    vendor: "Google"
+    product: "Google Cloud Platform"
+    service: "GCP PubSub"
+    tags: [pubsub, messaging, paas]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "google.cloud.pubsub.SubscriberClient"
+          - type: call
+            value: "google.cloud.pubsub_v1.SubscriberClient"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@google-cloud/pubsub.v1.SubscriberClient"

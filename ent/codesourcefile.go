@@ -28,9 +28,11 @@ type CodeSourceFile struct {
 type CodeSourceFileEdges struct {
 	// DepsUsageEvidences holds the value of the deps_usage_evidences edge.
 	DepsUsageEvidences []*DepsUsageEvidence `json:"deps_usage_evidences,omitempty"`
+	// SignatureMatches holds the value of the signature_matches edge.
+	SignatureMatches []*CodeSignatureMatch `json:"signature_matches,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // DepsUsageEvidencesOrErr returns the DepsUsageEvidences value or an error if the edge
@@ -40,6 +42,15 @@ func (e CodeSourceFileEdges) DepsUsageEvidencesOrErr() ([]*DepsUsageEvidence, er
 		return e.DepsUsageEvidences, nil
 	}
 	return nil, &NotLoadedError{edge: "deps_usage_evidences"}
+}
+
+// SignatureMatchesOrErr returns the SignatureMatches value or an error if the edge
+// was not loaded in eager-loading.
+func (e CodeSourceFileEdges) SignatureMatchesOrErr() ([]*CodeSignatureMatch, error) {
+	if e.loadedTypes[1] {
+		return e.SignatureMatches, nil
+	}
+	return nil, &NotLoadedError{edge: "signature_matches"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -94,6 +105,11 @@ func (csf *CodeSourceFile) Value(name string) (ent.Value, error) {
 // QueryDepsUsageEvidences queries the "deps_usage_evidences" edge of the CodeSourceFile entity.
 func (csf *CodeSourceFile) QueryDepsUsageEvidences() *DepsUsageEvidenceQuery {
 	return NewCodeSourceFileClient(csf.config).QueryDepsUsageEvidences(csf)
+}
+
+// QuerySignatureMatches queries the "signature_matches" edge of the CodeSourceFile entity.
+func (csf *CodeSourceFile) QuerySignatureMatches() *CodeSignatureMatchQuery {
+	return NewCodeSourceFileClient(csf.config).QuerySignatureMatches(csf)
 }
 
 // Update returns a builder for updating this CodeSourceFile.

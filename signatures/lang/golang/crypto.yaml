@@ -1,0 +1,228 @@
+version: 0.1
+
+# Go standard library cryptographic operations
+# References:
+# - https://pkg.go.dev/crypto
+# - https://pkg.go.dev/crypto/aes
+# - https://pkg.go.dev/crypto/rsa
+# - https://pkg.go.dev/crypto/sha256
+
+signatures:
+  - id: golang.crypto.hash
+    description: "Cryptographic hash operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Cryptographic hashing"
+    tags: [crypto, hash, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/md5/New"
+          - type: call
+            value: "crypto/md5/Sum"
+          - type: call
+            value: "crypto/sha1/New"
+          - type: call
+            value: "crypto/sha1/Sum"
+          - type: call
+            value: "crypto/sha256/New"
+          - type: call
+            value: "crypto/sha256/Sum256"
+          - type: call
+            value: "crypto/sha512/New"
+          - type: call
+            value: "crypto/sha512/Sum512"
+          - type: call
+            value: "golang.org/x/crypto/sha3/New256"
+          - type: call
+            value: "golang.org/x/crypto/sha3/New512"
+
+  - id: golang.crypto.hmac
+    description: "HMAC operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "HMAC"
+    tags: [crypto, hmac, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/hmac/New"
+          - type: call
+            value: "crypto/hmac/Equal"
+
+  - id: golang.crypto.aes
+    description: "AES encryption/decryption"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "AES"
+    tags: [crypto, aes, encryption, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/aes/NewCipher"
+          - type: call
+            value: "crypto/cipher/NewGCM"
+          - type: call
+            value: "crypto/cipher/NewCBCEncrypter"
+          - type: call
+            value: "crypto/cipher/NewCBCDecrypter"
+
+  - id: golang.crypto.rsa
+    description: "RSA encryption/decryption and signing"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "RSA"
+    tags: [crypto, rsa, encryption, signing, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/rsa/GenerateKey"
+          - type: call
+            value: "crypto/rsa/GenerateMultiPrimeKey"
+          - type: call
+            value: "crypto/rsa/EncryptOAEP"
+          - type: call
+            value: "crypto/rsa/DecryptOAEP"
+          - type: call
+            value: "crypto/rsa/EncryptPKCS1v15"
+          - type: call
+            value: "crypto/rsa/DecryptPKCS1v15"
+          - type: call
+            value: "crypto/rsa/SignPKCS1v15"
+          - type: call
+            value: "crypto/rsa/VerifyPKCS1v15"
+          - type: call
+            value: "crypto/rsa/SignPSS"
+          - type: call
+            value: "crypto/rsa/VerifyPSS"
+
+  - id: golang.crypto.ecdsa
+    description: "ECDSA signing and verification"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "ECDSA"
+    tags: [crypto, ecdsa, signing, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/ecdsa/GenerateKey"
+          - type: call
+            value: "crypto/ecdsa/Sign"
+          - type: call
+            value: "crypto/ecdsa/Verify"
+          - type: call
+            value: "crypto/ecdsa/SignASN1"
+          - type: call
+            value: "crypto/ecdsa/VerifyASN1"
+
+  - id: golang.crypto.ed25519
+    description: "Ed25519 signing and verification"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Ed25519"
+    tags: [crypto, ed25519, signing, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/ed25519/GenerateKey"
+          - type: call
+            value: "crypto/ed25519/Sign"
+          - type: call
+            value: "crypto/ed25519/Verify"
+          - type: call
+            value: "crypto/ed25519/NewKeyFromSeed"
+
+  - id: golang.crypto.rand
+    description: "Cryptographically secure random number generation"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Crypto random"
+    tags: [crypto, random, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/rand/Read"
+          - type: call
+            value: "crypto/rand/Int"
+          - type: call
+            value: "crypto/rand/Prime"
+
+  - id: golang.crypto.x509
+    description: "X.509 certificate operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "X.509 certificates"
+    tags: [crypto, x509, certificate, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/x509/ParseCertificate"
+          - type: call
+            value: "crypto/x509/ParseCertificates"
+          - type: call
+            value: "crypto/x509/CreateCertificate"
+          - type: call
+            value: "crypto/x509/ParsePKCS1PrivateKey"
+          - type: call
+            value: "crypto/x509/ParsePKCS8PrivateKey"
+          - type: call
+            value: "crypto/x509/ParseECPrivateKey"
+
+  - id: golang.crypto.des
+    description: "DES/3DES encryption (legacy)"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "DES/3DES"
+    tags: [crypto, des, encryption, legacy, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/des/NewCipher"
+          - type: call
+            value: "crypto/des/NewTripleDESCipher"
+
+  - id: golang.crypto.pbkdf2
+    description: "PBKDF2 key derivation"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "PBKDF2"
+    tags: [crypto, pbkdf2, kdf, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "golang.org/x/crypto/pbkdf2/Key"
+
+  - id: golang.crypto.bcrypt
+    description: "Bcrypt password hashing"
+    vendor: "Go"
+    product: "golang.org/x/crypto/bcrypt"
+    service: "Bcrypt"
+    tags: [crypto, bcrypt, password, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "golang.org/x/crypto/bcrypt/GenerateFromPassword"
+          - type: call
+            value: "golang.org/x/crypto/bcrypt/CompareHashAndPassword"

@@ -40,6 +40,9 @@ jobs:
             exit 1
           fi
 
+      - name: Validate xBOM signatures
+        run: go run . code validate
+
   run-test:
     timeout-minutes: 15
     runs-on: ubuntu-latest

@@ -10,6 +10,27 @@ import (
 	"github.com/safedep/vet/ent/codesourcefile"
 )
 
+func (r *writerRepositoryImpl) getOrCreateSourceFile(ctx context.Context, filePath string) (*ent.CodeSourceFile, error) {
+	cf, err := r.client.CodeSourceFile.
+		Query().
+		Where(codesourcefile.Path(filePath)).
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			cf, err = r.client.CodeSourceFile.
+				Create().
+				SetPath(filePath).
+				Save(ctx)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create CodeSourceFile: %w", err)
+			}
+		} else {
+			return nil, fmt.Errorf("failed to query CodeSourceFile: %w", err)
+		}
+	}
+	return cf, nil
+}
+
 type writerRepositoryImpl struct {
 	client *ent.Client
 }
@@ -23,23 +44,9 @@ func newWriterRepository(client *ent.Client) (writerRepository, error) {
 }
 
 func (r *writerRepositoryImpl) SaveDependencyUsage(ctx context.Context, evidence *depsusage.UsageEvidence) (*ent.DepsUsageEvidence, error) {
-	// Get CodeSourceFile consisting this evidence, create new if it doesn't exist
-	cf, err := r.client.CodeSourceFile.
-		Query().
-		Where(codesourcefile.Path(evidence.FilePath)).
-		Only(ctx)
+	cf, err := r.getOrCreateSourceFile(ctx, evidence.FilePath)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			cf, err = r.client.CodeSourceFile.
-				Create().
-				SetPath(evidence.FilePath).
-				Save(ctx)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create CodeSourceFile: %w", err)
-			}
-		} else {
-			return nil, fmt.Errorf("failed to query CodeSourceFile: %w", err)
-		}
+		return nil, err
 	}
 
 	savedDepsUsageEvidence, err := r.client.DepsUsageEvidence.
@@ -59,4 +66,38 @@ func (r *writerRepositoryImpl) SaveDependencyUsage(ctx context.Context, evidence
 	}
 
 	return savedDepsUsageEvidence, nil
+}
+
+func (r *writerRepositoryImpl) SaveSignatureMatch(ctx context.Context, data *SignatureMatchData) (*ent.CodeSignatureMatch, error) {
+	cf, err := r.getOrCreateSourceFile(ctx, data.FilePath)
+	if err != nil {
+		return nil, err
+	}
+
+	creator := r.client.CodeSignatureMatch.
+		Create().
+		SetSignatureID(data.SignatureID).
+		SetSignatureVendor(data.SignatureVendor).
+		SetSignatureProduct(data.SignatureProduct).
+		SetSignatureService(data.SignatureService).
+		SetSignatureDescription(data.SignatureDescription).
+		SetTags(data.Tags).
+		SetFilePath(data.FilePath).
+		SetLanguage(data.Language).
+		SetLine(data.Line).
+		SetColumn(data.Column).
+		SetCalleeNamespace(data.CalleeNamespace).
+		SetMatchedCall(data.MatchedCall).
+		SetSourceFile(cf)
+
+	if data.PackageHint != "" {
+		creator.SetPackageHint(data.PackageHint)
+	}
+
+	saved, err := creator.Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create CodeSignatureMatch: %w", err)
+	}
+
+	return saved, nil
 }

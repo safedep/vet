@@ -23,5 +23,7 @@ func (CodeSourceFile) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("deps_usage_evidences", DepsUsageEvidence.Type).
 			Ref("used_in"),
+		edge.From("signature_matches", CodeSignatureMatch.Type).
+			Ref("source_file"),
 	}
 }

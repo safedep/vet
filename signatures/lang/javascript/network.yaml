@@ -1,0 +1,204 @@
+version: 0.1
+
+# Node.js/JavaScript network operations
+# References:
+# - https://nodejs.org/api/http.html
+# - https://nodejs.org/api/https.html
+# - https://nodejs.org/api/net.html
+# - https://nodejs.org/api/dns.html
+
+signatures:
+  - id: javascript.network.http.client
+    description: "HTTP client operations"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "HTTP client"
+    tags: [network, http, client, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "http/request"
+          - type: call
+            value: "http/get"
+          - type: call
+            value: "https/request"
+          - type: call
+            value: "https/get"
+          - type: call
+            value: "axios.*"
+          - type: call
+            value: "node-fetch"
+          - type: call
+            value: "fetch"
+          - type: call
+            value: "got.*"
+          - type: call
+            value: "superagent.*"
+
+  - id: javascript.network.http.server
+    description: "HTTP server operations"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "HTTP server"
+    tags: [network, http, server, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "http/createServer"
+          - type: call
+            value: "https/createServer"
+          - type: call
+            value: "http/Server"
+          - type: call
+            value: "express"
+          - type: call
+            value: "express.*"
+          - type: call
+            value: "fastify"
+          - type: call
+            value: "fastify.*"
+          - type: call
+            value: "koa"
+          - type: call
+            value: "koa.*"
+
+  - id: javascript.network.tcp
+    description: "TCP network operations"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "TCP networking"
+    tags: [network, tcp, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "net/createServer"
+          - type: call
+            value: "net/createConnection"
+          - type: call
+            value: "net/connect"
+          - type: call
+            value: "net/Server"
+          - type: call
+            value: "net/Socket"
+
+  - id: javascript.network.udp
+    description: "UDP network operations"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "UDP networking"
+    tags: [network, udp, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "dgram.createSocket"
+          - type: call
+            value: "dgram.Socket"
+
+  - id: javascript.network.dns
+    description: "DNS lookup operations"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "DNS resolution"
+    tags: [network, dns, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "dns/lookup"
+          - type: call
+            value: "dns/resolve"
+          - type: call
+            value: "dns/resolve4"
+          - type: call
+            value: "dns/resolve6"
+          - type: call
+            value: "dns/resolveMx"
+          - type: call
+            value: "dns/resolveTxt"
+          - type: call
+            value: "dns/promises.lookup"
+          - type: call
+            value: "dns/promises.resolve"
+
+  - id: javascript.network.tls
+    description: "TLS/SSL operations"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "TLS/SSL"
+    tags: [network, tls, ssl, security, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "tls/connect"
+          - type: call
+            value: "tls/createServer"
+          - type: call
+            value: "tls/Server"
+          - type: call
+            value: "tls/TLSSocket"
+
+  - id: javascript.network.websocket
+    description: "WebSocket operations"
+    vendor: "WebSocket"
+    product: "ws"
+    service: "WebSocket"
+    tags: [network, websocket, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "ws.*"
+          - type: call
+            value: "socket.io"
+          - type: call
+            value: "socket.io.*"
+          - type: call
+            value: "WebSocket"
+
+  - id: javascript.network.url
+    description: "URL parsing and manipulation"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "URL handling"
+    tags: [network, url, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "url.parse"
+          - type: call
+            value: "url.format"
+          - type: call
+            value: "url.resolve"
+          - type: call
+            value: "URL"
+          - type: call
+            value: "URLSearchParams"
+
+  - id: javascript.network.grpc
+    description: "gRPC operations"
+    vendor: "gRPC"
+    product: "grpc-js"
+    service: "gRPC"
+    tags: [network, grpc, rpc, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@grpc/grpc-js.*"
+          - type: call
+            value: "grpc.*"

@@ -23,6 +23,8 @@ func NewCodeCommand() *cobra.Command {
 	cmd.PersistentFlags().StringArrayVar(&languageCodes, "lang", defaultAllLanguageCodes, "Source code languages to analyze")
 
 	cmd.AddCommand(newScanCommand())
+	cmd.AddCommand(newValidateCommand())
+	cmd.AddCommand(newQueryCommand())
 
 	return cmd
 }

@@ -1,0 +1,408 @@
+version: 0.1
+
+# References -
+# https://docs.crewai.com/concepts/tools
+
+signatures:
+  - id: crewai_tools.ApifyActorsTool
+    description: "Integrates Apify Actors with workflows for web scraping and automation tasks."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, apify-actors-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.ApifyActorsTool"
+
+  - id: crewai_tools.BrowserbaseLoadTool
+    description: "Interacts with and extracts data from web browsers."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, browserbase-load-tool, crewai]
+    languages:
+      python: 
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.BrowserbaseLoadTool"
+
+  - id: crewai_tools.CodeDocsSearchTool
+    description: "RAG tool optimized for searching through code documentation and technical documents."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, code-docs-search-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.CodeDocsSearchTool"
+
+  - id: crewai_tools.CodeInterpreterTool
+    description: "Interprets Python code."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, code-interpreter-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.CodeInterpreterTool"
+
+  - id: crewai_tools.ComposioTool
+    description: "Enables use of Composio tools."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, composio-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.ComposioTool"
+
+  - id: crewai_tools.CSVSearchTool
+    description: "RAG tool for searching within CSV files, tailored for structured data."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, csv-search-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.CSVSearchTool"
+
+  - id: crewai_tools.DALLETool
+    description: "Generates images using the DALL-E API."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, dalle-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.DALLETool"
+
+  - id: crewai_tools.DirectorySearchTool
+    description: "RAG tool for searching within directories, useful for navigating file systems."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, directory-search-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.DirectorySearchTool"
+
+  - id: crewai_tools.DOCXSearchTool
+    description: "RAG tool for searching within DOCX documents, ideal for processing Word files."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, docx-search-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.DOCXSearchTool"
+
+  - id: crewai_tools.DirectoryReadTool
+    description: "Facilitates reading and processing of directory structures and their contents."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, directory-read-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.DirectoryReadTool"
+
+  - id: crewai_tools.EXASearchTool
+    description: "Performs exhaustive searches across various data sources."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, exa-search-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.EXASearchTool"
+
+  - id: crewai_tools.FileReadTool
+    description: "Enables reading and extracting data from files, supporting various formats."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, file-read-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.FileReadTool"
+
+  - id: crewai_tools.FirecrawlSearchTool
+    description: "Searches webpages using Firecrawl and returns the results."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, firecrawl-search-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.FirecrawlSearchTool"
+
+  - id: crewai_tools.FirecrawlCrawlWebsiteTool
+    description: "Crawls webpages using Firecrawl."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, firecrawl-crawl-website-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.FirecrawlCrawlWebsiteTool"
+
+  - id: crewai_tools.FirecrawlScrapeWebsiteTool
+    description: "Scrapes webpages URL using Firecrawl and returns its contents."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, firecrawl-scrape-website-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.FirecrawlScrapeWebsiteTool"
+
+  - id: crewai_tools.GithubSearchTool
+    description: "RAG tool for searching within GitHub repositories, useful for code and documentation search."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, github-search-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.GithubSearchTool"
+
+  - id: crewai_tools.SerperDevTool
+    description: "Specialized tool for development purposes, with specific functionalities under development."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, serper-dev-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.SerperDevTool"
+
+  - id: crewai_tools.TXTSearchTool
+    description: "RAG tool focused on searching within text (.txt) files, suitable for unstructured data."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, txt-search-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.TXTSearchTool"
+
+  - id: crewai_tools.JSONSearchTool
+    description: "RAG tool for searching within JSON files, catering to structured data handling."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, json-search-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.JSONSearchTool"
+
+  - id: crewai_tools.LlamaIndexTool
+    description: "Enables the use of LlamaIndex tools."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, llamaindex-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.LlamaIndexTool"
+
+  - id: crewai_tools.MDXSearchTool
+    description: "RAG tool tailored for searching within Markdown (MDX) files, useful for documentation."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, mdx-search-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.MDXSearchTool"
+
+  - id: crewai_tools.PDFSearchTool
+    description: "RAG tool for searching within PDF documents, ideal for processing scanned documents."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, pdf-search-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.PDFSearchTool"
+
+  - id: crewai_tools.PGSearchTool
+    description: "RAG tool optimized for searching within PostgreSQL databases, suitable for database queries."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, pg-search-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.PGSearchTool"
+
+  - id: crewai_tools.VisionTool
+    description: "Generates images using the DALL-E API."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, vision-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.VisionTool"
+
+  - id: crewai_tools.RagTool
+    description: "General-purpose RAG tool capable of handling various data sources and types."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, rag-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.RagTool"
+
+  - id: crewai_tools.ScrapeElementFromWebsiteTool
+    description: "Enables scraping specific elements from websites, useful for targeted data extraction."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, scrape-element-from-website-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.ScrapeElementFromWebsiteTool"
+
+  - id: crewai_tools.ScrapeWebsiteTool
+    description: "Facilitates scraping entire websites, ideal for comprehensive data collection."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, scrape-website-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.ScrapeWebsiteTool"
+
+  - id: crewai_tools.WebsiteSearchTool
+    description: "RAG tool for searching website content, optimized for web data extraction."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, website-search-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.WebsiteSearchTool"
+
+  - id: crewai_tools.XMLSearchTool
+    description: "RAG tool for searching within XML files, suitable for structured data formats."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, xml-search-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.XMLSearchTool"
+
+  - id: crewai_tools.YoutubeChannelSearchTool
+    description: "RAG tool for searching within YouTube channels, useful for video content analysis."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, youtube-channel-search-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.YoutubeChannelSearchTool"
+
+  - id: crewai_tools.YoutubeVideoSearchTool
+    description: "RAG tool for searching within YouTube videos, ideal for video data extraction."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [tools, youtube-video-search-tool, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai_tools.YoutubeVideoSearchTool"

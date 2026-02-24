@@ -2,6 +2,7 @@
 package reporter
 
 import (
+	"github.com/safedep/vet/ent"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
@@ -17,4 +18,10 @@ type Reporter interface {
 
 	// Inform reporting module to finalise (e.g. write report to file)
 	Finish() error
+}
+
+// SignatureMatchReporter is an optional interface that reporters can implement
+// to receive application-level signature matches for xBOM reporting.
+type SignatureMatchReporter interface {
+	SetApplicationSignatureMatches(matches []*ent.CodeSignatureMatch)
 }

@@ -1,0 +1,44 @@
+version: 0.1
+
+# References -
+# https://learn.microsoft.com/en-us/javascript/api/overview/azure/ai-vision-image-analysis-rest-readme
+# https://pypi.org/project/azure-ai-vision-imageanalysis/
+# https://learn.microsoft.com/en-us/python/api/overview/azure/ai-translation-text-readme?view=azure-python&preserve-view=true
+# https://learn.microsoft.com/en-us/javascript/api/overview/azure/ai-translation-text-rest-readme?view=azure-node-preview
+
+signatures:
+  - id: azure.vision
+    description: "Azure Computer Vision"
+    vendor: "Microsoft"
+    product: "Azure"
+    service: "Azure Vision"
+    tags: [vision, image-analysis, ai, saas]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "azure.ai.vision.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@azure-rest/ai-vision-image-analysis.*"
+
+  - id: azure.translator
+    description: "Azure Text Translator"
+    vendor: "Microsoft"
+    product: "Azure"
+    service: "Azure Translation"
+    tags: [translate, nlp, language, ai, saas]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "azure.ai.translation.text.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@azure-rest/ai-translation-text.*"

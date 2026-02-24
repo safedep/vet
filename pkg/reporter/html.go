@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/safedep/vet/ent"
 	"github.com/safedep/vet/pkg/analyzer"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
@@ -19,9 +20,10 @@ type HtmlReportingConfig struct {
 }
 
 type htmlReporter struct {
-	config         HtmlReportingConfig
-	manifests      []*models.PackageManifest
-	analyzerEvents []*analyzer.AnalyzerEvent
+	config              HtmlReportingConfig
+	manifests           []*models.PackageManifest
+	analyzerEvents      []*analyzer.AnalyzerEvent
+	appSignatureMatches []*ent.CodeSignatureMatch
 }
 
 // Helper function to get NVD link from CVE ID
@@ -53,6 +55,56 @@ func (r *htmlReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 }
 
 func (r *htmlReporter) AddPolicyEvent(event *policy.PolicyEvent) {}
+
+func (r *htmlReporter) SetApplicationSignatureMatches(matches []*ent.CodeSignatureMatch) {
+	r.appSignatureMatches = matches
+}
+
+func (r *htmlReporter) getSignatureMatches() []templates.SignatureMatchEntry {
+	var entries []templates.SignatureMatchEntry
+
+	// Collect package-level matches from enriched package data
+	for _, manifest := range r.manifests {
+		for _, pkg := range manifest.Packages {
+			if pkg.CodeAnalysis == nil {
+				continue
+			}
+			for _, m := range pkg.CodeAnalysis.SignatureMatches {
+				entries = append(entries, templates.SignatureMatchEntry{
+					SignatureID: m.SignatureID,
+					Vendor:      m.SignatureVendor,
+					Product:     m.SignatureProduct,
+					Service:     m.SignatureService,
+					Description: m.SignatureDescription,
+					Tags:        m.Tags,
+					FilePath:    m.FilePath,
+					Language:    m.Language,
+					Line:        m.Line,
+					MatchedCall: m.MatchedCall,
+					PackageName: pkg.Name,
+				})
+			}
+		}
+	}
+
+	// Collect app-level matches (no associated package)
+	for _, m := range r.appSignatureMatches {
+		entries = append(entries, templates.SignatureMatchEntry{
+			SignatureID: m.SignatureID,
+			Vendor:      m.SignatureVendor,
+			Product:     m.SignatureProduct,
+			Service:     m.SignatureService,
+			Description: m.SignatureDescription,
+			Tags:        m.Tags,
+			FilePath:    m.FilePath,
+			Language:    m.Language,
+			Line:        m.Line,
+			MatchedCall: m.MatchedCall,
+		})
+	}
+
+	return entries
+}
 
 func (r *htmlReporter) Finish() error {
 	// Create the directory if it doesn't exist
@@ -107,6 +159,7 @@ func (r *htmlReporter) Finish() error {
 		PackageCount:      r.getPackageCount(),
 		VulnCount:         r.getVulnCount(),
 		Ecosystems:        r.getEcosystems(),
+		SignatureMatches:  r.getSignatureMatches(),
 	}
 
 	// Render the template to file using our helper

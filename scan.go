@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
@@ -874,6 +875,7 @@ func internalStartScan() error {
 		enrichers = append(enrichers, enricher)
 	}
 
+	var codeAnalysisReaderRepository code.ReaderRepository
 	if codeAnalysisDBPath != "" {
 		analytics.TrackCommandScanUsingCodeAnalysis()
 
@@ -895,10 +897,12 @@ func internalStartScan() error {
 		if err != nil {
 			return err
 		}
+		codeAnalysisReaderRepository = readerRepository
 
 		codeAnalysisEnricher := scanner.NewCodeAnalysisEnricher(
 			scanner.CodeAnalysisEnricherConfig{
 				EnableDepsUsageEvidence: dependencyUsageEvidence,
+				EnableSignatureMatches:  true,
 			},
 			readerRepository,
 		)
@@ -1022,6 +1026,20 @@ func internalStartScan() error {
 			// Only mark package and manifest trackers as done
 			ui.MarkTrackerAsDone(packageManifestTracker)
 			ui.MarkTrackerAsDone(packageTracker)
+
+			// Inject app-level signature matches into reporters that support it
+			if codeAnalysisReaderRepository != nil {
+				appMatches, err := codeAnalysisReaderRepository.GetApplicationSignatureMatches(context.Background())
+				if err != nil {
+					logger.Errorf("Failed to get application signature matches: %v", err)
+				} else if len(appMatches) > 0 {
+					for _, rp := range reporters {
+						if smr, ok := rp.(reporter.SignatureMatchReporter); ok {
+							smr.SetApplicationSignatureMatches(appMatches)
+						}
+					}
+				}
+			}
 		},
 		OnStop: func(err error) {
 			if syncReport {

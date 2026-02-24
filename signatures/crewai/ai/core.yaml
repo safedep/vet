@@ -1,0 +1,109 @@
+version: 0.1
+
+# References -
+# https://docs.crewai.com/
+
+signatures:
+  - id: crewai.agent
+    description: "A CrewAI agent is an autonomous AI unit that serves as a specialized team member within the CrewAI framework. Think of an agent as a digital employee with specific skills, expertise, and responsibilities."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [agent, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.Agent"
+
+  - id: crewai.task
+    description: "Task is a specific assignment completed by an Agent. Tasks provide all necessary details for execution, such as a description, the agent responsible, required tools, and more, facilitating a wide range of action complexities."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [task, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.Task"
+
+  - id: crewai.crew
+    description: "A crew in crewAI represents a collaborative group of agents working together to achieve a set of tasks. Each crew defines the strategy for task execution, agent collaboration, and the overall workflow."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [crew, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.Crew"
+
+  - id: crewai.flow
+    description: "CrewAI Flows is a powerful feature designed to streamline the creation and management of AI workflows. Flows allow developers to combine and coordinate coding tasks and Crews efficiently, providing a robust framework for building sophisticated AI automations."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [flow, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.Flow"
+
+  - id: crewai.knowledge
+    description: "Knowledge in CrewAI is a powerful system that allows AI agents to access and utilize external information sources during their tasks. Think of it as giving your agents a reference library they can consult while working."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [Knowledge, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.Knowledge"
+
+  - id: crewai.llms
+    description: "CrewAI integrates with multiple LLM providers through LiteLLM, giving you the flexibility to choose the right model for your specific use case. This guide will help you understand how to configure and use different LLM providers in your CrewAI projects."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [llms, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.LLM"
+
+  - id: crewai.processes
+    description: "Processes orchestrate the execution of tasks by agents, akin to project management in human teams. These processes ensure tasks are distributed and executed efficiently, in alignment with a predefined strategy."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [processes, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.Process"
+
+  - id: crewai.LiteAgent
+    description: "A lightweight agent that can process messages and use tools."
+    vendor: "CrewAI Inc."
+    product: "CrewAI Python Library"
+    service: "Multi-Agent Orchestration"
+    tags: [light-agent, crewai]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "crewai.LiteAgent"
