@@ -43,13 +43,32 @@ vet scan -D . --code code.db \
   --report-summary --report-summary-used-only
 ```
 
+Querying scan results from the database:
+
+```bash
+# List all signature matches (default limit: 50)
+vet code query --db code.db
+
+# Filter by tag
+vet code query --db code.db --tag ai --tag crypto
+
+# Filter by language and vendor
+vet code query --db code.db --language go --vendor lang/golang
+
+# Filter by file path substring
+vet code query --db code.db --file auth/
+
+# Show more results
+vet code query --db code.db --limit 200
+```
+
 Validating that all embedded signatures are well-formed:
 
 ```bash
 vet code validate
 ```
 
-The full list of flags is available via `vet code scan --help` and `vet scan --help`.
+The full list of flags is available via `vet code scan --help`, `vet code query --help`, and `vet scan --help`.
 
 ## What Gets Detected
 
