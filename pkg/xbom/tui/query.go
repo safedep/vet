@@ -37,8 +37,8 @@ func (r *QueryResultRenderer) RenderMatches(matches []*ent.CodeSignatureMatch, t
 	var b strings.Builder
 
 	if len(matches) == 0 {
-		b.WriteString(fmt.Sprintf("\n  %s\n",
-			r.styles.Dim.Render(fmt.Sprintf("0 matches found (%d total in database)", totalCount))))
+		fmt.Fprintf(&b, "\n  %s\n",
+			r.styles.Dim.Render(fmt.Sprintf("0 matches found (%d total in database)", totalCount)))
 		return b.String()
 	}
 
