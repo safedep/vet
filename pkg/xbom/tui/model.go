@@ -226,18 +226,18 @@ func (m *model) viewScanning() string {
 
 	elapsed := time.Since(m.startTime).Truncate(time.Second)
 
-	b.WriteString(fmt.Sprintf("\n  %s %s  %s\n",
+	fmt.Fprintf(&b, "\n  %s %s  %s\n",
 		m.spinner.View(),
 		m.styles.Title.Render("Scanning code..."),
 		m.styles.Dim.Render(fmt.Sprintf("(%s)", elapsed)),
-	))
+	)
 
-	b.WriteString(fmt.Sprintf("\n  %s %s    %s %s\n",
+	fmt.Fprintf(&b, "\n  %s %s    %s %s\n",
 		m.styles.StatLabel.Render("Files scanned:"),
 		m.styles.Counter.Render(fmt.Sprintf("%d", m.stats.filesScanned)),
 		m.styles.StatLabel.Render("Matches:"),
 		m.styles.Counter.Render(fmt.Sprintf("%d", m.stats.totalMatches)),
-	))
+	)
 
 	if m.stats.latestFile != "" {
 		file := m.stats.latestFile
@@ -248,10 +248,10 @@ func (m *model) viewScanning() string {
 		if len(file) > maxLen {
 			file = "..." + file[len(file)-maxLen+3:]
 		}
-		b.WriteString(fmt.Sprintf("\n  %s %s\n",
+		fmt.Fprintf(&b, "\n  %s %s\n",
 			m.styles.StatLabel.Render("Latest:"),
 			m.styles.FileName.Render(file),
-		))
+		)
 	}
 
 	return b.String()
@@ -261,10 +261,10 @@ func (m *model) viewSummary() string {
 	var b strings.Builder
 
 	if m.err != nil {
-		b.WriteString(fmt.Sprintf("\n  %s %s\n",
+		fmt.Fprintf(&b, "\n  %s %s\n",
 			m.styles.ErrorText.Render("✗"),
 			m.styles.ErrorText.Render("Scan failed: "+m.err.Error()),
-		))
+		)
 		return b.String()
 	}
 
@@ -302,21 +302,21 @@ func (m *model) buildSummaryContent() string {
 	var b strings.Builder
 
 	title := m.styles.Title.Render("Code Scan Summary")
-	b.WriteString(fmt.Sprintf("  %s\n\n", title))
+	fmt.Fprintf(&b, "  %s\n\n", title)
 
 	findings := m.styles.StatValue.Render(fmt.Sprintf("%d", m.stats.totalMatches))
 	files := m.styles.StatValue.Render(fmt.Sprintf("%d", len(m.stats.filesAffected)))
 	langs := m.styles.StatValue.Render(fmt.Sprintf("%d", len(m.stats.languageCounts)))
 	sigs := m.styles.StatValue.Render(fmt.Sprintf("%d", len(m.stats.signatureCounts)))
 
-	b.WriteString(fmt.Sprintf("  %s %s    %s %s    %s %s\n",
+	fmt.Fprintf(&b, "  %s %s    %s %s    %s %s\n",
 		m.styles.StatLabel.Render("Findings:"), findings,
 		m.styles.StatLabel.Render("Files:"), files,
 		m.styles.StatLabel.Render("Languages:"), langs,
-	))
-	b.WriteString(fmt.Sprintf("  %s %s",
+	)
+	fmt.Fprintf(&b, "  %s %s",
 		m.styles.StatLabel.Render("Unique Signatures:"), sigs,
-	))
+	)
 
 	return b.String()
 }
@@ -352,7 +352,7 @@ func (m *model) groupByCategory() map[bomCategory][]sigEntry {
 func (m *model) buildCategoryContent(title string, entries []sigEntry) string {
 	var b strings.Builder
 
-	b.WriteString(fmt.Sprintf("  %s\n\n", m.styles.Title.Render(title)))
+	fmt.Fprintf(&b, "  %s\n\n", m.styles.Title.Render(title))
 
 	// Show top 5 within category
 	limit := 5
@@ -399,7 +399,7 @@ func (m *model) buildCategoryContent(title string, entries []sigEntry) string {
 			tagStr = strings.Join(tagParts, " ")
 		}
 
-		b.WriteString(fmt.Sprintf("  %s  %s%s  %s  %s\n", name, bar, barPad, count, tagStr))
+		fmt.Fprintf(&b, "  %s  %s%s  %s  %s\n", name, bar, barPad, count, tagStr)
 	}
 
 	return b.String()
