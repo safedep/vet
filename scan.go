@@ -132,7 +132,7 @@ func newScanCommand() *cobra.Command {
 		"Fail fast when an issue is identified")
 	cmd.Flags().BoolVarP(&enrich, "enrich", "", true,
 		"Enrich package metadata (almost always required) using Insights API")
-	cmd.Flags().BoolVarP(&enrichUsingInsightsV2, "insights-v2", "", false,
+	cmd.Flags().BoolVarP(&enrichUsingInsightsV2, "insights-v2", "", true,
 		"Enrich package metadata using Insights V2 API")
 	cmd.Flags().BoolVarP(&enrichMalware, "malware", "", false,
 		"Enrich package metadata with active malware analysis results")
