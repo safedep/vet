@@ -51,6 +51,14 @@ type ScannerCallbackRegistry struct {
 
 	// On end of scan
 	OnScanEnd func() error
+
+	// OnFileScanned fires for each file processed by the callgraph plugin.
+	// It is fire-and-forget and must not block or fail the scan.
+	OnFileScanned func(filePath string)
+
+	// OnSignatureMatch fires for each individual signature match found.
+	// It is fire-and-forget and must not block or fail the scan.
+	OnSignatureMatch func(match *SignatureMatchData)
 }
 
 // Scanner defines the contract for implementing a code scanner. The purpose
@@ -142,6 +150,10 @@ func (s *scanner) Scan(ctx context.Context) error {
 				return fmt.Errorf("failed to match signatures: %w", err)
 			}
 
+			if s.config.Callbacks != nil && s.config.Callbacks.OnFileScanned != nil {
+				s.config.Callbacks.OnFileScanned(cg.FileName)
+			}
+
 			for _, match := range matches {
 				for _, condition := range match.MatchedConditions {
 					for _, evidence := range condition.Evidences {
@@ -168,6 +180,10 @@ func (s *scanner) Scan(ctx context.Context) error {
 
 						if _, err := s.writer.SaveSignatureMatch(ctx, data); err != nil {
 							return fmt.Errorf("failed to save signature match: %w", err)
+						}
+
+						if s.config.Callbacks != nil && s.config.Callbacks.OnSignatureMatch != nil {
+							s.config.Callbacks.OnSignatureMatch(data)
 						}
 					}
 				}
@@ -199,6 +215,7 @@ func (s *scanner) Scan(ctx context.Context) error {
 // derivePackageHint checks if filePath is under any configured ImportDirectory
 // and extracts the first path component after the import directory as the package hint.
 // Returns empty string for app-level findings (files not under import directories).
+// NOTE: This is completely broken and need fixing. https://github.com/safedep/vet/issues/688
 func (s *scanner) derivePackageHint(filePath string) string {
 	for _, importDir := range s.config.ImportDirectories {
 		absImportDir, err := filepath.Abs(importDir)

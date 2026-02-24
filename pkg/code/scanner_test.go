@@ -197,6 +197,57 @@ func TestScannerSignatureMatching(t *testing.T) {
 	}
 }
 
+func TestScannerCallbacksInvoked(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "test.db")
+
+	sigs, err := xbomsig.LoadSignatures("lang/golang", "", "")
+	require.NoError(t, err)
+	require.NotEmpty(t, sigs)
+
+	fixtureAbs, err := filepath.Abs("testdata/test_go_capabilities")
+	require.NoError(t, err)
+
+	entStorage, err := storage.NewEntSqliteStorage(storage.EntSqliteClientConfig{
+		Path: dbPath,
+	})
+	require.NoError(t, err)
+
+	allLangCodes := getAllLanguageCodes()
+	langs, err := languagesFromCodes(allLangCodes)
+	require.NoError(t, err)
+
+	var filesScanned int
+	var matchesFound int
+	var lastFile string
+
+	scanner, err := NewScanner(ScannerConfig{
+		AppDirectories:            []string{fixtureAbs},
+		Languages:                 langs,
+		SkipDependencyUsagePlugin: true,
+		SkipSignatureMatching:     false,
+		SignaturesToMatch:         sigs,
+		Callbacks: &ScannerCallbackRegistry{
+			OnScanStart: func() error { return nil },
+			OnScanEnd:   func() error { return nil },
+			OnFileScanned: func(filePath string) {
+				filesScanned++
+				lastFile = filePath
+			},
+			OnSignatureMatch: func(match *SignatureMatchData) {
+				matchesFound++
+			},
+		},
+	}, entStorage)
+	require.NoError(t, err)
+
+	err = scanner.Scan(context.Background())
+	require.NoError(t, err)
+
+	assert.Greater(t, filesScanned, 0, "OnFileScanned should have been called")
+	assert.NotEmpty(t, lastFile, "lastFile should be set")
+	assert.Greater(t, matchesFound, 0, "OnSignatureMatch should have been called")
+}
+
 func TestScannerSkipSignatureMatching(t *testing.T) {
 	dbPath := filepath.Join(t.TempDir(), "test.db")
 

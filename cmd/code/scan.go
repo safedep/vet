@@ -6,14 +6,17 @@ import (
 	"regexp"
 
 	callgraphv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/code/callgraph/v1"
+	"github.com/safedep/code/core"
 	"github.com/spf13/cobra"
 
+	"github.com/safedep/vet/ent"
 	"github.com/safedep/vet/internal/command"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/code"
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/storage"
 	xbomsig "github.com/safedep/vet/pkg/xbom/signatures"
+	xbomtui "github.com/safedep/vet/pkg/xbom/tui"
 	_ "github.com/safedep/vet/signatures" // triggers embed registration
 )
 
@@ -24,6 +27,7 @@ var (
 	excludePatterns           []string
 	skipDependencyUsagePlugin bool
 	skipSignatureMatching     bool
+	noTUI                     bool
 )
 
 func newScanCommand() *cobra.Command {
@@ -43,6 +47,7 @@ func newScanCommand() *cobra.Command {
 		"Name patterns to ignore while scanning a codebase")
 	cmd.Flags().BoolVar(&skipDependencyUsagePlugin, "skip-dependency-usage-plugin", false, "Skip dependency usage plugin analysis")
 	cmd.Flags().BoolVar(&skipSignatureMatching, "skip-signature-matching", false, "Skip xBOM signature matching during code scan")
+	cmd.Flags().BoolVar(&noTUI, "no-tui", false, "Disable interactive TUI and use simple spinner output")
 
 	_ = cmd.MarkFlagRequired("db")
 
@@ -80,6 +85,49 @@ func internalStartScan() error {
 		return fmt.Errorf("failed to load xBOM signatures: %w", err)
 	}
 
+	if !noTUI && xbomtui.IsTerminal() && !skipSignatureMatching && len(signaturesToMatch) > 0 {
+		return runWithTUI(entSqliteStorage, allowedLanguages, excludePatternsRegexps, signaturesToMatch)
+	}
+
+	return runWithSpinner(entSqliteStorage, allowedLanguages, excludePatternsRegexps, signaturesToMatch)
+}
+
+func runWithTUI(
+	entSqliteStorage storage.Storage[*ent.Client],
+	allowedLanguages []core.Language,
+	excludePatternsRegexps []*regexp.Regexp,
+	signaturesToMatch []*callgraphv1.Signature,
+) error {
+	return xbomtui.Run(func(sink *xbomtui.EventSink) error {
+		codeScanner, err := code.NewScanner(code.ScannerConfig{
+			AppDirectories:            appDirs,
+			ImportDirectories:         importDirs,
+			ExcludePatterns:           excludePatternsRegexps,
+			Languages:                 allowedLanguages,
+			SkipDependencyUsagePlugin: skipDependencyUsagePlugin,
+			SkipSignatureMatching:     skipSignatureMatching,
+			SignaturesToMatch:         signaturesToMatch,
+			Callbacks: &code.ScannerCallbackRegistry{
+				OnScanStart:      func() error { return nil },
+				OnScanEnd:        func() error { return nil },
+				OnFileScanned:    sink.FileScanned,
+				OnSignatureMatch: sink.MatchFound,
+			},
+		}, entSqliteStorage)
+		if err != nil {
+			return fmt.Errorf("failed to create code scanner: %w", err)
+		}
+
+		return codeScanner.Scan(context.Background())
+	}, xbomtui.Config{})
+}
+
+func runWithSpinner(
+	entSqliteStorage storage.Storage[*ent.Client],
+	allowedLanguages []core.Language,
+	excludePatternsRegexps []*regexp.Regexp,
+	signaturesToMatch []*callgraphv1.Signature,
+) error {
 	codeScanner, err := code.NewScanner(code.ScannerConfig{
 		AppDirectories:            appDirs,
 		ImportDirectories:         importDirs,
@@ -95,7 +143,7 @@ func internalStartScan() error {
 			},
 			OnScanEnd: func() error {
 				ui.StopSpinner()
-				ui.PrintSuccess("🚀 Code scanning completed. Run vet scan with code context using --code flag")
+				ui.PrintSuccess("Code scanning completed. Run vet scan with code context using --code flag")
 				return nil
 			},
 		},
