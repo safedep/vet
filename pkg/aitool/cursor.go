@@ -6,7 +6,10 @@ import (
 	"path/filepath"
 )
 
-const cursorApp = "cursor"
+const (
+	cursorApp        = "cursor"
+	cursorAppDisplay = "Cursor"
+)
 
 type cursorDiscoverer struct {
 	homeDir    string
@@ -41,7 +44,7 @@ func (d *cursorDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn)
 
 		// System-level: ~/.cursor/mcp.json
 		if cfg, err := parseMCPAppConfig(systemMCPPath); err == nil {
-			if err := emitMCPServers(cfg, systemMCPPath, AIToolScopeSystem, cursorApp, handler); err != nil {
+			if err := emitMCPServers(cfg, systemMCPPath, AIToolScopeSystem, cursorApp, cursorAppDisplay, handler); err != nil {
 				return err
 			}
 		}
@@ -53,6 +56,7 @@ func (d *cursorDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn)
 				Type:       AIToolTypeCodingAgent,
 				Scope:      AIToolScopeSystem,
 				App:        cursorApp,
+				AppDisplay: cursorAppDisplay,
 				ConfigPath: cursorDir,
 				Agent:      &AgentConfig{},
 			}
@@ -78,7 +82,7 @@ func (d *cursorDiscoverer) processProjectConfigs(handler AIToolHandlerFn) error 
 	// .cursor/mcp.json (project-scoped)
 	projectMCPPath := filepath.Join(d.projectDir, ".cursor", "mcp.json")
 	if cfg, err := parseMCPAppConfig(projectMCPPath); err == nil {
-		if err := emitMCPServers(cfg, projectMCPPath, AIToolScopeProject, cursorApp, handler); err != nil {
+		if err := emitMCPServers(cfg, projectMCPPath, AIToolScopeProject, cursorApp, cursorAppDisplay, handler); err != nil {
 			return err
 		}
 	}
@@ -109,6 +113,7 @@ func (d *cursorDiscoverer) processProjectConfigs(handler AIToolHandlerFn) error 
 			Type:       AIToolTypeProjectConfig,
 			Scope:      AIToolScopeProject,
 			App:        cursorApp,
+			AppDisplay: cursorAppDisplay,
 			ConfigPath: d.projectDir,
 			Agent: &AgentConfig{
 				InstructionFiles: instructionFiles,

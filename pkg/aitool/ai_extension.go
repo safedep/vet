@@ -19,7 +19,10 @@ var ideDirNames = map[string]string{
 	".windsurf":   "Windsurf",
 }
 
-const ideExtensionsApp = "ide_extensions"
+const (
+	ideExtensionsApp        = "ide_extensions"
+	ideExtensionsAppDisplay = "IDE Extensions"
+)
 
 type aiExtensionDiscoverer struct {
 	config DiscoveryConfig
@@ -58,6 +61,7 @@ func (d *aiExtensionDiscoverer) EnumTools(_ context.Context, handler AIToolHandl
 				Type:       AIToolTypeAIExtension,
 				Scope:      AIToolScopeSystem,
 				App:        ideExtensionsApp,
+				AppDisplay: ideExtensionsAppDisplay,
 				ConfigPath: manifest.GetPath(),
 			}
 
@@ -69,6 +73,7 @@ func (d *aiExtensionDiscoverer) EnumTools(_ context.Context, handler AIToolHandl
 
 			if ide := ideNameFromPath(manifest.GetPath()); ide != "" {
 				tool.SetMeta("extension.ide", ide)
+				tool.AppDisplay = ide
 			}
 
 			return handler(tool)

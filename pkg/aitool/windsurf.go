@@ -6,7 +6,10 @@ import (
 	"path/filepath"
 )
 
-const windsurfApp = "windsurf"
+const (
+	windsurfApp        = "windsurf"
+	windsurfAppDisplay = "Windsurf"
+)
 
 type windsurfDiscoverer struct {
 	homeDir string
@@ -39,7 +42,7 @@ func (d *windsurfDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerF
 
 	// System-level: ~/.codeium/windsurf/mcp_config.json
 	if cfg, err := parseMCPAppConfig(mcpConfigPath); err == nil {
-		if err := emitMCPServers(cfg, mcpConfigPath, AIToolScopeSystem, windsurfApp, handler); err != nil {
+		if err := emitMCPServers(cfg, mcpConfigPath, AIToolScopeSystem, windsurfApp, windsurfAppDisplay, handler); err != nil {
 			return err
 		}
 	}
@@ -51,6 +54,7 @@ func (d *windsurfDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerF
 			Type:       AIToolTypeCodingAgent,
 			Scope:      AIToolScopeSystem,
 			App:        windsurfApp,
+			AppDisplay: windsurfAppDisplay,
 			ConfigPath: windsurfDir,
 			Agent:      &AgentConfig{},
 		}

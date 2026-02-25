@@ -104,10 +104,10 @@ func printSummaryTable(inventory *aitool.AIToolInventory) {
 	for _, tool := range inventory.Tools {
 		detail := toolDetail(tool)
 		tbl.AppendRow(table.Row{
-			string(tool.Type),
+			tool.Type.DisplayName(),
 			tool.Name,
-			tool.App,
-			string(tool.Scope),
+			tool.AppDisplay,
+			tool.Scope.DisplayName(),
 			detail,
 		})
 	}
