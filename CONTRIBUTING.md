@@ -34,7 +34,7 @@ When contributing changes to repository, follow these steps:
 
 ### Requirements
 
-- Go 1.25.0+
+- Go 1.25.6+
 
 ### Install Dependencies
 
