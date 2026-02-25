@@ -9,6 +9,7 @@ import (
 )
 
 const claudeCodeApp = "claude_code"
+const claudeCodeAppDisplay = "Claude Code"
 
 type claudeCodeDiscoverer struct {
 	homeDir    string
@@ -73,6 +74,7 @@ func (d *claudeCodeDiscoverer) processSystemSettings(path string, handler AITool
 		Type:       AIToolTypeCodingAgent,
 		Scope:      AIToolScopeSystem,
 		App:        claudeCodeApp,
+		AppDisplay: claudeCodeAppDisplay,
 		ConfigPath: path,
 		Agent:      &AgentConfig{},
 	}
@@ -93,7 +95,7 @@ func (d *claudeCodeDiscoverer) processSystemSettings(path string, handler AITool
 	}
 
 	// Emit MCP servers from system settings
-	return emitMCPServers(cfg, path, AIToolScopeSystem, claudeCodeApp, handler)
+	return emitMCPServers(cfg, path, AIToolScopeSystem, claudeCodeApp, claudeCodeAppDisplay, handler)
 }
 
 func (d *claudeCodeDiscoverer) walkProjectSettings(handler AIToolHandlerFn) error {
@@ -115,7 +117,7 @@ func (d *claudeCodeDiscoverer) walkProjectSettings(handler AIToolHandlerFn) erro
 			continue
 		}
 
-		if err := emitMCPServers(cfg, settingsPath, AIToolScopeSystem, claudeCodeApp, handler); err != nil {
+		if err := emitMCPServers(cfg, settingsPath, AIToolScopeSystem, claudeCodeApp, claudeCodeAppDisplay, handler); err != nil {
 			return err
 		}
 	}
@@ -127,7 +129,7 @@ func (d *claudeCodeDiscoverer) processProjectConfigs(handler AIToolHandlerFn) er
 	// .mcp.json
 	mcpJSONPath := filepath.Join(d.projectDir, ".mcp.json")
 	if cfg, err := parseMCPAppConfig(mcpJSONPath); err == nil {
-		if err := emitMCPServers(cfg, mcpJSONPath, AIToolScopeProject, claudeCodeApp, handler); err != nil {
+		if err := emitMCPServers(cfg, mcpJSONPath, AIToolScopeProject, claudeCodeApp, claudeCodeAppDisplay, handler); err != nil {
 			return err
 		}
 	}
@@ -135,7 +137,7 @@ func (d *claudeCodeDiscoverer) processProjectConfigs(handler AIToolHandlerFn) er
 	// .claude/settings.json (project-scoped)
 	projectSettingsPath := filepath.Join(d.projectDir, ".claude", "settings.json")
 	if cfg, err := parseMCPAppConfig(projectSettingsPath); err == nil {
-		if err := emitMCPServers(cfg, projectSettingsPath, AIToolScopeProject, claudeCodeApp, handler); err != nil {
+		if err := emitMCPServers(cfg, projectSettingsPath, AIToolScopeProject, claudeCodeApp, claudeCodeAppDisplay, handler); err != nil {
 			return err
 		}
 	}
@@ -153,6 +155,7 @@ func (d *claudeCodeDiscoverer) processProjectConfigs(handler AIToolHandlerFn) er
 			Type:       AIToolTypeProjectConfig,
 			Scope:      AIToolScopeProject,
 			App:        claudeCodeApp,
+			AppDisplay: claudeCodeAppDisplay,
 			ConfigPath: d.projectDir,
 			Agent: &AgentConfig{
 				InstructionFiles: instructionFiles,

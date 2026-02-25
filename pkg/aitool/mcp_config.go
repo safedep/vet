@@ -84,7 +84,7 @@ func detectTransport(entry mcpServerEntry) MCPTransport {
 }
 
 // emitMCPServers creates and emits AITool entries for all MCP servers in a config.
-func emitMCPServers(cfg *mcpAppConfig, configPath string, scope AIToolScope, app string, handler AIToolHandlerFn) error {
+func emitMCPServers(cfg *mcpAppConfig, configPath string, scope AIToolScope, app, appDisplay string, handler AIToolHandlerFn) error {
 	for _, name := range sortedKeys(cfg.MCPServers) {
 		entry := cfg.MCPServers[name]
 
@@ -105,6 +105,7 @@ func emitMCPServers(cfg *mcpAppConfig, configPath string, scope AIToolScope, app
 			Type:       AIToolTypeMCPServer,
 			Scope:      scope,
 			App:        app,
+			AppDisplay: appDisplay,
 			ConfigPath: configPath,
 			MCPServer:  mcpCfg,
 		}

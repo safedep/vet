@@ -85,6 +85,7 @@ func probeBinary(ctx context.Context, name string, verifier CLIToolVerifier) (*A
 		Type:       AIToolTypeCLITool,
 		Scope:      AIToolScopeSystem,
 		App:        verifier.App(),
+		AppDisplay: verifier.DisplayName(),
 		ConfigPath: binPath,
 	}
 

@@ -18,6 +18,24 @@ const (
 	AIToolTypeProjectConfig AIToolType = "project_config"
 )
 
+// DisplayName returns a human-friendly label for the tool type.
+func (t AIToolType) DisplayName() string {
+	switch t {
+	case AIToolTypeMCPServer:
+		return "MCP Server"
+	case AIToolTypeCodingAgent:
+		return "Coding Agent"
+	case AIToolTypeAIExtension:
+		return "AI Extension"
+	case AIToolTypeCLITool:
+		return "CLI Tool"
+	case AIToolTypeProjectConfig:
+		return "Project Config"
+	default:
+		return string(t)
+	}
+}
+
 // AIToolScope distinguishes system-level (global) from project-level (repo-scoped) configs.
 type AIToolScope string
 
@@ -25,6 +43,18 @@ const (
 	AIToolScopeSystem  AIToolScope = "system"
 	AIToolScopeProject AIToolScope = "project"
 )
+
+// DisplayName returns a human-friendly label for the scope.
+func (s AIToolScope) DisplayName() string {
+	switch s {
+	case AIToolScopeSystem:
+		return "System"
+	case AIToolScopeProject:
+		return "Project"
+	default:
+		return string(s)
+	}
+}
 
 // MCPTransport identifies the transport protocol for an MCP server.
 type MCPTransport string
@@ -65,6 +95,7 @@ type AITool struct {
 	Type       AIToolType  `json:"type"`
 	Scope      AIToolScope `json:"scope"`
 	App        string      `json:"app"`
+	AppDisplay string      `json:"-"`
 	ConfigPath string      `json:"config_path"`
 
 	MCPServer *MCPServerConfig `json:"mcp_server,omitempty"`
