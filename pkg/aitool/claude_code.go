@@ -8,8 +8,10 @@ import (
 	"github.com/safedep/vet/pkg/common/logger"
 )
 
-const claudeCodeApp = "claude_code"
-const claudeCodeAppDisplay = "Claude Code"
+const (
+	claudeCodeApp        = "claude_code"
+	claudeCodeAppDisplay = "Claude Code"
+)
 
 type claudeCodeDiscoverer struct {
 	homeDir    string

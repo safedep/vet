@@ -6,8 +6,10 @@ import (
 	"path/filepath"
 )
 
-const cursorApp = "cursor"
-const cursorAppDisplay = "Cursor"
+const (
+	cursorApp        = "cursor"
+	cursorAppDisplay = "Cursor"
+)
 
 type cursorDiscoverer struct {
 	homeDir    string

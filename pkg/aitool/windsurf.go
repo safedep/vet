@@ -6,8 +6,10 @@ import (
 	"path/filepath"
 )
 
-const windsurfApp = "windsurf"
-const windsurfAppDisplay = "Windsurf"
+const (
+	windsurfApp        = "windsurf"
+	windsurfAppDisplay = "Windsurf"
+)
 
 type windsurfDiscoverer struct {
 	homeDir string

@@ -19,8 +19,10 @@ var ideDirNames = map[string]string{
 	".windsurf":   "Windsurf",
 }
 
-const ideExtensionsApp = "ide_extensions"
-const ideExtensionsAppDisplay = "IDE Extensions"
+const (
+	ideExtensionsApp        = "ide_extensions"
+	ideExtensionsAppDisplay = "IDE Extensions"
+)
 
 type aiExtensionDiscoverer struct {
 	config DiscoveryConfig
