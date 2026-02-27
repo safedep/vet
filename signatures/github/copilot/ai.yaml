@@ -1,0 +1,36 @@
+version: 0.1
+# References -
+# https://github.com/github/copilot-sdk
+
+signatures:
+  - id: github.copilot.client
+    description: "GitHub Copilot SDK client"
+    vendor: "GitHub"
+    product: "GitHub Copilot"
+    service: "AI coding assistant client"
+    tags: [ai, text, llm]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/github/copilot-sdk/go/NewClient"
+          - type: call
+            value: "github.com/github/copilot-sdk/go/Client.Start"
+          - type: call
+            value: "github.com/github/copilot-sdk/go/Client.CreateSession"
+          - type: call
+            value: "github.com/github/copilot-sdk/go/*"
+
+  - id: github.copilot.session
+    description: "GitHub Copilot SDK chat session"
+    vendor: "GitHub"
+    product: "GitHub Copilot"
+    service: "AI chat session"
+    tags: [ai, text, llm]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/github/copilot-sdk/go/Session.SendAndWait"

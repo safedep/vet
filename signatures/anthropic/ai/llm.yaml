@@ -3,6 +3,7 @@ version: 0.1
 # https://github.com/anthropics/anthropic-sdk-python
 # https://github.com/anthropics/anthropic-sdk-java
 # https://javadoc.io/doc/com.anthropic/anthropic-java/latest/index.html
+# https://github.com/anthropics/anthropic-sdk-go
 
 signatures:
   - id: anthropic.client
@@ -26,6 +27,26 @@ signatures:
             value: "com.anthropic.client.okhttp.AnthropicOkHttpClient.builder"
           - type: call
             value: "com.anthropic.client.AnthropicClient.*"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/anthropics/anthropic-sdk-go/NewClient"
+
+  - id: anthropic.messages
+    description: "Anthropic Messages API for chat completions"
+    vendor: "Anthropic"
+    product: "Anthropic API"
+    service: "AI chat completions"
+    tags: [ai, text, llm]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/anthropics/anthropic-sdk-go/MessageService.New"
+          - type: call
+            value: "github.com/anthropics/anthropic-sdk-go/*"
 
   - id: anthropic.async
     description: "Anthropic async client"
