@@ -2,6 +2,7 @@ version: 0.1
 # References -
 # https://pypi.org/project/openai/
 # https://github.com/openai/openai-java
+# https://github.com/openai/openai-go
 # https://learn.microsoft.com/en-us/java/api/overview/azure/ai-openai-readme?view=azure-java-preview
 
 signatures:
@@ -22,6 +23,13 @@ signatures:
         conditions:
           - type: call
             value: "com.openai.client.*"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/openai/openai-go/NewClient"
+          - type: call
+            value: "github.com/openai/openai-go/*"
 
   - id: openai.sync
     description: "OpenAI AI Sync Responses"
@@ -42,6 +50,21 @@ signatures:
             value: "com.openai.client.okhttp.OpenAIOkHttpClient.builder"
           - type: call
             value: "com.openai.client.okhttp.OpenAIOkHttpClient.fromEnv"
+
+  - id: openai.responses
+    description: "OpenAI Responses API for streaming chat completions"
+    vendor: "OpenAI"
+    product: "OpenAI API"
+    service: "AI streaming responses"
+    tags: [ai, text, llm]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/openai/openai-go/responses/ResponseService.NewStreaming"
+          - type: call
+            value: "github.com/openai/openai-go/responses/*"
 
   - id: openai.async
     description: "OpenAI AI Async Responses"
