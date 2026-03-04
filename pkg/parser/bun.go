@@ -13,7 +13,10 @@ import (
 )
 
 func parseBunLockFile(lockfilePath string, _ *ParserConfig) (*models.PackageManifest, error) {
-	bunExtractor := bunlock.New()
+	bunExtractor, err := bunlock.New(nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create bun extractor: %w", err)
+	}
 
 	file, err := os.Open(lockfilePath)
 	if err != nil {

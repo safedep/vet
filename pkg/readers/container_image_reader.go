@@ -11,10 +11,9 @@ import (
 	scalibrlayerimage "github.com/google/osv-scalibr/artifact/image/layerscanning/image"
 	"github.com/google/osv-scalibr/binary/platform"
 	"github.com/google/osv-scalibr/converter"
-	el "github.com/google/osv-scalibr/extractor/filesystem/list"
-	sl "github.com/google/osv-scalibr/extractor/standalone/list"
 	scalibrfs "github.com/google/osv-scalibr/fs"
 	"github.com/google/osv-scalibr/plugin"
+	pluginlist "github.com/google/osv-scalibr/plugin/list"
 
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
@@ -110,17 +109,18 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 		}
 
 		packagePurlCache[pkgPurl] = true
-		key := pkg.Ecosystem()
+		ecosystem := pkg.Ecosystem().String()
+		key := ecosystem
 
 		for _, location := range pkg.Locations {
 			key = fmt.Sprintf("%s:%s", key, location)
 		}
 
 		if _, ok := manifests[key]; !ok {
-			manifests[key] = models.NewPackageManifestFromPurl(pkgPurl, pkg.Ecosystem())
+			manifests[key] = models.NewPackageManifestFromPurl(pkgPurl, ecosystem)
 		}
 
-		pkgDetail := models.NewPackageDetail(pkg.Ecosystem(), pkg.Name, pkg.Version)
+		pkgDetail := models.NewPackageDetail(ecosystem, pkg.Name, pkg.Version)
 		pkgPackage := &models.Package{
 			PackageDetails: pkgDetail,
 			Manifest:       manifests[key],
@@ -147,18 +147,6 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 
 // getScalibrScanConfig returns scalibr.ScanConfig with Extractors and Detectors enabled
 func (c containerImageReader) getScalibrScanConfig() (*scalibr.ScanConfig, error) {
-	// Create Filesystem Extractors, we are using `all` as in container, we need to find everything
-	allFilesystemExtractors, err := el.ExtractorsFromNames([]string{"all"})
-	if err != nil {
-		return nil, err
-	}
-
-	// Create Standalone Extractors, we are using `all` as in container, we need to find everything
-	allStandaloneExtractors, err := sl.ExtractorsFromNames([]string{"all"})
-	if err != nil {
-		return nil, err
-	}
-
 	capability := &plugin.Capabilities{
 		OS:       plugin.OSAny,
 		Network:  plugin.NetworkAny,
@@ -170,9 +158,11 @@ func (c containerImageReader) getScalibrScanConfig() (*scalibr.ScanConfig, error
 		RunningSystem: false,
 	}
 
-	// Apply Capabilities
-	allFilesystemExtractorsWithCapabilities := el.FilterByCapabilities(allFilesystemExtractors, capability)
-	allStandaloneExtractorsWithCapabilities := sl.FilterByCapabilities(allStandaloneExtractors, capability)
+	// Get all plugins filtered by capabilities
+	allPlugins, err := pluginlist.FromCapabilities(capability, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	scanRoot, err := c.scalibrDefaultScanRoots()
 	if err != nil {
@@ -180,11 +170,10 @@ func (c containerImageReader) getScalibrScanConfig() (*scalibr.ScanConfig, error
 	}
 
 	return &scalibr.ScanConfig{
-		ScanRoots:            scanRoot,
-		FilesystemExtractors: allFilesystemExtractorsWithCapabilities,
-		StandaloneExtractors: allStandaloneExtractorsWithCapabilities,
-		Capabilities:         capability,
-		PathsToExtract:       []string{"."},
+		ScanRoots:      scanRoot,
+		Plugins:        allPlugins,
+		Capabilities:   capability,
+		PathsToExtract: []string{"."},
 	}, nil
 }
 

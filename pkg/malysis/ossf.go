@@ -7,11 +7,11 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
-
 	malysisv1pb "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
+	"github.com/ossf/osv-schema/bindings/go/osvconstants"
 	"github.com/ossf/osv-schema/bindings/go/osvschema"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/safedep/vet/pkg/common/logger"
 )
@@ -90,13 +90,13 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 	}
 
 	// Determine the appropriate range type based on ecosystem
-	rangeType := osvschema.RangeSemVer
+	rangeType := osvschema.Range_SEMVER
 	if report.GetPackageVersion().GetPackage().GetEcosystem() == packagev1.Ecosystem_ECOSYSTEM_PYPI {
-		rangeType = osvschema.RangeEcosystem
+		rangeType = osvschema.Range_ECOSYSTEM
 	}
 
-	affected := osvschema.Affected{
-		Package: osvschema.Package{
+	affected := &osvschema.Affected{
+		Package: &osvschema.Package{
 			Ecosystem: osvEcosystem,
 			Name:      report.GetPackageVersion().GetPackage().GetName(),
 		},
@@ -106,10 +106,10 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 	// Decide between using ranges or explicit versions
 	if params.UseRange || packageVersion == "" {
 		// Use range-based versioning (old behavior)
-		affected.Ranges = []osvschema.Range{
+		affected.Ranges = []*osvschema.Range{
 			{
 				Type: rangeType,
-				Events: []osvschema.Event{
+				Events: []*osvschema.Event{
 					{
 						Introduced: versionIntroduced,
 						Fixed:      params.VersionFixed,
@@ -122,26 +122,27 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 		affected.Versions = []string{packageVersion}
 	}
 
+	now := timestamppb.Now()
 	vuln := osvschema.Vulnerability{
-		SchemaVersion: osvschema.SchemaVersion,
-		Modified:      time.Now(),
-		Published:     time.Now(),
+		SchemaVersion: osvconstants.SchemaVersion,
+		Modified:      now,
+		Published:     now,
 		Summary:       fmt.Sprintf("Malicious code in %s package (%s)", report.GetPackageVersion().GetPackage().GetName(), osvEcosystem),
 		Details:       report.GetInference().GetSummary(), // This is intentional to map our summary with OSV details
-		References: []osvschema.Reference{
+		References: []*osvschema.Reference{
 			{
-				Type: osvschema.ReferenceReport,
-				URL:  reportURL,
+				Type: osvschema.Reference_REPORT,
+				Url:  reportURL,
 			},
 		},
-		Credits: []osvschema.Credit{
+		Credits: []*osvschema.Credit{
 			{
-				Type:    osvschema.CreditFinder,
+				Type:    osvschema.Credit_FINDER,
 				Name:    finderName,
 				Contact: contacts,
 			},
 		},
-		Affected: []osvschema.Affected{affected},
+		Affected: []*osvschema.Affected{affected},
 	}
 
 	relFilePath, err := g.relativeFilePath(report.GetPackageVersion().GetPackage().GetEcosystem(),

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	cpb "github.com/google/osv-scalibr/binary/proto/config_go_proto"
 	"github.com/google/osv-scalibr/extractor/filesystem"
 	"github.com/google/osv-scalibr/extractor/filesystem/language/java/pomxmlnet"
 	"github.com/google/osv-scalibr/fs"
@@ -17,7 +18,10 @@ import (
 // We use osc-scalibr's java/pomxmlnet (with Net, or Network) to fetch dependency from registry.
 func parseMavenPomXmlFile(lockfilePath string, _ *ParserConfig) (*models.PackageManifest, error) {
 	// Java/PomXMLNet extractor
-	pomXmlNetExtractor := pomxmlnet.NewDefault()
+	pomXmlNetExtractor, err := pomxmlnet.New(&cpb.PluginConfig{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create pom.xml extractor: %w", err)
+	}
 
 	file, err := os.Open(lockfilePath)
 	if err != nil {
