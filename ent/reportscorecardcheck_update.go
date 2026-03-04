@@ -24,144 +24,144 @@ type ReportScorecardCheckUpdate struct {
 }
 
 // Where appends a list predicates to the ReportScorecardCheckUpdate builder.
-func (rscu *ReportScorecardCheckUpdate) Where(ps ...predicate.ReportScorecardCheck) *ReportScorecardCheckUpdate {
-	rscu.mutation.Where(ps...)
-	return rscu
+func (_u *ReportScorecardCheckUpdate) Where(ps ...predicate.ReportScorecardCheck) *ReportScorecardCheckUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetName sets the "name" field.
-func (rscu *ReportScorecardCheckUpdate) SetName(s string) *ReportScorecardCheckUpdate {
-	rscu.mutation.SetName(s)
-	return rscu
+func (_u *ReportScorecardCheckUpdate) SetName(v string) *ReportScorecardCheckUpdate {
+	_u.mutation.SetName(v)
+	return _u
 }
 
 // SetNillableName sets the "name" field if the given value is not nil.
-func (rscu *ReportScorecardCheckUpdate) SetNillableName(s *string) *ReportScorecardCheckUpdate {
-	if s != nil {
-		rscu.SetName(*s)
+func (_u *ReportScorecardCheckUpdate) SetNillableName(v *string) *ReportScorecardCheckUpdate {
+	if v != nil {
+		_u.SetName(*v)
 	}
-	return rscu
+	return _u
 }
 
 // SetScore sets the "score" field.
-func (rscu *ReportScorecardCheckUpdate) SetScore(f float32) *ReportScorecardCheckUpdate {
-	rscu.mutation.ResetScore()
-	rscu.mutation.SetScore(f)
-	return rscu
+func (_u *ReportScorecardCheckUpdate) SetScore(v float32) *ReportScorecardCheckUpdate {
+	_u.mutation.ResetScore()
+	_u.mutation.SetScore(v)
+	return _u
 }
 
 // SetNillableScore sets the "score" field if the given value is not nil.
-func (rscu *ReportScorecardCheckUpdate) SetNillableScore(f *float32) *ReportScorecardCheckUpdate {
-	if f != nil {
-		rscu.SetScore(*f)
+func (_u *ReportScorecardCheckUpdate) SetNillableScore(v *float32) *ReportScorecardCheckUpdate {
+	if v != nil {
+		_u.SetScore(*v)
 	}
-	return rscu
+	return _u
 }
 
-// AddScore adds f to the "score" field.
-func (rscu *ReportScorecardCheckUpdate) AddScore(f float32) *ReportScorecardCheckUpdate {
-	rscu.mutation.AddScore(f)
-	return rscu
+// AddScore adds value to the "score" field.
+func (_u *ReportScorecardCheckUpdate) AddScore(v float32) *ReportScorecardCheckUpdate {
+	_u.mutation.AddScore(v)
+	return _u
 }
 
 // SetReason sets the "reason" field.
-func (rscu *ReportScorecardCheckUpdate) SetReason(s string) *ReportScorecardCheckUpdate {
-	rscu.mutation.SetReason(s)
-	return rscu
+func (_u *ReportScorecardCheckUpdate) SetReason(v string) *ReportScorecardCheckUpdate {
+	_u.mutation.SetReason(v)
+	return _u
 }
 
 // SetNillableReason sets the "reason" field if the given value is not nil.
-func (rscu *ReportScorecardCheckUpdate) SetNillableReason(s *string) *ReportScorecardCheckUpdate {
-	if s != nil {
-		rscu.SetReason(*s)
+func (_u *ReportScorecardCheckUpdate) SetNillableReason(v *string) *ReportScorecardCheckUpdate {
+	if v != nil {
+		_u.SetReason(*v)
 	}
-	return rscu
+	return _u
 }
 
 // ClearReason clears the value of the "reason" field.
-func (rscu *ReportScorecardCheckUpdate) ClearReason() *ReportScorecardCheckUpdate {
-	rscu.mutation.ClearReason()
-	return rscu
+func (_u *ReportScorecardCheckUpdate) ClearReason() *ReportScorecardCheckUpdate {
+	_u.mutation.ClearReason()
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rscu *ReportScorecardCheckUpdate) SetCreatedAt(t time.Time) *ReportScorecardCheckUpdate {
-	rscu.mutation.SetCreatedAt(t)
-	return rscu
+func (_u *ReportScorecardCheckUpdate) SetCreatedAt(v time.Time) *ReportScorecardCheckUpdate {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rscu *ReportScorecardCheckUpdate) SetNillableCreatedAt(t *time.Time) *ReportScorecardCheckUpdate {
-	if t != nil {
-		rscu.SetCreatedAt(*t)
+func (_u *ReportScorecardCheckUpdate) SetNillableCreatedAt(v *time.Time) *ReportScorecardCheckUpdate {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return rscu
+	return _u
 }
 
 // ClearCreatedAt clears the value of the "created_at" field.
-func (rscu *ReportScorecardCheckUpdate) ClearCreatedAt() *ReportScorecardCheckUpdate {
-	rscu.mutation.ClearCreatedAt()
-	return rscu
+func (_u *ReportScorecardCheckUpdate) ClearCreatedAt() *ReportScorecardCheckUpdate {
+	_u.mutation.ClearCreatedAt()
+	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rscu *ReportScorecardCheckUpdate) SetUpdatedAt(t time.Time) *ReportScorecardCheckUpdate {
-	rscu.mutation.SetUpdatedAt(t)
-	return rscu
+func (_u *ReportScorecardCheckUpdate) SetUpdatedAt(v time.Time) *ReportScorecardCheckUpdate {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rscu *ReportScorecardCheckUpdate) SetNillableUpdatedAt(t *time.Time) *ReportScorecardCheckUpdate {
-	if t != nil {
-		rscu.SetUpdatedAt(*t)
+func (_u *ReportScorecardCheckUpdate) SetNillableUpdatedAt(v *time.Time) *ReportScorecardCheckUpdate {
+	if v != nil {
+		_u.SetUpdatedAt(*v)
 	}
-	return rscu
+	return _u
 }
 
 // ClearUpdatedAt clears the value of the "updated_at" field.
-func (rscu *ReportScorecardCheckUpdate) ClearUpdatedAt() *ReportScorecardCheckUpdate {
-	rscu.mutation.ClearUpdatedAt()
-	return rscu
+func (_u *ReportScorecardCheckUpdate) ClearUpdatedAt() *ReportScorecardCheckUpdate {
+	_u.mutation.ClearUpdatedAt()
+	return _u
 }
 
 // SetScorecardID sets the "scorecard" edge to the ReportScorecard entity by ID.
-func (rscu *ReportScorecardCheckUpdate) SetScorecardID(id int) *ReportScorecardCheckUpdate {
-	rscu.mutation.SetScorecardID(id)
-	return rscu
+func (_u *ReportScorecardCheckUpdate) SetScorecardID(id int) *ReportScorecardCheckUpdate {
+	_u.mutation.SetScorecardID(id)
+	return _u
 }
 
 // SetNillableScorecardID sets the "scorecard" edge to the ReportScorecard entity by ID if the given value is not nil.
-func (rscu *ReportScorecardCheckUpdate) SetNillableScorecardID(id *int) *ReportScorecardCheckUpdate {
+func (_u *ReportScorecardCheckUpdate) SetNillableScorecardID(id *int) *ReportScorecardCheckUpdate {
 	if id != nil {
-		rscu = rscu.SetScorecardID(*id)
+		_u = _u.SetScorecardID(*id)
 	}
-	return rscu
+	return _u
 }
 
 // SetScorecard sets the "scorecard" edge to the ReportScorecard entity.
-func (rscu *ReportScorecardCheckUpdate) SetScorecard(r *ReportScorecard) *ReportScorecardCheckUpdate {
-	return rscu.SetScorecardID(r.ID)
+func (_u *ReportScorecardCheckUpdate) SetScorecard(v *ReportScorecard) *ReportScorecardCheckUpdate {
+	return _u.SetScorecardID(v.ID)
 }
 
 // Mutation returns the ReportScorecardCheckMutation object of the builder.
-func (rscu *ReportScorecardCheckUpdate) Mutation() *ReportScorecardCheckMutation {
-	return rscu.mutation
+func (_u *ReportScorecardCheckUpdate) Mutation() *ReportScorecardCheckMutation {
+	return _u.mutation
 }
 
 // ClearScorecard clears the "scorecard" edge to the ReportScorecard entity.
-func (rscu *ReportScorecardCheckUpdate) ClearScorecard() *ReportScorecardCheckUpdate {
-	rscu.mutation.ClearScorecard()
-	return rscu
+func (_u *ReportScorecardCheckUpdate) ClearScorecard() *ReportScorecardCheckUpdate {
+	_u.mutation.ClearScorecard()
+	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (rscu *ReportScorecardCheckUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, rscu.sqlSave, rscu.mutation, rscu.hooks)
+func (_u *ReportScorecardCheckUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rscu *ReportScorecardCheckUpdate) SaveX(ctx context.Context) int {
-	affected, err := rscu.Save(ctx)
+func (_u *ReportScorecardCheckUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -169,55 +169,55 @@ func (rscu *ReportScorecardCheckUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (rscu *ReportScorecardCheckUpdate) Exec(ctx context.Context) error {
-	_, err := rscu.Save(ctx)
+func (_u *ReportScorecardCheckUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rscu *ReportScorecardCheckUpdate) ExecX(ctx context.Context) {
-	if err := rscu.Exec(ctx); err != nil {
+func (_u *ReportScorecardCheckUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (rscu *ReportScorecardCheckUpdate) sqlSave(ctx context.Context) (n int, err error) {
+func (_u *ReportScorecardCheckUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	_spec := sqlgraph.NewUpdateSpec(reportscorecardcheck.Table, reportscorecardcheck.Columns, sqlgraph.NewFieldSpec(reportscorecardcheck.FieldID, field.TypeInt))
-	if ps := rscu.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := rscu.mutation.Name(); ok {
+	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(reportscorecardcheck.FieldName, field.TypeString, value)
 	}
-	if value, ok := rscu.mutation.Score(); ok {
+	if value, ok := _u.mutation.Score(); ok {
 		_spec.SetField(reportscorecardcheck.FieldScore, field.TypeFloat32, value)
 	}
-	if value, ok := rscu.mutation.AddedScore(); ok {
+	if value, ok := _u.mutation.AddedScore(); ok {
 		_spec.AddField(reportscorecardcheck.FieldScore, field.TypeFloat32, value)
 	}
-	if value, ok := rscu.mutation.Reason(); ok {
+	if value, ok := _u.mutation.Reason(); ok {
 		_spec.SetField(reportscorecardcheck.FieldReason, field.TypeString, value)
 	}
-	if rscu.mutation.ReasonCleared() {
+	if _u.mutation.ReasonCleared() {
 		_spec.ClearField(reportscorecardcheck.FieldReason, field.TypeString)
 	}
-	if value, ok := rscu.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(reportscorecardcheck.FieldCreatedAt, field.TypeTime, value)
 	}
-	if rscu.mutation.CreatedAtCleared() {
+	if _u.mutation.CreatedAtCleared() {
 		_spec.ClearField(reportscorecardcheck.FieldCreatedAt, field.TypeTime)
 	}
-	if value, ok := rscu.mutation.UpdatedAt(); ok {
+	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportscorecardcheck.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if rscu.mutation.UpdatedAtCleared() {
+	if _u.mutation.UpdatedAtCleared() {
 		_spec.ClearField(reportscorecardcheck.FieldUpdatedAt, field.TypeTime)
 	}
-	if rscu.mutation.ScorecardCleared() {
+	if _u.mutation.ScorecardCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -230,7 +230,7 @@ func (rscu *ReportScorecardCheckUpdate) sqlSave(ctx context.Context) (n int, err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rscu.mutation.ScorecardIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.ScorecardIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -246,7 +246,7 @@ func (rscu *ReportScorecardCheckUpdate) sqlSave(ctx context.Context) (n int, err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, rscu.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{reportscorecardcheck.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -254,8 +254,8 @@ func (rscu *ReportScorecardCheckUpdate) sqlSave(ctx context.Context) (n int, err
 		}
 		return 0, err
 	}
-	rscu.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // ReportScorecardCheckUpdateOne is the builder for updating a single ReportScorecardCheck entity.
@@ -267,151 +267,151 @@ type ReportScorecardCheckUpdateOne struct {
 }
 
 // SetName sets the "name" field.
-func (rscuo *ReportScorecardCheckUpdateOne) SetName(s string) *ReportScorecardCheckUpdateOne {
-	rscuo.mutation.SetName(s)
-	return rscuo
+func (_u *ReportScorecardCheckUpdateOne) SetName(v string) *ReportScorecardCheckUpdateOne {
+	_u.mutation.SetName(v)
+	return _u
 }
 
 // SetNillableName sets the "name" field if the given value is not nil.
-func (rscuo *ReportScorecardCheckUpdateOne) SetNillableName(s *string) *ReportScorecardCheckUpdateOne {
-	if s != nil {
-		rscuo.SetName(*s)
+func (_u *ReportScorecardCheckUpdateOne) SetNillableName(v *string) *ReportScorecardCheckUpdateOne {
+	if v != nil {
+		_u.SetName(*v)
 	}
-	return rscuo
+	return _u
 }
 
 // SetScore sets the "score" field.
-func (rscuo *ReportScorecardCheckUpdateOne) SetScore(f float32) *ReportScorecardCheckUpdateOne {
-	rscuo.mutation.ResetScore()
-	rscuo.mutation.SetScore(f)
-	return rscuo
+func (_u *ReportScorecardCheckUpdateOne) SetScore(v float32) *ReportScorecardCheckUpdateOne {
+	_u.mutation.ResetScore()
+	_u.mutation.SetScore(v)
+	return _u
 }
 
 // SetNillableScore sets the "score" field if the given value is not nil.
-func (rscuo *ReportScorecardCheckUpdateOne) SetNillableScore(f *float32) *ReportScorecardCheckUpdateOne {
-	if f != nil {
-		rscuo.SetScore(*f)
+func (_u *ReportScorecardCheckUpdateOne) SetNillableScore(v *float32) *ReportScorecardCheckUpdateOne {
+	if v != nil {
+		_u.SetScore(*v)
 	}
-	return rscuo
+	return _u
 }
 
-// AddScore adds f to the "score" field.
-func (rscuo *ReportScorecardCheckUpdateOne) AddScore(f float32) *ReportScorecardCheckUpdateOne {
-	rscuo.mutation.AddScore(f)
-	return rscuo
+// AddScore adds value to the "score" field.
+func (_u *ReportScorecardCheckUpdateOne) AddScore(v float32) *ReportScorecardCheckUpdateOne {
+	_u.mutation.AddScore(v)
+	return _u
 }
 
 // SetReason sets the "reason" field.
-func (rscuo *ReportScorecardCheckUpdateOne) SetReason(s string) *ReportScorecardCheckUpdateOne {
-	rscuo.mutation.SetReason(s)
-	return rscuo
+func (_u *ReportScorecardCheckUpdateOne) SetReason(v string) *ReportScorecardCheckUpdateOne {
+	_u.mutation.SetReason(v)
+	return _u
 }
 
 // SetNillableReason sets the "reason" field if the given value is not nil.
-func (rscuo *ReportScorecardCheckUpdateOne) SetNillableReason(s *string) *ReportScorecardCheckUpdateOne {
-	if s != nil {
-		rscuo.SetReason(*s)
+func (_u *ReportScorecardCheckUpdateOne) SetNillableReason(v *string) *ReportScorecardCheckUpdateOne {
+	if v != nil {
+		_u.SetReason(*v)
 	}
-	return rscuo
+	return _u
 }
 
 // ClearReason clears the value of the "reason" field.
-func (rscuo *ReportScorecardCheckUpdateOne) ClearReason() *ReportScorecardCheckUpdateOne {
-	rscuo.mutation.ClearReason()
-	return rscuo
+func (_u *ReportScorecardCheckUpdateOne) ClearReason() *ReportScorecardCheckUpdateOne {
+	_u.mutation.ClearReason()
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rscuo *ReportScorecardCheckUpdateOne) SetCreatedAt(t time.Time) *ReportScorecardCheckUpdateOne {
-	rscuo.mutation.SetCreatedAt(t)
-	return rscuo
+func (_u *ReportScorecardCheckUpdateOne) SetCreatedAt(v time.Time) *ReportScorecardCheckUpdateOne {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rscuo *ReportScorecardCheckUpdateOne) SetNillableCreatedAt(t *time.Time) *ReportScorecardCheckUpdateOne {
-	if t != nil {
-		rscuo.SetCreatedAt(*t)
+func (_u *ReportScorecardCheckUpdateOne) SetNillableCreatedAt(v *time.Time) *ReportScorecardCheckUpdateOne {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return rscuo
+	return _u
 }
 
 // ClearCreatedAt clears the value of the "created_at" field.
-func (rscuo *ReportScorecardCheckUpdateOne) ClearCreatedAt() *ReportScorecardCheckUpdateOne {
-	rscuo.mutation.ClearCreatedAt()
-	return rscuo
+func (_u *ReportScorecardCheckUpdateOne) ClearCreatedAt() *ReportScorecardCheckUpdateOne {
+	_u.mutation.ClearCreatedAt()
+	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rscuo *ReportScorecardCheckUpdateOne) SetUpdatedAt(t time.Time) *ReportScorecardCheckUpdateOne {
-	rscuo.mutation.SetUpdatedAt(t)
-	return rscuo
+func (_u *ReportScorecardCheckUpdateOne) SetUpdatedAt(v time.Time) *ReportScorecardCheckUpdateOne {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rscuo *ReportScorecardCheckUpdateOne) SetNillableUpdatedAt(t *time.Time) *ReportScorecardCheckUpdateOne {
-	if t != nil {
-		rscuo.SetUpdatedAt(*t)
+func (_u *ReportScorecardCheckUpdateOne) SetNillableUpdatedAt(v *time.Time) *ReportScorecardCheckUpdateOne {
+	if v != nil {
+		_u.SetUpdatedAt(*v)
 	}
-	return rscuo
+	return _u
 }
 
 // ClearUpdatedAt clears the value of the "updated_at" field.
-func (rscuo *ReportScorecardCheckUpdateOne) ClearUpdatedAt() *ReportScorecardCheckUpdateOne {
-	rscuo.mutation.ClearUpdatedAt()
-	return rscuo
+func (_u *ReportScorecardCheckUpdateOne) ClearUpdatedAt() *ReportScorecardCheckUpdateOne {
+	_u.mutation.ClearUpdatedAt()
+	return _u
 }
 
 // SetScorecardID sets the "scorecard" edge to the ReportScorecard entity by ID.
-func (rscuo *ReportScorecardCheckUpdateOne) SetScorecardID(id int) *ReportScorecardCheckUpdateOne {
-	rscuo.mutation.SetScorecardID(id)
-	return rscuo
+func (_u *ReportScorecardCheckUpdateOne) SetScorecardID(id int) *ReportScorecardCheckUpdateOne {
+	_u.mutation.SetScorecardID(id)
+	return _u
 }
 
 // SetNillableScorecardID sets the "scorecard" edge to the ReportScorecard entity by ID if the given value is not nil.
-func (rscuo *ReportScorecardCheckUpdateOne) SetNillableScorecardID(id *int) *ReportScorecardCheckUpdateOne {
+func (_u *ReportScorecardCheckUpdateOne) SetNillableScorecardID(id *int) *ReportScorecardCheckUpdateOne {
 	if id != nil {
-		rscuo = rscuo.SetScorecardID(*id)
+		_u = _u.SetScorecardID(*id)
 	}
-	return rscuo
+	return _u
 }
 
 // SetScorecard sets the "scorecard" edge to the ReportScorecard entity.
-func (rscuo *ReportScorecardCheckUpdateOne) SetScorecard(r *ReportScorecard) *ReportScorecardCheckUpdateOne {
-	return rscuo.SetScorecardID(r.ID)
+func (_u *ReportScorecardCheckUpdateOne) SetScorecard(v *ReportScorecard) *ReportScorecardCheckUpdateOne {
+	return _u.SetScorecardID(v.ID)
 }
 
 // Mutation returns the ReportScorecardCheckMutation object of the builder.
-func (rscuo *ReportScorecardCheckUpdateOne) Mutation() *ReportScorecardCheckMutation {
-	return rscuo.mutation
+func (_u *ReportScorecardCheckUpdateOne) Mutation() *ReportScorecardCheckMutation {
+	return _u.mutation
 }
 
 // ClearScorecard clears the "scorecard" edge to the ReportScorecard entity.
-func (rscuo *ReportScorecardCheckUpdateOne) ClearScorecard() *ReportScorecardCheckUpdateOne {
-	rscuo.mutation.ClearScorecard()
-	return rscuo
+func (_u *ReportScorecardCheckUpdateOne) ClearScorecard() *ReportScorecardCheckUpdateOne {
+	_u.mutation.ClearScorecard()
+	return _u
 }
 
 // Where appends a list predicates to the ReportScorecardCheckUpdate builder.
-func (rscuo *ReportScorecardCheckUpdateOne) Where(ps ...predicate.ReportScorecardCheck) *ReportScorecardCheckUpdateOne {
-	rscuo.mutation.Where(ps...)
-	return rscuo
+func (_u *ReportScorecardCheckUpdateOne) Where(ps ...predicate.ReportScorecardCheck) *ReportScorecardCheckUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (rscuo *ReportScorecardCheckUpdateOne) Select(field string, fields ...string) *ReportScorecardCheckUpdateOne {
-	rscuo.fields = append([]string{field}, fields...)
-	return rscuo
+func (_u *ReportScorecardCheckUpdateOne) Select(field string, fields ...string) *ReportScorecardCheckUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated ReportScorecardCheck entity.
-func (rscuo *ReportScorecardCheckUpdateOne) Save(ctx context.Context) (*ReportScorecardCheck, error) {
-	return withHooks(ctx, rscuo.sqlSave, rscuo.mutation, rscuo.hooks)
+func (_u *ReportScorecardCheckUpdateOne) Save(ctx context.Context) (*ReportScorecardCheck, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rscuo *ReportScorecardCheckUpdateOne) SaveX(ctx context.Context) *ReportScorecardCheck {
-	node, err := rscuo.Save(ctx)
+func (_u *ReportScorecardCheckUpdateOne) SaveX(ctx context.Context) *ReportScorecardCheck {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -419,26 +419,26 @@ func (rscuo *ReportScorecardCheckUpdateOne) SaveX(ctx context.Context) *ReportSc
 }
 
 // Exec executes the query on the entity.
-func (rscuo *ReportScorecardCheckUpdateOne) Exec(ctx context.Context) error {
-	_, err := rscuo.Save(ctx)
+func (_u *ReportScorecardCheckUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rscuo *ReportScorecardCheckUpdateOne) ExecX(ctx context.Context) {
-	if err := rscuo.Exec(ctx); err != nil {
+func (_u *ReportScorecardCheckUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (rscuo *ReportScorecardCheckUpdateOne) sqlSave(ctx context.Context) (_node *ReportScorecardCheck, err error) {
+func (_u *ReportScorecardCheckUpdateOne) sqlSave(ctx context.Context) (_node *ReportScorecardCheck, err error) {
 	_spec := sqlgraph.NewUpdateSpec(reportscorecardcheck.Table, reportscorecardcheck.Columns, sqlgraph.NewFieldSpec(reportscorecardcheck.FieldID, field.TypeInt))
-	id, ok := rscuo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "ReportScorecardCheck.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := rscuo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, reportscorecardcheck.FieldID)
 		for _, f := range fields {
@@ -450,41 +450,41 @@ func (rscuo *ReportScorecardCheckUpdateOne) sqlSave(ctx context.Context) (_node 
 			}
 		}
 	}
-	if ps := rscuo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := rscuo.mutation.Name(); ok {
+	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(reportscorecardcheck.FieldName, field.TypeString, value)
 	}
-	if value, ok := rscuo.mutation.Score(); ok {
+	if value, ok := _u.mutation.Score(); ok {
 		_spec.SetField(reportscorecardcheck.FieldScore, field.TypeFloat32, value)
 	}
-	if value, ok := rscuo.mutation.AddedScore(); ok {
+	if value, ok := _u.mutation.AddedScore(); ok {
 		_spec.AddField(reportscorecardcheck.FieldScore, field.TypeFloat32, value)
 	}
-	if value, ok := rscuo.mutation.Reason(); ok {
+	if value, ok := _u.mutation.Reason(); ok {
 		_spec.SetField(reportscorecardcheck.FieldReason, field.TypeString, value)
 	}
-	if rscuo.mutation.ReasonCleared() {
+	if _u.mutation.ReasonCleared() {
 		_spec.ClearField(reportscorecardcheck.FieldReason, field.TypeString)
 	}
-	if value, ok := rscuo.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(reportscorecardcheck.FieldCreatedAt, field.TypeTime, value)
 	}
-	if rscuo.mutation.CreatedAtCleared() {
+	if _u.mutation.CreatedAtCleared() {
 		_spec.ClearField(reportscorecardcheck.FieldCreatedAt, field.TypeTime)
 	}
-	if value, ok := rscuo.mutation.UpdatedAt(); ok {
+	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportscorecardcheck.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if rscuo.mutation.UpdatedAtCleared() {
+	if _u.mutation.UpdatedAtCleared() {
 		_spec.ClearField(reportscorecardcheck.FieldUpdatedAt, field.TypeTime)
 	}
-	if rscuo.mutation.ScorecardCleared() {
+	if _u.mutation.ScorecardCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -497,7 +497,7 @@ func (rscuo *ReportScorecardCheckUpdateOne) sqlSave(ctx context.Context) (_node 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rscuo.mutation.ScorecardIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.ScorecardIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -513,10 +513,10 @@ func (rscuo *ReportScorecardCheckUpdateOne) sqlSave(ctx context.Context) (_node 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_node = &ReportScorecardCheck{config: rscuo.config}
+	_node = &ReportScorecardCheck{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, rscuo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{reportscorecardcheck.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -524,6 +524,6 @@ func (rscuo *ReportScorecardCheckUpdateOne) sqlSave(ctx context.Context) (_node 
 		}
 		return nil, err
 	}
-	rscuo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

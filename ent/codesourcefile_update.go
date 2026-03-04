@@ -24,110 +24,110 @@ type CodeSourceFileUpdate struct {
 }
 
 // Where appends a list predicates to the CodeSourceFileUpdate builder.
-func (csfu *CodeSourceFileUpdate) Where(ps ...predicate.CodeSourceFile) *CodeSourceFileUpdate {
-	csfu.mutation.Where(ps...)
-	return csfu
+func (_u *CodeSourceFileUpdate) Where(ps ...predicate.CodeSourceFile) *CodeSourceFileUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetPath sets the "path" field.
-func (csfu *CodeSourceFileUpdate) SetPath(s string) *CodeSourceFileUpdate {
-	csfu.mutation.SetPath(s)
-	return csfu
+func (_u *CodeSourceFileUpdate) SetPath(v string) *CodeSourceFileUpdate {
+	_u.mutation.SetPath(v)
+	return _u
 }
 
 // SetNillablePath sets the "path" field if the given value is not nil.
-func (csfu *CodeSourceFileUpdate) SetNillablePath(s *string) *CodeSourceFileUpdate {
-	if s != nil {
-		csfu.SetPath(*s)
+func (_u *CodeSourceFileUpdate) SetNillablePath(v *string) *CodeSourceFileUpdate {
+	if v != nil {
+		_u.SetPath(*v)
 	}
-	return csfu
+	return _u
 }
 
 // AddDepsUsageEvidenceIDs adds the "deps_usage_evidences" edge to the DepsUsageEvidence entity by IDs.
-func (csfu *CodeSourceFileUpdate) AddDepsUsageEvidenceIDs(ids ...int) *CodeSourceFileUpdate {
-	csfu.mutation.AddDepsUsageEvidenceIDs(ids...)
-	return csfu
+func (_u *CodeSourceFileUpdate) AddDepsUsageEvidenceIDs(ids ...int) *CodeSourceFileUpdate {
+	_u.mutation.AddDepsUsageEvidenceIDs(ids...)
+	return _u
 }
 
 // AddDepsUsageEvidences adds the "deps_usage_evidences" edges to the DepsUsageEvidence entity.
-func (csfu *CodeSourceFileUpdate) AddDepsUsageEvidences(d ...*DepsUsageEvidence) *CodeSourceFileUpdate {
-	ids := make([]int, len(d))
-	for i := range d {
-		ids[i] = d[i].ID
+func (_u *CodeSourceFileUpdate) AddDepsUsageEvidences(v ...*DepsUsageEvidence) *CodeSourceFileUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return csfu.AddDepsUsageEvidenceIDs(ids...)
+	return _u.AddDepsUsageEvidenceIDs(ids...)
 }
 
 // AddSignatureMatchIDs adds the "signature_matches" edge to the CodeSignatureMatch entity by IDs.
-func (csfu *CodeSourceFileUpdate) AddSignatureMatchIDs(ids ...int) *CodeSourceFileUpdate {
-	csfu.mutation.AddSignatureMatchIDs(ids...)
-	return csfu
+func (_u *CodeSourceFileUpdate) AddSignatureMatchIDs(ids ...int) *CodeSourceFileUpdate {
+	_u.mutation.AddSignatureMatchIDs(ids...)
+	return _u
 }
 
 // AddSignatureMatches adds the "signature_matches" edges to the CodeSignatureMatch entity.
-func (csfu *CodeSourceFileUpdate) AddSignatureMatches(c ...*CodeSignatureMatch) *CodeSourceFileUpdate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
+func (_u *CodeSourceFileUpdate) AddSignatureMatches(v ...*CodeSignatureMatch) *CodeSourceFileUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return csfu.AddSignatureMatchIDs(ids...)
+	return _u.AddSignatureMatchIDs(ids...)
 }
 
 // Mutation returns the CodeSourceFileMutation object of the builder.
-func (csfu *CodeSourceFileUpdate) Mutation() *CodeSourceFileMutation {
-	return csfu.mutation
+func (_u *CodeSourceFileUpdate) Mutation() *CodeSourceFileMutation {
+	return _u.mutation
 }
 
 // ClearDepsUsageEvidences clears all "deps_usage_evidences" edges to the DepsUsageEvidence entity.
-func (csfu *CodeSourceFileUpdate) ClearDepsUsageEvidences() *CodeSourceFileUpdate {
-	csfu.mutation.ClearDepsUsageEvidences()
-	return csfu
+func (_u *CodeSourceFileUpdate) ClearDepsUsageEvidences() *CodeSourceFileUpdate {
+	_u.mutation.ClearDepsUsageEvidences()
+	return _u
 }
 
 // RemoveDepsUsageEvidenceIDs removes the "deps_usage_evidences" edge to DepsUsageEvidence entities by IDs.
-func (csfu *CodeSourceFileUpdate) RemoveDepsUsageEvidenceIDs(ids ...int) *CodeSourceFileUpdate {
-	csfu.mutation.RemoveDepsUsageEvidenceIDs(ids...)
-	return csfu
+func (_u *CodeSourceFileUpdate) RemoveDepsUsageEvidenceIDs(ids ...int) *CodeSourceFileUpdate {
+	_u.mutation.RemoveDepsUsageEvidenceIDs(ids...)
+	return _u
 }
 
 // RemoveDepsUsageEvidences removes "deps_usage_evidences" edges to DepsUsageEvidence entities.
-func (csfu *CodeSourceFileUpdate) RemoveDepsUsageEvidences(d ...*DepsUsageEvidence) *CodeSourceFileUpdate {
-	ids := make([]int, len(d))
-	for i := range d {
-		ids[i] = d[i].ID
+func (_u *CodeSourceFileUpdate) RemoveDepsUsageEvidences(v ...*DepsUsageEvidence) *CodeSourceFileUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return csfu.RemoveDepsUsageEvidenceIDs(ids...)
+	return _u.RemoveDepsUsageEvidenceIDs(ids...)
 }
 
 // ClearSignatureMatches clears all "signature_matches" edges to the CodeSignatureMatch entity.
-func (csfu *CodeSourceFileUpdate) ClearSignatureMatches() *CodeSourceFileUpdate {
-	csfu.mutation.ClearSignatureMatches()
-	return csfu
+func (_u *CodeSourceFileUpdate) ClearSignatureMatches() *CodeSourceFileUpdate {
+	_u.mutation.ClearSignatureMatches()
+	return _u
 }
 
 // RemoveSignatureMatchIDs removes the "signature_matches" edge to CodeSignatureMatch entities by IDs.
-func (csfu *CodeSourceFileUpdate) RemoveSignatureMatchIDs(ids ...int) *CodeSourceFileUpdate {
-	csfu.mutation.RemoveSignatureMatchIDs(ids...)
-	return csfu
+func (_u *CodeSourceFileUpdate) RemoveSignatureMatchIDs(ids ...int) *CodeSourceFileUpdate {
+	_u.mutation.RemoveSignatureMatchIDs(ids...)
+	return _u
 }
 
 // RemoveSignatureMatches removes "signature_matches" edges to CodeSignatureMatch entities.
-func (csfu *CodeSourceFileUpdate) RemoveSignatureMatches(c ...*CodeSignatureMatch) *CodeSourceFileUpdate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
+func (_u *CodeSourceFileUpdate) RemoveSignatureMatches(v ...*CodeSignatureMatch) *CodeSourceFileUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return csfu.RemoveSignatureMatchIDs(ids...)
+	return _u.RemoveSignatureMatchIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (csfu *CodeSourceFileUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, csfu.sqlSave, csfu.mutation, csfu.hooks)
+func (_u *CodeSourceFileUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (csfu *CodeSourceFileUpdate) SaveX(ctx context.Context) int {
-	affected, err := csfu.Save(ctx)
+func (_u *CodeSourceFileUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -135,21 +135,21 @@ func (csfu *CodeSourceFileUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (csfu *CodeSourceFileUpdate) Exec(ctx context.Context) error {
-	_, err := csfu.Save(ctx)
+func (_u *CodeSourceFileUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (csfu *CodeSourceFileUpdate) ExecX(ctx context.Context) {
-	if err := csfu.Exec(ctx); err != nil {
+func (_u *CodeSourceFileUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (csfu *CodeSourceFileUpdate) check() error {
-	if v, ok := csfu.mutation.Path(); ok {
+func (_u *CodeSourceFileUpdate) check() error {
+	if v, ok := _u.mutation.Path(); ok {
 		if err := codesourcefile.PathValidator(v); err != nil {
 			return &ValidationError{Name: "path", err: fmt.Errorf(`ent: validator failed for field "CodeSourceFile.path": %w`, err)}
 		}
@@ -157,22 +157,22 @@ func (csfu *CodeSourceFileUpdate) check() error {
 	return nil
 }
 
-func (csfu *CodeSourceFileUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := csfu.check(); err != nil {
-		return n, err
+func (_u *CodeSourceFileUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(codesourcefile.Table, codesourcefile.Columns, sqlgraph.NewFieldSpec(codesourcefile.FieldID, field.TypeInt))
-	if ps := csfu.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := csfu.mutation.Path(); ok {
+	if value, ok := _u.mutation.Path(); ok {
 		_spec.SetField(codesourcefile.FieldPath, field.TypeString, value)
 	}
-	if csfu.mutation.DepsUsageEvidencesCleared() {
+	if _u.mutation.DepsUsageEvidencesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -185,7 +185,7 @@ func (csfu *CodeSourceFileUpdate) sqlSave(ctx context.Context) (n int, err error
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := csfu.mutation.RemovedDepsUsageEvidencesIDs(); len(nodes) > 0 && !csfu.mutation.DepsUsageEvidencesCleared() {
+	if nodes := _u.mutation.RemovedDepsUsageEvidencesIDs(); len(nodes) > 0 && !_u.mutation.DepsUsageEvidencesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -201,7 +201,7 @@ func (csfu *CodeSourceFileUpdate) sqlSave(ctx context.Context) (n int, err error
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := csfu.mutation.DepsUsageEvidencesIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.DepsUsageEvidencesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -217,7 +217,7 @@ func (csfu *CodeSourceFileUpdate) sqlSave(ctx context.Context) (n int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if csfu.mutation.SignatureMatchesCleared() {
+	if _u.mutation.SignatureMatchesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -230,7 +230,7 @@ func (csfu *CodeSourceFileUpdate) sqlSave(ctx context.Context) (n int, err error
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := csfu.mutation.RemovedSignatureMatchesIDs(); len(nodes) > 0 && !csfu.mutation.SignatureMatchesCleared() {
+	if nodes := _u.mutation.RemovedSignatureMatchesIDs(); len(nodes) > 0 && !_u.mutation.SignatureMatchesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -246,7 +246,7 @@ func (csfu *CodeSourceFileUpdate) sqlSave(ctx context.Context) (n int, err error
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := csfu.mutation.SignatureMatchesIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.SignatureMatchesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -262,7 +262,7 @@ func (csfu *CodeSourceFileUpdate) sqlSave(ctx context.Context) (n int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, csfu.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{codesourcefile.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -270,8 +270,8 @@ func (csfu *CodeSourceFileUpdate) sqlSave(ctx context.Context) (n int, err error
 		}
 		return 0, err
 	}
-	csfu.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // CodeSourceFileUpdateOne is the builder for updating a single CodeSourceFile entity.
@@ -283,117 +283,117 @@ type CodeSourceFileUpdateOne struct {
 }
 
 // SetPath sets the "path" field.
-func (csfuo *CodeSourceFileUpdateOne) SetPath(s string) *CodeSourceFileUpdateOne {
-	csfuo.mutation.SetPath(s)
-	return csfuo
+func (_u *CodeSourceFileUpdateOne) SetPath(v string) *CodeSourceFileUpdateOne {
+	_u.mutation.SetPath(v)
+	return _u
 }
 
 // SetNillablePath sets the "path" field if the given value is not nil.
-func (csfuo *CodeSourceFileUpdateOne) SetNillablePath(s *string) *CodeSourceFileUpdateOne {
-	if s != nil {
-		csfuo.SetPath(*s)
+func (_u *CodeSourceFileUpdateOne) SetNillablePath(v *string) *CodeSourceFileUpdateOne {
+	if v != nil {
+		_u.SetPath(*v)
 	}
-	return csfuo
+	return _u
 }
 
 // AddDepsUsageEvidenceIDs adds the "deps_usage_evidences" edge to the DepsUsageEvidence entity by IDs.
-func (csfuo *CodeSourceFileUpdateOne) AddDepsUsageEvidenceIDs(ids ...int) *CodeSourceFileUpdateOne {
-	csfuo.mutation.AddDepsUsageEvidenceIDs(ids...)
-	return csfuo
+func (_u *CodeSourceFileUpdateOne) AddDepsUsageEvidenceIDs(ids ...int) *CodeSourceFileUpdateOne {
+	_u.mutation.AddDepsUsageEvidenceIDs(ids...)
+	return _u
 }
 
 // AddDepsUsageEvidences adds the "deps_usage_evidences" edges to the DepsUsageEvidence entity.
-func (csfuo *CodeSourceFileUpdateOne) AddDepsUsageEvidences(d ...*DepsUsageEvidence) *CodeSourceFileUpdateOne {
-	ids := make([]int, len(d))
-	for i := range d {
-		ids[i] = d[i].ID
+func (_u *CodeSourceFileUpdateOne) AddDepsUsageEvidences(v ...*DepsUsageEvidence) *CodeSourceFileUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return csfuo.AddDepsUsageEvidenceIDs(ids...)
+	return _u.AddDepsUsageEvidenceIDs(ids...)
 }
 
 // AddSignatureMatchIDs adds the "signature_matches" edge to the CodeSignatureMatch entity by IDs.
-func (csfuo *CodeSourceFileUpdateOne) AddSignatureMatchIDs(ids ...int) *CodeSourceFileUpdateOne {
-	csfuo.mutation.AddSignatureMatchIDs(ids...)
-	return csfuo
+func (_u *CodeSourceFileUpdateOne) AddSignatureMatchIDs(ids ...int) *CodeSourceFileUpdateOne {
+	_u.mutation.AddSignatureMatchIDs(ids...)
+	return _u
 }
 
 // AddSignatureMatches adds the "signature_matches" edges to the CodeSignatureMatch entity.
-func (csfuo *CodeSourceFileUpdateOne) AddSignatureMatches(c ...*CodeSignatureMatch) *CodeSourceFileUpdateOne {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
+func (_u *CodeSourceFileUpdateOne) AddSignatureMatches(v ...*CodeSignatureMatch) *CodeSourceFileUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return csfuo.AddSignatureMatchIDs(ids...)
+	return _u.AddSignatureMatchIDs(ids...)
 }
 
 // Mutation returns the CodeSourceFileMutation object of the builder.
-func (csfuo *CodeSourceFileUpdateOne) Mutation() *CodeSourceFileMutation {
-	return csfuo.mutation
+func (_u *CodeSourceFileUpdateOne) Mutation() *CodeSourceFileMutation {
+	return _u.mutation
 }
 
 // ClearDepsUsageEvidences clears all "deps_usage_evidences" edges to the DepsUsageEvidence entity.
-func (csfuo *CodeSourceFileUpdateOne) ClearDepsUsageEvidences() *CodeSourceFileUpdateOne {
-	csfuo.mutation.ClearDepsUsageEvidences()
-	return csfuo
+func (_u *CodeSourceFileUpdateOne) ClearDepsUsageEvidences() *CodeSourceFileUpdateOne {
+	_u.mutation.ClearDepsUsageEvidences()
+	return _u
 }
 
 // RemoveDepsUsageEvidenceIDs removes the "deps_usage_evidences" edge to DepsUsageEvidence entities by IDs.
-func (csfuo *CodeSourceFileUpdateOne) RemoveDepsUsageEvidenceIDs(ids ...int) *CodeSourceFileUpdateOne {
-	csfuo.mutation.RemoveDepsUsageEvidenceIDs(ids...)
-	return csfuo
+func (_u *CodeSourceFileUpdateOne) RemoveDepsUsageEvidenceIDs(ids ...int) *CodeSourceFileUpdateOne {
+	_u.mutation.RemoveDepsUsageEvidenceIDs(ids...)
+	return _u
 }
 
 // RemoveDepsUsageEvidences removes "deps_usage_evidences" edges to DepsUsageEvidence entities.
-func (csfuo *CodeSourceFileUpdateOne) RemoveDepsUsageEvidences(d ...*DepsUsageEvidence) *CodeSourceFileUpdateOne {
-	ids := make([]int, len(d))
-	for i := range d {
-		ids[i] = d[i].ID
+func (_u *CodeSourceFileUpdateOne) RemoveDepsUsageEvidences(v ...*DepsUsageEvidence) *CodeSourceFileUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return csfuo.RemoveDepsUsageEvidenceIDs(ids...)
+	return _u.RemoveDepsUsageEvidenceIDs(ids...)
 }
 
 // ClearSignatureMatches clears all "signature_matches" edges to the CodeSignatureMatch entity.
-func (csfuo *CodeSourceFileUpdateOne) ClearSignatureMatches() *CodeSourceFileUpdateOne {
-	csfuo.mutation.ClearSignatureMatches()
-	return csfuo
+func (_u *CodeSourceFileUpdateOne) ClearSignatureMatches() *CodeSourceFileUpdateOne {
+	_u.mutation.ClearSignatureMatches()
+	return _u
 }
 
 // RemoveSignatureMatchIDs removes the "signature_matches" edge to CodeSignatureMatch entities by IDs.
-func (csfuo *CodeSourceFileUpdateOne) RemoveSignatureMatchIDs(ids ...int) *CodeSourceFileUpdateOne {
-	csfuo.mutation.RemoveSignatureMatchIDs(ids...)
-	return csfuo
+func (_u *CodeSourceFileUpdateOne) RemoveSignatureMatchIDs(ids ...int) *CodeSourceFileUpdateOne {
+	_u.mutation.RemoveSignatureMatchIDs(ids...)
+	return _u
 }
 
 // RemoveSignatureMatches removes "signature_matches" edges to CodeSignatureMatch entities.
-func (csfuo *CodeSourceFileUpdateOne) RemoveSignatureMatches(c ...*CodeSignatureMatch) *CodeSourceFileUpdateOne {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
+func (_u *CodeSourceFileUpdateOne) RemoveSignatureMatches(v ...*CodeSignatureMatch) *CodeSourceFileUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return csfuo.RemoveSignatureMatchIDs(ids...)
+	return _u.RemoveSignatureMatchIDs(ids...)
 }
 
 // Where appends a list predicates to the CodeSourceFileUpdate builder.
-func (csfuo *CodeSourceFileUpdateOne) Where(ps ...predicate.CodeSourceFile) *CodeSourceFileUpdateOne {
-	csfuo.mutation.Where(ps...)
-	return csfuo
+func (_u *CodeSourceFileUpdateOne) Where(ps ...predicate.CodeSourceFile) *CodeSourceFileUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (csfuo *CodeSourceFileUpdateOne) Select(field string, fields ...string) *CodeSourceFileUpdateOne {
-	csfuo.fields = append([]string{field}, fields...)
-	return csfuo
+func (_u *CodeSourceFileUpdateOne) Select(field string, fields ...string) *CodeSourceFileUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated CodeSourceFile entity.
-func (csfuo *CodeSourceFileUpdateOne) Save(ctx context.Context) (*CodeSourceFile, error) {
-	return withHooks(ctx, csfuo.sqlSave, csfuo.mutation, csfuo.hooks)
+func (_u *CodeSourceFileUpdateOne) Save(ctx context.Context) (*CodeSourceFile, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (csfuo *CodeSourceFileUpdateOne) SaveX(ctx context.Context) *CodeSourceFile {
-	node, err := csfuo.Save(ctx)
+func (_u *CodeSourceFileUpdateOne) SaveX(ctx context.Context) *CodeSourceFile {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -401,21 +401,21 @@ func (csfuo *CodeSourceFileUpdateOne) SaveX(ctx context.Context) *CodeSourceFile
 }
 
 // Exec executes the query on the entity.
-func (csfuo *CodeSourceFileUpdateOne) Exec(ctx context.Context) error {
-	_, err := csfuo.Save(ctx)
+func (_u *CodeSourceFileUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (csfuo *CodeSourceFileUpdateOne) ExecX(ctx context.Context) {
-	if err := csfuo.Exec(ctx); err != nil {
+func (_u *CodeSourceFileUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (csfuo *CodeSourceFileUpdateOne) check() error {
-	if v, ok := csfuo.mutation.Path(); ok {
+func (_u *CodeSourceFileUpdateOne) check() error {
+	if v, ok := _u.mutation.Path(); ok {
 		if err := codesourcefile.PathValidator(v); err != nil {
 			return &ValidationError{Name: "path", err: fmt.Errorf(`ent: validator failed for field "CodeSourceFile.path": %w`, err)}
 		}
@@ -423,17 +423,17 @@ func (csfuo *CodeSourceFileUpdateOne) check() error {
 	return nil
 }
 
-func (csfuo *CodeSourceFileUpdateOne) sqlSave(ctx context.Context) (_node *CodeSourceFile, err error) {
-	if err := csfuo.check(); err != nil {
+func (_u *CodeSourceFileUpdateOne) sqlSave(ctx context.Context) (_node *CodeSourceFile, err error) {
+	if err := _u.check(); err != nil {
 		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(codesourcefile.Table, codesourcefile.Columns, sqlgraph.NewFieldSpec(codesourcefile.FieldID, field.TypeInt))
-	id, ok := csfuo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "CodeSourceFile.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := csfuo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, codesourcefile.FieldID)
 		for _, f := range fields {
@@ -445,17 +445,17 @@ func (csfuo *CodeSourceFileUpdateOne) sqlSave(ctx context.Context) (_node *CodeS
 			}
 		}
 	}
-	if ps := csfuo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := csfuo.mutation.Path(); ok {
+	if value, ok := _u.mutation.Path(); ok {
 		_spec.SetField(codesourcefile.FieldPath, field.TypeString, value)
 	}
-	if csfuo.mutation.DepsUsageEvidencesCleared() {
+	if _u.mutation.DepsUsageEvidencesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -468,7 +468,7 @@ func (csfuo *CodeSourceFileUpdateOne) sqlSave(ctx context.Context) (_node *CodeS
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := csfuo.mutation.RemovedDepsUsageEvidencesIDs(); len(nodes) > 0 && !csfuo.mutation.DepsUsageEvidencesCleared() {
+	if nodes := _u.mutation.RemovedDepsUsageEvidencesIDs(); len(nodes) > 0 && !_u.mutation.DepsUsageEvidencesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -484,7 +484,7 @@ func (csfuo *CodeSourceFileUpdateOne) sqlSave(ctx context.Context) (_node *CodeS
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := csfuo.mutation.DepsUsageEvidencesIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.DepsUsageEvidencesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -500,7 +500,7 @@ func (csfuo *CodeSourceFileUpdateOne) sqlSave(ctx context.Context) (_node *CodeS
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if csfuo.mutation.SignatureMatchesCleared() {
+	if _u.mutation.SignatureMatchesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -513,7 +513,7 @@ func (csfuo *CodeSourceFileUpdateOne) sqlSave(ctx context.Context) (_node *CodeS
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := csfuo.mutation.RemovedSignatureMatchesIDs(); len(nodes) > 0 && !csfuo.mutation.SignatureMatchesCleared() {
+	if nodes := _u.mutation.RemovedSignatureMatchesIDs(); len(nodes) > 0 && !_u.mutation.SignatureMatchesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -529,7 +529,7 @@ func (csfuo *CodeSourceFileUpdateOne) sqlSave(ctx context.Context) (_node *CodeS
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := csfuo.mutation.SignatureMatchesIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.SignatureMatchesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -545,10 +545,10 @@ func (csfuo *CodeSourceFileUpdateOne) sqlSave(ctx context.Context) (_node *CodeS
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_node = &CodeSourceFile{config: csfuo.config}
+	_node = &CodeSourceFile{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, csfuo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{codesourcefile.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -556,6 +556,6 @@ func (csfuo *CodeSourceFileUpdateOne) sqlSave(ctx context.Context) (_node *CodeS
 		}
 		return nil, err
 	}
-	csfuo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

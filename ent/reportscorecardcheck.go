@@ -79,7 +79,7 @@ func (*ReportScorecardCheck) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the ReportScorecardCheck fields.
-func (rsc *ReportScorecardCheck) assignValues(columns []string, values []any) error {
+func (_m *ReportScorecardCheck) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -90,46 +90,46 @@ func (rsc *ReportScorecardCheck) assignValues(columns []string, values []any) er
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			rsc.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case reportscorecardcheck.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
-				rsc.Name = value.String
+				_m.Name = value.String
 			}
 		case reportscorecardcheck.FieldScore:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field score", values[i])
 			} else if value.Valid {
-				rsc.Score = float32(value.Float64)
+				_m.Score = float32(value.Float64)
 			}
 		case reportscorecardcheck.FieldReason:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field reason", values[i])
 			} else if value.Valid {
-				rsc.Reason = value.String
+				_m.Reason = value.String
 			}
 		case reportscorecardcheck.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
-				rsc.CreatedAt = value.Time
+				_m.CreatedAt = value.Time
 			}
 		case reportscorecardcheck.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
-				rsc.UpdatedAt = value.Time
+				_m.UpdatedAt = value.Time
 			}
 		case reportscorecardcheck.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field report_scorecard_checks", value)
 			} else if value.Valid {
-				rsc.report_scorecard_checks = new(int)
-				*rsc.report_scorecard_checks = int(value.Int64)
+				_m.report_scorecard_checks = new(int)
+				*_m.report_scorecard_checks = int(value.Int64)
 			}
 		default:
-			rsc.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -137,52 +137,52 @@ func (rsc *ReportScorecardCheck) assignValues(columns []string, values []any) er
 
 // Value returns the ent.Value that was dynamically selected and assigned to the ReportScorecardCheck.
 // This includes values selected through modifiers, order, etc.
-func (rsc *ReportScorecardCheck) Value(name string) (ent.Value, error) {
-	return rsc.selectValues.Get(name)
+func (_m *ReportScorecardCheck) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QueryScorecard queries the "scorecard" edge of the ReportScorecardCheck entity.
-func (rsc *ReportScorecardCheck) QueryScorecard() *ReportScorecardQuery {
-	return NewReportScorecardCheckClient(rsc.config).QueryScorecard(rsc)
+func (_m *ReportScorecardCheck) QueryScorecard() *ReportScorecardQuery {
+	return NewReportScorecardCheckClient(_m.config).QueryScorecard(_m)
 }
 
 // Update returns a builder for updating this ReportScorecardCheck.
 // Note that you need to call ReportScorecardCheck.Unwrap() before calling this method if this ReportScorecardCheck
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (rsc *ReportScorecardCheck) Update() *ReportScorecardCheckUpdateOne {
-	return NewReportScorecardCheckClient(rsc.config).UpdateOne(rsc)
+func (_m *ReportScorecardCheck) Update() *ReportScorecardCheckUpdateOne {
+	return NewReportScorecardCheckClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the ReportScorecardCheck entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (rsc *ReportScorecardCheck) Unwrap() *ReportScorecardCheck {
-	_tx, ok := rsc.config.driver.(*txDriver)
+func (_m *ReportScorecardCheck) Unwrap() *ReportScorecardCheck {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: ReportScorecardCheck is not a transactional entity")
 	}
-	rsc.config.driver = _tx.drv
-	return rsc
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (rsc *ReportScorecardCheck) String() string {
+func (_m *ReportScorecardCheck) String() string {
 	var builder strings.Builder
 	builder.WriteString("ReportScorecardCheck(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", rsc.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("name=")
-	builder.WriteString(rsc.Name)
+	builder.WriteString(_m.Name)
 	builder.WriteString(", ")
 	builder.WriteString("score=")
-	builder.WriteString(fmt.Sprintf("%v", rsc.Score))
+	builder.WriteString(fmt.Sprintf("%v", _m.Score))
 	builder.WriteString(", ")
 	builder.WriteString("reason=")
-	builder.WriteString(rsc.Reason)
+	builder.WriteString(_m.Reason)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
-	builder.WriteString(rsc.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
-	builder.WriteString(rsc.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

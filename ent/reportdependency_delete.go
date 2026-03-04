@@ -20,56 +20,56 @@ type ReportDependencyDelete struct {
 }
 
 // Where appends a list predicates to the ReportDependencyDelete builder.
-func (rdd *ReportDependencyDelete) Where(ps ...predicate.ReportDependency) *ReportDependencyDelete {
-	rdd.mutation.Where(ps...)
-	return rdd
+func (_d *ReportDependencyDelete) Where(ps ...predicate.ReportDependency) *ReportDependencyDelete {
+	_d.mutation.Where(ps...)
+	return _d
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (rdd *ReportDependencyDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks(ctx, rdd.sqlExec, rdd.mutation, rdd.hooks)
+func (_d *ReportDependencyDelete) Exec(ctx context.Context) (int, error) {
+	return withHooks(ctx, _d.sqlExec, _d.mutation, _d.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rdd *ReportDependencyDelete) ExecX(ctx context.Context) int {
-	n, err := rdd.Exec(ctx)
+func (_d *ReportDependencyDelete) ExecX(ctx context.Context) int {
+	n, err := _d.Exec(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return n
 }
 
-func (rdd *ReportDependencyDelete) sqlExec(ctx context.Context) (int, error) {
+func (_d *ReportDependencyDelete) sqlExec(ctx context.Context) (int, error) {
 	_spec := sqlgraph.NewDeleteSpec(reportdependency.Table, sqlgraph.NewFieldSpec(reportdependency.FieldID, field.TypeInt))
-	if ps := rdd.mutation.predicates; len(ps) > 0 {
+	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	affected, err := sqlgraph.DeleteNodes(ctx, rdd.driver, _spec)
+	affected, err := sqlgraph.DeleteNodes(ctx, _d.driver, _spec)
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
-	rdd.mutation.done = true
+	_d.mutation.done = true
 	return affected, err
 }
 
 // ReportDependencyDeleteOne is the builder for deleting a single ReportDependency entity.
 type ReportDependencyDeleteOne struct {
-	rdd *ReportDependencyDelete
+	_d *ReportDependencyDelete
 }
 
 // Where appends a list predicates to the ReportDependencyDelete builder.
-func (rddo *ReportDependencyDeleteOne) Where(ps ...predicate.ReportDependency) *ReportDependencyDeleteOne {
-	rddo.rdd.mutation.Where(ps...)
-	return rddo
+func (_d *ReportDependencyDeleteOne) Where(ps ...predicate.ReportDependency) *ReportDependencyDeleteOne {
+	_d._d.mutation.Where(ps...)
+	return _d
 }
 
 // Exec executes the deletion query.
-func (rddo *ReportDependencyDeleteOne) Exec(ctx context.Context) error {
-	n, err := rddo.rdd.Exec(ctx)
+func (_d *ReportDependencyDeleteOne) Exec(ctx context.Context) error {
+	n, err := _d._d.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
@@ -81,8 +81,8 @@ func (rddo *ReportDependencyDeleteOne) Exec(ctx context.Context) error {
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rddo *ReportDependencyDeleteOne) ExecX(ctx context.Context) {
-	if err := rddo.Exec(ctx); err != nil {
+func (_d *ReportDependencyDeleteOne) ExecX(ctx context.Context) {
+	if err := _d.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

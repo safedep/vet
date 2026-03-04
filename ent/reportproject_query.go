@@ -34,44 +34,44 @@ type ReportProjectQuery struct {
 }
 
 // Where adds a new predicate for the ReportProjectQuery builder.
-func (rpq *ReportProjectQuery) Where(ps ...predicate.ReportProject) *ReportProjectQuery {
-	rpq.predicates = append(rpq.predicates, ps...)
-	return rpq
+func (_q *ReportProjectQuery) Where(ps ...predicate.ReportProject) *ReportProjectQuery {
+	_q.predicates = append(_q.predicates, ps...)
+	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (rpq *ReportProjectQuery) Limit(limit int) *ReportProjectQuery {
-	rpq.ctx.Limit = &limit
-	return rpq
+func (_q *ReportProjectQuery) Limit(limit int) *ReportProjectQuery {
+	_q.ctx.Limit = &limit
+	return _q
 }
 
 // Offset to start from.
-func (rpq *ReportProjectQuery) Offset(offset int) *ReportProjectQuery {
-	rpq.ctx.Offset = &offset
-	return rpq
+func (_q *ReportProjectQuery) Offset(offset int) *ReportProjectQuery {
+	_q.ctx.Offset = &offset
+	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (rpq *ReportProjectQuery) Unique(unique bool) *ReportProjectQuery {
-	rpq.ctx.Unique = &unique
-	return rpq
+func (_q *ReportProjectQuery) Unique(unique bool) *ReportProjectQuery {
+	_q.ctx.Unique = &unique
+	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (rpq *ReportProjectQuery) Order(o ...reportproject.OrderOption) *ReportProjectQuery {
-	rpq.order = append(rpq.order, o...)
-	return rpq
+func (_q *ReportProjectQuery) Order(o ...reportproject.OrderOption) *ReportProjectQuery {
+	_q.order = append(_q.order, o...)
+	return _q
 }
 
 // QueryPackage chains the current query on the "package" edge.
-func (rpq *ReportProjectQuery) QueryPackage() *ReportPackageQuery {
-	query := (&ReportPackageClient{config: rpq.config}).Query()
+func (_q *ReportProjectQuery) QueryPackage() *ReportPackageQuery {
+	query := (&ReportPackageClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := rpq.prepareQuery(ctx); err != nil {
+		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := rpq.sqlQuery(ctx)
+		selector := _q.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
@@ -80,20 +80,20 @@ func (rpq *ReportProjectQuery) QueryPackage() *ReportPackageQuery {
 			sqlgraph.To(reportpackage.Table, reportpackage.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, reportproject.PackageTable, reportproject.PackageColumn),
 		)
-		fromU = sqlgraph.SetNeighbors(rpq.driver.Dialect(), step)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
 }
 
 // QueryScorecard chains the current query on the "scorecard" edge.
-func (rpq *ReportProjectQuery) QueryScorecard() *ReportScorecardQuery {
-	query := (&ReportScorecardClient{config: rpq.config}).Query()
+func (_q *ReportProjectQuery) QueryScorecard() *ReportScorecardQuery {
+	query := (&ReportScorecardClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := rpq.prepareQuery(ctx); err != nil {
+		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := rpq.sqlQuery(ctx)
+		selector := _q.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
@@ -102,7 +102,7 @@ func (rpq *ReportProjectQuery) QueryScorecard() *ReportScorecardQuery {
 			sqlgraph.To(reportscorecard.Table, reportscorecard.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, reportproject.ScorecardTable, reportproject.ScorecardColumn),
 		)
-		fromU = sqlgraph.SetNeighbors(rpq.driver.Dialect(), step)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
@@ -110,8 +110,8 @@ func (rpq *ReportProjectQuery) QueryScorecard() *ReportScorecardQuery {
 
 // First returns the first ReportProject entity from the query.
 // Returns a *NotFoundError when no ReportProject was found.
-func (rpq *ReportProjectQuery) First(ctx context.Context) (*ReportProject, error) {
-	nodes, err := rpq.Limit(1).All(setContextOp(ctx, rpq.ctx, ent.OpQueryFirst))
+func (_q *ReportProjectQuery) First(ctx context.Context) (*ReportProject, error) {
+	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -122,8 +122,8 @@ func (rpq *ReportProjectQuery) First(ctx context.Context) (*ReportProject, error
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (rpq *ReportProjectQuery) FirstX(ctx context.Context) *ReportProject {
-	node, err := rpq.First(ctx)
+func (_q *ReportProjectQuery) FirstX(ctx context.Context) *ReportProject {
+	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -132,9 +132,9 @@ func (rpq *ReportProjectQuery) FirstX(ctx context.Context) *ReportProject {
 
 // FirstID returns the first ReportProject ID from the query.
 // Returns a *NotFoundError when no ReportProject ID was found.
-func (rpq *ReportProjectQuery) FirstID(ctx context.Context) (id int, err error) {
+func (_q *ReportProjectQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = rpq.Limit(1).IDs(setContextOp(ctx, rpq.ctx, ent.OpQueryFirstID)); err != nil {
+	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -145,8 +145,8 @@ func (rpq *ReportProjectQuery) FirstID(ctx context.Context) (id int, err error) 
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (rpq *ReportProjectQuery) FirstIDX(ctx context.Context) int {
-	id, err := rpq.FirstID(ctx)
+func (_q *ReportProjectQuery) FirstIDX(ctx context.Context) int {
+	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -156,8 +156,8 @@ func (rpq *ReportProjectQuery) FirstIDX(ctx context.Context) int {
 // Only returns a single ReportProject entity found by the query, ensuring it only returns one.
 // Returns a *NotSingularError when more than one ReportProject entity is found.
 // Returns a *NotFoundError when no ReportProject entities are found.
-func (rpq *ReportProjectQuery) Only(ctx context.Context) (*ReportProject, error) {
-	nodes, err := rpq.Limit(2).All(setContextOp(ctx, rpq.ctx, ent.OpQueryOnly))
+func (_q *ReportProjectQuery) Only(ctx context.Context) (*ReportProject, error) {
+	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -172,8 +172,8 @@ func (rpq *ReportProjectQuery) Only(ctx context.Context) (*ReportProject, error)
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (rpq *ReportProjectQuery) OnlyX(ctx context.Context) *ReportProject {
-	node, err := rpq.Only(ctx)
+func (_q *ReportProjectQuery) OnlyX(ctx context.Context) *ReportProject {
+	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -183,9 +183,9 @@ func (rpq *ReportProjectQuery) OnlyX(ctx context.Context) *ReportProject {
 // OnlyID is like Only, but returns the only ReportProject ID in the query.
 // Returns a *NotSingularError when more than one ReportProject ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (rpq *ReportProjectQuery) OnlyID(ctx context.Context) (id int, err error) {
+func (_q *ReportProjectQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = rpq.Limit(2).IDs(setContextOp(ctx, rpq.ctx, ent.OpQueryOnlyID)); err != nil {
+	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -200,8 +200,8 @@ func (rpq *ReportProjectQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (rpq *ReportProjectQuery) OnlyIDX(ctx context.Context) int {
-	id, err := rpq.OnlyID(ctx)
+func (_q *ReportProjectQuery) OnlyIDX(ctx context.Context) int {
+	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -209,18 +209,18 @@ func (rpq *ReportProjectQuery) OnlyIDX(ctx context.Context) int {
 }
 
 // All executes the query and returns a list of ReportProjects.
-func (rpq *ReportProjectQuery) All(ctx context.Context) ([]*ReportProject, error) {
-	ctx = setContextOp(ctx, rpq.ctx, ent.OpQueryAll)
-	if err := rpq.prepareQuery(ctx); err != nil {
+func (_q *ReportProjectQuery) All(ctx context.Context) ([]*ReportProject, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
 	qr := querierAll[[]*ReportProject, *ReportProjectQuery]()
-	return withInterceptors[[]*ReportProject](ctx, rpq, qr, rpq.inters)
+	return withInterceptors[[]*ReportProject](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (rpq *ReportProjectQuery) AllX(ctx context.Context) []*ReportProject {
-	nodes, err := rpq.All(ctx)
+func (_q *ReportProjectQuery) AllX(ctx context.Context) []*ReportProject {
+	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -228,20 +228,20 @@ func (rpq *ReportProjectQuery) AllX(ctx context.Context) []*ReportProject {
 }
 
 // IDs executes the query and returns a list of ReportProject IDs.
-func (rpq *ReportProjectQuery) IDs(ctx context.Context) (ids []int, err error) {
-	if rpq.ctx.Unique == nil && rpq.path != nil {
-		rpq.Unique(true)
+func (_q *ReportProjectQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if _q.ctx.Unique == nil && _q.path != nil {
+		_q.Unique(true)
 	}
-	ctx = setContextOp(ctx, rpq.ctx, ent.OpQueryIDs)
-	if err = rpq.Select(reportproject.FieldID).Scan(ctx, &ids); err != nil {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
+	if err = _q.Select(reportproject.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (rpq *ReportProjectQuery) IDsX(ctx context.Context) []int {
-	ids, err := rpq.IDs(ctx)
+func (_q *ReportProjectQuery) IDsX(ctx context.Context) []int {
+	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -249,17 +249,17 @@ func (rpq *ReportProjectQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (rpq *ReportProjectQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, rpq.ctx, ent.OpQueryCount)
-	if err := rpq.prepareQuery(ctx); err != nil {
+func (_q *ReportProjectQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, rpq, querierCount[*ReportProjectQuery](), rpq.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*ReportProjectQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (rpq *ReportProjectQuery) CountX(ctx context.Context) int {
-	count, err := rpq.Count(ctx)
+func (_q *ReportProjectQuery) CountX(ctx context.Context) int {
+	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -267,9 +267,9 @@ func (rpq *ReportProjectQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (rpq *ReportProjectQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, rpq.ctx, ent.OpQueryExist)
-	switch _, err := rpq.FirstID(ctx); {
+func (_q *ReportProjectQuery) Exist(ctx context.Context) (bool, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
+	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
 	case err != nil:
@@ -280,8 +280,8 @@ func (rpq *ReportProjectQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (rpq *ReportProjectQuery) ExistX(ctx context.Context) bool {
-	exist, err := rpq.Exist(ctx)
+func (_q *ReportProjectQuery) ExistX(ctx context.Context) bool {
+	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -290,44 +290,44 @@ func (rpq *ReportProjectQuery) ExistX(ctx context.Context) bool {
 
 // Clone returns a duplicate of the ReportProjectQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (rpq *ReportProjectQuery) Clone() *ReportProjectQuery {
-	if rpq == nil {
+func (_q *ReportProjectQuery) Clone() *ReportProjectQuery {
+	if _q == nil {
 		return nil
 	}
 	return &ReportProjectQuery{
-		config:        rpq.config,
-		ctx:           rpq.ctx.Clone(),
-		order:         append([]reportproject.OrderOption{}, rpq.order...),
-		inters:        append([]Interceptor{}, rpq.inters...),
-		predicates:    append([]predicate.ReportProject{}, rpq.predicates...),
-		withPackage:   rpq.withPackage.Clone(),
-		withScorecard: rpq.withScorecard.Clone(),
+		config:        _q.config,
+		ctx:           _q.ctx.Clone(),
+		order:         append([]reportproject.OrderOption{}, _q.order...),
+		inters:        append([]Interceptor{}, _q.inters...),
+		predicates:    append([]predicate.ReportProject{}, _q.predicates...),
+		withPackage:   _q.withPackage.Clone(),
+		withScorecard: _q.withScorecard.Clone(),
 		// clone intermediate query.
-		sql:  rpq.sql.Clone(),
-		path: rpq.path,
+		sql:  _q.sql.Clone(),
+		path: _q.path,
 	}
 }
 
 // WithPackage tells the query-builder to eager-load the nodes that are connected to
 // the "package" edge. The optional arguments are used to configure the query builder of the edge.
-func (rpq *ReportProjectQuery) WithPackage(opts ...func(*ReportPackageQuery)) *ReportProjectQuery {
-	query := (&ReportPackageClient{config: rpq.config}).Query()
+func (_q *ReportProjectQuery) WithPackage(opts ...func(*ReportPackageQuery)) *ReportProjectQuery {
+	query := (&ReportPackageClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	rpq.withPackage = query
-	return rpq
+	_q.withPackage = query
+	return _q
 }
 
 // WithScorecard tells the query-builder to eager-load the nodes that are connected to
 // the "scorecard" edge. The optional arguments are used to configure the query builder of the edge.
-func (rpq *ReportProjectQuery) WithScorecard(opts ...func(*ReportScorecardQuery)) *ReportProjectQuery {
-	query := (&ReportScorecardClient{config: rpq.config}).Query()
+func (_q *ReportProjectQuery) WithScorecard(opts ...func(*ReportScorecardQuery)) *ReportProjectQuery {
+	query := (&ReportScorecardClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	rpq.withScorecard = query
-	return rpq
+	_q.withScorecard = query
+	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -344,10 +344,10 @@ func (rpq *ReportProjectQuery) WithScorecard(opts ...func(*ReportScorecardQuery)
 //		GroupBy(reportproject.FieldName).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (rpq *ReportProjectQuery) GroupBy(field string, fields ...string) *ReportProjectGroupBy {
-	rpq.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &ReportProjectGroupBy{build: rpq}
-	grbuild.flds = &rpq.ctx.Fields
+func (_q *ReportProjectQuery) GroupBy(field string, fields ...string) *ReportProjectGroupBy {
+	_q.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &ReportProjectGroupBy{build: _q}
+	grbuild.flds = &_q.ctx.Fields
 	grbuild.label = reportproject.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -365,56 +365,56 @@ func (rpq *ReportProjectQuery) GroupBy(field string, fields ...string) *ReportPr
 //	client.ReportProject.Query().
 //		Select(reportproject.FieldName).
 //		Scan(ctx, &v)
-func (rpq *ReportProjectQuery) Select(fields ...string) *ReportProjectSelect {
-	rpq.ctx.Fields = append(rpq.ctx.Fields, fields...)
-	sbuild := &ReportProjectSelect{ReportProjectQuery: rpq}
+func (_q *ReportProjectQuery) Select(fields ...string) *ReportProjectSelect {
+	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
+	sbuild := &ReportProjectSelect{ReportProjectQuery: _q}
 	sbuild.label = reportproject.Label
-	sbuild.flds, sbuild.scan = &rpq.ctx.Fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
 // Aggregate returns a ReportProjectSelect configured with the given aggregations.
-func (rpq *ReportProjectQuery) Aggregate(fns ...AggregateFunc) *ReportProjectSelect {
-	return rpq.Select().Aggregate(fns...)
+func (_q *ReportProjectQuery) Aggregate(fns ...AggregateFunc) *ReportProjectSelect {
+	return _q.Select().Aggregate(fns...)
 }
 
-func (rpq *ReportProjectQuery) prepareQuery(ctx context.Context) error {
-	for _, inter := range rpq.inters {
+func (_q *ReportProjectQuery) prepareQuery(ctx context.Context) error {
+	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
 		}
 		if trv, ok := inter.(Traverser); ok {
-			if err := trv.Traverse(ctx, rpq); err != nil {
+			if err := trv.Traverse(ctx, _q); err != nil {
 				return err
 			}
 		}
 	}
-	for _, f := range rpq.ctx.Fields {
+	for _, f := range _q.ctx.Fields {
 		if !reportproject.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
-	if rpq.path != nil {
-		prev, err := rpq.path(ctx)
+	if _q.path != nil {
+		prev, err := _q.path(ctx)
 		if err != nil {
 			return err
 		}
-		rpq.sql = prev
+		_q.sql = prev
 	}
 	return nil
 }
 
-func (rpq *ReportProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ReportProject, error) {
+func (_q *ReportProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ReportProject, error) {
 	var (
 		nodes       = []*ReportProject{}
-		withFKs     = rpq.withFKs
-		_spec       = rpq.querySpec()
+		withFKs     = _q.withFKs
+		_spec       = _q.querySpec()
 		loadedTypes = [2]bool{
-			rpq.withPackage != nil,
-			rpq.withScorecard != nil,
+			_q.withPackage != nil,
+			_q.withScorecard != nil,
 		}
 	)
-	if rpq.withPackage != nil {
+	if _q.withPackage != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -424,7 +424,7 @@ func (rpq *ReportProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 		return (*ReportProject).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &ReportProject{config: rpq.config}
+		node := &ReportProject{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
@@ -432,20 +432,20 @@ func (rpq *ReportProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
-	if err := sqlgraph.QueryNodes(ctx, rpq.driver, _spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, _q.driver, _spec); err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := rpq.withPackage; query != nil {
-		if err := rpq.loadPackage(ctx, query, nodes, nil,
+	if query := _q.withPackage; query != nil {
+		if err := _q.loadPackage(ctx, query, nodes, nil,
 			func(n *ReportProject, e *ReportPackage) { n.Edges.Package = e }); err != nil {
 			return nil, err
 		}
 	}
-	if query := rpq.withScorecard; query != nil {
-		if err := rpq.loadScorecard(ctx, query, nodes, nil,
+	if query := _q.withScorecard; query != nil {
+		if err := _q.loadScorecard(ctx, query, nodes, nil,
 			func(n *ReportProject, e *ReportScorecard) { n.Edges.Scorecard = e }); err != nil {
 			return nil, err
 		}
@@ -453,7 +453,7 @@ func (rpq *ReportProjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	return nodes, nil
 }
 
-func (rpq *ReportProjectQuery) loadPackage(ctx context.Context, query *ReportPackageQuery, nodes []*ReportProject, init func(*ReportProject), assign func(*ReportProject, *ReportPackage)) error {
+func (_q *ReportProjectQuery) loadPackage(ctx context.Context, query *ReportPackageQuery, nodes []*ReportProject, init func(*ReportProject), assign func(*ReportProject, *ReportPackage)) error {
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*ReportProject)
 	for i := range nodes {
@@ -485,7 +485,7 @@ func (rpq *ReportProjectQuery) loadPackage(ctx context.Context, query *ReportPac
 	}
 	return nil
 }
-func (rpq *ReportProjectQuery) loadScorecard(ctx context.Context, query *ReportScorecardQuery, nodes []*ReportProject, init func(*ReportProject), assign func(*ReportProject, *ReportScorecard)) error {
+func (_q *ReportProjectQuery) loadScorecard(ctx context.Context, query *ReportScorecardQuery, nodes []*ReportProject, init func(*ReportProject), assign func(*ReportProject, *ReportScorecard)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*ReportProject)
 	for i := range nodes {
@@ -514,24 +514,24 @@ func (rpq *ReportProjectQuery) loadScorecard(ctx context.Context, query *ReportS
 	return nil
 }
 
-func (rpq *ReportProjectQuery) sqlCount(ctx context.Context) (int, error) {
-	_spec := rpq.querySpec()
-	_spec.Node.Columns = rpq.ctx.Fields
-	if len(rpq.ctx.Fields) > 0 {
-		_spec.Unique = rpq.ctx.Unique != nil && *rpq.ctx.Unique
+func (_q *ReportProjectQuery) sqlCount(ctx context.Context) (int, error) {
+	_spec := _q.querySpec()
+	_spec.Node.Columns = _q.ctx.Fields
+	if len(_q.ctx.Fields) > 0 {
+		_spec.Unique = _q.ctx.Unique != nil && *_q.ctx.Unique
 	}
-	return sqlgraph.CountNodes(ctx, rpq.driver, _spec)
+	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (rpq *ReportProjectQuery) querySpec() *sqlgraph.QuerySpec {
+func (_q *ReportProjectQuery) querySpec() *sqlgraph.QuerySpec {
 	_spec := sqlgraph.NewQuerySpec(reportproject.Table, reportproject.Columns, sqlgraph.NewFieldSpec(reportproject.FieldID, field.TypeInt))
-	_spec.From = rpq.sql
-	if unique := rpq.ctx.Unique; unique != nil {
+	_spec.From = _q.sql
+	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
-	} else if rpq.path != nil {
+	} else if _q.path != nil {
 		_spec.Unique = true
 	}
-	if fields := rpq.ctx.Fields; len(fields) > 0 {
+	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, reportproject.FieldID)
 		for i := range fields {
@@ -540,20 +540,20 @@ func (rpq *ReportProjectQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if ps := rpq.predicates; len(ps) > 0 {
+	if ps := _q.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if limit := rpq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := rpq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
-	if ps := rpq.order; len(ps) > 0 {
+	if ps := _q.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
@@ -563,33 +563,33 @@ func (rpq *ReportProjectQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (rpq *ReportProjectQuery) sqlQuery(ctx context.Context) *sql.Selector {
-	builder := sql.Dialect(rpq.driver.Dialect())
+func (_q *ReportProjectQuery) sqlQuery(ctx context.Context) *sql.Selector {
+	builder := sql.Dialect(_q.driver.Dialect())
 	t1 := builder.Table(reportproject.Table)
-	columns := rpq.ctx.Fields
+	columns := _q.ctx.Fields
 	if len(columns) == 0 {
 		columns = reportproject.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
-	if rpq.sql != nil {
-		selector = rpq.sql
+	if _q.sql != nil {
+		selector = _q.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if rpq.ctx.Unique != nil && *rpq.ctx.Unique {
+	if _q.ctx.Unique != nil && *_q.ctx.Unique {
 		selector.Distinct()
 	}
-	for _, p := range rpq.predicates {
+	for _, p := range _q.predicates {
 		p(selector)
 	}
-	for _, p := range rpq.order {
+	for _, p := range _q.order {
 		p(selector)
 	}
-	if offset := rpq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := rpq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -602,41 +602,41 @@ type ReportProjectGroupBy struct {
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (rpgb *ReportProjectGroupBy) Aggregate(fns ...AggregateFunc) *ReportProjectGroupBy {
-	rpgb.fns = append(rpgb.fns, fns...)
-	return rpgb
+func (_g *ReportProjectGroupBy) Aggregate(fns ...AggregateFunc) *ReportProjectGroupBy {
+	_g.fns = append(_g.fns, fns...)
+	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (rpgb *ReportProjectGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, rpgb.build.ctx, ent.OpQueryGroupBy)
-	if err := rpgb.build.prepareQuery(ctx); err != nil {
+func (_g *ReportProjectGroupBy) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
+	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*ReportProjectQuery, *ReportProjectGroupBy](ctx, rpgb.build, rpgb, rpgb.build.inters, v)
+	return scanWithInterceptors[*ReportProjectQuery, *ReportProjectGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (rpgb *ReportProjectGroupBy) sqlScan(ctx context.Context, root *ReportProjectQuery, v any) error {
+func (_g *ReportProjectGroupBy) sqlScan(ctx context.Context, root *ReportProjectQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
-	aggregation := make([]string, 0, len(rpgb.fns))
-	for _, fn := range rpgb.fns {
+	aggregation := make([]string, 0, len(_g.fns))
+	for _, fn := range _g.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
 	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(*rpgb.flds)+len(rpgb.fns))
-		for _, f := range *rpgb.flds {
+		columns := make([]string, 0, len(*_g.flds)+len(_g.fns))
+		for _, f := range *_g.flds {
 			columns = append(columns, selector.C(f))
 		}
 		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
-	selector.GroupBy(selector.Columns(*rpgb.flds...)...)
+	selector.GroupBy(selector.Columns(*_g.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := rpgb.build.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _g.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
@@ -650,27 +650,27 @@ type ReportProjectSelect struct {
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (rps *ReportProjectSelect) Aggregate(fns ...AggregateFunc) *ReportProjectSelect {
-	rps.fns = append(rps.fns, fns...)
-	return rps
+func (_s *ReportProjectSelect) Aggregate(fns ...AggregateFunc) *ReportProjectSelect {
+	_s.fns = append(_s.fns, fns...)
+	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (rps *ReportProjectSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, rps.ctx, ent.OpQuerySelect)
-	if err := rps.prepareQuery(ctx); err != nil {
+func (_s *ReportProjectSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
+	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*ReportProjectQuery, *ReportProjectSelect](ctx, rps.ReportProjectQuery, rps, rps.inters, v)
+	return scanWithInterceptors[*ReportProjectQuery, *ReportProjectSelect](ctx, _s.ReportProjectQuery, _s, _s.inters, v)
 }
 
-func (rps *ReportProjectSelect) sqlScan(ctx context.Context, root *ReportProjectQuery, v any) error {
+func (_s *ReportProjectSelect) sqlScan(ctx context.Context, root *ReportProjectQuery, v any) error {
 	selector := root.sqlQuery(ctx)
-	aggregation := make([]string, 0, len(rps.fns))
-	for _, fn := range rps.fns {
+	aggregation := make([]string, 0, len(_s.fns))
+	for _, fn := range _s.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	switch n := len(*rps.selector.flds); {
+	switch n := len(*_s.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
 		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
@@ -678,7 +678,7 @@ func (rps *ReportProjectSelect) sqlScan(ctx context.Context, root *ReportProject
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := rps.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _s.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()

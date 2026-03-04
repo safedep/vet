@@ -22,54 +22,54 @@ type CodeSourceFileCreate struct {
 }
 
 // SetPath sets the "path" field.
-func (csfc *CodeSourceFileCreate) SetPath(s string) *CodeSourceFileCreate {
-	csfc.mutation.SetPath(s)
-	return csfc
+func (_c *CodeSourceFileCreate) SetPath(v string) *CodeSourceFileCreate {
+	_c.mutation.SetPath(v)
+	return _c
 }
 
 // AddDepsUsageEvidenceIDs adds the "deps_usage_evidences" edge to the DepsUsageEvidence entity by IDs.
-func (csfc *CodeSourceFileCreate) AddDepsUsageEvidenceIDs(ids ...int) *CodeSourceFileCreate {
-	csfc.mutation.AddDepsUsageEvidenceIDs(ids...)
-	return csfc
+func (_c *CodeSourceFileCreate) AddDepsUsageEvidenceIDs(ids ...int) *CodeSourceFileCreate {
+	_c.mutation.AddDepsUsageEvidenceIDs(ids...)
+	return _c
 }
 
 // AddDepsUsageEvidences adds the "deps_usage_evidences" edges to the DepsUsageEvidence entity.
-func (csfc *CodeSourceFileCreate) AddDepsUsageEvidences(d ...*DepsUsageEvidence) *CodeSourceFileCreate {
-	ids := make([]int, len(d))
-	for i := range d {
-		ids[i] = d[i].ID
+func (_c *CodeSourceFileCreate) AddDepsUsageEvidences(v ...*DepsUsageEvidence) *CodeSourceFileCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return csfc.AddDepsUsageEvidenceIDs(ids...)
+	return _c.AddDepsUsageEvidenceIDs(ids...)
 }
 
 // AddSignatureMatchIDs adds the "signature_matches" edge to the CodeSignatureMatch entity by IDs.
-func (csfc *CodeSourceFileCreate) AddSignatureMatchIDs(ids ...int) *CodeSourceFileCreate {
-	csfc.mutation.AddSignatureMatchIDs(ids...)
-	return csfc
+func (_c *CodeSourceFileCreate) AddSignatureMatchIDs(ids ...int) *CodeSourceFileCreate {
+	_c.mutation.AddSignatureMatchIDs(ids...)
+	return _c
 }
 
 // AddSignatureMatches adds the "signature_matches" edges to the CodeSignatureMatch entity.
-func (csfc *CodeSourceFileCreate) AddSignatureMatches(c ...*CodeSignatureMatch) *CodeSourceFileCreate {
-	ids := make([]int, len(c))
-	for i := range c {
-		ids[i] = c[i].ID
+func (_c *CodeSourceFileCreate) AddSignatureMatches(v ...*CodeSignatureMatch) *CodeSourceFileCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return csfc.AddSignatureMatchIDs(ids...)
+	return _c.AddSignatureMatchIDs(ids...)
 }
 
 // Mutation returns the CodeSourceFileMutation object of the builder.
-func (csfc *CodeSourceFileCreate) Mutation() *CodeSourceFileMutation {
-	return csfc.mutation
+func (_c *CodeSourceFileCreate) Mutation() *CodeSourceFileMutation {
+	return _c.mutation
 }
 
 // Save creates the CodeSourceFile in the database.
-func (csfc *CodeSourceFileCreate) Save(ctx context.Context) (*CodeSourceFile, error) {
-	return withHooks(ctx, csfc.sqlSave, csfc.mutation, csfc.hooks)
+func (_c *CodeSourceFileCreate) Save(ctx context.Context) (*CodeSourceFile, error) {
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (csfc *CodeSourceFileCreate) SaveX(ctx context.Context) *CodeSourceFile {
-	v, err := csfc.Save(ctx)
+func (_c *CodeSourceFileCreate) SaveX(ctx context.Context) *CodeSourceFile {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -77,24 +77,24 @@ func (csfc *CodeSourceFileCreate) SaveX(ctx context.Context) *CodeSourceFile {
 }
 
 // Exec executes the query.
-func (csfc *CodeSourceFileCreate) Exec(ctx context.Context) error {
-	_, err := csfc.Save(ctx)
+func (_c *CodeSourceFileCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (csfc *CodeSourceFileCreate) ExecX(ctx context.Context) {
-	if err := csfc.Exec(ctx); err != nil {
+func (_c *CodeSourceFileCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (csfc *CodeSourceFileCreate) check() error {
-	if _, ok := csfc.mutation.Path(); !ok {
+func (_c *CodeSourceFileCreate) check() error {
+	if _, ok := _c.mutation.Path(); !ok {
 		return &ValidationError{Name: "path", err: errors.New(`ent: missing required field "CodeSourceFile.path"`)}
 	}
-	if v, ok := csfc.mutation.Path(); ok {
+	if v, ok := _c.mutation.Path(); ok {
 		if err := codesourcefile.PathValidator(v); err != nil {
 			return &ValidationError{Name: "path", err: fmt.Errorf(`ent: validator failed for field "CodeSourceFile.path": %w`, err)}
 		}
@@ -102,12 +102,12 @@ func (csfc *CodeSourceFileCreate) check() error {
 	return nil
 }
 
-func (csfc *CodeSourceFileCreate) sqlSave(ctx context.Context) (*CodeSourceFile, error) {
-	if err := csfc.check(); err != nil {
+func (_c *CodeSourceFileCreate) sqlSave(ctx context.Context) (*CodeSourceFile, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := csfc.createSpec()
-	if err := sqlgraph.CreateNode(ctx, csfc.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -115,21 +115,21 @@ func (csfc *CodeSourceFileCreate) sqlSave(ctx context.Context) (*CodeSourceFile,
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
-	csfc.mutation.id = &_node.ID
-	csfc.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (csfc *CodeSourceFileCreate) createSpec() (*CodeSourceFile, *sqlgraph.CreateSpec) {
+func (_c *CodeSourceFileCreate) createSpec() (*CodeSourceFile, *sqlgraph.CreateSpec) {
 	var (
-		_node = &CodeSourceFile{config: csfc.config}
+		_node = &CodeSourceFile{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(codesourcefile.Table, sqlgraph.NewFieldSpec(codesourcefile.FieldID, field.TypeInt))
 	)
-	if value, ok := csfc.mutation.Path(); ok {
+	if value, ok := _c.mutation.Path(); ok {
 		_spec.SetField(codesourcefile.FieldPath, field.TypeString, value)
 		_node.Path = value
 	}
-	if nodes := csfc.mutation.DepsUsageEvidencesIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.DepsUsageEvidencesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -145,7 +145,7 @@ func (csfc *CodeSourceFileCreate) createSpec() (*CodeSourceFile, *sqlgraph.Creat
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := csfc.mutation.SignatureMatchesIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.SignatureMatchesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -172,16 +172,16 @@ type CodeSourceFileCreateBulk struct {
 }
 
 // Save creates the CodeSourceFile entities in the database.
-func (csfcb *CodeSourceFileCreateBulk) Save(ctx context.Context) ([]*CodeSourceFile, error) {
-	if csfcb.err != nil {
-		return nil, csfcb.err
+func (_c *CodeSourceFileCreateBulk) Save(ctx context.Context) ([]*CodeSourceFile, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(csfcb.builders))
-	nodes := make([]*CodeSourceFile, len(csfcb.builders))
-	mutators := make([]Mutator, len(csfcb.builders))
-	for i := range csfcb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*CodeSourceFile, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := csfcb.builders[i]
+			builder := _c.builders[i]
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*CodeSourceFileMutation)
 				if !ok {
@@ -194,11 +194,11 @@ func (csfcb *CodeSourceFileCreateBulk) Save(ctx context.Context) ([]*CodeSourceF
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, csfcb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, csfcb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -222,7 +222,7 @@ func (csfcb *CodeSourceFileCreateBulk) Save(ctx context.Context) ([]*CodeSourceF
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, csfcb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -230,8 +230,8 @@ func (csfcb *CodeSourceFileCreateBulk) Save(ctx context.Context) ([]*CodeSourceF
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (csfcb *CodeSourceFileCreateBulk) SaveX(ctx context.Context) []*CodeSourceFile {
-	v, err := csfcb.Save(ctx)
+func (_c *CodeSourceFileCreateBulk) SaveX(ctx context.Context) []*CodeSourceFile {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -239,14 +239,14 @@ func (csfcb *CodeSourceFileCreateBulk) SaveX(ctx context.Context) []*CodeSourceF
 }
 
 // Exec executes the query.
-func (csfcb *CodeSourceFileCreateBulk) Exec(ctx context.Context) error {
-	_, err := csfcb.Save(ctx)
+func (_c *CodeSourceFileCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (csfcb *CodeSourceFileCreateBulk) ExecX(ctx context.Context) {
-	if err := csfcb.Exec(ctx); err != nil {
+func (_c *CodeSourceFileCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

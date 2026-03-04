@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	buf.build/gen/go/safedep/api/grpc/go v1.6.1-20260225163230-1a8a369418c0.1
 	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.11-20260225163230-1a8a369418c0.1
-	entgo.io/ent v0.14.5
+	entgo.io/ent v0.14.6-0.20260218064135-ab0540611e15
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/BurntSushi/toml v1.6.0
 	github.com/CycloneDX/cyclonedx-go v0.10.0

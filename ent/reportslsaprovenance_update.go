@@ -24,145 +24,145 @@ type ReportSlsaProvenanceUpdate struct {
 }
 
 // Where appends a list predicates to the ReportSlsaProvenanceUpdate builder.
-func (rspu *ReportSlsaProvenanceUpdate) Where(ps ...predicate.ReportSlsaProvenance) *ReportSlsaProvenanceUpdate {
-	rspu.mutation.Where(ps...)
-	return rspu
+func (_u *ReportSlsaProvenanceUpdate) Where(ps ...predicate.ReportSlsaProvenance) *ReportSlsaProvenanceUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetSourceRepository sets the "source_repository" field.
-func (rspu *ReportSlsaProvenanceUpdate) SetSourceRepository(s string) *ReportSlsaProvenanceUpdate {
-	rspu.mutation.SetSourceRepository(s)
-	return rspu
+func (_u *ReportSlsaProvenanceUpdate) SetSourceRepository(v string) *ReportSlsaProvenanceUpdate {
+	_u.mutation.SetSourceRepository(v)
+	return _u
 }
 
 // SetNillableSourceRepository sets the "source_repository" field if the given value is not nil.
-func (rspu *ReportSlsaProvenanceUpdate) SetNillableSourceRepository(s *string) *ReportSlsaProvenanceUpdate {
-	if s != nil {
-		rspu.SetSourceRepository(*s)
+func (_u *ReportSlsaProvenanceUpdate) SetNillableSourceRepository(v *string) *ReportSlsaProvenanceUpdate {
+	if v != nil {
+		_u.SetSourceRepository(*v)
 	}
-	return rspu
+	return _u
 }
 
 // SetCommitSha sets the "commit_sha" field.
-func (rspu *ReportSlsaProvenanceUpdate) SetCommitSha(s string) *ReportSlsaProvenanceUpdate {
-	rspu.mutation.SetCommitSha(s)
-	return rspu
+func (_u *ReportSlsaProvenanceUpdate) SetCommitSha(v string) *ReportSlsaProvenanceUpdate {
+	_u.mutation.SetCommitSha(v)
+	return _u
 }
 
 // SetNillableCommitSha sets the "commit_sha" field if the given value is not nil.
-func (rspu *ReportSlsaProvenanceUpdate) SetNillableCommitSha(s *string) *ReportSlsaProvenanceUpdate {
-	if s != nil {
-		rspu.SetCommitSha(*s)
+func (_u *ReportSlsaProvenanceUpdate) SetNillableCommitSha(v *string) *ReportSlsaProvenanceUpdate {
+	if v != nil {
+		_u.SetCommitSha(*v)
 	}
-	return rspu
+	return _u
 }
 
 // SetURL sets the "url" field.
-func (rspu *ReportSlsaProvenanceUpdate) SetURL(s string) *ReportSlsaProvenanceUpdate {
-	rspu.mutation.SetURL(s)
-	return rspu
+func (_u *ReportSlsaProvenanceUpdate) SetURL(v string) *ReportSlsaProvenanceUpdate {
+	_u.mutation.SetURL(v)
+	return _u
 }
 
 // SetNillableURL sets the "url" field if the given value is not nil.
-func (rspu *ReportSlsaProvenanceUpdate) SetNillableURL(s *string) *ReportSlsaProvenanceUpdate {
-	if s != nil {
-		rspu.SetURL(*s)
+func (_u *ReportSlsaProvenanceUpdate) SetNillableURL(v *string) *ReportSlsaProvenanceUpdate {
+	if v != nil {
+		_u.SetURL(*v)
 	}
-	return rspu
+	return _u
 }
 
 // SetVerified sets the "verified" field.
-func (rspu *ReportSlsaProvenanceUpdate) SetVerified(b bool) *ReportSlsaProvenanceUpdate {
-	rspu.mutation.SetVerified(b)
-	return rspu
+func (_u *ReportSlsaProvenanceUpdate) SetVerified(v bool) *ReportSlsaProvenanceUpdate {
+	_u.mutation.SetVerified(v)
+	return _u
 }
 
 // SetNillableVerified sets the "verified" field if the given value is not nil.
-func (rspu *ReportSlsaProvenanceUpdate) SetNillableVerified(b *bool) *ReportSlsaProvenanceUpdate {
-	if b != nil {
-		rspu.SetVerified(*b)
+func (_u *ReportSlsaProvenanceUpdate) SetNillableVerified(v *bool) *ReportSlsaProvenanceUpdate {
+	if v != nil {
+		_u.SetVerified(*v)
 	}
-	return rspu
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rspu *ReportSlsaProvenanceUpdate) SetCreatedAt(t time.Time) *ReportSlsaProvenanceUpdate {
-	rspu.mutation.SetCreatedAt(t)
-	return rspu
+func (_u *ReportSlsaProvenanceUpdate) SetCreatedAt(v time.Time) *ReportSlsaProvenanceUpdate {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rspu *ReportSlsaProvenanceUpdate) SetNillableCreatedAt(t *time.Time) *ReportSlsaProvenanceUpdate {
-	if t != nil {
-		rspu.SetCreatedAt(*t)
+func (_u *ReportSlsaProvenanceUpdate) SetNillableCreatedAt(v *time.Time) *ReportSlsaProvenanceUpdate {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return rspu
+	return _u
 }
 
 // ClearCreatedAt clears the value of the "created_at" field.
-func (rspu *ReportSlsaProvenanceUpdate) ClearCreatedAt() *ReportSlsaProvenanceUpdate {
-	rspu.mutation.ClearCreatedAt()
-	return rspu
+func (_u *ReportSlsaProvenanceUpdate) ClearCreatedAt() *ReportSlsaProvenanceUpdate {
+	_u.mutation.ClearCreatedAt()
+	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rspu *ReportSlsaProvenanceUpdate) SetUpdatedAt(t time.Time) *ReportSlsaProvenanceUpdate {
-	rspu.mutation.SetUpdatedAt(t)
-	return rspu
+func (_u *ReportSlsaProvenanceUpdate) SetUpdatedAt(v time.Time) *ReportSlsaProvenanceUpdate {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rspu *ReportSlsaProvenanceUpdate) SetNillableUpdatedAt(t *time.Time) *ReportSlsaProvenanceUpdate {
-	if t != nil {
-		rspu.SetUpdatedAt(*t)
+func (_u *ReportSlsaProvenanceUpdate) SetNillableUpdatedAt(v *time.Time) *ReportSlsaProvenanceUpdate {
+	if v != nil {
+		_u.SetUpdatedAt(*v)
 	}
-	return rspu
+	return _u
 }
 
 // ClearUpdatedAt clears the value of the "updated_at" field.
-func (rspu *ReportSlsaProvenanceUpdate) ClearUpdatedAt() *ReportSlsaProvenanceUpdate {
-	rspu.mutation.ClearUpdatedAt()
-	return rspu
+func (_u *ReportSlsaProvenanceUpdate) ClearUpdatedAt() *ReportSlsaProvenanceUpdate {
+	_u.mutation.ClearUpdatedAt()
+	return _u
 }
 
 // SetPackageID sets the "package" edge to the ReportPackage entity by ID.
-func (rspu *ReportSlsaProvenanceUpdate) SetPackageID(id int) *ReportSlsaProvenanceUpdate {
-	rspu.mutation.SetPackageID(id)
-	return rspu
+func (_u *ReportSlsaProvenanceUpdate) SetPackageID(id int) *ReportSlsaProvenanceUpdate {
+	_u.mutation.SetPackageID(id)
+	return _u
 }
 
 // SetNillablePackageID sets the "package" edge to the ReportPackage entity by ID if the given value is not nil.
-func (rspu *ReportSlsaProvenanceUpdate) SetNillablePackageID(id *int) *ReportSlsaProvenanceUpdate {
+func (_u *ReportSlsaProvenanceUpdate) SetNillablePackageID(id *int) *ReportSlsaProvenanceUpdate {
 	if id != nil {
-		rspu = rspu.SetPackageID(*id)
+		_u = _u.SetPackageID(*id)
 	}
-	return rspu
+	return _u
 }
 
 // SetPackage sets the "package" edge to the ReportPackage entity.
-func (rspu *ReportSlsaProvenanceUpdate) SetPackage(r *ReportPackage) *ReportSlsaProvenanceUpdate {
-	return rspu.SetPackageID(r.ID)
+func (_u *ReportSlsaProvenanceUpdate) SetPackage(v *ReportPackage) *ReportSlsaProvenanceUpdate {
+	return _u.SetPackageID(v.ID)
 }
 
 // Mutation returns the ReportSlsaProvenanceMutation object of the builder.
-func (rspu *ReportSlsaProvenanceUpdate) Mutation() *ReportSlsaProvenanceMutation {
-	return rspu.mutation
+func (_u *ReportSlsaProvenanceUpdate) Mutation() *ReportSlsaProvenanceMutation {
+	return _u.mutation
 }
 
 // ClearPackage clears the "package" edge to the ReportPackage entity.
-func (rspu *ReportSlsaProvenanceUpdate) ClearPackage() *ReportSlsaProvenanceUpdate {
-	rspu.mutation.ClearPackage()
-	return rspu
+func (_u *ReportSlsaProvenanceUpdate) ClearPackage() *ReportSlsaProvenanceUpdate {
+	_u.mutation.ClearPackage()
+	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (rspu *ReportSlsaProvenanceUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, rspu.sqlSave, rspu.mutation, rspu.hooks)
+func (_u *ReportSlsaProvenanceUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rspu *ReportSlsaProvenanceUpdate) SaveX(ctx context.Context) int {
-	affected, err := rspu.Save(ctx)
+func (_u *ReportSlsaProvenanceUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -170,52 +170,52 @@ func (rspu *ReportSlsaProvenanceUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (rspu *ReportSlsaProvenanceUpdate) Exec(ctx context.Context) error {
-	_, err := rspu.Save(ctx)
+func (_u *ReportSlsaProvenanceUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rspu *ReportSlsaProvenanceUpdate) ExecX(ctx context.Context) {
-	if err := rspu.Exec(ctx); err != nil {
+func (_u *ReportSlsaProvenanceUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (rspu *ReportSlsaProvenanceUpdate) sqlSave(ctx context.Context) (n int, err error) {
+func (_u *ReportSlsaProvenanceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	_spec := sqlgraph.NewUpdateSpec(reportslsaprovenance.Table, reportslsaprovenance.Columns, sqlgraph.NewFieldSpec(reportslsaprovenance.FieldID, field.TypeInt))
-	if ps := rspu.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := rspu.mutation.SourceRepository(); ok {
+	if value, ok := _u.mutation.SourceRepository(); ok {
 		_spec.SetField(reportslsaprovenance.FieldSourceRepository, field.TypeString, value)
 	}
-	if value, ok := rspu.mutation.CommitSha(); ok {
+	if value, ok := _u.mutation.CommitSha(); ok {
 		_spec.SetField(reportslsaprovenance.FieldCommitSha, field.TypeString, value)
 	}
-	if value, ok := rspu.mutation.URL(); ok {
+	if value, ok := _u.mutation.URL(); ok {
 		_spec.SetField(reportslsaprovenance.FieldURL, field.TypeString, value)
 	}
-	if value, ok := rspu.mutation.Verified(); ok {
+	if value, ok := _u.mutation.Verified(); ok {
 		_spec.SetField(reportslsaprovenance.FieldVerified, field.TypeBool, value)
 	}
-	if value, ok := rspu.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(reportslsaprovenance.FieldCreatedAt, field.TypeTime, value)
 	}
-	if rspu.mutation.CreatedAtCleared() {
+	if _u.mutation.CreatedAtCleared() {
 		_spec.ClearField(reportslsaprovenance.FieldCreatedAt, field.TypeTime)
 	}
-	if value, ok := rspu.mutation.UpdatedAt(); ok {
+	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportslsaprovenance.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if rspu.mutation.UpdatedAtCleared() {
+	if _u.mutation.UpdatedAtCleared() {
 		_spec.ClearField(reportslsaprovenance.FieldUpdatedAt, field.TypeTime)
 	}
-	if rspu.mutation.PackageCleared() {
+	if _u.mutation.PackageCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -228,7 +228,7 @@ func (rspu *ReportSlsaProvenanceUpdate) sqlSave(ctx context.Context) (n int, err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rspu.mutation.PackageIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.PackageIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -244,7 +244,7 @@ func (rspu *ReportSlsaProvenanceUpdate) sqlSave(ctx context.Context) (n int, err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, rspu.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{reportslsaprovenance.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -252,8 +252,8 @@ func (rspu *ReportSlsaProvenanceUpdate) sqlSave(ctx context.Context) (n int, err
 		}
 		return 0, err
 	}
-	rspu.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // ReportSlsaProvenanceUpdateOne is the builder for updating a single ReportSlsaProvenance entity.
@@ -265,152 +265,152 @@ type ReportSlsaProvenanceUpdateOne struct {
 }
 
 // SetSourceRepository sets the "source_repository" field.
-func (rspuo *ReportSlsaProvenanceUpdateOne) SetSourceRepository(s string) *ReportSlsaProvenanceUpdateOne {
-	rspuo.mutation.SetSourceRepository(s)
-	return rspuo
+func (_u *ReportSlsaProvenanceUpdateOne) SetSourceRepository(v string) *ReportSlsaProvenanceUpdateOne {
+	_u.mutation.SetSourceRepository(v)
+	return _u
 }
 
 // SetNillableSourceRepository sets the "source_repository" field if the given value is not nil.
-func (rspuo *ReportSlsaProvenanceUpdateOne) SetNillableSourceRepository(s *string) *ReportSlsaProvenanceUpdateOne {
-	if s != nil {
-		rspuo.SetSourceRepository(*s)
+func (_u *ReportSlsaProvenanceUpdateOne) SetNillableSourceRepository(v *string) *ReportSlsaProvenanceUpdateOne {
+	if v != nil {
+		_u.SetSourceRepository(*v)
 	}
-	return rspuo
+	return _u
 }
 
 // SetCommitSha sets the "commit_sha" field.
-func (rspuo *ReportSlsaProvenanceUpdateOne) SetCommitSha(s string) *ReportSlsaProvenanceUpdateOne {
-	rspuo.mutation.SetCommitSha(s)
-	return rspuo
+func (_u *ReportSlsaProvenanceUpdateOne) SetCommitSha(v string) *ReportSlsaProvenanceUpdateOne {
+	_u.mutation.SetCommitSha(v)
+	return _u
 }
 
 // SetNillableCommitSha sets the "commit_sha" field if the given value is not nil.
-func (rspuo *ReportSlsaProvenanceUpdateOne) SetNillableCommitSha(s *string) *ReportSlsaProvenanceUpdateOne {
-	if s != nil {
-		rspuo.SetCommitSha(*s)
+func (_u *ReportSlsaProvenanceUpdateOne) SetNillableCommitSha(v *string) *ReportSlsaProvenanceUpdateOne {
+	if v != nil {
+		_u.SetCommitSha(*v)
 	}
-	return rspuo
+	return _u
 }
 
 // SetURL sets the "url" field.
-func (rspuo *ReportSlsaProvenanceUpdateOne) SetURL(s string) *ReportSlsaProvenanceUpdateOne {
-	rspuo.mutation.SetURL(s)
-	return rspuo
+func (_u *ReportSlsaProvenanceUpdateOne) SetURL(v string) *ReportSlsaProvenanceUpdateOne {
+	_u.mutation.SetURL(v)
+	return _u
 }
 
 // SetNillableURL sets the "url" field if the given value is not nil.
-func (rspuo *ReportSlsaProvenanceUpdateOne) SetNillableURL(s *string) *ReportSlsaProvenanceUpdateOne {
-	if s != nil {
-		rspuo.SetURL(*s)
+func (_u *ReportSlsaProvenanceUpdateOne) SetNillableURL(v *string) *ReportSlsaProvenanceUpdateOne {
+	if v != nil {
+		_u.SetURL(*v)
 	}
-	return rspuo
+	return _u
 }
 
 // SetVerified sets the "verified" field.
-func (rspuo *ReportSlsaProvenanceUpdateOne) SetVerified(b bool) *ReportSlsaProvenanceUpdateOne {
-	rspuo.mutation.SetVerified(b)
-	return rspuo
+func (_u *ReportSlsaProvenanceUpdateOne) SetVerified(v bool) *ReportSlsaProvenanceUpdateOne {
+	_u.mutation.SetVerified(v)
+	return _u
 }
 
 // SetNillableVerified sets the "verified" field if the given value is not nil.
-func (rspuo *ReportSlsaProvenanceUpdateOne) SetNillableVerified(b *bool) *ReportSlsaProvenanceUpdateOne {
-	if b != nil {
-		rspuo.SetVerified(*b)
+func (_u *ReportSlsaProvenanceUpdateOne) SetNillableVerified(v *bool) *ReportSlsaProvenanceUpdateOne {
+	if v != nil {
+		_u.SetVerified(*v)
 	}
-	return rspuo
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rspuo *ReportSlsaProvenanceUpdateOne) SetCreatedAt(t time.Time) *ReportSlsaProvenanceUpdateOne {
-	rspuo.mutation.SetCreatedAt(t)
-	return rspuo
+func (_u *ReportSlsaProvenanceUpdateOne) SetCreatedAt(v time.Time) *ReportSlsaProvenanceUpdateOne {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rspuo *ReportSlsaProvenanceUpdateOne) SetNillableCreatedAt(t *time.Time) *ReportSlsaProvenanceUpdateOne {
-	if t != nil {
-		rspuo.SetCreatedAt(*t)
+func (_u *ReportSlsaProvenanceUpdateOne) SetNillableCreatedAt(v *time.Time) *ReportSlsaProvenanceUpdateOne {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return rspuo
+	return _u
 }
 
 // ClearCreatedAt clears the value of the "created_at" field.
-func (rspuo *ReportSlsaProvenanceUpdateOne) ClearCreatedAt() *ReportSlsaProvenanceUpdateOne {
-	rspuo.mutation.ClearCreatedAt()
-	return rspuo
+func (_u *ReportSlsaProvenanceUpdateOne) ClearCreatedAt() *ReportSlsaProvenanceUpdateOne {
+	_u.mutation.ClearCreatedAt()
+	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rspuo *ReportSlsaProvenanceUpdateOne) SetUpdatedAt(t time.Time) *ReportSlsaProvenanceUpdateOne {
-	rspuo.mutation.SetUpdatedAt(t)
-	return rspuo
+func (_u *ReportSlsaProvenanceUpdateOne) SetUpdatedAt(v time.Time) *ReportSlsaProvenanceUpdateOne {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rspuo *ReportSlsaProvenanceUpdateOne) SetNillableUpdatedAt(t *time.Time) *ReportSlsaProvenanceUpdateOne {
-	if t != nil {
-		rspuo.SetUpdatedAt(*t)
+func (_u *ReportSlsaProvenanceUpdateOne) SetNillableUpdatedAt(v *time.Time) *ReportSlsaProvenanceUpdateOne {
+	if v != nil {
+		_u.SetUpdatedAt(*v)
 	}
-	return rspuo
+	return _u
 }
 
 // ClearUpdatedAt clears the value of the "updated_at" field.
-func (rspuo *ReportSlsaProvenanceUpdateOne) ClearUpdatedAt() *ReportSlsaProvenanceUpdateOne {
-	rspuo.mutation.ClearUpdatedAt()
-	return rspuo
+func (_u *ReportSlsaProvenanceUpdateOne) ClearUpdatedAt() *ReportSlsaProvenanceUpdateOne {
+	_u.mutation.ClearUpdatedAt()
+	return _u
 }
 
 // SetPackageID sets the "package" edge to the ReportPackage entity by ID.
-func (rspuo *ReportSlsaProvenanceUpdateOne) SetPackageID(id int) *ReportSlsaProvenanceUpdateOne {
-	rspuo.mutation.SetPackageID(id)
-	return rspuo
+func (_u *ReportSlsaProvenanceUpdateOne) SetPackageID(id int) *ReportSlsaProvenanceUpdateOne {
+	_u.mutation.SetPackageID(id)
+	return _u
 }
 
 // SetNillablePackageID sets the "package" edge to the ReportPackage entity by ID if the given value is not nil.
-func (rspuo *ReportSlsaProvenanceUpdateOne) SetNillablePackageID(id *int) *ReportSlsaProvenanceUpdateOne {
+func (_u *ReportSlsaProvenanceUpdateOne) SetNillablePackageID(id *int) *ReportSlsaProvenanceUpdateOne {
 	if id != nil {
-		rspuo = rspuo.SetPackageID(*id)
+		_u = _u.SetPackageID(*id)
 	}
-	return rspuo
+	return _u
 }
 
 // SetPackage sets the "package" edge to the ReportPackage entity.
-func (rspuo *ReportSlsaProvenanceUpdateOne) SetPackage(r *ReportPackage) *ReportSlsaProvenanceUpdateOne {
-	return rspuo.SetPackageID(r.ID)
+func (_u *ReportSlsaProvenanceUpdateOne) SetPackage(v *ReportPackage) *ReportSlsaProvenanceUpdateOne {
+	return _u.SetPackageID(v.ID)
 }
 
 // Mutation returns the ReportSlsaProvenanceMutation object of the builder.
-func (rspuo *ReportSlsaProvenanceUpdateOne) Mutation() *ReportSlsaProvenanceMutation {
-	return rspuo.mutation
+func (_u *ReportSlsaProvenanceUpdateOne) Mutation() *ReportSlsaProvenanceMutation {
+	return _u.mutation
 }
 
 // ClearPackage clears the "package" edge to the ReportPackage entity.
-func (rspuo *ReportSlsaProvenanceUpdateOne) ClearPackage() *ReportSlsaProvenanceUpdateOne {
-	rspuo.mutation.ClearPackage()
-	return rspuo
+func (_u *ReportSlsaProvenanceUpdateOne) ClearPackage() *ReportSlsaProvenanceUpdateOne {
+	_u.mutation.ClearPackage()
+	return _u
 }
 
 // Where appends a list predicates to the ReportSlsaProvenanceUpdate builder.
-func (rspuo *ReportSlsaProvenanceUpdateOne) Where(ps ...predicate.ReportSlsaProvenance) *ReportSlsaProvenanceUpdateOne {
-	rspuo.mutation.Where(ps...)
-	return rspuo
+func (_u *ReportSlsaProvenanceUpdateOne) Where(ps ...predicate.ReportSlsaProvenance) *ReportSlsaProvenanceUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (rspuo *ReportSlsaProvenanceUpdateOne) Select(field string, fields ...string) *ReportSlsaProvenanceUpdateOne {
-	rspuo.fields = append([]string{field}, fields...)
-	return rspuo
+func (_u *ReportSlsaProvenanceUpdateOne) Select(field string, fields ...string) *ReportSlsaProvenanceUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated ReportSlsaProvenance entity.
-func (rspuo *ReportSlsaProvenanceUpdateOne) Save(ctx context.Context) (*ReportSlsaProvenance, error) {
-	return withHooks(ctx, rspuo.sqlSave, rspuo.mutation, rspuo.hooks)
+func (_u *ReportSlsaProvenanceUpdateOne) Save(ctx context.Context) (*ReportSlsaProvenance, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rspuo *ReportSlsaProvenanceUpdateOne) SaveX(ctx context.Context) *ReportSlsaProvenance {
-	node, err := rspuo.Save(ctx)
+func (_u *ReportSlsaProvenanceUpdateOne) SaveX(ctx context.Context) *ReportSlsaProvenance {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -418,26 +418,26 @@ func (rspuo *ReportSlsaProvenanceUpdateOne) SaveX(ctx context.Context) *ReportSl
 }
 
 // Exec executes the query on the entity.
-func (rspuo *ReportSlsaProvenanceUpdateOne) Exec(ctx context.Context) error {
-	_, err := rspuo.Save(ctx)
+func (_u *ReportSlsaProvenanceUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rspuo *ReportSlsaProvenanceUpdateOne) ExecX(ctx context.Context) {
-	if err := rspuo.Exec(ctx); err != nil {
+func (_u *ReportSlsaProvenanceUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (rspuo *ReportSlsaProvenanceUpdateOne) sqlSave(ctx context.Context) (_node *ReportSlsaProvenance, err error) {
+func (_u *ReportSlsaProvenanceUpdateOne) sqlSave(ctx context.Context) (_node *ReportSlsaProvenance, err error) {
 	_spec := sqlgraph.NewUpdateSpec(reportslsaprovenance.Table, reportslsaprovenance.Columns, sqlgraph.NewFieldSpec(reportslsaprovenance.FieldID, field.TypeInt))
-	id, ok := rspuo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "ReportSlsaProvenance.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := rspuo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, reportslsaprovenance.FieldID)
 		for _, f := range fields {
@@ -449,38 +449,38 @@ func (rspuo *ReportSlsaProvenanceUpdateOne) sqlSave(ctx context.Context) (_node 
 			}
 		}
 	}
-	if ps := rspuo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := rspuo.mutation.SourceRepository(); ok {
+	if value, ok := _u.mutation.SourceRepository(); ok {
 		_spec.SetField(reportslsaprovenance.FieldSourceRepository, field.TypeString, value)
 	}
-	if value, ok := rspuo.mutation.CommitSha(); ok {
+	if value, ok := _u.mutation.CommitSha(); ok {
 		_spec.SetField(reportslsaprovenance.FieldCommitSha, field.TypeString, value)
 	}
-	if value, ok := rspuo.mutation.URL(); ok {
+	if value, ok := _u.mutation.URL(); ok {
 		_spec.SetField(reportslsaprovenance.FieldURL, field.TypeString, value)
 	}
-	if value, ok := rspuo.mutation.Verified(); ok {
+	if value, ok := _u.mutation.Verified(); ok {
 		_spec.SetField(reportslsaprovenance.FieldVerified, field.TypeBool, value)
 	}
-	if value, ok := rspuo.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(reportslsaprovenance.FieldCreatedAt, field.TypeTime, value)
 	}
-	if rspuo.mutation.CreatedAtCleared() {
+	if _u.mutation.CreatedAtCleared() {
 		_spec.ClearField(reportslsaprovenance.FieldCreatedAt, field.TypeTime)
 	}
-	if value, ok := rspuo.mutation.UpdatedAt(); ok {
+	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportslsaprovenance.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if rspuo.mutation.UpdatedAtCleared() {
+	if _u.mutation.UpdatedAtCleared() {
 		_spec.ClearField(reportslsaprovenance.FieldUpdatedAt, field.TypeTime)
 	}
-	if rspuo.mutation.PackageCleared() {
+	if _u.mutation.PackageCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -493,7 +493,7 @@ func (rspuo *ReportSlsaProvenanceUpdateOne) sqlSave(ctx context.Context) (_node 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rspuo.mutation.PackageIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.PackageIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -509,10 +509,10 @@ func (rspuo *ReportSlsaProvenanceUpdateOne) sqlSave(ctx context.Context) (_node 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_node = &ReportSlsaProvenance{config: rspuo.config}
+	_node = &ReportSlsaProvenance{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, rspuo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{reportslsaprovenance.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -520,6 +520,6 @@ func (rspuo *ReportSlsaProvenanceUpdateOne) sqlSave(ctx context.Context) (_node 
 		}
 		return nil, err
 	}
-	rspuo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

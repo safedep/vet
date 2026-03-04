@@ -21,171 +21,171 @@ type ReportDependencyGraphCreate struct {
 }
 
 // SetFromPackageID sets the "from_package_id" field.
-func (rdgc *ReportDependencyGraphCreate) SetFromPackageID(s string) *ReportDependencyGraphCreate {
-	rdgc.mutation.SetFromPackageID(s)
-	return rdgc
+func (_c *ReportDependencyGraphCreate) SetFromPackageID(v string) *ReportDependencyGraphCreate {
+	_c.mutation.SetFromPackageID(v)
+	return _c
 }
 
 // SetFromPackageName sets the "from_package_name" field.
-func (rdgc *ReportDependencyGraphCreate) SetFromPackageName(s string) *ReportDependencyGraphCreate {
-	rdgc.mutation.SetFromPackageName(s)
-	return rdgc
+func (_c *ReportDependencyGraphCreate) SetFromPackageName(v string) *ReportDependencyGraphCreate {
+	_c.mutation.SetFromPackageName(v)
+	return _c
 }
 
 // SetFromPackageVersion sets the "from_package_version" field.
-func (rdgc *ReportDependencyGraphCreate) SetFromPackageVersion(s string) *ReportDependencyGraphCreate {
-	rdgc.mutation.SetFromPackageVersion(s)
-	return rdgc
+func (_c *ReportDependencyGraphCreate) SetFromPackageVersion(v string) *ReportDependencyGraphCreate {
+	_c.mutation.SetFromPackageVersion(v)
+	return _c
 }
 
 // SetFromPackageEcosystem sets the "from_package_ecosystem" field.
-func (rdgc *ReportDependencyGraphCreate) SetFromPackageEcosystem(s string) *ReportDependencyGraphCreate {
-	rdgc.mutation.SetFromPackageEcosystem(s)
-	return rdgc
+func (_c *ReportDependencyGraphCreate) SetFromPackageEcosystem(v string) *ReportDependencyGraphCreate {
+	_c.mutation.SetFromPackageEcosystem(v)
+	return _c
 }
 
 // SetToPackageID sets the "to_package_id" field.
-func (rdgc *ReportDependencyGraphCreate) SetToPackageID(s string) *ReportDependencyGraphCreate {
-	rdgc.mutation.SetToPackageID(s)
-	return rdgc
+func (_c *ReportDependencyGraphCreate) SetToPackageID(v string) *ReportDependencyGraphCreate {
+	_c.mutation.SetToPackageID(v)
+	return _c
 }
 
 // SetToPackageName sets the "to_package_name" field.
-func (rdgc *ReportDependencyGraphCreate) SetToPackageName(s string) *ReportDependencyGraphCreate {
-	rdgc.mutation.SetToPackageName(s)
-	return rdgc
+func (_c *ReportDependencyGraphCreate) SetToPackageName(v string) *ReportDependencyGraphCreate {
+	_c.mutation.SetToPackageName(v)
+	return _c
 }
 
 // SetToPackageVersion sets the "to_package_version" field.
-func (rdgc *ReportDependencyGraphCreate) SetToPackageVersion(s string) *ReportDependencyGraphCreate {
-	rdgc.mutation.SetToPackageVersion(s)
-	return rdgc
+func (_c *ReportDependencyGraphCreate) SetToPackageVersion(v string) *ReportDependencyGraphCreate {
+	_c.mutation.SetToPackageVersion(v)
+	return _c
 }
 
 // SetToPackageEcosystem sets the "to_package_ecosystem" field.
-func (rdgc *ReportDependencyGraphCreate) SetToPackageEcosystem(s string) *ReportDependencyGraphCreate {
-	rdgc.mutation.SetToPackageEcosystem(s)
-	return rdgc
+func (_c *ReportDependencyGraphCreate) SetToPackageEcosystem(v string) *ReportDependencyGraphCreate {
+	_c.mutation.SetToPackageEcosystem(v)
+	return _c
 }
 
 // SetDependencyType sets the "dependency_type" field.
-func (rdgc *ReportDependencyGraphCreate) SetDependencyType(s string) *ReportDependencyGraphCreate {
-	rdgc.mutation.SetDependencyType(s)
-	return rdgc
+func (_c *ReportDependencyGraphCreate) SetDependencyType(v string) *ReportDependencyGraphCreate {
+	_c.mutation.SetDependencyType(v)
+	return _c
 }
 
 // SetNillableDependencyType sets the "dependency_type" field if the given value is not nil.
-func (rdgc *ReportDependencyGraphCreate) SetNillableDependencyType(s *string) *ReportDependencyGraphCreate {
-	if s != nil {
-		rdgc.SetDependencyType(*s)
+func (_c *ReportDependencyGraphCreate) SetNillableDependencyType(v *string) *ReportDependencyGraphCreate {
+	if v != nil {
+		_c.SetDependencyType(*v)
 	}
-	return rdgc
+	return _c
 }
 
 // SetVersionConstraint sets the "version_constraint" field.
-func (rdgc *ReportDependencyGraphCreate) SetVersionConstraint(s string) *ReportDependencyGraphCreate {
-	rdgc.mutation.SetVersionConstraint(s)
-	return rdgc
+func (_c *ReportDependencyGraphCreate) SetVersionConstraint(v string) *ReportDependencyGraphCreate {
+	_c.mutation.SetVersionConstraint(v)
+	return _c
 }
 
 // SetNillableVersionConstraint sets the "version_constraint" field if the given value is not nil.
-func (rdgc *ReportDependencyGraphCreate) SetNillableVersionConstraint(s *string) *ReportDependencyGraphCreate {
-	if s != nil {
-		rdgc.SetVersionConstraint(*s)
+func (_c *ReportDependencyGraphCreate) SetNillableVersionConstraint(v *string) *ReportDependencyGraphCreate {
+	if v != nil {
+		_c.SetVersionConstraint(*v)
 	}
-	return rdgc
+	return _c
 }
 
 // SetDepth sets the "depth" field.
-func (rdgc *ReportDependencyGraphCreate) SetDepth(i int) *ReportDependencyGraphCreate {
-	rdgc.mutation.SetDepth(i)
-	return rdgc
+func (_c *ReportDependencyGraphCreate) SetDepth(v int) *ReportDependencyGraphCreate {
+	_c.mutation.SetDepth(v)
+	return _c
 }
 
 // SetNillableDepth sets the "depth" field if the given value is not nil.
-func (rdgc *ReportDependencyGraphCreate) SetNillableDepth(i *int) *ReportDependencyGraphCreate {
-	if i != nil {
-		rdgc.SetDepth(*i)
+func (_c *ReportDependencyGraphCreate) SetNillableDepth(v *int) *ReportDependencyGraphCreate {
+	if v != nil {
+		_c.SetDepth(*v)
 	}
-	return rdgc
+	return _c
 }
 
 // SetIsDirect sets the "is_direct" field.
-func (rdgc *ReportDependencyGraphCreate) SetIsDirect(b bool) *ReportDependencyGraphCreate {
-	rdgc.mutation.SetIsDirect(b)
-	return rdgc
+func (_c *ReportDependencyGraphCreate) SetIsDirect(v bool) *ReportDependencyGraphCreate {
+	_c.mutation.SetIsDirect(v)
+	return _c
 }
 
 // SetNillableIsDirect sets the "is_direct" field if the given value is not nil.
-func (rdgc *ReportDependencyGraphCreate) SetNillableIsDirect(b *bool) *ReportDependencyGraphCreate {
-	if b != nil {
-		rdgc.SetIsDirect(*b)
+func (_c *ReportDependencyGraphCreate) SetNillableIsDirect(v *bool) *ReportDependencyGraphCreate {
+	if v != nil {
+		_c.SetIsDirect(*v)
 	}
-	return rdgc
+	return _c
 }
 
 // SetIsRootEdge sets the "is_root_edge" field.
-func (rdgc *ReportDependencyGraphCreate) SetIsRootEdge(b bool) *ReportDependencyGraphCreate {
-	rdgc.mutation.SetIsRootEdge(b)
-	return rdgc
+func (_c *ReportDependencyGraphCreate) SetIsRootEdge(v bool) *ReportDependencyGraphCreate {
+	_c.mutation.SetIsRootEdge(v)
+	return _c
 }
 
 // SetNillableIsRootEdge sets the "is_root_edge" field if the given value is not nil.
-func (rdgc *ReportDependencyGraphCreate) SetNillableIsRootEdge(b *bool) *ReportDependencyGraphCreate {
-	if b != nil {
-		rdgc.SetIsRootEdge(*b)
+func (_c *ReportDependencyGraphCreate) SetNillableIsRootEdge(v *bool) *ReportDependencyGraphCreate {
+	if v != nil {
+		_c.SetIsRootEdge(*v)
 	}
-	return rdgc
+	return _c
 }
 
 // SetManifestID sets the "manifest_id" field.
-func (rdgc *ReportDependencyGraphCreate) SetManifestID(s string) *ReportDependencyGraphCreate {
-	rdgc.mutation.SetManifestID(s)
-	return rdgc
+func (_c *ReportDependencyGraphCreate) SetManifestID(v string) *ReportDependencyGraphCreate {
+	_c.mutation.SetManifestID(v)
+	return _c
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rdgc *ReportDependencyGraphCreate) SetCreatedAt(t time.Time) *ReportDependencyGraphCreate {
-	rdgc.mutation.SetCreatedAt(t)
-	return rdgc
+func (_c *ReportDependencyGraphCreate) SetCreatedAt(v time.Time) *ReportDependencyGraphCreate {
+	_c.mutation.SetCreatedAt(v)
+	return _c
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rdgc *ReportDependencyGraphCreate) SetNillableCreatedAt(t *time.Time) *ReportDependencyGraphCreate {
-	if t != nil {
-		rdgc.SetCreatedAt(*t)
+func (_c *ReportDependencyGraphCreate) SetNillableCreatedAt(v *time.Time) *ReportDependencyGraphCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
 	}
-	return rdgc
+	return _c
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rdgc *ReportDependencyGraphCreate) SetUpdatedAt(t time.Time) *ReportDependencyGraphCreate {
-	rdgc.mutation.SetUpdatedAt(t)
-	return rdgc
+func (_c *ReportDependencyGraphCreate) SetUpdatedAt(v time.Time) *ReportDependencyGraphCreate {
+	_c.mutation.SetUpdatedAt(v)
+	return _c
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rdgc *ReportDependencyGraphCreate) SetNillableUpdatedAt(t *time.Time) *ReportDependencyGraphCreate {
-	if t != nil {
-		rdgc.SetUpdatedAt(*t)
+func (_c *ReportDependencyGraphCreate) SetNillableUpdatedAt(v *time.Time) *ReportDependencyGraphCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
 	}
-	return rdgc
+	return _c
 }
 
 // Mutation returns the ReportDependencyGraphMutation object of the builder.
-func (rdgc *ReportDependencyGraphCreate) Mutation() *ReportDependencyGraphMutation {
-	return rdgc.mutation
+func (_c *ReportDependencyGraphCreate) Mutation() *ReportDependencyGraphMutation {
+	return _c.mutation
 }
 
 // Save creates the ReportDependencyGraph in the database.
-func (rdgc *ReportDependencyGraphCreate) Save(ctx context.Context) (*ReportDependencyGraph, error) {
-	rdgc.defaults()
-	return withHooks(ctx, rdgc.sqlSave, rdgc.mutation, rdgc.hooks)
+func (_c *ReportDependencyGraphCreate) Save(ctx context.Context) (*ReportDependencyGraph, error) {
+	_c.defaults()
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (rdgc *ReportDependencyGraphCreate) SaveX(ctx context.Context) *ReportDependencyGraph {
-	v, err := rdgc.Save(ctx)
+func (_c *ReportDependencyGraphCreate) SaveX(ctx context.Context) *ReportDependencyGraph {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -193,113 +193,113 @@ func (rdgc *ReportDependencyGraphCreate) SaveX(ctx context.Context) *ReportDepen
 }
 
 // Exec executes the query.
-func (rdgc *ReportDependencyGraphCreate) Exec(ctx context.Context) error {
-	_, err := rdgc.Save(ctx)
+func (_c *ReportDependencyGraphCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rdgc *ReportDependencyGraphCreate) ExecX(ctx context.Context) {
-	if err := rdgc.Exec(ctx); err != nil {
+func (_c *ReportDependencyGraphCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (rdgc *ReportDependencyGraphCreate) defaults() {
-	if _, ok := rdgc.mutation.Depth(); !ok {
+func (_c *ReportDependencyGraphCreate) defaults() {
+	if _, ok := _c.mutation.Depth(); !ok {
 		v := reportdependencygraph.DefaultDepth
-		rdgc.mutation.SetDepth(v)
+		_c.mutation.SetDepth(v)
 	}
-	if _, ok := rdgc.mutation.IsDirect(); !ok {
+	if _, ok := _c.mutation.IsDirect(); !ok {
 		v := reportdependencygraph.DefaultIsDirect
-		rdgc.mutation.SetIsDirect(v)
+		_c.mutation.SetIsDirect(v)
 	}
-	if _, ok := rdgc.mutation.IsRootEdge(); !ok {
+	if _, ok := _c.mutation.IsRootEdge(); !ok {
 		v := reportdependencygraph.DefaultIsRootEdge
-		rdgc.mutation.SetIsRootEdge(v)
+		_c.mutation.SetIsRootEdge(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (rdgc *ReportDependencyGraphCreate) check() error {
-	if _, ok := rdgc.mutation.FromPackageID(); !ok {
+func (_c *ReportDependencyGraphCreate) check() error {
+	if _, ok := _c.mutation.FromPackageID(); !ok {
 		return &ValidationError{Name: "from_package_id", err: errors.New(`ent: missing required field "ReportDependencyGraph.from_package_id"`)}
 	}
-	if v, ok := rdgc.mutation.FromPackageID(); ok {
+	if v, ok := _c.mutation.FromPackageID(); ok {
 		if err := reportdependencygraph.FromPackageIDValidator(v); err != nil {
 			return &ValidationError{Name: "from_package_id", err: fmt.Errorf(`ent: validator failed for field "ReportDependencyGraph.from_package_id": %w`, err)}
 		}
 	}
-	if _, ok := rdgc.mutation.FromPackageName(); !ok {
+	if _, ok := _c.mutation.FromPackageName(); !ok {
 		return &ValidationError{Name: "from_package_name", err: errors.New(`ent: missing required field "ReportDependencyGraph.from_package_name"`)}
 	}
-	if v, ok := rdgc.mutation.FromPackageName(); ok {
+	if v, ok := _c.mutation.FromPackageName(); ok {
 		if err := reportdependencygraph.FromPackageNameValidator(v); err != nil {
 			return &ValidationError{Name: "from_package_name", err: fmt.Errorf(`ent: validator failed for field "ReportDependencyGraph.from_package_name": %w`, err)}
 		}
 	}
-	if _, ok := rdgc.mutation.FromPackageVersion(); !ok {
+	if _, ok := _c.mutation.FromPackageVersion(); !ok {
 		return &ValidationError{Name: "from_package_version", err: errors.New(`ent: missing required field "ReportDependencyGraph.from_package_version"`)}
 	}
-	if v, ok := rdgc.mutation.FromPackageVersion(); ok {
+	if v, ok := _c.mutation.FromPackageVersion(); ok {
 		if err := reportdependencygraph.FromPackageVersionValidator(v); err != nil {
 			return &ValidationError{Name: "from_package_version", err: fmt.Errorf(`ent: validator failed for field "ReportDependencyGraph.from_package_version": %w`, err)}
 		}
 	}
-	if _, ok := rdgc.mutation.FromPackageEcosystem(); !ok {
+	if _, ok := _c.mutation.FromPackageEcosystem(); !ok {
 		return &ValidationError{Name: "from_package_ecosystem", err: errors.New(`ent: missing required field "ReportDependencyGraph.from_package_ecosystem"`)}
 	}
-	if v, ok := rdgc.mutation.FromPackageEcosystem(); ok {
+	if v, ok := _c.mutation.FromPackageEcosystem(); ok {
 		if err := reportdependencygraph.FromPackageEcosystemValidator(v); err != nil {
 			return &ValidationError{Name: "from_package_ecosystem", err: fmt.Errorf(`ent: validator failed for field "ReportDependencyGraph.from_package_ecosystem": %w`, err)}
 		}
 	}
-	if _, ok := rdgc.mutation.ToPackageID(); !ok {
+	if _, ok := _c.mutation.ToPackageID(); !ok {
 		return &ValidationError{Name: "to_package_id", err: errors.New(`ent: missing required field "ReportDependencyGraph.to_package_id"`)}
 	}
-	if v, ok := rdgc.mutation.ToPackageID(); ok {
+	if v, ok := _c.mutation.ToPackageID(); ok {
 		if err := reportdependencygraph.ToPackageIDValidator(v); err != nil {
 			return &ValidationError{Name: "to_package_id", err: fmt.Errorf(`ent: validator failed for field "ReportDependencyGraph.to_package_id": %w`, err)}
 		}
 	}
-	if _, ok := rdgc.mutation.ToPackageName(); !ok {
+	if _, ok := _c.mutation.ToPackageName(); !ok {
 		return &ValidationError{Name: "to_package_name", err: errors.New(`ent: missing required field "ReportDependencyGraph.to_package_name"`)}
 	}
-	if v, ok := rdgc.mutation.ToPackageName(); ok {
+	if v, ok := _c.mutation.ToPackageName(); ok {
 		if err := reportdependencygraph.ToPackageNameValidator(v); err != nil {
 			return &ValidationError{Name: "to_package_name", err: fmt.Errorf(`ent: validator failed for field "ReportDependencyGraph.to_package_name": %w`, err)}
 		}
 	}
-	if _, ok := rdgc.mutation.ToPackageVersion(); !ok {
+	if _, ok := _c.mutation.ToPackageVersion(); !ok {
 		return &ValidationError{Name: "to_package_version", err: errors.New(`ent: missing required field "ReportDependencyGraph.to_package_version"`)}
 	}
-	if v, ok := rdgc.mutation.ToPackageVersion(); ok {
+	if v, ok := _c.mutation.ToPackageVersion(); ok {
 		if err := reportdependencygraph.ToPackageVersionValidator(v); err != nil {
 			return &ValidationError{Name: "to_package_version", err: fmt.Errorf(`ent: validator failed for field "ReportDependencyGraph.to_package_version": %w`, err)}
 		}
 	}
-	if _, ok := rdgc.mutation.ToPackageEcosystem(); !ok {
+	if _, ok := _c.mutation.ToPackageEcosystem(); !ok {
 		return &ValidationError{Name: "to_package_ecosystem", err: errors.New(`ent: missing required field "ReportDependencyGraph.to_package_ecosystem"`)}
 	}
-	if v, ok := rdgc.mutation.ToPackageEcosystem(); ok {
+	if v, ok := _c.mutation.ToPackageEcosystem(); ok {
 		if err := reportdependencygraph.ToPackageEcosystemValidator(v); err != nil {
 			return &ValidationError{Name: "to_package_ecosystem", err: fmt.Errorf(`ent: validator failed for field "ReportDependencyGraph.to_package_ecosystem": %w`, err)}
 		}
 	}
-	if _, ok := rdgc.mutation.Depth(); !ok {
+	if _, ok := _c.mutation.Depth(); !ok {
 		return &ValidationError{Name: "depth", err: errors.New(`ent: missing required field "ReportDependencyGraph.depth"`)}
 	}
-	if _, ok := rdgc.mutation.IsDirect(); !ok {
+	if _, ok := _c.mutation.IsDirect(); !ok {
 		return &ValidationError{Name: "is_direct", err: errors.New(`ent: missing required field "ReportDependencyGraph.is_direct"`)}
 	}
-	if _, ok := rdgc.mutation.IsRootEdge(); !ok {
+	if _, ok := _c.mutation.IsRootEdge(); !ok {
 		return &ValidationError{Name: "is_root_edge", err: errors.New(`ent: missing required field "ReportDependencyGraph.is_root_edge"`)}
 	}
-	if _, ok := rdgc.mutation.ManifestID(); !ok {
+	if _, ok := _c.mutation.ManifestID(); !ok {
 		return &ValidationError{Name: "manifest_id", err: errors.New(`ent: missing required field "ReportDependencyGraph.manifest_id"`)}
 	}
-	if v, ok := rdgc.mutation.ManifestID(); ok {
+	if v, ok := _c.mutation.ManifestID(); ok {
 		if err := reportdependencygraph.ManifestIDValidator(v); err != nil {
 			return &ValidationError{Name: "manifest_id", err: fmt.Errorf(`ent: validator failed for field "ReportDependencyGraph.manifest_id": %w`, err)}
 		}
@@ -307,12 +307,12 @@ func (rdgc *ReportDependencyGraphCreate) check() error {
 	return nil
 }
 
-func (rdgc *ReportDependencyGraphCreate) sqlSave(ctx context.Context) (*ReportDependencyGraph, error) {
-	if err := rdgc.check(); err != nil {
+func (_c *ReportDependencyGraphCreate) sqlSave(ctx context.Context) (*ReportDependencyGraph, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := rdgc.createSpec()
-	if err := sqlgraph.CreateNode(ctx, rdgc.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -320,77 +320,77 @@ func (rdgc *ReportDependencyGraphCreate) sqlSave(ctx context.Context) (*ReportDe
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
-	rdgc.mutation.id = &_node.ID
-	rdgc.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (rdgc *ReportDependencyGraphCreate) createSpec() (*ReportDependencyGraph, *sqlgraph.CreateSpec) {
+func (_c *ReportDependencyGraphCreate) createSpec() (*ReportDependencyGraph, *sqlgraph.CreateSpec) {
 	var (
-		_node = &ReportDependencyGraph{config: rdgc.config}
+		_node = &ReportDependencyGraph{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(reportdependencygraph.Table, sqlgraph.NewFieldSpec(reportdependencygraph.FieldID, field.TypeInt))
 	)
-	if value, ok := rdgc.mutation.FromPackageID(); ok {
+	if value, ok := _c.mutation.FromPackageID(); ok {
 		_spec.SetField(reportdependencygraph.FieldFromPackageID, field.TypeString, value)
 		_node.FromPackageID = value
 	}
-	if value, ok := rdgc.mutation.FromPackageName(); ok {
+	if value, ok := _c.mutation.FromPackageName(); ok {
 		_spec.SetField(reportdependencygraph.FieldFromPackageName, field.TypeString, value)
 		_node.FromPackageName = value
 	}
-	if value, ok := rdgc.mutation.FromPackageVersion(); ok {
+	if value, ok := _c.mutation.FromPackageVersion(); ok {
 		_spec.SetField(reportdependencygraph.FieldFromPackageVersion, field.TypeString, value)
 		_node.FromPackageVersion = value
 	}
-	if value, ok := rdgc.mutation.FromPackageEcosystem(); ok {
+	if value, ok := _c.mutation.FromPackageEcosystem(); ok {
 		_spec.SetField(reportdependencygraph.FieldFromPackageEcosystem, field.TypeString, value)
 		_node.FromPackageEcosystem = value
 	}
-	if value, ok := rdgc.mutation.ToPackageID(); ok {
+	if value, ok := _c.mutation.ToPackageID(); ok {
 		_spec.SetField(reportdependencygraph.FieldToPackageID, field.TypeString, value)
 		_node.ToPackageID = value
 	}
-	if value, ok := rdgc.mutation.ToPackageName(); ok {
+	if value, ok := _c.mutation.ToPackageName(); ok {
 		_spec.SetField(reportdependencygraph.FieldToPackageName, field.TypeString, value)
 		_node.ToPackageName = value
 	}
-	if value, ok := rdgc.mutation.ToPackageVersion(); ok {
+	if value, ok := _c.mutation.ToPackageVersion(); ok {
 		_spec.SetField(reportdependencygraph.FieldToPackageVersion, field.TypeString, value)
 		_node.ToPackageVersion = value
 	}
-	if value, ok := rdgc.mutation.ToPackageEcosystem(); ok {
+	if value, ok := _c.mutation.ToPackageEcosystem(); ok {
 		_spec.SetField(reportdependencygraph.FieldToPackageEcosystem, field.TypeString, value)
 		_node.ToPackageEcosystem = value
 	}
-	if value, ok := rdgc.mutation.DependencyType(); ok {
+	if value, ok := _c.mutation.DependencyType(); ok {
 		_spec.SetField(reportdependencygraph.FieldDependencyType, field.TypeString, value)
 		_node.DependencyType = value
 	}
-	if value, ok := rdgc.mutation.VersionConstraint(); ok {
+	if value, ok := _c.mutation.VersionConstraint(); ok {
 		_spec.SetField(reportdependencygraph.FieldVersionConstraint, field.TypeString, value)
 		_node.VersionConstraint = value
 	}
-	if value, ok := rdgc.mutation.Depth(); ok {
+	if value, ok := _c.mutation.Depth(); ok {
 		_spec.SetField(reportdependencygraph.FieldDepth, field.TypeInt, value)
 		_node.Depth = value
 	}
-	if value, ok := rdgc.mutation.IsDirect(); ok {
+	if value, ok := _c.mutation.IsDirect(); ok {
 		_spec.SetField(reportdependencygraph.FieldIsDirect, field.TypeBool, value)
 		_node.IsDirect = value
 	}
-	if value, ok := rdgc.mutation.IsRootEdge(); ok {
+	if value, ok := _c.mutation.IsRootEdge(); ok {
 		_spec.SetField(reportdependencygraph.FieldIsRootEdge, field.TypeBool, value)
 		_node.IsRootEdge = value
 	}
-	if value, ok := rdgc.mutation.ManifestID(); ok {
+	if value, ok := _c.mutation.ManifestID(); ok {
 		_spec.SetField(reportdependencygraph.FieldManifestID, field.TypeString, value)
 		_node.ManifestID = value
 	}
-	if value, ok := rdgc.mutation.CreatedAt(); ok {
+	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(reportdependencygraph.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
-	if value, ok := rdgc.mutation.UpdatedAt(); ok {
+	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportdependencygraph.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
@@ -405,16 +405,16 @@ type ReportDependencyGraphCreateBulk struct {
 }
 
 // Save creates the ReportDependencyGraph entities in the database.
-func (rdgcb *ReportDependencyGraphCreateBulk) Save(ctx context.Context) ([]*ReportDependencyGraph, error) {
-	if rdgcb.err != nil {
-		return nil, rdgcb.err
+func (_c *ReportDependencyGraphCreateBulk) Save(ctx context.Context) ([]*ReportDependencyGraph, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(rdgcb.builders))
-	nodes := make([]*ReportDependencyGraph, len(rdgcb.builders))
-	mutators := make([]Mutator, len(rdgcb.builders))
-	for i := range rdgcb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*ReportDependencyGraph, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := rdgcb.builders[i]
+			builder := _c.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*ReportDependencyGraphMutation)
@@ -428,11 +428,11 @@ func (rdgcb *ReportDependencyGraphCreateBulk) Save(ctx context.Context) ([]*Repo
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, rdgcb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, rdgcb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -456,7 +456,7 @@ func (rdgcb *ReportDependencyGraphCreateBulk) Save(ctx context.Context) ([]*Repo
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, rdgcb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -464,8 +464,8 @@ func (rdgcb *ReportDependencyGraphCreateBulk) Save(ctx context.Context) ([]*Repo
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rdgcb *ReportDependencyGraphCreateBulk) SaveX(ctx context.Context) []*ReportDependencyGraph {
-	v, err := rdgcb.Save(ctx)
+func (_c *ReportDependencyGraphCreateBulk) SaveX(ctx context.Context) []*ReportDependencyGraph {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -473,14 +473,14 @@ func (rdgcb *ReportDependencyGraphCreateBulk) SaveX(ctx context.Context) []*Repo
 }
 
 // Exec executes the query.
-func (rdgcb *ReportDependencyGraphCreateBulk) Exec(ctx context.Context) error {
-	_, err := rdgcb.Save(ctx)
+func (_c *ReportDependencyGraphCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rdgcb *ReportDependencyGraphCreateBulk) ExecX(ctx context.Context) {
-	if err := rdgcb.Exec(ctx); err != nil {
+func (_c *ReportDependencyGraphCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

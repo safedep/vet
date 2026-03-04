@@ -21,179 +21,179 @@ type CodeSignatureMatchCreate struct {
 }
 
 // SetSignatureID sets the "signature_id" field.
-func (csmc *CodeSignatureMatchCreate) SetSignatureID(s string) *CodeSignatureMatchCreate {
-	csmc.mutation.SetSignatureID(s)
-	return csmc
+func (_c *CodeSignatureMatchCreate) SetSignatureID(v string) *CodeSignatureMatchCreate {
+	_c.mutation.SetSignatureID(v)
+	return _c
 }
 
 // SetSignatureVendor sets the "signature_vendor" field.
-func (csmc *CodeSignatureMatchCreate) SetSignatureVendor(s string) *CodeSignatureMatchCreate {
-	csmc.mutation.SetSignatureVendor(s)
-	return csmc
+func (_c *CodeSignatureMatchCreate) SetSignatureVendor(v string) *CodeSignatureMatchCreate {
+	_c.mutation.SetSignatureVendor(v)
+	return _c
 }
 
 // SetNillableSignatureVendor sets the "signature_vendor" field if the given value is not nil.
-func (csmc *CodeSignatureMatchCreate) SetNillableSignatureVendor(s *string) *CodeSignatureMatchCreate {
-	if s != nil {
-		csmc.SetSignatureVendor(*s)
+func (_c *CodeSignatureMatchCreate) SetNillableSignatureVendor(v *string) *CodeSignatureMatchCreate {
+	if v != nil {
+		_c.SetSignatureVendor(*v)
 	}
-	return csmc
+	return _c
 }
 
 // SetSignatureProduct sets the "signature_product" field.
-func (csmc *CodeSignatureMatchCreate) SetSignatureProduct(s string) *CodeSignatureMatchCreate {
-	csmc.mutation.SetSignatureProduct(s)
-	return csmc
+func (_c *CodeSignatureMatchCreate) SetSignatureProduct(v string) *CodeSignatureMatchCreate {
+	_c.mutation.SetSignatureProduct(v)
+	return _c
 }
 
 // SetNillableSignatureProduct sets the "signature_product" field if the given value is not nil.
-func (csmc *CodeSignatureMatchCreate) SetNillableSignatureProduct(s *string) *CodeSignatureMatchCreate {
-	if s != nil {
-		csmc.SetSignatureProduct(*s)
+func (_c *CodeSignatureMatchCreate) SetNillableSignatureProduct(v *string) *CodeSignatureMatchCreate {
+	if v != nil {
+		_c.SetSignatureProduct(*v)
 	}
-	return csmc
+	return _c
 }
 
 // SetSignatureService sets the "signature_service" field.
-func (csmc *CodeSignatureMatchCreate) SetSignatureService(s string) *CodeSignatureMatchCreate {
-	csmc.mutation.SetSignatureService(s)
-	return csmc
+func (_c *CodeSignatureMatchCreate) SetSignatureService(v string) *CodeSignatureMatchCreate {
+	_c.mutation.SetSignatureService(v)
+	return _c
 }
 
 // SetNillableSignatureService sets the "signature_service" field if the given value is not nil.
-func (csmc *CodeSignatureMatchCreate) SetNillableSignatureService(s *string) *CodeSignatureMatchCreate {
-	if s != nil {
-		csmc.SetSignatureService(*s)
+func (_c *CodeSignatureMatchCreate) SetNillableSignatureService(v *string) *CodeSignatureMatchCreate {
+	if v != nil {
+		_c.SetSignatureService(*v)
 	}
-	return csmc
+	return _c
 }
 
 // SetSignatureDescription sets the "signature_description" field.
-func (csmc *CodeSignatureMatchCreate) SetSignatureDescription(s string) *CodeSignatureMatchCreate {
-	csmc.mutation.SetSignatureDescription(s)
-	return csmc
+func (_c *CodeSignatureMatchCreate) SetSignatureDescription(v string) *CodeSignatureMatchCreate {
+	_c.mutation.SetSignatureDescription(v)
+	return _c
 }
 
 // SetNillableSignatureDescription sets the "signature_description" field if the given value is not nil.
-func (csmc *CodeSignatureMatchCreate) SetNillableSignatureDescription(s *string) *CodeSignatureMatchCreate {
-	if s != nil {
-		csmc.SetSignatureDescription(*s)
+func (_c *CodeSignatureMatchCreate) SetNillableSignatureDescription(v *string) *CodeSignatureMatchCreate {
+	if v != nil {
+		_c.SetSignatureDescription(*v)
 	}
-	return csmc
+	return _c
 }
 
 // SetTags sets the "tags" field.
-func (csmc *CodeSignatureMatchCreate) SetTags(s []string) *CodeSignatureMatchCreate {
-	csmc.mutation.SetTags(s)
-	return csmc
+func (_c *CodeSignatureMatchCreate) SetTags(v []string) *CodeSignatureMatchCreate {
+	_c.mutation.SetTags(v)
+	return _c
 }
 
 // SetFilePath sets the "file_path" field.
-func (csmc *CodeSignatureMatchCreate) SetFilePath(s string) *CodeSignatureMatchCreate {
-	csmc.mutation.SetFilePath(s)
-	return csmc
+func (_c *CodeSignatureMatchCreate) SetFilePath(v string) *CodeSignatureMatchCreate {
+	_c.mutation.SetFilePath(v)
+	return _c
 }
 
 // SetLanguage sets the "language" field.
-func (csmc *CodeSignatureMatchCreate) SetLanguage(s string) *CodeSignatureMatchCreate {
-	csmc.mutation.SetLanguage(s)
-	return csmc
+func (_c *CodeSignatureMatchCreate) SetLanguage(v string) *CodeSignatureMatchCreate {
+	_c.mutation.SetLanguage(v)
+	return _c
 }
 
 // SetLine sets the "line" field.
-func (csmc *CodeSignatureMatchCreate) SetLine(u uint) *CodeSignatureMatchCreate {
-	csmc.mutation.SetLine(u)
-	return csmc
+func (_c *CodeSignatureMatchCreate) SetLine(v uint) *CodeSignatureMatchCreate {
+	_c.mutation.SetLine(v)
+	return _c
 }
 
 // SetNillableLine sets the "line" field if the given value is not nil.
-func (csmc *CodeSignatureMatchCreate) SetNillableLine(u *uint) *CodeSignatureMatchCreate {
-	if u != nil {
-		csmc.SetLine(*u)
+func (_c *CodeSignatureMatchCreate) SetNillableLine(v *uint) *CodeSignatureMatchCreate {
+	if v != nil {
+		_c.SetLine(*v)
 	}
-	return csmc
+	return _c
 }
 
 // SetColumn sets the "column" field.
-func (csmc *CodeSignatureMatchCreate) SetColumn(u uint) *CodeSignatureMatchCreate {
-	csmc.mutation.SetColumn(u)
-	return csmc
+func (_c *CodeSignatureMatchCreate) SetColumn(v uint) *CodeSignatureMatchCreate {
+	_c.mutation.SetColumn(v)
+	return _c
 }
 
 // SetNillableColumn sets the "column" field if the given value is not nil.
-func (csmc *CodeSignatureMatchCreate) SetNillableColumn(u *uint) *CodeSignatureMatchCreate {
-	if u != nil {
-		csmc.SetColumn(*u)
+func (_c *CodeSignatureMatchCreate) SetNillableColumn(v *uint) *CodeSignatureMatchCreate {
+	if v != nil {
+		_c.SetColumn(*v)
 	}
-	return csmc
+	return _c
 }
 
 // SetCalleeNamespace sets the "callee_namespace" field.
-func (csmc *CodeSignatureMatchCreate) SetCalleeNamespace(s string) *CodeSignatureMatchCreate {
-	csmc.mutation.SetCalleeNamespace(s)
-	return csmc
+func (_c *CodeSignatureMatchCreate) SetCalleeNamespace(v string) *CodeSignatureMatchCreate {
+	_c.mutation.SetCalleeNamespace(v)
+	return _c
 }
 
 // SetNillableCalleeNamespace sets the "callee_namespace" field if the given value is not nil.
-func (csmc *CodeSignatureMatchCreate) SetNillableCalleeNamespace(s *string) *CodeSignatureMatchCreate {
-	if s != nil {
-		csmc.SetCalleeNamespace(*s)
+func (_c *CodeSignatureMatchCreate) SetNillableCalleeNamespace(v *string) *CodeSignatureMatchCreate {
+	if v != nil {
+		_c.SetCalleeNamespace(*v)
 	}
-	return csmc
+	return _c
 }
 
 // SetMatchedCall sets the "matched_call" field.
-func (csmc *CodeSignatureMatchCreate) SetMatchedCall(s string) *CodeSignatureMatchCreate {
-	csmc.mutation.SetMatchedCall(s)
-	return csmc
+func (_c *CodeSignatureMatchCreate) SetMatchedCall(v string) *CodeSignatureMatchCreate {
+	_c.mutation.SetMatchedCall(v)
+	return _c
 }
 
 // SetNillableMatchedCall sets the "matched_call" field if the given value is not nil.
-func (csmc *CodeSignatureMatchCreate) SetNillableMatchedCall(s *string) *CodeSignatureMatchCreate {
-	if s != nil {
-		csmc.SetMatchedCall(*s)
+func (_c *CodeSignatureMatchCreate) SetNillableMatchedCall(v *string) *CodeSignatureMatchCreate {
+	if v != nil {
+		_c.SetMatchedCall(*v)
 	}
-	return csmc
+	return _c
 }
 
 // SetPackageHint sets the "package_hint" field.
-func (csmc *CodeSignatureMatchCreate) SetPackageHint(s string) *CodeSignatureMatchCreate {
-	csmc.mutation.SetPackageHint(s)
-	return csmc
+func (_c *CodeSignatureMatchCreate) SetPackageHint(v string) *CodeSignatureMatchCreate {
+	_c.mutation.SetPackageHint(v)
+	return _c
 }
 
 // SetNillablePackageHint sets the "package_hint" field if the given value is not nil.
-func (csmc *CodeSignatureMatchCreate) SetNillablePackageHint(s *string) *CodeSignatureMatchCreate {
-	if s != nil {
-		csmc.SetPackageHint(*s)
+func (_c *CodeSignatureMatchCreate) SetNillablePackageHint(v *string) *CodeSignatureMatchCreate {
+	if v != nil {
+		_c.SetPackageHint(*v)
 	}
-	return csmc
+	return _c
 }
 
 // SetSourceFileID sets the "source_file" edge to the CodeSourceFile entity by ID.
-func (csmc *CodeSignatureMatchCreate) SetSourceFileID(id int) *CodeSignatureMatchCreate {
-	csmc.mutation.SetSourceFileID(id)
-	return csmc
+func (_c *CodeSignatureMatchCreate) SetSourceFileID(id int) *CodeSignatureMatchCreate {
+	_c.mutation.SetSourceFileID(id)
+	return _c
 }
 
 // SetSourceFile sets the "source_file" edge to the CodeSourceFile entity.
-func (csmc *CodeSignatureMatchCreate) SetSourceFile(c *CodeSourceFile) *CodeSignatureMatchCreate {
-	return csmc.SetSourceFileID(c.ID)
+func (_c *CodeSignatureMatchCreate) SetSourceFile(v *CodeSourceFile) *CodeSignatureMatchCreate {
+	return _c.SetSourceFileID(v.ID)
 }
 
 // Mutation returns the CodeSignatureMatchMutation object of the builder.
-func (csmc *CodeSignatureMatchCreate) Mutation() *CodeSignatureMatchMutation {
-	return csmc.mutation
+func (_c *CodeSignatureMatchCreate) Mutation() *CodeSignatureMatchMutation {
+	return _c.mutation
 }
 
 // Save creates the CodeSignatureMatch in the database.
-func (csmc *CodeSignatureMatchCreate) Save(ctx context.Context) (*CodeSignatureMatch, error) {
-	return withHooks(ctx, csmc.sqlSave, csmc.mutation, csmc.hooks)
+func (_c *CodeSignatureMatchCreate) Save(ctx context.Context) (*CodeSignatureMatch, error) {
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (csmc *CodeSignatureMatchCreate) SaveX(ctx context.Context) *CodeSignatureMatch {
-	v, err := csmc.Save(ctx)
+func (_c *CodeSignatureMatchCreate) SaveX(ctx context.Context) *CodeSignatureMatch {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -201,56 +201,56 @@ func (csmc *CodeSignatureMatchCreate) SaveX(ctx context.Context) *CodeSignatureM
 }
 
 // Exec executes the query.
-func (csmc *CodeSignatureMatchCreate) Exec(ctx context.Context) error {
-	_, err := csmc.Save(ctx)
+func (_c *CodeSignatureMatchCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (csmc *CodeSignatureMatchCreate) ExecX(ctx context.Context) {
-	if err := csmc.Exec(ctx); err != nil {
+func (_c *CodeSignatureMatchCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (csmc *CodeSignatureMatchCreate) check() error {
-	if _, ok := csmc.mutation.SignatureID(); !ok {
+func (_c *CodeSignatureMatchCreate) check() error {
+	if _, ok := _c.mutation.SignatureID(); !ok {
 		return &ValidationError{Name: "signature_id", err: errors.New(`ent: missing required field "CodeSignatureMatch.signature_id"`)}
 	}
-	if v, ok := csmc.mutation.SignatureID(); ok {
+	if v, ok := _c.mutation.SignatureID(); ok {
 		if err := codesignaturematch.SignatureIDValidator(v); err != nil {
 			return &ValidationError{Name: "signature_id", err: fmt.Errorf(`ent: validator failed for field "CodeSignatureMatch.signature_id": %w`, err)}
 		}
 	}
-	if _, ok := csmc.mutation.FilePath(); !ok {
+	if _, ok := _c.mutation.FilePath(); !ok {
 		return &ValidationError{Name: "file_path", err: errors.New(`ent: missing required field "CodeSignatureMatch.file_path"`)}
 	}
-	if v, ok := csmc.mutation.FilePath(); ok {
+	if v, ok := _c.mutation.FilePath(); ok {
 		if err := codesignaturematch.FilePathValidator(v); err != nil {
 			return &ValidationError{Name: "file_path", err: fmt.Errorf(`ent: validator failed for field "CodeSignatureMatch.file_path": %w`, err)}
 		}
 	}
-	if _, ok := csmc.mutation.Language(); !ok {
+	if _, ok := _c.mutation.Language(); !ok {
 		return &ValidationError{Name: "language", err: errors.New(`ent: missing required field "CodeSignatureMatch.language"`)}
 	}
-	if v, ok := csmc.mutation.Language(); ok {
+	if v, ok := _c.mutation.Language(); ok {
 		if err := codesignaturematch.LanguageValidator(v); err != nil {
 			return &ValidationError{Name: "language", err: fmt.Errorf(`ent: validator failed for field "CodeSignatureMatch.language": %w`, err)}
 		}
 	}
-	if len(csmc.mutation.SourceFileIDs()) == 0 {
+	if len(_c.mutation.SourceFileIDs()) == 0 {
 		return &ValidationError{Name: "source_file", err: errors.New(`ent: missing required edge "CodeSignatureMatch.source_file"`)}
 	}
 	return nil
 }
 
-func (csmc *CodeSignatureMatchCreate) sqlSave(ctx context.Context) (*CodeSignatureMatch, error) {
-	if err := csmc.check(); err != nil {
+func (_c *CodeSignatureMatchCreate) sqlSave(ctx context.Context) (*CodeSignatureMatch, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := csmc.createSpec()
-	if err := sqlgraph.CreateNode(ctx, csmc.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -258,69 +258,69 @@ func (csmc *CodeSignatureMatchCreate) sqlSave(ctx context.Context) (*CodeSignatu
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
-	csmc.mutation.id = &_node.ID
-	csmc.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (csmc *CodeSignatureMatchCreate) createSpec() (*CodeSignatureMatch, *sqlgraph.CreateSpec) {
+func (_c *CodeSignatureMatchCreate) createSpec() (*CodeSignatureMatch, *sqlgraph.CreateSpec) {
 	var (
-		_node = &CodeSignatureMatch{config: csmc.config}
+		_node = &CodeSignatureMatch{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(codesignaturematch.Table, sqlgraph.NewFieldSpec(codesignaturematch.FieldID, field.TypeInt))
 	)
-	if value, ok := csmc.mutation.SignatureID(); ok {
+	if value, ok := _c.mutation.SignatureID(); ok {
 		_spec.SetField(codesignaturematch.FieldSignatureID, field.TypeString, value)
 		_node.SignatureID = value
 	}
-	if value, ok := csmc.mutation.SignatureVendor(); ok {
+	if value, ok := _c.mutation.SignatureVendor(); ok {
 		_spec.SetField(codesignaturematch.FieldSignatureVendor, field.TypeString, value)
 		_node.SignatureVendor = value
 	}
-	if value, ok := csmc.mutation.SignatureProduct(); ok {
+	if value, ok := _c.mutation.SignatureProduct(); ok {
 		_spec.SetField(codesignaturematch.FieldSignatureProduct, field.TypeString, value)
 		_node.SignatureProduct = value
 	}
-	if value, ok := csmc.mutation.SignatureService(); ok {
+	if value, ok := _c.mutation.SignatureService(); ok {
 		_spec.SetField(codesignaturematch.FieldSignatureService, field.TypeString, value)
 		_node.SignatureService = value
 	}
-	if value, ok := csmc.mutation.SignatureDescription(); ok {
+	if value, ok := _c.mutation.SignatureDescription(); ok {
 		_spec.SetField(codesignaturematch.FieldSignatureDescription, field.TypeString, value)
 		_node.SignatureDescription = value
 	}
-	if value, ok := csmc.mutation.Tags(); ok {
+	if value, ok := _c.mutation.Tags(); ok {
 		_spec.SetField(codesignaturematch.FieldTags, field.TypeJSON, value)
 		_node.Tags = value
 	}
-	if value, ok := csmc.mutation.FilePath(); ok {
+	if value, ok := _c.mutation.FilePath(); ok {
 		_spec.SetField(codesignaturematch.FieldFilePath, field.TypeString, value)
 		_node.FilePath = value
 	}
-	if value, ok := csmc.mutation.Language(); ok {
+	if value, ok := _c.mutation.Language(); ok {
 		_spec.SetField(codesignaturematch.FieldLanguage, field.TypeString, value)
 		_node.Language = value
 	}
-	if value, ok := csmc.mutation.Line(); ok {
+	if value, ok := _c.mutation.Line(); ok {
 		_spec.SetField(codesignaturematch.FieldLine, field.TypeUint, value)
 		_node.Line = value
 	}
-	if value, ok := csmc.mutation.Column(); ok {
+	if value, ok := _c.mutation.Column(); ok {
 		_spec.SetField(codesignaturematch.FieldColumn, field.TypeUint, value)
 		_node.Column = value
 	}
-	if value, ok := csmc.mutation.CalleeNamespace(); ok {
+	if value, ok := _c.mutation.CalleeNamespace(); ok {
 		_spec.SetField(codesignaturematch.FieldCalleeNamespace, field.TypeString, value)
 		_node.CalleeNamespace = value
 	}
-	if value, ok := csmc.mutation.MatchedCall(); ok {
+	if value, ok := _c.mutation.MatchedCall(); ok {
 		_spec.SetField(codesignaturematch.FieldMatchedCall, field.TypeString, value)
 		_node.MatchedCall = value
 	}
-	if value, ok := csmc.mutation.PackageHint(); ok {
+	if value, ok := _c.mutation.PackageHint(); ok {
 		_spec.SetField(codesignaturematch.FieldPackageHint, field.TypeString, value)
 		_node.PackageHint = &value
 	}
-	if nodes := csmc.mutation.SourceFileIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.SourceFileIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -348,16 +348,16 @@ type CodeSignatureMatchCreateBulk struct {
 }
 
 // Save creates the CodeSignatureMatch entities in the database.
-func (csmcb *CodeSignatureMatchCreateBulk) Save(ctx context.Context) ([]*CodeSignatureMatch, error) {
-	if csmcb.err != nil {
-		return nil, csmcb.err
+func (_c *CodeSignatureMatchCreateBulk) Save(ctx context.Context) ([]*CodeSignatureMatch, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(csmcb.builders))
-	nodes := make([]*CodeSignatureMatch, len(csmcb.builders))
-	mutators := make([]Mutator, len(csmcb.builders))
-	for i := range csmcb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*CodeSignatureMatch, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := csmcb.builders[i]
+			builder := _c.builders[i]
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*CodeSignatureMatchMutation)
 				if !ok {
@@ -370,11 +370,11 @@ func (csmcb *CodeSignatureMatchCreateBulk) Save(ctx context.Context) ([]*CodeSig
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, csmcb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, csmcb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -398,7 +398,7 @@ func (csmcb *CodeSignatureMatchCreateBulk) Save(ctx context.Context) ([]*CodeSig
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, csmcb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -406,8 +406,8 @@ func (csmcb *CodeSignatureMatchCreateBulk) Save(ctx context.Context) ([]*CodeSig
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (csmcb *CodeSignatureMatchCreateBulk) SaveX(ctx context.Context) []*CodeSignatureMatch {
-	v, err := csmcb.Save(ctx)
+func (_c *CodeSignatureMatchCreateBulk) SaveX(ctx context.Context) []*CodeSignatureMatch {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -415,14 +415,14 @@ func (csmcb *CodeSignatureMatchCreateBulk) SaveX(ctx context.Context) []*CodeSig
 }
 
 // Exec executes the query.
-func (csmcb *CodeSignatureMatchCreateBulk) Exec(ctx context.Context) error {
-	_, err := csmcb.Save(ctx)
+func (_c *CodeSignatureMatchCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (csmcb *CodeSignatureMatchCreateBulk) ExecX(ctx context.Context) {
-	if err := csmcb.Exec(ctx); err != nil {
+func (_c *CodeSignatureMatchCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

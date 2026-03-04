@@ -23,146 +23,146 @@ type ReportProjectCreate struct {
 }
 
 // SetName sets the "name" field.
-func (rpc *ReportProjectCreate) SetName(s string) *ReportProjectCreate {
-	rpc.mutation.SetName(s)
-	return rpc
+func (_c *ReportProjectCreate) SetName(v string) *ReportProjectCreate {
+	_c.mutation.SetName(v)
+	return _c
 }
 
 // SetURL sets the "url" field.
-func (rpc *ReportProjectCreate) SetURL(s string) *ReportProjectCreate {
-	rpc.mutation.SetURL(s)
-	return rpc
+func (_c *ReportProjectCreate) SetURL(v string) *ReportProjectCreate {
+	_c.mutation.SetURL(v)
+	return _c
 }
 
 // SetNillableURL sets the "url" field if the given value is not nil.
-func (rpc *ReportProjectCreate) SetNillableURL(s *string) *ReportProjectCreate {
-	if s != nil {
-		rpc.SetURL(*s)
+func (_c *ReportProjectCreate) SetNillableURL(v *string) *ReportProjectCreate {
+	if v != nil {
+		_c.SetURL(*v)
 	}
-	return rpc
+	return _c
 }
 
 // SetDescription sets the "description" field.
-func (rpc *ReportProjectCreate) SetDescription(s string) *ReportProjectCreate {
-	rpc.mutation.SetDescription(s)
-	return rpc
+func (_c *ReportProjectCreate) SetDescription(v string) *ReportProjectCreate {
+	_c.mutation.SetDescription(v)
+	return _c
 }
 
 // SetNillableDescription sets the "description" field if the given value is not nil.
-func (rpc *ReportProjectCreate) SetNillableDescription(s *string) *ReportProjectCreate {
-	if s != nil {
-		rpc.SetDescription(*s)
+func (_c *ReportProjectCreate) SetNillableDescription(v *string) *ReportProjectCreate {
+	if v != nil {
+		_c.SetDescription(*v)
 	}
-	return rpc
+	return _c
 }
 
 // SetStars sets the "stars" field.
-func (rpc *ReportProjectCreate) SetStars(i int32) *ReportProjectCreate {
-	rpc.mutation.SetStars(i)
-	return rpc
+func (_c *ReportProjectCreate) SetStars(v int32) *ReportProjectCreate {
+	_c.mutation.SetStars(v)
+	return _c
 }
 
 // SetNillableStars sets the "stars" field if the given value is not nil.
-func (rpc *ReportProjectCreate) SetNillableStars(i *int32) *ReportProjectCreate {
-	if i != nil {
-		rpc.SetStars(*i)
+func (_c *ReportProjectCreate) SetNillableStars(v *int32) *ReportProjectCreate {
+	if v != nil {
+		_c.SetStars(*v)
 	}
-	return rpc
+	return _c
 }
 
 // SetForks sets the "forks" field.
-func (rpc *ReportProjectCreate) SetForks(i int32) *ReportProjectCreate {
-	rpc.mutation.SetForks(i)
-	return rpc
+func (_c *ReportProjectCreate) SetForks(v int32) *ReportProjectCreate {
+	_c.mutation.SetForks(v)
+	return _c
 }
 
 // SetNillableForks sets the "forks" field if the given value is not nil.
-func (rpc *ReportProjectCreate) SetNillableForks(i *int32) *ReportProjectCreate {
-	if i != nil {
-		rpc.SetForks(*i)
+func (_c *ReportProjectCreate) SetNillableForks(v *int32) *ReportProjectCreate {
+	if v != nil {
+		_c.SetForks(*v)
 	}
-	return rpc
+	return _c
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rpc *ReportProjectCreate) SetCreatedAt(t time.Time) *ReportProjectCreate {
-	rpc.mutation.SetCreatedAt(t)
-	return rpc
+func (_c *ReportProjectCreate) SetCreatedAt(v time.Time) *ReportProjectCreate {
+	_c.mutation.SetCreatedAt(v)
+	return _c
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rpc *ReportProjectCreate) SetNillableCreatedAt(t *time.Time) *ReportProjectCreate {
-	if t != nil {
-		rpc.SetCreatedAt(*t)
+func (_c *ReportProjectCreate) SetNillableCreatedAt(v *time.Time) *ReportProjectCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
 	}
-	return rpc
+	return _c
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rpc *ReportProjectCreate) SetUpdatedAt(t time.Time) *ReportProjectCreate {
-	rpc.mutation.SetUpdatedAt(t)
-	return rpc
+func (_c *ReportProjectCreate) SetUpdatedAt(v time.Time) *ReportProjectCreate {
+	_c.mutation.SetUpdatedAt(v)
+	return _c
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rpc *ReportProjectCreate) SetNillableUpdatedAt(t *time.Time) *ReportProjectCreate {
-	if t != nil {
-		rpc.SetUpdatedAt(*t)
+func (_c *ReportProjectCreate) SetNillableUpdatedAt(v *time.Time) *ReportProjectCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
 	}
-	return rpc
+	return _c
 }
 
 // SetPackageID sets the "package" edge to the ReportPackage entity by ID.
-func (rpc *ReportProjectCreate) SetPackageID(id int) *ReportProjectCreate {
-	rpc.mutation.SetPackageID(id)
-	return rpc
+func (_c *ReportProjectCreate) SetPackageID(id int) *ReportProjectCreate {
+	_c.mutation.SetPackageID(id)
+	return _c
 }
 
 // SetNillablePackageID sets the "package" edge to the ReportPackage entity by ID if the given value is not nil.
-func (rpc *ReportProjectCreate) SetNillablePackageID(id *int) *ReportProjectCreate {
+func (_c *ReportProjectCreate) SetNillablePackageID(id *int) *ReportProjectCreate {
 	if id != nil {
-		rpc = rpc.SetPackageID(*id)
+		_c = _c.SetPackageID(*id)
 	}
-	return rpc
+	return _c
 }
 
 // SetPackage sets the "package" edge to the ReportPackage entity.
-func (rpc *ReportProjectCreate) SetPackage(r *ReportPackage) *ReportProjectCreate {
-	return rpc.SetPackageID(r.ID)
+func (_c *ReportProjectCreate) SetPackage(v *ReportPackage) *ReportProjectCreate {
+	return _c.SetPackageID(v.ID)
 }
 
 // SetScorecardID sets the "scorecard" edge to the ReportScorecard entity by ID.
-func (rpc *ReportProjectCreate) SetScorecardID(id int) *ReportProjectCreate {
-	rpc.mutation.SetScorecardID(id)
-	return rpc
+func (_c *ReportProjectCreate) SetScorecardID(id int) *ReportProjectCreate {
+	_c.mutation.SetScorecardID(id)
+	return _c
 }
 
 // SetNillableScorecardID sets the "scorecard" edge to the ReportScorecard entity by ID if the given value is not nil.
-func (rpc *ReportProjectCreate) SetNillableScorecardID(id *int) *ReportProjectCreate {
+func (_c *ReportProjectCreate) SetNillableScorecardID(id *int) *ReportProjectCreate {
 	if id != nil {
-		rpc = rpc.SetScorecardID(*id)
+		_c = _c.SetScorecardID(*id)
 	}
-	return rpc
+	return _c
 }
 
 // SetScorecard sets the "scorecard" edge to the ReportScorecard entity.
-func (rpc *ReportProjectCreate) SetScorecard(r *ReportScorecard) *ReportProjectCreate {
-	return rpc.SetScorecardID(r.ID)
+func (_c *ReportProjectCreate) SetScorecard(v *ReportScorecard) *ReportProjectCreate {
+	return _c.SetScorecardID(v.ID)
 }
 
 // Mutation returns the ReportProjectMutation object of the builder.
-func (rpc *ReportProjectCreate) Mutation() *ReportProjectMutation {
-	return rpc.mutation
+func (_c *ReportProjectCreate) Mutation() *ReportProjectMutation {
+	return _c.mutation
 }
 
 // Save creates the ReportProject in the database.
-func (rpc *ReportProjectCreate) Save(ctx context.Context) (*ReportProject, error) {
-	return withHooks(ctx, rpc.sqlSave, rpc.mutation, rpc.hooks)
+func (_c *ReportProjectCreate) Save(ctx context.Context) (*ReportProject, error) {
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (rpc *ReportProjectCreate) SaveX(ctx context.Context) *ReportProject {
-	v, err := rpc.Save(ctx)
+func (_c *ReportProjectCreate) SaveX(ctx context.Context) *ReportProject {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -170,24 +170,24 @@ func (rpc *ReportProjectCreate) SaveX(ctx context.Context) *ReportProject {
 }
 
 // Exec executes the query.
-func (rpc *ReportProjectCreate) Exec(ctx context.Context) error {
-	_, err := rpc.Save(ctx)
+func (_c *ReportProjectCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rpc *ReportProjectCreate) ExecX(ctx context.Context) {
-	if err := rpc.Exec(ctx); err != nil {
+func (_c *ReportProjectCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (rpc *ReportProjectCreate) check() error {
-	if _, ok := rpc.mutation.Name(); !ok {
+func (_c *ReportProjectCreate) check() error {
+	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "ReportProject.name"`)}
 	}
-	if v, ok := rpc.mutation.Name(); ok {
+	if v, ok := _c.mutation.Name(); ok {
 		if err := reportproject.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "ReportProject.name": %w`, err)}
 		}
@@ -195,12 +195,12 @@ func (rpc *ReportProjectCreate) check() error {
 	return nil
 }
 
-func (rpc *ReportProjectCreate) sqlSave(ctx context.Context) (*ReportProject, error) {
-	if err := rpc.check(); err != nil {
+func (_c *ReportProjectCreate) sqlSave(ctx context.Context) (*ReportProject, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := rpc.createSpec()
-	if err := sqlgraph.CreateNode(ctx, rpc.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -208,45 +208,45 @@ func (rpc *ReportProjectCreate) sqlSave(ctx context.Context) (*ReportProject, er
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
-	rpc.mutation.id = &_node.ID
-	rpc.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (rpc *ReportProjectCreate) createSpec() (*ReportProject, *sqlgraph.CreateSpec) {
+func (_c *ReportProjectCreate) createSpec() (*ReportProject, *sqlgraph.CreateSpec) {
 	var (
-		_node = &ReportProject{config: rpc.config}
+		_node = &ReportProject{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(reportproject.Table, sqlgraph.NewFieldSpec(reportproject.FieldID, field.TypeInt))
 	)
-	if value, ok := rpc.mutation.Name(); ok {
+	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(reportproject.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
-	if value, ok := rpc.mutation.URL(); ok {
+	if value, ok := _c.mutation.URL(); ok {
 		_spec.SetField(reportproject.FieldURL, field.TypeString, value)
 		_node.URL = value
 	}
-	if value, ok := rpc.mutation.Description(); ok {
+	if value, ok := _c.mutation.Description(); ok {
 		_spec.SetField(reportproject.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
-	if value, ok := rpc.mutation.Stars(); ok {
+	if value, ok := _c.mutation.Stars(); ok {
 		_spec.SetField(reportproject.FieldStars, field.TypeInt32, value)
 		_node.Stars = value
 	}
-	if value, ok := rpc.mutation.Forks(); ok {
+	if value, ok := _c.mutation.Forks(); ok {
 		_spec.SetField(reportproject.FieldForks, field.TypeInt32, value)
 		_node.Forks = value
 	}
-	if value, ok := rpc.mutation.CreatedAt(); ok {
+	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(reportproject.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
-	if value, ok := rpc.mutation.UpdatedAt(); ok {
+	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportproject.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := rpc.mutation.PackageIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.PackageIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -263,7 +263,7 @@ func (rpc *ReportProjectCreate) createSpec() (*ReportProject, *sqlgraph.CreateSp
 		_node.report_package_projects = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := rpc.mutation.ScorecardIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.ScorecardIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -290,16 +290,16 @@ type ReportProjectCreateBulk struct {
 }
 
 // Save creates the ReportProject entities in the database.
-func (rpcb *ReportProjectCreateBulk) Save(ctx context.Context) ([]*ReportProject, error) {
-	if rpcb.err != nil {
-		return nil, rpcb.err
+func (_c *ReportProjectCreateBulk) Save(ctx context.Context) ([]*ReportProject, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(rpcb.builders))
-	nodes := make([]*ReportProject, len(rpcb.builders))
-	mutators := make([]Mutator, len(rpcb.builders))
-	for i := range rpcb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*ReportProject, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := rpcb.builders[i]
+			builder := _c.builders[i]
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*ReportProjectMutation)
 				if !ok {
@@ -312,11 +312,11 @@ func (rpcb *ReportProjectCreateBulk) Save(ctx context.Context) ([]*ReportProject
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, rpcb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, rpcb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -340,7 +340,7 @@ func (rpcb *ReportProjectCreateBulk) Save(ctx context.Context) ([]*ReportProject
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, rpcb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -348,8 +348,8 @@ func (rpcb *ReportProjectCreateBulk) Save(ctx context.Context) ([]*ReportProject
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rpcb *ReportProjectCreateBulk) SaveX(ctx context.Context) []*ReportProject {
-	v, err := rpcb.Save(ctx)
+func (_c *ReportProjectCreateBulk) SaveX(ctx context.Context) []*ReportProject {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -357,14 +357,14 @@ func (rpcb *ReportProjectCreateBulk) SaveX(ctx context.Context) []*ReportProject
 }
 
 // Exec executes the query.
-func (rpcb *ReportProjectCreateBulk) Exec(ctx context.Context) error {
-	_, err := rpcb.Save(ctx)
+func (_c *ReportProjectCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rpcb *ReportProjectCreateBulk) ExecX(ctx context.Context) {
-	if err := rpcb.Exec(ctx); err != nil {
+func (_c *ReportProjectCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

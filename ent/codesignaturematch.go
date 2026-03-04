@@ -93,7 +93,7 @@ func (*CodeSignatureMatch) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the CodeSignatureMatch fields.
-func (csm *CodeSignatureMatch) assignValues(columns []string, values []any) error {
+func (_m *CodeSignatureMatch) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -104,42 +104,42 @@ func (csm *CodeSignatureMatch) assignValues(columns []string, values []any) erro
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			csm.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case codesignaturematch.FieldSignatureID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field signature_id", values[i])
 			} else if value.Valid {
-				csm.SignatureID = value.String
+				_m.SignatureID = value.String
 			}
 		case codesignaturematch.FieldSignatureVendor:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field signature_vendor", values[i])
 			} else if value.Valid {
-				csm.SignatureVendor = value.String
+				_m.SignatureVendor = value.String
 			}
 		case codesignaturematch.FieldSignatureProduct:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field signature_product", values[i])
 			} else if value.Valid {
-				csm.SignatureProduct = value.String
+				_m.SignatureProduct = value.String
 			}
 		case codesignaturematch.FieldSignatureService:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field signature_service", values[i])
 			} else if value.Valid {
-				csm.SignatureService = value.String
+				_m.SignatureService = value.String
 			}
 		case codesignaturematch.FieldSignatureDescription:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field signature_description", values[i])
 			} else if value.Valid {
-				csm.SignatureDescription = value.String
+				_m.SignatureDescription = value.String
 			}
 		case codesignaturematch.FieldTags:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field tags", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &csm.Tags); err != nil {
+				if err := json.Unmarshal(*value, &_m.Tags); err != nil {
 					return fmt.Errorf("unmarshal field tags: %w", err)
 				}
 			}
@@ -147,54 +147,54 @@ func (csm *CodeSignatureMatch) assignValues(columns []string, values []any) erro
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field file_path", values[i])
 			} else if value.Valid {
-				csm.FilePath = value.String
+				_m.FilePath = value.String
 			}
 		case codesignaturematch.FieldLanguage:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field language", values[i])
 			} else if value.Valid {
-				csm.Language = value.String
+				_m.Language = value.String
 			}
 		case codesignaturematch.FieldLine:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field line", values[i])
 			} else if value.Valid {
-				csm.Line = uint(value.Int64)
+				_m.Line = uint(value.Int64)
 			}
 		case codesignaturematch.FieldColumn:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field column", values[i])
 			} else if value.Valid {
-				csm.Column = uint(value.Int64)
+				_m.Column = uint(value.Int64)
 			}
 		case codesignaturematch.FieldCalleeNamespace:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field callee_namespace", values[i])
 			} else if value.Valid {
-				csm.CalleeNamespace = value.String
+				_m.CalleeNamespace = value.String
 			}
 		case codesignaturematch.FieldMatchedCall:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field matched_call", values[i])
 			} else if value.Valid {
-				csm.MatchedCall = value.String
+				_m.MatchedCall = value.String
 			}
 		case codesignaturematch.FieldPackageHint:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field package_hint", values[i])
 			} else if value.Valid {
-				csm.PackageHint = new(string)
-				*csm.PackageHint = value.String
+				_m.PackageHint = new(string)
+				*_m.PackageHint = value.String
 			}
 		case codesignaturematch.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field code_signature_match_source_file", value)
 			} else if value.Valid {
-				csm.code_signature_match_source_file = new(int)
-				*csm.code_signature_match_source_file = int(value.Int64)
+				_m.code_signature_match_source_file = new(int)
+				*_m.code_signature_match_source_file = int(value.Int64)
 			}
 		default:
-			csm.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -202,75 +202,75 @@ func (csm *CodeSignatureMatch) assignValues(columns []string, values []any) erro
 
 // Value returns the ent.Value that was dynamically selected and assigned to the CodeSignatureMatch.
 // This includes values selected through modifiers, order, etc.
-func (csm *CodeSignatureMatch) Value(name string) (ent.Value, error) {
-	return csm.selectValues.Get(name)
+func (_m *CodeSignatureMatch) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QuerySourceFile queries the "source_file" edge of the CodeSignatureMatch entity.
-func (csm *CodeSignatureMatch) QuerySourceFile() *CodeSourceFileQuery {
-	return NewCodeSignatureMatchClient(csm.config).QuerySourceFile(csm)
+func (_m *CodeSignatureMatch) QuerySourceFile() *CodeSourceFileQuery {
+	return NewCodeSignatureMatchClient(_m.config).QuerySourceFile(_m)
 }
 
 // Update returns a builder for updating this CodeSignatureMatch.
 // Note that you need to call CodeSignatureMatch.Unwrap() before calling this method if this CodeSignatureMatch
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (csm *CodeSignatureMatch) Update() *CodeSignatureMatchUpdateOne {
-	return NewCodeSignatureMatchClient(csm.config).UpdateOne(csm)
+func (_m *CodeSignatureMatch) Update() *CodeSignatureMatchUpdateOne {
+	return NewCodeSignatureMatchClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the CodeSignatureMatch entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (csm *CodeSignatureMatch) Unwrap() *CodeSignatureMatch {
-	_tx, ok := csm.config.driver.(*txDriver)
+func (_m *CodeSignatureMatch) Unwrap() *CodeSignatureMatch {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: CodeSignatureMatch is not a transactional entity")
 	}
-	csm.config.driver = _tx.drv
-	return csm
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (csm *CodeSignatureMatch) String() string {
+func (_m *CodeSignatureMatch) String() string {
 	var builder strings.Builder
 	builder.WriteString("CodeSignatureMatch(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", csm.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("signature_id=")
-	builder.WriteString(csm.SignatureID)
+	builder.WriteString(_m.SignatureID)
 	builder.WriteString(", ")
 	builder.WriteString("signature_vendor=")
-	builder.WriteString(csm.SignatureVendor)
+	builder.WriteString(_m.SignatureVendor)
 	builder.WriteString(", ")
 	builder.WriteString("signature_product=")
-	builder.WriteString(csm.SignatureProduct)
+	builder.WriteString(_m.SignatureProduct)
 	builder.WriteString(", ")
 	builder.WriteString("signature_service=")
-	builder.WriteString(csm.SignatureService)
+	builder.WriteString(_m.SignatureService)
 	builder.WriteString(", ")
 	builder.WriteString("signature_description=")
-	builder.WriteString(csm.SignatureDescription)
+	builder.WriteString(_m.SignatureDescription)
 	builder.WriteString(", ")
 	builder.WriteString("tags=")
-	builder.WriteString(fmt.Sprintf("%v", csm.Tags))
+	builder.WriteString(fmt.Sprintf("%v", _m.Tags))
 	builder.WriteString(", ")
 	builder.WriteString("file_path=")
-	builder.WriteString(csm.FilePath)
+	builder.WriteString(_m.FilePath)
 	builder.WriteString(", ")
 	builder.WriteString("language=")
-	builder.WriteString(csm.Language)
+	builder.WriteString(_m.Language)
 	builder.WriteString(", ")
 	builder.WriteString("line=")
-	builder.WriteString(fmt.Sprintf("%v", csm.Line))
+	builder.WriteString(fmt.Sprintf("%v", _m.Line))
 	builder.WriteString(", ")
 	builder.WriteString("column=")
-	builder.WriteString(fmt.Sprintf("%v", csm.Column))
+	builder.WriteString(fmt.Sprintf("%v", _m.Column))
 	builder.WriteString(", ")
 	builder.WriteString("callee_namespace=")
-	builder.WriteString(csm.CalleeNamespace)
+	builder.WriteString(_m.CalleeNamespace)
 	builder.WriteString(", ")
 	builder.WriteString("matched_call=")
-	builder.WriteString(csm.MatchedCall)
+	builder.WriteString(_m.MatchedCall)
 	builder.WriteString(", ")
-	if v := csm.PackageHint; v != nil {
+	if v := _m.PackageHint; v != nil {
 		builder.WriteString("package_hint=")
 		builder.WriteString(*v)
 	}

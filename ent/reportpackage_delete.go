@@ -20,56 +20,56 @@ type ReportPackageDelete struct {
 }
 
 // Where appends a list predicates to the ReportPackageDelete builder.
-func (rpd *ReportPackageDelete) Where(ps ...predicate.ReportPackage) *ReportPackageDelete {
-	rpd.mutation.Where(ps...)
-	return rpd
+func (_d *ReportPackageDelete) Where(ps ...predicate.ReportPackage) *ReportPackageDelete {
+	_d.mutation.Where(ps...)
+	return _d
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (rpd *ReportPackageDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks(ctx, rpd.sqlExec, rpd.mutation, rpd.hooks)
+func (_d *ReportPackageDelete) Exec(ctx context.Context) (int, error) {
+	return withHooks(ctx, _d.sqlExec, _d.mutation, _d.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rpd *ReportPackageDelete) ExecX(ctx context.Context) int {
-	n, err := rpd.Exec(ctx)
+func (_d *ReportPackageDelete) ExecX(ctx context.Context) int {
+	n, err := _d.Exec(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return n
 }
 
-func (rpd *ReportPackageDelete) sqlExec(ctx context.Context) (int, error) {
+func (_d *ReportPackageDelete) sqlExec(ctx context.Context) (int, error) {
 	_spec := sqlgraph.NewDeleteSpec(reportpackage.Table, sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt))
-	if ps := rpd.mutation.predicates; len(ps) > 0 {
+	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	affected, err := sqlgraph.DeleteNodes(ctx, rpd.driver, _spec)
+	affected, err := sqlgraph.DeleteNodes(ctx, _d.driver, _spec)
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
-	rpd.mutation.done = true
+	_d.mutation.done = true
 	return affected, err
 }
 
 // ReportPackageDeleteOne is the builder for deleting a single ReportPackage entity.
 type ReportPackageDeleteOne struct {
-	rpd *ReportPackageDelete
+	_d *ReportPackageDelete
 }
 
 // Where appends a list predicates to the ReportPackageDelete builder.
-func (rpdo *ReportPackageDeleteOne) Where(ps ...predicate.ReportPackage) *ReportPackageDeleteOne {
-	rpdo.rpd.mutation.Where(ps...)
-	return rpdo
+func (_d *ReportPackageDeleteOne) Where(ps ...predicate.ReportPackage) *ReportPackageDeleteOne {
+	_d._d.mutation.Where(ps...)
+	return _d
 }
 
 // Exec executes the deletion query.
-func (rpdo *ReportPackageDeleteOne) Exec(ctx context.Context) error {
-	n, err := rpdo.rpd.Exec(ctx)
+func (_d *ReportPackageDeleteOne) Exec(ctx context.Context) error {
+	n, err := _d._d.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
@@ -81,8 +81,8 @@ func (rpdo *ReportPackageDeleteOne) Exec(ctx context.Context) error {
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rpdo *ReportPackageDeleteOne) ExecX(ctx context.Context) {
-	if err := rpdo.Exec(ctx); err != nil {
+func (_d *ReportPackageDeleteOne) ExecX(ctx context.Context) {
+	if err := _d.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

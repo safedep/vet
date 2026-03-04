@@ -24,295 +24,295 @@ type CodeSignatureMatchUpdate struct {
 }
 
 // Where appends a list predicates to the CodeSignatureMatchUpdate builder.
-func (csmu *CodeSignatureMatchUpdate) Where(ps ...predicate.CodeSignatureMatch) *CodeSignatureMatchUpdate {
-	csmu.mutation.Where(ps...)
-	return csmu
+func (_u *CodeSignatureMatchUpdate) Where(ps ...predicate.CodeSignatureMatch) *CodeSignatureMatchUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetSignatureID sets the "signature_id" field.
-func (csmu *CodeSignatureMatchUpdate) SetSignatureID(s string) *CodeSignatureMatchUpdate {
-	csmu.mutation.SetSignatureID(s)
-	return csmu
+func (_u *CodeSignatureMatchUpdate) SetSignatureID(v string) *CodeSignatureMatchUpdate {
+	_u.mutation.SetSignatureID(v)
+	return _u
 }
 
 // SetNillableSignatureID sets the "signature_id" field if the given value is not nil.
-func (csmu *CodeSignatureMatchUpdate) SetNillableSignatureID(s *string) *CodeSignatureMatchUpdate {
-	if s != nil {
-		csmu.SetSignatureID(*s)
+func (_u *CodeSignatureMatchUpdate) SetNillableSignatureID(v *string) *CodeSignatureMatchUpdate {
+	if v != nil {
+		_u.SetSignatureID(*v)
 	}
-	return csmu
+	return _u
 }
 
 // SetSignatureVendor sets the "signature_vendor" field.
-func (csmu *CodeSignatureMatchUpdate) SetSignatureVendor(s string) *CodeSignatureMatchUpdate {
-	csmu.mutation.SetSignatureVendor(s)
-	return csmu
+func (_u *CodeSignatureMatchUpdate) SetSignatureVendor(v string) *CodeSignatureMatchUpdate {
+	_u.mutation.SetSignatureVendor(v)
+	return _u
 }
 
 // SetNillableSignatureVendor sets the "signature_vendor" field if the given value is not nil.
-func (csmu *CodeSignatureMatchUpdate) SetNillableSignatureVendor(s *string) *CodeSignatureMatchUpdate {
-	if s != nil {
-		csmu.SetSignatureVendor(*s)
+func (_u *CodeSignatureMatchUpdate) SetNillableSignatureVendor(v *string) *CodeSignatureMatchUpdate {
+	if v != nil {
+		_u.SetSignatureVendor(*v)
 	}
-	return csmu
+	return _u
 }
 
 // ClearSignatureVendor clears the value of the "signature_vendor" field.
-func (csmu *CodeSignatureMatchUpdate) ClearSignatureVendor() *CodeSignatureMatchUpdate {
-	csmu.mutation.ClearSignatureVendor()
-	return csmu
+func (_u *CodeSignatureMatchUpdate) ClearSignatureVendor() *CodeSignatureMatchUpdate {
+	_u.mutation.ClearSignatureVendor()
+	return _u
 }
 
 // SetSignatureProduct sets the "signature_product" field.
-func (csmu *CodeSignatureMatchUpdate) SetSignatureProduct(s string) *CodeSignatureMatchUpdate {
-	csmu.mutation.SetSignatureProduct(s)
-	return csmu
+func (_u *CodeSignatureMatchUpdate) SetSignatureProduct(v string) *CodeSignatureMatchUpdate {
+	_u.mutation.SetSignatureProduct(v)
+	return _u
 }
 
 // SetNillableSignatureProduct sets the "signature_product" field if the given value is not nil.
-func (csmu *CodeSignatureMatchUpdate) SetNillableSignatureProduct(s *string) *CodeSignatureMatchUpdate {
-	if s != nil {
-		csmu.SetSignatureProduct(*s)
+func (_u *CodeSignatureMatchUpdate) SetNillableSignatureProduct(v *string) *CodeSignatureMatchUpdate {
+	if v != nil {
+		_u.SetSignatureProduct(*v)
 	}
-	return csmu
+	return _u
 }
 
 // ClearSignatureProduct clears the value of the "signature_product" field.
-func (csmu *CodeSignatureMatchUpdate) ClearSignatureProduct() *CodeSignatureMatchUpdate {
-	csmu.mutation.ClearSignatureProduct()
-	return csmu
+func (_u *CodeSignatureMatchUpdate) ClearSignatureProduct() *CodeSignatureMatchUpdate {
+	_u.mutation.ClearSignatureProduct()
+	return _u
 }
 
 // SetSignatureService sets the "signature_service" field.
-func (csmu *CodeSignatureMatchUpdate) SetSignatureService(s string) *CodeSignatureMatchUpdate {
-	csmu.mutation.SetSignatureService(s)
-	return csmu
+func (_u *CodeSignatureMatchUpdate) SetSignatureService(v string) *CodeSignatureMatchUpdate {
+	_u.mutation.SetSignatureService(v)
+	return _u
 }
 
 // SetNillableSignatureService sets the "signature_service" field if the given value is not nil.
-func (csmu *CodeSignatureMatchUpdate) SetNillableSignatureService(s *string) *CodeSignatureMatchUpdate {
-	if s != nil {
-		csmu.SetSignatureService(*s)
+func (_u *CodeSignatureMatchUpdate) SetNillableSignatureService(v *string) *CodeSignatureMatchUpdate {
+	if v != nil {
+		_u.SetSignatureService(*v)
 	}
-	return csmu
+	return _u
 }
 
 // ClearSignatureService clears the value of the "signature_service" field.
-func (csmu *CodeSignatureMatchUpdate) ClearSignatureService() *CodeSignatureMatchUpdate {
-	csmu.mutation.ClearSignatureService()
-	return csmu
+func (_u *CodeSignatureMatchUpdate) ClearSignatureService() *CodeSignatureMatchUpdate {
+	_u.mutation.ClearSignatureService()
+	return _u
 }
 
 // SetSignatureDescription sets the "signature_description" field.
-func (csmu *CodeSignatureMatchUpdate) SetSignatureDescription(s string) *CodeSignatureMatchUpdate {
-	csmu.mutation.SetSignatureDescription(s)
-	return csmu
+func (_u *CodeSignatureMatchUpdate) SetSignatureDescription(v string) *CodeSignatureMatchUpdate {
+	_u.mutation.SetSignatureDescription(v)
+	return _u
 }
 
 // SetNillableSignatureDescription sets the "signature_description" field if the given value is not nil.
-func (csmu *CodeSignatureMatchUpdate) SetNillableSignatureDescription(s *string) *CodeSignatureMatchUpdate {
-	if s != nil {
-		csmu.SetSignatureDescription(*s)
+func (_u *CodeSignatureMatchUpdate) SetNillableSignatureDescription(v *string) *CodeSignatureMatchUpdate {
+	if v != nil {
+		_u.SetSignatureDescription(*v)
 	}
-	return csmu
+	return _u
 }
 
 // ClearSignatureDescription clears the value of the "signature_description" field.
-func (csmu *CodeSignatureMatchUpdate) ClearSignatureDescription() *CodeSignatureMatchUpdate {
-	csmu.mutation.ClearSignatureDescription()
-	return csmu
+func (_u *CodeSignatureMatchUpdate) ClearSignatureDescription() *CodeSignatureMatchUpdate {
+	_u.mutation.ClearSignatureDescription()
+	return _u
 }
 
 // SetTags sets the "tags" field.
-func (csmu *CodeSignatureMatchUpdate) SetTags(s []string) *CodeSignatureMatchUpdate {
-	csmu.mutation.SetTags(s)
-	return csmu
+func (_u *CodeSignatureMatchUpdate) SetTags(v []string) *CodeSignatureMatchUpdate {
+	_u.mutation.SetTags(v)
+	return _u
 }
 
-// AppendTags appends s to the "tags" field.
-func (csmu *CodeSignatureMatchUpdate) AppendTags(s []string) *CodeSignatureMatchUpdate {
-	csmu.mutation.AppendTags(s)
-	return csmu
+// AppendTags appends value to the "tags" field.
+func (_u *CodeSignatureMatchUpdate) AppendTags(v []string) *CodeSignatureMatchUpdate {
+	_u.mutation.AppendTags(v)
+	return _u
 }
 
 // ClearTags clears the value of the "tags" field.
-func (csmu *CodeSignatureMatchUpdate) ClearTags() *CodeSignatureMatchUpdate {
-	csmu.mutation.ClearTags()
-	return csmu
+func (_u *CodeSignatureMatchUpdate) ClearTags() *CodeSignatureMatchUpdate {
+	_u.mutation.ClearTags()
+	return _u
 }
 
 // SetFilePath sets the "file_path" field.
-func (csmu *CodeSignatureMatchUpdate) SetFilePath(s string) *CodeSignatureMatchUpdate {
-	csmu.mutation.SetFilePath(s)
-	return csmu
+func (_u *CodeSignatureMatchUpdate) SetFilePath(v string) *CodeSignatureMatchUpdate {
+	_u.mutation.SetFilePath(v)
+	return _u
 }
 
 // SetNillableFilePath sets the "file_path" field if the given value is not nil.
-func (csmu *CodeSignatureMatchUpdate) SetNillableFilePath(s *string) *CodeSignatureMatchUpdate {
-	if s != nil {
-		csmu.SetFilePath(*s)
+func (_u *CodeSignatureMatchUpdate) SetNillableFilePath(v *string) *CodeSignatureMatchUpdate {
+	if v != nil {
+		_u.SetFilePath(*v)
 	}
-	return csmu
+	return _u
 }
 
 // SetLanguage sets the "language" field.
-func (csmu *CodeSignatureMatchUpdate) SetLanguage(s string) *CodeSignatureMatchUpdate {
-	csmu.mutation.SetLanguage(s)
-	return csmu
+func (_u *CodeSignatureMatchUpdate) SetLanguage(v string) *CodeSignatureMatchUpdate {
+	_u.mutation.SetLanguage(v)
+	return _u
 }
 
 // SetNillableLanguage sets the "language" field if the given value is not nil.
-func (csmu *CodeSignatureMatchUpdate) SetNillableLanguage(s *string) *CodeSignatureMatchUpdate {
-	if s != nil {
-		csmu.SetLanguage(*s)
+func (_u *CodeSignatureMatchUpdate) SetNillableLanguage(v *string) *CodeSignatureMatchUpdate {
+	if v != nil {
+		_u.SetLanguage(*v)
 	}
-	return csmu
+	return _u
 }
 
 // SetLine sets the "line" field.
-func (csmu *CodeSignatureMatchUpdate) SetLine(u uint) *CodeSignatureMatchUpdate {
-	csmu.mutation.ResetLine()
-	csmu.mutation.SetLine(u)
-	return csmu
+func (_u *CodeSignatureMatchUpdate) SetLine(v uint) *CodeSignatureMatchUpdate {
+	_u.mutation.ResetLine()
+	_u.mutation.SetLine(v)
+	return _u
 }
 
 // SetNillableLine sets the "line" field if the given value is not nil.
-func (csmu *CodeSignatureMatchUpdate) SetNillableLine(u *uint) *CodeSignatureMatchUpdate {
-	if u != nil {
-		csmu.SetLine(*u)
+func (_u *CodeSignatureMatchUpdate) SetNillableLine(v *uint) *CodeSignatureMatchUpdate {
+	if v != nil {
+		_u.SetLine(*v)
 	}
-	return csmu
+	return _u
 }
 
-// AddLine adds u to the "line" field.
-func (csmu *CodeSignatureMatchUpdate) AddLine(u int) *CodeSignatureMatchUpdate {
-	csmu.mutation.AddLine(u)
-	return csmu
+// AddLine adds value to the "line" field.
+func (_u *CodeSignatureMatchUpdate) AddLine(v int) *CodeSignatureMatchUpdate {
+	_u.mutation.AddLine(v)
+	return _u
 }
 
 // ClearLine clears the value of the "line" field.
-func (csmu *CodeSignatureMatchUpdate) ClearLine() *CodeSignatureMatchUpdate {
-	csmu.mutation.ClearLine()
-	return csmu
+func (_u *CodeSignatureMatchUpdate) ClearLine() *CodeSignatureMatchUpdate {
+	_u.mutation.ClearLine()
+	return _u
 }
 
 // SetColumn sets the "column" field.
-func (csmu *CodeSignatureMatchUpdate) SetColumn(u uint) *CodeSignatureMatchUpdate {
-	csmu.mutation.ResetColumn()
-	csmu.mutation.SetColumn(u)
-	return csmu
+func (_u *CodeSignatureMatchUpdate) SetColumn(v uint) *CodeSignatureMatchUpdate {
+	_u.mutation.ResetColumn()
+	_u.mutation.SetColumn(v)
+	return _u
 }
 
 // SetNillableColumn sets the "column" field if the given value is not nil.
-func (csmu *CodeSignatureMatchUpdate) SetNillableColumn(u *uint) *CodeSignatureMatchUpdate {
-	if u != nil {
-		csmu.SetColumn(*u)
+func (_u *CodeSignatureMatchUpdate) SetNillableColumn(v *uint) *CodeSignatureMatchUpdate {
+	if v != nil {
+		_u.SetColumn(*v)
 	}
-	return csmu
+	return _u
 }
 
-// AddColumn adds u to the "column" field.
-func (csmu *CodeSignatureMatchUpdate) AddColumn(u int) *CodeSignatureMatchUpdate {
-	csmu.mutation.AddColumn(u)
-	return csmu
+// AddColumn adds value to the "column" field.
+func (_u *CodeSignatureMatchUpdate) AddColumn(v int) *CodeSignatureMatchUpdate {
+	_u.mutation.AddColumn(v)
+	return _u
 }
 
 // ClearColumn clears the value of the "column" field.
-func (csmu *CodeSignatureMatchUpdate) ClearColumn() *CodeSignatureMatchUpdate {
-	csmu.mutation.ClearColumn()
-	return csmu
+func (_u *CodeSignatureMatchUpdate) ClearColumn() *CodeSignatureMatchUpdate {
+	_u.mutation.ClearColumn()
+	return _u
 }
 
 // SetCalleeNamespace sets the "callee_namespace" field.
-func (csmu *CodeSignatureMatchUpdate) SetCalleeNamespace(s string) *CodeSignatureMatchUpdate {
-	csmu.mutation.SetCalleeNamespace(s)
-	return csmu
+func (_u *CodeSignatureMatchUpdate) SetCalleeNamespace(v string) *CodeSignatureMatchUpdate {
+	_u.mutation.SetCalleeNamespace(v)
+	return _u
 }
 
 // SetNillableCalleeNamespace sets the "callee_namespace" field if the given value is not nil.
-func (csmu *CodeSignatureMatchUpdate) SetNillableCalleeNamespace(s *string) *CodeSignatureMatchUpdate {
-	if s != nil {
-		csmu.SetCalleeNamespace(*s)
+func (_u *CodeSignatureMatchUpdate) SetNillableCalleeNamespace(v *string) *CodeSignatureMatchUpdate {
+	if v != nil {
+		_u.SetCalleeNamespace(*v)
 	}
-	return csmu
+	return _u
 }
 
 // ClearCalleeNamespace clears the value of the "callee_namespace" field.
-func (csmu *CodeSignatureMatchUpdate) ClearCalleeNamespace() *CodeSignatureMatchUpdate {
-	csmu.mutation.ClearCalleeNamespace()
-	return csmu
+func (_u *CodeSignatureMatchUpdate) ClearCalleeNamespace() *CodeSignatureMatchUpdate {
+	_u.mutation.ClearCalleeNamespace()
+	return _u
 }
 
 // SetMatchedCall sets the "matched_call" field.
-func (csmu *CodeSignatureMatchUpdate) SetMatchedCall(s string) *CodeSignatureMatchUpdate {
-	csmu.mutation.SetMatchedCall(s)
-	return csmu
+func (_u *CodeSignatureMatchUpdate) SetMatchedCall(v string) *CodeSignatureMatchUpdate {
+	_u.mutation.SetMatchedCall(v)
+	return _u
 }
 
 // SetNillableMatchedCall sets the "matched_call" field if the given value is not nil.
-func (csmu *CodeSignatureMatchUpdate) SetNillableMatchedCall(s *string) *CodeSignatureMatchUpdate {
-	if s != nil {
-		csmu.SetMatchedCall(*s)
+func (_u *CodeSignatureMatchUpdate) SetNillableMatchedCall(v *string) *CodeSignatureMatchUpdate {
+	if v != nil {
+		_u.SetMatchedCall(*v)
 	}
-	return csmu
+	return _u
 }
 
 // ClearMatchedCall clears the value of the "matched_call" field.
-func (csmu *CodeSignatureMatchUpdate) ClearMatchedCall() *CodeSignatureMatchUpdate {
-	csmu.mutation.ClearMatchedCall()
-	return csmu
+func (_u *CodeSignatureMatchUpdate) ClearMatchedCall() *CodeSignatureMatchUpdate {
+	_u.mutation.ClearMatchedCall()
+	return _u
 }
 
 // SetPackageHint sets the "package_hint" field.
-func (csmu *CodeSignatureMatchUpdate) SetPackageHint(s string) *CodeSignatureMatchUpdate {
-	csmu.mutation.SetPackageHint(s)
-	return csmu
+func (_u *CodeSignatureMatchUpdate) SetPackageHint(v string) *CodeSignatureMatchUpdate {
+	_u.mutation.SetPackageHint(v)
+	return _u
 }
 
 // SetNillablePackageHint sets the "package_hint" field if the given value is not nil.
-func (csmu *CodeSignatureMatchUpdate) SetNillablePackageHint(s *string) *CodeSignatureMatchUpdate {
-	if s != nil {
-		csmu.SetPackageHint(*s)
+func (_u *CodeSignatureMatchUpdate) SetNillablePackageHint(v *string) *CodeSignatureMatchUpdate {
+	if v != nil {
+		_u.SetPackageHint(*v)
 	}
-	return csmu
+	return _u
 }
 
 // ClearPackageHint clears the value of the "package_hint" field.
-func (csmu *CodeSignatureMatchUpdate) ClearPackageHint() *CodeSignatureMatchUpdate {
-	csmu.mutation.ClearPackageHint()
-	return csmu
+func (_u *CodeSignatureMatchUpdate) ClearPackageHint() *CodeSignatureMatchUpdate {
+	_u.mutation.ClearPackageHint()
+	return _u
 }
 
 // SetSourceFileID sets the "source_file" edge to the CodeSourceFile entity by ID.
-func (csmu *CodeSignatureMatchUpdate) SetSourceFileID(id int) *CodeSignatureMatchUpdate {
-	csmu.mutation.SetSourceFileID(id)
-	return csmu
+func (_u *CodeSignatureMatchUpdate) SetSourceFileID(id int) *CodeSignatureMatchUpdate {
+	_u.mutation.SetSourceFileID(id)
+	return _u
 }
 
 // SetSourceFile sets the "source_file" edge to the CodeSourceFile entity.
-func (csmu *CodeSignatureMatchUpdate) SetSourceFile(c *CodeSourceFile) *CodeSignatureMatchUpdate {
-	return csmu.SetSourceFileID(c.ID)
+func (_u *CodeSignatureMatchUpdate) SetSourceFile(v *CodeSourceFile) *CodeSignatureMatchUpdate {
+	return _u.SetSourceFileID(v.ID)
 }
 
 // Mutation returns the CodeSignatureMatchMutation object of the builder.
-func (csmu *CodeSignatureMatchUpdate) Mutation() *CodeSignatureMatchMutation {
-	return csmu.mutation
+func (_u *CodeSignatureMatchUpdate) Mutation() *CodeSignatureMatchMutation {
+	return _u.mutation
 }
 
 // ClearSourceFile clears the "source_file" edge to the CodeSourceFile entity.
-func (csmu *CodeSignatureMatchUpdate) ClearSourceFile() *CodeSignatureMatchUpdate {
-	csmu.mutation.ClearSourceFile()
-	return csmu
+func (_u *CodeSignatureMatchUpdate) ClearSourceFile() *CodeSignatureMatchUpdate {
+	_u.mutation.ClearSourceFile()
+	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (csmu *CodeSignatureMatchUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, csmu.sqlSave, csmu.mutation, csmu.hooks)
+func (_u *CodeSignatureMatchUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (csmu *CodeSignatureMatchUpdate) SaveX(ctx context.Context) int {
-	affected, err := csmu.Save(ctx)
+func (_u *CodeSignatureMatchUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -320,134 +320,134 @@ func (csmu *CodeSignatureMatchUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (csmu *CodeSignatureMatchUpdate) Exec(ctx context.Context) error {
-	_, err := csmu.Save(ctx)
+func (_u *CodeSignatureMatchUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (csmu *CodeSignatureMatchUpdate) ExecX(ctx context.Context) {
-	if err := csmu.Exec(ctx); err != nil {
+func (_u *CodeSignatureMatchUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (csmu *CodeSignatureMatchUpdate) check() error {
-	if v, ok := csmu.mutation.SignatureID(); ok {
+func (_u *CodeSignatureMatchUpdate) check() error {
+	if v, ok := _u.mutation.SignatureID(); ok {
 		if err := codesignaturematch.SignatureIDValidator(v); err != nil {
 			return &ValidationError{Name: "signature_id", err: fmt.Errorf(`ent: validator failed for field "CodeSignatureMatch.signature_id": %w`, err)}
 		}
 	}
-	if v, ok := csmu.mutation.FilePath(); ok {
+	if v, ok := _u.mutation.FilePath(); ok {
 		if err := codesignaturematch.FilePathValidator(v); err != nil {
 			return &ValidationError{Name: "file_path", err: fmt.Errorf(`ent: validator failed for field "CodeSignatureMatch.file_path": %w`, err)}
 		}
 	}
-	if v, ok := csmu.mutation.Language(); ok {
+	if v, ok := _u.mutation.Language(); ok {
 		if err := codesignaturematch.LanguageValidator(v); err != nil {
 			return &ValidationError{Name: "language", err: fmt.Errorf(`ent: validator failed for field "CodeSignatureMatch.language": %w`, err)}
 		}
 	}
-	if csmu.mutation.SourceFileCleared() && len(csmu.mutation.SourceFileIDs()) > 0 {
+	if _u.mutation.SourceFileCleared() && len(_u.mutation.SourceFileIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "CodeSignatureMatch.source_file"`)
 	}
 	return nil
 }
 
-func (csmu *CodeSignatureMatchUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := csmu.check(); err != nil {
-		return n, err
+func (_u *CodeSignatureMatchUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(codesignaturematch.Table, codesignaturematch.Columns, sqlgraph.NewFieldSpec(codesignaturematch.FieldID, field.TypeInt))
-	if ps := csmu.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := csmu.mutation.SignatureID(); ok {
+	if value, ok := _u.mutation.SignatureID(); ok {
 		_spec.SetField(codesignaturematch.FieldSignatureID, field.TypeString, value)
 	}
-	if value, ok := csmu.mutation.SignatureVendor(); ok {
+	if value, ok := _u.mutation.SignatureVendor(); ok {
 		_spec.SetField(codesignaturematch.FieldSignatureVendor, field.TypeString, value)
 	}
-	if csmu.mutation.SignatureVendorCleared() {
+	if _u.mutation.SignatureVendorCleared() {
 		_spec.ClearField(codesignaturematch.FieldSignatureVendor, field.TypeString)
 	}
-	if value, ok := csmu.mutation.SignatureProduct(); ok {
+	if value, ok := _u.mutation.SignatureProduct(); ok {
 		_spec.SetField(codesignaturematch.FieldSignatureProduct, field.TypeString, value)
 	}
-	if csmu.mutation.SignatureProductCleared() {
+	if _u.mutation.SignatureProductCleared() {
 		_spec.ClearField(codesignaturematch.FieldSignatureProduct, field.TypeString)
 	}
-	if value, ok := csmu.mutation.SignatureService(); ok {
+	if value, ok := _u.mutation.SignatureService(); ok {
 		_spec.SetField(codesignaturematch.FieldSignatureService, field.TypeString, value)
 	}
-	if csmu.mutation.SignatureServiceCleared() {
+	if _u.mutation.SignatureServiceCleared() {
 		_spec.ClearField(codesignaturematch.FieldSignatureService, field.TypeString)
 	}
-	if value, ok := csmu.mutation.SignatureDescription(); ok {
+	if value, ok := _u.mutation.SignatureDescription(); ok {
 		_spec.SetField(codesignaturematch.FieldSignatureDescription, field.TypeString, value)
 	}
-	if csmu.mutation.SignatureDescriptionCleared() {
+	if _u.mutation.SignatureDescriptionCleared() {
 		_spec.ClearField(codesignaturematch.FieldSignatureDescription, field.TypeString)
 	}
-	if value, ok := csmu.mutation.Tags(); ok {
+	if value, ok := _u.mutation.Tags(); ok {
 		_spec.SetField(codesignaturematch.FieldTags, field.TypeJSON, value)
 	}
-	if value, ok := csmu.mutation.AppendedTags(); ok {
+	if value, ok := _u.mutation.AppendedTags(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, codesignaturematch.FieldTags, value)
 		})
 	}
-	if csmu.mutation.TagsCleared() {
+	if _u.mutation.TagsCleared() {
 		_spec.ClearField(codesignaturematch.FieldTags, field.TypeJSON)
 	}
-	if value, ok := csmu.mutation.FilePath(); ok {
+	if value, ok := _u.mutation.FilePath(); ok {
 		_spec.SetField(codesignaturematch.FieldFilePath, field.TypeString, value)
 	}
-	if value, ok := csmu.mutation.Language(); ok {
+	if value, ok := _u.mutation.Language(); ok {
 		_spec.SetField(codesignaturematch.FieldLanguage, field.TypeString, value)
 	}
-	if value, ok := csmu.mutation.Line(); ok {
+	if value, ok := _u.mutation.Line(); ok {
 		_spec.SetField(codesignaturematch.FieldLine, field.TypeUint, value)
 	}
-	if value, ok := csmu.mutation.AddedLine(); ok {
+	if value, ok := _u.mutation.AddedLine(); ok {
 		_spec.AddField(codesignaturematch.FieldLine, field.TypeUint, value)
 	}
-	if csmu.mutation.LineCleared() {
+	if _u.mutation.LineCleared() {
 		_spec.ClearField(codesignaturematch.FieldLine, field.TypeUint)
 	}
-	if value, ok := csmu.mutation.Column(); ok {
+	if value, ok := _u.mutation.Column(); ok {
 		_spec.SetField(codesignaturematch.FieldColumn, field.TypeUint, value)
 	}
-	if value, ok := csmu.mutation.AddedColumn(); ok {
+	if value, ok := _u.mutation.AddedColumn(); ok {
 		_spec.AddField(codesignaturematch.FieldColumn, field.TypeUint, value)
 	}
-	if csmu.mutation.ColumnCleared() {
+	if _u.mutation.ColumnCleared() {
 		_spec.ClearField(codesignaturematch.FieldColumn, field.TypeUint)
 	}
-	if value, ok := csmu.mutation.CalleeNamespace(); ok {
+	if value, ok := _u.mutation.CalleeNamespace(); ok {
 		_spec.SetField(codesignaturematch.FieldCalleeNamespace, field.TypeString, value)
 	}
-	if csmu.mutation.CalleeNamespaceCleared() {
+	if _u.mutation.CalleeNamespaceCleared() {
 		_spec.ClearField(codesignaturematch.FieldCalleeNamespace, field.TypeString)
 	}
-	if value, ok := csmu.mutation.MatchedCall(); ok {
+	if value, ok := _u.mutation.MatchedCall(); ok {
 		_spec.SetField(codesignaturematch.FieldMatchedCall, field.TypeString, value)
 	}
-	if csmu.mutation.MatchedCallCleared() {
+	if _u.mutation.MatchedCallCleared() {
 		_spec.ClearField(codesignaturematch.FieldMatchedCall, field.TypeString)
 	}
-	if value, ok := csmu.mutation.PackageHint(); ok {
+	if value, ok := _u.mutation.PackageHint(); ok {
 		_spec.SetField(codesignaturematch.FieldPackageHint, field.TypeString, value)
 	}
-	if csmu.mutation.PackageHintCleared() {
+	if _u.mutation.PackageHintCleared() {
 		_spec.ClearField(codesignaturematch.FieldPackageHint, field.TypeString)
 	}
-	if csmu.mutation.SourceFileCleared() {
+	if _u.mutation.SourceFileCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -460,7 +460,7 @@ func (csmu *CodeSignatureMatchUpdate) sqlSave(ctx context.Context) (n int, err e
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := csmu.mutation.SourceFileIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.SourceFileIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -476,7 +476,7 @@ func (csmu *CodeSignatureMatchUpdate) sqlSave(ctx context.Context) (n int, err e
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, csmu.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{codesignaturematch.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -484,8 +484,8 @@ func (csmu *CodeSignatureMatchUpdate) sqlSave(ctx context.Context) (n int, err e
 		}
 		return 0, err
 	}
-	csmu.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // CodeSignatureMatchUpdateOne is the builder for updating a single CodeSignatureMatch entity.
@@ -497,302 +497,302 @@ type CodeSignatureMatchUpdateOne struct {
 }
 
 // SetSignatureID sets the "signature_id" field.
-func (csmuo *CodeSignatureMatchUpdateOne) SetSignatureID(s string) *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.SetSignatureID(s)
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) SetSignatureID(v string) *CodeSignatureMatchUpdateOne {
+	_u.mutation.SetSignatureID(v)
+	return _u
 }
 
 // SetNillableSignatureID sets the "signature_id" field if the given value is not nil.
-func (csmuo *CodeSignatureMatchUpdateOne) SetNillableSignatureID(s *string) *CodeSignatureMatchUpdateOne {
-	if s != nil {
-		csmuo.SetSignatureID(*s)
+func (_u *CodeSignatureMatchUpdateOne) SetNillableSignatureID(v *string) *CodeSignatureMatchUpdateOne {
+	if v != nil {
+		_u.SetSignatureID(*v)
 	}
-	return csmuo
+	return _u
 }
 
 // SetSignatureVendor sets the "signature_vendor" field.
-func (csmuo *CodeSignatureMatchUpdateOne) SetSignatureVendor(s string) *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.SetSignatureVendor(s)
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) SetSignatureVendor(v string) *CodeSignatureMatchUpdateOne {
+	_u.mutation.SetSignatureVendor(v)
+	return _u
 }
 
 // SetNillableSignatureVendor sets the "signature_vendor" field if the given value is not nil.
-func (csmuo *CodeSignatureMatchUpdateOne) SetNillableSignatureVendor(s *string) *CodeSignatureMatchUpdateOne {
-	if s != nil {
-		csmuo.SetSignatureVendor(*s)
+func (_u *CodeSignatureMatchUpdateOne) SetNillableSignatureVendor(v *string) *CodeSignatureMatchUpdateOne {
+	if v != nil {
+		_u.SetSignatureVendor(*v)
 	}
-	return csmuo
+	return _u
 }
 
 // ClearSignatureVendor clears the value of the "signature_vendor" field.
-func (csmuo *CodeSignatureMatchUpdateOne) ClearSignatureVendor() *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.ClearSignatureVendor()
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) ClearSignatureVendor() *CodeSignatureMatchUpdateOne {
+	_u.mutation.ClearSignatureVendor()
+	return _u
 }
 
 // SetSignatureProduct sets the "signature_product" field.
-func (csmuo *CodeSignatureMatchUpdateOne) SetSignatureProduct(s string) *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.SetSignatureProduct(s)
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) SetSignatureProduct(v string) *CodeSignatureMatchUpdateOne {
+	_u.mutation.SetSignatureProduct(v)
+	return _u
 }
 
 // SetNillableSignatureProduct sets the "signature_product" field if the given value is not nil.
-func (csmuo *CodeSignatureMatchUpdateOne) SetNillableSignatureProduct(s *string) *CodeSignatureMatchUpdateOne {
-	if s != nil {
-		csmuo.SetSignatureProduct(*s)
+func (_u *CodeSignatureMatchUpdateOne) SetNillableSignatureProduct(v *string) *CodeSignatureMatchUpdateOne {
+	if v != nil {
+		_u.SetSignatureProduct(*v)
 	}
-	return csmuo
+	return _u
 }
 
 // ClearSignatureProduct clears the value of the "signature_product" field.
-func (csmuo *CodeSignatureMatchUpdateOne) ClearSignatureProduct() *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.ClearSignatureProduct()
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) ClearSignatureProduct() *CodeSignatureMatchUpdateOne {
+	_u.mutation.ClearSignatureProduct()
+	return _u
 }
 
 // SetSignatureService sets the "signature_service" field.
-func (csmuo *CodeSignatureMatchUpdateOne) SetSignatureService(s string) *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.SetSignatureService(s)
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) SetSignatureService(v string) *CodeSignatureMatchUpdateOne {
+	_u.mutation.SetSignatureService(v)
+	return _u
 }
 
 // SetNillableSignatureService sets the "signature_service" field if the given value is not nil.
-func (csmuo *CodeSignatureMatchUpdateOne) SetNillableSignatureService(s *string) *CodeSignatureMatchUpdateOne {
-	if s != nil {
-		csmuo.SetSignatureService(*s)
+func (_u *CodeSignatureMatchUpdateOne) SetNillableSignatureService(v *string) *CodeSignatureMatchUpdateOne {
+	if v != nil {
+		_u.SetSignatureService(*v)
 	}
-	return csmuo
+	return _u
 }
 
 // ClearSignatureService clears the value of the "signature_service" field.
-func (csmuo *CodeSignatureMatchUpdateOne) ClearSignatureService() *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.ClearSignatureService()
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) ClearSignatureService() *CodeSignatureMatchUpdateOne {
+	_u.mutation.ClearSignatureService()
+	return _u
 }
 
 // SetSignatureDescription sets the "signature_description" field.
-func (csmuo *CodeSignatureMatchUpdateOne) SetSignatureDescription(s string) *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.SetSignatureDescription(s)
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) SetSignatureDescription(v string) *CodeSignatureMatchUpdateOne {
+	_u.mutation.SetSignatureDescription(v)
+	return _u
 }
 
 // SetNillableSignatureDescription sets the "signature_description" field if the given value is not nil.
-func (csmuo *CodeSignatureMatchUpdateOne) SetNillableSignatureDescription(s *string) *CodeSignatureMatchUpdateOne {
-	if s != nil {
-		csmuo.SetSignatureDescription(*s)
+func (_u *CodeSignatureMatchUpdateOne) SetNillableSignatureDescription(v *string) *CodeSignatureMatchUpdateOne {
+	if v != nil {
+		_u.SetSignatureDescription(*v)
 	}
-	return csmuo
+	return _u
 }
 
 // ClearSignatureDescription clears the value of the "signature_description" field.
-func (csmuo *CodeSignatureMatchUpdateOne) ClearSignatureDescription() *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.ClearSignatureDescription()
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) ClearSignatureDescription() *CodeSignatureMatchUpdateOne {
+	_u.mutation.ClearSignatureDescription()
+	return _u
 }
 
 // SetTags sets the "tags" field.
-func (csmuo *CodeSignatureMatchUpdateOne) SetTags(s []string) *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.SetTags(s)
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) SetTags(v []string) *CodeSignatureMatchUpdateOne {
+	_u.mutation.SetTags(v)
+	return _u
 }
 
-// AppendTags appends s to the "tags" field.
-func (csmuo *CodeSignatureMatchUpdateOne) AppendTags(s []string) *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.AppendTags(s)
-	return csmuo
+// AppendTags appends value to the "tags" field.
+func (_u *CodeSignatureMatchUpdateOne) AppendTags(v []string) *CodeSignatureMatchUpdateOne {
+	_u.mutation.AppendTags(v)
+	return _u
 }
 
 // ClearTags clears the value of the "tags" field.
-func (csmuo *CodeSignatureMatchUpdateOne) ClearTags() *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.ClearTags()
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) ClearTags() *CodeSignatureMatchUpdateOne {
+	_u.mutation.ClearTags()
+	return _u
 }
 
 // SetFilePath sets the "file_path" field.
-func (csmuo *CodeSignatureMatchUpdateOne) SetFilePath(s string) *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.SetFilePath(s)
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) SetFilePath(v string) *CodeSignatureMatchUpdateOne {
+	_u.mutation.SetFilePath(v)
+	return _u
 }
 
 // SetNillableFilePath sets the "file_path" field if the given value is not nil.
-func (csmuo *CodeSignatureMatchUpdateOne) SetNillableFilePath(s *string) *CodeSignatureMatchUpdateOne {
-	if s != nil {
-		csmuo.SetFilePath(*s)
+func (_u *CodeSignatureMatchUpdateOne) SetNillableFilePath(v *string) *CodeSignatureMatchUpdateOne {
+	if v != nil {
+		_u.SetFilePath(*v)
 	}
-	return csmuo
+	return _u
 }
 
 // SetLanguage sets the "language" field.
-func (csmuo *CodeSignatureMatchUpdateOne) SetLanguage(s string) *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.SetLanguage(s)
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) SetLanguage(v string) *CodeSignatureMatchUpdateOne {
+	_u.mutation.SetLanguage(v)
+	return _u
 }
 
 // SetNillableLanguage sets the "language" field if the given value is not nil.
-func (csmuo *CodeSignatureMatchUpdateOne) SetNillableLanguage(s *string) *CodeSignatureMatchUpdateOne {
-	if s != nil {
-		csmuo.SetLanguage(*s)
+func (_u *CodeSignatureMatchUpdateOne) SetNillableLanguage(v *string) *CodeSignatureMatchUpdateOne {
+	if v != nil {
+		_u.SetLanguage(*v)
 	}
-	return csmuo
+	return _u
 }
 
 // SetLine sets the "line" field.
-func (csmuo *CodeSignatureMatchUpdateOne) SetLine(u uint) *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.ResetLine()
-	csmuo.mutation.SetLine(u)
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) SetLine(v uint) *CodeSignatureMatchUpdateOne {
+	_u.mutation.ResetLine()
+	_u.mutation.SetLine(v)
+	return _u
 }
 
 // SetNillableLine sets the "line" field if the given value is not nil.
-func (csmuo *CodeSignatureMatchUpdateOne) SetNillableLine(u *uint) *CodeSignatureMatchUpdateOne {
-	if u != nil {
-		csmuo.SetLine(*u)
+func (_u *CodeSignatureMatchUpdateOne) SetNillableLine(v *uint) *CodeSignatureMatchUpdateOne {
+	if v != nil {
+		_u.SetLine(*v)
 	}
-	return csmuo
+	return _u
 }
 
-// AddLine adds u to the "line" field.
-func (csmuo *CodeSignatureMatchUpdateOne) AddLine(u int) *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.AddLine(u)
-	return csmuo
+// AddLine adds value to the "line" field.
+func (_u *CodeSignatureMatchUpdateOne) AddLine(v int) *CodeSignatureMatchUpdateOne {
+	_u.mutation.AddLine(v)
+	return _u
 }
 
 // ClearLine clears the value of the "line" field.
-func (csmuo *CodeSignatureMatchUpdateOne) ClearLine() *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.ClearLine()
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) ClearLine() *CodeSignatureMatchUpdateOne {
+	_u.mutation.ClearLine()
+	return _u
 }
 
 // SetColumn sets the "column" field.
-func (csmuo *CodeSignatureMatchUpdateOne) SetColumn(u uint) *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.ResetColumn()
-	csmuo.mutation.SetColumn(u)
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) SetColumn(v uint) *CodeSignatureMatchUpdateOne {
+	_u.mutation.ResetColumn()
+	_u.mutation.SetColumn(v)
+	return _u
 }
 
 // SetNillableColumn sets the "column" field if the given value is not nil.
-func (csmuo *CodeSignatureMatchUpdateOne) SetNillableColumn(u *uint) *CodeSignatureMatchUpdateOne {
-	if u != nil {
-		csmuo.SetColumn(*u)
+func (_u *CodeSignatureMatchUpdateOne) SetNillableColumn(v *uint) *CodeSignatureMatchUpdateOne {
+	if v != nil {
+		_u.SetColumn(*v)
 	}
-	return csmuo
+	return _u
 }
 
-// AddColumn adds u to the "column" field.
-func (csmuo *CodeSignatureMatchUpdateOne) AddColumn(u int) *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.AddColumn(u)
-	return csmuo
+// AddColumn adds value to the "column" field.
+func (_u *CodeSignatureMatchUpdateOne) AddColumn(v int) *CodeSignatureMatchUpdateOne {
+	_u.mutation.AddColumn(v)
+	return _u
 }
 
 // ClearColumn clears the value of the "column" field.
-func (csmuo *CodeSignatureMatchUpdateOne) ClearColumn() *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.ClearColumn()
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) ClearColumn() *CodeSignatureMatchUpdateOne {
+	_u.mutation.ClearColumn()
+	return _u
 }
 
 // SetCalleeNamespace sets the "callee_namespace" field.
-func (csmuo *CodeSignatureMatchUpdateOne) SetCalleeNamespace(s string) *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.SetCalleeNamespace(s)
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) SetCalleeNamespace(v string) *CodeSignatureMatchUpdateOne {
+	_u.mutation.SetCalleeNamespace(v)
+	return _u
 }
 
 // SetNillableCalleeNamespace sets the "callee_namespace" field if the given value is not nil.
-func (csmuo *CodeSignatureMatchUpdateOne) SetNillableCalleeNamespace(s *string) *CodeSignatureMatchUpdateOne {
-	if s != nil {
-		csmuo.SetCalleeNamespace(*s)
+func (_u *CodeSignatureMatchUpdateOne) SetNillableCalleeNamespace(v *string) *CodeSignatureMatchUpdateOne {
+	if v != nil {
+		_u.SetCalleeNamespace(*v)
 	}
-	return csmuo
+	return _u
 }
 
 // ClearCalleeNamespace clears the value of the "callee_namespace" field.
-func (csmuo *CodeSignatureMatchUpdateOne) ClearCalleeNamespace() *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.ClearCalleeNamespace()
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) ClearCalleeNamespace() *CodeSignatureMatchUpdateOne {
+	_u.mutation.ClearCalleeNamespace()
+	return _u
 }
 
 // SetMatchedCall sets the "matched_call" field.
-func (csmuo *CodeSignatureMatchUpdateOne) SetMatchedCall(s string) *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.SetMatchedCall(s)
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) SetMatchedCall(v string) *CodeSignatureMatchUpdateOne {
+	_u.mutation.SetMatchedCall(v)
+	return _u
 }
 
 // SetNillableMatchedCall sets the "matched_call" field if the given value is not nil.
-func (csmuo *CodeSignatureMatchUpdateOne) SetNillableMatchedCall(s *string) *CodeSignatureMatchUpdateOne {
-	if s != nil {
-		csmuo.SetMatchedCall(*s)
+func (_u *CodeSignatureMatchUpdateOne) SetNillableMatchedCall(v *string) *CodeSignatureMatchUpdateOne {
+	if v != nil {
+		_u.SetMatchedCall(*v)
 	}
-	return csmuo
+	return _u
 }
 
 // ClearMatchedCall clears the value of the "matched_call" field.
-func (csmuo *CodeSignatureMatchUpdateOne) ClearMatchedCall() *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.ClearMatchedCall()
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) ClearMatchedCall() *CodeSignatureMatchUpdateOne {
+	_u.mutation.ClearMatchedCall()
+	return _u
 }
 
 // SetPackageHint sets the "package_hint" field.
-func (csmuo *CodeSignatureMatchUpdateOne) SetPackageHint(s string) *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.SetPackageHint(s)
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) SetPackageHint(v string) *CodeSignatureMatchUpdateOne {
+	_u.mutation.SetPackageHint(v)
+	return _u
 }
 
 // SetNillablePackageHint sets the "package_hint" field if the given value is not nil.
-func (csmuo *CodeSignatureMatchUpdateOne) SetNillablePackageHint(s *string) *CodeSignatureMatchUpdateOne {
-	if s != nil {
-		csmuo.SetPackageHint(*s)
+func (_u *CodeSignatureMatchUpdateOne) SetNillablePackageHint(v *string) *CodeSignatureMatchUpdateOne {
+	if v != nil {
+		_u.SetPackageHint(*v)
 	}
-	return csmuo
+	return _u
 }
 
 // ClearPackageHint clears the value of the "package_hint" field.
-func (csmuo *CodeSignatureMatchUpdateOne) ClearPackageHint() *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.ClearPackageHint()
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) ClearPackageHint() *CodeSignatureMatchUpdateOne {
+	_u.mutation.ClearPackageHint()
+	return _u
 }
 
 // SetSourceFileID sets the "source_file" edge to the CodeSourceFile entity by ID.
-func (csmuo *CodeSignatureMatchUpdateOne) SetSourceFileID(id int) *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.SetSourceFileID(id)
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) SetSourceFileID(id int) *CodeSignatureMatchUpdateOne {
+	_u.mutation.SetSourceFileID(id)
+	return _u
 }
 
 // SetSourceFile sets the "source_file" edge to the CodeSourceFile entity.
-func (csmuo *CodeSignatureMatchUpdateOne) SetSourceFile(c *CodeSourceFile) *CodeSignatureMatchUpdateOne {
-	return csmuo.SetSourceFileID(c.ID)
+func (_u *CodeSignatureMatchUpdateOne) SetSourceFile(v *CodeSourceFile) *CodeSignatureMatchUpdateOne {
+	return _u.SetSourceFileID(v.ID)
 }
 
 // Mutation returns the CodeSignatureMatchMutation object of the builder.
-func (csmuo *CodeSignatureMatchUpdateOne) Mutation() *CodeSignatureMatchMutation {
-	return csmuo.mutation
+func (_u *CodeSignatureMatchUpdateOne) Mutation() *CodeSignatureMatchMutation {
+	return _u.mutation
 }
 
 // ClearSourceFile clears the "source_file" edge to the CodeSourceFile entity.
-func (csmuo *CodeSignatureMatchUpdateOne) ClearSourceFile() *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.ClearSourceFile()
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) ClearSourceFile() *CodeSignatureMatchUpdateOne {
+	_u.mutation.ClearSourceFile()
+	return _u
 }
 
 // Where appends a list predicates to the CodeSignatureMatchUpdate builder.
-func (csmuo *CodeSignatureMatchUpdateOne) Where(ps ...predicate.CodeSignatureMatch) *CodeSignatureMatchUpdateOne {
-	csmuo.mutation.Where(ps...)
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) Where(ps ...predicate.CodeSignatureMatch) *CodeSignatureMatchUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (csmuo *CodeSignatureMatchUpdateOne) Select(field string, fields ...string) *CodeSignatureMatchUpdateOne {
-	csmuo.fields = append([]string{field}, fields...)
-	return csmuo
+func (_u *CodeSignatureMatchUpdateOne) Select(field string, fields ...string) *CodeSignatureMatchUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated CodeSignatureMatch entity.
-func (csmuo *CodeSignatureMatchUpdateOne) Save(ctx context.Context) (*CodeSignatureMatch, error) {
-	return withHooks(ctx, csmuo.sqlSave, csmuo.mutation, csmuo.hooks)
+func (_u *CodeSignatureMatchUpdateOne) Save(ctx context.Context) (*CodeSignatureMatch, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (csmuo *CodeSignatureMatchUpdateOne) SaveX(ctx context.Context) *CodeSignatureMatch {
-	node, err := csmuo.Save(ctx)
+func (_u *CodeSignatureMatchUpdateOne) SaveX(ctx context.Context) *CodeSignatureMatch {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -800,52 +800,52 @@ func (csmuo *CodeSignatureMatchUpdateOne) SaveX(ctx context.Context) *CodeSignat
 }
 
 // Exec executes the query on the entity.
-func (csmuo *CodeSignatureMatchUpdateOne) Exec(ctx context.Context) error {
-	_, err := csmuo.Save(ctx)
+func (_u *CodeSignatureMatchUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (csmuo *CodeSignatureMatchUpdateOne) ExecX(ctx context.Context) {
-	if err := csmuo.Exec(ctx); err != nil {
+func (_u *CodeSignatureMatchUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (csmuo *CodeSignatureMatchUpdateOne) check() error {
-	if v, ok := csmuo.mutation.SignatureID(); ok {
+func (_u *CodeSignatureMatchUpdateOne) check() error {
+	if v, ok := _u.mutation.SignatureID(); ok {
 		if err := codesignaturematch.SignatureIDValidator(v); err != nil {
 			return &ValidationError{Name: "signature_id", err: fmt.Errorf(`ent: validator failed for field "CodeSignatureMatch.signature_id": %w`, err)}
 		}
 	}
-	if v, ok := csmuo.mutation.FilePath(); ok {
+	if v, ok := _u.mutation.FilePath(); ok {
 		if err := codesignaturematch.FilePathValidator(v); err != nil {
 			return &ValidationError{Name: "file_path", err: fmt.Errorf(`ent: validator failed for field "CodeSignatureMatch.file_path": %w`, err)}
 		}
 	}
-	if v, ok := csmuo.mutation.Language(); ok {
+	if v, ok := _u.mutation.Language(); ok {
 		if err := codesignaturematch.LanguageValidator(v); err != nil {
 			return &ValidationError{Name: "language", err: fmt.Errorf(`ent: validator failed for field "CodeSignatureMatch.language": %w`, err)}
 		}
 	}
-	if csmuo.mutation.SourceFileCleared() && len(csmuo.mutation.SourceFileIDs()) > 0 {
+	if _u.mutation.SourceFileCleared() && len(_u.mutation.SourceFileIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "CodeSignatureMatch.source_file"`)
 	}
 	return nil
 }
 
-func (csmuo *CodeSignatureMatchUpdateOne) sqlSave(ctx context.Context) (_node *CodeSignatureMatch, err error) {
-	if err := csmuo.check(); err != nil {
+func (_u *CodeSignatureMatchUpdateOne) sqlSave(ctx context.Context) (_node *CodeSignatureMatch, err error) {
+	if err := _u.check(); err != nil {
 		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(codesignaturematch.Table, codesignaturematch.Columns, sqlgraph.NewFieldSpec(codesignaturematch.FieldID, field.TypeInt))
-	id, ok := csmuo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "CodeSignatureMatch.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := csmuo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, codesignaturematch.FieldID)
 		for _, f := range fields {
@@ -857,94 +857,94 @@ func (csmuo *CodeSignatureMatchUpdateOne) sqlSave(ctx context.Context) (_node *C
 			}
 		}
 	}
-	if ps := csmuo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := csmuo.mutation.SignatureID(); ok {
+	if value, ok := _u.mutation.SignatureID(); ok {
 		_spec.SetField(codesignaturematch.FieldSignatureID, field.TypeString, value)
 	}
-	if value, ok := csmuo.mutation.SignatureVendor(); ok {
+	if value, ok := _u.mutation.SignatureVendor(); ok {
 		_spec.SetField(codesignaturematch.FieldSignatureVendor, field.TypeString, value)
 	}
-	if csmuo.mutation.SignatureVendorCleared() {
+	if _u.mutation.SignatureVendorCleared() {
 		_spec.ClearField(codesignaturematch.FieldSignatureVendor, field.TypeString)
 	}
-	if value, ok := csmuo.mutation.SignatureProduct(); ok {
+	if value, ok := _u.mutation.SignatureProduct(); ok {
 		_spec.SetField(codesignaturematch.FieldSignatureProduct, field.TypeString, value)
 	}
-	if csmuo.mutation.SignatureProductCleared() {
+	if _u.mutation.SignatureProductCleared() {
 		_spec.ClearField(codesignaturematch.FieldSignatureProduct, field.TypeString)
 	}
-	if value, ok := csmuo.mutation.SignatureService(); ok {
+	if value, ok := _u.mutation.SignatureService(); ok {
 		_spec.SetField(codesignaturematch.FieldSignatureService, field.TypeString, value)
 	}
-	if csmuo.mutation.SignatureServiceCleared() {
+	if _u.mutation.SignatureServiceCleared() {
 		_spec.ClearField(codesignaturematch.FieldSignatureService, field.TypeString)
 	}
-	if value, ok := csmuo.mutation.SignatureDescription(); ok {
+	if value, ok := _u.mutation.SignatureDescription(); ok {
 		_spec.SetField(codesignaturematch.FieldSignatureDescription, field.TypeString, value)
 	}
-	if csmuo.mutation.SignatureDescriptionCleared() {
+	if _u.mutation.SignatureDescriptionCleared() {
 		_spec.ClearField(codesignaturematch.FieldSignatureDescription, field.TypeString)
 	}
-	if value, ok := csmuo.mutation.Tags(); ok {
+	if value, ok := _u.mutation.Tags(); ok {
 		_spec.SetField(codesignaturematch.FieldTags, field.TypeJSON, value)
 	}
-	if value, ok := csmuo.mutation.AppendedTags(); ok {
+	if value, ok := _u.mutation.AppendedTags(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, codesignaturematch.FieldTags, value)
 		})
 	}
-	if csmuo.mutation.TagsCleared() {
+	if _u.mutation.TagsCleared() {
 		_spec.ClearField(codesignaturematch.FieldTags, field.TypeJSON)
 	}
-	if value, ok := csmuo.mutation.FilePath(); ok {
+	if value, ok := _u.mutation.FilePath(); ok {
 		_spec.SetField(codesignaturematch.FieldFilePath, field.TypeString, value)
 	}
-	if value, ok := csmuo.mutation.Language(); ok {
+	if value, ok := _u.mutation.Language(); ok {
 		_spec.SetField(codesignaturematch.FieldLanguage, field.TypeString, value)
 	}
-	if value, ok := csmuo.mutation.Line(); ok {
+	if value, ok := _u.mutation.Line(); ok {
 		_spec.SetField(codesignaturematch.FieldLine, field.TypeUint, value)
 	}
-	if value, ok := csmuo.mutation.AddedLine(); ok {
+	if value, ok := _u.mutation.AddedLine(); ok {
 		_spec.AddField(codesignaturematch.FieldLine, field.TypeUint, value)
 	}
-	if csmuo.mutation.LineCleared() {
+	if _u.mutation.LineCleared() {
 		_spec.ClearField(codesignaturematch.FieldLine, field.TypeUint)
 	}
-	if value, ok := csmuo.mutation.Column(); ok {
+	if value, ok := _u.mutation.Column(); ok {
 		_spec.SetField(codesignaturematch.FieldColumn, field.TypeUint, value)
 	}
-	if value, ok := csmuo.mutation.AddedColumn(); ok {
+	if value, ok := _u.mutation.AddedColumn(); ok {
 		_spec.AddField(codesignaturematch.FieldColumn, field.TypeUint, value)
 	}
-	if csmuo.mutation.ColumnCleared() {
+	if _u.mutation.ColumnCleared() {
 		_spec.ClearField(codesignaturematch.FieldColumn, field.TypeUint)
 	}
-	if value, ok := csmuo.mutation.CalleeNamespace(); ok {
+	if value, ok := _u.mutation.CalleeNamespace(); ok {
 		_spec.SetField(codesignaturematch.FieldCalleeNamespace, field.TypeString, value)
 	}
-	if csmuo.mutation.CalleeNamespaceCleared() {
+	if _u.mutation.CalleeNamespaceCleared() {
 		_spec.ClearField(codesignaturematch.FieldCalleeNamespace, field.TypeString)
 	}
-	if value, ok := csmuo.mutation.MatchedCall(); ok {
+	if value, ok := _u.mutation.MatchedCall(); ok {
 		_spec.SetField(codesignaturematch.FieldMatchedCall, field.TypeString, value)
 	}
-	if csmuo.mutation.MatchedCallCleared() {
+	if _u.mutation.MatchedCallCleared() {
 		_spec.ClearField(codesignaturematch.FieldMatchedCall, field.TypeString)
 	}
-	if value, ok := csmuo.mutation.PackageHint(); ok {
+	if value, ok := _u.mutation.PackageHint(); ok {
 		_spec.SetField(codesignaturematch.FieldPackageHint, field.TypeString, value)
 	}
-	if csmuo.mutation.PackageHintCleared() {
+	if _u.mutation.PackageHintCleared() {
 		_spec.ClearField(codesignaturematch.FieldPackageHint, field.TypeString)
 	}
-	if csmuo.mutation.SourceFileCleared() {
+	if _u.mutation.SourceFileCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -957,7 +957,7 @@ func (csmuo *CodeSignatureMatchUpdateOne) sqlSave(ctx context.Context) (_node *C
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := csmuo.mutation.SourceFileIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.SourceFileIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -973,10 +973,10 @@ func (csmuo *CodeSignatureMatchUpdateOne) sqlSave(ctx context.Context) (_node *C
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_node = &CodeSignatureMatch{config: csmuo.config}
+	_node = &CodeSignatureMatch{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, csmuo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{codesignaturematch.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -984,6 +984,6 @@ func (csmuo *CodeSignatureMatchUpdateOne) sqlSave(ctx context.Context) (_node *C
 		}
 		return nil, err
 	}
-	csmuo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

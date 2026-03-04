@@ -370,8 +370,8 @@ func (c *CodeSignatureMatchClient) Update() *CodeSignatureMatchUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *CodeSignatureMatchClient) UpdateOne(csm *CodeSignatureMatch) *CodeSignatureMatchUpdateOne {
-	mutation := newCodeSignatureMatchMutation(c.config, OpUpdateOne, withCodeSignatureMatch(csm))
+func (c *CodeSignatureMatchClient) UpdateOne(_m *CodeSignatureMatch) *CodeSignatureMatchUpdateOne {
+	mutation := newCodeSignatureMatchMutation(c.config, OpUpdateOne, withCodeSignatureMatch(_m))
 	return &CodeSignatureMatchUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -388,8 +388,8 @@ func (c *CodeSignatureMatchClient) Delete() *CodeSignatureMatchDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *CodeSignatureMatchClient) DeleteOne(csm *CodeSignatureMatch) *CodeSignatureMatchDeleteOne {
-	return c.DeleteOneID(csm.ID)
+func (c *CodeSignatureMatchClient) DeleteOne(_m *CodeSignatureMatch) *CodeSignatureMatchDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -424,16 +424,16 @@ func (c *CodeSignatureMatchClient) GetX(ctx context.Context, id int) *CodeSignat
 }
 
 // QuerySourceFile queries the source_file edge of a CodeSignatureMatch.
-func (c *CodeSignatureMatchClient) QuerySourceFile(csm *CodeSignatureMatch) *CodeSourceFileQuery {
+func (c *CodeSignatureMatchClient) QuerySourceFile(_m *CodeSignatureMatch) *CodeSourceFileQuery {
 	query := (&CodeSourceFileClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := csm.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(codesignaturematch.Table, codesignaturematch.FieldID, id),
 			sqlgraph.To(codesourcefile.Table, codesourcefile.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, codesignaturematch.SourceFileTable, codesignaturematch.SourceFileColumn),
 		)
-		fromV = sqlgraph.Neighbors(csm.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
@@ -519,8 +519,8 @@ func (c *CodeSourceFileClient) Update() *CodeSourceFileUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *CodeSourceFileClient) UpdateOne(csf *CodeSourceFile) *CodeSourceFileUpdateOne {
-	mutation := newCodeSourceFileMutation(c.config, OpUpdateOne, withCodeSourceFile(csf))
+func (c *CodeSourceFileClient) UpdateOne(_m *CodeSourceFile) *CodeSourceFileUpdateOne {
+	mutation := newCodeSourceFileMutation(c.config, OpUpdateOne, withCodeSourceFile(_m))
 	return &CodeSourceFileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -537,8 +537,8 @@ func (c *CodeSourceFileClient) Delete() *CodeSourceFileDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *CodeSourceFileClient) DeleteOne(csf *CodeSourceFile) *CodeSourceFileDeleteOne {
-	return c.DeleteOneID(csf.ID)
+func (c *CodeSourceFileClient) DeleteOne(_m *CodeSourceFile) *CodeSourceFileDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -573,32 +573,32 @@ func (c *CodeSourceFileClient) GetX(ctx context.Context, id int) *CodeSourceFile
 }
 
 // QueryDepsUsageEvidences queries the deps_usage_evidences edge of a CodeSourceFile.
-func (c *CodeSourceFileClient) QueryDepsUsageEvidences(csf *CodeSourceFile) *DepsUsageEvidenceQuery {
+func (c *CodeSourceFileClient) QueryDepsUsageEvidences(_m *CodeSourceFile) *DepsUsageEvidenceQuery {
 	query := (&DepsUsageEvidenceClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := csf.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(codesourcefile.Table, codesourcefile.FieldID, id),
 			sqlgraph.To(depsusageevidence.Table, depsusageevidence.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, codesourcefile.DepsUsageEvidencesTable, codesourcefile.DepsUsageEvidencesColumn),
 		)
-		fromV = sqlgraph.Neighbors(csf.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // QuerySignatureMatches queries the signature_matches edge of a CodeSourceFile.
-func (c *CodeSourceFileClient) QuerySignatureMatches(csf *CodeSourceFile) *CodeSignatureMatchQuery {
+func (c *CodeSourceFileClient) QuerySignatureMatches(_m *CodeSourceFile) *CodeSignatureMatchQuery {
 	query := (&CodeSignatureMatchClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := csf.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(codesourcefile.Table, codesourcefile.FieldID, id),
 			sqlgraph.To(codesignaturematch.Table, codesignaturematch.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, codesourcefile.SignatureMatchesTable, codesourcefile.SignatureMatchesColumn),
 		)
-		fromV = sqlgraph.Neighbors(csf.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
@@ -684,8 +684,8 @@ func (c *DepsUsageEvidenceClient) Update() *DepsUsageEvidenceUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *DepsUsageEvidenceClient) UpdateOne(due *DepsUsageEvidence) *DepsUsageEvidenceUpdateOne {
-	mutation := newDepsUsageEvidenceMutation(c.config, OpUpdateOne, withDepsUsageEvidence(due))
+func (c *DepsUsageEvidenceClient) UpdateOne(_m *DepsUsageEvidence) *DepsUsageEvidenceUpdateOne {
+	mutation := newDepsUsageEvidenceMutation(c.config, OpUpdateOne, withDepsUsageEvidence(_m))
 	return &DepsUsageEvidenceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -702,8 +702,8 @@ func (c *DepsUsageEvidenceClient) Delete() *DepsUsageEvidenceDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *DepsUsageEvidenceClient) DeleteOne(due *DepsUsageEvidence) *DepsUsageEvidenceDeleteOne {
-	return c.DeleteOneID(due.ID)
+func (c *DepsUsageEvidenceClient) DeleteOne(_m *DepsUsageEvidence) *DepsUsageEvidenceDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -738,16 +738,16 @@ func (c *DepsUsageEvidenceClient) GetX(ctx context.Context, id int) *DepsUsageEv
 }
 
 // QueryUsedIn queries the used_in edge of a DepsUsageEvidence.
-func (c *DepsUsageEvidenceClient) QueryUsedIn(due *DepsUsageEvidence) *CodeSourceFileQuery {
+func (c *DepsUsageEvidenceClient) QueryUsedIn(_m *DepsUsageEvidence) *CodeSourceFileQuery {
 	query := (&CodeSourceFileClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := due.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(depsusageevidence.Table, depsusageevidence.FieldID, id),
 			sqlgraph.To(codesourcefile.Table, codesourcefile.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, depsusageevidence.UsedInTable, depsusageevidence.UsedInColumn),
 		)
-		fromV = sqlgraph.Neighbors(due.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
@@ -833,8 +833,8 @@ func (c *ReportDependencyClient) Update() *ReportDependencyUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *ReportDependencyClient) UpdateOne(rd *ReportDependency) *ReportDependencyUpdateOne {
-	mutation := newReportDependencyMutation(c.config, OpUpdateOne, withReportDependency(rd))
+func (c *ReportDependencyClient) UpdateOne(_m *ReportDependency) *ReportDependencyUpdateOne {
+	mutation := newReportDependencyMutation(c.config, OpUpdateOne, withReportDependency(_m))
 	return &ReportDependencyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -851,8 +851,8 @@ func (c *ReportDependencyClient) Delete() *ReportDependencyDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *ReportDependencyClient) DeleteOne(rd *ReportDependency) *ReportDependencyDeleteOne {
-	return c.DeleteOneID(rd.ID)
+func (c *ReportDependencyClient) DeleteOne(_m *ReportDependency) *ReportDependencyDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -887,16 +887,16 @@ func (c *ReportDependencyClient) GetX(ctx context.Context, id int) *ReportDepend
 }
 
 // QueryPackage queries the package edge of a ReportDependency.
-func (c *ReportDependencyClient) QueryPackage(rd *ReportDependency) *ReportPackageQuery {
+func (c *ReportDependencyClient) QueryPackage(_m *ReportDependency) *ReportPackageQuery {
 	query := (&ReportPackageClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := rd.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(reportdependency.Table, reportdependency.FieldID, id),
 			sqlgraph.To(reportpackage.Table, reportpackage.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, reportdependency.PackageTable, reportdependency.PackageColumn),
 		)
-		fromV = sqlgraph.Neighbors(rd.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
@@ -982,8 +982,8 @@ func (c *ReportDependencyGraphClient) Update() *ReportDependencyGraphUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *ReportDependencyGraphClient) UpdateOne(rdg *ReportDependencyGraph) *ReportDependencyGraphUpdateOne {
-	mutation := newReportDependencyGraphMutation(c.config, OpUpdateOne, withReportDependencyGraph(rdg))
+func (c *ReportDependencyGraphClient) UpdateOne(_m *ReportDependencyGraph) *ReportDependencyGraphUpdateOne {
+	mutation := newReportDependencyGraphMutation(c.config, OpUpdateOne, withReportDependencyGraph(_m))
 	return &ReportDependencyGraphUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1000,8 +1000,8 @@ func (c *ReportDependencyGraphClient) Delete() *ReportDependencyGraphDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *ReportDependencyGraphClient) DeleteOne(rdg *ReportDependencyGraph) *ReportDependencyGraphDeleteOne {
-	return c.DeleteOneID(rdg.ID)
+func (c *ReportDependencyGraphClient) DeleteOne(_m *ReportDependencyGraph) *ReportDependencyGraphDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -1115,8 +1115,8 @@ func (c *ReportLicenseClient) Update() *ReportLicenseUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *ReportLicenseClient) UpdateOne(rl *ReportLicense) *ReportLicenseUpdateOne {
-	mutation := newReportLicenseMutation(c.config, OpUpdateOne, withReportLicense(rl))
+func (c *ReportLicenseClient) UpdateOne(_m *ReportLicense) *ReportLicenseUpdateOne {
+	mutation := newReportLicenseMutation(c.config, OpUpdateOne, withReportLicense(_m))
 	return &ReportLicenseUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1133,8 +1133,8 @@ func (c *ReportLicenseClient) Delete() *ReportLicenseDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *ReportLicenseClient) DeleteOne(rl *ReportLicense) *ReportLicenseDeleteOne {
-	return c.DeleteOneID(rl.ID)
+func (c *ReportLicenseClient) DeleteOne(_m *ReportLicense) *ReportLicenseDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -1169,16 +1169,16 @@ func (c *ReportLicenseClient) GetX(ctx context.Context, id int) *ReportLicense {
 }
 
 // QueryPackage queries the package edge of a ReportLicense.
-func (c *ReportLicenseClient) QueryPackage(rl *ReportLicense) *ReportPackageQuery {
+func (c *ReportLicenseClient) QueryPackage(_m *ReportLicense) *ReportPackageQuery {
 	query := (&ReportPackageClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := rl.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(reportlicense.Table, reportlicense.FieldID, id),
 			sqlgraph.To(reportpackage.Table, reportpackage.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, reportlicense.PackageTable, reportlicense.PackageColumn),
 		)
-		fromV = sqlgraph.Neighbors(rl.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
@@ -1264,8 +1264,8 @@ func (c *ReportMalwareClient) Update() *ReportMalwareUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *ReportMalwareClient) UpdateOne(rm *ReportMalware) *ReportMalwareUpdateOne {
-	mutation := newReportMalwareMutation(c.config, OpUpdateOne, withReportMalware(rm))
+func (c *ReportMalwareClient) UpdateOne(_m *ReportMalware) *ReportMalwareUpdateOne {
+	mutation := newReportMalwareMutation(c.config, OpUpdateOne, withReportMalware(_m))
 	return &ReportMalwareUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1282,8 +1282,8 @@ func (c *ReportMalwareClient) Delete() *ReportMalwareDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *ReportMalwareClient) DeleteOne(rm *ReportMalware) *ReportMalwareDeleteOne {
-	return c.DeleteOneID(rm.ID)
+func (c *ReportMalwareClient) DeleteOne(_m *ReportMalware) *ReportMalwareDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -1318,16 +1318,16 @@ func (c *ReportMalwareClient) GetX(ctx context.Context, id int) *ReportMalware {
 }
 
 // QueryPackage queries the package edge of a ReportMalware.
-func (c *ReportMalwareClient) QueryPackage(rm *ReportMalware) *ReportPackageQuery {
+func (c *ReportMalwareClient) QueryPackage(_m *ReportMalware) *ReportPackageQuery {
 	query := (&ReportPackageClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := rm.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(reportmalware.Table, reportmalware.FieldID, id),
 			sqlgraph.To(reportpackage.Table, reportpackage.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, true, reportmalware.PackageTable, reportmalware.PackageColumn),
 		)
-		fromV = sqlgraph.Neighbors(rm.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
@@ -1413,8 +1413,8 @@ func (c *ReportPackageClient) Update() *ReportPackageUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *ReportPackageClient) UpdateOne(rp *ReportPackage) *ReportPackageUpdateOne {
-	mutation := newReportPackageMutation(c.config, OpUpdateOne, withReportPackage(rp))
+func (c *ReportPackageClient) UpdateOne(_m *ReportPackage) *ReportPackageUpdateOne {
+	mutation := newReportPackageMutation(c.config, OpUpdateOne, withReportPackage(_m))
 	return &ReportPackageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1431,8 +1431,8 @@ func (c *ReportPackageClient) Delete() *ReportPackageDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *ReportPackageClient) DeleteOne(rp *ReportPackage) *ReportPackageDeleteOne {
-	return c.DeleteOneID(rp.ID)
+func (c *ReportPackageClient) DeleteOne(_m *ReportPackage) *ReportPackageDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -1467,112 +1467,112 @@ func (c *ReportPackageClient) GetX(ctx context.Context, id int) *ReportPackage {
 }
 
 // QueryManifests queries the manifests edge of a ReportPackage.
-func (c *ReportPackageClient) QueryManifests(rp *ReportPackage) *ReportPackageManifestQuery {
+func (c *ReportPackageClient) QueryManifests(_m *ReportPackage) *ReportPackageManifestQuery {
 	query := (&ReportPackageManifestClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := rp.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, id),
 			sqlgraph.To(reportpackagemanifest.Table, reportpackagemanifest.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, reportpackage.ManifestsTable, reportpackage.ManifestsPrimaryKey...),
 		)
-		fromV = sqlgraph.Neighbors(rp.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // QueryVulnerabilities queries the vulnerabilities edge of a ReportPackage.
-func (c *ReportPackageClient) QueryVulnerabilities(rp *ReportPackage) *ReportVulnerabilityQuery {
+func (c *ReportPackageClient) QueryVulnerabilities(_m *ReportPackage) *ReportVulnerabilityQuery {
 	query := (&ReportVulnerabilityClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := rp.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, id),
 			sqlgraph.To(reportvulnerability.Table, reportvulnerability.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.VulnerabilitiesTable, reportpackage.VulnerabilitiesColumn),
 		)
-		fromV = sqlgraph.Neighbors(rp.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // QueryLicenses queries the licenses edge of a ReportPackage.
-func (c *ReportPackageClient) QueryLicenses(rp *ReportPackage) *ReportLicenseQuery {
+func (c *ReportPackageClient) QueryLicenses(_m *ReportPackage) *ReportLicenseQuery {
 	query := (&ReportLicenseClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := rp.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, id),
 			sqlgraph.To(reportlicense.Table, reportlicense.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.LicensesTable, reportpackage.LicensesColumn),
 		)
-		fromV = sqlgraph.Neighbors(rp.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // QueryDependencies queries the dependencies edge of a ReportPackage.
-func (c *ReportPackageClient) QueryDependencies(rp *ReportPackage) *ReportDependencyQuery {
+func (c *ReportPackageClient) QueryDependencies(_m *ReportPackage) *ReportDependencyQuery {
 	query := (&ReportDependencyClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := rp.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, id),
 			sqlgraph.To(reportdependency.Table, reportdependency.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.DependenciesTable, reportpackage.DependenciesColumn),
 		)
-		fromV = sqlgraph.Neighbors(rp.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // QueryMalwareAnalysis queries the malware_analysis edge of a ReportPackage.
-func (c *ReportPackageClient) QueryMalwareAnalysis(rp *ReportPackage) *ReportMalwareQuery {
+func (c *ReportPackageClient) QueryMalwareAnalysis(_m *ReportPackage) *ReportMalwareQuery {
 	query := (&ReportMalwareClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := rp.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, id),
 			sqlgraph.To(reportmalware.Table, reportmalware.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, reportpackage.MalwareAnalysisTable, reportpackage.MalwareAnalysisColumn),
 		)
-		fromV = sqlgraph.Neighbors(rp.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // QueryProjects queries the projects edge of a ReportPackage.
-func (c *ReportPackageClient) QueryProjects(rp *ReportPackage) *ReportProjectQuery {
+func (c *ReportPackageClient) QueryProjects(_m *ReportPackage) *ReportProjectQuery {
 	query := (&ReportProjectClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := rp.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, id),
 			sqlgraph.To(reportproject.Table, reportproject.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.ProjectsTable, reportpackage.ProjectsColumn),
 		)
-		fromV = sqlgraph.Neighbors(rp.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // QuerySlsaProvenances queries the slsa_provenances edge of a ReportPackage.
-func (c *ReportPackageClient) QuerySlsaProvenances(rp *ReportPackage) *ReportSlsaProvenanceQuery {
+func (c *ReportPackageClient) QuerySlsaProvenances(_m *ReportPackage) *ReportSlsaProvenanceQuery {
 	query := (&ReportSlsaProvenanceClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := rp.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(reportpackage.Table, reportpackage.FieldID, id),
 			sqlgraph.To(reportslsaprovenance.Table, reportslsaprovenance.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.SlsaProvenancesTable, reportpackage.SlsaProvenancesColumn),
 		)
-		fromV = sqlgraph.Neighbors(rp.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
@@ -1658,8 +1658,8 @@ func (c *ReportPackageManifestClient) Update() *ReportPackageManifestUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *ReportPackageManifestClient) UpdateOne(rpm *ReportPackageManifest) *ReportPackageManifestUpdateOne {
-	mutation := newReportPackageManifestMutation(c.config, OpUpdateOne, withReportPackageManifest(rpm))
+func (c *ReportPackageManifestClient) UpdateOne(_m *ReportPackageManifest) *ReportPackageManifestUpdateOne {
+	mutation := newReportPackageManifestMutation(c.config, OpUpdateOne, withReportPackageManifest(_m))
 	return &ReportPackageManifestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1676,8 +1676,8 @@ func (c *ReportPackageManifestClient) Delete() *ReportPackageManifestDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *ReportPackageManifestClient) DeleteOne(rpm *ReportPackageManifest) *ReportPackageManifestDeleteOne {
-	return c.DeleteOneID(rpm.ID)
+func (c *ReportPackageManifestClient) DeleteOne(_m *ReportPackageManifest) *ReportPackageManifestDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -1712,16 +1712,16 @@ func (c *ReportPackageManifestClient) GetX(ctx context.Context, id int) *ReportP
 }
 
 // QueryPackages queries the packages edge of a ReportPackageManifest.
-func (c *ReportPackageManifestClient) QueryPackages(rpm *ReportPackageManifest) *ReportPackageQuery {
+func (c *ReportPackageManifestClient) QueryPackages(_m *ReportPackageManifest) *ReportPackageQuery {
 	query := (&ReportPackageClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := rpm.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(reportpackagemanifest.Table, reportpackagemanifest.FieldID, id),
 			sqlgraph.To(reportpackage.Table, reportpackage.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, reportpackagemanifest.PackagesTable, reportpackagemanifest.PackagesPrimaryKey...),
 		)
-		fromV = sqlgraph.Neighbors(rpm.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
@@ -1807,8 +1807,8 @@ func (c *ReportProjectClient) Update() *ReportProjectUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *ReportProjectClient) UpdateOne(rp *ReportProject) *ReportProjectUpdateOne {
-	mutation := newReportProjectMutation(c.config, OpUpdateOne, withReportProject(rp))
+func (c *ReportProjectClient) UpdateOne(_m *ReportProject) *ReportProjectUpdateOne {
+	mutation := newReportProjectMutation(c.config, OpUpdateOne, withReportProject(_m))
 	return &ReportProjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1825,8 +1825,8 @@ func (c *ReportProjectClient) Delete() *ReportProjectDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *ReportProjectClient) DeleteOne(rp *ReportProject) *ReportProjectDeleteOne {
-	return c.DeleteOneID(rp.ID)
+func (c *ReportProjectClient) DeleteOne(_m *ReportProject) *ReportProjectDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -1861,32 +1861,32 @@ func (c *ReportProjectClient) GetX(ctx context.Context, id int) *ReportProject {
 }
 
 // QueryPackage queries the package edge of a ReportProject.
-func (c *ReportProjectClient) QueryPackage(rp *ReportProject) *ReportPackageQuery {
+func (c *ReportProjectClient) QueryPackage(_m *ReportProject) *ReportPackageQuery {
 	query := (&ReportPackageClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := rp.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(reportproject.Table, reportproject.FieldID, id),
 			sqlgraph.To(reportpackage.Table, reportpackage.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, reportproject.PackageTable, reportproject.PackageColumn),
 		)
-		fromV = sqlgraph.Neighbors(rp.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // QueryScorecard queries the scorecard edge of a ReportProject.
-func (c *ReportProjectClient) QueryScorecard(rp *ReportProject) *ReportScorecardQuery {
+func (c *ReportProjectClient) QueryScorecard(_m *ReportProject) *ReportScorecardQuery {
 	query := (&ReportScorecardClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := rp.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(reportproject.Table, reportproject.FieldID, id),
 			sqlgraph.To(reportscorecard.Table, reportscorecard.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, reportproject.ScorecardTable, reportproject.ScorecardColumn),
 		)
-		fromV = sqlgraph.Neighbors(rp.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
@@ -1972,8 +1972,8 @@ func (c *ReportScorecardClient) Update() *ReportScorecardUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *ReportScorecardClient) UpdateOne(rs *ReportScorecard) *ReportScorecardUpdateOne {
-	mutation := newReportScorecardMutation(c.config, OpUpdateOne, withReportScorecard(rs))
+func (c *ReportScorecardClient) UpdateOne(_m *ReportScorecard) *ReportScorecardUpdateOne {
+	mutation := newReportScorecardMutation(c.config, OpUpdateOne, withReportScorecard(_m))
 	return &ReportScorecardUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -1990,8 +1990,8 @@ func (c *ReportScorecardClient) Delete() *ReportScorecardDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *ReportScorecardClient) DeleteOne(rs *ReportScorecard) *ReportScorecardDeleteOne {
-	return c.DeleteOneID(rs.ID)
+func (c *ReportScorecardClient) DeleteOne(_m *ReportScorecard) *ReportScorecardDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -2026,32 +2026,32 @@ func (c *ReportScorecardClient) GetX(ctx context.Context, id int) *ReportScoreca
 }
 
 // QueryProject queries the project edge of a ReportScorecard.
-func (c *ReportScorecardClient) QueryProject(rs *ReportScorecard) *ReportProjectQuery {
+func (c *ReportScorecardClient) QueryProject(_m *ReportScorecard) *ReportProjectQuery {
 	query := (&ReportProjectClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := rs.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(reportscorecard.Table, reportscorecard.FieldID, id),
 			sqlgraph.To(reportproject.Table, reportproject.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, true, reportscorecard.ProjectTable, reportscorecard.ProjectColumn),
 		)
-		fromV = sqlgraph.Neighbors(rs.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // QueryChecks queries the checks edge of a ReportScorecard.
-func (c *ReportScorecardClient) QueryChecks(rs *ReportScorecard) *ReportScorecardCheckQuery {
+func (c *ReportScorecardClient) QueryChecks(_m *ReportScorecard) *ReportScorecardCheckQuery {
 	query := (&ReportScorecardCheckClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := rs.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(reportscorecard.Table, reportscorecard.FieldID, id),
 			sqlgraph.To(reportscorecardcheck.Table, reportscorecardcheck.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, reportscorecard.ChecksTable, reportscorecard.ChecksColumn),
 		)
-		fromV = sqlgraph.Neighbors(rs.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
@@ -2137,8 +2137,8 @@ func (c *ReportScorecardCheckClient) Update() *ReportScorecardCheckUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *ReportScorecardCheckClient) UpdateOne(rsc *ReportScorecardCheck) *ReportScorecardCheckUpdateOne {
-	mutation := newReportScorecardCheckMutation(c.config, OpUpdateOne, withReportScorecardCheck(rsc))
+func (c *ReportScorecardCheckClient) UpdateOne(_m *ReportScorecardCheck) *ReportScorecardCheckUpdateOne {
+	mutation := newReportScorecardCheckMutation(c.config, OpUpdateOne, withReportScorecardCheck(_m))
 	return &ReportScorecardCheckUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -2155,8 +2155,8 @@ func (c *ReportScorecardCheckClient) Delete() *ReportScorecardCheckDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *ReportScorecardCheckClient) DeleteOne(rsc *ReportScorecardCheck) *ReportScorecardCheckDeleteOne {
-	return c.DeleteOneID(rsc.ID)
+func (c *ReportScorecardCheckClient) DeleteOne(_m *ReportScorecardCheck) *ReportScorecardCheckDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -2191,16 +2191,16 @@ func (c *ReportScorecardCheckClient) GetX(ctx context.Context, id int) *ReportSc
 }
 
 // QueryScorecard queries the scorecard edge of a ReportScorecardCheck.
-func (c *ReportScorecardCheckClient) QueryScorecard(rsc *ReportScorecardCheck) *ReportScorecardQuery {
+func (c *ReportScorecardCheckClient) QueryScorecard(_m *ReportScorecardCheck) *ReportScorecardQuery {
 	query := (&ReportScorecardClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := rsc.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(reportscorecardcheck.Table, reportscorecardcheck.FieldID, id),
 			sqlgraph.To(reportscorecard.Table, reportscorecard.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, reportscorecardcheck.ScorecardTable, reportscorecardcheck.ScorecardColumn),
 		)
-		fromV = sqlgraph.Neighbors(rsc.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
@@ -2286,8 +2286,8 @@ func (c *ReportSlsaProvenanceClient) Update() *ReportSlsaProvenanceUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *ReportSlsaProvenanceClient) UpdateOne(rsp *ReportSlsaProvenance) *ReportSlsaProvenanceUpdateOne {
-	mutation := newReportSlsaProvenanceMutation(c.config, OpUpdateOne, withReportSlsaProvenance(rsp))
+func (c *ReportSlsaProvenanceClient) UpdateOne(_m *ReportSlsaProvenance) *ReportSlsaProvenanceUpdateOne {
+	mutation := newReportSlsaProvenanceMutation(c.config, OpUpdateOne, withReportSlsaProvenance(_m))
 	return &ReportSlsaProvenanceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -2304,8 +2304,8 @@ func (c *ReportSlsaProvenanceClient) Delete() *ReportSlsaProvenanceDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *ReportSlsaProvenanceClient) DeleteOne(rsp *ReportSlsaProvenance) *ReportSlsaProvenanceDeleteOne {
-	return c.DeleteOneID(rsp.ID)
+func (c *ReportSlsaProvenanceClient) DeleteOne(_m *ReportSlsaProvenance) *ReportSlsaProvenanceDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -2340,16 +2340,16 @@ func (c *ReportSlsaProvenanceClient) GetX(ctx context.Context, id int) *ReportSl
 }
 
 // QueryPackage queries the package edge of a ReportSlsaProvenance.
-func (c *ReportSlsaProvenanceClient) QueryPackage(rsp *ReportSlsaProvenance) *ReportPackageQuery {
+func (c *ReportSlsaProvenanceClient) QueryPackage(_m *ReportSlsaProvenance) *ReportPackageQuery {
 	query := (&ReportPackageClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := rsp.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(reportslsaprovenance.Table, reportslsaprovenance.FieldID, id),
 			sqlgraph.To(reportpackage.Table, reportpackage.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, reportslsaprovenance.PackageTable, reportslsaprovenance.PackageColumn),
 		)
-		fromV = sqlgraph.Neighbors(rsp.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
@@ -2435,8 +2435,8 @@ func (c *ReportVulnerabilityClient) Update() *ReportVulnerabilityUpdate {
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *ReportVulnerabilityClient) UpdateOne(rv *ReportVulnerability) *ReportVulnerabilityUpdateOne {
-	mutation := newReportVulnerabilityMutation(c.config, OpUpdateOne, withReportVulnerability(rv))
+func (c *ReportVulnerabilityClient) UpdateOne(_m *ReportVulnerability) *ReportVulnerabilityUpdateOne {
+	mutation := newReportVulnerabilityMutation(c.config, OpUpdateOne, withReportVulnerability(_m))
 	return &ReportVulnerabilityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
@@ -2453,8 +2453,8 @@ func (c *ReportVulnerabilityClient) Delete() *ReportVulnerabilityDelete {
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *ReportVulnerabilityClient) DeleteOne(rv *ReportVulnerability) *ReportVulnerabilityDeleteOne {
-	return c.DeleteOneID(rv.ID)
+func (c *ReportVulnerabilityClient) DeleteOne(_m *ReportVulnerability) *ReportVulnerabilityDeleteOne {
+	return c.DeleteOneID(_m.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
@@ -2489,16 +2489,16 @@ func (c *ReportVulnerabilityClient) GetX(ctx context.Context, id int) *ReportVul
 }
 
 // QueryPackage queries the package edge of a ReportVulnerability.
-func (c *ReportVulnerabilityClient) QueryPackage(rv *ReportVulnerability) *ReportPackageQuery {
+func (c *ReportVulnerabilityClient) QueryPackage(_m *ReportVulnerability) *ReportPackageQuery {
 	query := (&ReportPackageClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := rv.ID
+		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(reportvulnerability.Table, reportvulnerability.FieldID, id),
 			sqlgraph.To(reportpackage.Table, reportpackage.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, reportvulnerability.PackageTable, reportvulnerability.PackageColumn),
 		)
-		fromV = sqlgraph.Neighbors(rv.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query

@@ -79,7 +79,7 @@ func (*ReportLicense) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the ReportLicense fields.
-func (rl *ReportLicense) assignValues(columns []string, values []any) error {
+func (_m *ReportLicense) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -90,52 +90,52 @@ func (rl *ReportLicense) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			rl.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case reportlicense.FieldLicenseID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field license_id", values[i])
 			} else if value.Valid {
-				rl.LicenseID = value.String
+				_m.LicenseID = value.String
 			}
 		case reportlicense.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
-				rl.Name = value.String
+				_m.Name = value.String
 			}
 		case reportlicense.FieldSpdxID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field spdx_id", values[i])
 			} else if value.Valid {
-				rl.SpdxID = value.String
+				_m.SpdxID = value.String
 			}
 		case reportlicense.FieldURL:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field url", values[i])
 			} else if value.Valid {
-				rl.URL = value.String
+				_m.URL = value.String
 			}
 		case reportlicense.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
-				rl.CreatedAt = value.Time
+				_m.CreatedAt = value.Time
 			}
 		case reportlicense.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
-				rl.UpdatedAt = value.Time
+				_m.UpdatedAt = value.Time
 			}
 		case reportlicense.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field report_package_licenses", value)
 			} else if value.Valid {
-				rl.report_package_licenses = new(int)
-				*rl.report_package_licenses = int(value.Int64)
+				_m.report_package_licenses = new(int)
+				*_m.report_package_licenses = int(value.Int64)
 			}
 		default:
-			rl.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -143,55 +143,55 @@ func (rl *ReportLicense) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the ReportLicense.
 // This includes values selected through modifiers, order, etc.
-func (rl *ReportLicense) Value(name string) (ent.Value, error) {
-	return rl.selectValues.Get(name)
+func (_m *ReportLicense) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QueryPackage queries the "package" edge of the ReportLicense entity.
-func (rl *ReportLicense) QueryPackage() *ReportPackageQuery {
-	return NewReportLicenseClient(rl.config).QueryPackage(rl)
+func (_m *ReportLicense) QueryPackage() *ReportPackageQuery {
+	return NewReportLicenseClient(_m.config).QueryPackage(_m)
 }
 
 // Update returns a builder for updating this ReportLicense.
 // Note that you need to call ReportLicense.Unwrap() before calling this method if this ReportLicense
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (rl *ReportLicense) Update() *ReportLicenseUpdateOne {
-	return NewReportLicenseClient(rl.config).UpdateOne(rl)
+func (_m *ReportLicense) Update() *ReportLicenseUpdateOne {
+	return NewReportLicenseClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the ReportLicense entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (rl *ReportLicense) Unwrap() *ReportLicense {
-	_tx, ok := rl.config.driver.(*txDriver)
+func (_m *ReportLicense) Unwrap() *ReportLicense {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: ReportLicense is not a transactional entity")
 	}
-	rl.config.driver = _tx.drv
-	return rl
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (rl *ReportLicense) String() string {
+func (_m *ReportLicense) String() string {
 	var builder strings.Builder
 	builder.WriteString("ReportLicense(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", rl.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("license_id=")
-	builder.WriteString(rl.LicenseID)
+	builder.WriteString(_m.LicenseID)
 	builder.WriteString(", ")
 	builder.WriteString("name=")
-	builder.WriteString(rl.Name)
+	builder.WriteString(_m.Name)
 	builder.WriteString(", ")
 	builder.WriteString("spdx_id=")
-	builder.WriteString(rl.SpdxID)
+	builder.WriteString(_m.SpdxID)
 	builder.WriteString(", ")
 	builder.WriteString("url=")
-	builder.WriteString(rl.URL)
+	builder.WriteString(_m.URL)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
-	builder.WriteString(rl.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
-	builder.WriteString(rl.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

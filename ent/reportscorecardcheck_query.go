@@ -31,44 +31,44 @@ type ReportScorecardCheckQuery struct {
 }
 
 // Where adds a new predicate for the ReportScorecardCheckQuery builder.
-func (rscq *ReportScorecardCheckQuery) Where(ps ...predicate.ReportScorecardCheck) *ReportScorecardCheckQuery {
-	rscq.predicates = append(rscq.predicates, ps...)
-	return rscq
+func (_q *ReportScorecardCheckQuery) Where(ps ...predicate.ReportScorecardCheck) *ReportScorecardCheckQuery {
+	_q.predicates = append(_q.predicates, ps...)
+	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (rscq *ReportScorecardCheckQuery) Limit(limit int) *ReportScorecardCheckQuery {
-	rscq.ctx.Limit = &limit
-	return rscq
+func (_q *ReportScorecardCheckQuery) Limit(limit int) *ReportScorecardCheckQuery {
+	_q.ctx.Limit = &limit
+	return _q
 }
 
 // Offset to start from.
-func (rscq *ReportScorecardCheckQuery) Offset(offset int) *ReportScorecardCheckQuery {
-	rscq.ctx.Offset = &offset
-	return rscq
+func (_q *ReportScorecardCheckQuery) Offset(offset int) *ReportScorecardCheckQuery {
+	_q.ctx.Offset = &offset
+	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (rscq *ReportScorecardCheckQuery) Unique(unique bool) *ReportScorecardCheckQuery {
-	rscq.ctx.Unique = &unique
-	return rscq
+func (_q *ReportScorecardCheckQuery) Unique(unique bool) *ReportScorecardCheckQuery {
+	_q.ctx.Unique = &unique
+	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (rscq *ReportScorecardCheckQuery) Order(o ...reportscorecardcheck.OrderOption) *ReportScorecardCheckQuery {
-	rscq.order = append(rscq.order, o...)
-	return rscq
+func (_q *ReportScorecardCheckQuery) Order(o ...reportscorecardcheck.OrderOption) *ReportScorecardCheckQuery {
+	_q.order = append(_q.order, o...)
+	return _q
 }
 
 // QueryScorecard chains the current query on the "scorecard" edge.
-func (rscq *ReportScorecardCheckQuery) QueryScorecard() *ReportScorecardQuery {
-	query := (&ReportScorecardClient{config: rscq.config}).Query()
+func (_q *ReportScorecardCheckQuery) QueryScorecard() *ReportScorecardQuery {
+	query := (&ReportScorecardClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := rscq.prepareQuery(ctx); err != nil {
+		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := rscq.sqlQuery(ctx)
+		selector := _q.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
@@ -77,7 +77,7 @@ func (rscq *ReportScorecardCheckQuery) QueryScorecard() *ReportScorecardQuery {
 			sqlgraph.To(reportscorecard.Table, reportscorecard.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, reportscorecardcheck.ScorecardTable, reportscorecardcheck.ScorecardColumn),
 		)
-		fromU = sqlgraph.SetNeighbors(rscq.driver.Dialect(), step)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
@@ -85,8 +85,8 @@ func (rscq *ReportScorecardCheckQuery) QueryScorecard() *ReportScorecardQuery {
 
 // First returns the first ReportScorecardCheck entity from the query.
 // Returns a *NotFoundError when no ReportScorecardCheck was found.
-func (rscq *ReportScorecardCheckQuery) First(ctx context.Context) (*ReportScorecardCheck, error) {
-	nodes, err := rscq.Limit(1).All(setContextOp(ctx, rscq.ctx, ent.OpQueryFirst))
+func (_q *ReportScorecardCheckQuery) First(ctx context.Context) (*ReportScorecardCheck, error) {
+	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -97,8 +97,8 @@ func (rscq *ReportScorecardCheckQuery) First(ctx context.Context) (*ReportScorec
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (rscq *ReportScorecardCheckQuery) FirstX(ctx context.Context) *ReportScorecardCheck {
-	node, err := rscq.First(ctx)
+func (_q *ReportScorecardCheckQuery) FirstX(ctx context.Context) *ReportScorecardCheck {
+	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -107,9 +107,9 @@ func (rscq *ReportScorecardCheckQuery) FirstX(ctx context.Context) *ReportScorec
 
 // FirstID returns the first ReportScorecardCheck ID from the query.
 // Returns a *NotFoundError when no ReportScorecardCheck ID was found.
-func (rscq *ReportScorecardCheckQuery) FirstID(ctx context.Context) (id int, err error) {
+func (_q *ReportScorecardCheckQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = rscq.Limit(1).IDs(setContextOp(ctx, rscq.ctx, ent.OpQueryFirstID)); err != nil {
+	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -120,8 +120,8 @@ func (rscq *ReportScorecardCheckQuery) FirstID(ctx context.Context) (id int, err
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (rscq *ReportScorecardCheckQuery) FirstIDX(ctx context.Context) int {
-	id, err := rscq.FirstID(ctx)
+func (_q *ReportScorecardCheckQuery) FirstIDX(ctx context.Context) int {
+	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -131,8 +131,8 @@ func (rscq *ReportScorecardCheckQuery) FirstIDX(ctx context.Context) int {
 // Only returns a single ReportScorecardCheck entity found by the query, ensuring it only returns one.
 // Returns a *NotSingularError when more than one ReportScorecardCheck entity is found.
 // Returns a *NotFoundError when no ReportScorecardCheck entities are found.
-func (rscq *ReportScorecardCheckQuery) Only(ctx context.Context) (*ReportScorecardCheck, error) {
-	nodes, err := rscq.Limit(2).All(setContextOp(ctx, rscq.ctx, ent.OpQueryOnly))
+func (_q *ReportScorecardCheckQuery) Only(ctx context.Context) (*ReportScorecardCheck, error) {
+	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -147,8 +147,8 @@ func (rscq *ReportScorecardCheckQuery) Only(ctx context.Context) (*ReportScoreca
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (rscq *ReportScorecardCheckQuery) OnlyX(ctx context.Context) *ReportScorecardCheck {
-	node, err := rscq.Only(ctx)
+func (_q *ReportScorecardCheckQuery) OnlyX(ctx context.Context) *ReportScorecardCheck {
+	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -158,9 +158,9 @@ func (rscq *ReportScorecardCheckQuery) OnlyX(ctx context.Context) *ReportScoreca
 // OnlyID is like Only, but returns the only ReportScorecardCheck ID in the query.
 // Returns a *NotSingularError when more than one ReportScorecardCheck ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (rscq *ReportScorecardCheckQuery) OnlyID(ctx context.Context) (id int, err error) {
+func (_q *ReportScorecardCheckQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = rscq.Limit(2).IDs(setContextOp(ctx, rscq.ctx, ent.OpQueryOnlyID)); err != nil {
+	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -175,8 +175,8 @@ func (rscq *ReportScorecardCheckQuery) OnlyID(ctx context.Context) (id int, err 
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (rscq *ReportScorecardCheckQuery) OnlyIDX(ctx context.Context) int {
-	id, err := rscq.OnlyID(ctx)
+func (_q *ReportScorecardCheckQuery) OnlyIDX(ctx context.Context) int {
+	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -184,18 +184,18 @@ func (rscq *ReportScorecardCheckQuery) OnlyIDX(ctx context.Context) int {
 }
 
 // All executes the query and returns a list of ReportScorecardChecks.
-func (rscq *ReportScorecardCheckQuery) All(ctx context.Context) ([]*ReportScorecardCheck, error) {
-	ctx = setContextOp(ctx, rscq.ctx, ent.OpQueryAll)
-	if err := rscq.prepareQuery(ctx); err != nil {
+func (_q *ReportScorecardCheckQuery) All(ctx context.Context) ([]*ReportScorecardCheck, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
 	qr := querierAll[[]*ReportScorecardCheck, *ReportScorecardCheckQuery]()
-	return withInterceptors[[]*ReportScorecardCheck](ctx, rscq, qr, rscq.inters)
+	return withInterceptors[[]*ReportScorecardCheck](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (rscq *ReportScorecardCheckQuery) AllX(ctx context.Context) []*ReportScorecardCheck {
-	nodes, err := rscq.All(ctx)
+func (_q *ReportScorecardCheckQuery) AllX(ctx context.Context) []*ReportScorecardCheck {
+	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -203,20 +203,20 @@ func (rscq *ReportScorecardCheckQuery) AllX(ctx context.Context) []*ReportScorec
 }
 
 // IDs executes the query and returns a list of ReportScorecardCheck IDs.
-func (rscq *ReportScorecardCheckQuery) IDs(ctx context.Context) (ids []int, err error) {
-	if rscq.ctx.Unique == nil && rscq.path != nil {
-		rscq.Unique(true)
+func (_q *ReportScorecardCheckQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if _q.ctx.Unique == nil && _q.path != nil {
+		_q.Unique(true)
 	}
-	ctx = setContextOp(ctx, rscq.ctx, ent.OpQueryIDs)
-	if err = rscq.Select(reportscorecardcheck.FieldID).Scan(ctx, &ids); err != nil {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
+	if err = _q.Select(reportscorecardcheck.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (rscq *ReportScorecardCheckQuery) IDsX(ctx context.Context) []int {
-	ids, err := rscq.IDs(ctx)
+func (_q *ReportScorecardCheckQuery) IDsX(ctx context.Context) []int {
+	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -224,17 +224,17 @@ func (rscq *ReportScorecardCheckQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (rscq *ReportScorecardCheckQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, rscq.ctx, ent.OpQueryCount)
-	if err := rscq.prepareQuery(ctx); err != nil {
+func (_q *ReportScorecardCheckQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, rscq, querierCount[*ReportScorecardCheckQuery](), rscq.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*ReportScorecardCheckQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (rscq *ReportScorecardCheckQuery) CountX(ctx context.Context) int {
-	count, err := rscq.Count(ctx)
+func (_q *ReportScorecardCheckQuery) CountX(ctx context.Context) int {
+	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -242,9 +242,9 @@ func (rscq *ReportScorecardCheckQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (rscq *ReportScorecardCheckQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, rscq.ctx, ent.OpQueryExist)
-	switch _, err := rscq.FirstID(ctx); {
+func (_q *ReportScorecardCheckQuery) Exist(ctx context.Context) (bool, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
+	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
 	case err != nil:
@@ -255,8 +255,8 @@ func (rscq *ReportScorecardCheckQuery) Exist(ctx context.Context) (bool, error) 
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (rscq *ReportScorecardCheckQuery) ExistX(ctx context.Context) bool {
-	exist, err := rscq.Exist(ctx)
+func (_q *ReportScorecardCheckQuery) ExistX(ctx context.Context) bool {
+	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -265,32 +265,32 @@ func (rscq *ReportScorecardCheckQuery) ExistX(ctx context.Context) bool {
 
 // Clone returns a duplicate of the ReportScorecardCheckQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (rscq *ReportScorecardCheckQuery) Clone() *ReportScorecardCheckQuery {
-	if rscq == nil {
+func (_q *ReportScorecardCheckQuery) Clone() *ReportScorecardCheckQuery {
+	if _q == nil {
 		return nil
 	}
 	return &ReportScorecardCheckQuery{
-		config:        rscq.config,
-		ctx:           rscq.ctx.Clone(),
-		order:         append([]reportscorecardcheck.OrderOption{}, rscq.order...),
-		inters:        append([]Interceptor{}, rscq.inters...),
-		predicates:    append([]predicate.ReportScorecardCheck{}, rscq.predicates...),
-		withScorecard: rscq.withScorecard.Clone(),
+		config:        _q.config,
+		ctx:           _q.ctx.Clone(),
+		order:         append([]reportscorecardcheck.OrderOption{}, _q.order...),
+		inters:        append([]Interceptor{}, _q.inters...),
+		predicates:    append([]predicate.ReportScorecardCheck{}, _q.predicates...),
+		withScorecard: _q.withScorecard.Clone(),
 		// clone intermediate query.
-		sql:  rscq.sql.Clone(),
-		path: rscq.path,
+		sql:  _q.sql.Clone(),
+		path: _q.path,
 	}
 }
 
 // WithScorecard tells the query-builder to eager-load the nodes that are connected to
 // the "scorecard" edge. The optional arguments are used to configure the query builder of the edge.
-func (rscq *ReportScorecardCheckQuery) WithScorecard(opts ...func(*ReportScorecardQuery)) *ReportScorecardCheckQuery {
-	query := (&ReportScorecardClient{config: rscq.config}).Query()
+func (_q *ReportScorecardCheckQuery) WithScorecard(opts ...func(*ReportScorecardQuery)) *ReportScorecardCheckQuery {
+	query := (&ReportScorecardClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	rscq.withScorecard = query
-	return rscq
+	_q.withScorecard = query
+	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -307,10 +307,10 @@ func (rscq *ReportScorecardCheckQuery) WithScorecard(opts ...func(*ReportScoreca
 //		GroupBy(reportscorecardcheck.FieldName).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (rscq *ReportScorecardCheckQuery) GroupBy(field string, fields ...string) *ReportScorecardCheckGroupBy {
-	rscq.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &ReportScorecardCheckGroupBy{build: rscq}
-	grbuild.flds = &rscq.ctx.Fields
+func (_q *ReportScorecardCheckQuery) GroupBy(field string, fields ...string) *ReportScorecardCheckGroupBy {
+	_q.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &ReportScorecardCheckGroupBy{build: _q}
+	grbuild.flds = &_q.ctx.Fields
 	grbuild.label = reportscorecardcheck.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -328,55 +328,55 @@ func (rscq *ReportScorecardCheckQuery) GroupBy(field string, fields ...string) *
 //	client.ReportScorecardCheck.Query().
 //		Select(reportscorecardcheck.FieldName).
 //		Scan(ctx, &v)
-func (rscq *ReportScorecardCheckQuery) Select(fields ...string) *ReportScorecardCheckSelect {
-	rscq.ctx.Fields = append(rscq.ctx.Fields, fields...)
-	sbuild := &ReportScorecardCheckSelect{ReportScorecardCheckQuery: rscq}
+func (_q *ReportScorecardCheckQuery) Select(fields ...string) *ReportScorecardCheckSelect {
+	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
+	sbuild := &ReportScorecardCheckSelect{ReportScorecardCheckQuery: _q}
 	sbuild.label = reportscorecardcheck.Label
-	sbuild.flds, sbuild.scan = &rscq.ctx.Fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
 // Aggregate returns a ReportScorecardCheckSelect configured with the given aggregations.
-func (rscq *ReportScorecardCheckQuery) Aggregate(fns ...AggregateFunc) *ReportScorecardCheckSelect {
-	return rscq.Select().Aggregate(fns...)
+func (_q *ReportScorecardCheckQuery) Aggregate(fns ...AggregateFunc) *ReportScorecardCheckSelect {
+	return _q.Select().Aggregate(fns...)
 }
 
-func (rscq *ReportScorecardCheckQuery) prepareQuery(ctx context.Context) error {
-	for _, inter := range rscq.inters {
+func (_q *ReportScorecardCheckQuery) prepareQuery(ctx context.Context) error {
+	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
 		}
 		if trv, ok := inter.(Traverser); ok {
-			if err := trv.Traverse(ctx, rscq); err != nil {
+			if err := trv.Traverse(ctx, _q); err != nil {
 				return err
 			}
 		}
 	}
-	for _, f := range rscq.ctx.Fields {
+	for _, f := range _q.ctx.Fields {
 		if !reportscorecardcheck.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
-	if rscq.path != nil {
-		prev, err := rscq.path(ctx)
+	if _q.path != nil {
+		prev, err := _q.path(ctx)
 		if err != nil {
 			return err
 		}
-		rscq.sql = prev
+		_q.sql = prev
 	}
 	return nil
 }
 
-func (rscq *ReportScorecardCheckQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ReportScorecardCheck, error) {
+func (_q *ReportScorecardCheckQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ReportScorecardCheck, error) {
 	var (
 		nodes       = []*ReportScorecardCheck{}
-		withFKs     = rscq.withFKs
-		_spec       = rscq.querySpec()
+		withFKs     = _q.withFKs
+		_spec       = _q.querySpec()
 		loadedTypes = [1]bool{
-			rscq.withScorecard != nil,
+			_q.withScorecard != nil,
 		}
 	)
-	if rscq.withScorecard != nil {
+	if _q.withScorecard != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -386,7 +386,7 @@ func (rscq *ReportScorecardCheckQuery) sqlAll(ctx context.Context, hooks ...quer
 		return (*ReportScorecardCheck).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &ReportScorecardCheck{config: rscq.config}
+		node := &ReportScorecardCheck{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
@@ -394,14 +394,14 @@ func (rscq *ReportScorecardCheckQuery) sqlAll(ctx context.Context, hooks ...quer
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
-	if err := sqlgraph.QueryNodes(ctx, rscq.driver, _spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, _q.driver, _spec); err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := rscq.withScorecard; query != nil {
-		if err := rscq.loadScorecard(ctx, query, nodes, nil,
+	if query := _q.withScorecard; query != nil {
+		if err := _q.loadScorecard(ctx, query, nodes, nil,
 			func(n *ReportScorecardCheck, e *ReportScorecard) { n.Edges.Scorecard = e }); err != nil {
 			return nil, err
 		}
@@ -409,7 +409,7 @@ func (rscq *ReportScorecardCheckQuery) sqlAll(ctx context.Context, hooks ...quer
 	return nodes, nil
 }
 
-func (rscq *ReportScorecardCheckQuery) loadScorecard(ctx context.Context, query *ReportScorecardQuery, nodes []*ReportScorecardCheck, init func(*ReportScorecardCheck), assign func(*ReportScorecardCheck, *ReportScorecard)) error {
+func (_q *ReportScorecardCheckQuery) loadScorecard(ctx context.Context, query *ReportScorecardQuery, nodes []*ReportScorecardCheck, init func(*ReportScorecardCheck), assign func(*ReportScorecardCheck, *ReportScorecard)) error {
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*ReportScorecardCheck)
 	for i := range nodes {
@@ -442,24 +442,24 @@ func (rscq *ReportScorecardCheckQuery) loadScorecard(ctx context.Context, query 
 	return nil
 }
 
-func (rscq *ReportScorecardCheckQuery) sqlCount(ctx context.Context) (int, error) {
-	_spec := rscq.querySpec()
-	_spec.Node.Columns = rscq.ctx.Fields
-	if len(rscq.ctx.Fields) > 0 {
-		_spec.Unique = rscq.ctx.Unique != nil && *rscq.ctx.Unique
+func (_q *ReportScorecardCheckQuery) sqlCount(ctx context.Context) (int, error) {
+	_spec := _q.querySpec()
+	_spec.Node.Columns = _q.ctx.Fields
+	if len(_q.ctx.Fields) > 0 {
+		_spec.Unique = _q.ctx.Unique != nil && *_q.ctx.Unique
 	}
-	return sqlgraph.CountNodes(ctx, rscq.driver, _spec)
+	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (rscq *ReportScorecardCheckQuery) querySpec() *sqlgraph.QuerySpec {
+func (_q *ReportScorecardCheckQuery) querySpec() *sqlgraph.QuerySpec {
 	_spec := sqlgraph.NewQuerySpec(reportscorecardcheck.Table, reportscorecardcheck.Columns, sqlgraph.NewFieldSpec(reportscorecardcheck.FieldID, field.TypeInt))
-	_spec.From = rscq.sql
-	if unique := rscq.ctx.Unique; unique != nil {
+	_spec.From = _q.sql
+	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
-	} else if rscq.path != nil {
+	} else if _q.path != nil {
 		_spec.Unique = true
 	}
-	if fields := rscq.ctx.Fields; len(fields) > 0 {
+	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, reportscorecardcheck.FieldID)
 		for i := range fields {
@@ -468,20 +468,20 @@ func (rscq *ReportScorecardCheckQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if ps := rscq.predicates; len(ps) > 0 {
+	if ps := _q.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if limit := rscq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := rscq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
-	if ps := rscq.order; len(ps) > 0 {
+	if ps := _q.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
@@ -491,33 +491,33 @@ func (rscq *ReportScorecardCheckQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (rscq *ReportScorecardCheckQuery) sqlQuery(ctx context.Context) *sql.Selector {
-	builder := sql.Dialect(rscq.driver.Dialect())
+func (_q *ReportScorecardCheckQuery) sqlQuery(ctx context.Context) *sql.Selector {
+	builder := sql.Dialect(_q.driver.Dialect())
 	t1 := builder.Table(reportscorecardcheck.Table)
-	columns := rscq.ctx.Fields
+	columns := _q.ctx.Fields
 	if len(columns) == 0 {
 		columns = reportscorecardcheck.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
-	if rscq.sql != nil {
-		selector = rscq.sql
+	if _q.sql != nil {
+		selector = _q.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if rscq.ctx.Unique != nil && *rscq.ctx.Unique {
+	if _q.ctx.Unique != nil && *_q.ctx.Unique {
 		selector.Distinct()
 	}
-	for _, p := range rscq.predicates {
+	for _, p := range _q.predicates {
 		p(selector)
 	}
-	for _, p := range rscq.order {
+	for _, p := range _q.order {
 		p(selector)
 	}
-	if offset := rscq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := rscq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -530,41 +530,41 @@ type ReportScorecardCheckGroupBy struct {
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (rscgb *ReportScorecardCheckGroupBy) Aggregate(fns ...AggregateFunc) *ReportScorecardCheckGroupBy {
-	rscgb.fns = append(rscgb.fns, fns...)
-	return rscgb
+func (_g *ReportScorecardCheckGroupBy) Aggregate(fns ...AggregateFunc) *ReportScorecardCheckGroupBy {
+	_g.fns = append(_g.fns, fns...)
+	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (rscgb *ReportScorecardCheckGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, rscgb.build.ctx, ent.OpQueryGroupBy)
-	if err := rscgb.build.prepareQuery(ctx); err != nil {
+func (_g *ReportScorecardCheckGroupBy) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
+	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*ReportScorecardCheckQuery, *ReportScorecardCheckGroupBy](ctx, rscgb.build, rscgb, rscgb.build.inters, v)
+	return scanWithInterceptors[*ReportScorecardCheckQuery, *ReportScorecardCheckGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (rscgb *ReportScorecardCheckGroupBy) sqlScan(ctx context.Context, root *ReportScorecardCheckQuery, v any) error {
+func (_g *ReportScorecardCheckGroupBy) sqlScan(ctx context.Context, root *ReportScorecardCheckQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
-	aggregation := make([]string, 0, len(rscgb.fns))
-	for _, fn := range rscgb.fns {
+	aggregation := make([]string, 0, len(_g.fns))
+	for _, fn := range _g.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
 	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(*rscgb.flds)+len(rscgb.fns))
-		for _, f := range *rscgb.flds {
+		columns := make([]string, 0, len(*_g.flds)+len(_g.fns))
+		for _, f := range *_g.flds {
 			columns = append(columns, selector.C(f))
 		}
 		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
-	selector.GroupBy(selector.Columns(*rscgb.flds...)...)
+	selector.GroupBy(selector.Columns(*_g.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := rscgb.build.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _g.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
@@ -578,27 +578,27 @@ type ReportScorecardCheckSelect struct {
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (rscs *ReportScorecardCheckSelect) Aggregate(fns ...AggregateFunc) *ReportScorecardCheckSelect {
-	rscs.fns = append(rscs.fns, fns...)
-	return rscs
+func (_s *ReportScorecardCheckSelect) Aggregate(fns ...AggregateFunc) *ReportScorecardCheckSelect {
+	_s.fns = append(_s.fns, fns...)
+	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (rscs *ReportScorecardCheckSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, rscs.ctx, ent.OpQuerySelect)
-	if err := rscs.prepareQuery(ctx); err != nil {
+func (_s *ReportScorecardCheckSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
+	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*ReportScorecardCheckQuery, *ReportScorecardCheckSelect](ctx, rscs.ReportScorecardCheckQuery, rscs, rscs.inters, v)
+	return scanWithInterceptors[*ReportScorecardCheckQuery, *ReportScorecardCheckSelect](ctx, _s.ReportScorecardCheckQuery, _s, _s.inters, v)
 }
 
-func (rscs *ReportScorecardCheckSelect) sqlScan(ctx context.Context, root *ReportScorecardCheckQuery, v any) error {
+func (_s *ReportScorecardCheckSelect) sqlScan(ctx context.Context, root *ReportScorecardCheckQuery, v any) error {
 	selector := root.sqlQuery(ctx)
-	aggregation := make([]string, 0, len(rscs.fns))
-	for _, fn := range rscs.fns {
+	aggregation := make([]string, 0, len(_s.fns))
+	for _, fn := range _s.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	switch n := len(*rscs.selector.flds); {
+	switch n := len(*_s.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
 		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
@@ -606,7 +606,7 @@ func (rscs *ReportScorecardCheckSelect) sqlScan(ctx context.Context, root *Repor
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := rscs.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _s.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()

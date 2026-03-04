@@ -31,44 +31,44 @@ type ReportPackageManifestQuery struct {
 }
 
 // Where adds a new predicate for the ReportPackageManifestQuery builder.
-func (rpmq *ReportPackageManifestQuery) Where(ps ...predicate.ReportPackageManifest) *ReportPackageManifestQuery {
-	rpmq.predicates = append(rpmq.predicates, ps...)
-	return rpmq
+func (_q *ReportPackageManifestQuery) Where(ps ...predicate.ReportPackageManifest) *ReportPackageManifestQuery {
+	_q.predicates = append(_q.predicates, ps...)
+	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (rpmq *ReportPackageManifestQuery) Limit(limit int) *ReportPackageManifestQuery {
-	rpmq.ctx.Limit = &limit
-	return rpmq
+func (_q *ReportPackageManifestQuery) Limit(limit int) *ReportPackageManifestQuery {
+	_q.ctx.Limit = &limit
+	return _q
 }
 
 // Offset to start from.
-func (rpmq *ReportPackageManifestQuery) Offset(offset int) *ReportPackageManifestQuery {
-	rpmq.ctx.Offset = &offset
-	return rpmq
+func (_q *ReportPackageManifestQuery) Offset(offset int) *ReportPackageManifestQuery {
+	_q.ctx.Offset = &offset
+	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (rpmq *ReportPackageManifestQuery) Unique(unique bool) *ReportPackageManifestQuery {
-	rpmq.ctx.Unique = &unique
-	return rpmq
+func (_q *ReportPackageManifestQuery) Unique(unique bool) *ReportPackageManifestQuery {
+	_q.ctx.Unique = &unique
+	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (rpmq *ReportPackageManifestQuery) Order(o ...reportpackagemanifest.OrderOption) *ReportPackageManifestQuery {
-	rpmq.order = append(rpmq.order, o...)
-	return rpmq
+func (_q *ReportPackageManifestQuery) Order(o ...reportpackagemanifest.OrderOption) *ReportPackageManifestQuery {
+	_q.order = append(_q.order, o...)
+	return _q
 }
 
 // QueryPackages chains the current query on the "packages" edge.
-func (rpmq *ReportPackageManifestQuery) QueryPackages() *ReportPackageQuery {
-	query := (&ReportPackageClient{config: rpmq.config}).Query()
+func (_q *ReportPackageManifestQuery) QueryPackages() *ReportPackageQuery {
+	query := (&ReportPackageClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := rpmq.prepareQuery(ctx); err != nil {
+		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := rpmq.sqlQuery(ctx)
+		selector := _q.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
@@ -77,7 +77,7 @@ func (rpmq *ReportPackageManifestQuery) QueryPackages() *ReportPackageQuery {
 			sqlgraph.To(reportpackage.Table, reportpackage.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, reportpackagemanifest.PackagesTable, reportpackagemanifest.PackagesPrimaryKey...),
 		)
-		fromU = sqlgraph.SetNeighbors(rpmq.driver.Dialect(), step)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
@@ -85,8 +85,8 @@ func (rpmq *ReportPackageManifestQuery) QueryPackages() *ReportPackageQuery {
 
 // First returns the first ReportPackageManifest entity from the query.
 // Returns a *NotFoundError when no ReportPackageManifest was found.
-func (rpmq *ReportPackageManifestQuery) First(ctx context.Context) (*ReportPackageManifest, error) {
-	nodes, err := rpmq.Limit(1).All(setContextOp(ctx, rpmq.ctx, ent.OpQueryFirst))
+func (_q *ReportPackageManifestQuery) First(ctx context.Context) (*ReportPackageManifest, error) {
+	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -97,8 +97,8 @@ func (rpmq *ReportPackageManifestQuery) First(ctx context.Context) (*ReportPacka
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (rpmq *ReportPackageManifestQuery) FirstX(ctx context.Context) *ReportPackageManifest {
-	node, err := rpmq.First(ctx)
+func (_q *ReportPackageManifestQuery) FirstX(ctx context.Context) *ReportPackageManifest {
+	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -107,9 +107,9 @@ func (rpmq *ReportPackageManifestQuery) FirstX(ctx context.Context) *ReportPacka
 
 // FirstID returns the first ReportPackageManifest ID from the query.
 // Returns a *NotFoundError when no ReportPackageManifest ID was found.
-func (rpmq *ReportPackageManifestQuery) FirstID(ctx context.Context) (id int, err error) {
+func (_q *ReportPackageManifestQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = rpmq.Limit(1).IDs(setContextOp(ctx, rpmq.ctx, ent.OpQueryFirstID)); err != nil {
+	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -120,8 +120,8 @@ func (rpmq *ReportPackageManifestQuery) FirstID(ctx context.Context) (id int, er
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (rpmq *ReportPackageManifestQuery) FirstIDX(ctx context.Context) int {
-	id, err := rpmq.FirstID(ctx)
+func (_q *ReportPackageManifestQuery) FirstIDX(ctx context.Context) int {
+	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -131,8 +131,8 @@ func (rpmq *ReportPackageManifestQuery) FirstIDX(ctx context.Context) int {
 // Only returns a single ReportPackageManifest entity found by the query, ensuring it only returns one.
 // Returns a *NotSingularError when more than one ReportPackageManifest entity is found.
 // Returns a *NotFoundError when no ReportPackageManifest entities are found.
-func (rpmq *ReportPackageManifestQuery) Only(ctx context.Context) (*ReportPackageManifest, error) {
-	nodes, err := rpmq.Limit(2).All(setContextOp(ctx, rpmq.ctx, ent.OpQueryOnly))
+func (_q *ReportPackageManifestQuery) Only(ctx context.Context) (*ReportPackageManifest, error) {
+	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -147,8 +147,8 @@ func (rpmq *ReportPackageManifestQuery) Only(ctx context.Context) (*ReportPackag
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (rpmq *ReportPackageManifestQuery) OnlyX(ctx context.Context) *ReportPackageManifest {
-	node, err := rpmq.Only(ctx)
+func (_q *ReportPackageManifestQuery) OnlyX(ctx context.Context) *ReportPackageManifest {
+	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -158,9 +158,9 @@ func (rpmq *ReportPackageManifestQuery) OnlyX(ctx context.Context) *ReportPackag
 // OnlyID is like Only, but returns the only ReportPackageManifest ID in the query.
 // Returns a *NotSingularError when more than one ReportPackageManifest ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (rpmq *ReportPackageManifestQuery) OnlyID(ctx context.Context) (id int, err error) {
+func (_q *ReportPackageManifestQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = rpmq.Limit(2).IDs(setContextOp(ctx, rpmq.ctx, ent.OpQueryOnlyID)); err != nil {
+	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -175,8 +175,8 @@ func (rpmq *ReportPackageManifestQuery) OnlyID(ctx context.Context) (id int, err
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (rpmq *ReportPackageManifestQuery) OnlyIDX(ctx context.Context) int {
-	id, err := rpmq.OnlyID(ctx)
+func (_q *ReportPackageManifestQuery) OnlyIDX(ctx context.Context) int {
+	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -184,18 +184,18 @@ func (rpmq *ReportPackageManifestQuery) OnlyIDX(ctx context.Context) int {
 }
 
 // All executes the query and returns a list of ReportPackageManifests.
-func (rpmq *ReportPackageManifestQuery) All(ctx context.Context) ([]*ReportPackageManifest, error) {
-	ctx = setContextOp(ctx, rpmq.ctx, ent.OpQueryAll)
-	if err := rpmq.prepareQuery(ctx); err != nil {
+func (_q *ReportPackageManifestQuery) All(ctx context.Context) ([]*ReportPackageManifest, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
 	qr := querierAll[[]*ReportPackageManifest, *ReportPackageManifestQuery]()
-	return withInterceptors[[]*ReportPackageManifest](ctx, rpmq, qr, rpmq.inters)
+	return withInterceptors[[]*ReportPackageManifest](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (rpmq *ReportPackageManifestQuery) AllX(ctx context.Context) []*ReportPackageManifest {
-	nodes, err := rpmq.All(ctx)
+func (_q *ReportPackageManifestQuery) AllX(ctx context.Context) []*ReportPackageManifest {
+	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -203,20 +203,20 @@ func (rpmq *ReportPackageManifestQuery) AllX(ctx context.Context) []*ReportPacka
 }
 
 // IDs executes the query and returns a list of ReportPackageManifest IDs.
-func (rpmq *ReportPackageManifestQuery) IDs(ctx context.Context) (ids []int, err error) {
-	if rpmq.ctx.Unique == nil && rpmq.path != nil {
-		rpmq.Unique(true)
+func (_q *ReportPackageManifestQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if _q.ctx.Unique == nil && _q.path != nil {
+		_q.Unique(true)
 	}
-	ctx = setContextOp(ctx, rpmq.ctx, ent.OpQueryIDs)
-	if err = rpmq.Select(reportpackagemanifest.FieldID).Scan(ctx, &ids); err != nil {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
+	if err = _q.Select(reportpackagemanifest.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (rpmq *ReportPackageManifestQuery) IDsX(ctx context.Context) []int {
-	ids, err := rpmq.IDs(ctx)
+func (_q *ReportPackageManifestQuery) IDsX(ctx context.Context) []int {
+	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -224,17 +224,17 @@ func (rpmq *ReportPackageManifestQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (rpmq *ReportPackageManifestQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, rpmq.ctx, ent.OpQueryCount)
-	if err := rpmq.prepareQuery(ctx); err != nil {
+func (_q *ReportPackageManifestQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, rpmq, querierCount[*ReportPackageManifestQuery](), rpmq.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*ReportPackageManifestQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (rpmq *ReportPackageManifestQuery) CountX(ctx context.Context) int {
-	count, err := rpmq.Count(ctx)
+func (_q *ReportPackageManifestQuery) CountX(ctx context.Context) int {
+	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -242,9 +242,9 @@ func (rpmq *ReportPackageManifestQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (rpmq *ReportPackageManifestQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, rpmq.ctx, ent.OpQueryExist)
-	switch _, err := rpmq.FirstID(ctx); {
+func (_q *ReportPackageManifestQuery) Exist(ctx context.Context) (bool, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
+	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
 	case err != nil:
@@ -255,8 +255,8 @@ func (rpmq *ReportPackageManifestQuery) Exist(ctx context.Context) (bool, error)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (rpmq *ReportPackageManifestQuery) ExistX(ctx context.Context) bool {
-	exist, err := rpmq.Exist(ctx)
+func (_q *ReportPackageManifestQuery) ExistX(ctx context.Context) bool {
+	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -265,32 +265,32 @@ func (rpmq *ReportPackageManifestQuery) ExistX(ctx context.Context) bool {
 
 // Clone returns a duplicate of the ReportPackageManifestQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (rpmq *ReportPackageManifestQuery) Clone() *ReportPackageManifestQuery {
-	if rpmq == nil {
+func (_q *ReportPackageManifestQuery) Clone() *ReportPackageManifestQuery {
+	if _q == nil {
 		return nil
 	}
 	return &ReportPackageManifestQuery{
-		config:       rpmq.config,
-		ctx:          rpmq.ctx.Clone(),
-		order:        append([]reportpackagemanifest.OrderOption{}, rpmq.order...),
-		inters:       append([]Interceptor{}, rpmq.inters...),
-		predicates:   append([]predicate.ReportPackageManifest{}, rpmq.predicates...),
-		withPackages: rpmq.withPackages.Clone(),
+		config:       _q.config,
+		ctx:          _q.ctx.Clone(),
+		order:        append([]reportpackagemanifest.OrderOption{}, _q.order...),
+		inters:       append([]Interceptor{}, _q.inters...),
+		predicates:   append([]predicate.ReportPackageManifest{}, _q.predicates...),
+		withPackages: _q.withPackages.Clone(),
 		// clone intermediate query.
-		sql:  rpmq.sql.Clone(),
-		path: rpmq.path,
+		sql:  _q.sql.Clone(),
+		path: _q.path,
 	}
 }
 
 // WithPackages tells the query-builder to eager-load the nodes that are connected to
 // the "packages" edge. The optional arguments are used to configure the query builder of the edge.
-func (rpmq *ReportPackageManifestQuery) WithPackages(opts ...func(*ReportPackageQuery)) *ReportPackageManifestQuery {
-	query := (&ReportPackageClient{config: rpmq.config}).Query()
+func (_q *ReportPackageManifestQuery) WithPackages(opts ...func(*ReportPackageQuery)) *ReportPackageManifestQuery {
+	query := (&ReportPackageClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	rpmq.withPackages = query
-	return rpmq
+	_q.withPackages = query
+	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -307,10 +307,10 @@ func (rpmq *ReportPackageManifestQuery) WithPackages(opts ...func(*ReportPackage
 //		GroupBy(reportpackagemanifest.FieldManifestID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (rpmq *ReportPackageManifestQuery) GroupBy(field string, fields ...string) *ReportPackageManifestGroupBy {
-	rpmq.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &ReportPackageManifestGroupBy{build: rpmq}
-	grbuild.flds = &rpmq.ctx.Fields
+func (_q *ReportPackageManifestQuery) GroupBy(field string, fields ...string) *ReportPackageManifestGroupBy {
+	_q.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &ReportPackageManifestGroupBy{build: _q}
+	grbuild.flds = &_q.ctx.Fields
 	grbuild.label = reportpackagemanifest.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -328,58 +328,58 @@ func (rpmq *ReportPackageManifestQuery) GroupBy(field string, fields ...string) 
 //	client.ReportPackageManifest.Query().
 //		Select(reportpackagemanifest.FieldManifestID).
 //		Scan(ctx, &v)
-func (rpmq *ReportPackageManifestQuery) Select(fields ...string) *ReportPackageManifestSelect {
-	rpmq.ctx.Fields = append(rpmq.ctx.Fields, fields...)
-	sbuild := &ReportPackageManifestSelect{ReportPackageManifestQuery: rpmq}
+func (_q *ReportPackageManifestQuery) Select(fields ...string) *ReportPackageManifestSelect {
+	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
+	sbuild := &ReportPackageManifestSelect{ReportPackageManifestQuery: _q}
 	sbuild.label = reportpackagemanifest.Label
-	sbuild.flds, sbuild.scan = &rpmq.ctx.Fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
 // Aggregate returns a ReportPackageManifestSelect configured with the given aggregations.
-func (rpmq *ReportPackageManifestQuery) Aggregate(fns ...AggregateFunc) *ReportPackageManifestSelect {
-	return rpmq.Select().Aggregate(fns...)
+func (_q *ReportPackageManifestQuery) Aggregate(fns ...AggregateFunc) *ReportPackageManifestSelect {
+	return _q.Select().Aggregate(fns...)
 }
 
-func (rpmq *ReportPackageManifestQuery) prepareQuery(ctx context.Context) error {
-	for _, inter := range rpmq.inters {
+func (_q *ReportPackageManifestQuery) prepareQuery(ctx context.Context) error {
+	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
 		}
 		if trv, ok := inter.(Traverser); ok {
-			if err := trv.Traverse(ctx, rpmq); err != nil {
+			if err := trv.Traverse(ctx, _q); err != nil {
 				return err
 			}
 		}
 	}
-	for _, f := range rpmq.ctx.Fields {
+	for _, f := range _q.ctx.Fields {
 		if !reportpackagemanifest.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
-	if rpmq.path != nil {
-		prev, err := rpmq.path(ctx)
+	if _q.path != nil {
+		prev, err := _q.path(ctx)
 		if err != nil {
 			return err
 		}
-		rpmq.sql = prev
+		_q.sql = prev
 	}
 	return nil
 }
 
-func (rpmq *ReportPackageManifestQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ReportPackageManifest, error) {
+func (_q *ReportPackageManifestQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ReportPackageManifest, error) {
 	var (
 		nodes       = []*ReportPackageManifest{}
-		_spec       = rpmq.querySpec()
+		_spec       = _q.querySpec()
 		loadedTypes = [1]bool{
-			rpmq.withPackages != nil,
+			_q.withPackages != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*ReportPackageManifest).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &ReportPackageManifest{config: rpmq.config}
+		node := &ReportPackageManifest{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
@@ -387,14 +387,14 @@ func (rpmq *ReportPackageManifestQuery) sqlAll(ctx context.Context, hooks ...que
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
-	if err := sqlgraph.QueryNodes(ctx, rpmq.driver, _spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, _q.driver, _spec); err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := rpmq.withPackages; query != nil {
-		if err := rpmq.loadPackages(ctx, query, nodes,
+	if query := _q.withPackages; query != nil {
+		if err := _q.loadPackages(ctx, query, nodes,
 			func(n *ReportPackageManifest) { n.Edges.Packages = []*ReportPackage{} },
 			func(n *ReportPackageManifest, e *ReportPackage) { n.Edges.Packages = append(n.Edges.Packages, e) }); err != nil {
 			return nil, err
@@ -403,7 +403,7 @@ func (rpmq *ReportPackageManifestQuery) sqlAll(ctx context.Context, hooks ...que
 	return nodes, nil
 }
 
-func (rpmq *ReportPackageManifestQuery) loadPackages(ctx context.Context, query *ReportPackageQuery, nodes []*ReportPackageManifest, init func(*ReportPackageManifest), assign func(*ReportPackageManifest, *ReportPackage)) error {
+func (_q *ReportPackageManifestQuery) loadPackages(ctx context.Context, query *ReportPackageQuery, nodes []*ReportPackageManifest, init func(*ReportPackageManifest), assign func(*ReportPackageManifest, *ReportPackage)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
 	byID := make(map[int]*ReportPackageManifest)
 	nids := make(map[int]map[*ReportPackageManifest]struct{})
@@ -465,24 +465,24 @@ func (rpmq *ReportPackageManifestQuery) loadPackages(ctx context.Context, query 
 	return nil
 }
 
-func (rpmq *ReportPackageManifestQuery) sqlCount(ctx context.Context) (int, error) {
-	_spec := rpmq.querySpec()
-	_spec.Node.Columns = rpmq.ctx.Fields
-	if len(rpmq.ctx.Fields) > 0 {
-		_spec.Unique = rpmq.ctx.Unique != nil && *rpmq.ctx.Unique
+func (_q *ReportPackageManifestQuery) sqlCount(ctx context.Context) (int, error) {
+	_spec := _q.querySpec()
+	_spec.Node.Columns = _q.ctx.Fields
+	if len(_q.ctx.Fields) > 0 {
+		_spec.Unique = _q.ctx.Unique != nil && *_q.ctx.Unique
 	}
-	return sqlgraph.CountNodes(ctx, rpmq.driver, _spec)
+	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (rpmq *ReportPackageManifestQuery) querySpec() *sqlgraph.QuerySpec {
+func (_q *ReportPackageManifestQuery) querySpec() *sqlgraph.QuerySpec {
 	_spec := sqlgraph.NewQuerySpec(reportpackagemanifest.Table, reportpackagemanifest.Columns, sqlgraph.NewFieldSpec(reportpackagemanifest.FieldID, field.TypeInt))
-	_spec.From = rpmq.sql
-	if unique := rpmq.ctx.Unique; unique != nil {
+	_spec.From = _q.sql
+	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
-	} else if rpmq.path != nil {
+	} else if _q.path != nil {
 		_spec.Unique = true
 	}
-	if fields := rpmq.ctx.Fields; len(fields) > 0 {
+	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, reportpackagemanifest.FieldID)
 		for i := range fields {
@@ -491,20 +491,20 @@ func (rpmq *ReportPackageManifestQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if ps := rpmq.predicates; len(ps) > 0 {
+	if ps := _q.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if limit := rpmq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := rpmq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
-	if ps := rpmq.order; len(ps) > 0 {
+	if ps := _q.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
@@ -514,33 +514,33 @@ func (rpmq *ReportPackageManifestQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (rpmq *ReportPackageManifestQuery) sqlQuery(ctx context.Context) *sql.Selector {
-	builder := sql.Dialect(rpmq.driver.Dialect())
+func (_q *ReportPackageManifestQuery) sqlQuery(ctx context.Context) *sql.Selector {
+	builder := sql.Dialect(_q.driver.Dialect())
 	t1 := builder.Table(reportpackagemanifest.Table)
-	columns := rpmq.ctx.Fields
+	columns := _q.ctx.Fields
 	if len(columns) == 0 {
 		columns = reportpackagemanifest.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
-	if rpmq.sql != nil {
-		selector = rpmq.sql
+	if _q.sql != nil {
+		selector = _q.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if rpmq.ctx.Unique != nil && *rpmq.ctx.Unique {
+	if _q.ctx.Unique != nil && *_q.ctx.Unique {
 		selector.Distinct()
 	}
-	for _, p := range rpmq.predicates {
+	for _, p := range _q.predicates {
 		p(selector)
 	}
-	for _, p := range rpmq.order {
+	for _, p := range _q.order {
 		p(selector)
 	}
-	if offset := rpmq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := rpmq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -553,41 +553,41 @@ type ReportPackageManifestGroupBy struct {
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (rpmgb *ReportPackageManifestGroupBy) Aggregate(fns ...AggregateFunc) *ReportPackageManifestGroupBy {
-	rpmgb.fns = append(rpmgb.fns, fns...)
-	return rpmgb
+func (_g *ReportPackageManifestGroupBy) Aggregate(fns ...AggregateFunc) *ReportPackageManifestGroupBy {
+	_g.fns = append(_g.fns, fns...)
+	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (rpmgb *ReportPackageManifestGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, rpmgb.build.ctx, ent.OpQueryGroupBy)
-	if err := rpmgb.build.prepareQuery(ctx); err != nil {
+func (_g *ReportPackageManifestGroupBy) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
+	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*ReportPackageManifestQuery, *ReportPackageManifestGroupBy](ctx, rpmgb.build, rpmgb, rpmgb.build.inters, v)
+	return scanWithInterceptors[*ReportPackageManifestQuery, *ReportPackageManifestGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (rpmgb *ReportPackageManifestGroupBy) sqlScan(ctx context.Context, root *ReportPackageManifestQuery, v any) error {
+func (_g *ReportPackageManifestGroupBy) sqlScan(ctx context.Context, root *ReportPackageManifestQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
-	aggregation := make([]string, 0, len(rpmgb.fns))
-	for _, fn := range rpmgb.fns {
+	aggregation := make([]string, 0, len(_g.fns))
+	for _, fn := range _g.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
 	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(*rpmgb.flds)+len(rpmgb.fns))
-		for _, f := range *rpmgb.flds {
+		columns := make([]string, 0, len(*_g.flds)+len(_g.fns))
+		for _, f := range *_g.flds {
 			columns = append(columns, selector.C(f))
 		}
 		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
-	selector.GroupBy(selector.Columns(*rpmgb.flds...)...)
+	selector.GroupBy(selector.Columns(*_g.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := rpmgb.build.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _g.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
@@ -601,27 +601,27 @@ type ReportPackageManifestSelect struct {
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (rpms *ReportPackageManifestSelect) Aggregate(fns ...AggregateFunc) *ReportPackageManifestSelect {
-	rpms.fns = append(rpms.fns, fns...)
-	return rpms
+func (_s *ReportPackageManifestSelect) Aggregate(fns ...AggregateFunc) *ReportPackageManifestSelect {
+	_s.fns = append(_s.fns, fns...)
+	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (rpms *ReportPackageManifestSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, rpms.ctx, ent.OpQuerySelect)
-	if err := rpms.prepareQuery(ctx); err != nil {
+func (_s *ReportPackageManifestSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
+	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*ReportPackageManifestQuery, *ReportPackageManifestSelect](ctx, rpms.ReportPackageManifestQuery, rpms, rpms.inters, v)
+	return scanWithInterceptors[*ReportPackageManifestQuery, *ReportPackageManifestSelect](ctx, _s.ReportPackageManifestQuery, _s, _s.inters, v)
 }
 
-func (rpms *ReportPackageManifestSelect) sqlScan(ctx context.Context, root *ReportPackageManifestQuery, v any) error {
+func (_s *ReportPackageManifestSelect) sqlScan(ctx context.Context, root *ReportPackageManifestQuery, v any) error {
 	selector := root.sqlQuery(ctx)
-	aggregation := make([]string, 0, len(rpms.fns))
-	for _, fn := range rpms.fns {
+	aggregation := make([]string, 0, len(_s.fns))
+	for _, fn := range _s.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	switch n := len(*rpms.selector.flds); {
+	switch n := len(*_s.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
 		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
@@ -629,7 +629,7 @@ func (rpms *ReportPackageManifestSelect) sqlScan(ctx context.Context, root *Repo
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := rpms.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _s.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()

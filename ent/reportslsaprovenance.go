@@ -81,7 +81,7 @@ func (*ReportSlsaProvenance) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the ReportSlsaProvenance fields.
-func (rsp *ReportSlsaProvenance) assignValues(columns []string, values []any) error {
+func (_m *ReportSlsaProvenance) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -92,52 +92,52 @@ func (rsp *ReportSlsaProvenance) assignValues(columns []string, values []any) er
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			rsp.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case reportslsaprovenance.FieldSourceRepository:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field source_repository", values[i])
 			} else if value.Valid {
-				rsp.SourceRepository = value.String
+				_m.SourceRepository = value.String
 			}
 		case reportslsaprovenance.FieldCommitSha:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field commit_sha", values[i])
 			} else if value.Valid {
-				rsp.CommitSha = value.String
+				_m.CommitSha = value.String
 			}
 		case reportslsaprovenance.FieldURL:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field url", values[i])
 			} else if value.Valid {
-				rsp.URL = value.String
+				_m.URL = value.String
 			}
 		case reportslsaprovenance.FieldVerified:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field verified", values[i])
 			} else if value.Valid {
-				rsp.Verified = value.Bool
+				_m.Verified = value.Bool
 			}
 		case reportslsaprovenance.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
-				rsp.CreatedAt = value.Time
+				_m.CreatedAt = value.Time
 			}
 		case reportslsaprovenance.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
-				rsp.UpdatedAt = value.Time
+				_m.UpdatedAt = value.Time
 			}
 		case reportslsaprovenance.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field report_package_slsa_provenances", value)
 			} else if value.Valid {
-				rsp.report_package_slsa_provenances = new(int)
-				*rsp.report_package_slsa_provenances = int(value.Int64)
+				_m.report_package_slsa_provenances = new(int)
+				*_m.report_package_slsa_provenances = int(value.Int64)
 			}
 		default:
-			rsp.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -145,55 +145,55 @@ func (rsp *ReportSlsaProvenance) assignValues(columns []string, values []any) er
 
 // Value returns the ent.Value that was dynamically selected and assigned to the ReportSlsaProvenance.
 // This includes values selected through modifiers, order, etc.
-func (rsp *ReportSlsaProvenance) Value(name string) (ent.Value, error) {
-	return rsp.selectValues.Get(name)
+func (_m *ReportSlsaProvenance) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QueryPackage queries the "package" edge of the ReportSlsaProvenance entity.
-func (rsp *ReportSlsaProvenance) QueryPackage() *ReportPackageQuery {
-	return NewReportSlsaProvenanceClient(rsp.config).QueryPackage(rsp)
+func (_m *ReportSlsaProvenance) QueryPackage() *ReportPackageQuery {
+	return NewReportSlsaProvenanceClient(_m.config).QueryPackage(_m)
 }
 
 // Update returns a builder for updating this ReportSlsaProvenance.
 // Note that you need to call ReportSlsaProvenance.Unwrap() before calling this method if this ReportSlsaProvenance
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (rsp *ReportSlsaProvenance) Update() *ReportSlsaProvenanceUpdateOne {
-	return NewReportSlsaProvenanceClient(rsp.config).UpdateOne(rsp)
+func (_m *ReportSlsaProvenance) Update() *ReportSlsaProvenanceUpdateOne {
+	return NewReportSlsaProvenanceClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the ReportSlsaProvenance entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (rsp *ReportSlsaProvenance) Unwrap() *ReportSlsaProvenance {
-	_tx, ok := rsp.config.driver.(*txDriver)
+func (_m *ReportSlsaProvenance) Unwrap() *ReportSlsaProvenance {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: ReportSlsaProvenance is not a transactional entity")
 	}
-	rsp.config.driver = _tx.drv
-	return rsp
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (rsp *ReportSlsaProvenance) String() string {
+func (_m *ReportSlsaProvenance) String() string {
 	var builder strings.Builder
 	builder.WriteString("ReportSlsaProvenance(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", rsp.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("source_repository=")
-	builder.WriteString(rsp.SourceRepository)
+	builder.WriteString(_m.SourceRepository)
 	builder.WriteString(", ")
 	builder.WriteString("commit_sha=")
-	builder.WriteString(rsp.CommitSha)
+	builder.WriteString(_m.CommitSha)
 	builder.WriteString(", ")
 	builder.WriteString("url=")
-	builder.WriteString(rsp.URL)
+	builder.WriteString(_m.URL)
 	builder.WriteString(", ")
 	builder.WriteString("verified=")
-	builder.WriteString(fmt.Sprintf("%v", rsp.Verified))
+	builder.WriteString(fmt.Sprintf("%v", _m.Verified))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
-	builder.WriteString(rsp.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
-	builder.WriteString(rsp.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

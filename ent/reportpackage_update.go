@@ -30,474 +30,474 @@ type ReportPackageUpdate struct {
 }
 
 // Where appends a list predicates to the ReportPackageUpdate builder.
-func (rpu *ReportPackageUpdate) Where(ps ...predicate.ReportPackage) *ReportPackageUpdate {
-	rpu.mutation.Where(ps...)
-	return rpu
+func (_u *ReportPackageUpdate) Where(ps ...predicate.ReportPackage) *ReportPackageUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetPackageID sets the "package_id" field.
-func (rpu *ReportPackageUpdate) SetPackageID(s string) *ReportPackageUpdate {
-	rpu.mutation.SetPackageID(s)
-	return rpu
+func (_u *ReportPackageUpdate) SetPackageID(v string) *ReportPackageUpdate {
+	_u.mutation.SetPackageID(v)
+	return _u
 }
 
 // SetNillablePackageID sets the "package_id" field if the given value is not nil.
-func (rpu *ReportPackageUpdate) SetNillablePackageID(s *string) *ReportPackageUpdate {
-	if s != nil {
-		rpu.SetPackageID(*s)
+func (_u *ReportPackageUpdate) SetNillablePackageID(v *string) *ReportPackageUpdate {
+	if v != nil {
+		_u.SetPackageID(*v)
 	}
-	return rpu
+	return _u
 }
 
 // SetName sets the "name" field.
-func (rpu *ReportPackageUpdate) SetName(s string) *ReportPackageUpdate {
-	rpu.mutation.SetName(s)
-	return rpu
+func (_u *ReportPackageUpdate) SetName(v string) *ReportPackageUpdate {
+	_u.mutation.SetName(v)
+	return _u
 }
 
 // SetNillableName sets the "name" field if the given value is not nil.
-func (rpu *ReportPackageUpdate) SetNillableName(s *string) *ReportPackageUpdate {
-	if s != nil {
-		rpu.SetName(*s)
+func (_u *ReportPackageUpdate) SetNillableName(v *string) *ReportPackageUpdate {
+	if v != nil {
+		_u.SetName(*v)
 	}
-	return rpu
+	return _u
 }
 
 // SetVersion sets the "version" field.
-func (rpu *ReportPackageUpdate) SetVersion(s string) *ReportPackageUpdate {
-	rpu.mutation.SetVersion(s)
-	return rpu
+func (_u *ReportPackageUpdate) SetVersion(v string) *ReportPackageUpdate {
+	_u.mutation.SetVersion(v)
+	return _u
 }
 
 // SetNillableVersion sets the "version" field if the given value is not nil.
-func (rpu *ReportPackageUpdate) SetNillableVersion(s *string) *ReportPackageUpdate {
-	if s != nil {
-		rpu.SetVersion(*s)
+func (_u *ReportPackageUpdate) SetNillableVersion(v *string) *ReportPackageUpdate {
+	if v != nil {
+		_u.SetVersion(*v)
 	}
-	return rpu
+	return _u
 }
 
 // SetEcosystem sets the "ecosystem" field.
-func (rpu *ReportPackageUpdate) SetEcosystem(s string) *ReportPackageUpdate {
-	rpu.mutation.SetEcosystem(s)
-	return rpu
+func (_u *ReportPackageUpdate) SetEcosystem(v string) *ReportPackageUpdate {
+	_u.mutation.SetEcosystem(v)
+	return _u
 }
 
 // SetNillableEcosystem sets the "ecosystem" field if the given value is not nil.
-func (rpu *ReportPackageUpdate) SetNillableEcosystem(s *string) *ReportPackageUpdate {
-	if s != nil {
-		rpu.SetEcosystem(*s)
+func (_u *ReportPackageUpdate) SetNillableEcosystem(v *string) *ReportPackageUpdate {
+	if v != nil {
+		_u.SetEcosystem(*v)
 	}
-	return rpu
+	return _u
 }
 
 // SetPackageURL sets the "package_url" field.
-func (rpu *ReportPackageUpdate) SetPackageURL(s string) *ReportPackageUpdate {
-	rpu.mutation.SetPackageURL(s)
-	return rpu
+func (_u *ReportPackageUpdate) SetPackageURL(v string) *ReportPackageUpdate {
+	_u.mutation.SetPackageURL(v)
+	return _u
 }
 
 // SetNillablePackageURL sets the "package_url" field if the given value is not nil.
-func (rpu *ReportPackageUpdate) SetNillablePackageURL(s *string) *ReportPackageUpdate {
-	if s != nil {
-		rpu.SetPackageURL(*s)
+func (_u *ReportPackageUpdate) SetNillablePackageURL(v *string) *ReportPackageUpdate {
+	if v != nil {
+		_u.SetPackageURL(*v)
 	}
-	return rpu
+	return _u
 }
 
 // SetDepth sets the "depth" field.
-func (rpu *ReportPackageUpdate) SetDepth(i int) *ReportPackageUpdate {
-	rpu.mutation.ResetDepth()
-	rpu.mutation.SetDepth(i)
-	return rpu
+func (_u *ReportPackageUpdate) SetDepth(v int) *ReportPackageUpdate {
+	_u.mutation.ResetDepth()
+	_u.mutation.SetDepth(v)
+	return _u
 }
 
 // SetNillableDepth sets the "depth" field if the given value is not nil.
-func (rpu *ReportPackageUpdate) SetNillableDepth(i *int) *ReportPackageUpdate {
-	if i != nil {
-		rpu.SetDepth(*i)
+func (_u *ReportPackageUpdate) SetNillableDepth(v *int) *ReportPackageUpdate {
+	if v != nil {
+		_u.SetDepth(*v)
 	}
-	return rpu
+	return _u
 }
 
-// AddDepth adds i to the "depth" field.
-func (rpu *ReportPackageUpdate) AddDepth(i int) *ReportPackageUpdate {
-	rpu.mutation.AddDepth(i)
-	return rpu
+// AddDepth adds value to the "depth" field.
+func (_u *ReportPackageUpdate) AddDepth(v int) *ReportPackageUpdate {
+	_u.mutation.AddDepth(v)
+	return _u
 }
 
 // SetIsDirect sets the "is_direct" field.
-func (rpu *ReportPackageUpdate) SetIsDirect(b bool) *ReportPackageUpdate {
-	rpu.mutation.SetIsDirect(b)
-	return rpu
+func (_u *ReportPackageUpdate) SetIsDirect(v bool) *ReportPackageUpdate {
+	_u.mutation.SetIsDirect(v)
+	return _u
 }
 
 // SetNillableIsDirect sets the "is_direct" field if the given value is not nil.
-func (rpu *ReportPackageUpdate) SetNillableIsDirect(b *bool) *ReportPackageUpdate {
-	if b != nil {
-		rpu.SetIsDirect(*b)
+func (_u *ReportPackageUpdate) SetNillableIsDirect(v *bool) *ReportPackageUpdate {
+	if v != nil {
+		_u.SetIsDirect(*v)
 	}
-	return rpu
+	return _u
 }
 
 // SetIsMalware sets the "is_malware" field.
-func (rpu *ReportPackageUpdate) SetIsMalware(b bool) *ReportPackageUpdate {
-	rpu.mutation.SetIsMalware(b)
-	return rpu
+func (_u *ReportPackageUpdate) SetIsMalware(v bool) *ReportPackageUpdate {
+	_u.mutation.SetIsMalware(v)
+	return _u
 }
 
 // SetNillableIsMalware sets the "is_malware" field if the given value is not nil.
-func (rpu *ReportPackageUpdate) SetNillableIsMalware(b *bool) *ReportPackageUpdate {
-	if b != nil {
-		rpu.SetIsMalware(*b)
+func (_u *ReportPackageUpdate) SetNillableIsMalware(v *bool) *ReportPackageUpdate {
+	if v != nil {
+		_u.SetIsMalware(*v)
 	}
-	return rpu
+	return _u
 }
 
 // SetIsSuspicious sets the "is_suspicious" field.
-func (rpu *ReportPackageUpdate) SetIsSuspicious(b bool) *ReportPackageUpdate {
-	rpu.mutation.SetIsSuspicious(b)
-	return rpu
+func (_u *ReportPackageUpdate) SetIsSuspicious(v bool) *ReportPackageUpdate {
+	_u.mutation.SetIsSuspicious(v)
+	return _u
 }
 
 // SetNillableIsSuspicious sets the "is_suspicious" field if the given value is not nil.
-func (rpu *ReportPackageUpdate) SetNillableIsSuspicious(b *bool) *ReportPackageUpdate {
-	if b != nil {
-		rpu.SetIsSuspicious(*b)
+func (_u *ReportPackageUpdate) SetNillableIsSuspicious(v *bool) *ReportPackageUpdate {
+	if v != nil {
+		_u.SetIsSuspicious(*v)
 	}
-	return rpu
+	return _u
 }
 
 // SetPackageDetails sets the "package_details" field.
-func (rpu *ReportPackageUpdate) SetPackageDetails(m map[string]interface{}) *ReportPackageUpdate {
-	rpu.mutation.SetPackageDetails(m)
-	return rpu
+func (_u *ReportPackageUpdate) SetPackageDetails(v map[string]interface{}) *ReportPackageUpdate {
+	_u.mutation.SetPackageDetails(v)
+	return _u
 }
 
 // ClearPackageDetails clears the value of the "package_details" field.
-func (rpu *ReportPackageUpdate) ClearPackageDetails() *ReportPackageUpdate {
-	rpu.mutation.ClearPackageDetails()
-	return rpu
+func (_u *ReportPackageUpdate) ClearPackageDetails() *ReportPackageUpdate {
+	_u.mutation.ClearPackageDetails()
+	return _u
 }
 
 // SetInsightsV2 sets the "insights_v2" field.
-func (rpu *ReportPackageUpdate) SetInsightsV2(m map[string]interface{}) *ReportPackageUpdate {
-	rpu.mutation.SetInsightsV2(m)
-	return rpu
+func (_u *ReportPackageUpdate) SetInsightsV2(v map[string]interface{}) *ReportPackageUpdate {
+	_u.mutation.SetInsightsV2(v)
+	return _u
 }
 
 // ClearInsightsV2 clears the value of the "insights_v2" field.
-func (rpu *ReportPackageUpdate) ClearInsightsV2() *ReportPackageUpdate {
-	rpu.mutation.ClearInsightsV2()
-	return rpu
+func (_u *ReportPackageUpdate) ClearInsightsV2() *ReportPackageUpdate {
+	_u.mutation.ClearInsightsV2()
+	return _u
 }
 
 // SetCodeAnalysis sets the "code_analysis" field.
-func (rpu *ReportPackageUpdate) SetCodeAnalysis(m map[string]interface{}) *ReportPackageUpdate {
-	rpu.mutation.SetCodeAnalysis(m)
-	return rpu
+func (_u *ReportPackageUpdate) SetCodeAnalysis(v map[string]interface{}) *ReportPackageUpdate {
+	_u.mutation.SetCodeAnalysis(v)
+	return _u
 }
 
 // ClearCodeAnalysis clears the value of the "code_analysis" field.
-func (rpu *ReportPackageUpdate) ClearCodeAnalysis() *ReportPackageUpdate {
-	rpu.mutation.ClearCodeAnalysis()
-	return rpu
+func (_u *ReportPackageUpdate) ClearCodeAnalysis() *ReportPackageUpdate {
+	_u.mutation.ClearCodeAnalysis()
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rpu *ReportPackageUpdate) SetCreatedAt(t time.Time) *ReportPackageUpdate {
-	rpu.mutation.SetCreatedAt(t)
-	return rpu
+func (_u *ReportPackageUpdate) SetCreatedAt(v time.Time) *ReportPackageUpdate {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rpu *ReportPackageUpdate) SetNillableCreatedAt(t *time.Time) *ReportPackageUpdate {
-	if t != nil {
-		rpu.SetCreatedAt(*t)
+func (_u *ReportPackageUpdate) SetNillableCreatedAt(v *time.Time) *ReportPackageUpdate {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return rpu
+	return _u
 }
 
 // ClearCreatedAt clears the value of the "created_at" field.
-func (rpu *ReportPackageUpdate) ClearCreatedAt() *ReportPackageUpdate {
-	rpu.mutation.ClearCreatedAt()
-	return rpu
+func (_u *ReportPackageUpdate) ClearCreatedAt() *ReportPackageUpdate {
+	_u.mutation.ClearCreatedAt()
+	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rpu *ReportPackageUpdate) SetUpdatedAt(t time.Time) *ReportPackageUpdate {
-	rpu.mutation.SetUpdatedAt(t)
-	return rpu
+func (_u *ReportPackageUpdate) SetUpdatedAt(v time.Time) *ReportPackageUpdate {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rpu *ReportPackageUpdate) SetNillableUpdatedAt(t *time.Time) *ReportPackageUpdate {
-	if t != nil {
-		rpu.SetUpdatedAt(*t)
+func (_u *ReportPackageUpdate) SetNillableUpdatedAt(v *time.Time) *ReportPackageUpdate {
+	if v != nil {
+		_u.SetUpdatedAt(*v)
 	}
-	return rpu
+	return _u
 }
 
 // ClearUpdatedAt clears the value of the "updated_at" field.
-func (rpu *ReportPackageUpdate) ClearUpdatedAt() *ReportPackageUpdate {
-	rpu.mutation.ClearUpdatedAt()
-	return rpu
+func (_u *ReportPackageUpdate) ClearUpdatedAt() *ReportPackageUpdate {
+	_u.mutation.ClearUpdatedAt()
+	return _u
 }
 
 // AddManifestIDs adds the "manifests" edge to the ReportPackageManifest entity by IDs.
-func (rpu *ReportPackageUpdate) AddManifestIDs(ids ...int) *ReportPackageUpdate {
-	rpu.mutation.AddManifestIDs(ids...)
-	return rpu
+func (_u *ReportPackageUpdate) AddManifestIDs(ids ...int) *ReportPackageUpdate {
+	_u.mutation.AddManifestIDs(ids...)
+	return _u
 }
 
 // AddManifests adds the "manifests" edges to the ReportPackageManifest entity.
-func (rpu *ReportPackageUpdate) AddManifests(r ...*ReportPackageManifest) *ReportPackageUpdate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdate) AddManifests(v ...*ReportPackageManifest) *ReportPackageUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpu.AddManifestIDs(ids...)
+	return _u.AddManifestIDs(ids...)
 }
 
 // AddVulnerabilityIDs adds the "vulnerabilities" edge to the ReportVulnerability entity by IDs.
-func (rpu *ReportPackageUpdate) AddVulnerabilityIDs(ids ...int) *ReportPackageUpdate {
-	rpu.mutation.AddVulnerabilityIDs(ids...)
-	return rpu
+func (_u *ReportPackageUpdate) AddVulnerabilityIDs(ids ...int) *ReportPackageUpdate {
+	_u.mutation.AddVulnerabilityIDs(ids...)
+	return _u
 }
 
 // AddVulnerabilities adds the "vulnerabilities" edges to the ReportVulnerability entity.
-func (rpu *ReportPackageUpdate) AddVulnerabilities(r ...*ReportVulnerability) *ReportPackageUpdate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdate) AddVulnerabilities(v ...*ReportVulnerability) *ReportPackageUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpu.AddVulnerabilityIDs(ids...)
+	return _u.AddVulnerabilityIDs(ids...)
 }
 
 // AddLicenseIDs adds the "licenses" edge to the ReportLicense entity by IDs.
-func (rpu *ReportPackageUpdate) AddLicenseIDs(ids ...int) *ReportPackageUpdate {
-	rpu.mutation.AddLicenseIDs(ids...)
-	return rpu
+func (_u *ReportPackageUpdate) AddLicenseIDs(ids ...int) *ReportPackageUpdate {
+	_u.mutation.AddLicenseIDs(ids...)
+	return _u
 }
 
 // AddLicenses adds the "licenses" edges to the ReportLicense entity.
-func (rpu *ReportPackageUpdate) AddLicenses(r ...*ReportLicense) *ReportPackageUpdate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdate) AddLicenses(v ...*ReportLicense) *ReportPackageUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpu.AddLicenseIDs(ids...)
+	return _u.AddLicenseIDs(ids...)
 }
 
 // AddDependencyIDs adds the "dependencies" edge to the ReportDependency entity by IDs.
-func (rpu *ReportPackageUpdate) AddDependencyIDs(ids ...int) *ReportPackageUpdate {
-	rpu.mutation.AddDependencyIDs(ids...)
-	return rpu
+func (_u *ReportPackageUpdate) AddDependencyIDs(ids ...int) *ReportPackageUpdate {
+	_u.mutation.AddDependencyIDs(ids...)
+	return _u
 }
 
 // AddDependencies adds the "dependencies" edges to the ReportDependency entity.
-func (rpu *ReportPackageUpdate) AddDependencies(r ...*ReportDependency) *ReportPackageUpdate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdate) AddDependencies(v ...*ReportDependency) *ReportPackageUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpu.AddDependencyIDs(ids...)
+	return _u.AddDependencyIDs(ids...)
 }
 
 // SetMalwareAnalysisID sets the "malware_analysis" edge to the ReportMalware entity by ID.
-func (rpu *ReportPackageUpdate) SetMalwareAnalysisID(id int) *ReportPackageUpdate {
-	rpu.mutation.SetMalwareAnalysisID(id)
-	return rpu
+func (_u *ReportPackageUpdate) SetMalwareAnalysisID(id int) *ReportPackageUpdate {
+	_u.mutation.SetMalwareAnalysisID(id)
+	return _u
 }
 
 // SetNillableMalwareAnalysisID sets the "malware_analysis" edge to the ReportMalware entity by ID if the given value is not nil.
-func (rpu *ReportPackageUpdate) SetNillableMalwareAnalysisID(id *int) *ReportPackageUpdate {
+func (_u *ReportPackageUpdate) SetNillableMalwareAnalysisID(id *int) *ReportPackageUpdate {
 	if id != nil {
-		rpu = rpu.SetMalwareAnalysisID(*id)
+		_u = _u.SetMalwareAnalysisID(*id)
 	}
-	return rpu
+	return _u
 }
 
 // SetMalwareAnalysis sets the "malware_analysis" edge to the ReportMalware entity.
-func (rpu *ReportPackageUpdate) SetMalwareAnalysis(r *ReportMalware) *ReportPackageUpdate {
-	return rpu.SetMalwareAnalysisID(r.ID)
+func (_u *ReportPackageUpdate) SetMalwareAnalysis(v *ReportMalware) *ReportPackageUpdate {
+	return _u.SetMalwareAnalysisID(v.ID)
 }
 
 // AddProjectIDs adds the "projects" edge to the ReportProject entity by IDs.
-func (rpu *ReportPackageUpdate) AddProjectIDs(ids ...int) *ReportPackageUpdate {
-	rpu.mutation.AddProjectIDs(ids...)
-	return rpu
+func (_u *ReportPackageUpdate) AddProjectIDs(ids ...int) *ReportPackageUpdate {
+	_u.mutation.AddProjectIDs(ids...)
+	return _u
 }
 
 // AddProjects adds the "projects" edges to the ReportProject entity.
-func (rpu *ReportPackageUpdate) AddProjects(r ...*ReportProject) *ReportPackageUpdate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdate) AddProjects(v ...*ReportProject) *ReportPackageUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpu.AddProjectIDs(ids...)
+	return _u.AddProjectIDs(ids...)
 }
 
 // AddSlsaProvenanceIDs adds the "slsa_provenances" edge to the ReportSlsaProvenance entity by IDs.
-func (rpu *ReportPackageUpdate) AddSlsaProvenanceIDs(ids ...int) *ReportPackageUpdate {
-	rpu.mutation.AddSlsaProvenanceIDs(ids...)
-	return rpu
+func (_u *ReportPackageUpdate) AddSlsaProvenanceIDs(ids ...int) *ReportPackageUpdate {
+	_u.mutation.AddSlsaProvenanceIDs(ids...)
+	return _u
 }
 
 // AddSlsaProvenances adds the "slsa_provenances" edges to the ReportSlsaProvenance entity.
-func (rpu *ReportPackageUpdate) AddSlsaProvenances(r ...*ReportSlsaProvenance) *ReportPackageUpdate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdate) AddSlsaProvenances(v ...*ReportSlsaProvenance) *ReportPackageUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpu.AddSlsaProvenanceIDs(ids...)
+	return _u.AddSlsaProvenanceIDs(ids...)
 }
 
 // Mutation returns the ReportPackageMutation object of the builder.
-func (rpu *ReportPackageUpdate) Mutation() *ReportPackageMutation {
-	return rpu.mutation
+func (_u *ReportPackageUpdate) Mutation() *ReportPackageMutation {
+	return _u.mutation
 }
 
 // ClearManifests clears all "manifests" edges to the ReportPackageManifest entity.
-func (rpu *ReportPackageUpdate) ClearManifests() *ReportPackageUpdate {
-	rpu.mutation.ClearManifests()
-	return rpu
+func (_u *ReportPackageUpdate) ClearManifests() *ReportPackageUpdate {
+	_u.mutation.ClearManifests()
+	return _u
 }
 
 // RemoveManifestIDs removes the "manifests" edge to ReportPackageManifest entities by IDs.
-func (rpu *ReportPackageUpdate) RemoveManifestIDs(ids ...int) *ReportPackageUpdate {
-	rpu.mutation.RemoveManifestIDs(ids...)
-	return rpu
+func (_u *ReportPackageUpdate) RemoveManifestIDs(ids ...int) *ReportPackageUpdate {
+	_u.mutation.RemoveManifestIDs(ids...)
+	return _u
 }
 
 // RemoveManifests removes "manifests" edges to ReportPackageManifest entities.
-func (rpu *ReportPackageUpdate) RemoveManifests(r ...*ReportPackageManifest) *ReportPackageUpdate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdate) RemoveManifests(v ...*ReportPackageManifest) *ReportPackageUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpu.RemoveManifestIDs(ids...)
+	return _u.RemoveManifestIDs(ids...)
 }
 
 // ClearVulnerabilities clears all "vulnerabilities" edges to the ReportVulnerability entity.
-func (rpu *ReportPackageUpdate) ClearVulnerabilities() *ReportPackageUpdate {
-	rpu.mutation.ClearVulnerabilities()
-	return rpu
+func (_u *ReportPackageUpdate) ClearVulnerabilities() *ReportPackageUpdate {
+	_u.mutation.ClearVulnerabilities()
+	return _u
 }
 
 // RemoveVulnerabilityIDs removes the "vulnerabilities" edge to ReportVulnerability entities by IDs.
-func (rpu *ReportPackageUpdate) RemoveVulnerabilityIDs(ids ...int) *ReportPackageUpdate {
-	rpu.mutation.RemoveVulnerabilityIDs(ids...)
-	return rpu
+func (_u *ReportPackageUpdate) RemoveVulnerabilityIDs(ids ...int) *ReportPackageUpdate {
+	_u.mutation.RemoveVulnerabilityIDs(ids...)
+	return _u
 }
 
 // RemoveVulnerabilities removes "vulnerabilities" edges to ReportVulnerability entities.
-func (rpu *ReportPackageUpdate) RemoveVulnerabilities(r ...*ReportVulnerability) *ReportPackageUpdate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdate) RemoveVulnerabilities(v ...*ReportVulnerability) *ReportPackageUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpu.RemoveVulnerabilityIDs(ids...)
+	return _u.RemoveVulnerabilityIDs(ids...)
 }
 
 // ClearLicenses clears all "licenses" edges to the ReportLicense entity.
-func (rpu *ReportPackageUpdate) ClearLicenses() *ReportPackageUpdate {
-	rpu.mutation.ClearLicenses()
-	return rpu
+func (_u *ReportPackageUpdate) ClearLicenses() *ReportPackageUpdate {
+	_u.mutation.ClearLicenses()
+	return _u
 }
 
 // RemoveLicenseIDs removes the "licenses" edge to ReportLicense entities by IDs.
-func (rpu *ReportPackageUpdate) RemoveLicenseIDs(ids ...int) *ReportPackageUpdate {
-	rpu.mutation.RemoveLicenseIDs(ids...)
-	return rpu
+func (_u *ReportPackageUpdate) RemoveLicenseIDs(ids ...int) *ReportPackageUpdate {
+	_u.mutation.RemoveLicenseIDs(ids...)
+	return _u
 }
 
 // RemoveLicenses removes "licenses" edges to ReportLicense entities.
-func (rpu *ReportPackageUpdate) RemoveLicenses(r ...*ReportLicense) *ReportPackageUpdate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdate) RemoveLicenses(v ...*ReportLicense) *ReportPackageUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpu.RemoveLicenseIDs(ids...)
+	return _u.RemoveLicenseIDs(ids...)
 }
 
 // ClearDependencies clears all "dependencies" edges to the ReportDependency entity.
-func (rpu *ReportPackageUpdate) ClearDependencies() *ReportPackageUpdate {
-	rpu.mutation.ClearDependencies()
-	return rpu
+func (_u *ReportPackageUpdate) ClearDependencies() *ReportPackageUpdate {
+	_u.mutation.ClearDependencies()
+	return _u
 }
 
 // RemoveDependencyIDs removes the "dependencies" edge to ReportDependency entities by IDs.
-func (rpu *ReportPackageUpdate) RemoveDependencyIDs(ids ...int) *ReportPackageUpdate {
-	rpu.mutation.RemoveDependencyIDs(ids...)
-	return rpu
+func (_u *ReportPackageUpdate) RemoveDependencyIDs(ids ...int) *ReportPackageUpdate {
+	_u.mutation.RemoveDependencyIDs(ids...)
+	return _u
 }
 
 // RemoveDependencies removes "dependencies" edges to ReportDependency entities.
-func (rpu *ReportPackageUpdate) RemoveDependencies(r ...*ReportDependency) *ReportPackageUpdate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdate) RemoveDependencies(v ...*ReportDependency) *ReportPackageUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpu.RemoveDependencyIDs(ids...)
+	return _u.RemoveDependencyIDs(ids...)
 }
 
 // ClearMalwareAnalysis clears the "malware_analysis" edge to the ReportMalware entity.
-func (rpu *ReportPackageUpdate) ClearMalwareAnalysis() *ReportPackageUpdate {
-	rpu.mutation.ClearMalwareAnalysis()
-	return rpu
+func (_u *ReportPackageUpdate) ClearMalwareAnalysis() *ReportPackageUpdate {
+	_u.mutation.ClearMalwareAnalysis()
+	return _u
 }
 
 // ClearProjects clears all "projects" edges to the ReportProject entity.
-func (rpu *ReportPackageUpdate) ClearProjects() *ReportPackageUpdate {
-	rpu.mutation.ClearProjects()
-	return rpu
+func (_u *ReportPackageUpdate) ClearProjects() *ReportPackageUpdate {
+	_u.mutation.ClearProjects()
+	return _u
 }
 
 // RemoveProjectIDs removes the "projects" edge to ReportProject entities by IDs.
-func (rpu *ReportPackageUpdate) RemoveProjectIDs(ids ...int) *ReportPackageUpdate {
-	rpu.mutation.RemoveProjectIDs(ids...)
-	return rpu
+func (_u *ReportPackageUpdate) RemoveProjectIDs(ids ...int) *ReportPackageUpdate {
+	_u.mutation.RemoveProjectIDs(ids...)
+	return _u
 }
 
 // RemoveProjects removes "projects" edges to ReportProject entities.
-func (rpu *ReportPackageUpdate) RemoveProjects(r ...*ReportProject) *ReportPackageUpdate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdate) RemoveProjects(v ...*ReportProject) *ReportPackageUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpu.RemoveProjectIDs(ids...)
+	return _u.RemoveProjectIDs(ids...)
 }
 
 // ClearSlsaProvenances clears all "slsa_provenances" edges to the ReportSlsaProvenance entity.
-func (rpu *ReportPackageUpdate) ClearSlsaProvenances() *ReportPackageUpdate {
-	rpu.mutation.ClearSlsaProvenances()
-	return rpu
+func (_u *ReportPackageUpdate) ClearSlsaProvenances() *ReportPackageUpdate {
+	_u.mutation.ClearSlsaProvenances()
+	return _u
 }
 
 // RemoveSlsaProvenanceIDs removes the "slsa_provenances" edge to ReportSlsaProvenance entities by IDs.
-func (rpu *ReportPackageUpdate) RemoveSlsaProvenanceIDs(ids ...int) *ReportPackageUpdate {
-	rpu.mutation.RemoveSlsaProvenanceIDs(ids...)
-	return rpu
+func (_u *ReportPackageUpdate) RemoveSlsaProvenanceIDs(ids ...int) *ReportPackageUpdate {
+	_u.mutation.RemoveSlsaProvenanceIDs(ids...)
+	return _u
 }
 
 // RemoveSlsaProvenances removes "slsa_provenances" edges to ReportSlsaProvenance entities.
-func (rpu *ReportPackageUpdate) RemoveSlsaProvenances(r ...*ReportSlsaProvenance) *ReportPackageUpdate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdate) RemoveSlsaProvenances(v ...*ReportSlsaProvenance) *ReportPackageUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpu.RemoveSlsaProvenanceIDs(ids...)
+	return _u.RemoveSlsaProvenanceIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (rpu *ReportPackageUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, rpu.sqlSave, rpu.mutation, rpu.hooks)
+func (_u *ReportPackageUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rpu *ReportPackageUpdate) SaveX(ctx context.Context) int {
-	affected, err := rpu.Save(ctx)
+func (_u *ReportPackageUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -505,41 +505,41 @@ func (rpu *ReportPackageUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (rpu *ReportPackageUpdate) Exec(ctx context.Context) error {
-	_, err := rpu.Save(ctx)
+func (_u *ReportPackageUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rpu *ReportPackageUpdate) ExecX(ctx context.Context) {
-	if err := rpu.Exec(ctx); err != nil {
+func (_u *ReportPackageUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (rpu *ReportPackageUpdate) check() error {
-	if v, ok := rpu.mutation.PackageID(); ok {
+func (_u *ReportPackageUpdate) check() error {
+	if v, ok := _u.mutation.PackageID(); ok {
 		if err := reportpackage.PackageIDValidator(v); err != nil {
 			return &ValidationError{Name: "package_id", err: fmt.Errorf(`ent: validator failed for field "ReportPackage.package_id": %w`, err)}
 		}
 	}
-	if v, ok := rpu.mutation.Name(); ok {
+	if v, ok := _u.mutation.Name(); ok {
 		if err := reportpackage.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "ReportPackage.name": %w`, err)}
 		}
 	}
-	if v, ok := rpu.mutation.Version(); ok {
+	if v, ok := _u.mutation.Version(); ok {
 		if err := reportpackage.VersionValidator(v); err != nil {
 			return &ValidationError{Name: "version", err: fmt.Errorf(`ent: validator failed for field "ReportPackage.version": %w`, err)}
 		}
 	}
-	if v, ok := rpu.mutation.Ecosystem(); ok {
+	if v, ok := _u.mutation.Ecosystem(); ok {
 		if err := reportpackage.EcosystemValidator(v); err != nil {
 			return &ValidationError{Name: "ecosystem", err: fmt.Errorf(`ent: validator failed for field "ReportPackage.ecosystem": %w`, err)}
 		}
 	}
-	if v, ok := rpu.mutation.PackageURL(); ok {
+	if v, ok := _u.mutation.PackageURL(); ok {
 		if err := reportpackage.PackageURLValidator(v); err != nil {
 			return &ValidationError{Name: "package_url", err: fmt.Errorf(`ent: validator failed for field "ReportPackage.package_url": %w`, err)}
 		}
@@ -547,79 +547,79 @@ func (rpu *ReportPackageUpdate) check() error {
 	return nil
 }
 
-func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := rpu.check(); err != nil {
-		return n, err
+func (_u *ReportPackageUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(reportpackage.Table, reportpackage.Columns, sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt))
-	if ps := rpu.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := rpu.mutation.PackageID(); ok {
+	if value, ok := _u.mutation.PackageID(); ok {
 		_spec.SetField(reportpackage.FieldPackageID, field.TypeString, value)
 	}
-	if value, ok := rpu.mutation.Name(); ok {
+	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(reportpackage.FieldName, field.TypeString, value)
 	}
-	if value, ok := rpu.mutation.Version(); ok {
+	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(reportpackage.FieldVersion, field.TypeString, value)
 	}
-	if value, ok := rpu.mutation.Ecosystem(); ok {
+	if value, ok := _u.mutation.Ecosystem(); ok {
 		_spec.SetField(reportpackage.FieldEcosystem, field.TypeString, value)
 	}
-	if value, ok := rpu.mutation.PackageURL(); ok {
+	if value, ok := _u.mutation.PackageURL(); ok {
 		_spec.SetField(reportpackage.FieldPackageURL, field.TypeString, value)
 	}
-	if value, ok := rpu.mutation.Depth(); ok {
+	if value, ok := _u.mutation.Depth(); ok {
 		_spec.SetField(reportpackage.FieldDepth, field.TypeInt, value)
 	}
-	if value, ok := rpu.mutation.AddedDepth(); ok {
+	if value, ok := _u.mutation.AddedDepth(); ok {
 		_spec.AddField(reportpackage.FieldDepth, field.TypeInt, value)
 	}
-	if value, ok := rpu.mutation.IsDirect(); ok {
+	if value, ok := _u.mutation.IsDirect(); ok {
 		_spec.SetField(reportpackage.FieldIsDirect, field.TypeBool, value)
 	}
-	if value, ok := rpu.mutation.IsMalware(); ok {
+	if value, ok := _u.mutation.IsMalware(); ok {
 		_spec.SetField(reportpackage.FieldIsMalware, field.TypeBool, value)
 	}
-	if value, ok := rpu.mutation.IsSuspicious(); ok {
+	if value, ok := _u.mutation.IsSuspicious(); ok {
 		_spec.SetField(reportpackage.FieldIsSuspicious, field.TypeBool, value)
 	}
-	if value, ok := rpu.mutation.PackageDetails(); ok {
+	if value, ok := _u.mutation.PackageDetails(); ok {
 		_spec.SetField(reportpackage.FieldPackageDetails, field.TypeJSON, value)
 	}
-	if rpu.mutation.PackageDetailsCleared() {
+	if _u.mutation.PackageDetailsCleared() {
 		_spec.ClearField(reportpackage.FieldPackageDetails, field.TypeJSON)
 	}
-	if value, ok := rpu.mutation.InsightsV2(); ok {
+	if value, ok := _u.mutation.InsightsV2(); ok {
 		_spec.SetField(reportpackage.FieldInsightsV2, field.TypeJSON, value)
 	}
-	if rpu.mutation.InsightsV2Cleared() {
+	if _u.mutation.InsightsV2Cleared() {
 		_spec.ClearField(reportpackage.FieldInsightsV2, field.TypeJSON)
 	}
-	if value, ok := rpu.mutation.CodeAnalysis(); ok {
+	if value, ok := _u.mutation.CodeAnalysis(); ok {
 		_spec.SetField(reportpackage.FieldCodeAnalysis, field.TypeJSON, value)
 	}
-	if rpu.mutation.CodeAnalysisCleared() {
+	if _u.mutation.CodeAnalysisCleared() {
 		_spec.ClearField(reportpackage.FieldCodeAnalysis, field.TypeJSON)
 	}
-	if value, ok := rpu.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(reportpackage.FieldCreatedAt, field.TypeTime, value)
 	}
-	if rpu.mutation.CreatedAtCleared() {
+	if _u.mutation.CreatedAtCleared() {
 		_spec.ClearField(reportpackage.FieldCreatedAt, field.TypeTime)
 	}
-	if value, ok := rpu.mutation.UpdatedAt(); ok {
+	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportpackage.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if rpu.mutation.UpdatedAtCleared() {
+	if _u.mutation.UpdatedAtCleared() {
 		_spec.ClearField(reportpackage.FieldUpdatedAt, field.TypeTime)
 	}
-	if rpu.mutation.ManifestsCleared() {
+	if _u.mutation.ManifestsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -632,23 +632,7 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpu.mutation.RemovedManifestsIDs(); len(nodes) > 0 && !rpu.mutation.ManifestsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   reportpackage.ManifestsTable,
-			Columns: reportpackage.ManifestsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(reportpackagemanifest.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := rpu.mutation.ManifestsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.RemovedManifestsIDs(); len(nodes) > 0 && !_u.mutation.ManifestsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -662,9 +646,25 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ManifestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   reportpackage.ManifestsTable,
+			Columns: reportpackage.ManifestsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportpackagemanifest.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if rpu.mutation.VulnerabilitiesCleared() {
+	if _u.mutation.VulnerabilitiesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -677,7 +677,7 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpu.mutation.RemovedVulnerabilitiesIDs(); len(nodes) > 0 && !rpu.mutation.VulnerabilitiesCleared() {
+	if nodes := _u.mutation.RemovedVulnerabilitiesIDs(); len(nodes) > 0 && !_u.mutation.VulnerabilitiesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -693,7 +693,7 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpu.mutation.VulnerabilitiesIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.VulnerabilitiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -709,7 +709,7 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if rpu.mutation.LicensesCleared() {
+	if _u.mutation.LicensesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -722,7 +722,7 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpu.mutation.RemovedLicensesIDs(); len(nodes) > 0 && !rpu.mutation.LicensesCleared() {
+	if nodes := _u.mutation.RemovedLicensesIDs(); len(nodes) > 0 && !_u.mutation.LicensesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -738,7 +738,7 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpu.mutation.LicensesIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.LicensesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -754,7 +754,7 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if rpu.mutation.DependenciesCleared() {
+	if _u.mutation.DependenciesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -767,7 +767,7 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpu.mutation.RemovedDependenciesIDs(); len(nodes) > 0 && !rpu.mutation.DependenciesCleared() {
+	if nodes := _u.mutation.RemovedDependenciesIDs(); len(nodes) > 0 && !_u.mutation.DependenciesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -783,7 +783,7 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpu.mutation.DependenciesIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.DependenciesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -799,7 +799,7 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if rpu.mutation.MalwareAnalysisCleared() {
+	if _u.mutation.MalwareAnalysisCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -812,7 +812,7 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpu.mutation.MalwareAnalysisIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.MalwareAnalysisIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -828,7 +828,7 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if rpu.mutation.ProjectsCleared() {
+	if _u.mutation.ProjectsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -841,7 +841,7 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpu.mutation.RemovedProjectsIDs(); len(nodes) > 0 && !rpu.mutation.ProjectsCleared() {
+	if nodes := _u.mutation.RemovedProjectsIDs(); len(nodes) > 0 && !_u.mutation.ProjectsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -857,7 +857,7 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpu.mutation.ProjectsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.ProjectsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -873,7 +873,7 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if rpu.mutation.SlsaProvenancesCleared() {
+	if _u.mutation.SlsaProvenancesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -886,7 +886,7 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpu.mutation.RemovedSlsaProvenancesIDs(); len(nodes) > 0 && !rpu.mutation.SlsaProvenancesCleared() {
+	if nodes := _u.mutation.RemovedSlsaProvenancesIDs(); len(nodes) > 0 && !_u.mutation.SlsaProvenancesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -902,7 +902,7 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpu.mutation.SlsaProvenancesIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.SlsaProvenancesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -918,7 +918,7 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, rpu.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{reportpackage.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -926,8 +926,8 @@ func (rpu *ReportPackageUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		return 0, err
 	}
-	rpu.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // ReportPackageUpdateOne is the builder for updating a single ReportPackage entity.
@@ -939,481 +939,481 @@ type ReportPackageUpdateOne struct {
 }
 
 // SetPackageID sets the "package_id" field.
-func (rpuo *ReportPackageUpdateOne) SetPackageID(s string) *ReportPackageUpdateOne {
-	rpuo.mutation.SetPackageID(s)
-	return rpuo
+func (_u *ReportPackageUpdateOne) SetPackageID(v string) *ReportPackageUpdateOne {
+	_u.mutation.SetPackageID(v)
+	return _u
 }
 
 // SetNillablePackageID sets the "package_id" field if the given value is not nil.
-func (rpuo *ReportPackageUpdateOne) SetNillablePackageID(s *string) *ReportPackageUpdateOne {
-	if s != nil {
-		rpuo.SetPackageID(*s)
+func (_u *ReportPackageUpdateOne) SetNillablePackageID(v *string) *ReportPackageUpdateOne {
+	if v != nil {
+		_u.SetPackageID(*v)
 	}
-	return rpuo
+	return _u
 }
 
 // SetName sets the "name" field.
-func (rpuo *ReportPackageUpdateOne) SetName(s string) *ReportPackageUpdateOne {
-	rpuo.mutation.SetName(s)
-	return rpuo
+func (_u *ReportPackageUpdateOne) SetName(v string) *ReportPackageUpdateOne {
+	_u.mutation.SetName(v)
+	return _u
 }
 
 // SetNillableName sets the "name" field if the given value is not nil.
-func (rpuo *ReportPackageUpdateOne) SetNillableName(s *string) *ReportPackageUpdateOne {
-	if s != nil {
-		rpuo.SetName(*s)
+func (_u *ReportPackageUpdateOne) SetNillableName(v *string) *ReportPackageUpdateOne {
+	if v != nil {
+		_u.SetName(*v)
 	}
-	return rpuo
+	return _u
 }
 
 // SetVersion sets the "version" field.
-func (rpuo *ReportPackageUpdateOne) SetVersion(s string) *ReportPackageUpdateOne {
-	rpuo.mutation.SetVersion(s)
-	return rpuo
+func (_u *ReportPackageUpdateOne) SetVersion(v string) *ReportPackageUpdateOne {
+	_u.mutation.SetVersion(v)
+	return _u
 }
 
 // SetNillableVersion sets the "version" field if the given value is not nil.
-func (rpuo *ReportPackageUpdateOne) SetNillableVersion(s *string) *ReportPackageUpdateOne {
-	if s != nil {
-		rpuo.SetVersion(*s)
+func (_u *ReportPackageUpdateOne) SetNillableVersion(v *string) *ReportPackageUpdateOne {
+	if v != nil {
+		_u.SetVersion(*v)
 	}
-	return rpuo
+	return _u
 }
 
 // SetEcosystem sets the "ecosystem" field.
-func (rpuo *ReportPackageUpdateOne) SetEcosystem(s string) *ReportPackageUpdateOne {
-	rpuo.mutation.SetEcosystem(s)
-	return rpuo
+func (_u *ReportPackageUpdateOne) SetEcosystem(v string) *ReportPackageUpdateOne {
+	_u.mutation.SetEcosystem(v)
+	return _u
 }
 
 // SetNillableEcosystem sets the "ecosystem" field if the given value is not nil.
-func (rpuo *ReportPackageUpdateOne) SetNillableEcosystem(s *string) *ReportPackageUpdateOne {
-	if s != nil {
-		rpuo.SetEcosystem(*s)
+func (_u *ReportPackageUpdateOne) SetNillableEcosystem(v *string) *ReportPackageUpdateOne {
+	if v != nil {
+		_u.SetEcosystem(*v)
 	}
-	return rpuo
+	return _u
 }
 
 // SetPackageURL sets the "package_url" field.
-func (rpuo *ReportPackageUpdateOne) SetPackageURL(s string) *ReportPackageUpdateOne {
-	rpuo.mutation.SetPackageURL(s)
-	return rpuo
+func (_u *ReportPackageUpdateOne) SetPackageURL(v string) *ReportPackageUpdateOne {
+	_u.mutation.SetPackageURL(v)
+	return _u
 }
 
 // SetNillablePackageURL sets the "package_url" field if the given value is not nil.
-func (rpuo *ReportPackageUpdateOne) SetNillablePackageURL(s *string) *ReportPackageUpdateOne {
-	if s != nil {
-		rpuo.SetPackageURL(*s)
+func (_u *ReportPackageUpdateOne) SetNillablePackageURL(v *string) *ReportPackageUpdateOne {
+	if v != nil {
+		_u.SetPackageURL(*v)
 	}
-	return rpuo
+	return _u
 }
 
 // SetDepth sets the "depth" field.
-func (rpuo *ReportPackageUpdateOne) SetDepth(i int) *ReportPackageUpdateOne {
-	rpuo.mutation.ResetDepth()
-	rpuo.mutation.SetDepth(i)
-	return rpuo
+func (_u *ReportPackageUpdateOne) SetDepth(v int) *ReportPackageUpdateOne {
+	_u.mutation.ResetDepth()
+	_u.mutation.SetDepth(v)
+	return _u
 }
 
 // SetNillableDepth sets the "depth" field if the given value is not nil.
-func (rpuo *ReportPackageUpdateOne) SetNillableDepth(i *int) *ReportPackageUpdateOne {
-	if i != nil {
-		rpuo.SetDepth(*i)
+func (_u *ReportPackageUpdateOne) SetNillableDepth(v *int) *ReportPackageUpdateOne {
+	if v != nil {
+		_u.SetDepth(*v)
 	}
-	return rpuo
+	return _u
 }
 
-// AddDepth adds i to the "depth" field.
-func (rpuo *ReportPackageUpdateOne) AddDepth(i int) *ReportPackageUpdateOne {
-	rpuo.mutation.AddDepth(i)
-	return rpuo
+// AddDepth adds value to the "depth" field.
+func (_u *ReportPackageUpdateOne) AddDepth(v int) *ReportPackageUpdateOne {
+	_u.mutation.AddDepth(v)
+	return _u
 }
 
 // SetIsDirect sets the "is_direct" field.
-func (rpuo *ReportPackageUpdateOne) SetIsDirect(b bool) *ReportPackageUpdateOne {
-	rpuo.mutation.SetIsDirect(b)
-	return rpuo
+func (_u *ReportPackageUpdateOne) SetIsDirect(v bool) *ReportPackageUpdateOne {
+	_u.mutation.SetIsDirect(v)
+	return _u
 }
 
 // SetNillableIsDirect sets the "is_direct" field if the given value is not nil.
-func (rpuo *ReportPackageUpdateOne) SetNillableIsDirect(b *bool) *ReportPackageUpdateOne {
-	if b != nil {
-		rpuo.SetIsDirect(*b)
+func (_u *ReportPackageUpdateOne) SetNillableIsDirect(v *bool) *ReportPackageUpdateOne {
+	if v != nil {
+		_u.SetIsDirect(*v)
 	}
-	return rpuo
+	return _u
 }
 
 // SetIsMalware sets the "is_malware" field.
-func (rpuo *ReportPackageUpdateOne) SetIsMalware(b bool) *ReportPackageUpdateOne {
-	rpuo.mutation.SetIsMalware(b)
-	return rpuo
+func (_u *ReportPackageUpdateOne) SetIsMalware(v bool) *ReportPackageUpdateOne {
+	_u.mutation.SetIsMalware(v)
+	return _u
 }
 
 // SetNillableIsMalware sets the "is_malware" field if the given value is not nil.
-func (rpuo *ReportPackageUpdateOne) SetNillableIsMalware(b *bool) *ReportPackageUpdateOne {
-	if b != nil {
-		rpuo.SetIsMalware(*b)
+func (_u *ReportPackageUpdateOne) SetNillableIsMalware(v *bool) *ReportPackageUpdateOne {
+	if v != nil {
+		_u.SetIsMalware(*v)
 	}
-	return rpuo
+	return _u
 }
 
 // SetIsSuspicious sets the "is_suspicious" field.
-func (rpuo *ReportPackageUpdateOne) SetIsSuspicious(b bool) *ReportPackageUpdateOne {
-	rpuo.mutation.SetIsSuspicious(b)
-	return rpuo
+func (_u *ReportPackageUpdateOne) SetIsSuspicious(v bool) *ReportPackageUpdateOne {
+	_u.mutation.SetIsSuspicious(v)
+	return _u
 }
 
 // SetNillableIsSuspicious sets the "is_suspicious" field if the given value is not nil.
-func (rpuo *ReportPackageUpdateOne) SetNillableIsSuspicious(b *bool) *ReportPackageUpdateOne {
-	if b != nil {
-		rpuo.SetIsSuspicious(*b)
+func (_u *ReportPackageUpdateOne) SetNillableIsSuspicious(v *bool) *ReportPackageUpdateOne {
+	if v != nil {
+		_u.SetIsSuspicious(*v)
 	}
-	return rpuo
+	return _u
 }
 
 // SetPackageDetails sets the "package_details" field.
-func (rpuo *ReportPackageUpdateOne) SetPackageDetails(m map[string]interface{}) *ReportPackageUpdateOne {
-	rpuo.mutation.SetPackageDetails(m)
-	return rpuo
+func (_u *ReportPackageUpdateOne) SetPackageDetails(v map[string]interface{}) *ReportPackageUpdateOne {
+	_u.mutation.SetPackageDetails(v)
+	return _u
 }
 
 // ClearPackageDetails clears the value of the "package_details" field.
-func (rpuo *ReportPackageUpdateOne) ClearPackageDetails() *ReportPackageUpdateOne {
-	rpuo.mutation.ClearPackageDetails()
-	return rpuo
+func (_u *ReportPackageUpdateOne) ClearPackageDetails() *ReportPackageUpdateOne {
+	_u.mutation.ClearPackageDetails()
+	return _u
 }
 
 // SetInsightsV2 sets the "insights_v2" field.
-func (rpuo *ReportPackageUpdateOne) SetInsightsV2(m map[string]interface{}) *ReportPackageUpdateOne {
-	rpuo.mutation.SetInsightsV2(m)
-	return rpuo
+func (_u *ReportPackageUpdateOne) SetInsightsV2(v map[string]interface{}) *ReportPackageUpdateOne {
+	_u.mutation.SetInsightsV2(v)
+	return _u
 }
 
 // ClearInsightsV2 clears the value of the "insights_v2" field.
-func (rpuo *ReportPackageUpdateOne) ClearInsightsV2() *ReportPackageUpdateOne {
-	rpuo.mutation.ClearInsightsV2()
-	return rpuo
+func (_u *ReportPackageUpdateOne) ClearInsightsV2() *ReportPackageUpdateOne {
+	_u.mutation.ClearInsightsV2()
+	return _u
 }
 
 // SetCodeAnalysis sets the "code_analysis" field.
-func (rpuo *ReportPackageUpdateOne) SetCodeAnalysis(m map[string]interface{}) *ReportPackageUpdateOne {
-	rpuo.mutation.SetCodeAnalysis(m)
-	return rpuo
+func (_u *ReportPackageUpdateOne) SetCodeAnalysis(v map[string]interface{}) *ReportPackageUpdateOne {
+	_u.mutation.SetCodeAnalysis(v)
+	return _u
 }
 
 // ClearCodeAnalysis clears the value of the "code_analysis" field.
-func (rpuo *ReportPackageUpdateOne) ClearCodeAnalysis() *ReportPackageUpdateOne {
-	rpuo.mutation.ClearCodeAnalysis()
-	return rpuo
+func (_u *ReportPackageUpdateOne) ClearCodeAnalysis() *ReportPackageUpdateOne {
+	_u.mutation.ClearCodeAnalysis()
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rpuo *ReportPackageUpdateOne) SetCreatedAt(t time.Time) *ReportPackageUpdateOne {
-	rpuo.mutation.SetCreatedAt(t)
-	return rpuo
+func (_u *ReportPackageUpdateOne) SetCreatedAt(v time.Time) *ReportPackageUpdateOne {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rpuo *ReportPackageUpdateOne) SetNillableCreatedAt(t *time.Time) *ReportPackageUpdateOne {
-	if t != nil {
-		rpuo.SetCreatedAt(*t)
+func (_u *ReportPackageUpdateOne) SetNillableCreatedAt(v *time.Time) *ReportPackageUpdateOne {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return rpuo
+	return _u
 }
 
 // ClearCreatedAt clears the value of the "created_at" field.
-func (rpuo *ReportPackageUpdateOne) ClearCreatedAt() *ReportPackageUpdateOne {
-	rpuo.mutation.ClearCreatedAt()
-	return rpuo
+func (_u *ReportPackageUpdateOne) ClearCreatedAt() *ReportPackageUpdateOne {
+	_u.mutation.ClearCreatedAt()
+	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rpuo *ReportPackageUpdateOne) SetUpdatedAt(t time.Time) *ReportPackageUpdateOne {
-	rpuo.mutation.SetUpdatedAt(t)
-	return rpuo
+func (_u *ReportPackageUpdateOne) SetUpdatedAt(v time.Time) *ReportPackageUpdateOne {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rpuo *ReportPackageUpdateOne) SetNillableUpdatedAt(t *time.Time) *ReportPackageUpdateOne {
-	if t != nil {
-		rpuo.SetUpdatedAt(*t)
+func (_u *ReportPackageUpdateOne) SetNillableUpdatedAt(v *time.Time) *ReportPackageUpdateOne {
+	if v != nil {
+		_u.SetUpdatedAt(*v)
 	}
-	return rpuo
+	return _u
 }
 
 // ClearUpdatedAt clears the value of the "updated_at" field.
-func (rpuo *ReportPackageUpdateOne) ClearUpdatedAt() *ReportPackageUpdateOne {
-	rpuo.mutation.ClearUpdatedAt()
-	return rpuo
+func (_u *ReportPackageUpdateOne) ClearUpdatedAt() *ReportPackageUpdateOne {
+	_u.mutation.ClearUpdatedAt()
+	return _u
 }
 
 // AddManifestIDs adds the "manifests" edge to the ReportPackageManifest entity by IDs.
-func (rpuo *ReportPackageUpdateOne) AddManifestIDs(ids ...int) *ReportPackageUpdateOne {
-	rpuo.mutation.AddManifestIDs(ids...)
-	return rpuo
+func (_u *ReportPackageUpdateOne) AddManifestIDs(ids ...int) *ReportPackageUpdateOne {
+	_u.mutation.AddManifestIDs(ids...)
+	return _u
 }
 
 // AddManifests adds the "manifests" edges to the ReportPackageManifest entity.
-func (rpuo *ReportPackageUpdateOne) AddManifests(r ...*ReportPackageManifest) *ReportPackageUpdateOne {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdateOne) AddManifests(v ...*ReportPackageManifest) *ReportPackageUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpuo.AddManifestIDs(ids...)
+	return _u.AddManifestIDs(ids...)
 }
 
 // AddVulnerabilityIDs adds the "vulnerabilities" edge to the ReportVulnerability entity by IDs.
-func (rpuo *ReportPackageUpdateOne) AddVulnerabilityIDs(ids ...int) *ReportPackageUpdateOne {
-	rpuo.mutation.AddVulnerabilityIDs(ids...)
-	return rpuo
+func (_u *ReportPackageUpdateOne) AddVulnerabilityIDs(ids ...int) *ReportPackageUpdateOne {
+	_u.mutation.AddVulnerabilityIDs(ids...)
+	return _u
 }
 
 // AddVulnerabilities adds the "vulnerabilities" edges to the ReportVulnerability entity.
-func (rpuo *ReportPackageUpdateOne) AddVulnerabilities(r ...*ReportVulnerability) *ReportPackageUpdateOne {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdateOne) AddVulnerabilities(v ...*ReportVulnerability) *ReportPackageUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpuo.AddVulnerabilityIDs(ids...)
+	return _u.AddVulnerabilityIDs(ids...)
 }
 
 // AddLicenseIDs adds the "licenses" edge to the ReportLicense entity by IDs.
-func (rpuo *ReportPackageUpdateOne) AddLicenseIDs(ids ...int) *ReportPackageUpdateOne {
-	rpuo.mutation.AddLicenseIDs(ids...)
-	return rpuo
+func (_u *ReportPackageUpdateOne) AddLicenseIDs(ids ...int) *ReportPackageUpdateOne {
+	_u.mutation.AddLicenseIDs(ids...)
+	return _u
 }
 
 // AddLicenses adds the "licenses" edges to the ReportLicense entity.
-func (rpuo *ReportPackageUpdateOne) AddLicenses(r ...*ReportLicense) *ReportPackageUpdateOne {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdateOne) AddLicenses(v ...*ReportLicense) *ReportPackageUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpuo.AddLicenseIDs(ids...)
+	return _u.AddLicenseIDs(ids...)
 }
 
 // AddDependencyIDs adds the "dependencies" edge to the ReportDependency entity by IDs.
-func (rpuo *ReportPackageUpdateOne) AddDependencyIDs(ids ...int) *ReportPackageUpdateOne {
-	rpuo.mutation.AddDependencyIDs(ids...)
-	return rpuo
+func (_u *ReportPackageUpdateOne) AddDependencyIDs(ids ...int) *ReportPackageUpdateOne {
+	_u.mutation.AddDependencyIDs(ids...)
+	return _u
 }
 
 // AddDependencies adds the "dependencies" edges to the ReportDependency entity.
-func (rpuo *ReportPackageUpdateOne) AddDependencies(r ...*ReportDependency) *ReportPackageUpdateOne {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdateOne) AddDependencies(v ...*ReportDependency) *ReportPackageUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpuo.AddDependencyIDs(ids...)
+	return _u.AddDependencyIDs(ids...)
 }
 
 // SetMalwareAnalysisID sets the "malware_analysis" edge to the ReportMalware entity by ID.
-func (rpuo *ReportPackageUpdateOne) SetMalwareAnalysisID(id int) *ReportPackageUpdateOne {
-	rpuo.mutation.SetMalwareAnalysisID(id)
-	return rpuo
+func (_u *ReportPackageUpdateOne) SetMalwareAnalysisID(id int) *ReportPackageUpdateOne {
+	_u.mutation.SetMalwareAnalysisID(id)
+	return _u
 }
 
 // SetNillableMalwareAnalysisID sets the "malware_analysis" edge to the ReportMalware entity by ID if the given value is not nil.
-func (rpuo *ReportPackageUpdateOne) SetNillableMalwareAnalysisID(id *int) *ReportPackageUpdateOne {
+func (_u *ReportPackageUpdateOne) SetNillableMalwareAnalysisID(id *int) *ReportPackageUpdateOne {
 	if id != nil {
-		rpuo = rpuo.SetMalwareAnalysisID(*id)
+		_u = _u.SetMalwareAnalysisID(*id)
 	}
-	return rpuo
+	return _u
 }
 
 // SetMalwareAnalysis sets the "malware_analysis" edge to the ReportMalware entity.
-func (rpuo *ReportPackageUpdateOne) SetMalwareAnalysis(r *ReportMalware) *ReportPackageUpdateOne {
-	return rpuo.SetMalwareAnalysisID(r.ID)
+func (_u *ReportPackageUpdateOne) SetMalwareAnalysis(v *ReportMalware) *ReportPackageUpdateOne {
+	return _u.SetMalwareAnalysisID(v.ID)
 }
 
 // AddProjectIDs adds the "projects" edge to the ReportProject entity by IDs.
-func (rpuo *ReportPackageUpdateOne) AddProjectIDs(ids ...int) *ReportPackageUpdateOne {
-	rpuo.mutation.AddProjectIDs(ids...)
-	return rpuo
+func (_u *ReportPackageUpdateOne) AddProjectIDs(ids ...int) *ReportPackageUpdateOne {
+	_u.mutation.AddProjectIDs(ids...)
+	return _u
 }
 
 // AddProjects adds the "projects" edges to the ReportProject entity.
-func (rpuo *ReportPackageUpdateOne) AddProjects(r ...*ReportProject) *ReportPackageUpdateOne {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdateOne) AddProjects(v ...*ReportProject) *ReportPackageUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpuo.AddProjectIDs(ids...)
+	return _u.AddProjectIDs(ids...)
 }
 
 // AddSlsaProvenanceIDs adds the "slsa_provenances" edge to the ReportSlsaProvenance entity by IDs.
-func (rpuo *ReportPackageUpdateOne) AddSlsaProvenanceIDs(ids ...int) *ReportPackageUpdateOne {
-	rpuo.mutation.AddSlsaProvenanceIDs(ids...)
-	return rpuo
+func (_u *ReportPackageUpdateOne) AddSlsaProvenanceIDs(ids ...int) *ReportPackageUpdateOne {
+	_u.mutation.AddSlsaProvenanceIDs(ids...)
+	return _u
 }
 
 // AddSlsaProvenances adds the "slsa_provenances" edges to the ReportSlsaProvenance entity.
-func (rpuo *ReportPackageUpdateOne) AddSlsaProvenances(r ...*ReportSlsaProvenance) *ReportPackageUpdateOne {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdateOne) AddSlsaProvenances(v ...*ReportSlsaProvenance) *ReportPackageUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpuo.AddSlsaProvenanceIDs(ids...)
+	return _u.AddSlsaProvenanceIDs(ids...)
 }
 
 // Mutation returns the ReportPackageMutation object of the builder.
-func (rpuo *ReportPackageUpdateOne) Mutation() *ReportPackageMutation {
-	return rpuo.mutation
+func (_u *ReportPackageUpdateOne) Mutation() *ReportPackageMutation {
+	return _u.mutation
 }
 
 // ClearManifests clears all "manifests" edges to the ReportPackageManifest entity.
-func (rpuo *ReportPackageUpdateOne) ClearManifests() *ReportPackageUpdateOne {
-	rpuo.mutation.ClearManifests()
-	return rpuo
+func (_u *ReportPackageUpdateOne) ClearManifests() *ReportPackageUpdateOne {
+	_u.mutation.ClearManifests()
+	return _u
 }
 
 // RemoveManifestIDs removes the "manifests" edge to ReportPackageManifest entities by IDs.
-func (rpuo *ReportPackageUpdateOne) RemoveManifestIDs(ids ...int) *ReportPackageUpdateOne {
-	rpuo.mutation.RemoveManifestIDs(ids...)
-	return rpuo
+func (_u *ReportPackageUpdateOne) RemoveManifestIDs(ids ...int) *ReportPackageUpdateOne {
+	_u.mutation.RemoveManifestIDs(ids...)
+	return _u
 }
 
 // RemoveManifests removes "manifests" edges to ReportPackageManifest entities.
-func (rpuo *ReportPackageUpdateOne) RemoveManifests(r ...*ReportPackageManifest) *ReportPackageUpdateOne {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdateOne) RemoveManifests(v ...*ReportPackageManifest) *ReportPackageUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpuo.RemoveManifestIDs(ids...)
+	return _u.RemoveManifestIDs(ids...)
 }
 
 // ClearVulnerabilities clears all "vulnerabilities" edges to the ReportVulnerability entity.
-func (rpuo *ReportPackageUpdateOne) ClearVulnerabilities() *ReportPackageUpdateOne {
-	rpuo.mutation.ClearVulnerabilities()
-	return rpuo
+func (_u *ReportPackageUpdateOne) ClearVulnerabilities() *ReportPackageUpdateOne {
+	_u.mutation.ClearVulnerabilities()
+	return _u
 }
 
 // RemoveVulnerabilityIDs removes the "vulnerabilities" edge to ReportVulnerability entities by IDs.
-func (rpuo *ReportPackageUpdateOne) RemoveVulnerabilityIDs(ids ...int) *ReportPackageUpdateOne {
-	rpuo.mutation.RemoveVulnerabilityIDs(ids...)
-	return rpuo
+func (_u *ReportPackageUpdateOne) RemoveVulnerabilityIDs(ids ...int) *ReportPackageUpdateOne {
+	_u.mutation.RemoveVulnerabilityIDs(ids...)
+	return _u
 }
 
 // RemoveVulnerabilities removes "vulnerabilities" edges to ReportVulnerability entities.
-func (rpuo *ReportPackageUpdateOne) RemoveVulnerabilities(r ...*ReportVulnerability) *ReportPackageUpdateOne {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdateOne) RemoveVulnerabilities(v ...*ReportVulnerability) *ReportPackageUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpuo.RemoveVulnerabilityIDs(ids...)
+	return _u.RemoveVulnerabilityIDs(ids...)
 }
 
 // ClearLicenses clears all "licenses" edges to the ReportLicense entity.
-func (rpuo *ReportPackageUpdateOne) ClearLicenses() *ReportPackageUpdateOne {
-	rpuo.mutation.ClearLicenses()
-	return rpuo
+func (_u *ReportPackageUpdateOne) ClearLicenses() *ReportPackageUpdateOne {
+	_u.mutation.ClearLicenses()
+	return _u
 }
 
 // RemoveLicenseIDs removes the "licenses" edge to ReportLicense entities by IDs.
-func (rpuo *ReportPackageUpdateOne) RemoveLicenseIDs(ids ...int) *ReportPackageUpdateOne {
-	rpuo.mutation.RemoveLicenseIDs(ids...)
-	return rpuo
+func (_u *ReportPackageUpdateOne) RemoveLicenseIDs(ids ...int) *ReportPackageUpdateOne {
+	_u.mutation.RemoveLicenseIDs(ids...)
+	return _u
 }
 
 // RemoveLicenses removes "licenses" edges to ReportLicense entities.
-func (rpuo *ReportPackageUpdateOne) RemoveLicenses(r ...*ReportLicense) *ReportPackageUpdateOne {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdateOne) RemoveLicenses(v ...*ReportLicense) *ReportPackageUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpuo.RemoveLicenseIDs(ids...)
+	return _u.RemoveLicenseIDs(ids...)
 }
 
 // ClearDependencies clears all "dependencies" edges to the ReportDependency entity.
-func (rpuo *ReportPackageUpdateOne) ClearDependencies() *ReportPackageUpdateOne {
-	rpuo.mutation.ClearDependencies()
-	return rpuo
+func (_u *ReportPackageUpdateOne) ClearDependencies() *ReportPackageUpdateOne {
+	_u.mutation.ClearDependencies()
+	return _u
 }
 
 // RemoveDependencyIDs removes the "dependencies" edge to ReportDependency entities by IDs.
-func (rpuo *ReportPackageUpdateOne) RemoveDependencyIDs(ids ...int) *ReportPackageUpdateOne {
-	rpuo.mutation.RemoveDependencyIDs(ids...)
-	return rpuo
+func (_u *ReportPackageUpdateOne) RemoveDependencyIDs(ids ...int) *ReportPackageUpdateOne {
+	_u.mutation.RemoveDependencyIDs(ids...)
+	return _u
 }
 
 // RemoveDependencies removes "dependencies" edges to ReportDependency entities.
-func (rpuo *ReportPackageUpdateOne) RemoveDependencies(r ...*ReportDependency) *ReportPackageUpdateOne {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdateOne) RemoveDependencies(v ...*ReportDependency) *ReportPackageUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpuo.RemoveDependencyIDs(ids...)
+	return _u.RemoveDependencyIDs(ids...)
 }
 
 // ClearMalwareAnalysis clears the "malware_analysis" edge to the ReportMalware entity.
-func (rpuo *ReportPackageUpdateOne) ClearMalwareAnalysis() *ReportPackageUpdateOne {
-	rpuo.mutation.ClearMalwareAnalysis()
-	return rpuo
+func (_u *ReportPackageUpdateOne) ClearMalwareAnalysis() *ReportPackageUpdateOne {
+	_u.mutation.ClearMalwareAnalysis()
+	return _u
 }
 
 // ClearProjects clears all "projects" edges to the ReportProject entity.
-func (rpuo *ReportPackageUpdateOne) ClearProjects() *ReportPackageUpdateOne {
-	rpuo.mutation.ClearProjects()
-	return rpuo
+func (_u *ReportPackageUpdateOne) ClearProjects() *ReportPackageUpdateOne {
+	_u.mutation.ClearProjects()
+	return _u
 }
 
 // RemoveProjectIDs removes the "projects" edge to ReportProject entities by IDs.
-func (rpuo *ReportPackageUpdateOne) RemoveProjectIDs(ids ...int) *ReportPackageUpdateOne {
-	rpuo.mutation.RemoveProjectIDs(ids...)
-	return rpuo
+func (_u *ReportPackageUpdateOne) RemoveProjectIDs(ids ...int) *ReportPackageUpdateOne {
+	_u.mutation.RemoveProjectIDs(ids...)
+	return _u
 }
 
 // RemoveProjects removes "projects" edges to ReportProject entities.
-func (rpuo *ReportPackageUpdateOne) RemoveProjects(r ...*ReportProject) *ReportPackageUpdateOne {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdateOne) RemoveProjects(v ...*ReportProject) *ReportPackageUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpuo.RemoveProjectIDs(ids...)
+	return _u.RemoveProjectIDs(ids...)
 }
 
 // ClearSlsaProvenances clears all "slsa_provenances" edges to the ReportSlsaProvenance entity.
-func (rpuo *ReportPackageUpdateOne) ClearSlsaProvenances() *ReportPackageUpdateOne {
-	rpuo.mutation.ClearSlsaProvenances()
-	return rpuo
+func (_u *ReportPackageUpdateOne) ClearSlsaProvenances() *ReportPackageUpdateOne {
+	_u.mutation.ClearSlsaProvenances()
+	return _u
 }
 
 // RemoveSlsaProvenanceIDs removes the "slsa_provenances" edge to ReportSlsaProvenance entities by IDs.
-func (rpuo *ReportPackageUpdateOne) RemoveSlsaProvenanceIDs(ids ...int) *ReportPackageUpdateOne {
-	rpuo.mutation.RemoveSlsaProvenanceIDs(ids...)
-	return rpuo
+func (_u *ReportPackageUpdateOne) RemoveSlsaProvenanceIDs(ids ...int) *ReportPackageUpdateOne {
+	_u.mutation.RemoveSlsaProvenanceIDs(ids...)
+	return _u
 }
 
 // RemoveSlsaProvenances removes "slsa_provenances" edges to ReportSlsaProvenance entities.
-func (rpuo *ReportPackageUpdateOne) RemoveSlsaProvenances(r ...*ReportSlsaProvenance) *ReportPackageUpdateOne {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageUpdateOne) RemoveSlsaProvenances(v ...*ReportSlsaProvenance) *ReportPackageUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpuo.RemoveSlsaProvenanceIDs(ids...)
+	return _u.RemoveSlsaProvenanceIDs(ids...)
 }
 
 // Where appends a list predicates to the ReportPackageUpdate builder.
-func (rpuo *ReportPackageUpdateOne) Where(ps ...predicate.ReportPackage) *ReportPackageUpdateOne {
-	rpuo.mutation.Where(ps...)
-	return rpuo
+func (_u *ReportPackageUpdateOne) Where(ps ...predicate.ReportPackage) *ReportPackageUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (rpuo *ReportPackageUpdateOne) Select(field string, fields ...string) *ReportPackageUpdateOne {
-	rpuo.fields = append([]string{field}, fields...)
-	return rpuo
+func (_u *ReportPackageUpdateOne) Select(field string, fields ...string) *ReportPackageUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated ReportPackage entity.
-func (rpuo *ReportPackageUpdateOne) Save(ctx context.Context) (*ReportPackage, error) {
-	return withHooks(ctx, rpuo.sqlSave, rpuo.mutation, rpuo.hooks)
+func (_u *ReportPackageUpdateOne) Save(ctx context.Context) (*ReportPackage, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rpuo *ReportPackageUpdateOne) SaveX(ctx context.Context) *ReportPackage {
-	node, err := rpuo.Save(ctx)
+func (_u *ReportPackageUpdateOne) SaveX(ctx context.Context) *ReportPackage {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -1421,41 +1421,41 @@ func (rpuo *ReportPackageUpdateOne) SaveX(ctx context.Context) *ReportPackage {
 }
 
 // Exec executes the query on the entity.
-func (rpuo *ReportPackageUpdateOne) Exec(ctx context.Context) error {
-	_, err := rpuo.Save(ctx)
+func (_u *ReportPackageUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rpuo *ReportPackageUpdateOne) ExecX(ctx context.Context) {
-	if err := rpuo.Exec(ctx); err != nil {
+func (_u *ReportPackageUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (rpuo *ReportPackageUpdateOne) check() error {
-	if v, ok := rpuo.mutation.PackageID(); ok {
+func (_u *ReportPackageUpdateOne) check() error {
+	if v, ok := _u.mutation.PackageID(); ok {
 		if err := reportpackage.PackageIDValidator(v); err != nil {
 			return &ValidationError{Name: "package_id", err: fmt.Errorf(`ent: validator failed for field "ReportPackage.package_id": %w`, err)}
 		}
 	}
-	if v, ok := rpuo.mutation.Name(); ok {
+	if v, ok := _u.mutation.Name(); ok {
 		if err := reportpackage.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "ReportPackage.name": %w`, err)}
 		}
 	}
-	if v, ok := rpuo.mutation.Version(); ok {
+	if v, ok := _u.mutation.Version(); ok {
 		if err := reportpackage.VersionValidator(v); err != nil {
 			return &ValidationError{Name: "version", err: fmt.Errorf(`ent: validator failed for field "ReportPackage.version": %w`, err)}
 		}
 	}
-	if v, ok := rpuo.mutation.Ecosystem(); ok {
+	if v, ok := _u.mutation.Ecosystem(); ok {
 		if err := reportpackage.EcosystemValidator(v); err != nil {
 			return &ValidationError{Name: "ecosystem", err: fmt.Errorf(`ent: validator failed for field "ReportPackage.ecosystem": %w`, err)}
 		}
 	}
-	if v, ok := rpuo.mutation.PackageURL(); ok {
+	if v, ok := _u.mutation.PackageURL(); ok {
 		if err := reportpackage.PackageURLValidator(v); err != nil {
 			return &ValidationError{Name: "package_url", err: fmt.Errorf(`ent: validator failed for field "ReportPackage.package_url": %w`, err)}
 		}
@@ -1463,17 +1463,17 @@ func (rpuo *ReportPackageUpdateOne) check() error {
 	return nil
 }
 
-func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportPackage, err error) {
-	if err := rpuo.check(); err != nil {
+func (_u *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportPackage, err error) {
+	if err := _u.check(); err != nil {
 		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(reportpackage.Table, reportpackage.Columns, sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt))
-	id, ok := rpuo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "ReportPackage.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := rpuo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, reportpackage.FieldID)
 		for _, f := range fields {
@@ -1485,74 +1485,74 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 			}
 		}
 	}
-	if ps := rpuo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := rpuo.mutation.PackageID(); ok {
+	if value, ok := _u.mutation.PackageID(); ok {
 		_spec.SetField(reportpackage.FieldPackageID, field.TypeString, value)
 	}
-	if value, ok := rpuo.mutation.Name(); ok {
+	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(reportpackage.FieldName, field.TypeString, value)
 	}
-	if value, ok := rpuo.mutation.Version(); ok {
+	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(reportpackage.FieldVersion, field.TypeString, value)
 	}
-	if value, ok := rpuo.mutation.Ecosystem(); ok {
+	if value, ok := _u.mutation.Ecosystem(); ok {
 		_spec.SetField(reportpackage.FieldEcosystem, field.TypeString, value)
 	}
-	if value, ok := rpuo.mutation.PackageURL(); ok {
+	if value, ok := _u.mutation.PackageURL(); ok {
 		_spec.SetField(reportpackage.FieldPackageURL, field.TypeString, value)
 	}
-	if value, ok := rpuo.mutation.Depth(); ok {
+	if value, ok := _u.mutation.Depth(); ok {
 		_spec.SetField(reportpackage.FieldDepth, field.TypeInt, value)
 	}
-	if value, ok := rpuo.mutation.AddedDepth(); ok {
+	if value, ok := _u.mutation.AddedDepth(); ok {
 		_spec.AddField(reportpackage.FieldDepth, field.TypeInt, value)
 	}
-	if value, ok := rpuo.mutation.IsDirect(); ok {
+	if value, ok := _u.mutation.IsDirect(); ok {
 		_spec.SetField(reportpackage.FieldIsDirect, field.TypeBool, value)
 	}
-	if value, ok := rpuo.mutation.IsMalware(); ok {
+	if value, ok := _u.mutation.IsMalware(); ok {
 		_spec.SetField(reportpackage.FieldIsMalware, field.TypeBool, value)
 	}
-	if value, ok := rpuo.mutation.IsSuspicious(); ok {
+	if value, ok := _u.mutation.IsSuspicious(); ok {
 		_spec.SetField(reportpackage.FieldIsSuspicious, field.TypeBool, value)
 	}
-	if value, ok := rpuo.mutation.PackageDetails(); ok {
+	if value, ok := _u.mutation.PackageDetails(); ok {
 		_spec.SetField(reportpackage.FieldPackageDetails, field.TypeJSON, value)
 	}
-	if rpuo.mutation.PackageDetailsCleared() {
+	if _u.mutation.PackageDetailsCleared() {
 		_spec.ClearField(reportpackage.FieldPackageDetails, field.TypeJSON)
 	}
-	if value, ok := rpuo.mutation.InsightsV2(); ok {
+	if value, ok := _u.mutation.InsightsV2(); ok {
 		_spec.SetField(reportpackage.FieldInsightsV2, field.TypeJSON, value)
 	}
-	if rpuo.mutation.InsightsV2Cleared() {
+	if _u.mutation.InsightsV2Cleared() {
 		_spec.ClearField(reportpackage.FieldInsightsV2, field.TypeJSON)
 	}
-	if value, ok := rpuo.mutation.CodeAnalysis(); ok {
+	if value, ok := _u.mutation.CodeAnalysis(); ok {
 		_spec.SetField(reportpackage.FieldCodeAnalysis, field.TypeJSON, value)
 	}
-	if rpuo.mutation.CodeAnalysisCleared() {
+	if _u.mutation.CodeAnalysisCleared() {
 		_spec.ClearField(reportpackage.FieldCodeAnalysis, field.TypeJSON)
 	}
-	if value, ok := rpuo.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(reportpackage.FieldCreatedAt, field.TypeTime, value)
 	}
-	if rpuo.mutation.CreatedAtCleared() {
+	if _u.mutation.CreatedAtCleared() {
 		_spec.ClearField(reportpackage.FieldCreatedAt, field.TypeTime)
 	}
-	if value, ok := rpuo.mutation.UpdatedAt(); ok {
+	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportpackage.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if rpuo.mutation.UpdatedAtCleared() {
+	if _u.mutation.UpdatedAtCleared() {
 		_spec.ClearField(reportpackage.FieldUpdatedAt, field.TypeTime)
 	}
-	if rpuo.mutation.ManifestsCleared() {
+	if _u.mutation.ManifestsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -1565,23 +1565,7 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpuo.mutation.RemovedManifestsIDs(); len(nodes) > 0 && !rpuo.mutation.ManifestsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   reportpackage.ManifestsTable,
-			Columns: reportpackage.ManifestsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(reportpackagemanifest.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := rpuo.mutation.ManifestsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.RemovedManifestsIDs(); len(nodes) > 0 && !_u.mutation.ManifestsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -1595,9 +1579,25 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ManifestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   reportpackage.ManifestsTable,
+			Columns: reportpackage.ManifestsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reportpackagemanifest.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if rpuo.mutation.VulnerabilitiesCleared() {
+	if _u.mutation.VulnerabilitiesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1610,7 +1610,7 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpuo.mutation.RemovedVulnerabilitiesIDs(); len(nodes) > 0 && !rpuo.mutation.VulnerabilitiesCleared() {
+	if nodes := _u.mutation.RemovedVulnerabilitiesIDs(); len(nodes) > 0 && !_u.mutation.VulnerabilitiesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1626,7 +1626,7 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpuo.mutation.VulnerabilitiesIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.VulnerabilitiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1642,7 +1642,7 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if rpuo.mutation.LicensesCleared() {
+	if _u.mutation.LicensesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1655,7 +1655,7 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpuo.mutation.RemovedLicensesIDs(); len(nodes) > 0 && !rpuo.mutation.LicensesCleared() {
+	if nodes := _u.mutation.RemovedLicensesIDs(); len(nodes) > 0 && !_u.mutation.LicensesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1671,7 +1671,7 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpuo.mutation.LicensesIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.LicensesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1687,7 +1687,7 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if rpuo.mutation.DependenciesCleared() {
+	if _u.mutation.DependenciesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1700,7 +1700,7 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpuo.mutation.RemovedDependenciesIDs(); len(nodes) > 0 && !rpuo.mutation.DependenciesCleared() {
+	if nodes := _u.mutation.RemovedDependenciesIDs(); len(nodes) > 0 && !_u.mutation.DependenciesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1716,7 +1716,7 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpuo.mutation.DependenciesIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.DependenciesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1732,7 +1732,7 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if rpuo.mutation.MalwareAnalysisCleared() {
+	if _u.mutation.MalwareAnalysisCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -1745,7 +1745,7 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpuo.mutation.MalwareAnalysisIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.MalwareAnalysisIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -1761,7 +1761,7 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if rpuo.mutation.ProjectsCleared() {
+	if _u.mutation.ProjectsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1774,7 +1774,7 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpuo.mutation.RemovedProjectsIDs(); len(nodes) > 0 && !rpuo.mutation.ProjectsCleared() {
+	if nodes := _u.mutation.RemovedProjectsIDs(); len(nodes) > 0 && !_u.mutation.ProjectsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1790,7 +1790,7 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpuo.mutation.ProjectsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.ProjectsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1806,7 +1806,7 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if rpuo.mutation.SlsaProvenancesCleared() {
+	if _u.mutation.SlsaProvenancesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1819,7 +1819,7 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpuo.mutation.RemovedSlsaProvenancesIDs(); len(nodes) > 0 && !rpuo.mutation.SlsaProvenancesCleared() {
+	if nodes := _u.mutation.RemovedSlsaProvenancesIDs(); len(nodes) > 0 && !_u.mutation.SlsaProvenancesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1835,7 +1835,7 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpuo.mutation.SlsaProvenancesIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.SlsaProvenancesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1851,10 +1851,10 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_node = &ReportPackage{config: rpuo.config}
+	_node = &ReportPackage{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, rpuo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{reportpackage.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -1862,6 +1862,6 @@ func (rpuo *ReportPackageUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		return nil, err
 	}
-	rpuo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

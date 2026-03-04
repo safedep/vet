@@ -83,7 +83,7 @@ func (*ReportDependency) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the ReportDependency fields.
-func (rd *ReportDependency) assignValues(columns []string, values []any) error {
+func (_m *ReportDependency) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -94,64 +94,64 @@ func (rd *ReportDependency) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			rd.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case reportdependency.FieldDependencyPackageID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field dependency_package_id", values[i])
 			} else if value.Valid {
-				rd.DependencyPackageID = value.String
+				_m.DependencyPackageID = value.String
 			}
 		case reportdependency.FieldDependencyName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field dependency_name", values[i])
 			} else if value.Valid {
-				rd.DependencyName = value.String
+				_m.DependencyName = value.String
 			}
 		case reportdependency.FieldDependencyVersion:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field dependency_version", values[i])
 			} else if value.Valid {
-				rd.DependencyVersion = value.String
+				_m.DependencyVersion = value.String
 			}
 		case reportdependency.FieldDependencyEcosystem:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field dependency_ecosystem", values[i])
 			} else if value.Valid {
-				rd.DependencyEcosystem = value.String
+				_m.DependencyEcosystem = value.String
 			}
 		case reportdependency.FieldDependencyType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field dependency_type", values[i])
 			} else if value.Valid {
-				rd.DependencyType = value.String
+				_m.DependencyType = value.String
 			}
 		case reportdependency.FieldDepth:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field depth", values[i])
 			} else if value.Valid {
-				rd.Depth = int(value.Int64)
+				_m.Depth = int(value.Int64)
 			}
 		case reportdependency.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
-				rd.CreatedAt = value.Time
+				_m.CreatedAt = value.Time
 			}
 		case reportdependency.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
-				rd.UpdatedAt = value.Time
+				_m.UpdatedAt = value.Time
 			}
 		case reportdependency.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field report_package_dependencies", value)
 			} else if value.Valid {
-				rd.report_package_dependencies = new(int)
-				*rd.report_package_dependencies = int(value.Int64)
+				_m.report_package_dependencies = new(int)
+				*_m.report_package_dependencies = int(value.Int64)
 			}
 		default:
-			rd.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -159,61 +159,61 @@ func (rd *ReportDependency) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the ReportDependency.
 // This includes values selected through modifiers, order, etc.
-func (rd *ReportDependency) Value(name string) (ent.Value, error) {
-	return rd.selectValues.Get(name)
+func (_m *ReportDependency) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QueryPackage queries the "package" edge of the ReportDependency entity.
-func (rd *ReportDependency) QueryPackage() *ReportPackageQuery {
-	return NewReportDependencyClient(rd.config).QueryPackage(rd)
+func (_m *ReportDependency) QueryPackage() *ReportPackageQuery {
+	return NewReportDependencyClient(_m.config).QueryPackage(_m)
 }
 
 // Update returns a builder for updating this ReportDependency.
 // Note that you need to call ReportDependency.Unwrap() before calling this method if this ReportDependency
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (rd *ReportDependency) Update() *ReportDependencyUpdateOne {
-	return NewReportDependencyClient(rd.config).UpdateOne(rd)
+func (_m *ReportDependency) Update() *ReportDependencyUpdateOne {
+	return NewReportDependencyClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the ReportDependency entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (rd *ReportDependency) Unwrap() *ReportDependency {
-	_tx, ok := rd.config.driver.(*txDriver)
+func (_m *ReportDependency) Unwrap() *ReportDependency {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: ReportDependency is not a transactional entity")
 	}
-	rd.config.driver = _tx.drv
-	return rd
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (rd *ReportDependency) String() string {
+func (_m *ReportDependency) String() string {
 	var builder strings.Builder
 	builder.WriteString("ReportDependency(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", rd.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("dependency_package_id=")
-	builder.WriteString(rd.DependencyPackageID)
+	builder.WriteString(_m.DependencyPackageID)
 	builder.WriteString(", ")
 	builder.WriteString("dependency_name=")
-	builder.WriteString(rd.DependencyName)
+	builder.WriteString(_m.DependencyName)
 	builder.WriteString(", ")
 	builder.WriteString("dependency_version=")
-	builder.WriteString(rd.DependencyVersion)
+	builder.WriteString(_m.DependencyVersion)
 	builder.WriteString(", ")
 	builder.WriteString("dependency_ecosystem=")
-	builder.WriteString(rd.DependencyEcosystem)
+	builder.WriteString(_m.DependencyEcosystem)
 	builder.WriteString(", ")
 	builder.WriteString("dependency_type=")
-	builder.WriteString(rd.DependencyType)
+	builder.WriteString(_m.DependencyType)
 	builder.WriteString(", ")
 	builder.WriteString("depth=")
-	builder.WriteString(fmt.Sprintf("%v", rd.Depth))
+	builder.WriteString(fmt.Sprintf("%v", _m.Depth))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
-	builder.WriteString(rd.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
-	builder.WriteString(rd.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

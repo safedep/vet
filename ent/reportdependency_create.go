@@ -22,118 +22,118 @@ type ReportDependencyCreate struct {
 }
 
 // SetDependencyPackageID sets the "dependency_package_id" field.
-func (rdc *ReportDependencyCreate) SetDependencyPackageID(s string) *ReportDependencyCreate {
-	rdc.mutation.SetDependencyPackageID(s)
-	return rdc
+func (_c *ReportDependencyCreate) SetDependencyPackageID(v string) *ReportDependencyCreate {
+	_c.mutation.SetDependencyPackageID(v)
+	return _c
 }
 
 // SetDependencyName sets the "dependency_name" field.
-func (rdc *ReportDependencyCreate) SetDependencyName(s string) *ReportDependencyCreate {
-	rdc.mutation.SetDependencyName(s)
-	return rdc
+func (_c *ReportDependencyCreate) SetDependencyName(v string) *ReportDependencyCreate {
+	_c.mutation.SetDependencyName(v)
+	return _c
 }
 
 // SetDependencyVersion sets the "dependency_version" field.
-func (rdc *ReportDependencyCreate) SetDependencyVersion(s string) *ReportDependencyCreate {
-	rdc.mutation.SetDependencyVersion(s)
-	return rdc
+func (_c *ReportDependencyCreate) SetDependencyVersion(v string) *ReportDependencyCreate {
+	_c.mutation.SetDependencyVersion(v)
+	return _c
 }
 
 // SetDependencyEcosystem sets the "dependency_ecosystem" field.
-func (rdc *ReportDependencyCreate) SetDependencyEcosystem(s string) *ReportDependencyCreate {
-	rdc.mutation.SetDependencyEcosystem(s)
-	return rdc
+func (_c *ReportDependencyCreate) SetDependencyEcosystem(v string) *ReportDependencyCreate {
+	_c.mutation.SetDependencyEcosystem(v)
+	return _c
 }
 
 // SetDependencyType sets the "dependency_type" field.
-func (rdc *ReportDependencyCreate) SetDependencyType(s string) *ReportDependencyCreate {
-	rdc.mutation.SetDependencyType(s)
-	return rdc
+func (_c *ReportDependencyCreate) SetDependencyType(v string) *ReportDependencyCreate {
+	_c.mutation.SetDependencyType(v)
+	return _c
 }
 
 // SetNillableDependencyType sets the "dependency_type" field if the given value is not nil.
-func (rdc *ReportDependencyCreate) SetNillableDependencyType(s *string) *ReportDependencyCreate {
-	if s != nil {
-		rdc.SetDependencyType(*s)
+func (_c *ReportDependencyCreate) SetNillableDependencyType(v *string) *ReportDependencyCreate {
+	if v != nil {
+		_c.SetDependencyType(*v)
 	}
-	return rdc
+	return _c
 }
 
 // SetDepth sets the "depth" field.
-func (rdc *ReportDependencyCreate) SetDepth(i int) *ReportDependencyCreate {
-	rdc.mutation.SetDepth(i)
-	return rdc
+func (_c *ReportDependencyCreate) SetDepth(v int) *ReportDependencyCreate {
+	_c.mutation.SetDepth(v)
+	return _c
 }
 
 // SetNillableDepth sets the "depth" field if the given value is not nil.
-func (rdc *ReportDependencyCreate) SetNillableDepth(i *int) *ReportDependencyCreate {
-	if i != nil {
-		rdc.SetDepth(*i)
+func (_c *ReportDependencyCreate) SetNillableDepth(v *int) *ReportDependencyCreate {
+	if v != nil {
+		_c.SetDepth(*v)
 	}
-	return rdc
+	return _c
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rdc *ReportDependencyCreate) SetCreatedAt(t time.Time) *ReportDependencyCreate {
-	rdc.mutation.SetCreatedAt(t)
-	return rdc
+func (_c *ReportDependencyCreate) SetCreatedAt(v time.Time) *ReportDependencyCreate {
+	_c.mutation.SetCreatedAt(v)
+	return _c
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rdc *ReportDependencyCreate) SetNillableCreatedAt(t *time.Time) *ReportDependencyCreate {
-	if t != nil {
-		rdc.SetCreatedAt(*t)
+func (_c *ReportDependencyCreate) SetNillableCreatedAt(v *time.Time) *ReportDependencyCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
 	}
-	return rdc
+	return _c
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rdc *ReportDependencyCreate) SetUpdatedAt(t time.Time) *ReportDependencyCreate {
-	rdc.mutation.SetUpdatedAt(t)
-	return rdc
+func (_c *ReportDependencyCreate) SetUpdatedAt(v time.Time) *ReportDependencyCreate {
+	_c.mutation.SetUpdatedAt(v)
+	return _c
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rdc *ReportDependencyCreate) SetNillableUpdatedAt(t *time.Time) *ReportDependencyCreate {
-	if t != nil {
-		rdc.SetUpdatedAt(*t)
+func (_c *ReportDependencyCreate) SetNillableUpdatedAt(v *time.Time) *ReportDependencyCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
 	}
-	return rdc
+	return _c
 }
 
 // SetPackageID sets the "package" edge to the ReportPackage entity by ID.
-func (rdc *ReportDependencyCreate) SetPackageID(id int) *ReportDependencyCreate {
-	rdc.mutation.SetPackageID(id)
-	return rdc
+func (_c *ReportDependencyCreate) SetPackageID(id int) *ReportDependencyCreate {
+	_c.mutation.SetPackageID(id)
+	return _c
 }
 
 // SetNillablePackageID sets the "package" edge to the ReportPackage entity by ID if the given value is not nil.
-func (rdc *ReportDependencyCreate) SetNillablePackageID(id *int) *ReportDependencyCreate {
+func (_c *ReportDependencyCreate) SetNillablePackageID(id *int) *ReportDependencyCreate {
 	if id != nil {
-		rdc = rdc.SetPackageID(*id)
+		_c = _c.SetPackageID(*id)
 	}
-	return rdc
+	return _c
 }
 
 // SetPackage sets the "package" edge to the ReportPackage entity.
-func (rdc *ReportDependencyCreate) SetPackage(r *ReportPackage) *ReportDependencyCreate {
-	return rdc.SetPackageID(r.ID)
+func (_c *ReportDependencyCreate) SetPackage(v *ReportPackage) *ReportDependencyCreate {
+	return _c.SetPackageID(v.ID)
 }
 
 // Mutation returns the ReportDependencyMutation object of the builder.
-func (rdc *ReportDependencyCreate) Mutation() *ReportDependencyMutation {
-	return rdc.mutation
+func (_c *ReportDependencyCreate) Mutation() *ReportDependencyMutation {
+	return _c.mutation
 }
 
 // Save creates the ReportDependency in the database.
-func (rdc *ReportDependencyCreate) Save(ctx context.Context) (*ReportDependency, error) {
-	rdc.defaults()
-	return withHooks(ctx, rdc.sqlSave, rdc.mutation, rdc.hooks)
+func (_c *ReportDependencyCreate) Save(ctx context.Context) (*ReportDependency, error) {
+	_c.defaults()
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (rdc *ReportDependencyCreate) SaveX(ctx context.Context) *ReportDependency {
-	v, err := rdc.Save(ctx)
+func (_c *ReportDependencyCreate) SaveX(ctx context.Context) *ReportDependency {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -141,72 +141,72 @@ func (rdc *ReportDependencyCreate) SaveX(ctx context.Context) *ReportDependency 
 }
 
 // Exec executes the query.
-func (rdc *ReportDependencyCreate) Exec(ctx context.Context) error {
-	_, err := rdc.Save(ctx)
+func (_c *ReportDependencyCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rdc *ReportDependencyCreate) ExecX(ctx context.Context) {
-	if err := rdc.Exec(ctx); err != nil {
+func (_c *ReportDependencyCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (rdc *ReportDependencyCreate) defaults() {
-	if _, ok := rdc.mutation.Depth(); !ok {
+func (_c *ReportDependencyCreate) defaults() {
+	if _, ok := _c.mutation.Depth(); !ok {
 		v := reportdependency.DefaultDepth
-		rdc.mutation.SetDepth(v)
+		_c.mutation.SetDepth(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (rdc *ReportDependencyCreate) check() error {
-	if _, ok := rdc.mutation.DependencyPackageID(); !ok {
+func (_c *ReportDependencyCreate) check() error {
+	if _, ok := _c.mutation.DependencyPackageID(); !ok {
 		return &ValidationError{Name: "dependency_package_id", err: errors.New(`ent: missing required field "ReportDependency.dependency_package_id"`)}
 	}
-	if v, ok := rdc.mutation.DependencyPackageID(); ok {
+	if v, ok := _c.mutation.DependencyPackageID(); ok {
 		if err := reportdependency.DependencyPackageIDValidator(v); err != nil {
 			return &ValidationError{Name: "dependency_package_id", err: fmt.Errorf(`ent: validator failed for field "ReportDependency.dependency_package_id": %w`, err)}
 		}
 	}
-	if _, ok := rdc.mutation.DependencyName(); !ok {
+	if _, ok := _c.mutation.DependencyName(); !ok {
 		return &ValidationError{Name: "dependency_name", err: errors.New(`ent: missing required field "ReportDependency.dependency_name"`)}
 	}
-	if v, ok := rdc.mutation.DependencyName(); ok {
+	if v, ok := _c.mutation.DependencyName(); ok {
 		if err := reportdependency.DependencyNameValidator(v); err != nil {
 			return &ValidationError{Name: "dependency_name", err: fmt.Errorf(`ent: validator failed for field "ReportDependency.dependency_name": %w`, err)}
 		}
 	}
-	if _, ok := rdc.mutation.DependencyVersion(); !ok {
+	if _, ok := _c.mutation.DependencyVersion(); !ok {
 		return &ValidationError{Name: "dependency_version", err: errors.New(`ent: missing required field "ReportDependency.dependency_version"`)}
 	}
-	if v, ok := rdc.mutation.DependencyVersion(); ok {
+	if v, ok := _c.mutation.DependencyVersion(); ok {
 		if err := reportdependency.DependencyVersionValidator(v); err != nil {
 			return &ValidationError{Name: "dependency_version", err: fmt.Errorf(`ent: validator failed for field "ReportDependency.dependency_version": %w`, err)}
 		}
 	}
-	if _, ok := rdc.mutation.DependencyEcosystem(); !ok {
+	if _, ok := _c.mutation.DependencyEcosystem(); !ok {
 		return &ValidationError{Name: "dependency_ecosystem", err: errors.New(`ent: missing required field "ReportDependency.dependency_ecosystem"`)}
 	}
-	if v, ok := rdc.mutation.DependencyEcosystem(); ok {
+	if v, ok := _c.mutation.DependencyEcosystem(); ok {
 		if err := reportdependency.DependencyEcosystemValidator(v); err != nil {
 			return &ValidationError{Name: "dependency_ecosystem", err: fmt.Errorf(`ent: validator failed for field "ReportDependency.dependency_ecosystem": %w`, err)}
 		}
 	}
-	if _, ok := rdc.mutation.Depth(); !ok {
+	if _, ok := _c.mutation.Depth(); !ok {
 		return &ValidationError{Name: "depth", err: errors.New(`ent: missing required field "ReportDependency.depth"`)}
 	}
 	return nil
 }
 
-func (rdc *ReportDependencyCreate) sqlSave(ctx context.Context) (*ReportDependency, error) {
-	if err := rdc.check(); err != nil {
+func (_c *ReportDependencyCreate) sqlSave(ctx context.Context) (*ReportDependency, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := rdc.createSpec()
-	if err := sqlgraph.CreateNode(ctx, rdc.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -214,49 +214,49 @@ func (rdc *ReportDependencyCreate) sqlSave(ctx context.Context) (*ReportDependen
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
-	rdc.mutation.id = &_node.ID
-	rdc.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (rdc *ReportDependencyCreate) createSpec() (*ReportDependency, *sqlgraph.CreateSpec) {
+func (_c *ReportDependencyCreate) createSpec() (*ReportDependency, *sqlgraph.CreateSpec) {
 	var (
-		_node = &ReportDependency{config: rdc.config}
+		_node = &ReportDependency{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(reportdependency.Table, sqlgraph.NewFieldSpec(reportdependency.FieldID, field.TypeInt))
 	)
-	if value, ok := rdc.mutation.DependencyPackageID(); ok {
+	if value, ok := _c.mutation.DependencyPackageID(); ok {
 		_spec.SetField(reportdependency.FieldDependencyPackageID, field.TypeString, value)
 		_node.DependencyPackageID = value
 	}
-	if value, ok := rdc.mutation.DependencyName(); ok {
+	if value, ok := _c.mutation.DependencyName(); ok {
 		_spec.SetField(reportdependency.FieldDependencyName, field.TypeString, value)
 		_node.DependencyName = value
 	}
-	if value, ok := rdc.mutation.DependencyVersion(); ok {
+	if value, ok := _c.mutation.DependencyVersion(); ok {
 		_spec.SetField(reportdependency.FieldDependencyVersion, field.TypeString, value)
 		_node.DependencyVersion = value
 	}
-	if value, ok := rdc.mutation.DependencyEcosystem(); ok {
+	if value, ok := _c.mutation.DependencyEcosystem(); ok {
 		_spec.SetField(reportdependency.FieldDependencyEcosystem, field.TypeString, value)
 		_node.DependencyEcosystem = value
 	}
-	if value, ok := rdc.mutation.DependencyType(); ok {
+	if value, ok := _c.mutation.DependencyType(); ok {
 		_spec.SetField(reportdependency.FieldDependencyType, field.TypeString, value)
 		_node.DependencyType = value
 	}
-	if value, ok := rdc.mutation.Depth(); ok {
+	if value, ok := _c.mutation.Depth(); ok {
 		_spec.SetField(reportdependency.FieldDepth, field.TypeInt, value)
 		_node.Depth = value
 	}
-	if value, ok := rdc.mutation.CreatedAt(); ok {
+	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(reportdependency.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
-	if value, ok := rdc.mutation.UpdatedAt(); ok {
+	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportdependency.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := rdc.mutation.PackageIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.PackageIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -284,16 +284,16 @@ type ReportDependencyCreateBulk struct {
 }
 
 // Save creates the ReportDependency entities in the database.
-func (rdcb *ReportDependencyCreateBulk) Save(ctx context.Context) ([]*ReportDependency, error) {
-	if rdcb.err != nil {
-		return nil, rdcb.err
+func (_c *ReportDependencyCreateBulk) Save(ctx context.Context) ([]*ReportDependency, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(rdcb.builders))
-	nodes := make([]*ReportDependency, len(rdcb.builders))
-	mutators := make([]Mutator, len(rdcb.builders))
-	for i := range rdcb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*ReportDependency, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := rdcb.builders[i]
+			builder := _c.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*ReportDependencyMutation)
@@ -307,11 +307,11 @@ func (rdcb *ReportDependencyCreateBulk) Save(ctx context.Context) ([]*ReportDepe
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, rdcb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, rdcb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -335,7 +335,7 @@ func (rdcb *ReportDependencyCreateBulk) Save(ctx context.Context) ([]*ReportDepe
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, rdcb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -343,8 +343,8 @@ func (rdcb *ReportDependencyCreateBulk) Save(ctx context.Context) ([]*ReportDepe
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rdcb *ReportDependencyCreateBulk) SaveX(ctx context.Context) []*ReportDependency {
-	v, err := rdcb.Save(ctx)
+func (_c *ReportDependencyCreateBulk) SaveX(ctx context.Context) []*ReportDependency {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -352,14 +352,14 @@ func (rdcb *ReportDependencyCreateBulk) SaveX(ctx context.Context) []*ReportDepe
 }
 
 // Exec executes the query.
-func (rdcb *ReportDependencyCreateBulk) Exec(ctx context.Context) error {
-	_, err := rdcb.Save(ctx)
+func (_c *ReportDependencyCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rdcb *ReportDependencyCreateBulk) ExecX(ctx context.Context) {
-	if err := rdcb.Exec(ctx); err != nil {
+func (_c *ReportDependencyCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

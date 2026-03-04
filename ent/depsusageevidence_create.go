@@ -21,118 +21,118 @@ type DepsUsageEvidenceCreate struct {
 }
 
 // SetPackageHint sets the "package_hint" field.
-func (duec *DepsUsageEvidenceCreate) SetPackageHint(s string) *DepsUsageEvidenceCreate {
-	duec.mutation.SetPackageHint(s)
-	return duec
+func (_c *DepsUsageEvidenceCreate) SetPackageHint(v string) *DepsUsageEvidenceCreate {
+	_c.mutation.SetPackageHint(v)
+	return _c
 }
 
 // SetNillablePackageHint sets the "package_hint" field if the given value is not nil.
-func (duec *DepsUsageEvidenceCreate) SetNillablePackageHint(s *string) *DepsUsageEvidenceCreate {
-	if s != nil {
-		duec.SetPackageHint(*s)
+func (_c *DepsUsageEvidenceCreate) SetNillablePackageHint(v *string) *DepsUsageEvidenceCreate {
+	if v != nil {
+		_c.SetPackageHint(*v)
 	}
-	return duec
+	return _c
 }
 
 // SetModuleName sets the "module_name" field.
-func (duec *DepsUsageEvidenceCreate) SetModuleName(s string) *DepsUsageEvidenceCreate {
-	duec.mutation.SetModuleName(s)
-	return duec
+func (_c *DepsUsageEvidenceCreate) SetModuleName(v string) *DepsUsageEvidenceCreate {
+	_c.mutation.SetModuleName(v)
+	return _c
 }
 
 // SetModuleItem sets the "module_item" field.
-func (duec *DepsUsageEvidenceCreate) SetModuleItem(s string) *DepsUsageEvidenceCreate {
-	duec.mutation.SetModuleItem(s)
-	return duec
+func (_c *DepsUsageEvidenceCreate) SetModuleItem(v string) *DepsUsageEvidenceCreate {
+	_c.mutation.SetModuleItem(v)
+	return _c
 }
 
 // SetNillableModuleItem sets the "module_item" field if the given value is not nil.
-func (duec *DepsUsageEvidenceCreate) SetNillableModuleItem(s *string) *DepsUsageEvidenceCreate {
-	if s != nil {
-		duec.SetModuleItem(*s)
+func (_c *DepsUsageEvidenceCreate) SetNillableModuleItem(v *string) *DepsUsageEvidenceCreate {
+	if v != nil {
+		_c.SetModuleItem(*v)
 	}
-	return duec
+	return _c
 }
 
 // SetModuleAlias sets the "module_alias" field.
-func (duec *DepsUsageEvidenceCreate) SetModuleAlias(s string) *DepsUsageEvidenceCreate {
-	duec.mutation.SetModuleAlias(s)
-	return duec
+func (_c *DepsUsageEvidenceCreate) SetModuleAlias(v string) *DepsUsageEvidenceCreate {
+	_c.mutation.SetModuleAlias(v)
+	return _c
 }
 
 // SetNillableModuleAlias sets the "module_alias" field if the given value is not nil.
-func (duec *DepsUsageEvidenceCreate) SetNillableModuleAlias(s *string) *DepsUsageEvidenceCreate {
-	if s != nil {
-		duec.SetModuleAlias(*s)
+func (_c *DepsUsageEvidenceCreate) SetNillableModuleAlias(v *string) *DepsUsageEvidenceCreate {
+	if v != nil {
+		_c.SetModuleAlias(*v)
 	}
-	return duec
+	return _c
 }
 
 // SetIsWildCardUsage sets the "is_wild_card_usage" field.
-func (duec *DepsUsageEvidenceCreate) SetIsWildCardUsage(b bool) *DepsUsageEvidenceCreate {
-	duec.mutation.SetIsWildCardUsage(b)
-	return duec
+func (_c *DepsUsageEvidenceCreate) SetIsWildCardUsage(v bool) *DepsUsageEvidenceCreate {
+	_c.mutation.SetIsWildCardUsage(v)
+	return _c
 }
 
 // SetNillableIsWildCardUsage sets the "is_wild_card_usage" field if the given value is not nil.
-func (duec *DepsUsageEvidenceCreate) SetNillableIsWildCardUsage(b *bool) *DepsUsageEvidenceCreate {
-	if b != nil {
-		duec.SetIsWildCardUsage(*b)
+func (_c *DepsUsageEvidenceCreate) SetNillableIsWildCardUsage(v *bool) *DepsUsageEvidenceCreate {
+	if v != nil {
+		_c.SetIsWildCardUsage(*v)
 	}
-	return duec
+	return _c
 }
 
 // SetIdentifier sets the "identifier" field.
-func (duec *DepsUsageEvidenceCreate) SetIdentifier(s string) *DepsUsageEvidenceCreate {
-	duec.mutation.SetIdentifier(s)
-	return duec
+func (_c *DepsUsageEvidenceCreate) SetIdentifier(v string) *DepsUsageEvidenceCreate {
+	_c.mutation.SetIdentifier(v)
+	return _c
 }
 
 // SetNillableIdentifier sets the "identifier" field if the given value is not nil.
-func (duec *DepsUsageEvidenceCreate) SetNillableIdentifier(s *string) *DepsUsageEvidenceCreate {
-	if s != nil {
-		duec.SetIdentifier(*s)
+func (_c *DepsUsageEvidenceCreate) SetNillableIdentifier(v *string) *DepsUsageEvidenceCreate {
+	if v != nil {
+		_c.SetIdentifier(*v)
 	}
-	return duec
+	return _c
 }
 
 // SetUsageFilePath sets the "usage_file_path" field.
-func (duec *DepsUsageEvidenceCreate) SetUsageFilePath(s string) *DepsUsageEvidenceCreate {
-	duec.mutation.SetUsageFilePath(s)
-	return duec
+func (_c *DepsUsageEvidenceCreate) SetUsageFilePath(v string) *DepsUsageEvidenceCreate {
+	_c.mutation.SetUsageFilePath(v)
+	return _c
 }
 
 // SetLine sets the "line" field.
-func (duec *DepsUsageEvidenceCreate) SetLine(u uint) *DepsUsageEvidenceCreate {
-	duec.mutation.SetLine(u)
-	return duec
+func (_c *DepsUsageEvidenceCreate) SetLine(v uint) *DepsUsageEvidenceCreate {
+	_c.mutation.SetLine(v)
+	return _c
 }
 
 // SetUsedInID sets the "used_in" edge to the CodeSourceFile entity by ID.
-func (duec *DepsUsageEvidenceCreate) SetUsedInID(id int) *DepsUsageEvidenceCreate {
-	duec.mutation.SetUsedInID(id)
-	return duec
+func (_c *DepsUsageEvidenceCreate) SetUsedInID(id int) *DepsUsageEvidenceCreate {
+	_c.mutation.SetUsedInID(id)
+	return _c
 }
 
 // SetUsedIn sets the "used_in" edge to the CodeSourceFile entity.
-func (duec *DepsUsageEvidenceCreate) SetUsedIn(c *CodeSourceFile) *DepsUsageEvidenceCreate {
-	return duec.SetUsedInID(c.ID)
+func (_c *DepsUsageEvidenceCreate) SetUsedIn(v *CodeSourceFile) *DepsUsageEvidenceCreate {
+	return _c.SetUsedInID(v.ID)
 }
 
 // Mutation returns the DepsUsageEvidenceMutation object of the builder.
-func (duec *DepsUsageEvidenceCreate) Mutation() *DepsUsageEvidenceMutation {
-	return duec.mutation
+func (_c *DepsUsageEvidenceCreate) Mutation() *DepsUsageEvidenceMutation {
+	return _c.mutation
 }
 
 // Save creates the DepsUsageEvidence in the database.
-func (duec *DepsUsageEvidenceCreate) Save(ctx context.Context) (*DepsUsageEvidence, error) {
-	duec.defaults()
-	return withHooks(ctx, duec.sqlSave, duec.mutation, duec.hooks)
+func (_c *DepsUsageEvidenceCreate) Save(ctx context.Context) (*DepsUsageEvidence, error) {
+	_c.defaults()
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (duec *DepsUsageEvidenceCreate) SaveX(ctx context.Context) *DepsUsageEvidence {
-	v, err := duec.Save(ctx)
+func (_c *DepsUsageEvidenceCreate) SaveX(ctx context.Context) *DepsUsageEvidence {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -140,49 +140,49 @@ func (duec *DepsUsageEvidenceCreate) SaveX(ctx context.Context) *DepsUsageEviden
 }
 
 // Exec executes the query.
-func (duec *DepsUsageEvidenceCreate) Exec(ctx context.Context) error {
-	_, err := duec.Save(ctx)
+func (_c *DepsUsageEvidenceCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (duec *DepsUsageEvidenceCreate) ExecX(ctx context.Context) {
-	if err := duec.Exec(ctx); err != nil {
+func (_c *DepsUsageEvidenceCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (duec *DepsUsageEvidenceCreate) defaults() {
-	if _, ok := duec.mutation.IsWildCardUsage(); !ok {
+func (_c *DepsUsageEvidenceCreate) defaults() {
+	if _, ok := _c.mutation.IsWildCardUsage(); !ok {
 		v := depsusageevidence.DefaultIsWildCardUsage
-		duec.mutation.SetIsWildCardUsage(v)
+		_c.mutation.SetIsWildCardUsage(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (duec *DepsUsageEvidenceCreate) check() error {
-	if _, ok := duec.mutation.ModuleName(); !ok {
+func (_c *DepsUsageEvidenceCreate) check() error {
+	if _, ok := _c.mutation.ModuleName(); !ok {
 		return &ValidationError{Name: "module_name", err: errors.New(`ent: missing required field "DepsUsageEvidence.module_name"`)}
 	}
-	if _, ok := duec.mutation.UsageFilePath(); !ok {
+	if _, ok := _c.mutation.UsageFilePath(); !ok {
 		return &ValidationError{Name: "usage_file_path", err: errors.New(`ent: missing required field "DepsUsageEvidence.usage_file_path"`)}
 	}
-	if _, ok := duec.mutation.Line(); !ok {
+	if _, ok := _c.mutation.Line(); !ok {
 		return &ValidationError{Name: "line", err: errors.New(`ent: missing required field "DepsUsageEvidence.line"`)}
 	}
-	if len(duec.mutation.UsedInIDs()) == 0 {
+	if len(_c.mutation.UsedInIDs()) == 0 {
 		return &ValidationError{Name: "used_in", err: errors.New(`ent: missing required edge "DepsUsageEvidence.used_in"`)}
 	}
 	return nil
 }
 
-func (duec *DepsUsageEvidenceCreate) sqlSave(ctx context.Context) (*DepsUsageEvidence, error) {
-	if err := duec.check(); err != nil {
+func (_c *DepsUsageEvidenceCreate) sqlSave(ctx context.Context) (*DepsUsageEvidence, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := duec.createSpec()
-	if err := sqlgraph.CreateNode(ctx, duec.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -190,49 +190,49 @@ func (duec *DepsUsageEvidenceCreate) sqlSave(ctx context.Context) (*DepsUsageEvi
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
-	duec.mutation.id = &_node.ID
-	duec.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (duec *DepsUsageEvidenceCreate) createSpec() (*DepsUsageEvidence, *sqlgraph.CreateSpec) {
+func (_c *DepsUsageEvidenceCreate) createSpec() (*DepsUsageEvidence, *sqlgraph.CreateSpec) {
 	var (
-		_node = &DepsUsageEvidence{config: duec.config}
+		_node = &DepsUsageEvidence{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(depsusageevidence.Table, sqlgraph.NewFieldSpec(depsusageevidence.FieldID, field.TypeInt))
 	)
-	if value, ok := duec.mutation.PackageHint(); ok {
+	if value, ok := _c.mutation.PackageHint(); ok {
 		_spec.SetField(depsusageevidence.FieldPackageHint, field.TypeString, value)
 		_node.PackageHint = &value
 	}
-	if value, ok := duec.mutation.ModuleName(); ok {
+	if value, ok := _c.mutation.ModuleName(); ok {
 		_spec.SetField(depsusageevidence.FieldModuleName, field.TypeString, value)
 		_node.ModuleName = value
 	}
-	if value, ok := duec.mutation.ModuleItem(); ok {
+	if value, ok := _c.mutation.ModuleItem(); ok {
 		_spec.SetField(depsusageevidence.FieldModuleItem, field.TypeString, value)
 		_node.ModuleItem = &value
 	}
-	if value, ok := duec.mutation.ModuleAlias(); ok {
+	if value, ok := _c.mutation.ModuleAlias(); ok {
 		_spec.SetField(depsusageevidence.FieldModuleAlias, field.TypeString, value)
 		_node.ModuleAlias = &value
 	}
-	if value, ok := duec.mutation.IsWildCardUsage(); ok {
+	if value, ok := _c.mutation.IsWildCardUsage(); ok {
 		_spec.SetField(depsusageevidence.FieldIsWildCardUsage, field.TypeBool, value)
 		_node.IsWildCardUsage = value
 	}
-	if value, ok := duec.mutation.Identifier(); ok {
+	if value, ok := _c.mutation.Identifier(); ok {
 		_spec.SetField(depsusageevidence.FieldIdentifier, field.TypeString, value)
 		_node.Identifier = &value
 	}
-	if value, ok := duec.mutation.UsageFilePath(); ok {
+	if value, ok := _c.mutation.UsageFilePath(); ok {
 		_spec.SetField(depsusageevidence.FieldUsageFilePath, field.TypeString, value)
 		_node.UsageFilePath = value
 	}
-	if value, ok := duec.mutation.Line(); ok {
+	if value, ok := _c.mutation.Line(); ok {
 		_spec.SetField(depsusageevidence.FieldLine, field.TypeUint, value)
 		_node.Line = value
 	}
-	if nodes := duec.mutation.UsedInIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.UsedInIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -260,16 +260,16 @@ type DepsUsageEvidenceCreateBulk struct {
 }
 
 // Save creates the DepsUsageEvidence entities in the database.
-func (duecb *DepsUsageEvidenceCreateBulk) Save(ctx context.Context) ([]*DepsUsageEvidence, error) {
-	if duecb.err != nil {
-		return nil, duecb.err
+func (_c *DepsUsageEvidenceCreateBulk) Save(ctx context.Context) ([]*DepsUsageEvidence, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(duecb.builders))
-	nodes := make([]*DepsUsageEvidence, len(duecb.builders))
-	mutators := make([]Mutator, len(duecb.builders))
-	for i := range duecb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*DepsUsageEvidence, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := duecb.builders[i]
+			builder := _c.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*DepsUsageEvidenceMutation)
@@ -283,11 +283,11 @@ func (duecb *DepsUsageEvidenceCreateBulk) Save(ctx context.Context) ([]*DepsUsag
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, duecb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, duecb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -311,7 +311,7 @@ func (duecb *DepsUsageEvidenceCreateBulk) Save(ctx context.Context) ([]*DepsUsag
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, duecb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -319,8 +319,8 @@ func (duecb *DepsUsageEvidenceCreateBulk) Save(ctx context.Context) ([]*DepsUsag
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (duecb *DepsUsageEvidenceCreateBulk) SaveX(ctx context.Context) []*DepsUsageEvidence {
-	v, err := duecb.Save(ctx)
+func (_c *DepsUsageEvidenceCreateBulk) SaveX(ctx context.Context) []*DepsUsageEvidence {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -328,14 +328,14 @@ func (duecb *DepsUsageEvidenceCreateBulk) SaveX(ctx context.Context) []*DepsUsag
 }
 
 // Exec executes the query.
-func (duecb *DepsUsageEvidenceCreateBulk) Exec(ctx context.Context) error {
-	_, err := duecb.Save(ctx)
+func (_c *DepsUsageEvidenceCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (duecb *DepsUsageEvidenceCreateBulk) ExecX(ctx context.Context) {
-	if err := duecb.Exec(ctx); err != nil {
+func (_c *DepsUsageEvidenceCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

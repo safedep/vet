@@ -94,7 +94,7 @@ func (*ReportScorecard) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the ReportScorecard fields.
-func (rs *ReportScorecard) assignValues(columns []string, values []any) error {
+func (_m *ReportScorecard) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -105,58 +105,58 @@ func (rs *ReportScorecard) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			rs.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case reportscorecard.FieldScore:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field score", values[i])
 			} else if value.Valid {
-				rs.Score = float32(value.Float64)
+				_m.Score = float32(value.Float64)
 			}
 		case reportscorecard.FieldScorecardVersion:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field scorecard_version", values[i])
 			} else if value.Valid {
-				rs.ScorecardVersion = value.String
+				_m.ScorecardVersion = value.String
 			}
 		case reportscorecard.FieldRepoName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field repo_name", values[i])
 			} else if value.Valid {
-				rs.RepoName = value.String
+				_m.RepoName = value.String
 			}
 		case reportscorecard.FieldRepoCommit:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field repo_commit", values[i])
 			} else if value.Valid {
-				rs.RepoCommit = value.String
+				_m.RepoCommit = value.String
 			}
 		case reportscorecard.FieldDate:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field date", values[i])
 			} else if value.Valid {
-				rs.Date = value.String
+				_m.Date = value.String
 			}
 		case reportscorecard.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
-				rs.CreatedAt = value.Time
+				_m.CreatedAt = value.Time
 			}
 		case reportscorecard.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
-				rs.UpdatedAt = value.Time
+				_m.UpdatedAt = value.Time
 			}
 		case reportscorecard.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field report_project_scorecard", value)
 			} else if value.Valid {
-				rs.report_project_scorecard = new(int)
-				*rs.report_project_scorecard = int(value.Int64)
+				_m.report_project_scorecard = new(int)
+				*_m.report_project_scorecard = int(value.Int64)
 			}
 		default:
-			rs.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -164,63 +164,63 @@ func (rs *ReportScorecard) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the ReportScorecard.
 // This includes values selected through modifiers, order, etc.
-func (rs *ReportScorecard) Value(name string) (ent.Value, error) {
-	return rs.selectValues.Get(name)
+func (_m *ReportScorecard) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QueryProject queries the "project" edge of the ReportScorecard entity.
-func (rs *ReportScorecard) QueryProject() *ReportProjectQuery {
-	return NewReportScorecardClient(rs.config).QueryProject(rs)
+func (_m *ReportScorecard) QueryProject() *ReportProjectQuery {
+	return NewReportScorecardClient(_m.config).QueryProject(_m)
 }
 
 // QueryChecks queries the "checks" edge of the ReportScorecard entity.
-func (rs *ReportScorecard) QueryChecks() *ReportScorecardCheckQuery {
-	return NewReportScorecardClient(rs.config).QueryChecks(rs)
+func (_m *ReportScorecard) QueryChecks() *ReportScorecardCheckQuery {
+	return NewReportScorecardClient(_m.config).QueryChecks(_m)
 }
 
 // Update returns a builder for updating this ReportScorecard.
 // Note that you need to call ReportScorecard.Unwrap() before calling this method if this ReportScorecard
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (rs *ReportScorecard) Update() *ReportScorecardUpdateOne {
-	return NewReportScorecardClient(rs.config).UpdateOne(rs)
+func (_m *ReportScorecard) Update() *ReportScorecardUpdateOne {
+	return NewReportScorecardClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the ReportScorecard entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (rs *ReportScorecard) Unwrap() *ReportScorecard {
-	_tx, ok := rs.config.driver.(*txDriver)
+func (_m *ReportScorecard) Unwrap() *ReportScorecard {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: ReportScorecard is not a transactional entity")
 	}
-	rs.config.driver = _tx.drv
-	return rs
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (rs *ReportScorecard) String() string {
+func (_m *ReportScorecard) String() string {
 	var builder strings.Builder
 	builder.WriteString("ReportScorecard(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", rs.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("score=")
-	builder.WriteString(fmt.Sprintf("%v", rs.Score))
+	builder.WriteString(fmt.Sprintf("%v", _m.Score))
 	builder.WriteString(", ")
 	builder.WriteString("scorecard_version=")
-	builder.WriteString(rs.ScorecardVersion)
+	builder.WriteString(_m.ScorecardVersion)
 	builder.WriteString(", ")
 	builder.WriteString("repo_name=")
-	builder.WriteString(rs.RepoName)
+	builder.WriteString(_m.RepoName)
 	builder.WriteString(", ")
 	builder.WriteString("repo_commit=")
-	builder.WriteString(rs.RepoCommit)
+	builder.WriteString(_m.RepoCommit)
 	builder.WriteString(", ")
 	builder.WriteString("date=")
-	builder.WriteString(rs.Date)
+	builder.WriteString(_m.Date)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
-	builder.WriteString(rs.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
-	builder.WriteString(rs.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }
