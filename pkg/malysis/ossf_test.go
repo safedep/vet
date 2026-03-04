@@ -2,7 +2,6 @@ package malysis
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,6 +11,7 @@ import (
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	"github.com/ossf/osv-schema/bindings/go/osvschema"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func TestOpenSSFMaliciousPackageReportGenerator_relativeFilePath(t *testing.T) {
@@ -55,7 +55,7 @@ func fileHasValidOSVReport(t *testing.T, filePath string) {
 	}
 
 	var vuln osvschema.Vulnerability
-	err = json.Unmarshal(jsonFile, &vuln)
+	err = protojson.Unmarshal(jsonFile, &vuln)
 	if err != nil {
 		t.Fatalf("failed to unmarshal file: %v", err)
 	}
@@ -161,7 +161,7 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 				assert.NoError(t, err)
 
 				var vuln osvschema.Vulnerability
-				err = json.Unmarshal(jsonFile, &vuln)
+				err = protojson.Unmarshal(jsonFile, &vuln)
 				assert.NoError(t, err)
 
 				// Verify the introduced version is "0" not "0.0.0"
@@ -202,7 +202,7 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 				assert.NoError(t, err)
 
 				var vuln osvschema.Vulnerability
-				err = json.Unmarshal(jsonFile, &vuln)
+				err = protojson.Unmarshal(jsonFile, &vuln)
 				assert.NoError(t, err)
 
 				// Verify explicit versions are used
@@ -244,7 +244,7 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 				assert.NoError(t, err)
 
 				var vuln osvschema.Vulnerability
-				err = json.Unmarshal(jsonFile, &vuln)
+				err = protojson.Unmarshal(jsonFile, &vuln)
 				assert.NoError(t, err)
 
 				// Verify PyPI ecosystem is properly cased
@@ -293,7 +293,7 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 				assert.NoError(t, err)
 
 				var vuln osvschema.Vulnerability
-				err = json.Unmarshal(jsonFile, &vuln)
+				err = protojson.Unmarshal(jsonFile, &vuln)
 				assert.NoError(t, err)
 
 				// Verify NPM ecosystem name
@@ -342,7 +342,7 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 				assert.NoError(t, err)
 
 				var vuln osvschema.Vulnerability
-				err = json.Unmarshal(jsonFile, &vuln)
+				err = protojson.Unmarshal(jsonFile, &vuln)
 				assert.NoError(t, err)
 
 				// Verify custom reference URL is used

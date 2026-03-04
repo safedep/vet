@@ -2,7 +2,6 @@ package malysis
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,6 +11,7 @@ import (
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	"github.com/ossf/osv-schema/bindings/go/osvconstants"
 	"github.com/ossf/osv-schema/bindings/go/osvschema"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/safedep/vet/pkg/common/logger"
@@ -152,7 +152,8 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 		return fmt.Errorf("failed to get relative file path: %w", err)
 	}
 
-	json, err := json.MarshalIndent(vuln, "", "  ")
+	marshaler := protojson.MarshalOptions{Indent: "  "}
+	jsonBytes, err := marshaler.Marshal(&vuln)
 	if err != nil {
 		return fmt.Errorf("failed to marshal vulnerability: %w", err)
 	}
@@ -172,7 +173,7 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 
 	logger.Debugf("Writing OSV report to: %s", fullFilePath)
 
-	err = os.WriteFile(fullFilePath, json, 0o644)
+	err = os.WriteFile(fullFilePath, jsonBytes, 0o644)
 	if err != nil {
 		return fmt.Errorf("failed to write vulnerability: %w", err)
 	}
