@@ -153,7 +153,6 @@ func TestNewSyncReporterEnvironmentResolver(t *testing.T) {
 		{
 			name: "should return default values when GITHUB_ACTIONS is not set",
 			setupEnv: func(t *testing.T) {
-				// No environment setup needed
 				t.Setenv("GITHUB_ACTIONS", "")
 				t.Setenv("GITHUB_REPOSITORY", "")
 				t.Setenv("GITHUB_SERVER_URL", "")

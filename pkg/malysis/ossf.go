@@ -203,7 +203,6 @@ var osvEcosystemMap = map[packagev1.Ecosystem]string{
 	packagev1.Ecosystem_ECOSYSTEM_CARGO:    "crates.io",
 }
 
-
 func (g *openSSFMaliciousPackageReportGenerator) osvEcosystemFor(ecosystem packagev1.Ecosystem) (string, error) {
 	ecosystemStr, ok := osvEcosystemMap[ecosystem]
 	if !ok {
