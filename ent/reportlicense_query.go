@@ -31,44 +31,44 @@ type ReportLicenseQuery struct {
 }
 
 // Where adds a new predicate for the ReportLicenseQuery builder.
-func (rlq *ReportLicenseQuery) Where(ps ...predicate.ReportLicense) *ReportLicenseQuery {
-	rlq.predicates = append(rlq.predicates, ps...)
-	return rlq
+func (_q *ReportLicenseQuery) Where(ps ...predicate.ReportLicense) *ReportLicenseQuery {
+	_q.predicates = append(_q.predicates, ps...)
+	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (rlq *ReportLicenseQuery) Limit(limit int) *ReportLicenseQuery {
-	rlq.ctx.Limit = &limit
-	return rlq
+func (_q *ReportLicenseQuery) Limit(limit int) *ReportLicenseQuery {
+	_q.ctx.Limit = &limit
+	return _q
 }
 
 // Offset to start from.
-func (rlq *ReportLicenseQuery) Offset(offset int) *ReportLicenseQuery {
-	rlq.ctx.Offset = &offset
-	return rlq
+func (_q *ReportLicenseQuery) Offset(offset int) *ReportLicenseQuery {
+	_q.ctx.Offset = &offset
+	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (rlq *ReportLicenseQuery) Unique(unique bool) *ReportLicenseQuery {
-	rlq.ctx.Unique = &unique
-	return rlq
+func (_q *ReportLicenseQuery) Unique(unique bool) *ReportLicenseQuery {
+	_q.ctx.Unique = &unique
+	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (rlq *ReportLicenseQuery) Order(o ...reportlicense.OrderOption) *ReportLicenseQuery {
-	rlq.order = append(rlq.order, o...)
-	return rlq
+func (_q *ReportLicenseQuery) Order(o ...reportlicense.OrderOption) *ReportLicenseQuery {
+	_q.order = append(_q.order, o...)
+	return _q
 }
 
 // QueryPackage chains the current query on the "package" edge.
-func (rlq *ReportLicenseQuery) QueryPackage() *ReportPackageQuery {
-	query := (&ReportPackageClient{config: rlq.config}).Query()
+func (_q *ReportLicenseQuery) QueryPackage() *ReportPackageQuery {
+	query := (&ReportPackageClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := rlq.prepareQuery(ctx); err != nil {
+		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := rlq.sqlQuery(ctx)
+		selector := _q.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
@@ -77,7 +77,7 @@ func (rlq *ReportLicenseQuery) QueryPackage() *ReportPackageQuery {
 			sqlgraph.To(reportpackage.Table, reportpackage.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, reportlicense.PackageTable, reportlicense.PackageColumn),
 		)
-		fromU = sqlgraph.SetNeighbors(rlq.driver.Dialect(), step)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
@@ -85,8 +85,8 @@ func (rlq *ReportLicenseQuery) QueryPackage() *ReportPackageQuery {
 
 // First returns the first ReportLicense entity from the query.
 // Returns a *NotFoundError when no ReportLicense was found.
-func (rlq *ReportLicenseQuery) First(ctx context.Context) (*ReportLicense, error) {
-	nodes, err := rlq.Limit(1).All(setContextOp(ctx, rlq.ctx, ent.OpQueryFirst))
+func (_q *ReportLicenseQuery) First(ctx context.Context) (*ReportLicense, error) {
+	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -97,8 +97,8 @@ func (rlq *ReportLicenseQuery) First(ctx context.Context) (*ReportLicense, error
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (rlq *ReportLicenseQuery) FirstX(ctx context.Context) *ReportLicense {
-	node, err := rlq.First(ctx)
+func (_q *ReportLicenseQuery) FirstX(ctx context.Context) *ReportLicense {
+	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -107,9 +107,9 @@ func (rlq *ReportLicenseQuery) FirstX(ctx context.Context) *ReportLicense {
 
 // FirstID returns the first ReportLicense ID from the query.
 // Returns a *NotFoundError when no ReportLicense ID was found.
-func (rlq *ReportLicenseQuery) FirstID(ctx context.Context) (id int, err error) {
+func (_q *ReportLicenseQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = rlq.Limit(1).IDs(setContextOp(ctx, rlq.ctx, ent.OpQueryFirstID)); err != nil {
+	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -120,8 +120,8 @@ func (rlq *ReportLicenseQuery) FirstID(ctx context.Context) (id int, err error) 
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (rlq *ReportLicenseQuery) FirstIDX(ctx context.Context) int {
-	id, err := rlq.FirstID(ctx)
+func (_q *ReportLicenseQuery) FirstIDX(ctx context.Context) int {
+	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -131,8 +131,8 @@ func (rlq *ReportLicenseQuery) FirstIDX(ctx context.Context) int {
 // Only returns a single ReportLicense entity found by the query, ensuring it only returns one.
 // Returns a *NotSingularError when more than one ReportLicense entity is found.
 // Returns a *NotFoundError when no ReportLicense entities are found.
-func (rlq *ReportLicenseQuery) Only(ctx context.Context) (*ReportLicense, error) {
-	nodes, err := rlq.Limit(2).All(setContextOp(ctx, rlq.ctx, ent.OpQueryOnly))
+func (_q *ReportLicenseQuery) Only(ctx context.Context) (*ReportLicense, error) {
+	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -147,8 +147,8 @@ func (rlq *ReportLicenseQuery) Only(ctx context.Context) (*ReportLicense, error)
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (rlq *ReportLicenseQuery) OnlyX(ctx context.Context) *ReportLicense {
-	node, err := rlq.Only(ctx)
+func (_q *ReportLicenseQuery) OnlyX(ctx context.Context) *ReportLicense {
+	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -158,9 +158,9 @@ func (rlq *ReportLicenseQuery) OnlyX(ctx context.Context) *ReportLicense {
 // OnlyID is like Only, but returns the only ReportLicense ID in the query.
 // Returns a *NotSingularError when more than one ReportLicense ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (rlq *ReportLicenseQuery) OnlyID(ctx context.Context) (id int, err error) {
+func (_q *ReportLicenseQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = rlq.Limit(2).IDs(setContextOp(ctx, rlq.ctx, ent.OpQueryOnlyID)); err != nil {
+	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -175,8 +175,8 @@ func (rlq *ReportLicenseQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (rlq *ReportLicenseQuery) OnlyIDX(ctx context.Context) int {
-	id, err := rlq.OnlyID(ctx)
+func (_q *ReportLicenseQuery) OnlyIDX(ctx context.Context) int {
+	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -184,18 +184,18 @@ func (rlq *ReportLicenseQuery) OnlyIDX(ctx context.Context) int {
 }
 
 // All executes the query and returns a list of ReportLicenses.
-func (rlq *ReportLicenseQuery) All(ctx context.Context) ([]*ReportLicense, error) {
-	ctx = setContextOp(ctx, rlq.ctx, ent.OpQueryAll)
-	if err := rlq.prepareQuery(ctx); err != nil {
+func (_q *ReportLicenseQuery) All(ctx context.Context) ([]*ReportLicense, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
 	qr := querierAll[[]*ReportLicense, *ReportLicenseQuery]()
-	return withInterceptors[[]*ReportLicense](ctx, rlq, qr, rlq.inters)
+	return withInterceptors[[]*ReportLicense](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (rlq *ReportLicenseQuery) AllX(ctx context.Context) []*ReportLicense {
-	nodes, err := rlq.All(ctx)
+func (_q *ReportLicenseQuery) AllX(ctx context.Context) []*ReportLicense {
+	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -203,20 +203,20 @@ func (rlq *ReportLicenseQuery) AllX(ctx context.Context) []*ReportLicense {
 }
 
 // IDs executes the query and returns a list of ReportLicense IDs.
-func (rlq *ReportLicenseQuery) IDs(ctx context.Context) (ids []int, err error) {
-	if rlq.ctx.Unique == nil && rlq.path != nil {
-		rlq.Unique(true)
+func (_q *ReportLicenseQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if _q.ctx.Unique == nil && _q.path != nil {
+		_q.Unique(true)
 	}
-	ctx = setContextOp(ctx, rlq.ctx, ent.OpQueryIDs)
-	if err = rlq.Select(reportlicense.FieldID).Scan(ctx, &ids); err != nil {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
+	if err = _q.Select(reportlicense.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (rlq *ReportLicenseQuery) IDsX(ctx context.Context) []int {
-	ids, err := rlq.IDs(ctx)
+func (_q *ReportLicenseQuery) IDsX(ctx context.Context) []int {
+	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -224,17 +224,17 @@ func (rlq *ReportLicenseQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (rlq *ReportLicenseQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, rlq.ctx, ent.OpQueryCount)
-	if err := rlq.prepareQuery(ctx); err != nil {
+func (_q *ReportLicenseQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, rlq, querierCount[*ReportLicenseQuery](), rlq.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*ReportLicenseQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (rlq *ReportLicenseQuery) CountX(ctx context.Context) int {
-	count, err := rlq.Count(ctx)
+func (_q *ReportLicenseQuery) CountX(ctx context.Context) int {
+	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -242,9 +242,9 @@ func (rlq *ReportLicenseQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (rlq *ReportLicenseQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, rlq.ctx, ent.OpQueryExist)
-	switch _, err := rlq.FirstID(ctx); {
+func (_q *ReportLicenseQuery) Exist(ctx context.Context) (bool, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
+	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
 	case err != nil:
@@ -255,8 +255,8 @@ func (rlq *ReportLicenseQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (rlq *ReportLicenseQuery) ExistX(ctx context.Context) bool {
-	exist, err := rlq.Exist(ctx)
+func (_q *ReportLicenseQuery) ExistX(ctx context.Context) bool {
+	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -265,32 +265,32 @@ func (rlq *ReportLicenseQuery) ExistX(ctx context.Context) bool {
 
 // Clone returns a duplicate of the ReportLicenseQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (rlq *ReportLicenseQuery) Clone() *ReportLicenseQuery {
-	if rlq == nil {
+func (_q *ReportLicenseQuery) Clone() *ReportLicenseQuery {
+	if _q == nil {
 		return nil
 	}
 	return &ReportLicenseQuery{
-		config:      rlq.config,
-		ctx:         rlq.ctx.Clone(),
-		order:       append([]reportlicense.OrderOption{}, rlq.order...),
-		inters:      append([]Interceptor{}, rlq.inters...),
-		predicates:  append([]predicate.ReportLicense{}, rlq.predicates...),
-		withPackage: rlq.withPackage.Clone(),
+		config:      _q.config,
+		ctx:         _q.ctx.Clone(),
+		order:       append([]reportlicense.OrderOption{}, _q.order...),
+		inters:      append([]Interceptor{}, _q.inters...),
+		predicates:  append([]predicate.ReportLicense{}, _q.predicates...),
+		withPackage: _q.withPackage.Clone(),
 		// clone intermediate query.
-		sql:  rlq.sql.Clone(),
-		path: rlq.path,
+		sql:  _q.sql.Clone(),
+		path: _q.path,
 	}
 }
 
 // WithPackage tells the query-builder to eager-load the nodes that are connected to
 // the "package" edge. The optional arguments are used to configure the query builder of the edge.
-func (rlq *ReportLicenseQuery) WithPackage(opts ...func(*ReportPackageQuery)) *ReportLicenseQuery {
-	query := (&ReportPackageClient{config: rlq.config}).Query()
+func (_q *ReportLicenseQuery) WithPackage(opts ...func(*ReportPackageQuery)) *ReportLicenseQuery {
+	query := (&ReportPackageClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	rlq.withPackage = query
-	return rlq
+	_q.withPackage = query
+	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -307,10 +307,10 @@ func (rlq *ReportLicenseQuery) WithPackage(opts ...func(*ReportPackageQuery)) *R
 //		GroupBy(reportlicense.FieldLicenseID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (rlq *ReportLicenseQuery) GroupBy(field string, fields ...string) *ReportLicenseGroupBy {
-	rlq.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &ReportLicenseGroupBy{build: rlq}
-	grbuild.flds = &rlq.ctx.Fields
+func (_q *ReportLicenseQuery) GroupBy(field string, fields ...string) *ReportLicenseGroupBy {
+	_q.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &ReportLicenseGroupBy{build: _q}
+	grbuild.flds = &_q.ctx.Fields
 	grbuild.label = reportlicense.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -328,55 +328,55 @@ func (rlq *ReportLicenseQuery) GroupBy(field string, fields ...string) *ReportLi
 //	client.ReportLicense.Query().
 //		Select(reportlicense.FieldLicenseID).
 //		Scan(ctx, &v)
-func (rlq *ReportLicenseQuery) Select(fields ...string) *ReportLicenseSelect {
-	rlq.ctx.Fields = append(rlq.ctx.Fields, fields...)
-	sbuild := &ReportLicenseSelect{ReportLicenseQuery: rlq}
+func (_q *ReportLicenseQuery) Select(fields ...string) *ReportLicenseSelect {
+	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
+	sbuild := &ReportLicenseSelect{ReportLicenseQuery: _q}
 	sbuild.label = reportlicense.Label
-	sbuild.flds, sbuild.scan = &rlq.ctx.Fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
 // Aggregate returns a ReportLicenseSelect configured with the given aggregations.
-func (rlq *ReportLicenseQuery) Aggregate(fns ...AggregateFunc) *ReportLicenseSelect {
-	return rlq.Select().Aggregate(fns...)
+func (_q *ReportLicenseQuery) Aggregate(fns ...AggregateFunc) *ReportLicenseSelect {
+	return _q.Select().Aggregate(fns...)
 }
 
-func (rlq *ReportLicenseQuery) prepareQuery(ctx context.Context) error {
-	for _, inter := range rlq.inters {
+func (_q *ReportLicenseQuery) prepareQuery(ctx context.Context) error {
+	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
 		}
 		if trv, ok := inter.(Traverser); ok {
-			if err := trv.Traverse(ctx, rlq); err != nil {
+			if err := trv.Traverse(ctx, _q); err != nil {
 				return err
 			}
 		}
 	}
-	for _, f := range rlq.ctx.Fields {
+	for _, f := range _q.ctx.Fields {
 		if !reportlicense.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
-	if rlq.path != nil {
-		prev, err := rlq.path(ctx)
+	if _q.path != nil {
+		prev, err := _q.path(ctx)
 		if err != nil {
 			return err
 		}
-		rlq.sql = prev
+		_q.sql = prev
 	}
 	return nil
 }
 
-func (rlq *ReportLicenseQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ReportLicense, error) {
+func (_q *ReportLicenseQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ReportLicense, error) {
 	var (
 		nodes       = []*ReportLicense{}
-		withFKs     = rlq.withFKs
-		_spec       = rlq.querySpec()
+		withFKs     = _q.withFKs
+		_spec       = _q.querySpec()
 		loadedTypes = [1]bool{
-			rlq.withPackage != nil,
+			_q.withPackage != nil,
 		}
 	)
-	if rlq.withPackage != nil {
+	if _q.withPackage != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -386,7 +386,7 @@ func (rlq *ReportLicenseQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 		return (*ReportLicense).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &ReportLicense{config: rlq.config}
+		node := &ReportLicense{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
@@ -394,14 +394,14 @@ func (rlq *ReportLicenseQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
-	if err := sqlgraph.QueryNodes(ctx, rlq.driver, _spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, _q.driver, _spec); err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := rlq.withPackage; query != nil {
-		if err := rlq.loadPackage(ctx, query, nodes, nil,
+	if query := _q.withPackage; query != nil {
+		if err := _q.loadPackage(ctx, query, nodes, nil,
 			func(n *ReportLicense, e *ReportPackage) { n.Edges.Package = e }); err != nil {
 			return nil, err
 		}
@@ -409,7 +409,7 @@ func (rlq *ReportLicenseQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	return nodes, nil
 }
 
-func (rlq *ReportLicenseQuery) loadPackage(ctx context.Context, query *ReportPackageQuery, nodes []*ReportLicense, init func(*ReportLicense), assign func(*ReportLicense, *ReportPackage)) error {
+func (_q *ReportLicenseQuery) loadPackage(ctx context.Context, query *ReportPackageQuery, nodes []*ReportLicense, init func(*ReportLicense), assign func(*ReportLicense, *ReportPackage)) error {
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*ReportLicense)
 	for i := range nodes {
@@ -442,24 +442,24 @@ func (rlq *ReportLicenseQuery) loadPackage(ctx context.Context, query *ReportPac
 	return nil
 }
 
-func (rlq *ReportLicenseQuery) sqlCount(ctx context.Context) (int, error) {
-	_spec := rlq.querySpec()
-	_spec.Node.Columns = rlq.ctx.Fields
-	if len(rlq.ctx.Fields) > 0 {
-		_spec.Unique = rlq.ctx.Unique != nil && *rlq.ctx.Unique
+func (_q *ReportLicenseQuery) sqlCount(ctx context.Context) (int, error) {
+	_spec := _q.querySpec()
+	_spec.Node.Columns = _q.ctx.Fields
+	if len(_q.ctx.Fields) > 0 {
+		_spec.Unique = _q.ctx.Unique != nil && *_q.ctx.Unique
 	}
-	return sqlgraph.CountNodes(ctx, rlq.driver, _spec)
+	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (rlq *ReportLicenseQuery) querySpec() *sqlgraph.QuerySpec {
+func (_q *ReportLicenseQuery) querySpec() *sqlgraph.QuerySpec {
 	_spec := sqlgraph.NewQuerySpec(reportlicense.Table, reportlicense.Columns, sqlgraph.NewFieldSpec(reportlicense.FieldID, field.TypeInt))
-	_spec.From = rlq.sql
-	if unique := rlq.ctx.Unique; unique != nil {
+	_spec.From = _q.sql
+	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
-	} else if rlq.path != nil {
+	} else if _q.path != nil {
 		_spec.Unique = true
 	}
-	if fields := rlq.ctx.Fields; len(fields) > 0 {
+	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, reportlicense.FieldID)
 		for i := range fields {
@@ -468,20 +468,20 @@ func (rlq *ReportLicenseQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if ps := rlq.predicates; len(ps) > 0 {
+	if ps := _q.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if limit := rlq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := rlq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
-	if ps := rlq.order; len(ps) > 0 {
+	if ps := _q.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
@@ -491,33 +491,33 @@ func (rlq *ReportLicenseQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (rlq *ReportLicenseQuery) sqlQuery(ctx context.Context) *sql.Selector {
-	builder := sql.Dialect(rlq.driver.Dialect())
+func (_q *ReportLicenseQuery) sqlQuery(ctx context.Context) *sql.Selector {
+	builder := sql.Dialect(_q.driver.Dialect())
 	t1 := builder.Table(reportlicense.Table)
-	columns := rlq.ctx.Fields
+	columns := _q.ctx.Fields
 	if len(columns) == 0 {
 		columns = reportlicense.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
-	if rlq.sql != nil {
-		selector = rlq.sql
+	if _q.sql != nil {
+		selector = _q.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if rlq.ctx.Unique != nil && *rlq.ctx.Unique {
+	if _q.ctx.Unique != nil && *_q.ctx.Unique {
 		selector.Distinct()
 	}
-	for _, p := range rlq.predicates {
+	for _, p := range _q.predicates {
 		p(selector)
 	}
-	for _, p := range rlq.order {
+	for _, p := range _q.order {
 		p(selector)
 	}
-	if offset := rlq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := rlq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -530,41 +530,41 @@ type ReportLicenseGroupBy struct {
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (rlgb *ReportLicenseGroupBy) Aggregate(fns ...AggregateFunc) *ReportLicenseGroupBy {
-	rlgb.fns = append(rlgb.fns, fns...)
-	return rlgb
+func (_g *ReportLicenseGroupBy) Aggregate(fns ...AggregateFunc) *ReportLicenseGroupBy {
+	_g.fns = append(_g.fns, fns...)
+	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (rlgb *ReportLicenseGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, rlgb.build.ctx, ent.OpQueryGroupBy)
-	if err := rlgb.build.prepareQuery(ctx); err != nil {
+func (_g *ReportLicenseGroupBy) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
+	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*ReportLicenseQuery, *ReportLicenseGroupBy](ctx, rlgb.build, rlgb, rlgb.build.inters, v)
+	return scanWithInterceptors[*ReportLicenseQuery, *ReportLicenseGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (rlgb *ReportLicenseGroupBy) sqlScan(ctx context.Context, root *ReportLicenseQuery, v any) error {
+func (_g *ReportLicenseGroupBy) sqlScan(ctx context.Context, root *ReportLicenseQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
-	aggregation := make([]string, 0, len(rlgb.fns))
-	for _, fn := range rlgb.fns {
+	aggregation := make([]string, 0, len(_g.fns))
+	for _, fn := range _g.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
 	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(*rlgb.flds)+len(rlgb.fns))
-		for _, f := range *rlgb.flds {
+		columns := make([]string, 0, len(*_g.flds)+len(_g.fns))
+		for _, f := range *_g.flds {
 			columns = append(columns, selector.C(f))
 		}
 		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
-	selector.GroupBy(selector.Columns(*rlgb.flds...)...)
+	selector.GroupBy(selector.Columns(*_g.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := rlgb.build.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _g.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
@@ -578,27 +578,27 @@ type ReportLicenseSelect struct {
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (rls *ReportLicenseSelect) Aggregate(fns ...AggregateFunc) *ReportLicenseSelect {
-	rls.fns = append(rls.fns, fns...)
-	return rls
+func (_s *ReportLicenseSelect) Aggregate(fns ...AggregateFunc) *ReportLicenseSelect {
+	_s.fns = append(_s.fns, fns...)
+	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (rls *ReportLicenseSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, rls.ctx, ent.OpQuerySelect)
-	if err := rls.prepareQuery(ctx); err != nil {
+func (_s *ReportLicenseSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
+	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*ReportLicenseQuery, *ReportLicenseSelect](ctx, rls.ReportLicenseQuery, rls, rls.inters, v)
+	return scanWithInterceptors[*ReportLicenseQuery, *ReportLicenseSelect](ctx, _s.ReportLicenseQuery, _s, _s.inters, v)
 }
 
-func (rls *ReportLicenseSelect) sqlScan(ctx context.Context, root *ReportLicenseQuery, v any) error {
+func (_s *ReportLicenseSelect) sqlScan(ctx context.Context, root *ReportLicenseQuery, v any) error {
 	selector := root.sqlQuery(ctx)
-	aggregation := make([]string, 0, len(rls.fns))
-	for _, fn := range rls.fns {
+	aggregation := make([]string, 0, len(_s.fns))
+	for _, fn := range _s.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	switch n := len(*rls.selector.flds); {
+	switch n := len(*_s.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
 		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
@@ -606,7 +606,7 @@ func (rls *ReportLicenseSelect) sqlScan(ctx context.Context, root *ReportLicense
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := rls.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _s.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()

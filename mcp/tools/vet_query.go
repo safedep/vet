@@ -102,7 +102,7 @@ func (t *vetSqlQueryTool) executeSchemaIntrospection(ctx context.Context, req mc
 	if err != nil {
 		return nil, fmt.Errorf("failed to query tables: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var tableNames []string
 	for rows.Next() {
@@ -143,7 +143,7 @@ func (t *vetSqlQueryTool) getTableSchema(ctx context.Context, db *sql.DB, tableN
 		return tableSchema{}, fmt.Errorf("failed to get table info: %w", err)
 	}
 
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var columns []column
 	for rows.Next() {
@@ -198,7 +198,7 @@ func (t *vetSqlQueryTool) executeSQLQuery(ctx context.Context, req mcpgo.CallToo
 		return mcpgo.NewToolResultText(serializedResponse), nil
 	}
 
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	// Get column names
 	columns, err := rows.Columns()

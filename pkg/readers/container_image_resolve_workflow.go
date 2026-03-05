@@ -14,7 +14,7 @@ import (
 	"github.com/safedep/vet/pkg/common/logger"
 )
 
-var imageResolverUnsupportedError = errors.New("image resolver unsupported")
+var errImageResolverUnsupported = errors.New("image resolver unsupported")
 
 type imageResolutionWorkflowFunc func(ctx context.Context, config *scalibrlayerimage.Config) (*scalibrlayerimage.Image, error)
 
@@ -24,7 +24,7 @@ func (c containerImageReader) imageFromLocalDockerImageCatalog(ctx context.Conte
 ) (*scalibrlayerimage.Image, error) {
 	// Skip if the image is already known to be local
 	if c.imageTarget.isLocalFile {
-		return nil, imageResolverUnsupportedError
+		return nil, errImageResolverUnsupported
 	}
 
 	logger.Debugf("Attempting to resolve image from local docker image catalog: %s", c.imageTarget.imageRef)
@@ -34,7 +34,7 @@ func (c containerImageReader) imageFromLocalDockerImageCatalog(ctx context.Conte
 		logger.Debugf("Failed to list local images: %s", err.Error())
 
 		// This is not a failure because docker daemon may not be running
-		return nil, imageResolverUnsupportedError
+		return nil, errImageResolverUnsupported
 	}
 
 	var targetImage *image.Summary
@@ -47,14 +47,14 @@ func (c containerImageReader) imageFromLocalDockerImageCatalog(ctx context.Conte
 
 	// The image is not found in the local docker image catalog
 	if targetImage == nil {
-		return nil, imageResolverUnsupportedError
+		return nil, errImageResolverUnsupported
 	}
 
 	logger.Debugf("Found image in local docker image catalog with ImageID: %s", targetImage.ID)
 
 	reader, err := c.dockerClient.ImageSave(ctx, []string{targetImage.ID})
 	if err != nil {
-		return nil, imageResolverUnsupportedError
+		return nil, errImageResolverUnsupported
 	}
 
 	defer func() {
@@ -100,7 +100,7 @@ func (c containerImageReader) imageFromLocalTarFile(
 	config *scalibrlayerimage.Config,
 ) (*scalibrlayerimage.Image, error) {
 	if !c.imageTarget.isLocalFile {
-		return nil, imageResolverUnsupportedError
+		return nil, errImageResolverUnsupported
 	}
 
 	logger.Debugf("Attempting to resolve image from local tar file: %s", c.imageTarget.imageRef)
@@ -119,7 +119,7 @@ func (c containerImageReader) imageFromRemoteRegistry(
 	config *scalibrlayerimage.Config,
 ) (*scalibrlayerimage.Image, error) {
 	if !c.config.RemoteImageFetch {
-		return nil, imageResolverUnsupportedError
+		return nil, errImageResolverUnsupported
 	}
 
 	containerImage, err := scalibrlayerimage.FromRemoteName(c.imageTarget.imageRef, config)

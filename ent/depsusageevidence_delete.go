@@ -20,56 +20,56 @@ type DepsUsageEvidenceDelete struct {
 }
 
 // Where appends a list predicates to the DepsUsageEvidenceDelete builder.
-func (dued *DepsUsageEvidenceDelete) Where(ps ...predicate.DepsUsageEvidence) *DepsUsageEvidenceDelete {
-	dued.mutation.Where(ps...)
-	return dued
+func (_d *DepsUsageEvidenceDelete) Where(ps ...predicate.DepsUsageEvidence) *DepsUsageEvidenceDelete {
+	_d.mutation.Where(ps...)
+	return _d
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (dued *DepsUsageEvidenceDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks(ctx, dued.sqlExec, dued.mutation, dued.hooks)
+func (_d *DepsUsageEvidenceDelete) Exec(ctx context.Context) (int, error) {
+	return withHooks(ctx, _d.sqlExec, _d.mutation, _d.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (dued *DepsUsageEvidenceDelete) ExecX(ctx context.Context) int {
-	n, err := dued.Exec(ctx)
+func (_d *DepsUsageEvidenceDelete) ExecX(ctx context.Context) int {
+	n, err := _d.Exec(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return n
 }
 
-func (dued *DepsUsageEvidenceDelete) sqlExec(ctx context.Context) (int, error) {
+func (_d *DepsUsageEvidenceDelete) sqlExec(ctx context.Context) (int, error) {
 	_spec := sqlgraph.NewDeleteSpec(depsusageevidence.Table, sqlgraph.NewFieldSpec(depsusageevidence.FieldID, field.TypeInt))
-	if ps := dued.mutation.predicates; len(ps) > 0 {
+	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	affected, err := sqlgraph.DeleteNodes(ctx, dued.driver, _spec)
+	affected, err := sqlgraph.DeleteNodes(ctx, _d.driver, _spec)
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
-	dued.mutation.done = true
+	_d.mutation.done = true
 	return affected, err
 }
 
 // DepsUsageEvidenceDeleteOne is the builder for deleting a single DepsUsageEvidence entity.
 type DepsUsageEvidenceDeleteOne struct {
-	dued *DepsUsageEvidenceDelete
+	_d *DepsUsageEvidenceDelete
 }
 
 // Where appends a list predicates to the DepsUsageEvidenceDelete builder.
-func (duedo *DepsUsageEvidenceDeleteOne) Where(ps ...predicate.DepsUsageEvidence) *DepsUsageEvidenceDeleteOne {
-	duedo.dued.mutation.Where(ps...)
-	return duedo
+func (_d *DepsUsageEvidenceDeleteOne) Where(ps ...predicate.DepsUsageEvidence) *DepsUsageEvidenceDeleteOne {
+	_d._d.mutation.Where(ps...)
+	return _d
 }
 
 // Exec executes the deletion query.
-func (duedo *DepsUsageEvidenceDeleteOne) Exec(ctx context.Context) error {
-	n, err := duedo.dued.Exec(ctx)
+func (_d *DepsUsageEvidenceDeleteOne) Exec(ctx context.Context) error {
+	n, err := _d._d.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
@@ -81,8 +81,8 @@ func (duedo *DepsUsageEvidenceDeleteOne) Exec(ctx context.Context) error {
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (duedo *DepsUsageEvidenceDeleteOne) ExecX(ctx context.Context) {
-	if err := duedo.Exec(ctx); err != nil {
+func (_d *DepsUsageEvidenceDeleteOne) ExecX(ctx context.Context) {
+	if err := _d.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

@@ -75,7 +75,7 @@ func (e *insightsBasedPackageEnricher) Enrich(pkg *models.Package,
 	}
 
 	if res.HTTPResponse.StatusCode != 200 {
-		err, _ = errors.UnmarshalApiError(res.Body)
+		err, _ = errors.UnmarshalApiError(res.Body) //nolint:staticcheck // TODO: migrate to new API
 		return err
 	}
 

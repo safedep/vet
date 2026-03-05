@@ -20,56 +20,56 @@ type ReportDependencyGraphDelete struct {
 }
 
 // Where appends a list predicates to the ReportDependencyGraphDelete builder.
-func (rdgd *ReportDependencyGraphDelete) Where(ps ...predicate.ReportDependencyGraph) *ReportDependencyGraphDelete {
-	rdgd.mutation.Where(ps...)
-	return rdgd
+func (_d *ReportDependencyGraphDelete) Where(ps ...predicate.ReportDependencyGraph) *ReportDependencyGraphDelete {
+	_d.mutation.Where(ps...)
+	return _d
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (rdgd *ReportDependencyGraphDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks(ctx, rdgd.sqlExec, rdgd.mutation, rdgd.hooks)
+func (_d *ReportDependencyGraphDelete) Exec(ctx context.Context) (int, error) {
+	return withHooks(ctx, _d.sqlExec, _d.mutation, _d.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rdgd *ReportDependencyGraphDelete) ExecX(ctx context.Context) int {
-	n, err := rdgd.Exec(ctx)
+func (_d *ReportDependencyGraphDelete) ExecX(ctx context.Context) int {
+	n, err := _d.Exec(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return n
 }
 
-func (rdgd *ReportDependencyGraphDelete) sqlExec(ctx context.Context) (int, error) {
+func (_d *ReportDependencyGraphDelete) sqlExec(ctx context.Context) (int, error) {
 	_spec := sqlgraph.NewDeleteSpec(reportdependencygraph.Table, sqlgraph.NewFieldSpec(reportdependencygraph.FieldID, field.TypeInt))
-	if ps := rdgd.mutation.predicates; len(ps) > 0 {
+	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	affected, err := sqlgraph.DeleteNodes(ctx, rdgd.driver, _spec)
+	affected, err := sqlgraph.DeleteNodes(ctx, _d.driver, _spec)
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
-	rdgd.mutation.done = true
+	_d.mutation.done = true
 	return affected, err
 }
 
 // ReportDependencyGraphDeleteOne is the builder for deleting a single ReportDependencyGraph entity.
 type ReportDependencyGraphDeleteOne struct {
-	rdgd *ReportDependencyGraphDelete
+	_d *ReportDependencyGraphDelete
 }
 
 // Where appends a list predicates to the ReportDependencyGraphDelete builder.
-func (rdgdo *ReportDependencyGraphDeleteOne) Where(ps ...predicate.ReportDependencyGraph) *ReportDependencyGraphDeleteOne {
-	rdgdo.rdgd.mutation.Where(ps...)
-	return rdgdo
+func (_d *ReportDependencyGraphDeleteOne) Where(ps ...predicate.ReportDependencyGraph) *ReportDependencyGraphDeleteOne {
+	_d._d.mutation.Where(ps...)
+	return _d
 }
 
 // Exec executes the deletion query.
-func (rdgdo *ReportDependencyGraphDeleteOne) Exec(ctx context.Context) error {
-	n, err := rdgdo.rdgd.Exec(ctx)
+func (_d *ReportDependencyGraphDeleteOne) Exec(ctx context.Context) error {
+	n, err := _d._d.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
@@ -81,8 +81,8 @@ func (rdgdo *ReportDependencyGraphDeleteOne) Exec(ctx context.Context) error {
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rdgdo *ReportDependencyGraphDeleteOne) ExecX(ctx context.Context) {
-	if err := rdgdo.Exec(ctx); err != nil {
+func (_d *ReportDependencyGraphDeleteOne) ExecX(ctx context.Context) {
+	if err := _d.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

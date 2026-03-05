@@ -20,56 +20,56 @@ type ReportScorecardDelete struct {
 }
 
 // Where appends a list predicates to the ReportScorecardDelete builder.
-func (rsd *ReportScorecardDelete) Where(ps ...predicate.ReportScorecard) *ReportScorecardDelete {
-	rsd.mutation.Where(ps...)
-	return rsd
+func (_d *ReportScorecardDelete) Where(ps ...predicate.ReportScorecard) *ReportScorecardDelete {
+	_d.mutation.Where(ps...)
+	return _d
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (rsd *ReportScorecardDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks(ctx, rsd.sqlExec, rsd.mutation, rsd.hooks)
+func (_d *ReportScorecardDelete) Exec(ctx context.Context) (int, error) {
+	return withHooks(ctx, _d.sqlExec, _d.mutation, _d.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rsd *ReportScorecardDelete) ExecX(ctx context.Context) int {
-	n, err := rsd.Exec(ctx)
+func (_d *ReportScorecardDelete) ExecX(ctx context.Context) int {
+	n, err := _d.Exec(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return n
 }
 
-func (rsd *ReportScorecardDelete) sqlExec(ctx context.Context) (int, error) {
+func (_d *ReportScorecardDelete) sqlExec(ctx context.Context) (int, error) {
 	_spec := sqlgraph.NewDeleteSpec(reportscorecard.Table, sqlgraph.NewFieldSpec(reportscorecard.FieldID, field.TypeInt))
-	if ps := rsd.mutation.predicates; len(ps) > 0 {
+	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	affected, err := sqlgraph.DeleteNodes(ctx, rsd.driver, _spec)
+	affected, err := sqlgraph.DeleteNodes(ctx, _d.driver, _spec)
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
-	rsd.mutation.done = true
+	_d.mutation.done = true
 	return affected, err
 }
 
 // ReportScorecardDeleteOne is the builder for deleting a single ReportScorecard entity.
 type ReportScorecardDeleteOne struct {
-	rsd *ReportScorecardDelete
+	_d *ReportScorecardDelete
 }
 
 // Where appends a list predicates to the ReportScorecardDelete builder.
-func (rsdo *ReportScorecardDeleteOne) Where(ps ...predicate.ReportScorecard) *ReportScorecardDeleteOne {
-	rsdo.rsd.mutation.Where(ps...)
-	return rsdo
+func (_d *ReportScorecardDeleteOne) Where(ps ...predicate.ReportScorecard) *ReportScorecardDeleteOne {
+	_d._d.mutation.Where(ps...)
+	return _d
 }
 
 // Exec executes the deletion query.
-func (rsdo *ReportScorecardDeleteOne) Exec(ctx context.Context) error {
-	n, err := rsdo.rsd.Exec(ctx)
+func (_d *ReportScorecardDeleteOne) Exec(ctx context.Context) error {
+	n, err := _d._d.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
@@ -81,8 +81,8 @@ func (rsdo *ReportScorecardDeleteOne) Exec(ctx context.Context) error {
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rsdo *ReportScorecardDeleteOne) ExecX(ctx context.Context) {
-	if err := rsdo.Exec(ctx); err != nil {
+func (_d *ReportScorecardDeleteOne) ExecX(ctx context.Context) {
+	if err := _d.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

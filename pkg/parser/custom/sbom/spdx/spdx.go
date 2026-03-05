@@ -45,7 +45,7 @@ func parse2PackageDetailsDoc(pathToLockfile string) (*packagefile.PackageDetails
 		return nil, err
 	}
 
-	defer r.Close()
+	defer func() { _ = r.Close() }()
 
 	bom, err := spdx_json.Read(r)
 	if err != nil {

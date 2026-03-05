@@ -61,7 +61,7 @@ func TestCayleyGraphQuery(t *testing.T) {
 	g, err := NewInMemoryPropertyGraph(config)
 	assert.Nil(t, err)
 
-	defer g.Close()
+	defer func() { _ = g.Close() }()
 
 	for _, link := range graphModelLinks {
 		err = g.Link(&link)

@@ -25,222 +25,222 @@ type ReportProjectUpdate struct {
 }
 
 // Where appends a list predicates to the ReportProjectUpdate builder.
-func (rpu *ReportProjectUpdate) Where(ps ...predicate.ReportProject) *ReportProjectUpdate {
-	rpu.mutation.Where(ps...)
-	return rpu
+func (_u *ReportProjectUpdate) Where(ps ...predicate.ReportProject) *ReportProjectUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetName sets the "name" field.
-func (rpu *ReportProjectUpdate) SetName(s string) *ReportProjectUpdate {
-	rpu.mutation.SetName(s)
-	return rpu
+func (_u *ReportProjectUpdate) SetName(v string) *ReportProjectUpdate {
+	_u.mutation.SetName(v)
+	return _u
 }
 
 // SetNillableName sets the "name" field if the given value is not nil.
-func (rpu *ReportProjectUpdate) SetNillableName(s *string) *ReportProjectUpdate {
-	if s != nil {
-		rpu.SetName(*s)
+func (_u *ReportProjectUpdate) SetNillableName(v *string) *ReportProjectUpdate {
+	if v != nil {
+		_u.SetName(*v)
 	}
-	return rpu
+	return _u
 }
 
 // SetURL sets the "url" field.
-func (rpu *ReportProjectUpdate) SetURL(s string) *ReportProjectUpdate {
-	rpu.mutation.SetURL(s)
-	return rpu
+func (_u *ReportProjectUpdate) SetURL(v string) *ReportProjectUpdate {
+	_u.mutation.SetURL(v)
+	return _u
 }
 
 // SetNillableURL sets the "url" field if the given value is not nil.
-func (rpu *ReportProjectUpdate) SetNillableURL(s *string) *ReportProjectUpdate {
-	if s != nil {
-		rpu.SetURL(*s)
+func (_u *ReportProjectUpdate) SetNillableURL(v *string) *ReportProjectUpdate {
+	if v != nil {
+		_u.SetURL(*v)
 	}
-	return rpu
+	return _u
 }
 
 // ClearURL clears the value of the "url" field.
-func (rpu *ReportProjectUpdate) ClearURL() *ReportProjectUpdate {
-	rpu.mutation.ClearURL()
-	return rpu
+func (_u *ReportProjectUpdate) ClearURL() *ReportProjectUpdate {
+	_u.mutation.ClearURL()
+	return _u
 }
 
 // SetDescription sets the "description" field.
-func (rpu *ReportProjectUpdate) SetDescription(s string) *ReportProjectUpdate {
-	rpu.mutation.SetDescription(s)
-	return rpu
+func (_u *ReportProjectUpdate) SetDescription(v string) *ReportProjectUpdate {
+	_u.mutation.SetDescription(v)
+	return _u
 }
 
 // SetNillableDescription sets the "description" field if the given value is not nil.
-func (rpu *ReportProjectUpdate) SetNillableDescription(s *string) *ReportProjectUpdate {
-	if s != nil {
-		rpu.SetDescription(*s)
+func (_u *ReportProjectUpdate) SetNillableDescription(v *string) *ReportProjectUpdate {
+	if v != nil {
+		_u.SetDescription(*v)
 	}
-	return rpu
+	return _u
 }
 
 // ClearDescription clears the value of the "description" field.
-func (rpu *ReportProjectUpdate) ClearDescription() *ReportProjectUpdate {
-	rpu.mutation.ClearDescription()
-	return rpu
+func (_u *ReportProjectUpdate) ClearDescription() *ReportProjectUpdate {
+	_u.mutation.ClearDescription()
+	return _u
 }
 
 // SetStars sets the "stars" field.
-func (rpu *ReportProjectUpdate) SetStars(i int32) *ReportProjectUpdate {
-	rpu.mutation.ResetStars()
-	rpu.mutation.SetStars(i)
-	return rpu
+func (_u *ReportProjectUpdate) SetStars(v int32) *ReportProjectUpdate {
+	_u.mutation.ResetStars()
+	_u.mutation.SetStars(v)
+	return _u
 }
 
 // SetNillableStars sets the "stars" field if the given value is not nil.
-func (rpu *ReportProjectUpdate) SetNillableStars(i *int32) *ReportProjectUpdate {
-	if i != nil {
-		rpu.SetStars(*i)
+func (_u *ReportProjectUpdate) SetNillableStars(v *int32) *ReportProjectUpdate {
+	if v != nil {
+		_u.SetStars(*v)
 	}
-	return rpu
+	return _u
 }
 
-// AddStars adds i to the "stars" field.
-func (rpu *ReportProjectUpdate) AddStars(i int32) *ReportProjectUpdate {
-	rpu.mutation.AddStars(i)
-	return rpu
+// AddStars adds value to the "stars" field.
+func (_u *ReportProjectUpdate) AddStars(v int32) *ReportProjectUpdate {
+	_u.mutation.AddStars(v)
+	return _u
 }
 
 // ClearStars clears the value of the "stars" field.
-func (rpu *ReportProjectUpdate) ClearStars() *ReportProjectUpdate {
-	rpu.mutation.ClearStars()
-	return rpu
+func (_u *ReportProjectUpdate) ClearStars() *ReportProjectUpdate {
+	_u.mutation.ClearStars()
+	return _u
 }
 
 // SetForks sets the "forks" field.
-func (rpu *ReportProjectUpdate) SetForks(i int32) *ReportProjectUpdate {
-	rpu.mutation.ResetForks()
-	rpu.mutation.SetForks(i)
-	return rpu
+func (_u *ReportProjectUpdate) SetForks(v int32) *ReportProjectUpdate {
+	_u.mutation.ResetForks()
+	_u.mutation.SetForks(v)
+	return _u
 }
 
 // SetNillableForks sets the "forks" field if the given value is not nil.
-func (rpu *ReportProjectUpdate) SetNillableForks(i *int32) *ReportProjectUpdate {
-	if i != nil {
-		rpu.SetForks(*i)
+func (_u *ReportProjectUpdate) SetNillableForks(v *int32) *ReportProjectUpdate {
+	if v != nil {
+		_u.SetForks(*v)
 	}
-	return rpu
+	return _u
 }
 
-// AddForks adds i to the "forks" field.
-func (rpu *ReportProjectUpdate) AddForks(i int32) *ReportProjectUpdate {
-	rpu.mutation.AddForks(i)
-	return rpu
+// AddForks adds value to the "forks" field.
+func (_u *ReportProjectUpdate) AddForks(v int32) *ReportProjectUpdate {
+	_u.mutation.AddForks(v)
+	return _u
 }
 
 // ClearForks clears the value of the "forks" field.
-func (rpu *ReportProjectUpdate) ClearForks() *ReportProjectUpdate {
-	rpu.mutation.ClearForks()
-	return rpu
+func (_u *ReportProjectUpdate) ClearForks() *ReportProjectUpdate {
+	_u.mutation.ClearForks()
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rpu *ReportProjectUpdate) SetCreatedAt(t time.Time) *ReportProjectUpdate {
-	rpu.mutation.SetCreatedAt(t)
-	return rpu
+func (_u *ReportProjectUpdate) SetCreatedAt(v time.Time) *ReportProjectUpdate {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rpu *ReportProjectUpdate) SetNillableCreatedAt(t *time.Time) *ReportProjectUpdate {
-	if t != nil {
-		rpu.SetCreatedAt(*t)
+func (_u *ReportProjectUpdate) SetNillableCreatedAt(v *time.Time) *ReportProjectUpdate {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return rpu
+	return _u
 }
 
 // ClearCreatedAt clears the value of the "created_at" field.
-func (rpu *ReportProjectUpdate) ClearCreatedAt() *ReportProjectUpdate {
-	rpu.mutation.ClearCreatedAt()
-	return rpu
+func (_u *ReportProjectUpdate) ClearCreatedAt() *ReportProjectUpdate {
+	_u.mutation.ClearCreatedAt()
+	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rpu *ReportProjectUpdate) SetUpdatedAt(t time.Time) *ReportProjectUpdate {
-	rpu.mutation.SetUpdatedAt(t)
-	return rpu
+func (_u *ReportProjectUpdate) SetUpdatedAt(v time.Time) *ReportProjectUpdate {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rpu *ReportProjectUpdate) SetNillableUpdatedAt(t *time.Time) *ReportProjectUpdate {
-	if t != nil {
-		rpu.SetUpdatedAt(*t)
+func (_u *ReportProjectUpdate) SetNillableUpdatedAt(v *time.Time) *ReportProjectUpdate {
+	if v != nil {
+		_u.SetUpdatedAt(*v)
 	}
-	return rpu
+	return _u
 }
 
 // ClearUpdatedAt clears the value of the "updated_at" field.
-func (rpu *ReportProjectUpdate) ClearUpdatedAt() *ReportProjectUpdate {
-	rpu.mutation.ClearUpdatedAt()
-	return rpu
+func (_u *ReportProjectUpdate) ClearUpdatedAt() *ReportProjectUpdate {
+	_u.mutation.ClearUpdatedAt()
+	return _u
 }
 
 // SetPackageID sets the "package" edge to the ReportPackage entity by ID.
-func (rpu *ReportProjectUpdate) SetPackageID(id int) *ReportProjectUpdate {
-	rpu.mutation.SetPackageID(id)
-	return rpu
+func (_u *ReportProjectUpdate) SetPackageID(id int) *ReportProjectUpdate {
+	_u.mutation.SetPackageID(id)
+	return _u
 }
 
 // SetNillablePackageID sets the "package" edge to the ReportPackage entity by ID if the given value is not nil.
-func (rpu *ReportProjectUpdate) SetNillablePackageID(id *int) *ReportProjectUpdate {
+func (_u *ReportProjectUpdate) SetNillablePackageID(id *int) *ReportProjectUpdate {
 	if id != nil {
-		rpu = rpu.SetPackageID(*id)
+		_u = _u.SetPackageID(*id)
 	}
-	return rpu
+	return _u
 }
 
 // SetPackage sets the "package" edge to the ReportPackage entity.
-func (rpu *ReportProjectUpdate) SetPackage(r *ReportPackage) *ReportProjectUpdate {
-	return rpu.SetPackageID(r.ID)
+func (_u *ReportProjectUpdate) SetPackage(v *ReportPackage) *ReportProjectUpdate {
+	return _u.SetPackageID(v.ID)
 }
 
 // SetScorecardID sets the "scorecard" edge to the ReportScorecard entity by ID.
-func (rpu *ReportProjectUpdate) SetScorecardID(id int) *ReportProjectUpdate {
-	rpu.mutation.SetScorecardID(id)
-	return rpu
+func (_u *ReportProjectUpdate) SetScorecardID(id int) *ReportProjectUpdate {
+	_u.mutation.SetScorecardID(id)
+	return _u
 }
 
 // SetNillableScorecardID sets the "scorecard" edge to the ReportScorecard entity by ID if the given value is not nil.
-func (rpu *ReportProjectUpdate) SetNillableScorecardID(id *int) *ReportProjectUpdate {
+func (_u *ReportProjectUpdate) SetNillableScorecardID(id *int) *ReportProjectUpdate {
 	if id != nil {
-		rpu = rpu.SetScorecardID(*id)
+		_u = _u.SetScorecardID(*id)
 	}
-	return rpu
+	return _u
 }
 
 // SetScorecard sets the "scorecard" edge to the ReportScorecard entity.
-func (rpu *ReportProjectUpdate) SetScorecard(r *ReportScorecard) *ReportProjectUpdate {
-	return rpu.SetScorecardID(r.ID)
+func (_u *ReportProjectUpdate) SetScorecard(v *ReportScorecard) *ReportProjectUpdate {
+	return _u.SetScorecardID(v.ID)
 }
 
 // Mutation returns the ReportProjectMutation object of the builder.
-func (rpu *ReportProjectUpdate) Mutation() *ReportProjectMutation {
-	return rpu.mutation
+func (_u *ReportProjectUpdate) Mutation() *ReportProjectMutation {
+	return _u.mutation
 }
 
 // ClearPackage clears the "package" edge to the ReportPackage entity.
-func (rpu *ReportProjectUpdate) ClearPackage() *ReportProjectUpdate {
-	rpu.mutation.ClearPackage()
-	return rpu
+func (_u *ReportProjectUpdate) ClearPackage() *ReportProjectUpdate {
+	_u.mutation.ClearPackage()
+	return _u
 }
 
 // ClearScorecard clears the "scorecard" edge to the ReportScorecard entity.
-func (rpu *ReportProjectUpdate) ClearScorecard() *ReportProjectUpdate {
-	rpu.mutation.ClearScorecard()
-	return rpu
+func (_u *ReportProjectUpdate) ClearScorecard() *ReportProjectUpdate {
+	_u.mutation.ClearScorecard()
+	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (rpu *ReportProjectUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, rpu.sqlSave, rpu.mutation, rpu.hooks)
+func (_u *ReportProjectUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rpu *ReportProjectUpdate) SaveX(ctx context.Context) int {
-	affected, err := rpu.Save(ctx)
+func (_u *ReportProjectUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -248,21 +248,21 @@ func (rpu *ReportProjectUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (rpu *ReportProjectUpdate) Exec(ctx context.Context) error {
-	_, err := rpu.Save(ctx)
+func (_u *ReportProjectUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rpu *ReportProjectUpdate) ExecX(ctx context.Context) {
-	if err := rpu.Exec(ctx); err != nil {
+func (_u *ReportProjectUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (rpu *ReportProjectUpdate) check() error {
-	if v, ok := rpu.mutation.Name(); ok {
+func (_u *ReportProjectUpdate) check() error {
+	if v, ok := _u.mutation.Name(); ok {
 		if err := reportproject.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "ReportProject.name": %w`, err)}
 		}
@@ -270,64 +270,64 @@ func (rpu *ReportProjectUpdate) check() error {
 	return nil
 }
 
-func (rpu *ReportProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := rpu.check(); err != nil {
-		return n, err
+func (_u *ReportProjectUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(reportproject.Table, reportproject.Columns, sqlgraph.NewFieldSpec(reportproject.FieldID, field.TypeInt))
-	if ps := rpu.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := rpu.mutation.Name(); ok {
+	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(reportproject.FieldName, field.TypeString, value)
 	}
-	if value, ok := rpu.mutation.URL(); ok {
+	if value, ok := _u.mutation.URL(); ok {
 		_spec.SetField(reportproject.FieldURL, field.TypeString, value)
 	}
-	if rpu.mutation.URLCleared() {
+	if _u.mutation.URLCleared() {
 		_spec.ClearField(reportproject.FieldURL, field.TypeString)
 	}
-	if value, ok := rpu.mutation.Description(); ok {
+	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(reportproject.FieldDescription, field.TypeString, value)
 	}
-	if rpu.mutation.DescriptionCleared() {
+	if _u.mutation.DescriptionCleared() {
 		_spec.ClearField(reportproject.FieldDescription, field.TypeString)
 	}
-	if value, ok := rpu.mutation.Stars(); ok {
+	if value, ok := _u.mutation.Stars(); ok {
 		_spec.SetField(reportproject.FieldStars, field.TypeInt32, value)
 	}
-	if value, ok := rpu.mutation.AddedStars(); ok {
+	if value, ok := _u.mutation.AddedStars(); ok {
 		_spec.AddField(reportproject.FieldStars, field.TypeInt32, value)
 	}
-	if rpu.mutation.StarsCleared() {
+	if _u.mutation.StarsCleared() {
 		_spec.ClearField(reportproject.FieldStars, field.TypeInt32)
 	}
-	if value, ok := rpu.mutation.Forks(); ok {
+	if value, ok := _u.mutation.Forks(); ok {
 		_spec.SetField(reportproject.FieldForks, field.TypeInt32, value)
 	}
-	if value, ok := rpu.mutation.AddedForks(); ok {
+	if value, ok := _u.mutation.AddedForks(); ok {
 		_spec.AddField(reportproject.FieldForks, field.TypeInt32, value)
 	}
-	if rpu.mutation.ForksCleared() {
+	if _u.mutation.ForksCleared() {
 		_spec.ClearField(reportproject.FieldForks, field.TypeInt32)
 	}
-	if value, ok := rpu.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(reportproject.FieldCreatedAt, field.TypeTime, value)
 	}
-	if rpu.mutation.CreatedAtCleared() {
+	if _u.mutation.CreatedAtCleared() {
 		_spec.ClearField(reportproject.FieldCreatedAt, field.TypeTime)
 	}
-	if value, ok := rpu.mutation.UpdatedAt(); ok {
+	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportproject.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if rpu.mutation.UpdatedAtCleared() {
+	if _u.mutation.UpdatedAtCleared() {
 		_spec.ClearField(reportproject.FieldUpdatedAt, field.TypeTime)
 	}
-	if rpu.mutation.PackageCleared() {
+	if _u.mutation.PackageCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -340,7 +340,7 @@ func (rpu *ReportProjectUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpu.mutation.PackageIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.PackageIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -356,7 +356,7 @@ func (rpu *ReportProjectUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if rpu.mutation.ScorecardCleared() {
+	if _u.mutation.ScorecardCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -369,7 +369,7 @@ func (rpu *ReportProjectUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpu.mutation.ScorecardIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.ScorecardIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -385,7 +385,7 @@ func (rpu *ReportProjectUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, rpu.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{reportproject.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -393,8 +393,8 @@ func (rpu *ReportProjectUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		return 0, err
 	}
-	rpu.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // ReportProjectUpdateOne is the builder for updating a single ReportProject entity.
@@ -406,229 +406,229 @@ type ReportProjectUpdateOne struct {
 }
 
 // SetName sets the "name" field.
-func (rpuo *ReportProjectUpdateOne) SetName(s string) *ReportProjectUpdateOne {
-	rpuo.mutation.SetName(s)
-	return rpuo
+func (_u *ReportProjectUpdateOne) SetName(v string) *ReportProjectUpdateOne {
+	_u.mutation.SetName(v)
+	return _u
 }
 
 // SetNillableName sets the "name" field if the given value is not nil.
-func (rpuo *ReportProjectUpdateOne) SetNillableName(s *string) *ReportProjectUpdateOne {
-	if s != nil {
-		rpuo.SetName(*s)
+func (_u *ReportProjectUpdateOne) SetNillableName(v *string) *ReportProjectUpdateOne {
+	if v != nil {
+		_u.SetName(*v)
 	}
-	return rpuo
+	return _u
 }
 
 // SetURL sets the "url" field.
-func (rpuo *ReportProjectUpdateOne) SetURL(s string) *ReportProjectUpdateOne {
-	rpuo.mutation.SetURL(s)
-	return rpuo
+func (_u *ReportProjectUpdateOne) SetURL(v string) *ReportProjectUpdateOne {
+	_u.mutation.SetURL(v)
+	return _u
 }
 
 // SetNillableURL sets the "url" field if the given value is not nil.
-func (rpuo *ReportProjectUpdateOne) SetNillableURL(s *string) *ReportProjectUpdateOne {
-	if s != nil {
-		rpuo.SetURL(*s)
+func (_u *ReportProjectUpdateOne) SetNillableURL(v *string) *ReportProjectUpdateOne {
+	if v != nil {
+		_u.SetURL(*v)
 	}
-	return rpuo
+	return _u
 }
 
 // ClearURL clears the value of the "url" field.
-func (rpuo *ReportProjectUpdateOne) ClearURL() *ReportProjectUpdateOne {
-	rpuo.mutation.ClearURL()
-	return rpuo
+func (_u *ReportProjectUpdateOne) ClearURL() *ReportProjectUpdateOne {
+	_u.mutation.ClearURL()
+	return _u
 }
 
 // SetDescription sets the "description" field.
-func (rpuo *ReportProjectUpdateOne) SetDescription(s string) *ReportProjectUpdateOne {
-	rpuo.mutation.SetDescription(s)
-	return rpuo
+func (_u *ReportProjectUpdateOne) SetDescription(v string) *ReportProjectUpdateOne {
+	_u.mutation.SetDescription(v)
+	return _u
 }
 
 // SetNillableDescription sets the "description" field if the given value is not nil.
-func (rpuo *ReportProjectUpdateOne) SetNillableDescription(s *string) *ReportProjectUpdateOne {
-	if s != nil {
-		rpuo.SetDescription(*s)
+func (_u *ReportProjectUpdateOne) SetNillableDescription(v *string) *ReportProjectUpdateOne {
+	if v != nil {
+		_u.SetDescription(*v)
 	}
-	return rpuo
+	return _u
 }
 
 // ClearDescription clears the value of the "description" field.
-func (rpuo *ReportProjectUpdateOne) ClearDescription() *ReportProjectUpdateOne {
-	rpuo.mutation.ClearDescription()
-	return rpuo
+func (_u *ReportProjectUpdateOne) ClearDescription() *ReportProjectUpdateOne {
+	_u.mutation.ClearDescription()
+	return _u
 }
 
 // SetStars sets the "stars" field.
-func (rpuo *ReportProjectUpdateOne) SetStars(i int32) *ReportProjectUpdateOne {
-	rpuo.mutation.ResetStars()
-	rpuo.mutation.SetStars(i)
-	return rpuo
+func (_u *ReportProjectUpdateOne) SetStars(v int32) *ReportProjectUpdateOne {
+	_u.mutation.ResetStars()
+	_u.mutation.SetStars(v)
+	return _u
 }
 
 // SetNillableStars sets the "stars" field if the given value is not nil.
-func (rpuo *ReportProjectUpdateOne) SetNillableStars(i *int32) *ReportProjectUpdateOne {
-	if i != nil {
-		rpuo.SetStars(*i)
+func (_u *ReportProjectUpdateOne) SetNillableStars(v *int32) *ReportProjectUpdateOne {
+	if v != nil {
+		_u.SetStars(*v)
 	}
-	return rpuo
+	return _u
 }
 
-// AddStars adds i to the "stars" field.
-func (rpuo *ReportProjectUpdateOne) AddStars(i int32) *ReportProjectUpdateOne {
-	rpuo.mutation.AddStars(i)
-	return rpuo
+// AddStars adds value to the "stars" field.
+func (_u *ReportProjectUpdateOne) AddStars(v int32) *ReportProjectUpdateOne {
+	_u.mutation.AddStars(v)
+	return _u
 }
 
 // ClearStars clears the value of the "stars" field.
-func (rpuo *ReportProjectUpdateOne) ClearStars() *ReportProjectUpdateOne {
-	rpuo.mutation.ClearStars()
-	return rpuo
+func (_u *ReportProjectUpdateOne) ClearStars() *ReportProjectUpdateOne {
+	_u.mutation.ClearStars()
+	return _u
 }
 
 // SetForks sets the "forks" field.
-func (rpuo *ReportProjectUpdateOne) SetForks(i int32) *ReportProjectUpdateOne {
-	rpuo.mutation.ResetForks()
-	rpuo.mutation.SetForks(i)
-	return rpuo
+func (_u *ReportProjectUpdateOne) SetForks(v int32) *ReportProjectUpdateOne {
+	_u.mutation.ResetForks()
+	_u.mutation.SetForks(v)
+	return _u
 }
 
 // SetNillableForks sets the "forks" field if the given value is not nil.
-func (rpuo *ReportProjectUpdateOne) SetNillableForks(i *int32) *ReportProjectUpdateOne {
-	if i != nil {
-		rpuo.SetForks(*i)
+func (_u *ReportProjectUpdateOne) SetNillableForks(v *int32) *ReportProjectUpdateOne {
+	if v != nil {
+		_u.SetForks(*v)
 	}
-	return rpuo
+	return _u
 }
 
-// AddForks adds i to the "forks" field.
-func (rpuo *ReportProjectUpdateOne) AddForks(i int32) *ReportProjectUpdateOne {
-	rpuo.mutation.AddForks(i)
-	return rpuo
+// AddForks adds value to the "forks" field.
+func (_u *ReportProjectUpdateOne) AddForks(v int32) *ReportProjectUpdateOne {
+	_u.mutation.AddForks(v)
+	return _u
 }
 
 // ClearForks clears the value of the "forks" field.
-func (rpuo *ReportProjectUpdateOne) ClearForks() *ReportProjectUpdateOne {
-	rpuo.mutation.ClearForks()
-	return rpuo
+func (_u *ReportProjectUpdateOne) ClearForks() *ReportProjectUpdateOne {
+	_u.mutation.ClearForks()
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rpuo *ReportProjectUpdateOne) SetCreatedAt(t time.Time) *ReportProjectUpdateOne {
-	rpuo.mutation.SetCreatedAt(t)
-	return rpuo
+func (_u *ReportProjectUpdateOne) SetCreatedAt(v time.Time) *ReportProjectUpdateOne {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rpuo *ReportProjectUpdateOne) SetNillableCreatedAt(t *time.Time) *ReportProjectUpdateOne {
-	if t != nil {
-		rpuo.SetCreatedAt(*t)
+func (_u *ReportProjectUpdateOne) SetNillableCreatedAt(v *time.Time) *ReportProjectUpdateOne {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return rpuo
+	return _u
 }
 
 // ClearCreatedAt clears the value of the "created_at" field.
-func (rpuo *ReportProjectUpdateOne) ClearCreatedAt() *ReportProjectUpdateOne {
-	rpuo.mutation.ClearCreatedAt()
-	return rpuo
+func (_u *ReportProjectUpdateOne) ClearCreatedAt() *ReportProjectUpdateOne {
+	_u.mutation.ClearCreatedAt()
+	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rpuo *ReportProjectUpdateOne) SetUpdatedAt(t time.Time) *ReportProjectUpdateOne {
-	rpuo.mutation.SetUpdatedAt(t)
-	return rpuo
+func (_u *ReportProjectUpdateOne) SetUpdatedAt(v time.Time) *ReportProjectUpdateOne {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rpuo *ReportProjectUpdateOne) SetNillableUpdatedAt(t *time.Time) *ReportProjectUpdateOne {
-	if t != nil {
-		rpuo.SetUpdatedAt(*t)
+func (_u *ReportProjectUpdateOne) SetNillableUpdatedAt(v *time.Time) *ReportProjectUpdateOne {
+	if v != nil {
+		_u.SetUpdatedAt(*v)
 	}
-	return rpuo
+	return _u
 }
 
 // ClearUpdatedAt clears the value of the "updated_at" field.
-func (rpuo *ReportProjectUpdateOne) ClearUpdatedAt() *ReportProjectUpdateOne {
-	rpuo.mutation.ClearUpdatedAt()
-	return rpuo
+func (_u *ReportProjectUpdateOne) ClearUpdatedAt() *ReportProjectUpdateOne {
+	_u.mutation.ClearUpdatedAt()
+	return _u
 }
 
 // SetPackageID sets the "package" edge to the ReportPackage entity by ID.
-func (rpuo *ReportProjectUpdateOne) SetPackageID(id int) *ReportProjectUpdateOne {
-	rpuo.mutation.SetPackageID(id)
-	return rpuo
+func (_u *ReportProjectUpdateOne) SetPackageID(id int) *ReportProjectUpdateOne {
+	_u.mutation.SetPackageID(id)
+	return _u
 }
 
 // SetNillablePackageID sets the "package" edge to the ReportPackage entity by ID if the given value is not nil.
-func (rpuo *ReportProjectUpdateOne) SetNillablePackageID(id *int) *ReportProjectUpdateOne {
+func (_u *ReportProjectUpdateOne) SetNillablePackageID(id *int) *ReportProjectUpdateOne {
 	if id != nil {
-		rpuo = rpuo.SetPackageID(*id)
+		_u = _u.SetPackageID(*id)
 	}
-	return rpuo
+	return _u
 }
 
 // SetPackage sets the "package" edge to the ReportPackage entity.
-func (rpuo *ReportProjectUpdateOne) SetPackage(r *ReportPackage) *ReportProjectUpdateOne {
-	return rpuo.SetPackageID(r.ID)
+func (_u *ReportProjectUpdateOne) SetPackage(v *ReportPackage) *ReportProjectUpdateOne {
+	return _u.SetPackageID(v.ID)
 }
 
 // SetScorecardID sets the "scorecard" edge to the ReportScorecard entity by ID.
-func (rpuo *ReportProjectUpdateOne) SetScorecardID(id int) *ReportProjectUpdateOne {
-	rpuo.mutation.SetScorecardID(id)
-	return rpuo
+func (_u *ReportProjectUpdateOne) SetScorecardID(id int) *ReportProjectUpdateOne {
+	_u.mutation.SetScorecardID(id)
+	return _u
 }
 
 // SetNillableScorecardID sets the "scorecard" edge to the ReportScorecard entity by ID if the given value is not nil.
-func (rpuo *ReportProjectUpdateOne) SetNillableScorecardID(id *int) *ReportProjectUpdateOne {
+func (_u *ReportProjectUpdateOne) SetNillableScorecardID(id *int) *ReportProjectUpdateOne {
 	if id != nil {
-		rpuo = rpuo.SetScorecardID(*id)
+		_u = _u.SetScorecardID(*id)
 	}
-	return rpuo
+	return _u
 }
 
 // SetScorecard sets the "scorecard" edge to the ReportScorecard entity.
-func (rpuo *ReportProjectUpdateOne) SetScorecard(r *ReportScorecard) *ReportProjectUpdateOne {
-	return rpuo.SetScorecardID(r.ID)
+func (_u *ReportProjectUpdateOne) SetScorecard(v *ReportScorecard) *ReportProjectUpdateOne {
+	return _u.SetScorecardID(v.ID)
 }
 
 // Mutation returns the ReportProjectMutation object of the builder.
-func (rpuo *ReportProjectUpdateOne) Mutation() *ReportProjectMutation {
-	return rpuo.mutation
+func (_u *ReportProjectUpdateOne) Mutation() *ReportProjectMutation {
+	return _u.mutation
 }
 
 // ClearPackage clears the "package" edge to the ReportPackage entity.
-func (rpuo *ReportProjectUpdateOne) ClearPackage() *ReportProjectUpdateOne {
-	rpuo.mutation.ClearPackage()
-	return rpuo
+func (_u *ReportProjectUpdateOne) ClearPackage() *ReportProjectUpdateOne {
+	_u.mutation.ClearPackage()
+	return _u
 }
 
 // ClearScorecard clears the "scorecard" edge to the ReportScorecard entity.
-func (rpuo *ReportProjectUpdateOne) ClearScorecard() *ReportProjectUpdateOne {
-	rpuo.mutation.ClearScorecard()
-	return rpuo
+func (_u *ReportProjectUpdateOne) ClearScorecard() *ReportProjectUpdateOne {
+	_u.mutation.ClearScorecard()
+	return _u
 }
 
 // Where appends a list predicates to the ReportProjectUpdate builder.
-func (rpuo *ReportProjectUpdateOne) Where(ps ...predicate.ReportProject) *ReportProjectUpdateOne {
-	rpuo.mutation.Where(ps...)
-	return rpuo
+func (_u *ReportProjectUpdateOne) Where(ps ...predicate.ReportProject) *ReportProjectUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (rpuo *ReportProjectUpdateOne) Select(field string, fields ...string) *ReportProjectUpdateOne {
-	rpuo.fields = append([]string{field}, fields...)
-	return rpuo
+func (_u *ReportProjectUpdateOne) Select(field string, fields ...string) *ReportProjectUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated ReportProject entity.
-func (rpuo *ReportProjectUpdateOne) Save(ctx context.Context) (*ReportProject, error) {
-	return withHooks(ctx, rpuo.sqlSave, rpuo.mutation, rpuo.hooks)
+func (_u *ReportProjectUpdateOne) Save(ctx context.Context) (*ReportProject, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rpuo *ReportProjectUpdateOne) SaveX(ctx context.Context) *ReportProject {
-	node, err := rpuo.Save(ctx)
+func (_u *ReportProjectUpdateOne) SaveX(ctx context.Context) *ReportProject {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -636,21 +636,21 @@ func (rpuo *ReportProjectUpdateOne) SaveX(ctx context.Context) *ReportProject {
 }
 
 // Exec executes the query on the entity.
-func (rpuo *ReportProjectUpdateOne) Exec(ctx context.Context) error {
-	_, err := rpuo.Save(ctx)
+func (_u *ReportProjectUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rpuo *ReportProjectUpdateOne) ExecX(ctx context.Context) {
-	if err := rpuo.Exec(ctx); err != nil {
+func (_u *ReportProjectUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (rpuo *ReportProjectUpdateOne) check() error {
-	if v, ok := rpuo.mutation.Name(); ok {
+func (_u *ReportProjectUpdateOne) check() error {
+	if v, ok := _u.mutation.Name(); ok {
 		if err := reportproject.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "ReportProject.name": %w`, err)}
 		}
@@ -658,17 +658,17 @@ func (rpuo *ReportProjectUpdateOne) check() error {
 	return nil
 }
 
-func (rpuo *ReportProjectUpdateOne) sqlSave(ctx context.Context) (_node *ReportProject, err error) {
-	if err := rpuo.check(); err != nil {
+func (_u *ReportProjectUpdateOne) sqlSave(ctx context.Context) (_node *ReportProject, err error) {
+	if err := _u.check(); err != nil {
 		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(reportproject.Table, reportproject.Columns, sqlgraph.NewFieldSpec(reportproject.FieldID, field.TypeInt))
-	id, ok := rpuo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "ReportProject.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := rpuo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, reportproject.FieldID)
 		for _, f := range fields {
@@ -680,59 +680,59 @@ func (rpuo *ReportProjectUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 			}
 		}
 	}
-	if ps := rpuo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := rpuo.mutation.Name(); ok {
+	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(reportproject.FieldName, field.TypeString, value)
 	}
-	if value, ok := rpuo.mutation.URL(); ok {
+	if value, ok := _u.mutation.URL(); ok {
 		_spec.SetField(reportproject.FieldURL, field.TypeString, value)
 	}
-	if rpuo.mutation.URLCleared() {
+	if _u.mutation.URLCleared() {
 		_spec.ClearField(reportproject.FieldURL, field.TypeString)
 	}
-	if value, ok := rpuo.mutation.Description(); ok {
+	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(reportproject.FieldDescription, field.TypeString, value)
 	}
-	if rpuo.mutation.DescriptionCleared() {
+	if _u.mutation.DescriptionCleared() {
 		_spec.ClearField(reportproject.FieldDescription, field.TypeString)
 	}
-	if value, ok := rpuo.mutation.Stars(); ok {
+	if value, ok := _u.mutation.Stars(); ok {
 		_spec.SetField(reportproject.FieldStars, field.TypeInt32, value)
 	}
-	if value, ok := rpuo.mutation.AddedStars(); ok {
+	if value, ok := _u.mutation.AddedStars(); ok {
 		_spec.AddField(reportproject.FieldStars, field.TypeInt32, value)
 	}
-	if rpuo.mutation.StarsCleared() {
+	if _u.mutation.StarsCleared() {
 		_spec.ClearField(reportproject.FieldStars, field.TypeInt32)
 	}
-	if value, ok := rpuo.mutation.Forks(); ok {
+	if value, ok := _u.mutation.Forks(); ok {
 		_spec.SetField(reportproject.FieldForks, field.TypeInt32, value)
 	}
-	if value, ok := rpuo.mutation.AddedForks(); ok {
+	if value, ok := _u.mutation.AddedForks(); ok {
 		_spec.AddField(reportproject.FieldForks, field.TypeInt32, value)
 	}
-	if rpuo.mutation.ForksCleared() {
+	if _u.mutation.ForksCleared() {
 		_spec.ClearField(reportproject.FieldForks, field.TypeInt32)
 	}
-	if value, ok := rpuo.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(reportproject.FieldCreatedAt, field.TypeTime, value)
 	}
-	if rpuo.mutation.CreatedAtCleared() {
+	if _u.mutation.CreatedAtCleared() {
 		_spec.ClearField(reportproject.FieldCreatedAt, field.TypeTime)
 	}
-	if value, ok := rpuo.mutation.UpdatedAt(); ok {
+	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportproject.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if rpuo.mutation.UpdatedAtCleared() {
+	if _u.mutation.UpdatedAtCleared() {
 		_spec.ClearField(reportproject.FieldUpdatedAt, field.TypeTime)
 	}
-	if rpuo.mutation.PackageCleared() {
+	if _u.mutation.PackageCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -745,7 +745,7 @@ func (rpuo *ReportProjectUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpuo.mutation.PackageIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.PackageIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -761,7 +761,7 @@ func (rpuo *ReportProjectUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if rpuo.mutation.ScorecardCleared() {
+	if _u.mutation.ScorecardCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -774,7 +774,7 @@ func (rpuo *ReportProjectUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpuo.mutation.ScorecardIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.ScorecardIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -790,10 +790,10 @@ func (rpuo *ReportProjectUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_node = &ReportProject{config: rpuo.config}
+	_node = &ReportProject{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, rpuo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{reportproject.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -801,6 +801,6 @@ func (rpuo *ReportProjectUpdateOne) sqlSave(ctx context.Context) (_node *ReportP
 		}
 		return nil, err
 	}
-	rpuo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

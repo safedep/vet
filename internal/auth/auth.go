@@ -317,15 +317,15 @@ func CommunityMode() bool {
 // SetRuntimeCommunityMode sets the runtime mode to community without
 // persisting it to the configuration file.
 func SetRuntimeCommunityMode() {
-	os.Setenv(communityModeEnvKey, "true")
+	_ = os.Setenv(communityModeEnvKey, "true")
 }
 
 func SetRuntimeCloudTenant(domain string) {
-	os.Setenv(controlTowerTenantEnvKey, domain)
+	_ = os.Setenv(controlTowerTenantEnvKey, domain)
 }
 
 func SetRuntimeApiKey(key string) {
-	os.Setenv(apiKeyEnvKey, key)
+	_ = os.Setenv(apiKeyEnvKey, key)
 }
 
 func loadConfiguration() error {
@@ -388,7 +388,7 @@ func RefreshCloudSession() error {
 	if err != nil {
 		return fmt.Errorf("failed to send post request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	var response *api.AccessToken
 

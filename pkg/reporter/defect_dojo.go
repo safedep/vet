@@ -94,7 +94,7 @@ func (r *defectDojoReporter) Finish() error {
 	if err != nil {
 		return err
 	}
-	defer fd.Close()
+	defer func() { _ = fd.Close() }()
 
 	finalReport, err := r.builder.GetSarifReport()
 	if err != nil {

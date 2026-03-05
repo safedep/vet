@@ -24,184 +24,184 @@ type ReportPackageManifestUpdate struct {
 }
 
 // Where appends a list predicates to the ReportPackageManifestUpdate builder.
-func (rpmu *ReportPackageManifestUpdate) Where(ps ...predicate.ReportPackageManifest) *ReportPackageManifestUpdate {
-	rpmu.mutation.Where(ps...)
-	return rpmu
+func (_u *ReportPackageManifestUpdate) Where(ps ...predicate.ReportPackageManifest) *ReportPackageManifestUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetManifestID sets the "manifest_id" field.
-func (rpmu *ReportPackageManifestUpdate) SetManifestID(s string) *ReportPackageManifestUpdate {
-	rpmu.mutation.SetManifestID(s)
-	return rpmu
+func (_u *ReportPackageManifestUpdate) SetManifestID(v string) *ReportPackageManifestUpdate {
+	_u.mutation.SetManifestID(v)
+	return _u
 }
 
 // SetNillableManifestID sets the "manifest_id" field if the given value is not nil.
-func (rpmu *ReportPackageManifestUpdate) SetNillableManifestID(s *string) *ReportPackageManifestUpdate {
-	if s != nil {
-		rpmu.SetManifestID(*s)
+func (_u *ReportPackageManifestUpdate) SetNillableManifestID(v *string) *ReportPackageManifestUpdate {
+	if v != nil {
+		_u.SetManifestID(*v)
 	}
-	return rpmu
+	return _u
 }
 
 // SetSourceType sets the "source_type" field.
-func (rpmu *ReportPackageManifestUpdate) SetSourceType(s string) *ReportPackageManifestUpdate {
-	rpmu.mutation.SetSourceType(s)
-	return rpmu
+func (_u *ReportPackageManifestUpdate) SetSourceType(v string) *ReportPackageManifestUpdate {
+	_u.mutation.SetSourceType(v)
+	return _u
 }
 
 // SetNillableSourceType sets the "source_type" field if the given value is not nil.
-func (rpmu *ReportPackageManifestUpdate) SetNillableSourceType(s *string) *ReportPackageManifestUpdate {
-	if s != nil {
-		rpmu.SetSourceType(*s)
+func (_u *ReportPackageManifestUpdate) SetNillableSourceType(v *string) *ReportPackageManifestUpdate {
+	if v != nil {
+		_u.SetSourceType(*v)
 	}
-	return rpmu
+	return _u
 }
 
 // SetNamespace sets the "namespace" field.
-func (rpmu *ReportPackageManifestUpdate) SetNamespace(s string) *ReportPackageManifestUpdate {
-	rpmu.mutation.SetNamespace(s)
-	return rpmu
+func (_u *ReportPackageManifestUpdate) SetNamespace(v string) *ReportPackageManifestUpdate {
+	_u.mutation.SetNamespace(v)
+	return _u
 }
 
 // SetNillableNamespace sets the "namespace" field if the given value is not nil.
-func (rpmu *ReportPackageManifestUpdate) SetNillableNamespace(s *string) *ReportPackageManifestUpdate {
-	if s != nil {
-		rpmu.SetNamespace(*s)
+func (_u *ReportPackageManifestUpdate) SetNillableNamespace(v *string) *ReportPackageManifestUpdate {
+	if v != nil {
+		_u.SetNamespace(*v)
 	}
-	return rpmu
+	return _u
 }
 
 // SetPath sets the "path" field.
-func (rpmu *ReportPackageManifestUpdate) SetPath(s string) *ReportPackageManifestUpdate {
-	rpmu.mutation.SetPath(s)
-	return rpmu
+func (_u *ReportPackageManifestUpdate) SetPath(v string) *ReportPackageManifestUpdate {
+	_u.mutation.SetPath(v)
+	return _u
 }
 
 // SetNillablePath sets the "path" field if the given value is not nil.
-func (rpmu *ReportPackageManifestUpdate) SetNillablePath(s *string) *ReportPackageManifestUpdate {
-	if s != nil {
-		rpmu.SetPath(*s)
+func (_u *ReportPackageManifestUpdate) SetNillablePath(v *string) *ReportPackageManifestUpdate {
+	if v != nil {
+		_u.SetPath(*v)
 	}
-	return rpmu
+	return _u
 }
 
 // SetDisplayPath sets the "display_path" field.
-func (rpmu *ReportPackageManifestUpdate) SetDisplayPath(s string) *ReportPackageManifestUpdate {
-	rpmu.mutation.SetDisplayPath(s)
-	return rpmu
+func (_u *ReportPackageManifestUpdate) SetDisplayPath(v string) *ReportPackageManifestUpdate {
+	_u.mutation.SetDisplayPath(v)
+	return _u
 }
 
 // SetNillableDisplayPath sets the "display_path" field if the given value is not nil.
-func (rpmu *ReportPackageManifestUpdate) SetNillableDisplayPath(s *string) *ReportPackageManifestUpdate {
-	if s != nil {
-		rpmu.SetDisplayPath(*s)
+func (_u *ReportPackageManifestUpdate) SetNillableDisplayPath(v *string) *ReportPackageManifestUpdate {
+	if v != nil {
+		_u.SetDisplayPath(*v)
 	}
-	return rpmu
+	return _u
 }
 
 // SetEcosystem sets the "ecosystem" field.
-func (rpmu *ReportPackageManifestUpdate) SetEcosystem(s string) *ReportPackageManifestUpdate {
-	rpmu.mutation.SetEcosystem(s)
-	return rpmu
+func (_u *ReportPackageManifestUpdate) SetEcosystem(v string) *ReportPackageManifestUpdate {
+	_u.mutation.SetEcosystem(v)
+	return _u
 }
 
 // SetNillableEcosystem sets the "ecosystem" field if the given value is not nil.
-func (rpmu *ReportPackageManifestUpdate) SetNillableEcosystem(s *string) *ReportPackageManifestUpdate {
-	if s != nil {
-		rpmu.SetEcosystem(*s)
+func (_u *ReportPackageManifestUpdate) SetNillableEcosystem(v *string) *ReportPackageManifestUpdate {
+	if v != nil {
+		_u.SetEcosystem(*v)
 	}
-	return rpmu
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rpmu *ReportPackageManifestUpdate) SetCreatedAt(t time.Time) *ReportPackageManifestUpdate {
-	rpmu.mutation.SetCreatedAt(t)
-	return rpmu
+func (_u *ReportPackageManifestUpdate) SetCreatedAt(v time.Time) *ReportPackageManifestUpdate {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rpmu *ReportPackageManifestUpdate) SetNillableCreatedAt(t *time.Time) *ReportPackageManifestUpdate {
-	if t != nil {
-		rpmu.SetCreatedAt(*t)
+func (_u *ReportPackageManifestUpdate) SetNillableCreatedAt(v *time.Time) *ReportPackageManifestUpdate {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return rpmu
+	return _u
 }
 
 // ClearCreatedAt clears the value of the "created_at" field.
-func (rpmu *ReportPackageManifestUpdate) ClearCreatedAt() *ReportPackageManifestUpdate {
-	rpmu.mutation.ClearCreatedAt()
-	return rpmu
+func (_u *ReportPackageManifestUpdate) ClearCreatedAt() *ReportPackageManifestUpdate {
+	_u.mutation.ClearCreatedAt()
+	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rpmu *ReportPackageManifestUpdate) SetUpdatedAt(t time.Time) *ReportPackageManifestUpdate {
-	rpmu.mutation.SetUpdatedAt(t)
-	return rpmu
+func (_u *ReportPackageManifestUpdate) SetUpdatedAt(v time.Time) *ReportPackageManifestUpdate {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rpmu *ReportPackageManifestUpdate) SetNillableUpdatedAt(t *time.Time) *ReportPackageManifestUpdate {
-	if t != nil {
-		rpmu.SetUpdatedAt(*t)
+func (_u *ReportPackageManifestUpdate) SetNillableUpdatedAt(v *time.Time) *ReportPackageManifestUpdate {
+	if v != nil {
+		_u.SetUpdatedAt(*v)
 	}
-	return rpmu
+	return _u
 }
 
 // ClearUpdatedAt clears the value of the "updated_at" field.
-func (rpmu *ReportPackageManifestUpdate) ClearUpdatedAt() *ReportPackageManifestUpdate {
-	rpmu.mutation.ClearUpdatedAt()
-	return rpmu
+func (_u *ReportPackageManifestUpdate) ClearUpdatedAt() *ReportPackageManifestUpdate {
+	_u.mutation.ClearUpdatedAt()
+	return _u
 }
 
 // AddPackageIDs adds the "packages" edge to the ReportPackage entity by IDs.
-func (rpmu *ReportPackageManifestUpdate) AddPackageIDs(ids ...int) *ReportPackageManifestUpdate {
-	rpmu.mutation.AddPackageIDs(ids...)
-	return rpmu
+func (_u *ReportPackageManifestUpdate) AddPackageIDs(ids ...int) *ReportPackageManifestUpdate {
+	_u.mutation.AddPackageIDs(ids...)
+	return _u
 }
 
 // AddPackages adds the "packages" edges to the ReportPackage entity.
-func (rpmu *ReportPackageManifestUpdate) AddPackages(r ...*ReportPackage) *ReportPackageManifestUpdate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageManifestUpdate) AddPackages(v ...*ReportPackage) *ReportPackageManifestUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpmu.AddPackageIDs(ids...)
+	return _u.AddPackageIDs(ids...)
 }
 
 // Mutation returns the ReportPackageManifestMutation object of the builder.
-func (rpmu *ReportPackageManifestUpdate) Mutation() *ReportPackageManifestMutation {
-	return rpmu.mutation
+func (_u *ReportPackageManifestUpdate) Mutation() *ReportPackageManifestMutation {
+	return _u.mutation
 }
 
 // ClearPackages clears all "packages" edges to the ReportPackage entity.
-func (rpmu *ReportPackageManifestUpdate) ClearPackages() *ReportPackageManifestUpdate {
-	rpmu.mutation.ClearPackages()
-	return rpmu
+func (_u *ReportPackageManifestUpdate) ClearPackages() *ReportPackageManifestUpdate {
+	_u.mutation.ClearPackages()
+	return _u
 }
 
 // RemovePackageIDs removes the "packages" edge to ReportPackage entities by IDs.
-func (rpmu *ReportPackageManifestUpdate) RemovePackageIDs(ids ...int) *ReportPackageManifestUpdate {
-	rpmu.mutation.RemovePackageIDs(ids...)
-	return rpmu
+func (_u *ReportPackageManifestUpdate) RemovePackageIDs(ids ...int) *ReportPackageManifestUpdate {
+	_u.mutation.RemovePackageIDs(ids...)
+	return _u
 }
 
 // RemovePackages removes "packages" edges to ReportPackage entities.
-func (rpmu *ReportPackageManifestUpdate) RemovePackages(r ...*ReportPackage) *ReportPackageManifestUpdate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageManifestUpdate) RemovePackages(v ...*ReportPackage) *ReportPackageManifestUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpmu.RemovePackageIDs(ids...)
+	return _u.RemovePackageIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (rpmu *ReportPackageManifestUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, rpmu.sqlSave, rpmu.mutation, rpmu.hooks)
+func (_u *ReportPackageManifestUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rpmu *ReportPackageManifestUpdate) SaveX(ctx context.Context) int {
-	affected, err := rpmu.Save(ctx)
+func (_u *ReportPackageManifestUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -209,46 +209,46 @@ func (rpmu *ReportPackageManifestUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (rpmu *ReportPackageManifestUpdate) Exec(ctx context.Context) error {
-	_, err := rpmu.Save(ctx)
+func (_u *ReportPackageManifestUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rpmu *ReportPackageManifestUpdate) ExecX(ctx context.Context) {
-	if err := rpmu.Exec(ctx); err != nil {
+func (_u *ReportPackageManifestUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (rpmu *ReportPackageManifestUpdate) check() error {
-	if v, ok := rpmu.mutation.ManifestID(); ok {
+func (_u *ReportPackageManifestUpdate) check() error {
+	if v, ok := _u.mutation.ManifestID(); ok {
 		if err := reportpackagemanifest.ManifestIDValidator(v); err != nil {
 			return &ValidationError{Name: "manifest_id", err: fmt.Errorf(`ent: validator failed for field "ReportPackageManifest.manifest_id": %w`, err)}
 		}
 	}
-	if v, ok := rpmu.mutation.SourceType(); ok {
+	if v, ok := _u.mutation.SourceType(); ok {
 		if err := reportpackagemanifest.SourceTypeValidator(v); err != nil {
 			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "ReportPackageManifest.source_type": %w`, err)}
 		}
 	}
-	if v, ok := rpmu.mutation.Namespace(); ok {
+	if v, ok := _u.mutation.Namespace(); ok {
 		if err := reportpackagemanifest.NamespaceValidator(v); err != nil {
 			return &ValidationError{Name: "namespace", err: fmt.Errorf(`ent: validator failed for field "ReportPackageManifest.namespace": %w`, err)}
 		}
 	}
-	if v, ok := rpmu.mutation.Path(); ok {
+	if v, ok := _u.mutation.Path(); ok {
 		if err := reportpackagemanifest.PathValidator(v); err != nil {
 			return &ValidationError{Name: "path", err: fmt.Errorf(`ent: validator failed for field "ReportPackageManifest.path": %w`, err)}
 		}
 	}
-	if v, ok := rpmu.mutation.DisplayPath(); ok {
+	if v, ok := _u.mutation.DisplayPath(); ok {
 		if err := reportpackagemanifest.DisplayPathValidator(v); err != nil {
 			return &ValidationError{Name: "display_path", err: fmt.Errorf(`ent: validator failed for field "ReportPackageManifest.display_path": %w`, err)}
 		}
 	}
-	if v, ok := rpmu.mutation.Ecosystem(); ok {
+	if v, ok := _u.mutation.Ecosystem(); ok {
 		if err := reportpackagemanifest.EcosystemValidator(v); err != nil {
 			return &ValidationError{Name: "ecosystem", err: fmt.Errorf(`ent: validator failed for field "ReportPackageManifest.ecosystem": %w`, err)}
 		}
@@ -256,49 +256,49 @@ func (rpmu *ReportPackageManifestUpdate) check() error {
 	return nil
 }
 
-func (rpmu *ReportPackageManifestUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := rpmu.check(); err != nil {
-		return n, err
+func (_u *ReportPackageManifestUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(reportpackagemanifest.Table, reportpackagemanifest.Columns, sqlgraph.NewFieldSpec(reportpackagemanifest.FieldID, field.TypeInt))
-	if ps := rpmu.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := rpmu.mutation.ManifestID(); ok {
+	if value, ok := _u.mutation.ManifestID(); ok {
 		_spec.SetField(reportpackagemanifest.FieldManifestID, field.TypeString, value)
 	}
-	if value, ok := rpmu.mutation.SourceType(); ok {
+	if value, ok := _u.mutation.SourceType(); ok {
 		_spec.SetField(reportpackagemanifest.FieldSourceType, field.TypeString, value)
 	}
-	if value, ok := rpmu.mutation.Namespace(); ok {
+	if value, ok := _u.mutation.Namespace(); ok {
 		_spec.SetField(reportpackagemanifest.FieldNamespace, field.TypeString, value)
 	}
-	if value, ok := rpmu.mutation.Path(); ok {
+	if value, ok := _u.mutation.Path(); ok {
 		_spec.SetField(reportpackagemanifest.FieldPath, field.TypeString, value)
 	}
-	if value, ok := rpmu.mutation.DisplayPath(); ok {
+	if value, ok := _u.mutation.DisplayPath(); ok {
 		_spec.SetField(reportpackagemanifest.FieldDisplayPath, field.TypeString, value)
 	}
-	if value, ok := rpmu.mutation.Ecosystem(); ok {
+	if value, ok := _u.mutation.Ecosystem(); ok {
 		_spec.SetField(reportpackagemanifest.FieldEcosystem, field.TypeString, value)
 	}
-	if value, ok := rpmu.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(reportpackagemanifest.FieldCreatedAt, field.TypeTime, value)
 	}
-	if rpmu.mutation.CreatedAtCleared() {
+	if _u.mutation.CreatedAtCleared() {
 		_spec.ClearField(reportpackagemanifest.FieldCreatedAt, field.TypeTime)
 	}
-	if value, ok := rpmu.mutation.UpdatedAt(); ok {
+	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportpackagemanifest.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if rpmu.mutation.UpdatedAtCleared() {
+	if _u.mutation.UpdatedAtCleared() {
 		_spec.ClearField(reportpackagemanifest.FieldUpdatedAt, field.TypeTime)
 	}
-	if rpmu.mutation.PackagesCleared() {
+	if _u.mutation.PackagesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -311,7 +311,7 @@ func (rpmu *ReportPackageManifestUpdate) sqlSave(ctx context.Context) (n int, er
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpmu.mutation.RemovedPackagesIDs(); len(nodes) > 0 && !rpmu.mutation.PackagesCleared() {
+	if nodes := _u.mutation.RemovedPackagesIDs(); len(nodes) > 0 && !_u.mutation.PackagesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -327,7 +327,7 @@ func (rpmu *ReportPackageManifestUpdate) sqlSave(ctx context.Context) (n int, er
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpmu.mutation.PackagesIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.PackagesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -343,7 +343,7 @@ func (rpmu *ReportPackageManifestUpdate) sqlSave(ctx context.Context) (n int, er
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, rpmu.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{reportpackagemanifest.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -351,8 +351,8 @@ func (rpmu *ReportPackageManifestUpdate) sqlSave(ctx context.Context) (n int, er
 		}
 		return 0, err
 	}
-	rpmu.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // ReportPackageManifestUpdateOne is the builder for updating a single ReportPackageManifest entity.
@@ -364,191 +364,191 @@ type ReportPackageManifestUpdateOne struct {
 }
 
 // SetManifestID sets the "manifest_id" field.
-func (rpmuo *ReportPackageManifestUpdateOne) SetManifestID(s string) *ReportPackageManifestUpdateOne {
-	rpmuo.mutation.SetManifestID(s)
-	return rpmuo
+func (_u *ReportPackageManifestUpdateOne) SetManifestID(v string) *ReportPackageManifestUpdateOne {
+	_u.mutation.SetManifestID(v)
+	return _u
 }
 
 // SetNillableManifestID sets the "manifest_id" field if the given value is not nil.
-func (rpmuo *ReportPackageManifestUpdateOne) SetNillableManifestID(s *string) *ReportPackageManifestUpdateOne {
-	if s != nil {
-		rpmuo.SetManifestID(*s)
+func (_u *ReportPackageManifestUpdateOne) SetNillableManifestID(v *string) *ReportPackageManifestUpdateOne {
+	if v != nil {
+		_u.SetManifestID(*v)
 	}
-	return rpmuo
+	return _u
 }
 
 // SetSourceType sets the "source_type" field.
-func (rpmuo *ReportPackageManifestUpdateOne) SetSourceType(s string) *ReportPackageManifestUpdateOne {
-	rpmuo.mutation.SetSourceType(s)
-	return rpmuo
+func (_u *ReportPackageManifestUpdateOne) SetSourceType(v string) *ReportPackageManifestUpdateOne {
+	_u.mutation.SetSourceType(v)
+	return _u
 }
 
 // SetNillableSourceType sets the "source_type" field if the given value is not nil.
-func (rpmuo *ReportPackageManifestUpdateOne) SetNillableSourceType(s *string) *ReportPackageManifestUpdateOne {
-	if s != nil {
-		rpmuo.SetSourceType(*s)
+func (_u *ReportPackageManifestUpdateOne) SetNillableSourceType(v *string) *ReportPackageManifestUpdateOne {
+	if v != nil {
+		_u.SetSourceType(*v)
 	}
-	return rpmuo
+	return _u
 }
 
 // SetNamespace sets the "namespace" field.
-func (rpmuo *ReportPackageManifestUpdateOne) SetNamespace(s string) *ReportPackageManifestUpdateOne {
-	rpmuo.mutation.SetNamespace(s)
-	return rpmuo
+func (_u *ReportPackageManifestUpdateOne) SetNamespace(v string) *ReportPackageManifestUpdateOne {
+	_u.mutation.SetNamespace(v)
+	return _u
 }
 
 // SetNillableNamespace sets the "namespace" field if the given value is not nil.
-func (rpmuo *ReportPackageManifestUpdateOne) SetNillableNamespace(s *string) *ReportPackageManifestUpdateOne {
-	if s != nil {
-		rpmuo.SetNamespace(*s)
+func (_u *ReportPackageManifestUpdateOne) SetNillableNamespace(v *string) *ReportPackageManifestUpdateOne {
+	if v != nil {
+		_u.SetNamespace(*v)
 	}
-	return rpmuo
+	return _u
 }
 
 // SetPath sets the "path" field.
-func (rpmuo *ReportPackageManifestUpdateOne) SetPath(s string) *ReportPackageManifestUpdateOne {
-	rpmuo.mutation.SetPath(s)
-	return rpmuo
+func (_u *ReportPackageManifestUpdateOne) SetPath(v string) *ReportPackageManifestUpdateOne {
+	_u.mutation.SetPath(v)
+	return _u
 }
 
 // SetNillablePath sets the "path" field if the given value is not nil.
-func (rpmuo *ReportPackageManifestUpdateOne) SetNillablePath(s *string) *ReportPackageManifestUpdateOne {
-	if s != nil {
-		rpmuo.SetPath(*s)
+func (_u *ReportPackageManifestUpdateOne) SetNillablePath(v *string) *ReportPackageManifestUpdateOne {
+	if v != nil {
+		_u.SetPath(*v)
 	}
-	return rpmuo
+	return _u
 }
 
 // SetDisplayPath sets the "display_path" field.
-func (rpmuo *ReportPackageManifestUpdateOne) SetDisplayPath(s string) *ReportPackageManifestUpdateOne {
-	rpmuo.mutation.SetDisplayPath(s)
-	return rpmuo
+func (_u *ReportPackageManifestUpdateOne) SetDisplayPath(v string) *ReportPackageManifestUpdateOne {
+	_u.mutation.SetDisplayPath(v)
+	return _u
 }
 
 // SetNillableDisplayPath sets the "display_path" field if the given value is not nil.
-func (rpmuo *ReportPackageManifestUpdateOne) SetNillableDisplayPath(s *string) *ReportPackageManifestUpdateOne {
-	if s != nil {
-		rpmuo.SetDisplayPath(*s)
+func (_u *ReportPackageManifestUpdateOne) SetNillableDisplayPath(v *string) *ReportPackageManifestUpdateOne {
+	if v != nil {
+		_u.SetDisplayPath(*v)
 	}
-	return rpmuo
+	return _u
 }
 
 // SetEcosystem sets the "ecosystem" field.
-func (rpmuo *ReportPackageManifestUpdateOne) SetEcosystem(s string) *ReportPackageManifestUpdateOne {
-	rpmuo.mutation.SetEcosystem(s)
-	return rpmuo
+func (_u *ReportPackageManifestUpdateOne) SetEcosystem(v string) *ReportPackageManifestUpdateOne {
+	_u.mutation.SetEcosystem(v)
+	return _u
 }
 
 // SetNillableEcosystem sets the "ecosystem" field if the given value is not nil.
-func (rpmuo *ReportPackageManifestUpdateOne) SetNillableEcosystem(s *string) *ReportPackageManifestUpdateOne {
-	if s != nil {
-		rpmuo.SetEcosystem(*s)
+func (_u *ReportPackageManifestUpdateOne) SetNillableEcosystem(v *string) *ReportPackageManifestUpdateOne {
+	if v != nil {
+		_u.SetEcosystem(*v)
 	}
-	return rpmuo
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rpmuo *ReportPackageManifestUpdateOne) SetCreatedAt(t time.Time) *ReportPackageManifestUpdateOne {
-	rpmuo.mutation.SetCreatedAt(t)
-	return rpmuo
+func (_u *ReportPackageManifestUpdateOne) SetCreatedAt(v time.Time) *ReportPackageManifestUpdateOne {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rpmuo *ReportPackageManifestUpdateOne) SetNillableCreatedAt(t *time.Time) *ReportPackageManifestUpdateOne {
-	if t != nil {
-		rpmuo.SetCreatedAt(*t)
+func (_u *ReportPackageManifestUpdateOne) SetNillableCreatedAt(v *time.Time) *ReportPackageManifestUpdateOne {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return rpmuo
+	return _u
 }
 
 // ClearCreatedAt clears the value of the "created_at" field.
-func (rpmuo *ReportPackageManifestUpdateOne) ClearCreatedAt() *ReportPackageManifestUpdateOne {
-	rpmuo.mutation.ClearCreatedAt()
-	return rpmuo
+func (_u *ReportPackageManifestUpdateOne) ClearCreatedAt() *ReportPackageManifestUpdateOne {
+	_u.mutation.ClearCreatedAt()
+	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rpmuo *ReportPackageManifestUpdateOne) SetUpdatedAt(t time.Time) *ReportPackageManifestUpdateOne {
-	rpmuo.mutation.SetUpdatedAt(t)
-	return rpmuo
+func (_u *ReportPackageManifestUpdateOne) SetUpdatedAt(v time.Time) *ReportPackageManifestUpdateOne {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rpmuo *ReportPackageManifestUpdateOne) SetNillableUpdatedAt(t *time.Time) *ReportPackageManifestUpdateOne {
-	if t != nil {
-		rpmuo.SetUpdatedAt(*t)
+func (_u *ReportPackageManifestUpdateOne) SetNillableUpdatedAt(v *time.Time) *ReportPackageManifestUpdateOne {
+	if v != nil {
+		_u.SetUpdatedAt(*v)
 	}
-	return rpmuo
+	return _u
 }
 
 // ClearUpdatedAt clears the value of the "updated_at" field.
-func (rpmuo *ReportPackageManifestUpdateOne) ClearUpdatedAt() *ReportPackageManifestUpdateOne {
-	rpmuo.mutation.ClearUpdatedAt()
-	return rpmuo
+func (_u *ReportPackageManifestUpdateOne) ClearUpdatedAt() *ReportPackageManifestUpdateOne {
+	_u.mutation.ClearUpdatedAt()
+	return _u
 }
 
 // AddPackageIDs adds the "packages" edge to the ReportPackage entity by IDs.
-func (rpmuo *ReportPackageManifestUpdateOne) AddPackageIDs(ids ...int) *ReportPackageManifestUpdateOne {
-	rpmuo.mutation.AddPackageIDs(ids...)
-	return rpmuo
+func (_u *ReportPackageManifestUpdateOne) AddPackageIDs(ids ...int) *ReportPackageManifestUpdateOne {
+	_u.mutation.AddPackageIDs(ids...)
+	return _u
 }
 
 // AddPackages adds the "packages" edges to the ReportPackage entity.
-func (rpmuo *ReportPackageManifestUpdateOne) AddPackages(r ...*ReportPackage) *ReportPackageManifestUpdateOne {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageManifestUpdateOne) AddPackages(v ...*ReportPackage) *ReportPackageManifestUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpmuo.AddPackageIDs(ids...)
+	return _u.AddPackageIDs(ids...)
 }
 
 // Mutation returns the ReportPackageManifestMutation object of the builder.
-func (rpmuo *ReportPackageManifestUpdateOne) Mutation() *ReportPackageManifestMutation {
-	return rpmuo.mutation
+func (_u *ReportPackageManifestUpdateOne) Mutation() *ReportPackageManifestMutation {
+	return _u.mutation
 }
 
 // ClearPackages clears all "packages" edges to the ReportPackage entity.
-func (rpmuo *ReportPackageManifestUpdateOne) ClearPackages() *ReportPackageManifestUpdateOne {
-	rpmuo.mutation.ClearPackages()
-	return rpmuo
+func (_u *ReportPackageManifestUpdateOne) ClearPackages() *ReportPackageManifestUpdateOne {
+	_u.mutation.ClearPackages()
+	return _u
 }
 
 // RemovePackageIDs removes the "packages" edge to ReportPackage entities by IDs.
-func (rpmuo *ReportPackageManifestUpdateOne) RemovePackageIDs(ids ...int) *ReportPackageManifestUpdateOne {
-	rpmuo.mutation.RemovePackageIDs(ids...)
-	return rpmuo
+func (_u *ReportPackageManifestUpdateOne) RemovePackageIDs(ids ...int) *ReportPackageManifestUpdateOne {
+	_u.mutation.RemovePackageIDs(ids...)
+	return _u
 }
 
 // RemovePackages removes "packages" edges to ReportPackage entities.
-func (rpmuo *ReportPackageManifestUpdateOne) RemovePackages(r ...*ReportPackage) *ReportPackageManifestUpdateOne {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_u *ReportPackageManifestUpdateOne) RemovePackages(v ...*ReportPackage) *ReportPackageManifestUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpmuo.RemovePackageIDs(ids...)
+	return _u.RemovePackageIDs(ids...)
 }
 
 // Where appends a list predicates to the ReportPackageManifestUpdate builder.
-func (rpmuo *ReportPackageManifestUpdateOne) Where(ps ...predicate.ReportPackageManifest) *ReportPackageManifestUpdateOne {
-	rpmuo.mutation.Where(ps...)
-	return rpmuo
+func (_u *ReportPackageManifestUpdateOne) Where(ps ...predicate.ReportPackageManifest) *ReportPackageManifestUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (rpmuo *ReportPackageManifestUpdateOne) Select(field string, fields ...string) *ReportPackageManifestUpdateOne {
-	rpmuo.fields = append([]string{field}, fields...)
-	return rpmuo
+func (_u *ReportPackageManifestUpdateOne) Select(field string, fields ...string) *ReportPackageManifestUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated ReportPackageManifest entity.
-func (rpmuo *ReportPackageManifestUpdateOne) Save(ctx context.Context) (*ReportPackageManifest, error) {
-	return withHooks(ctx, rpmuo.sqlSave, rpmuo.mutation, rpmuo.hooks)
+func (_u *ReportPackageManifestUpdateOne) Save(ctx context.Context) (*ReportPackageManifest, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rpmuo *ReportPackageManifestUpdateOne) SaveX(ctx context.Context) *ReportPackageManifest {
-	node, err := rpmuo.Save(ctx)
+func (_u *ReportPackageManifestUpdateOne) SaveX(ctx context.Context) *ReportPackageManifest {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -556,46 +556,46 @@ func (rpmuo *ReportPackageManifestUpdateOne) SaveX(ctx context.Context) *ReportP
 }
 
 // Exec executes the query on the entity.
-func (rpmuo *ReportPackageManifestUpdateOne) Exec(ctx context.Context) error {
-	_, err := rpmuo.Save(ctx)
+func (_u *ReportPackageManifestUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rpmuo *ReportPackageManifestUpdateOne) ExecX(ctx context.Context) {
-	if err := rpmuo.Exec(ctx); err != nil {
+func (_u *ReportPackageManifestUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (rpmuo *ReportPackageManifestUpdateOne) check() error {
-	if v, ok := rpmuo.mutation.ManifestID(); ok {
+func (_u *ReportPackageManifestUpdateOne) check() error {
+	if v, ok := _u.mutation.ManifestID(); ok {
 		if err := reportpackagemanifest.ManifestIDValidator(v); err != nil {
 			return &ValidationError{Name: "manifest_id", err: fmt.Errorf(`ent: validator failed for field "ReportPackageManifest.manifest_id": %w`, err)}
 		}
 	}
-	if v, ok := rpmuo.mutation.SourceType(); ok {
+	if v, ok := _u.mutation.SourceType(); ok {
 		if err := reportpackagemanifest.SourceTypeValidator(v); err != nil {
 			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "ReportPackageManifest.source_type": %w`, err)}
 		}
 	}
-	if v, ok := rpmuo.mutation.Namespace(); ok {
+	if v, ok := _u.mutation.Namespace(); ok {
 		if err := reportpackagemanifest.NamespaceValidator(v); err != nil {
 			return &ValidationError{Name: "namespace", err: fmt.Errorf(`ent: validator failed for field "ReportPackageManifest.namespace": %w`, err)}
 		}
 	}
-	if v, ok := rpmuo.mutation.Path(); ok {
+	if v, ok := _u.mutation.Path(); ok {
 		if err := reportpackagemanifest.PathValidator(v); err != nil {
 			return &ValidationError{Name: "path", err: fmt.Errorf(`ent: validator failed for field "ReportPackageManifest.path": %w`, err)}
 		}
 	}
-	if v, ok := rpmuo.mutation.DisplayPath(); ok {
+	if v, ok := _u.mutation.DisplayPath(); ok {
 		if err := reportpackagemanifest.DisplayPathValidator(v); err != nil {
 			return &ValidationError{Name: "display_path", err: fmt.Errorf(`ent: validator failed for field "ReportPackageManifest.display_path": %w`, err)}
 		}
 	}
-	if v, ok := rpmuo.mutation.Ecosystem(); ok {
+	if v, ok := _u.mutation.Ecosystem(); ok {
 		if err := reportpackagemanifest.EcosystemValidator(v); err != nil {
 			return &ValidationError{Name: "ecosystem", err: fmt.Errorf(`ent: validator failed for field "ReportPackageManifest.ecosystem": %w`, err)}
 		}
@@ -603,17 +603,17 @@ func (rpmuo *ReportPackageManifestUpdateOne) check() error {
 	return nil
 }
 
-func (rpmuo *ReportPackageManifestUpdateOne) sqlSave(ctx context.Context) (_node *ReportPackageManifest, err error) {
-	if err := rpmuo.check(); err != nil {
+func (_u *ReportPackageManifestUpdateOne) sqlSave(ctx context.Context) (_node *ReportPackageManifest, err error) {
+	if err := _u.check(); err != nil {
 		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(reportpackagemanifest.Table, reportpackagemanifest.Columns, sqlgraph.NewFieldSpec(reportpackagemanifest.FieldID, field.TypeInt))
-	id, ok := rpmuo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "ReportPackageManifest.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := rpmuo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, reportpackagemanifest.FieldID)
 		for _, f := range fields {
@@ -625,44 +625,44 @@ func (rpmuo *ReportPackageManifestUpdateOne) sqlSave(ctx context.Context) (_node
 			}
 		}
 	}
-	if ps := rpmuo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := rpmuo.mutation.ManifestID(); ok {
+	if value, ok := _u.mutation.ManifestID(); ok {
 		_spec.SetField(reportpackagemanifest.FieldManifestID, field.TypeString, value)
 	}
-	if value, ok := rpmuo.mutation.SourceType(); ok {
+	if value, ok := _u.mutation.SourceType(); ok {
 		_spec.SetField(reportpackagemanifest.FieldSourceType, field.TypeString, value)
 	}
-	if value, ok := rpmuo.mutation.Namespace(); ok {
+	if value, ok := _u.mutation.Namespace(); ok {
 		_spec.SetField(reportpackagemanifest.FieldNamespace, field.TypeString, value)
 	}
-	if value, ok := rpmuo.mutation.Path(); ok {
+	if value, ok := _u.mutation.Path(); ok {
 		_spec.SetField(reportpackagemanifest.FieldPath, field.TypeString, value)
 	}
-	if value, ok := rpmuo.mutation.DisplayPath(); ok {
+	if value, ok := _u.mutation.DisplayPath(); ok {
 		_spec.SetField(reportpackagemanifest.FieldDisplayPath, field.TypeString, value)
 	}
-	if value, ok := rpmuo.mutation.Ecosystem(); ok {
+	if value, ok := _u.mutation.Ecosystem(); ok {
 		_spec.SetField(reportpackagemanifest.FieldEcosystem, field.TypeString, value)
 	}
-	if value, ok := rpmuo.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(reportpackagemanifest.FieldCreatedAt, field.TypeTime, value)
 	}
-	if rpmuo.mutation.CreatedAtCleared() {
+	if _u.mutation.CreatedAtCleared() {
 		_spec.ClearField(reportpackagemanifest.FieldCreatedAt, field.TypeTime)
 	}
-	if value, ok := rpmuo.mutation.UpdatedAt(); ok {
+	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportpackagemanifest.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if rpmuo.mutation.UpdatedAtCleared() {
+	if _u.mutation.UpdatedAtCleared() {
 		_spec.ClearField(reportpackagemanifest.FieldUpdatedAt, field.TypeTime)
 	}
-	if rpmuo.mutation.PackagesCleared() {
+	if _u.mutation.PackagesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -675,7 +675,7 @@ func (rpmuo *ReportPackageManifestUpdateOne) sqlSave(ctx context.Context) (_node
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpmuo.mutation.RemovedPackagesIDs(); len(nodes) > 0 && !rpmuo.mutation.PackagesCleared() {
+	if nodes := _u.mutation.RemovedPackagesIDs(); len(nodes) > 0 && !_u.mutation.PackagesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -691,7 +691,7 @@ func (rpmuo *ReportPackageManifestUpdateOne) sqlSave(ctx context.Context) (_node
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rpmuo.mutation.PackagesIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.PackagesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -707,10 +707,10 @@ func (rpmuo *ReportPackageManifestUpdateOne) sqlSave(ctx context.Context) (_node
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_node = &ReportPackageManifest{config: rpmuo.config}
+	_node = &ReportPackageManifest{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, rpmuo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{reportpackagemanifest.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -718,6 +718,6 @@ func (rpmuo *ReportPackageManifestUpdateOne) sqlSave(ctx context.Context) (_node
 		}
 		return nil, err
 	}
-	rpmuo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

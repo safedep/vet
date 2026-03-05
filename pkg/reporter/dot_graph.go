@@ -50,7 +50,7 @@ func (r *dotGraphReporter) AddManifest(manifest *models.PackageManifest) {
 		return
 	}
 
-	defer writer.Close()
+	defer func() { _ = writer.Close() }()
 
 	renderedGraph, err := r.dotRenderDependencyGraph(manifest.DependencyGraph)
 	if err != nil {

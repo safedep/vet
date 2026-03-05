@@ -19,7 +19,7 @@ func parseSbomCycloneDxAsGraph(path string, config *ParserConfig) (*models.Packa
 		return nil, err
 	}
 
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	bom := cdx.NewBOM()
 	bomReader := bufio.NewReader(file)
@@ -36,7 +36,7 @@ func parseSbomCycloneDxAsGraph(path string, config *ParserConfig) (*models.Packa
 
 	// Fail fast if the BOM does not have the main (app) component
 	if bom.Metadata == nil || bom.Metadata.Component == nil {
-		return nil, fmt.Errorf("Invalid CycloneDX SBOM: Metadata or Component is nil")
+		return nil, fmt.Errorf("invalid CycloneDX SBOM: Metadata or Component is nil")
 	}
 
 	// Maintain a cache of BOM / packageUrl ref to package mapping for re-use while adding
@@ -51,7 +51,7 @@ func parseSbomCycloneDxAsGraph(path string, config *ParserConfig) (*models.Packa
 
 	bomRefMap[ref] = pkg
 
-	manifest := models.NewPackageManifest(path, models.EcosystemCyDxSBOM)
+	manifest := models.NewPackageManifestFromLocal(path, models.EcosystemCyDxSBOM)
 	components := utils.SafelyGetValue(bom.Components)
 
 	// Iterate over all components in the BOM and add the package in dependency graph
@@ -123,7 +123,7 @@ func cdxExtractPackageFromComponent(component cdx.Component) (string, *models.Pa
 	}
 
 	if pUrl == "" {
-		return "", nil, fmt.Errorf("Invalid CycloneDX SBOM: PackageURL or BOMRef is nil")
+		return "", nil, fmt.Errorf("invalid CycloneDX SBOM: PackageURL or BOMRef is nil")
 	}
 	parsedPurl, err := purl.ParsePackageUrl(pUrl)
 	if err != nil {

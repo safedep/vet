@@ -57,9 +57,9 @@ func (lfp *lockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifest,
 	handler AnalyzerEventHandler,
 ) error {
 	logger.Debugf("LockfilePoisoningAnalyzer: Analyzing [%s] %s",
-		manifest.GetSpecEcosystem(), manifest.GetDisplayPath())
+		manifest.GetSpecEcosystem(), manifest.GetDisplayPath()) //nolint:staticcheck // TODO: migrate to GetControlTowerSpecEcosystem
 
-	pluginBuilder, ok := lockfilePoisoningAnalyzers[manifest.GetSpecEcosystem()]
+	pluginBuilder, ok := lockfilePoisoningAnalyzers[manifest.GetSpecEcosystem()] //nolint:staticcheck // TODO: migrate to GetControlTowerSpecEcosystem
 	if !ok {
 		logger.Warnf("No lockfile poisoning analyzer for ecosystem %s", manifest.Ecosystem)
 		return nil

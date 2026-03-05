@@ -22,113 +22,113 @@ type ReportLicenseCreate struct {
 }
 
 // SetLicenseID sets the "license_id" field.
-func (rlc *ReportLicenseCreate) SetLicenseID(s string) *ReportLicenseCreate {
-	rlc.mutation.SetLicenseID(s)
-	return rlc
+func (_c *ReportLicenseCreate) SetLicenseID(v string) *ReportLicenseCreate {
+	_c.mutation.SetLicenseID(v)
+	return _c
 }
 
 // SetName sets the "name" field.
-func (rlc *ReportLicenseCreate) SetName(s string) *ReportLicenseCreate {
-	rlc.mutation.SetName(s)
-	return rlc
+func (_c *ReportLicenseCreate) SetName(v string) *ReportLicenseCreate {
+	_c.mutation.SetName(v)
+	return _c
 }
 
 // SetNillableName sets the "name" field if the given value is not nil.
-func (rlc *ReportLicenseCreate) SetNillableName(s *string) *ReportLicenseCreate {
-	if s != nil {
-		rlc.SetName(*s)
+func (_c *ReportLicenseCreate) SetNillableName(v *string) *ReportLicenseCreate {
+	if v != nil {
+		_c.SetName(*v)
 	}
-	return rlc
+	return _c
 }
 
 // SetSpdxID sets the "spdx_id" field.
-func (rlc *ReportLicenseCreate) SetSpdxID(s string) *ReportLicenseCreate {
-	rlc.mutation.SetSpdxID(s)
-	return rlc
+func (_c *ReportLicenseCreate) SetSpdxID(v string) *ReportLicenseCreate {
+	_c.mutation.SetSpdxID(v)
+	return _c
 }
 
 // SetNillableSpdxID sets the "spdx_id" field if the given value is not nil.
-func (rlc *ReportLicenseCreate) SetNillableSpdxID(s *string) *ReportLicenseCreate {
-	if s != nil {
-		rlc.SetSpdxID(*s)
+func (_c *ReportLicenseCreate) SetNillableSpdxID(v *string) *ReportLicenseCreate {
+	if v != nil {
+		_c.SetSpdxID(*v)
 	}
-	return rlc
+	return _c
 }
 
 // SetURL sets the "url" field.
-func (rlc *ReportLicenseCreate) SetURL(s string) *ReportLicenseCreate {
-	rlc.mutation.SetURL(s)
-	return rlc
+func (_c *ReportLicenseCreate) SetURL(v string) *ReportLicenseCreate {
+	_c.mutation.SetURL(v)
+	return _c
 }
 
 // SetNillableURL sets the "url" field if the given value is not nil.
-func (rlc *ReportLicenseCreate) SetNillableURL(s *string) *ReportLicenseCreate {
-	if s != nil {
-		rlc.SetURL(*s)
+func (_c *ReportLicenseCreate) SetNillableURL(v *string) *ReportLicenseCreate {
+	if v != nil {
+		_c.SetURL(*v)
 	}
-	return rlc
+	return _c
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rlc *ReportLicenseCreate) SetCreatedAt(t time.Time) *ReportLicenseCreate {
-	rlc.mutation.SetCreatedAt(t)
-	return rlc
+func (_c *ReportLicenseCreate) SetCreatedAt(v time.Time) *ReportLicenseCreate {
+	_c.mutation.SetCreatedAt(v)
+	return _c
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rlc *ReportLicenseCreate) SetNillableCreatedAt(t *time.Time) *ReportLicenseCreate {
-	if t != nil {
-		rlc.SetCreatedAt(*t)
+func (_c *ReportLicenseCreate) SetNillableCreatedAt(v *time.Time) *ReportLicenseCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
 	}
-	return rlc
+	return _c
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rlc *ReportLicenseCreate) SetUpdatedAt(t time.Time) *ReportLicenseCreate {
-	rlc.mutation.SetUpdatedAt(t)
-	return rlc
+func (_c *ReportLicenseCreate) SetUpdatedAt(v time.Time) *ReportLicenseCreate {
+	_c.mutation.SetUpdatedAt(v)
+	return _c
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rlc *ReportLicenseCreate) SetNillableUpdatedAt(t *time.Time) *ReportLicenseCreate {
-	if t != nil {
-		rlc.SetUpdatedAt(*t)
+func (_c *ReportLicenseCreate) SetNillableUpdatedAt(v *time.Time) *ReportLicenseCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
 	}
-	return rlc
+	return _c
 }
 
 // SetPackageID sets the "package" edge to the ReportPackage entity by ID.
-func (rlc *ReportLicenseCreate) SetPackageID(id int) *ReportLicenseCreate {
-	rlc.mutation.SetPackageID(id)
-	return rlc
+func (_c *ReportLicenseCreate) SetPackageID(id int) *ReportLicenseCreate {
+	_c.mutation.SetPackageID(id)
+	return _c
 }
 
 // SetNillablePackageID sets the "package" edge to the ReportPackage entity by ID if the given value is not nil.
-func (rlc *ReportLicenseCreate) SetNillablePackageID(id *int) *ReportLicenseCreate {
+func (_c *ReportLicenseCreate) SetNillablePackageID(id *int) *ReportLicenseCreate {
 	if id != nil {
-		rlc = rlc.SetPackageID(*id)
+		_c = _c.SetPackageID(*id)
 	}
-	return rlc
+	return _c
 }
 
 // SetPackage sets the "package" edge to the ReportPackage entity.
-func (rlc *ReportLicenseCreate) SetPackage(r *ReportPackage) *ReportLicenseCreate {
-	return rlc.SetPackageID(r.ID)
+func (_c *ReportLicenseCreate) SetPackage(v *ReportPackage) *ReportLicenseCreate {
+	return _c.SetPackageID(v.ID)
 }
 
 // Mutation returns the ReportLicenseMutation object of the builder.
-func (rlc *ReportLicenseCreate) Mutation() *ReportLicenseMutation {
-	return rlc.mutation
+func (_c *ReportLicenseCreate) Mutation() *ReportLicenseMutation {
+	return _c.mutation
 }
 
 // Save creates the ReportLicense in the database.
-func (rlc *ReportLicenseCreate) Save(ctx context.Context) (*ReportLicense, error) {
-	return withHooks(ctx, rlc.sqlSave, rlc.mutation, rlc.hooks)
+func (_c *ReportLicenseCreate) Save(ctx context.Context) (*ReportLicense, error) {
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (rlc *ReportLicenseCreate) SaveX(ctx context.Context) *ReportLicense {
-	v, err := rlc.Save(ctx)
+func (_c *ReportLicenseCreate) SaveX(ctx context.Context) *ReportLicense {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -136,24 +136,24 @@ func (rlc *ReportLicenseCreate) SaveX(ctx context.Context) *ReportLicense {
 }
 
 // Exec executes the query.
-func (rlc *ReportLicenseCreate) Exec(ctx context.Context) error {
-	_, err := rlc.Save(ctx)
+func (_c *ReportLicenseCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rlc *ReportLicenseCreate) ExecX(ctx context.Context) {
-	if err := rlc.Exec(ctx); err != nil {
+func (_c *ReportLicenseCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (rlc *ReportLicenseCreate) check() error {
-	if _, ok := rlc.mutation.LicenseID(); !ok {
+func (_c *ReportLicenseCreate) check() error {
+	if _, ok := _c.mutation.LicenseID(); !ok {
 		return &ValidationError{Name: "license_id", err: errors.New(`ent: missing required field "ReportLicense.license_id"`)}
 	}
-	if v, ok := rlc.mutation.LicenseID(); ok {
+	if v, ok := _c.mutation.LicenseID(); ok {
 		if err := reportlicense.LicenseIDValidator(v); err != nil {
 			return &ValidationError{Name: "license_id", err: fmt.Errorf(`ent: validator failed for field "ReportLicense.license_id": %w`, err)}
 		}
@@ -161,12 +161,12 @@ func (rlc *ReportLicenseCreate) check() error {
 	return nil
 }
 
-func (rlc *ReportLicenseCreate) sqlSave(ctx context.Context) (*ReportLicense, error) {
-	if err := rlc.check(); err != nil {
+func (_c *ReportLicenseCreate) sqlSave(ctx context.Context) (*ReportLicense, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := rlc.createSpec()
-	if err := sqlgraph.CreateNode(ctx, rlc.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -174,41 +174,41 @@ func (rlc *ReportLicenseCreate) sqlSave(ctx context.Context) (*ReportLicense, er
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
-	rlc.mutation.id = &_node.ID
-	rlc.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (rlc *ReportLicenseCreate) createSpec() (*ReportLicense, *sqlgraph.CreateSpec) {
+func (_c *ReportLicenseCreate) createSpec() (*ReportLicense, *sqlgraph.CreateSpec) {
 	var (
-		_node = &ReportLicense{config: rlc.config}
+		_node = &ReportLicense{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(reportlicense.Table, sqlgraph.NewFieldSpec(reportlicense.FieldID, field.TypeInt))
 	)
-	if value, ok := rlc.mutation.LicenseID(); ok {
+	if value, ok := _c.mutation.LicenseID(); ok {
 		_spec.SetField(reportlicense.FieldLicenseID, field.TypeString, value)
 		_node.LicenseID = value
 	}
-	if value, ok := rlc.mutation.Name(); ok {
+	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(reportlicense.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
-	if value, ok := rlc.mutation.SpdxID(); ok {
+	if value, ok := _c.mutation.SpdxID(); ok {
 		_spec.SetField(reportlicense.FieldSpdxID, field.TypeString, value)
 		_node.SpdxID = value
 	}
-	if value, ok := rlc.mutation.URL(); ok {
+	if value, ok := _c.mutation.URL(); ok {
 		_spec.SetField(reportlicense.FieldURL, field.TypeString, value)
 		_node.URL = value
 	}
-	if value, ok := rlc.mutation.CreatedAt(); ok {
+	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(reportlicense.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
-	if value, ok := rlc.mutation.UpdatedAt(); ok {
+	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportlicense.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := rlc.mutation.PackageIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.PackageIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -236,16 +236,16 @@ type ReportLicenseCreateBulk struct {
 }
 
 // Save creates the ReportLicense entities in the database.
-func (rlcb *ReportLicenseCreateBulk) Save(ctx context.Context) ([]*ReportLicense, error) {
-	if rlcb.err != nil {
-		return nil, rlcb.err
+func (_c *ReportLicenseCreateBulk) Save(ctx context.Context) ([]*ReportLicense, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(rlcb.builders))
-	nodes := make([]*ReportLicense, len(rlcb.builders))
-	mutators := make([]Mutator, len(rlcb.builders))
-	for i := range rlcb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*ReportLicense, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := rlcb.builders[i]
+			builder := _c.builders[i]
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*ReportLicenseMutation)
 				if !ok {
@@ -258,11 +258,11 @@ func (rlcb *ReportLicenseCreateBulk) Save(ctx context.Context) ([]*ReportLicense
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, rlcb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, rlcb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -286,7 +286,7 @@ func (rlcb *ReportLicenseCreateBulk) Save(ctx context.Context) ([]*ReportLicense
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, rlcb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -294,8 +294,8 @@ func (rlcb *ReportLicenseCreateBulk) Save(ctx context.Context) ([]*ReportLicense
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rlcb *ReportLicenseCreateBulk) SaveX(ctx context.Context) []*ReportLicense {
-	v, err := rlcb.Save(ctx)
+func (_c *ReportLicenseCreateBulk) SaveX(ctx context.Context) []*ReportLicense {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -303,14 +303,14 @@ func (rlcb *ReportLicenseCreateBulk) SaveX(ctx context.Context) []*ReportLicense
 }
 
 // Exec executes the query.
-func (rlcb *ReportLicenseCreateBulk) Exec(ctx context.Context) error {
-	_, err := rlcb.Save(ctx)
+func (_c *ReportLicenseCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rlcb *ReportLicenseCreateBulk) ExecX(ctx context.Context) {
-	if err := rlcb.Exec(ctx); err != nil {
+func (_c *ReportLicenseCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

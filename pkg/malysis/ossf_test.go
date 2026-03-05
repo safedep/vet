@@ -2,7 +2,6 @@ package malysis
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,6 +11,7 @@ import (
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	"github.com/ossf/osv-schema/bindings/go/osvschema"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func TestOpenSSFMaliciousPackageReportGenerator_relativeFilePath(t *testing.T) {
@@ -55,12 +55,12 @@ func fileHasValidOSVReport(t *testing.T, filePath string) {
 	}
 
 	var vuln osvschema.Vulnerability
-	err = json.Unmarshal(jsonFile, &vuln)
+	err = protojson.Unmarshal(jsonFile, &vuln)
 	if err != nil {
 		t.Fatalf("failed to unmarshal file: %v", err)
 	}
 
-	assert.Empty(t, vuln.ID, "id should be empty")
+	assert.Empty(t, vuln.Id, "id should be empty")
 	assert.NotEmpty(t, vuln.Published, "published should not be empty")
 	assert.NotEmpty(t, vuln.Modified, "modified should not be empty")
 	assert.NotEmpty(t, vuln.Affected, "affected should not be empty")
@@ -161,7 +161,7 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 				assert.NoError(t, err)
 
 				var vuln osvschema.Vulnerability
-				err = json.Unmarshal(jsonFile, &vuln)
+				err = protojson.Unmarshal(jsonFile, &vuln)
 				assert.NoError(t, err)
 
 				// Verify the introduced version is "0" not "0.0.0"
@@ -202,7 +202,7 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 				assert.NoError(t, err)
 
 				var vuln osvschema.Vulnerability
-				err = json.Unmarshal(jsonFile, &vuln)
+				err = protojson.Unmarshal(jsonFile, &vuln)
 				assert.NoError(t, err)
 
 				// Verify explicit versions are used
@@ -244,7 +244,7 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 				assert.NoError(t, err)
 
 				var vuln osvschema.Vulnerability
-				err = json.Unmarshal(jsonFile, &vuln)
+				err = protojson.Unmarshal(jsonFile, &vuln)
 				assert.NoError(t, err)
 
 				// Verify PyPI ecosystem is properly cased
@@ -254,7 +254,7 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 
 				// Verify ECOSYSTEM range type is used for PyPI
 				assert.Len(t, vuln.Affected[0].Ranges, 1, "should have one range")
-				assert.Equal(t, osvschema.RangeEcosystem, vuln.Affected[0].Ranges[0].Type, "PyPI should use ECOSYSTEM range type")
+				assert.Equal(t, osvschema.Range_ECOSYSTEM, vuln.Affected[0].Ranges[0].Type, "PyPI should use ECOSYSTEM range type")
 
 				// Verify version information
 				assert.Len(t, vuln.Affected[0].Ranges[0].Events, 1, "should have one event")
@@ -293,7 +293,7 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 				assert.NoError(t, err)
 
 				var vuln osvschema.Vulnerability
-				err = json.Unmarshal(jsonFile, &vuln)
+				err = protojson.Unmarshal(jsonFile, &vuln)
 				assert.NoError(t, err)
 
 				// Verify NPM ecosystem name
@@ -303,7 +303,7 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 
 				// Verify SEMVER range type is used for NPM
 				assert.Len(t, vuln.Affected[0].Ranges, 1, "should have one range")
-				assert.Equal(t, osvschema.RangeSemVer, vuln.Affected[0].Ranges[0].Type, "NPM should use SEMVER range type")
+				assert.Equal(t, osvschema.Range_SEMVER, vuln.Affected[0].Ranges[0].Type, "NPM should use SEMVER range type")
 
 				// Verify version information
 				assert.Len(t, vuln.Affected[0].Ranges[0].Events, 1, "should have one event")
@@ -342,12 +342,12 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 				assert.NoError(t, err)
 
 				var vuln osvschema.Vulnerability
-				err = json.Unmarshal(jsonFile, &vuln)
+				err = protojson.Unmarshal(jsonFile, &vuln)
 				assert.NoError(t, err)
 
 				// Verify custom reference URL is used
 				assert.Len(t, vuln.References, 1, "should have one reference")
-				assert.Equal(t, "https://blog.example.com/malware-reports", vuln.References[0].URL, "should use custom reference URL")
+				assert.Equal(t, "https://blog.example.com/malware-reports", vuln.References[0].Url, "should use custom reference URL")
 
 				// Verify explicit versions are used (default behavior)
 				assert.Len(t, vuln.Affected, 1, "should have one affected package")

@@ -82,7 +82,7 @@ func (*DepsUsageEvidence) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the DepsUsageEvidence fields.
-func (due *DepsUsageEvidence) assignValues(columns []string, values []any) error {
+func (_m *DepsUsageEvidence) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -93,68 +93,68 @@ func (due *DepsUsageEvidence) assignValues(columns []string, values []any) error
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			due.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case depsusageevidence.FieldPackageHint:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field package_hint", values[i])
 			} else if value.Valid {
-				due.PackageHint = new(string)
-				*due.PackageHint = value.String
+				_m.PackageHint = new(string)
+				*_m.PackageHint = value.String
 			}
 		case depsusageevidence.FieldModuleName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field module_name", values[i])
 			} else if value.Valid {
-				due.ModuleName = value.String
+				_m.ModuleName = value.String
 			}
 		case depsusageevidence.FieldModuleItem:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field module_item", values[i])
 			} else if value.Valid {
-				due.ModuleItem = new(string)
-				*due.ModuleItem = value.String
+				_m.ModuleItem = new(string)
+				*_m.ModuleItem = value.String
 			}
 		case depsusageevidence.FieldModuleAlias:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field module_alias", values[i])
 			} else if value.Valid {
-				due.ModuleAlias = new(string)
-				*due.ModuleAlias = value.String
+				_m.ModuleAlias = new(string)
+				*_m.ModuleAlias = value.String
 			}
 		case depsusageevidence.FieldIsWildCardUsage:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field is_wild_card_usage", values[i])
 			} else if value.Valid {
-				due.IsWildCardUsage = value.Bool
+				_m.IsWildCardUsage = value.Bool
 			}
 		case depsusageevidence.FieldIdentifier:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field identifier", values[i])
 			} else if value.Valid {
-				due.Identifier = new(string)
-				*due.Identifier = value.String
+				_m.Identifier = new(string)
+				*_m.Identifier = value.String
 			}
 		case depsusageevidence.FieldUsageFilePath:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field usage_file_path", values[i])
 			} else if value.Valid {
-				due.UsageFilePath = value.String
+				_m.UsageFilePath = value.String
 			}
 		case depsusageevidence.FieldLine:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field line", values[i])
 			} else if value.Valid {
-				due.Line = uint(value.Int64)
+				_m.Line = uint(value.Int64)
 			}
 		case depsusageevidence.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field deps_usage_evidence_used_in", value)
 			} else if value.Valid {
-				due.deps_usage_evidence_used_in = new(int)
-				*due.deps_usage_evidence_used_in = int(value.Int64)
+				_m.deps_usage_evidence_used_in = new(int)
+				*_m.deps_usage_evidence_used_in = int(value.Int64)
 			}
 		default:
-			due.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -162,69 +162,69 @@ func (due *DepsUsageEvidence) assignValues(columns []string, values []any) error
 
 // Value returns the ent.Value that was dynamically selected and assigned to the DepsUsageEvidence.
 // This includes values selected through modifiers, order, etc.
-func (due *DepsUsageEvidence) Value(name string) (ent.Value, error) {
-	return due.selectValues.Get(name)
+func (_m *DepsUsageEvidence) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QueryUsedIn queries the "used_in" edge of the DepsUsageEvidence entity.
-func (due *DepsUsageEvidence) QueryUsedIn() *CodeSourceFileQuery {
-	return NewDepsUsageEvidenceClient(due.config).QueryUsedIn(due)
+func (_m *DepsUsageEvidence) QueryUsedIn() *CodeSourceFileQuery {
+	return NewDepsUsageEvidenceClient(_m.config).QueryUsedIn(_m)
 }
 
 // Update returns a builder for updating this DepsUsageEvidence.
 // Note that you need to call DepsUsageEvidence.Unwrap() before calling this method if this DepsUsageEvidence
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (due *DepsUsageEvidence) Update() *DepsUsageEvidenceUpdateOne {
-	return NewDepsUsageEvidenceClient(due.config).UpdateOne(due)
+func (_m *DepsUsageEvidence) Update() *DepsUsageEvidenceUpdateOne {
+	return NewDepsUsageEvidenceClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the DepsUsageEvidence entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (due *DepsUsageEvidence) Unwrap() *DepsUsageEvidence {
-	_tx, ok := due.config.driver.(*txDriver)
+func (_m *DepsUsageEvidence) Unwrap() *DepsUsageEvidence {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: DepsUsageEvidence is not a transactional entity")
 	}
-	due.config.driver = _tx.drv
-	return due
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (due *DepsUsageEvidence) String() string {
+func (_m *DepsUsageEvidence) String() string {
 	var builder strings.Builder
 	builder.WriteString("DepsUsageEvidence(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", due.ID))
-	if v := due.PackageHint; v != nil {
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	if v := _m.PackageHint; v != nil {
 		builder.WriteString("package_hint=")
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
 	builder.WriteString("module_name=")
-	builder.WriteString(due.ModuleName)
+	builder.WriteString(_m.ModuleName)
 	builder.WriteString(", ")
-	if v := due.ModuleItem; v != nil {
+	if v := _m.ModuleItem; v != nil {
 		builder.WriteString("module_item=")
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
-	if v := due.ModuleAlias; v != nil {
+	if v := _m.ModuleAlias; v != nil {
 		builder.WriteString("module_alias=")
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
 	builder.WriteString("is_wild_card_usage=")
-	builder.WriteString(fmt.Sprintf("%v", due.IsWildCardUsage))
+	builder.WriteString(fmt.Sprintf("%v", _m.IsWildCardUsage))
 	builder.WriteString(", ")
-	if v := due.Identifier; v != nil {
+	if v := _m.Identifier; v != nil {
 		builder.WriteString("identifier=")
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
 	builder.WriteString("usage_file_path=")
-	builder.WriteString(due.UsageFilePath)
+	builder.WriteString(_m.UsageFilePath)
 	builder.WriteString(", ")
 	builder.WriteString("line=")
-	builder.WriteString(fmt.Sprintf("%v", due.Line))
+	builder.WriteString(fmt.Sprintf("%v", _m.Line))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -31,44 +31,44 @@ type CodeSignatureMatchQuery struct {
 }
 
 // Where adds a new predicate for the CodeSignatureMatchQuery builder.
-func (csmq *CodeSignatureMatchQuery) Where(ps ...predicate.CodeSignatureMatch) *CodeSignatureMatchQuery {
-	csmq.predicates = append(csmq.predicates, ps...)
-	return csmq
+func (_q *CodeSignatureMatchQuery) Where(ps ...predicate.CodeSignatureMatch) *CodeSignatureMatchQuery {
+	_q.predicates = append(_q.predicates, ps...)
+	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (csmq *CodeSignatureMatchQuery) Limit(limit int) *CodeSignatureMatchQuery {
-	csmq.ctx.Limit = &limit
-	return csmq
+func (_q *CodeSignatureMatchQuery) Limit(limit int) *CodeSignatureMatchQuery {
+	_q.ctx.Limit = &limit
+	return _q
 }
 
 // Offset to start from.
-func (csmq *CodeSignatureMatchQuery) Offset(offset int) *CodeSignatureMatchQuery {
-	csmq.ctx.Offset = &offset
-	return csmq
+func (_q *CodeSignatureMatchQuery) Offset(offset int) *CodeSignatureMatchQuery {
+	_q.ctx.Offset = &offset
+	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (csmq *CodeSignatureMatchQuery) Unique(unique bool) *CodeSignatureMatchQuery {
-	csmq.ctx.Unique = &unique
-	return csmq
+func (_q *CodeSignatureMatchQuery) Unique(unique bool) *CodeSignatureMatchQuery {
+	_q.ctx.Unique = &unique
+	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (csmq *CodeSignatureMatchQuery) Order(o ...codesignaturematch.OrderOption) *CodeSignatureMatchQuery {
-	csmq.order = append(csmq.order, o...)
-	return csmq
+func (_q *CodeSignatureMatchQuery) Order(o ...codesignaturematch.OrderOption) *CodeSignatureMatchQuery {
+	_q.order = append(_q.order, o...)
+	return _q
 }
 
 // QuerySourceFile chains the current query on the "source_file" edge.
-func (csmq *CodeSignatureMatchQuery) QuerySourceFile() *CodeSourceFileQuery {
-	query := (&CodeSourceFileClient{config: csmq.config}).Query()
+func (_q *CodeSignatureMatchQuery) QuerySourceFile() *CodeSourceFileQuery {
+	query := (&CodeSourceFileClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := csmq.prepareQuery(ctx); err != nil {
+		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := csmq.sqlQuery(ctx)
+		selector := _q.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
@@ -77,7 +77,7 @@ func (csmq *CodeSignatureMatchQuery) QuerySourceFile() *CodeSourceFileQuery {
 			sqlgraph.To(codesourcefile.Table, codesourcefile.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, codesignaturematch.SourceFileTable, codesignaturematch.SourceFileColumn),
 		)
-		fromU = sqlgraph.SetNeighbors(csmq.driver.Dialect(), step)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
@@ -85,8 +85,8 @@ func (csmq *CodeSignatureMatchQuery) QuerySourceFile() *CodeSourceFileQuery {
 
 // First returns the first CodeSignatureMatch entity from the query.
 // Returns a *NotFoundError when no CodeSignatureMatch was found.
-func (csmq *CodeSignatureMatchQuery) First(ctx context.Context) (*CodeSignatureMatch, error) {
-	nodes, err := csmq.Limit(1).All(setContextOp(ctx, csmq.ctx, ent.OpQueryFirst))
+func (_q *CodeSignatureMatchQuery) First(ctx context.Context) (*CodeSignatureMatch, error) {
+	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -97,8 +97,8 @@ func (csmq *CodeSignatureMatchQuery) First(ctx context.Context) (*CodeSignatureM
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (csmq *CodeSignatureMatchQuery) FirstX(ctx context.Context) *CodeSignatureMatch {
-	node, err := csmq.First(ctx)
+func (_q *CodeSignatureMatchQuery) FirstX(ctx context.Context) *CodeSignatureMatch {
+	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -107,9 +107,9 @@ func (csmq *CodeSignatureMatchQuery) FirstX(ctx context.Context) *CodeSignatureM
 
 // FirstID returns the first CodeSignatureMatch ID from the query.
 // Returns a *NotFoundError when no CodeSignatureMatch ID was found.
-func (csmq *CodeSignatureMatchQuery) FirstID(ctx context.Context) (id int, err error) {
+func (_q *CodeSignatureMatchQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = csmq.Limit(1).IDs(setContextOp(ctx, csmq.ctx, ent.OpQueryFirstID)); err != nil {
+	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -120,8 +120,8 @@ func (csmq *CodeSignatureMatchQuery) FirstID(ctx context.Context) (id int, err e
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (csmq *CodeSignatureMatchQuery) FirstIDX(ctx context.Context) int {
-	id, err := csmq.FirstID(ctx)
+func (_q *CodeSignatureMatchQuery) FirstIDX(ctx context.Context) int {
+	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -131,8 +131,8 @@ func (csmq *CodeSignatureMatchQuery) FirstIDX(ctx context.Context) int {
 // Only returns a single CodeSignatureMatch entity found by the query, ensuring it only returns one.
 // Returns a *NotSingularError when more than one CodeSignatureMatch entity is found.
 // Returns a *NotFoundError when no CodeSignatureMatch entities are found.
-func (csmq *CodeSignatureMatchQuery) Only(ctx context.Context) (*CodeSignatureMatch, error) {
-	nodes, err := csmq.Limit(2).All(setContextOp(ctx, csmq.ctx, ent.OpQueryOnly))
+func (_q *CodeSignatureMatchQuery) Only(ctx context.Context) (*CodeSignatureMatch, error) {
+	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -147,8 +147,8 @@ func (csmq *CodeSignatureMatchQuery) Only(ctx context.Context) (*CodeSignatureMa
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (csmq *CodeSignatureMatchQuery) OnlyX(ctx context.Context) *CodeSignatureMatch {
-	node, err := csmq.Only(ctx)
+func (_q *CodeSignatureMatchQuery) OnlyX(ctx context.Context) *CodeSignatureMatch {
+	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -158,9 +158,9 @@ func (csmq *CodeSignatureMatchQuery) OnlyX(ctx context.Context) *CodeSignatureMa
 // OnlyID is like Only, but returns the only CodeSignatureMatch ID in the query.
 // Returns a *NotSingularError when more than one CodeSignatureMatch ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (csmq *CodeSignatureMatchQuery) OnlyID(ctx context.Context) (id int, err error) {
+func (_q *CodeSignatureMatchQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = csmq.Limit(2).IDs(setContextOp(ctx, csmq.ctx, ent.OpQueryOnlyID)); err != nil {
+	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -175,8 +175,8 @@ func (csmq *CodeSignatureMatchQuery) OnlyID(ctx context.Context) (id int, err er
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (csmq *CodeSignatureMatchQuery) OnlyIDX(ctx context.Context) int {
-	id, err := csmq.OnlyID(ctx)
+func (_q *CodeSignatureMatchQuery) OnlyIDX(ctx context.Context) int {
+	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -184,18 +184,18 @@ func (csmq *CodeSignatureMatchQuery) OnlyIDX(ctx context.Context) int {
 }
 
 // All executes the query and returns a list of CodeSignatureMatches.
-func (csmq *CodeSignatureMatchQuery) All(ctx context.Context) ([]*CodeSignatureMatch, error) {
-	ctx = setContextOp(ctx, csmq.ctx, ent.OpQueryAll)
-	if err := csmq.prepareQuery(ctx); err != nil {
+func (_q *CodeSignatureMatchQuery) All(ctx context.Context) ([]*CodeSignatureMatch, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
 	qr := querierAll[[]*CodeSignatureMatch, *CodeSignatureMatchQuery]()
-	return withInterceptors[[]*CodeSignatureMatch](ctx, csmq, qr, csmq.inters)
+	return withInterceptors[[]*CodeSignatureMatch](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (csmq *CodeSignatureMatchQuery) AllX(ctx context.Context) []*CodeSignatureMatch {
-	nodes, err := csmq.All(ctx)
+func (_q *CodeSignatureMatchQuery) AllX(ctx context.Context) []*CodeSignatureMatch {
+	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -203,20 +203,20 @@ func (csmq *CodeSignatureMatchQuery) AllX(ctx context.Context) []*CodeSignatureM
 }
 
 // IDs executes the query and returns a list of CodeSignatureMatch IDs.
-func (csmq *CodeSignatureMatchQuery) IDs(ctx context.Context) (ids []int, err error) {
-	if csmq.ctx.Unique == nil && csmq.path != nil {
-		csmq.Unique(true)
+func (_q *CodeSignatureMatchQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if _q.ctx.Unique == nil && _q.path != nil {
+		_q.Unique(true)
 	}
-	ctx = setContextOp(ctx, csmq.ctx, ent.OpQueryIDs)
-	if err = csmq.Select(codesignaturematch.FieldID).Scan(ctx, &ids); err != nil {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
+	if err = _q.Select(codesignaturematch.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (csmq *CodeSignatureMatchQuery) IDsX(ctx context.Context) []int {
-	ids, err := csmq.IDs(ctx)
+func (_q *CodeSignatureMatchQuery) IDsX(ctx context.Context) []int {
+	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -224,17 +224,17 @@ func (csmq *CodeSignatureMatchQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (csmq *CodeSignatureMatchQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, csmq.ctx, ent.OpQueryCount)
-	if err := csmq.prepareQuery(ctx); err != nil {
+func (_q *CodeSignatureMatchQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, csmq, querierCount[*CodeSignatureMatchQuery](), csmq.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*CodeSignatureMatchQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (csmq *CodeSignatureMatchQuery) CountX(ctx context.Context) int {
-	count, err := csmq.Count(ctx)
+func (_q *CodeSignatureMatchQuery) CountX(ctx context.Context) int {
+	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -242,9 +242,9 @@ func (csmq *CodeSignatureMatchQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (csmq *CodeSignatureMatchQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, csmq.ctx, ent.OpQueryExist)
-	switch _, err := csmq.FirstID(ctx); {
+func (_q *CodeSignatureMatchQuery) Exist(ctx context.Context) (bool, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
+	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
 	case err != nil:
@@ -255,8 +255,8 @@ func (csmq *CodeSignatureMatchQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (csmq *CodeSignatureMatchQuery) ExistX(ctx context.Context) bool {
-	exist, err := csmq.Exist(ctx)
+func (_q *CodeSignatureMatchQuery) ExistX(ctx context.Context) bool {
+	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -265,32 +265,32 @@ func (csmq *CodeSignatureMatchQuery) ExistX(ctx context.Context) bool {
 
 // Clone returns a duplicate of the CodeSignatureMatchQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (csmq *CodeSignatureMatchQuery) Clone() *CodeSignatureMatchQuery {
-	if csmq == nil {
+func (_q *CodeSignatureMatchQuery) Clone() *CodeSignatureMatchQuery {
+	if _q == nil {
 		return nil
 	}
 	return &CodeSignatureMatchQuery{
-		config:         csmq.config,
-		ctx:            csmq.ctx.Clone(),
-		order:          append([]codesignaturematch.OrderOption{}, csmq.order...),
-		inters:         append([]Interceptor{}, csmq.inters...),
-		predicates:     append([]predicate.CodeSignatureMatch{}, csmq.predicates...),
-		withSourceFile: csmq.withSourceFile.Clone(),
+		config:         _q.config,
+		ctx:            _q.ctx.Clone(),
+		order:          append([]codesignaturematch.OrderOption{}, _q.order...),
+		inters:         append([]Interceptor{}, _q.inters...),
+		predicates:     append([]predicate.CodeSignatureMatch{}, _q.predicates...),
+		withSourceFile: _q.withSourceFile.Clone(),
 		// clone intermediate query.
-		sql:  csmq.sql.Clone(),
-		path: csmq.path,
+		sql:  _q.sql.Clone(),
+		path: _q.path,
 	}
 }
 
 // WithSourceFile tells the query-builder to eager-load the nodes that are connected to
 // the "source_file" edge. The optional arguments are used to configure the query builder of the edge.
-func (csmq *CodeSignatureMatchQuery) WithSourceFile(opts ...func(*CodeSourceFileQuery)) *CodeSignatureMatchQuery {
-	query := (&CodeSourceFileClient{config: csmq.config}).Query()
+func (_q *CodeSignatureMatchQuery) WithSourceFile(opts ...func(*CodeSourceFileQuery)) *CodeSignatureMatchQuery {
+	query := (&CodeSourceFileClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	csmq.withSourceFile = query
-	return csmq
+	_q.withSourceFile = query
+	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -307,10 +307,10 @@ func (csmq *CodeSignatureMatchQuery) WithSourceFile(opts ...func(*CodeSourceFile
 //		GroupBy(codesignaturematch.FieldSignatureID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (csmq *CodeSignatureMatchQuery) GroupBy(field string, fields ...string) *CodeSignatureMatchGroupBy {
-	csmq.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &CodeSignatureMatchGroupBy{build: csmq}
-	grbuild.flds = &csmq.ctx.Fields
+func (_q *CodeSignatureMatchQuery) GroupBy(field string, fields ...string) *CodeSignatureMatchGroupBy {
+	_q.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &CodeSignatureMatchGroupBy{build: _q}
+	grbuild.flds = &_q.ctx.Fields
 	grbuild.label = codesignaturematch.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -328,55 +328,55 @@ func (csmq *CodeSignatureMatchQuery) GroupBy(field string, fields ...string) *Co
 //	client.CodeSignatureMatch.Query().
 //		Select(codesignaturematch.FieldSignatureID).
 //		Scan(ctx, &v)
-func (csmq *CodeSignatureMatchQuery) Select(fields ...string) *CodeSignatureMatchSelect {
-	csmq.ctx.Fields = append(csmq.ctx.Fields, fields...)
-	sbuild := &CodeSignatureMatchSelect{CodeSignatureMatchQuery: csmq}
+func (_q *CodeSignatureMatchQuery) Select(fields ...string) *CodeSignatureMatchSelect {
+	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
+	sbuild := &CodeSignatureMatchSelect{CodeSignatureMatchQuery: _q}
 	sbuild.label = codesignaturematch.Label
-	sbuild.flds, sbuild.scan = &csmq.ctx.Fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
 // Aggregate returns a CodeSignatureMatchSelect configured with the given aggregations.
-func (csmq *CodeSignatureMatchQuery) Aggregate(fns ...AggregateFunc) *CodeSignatureMatchSelect {
-	return csmq.Select().Aggregate(fns...)
+func (_q *CodeSignatureMatchQuery) Aggregate(fns ...AggregateFunc) *CodeSignatureMatchSelect {
+	return _q.Select().Aggregate(fns...)
 }
 
-func (csmq *CodeSignatureMatchQuery) prepareQuery(ctx context.Context) error {
-	for _, inter := range csmq.inters {
+func (_q *CodeSignatureMatchQuery) prepareQuery(ctx context.Context) error {
+	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
 		}
 		if trv, ok := inter.(Traverser); ok {
-			if err := trv.Traverse(ctx, csmq); err != nil {
+			if err := trv.Traverse(ctx, _q); err != nil {
 				return err
 			}
 		}
 	}
-	for _, f := range csmq.ctx.Fields {
+	for _, f := range _q.ctx.Fields {
 		if !codesignaturematch.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
-	if csmq.path != nil {
-		prev, err := csmq.path(ctx)
+	if _q.path != nil {
+		prev, err := _q.path(ctx)
 		if err != nil {
 			return err
 		}
-		csmq.sql = prev
+		_q.sql = prev
 	}
 	return nil
 }
 
-func (csmq *CodeSignatureMatchQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*CodeSignatureMatch, error) {
+func (_q *CodeSignatureMatchQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*CodeSignatureMatch, error) {
 	var (
 		nodes       = []*CodeSignatureMatch{}
-		withFKs     = csmq.withFKs
-		_spec       = csmq.querySpec()
+		withFKs     = _q.withFKs
+		_spec       = _q.querySpec()
 		loadedTypes = [1]bool{
-			csmq.withSourceFile != nil,
+			_q.withSourceFile != nil,
 		}
 	)
-	if csmq.withSourceFile != nil {
+	if _q.withSourceFile != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -386,7 +386,7 @@ func (csmq *CodeSignatureMatchQuery) sqlAll(ctx context.Context, hooks ...queryH
 		return (*CodeSignatureMatch).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &CodeSignatureMatch{config: csmq.config}
+		node := &CodeSignatureMatch{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
@@ -394,14 +394,14 @@ func (csmq *CodeSignatureMatchQuery) sqlAll(ctx context.Context, hooks ...queryH
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
-	if err := sqlgraph.QueryNodes(ctx, csmq.driver, _spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, _q.driver, _spec); err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := csmq.withSourceFile; query != nil {
-		if err := csmq.loadSourceFile(ctx, query, nodes, nil,
+	if query := _q.withSourceFile; query != nil {
+		if err := _q.loadSourceFile(ctx, query, nodes, nil,
 			func(n *CodeSignatureMatch, e *CodeSourceFile) { n.Edges.SourceFile = e }); err != nil {
 			return nil, err
 		}
@@ -409,7 +409,7 @@ func (csmq *CodeSignatureMatchQuery) sqlAll(ctx context.Context, hooks ...queryH
 	return nodes, nil
 }
 
-func (csmq *CodeSignatureMatchQuery) loadSourceFile(ctx context.Context, query *CodeSourceFileQuery, nodes []*CodeSignatureMatch, init func(*CodeSignatureMatch), assign func(*CodeSignatureMatch, *CodeSourceFile)) error {
+func (_q *CodeSignatureMatchQuery) loadSourceFile(ctx context.Context, query *CodeSourceFileQuery, nodes []*CodeSignatureMatch, init func(*CodeSignatureMatch), assign func(*CodeSignatureMatch, *CodeSourceFile)) error {
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*CodeSignatureMatch)
 	for i := range nodes {
@@ -442,24 +442,24 @@ func (csmq *CodeSignatureMatchQuery) loadSourceFile(ctx context.Context, query *
 	return nil
 }
 
-func (csmq *CodeSignatureMatchQuery) sqlCount(ctx context.Context) (int, error) {
-	_spec := csmq.querySpec()
-	_spec.Node.Columns = csmq.ctx.Fields
-	if len(csmq.ctx.Fields) > 0 {
-		_spec.Unique = csmq.ctx.Unique != nil && *csmq.ctx.Unique
+func (_q *CodeSignatureMatchQuery) sqlCount(ctx context.Context) (int, error) {
+	_spec := _q.querySpec()
+	_spec.Node.Columns = _q.ctx.Fields
+	if len(_q.ctx.Fields) > 0 {
+		_spec.Unique = _q.ctx.Unique != nil && *_q.ctx.Unique
 	}
-	return sqlgraph.CountNodes(ctx, csmq.driver, _spec)
+	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (csmq *CodeSignatureMatchQuery) querySpec() *sqlgraph.QuerySpec {
+func (_q *CodeSignatureMatchQuery) querySpec() *sqlgraph.QuerySpec {
 	_spec := sqlgraph.NewQuerySpec(codesignaturematch.Table, codesignaturematch.Columns, sqlgraph.NewFieldSpec(codesignaturematch.FieldID, field.TypeInt))
-	_spec.From = csmq.sql
-	if unique := csmq.ctx.Unique; unique != nil {
+	_spec.From = _q.sql
+	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
-	} else if csmq.path != nil {
+	} else if _q.path != nil {
 		_spec.Unique = true
 	}
-	if fields := csmq.ctx.Fields; len(fields) > 0 {
+	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, codesignaturematch.FieldID)
 		for i := range fields {
@@ -468,20 +468,20 @@ func (csmq *CodeSignatureMatchQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if ps := csmq.predicates; len(ps) > 0 {
+	if ps := _q.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if limit := csmq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := csmq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
-	if ps := csmq.order; len(ps) > 0 {
+	if ps := _q.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
@@ -491,33 +491,33 @@ func (csmq *CodeSignatureMatchQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (csmq *CodeSignatureMatchQuery) sqlQuery(ctx context.Context) *sql.Selector {
-	builder := sql.Dialect(csmq.driver.Dialect())
+func (_q *CodeSignatureMatchQuery) sqlQuery(ctx context.Context) *sql.Selector {
+	builder := sql.Dialect(_q.driver.Dialect())
 	t1 := builder.Table(codesignaturematch.Table)
-	columns := csmq.ctx.Fields
+	columns := _q.ctx.Fields
 	if len(columns) == 0 {
 		columns = codesignaturematch.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
-	if csmq.sql != nil {
-		selector = csmq.sql
+	if _q.sql != nil {
+		selector = _q.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if csmq.ctx.Unique != nil && *csmq.ctx.Unique {
+	if _q.ctx.Unique != nil && *_q.ctx.Unique {
 		selector.Distinct()
 	}
-	for _, p := range csmq.predicates {
+	for _, p := range _q.predicates {
 		p(selector)
 	}
-	for _, p := range csmq.order {
+	for _, p := range _q.order {
 		p(selector)
 	}
-	if offset := csmq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := csmq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -530,41 +530,41 @@ type CodeSignatureMatchGroupBy struct {
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (csmgb *CodeSignatureMatchGroupBy) Aggregate(fns ...AggregateFunc) *CodeSignatureMatchGroupBy {
-	csmgb.fns = append(csmgb.fns, fns...)
-	return csmgb
+func (_g *CodeSignatureMatchGroupBy) Aggregate(fns ...AggregateFunc) *CodeSignatureMatchGroupBy {
+	_g.fns = append(_g.fns, fns...)
+	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (csmgb *CodeSignatureMatchGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, csmgb.build.ctx, ent.OpQueryGroupBy)
-	if err := csmgb.build.prepareQuery(ctx); err != nil {
+func (_g *CodeSignatureMatchGroupBy) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
+	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*CodeSignatureMatchQuery, *CodeSignatureMatchGroupBy](ctx, csmgb.build, csmgb, csmgb.build.inters, v)
+	return scanWithInterceptors[*CodeSignatureMatchQuery, *CodeSignatureMatchGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (csmgb *CodeSignatureMatchGroupBy) sqlScan(ctx context.Context, root *CodeSignatureMatchQuery, v any) error {
+func (_g *CodeSignatureMatchGroupBy) sqlScan(ctx context.Context, root *CodeSignatureMatchQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
-	aggregation := make([]string, 0, len(csmgb.fns))
-	for _, fn := range csmgb.fns {
+	aggregation := make([]string, 0, len(_g.fns))
+	for _, fn := range _g.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
 	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(*csmgb.flds)+len(csmgb.fns))
-		for _, f := range *csmgb.flds {
+		columns := make([]string, 0, len(*_g.flds)+len(_g.fns))
+		for _, f := range *_g.flds {
 			columns = append(columns, selector.C(f))
 		}
 		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
-	selector.GroupBy(selector.Columns(*csmgb.flds...)...)
+	selector.GroupBy(selector.Columns(*_g.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := csmgb.build.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _g.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
@@ -578,27 +578,27 @@ type CodeSignatureMatchSelect struct {
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (csms *CodeSignatureMatchSelect) Aggregate(fns ...AggregateFunc) *CodeSignatureMatchSelect {
-	csms.fns = append(csms.fns, fns...)
-	return csms
+func (_s *CodeSignatureMatchSelect) Aggregate(fns ...AggregateFunc) *CodeSignatureMatchSelect {
+	_s.fns = append(_s.fns, fns...)
+	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (csms *CodeSignatureMatchSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, csms.ctx, ent.OpQuerySelect)
-	if err := csms.prepareQuery(ctx); err != nil {
+func (_s *CodeSignatureMatchSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
+	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*CodeSignatureMatchQuery, *CodeSignatureMatchSelect](ctx, csms.CodeSignatureMatchQuery, csms, csms.inters, v)
+	return scanWithInterceptors[*CodeSignatureMatchQuery, *CodeSignatureMatchSelect](ctx, _s.CodeSignatureMatchQuery, _s, _s.inters, v)
 }
 
-func (csms *CodeSignatureMatchSelect) sqlScan(ctx context.Context, root *CodeSignatureMatchQuery, v any) error {
+func (_s *CodeSignatureMatchSelect) sqlScan(ctx context.Context, root *CodeSignatureMatchQuery, v any) error {
 	selector := root.sqlQuery(ctx)
-	aggregation := make([]string, 0, len(csms.fns))
-	for _, fn := range csms.fns {
+	aggregation := make([]string, 0, len(_s.fns))
+	for _, fn := range _s.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	switch n := len(*csms.selector.flds); {
+	switch n := len(*_s.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
 		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
@@ -606,7 +606,7 @@ func (csms *CodeSignatureMatchSelect) sqlScan(ctx context.Context, root *CodeSig
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := csms.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _s.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()

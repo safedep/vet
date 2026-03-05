@@ -546,7 +546,7 @@ func (r *cycloneDXReporter) Finish() error {
 	if err != nil {
 		return err
 	}
-	defer fd.Close()
+	defer func() { _ = fd.Close() }()
 
 	err = cdx.NewBOMEncoder(fd, cdx.BOMFileFormatJSON).
 		SetPretty(true).

@@ -7,9 +7,9 @@ import (
 	"time"
 
 	malysisv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
+	"github.com/safedep/dry/api/pb"
 	"github.com/safedep/dry/utils"
 
-	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
 	schema "github.com/safedep/vet/gen/jsonreport"
 	modelspec "github.com/safedep/vet/gen/models"
 	"github.com/safedep/vet/gen/violations"
@@ -33,8 +33,8 @@ type jsonReportGenerator struct {
 	config       JsonReportingConfig
 	remediations remediations.RemediationGenerator
 
-	manifests map[string]*jsonreportspec.PackageManifestReport
-	packages  map[string]*jsonreportspec.PackageReport
+	manifests map[string]*schema.PackageManifestReport
+	packages  map[string]*schema.PackageReport
 }
 
 func NewJsonReportGenerator(config JsonReportingConfig) (Reporter, error) {
@@ -82,20 +82,20 @@ func (r *jsonReportGenerator) handleThreatEvent(event *analyzer.AnalyzerEvent) {
 		return
 	}
 
-	if event.Threat.SubjectType == jsonreportspec.ReportThreat_Manifest && event.Manifest == nil {
+	if event.Threat.SubjectType == schema.ReportThreat_Manifest && event.Manifest == nil {
 		return
 	}
 
-	if event.Threat.SubjectType == jsonreportspec.ReportThreat_Package && event.Package == nil {
+	if event.Threat.SubjectType == schema.ReportThreat_Package && event.Package == nil {
 		return
 	}
 
 	switch event.Threat.SubjectType {
-	case jsonreportspec.ReportThreat_Manifest:
+	case schema.ReportThreat_Manifest:
 		manifest := r.findPackageManifestReport(event.Manifest)
 		manifest.Threats = append(manifest.Threats, event.Threat)
 
-	case jsonreportspec.ReportThreat_Package:
+	case schema.ReportThreat_Package:
 		pkg := r.findPackageReport(event.Package)
 		pkg.Threats = append(pkg.Threats, event.Threat)
 	}
@@ -146,10 +146,10 @@ func (r *jsonReportGenerator) handleFilterEvent(event *analyzer.AnalyzerEvent) {
 	}
 }
 
-func (r *jsonReportGenerator) findPackageManifestReport(manifest *models.PackageManifest) *jsonreportspec.PackageManifestReport {
+func (r *jsonReportGenerator) findPackageManifestReport(manifest *models.PackageManifest) *schema.PackageManifestReport {
 	manifestId := manifest.Id()
 	if _, ok := r.manifests[manifestId]; !ok {
-		r.manifests[manifestId] = &jsonreportspec.PackageManifestReport{
+		r.manifests[manifestId] = &schema.PackageManifestReport{
 			Id:          manifestId,
 			SourceType:  string(manifest.GetSource().GetType()),
 			Namespace:   manifest.GetSource().GetNamespace(),
@@ -163,7 +163,7 @@ func (r *jsonReportGenerator) findPackageManifestReport(manifest *models.Package
 	return r.manifests[manifestId]
 }
 
-func (r *jsonReportGenerator) findPackageReport(pkg *models.Package) *jsonreportspec.PackageReport {
+func (r *jsonReportGenerator) findPackageReport(pkg *models.Package) *schema.PackageReport {
 	pkgId := pkg.Id()
 	if _, ok := r.packages[pkgId]; !ok {
 		r.packages[pkgId] = r.buildJsonPackageReportFromPackage(pkg)
@@ -182,7 +182,7 @@ func (r *jsonReportGenerator) Finish() error {
 		return err
 	}
 
-	b, err := utils.ToPbJson(report, "")
+	b, err := pb.ToJson(report, "")
 	if err != nil {
 		return err
 	}
@@ -193,7 +193,7 @@ func (r *jsonReportGenerator) Finish() error {
 	}
 
 	defer file.Close()
-	_, err = file.WriteString(b)
+	_, err = file.Write(b)
 	return err
 }
 
@@ -219,8 +219,8 @@ func (r *jsonReportGenerator) buildSpecReport() (*schema.Report, error) {
 	return &report, nil
 }
 
-func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Package) *jsonreportspec.PackageReport {
-	pkg := &jsonreportspec.PackageReport{
+func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Package) *schema.PackageReport {
+	pkg := &schema.PackageReport{
 		Package: &modelspec.Package{
 			Ecosystem: p.GetSpecEcosystem(),
 			Name:      p.GetName(),

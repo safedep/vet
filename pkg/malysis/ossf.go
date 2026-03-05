@@ -2,16 +2,17 @@ package malysis
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	malysisv1pb "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
+	"github.com/ossf/osv-schema/bindings/go/osvconstants"
 	"github.com/ossf/osv-schema/bindings/go/osvschema"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/safedep/vet/pkg/common/logger"
 )
@@ -90,13 +91,13 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 	}
 
 	// Determine the appropriate range type based on ecosystem
-	rangeType := osvschema.RangeSemVer
+	rangeType := osvschema.Range_SEMVER
 	if report.GetPackageVersion().GetPackage().GetEcosystem() == packagev1.Ecosystem_ECOSYSTEM_PYPI {
-		rangeType = osvschema.RangeEcosystem
+		rangeType = osvschema.Range_ECOSYSTEM
 	}
 
-	affected := osvschema.Affected{
-		Package: osvschema.Package{
+	affected := &osvschema.Affected{
+		Package: &osvschema.Package{
 			Ecosystem: osvEcosystem,
 			Name:      report.GetPackageVersion().GetPackage().GetName(),
 		},
@@ -106,10 +107,10 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 	// Decide between using ranges or explicit versions
 	if params.UseRange || packageVersion == "" {
 		// Use range-based versioning (old behavior)
-		affected.Ranges = []osvschema.Range{
+		affected.Ranges = []*osvschema.Range{
 			{
 				Type: rangeType,
-				Events: []osvschema.Event{
+				Events: []*osvschema.Event{
 					{
 						Introduced: versionIntroduced,
 						Fixed:      params.VersionFixed,
@@ -122,26 +123,27 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 		affected.Versions = []string{packageVersion}
 	}
 
+	now := timestamppb.Now()
 	vuln := osvschema.Vulnerability{
-		SchemaVersion: osvschema.SchemaVersion,
-		Modified:      time.Now(),
-		Published:     time.Now(),
+		SchemaVersion: osvconstants.SchemaVersion,
+		Modified:      now,
+		Published:     now,
 		Summary:       fmt.Sprintf("Malicious code in %s package (%s)", report.GetPackageVersion().GetPackage().GetName(), osvEcosystem),
 		Details:       report.GetInference().GetSummary(), // This is intentional to map our summary with OSV details
-		References: []osvschema.Reference{
+		References: []*osvschema.Reference{
 			{
-				Type: osvschema.ReferenceReport,
-				URL:  reportURL,
+				Type: osvschema.Reference_REPORT,
+				Url:  reportURL,
 			},
 		},
-		Credits: []osvschema.Credit{
+		Credits: []*osvschema.Credit{
 			{
-				Type:    osvschema.CreditFinder,
+				Type:    osvschema.Credit_FINDER,
 				Name:    finderName,
 				Contact: contacts,
 			},
 		},
-		Affected: []osvschema.Affected{affected},
+		Affected: []*osvschema.Affected{affected},
 	}
 
 	relFilePath, err := g.relativeFilePath(report.GetPackageVersion().GetPackage().GetEcosystem(),
@@ -150,7 +152,8 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 		return fmt.Errorf("failed to get relative file path: %w", err)
 	}
 
-	json, err := json.MarshalIndent(vuln, "", "  ")
+	marshaler := protojson.MarshalOptions{Indent: "  "}
+	jsonBytes, err := marshaler.Marshal(&vuln)
 	if err != nil {
 		return fmt.Errorf("failed to marshal vulnerability: %w", err)
 	}
@@ -170,7 +173,7 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 
 	logger.Debugf("Writing OSV report to: %s", fullFilePath)
 
-	err = os.WriteFile(fullFilePath, json, 0o644)
+	err = os.WriteFile(fullFilePath, jsonBytes, 0o644)
 	if err != nil {
 		return fmt.Errorf("failed to write vulnerability: %w", err)
 	}
@@ -198,15 +201,6 @@ var osvEcosystemMap = map[packagev1.Ecosystem]string{
 	packagev1.Ecosystem_ECOSYSTEM_GO:       "Go",
 	packagev1.Ecosystem_ECOSYSTEM_MAVEN:    "Maven",
 	packagev1.Ecosystem_ECOSYSTEM_CARGO:    "crates.io",
-}
-
-func (g *openSSFMaliciousPackageReportGenerator) ecosystemFor(ecosystem packagev1.Ecosystem) (string, error) {
-	ecosystemStr, ok := filePathEcosystemMap[ecosystem]
-	if !ok {
-		return "", fmt.Errorf("unsupported ecosystem: %s", ecosystem)
-	}
-
-	return ecosystemStr, nil
 }
 
 func (g *openSSFMaliciousPackageReportGenerator) osvEcosystemFor(ecosystem packagev1.Ecosystem) (string, error) {

@@ -21,7 +21,6 @@ type WorkQueueCallbacks[T WorkQueueItem] struct {
 
 type WorkQueue[T WorkQueueItem] struct {
 	done        chan bool
-	m           sync.Mutex
 	concurrency int
 	wg          sync.WaitGroup
 	handler     WorkQueueFn[T]

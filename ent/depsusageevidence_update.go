@@ -23,190 +23,190 @@ type DepsUsageEvidenceUpdate struct {
 }
 
 // Where appends a list predicates to the DepsUsageEvidenceUpdate builder.
-func (dueu *DepsUsageEvidenceUpdate) Where(ps ...predicate.DepsUsageEvidence) *DepsUsageEvidenceUpdate {
-	dueu.mutation.Where(ps...)
-	return dueu
+func (_u *DepsUsageEvidenceUpdate) Where(ps ...predicate.DepsUsageEvidence) *DepsUsageEvidenceUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetPackageHint sets the "package_hint" field.
-func (dueu *DepsUsageEvidenceUpdate) SetPackageHint(s string) *DepsUsageEvidenceUpdate {
-	dueu.mutation.SetPackageHint(s)
-	return dueu
+func (_u *DepsUsageEvidenceUpdate) SetPackageHint(v string) *DepsUsageEvidenceUpdate {
+	_u.mutation.SetPackageHint(v)
+	return _u
 }
 
 // SetNillablePackageHint sets the "package_hint" field if the given value is not nil.
-func (dueu *DepsUsageEvidenceUpdate) SetNillablePackageHint(s *string) *DepsUsageEvidenceUpdate {
-	if s != nil {
-		dueu.SetPackageHint(*s)
+func (_u *DepsUsageEvidenceUpdate) SetNillablePackageHint(v *string) *DepsUsageEvidenceUpdate {
+	if v != nil {
+		_u.SetPackageHint(*v)
 	}
-	return dueu
+	return _u
 }
 
 // ClearPackageHint clears the value of the "package_hint" field.
-func (dueu *DepsUsageEvidenceUpdate) ClearPackageHint() *DepsUsageEvidenceUpdate {
-	dueu.mutation.ClearPackageHint()
-	return dueu
+func (_u *DepsUsageEvidenceUpdate) ClearPackageHint() *DepsUsageEvidenceUpdate {
+	_u.mutation.ClearPackageHint()
+	return _u
 }
 
 // SetModuleName sets the "module_name" field.
-func (dueu *DepsUsageEvidenceUpdate) SetModuleName(s string) *DepsUsageEvidenceUpdate {
-	dueu.mutation.SetModuleName(s)
-	return dueu
+func (_u *DepsUsageEvidenceUpdate) SetModuleName(v string) *DepsUsageEvidenceUpdate {
+	_u.mutation.SetModuleName(v)
+	return _u
 }
 
 // SetNillableModuleName sets the "module_name" field if the given value is not nil.
-func (dueu *DepsUsageEvidenceUpdate) SetNillableModuleName(s *string) *DepsUsageEvidenceUpdate {
-	if s != nil {
-		dueu.SetModuleName(*s)
+func (_u *DepsUsageEvidenceUpdate) SetNillableModuleName(v *string) *DepsUsageEvidenceUpdate {
+	if v != nil {
+		_u.SetModuleName(*v)
 	}
-	return dueu
+	return _u
 }
 
 // SetModuleItem sets the "module_item" field.
-func (dueu *DepsUsageEvidenceUpdate) SetModuleItem(s string) *DepsUsageEvidenceUpdate {
-	dueu.mutation.SetModuleItem(s)
-	return dueu
+func (_u *DepsUsageEvidenceUpdate) SetModuleItem(v string) *DepsUsageEvidenceUpdate {
+	_u.mutation.SetModuleItem(v)
+	return _u
 }
 
 // SetNillableModuleItem sets the "module_item" field if the given value is not nil.
-func (dueu *DepsUsageEvidenceUpdate) SetNillableModuleItem(s *string) *DepsUsageEvidenceUpdate {
-	if s != nil {
-		dueu.SetModuleItem(*s)
+func (_u *DepsUsageEvidenceUpdate) SetNillableModuleItem(v *string) *DepsUsageEvidenceUpdate {
+	if v != nil {
+		_u.SetModuleItem(*v)
 	}
-	return dueu
+	return _u
 }
 
 // ClearModuleItem clears the value of the "module_item" field.
-func (dueu *DepsUsageEvidenceUpdate) ClearModuleItem() *DepsUsageEvidenceUpdate {
-	dueu.mutation.ClearModuleItem()
-	return dueu
+func (_u *DepsUsageEvidenceUpdate) ClearModuleItem() *DepsUsageEvidenceUpdate {
+	_u.mutation.ClearModuleItem()
+	return _u
 }
 
 // SetModuleAlias sets the "module_alias" field.
-func (dueu *DepsUsageEvidenceUpdate) SetModuleAlias(s string) *DepsUsageEvidenceUpdate {
-	dueu.mutation.SetModuleAlias(s)
-	return dueu
+func (_u *DepsUsageEvidenceUpdate) SetModuleAlias(v string) *DepsUsageEvidenceUpdate {
+	_u.mutation.SetModuleAlias(v)
+	return _u
 }
 
 // SetNillableModuleAlias sets the "module_alias" field if the given value is not nil.
-func (dueu *DepsUsageEvidenceUpdate) SetNillableModuleAlias(s *string) *DepsUsageEvidenceUpdate {
-	if s != nil {
-		dueu.SetModuleAlias(*s)
+func (_u *DepsUsageEvidenceUpdate) SetNillableModuleAlias(v *string) *DepsUsageEvidenceUpdate {
+	if v != nil {
+		_u.SetModuleAlias(*v)
 	}
-	return dueu
+	return _u
 }
 
 // ClearModuleAlias clears the value of the "module_alias" field.
-func (dueu *DepsUsageEvidenceUpdate) ClearModuleAlias() *DepsUsageEvidenceUpdate {
-	dueu.mutation.ClearModuleAlias()
-	return dueu
+func (_u *DepsUsageEvidenceUpdate) ClearModuleAlias() *DepsUsageEvidenceUpdate {
+	_u.mutation.ClearModuleAlias()
+	return _u
 }
 
 // SetIsWildCardUsage sets the "is_wild_card_usage" field.
-func (dueu *DepsUsageEvidenceUpdate) SetIsWildCardUsage(b bool) *DepsUsageEvidenceUpdate {
-	dueu.mutation.SetIsWildCardUsage(b)
-	return dueu
+func (_u *DepsUsageEvidenceUpdate) SetIsWildCardUsage(v bool) *DepsUsageEvidenceUpdate {
+	_u.mutation.SetIsWildCardUsage(v)
+	return _u
 }
 
 // SetNillableIsWildCardUsage sets the "is_wild_card_usage" field if the given value is not nil.
-func (dueu *DepsUsageEvidenceUpdate) SetNillableIsWildCardUsage(b *bool) *DepsUsageEvidenceUpdate {
-	if b != nil {
-		dueu.SetIsWildCardUsage(*b)
+func (_u *DepsUsageEvidenceUpdate) SetNillableIsWildCardUsage(v *bool) *DepsUsageEvidenceUpdate {
+	if v != nil {
+		_u.SetIsWildCardUsage(*v)
 	}
-	return dueu
+	return _u
 }
 
 // ClearIsWildCardUsage clears the value of the "is_wild_card_usage" field.
-func (dueu *DepsUsageEvidenceUpdate) ClearIsWildCardUsage() *DepsUsageEvidenceUpdate {
-	dueu.mutation.ClearIsWildCardUsage()
-	return dueu
+func (_u *DepsUsageEvidenceUpdate) ClearIsWildCardUsage() *DepsUsageEvidenceUpdate {
+	_u.mutation.ClearIsWildCardUsage()
+	return _u
 }
 
 // SetIdentifier sets the "identifier" field.
-func (dueu *DepsUsageEvidenceUpdate) SetIdentifier(s string) *DepsUsageEvidenceUpdate {
-	dueu.mutation.SetIdentifier(s)
-	return dueu
+func (_u *DepsUsageEvidenceUpdate) SetIdentifier(v string) *DepsUsageEvidenceUpdate {
+	_u.mutation.SetIdentifier(v)
+	return _u
 }
 
 // SetNillableIdentifier sets the "identifier" field if the given value is not nil.
-func (dueu *DepsUsageEvidenceUpdate) SetNillableIdentifier(s *string) *DepsUsageEvidenceUpdate {
-	if s != nil {
-		dueu.SetIdentifier(*s)
+func (_u *DepsUsageEvidenceUpdate) SetNillableIdentifier(v *string) *DepsUsageEvidenceUpdate {
+	if v != nil {
+		_u.SetIdentifier(*v)
 	}
-	return dueu
+	return _u
 }
 
 // ClearIdentifier clears the value of the "identifier" field.
-func (dueu *DepsUsageEvidenceUpdate) ClearIdentifier() *DepsUsageEvidenceUpdate {
-	dueu.mutation.ClearIdentifier()
-	return dueu
+func (_u *DepsUsageEvidenceUpdate) ClearIdentifier() *DepsUsageEvidenceUpdate {
+	_u.mutation.ClearIdentifier()
+	return _u
 }
 
 // SetUsageFilePath sets the "usage_file_path" field.
-func (dueu *DepsUsageEvidenceUpdate) SetUsageFilePath(s string) *DepsUsageEvidenceUpdate {
-	dueu.mutation.SetUsageFilePath(s)
-	return dueu
+func (_u *DepsUsageEvidenceUpdate) SetUsageFilePath(v string) *DepsUsageEvidenceUpdate {
+	_u.mutation.SetUsageFilePath(v)
+	return _u
 }
 
 // SetNillableUsageFilePath sets the "usage_file_path" field if the given value is not nil.
-func (dueu *DepsUsageEvidenceUpdate) SetNillableUsageFilePath(s *string) *DepsUsageEvidenceUpdate {
-	if s != nil {
-		dueu.SetUsageFilePath(*s)
+func (_u *DepsUsageEvidenceUpdate) SetNillableUsageFilePath(v *string) *DepsUsageEvidenceUpdate {
+	if v != nil {
+		_u.SetUsageFilePath(*v)
 	}
-	return dueu
+	return _u
 }
 
 // SetLine sets the "line" field.
-func (dueu *DepsUsageEvidenceUpdate) SetLine(u uint) *DepsUsageEvidenceUpdate {
-	dueu.mutation.ResetLine()
-	dueu.mutation.SetLine(u)
-	return dueu
+func (_u *DepsUsageEvidenceUpdate) SetLine(v uint) *DepsUsageEvidenceUpdate {
+	_u.mutation.ResetLine()
+	_u.mutation.SetLine(v)
+	return _u
 }
 
 // SetNillableLine sets the "line" field if the given value is not nil.
-func (dueu *DepsUsageEvidenceUpdate) SetNillableLine(u *uint) *DepsUsageEvidenceUpdate {
-	if u != nil {
-		dueu.SetLine(*u)
+func (_u *DepsUsageEvidenceUpdate) SetNillableLine(v *uint) *DepsUsageEvidenceUpdate {
+	if v != nil {
+		_u.SetLine(*v)
 	}
-	return dueu
+	return _u
 }
 
-// AddLine adds u to the "line" field.
-func (dueu *DepsUsageEvidenceUpdate) AddLine(u int) *DepsUsageEvidenceUpdate {
-	dueu.mutation.AddLine(u)
-	return dueu
+// AddLine adds value to the "line" field.
+func (_u *DepsUsageEvidenceUpdate) AddLine(v int) *DepsUsageEvidenceUpdate {
+	_u.mutation.AddLine(v)
+	return _u
 }
 
 // SetUsedInID sets the "used_in" edge to the CodeSourceFile entity by ID.
-func (dueu *DepsUsageEvidenceUpdate) SetUsedInID(id int) *DepsUsageEvidenceUpdate {
-	dueu.mutation.SetUsedInID(id)
-	return dueu
+func (_u *DepsUsageEvidenceUpdate) SetUsedInID(id int) *DepsUsageEvidenceUpdate {
+	_u.mutation.SetUsedInID(id)
+	return _u
 }
 
 // SetUsedIn sets the "used_in" edge to the CodeSourceFile entity.
-func (dueu *DepsUsageEvidenceUpdate) SetUsedIn(c *CodeSourceFile) *DepsUsageEvidenceUpdate {
-	return dueu.SetUsedInID(c.ID)
+func (_u *DepsUsageEvidenceUpdate) SetUsedIn(v *CodeSourceFile) *DepsUsageEvidenceUpdate {
+	return _u.SetUsedInID(v.ID)
 }
 
 // Mutation returns the DepsUsageEvidenceMutation object of the builder.
-func (dueu *DepsUsageEvidenceUpdate) Mutation() *DepsUsageEvidenceMutation {
-	return dueu.mutation
+func (_u *DepsUsageEvidenceUpdate) Mutation() *DepsUsageEvidenceMutation {
+	return _u.mutation
 }
 
 // ClearUsedIn clears the "used_in" edge to the CodeSourceFile entity.
-func (dueu *DepsUsageEvidenceUpdate) ClearUsedIn() *DepsUsageEvidenceUpdate {
-	dueu.mutation.ClearUsedIn()
-	return dueu
+func (_u *DepsUsageEvidenceUpdate) ClearUsedIn() *DepsUsageEvidenceUpdate {
+	_u.mutation.ClearUsedIn()
+	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (dueu *DepsUsageEvidenceUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, dueu.sqlSave, dueu.mutation, dueu.hooks)
+func (_u *DepsUsageEvidenceUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (dueu *DepsUsageEvidenceUpdate) SaveX(ctx context.Context) int {
-	affected, err := dueu.Save(ctx)
+func (_u *DepsUsageEvidenceUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -214,81 +214,81 @@ func (dueu *DepsUsageEvidenceUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (dueu *DepsUsageEvidenceUpdate) Exec(ctx context.Context) error {
-	_, err := dueu.Save(ctx)
+func (_u *DepsUsageEvidenceUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (dueu *DepsUsageEvidenceUpdate) ExecX(ctx context.Context) {
-	if err := dueu.Exec(ctx); err != nil {
+func (_u *DepsUsageEvidenceUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (dueu *DepsUsageEvidenceUpdate) check() error {
-	if dueu.mutation.UsedInCleared() && len(dueu.mutation.UsedInIDs()) > 0 {
+func (_u *DepsUsageEvidenceUpdate) check() error {
+	if _u.mutation.UsedInCleared() && len(_u.mutation.UsedInIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "DepsUsageEvidence.used_in"`)
 	}
 	return nil
 }
 
-func (dueu *DepsUsageEvidenceUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := dueu.check(); err != nil {
-		return n, err
+func (_u *DepsUsageEvidenceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(depsusageevidence.Table, depsusageevidence.Columns, sqlgraph.NewFieldSpec(depsusageevidence.FieldID, field.TypeInt))
-	if ps := dueu.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := dueu.mutation.PackageHint(); ok {
+	if value, ok := _u.mutation.PackageHint(); ok {
 		_spec.SetField(depsusageevidence.FieldPackageHint, field.TypeString, value)
 	}
-	if dueu.mutation.PackageHintCleared() {
+	if _u.mutation.PackageHintCleared() {
 		_spec.ClearField(depsusageevidence.FieldPackageHint, field.TypeString)
 	}
-	if value, ok := dueu.mutation.ModuleName(); ok {
+	if value, ok := _u.mutation.ModuleName(); ok {
 		_spec.SetField(depsusageevidence.FieldModuleName, field.TypeString, value)
 	}
-	if value, ok := dueu.mutation.ModuleItem(); ok {
+	if value, ok := _u.mutation.ModuleItem(); ok {
 		_spec.SetField(depsusageevidence.FieldModuleItem, field.TypeString, value)
 	}
-	if dueu.mutation.ModuleItemCleared() {
+	if _u.mutation.ModuleItemCleared() {
 		_spec.ClearField(depsusageevidence.FieldModuleItem, field.TypeString)
 	}
-	if value, ok := dueu.mutation.ModuleAlias(); ok {
+	if value, ok := _u.mutation.ModuleAlias(); ok {
 		_spec.SetField(depsusageevidence.FieldModuleAlias, field.TypeString, value)
 	}
-	if dueu.mutation.ModuleAliasCleared() {
+	if _u.mutation.ModuleAliasCleared() {
 		_spec.ClearField(depsusageevidence.FieldModuleAlias, field.TypeString)
 	}
-	if value, ok := dueu.mutation.IsWildCardUsage(); ok {
+	if value, ok := _u.mutation.IsWildCardUsage(); ok {
 		_spec.SetField(depsusageevidence.FieldIsWildCardUsage, field.TypeBool, value)
 	}
-	if dueu.mutation.IsWildCardUsageCleared() {
+	if _u.mutation.IsWildCardUsageCleared() {
 		_spec.ClearField(depsusageevidence.FieldIsWildCardUsage, field.TypeBool)
 	}
-	if value, ok := dueu.mutation.Identifier(); ok {
+	if value, ok := _u.mutation.Identifier(); ok {
 		_spec.SetField(depsusageevidence.FieldIdentifier, field.TypeString, value)
 	}
-	if dueu.mutation.IdentifierCleared() {
+	if _u.mutation.IdentifierCleared() {
 		_spec.ClearField(depsusageevidence.FieldIdentifier, field.TypeString)
 	}
-	if value, ok := dueu.mutation.UsageFilePath(); ok {
+	if value, ok := _u.mutation.UsageFilePath(); ok {
 		_spec.SetField(depsusageevidence.FieldUsageFilePath, field.TypeString, value)
 	}
-	if value, ok := dueu.mutation.Line(); ok {
+	if value, ok := _u.mutation.Line(); ok {
 		_spec.SetField(depsusageevidence.FieldLine, field.TypeUint, value)
 	}
-	if value, ok := dueu.mutation.AddedLine(); ok {
+	if value, ok := _u.mutation.AddedLine(); ok {
 		_spec.AddField(depsusageevidence.FieldLine, field.TypeUint, value)
 	}
-	if dueu.mutation.UsedInCleared() {
+	if _u.mutation.UsedInCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -301,7 +301,7 @@ func (dueu *DepsUsageEvidenceUpdate) sqlSave(ctx context.Context) (n int, err er
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := dueu.mutation.UsedInIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.UsedInIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -317,7 +317,7 @@ func (dueu *DepsUsageEvidenceUpdate) sqlSave(ctx context.Context) (n int, err er
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, dueu.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{depsusageevidence.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -325,8 +325,8 @@ func (dueu *DepsUsageEvidenceUpdate) sqlSave(ctx context.Context) (n int, err er
 		}
 		return 0, err
 	}
-	dueu.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // DepsUsageEvidenceUpdateOne is the builder for updating a single DepsUsageEvidence entity.
@@ -338,197 +338,197 @@ type DepsUsageEvidenceUpdateOne struct {
 }
 
 // SetPackageHint sets the "package_hint" field.
-func (dueuo *DepsUsageEvidenceUpdateOne) SetPackageHint(s string) *DepsUsageEvidenceUpdateOne {
-	dueuo.mutation.SetPackageHint(s)
-	return dueuo
+func (_u *DepsUsageEvidenceUpdateOne) SetPackageHint(v string) *DepsUsageEvidenceUpdateOne {
+	_u.mutation.SetPackageHint(v)
+	return _u
 }
 
 // SetNillablePackageHint sets the "package_hint" field if the given value is not nil.
-func (dueuo *DepsUsageEvidenceUpdateOne) SetNillablePackageHint(s *string) *DepsUsageEvidenceUpdateOne {
-	if s != nil {
-		dueuo.SetPackageHint(*s)
+func (_u *DepsUsageEvidenceUpdateOne) SetNillablePackageHint(v *string) *DepsUsageEvidenceUpdateOne {
+	if v != nil {
+		_u.SetPackageHint(*v)
 	}
-	return dueuo
+	return _u
 }
 
 // ClearPackageHint clears the value of the "package_hint" field.
-func (dueuo *DepsUsageEvidenceUpdateOne) ClearPackageHint() *DepsUsageEvidenceUpdateOne {
-	dueuo.mutation.ClearPackageHint()
-	return dueuo
+func (_u *DepsUsageEvidenceUpdateOne) ClearPackageHint() *DepsUsageEvidenceUpdateOne {
+	_u.mutation.ClearPackageHint()
+	return _u
 }
 
 // SetModuleName sets the "module_name" field.
-func (dueuo *DepsUsageEvidenceUpdateOne) SetModuleName(s string) *DepsUsageEvidenceUpdateOne {
-	dueuo.mutation.SetModuleName(s)
-	return dueuo
+func (_u *DepsUsageEvidenceUpdateOne) SetModuleName(v string) *DepsUsageEvidenceUpdateOne {
+	_u.mutation.SetModuleName(v)
+	return _u
 }
 
 // SetNillableModuleName sets the "module_name" field if the given value is not nil.
-func (dueuo *DepsUsageEvidenceUpdateOne) SetNillableModuleName(s *string) *DepsUsageEvidenceUpdateOne {
-	if s != nil {
-		dueuo.SetModuleName(*s)
+func (_u *DepsUsageEvidenceUpdateOne) SetNillableModuleName(v *string) *DepsUsageEvidenceUpdateOne {
+	if v != nil {
+		_u.SetModuleName(*v)
 	}
-	return dueuo
+	return _u
 }
 
 // SetModuleItem sets the "module_item" field.
-func (dueuo *DepsUsageEvidenceUpdateOne) SetModuleItem(s string) *DepsUsageEvidenceUpdateOne {
-	dueuo.mutation.SetModuleItem(s)
-	return dueuo
+func (_u *DepsUsageEvidenceUpdateOne) SetModuleItem(v string) *DepsUsageEvidenceUpdateOne {
+	_u.mutation.SetModuleItem(v)
+	return _u
 }
 
 // SetNillableModuleItem sets the "module_item" field if the given value is not nil.
-func (dueuo *DepsUsageEvidenceUpdateOne) SetNillableModuleItem(s *string) *DepsUsageEvidenceUpdateOne {
-	if s != nil {
-		dueuo.SetModuleItem(*s)
+func (_u *DepsUsageEvidenceUpdateOne) SetNillableModuleItem(v *string) *DepsUsageEvidenceUpdateOne {
+	if v != nil {
+		_u.SetModuleItem(*v)
 	}
-	return dueuo
+	return _u
 }
 
 // ClearModuleItem clears the value of the "module_item" field.
-func (dueuo *DepsUsageEvidenceUpdateOne) ClearModuleItem() *DepsUsageEvidenceUpdateOne {
-	dueuo.mutation.ClearModuleItem()
-	return dueuo
+func (_u *DepsUsageEvidenceUpdateOne) ClearModuleItem() *DepsUsageEvidenceUpdateOne {
+	_u.mutation.ClearModuleItem()
+	return _u
 }
 
 // SetModuleAlias sets the "module_alias" field.
-func (dueuo *DepsUsageEvidenceUpdateOne) SetModuleAlias(s string) *DepsUsageEvidenceUpdateOne {
-	dueuo.mutation.SetModuleAlias(s)
-	return dueuo
+func (_u *DepsUsageEvidenceUpdateOne) SetModuleAlias(v string) *DepsUsageEvidenceUpdateOne {
+	_u.mutation.SetModuleAlias(v)
+	return _u
 }
 
 // SetNillableModuleAlias sets the "module_alias" field if the given value is not nil.
-func (dueuo *DepsUsageEvidenceUpdateOne) SetNillableModuleAlias(s *string) *DepsUsageEvidenceUpdateOne {
-	if s != nil {
-		dueuo.SetModuleAlias(*s)
+func (_u *DepsUsageEvidenceUpdateOne) SetNillableModuleAlias(v *string) *DepsUsageEvidenceUpdateOne {
+	if v != nil {
+		_u.SetModuleAlias(*v)
 	}
-	return dueuo
+	return _u
 }
 
 // ClearModuleAlias clears the value of the "module_alias" field.
-func (dueuo *DepsUsageEvidenceUpdateOne) ClearModuleAlias() *DepsUsageEvidenceUpdateOne {
-	dueuo.mutation.ClearModuleAlias()
-	return dueuo
+func (_u *DepsUsageEvidenceUpdateOne) ClearModuleAlias() *DepsUsageEvidenceUpdateOne {
+	_u.mutation.ClearModuleAlias()
+	return _u
 }
 
 // SetIsWildCardUsage sets the "is_wild_card_usage" field.
-func (dueuo *DepsUsageEvidenceUpdateOne) SetIsWildCardUsage(b bool) *DepsUsageEvidenceUpdateOne {
-	dueuo.mutation.SetIsWildCardUsage(b)
-	return dueuo
+func (_u *DepsUsageEvidenceUpdateOne) SetIsWildCardUsage(v bool) *DepsUsageEvidenceUpdateOne {
+	_u.mutation.SetIsWildCardUsage(v)
+	return _u
 }
 
 // SetNillableIsWildCardUsage sets the "is_wild_card_usage" field if the given value is not nil.
-func (dueuo *DepsUsageEvidenceUpdateOne) SetNillableIsWildCardUsage(b *bool) *DepsUsageEvidenceUpdateOne {
-	if b != nil {
-		dueuo.SetIsWildCardUsage(*b)
+func (_u *DepsUsageEvidenceUpdateOne) SetNillableIsWildCardUsage(v *bool) *DepsUsageEvidenceUpdateOne {
+	if v != nil {
+		_u.SetIsWildCardUsage(*v)
 	}
-	return dueuo
+	return _u
 }
 
 // ClearIsWildCardUsage clears the value of the "is_wild_card_usage" field.
-func (dueuo *DepsUsageEvidenceUpdateOne) ClearIsWildCardUsage() *DepsUsageEvidenceUpdateOne {
-	dueuo.mutation.ClearIsWildCardUsage()
-	return dueuo
+func (_u *DepsUsageEvidenceUpdateOne) ClearIsWildCardUsage() *DepsUsageEvidenceUpdateOne {
+	_u.mutation.ClearIsWildCardUsage()
+	return _u
 }
 
 // SetIdentifier sets the "identifier" field.
-func (dueuo *DepsUsageEvidenceUpdateOne) SetIdentifier(s string) *DepsUsageEvidenceUpdateOne {
-	dueuo.mutation.SetIdentifier(s)
-	return dueuo
+func (_u *DepsUsageEvidenceUpdateOne) SetIdentifier(v string) *DepsUsageEvidenceUpdateOne {
+	_u.mutation.SetIdentifier(v)
+	return _u
 }
 
 // SetNillableIdentifier sets the "identifier" field if the given value is not nil.
-func (dueuo *DepsUsageEvidenceUpdateOne) SetNillableIdentifier(s *string) *DepsUsageEvidenceUpdateOne {
-	if s != nil {
-		dueuo.SetIdentifier(*s)
+func (_u *DepsUsageEvidenceUpdateOne) SetNillableIdentifier(v *string) *DepsUsageEvidenceUpdateOne {
+	if v != nil {
+		_u.SetIdentifier(*v)
 	}
-	return dueuo
+	return _u
 }
 
 // ClearIdentifier clears the value of the "identifier" field.
-func (dueuo *DepsUsageEvidenceUpdateOne) ClearIdentifier() *DepsUsageEvidenceUpdateOne {
-	dueuo.mutation.ClearIdentifier()
-	return dueuo
+func (_u *DepsUsageEvidenceUpdateOne) ClearIdentifier() *DepsUsageEvidenceUpdateOne {
+	_u.mutation.ClearIdentifier()
+	return _u
 }
 
 // SetUsageFilePath sets the "usage_file_path" field.
-func (dueuo *DepsUsageEvidenceUpdateOne) SetUsageFilePath(s string) *DepsUsageEvidenceUpdateOne {
-	dueuo.mutation.SetUsageFilePath(s)
-	return dueuo
+func (_u *DepsUsageEvidenceUpdateOne) SetUsageFilePath(v string) *DepsUsageEvidenceUpdateOne {
+	_u.mutation.SetUsageFilePath(v)
+	return _u
 }
 
 // SetNillableUsageFilePath sets the "usage_file_path" field if the given value is not nil.
-func (dueuo *DepsUsageEvidenceUpdateOne) SetNillableUsageFilePath(s *string) *DepsUsageEvidenceUpdateOne {
-	if s != nil {
-		dueuo.SetUsageFilePath(*s)
+func (_u *DepsUsageEvidenceUpdateOne) SetNillableUsageFilePath(v *string) *DepsUsageEvidenceUpdateOne {
+	if v != nil {
+		_u.SetUsageFilePath(*v)
 	}
-	return dueuo
+	return _u
 }
 
 // SetLine sets the "line" field.
-func (dueuo *DepsUsageEvidenceUpdateOne) SetLine(u uint) *DepsUsageEvidenceUpdateOne {
-	dueuo.mutation.ResetLine()
-	dueuo.mutation.SetLine(u)
-	return dueuo
+func (_u *DepsUsageEvidenceUpdateOne) SetLine(v uint) *DepsUsageEvidenceUpdateOne {
+	_u.mutation.ResetLine()
+	_u.mutation.SetLine(v)
+	return _u
 }
 
 // SetNillableLine sets the "line" field if the given value is not nil.
-func (dueuo *DepsUsageEvidenceUpdateOne) SetNillableLine(u *uint) *DepsUsageEvidenceUpdateOne {
-	if u != nil {
-		dueuo.SetLine(*u)
+func (_u *DepsUsageEvidenceUpdateOne) SetNillableLine(v *uint) *DepsUsageEvidenceUpdateOne {
+	if v != nil {
+		_u.SetLine(*v)
 	}
-	return dueuo
+	return _u
 }
 
-// AddLine adds u to the "line" field.
-func (dueuo *DepsUsageEvidenceUpdateOne) AddLine(u int) *DepsUsageEvidenceUpdateOne {
-	dueuo.mutation.AddLine(u)
-	return dueuo
+// AddLine adds value to the "line" field.
+func (_u *DepsUsageEvidenceUpdateOne) AddLine(v int) *DepsUsageEvidenceUpdateOne {
+	_u.mutation.AddLine(v)
+	return _u
 }
 
 // SetUsedInID sets the "used_in" edge to the CodeSourceFile entity by ID.
-func (dueuo *DepsUsageEvidenceUpdateOne) SetUsedInID(id int) *DepsUsageEvidenceUpdateOne {
-	dueuo.mutation.SetUsedInID(id)
-	return dueuo
+func (_u *DepsUsageEvidenceUpdateOne) SetUsedInID(id int) *DepsUsageEvidenceUpdateOne {
+	_u.mutation.SetUsedInID(id)
+	return _u
 }
 
 // SetUsedIn sets the "used_in" edge to the CodeSourceFile entity.
-func (dueuo *DepsUsageEvidenceUpdateOne) SetUsedIn(c *CodeSourceFile) *DepsUsageEvidenceUpdateOne {
-	return dueuo.SetUsedInID(c.ID)
+func (_u *DepsUsageEvidenceUpdateOne) SetUsedIn(v *CodeSourceFile) *DepsUsageEvidenceUpdateOne {
+	return _u.SetUsedInID(v.ID)
 }
 
 // Mutation returns the DepsUsageEvidenceMutation object of the builder.
-func (dueuo *DepsUsageEvidenceUpdateOne) Mutation() *DepsUsageEvidenceMutation {
-	return dueuo.mutation
+func (_u *DepsUsageEvidenceUpdateOne) Mutation() *DepsUsageEvidenceMutation {
+	return _u.mutation
 }
 
 // ClearUsedIn clears the "used_in" edge to the CodeSourceFile entity.
-func (dueuo *DepsUsageEvidenceUpdateOne) ClearUsedIn() *DepsUsageEvidenceUpdateOne {
-	dueuo.mutation.ClearUsedIn()
-	return dueuo
+func (_u *DepsUsageEvidenceUpdateOne) ClearUsedIn() *DepsUsageEvidenceUpdateOne {
+	_u.mutation.ClearUsedIn()
+	return _u
 }
 
 // Where appends a list predicates to the DepsUsageEvidenceUpdate builder.
-func (dueuo *DepsUsageEvidenceUpdateOne) Where(ps ...predicate.DepsUsageEvidence) *DepsUsageEvidenceUpdateOne {
-	dueuo.mutation.Where(ps...)
-	return dueuo
+func (_u *DepsUsageEvidenceUpdateOne) Where(ps ...predicate.DepsUsageEvidence) *DepsUsageEvidenceUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (dueuo *DepsUsageEvidenceUpdateOne) Select(field string, fields ...string) *DepsUsageEvidenceUpdateOne {
-	dueuo.fields = append([]string{field}, fields...)
-	return dueuo
+func (_u *DepsUsageEvidenceUpdateOne) Select(field string, fields ...string) *DepsUsageEvidenceUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated DepsUsageEvidence entity.
-func (dueuo *DepsUsageEvidenceUpdateOne) Save(ctx context.Context) (*DepsUsageEvidence, error) {
-	return withHooks(ctx, dueuo.sqlSave, dueuo.mutation, dueuo.hooks)
+func (_u *DepsUsageEvidenceUpdateOne) Save(ctx context.Context) (*DepsUsageEvidence, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (dueuo *DepsUsageEvidenceUpdateOne) SaveX(ctx context.Context) *DepsUsageEvidence {
-	node, err := dueuo.Save(ctx)
+func (_u *DepsUsageEvidenceUpdateOne) SaveX(ctx context.Context) *DepsUsageEvidence {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -536,37 +536,37 @@ func (dueuo *DepsUsageEvidenceUpdateOne) SaveX(ctx context.Context) *DepsUsageEv
 }
 
 // Exec executes the query on the entity.
-func (dueuo *DepsUsageEvidenceUpdateOne) Exec(ctx context.Context) error {
-	_, err := dueuo.Save(ctx)
+func (_u *DepsUsageEvidenceUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (dueuo *DepsUsageEvidenceUpdateOne) ExecX(ctx context.Context) {
-	if err := dueuo.Exec(ctx); err != nil {
+func (_u *DepsUsageEvidenceUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (dueuo *DepsUsageEvidenceUpdateOne) check() error {
-	if dueuo.mutation.UsedInCleared() && len(dueuo.mutation.UsedInIDs()) > 0 {
+func (_u *DepsUsageEvidenceUpdateOne) check() error {
+	if _u.mutation.UsedInCleared() && len(_u.mutation.UsedInIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "DepsUsageEvidence.used_in"`)
 	}
 	return nil
 }
 
-func (dueuo *DepsUsageEvidenceUpdateOne) sqlSave(ctx context.Context) (_node *DepsUsageEvidence, err error) {
-	if err := dueuo.check(); err != nil {
+func (_u *DepsUsageEvidenceUpdateOne) sqlSave(ctx context.Context) (_node *DepsUsageEvidence, err error) {
+	if err := _u.check(); err != nil {
 		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(depsusageevidence.Table, depsusageevidence.Columns, sqlgraph.NewFieldSpec(depsusageevidence.FieldID, field.TypeInt))
-	id, ok := dueuo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "DepsUsageEvidence.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := dueuo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, depsusageevidence.FieldID)
 		for _, f := range fields {
@@ -578,56 +578,56 @@ func (dueuo *DepsUsageEvidenceUpdateOne) sqlSave(ctx context.Context) (_node *De
 			}
 		}
 	}
-	if ps := dueuo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := dueuo.mutation.PackageHint(); ok {
+	if value, ok := _u.mutation.PackageHint(); ok {
 		_spec.SetField(depsusageevidence.FieldPackageHint, field.TypeString, value)
 	}
-	if dueuo.mutation.PackageHintCleared() {
+	if _u.mutation.PackageHintCleared() {
 		_spec.ClearField(depsusageevidence.FieldPackageHint, field.TypeString)
 	}
-	if value, ok := dueuo.mutation.ModuleName(); ok {
+	if value, ok := _u.mutation.ModuleName(); ok {
 		_spec.SetField(depsusageevidence.FieldModuleName, field.TypeString, value)
 	}
-	if value, ok := dueuo.mutation.ModuleItem(); ok {
+	if value, ok := _u.mutation.ModuleItem(); ok {
 		_spec.SetField(depsusageevidence.FieldModuleItem, field.TypeString, value)
 	}
-	if dueuo.mutation.ModuleItemCleared() {
+	if _u.mutation.ModuleItemCleared() {
 		_spec.ClearField(depsusageevidence.FieldModuleItem, field.TypeString)
 	}
-	if value, ok := dueuo.mutation.ModuleAlias(); ok {
+	if value, ok := _u.mutation.ModuleAlias(); ok {
 		_spec.SetField(depsusageevidence.FieldModuleAlias, field.TypeString, value)
 	}
-	if dueuo.mutation.ModuleAliasCleared() {
+	if _u.mutation.ModuleAliasCleared() {
 		_spec.ClearField(depsusageevidence.FieldModuleAlias, field.TypeString)
 	}
-	if value, ok := dueuo.mutation.IsWildCardUsage(); ok {
+	if value, ok := _u.mutation.IsWildCardUsage(); ok {
 		_spec.SetField(depsusageevidence.FieldIsWildCardUsage, field.TypeBool, value)
 	}
-	if dueuo.mutation.IsWildCardUsageCleared() {
+	if _u.mutation.IsWildCardUsageCleared() {
 		_spec.ClearField(depsusageevidence.FieldIsWildCardUsage, field.TypeBool)
 	}
-	if value, ok := dueuo.mutation.Identifier(); ok {
+	if value, ok := _u.mutation.Identifier(); ok {
 		_spec.SetField(depsusageevidence.FieldIdentifier, field.TypeString, value)
 	}
-	if dueuo.mutation.IdentifierCleared() {
+	if _u.mutation.IdentifierCleared() {
 		_spec.ClearField(depsusageevidence.FieldIdentifier, field.TypeString)
 	}
-	if value, ok := dueuo.mutation.UsageFilePath(); ok {
+	if value, ok := _u.mutation.UsageFilePath(); ok {
 		_spec.SetField(depsusageevidence.FieldUsageFilePath, field.TypeString, value)
 	}
-	if value, ok := dueuo.mutation.Line(); ok {
+	if value, ok := _u.mutation.Line(); ok {
 		_spec.SetField(depsusageevidence.FieldLine, field.TypeUint, value)
 	}
-	if value, ok := dueuo.mutation.AddedLine(); ok {
+	if value, ok := _u.mutation.AddedLine(); ok {
 		_spec.AddField(depsusageevidence.FieldLine, field.TypeUint, value)
 	}
-	if dueuo.mutation.UsedInCleared() {
+	if _u.mutation.UsedInCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -640,7 +640,7 @@ func (dueuo *DepsUsageEvidenceUpdateOne) sqlSave(ctx context.Context) (_node *De
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := dueuo.mutation.UsedInIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.UsedInIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -656,10 +656,10 @@ func (dueuo *DepsUsageEvidenceUpdateOne) sqlSave(ctx context.Context) (_node *De
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_node = &DepsUsageEvidence{config: dueuo.config}
+	_node = &DepsUsageEvidence{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, dueuo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{depsusageevidence.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -667,6 +667,6 @@ func (dueuo *DepsUsageEvidenceUpdateOne) sqlSave(ctx context.Context) (_node *De
 		}
 		return nil, err
 	}
-	dueuo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

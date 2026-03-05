@@ -190,8 +190,8 @@ type syncReporter struct {
 var _ Reporter = (*syncReporter)(nil)
 
 func NewSyncReporterEnvironmentResolver() SyncReporterEnvResolver {
-	// The `GITHUB_ACTIONS` environment variable is always set to true when GitHub Actions is running the workflow
-	if _, exists := os.LookupEnv("GITHUB_ACTIONS"); exists {
+	// The `GITHUB_ACTIONS` environment variable is always set to "true" when GitHub Actions is running the workflow
+	if os.Getenv("GITHUB_ACTIONS") != "" {
 		return GithubActionsSyncReporterResolver()
 	}
 

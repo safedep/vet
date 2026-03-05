@@ -24,163 +24,163 @@ type ReportLicenseUpdate struct {
 }
 
 // Where appends a list predicates to the ReportLicenseUpdate builder.
-func (rlu *ReportLicenseUpdate) Where(ps ...predicate.ReportLicense) *ReportLicenseUpdate {
-	rlu.mutation.Where(ps...)
-	return rlu
+func (_u *ReportLicenseUpdate) Where(ps ...predicate.ReportLicense) *ReportLicenseUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetLicenseID sets the "license_id" field.
-func (rlu *ReportLicenseUpdate) SetLicenseID(s string) *ReportLicenseUpdate {
-	rlu.mutation.SetLicenseID(s)
-	return rlu
+func (_u *ReportLicenseUpdate) SetLicenseID(v string) *ReportLicenseUpdate {
+	_u.mutation.SetLicenseID(v)
+	return _u
 }
 
 // SetNillableLicenseID sets the "license_id" field if the given value is not nil.
-func (rlu *ReportLicenseUpdate) SetNillableLicenseID(s *string) *ReportLicenseUpdate {
-	if s != nil {
-		rlu.SetLicenseID(*s)
+func (_u *ReportLicenseUpdate) SetNillableLicenseID(v *string) *ReportLicenseUpdate {
+	if v != nil {
+		_u.SetLicenseID(*v)
 	}
-	return rlu
+	return _u
 }
 
 // SetName sets the "name" field.
-func (rlu *ReportLicenseUpdate) SetName(s string) *ReportLicenseUpdate {
-	rlu.mutation.SetName(s)
-	return rlu
+func (_u *ReportLicenseUpdate) SetName(v string) *ReportLicenseUpdate {
+	_u.mutation.SetName(v)
+	return _u
 }
 
 // SetNillableName sets the "name" field if the given value is not nil.
-func (rlu *ReportLicenseUpdate) SetNillableName(s *string) *ReportLicenseUpdate {
-	if s != nil {
-		rlu.SetName(*s)
+func (_u *ReportLicenseUpdate) SetNillableName(v *string) *ReportLicenseUpdate {
+	if v != nil {
+		_u.SetName(*v)
 	}
-	return rlu
+	return _u
 }
 
 // ClearName clears the value of the "name" field.
-func (rlu *ReportLicenseUpdate) ClearName() *ReportLicenseUpdate {
-	rlu.mutation.ClearName()
-	return rlu
+func (_u *ReportLicenseUpdate) ClearName() *ReportLicenseUpdate {
+	_u.mutation.ClearName()
+	return _u
 }
 
 // SetSpdxID sets the "spdx_id" field.
-func (rlu *ReportLicenseUpdate) SetSpdxID(s string) *ReportLicenseUpdate {
-	rlu.mutation.SetSpdxID(s)
-	return rlu
+func (_u *ReportLicenseUpdate) SetSpdxID(v string) *ReportLicenseUpdate {
+	_u.mutation.SetSpdxID(v)
+	return _u
 }
 
 // SetNillableSpdxID sets the "spdx_id" field if the given value is not nil.
-func (rlu *ReportLicenseUpdate) SetNillableSpdxID(s *string) *ReportLicenseUpdate {
-	if s != nil {
-		rlu.SetSpdxID(*s)
+func (_u *ReportLicenseUpdate) SetNillableSpdxID(v *string) *ReportLicenseUpdate {
+	if v != nil {
+		_u.SetSpdxID(*v)
 	}
-	return rlu
+	return _u
 }
 
 // ClearSpdxID clears the value of the "spdx_id" field.
-func (rlu *ReportLicenseUpdate) ClearSpdxID() *ReportLicenseUpdate {
-	rlu.mutation.ClearSpdxID()
-	return rlu
+func (_u *ReportLicenseUpdate) ClearSpdxID() *ReportLicenseUpdate {
+	_u.mutation.ClearSpdxID()
+	return _u
 }
 
 // SetURL sets the "url" field.
-func (rlu *ReportLicenseUpdate) SetURL(s string) *ReportLicenseUpdate {
-	rlu.mutation.SetURL(s)
-	return rlu
+func (_u *ReportLicenseUpdate) SetURL(v string) *ReportLicenseUpdate {
+	_u.mutation.SetURL(v)
+	return _u
 }
 
 // SetNillableURL sets the "url" field if the given value is not nil.
-func (rlu *ReportLicenseUpdate) SetNillableURL(s *string) *ReportLicenseUpdate {
-	if s != nil {
-		rlu.SetURL(*s)
+func (_u *ReportLicenseUpdate) SetNillableURL(v *string) *ReportLicenseUpdate {
+	if v != nil {
+		_u.SetURL(*v)
 	}
-	return rlu
+	return _u
 }
 
 // ClearURL clears the value of the "url" field.
-func (rlu *ReportLicenseUpdate) ClearURL() *ReportLicenseUpdate {
-	rlu.mutation.ClearURL()
-	return rlu
+func (_u *ReportLicenseUpdate) ClearURL() *ReportLicenseUpdate {
+	_u.mutation.ClearURL()
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rlu *ReportLicenseUpdate) SetCreatedAt(t time.Time) *ReportLicenseUpdate {
-	rlu.mutation.SetCreatedAt(t)
-	return rlu
+func (_u *ReportLicenseUpdate) SetCreatedAt(v time.Time) *ReportLicenseUpdate {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rlu *ReportLicenseUpdate) SetNillableCreatedAt(t *time.Time) *ReportLicenseUpdate {
-	if t != nil {
-		rlu.SetCreatedAt(*t)
+func (_u *ReportLicenseUpdate) SetNillableCreatedAt(v *time.Time) *ReportLicenseUpdate {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return rlu
+	return _u
 }
 
 // ClearCreatedAt clears the value of the "created_at" field.
-func (rlu *ReportLicenseUpdate) ClearCreatedAt() *ReportLicenseUpdate {
-	rlu.mutation.ClearCreatedAt()
-	return rlu
+func (_u *ReportLicenseUpdate) ClearCreatedAt() *ReportLicenseUpdate {
+	_u.mutation.ClearCreatedAt()
+	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rlu *ReportLicenseUpdate) SetUpdatedAt(t time.Time) *ReportLicenseUpdate {
-	rlu.mutation.SetUpdatedAt(t)
-	return rlu
+func (_u *ReportLicenseUpdate) SetUpdatedAt(v time.Time) *ReportLicenseUpdate {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rlu *ReportLicenseUpdate) SetNillableUpdatedAt(t *time.Time) *ReportLicenseUpdate {
-	if t != nil {
-		rlu.SetUpdatedAt(*t)
+func (_u *ReportLicenseUpdate) SetNillableUpdatedAt(v *time.Time) *ReportLicenseUpdate {
+	if v != nil {
+		_u.SetUpdatedAt(*v)
 	}
-	return rlu
+	return _u
 }
 
 // ClearUpdatedAt clears the value of the "updated_at" field.
-func (rlu *ReportLicenseUpdate) ClearUpdatedAt() *ReportLicenseUpdate {
-	rlu.mutation.ClearUpdatedAt()
-	return rlu
+func (_u *ReportLicenseUpdate) ClearUpdatedAt() *ReportLicenseUpdate {
+	_u.mutation.ClearUpdatedAt()
+	return _u
 }
 
 // SetPackageID sets the "package" edge to the ReportPackage entity by ID.
-func (rlu *ReportLicenseUpdate) SetPackageID(id int) *ReportLicenseUpdate {
-	rlu.mutation.SetPackageID(id)
-	return rlu
+func (_u *ReportLicenseUpdate) SetPackageID(id int) *ReportLicenseUpdate {
+	_u.mutation.SetPackageID(id)
+	return _u
 }
 
 // SetNillablePackageID sets the "package" edge to the ReportPackage entity by ID if the given value is not nil.
-func (rlu *ReportLicenseUpdate) SetNillablePackageID(id *int) *ReportLicenseUpdate {
+func (_u *ReportLicenseUpdate) SetNillablePackageID(id *int) *ReportLicenseUpdate {
 	if id != nil {
-		rlu = rlu.SetPackageID(*id)
+		_u = _u.SetPackageID(*id)
 	}
-	return rlu
+	return _u
 }
 
 // SetPackage sets the "package" edge to the ReportPackage entity.
-func (rlu *ReportLicenseUpdate) SetPackage(r *ReportPackage) *ReportLicenseUpdate {
-	return rlu.SetPackageID(r.ID)
+func (_u *ReportLicenseUpdate) SetPackage(v *ReportPackage) *ReportLicenseUpdate {
+	return _u.SetPackageID(v.ID)
 }
 
 // Mutation returns the ReportLicenseMutation object of the builder.
-func (rlu *ReportLicenseUpdate) Mutation() *ReportLicenseMutation {
-	return rlu.mutation
+func (_u *ReportLicenseUpdate) Mutation() *ReportLicenseMutation {
+	return _u.mutation
 }
 
 // ClearPackage clears the "package" edge to the ReportPackage entity.
-func (rlu *ReportLicenseUpdate) ClearPackage() *ReportLicenseUpdate {
-	rlu.mutation.ClearPackage()
-	return rlu
+func (_u *ReportLicenseUpdate) ClearPackage() *ReportLicenseUpdate {
+	_u.mutation.ClearPackage()
+	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (rlu *ReportLicenseUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, rlu.sqlSave, rlu.mutation, rlu.hooks)
+func (_u *ReportLicenseUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rlu *ReportLicenseUpdate) SaveX(ctx context.Context) int {
-	affected, err := rlu.Save(ctx)
+func (_u *ReportLicenseUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -188,21 +188,21 @@ func (rlu *ReportLicenseUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (rlu *ReportLicenseUpdate) Exec(ctx context.Context) error {
-	_, err := rlu.Save(ctx)
+func (_u *ReportLicenseUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rlu *ReportLicenseUpdate) ExecX(ctx context.Context) {
-	if err := rlu.Exec(ctx); err != nil {
+func (_u *ReportLicenseUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (rlu *ReportLicenseUpdate) check() error {
-	if v, ok := rlu.mutation.LicenseID(); ok {
+func (_u *ReportLicenseUpdate) check() error {
+	if v, ok := _u.mutation.LicenseID(); ok {
 		if err := reportlicense.LicenseIDValidator(v); err != nil {
 			return &ValidationError{Name: "license_id", err: fmt.Errorf(`ent: validator failed for field "ReportLicense.license_id": %w`, err)}
 		}
@@ -210,52 +210,52 @@ func (rlu *ReportLicenseUpdate) check() error {
 	return nil
 }
 
-func (rlu *ReportLicenseUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := rlu.check(); err != nil {
-		return n, err
+func (_u *ReportLicenseUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(reportlicense.Table, reportlicense.Columns, sqlgraph.NewFieldSpec(reportlicense.FieldID, field.TypeInt))
-	if ps := rlu.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := rlu.mutation.LicenseID(); ok {
+	if value, ok := _u.mutation.LicenseID(); ok {
 		_spec.SetField(reportlicense.FieldLicenseID, field.TypeString, value)
 	}
-	if value, ok := rlu.mutation.Name(); ok {
+	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(reportlicense.FieldName, field.TypeString, value)
 	}
-	if rlu.mutation.NameCleared() {
+	if _u.mutation.NameCleared() {
 		_spec.ClearField(reportlicense.FieldName, field.TypeString)
 	}
-	if value, ok := rlu.mutation.SpdxID(); ok {
+	if value, ok := _u.mutation.SpdxID(); ok {
 		_spec.SetField(reportlicense.FieldSpdxID, field.TypeString, value)
 	}
-	if rlu.mutation.SpdxIDCleared() {
+	if _u.mutation.SpdxIDCleared() {
 		_spec.ClearField(reportlicense.FieldSpdxID, field.TypeString)
 	}
-	if value, ok := rlu.mutation.URL(); ok {
+	if value, ok := _u.mutation.URL(); ok {
 		_spec.SetField(reportlicense.FieldURL, field.TypeString, value)
 	}
-	if rlu.mutation.URLCleared() {
+	if _u.mutation.URLCleared() {
 		_spec.ClearField(reportlicense.FieldURL, field.TypeString)
 	}
-	if value, ok := rlu.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(reportlicense.FieldCreatedAt, field.TypeTime, value)
 	}
-	if rlu.mutation.CreatedAtCleared() {
+	if _u.mutation.CreatedAtCleared() {
 		_spec.ClearField(reportlicense.FieldCreatedAt, field.TypeTime)
 	}
-	if value, ok := rlu.mutation.UpdatedAt(); ok {
+	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportlicense.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if rlu.mutation.UpdatedAtCleared() {
+	if _u.mutation.UpdatedAtCleared() {
 		_spec.ClearField(reportlicense.FieldUpdatedAt, field.TypeTime)
 	}
-	if rlu.mutation.PackageCleared() {
+	if _u.mutation.PackageCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -268,7 +268,7 @@ func (rlu *ReportLicenseUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rlu.mutation.PackageIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.PackageIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -284,7 +284,7 @@ func (rlu *ReportLicenseUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, rlu.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{reportlicense.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -292,8 +292,8 @@ func (rlu *ReportLicenseUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		return 0, err
 	}
-	rlu.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // ReportLicenseUpdateOne is the builder for updating a single ReportLicense entity.
@@ -305,170 +305,170 @@ type ReportLicenseUpdateOne struct {
 }
 
 // SetLicenseID sets the "license_id" field.
-func (rluo *ReportLicenseUpdateOne) SetLicenseID(s string) *ReportLicenseUpdateOne {
-	rluo.mutation.SetLicenseID(s)
-	return rluo
+func (_u *ReportLicenseUpdateOne) SetLicenseID(v string) *ReportLicenseUpdateOne {
+	_u.mutation.SetLicenseID(v)
+	return _u
 }
 
 // SetNillableLicenseID sets the "license_id" field if the given value is not nil.
-func (rluo *ReportLicenseUpdateOne) SetNillableLicenseID(s *string) *ReportLicenseUpdateOne {
-	if s != nil {
-		rluo.SetLicenseID(*s)
+func (_u *ReportLicenseUpdateOne) SetNillableLicenseID(v *string) *ReportLicenseUpdateOne {
+	if v != nil {
+		_u.SetLicenseID(*v)
 	}
-	return rluo
+	return _u
 }
 
 // SetName sets the "name" field.
-func (rluo *ReportLicenseUpdateOne) SetName(s string) *ReportLicenseUpdateOne {
-	rluo.mutation.SetName(s)
-	return rluo
+func (_u *ReportLicenseUpdateOne) SetName(v string) *ReportLicenseUpdateOne {
+	_u.mutation.SetName(v)
+	return _u
 }
 
 // SetNillableName sets the "name" field if the given value is not nil.
-func (rluo *ReportLicenseUpdateOne) SetNillableName(s *string) *ReportLicenseUpdateOne {
-	if s != nil {
-		rluo.SetName(*s)
+func (_u *ReportLicenseUpdateOne) SetNillableName(v *string) *ReportLicenseUpdateOne {
+	if v != nil {
+		_u.SetName(*v)
 	}
-	return rluo
+	return _u
 }
 
 // ClearName clears the value of the "name" field.
-func (rluo *ReportLicenseUpdateOne) ClearName() *ReportLicenseUpdateOne {
-	rluo.mutation.ClearName()
-	return rluo
+func (_u *ReportLicenseUpdateOne) ClearName() *ReportLicenseUpdateOne {
+	_u.mutation.ClearName()
+	return _u
 }
 
 // SetSpdxID sets the "spdx_id" field.
-func (rluo *ReportLicenseUpdateOne) SetSpdxID(s string) *ReportLicenseUpdateOne {
-	rluo.mutation.SetSpdxID(s)
-	return rluo
+func (_u *ReportLicenseUpdateOne) SetSpdxID(v string) *ReportLicenseUpdateOne {
+	_u.mutation.SetSpdxID(v)
+	return _u
 }
 
 // SetNillableSpdxID sets the "spdx_id" field if the given value is not nil.
-func (rluo *ReportLicenseUpdateOne) SetNillableSpdxID(s *string) *ReportLicenseUpdateOne {
-	if s != nil {
-		rluo.SetSpdxID(*s)
+func (_u *ReportLicenseUpdateOne) SetNillableSpdxID(v *string) *ReportLicenseUpdateOne {
+	if v != nil {
+		_u.SetSpdxID(*v)
 	}
-	return rluo
+	return _u
 }
 
 // ClearSpdxID clears the value of the "spdx_id" field.
-func (rluo *ReportLicenseUpdateOne) ClearSpdxID() *ReportLicenseUpdateOne {
-	rluo.mutation.ClearSpdxID()
-	return rluo
+func (_u *ReportLicenseUpdateOne) ClearSpdxID() *ReportLicenseUpdateOne {
+	_u.mutation.ClearSpdxID()
+	return _u
 }
 
 // SetURL sets the "url" field.
-func (rluo *ReportLicenseUpdateOne) SetURL(s string) *ReportLicenseUpdateOne {
-	rluo.mutation.SetURL(s)
-	return rluo
+func (_u *ReportLicenseUpdateOne) SetURL(v string) *ReportLicenseUpdateOne {
+	_u.mutation.SetURL(v)
+	return _u
 }
 
 // SetNillableURL sets the "url" field if the given value is not nil.
-func (rluo *ReportLicenseUpdateOne) SetNillableURL(s *string) *ReportLicenseUpdateOne {
-	if s != nil {
-		rluo.SetURL(*s)
+func (_u *ReportLicenseUpdateOne) SetNillableURL(v *string) *ReportLicenseUpdateOne {
+	if v != nil {
+		_u.SetURL(*v)
 	}
-	return rluo
+	return _u
 }
 
 // ClearURL clears the value of the "url" field.
-func (rluo *ReportLicenseUpdateOne) ClearURL() *ReportLicenseUpdateOne {
-	rluo.mutation.ClearURL()
-	return rluo
+func (_u *ReportLicenseUpdateOne) ClearURL() *ReportLicenseUpdateOne {
+	_u.mutation.ClearURL()
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rluo *ReportLicenseUpdateOne) SetCreatedAt(t time.Time) *ReportLicenseUpdateOne {
-	rluo.mutation.SetCreatedAt(t)
-	return rluo
+func (_u *ReportLicenseUpdateOne) SetCreatedAt(v time.Time) *ReportLicenseUpdateOne {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rluo *ReportLicenseUpdateOne) SetNillableCreatedAt(t *time.Time) *ReportLicenseUpdateOne {
-	if t != nil {
-		rluo.SetCreatedAt(*t)
+func (_u *ReportLicenseUpdateOne) SetNillableCreatedAt(v *time.Time) *ReportLicenseUpdateOne {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return rluo
+	return _u
 }
 
 // ClearCreatedAt clears the value of the "created_at" field.
-func (rluo *ReportLicenseUpdateOne) ClearCreatedAt() *ReportLicenseUpdateOne {
-	rluo.mutation.ClearCreatedAt()
-	return rluo
+func (_u *ReportLicenseUpdateOne) ClearCreatedAt() *ReportLicenseUpdateOne {
+	_u.mutation.ClearCreatedAt()
+	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rluo *ReportLicenseUpdateOne) SetUpdatedAt(t time.Time) *ReportLicenseUpdateOne {
-	rluo.mutation.SetUpdatedAt(t)
-	return rluo
+func (_u *ReportLicenseUpdateOne) SetUpdatedAt(v time.Time) *ReportLicenseUpdateOne {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rluo *ReportLicenseUpdateOne) SetNillableUpdatedAt(t *time.Time) *ReportLicenseUpdateOne {
-	if t != nil {
-		rluo.SetUpdatedAt(*t)
+func (_u *ReportLicenseUpdateOne) SetNillableUpdatedAt(v *time.Time) *ReportLicenseUpdateOne {
+	if v != nil {
+		_u.SetUpdatedAt(*v)
 	}
-	return rluo
+	return _u
 }
 
 // ClearUpdatedAt clears the value of the "updated_at" field.
-func (rluo *ReportLicenseUpdateOne) ClearUpdatedAt() *ReportLicenseUpdateOne {
-	rluo.mutation.ClearUpdatedAt()
-	return rluo
+func (_u *ReportLicenseUpdateOne) ClearUpdatedAt() *ReportLicenseUpdateOne {
+	_u.mutation.ClearUpdatedAt()
+	return _u
 }
 
 // SetPackageID sets the "package" edge to the ReportPackage entity by ID.
-func (rluo *ReportLicenseUpdateOne) SetPackageID(id int) *ReportLicenseUpdateOne {
-	rluo.mutation.SetPackageID(id)
-	return rluo
+func (_u *ReportLicenseUpdateOne) SetPackageID(id int) *ReportLicenseUpdateOne {
+	_u.mutation.SetPackageID(id)
+	return _u
 }
 
 // SetNillablePackageID sets the "package" edge to the ReportPackage entity by ID if the given value is not nil.
-func (rluo *ReportLicenseUpdateOne) SetNillablePackageID(id *int) *ReportLicenseUpdateOne {
+func (_u *ReportLicenseUpdateOne) SetNillablePackageID(id *int) *ReportLicenseUpdateOne {
 	if id != nil {
-		rluo = rluo.SetPackageID(*id)
+		_u = _u.SetPackageID(*id)
 	}
-	return rluo
+	return _u
 }
 
 // SetPackage sets the "package" edge to the ReportPackage entity.
-func (rluo *ReportLicenseUpdateOne) SetPackage(r *ReportPackage) *ReportLicenseUpdateOne {
-	return rluo.SetPackageID(r.ID)
+func (_u *ReportLicenseUpdateOne) SetPackage(v *ReportPackage) *ReportLicenseUpdateOne {
+	return _u.SetPackageID(v.ID)
 }
 
 // Mutation returns the ReportLicenseMutation object of the builder.
-func (rluo *ReportLicenseUpdateOne) Mutation() *ReportLicenseMutation {
-	return rluo.mutation
+func (_u *ReportLicenseUpdateOne) Mutation() *ReportLicenseMutation {
+	return _u.mutation
 }
 
 // ClearPackage clears the "package" edge to the ReportPackage entity.
-func (rluo *ReportLicenseUpdateOne) ClearPackage() *ReportLicenseUpdateOne {
-	rluo.mutation.ClearPackage()
-	return rluo
+func (_u *ReportLicenseUpdateOne) ClearPackage() *ReportLicenseUpdateOne {
+	_u.mutation.ClearPackage()
+	return _u
 }
 
 // Where appends a list predicates to the ReportLicenseUpdate builder.
-func (rluo *ReportLicenseUpdateOne) Where(ps ...predicate.ReportLicense) *ReportLicenseUpdateOne {
-	rluo.mutation.Where(ps...)
-	return rluo
+func (_u *ReportLicenseUpdateOne) Where(ps ...predicate.ReportLicense) *ReportLicenseUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (rluo *ReportLicenseUpdateOne) Select(field string, fields ...string) *ReportLicenseUpdateOne {
-	rluo.fields = append([]string{field}, fields...)
-	return rluo
+func (_u *ReportLicenseUpdateOne) Select(field string, fields ...string) *ReportLicenseUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated ReportLicense entity.
-func (rluo *ReportLicenseUpdateOne) Save(ctx context.Context) (*ReportLicense, error) {
-	return withHooks(ctx, rluo.sqlSave, rluo.mutation, rluo.hooks)
+func (_u *ReportLicenseUpdateOne) Save(ctx context.Context) (*ReportLicense, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rluo *ReportLicenseUpdateOne) SaveX(ctx context.Context) *ReportLicense {
-	node, err := rluo.Save(ctx)
+func (_u *ReportLicenseUpdateOne) SaveX(ctx context.Context) *ReportLicense {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -476,21 +476,21 @@ func (rluo *ReportLicenseUpdateOne) SaveX(ctx context.Context) *ReportLicense {
 }
 
 // Exec executes the query on the entity.
-func (rluo *ReportLicenseUpdateOne) Exec(ctx context.Context) error {
-	_, err := rluo.Save(ctx)
+func (_u *ReportLicenseUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rluo *ReportLicenseUpdateOne) ExecX(ctx context.Context) {
-	if err := rluo.Exec(ctx); err != nil {
+func (_u *ReportLicenseUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (rluo *ReportLicenseUpdateOne) check() error {
-	if v, ok := rluo.mutation.LicenseID(); ok {
+func (_u *ReportLicenseUpdateOne) check() error {
+	if v, ok := _u.mutation.LicenseID(); ok {
 		if err := reportlicense.LicenseIDValidator(v); err != nil {
 			return &ValidationError{Name: "license_id", err: fmt.Errorf(`ent: validator failed for field "ReportLicense.license_id": %w`, err)}
 		}
@@ -498,17 +498,17 @@ func (rluo *ReportLicenseUpdateOne) check() error {
 	return nil
 }
 
-func (rluo *ReportLicenseUpdateOne) sqlSave(ctx context.Context) (_node *ReportLicense, err error) {
-	if err := rluo.check(); err != nil {
+func (_u *ReportLicenseUpdateOne) sqlSave(ctx context.Context) (_node *ReportLicense, err error) {
+	if err := _u.check(); err != nil {
 		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(reportlicense.Table, reportlicense.Columns, sqlgraph.NewFieldSpec(reportlicense.FieldID, field.TypeInt))
-	id, ok := rluo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "ReportLicense.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := rluo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, reportlicense.FieldID)
 		for _, f := range fields {
@@ -520,47 +520,47 @@ func (rluo *ReportLicenseUpdateOne) sqlSave(ctx context.Context) (_node *ReportL
 			}
 		}
 	}
-	if ps := rluo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := rluo.mutation.LicenseID(); ok {
+	if value, ok := _u.mutation.LicenseID(); ok {
 		_spec.SetField(reportlicense.FieldLicenseID, field.TypeString, value)
 	}
-	if value, ok := rluo.mutation.Name(); ok {
+	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(reportlicense.FieldName, field.TypeString, value)
 	}
-	if rluo.mutation.NameCleared() {
+	if _u.mutation.NameCleared() {
 		_spec.ClearField(reportlicense.FieldName, field.TypeString)
 	}
-	if value, ok := rluo.mutation.SpdxID(); ok {
+	if value, ok := _u.mutation.SpdxID(); ok {
 		_spec.SetField(reportlicense.FieldSpdxID, field.TypeString, value)
 	}
-	if rluo.mutation.SpdxIDCleared() {
+	if _u.mutation.SpdxIDCleared() {
 		_spec.ClearField(reportlicense.FieldSpdxID, field.TypeString)
 	}
-	if value, ok := rluo.mutation.URL(); ok {
+	if value, ok := _u.mutation.URL(); ok {
 		_spec.SetField(reportlicense.FieldURL, field.TypeString, value)
 	}
-	if rluo.mutation.URLCleared() {
+	if _u.mutation.URLCleared() {
 		_spec.ClearField(reportlicense.FieldURL, field.TypeString)
 	}
-	if value, ok := rluo.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(reportlicense.FieldCreatedAt, field.TypeTime, value)
 	}
-	if rluo.mutation.CreatedAtCleared() {
+	if _u.mutation.CreatedAtCleared() {
 		_spec.ClearField(reportlicense.FieldCreatedAt, field.TypeTime)
 	}
-	if value, ok := rluo.mutation.UpdatedAt(); ok {
+	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportlicense.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if rluo.mutation.UpdatedAtCleared() {
+	if _u.mutation.UpdatedAtCleared() {
 		_spec.ClearField(reportlicense.FieldUpdatedAt, field.TypeTime)
 	}
-	if rluo.mutation.PackageCleared() {
+	if _u.mutation.PackageCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -573,7 +573,7 @@ func (rluo *ReportLicenseUpdateOne) sqlSave(ctx context.Context) (_node *ReportL
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rluo.mutation.PackageIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.PackageIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -589,10 +589,10 @@ func (rluo *ReportLicenseUpdateOne) sqlSave(ctx context.Context) (_node *ReportL
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_node = &ReportLicense{config: rluo.config}
+	_node = &ReportLicense{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, rluo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{reportlicense.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -600,6 +600,6 @@ func (rluo *ReportLicenseUpdateOne) sqlSave(ctx context.Context) (_node *ReportL
 		}
 		return nil, err
 	}
-	rluo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

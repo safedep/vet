@@ -15,13 +15,16 @@ import (
 // parserCargoLockFile using osv-scalibr to parse rust projects Cargo.lock file and find dependencies
 func parseCargoLockFile(lockfilePath string, _ *ParserConfig) (*models.PackageManifest, error) {
 	// rust's cargolock extractor
-	cargoLockExtractor := cargolock.New()
+	cargoLockExtractor, err := cargolock.New(nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create cargo extractor: %w", err)
+	}
 
 	file, err := os.Open(lockfilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open lockfile: %s", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	inputConfig := &filesystem.ScanInput{
 		FS:     fs.DirFS("."),

@@ -71,7 +71,7 @@ func (*CodeSourceFile) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the CodeSourceFile fields.
-func (csf *CodeSourceFile) assignValues(columns []string, values []any) error {
+func (_m *CodeSourceFile) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -82,15 +82,15 @@ func (csf *CodeSourceFile) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			csf.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case codesourcefile.FieldPath:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field path", values[i])
 			} else if value.Valid {
-				csf.Path = value.String
+				_m.Path = value.String
 			}
 		default:
-			csf.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -98,45 +98,45 @@ func (csf *CodeSourceFile) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the CodeSourceFile.
 // This includes values selected through modifiers, order, etc.
-func (csf *CodeSourceFile) Value(name string) (ent.Value, error) {
-	return csf.selectValues.Get(name)
+func (_m *CodeSourceFile) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QueryDepsUsageEvidences queries the "deps_usage_evidences" edge of the CodeSourceFile entity.
-func (csf *CodeSourceFile) QueryDepsUsageEvidences() *DepsUsageEvidenceQuery {
-	return NewCodeSourceFileClient(csf.config).QueryDepsUsageEvidences(csf)
+func (_m *CodeSourceFile) QueryDepsUsageEvidences() *DepsUsageEvidenceQuery {
+	return NewCodeSourceFileClient(_m.config).QueryDepsUsageEvidences(_m)
 }
 
 // QuerySignatureMatches queries the "signature_matches" edge of the CodeSourceFile entity.
-func (csf *CodeSourceFile) QuerySignatureMatches() *CodeSignatureMatchQuery {
-	return NewCodeSourceFileClient(csf.config).QuerySignatureMatches(csf)
+func (_m *CodeSourceFile) QuerySignatureMatches() *CodeSignatureMatchQuery {
+	return NewCodeSourceFileClient(_m.config).QuerySignatureMatches(_m)
 }
 
 // Update returns a builder for updating this CodeSourceFile.
 // Note that you need to call CodeSourceFile.Unwrap() before calling this method if this CodeSourceFile
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (csf *CodeSourceFile) Update() *CodeSourceFileUpdateOne {
-	return NewCodeSourceFileClient(csf.config).UpdateOne(csf)
+func (_m *CodeSourceFile) Update() *CodeSourceFileUpdateOne {
+	return NewCodeSourceFileClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the CodeSourceFile entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (csf *CodeSourceFile) Unwrap() *CodeSourceFile {
-	_tx, ok := csf.config.driver.(*txDriver)
+func (_m *CodeSourceFile) Unwrap() *CodeSourceFile {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: CodeSourceFile is not a transactional entity")
 	}
-	csf.config.driver = _tx.drv
-	return csf
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (csf *CodeSourceFile) String() string {
+func (_m *CodeSourceFile) String() string {
 	var builder strings.Builder
 	builder.WriteString("CodeSourceFile(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", csf.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("path=")
-	builder.WriteString(csf.Path)
+	builder.WriteString(_m.Path)
 	builder.WriteByte(')')
 	return builder.String()
 }

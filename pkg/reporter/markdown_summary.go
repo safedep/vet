@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/safedep/dry/api/pb"
 	"github.com/safedep/dry/log"
 	"github.com/safedep/dry/reporting/markdown"
-	"github.com/safedep/dry/utils"
 
 	"github.com/safedep/vet/gen/checks"
 	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
@@ -81,7 +81,7 @@ func NewMarkdownSummaryReporter(config MarkdownSummaryReporterConfig) (Reporter,
 
 	// TOCTOU here but not a big risk
 	// We will delete this file on Finish()
-	tmpFile.Close()
+	_ = tmpFile.Close()
 
 	jsonReporter, err := NewJsonReportGenerator(JsonReportingConfig{
 		Path: tmpFile.Name(),
@@ -157,7 +157,7 @@ func (r *markdownSummaryReporter) Finish() error {
 	}
 
 	var report jsonreportspec.Report
-	err = utils.FromPbJson(bytes.NewReader(data), &report)
+	err = pb.FromJson(bytes.NewReader(data), &report)
 	if err != nil {
 		return fmt.Errorf("failed to parse JSON report: %w", err)
 	}
@@ -519,10 +519,9 @@ func (r *markdownSummaryReporter) getAdviceSummary(adv *jsonreportspec.Remediati
 		if adv.GetTargetPackageVersion() != "" {
 			return fmt.Sprintf("Upgrade to %s@%s", adv.GetTargetPackageName(),
 				adv.GetTargetPackageVersion()), nil
-		} else {
-			// We don't have a specific version to upgrade to. We should not given
-			// a generic advice to upgrade to latest version.
 		}
+		// We don't have a specific version to upgrade to. We should not give
+		// a generic advice to upgrade to latest version.
 	case jsonreportspec.RemediationAdviceType_AlternatePopularPackage:
 		return "Use an alternative package that is popular", nil
 	case jsonreportspec.RemediationAdviceType_AlternateSecurePackage:

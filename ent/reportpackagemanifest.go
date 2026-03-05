@@ -77,7 +77,7 @@ func (*ReportPackageManifest) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the ReportPackageManifest fields.
-func (rpm *ReportPackageManifest) assignValues(columns []string, values []any) error {
+func (_m *ReportPackageManifest) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -88,57 +88,57 @@ func (rpm *ReportPackageManifest) assignValues(columns []string, values []any) e
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			rpm.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case reportpackagemanifest.FieldManifestID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field manifest_id", values[i])
 			} else if value.Valid {
-				rpm.ManifestID = value.String
+				_m.ManifestID = value.String
 			}
 		case reportpackagemanifest.FieldSourceType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field source_type", values[i])
 			} else if value.Valid {
-				rpm.SourceType = value.String
+				_m.SourceType = value.String
 			}
 		case reportpackagemanifest.FieldNamespace:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field namespace", values[i])
 			} else if value.Valid {
-				rpm.Namespace = value.String
+				_m.Namespace = value.String
 			}
 		case reportpackagemanifest.FieldPath:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field path", values[i])
 			} else if value.Valid {
-				rpm.Path = value.String
+				_m.Path = value.String
 			}
 		case reportpackagemanifest.FieldDisplayPath:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field display_path", values[i])
 			} else if value.Valid {
-				rpm.DisplayPath = value.String
+				_m.DisplayPath = value.String
 			}
 		case reportpackagemanifest.FieldEcosystem:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field ecosystem", values[i])
 			} else if value.Valid {
-				rpm.Ecosystem = value.String
+				_m.Ecosystem = value.String
 			}
 		case reportpackagemanifest.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
-				rpm.CreatedAt = value.Time
+				_m.CreatedAt = value.Time
 			}
 		case reportpackagemanifest.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
-				rpm.UpdatedAt = value.Time
+				_m.UpdatedAt = value.Time
 			}
 		default:
-			rpm.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -146,61 +146,61 @@ func (rpm *ReportPackageManifest) assignValues(columns []string, values []any) e
 
 // Value returns the ent.Value that was dynamically selected and assigned to the ReportPackageManifest.
 // This includes values selected through modifiers, order, etc.
-func (rpm *ReportPackageManifest) Value(name string) (ent.Value, error) {
-	return rpm.selectValues.Get(name)
+func (_m *ReportPackageManifest) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QueryPackages queries the "packages" edge of the ReportPackageManifest entity.
-func (rpm *ReportPackageManifest) QueryPackages() *ReportPackageQuery {
-	return NewReportPackageManifestClient(rpm.config).QueryPackages(rpm)
+func (_m *ReportPackageManifest) QueryPackages() *ReportPackageQuery {
+	return NewReportPackageManifestClient(_m.config).QueryPackages(_m)
 }
 
 // Update returns a builder for updating this ReportPackageManifest.
 // Note that you need to call ReportPackageManifest.Unwrap() before calling this method if this ReportPackageManifest
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (rpm *ReportPackageManifest) Update() *ReportPackageManifestUpdateOne {
-	return NewReportPackageManifestClient(rpm.config).UpdateOne(rpm)
+func (_m *ReportPackageManifest) Update() *ReportPackageManifestUpdateOne {
+	return NewReportPackageManifestClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the ReportPackageManifest entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (rpm *ReportPackageManifest) Unwrap() *ReportPackageManifest {
-	_tx, ok := rpm.config.driver.(*txDriver)
+func (_m *ReportPackageManifest) Unwrap() *ReportPackageManifest {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: ReportPackageManifest is not a transactional entity")
 	}
-	rpm.config.driver = _tx.drv
-	return rpm
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (rpm *ReportPackageManifest) String() string {
+func (_m *ReportPackageManifest) String() string {
 	var builder strings.Builder
 	builder.WriteString("ReportPackageManifest(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", rpm.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("manifest_id=")
-	builder.WriteString(rpm.ManifestID)
+	builder.WriteString(_m.ManifestID)
 	builder.WriteString(", ")
 	builder.WriteString("source_type=")
-	builder.WriteString(rpm.SourceType)
+	builder.WriteString(_m.SourceType)
 	builder.WriteString(", ")
 	builder.WriteString("namespace=")
-	builder.WriteString(rpm.Namespace)
+	builder.WriteString(_m.Namespace)
 	builder.WriteString(", ")
 	builder.WriteString("path=")
-	builder.WriteString(rpm.Path)
+	builder.WriteString(_m.Path)
 	builder.WriteString(", ")
 	builder.WriteString("display_path=")
-	builder.WriteString(rpm.DisplayPath)
+	builder.WriteString(_m.DisplayPath)
 	builder.WriteString(", ")
 	builder.WriteString("ecosystem=")
-	builder.WriteString(rpm.Ecosystem)
+	builder.WriteString(_m.Ecosystem)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
-	builder.WriteString(rpm.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
-	builder.WriteString(rpm.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

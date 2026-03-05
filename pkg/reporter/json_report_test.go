@@ -99,7 +99,7 @@ func TestJsonRepoGenerator(t *testing.T) {
 		panic(err)
 	}
 
-	tmpFile.Close()
+	_ = tmpFile.Close()
 	defer os.Remove(tmpFile.Name())
 
 	for _, test := range cases {

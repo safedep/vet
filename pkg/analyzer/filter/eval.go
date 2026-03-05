@@ -8,12 +8,12 @@ import (
 	"strings"
 
 	"github.com/github/go-spdx/v2/spdxexp"
-	"github.com/golang/protobuf/jsonpb"
 	"github.com/google/cel-go/cel"
 	"github.com/google/cel-go/common/types"
 	"github.com/google/cel-go/common/types/ref"
 	"github.com/google/cel-go/common/types/traits"
 	"github.com/safedep/dry/utils"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/safedep/vet/gen/filterinput"
 	"github.com/safedep/vet/gen/filtersuite"
@@ -184,16 +184,16 @@ func (f *filterEvaluator) EvalPackage(pkg *models.Package) (*filterEvaluationRes
 // work with Protobuf messages
 func (f *filterEvaluator) serializeFilterInput(fi *filterinput.FilterInput) (map[string]interface{}, error) {
 	var ret map[string]interface{}
-	m := jsonpb.Marshaler{OrigName: true, EnumsAsInts: false, EmitDefaults: true}
+	m := protojson.MarshalOptions{UseProtoNames: true, UseEnumNumbers: false, EmitDefaultValues: true}
 
-	data, err := m.MarshalToString(fi)
+	dataBytes, err := m.Marshal(fi)
 	if err != nil {
 		return ret, err
 	}
 
-	logger.Debugf("Serialized filter input: %s", data)
+	logger.Debugf("Serialized filter input: %s", string(dataBytes))
 
-	err = json.Unmarshal([]byte(data), &ret)
+	err = json.Unmarshal(dataBytes, &ret)
 	if err != nil {
 		return ret, err
 	}

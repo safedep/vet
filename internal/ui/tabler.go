@@ -72,7 +72,7 @@ func (t *tabler) renderCsvFile(path string) error {
 		return err
 	}
 
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	_, err = f.WriteString(t.table.RenderCSV())
 	if err != nil {
 		return err
@@ -87,7 +87,7 @@ func (t *tabler) renderMarkdownFile(path string) error {
 		return err
 	}
 
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	_, err = f.WriteString(t.table.RenderMarkdown())
 	if err != nil {
 		return err

@@ -52,7 +52,7 @@ func (s *celFilterStat) ErrorCount() int {
 }
 
 func (s *celFilterStat) PrintStatMessage(writer io.Writer) {
-	fmt.Fprintf(writer, "%s\n", text.Bold.Sprint("Filter evaluated with ",
+	_, _ = fmt.Fprintf(writer, "%s\n", text.Bold.Sprint("Filter evaluated with ",
 		s.matchedPackages, " out of ", s.evaluatedPackages, " uniquely matched and ",
 		s.errCount, " error(s) ", "across ", s.evaluatedManifests,
 		" manifest(s)"))

@@ -120,7 +120,7 @@ func FindLockFileAsByExtension(extension string) (string, error) {
 }
 
 func List(experimental bool) []string {
-	supportedParsers := make([]string, 0, 0)
+	supportedParsers := make([]string, 0)
 
 	for pa := range dependencyGraphParsers {
 		supportedParsers = append(supportedParsers, fmt.Sprintf("%s (graph)", pa))

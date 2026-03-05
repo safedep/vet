@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/safedep/dry/utils"
+	"github.com/safedep/dry/api/pb"
 
 	"github.com/safedep/vet/gen/exceptionsapi"
 )
@@ -28,7 +28,7 @@ func NewExceptionsFileLoader(path string) (exceptionsLoader, error) {
 
 func newExceptionsFileLoaderUsingReader(reader io.Reader) (exceptionsLoader, error) {
 	var suite exceptionsapi.ExceptionSuite
-	err := utils.FromYamlToPb(reader, &suite)
+	err := pb.FromYaml(reader, &suite)
 	if err != nil {
 		return nil, err
 	}

@@ -28,260 +28,260 @@ type ReportPackageCreate struct {
 }
 
 // SetPackageID sets the "package_id" field.
-func (rpc *ReportPackageCreate) SetPackageID(s string) *ReportPackageCreate {
-	rpc.mutation.SetPackageID(s)
-	return rpc
+func (_c *ReportPackageCreate) SetPackageID(v string) *ReportPackageCreate {
+	_c.mutation.SetPackageID(v)
+	return _c
 }
 
 // SetName sets the "name" field.
-func (rpc *ReportPackageCreate) SetName(s string) *ReportPackageCreate {
-	rpc.mutation.SetName(s)
-	return rpc
+func (_c *ReportPackageCreate) SetName(v string) *ReportPackageCreate {
+	_c.mutation.SetName(v)
+	return _c
 }
 
 // SetVersion sets the "version" field.
-func (rpc *ReportPackageCreate) SetVersion(s string) *ReportPackageCreate {
-	rpc.mutation.SetVersion(s)
-	return rpc
+func (_c *ReportPackageCreate) SetVersion(v string) *ReportPackageCreate {
+	_c.mutation.SetVersion(v)
+	return _c
 }
 
 // SetEcosystem sets the "ecosystem" field.
-func (rpc *ReportPackageCreate) SetEcosystem(s string) *ReportPackageCreate {
-	rpc.mutation.SetEcosystem(s)
-	return rpc
+func (_c *ReportPackageCreate) SetEcosystem(v string) *ReportPackageCreate {
+	_c.mutation.SetEcosystem(v)
+	return _c
 }
 
 // SetPackageURL sets the "package_url" field.
-func (rpc *ReportPackageCreate) SetPackageURL(s string) *ReportPackageCreate {
-	rpc.mutation.SetPackageURL(s)
-	return rpc
+func (_c *ReportPackageCreate) SetPackageURL(v string) *ReportPackageCreate {
+	_c.mutation.SetPackageURL(v)
+	return _c
 }
 
 // SetDepth sets the "depth" field.
-func (rpc *ReportPackageCreate) SetDepth(i int) *ReportPackageCreate {
-	rpc.mutation.SetDepth(i)
-	return rpc
+func (_c *ReportPackageCreate) SetDepth(v int) *ReportPackageCreate {
+	_c.mutation.SetDepth(v)
+	return _c
 }
 
 // SetNillableDepth sets the "depth" field if the given value is not nil.
-func (rpc *ReportPackageCreate) SetNillableDepth(i *int) *ReportPackageCreate {
-	if i != nil {
-		rpc.SetDepth(*i)
+func (_c *ReportPackageCreate) SetNillableDepth(v *int) *ReportPackageCreate {
+	if v != nil {
+		_c.SetDepth(*v)
 	}
-	return rpc
+	return _c
 }
 
 // SetIsDirect sets the "is_direct" field.
-func (rpc *ReportPackageCreate) SetIsDirect(b bool) *ReportPackageCreate {
-	rpc.mutation.SetIsDirect(b)
-	return rpc
+func (_c *ReportPackageCreate) SetIsDirect(v bool) *ReportPackageCreate {
+	_c.mutation.SetIsDirect(v)
+	return _c
 }
 
 // SetNillableIsDirect sets the "is_direct" field if the given value is not nil.
-func (rpc *ReportPackageCreate) SetNillableIsDirect(b *bool) *ReportPackageCreate {
-	if b != nil {
-		rpc.SetIsDirect(*b)
+func (_c *ReportPackageCreate) SetNillableIsDirect(v *bool) *ReportPackageCreate {
+	if v != nil {
+		_c.SetIsDirect(*v)
 	}
-	return rpc
+	return _c
 }
 
 // SetIsMalware sets the "is_malware" field.
-func (rpc *ReportPackageCreate) SetIsMalware(b bool) *ReportPackageCreate {
-	rpc.mutation.SetIsMalware(b)
-	return rpc
+func (_c *ReportPackageCreate) SetIsMalware(v bool) *ReportPackageCreate {
+	_c.mutation.SetIsMalware(v)
+	return _c
 }
 
 // SetNillableIsMalware sets the "is_malware" field if the given value is not nil.
-func (rpc *ReportPackageCreate) SetNillableIsMalware(b *bool) *ReportPackageCreate {
-	if b != nil {
-		rpc.SetIsMalware(*b)
+func (_c *ReportPackageCreate) SetNillableIsMalware(v *bool) *ReportPackageCreate {
+	if v != nil {
+		_c.SetIsMalware(*v)
 	}
-	return rpc
+	return _c
 }
 
 // SetIsSuspicious sets the "is_suspicious" field.
-func (rpc *ReportPackageCreate) SetIsSuspicious(b bool) *ReportPackageCreate {
-	rpc.mutation.SetIsSuspicious(b)
-	return rpc
+func (_c *ReportPackageCreate) SetIsSuspicious(v bool) *ReportPackageCreate {
+	_c.mutation.SetIsSuspicious(v)
+	return _c
 }
 
 // SetNillableIsSuspicious sets the "is_suspicious" field if the given value is not nil.
-func (rpc *ReportPackageCreate) SetNillableIsSuspicious(b *bool) *ReportPackageCreate {
-	if b != nil {
-		rpc.SetIsSuspicious(*b)
+func (_c *ReportPackageCreate) SetNillableIsSuspicious(v *bool) *ReportPackageCreate {
+	if v != nil {
+		_c.SetIsSuspicious(*v)
 	}
-	return rpc
+	return _c
 }
 
 // SetPackageDetails sets the "package_details" field.
-func (rpc *ReportPackageCreate) SetPackageDetails(m map[string]interface{}) *ReportPackageCreate {
-	rpc.mutation.SetPackageDetails(m)
-	return rpc
+func (_c *ReportPackageCreate) SetPackageDetails(v map[string]interface{}) *ReportPackageCreate {
+	_c.mutation.SetPackageDetails(v)
+	return _c
 }
 
 // SetInsightsV2 sets the "insights_v2" field.
-func (rpc *ReportPackageCreate) SetInsightsV2(m map[string]interface{}) *ReportPackageCreate {
-	rpc.mutation.SetInsightsV2(m)
-	return rpc
+func (_c *ReportPackageCreate) SetInsightsV2(v map[string]interface{}) *ReportPackageCreate {
+	_c.mutation.SetInsightsV2(v)
+	return _c
 }
 
 // SetCodeAnalysis sets the "code_analysis" field.
-func (rpc *ReportPackageCreate) SetCodeAnalysis(m map[string]interface{}) *ReportPackageCreate {
-	rpc.mutation.SetCodeAnalysis(m)
-	return rpc
+func (_c *ReportPackageCreate) SetCodeAnalysis(v map[string]interface{}) *ReportPackageCreate {
+	_c.mutation.SetCodeAnalysis(v)
+	return _c
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rpc *ReportPackageCreate) SetCreatedAt(t time.Time) *ReportPackageCreate {
-	rpc.mutation.SetCreatedAt(t)
-	return rpc
+func (_c *ReportPackageCreate) SetCreatedAt(v time.Time) *ReportPackageCreate {
+	_c.mutation.SetCreatedAt(v)
+	return _c
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rpc *ReportPackageCreate) SetNillableCreatedAt(t *time.Time) *ReportPackageCreate {
-	if t != nil {
-		rpc.SetCreatedAt(*t)
+func (_c *ReportPackageCreate) SetNillableCreatedAt(v *time.Time) *ReportPackageCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
 	}
-	return rpc
+	return _c
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rpc *ReportPackageCreate) SetUpdatedAt(t time.Time) *ReportPackageCreate {
-	rpc.mutation.SetUpdatedAt(t)
-	return rpc
+func (_c *ReportPackageCreate) SetUpdatedAt(v time.Time) *ReportPackageCreate {
+	_c.mutation.SetUpdatedAt(v)
+	return _c
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rpc *ReportPackageCreate) SetNillableUpdatedAt(t *time.Time) *ReportPackageCreate {
-	if t != nil {
-		rpc.SetUpdatedAt(*t)
+func (_c *ReportPackageCreate) SetNillableUpdatedAt(v *time.Time) *ReportPackageCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
 	}
-	return rpc
+	return _c
 }
 
 // AddManifestIDs adds the "manifests" edge to the ReportPackageManifest entity by IDs.
-func (rpc *ReportPackageCreate) AddManifestIDs(ids ...int) *ReportPackageCreate {
-	rpc.mutation.AddManifestIDs(ids...)
-	return rpc
+func (_c *ReportPackageCreate) AddManifestIDs(ids ...int) *ReportPackageCreate {
+	_c.mutation.AddManifestIDs(ids...)
+	return _c
 }
 
 // AddManifests adds the "manifests" edges to the ReportPackageManifest entity.
-func (rpc *ReportPackageCreate) AddManifests(r ...*ReportPackageManifest) *ReportPackageCreate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_c *ReportPackageCreate) AddManifests(v ...*ReportPackageManifest) *ReportPackageCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpc.AddManifestIDs(ids...)
+	return _c.AddManifestIDs(ids...)
 }
 
 // AddVulnerabilityIDs adds the "vulnerabilities" edge to the ReportVulnerability entity by IDs.
-func (rpc *ReportPackageCreate) AddVulnerabilityIDs(ids ...int) *ReportPackageCreate {
-	rpc.mutation.AddVulnerabilityIDs(ids...)
-	return rpc
+func (_c *ReportPackageCreate) AddVulnerabilityIDs(ids ...int) *ReportPackageCreate {
+	_c.mutation.AddVulnerabilityIDs(ids...)
+	return _c
 }
 
 // AddVulnerabilities adds the "vulnerabilities" edges to the ReportVulnerability entity.
-func (rpc *ReportPackageCreate) AddVulnerabilities(r ...*ReportVulnerability) *ReportPackageCreate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_c *ReportPackageCreate) AddVulnerabilities(v ...*ReportVulnerability) *ReportPackageCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpc.AddVulnerabilityIDs(ids...)
+	return _c.AddVulnerabilityIDs(ids...)
 }
 
 // AddLicenseIDs adds the "licenses" edge to the ReportLicense entity by IDs.
-func (rpc *ReportPackageCreate) AddLicenseIDs(ids ...int) *ReportPackageCreate {
-	rpc.mutation.AddLicenseIDs(ids...)
-	return rpc
+func (_c *ReportPackageCreate) AddLicenseIDs(ids ...int) *ReportPackageCreate {
+	_c.mutation.AddLicenseIDs(ids...)
+	return _c
 }
 
 // AddLicenses adds the "licenses" edges to the ReportLicense entity.
-func (rpc *ReportPackageCreate) AddLicenses(r ...*ReportLicense) *ReportPackageCreate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_c *ReportPackageCreate) AddLicenses(v ...*ReportLicense) *ReportPackageCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpc.AddLicenseIDs(ids...)
+	return _c.AddLicenseIDs(ids...)
 }
 
 // AddDependencyIDs adds the "dependencies" edge to the ReportDependency entity by IDs.
-func (rpc *ReportPackageCreate) AddDependencyIDs(ids ...int) *ReportPackageCreate {
-	rpc.mutation.AddDependencyIDs(ids...)
-	return rpc
+func (_c *ReportPackageCreate) AddDependencyIDs(ids ...int) *ReportPackageCreate {
+	_c.mutation.AddDependencyIDs(ids...)
+	return _c
 }
 
 // AddDependencies adds the "dependencies" edges to the ReportDependency entity.
-func (rpc *ReportPackageCreate) AddDependencies(r ...*ReportDependency) *ReportPackageCreate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_c *ReportPackageCreate) AddDependencies(v ...*ReportDependency) *ReportPackageCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpc.AddDependencyIDs(ids...)
+	return _c.AddDependencyIDs(ids...)
 }
 
 // SetMalwareAnalysisID sets the "malware_analysis" edge to the ReportMalware entity by ID.
-func (rpc *ReportPackageCreate) SetMalwareAnalysisID(id int) *ReportPackageCreate {
-	rpc.mutation.SetMalwareAnalysisID(id)
-	return rpc
+func (_c *ReportPackageCreate) SetMalwareAnalysisID(id int) *ReportPackageCreate {
+	_c.mutation.SetMalwareAnalysisID(id)
+	return _c
 }
 
 // SetNillableMalwareAnalysisID sets the "malware_analysis" edge to the ReportMalware entity by ID if the given value is not nil.
-func (rpc *ReportPackageCreate) SetNillableMalwareAnalysisID(id *int) *ReportPackageCreate {
+func (_c *ReportPackageCreate) SetNillableMalwareAnalysisID(id *int) *ReportPackageCreate {
 	if id != nil {
-		rpc = rpc.SetMalwareAnalysisID(*id)
+		_c = _c.SetMalwareAnalysisID(*id)
 	}
-	return rpc
+	return _c
 }
 
 // SetMalwareAnalysis sets the "malware_analysis" edge to the ReportMalware entity.
-func (rpc *ReportPackageCreate) SetMalwareAnalysis(r *ReportMalware) *ReportPackageCreate {
-	return rpc.SetMalwareAnalysisID(r.ID)
+func (_c *ReportPackageCreate) SetMalwareAnalysis(v *ReportMalware) *ReportPackageCreate {
+	return _c.SetMalwareAnalysisID(v.ID)
 }
 
 // AddProjectIDs adds the "projects" edge to the ReportProject entity by IDs.
-func (rpc *ReportPackageCreate) AddProjectIDs(ids ...int) *ReportPackageCreate {
-	rpc.mutation.AddProjectIDs(ids...)
-	return rpc
+func (_c *ReportPackageCreate) AddProjectIDs(ids ...int) *ReportPackageCreate {
+	_c.mutation.AddProjectIDs(ids...)
+	return _c
 }
 
 // AddProjects adds the "projects" edges to the ReportProject entity.
-func (rpc *ReportPackageCreate) AddProjects(r ...*ReportProject) *ReportPackageCreate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_c *ReportPackageCreate) AddProjects(v ...*ReportProject) *ReportPackageCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpc.AddProjectIDs(ids...)
+	return _c.AddProjectIDs(ids...)
 }
 
 // AddSlsaProvenanceIDs adds the "slsa_provenances" edge to the ReportSlsaProvenance entity by IDs.
-func (rpc *ReportPackageCreate) AddSlsaProvenanceIDs(ids ...int) *ReportPackageCreate {
-	rpc.mutation.AddSlsaProvenanceIDs(ids...)
-	return rpc
+func (_c *ReportPackageCreate) AddSlsaProvenanceIDs(ids ...int) *ReportPackageCreate {
+	_c.mutation.AddSlsaProvenanceIDs(ids...)
+	return _c
 }
 
 // AddSlsaProvenances adds the "slsa_provenances" edges to the ReportSlsaProvenance entity.
-func (rpc *ReportPackageCreate) AddSlsaProvenances(r ...*ReportSlsaProvenance) *ReportPackageCreate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_c *ReportPackageCreate) AddSlsaProvenances(v ...*ReportSlsaProvenance) *ReportPackageCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpc.AddSlsaProvenanceIDs(ids...)
+	return _c.AddSlsaProvenanceIDs(ids...)
 }
 
 // Mutation returns the ReportPackageMutation object of the builder.
-func (rpc *ReportPackageCreate) Mutation() *ReportPackageMutation {
-	return rpc.mutation
+func (_c *ReportPackageCreate) Mutation() *ReportPackageMutation {
+	return _c.mutation
 }
 
 // Save creates the ReportPackage in the database.
-func (rpc *ReportPackageCreate) Save(ctx context.Context) (*ReportPackage, error) {
-	rpc.defaults()
-	return withHooks(ctx, rpc.sqlSave, rpc.mutation, rpc.hooks)
+func (_c *ReportPackageCreate) Save(ctx context.Context) (*ReportPackage, error) {
+	_c.defaults()
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (rpc *ReportPackageCreate) SaveX(ctx context.Context) *ReportPackage {
-	v, err := rpc.Save(ctx)
+func (_c *ReportPackageCreate) SaveX(ctx context.Context) *ReportPackage {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -289,101 +289,101 @@ func (rpc *ReportPackageCreate) SaveX(ctx context.Context) *ReportPackage {
 }
 
 // Exec executes the query.
-func (rpc *ReportPackageCreate) Exec(ctx context.Context) error {
-	_, err := rpc.Save(ctx)
+func (_c *ReportPackageCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rpc *ReportPackageCreate) ExecX(ctx context.Context) {
-	if err := rpc.Exec(ctx); err != nil {
+func (_c *ReportPackageCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (rpc *ReportPackageCreate) defaults() {
-	if _, ok := rpc.mutation.Depth(); !ok {
+func (_c *ReportPackageCreate) defaults() {
+	if _, ok := _c.mutation.Depth(); !ok {
 		v := reportpackage.DefaultDepth
-		rpc.mutation.SetDepth(v)
+		_c.mutation.SetDepth(v)
 	}
-	if _, ok := rpc.mutation.IsDirect(); !ok {
+	if _, ok := _c.mutation.IsDirect(); !ok {
 		v := reportpackage.DefaultIsDirect
-		rpc.mutation.SetIsDirect(v)
+		_c.mutation.SetIsDirect(v)
 	}
-	if _, ok := rpc.mutation.IsMalware(); !ok {
+	if _, ok := _c.mutation.IsMalware(); !ok {
 		v := reportpackage.DefaultIsMalware
-		rpc.mutation.SetIsMalware(v)
+		_c.mutation.SetIsMalware(v)
 	}
-	if _, ok := rpc.mutation.IsSuspicious(); !ok {
+	if _, ok := _c.mutation.IsSuspicious(); !ok {
 		v := reportpackage.DefaultIsSuspicious
-		rpc.mutation.SetIsSuspicious(v)
+		_c.mutation.SetIsSuspicious(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (rpc *ReportPackageCreate) check() error {
-	if _, ok := rpc.mutation.PackageID(); !ok {
+func (_c *ReportPackageCreate) check() error {
+	if _, ok := _c.mutation.PackageID(); !ok {
 		return &ValidationError{Name: "package_id", err: errors.New(`ent: missing required field "ReportPackage.package_id"`)}
 	}
-	if v, ok := rpc.mutation.PackageID(); ok {
+	if v, ok := _c.mutation.PackageID(); ok {
 		if err := reportpackage.PackageIDValidator(v); err != nil {
 			return &ValidationError{Name: "package_id", err: fmt.Errorf(`ent: validator failed for field "ReportPackage.package_id": %w`, err)}
 		}
 	}
-	if _, ok := rpc.mutation.Name(); !ok {
+	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "ReportPackage.name"`)}
 	}
-	if v, ok := rpc.mutation.Name(); ok {
+	if v, ok := _c.mutation.Name(); ok {
 		if err := reportpackage.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "ReportPackage.name": %w`, err)}
 		}
 	}
-	if _, ok := rpc.mutation.Version(); !ok {
+	if _, ok := _c.mutation.Version(); !ok {
 		return &ValidationError{Name: "version", err: errors.New(`ent: missing required field "ReportPackage.version"`)}
 	}
-	if v, ok := rpc.mutation.Version(); ok {
+	if v, ok := _c.mutation.Version(); ok {
 		if err := reportpackage.VersionValidator(v); err != nil {
 			return &ValidationError{Name: "version", err: fmt.Errorf(`ent: validator failed for field "ReportPackage.version": %w`, err)}
 		}
 	}
-	if _, ok := rpc.mutation.Ecosystem(); !ok {
+	if _, ok := _c.mutation.Ecosystem(); !ok {
 		return &ValidationError{Name: "ecosystem", err: errors.New(`ent: missing required field "ReportPackage.ecosystem"`)}
 	}
-	if v, ok := rpc.mutation.Ecosystem(); ok {
+	if v, ok := _c.mutation.Ecosystem(); ok {
 		if err := reportpackage.EcosystemValidator(v); err != nil {
 			return &ValidationError{Name: "ecosystem", err: fmt.Errorf(`ent: validator failed for field "ReportPackage.ecosystem": %w`, err)}
 		}
 	}
-	if _, ok := rpc.mutation.PackageURL(); !ok {
+	if _, ok := _c.mutation.PackageURL(); !ok {
 		return &ValidationError{Name: "package_url", err: errors.New(`ent: missing required field "ReportPackage.package_url"`)}
 	}
-	if v, ok := rpc.mutation.PackageURL(); ok {
+	if v, ok := _c.mutation.PackageURL(); ok {
 		if err := reportpackage.PackageURLValidator(v); err != nil {
 			return &ValidationError{Name: "package_url", err: fmt.Errorf(`ent: validator failed for field "ReportPackage.package_url": %w`, err)}
 		}
 	}
-	if _, ok := rpc.mutation.Depth(); !ok {
+	if _, ok := _c.mutation.Depth(); !ok {
 		return &ValidationError{Name: "depth", err: errors.New(`ent: missing required field "ReportPackage.depth"`)}
 	}
-	if _, ok := rpc.mutation.IsDirect(); !ok {
+	if _, ok := _c.mutation.IsDirect(); !ok {
 		return &ValidationError{Name: "is_direct", err: errors.New(`ent: missing required field "ReportPackage.is_direct"`)}
 	}
-	if _, ok := rpc.mutation.IsMalware(); !ok {
+	if _, ok := _c.mutation.IsMalware(); !ok {
 		return &ValidationError{Name: "is_malware", err: errors.New(`ent: missing required field "ReportPackage.is_malware"`)}
 	}
-	if _, ok := rpc.mutation.IsSuspicious(); !ok {
+	if _, ok := _c.mutation.IsSuspicious(); !ok {
 		return &ValidationError{Name: "is_suspicious", err: errors.New(`ent: missing required field "ReportPackage.is_suspicious"`)}
 	}
 	return nil
 }
 
-func (rpc *ReportPackageCreate) sqlSave(ctx context.Context) (*ReportPackage, error) {
-	if err := rpc.check(); err != nil {
+func (_c *ReportPackageCreate) sqlSave(ctx context.Context) (*ReportPackage, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := rpc.createSpec()
-	if err := sqlgraph.CreateNode(ctx, rpc.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -391,73 +391,73 @@ func (rpc *ReportPackageCreate) sqlSave(ctx context.Context) (*ReportPackage, er
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
-	rpc.mutation.id = &_node.ID
-	rpc.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (rpc *ReportPackageCreate) createSpec() (*ReportPackage, *sqlgraph.CreateSpec) {
+func (_c *ReportPackageCreate) createSpec() (*ReportPackage, *sqlgraph.CreateSpec) {
 	var (
-		_node = &ReportPackage{config: rpc.config}
+		_node = &ReportPackage{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(reportpackage.Table, sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt))
 	)
-	if value, ok := rpc.mutation.PackageID(); ok {
+	if value, ok := _c.mutation.PackageID(); ok {
 		_spec.SetField(reportpackage.FieldPackageID, field.TypeString, value)
 		_node.PackageID = value
 	}
-	if value, ok := rpc.mutation.Name(); ok {
+	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(reportpackage.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
-	if value, ok := rpc.mutation.Version(); ok {
+	if value, ok := _c.mutation.Version(); ok {
 		_spec.SetField(reportpackage.FieldVersion, field.TypeString, value)
 		_node.Version = value
 	}
-	if value, ok := rpc.mutation.Ecosystem(); ok {
+	if value, ok := _c.mutation.Ecosystem(); ok {
 		_spec.SetField(reportpackage.FieldEcosystem, field.TypeString, value)
 		_node.Ecosystem = value
 	}
-	if value, ok := rpc.mutation.PackageURL(); ok {
+	if value, ok := _c.mutation.PackageURL(); ok {
 		_spec.SetField(reportpackage.FieldPackageURL, field.TypeString, value)
 		_node.PackageURL = value
 	}
-	if value, ok := rpc.mutation.Depth(); ok {
+	if value, ok := _c.mutation.Depth(); ok {
 		_spec.SetField(reportpackage.FieldDepth, field.TypeInt, value)
 		_node.Depth = value
 	}
-	if value, ok := rpc.mutation.IsDirect(); ok {
+	if value, ok := _c.mutation.IsDirect(); ok {
 		_spec.SetField(reportpackage.FieldIsDirect, field.TypeBool, value)
 		_node.IsDirect = value
 	}
-	if value, ok := rpc.mutation.IsMalware(); ok {
+	if value, ok := _c.mutation.IsMalware(); ok {
 		_spec.SetField(reportpackage.FieldIsMalware, field.TypeBool, value)
 		_node.IsMalware = value
 	}
-	if value, ok := rpc.mutation.IsSuspicious(); ok {
+	if value, ok := _c.mutation.IsSuspicious(); ok {
 		_spec.SetField(reportpackage.FieldIsSuspicious, field.TypeBool, value)
 		_node.IsSuspicious = value
 	}
-	if value, ok := rpc.mutation.PackageDetails(); ok {
+	if value, ok := _c.mutation.PackageDetails(); ok {
 		_spec.SetField(reportpackage.FieldPackageDetails, field.TypeJSON, value)
 		_node.PackageDetails = value
 	}
-	if value, ok := rpc.mutation.InsightsV2(); ok {
+	if value, ok := _c.mutation.InsightsV2(); ok {
 		_spec.SetField(reportpackage.FieldInsightsV2, field.TypeJSON, value)
 		_node.InsightsV2 = value
 	}
-	if value, ok := rpc.mutation.CodeAnalysis(); ok {
+	if value, ok := _c.mutation.CodeAnalysis(); ok {
 		_spec.SetField(reportpackage.FieldCodeAnalysis, field.TypeJSON, value)
 		_node.CodeAnalysis = value
 	}
-	if value, ok := rpc.mutation.CreatedAt(); ok {
+	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(reportpackage.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
-	if value, ok := rpc.mutation.UpdatedAt(); ok {
+	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportpackage.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := rpc.mutation.ManifestsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.ManifestsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -473,7 +473,7 @@ func (rpc *ReportPackageCreate) createSpec() (*ReportPackage, *sqlgraph.CreateSp
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := rpc.mutation.VulnerabilitiesIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.VulnerabilitiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -489,7 +489,7 @@ func (rpc *ReportPackageCreate) createSpec() (*ReportPackage, *sqlgraph.CreateSp
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := rpc.mutation.LicensesIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.LicensesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -505,7 +505,7 @@ func (rpc *ReportPackageCreate) createSpec() (*ReportPackage, *sqlgraph.CreateSp
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := rpc.mutation.DependenciesIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.DependenciesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -521,7 +521,7 @@ func (rpc *ReportPackageCreate) createSpec() (*ReportPackage, *sqlgraph.CreateSp
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := rpc.mutation.MalwareAnalysisIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.MalwareAnalysisIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -537,7 +537,7 @@ func (rpc *ReportPackageCreate) createSpec() (*ReportPackage, *sqlgraph.CreateSp
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := rpc.mutation.ProjectsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.ProjectsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -553,7 +553,7 @@ func (rpc *ReportPackageCreate) createSpec() (*ReportPackage, *sqlgraph.CreateSp
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := rpc.mutation.SlsaProvenancesIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.SlsaProvenancesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -580,16 +580,16 @@ type ReportPackageCreateBulk struct {
 }
 
 // Save creates the ReportPackage entities in the database.
-func (rpcb *ReportPackageCreateBulk) Save(ctx context.Context) ([]*ReportPackage, error) {
-	if rpcb.err != nil {
-		return nil, rpcb.err
+func (_c *ReportPackageCreateBulk) Save(ctx context.Context) ([]*ReportPackage, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(rpcb.builders))
-	nodes := make([]*ReportPackage, len(rpcb.builders))
-	mutators := make([]Mutator, len(rpcb.builders))
-	for i := range rpcb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*ReportPackage, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := rpcb.builders[i]
+			builder := _c.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*ReportPackageMutation)
@@ -603,11 +603,11 @@ func (rpcb *ReportPackageCreateBulk) Save(ctx context.Context) ([]*ReportPackage
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, rpcb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, rpcb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -631,7 +631,7 @@ func (rpcb *ReportPackageCreateBulk) Save(ctx context.Context) ([]*ReportPackage
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, rpcb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -639,8 +639,8 @@ func (rpcb *ReportPackageCreateBulk) Save(ctx context.Context) ([]*ReportPackage
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rpcb *ReportPackageCreateBulk) SaveX(ctx context.Context) []*ReportPackage {
-	v, err := rpcb.Save(ctx)
+func (_c *ReportPackageCreateBulk) SaveX(ctx context.Context) []*ReportPackage {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -648,14 +648,14 @@ func (rpcb *ReportPackageCreateBulk) SaveX(ctx context.Context) []*ReportPackage
 }
 
 // Exec executes the query.
-func (rpcb *ReportPackageCreateBulk) Exec(ctx context.Context) error {
-	_, err := rpcb.Save(ctx)
+func (_c *ReportPackageCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rpcb *ReportPackageCreateBulk) ExecX(ctx context.Context) {
-	if err := rpcb.Exec(ctx); err != nil {
+func (_c *ReportPackageCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

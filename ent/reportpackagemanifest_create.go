@@ -22,97 +22,97 @@ type ReportPackageManifestCreate struct {
 }
 
 // SetManifestID sets the "manifest_id" field.
-func (rpmc *ReportPackageManifestCreate) SetManifestID(s string) *ReportPackageManifestCreate {
-	rpmc.mutation.SetManifestID(s)
-	return rpmc
+func (_c *ReportPackageManifestCreate) SetManifestID(v string) *ReportPackageManifestCreate {
+	_c.mutation.SetManifestID(v)
+	return _c
 }
 
 // SetSourceType sets the "source_type" field.
-func (rpmc *ReportPackageManifestCreate) SetSourceType(s string) *ReportPackageManifestCreate {
-	rpmc.mutation.SetSourceType(s)
-	return rpmc
+func (_c *ReportPackageManifestCreate) SetSourceType(v string) *ReportPackageManifestCreate {
+	_c.mutation.SetSourceType(v)
+	return _c
 }
 
 // SetNamespace sets the "namespace" field.
-func (rpmc *ReportPackageManifestCreate) SetNamespace(s string) *ReportPackageManifestCreate {
-	rpmc.mutation.SetNamespace(s)
-	return rpmc
+func (_c *ReportPackageManifestCreate) SetNamespace(v string) *ReportPackageManifestCreate {
+	_c.mutation.SetNamespace(v)
+	return _c
 }
 
 // SetPath sets the "path" field.
-func (rpmc *ReportPackageManifestCreate) SetPath(s string) *ReportPackageManifestCreate {
-	rpmc.mutation.SetPath(s)
-	return rpmc
+func (_c *ReportPackageManifestCreate) SetPath(v string) *ReportPackageManifestCreate {
+	_c.mutation.SetPath(v)
+	return _c
 }
 
 // SetDisplayPath sets the "display_path" field.
-func (rpmc *ReportPackageManifestCreate) SetDisplayPath(s string) *ReportPackageManifestCreate {
-	rpmc.mutation.SetDisplayPath(s)
-	return rpmc
+func (_c *ReportPackageManifestCreate) SetDisplayPath(v string) *ReportPackageManifestCreate {
+	_c.mutation.SetDisplayPath(v)
+	return _c
 }
 
 // SetEcosystem sets the "ecosystem" field.
-func (rpmc *ReportPackageManifestCreate) SetEcosystem(s string) *ReportPackageManifestCreate {
-	rpmc.mutation.SetEcosystem(s)
-	return rpmc
+func (_c *ReportPackageManifestCreate) SetEcosystem(v string) *ReportPackageManifestCreate {
+	_c.mutation.SetEcosystem(v)
+	return _c
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rpmc *ReportPackageManifestCreate) SetCreatedAt(t time.Time) *ReportPackageManifestCreate {
-	rpmc.mutation.SetCreatedAt(t)
-	return rpmc
+func (_c *ReportPackageManifestCreate) SetCreatedAt(v time.Time) *ReportPackageManifestCreate {
+	_c.mutation.SetCreatedAt(v)
+	return _c
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rpmc *ReportPackageManifestCreate) SetNillableCreatedAt(t *time.Time) *ReportPackageManifestCreate {
-	if t != nil {
-		rpmc.SetCreatedAt(*t)
+func (_c *ReportPackageManifestCreate) SetNillableCreatedAt(v *time.Time) *ReportPackageManifestCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
 	}
-	return rpmc
+	return _c
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rpmc *ReportPackageManifestCreate) SetUpdatedAt(t time.Time) *ReportPackageManifestCreate {
-	rpmc.mutation.SetUpdatedAt(t)
-	return rpmc
+func (_c *ReportPackageManifestCreate) SetUpdatedAt(v time.Time) *ReportPackageManifestCreate {
+	_c.mutation.SetUpdatedAt(v)
+	return _c
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rpmc *ReportPackageManifestCreate) SetNillableUpdatedAt(t *time.Time) *ReportPackageManifestCreate {
-	if t != nil {
-		rpmc.SetUpdatedAt(*t)
+func (_c *ReportPackageManifestCreate) SetNillableUpdatedAt(v *time.Time) *ReportPackageManifestCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
 	}
-	return rpmc
+	return _c
 }
 
 // AddPackageIDs adds the "packages" edge to the ReportPackage entity by IDs.
-func (rpmc *ReportPackageManifestCreate) AddPackageIDs(ids ...int) *ReportPackageManifestCreate {
-	rpmc.mutation.AddPackageIDs(ids...)
-	return rpmc
+func (_c *ReportPackageManifestCreate) AddPackageIDs(ids ...int) *ReportPackageManifestCreate {
+	_c.mutation.AddPackageIDs(ids...)
+	return _c
 }
 
 // AddPackages adds the "packages" edges to the ReportPackage entity.
-func (rpmc *ReportPackageManifestCreate) AddPackages(r ...*ReportPackage) *ReportPackageManifestCreate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_c *ReportPackageManifestCreate) AddPackages(v ...*ReportPackage) *ReportPackageManifestCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rpmc.AddPackageIDs(ids...)
+	return _c.AddPackageIDs(ids...)
 }
 
 // Mutation returns the ReportPackageManifestMutation object of the builder.
-func (rpmc *ReportPackageManifestCreate) Mutation() *ReportPackageManifestMutation {
-	return rpmc.mutation
+func (_c *ReportPackageManifestCreate) Mutation() *ReportPackageManifestMutation {
+	return _c.mutation
 }
 
 // Save creates the ReportPackageManifest in the database.
-func (rpmc *ReportPackageManifestCreate) Save(ctx context.Context) (*ReportPackageManifest, error) {
-	return withHooks(ctx, rpmc.sqlSave, rpmc.mutation, rpmc.hooks)
+func (_c *ReportPackageManifestCreate) Save(ctx context.Context) (*ReportPackageManifest, error) {
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (rpmc *ReportPackageManifestCreate) SaveX(ctx context.Context) *ReportPackageManifest {
-	v, err := rpmc.Save(ctx)
+func (_c *ReportPackageManifestCreate) SaveX(ctx context.Context) *ReportPackageManifest {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -120,64 +120,64 @@ func (rpmc *ReportPackageManifestCreate) SaveX(ctx context.Context) *ReportPacka
 }
 
 // Exec executes the query.
-func (rpmc *ReportPackageManifestCreate) Exec(ctx context.Context) error {
-	_, err := rpmc.Save(ctx)
+func (_c *ReportPackageManifestCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rpmc *ReportPackageManifestCreate) ExecX(ctx context.Context) {
-	if err := rpmc.Exec(ctx); err != nil {
+func (_c *ReportPackageManifestCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (rpmc *ReportPackageManifestCreate) check() error {
-	if _, ok := rpmc.mutation.ManifestID(); !ok {
+func (_c *ReportPackageManifestCreate) check() error {
+	if _, ok := _c.mutation.ManifestID(); !ok {
 		return &ValidationError{Name: "manifest_id", err: errors.New(`ent: missing required field "ReportPackageManifest.manifest_id"`)}
 	}
-	if v, ok := rpmc.mutation.ManifestID(); ok {
+	if v, ok := _c.mutation.ManifestID(); ok {
 		if err := reportpackagemanifest.ManifestIDValidator(v); err != nil {
 			return &ValidationError{Name: "manifest_id", err: fmt.Errorf(`ent: validator failed for field "ReportPackageManifest.manifest_id": %w`, err)}
 		}
 	}
-	if _, ok := rpmc.mutation.SourceType(); !ok {
+	if _, ok := _c.mutation.SourceType(); !ok {
 		return &ValidationError{Name: "source_type", err: errors.New(`ent: missing required field "ReportPackageManifest.source_type"`)}
 	}
-	if v, ok := rpmc.mutation.SourceType(); ok {
+	if v, ok := _c.mutation.SourceType(); ok {
 		if err := reportpackagemanifest.SourceTypeValidator(v); err != nil {
 			return &ValidationError{Name: "source_type", err: fmt.Errorf(`ent: validator failed for field "ReportPackageManifest.source_type": %w`, err)}
 		}
 	}
-	if _, ok := rpmc.mutation.Namespace(); !ok {
+	if _, ok := _c.mutation.Namespace(); !ok {
 		return &ValidationError{Name: "namespace", err: errors.New(`ent: missing required field "ReportPackageManifest.namespace"`)}
 	}
-	if v, ok := rpmc.mutation.Namespace(); ok {
+	if v, ok := _c.mutation.Namespace(); ok {
 		if err := reportpackagemanifest.NamespaceValidator(v); err != nil {
 			return &ValidationError{Name: "namespace", err: fmt.Errorf(`ent: validator failed for field "ReportPackageManifest.namespace": %w`, err)}
 		}
 	}
-	if _, ok := rpmc.mutation.Path(); !ok {
+	if _, ok := _c.mutation.Path(); !ok {
 		return &ValidationError{Name: "path", err: errors.New(`ent: missing required field "ReportPackageManifest.path"`)}
 	}
-	if v, ok := rpmc.mutation.Path(); ok {
+	if v, ok := _c.mutation.Path(); ok {
 		if err := reportpackagemanifest.PathValidator(v); err != nil {
 			return &ValidationError{Name: "path", err: fmt.Errorf(`ent: validator failed for field "ReportPackageManifest.path": %w`, err)}
 		}
 	}
-	if _, ok := rpmc.mutation.DisplayPath(); !ok {
+	if _, ok := _c.mutation.DisplayPath(); !ok {
 		return &ValidationError{Name: "display_path", err: errors.New(`ent: missing required field "ReportPackageManifest.display_path"`)}
 	}
-	if v, ok := rpmc.mutation.DisplayPath(); ok {
+	if v, ok := _c.mutation.DisplayPath(); ok {
 		if err := reportpackagemanifest.DisplayPathValidator(v); err != nil {
 			return &ValidationError{Name: "display_path", err: fmt.Errorf(`ent: validator failed for field "ReportPackageManifest.display_path": %w`, err)}
 		}
 	}
-	if _, ok := rpmc.mutation.Ecosystem(); !ok {
+	if _, ok := _c.mutation.Ecosystem(); !ok {
 		return &ValidationError{Name: "ecosystem", err: errors.New(`ent: missing required field "ReportPackageManifest.ecosystem"`)}
 	}
-	if v, ok := rpmc.mutation.Ecosystem(); ok {
+	if v, ok := _c.mutation.Ecosystem(); ok {
 		if err := reportpackagemanifest.EcosystemValidator(v); err != nil {
 			return &ValidationError{Name: "ecosystem", err: fmt.Errorf(`ent: validator failed for field "ReportPackageManifest.ecosystem": %w`, err)}
 		}
@@ -185,12 +185,12 @@ func (rpmc *ReportPackageManifestCreate) check() error {
 	return nil
 }
 
-func (rpmc *ReportPackageManifestCreate) sqlSave(ctx context.Context) (*ReportPackageManifest, error) {
-	if err := rpmc.check(); err != nil {
+func (_c *ReportPackageManifestCreate) sqlSave(ctx context.Context) (*ReportPackageManifest, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := rpmc.createSpec()
-	if err := sqlgraph.CreateNode(ctx, rpmc.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -198,49 +198,49 @@ func (rpmc *ReportPackageManifestCreate) sqlSave(ctx context.Context) (*ReportPa
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
-	rpmc.mutation.id = &_node.ID
-	rpmc.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (rpmc *ReportPackageManifestCreate) createSpec() (*ReportPackageManifest, *sqlgraph.CreateSpec) {
+func (_c *ReportPackageManifestCreate) createSpec() (*ReportPackageManifest, *sqlgraph.CreateSpec) {
 	var (
-		_node = &ReportPackageManifest{config: rpmc.config}
+		_node = &ReportPackageManifest{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(reportpackagemanifest.Table, sqlgraph.NewFieldSpec(reportpackagemanifest.FieldID, field.TypeInt))
 	)
-	if value, ok := rpmc.mutation.ManifestID(); ok {
+	if value, ok := _c.mutation.ManifestID(); ok {
 		_spec.SetField(reportpackagemanifest.FieldManifestID, field.TypeString, value)
 		_node.ManifestID = value
 	}
-	if value, ok := rpmc.mutation.SourceType(); ok {
+	if value, ok := _c.mutation.SourceType(); ok {
 		_spec.SetField(reportpackagemanifest.FieldSourceType, field.TypeString, value)
 		_node.SourceType = value
 	}
-	if value, ok := rpmc.mutation.Namespace(); ok {
+	if value, ok := _c.mutation.Namespace(); ok {
 		_spec.SetField(reportpackagemanifest.FieldNamespace, field.TypeString, value)
 		_node.Namespace = value
 	}
-	if value, ok := rpmc.mutation.Path(); ok {
+	if value, ok := _c.mutation.Path(); ok {
 		_spec.SetField(reportpackagemanifest.FieldPath, field.TypeString, value)
 		_node.Path = value
 	}
-	if value, ok := rpmc.mutation.DisplayPath(); ok {
+	if value, ok := _c.mutation.DisplayPath(); ok {
 		_spec.SetField(reportpackagemanifest.FieldDisplayPath, field.TypeString, value)
 		_node.DisplayPath = value
 	}
-	if value, ok := rpmc.mutation.Ecosystem(); ok {
+	if value, ok := _c.mutation.Ecosystem(); ok {
 		_spec.SetField(reportpackagemanifest.FieldEcosystem, field.TypeString, value)
 		_node.Ecosystem = value
 	}
-	if value, ok := rpmc.mutation.CreatedAt(); ok {
+	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(reportpackagemanifest.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
-	if value, ok := rpmc.mutation.UpdatedAt(); ok {
+	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportpackagemanifest.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := rpmc.mutation.PackagesIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.PackagesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -267,16 +267,16 @@ type ReportPackageManifestCreateBulk struct {
 }
 
 // Save creates the ReportPackageManifest entities in the database.
-func (rpmcb *ReportPackageManifestCreateBulk) Save(ctx context.Context) ([]*ReportPackageManifest, error) {
-	if rpmcb.err != nil {
-		return nil, rpmcb.err
+func (_c *ReportPackageManifestCreateBulk) Save(ctx context.Context) ([]*ReportPackageManifest, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(rpmcb.builders))
-	nodes := make([]*ReportPackageManifest, len(rpmcb.builders))
-	mutators := make([]Mutator, len(rpmcb.builders))
-	for i := range rpmcb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*ReportPackageManifest, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := rpmcb.builders[i]
+			builder := _c.builders[i]
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*ReportPackageManifestMutation)
 				if !ok {
@@ -289,11 +289,11 @@ func (rpmcb *ReportPackageManifestCreateBulk) Save(ctx context.Context) ([]*Repo
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, rpmcb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, rpmcb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -317,7 +317,7 @@ func (rpmcb *ReportPackageManifestCreateBulk) Save(ctx context.Context) ([]*Repo
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, rpmcb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -325,8 +325,8 @@ func (rpmcb *ReportPackageManifestCreateBulk) Save(ctx context.Context) ([]*Repo
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rpmcb *ReportPackageManifestCreateBulk) SaveX(ctx context.Context) []*ReportPackageManifest {
-	v, err := rpmcb.Save(ctx)
+func (_c *ReportPackageManifestCreateBulk) SaveX(ctx context.Context) []*ReportPackageManifest {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -334,14 +334,14 @@ func (rpmcb *ReportPackageManifestCreateBulk) SaveX(ctx context.Context) []*Repo
 }
 
 // Exec executes the query.
-func (rpmcb *ReportPackageManifestCreateBulk) Exec(ctx context.Context) error {
-	_, err := rpmcb.Save(ctx)
+func (_c *ReportPackageManifestCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rpmcb *ReportPackageManifestCreateBulk) ExecX(ctx context.Context) {
-	if err := rpmcb.Exec(ctx); err != nil {
+func (_c *ReportPackageManifestCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

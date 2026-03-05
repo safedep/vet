@@ -37,7 +37,7 @@ func TestCopyToTempFile(t *testing.T) {
 
 	file, err := CopyToTempFile(src, dir, pattern)
 	assert.NoError(t, err)
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	assert.FileExists(t, file.Name())
 

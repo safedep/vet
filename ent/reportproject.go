@@ -95,7 +95,7 @@ func (*ReportProject) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the ReportProject fields.
-func (rp *ReportProject) assignValues(columns []string, values []any) error {
+func (_m *ReportProject) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -106,58 +106,58 @@ func (rp *ReportProject) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			rp.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case reportproject.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
-				rp.Name = value.String
+				_m.Name = value.String
 			}
 		case reportproject.FieldURL:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field url", values[i])
 			} else if value.Valid {
-				rp.URL = value.String
+				_m.URL = value.String
 			}
 		case reportproject.FieldDescription:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
-				rp.Description = value.String
+				_m.Description = value.String
 			}
 		case reportproject.FieldStars:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field stars", values[i])
 			} else if value.Valid {
-				rp.Stars = int32(value.Int64)
+				_m.Stars = int32(value.Int64)
 			}
 		case reportproject.FieldForks:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field forks", values[i])
 			} else if value.Valid {
-				rp.Forks = int32(value.Int64)
+				_m.Forks = int32(value.Int64)
 			}
 		case reportproject.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
-				rp.CreatedAt = value.Time
+				_m.CreatedAt = value.Time
 			}
 		case reportproject.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
-				rp.UpdatedAt = value.Time
+				_m.UpdatedAt = value.Time
 			}
 		case reportproject.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field report_package_projects", value)
 			} else if value.Valid {
-				rp.report_package_projects = new(int)
-				*rp.report_package_projects = int(value.Int64)
+				_m.report_package_projects = new(int)
+				*_m.report_package_projects = int(value.Int64)
 			}
 		default:
-			rp.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -165,63 +165,63 @@ func (rp *ReportProject) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the ReportProject.
 // This includes values selected through modifiers, order, etc.
-func (rp *ReportProject) Value(name string) (ent.Value, error) {
-	return rp.selectValues.Get(name)
+func (_m *ReportProject) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QueryPackage queries the "package" edge of the ReportProject entity.
-func (rp *ReportProject) QueryPackage() *ReportPackageQuery {
-	return NewReportProjectClient(rp.config).QueryPackage(rp)
+func (_m *ReportProject) QueryPackage() *ReportPackageQuery {
+	return NewReportProjectClient(_m.config).QueryPackage(_m)
 }
 
 // QueryScorecard queries the "scorecard" edge of the ReportProject entity.
-func (rp *ReportProject) QueryScorecard() *ReportScorecardQuery {
-	return NewReportProjectClient(rp.config).QueryScorecard(rp)
+func (_m *ReportProject) QueryScorecard() *ReportScorecardQuery {
+	return NewReportProjectClient(_m.config).QueryScorecard(_m)
 }
 
 // Update returns a builder for updating this ReportProject.
 // Note that you need to call ReportProject.Unwrap() before calling this method if this ReportProject
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (rp *ReportProject) Update() *ReportProjectUpdateOne {
-	return NewReportProjectClient(rp.config).UpdateOne(rp)
+func (_m *ReportProject) Update() *ReportProjectUpdateOne {
+	return NewReportProjectClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the ReportProject entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (rp *ReportProject) Unwrap() *ReportProject {
-	_tx, ok := rp.config.driver.(*txDriver)
+func (_m *ReportProject) Unwrap() *ReportProject {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: ReportProject is not a transactional entity")
 	}
-	rp.config.driver = _tx.drv
-	return rp
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (rp *ReportProject) String() string {
+func (_m *ReportProject) String() string {
 	var builder strings.Builder
 	builder.WriteString("ReportProject(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", rp.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("name=")
-	builder.WriteString(rp.Name)
+	builder.WriteString(_m.Name)
 	builder.WriteString(", ")
 	builder.WriteString("url=")
-	builder.WriteString(rp.URL)
+	builder.WriteString(_m.URL)
 	builder.WriteString(", ")
 	builder.WriteString("description=")
-	builder.WriteString(rp.Description)
+	builder.WriteString(_m.Description)
 	builder.WriteString(", ")
 	builder.WriteString("stars=")
-	builder.WriteString(fmt.Sprintf("%v", rp.Stars))
+	builder.WriteString(fmt.Sprintf("%v", _m.Stars))
 	builder.WriteString(", ")
 	builder.WriteString("forks=")
-	builder.WriteString(fmt.Sprintf("%v", rp.Forks))
+	builder.WriteString(fmt.Sprintf("%v", _m.Forks))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
-	builder.WriteString(rp.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
-	builder.WriteString(rp.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -32,7 +32,7 @@ func TestSqlite3Reporter_ExpectedTables(t *testing.T) {
 	db, err := sql.Open("sqlite3", dbPath)
 	assert.NoError(t, err)
 
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	rows, err := db.Query(`
 		SELECT name FROM sqlite_master 
@@ -406,7 +406,7 @@ func TestSqlite3ReporterPersistence(t *testing.T) {
 			db, err := sql.Open("sqlite3", dbPath)
 			assert.NoError(t, err)
 
-			defer db.Close()
+			defer func() { _ = db.Close() }()
 
 			tc.assertFn(t, db)
 		})

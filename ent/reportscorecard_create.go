@@ -23,118 +23,118 @@ type ReportScorecardCreate struct {
 }
 
 // SetScore sets the "score" field.
-func (rsc *ReportScorecardCreate) SetScore(f float32) *ReportScorecardCreate {
-	rsc.mutation.SetScore(f)
-	return rsc
+func (_c *ReportScorecardCreate) SetScore(v float32) *ReportScorecardCreate {
+	_c.mutation.SetScore(v)
+	return _c
 }
 
 // SetScorecardVersion sets the "scorecard_version" field.
-func (rsc *ReportScorecardCreate) SetScorecardVersion(s string) *ReportScorecardCreate {
-	rsc.mutation.SetScorecardVersion(s)
-	return rsc
+func (_c *ReportScorecardCreate) SetScorecardVersion(v string) *ReportScorecardCreate {
+	_c.mutation.SetScorecardVersion(v)
+	return _c
 }
 
 // SetRepoName sets the "repo_name" field.
-func (rsc *ReportScorecardCreate) SetRepoName(s string) *ReportScorecardCreate {
-	rsc.mutation.SetRepoName(s)
-	return rsc
+func (_c *ReportScorecardCreate) SetRepoName(v string) *ReportScorecardCreate {
+	_c.mutation.SetRepoName(v)
+	return _c
 }
 
 // SetRepoCommit sets the "repo_commit" field.
-func (rsc *ReportScorecardCreate) SetRepoCommit(s string) *ReportScorecardCreate {
-	rsc.mutation.SetRepoCommit(s)
-	return rsc
+func (_c *ReportScorecardCreate) SetRepoCommit(v string) *ReportScorecardCreate {
+	_c.mutation.SetRepoCommit(v)
+	return _c
 }
 
 // SetDate sets the "date" field.
-func (rsc *ReportScorecardCreate) SetDate(s string) *ReportScorecardCreate {
-	rsc.mutation.SetDate(s)
-	return rsc
+func (_c *ReportScorecardCreate) SetDate(v string) *ReportScorecardCreate {
+	_c.mutation.SetDate(v)
+	return _c
 }
 
 // SetNillableDate sets the "date" field if the given value is not nil.
-func (rsc *ReportScorecardCreate) SetNillableDate(s *string) *ReportScorecardCreate {
-	if s != nil {
-		rsc.SetDate(*s)
+func (_c *ReportScorecardCreate) SetNillableDate(v *string) *ReportScorecardCreate {
+	if v != nil {
+		_c.SetDate(*v)
 	}
-	return rsc
+	return _c
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rsc *ReportScorecardCreate) SetCreatedAt(t time.Time) *ReportScorecardCreate {
-	rsc.mutation.SetCreatedAt(t)
-	return rsc
+func (_c *ReportScorecardCreate) SetCreatedAt(v time.Time) *ReportScorecardCreate {
+	_c.mutation.SetCreatedAt(v)
+	return _c
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rsc *ReportScorecardCreate) SetNillableCreatedAt(t *time.Time) *ReportScorecardCreate {
-	if t != nil {
-		rsc.SetCreatedAt(*t)
+func (_c *ReportScorecardCreate) SetNillableCreatedAt(v *time.Time) *ReportScorecardCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
 	}
-	return rsc
+	return _c
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rsc *ReportScorecardCreate) SetUpdatedAt(t time.Time) *ReportScorecardCreate {
-	rsc.mutation.SetUpdatedAt(t)
-	return rsc
+func (_c *ReportScorecardCreate) SetUpdatedAt(v time.Time) *ReportScorecardCreate {
+	_c.mutation.SetUpdatedAt(v)
+	return _c
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rsc *ReportScorecardCreate) SetNillableUpdatedAt(t *time.Time) *ReportScorecardCreate {
-	if t != nil {
-		rsc.SetUpdatedAt(*t)
+func (_c *ReportScorecardCreate) SetNillableUpdatedAt(v *time.Time) *ReportScorecardCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
 	}
-	return rsc
+	return _c
 }
 
 // SetProjectID sets the "project" edge to the ReportProject entity by ID.
-func (rsc *ReportScorecardCreate) SetProjectID(id int) *ReportScorecardCreate {
-	rsc.mutation.SetProjectID(id)
-	return rsc
+func (_c *ReportScorecardCreate) SetProjectID(id int) *ReportScorecardCreate {
+	_c.mutation.SetProjectID(id)
+	return _c
 }
 
 // SetNillableProjectID sets the "project" edge to the ReportProject entity by ID if the given value is not nil.
-func (rsc *ReportScorecardCreate) SetNillableProjectID(id *int) *ReportScorecardCreate {
+func (_c *ReportScorecardCreate) SetNillableProjectID(id *int) *ReportScorecardCreate {
 	if id != nil {
-		rsc = rsc.SetProjectID(*id)
+		_c = _c.SetProjectID(*id)
 	}
-	return rsc
+	return _c
 }
 
 // SetProject sets the "project" edge to the ReportProject entity.
-func (rsc *ReportScorecardCreate) SetProject(r *ReportProject) *ReportScorecardCreate {
-	return rsc.SetProjectID(r.ID)
+func (_c *ReportScorecardCreate) SetProject(v *ReportProject) *ReportScorecardCreate {
+	return _c.SetProjectID(v.ID)
 }
 
 // AddCheckIDs adds the "checks" edge to the ReportScorecardCheck entity by IDs.
-func (rsc *ReportScorecardCreate) AddCheckIDs(ids ...int) *ReportScorecardCreate {
-	rsc.mutation.AddCheckIDs(ids...)
-	return rsc
+func (_c *ReportScorecardCreate) AddCheckIDs(ids ...int) *ReportScorecardCreate {
+	_c.mutation.AddCheckIDs(ids...)
+	return _c
 }
 
 // AddChecks adds the "checks" edges to the ReportScorecardCheck entity.
-func (rsc *ReportScorecardCreate) AddChecks(r ...*ReportScorecardCheck) *ReportScorecardCreate {
-	ids := make([]int, len(r))
-	for i := range r {
-		ids[i] = r[i].ID
+func (_c *ReportScorecardCreate) AddChecks(v ...*ReportScorecardCheck) *ReportScorecardCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return rsc.AddCheckIDs(ids...)
+	return _c.AddCheckIDs(ids...)
 }
 
 // Mutation returns the ReportScorecardMutation object of the builder.
-func (rsc *ReportScorecardCreate) Mutation() *ReportScorecardMutation {
-	return rsc.mutation
+func (_c *ReportScorecardCreate) Mutation() *ReportScorecardMutation {
+	return _c.mutation
 }
 
 // Save creates the ReportScorecard in the database.
-func (rsc *ReportScorecardCreate) Save(ctx context.Context) (*ReportScorecard, error) {
-	return withHooks(ctx, rsc.sqlSave, rsc.mutation, rsc.hooks)
+func (_c *ReportScorecardCreate) Save(ctx context.Context) (*ReportScorecard, error) {
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (rsc *ReportScorecardCreate) SaveX(ctx context.Context) *ReportScorecard {
-	v, err := rsc.Save(ctx)
+func (_c *ReportScorecardCreate) SaveX(ctx context.Context) *ReportScorecard {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -142,41 +142,41 @@ func (rsc *ReportScorecardCreate) SaveX(ctx context.Context) *ReportScorecard {
 }
 
 // Exec executes the query.
-func (rsc *ReportScorecardCreate) Exec(ctx context.Context) error {
-	_, err := rsc.Save(ctx)
+func (_c *ReportScorecardCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rsc *ReportScorecardCreate) ExecX(ctx context.Context) {
-	if err := rsc.Exec(ctx); err != nil {
+func (_c *ReportScorecardCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (rsc *ReportScorecardCreate) check() error {
-	if _, ok := rsc.mutation.Score(); !ok {
+func (_c *ReportScorecardCreate) check() error {
+	if _, ok := _c.mutation.Score(); !ok {
 		return &ValidationError{Name: "score", err: errors.New(`ent: missing required field "ReportScorecard.score"`)}
 	}
-	if _, ok := rsc.mutation.ScorecardVersion(); !ok {
+	if _, ok := _c.mutation.ScorecardVersion(); !ok {
 		return &ValidationError{Name: "scorecard_version", err: errors.New(`ent: missing required field "ReportScorecard.scorecard_version"`)}
 	}
-	if _, ok := rsc.mutation.RepoName(); !ok {
+	if _, ok := _c.mutation.RepoName(); !ok {
 		return &ValidationError{Name: "repo_name", err: errors.New(`ent: missing required field "ReportScorecard.repo_name"`)}
 	}
-	if _, ok := rsc.mutation.RepoCommit(); !ok {
+	if _, ok := _c.mutation.RepoCommit(); !ok {
 		return &ValidationError{Name: "repo_commit", err: errors.New(`ent: missing required field "ReportScorecard.repo_commit"`)}
 	}
 	return nil
 }
 
-func (rsc *ReportScorecardCreate) sqlSave(ctx context.Context) (*ReportScorecard, error) {
-	if err := rsc.check(); err != nil {
+func (_c *ReportScorecardCreate) sqlSave(ctx context.Context) (*ReportScorecard, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := rsc.createSpec()
-	if err := sqlgraph.CreateNode(ctx, rsc.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -184,45 +184,45 @@ func (rsc *ReportScorecardCreate) sqlSave(ctx context.Context) (*ReportScorecard
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
-	rsc.mutation.id = &_node.ID
-	rsc.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (rsc *ReportScorecardCreate) createSpec() (*ReportScorecard, *sqlgraph.CreateSpec) {
+func (_c *ReportScorecardCreate) createSpec() (*ReportScorecard, *sqlgraph.CreateSpec) {
 	var (
-		_node = &ReportScorecard{config: rsc.config}
+		_node = &ReportScorecard{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(reportscorecard.Table, sqlgraph.NewFieldSpec(reportscorecard.FieldID, field.TypeInt))
 	)
-	if value, ok := rsc.mutation.Score(); ok {
+	if value, ok := _c.mutation.Score(); ok {
 		_spec.SetField(reportscorecard.FieldScore, field.TypeFloat32, value)
 		_node.Score = value
 	}
-	if value, ok := rsc.mutation.ScorecardVersion(); ok {
+	if value, ok := _c.mutation.ScorecardVersion(); ok {
 		_spec.SetField(reportscorecard.FieldScorecardVersion, field.TypeString, value)
 		_node.ScorecardVersion = value
 	}
-	if value, ok := rsc.mutation.RepoName(); ok {
+	if value, ok := _c.mutation.RepoName(); ok {
 		_spec.SetField(reportscorecard.FieldRepoName, field.TypeString, value)
 		_node.RepoName = value
 	}
-	if value, ok := rsc.mutation.RepoCommit(); ok {
+	if value, ok := _c.mutation.RepoCommit(); ok {
 		_spec.SetField(reportscorecard.FieldRepoCommit, field.TypeString, value)
 		_node.RepoCommit = value
 	}
-	if value, ok := rsc.mutation.Date(); ok {
+	if value, ok := _c.mutation.Date(); ok {
 		_spec.SetField(reportscorecard.FieldDate, field.TypeString, value)
 		_node.Date = value
 	}
-	if value, ok := rsc.mutation.CreatedAt(); ok {
+	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(reportscorecard.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
-	if value, ok := rsc.mutation.UpdatedAt(); ok {
+	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportscorecard.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := rsc.mutation.ProjectIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.ProjectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: true,
@@ -239,7 +239,7 @@ func (rsc *ReportScorecardCreate) createSpec() (*ReportScorecard, *sqlgraph.Crea
 		_node.report_project_scorecard = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := rsc.mutation.ChecksIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.ChecksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -266,16 +266,16 @@ type ReportScorecardCreateBulk struct {
 }
 
 // Save creates the ReportScorecard entities in the database.
-func (rscb *ReportScorecardCreateBulk) Save(ctx context.Context) ([]*ReportScorecard, error) {
-	if rscb.err != nil {
-		return nil, rscb.err
+func (_c *ReportScorecardCreateBulk) Save(ctx context.Context) ([]*ReportScorecard, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(rscb.builders))
-	nodes := make([]*ReportScorecard, len(rscb.builders))
-	mutators := make([]Mutator, len(rscb.builders))
-	for i := range rscb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*ReportScorecard, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := rscb.builders[i]
+			builder := _c.builders[i]
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*ReportScorecardMutation)
 				if !ok {
@@ -288,11 +288,11 @@ func (rscb *ReportScorecardCreateBulk) Save(ctx context.Context) ([]*ReportScore
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, rscb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, rscb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -316,7 +316,7 @@ func (rscb *ReportScorecardCreateBulk) Save(ctx context.Context) ([]*ReportScore
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, rscb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -324,8 +324,8 @@ func (rscb *ReportScorecardCreateBulk) Save(ctx context.Context) ([]*ReportScore
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rscb *ReportScorecardCreateBulk) SaveX(ctx context.Context) []*ReportScorecard {
-	v, err := rscb.Save(ctx)
+func (_c *ReportScorecardCreateBulk) SaveX(ctx context.Context) []*ReportScorecard {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -333,14 +333,14 @@ func (rscb *ReportScorecardCreateBulk) SaveX(ctx context.Context) []*ReportScore
 }
 
 // Exec executes the query.
-func (rscb *ReportScorecardCreateBulk) Exec(ctx context.Context) error {
-	_, err := rscb.Save(ctx)
+func (_c *ReportScorecardCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rscb *ReportScorecardCreateBulk) ExecX(ctx context.Context) {
-	if err := rscb.Exec(ctx); err != nil {
+func (_c *ReportScorecardCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

@@ -74,7 +74,7 @@ func (*ReportDependencyGraph) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the ReportDependencyGraph fields.
-func (rdg *ReportDependencyGraph) assignValues(columns []string, values []any) error {
+func (_m *ReportDependencyGraph) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -85,105 +85,105 @@ func (rdg *ReportDependencyGraph) assignValues(columns []string, values []any) e
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			rdg.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case reportdependencygraph.FieldFromPackageID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field from_package_id", values[i])
 			} else if value.Valid {
-				rdg.FromPackageID = value.String
+				_m.FromPackageID = value.String
 			}
 		case reportdependencygraph.FieldFromPackageName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field from_package_name", values[i])
 			} else if value.Valid {
-				rdg.FromPackageName = value.String
+				_m.FromPackageName = value.String
 			}
 		case reportdependencygraph.FieldFromPackageVersion:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field from_package_version", values[i])
 			} else if value.Valid {
-				rdg.FromPackageVersion = value.String
+				_m.FromPackageVersion = value.String
 			}
 		case reportdependencygraph.FieldFromPackageEcosystem:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field from_package_ecosystem", values[i])
 			} else if value.Valid {
-				rdg.FromPackageEcosystem = value.String
+				_m.FromPackageEcosystem = value.String
 			}
 		case reportdependencygraph.FieldToPackageID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field to_package_id", values[i])
 			} else if value.Valid {
-				rdg.ToPackageID = value.String
+				_m.ToPackageID = value.String
 			}
 		case reportdependencygraph.FieldToPackageName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field to_package_name", values[i])
 			} else if value.Valid {
-				rdg.ToPackageName = value.String
+				_m.ToPackageName = value.String
 			}
 		case reportdependencygraph.FieldToPackageVersion:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field to_package_version", values[i])
 			} else if value.Valid {
-				rdg.ToPackageVersion = value.String
+				_m.ToPackageVersion = value.String
 			}
 		case reportdependencygraph.FieldToPackageEcosystem:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field to_package_ecosystem", values[i])
 			} else if value.Valid {
-				rdg.ToPackageEcosystem = value.String
+				_m.ToPackageEcosystem = value.String
 			}
 		case reportdependencygraph.FieldDependencyType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field dependency_type", values[i])
 			} else if value.Valid {
-				rdg.DependencyType = value.String
+				_m.DependencyType = value.String
 			}
 		case reportdependencygraph.FieldVersionConstraint:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field version_constraint", values[i])
 			} else if value.Valid {
-				rdg.VersionConstraint = value.String
+				_m.VersionConstraint = value.String
 			}
 		case reportdependencygraph.FieldDepth:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field depth", values[i])
 			} else if value.Valid {
-				rdg.Depth = int(value.Int64)
+				_m.Depth = int(value.Int64)
 			}
 		case reportdependencygraph.FieldIsDirect:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field is_direct", values[i])
 			} else if value.Valid {
-				rdg.IsDirect = value.Bool
+				_m.IsDirect = value.Bool
 			}
 		case reportdependencygraph.FieldIsRootEdge:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field is_root_edge", values[i])
 			} else if value.Valid {
-				rdg.IsRootEdge = value.Bool
+				_m.IsRootEdge = value.Bool
 			}
 		case reportdependencygraph.FieldManifestID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field manifest_id", values[i])
 			} else if value.Valid {
-				rdg.ManifestID = value.String
+				_m.ManifestID = value.String
 			}
 		case reportdependencygraph.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
-				rdg.CreatedAt = value.Time
+				_m.CreatedAt = value.Time
 			}
 		case reportdependencygraph.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
-				rdg.UpdatedAt = value.Time
+				_m.UpdatedAt = value.Time
 			}
 		default:
-			rdg.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -191,80 +191,80 @@ func (rdg *ReportDependencyGraph) assignValues(columns []string, values []any) e
 
 // Value returns the ent.Value that was dynamically selected and assigned to the ReportDependencyGraph.
 // This includes values selected through modifiers, order, etc.
-func (rdg *ReportDependencyGraph) Value(name string) (ent.Value, error) {
-	return rdg.selectValues.Get(name)
+func (_m *ReportDependencyGraph) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this ReportDependencyGraph.
 // Note that you need to call ReportDependencyGraph.Unwrap() before calling this method if this ReportDependencyGraph
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (rdg *ReportDependencyGraph) Update() *ReportDependencyGraphUpdateOne {
-	return NewReportDependencyGraphClient(rdg.config).UpdateOne(rdg)
+func (_m *ReportDependencyGraph) Update() *ReportDependencyGraphUpdateOne {
+	return NewReportDependencyGraphClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the ReportDependencyGraph entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (rdg *ReportDependencyGraph) Unwrap() *ReportDependencyGraph {
-	_tx, ok := rdg.config.driver.(*txDriver)
+func (_m *ReportDependencyGraph) Unwrap() *ReportDependencyGraph {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: ReportDependencyGraph is not a transactional entity")
 	}
-	rdg.config.driver = _tx.drv
-	return rdg
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (rdg *ReportDependencyGraph) String() string {
+func (_m *ReportDependencyGraph) String() string {
 	var builder strings.Builder
 	builder.WriteString("ReportDependencyGraph(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", rdg.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("from_package_id=")
-	builder.WriteString(rdg.FromPackageID)
+	builder.WriteString(_m.FromPackageID)
 	builder.WriteString(", ")
 	builder.WriteString("from_package_name=")
-	builder.WriteString(rdg.FromPackageName)
+	builder.WriteString(_m.FromPackageName)
 	builder.WriteString(", ")
 	builder.WriteString("from_package_version=")
-	builder.WriteString(rdg.FromPackageVersion)
+	builder.WriteString(_m.FromPackageVersion)
 	builder.WriteString(", ")
 	builder.WriteString("from_package_ecosystem=")
-	builder.WriteString(rdg.FromPackageEcosystem)
+	builder.WriteString(_m.FromPackageEcosystem)
 	builder.WriteString(", ")
 	builder.WriteString("to_package_id=")
-	builder.WriteString(rdg.ToPackageID)
+	builder.WriteString(_m.ToPackageID)
 	builder.WriteString(", ")
 	builder.WriteString("to_package_name=")
-	builder.WriteString(rdg.ToPackageName)
+	builder.WriteString(_m.ToPackageName)
 	builder.WriteString(", ")
 	builder.WriteString("to_package_version=")
-	builder.WriteString(rdg.ToPackageVersion)
+	builder.WriteString(_m.ToPackageVersion)
 	builder.WriteString(", ")
 	builder.WriteString("to_package_ecosystem=")
-	builder.WriteString(rdg.ToPackageEcosystem)
+	builder.WriteString(_m.ToPackageEcosystem)
 	builder.WriteString(", ")
 	builder.WriteString("dependency_type=")
-	builder.WriteString(rdg.DependencyType)
+	builder.WriteString(_m.DependencyType)
 	builder.WriteString(", ")
 	builder.WriteString("version_constraint=")
-	builder.WriteString(rdg.VersionConstraint)
+	builder.WriteString(_m.VersionConstraint)
 	builder.WriteString(", ")
 	builder.WriteString("depth=")
-	builder.WriteString(fmt.Sprintf("%v", rdg.Depth))
+	builder.WriteString(fmt.Sprintf("%v", _m.Depth))
 	builder.WriteString(", ")
 	builder.WriteString("is_direct=")
-	builder.WriteString(fmt.Sprintf("%v", rdg.IsDirect))
+	builder.WriteString(fmt.Sprintf("%v", _m.IsDirect))
 	builder.WriteString(", ")
 	builder.WriteString("is_root_edge=")
-	builder.WriteString(fmt.Sprintf("%v", rdg.IsRootEdge))
+	builder.WriteString(fmt.Sprintf("%v", _m.IsRootEdge))
 	builder.WriteString(", ")
 	builder.WriteString("manifest_id=")
-	builder.WriteString(rdg.ManifestID)
+	builder.WriteString(_m.ManifestID)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
-	builder.WriteString(rdg.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
-	builder.WriteString(rdg.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

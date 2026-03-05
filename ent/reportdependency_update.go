@@ -24,186 +24,186 @@ type ReportDependencyUpdate struct {
 }
 
 // Where appends a list predicates to the ReportDependencyUpdate builder.
-func (rdu *ReportDependencyUpdate) Where(ps ...predicate.ReportDependency) *ReportDependencyUpdate {
-	rdu.mutation.Where(ps...)
-	return rdu
+func (_u *ReportDependencyUpdate) Where(ps ...predicate.ReportDependency) *ReportDependencyUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetDependencyPackageID sets the "dependency_package_id" field.
-func (rdu *ReportDependencyUpdate) SetDependencyPackageID(s string) *ReportDependencyUpdate {
-	rdu.mutation.SetDependencyPackageID(s)
-	return rdu
+func (_u *ReportDependencyUpdate) SetDependencyPackageID(v string) *ReportDependencyUpdate {
+	_u.mutation.SetDependencyPackageID(v)
+	return _u
 }
 
 // SetNillableDependencyPackageID sets the "dependency_package_id" field if the given value is not nil.
-func (rdu *ReportDependencyUpdate) SetNillableDependencyPackageID(s *string) *ReportDependencyUpdate {
-	if s != nil {
-		rdu.SetDependencyPackageID(*s)
+func (_u *ReportDependencyUpdate) SetNillableDependencyPackageID(v *string) *ReportDependencyUpdate {
+	if v != nil {
+		_u.SetDependencyPackageID(*v)
 	}
-	return rdu
+	return _u
 }
 
 // SetDependencyName sets the "dependency_name" field.
-func (rdu *ReportDependencyUpdate) SetDependencyName(s string) *ReportDependencyUpdate {
-	rdu.mutation.SetDependencyName(s)
-	return rdu
+func (_u *ReportDependencyUpdate) SetDependencyName(v string) *ReportDependencyUpdate {
+	_u.mutation.SetDependencyName(v)
+	return _u
 }
 
 // SetNillableDependencyName sets the "dependency_name" field if the given value is not nil.
-func (rdu *ReportDependencyUpdate) SetNillableDependencyName(s *string) *ReportDependencyUpdate {
-	if s != nil {
-		rdu.SetDependencyName(*s)
+func (_u *ReportDependencyUpdate) SetNillableDependencyName(v *string) *ReportDependencyUpdate {
+	if v != nil {
+		_u.SetDependencyName(*v)
 	}
-	return rdu
+	return _u
 }
 
 // SetDependencyVersion sets the "dependency_version" field.
-func (rdu *ReportDependencyUpdate) SetDependencyVersion(s string) *ReportDependencyUpdate {
-	rdu.mutation.SetDependencyVersion(s)
-	return rdu
+func (_u *ReportDependencyUpdate) SetDependencyVersion(v string) *ReportDependencyUpdate {
+	_u.mutation.SetDependencyVersion(v)
+	return _u
 }
 
 // SetNillableDependencyVersion sets the "dependency_version" field if the given value is not nil.
-func (rdu *ReportDependencyUpdate) SetNillableDependencyVersion(s *string) *ReportDependencyUpdate {
-	if s != nil {
-		rdu.SetDependencyVersion(*s)
+func (_u *ReportDependencyUpdate) SetNillableDependencyVersion(v *string) *ReportDependencyUpdate {
+	if v != nil {
+		_u.SetDependencyVersion(*v)
 	}
-	return rdu
+	return _u
 }
 
 // SetDependencyEcosystem sets the "dependency_ecosystem" field.
-func (rdu *ReportDependencyUpdate) SetDependencyEcosystem(s string) *ReportDependencyUpdate {
-	rdu.mutation.SetDependencyEcosystem(s)
-	return rdu
+func (_u *ReportDependencyUpdate) SetDependencyEcosystem(v string) *ReportDependencyUpdate {
+	_u.mutation.SetDependencyEcosystem(v)
+	return _u
 }
 
 // SetNillableDependencyEcosystem sets the "dependency_ecosystem" field if the given value is not nil.
-func (rdu *ReportDependencyUpdate) SetNillableDependencyEcosystem(s *string) *ReportDependencyUpdate {
-	if s != nil {
-		rdu.SetDependencyEcosystem(*s)
+func (_u *ReportDependencyUpdate) SetNillableDependencyEcosystem(v *string) *ReportDependencyUpdate {
+	if v != nil {
+		_u.SetDependencyEcosystem(*v)
 	}
-	return rdu
+	return _u
 }
 
 // SetDependencyType sets the "dependency_type" field.
-func (rdu *ReportDependencyUpdate) SetDependencyType(s string) *ReportDependencyUpdate {
-	rdu.mutation.SetDependencyType(s)
-	return rdu
+func (_u *ReportDependencyUpdate) SetDependencyType(v string) *ReportDependencyUpdate {
+	_u.mutation.SetDependencyType(v)
+	return _u
 }
 
 // SetNillableDependencyType sets the "dependency_type" field if the given value is not nil.
-func (rdu *ReportDependencyUpdate) SetNillableDependencyType(s *string) *ReportDependencyUpdate {
-	if s != nil {
-		rdu.SetDependencyType(*s)
+func (_u *ReportDependencyUpdate) SetNillableDependencyType(v *string) *ReportDependencyUpdate {
+	if v != nil {
+		_u.SetDependencyType(*v)
 	}
-	return rdu
+	return _u
 }
 
 // ClearDependencyType clears the value of the "dependency_type" field.
-func (rdu *ReportDependencyUpdate) ClearDependencyType() *ReportDependencyUpdate {
-	rdu.mutation.ClearDependencyType()
-	return rdu
+func (_u *ReportDependencyUpdate) ClearDependencyType() *ReportDependencyUpdate {
+	_u.mutation.ClearDependencyType()
+	return _u
 }
 
 // SetDepth sets the "depth" field.
-func (rdu *ReportDependencyUpdate) SetDepth(i int) *ReportDependencyUpdate {
-	rdu.mutation.ResetDepth()
-	rdu.mutation.SetDepth(i)
-	return rdu
+func (_u *ReportDependencyUpdate) SetDepth(v int) *ReportDependencyUpdate {
+	_u.mutation.ResetDepth()
+	_u.mutation.SetDepth(v)
+	return _u
 }
 
 // SetNillableDepth sets the "depth" field if the given value is not nil.
-func (rdu *ReportDependencyUpdate) SetNillableDepth(i *int) *ReportDependencyUpdate {
-	if i != nil {
-		rdu.SetDepth(*i)
+func (_u *ReportDependencyUpdate) SetNillableDepth(v *int) *ReportDependencyUpdate {
+	if v != nil {
+		_u.SetDepth(*v)
 	}
-	return rdu
+	return _u
 }
 
-// AddDepth adds i to the "depth" field.
-func (rdu *ReportDependencyUpdate) AddDepth(i int) *ReportDependencyUpdate {
-	rdu.mutation.AddDepth(i)
-	return rdu
+// AddDepth adds value to the "depth" field.
+func (_u *ReportDependencyUpdate) AddDepth(v int) *ReportDependencyUpdate {
+	_u.mutation.AddDepth(v)
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rdu *ReportDependencyUpdate) SetCreatedAt(t time.Time) *ReportDependencyUpdate {
-	rdu.mutation.SetCreatedAt(t)
-	return rdu
+func (_u *ReportDependencyUpdate) SetCreatedAt(v time.Time) *ReportDependencyUpdate {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rdu *ReportDependencyUpdate) SetNillableCreatedAt(t *time.Time) *ReportDependencyUpdate {
-	if t != nil {
-		rdu.SetCreatedAt(*t)
+func (_u *ReportDependencyUpdate) SetNillableCreatedAt(v *time.Time) *ReportDependencyUpdate {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return rdu
+	return _u
 }
 
 // ClearCreatedAt clears the value of the "created_at" field.
-func (rdu *ReportDependencyUpdate) ClearCreatedAt() *ReportDependencyUpdate {
-	rdu.mutation.ClearCreatedAt()
-	return rdu
+func (_u *ReportDependencyUpdate) ClearCreatedAt() *ReportDependencyUpdate {
+	_u.mutation.ClearCreatedAt()
+	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rdu *ReportDependencyUpdate) SetUpdatedAt(t time.Time) *ReportDependencyUpdate {
-	rdu.mutation.SetUpdatedAt(t)
-	return rdu
+func (_u *ReportDependencyUpdate) SetUpdatedAt(v time.Time) *ReportDependencyUpdate {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rdu *ReportDependencyUpdate) SetNillableUpdatedAt(t *time.Time) *ReportDependencyUpdate {
-	if t != nil {
-		rdu.SetUpdatedAt(*t)
+func (_u *ReportDependencyUpdate) SetNillableUpdatedAt(v *time.Time) *ReportDependencyUpdate {
+	if v != nil {
+		_u.SetUpdatedAt(*v)
 	}
-	return rdu
+	return _u
 }
 
 // ClearUpdatedAt clears the value of the "updated_at" field.
-func (rdu *ReportDependencyUpdate) ClearUpdatedAt() *ReportDependencyUpdate {
-	rdu.mutation.ClearUpdatedAt()
-	return rdu
+func (_u *ReportDependencyUpdate) ClearUpdatedAt() *ReportDependencyUpdate {
+	_u.mutation.ClearUpdatedAt()
+	return _u
 }
 
 // SetPackageID sets the "package" edge to the ReportPackage entity by ID.
-func (rdu *ReportDependencyUpdate) SetPackageID(id int) *ReportDependencyUpdate {
-	rdu.mutation.SetPackageID(id)
-	return rdu
+func (_u *ReportDependencyUpdate) SetPackageID(id int) *ReportDependencyUpdate {
+	_u.mutation.SetPackageID(id)
+	return _u
 }
 
 // SetNillablePackageID sets the "package" edge to the ReportPackage entity by ID if the given value is not nil.
-func (rdu *ReportDependencyUpdate) SetNillablePackageID(id *int) *ReportDependencyUpdate {
+func (_u *ReportDependencyUpdate) SetNillablePackageID(id *int) *ReportDependencyUpdate {
 	if id != nil {
-		rdu = rdu.SetPackageID(*id)
+		_u = _u.SetPackageID(*id)
 	}
-	return rdu
+	return _u
 }
 
 // SetPackage sets the "package" edge to the ReportPackage entity.
-func (rdu *ReportDependencyUpdate) SetPackage(r *ReportPackage) *ReportDependencyUpdate {
-	return rdu.SetPackageID(r.ID)
+func (_u *ReportDependencyUpdate) SetPackage(v *ReportPackage) *ReportDependencyUpdate {
+	return _u.SetPackageID(v.ID)
 }
 
 // Mutation returns the ReportDependencyMutation object of the builder.
-func (rdu *ReportDependencyUpdate) Mutation() *ReportDependencyMutation {
-	return rdu.mutation
+func (_u *ReportDependencyUpdate) Mutation() *ReportDependencyMutation {
+	return _u.mutation
 }
 
 // ClearPackage clears the "package" edge to the ReportPackage entity.
-func (rdu *ReportDependencyUpdate) ClearPackage() *ReportDependencyUpdate {
-	rdu.mutation.ClearPackage()
-	return rdu
+func (_u *ReportDependencyUpdate) ClearPackage() *ReportDependencyUpdate {
+	_u.mutation.ClearPackage()
+	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (rdu *ReportDependencyUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, rdu.sqlSave, rdu.mutation, rdu.hooks)
+func (_u *ReportDependencyUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rdu *ReportDependencyUpdate) SaveX(ctx context.Context) int {
-	affected, err := rdu.Save(ctx)
+func (_u *ReportDependencyUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -211,36 +211,36 @@ func (rdu *ReportDependencyUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (rdu *ReportDependencyUpdate) Exec(ctx context.Context) error {
-	_, err := rdu.Save(ctx)
+func (_u *ReportDependencyUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rdu *ReportDependencyUpdate) ExecX(ctx context.Context) {
-	if err := rdu.Exec(ctx); err != nil {
+func (_u *ReportDependencyUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (rdu *ReportDependencyUpdate) check() error {
-	if v, ok := rdu.mutation.DependencyPackageID(); ok {
+func (_u *ReportDependencyUpdate) check() error {
+	if v, ok := _u.mutation.DependencyPackageID(); ok {
 		if err := reportdependency.DependencyPackageIDValidator(v); err != nil {
 			return &ValidationError{Name: "dependency_package_id", err: fmt.Errorf(`ent: validator failed for field "ReportDependency.dependency_package_id": %w`, err)}
 		}
 	}
-	if v, ok := rdu.mutation.DependencyName(); ok {
+	if v, ok := _u.mutation.DependencyName(); ok {
 		if err := reportdependency.DependencyNameValidator(v); err != nil {
 			return &ValidationError{Name: "dependency_name", err: fmt.Errorf(`ent: validator failed for field "ReportDependency.dependency_name": %w`, err)}
 		}
 	}
-	if v, ok := rdu.mutation.DependencyVersion(); ok {
+	if v, ok := _u.mutation.DependencyVersion(); ok {
 		if err := reportdependency.DependencyVersionValidator(v); err != nil {
 			return &ValidationError{Name: "dependency_version", err: fmt.Errorf(`ent: validator failed for field "ReportDependency.dependency_version": %w`, err)}
 		}
 	}
-	if v, ok := rdu.mutation.DependencyEcosystem(); ok {
+	if v, ok := _u.mutation.DependencyEcosystem(); ok {
 		if err := reportdependency.DependencyEcosystemValidator(v); err != nil {
 			return &ValidationError{Name: "dependency_ecosystem", err: fmt.Errorf(`ent: validator failed for field "ReportDependency.dependency_ecosystem": %w`, err)}
 		}
@@ -248,55 +248,55 @@ func (rdu *ReportDependencyUpdate) check() error {
 	return nil
 }
 
-func (rdu *ReportDependencyUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := rdu.check(); err != nil {
-		return n, err
+func (_u *ReportDependencyUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(reportdependency.Table, reportdependency.Columns, sqlgraph.NewFieldSpec(reportdependency.FieldID, field.TypeInt))
-	if ps := rdu.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := rdu.mutation.DependencyPackageID(); ok {
+	if value, ok := _u.mutation.DependencyPackageID(); ok {
 		_spec.SetField(reportdependency.FieldDependencyPackageID, field.TypeString, value)
 	}
-	if value, ok := rdu.mutation.DependencyName(); ok {
+	if value, ok := _u.mutation.DependencyName(); ok {
 		_spec.SetField(reportdependency.FieldDependencyName, field.TypeString, value)
 	}
-	if value, ok := rdu.mutation.DependencyVersion(); ok {
+	if value, ok := _u.mutation.DependencyVersion(); ok {
 		_spec.SetField(reportdependency.FieldDependencyVersion, field.TypeString, value)
 	}
-	if value, ok := rdu.mutation.DependencyEcosystem(); ok {
+	if value, ok := _u.mutation.DependencyEcosystem(); ok {
 		_spec.SetField(reportdependency.FieldDependencyEcosystem, field.TypeString, value)
 	}
-	if value, ok := rdu.mutation.DependencyType(); ok {
+	if value, ok := _u.mutation.DependencyType(); ok {
 		_spec.SetField(reportdependency.FieldDependencyType, field.TypeString, value)
 	}
-	if rdu.mutation.DependencyTypeCleared() {
+	if _u.mutation.DependencyTypeCleared() {
 		_spec.ClearField(reportdependency.FieldDependencyType, field.TypeString)
 	}
-	if value, ok := rdu.mutation.Depth(); ok {
+	if value, ok := _u.mutation.Depth(); ok {
 		_spec.SetField(reportdependency.FieldDepth, field.TypeInt, value)
 	}
-	if value, ok := rdu.mutation.AddedDepth(); ok {
+	if value, ok := _u.mutation.AddedDepth(); ok {
 		_spec.AddField(reportdependency.FieldDepth, field.TypeInt, value)
 	}
-	if value, ok := rdu.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(reportdependency.FieldCreatedAt, field.TypeTime, value)
 	}
-	if rdu.mutation.CreatedAtCleared() {
+	if _u.mutation.CreatedAtCleared() {
 		_spec.ClearField(reportdependency.FieldCreatedAt, field.TypeTime)
 	}
-	if value, ok := rdu.mutation.UpdatedAt(); ok {
+	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportdependency.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if rdu.mutation.UpdatedAtCleared() {
+	if _u.mutation.UpdatedAtCleared() {
 		_spec.ClearField(reportdependency.FieldUpdatedAt, field.TypeTime)
 	}
-	if rdu.mutation.PackageCleared() {
+	if _u.mutation.PackageCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -309,7 +309,7 @@ func (rdu *ReportDependencyUpdate) sqlSave(ctx context.Context) (n int, err erro
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rdu.mutation.PackageIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.PackageIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -325,7 +325,7 @@ func (rdu *ReportDependencyUpdate) sqlSave(ctx context.Context) (n int, err erro
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, rdu.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{reportdependency.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -333,8 +333,8 @@ func (rdu *ReportDependencyUpdate) sqlSave(ctx context.Context) (n int, err erro
 		}
 		return 0, err
 	}
-	rdu.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // ReportDependencyUpdateOne is the builder for updating a single ReportDependency entity.
@@ -346,193 +346,193 @@ type ReportDependencyUpdateOne struct {
 }
 
 // SetDependencyPackageID sets the "dependency_package_id" field.
-func (rduo *ReportDependencyUpdateOne) SetDependencyPackageID(s string) *ReportDependencyUpdateOne {
-	rduo.mutation.SetDependencyPackageID(s)
-	return rduo
+func (_u *ReportDependencyUpdateOne) SetDependencyPackageID(v string) *ReportDependencyUpdateOne {
+	_u.mutation.SetDependencyPackageID(v)
+	return _u
 }
 
 // SetNillableDependencyPackageID sets the "dependency_package_id" field if the given value is not nil.
-func (rduo *ReportDependencyUpdateOne) SetNillableDependencyPackageID(s *string) *ReportDependencyUpdateOne {
-	if s != nil {
-		rduo.SetDependencyPackageID(*s)
+func (_u *ReportDependencyUpdateOne) SetNillableDependencyPackageID(v *string) *ReportDependencyUpdateOne {
+	if v != nil {
+		_u.SetDependencyPackageID(*v)
 	}
-	return rduo
+	return _u
 }
 
 // SetDependencyName sets the "dependency_name" field.
-func (rduo *ReportDependencyUpdateOne) SetDependencyName(s string) *ReportDependencyUpdateOne {
-	rduo.mutation.SetDependencyName(s)
-	return rduo
+func (_u *ReportDependencyUpdateOne) SetDependencyName(v string) *ReportDependencyUpdateOne {
+	_u.mutation.SetDependencyName(v)
+	return _u
 }
 
 // SetNillableDependencyName sets the "dependency_name" field if the given value is not nil.
-func (rduo *ReportDependencyUpdateOne) SetNillableDependencyName(s *string) *ReportDependencyUpdateOne {
-	if s != nil {
-		rduo.SetDependencyName(*s)
+func (_u *ReportDependencyUpdateOne) SetNillableDependencyName(v *string) *ReportDependencyUpdateOne {
+	if v != nil {
+		_u.SetDependencyName(*v)
 	}
-	return rduo
+	return _u
 }
 
 // SetDependencyVersion sets the "dependency_version" field.
-func (rduo *ReportDependencyUpdateOne) SetDependencyVersion(s string) *ReportDependencyUpdateOne {
-	rduo.mutation.SetDependencyVersion(s)
-	return rduo
+func (_u *ReportDependencyUpdateOne) SetDependencyVersion(v string) *ReportDependencyUpdateOne {
+	_u.mutation.SetDependencyVersion(v)
+	return _u
 }
 
 // SetNillableDependencyVersion sets the "dependency_version" field if the given value is not nil.
-func (rduo *ReportDependencyUpdateOne) SetNillableDependencyVersion(s *string) *ReportDependencyUpdateOne {
-	if s != nil {
-		rduo.SetDependencyVersion(*s)
+func (_u *ReportDependencyUpdateOne) SetNillableDependencyVersion(v *string) *ReportDependencyUpdateOne {
+	if v != nil {
+		_u.SetDependencyVersion(*v)
 	}
-	return rduo
+	return _u
 }
 
 // SetDependencyEcosystem sets the "dependency_ecosystem" field.
-func (rduo *ReportDependencyUpdateOne) SetDependencyEcosystem(s string) *ReportDependencyUpdateOne {
-	rduo.mutation.SetDependencyEcosystem(s)
-	return rduo
+func (_u *ReportDependencyUpdateOne) SetDependencyEcosystem(v string) *ReportDependencyUpdateOne {
+	_u.mutation.SetDependencyEcosystem(v)
+	return _u
 }
 
 // SetNillableDependencyEcosystem sets the "dependency_ecosystem" field if the given value is not nil.
-func (rduo *ReportDependencyUpdateOne) SetNillableDependencyEcosystem(s *string) *ReportDependencyUpdateOne {
-	if s != nil {
-		rduo.SetDependencyEcosystem(*s)
+func (_u *ReportDependencyUpdateOne) SetNillableDependencyEcosystem(v *string) *ReportDependencyUpdateOne {
+	if v != nil {
+		_u.SetDependencyEcosystem(*v)
 	}
-	return rduo
+	return _u
 }
 
 // SetDependencyType sets the "dependency_type" field.
-func (rduo *ReportDependencyUpdateOne) SetDependencyType(s string) *ReportDependencyUpdateOne {
-	rduo.mutation.SetDependencyType(s)
-	return rduo
+func (_u *ReportDependencyUpdateOne) SetDependencyType(v string) *ReportDependencyUpdateOne {
+	_u.mutation.SetDependencyType(v)
+	return _u
 }
 
 // SetNillableDependencyType sets the "dependency_type" field if the given value is not nil.
-func (rduo *ReportDependencyUpdateOne) SetNillableDependencyType(s *string) *ReportDependencyUpdateOne {
-	if s != nil {
-		rduo.SetDependencyType(*s)
+func (_u *ReportDependencyUpdateOne) SetNillableDependencyType(v *string) *ReportDependencyUpdateOne {
+	if v != nil {
+		_u.SetDependencyType(*v)
 	}
-	return rduo
+	return _u
 }
 
 // ClearDependencyType clears the value of the "dependency_type" field.
-func (rduo *ReportDependencyUpdateOne) ClearDependencyType() *ReportDependencyUpdateOne {
-	rduo.mutation.ClearDependencyType()
-	return rduo
+func (_u *ReportDependencyUpdateOne) ClearDependencyType() *ReportDependencyUpdateOne {
+	_u.mutation.ClearDependencyType()
+	return _u
 }
 
 // SetDepth sets the "depth" field.
-func (rduo *ReportDependencyUpdateOne) SetDepth(i int) *ReportDependencyUpdateOne {
-	rduo.mutation.ResetDepth()
-	rduo.mutation.SetDepth(i)
-	return rduo
+func (_u *ReportDependencyUpdateOne) SetDepth(v int) *ReportDependencyUpdateOne {
+	_u.mutation.ResetDepth()
+	_u.mutation.SetDepth(v)
+	return _u
 }
 
 // SetNillableDepth sets the "depth" field if the given value is not nil.
-func (rduo *ReportDependencyUpdateOne) SetNillableDepth(i *int) *ReportDependencyUpdateOne {
-	if i != nil {
-		rduo.SetDepth(*i)
+func (_u *ReportDependencyUpdateOne) SetNillableDepth(v *int) *ReportDependencyUpdateOne {
+	if v != nil {
+		_u.SetDepth(*v)
 	}
-	return rduo
+	return _u
 }
 
-// AddDepth adds i to the "depth" field.
-func (rduo *ReportDependencyUpdateOne) AddDepth(i int) *ReportDependencyUpdateOne {
-	rduo.mutation.AddDepth(i)
-	return rduo
+// AddDepth adds value to the "depth" field.
+func (_u *ReportDependencyUpdateOne) AddDepth(v int) *ReportDependencyUpdateOne {
+	_u.mutation.AddDepth(v)
+	return _u
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rduo *ReportDependencyUpdateOne) SetCreatedAt(t time.Time) *ReportDependencyUpdateOne {
-	rduo.mutation.SetCreatedAt(t)
-	return rduo
+func (_u *ReportDependencyUpdateOne) SetCreatedAt(v time.Time) *ReportDependencyUpdateOne {
+	_u.mutation.SetCreatedAt(v)
+	return _u
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rduo *ReportDependencyUpdateOne) SetNillableCreatedAt(t *time.Time) *ReportDependencyUpdateOne {
-	if t != nil {
-		rduo.SetCreatedAt(*t)
+func (_u *ReportDependencyUpdateOne) SetNillableCreatedAt(v *time.Time) *ReportDependencyUpdateOne {
+	if v != nil {
+		_u.SetCreatedAt(*v)
 	}
-	return rduo
+	return _u
 }
 
 // ClearCreatedAt clears the value of the "created_at" field.
-func (rduo *ReportDependencyUpdateOne) ClearCreatedAt() *ReportDependencyUpdateOne {
-	rduo.mutation.ClearCreatedAt()
-	return rduo
+func (_u *ReportDependencyUpdateOne) ClearCreatedAt() *ReportDependencyUpdateOne {
+	_u.mutation.ClearCreatedAt()
+	return _u
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rduo *ReportDependencyUpdateOne) SetUpdatedAt(t time.Time) *ReportDependencyUpdateOne {
-	rduo.mutation.SetUpdatedAt(t)
-	return rduo
+func (_u *ReportDependencyUpdateOne) SetUpdatedAt(v time.Time) *ReportDependencyUpdateOne {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rduo *ReportDependencyUpdateOne) SetNillableUpdatedAt(t *time.Time) *ReportDependencyUpdateOne {
-	if t != nil {
-		rduo.SetUpdatedAt(*t)
+func (_u *ReportDependencyUpdateOne) SetNillableUpdatedAt(v *time.Time) *ReportDependencyUpdateOne {
+	if v != nil {
+		_u.SetUpdatedAt(*v)
 	}
-	return rduo
+	return _u
 }
 
 // ClearUpdatedAt clears the value of the "updated_at" field.
-func (rduo *ReportDependencyUpdateOne) ClearUpdatedAt() *ReportDependencyUpdateOne {
-	rduo.mutation.ClearUpdatedAt()
-	return rduo
+func (_u *ReportDependencyUpdateOne) ClearUpdatedAt() *ReportDependencyUpdateOne {
+	_u.mutation.ClearUpdatedAt()
+	return _u
 }
 
 // SetPackageID sets the "package" edge to the ReportPackage entity by ID.
-func (rduo *ReportDependencyUpdateOne) SetPackageID(id int) *ReportDependencyUpdateOne {
-	rduo.mutation.SetPackageID(id)
-	return rduo
+func (_u *ReportDependencyUpdateOne) SetPackageID(id int) *ReportDependencyUpdateOne {
+	_u.mutation.SetPackageID(id)
+	return _u
 }
 
 // SetNillablePackageID sets the "package" edge to the ReportPackage entity by ID if the given value is not nil.
-func (rduo *ReportDependencyUpdateOne) SetNillablePackageID(id *int) *ReportDependencyUpdateOne {
+func (_u *ReportDependencyUpdateOne) SetNillablePackageID(id *int) *ReportDependencyUpdateOne {
 	if id != nil {
-		rduo = rduo.SetPackageID(*id)
+		_u = _u.SetPackageID(*id)
 	}
-	return rduo
+	return _u
 }
 
 // SetPackage sets the "package" edge to the ReportPackage entity.
-func (rduo *ReportDependencyUpdateOne) SetPackage(r *ReportPackage) *ReportDependencyUpdateOne {
-	return rduo.SetPackageID(r.ID)
+func (_u *ReportDependencyUpdateOne) SetPackage(v *ReportPackage) *ReportDependencyUpdateOne {
+	return _u.SetPackageID(v.ID)
 }
 
 // Mutation returns the ReportDependencyMutation object of the builder.
-func (rduo *ReportDependencyUpdateOne) Mutation() *ReportDependencyMutation {
-	return rduo.mutation
+func (_u *ReportDependencyUpdateOne) Mutation() *ReportDependencyMutation {
+	return _u.mutation
 }
 
 // ClearPackage clears the "package" edge to the ReportPackage entity.
-func (rduo *ReportDependencyUpdateOne) ClearPackage() *ReportDependencyUpdateOne {
-	rduo.mutation.ClearPackage()
-	return rduo
+func (_u *ReportDependencyUpdateOne) ClearPackage() *ReportDependencyUpdateOne {
+	_u.mutation.ClearPackage()
+	return _u
 }
 
 // Where appends a list predicates to the ReportDependencyUpdate builder.
-func (rduo *ReportDependencyUpdateOne) Where(ps ...predicate.ReportDependency) *ReportDependencyUpdateOne {
-	rduo.mutation.Where(ps...)
-	return rduo
+func (_u *ReportDependencyUpdateOne) Where(ps ...predicate.ReportDependency) *ReportDependencyUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (rduo *ReportDependencyUpdateOne) Select(field string, fields ...string) *ReportDependencyUpdateOne {
-	rduo.fields = append([]string{field}, fields...)
-	return rduo
+func (_u *ReportDependencyUpdateOne) Select(field string, fields ...string) *ReportDependencyUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated ReportDependency entity.
-func (rduo *ReportDependencyUpdateOne) Save(ctx context.Context) (*ReportDependency, error) {
-	return withHooks(ctx, rduo.sqlSave, rduo.mutation, rduo.hooks)
+func (_u *ReportDependencyUpdateOne) Save(ctx context.Context) (*ReportDependency, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rduo *ReportDependencyUpdateOne) SaveX(ctx context.Context) *ReportDependency {
-	node, err := rduo.Save(ctx)
+func (_u *ReportDependencyUpdateOne) SaveX(ctx context.Context) *ReportDependency {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -540,36 +540,36 @@ func (rduo *ReportDependencyUpdateOne) SaveX(ctx context.Context) *ReportDepende
 }
 
 // Exec executes the query on the entity.
-func (rduo *ReportDependencyUpdateOne) Exec(ctx context.Context) error {
-	_, err := rduo.Save(ctx)
+func (_u *ReportDependencyUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rduo *ReportDependencyUpdateOne) ExecX(ctx context.Context) {
-	if err := rduo.Exec(ctx); err != nil {
+func (_u *ReportDependencyUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (rduo *ReportDependencyUpdateOne) check() error {
-	if v, ok := rduo.mutation.DependencyPackageID(); ok {
+func (_u *ReportDependencyUpdateOne) check() error {
+	if v, ok := _u.mutation.DependencyPackageID(); ok {
 		if err := reportdependency.DependencyPackageIDValidator(v); err != nil {
 			return &ValidationError{Name: "dependency_package_id", err: fmt.Errorf(`ent: validator failed for field "ReportDependency.dependency_package_id": %w`, err)}
 		}
 	}
-	if v, ok := rduo.mutation.DependencyName(); ok {
+	if v, ok := _u.mutation.DependencyName(); ok {
 		if err := reportdependency.DependencyNameValidator(v); err != nil {
 			return &ValidationError{Name: "dependency_name", err: fmt.Errorf(`ent: validator failed for field "ReportDependency.dependency_name": %w`, err)}
 		}
 	}
-	if v, ok := rduo.mutation.DependencyVersion(); ok {
+	if v, ok := _u.mutation.DependencyVersion(); ok {
 		if err := reportdependency.DependencyVersionValidator(v); err != nil {
 			return &ValidationError{Name: "dependency_version", err: fmt.Errorf(`ent: validator failed for field "ReportDependency.dependency_version": %w`, err)}
 		}
 	}
-	if v, ok := rduo.mutation.DependencyEcosystem(); ok {
+	if v, ok := _u.mutation.DependencyEcosystem(); ok {
 		if err := reportdependency.DependencyEcosystemValidator(v); err != nil {
 			return &ValidationError{Name: "dependency_ecosystem", err: fmt.Errorf(`ent: validator failed for field "ReportDependency.dependency_ecosystem": %w`, err)}
 		}
@@ -577,17 +577,17 @@ func (rduo *ReportDependencyUpdateOne) check() error {
 	return nil
 }
 
-func (rduo *ReportDependencyUpdateOne) sqlSave(ctx context.Context) (_node *ReportDependency, err error) {
-	if err := rduo.check(); err != nil {
+func (_u *ReportDependencyUpdateOne) sqlSave(ctx context.Context) (_node *ReportDependency, err error) {
+	if err := _u.check(); err != nil {
 		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(reportdependency.Table, reportdependency.Columns, sqlgraph.NewFieldSpec(reportdependency.FieldID, field.TypeInt))
-	id, ok := rduo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "ReportDependency.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := rduo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, reportdependency.FieldID)
 		for _, f := range fields {
@@ -599,50 +599,50 @@ func (rduo *ReportDependencyUpdateOne) sqlSave(ctx context.Context) (_node *Repo
 			}
 		}
 	}
-	if ps := rduo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := rduo.mutation.DependencyPackageID(); ok {
+	if value, ok := _u.mutation.DependencyPackageID(); ok {
 		_spec.SetField(reportdependency.FieldDependencyPackageID, field.TypeString, value)
 	}
-	if value, ok := rduo.mutation.DependencyName(); ok {
+	if value, ok := _u.mutation.DependencyName(); ok {
 		_spec.SetField(reportdependency.FieldDependencyName, field.TypeString, value)
 	}
-	if value, ok := rduo.mutation.DependencyVersion(); ok {
+	if value, ok := _u.mutation.DependencyVersion(); ok {
 		_spec.SetField(reportdependency.FieldDependencyVersion, field.TypeString, value)
 	}
-	if value, ok := rduo.mutation.DependencyEcosystem(); ok {
+	if value, ok := _u.mutation.DependencyEcosystem(); ok {
 		_spec.SetField(reportdependency.FieldDependencyEcosystem, field.TypeString, value)
 	}
-	if value, ok := rduo.mutation.DependencyType(); ok {
+	if value, ok := _u.mutation.DependencyType(); ok {
 		_spec.SetField(reportdependency.FieldDependencyType, field.TypeString, value)
 	}
-	if rduo.mutation.DependencyTypeCleared() {
+	if _u.mutation.DependencyTypeCleared() {
 		_spec.ClearField(reportdependency.FieldDependencyType, field.TypeString)
 	}
-	if value, ok := rduo.mutation.Depth(); ok {
+	if value, ok := _u.mutation.Depth(); ok {
 		_spec.SetField(reportdependency.FieldDepth, field.TypeInt, value)
 	}
-	if value, ok := rduo.mutation.AddedDepth(); ok {
+	if value, ok := _u.mutation.AddedDepth(); ok {
 		_spec.AddField(reportdependency.FieldDepth, field.TypeInt, value)
 	}
-	if value, ok := rduo.mutation.CreatedAt(); ok {
+	if value, ok := _u.mutation.CreatedAt(); ok {
 		_spec.SetField(reportdependency.FieldCreatedAt, field.TypeTime, value)
 	}
-	if rduo.mutation.CreatedAtCleared() {
+	if _u.mutation.CreatedAtCleared() {
 		_spec.ClearField(reportdependency.FieldCreatedAt, field.TypeTime)
 	}
-	if value, ok := rduo.mutation.UpdatedAt(); ok {
+	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportdependency.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if rduo.mutation.UpdatedAtCleared() {
+	if _u.mutation.UpdatedAtCleared() {
 		_spec.ClearField(reportdependency.FieldUpdatedAt, field.TypeTime)
 	}
-	if rduo.mutation.PackageCleared() {
+	if _u.mutation.PackageCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -655,7 +655,7 @@ func (rduo *ReportDependencyUpdateOne) sqlSave(ctx context.Context) (_node *Repo
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := rduo.mutation.PackageIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.PackageIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -671,10 +671,10 @@ func (rduo *ReportDependencyUpdateOne) sqlSave(ctx context.Context) (_node *Repo
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_node = &ReportDependency{config: rduo.config}
+	_node = &ReportDependency{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, rduo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{reportdependency.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -682,6 +682,6 @@ func (rduo *ReportDependencyUpdateOne) sqlSave(ctx context.Context) (_node *Repo
 		}
 		return nil, err
 	}
-	rduo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

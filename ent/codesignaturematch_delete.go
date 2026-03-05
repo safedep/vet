@@ -20,56 +20,56 @@ type CodeSignatureMatchDelete struct {
 }
 
 // Where appends a list predicates to the CodeSignatureMatchDelete builder.
-func (csmd *CodeSignatureMatchDelete) Where(ps ...predicate.CodeSignatureMatch) *CodeSignatureMatchDelete {
-	csmd.mutation.Where(ps...)
-	return csmd
+func (_d *CodeSignatureMatchDelete) Where(ps ...predicate.CodeSignatureMatch) *CodeSignatureMatchDelete {
+	_d.mutation.Where(ps...)
+	return _d
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (csmd *CodeSignatureMatchDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks(ctx, csmd.sqlExec, csmd.mutation, csmd.hooks)
+func (_d *CodeSignatureMatchDelete) Exec(ctx context.Context) (int, error) {
+	return withHooks(ctx, _d.sqlExec, _d.mutation, _d.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (csmd *CodeSignatureMatchDelete) ExecX(ctx context.Context) int {
-	n, err := csmd.Exec(ctx)
+func (_d *CodeSignatureMatchDelete) ExecX(ctx context.Context) int {
+	n, err := _d.Exec(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return n
 }
 
-func (csmd *CodeSignatureMatchDelete) sqlExec(ctx context.Context) (int, error) {
+func (_d *CodeSignatureMatchDelete) sqlExec(ctx context.Context) (int, error) {
 	_spec := sqlgraph.NewDeleteSpec(codesignaturematch.Table, sqlgraph.NewFieldSpec(codesignaturematch.FieldID, field.TypeInt))
-	if ps := csmd.mutation.predicates; len(ps) > 0 {
+	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	affected, err := sqlgraph.DeleteNodes(ctx, csmd.driver, _spec)
+	affected, err := sqlgraph.DeleteNodes(ctx, _d.driver, _spec)
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
-	csmd.mutation.done = true
+	_d.mutation.done = true
 	return affected, err
 }
 
 // CodeSignatureMatchDeleteOne is the builder for deleting a single CodeSignatureMatch entity.
 type CodeSignatureMatchDeleteOne struct {
-	csmd *CodeSignatureMatchDelete
+	_d *CodeSignatureMatchDelete
 }
 
 // Where appends a list predicates to the CodeSignatureMatchDelete builder.
-func (csmdo *CodeSignatureMatchDeleteOne) Where(ps ...predicate.CodeSignatureMatch) *CodeSignatureMatchDeleteOne {
-	csmdo.csmd.mutation.Where(ps...)
-	return csmdo
+func (_d *CodeSignatureMatchDeleteOne) Where(ps ...predicate.CodeSignatureMatch) *CodeSignatureMatchDeleteOne {
+	_d._d.mutation.Where(ps...)
+	return _d
 }
 
 // Exec executes the deletion query.
-func (csmdo *CodeSignatureMatchDeleteOne) Exec(ctx context.Context) error {
-	n, err := csmdo.csmd.Exec(ctx)
+func (_d *CodeSignatureMatchDeleteOne) Exec(ctx context.Context) error {
+	n, err := _d._d.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
@@ -81,8 +81,8 @@ func (csmdo *CodeSignatureMatchDeleteOne) Exec(ctx context.Context) error {
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (csmdo *CodeSignatureMatchDeleteOne) ExecX(ctx context.Context) {
-	if err := csmdo.Exec(ctx); err != nil {
+func (_d *CodeSignatureMatchDeleteOne) ExecX(ctx context.Context) {
+	if err := _d.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

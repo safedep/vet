@@ -109,7 +109,7 @@ func TestNewSqliteStorage(t *testing.T) {
 
 				// Verify the file was overwritten by checking if it's a valid SQLite database
 				// (the original content would not be a valid SQLite database)
-				defer sqliteStorage.Close()
+				defer func() { _ = sqliteStorage.Close() }()
 			})
 
 			t.Run("should work normally when path doesn't exist", func(t *testing.T) {

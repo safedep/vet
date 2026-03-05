@@ -163,7 +163,7 @@ func (*ReportPackage) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the ReportPackage fields.
-func (rp *ReportPackage) assignValues(columns []string, values []any) error {
+func (_m *ReportPackage) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -174,66 +174,66 @@ func (rp *ReportPackage) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			rp.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case reportpackage.FieldPackageID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field package_id", values[i])
 			} else if value.Valid {
-				rp.PackageID = value.String
+				_m.PackageID = value.String
 			}
 		case reportpackage.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
-				rp.Name = value.String
+				_m.Name = value.String
 			}
 		case reportpackage.FieldVersion:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field version", values[i])
 			} else if value.Valid {
-				rp.Version = value.String
+				_m.Version = value.String
 			}
 		case reportpackage.FieldEcosystem:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field ecosystem", values[i])
 			} else if value.Valid {
-				rp.Ecosystem = value.String
+				_m.Ecosystem = value.String
 			}
 		case reportpackage.FieldPackageURL:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field package_url", values[i])
 			} else if value.Valid {
-				rp.PackageURL = value.String
+				_m.PackageURL = value.String
 			}
 		case reportpackage.FieldDepth:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field depth", values[i])
 			} else if value.Valid {
-				rp.Depth = int(value.Int64)
+				_m.Depth = int(value.Int64)
 			}
 		case reportpackage.FieldIsDirect:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field is_direct", values[i])
 			} else if value.Valid {
-				rp.IsDirect = value.Bool
+				_m.IsDirect = value.Bool
 			}
 		case reportpackage.FieldIsMalware:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field is_malware", values[i])
 			} else if value.Valid {
-				rp.IsMalware = value.Bool
+				_m.IsMalware = value.Bool
 			}
 		case reportpackage.FieldIsSuspicious:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field is_suspicious", values[i])
 			} else if value.Valid {
-				rp.IsSuspicious = value.Bool
+				_m.IsSuspicious = value.Bool
 			}
 		case reportpackage.FieldPackageDetails:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field package_details", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &rp.PackageDetails); err != nil {
+				if err := json.Unmarshal(*value, &_m.PackageDetails); err != nil {
 					return fmt.Errorf("unmarshal field package_details: %w", err)
 				}
 			}
@@ -241,7 +241,7 @@ func (rp *ReportPackage) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field insights_v2", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &rp.InsightsV2); err != nil {
+				if err := json.Unmarshal(*value, &_m.InsightsV2); err != nil {
 					return fmt.Errorf("unmarshal field insights_v2: %w", err)
 				}
 			}
@@ -249,7 +249,7 @@ func (rp *ReportPackage) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field code_analysis", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &rp.CodeAnalysis); err != nil {
+				if err := json.Unmarshal(*value, &_m.CodeAnalysis); err != nil {
 					return fmt.Errorf("unmarshal field code_analysis: %w", err)
 				}
 			}
@@ -257,16 +257,16 @@ func (rp *ReportPackage) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
-				rp.CreatedAt = value.Time
+				_m.CreatedAt = value.Time
 			}
 		case reportpackage.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
-				rp.UpdatedAt = value.Time
+				_m.UpdatedAt = value.Time
 			}
 		default:
-			rp.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -274,109 +274,109 @@ func (rp *ReportPackage) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the ReportPackage.
 // This includes values selected through modifiers, order, etc.
-func (rp *ReportPackage) Value(name string) (ent.Value, error) {
-	return rp.selectValues.Get(name)
+func (_m *ReportPackage) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QueryManifests queries the "manifests" edge of the ReportPackage entity.
-func (rp *ReportPackage) QueryManifests() *ReportPackageManifestQuery {
-	return NewReportPackageClient(rp.config).QueryManifests(rp)
+func (_m *ReportPackage) QueryManifests() *ReportPackageManifestQuery {
+	return NewReportPackageClient(_m.config).QueryManifests(_m)
 }
 
 // QueryVulnerabilities queries the "vulnerabilities" edge of the ReportPackage entity.
-func (rp *ReportPackage) QueryVulnerabilities() *ReportVulnerabilityQuery {
-	return NewReportPackageClient(rp.config).QueryVulnerabilities(rp)
+func (_m *ReportPackage) QueryVulnerabilities() *ReportVulnerabilityQuery {
+	return NewReportPackageClient(_m.config).QueryVulnerabilities(_m)
 }
 
 // QueryLicenses queries the "licenses" edge of the ReportPackage entity.
-func (rp *ReportPackage) QueryLicenses() *ReportLicenseQuery {
-	return NewReportPackageClient(rp.config).QueryLicenses(rp)
+func (_m *ReportPackage) QueryLicenses() *ReportLicenseQuery {
+	return NewReportPackageClient(_m.config).QueryLicenses(_m)
 }
 
 // QueryDependencies queries the "dependencies" edge of the ReportPackage entity.
-func (rp *ReportPackage) QueryDependencies() *ReportDependencyQuery {
-	return NewReportPackageClient(rp.config).QueryDependencies(rp)
+func (_m *ReportPackage) QueryDependencies() *ReportDependencyQuery {
+	return NewReportPackageClient(_m.config).QueryDependencies(_m)
 }
 
 // QueryMalwareAnalysis queries the "malware_analysis" edge of the ReportPackage entity.
-func (rp *ReportPackage) QueryMalwareAnalysis() *ReportMalwareQuery {
-	return NewReportPackageClient(rp.config).QueryMalwareAnalysis(rp)
+func (_m *ReportPackage) QueryMalwareAnalysis() *ReportMalwareQuery {
+	return NewReportPackageClient(_m.config).QueryMalwareAnalysis(_m)
 }
 
 // QueryProjects queries the "projects" edge of the ReportPackage entity.
-func (rp *ReportPackage) QueryProjects() *ReportProjectQuery {
-	return NewReportPackageClient(rp.config).QueryProjects(rp)
+func (_m *ReportPackage) QueryProjects() *ReportProjectQuery {
+	return NewReportPackageClient(_m.config).QueryProjects(_m)
 }
 
 // QuerySlsaProvenances queries the "slsa_provenances" edge of the ReportPackage entity.
-func (rp *ReportPackage) QuerySlsaProvenances() *ReportSlsaProvenanceQuery {
-	return NewReportPackageClient(rp.config).QuerySlsaProvenances(rp)
+func (_m *ReportPackage) QuerySlsaProvenances() *ReportSlsaProvenanceQuery {
+	return NewReportPackageClient(_m.config).QuerySlsaProvenances(_m)
 }
 
 // Update returns a builder for updating this ReportPackage.
 // Note that you need to call ReportPackage.Unwrap() before calling this method if this ReportPackage
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (rp *ReportPackage) Update() *ReportPackageUpdateOne {
-	return NewReportPackageClient(rp.config).UpdateOne(rp)
+func (_m *ReportPackage) Update() *ReportPackageUpdateOne {
+	return NewReportPackageClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the ReportPackage entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (rp *ReportPackage) Unwrap() *ReportPackage {
-	_tx, ok := rp.config.driver.(*txDriver)
+func (_m *ReportPackage) Unwrap() *ReportPackage {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: ReportPackage is not a transactional entity")
 	}
-	rp.config.driver = _tx.drv
-	return rp
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (rp *ReportPackage) String() string {
+func (_m *ReportPackage) String() string {
 	var builder strings.Builder
 	builder.WriteString("ReportPackage(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", rp.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("package_id=")
-	builder.WriteString(rp.PackageID)
+	builder.WriteString(_m.PackageID)
 	builder.WriteString(", ")
 	builder.WriteString("name=")
-	builder.WriteString(rp.Name)
+	builder.WriteString(_m.Name)
 	builder.WriteString(", ")
 	builder.WriteString("version=")
-	builder.WriteString(rp.Version)
+	builder.WriteString(_m.Version)
 	builder.WriteString(", ")
 	builder.WriteString("ecosystem=")
-	builder.WriteString(rp.Ecosystem)
+	builder.WriteString(_m.Ecosystem)
 	builder.WriteString(", ")
 	builder.WriteString("package_url=")
-	builder.WriteString(rp.PackageURL)
+	builder.WriteString(_m.PackageURL)
 	builder.WriteString(", ")
 	builder.WriteString("depth=")
-	builder.WriteString(fmt.Sprintf("%v", rp.Depth))
+	builder.WriteString(fmt.Sprintf("%v", _m.Depth))
 	builder.WriteString(", ")
 	builder.WriteString("is_direct=")
-	builder.WriteString(fmt.Sprintf("%v", rp.IsDirect))
+	builder.WriteString(fmt.Sprintf("%v", _m.IsDirect))
 	builder.WriteString(", ")
 	builder.WriteString("is_malware=")
-	builder.WriteString(fmt.Sprintf("%v", rp.IsMalware))
+	builder.WriteString(fmt.Sprintf("%v", _m.IsMalware))
 	builder.WriteString(", ")
 	builder.WriteString("is_suspicious=")
-	builder.WriteString(fmt.Sprintf("%v", rp.IsSuspicious))
+	builder.WriteString(fmt.Sprintf("%v", _m.IsSuspicious))
 	builder.WriteString(", ")
 	builder.WriteString("package_details=")
-	builder.WriteString(fmt.Sprintf("%v", rp.PackageDetails))
+	builder.WriteString(fmt.Sprintf("%v", _m.PackageDetails))
 	builder.WriteString(", ")
 	builder.WriteString("insights_v2=")
-	builder.WriteString(fmt.Sprintf("%v", rp.InsightsV2))
+	builder.WriteString(fmt.Sprintf("%v", _m.InsightsV2))
 	builder.WriteString(", ")
 	builder.WriteString("code_analysis=")
-	builder.WriteString(fmt.Sprintf("%v", rp.CodeAnalysis))
+	builder.WriteString(fmt.Sprintf("%v", _m.CodeAnalysis))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
-	builder.WriteString(rp.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
-	builder.WriteString(rp.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

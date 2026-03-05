@@ -22,98 +22,98 @@ type ReportSlsaProvenanceCreate struct {
 }
 
 // SetSourceRepository sets the "source_repository" field.
-func (rspc *ReportSlsaProvenanceCreate) SetSourceRepository(s string) *ReportSlsaProvenanceCreate {
-	rspc.mutation.SetSourceRepository(s)
-	return rspc
+func (_c *ReportSlsaProvenanceCreate) SetSourceRepository(v string) *ReportSlsaProvenanceCreate {
+	_c.mutation.SetSourceRepository(v)
+	return _c
 }
 
 // SetCommitSha sets the "commit_sha" field.
-func (rspc *ReportSlsaProvenanceCreate) SetCommitSha(s string) *ReportSlsaProvenanceCreate {
-	rspc.mutation.SetCommitSha(s)
-	return rspc
+func (_c *ReportSlsaProvenanceCreate) SetCommitSha(v string) *ReportSlsaProvenanceCreate {
+	_c.mutation.SetCommitSha(v)
+	return _c
 }
 
 // SetURL sets the "url" field.
-func (rspc *ReportSlsaProvenanceCreate) SetURL(s string) *ReportSlsaProvenanceCreate {
-	rspc.mutation.SetURL(s)
-	return rspc
+func (_c *ReportSlsaProvenanceCreate) SetURL(v string) *ReportSlsaProvenanceCreate {
+	_c.mutation.SetURL(v)
+	return _c
 }
 
 // SetVerified sets the "verified" field.
-func (rspc *ReportSlsaProvenanceCreate) SetVerified(b bool) *ReportSlsaProvenanceCreate {
-	rspc.mutation.SetVerified(b)
-	return rspc
+func (_c *ReportSlsaProvenanceCreate) SetVerified(v bool) *ReportSlsaProvenanceCreate {
+	_c.mutation.SetVerified(v)
+	return _c
 }
 
 // SetNillableVerified sets the "verified" field if the given value is not nil.
-func (rspc *ReportSlsaProvenanceCreate) SetNillableVerified(b *bool) *ReportSlsaProvenanceCreate {
-	if b != nil {
-		rspc.SetVerified(*b)
+func (_c *ReportSlsaProvenanceCreate) SetNillableVerified(v *bool) *ReportSlsaProvenanceCreate {
+	if v != nil {
+		_c.SetVerified(*v)
 	}
-	return rspc
+	return _c
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (rspc *ReportSlsaProvenanceCreate) SetCreatedAt(t time.Time) *ReportSlsaProvenanceCreate {
-	rspc.mutation.SetCreatedAt(t)
-	return rspc
+func (_c *ReportSlsaProvenanceCreate) SetCreatedAt(v time.Time) *ReportSlsaProvenanceCreate {
+	_c.mutation.SetCreatedAt(v)
+	return _c
 }
 
 // SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (rspc *ReportSlsaProvenanceCreate) SetNillableCreatedAt(t *time.Time) *ReportSlsaProvenanceCreate {
-	if t != nil {
-		rspc.SetCreatedAt(*t)
+func (_c *ReportSlsaProvenanceCreate) SetNillableCreatedAt(v *time.Time) *ReportSlsaProvenanceCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
 	}
-	return rspc
+	return _c
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (rspc *ReportSlsaProvenanceCreate) SetUpdatedAt(t time.Time) *ReportSlsaProvenanceCreate {
-	rspc.mutation.SetUpdatedAt(t)
-	return rspc
+func (_c *ReportSlsaProvenanceCreate) SetUpdatedAt(v time.Time) *ReportSlsaProvenanceCreate {
+	_c.mutation.SetUpdatedAt(v)
+	return _c
 }
 
 // SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (rspc *ReportSlsaProvenanceCreate) SetNillableUpdatedAt(t *time.Time) *ReportSlsaProvenanceCreate {
-	if t != nil {
-		rspc.SetUpdatedAt(*t)
+func (_c *ReportSlsaProvenanceCreate) SetNillableUpdatedAt(v *time.Time) *ReportSlsaProvenanceCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
 	}
-	return rspc
+	return _c
 }
 
 // SetPackageID sets the "package" edge to the ReportPackage entity by ID.
-func (rspc *ReportSlsaProvenanceCreate) SetPackageID(id int) *ReportSlsaProvenanceCreate {
-	rspc.mutation.SetPackageID(id)
-	return rspc
+func (_c *ReportSlsaProvenanceCreate) SetPackageID(id int) *ReportSlsaProvenanceCreate {
+	_c.mutation.SetPackageID(id)
+	return _c
 }
 
 // SetNillablePackageID sets the "package" edge to the ReportPackage entity by ID if the given value is not nil.
-func (rspc *ReportSlsaProvenanceCreate) SetNillablePackageID(id *int) *ReportSlsaProvenanceCreate {
+func (_c *ReportSlsaProvenanceCreate) SetNillablePackageID(id *int) *ReportSlsaProvenanceCreate {
 	if id != nil {
-		rspc = rspc.SetPackageID(*id)
+		_c = _c.SetPackageID(*id)
 	}
-	return rspc
+	return _c
 }
 
 // SetPackage sets the "package" edge to the ReportPackage entity.
-func (rspc *ReportSlsaProvenanceCreate) SetPackage(r *ReportPackage) *ReportSlsaProvenanceCreate {
-	return rspc.SetPackageID(r.ID)
+func (_c *ReportSlsaProvenanceCreate) SetPackage(v *ReportPackage) *ReportSlsaProvenanceCreate {
+	return _c.SetPackageID(v.ID)
 }
 
 // Mutation returns the ReportSlsaProvenanceMutation object of the builder.
-func (rspc *ReportSlsaProvenanceCreate) Mutation() *ReportSlsaProvenanceMutation {
-	return rspc.mutation
+func (_c *ReportSlsaProvenanceCreate) Mutation() *ReportSlsaProvenanceMutation {
+	return _c.mutation
 }
 
 // Save creates the ReportSlsaProvenance in the database.
-func (rspc *ReportSlsaProvenanceCreate) Save(ctx context.Context) (*ReportSlsaProvenance, error) {
-	rspc.defaults()
-	return withHooks(ctx, rspc.sqlSave, rspc.mutation, rspc.hooks)
+func (_c *ReportSlsaProvenanceCreate) Save(ctx context.Context) (*ReportSlsaProvenance, error) {
+	_c.defaults()
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (rspc *ReportSlsaProvenanceCreate) SaveX(ctx context.Context) *ReportSlsaProvenance {
-	v, err := rspc.Save(ctx)
+func (_c *ReportSlsaProvenanceCreate) SaveX(ctx context.Context) *ReportSlsaProvenance {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -121,49 +121,49 @@ func (rspc *ReportSlsaProvenanceCreate) SaveX(ctx context.Context) *ReportSlsaPr
 }
 
 // Exec executes the query.
-func (rspc *ReportSlsaProvenanceCreate) Exec(ctx context.Context) error {
-	_, err := rspc.Save(ctx)
+func (_c *ReportSlsaProvenanceCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rspc *ReportSlsaProvenanceCreate) ExecX(ctx context.Context) {
-	if err := rspc.Exec(ctx); err != nil {
+func (_c *ReportSlsaProvenanceCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (rspc *ReportSlsaProvenanceCreate) defaults() {
-	if _, ok := rspc.mutation.Verified(); !ok {
+func (_c *ReportSlsaProvenanceCreate) defaults() {
+	if _, ok := _c.mutation.Verified(); !ok {
 		v := reportslsaprovenance.DefaultVerified
-		rspc.mutation.SetVerified(v)
+		_c.mutation.SetVerified(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (rspc *ReportSlsaProvenanceCreate) check() error {
-	if _, ok := rspc.mutation.SourceRepository(); !ok {
+func (_c *ReportSlsaProvenanceCreate) check() error {
+	if _, ok := _c.mutation.SourceRepository(); !ok {
 		return &ValidationError{Name: "source_repository", err: errors.New(`ent: missing required field "ReportSlsaProvenance.source_repository"`)}
 	}
-	if _, ok := rspc.mutation.CommitSha(); !ok {
+	if _, ok := _c.mutation.CommitSha(); !ok {
 		return &ValidationError{Name: "commit_sha", err: errors.New(`ent: missing required field "ReportSlsaProvenance.commit_sha"`)}
 	}
-	if _, ok := rspc.mutation.URL(); !ok {
+	if _, ok := _c.mutation.URL(); !ok {
 		return &ValidationError{Name: "url", err: errors.New(`ent: missing required field "ReportSlsaProvenance.url"`)}
 	}
-	if _, ok := rspc.mutation.Verified(); !ok {
+	if _, ok := _c.mutation.Verified(); !ok {
 		return &ValidationError{Name: "verified", err: errors.New(`ent: missing required field "ReportSlsaProvenance.verified"`)}
 	}
 	return nil
 }
 
-func (rspc *ReportSlsaProvenanceCreate) sqlSave(ctx context.Context) (*ReportSlsaProvenance, error) {
-	if err := rspc.check(); err != nil {
+func (_c *ReportSlsaProvenanceCreate) sqlSave(ctx context.Context) (*ReportSlsaProvenance, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := rspc.createSpec()
-	if err := sqlgraph.CreateNode(ctx, rspc.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -171,41 +171,41 @@ func (rspc *ReportSlsaProvenanceCreate) sqlSave(ctx context.Context) (*ReportSls
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
-	rspc.mutation.id = &_node.ID
-	rspc.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (rspc *ReportSlsaProvenanceCreate) createSpec() (*ReportSlsaProvenance, *sqlgraph.CreateSpec) {
+func (_c *ReportSlsaProvenanceCreate) createSpec() (*ReportSlsaProvenance, *sqlgraph.CreateSpec) {
 	var (
-		_node = &ReportSlsaProvenance{config: rspc.config}
+		_node = &ReportSlsaProvenance{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(reportslsaprovenance.Table, sqlgraph.NewFieldSpec(reportslsaprovenance.FieldID, field.TypeInt))
 	)
-	if value, ok := rspc.mutation.SourceRepository(); ok {
+	if value, ok := _c.mutation.SourceRepository(); ok {
 		_spec.SetField(reportslsaprovenance.FieldSourceRepository, field.TypeString, value)
 		_node.SourceRepository = value
 	}
-	if value, ok := rspc.mutation.CommitSha(); ok {
+	if value, ok := _c.mutation.CommitSha(); ok {
 		_spec.SetField(reportslsaprovenance.FieldCommitSha, field.TypeString, value)
 		_node.CommitSha = value
 	}
-	if value, ok := rspc.mutation.URL(); ok {
+	if value, ok := _c.mutation.URL(); ok {
 		_spec.SetField(reportslsaprovenance.FieldURL, field.TypeString, value)
 		_node.URL = value
 	}
-	if value, ok := rspc.mutation.Verified(); ok {
+	if value, ok := _c.mutation.Verified(); ok {
 		_spec.SetField(reportslsaprovenance.FieldVerified, field.TypeBool, value)
 		_node.Verified = value
 	}
-	if value, ok := rspc.mutation.CreatedAt(); ok {
+	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(reportslsaprovenance.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
-	if value, ok := rspc.mutation.UpdatedAt(); ok {
+	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(reportslsaprovenance.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := rspc.mutation.PackageIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.PackageIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -233,16 +233,16 @@ type ReportSlsaProvenanceCreateBulk struct {
 }
 
 // Save creates the ReportSlsaProvenance entities in the database.
-func (rspcb *ReportSlsaProvenanceCreateBulk) Save(ctx context.Context) ([]*ReportSlsaProvenance, error) {
-	if rspcb.err != nil {
-		return nil, rspcb.err
+func (_c *ReportSlsaProvenanceCreateBulk) Save(ctx context.Context) ([]*ReportSlsaProvenance, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(rspcb.builders))
-	nodes := make([]*ReportSlsaProvenance, len(rspcb.builders))
-	mutators := make([]Mutator, len(rspcb.builders))
-	for i := range rspcb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*ReportSlsaProvenance, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := rspcb.builders[i]
+			builder := _c.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*ReportSlsaProvenanceMutation)
@@ -256,11 +256,11 @@ func (rspcb *ReportSlsaProvenanceCreateBulk) Save(ctx context.Context) ([]*Repor
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, rspcb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, rspcb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -284,7 +284,7 @@ func (rspcb *ReportSlsaProvenanceCreateBulk) Save(ctx context.Context) ([]*Repor
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, rspcb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -292,8 +292,8 @@ func (rspcb *ReportSlsaProvenanceCreateBulk) Save(ctx context.Context) ([]*Repor
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (rspcb *ReportSlsaProvenanceCreateBulk) SaveX(ctx context.Context) []*ReportSlsaProvenance {
-	v, err := rspcb.Save(ctx)
+func (_c *ReportSlsaProvenanceCreateBulk) SaveX(ctx context.Context) []*ReportSlsaProvenance {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -301,14 +301,14 @@ func (rspcb *ReportSlsaProvenanceCreateBulk) SaveX(ctx context.Context) []*Repor
 }
 
 // Exec executes the query.
-func (rspcb *ReportSlsaProvenanceCreateBulk) Exec(ctx context.Context) error {
-	_, err := rspcb.Save(ctx)
+func (_c *ReportSlsaProvenanceCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rspcb *ReportSlsaProvenanceCreateBulk) ExecX(ctx context.Context) {
-	if err := rspcb.Exec(ctx); err != nil {
+func (_c *ReportSlsaProvenanceCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

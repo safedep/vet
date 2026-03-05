@@ -20,56 +20,56 @@ type ReportPackageManifestDelete struct {
 }
 
 // Where appends a list predicates to the ReportPackageManifestDelete builder.
-func (rpmd *ReportPackageManifestDelete) Where(ps ...predicate.ReportPackageManifest) *ReportPackageManifestDelete {
-	rpmd.mutation.Where(ps...)
-	return rpmd
+func (_d *ReportPackageManifestDelete) Where(ps ...predicate.ReportPackageManifest) *ReportPackageManifestDelete {
+	_d.mutation.Where(ps...)
+	return _d
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (rpmd *ReportPackageManifestDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks(ctx, rpmd.sqlExec, rpmd.mutation, rpmd.hooks)
+func (_d *ReportPackageManifestDelete) Exec(ctx context.Context) (int, error) {
+	return withHooks(ctx, _d.sqlExec, _d.mutation, _d.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rpmd *ReportPackageManifestDelete) ExecX(ctx context.Context) int {
-	n, err := rpmd.Exec(ctx)
+func (_d *ReportPackageManifestDelete) ExecX(ctx context.Context) int {
+	n, err := _d.Exec(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return n
 }
 
-func (rpmd *ReportPackageManifestDelete) sqlExec(ctx context.Context) (int, error) {
+func (_d *ReportPackageManifestDelete) sqlExec(ctx context.Context) (int, error) {
 	_spec := sqlgraph.NewDeleteSpec(reportpackagemanifest.Table, sqlgraph.NewFieldSpec(reportpackagemanifest.FieldID, field.TypeInt))
-	if ps := rpmd.mutation.predicates; len(ps) > 0 {
+	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	affected, err := sqlgraph.DeleteNodes(ctx, rpmd.driver, _spec)
+	affected, err := sqlgraph.DeleteNodes(ctx, _d.driver, _spec)
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
-	rpmd.mutation.done = true
+	_d.mutation.done = true
 	return affected, err
 }
 
 // ReportPackageManifestDeleteOne is the builder for deleting a single ReportPackageManifest entity.
 type ReportPackageManifestDeleteOne struct {
-	rpmd *ReportPackageManifestDelete
+	_d *ReportPackageManifestDelete
 }
 
 // Where appends a list predicates to the ReportPackageManifestDelete builder.
-func (rpmdo *ReportPackageManifestDeleteOne) Where(ps ...predicate.ReportPackageManifest) *ReportPackageManifestDeleteOne {
-	rpmdo.rpmd.mutation.Where(ps...)
-	return rpmdo
+func (_d *ReportPackageManifestDeleteOne) Where(ps ...predicate.ReportPackageManifest) *ReportPackageManifestDeleteOne {
+	_d._d.mutation.Where(ps...)
+	return _d
 }
 
 // Exec executes the deletion query.
-func (rpmdo *ReportPackageManifestDeleteOne) Exec(ctx context.Context) error {
-	n, err := rpmdo.rpmd.Exec(ctx)
+func (_d *ReportPackageManifestDeleteOne) Exec(ctx context.Context) error {
+	n, err := _d._d.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
@@ -81,8 +81,8 @@ func (rpmdo *ReportPackageManifestDeleteOne) Exec(ctx context.Context) error {
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (rpmdo *ReportPackageManifestDeleteOne) ExecX(ctx context.Context) {
-	if err := rpmdo.Exec(ctx); err != nil {
+func (_d *ReportPackageManifestDeleteOne) ExecX(ctx context.Context) {
+	if err := _d.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

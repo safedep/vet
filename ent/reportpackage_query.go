@@ -43,44 +43,44 @@ type ReportPackageQuery struct {
 }
 
 // Where adds a new predicate for the ReportPackageQuery builder.
-func (rpq *ReportPackageQuery) Where(ps ...predicate.ReportPackage) *ReportPackageQuery {
-	rpq.predicates = append(rpq.predicates, ps...)
-	return rpq
+func (_q *ReportPackageQuery) Where(ps ...predicate.ReportPackage) *ReportPackageQuery {
+	_q.predicates = append(_q.predicates, ps...)
+	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (rpq *ReportPackageQuery) Limit(limit int) *ReportPackageQuery {
-	rpq.ctx.Limit = &limit
-	return rpq
+func (_q *ReportPackageQuery) Limit(limit int) *ReportPackageQuery {
+	_q.ctx.Limit = &limit
+	return _q
 }
 
 // Offset to start from.
-func (rpq *ReportPackageQuery) Offset(offset int) *ReportPackageQuery {
-	rpq.ctx.Offset = &offset
-	return rpq
+func (_q *ReportPackageQuery) Offset(offset int) *ReportPackageQuery {
+	_q.ctx.Offset = &offset
+	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (rpq *ReportPackageQuery) Unique(unique bool) *ReportPackageQuery {
-	rpq.ctx.Unique = &unique
-	return rpq
+func (_q *ReportPackageQuery) Unique(unique bool) *ReportPackageQuery {
+	_q.ctx.Unique = &unique
+	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (rpq *ReportPackageQuery) Order(o ...reportpackage.OrderOption) *ReportPackageQuery {
-	rpq.order = append(rpq.order, o...)
-	return rpq
+func (_q *ReportPackageQuery) Order(o ...reportpackage.OrderOption) *ReportPackageQuery {
+	_q.order = append(_q.order, o...)
+	return _q
 }
 
 // QueryManifests chains the current query on the "manifests" edge.
-func (rpq *ReportPackageQuery) QueryManifests() *ReportPackageManifestQuery {
-	query := (&ReportPackageManifestClient{config: rpq.config}).Query()
+func (_q *ReportPackageQuery) QueryManifests() *ReportPackageManifestQuery {
+	query := (&ReportPackageManifestClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := rpq.prepareQuery(ctx); err != nil {
+		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := rpq.sqlQuery(ctx)
+		selector := _q.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
@@ -89,20 +89,20 @@ func (rpq *ReportPackageQuery) QueryManifests() *ReportPackageManifestQuery {
 			sqlgraph.To(reportpackagemanifest.Table, reportpackagemanifest.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, reportpackage.ManifestsTable, reportpackage.ManifestsPrimaryKey...),
 		)
-		fromU = sqlgraph.SetNeighbors(rpq.driver.Dialect(), step)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
 }
 
 // QueryVulnerabilities chains the current query on the "vulnerabilities" edge.
-func (rpq *ReportPackageQuery) QueryVulnerabilities() *ReportVulnerabilityQuery {
-	query := (&ReportVulnerabilityClient{config: rpq.config}).Query()
+func (_q *ReportPackageQuery) QueryVulnerabilities() *ReportVulnerabilityQuery {
+	query := (&ReportVulnerabilityClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := rpq.prepareQuery(ctx); err != nil {
+		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := rpq.sqlQuery(ctx)
+		selector := _q.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
@@ -111,20 +111,20 @@ func (rpq *ReportPackageQuery) QueryVulnerabilities() *ReportVulnerabilityQuery 
 			sqlgraph.To(reportvulnerability.Table, reportvulnerability.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.VulnerabilitiesTable, reportpackage.VulnerabilitiesColumn),
 		)
-		fromU = sqlgraph.SetNeighbors(rpq.driver.Dialect(), step)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
 }
 
 // QueryLicenses chains the current query on the "licenses" edge.
-func (rpq *ReportPackageQuery) QueryLicenses() *ReportLicenseQuery {
-	query := (&ReportLicenseClient{config: rpq.config}).Query()
+func (_q *ReportPackageQuery) QueryLicenses() *ReportLicenseQuery {
+	query := (&ReportLicenseClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := rpq.prepareQuery(ctx); err != nil {
+		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := rpq.sqlQuery(ctx)
+		selector := _q.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
@@ -133,20 +133,20 @@ func (rpq *ReportPackageQuery) QueryLicenses() *ReportLicenseQuery {
 			sqlgraph.To(reportlicense.Table, reportlicense.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.LicensesTable, reportpackage.LicensesColumn),
 		)
-		fromU = sqlgraph.SetNeighbors(rpq.driver.Dialect(), step)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
 }
 
 // QueryDependencies chains the current query on the "dependencies" edge.
-func (rpq *ReportPackageQuery) QueryDependencies() *ReportDependencyQuery {
-	query := (&ReportDependencyClient{config: rpq.config}).Query()
+func (_q *ReportPackageQuery) QueryDependencies() *ReportDependencyQuery {
+	query := (&ReportDependencyClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := rpq.prepareQuery(ctx); err != nil {
+		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := rpq.sqlQuery(ctx)
+		selector := _q.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
@@ -155,20 +155,20 @@ func (rpq *ReportPackageQuery) QueryDependencies() *ReportDependencyQuery {
 			sqlgraph.To(reportdependency.Table, reportdependency.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.DependenciesTable, reportpackage.DependenciesColumn),
 		)
-		fromU = sqlgraph.SetNeighbors(rpq.driver.Dialect(), step)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
 }
 
 // QueryMalwareAnalysis chains the current query on the "malware_analysis" edge.
-func (rpq *ReportPackageQuery) QueryMalwareAnalysis() *ReportMalwareQuery {
-	query := (&ReportMalwareClient{config: rpq.config}).Query()
+func (_q *ReportPackageQuery) QueryMalwareAnalysis() *ReportMalwareQuery {
+	query := (&ReportMalwareClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := rpq.prepareQuery(ctx); err != nil {
+		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := rpq.sqlQuery(ctx)
+		selector := _q.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
@@ -177,20 +177,20 @@ func (rpq *ReportPackageQuery) QueryMalwareAnalysis() *ReportMalwareQuery {
 			sqlgraph.To(reportmalware.Table, reportmalware.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, reportpackage.MalwareAnalysisTable, reportpackage.MalwareAnalysisColumn),
 		)
-		fromU = sqlgraph.SetNeighbors(rpq.driver.Dialect(), step)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
 }
 
 // QueryProjects chains the current query on the "projects" edge.
-func (rpq *ReportPackageQuery) QueryProjects() *ReportProjectQuery {
-	query := (&ReportProjectClient{config: rpq.config}).Query()
+func (_q *ReportPackageQuery) QueryProjects() *ReportProjectQuery {
+	query := (&ReportProjectClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := rpq.prepareQuery(ctx); err != nil {
+		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := rpq.sqlQuery(ctx)
+		selector := _q.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
@@ -199,20 +199,20 @@ func (rpq *ReportPackageQuery) QueryProjects() *ReportProjectQuery {
 			sqlgraph.To(reportproject.Table, reportproject.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.ProjectsTable, reportpackage.ProjectsColumn),
 		)
-		fromU = sqlgraph.SetNeighbors(rpq.driver.Dialect(), step)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
 }
 
 // QuerySlsaProvenances chains the current query on the "slsa_provenances" edge.
-func (rpq *ReportPackageQuery) QuerySlsaProvenances() *ReportSlsaProvenanceQuery {
-	query := (&ReportSlsaProvenanceClient{config: rpq.config}).Query()
+func (_q *ReportPackageQuery) QuerySlsaProvenances() *ReportSlsaProvenanceQuery {
+	query := (&ReportSlsaProvenanceClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := rpq.prepareQuery(ctx); err != nil {
+		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		selector := rpq.sqlQuery(ctx)
+		selector := _q.sqlQuery(ctx)
 		if err := selector.Err(); err != nil {
 			return nil, err
 		}
@@ -221,7 +221,7 @@ func (rpq *ReportPackageQuery) QuerySlsaProvenances() *ReportSlsaProvenanceQuery
 			sqlgraph.To(reportslsaprovenance.Table, reportslsaprovenance.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, reportpackage.SlsaProvenancesTable, reportpackage.SlsaProvenancesColumn),
 		)
-		fromU = sqlgraph.SetNeighbors(rpq.driver.Dialect(), step)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
 	return query
@@ -229,8 +229,8 @@ func (rpq *ReportPackageQuery) QuerySlsaProvenances() *ReportSlsaProvenanceQuery
 
 // First returns the first ReportPackage entity from the query.
 // Returns a *NotFoundError when no ReportPackage was found.
-func (rpq *ReportPackageQuery) First(ctx context.Context) (*ReportPackage, error) {
-	nodes, err := rpq.Limit(1).All(setContextOp(ctx, rpq.ctx, ent.OpQueryFirst))
+func (_q *ReportPackageQuery) First(ctx context.Context) (*ReportPackage, error) {
+	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -241,8 +241,8 @@ func (rpq *ReportPackageQuery) First(ctx context.Context) (*ReportPackage, error
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (rpq *ReportPackageQuery) FirstX(ctx context.Context) *ReportPackage {
-	node, err := rpq.First(ctx)
+func (_q *ReportPackageQuery) FirstX(ctx context.Context) *ReportPackage {
+	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -251,9 +251,9 @@ func (rpq *ReportPackageQuery) FirstX(ctx context.Context) *ReportPackage {
 
 // FirstID returns the first ReportPackage ID from the query.
 // Returns a *NotFoundError when no ReportPackage ID was found.
-func (rpq *ReportPackageQuery) FirstID(ctx context.Context) (id int, err error) {
+func (_q *ReportPackageQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = rpq.Limit(1).IDs(setContextOp(ctx, rpq.ctx, ent.OpQueryFirstID)); err != nil {
+	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -264,8 +264,8 @@ func (rpq *ReportPackageQuery) FirstID(ctx context.Context) (id int, err error) 
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (rpq *ReportPackageQuery) FirstIDX(ctx context.Context) int {
-	id, err := rpq.FirstID(ctx)
+func (_q *ReportPackageQuery) FirstIDX(ctx context.Context) int {
+	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -275,8 +275,8 @@ func (rpq *ReportPackageQuery) FirstIDX(ctx context.Context) int {
 // Only returns a single ReportPackage entity found by the query, ensuring it only returns one.
 // Returns a *NotSingularError when more than one ReportPackage entity is found.
 // Returns a *NotFoundError when no ReportPackage entities are found.
-func (rpq *ReportPackageQuery) Only(ctx context.Context) (*ReportPackage, error) {
-	nodes, err := rpq.Limit(2).All(setContextOp(ctx, rpq.ctx, ent.OpQueryOnly))
+func (_q *ReportPackageQuery) Only(ctx context.Context) (*ReportPackage, error) {
+	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -291,8 +291,8 @@ func (rpq *ReportPackageQuery) Only(ctx context.Context) (*ReportPackage, error)
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (rpq *ReportPackageQuery) OnlyX(ctx context.Context) *ReportPackage {
-	node, err := rpq.Only(ctx)
+func (_q *ReportPackageQuery) OnlyX(ctx context.Context) *ReportPackage {
+	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -302,9 +302,9 @@ func (rpq *ReportPackageQuery) OnlyX(ctx context.Context) *ReportPackage {
 // OnlyID is like Only, but returns the only ReportPackage ID in the query.
 // Returns a *NotSingularError when more than one ReportPackage ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (rpq *ReportPackageQuery) OnlyID(ctx context.Context) (id int, err error) {
+func (_q *ReportPackageQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = rpq.Limit(2).IDs(setContextOp(ctx, rpq.ctx, ent.OpQueryOnlyID)); err != nil {
+	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -319,8 +319,8 @@ func (rpq *ReportPackageQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (rpq *ReportPackageQuery) OnlyIDX(ctx context.Context) int {
-	id, err := rpq.OnlyID(ctx)
+func (_q *ReportPackageQuery) OnlyIDX(ctx context.Context) int {
+	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -328,18 +328,18 @@ func (rpq *ReportPackageQuery) OnlyIDX(ctx context.Context) int {
 }
 
 // All executes the query and returns a list of ReportPackages.
-func (rpq *ReportPackageQuery) All(ctx context.Context) ([]*ReportPackage, error) {
-	ctx = setContextOp(ctx, rpq.ctx, ent.OpQueryAll)
-	if err := rpq.prepareQuery(ctx); err != nil {
+func (_q *ReportPackageQuery) All(ctx context.Context) ([]*ReportPackage, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
 	qr := querierAll[[]*ReportPackage, *ReportPackageQuery]()
-	return withInterceptors[[]*ReportPackage](ctx, rpq, qr, rpq.inters)
+	return withInterceptors[[]*ReportPackage](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (rpq *ReportPackageQuery) AllX(ctx context.Context) []*ReportPackage {
-	nodes, err := rpq.All(ctx)
+func (_q *ReportPackageQuery) AllX(ctx context.Context) []*ReportPackage {
+	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -347,20 +347,20 @@ func (rpq *ReportPackageQuery) AllX(ctx context.Context) []*ReportPackage {
 }
 
 // IDs executes the query and returns a list of ReportPackage IDs.
-func (rpq *ReportPackageQuery) IDs(ctx context.Context) (ids []int, err error) {
-	if rpq.ctx.Unique == nil && rpq.path != nil {
-		rpq.Unique(true)
+func (_q *ReportPackageQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if _q.ctx.Unique == nil && _q.path != nil {
+		_q.Unique(true)
 	}
-	ctx = setContextOp(ctx, rpq.ctx, ent.OpQueryIDs)
-	if err = rpq.Select(reportpackage.FieldID).Scan(ctx, &ids); err != nil {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
+	if err = _q.Select(reportpackage.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (rpq *ReportPackageQuery) IDsX(ctx context.Context) []int {
-	ids, err := rpq.IDs(ctx)
+func (_q *ReportPackageQuery) IDsX(ctx context.Context) []int {
+	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -368,17 +368,17 @@ func (rpq *ReportPackageQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (rpq *ReportPackageQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, rpq.ctx, ent.OpQueryCount)
-	if err := rpq.prepareQuery(ctx); err != nil {
+func (_q *ReportPackageQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, rpq, querierCount[*ReportPackageQuery](), rpq.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*ReportPackageQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (rpq *ReportPackageQuery) CountX(ctx context.Context) int {
-	count, err := rpq.Count(ctx)
+func (_q *ReportPackageQuery) CountX(ctx context.Context) int {
+	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -386,9 +386,9 @@ func (rpq *ReportPackageQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (rpq *ReportPackageQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, rpq.ctx, ent.OpQueryExist)
-	switch _, err := rpq.FirstID(ctx); {
+func (_q *ReportPackageQuery) Exist(ctx context.Context) (bool, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
+	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
 	case err != nil:
@@ -399,8 +399,8 @@ func (rpq *ReportPackageQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (rpq *ReportPackageQuery) ExistX(ctx context.Context) bool {
-	exist, err := rpq.Exist(ctx)
+func (_q *ReportPackageQuery) ExistX(ctx context.Context) bool {
+	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -409,104 +409,104 @@ func (rpq *ReportPackageQuery) ExistX(ctx context.Context) bool {
 
 // Clone returns a duplicate of the ReportPackageQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (rpq *ReportPackageQuery) Clone() *ReportPackageQuery {
-	if rpq == nil {
+func (_q *ReportPackageQuery) Clone() *ReportPackageQuery {
+	if _q == nil {
 		return nil
 	}
 	return &ReportPackageQuery{
-		config:              rpq.config,
-		ctx:                 rpq.ctx.Clone(),
-		order:               append([]reportpackage.OrderOption{}, rpq.order...),
-		inters:              append([]Interceptor{}, rpq.inters...),
-		predicates:          append([]predicate.ReportPackage{}, rpq.predicates...),
-		withManifests:       rpq.withManifests.Clone(),
-		withVulnerabilities: rpq.withVulnerabilities.Clone(),
-		withLicenses:        rpq.withLicenses.Clone(),
-		withDependencies:    rpq.withDependencies.Clone(),
-		withMalwareAnalysis: rpq.withMalwareAnalysis.Clone(),
-		withProjects:        rpq.withProjects.Clone(),
-		withSlsaProvenances: rpq.withSlsaProvenances.Clone(),
+		config:              _q.config,
+		ctx:                 _q.ctx.Clone(),
+		order:               append([]reportpackage.OrderOption{}, _q.order...),
+		inters:              append([]Interceptor{}, _q.inters...),
+		predicates:          append([]predicate.ReportPackage{}, _q.predicates...),
+		withManifests:       _q.withManifests.Clone(),
+		withVulnerabilities: _q.withVulnerabilities.Clone(),
+		withLicenses:        _q.withLicenses.Clone(),
+		withDependencies:    _q.withDependencies.Clone(),
+		withMalwareAnalysis: _q.withMalwareAnalysis.Clone(),
+		withProjects:        _q.withProjects.Clone(),
+		withSlsaProvenances: _q.withSlsaProvenances.Clone(),
 		// clone intermediate query.
-		sql:  rpq.sql.Clone(),
-		path: rpq.path,
+		sql:  _q.sql.Clone(),
+		path: _q.path,
 	}
 }
 
 // WithManifests tells the query-builder to eager-load the nodes that are connected to
 // the "manifests" edge. The optional arguments are used to configure the query builder of the edge.
-func (rpq *ReportPackageQuery) WithManifests(opts ...func(*ReportPackageManifestQuery)) *ReportPackageQuery {
-	query := (&ReportPackageManifestClient{config: rpq.config}).Query()
+func (_q *ReportPackageQuery) WithManifests(opts ...func(*ReportPackageManifestQuery)) *ReportPackageQuery {
+	query := (&ReportPackageManifestClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	rpq.withManifests = query
-	return rpq
+	_q.withManifests = query
+	return _q
 }
 
 // WithVulnerabilities tells the query-builder to eager-load the nodes that are connected to
 // the "vulnerabilities" edge. The optional arguments are used to configure the query builder of the edge.
-func (rpq *ReportPackageQuery) WithVulnerabilities(opts ...func(*ReportVulnerabilityQuery)) *ReportPackageQuery {
-	query := (&ReportVulnerabilityClient{config: rpq.config}).Query()
+func (_q *ReportPackageQuery) WithVulnerabilities(opts ...func(*ReportVulnerabilityQuery)) *ReportPackageQuery {
+	query := (&ReportVulnerabilityClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	rpq.withVulnerabilities = query
-	return rpq
+	_q.withVulnerabilities = query
+	return _q
 }
 
 // WithLicenses tells the query-builder to eager-load the nodes that are connected to
 // the "licenses" edge. The optional arguments are used to configure the query builder of the edge.
-func (rpq *ReportPackageQuery) WithLicenses(opts ...func(*ReportLicenseQuery)) *ReportPackageQuery {
-	query := (&ReportLicenseClient{config: rpq.config}).Query()
+func (_q *ReportPackageQuery) WithLicenses(opts ...func(*ReportLicenseQuery)) *ReportPackageQuery {
+	query := (&ReportLicenseClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	rpq.withLicenses = query
-	return rpq
+	_q.withLicenses = query
+	return _q
 }
 
 // WithDependencies tells the query-builder to eager-load the nodes that are connected to
 // the "dependencies" edge. The optional arguments are used to configure the query builder of the edge.
-func (rpq *ReportPackageQuery) WithDependencies(opts ...func(*ReportDependencyQuery)) *ReportPackageQuery {
-	query := (&ReportDependencyClient{config: rpq.config}).Query()
+func (_q *ReportPackageQuery) WithDependencies(opts ...func(*ReportDependencyQuery)) *ReportPackageQuery {
+	query := (&ReportDependencyClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	rpq.withDependencies = query
-	return rpq
+	_q.withDependencies = query
+	return _q
 }
 
 // WithMalwareAnalysis tells the query-builder to eager-load the nodes that are connected to
 // the "malware_analysis" edge. The optional arguments are used to configure the query builder of the edge.
-func (rpq *ReportPackageQuery) WithMalwareAnalysis(opts ...func(*ReportMalwareQuery)) *ReportPackageQuery {
-	query := (&ReportMalwareClient{config: rpq.config}).Query()
+func (_q *ReportPackageQuery) WithMalwareAnalysis(opts ...func(*ReportMalwareQuery)) *ReportPackageQuery {
+	query := (&ReportMalwareClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	rpq.withMalwareAnalysis = query
-	return rpq
+	_q.withMalwareAnalysis = query
+	return _q
 }
 
 // WithProjects tells the query-builder to eager-load the nodes that are connected to
 // the "projects" edge. The optional arguments are used to configure the query builder of the edge.
-func (rpq *ReportPackageQuery) WithProjects(opts ...func(*ReportProjectQuery)) *ReportPackageQuery {
-	query := (&ReportProjectClient{config: rpq.config}).Query()
+func (_q *ReportPackageQuery) WithProjects(opts ...func(*ReportProjectQuery)) *ReportPackageQuery {
+	query := (&ReportProjectClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	rpq.withProjects = query
-	return rpq
+	_q.withProjects = query
+	return _q
 }
 
 // WithSlsaProvenances tells the query-builder to eager-load the nodes that are connected to
 // the "slsa_provenances" edge. The optional arguments are used to configure the query builder of the edge.
-func (rpq *ReportPackageQuery) WithSlsaProvenances(opts ...func(*ReportSlsaProvenanceQuery)) *ReportPackageQuery {
-	query := (&ReportSlsaProvenanceClient{config: rpq.config}).Query()
+func (_q *ReportPackageQuery) WithSlsaProvenances(opts ...func(*ReportSlsaProvenanceQuery)) *ReportPackageQuery {
+	query := (&ReportSlsaProvenanceClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	rpq.withSlsaProvenances = query
-	return rpq
+	_q.withSlsaProvenances = query
+	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -523,10 +523,10 @@ func (rpq *ReportPackageQuery) WithSlsaProvenances(opts ...func(*ReportSlsaProve
 //		GroupBy(reportpackage.FieldPackageID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (rpq *ReportPackageQuery) GroupBy(field string, fields ...string) *ReportPackageGroupBy {
-	rpq.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &ReportPackageGroupBy{build: rpq}
-	grbuild.flds = &rpq.ctx.Fields
+func (_q *ReportPackageQuery) GroupBy(field string, fields ...string) *ReportPackageGroupBy {
+	_q.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &ReportPackageGroupBy{build: _q}
+	grbuild.flds = &_q.ctx.Fields
 	grbuild.label = reportpackage.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -544,64 +544,64 @@ func (rpq *ReportPackageQuery) GroupBy(field string, fields ...string) *ReportPa
 //	client.ReportPackage.Query().
 //		Select(reportpackage.FieldPackageID).
 //		Scan(ctx, &v)
-func (rpq *ReportPackageQuery) Select(fields ...string) *ReportPackageSelect {
-	rpq.ctx.Fields = append(rpq.ctx.Fields, fields...)
-	sbuild := &ReportPackageSelect{ReportPackageQuery: rpq}
+func (_q *ReportPackageQuery) Select(fields ...string) *ReportPackageSelect {
+	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
+	sbuild := &ReportPackageSelect{ReportPackageQuery: _q}
 	sbuild.label = reportpackage.Label
-	sbuild.flds, sbuild.scan = &rpq.ctx.Fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
 // Aggregate returns a ReportPackageSelect configured with the given aggregations.
-func (rpq *ReportPackageQuery) Aggregate(fns ...AggregateFunc) *ReportPackageSelect {
-	return rpq.Select().Aggregate(fns...)
+func (_q *ReportPackageQuery) Aggregate(fns ...AggregateFunc) *ReportPackageSelect {
+	return _q.Select().Aggregate(fns...)
 }
 
-func (rpq *ReportPackageQuery) prepareQuery(ctx context.Context) error {
-	for _, inter := range rpq.inters {
+func (_q *ReportPackageQuery) prepareQuery(ctx context.Context) error {
+	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
 		}
 		if trv, ok := inter.(Traverser); ok {
-			if err := trv.Traverse(ctx, rpq); err != nil {
+			if err := trv.Traverse(ctx, _q); err != nil {
 				return err
 			}
 		}
 	}
-	for _, f := range rpq.ctx.Fields {
+	for _, f := range _q.ctx.Fields {
 		if !reportpackage.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
-	if rpq.path != nil {
-		prev, err := rpq.path(ctx)
+	if _q.path != nil {
+		prev, err := _q.path(ctx)
 		if err != nil {
 			return err
 		}
-		rpq.sql = prev
+		_q.sql = prev
 	}
 	return nil
 }
 
-func (rpq *ReportPackageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ReportPackage, error) {
+func (_q *ReportPackageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ReportPackage, error) {
 	var (
 		nodes       = []*ReportPackage{}
-		_spec       = rpq.querySpec()
+		_spec       = _q.querySpec()
 		loadedTypes = [7]bool{
-			rpq.withManifests != nil,
-			rpq.withVulnerabilities != nil,
-			rpq.withLicenses != nil,
-			rpq.withDependencies != nil,
-			rpq.withMalwareAnalysis != nil,
-			rpq.withProjects != nil,
-			rpq.withSlsaProvenances != nil,
+			_q.withManifests != nil,
+			_q.withVulnerabilities != nil,
+			_q.withLicenses != nil,
+			_q.withDependencies != nil,
+			_q.withMalwareAnalysis != nil,
+			_q.withProjects != nil,
+			_q.withSlsaProvenances != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*ReportPackage).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &ReportPackage{config: rpq.config}
+		node := &ReportPackage{config: _q.config}
 		nodes = append(nodes, node)
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
@@ -609,21 +609,21 @@ func (rpq *ReportPackageQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
-	if err := sqlgraph.QueryNodes(ctx, rpq.driver, _spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, _q.driver, _spec); err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := rpq.withManifests; query != nil {
-		if err := rpq.loadManifests(ctx, query, nodes,
+	if query := _q.withManifests; query != nil {
+		if err := _q.loadManifests(ctx, query, nodes,
 			func(n *ReportPackage) { n.Edges.Manifests = []*ReportPackageManifest{} },
 			func(n *ReportPackage, e *ReportPackageManifest) { n.Edges.Manifests = append(n.Edges.Manifests, e) }); err != nil {
 			return nil, err
 		}
 	}
-	if query := rpq.withVulnerabilities; query != nil {
-		if err := rpq.loadVulnerabilities(ctx, query, nodes,
+	if query := _q.withVulnerabilities; query != nil {
+		if err := _q.loadVulnerabilities(ctx, query, nodes,
 			func(n *ReportPackage) { n.Edges.Vulnerabilities = []*ReportVulnerability{} },
 			func(n *ReportPackage, e *ReportVulnerability) {
 				n.Edges.Vulnerabilities = append(n.Edges.Vulnerabilities, e)
@@ -631,35 +631,35 @@ func (rpq *ReportPackageQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 			return nil, err
 		}
 	}
-	if query := rpq.withLicenses; query != nil {
-		if err := rpq.loadLicenses(ctx, query, nodes,
+	if query := _q.withLicenses; query != nil {
+		if err := _q.loadLicenses(ctx, query, nodes,
 			func(n *ReportPackage) { n.Edges.Licenses = []*ReportLicense{} },
 			func(n *ReportPackage, e *ReportLicense) { n.Edges.Licenses = append(n.Edges.Licenses, e) }); err != nil {
 			return nil, err
 		}
 	}
-	if query := rpq.withDependencies; query != nil {
-		if err := rpq.loadDependencies(ctx, query, nodes,
+	if query := _q.withDependencies; query != nil {
+		if err := _q.loadDependencies(ctx, query, nodes,
 			func(n *ReportPackage) { n.Edges.Dependencies = []*ReportDependency{} },
 			func(n *ReportPackage, e *ReportDependency) { n.Edges.Dependencies = append(n.Edges.Dependencies, e) }); err != nil {
 			return nil, err
 		}
 	}
-	if query := rpq.withMalwareAnalysis; query != nil {
-		if err := rpq.loadMalwareAnalysis(ctx, query, nodes, nil,
+	if query := _q.withMalwareAnalysis; query != nil {
+		if err := _q.loadMalwareAnalysis(ctx, query, nodes, nil,
 			func(n *ReportPackage, e *ReportMalware) { n.Edges.MalwareAnalysis = e }); err != nil {
 			return nil, err
 		}
 	}
-	if query := rpq.withProjects; query != nil {
-		if err := rpq.loadProjects(ctx, query, nodes,
+	if query := _q.withProjects; query != nil {
+		if err := _q.loadProjects(ctx, query, nodes,
 			func(n *ReportPackage) { n.Edges.Projects = []*ReportProject{} },
 			func(n *ReportPackage, e *ReportProject) { n.Edges.Projects = append(n.Edges.Projects, e) }); err != nil {
 			return nil, err
 		}
 	}
-	if query := rpq.withSlsaProvenances; query != nil {
-		if err := rpq.loadSlsaProvenances(ctx, query, nodes,
+	if query := _q.withSlsaProvenances; query != nil {
+		if err := _q.loadSlsaProvenances(ctx, query, nodes,
 			func(n *ReportPackage) { n.Edges.SlsaProvenances = []*ReportSlsaProvenance{} },
 			func(n *ReportPackage, e *ReportSlsaProvenance) {
 				n.Edges.SlsaProvenances = append(n.Edges.SlsaProvenances, e)
@@ -670,7 +670,7 @@ func (rpq *ReportPackageQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	return nodes, nil
 }
 
-func (rpq *ReportPackageQuery) loadManifests(ctx context.Context, query *ReportPackageManifestQuery, nodes []*ReportPackage, init func(*ReportPackage), assign func(*ReportPackage, *ReportPackageManifest)) error {
+func (_q *ReportPackageQuery) loadManifests(ctx context.Context, query *ReportPackageManifestQuery, nodes []*ReportPackage, init func(*ReportPackage), assign func(*ReportPackage, *ReportPackageManifest)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
 	byID := make(map[int]*ReportPackage)
 	nids := make(map[int]map[*ReportPackage]struct{})
@@ -731,7 +731,7 @@ func (rpq *ReportPackageQuery) loadManifests(ctx context.Context, query *ReportP
 	}
 	return nil
 }
-func (rpq *ReportPackageQuery) loadVulnerabilities(ctx context.Context, query *ReportVulnerabilityQuery, nodes []*ReportPackage, init func(*ReportPackage), assign func(*ReportPackage, *ReportVulnerability)) error {
+func (_q *ReportPackageQuery) loadVulnerabilities(ctx context.Context, query *ReportVulnerabilityQuery, nodes []*ReportPackage, init func(*ReportPackage), assign func(*ReportPackage, *ReportVulnerability)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*ReportPackage)
 	for i := range nodes {
@@ -762,7 +762,7 @@ func (rpq *ReportPackageQuery) loadVulnerabilities(ctx context.Context, query *R
 	}
 	return nil
 }
-func (rpq *ReportPackageQuery) loadLicenses(ctx context.Context, query *ReportLicenseQuery, nodes []*ReportPackage, init func(*ReportPackage), assign func(*ReportPackage, *ReportLicense)) error {
+func (_q *ReportPackageQuery) loadLicenses(ctx context.Context, query *ReportLicenseQuery, nodes []*ReportPackage, init func(*ReportPackage), assign func(*ReportPackage, *ReportLicense)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*ReportPackage)
 	for i := range nodes {
@@ -793,7 +793,7 @@ func (rpq *ReportPackageQuery) loadLicenses(ctx context.Context, query *ReportLi
 	}
 	return nil
 }
-func (rpq *ReportPackageQuery) loadDependencies(ctx context.Context, query *ReportDependencyQuery, nodes []*ReportPackage, init func(*ReportPackage), assign func(*ReportPackage, *ReportDependency)) error {
+func (_q *ReportPackageQuery) loadDependencies(ctx context.Context, query *ReportDependencyQuery, nodes []*ReportPackage, init func(*ReportPackage), assign func(*ReportPackage, *ReportDependency)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*ReportPackage)
 	for i := range nodes {
@@ -824,7 +824,7 @@ func (rpq *ReportPackageQuery) loadDependencies(ctx context.Context, query *Repo
 	}
 	return nil
 }
-func (rpq *ReportPackageQuery) loadMalwareAnalysis(ctx context.Context, query *ReportMalwareQuery, nodes []*ReportPackage, init func(*ReportPackage), assign func(*ReportPackage, *ReportMalware)) error {
+func (_q *ReportPackageQuery) loadMalwareAnalysis(ctx context.Context, query *ReportMalwareQuery, nodes []*ReportPackage, init func(*ReportPackage), assign func(*ReportPackage, *ReportMalware)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*ReportPackage)
 	for i := range nodes {
@@ -852,7 +852,7 @@ func (rpq *ReportPackageQuery) loadMalwareAnalysis(ctx context.Context, query *R
 	}
 	return nil
 }
-func (rpq *ReportPackageQuery) loadProjects(ctx context.Context, query *ReportProjectQuery, nodes []*ReportPackage, init func(*ReportPackage), assign func(*ReportPackage, *ReportProject)) error {
+func (_q *ReportPackageQuery) loadProjects(ctx context.Context, query *ReportProjectQuery, nodes []*ReportPackage, init func(*ReportPackage), assign func(*ReportPackage, *ReportProject)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*ReportPackage)
 	for i := range nodes {
@@ -883,7 +883,7 @@ func (rpq *ReportPackageQuery) loadProjects(ctx context.Context, query *ReportPr
 	}
 	return nil
 }
-func (rpq *ReportPackageQuery) loadSlsaProvenances(ctx context.Context, query *ReportSlsaProvenanceQuery, nodes []*ReportPackage, init func(*ReportPackage), assign func(*ReportPackage, *ReportSlsaProvenance)) error {
+func (_q *ReportPackageQuery) loadSlsaProvenances(ctx context.Context, query *ReportSlsaProvenanceQuery, nodes []*ReportPackage, init func(*ReportPackage), assign func(*ReportPackage, *ReportSlsaProvenance)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*ReportPackage)
 	for i := range nodes {
@@ -915,24 +915,24 @@ func (rpq *ReportPackageQuery) loadSlsaProvenances(ctx context.Context, query *R
 	return nil
 }
 
-func (rpq *ReportPackageQuery) sqlCount(ctx context.Context) (int, error) {
-	_spec := rpq.querySpec()
-	_spec.Node.Columns = rpq.ctx.Fields
-	if len(rpq.ctx.Fields) > 0 {
-		_spec.Unique = rpq.ctx.Unique != nil && *rpq.ctx.Unique
+func (_q *ReportPackageQuery) sqlCount(ctx context.Context) (int, error) {
+	_spec := _q.querySpec()
+	_spec.Node.Columns = _q.ctx.Fields
+	if len(_q.ctx.Fields) > 0 {
+		_spec.Unique = _q.ctx.Unique != nil && *_q.ctx.Unique
 	}
-	return sqlgraph.CountNodes(ctx, rpq.driver, _spec)
+	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (rpq *ReportPackageQuery) querySpec() *sqlgraph.QuerySpec {
+func (_q *ReportPackageQuery) querySpec() *sqlgraph.QuerySpec {
 	_spec := sqlgraph.NewQuerySpec(reportpackage.Table, reportpackage.Columns, sqlgraph.NewFieldSpec(reportpackage.FieldID, field.TypeInt))
-	_spec.From = rpq.sql
-	if unique := rpq.ctx.Unique; unique != nil {
+	_spec.From = _q.sql
+	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
-	} else if rpq.path != nil {
+	} else if _q.path != nil {
 		_spec.Unique = true
 	}
-	if fields := rpq.ctx.Fields; len(fields) > 0 {
+	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, reportpackage.FieldID)
 		for i := range fields {
@@ -941,20 +941,20 @@ func (rpq *ReportPackageQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if ps := rpq.predicates; len(ps) > 0 {
+	if ps := _q.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if limit := rpq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := rpq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
-	if ps := rpq.order; len(ps) > 0 {
+	if ps := _q.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
@@ -964,33 +964,33 @@ func (rpq *ReportPackageQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (rpq *ReportPackageQuery) sqlQuery(ctx context.Context) *sql.Selector {
-	builder := sql.Dialect(rpq.driver.Dialect())
+func (_q *ReportPackageQuery) sqlQuery(ctx context.Context) *sql.Selector {
+	builder := sql.Dialect(_q.driver.Dialect())
 	t1 := builder.Table(reportpackage.Table)
-	columns := rpq.ctx.Fields
+	columns := _q.ctx.Fields
 	if len(columns) == 0 {
 		columns = reportpackage.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
-	if rpq.sql != nil {
-		selector = rpq.sql
+	if _q.sql != nil {
+		selector = _q.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if rpq.ctx.Unique != nil && *rpq.ctx.Unique {
+	if _q.ctx.Unique != nil && *_q.ctx.Unique {
 		selector.Distinct()
 	}
-	for _, p := range rpq.predicates {
+	for _, p := range _q.predicates {
 		p(selector)
 	}
-	for _, p := range rpq.order {
+	for _, p := range _q.order {
 		p(selector)
 	}
-	if offset := rpq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := rpq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -1003,41 +1003,41 @@ type ReportPackageGroupBy struct {
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (rpgb *ReportPackageGroupBy) Aggregate(fns ...AggregateFunc) *ReportPackageGroupBy {
-	rpgb.fns = append(rpgb.fns, fns...)
-	return rpgb
+func (_g *ReportPackageGroupBy) Aggregate(fns ...AggregateFunc) *ReportPackageGroupBy {
+	_g.fns = append(_g.fns, fns...)
+	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (rpgb *ReportPackageGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, rpgb.build.ctx, ent.OpQueryGroupBy)
-	if err := rpgb.build.prepareQuery(ctx); err != nil {
+func (_g *ReportPackageGroupBy) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
+	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*ReportPackageQuery, *ReportPackageGroupBy](ctx, rpgb.build, rpgb, rpgb.build.inters, v)
+	return scanWithInterceptors[*ReportPackageQuery, *ReportPackageGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (rpgb *ReportPackageGroupBy) sqlScan(ctx context.Context, root *ReportPackageQuery, v any) error {
+func (_g *ReportPackageGroupBy) sqlScan(ctx context.Context, root *ReportPackageQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
-	aggregation := make([]string, 0, len(rpgb.fns))
-	for _, fn := range rpgb.fns {
+	aggregation := make([]string, 0, len(_g.fns))
+	for _, fn := range _g.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
 	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(*rpgb.flds)+len(rpgb.fns))
-		for _, f := range *rpgb.flds {
+		columns := make([]string, 0, len(*_g.flds)+len(_g.fns))
+		for _, f := range *_g.flds {
 			columns = append(columns, selector.C(f))
 		}
 		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
-	selector.GroupBy(selector.Columns(*rpgb.flds...)...)
+	selector.GroupBy(selector.Columns(*_g.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := rpgb.build.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _g.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
@@ -1051,27 +1051,27 @@ type ReportPackageSelect struct {
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (rps *ReportPackageSelect) Aggregate(fns ...AggregateFunc) *ReportPackageSelect {
-	rps.fns = append(rps.fns, fns...)
-	return rps
+func (_s *ReportPackageSelect) Aggregate(fns ...AggregateFunc) *ReportPackageSelect {
+	_s.fns = append(_s.fns, fns...)
+	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (rps *ReportPackageSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, rps.ctx, ent.OpQuerySelect)
-	if err := rps.prepareQuery(ctx); err != nil {
+func (_s *ReportPackageSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
+	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*ReportPackageQuery, *ReportPackageSelect](ctx, rps.ReportPackageQuery, rps, rps.inters, v)
+	return scanWithInterceptors[*ReportPackageQuery, *ReportPackageSelect](ctx, _s.ReportPackageQuery, _s, _s.inters, v)
 }
 
-func (rps *ReportPackageSelect) sqlScan(ctx context.Context, root *ReportPackageQuery, v any) error {
+func (_s *ReportPackageSelect) sqlScan(ctx context.Context, root *ReportPackageQuery, v any) error {
 	selector := root.sqlQuery(ctx)
-	aggregation := make([]string, 0, len(rps.fns))
-	for _, fn := range rps.fns {
+	aggregation := make([]string, 0, len(_s.fns))
+	for _, fn := range _s.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	switch n := len(*rps.selector.flds); {
+	switch n := len(*_s.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
 		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
@@ -1079,7 +1079,7 @@ func (rps *ReportPackageSelect) sqlScan(ctx context.Context, root *ReportPackage
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := rps.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _s.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
