@@ -24,7 +24,7 @@ func parseCargoLockFile(lockfilePath string, _ *ParserConfig) (*models.PackageMa
 	if err != nil {
 		return nil, fmt.Errorf("failed to open lockfile: %s", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	inputConfig := &filesystem.ScanInput{
 		FS:     fs.DirFS("."),

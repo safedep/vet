@@ -851,7 +851,7 @@ func (r *summaryReporter) pathToPackageRoot(pkg *models.Package) string {
 		return path.String()
 	}
 
-	path.WriteString(fmt.Sprintf(" ... [%d] > ", len(pathToRoot)-1))
+	fmt.Fprintf(&path, " ... [%d] > ", len(pathToRoot)-1)
 
 	rootPkg := pathToRoot[len(pathToRoot)-1]
 	path.WriteString(rootPkg.GetName() + "@" + rootPkg.GetVersion())

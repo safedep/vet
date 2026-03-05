@@ -233,7 +233,7 @@ func (p *githubReader) fetchRemoteDependencyGraphToFile(ctx context.Context, cli
 		return "", fmt.Errorf("failed to write sbom into temp file: %v", err)
 	}
 
-	defer lfile.Close()
+	defer func() { _ = lfile.Close() }()
 	return lfile.Name(), nil
 }
 

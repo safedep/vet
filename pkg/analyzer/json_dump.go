@@ -44,7 +44,7 @@ func (j *jsonDumperAnalyzer) Analyze(manifest *models.PackageManifest,
 	logger.Infof("Running analyzer: %s", j.Name())
 	data, err := json.MarshalIndent(manifest, "", "  ")
 	if err != nil {
-		return fmt.Errorf("Failed to JSON serialize manifest: %w", err)
+		return fmt.Errorf("failed to JSON serialize manifest: %w", err)
 	}
 
 	randomSource := rand.NewSource(time.Now().UnixNano())

@@ -16,8 +16,8 @@ import (
 func TestParseCyclonedxSBOM(t *testing.T) {
 	tempFile, _ := os.CreateTemp("", "sbom_*.json")
 
-	defer os.Remove(tempFile.Name())
-	defer tempFile.Close()
+	defer func() { _ = os.Remove(tempFile.Name()) }()
+	defer func() { _ = tempFile.Close() }()
 
 	sbomContent := `{
 		"bomFormat": "CycloneDX",
@@ -91,8 +91,8 @@ func TestConvertSbomComponentToPackage(t *testing.T) {
 func TestParseCyclonedxSBOMWithEmptyComponents(t *testing.T) {
 	tempFile, _ := os.CreateTemp("", "sbom_*.json")
 
-	defer os.Remove(tempFile.Name())
-	defer tempFile.Close()
+	defer func() { _ = os.Remove(tempFile.Name()) }()
+	defer func() { _ = tempFile.Close() }()
 
 	sbomContent := `{}`
 	err := os.WriteFile(tempFile.Name(), []byte(sbomContent), 0o644)

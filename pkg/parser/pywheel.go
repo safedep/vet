@@ -34,7 +34,7 @@ func parsePythonWheelDist(pathToLockfile string) ([]lockfile.PackageDetails, err
 		return details, err
 	}
 
-	defer r.Close()
+	defer func() { _ = r.Close() }()
 	for _, file := range r.File {
 		if strings.HasSuffix(file.Name, ".dist-info/METADATA") {
 			fd, err := file.Open()
@@ -42,7 +42,7 @@ func parsePythonWheelDist(pathToLockfile string) ([]lockfile.PackageDetails, err
 				return details, err
 			}
 
-			defer fd.Close()
+			defer func() { _ = fd.Close() }()
 			return parsePythonPkgInfo(fd)
 		}
 	}

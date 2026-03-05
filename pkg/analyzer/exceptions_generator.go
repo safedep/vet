@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/safedep/dry/api/pb"
 	"github.com/safedep/dry/utils"
 
 	"github.com/safedep/vet/gen/exceptionsapi"
@@ -74,7 +75,7 @@ func (f *exceptionsGenerator) Name() string {
 func (f *exceptionsGenerator) Analyze(manifest *models.PackageManifest,
 	handler AnalyzerEventHandler,
 ) error {
-	readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
+	_ = readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
 		res, err := f.filterEvaluator.EvalPackage(pkg)
 		if err != nil {
 			return err
@@ -92,7 +93,7 @@ func (f *exceptionsGenerator) Analyze(manifest *models.PackageManifest,
 }
 
 func (f *exceptionsGenerator) Finish() error {
-	defer f.writer.Close()
+	defer func() { _ = f.writer.Close() }()
 
 	suite := exceptionsapi.ExceptionSuite{
 		Name:        "Auto Generated Exceptions",
@@ -112,7 +113,7 @@ func (f *exceptionsGenerator) Finish() error {
 		})
 	}
 
-	err := utils.FromPbToYaml(f.writer, &suite)
+	err := pb.ToYaml(f.writer, &suite)
 	if err != nil {
 		return err
 	}

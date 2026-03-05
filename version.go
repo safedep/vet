@@ -34,8 +34,8 @@ func newVersionCommand() *cobra.Command {
 		Use:   "version",
 		Short: "Show version and build information",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Fprintf(os.Stdout, "Version: %s\n", version)
-			fmt.Fprintf(os.Stdout, "CommitSHA: %s\n", commit)
+			_, _ = fmt.Fprintf(os.Stdout, "Version: %s\n", version)
+			_, _ = fmt.Fprintf(os.Stdout, "CommitSHA: %s\n", commit)
 
 			return nil
 		},

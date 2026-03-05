@@ -180,7 +180,7 @@ func (g *cayleyGraph) Query(ctx context.Context, q string) (QueryResult, error) 
 		return nil, err
 	}
 
-	defer it.Close()
+	defer func() { _ = it.Close() }()
 
 	qs := &cayleyQueryResult{store: g.store}
 	for it.Next(ctx) {

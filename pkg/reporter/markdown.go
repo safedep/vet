@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"sync"
 	"text/template"
 
 	"github.com/safedep/vet/pkg/analyzer"
@@ -58,10 +57,8 @@ type markdownTemplateInput struct {
 // Markdown reporter is built on top of summary reporter to
 // provide extended visibility
 type markdownReportGenerator struct {
-	m               sync.Mutex
 	config          MarkdownReportingConfig
 	summaryReporter Reporter
-	templateInput   markdownTemplateInput
 	violations      map[string]*analyzer.AnalyzerEvent
 }
 

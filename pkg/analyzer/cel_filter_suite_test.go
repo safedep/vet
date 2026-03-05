@@ -48,7 +48,7 @@ func TestLoadFilterSuiteFromFile(t *testing.T) {
 			"",
 			"",
 			0,
-			"unknown value \"\\\"Invalid\\\"\"",
+			"invalid value for enum field checkType",
 		},
 		{
 			"filter suite check type is missing",

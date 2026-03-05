@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/safedep/dry/api/pb"
 	"github.com/safedep/dry/utils"
 
 	"github.com/safedep/vet/gen/filtersuite"
@@ -64,7 +65,7 @@ func (f *celFilterSuiteAnalyzer) Analyze(manifest *models.PackageManifest,
 	logger.Infof("CEL Filter Suite: Analyzing manifest: %s", manifest.Path)
 
 	f.stat.IncScannedManifest()
-	readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
+	_ = readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
 		f.stat.IncEvaluatedPackage()
 
 		res, err := f.evaluator.EvalPackage(pkg)
@@ -86,7 +87,7 @@ func (f *celFilterSuiteAnalyzer) Analyze(manifest *models.PackageManifest,
 	})
 
 	if f.failOnMatch && (len(f.matchedPackages) > 0) {
-		handler(&AnalyzerEvent{
+		_ = handler(&AnalyzerEvent{
 			Source:   f.Name(),
 			Type:     ET_AnalyzerFailOnError,
 			Manifest: manifest,
@@ -168,7 +169,7 @@ func loadFilterSuiteFromFile(path string) (*filtersuite.FilterSuite, error) {
 	}
 
 	var msg filtersuite.FilterSuite
-	err = utils.FromYamlToPb(file, &msg)
+	err = pb.FromYaml(file, &msg)
 	if err != nil {
 		return nil, err
 	}

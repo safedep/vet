@@ -54,7 +54,7 @@ func (f *celFilterAnalyzer) Analyze(manifest *models.PackageManifest,
 	logger.Infof("CEL filtering manifest: %s", manifest.Path)
 	f.stat.IncScannedManifest()
 
-	readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
+	_ = readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
 		f.stat.IncEvaluatedPackage()
 
 		res, err := f.evaluator.EvalPackage(pkg)
@@ -77,7 +77,7 @@ func (f *celFilterAnalyzer) Analyze(manifest *models.PackageManifest,
 			f.stat.IncMatchedPackage()
 			f.packages[pkg.Id()] = pkg
 
-			handler(&AnalyzerEvent{
+			_ = handler(&AnalyzerEvent{
 				Source:   f.Name(),
 				Type:     ET_FilterExpressionMatched,
 				Manifest: manifest,
@@ -121,7 +121,7 @@ func (f *celFilterAnalyzer) notifyCaller(manifest *models.PackageManifest,
 	handler AnalyzerEventHandler,
 ) error {
 	if f.failOnMatch && (len(f.packages) > 0) {
-		handler(&AnalyzerEvent{
+		_ = handler(&AnalyzerEvent{
 			Source:   f.Name(),
 			Type:     ET_AnalyzerFailOnError,
 			Manifest: manifest,
@@ -131,11 +131,6 @@ func (f *celFilterAnalyzer) notifyCaller(manifest *models.PackageManifest,
 	}
 
 	return nil
-}
-
-func (f *celFilterAnalyzer) pkgLatestVersion(pkg *models.Package) string {
-	insight := utils.SafelyGetValue(pkg.Insights)
-	return utils.SafelyGetValue(insight.PackageCurrentVersion)
 }
 
 func (f *celFilterAnalyzer) pkgSource(pkg *models.Package) string {

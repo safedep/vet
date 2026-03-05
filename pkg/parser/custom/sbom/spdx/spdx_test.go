@@ -12,7 +12,7 @@ import (
 func TestParseSpdxSBOM(t *testing.T) {
 	tempFile, _ := os.CreateTemp("", "sbom_*.json")
 
-	defer os.Remove(tempFile.Name())
+	defer func() { _ = os.Remove(tempFile.Name()) }()
 	sbomContent := `{
 		"SPDXID": "SPDXRef-DOCUMENT",
 		"spdxVersion": "SPDX-2.3",

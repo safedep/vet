@@ -38,7 +38,7 @@ func TestGitLabReporter(t *testing.T) {
 	// Create a temporary directory for test reports
 	tmpDir, err := os.MkdirTemp("", "gitlab-reporter-test-*")
 	assert.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	reportPath := filepath.Join(tmpDir, "gl-dependency-scanning-report.json")
 

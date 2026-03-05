@@ -46,8 +46,8 @@ func StopProgressWriter() {
 		fmt.Fprintf(os.Stderr, "\033[2K\r")
 
 		// Clear any remaining progress output
-		os.Stderr.WriteString("\033[2K\r") // Clear line and return carriage
-		os.Stderr.WriteString("\n")        // Move to next line
+		_, _ = os.Stderr.WriteString("\033[2K\r") // Clear line and return carriage
+		_, _ = os.Stderr.WriteString("\n")        // Move to next line
 
 		// Reset the writer
 		progressWriter = nil

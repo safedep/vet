@@ -54,7 +54,7 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 	handler AnalyzerEventHandler,
 ) error {
 	logger.Debugf("npmLockfilePoisoningAnalyzer: Analyzing [%s] %s",
-		manifest.GetSpecEcosystem(), manifest.GetDisplayPath())
+		manifest.GetSpecEcosystem(), manifest.GetDisplayPath()) //nolint:staticcheck // TODO: migrate to GetControlTowerSpecEcosystem
 
 	data, err := os.ReadFile(manifest.GetPath())
 	if err != nil {
