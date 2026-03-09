@@ -92,6 +92,75 @@ func TestJsonRepoGenerator(t *testing.T) {
 				assert.Equal(t, "/tmp/sample/display/path", report.Manifests[0].DisplayPath)
 			},
 		},
+		{
+			"Verify excluded malware is preserved in report",
+			[]*models.PackageManifest{
+				{
+					Source: models.PackageManifestSource{
+						Type:        models.ManifestSourceLocal,
+						Namespace:   "/namespace/1",
+						Path:        "requirements.txt",
+						DisplayPath: "/tmp/sample/display/path",
+					},
+					Path:      "/real/path",
+					Ecosystem: models.EcosystemPyPI,
+					Packages: []*models.Package{
+						{
+							PackageDetails: lockfile.PackageDetails{
+								Name:    "easyclaw-installer",
+								Version: "0.7.0",
+							},
+							MalwareAnalysis: &models.MalwareAnalysisResult{
+								AnalysisId: "TESTID",
+								Exclusion: &models.MalwareAnalysisExclusion{
+									ExclusionID: "exc-1",
+									Reason:      "tenant-approved investigation",
+								},
+							},
+						},
+					},
+				},
+			},
+			[]*analyzer.AnalyzerEvent{},
+			func(t *testing.T, report *jsonreportspec.Report) {
+				assert.Len(t, report.Packages, 1)
+				assert.Len(t, report.Packages[0].MalwareInfo, 1)
+				assert.Equal(t, jsonreportspec.MalwareType_EXCLUDED, report.Packages[0].MalwareInfo[0].Type)
+				assert.Equal(t, "tenant-approved investigation", report.Packages[0].MalwareInfo[0].ExclusionReason)
+				assert.Equal(t, "exc-1", report.Packages[0].MalwareInfo[0].ExclusionId)
+			},
+		},
+		{
+			"Verify malware result without report is omitted",
+			[]*models.PackageManifest{
+				{
+					Source: models.PackageManifestSource{
+						Type:        models.ManifestSourceLocal,
+						Namespace:   "/namespace/1",
+						Path:        "requirements.txt",
+						DisplayPath: "/tmp/sample/display/path",
+					},
+					Path:      "/real/path",
+					Ecosystem: models.EcosystemPyPI,
+					Packages: []*models.Package{
+						{
+							PackageDetails: lockfile.PackageDetails{
+								Name:    "unknown-malware-result",
+								Version: "0.1.0",
+							},
+							MalwareAnalysis: &models.MalwareAnalysisResult{
+								AnalysisId: "TESTID",
+							},
+						},
+					},
+				},
+			},
+			[]*analyzer.AnalyzerEvent{},
+			func(t *testing.T, report *jsonreportspec.Report) {
+				assert.Len(t, report.Packages, 1)
+				assert.Empty(t, report.Packages[0].MalwareInfo)
+			},
+		},
 	}
 
 	tmpFile, err := os.CreateTemp("", "vet-json-report-test-*")

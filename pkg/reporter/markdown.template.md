@@ -36,6 +36,18 @@
 > No policy violation found or policy not configured during scan
 {{ end }}
 
+## Malware Query Exclusions
+
+{{ if .Exclusions }}
+| Manifest | Ecosystem | Package | Reason |
+|----------|-----------|---------|--------|
+{{- range $value := .Exclusions }}
+| {{ $value.Manifest }} | {{ $value.Ecosystem }} | {{ $value.Package }} | {{ $value.Reason }} |
+{{- end }}
+{{ else }}
+> No malware query exclusions applied during scan
+{{ end }}
+
 ## Remediation Advice
 
 The table below lists advice for dependency upgrade to mitigate one or more
@@ -50,6 +62,5 @@ issues identified during the scan.
 | {{ .PkgRemediationName }} | {{ .Pkg.Insights.PackageCurrentVersion }} | {{ .Score }} | - | {{.Tags}}
 {{- end }}
 {{ end }}
-
 
 

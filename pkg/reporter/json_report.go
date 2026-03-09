@@ -321,12 +321,15 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 
 	malwareAnalysis := p.GetMalwareAnalysisResult()
 	if malwareAnalysis != nil &&
-		!malwareAnalysis.IsExcluded() &&
-		malwareAnalysis.Report != nil &&
-		malwareAnalysis.Report.Inference != nil {
+		(malwareAnalysis.IsExcluded() ||
+			(malwareAnalysis.Report != nil && malwareAnalysis.Report.Inference != nil)) {
 		malwareInfo := &schema.MalwareInfo{}
 
-		if malwareAnalysis.IsMalware {
+		if malwareAnalysis.IsExcluded() {
+			malwareInfo.Type = schema.MalwareType_EXCLUDED
+			malwareInfo.ExclusionId = malwareAnalysis.Exclusion.ExclusionID
+			malwareInfo.ExclusionReason = malwareAnalysis.Exclusion.Reason
+		} else if malwareAnalysis.IsMalware {
 			malwareInfo.Type = schema.MalwareType_MALICIOUS
 		} else if malwareAnalysis.IsSuspicious {
 			malwareInfo.Type = schema.MalwareType_SUSPICIOUS
@@ -334,15 +337,17 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 			malwareInfo.Type = schema.MalwareType_SAFE
 		}
 
-		switch malwareAnalysis.Report.Inference.Confidence {
-		case malysisv1.Report_Evidence_CONFIDENCE_HIGH:
-			malwareInfo.Confidence = schema.MalwareConfidence_HIGH
-		case malysisv1.Report_Evidence_CONFIDENCE_MEDIUM:
-			malwareInfo.Confidence = schema.MalwareConfidence_MEDIUM
-		case malysisv1.Report_Evidence_CONFIDENCE_LOW:
-			malwareInfo.Confidence = schema.MalwareConfidence_LOW
-		default:
-			malwareInfo.Confidence = schema.MalwareConfidence_UnknownConfidence
+		if malwareAnalysis.Report != nil && malwareAnalysis.Report.Inference != nil {
+			switch malwareAnalysis.Report.Inference.Confidence {
+			case malysisv1.Report_Evidence_CONFIDENCE_HIGH:
+				malwareInfo.Confidence = schema.MalwareConfidence_HIGH
+			case malysisv1.Report_Evidence_CONFIDENCE_MEDIUM:
+				malwareInfo.Confidence = schema.MalwareConfidence_MEDIUM
+			case malysisv1.Report_Evidence_CONFIDENCE_LOW:
+				malwareInfo.Confidence = schema.MalwareConfidence_LOW
+			default:
+				malwareInfo.Confidence = schema.MalwareConfidence_UnknownConfidence
+			}
 		}
 
 		malwareInfo.ThreatId = malwareAnalysis.Id()

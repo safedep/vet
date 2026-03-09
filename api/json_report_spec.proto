@@ -103,6 +103,7 @@ enum MalwareType {
   SAFE = 1;
   SUSPICIOUS = 2;
   MALICIOUS = 3;
+  EXCLUDED = 4;
 }
 
 enum MalwareConfidence {
@@ -115,7 +116,9 @@ enum MalwareConfidence {
 message MalwareInfo {
   MalwareType type = 1;
   MalwareConfidence confidence = 2;
+  string exclusion_reason = 3;
   string threat_id = 4;
+  string exclusion_id = 5;
 }
 
 message ReportMeta {

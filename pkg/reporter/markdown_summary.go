@@ -585,7 +585,7 @@ func (m *markdownSummaryMalwareInfo) handlePackage(pkg *models.Package) error {
 		switch status {
 		case models.MalwareAnalysisStatusExcluded:
 			statusLabel = "Excluded"
-			if ma.Exclusion != nil && ma.Exclusion.Reason != "" {
+			if ma.Exclusion.Reason != "" {
 				statusDetails = ma.Exclusion.Reason
 			}
 		case models.MalwareAnalysisStatusMalicious:
