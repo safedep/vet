@@ -17,7 +17,12 @@ func TestMarkdownReportIncludesExcludedPackages(t *testing.T) {
 	}
 
 	_ = tmpFile.Close()
-	defer os.Remove(tmpFile.Name())
+	t.Cleanup(func() {
+		err := os.Remove(tmpFile.Name())
+		if err != nil && !os.IsNotExist(err) {
+			t.Fatalf("failed to remove temp file: %v", err)
+		}
+	})
 
 	reporter, err := NewMarkdownReportGenerator(MarkdownReportingConfig{
 		Path: tmpFile.Name(),
