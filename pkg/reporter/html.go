@@ -115,43 +115,6 @@ func (r *htmlReporter) Finish() error {
 		}
 	}
 
-	vulnCount := 0
-	malwareCount := 0
-	otherCount := 0
-
-	// Count insights vulnerabilities
-	insightVulnCount := 0
-	insightMalwareCount := 0
-	for _, manifest := range r.manifests {
-		for _, pkg := range manifest.Packages {
-			if pkg.Insights != nil && pkg.Insights.Vulnerabilities != nil {
-				insightVulnCount += len(*pkg.Insights.Vulnerabilities)
-			}
-			if pkg.MalwareAnalysis != nil {
-				switch pkg.MalwareAnalysis.Status() {
-				case models.MalwareAnalysisStatusMalicious,
-					models.MalwareAnalysisStatusSuspicious,
-					models.MalwareAnalysisStatusExcluded:
-					insightMalwareCount++
-				}
-			}
-		}
-	}
-
-	// Count analyzer events
-	for _, event := range r.analyzerEvents {
-		if event.Filter != nil {
-			switch event.Filter.CheckType {
-			case 1: // Vulnerability
-				vulnCount++
-			case 2: // Malware
-				malwareCount++
-			default:
-				otherCount++
-			}
-		}
-	}
-
 	// Prepare the data for the templ template
 	data := templates.ReportData{
 		GeneratedAt:       time.Now(),
