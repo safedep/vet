@@ -321,6 +321,7 @@ func (j *jsonReportGenerator) buildJsonPackageReportFromPackage(p *models.Packag
 
 	malwareAnalysis := p.GetMalwareAnalysisResult()
 	if malwareAnalysis != nil &&
+		!malwareAnalysis.IsExcluded() &&
 		malwareAnalysis.Report != nil &&
 		malwareAnalysis.Report.Inference != nil {
 		malwareInfo := &schema.MalwareInfo{}

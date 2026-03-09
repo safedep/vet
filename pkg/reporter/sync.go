@@ -567,7 +567,7 @@ func (s *syncReporter) syncPackage(pkg *models.Package) error {
 	}
 
 	// Add malware analysis information if available
-	if mar := pkg.GetMalwareAnalysisResult(); mar != nil {
+	if mar := pkg.GetMalwareAnalysisResult(); mar != nil && !mar.IsExcluded() {
 		req.MaliciousPackageInsight = &controltowerv1.PublishPackageInsightRequest_MaliciousPackageInsight{
 			AnalysisId: mar.AnalysisId,
 			IsMalware:  mar.IsMalware || mar.IsSuspicious,

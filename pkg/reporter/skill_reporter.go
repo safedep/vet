@@ -131,7 +131,18 @@ func (r *skillReporter) printScanSummary(pkg *models.Package) {
 		inference := r.malwareReport.GetInference()
 		confidence := strings.TrimPrefix(inference.GetConfidence().String(), "CONFIDENCE_")
 
-		if pkg.IsMalware() {
+		if pkg.IsExcluded() {
+			verdictSymbol = text.FgBlue.Sprint("i")
+			verdictText = text.FgBlue.Sprint(text.Bold.Sprint("MALWARE VERDICT EXCLUDED"))
+
+			fmt.Fprintf(os.Stderr, "%s %s\n\n", verdictSymbol, verdictText)
+			fmt.Fprintf(os.Stderr, "%s\n", text.Bold.Sprint("Analysis Summary:"))
+			fmt.Fprintf(os.Stderr, "  - Tenant policy excluded this package from malware verdicts\n")
+			if exclusion := pkg.GetMalwareAnalysisResult().Exclusion; exclusion != nil && exclusion.Reason != "" {
+				fmt.Fprintf(os.Stderr, "  - Reason: %s\n", exclusion.Reason)
+			}
+			fmt.Fprintf(os.Stderr, "  - Raw analysis report is still available for review\n\n")
+		} else if pkg.IsMalware() {
 			verdictSymbol = text.FgRed.Sprint("✗")
 			verdictText = text.FgRed.Sprint(text.Bold.Sprint("MALICIOUS CODE DETECTED"))
 
@@ -294,7 +305,13 @@ func (r *skillReporter) printRecommendation(pkg *models.Package) {
 	}
 
 	// Handle cases with analysis data
-	if pkg.IsMalware() {
+	if pkg.IsExcluded() {
+		fmt.Fprintf(os.Stderr, "%s\n", text.Bold.Sprint("Recommendations:"))
+		fmt.Fprintf(os.Stderr, "%s\n",
+			text.FgBlue.Sprint("→ Review the exclusion before relying on this result"))
+		fmt.Fprintf(os.Stderr, "%s\n\n",
+			text.FgBlue.Sprint("→ Re-run without the exclusion if you need an actionable malware verdict"))
+	} else if pkg.IsMalware() {
 		fmt.Fprintf(os.Stderr, "%s\n", text.Bold.Sprint("Recommendations:"))
 		fmt.Fprintf(os.Stderr, "%s\n",
 			text.FgRed.Sprint("→ DO NOT USE - This skill contains malicious code"))

@@ -303,6 +303,10 @@ func (r *cycloneDXReporter) recordMalware(pkg *models.Package) {
 	pkgPurl := pkg.GetPackageUrl()
 	malwareAnalysis := utils.SafelyGetValue(pkg.MalwareAnalysis)
 
+	if malwareAnalysis.IsExcluded() {
+		return
+	}
+
 	if malwareAnalysis.IsMalware {
 		malwareBomref := strings.Join([]string{malwareAnalysis.Id(), pkgPurl}, "/")
 

@@ -356,6 +356,21 @@ type Provenance struct {
 	Verified         bool           `json:"verified"`
 }
 
+type MalwareAnalysisStatus string
+
+const (
+	MalwareAnalysisStatusUnknown    MalwareAnalysisStatus = "unknown"
+	MalwareAnalysisStatusSafe       MalwareAnalysisStatus = "safe"
+	MalwareAnalysisStatusSuspicious MalwareAnalysisStatus = "suspicious"
+	MalwareAnalysisStatusMalicious  MalwareAnalysisStatus = "malicious"
+	MalwareAnalysisStatusExcluded   MalwareAnalysisStatus = "excluded"
+)
+
+type MalwareAnalysisExclusion struct {
+	ExclusionID string `json:"exclusion_id"`
+	Reason      string `json:"reason"`
+}
+
 // Malware analysis results for a given package
 type MalwareAnalysisResult struct {
 	// The analysis id for this package received from the malware analysis service
@@ -373,6 +388,9 @@ type MalwareAnalysisResult struct {
 
 	// Verification record for the malware analysis
 	VerificationRecord *malysisv1.VerificationRecord
+
+	// Tenant-specific exclusion metadata returned by malware query APIs.
+	Exclusion *MalwareAnalysisExclusion `json:"exclusion,omitempty"`
 }
 
 // Id returns id for malware analysis result
@@ -382,6 +400,30 @@ type MalwareAnalysisResult struct {
 //	Its not linked to any standard
 func (m *MalwareAnalysisResult) Id() string {
 	return fmt.Sprintf("SD-MAL-%s", m.AnalysisId)
+}
+
+func (m *MalwareAnalysisResult) IsExcluded() bool {
+	return m != nil && m.Exclusion != nil
+}
+
+func (m *MalwareAnalysisResult) Status() MalwareAnalysisStatus {
+	if m == nil {
+		return MalwareAnalysisStatusUnknown
+	}
+
+	if m.IsExcluded() {
+		return MalwareAnalysisStatusExcluded
+	}
+
+	if m.IsMalware {
+		return MalwareAnalysisStatusMalicious
+	}
+
+	if m.IsSuspicious {
+		return MalwareAnalysisStatusSuspicious
+	}
+
+	return MalwareAnalysisStatusSafe
 }
 
 type CodeAnalysisResult struct {
@@ -532,19 +574,17 @@ func (p *Package) GetMalwareAnalysisResult() *MalwareAnalysisResult {
 }
 
 func (p *Package) IsMalware() bool {
-	if p.MalwareAnalysis == nil {
-		return false
-	}
-
-	return p.MalwareAnalysis.IsMalware
+	return p.MalwareAnalysis != nil &&
+		p.MalwareAnalysis.Status() == MalwareAnalysisStatusMalicious
 }
 
 func (p *Package) IsSuspicious() bool {
-	if p.MalwareAnalysis == nil {
-		return false
-	}
+	return p.MalwareAnalysis != nil &&
+		p.MalwareAnalysis.Status() == MalwareAnalysisStatusSuspicious
+}
 
-	return p.MalwareAnalysis.IsSuspicious
+func (p *Package) IsExcluded() bool {
+	return p.MalwareAnalysis != nil && p.MalwareAnalysis.IsExcluded()
 }
 
 func NewPackageDetail(ecosystem, name, version string) lockfile.PackageDetails {

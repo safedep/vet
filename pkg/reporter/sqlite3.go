@@ -180,7 +180,7 @@ func (r *sqlite3Reporter) addPackage(pkg *models.Package, manifest *ent.ReportPa
 	}
 
 	// Add malware analysis if available
-	if pkg.MalwareAnalysis != nil {
+	if pkg.MalwareAnalysis != nil && !pkg.MalwareAnalysis.IsExcluded() {
 		r.addMalwareAnalysis(entPackage, pkg.MalwareAnalysis)
 	}
 

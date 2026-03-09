@@ -46,12 +46,13 @@ type vetResultInternalModel struct {
 }
 
 type markdownSummaryPackageMalwareInfo struct {
-	ecosystem    string
-	name         string
-	version      string
-	isMalicious  bool
-	isSuspicious bool
-	referenceURL string
+	ecosystem     string
+	name          string
+	version       string
+	status        models.MalwareAnalysisStatus
+	statusLabel   string
+	statusDetails string
+	referenceURL  string
 }
 
 type markdownSummaryMalwareInfo struct {
@@ -60,6 +61,7 @@ type markdownSummaryMalwareInfo struct {
 	missingMalwareAnalysis   int
 	maliciousPackages        int
 	suspiciousPackages       int
+	excludedPackages         int
 }
 
 type markdownSummaryReporter struct {
@@ -482,6 +484,11 @@ func (r *markdownSummaryReporter) addMalwareAnalysisReportSection(builder *markd
 			markdown.EmojiWhiteCheckMark))
 	}
 
+	if r.malwareInfo.excludedPackages > 0 {
+		builder.AddBulletPoint(fmt.Sprintf("%s %d packages were excluded by tenant policy.",
+			markdown.EmojiInformationSource, r.malwareInfo.excludedPackages))
+	}
+
 	if r.malwareInfo.missingMalwareAnalysis > 0 {
 		if r.config.ActiveMalwareAnalysis {
 			builder.AddQuote("Note: Some of the package analysis jobs may still be running." +
@@ -564,19 +571,37 @@ func (m *markdownSummaryMalwareInfo) handlePackage(pkg *models.Package) error {
 	if _, ok := m.malwareInfo[pkg.Id()]; !ok {
 		m.haveMalwarAnalysisReport++
 
-		if ma.IsMalware {
+		if ma.IsExcluded() {
+			m.excludedPackages++
+		} else if ma.IsMalware {
 			m.maliciousPackages++
 		} else if ma.IsSuspicious {
 			m.suspiciousPackages++
 		}
 
+		status := ma.Status()
+		statusLabel := "Safe"
+		statusDetails := ""
+		switch status {
+		case models.MalwareAnalysisStatusExcluded:
+			statusLabel = "Excluded"
+			if ma.Exclusion != nil && ma.Exclusion.Reason != "" {
+				statusDetails = ma.Exclusion.Reason
+			}
+		case models.MalwareAnalysisStatusMalicious:
+			statusLabel = "Malicious"
+		case models.MalwareAnalysisStatusSuspicious:
+			statusLabel = "Suspicious"
+		}
+
 		m.malwareInfo[pkg.Id()] = &markdownSummaryPackageMalwareInfo{
-			ecosystem:    pkg.GetControlTowerSpecEcosystem().String(),
-			name:         pkg.GetName(),
-			version:      pkg.GetVersion(),
-			isMalicious:  ma.IsMalware,
-			isSuspicious: ma.IsSuspicious,
-			referenceURL: malysis.ReportURL(ma.AnalysisId),
+			ecosystem:     pkg.GetControlTowerSpecEcosystem().String(),
+			name:          pkg.GetName(),
+			version:       pkg.GetVersion(),
+			status:        status,
+			statusLabel:   statusLabel,
+			statusDetails: statusDetails,
+			referenceURL:  malysis.ReportURL(ma.AnalysisId),
 		}
 	}
 
@@ -586,13 +611,16 @@ func (m *markdownSummaryMalwareInfo) handlePackage(pkg *models.Package) error {
 // Render the malware info cache as markdown table
 func (m *markdownSummaryMalwareInfo) renderMalwareInfoTable() (string, error) {
 	tbl := table.NewWriter()
-	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Version", "Status", "Report"})
+	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Version", "Status", "Notes", "Report"})
 
 	for _, info := range m.malwareInfo {
 		emoji := markdown.EmojiWhiteCheckMark
-		if info.isMalicious {
+		switch info.status {
+		case models.MalwareAnalysisStatusExcluded:
+			emoji = markdown.EmojiInformationSource
+		case models.MalwareAnalysisStatusMalicious:
 			emoji = markdown.EmojiCrossMark
-		} else if info.isSuspicious {
+		case models.MalwareAnalysisStatusSuspicious:
 			emoji = markdown.EmojiWarning
 		}
 
@@ -600,7 +628,8 @@ func (m *markdownSummaryMalwareInfo) renderMalwareInfoTable() (string, error) {
 			info.ecosystem,
 			info.name,
 			info.version,
-			emoji,
+			fmt.Sprintf("%s %s", emoji, info.statusLabel),
+			info.statusDetails,
 			fmt.Sprintf("[%s](%s)", markdown.EmojiLink, info.referenceURL),
 		})
 	}

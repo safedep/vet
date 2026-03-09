@@ -127,8 +127,13 @@ func (r *htmlReporter) Finish() error {
 			if pkg.Insights != nil && pkg.Insights.Vulnerabilities != nil {
 				insightVulnCount += len(*pkg.Insights.Vulnerabilities)
 			}
-			if pkg.MalwareAnalysis != nil && (pkg.MalwareAnalysis.IsMalware || pkg.MalwareAnalysis.IsSuspicious) {
-				insightMalwareCount++
+			if pkg.MalwareAnalysis != nil {
+				switch pkg.MalwareAnalysis.Status() {
+				case models.MalwareAnalysisStatusMalicious,
+					models.MalwareAnalysisStatusSuspicious,
+					models.MalwareAnalysisStatusExcluded:
+					insightMalwareCount++
+				}
 			}
 		}
 	}
@@ -420,14 +425,29 @@ func (r *htmlReporter) getMalwareDetections() []templates.MalwareDetection {
 
 	for _, manifest := range r.manifests {
 		for _, pkg := range manifest.Packages {
-			if pkg.MalwareAnalysis != nil && (pkg.MalwareAnalysis.IsMalware || pkg.MalwareAnalysis.IsSuspicious) {
+			if pkg.MalwareAnalysis != nil {
+				status := pkg.MalwareAnalysis.Status()
+				if status != models.MalwareAnalysisStatusMalicious &&
+					status != models.MalwareAnalysisStatusSuspicious &&
+					status != models.MalwareAnalysisStatusExcluded {
+					continue
+				}
+
 				malwareType := "Malware"
-				if !pkg.MalwareAnalysis.IsMalware && pkg.MalwareAnalysis.IsSuspicious {
+				switch status {
+				case models.MalwareAnalysisStatusSuspicious:
 					malwareType = "Suspicious"
+				case models.MalwareAnalysisStatusExcluded:
+					malwareType = "Excluded"
 				}
 
 				details := "Malicious package detected"
-				if pkg.MalwareAnalysis.Report != nil && pkg.MalwareAnalysis.Report.GetInference() != nil {
+				if status == models.MalwareAnalysisStatusExcluded {
+					details = "Excluded by tenant policy"
+					if pkg.MalwareAnalysis.Exclusion != nil && pkg.MalwareAnalysis.Exclusion.Reason != "" {
+						details = pkg.MalwareAnalysis.Exclusion.Reason
+					}
+				} else if pkg.MalwareAnalysis.Report != nil && pkg.MalwareAnalysis.Report.GetInference() != nil {
 					inference := pkg.MalwareAnalysis.Report.GetInference()
 					if inference.GetSummary() != "" {
 						details = inference.GetSummary()
