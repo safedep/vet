@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	postHogApiKey        = "phc_ckrojb22DtoIMBhIC3k3hh7tmRw0ng11gSaLUXSqwSt" // gitleaks:allow
+	postHogApiKey        = "phc_3Jcw7Wytp519dM5Csf9qXiTv9J2xs8wnhGyFR9XRQrh" // gitleaks:allow
 	postHogEventEndpoint = "https://us.i.posthog.com"
 
 	telemetryDisableEnvKey = "VET_DISABLE_TELEMETRY"
