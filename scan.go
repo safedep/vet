@@ -1189,9 +1189,16 @@ func createMalwareAnalysisEnricher(githubClient *adapters.GithubClient) (scanner
 }
 
 func createMalwareQueryEnricher(githubClient *adapters.GithubClient) (scanner.PackageMetaEnricher, error) {
-	client, err := auth.MalwareAnalysisCommunityClientConnection("vet-malware-analysis-community")
+	clientName := "vet-malware-analysis-community"
+	clientBuilder := auth.MalwareAnalysisCommunityClientConnection
+	if !auth.CommunityMode() {
+		clientName = "vet-malware-analysis-query"
+		clientBuilder = auth.MalwareAnalysisClientConnection
+	}
+
+	client, err := clientBuilder(clientName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create malware analysis client: %w", err)
+		return nil, fmt.Errorf("failed to create malware query client: %w", err)
 	}
 
 	config := scanner.DefaultMalysisMalwareEnricherConfig()
