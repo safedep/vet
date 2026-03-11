@@ -12,7 +12,6 @@ import (
 	"github.com/safedep/vet/pkg/exceptions"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/policy"
-	"github.com/safedep/vet/pkg/readers"
 )
 
 //go:embed markdown.template.md
@@ -35,13 +34,6 @@ type markdownTemplateInputRemediation struct {
 	Tags               string
 }
 
-type markdownTemplateInputExclusion struct {
-	Manifest  string
-	Ecosystem string
-	Package   string
-	Reason    string
-}
-
 type markdownTemplateInputResultSummary struct {
 	Ecosystem              string
 	PackageCount           int
@@ -50,7 +42,6 @@ type markdownTemplateInputResultSummary struct {
 
 type markdownTemplateInput struct {
 	Remediations       map[string][]markdownTemplateInputRemediation
-	Exclusions         []markdownTemplateInputExclusion
 	Summary            map[string]markdownTemplateInputResultSummary
 	Violations         []markdownTemplateInputViolation
 	ManifestsCount     int
@@ -130,36 +121,11 @@ func (r *markdownReportGenerator) Finish() error {
 	sortedList := sr.sortedRemediations()
 	remediations := map[string][]markdownTemplateInputRemediation{}
 	summaries := map[string]markdownTemplateInputResultSummary{}
-	var exclusions []markdownTemplateInputExclusion
 
 	for _, manifest := range r.manifests {
 		summaries[manifest.Path] = markdownTemplateInputResultSummary{
 			Ecosystem:    string(manifest.Ecosystem),
 			PackageCount: len(manifest.Packages),
-		}
-
-		err := readers.NewManifestModelReader(manifest).EnumPackages(func(pkg *models.Package) error {
-			ma := pkg.GetMalwareAnalysisResult()
-			if ma == nil || !ma.IsExcluded() {
-				return nil
-			}
-
-			reason := "Excluded by tenant policy"
-			if ma.Exclusion.Reason != "" {
-				reason = ma.Exclusion.Reason
-			}
-
-			exclusions = append(exclusions, markdownTemplateInputExclusion{
-				Manifest:  manifest.Path,
-				Ecosystem: string(pkg.Ecosystem),
-				Package:   fmt.Sprintf("%s@%s", pkg.Name, pkg.Version),
-				Reason:    reason,
-			})
-
-			return nil
-		})
-		if err != nil {
-			return fmt.Errorf("failed to enumerate manifest packages: %w", err)
 		}
 	}
 
@@ -208,7 +174,6 @@ func (r *markdownReportGenerator) Finish() error {
 	defer file.Close()
 	return tmpl.Execute(file, markdownTemplateInput{
 		Remediations:       remediations,
-		Exclusions:         exclusions,
 		ManifestsCount:     sr.summary.manifests,
 		PackagesCount:      sr.summary.packages,
 		CriticalVulnCount:  sr.summary.vulns.critical,

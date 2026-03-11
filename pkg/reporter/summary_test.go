@@ -72,16 +72,15 @@ func TestRenderInternalErrorMessages(t *testing.T) {
 	})
 }
 
-func TestMalwareAnalysisStatementIncludesExcludedCount(t *testing.T) {
+func TestMalwareAnalysisStatement(t *testing.T) {
 	t.Parallel()
 
 	r := &summaryReporter{}
 	r.summary.packages = 5
 	r.summary.malware.scanned = 3
-	r.summary.malware.excluded = 1
 
 	assert.Equal(t,
-		"3/5 libraries were actively scanned for malware, 1 excluded by tenant policy",
+		"3/5 libraries were actively scanned for malware",
 		r.malwareAnalysisStatement(),
 	)
 }

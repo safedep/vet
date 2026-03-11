@@ -42,9 +42,6 @@ func (r *CodeInsightsReport) addManifest(manifest *models.PackageManifest) {
 		upsertDataPointInReport(r, vulneravilitiesCnt, dataPointVulnerabilities)
 
 		malwareInfo := utils.SafelyGetValue(pkg.MalwareAnalysis)
-		if malwareInfo.IsExcluded() {
-			continue
-		}
 		if malwareInfo.IsMalware {
 			upsertDataPointInReport(r, 1, dataPointMaliciousPackages)
 		}

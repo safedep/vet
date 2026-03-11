@@ -262,10 +262,6 @@ func (b *sarifBuilder) recordMalware(pkg *models.Package) {
 	}
 
 	malwareAnalysis := utils.SafelyGetValue(pkg.MalwareAnalysis)
-	if malwareAnalysis.IsExcluded() {
-		return
-	}
-
 	if malwareAnalysis.IsMalware {
 		inference := utils.SafelyGetValue(malwareAnalysis.Report.GetInference())
 		result := sarif.NewRuleResult(ruleIdMaliciousPackage)

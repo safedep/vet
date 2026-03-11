@@ -108,7 +108,6 @@ type summaryReporter struct {
 			scanned    int
 			malicious  int
 			suspicious int
-			excluded   int
 		}
 
 		codeanalysis struct {
@@ -285,9 +284,7 @@ func (r *summaryReporter) processForMalware(pkg *models.Package) {
 	// Then we check for malware from Malysis package analysis service
 	if ma := pkg.GetMalwareAnalysisResult(); ma != nil {
 		r.summary.malware.scanned += 1
-		if ma.IsExcluded() {
-			r.summary.malware.excluded += 1
-		} else if ma.IsMalware {
+		if ma.IsMalware {
 			r.summary.malware.malicious += 1
 			malwareTaggerFn(pkg)
 		} else if ma.IsSuspicious {
@@ -823,11 +820,6 @@ func (r *summaryReporter) depsusageEvidenceStatement() string {
 }
 
 func (r *summaryReporter) malwareAnalysisStatement() string {
-	if r.summary.malware.excluded > 0 {
-		return fmt.Sprintf("%d/%d libraries were actively scanned for malware, %d excluded by tenant policy",
-			r.summary.malware.scanned, r.summary.packages, r.summary.malware.excluded)
-	}
-
 	return fmt.Sprintf("%d/%d libraries were actively scanned for malware",
 		r.summary.malware.scanned, r.summary.packages)
 }

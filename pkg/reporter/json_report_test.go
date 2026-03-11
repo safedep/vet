@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	malysisv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/safedep/dry/api/pb"
 	"github.com/stretchr/testify/assert"
@@ -93,7 +94,7 @@ func TestJsonRepoGenerator(t *testing.T) {
 			},
 		},
 		{
-			"Verify excluded malware is preserved in report",
+			"Verify excluded malware is omitted from report",
 			[]*models.PackageManifest{
 				{
 					Source: models.PackageManifestSource{
@@ -112,6 +113,7 @@ func TestJsonRepoGenerator(t *testing.T) {
 							},
 							MalwareAnalysis: &models.MalwareAnalysisResult{
 								AnalysisId: "TESTID",
+								Report:     &malysisv1.Report{},
 								Exclusion: &models.MalwareAnalysisExclusion{
 									ExclusionID: "exc-1",
 									Reason:      "tenant-approved investigation",
@@ -124,10 +126,7 @@ func TestJsonRepoGenerator(t *testing.T) {
 			[]*analyzer.AnalyzerEvent{},
 			func(t *testing.T, report *jsonreportspec.Report) {
 				assert.Len(t, report.Packages, 1)
-				assert.Len(t, report.Packages[0].MalwareInfo, 1)
-				assert.Equal(t, jsonreportspec.MalwareType_EXCLUDED, report.Packages[0].MalwareInfo[0].Type)
-				assert.Equal(t, "tenant-approved investigation", report.Packages[0].MalwareInfo[0].ExclusionReason)
-				assert.Equal(t, "exc-1", report.Packages[0].MalwareInfo[0].ExclusionId)
+				assert.Empty(t, report.Packages[0].MalwareInfo)
 			},
 		},
 		{

@@ -45,10 +45,6 @@ func newBitBucketAnnotationForPackage(pkg *models.Package) []*CodeInsightsAnnota
 	}
 
 	malwareInfo := utils.SafelyGetValue(pkg.MalwareAnalysis)
-	if malwareInfo.IsExcluded() {
-		return annotations
-	}
-
 	threatLink := malysis.ReportURL(strings.TrimPrefix(malwareInfo.Id(), "SD-MAL-"))
 
 	if malwareInfo.IsMalware {

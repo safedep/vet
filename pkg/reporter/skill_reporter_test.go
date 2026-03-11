@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/safedep/vet/pkg/models"
@@ -170,39 +169,6 @@ func TestSkillReporterTrimText(t *testing.T) {
 			assert.Equal(t, tt.expected, result)
 		})
 	}
-}
-
-func TestSkillReporterExcludedPackageWithoutRawReport(t *testing.T) {
-	reporter := NewSkillReporter(DefaultSkillReporterConfig())
-	manifest := models.NewPackageManifestFromLocal("/test/path", models.EcosystemGitHubActions)
-	pkg := &models.Package{
-		PackageDetails: lockfile.PackageDetails{
-			Name:    "easyclaw-installer",
-			Version: "0.7.0",
-		},
-		Manifest: manifest,
-		MalwareAnalysis: &models.MalwareAnalysisResult{
-			AnalysisId: "ANALYSIS-ID",
-			Exclusion: &models.MalwareAnalysisExclusion{
-				ExclusionID: "exc-1",
-				Reason:      "tenant-approved investigation",
-			},
-		},
-	}
-	manifest.Packages = []*models.Package{pkg}
-
-	reporter.AddManifest(manifest)
-
-	output := captureStderr(t, func() {
-		err := reporter.render()
-		assert.NoError(t, err)
-	})
-
-	assert.Contains(t, output, "MALWARE VERDICT EXCLUDED")
-	assert.Contains(t, output, "tenant-approved investigation")
-	assert.NotContains(t, output, "NO ANALYSIS DATA AVAILABLE")
-	assert.NotContains(t, output, "Run 'vet cloud quickstart'")
-	assert.Contains(t, output, "Review the exclusion before relying on this result")
 }
 
 func captureStderr(t *testing.T, fn func()) string {
