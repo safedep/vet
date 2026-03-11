@@ -46,13 +46,12 @@ type vetResultInternalModel struct {
 }
 
 type markdownSummaryPackageMalwareInfo struct {
-	ecosystem     string
-	name          string
-	version       string
-	status        models.MalwareAnalysisStatus
-	statusLabel   string
-	statusDetails string
-	referenceURL  string
+	ecosystem    string
+	name         string
+	version      string
+	isMalicious  bool
+	isSuspicious bool
+	referenceURL string
 }
 
 type markdownSummaryMalwareInfo struct {
@@ -563,10 +562,6 @@ func (m *markdownSummaryMalwareInfo) handlePackage(pkg *models.Package) error {
 	}
 
 	if _, ok := m.malwareInfo[pkg.Id()]; !ok {
-		if ma.IsExcluded() {
-			return nil
-		}
-
 		m.haveMalwarAnalysisReport++
 
 		if ma.IsMalware {
@@ -575,21 +570,12 @@ func (m *markdownSummaryMalwareInfo) handlePackage(pkg *models.Package) error {
 			m.suspiciousPackages++
 		}
 
-		status := ma.Status()
-		statusLabel := "Safe"
-		switch status {
-		case models.MalwareAnalysisStatusMalicious:
-			statusLabel = "Malicious"
-		case models.MalwareAnalysisStatusSuspicious:
-			statusLabel = "Suspicious"
-		}
-
 		m.malwareInfo[pkg.Id()] = &markdownSummaryPackageMalwareInfo{
 			ecosystem:    pkg.GetControlTowerSpecEcosystem().String(),
 			name:         pkg.GetName(),
 			version:      pkg.GetVersion(),
-			status:       status,
-			statusLabel:  statusLabel,
+			isMalicious:  ma.IsMalware,
+			isSuspicious: ma.IsSuspicious,
 			referenceURL: malysis.ReportURL(ma.AnalysisId),
 		}
 	}
@@ -600,14 +586,13 @@ func (m *markdownSummaryMalwareInfo) handlePackage(pkg *models.Package) error {
 // Render the malware info cache as markdown table
 func (m *markdownSummaryMalwareInfo) renderMalwareInfoTable() (string, error) {
 	tbl := table.NewWriter()
-	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Version", "Status", "Notes", "Report"})
+	tbl.AppendHeader(table.Row{"Ecosystem", "Package", "Version", "Status", "Report"})
 
 	for _, info := range m.malwareInfo {
 		emoji := markdown.EmojiWhiteCheckMark
-		switch info.status {
-		case models.MalwareAnalysisStatusMalicious:
+		if info.isMalicious {
 			emoji = markdown.EmojiCrossMark
-		case models.MalwareAnalysisStatusSuspicious:
+		} else if info.isSuspicious {
 			emoji = markdown.EmojiWarning
 		}
 
@@ -615,8 +600,7 @@ func (m *markdownSummaryMalwareInfo) renderMalwareInfoTable() (string, error) {
 			info.ecosystem,
 			info.name,
 			info.version,
-			fmt.Sprintf("%s %s", emoji, info.statusLabel),
-			info.statusDetails,
+			emoji,
 			fmt.Sprintf("[%s](%s)", markdown.EmojiLink, info.referenceURL),
 		})
 	}

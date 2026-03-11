@@ -252,8 +252,7 @@ func (r *gitLabReporter) AddManifest(manifest *models.PackageManifest) {
 		// Add malware analysis result
 		malwareAnalysis := pkg.MalwareAnalysis
 
-		if malwareAnalysis != nil &&
-			(malwareAnalysis.IsMalware || malwareAnalysis.IsSuspicious) {
+		if malwareAnalysis != nil && (malwareAnalysis.IsMalware || malwareAnalysis.IsSuspicious) {
 			severity := SeverityCritical
 			if malwareAnalysis.IsSuspicious {
 				severity = SeverityHigh

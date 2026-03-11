@@ -60,7 +60,6 @@ type markdownReportGenerator struct {
 	config          MarkdownReportingConfig
 	summaryReporter Reporter
 	violations      map[string]*analyzer.AnalyzerEvent
-	manifests       []*models.PackageManifest
 }
 
 func NewMarkdownReportGenerator(config MarkdownReportingConfig) (Reporter, error) {
@@ -72,7 +71,6 @@ func NewMarkdownReportGenerator(config MarkdownReportingConfig) (Reporter, error
 		config:          config,
 		summaryReporter: summaryReporter,
 		violations:      make(map[string]*analyzer.AnalyzerEvent),
-		manifests:       make([]*models.PackageManifest, 0),
 	}, nil
 }
 
@@ -81,7 +79,6 @@ func (r *markdownReportGenerator) Name() string {
 }
 
 func (r *markdownReportGenerator) AddManifest(manifest *models.PackageManifest) {
-	r.manifests = append(r.manifests, manifest)
 	r.summaryReporter.AddManifest(manifest)
 }
 
@@ -122,13 +119,6 @@ func (r *markdownReportGenerator) Finish() error {
 	remediations := map[string][]markdownTemplateInputRemediation{}
 	summaries := map[string]markdownTemplateInputResultSummary{}
 
-	for _, manifest := range r.manifests {
-		summaries[manifest.Path] = markdownTemplateInputResultSummary{
-			Ecosystem:    string(manifest.Ecosystem),
-			PackageCount: len(manifest.Packages),
-		}
-	}
-
 	for _, s := range sortedList {
 		mp := s.pkg.Manifest.Path
 		remediations[mp] = append(remediations[mp], markdownTemplateInputRemediation{
@@ -138,13 +128,16 @@ func (r *markdownReportGenerator) Finish() error {
 			Tags:               strings.Join(s.tags, ", "),
 		})
 
-		summary := summaries[mp]
-		if summary.Ecosystem == "" {
-			summary.Ecosystem = string(s.pkg.Ecosystem)
-			summary.PackageCount = len(s.pkg.Manifest.Packages)
+		if _, ok := summaries[mp]; !ok {
+			summaries[mp] = markdownTemplateInputResultSummary{
+				Ecosystem:    string(s.pkg.Ecosystem),
+				PackageCount: len(s.pkg.Manifest.Packages),
+			}
+		} else {
+			s := summaries[mp]
+			s.PackageWithIssuesCount += 1
+			summaries[mp] = s
 		}
-		summary.PackageWithIssuesCount += 1
-		summaries[mp] = summary
 	}
 
 	violations := []markdownTemplateInputViolation{}

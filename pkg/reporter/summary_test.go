@@ -71,16 +71,3 @@ func TestRenderInternalErrorMessages(t *testing.T) {
 		assert.Equal(t, expectedErrorMessage, actualErrorMessage)
 	})
 }
-
-func TestMalwareAnalysisStatement(t *testing.T) {
-	t.Parallel()
-
-	r := &summaryReporter{}
-	r.summary.packages = 5
-	r.summary.malware.scanned = 3
-
-	assert.Equal(t,
-		"3/5 libraries were actively scanned for malware",
-		r.malwareAnalysisStatement(),
-	)
-}

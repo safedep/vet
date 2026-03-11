@@ -1,8 +1,6 @@
 package reporter
 
 import (
-	"io"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -169,29 +167,4 @@ func TestSkillReporterTrimText(t *testing.T) {
 			assert.Equal(t, tt.expected, result)
 		})
 	}
-}
-
-func captureStderr(t *testing.T, fn func()) string {
-	t.Helper()
-
-	oldStderr := os.Stderr
-	reader, writer, err := os.Pipe()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	os.Stderr = writer
-	defer func() {
-		os.Stderr = oldStderr
-	}()
-
-	fn()
-
-	_ = writer.Close()
-	data, err := io.ReadAll(reader)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return string(data)
 }

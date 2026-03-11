@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	malysisv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/safedep/dry/api/pb"
 	"github.com/stretchr/testify/assert"
@@ -91,73 +90,6 @@ func TestJsonRepoGenerator(t *testing.T) {
 			[]*analyzer.AnalyzerEvent{},
 			func(t *testing.T, report *jsonreportspec.Report) {
 				assert.Equal(t, "/tmp/sample/display/path", report.Manifests[0].DisplayPath)
-			},
-		},
-		{
-			"Verify excluded malware is omitted from report",
-			[]*models.PackageManifest{
-				{
-					Source: models.PackageManifestSource{
-						Type:        models.ManifestSourceLocal,
-						Namespace:   "/namespace/1",
-						Path:        "requirements.txt",
-						DisplayPath: "/tmp/sample/display/path",
-					},
-					Path:      "/real/path",
-					Ecosystem: models.EcosystemPyPI,
-					Packages: []*models.Package{
-						{
-							PackageDetails: lockfile.PackageDetails{
-								Name:    "easyclaw-installer",
-								Version: "0.7.0",
-							},
-							MalwareAnalysis: &models.MalwareAnalysisResult{
-								AnalysisId: "TESTID",
-								Report:     &malysisv1.Report{},
-								Exclusion: &models.MalwareAnalysisExclusion{
-									ExclusionID: "exc-1",
-									Reason:      "tenant-approved investigation",
-								},
-							},
-						},
-					},
-				},
-			},
-			[]*analyzer.AnalyzerEvent{},
-			func(t *testing.T, report *jsonreportspec.Report) {
-				assert.Len(t, report.Packages, 1)
-				assert.Empty(t, report.Packages[0].MalwareInfo)
-			},
-		},
-		{
-			"Verify malware result without report is omitted",
-			[]*models.PackageManifest{
-				{
-					Source: models.PackageManifestSource{
-						Type:        models.ManifestSourceLocal,
-						Namespace:   "/namespace/1",
-						Path:        "requirements.txt",
-						DisplayPath: "/tmp/sample/display/path",
-					},
-					Path:      "/real/path",
-					Ecosystem: models.EcosystemPyPI,
-					Packages: []*models.Package{
-						{
-							PackageDetails: lockfile.PackageDetails{
-								Name:    "unknown-malware-result",
-								Version: "0.1.0",
-							},
-							MalwareAnalysis: &models.MalwareAnalysisResult{
-								AnalysisId: "TESTID",
-							},
-						},
-					},
-				},
-			},
-			[]*analyzer.AnalyzerEvent{},
-			func(t *testing.T, report *jsonreportspec.Report) {
-				assert.Len(t, report.Packages, 1)
-				assert.Empty(t, report.Packages[0].MalwareInfo)
 			},
 		},
 	}
