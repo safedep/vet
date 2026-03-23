@@ -43,14 +43,6 @@ func parseSbomCycloneDxAsGraph(path string, config *ParserConfig) (*models.Packa
 	// dependency relations
 	bomRefMap := make(map[string]*models.Package)
 
-	// Lets start by adding the main component
-	ref, pkg, err := cdxExtractPackageFromComponent(*bom.Metadata.Component)
-	if err != nil {
-		return nil, fmt.Errorf("failed to extract main package from component: %v", err)
-	}
-
-	bomRefMap[ref] = pkg
-
 	manifest := models.NewPackageManifestFromLocal(path, models.EcosystemCyDxSBOM)
 	components := utils.SafelyGetValue(bom.Components)
 
@@ -71,6 +63,24 @@ func parseSbomCycloneDxAsGraph(path string, config *ParserConfig) (*models.Packa
 	// Iterate over the dependency relations and add the edges in the graph
 	depedencyRelations := utils.SafelyGetValue(bom.Dependencies)
 	for _, dependencyRelation := range depedencyRelations {
+		// The metadata component is a graph anchor, not a package we include in the manifest.
+		// When the relation refers to the main component, mark its dependencies as roots.
+		if cdxIsMainComponent(bom, dependencyRelation.Ref) {
+			dependencies := utils.SafelyGetValue(dependencyRelation.Dependencies)
+			for _, dependency := range dependencies {
+				dependsOnPkg, ok := bomRefMap[dependency]
+				if !ok {
+					logger.Errorf("%s depends on %s which is not found in bomRefMap",
+						dependencyRelation.Ref, dependency)
+					continue
+				}
+
+				manifest.DependencyGraph.AddRootNode(dependsOnPkg)
+			}
+
+			continue
+		}
+
 		// We must have seen the package while enumerating components without which
 		// we cannot add a dependency relation
 		pkg, ok := bomRefMap[dependencyRelation.Ref]
@@ -91,11 +101,7 @@ func parseSbomCycloneDxAsGraph(path string, config *ParserConfig) (*models.Packa
 				continue
 			}
 
-			if cdxIsMainComponent(bom, dependencyRelation.Ref) {
-				manifest.DependencyGraph.AddRootNode(dependsOnPkg)
-			} else {
-				manifest.DependencyGraph.AddDependency(pkg, dependsOnPkg)
-			}
+			manifest.DependencyGraph.AddDependency(pkg, dependsOnPkg)
 		}
 	}
 
