@@ -16,8 +16,12 @@ import (
 func TestParseCyclonedxSBOM(t *testing.T) {
 	tempFile, _ := os.CreateTemp("", "sbom_*.json")
 
-	defer func() { _ = os.Remove(tempFile.Name()) }()
-	defer func() { _ = tempFile.Close() }()
+	t.Cleanup(func() {
+		_ = tempFile.Close()
+	})
+	t.Cleanup(func() {
+		_ = os.Remove(tempFile.Name())
+	})
 
 	sbomContent := `{
 		"bomFormat": "CycloneDX",
@@ -91,8 +95,12 @@ func TestConvertSbomComponentToPackage(t *testing.T) {
 func TestParseCyclonedxSBOMWithEmptyComponents(t *testing.T) {
 	tempFile, _ := os.CreateTemp("", "sbom_*.json")
 
-	defer func() { _ = os.Remove(tempFile.Name()) }()
-	defer func() { _ = tempFile.Close() }()
+	t.Cleanup(func() {
+		_ = tempFile.Close()
+	})
+	t.Cleanup(func() {
+		_ = os.Remove(tempFile.Name())
+	})
 
 	sbomContent := `{}`
 	err := os.WriteFile(tempFile.Name(), []byte(sbomContent), 0o644)
@@ -100,6 +108,67 @@ func TestParseCyclonedxSBOMWithEmptyComponents(t *testing.T) {
 
 	_, err = parseSbomCycloneDxAsGraph(tempFile.Name(), &ParserConfig{})
 	assert.NotNil(t, err)
+}
+
+func TestParseCyclonedxSBOMWithNonPurlMetadataBomRef(t *testing.T) {
+	tempFile, _ := os.CreateTemp("", "sbom_*.json")
+
+	t.Cleanup(func() {
+		_ = tempFile.Close()
+	})
+	t.Cleanup(func() {
+		_ = os.Remove(tempFile.Name())
+	})
+
+	sbomContent := `{
+		"bomFormat": "CycloneDX",
+		"specVersion": "1.6",
+		"version": 1,
+		"metadata": {
+			"component": {
+				"type": "application",
+				"bom-ref": "SaviWM@0.0.0",
+				"name": "SaviWM",
+				"version": "0.0.0"
+			}
+		},
+		"components": [
+			{
+				"type": "library",
+				"bom-ref": "pkg:nuget/Ardalis.Result@10.1.0",
+				"name": "Ardalis.Result",
+				"version": "10.1.0",
+				"purl": "pkg:nuget/Ardalis.Result@10.1.0"
+			}
+		],
+		"dependencies": [
+			{
+				"ref": "SaviWM@0.0.0",
+				"dependsOn": [
+					"pkg:nuget/Ardalis.Result@10.1.0"
+				]
+			}
+		]
+	}`
+
+	err := os.WriteFile(tempFile.Name(), []byte(sbomContent), 0o644)
+	assert.Nil(t, err)
+
+	manifest, err := parseSbomCycloneDxAsGraph(tempFile.Name(), &ParserConfig{})
+	if !assert.Nil(t, err) {
+		return
+	}
+	if !assert.NotNil(t, manifest) {
+		return
+	}
+
+	packages := manifest.GetPackages()
+	assert.Len(t, packages, 1)
+	assert.Equal(t, "Ardalis.Result", packages[0].GetName())
+	assert.Equal(t, "10.1.0", packages[0].GetVersion())
+	assert.Equal(t, lockfile.NuGetEcosystem, packages[0].Ecosystem)
+	assert.True(t, manifest.DependencyGraph.Present())
+	assert.True(t, manifest.DependencyGraph.IsRoot(packages[0]))
 }
 
 func TestParseCyclonedxSBOMWithGradleSBOM(t *testing.T) {
