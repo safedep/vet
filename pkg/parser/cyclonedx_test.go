@@ -2,6 +2,7 @@ package parser
 
 import (
 	"os"
+	"path/filepath"
 	"slices"
 	"testing"
 
@@ -14,14 +15,7 @@ import (
 )
 
 func TestParseCyclonedxSBOM(t *testing.T) {
-	tempFile, _ := os.CreateTemp("", "sbom_*.json")
-
-	t.Cleanup(func() {
-		_ = tempFile.Close()
-	})
-	t.Cleanup(func() {
-		_ = os.Remove(tempFile.Name())
-	})
+	tempFile := filepath.Join(t.TempDir(), "sbom.json")
 
 	sbomContent := `{
 		"bomFormat": "CycloneDX",
@@ -49,15 +43,15 @@ func TestParseCyclonedxSBOM(t *testing.T) {
 		]
 	}`
 
-	err := os.WriteFile(tempFile.Name(), []byte(sbomContent), 0o644)
+	err := os.WriteFile(tempFile, []byte(sbomContent), 0o644)
 	assert.Nil(t, err)
 
-	manifest, err := parseSbomCycloneDxAsGraph(tempFile.Name(), &ParserConfig{})
+	manifest, err := parseSbomCycloneDxAsGraph(tempFile, &ParserConfig{})
 	assert.Nil(t, err)
 
 	packages := manifest.GetPackages()
 
-	assert.Equal(t, manifest.GetDisplayPath(), tempFile.Name())
+	assert.Equal(t, manifest.GetDisplayPath(), tempFile)
 	assert.Len(t, packages, 2)
 
 	b := slices.ContainsFunc(packages, func(pkg *models.Package) bool {
@@ -93,32 +87,18 @@ func TestConvertSbomComponentToPackage(t *testing.T) {
 }
 
 func TestParseCyclonedxSBOMWithEmptyComponents(t *testing.T) {
-	tempFile, _ := os.CreateTemp("", "sbom_*.json")
-
-	t.Cleanup(func() {
-		_ = tempFile.Close()
-	})
-	t.Cleanup(func() {
-		_ = os.Remove(tempFile.Name())
-	})
+	tempFile := filepath.Join(t.TempDir(), "sbom.json")
 
 	sbomContent := `{}`
-	err := os.WriteFile(tempFile.Name(), []byte(sbomContent), 0o644)
+	err := os.WriteFile(tempFile, []byte(sbomContent), 0o644)
 	assert.Nil(t, err)
 
-	_, err = parseSbomCycloneDxAsGraph(tempFile.Name(), &ParserConfig{})
+	_, err = parseSbomCycloneDxAsGraph(tempFile, &ParserConfig{})
 	assert.NotNil(t, err)
 }
 
 func TestParseCyclonedxSBOMWithNonPurlMetadataBomRef(t *testing.T) {
-	tempFile, _ := os.CreateTemp("", "sbom_*.json")
-
-	t.Cleanup(func() {
-		_ = tempFile.Close()
-	})
-	t.Cleanup(func() {
-		_ = os.Remove(tempFile.Name())
-	})
+	tempFile := filepath.Join(t.TempDir(), "sbom.json")
 
 	sbomContent := `{
 		"bomFormat": "CycloneDX",
@@ -151,10 +131,10 @@ func TestParseCyclonedxSBOMWithNonPurlMetadataBomRef(t *testing.T) {
 		]
 	}`
 
-	err := os.WriteFile(tempFile.Name(), []byte(sbomContent), 0o644)
+	err := os.WriteFile(tempFile, []byte(sbomContent), 0o644)
 	assert.Nil(t, err)
 
-	manifest, err := parseSbomCycloneDxAsGraph(tempFile.Name(), &ParserConfig{})
+	manifest, err := parseSbomCycloneDxAsGraph(tempFile, &ParserConfig{})
 	if !assert.Nil(t, err) {
 		return
 	}
