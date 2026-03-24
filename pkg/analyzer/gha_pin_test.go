@@ -8,10 +8,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/safedep/vet/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
+
+	"github.com/safedep/vet/pkg/models"
 )
 
 type mockSHAResolver struct {
@@ -42,7 +43,7 @@ func copyFixture(t *testing.T, fixturePath string) string {
 	require.NoError(t, err)
 
 	tmpFile := filepath.Join(t.TempDir(), filepath.Base(fixturePath))
-	err = os.WriteFile(tmpFile, data, 0644)
+	err = os.WriteFile(tmpFile, data, 0o644)
 	require.NoError(t, err)
 	return tmpFile
 }
@@ -101,7 +102,7 @@ func TestGHAPinAnalyzer_PinsUnpinnedActions(t *testing.T) {
 
 	resolver := &mockSHAResolver{
 		mapping: map[string]string{
-			"actions/checkout@v3":  "abc123def456abc123def456abc123def456abc1",
+			"actions/checkout@v3": "abc123def456abc123def456abc123def456abc1",
 			"actions/setup-go@v4": "def789abc123def789abc123def789abc123def7",
 		},
 	}
@@ -178,7 +179,7 @@ func TestGHAPinAnalyzer_PreservesComments(t *testing.T) {
 
 	resolver := &mockSHAResolver{
 		mapping: map[string]string{
-			"actions/checkout@v3":  "abc123def456abc123def456abc123def456abc1",
+			"actions/checkout@v3": "abc123def456abc123def456abc123def456abc1",
 			"actions/setup-go@v4": "def789abc123def789abc123def789abc123def7",
 		},
 	}
@@ -209,7 +210,7 @@ jobs:
       - uses: aws-actions/configure-aws-credentials/assume-role@v2
 `
 	tmpFile := filepath.Join(t.TempDir(), "workflow.yml")
-	err := os.WriteFile(tmpFile, []byte(input), 0644)
+	err := os.WriteFile(tmpFile, []byte(input), 0o644)
 	require.NoError(t, err)
 
 	resolver := &mockSHAResolver{
@@ -246,7 +247,7 @@ jobs:
       - uses: actions/checkout@v3
 `
 	tmpFile := filepath.Join(t.TempDir(), "workflow.yml")
-	err := os.WriteFile(tmpFile, []byte(input), 0644)
+	err := os.WriteFile(tmpFile, []byte(input), 0o644)
 	require.NoError(t, err)
 
 	resolver := &mockSHAResolver{
@@ -288,7 +289,7 @@ jobs:
         run: go build ./...
 `
 	tmpFile := filepath.Join(t.TempDir(), "workflow.yml")
-	err := os.WriteFile(tmpFile, []byte(input), 0644)
+	err := os.WriteFile(tmpFile, []byte(input), 0o644)
 	require.NoError(t, err)
 
 	a := newTestGHAPinAnalyzer(&mockSHAResolver{})
@@ -319,7 +320,7 @@ jobs:
       - uses: actions/checkout@v3
 `
 	tmpFile := filepath.Join(t.TempDir(), "workflow.yml")
-	err := os.WriteFile(tmpFile, []byte(input), 0644)
+	err := os.WriteFile(tmpFile, []byte(input), 0o644)
 	require.NoError(t, err)
 
 	resolver := &mockSHAResolver{
@@ -360,7 +361,7 @@ jobs:
       - uses: actions/checkout@%s
 `, sha256)
 	tmpFile := filepath.Join(t.TempDir(), "workflow.yml")
-	err := os.WriteFile(tmpFile, []byte(input), 0644)
+	err := os.WriteFile(tmpFile, []byte(input), 0o644)
 	require.NoError(t, err)
 
 	a := newTestGHAPinAnalyzer(&mockSHAResolver{})
@@ -392,7 +393,7 @@ jobs:
       - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
 `
 	tmpFile := filepath.Join(t.TempDir(), "workflow.yml")
-	err := os.WriteFile(tmpFile, []byte(input), 0644)
+	err := os.WriteFile(tmpFile, []byte(input), 0o644)
 	require.NoError(t, err)
 
 	resolver := &mockSHAResolver{

@@ -9,17 +9,18 @@ import (
 	"strings"
 
 	"github.com/safedep/dry/adapters"
+	"gopkg.in/yaml.v3"
+
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/common/utils"
 	"github.com/safedep/vet/pkg/models"
-	"gopkg.in/yaml.v3"
 )
 
 const ghaPinAnalyzerName = "GHAPinAnalyzer"
 
 var (
 	// Matches owner/repo@ref or owner/repo/path@ref
-	ghaUsesRegex   = regexp.MustCompile(`^([^@]+)@(.+)$`)
+	ghaUsesRegex = regexp.MustCompile(`^([^@]+)@(.+)$`)
 	// Matches both SHA-1 (40 hex chars) and SHA-256 (64 hex chars) commit hashes
 	commitSHARegex = regexp.MustCompile(`^[a-f0-9]{40}$|^[a-f0-9]{64}$`)
 )
@@ -237,5 +238,5 @@ func (a *ghaPinAnalyzer) writeYAMLDocument(filePath string, originalData []byte,
 		output = bytes.TrimRight(output, "\n")
 	}
 
-	return os.WriteFile(filePath, output, 0644)
+	return os.WriteFile(filePath, output, 0o644)
 }
