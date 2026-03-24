@@ -306,7 +306,7 @@ jobs:
 
 	resolver := &mockSHAResolver{
 		mapping: map[string]string{
-			"actions/checkout@v3":  "abc123def456abc123def456abc123def456abc1",
+			"actions/checkout@v3": "abc123def456abc123def456abc123def456abc1",
 			"actions/setup-go@v4": "def789abc123def789abc123def789abc123def7",
 		},
 	}
