@@ -1,57 +1,44 @@
 name: CLI Reference Manual GitHub Pages Deploy
-
 on:
   push:
     branches:
       - main
-
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
-
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
   group: "pages"
   cancel-in-progress: false
-
 env:
   SOURCE_GEN_DIR: ./docs/manual
-
 jobs:
   # Build Jekkll (md -> html)
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
-
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - name: Set up Go
         uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
         with:
           go-version-file: go.mod
-
       - name: Build vet
         run: go build
-
       - name: Generate MD Docs in ${{ env.SOURCE_GEN_DIR }}
-        run:
-          ./vet doc generate --markdown ${{ env.SOURCE_GEN_DIR }}
-
+        run: ./vet doc generate --markdown ${{ env.SOURCE_GEN_DIR }}
       - name: Setup Pages
-        uses: actions/configure-pages@v5
-
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - name: Build with Jekyll
-        uses: actions/jekyll-build-pages@v1
+        uses: actions/jekyll-build-pages@44a6e6beabd48582f863aeeb6cb2151cc1716697 # v1
         with:
           source: ${{ env.SOURCE_GEN_DIR }}
           destination: ./_site
-
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
   # Deployment job
   deploy:
     needs: build
@@ -62,4 +49,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

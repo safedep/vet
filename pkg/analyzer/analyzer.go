@@ -15,6 +15,8 @@ const (
 	ET_SuspiciousPackage       = AnalyzerEventType("ev_suspicious_package")
 	ET_AnalyzerFailOnError     = AnalyzerEventType("ev_fail_on_error")
 
+	ET_GitHubActionPinned = AnalyzerEventType("ev_action_pinned")
+
 	// Following event types must set the Threat field
 	ET_LockfilePoisoningSignal = AnalyzerEventType("ev_lockfile_poisoning")
 )

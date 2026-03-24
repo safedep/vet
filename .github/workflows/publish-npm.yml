@@ -1,11 +1,9 @@
 name: Publish NPM Package
-
 on:
   workflow_run:
     workflows: ["Release Automation"]
     types:
       - completed
-
 jobs:
   publish-npm:
     runs-on: ubuntu-latest
@@ -16,12 +14,11 @@ jobs:
     outputs:
       package_version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
-
       - name: Extract Tag Version
         id: version
         run: |
@@ -33,17 +30,14 @@ jobs:
             echo "No valid tag found in head_branch: $TAG_VERSION"
             exit 1
           fi
-
       - name: Prepare package
         run: |
           cd publish/npm
           npm version ${{ steps.version.outputs.version }} --no-git-tag-version
-
       - name: Publish to npm
         run: |
           cd publish/npm
           npm publish --provenance
-
   test-installation:
     needs: publish-npm
     runs-on: ${{ matrix.os }}
@@ -51,12 +45,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         node-version: ["14", "18", "20"]
-
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ matrix.node-version }}
-
       - name: Test installation
         run: |
           npm install -g @safedep/vet@${{ needs.publish-npm.outputs.package_version }}
