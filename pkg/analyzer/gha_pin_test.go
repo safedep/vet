@@ -27,6 +27,20 @@ func (m *mockSHAResolver) ResolveSHA(_ context.Context, owner, repo, ref string)
 	return "", fmt.Errorf("unknown ref: %s", key)
 }
 
+type countingSHAResolver struct {
+	mapping   map[string]string
+	callCount int
+}
+
+func (m *countingSHAResolver) ResolveSHA(_ context.Context, owner, repo, ref string) (string, error) {
+	m.callCount++
+	key := fmt.Sprintf("%s/%s@%s", owner, repo, ref)
+	if sha, ok := m.mapping[key]; ok {
+		return sha, nil
+	}
+	return "", fmt.Errorf("unknown ref: %s", key)
+}
+
 func newTestGHAPinAnalyzer(resolver ghaSHAResolver) *ghaPinAnalyzer {
 	return &ghaPinAnalyzer{
 		resolver: resolver,
@@ -276,6 +290,45 @@ jobs:
 	assert.Contains(t, content, "actions/checkout@abc123def456abc123def456abc123def456abc1")
 }
 
+func TestGHAPinAnalyzer_PreservesExistingLineComment(t *testing.T) {
+	input := `name: CI
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3 # required for CI
+      - uses: actions/setup-go@v4
+`
+	tmpFile := filepath.Join(t.TempDir(), "workflow.yml")
+	err := os.WriteFile(tmpFile, []byte(input), 0o644)
+	require.NoError(t, err)
+
+	resolver := &mockSHAResolver{
+		mapping: map[string]string{
+			"actions/checkout@v3":  "abc123def456abc123def456abc123def456abc1",
+			"actions/setup-go@v4": "def789abc123def789abc123def789abc123def7",
+		},
+	}
+
+	a := newTestGHAPinAnalyzer(resolver)
+	manifest := models.NewPackageManifestFromLocal(tmpFile, models.EcosystemGitHubActions)
+	manifest.Path = tmpFile
+
+	err = a.Analyze(manifest, noopHandler)
+	require.NoError(t, err)
+	assert.Equal(t, 2, a.pinCount)
+
+	data, err := os.ReadFile(tmpFile)
+	require.NoError(t, err)
+	content := string(data)
+
+	// Existing comment should be preserved with pinned-from appended
+	assert.Contains(t, content, "# required for CI; pinned-from=v3")
+	// No existing comment should just get the ref
+	assert.Contains(t, content, "# v4")
+}
+
 func TestGHAPinAnalyzer_NoUsesInWorkflow(t *testing.T) {
 	input := `name: CI
 on: push
@@ -315,6 +368,8 @@ jobs:
     steps:
       - uses: docker://alpine:3.8
       - uses: docker://ghcr.io/owner/image:latest
+      - uses: docker://alpine@sha256:a3d7e1a2b0e1f4e5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9
+      - uses: docker://ghcr.io/owner/image@sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
       - uses: ./local-action
       - uses: ./.github/actions/my-action
       - uses: actions/checkout@v3
@@ -341,9 +396,12 @@ jobs:
 	require.NoError(t, err)
 	content := string(data)
 
-	// Docker and local actions should remain untouched
+	// Docker references (tag and digest forms) should remain untouched
 	assert.Contains(t, content, "docker://alpine:3.8")
 	assert.Contains(t, content, "docker://ghcr.io/owner/image:latest")
+	assert.Contains(t, content, "docker://alpine@sha256:")
+	assert.Contains(t, content, "docker://ghcr.io/owner/image@sha256:")
+	// Local actions should remain untouched
 	assert.Contains(t, content, "./local-action")
 	assert.Contains(t, content, "./.github/actions/my-action")
 	// Only the regular action should be pinned
@@ -422,6 +480,45 @@ jobs:
 	assert.Contains(t, content, "golangci/golangci-lint-action@111222333444555666777888999000aaabbbccc1")
 	// Already-pinned action in deploy job should be untouched
 	assert.Contains(t, content, "actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608")
+}
+
+func TestGHAPinAnalyzer_CachesPreviouslyResolvedSHAs(t *testing.T) {
+	input := `name: CI
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+`
+	tmpFile := filepath.Join(t.TempDir(), "workflow.yml")
+	err := os.WriteFile(tmpFile, []byte(input), 0o644)
+	require.NoError(t, err)
+
+	resolver := &countingSHAResolver{
+		mapping: map[string]string{
+			"actions/checkout@v3": "abc123def456abc123def456abc123def456abc1",
+		},
+	}
+
+	a := newTestGHAPinAnalyzer(resolver)
+	manifest := models.NewPackageManifestFromLocal(tmpFile, models.EcosystemGitHubActions)
+	manifest.Path = tmpFile
+
+	err = a.Analyze(manifest, noopHandler)
+	require.NoError(t, err)
+	assert.Equal(t, 3, a.pinCount)
+
+	// Resolver should only be called once despite 3 identical refs
+	assert.Equal(t, 1, resolver.callCount)
 }
 
 func TestGhaUsesRegex(t *testing.T) {

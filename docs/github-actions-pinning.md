@@ -13,7 +13,7 @@ Pinning actions to full commit SHAs ensures CI/CD pipelines execute exactly the 
 vet scan -D .github/workflows --enrich=false --github-actions-pin
 
 # Pin actions in a specific workflow file
-vet scan -L .github/workflows/ci.yml --lockfile-as github-actions-workflow --enrich=false --github-actions-pin
+vet scan -L .github/workflows/ci.yml --lockfile-as github-actions --enrich=false --github-actions-pin
 ```
 
 The `--enrich=false` flag skips vulnerability and metadata enrichment, making the pinning operation fast since it only needs the GitHub API to resolve tags.
@@ -43,8 +43,8 @@ steps:
 
 ## Behavior
 
-- **Lossless YAML**: Comments, formatting, and structure are preserved
-- **Already-pinned actions are skipped**: Actions referencing a 40-character hex SHA are left untouched
+- **YAML preservation**: Structure and comments are preserved. Minor formatting differences (indentation, quoting style, blank lines) may occur due to YAML re-encoding
+- **Already-pinned actions are skipped**: Actions referencing a commit SHA (40-character SHA-1 or 64-character SHA-256) are left untouched
 - **Non-GHA manifests are ignored**: When scanning a directory with mixed ecosystems, only GitHub Actions workflow files are modified
 - **Best-effort**: If a tag cannot be resolved (e.g., private repo without credentials, deleted tag), the action is skipped with a warning and the rest of the file is still processed
 - **Subpath actions supported**: Actions like `aws-actions/configure-aws-credentials/assume-role@v2` are handled correctly

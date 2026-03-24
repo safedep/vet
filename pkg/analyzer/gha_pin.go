@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/safedep/dry/adapters"
 	"gopkg.in/yaml.v3"
@@ -45,6 +46,7 @@ type ghaPinAnalyzer struct {
 	config   GHAPinAnalyzerConfig
 	resolver ghaSHAResolver
 	pinCount int
+	shaCache sync.Map
 }
 
 func NewGHAPinAnalyzer(githubClient *adapters.GithubClient, config GHAPinAnalyzerConfig) (Analyzer, error) {
@@ -130,6 +132,12 @@ func (a *ghaPinAnalyzer) pinActionsInDocument(doc *yaml.Node, filePath string, h
 
 // pinUsesNode resolves a single uses: value node and patches it in-place.
 func (a *ghaPinAnalyzer) pinUsesNode(node *yaml.Node, filePath string, handler AnalyzerEventHandler) (bool, error) {
+	// Skip Docker references (docker://image:tag or docker://image@digest)
+	// and local actions (./path)
+	if strings.HasPrefix(node.Value, "docker://") || strings.HasPrefix(node.Value, "./") {
+		return false, nil
+	}
+
 	matches := ghaUsesRegex.FindStringSubmatch(node.Value)
 	if len(matches) < 3 {
 		return false, nil
@@ -150,16 +158,30 @@ func (a *ghaPinAnalyzer) pinUsesNode(node *yaml.Node, filePath string, handler A
 	}
 	owner, repo := parts[0], parts[1]
 
-	sha, err := a.resolver.ResolveSHA(context.Background(), owner, repo, ref)
-	if err != nil {
-		return false, fmt.Errorf("failed to resolve %s/%s@%s: %w", owner, repo, ref, err)
+	cacheKey := fmt.Sprintf("%s/%s@%s", owner, repo, ref)
+	var sha string
+	if cached, ok := a.shaCache.Load(cacheKey); ok {
+		sha = cached.(string)
+	} else {
+		var err error
+		sha, err = a.resolver.ResolveSHA(context.Background(), owner, repo, ref)
+		if err != nil {
+			return false, fmt.Errorf("failed to resolve %s/%s@%s: %w", owner, repo, ref, err)
+		}
+		a.shaCache.Store(cacheKey, sha)
 	}
 
 	// Patch the node value
 	newValue := fmt.Sprintf("%s@%s", actionPath, sha)
 	oldValue := node.Value
 	node.Value = newValue
-	node.LineComment = ref
+
+	existingComment := strings.TrimSpace(node.LineComment)
+	if existingComment == "" {
+		node.LineComment = ref
+	} else {
+		node.LineComment = fmt.Sprintf("%s; pinned-from=%s", existingComment, ref)
+	}
 
 	a.pinCount++
 
@@ -212,8 +234,13 @@ func (a *ghaPinAnalyzer) findUsesNodes(node *yaml.Node) []*yaml.Node {
 }
 
 // writeYAMLDocument serializes the modified AST back to the file,
-// preserving the original file's trailing newline behavior.
+// preserving the original file's trailing newline behavior and file permissions.
 func (a *ghaPinAnalyzer) writeYAMLDocument(filePath string, originalData []byte, doc *yaml.Node) error {
+	fi, err := os.Stat(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to stat workflow file %s: %w", filePath, err)
+	}
+
 	var buf bytes.Buffer
 	encoder := yaml.NewEncoder(&buf)
 	encoder.SetIndent(2)
@@ -238,5 +265,5 @@ func (a *ghaPinAnalyzer) writeYAMLDocument(filePath string, originalData []byte,
 		output = bytes.TrimRight(output, "\n")
 	}
 
-	return os.WriteFile(filePath, output, 0o644)
+	return os.WriteFile(filePath, output, fi.Mode())
 }
