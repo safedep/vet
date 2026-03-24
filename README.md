@@ -27,7 +27,6 @@
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/safedep/vet)
 
-
 </div>
 
 ---
@@ -35,7 +34,6 @@
 > [!NOTE]
 > `vet` supports special mode for Agent Skills.
 > Run `vet scan --agent-skill <owner/repo>` to scan an Agent Skill hosted in a GitHub repository.
-
 
 ## Why vet?
 
@@ -135,7 +133,7 @@ graph TB
 Real-time protection against malicious packages powered by [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis).
 Free for open source projects. Detects zero-day malware through active code analysis.
 
-### **Smart Vulnerability Analysis**
+### **Vulnerability Analysis**
 
 Unlike dependency scanners that flood you with noise, `vet` analyzes your **actual code usage** to prioritize real risks.
 See [dependency usage evidence](https://docs.safedep.io/vet/guides/dependency-usage-identification) for details.
@@ -180,11 +178,13 @@ vet scan -D . --malware-query
 ```
 
 **Example detections:**
+
 - [MAL-2025-3541: express-cookie-parser](https://safedep.io/malicious-npm-package-express-cookie-parser/)
 - [MAL-2025-4339: eslint-config-airbnb-compat](https://safedep.io/digging-into-dynamic-malware-analysis-signals/)
 - [MAL-2025-4029: ts-runtime-compat-check](https://safedep.io/digging-into-dynamic-malware-analysis-signals/)
 
 **Key security features:**
+
 - Real-time analysis against known malware databases
 - Behavioral analysis using static and dynamic analysis
 - Zero-day protection through active code scanning
@@ -286,6 +286,7 @@ vet version
 - **[SBOM Support](https://docs.safedep.io/vet/guides/cyclonedx-sbom)** - CycloneDX, SPDX import/export
 - **[Query Mode](https://docs.safedep.io/cloud/quickstart#query-your-data)** - Scan once, analyze multiple times
 - **[GitHub Integration](https://docs.safedep.io/)** - Repository and organization scanning
+- **[GitHub Actions Pinning](./docs/github-actions-pinning.md)** - Pin GitHub Actions to commit SHAs to prevent supply chain attacks
 
 ## Privacy
 

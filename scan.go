@@ -109,6 +109,7 @@ var (
 	reportHtmlPath                   string
 	brewSpec                         bool
 	agentSkillSpec                   string
+	githubActionsPin                 bool
 )
 
 func newScanCommand() *cobra.Command {
@@ -267,6 +268,8 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().StringVar(&reportHtmlPath, "report-html", "", "Path to write HTML report output")
 	cmd.Flags().BoolVar(&brewSpec, "homebrew", false, "Enable scanning for Homebrew packages")
 	cmd.Flags().StringVar(&agentSkillSpec, "agent-skill", "", "Scan an Agent Skill (format: owner/repo or GitHub URL)")
+	cmd.Flags().BoolVar(&githubActionsPin, "github-actions-pin", false,
+		"Pin GitHub Actions to commit SHAs by resolving tags in-place in workflow files")
 
 	// Add validations that should trigger a fail fast condition
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
@@ -519,6 +522,15 @@ func internalStartScan() error {
 		}
 
 		analyzers = append(analyzers, task)
+	}
+
+	if githubActionsPin {
+		pinAnalyzer, err := analyzer.NewGHAPinAnalyzer(githubClient, analyzer.GHAPinAnalyzerConfig{})
+		if err != nil {
+			return err
+		}
+
+		analyzers = append(analyzers, pinAnalyzer)
 	}
 
 	if !utils.IsEmptyString(celFilterExpression) {
@@ -912,7 +924,7 @@ func internalStartScan() error {
 	// used as flag in --report-malware-summary reporter to notify user about enricher auto-switching
 	switchedToEnrichQueryMalware := false
 
-	if enrichMalware {
+	if enrich && enrichMalware {
 		analytics.TrackCommandScanMalwareAnalysis()
 
 		if auth.CommunityMode() {
@@ -943,7 +955,7 @@ func internalStartScan() error {
 			ui.PrintMsg("Using On-demand malware analysis")
 			enrichers = append(enrichers, malwareEnricher)
 		}
-	} else if enrichMalwareQuery {
+	} else if enrich && enrichMalwareQuery {
 		queryEnricher, err := createMalwareQueryEnricher(githubClient)
 		if err != nil {
 			return fmt.Errorf("failed to create malware query enricher: %w", err)
