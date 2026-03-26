@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/docker/docker/client"
 	scalibr "github.com/google/osv-scalibr"
@@ -112,12 +113,12 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 		ecosystem := pkg.Ecosystem().String()
 		key := ecosystem
 
-		for _, location := range pkg.Locations {
-			key = fmt.Sprintf("%s:%s", key, location)
-		}
+		location := strings.Join(pkg.Locations, ":")
+		key = fmt.Sprintf("%s:%s", key, location)
 
 		if _, ok := manifests[key]; !ok {
-			manifests[key] = models.NewPackageManifestFromPurl(pkgPurl, ecosystem)
+			manifests[key] = models.NewPackageManifestFromContainerImage(
+				c.imageTarget.imageRef, location, ecosystem)
 		}
 
 		pkgDetail := models.NewPackageDetail(ecosystem, pkg.Name, pkg.Version)

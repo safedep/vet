@@ -42,10 +42,11 @@ const (
 type ManifestSourceType string
 
 const (
-	ManifestSourceLocal         = ManifestSourceType("local")
-	ManifestSourcePurl          = ManifestSourceType("purl")
-	ManifestSourceGitRepository = ManifestSourceType("git_repository")
-	ManifestSourceHomebrew      = ManifestSourceType("homebrew")
+	ManifestSourceLocal          = ManifestSourceType("local")
+	ManifestSourcePurl           = ManifestSourceType("purl")
+	ManifestSourceGitRepository  = ManifestSourceType("git_repository")
+	ManifestSourceHomebrew       = ManifestSourceType("homebrew")
+	ManifestSourceContainerImage = ManifestSourceType("container_image")
 )
 
 // We now have different sources from where a package
@@ -75,6 +76,8 @@ func (ps PackageManifestSource) GetDisplayPath() string {
 		return filepath.Join(ps.Namespace, ps.Path)
 	case ManifestSourcePurl:
 		return filepath.Join(ps.Namespace, ps.Path)
+	case ManifestSourceContainerImage:
+		return fmt.Sprintf("%s:%s", ps.Namespace, ps.Path)
 	default:
 		return ps.DisplayPath
 	}
@@ -141,6 +144,16 @@ func NewPackageManifestFromPurl(purl, ecosystem string) *PackageManifest {
 		Namespace: filepath.Dir(purl),
 		Path:      filepath.Base(purl),
 	}, purl, ecosystem)
+}
+
+// NewPackageManifestFromContainerImage creates a manifest representing a package
+// database location within a container image (e.g. apk, deb, rpm packages).
+func NewPackageManifestFromContainerImage(imageRef, location, ecosystem string) *PackageManifest {
+	return newPackageManifest(PackageManifestSource{
+		Type:      ManifestSourceContainerImage,
+		Namespace: imageRef,
+		Path:      location,
+	}, fmt.Sprintf("%s:%s", imageRef, location), ecosystem)
 }
 
 func NewPackageManifestFromGitHub(repo, repoRelativePath, realPath, ecosystem string) *PackageManifest {
