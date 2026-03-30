@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/test"
 )
 
 func TestContainerImageReader_ApplicationName(t *testing.T) {
@@ -57,6 +58,8 @@ func TestContainerImageReader_Name(t *testing.T) {
 // image populates OsvSourceName from dpkg metadata for packages where the binary
 // name differs from the source package name.
 func TestContainerImageReader_DpkgSourceName(t *testing.T) {
+	test.EnsureEndToEndTestIsEnabled(t)
+
 	// Binary → expected source package name mappings from issue #703.
 	// These are packages where OSV requires the source name for correct lookup.
 	wantSourceNames := map[string]string{
