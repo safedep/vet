@@ -60,12 +60,16 @@ func (e *insightsBasedPackageEnricherV2) Enrich(pkg *models.Package,
 	// For distro ecosystems (e.g. Alpine:v3.23, Ubuntu:22.04) that don't map to
 	// a known protobuf enum, pass the raw ecosystem string so control-tower can
 	// scope the OSV query to the correct distro advisory database.
-	if osvRawEcosystem := pkg.Manifest.Ecosystem; osvRawEcosystem != "" {
+	//
+	// + Check if the ecosystem is unspecified, to prevent from overlapping with supported ecosystem.
+	if osvRawEcosystem := pkg.Manifest.Ecosystem; osvRawEcosystem != "" &&
+		pkg.GetControlTowerSpecEcosystem() == packagev1.Ecosystem_ECOSYSTEM_UNSPECIFIED {
 		req.OsvEcosystem = &osvRawEcosystem
 	}
 
 	// For Debian/Ubuntu packages, OSV indexes advisories by source package name.
 	// Pass it when available so control-tower uses it instead of the binary name.
+	// pkg.OsvSourceName is exclusively set by the container image reader for Debian/Ubuntu packages.
 	if osvSourceName := pkg.OsvSourceName; osvSourceName != "" {
 		req.OsvSourceName = &osvSourceName
 	}

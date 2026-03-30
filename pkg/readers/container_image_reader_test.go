@@ -3,9 +3,10 @@ package readers
 import (
 	"testing"
 
-	"github.com/safedep/vet/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/safedep/vet/pkg/models"
 )
 
 func TestContainerImageReader_ApplicationName(t *testing.T) {
@@ -59,18 +60,13 @@ func TestContainerImageReader_DpkgSourceName(t *testing.T) {
 	// Binary → expected source package name mappings from issue #703.
 	// These are packages where OSV requires the source name for correct lookup.
 	wantSourceNames := map[string]string{
-		"login":          "shadow",
-		"passwd":         "shadow",
-		"libpam-modules": "pam",
-		"libsystemd0":    "systemd",
-		"libudev1":       "systemd",
-		"libncurses6":    "ncurses",
-		"libtinfo6":      "ncurses",
-		"gpgv":           "gnupg2",
+		"libgmp10":     "gmp",
+		"libp11-kit0":  "p11-kit",
+		"libpcre2-8-0": "pcre2",
 	}
 
 	config := DefaultContainerImageReaderConfig()
-	reader, err := NewContainerImageReader("ubuntu:22.04", config) // 28 MB image
+	reader, err := NewContainerImageReader("ubuntu:22.04@sha256:ce4a593b4e323dcc3dd728e397e0a866a1bf516a1b7c31d6aa06991baec4f2e0", config) // 28 MB image
 	require.NoError(t, err)
 
 	found := map[string]string{} // binary name → OsvSourceName
