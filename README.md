@@ -76,6 +76,10 @@ vet scan -D . --filter 'vulns.critical.exists(p, true)' --filter-fail
 vet cloud quickstart
 ```
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/safedep-vet).
+
 ## Architecture
 
 `vet` follows a pipeline architecture: **readers** ingest package manifests from diverse sources (directories, repositories, container images, SBOMs), **enrichers** augment each package with vulnerability, malware, and scorecard data from SafeDep Cloud, the **CEL policy engine** evaluates security policies against enriched data, and **reporters** produce actionable output in formats like SARIF, JSON, and Markdown.
