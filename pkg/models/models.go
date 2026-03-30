@@ -433,6 +433,12 @@ type Package struct {
 
 	// Manifest from where this package was found directly or indirectly
 	Manifest *PackageManifest `json:"-"`
+
+	// OsvSourceName is the source package name used for OSV vulnerability lookup.
+	// For Debian/Ubuntu packages, OSV indexes advisories by source package name
+	// (e.g. "shadow") rather than the binary name (e.g. "login", "passwd").
+	// This field is populated from osv-scalibr's dpkg metadata when available.
+	OsvSourceName string `json:"osv_source_name,omitempty"`
 }
 
 // Id returns a unique identifier for this package within a manifest
