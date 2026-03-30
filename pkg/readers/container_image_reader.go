@@ -12,6 +12,7 @@ import (
 	scalibrlayerimage "github.com/google/osv-scalibr/artifact/image/layerscanning/image"
 	"github.com/google/osv-scalibr/binary/platform"
 	"github.com/google/osv-scalibr/converter"
+	dpkgmeta "github.com/google/osv-scalibr/extractor/filesystem/os/dpkg/metadata"
 	scalibrfs "github.com/google/osv-scalibr/fs"
 	"github.com/google/osv-scalibr/plugin"
 	pluginlist "github.com/google/osv-scalibr/plugin/list"
@@ -125,6 +126,12 @@ func (c containerImageReader) EnumManifests(handler func(*models.PackageManifest
 		pkgPackage := &models.Package{
 			PackageDetails: pkgDetail,
 			Manifest:       manifests[key],
+		}
+
+		// For Debian/Ubuntu packages, OSV indexes by source package name.
+		// Extract it from osv-scalibr's dpkg metadata when available.
+		if meta, ok := pkg.Metadata.(*dpkgmeta.Metadata); ok && meta.SourceName != "" {
+			pkgPackage.OsvSourceName = meta.SourceName
 		}
 
 		manifests[key].AddPackage(pkgPackage)

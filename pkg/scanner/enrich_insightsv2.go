@@ -47,16 +47,30 @@ func (e *insightsBasedPackageEnricherV2) Name() string {
 func (e *insightsBasedPackageEnricherV2) Enrich(pkg *models.Package,
 	cb PackageDependencyCallbackFn,
 ) error {
-	res, err := e.client.GetPackageVersionInsight(context.Background(),
-		&insightsv2.GetPackageVersionInsightRequest{
-			PackageVersion: &packagev1.PackageVersion{
-				Package: &packagev1.Package{
-					Ecosystem: pkg.GetControlTowerSpecEcosystem(),
-					Name:      pkg.GetName(),
-				},
-				Version: pkg.GetVersion(),
+	req := &insightsv2.GetPackageVersionInsightRequest{
+		PackageVersion: &packagev1.PackageVersion{
+			Package: &packagev1.Package{
+				Ecosystem: pkg.GetControlTowerSpecEcosystem(),
+				Name:      pkg.GetName(),
 			},
-		})
+			Version: pkg.GetVersion(),
+		},
+	}
+
+	// For distro ecosystems (e.g. Alpine:v3.23, Ubuntu:22.04) that don't map to
+	// a known protobuf enum, pass the raw ecosystem string so control-tower can
+	// scope the OSV query to the correct distro advisory database.
+	if osvRawEcosystem := pkg.Manifest.Ecosystem; osvRawEcosystem != "" {
+		req.OsvEcosystem = &osvRawEcosystem
+	}
+
+	// For Debian/Ubuntu packages, OSV indexes advisories by source package name.
+	// Pass it when available so control-tower uses it instead of the binary name.
+	if osvSourceName := pkg.OsvSourceName; osvSourceName != "" {
+		req.OsvSourceName = &osvSourceName
+	}
+
+	res, err := e.client.GetPackageVersionInsight(context.Background(), req)
 	if err != nil {
 		logger.Debugf("Failed to enrich package: %s/%s: %v",
 			pkg.GetName(), pkg.GetVersion(), err)
