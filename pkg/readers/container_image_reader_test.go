@@ -3,7 +3,9 @@ package readers
 import (
 	"testing"
 
+	"github.com/safedep/vet/pkg/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestContainerImageReader_ApplicationName(t *testing.T) {
@@ -48,6 +50,48 @@ func TestContainerImageReader_Name(t *testing.T) {
 	assert.NotNil(t, reader)
 
 	assert.Equal(t, "Container Image Reader", reader.Name())
+}
+
+// TestContainerImageReader_DpkgSourceName verifies that scanning a Debian/Ubuntu
+// image populates OsvSourceName from dpkg metadata for packages where the binary
+// name differs from the source package name.
+func TestContainerImageReader_DpkgSourceName(t *testing.T) {
+	// Binary → expected source package name mappings from issue #703.
+	// These are packages where OSV requires the source name for correct lookup.
+	wantSourceNames := map[string]string{
+		"login":          "shadow",
+		"passwd":         "shadow",
+		"libpam-modules": "pam",
+		"libsystemd0":    "systemd",
+		"libudev1":       "systemd",
+		"libncurses6":    "ncurses",
+		"libtinfo6":      "ncurses",
+		"gpgv":           "gnupg2",
+	}
+
+	config := DefaultContainerImageReaderConfig()
+	reader, err := NewContainerImageReader("ubuntu:22.04", config) // 28 MB image
+	require.NoError(t, err)
+
+	found := map[string]string{} // binary name → OsvSourceName
+
+	err = reader.EnumManifests(func(manifest *models.PackageManifest, pr PackageReader) error {
+		return pr.EnumPackages(func(pkg *models.Package) error {
+			if _, interesting := wantSourceNames[pkg.GetName()]; interesting {
+				found[pkg.GetName()] = pkg.OsvSourceName
+			}
+			return nil
+		})
+	})
+	require.NoError(t, err)
+
+	for binary, wantSrc := range wantSourceNames {
+		t.Run(binary, func(t *testing.T) {
+			got, ok := found[binary]
+			assert.True(t, ok, "package %q not found in scan results", binary)
+			assert.Equal(t, wantSrc, got, "OsvSourceName for binary package %q", binary)
+		})
+	}
 }
 
 func TestCheckPathExists(t *testing.T) {
