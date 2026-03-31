@@ -46,7 +46,21 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install OSX Cross Compiler Build Tools
-        run: sudo apt-get install -y -qq build-essential clang gcc g++ gcc-mingw-w64 zlib1g-dev libmpc-dev libmpfr-dev libgmp-dev cmake libxml2-dev libssl-dev xz-utils gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+        run: |
+          # ubuntu-latest (24.04) inadvertently enables ARM64 in APT sources, but the
+          # Azure-hosted mirror doesn't carry those packages, causing 404 errors when
+          # installing cross-compiler toolchains (e.g. gcc-aarch64-linux-gnu).
+          # Fix: restrict the APT source to amd64 only before updating indexes.
+          # Refs:
+          #   https://github.com/actions/runner-images/issues/10901
+          #   https://github.com/actions/runner-images/issues/12878
+          sudo sed -i 's/^Types: deb$/Types: deb\nArchitectures: amd64/' /etc/apt/sources.list.d/ubuntu.sources
+          sudo apt-get update -y
+          sudo apt-get install -y -qq --no-install-recommends \
+            build-essential clang gcc g++ gcc-mingw-w64 \
+            zlib1g-dev libmpc-dev libmpfr-dev libgmp-dev \
+            cmake libxml2-dev libssl-dev xz-utils \
+            gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 
       - name: Setup OSX Cross Compiler Tool Chain Environment
         run: |
