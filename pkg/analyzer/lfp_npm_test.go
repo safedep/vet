@@ -174,6 +174,20 @@ func TestNpmIsUrlFollowsPathConvention(t *testing.T) {
 			[]string{},
 			true,
 		},
+		{
+			"aliased dep passes when real package name is supplied",
+			"https://registry.npmjs.org/@openai/codex/-/codex-0.77.0.tgz",
+			"@openai/codex",
+			[]string{},
+			true,
+		},
+		{
+			"aliased dep fails when path-derived name is supplied",
+			"https://registry.npmjs.org/@openai/codex/-/codex-0.77.0.tgz",
+			"@openai/codex-darwin-arm64",
+			[]string{},
+			false,
+		},
 	}
 
 	for _, test := range cases {
