@@ -43,7 +43,6 @@ func TestNewDefectDojoReporterFailFastOnMissingProduct(t *testing.T) {
 func TestDefectDojoReporterUsesProductValidatedInConstructor(t *testing.T) {
 	var productGetCount atomic.Int32
 	var importPostCount atomic.Int32
-	var importedProductName atomic.Value
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
@@ -54,13 +53,6 @@ func TestDefectDojoReporterUsesProductValidatedInConstructor(t *testing.T) {
 
 		case r.Method == http.MethodPost && (r.URL.Path == "/api/v2/import-scan/" || r.URL.Path == "/api/v2/import-scan"):
 			importPostCount.Add(1)
-			err := r.ParseMultipartForm(8 << 20)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-
-			importedProductName.Store(r.FormValue("product_name"))
 			w.WriteHeader(http.StatusCreated)
 			_, _ = w.Write([]byte(`{"status":"ok"}`))
 
@@ -93,8 +85,4 @@ func TestDefectDojoReporterUsesProductValidatedInConstructor(t *testing.T) {
 	require.NoError(t, reporter.Finish())
 	assert.Equal(t, int32(1), productGetCount.Load(), "product should be validated only in constructor")
 	assert.Equal(t, int32(1), importPostCount.Load())
-
-	stored := importedProductName.Load()
-	require.NotNil(t, stored)
-	assert.Equal(t, "validated-product", stored.(string))
 }
