@@ -7,13 +7,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewDefectDojoReporterFailFastOnMissingProduct(t *testing.T) {
-	t.Parallel()
-
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet && r.URL.Path == "/api/v2/products/404" {
+		if r.Method == http.MethodGet && (r.URL.Path == "/api/v2/products/404" || r.URL.Path == "/api/v2/products/404/") {
 			w.WriteHeader(http.StatusNotFound)
 			_, _ = w.Write([]byte(`{"detail":"Not found"}`))
 			return
@@ -42,20 +41,18 @@ func TestNewDefectDojoReporterFailFastOnMissingProduct(t *testing.T) {
 }
 
 func TestDefectDojoReporterUsesProductValidatedInConstructor(t *testing.T) {
-	t.Parallel()
-
 	var productGetCount atomic.Int32
 	var importPostCount atomic.Int32
 	var importedProductName atomic.Value
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
-		case r.Method == http.MethodGet && r.URL.Path == "/api/v2/products/42":
+		case r.Method == http.MethodGet && (r.URL.Path == "/api/v2/products/42" || r.URL.Path == "/api/v2/products/42/"):
 			productGetCount.Add(1)
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte(`{"id":42,"name":"validated-product"}`))
 
-		case r.Method == http.MethodPost && r.URL.Path == "/api/v2/import-scan/":
+		case r.Method == http.MethodPost && (r.URL.Path == "/api/v2/import-scan/" || r.URL.Path == "/api/v2/import-scan"):
 			importPostCount.Add(1)
 			err := r.ParseMultipartForm(8 << 20)
 			if err != nil {
@@ -86,19 +83,18 @@ func TestDefectDojoReporterUsesProductValidatedInConstructor(t *testing.T) {
 		DefectDojoHostUrl:  server.URL,
 		DefectDojoApiV2Key: "test-key",
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	require.NotNil(t, reporter)
 
 	typedReporter, ok := reporter.(*defectDojoReporter)
-	if assert.True(t, ok) {
-		assert.Equal(t, "validated-product", typedReporter.productName)
-	}
+	require.True(t, ok)
+	assert.Equal(t, "validated-product", typedReporter.productName)
 
-	assert.NoError(t, reporter.Finish())
+	require.NoError(t, reporter.Finish())
 	assert.Equal(t, int32(1), productGetCount.Load(), "product should be validated only in constructor")
 	assert.Equal(t, int32(1), importPostCount.Load())
 
 	stored := importedProductName.Load()
-	if assert.NotNil(t, stored) {
-		assert.Equal(t, "validated-product", stored.(string))
-	}
+	require.NotNil(t, stored)
+	assert.Equal(t, "validated-product", stored.(string))
 }
