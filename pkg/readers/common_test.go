@@ -1,6 +1,7 @@
 package readers
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -116,4 +117,19 @@ func TestExcludedPath(t *testing.T) {
 				tc.shouldBeExcluded, tc.path, tc.patterns)
 		})
 	}
+}
+
+func TestExcludedPathWindowsStylePatternAgainstAbsolutePath(t *testing.T) {
+	absPath, err := filepath.Abs(filepath.Join("pkg", "readers"))
+	assert.NoError(t, err)
+
+	matcher := newPathExclusionMatcher([]string{`pkg\*`})
+	assert.True(t, matcher.Match(absPath))
+}
+
+func TestExcludedPathWindowsStyleSeparators(t *testing.T) {
+	matcher := newPathExclusionMatcher([]string{`pkg\readers\**`})
+
+	assert.True(t, matcher.Match(`pkg\readers\fixtures\requirements.txt`))
+	assert.False(t, matcher.Match(`cmd\vet\main.go`))
 }
