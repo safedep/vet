@@ -76,7 +76,7 @@ type markdownSummaryReporter struct {
 }
 
 type lockfilePoisoningThreatGroup struct {
-	subjectType  jsonreportspec.ReportThreat_ReportThreatSubjectType
+	subjectType  jsonreportspec.ReportThreat_SubjectType
 	subject      string
 	url          string
 	count        int
@@ -385,7 +385,7 @@ func (r *markdownSummaryReporter) addThreatsSection(builder *markdown.MarkdownBu
 	return nil
 }
 
-func threatSubjectTypeLabel(st jsonreportspec.ReportThreat_ReportThreatSubjectType) string {
+func threatSubjectTypeLabel(st jsonreportspec.ReportThreat_SubjectType) string {
 	switch st {
 	case jsonreportspec.ReportThreat_Manifest:
 		return "manifest"
