@@ -13,6 +13,7 @@ import (
 func TestNewDefectDojoReporterFailFastOnMissingProduct(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet && (r.URL.Path == "/api/v2/products/404" || r.URL.Path == "/api/v2/products/404/") {
+			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusNotFound)
 			_, _ = w.Write([]byte(`{"detail":"Not found"}`))
 			return
@@ -48,11 +49,13 @@ func TestDefectDojoReporterUsesProductValidatedInConstructor(t *testing.T) {
 		switch {
 		case r.Method == http.MethodGet && (r.URL.Path == "/api/v2/products/42" || r.URL.Path == "/api/v2/products/42/"):
 			productGetCount.Add(1)
+			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte(`{"id":42,"name":"validated-product"}`))
 
 		case r.Method == http.MethodPost && (r.URL.Path == "/api/v2/import-scan/" || r.URL.Path == "/api/v2/import-scan"):
 			importPostCount.Add(1)
+			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusCreated)
 			_, _ = w.Write([]byte(`{"status":"ok"}`))
 
