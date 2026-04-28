@@ -42,7 +42,7 @@ This catches attacks where the URL points to a different package on the same tru
 
 ```bash
 # Scan a project for lockfile poisoning
-vet scan -D /path/to/project --lockfile-poisoning
+vet scan -D /path/to/project 
 
 # With a private registry trusted
 vet scan -D /path/to/project --trusted-registry="https://registry.internal.example.com"
