@@ -29,7 +29,6 @@ var npmRegistryKnownInconsistentPackageUrls = map[string]string{
 }
 
 type npmPackageLockPackage struct {
-	Name      string `json:"name"`
 	Version   string `json:"version"`
 	License   string `json:"license"`
 	Resolved  string `json:"resolved"`
@@ -124,15 +123,6 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 			logger.Debugf("npmLockfilePoisoningAnalyzer: Package [%s] not found in manifest", packageName)
 		}
 
-		// npm aliased dependencies ("foo": "npm:bar@1.2.3") install `bar` under
-		// node_modules/foo and record the real package name in the `name` field.
-		// Use that name for the URL convention check so the resolved URL pointing
-		// at the real package isn't mistaken for poisoning.
-		resolvedPackageName := packageName
-		if lockfilePackage.Name != "" {
-			resolvedPackageName = lockfilePackage.Name
-		}
-
 		trustedRegistryUrls := []string{npmRegistryTrustedUrlBase}
 		trustedRegistryUrls = append(trustedRegistryUrls, npm.config.TrustedRegistryUrls...)
 		userTrustUrls := npm.config.TrustedRegistryUrls
@@ -168,7 +158,7 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 			})
 		}
 
-		if !npmIsUrlFollowsPathConvention(lockfilePackage.Resolved, resolvedPackageName, trustedRegistryUrls, userTrustUrls) {
+		if !npmIsUrlFollowsPathConvention(lockfilePackage.Resolved, packageName, trustedRegistryUrls, userTrustUrls) {
 			logger.Debugf("npmLockfilePoisoningAnalyzer: Package [%s] resolved to an unconventional URL [%s]",
 				packageName, lockfilePackage.Resolved)
 
