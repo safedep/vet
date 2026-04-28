@@ -45,7 +45,7 @@ This catches attacks where the URL points to a different package on the same tru
 vet scan -D /path/to/project --lockfile-poisoning
 
 # With a private registry trusted
-vet scan -D /path/to/project --lockfile-poisoning --lockfile-poisoning-trusted-urls="https://registry.internal.example.com"
+vet scan -D /path/to/project --trusted-registry="https://registry.internal.example.com"
 ```
 
 ## Known Limitations
@@ -67,8 +67,7 @@ This installs `@openai/codex` under `node_modules/codex`. The resulting lockfile
 **Workaround:** Add the aliased package's registry URL to the trusted URLs list:
 
 ```bash
-vet scan -D /path/to/project --lockfile-poisoning \
-  --lockfile-poisoning-trusted-urls="https://registry.npmjs.org/@openai/codex"
+vet scan -D /path/to/project --trusted-registry="https://registry.npmjs.org/@openai/codex"
 ```
 
 ### Lockfile Version Support
