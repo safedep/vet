@@ -22,7 +22,7 @@ func TestGroupLockfilePoisoningThreatsByURL(t *testing.T) {
 		{
 			Id:          jsonreportspec.ReportThreat_LockfilePoisoning,
 			SubjectType: jsonreportspec.ReportThreat_Manifest,
-			Subject:     "package-lock.json",
+			Subject:     "other-package-lock.json",
 			Message:     "Package `lodash` resolved to an untrusted host `https://repo.example.com/private/left-pad.tgz`",
 		},
 	}

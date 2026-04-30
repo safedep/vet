@@ -405,7 +405,7 @@ func groupLockfilePoisoningThreatsByURL(threats []*jsonreportspec.ReportThreat) 
 
 		key := ""
 		if url != "" {
-			key = fmt.Sprintf("%d|%s|%s", threat.GetSubjectType(), threat.GetSubject(), strings.ToLower(url))
+			key = fmt.Sprintf("url|%s", strings.ToLower(url))
 		} else {
 			key = fmt.Sprintf("fallback|%d", fallbackKeyIndex)
 			fallbackKeyIndex++

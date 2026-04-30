@@ -422,7 +422,7 @@ func (r *summaryReporter) Finish() error {
 		fmt.Println(summaryListPrependText, BoldText(" Lockfile Poisoning Detected "))
 		fmt.Println()
 
-		for _, msg := range r.lockfilePoisoning {
+		for _, msg := range groupLockfilePoisoningMessagesByURL(r.lockfilePoisoning) {
 			fmt.Println(text.WrapHard(HighBgText(summaryListPrependText+msg), 120))
 		}
 
@@ -441,6 +441,58 @@ func (r *summaryReporter) Finish() error {
 	}
 
 	return nil
+}
+
+func groupLockfilePoisoningMessagesByURL(messages []string) []string {
+	type lockfilePoisoningMessageGroup struct {
+		url          string
+		count        int
+		firstMessage string
+	}
+
+	groupedMessages := make(map[string]*lockfilePoisoningMessageGroup)
+	fallbackKeyIndex := 0
+
+	for _, message := range messages {
+		url := extractURLFromThreatMessage(message)
+
+		key := ""
+		if url != "" {
+			key = fmt.Sprintf("url|%s", strings.ToLower(url))
+		} else {
+			key = fmt.Sprintf("fallback|%d", fallbackKeyIndex)
+			fallbackKeyIndex++
+		}
+
+		if _, ok := groupedMessages[key]; !ok {
+			groupedMessages[key] = &lockfilePoisoningMessageGroup{
+				url:          url,
+				firstMessage: message,
+			}
+		}
+
+		groupedMessages[key].count++
+	}
+
+	keys := make([]string, 0, len(groupedMessages))
+	for key := range groupedMessages {
+		keys = append(keys, key)
+	}
+	slices.Sort(keys)
+
+	grouped := make([]string, 0, len(keys))
+	for _, key := range keys {
+		group := groupedMessages[key]
+		if group.count > 1 && group.url != "" {
+			grouped = append(grouped, fmt.Sprintf("%d lockfile poisoning signals share URL `%s`",
+				group.count, group.url))
+			continue
+		}
+
+		grouped = append(grouped, group.firstMessage)
+	}
+
+	return grouped
 }
 
 func (r *summaryReporter) sortedRemediations() []*summaryReporterRemediationData {
