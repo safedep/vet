@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -28,6 +30,8 @@ const (
 	lockfilePoisoningReference = "https://safedep.substack.com/p/lockfile-poisoning-an-attack-vector"
 	markdownSummaryReportTitle = "vet Summary Report"
 )
+
+var backtickDelimitedContentPattern = regexp.MustCompile("`([^`]+)`")
 
 type MarkdownSummaryReporterConfig struct {
 	Tool                                        ToolMetadata
@@ -69,6 +73,14 @@ type markdownSummaryReporter struct {
 	malwareInfo    *markdownSummaryMalwareInfo
 
 	internalReportConfig internalReportConfig
+}
+
+type lockfilePoisoningThreatGroup struct {
+	subjectType  jsonreportspec.ReportThreat_SubjectType
+	subject      string
+	url          string
+	count        int
+	firstMessage string
 }
 
 // NewMarkdownSummaryReporter creates a new markdown summary reporter. This reporter
@@ -310,14 +322,39 @@ func (r *markdownSummaryReporter) addThreatsSection(builder *markdown.MarkdownBu
 	for threatType, threats := range internalModel.threats {
 		builder.AddHeader(3, threatType.String())
 
-		for _, threat := range threats {
-			foundOn := ""
-			switch threat.GetSubjectType() {
-			case jsonreportspec.ReportThreat_Manifest:
-				foundOn = "manifest"
-			case jsonreportspec.ReportThreat_Package:
-				foundOn = "package"
+		if threatType == jsonreportspec.ReportThreat_LockfilePoisoning {
+			for _, groupedThreat := range groupLockfilePoisoningThreatsByURL(threats) {
+				foundOn := threatSubjectTypeLabel(groupedThreat.subjectType)
+				if foundOn == "" {
+					continue
+				}
+
+				if groupedThreat.count > 1 && groupedThreat.url != "" {
+					builder.AddBulletPoint(fmt.Sprintf("%s Found in %s `%s`, %d lockfile poisoning signals share URL `%s`. Refer to [this](%s) for more details",
+						markdown.EmojiWarning,
+						foundOn,
+						groupedThreat.subject,
+						groupedThreat.count,
+						groupedThreat.url,
+						lockfilePoisoningReference,
+					))
+					continue
+				}
+
+				builder.AddBulletPoint(fmt.Sprintf("%s Found in %s `%s`, %s. Refer to [this](%s) for more details",
+					markdown.EmojiWarning,
+					foundOn,
+					groupedThreat.subject,
+					groupedThreat.firstMessage,
+					lockfilePoisoningReference,
+				))
 			}
+
+			continue
+		}
+
+		for _, threat := range threats {
+			foundOn := threatSubjectTypeLabel(threat.GetSubjectType())
 
 			// Skip if we don't know where it was found. This may happen if there is inconsistency
 			// between vet and github-app
@@ -346,6 +383,80 @@ func (r *markdownSummaryReporter) addThreatsSection(builder *markdown.MarkdownBu
 	}
 
 	return nil
+}
+
+func threatSubjectTypeLabel(st jsonreportspec.ReportThreat_SubjectType) string {
+	switch st {
+	case jsonreportspec.ReportThreat_Manifest:
+		return "manifest"
+	case jsonreportspec.ReportThreat_Package:
+		return "package"
+	default:
+		return ""
+	}
+}
+
+func groupLockfilePoisoningThreatsByURL(threats []*jsonreportspec.ReportThreat) []lockfilePoisoningThreatGroup {
+	groupedThreats := make(map[string]*lockfilePoisoningThreatGroup)
+	fallbackKeyIndex := 0
+
+	for _, threat := range threats {
+		url := extractURLFromThreatMessage(threat.GetMessage())
+
+		key := ""
+		if url != "" {
+			key = fmt.Sprintf("url|%s", strings.ToLower(url))
+		} else {
+			key = fmt.Sprintf("fallback|%d", fallbackKeyIndex)
+			fallbackKeyIndex++
+		}
+
+		if _, ok := groupedThreats[key]; !ok {
+			groupedThreats[key] = &lockfilePoisoningThreatGroup{
+				subjectType:  threat.GetSubjectType(),
+				subject:      threat.GetSubject(),
+				url:          url,
+				count:        0,
+				firstMessage: threat.GetMessage(),
+			}
+		}
+
+		groupedThreats[key].count++
+	}
+
+	keys := make([]string, 0, len(groupedThreats))
+	for key := range groupedThreats {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	grouped := make([]lockfilePoisoningThreatGroup, 0, len(keys))
+	for _, key := range keys {
+		grouped = append(grouped, *groupedThreats[key])
+	}
+
+	return grouped
+}
+
+func extractURLFromThreatMessage(message string) string {
+	matches := backtickDelimitedContentPattern.FindAllStringSubmatch(message, -1)
+	for _, match := range matches {
+		if len(match) < 2 {
+			continue
+		}
+
+		candidate := strings.TrimSpace(match[1])
+		parsedURL, err := url.Parse(candidate)
+		if err != nil || parsedURL.Scheme == "" {
+			continue
+		}
+
+		if parsedURL.Scheme == "http" || parsedURL.Scheme == "https" {
+			return candidate
+		}
+	}
+
+	return ""
 }
 
 func (r *markdownSummaryReporter) addChangedPackageSection(builder *markdown.MarkdownBuilder,

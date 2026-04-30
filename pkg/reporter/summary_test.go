@@ -1,9 +1,11 @@
 package reporter
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestManifestRelativePath(t *testing.T) {
@@ -70,4 +72,21 @@ func TestRenderInternalErrorMessages(t *testing.T) {
 
 		assert.Equal(t, expectedErrorMessage, actualErrorMessage)
 	})
+}
+
+func TestGroupLockfilePoisoningMessagesByURL(t *testing.T) {
+	messages := []string{
+		"Package `globx` resolved to an untrusted host `https://github.com/isaacs/node-glob/archive/refs/tags/v10.3.0.tar.gz`",
+		"Package `globx` resolved to an URL `https://github.com/isaacs/node-glob/archive/refs/tags/v10.3.0.tar.gz` that does not follow the package name path convention",
+		"Package `glob` resolved to an untrusted host `https://github.com/isaacs/node-glob/archive/refs/tags/v10.3.0.tar.gz`",
+		"Package `glob` resolved to an URL `https://github.com/isaacs/node-glob/archive/refs/tags/v10.3.0.tar.gz` that does not follow the package name path convention",
+	}
+
+	grouped := groupLockfilePoisoningMessagesByURL(messages)
+	require.Len(t, grouped, 1)
+
+	assert.Equal(t, "4 lockfile poisoning signals share URL `https://github.com/isaacs/node-glob/archive/refs/tags/v10.3.0.tar.gz`", grouped[0])
+	assert.Equal(t, 1, strings.Count(grouped[0], "https://github.com/isaacs/node-glob/archive/refs/tags/v10.3.0.tar.gz"))
+	assert.NotContains(t, grouped[0], "Package `globx`")
+	assert.NotContains(t, grouped[0], "Package `glob`")
 }
