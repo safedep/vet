@@ -111,7 +111,7 @@ func (c *ColorConfig) MediumBgText(s string) string {
 	case colorprofile.ANSI:
 		return text.Colors{text.BgYellow, text.FgBlack, text.Bold}.Sprint(s)
 	case colorprofile.ANSI256, colorprofile.TrueColor:
-		return text.Colors{text.BgHiYellow, c.adaptiveFg()}.Sprint(s)
+		return text.Colors{text.BgHiYellow, text.FgBlack}.Sprint(s)
 	default:
 		return s
 	}
@@ -127,7 +127,7 @@ func (c *ColorConfig) LowBgText(s string) string {
 	case colorprofile.ANSI:
 		return text.Colors{text.BgBlue, text.FgWhite, text.Bold}.Sprint(s)
 	case colorprofile.ANSI256, colorprofile.TrueColor:
-		return text.Colors{text.BgHiCyan, c.adaptiveFg()}.Sprint(s)
+		return text.Colors{text.BgHiCyan, text.FgBlack}.Sprint(s)
 	default:
 		return s
 	}
@@ -155,7 +155,7 @@ func (c *ColorConfig) WarningBgText(s string) string {
 	case colorprofile.ANSI:
 		return text.Colors{text.BgYellow, text.FgBlack, text.Bold}.Sprint(s)
 	case colorprofile.ANSI256, colorprofile.TrueColor:
-		return text.Colors{text.BgHiYellow, c.adaptiveFg()}.Sprint(s)
+		return text.Colors{text.BgHiYellow, text.FgBlack}.Sprint(s)
 	default:
 		return s
 	}
@@ -169,7 +169,7 @@ func (c *ColorConfig) SuccessBgText(s string) string {
 	case colorprofile.ANSI:
 		return text.Colors{text.BgGreen, text.FgBlack, text.Bold}.Sprint(s)
 	case colorprofile.ANSI256, colorprofile.TrueColor:
-		return text.Colors{text.BgHiGreen, c.adaptiveFg()}.Sprint(s)
+		return text.Colors{text.BgHiGreen, text.FgBlack}.Sprint(s)
 	default:
 		return s
 	}
@@ -185,7 +185,7 @@ func (c *ColorConfig) InfoBgText(s string) string {
 	case colorprofile.ANSI:
 		return text.Colors{text.BgBlue, text.FgWhite, text.Bold}.Sprint(s)
 	case colorprofile.ANSI256, colorprofile.TrueColor:
-		return text.Colors{text.BgHiCyan, c.adaptiveFg()}.Sprint(s)
+		return text.Colors{text.BgHiCyan, text.FgBlack}.Sprint(s)
 	default:
 		return s
 	}
@@ -217,7 +217,7 @@ func (c *ColorConfig) MagentaBgText(s string) string {
 	case colorprofile.ANSI:
 		return text.Colors{text.BgMagenta, text.FgWhite, text.Bold}.Sprint(s)
 	case colorprofile.ANSI256, colorprofile.TrueColor:
-		return text.Colors{text.BgCyan, c.adaptiveFg()}.Sprint(s)
+		return text.Colors{text.BgCyan, text.FgBlack}.Sprint(s)
 	default:
 		return s
 	}
