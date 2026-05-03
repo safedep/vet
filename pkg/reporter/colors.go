@@ -231,7 +231,7 @@ func (c *ColorConfig) WhiteBgText(s string) string {
 	case colorprofile.ANSI:
 		return text.Colors{text.BgWhite, text.FgBlack, text.Bold}.Sprint(s)
 	case colorprofile.ANSI256, colorprofile.TrueColor:
-		return text.Colors{text.BgHiWhite, c.adaptiveFg()}.Sprint(s)
+		return text.Colors{text.BgHiWhite, text.FgBlack}.Sprint(s)
 	default:
 		return s
 	}
