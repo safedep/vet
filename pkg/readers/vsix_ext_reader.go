@@ -2,6 +2,7 @@ package readers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -128,7 +129,12 @@ func (r *vsixExtReader) EnumManifests(handler func(*models.PackageManifest, Pack
 	for distribution := range r.distributions {
 		extensions, path, err := r.readExtensions(distribution)
 		if err != nil {
-			logger.Errorf("failed to read extensions for distribution %s: %v", distribution, err)
+			// Distribution not installed on this machine: expected.
+			if errors.Is(err, os.ErrNotExist) {
+				logger.Debugf("extensions for distribution %s not present: %v", distribution, err)
+			} else {
+				logger.Warnf("failed to read extensions for distribution %s: %v", distribution, err)
+			}
 			continue
 		}
 
