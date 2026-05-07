@@ -60,6 +60,11 @@ func (m *mockMalwareAnalysisServiceClient) InternalAnalyzePackage(ctx context.Co
 	return args.Get(0).(*malysisv1.InternalAnalyzePackageResponse), args.Error(1)
 }
 
+func (m *mockMalwareAnalysisServiceClient) InternalPublishDomainEvent(ctx context.Context, req *malysisv1.InternalPublishDomainEventRequest, opts ...grpc.CallOption) (*malysisv1.InternalPublishDomainEventResponse, error) {
+	args := m.Called(ctx, req, opts)
+	return args.Get(0).(*malysisv1.InternalPublishDomainEventResponse), args.Error(1)
+}
+
 func (m *mockMalwareAnalysisServiceClient) ListPackageAnalysisRecords(ctx context.Context, req *malysisv1.ListPackageAnalysisRecordsRequest, opts ...grpc.CallOption) (*malysisv1.ListPackageAnalysisRecordsResponse, error) {
 	args := m.Called(ctx, req, opts)
 	return args.Get(0).(*malysisv1.ListPackageAnalysisRecordsResponse), args.Error(1)
