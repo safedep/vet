@@ -174,10 +174,9 @@ func TestTranslateProjectConfig(t *testing.T) {
 	item := translate(tool)
 	require.NotNil(t, item)
 	assert.Equal(t, inventory.KindProjectConfig, item.Kind)
-	// Project configs translate Agent details too — kept opt-in by the
-	// underlying type check (only CodingAgent populates Agent currently).
-	assert.Nil(t, item.Agent,
-		"only CodingAgent kind populates Agent; project configs use Metadata")
+	require.NotNil(t, item.Agent,
+		"ProjectConfig items carry Agent.InstructionFiles and the LocalSink renders them")
+	assert.Equal(t, []string{"/work/repo/CLAUDE.md"}, item.Agent.InstructionFiles)
 }
 
 func TestTranslateUnknownTypeDegradesToUnspecified(t *testing.T) {

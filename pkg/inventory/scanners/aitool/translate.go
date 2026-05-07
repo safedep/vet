@@ -42,10 +42,15 @@ func translate(t *aitool.AITool) *inventory.Item {
 		Enabled:      copyBoolPtr(t.Enabled),
 	}
 
-	if t.Type == aitool.AIToolTypeMCPServer && t.MCPServer != nil {
+	// Preserve typed details whenever the source carries them. The kind
+	// classifies the item but does not gate which sub-messages are
+	// meaningful: ProjectConfig items carry Agent.InstructionFiles
+	// (CLAUDE.md, .cursorrules, AGENTS.md) and the local sink renders
+	// them in the DETAIL column.
+	if t.MCPServer != nil {
 		item.MCPServer = translateMCPServer(t.MCPServer)
 	}
-	if t.Type == aitool.AIToolTypeCodingAgent && t.Agent != nil {
+	if t.Agent != nil {
 		item.Agent = translateAgent(t.Agent)
 	}
 
