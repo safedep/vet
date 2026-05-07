@@ -136,7 +136,7 @@ func TestVetEnvFileSource_NoCredentialsWhenBothEmpty(t *testing.T) {
 	assert.ErrorIs(t, err, ErrNoCredentials)
 }
 
-func TestVetEnvFileSource_NoCredentialsWhenOnlyAPIKeyPresent(t *testing.T) {
+func TestVetEnvFileSource_IncompleteWhenOnlyAPIKeyPresent(t *testing.T) {
 	src := &vetEnvFileSource{
 		apiKey:       func() string { return "k" },
 		tenantDomain: func() string { return "" },
@@ -144,10 +144,13 @@ func TestVetEnvFileSource_NoCredentialsWhenOnlyAPIKeyPresent(t *testing.T) {
 
 	_, err := src.resolve(context.Background())
 
-	assert.ErrorIs(t, err, ErrNoCredentials, "partial credentials must trigger fall-through")
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrIncompleteCredentials)
+	assert.NotErrorIs(t, err, ErrNoCredentials, "partial credentials must stop the chain, not fall through")
+	assert.Contains(t, err.Error(), "SAFEDEP_TENANT_ID")
 }
 
-func TestVetEnvFileSource_NoCredentialsWhenOnlyTenantPresent(t *testing.T) {
+func TestVetEnvFileSource_IncompleteWhenOnlyTenantPresent(t *testing.T) {
 	src := &vetEnvFileSource{
 		apiKey:       func() string { return "" },
 		tenantDomain: func() string { return "t" },
@@ -155,7 +158,10 @@ func TestVetEnvFileSource_NoCredentialsWhenOnlyTenantPresent(t *testing.T) {
 
 	_, err := src.resolve(context.Background())
 
-	assert.ErrorIs(t, err, ErrNoCredentials)
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrIncompleteCredentials)
+	assert.NotErrorIs(t, err, ErrNoCredentials)
+	assert.Contains(t, err.Error(), "SAFEDEP_API_KEY")
 }
 
 func TestVetEnvFileSource_ReturnsCredentialsWhenBothPresent(t *testing.T) {
@@ -196,6 +202,25 @@ func TestDryKeychainSource_ConstructionFailurePropagates(t *testing.T) {
 	require.Error(t, err)
 	assert.ErrorIs(t, err, boom, "real backend failures must propagate verbatim")
 	assert.NotErrorIs(t, err, ErrNoCredentials, "construction failures are not 'no credentials'")
+}
+
+// On WSL/headless Linux the OS keyring backend is fundamentally
+// unreachable. dry/keychain wraps the backend error with a stable
+// "OS keychain unavailable" prefix; we treat that as ErrNoCredentials
+// so the chain falls through to the env-vars hint.
+func TestDryKeychainSource_BackendUnreachableFallsThrough(t *testing.T) {
+	wrapped := fmt.Errorf("cloud: failed to create keychain: %w",
+		fmt.Errorf("keychain: OS keychain unavailable: %w",
+			errors.New("name is not activatable")))
+	src := &dryKeychainSource{
+		newResolver: func() (cloud.CloseableCredentialResolver, error) {
+			return nil, wrapped
+		},
+	}
+
+	_, err := src.resolve(context.Background())
+
+	assert.ErrorIs(t, err, ErrNoCredentials)
 }
 
 func TestDryKeychainSource_MissingCredentialsBecomesErrNoCredentials(t *testing.T) {

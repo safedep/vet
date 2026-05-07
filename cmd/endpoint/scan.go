@@ -195,7 +195,9 @@ func runScanWithDeps(ctx context.Context, opts scanOptions, deps scanDeps) error
 		}
 		sinks = append(sinks, cloudSink)
 	case errors.Is(resolveErr, auth.ErrNoCredentials):
-		_, _ = fmt.Fprintln(stderr, "SafeDep cloud sync available; run `safedep auth login` or set SAFEDEP_API_KEY to enable.")
+		_, _ = fmt.Fprintln(stderr, "SafeDep cloud sync available; run `vet auth configure` or set SAFEDEP_API_KEY and SAFEDEP_TENANT_ID to enable.")
+	case errors.Is(resolveErr, auth.ErrIncompleteCredentials):
+		_, _ = fmt.Fprintf(stderr, "vet endpoint scan: %v; continuing with local-only output\n", resolveErr)
 	default:
 		_, _ = fmt.Fprintf(stderr, "vet endpoint scan: credential resolution failed (%v); continuing with local-only output\n", resolveErr)
 	}

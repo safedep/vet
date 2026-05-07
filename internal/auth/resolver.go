@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/safedep/dry/cloud"
 )
@@ -15,6 +16,12 @@ import (
 // a corrupt config file) propagate verbatim and stop the chain — they are
 // not "no credentials", they are a broken source.
 var ErrNoCredentials = errors.New("auth: no credentials configured")
+
+// ErrIncompleteCredentials signals that a source held one half of a
+// credential pair (API key XOR tenant). The user clearly intended to use
+// that source; we stop the chain rather than falling through to layers
+// that wouldn't help.
+var ErrIncompleteCredentials = errors.New("auth: credentials incomplete")
 
 // Credentials carries the data-plane API key plus the tenant identifier the
 // resolver chain produces. Field names mirror the existing helpers in
@@ -114,8 +121,13 @@ type vetEnvFileSource struct {
 func (s *vetEnvFileSource) resolve(_ context.Context) (Credentials, error) {
 	apiKey := s.apiKey()
 	tenant := s.tenantDomain()
-	if apiKey == "" || tenant == "" {
+	switch {
+	case apiKey == "" && tenant == "":
 		return Credentials{}, ErrNoCredentials
+	case apiKey == "":
+		return Credentials{}, fmt.Errorf("%w: tenant set but API key missing (set SAFEDEP_API_KEY)", ErrIncompleteCredentials)
+	case tenant == "":
+		return Credentials{}, fmt.Errorf("%w: API key set but tenant missing (set SAFEDEP_TENANT_ID)", ErrIncompleteCredentials)
 	}
 	return Credentials{APIKey: apiKey, TenantID: tenant}, nil
 }
@@ -142,9 +154,20 @@ func defaultDryKeychainResolver() (cloud.CloseableCredentialResolver, error) {
 	return cloud.NewKeychainCredentialResolver(cloud.CredentialTypeAPIKey)
 }
 
+// keychainBackendUnavailableMarker is the stable wrap prefix
+// dry/keychain.New emits when no OS keyring backend is reachable
+// (e.g. WSL without DBus, headless Linux without secret-service).
+// We treat this as "no credentials in this layer" so the chain
+// continues to the no-creds hint instead of stopping with a confusing
+// backend error.
+const keychainBackendUnavailableMarker = "keychain: OS keychain unavailable"
+
 func (s *dryKeychainSource) resolve(_ context.Context) (Credentials, error) {
 	resolver, err := s.newResolver()
 	if err != nil {
+		if strings.Contains(err.Error(), keychainBackendUnavailableMarker) {
+			return Credentials{}, ErrNoCredentials
+		}
 		return Credentials{}, fmt.Errorf("auth: keychain unavailable: %w", err)
 	}
 	defer func() { _ = resolver.Close() }()

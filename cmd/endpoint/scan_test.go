@@ -165,7 +165,9 @@ func TestRunScanWithDeps_NoCredentials_BuildsLocalSinkOnly(t *testing.T) {
 	assert.Equal(t, 1, local.endCalls)
 	assert.Equal(t, 1, local.closeCalls)
 	assert.Contains(t, stderr.String(), "SafeDep")
-	assert.Contains(t, stderr.String(), "safedep auth login")
+	assert.Contains(t, stderr.String(), "vet auth configure")
+	assert.Contains(t, stderr.String(), "SAFEDEP_API_KEY")
+	assert.Contains(t, stderr.String(), "SAFEDEP_TENANT_ID")
 }
 
 func TestRunScanWithDeps_CredentialsPresent_BuildsCloudSink(t *testing.T) {
