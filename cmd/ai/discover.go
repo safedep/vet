@@ -10,12 +10,12 @@ import (
 	"github.com/safedep/vet/pkg/common/logger"
 )
 
-// runAITool is overridable so tests can capture the resolved
-// AliasOptions without standing up a real scan.
+// runAITool is overridable so tests can capture the resolved Options
+// without standing up a real scan.
 var runAITool = endpoint.RunAITool
 
 func newDiscoverCommand() *cobra.Command {
-	opts := endpoint.AliasOptions{
+	opts := endpoint.Options{
 		DrainTimeout: endpoint.DefaultDrainTimeout,
 	}
 

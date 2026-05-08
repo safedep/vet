@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -13,13 +14,6 @@ import (
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/pkg/inventory"
 )
-
-// depsWithStderr clones deps with the supplied writer attached so a
-// test can capture the user-facing hint output.
-func depsWithStderr(d scanDeps, w *bytes.Buffer) scanDeps {
-	d.stderr = w
-	return d
-}
 
 // stubResolver implements auth.Resolver for tests.
 type stubResolver struct {
@@ -80,17 +74,17 @@ func (s *recordingSink) Close(_ context.Context) error {
 }
 
 // TestScanCommand_FlagParsing verifies that cobra wiring populates
-// scanOptions for every documented flag. The command's RunE is replaced
+// Options for every documented flag. The command's RunE is replaced
 // with a closure that records the parsed options instead of running.
 func TestScanCommand_FlagParsing(t *testing.T) {
 	t.Run("defaults", func(t *testing.T) {
 		opts := captureScanOptions(t, []string{})
-		assert.Empty(t, opts.scopes)
-		assert.Empty(t, opts.projectDir)
-		assert.Empty(t, opts.reportJSON)
-		assert.False(t, opts.silent)
-		assert.Empty(t, opts.kinds)
-		assert.Equal(t, 30*time.Second, opts.drainTimeout)
+		assert.Empty(t, opts.Scopes)
+		assert.Empty(t, opts.ProjectDir)
+		assert.Empty(t, opts.ReportJSON)
+		assert.False(t, opts.Silent)
+		assert.Empty(t, opts.Kinds)
+		assert.Equal(t, 30*time.Second, opts.DrainTimeout)
 	})
 
 	t.Run("all flags", func(t *testing.T) {
@@ -103,12 +97,12 @@ func TestScanCommand_FlagParsing(t *testing.T) {
 			"--kind", "ai-tool",
 			"--drain-timeout", "5s",
 		})
-		assert.Equal(t, []string{"system", "project"}, opts.scopes)
-		assert.Equal(t, "/tmp/proj", opts.projectDir)
-		assert.Equal(t, "/tmp/out.json", opts.reportJSON)
-		assert.True(t, opts.silent)
-		assert.Equal(t, []string{"ai-tool"}, opts.kinds)
-		assert.Equal(t, 5*time.Second, opts.drainTimeout)
+		assert.Equal(t, []string{"system", "project"}, opts.Scopes)
+		assert.Equal(t, "/tmp/proj", opts.ProjectDir)
+		assert.Equal(t, "/tmp/out.json", opts.ReportJSON)
+		assert.True(t, opts.Silent)
+		assert.Equal(t, []string{"ai-tool"}, opts.Kinds)
+		assert.Equal(t, 5*time.Second, opts.DrainTimeout)
 	})
 
 	t.Run("short flags", func(t *testing.T) {
@@ -116,17 +110,17 @@ func TestScanCommand_FlagParsing(t *testing.T) {
 			"-D", "/tmp/p",
 			"-s",
 		})
-		assert.Equal(t, "/tmp/p", opts.projectDir)
-		assert.True(t, opts.silent)
+		assert.Equal(t, "/tmp/p", opts.ProjectDir)
+		assert.True(t, opts.Silent)
 	})
 }
 
 // captureScanOptions builds a fresh scan command, swaps RunE to record the
 // resolved options, executes with args, and returns the captured options.
-func captureScanOptions(t *testing.T, args []string) scanOptions {
+func captureScanOptions(t *testing.T, args []string) Options {
 	t.Helper()
-	var captured scanOptions
-	captureRun := func(_ context.Context, opts scanOptions) error {
+	var captured Options
+	captureRun := func(_ context.Context, opts Options) error {
 		captured = opts
 		return nil
 	}
@@ -145,18 +139,16 @@ func TestRunScanWithDeps_NoCredentials_BuildsLocalSinkOnly(t *testing.T) {
 
 	deps := scanDeps{
 		resolver: resolver,
-		buildScanners: func(_ scanOptions) ([]inventory.Scanner, error) {
+		buildScanners: func(_ Options) ([]inventory.Scanner, error) {
 			return []inventory.Scanner{&fakeScanner{items: itemsForTest()}}, nil
 		},
-		buildLocalSink: func(_ scanOptions) inventory.Sink { return local },
-		buildCloudSink: func(_ context.Context, _ auth.Credentials, _ scanOptions) (inventory.Sink, func(), error) {
+		buildLocalSink: func(_ Options) inventory.Sink { return local },
+		buildCloudSink: func(_ context.Context, _ auth.Credentials, _ Options) (inventory.Sink, func(), error) {
 			cloudCalled = true
 			return nil, nil, nil
 		},
 	}
-	stderr := &bytes.Buffer{}
-
-	err := runScanWithDeps(context.Background(), scanOptions{drainTimeout: time.Second}, depsWithStderr(deps, stderr))
+	err := runScanWithDeps(context.Background(), Options{DrainTimeout: time.Second}, deps)
 	require.NoError(t, err)
 
 	assert.False(t, cloudCalled, "buildCloudSink must not be called when credentials are absent")
@@ -164,10 +156,6 @@ func TestRunScanWithDeps_NoCredentials_BuildsLocalSinkOnly(t *testing.T) {
 	assert.Len(t, local.emitItems, len(itemsForTest()))
 	assert.Equal(t, 1, local.endCalls)
 	assert.Equal(t, 1, local.closeCalls)
-	assert.Contains(t, stderr.String(), "SafeDep")
-	assert.Contains(t, stderr.String(), "vet auth configure")
-	assert.Contains(t, stderr.String(), "SAFEDEP_API_KEY")
-	assert.Contains(t, stderr.String(), "SAFEDEP_TENANT_ID")
 }
 
 func TestRunScanWithDeps_CredentialsPresent_BuildsCloudSink(t *testing.T) {
@@ -178,18 +166,18 @@ func TestRunScanWithDeps_CredentialsPresent_BuildsCloudSink(t *testing.T) {
 
 	deps := scanDeps{
 		resolver: resolver,
-		buildScanners: func(_ scanOptions) ([]inventory.Scanner, error) {
+		buildScanners: func(_ Options) ([]inventory.Scanner, error) {
 			return []inventory.Scanner{&fakeScanner{items: itemsForTest()}}, nil
 		},
-		buildLocalSink: func(_ scanOptions) inventory.Sink { return local },
-		buildCloudSink: func(_ context.Context, creds auth.Credentials, _ scanOptions) (inventory.Sink, func(), error) {
+		buildLocalSink: func(_ Options) inventory.Sink { return local },
+		buildCloudSink: func(_ context.Context, creds auth.Credentials, _ Options) (inventory.Sink, func(), error) {
 			assert.Equal(t, "k", creds.APIKey)
 			assert.Equal(t, "t", creds.TenantID)
 			return cloud, func() { closerCalled = true }, nil
 		},
 	}
 
-	err := runScanWithDeps(context.Background(), scanOptions{drainTimeout: time.Second}, deps)
+	err := runScanWithDeps(context.Background(), Options{DrainTimeout: time.Second}, deps)
 	require.NoError(t, err)
 
 	assert.Equal(t, 1, local.beginCalls)
@@ -204,23 +192,47 @@ func TestRunScanWithDeps_CloudConstructionError_ContinuesWithLocalOnly(t *testin
 
 	deps := scanDeps{
 		resolver: resolver,
-		buildScanners: func(_ scanOptions) ([]inventory.Scanner, error) {
+		buildScanners: func(_ Options) ([]inventory.Scanner, error) {
 			return []inventory.Scanner{&fakeScanner{items: itemsForTest()}}, nil
 		},
-		buildLocalSink: func(_ scanOptions) inventory.Sink { return local },
-		buildCloudSink: func(_ context.Context, _ auth.Credentials, _ scanOptions) (inventory.Sink, func(), error) {
+		buildLocalSink: func(_ Options) inventory.Sink { return local },
+		buildCloudSink: func(_ context.Context, _ auth.Credentials, _ Options) (inventory.Sink, func(), error) {
 			return nil, nil, errors.New("boom")
 		},
 	}
-	stderr := &bytes.Buffer{}
-
-	err := runScanWithDeps(context.Background(), scanOptions{drainTimeout: time.Second}, depsWithStderr(deps, stderr))
+	err := runScanWithDeps(context.Background(), Options{DrainTimeout: time.Second}, deps)
 	require.NoError(t, err)
 
 	assert.Equal(t, 1, local.beginCalls)
 	assert.Equal(t, 1, local.endCalls)
 	assert.Equal(t, 1, local.closeCalls)
-	assert.Contains(t, stderr.String(), "boom", "construction error should be reported on stderr")
+}
+
+func TestRunScanWithDeps_IncompleteCredentials_ContinuesWithLocalOnly(t *testing.T) {
+	resolver := stubResolver{
+		err: fmt.Errorf("%w: API key set but tenant missing", auth.ErrIncompleteCredentials),
+	}
+	local := &recordingSink{}
+	cloudCalled := false
+
+	deps := scanDeps{
+		resolver: resolver,
+		buildScanners: func(_ Options) ([]inventory.Scanner, error) {
+			return []inventory.Scanner{&fakeScanner{items: nil}}, nil
+		},
+		buildLocalSink: func(_ Options) inventory.Sink { return local },
+		buildCloudSink: func(_ context.Context, _ auth.Credentials, _ Options) (inventory.Sink, func(), error) {
+			cloudCalled = true
+			return nil, nil, nil
+		},
+	}
+	err := runScanWithDeps(context.Background(), Options{DrainTimeout: time.Second}, deps)
+	require.NoError(t, err)
+
+	assert.False(t, cloudCalled, "buildCloudSink must not be called when credentials are partial")
+	assert.Equal(t, 1, local.beginCalls)
+	assert.Equal(t, 1, local.endCalls)
+	assert.Equal(t, 1, local.closeCalls)
 }
 
 func TestRunScanWithDeps_ResolverGenericError_ContinuesWithLocalOnly(t *testing.T) {
@@ -230,38 +242,35 @@ func TestRunScanWithDeps_ResolverGenericError_ContinuesWithLocalOnly(t *testing.
 
 	deps := scanDeps{
 		resolver: resolver,
-		buildScanners: func(_ scanOptions) ([]inventory.Scanner, error) {
+		buildScanners: func(_ Options) ([]inventory.Scanner, error) {
 			return []inventory.Scanner{&fakeScanner{items: nil}}, nil
 		},
-		buildLocalSink: func(_ scanOptions) inventory.Sink { return local },
-		buildCloudSink: func(_ context.Context, _ auth.Credentials, _ scanOptions) (inventory.Sink, func(), error) {
+		buildLocalSink: func(_ Options) inventory.Sink { return local },
+		buildCloudSink: func(_ context.Context, _ auth.Credentials, _ Options) (inventory.Sink, func(), error) {
 			cloudCalled = true
 			return nil, nil, nil
 		},
 	}
-	stderr := &bytes.Buffer{}
-
-	err := runScanWithDeps(context.Background(), scanOptions{drainTimeout: time.Second}, depsWithStderr(deps, stderr))
+	err := runScanWithDeps(context.Background(), Options{DrainTimeout: time.Second}, deps)
 	require.NoError(t, err)
 
 	assert.False(t, cloudCalled)
 	assert.Equal(t, 1, local.beginCalls)
-	assert.Contains(t, stderr.String(), "keychain explode")
 }
 
 func TestRunScanWithDeps_ProjectDirDefaultsToCwd(t *testing.T) {
 	var capturedCfg inventory.ScanConfig
 	deps := scanDeps{
 		resolver: stubResolver{err: auth.ErrNoCredentials},
-		buildScanners: func(opts scanOptions) ([]inventory.Scanner, error) {
+		buildScanners: func(opts Options) ([]inventory.Scanner, error) {
 			return []inventory.Scanner{capturingScanner(&capturedCfg)}, nil
 		},
-		buildLocalSink: func(_ scanOptions) inventory.Sink { return &recordingSink{} },
-		buildCloudSink: func(_ context.Context, _ auth.Credentials, _ scanOptions) (inventory.Sink, func(), error) {
+		buildLocalSink: func(_ Options) inventory.Sink { return &recordingSink{} },
+		buildCloudSink: func(_ context.Context, _ auth.Credentials, _ Options) (inventory.Sink, func(), error) {
 			return nil, nil, nil
 		},
 	}
-	err := runScanWithDeps(context.Background(), scanOptions{drainTimeout: time.Second}, deps)
+	err := runScanWithDeps(context.Background(), Options{DrainTimeout: time.Second}, deps)
 	require.NoError(t, err)
 	assert.NotEmpty(t, capturedCfg.ProjectDir, "ProjectDir should default to cwd when flag is empty")
 }
@@ -270,18 +279,18 @@ func TestRunScanWithDeps_ScopeFlagPropagatesToScanConfig(t *testing.T) {
 	var capturedCfg inventory.ScanConfig
 	deps := scanDeps{
 		resolver: stubResolver{err: auth.ErrNoCredentials},
-		buildScanners: func(_ scanOptions) ([]inventory.Scanner, error) {
+		buildScanners: func(_ Options) ([]inventory.Scanner, error) {
 			return []inventory.Scanner{capturingScanner(&capturedCfg)}, nil
 		},
-		buildLocalSink: func(_ scanOptions) inventory.Sink { return &recordingSink{} },
-		buildCloudSink: func(_ context.Context, _ auth.Credentials, _ scanOptions) (inventory.Sink, func(), error) {
+		buildLocalSink: func(_ Options) inventory.Sink { return &recordingSink{} },
+		buildCloudSink: func(_ context.Context, _ auth.Credentials, _ Options) (inventory.Sink, func(), error) {
 			return nil, nil, nil
 		},
 	}
-	opts := scanOptions{
-		scopes:       []string{"system", "project"},
-		projectDir:   "/tmp/proj",
-		drainTimeout: time.Second,
+	opts := Options{
+		Scopes:       []string{"system", "project"},
+		ProjectDir:   "/tmp/proj",
+		DrainTimeout: time.Second,
 	}
 	err := runScanWithDeps(context.Background(), opts, deps)
 	require.NoError(t, err)
@@ -292,15 +301,15 @@ func TestRunScanWithDeps_ScopeFlagPropagatesToScanConfig(t *testing.T) {
 func TestRunScanWithDeps_BuildScannersError_Aborts(t *testing.T) {
 	deps := scanDeps{
 		resolver: stubResolver{err: auth.ErrNoCredentials},
-		buildScanners: func(_ scanOptions) ([]inventory.Scanner, error) {
+		buildScanners: func(_ Options) ([]inventory.Scanner, error) {
 			return nil, errors.New("unknown kind: foo")
 		},
-		buildLocalSink: func(_ scanOptions) inventory.Sink { return &recordingSink{} },
-		buildCloudSink: func(_ context.Context, _ auth.Credentials, _ scanOptions) (inventory.Sink, func(), error) {
+		buildLocalSink: func(_ Options) inventory.Sink { return &recordingSink{} },
+		buildCloudSink: func(_ context.Context, _ auth.Credentials, _ Options) (inventory.Sink, func(), error) {
 			return nil, nil, nil
 		},
 	}
-	err := runScanWithDeps(context.Background(), scanOptions{drainTimeout: time.Second}, deps)
+	err := runScanWithDeps(context.Background(), Options{DrainTimeout: time.Second}, deps)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "unknown kind")
 }

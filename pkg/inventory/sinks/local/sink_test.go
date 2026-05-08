@@ -72,7 +72,7 @@ func TestLocalSinkRendersTable(t *testing.T) {
 	runScan(t, sink, twoSampleItems())
 
 	out := buf.String()
-	assert.Contains(t, out, "Discovered 2 AI tool usage(s)")
+	assert.Contains(t, out, "Discovered 2 item(s)")
 	assert.Contains(t, out, "TYPE")
 	assert.Contains(t, out, "MCP Server")
 	assert.Contains(t, out, "CLI Tool")
@@ -99,7 +99,7 @@ func TestLocalSinkEmptyScanRendersHeaderOnly(t *testing.T) {
 	runScan(t, sink, nil)
 
 	out := buf.String()
-	assert.Contains(t, out, "Discovered 0 AI tool usage(s) across 0 app(s)")
+	assert.Contains(t, out, "Discovered 0 item(s) across 0 app(s)")
 	assert.NotContains(t, out, "TYPE", "no table when there are no items")
 }
 

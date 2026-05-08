@@ -1,6 +1,6 @@
 # ADR 0001: `vet endpoint scan`
 
-Status: Proposed
+Status: Accepted
 Date: 2026-05-07
 
 ## Context
@@ -14,16 +14,19 @@ vet has a local AI tool discoverer (`vet ai discover`) whose output never reache
 - New top-level: `vet endpoint scan`. Scans the endpoint, syncs to cloud when credentials are present.
 - `vet ai discover` is kept as a permanent alias for `vet endpoint scan --kind ai-tool`.
 - No `--no-sync` flag. Behaviour is determined by credential presence:
-  - credentials present: scan, stream events to the WAL, background flusher delivers to cloud, command exits after discovery completes and the WAL is drained (bounded grace).
-  - credentials absent: scan, render the local table, exit 0 with a one-line hint pointing at `safedep auth login` or `SAFEDEP_API_KEY`.
+  - credentials present and valid: scan, stream events to the WAL, background flusher delivers to cloud, command exits after discovery completes and the WAL has drained (bounded grace).
+  - credentials present but rejected by cloud (wrong key, missing scope): scan continues; transient delivery failures are logged at the cloud-sink boundary and do not abort the scan. Undelivered events stay in the WAL up to endpointsync's pending cap and retry on the next run.
+  - credentials absent: scan, render the local table, exit 0 with a one-line hint pointing at `vet auth configure` or env vars (`SAFEDEP_API_KEY`, `SAFEDEP_TENANT_ID`). The cloud sink is never constructed in this path, so no WAL is ever opened.
 
 ### Scope of `vet endpoint scan`
 
 In scope, by milestone:
 
 - M1: AI tools (existing `pkg/aitool` discoverers).
-- Near term: IDE extensions (already emitted by `pkg/aitool`), browser extensions.
-- Medium term: OS packages (brew, dnf, apt, choco), full filesystem OSS package inventory.
+- Near term: IDE extensions (already emitted by `pkg/aitool` via `vsix_ext_reader`; reaches cloud as `ITEM_OBSERVED` with `kind=AI_EXTENSION`), browser extensions.
+- Medium term: OS packages (brew, dnf, apt, choco), full filesystem OSS package inventory (npm, pypi and other ecosystems detected by walking the user's project trees), CycloneDX SBOM emission for the discovered inventory.
+
+Each new kind plugs in via the `pkg/inventory/scanners` registry (`Descriptor` literal + a sub-package implementing `inventory.Scanner`); the orchestrator, sinks, and wire format are unchanged.
 
 Out of scope, permanently:
 
@@ -34,18 +37,22 @@ Out of scope, permanently:
 - One `invocation_id` per scan, generated in vet, attached to every emitted event.
 - Each discovered item produces one `ITEM_OBSERVED` event. End of scan emits one `SCAN_SUMMARY` event. Errors during scan emit `ERROR` events.
 - Two goroutines, one durable buffer:
-  - The producer goroutine (the command) runs scanners and writes events to the local `endpointsync` WAL (a SQLite file). Each write is a local insert, on the order of microseconds. The producer never blocks on the network.
+  - The producer goroutine (the command) runs scanners and writes events to the local `endpointsync` WAL (a SQLite file at the endpointsync default path). Each write is a local insert, on the order of microseconds. The producer never blocks on the network.
   - The consumer goroutine lives inside `endpointsync.SyncClient`. It drains the WAL and ships batches to cloud over gRPC. It runs concurrently with the producer.
-  - The WAL is the boundary. It survives process crashes; events queued before a crash ship on the next run.
-- End of scan: the command calls `Close` on the cloud sink, which waits for the WAL to drain up to a bounded deadline (default 30s, configurable). If the deadline hits, undelivered events stay in the WAL for the next run and the command exits 0.
+  - The WAL persists across runs by design. Two reasons:
+    1. Events queued while offline (or during cloud-side outages) ship on the next successful scan, preserving the audit trail of transient observations (e.g. a tool that was installed and uninstalled between two scans).
+    2. The spec designates this WAL as the persistence layer for the deferred client-side-delta feature: future versions of vet will store last-scan fingerprints in this same SQLite file and emit `ITEM_ADDED` / `ITEM_REMOVED` / `ITEM_CHANGED` events. A per-scan tmp WAL would defeat that.
+  - Delivered events are purged after every successful Sync; undelivered pending events are bounded by endpointsync's `defaultMaxPending = 100_000` ceiling so the on-disk footprint cannot grow without bound.
+- End of scan: the command calls `Close` on the cloud sink, which waits for the WAL to drain up to a bounded deadline (default 30s, configurable). If the deadline hits, undelivered events stay in the WAL and ship on the next run.
 
 ### Credentials
 
-1. vet env vars (`VET_API_KEY`, `SAFEDEP_API_KEY`, `VET_INSIGHTS_API_KEY`, plus tenant equivalents).
+1. vet env vars: API key from `VET_API_KEY` / `SAFEDEP_API_KEY` / `VET_INSIGHTS_API_KEY`, tenant from `SAFEDEP_TENANT_ID` (the canonical name) or its `VET_*` alias. Both halves required.
 2. vet's `~/.safedep/vet-auth.yml` (existing legacy file; respected if present but won't be extended).
-3. DRY keychain provider, constructed without an insecure file fallback.
-4. DRY env provider.
-5. Fail with a hint: "no SafeDep credentials; run `safedep auth login` or set `SAFEDEP_API_KEY`."
+3. DRY keychain provider, constructed without an insecure file fallback. On WSL/headless Linux where no OS keyring is reachable, this layer falls through silently to step 4.
+4. Fail with a hint: "SafeDep cloud sync available; run `vet auth configure` or set `SAFEDEP_API_KEY` and `SAFEDEP_TENANT_ID` to enable."
+
+A layer that holds one half of a credential pair (key without tenant, or vice versa) returns `ErrIncompleteCredentials` and stops the chain. The user clearly intended that layer; missing the other half is a configuration error, not a fall-through trigger.
 
 vet's `vet-auth.yml` is the legacy insecure store. It is not deprecated by this ADR but no new write paths are added to it. Headless and WSL environments are served by env vars.
 

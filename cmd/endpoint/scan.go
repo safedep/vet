@@ -9,7 +9,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -23,6 +22,7 @@ import (
 
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/internal/command"
+	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/inventory"
 	"github.com/safedep/vet/pkg/inventory/scanners"
 	cloudsink "github.com/safedep/vet/pkg/inventory/sinks/cloud"
@@ -30,28 +30,15 @@ import (
 )
 
 // DefaultDrainTimeout is the default `--drain-timeout` value and the
-// fallback when AliasOptions.DrainTimeout is zero. Mirrors the cloud
-// sink's own default.
+// fallback applied when Options.DrainTimeout is zero.
 const DefaultDrainTimeout = 30 * time.Second
 
-// scanOptions is the parsed form of the `vet endpoint scan` flag set.
-// Exported field names would belong on a public surface; this struct is
-// intentionally package-private so the alias in cmd/ai stays the only
-// other caller.
-type scanOptions struct {
-	scopes       []string
-	projectDir   string
-	reportJSON   string
-	silent       bool
-	kinds        []string
-	drainTimeout time.Duration
-}
-
-// AliasOptions is the public surface for cmd packages that re-export
-// `vet endpoint scan` under a friendlier name. It excludes --kind on
-// purpose: an alias pins the scanner kind via its dedicated entrypoint
-// (e.g. RunAITool), it does not pick the kind set itself.
-type AliasOptions struct {
+// Options is the public surface common to `vet endpoint scan` and the
+// aliases that re-export it. cobra binds this directly. Aliases that
+// pin a specific scanner kind (e.g. RunAITool) overwrite Options.Kinds
+// before invoking the shared pipeline; callers of an alias entrypoint
+// do not need to set Kinds; it is overwritten.
+type Options struct {
 	// Scopes restricts discovery to a subset of inventory scopes; nil
 	// means "all scopes enabled" (mirrors aitool.DiscoveryConfig).
 	Scopes []string
@@ -63,48 +50,38 @@ type AliasOptions struct {
 	ReportJSON string
 	// Silent suppresses the local table render at end-of-scan.
 	Silent bool
-	// DrainTimeout bounds CloudSink.Close's wait for the WAL to ship.
-	// Zero falls back to DefaultDrainTimeout.
+	// Kinds is the scanner-kind allowlist; nil/empty means "all
+	// registered kinds". Set directly by `vet endpoint scan`'s --kind
+	// flag; overwritten by alias entrypoints.
+	Kinds []string
+	// DrainTimeout bounds CloudSink.Close's wait for pending events to
+	// ship. Zero falls back to DefaultDrainTimeout.
 	DrainTimeout time.Duration
 }
 
 // RunAITool runs the endpoint-scan pipeline pinned to the ai-tool kind.
-// It is the integration point for cmd/ai/discover.
-func RunAITool(ctx context.Context, opts AliasOptions) error {
-	return runAlias(ctx, opts, []string{scanners.KindAITool})
-}
-
-func runAlias(ctx context.Context, opts AliasOptions, kinds []string) error {
-	drain := opts.DrainTimeout
-	if drain <= 0 {
-		drain = DefaultDrainTimeout
-	}
-	return runScan(ctx, scanOptions{
-		scopes:       opts.Scopes,
-		projectDir:   opts.ProjectDir,
-		reportJSON:   opts.ReportJSON,
-		silent:       opts.Silent,
-		kinds:        kinds,
-		drainTimeout: drain,
-	})
+// It is the integration point for cmd/ai/discover; opts.Kinds is
+// overwritten.
+func RunAITool(ctx context.Context, opts Options) error {
+	opts.Kinds = []string{scanners.KindAITool}
+	return runScan(ctx, opts)
 }
 
 // scanRunner is the function shape captured by the cobra RunE closure;
 // extracted so tests can replace it without executing the full pipeline.
-type scanRunner func(ctx context.Context, opts scanOptions) error
+type scanRunner func(ctx context.Context, opts Options) error
 
 // scanDeps groups the injectable builders runScanWithDeps depends on.
 // Tests inject stubs; production wires the real builders via runScan.
 type scanDeps struct {
 	resolver       auth.Resolver
-	buildScanners  func(opts scanOptions) ([]inventory.Scanner, error)
-	buildLocalSink func(opts scanOptions) inventory.Sink
+	buildScanners  func(opts Options) ([]inventory.Scanner, error)
+	buildLocalSink func(opts Options) inventory.Sink
 	// buildCloudSink returns the cloud sink, an optional cleanup hook
-	// (closes the underlying gRPC conn), and an error. The cleanup hook
-	// runs after the orchestrator returns so the conn outlives Sync's
-	// drain on Close.
-	buildCloudSink func(ctx context.Context, creds auth.Credentials, opts scanOptions) (inventory.Sink, func(), error)
-	stderr         io.Writer
+	// (closes the underlying gRPC conn), and an error. The hook runs
+	// after the orchestrator returns so the conn outlives Sync's drain
+	// on Close.
+	buildCloudSink func(ctx context.Context, creds auth.Credentials, opts Options) (inventory.Sink, func(), error)
 }
 
 // newScanCommand returns the production `vet endpoint scan` cobra
@@ -117,8 +94,8 @@ func newScanCommand() *cobra.Command {
 // the supplied runner. Tests inject a runner that records the parsed
 // options instead of executing a real scan.
 func newScanCommandWithRunner(run scanRunner) *cobra.Command {
-	opts := &scanOptions{
-		drainTimeout: DefaultDrainTimeout,
+	opts := &Options{
+		DrainTimeout: DefaultDrainTimeout,
 	}
 	cmd := &cobra.Command{
 		Use:   "scan",
@@ -132,49 +109,45 @@ local table and exits 0 with a hint.`,
 		},
 	}
 
-	cmd.Flags().StringArrayVar(&opts.scopes, "scope", nil,
+	cmd.Flags().StringArrayVar(&opts.Scopes, "scope", nil,
 		"Limit to specific scopes (system, project); repeatable, empty for all")
-	cmd.Flags().StringVarP(&opts.projectDir, "project-dir", "D", "",
+	cmd.Flags().StringVarP(&opts.ProjectDir, "project-dir", "D", "",
 		"Project root for project-level discovery (default: cwd)")
-	cmd.Flags().StringVar(&opts.reportJSON, "report-json", "",
+	cmd.Flags().StringVar(&opts.ReportJSON, "report-json", "",
 		"Write JSON inventory to file")
-	cmd.Flags().BoolVarP(&opts.silent, "silent", "s", false,
+	cmd.Flags().BoolVarP(&opts.Silent, "silent", "s", false,
 		"Suppress default summary output")
-	cmd.Flags().StringArrayVar(&opts.kinds, "kind", nil,
+	cmd.Flags().StringArrayVar(&opts.Kinds, "kind", nil,
 		fmt.Sprintf("Limit to specific scanner kinds (allowed: %s); repeatable, empty for all", strings.Join(scanners.AllowedKinds(), ", ")))
-	cmd.Flags().DurationVar(&opts.drainTimeout, "drain-timeout", DefaultDrainTimeout,
+	cmd.Flags().DurationVar(&opts.DrainTimeout, "drain-timeout", DefaultDrainTimeout,
 		"Maximum time to wait for pending cloud uploads to finish on exit")
 
 	return cmd
 }
 
-func runScan(ctx context.Context, opts scanOptions) error {
+func runScan(ctx context.Context, opts Options) error {
 	deps := scanDeps{
 		resolver: auth.NewLayeredResolver(),
-		buildScanners: func(opts scanOptions) ([]inventory.Scanner, error) {
-			return scanners.Build(opts.kinds)
+		buildScanners: func(opts Options) ([]inventory.Scanner, error) {
+			return scanners.Build(opts.Kinds)
 		},
 		buildLocalSink: buildLocalSink,
 		buildCloudSink: buildCloudSink,
-		stderr:         os.Stderr,
 	}
 	return runScanWithDeps(ctx, opts, deps)
 }
 
 // runScanWithDeps is the testable core. The resolver outcome dictates
 // whether a CloudSink is added; on any non-success the local sink path
-// runs alone and the user keeps the table.
-func runScanWithDeps(ctx context.Context, opts scanOptions, deps scanDeps) error {
-	stderr := deps.stderr
-	if stderr == nil {
-		stderr = os.Stderr
-	}
+// runs alone. The CloudSink is only built when the resolver returns
+// success, so users without credentials never open the WAL.
+func runScanWithDeps(ctx context.Context, opts Options, deps scanDeps) error {
 	cfg, err := buildScanConfig(opts)
 	if err != nil {
 		return err
 	}
 
-	scanners, err := deps.buildScanners(opts)
+	scannerSet, err := deps.buildScanners(opts)
 	if err != nil {
 		return err
 	}
@@ -187,7 +160,7 @@ func runScanWithDeps(ctx context.Context, opts scanOptions, deps scanDeps) error
 	case resolveErr == nil:
 		cloudSink, cleanup, err := deps.buildCloudSink(ctx, creds, opts)
 		if err != nil {
-			_, _ = fmt.Fprintf(stderr, "vet endpoint scan: failed to enable cloud sync (%v); continuing with local-only output\n", err)
+			ui.PrintWarning("vet endpoint scan: failed to enable cloud sync (%v); continuing with local-only output", err)
 			break
 		}
 		if cleanup != nil {
@@ -195,23 +168,23 @@ func runScanWithDeps(ctx context.Context, opts scanOptions, deps scanDeps) error
 		}
 		sinks = append(sinks, cloudSink)
 	case errors.Is(resolveErr, auth.ErrNoCredentials):
-		_, _ = fmt.Fprintln(stderr, "SafeDep cloud sync available; run `vet auth configure` or set SAFEDEP_API_KEY and SAFEDEP_TENANT_ID to enable.")
+		ui.PrintMsg("SafeDep cloud sync available; run `vet auth configure` or set SAFEDEP_API_KEY and SAFEDEP_TENANT_ID to enable.")
 	case errors.Is(resolveErr, auth.ErrIncompleteCredentials):
-		_, _ = fmt.Fprintf(stderr, "vet endpoint scan: %v; continuing with local-only output\n", resolveErr)
+		ui.PrintWarning("vet endpoint scan: %v; continuing with local-only output", resolveErr)
 	default:
-		_, _ = fmt.Fprintf(stderr, "vet endpoint scan: credential resolution failed (%v); continuing with local-only output\n", resolveErr)
+		ui.PrintWarning("vet endpoint scan: credential resolution failed (%v); continuing with local-only output", resolveErr)
 	}
 	defer cloudCleanup()
 
-	return inventory.New(scanners, sinks).Run(ctx, cfg)
+	return inventory.New(scannerSet, sinks).Run(ctx, cfg)
 }
 
-// buildScanConfig translates scanOptions into the read-only ScanConfig
-// the inventory orchestrator hands to scanners. ProjectDir defaults to
-// the current working directory when no override is supplied so
+// buildScanConfig translates Options into the read-only ScanConfig the
+// inventory orchestrator hands to scanners. ProjectDir defaults to the
+// current working directory when no override is supplied so
 // project-scoped scanners always have a root to walk.
-func buildScanConfig(opts scanOptions) (inventory.ScanConfig, error) {
-	projectDir := opts.projectDir
+func buildScanConfig(opts Options) (inventory.ScanConfig, error) {
+	projectDir := opts.ProjectDir
 	if projectDir == "" {
 		cwd, err := os.Getwd()
 		if err != nil {
@@ -220,7 +193,7 @@ func buildScanConfig(opts scanOptions) (inventory.ScanConfig, error) {
 		projectDir = cwd
 	}
 
-	scopes, err := parseScopes(opts.scopes)
+	scopes, err := parseScopes(opts.Scopes)
 	if err != nil {
 		return inventory.ScanConfig{}, err
 	}
@@ -255,42 +228,41 @@ func parseScopes(scopes []string) ([]inventory.Scope, error) {
 // buildLocalSink composes the production LocalSink from the user-facing
 // flags. WithOutput is left at its default (os.Stderr) so the table
 // renders to the same stream `vet ai discover` has used historically.
-func buildLocalSink(opts scanOptions) inventory.Sink {
+func buildLocalSink(opts Options) inventory.Sink {
 	sinkOpts := []localsink.Option{}
-	if opts.silent {
+	if opts.Silent {
 		sinkOpts = append(sinkOpts, localsink.WithSilent())
 	}
-	if opts.reportJSON != "" {
-		sinkOpts = append(sinkOpts, localsink.WithReportJSON(opts.reportJSON))
+	if opts.ReportJSON != "" {
+		sinkOpts = append(sinkOpts, localsink.WithReportJSON(opts.ReportJSON))
 	}
 	return localsink.New(sinkOpts...)
 }
 
 // buildCloudSink dials the SafeDep sync endpoint, constructs the
-// endpointsync client, and wraps it in a CloudSink. The returned
-// cleanup closes the gRPC conn after the orchestrator's drain;
-// endpointsync's transport Close is a no-op so the conn is owned here.
-func buildCloudSink(_ context.Context, creds auth.Credentials, opts scanOptions) (inventory.Sink, func(), error) {
+// endpointsync client, and wraps it in a CloudSink. The WAL persists
+// across runs at the endpointsync default path; delivered events are
+// purged on every successful Sync, undelivered events are bounded by
+// endpointsync's 100k pending cap. The cleanup hook closes the gRPC
+// conn (endpointsync's transport Close is a no-op).
+func buildCloudSink(_ context.Context, creds auth.Credentials, opts Options) (inventory.Sink, func(), error) {
 	conn, err := dialSyncConn(creds)
 	if err != nil {
 		return nil, nil, fmt.Errorf("dial sync endpoint: %w", err)
 	}
 
-	transport := endpointsync.NewGrpcTransport(conn)
-	identity := endpointsync.NewEndpointIdentityResolver()
-
 	client, err := endpointsync.NewSyncClient(
 		"vet",
 		toolVersion(),
-		transport,
-		identity,
+		endpointsync.NewGrpcTransport(conn),
+		endpointsync.NewEndpointIdentityResolver(),
 	)
 	if err != nil {
 		_ = conn.Close()
 		return nil, nil, fmt.Errorf("init endpointsync client: %w", err)
 	}
 
-	sink := cloudsink.New(client, cloudsink.WithDrainTimeout(opts.drainTimeout))
+	sink := cloudsink.New(client, cloudsink.WithDrainTimeout(opts.DrainTimeout))
 	cleanup := func() { _ = conn.Close() }
 	return sink, cleanup, nil
 }

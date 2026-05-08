@@ -154,18 +154,18 @@ func defaultDryKeychainResolver() (cloud.CloseableCredentialResolver, error) {
 	return cloud.NewKeychainCredentialResolver(cloud.CredentialTypeAPIKey)
 }
 
-// keychainBackendUnavailableMarker is the stable wrap prefix
+// KeychainBackendUnavailableMarker is the stable wrap prefix
 // dry/keychain.New emits when no OS keyring backend is reachable
 // (e.g. WSL without DBus, headless Linux without secret-service).
 // We treat this as "no credentials in this layer" so the chain
 // continues to the no-creds hint instead of stopping with a confusing
-// backend error.
-const keychainBackendUnavailableMarker = "keychain: OS keychain unavailable"
+// backend error. Exported so tests can construct fixtures that match.
+const KeychainBackendUnavailableMarker = "keychain: OS keychain unavailable"
 
 func (s *dryKeychainSource) resolve(_ context.Context) (Credentials, error) {
 	resolver, err := s.newResolver()
 	if err != nil {
-		if strings.Contains(err.Error(), keychainBackendUnavailableMarker) {
+		if strings.Contains(err.Error(), KeychainBackendUnavailableMarker) {
 			return Credentials{}, ErrNoCredentials
 		}
 		return Credentials{}, fmt.Errorf("auth: keychain unavailable: %w", err)
@@ -187,7 +187,11 @@ func (s *dryKeychainSource) resolve(_ context.Context) (Credentials, error) {
 	tenant, err := creds.GetTenantDomain()
 	if err != nil {
 		if errors.Is(err, cloud.ErrMissingCredentials) {
-			return Credentials{}, ErrNoCredentials
+			// Keychain holds an API key but no tenant. The user clearly
+			// opted into keychain auth; missing the other half is a
+			// configuration error, not a fall-through trigger. Matches
+			// vetEnvFileSource's partial-credential semantics.
+			return Credentials{}, fmt.Errorf("%w: keychain has API key but no tenant", ErrIncompleteCredentials)
 		}
 		return Credentials{}, fmt.Errorf("auth: keychain credentials: %w", err)
 	}

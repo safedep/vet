@@ -218,6 +218,10 @@ func TestCloudSink_CloseDrainsAndClosesClient(t *testing.T) {
 	require.NoError(t, sink.Close(context.Background()))
 	assert.Equal(t, 1, fake.syncCount, "Close should call Sync exactly once")
 	assert.Equal(t, 1, fake.closeCount, "Close should call client.Close exactly once")
+
+	require.NotNil(t, fake.syncLastSeen, "Sync should have received a context")
+	_, hasDeadline := fake.syncLastSeen.Deadline()
+	assert.True(t, hasDeadline, "Close must apply WithDrainTimeout to the Sync context")
 }
 
 func TestCloudSink_CloseSwallowsSyncTimeout(t *testing.T) {

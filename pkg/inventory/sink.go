@@ -31,8 +31,8 @@ func NewSession() *Session {
 // substituted for the proto's Discoverer field.
 type ScanError struct {
 	// ScannerName is the Scanner.Name() of the active scanner. Sink.Emit
-	// failures are also attributed here (the failing sink is logged
-	// alongside).
+	// failures are attributed here too, matching the proto's discoverer
+	// field semantics.
 	ScannerName string
 	// ErrorType is a coarse classifier (e.g. "scanner_failed",
 	// "sink_emit_failed"). Optional; empty when not classified.

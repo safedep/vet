@@ -238,6 +238,31 @@ func TestOrchestratorRunBeginErrorAbortsAndClosesPriorSinks(t *testing.T) {
 	assert.Empty(t, sinkC.calls)
 }
 
+func TestOrchestratorRunBeginErrorClosesPriorSinksInReverseOrder(t *testing.T) {
+	// Drives the begin-failure cleanup path with multiple successful
+	// sinks before the failing one, to assert LIFO Close order
+	// (resource-cleanup convention) rather than registration order.
+	closeOrder := []string{}
+	track := func(name string) func() error {
+		return func() error {
+			closeOrder = append(closeOrder, name)
+			return nil
+		}
+	}
+	sinkA := &recordingSink{name: "a", closeErr: track("a")}
+	sinkB := &recordingSink{name: "b", closeErr: track("b")}
+	sinkC := &recordingSink{
+		name:     "c",
+		beginErr: func() error { return errors.New("begin c failed") },
+	}
+	orch := New([]Scanner{}, []Sink{sinkA, sinkB, sinkC})
+
+	err := orch.Run(context.Background(), ScanConfig{})
+
+	require.Error(t, err)
+	assert.Equal(t, []string{"b", "a"}, closeOrder, "begin-failure cleanup must close prior sinks LIFO")
+}
+
 func TestOrchestratorRunEndErrorReturnsLastNonNilError(t *testing.T) {
 	sinkA := &recordingSink{
 		name:   "a",

@@ -16,8 +16,8 @@ func TestDiscoverCommand_DelegatesToRunAITool(t *testing.T) {
 	original := runAITool
 	t.Cleanup(func() { runAITool = original })
 
-	var captured endpoint.AliasOptions
-	runAITool = func(_ context.Context, opts endpoint.AliasOptions) error {
+	var captured endpoint.Options
+	runAITool = func(_ context.Context, opts endpoint.Options) error {
 		captured = opts
 		return nil
 	}
@@ -45,8 +45,8 @@ func TestDiscoverCommand_DefaultDrainTimeout(t *testing.T) {
 	original := runAITool
 	t.Cleanup(func() { runAITool = original })
 
-	var captured endpoint.AliasOptions
-	runAITool = func(_ context.Context, opts endpoint.AliasOptions) error {
+	var captured endpoint.Options
+	runAITool = func(_ context.Context, opts endpoint.Options) error {
 		captured = opts
 		return nil
 	}

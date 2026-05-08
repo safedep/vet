@@ -101,10 +101,10 @@ func agentDetailToProto(d *inventory.AgentDetail) *controltowerv1pb.VetInventory
 // to InventoryItemKind.String() so the keys stay in lockstep with the
 // generated enum.
 //
-// TotalObserved widens from uint64 (domain) to uint32 (wire). The
-// inventory pipeline produces counts in the millions worst-case, so
-// the narrower wire type is sufficient; the cast is documented here
-// rather than asserted, matching the proto contract.
+// TotalObserved narrows from uint64 (domain) to uint32 (wire). The
+// inventory pipeline produces counts in the millions worst-case, well
+// below 2^32, so the narrower wire type is safe; the cast is documented
+// here rather than asserted, matching the proto contract.
 func scanSummaryToProto(s *inventory.ScanSummary) *controltowerv1pb.VetInventoryEvent_ScanSummary {
 	perKind := make(map[string]uint32, len(s.KindCounts))
 	for k, v := range s.KindCounts {

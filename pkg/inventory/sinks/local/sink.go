@@ -132,12 +132,10 @@ func (s *LocalSink) Close(_ context.Context) error {
 }
 
 // renderTable emits the discovery summary table to the configured
-// writer, preserving the column layout and styling vet's
-// `ai discover` command produces today
-// (TYPE | NAME | APP | SCOPE | DETAIL).
+// writer (TYPE | NAME | APP | SCOPE | DETAIL).
 func (s *LocalSink) renderTable() {
 	apps := countDistinctApps(s.items)
-	if _, err := fmt.Fprintf(s.output, "\nDiscovered %d AI tool usage(s) across %d app(s)\n\n", len(s.items), apps); err != nil {
+	if _, err := fmt.Fprintf(s.output, "\nDiscovered %d item(s) across %d app(s)\n\n", len(s.items), apps); err != nil {
 		logger.Warnf("local sink: write header: %v", err)
 	}
 

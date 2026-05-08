@@ -210,7 +210,7 @@ func TestDryKeychainSource_ConstructionFailurePropagates(t *testing.T) {
 // so the chain falls through to the env-vars hint.
 func TestDryKeychainSource_BackendUnreachableFallsThrough(t *testing.T) {
 	wrapped := fmt.Errorf("cloud: failed to create keychain: %w",
-		fmt.Errorf("keychain: OS keychain unavailable: %w",
+		fmt.Errorf("%s: %w", KeychainBackendUnavailableMarker,
 			errors.New("name is not activatable")))
 	src := &dryKeychainSource{
 		newResolver: func() (cloud.CloseableCredentialResolver, error) {

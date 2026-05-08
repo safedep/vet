@@ -19,7 +19,7 @@ import (
 const defaultDrainTimeout = 30 * time.Second
 
 // syncClient is the narrow surface CloudSink depends on. The real
-// *endpointsync.syncClient satisfies it; tests stub it.
+// *endpointsync.SyncClient satisfies it; tests stub it.
 type syncClient interface {
 	NewEvent() (*servicev1.ToolEvent, error)
 	Emit(ctx context.Context, ev *servicev1.ToolEvent) error
