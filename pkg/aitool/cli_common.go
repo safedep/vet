@@ -44,7 +44,14 @@ func probeAndVerify(ctx context.Context, verifier CLIToolVerifier, handler AIToo
 	for _, name := range verifier.BinaryNames() {
 		tool, err := probeBinary(ctx, name, verifier)
 		if err != nil {
-			logger.Errorf("Failed to probe binary: %s err: %v", name, err)
+			// Binary-not-on-PATH and verifier-output-mismatch are
+			// expected outcomes when the tool is not installed; they
+			// belong at debug, not error.
+			if errors.Is(err, exec.ErrNotFound) || errors.Is(err, errNotVerified) {
+				logger.Debugf("probe %s: %v", name, err)
+			} else {
+				logger.Warnf("probe %s: %v", name, err)
+			}
 			continue
 		}
 
