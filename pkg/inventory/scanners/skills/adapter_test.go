@@ -184,6 +184,54 @@ func TestAdapterScanEmitsClaudeMarketplaceSkills(t *testing.T) {
 	assert.Equal(t, emitted[0].ConfigPath, emitted[0].Metadata["skill.path"])
 }
 
+func TestAdapterScanExpandsHiddenMetaSkillContainers(t *testing.T) {
+	tmp := t.TempDir()
+	// .system is a hidden meta-container holding real skills inside.
+	require.NoError(t, os.MkdirAll(filepath.Join(tmp, ".codex", "skills", ".system", "imagegen"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmp, ".codex", "skills", ".system", "skill-creator"), 0o755))
+	// A regular skill alongside the container.
+	require.NoError(t, os.MkdirAll(filepath.Join(tmp, ".codex", "skills", "paperclip"), 0o755))
+
+	var names []string
+	err := New().Scan(context.Background(), inventory.ScanConfig{
+		HomeDir: tmp,
+		Scopes:  []inventory.Scope{inventory.ScopeSystem},
+	}, func(item *inventory.Item) error {
+		if item.App == "codex" {
+			names = append(names, item.Name)
+		}
+		return nil
+	})
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{".system/imagegen", ".system/skill-creator", "paperclip"}, names,
+		"inner skills of hidden containers must be emitted with meta-dir prefix; container itself must not")
+}
+
+func TestAdapterScanFollowsSymlinkedSkillDirs(t *testing.T) {
+	tmp := t.TempDir()
+	skillsDir := filepath.Join(tmp, ".codex", "skills")
+	require.NoError(t, os.MkdirAll(skillsDir, 0o755))
+
+	// Create the real directory elsewhere and symlink it into skills/.
+	realDir := filepath.Join(tmp, "real-skill-target")
+	require.NoError(t, os.MkdirAll(realDir, 0o755))
+	require.NoError(t, os.Symlink(realDir, filepath.Join(skillsDir, "paperclip")))
+
+	var emitted []*inventory.Item
+	err := New().Scan(context.Background(), inventory.ScanConfig{
+		HomeDir: tmp,
+		Scopes:  []inventory.Scope{inventory.ScopeSystem},
+	}, func(item *inventory.Item) error {
+		if item.App == "codex" {
+			emitted = append(emitted, item)
+		}
+		return nil
+	})
+	require.NoError(t, err)
+	require.Len(t, emitted, 1, "symlinked skill directory must be discovered")
+	assert.Equal(t, "paperclip", emitted[0].Name)
+}
+
 func TestAdapterScanRespectsSystemScopeOnly(t *testing.T) {
 	tmp := t.TempDir()
 	require.NoError(t, os.MkdirAll(filepath.Join(tmp, ".claude", "skills", "sys-skill"), 0o755))

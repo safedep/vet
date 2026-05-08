@@ -2,6 +2,7 @@ package skills
 
 import (
 	"context"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -213,15 +214,31 @@ func scanClaudeMarketplaceSkills(ctx context.Context, homeDir string, scope inve
 // scanDir lists subdirectories of dir and emits one Item per directory found.
 // namePrefix is prepended to the skill name (e.g. "superpowers/" for plugin skills).
 // Missing or unreadable directories are silently skipped.
-func scanDir(_ context.Context, dir, app, namePrefix string, scope inventory.Scope, emit inventory.EmitFunc) error {
+func scanDir(ctx context.Context, dir, app, namePrefix string, scope inventory.Scope, emit inventory.EmitFunc) error {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return nil
 	}
 	for _, e := range entries {
 		if !e.IsDir() {
+			// os.ReadDir does not follow symlinks; resolve and re-check.
+			if e.Type()&fs.ModeSymlink == 0 {
+				continue
+			}
+			info, err := os.Stat(filepath.Join(dir, e.Name()))
+			if err != nil || !info.IsDir() {
+				continue
+			}
+		}
+		// Hidden directories (e.g. .system) are meta-skill containers.
+		// Scan one level deeper and emit their children as skills instead.
+		if strings.HasPrefix(e.Name(), ".") {
+			if err := scanDir(ctx, filepath.Join(dir, e.Name()), app, namePrefix+e.Name()+"/", scope, emit); err != nil {
+				return err
+			}
 			continue
 		}
+
 		s := &skill{
 			App:        app,
 			Name:       namePrefix + e.Name(),
