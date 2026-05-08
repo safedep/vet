@@ -29,6 +29,7 @@ func translate(s *skill) *inventory.Item {
 		App:          s.App,
 		Scope:        s.Scope,
 		ConfigPath:   s.ConfigPath,
+		Metadata:     map[string]string{"skill.path": s.ConfigPath},
 	}
 }
 
@@ -41,6 +42,10 @@ func itemIdentity(app string, kind inventory.Kind, scope inventory.Scope, name, 
 }
 
 // sourceID groups skills emitted from the same agent skills directory.
+// Uses FNV-64a so the result is always ≤16 hex chars, satisfying the
+// backend's 100-character limit even for deep plugin paths.
 func sourceID(app, skillsDir string) string {
-	return fmt.Sprintf("%s:%s", app, skillsDir)
+	h := fnv.New64a()
+	_, _ = fmt.Fprintf(h, "%s:%s", app, skillsDir)
+	return fmt.Sprintf("%x", h.Sum64())
 }

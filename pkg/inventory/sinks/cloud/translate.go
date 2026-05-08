@@ -43,6 +43,19 @@ func scanErrorToVetEvent(e inventory.ScanError) *controltowerv1pb.VetInventoryEv
 	}.Build()
 }
 
+// maxSourceIDLen is the backend API limit for the source_id field,
+// enforced via API validation error observed in production.
+const maxSourceIDLen = 100
+
+// truncateSourceID caps source_id to the backend's 100-character limit.
+func truncateSourceID(s string) string {
+	runes := []rune(s)
+	if len(runes) <= maxSourceIDLen {
+		return s
+	}
+	return string(runes[:maxSourceIDLen])
+}
+
 // inventoryItemToProto translates an *inventory.Item 1:1 to its proto
 // counterpart. Pointer fields (Enabled, MCPServer, Agent) preserve
 // optional semantics: nil means "not set" on the wire.
@@ -50,7 +63,7 @@ func inventoryItemToProto(item *inventory.Item) *controltowerv1pb.VetInventoryEv
 	return controltowerv1pb.VetInventoryEvent_ItemObserved_builder{
 		Kind:         controltowerv1pb.InventoryItemKind(item.Kind),
 		ItemIdentity: item.ItemIdentity,
-		SourceId:     item.SourceID,
+		SourceId:     truncateSourceID(item.SourceID),
 		Name:         item.Name,
 		App:          item.App,
 		Scope:        controltowerv1pb.InventoryScope(item.Scope),

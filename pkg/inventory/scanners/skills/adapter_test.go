@@ -132,6 +132,58 @@ func TestAdapterScanRespectsProjectScopeOnly(t *testing.T) {
 	}
 }
 
+func TestAdapterScanEmitsClaudePluginSkills(t *testing.T) {
+	tmp := t.TempDir()
+	// Simulate ~/.claude/plugins/cache/<org>/<plugin>/<version>/skills/<skill>/
+	skillDir := filepath.Join(tmp, ".claude", "plugins", "cache", "acme-org", "my-plugin", "1.0.0", "skills")
+	require.NoError(t, os.MkdirAll(filepath.Join(skillDir, "skill-alpha"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(skillDir, "skill-beta"), 0o755))
+
+	var emitted []*inventory.Item
+	err := New().Scan(context.Background(), inventory.ScanConfig{
+		HomeDir: tmp,
+		Scopes:  []inventory.Scope{inventory.ScopeSystem},
+	}, func(item *inventory.Item) error {
+		emitted = append(emitted, item)
+		return nil
+	})
+	require.NoError(t, err)
+	require.Len(t, emitted, 2)
+
+	names := []string{emitted[0].Name, emitted[1].Name}
+	assert.ElementsMatch(t, []string{"my-plugin/skill-alpha", "my-plugin/skill-beta"}, names)
+	assert.Equal(t, "claude-code", emitted[0].App)
+	assert.Equal(t, inventory.KindAgentSkill, emitted[0].Kind)
+	assert.Equal(t, inventory.ScopeSystem, emitted[0].Scope)
+	assert.Equal(t, emitted[0].ConfigPath, emitted[0].Metadata["skill.path"])
+}
+
+func TestAdapterScanEmitsClaudeMarketplaceSkills(t *testing.T) {
+	tmp := t.TempDir()
+	// Simulate ~/.claude/plugins/marketplaces/<marketplace>/plugins/<plugin>/skills/<skill>/
+	skillDir := filepath.Join(tmp, ".claude", "plugins", "marketplaces", "my-marketplace", "plugins", "my-plugin", "skills")
+	require.NoError(t, os.MkdirAll(filepath.Join(skillDir, "skill-one"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(skillDir, "skill-two"), 0o755))
+
+	var emitted []*inventory.Item
+	err := New().Scan(context.Background(), inventory.ScanConfig{
+		HomeDir: tmp,
+		Scopes:  []inventory.Scope{inventory.ScopeSystem},
+	}, func(item *inventory.Item) error {
+		emitted = append(emitted, item)
+		return nil
+	})
+	require.NoError(t, err)
+	require.Len(t, emitted, 2)
+
+	names := []string{emitted[0].Name, emitted[1].Name}
+	assert.ElementsMatch(t, []string{"my-plugin/skill-one", "my-plugin/skill-two"}, names)
+	assert.Equal(t, "claude-code", emitted[0].App)
+	assert.Equal(t, inventory.KindAgentSkill, emitted[0].Kind)
+	assert.Equal(t, inventory.ScopeSystem, emitted[0].Scope)
+	assert.Equal(t, emitted[0].ConfigPath, emitted[0].Metadata["skill.path"])
+}
+
 func TestAdapterScanRespectsSystemScopeOnly(t *testing.T) {
 	tmp := t.TempDir()
 	require.NoError(t, os.MkdirAll(filepath.Join(tmp, ".claude", "skills", "sys-skill"), 0o755))

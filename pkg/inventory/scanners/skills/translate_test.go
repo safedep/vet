@@ -26,7 +26,7 @@ func TestTranslateBasicFields(t *testing.T) {
 	assert.NotEmpty(t, item.ItemIdentity)
 	assert.NotEmpty(t, item.SourceID)
 	assert.Nil(t, item.Enabled)
-	assert.Nil(t, item.Metadata)
+	assert.Equal(t, map[string]string{"skill.path": "/work/.claude/skills/yaad"}, item.Metadata)
 	assert.Nil(t, item.MCPServer)
 	assert.Nil(t, item.Agent)
 }
@@ -43,18 +43,26 @@ func TestTranslateItemIdentityDeterministic(t *testing.T) {
 }
 
 func TestTranslateItemIdentityUnique(t *testing.T) {
-	a := &skill{App: "cursor", Name: "skill-a", Scope: inventory.ScopeSystem,
-		ConfigPath: "/home/u/.cursor/skills/skill-a", SkillsDir: "/home/u/.cursor/skills"}
-	b := &skill{App: "cursor", Name: "skill-b", Scope: inventory.ScopeSystem,
-		ConfigPath: "/home/u/.cursor/skills/skill-b", SkillsDir: "/home/u/.cursor/skills"}
+	a := &skill{
+		App: "cursor", Name: "skill-a", Scope: inventory.ScopeSystem,
+		ConfigPath: "/home/u/.cursor/skills/skill-a", SkillsDir: "/home/u/.cursor/skills",
+	}
+	b := &skill{
+		App: "cursor", Name: "skill-b", Scope: inventory.ScopeSystem,
+		ConfigPath: "/home/u/.cursor/skills/skill-b", SkillsDir: "/home/u/.cursor/skills",
+	}
 	assert.NotEqual(t, translate(a).ItemIdentity, translate(b).ItemIdentity)
 }
 
 func TestTranslateSourceIDGroupsSkillsInSameDir(t *testing.T) {
 	dir := "/work/.claude/skills"
-	a := &skill{App: "claude-code", Name: "skill-a", Scope: inventory.ScopeProject,
-		ConfigPath: dir + "/skill-a", SkillsDir: dir}
-	b := &skill{App: "claude-code", Name: "skill-b", Scope: inventory.ScopeProject,
-		ConfigPath: dir + "/skill-b", SkillsDir: dir}
+	a := &skill{
+		App: "claude-code", Name: "skill-a", Scope: inventory.ScopeProject,
+		ConfigPath: dir + "/skill-a", SkillsDir: dir,
+	}
+	b := &skill{
+		App: "claude-code", Name: "skill-b", Scope: inventory.ScopeProject,
+		ConfigPath: dir + "/skill-b", SkillsDir: dir,
+	}
 	assert.Equal(t, translate(a).SourceID, translate(b).SourceID)
 }
