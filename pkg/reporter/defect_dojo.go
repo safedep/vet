@@ -39,6 +39,7 @@ type DefectDojoReporterConfig struct {
 
 type defectDojoReporter struct {
 	config           DefectDojoReporterConfig
+	productName      string
 	builder          *sarifBuilder
 	defectDojoClient *resty.Client
 }
@@ -59,8 +60,14 @@ func NewDefectDojoReporter(config DefectDojoReporterConfig) (Reporter, error) {
 		return nil, err
 	}
 
+	product, err := fetchDefectDojoProduct(defectDojoClient, config.ProductID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &defectDojoReporter{
 		config:           config,
+		productName:      product.Name,
 		builder:          builder,
 		defectDojoClient: defectDojoClient,
 	}, nil
@@ -79,6 +86,24 @@ func (r *defectDojoReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
 }
 
 func (r *defectDojoReporter) AddPolicyEvent(event *policy.PolicyEvent) {
+}
+
+func fetchDefectDojoProduct(client *resty.Client, productID int) (*DefectDojoProduct, error) {
+	product := &DefectDojoProduct{}
+	resp, err := client.R().
+		SetResult(product).
+		SetPathParams(map[string]string{
+			"id": strconv.Itoa(productID),
+		}).
+		Get("/api/v2/products/{id}")
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get product information for product_id = %d: %w", productID, err)
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("couldn't get product information for product_id = %d, response (%d) - %v", productID, resp.StatusCode(), resp.String())
+	}
+
+	return product, nil
 }
 
 func (r *defectDojoReporter) Finish() error {
@@ -106,23 +131,9 @@ func (r *defectDojoReporter) Finish() error {
 		return fmt.Errorf("error writing SARIF report: %w", err)
 	}
 
-	product := &DefectDojoProduct{}
-	resp, err := r.defectDojoClient.R().
-		SetResult(product).
-		SetPathParams(map[string]string{
-			"id": strconv.Itoa(r.config.ProductID),
-		}).
-		Get("/api/v2/products/{id}")
-	if err != nil {
-		return fmt.Errorf("couldn't get product information for product_id = %d: %w", r.config.ProductID, err)
-	}
-	if resp.IsError() {
-		return fmt.Errorf("couldn't get product information for product_id = %d, response (%d) - %v", r.config.ProductID, resp.StatusCode(), resp.String())
-	}
-
 	dateStr := time.Now().Format("2006-01-02")
 
-	resp, err = r.defectDojoClient.R().
+	resp, err := r.defectDojoClient.R().
 		SetFile("file", tempSarifReportFile.Name()).
 		SetFormData(map[string]string{
 			"scan_date":              dateStr,
@@ -133,7 +144,7 @@ func (r *defectDojoReporter) Finish() error {
 			"scan_type":              "SARIF",
 			"auto_create_context":    "true",
 			"product":                strconv.Itoa(r.config.ProductID),
-			"product_name":           product.Name,
+			"product_name":           r.productName,
 			"engagement_name":        r.config.EngagementName,
 		}).
 		Post("/api/v2/import-scan/")
