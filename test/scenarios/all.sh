@@ -26,3 +26,4 @@ bash $E2E_THIS_DIR/scenario-12-image-scan-local-docker-image.sh
 bash $E2E_THIS_DIR/scenario-13-image-scan-with-local-tar.sh
 bash $E2E_THIS_DIR/scenario-14-image-scan-with-remote-registry.sh
 bash $E2E_THIS_DIR/scenario-15-enricher-auto-switch.sh
+bash $E2E_THIS_DIR/scenario-16-endpoint-scan-no-creds-no-wal.sh

@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/fatih/color"
-	"github.com/safedep/dry/tui"
+	tuioutput "github.com/safedep/dry/tui/output"
 	"github.com/safedep/dry/utils"
 	"github.com/spf13/cobra"
 
@@ -16,6 +16,7 @@ import (
 	"github.com/safedep/vet/cmd/cloud"
 	"github.com/safedep/vet/cmd/code"
 	"github.com/safedep/vet/cmd/doc"
+	"github.com/safedep/vet/cmd/endpoint"
 	"github.com/safedep/vet/cmd/inspect"
 	"github.com/safedep/vet/cmd/server"
 	"github.com/safedep/vet/internal/analytics"
@@ -107,6 +108,7 @@ func main() {
 	cmd.AddCommand(agent.NewAgentCommand())
 	cmd.AddCommand(doc.NewDocCommand())
 	cmd.AddCommand(ai.NewAICommand())
+	cmd.AddCommand(endpoint.NewEndpointCommand())
 
 	if checkIfPackageInspectCommandEnabled() {
 		cmd.AddCommand(inspect.NewPackageInspectCommand())
@@ -119,7 +121,7 @@ func main() {
 	cobra.OnInitialize(func() {
 		if verbose {
 			// Default verbosity level is Normal
-			tui.SetVerbosityLevel(tui.VerbosityLevelVerbose)
+			tuioutput.SetVerbosity(tuioutput.Verbose)
 		}
 
 		printBanner()

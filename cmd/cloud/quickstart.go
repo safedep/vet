@@ -38,8 +38,7 @@ func newCloudQuickstartCommand() *cobra.Command {
 // with the goal of least friction on-boarding to SafeDep Cloud and configuring
 // the cli with everything required to start using SafeDep Cloud services.
 func executeCloudQuickstart() error {
-	ui.PrintMsg("🚀 Starting SafeDep Cloud Quickstart...")
-	ui.PrintMsg("👋 Hello! Let's get you onboarded..")
+	ui.PrintMsg("Starting SafeDep Cloud Quickstart")
 
 	// This will execute cloud authentication flow and persist the cloud tokens
 	// in the local config file.
@@ -68,11 +67,11 @@ func executeCloudQuickstart() error {
 		return err
 	}
 
-	ui.PrintMsg("✅ Your tenant is set to: %s", tenant.GetDomain())
+	ui.PrintMsg("Tenant set to: %s", tenant.GetDomain())
 
 	// Close the previous connection
 	if err := conn.Close(); err != nil {
-		ui.PrintError("❌ Oops! Something went wrong while closing cloud connection: %s", err.Error())
+		ui.PrintError("Failed to close cloud connection: %s", err.Error())
 		return err
 	}
 
@@ -86,20 +85,18 @@ func executeCloudQuickstart() error {
 		return err
 	}
 
-	ui.PrintMsg("✅ All done!")
-	ui.PrintMsg("")
-	ui.PrintMsg("🎉 You are all set! You can now start using SafeDep Cloud")
+	ui.PrintSuccess("Setup complete. You can now start using SafeDep Cloud.")
 
 	// TODO: We need the ability to auto-detect the project name and version
 	// and then use that to sync the results to SafeDep Cloud
-	ui.PrintMsg("✨ Run `vet scan -D /path/to/code --report-sync` to scan your code and sync the results to SafeDep Cloud")
+	ui.PrintMsg("Run `vet scan -D /path/to/code --report-sync` to scan your code and sync results to SafeDep Cloud")
 
 	return nil
 }
 
 func quickStartSetupTenantFromAccess(userInfo *controltowerv1.GetUserInfoResponse) (*controltowerv1pb.Tenant, error) {
 	if len(userInfo.GetAccess()) == 0 {
-		ui.PrintError("❌ Oops! This is weird, you should have access to at least one tenant. Please contact support.")
+		ui.PrintError("No tenant access found. Please contact support.")
 		return nil, fmt.Errorf("no tenant access")
 	}
 
@@ -109,7 +106,7 @@ func quickStartSetupTenantFromAccess(userInfo *controltowerv1.GetUserInfoRespons
 	if len(userInfo.GetAccess()) > 1 {
 		// Print all tenants with index
 		var tenantOptions []string
-		ui.PrintMsg("🔍 You have access to the following tenants:")
+		ui.PrintMsg("You have access to the following tenants:")
 		for idx, tenant := range userInfo.GetAccess() {
 			ui.PrintMsg("%s", fmt.Sprintf("  - [%d] %s", idx, tenant.GetTenant().GetDomain()))
 			tenantOptions = append(tenantOptions, tenant.GetTenant().GetDomain())
@@ -118,11 +115,11 @@ func quickStartSetupTenantFromAccess(userInfo *controltowerv1.GetUserInfoRespons
 		// Ask user which tenant they want to use
 		var tenantIndex int
 		err := survey.AskOne(&survey.Select{
-			Message: "🔍 Which tenant do you want to use?",
+			Message: "Which tenant do you want to use?",
 			Options: tenantOptions,
 		}, &tenantIndex)
 		if err != nil {
-			ui.PrintError("❌ Oops! Something went wrong while asking which tenant to use: %s", err.Error())
+			ui.PrintError("Failed to get tenant selection: %s", err.Error())
 			return nil, err
 		}
 
@@ -132,7 +129,7 @@ func quickStartSetupTenantFromAccess(userInfo *controltowerv1.GetUserInfoRespons
 	}
 
 	if err := auth.PersistTenantDomain(tenant.GetDomain()); err != nil {
-		ui.PrintError("❌ Oops! Something went wrong while persisting your tenant domain: %s", err.Error())
+		ui.PrintError("Failed to persist tenant domain: %s", err.Error())
 		return nil, err
 	}
 
@@ -140,24 +137,24 @@ func quickStartSetupTenantFromAccess(userInfo *controltowerv1.GetUserInfoRespons
 }
 
 func quickStartAuthentication() error {
-	ui.PrintMsg("🔑 Start by creating an account or sign-in to your existing account")
+	ui.PrintMsg("Create an account or sign in to your existing account")
 
 	token, err := executeDeviceAuthFlow()
 	if err != nil {
-		ui.PrintError("❌ Oops! Something went wrong while authenticating you: %s", err.Error())
-		ui.PrintMsg("ℹ️  If you are using email and password, ensure your email is verified.")
+		ui.PrintError("Authentication failed: %s", err.Error())
+		ui.PrintMsg("If you are using email and password, ensure your email is verified.")
 		return err
 	}
 
-	ui.PrintSuccess("✅ Successfully authenticated you!")
+	ui.PrintSuccess("Authenticated successfully.")
 
-	ui.PrintMsg("🔑 Saving your cloud credentials in your local config...")
+	ui.PrintMsg("Saving cloud credentials...")
 	if err := auth.PersistCloudTokens(token.Token, token.RefreshToken, ""); err != nil {
-		ui.PrintError("❌ Oops! Something went wrong while saving your cloud credentials: %s", err.Error())
+		ui.PrintError("Failed to save cloud credentials: %s", err.Error())
 		return err
 	}
 
-	ui.PrintSuccess("✅ Successfully saved your cloud credentials!")
+	ui.PrintSuccess("Cloud credentials saved.")
 
 	return nil
 }
@@ -173,11 +170,11 @@ func quickStartCreateConnection() (*grpc.ClientConn, error) {
 }
 
 func quickStartTenantSetup(conn *grpc.ClientConn) (*controltowerv1.GetUserInfoResponse, error) {
-	ui.PrintMsg("🔍 Checking if you have an existing tenant...")
+	ui.PrintMsg("Checking for existing tenant...")
 
 	userService, err := cloud.NewUserService(conn)
 	if err != nil {
-		ui.PrintError("❌ Oops! Something went wrong while creating user service: %s", err.Error())
+		ui.PrintError("Failed to create user service: %s", err.Error())
 		return nil, err
 	}
 
@@ -186,12 +183,12 @@ func quickStartTenantSetup(conn *grpc.ClientConn) (*controltowerv1.GetUserInfoRe
 		return quickStartCreateNewTenant(conn)
 	}
 
-	ui.PrintMsg("✅ You are already registered with SafeDep Cloud")
+	ui.PrintMsg("Already registered with SafeDep Cloud.")
 	return userInfo, nil
 }
 
 func quickStartCreateNewTenant(conn *grpc.ClientConn) (*controltowerv1.GetUserInfoResponse, error) {
-	ui.PrintMsg("📝 Looks like you don't have an existing tenant. Let's create one for you...")
+	ui.PrintMsg("No existing tenant found. Creating a new one...")
 
 	userName, domain, err := quickStartGetTenantInputs()
 	if err != nil {
@@ -200,7 +197,7 @@ func quickStartCreateNewTenant(conn *grpc.ClientConn) (*controltowerv1.GetUserIn
 
 	onboardingService, err := cloud.NewOnboardingService(conn)
 	if err != nil {
-		ui.PrintError("❌ Oops! Something went wrong while creating onboarding service: %s", err.Error())
+		ui.PrintError("Failed to create onboarding service: %s", err.Error())
 		return nil, err
 	}
 
@@ -211,16 +208,15 @@ func quickStartCreateNewTenant(conn *grpc.ClientConn) (*controltowerv1.GetUserIn
 		OrgDomain: domain,
 	})
 	if err != nil {
-		ui.PrintError("❌ Oops! Something went wrong while registering your tenant: %s", err.Error())
+		ui.PrintError("Failed to register tenant: %s", err.Error())
 		return nil, err
 	}
 
-	ui.PrintSuccess("✅ Successfully created a new tenant!")
-	ui.PrintMsg("🔑 Please wait while we get you onboarded...")
+	ui.PrintSuccess("Tenant created successfully.")
 
 	userService, err := cloud.NewUserService(conn)
 	if err != nil {
-		ui.PrintError("❌ Oops! Something went wrong while creating user service: %s", err.Error())
+		ui.PrintError("Failed to create user service: %s", err.Error())
 		return nil, err
 	}
 
@@ -230,22 +226,22 @@ func quickStartCreateNewTenant(conn *grpc.ClientConn) (*controltowerv1.GetUserIn
 func quickStartGetTenantInputs() (string, string, error) {
 	var userName string
 	err := survey.AskOne(&survey.Input{
-		Message: "👤 What should we call you?",
+		Message: "Your name:",
 		Default: "John Doe",
 	}, &userName)
 	if err != nil {
-		ui.PrintError("❌ Oops! Something went wrong while asking for your name: %s", err.Error())
+		ui.PrintError("Failed to get name: %s", err.Error())
 		return "", "", err
 	}
 
 	autoDomain := fmt.Sprintf("quickstart-%s", time.Now().Format("20060102150405"))
 	var domain string
 	err = survey.AskOne(&survey.Input{
-		Message: "📝 We have automatically generated a domain for you. Here is your chance to update",
+		Message: "Tenant domain (auto-generated, can be changed):",
 		Default: autoDomain,
 	}, &domain)
 	if err != nil {
-		ui.PrintError("❌ Oops! Something went wrong while asking for your domain: %s", err.Error())
+		ui.PrintError("Failed to get domain: %s", err.Error())
 		return "", "", err
 	}
 
@@ -259,11 +255,11 @@ func quickStartGetTenantInputs() (string, string, error) {
 func quickStartAPIKeyCreation(conn *grpc.ClientConn, tenant *controltowerv1pb.Tenant) error {
 	var createAPIKey bool
 	err := survey.AskOne(&survey.Confirm{
-		Message: "🔑 Do you want to create a new API key for this tenant?",
+		Message: "Create a new API key for this tenant?",
 		Default: true,
 	}, &createAPIKey)
 	if err != nil {
-		ui.PrintError("❌ Oops! Something went wrong while asking if you want to create an API key: %s", err.Error())
+		ui.PrintError("Failed to get API key preference: %s", err.Error())
 		return err
 	}
 
@@ -273,17 +269,17 @@ func quickStartAPIKeyCreation(conn *grpc.ClientConn, tenant *controltowerv1pb.Te
 
 	var showAPIKey bool
 	err = survey.AskOne(&survey.Confirm{
-		Message: "Would you like to see the API key in addition to configuring it?",
+		Message: "Show the API key after creation?",
 		Default: true,
 	}, &showAPIKey)
 	if err != nil {
-		ui.PrintError("❌ Oops! Something went wrong while asking about showing the API key: %s", err.Error())
+		ui.PrintError("Failed to get show key preference: %s", err.Error())
 		return err
 	}
 
 	createApiKeyService, err := cloud.NewApiKeyService(conn)
 	if err != nil {
-		ui.PrintError("❌ Oops! Something went wrong while creating the API key service: %s", err.Error())
+		ui.PrintError("Failed to create API key service: %s", err.Error())
 		return err
 	}
 
@@ -293,22 +289,22 @@ func quickStartAPIKeyCreation(conn *grpc.ClientConn, tenant *controltowerv1pb.Te
 		ExpiryInDays: 30,
 	})
 	if err != nil {
-		ui.PrintError("❌ Oops! Something went wrong while creating the API key: %s", err.Error())
+		ui.PrintError("Failed to create API key: %s", err.Error())
 		return err
 	}
 
 	if err := auth.PersistApiKey(apiKey.Key, tenant.GetDomain()); err != nil {
-		ui.PrintError("❌ Oops! Something went wrong while persisting the API key: %s", err.Error())
+		ui.PrintError("Failed to persist API key: %s", err.Error())
 		return err
 	}
 
 	if showAPIKey {
-		ui.PrintMsg("✅ Here is your API key: %s", text.BgGreen.Sprint(apiKey.Key))
-		ui.PrintMsg("🔒 Your key will expire on: %s", apiKey.ExpiresAt.Format(time.RFC3339))
+		ui.PrintMsg("API key: %s", text.BgGreen.Sprint(apiKey.Key))
+		ui.PrintMsg("Expires: %s", apiKey.ExpiresAt.Format(time.RFC3339))
 	}
 
-	ui.PrintMsg("ℹ️ Your tenant domain is: %s", text.BgGreen.Sprint(tenant.GetDomain()))
-	ui.PrintMsg("🔑 Please save this API key in a secure location, it will not be shown again.")
+	ui.PrintMsg("Tenant domain: %s", text.BgGreen.Sprint(tenant.GetDomain()))
+	ui.PrintWarning("Save this API key in a secure location. It will not be shown again.")
 
 	return nil
 }
