@@ -19,8 +19,17 @@ type skill struct {
 }
 
 // translate converts a discovered skill to a wire-decoupled inventory.Item.
-// Pure function: no I/O, no globals, deterministic.
 func translate(s *skill) *inventory.Item {
+	meta := map[string]string{"skill.path": s.ConfigPath}
+
+	fm := readSkillFrontmatter(s.ConfigPath)
+	if fm.Description != "" {
+		meta["skill.description"] = fm.Description
+	}
+	if fm.Name != "" && fm.Name != s.Name {
+		meta["skill.display_name"] = fm.Name
+	}
+
 	return &inventory.Item{
 		Kind:         inventory.KindAgentSkill,
 		ItemIdentity: itemIdentity(s.App, inventory.KindAgentSkill, s.Scope, s.Name, s.ConfigPath),
@@ -29,7 +38,7 @@ func translate(s *skill) *inventory.Item {
 		App:          s.App,
 		Scope:        s.Scope,
 		ConfigPath:   s.ConfigPath,
-		Metadata:     map[string]string{"skill.path": s.ConfigPath},
+		Metadata:     meta,
 	}
 }
 
