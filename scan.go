@@ -9,7 +9,7 @@ import (
 	controltowerv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
 	"github.com/google/go-github/v70/github"
 	"github.com/safedep/dry/adapters"
-	"github.com/safedep/dry/tui"
+	tuierrors "github.com/safedep/dry/tui/errors"
 	"github.com/safedep/dry/utils"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
@@ -353,7 +353,7 @@ func startScan() {
 func internalStartScan() error {
 	if agentSkillSpec != "" {
 		if err := runAgentSkillScan(); err != nil {
-			tui.ErrorExit(err)
+			tuierrors.ErrorExit(err)
 			return err
 		}
 		return nil
