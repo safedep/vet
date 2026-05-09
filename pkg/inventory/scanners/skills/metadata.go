@@ -21,7 +21,7 @@ func readSkillFrontmatter(skillDir string) skillFrontmatter {
 	if err != nil {
 		return skillFrontmatter{}
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	// Extract content between the opening and closing --- delimiters.
 	var lines []string
