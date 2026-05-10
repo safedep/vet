@@ -17,6 +17,7 @@ import (
 	"github.com/safedep/vet/pkg/aitool"
 	"github.com/safedep/vet/pkg/inventory"
 	aitoolscanner "github.com/safedep/vet/pkg/inventory/scanners/aitool"
+	skillsscanner "github.com/safedep/vet/pkg/inventory/scanners/skills"
 )
 
 // Descriptor declares one scanner: the Kind token accepted on the
@@ -31,7 +32,8 @@ type Descriptor struct {
 // Kind values accepted on the --kind flag and consumed by callers that
 // pin a specific scanner (e.g. cmd/ai/discover).
 const (
-	KindAITool = "ai-tool"
+	KindAITool     = "ai-tool"
+	KindAgentSkill = "agent-skill"
 )
 
 // registry is the shipped set of scanner declarations. Adding a scanner
@@ -41,6 +43,12 @@ var registry = []Descriptor{
 		Kind: KindAITool,
 		New: func() inventory.Scanner {
 			return aitoolscanner.New(aitool.DefaultRegistry())
+		},
+	},
+	{
+		Kind: KindAgentSkill,
+		New: func() inventory.Scanner {
+			return skillsscanner.New()
 		},
 	},
 }

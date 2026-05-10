@@ -63,7 +63,10 @@ type Options struct {
 // It is the integration point for cmd/ai/discover; opts.Kinds is
 // overwritten.
 func RunAITool(ctx context.Context, opts Options) error {
-	opts.Kinds = []string{scanners.KindAITool}
+	opts.Kinds = []string{
+		scanners.KindAITool,
+		scanners.KindAgentSkill,
+	}
 	return runScan(ctx, opts)
 }
 
