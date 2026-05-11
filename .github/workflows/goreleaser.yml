@@ -16,6 +16,7 @@ env:
 
 jobs:
   goreleaser:
+    environment: npm-release
     timeout-minutes: 60
     outputs:
       hashes: ${{ steps.hash.outputs.hashes }}
