@@ -244,6 +244,7 @@ func internalStartQuery() error {
 			MaxAdvice:                    querySummaryReportMaxAdvice,
 			GroupByDirectDependency:      querySummaryReportGroupByDirectDeps,
 			ShowOnlyPackagesWithEvidence: querySummaryUsedOnly,
+			MarkdownReportEnabled:        !utils.IsEmptyString(queryMarkdownReportPath),
 		})
 		if err != nil {
 			return err
