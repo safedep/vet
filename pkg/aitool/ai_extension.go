@@ -13,10 +13,11 @@ import (
 // ideNameFromPath extracts the IDE name from an extensions.json path.
 // e.g. "/home/user/.vscode/extensions/extensions.json" → "VS Code"
 var ideDirNames = map[string]string{
-	".vscode":     "VS Code",
-	".vscode-oss": "VSCodium",
-	".cursor":     "Cursor",
-	".windsurf":   "Windsurf",
+	".vscode":      "VS Code",
+	".vscode-oss":  "VSCodium",
+	".cursor":      "Cursor",
+	".windsurf":    "Windsurf",
+	".antigravity": "Antigravity",
 }
 
 const (

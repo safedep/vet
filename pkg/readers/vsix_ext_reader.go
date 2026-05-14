@@ -33,6 +33,10 @@ var editors = map[string]distributionInfo{
 		FilePath:  ".windsurf/extensions",
 		Ecosystem: models.EcosystemOpenVSXExtensions,
 	},
+	"antigravity": {
+		FilePath:  ".antigravity/extensions",
+		Ecosystem: models.EcosystemOpenVSXExtensions,
+	},
 }
 
 type vsCodeExtensionIdentifier struct {
