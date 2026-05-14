@@ -109,14 +109,16 @@ func TestClaudeCodeUserConfigDiscoverer_ReadsPluginCache_BareFormat(t *testing.T
 	assert.Contains(t, mcpNames, "plugin-context7", "should discover plugin-context7 from bare-format .mcp.json")
 }
 
-func TestClaudeCodeUserConfigDiscoverer_AllToolsAreSystemScoped(t *testing.T) {
+func TestClaudeCodeUserConfigDiscoverer_UserLevelMCPs_AreSystemScoped(t *testing.T) {
+	// buildUserConfigHomeDir has top-level mcpServers + plugin cache but NO projects key.
+	// Every item emitted must therefore be system-scoped.
 	home := buildUserConfigHomeDir(t)
 
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{HomeDir: home})
 	require.NoError(t, err)
 
 	require.NoError(t, reader.EnumTools(context.Background(), func(tool *AITool) error {
-		assert.Equal(t, AIToolScopeSystem, tool.Scope, "all user-config tools must be system-scoped")
+		assert.Equal(t, AIToolScopeSystem, tool.Scope, "user-scope and plugin-cache MCPs must be system-scoped")
 		return nil
 	}))
 }
@@ -198,7 +200,9 @@ func buildHomeWithProjectMCPs(t *testing.T, projectEntries map[string]any) strin
 	return home
 }
 
-func TestClaudeCodeUserConfigDiscoverer_ProjectMCPs_EmittedAsSystemScoped(t *testing.T) {
+func TestClaudeCodeUserConfigDiscoverer_ProjectMCPs_EmittedAsProjectScoped(t *testing.T) {
+	// items under projects[*] in ~/.claude.json are Claude Code "local" scope —
+	// they must be emitted as AIToolScopeProject, not AIToolScopeSystem.
 	home := buildHomeWithProjectMCPs(t, map[string]any{
 		"/home/user/myproject": map[string]any{
 			"mcpServers": map[string]any{
@@ -217,10 +221,12 @@ func TestClaudeCodeUserConfigDiscoverer_ProjectMCPs_EmittedAsSystemScoped(t *tes
 	}))
 
 	assert.Contains(t, collectMCPNames(tools), "project-notion",
-		"project-specific MCP should be discovered in system scope")
+		"project-specific MCP should be discovered")
 }
 
-func TestClaudeCodeUserConfigDiscoverer_ProjectMCPs_SystemScopedTag(t *testing.T) {
+func TestClaudeCodeUserConfigDiscoverer_ProjectMCPs_ScopeIsProject(t *testing.T) {
+	// Claude Code's "local" scope (projects[path].mcpServers) must produce
+	// AIToolScopeProject items, not AIToolScopeSystem.
 	home := buildHomeWithProjectMCPs(t, map[string]any{
 		"/home/user/myproject": map[string]any{
 			"mcpServers": map[string]any{
@@ -234,8 +240,8 @@ func TestClaudeCodeUserConfigDiscoverer_ProjectMCPs_SystemScopedTag(t *testing.T
 
 	require.NoError(t, reader.EnumTools(context.Background(), func(tool *AITool) error {
 		if tool.Type == AIToolTypeMCPServer && tool.Name == "proj-server" {
-			assert.Equal(t, AIToolScopeSystem, tool.Scope,
-				"project-local MCPs emitted during system scan must be system-scoped")
+			assert.Equal(t, AIToolScopeProject, tool.Scope,
+				"projects[path].mcpServers are local-scope; must be AIToolScopeProject")
 		}
 		return nil
 	}))
@@ -429,9 +435,11 @@ func TestClaudeCodeUserConfigDiscoverer_ProjectMCPs_MissingProjectsKey_Graceful(
 		"global mcpServers must still be discovered")
 }
 
-// --- current-project scope (AIToolScopeProject) ---
+// --- current-project verification (via processAllProjectMCPs) ---
 
-func TestClaudeCodeUserConfigDiscoverer_CurrentProject_EmittedAsProjectScoped(t *testing.T) {
+func TestClaudeCodeUserConfigDiscoverer_LocalScopeMCPs_AppearAsProjectScoped(t *testing.T) {
+	// Verifies end-to-end that a specific project's local-scope MCPs arrive
+	// with AIToolScopeProject (not system-scoped).
 	const projDir = "/home/user/myproject"
 	home := buildHomeWithProjectMCPs(t, map[string]any{
 		projDir: map[string]any{
@@ -441,76 +449,30 @@ func TestClaudeCodeUserConfigDiscoverer_CurrentProject_EmittedAsProjectScoped(t 
 		},
 	})
 
-	scope, err := NewDiscoveryScope(AIToolScopeProject)
+	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{HomeDir: home})
 	require.NoError(t, err)
 
-	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{
-		HomeDir:    home,
-		ProjectDir: projDir,
-		Scope:      scope,
-	})
-	require.NoError(t, err)
-
-	var tools []*AITool
+	var found *AITool
 	require.NoError(t, reader.EnumTools(context.Background(), func(tool *AITool) error {
-		tools = append(tools, tool)
+		if tool.Name == "local-server" {
+			found = tool
+		}
 		return nil
 	}))
 
-	require.Contains(t, collectMCPNames(tools), "local-server")
-
-	for _, tool := range tools {
-		if tool.Name == "local-server" {
-			assert.Equal(t, AIToolScopeProject, tool.Scope)
-		}
-	}
+	require.NotNil(t, found, "local-scope MCP must be discovered")
+	assert.Equal(t, AIToolScopeProject, found.Scope)
+	assert.Equal(t, projDir, found.ConfigPath)
 }
 
-func TestClaudeCodeUserConfigDiscoverer_CurrentProject_NotInMap_NoItemsNoError(t *testing.T) {
+func TestClaudeCodeUserConfigDiscoverer_LocalScopeMCPs_EmptyMCPServers_NoItems(t *testing.T) {
 	home := buildHomeWithProjectMCPs(t, map[string]any{
-		"/home/user/other-project": map[string]any{
-			"mcpServers": map[string]any{
-				"other-server": map[string]any{"command": "npx"},
-			},
-		},
-	})
-
-	scope, err := NewDiscoveryScope(AIToolScopeProject)
-	require.NoError(t, err)
-
-	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{
-		HomeDir:    home,
-		ProjectDir: "/home/user/completely-different-project",
-		Scope:      scope,
-	})
-	require.NoError(t, err)
-
-	var tools []*AITool
-	err = reader.EnumTools(context.Background(), func(tool *AITool) error {
-		tools = append(tools, tool)
-		return nil
-	})
-	assert.NoError(t, err)
-	assert.Empty(t, collectMCPNames(tools),
-		"project not in map should yield no MCP items")
-}
-
-func TestClaudeCodeUserConfigDiscoverer_CurrentProject_EmptyMCPServers_NoItems(t *testing.T) {
-	const projDir = "/home/user/myproject"
-	home := buildHomeWithProjectMCPs(t, map[string]any{
-		projDir: map[string]any{
+		"/home/user/myproject": map[string]any{
 			"mcpServers": map[string]any{},
 		},
 	})
 
-	scope, err := NewDiscoveryScope(AIToolScopeProject)
-	require.NoError(t, err)
-
-	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{
-		HomeDir:    home,
-		ProjectDir: projDir,
-		Scope:      scope,
-	})
+	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{HomeDir: home})
 	require.NoError(t, err)
 
 	var tools []*AITool
@@ -521,10 +483,9 @@ func TestClaudeCodeUserConfigDiscoverer_CurrentProject_EmptyMCPServers_NoItems(t
 	assert.Empty(t, collectMCPNames(tools))
 }
 
-func TestClaudeCodeUserConfigDiscoverer_CurrentProject_DisabledServer(t *testing.T) {
-	const projDir = "/home/user/myproject"
+func TestClaudeCodeUserConfigDiscoverer_LocalScopeMCPs_DisabledServer(t *testing.T) {
 	home := buildHomeWithProjectMCPs(t, map[string]any{
-		projDir: map[string]any{
+		"/home/user/myproject": map[string]any{
 			"mcpServers": map[string]any{
 				"github": map[string]any{"type": "http", "url": "https://api.githubcopilot.com/mcp"},
 			},
@@ -532,14 +493,7 @@ func TestClaudeCodeUserConfigDiscoverer_CurrentProject_DisabledServer(t *testing
 		},
 	})
 
-	scope, err := NewDiscoveryScope(AIToolScopeProject)
-	require.NoError(t, err)
-
-	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{
-		HomeDir:    home,
-		ProjectDir: projDir,
-		Scope:      scope,
-	})
+	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{HomeDir: home})
 	require.NoError(t, err)
 
 	var found *AITool
@@ -552,52 +506,30 @@ func TestClaudeCodeUserConfigDiscoverer_CurrentProject_DisabledServer(t *testing
 
 	require.NotNil(t, found)
 	require.NotNil(t, found.Enabled)
-	assert.False(t, *found.Enabled, "project-scope disabled server must have Enabled=false")
-}
-
-func TestClaudeCodeUserConfigDiscoverer_CurrentProject_NoProjectDir_NoItems(t *testing.T) {
-	home := buildHomeWithProjectMCPs(t, map[string]any{
-		"/home/user/myproject": map[string]any{
-			"mcpServers": map[string]any{
-				"server": map[string]any{"command": "npx"},
-			},
-		},
-	})
-
-	scope, err := NewDiscoveryScope(AIToolScopeProject)
-	require.NoError(t, err)
-
-	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{
-		HomeDir:    home,
-		ProjectDir: "", // no project dir
-		Scope:      scope,
-	})
-	require.NoError(t, err)
-
-	var tools []*AITool
-	require.NoError(t, reader.EnumTools(context.Background(), func(tool *AITool) error {
-		tools = append(tools, tool)
-		return nil
-	}))
-	assert.Empty(t, collectMCPNames(tools),
-		"project scope with no projectDir must not emit any items")
+	assert.False(t, *found.Enabled, "disabled local-scope server must have Enabled=false")
 }
 
 // --- scope filtering ---
 
-func TestClaudeCodeUserConfigDiscoverer_ProjectScopeOnly_SkipsSystemProjectWalk(t *testing.T) {
-	// When scope is project-only, the full project walk (all projects) must NOT run.
-	// Only the current project's MCPs may appear.
-	const currProj = "/home/user/current"
-	home := buildHomeWithProjectMCPs(t, map[string]any{
-		currProj: map[string]any{
-			"mcpServers": map[string]any{
-				"current-server": map[string]any{"command": "npx"},
-			},
+func TestClaudeCodeUserConfigDiscoverer_ProjectScopeOnly_EmitsAllProjectMCPs(t *testing.T) {
+	// With project-only scope:
+	// - projects[*].mcpServers (local-scope) must all appear as AIToolScopeProject
+	// - top-level mcpServers (user-scope) and plugin cache must NOT appear
+	home := t.TempDir()
+	writeJSONFile(t, filepath.Join(home, ".claude.json"), map[string]any{
+		"mcpServers": map[string]any{
+			"user-global": map[string]any{"command": "npx"},
 		},
-		"/home/user/other": map[string]any{
-			"mcpServers": map[string]any{
-				"other-server": map[string]any{"command": "node"},
+		"projects": map[string]any{
+			"/home/user/proj-a": map[string]any{
+				"mcpServers": map[string]any{
+					"proj-a-server": map[string]any{"command": "npx"},
+				},
+			},
+			"/home/user/proj-b": map[string]any{
+				"mcpServers": map[string]any{
+					"proj-b-server": map[string]any{"command": "node"},
+				},
 			},
 		},
 	})
@@ -606,9 +538,8 @@ func TestClaudeCodeUserConfigDiscoverer_ProjectScopeOnly_SkipsSystemProjectWalk(
 	require.NoError(t, err)
 
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{
-		HomeDir:    home,
-		ProjectDir: currProj,
-		Scope:      scope,
+		HomeDir: home,
+		Scope:   scope,
 	})
 	require.NoError(t, err)
 
@@ -619,19 +550,30 @@ func TestClaudeCodeUserConfigDiscoverer_ProjectScopeOnly_SkipsSystemProjectWalk(
 	}))
 
 	names := collectMCPNames(tools)
-	assert.Contains(t, names, "current-server", "current project MCPs must be emitted in project scope")
-	assert.NotContains(t, names, "other-server",
-		"other projects must NOT be emitted when scope is project-only")
+	assert.Contains(t, names, "proj-a-server", "local-scope MCPs must appear under project scope")
+	assert.Contains(t, names, "proj-b-server", "all projects' local MCPs must appear")
+	assert.NotContains(t, names, "user-global",
+		"user-scope MCPs must NOT appear when scope is project-only")
+
+	for _, tool := range tools {
+		assert.Equal(t, AIToolScopeProject, tool.Scope,
+			"all items under project scope must be AIToolScopeProject")
+	}
 }
 
-func TestClaudeCodeUserConfigDiscoverer_SystemScopeOnly_SkipsCurrentProjectLookup(t *testing.T) {
-	// When scope is system-only, the current project MCPs are emitted as system-scoped
-	// (via the all-projects walk) and NOT again as project-scoped.
-	const currProj = "/home/user/current"
-	home := buildHomeWithProjectMCPs(t, map[string]any{
-		currProj: map[string]any{
-			"mcpServers": map[string]any{
-				"srv": map[string]any{"command": "npx"},
+func TestClaudeCodeUserConfigDiscoverer_SystemScopeOnly_NoProjectMCPs(t *testing.T) {
+	// With system-only scope, projects[*].mcpServers must NOT be emitted.
+	// Only user-scope (top-level mcpServers) and plugin cache items appear.
+	home := t.TempDir()
+	writeJSONFile(t, filepath.Join(home, ".claude.json"), map[string]any{
+		"mcpServers": map[string]any{
+			"user-global": map[string]any{"command": "npx"},
+		},
+		"projects": map[string]any{
+			"/home/user/proj": map[string]any{
+				"mcpServers": map[string]any{
+					"local-only": map[string]any{"command": "node"},
+				},
 			},
 		},
 	})
@@ -640,17 +582,24 @@ func TestClaudeCodeUserConfigDiscoverer_SystemScopeOnly_SkipsCurrentProjectLooku
 	require.NoError(t, err)
 
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{
-		HomeDir:    home,
-		ProjectDir: currProj,
-		Scope:      scope,
+		HomeDir: home,
+		Scope:   scope,
 	})
 	require.NoError(t, err)
 
+	var tools []*AITool
 	require.NoError(t, reader.EnumTools(context.Background(), func(tool *AITool) error {
-		if tool.Type == AIToolTypeMCPServer && tool.Name == "srv" {
-			assert.Equal(t, AIToolScopeSystem, tool.Scope,
-				"system-only scope must not emit project-scoped items")
-		}
+		tools = append(tools, tool)
 		return nil
 	}))
+
+	names := collectMCPNames(tools)
+	assert.Contains(t, names, "user-global", "user-scope MCPs must appear under system scope")
+	assert.NotContains(t, names, "local-only",
+		"local-scope project MCPs must NOT appear when scope is system-only")
+
+	for _, tool := range tools {
+		assert.Equal(t, AIToolScopeSystem, tool.Scope,
+			"system-only scope must produce only system-scoped items")
+	}
 }

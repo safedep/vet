@@ -38,15 +38,12 @@ func (d *claudeCodeUserConfigDiscoverer) EnumTools(_ context.Context, handler AI
 		if err := d.processUserConfig(handler); err != nil {
 			return err
 		}
-		if err := d.processAllProjectMCPs(handler); err != nil {
-			return err
-		}
 		if err := d.walkPluginCache(handler); err != nil {
 			return err
 		}
 	}
-	if d.config.ScopeEnabled(AIToolScopeProject) && d.config.ProjectDir != "" {
-		if err := d.processCurrentProjectMCPs(handler); err != nil {
+	if d.config.ScopeEnabled(AIToolScopeProject) {
+		if err := d.processAllProjectMCPs(handler); err != nil {
 			return err
 		}
 	}
@@ -66,8 +63,8 @@ func (d *claudeCodeUserConfigDiscoverer) processUserConfig(handler AIToolHandler
 }
 
 // processAllProjectMCPs reads ~/.claude.json and emits MCP servers from every
-// entry under the "projects" map as system-scoped items. The ConfigPath is set
-// to the project path (not the config file) so that IDs are unique across
+// entry under the "projects" map as project-scoped items (Claude Code "local"
+// scope). The ConfigPath is set to the project path so IDs are unique across
 // projects even when two projects share a server name.
 func (d *claudeCodeUserConfigDiscoverer) processAllProjectMCPs(handler AIToolHandlerFn) error {
 	path := filepath.Join(d.homeDir, ".claude.json")
@@ -81,29 +78,11 @@ func (d *claudeCodeUserConfigDiscoverer) processAllProjectMCPs(handler AIToolHan
 			continue
 		}
 		mcpCfg := projectEntryToMCPConfig(entry)
-		if err := emitMCPServers(mcpCfg, projectPath, AIToolScopeSystem, claudeCodeApp, claudeCodeAppDisplay, handler); err != nil {
+		if err := emitMCPServers(mcpCfg, projectPath, AIToolScopeProject, claudeCodeApp, claudeCodeAppDisplay, handler); err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-// processCurrentProjectMCPs reads ~/.claude.json and emits MCP servers for the
-// specific project directory as project-scoped items. This covers Claude Code's
-// "local" scope — per-project MCP configs stored centrally in ~/.claude.json.
-func (d *claudeCodeUserConfigDiscoverer) processCurrentProjectMCPs(handler AIToolHandlerFn) error {
-	path := filepath.Join(d.homeDir, ".claude.json")
-	cfg, err := parseClaudeUserConfigFile(path)
-	if err != nil {
-		logger.Debugf("Claude Code user config not found or unreadable for current project MCPs: %s", path)
-		return nil
-	}
-	entry, ok := cfg.Projects[d.config.ProjectDir]
-	if !ok || len(entry.MCPServers) == 0 {
-		return nil
-	}
-	mcpCfg := projectEntryToMCPConfig(entry)
-	return emitMCPServers(mcpCfg, d.config.ProjectDir, AIToolScopeProject, claudeCodeApp, claudeCodeAppDisplay, handler)
 }
 
 // walkPluginCache walks ~/.claude/plugins/cache/**/.mcp.json and emits MCPs
