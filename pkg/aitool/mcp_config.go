@@ -136,8 +136,8 @@ type claudeProjectEntry struct {
 // relevant for MCP discovery. The file contains many other fields; they are
 // ignored during unmarshaling.
 type claudeUserConfigFile struct {
-	MCPServers map[string]mcpServerEntry        `json:"mcpServers"`
-	Projects   map[string]claudeProjectEntry    `json:"projects"`
+	MCPServers map[string]mcpServerEntry     `json:"mcpServers"`
+	Projects   map[string]claudeProjectEntry `json:"projects"`
 }
 
 // parseClaudeUserConfigFile reads and parses ~/.claude.json into the fields
