@@ -2,6 +2,7 @@ package aitool
 
 import (
 	"encoding/json"
+	"maps"
 	"os"
 	"sort"
 	"strings"
@@ -35,8 +36,11 @@ func (e mcpServerEntry) resolvedURL() string {
 // mcpAppConfig represents an application's JSON config file containing
 // MCP servers. The Permissions and Model fields are used by Claude Code;
 // other apps ignore them during JSON unmarshaling.
+// VS Code (and Antigravity project files) use "servers" as the top-level key
+// instead of "mcpServers"; both are read and merged during emit.
 type mcpAppConfig struct {
 	MCPServers  map[string]mcpServerEntry `json:"mcpServers,omitempty"`
+	Servers     map[string]mcpServerEntry `json:"servers,omitempty"`
 	Permissions map[string]any            `json:"permissions,omitempty"`
 	Model       string                    `json:"model,omitempty"`
 }
@@ -84,9 +88,14 @@ func detectTransport(entry mcpServerEntry) MCPTransport {
 }
 
 // emitMCPServers creates and emits AITool entries for all MCP servers in a config.
+// Entries from "mcpServers" and "servers" are merged; "mcpServers" takes precedence
+// when the same name appears in both.
 func emitMCPServers(cfg *mcpAppConfig, configPath string, scope AIToolScope, app, appDisplay string, handler AIToolHandlerFn) error {
-	for _, name := range sortedKeys(cfg.MCPServers) {
-		entry := cfg.MCPServers[name]
+	merged := make(map[string]mcpServerEntry, len(cfg.MCPServers)+len(cfg.Servers))
+	maps.Copy(merged, cfg.Servers)
+	maps.Copy(merged, cfg.MCPServers)
+	for _, name := range sortedKeys(merged) {
+		entry := merged[name]
 
 		transport := detectTransport(entry)
 
