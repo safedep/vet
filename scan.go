@@ -632,6 +632,7 @@ func internalStartScan() error {
 			MaxAdvice:                    summaryReportMaxAdvice,
 			GroupByDirectDependency:      summaryReportGroupByDirectDeps,
 			ShowOnlyPackagesWithEvidence: summaryReportUsedOnly,
+			MarkdownReportEnabled:        !utils.IsEmptyString(markdownReportPath),
 		})
 		if err != nil {
 			return err

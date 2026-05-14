@@ -75,6 +75,10 @@ type SummaryReporterConfig struct {
 	// This requires code analysis to be enabled with dependency
 	// usage evidences to be available
 	ShowOnlyPackagesWithEvidence bool
+
+	// MarkdownReportEnabled indicates that a markdown report is already being
+	// generated, so the hint to use --report-markdown should be suppressed.
+	MarkdownReportEnabled bool
 }
 
 type summaryReporter struct {
@@ -553,7 +557,9 @@ func (r *summaryReporter) renderRemediationAdvice() {
 				len(sortedPackages)-summaryReportMaxUpgradeAdvice),
 		))
 
-		fmt.Println(BoldText("Run vet with `--report-markdown=/path/to/report.md` for details"))
+		if !r.config.MarkdownReportEnabled {
+			fmt.Println(BoldText("Run vet with `--report-markdown=/path/to/report.md` for details"))
+		}
 	}
 }
 
