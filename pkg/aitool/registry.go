@@ -77,6 +77,7 @@ func DefaultRegistry() *Registry {
 
 	// Config-based discoverers
 	r.Register("claude_code_config", NewClaudeCodeDiscoverer)
+	r.Register("claude_code_user_config", NewClaudeCodeUserConfigDiscoverer)
 	r.Register("cursor_config", NewCursorDiscoverer)
 	r.Register("windsurf_config", NewWindsurfDiscoverer)
 	r.Register("antigravity_config", NewAntigravityDiscoverer)
