@@ -79,11 +79,15 @@ func DefaultRegistry() *Registry {
 	r.Register("claude_code_config", NewClaudeCodeDiscoverer)
 	r.Register("cursor_config", NewCursorDiscoverer)
 	r.Register("windsurf_config", NewWindsurfDiscoverer)
+	r.Register("antigravity_config", NewAntigravityDiscoverer)
+	r.Register("vscode_config", NewVSCodeDiscoverer)
 
 	// CLI tool discoverers
 	r.Register("claude_code_cli", NewClaudeCLIDiscoverer)
 	r.Register("cursor_cli", NewCursorCLIDiscoverer)
 	r.Register("windsurf_cli", NewWindsurfCLIDiscoverer)
+	r.Register("antigravity_cli", NewAntigravityCLIDiscoverer)
+	r.Register("vscode_cli", NewVSCodeCLIDiscoverer)
 	r.Register("aider", NewAiderDiscoverer)
 	r.Register("gh_copilot", NewGhCopilotDiscoverer)
 	r.Register("amazon_q", NewAmazonQDiscoverer)
