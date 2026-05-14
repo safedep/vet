@@ -34,6 +34,7 @@ PyPI,*,*,flask,1.0.4,cli-filter,flask,flask,GHSA-m2qf-hxjv-5gpq,CVE-2023-30861,H
 PyPI,*,*,flask,1.0.4,cli-filter,flask,flask,PYSEC-2023-62,CVE-2023-30861,,,1,$E2E_CODEPATH/usage.py:4
 PyPI,*,*,langchain,0.2.1,cli-filter,langchain,langchain,GHSA-3hjh-jh2h-vrg6,CVE-2024-2965,MEDIUM,Denial of service in langchain-community,0,
 PyPI,*,*,langchain,0.2.1,cli-filter,langchain,langchain,PYSEC-2024-118,CVE-2024-2965,MEDIUM,,0,
+PyPI,*,*,langchain,0.2.1,cli-filter,langchain,langchain,GHSA-3644-q5cj-c5c7,CVE-2026-45134,HIGH,LangSmith SDK: Public prompt pull deserializes untrusted manifests without trust boundary warning,0,
 EOL
 
 # Process CSV files to exclude environment-dependent fields

@@ -39,10 +39,20 @@ func (d *vscodeDiscoverer) App() string  { return vscodeApp }
 
 func (d *vscodeDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn) error {
 	if d.config.ScopeEnabled(AIToolScopeSystem) {
-		vscodeDir := filepath.Join(d.homeDir, ".vscode")
-
-		for _, name := range []string{"mcp.json", "mcpservers.json", "mcp_config.json"} {
-			path := filepath.Join(vscodeDir, name)
+		// VS Code user-data directory is platform-specific; try all known
+		// locations and use the first mcp.json that parses successfully.
+		// Linux:   ~/.config/Code/User/
+		// macOS:   ~/Library/Application Support/Code/User/
+		// Windows: %APPDATA%\Code\User\
+		// os.Getenv returns "" on platforms where the variable is absent so
+		// filepath.Join("", ...) produces a relative path that os.Stat misses.
+		userDataDirs := []string{
+			filepath.Join(d.homeDir, ".config", "Code", "User"),
+			filepath.Join(d.homeDir, "Library", "Application Support", "Code", "User"),
+			filepath.Join(os.Getenv("APPDATA"), "Code", "User"),
+		}
+		for _, dir := range userDataDirs {
+			path := filepath.Join(dir, "mcp.json")
 			cfg, err := parseMCPAppConfig(path)
 			if err != nil {
 				continue
@@ -53,6 +63,7 @@ func (d *vscodeDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn)
 			break
 		}
 
+		vscodeDir := filepath.Join(d.homeDir, ".vscode")
 		if info, err := os.Stat(vscodeDir); err == nil && info.IsDir() {
 			agent := &AITool{
 				Name:       "VS Code",

@@ -14,11 +14,15 @@ func TestVSCodeDiscoverer_WithFixtures(t *testing.T) {
 	tmpHome := t.TempDir()
 	tmpProject := t.TempDir()
 
-	err := copyDir(
-		filepath.Join(fixtures, "vscode"),
-		filepath.Join(tmpHome, ".vscode"),
-	)
-	require.NoError(t, err)
+	// System MCP lives in the VS Code user-data dir, not ~/.vscode/.
+	// Create ~/.vscode/ only for coding_agent detection; copy mcp.json to
+	// the Linux user-data path the discoverer actually checks.
+	require.NoError(t, mkdir(filepath.Join(tmpHome, ".vscode")))
+	require.NoError(t, mkdir(filepath.Join(tmpHome, ".config", "Code", "User")))
+	require.NoError(t, copyFile(
+		filepath.Join(fixtures, "vscode", "mcp.json"),
+		filepath.Join(tmpHome, ".config", "Code", "User", "mcp.json"),
+	))
 
 	// fixtures/vscode-project/mcp.json is stored outside a hidden dir to
 	// avoid .gitignore exclusion; copy it into .vscode/ inside a temp dir.
