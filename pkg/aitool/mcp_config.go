@@ -125,6 +125,55 @@ func emitMCPServers(cfg *mcpAppConfig, configPath string, scope AIToolScope, app
 	return nil
 }
 
+// claudeProjectEntry represents one entry under the "projects" key in
+// ~/.claude.json. Each key is an absolute project path.
+type claudeProjectEntry struct {
+	MCPServers         map[string]mcpServerEntry `json:"mcpServers"`
+	DisabledMCPServers []string                  `json:"disabledMcpServers"`
+}
+
+// claudeUserConfigFile represents the structure of ~/.claude.json that is
+// relevant for MCP discovery. The file contains many other fields; they are
+// ignored during unmarshaling.
+type claudeUserConfigFile struct {
+	MCPServers map[string]mcpServerEntry        `json:"mcpServers"`
+	Projects   map[string]claudeProjectEntry    `json:"projects"`
+}
+
+// parseClaudeUserConfigFile reads and parses ~/.claude.json into the fields
+// relevant for MCP discovery.
+func parseClaudeUserConfigFile(path string) (*claudeUserConfigFile, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var cfg claudeUserConfigFile
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		logger.Warnf("Failed to parse Claude user config file %s: %v", path, err)
+		return nil, err
+	}
+	return &cfg, nil
+}
+
+// projectEntryToMCPConfig converts a claudeProjectEntry into an mcpAppConfig,
+// applying the per-project disabledMcpServers list by setting Disabled=true on
+// each affected entry. This lets emitMCPServers set Enabled=false correctly.
+func projectEntryToMCPConfig(entry claudeProjectEntry) *mcpAppConfig {
+	disabled := make(map[string]bool, len(entry.DisabledMCPServers))
+	for _, n := range entry.DisabledMCPServers {
+		disabled[n] = true
+	}
+	servers := make(map[string]mcpServerEntry, len(entry.MCPServers))
+	for name, srv := range entry.MCPServers {
+		if disabled[name] {
+			t := true
+			srv.Disabled = &t
+		}
+		servers[name] = srv
+	}
+	return &mcpAppConfig{MCPServers: servers}
+}
+
 // parsePluginMCPConfig reads a plugin cache .mcp.json. It tries the standard
 // mcpServers-wrapped format first; when that yields no servers it falls back
 // to the bare map[name]entry format used by some plugins.
