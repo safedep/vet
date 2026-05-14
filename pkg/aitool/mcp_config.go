@@ -125,6 +125,36 @@ func emitMCPServers(cfg *mcpAppConfig, configPath string, scope AIToolScope, app
 	return nil
 }
 
+// parsePluginMCPConfig reads a plugin cache .mcp.json. It tries the standard
+// mcpServers-wrapped format first; when that yields no servers it falls back
+// to the bare map[name]entry format used by some plugins.
+func parsePluginMCPConfig(path string) (*mcpAppConfig, error) {
+	cfg, err := parseMCPAppConfig(path)
+	if err != nil {
+		return nil, err
+	}
+	if len(cfg.MCPServers) > 0 {
+		return cfg, nil
+	}
+	return parseMCPBareConfig(path)
+}
+
+// parseMCPBareConfig reads a JSON file where server entries sit at the top
+// level (no mcpServers wrapper). This format appears in Claude Code plugin
+// cache .mcp.json files from some plugin publishers.
+func parseMCPBareConfig(path string) (*mcpAppConfig, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var entries map[string]mcpServerEntry
+	if err := json.Unmarshal(data, &entries); err != nil {
+		logger.Warnf("Failed to parse bare MCP config file %s: %v", path, err)
+		return nil, err
+	}
+	return &mcpAppConfig{MCPServers: entries}, nil
+}
+
 // sortedKeys returns the keys of a map in sorted order for deterministic output.
 func sortedKeys[V any](m map[string]V) []string {
 	keys := make([]string, 0, len(m))
