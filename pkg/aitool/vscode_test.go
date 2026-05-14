@@ -11,17 +11,26 @@ import (
 
 func TestVSCodeDiscoverer_WithFixtures(t *testing.T) {
 	fixtures := fixturesDir(t)
-	tmpDir := t.TempDir()
+	tmpHome := t.TempDir()
+	tmpProject := t.TempDir()
 
 	err := copyDir(
 		filepath.Join(fixtures, "vscode"),
-		filepath.Join(tmpDir, ".vscode"),
+		filepath.Join(tmpHome, ".vscode"),
 	)
 	require.NoError(t, err)
 
+	// fixtures/vscode-project/mcp.json is stored outside a hidden dir to
+	// avoid .gitignore exclusion; copy it into .vscode/ inside a temp dir.
+	require.NoError(t, mkdir(filepath.Join(tmpProject, ".vscode")))
+	require.NoError(t, copyFile(
+		filepath.Join(fixtures, "vscode-project", "mcp.json"),
+		filepath.Join(tmpProject, ".vscode", "mcp.json"),
+	))
+
 	reader, err := NewVSCodeDiscoverer(DiscoveryConfig{
-		HomeDir:    tmpDir,
-		ProjectDir: filepath.Join(fixtures, "vscode-project"),
+		HomeDir:    tmpHome,
+		ProjectDir: tmpProject,
 	})
 	require.NoError(t, err)
 
@@ -100,10 +109,17 @@ func TestVSCodeDiscoverer_DirExistsButNoMCPJson(t *testing.T) {
 // the VS Code-native "servers" key are parsed correctly.
 func TestVSCodeDiscoverer_ServersKey(t *testing.T) {
 	fixtures := fixturesDir(t)
+	tmpProject := t.TempDir()
+
+	require.NoError(t, mkdir(filepath.Join(tmpProject, ".vscode")))
+	require.NoError(t, copyFile(
+		filepath.Join(fixtures, "vscode-project", "mcp.json"),
+		filepath.Join(tmpProject, ".vscode", "mcp.json"),
+	))
 
 	reader, err := NewVSCodeDiscoverer(DiscoveryConfig{
 		HomeDir:    t.TempDir(),
-		ProjectDir: filepath.Join(fixtures, "vscode-project"),
+		ProjectDir: tmpProject,
 	})
 	require.NoError(t, err)
 
