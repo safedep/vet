@@ -310,6 +310,11 @@ func (r *markdownSummaryReporter) addThreatsSection(builder *markdown.MarkdownBu
 	for threatType, threats := range internalModel.threats {
 		builder.AddHeader(3, threatType.String())
 
+		if threatType == jsonreportspec.ReportThreat_LockfilePoisoning {
+			r.addLockfilePoisoningThreats(builder, threats)
+			continue
+		}
+
 		for _, threat := range threats {
 			foundOn := ""
 			switch threat.GetSubjectType() {
@@ -327,14 +332,6 @@ func (r *markdownSummaryReporter) addThreatsSection(builder *markdown.MarkdownBu
 
 			subject := threat.GetSubject()
 
-			/*
-				if threat.GetSubjectType() == jsonreportspec.ReportThreat_Manifest {
-					if _, ok := r.fileMap[subject]; ok {
-						subject = r.fileMap[subject]
-					}
-				}
-			*/
-
 			builder.AddBulletPoint(fmt.Sprintf("%s Found in %s `%s`, %s. Refer to [this](%s) for more details",
 				markdown.EmojiWarning,
 				foundOn,
@@ -346,6 +343,59 @@ func (r *markdownSummaryReporter) addThreatsSection(builder *markdown.MarkdownBu
 	}
 
 	return nil
+}
+
+// addLockfilePoisoningThreats renders lockfile poisoning threats aggregated by
+// URL so that multiple packages pointing to the same URL — or multiple signals
+// for the same package (untrusted host + path convention) — collapse into one
+// concise bullet per URL.
+func (r *markdownSummaryReporter) addLockfilePoisoningThreats(
+	builder *markdown.MarkdownBuilder,
+	threats []*jsonreportspec.ReportThreat,
+) {
+	// Collect raw messages per manifest subject so we can aggregate per subject+URL.
+	type subjectMsgs struct {
+		subject string
+		msgs    []string
+	}
+	subjectMap := map[string]*subjectMsgs{}
+	subjectOrder := []string{}
+
+	for _, threat := range threats {
+		subject := threat.GetSubject()
+		if subject == "" {
+			continue
+		}
+		if _, ok := subjectMap[subject]; !ok {
+			subjectMap[subject] = &subjectMsgs{subject: subject}
+			subjectOrder = append(subjectOrder, subject)
+		}
+		subjectMap[subject].msgs = append(subjectMap[subject].msgs, threat.GetMessage())
+	}
+
+	for _, subject := range subjectOrder {
+		sm := subjectMap[subject]
+		for _, g := range aggregateLFPMessages(sm.msgs) {
+			pkgList := strings.Join(g.pkgOrder, "`, `")
+			if pkgList != "" {
+				pkgList = "`" + pkgList + "`"
+			}
+			builder.AddBulletPoint(fmt.Sprintf(
+				"%s `%s`: packages %s resolved to untrusted URL `%s` %s ([details](%s))",
+				markdown.EmojiWarning,
+				subject,
+				pkgList,
+				g.url,
+				func() string {
+					if g.doesNotFollowPathConvention {
+						return "(does not follow package name path convention)"
+					}
+					return ""
+				}(),
+				lockfilePoisoningReference,
+			))
+		}
+	}
 }
 
 func (r *markdownSummaryReporter) addChangedPackageSection(builder *markdown.MarkdownBuilder,
