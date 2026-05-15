@@ -381,11 +381,17 @@ func (r *markdownSummaryReporter) addLockfilePoisoningThreats(
 				pkgList = "`" + pkgList + "`"
 			}
 			builder.AddBulletPoint(fmt.Sprintf(
-				"%s `%s`: packages %s → untrusted URL `%s` ([details](%s))",
+				"%s `%s`: packages %s resolved to untrusted URL `%s` %s ([details](%s))",
 				markdown.EmojiWarning,
 				subject,
 				pkgList,
 				g.url,
+				func() string {
+					if g.doesNotFollowPathConvention {
+						return "(does not follow package name path convention)"
+					}
+					return ""
+				}(),
 				lockfilePoisoningReference,
 			))
 		}

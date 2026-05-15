@@ -428,7 +428,12 @@ func (r *summaryReporter) Finish() error {
 
 		for _, g := range aggregateLFPMessages(r.lockfilePoisoning) {
 			pkgs := strings.Join(g.pkgOrder, ", ")
-			msg := fmt.Sprintf("Packages [%s] resolved to untrusted URL: %s", pkgs, g.url)
+			msg := fmt.Sprintf("Packages [%s] resolved to untrusted URL: %s %s", pkgs, g.url, func() string {
+				if g.doesNotFollowPathConvention {
+					return "(does not follow package name path convention)"
+				}
+				return ""
+			}())
 			fmt.Println(text.WrapHard(HighBgText(summaryListPrependText+msg), 120))
 		}
 
