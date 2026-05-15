@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -310,6 +312,11 @@ func (r *markdownSummaryReporter) addThreatsSection(builder *markdown.MarkdownBu
 	for threatType, threats := range internalModel.threats {
 		builder.AddHeader(3, threatType.String())
 
+		if threatType == jsonreportspec.ReportThreat_LockfilePoisoning {
+			r.addLockfilePoisoningThreats(builder, threats)
+			continue
+		}
+
 		for _, threat := range threats {
 			foundOn := ""
 			switch threat.GetSubjectType() {
@@ -327,14 +334,6 @@ func (r *markdownSummaryReporter) addThreatsSection(builder *markdown.MarkdownBu
 
 			subject := threat.GetSubject()
 
-			/*
-				if threat.GetSubjectType() == jsonreportspec.ReportThreat_Manifest {
-					if _, ok := r.fileMap[subject]; ok {
-						subject = r.fileMap[subject]
-					}
-				}
-			*/
-
 			builder.AddBulletPoint(fmt.Sprintf("%s Found in %s `%s`, %s. Refer to [this](%s) for more details",
 				markdown.EmojiWarning,
 				foundOn,
@@ -346,6 +345,89 @@ func (r *markdownSummaryReporter) addThreatsSection(builder *markdown.MarkdownBu
 	}
 
 	return nil
+}
+
+// lfpMessageRe extracts the URL from a lockfile poisoning threat message.
+// Messages follow the pattern: Package `name` resolved to ... `URL` ...
+var lfpMessageRe = regexp.MustCompile("`(https?://[^`]+)`")
+
+// lfpPackageRe extracts the package name from a lockfile poisoning threat message.
+var lfpPackageRe = regexp.MustCompile("^Package `([^`]+)`")
+
+// lfpThreatGroup aggregates lockfile poisoning findings that share the same
+// manifest subject and resolved URL.
+type lfpThreatGroup struct {
+	subject  string
+	url      string
+	packages []string
+}
+
+// addLockfilePoisoningThreats renders lockfile poisoning threats aggregated by
+// (manifest, URL) so that multiple packages pointing to the same URL are shown
+// as a single entry rather than repeated warnings.
+func (r *markdownSummaryReporter) addLockfilePoisoningThreats(
+	builder *markdown.MarkdownBuilder,
+	threats []*jsonreportspec.ReportThreat,
+) {
+	// key: "subject\x00url"
+	groupMap := map[string]*lfpThreatGroup{}
+	keyOrder := []string{}
+
+	for _, threat := range threats {
+		subject := threat.GetSubject()
+		msg := threat.GetMessage()
+
+		urlMatches := lfpMessageRe.FindStringSubmatch(msg)
+		if len(urlMatches) < 2 {
+			// Fallback: render as-is
+			builder.AddBulletPoint(fmt.Sprintf("%s %s. Refer to [this](%s) for more details",
+				markdown.EmojiWarning, msg, lockfilePoisoningReference))
+			continue
+		}
+		resolvedURL := urlMatches[1]
+
+		pkgMatches := lfpPackageRe.FindStringSubmatch(msg)
+		pkgName := ""
+		if len(pkgMatches) >= 2 {
+			pkgName = pkgMatches[1]
+		}
+
+		key := subject + "\x00" + resolvedURL
+		if _, ok := groupMap[key]; !ok {
+			groupMap[key] = &lfpThreatGroup{
+				subject:  subject,
+				url:      resolvedURL,
+				packages: []string{},
+			}
+			keyOrder = append(keyOrder, key)
+		}
+		if pkgName != "" {
+			groupMap[key].packages = append(groupMap[key].packages, pkgName)
+		}
+	}
+
+	for _, key := range keyOrder {
+		g := groupMap[key]
+		sort.Strings(g.packages)
+
+		pkgList := ""
+		if len(g.packages) > 0 {
+			quoted := make([]string, len(g.packages))
+			for i, p := range g.packages {
+				quoted[i] = fmt.Sprintf("`%s`", p)
+			}
+			pkgList = strings.Join(quoted, ", ")
+		}
+
+		builder.AddBulletPoint(fmt.Sprintf(
+			"%s Found in manifest `%s`, packages %s resolved to untrusted URL `%s`. Refer to [this](%s) for more details",
+			markdown.EmojiWarning,
+			g.subject,
+			pkgList,
+			g.url,
+			lockfilePoisoningReference,
+		))
+	}
 }
 
 func (r *markdownSummaryReporter) addChangedPackageSection(builder *markdown.MarkdownBuilder,
