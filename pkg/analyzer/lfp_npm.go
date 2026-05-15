@@ -130,40 +130,31 @@ func (npm *npmLockfilePoisoningAnalyzer) Analyze(manifest *models.PackageManifes
 		logger.Debugf("npmLockfilePoisoningAnalyzer: Analyzing package [%s] with %d trusted registry URLs in config",
 			packageName, len(trustedRegistryUrls))
 
-		if !npmIsTrustedSource(lockfilePackage.Resolved, trustedRegistryUrls) {
-			logger.Debugf("npmLockfilePoisoningAnalyzer: Package [%s] resolved to an untrusted host [%s]",
-				packageName, lockfilePackage.Resolved)
+		untrustedHost := !npmIsTrustedSource(lockfilePackage.Resolved, trustedRegistryUrls)
+		pathViolation := !npmIsUrlFollowsPathConvention(lockfilePackage.Resolved, packageName, trustedRegistryUrls, userTrustUrls)
 
-			message := fmt.Sprintf("Package `%s` resolved to an untrusted host `%s`",
-				packageName, lockfilePackage.Resolved)
-
-			_ = handler(&AnalyzerEvent{
-				Source:   lfpAnalyzerName,
-				Type:     ET_LockfilePoisoningSignal,
-				Message:  message,
-				Manifest: manifest,
-				Package:  pkg,
-				Threat: &jsonreportspec.ReportThreat{
-					Id: jsonreportspec.ReportThreat_LockfilePoisoning,
-					InstanceId: ThreatInstanceID(jsonreportspec.ReportThreat_LockfilePoisoning,
-						jsonreportspec.ReportThreat_Manifest,
-						manifest.GetDisplayPath()),
-					Message:     message,
-					SubjectType: jsonreportspec.ReportThreat_Manifest,
-					Subject:     manifest.GetDisplayPath(),
-					Confidence:  jsonreportspec.ReportThreat_Medium,
-					Source:      lfpThreatSource,
-					SourceId:    lfpThreatSourceId,
-				},
-			})
-		}
-
-		if !npmIsUrlFollowsPathConvention(lockfilePackage.Resolved, packageName, trustedRegistryUrls, userTrustUrls) {
-			logger.Debugf("npmLockfilePoisoningAnalyzer: Package [%s] resolved to an unconventional URL [%s]",
-				packageName, lockfilePackage.Resolved)
-
-			message := fmt.Sprintf("Package `%s` resolved to an URL `%s` that does not follow the "+
-				"package name path convention", packageName, lockfilePackage.Resolved)
+		// Aggregate both signals into a single event when the same URL triggers both
+		// "untrusted host" and "path convention" violations, to avoid duplicate warnings
+		// for the same package+URL combination.
+		if untrustedHost || pathViolation {
+			var message string
+			switch {
+			case untrustedHost && pathViolation:
+				logger.Debugf("npmLockfilePoisoningAnalyzer: Package [%s] resolved to an untrusted URL [%s] that also violates path convention",
+					packageName, lockfilePackage.Resolved)
+				message = fmt.Sprintf("Package `%s` resolved to an untrusted URL `%s` that does not follow the package name path convention",
+					packageName, lockfilePackage.Resolved)
+			case untrustedHost:
+				logger.Debugf("npmLockfilePoisoningAnalyzer: Package [%s] resolved to an untrusted host [%s]",
+					packageName, lockfilePackage.Resolved)
+				message = fmt.Sprintf("Package `%s` resolved to an untrusted host `%s`",
+					packageName, lockfilePackage.Resolved)
+			default:
+				logger.Debugf("npmLockfilePoisoningAnalyzer: Package [%s] resolved to an unconventional URL [%s]",
+					packageName, lockfilePackage.Resolved)
+				message = fmt.Sprintf("Package `%s` resolved to an URL `%s` that does not follow the package name path convention",
+					packageName, lockfilePackage.Resolved)
+			}
 
 			_ = handler(&AnalyzerEvent{
 				Source:   lfpAnalyzerName,
