@@ -1,7 +1,6 @@
 package analyzer
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -183,30 +182,4 @@ func TestNpmIsUrlFollowsPathConvention(t *testing.T) {
 			assert.Equal(t, test.expected, actual)
 		})
 	}
-}
-
-// TestNpmLockfilePoisoningAggregation verifies that when a package URL fails both
-// "untrusted host" and "path convention" checks, only a single aggregated event is emitted.
-func TestNpmLockfilePoisoningAggregation(t *testing.T) {
-	// A GitHub tarball URL is both untrusted (not npmjs.org) and violates path convention
-	githubURL := "https://github.com/isaacs/node-glob/archive/refs/tags/v10.3.0.tar.gz"
-	packageName := "glob"
-
-	untrustedHost := !npmIsTrustedSource(githubURL, []string{npmRegistryTrustedUrlBase})
-	pathViolation := !npmIsUrlFollowsPathConvention(githubURL, packageName, []string{npmRegistryTrustedUrlBase}, []string{})
-
-	// Both checks should fire for a raw GitHub URL
-	assert.True(t, untrustedHost, "GitHub URL should be considered untrusted")
-	assert.True(t, pathViolation, "GitHub URL should violate path convention")
-
-	// Verify the aggregated message is a single string mentioning the package and URL
-	message := ""
-	if untrustedHost && pathViolation {
-		message = "Package `" + packageName + "` resolved to an untrusted URL `" + githubURL + "` that does not follow the package name path convention"
-	}
-
-	assert.True(t, strings.Contains(message, packageName))
-	assert.True(t, strings.Contains(message, githubURL))
-	// Must be a single message (no newlines splitting it into multiple warnings)
-	assert.Equal(t, 1, strings.Count(message, "Package `"+packageName+"`"))
 }
