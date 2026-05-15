@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"regexp"
-	"sort"
 	"strings"
 
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -347,86 +345,50 @@ func (r *markdownSummaryReporter) addThreatsSection(builder *markdown.MarkdownBu
 	return nil
 }
 
-// lfpMessageRe extracts the URL from a lockfile poisoning threat message.
-// Messages follow the pattern: Package `name` resolved to ... `URL` ...
-var lfpMessageRe = regexp.MustCompile("`(https?://[^`]+)`")
-
-// lfpPackageRe extracts the package name from a lockfile poisoning threat message.
-var lfpPackageRe = regexp.MustCompile("^Package `([^`]+)`")
-
-// lfpThreatGroup aggregates lockfile poisoning findings that share the same
-// manifest subject and resolved URL.
-type lfpThreatGroup struct {
-	subject  string
-	url      string
-	packages []string
-}
-
 // addLockfilePoisoningThreats renders lockfile poisoning threats aggregated by
-// (manifest, URL) so that multiple packages pointing to the same URL are shown
-// as a single entry rather than repeated warnings.
+// URL so that multiple packages pointing to the same URL — or multiple signals
+// for the same package (untrusted host + path convention) — collapse into one
+// concise bullet per URL.
 func (r *markdownSummaryReporter) addLockfilePoisoningThreats(
 	builder *markdown.MarkdownBuilder,
 	threats []*jsonreportspec.ReportThreat,
 ) {
-	// key: "subject\x00url"
-	groupMap := map[string]*lfpThreatGroup{}
-	keyOrder := []string{}
+	// Collect raw messages per manifest subject so we can aggregate per subject+URL.
+	type subjectMsgs struct {
+		subject string
+		msgs    []string
+	}
+	subjectMap := map[string]*subjectMsgs{}
+	subjectOrder := []string{}
 
 	for _, threat := range threats {
 		subject := threat.GetSubject()
-		msg := threat.GetMessage()
-
-		urlMatches := lfpMessageRe.FindStringSubmatch(msg)
-		if len(urlMatches) < 2 {
-			// Fallback: render as-is
-			builder.AddBulletPoint(fmt.Sprintf("%s %s. Refer to [this](%s) for more details",
-				markdown.EmojiWarning, msg, lockfilePoisoningReference))
+		if subject == "" {
 			continue
 		}
-		resolvedURL := urlMatches[1]
-
-		pkgMatches := lfpPackageRe.FindStringSubmatch(msg)
-		pkgName := ""
-		if len(pkgMatches) >= 2 {
-			pkgName = pkgMatches[1]
+		if _, ok := subjectMap[subject]; !ok {
+			subjectMap[subject] = &subjectMsgs{subject: subject}
+			subjectOrder = append(subjectOrder, subject)
 		}
-
-		key := subject + "\x00" + resolvedURL
-		if _, ok := groupMap[key]; !ok {
-			groupMap[key] = &lfpThreatGroup{
-				subject:  subject,
-				url:      resolvedURL,
-				packages: []string{},
-			}
-			keyOrder = append(keyOrder, key)
-		}
-		if pkgName != "" {
-			groupMap[key].packages = append(groupMap[key].packages, pkgName)
-		}
+		subjectMap[subject].msgs = append(subjectMap[subject].msgs, threat.GetMessage())
 	}
 
-	for _, key := range keyOrder {
-		g := groupMap[key]
-		sort.Strings(g.packages)
-
-		pkgList := ""
-		if len(g.packages) > 0 {
-			quoted := make([]string, len(g.packages))
-			for i, p := range g.packages {
-				quoted[i] = fmt.Sprintf("`%s`", p)
+	for _, subject := range subjectOrder {
+		sm := subjectMap[subject]
+		for _, g := range aggregateLFPMessages(sm.msgs) {
+			pkgList := strings.Join(g.pkgOrder, "`, `")
+			if pkgList != "" {
+				pkgList = "`" + pkgList + "`"
 			}
-			pkgList = strings.Join(quoted, ", ")
+			builder.AddBulletPoint(fmt.Sprintf(
+				"%s `%s`: packages %s → untrusted URL `%s` ([details](%s))",
+				markdown.EmojiWarning,
+				subject,
+				pkgList,
+				g.url,
+				lockfilePoisoningReference,
+			))
 		}
-
-		builder.AddBulletPoint(fmt.Sprintf(
-			"%s Found in manifest `%s`, packages %s resolved to untrusted URL `%s`. Refer to [this](%s) for more details",
-			markdown.EmojiWarning,
-			g.subject,
-			pkgList,
-			g.url,
-			lockfilePoisoningReference,
-		))
 	}
 }
 
