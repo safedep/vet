@@ -10,21 +10,20 @@ import (
 )
 
 func TestWrapAuthError(t *testing.T) {
-	t.Run("returns clean message for unauthenticated gRPC error", func(t *testing.T) {
+	t.Run("returns human message for unauthenticated gRPC error", func(t *testing.T) {
 		err := wrapAuthError(status.Error(codes.Unauthenticated, "unauthenticated"))
-		assert.ErrorContains(t, err, "could not authenticate against tenant")
-		assert.ErrorContains(t, err, "check that your API key is correct")
+		assert.ErrorContains(t, err, "Authentication failed")
+		assert.ErrorContains(t, err, "Check your credentials")
 	})
 
-	t.Run("returns clean message for permission denied gRPC error", func(t *testing.T) {
+	t.Run("returns human message for permission denied gRPC error", func(t *testing.T) {
 		err := wrapAuthError(status.Error(codes.PermissionDenied, "forbidden"))
-		assert.ErrorContains(t, err, "could not authenticate against tenant")
-		assert.ErrorContains(t, err, "check that your API key is correct")
+		assert.ErrorContains(t, err, "Permission denied")
 	})
 
-	t.Run("passes through non-auth gRPC errors unchanged", func(t *testing.T) {
-		original := status.Error(codes.Unavailable, "service unavailable")
-		assert.Equal(t, original, wrapAuthError(original))
+	t.Run("returns human message for unavailable gRPC error", func(t *testing.T) {
+		err := wrapAuthError(status.Error(codes.Unavailable, "service unavailable"))
+		assert.ErrorContains(t, err, "Service unavailable")
 	})
 
 	t.Run("passes through non-gRPC errors unchanged", func(t *testing.T) {

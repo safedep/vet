@@ -3,9 +3,7 @@ package auth
 import (
 	"fmt"
 
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
+	"github.com/safedep/dry/usefulerror"
 	"github.com/safedep/vet/pkg/cloud"
 )
 
@@ -31,11 +29,8 @@ func Verify() error {
 }
 
 func wrapAuthError(err error) error {
-	if s, ok := status.FromError(err); ok {
-		switch s.Code() {
-		case codes.Unauthenticated, codes.PermissionDenied:
-			return fmt.Errorf("could not authenticate against tenant %q: check that your API key is correct", TenantDomain())
-		}
+	if ue, ok := usefulerror.AsUsefulError(err); ok {
+		return fmt.Errorf("%s: %s", ue.HumanError(), ue.Help())
 	}
 
 	return err
