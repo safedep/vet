@@ -3,9 +3,10 @@ package auth
 import (
 	"fmt"
 
-	"github.com/safedep/vet/pkg/cloud"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/safedep/vet/pkg/cloud"
 )
 
 // Verify authentication to the data plane using
@@ -30,8 +31,11 @@ func Verify() error {
 }
 
 func wrapAuthError(err error) error {
-	if s, ok := status.FromError(err); ok && s.Code() == codes.Unauthenticated {
-		return fmt.Errorf("could not authenticate against tenant %q: check that your API key is correct", TenantDomain())
+	if s, ok := status.FromError(err); ok {
+		switch s.Code() {
+		case codes.Unauthenticated, codes.PermissionDenied:
+			return fmt.Errorf("could not authenticate against tenant %q: check that your API key is correct", TenantDomain())
+		}
 	}
 
 	return err
