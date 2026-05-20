@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/AlecAivazis/survey/v2"
+	tuierrors "github.com/safedep/dry/tui/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/internal/auth"
@@ -66,7 +67,7 @@ func configureAuthCommand() *cobra.Command {
 
 			err = auth.Verify()
 			if err != nil {
-				logger.Fatalf("Failed to verify auth: %v", err)
+				tuierrors.ErrorExit(err)
 			}
 
 			err = auth.PersistApiKey(key, authTenantDomain)
