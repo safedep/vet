@@ -109,7 +109,16 @@ function extractArchive(archivePath, extractDir) {
   const isZip = archivePath.endsWith(".zip");
 
   if (isZip) {
-    execSync(`unzip -o "${archivePath}" -d "${extractDir}"`, { stdio: "pipe" });
+    if (process.platform === "win32") {
+      execSync(
+        `powershell -NoProfile -Command "Expand-Archive -Force -Path '${archivePath}' -DestinationPath '${extractDir}'"`,
+        { stdio: "pipe" },
+      );
+    } else {
+      execSync(`unzip -o "${archivePath}" -d "${extractDir}"`, {
+        stdio: "pipe",
+      });
+    }
   } else {
     execSync(`tar -xzf "${archivePath}" -C "${extractDir}"`, { stdio: "pipe" });
   }
