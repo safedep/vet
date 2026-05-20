@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/safedep/dry/usefulerror"
+
 	"github.com/safedep/vet/pkg/cloud"
 )
 
