@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"github.com/AlecAivazis/survey/v2"
+	tuierrors "github.com/safedep/dry/tui/errors"
 	"github.com/spf13/cobra"
 
-	tuierrors "github.com/safedep/dry/tui/errors"
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/internal/command"
 	"github.com/safedep/vet/internal/ui"
