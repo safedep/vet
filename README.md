@@ -26,6 +26,7 @@
 [![CodeQL](https://github.com/safedep/vet/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/safedep/vet/actions/workflows/codeql.yml)
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/safedep/vet)
+[![Add to Kiro](https://kiro.dev/images/add-to-kiro.svg)](https://kiro.dev/launch/mcp/add?name=vet-mcp&config=%7B%22command%22%3A%22docker%22%2C%22args%22%3A%5B%22run%22%2C%22--rm%22%2C%22-i%22%2C%22ghcr.io%2Fsafedep%2Fvet%3Alatest%22%2C%22server%22%2C%22mcp%22%5D%7D)
 
 </div>
 
@@ -282,6 +283,28 @@ vet version
 - **[AI Usage Discovery](./docs/ai-discovery.md)** - Discover AI tool usage signals across various tools and configurations
 - **[AI Agent Mode](./docs/agent.md)** - Run vet as an AI agent
 - **[MCP Server](./docs/mcp.md)** - Run vet as an MCP server for AI-assisted code analysis
+
+#### Kiro
+
+To install the vet MCP server in [Kiro](https://kiro.dev), click the badge at the top of this README or manually add the following to your Kiro MCP config file (`.kiro/settings/mcp.json` or `~/.kiro/settings/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "vet-mcp": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "ghcr.io/safedep/vet:latest",
+        "server",
+        "mcp"
+      ]
+    }
+  }
+}
+```
 - **[Reporting](./docs/reporting.md)** - SARIF, JSON, CSV, HTML, Markdown formats
 - **[SBOM Support](https://docs.safedep.io/vet/guides/cyclonedx-sbom)** - CycloneDX, SPDX import/export
 - **[Query Mode](https://docs.safedep.io/cloud/quickstart#query-your-data)** - Scan once, analyze multiple times
