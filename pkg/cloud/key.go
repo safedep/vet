@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"buf.build/gen/go/safedep/api/grpc/go/safedep/services/controltower/v1/controltowerv1grpc"
+	controltowerv1messages "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
 	controltowerv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/controltower/v1"
 	"google.golang.org/grpc"
 )
@@ -32,6 +33,8 @@ type ListApiKeyRequest struct {
 	Name           string
 	OnlyMine       bool
 	IncludeExpired bool
+	PageSize       uint32
+	PageToken      string
 }
 
 type ApiKey struct {
@@ -42,7 +45,8 @@ type ApiKey struct {
 }
 
 type ListApiKeyResponse struct {
-	Keys []*ApiKey
+	Keys          []*ApiKey
+	NextPageToken string
 }
 
 func (a *apiKeyService) DeleteKey(id string) error {
@@ -56,13 +60,22 @@ func (a *apiKeyService) DeleteKey(id string) error {
 
 func (a *apiKeyService) ListKeys(req *ListApiKeyRequest) (*ListApiKeyResponse, error) {
 	keyService := controltowerv1grpc.NewApiKeyServiceClient(a.conn)
-	res, err := keyService.ListApiKeys(context.Background(), &controltowerv1.ListApiKeysRequest{
+	grpcReq := &controltowerv1.ListApiKeysRequest{
 		Filter: &controltowerv1.ListApiKeyFilter{
 			Name:               req.Name,
 			IncludeExpired:     req.IncludeExpired,
 			IncludeCurrentUser: req.OnlyMine,
 		},
-	})
+	}
+
+	if req.PageSize > 0 || req.PageToken != "" {
+		grpcReq.Pagination = &controltowerv1messages.PaginationRequest{
+			PageSize:  req.PageSize,
+			PageToken: req.PageToken,
+		}
+	}
+
+	res, err := keyService.ListApiKeys(context.Background(), grpcReq)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +90,15 @@ func (a *apiKeyService) ListKeys(req *ListApiKeyRequest) (*ListApiKeyResponse, e
 		})
 	}
 
-	return &ListApiKeyResponse{Keys: keys}, nil
+	var nextPageToken string
+	if res.GetPagination() != nil {
+		nextPageToken = res.GetPagination().GetNextPageToken()
+	}
+
+	return &ListApiKeyResponse{
+		Keys:          keys,
+		NextPageToken: nextPageToken,
+	}, nil
 }
 
 func (a *apiKeyService) CreateApiKey(req *CreateApiKeyRequest) (*CreateApiKeyResponse, error) {
