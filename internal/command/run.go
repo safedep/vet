@@ -8,9 +8,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// PresentableError converts a UsefulError into a human-readable error message.
+// presentableError converts a UsefulError into a human-readable error message.
 // Non-UsefulErrors are returned unchanged.
-func PresentableError(err error) error {
+func presentableError(err error) error {
 	if err == nil {
 		return nil
 	}
@@ -24,7 +24,7 @@ func PresentableError(err error) error {
 // human-readable messages, and exits with a styled error via tuierrors.
 func RunCmd(fn func() error) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		if err := PresentableError(fn()); err != nil {
+		if err := presentableError(fn()); err != nil {
 			tuierrors.ErrorExit(err)
 		}
 		return nil
