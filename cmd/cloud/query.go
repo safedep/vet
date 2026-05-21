@@ -36,14 +36,7 @@ func newQuerySchemaCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "schema",
 		Short: "Get the schema for the query service",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			err := getQuerySchema()
-			if err != nil {
-				logger.Errorf("Failed to get query schema: %v", err)
-			}
-
-			return nil
-		},
+		RunE:  runCmd(getQuerySchema),
 	}
 
 	return cmd
@@ -53,14 +46,7 @@ func newQueryExecuteCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "execute",
 		Short: "Execute a query",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			err := executeQuery()
-			if err != nil {
-				logger.Errorf("Failed to execute query: %v", err)
-			}
-
-			return nil
-		},
+		RunE:  runCmd(executeQuery),
 	}
 
 	cmd.Flags().StringVarP(&querySql, "sql", "s", "", "SQL query to execute")

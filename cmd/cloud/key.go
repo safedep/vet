@@ -8,7 +8,6 @@ import (
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/cloud"
-	"github.com/safedep/vet/pkg/common/logger"
 )
 
 var (
@@ -43,14 +42,7 @@ func newDeleteKeyCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete",
 		Short: "Delete an API key",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			err := executeDeleteKey()
-			if err != nil {
-				logger.Errorf("Failed to delete API key: %v", err)
-			}
-
-			return nil
-		},
+		RunE:  runCmd(executeDeleteKey),
 	}
 
 	cmd.Flags().StringVar(&deleteKeyId, "id", "", "ID of the API key to delete")
@@ -83,14 +75,7 @@ func newListKeyCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List API keys",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			err := executeListKeys()
-			if err != nil {
-				logger.Errorf("Failed to list API keys: %v", err)
-			}
-
-			return nil
-		},
+		RunE:  runCmd(executeListKeys),
 	}
 
 	cmd.Flags().StringVar(&listKeysName, "name", "",
@@ -143,14 +128,7 @@ func newKeyCreateCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a new API key",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			err := executeCreateKey()
-			if err != nil {
-				logger.Errorf("Failed to create API key: %v", err)
-			}
-
-			return nil
-		},
+		RunE:  runCmd(executeCreateKey),
 	}
 
 	cmd.Flags().StringVar(&keyName, "name", "", "Name of the API key")
