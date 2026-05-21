@@ -185,21 +185,7 @@ func (e *insightsBasedPackageEnricherV2) convertInsightsV2ToV1(pvi *packagev1.Pa
 	// Package Version
 	// Why do we need this inside insights?
 
-	// Current Version
-	// We will pick the latest version from available versions.
-	// This will work for most cases but not for all.
-	currentVersion := ""
-	for _, v := range pvi.GetAvailableVersions() {
-		if currentVersion == "" {
-			currentVersion = v.GetVersion()
-			continue
-		}
-
-		if semver.IsAhead(currentVersion, v.GetVersion()) {
-			currentVersion = v.GetVersion()
-		}
-	}
-
+	currentVersion := currentVersionFromAvailableVersions(pvi.GetAvailableVersions())
 	insights.PackageCurrentVersion = &currentVersion
 
 	// Projects
@@ -350,6 +336,26 @@ func (e *insightsBasedPackageEnricherV2) convertInsightsV2ToV1(pvi *packagev1.Pa
 
 func (e *insightsBasedPackageEnricherV2) Wait() error {
 	return nil
+}
+
+func currentVersionFromAvailableVersions(versions []*packagev1.PackageAvailableVersion) string {
+	currentVersion := ""
+	for _, v := range versions {
+		version := v.GetVersion()
+		if version == "" {
+			continue
+		}
+
+		if v.GetDefaultVersion() {
+			return version
+		}
+
+		if currentVersion == "" || semver.IsAhead(currentVersion, version) {
+			currentVersion = version
+		}
+	}
+
+	return currentVersion
 }
 
 // Should this be in models?
