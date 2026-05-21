@@ -19,6 +19,8 @@ var (
 	listKeysName           string
 	listKeysIncludeExpired bool
 	listKeysOnlyMine       bool
+	listKeysPageSize       int
+	listKeysPageToken      string
 
 	deleteKeyId string
 )
@@ -85,6 +87,10 @@ func newListKeyCommand() *cobra.Command {
 		"Include expired keys in the list")
 	cmd.Flags().BoolVar(&listKeysOnlyMine, "only-mine", false,
 		"List only keys created by the current user")
+	cmd.Flags().IntVar(&listKeysPageSize, "page-size", 0,
+		"Number of keys to return per page (0 for server default)")
+	cmd.Flags().StringVar(&listKeysPageToken, "page-token", "",
+		"Page token for retrieving the next page of results")
 
 	return cmd
 }
@@ -104,6 +110,8 @@ func executeListKeys() error {
 		Name:           listKeysName,
 		IncludeExpired: listKeysIncludeExpired,
 		OnlyMine:       listKeysOnlyMine,
+		PageSize:       uint32(listKeysPageSize),
+		PageToken:      listKeysPageToken,
 	})
 	if err != nil {
 		return err
@@ -122,7 +130,15 @@ func executeListKeys() error {
 		tbl.AddRow(key.ID, key.Name, expiresAt, key.Desc)
 	}
 
-	return tbl.Finish()
+	if err := tbl.Finish(); err != nil {
+		return err
+	}
+
+	if keys.NextPageToken != "" {
+		ui.PrintMsg("\nNext page token: %s", keys.NextPageToken)
+	}
+
+	return nil
 }
 
 func newKeyCreateCommand() *cobra.Command {
