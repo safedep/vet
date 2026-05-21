@@ -7,23 +7,16 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/internal/auth"
+	"github.com/safedep/vet/internal/command"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/cloud"
-	"github.com/safedep/vet/pkg/common/logger"
 )
 
 func newWhoamiCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "whoami",
 		Short: "Print information about the current user",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			err := executeWhoami()
-			if err != nil {
-				logger.Errorf("Failed to execute whoami: %v", err)
-			}
-
-			return nil
-		},
+		RunE:  command.RunCmd(executeWhoami),
 	}
 
 	return cmd

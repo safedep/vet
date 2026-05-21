@@ -6,9 +6,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/internal/auth"
+	"github.com/safedep/vet/internal/command"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/cloud"
-	"github.com/safedep/vet/pkg/common/logger"
 )
 
 var (
@@ -22,14 +22,7 @@ func newRegisterCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "register",
 		Short: "Register a new user and tenant",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			err := registerUserTenant()
-			if err != nil {
-				logger.Errorf("Failed to register user: %v", err)
-			}
-
-			return nil
-		},
+		RunE:  command.RunCmd(registerUserTenant),
 	}
 
 	cmd.Flags().StringVar(&registerEmail, "email", "cloud@safedep.io", "Email of the user (not required for SafeDep cloud)")

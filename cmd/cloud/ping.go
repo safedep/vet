@@ -6,23 +6,16 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/internal/auth"
+	"github.com/safedep/vet/internal/command"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/cloud"
-	"github.com/safedep/vet/pkg/common/logger"
 )
 
 func newPingCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "ping",
 		Short: "Ping the control plane to check authentication and connectivity",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			err := pingControlPlane()
-			if err != nil {
-				logger.Errorf("Failed to ping control plane: %v", err)
-			}
-
-			return nil
-		},
+		RunE:  command.RunCmd(pingControlPlane),
 	}
 
 	return cmd

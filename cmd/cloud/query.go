@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/internal/auth"
+	"github.com/safedep/vet/internal/command"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/cloud/query"
 	"github.com/safedep/vet/pkg/common/logger"
@@ -36,14 +37,7 @@ func newQuerySchemaCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "schema",
 		Short: "Get the schema for the query service",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			err := getQuerySchema()
-			if err != nil {
-				logger.Errorf("Failed to get query schema: %v", err)
-			}
-
-			return nil
-		},
+		RunE:  command.RunCmd(getQuerySchema),
 	}
 
 	return cmd
@@ -53,14 +47,7 @@ func newQueryExecuteCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "execute",
 		Short: "Execute a query",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			err := executeQuery()
-			if err != nil {
-				logger.Errorf("Failed to execute query: %v", err)
-			}
-
-			return nil
-		},
+		RunE:  command.RunCmd(executeQuery),
 	}
 
 	cmd.Flags().StringVarP(&querySql, "sql", "s", "", "SQL query to execute")
