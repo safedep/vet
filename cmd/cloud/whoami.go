@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/internal/auth"
+	"github.com/safedep/vet/internal/command"
 	"github.com/safedep/vet/internal/ui"
 	"github.com/safedep/vet/pkg/cloud"
 )
@@ -15,7 +16,7 @@ func newWhoamiCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "whoami",
 		Short: "Print information about the current user",
-		RunE:  runCmd(executeWhoami),
+		RunE:  command.RunCmd(executeWhoami),
 	}
 
 	return cmd

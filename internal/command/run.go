@@ -1,4 +1,4 @@
-package cloud
+package command
 
 import (
 	"fmt"
@@ -8,9 +8,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// presentableError converts a UsefulError into a human-readable error message.
+// PresentableError converts a UsefulError into a human-readable error message.
 // Non-UsefulErrors are returned unchanged.
-func presentableError(err error) error {
+func PresentableError(err error) error {
 	if err == nil {
 		return nil
 	}
@@ -20,11 +20,11 @@ func presentableError(err error) error {
 	return err
 }
 
-// runCmd wraps a command execute function, converts UsefulErrors to
+// RunCmd wraps a command execute function, converts UsefulErrors to
 // human-readable messages, and exits with a styled error via tuierrors.
-func runCmd(fn func() error) func(*cobra.Command, []string) error {
+func RunCmd(fn func() error) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		if err := presentableError(fn()); err != nil {
+		if err := PresentableError(fn()); err != nil {
 			tuierrors.ErrorExit(err)
 		}
 		return nil
