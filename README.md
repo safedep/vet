@@ -331,6 +331,14 @@ vet stands on the shoulders of giants:
 
 [OSV](https://osv.dev) • [OpenSSF Scorecard](https://securityscorecards.dev/) • [SLSA](https://slsa.dev/) • [OSV-SCALIBR](https://github.com/google/osv-scalibr) • [Syft](https://github.com/anchore/syft)
 
+### Contributors
+
+Thank you to all contributors ❤️
+
+<a href="https://github.com/safedep/vet/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=safedep/vet" alt="Contributors to vet" />
+</a>
+
 ---
 
 <p><strong>Secure your supply chain today. Star the repo and get started!</strong></p>
