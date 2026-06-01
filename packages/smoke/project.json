@@ -1,0 +1,14 @@
+{
+  "name": "smoke",
+  "root": "packages/smoke",
+  "targets": {
+    "verify": {
+      "executor": "nx:run-commands",
+      "dependsOn": [{"projects": "vet", "target": "build-dev"}],
+      "options": {
+        "command": "node packages/vet/dist/bin.cjs version",
+        "cwd": "{workspaceRoot}"
+      }
+    }
+  }
+}

@@ -100,3 +100,29 @@ golangci-lint fmt
 ```bash
 make test
 ```
+
+## npm Distribution (nx)
+
+The Go build and tests use `make` (above). The npm distribution pipeline is
+orchestrated by nx. `vet` ships on npm as a thin wrapper (`packages/vet`) whose
+`optionalDependencies` are per-platform binary packages
+(`@safedep/vet-<platform>-<arch>`). There is no postinstall binary download.
+
+Because `vet` is a CGO binary, the snapshot and release builds need the full
+cross-compile toolchain (osxcross, mingw, cross-gcc) wherever they run. The
+sync tool is a separate Go module under `scripts/`, wired into the build via
+`go.work` (matching pmg/safedep-cli). Note: `ent/generate.go` uses `go run`
+(not `go run -mod=mod`) so `go generate` works in workspace mode; after an ent
+version bump, run `go mod tidy` before regenerating.
+
+```bash
+pnpm install                              # install nx + workspace packages
+pnpm nx run vet:build-snapshot            # goreleaser snapshot (all platforms)
+pnpm nx run vet:verify                    # full chain incl. smoke (vet version)
+pnpm nx run vet:release-preflight         # verify + pnpm publish --dry-run
+pnpm nx run vet:publish-npm               # release build + publish all packages
+```
+
+The task graph: `build-snapshot -> sync-binaries:run -> @safedep/vet:build ->
+build-dev -> smoke:verify -> verify -> release-preflight`. The release path uses
+the `*-release` variants (`build-release -> sync-binaries:run-release`).

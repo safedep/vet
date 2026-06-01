@@ -1,0 +1,13 @@
+{
+  "name": "@safedep/vet-linux-arm64",
+  "version": "0.0.0",
+  "license": "Apache-2.0",
+  "homepage": "https://safedep.io",
+  "bugs": { "url": "https://github.com/safedep/vet/issues" },
+  "repository": { "type": "git", "url": "git+https://github.com/safedep/vet.git" },
+  "publishConfig": { "access": "public" },
+  "os": ["linux"],
+  "cpu": ["arm64"],
+  "files": ["bin/**"],
+  "bin": { "vet": "bin/vet" }
+}

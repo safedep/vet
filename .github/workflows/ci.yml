@@ -142,3 +142,76 @@ jobs:
             -e VET_CONTROL_TOWER_TENANT_ID=${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }} \
             build-container-test:latest \
             auth verify
+
+  # Exercises the full nx npm pipeline as a release gate:
+  # goreleaser snapshot (all platforms) -> sync-binaries -> tsdown wrapper ->
+  # smoke (vet version) -> pnpm publish --dry-run. Needs the cross-compile
+  # toolchain because vet is CGO; osxcross is cached across runs.
+  release-preflight:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    env:
+      OSX_CROSS_TOOLCHAIN_REPOSITORY: https://github.com/abhisek/osxcross
+      OSX_CROSS_MACOS_SDK_VERSION: "12.3"
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+
+      - name: Install OSX Cross Compiler Build Tools
+        run: |
+          sudo sed -i 's/^Types: deb$/Types: deb\nArchitectures: amd64/' /etc/apt/sources.list.d/ubuntu.sources
+          sudo apt-get update -y
+          sudo apt-get install -y -qq --no-install-recommends \
+            build-essential clang gcc g++ gcc-mingw-w64 \
+            zlib1g-dev libmpc-dev libmpfr-dev libgmp-dev \
+            cmake libxml2-dev libssl-dev xz-utils \
+            gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+
+      - name: Setup OSX Cross Compiler Tool Chain Environment
+        run: echo "OSXCROSS_DIR=$(dirname $GITHUB_WORKSPACE)/osxcross" >> $GITHUB_ENV
+
+      - name: Clone OSX Cross Compiler Tool Chain
+        run: git clone $OSX_CROSS_TOOLCHAIN_REPOSITORY $OSXCROSS_DIR
+
+      - name: Cache OSX Cross Compiler Tool Chain
+        id: osxcross-cache
+        uses: actions/cache@2f8e54208210a422b2efd51efaa6bd6d7ca8920f # v3
+        with:
+          key: ${{ runner.os }}-osxcross-${{ env.OSX_CROSS_MACOS_SDK_VERSION }}
+          path: ${{ env.OSXCROSS_DIR }}/target/bin
+
+      - name: Build OSX Cross Compiler Tool Chain
+        if: steps.osxcross-cache.outputs.cache-hit != 'true'
+        run: cd $OSXCROSS_DIR && SDK_VERSION=$OSX_CROSS_MACOS_SDK_VERSION UNATTENDED=yes ./build.sh
+
+      - name: Add OSX Cross Compiler Tool Chain to Path
+        run: echo "$OSXCROSS_DIR/target/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install GoReleaser
+        uses: goreleaser/goreleaser-action@286f3b13b1b49da4ac219696163fb8c1c93e1200 # v6.0.0
+        with:
+          install-only: true
+          version: "~> v2"
+
+      - name: Release preflight
+        run: pnpm nx run vet:release-preflight

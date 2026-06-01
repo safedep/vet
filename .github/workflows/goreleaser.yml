@@ -23,6 +23,7 @@ jobs:
     permissions:
       contents: write # for goreleaser/goreleaser-action to create a GitHub release
       packages: write # for goreleaser/goreleaser-action to publish docker images
+      id-token: write # for npm publish --provenance (OIDC) in vet:publish-npm
     runs-on: ubuntu-latest
     env:
       # Required for buildx on docker 19.x
@@ -85,20 +86,47 @@ jobs:
         run: |
           echo "$OSXCROSS_DIR/target/bin" >> $GITHUB_PATH
 
-      - name: Run GoReleaser
-        id: run-goreleaser
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Extract version
+        id: version
+        shell: bash
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Install GoReleaser
         uses: goreleaser/goreleaser-action@286f3b13b1b49da4ac219696163fb8c1c93e1200 # v6.0.0
         with:
-          distribution: goreleaser
+          install-only: true
           version: "~> v2"
-          args: release --clean
+
+      - name: Build release (goreleaser via Nx)
+        id: run-goreleaser
+        run: pnpm nx run vet:build-release
         env:
           GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
+
       - name: Upload dist folder
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: dist-artifacts
           path: dist/
+
+      - name: Publish npm packages (sync + build + publish via Nx)
+        run: pnpm nx run vet:publish-npm
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   provenance:
     needs: [goreleaser]
