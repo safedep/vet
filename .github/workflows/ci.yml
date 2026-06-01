@@ -194,8 +194,12 @@ jobs:
         id: osxcross-cache
         uses: actions/cache@2f8e54208210a422b2efd51efaa6bd6d7ca8920f # v3
         with:
-          key: ${{ runner.os }}-osxcross-${{ env.OSX_CROSS_MACOS_SDK_VERSION }}
-          path: ${{ env.OSXCROSS_DIR }}/target/bin
+          # Cache the whole target dir (bin + SDK + lib). Caching only target/bin
+          # restores the clang wrappers but not target/SDK, and the build step
+          # below is skipped on a cache hit, so the macOS SDK goes missing and the
+          # darwin CGO build fails with "cannot find macOS SDK".
+          key: ${{ runner.os }}-osxcross-${{ env.OSX_CROSS_MACOS_SDK_VERSION }}-target
+          path: ${{ env.OSXCROSS_DIR }}/target
 
       - name: Build OSX Cross Compiler Tool Chain
         if: steps.osxcross-cache.outputs.cache-hit != 'true'
