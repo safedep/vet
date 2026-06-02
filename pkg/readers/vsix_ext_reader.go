@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
@@ -75,29 +74,40 @@ func NewVSIXExtReader(distributions []string) (*vsixExtReader, error) {
 	customDistributions := make(map[string]distributionInfo)
 
 	for i, distribution := range distributions {
-		// Check if the path matches any supported editor
-		foundMatch := false
-		ecosystem := models.EcosystemVSCodeExtensions
-
-		for _, eco := range editors {
-			if strings.Contains(distribution, eco.FilePath) {
-				ecosystem = eco.Ecosystem
-				foundMatch = true
-				break
-			}
-		}
-
-		if !foundMatch {
+		eco := detectEcosystem(distribution)
+		if eco == "" {
 			return nil, fmt.Errorf("unsupported editor path: %s", distribution)
 		}
 
 		customDistributions[fmt.Sprintf("custom-%d", i)] = distributionInfo{
 			FilePath:  distribution,
-			Ecosystem: ecosystem,
+			Ecosystem: eco,
 		}
 	}
 
 	return newVSCodeExtReaderFromDistributions(customDistributions)
+}
+
+// detectEcosystem returns the marketplace ecosystem for a given extensions
+// directory path by comparing path components, not substrings. This handles
+// OS-native path separators correctly on all platforms (\ on Windows, / on
+// Linux and macOS).
+func detectEcosystem(distribution string) string {
+	// Compare the last two path components (e.g. ".vscode" / "extensions")
+	// against the known editor patterns so no string/separator assumptions
+	// are made.
+	distBase := filepath.Base(distribution)                 // "extensions"
+	distEditor := filepath.Base(filepath.Dir(distribution)) // ".vscode"
+
+	for _, eco := range editors {
+		ecoBase := filepath.Base(eco.FilePath)                 // "extensions"
+		ecoEditor := filepath.Base(filepath.Dir(eco.FilePath)) // ".vscode"
+
+		if distBase == ecoBase && distEditor == ecoEditor {
+			return eco.Ecosystem
+		}
+	}
+	return ""
 }
 
 func NewVSIXExtReaderFromDefaultDistributions() (*vsixExtReader, error) {

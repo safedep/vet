@@ -128,7 +128,7 @@ local table and exits 0 with a hint.`,
 	return cmd
 }
 
-func runScan(ctx context.Context, opts Options) error {
+var runScan scanRunner = func(ctx context.Context, opts Options) error {
 	deps := scanDeps{
 		resolver: auth.NewLayeredResolver(),
 		buildScanners: func(opts Options) ([]inventory.Scanner, error) {

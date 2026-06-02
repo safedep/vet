@@ -14,6 +14,7 @@ const (
 	AIToolTypeMCPServer     AIToolType = "mcp_server"
 	AIToolTypeCodingAgent   AIToolType = "coding_agent"
 	AIToolTypeAIExtension   AIToolType = "ai_extension"
+	AIToolTypeIDEExtension  AIToolType = "ide_extension"
 	AIToolTypeCLITool       AIToolType = "cli_tool"
 	AIToolTypeProjectConfig AIToolType = "project_config"
 )
@@ -27,6 +28,8 @@ func (t AIToolType) DisplayName() string {
 		return "Coding Agent"
 	case AIToolTypeAIExtension:
 		return "AI Extension"
+	case AIToolTypeIDEExtension:
+		return "IDE Extension"
 	case AIToolTypeCLITool:
 		return "CLI Tool"
 	case AIToolTypeProjectConfig:

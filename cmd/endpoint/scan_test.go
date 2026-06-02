@@ -13,6 +13,7 @@ import (
 
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/pkg/inventory"
+	"github.com/safedep/vet/pkg/inventory/scanners"
 )
 
 // stubResolver implements auth.Resolver for tests.
@@ -130,6 +131,24 @@ func captureScanOptions(t *testing.T, args []string) Options {
 	cmd.SetErr(&bytes.Buffer{})
 	require.NoError(t, cmd.Execute())
 	return captured
+}
+
+// TestRunAITool_DoesNotIncludeIDEExtensionKind ensures that RunAITool (the
+// entry point for `vet ai discover`) does not pin ide-extension in its kind
+// set. IDE extensions belong to endpoint scan only.
+func TestRunAITool_DoesNotIncludeIDEExtensionKind(t *testing.T) {
+	var capturedKinds []string
+	orig := runScan
+	runScan = func(_ context.Context, opts Options) error {
+		capturedKinds = opts.Kinds
+		return nil
+	}
+	defer func() { runScan = orig }()
+
+	_ = RunAITool(context.Background(), Options{})
+
+	assert.NotContains(t, capturedKinds, scanners.KindIDEExtension,
+		"ide-extension must not run under vet ai discover")
 }
 
 func TestRunScanWithDeps_NoCredentials_BuildsLocalSinkOnly(t *testing.T) {

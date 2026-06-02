@@ -68,6 +68,8 @@ func translateKind(t aitool.AIToolType) inventory.Kind {
 		return inventory.KindCodingAgent
 	case aitool.AIToolTypeAIExtension:
 		return inventory.KindAIExtension
+	case aitool.AIToolTypeIDEExtension:
+		return inventory.KindIDEExtension
 	case aitool.AIToolTypeCLITool:
 		return inventory.KindCLITool
 	case aitool.AIToolTypeProjectConfig:
