@@ -41,5 +41,6 @@ func (d *ideExtensionDiscoverer) EnumTools(_ context.Context, handler AIToolHand
 		}
 	}
 
-	return enumVSIXExtensions(r, ideExtensionApp, AIToolTypeIDEExtension, acceptAll, handler)
+	return enumVSIXExtensions(r, ideExtensionApp, AIToolTypeIDEExtension,
+		func(id string) (string, bool) { return id, true }, handler)
 }

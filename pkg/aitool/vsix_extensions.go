@@ -12,20 +12,15 @@ type vsixManifestReader interface {
 	EnumManifests(func(*models.PackageManifest, readers.PackageReader) error) error
 }
 
-// extensionNameFn resolves a display name for a lowercased extension id.
-// Returning ok=false skips the extension.
-type extensionNameFn func(id string) (name string, ok bool)
-
-// acceptAll accepts every extension, using the raw id as the display name.
-func acceptAll(id string) (string, bool) { return id, true }
-
 // enumVSIXExtensions iterates all extensions from r and calls handler for each
-// accepted one. The caller handles scope-gating and reader construction.
+// accepted one. nameFor receives the lowercased extension id and returns the
+// display name; returning ok=false skips the extension. The caller handles
+// scope-gating and reader construction.
 func enumVSIXExtensions(
 	r vsixManifestReader,
 	app string,
 	toolType AIToolType,
-	nameFor extensionNameFn,
+	nameFor func(id string) (name string, ok bool),
 	handler AIToolHandlerFn,
 ) error {
 	return r.EnumManifests(func(manifest *models.PackageManifest, pr readers.PackageReader) error {

@@ -63,11 +63,18 @@ type Options struct {
 // It is the integration point for cmd/ai/discover; opts.Kinds is
 // overwritten.
 func RunAITool(ctx context.Context, opts Options) error {
+	return runAIToolWithRunner(ctx, opts, runScan)
+}
+
+// runAIToolWithRunner is the testable core of RunAITool. It pins the ai-tool
+// kinds and delegates to run, allowing tests to intercept without swapping
+// the package-level runScan.
+func runAIToolWithRunner(ctx context.Context, opts Options, run scanRunner) error {
 	opts.Kinds = []string{
 		scanners.KindAITool,
 		scanners.KindAgentSkill,
 	}
-	return runScan(ctx, opts)
+	return run(ctx, opts)
 }
 
 // scanRunner is the function shape captured by the cobra RunE closure;
@@ -128,7 +135,7 @@ local table and exits 0 with a hint.`,
 	return cmd
 }
 
-var runScan scanRunner = func(ctx context.Context, opts Options) error {
+func runScan(ctx context.Context, opts Options) error {
 	deps := scanDeps{
 		resolver: auth.NewLayeredResolver(),
 		buildScanners: func(opts Options) ([]inventory.Scanner, error) {

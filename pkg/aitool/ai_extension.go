@@ -3,21 +3,10 @@ package aitool
 import (
 	"context"
 	"path/filepath"
-	"strings"
 
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/readers"
 )
-
-// ideDirNames maps the base directory name of an IDE's extensions folder to its
-// display name, e.g. "/home/user/.vscode/extensions/extensions.json" → "VS Code".
-var ideDirNames = map[string]string{
-	".vscode":      "VS Code",
-	".vscode-oss":  "VSCodium",
-	".cursor":      "Cursor",
-	".windsurf":    "Windsurf",
-	".antigravity": "Antigravity",
-}
 
 const (
 	ideExtensionsApp        = "ide_extensions"
@@ -54,19 +43,13 @@ func (d *aiExtensionDiscoverer) EnumTools(_ context.Context, handler AIToolHandl
 
 	return enumVSIXExtensions(r, ideExtensionsApp, AIToolTypeAIExtension,
 		func(id string) (string, bool) {
-			info, ok := knownAIExtensions[strings.ToLower(id)]
+			info, ok := knownAIExtensions[id]
 			return info.DisplayName, ok
 		}, handler)
 }
 
 func ideNameFromPath(configPath string) string {
-	dir := filepath.Dir(configPath) // .../extensions
-	dir = filepath.Dir(dir)         // .../.vscode
-	base := filepath.Base(dir)
-
-	if name, ok := ideDirNames[base]; ok {
-		return name
-	}
-
-	return ""
+	extDir := filepath.Dir(configPath)               // .../extensions
+	editorDir := filepath.Base(filepath.Dir(extDir)) // .vscode
+	return readers.EditorDisplayName(editorDir)
 }

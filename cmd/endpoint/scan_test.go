@@ -138,14 +138,10 @@ func captureScanOptions(t *testing.T, args []string) Options {
 // set. IDE extensions belong to endpoint scan only.
 func TestRunAITool_DoesNotIncludeIDEExtensionKind(t *testing.T) {
 	var capturedKinds []string
-	orig := runScan
-	runScan = func(_ context.Context, opts Options) error {
+	_ = runAIToolWithRunner(context.Background(), Options{}, func(_ context.Context, opts Options) error {
 		capturedKinds = opts.Kinds
 		return nil
-	}
-	defer func() { runScan = orig }()
-
-	_ = RunAITool(context.Background(), Options{})
+	})
 
 	assert.NotContains(t, capturedKinds, scanners.KindIDEExtension,
 		"ide-extension must not run under vet ai discover")

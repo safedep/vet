@@ -11,6 +11,13 @@ import (
 	"github.com/safedep/vet/pkg/readers"
 )
 
+func newFixtureDiscoverer(t testing.TB, config DiscoveryConfig) *ideExtensionDiscoverer {
+	t.Helper()
+	r, err := readers.NewVSIXExtReader([]string{filepath.Join("fixtures/ide_extension/.vscode/extensions")})
+	require.NoError(t, err)
+	return &ideExtensionDiscoverer{config: config, reader: r}
+}
+
 func TestIDEExtensionDiscoverer_Interface(t *testing.T) {
 	d := &ideExtensionDiscoverer{}
 	assert.Equal(t, "IDE Extensions", d.Name())
@@ -18,34 +25,22 @@ func TestIDEExtensionDiscoverer_Interface(t *testing.T) {
 }
 
 func TestIDEExtensionDiscoverer_EmitsAllExtensions(t *testing.T) {
-	fixturePath := filepath.Join("fixtures/ide_extension/.vscode/extensions")
-	r, err := readers.NewVSIXExtReader([]string{fixturePath})
-	require.NoError(t, err)
-
-	d := &ideExtensionDiscoverer{
-		config: DiscoveryConfig{},
-		reader: r,
-	}
+	d := newFixtureDiscoverer(t, DiscoveryConfig{})
 
 	var tools []*AITool
-	err = d.EnumTools(context.Background(), func(tool *AITool) error {
+	err := d.EnumTools(context.Background(), func(tool *AITool) error {
 		tools = append(tools, tool)
 		return nil
 	})
 
 	require.NoError(t, err)
-	// Both AI and non-AI extensions must be reported
 	require.Len(t, tools, 2, "all installed extensions must be emitted regardless of AI status")
 }
 
 func TestIDEExtensionDiscoverer_ToolType(t *testing.T) {
-	fixturePath := filepath.Join("fixtures/ide_extension/.vscode/extensions")
-	r, err := readers.NewVSIXExtReader([]string{fixturePath})
-	require.NoError(t, err)
+	d := newFixtureDiscoverer(t, DiscoveryConfig{})
 
-	d := &ideExtensionDiscoverer{config: DiscoveryConfig{}, reader: r}
-
-	err = d.EnumTools(context.Background(), func(tool *AITool) error {
+	err := d.EnumTools(context.Background(), func(tool *AITool) error {
 		assert.Equal(t, AIToolTypeIDEExtension, tool.Type)
 		assert.Equal(t, AIToolScopeSystem, tool.Scope)
 		return nil
@@ -55,14 +50,10 @@ func TestIDEExtensionDiscoverer_ToolType(t *testing.T) {
 }
 
 func TestIDEExtensionDiscoverer_ExtensionMetadata(t *testing.T) {
-	fixturePath := filepath.Join("fixtures/ide_extension/.vscode/extensions")
-	r, err := readers.NewVSIXExtReader([]string{fixturePath})
-	require.NoError(t, err)
-
-	d := &ideExtensionDiscoverer{config: DiscoveryConfig{}, reader: r}
+	d := newFixtureDiscoverer(t, DiscoveryConfig{})
 
 	byID := map[string]*AITool{}
-	err = d.EnumTools(context.Background(), func(tool *AITool) error {
+	err := d.EnumTools(context.Background(), func(tool *AITool) error {
 		id, _ := tool.GetMeta("extension.id").(string)
 		byID[id] = tool
 		return nil
@@ -88,18 +79,10 @@ func TestIDEExtensionDiscoverer_ExtensionMetadata(t *testing.T) {
 }
 
 func TestIDEExtensionDiscoverer_SystemScopeOnly(t *testing.T) {
-	fixturePath := filepath.Join("fixtures/ide_extension/.vscode/extensions")
-	r, err := readers.NewVSIXExtReader([]string{fixturePath})
-	require.NoError(t, err)
-
-	// Only project scope enabled — system scope (extensions) must be skipped.
 	projectOnlyScope, err := NewDiscoveryScope(AIToolScopeProject)
 	require.NoError(t, err)
 
-	d := &ideExtensionDiscoverer{
-		config: DiscoveryConfig{Scope: projectOnlyScope},
-		reader: r,
-	}
+	d := newFixtureDiscoverer(t, DiscoveryConfig{Scope: projectOnlyScope})
 
 	var count int
 	err = d.EnumTools(context.Background(), func(*AITool) error {
@@ -112,12 +95,8 @@ func TestIDEExtensionDiscoverer_SystemScopeOnly(t *testing.T) {
 }
 
 func TestIDEExtensionDiscoverer_StableIdentity(t *testing.T) {
-	fixturePath := filepath.Join("fixtures/ide_extension/.vscode/extensions")
-
 	collectIDs := func() map[string]string {
-		r, err := readers.NewVSIXExtReader([]string{fixturePath})
-		require.NoError(t, err)
-		d := &ideExtensionDiscoverer{config: DiscoveryConfig{}, reader: r}
+		d := newFixtureDiscoverer(t, DiscoveryConfig{})
 		ids := map[string]string{}
 		_ = d.EnumTools(context.Background(), func(tool *AITool) error {
 			ids[tool.GetMeta("extension.id").(string)] = tool.ID

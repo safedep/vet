@@ -16,26 +16,11 @@ const (
 )
 
 var editors = map[string]distributionInfo{
-	"code": {
-		FilePath:  ".vscode/extensions",
-		Ecosystem: models.EcosystemVSCodeExtensions,
-	},
-	"vscodium": {
-		FilePath:  ".vscode-oss/extensions",
-		Ecosystem: models.EcosystemOpenVSXExtensions,
-	},
-	"cursor": {
-		FilePath:  ".cursor/extensions",
-		Ecosystem: models.EcosystemOpenVSXExtensions,
-	},
-	"windsurf": {
-		FilePath:  ".windsurf/extensions",
-		Ecosystem: models.EcosystemOpenVSXExtensions,
-	},
-	"antigravity": {
-		FilePath:  ".antigravity/extensions",
-		Ecosystem: models.EcosystemOpenVSXExtensions,
-	},
+	"code":        {FilePath: ".vscode/extensions", Ecosystem: models.EcosystemVSCodeExtensions, DisplayName: "VS Code"},
+	"vscodium":    {FilePath: ".vscode-oss/extensions", Ecosystem: models.EcosystemOpenVSXExtensions, DisplayName: "VSCodium"},
+	"cursor":      {FilePath: ".cursor/extensions", Ecosystem: models.EcosystemOpenVSXExtensions, DisplayName: "Cursor"},
+	"windsurf":    {FilePath: ".windsurf/extensions", Ecosystem: models.EcosystemOpenVSXExtensions, DisplayName: "Windsurf"},
+	"antigravity": {FilePath: ".antigravity/extensions", Ecosystem: models.EcosystemOpenVSXExtensions, DisplayName: "Antigravity"},
 }
 
 type vsCodeExtensionIdentifier struct {
@@ -60,8 +45,9 @@ type vsCodeExtensionList struct {
 }
 
 type distributionInfo struct {
-	FilePath  string // Path to the extensions directory
-	Ecosystem string // Type of extension marketplace (VSCode or OpenVSX)
+	FilePath    string
+	Ecosystem   string
+	DisplayName string
 }
 
 type vsixExtReader struct {
@@ -105,6 +91,18 @@ func detectEcosystem(distribution string) string {
 
 		if distBase == ecoBase && distEditor == ecoEditor {
 			return eco.Ecosystem
+		}
+	}
+	return ""
+}
+
+// EditorDisplayName returns the display name for an IDE given the base name of
+// its extensions parent directory (e.g. ".vscode" → "VS Code"). Returns empty
+// string for unrecognised dirs.
+func EditorDisplayName(extDirBase string) string {
+	for _, e := range editors {
+		if filepath.Base(filepath.Dir(e.FilePath)) == extDirBase {
+			return e.DisplayName
 		}
 	}
 	return ""
