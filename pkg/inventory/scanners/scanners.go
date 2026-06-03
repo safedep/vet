@@ -32,8 +32,9 @@ type Descriptor struct {
 // Kind values accepted on the --kind flag and consumed by callers that
 // pin a specific scanner (e.g. cmd/ai/discover).
 const (
-	KindAITool     = "ai-tool"
-	KindAgentSkill = "agent-skill"
+	KindAITool       = "ai-tool"
+	KindAgentSkill   = "agent-skill"
+	KindIDEExtension = "ide-extension"
 )
 
 // registry is the shipped set of scanner declarations. Adding a scanner
@@ -49,6 +50,16 @@ var registry = []Descriptor{
 		Kind: KindAgentSkill,
 		New: func() inventory.Scanner {
 			return skillsscanner.New()
+		},
+	},
+	{
+		// ide-extension uses an isolated registry so it never leaks into
+		// vet ai discover, which pins {ai-tool, agent-skill} explicitly.
+		Kind: KindIDEExtension,
+		New: func() inventory.Scanner {
+			reg := aitool.NewRegistry()
+			reg.Register("ide_extension", aitool.NewIDEExtensionDiscoverer)
+			return aitoolscanner.New(reg)
 		},
 	},
 }

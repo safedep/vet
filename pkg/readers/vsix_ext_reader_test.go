@@ -129,3 +129,54 @@ func TestVSCodeExtReaderWithInvalidPath(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, reader)
 }
+
+// TestVSCodeExtReaderEcosystemDetection verifies that ecosystem detection uses
+// filepath component comparison so it is correct on all platforms regardless
+// of path separator. Paths are constructed with filepath.Join to match how
+// NewVSIXExtReaderFromDefaultDistributions builds them at runtime.
+func TestVSCodeExtReaderEcosystemDetection(t *testing.T) {
+	home := "/home/user"
+
+	tests := []struct {
+		name        string
+		path        string
+		expectedEco string
+	}{
+		{
+			name:        "VSCode path",
+			path:        filepath.Join(home, ".vscode", "extensions"),
+			expectedEco: models.EcosystemVSCodeExtensions,
+		},
+		{
+			name:        "VSCodium path",
+			path:        filepath.Join(home, ".vscode-oss", "extensions"),
+			expectedEco: models.EcosystemOpenVSXExtensions,
+		},
+		{
+			name:        "Cursor path",
+			path:        filepath.Join(home, ".cursor", "extensions"),
+			expectedEco: models.EcosystemOpenVSXExtensions,
+		},
+		{
+			name:        "Windsurf path",
+			path:        filepath.Join(home, ".windsurf", "extensions"),
+			expectedEco: models.EcosystemOpenVSXExtensions,
+		},
+		{
+			name:        "Antigravity path",
+			path:        filepath.Join(home, ".antigravity", "extensions"),
+			expectedEco: models.EcosystemOpenVSXExtensions,
+		},
+		{
+			name:        "unknown path returns empty",
+			path:        filepath.Join(home, ".unknown-editor", "extensions"),
+			expectedEco: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expectedEco, detectEcosystem(tt.path))
+		})
+	}
+}
