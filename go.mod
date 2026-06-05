@@ -53,7 +53,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/posthog/posthog-go v1.10.0
 	github.com/safedep/code v0.0.0-20260224174612-abe896956bc1
-	github.com/safedep/dry v0.0.0-20260430094716-037c59666d04
+	github.com/safedep/dry v0.0.0-20260605103506-0cda32cb089b
 	github.com/sirupsen/logrus v1.9.4
 	github.com/smacker/go-tree-sitter v0.0.0-20240827094217-dd81d9e9be82
 	github.com/spdx/tools-golang v0.5.7
