@@ -55,11 +55,14 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - name: Install gotestsum
+        run: go install gotest.tools/gotestsum@latest
+
       - name: Build and Test
         run: |
           go mod tidy
           go build
-          go test -coverprofile=coverage.txt -v ./...
+          gotestsum --format github-actions -- -coverprofile=coverage.txt ./...
         env:
           VET_E2E: true
 

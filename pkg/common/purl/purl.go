@@ -65,7 +65,13 @@ func purlBuildLockfilePackageName(ecosystem lockfile.Ecosystem, group, name stri
 
 func PurlTypeToEcosystem(purlType string) (lockfile.Ecosystem, error) {
 	knownTypes := map[string]lockfile.Ecosystem{
-		packageurl.TypeCargo:    lockfile.CargoEcosystem,
+		// osv-scanner's lockfile.CargoEcosystem is "crates.io" which does not
+		// match vet's canonical model ecosystem ("Cargo"). Returning the raw
+		// lockfile value makes GetControlTowerSpecEcosystem() resolve to
+		// ECOSYSTEM_UNSPECIFIED, silently disabling malware/insights enrichment
+		// for cargo PURLs. Map to the model ecosystem like we do for the
+		// GitHub Actions / VSCode / OpenVSX types below.
+		packageurl.TypeCargo:    lockfile.Ecosystem(models.EcosystemCargo),
 		packageurl.TypeComposer: lockfile.ComposerEcosystem,
 		packageurl.TypeGolang:   lockfile.GoEcosystem,
 		packageurl.TypeMaven:    lockfile.MavenEcosystem,

@@ -179,6 +179,30 @@ func TestTranslateProjectConfig(t *testing.T) {
 	assert.Equal(t, []string{"/work/repo/CLAUDE.md"}, item.Agent.InstructionFiles)
 }
 
+func TestTranslateIDEExtensionStoresExtensionMetadata(t *testing.T) {
+	tool := &aitool.AITool{
+		Name:       "ms-python.python",
+		Type:       aitool.AIToolTypeIDEExtension,
+		Scope:      aitool.AIToolScopeSystem,
+		App:        "ide_extension",
+		AppDisplay: "VS Code",
+		ConfigPath: "/home/u/.vscode/extensions/extensions.json",
+		Metadata: map[string]any{
+			metaKeyExtensionID:      "ms-python.python",
+			metaKeyExtensionVersion: "2024.1.0",
+			metaKeyExtensionIDE:     "VS Code",
+		},
+	}
+
+	item := translate(tool)
+	require.NotNil(t, item)
+	assert.Equal(t, inventory.KindIDEExtension, item.Kind)
+	assert.Equal(t, "ms-python.python", item.Metadata[metaKeyExtensionID])
+	assert.Equal(t, "2024.1.0", item.Metadata[metaKeyExtensionVersion])
+	assert.Equal(t, "VS Code", item.Metadata[metaKeyExtensionIDE])
+	assert.Equal(t, "VS Code", item.Metadata[metaKeyAppDisplay])
+}
+
 func TestTranslateUnknownTypeDegradesToUnspecified(t *testing.T) {
 	tool := &aitool.AITool{
 		Name:       "weird",

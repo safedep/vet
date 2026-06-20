@@ -52,6 +52,14 @@ func TestAllowedKindsReturnsIndependentSlice(t *testing.T) {
 		"AllowedKinds must not expose the internal slice")
 }
 
+func TestIDEExtensionKindIsRegistered(t *testing.T) {
+	assert.Contains(t, AllowedKinds(), KindIDEExtension)
+
+	got, err := Build([]string{KindIDEExtension})
+	require.NoError(t, err)
+	assert.Len(t, got, 1)
+}
+
 func TestRegistryEntriesAreUniqueByKind(t *testing.T) {
 	seen := make(map[string]struct{}, len(registry))
 	for _, d := range registry {
