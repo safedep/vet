@@ -1,0 +1,73 @@
+# pre-commit hooks for vet (https://github.com/safedep/vet)
+#
+# Usage in a downstream repository's .pre-commit-config.yaml:
+#
+#   repos:
+#     - repo: https://github.com/safedep/vet
+#       rev: v1.x.x            # pin to a released tag
+#       hooks:
+#         - id: vet-scan
+#
+# See https://pre-commit.com for installation of the pre-commit framework.
+
+- id: vet-scan
+  name: vet scan (build from source)
+  description: >-
+    Scan project dependencies for malicious and known-vulnerable open source
+    packages using SafeDep vet. Builds vet from source via the Go toolchain, so
+    no separate installation is required.
+  entry: vet scan -D .
+  language: golang
+  pass_filenames: false
+  require_serial: true
+  files: >
+    (?x)^(
+      .*package\.json|
+      .*package-lock\.json|
+      .*npm-shrinkwrap\.json|
+      .*pnpm-lock\.yaml|
+      .*yarn\.lock|
+      .*requirements.*\.txt|
+      .*Pipfile(\.lock)?|
+      .*poetry\.lock|
+      .*pyproject\.toml|
+      .*pom\.xml|
+      .*build\.gradle(\.kts)?|
+      .*gradle\.lockfile|
+      .*go\.mod|
+      .*go\.sum|
+      .*Gemfile(\.lock)?|
+      .*Cargo\.(toml|lock)|
+      .*composer\.(json|lock)
+    )$
+
+- id: vet-scan-system
+  name: vet scan (system binary)
+  description: >-
+    Scan project dependencies for malicious and known-vulnerable open source
+    packages using an already-installed vet binary (brew/npm/release). Faster
+    than building from source; requires vet to be present on PATH.
+  entry: vet scan -D .
+  language: system
+  pass_filenames: false
+  require_serial: true
+  files: >
+    (?x)^(
+      .*package\.json|
+      .*package-lock\.json|
+      .*npm-shrinkwrap\.json|
+      .*pnpm-lock\.yaml|
+      .*yarn\.lock|
+      .*requirements.*\.txt|
+      .*Pipfile(\.lock)?|
+      .*poetry\.lock|
+      .*pyproject\.toml|
+      .*pom\.xml|
+      .*build\.gradle(\.kts)?|
+      .*gradle\.lockfile|
+      .*go\.mod|
+      .*go\.sum|
+      .*Gemfile(\.lock)?|
+      .*Cargo\.(toml|lock)|
+      .*composer\.(json|lock)
+    )$

@@ -234,6 +234,49 @@ Run `vet` anywhere using our container image:
 docker run --rm -v $(pwd):/app ghcr.io/safedep/vet:latest scan -D /app --malware
 ```
 
+### Pre-commit Hook
+
+Catch malicious and vulnerable dependencies locally, before they are committed,
+using the [pre-commit](https://pre-commit.com) framework. Add the following to
+your repository's `.pre-commit-config.yaml`:
+
+```yaml
+repos:
+  - repo: https://github.com/safedep/vet
+    rev: v1.x.x # pin to a released tag
+    hooks:
+      - id: vet-scan
+```
+
+Then enable it:
+
+```bash
+pre-commit install
+```
+
+`vet-scan` builds `vet` from source using the Go toolchain, so no separate
+installation is required. The hook only runs when a dependency manifest or
+lockfile changes (npm, PyPI, Maven, Go, Ruby, Rust, PHP). If you already have
+`vet` installed via Homebrew, npm, or a release binary, use the lighter
+`vet-scan-system` hook instead:
+
+```yaml
+repos:
+  - repo: https://github.com/safedep/vet
+    rev: v1.x.x
+    hooks:
+      - id: vet-scan-system
+```
+
+By default the hook reports findings without blocking the commit. To fail the
+commit on a policy violation, add a CEL filter via the `args` key:
+
+```yaml
+hooks:
+  - id: vet-scan
+    args: ["--filter", "vulns.critical.exists(p, true)", "--filter-fail"]
+```
+
 ## Installation
 
 ### Homebrew (Recommended)
