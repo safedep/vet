@@ -5,18 +5,24 @@
     <artifactId>child</artifactId>
     <version>1.0.0</version>
 
+    <!--
+      Remote parent fetched from Maven Central (empty relativePath). A small
+      parent (oss-parent) is used on purpose: spring-boot-starter-parent's
+      dependencyManagement pulls in hundreds of BOM POMs, which gets the
+      resolver rate-limited (HTTP 429) by Maven Central and makes this flaky.
+    -->
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.0</version>
-        <relativePath/> <!-- Uses remote parent from Maven Central -->
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>9</version>
+        <relativePath/>
     </parent>
 
     <dependencies>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <!-- No version: managed by spring-boot-starter-parent -->
+            <version>5.10.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
