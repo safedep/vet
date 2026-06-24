@@ -2,12 +2,52 @@ package readers
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/pkg/parser"
 )
+
+// mavenResolutionAvailable resolves a fixture pom.xml through the same parser
+// the directory reader uses, and reports whether Maven dependency resolution
+// is currently working. It returns false when Maven Central is unreachable or
+// rate-limiting (HTTP 429) - an external, non-deterministic condition (CI
+// runners share egress IPs frequently throttled by Maven Central) that should
+// not turn the build red. Cases that enumerate a pom.xml are skipped in that
+// situation. Doing a full resolution (rather than a single HTTP probe) makes
+// the signal representative of what the test cases actually do, so we don't run
+// the cases only to have the resolution burst fail partway.
+func mavenResolutionAvailable() bool {
+	const pom = "./fixtures/java-multi/pom.xml"
+
+	p, err := parser.FindParser(pom, "pom.xml")
+	if err != nil {
+		return true // cannot probe; let the test run and report the real error
+	}
+
+	if _, err := p.Parse(pom); err != nil {
+		msg := err.Error()
+		if strings.Contains(msg, "failed to fetch Maven project") ||
+			strings.Contains(msg, "failed to load parent from remote") ||
+			strings.Contains(msg, "Maven registry query") {
+			return false
+		}
+	}
+
+	return true
+}
+
+// dirContainsPomXML reports whether the fixture directory has a pom.xml, which
+// means enumerating it requires live Maven dependency resolution.
+func dirContainsPomXML(dir string) bool {
+	_, err := os.Stat(filepath.Join(dir, "pom.xml"))
+	return err == nil
+}
 
 func TestNewDirectoryReader(t *testing.T) {
 	cases := []struct {
@@ -131,8 +171,14 @@ func TestDirectoryReaderEnumPackages(t *testing.T) {
 		},
 	}
 
+	mavenOK := mavenResolutionAvailable()
+
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
+			if !mavenOK && dirContainsPomXML(test.path) {
+				t.Skipf("skipping: Maven Central unavailable or rate-limited; %s requires live pom.xml resolution", test.path)
+			}
+
 			reader, _ := NewDirectoryReader(DirectoryReaderConfig{
 				Path:       test.path,
 				Exclusions: test.exclusions,
