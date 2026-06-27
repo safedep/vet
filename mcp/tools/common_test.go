@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSerializeForLlm(t *testing.T) {
@@ -67,4 +68,22 @@ func TestSerializeForLlm(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSerializeErrorForLlm(t *testing.T) {
+	result, err := serializeErrorForLlm("package insights unavailable", "PACKAGE_INSIGHT_NOT_FOUND")
+
+	assert.NoError(t, err)
+	assert.Contains(t, result, `"type":"ERROR"`)
+	assert.Contains(t, result, "package insights unavailable")
+	assert.Contains(t, result, "PACKAGE_INSIGHT_NOT_FOUND")
+}
+
+func TestToolResultFromLlmError(t *testing.T) {
+	result, err := toolResultFromLlmError("upstream failure", "UPSTREAM_ERROR")
+
+	assert.NoError(t, err)
+	require.NotNil(t, result)
+	assert.False(t, result.IsError)
+	assert.Len(t, result.Content, 1)
 }

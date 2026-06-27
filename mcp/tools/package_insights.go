@@ -2,6 +2,7 @@ package tools
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	mcpgo "github.com/mark3labs/mcp-go/mcp"
@@ -67,7 +68,17 @@ func (t *packageInsightsTool) executeGetPackageVulnerabilities(ctx context.Conte
 
 	vulns, err := t.driver.GetPackageVersionVulnerabilities(ctx, parsedPurl.PackageVersion())
 	if err != nil {
-		return nil, fmt.Errorf("failed to get package vulnerabilities: %w", err)
+		if errors.Is(err, mcp.ErrPackageVersionInsightNotFound) {
+			return toolResultFromLlmError(
+				fmt.Sprintf("no package insights found for package: %s", purl),
+				"PACKAGE_INSIGHT_NOT_FOUND",
+			)
+		}
+
+		return toolResultFromLlmError(
+			fmt.Sprintf("failed to get package vulnerabilities: %v", err),
+			"UPSTREAM_ERROR",
+		)
 	}
 
 	logger.Debugf("Found %d vulnerabilities for package: %s", len(vulns), purl)
@@ -97,7 +108,17 @@ func (t *packageInsightsTool) executeGetPackagePopularity(ctx context.Context,
 
 	popularity, err := t.driver.GetPackageVersionPopularity(ctx, parsedPurl.PackageVersion())
 	if err != nil {
-		return nil, fmt.Errorf("failed to get package popularity: %w", err)
+		if errors.Is(err, mcp.ErrPackageVersionInsightNotFound) {
+			return toolResultFromLlmError(
+				fmt.Sprintf("no package insights found for package: %s", purl),
+				"PACKAGE_INSIGHT_NOT_FOUND",
+			)
+		}
+
+		return toolResultFromLlmError(
+			fmt.Sprintf("failed to get package popularity: %v", err),
+			"UPSTREAM_ERROR",
+		)
 	}
 
 	logger.Debugf("Found %d popularity for package: %s", len(popularity), purl)
@@ -127,11 +148,24 @@ func (t *packageInsightsTool) executeGetPackageLicenseInfo(ctx context.Context,
 
 	licenseInfo, err := t.driver.GetPackageVersionLicenseInfo(ctx, parsedPurl.PackageVersion())
 	if err != nil {
-		return nil, fmt.Errorf("failed to get package license info: %w", err)
+		if errors.Is(err, mcp.ErrPackageVersionInsightNotFound) {
+			return toolResultFromLlmError(
+				fmt.Sprintf("no package insights found for package: %s", purl),
+				"PACKAGE_INSIGHT_NOT_FOUND",
+			)
+		}
+
+		return toolResultFromLlmError(
+			fmt.Sprintf("failed to get package license info: %v", err),
+			"UPSTREAM_ERROR",
+		)
 	}
 
 	if licenseInfo == nil {
-		return nil, fmt.Errorf("no license info returned for package: %s", purl)
+		return toolResultFromLlmError(
+			fmt.Sprintf("no license info returned for package: %s", purl),
+			"PACKAGE_INSIGHT_NOT_FOUND",
+		)
 	}
 
 	logger.Debugf("Found %d license info for package: %s", len(licenseInfo.Licenses), purl)

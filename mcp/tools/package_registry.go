@@ -58,7 +58,10 @@ func (t *packageRegistryTool) executeGetPackageLatestVersion(ctx context.Context
 
 	latestVersion, err := t.driver.GetPackageLatestVersion(ctx, parsedPurl.PackageVersion().GetPackage())
 	if err != nil {
-		return nil, fmt.Errorf("failed to get package latest version: %w", err)
+		return toolResultFromLlmError(
+			fmt.Sprintf("failed to get package latest version: %v", err),
+			"UPSTREAM_ERROR",
+		)
 	}
 
 	latestVersionJson, err := serializeForLlm(latestVersion)
@@ -86,7 +89,10 @@ func (t *packageRegistryTool) executeGetPackageAvailableVersions(ctx context.Con
 
 	availableVersions, err := t.driver.GetPackageAvailableVersions(ctx, parsedPurl.PackageVersion().GetPackage())
 	if err != nil {
-		return nil, fmt.Errorf("failed to get package available versions: %w", err)
+		return toolResultFromLlmError(
+			fmt.Sprintf("failed to get package available versions: %v", err),
+			"UPSTREAM_ERROR",
+		)
 	}
 
 	availableVersionsJson, err := serializeForLlm(availableVersions)

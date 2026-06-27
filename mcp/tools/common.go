@@ -3,7 +3,19 @@ package tools
 import (
 	"encoding/json"
 	"fmt"
+
+	mcpgo "github.com/mark3labs/mcp-go/mcp"
 )
+
+const (
+	llmResponseTypeError = "ERROR"
+)
+
+type llmErrorResponse struct {
+	Type    string `json:"type"`
+	Message string `json:"message"`
+	Code    string `json:"code,omitempty"`
+}
 
 func serializeForLlm(msg any) (string, error) {
 	json, err := json.Marshal(msg)
@@ -12,4 +24,21 @@ func serializeForLlm(msg any) (string, error) {
 	}
 
 	return fmt.Sprintf("```json\n%s\n```", string(json)), nil
+}
+
+func serializeErrorForLlm(message, code string) (string, error) {
+	return serializeForLlm(llmErrorResponse{
+		Type:    llmResponseTypeError,
+		Message: message,
+		Code:    code,
+	})
+}
+
+func toolResultFromLlmError(message, code string) (*mcpgo.CallToolResult, error) {
+	serialized, err := serializeErrorForLlm(message, code)
+	if err != nil {
+		return nil, fmt.Errorf("failed to serialize error response: %w", err)
+	}
+
+	return mcpgo.NewToolResultText(serialized), nil
 }

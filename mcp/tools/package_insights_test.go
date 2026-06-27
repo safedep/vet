@@ -3,6 +3,7 @@ package tools
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
@@ -72,8 +73,8 @@ func TestPackageInsightsTool_ExecuteGetPackageVulnerabilities(t *testing.T) {
 				driver.On("GetPackageVersionVulnerabilities", mock.Anything, mock.AnythingOfType("*packagev1.PackageVersion")).
 					Return(([]*vulnerabilityv1.Vulnerability)(nil), mcp.ErrPackageVersionInsightNotFound)
 			},
-			expectedContains: "",
-			expectedError:    "failed to get package vulnerabilities",
+			expectedContains: "PACKAGE_INSIGHT_NOT_FOUND",
+			expectedError:    "",
 		},
 		{
 			name: "driver returns other error",
@@ -84,8 +85,8 @@ func TestPackageInsightsTool_ExecuteGetPackageVulnerabilities(t *testing.T) {
 				driver.On("GetPackageVersionVulnerabilities", mock.Anything, mock.AnythingOfType("*packagev1.PackageVersion")).
 					Return(([]*vulnerabilityv1.Vulnerability)(nil), errors.New("internal server error"))
 			},
-			expectedContains: "",
-			expectedError:    "failed to get package vulnerabilities",
+			expectedContains: "UPSTREAM_ERROR",
+			expectedError:    "",
 		},
 	}
 
@@ -181,6 +182,18 @@ func TestPackageInsightsTool_ExecuteGetPackagePopularity(t *testing.T) {
 			expectedError:    "invalid purl",
 		},
 		{
+			name: "driver returns wrapped insight not found error",
+			requestArgs: map[string]interface{}{
+				"purl": "pkg:npm/express@4.17.1",
+			},
+			setupDriver: func(driver *MockDriver) {
+				driver.On("GetPackageVersionPopularity", mock.Anything, mock.AnythingOfType("*packagev1.PackageVersion")).
+					Return(([]*packagev1.ProjectInsight)(nil), fmt.Errorf("failed to get package version insight: %w", mcp.ErrPackageVersionInsightNotFound))
+			},
+			expectedContains: "PACKAGE_INSIGHT_NOT_FOUND",
+			expectedError:    "",
+		},
+		{
 			name: "driver returns error",
 			requestArgs: map[string]interface{}{
 				"purl": "pkg:npm/express@4.17.1",
@@ -189,8 +202,8 @@ func TestPackageInsightsTool_ExecuteGetPackagePopularity(t *testing.T) {
 				driver.On("GetPackageVersionPopularity", mock.Anything, mock.AnythingOfType("*packagev1.PackageVersion")).
 					Return(([]*packagev1.ProjectInsight)(nil), errors.New("internal server error"))
 			},
-			expectedContains: "",
-			expectedError:    "failed to get package popularity",
+			expectedContains: "UPSTREAM_ERROR",
+			expectedError:    "",
 		},
 	}
 
@@ -292,8 +305,8 @@ func TestPackageInsightsTool_ExecuteGetPackageLicenseInfo(t *testing.T) {
 				driver.On("GetPackageVersionLicenseInfo", mock.Anything, mock.AnythingOfType("*packagev1.PackageVersion")).
 					Return((*packagev1.LicenseMetaList)(nil), errors.New("internal server error"))
 			},
-			expectedContains: "",
-			expectedError:    "failed to get package license info",
+			expectedContains: "UPSTREAM_ERROR",
+			expectedError:    "",
 		},
 
 		{
@@ -305,8 +318,8 @@ func TestPackageInsightsTool_ExecuteGetPackageLicenseInfo(t *testing.T) {
 				driver.On("GetPackageVersionLicenseInfo", mock.Anything, mock.AnythingOfType("*packagev1.PackageVersion")).
 					Return(nil, nil)
 			},
-			expectedContains: "",
-			expectedError:    "no license info returned for package",
+			expectedContains: "PACKAGE_INSIGHT_NOT_FOUND",
+			expectedError:    "",
 		},
 	}
 
