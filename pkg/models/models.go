@@ -325,6 +325,20 @@ func (pm *PackageManifest) GetSpecEcosystem() modelspec.Ecosystem {
 	}
 }
 
+// GetOsvEcosystem returns the OSV ecosystem identifier used for vulnerability
+// lookups. Extension marketplaces use OSV-specific names that differ from
+// internal model ecosystem strings.
+func GetOsvEcosystem(modelEcosystem string) string {
+	switch modelEcosystem {
+	case EcosystemVSCodeExtensions:
+		return "vscode"
+	case EcosystemOpenVSXExtensions:
+		return "vscode:open-vsx.org"
+	default:
+		return ""
+	}
+}
+
 // Map the control tower spec ecosystem to model ecosystem
 func GetModelEcosystem(ecosystem packagev1.Ecosystem) string {
 	switch ecosystem {
