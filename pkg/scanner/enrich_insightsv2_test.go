@@ -53,7 +53,7 @@ func TestBuildInsightsV2Request(t *testing.T) {
 	t.Run("passes raw distro ecosystem when protobuf enum is unspecified", func(t *testing.T) {
 		ecosystem := "Alpine:v3.23"
 		pkg := &models.Package{
-			Manifest: models.NewPackageManifestFromLocal("lib/apk/db/installed", ecosystem),
+			Manifest:       models.NewPackageManifestFromLocal("lib/apk/db/installed", ecosystem),
 			PackageDetails: models.NewPackageDetail(ecosystem, "busybox", "1.36.1"),
 		}
 
@@ -65,7 +65,7 @@ func TestBuildInsightsV2Request(t *testing.T) {
 
 	t.Run("does not set OSV ecosystem for npm packages", func(t *testing.T) {
 		pkg := &models.Package{
-			Manifest: models.NewPackageManifestFromLocal("package-lock.json", models.EcosystemNpm),
+			Manifest:       models.NewPackageManifestFromLocal("package-lock.json", models.EcosystemNpm),
 			PackageDetails: models.NewPackageDetail(models.EcosystemNpm, "lodash", "4.17.21"),
 		}
 
