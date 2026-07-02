@@ -70,7 +70,6 @@ var (
 	markdownReportPath               string
 	markdownSummaryReportPath        string
 	jsonReportPath                   string
-	consoleReport                    bool
 	summaryReport                    bool
 	summaryReportMaxAdvice           int
 	summaryReportGroupByDirectDeps   bool
@@ -203,8 +202,6 @@ func newScanCommand() *cobra.Command {
 		"Generate consolidated markdown report to file")
 	cmd.Flags().StringVarP(&markdownSummaryReportPath, "report-markdown-summary", "", "",
 		"Generate consolidate summary in markdown")
-	cmd.Flags().BoolVarP(&consoleReport, "report-console", "", false,
-		"Print a report to the console")
 	cmd.Flags().BoolVarP(&summaryReport, "report-summary", "", true,
 		"Print a summary report with actionable advice")
 	cmd.Flags().IntVarP(&summaryReportMaxAdvice, "report-summary-max-advice", "", 5,
@@ -618,15 +615,6 @@ func internalStartScan() error {
 	}
 
 	reporters := []reporter.Reporter{}
-	if consoleReport {
-		rp, err := reporter.NewConsoleReporter()
-		if err != nil {
-			return err
-		}
-
-		reporters = append(reporters, rp)
-	}
-
 	if summaryReport {
 		rp, err := reporter.NewSummaryReporter(reporter.SummaryReporterConfig{
 			MaxAdvice:                    summaryReportMaxAdvice,

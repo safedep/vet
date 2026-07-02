@@ -109,7 +109,6 @@ vet query --from ./scan-data \
 Run `vet scan -h` to see the complete list of reporters and options:
 
 - `--report-summary` - Console summary (default)
-- `--report-console` - Interactive table output
 - `--report-sarif` - SARIF format
 - `--report-json` - JSON format
 - `--report-markdown` - Detailed markdown
