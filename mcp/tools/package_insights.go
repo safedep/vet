@@ -71,13 +71,13 @@ func (t *packageInsightsTool) executeGetPackageVulnerabilities(ctx context.Conte
 		if errors.Is(err, mcp.ErrPackageVersionInsightNotFound) {
 			return toolResultFromLlmError(
 				fmt.Sprintf("no package insights found for package: %s", purl),
-				"PACKAGE_INSIGHT_NOT_FOUND",
+				llmErrorCodePackageInsightNotFound,
 			)
 		}
 
 		return toolResultFromLlmError(
 			fmt.Sprintf("failed to get package vulnerabilities: %v", err),
-			"UPSTREAM_ERROR",
+			llmErrorCodeUpstreamError,
 		)
 	}
 
@@ -111,13 +111,13 @@ func (t *packageInsightsTool) executeGetPackagePopularity(ctx context.Context,
 		if errors.Is(err, mcp.ErrPackageVersionInsightNotFound) {
 			return toolResultFromLlmError(
 				fmt.Sprintf("no package insights found for package: %s", purl),
-				"PACKAGE_INSIGHT_NOT_FOUND",
+				llmErrorCodePackageInsightNotFound,
 			)
 		}
 
 		return toolResultFromLlmError(
 			fmt.Sprintf("failed to get package popularity: %v", err),
-			"UPSTREAM_ERROR",
+			llmErrorCodeUpstreamError,
 		)
 	}
 
@@ -151,20 +151,20 @@ func (t *packageInsightsTool) executeGetPackageLicenseInfo(ctx context.Context,
 		if errors.Is(err, mcp.ErrPackageVersionInsightNotFound) {
 			return toolResultFromLlmError(
 				fmt.Sprintf("no package insights found for package: %s", purl),
-				"PACKAGE_INSIGHT_NOT_FOUND",
+				llmErrorCodePackageInsightNotFound,
 			)
 		}
 
 		return toolResultFromLlmError(
 			fmt.Sprintf("failed to get package license info: %v", err),
-			"UPSTREAM_ERROR",
+			llmErrorCodeUpstreamError,
 		)
 	}
 
 	if licenseInfo == nil {
 		return toolResultFromLlmError(
 			fmt.Sprintf("no license info returned for package: %s", purl),
-			"PACKAGE_INSIGHT_NOT_FOUND",
+			llmErrorCodePackageInsightNotFound,
 		)
 	}
 

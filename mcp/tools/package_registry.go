@@ -60,7 +60,7 @@ func (t *packageRegistryTool) executeGetPackageLatestVersion(ctx context.Context
 	if err != nil {
 		return toolResultFromLlmError(
 			fmt.Sprintf("failed to get package latest version: %v", err),
-			"UPSTREAM_ERROR",
+			llmErrorCodeUpstreamError,
 		)
 	}
 
@@ -91,7 +91,7 @@ func (t *packageRegistryTool) executeGetPackageAvailableVersions(ctx context.Con
 	if err != nil {
 		return toolResultFromLlmError(
 			fmt.Sprintf("failed to get package available versions: %v", err),
-			"UPSTREAM_ERROR",
+			llmErrorCodeUpstreamError,
 		)
 	}
 

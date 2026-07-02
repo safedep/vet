@@ -71,16 +71,16 @@ func TestSerializeForLlm(t *testing.T) {
 }
 
 func TestSerializeErrorForLlm(t *testing.T) {
-	result, err := serializeErrorForLlm("package insights unavailable", "PACKAGE_INSIGHT_NOT_FOUND")
+	result, err := serializeErrorForLlm("package insights unavailable", llmErrorCodePackageInsightNotFound)
 
 	assert.NoError(t, err)
 	assert.Contains(t, result, `"type":"ERROR"`)
 	assert.Contains(t, result, "package insights unavailable")
-	assert.Contains(t, result, "PACKAGE_INSIGHT_NOT_FOUND")
+	assert.Contains(t, result, llmErrorCodePackageInsightNotFound)
 }
 
 func TestToolResultFromLlmError(t *testing.T) {
-	result, err := toolResultFromLlmError("upstream failure", "UPSTREAM_ERROR")
+	result, err := toolResultFromLlmError("upstream failure", llmErrorCodeUpstreamError)
 
 	assert.NoError(t, err)
 	require.NotNil(t, result)

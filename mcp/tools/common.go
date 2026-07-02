@@ -8,7 +8,9 @@ import (
 )
 
 const (
-	llmResponseTypeError = "ERROR"
+	llmResponseTypeError               = "ERROR"
+	llmErrorCodePackageInsightNotFound = "PACKAGE_INSIGHT_NOT_FOUND"
+	llmErrorCodeUpstreamError          = "UPSTREAM_ERROR"
 )
 
 type llmErrorResponse struct {
