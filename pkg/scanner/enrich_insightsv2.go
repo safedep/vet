@@ -37,16 +37,7 @@ func (e *insightsBasedPackageEnricherV2) Name() string {
 	return "Insights API v2"
 }
 
-// Enrich will enrich the package using Insights V2 API. However, most of the
-// analysers and reporters in vet are coupled with Insights V1 data model. Till
-// we are able to drive a major refactor to decouple them, we need to convert V2
-// data model to V1 data model while preserving the V2 data. This will ensure
-//
-// - Existing analysers and reporters continue to work without any changes.
-// - We can start using V2 data model in new analysers and reporters.
-func (e *insightsBasedPackageEnricherV2) Enrich(pkg *models.Package,
-	cb PackageDependencyCallbackFn,
-) error {
+func buildInsightsV2Request(pkg *models.Package) *insightsv2.GetPackageVersionInsightRequest {
 	req := &insightsv2.GetPackageVersionInsightRequest{
 		PackageVersion: &packagev1.PackageVersion{
 			Package: &packagev1.Package{
@@ -57,13 +48,15 @@ func (e *insightsBasedPackageEnricherV2) Enrich(pkg *models.Package,
 		},
 	}
 
-	// For distro ecosystems (e.g. Alpine:v3.23, Ubuntu:22.04) that don't map to
-	// a known protobuf enum, pass the raw ecosystem string so control-tower can
-	// scope the OSV query to the correct distro advisory database.
-	//
-	// + Check if the ecosystem is unspecified, to prevent from overlapping with supported ecosystem.
-	if osvRawEcosystem := pkg.Manifest.Ecosystem; osvRawEcosystem != "" &&
+	// Extension marketplaces need explicit OSV ecosystem scoping so npm advisories
+	// with colliding package names are not applied to VS Code / OpenVSX extensions.
+	if osvEcosystem := models.GetOsvEcosystem(pkg.Manifest.Ecosystem); osvEcosystem != "" {
+		req.OsvEcosystem = &osvEcosystem
+	} else if osvRawEcosystem := pkg.Manifest.Ecosystem; osvRawEcosystem != "" &&
 		pkg.GetControlTowerSpecEcosystem() == packagev1.Ecosystem_ECOSYSTEM_UNSPECIFIED {
+		// For distro ecosystems (e.g. Alpine:v3.23, Ubuntu:22.04) that don't map to
+		// a known protobuf enum, pass the raw ecosystem string so control-tower can
+		// scope the OSV query to the correct distro advisory database.
 		req.OsvEcosystem = &osvRawEcosystem
 	}
 
@@ -73,6 +66,21 @@ func (e *insightsBasedPackageEnricherV2) Enrich(pkg *models.Package,
 	if osvSourceName := pkg.OsvSourceName; osvSourceName != "" {
 		req.OsvSourceName = &osvSourceName
 	}
+
+	return req
+}
+
+// Enrich will enrich the package using Insights V2 API. However, most of the
+// analysers and reporters in vet are coupled with Insights V1 data model. Till
+// we are able to drive a major refactor to decouple them, we need to convert V2
+// data model to V1 data model while preserving the V2 data. This will ensure
+//
+// - Existing analysers and reporters continue to work without any changes.
+// - We can start using V2 data model in new analysers and reporters.
+func (e *insightsBasedPackageEnricherV2) Enrich(pkg *models.Package,
+	cb PackageDependencyCallbackFn,
+) error {
+	req := buildInsightsV2Request(pkg)
 
 	res, err := e.client.GetPackageVersionInsight(context.Background(), req)
 	if err != nil {
