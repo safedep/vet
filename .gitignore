@@ -30,3 +30,13 @@ dist/
 # Auto-generated context files
 /CLAUDE.md
 .devcontainer
+
+# Nx / npm workspace
+.nx/
+node_modules/
+packages/vet/dist/
+packages/vet/README.md
+packages/*/bin/
+
+# Local planning/scratch docs (not for commit)
+docs/superpowers/

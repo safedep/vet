@@ -1,0 +1,33 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "defaultBase": "main",
+  "analytics": false,
+  "namedInputs": {
+    "goWorkspaceSources": [
+      "{workspaceRoot}/**/*.go",
+      "{workspaceRoot}/go.mod",
+      "{workspaceRoot}/go.sum",
+      "{workspaceRoot}/.goreleaser.yaml",
+      "!{workspaceRoot}/packages/**",
+      "!{workspaceRoot}/scripts/**",
+      "!{workspaceRoot}/dist/**",
+      "!{workspaceRoot}/bin/**",
+      "!{workspaceRoot}/node_modules/**"
+    ],
+    "goSyncSources": [
+      "{workspaceRoot}/scripts/sync-binaries/**/*.go",
+      "{workspaceRoot}/scripts/go.mod",
+      "{workspaceRoot}/scripts/go.sum"
+    ],
+    "tsPackageSources": [
+      "{projectRoot}/src/**",
+      "{projectRoot}/tsconfig.json"
+    ]
+  },
+  "targetDefaults": {
+    "build": { "cache": true },
+    "build-snapshot": { "cache": true },
+    "run": { "cache": true },
+    "typecheck": { "cache": true }
+  }
+}

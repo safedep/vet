@@ -1,0 +1,51 @@
+{
+  "name": "vet",
+  "root": ".",
+  "targets": {
+    "build-snapshot": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "goreleaser build --clean --snapshot",
+        "cwd": "{workspaceRoot}"
+      },
+      "inputs": ["goWorkspaceSources"],
+      "outputs": ["{workspaceRoot}/dist"]
+    },
+    "build-release": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "goreleaser release --clean",
+        "cwd": "{workspaceRoot}"
+      },
+      "inputs": ["goWorkspaceSources"],
+      "outputs": ["{workspaceRoot}/dist"],
+      "cache": false
+    },
+    "build-dev": {
+      "executor": "nx:noop",
+      "dependsOn": [{"projects": "@safedep/vet", "target": "build"}]
+    },
+    "verify": {
+      "executor": "nx:noop",
+      "dependsOn": [{"projects": "smoke", "target": "verify"}]
+    },
+    "publish-npm": {
+      "executor": "nx:run-commands",
+      "dependsOn": [{"projects": "@safedep/vet", "target": "build-release"}],
+      "options": {
+        "command": "pnpm publish -r --provenance --no-git-checks --access public",
+        "cwd": "{workspaceRoot}"
+      },
+      "cache": false
+    },
+    "release-preflight": {
+      "executor": "nx:run-commands",
+      "dependsOn": [{"projects": "vet", "target": "verify"}],
+      "options": {
+        "command": "pnpm publish -r --dry-run --no-git-checks",
+        "cwd": "{workspaceRoot}"
+      },
+      "cache": false
+    }
+  }
+}

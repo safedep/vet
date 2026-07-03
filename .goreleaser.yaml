@@ -50,24 +50,29 @@ release:
 universal_binaries:
   - replace: true
 
-brews:
+homebrew_casks:
   - name: vet
+    directory: Casks
     homepage: https://safedep.io
     description: "SafeDep vet is a tool for identifying open source software supply chain risks"
     license: "Apache-2.0"
+    binaries:
+      - vet
+    url:
+      verified: github.com/safedep/vet
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/vet"]
+          end
     repository:
       owner: safedep
       name: homebrew-tap
       branch: main
 
-      # TODO: Move to PR workflow once v1.17 is released
-      # branch: develop/vet
-      # pull_request:
-      #   enabled: true
-      #   base: main
-
 archives:
-  - format: tar.gz
+  - formats: [tar.gz]
     name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_
@@ -77,7 +82,7 @@ archives:
       {{- if .Arm }}v{{ .Arm }}{{ end }}
     format_overrides:
       - goos: windows
-        format: zip
+        formats: [zip]
 checksum:
   name_template: "checksums.txt"
   algorithm: sha256

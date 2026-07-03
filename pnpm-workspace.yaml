@@ -1,0 +1,8 @@
+packages:
+  - 'packages/*'
+
+allowBuilds:
+  nx: true
+
+dedupePeers: true
+minimumReleaseAge: 4320
