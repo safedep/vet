@@ -28,6 +28,8 @@ func TestOpenSSFMaliciousPackageReportGenerator_relativeFilePath(t *testing.T) {
 		{name: "go", ecosystem: packagev1.Ecosystem_ECOSYSTEM_GO, packageName: "github.com/test/test", want: "osv/malicious/go/github.com/test/test/MAL-0000-github.com-test-test.json", wantErr: nil},
 		{name: "maven", ecosystem: packagev1.Ecosystem_ECOSYSTEM_MAVEN, packageName: "org.example.test:test", want: "osv/malicious/maven/org.example.test:test/MAL-0000-org.example.test-test.json", wantErr: nil},
 		{name: "crates-io", ecosystem: packagev1.Ecosystem_ECOSYSTEM_CARGO, packageName: "test", want: "osv/malicious/crates-io/test/MAL-0000-test.json", wantErr: nil},
+		{name: "vscode", ecosystem: packagev1.Ecosystem_ECOSYSTEM_VSCODE, packageName: "publisher.extension", want: "osv/malicious/vscode/publisher.extension/MAL-0000-publisher.extension.json", wantErr: nil},
+		{name: "openvsx", ecosystem: packagev1.Ecosystem_ECOSYSTEM_OPENVSX, packageName: "publisher.extension", want: "osv/malicious/vscode:open-vsx.org/publisher.extension/MAL-0000-publisher.extension.json", wantErr: nil},
 		{name: "unknown", ecosystem: packagev1.Ecosystem_ECOSYSTEM_UNSPECIFIED, packageName: "test", want: "", wantErr: fmt.Errorf("unsupported ecosystem: %s", packagev1.Ecosystem_ECOSYSTEM_UNSPECIFIED)},
 	}
 
@@ -353,6 +355,80 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 				assert.Len(t, vuln.Affected, 1, "should have one affected package")
 				assert.Len(t, vuln.Affected[0].Versions, 1, "should have one explicit version")
 				assert.Equal(t, "1.0.0", vuln.Affected[0].Versions[0], "version should match package version")
+			},
+		},
+		{
+			name: "VS Code marketplace extension uses vscode path and VSCode ecosystem",
+			report: &malysisv1pb.Report{
+				PackageVersion: &packagev1.PackageVersion{
+					Package: &packagev1.Package{
+						Ecosystem: packagev1.Ecosystem_ECOSYSTEM_VSCODE,
+						Name:      "publisher.malicious-ext",
+					},
+					Version: "1.2.3",
+				},
+				Inference: &malysisv1pb.Report_Inference{
+					Summary: "Malicious VS Code extension",
+					Details: "Test details",
+				},
+			},
+			params: OpenSSFMaliciousPackageReportParams{
+				UseRange: true,
+			},
+			setup: func(t *testing.T, dir string) {
+				_ = os.MkdirAll(dir, 0o755)
+			},
+			assert: func(t *testing.T, dir string, err error) {
+				assert.NoError(t, err)
+				filePath := filepath.Join(dir, "osv/malicious/vscode/publisher.malicious-ext/MAL-0000-publisher.malicious-ext.json")
+				assert.FileExists(t, filePath)
+
+				jsonFile, err := os.ReadFile(filePath)
+				assert.NoError(t, err)
+
+				var vuln osvschema.Vulnerability
+				err = protojson.Unmarshal(jsonFile, &vuln)
+				assert.NoError(t, err)
+
+				assert.Equal(t, "VSCode", vuln.Affected[0].Package.Ecosystem)
+				assert.Equal(t, "publisher.malicious-ext", vuln.Affected[0].Package.Name)
+				assert.Equal(t, osvschema.Range_ECOSYSTEM, vuln.Affected[0].Ranges[0].Type)
+			},
+		},
+		{
+			name: "OpenVSX extension uses vscode:open-vsx.org path and ecosystem",
+			report: &malysisv1pb.Report{
+				PackageVersion: &packagev1.PackageVersion{
+					Package: &packagev1.Package{
+						Ecosystem: packagev1.Ecosystem_ECOSYSTEM_OPENVSX,
+						Name:      "publisher.openvsx-ext",
+					},
+					Version: "4.5.6",
+				},
+				Inference: &malysisv1pb.Report_Inference{
+					Summary: "Malicious OpenVSX extension",
+					Details: "Test details",
+				},
+			},
+			setup: func(t *testing.T, dir string) {
+				_ = os.MkdirAll(dir, 0o755)
+			},
+			assert: func(t *testing.T, dir string, err error) {
+				assert.NoError(t, err)
+				filePath := filepath.Join(dir, "osv/malicious/vscode:open-vsx.org/publisher.openvsx-ext/MAL-0000-publisher.openvsx-ext.json")
+				assert.FileExists(t, filePath)
+
+				jsonFile, err := os.ReadFile(filePath)
+				assert.NoError(t, err)
+
+				var vuln osvschema.Vulnerability
+				err = protojson.Unmarshal(jsonFile, &vuln)
+				assert.NoError(t, err)
+
+				assert.Equal(t, "VSCode:https://open-vsx.org", vuln.Affected[0].Package.Ecosystem)
+				assert.Equal(t, "publisher.openvsx-ext", vuln.Affected[0].Package.Name)
+				assert.Len(t, vuln.Affected[0].Versions, 1)
+				assert.Equal(t, "4.5.6", vuln.Affected[0].Versions[0])
 			},
 		},
 	}
