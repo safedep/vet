@@ -92,7 +92,10 @@ func (g *openSSFMaliciousPackageReportGenerator) GenerateReport(ctx context.Cont
 
 	// Determine the appropriate range type based on ecosystem
 	rangeType := osvschema.Range_SEMVER
-	if report.GetPackageVersion().GetPackage().GetEcosystem() == packagev1.Ecosystem_ECOSYSTEM_PYPI {
+	switch report.GetPackageVersion().GetPackage().GetEcosystem() {
+	case packagev1.Ecosystem_ECOSYSTEM_PYPI,
+		packagev1.Ecosystem_ECOSYSTEM_VSCODE,
+		packagev1.Ecosystem_ECOSYSTEM_OPENVSX:
 		rangeType = osvschema.Range_ECOSYSTEM
 	}
 
@@ -190,6 +193,8 @@ var filePathEcosystemMap = map[packagev1.Ecosystem]string{
 	packagev1.Ecosystem_ECOSYSTEM_GO:       "go",
 	packagev1.Ecosystem_ECOSYSTEM_MAVEN:    "maven",
 	packagev1.Ecosystem_ECOSYSTEM_CARGO:    "crates-io",
+	packagev1.Ecosystem_ECOSYSTEM_VSCODE:   "vscode",
+	packagev1.Ecosystem_ECOSYSTEM_OPENVSX:  "vscode:open-vsx.org",
 }
 
 // OSV schema ecosystem mapping with proper case-sensitive ecosystem names for OSV JSON schema compliance.
@@ -201,6 +206,8 @@ var osvEcosystemMap = map[packagev1.Ecosystem]string{
 	packagev1.Ecosystem_ECOSYSTEM_GO:       "Go",
 	packagev1.Ecosystem_ECOSYSTEM_MAVEN:    "Maven",
 	packagev1.Ecosystem_ECOSYSTEM_CARGO:    "crates.io",
+	packagev1.Ecosystem_ECOSYSTEM_VSCODE:   "VSCode",
+	packagev1.Ecosystem_ECOSYSTEM_OPENVSX:  "VSCode:https://open-vsx.org",
 }
 
 func (g *openSSFMaliciousPackageReportGenerator) osvEcosystemFor(ecosystem packagev1.Ecosystem) (string, error) {
@@ -240,6 +247,10 @@ func (g *openSSFMaliciousPackageReportGenerator) relativeFilePath(ecosystem pack
 		return fmt.Sprintf("%s/maven/%s/MAL-0000-%s.json", prefix, packageName, packageFileName), nil
 	case "crates-io":
 		return fmt.Sprintf("%s/crates-io/%s/MAL-0000-%s.json", prefix, packageName, packageFileName), nil
+	case "vscode":
+		return fmt.Sprintf("%s/vscode/%s/MAL-0000-%s.json", prefix, packageName, packageFileName), nil
+	case "vscode:open-vsx.org":
+		return fmt.Sprintf("%s/vscode:open-vsx.org/%s/MAL-0000-%s.json", prefix, packageName, packageFileName), nil
 	default:
 		return "", fmt.Errorf("unsupported ecosystem: %s", ecosystemStr)
 	}
