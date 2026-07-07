@@ -410,6 +410,9 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 					Details: "Test details",
 				},
 			},
+			params: OpenSSFMaliciousPackageReportParams{
+				UseRange: true,
+			},
 			setup: func(t *testing.T, dir string) {
 				_ = os.MkdirAll(dir, 0o755)
 			},
@@ -427,8 +430,7 @@ func TestOpenSSFMaliciousPackageReportGenerator_GenerateReport(t *testing.T) {
 
 				assert.Equal(t, "VSCode:https://open-vsx.org", vuln.Affected[0].Package.Ecosystem)
 				assert.Equal(t, "publisher.openvsx-ext", vuln.Affected[0].Package.Name)
-				assert.Len(t, vuln.Affected[0].Versions, 1)
-				assert.Equal(t, "4.5.6", vuln.Affected[0].Versions[0])
+				assert.Equal(t, osvschema.Range_ECOSYSTEM, vuln.Affected[0].Ranges[0].Type)
 			},
 		},
 	}
