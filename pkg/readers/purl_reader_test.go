@@ -113,6 +113,16 @@ func TestPurlReaderWithMultiplePURLS(t *testing.T) {
 			"@kunalsin9h/load-gql",
 			"1.0.2",
 		},
+		{
+			// Regression: cargo PURLs must resolve to the canonical "Cargo"
+			// model ecosystem (not osv-scanner's "crates.io") so that malware
+			// and insights enrichment is not silently disabled.
+			"Cargo PURL",
+			"pkg:cargo/serde@1.0.0",
+			"Cargo",
+			"serde",
+			"1.0.0",
+		},
 	}
 
 	for _, test := range cases {

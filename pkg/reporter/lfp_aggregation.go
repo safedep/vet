@@ -4,11 +4,18 @@ import (
 	"regexp"
 )
 
-// lfpURLRe extracts the first https URL from backtick-quotes in a lockfile poisoning message.
+// lfpURLRe extracts the resolved URL from backtick-quotes in a lockfile poisoning message.
 // Messages look like:
 //
 //	Package `name` resolved to an untrusted host `https://...`
-var lfpURLRe = regexp.MustCompile("`(https?://[^`]+)`")
+//	Package `name` resolved to an untrusted host `git+ssh://...`
+//
+// The scheme is intentionally generic (not just http/https) because npm lockfiles
+// can resolve packages to git+ssh, git+https, git, ssh, etc. Restricting this to
+// http(s) caused such findings to be silently dropped, producing an empty
+// "Lockfile Poisoning Detected" section. The package name is the first backtick
+// group and does not contain "://", so the URL group is matched unambiguously.
+var lfpURLRe = regexp.MustCompile("`([a-zA-Z][a-zA-Z0-9+.-]*://[^`]+)`")
 
 // Package `name` resolved to an URL `https://...` that does not follow...
 var lfpPackageNameConventionRe = regexp.MustCompile("package name path convention")

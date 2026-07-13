@@ -22,7 +22,7 @@ func TestParsePurlType(t *testing.T) {
 		{"nuget", lockfile.NuGetEcosystem, true},
 		{"composer", lockfile.ComposerEcosystem, true},
 		{"pypi", lockfile.PipEcosystem, true},
-		{"cargo", lockfile.CargoEcosystem, true},
+		{"cargo", lockfile.Ecosystem(models.EcosystemCargo), true},
 		{"gem", lockfile.BundlerEcosystem, true}, // Update with the expected ecosystem for Ruby
 		// Add more test cases here
 	}
