@@ -71,9 +71,6 @@ vet scan -D . --malware-query
 
 # Fail CI on critical vulnerabilities
 vet scan -D . --filter 'vulns.critical.exists(p, true)' --filter-fail
-
-# Get API key for advanced malware detection
-vet cloud quickstart
 ```
 
 ## Architecture
@@ -162,20 +159,20 @@ Source repositories: **GitHub**, **GitLab**
 
 ## Malicious Package Detection
 
-**Real-time protection against malicious packages** with active scanning and behavioral analysis.
+**Real-time protection against malicious packages** by querying SafeDep's threat intelligence
+database, continuously populated through static and dynamic behavioral analysis.
 
 ### Quick Setup
 
 ```bash
-# One-time setup for advanced scanning
-vet cloud quickstart
-
-# Scan for malware with active scanning (requires API key)
-vet scan -D . --malware
-
 # Query known malicious packages (no API key needed)
 vet scan -D . --malware-query
 ```
+
+> [!NOTE]
+> The `--malware` flag is deprecated. Active (on-demand) scanning has been retired in favour of
+> querying SafeDep's threat intelligence database. `--malware` now behaves identically to
+> `--malware-query` and is retained for backward compatibility.
 
 **Example detections:**
 
@@ -185,9 +182,8 @@ vet scan -D . --malware-query
 
 **Key security features:**
 
-- Real-time analysis against known malware databases
-- Behavioral analysis using static and dynamic analysis
-- Zero-day protection through active code scanning
+- Real-time lookups against SafeDep's known malicious packages database
+- Behavioral analysis using static and dynamic analysis (performed continuously in SafeDep Cloud)
 - Human-in-the-loop triaging for high-impact findings
 - Public [analysis log](https://vetpkg.dev/mal) for transparency
 
@@ -195,9 +191,9 @@ vet scan -D . --malware-query
 
 ```bash
 # Specialized scans
-vet scan --vsx --malware                    # VS Code extensions
-vet scan -D .github/workflows --malware     # GitHub Actions
-vet scan --image nats:2.10 --malware        # Container images
+vet scan --vsx --malware-query                  # VS Code extensions
+vet scan -D .github/workflows --malware-query   # GitHub Actions
+vet scan --image nats:2.10 --malware-query      # Container images
 
 # Analyze specific packages
 vet inspect malware --purl pkg:npm/nyc-config@10.0.0
@@ -231,7 +227,7 @@ include:
 Run `vet` anywhere using our container image:
 
 ```bash
-docker run --rm -v $(pwd):/app ghcr.io/safedep/vet:latest scan -D /app --malware
+docker run --rm -v $(pwd):/app ghcr.io/safedep/vet:latest scan -D /app --malware-query
 ```
 
 ## Installation
