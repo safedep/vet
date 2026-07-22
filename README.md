@@ -194,10 +194,14 @@ vet scan -D . --malware-query
 vet scan --vsx --malware-query                  # VS Code extensions
 vet scan -D .github/workflows --malware-query   # GitHub Actions
 vet scan --image nats:2.10 --malware-query      # Container images
-
-# Analyze specific packages
-vet inspect malware --purl pkg:npm/nyc-config@10.0.0
 ```
+
+> [!NOTE]
+> The `vet inspect malware` command (on-demand analysis of a single package) is deprecated.
+> On-demand malware analysis is moving to a JWT-authenticated, payment-sensitive workflow and
+> is no longer available through this API-key based command; it will be removed in a future
+> release. Use `vet scan --malware-query` to check packages against SafeDep's known malicious
+> packages database.
 
 ## Production Ready Integrations
 
