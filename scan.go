@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	controltowerv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
 	"github.com/google/go-github/v70/github"
 	"github.com/safedep/dry/adapters"
 	tuierrors "github.com/safedep/dry/tui/errors"
@@ -135,7 +134,9 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().BoolVarP(&enrichUsingInsightsV2, "insights-v2", "", true,
 		"Enrich package metadata using Insights V2 API")
 	cmd.Flags().BoolVarP(&enrichMalware, "malware", "", false,
-		"Enrich package metadata with active malware analysis results")
+		"Enrich package metadata with known malicious packages data")
+	_ = cmd.Flags().MarkDeprecated("malware",
+		"active (on-demand) analysis has been retired; this flag now behaves as --malware-query")
 	cmd.Flags().BoolVarP(&enrichMalwareQuery, "malware-query", "", true,
 		"Enrich package metadata with known malicious packages data")
 	cmd.Flags().StringVarP(&baseDirectory, "directory", "D", wd,
@@ -244,6 +245,8 @@ func newScanCommand() *cobra.Command {
 		"Trust malicious package analysis tool result without verification record")
 	cmd.Flags().DurationVarP(&malwareAnalysisTimeout, "malware-analysis-timeout", "", 5*time.Minute,
 		"Timeout for malicious package analysis")
+	_ = cmd.Flags().MarkDeprecated("malware-analysis-timeout",
+		"no longer used; malicious package lookups use a fixed per-request timeout")
 	cmd.Flags().StringVarP(&gitlabReportPath, "report-gitlab", "", "",
 		"Generate GitLab dependency scanning report to file")
 	cmd.Flags().StringVarP(&bitbucketMetaReportPath, "report-bitbucket-meta", "", "",
@@ -910,41 +913,12 @@ func internalStartScan() error {
 		enrichers = append(enrichers, codeAnalysisEnricher)
 	}
 
-	// used as flag in --report-malware-summary reporter to notify user about enricher auto-switching
-	switchedToEnrichQueryMalware := false
-
-	if enrich && enrichMalware {
+	// Active (on-demand) malware analysis has been deprecated. Both --malware and
+	// --malware-query now query SafeDep's threat intelligence database for known
+	// malicious packages. --malware is retained as a backward compatible alias.
+	if enrich && (enrichMalware || enrichMalwareQuery) {
 		analytics.TrackCommandScanMalwareAnalysis()
 
-		if auth.CommunityMode() {
-			return fmt.Errorf("access to Malicious Package Analysis requires an API key. " +
-				"For more details: https://docs.safedep.io/cloud/quickstart/")
-		}
-
-		found := auth.HasEntitlements(controltowerv1.Feature_FEATURE_ACTIVE_MALICIOUS_PACKAGE_SCANNING)
-		if !found {
-			ui.PrintWarning("%s", getOnDemandMalwareAnalysisMissingEntitlementMessage())
-
-			// auto-switch to enrichMalwareQuery mode
-			switchedToEnrichQueryMalware = true
-
-			// fallback to query
-			queryEnricher, err := createMalwareQueryEnricher(githubClient)
-			if err != nil {
-				return fmt.Errorf("failed to create malware query enricher: %w", err)
-			}
-
-			enrichers = append(enrichers, queryEnricher)
-		} else {
-			malwareEnricher, err := createMalwareAnalysisEnricher(githubClient)
-			if err != nil {
-				return fmt.Errorf("failed to create malware enricher: %w", err)
-			}
-
-			ui.PrintMsg("Using On-demand malware analysis")
-			enrichers = append(enrichers, malwareEnricher)
-		}
-	} else if enrich && enrichMalwareQuery {
 		queryEnricher, err := createMalwareQueryEnricher(githubClient)
 		if err != nil {
 			return fmt.Errorf("failed to create malware query enricher: %w", err)
@@ -960,8 +934,6 @@ func internalStartScan() error {
 			Tool:                   toolMetadata,
 			Path:                   markdownSummaryReportPath,
 			IncludeMalwareAnalysis: true,
-			ActiveMalwareAnalysis:  enrichMalware,
-			MalwareAnalysisEntitlementAutoSwitchEnabled: switchedToEnrichQueryMalware,
 		})
 		if err != nil {
 			return err
@@ -1078,32 +1050,14 @@ func runAgentSkillScan() error {
 		return fmt.Errorf("failed to create skill reader: %w", err)
 	}
 
-	var enricher scanner.PackageMetaEnricher
-	var scanMode string
-
-	if auth.CommunityMode() {
-		ui.PrintMsg("Note: Running in query mode (limited to known malware database)")
-		ui.PrintMsg("See 'vet cloud quickstart' to sign up for full malware analysis")
-		fmt.Fprintln(os.Stderr)
-
-		queryEnricher, err := createMalwareQueryEnricher(githubClient)
-		if err != nil {
-			return fmt.Errorf("failed to create malware query enricher: %w", err)
-		}
-
-		enricher = queryEnricher
-		scanMode = "query"
-	} else {
-		malwareEnricher, err := createMalwareAnalysisEnricher(githubClient)
-		if err != nil {
-			return fmt.Errorf("failed to create malware enricher: %w", err)
-		}
-
-		enricher = malwareEnricher
-		scanMode = "active"
+	queryEnricher, err := createMalwareQueryEnricher(githubClient)
+	if err != nil {
+		return fmt.Errorf("failed to create malware query enricher: %w", err)
 	}
 
-	logger.Infof("Skill scan mode: %s", scanMode)
+	enricher := queryEnricher
+
+	logger.Infof("Skill scan mode: query")
 
 	analyzerConfig := analyzer.DefaultMalwareAnalyzerConfig()
 	analyzerConfig.FailFast = failFast
@@ -1131,13 +1085,7 @@ func runAgentSkillScan() error {
 			logger.Infof("Starting skill scan")
 		},
 		OnStartEnrich: func() {
-			var msg string
-			if scanMode == "query" {
-				msg = "Querying known malware database"
-			} else {
-				msg = "Submitting for active malware analysis"
-			}
-			ui.StartSpinner(msg)
+			ui.StartSpinner("Querying known malware database")
 		},
 		OnDoneEnrich: func() {
 			ui.StopSpinner()
@@ -1173,22 +1121,6 @@ func runAgentSkillScan() error {
 	return nil
 }
 
-func createMalwareAnalysisEnricher(githubClient *adapters.GithubClient) (scanner.PackageMetaEnricher, error) {
-	client, err := auth.MalwareAnalysisClientConnection("vet-malware-analysis")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create malware analysis client: %w", err)
-	}
-
-	config := scanner.DefaultMalysisMalwareEnricherConfig()
-	config.Timeout = malwareAnalysisTimeout
-
-	enricher, err := scanner.NewMalysisMalwareEnricher(client, githubClient, config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create malware enricher: %w", err)
-	}
-	return enricher, nil
-}
-
 func createMalwareQueryEnricher(githubClient *adapters.GithubClient) (scanner.PackageMetaEnricher, error) {
 	clientName := "vet-malware-analysis-community"
 	clientBuilder := auth.MalwareAnalysisCommunityClientConnection
@@ -1211,9 +1143,4 @@ func createMalwareQueryEnricher(githubClient *adapters.GithubClient) (scanner.Pa
 	}
 
 	return enricher, nil
-}
-
-func getOnDemandMalwareAnalysisMissingEntitlementMessage() string {
-	return "On-demand malicious package scanning is not available on the Free plan.\n" +
-		"Your scan was configured to use known malicious packages feed. Upgrade: https://safedep.io/pricing. \n"
 }

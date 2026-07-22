@@ -59,15 +59,15 @@ vet scan -D . --filter 'scorecard.scores.Maintained < 5' --filter-fail
 ## 🔬 Malware Detection
 
 ```bash
-# Setup (get API key)
-vet cloud quickstart
-
-# Active malicious package analysis
-vet scan -D . --malware
-
-# Known-malicious lookup only (no key)
+# Known-malicious lookup against SafeDep's threat intelligence database (no key)
 vet scan -D . --malware-query
+
+# Optional: sign up for higher rate limits and richer data
+vet cloud quickstart
 ```
+
+> Note: `--malware` is a deprecated alias for `--malware-query`. Active (on-demand) scanning
+> has been retired; both flags now query SafeDep's known malicious packages database.
 
 ## 📊 Reports
 
