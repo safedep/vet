@@ -134,7 +134,9 @@ func newScanCommand() *cobra.Command {
 	cmd.Flags().BoolVarP(&enrichUsingInsightsV2, "insights-v2", "", true,
 		"Enrich package metadata using Insights V2 API")
 	cmd.Flags().BoolVarP(&enrichMalware, "malware", "", false,
-		"Enrich package metadata with known malicious packages data (DEPRECATED: alias for --malware-query)")
+		"Enrich package metadata with known malicious packages data")
+	_ = cmd.Flags().MarkDeprecated("malware",
+		"active (on-demand) analysis has been retired; this flag now behaves as --malware-query")
 	cmd.Flags().BoolVarP(&enrichMalwareQuery, "malware-query", "", true,
 		"Enrich package metadata with known malicious packages data")
 	cmd.Flags().StringVarP(&baseDirectory, "directory", "D", wd,
@@ -243,6 +245,8 @@ func newScanCommand() *cobra.Command {
 		"Trust malicious package analysis tool result without verification record")
 	cmd.Flags().DurationVarP(&malwareAnalysisTimeout, "malware-analysis-timeout", "", 5*time.Minute,
 		"Timeout for malicious package analysis")
+	_ = cmd.Flags().MarkDeprecated("malware-analysis-timeout",
+		"no longer used; malicious package lookups use a fixed per-request timeout")
 	cmd.Flags().StringVarP(&gitlabReportPath, "report-gitlab", "", "",
 		"Generate GitLab dependency scanning report to file")
 	cmd.Flags().StringVarP(&bitbucketMetaReportPath, "report-bitbucket-meta", "", "",
