@@ -129,16 +129,6 @@ func TestLockfileReaderEnumManifests(t *testing.T) {
 			1,
 			[]int{2}, // Should have 2 packages (bleach, requests) not 4 duplicates
 		},
-		{
-			"Multiple versions of same package name (GitHub issue #753)",
-			[]string{"./fixtures/duplicate-packages/pnpm-lock.yaml"},
-			"",
-			[]string{},
-			nil,
-			nil,
-			1,
-			[]int{2}, // Both is-number@6.0.0 and is-number@7.0.0 must survive
-		},
 	}
 
 	for _, test := range cases {
@@ -214,33 +204,6 @@ func TestLockfileReaderDeduplication(t *testing.T) {
 			assert.NotEqual(t, "0.0.0", version, "Package %s should not have unknown version", name)
 		}
 	})
-
-	// Test for GitHub issue #753 - deduplication must not collapse distinct
-	// versions resolved for the same package name
-	t.Run("Retains distinct versions of the same package name", func(t *testing.T) {
-		r, err := NewLockfileReader(LockfileReaderConfig{
-			Lockfiles:  []string{"./fixtures/duplicate-packages/pnpm-lock.yaml"},
-			LockfileAs: "",
-			Exclusions: []string{},
-		})
-		assert.Nil(t, err)
-
-		var packages []*models.Package
-		err = r.EnumManifests(func(m *models.PackageManifest, pr PackageReader) error {
-			packages = m.Packages
-			return nil
-		})
-		assert.Nil(t, err)
-
-		versions := []string{}
-		for _, pkg := range packages {
-			assert.Equal(t, "is-number", pkg.Name)
-			versions = append(versions, pkg.Version)
-		}
-
-		assert.ElementsMatch(t, []string{"6.0.0", "7.0.0"}, versions,
-			"Every resolved version of a package name must be preserved")
-	})
 }
 
 func TestFilterDuplicatePackages(t *testing.T) {
@@ -282,6 +245,32 @@ func TestFilterDuplicatePackages(t *testing.T) {
 		{
 			"Distinct versions of same name retained",
 			[]*models.Package{pkg("is-number", "6.0.0"), pkg("is-number", "7.0.0")},
+			[]string{"is-number@6.0.0", "is-number@7.0.0"},
+		},
+		{
+			"Every version of a name retained when more than two resolve",
+			[]*models.Package{
+				pkg("is-number", "6.0.0"),
+				pkg("is-number", "7.0.0"),
+				pkg("is-number", "7.0.1"),
+			},
+			[]string{"is-number@6.0.0", "is-number@7.0.0", "is-number@7.0.1"},
+		},
+		{
+			"Distinct versions of a scoped name retained",
+			[]*models.Package{
+				pkg("@babel/core", "7.24.0"),
+				pkg("@babel/core", "7.25.0"),
+			},
+			[]string{"@babel/core@7.24.0", "@babel/core@7.25.0"},
+		},
+		{
+			"Unknown version dropped without discarding sibling versions",
+			[]*models.Package{
+				pkg("is-number", "6.0.0"),
+				pkg("is-number", unknownVersion),
+				pkg("is-number", "7.0.0"),
+			},
 			[]string{"is-number@6.0.0", "is-number@7.0.0"},
 		},
 		{
