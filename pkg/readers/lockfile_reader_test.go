@@ -129,6 +129,16 @@ func TestLockfileReaderEnumManifests(t *testing.T) {
 			1,
 			[]int{2}, // Should have 2 packages (bleach, requests) not 4 duplicates
 		},
+		{
+			"Multiple versions of same package name (GitHub issue #753)",
+			[]string{"./fixtures/duplicate-packages/pnpm-lock.yaml"},
+			"",
+			[]string{},
+			nil,
+			nil,
+			1,
+			[]int{2}, // Both is-number@6.0.0 and is-number@7.0.0 must survive
+		},
 	}
 
 	for _, test := range cases {
@@ -204,4 +214,96 @@ func TestLockfileReaderDeduplication(t *testing.T) {
 			assert.NotEqual(t, "0.0.0", version, "Package %s should not have unknown version", name)
 		}
 	})
+
+	// Test for GitHub issue #753 - deduplication must not collapse distinct
+	// versions resolved for the same package name
+	t.Run("Retains distinct versions of the same package name", func(t *testing.T) {
+		r, err := NewLockfileReader(LockfileReaderConfig{
+			Lockfiles:  []string{"./fixtures/duplicate-packages/pnpm-lock.yaml"},
+			LockfileAs: "",
+			Exclusions: []string{},
+		})
+		assert.Nil(t, err)
+
+		var packages []*models.Package
+		err = r.EnumManifests(func(m *models.PackageManifest, pr PackageReader) error {
+			packages = m.Packages
+			return nil
+		})
+		assert.Nil(t, err)
+
+		versions := []string{}
+		for _, pkg := range packages {
+			assert.Equal(t, "is-number", pkg.Name)
+			versions = append(versions, pkg.Version)
+		}
+
+		assert.ElementsMatch(t, []string{"6.0.0", "7.0.0"}, versions,
+			"Every resolved version of a package name must be preserved")
+	})
+}
+
+func TestFilterDuplicatePackages(t *testing.T) {
+	pkg := func(name, version string) *models.Package {
+		p := &models.Package{}
+		p.Name = name
+		p.Version = version
+		return p
+	}
+
+	nameVersions := func(packages []*models.Package) []string {
+		out := []string{}
+		for _, p := range packages {
+			out = append(out, p.Name+"@"+p.Version)
+		}
+		return out
+	}
+
+	cases := []struct {
+		name     string
+		input    []*models.Package
+		expected []string
+	}{
+		{
+			"Unknown version dropped when a resolved version exists",
+			[]*models.Package{pkg("bleach", "3.1.2"), pkg("bleach", unknownVersion)},
+			[]string{"bleach@3.1.2"},
+		},
+		{
+			"Unknown version dropped irrespective of input order",
+			[]*models.Package{pkg("bleach", unknownVersion), pkg("bleach", "3.1.2")},
+			[]string{"bleach@3.1.2"},
+		},
+		{
+			"Empty version dropped",
+			[]*models.Package{pkg("bleach", ""), pkg("requests", "2.25.1")},
+			[]string{"requests@2.25.1"},
+		},
+		{
+			"Distinct versions of same name retained",
+			[]*models.Package{pkg("is-number", "6.0.0"), pkg("is-number", "7.0.0")},
+			[]string{"is-number@6.0.0", "is-number@7.0.0"},
+		},
+		{
+			"Exact name and version duplicates collapsed",
+			[]*models.Package{pkg("is-number", "7.0.0"), pkg("is-number", "7.0.0")},
+			[]string{"is-number@7.0.0"},
+		},
+		{
+			"Input order is preserved",
+			[]*models.Package{pkg("c", "3.0.0"), pkg("a", "1.0.0"), pkg("b", "2.0.0")},
+			[]string{"c@3.0.0", "a@1.0.0", "b@2.0.0"},
+		},
+		{
+			"No packages",
+			[]*models.Package{},
+			[]string{},
+		},
+	}
+
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+			assert.Equal(t, test.expected, nameVersions(filterDuplicatePackages(test.input)))
+		})
+	}
 }

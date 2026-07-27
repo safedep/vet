@@ -1,0 +1,31 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+  app-one:
+    dependencies:
+      is-number:
+        specifier: 6.0.0
+        version: 6.0.0
+  app-two:
+    dependencies:
+      is-number:
+        specifier: 7.0.0
+        version: 7.0.0
+
+packages:
+  is-number@6.0.0:
+    resolution: {integrity: sha512-Wu1VHeILBK8KAWJUAiSZQ7K6yLoXkwPM7+vLa4H7Q+hT9tRb8qUUVB2y0vhqICRfgtZN6gFuh6te7yEYIyKxwA==}
+    engines: {node: '>=0.10.0'}
+
+  is-number@7.0.0:
+    resolution: {integrity: sha512-41Cifkg6e8TylSpdtTpeLVMqvWEdNLk1Khb23e5R3L4DQPSs1e1r6LvCjEXaPSRj6DTpuq8uCdlEm0BIqMVpAQ==}
+    engines: {node: '>=0.12.0'}
+
+snapshots:
+  is-number@6.0.0: {}
+
+  is-number@7.0.0: {}
