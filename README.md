@@ -1,3 +1,5 @@
+[![MCP Toplist](https://mcptoplist.com/badge/io.github.safedep%2Fvet-mcp.svg)](https://mcptoplist.com/server/io.github.safedep%2Fvet-mcp)
+
 <p align="center">
   <a href="https://safedep.io">
     <picture>
