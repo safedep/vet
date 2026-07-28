@@ -1,5 +1,3 @@
-[![MCP Toplist](https://mcptoplist.com/badge/io.github.safedep%2Fvet-mcp.svg)](https://mcptoplist.com/server/io.github.safedep%2Fvet-mcp)
-
 <p align="center">
   <a href="https://safedep.io">
     <picture>
@@ -28,6 +26,7 @@
 [![CodeQL](https://github.com/safedep/vet/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/safedep/vet/actions/workflows/codeql.yml)
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/safedep/vet)
+[![MCP Toplist](https://mcptoplist.com/badge/io.github.safedep%2Fvet-mcp.svg)](https://mcptoplist.com/server/io.github.safedep%2Fvet-mcp)
 
 </div>
 
