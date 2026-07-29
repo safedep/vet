@@ -6,7 +6,7 @@ version: 0.1
 signatures:
   - id: spring.ai.chat
     description: "Spring AI chat client"
-    vendor: "VMware"
+    vendor: "Broadcom"
     product: "Spring AI"
     service: "AI chat client"
     tags: [ai, llm, text]

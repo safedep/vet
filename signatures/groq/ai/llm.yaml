@@ -23,3 +23,7 @@ signatures:
         conditions:
           - type: call
             value: "groq-sdk"
+          - type: call
+            value: "groq-sdk/Groq"
+          - type: call
+            value: "groq-sdk/*"

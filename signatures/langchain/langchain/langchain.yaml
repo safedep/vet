@@ -19,8 +19,6 @@ signatures:
             value: "langchain.agents.*"
           - type: call
             value: "langchain.agents.create_agent"
-          - type: call
-            value: "langchain.chat_models.init_chat_model"
       java:
         match: any
         conditions:
