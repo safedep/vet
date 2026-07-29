@@ -120,11 +120,6 @@ signatures:
         conditions:
           - type: call
             value: "langchain_community.chat_models.*"
-      javascript:
-        match: any
-        conditions:
-          - type: call
-            value: "@langchain/community/*"
 
   - id: langchain_community.cross_encoders
     description: "Cross encoders are wrappers around cross encoder models from different APIs and services."
@@ -374,5 +369,18 @@ signatures:
         conditions:
           - type: call
             value: "langchain_community.vectorstores.*"
+
+  - id: langchain.community.js
+    description: "LangChain.js community integrations"
+    vendor: "LangChain"
+    product: "LangChain.js"
+    service: "Community integrations"
+    tags: [ai, llm]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@langchain/community/*"
 
 
