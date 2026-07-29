@@ -17,11 +17,22 @@ signatures:
         conditions:
           - type: call
             value: "langchain.agents.*"
+          - type: call
+            value: "langchain.agents.create_agent"
+          - type: call
+            value: "langchain.chat_models.init_chat_model"
       java:
         match: any
         conditions:
           - type: call
             value: "dev.langchain4j.agent.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain/createAgent"
+          - type: call
+            value: "langchain/*"
 
   - id: langchain.mcp
     description: "Model Context Protocol support in Langchain"
@@ -339,3 +350,31 @@ signatures:
         conditions:
           - type: call
             value: "dev.langchain4j.data.video.*"
+
+  - id: langchain.providers.openai
+    description: "LangChain.js OpenAI provider package"
+    vendor: "LangChain"
+    product: "LangChain.js"
+    service: "OpenAI integration"
+    tags: [ai, llm, text]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@langchain/openai/ChatOpenAI"
+          - type: call
+            value: "@langchain/openai/*"
+
+  - id: langchain.providers.anthropic
+    description: "LangChain.js Anthropic provider package"
+    vendor: "LangChain"
+    product: "LangChain.js"
+    service: "Anthropic integration"
+    tags: [ai, llm, text]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@langchain/anthropic/*"

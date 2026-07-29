@@ -146,6 +146,11 @@ signatures:
         conditions:
           - type: call
             value: "langchain_core.language_models.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@langchain/core/*"
 
   - id: langchain_core.load
     description: "Load module helps with serialization and deserialization."
