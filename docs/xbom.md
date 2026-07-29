@@ -72,11 +72,11 @@ The full list of flags is available via `vet code scan --help`, `vet code query 
 
 ## What Gets Detected
 
-Signatures cover three language ecosystems (**Go**, **Python**, **JavaScript/TypeScript**) across these categories:
+Signatures cover five languages (**Go**, **Python**, **JavaScript/TypeScript**, **Java**) across these categories:
 
 | Category | Examples |
 |----------|---------|
-| **AI/LLM** | OpenAI client, Anthropic (Claude, Bedrock, VertexAI), LangChain, CrewAI |
+| **AI/LLM** | OpenAI, Anthropic, Gemini, Grok, Mistral, Bedrock, LangChain, LangGraph, CrewAI, Vercel AI SDK, Spring AI, MCP SDKs |
 | **Cryptography** | AES/RSA encryption, SHA/MD5 hashing, key derivation |
 | **Cloud** | GCP Pub/Sub, Azure Service Bus, Azure AI, Microsoft Office integrations |
 | **Network** | HTTP client/server, TCP/UDP sockets, DNS lookups |
@@ -154,6 +154,11 @@ signatures/
 │   └── ai/
 ├── langchain/
 ├── crewai/
+├── xai/                     #   Grok SDK
+├── vercel/                  #   AI SDK (npm `ai`)
+├── modelcontextprotocol/    #   MCP SDKs
+├── aws/                     #   Bedrock, Strands Agents
+├── spring/                  #   Spring AI (Java)
 ├── google/
 │   └── gcp/
 ├── microsoft/
