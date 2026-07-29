@@ -1,0 +1,60 @@
+version: 0.1
+# References -
+# https://pypi.org/project/mcp/
+# https://www.npmjs.com/package/@modelcontextprotocol/sdk
+# https://central.sonatype.com/artifact/io.modelcontextprotocol.sdk/mcp
+
+signatures:
+  - id: mcp.sdk.server
+    description: "Model Context Protocol server: exposes tools and resources to AI agents"
+    vendor: "Model Context Protocol"
+    product: "MCP SDK"
+    service: "MCP server"
+    tags: [ai, mcp, agent]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "mcp.server.fastmcp.FastMCP"
+          - type: call
+            value: "mcp.server.MCPServer"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@modelcontextprotocol/sdk/server/mcp.js/McpServer"
+          - type: call
+            value: "@modelcontextprotocol/server/McpServer"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "io.modelcontextprotocol.server.McpServer.*"
+
+  - id: mcp.sdk.client
+    description: "Model Context Protocol client: connects an application to MCP servers"
+    vendor: "Model Context Protocol"
+    product: "MCP SDK"
+    service: "MCP client"
+    tags: [ai, mcp, agent]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "mcp.Client"
+          - type: call
+            value: "mcp.ClientSession"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@modelcontextprotocol/sdk/client/index.js/Client"
+          - type: call
+            value: "@modelcontextprotocol/client/*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "io.modelcontextprotocol.client.*"
