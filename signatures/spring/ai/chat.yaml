@@ -1,0 +1,22 @@
+version: 0.1
+# References -
+# https://docs.spring.io/spring-ai/reference/
+# https://central.sonatype.com/artifact/org.springframework.ai/spring-ai-client-chat
+
+signatures:
+  - id: spring.ai.chat
+    description: "Spring AI chat client"
+    vendor: "VMware"
+    product: "Spring AI"
+    service: "AI chat client"
+    tags: [ai, llm, text]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "org.springframework.ai.chat.client.ChatClient.create"
+          - type: call
+            value: "org.springframework.ai.chat.client.ChatClient.builder"
+          - type: call
+            value: "org.springframework.ai.*"
