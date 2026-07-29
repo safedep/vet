@@ -24,13 +24,13 @@ signatures:
         match: any
         conditions:
           - type: call
-            value: "@aws-sdk/client-bedrock-runtime.BedrockRuntimeClient"
+            value: "@aws-sdk/client-bedrock-runtime/BedrockRuntimeClient"
           - type: call
-            value: "@aws-sdk/client-bedrock-runtime.InvokeModelCommand"
+            value: "@aws-sdk/client-bedrock-runtime/InvokeModelCommand"
           - type: call
-            value: "@aws-sdk/client-bedrock-runtime.ConverseCommand"
+            value: "@aws-sdk/client-bedrock-runtime/ConverseCommand"
           - type: call
-            value: "@aws-sdk/client-bedrock-runtime.ConverseStreamCommand"
+            value: "@aws-sdk/client-bedrock-runtime/ConverseStreamCommand"
       java:
         match: any
         conditions:

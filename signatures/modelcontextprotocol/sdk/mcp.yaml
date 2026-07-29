@@ -24,6 +24,7 @@ signatures:
         conditions:
           - type: call
             value: "@modelcontextprotocol/sdk/server/mcp.js/McpServer"
+          # Unverified: speculative alternate package layout
           - type: call
             value: "@modelcontextprotocol/server/McpServer"
       java:
@@ -51,6 +52,7 @@ signatures:
         conditions:
           - type: call
             value: "@modelcontextprotocol/sdk/client/index.js/Client"
+          # Unverified: speculative alternate package layout
           - type: call
             value: "@modelcontextprotocol/client/*"
       java:
