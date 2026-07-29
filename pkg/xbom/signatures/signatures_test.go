@@ -58,6 +58,9 @@ func TestLoadSignaturesByVendor(t *testing.T) {
 		{"LlamaIndex signatures", "llamaindex", "", "", 1},
 		{"Mastra signatures", "mastra", "", "", 1},
 		{"Spring AI signatures", "spring", "", "", 1},
+		{"Alibaba signatures", "alibaba", "", "", 1},
+		{"Deepset signatures", "deepset", "", "", 1},
+		{"Agno signatures", "agno", "", "", 1},
 	}
 
 	for _, tc := range cases {
