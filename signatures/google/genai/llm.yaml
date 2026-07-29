@@ -1,0 +1,52 @@
+version: 0.1
+# References -
+# https://pypi.org/project/google-genai/
+# https://www.npmjs.com/package/@google/genai
+# https://central.sonatype.com/artifact/com.google.genai/google-genai
+
+signatures:
+  - id: google.genai.client
+    description: "Google Gemini API client (google-genai SDK)"
+    vendor: "Google"
+    product: "Gemini"
+    service: "AI client"
+    tags: [ai, llm, text]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "google.genai.Client"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@google/genai/GoogleGenAI"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.google.genai.Client.builder"
+
+  - id: google.genai.sdk
+    description: "Google Gemini SDK API surfaces (models, chats, embeddings)"
+    vendor: "Google"
+    product: "Gemini"
+    service: "AI model operations"
+    tags: [ai, llm, text, embeddings]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "google.genai.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@google/genai/*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.google.genai.*"

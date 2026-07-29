@@ -38,6 +38,7 @@ func TestLoadSignaturesByVendor(t *testing.T) {
 		{"OpenAI signatures", "openai", "", "", 1},
 		{"Anthropic signatures", "anthropic", "", "", 1},
 		{"Google GCP signatures", "google", "", "", 1},
+		{"xAI signatures", "xai", "", "", 1},
 		{"Microsoft signatures", "microsoft", "", "", 1},
 		{"Cryptography signatures", "cryptography", "", "", 1},
 		{"LangChain signatures", "langchain", "", "", 1},
