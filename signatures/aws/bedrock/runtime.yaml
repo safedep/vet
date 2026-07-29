@@ -1,0 +1,42 @@
+version: 0.1
+# References -
+# https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/bedrock-runtime.html
+# https://www.npmjs.com/package/@aws-sdk/client-bedrock-runtime
+# https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/bedrockruntime/package-summary.html
+
+signatures:
+  - id: aws.bedrock.runtime
+    description: "AWS Bedrock runtime client for foundation model inference"
+    vendor: "AWS"
+    product: "Amazon Bedrock"
+    service: "AI model inference"
+    tags: [ai, llm, text]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "boto3.client"
+            args:
+              - index: 0
+                values: ['"bedrock-runtime"', "'bedrock-runtime'"]
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@aws-sdk/client-bedrock-runtime.BedrockRuntimeClient"
+          - type: call
+            value: "@aws-sdk/client-bedrock-runtime.InvokeModelCommand"
+          - type: call
+            value: "@aws-sdk/client-bedrock-runtime.ConverseCommand"
+          - type: call
+            value: "@aws-sdk/client-bedrock-runtime.ConverseStreamCommand"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeClient.builder"
+          - type: call
+            value: "software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeClient.create"
+          - type: call
+            value: "software.amazon.awssdk.services.bedrockruntime.*"
