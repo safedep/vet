@@ -17,3 +17,7 @@ signatures:
             value: "fireworks.Fireworks"
           - type: call
             value: "fireworks.AsyncFireworks"
+          - type: call
+            value: "fireworks.client.Fireworks"
+          - type: call
+            value: "fireworks.client.AsyncFireworks"
