@@ -24,6 +24,8 @@ signatures:
         conditions:
           - type: call
             value: "@modelcontextprotocol/sdk/server/mcp.js/McpServer"
+          - type: call
+            value: "@modelcontextprotocol/sdk/server/index.js/Server"
           # Unverified: speculative alternate package layout
           - type: call
             value: "@modelcontextprotocol/server/McpServer"
