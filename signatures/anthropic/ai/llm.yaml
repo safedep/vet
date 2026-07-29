@@ -4,6 +4,7 @@ version: 0.1
 # https://github.com/anthropics/anthropic-sdk-java
 # https://javadoc.io/doc/com.anthropic/anthropic-java/latest/index.html
 # https://github.com/anthropics/anthropic-sdk-go
+# https://www.npmjs.com/package/@anthropic-ai/sdk
 
 signatures:
   - id: anthropic.client
@@ -18,6 +19,13 @@ signatures:
         conditions:
           - type: call
             value: "anthropic.Anthropic"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@anthropic-ai/sdk/Anthropic"
+          - type: call
+            value: "@anthropic-ai/sdk/*"
       java:
         match: any
         conditions:
@@ -84,6 +92,11 @@ signatures:
         conditions:
           - type: call
             value: "anthropic.AnthropicBedrock"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@anthropic-ai/bedrock-sdk/AnthropicBedrock"
       java:
         match: any
         conditions:
@@ -104,6 +117,11 @@ signatures:
             value: "anthropic.AnthropicVertex"
           - type: call
             value: "anthropic.AsyncAnthropicVertex"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@anthropic-ai/vertex-sdk/AnthropicVertex"
       java:
         match: any
         conditions:
