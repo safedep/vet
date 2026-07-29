@@ -23,6 +23,8 @@ signatures:
         match: any
         conditions:
           - type: call
+            value: "openai"
+          - type: call
             value: "openai/OpenAI"
           - type: call
             value: "openai/*"

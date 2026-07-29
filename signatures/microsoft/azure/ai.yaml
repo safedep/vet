@@ -23,6 +23,8 @@ signatures:
         match: any
         conditions:
           - type: call
+            value: "@azure-rest/ai-vision-image-analysis"
+          - type: call
             value: "@azure-rest/ai-vision-image-analysis/*"
 
   - id: azure.translator
@@ -40,5 +42,7 @@ signatures:
       javascript:
         match: any
         conditions:
+          - type: call
+            value: "@azure-rest/ai-translation-text"
           - type: call
             value: "@azure-rest/ai-translation-text/*"
