@@ -53,6 +53,8 @@ func TestLoadSignaturesByVendor(t *testing.T) {
 		{"Together AI signatures", "togetherai", "", "", 1},
 		{"Fireworks signatures", "fireworks", "", "", 1},
 		{"Perplexity signatures", "perplexity", "", "", 1},
+		{"Vercel signatures", "vercel", "", "", 1},
+		{"Pydantic AI signatures", "pydantic", "", "", 1},
 	}
 
 	for _, tc := range cases {
