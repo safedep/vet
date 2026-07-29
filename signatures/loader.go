@@ -6,7 +6,7 @@ import (
 	pkgsignatures "github.com/safedep/vet/pkg/xbom/signatures"
 )
 
-//go:embed lang openai anthropic langchain crewai google microsoft cryptography github aws modelcontextprotocol xai mistralai cohere groq ollama huggingface togetherai fireworks perplexity vercel pydantic
+//go:embed lang openai anthropic langchain crewai google microsoft cryptography github aws modelcontextprotocol xai mistralai cohere groq ollama huggingface togetherai fireworks perplexity vercel pydantic llamaindex mastra
 var embeddedSignatureFS embed.FS
 
 func init() {
