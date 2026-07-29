@@ -123,6 +123,11 @@ type PackageManifest struct {
 type internalState struct {
 	// Quota error count for malware analysis api
 	malwareAnalysisQuotaErrorCount int
+
+	// Failed lookup count for malware analysis api. This covers any error
+	// other than a quota error, such as a transport failure, a timeout or
+	// the package not being available in the threat intelligence database.
+	malwareAnalysisLookupErrorCount int
 }
 
 // Deprecated: Use NewPackageManifest* initializers
@@ -256,6 +261,18 @@ func (pm *PackageManifest) GetMalwareAnalysisQuotaErrorCount() int {
 	pm.m.RLock()
 	defer pm.m.RUnlock()
 	return pm.internalState.malwareAnalysisQuotaErrorCount
+}
+
+func (pm *PackageManifest) IncrementMalwareAnalysisLookupError() {
+	pm.m.Lock()
+	defer pm.m.Unlock()
+	pm.internalState.malwareAnalysisLookupErrorCount++
+}
+
+func (pm *PackageManifest) GetMalwareAnalysisLookupErrorCount() int {
+	pm.m.RLock()
+	defer pm.m.RUnlock()
+	return pm.internalState.malwareAnalysisLookupErrorCount
 }
 
 func (pm *PackageManifest) GetControlTowerSpecEcosystem() packagev1.Ecosystem {

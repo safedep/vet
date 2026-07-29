@@ -70,4 +70,19 @@ func TestRenderInternalErrorMessages(t *testing.T) {
 
 		assert.Equal(t, expectedErrorMessage, actualErrorMessage)
 	})
+
+	t.Run("when malware lookup error count is greater than 0", func(t *testing.T) {
+		t.Parallel()
+
+		r := &summaryReporter{}
+		r.internalReportConfig.malwareAnalysisLookupErrorCount = 3
+
+		expectedErrorMessage := "3 malicious package lookups did not complete. These " +
+			"packages were not checked for malware. Re-run with `-l -` to see the errors."
+
+		actualErrorMessage := renderMalwareLookupErrorMessages(3)
+
+		assert.Equal(t, expectedErrorMessage, actualErrorMessage)
+		assert.Equal(t, 3, r.internalReportConfig.malwareAnalysisLookupErrorCount)
+	})
 }

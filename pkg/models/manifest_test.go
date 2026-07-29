@@ -113,3 +113,17 @@ func TestContainerImageManifestAddPackages(t *testing.T) {
 	assert.Equal(t, manifest.Id(), pkg1.Manifest.Id())
 	assert.Equal(t, manifest.Id(), pkg2.Manifest.Id())
 }
+
+func TestMalwareAnalysisLookupErrorCount(t *testing.T) {
+	pm := &PackageManifest{}
+
+	assert.Equal(t, 0, pm.GetMalwareAnalysisLookupErrorCount())
+
+	pm.IncrementMalwareAnalysisLookupError()
+	pm.IncrementMalwareAnalysisLookupError()
+
+	assert.Equal(t, 2, pm.GetMalwareAnalysisLookupErrorCount())
+
+	// Lookup errors and quota errors are tracked independently
+	assert.Equal(t, 0, pm.GetMalwareAnalysisQuotaErrorCount())
+}

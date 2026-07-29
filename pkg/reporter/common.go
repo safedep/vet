@@ -60,12 +60,23 @@ func getVulnerabilitySolution(pkg *models.Package) string {
 
 type internalReportConfig struct {
 	malwareAnalysisQuotaLimitErrorCount int
+	malwareAnalysisLookupErrorCount     int
 }
 
 func renderQuotaLimitErrorMessages(quotaExceededErrCnt int) string {
 	return fmt.Sprintf("You have reached your quota for malicious package scanning.\n"+
 		"%d malicious package lookups were denied. Please see safedep.io/pricing for "+
 		"upgrade.", quotaExceededErrCnt)
+}
+
+func renderMalwareLookupErrorMessages(lookupErrCnt int) string {
+	return fmt.Sprintf("%d malicious package lookups did not complete. These packages "+
+		"were not checked for malware. Re-run with `-l -` to see the errors.", lookupErrCnt)
+}
+
+func renderMarkdownMalwareLookupErrorMessages(lookupErrCnt int) string {
+	return fmt.Sprintf("⚠️ `%d` malicious package lookups **did not complete**. These "+
+		"packages were **not** checked for malware.", lookupErrCnt)
 }
 
 func renderMarkdownQuotaLimitErrorMessages(quotaExceededErrCnt int) string {

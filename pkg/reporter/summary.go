@@ -172,6 +172,7 @@ func (r *summaryReporter) AddManifest(manifest *models.PackageManifest) {
 	r.summary.manifests += 1
 
 	r.internalReportConfig.malwareAnalysisQuotaLimitErrorCount += manifest.GetMalwareAnalysisQuotaErrorCount()
+	r.internalReportConfig.malwareAnalysisLookupErrorCount += manifest.GetMalwareAnalysisLookupErrorCount()
 }
 
 func (r *summaryReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
@@ -448,6 +449,14 @@ func (r *summaryReporter) Finish() error {
 	quotaErrorCnt := r.internalReportConfig.malwareAnalysisQuotaLimitErrorCount
 	if quotaErrorCnt > 0 {
 		fmt.Println(CriticalBgText((renderQuotaLimitErrorMessages(quotaErrorCnt))))
+		fmt.Println()
+	}
+
+	// Add error for lookups that never completed. Without this the malware
+	// analysis statement above reads as a clean result.
+	lookupErrorCnt := r.internalReportConfig.malwareAnalysisLookupErrorCount
+	if lookupErrorCnt > 0 {
+		fmt.Println(CriticalBgText(renderMalwareLookupErrorMessages(lookupErrorCnt)))
 		fmt.Println()
 	}
 

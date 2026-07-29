@@ -125,6 +125,7 @@ func (r *markdownSummaryReporter) AddManifest(manifest *models.PackageManifest) 
 	}
 
 	r.internalReportConfig.malwareAnalysisQuotaLimitErrorCount += manifest.GetMalwareAnalysisQuotaErrorCount()
+	r.internalReportConfig.malwareAnalysisLookupErrorCount += manifest.GetMalwareAnalysisLookupErrorCount()
 }
 
 func (r *markdownSummaryReporter) AddAnalyzerEvent(event *analyzer.AnalyzerEvent) {
@@ -167,6 +168,12 @@ func (r *markdownSummaryReporter) Finish() error {
 	if quotaLimitErrorCount > 0 {
 		builder.AddHorizontalRule()
 		builder.AddParagraph(renderMarkdownQuotaLimitErrorMessages(quotaLimitErrorCount))
+	}
+
+	lookupErrorCount := r.internalReportConfig.malwareAnalysisLookupErrorCount
+	if lookupErrorCount > 0 {
+		builder.AddHorizontalRule()
+		builder.AddParagraph(renderMarkdownMalwareLookupErrorMessages(lookupErrorCount))
 	}
 
 	err = os.WriteFile(r.config.Path, []byte(builder.Build()), 0o600)
