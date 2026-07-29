@@ -1,0 +1,37 @@
+version: 0.1
+# References -
+# https://pypi.org/project/cohere/
+# https://www.npmjs.com/package/cohere-ai
+# https://central.sonatype.com/artifact/com.cohere/cohere-java
+
+signatures:
+  - id: cohere.client
+    description: "Cohere API client"
+    vendor: "Cohere"
+    product: "Cohere API"
+    service: "AI client"
+    tags: [ai, llm, text, embeddings]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "cohere.ClientV2"
+          - type: call
+            value: "cohere.Client"
+          - type: call
+            value: "cohere.AsyncClientV2"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "cohere-ai/CohereClientV2"
+          - type: call
+            value: "cohere-ai/CohereClient"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.cohere.api.Cohere.builder"
+          - type: call
+            value: "com.cohere.api.*"

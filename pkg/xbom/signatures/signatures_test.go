@@ -45,6 +45,10 @@ func TestLoadSignaturesByVendor(t *testing.T) {
 		{"CrewAI signatures", "crewai", "", "", 1},
 		{"AWS signatures", "aws", "", "", 1},
 		{"MCP signatures", "modelcontextprotocol", "", "", 2},
+		{"Mistral signatures", "mistralai", "", "", 1},
+		{"Cohere signatures", "cohere", "", "", 1},
+		{"Groq signatures", "groq", "", "", 1},
+		{"Ollama signatures", "ollama", "", "", 1},
 	}
 
 	for _, tc := range cases {
