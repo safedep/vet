@@ -16,4 +16,6 @@ signatures:
           - type: call
             value: "agent_framework.Agent"
           - type: call
+            value: "agent_framework.ChatAgent"
+          - type: call
             value: "agent_framework.openai.OpenAIChatClient"

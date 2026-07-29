@@ -13,6 +13,10 @@ signatures:
     languages:
       python:
         match: any
+        # WARNING: the module name `agents` is generic and the engine cannot
+        # tell a local agents.py from the openai-agents package. Only these
+        # narrow, exact-symbol conditions keep this signature false-positive
+        # free. Never add a bare `agents.*` wildcard here.
         conditions:
           - type: call
             value: "agents.Agent"

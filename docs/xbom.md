@@ -72,7 +72,7 @@ The full list of flags is available via `vet code scan --help`, `vet code query 
 
 ## What Gets Detected
 
-Signatures cover five languages (**Go**, **Python**, **JavaScript/TypeScript**, **Java**) across these categories:
+Signatures cover five languages (**Go**, **Python**, **JavaScript**, **TypeScript**, **Java**) across these categories:
 
 | Category | Examples |
 |----------|---------|
