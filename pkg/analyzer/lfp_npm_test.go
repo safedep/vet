@@ -79,6 +79,30 @@ func TestNpmIsTrustedSource(t *testing.T) {
 			[]string{"https://registry.example.org/base"},
 			true,
 		},
+		{
+			"source is trusted when trusted url has a matching explicit port",
+			"https://registry.example.org:8443/a/b/-/c.tgz",
+			[]string{"https://registry.example.org:8443"},
+			true,
+		},
+		{
+			"source is not trusted when trusted url port does not match",
+			"https://registry.example.org:9443/a/b/-/c.tgz",
+			[]string{"https://registry.example.org:8443"},
+			false,
+		},
+		{
+			"source is not trusted when trusted url has a port but source does not",
+			"https://registry.example.org/a/b/-/c.tgz",
+			[]string{"https://registry.example.org:8443"},
+			false,
+		},
+		{
+			"source is trusted when trusted url has a port and a base path",
+			"https://registry.example.org:8443/base/a/b/-/c.tgz",
+			[]string{"https://registry.example.org:8443/base"},
+			true,
+		},
 	}
 
 	for _, test := range cases {

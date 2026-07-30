@@ -222,7 +222,9 @@ func npmIsTrustedSource(sourceUrl string, trusteUrls []string) bool {
 			continue
 		}
 
-		if !strings.EqualFold(parsedTrustedUrl.Host, host) {
+		// Compare host names only. The port is compared separately below because
+		// url.URL.Host includes the port while parsedUrl.Hostname() does not.
+		if !strings.EqualFold(parsedTrustedUrl.Hostname(), host) {
 			continue
 		}
 
