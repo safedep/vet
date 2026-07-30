@@ -370,4 +370,15 @@ signatures:
           - type: call
             value: "langchain_community.vectorstores.*"
 
-
+  - id: langchain.community.js
+    description: "LangChain.js community integrations"
+    vendor: "LangChain"
+    product: "LangChain.js"
+    service: "Community integrations"
+    tags: [ai, llm]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@langchain/community/*"

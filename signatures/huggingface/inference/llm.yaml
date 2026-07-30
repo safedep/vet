@@ -1,0 +1,27 @@
+version: 0.1
+# References -
+# https://pypi.org/project/huggingface-hub/
+# https://www.npmjs.com/package/@huggingface/inference
+
+signatures:
+  - id: huggingface.inference.client
+    description: "Hugging Face inference client"
+    vendor: "Hugging Face"
+    product: "Inference"
+    service: "AI inference client"
+    tags: [ai, llm, ml, text]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "huggingface_hub.InferenceClient"
+          - type: call
+            value: "huggingface_hub.AsyncInferenceClient"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@huggingface/inference/InferenceClient"
+          - type: call
+            value: "@huggingface/inference/HfInference"
