@@ -1,0 +1,27 @@
+version: 0.1
+# References -
+# https://pypi.org/project/dashscope/
+# https://central.sonatype.com/artifact/com.alibaba/dashscope-sdk-java
+
+signatures:
+  - id: alibaba.dashscope.llm
+    description: "Alibaba DashScope (Qwen) model client"
+    vendor: "Alibaba"
+    product: "DashScope"
+    service: "AI model client"
+    tags: [ai, llm, text]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "dashscope.Generation.call"
+          - type: call
+            value: "dashscope.MultiModalConversation.call"
+          - type: call
+            value: "dashscope.TextEmbedding.call"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.alibaba.dashscope.*"

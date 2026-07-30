@@ -1,0 +1,19 @@
+version: 0.1
+# References -
+# https://pypi.org/project/haystack-ai/ (imports as `haystack`)
+
+signatures:
+  - id: deepset.haystack.pipeline
+    description: "Haystack AI pipeline and agent framework"
+    vendor: "deepset"
+    product: "Haystack"
+    service: "AI pipeline"
+    tags: [ai, llm, agent]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "haystack.Pipeline"
+          - type: call
+            value: "haystack.components.agents.Agent"

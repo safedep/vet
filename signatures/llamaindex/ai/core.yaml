@@ -1,0 +1,35 @@
+version: 0.1
+# References -
+# https://pypi.org/project/llama-index/ (imports as `llama_index`)
+# https://www.npmjs.com/package/llamaindex
+
+signatures:
+  - id: llamaindex.core
+    description: "LlamaIndex data framework and agent workflow"
+    vendor: "LlamaIndex"
+    product: "LlamaIndex"
+    service: "AI data framework"
+    tags: [ai, llm, agent, embeddings]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "llama_index.core.VectorStoreIndex.from_documents"
+          - type: call
+            value: "llama_index.core.SimpleDirectoryReader"
+          - type: call
+            value: "llama_index.core.agent.workflow.FunctionAgent"
+          - type: call
+            value: "llama_index.core.agent.workflow.ReActAgent"
+          - type: call
+            value: "llama_index.core.agent.workflow.AgentWorkflow"
+          - type: call
+            value: "llama_index.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "llamaindex/*"
+          - type: call
+            value: "@llamaindex/workflow/agent"

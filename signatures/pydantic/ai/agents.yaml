@@ -1,0 +1,21 @@
+version: 0.1
+# References -
+# https://pypi.org/project/pydantic-ai/
+
+signatures:
+  - id: pydantic.ai.agent
+    description: "Pydantic AI agent framework"
+    vendor: "Pydantic"
+    product: "Pydantic AI"
+    service: "AI agent runtime"
+    tags: [ai, agent, llm]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "pydantic_ai.Agent"
+          - type: call
+            value: "pydantic_ai.RunContext"
+          - type: call
+            value: "pydantic_ai.*"
