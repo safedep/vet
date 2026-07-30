@@ -1,0 +1,37 @@
+version: 0.1
+# References -
+# https://pypi.org/project/openai-agents/ (imports as `agents`)
+# https://www.npmjs.com/package/@openai/agents
+
+signatures:
+  - id: openai.agents.sdk
+    description: "OpenAI Agents SDK"
+    vendor: "OpenAI"
+    product: "Agents SDK"
+    service: "AI agent runtime"
+    tags: [ai, agent, llm]
+    languages:
+      python:
+        match: any
+        # WARNING: the module name `agents` is generic and the engine cannot
+        # tell a local agents.py from the openai-agents package. Only these
+        # narrow, exact-symbol conditions keep this signature false-positive
+        # free. Never add a bare `agents.*` wildcard here.
+        conditions:
+          - type: call
+            value: "agents.Agent"
+          - type: call
+            value: "agents.Runner.run"
+          - type: call
+            value: "agents.Runner.run_sync"
+          - type: call
+            value: "agents.function_tool"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@openai/agents/Agent"
+          - type: call
+            value: "@openai/agents/run"
+          - type: call
+            value: "@openai/agents/*"
