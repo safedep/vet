@@ -9,15 +9,27 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-
-	"github.com/go-playground/validator/v10"
 )
 
 type GoreleaserArtifact struct {
-	Path   string `json:"path"   validate:"required"`
-	Goos   string `json:"goos"   validate:"required"`
+	Path   string `json:"path"`
+	Goos   string `json:"goos"`
 	Goarch string `json:"goarch"`
-	Type   string `json:"type"   validate:"required"`
+	Type   string `json:"type"`
+}
+
+func validateArtifact(artifact GoreleaserArtifact) error {
+	if artifact.Path == "" {
+		return fmt.Errorf("missing required field %q", "path")
+	}
+	if artifact.Goos == "" {
+		return fmt.Errorf("missing required field %q", "goos")
+	}
+	if artifact.Type == "" {
+		return fmt.Errorf("missing required field %q", "type")
+	}
+
+	return nil
 }
 
 var goArchToNodeArchMap = map[string]string{
@@ -48,12 +60,10 @@ func main() {
 		log.Fatalf("failed to parse artifacts.json: %v", err)
 	}
 
-	validate := validator.New(validator.WithRequiredStructEnabled())
-
 	for _, artifact := range artifacts {
 		switch artifact.Type {
 		case "Binary":
-			if err := validate.Struct(artifact); err != nil {
+			if err := validateArtifact(artifact); err != nil {
 				log.Printf("skipping invalid artifact: %v", err)
 				continue
 			}
