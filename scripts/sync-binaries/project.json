@@ -16,10 +16,12 @@
         "{workspaceRoot}/packages/vet-darwin-x64/bin",
         "{workspaceRoot}/packages/vet-darwin-arm64/bin",
         "{workspaceRoot}/packages/vet-win32-x64/bin"
-      ]
+      ],
+      "cache": false
     },
     "run-release": {
       "executor": "nx:run-commands",
+      "dependsOn": [{"projects": "vet", "target": "build-release"}],
       "options": {
         "command": "go run ./scripts/sync-binaries/ --strict --verify-bins --artifacts-path dist/artifacts.json --packages-path ./packages --set-version $VERSION",
         "cwd": "{workspaceRoot}"
@@ -33,6 +35,14 @@
         "{workspaceRoot}/packages/vet-win32-x64/bin"
       ],
       "cache": false
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "go test -count=1 ./scripts/sync-binaries/...",
+        "cwd": "{workspaceRoot}"
+      },
+      "inputs": ["goSyncSources"]
     }
   }
 }

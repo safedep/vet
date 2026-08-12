@@ -215,7 +215,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install GoReleaser
-        uses: goreleaser/goreleaser-action@286f3b13b1b49da4ac219696163fb8c1c93e1200 # v6.0.0
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
         with:
           install-only: true
           version: "~> v2"

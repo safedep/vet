@@ -14,7 +14,10 @@
     },
     "build-release": {
       "executor": "nx:run-commands",
-      "dependsOn": [{"projects": "sync-binaries", "target": "run-release"}],
+      "dependsOn": [
+        {"projects": "@safedep/vet", "target": "typecheck"},
+        {"projects": "sync-binaries", "target": "run-release"}
+      ],
       "options": {
         "command": "pnpm run build",
         "cwd": "{projectRoot}"

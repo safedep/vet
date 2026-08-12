@@ -7,7 +7,14 @@
       "{workspaceRoot}/**/*.go",
       "{workspaceRoot}/go.mod",
       "{workspaceRoot}/go.sum",
+      "{workspaceRoot}/go.work",
+      "{workspaceRoot}/go.work.sum",
       "{workspaceRoot}/.goreleaser.yaml",
+      "{workspaceRoot}/cmd/agent/*.md",
+      "{workspaceRoot}/pkg/reporter/**/*.md",
+      "{workspaceRoot}/pkg/reporter/data/*.json",
+      "{workspaceRoot}/signatures/**/*",
+      { "runtime": "git describe --tags --always --dirty" },
       "!{workspaceRoot}/packages/**",
       "!{workspaceRoot}/scripts/**",
       "!{workspaceRoot}/dist/**",
@@ -27,7 +34,8 @@
   "targetDefaults": {
     "build": { "cache": true },
     "build-snapshot": { "cache": true },
-    "run": { "cache": true },
+    "run": { "cache": false },
+    "test": { "cache": true },
     "typecheck": { "cache": true }
   }
 }

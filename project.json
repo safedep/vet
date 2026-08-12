@@ -27,7 +27,11 @@
     },
     "verify": {
       "executor": "nx:noop",
-      "dependsOn": [{"projects": "smoke", "target": "verify"}]
+      "dependsOn": [
+        {"projects": "@safedep/vet", "target": "typecheck"},
+        {"projects": "sync-binaries", "target": "test"},
+        {"projects": "smoke", "target": "verify"}
+      ]
     },
     "publish-npm": {
       "executor": "nx:run-commands",

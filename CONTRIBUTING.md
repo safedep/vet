@@ -35,6 +35,7 @@ When contributing changes to repository, follow these steps:
 ### Requirements
 
 - Go 1.25.6+
+- Node.js 24 with Corepack (for the nx/npm distribution pipeline)
 
 ### Install Dependencies
 
@@ -123,6 +124,9 @@ pnpm nx run vet:release-preflight         # verify + pnpm publish --dry-run
 pnpm nx run vet:publish-npm               # release build + publish all packages
 ```
 
-The task graph: `build-snapshot -> sync-binaries:run -> @safedep/vet:build ->
-build-dev -> smoke:verify -> verify -> release-preflight`. The release path uses
-the `*-release` variants (`build-release -> sync-binaries:run-release`).
+`vet:verify` runs the wrapper typecheck, the nested sync-tool tests, and the
+end-to-end smoke chain (`build-snapshot -> sync-binaries:run ->
+@safedep/vet:build -> smoke:verify`). `vet:release-preflight` depends on that
+verification before the dry-run publish. The release path is self-contained:
+`vet:publish-npm` depends on `@safedep/vet:build-release`, which depends on
+`sync-binaries:run-release`, which in turn depends on `vet:build-release`.

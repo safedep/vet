@@ -4,7 +4,7 @@
   "description": "SafeDep vet: open source software supply chain security tool",
   "license": "Apache-2.0",
   "keywords": ["security", "supply-chain", "sbom", "malware", "safedep", "vet"],
-  "engines": { "node": ">=18" },
+  "engines": { "node": ">=14" },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/safedep/vet.git"
@@ -27,13 +27,13 @@
     "@safedep/vet-win32-x64":    "workspace:*"
   },
   "scripts": {
-    "prepack": "cp ../../README.md README.md",
     "build": "tsdown",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@types/node": "25.9.1",
     "tsdown": "0.22.0",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "unrun": "0.3.1"
   }
 }
