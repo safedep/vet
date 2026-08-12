@@ -4,6 +4,7 @@ version: 0.1
 # https://github.com/openai/openai-java
 # https://github.com/openai/openai-go
 # https://learn.microsoft.com/en-us/java/api/overview/azure/ai-openai-readme?view=azure-java-preview
+# https://www.npmjs.com/package/openai
 
 signatures:
   - id: openai.client
@@ -18,6 +19,15 @@ signatures:
         conditions:
           - type: call
             value: "openai.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "openai"
+          - type: call
+            value: "openai/OpenAI"
+          - type: call
+            value: "openai/*"
       java:
         match: any
         conditions:
@@ -98,6 +108,11 @@ signatures:
         conditions:
           - type: call
             value: "openai.AzureOpenAI"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "openai/AzureOpenAI"
       java:
         match: any
         conditions:

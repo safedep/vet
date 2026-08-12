@@ -2,12 +2,42 @@ package readers
 
 import (
 	"errors"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"testing"
 
 	"github.com/google/go-github/v70/github"
 	"github.com/safedep/dry/utils"
+	"github.com/safedep/vet/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestGithubOrgReaderReturnsRepositoryListError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/orgs/test-org/repos", r.URL.Path)
+		http.Error(w, "rate limit exceeded", http.StatusForbidden)
+	}))
+	defer server.Close()
+
+	baseURL, err := url.Parse(server.URL + "/")
+	assert.NoError(t, err)
+
+	client := github.NewClient(server.Client())
+	client.BaseURL = baseURL
+
+	reader, err := NewGithubOrgReader(client, &GithubOrgReaderConfig{
+		OrganizationURL: "https://github.com/test-org",
+	})
+	assert.NoError(t, err)
+
+	err = reader.EnumManifests(func(*models.PackageManifest, PackageReader) error {
+		return nil
+	})
+
+	assert.ErrorContains(t, err, "failed to list Github org repositories")
+	assert.ErrorContains(t, err, "403")
+}
 
 func TestGithubOrgReader(t *testing.T) {
 	cases := []struct {

@@ -106,8 +106,8 @@ type summaryReporter struct {
 			unverified int
 		}
 
-		// Stats for active malware scanning results ONLY
-		// Do not use these stats for OSV based malware database results
+		// Stats for malware analysis results from SafeDep's known
+		// malicious packages database
 		malware struct {
 			scanned    int
 			malicious  int
@@ -833,7 +833,7 @@ func (r *summaryReporter) depsusageEvidenceStatement() string {
 }
 
 func (r *summaryReporter) malwareAnalysisStatement() string {
-	return fmt.Sprintf("%d/%d libraries were actively scanned for malware",
+	return fmt.Sprintf("%d/%d libraries were scanned for malware",
 		r.summary.malware.scanned, r.summary.packages)
 }
 

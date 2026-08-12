@@ -1,5 +1,9 @@
 ## OSV (OSSF) Report
 
+> [!NOTE]
+> The `vet inspect malware` command is deprecated and will be removed in a future release. The
+> `--report-osv` flow documented below depends on it and is deprecated along with it.
+
 Using `--report-osv` we can generate report for `OSSF` malicious package database.
 
 Usage:

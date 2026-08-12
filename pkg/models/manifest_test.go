@@ -6,6 +6,25 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestGetOsvEcosystem(t *testing.T) {
+	cases := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{name: "vscode marketplace", input: EcosystemVSCodeExtensions, expected: "vscode"},
+		{name: "openvsx marketplace", input: EcosystemOpenVSXExtensions, expected: "vscode:open-vsx.org"},
+		{name: "npm unchanged", input: EcosystemNpm, expected: ""},
+		{name: "distro unchanged", input: "Alpine:v3.23", expected: ""},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, GetOsvEcosystem(tc.input))
+		})
+	}
+}
+
 func TestNewPackageManifestFromContainerImage(t *testing.T) {
 	cases := []struct {
 		name              string

@@ -1,0 +1,29 @@
+version: 0.1
+# References -
+# https://pypi.org/project/mistralai/
+# https://www.npmjs.com/package/@mistralai/mistralai
+
+signatures:
+  - id: mistralai.client
+    description: "Mistral AI API client"
+    vendor: "Mistral AI"
+    product: "Mistral API"
+    service: "AI client"
+    tags: [ai, llm, text]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "mistralai.client.Mistral"
+          - type: call
+            value: "mistralai.Mistral"
+          - type: call
+            value: "mistralai.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@mistralai/mistralai/Mistral"
+          - type: call
+            value: "@mistralai/mistralai/*"

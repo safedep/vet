@@ -90,8 +90,7 @@ func (p *githubOrgReader) EnumManifests(handler func(*models.PackageManifest,
 				ListOptions: *listOptions,
 			})
 		if err != nil {
-			logger.Errorf("Failed to list Github org: %v", err)
-			break
+			return fmt.Errorf("failed to list Github org repositories: %w", err)
 		}
 
 		logger.Infof("Enumerated %d repositories with page: %d and next page: %d",
@@ -99,8 +98,7 @@ func (p *githubOrgReader) EnumManifests(handler func(*models.PackageManifest,
 
 		err = p.handleRepositoryBatch(repositories, handler)
 		if err != nil {
-			logger.Errorf("Failed to handle repository batch: %v", err)
-			break
+			return fmt.Errorf("failed to handle repository batch: %w", err)
 		}
 
 		if resp.NextPage == 0 {

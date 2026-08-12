@@ -72,37 +72,7 @@ func (p *lockfileReader) EnumManifests(handler func(*models.PackageManifest,
 			return err
 		}
 
-		// Check for and filter out duplicate packages without version
-		// See GitHub issue #343
-		packageMap := make(map[string]*models.Package)
-		for _, pkg := range manifest.Packages {
-			name := pkg.Name
-
-			existing, exists := packageMap[name]
-			if !exists {
-				// Only add if version is not unknown
-				if pkg.Version != unknownVersion && pkg.Version != "" {
-					packageMap[name] = pkg
-				}
-			} else {
-				// Prefer explicit versions over unknown versions
-				if pkg.Version != unknownVersion &&
-					pkg.Version != "" &&
-					(existing.Version == unknownVersion ||
-						existing.Version == "") {
-					packageMap[name] = pkg
-				}
-			}
-		}
-
-		// Convert map to slice
-		var filteredPkgs []*models.Package
-		for _, pkg := range packageMap {
-			filteredPkgs = append(filteredPkgs, pkg)
-		}
-
-		// Update manifest with filtered packages
-		manifest.Packages = filteredPkgs
+		manifest.Packages = filterDuplicatePackages(manifest.Packages)
 
 		// Call the handler with the manifest and a reader for it
 		err = handler(manifest, NewManifestModelReader(manifest))
@@ -112,4 +82,34 @@ func (p *lockfileReader) EnumManifests(handler func(*models.PackageManifest,
 	}
 
 	return nil
+}
+
+// filterDuplicatePackages drops packages that a parser emitted without a
+// resolvable version, such as the extras-only entry produced for `bleach[css]`
+// in a requirements.txt (GitHub issue #343).
+//
+// Deduplication is keyed on name *and* version. Multiple versions of the same
+// package name are legitimate for ecosystems such as pnpm workspaces and each
+// one is a distinct artifact that must be evaluated on its own
+// (GitHub issue #753).
+func filterDuplicatePackages(packages []*models.Package) []*models.Package {
+	filtered := make([]*models.Package, 0, len(packages))
+	seen := make(map[string]bool)
+
+	for _, pkg := range packages {
+		if pkg.Version == unknownVersion || pkg.Version == "" {
+			logger.Debugf("Dropping package %s with unresolved version", pkg.Name)
+			continue
+		}
+
+		key := pkg.Name + "@" + pkg.Version
+		if seen[key] {
+			continue
+		}
+
+		seen[key] = true
+		filtered = append(filtered, pkg)
+	}
+
+	return filtered
 }

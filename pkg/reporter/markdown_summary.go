@@ -30,12 +30,10 @@ const (
 )
 
 type MarkdownSummaryReporterConfig struct {
-	Tool                                        ToolMetadata
-	Path                                        string
-	ReportTitle                                 string
-	IncludeMalwareAnalysis                      bool
-	ActiveMalwareAnalysis                       bool
-	MalwareAnalysisEntitlementAutoSwitchEnabled bool
+	Tool                   ToolMetadata
+	Path                   string
+	ReportTitle            string
+	IncludeMalwareAnalysis bool
 }
 
 type vetResultInternalModel struct {
@@ -101,9 +99,6 @@ func NewMarkdownSummaryReporter(config MarkdownSummaryReporterConfig) (Reporter,
 		jsonReporter:   jsonReporter,
 		malwareInfo: &markdownSummaryMalwareInfo{
 			malwareInfo: make(map[string]*markdownSummaryPackageMalwareInfo),
-		},
-		internalReportConfig: internalReportConfig{
-			malwareAnalysisEntitlementAutoSwitchEnabled: config.MalwareAnalysisEntitlementAutoSwitchEnabled,
 		},
 	}, nil
 }
@@ -172,11 +167,6 @@ func (r *markdownSummaryReporter) Finish() error {
 	if quotaLimitErrorCount > 0 {
 		builder.AddHorizontalRule()
 		builder.AddParagraph(renderMarkdownQuotaLimitErrorMessages(quotaLimitErrorCount))
-	}
-
-	if r.internalReportConfig.malwareAnalysisEntitlementAutoSwitchEnabled {
-		builder.AddHorizontalRule()
-		builder.AddParagraph(renderMarkdownEntitlementAutoSwitchEnabled())
 	}
 
 	err = os.WriteFile(r.config.Path, []byte(builder.Build()), 0o600)
@@ -505,12 +495,7 @@ func (r *markdownSummaryReporter) addMalwareAnalysisReportSection(builder *markd
 
 	builder.AddHeader(2, "Malicious Package Analysis")
 
-	if r.config.ActiveMalwareAnalysis {
-		builder.AddParagraph("Malicious package analysis was performed using [SafeDep Cloud API](https://docs.safedep.io/cloud/malware-analysis)")
-	} else {
-		builder.AddParagraph("Active malicious package analysis was disabled. " +
-			"Learn more about [enabling active package analysis](https://docs.safedep.io/cloud/malware-analysis)")
-	}
+	builder.AddParagraph("Packages were checked against SafeDep's [known malicious packages database](https://docs.safedep.io/cloud/malware-analysis)")
 
 	reportSection := builder.StartCollapsibleSection("Malicious Package Analysis Report")
 	reportSection.Builder().AddRaw(malwareInfoTable)
@@ -518,7 +503,7 @@ func (r *markdownSummaryReporter) addMalwareAnalysisReportSection(builder *markd
 
 	builder.AddCollapsibleSection(reportSection)
 
-	builder.AddBulletPoint(fmt.Sprintf("%s %d packages have been actively analyzed for malicious behaviour.",
+	builder.AddBulletPoint(fmt.Sprintf("%s %d packages have been checked against the known malicious packages database.",
 		markdown.EmojiInformationSource, r.malwareInfo.haveMalwarAnalysisReport))
 
 	if r.malwareInfo.maliciousPackages > 0 {
@@ -533,13 +518,8 @@ func (r *markdownSummaryReporter) addMalwareAnalysisReportSection(builder *markd
 	}
 
 	if r.malwareInfo.missingMalwareAnalysis > 0 {
-		if r.config.ActiveMalwareAnalysis {
-			builder.AddQuote("Note: Some of the package analysis jobs may still be running." +
-				"Please check back later. Consider increasing the timeout for better coverage.")
-		} else {
-			builder.AddQuote("Note: Only known malicious packages were reported. " +
-				"Consider enabling active package analysis to get more accurate results.")
-		}
+		builder.AddQuote("Note: Only known malicious packages were reported. " +
+			"Packages not yet present in the threat intelligence database are not flagged.")
 	}
 
 	return nil

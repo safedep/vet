@@ -1,0 +1,21 @@
+version: 0.1
+# References -
+# https://pypi.org/project/agent-framework/ (imports as `agent_framework`)
+
+signatures:
+  - id: microsoft.agentframework.agent
+    description: "Microsoft Agent Framework (successor to Semantic Kernel and AutoGen)"
+    vendor: "Microsoft"
+    product: "Agent Framework"
+    service: "AI agent runtime"
+    tags: [ai, agent, llm]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "agent_framework.Agent"
+          - type: call
+            value: "agent_framework.ChatAgent"
+          - type: call
+            value: "agent_framework.openai.OpenAIChatClient"

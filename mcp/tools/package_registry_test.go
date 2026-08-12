@@ -68,8 +68,8 @@ func TestPackageRegistryTool_ExecuteGetPackageLatestVersion(t *testing.T) {
 				driver.On("GetPackageLatestVersion", mock.Anything, mock.AnythingOfType("*packagev1.Package")).
 					Return((*packagev1.PackageVersion)(nil), errors.New("registry unavailable"))
 			},
-			expectedContains: "",
-			expectedError:    "failed to get package latest version",
+			expectedContains: "UPSTREAM_ERROR",
+			expectedError:    "",
 		},
 	}
 
@@ -179,8 +179,8 @@ func TestPackageRegistryTool_ExecuteGetPackageAvailableVersions(t *testing.T) {
 				driver.On("GetPackageAvailableVersions", mock.Anything, mock.AnythingOfType("*packagev1.Package")).
 					Return(([]*packagev1.PackageVersion)(nil), errors.New("registry unavailable"))
 			},
-			expectedContains: "",
-			expectedError:    "failed to get package available versions",
+			expectedContains: "UPSTREAM_ERROR",
+			expectedError:    "",
 		},
 	}
 

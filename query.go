@@ -24,7 +24,6 @@ var (
 	queryPolicyExpression               string
 	queryPolicySuiteFile                string
 	queryLoadDirectory                  string
-	queryEnableConsoleReport            bool
 	queryEnableSummaryReport            bool
 	querySummaryReportMaxAdvice         int
 	querySummaryReportGroupByDirectDeps bool
@@ -82,8 +81,6 @@ func newQueryCommand() *cobra.Command {
 		"Generated exceptions are valid till")
 	cmd.Flags().StringVarP(&queryExceptionsFilter, "exceptions-filter", "", "",
 		"Generate exception records for packages matching filter")
-	cmd.Flags().BoolVarP(&queryEnableConsoleReport, "report-console", "", false,
-		"Minimal summary of package manifest")
 	cmd.Flags().BoolVarP(&queryEnableSummaryReport, "report-summary", "", false,
 		"Show an actionable summary based on scan data")
 	cmd.Flags().IntVarP(&querySummaryReportMaxAdvice, "report-summary-max-advice", "", 5,
@@ -228,15 +225,6 @@ func internalStartQuery() error {
 		}
 
 		analyzers = append(analyzers, task)
-	}
-
-	if queryEnableConsoleReport {
-		rp, err := reporter.NewConsoleReporter()
-		if err != nil {
-			return err
-		}
-
-		reporters = append(reporters, rp)
 	}
 
 	if queryEnableSummaryReport {
