@@ -7,6 +7,7 @@ import (
 
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/safedep/vet/internal/connect"
 	"github.com/safedep/vet/pkg/models"
@@ -45,23 +46,33 @@ func TestGithubReaderWithVetPublicRepository(t *testing.T) {
 
 		assert.Nil(t, err)
 
-		assert.Equal(t, len(manifests), 2)
+		// The scanned repositories are live and their contents change over
+		// time. Assert that the expected manifests are present instead of
+		// asserting exact counts and positions.
+		assert.GreaterOrEqual(t, len(manifests), 2)
 
-		assert.NotNil(t, manifests[0])
-		assert.NotNil(t, manifests[1])
+		findManifest := func(displayPath, blobURLPrefix string) *models.PackageManifest {
+			for _, pm := range manifests {
+				if pm.GetDisplayPath() == displayPath &&
+					strings.HasPrefix(pm.GetPath(), blobURLPrefix) {
+					return pm
+				}
+			}
+			return nil
+		}
 
-		assert.Equal(t, packagev1.Ecosystem_ECOSYSTEM_GO, manifests[0].GetControlTowerSpecEcosystem())
-		assert.Equal(t, packagev1.Ecosystem_ECOSYSTEM_MAVEN, manifests[1].GetControlTowerSpecEcosystem())
+		goManifest := findManifest("go.mod",
+			"https://api.github.com/repos/safedep/vet/git/blobs/")
+		require.NotNil(t, goManifest, "go.mod not found in safedep/vet")
 
-		assert.Equal(t, "go.mod", manifests[0].GetDisplayPath(), "found in GitHub repository")
-		assert.True(t, strings.HasPrefix(manifests[0].GetPath(),
-			"https://api.github.com/repos/safedep/vet/git/blobs/"))
+		gradleManifest := findManifest("gradle.lockfile",
+			"https://api.github.com/repos/safedep/demo-client-java/git/blobs/")
+		require.NotNil(t, gradleManifest, "gradle.lockfile not found in safedep/demo-client-java")
 
-		assert.Equal(t, "gradle.lockfile", manifests[1].GetDisplayPath(), "found in GitHub repository")
-		assert.True(t, strings.HasPrefix(manifests[1].GetPath(),
-			"https://api.github.com/repos/safedep/demo-client-java/git/blobs/"))
+		assert.Equal(t, packagev1.Ecosystem_ECOSYSTEM_GO, goManifest.GetControlTowerSpecEcosystem())
+		assert.Greater(t, len(goManifest.Packages), 0)
 
-		assert.Greater(t, len(manifests[0].Packages), 0)
-		assert.Greater(t, len(manifests[1].Packages), 0)
+		assert.Equal(t, packagev1.Ecosystem_ECOSYSTEM_MAVEN, gradleManifest.GetControlTowerSpecEcosystem())
+		assert.Greater(t, len(gradleManifest.Packages), 0)
 	})
 }
