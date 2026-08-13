@@ -33,8 +33,7 @@
 ---
 
 > [!NOTE]
-> `vet` supports special mode for Agent Skills.
-> Run `vet scan --agent-skill <owner/repo>` to scan an Agent Skill hosted in a GitHub repository.
+> `vet` also runs in the cloud. Point it at your GitHub repositories and get continuous scanning, malware detection, and policy enforcement without managing any infrastructure. See [SafeDep Cloud](https://safedep.io/) for the end-to-end software supply chain security platform.
 
 ## Why vet?
 
@@ -319,10 +318,6 @@ export VET_DISABLE_TELEMETRY=true
 ---
 
 <div align="center">
-
-### Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=safedep/vet&type=Date)](https://star-history.com/#safedep/vet&Date)
 
 ### Built With Open Source
 
