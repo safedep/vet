@@ -35,6 +35,7 @@ When contributing changes to repository, follow these steps:
 ### Requirements
 
 - Go 1.25.6+
+- Node.js 24 with Corepack (for the nx/npm distribution pipeline)
 
 ### Install Dependencies
 
@@ -100,3 +101,32 @@ golangci-lint fmt
 ```bash
 make test
 ```
+
+## npm Distribution (nx)
+
+The Go build and tests use `make` (above). The npm distribution pipeline is
+orchestrated by nx. `vet` ships on npm as a thin wrapper (`packages/vet`) whose
+`optionalDependencies` are per-platform binary packages
+(`@safedep/vet-<platform>-<arch>`). There is no postinstall binary download.
+
+Because `vet` is a CGO binary, the snapshot and release builds need the full
+cross-compile toolchain (osxcross, mingw, cross-gcc) wherever they run. The
+sync tool is a separate Go module under `scripts/`, wired into the build via
+`go.work` (matching pmg/safedep-cli). Note: `ent/generate.go` uses `go run`
+(not `go run -mod=mod`) so `go generate` works in workspace mode; after an ent
+version bump, run `go mod tidy` before regenerating.
+
+```bash
+pnpm install                              # install nx + workspace packages
+pnpm nx run vet:build-snapshot            # goreleaser snapshot (all platforms)
+pnpm nx run vet:verify                    # full chain incl. smoke (vet version)
+pnpm nx run vet:release-preflight         # verify + pnpm publish --dry-run
+pnpm nx run vet:publish-npm               # release build + publish all packages
+```
+
+`vet:verify` runs the wrapper typecheck, the nested sync-tool tests, and the
+end-to-end smoke chain (`build-snapshot -> sync-binaries:run ->
+@safedep/vet:build -> smoke:verify`). `vet:release-preflight` depends on that
+verification before the dry-run publish. The release path is self-contained:
+`vet:publish-npm` depends on `@safedep/vet:build-release`, which depends on
+`sync-binaries:run-release`, which in turn depends on `vet:build-release`.

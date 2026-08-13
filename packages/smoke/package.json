@@ -1,0 +1,7 @@
+{
+  "name": "smoke",
+  "private": true,
+  "dependencies": {
+    "@safedep/vet": "workspace:*"
+  }
+}

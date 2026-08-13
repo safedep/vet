@@ -4,7 +4,6 @@ Enterprise-grade open source software supply chain security in one CLI.
 
 This package delivers the `vet` binary via npm for teams that prefer Node.js tooling for install & upgrades.
 
-
 ## ✨ What It Does
 
 - Detects vulnerabilities (context & usage aware)
@@ -27,6 +26,7 @@ brew install safedep/tap/vet
 ```
 
 Check:
+
 ```bash
 vet version
 ```
@@ -79,6 +79,7 @@ vet scan -D . \
 ```
 
 Generate SBOM:
+
 ```bash
 vet scan -D . --report-cdx=sbom.json
 ```
