@@ -33,6 +33,13 @@ const (
 	metaKeyExtensionID      = "extension.id"
 	metaKeyExtensionVersion = "extension.version"
 	metaKeyExtensionIDE     = "extension.ide"
+
+	// Editor-plugin keys mirror the nvimplugin scanner's metadata schema.
+	metaKeyPluginHost    = "plugin.host"
+	metaKeyPluginManager = "plugin.manager"
+	metaKeyPluginCommit  = "plugin.commit"
+	metaKeyLockedCommit  = "plugin.locked_commit"
+	metaKeyDeclared      = "plugin.declared"
 )
 
 // reportFileMode is the permission bits applied to the JSON report
@@ -240,11 +247,42 @@ func itemDetail(item *inventory.Item) string {
 		return cliToolDetail(item)
 	case inventory.KindAIExtension:
 		return aiExtensionDetail(item)
+	case inventory.KindIDEExtension:
+		// Shared kind: editor plugins (keyed by plugin.host) vs VSIX extensions.
+		if _, ok := item.Metadata[metaKeyPluginHost]; ok {
+			return editorPluginDetail(item)
+		}
+		return aiExtensionDetail(item)
 	case inventory.KindProjectConfig:
 		return projectConfigDetail(item)
 	default:
 		return item.ConfigPath
 	}
+}
+
+// editorPluginDetail renders "<manager> @ <commit[:8]>", suffixed
+// " (undeclared)" when not in the lock file and " (drift)" when HEAD
+// differs from the pinned commit.
+func editorPluginDetail(item *inventory.Item) string {
+	manager := item.Metadata[metaKeyPluginManager]
+	commit := item.Metadata[metaKeyPluginCommit]
+
+	detail := manager
+	if commit != "" {
+		short := commit
+		if len(short) > 8 {
+			short = short[:8]
+		}
+		detail += " @ " + short
+	}
+
+	if item.Metadata[metaKeyDeclared] != "true" {
+		detail += " (undeclared)"
+	} else if locked := item.Metadata[metaKeyLockedCommit]; locked != "" && commit != "" && locked != commit {
+		detail += " (drift)"
+	}
+
+	return detail
 }
 
 func mcpServerDetail(item *inventory.Item) string {

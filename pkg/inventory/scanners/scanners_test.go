@@ -21,6 +21,14 @@ func TestBuildSingleKindReturnsOnlyThatKind(t *testing.T) {
 	assert.Len(t, got, 1)
 }
 
+func TestBuildResolvesNvimPlugin(t *testing.T) {
+	assert.Contains(t, AllowedKinds(), KindNvimPlugin)
+	got, err := Build([]string{KindNvimPlugin})
+	require.NoError(t, err)
+	require.Len(t, got, 1)
+	assert.Equal(t, "nvim-plugin", got[0].Name())
+}
+
 func TestBuildUnknownKindRejected(t *testing.T) {
 	_, err := Build([]string{"not-a-real-kind"})
 	require.Error(t, err)

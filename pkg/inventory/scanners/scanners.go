@@ -17,6 +17,7 @@ import (
 	"github.com/safedep/vet/pkg/aitool"
 	"github.com/safedep/vet/pkg/inventory"
 	aitoolscanner "github.com/safedep/vet/pkg/inventory/scanners/aitool"
+	nvimpluginscanner "github.com/safedep/vet/pkg/inventory/scanners/nvimplugin"
 	skillsscanner "github.com/safedep/vet/pkg/inventory/scanners/skills"
 )
 
@@ -35,6 +36,9 @@ const (
 	KindAITool       = "ai-tool"
 	KindAgentSkill   = "agent-skill"
 	KindIDEExtension = "ide-extension"
+	// KindNvimPlugin is the scanner token for Neovim plugins, independent of
+	// the wire Kind (KindIDEExtension, disambiguated by App="neovim").
+	KindNvimPlugin = "nvim-plugin"
 )
 
 // registry is the shipped set of scanner declarations. Adding a scanner
@@ -60,6 +64,12 @@ var registry = []Descriptor{
 			reg := aitool.NewRegistry()
 			reg.Register("ide_extension", aitool.NewIDEExtensionDiscoverer)
 			return aitoolscanner.New(reg)
+		},
+	},
+	{
+		Kind: KindNvimPlugin,
+		New: func() inventory.Scanner {
+			return nvimpluginscanner.New()
 		},
 	},
 }
