@@ -173,6 +173,60 @@ func TestItemDetailAIExtension(t *testing.T) {
 	assert.Equal(t, "github.copilot v1.234 (VS Code)", itemDetail(item))
 }
 
+func TestItemDetailIDEExtensionVSIXUsesExtensionRendering(t *testing.T) {
+	// No plugin.host: a VSIX IDE extension keeps the extension.id rendering.
+	item := &inventory.Item{
+		Kind: inventory.KindIDEExtension,
+		Metadata: map[string]string{
+			metaKeyExtensionID:      "golang.go",
+			metaKeyExtensionVersion: "0.42.0",
+			metaKeyExtensionIDE:     "VS Code",
+		},
+	}
+	assert.Equal(t, "golang.go v0.42.0 (VS Code)", itemDetail(item))
+}
+
+func TestItemDetailEditorPluginDeclared(t *testing.T) {
+	item := &inventory.Item{
+		Kind: inventory.KindIDEExtension,
+		Metadata: map[string]string{
+			metaKeyPluginHost:    "neovim",
+			metaKeyPluginManager: "lazy.nvim",
+			metaKeyPluginCommit:  "d569072b2e39e0078b55ea56b133fb9a30d78bad",
+			metaKeyLockedCommit:  "d569072b2e39e0078b55ea56b133fb9a30d78bad",
+			metaKeyDeclared:      "true",
+		},
+	}
+	assert.Equal(t, "lazy.nvim @ d569072b", itemDetail(item))
+}
+
+func TestItemDetailEditorPluginUndeclared(t *testing.T) {
+	item := &inventory.Item{
+		Kind: inventory.KindIDEExtension,
+		Metadata: map[string]string{
+			metaKeyPluginHost:    "neovim",
+			metaKeyPluginManager: "lazy.nvim",
+			metaKeyPluginCommit:  "8a4d1cf3aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			metaKeyDeclared:      "false",
+		},
+	}
+	assert.Equal(t, "lazy.nvim @ 8a4d1cf3 (undeclared)", itemDetail(item))
+}
+
+func TestItemDetailEditorPluginDrift(t *testing.T) {
+	item := &inventory.Item{
+		Kind: inventory.KindIDEExtension,
+		Metadata: map[string]string{
+			metaKeyPluginHost:    "neovim",
+			metaKeyPluginManager: "lazy.nvim",
+			metaKeyPluginCommit:  "aaaaaaaabbbbbbbbccccccccddddddddeeeeeeee",
+			metaKeyLockedCommit:  "11111111222222223333333344444444abcdef00",
+			metaKeyDeclared:      "true",
+		},
+	}
+	assert.Equal(t, "lazy.nvim @ aaaaaaaa (drift)", itemDetail(item))
+}
+
 func TestItemDetailProjectConfigJoinsInstructionBaseNames(t *testing.T) {
 	item := &inventory.Item{
 		Kind: inventory.KindProjectConfig,
