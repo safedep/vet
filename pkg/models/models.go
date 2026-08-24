@@ -516,7 +516,8 @@ var distroEcosystemPurls = map[string]struct {
 // no distro suffix.
 func distroPurlForEcosystem(ecosystem string) (string, string, string, bool) {
 	family, distro, found := strings.Cut(ecosystem, ":")
-	if !found || strings.TrimSpace(distro) == "" {
+	distro = strings.TrimSpace(distro)
+	if !found || distro == "" {
 		return "", "", "", false
 	}
 
@@ -534,8 +535,10 @@ func distroPurlForEcosystem(ecosystem string) (string, string, string, bool) {
 
 // GetPackageUrl returns the PURL of the package. Distro ecosystems found
 // during container scanning (e.g. "Alpine:v3.20") cannot be used directly
-// as a PURL type; they are rendered with their package manager type and a
-// distro qualifier instead: pkg:apk/alpine/musl@1.2.5-r21?distro=v3.20
+// as a PURL type; known distro families are rendered with their package
+// manager type and a distro qualifier instead:
+// pkg:apk/alpine/musl@1.2.5-r21?distro=v3.20 Unknown ecosystems, including
+// unrecognized distro families, keep the legacy rendering.
 func (p *Package) GetPackageUrl() string {
 	if pkgType, namespace, distro, ok := distroPurlForEcosystem(string(p.Ecosystem)); ok {
 		return fmt.Sprintf("pkg:%s/%s/%s@%s?distro=%s",
