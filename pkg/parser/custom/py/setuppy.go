@@ -7,6 +7,7 @@ import (
 
 	"github.com/safedep/vet/pkg/common/logger"
 	regex_utils "github.com/safedep/vet/pkg/common/utils/regex"
+	"github.com/safedep/vet/pkg/common/utils/version"
 )
 
 func ParseSetuppy(pathToLockfile string) ([]lockfile.PackageDetails, error) {
@@ -41,42 +42,26 @@ func getDependencies(pathToLockfile string) ([]string, error) {
 //
 //	https://pip.pypa.io/en/stable/reference/requirements-file-format/#example
 func parseRequirementsFileLine(line string) lockfile.PackageDetails {
-	var constraint string
-	name := line
-
-	version := "0.0.0"
-
-	if strings.Contains(line, "==") {
-		constraint = "=="
-	}
-
-	if strings.Contains(line, ">=") {
-		constraint = ">="
-	}
-
-	if strings.Contains(line, "~=") {
-		constraint = "~="
-	}
-
-	if strings.Contains(line, "!=") {
-		constraint = "!="
-	}
-
-	if constraint != "" {
-		unprocessedName, unprocessedVersion, _ := strings.Cut(line, constraint)
-		name = strings.TrimSpace(unprocessedName)
-
-		if constraint != "!=" {
-			version, _, _ = strings.Cut(strings.TrimSpace(unprocessedVersion), " ")
-		}
-	}
+	// PEP 508 puts an environment marker after ";". It says when the
+	// requirement applies, not which release, so it must not reach the version.
+	requirement, _, _ := strings.Cut(line, ";")
+	name, expr := cutRequirementOperator(requirement)
 
 	return lockfile.PackageDetails{
 		Name:      normalizedRequirementName(name),
-		Version:   version,
+		Version:   version.Resolve(expr),
 		Ecosystem: lockfile.PipEcosystem,
 		CompareAs: lockfile.PipEcosystem,
 	}
+}
+
+func cutRequirementOperator(requirement string) (name, expr string) {
+	at := strings.IndexAny(requirement, "<>=!~")
+	if at < 0 {
+		return strings.TrimSpace(requirement), ""
+	}
+
+	return strings.TrimSpace(requirement[:at]), requirement[at:]
 }
 
 // normalizedName ensures that the package name is normalized per PEP-0503

@@ -6,7 +6,9 @@ import (
 	"strings"
 	"testing"
 
+	spdx_go "github.com/spdx/tools-golang/spdx"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParseSpdxSBOM(t *testing.T) {
@@ -342,6 +344,52 @@ func TestGetDependencies(t *testing.T) {
 					}
 				}
 			}
+		})
+	}
+}
+
+func TestParsePackageVersionInfo(t *testing.T) {
+	cases := []struct {
+		name            string
+		packageName     string
+		packageVersion  string
+		purl            string
+		expectedVersion string
+	}{
+		{"Exact release", "npm:acme/zeta", "4.17.21", "", "4.17.21"},
+		{"Python prerelease", "pypi:alpha", "1.0.0rc1", "", "1.0.0rc1"},
+		{"Tag with a v prefix", "npm:acme/beta", "v1.2.3", "", "v1.2.3"},
+		{"Prerelease with build metadata", "npm:acme/gamma", "1.0.0-beta.1+build.7", "", "1.0.0-beta.1+build.7"},
+		{"Bare action ref", "actions:actions/checkout", "2", "", "2"},
+		{"Branch as an action ref", "actions:safedep/pacman", "main", "", "main"},
+		{"Maven snapshot", "maven:org.acme:lib", "1.1.0-SNAPSHOT", "", "1.1.0-SNAPSHOT"},
+		{"Dist tag", "npm:acme/epsilon", "latest", "", "latest"},
+
+		{"Lower bound", "npm:acme/delta", ">=2.28", "", ""},
+		{"Two clauses", "pypi:urllib3", ">= 1.21.1,< 3", "", ""},
+		{"Missing version", "npm:acme/eta", "", "", ""},
+		{"No assertion", "npm:acme/theta", "NOASSERTION", "", ""},
+
+		{"Purl wins over version info", "npm:acme/iota", "9.9.9", "pkg:npm/iota@2.0.0", "2.0.0"},
+		{"Version info covers a purl range", "npm:acme/kappa", "3.1.4", "pkg:npm/kappa@%5E4.0.0", "3.1.4"},
+	}
+
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+			pkg := &spdx_go.Package{
+				PackageName:    test.packageName,
+				PackageVersion: test.packageVersion,
+			}
+
+			if test.purl != "" {
+				pkg.PackageExternalReferences = []*spdx_go.PackageExternalReference{
+					{RefType: "purl", Locator: test.purl},
+				}
+			}
+
+			pd, err := parsePackage(pkg)
+			require.NoError(t, err)
+			assert.Equal(t, test.expectedVersion, pd.Version)
 		})
 	}
 }
