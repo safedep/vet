@@ -491,7 +491,61 @@ func (p *Package) GetProvenances() []*Provenance {
 	return p.Provenances
 }
 
+// distroEcosystemPurls maps OSV distro ecosystem families (lowercase,
+// spaces/dashes stripped) to their PURL type and namespace, per the PURL
+// spec for OS packages (https://github.com/package-url/purl-spec).
+var distroEcosystemPurls = map[string]struct {
+	pkgType   string
+	namespace string
+}{
+	"alpine":                {"apk", "alpine"},
+	"debian":                {"deb", "debian"},
+	"ubuntu":                {"deb", "ubuntu"},
+	"centos":                {"rpm", "centos"},
+	"fedora":                {"rpm", "fedora"},
+	"rockylinux":            {"rpm", "rockylinux"},
+	"almalinux":             {"rpm", "almalinux"},
+	"amazonlinux":           {"rpm", "amazonlinux"},
+	"oraclelinux":           {"rpm", "oraclelinux"},
+	"redhatenterpriselinux": {"rpm", "rhel"},
+}
+
+// distroPurlForEcosystem converts an OSV-style distro ecosystem string
+// (e.g. "Alpine:v3.20") into its PURL type, namespace and distro version.
+// Returns false when the ecosystem is not a known distro family or has
+// no distro suffix.
+func distroPurlForEcosystem(ecosystem string) (string, string, string, bool) {
+	family, distro, found := strings.Cut(ecosystem, ":")
+	distro = strings.TrimSpace(distro)
+	if !found || distro == "" {
+		return "", "", "", false
+	}
+
+	norm := strings.ToLower(family)
+	norm = strings.ReplaceAll(norm, " ", "")
+	norm = strings.ReplaceAll(norm, "-", "")
+
+	info, ok := distroEcosystemPurls[norm]
+	if !ok {
+		return "", "", "", false
+	}
+
+	return info.pkgType, info.namespace, distro, true
+}
+
+// GetPackageUrl returns the PURL of the package. Distro ecosystems found
+// during container scanning (e.g. "Alpine:v3.20") cannot be used directly
+// as a PURL type; known distro families are rendered with their package
+// manager type and a distro qualifier instead:
+// pkg:apk/alpine/musl@1.2.5-r21?distro=v3.20 Unknown ecosystems, including
+// unrecognized distro families, keep the legacy rendering.
 func (p *Package) GetPackageUrl() string {
+	if pkgType, namespace, distro, ok := distroPurlForEcosystem(string(p.Ecosystem)); ok {
+		return fmt.Sprintf("pkg:%s/%s/%s@%s?distro=%s",
+			pkgType, namespace,
+			strings.ToLower(p.Name), p.Version, distro)
+	}
+
 	return fmt.Sprintf("pkg:%s/%s@%s",
 		strings.ToLower(string(p.Ecosystem)),
 		strings.ToLower(p.Name), p.Version)
