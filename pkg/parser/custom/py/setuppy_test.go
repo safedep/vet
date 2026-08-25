@@ -49,17 +49,67 @@ func TestParseRequirementsFileLine(t *testing.T) {
 			input: "django!=2.0",
 			expected: lockfile.PackageDetails{
 				Name:      "django",
-				Version:   "0.0.0",
+				Version:   "2.0",
 				Ecosystem: lockfile.PipEcosystem,
 				CompareAs: lockfile.PipEcosystem,
 			},
 			shouldFail: false,
 		},
 		{
-			input: "bad-input", // Invalid input
+			input: "bad-input",
 			expected: lockfile.PackageDetails{
 				Name:      "bad-input",
-				Version:   "0.0.0",
+				Version:   "",
+				Ecosystem: lockfile.PipEcosystem,
+				CompareAs: lockfile.PipEcosystem,
+			},
+			shouldFail: false,
+		},
+		{
+			input: "urllib3<2",
+			expected: lockfile.PackageDetails{
+				Name:      "urllib3",
+				Version:   "2",
+				Ecosystem: lockfile.PipEcosystem,
+				CompareAs: lockfile.PipEcosystem,
+			},
+			shouldFail: false,
+		},
+		{
+			input: "boto3 == 1.34.0",
+			expected: lockfile.PackageDetails{
+				Name:      "boto3",
+				Version:   "1.34.0",
+				Ecosystem: lockfile.PipEcosystem,
+				CompareAs: lockfile.PipEcosystem,
+			},
+			shouldFail: false,
+		},
+		{
+			input: "bleach[css]==6.1.0",
+			expected: lockfile.PackageDetails{
+				Name:      "bleach",
+				Version:   "6.1.0",
+				Ecosystem: lockfile.PipEcosystem,
+				CompareAs: lockfile.PipEcosystem,
+			},
+			shouldFail: false,
+		},
+		{
+			input: "httpx==0.27.0; python_version >= \"3.8\"",
+			expected: lockfile.PackageDetails{
+				Name:      "httpx",
+				Version:   "0.27.0",
+				Ecosystem: lockfile.PipEcosystem,
+				CompareAs: lockfile.PipEcosystem,
+			},
+			shouldFail: false,
+		},
+		{
+			input: "Twisted[tls]",
+			expected: lockfile.PackageDetails{
+				Name:      "twisted",
+				Version:   "",
 				Ecosystem: lockfile.PipEcosystem,
 				CompareAs: lockfile.PipEcosystem,
 			},
@@ -92,7 +142,7 @@ func TestParseSetuppy(t *testing.T) {
 			expectedDeps: []lockfile.PackageDetails{
 				{
 					Name:      "google-cloud-storage",
-					Version:   "0.0.0",
+					Version:   "",
 					Ecosystem: lockfile.PipEcosystem,
 					CompareAs: lockfile.PipEcosystem,
 				},
@@ -110,7 +160,7 @@ func TestParseSetuppy(t *testing.T) {
 				},
 				{
 					Name:      "statistics",
-					Version:   "0.0.0",
+					Version:   "",
 					Ecosystem: lockfile.PipEcosystem,
 					CompareAs: lockfile.PipEcosystem,
 				},

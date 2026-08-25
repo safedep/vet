@@ -12,6 +12,7 @@ import (
 
 	"github.com/safedep/vet/pkg/common/logger"
 	sbom_utils "github.com/safedep/vet/pkg/common/utils/sbom"
+	"github.com/safedep/vet/pkg/common/utils/version"
 	"github.com/safedep/vet/pkg/parser/custom/packagefile"
 )
 
@@ -128,11 +129,10 @@ func parsePackageFromPackageDetails(pkg *spdx_go.Package) (*packagefile.PackageD
 		return nil, err
 	}
 
-	version, _, _ := attemptParsePackageVersionExpression(pkg.PackageVersion)
 	pd := &packagefile.PackageDetails{
 		Name:      n,
 		Group:     g,
-		Version:   version,
+		Version:   version.BestEffort(pkg.PackageVersion),
 		Ecosystem: ecosysystem,
 		CompareAs: ecosysystem,
 		SpdxRef:   pkg,
@@ -157,27 +157,10 @@ func attempParsePackageName(input string) (string, string, string, bool) {
 		return "", "", "", false
 	}
 
-	version := matches[5]
-	if version == "" {
-		version = "0.0.0"
+	name := matches[5]
+	if name == "" {
+		name = "0.0.0"
 	}
 
-	return matches[2], matches[4], version, true
-}
-
-/*
-Attempt parsing version information from the version expression.
-*/
-func attemptParsePackageVersionExpression(versionExpr string) (version, op string, ok bool) {
-	pattern := regexp.MustCompile(`^\s*([<>=!~]+)?\s*([0-9]+\.[0-9]+(\.[0-9]+)?)?\s*$`)
-	matches := pattern.FindStringSubmatch(versionExpr)
-
-	if len(matches) != 4 {
-		return "0.0.0", "", false
-	}
-
-	op = strings.TrimSpace(matches[1])
-	version = strings.TrimSpace(matches[2])
-
-	return version, op, true
+	return matches[2], matches[4], name, true
 }
