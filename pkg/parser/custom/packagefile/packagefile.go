@@ -10,7 +10,6 @@ import (
 
 	"github.com/safedep/vet/pkg/common/logger"
 	sbom_utils "github.com/safedep/vet/pkg/common/utils/sbom"
-	"github.com/safedep/vet/pkg/common/utils/version"
 )
 
 // Source from which PackageDetails will be created such as spdx, cyclone_dx, packagefile
@@ -57,18 +56,10 @@ func ParsePackageFromPurl(purl string) (*PackageDetails, error) {
 		logger.Debugf("Unknown ecosystem type: %s", instance.Type)
 		return nil, err
 	}
-	// A purl version segment is free text, so an SBOM writer can put a whole
-	// version expression there. Passing one through would report a release the
-	// manifest never named.
-	release := version.Resolve(instance.Version)
-	if instance.Version != "" && release == "" {
-		return nil, fmt.Errorf("purl version is not a release: %s", instance.Version)
-	}
-
 	pd := &PackageDetails{
 		Name:      instance.Name,
 		Group:     instance.Namespace,
-		Version:   release,
+		Version:   instance.Version,
 		Ecosystem: ecosysystem,
 		CompareAs: ecosysystem,
 	}

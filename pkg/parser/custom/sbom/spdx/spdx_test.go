@@ -365,13 +365,13 @@ func TestParsePackageVersionInfo(t *testing.T) {
 		{"Maven snapshot", "maven:org.acme:lib", "1.1.0-SNAPSHOT", "", "1.1.0-SNAPSHOT"},
 		{"Dist tag", "npm:acme/epsilon", "latest", "", "latest"},
 
-		{"Lower bound", "npm:acme/delta", ">=2.28", "", ""},
-		{"Two clauses", "pypi:urllib3", ">= 1.21.1,< 3", "", ""},
+		{"Lower bound floors to its operand", "npm:acme/delta", ">=2.28", "", "2.28"},
+		{"Two clauses floor to the first", "pypi:urllib3", ">= 1.21.1,< 3", "", "1.21.1"},
 		{"Missing version", "npm:acme/eta", "", "", ""},
-		{"No assertion", "npm:acme/theta", "NOASSERTION", "", ""},
+		{"No assertion", "npm:acme/theta", "NOASSERTION", "", "NOASSERTION"},
 
 		{"Purl wins over version info", "npm:acme/iota", "9.9.9", "pkg:npm/iota@2.0.0", "2.0.0"},
-		{"Version info covers a purl range", "npm:acme/kappa", "3.1.4", "pkg:npm/kappa@%5E4.0.0", "3.1.4"},
+		{"Purl range passes through", "npm:acme/kappa", "3.1.4", "pkg:npm/kappa@%5E4.0.0", "^4.0.0"},
 	}
 
 	for _, test := range cases {

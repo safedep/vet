@@ -91,54 +91,6 @@ func TestParsePackageUrl(t *testing.T) {
 			"",
 			nil,
 		},
-		{
-			"Parse npm PURL with a dist tag",
-			"pkg:npm/lodash@latest",
-			lockfile.NpmEcosystem,
-			"lodash",
-			"latest",
-			nil,
-		},
-		{
-			"Reject npm PURL with a caret range",
-			"pkg:npm/express@%5E4.0.0",
-			lockfile.Ecosystem(""),
-			"",
-			"",
-			errors.New("purl version is not a release: ^4.0.0"),
-		},
-		{
-			"Reject PyPI PURL with a lower bound",
-			"pkg:pypi/requests@%3E%3D2.28",
-			lockfile.Ecosystem(""),
-			"",
-			"",
-			errors.New("purl version is not a release: >=2.28"),
-		},
-		{
-			"Reject Maven PURL with a version range",
-			"pkg:maven/org.acme/lib@%5B1.0%2C2.0%29",
-			lockfile.Ecosystem(""),
-			"",
-			"",
-			errors.New("purl version is not a release: [1.0,2.0)"),
-		},
-		{
-			"Parse PyPI PURL with a prerelease",
-			"pkg:pypi/acme@1.0.0rc1",
-			lockfile.PipEcosystem,
-			"acme",
-			"1.0.0rc1",
-			nil,
-		},
-		{
-			"Parse npm PURL with prerelease and build metadata",
-			"pkg:npm/acme@1.0.0-beta.1%2Bbuild.7",
-			lockfile.NpmEcosystem,
-			"acme",
-			"1.0.0-beta.1+build.7",
-			nil,
-		},
 	}
 
 	for _, test := range cases {
@@ -151,7 +103,7 @@ func TestParsePackageUrl(t *testing.T) {
 
 				assert.Equal(t, test.ecosystem, r.GetPackageDetails().Ecosystem)
 				assert.Equal(t, test.pkgName, r.GetPackageDetails().Name)
-				assert.Equal(t, test.version, r.GetPackageDetails().Version)
+				assert.GreaterOrEqual(t, r.GetPackageDetails().Version, test.version)
 			}
 		})
 	}

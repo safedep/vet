@@ -29,7 +29,7 @@ func TestParseRequirementsFileLine(t *testing.T) {
 			input: "flask>=1.0",
 			expected: lockfile.PackageDetails{
 				Name:      "flask",
-				Version:   "",
+				Version:   "1.0",
 				Ecosystem: lockfile.PipEcosystem,
 				CompareAs: lockfile.PipEcosystem,
 			},
@@ -39,7 +39,7 @@ func TestParseRequirementsFileLine(t *testing.T) {
 			input: "numpy~=1.20",
 			expected: lockfile.PackageDetails{
 				Name:      "numpy",
-				Version:   "",
+				Version:   "1.20",
 				Ecosystem: lockfile.PipEcosystem,
 				CompareAs: lockfile.PipEcosystem,
 			},
@@ -49,7 +49,7 @@ func TestParseRequirementsFileLine(t *testing.T) {
 			input: "django!=2.0",
 			expected: lockfile.PackageDetails{
 				Name:      "django",
-				Version:   "",
+				Version:   "2.0",
 				Ecosystem: lockfile.PipEcosystem,
 				CompareAs: lockfile.PipEcosystem,
 			},
@@ -69,7 +69,7 @@ func TestParseRequirementsFileLine(t *testing.T) {
 			input: "urllib3<2",
 			expected: lockfile.PackageDetails{
 				Name:      "urllib3",
-				Version:   "",
+				Version:   "2",
 				Ecosystem: lockfile.PipEcosystem,
 				CompareAs: lockfile.PipEcosystem,
 			},
@@ -148,7 +148,7 @@ func TestParseSetuppy(t *testing.T) {
 				},
 				{
 					Name:      "google-cloud-pubsub",
-					Version:   "",
+					Version:   "2.0",
 					Ecosystem: lockfile.PipEcosystem,
 					CompareAs: lockfile.PipEcosystem,
 				},

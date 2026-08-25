@@ -132,7 +132,7 @@ func parsePackageFromPackageDetails(pkg *spdx_go.Package) (*packagefile.PackageD
 	pd := &packagefile.PackageDetails{
 		Name:      n,
 		Group:     g,
-		Version:   version.Resolve(pkg.PackageVersion),
+		Version:   version.BestEffort(pkg.PackageVersion),
 		Ecosystem: ecosysystem,
 		CompareAs: ecosysystem,
 		SpdxRef:   pkg,

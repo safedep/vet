@@ -6,7 +6,6 @@ import (
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/package-url/packageurl-go"
 
-	"github.com/safedep/vet/pkg/common/utils/version"
 	"github.com/safedep/vet/pkg/models"
 )
 
@@ -35,18 +34,10 @@ func ParsePackageUrl(purl string) (*purlResponseWrapper, error) {
 		return nil, err
 	}
 
-	// A purl version segment is free text, so an SBOM writer can put a whole
-	// version expression there. Passing one through would report a release the
-	// manifest never named.
-	release := version.Resolve(instance.Version)
-	if instance.Version != "" && release == "" {
-		return nil, fmt.Errorf("purl version is not a release: %s", instance.Version)
-	}
-
 	pd := lockfile.PackageDetails{
 		Ecosystem: ecosystem,
 		Name:      purlBuildLockfilePackageName(ecosystem, instance.Namespace, instance.Name),
-		Version:   release,
+		Version:   instance.Version,
 	}
 
 	return &purlResponseWrapper{

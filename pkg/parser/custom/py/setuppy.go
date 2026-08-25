@@ -49,7 +49,7 @@ func parseRequirementsFileLine(line string) lockfile.PackageDetails {
 
 	return lockfile.PackageDetails{
 		Name:      normalizedRequirementName(name),
-		Version:   version.Resolve(expr),
+		Version:   version.BestEffort(expr),
 		Ecosystem: lockfile.PipEcosystem,
 		CompareAs: lockfile.PipEcosystem,
 	}

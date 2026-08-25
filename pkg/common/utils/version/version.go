@@ -1,41 +1,28 @@
-// Package version tells a release apart from a version expression that names a
-// set of releases.
+// Package version reads a best-effort version out of a version expression.
 package version
 
 import "strings"
 
-// SPDX writes these when it has no version to give. A report must not carry
-// either one as a release.
-var unresolved = map[string]bool{
-	"NOASSERTION": true,
-	"NONE":        true,
-}
-
 const (
-	operatorChars = "<>=!~^"
-	// A release identifier holds none of these. Each one either starts another
-	// clause of a version expression or stands for any release.
-	rejectChars = "<>=!~^*|, \t"
+	// A leading run of these introduces a bound or a range, never a release.
+	operatorChars = "<>=!~^([ "
+	// Each one of these separates the clauses of a multi-clause expression.
+	clauseSeparators = ",| \t"
 )
 
-// Resolve returns the release that expr names, and an empty string when expr
-// names a set of releases instead of one.
+// BestEffort returns the version that expr names, or the lowest version it
+// bounds. vet chooses coverage over accuracy here: the package name carries
+// most of the security signal, and a package vet drops carries none, so the
+// caller gets an approximate version rather than nothing.
 //
-// vet's malware and insights lookups key on one exact release, so a caller must
-// not fall back to the floor of a range: the 2.28 of ">=2.28" names a release
-// the manifest never asked for, and a lookup against it reads as clean.
-func Resolve(expr string) string {
-	expr = strings.TrimSpace(expr)
+// The result is empty only when expr names no version at all.
+func BestEffort(expr string) string {
+	clauses := strings.FieldsFunc(strings.TrimLeft(strings.TrimSpace(expr), operatorChars),
+		func(r rune) bool { return strings.ContainsRune(clauseSeparators, r) })
 
-	release := strings.TrimLeft(expr, operatorChars)
-	if operator := expr[:len(expr)-len(release)]; strings.Trim(operator, "=") != "" {
+	if len(clauses) == 0 {
 		return ""
 	}
 
-	release = strings.TrimSpace(release)
-	if unresolved[release] || strings.ContainsAny(release, rejectChars) {
-		return ""
-	}
-
-	return release
+	return clauses[0]
 }
