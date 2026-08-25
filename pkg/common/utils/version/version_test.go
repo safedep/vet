@@ -36,6 +36,9 @@ var bestEffortCases = []struct {
 	{"Empty expression", "", ""},
 	{"Whitespace only", "   ", ""},
 	{"Operator without an operand", ">=", ""},
+	{"Separator before an operator", ",!", ""},
+	{"Newline inside an expression", "!\n0", "0"},
+	{"Separator before a bound", ",>=1.0", "1.0"},
 	{"Equals without an operand", "==", ""},
 
 	// Real strings from the SPDX fixtures in this repo.

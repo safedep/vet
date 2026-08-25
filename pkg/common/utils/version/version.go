@@ -1,13 +1,17 @@
 // Package version reads a best-effort version out of a version expression.
 package version
 
-import "strings"
+import (
+	"strings"
+	"unicode"
+)
 
 const (
 	// A leading run of these introduces a bound or a range, never a release.
-	operatorChars = "<>=!~^([ "
-	// Each one of these separates the clauses of a multi-clause expression.
-	clauseSeparators = ",| \t"
+	operatorChars = "<>=!~^(["
+	// These separate the clauses of a multi-clause expression. Whitespace
+	// separates them too, so a clause never holds any.
+	clauseSeparators = ",|"
 )
 
 // BestEffort returns the version that expr names, or the lowest version it
@@ -17,12 +21,15 @@ const (
 //
 // The result is empty only when expr names no version at all.
 func BestEffort(expr string) string {
-	clauses := strings.FieldsFunc(strings.TrimLeft(strings.TrimSpace(expr), operatorChars),
-		func(r rune) bool { return strings.ContainsRune(clauseSeparators, r) })
-
-	if len(clauses) == 0 {
-		return ""
+	for _, clause := range strings.FieldsFunc(expr, isClauseBreak) {
+		if release := strings.TrimLeft(clause, operatorChars); release != "" {
+			return release
+		}
 	}
 
-	return clauses[0]
+	return ""
+}
+
+func isClauseBreak(r rune) bool {
+	return unicode.IsSpace(r) || strings.ContainsRune(clauseSeparators, r)
 }
