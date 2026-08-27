@@ -3,7 +3,7 @@ module github.com/safedep/vet
 go 1.26.2
 
 require (
-	buf.build/gen/go/safedep/api/grpc/go v1.6.2-20260721112344-78a866a85e69.1
+	buf.build/gen/go/safedep/api/grpc/go v1.6.1-20260507085543-c19cfafa654b.1
 	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.11-20260721112344-78a866a85e69.1
 	entgo.io/ent v0.14.6-0.20260218064135-ab0540611e15
 	github.com/AlecAivazis/survey/v2 v2.3.7
@@ -60,10 +60,10 @@ require (
 	github.com/spdx/tools-golang v0.5.7
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
-	golang.org/x/oauth2 v0.36.0
+	golang.org/x/oauth2 v0.35.0
 	golang.org/x/term v0.44.0
 	google.golang.org/genai v1.48.0
-	google.golang.org/grpc v1.81.0
+	google.golang.org/grpc v1.80.0
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -442,7 +442,7 @@ require (
 	go.mongodb.org/mongo-driver/v2 v2.5.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
-	go.opentelemetry.io/contrib/detectors/gcp v1.42.0 // indirect
+	go.opentelemetry.io/contrib/detectors/gcp v1.41.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.66.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.66.0 // indirect
 	go.opentelemetry.io/otel v1.43.0 // indirect
