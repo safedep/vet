@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os/user"
 	"time"
 
 	controltowerv1pb "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
@@ -42,17 +41,16 @@ func WithDrainTimeout(d time.Duration) Option {
 	}
 }
 
-// resolveUserIdentity resolves the running process's OS username and numeric
-// uid. A resolution failure is logged and returns empty strings; the sink then
-// omits the invocation context rather than failing the scan. It is a package
-// var so tests can substitute a deterministic identity.
-var resolveUserIdentity = func() (username, uid string) {
-	u, err := user.Current()
-	if err != nil {
-		logger.Debugf("cloud sink: could not resolve OS user: %v", err)
-		return "", ""
+// WithUserIdentity records the OS user this scan runs as. The values are
+// stamped onto every event's invocation context so the cloud can attribute
+// inventory to the right user when a fleet scans several users on one machine.
+// Empty values leave the invocation context unset. The caller (cmd layer)
+// resolves the identity; the sink stays a pure translator.
+func WithUserIdentity(username, uid string) Option {
+	return func(s *CloudSink) {
+		s.username = username
+		s.usernameUID = uid
 	}
-	return u.Username, u.Uid
 }
 
 // CloudSink is an inventory.Sink that translates each emitted item,
@@ -78,9 +76,9 @@ type CloudSink struct {
 	session      *inventory.Session
 
 	// username and usernameUID identify the OS user this scan runs as,
-	// resolved once in New. They are stamped onto every event's invocation
-	// context so the cloud can attribute inventory to the right user when a
-	// fleet script scans several users on one machine.
+	// supplied by the caller via WithUserIdentity. They are stamped onto every
+	// event's invocation context so the cloud can attribute inventory to the
+	// right user when a fleet scans several users on one machine.
 	username    string
 	usernameUID string
 }
@@ -97,7 +95,6 @@ func New(client syncClient, opts ...Option) *CloudSink {
 	for _, opt := range opts {
 		opt(s)
 	}
-	s.username, s.usernameUID = resolveUserIdentity()
 	return s
 }
 
