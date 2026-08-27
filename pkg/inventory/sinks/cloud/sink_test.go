@@ -143,9 +143,19 @@ func TestCloudSink_EmitProducesItemObservedEnvelope(t *testing.T) {
 	assert.Equal(t, "claude", ve.GetItemObserved().GetName())
 }
 
+// stubUserIdentity swaps the package-level identity resolver for the duration
+// of a test and restores it via t.Cleanup.
+func stubUserIdentity(t *testing.T, username, uid string) {
+	t.Helper()
+	prev := resolveUserIdentity
+	resolveUserIdentity = func() (string, string) { return username, uid }
+	t.Cleanup(func() { resolveUserIdentity = prev })
+}
+
 func TestCloudSink_StampsUserInvocationContext(t *testing.T) {
+	stubUserIdentity(t, "alice", "1000")
 	fake := newFakeSyncClient()
-	sink := New(fake, withUserIdentity("alice", "1000"))
+	sink := New(fake)
 
 	require.NoError(t, sink.Begin(context.Background(), inventory.NewSession()))
 	require.NoError(t, sink.Emit(context.Background(), sampleItem()))
@@ -166,9 +176,10 @@ func TestCloudSink_StampsUserInvocationContext(t *testing.T) {
 }
 
 func TestCloudSink_OmitsInvocationContextWhenIdentityUnknown(t *testing.T) {
-	fake := newFakeSyncClient()
 	// An empty identity models user.Current() having failed to resolve.
-	sink := New(fake, withUserIdentity("", ""))
+	stubUserIdentity(t, "", "")
+	fake := newFakeSyncClient()
+	sink := New(fake)
 
 	require.NoError(t, sink.Begin(context.Background(), inventory.NewSession()))
 	require.NoError(t, sink.Emit(context.Background(), sampleItem()))

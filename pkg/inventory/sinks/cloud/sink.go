@@ -42,20 +42,11 @@ func WithDrainTimeout(d time.Duration) Option {
 	}
 }
 
-// withUserIdentity overrides the OS user stamped on every event. Test-only:
-// production resolves the identity from user.Current() in New.
-func withUserIdentity(username, uid string) Option {
-	return func(s *CloudSink) {
-		s.username = username
-		s.usernameUID = uid
-		s.identitySet = true
-	}
-}
-
-// currentUserIdentity resolves the running process's OS username and numeric
+// resolveUserIdentity resolves the running process's OS username and numeric
 // uid. A resolution failure is logged and returns empty strings; the sink then
-// omits the invocation context rather than failing the scan.
-func currentUserIdentity() (username, uid string) {
+// omits the invocation context rather than failing the scan. It is a package
+// var so tests can substitute a deterministic identity.
+var resolveUserIdentity = func() (username, uid string) {
 	u, err := user.Current()
 	if err != nil {
 		logger.Debugf("cloud sink: could not resolve OS user: %v", err)
@@ -92,10 +83,6 @@ type CloudSink struct {
 	// fleet script scans several users on one machine.
 	username    string
 	usernameUID string
-	// identitySet reports that the identity was supplied explicitly (a test
-	// option), so New must not auto-resolve over it — an explicitly empty
-	// identity is a valid, distinct state.
-	identitySet bool
 }
 
 // New constructs a CloudSink wired to the given endpointsync client.
@@ -110,10 +97,7 @@ func New(client syncClient, opts ...Option) *CloudSink {
 	for _, opt := range opts {
 		opt(s)
 	}
-	// Resolve the OS user unless a test option already supplied one.
-	if !s.identitySet {
-		s.username, s.usernameUID = currentUserIdentity()
-	}
+	s.username, s.usernameUID = resolveUserIdentity()
 	return s
 }
 
