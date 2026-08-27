@@ -143,8 +143,10 @@ test_enumerate_linux_users() {
   local tmp; tmp=$(mktemp -d)
   # shellcheck disable=SC2064
   trap "rm -rf '$tmp'" RETURN
-  mkdir -p "${tmp}/home/alice" "${tmp}/home/bob" "${tmp}/home/sys"
-  # ghost has no home dir; wrong is outside the home prefix.
+  mkdir -p "${tmp}/home/alice" "${tmp}/home/bob" "${tmp}/home/sys" "${tmp}/home/svc"
+  # ghost has no home dir; wrong is outside the home prefix; svc is a nologin
+  # service account. VET_MDM_PASSWD_FILE stands in for the `getent passwd`
+  # source so the seam runs as a normal user.
   cat > "${tmp}/passwd" <<EOF
 root:x:0:0::/root:/bin/bash
 sys:x:1:1::${tmp}/home/sys:/bin/sh
@@ -152,13 +154,14 @@ alice:x:5000:5000::${tmp}/home/alice:/bin/bash
 bob:x:5001:5001::${tmp}/home/bob:/bin/bash
 ghost:x:5002:5002::${tmp}/home/ghost:/bin/bash
 wrong:x:5003:5003::/opt/wrong:/bin/bash
+svc:x:5004:5004::${tmp}/home/svc:/usr/sbin/nologin
 EOF
 
   local got want
   got=$(VET_MDM_PASSWD_FILE="${tmp}/passwd" VET_MDM_HOME_PREFIX="${tmp}/home" \
     bash -c 'source "$1"; enumerate_linux_users' _ "$SCRIPT")
   want=$(printf 'alice\t5000\t%s\nbob\t5001\t%s' "${tmp}/home/alice" "${tmp}/home/bob")
-  assert_equals "$want" "$got" "enumerate_linux_users filters system/missing/off-prefix"
+  assert_equals "$want" "$got" "enumerate_linux_users filters system/missing/off-prefix/nologin"
 }
 
 # ---------------------------------------------------------------------------

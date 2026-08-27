@@ -28,7 +28,7 @@
 #   SAFEDEP_TENANT_ID  — SafeDep Cloud tenant ID
 #
 # Test-only overrides (do not set in production):
-#   VET_MDM_PASSWD_FILE — Linux passwd source (default /etc/passwd)
+#   VET_MDM_PASSWD_FILE — Linux passwd source override (default: getent passwd)
 #   VET_MDM_HOME_PREFIX — required home-directory prefix on Linux (default /home)
 
 set -euo pipefail
@@ -68,24 +68,41 @@ resolve_vet() {
   return 1
 }
 
-# Emit "user<TAB>uid<TAB>home" for every local human account on Linux, parsed
-# from the passwd database. Filters to UID >= UID_MIN (default 1000) with a real
-# home under the required prefix. Split out from each_target_user so it is
-# testable without root.
+# Emit passwd-format lines for the local and directory user databases. Uses
+# `getent passwd`, which reads NSS, so on an MDM-managed host it returns
+# directory users (LDAP/SSSD/AD) as well as local accounts, matching what the
+# macOS dscl path sees. Falls back to /etc/passwd when getent is absent. Tests
+# point VET_MDM_PASSWD_FILE at a fixture to run this seam without root.
+passwd_source() {
+  if [[ -n "${VET_MDM_PASSWD_FILE:-}" ]]; then
+    cat "$VET_MDM_PASSWD_FILE"
+  elif command -v getent >/dev/null 2>&1; then
+    getent passwd
+  else
+    cat /etc/passwd
+  fi
+}
+
+# Emit "user<TAB>uid<TAB>home" for every local or directory human account on
+# Linux. Keeps accounts with UID >= UID_MIN (default 1000), a real home under
+# the required prefix, and a login shell. Accounts whose home is absent on this
+# machine (directory users who never logged in) and nologin/false service
+# accounts are skipped. Split out from each_target_user so it is testable
+# without root.
 enumerate_linux_users() {
-  local passwd="${VET_MDM_PASSWD_FILE:-/etc/passwd}"
   local home_prefix="${VET_MDM_HOME_PREFIX:-/home}"
   local uid_min
   uid_min=$(awk '/^UID_MIN/{print $2}' /etc/login.defs 2>/dev/null || true)
   [[ "$uid_min" =~ ^[0-9]+$ ]] || uid_min=1000
-  local user uid home
-  while IFS=: read -r user _ uid _ _ home _; do
+  local user uid home shell
+  while IFS=: read -r user _ uid _ _ home shell; do
     [[ "$uid" =~ ^[0-9]+$ ]] || continue
     [[ "$uid" -ge "$uid_min" ]] || continue
     [[ -n "$home" && -d "$home" ]] || continue
     case "$home" in "$home_prefix"/*) ;; *) continue ;; esac
+    case "$shell" in */nologin | */false) continue ;; esac
     printf '%s\t%s\t%s\n' "$user" "$uid" "$home"
-  done < "$passwd"
+  done < <(passwd_source)
 }
 
 # Emit "user<TAB>uid<TAB>home" for every local human account on macOS via

@@ -27,8 +27,10 @@ best mode for CLI tool discovery, which reads the user's `PATH`.
 
 Target users:
 
-- Linux: local accounts in `/etc/passwd` with a UID of `UID_MIN`
-  (`/etc/login.defs`, default 1000) or higher, and a home under `/home`.
+- Linux: accounts from `getent passwd` (NSS, so local accounts plus directory
+  users from LDAP, SSSD, or AD) with a UID of `UID_MIN` (`/etc/login.defs`,
+  default 1000) or higher, a real home under `/home`, and a login shell.
+  Accounts with a `nologin` or `false` shell are skipped.
 - macOS: local accounts in Directory Services with a UID of 500 or higher, and
   a home under `/Users`.
 
