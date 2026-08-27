@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os/user"
 	"time"
 
 	controltowerv1pb "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
@@ -41,11 +42,33 @@ func WithDrainTimeout(d time.Duration) Option {
 	}
 }
 
+// withUserIdentity overrides the OS user stamped on every event. Test-only:
+// production resolves the identity from user.Current() in New.
+func withUserIdentity(username, uid string) Option {
+	return func(s *CloudSink) {
+		s.username = username
+		s.usernameUID = uid
+		s.identitySet = true
+	}
+}
+
+// currentUserIdentity resolves the running process's OS username and numeric
+// uid. A resolution failure is logged and returns empty strings; the sink then
+// omits the invocation context rather than failing the scan.
+func currentUserIdentity() (username, uid string) {
+	u, err := user.Current()
+	if err != nil {
+		logger.Debugf("cloud sink: could not resolve OS user: %v", err)
+		return "", ""
+	}
+	return u.Username, u.Uid
+}
+
 // CloudSink is an inventory.Sink that translates each emitted item,
 // the end-of-scan summary, and per-discoverer errors into a
-// VetInventoryEvent inside a ToolEvent envelope, then hands the
-// envelope to endpointsync for durable WAL-backed delivery to
-// SafeDep Cloud.
+// VetInventoryEvent inside a ToolEvent envelope, stamps the envelope
+// with the OS user's invocation context, then hands it to endpointsync
+// for durable WAL-backed delivery to SafeDep Cloud.
 //
 // CloudSink is not safe for concurrent use; the inventory
 // orchestrator drives sinks serially. The sink holds no goroutines
@@ -62,6 +85,17 @@ type CloudSink struct {
 	client       syncClient
 	drainTimeout time.Duration
 	session      *inventory.Session
+
+	// username and usernameUID identify the OS user this scan runs as,
+	// resolved once in New. They are stamped onto every event's invocation
+	// context so the cloud can attribute inventory to the right user when a
+	// fleet script scans several users on one machine.
+	username    string
+	usernameUID string
+	// identitySet reports that the identity was supplied explicitly (a test
+	// option), so New must not auto-resolve over it — an explicitly empty
+	// identity is a valid, distinct state.
+	identitySet bool
 }
 
 // New constructs a CloudSink wired to the given endpointsync client.
@@ -75,6 +109,10 @@ func New(client syncClient, opts ...Option) *CloudSink {
 	}
 	for _, opt := range opts {
 		opt(s)
+	}
+	// Resolve the OS user unless a test option already supplied one.
+	if !s.identitySet {
+		s.username, s.usernameUID = currentUserIdentity()
 	}
 	return s
 }
@@ -145,6 +183,12 @@ func (s *CloudSink) send(ctx context.Context, vetEvent *controltowerv1pb.VetInve
 	toolEvent.SetVetEvent(vetEvent)
 	if s.session != nil {
 		toolEvent.SetInvocationId(s.session.InvocationID)
+	}
+	if s.username != "" || s.usernameUID != "" {
+		toolEvent.SetInvocationContext(controltowerv1pb.EndpointInvocationContext_builder{
+			Username:    s.username,
+			UsernameUid: s.usernameUID,
+		}.Build())
 	}
 	if err := s.client.Emit(ctx, toolEvent); err != nil {
 		if errors.Is(err, endpointsync.ErrWALFull) {

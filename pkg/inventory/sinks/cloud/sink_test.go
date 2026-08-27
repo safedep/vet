@@ -143,6 +143,42 @@ func TestCloudSink_EmitProducesItemObservedEnvelope(t *testing.T) {
 	assert.Equal(t, "claude", ve.GetItemObserved().GetName())
 }
 
+func TestCloudSink_StampsUserInvocationContext(t *testing.T) {
+	fake := newFakeSyncClient()
+	sink := New(fake, withUserIdentity("alice", "1000"))
+
+	require.NoError(t, sink.Begin(context.Background(), inventory.NewSession()))
+	require.NoError(t, sink.Emit(context.Background(), sampleItem()))
+	require.NoError(t, sink.End(context.Background(), &inventory.ScanSummary{
+		KindCounts: map[inventory.Kind]uint64{},
+	}))
+
+	events := fake.emitted()
+	require.NotEmpty(t, events)
+	// Every event (item observed + scan summary) carries the same user
+	// context, so the cloud attributes them to the right OS user.
+	for i, te := range events {
+		require.True(t, te.HasInvocationContext(), "event[%d] missing invocation context", i)
+		ic := te.GetInvocationContext()
+		assert.Equal(t, "alice", ic.GetUsername(), "event[%d] username", i)
+		assert.Equal(t, "1000", ic.GetUsernameUid(), "event[%d] uid", i)
+	}
+}
+
+func TestCloudSink_OmitsInvocationContextWhenIdentityUnknown(t *testing.T) {
+	fake := newFakeSyncClient()
+	// An empty identity models user.Current() having failed to resolve.
+	sink := New(fake, withUserIdentity("", ""))
+
+	require.NoError(t, sink.Begin(context.Background(), inventory.NewSession()))
+	require.NoError(t, sink.Emit(context.Background(), sampleItem()))
+
+	events := fake.emitted()
+	require.Len(t, events, 1)
+	assert.False(t, events[0].HasInvocationContext(),
+		"invocation context must be omitted when the OS user is unknown")
+}
+
 func TestCloudSink_EndEmitsSummaryThenOneErrorPerScanError(t *testing.T) {
 	fake := newFakeSyncClient()
 	sink := New(fake)
