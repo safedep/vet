@@ -41,11 +41,23 @@ func WithDrainTimeout(d time.Duration) Option {
 	}
 }
 
+// WithUserIdentity records the OS user this scan runs as. The values are
+// stamped onto every event's invocation context so the cloud can attribute
+// inventory to the right user when a fleet scans several users on one machine.
+// Empty values leave the invocation context unset. The caller (cmd layer)
+// resolves the identity; the sink stays a pure translator.
+func WithUserIdentity(username, uid string) Option {
+	return func(s *CloudSink) {
+		s.username = username
+		s.usernameUID = uid
+	}
+}
+
 // CloudSink is an inventory.Sink that translates each emitted item,
 // the end-of-scan summary, and per-discoverer errors into a
-// VetInventoryEvent inside a ToolEvent envelope, then hands the
-// envelope to endpointsync for durable WAL-backed delivery to
-// SafeDep Cloud.
+// VetInventoryEvent inside a ToolEvent envelope, stamps the envelope
+// with the OS user's invocation context, then hands it to endpointsync
+// for durable WAL-backed delivery to SafeDep Cloud.
 //
 // CloudSink is not safe for concurrent use; the inventory
 // orchestrator drives sinks serially. The sink holds no goroutines
@@ -62,6 +74,13 @@ type CloudSink struct {
 	client       syncClient
 	drainTimeout time.Duration
 	session      *inventory.Session
+
+	// username and usernameUID identify the OS user this scan runs as,
+	// supplied by the caller via WithUserIdentity. They are stamped onto every
+	// event's invocation context so the cloud can attribute inventory to the
+	// right user when a fleet scans several users on one machine.
+	username    string
+	usernameUID string
 }
 
 // New constructs a CloudSink wired to the given endpointsync client.
@@ -145,6 +164,12 @@ func (s *CloudSink) send(ctx context.Context, vetEvent *controltowerv1pb.VetInve
 	toolEvent.SetVetEvent(vetEvent)
 	if s.session != nil {
 		toolEvent.SetInvocationId(s.session.InvocationID)
+	}
+	if s.username != "" || s.usernameUID != "" {
+		toolEvent.SetInvocationContext(controltowerv1pb.EndpointInvocationContext_builder{
+			Username:    s.username,
+			UsernameUid: s.usernameUID,
+		}.Build())
 	}
 	if err := s.client.Emit(ctx, toolEvent); err != nil {
 		if errors.Is(err, endpointsync.ErrWALFull) {

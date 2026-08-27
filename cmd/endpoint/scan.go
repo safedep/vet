@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/user"
 	"strings"
 	"time"
 
@@ -23,6 +24,7 @@ import (
 	"github.com/safedep/vet/internal/auth"
 	"github.com/safedep/vet/internal/command"
 	"github.com/safedep/vet/internal/ui"
+	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/inventory"
 	"github.com/safedep/vet/pkg/inventory/scanners"
 	cloudsink "github.com/safedep/vet/pkg/inventory/sinks/cloud"
@@ -272,9 +274,24 @@ func buildCloudSink(_ context.Context, creds auth.Credentials, opts Options) (in
 		return nil, nil, fmt.Errorf("init endpointsync client: %w", err)
 	}
 
-	sink := cloudsink.New(client, cloudsink.WithDrainTimeout(opts.DrainTimeout))
+	username, uid := currentOSUser()
+	sink := cloudsink.New(client,
+		cloudsink.WithDrainTimeout(opts.DrainTimeout),
+		cloudsink.WithUserIdentity(username, uid))
 	cleanup := func() { _ = conn.Close() }
 	return sink, cleanup, nil
+}
+
+// currentOSUser resolves the running user's name and numeric uid for cloud
+// event attribution. Resolution failures are non-fatal: the scan proceeds
+// without per-user attribution.
+func currentOSUser() (username, uid string) {
+	u, err := user.Current()
+	if err != nil {
+		logger.Debugf("vet endpoint scan: could not resolve OS user: %v", err)
+		return "", ""
+	}
+	return u.Username, u.Uid
 }
 
 // dialSyncConn opens a gRPC connection to the SafeDep sync endpoint
