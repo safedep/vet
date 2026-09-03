@@ -131,7 +131,15 @@ func main() {
 
 	defer analytics.Close()
 
-	if err := cmd.Execute(); err != nil {
+	// Kick off a non-blocking, async check for a newer vet release. The result
+	// is consumed without blocking after the command finishes.
+	updateCh := startUpdateCheck(version)
+
+	err := cmd.Execute()
+
+	displayUpdateResult(updateCh)
+
+	if err != nil {
 		os.Exit(1)
 	}
 }

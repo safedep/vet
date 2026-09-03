@@ -1199,8 +1199,8 @@ github.com/rust-secure-code/go-rustaudit v0.0.0-20250226111315-e20ec32e963c/go.m
 github.com/ryanuber/columnize v0.0.0-20160712163229-9b3edd62028f/go.mod h1:sm1tb6uqfes/u+d4ooFouqFdy9/2g9QGwK3SQygK0Ts=
 github.com/safedep/code v0.0.0-20260224174612-abe896956bc1 h1:om1nRWsx9KLDhMeaUGTYxqH9JT5HHkUp6QY/wDyLMtw=
 github.com/safedep/code v0.0.0-20260224174612-abe896956bc1/go.mod h1:QYfQrEgRFjd15kUk80t3vjvzC5xiKeSjXgn6Qx1S89w=
-github.com/safedep/dry v0.0.0-20260430094716-037c59666d04 h1:3Pmsbi1VQewLyGixsNUUJfs4nurMIXPfaCq30orkxug=
-github.com/safedep/dry v0.0.0-20260430094716-037c59666d04/go.mod h1:DXJSAov8jxZElBDFhvwCTrBKF+gVvVCtmimDjfKFU7I=
+github.com/safedep/dry v0.0.0-20260605103506-0cda32cb089b h1:bXwIV4JvLfVFsuVnuY2HaQyaNRyNK360Sue4VXYuDcI=
+github.com/safedep/dry v0.0.0-20260605103506-0cda32cb089b/go.mod h1:tKhOr0osgpefdBbxG8n4H5gYH1GLXidKS+hzNbRQ9LQ=
 github.com/saferwall/pe v1.5.9 h1:iFD9h46ip3Vaf5inCrxzlvP1myUcw9NSkgt4XVbwklY=
 github.com/saferwall/pe v1.5.9/go.mod h1:zZh3Ib7L0MLPPlBneXUH/IVG5aTNXi8BQ3YkE7TaAVE=
 github.com/sagikazarmark/crypt v0.3.0/go.mod h1:uD/D+6UF4SrIR1uGEv7bBNkNqLGqUr43MRiaGWX1Nig=
