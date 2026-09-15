@@ -1,9 +1,11 @@
 package parser
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
@@ -196,4 +198,88 @@ func TestParseCyclonedxSBOMWithNpmSBOM(t *testing.T) {
 	assert.NotNil(t, manifest)
 
 	assert.Equal(t, 840, len(manifest.GetPackages()))
+}
+
+// captureStderr runs pFunction with os.Stderr redirected, and returns what was
+// written to it.
+func captureStderr(t *testing.T, run func()) string {
+	t.Helper()
+
+	reader, writer, err := os.Pipe()
+	assert.Nil(t, err)
+
+	original := os.Stderr
+	os.Stderr = writer
+
+	defer func() {
+		os.Stderr = original
+	}()
+
+	run()
+
+	assert.Nil(t, writer.Close())
+
+	captured, err := io.ReadAll(reader)
+	assert.Nil(t, err)
+
+	return string(captured)
+}
+
+const sbomWithUnmappedPurlTypes = `{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": { "component": { "type": "container", "bom-ref": "root", "name": "example-image" } },
+  "components": [
+    { "type": "library", "bom-ref": "c1", "name": "lodash", "version": "4.17.20", "purl": "pkg:npm/lodash@4.17.20" },
+    { "type": "library", "bom-ref": "c2", "name": "busybox", "version": "1.36.1-r5", "purl": "pkg:apk/alpine/busybox@1.36.1-r5" },
+    { "type": "library", "bom-ref": "c3", "name": "libssl3", "version": "3.0.11-1", "purl": "pkg:deb/debian/libssl3@3.0.11-1" },
+    { "type": "library", "bom-ref": "c4", "name": "plug", "version": "1.14.0", "purl": "pkg:hex/plug@1.14.0" }
+  ]
+}`
+
+// A component whose PURL type has no ecosystem mapping is dropped. That is fine,
+// vet cannot scan what it cannot resolve, but the drop has to be visible: the
+// logger is wired to io.Discard unless --log is passed, so otherwise the run
+// reports a short library count, finds nothing and exits 0.
+func TestParseCyclonedxSBOMWarnsAboutUnmappedPurlTypes(t *testing.T) {
+	tempFile := filepath.Join(t.TempDir(), "sbom.json")
+	assert.Nil(t, os.WriteFile(tempFile, []byte(sbomWithUnmappedPurlTypes), 0o644))
+
+	var manifest *models.PackageManifest
+	var err error
+
+	warning := captureStderr(t, func() {
+		manifest, err = parseSbomCycloneDxAsGraph(tempFile, &ParserConfig{})
+	})
+
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(manifest.Packages))
+
+	assert.Contains(t, warning, "skipped 3 of 4 component(s)")
+	assert.Contains(t, warning, "apk (1)")
+	assert.Contains(t, warning, "deb (1)")
+	assert.Contains(t, warning, "hex (1)")
+}
+
+func TestParseCyclonedxSBOMIsQuietWhenEveryComponentMaps(t *testing.T) {
+	tempFile := filepath.Join(t.TempDir(), "sbom.json")
+	sbomContent := strings.Replace(sbomWithUnmappedPurlTypes,
+		`{ "type": "library", "bom-ref": "c2", "name": "busybox", "version": "1.36.1-r5", "purl": "pkg:apk/alpine/busybox@1.36.1-r5" },
+    { "type": "library", "bom-ref": "c3", "name": "libssl3", "version": "3.0.11-1", "purl": "pkg:deb/debian/libssl3@3.0.11-1" },
+    { "type": "library", "bom-ref": "c4", "name": "plug", "version": "1.14.0", "purl": "pkg:hex/plug@1.14.0" }`,
+		`{ "type": "library", "bom-ref": "c2", "name": "express", "version": "4.19.2", "purl": "pkg:npm/express@4.19.2" }`, 1)
+	assert.NotEqual(t, sbomWithUnmappedPurlTypes, sbomContent)
+	assert.Nil(t, os.WriteFile(tempFile, []byte(sbomContent), 0o644))
+
+	var manifest *models.PackageManifest
+	var err error
+
+	warning := captureStderr(t, func() {
+		manifest, err = parseSbomCycloneDxAsGraph(tempFile, &ParserConfig{})
+	})
+
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(manifest.Packages))
+	assert.Empty(t, warning)
 }
