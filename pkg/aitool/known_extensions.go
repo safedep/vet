@@ -28,11 +28,11 @@ var knownAIExtensions = map[string]knownAIExtensionInfo{
 	"continue.continue": {DisplayName: "Continue"},
 
 	// Roo Code / Cline variants
-	"rooveterinaryinc.roo-cline": {DisplayName: "Roo Code"},
+	"rooveterinaryinc.roo-cline":      {DisplayName: "Roo Code"},
 	"kodu-ai.claude-dev-experimental": {DisplayName: "Kodu AI"},
 
 	// Codeium / Windsurf
-	"codeium.codeium":   {DisplayName: "Codeium"},
+	"codeium.codeium":       {DisplayName: "Codeium"},
 	"codeium.windsurf-next": {DisplayName: "Windsurf"},
 
 	// Tabnine
@@ -45,7 +45,7 @@ var knownAIExtensions = map[string]knownAIExtensionInfo{
 	"augment.vscode-augment": {DisplayName: "Augment Code"},
 
 	// Microsoft IntelliCode
-	"visualstudioexptteam.vscodeintellicode":           {DisplayName: "IntelliCode"},
+	"visualstudioexptteam.vscodeintellicode":              {DisplayName: "IntelliCode"},
 	"visualstudioexptteam.intellicode-api-usage-examples": {DisplayName: "IntelliCode API Usage Examples"},
 
 	// Blackbox AI

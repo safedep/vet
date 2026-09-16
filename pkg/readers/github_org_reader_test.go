@@ -9,8 +9,9 @@ import (
 
 	"github.com/google/go-github/v70/github"
 	"github.com/safedep/dry/utils"
-	"github.com/safedep/vet/pkg/models"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/safedep/vet/pkg/models"
 )
 
 func TestGithubOrgReaderReturnsRepositoryListError(t *testing.T) {
