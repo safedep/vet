@@ -82,6 +82,10 @@ func DefaultRegistry() *Registry {
 	r.Register("windsurf_config", NewWindsurfDiscoverer)
 	r.Register("antigravity_config", NewAntigravityDiscoverer)
 	r.Register("vscode_config", NewVSCodeDiscoverer)
+	r.Register("gemini_config", NewGeminiDiscoverer)
+	r.Register("zed_config", NewZedDiscoverer)
+	r.Register("kiro_config", NewKiroDiscoverer)
+	r.Register("continue_config", NewContinueDiscoverer)
 
 	// CLI tool discoverers
 	r.Register("claude_code_cli", NewClaudeCLIDiscoverer)
@@ -92,6 +96,11 @@ func DefaultRegistry() *Registry {
 	r.Register("aider", NewAiderDiscoverer)
 	r.Register("gh_copilot", NewGhCopilotDiscoverer)
 	r.Register("amazon_q", NewAmazonQDiscoverer)
+	r.Register("gemini_cli", NewGeminiCLIDiscoverer)
+	r.Register("zed_cli", NewZedCLIDiscoverer)
+	r.Register("openai_codex", NewCodexCLIDiscoverer)
+	r.Register("goose", NewGooseDiscoverer)
+	r.Register("plandex", NewPlandexDiscoverer)
 
 	// IDE extension discoverer
 	r.Register("ide_extensions", NewAIExtensionDiscoverer)
