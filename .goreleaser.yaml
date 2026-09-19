@@ -58,14 +58,17 @@ homebrew_casks:
     license: "Apache-2.0"
     binaries:
       - vet
-    url:
-      verified: github.com/safedep/vet
-    hooks:
-      post:
-        install: |
-          if OS.mac?
-            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/vet"]
-          end
+    # Homebrew 7 deprecates the `postflight` stanza that goreleaser writes from
+    # `hooks.post.install`. The block below writes `postflight_steps` instead.
+    # goreleaser runs a template pass over the rendered cask, so the quoted form
+    # is what emits Homebrew's own `{{staged_path}}` token. Move this to
+    # `hooks.post.install_steps` when goreleaser/goreleaser#6873 ships.
+    custom_block: |
+      postflight_steps do
+        on_macos do
+          run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ "{{staged_path}}" }}/vet"], must_succeed: false
+        end
+      end
     repository:
       owner: safedep
       name: homebrew-tap

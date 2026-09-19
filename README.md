@@ -55,7 +55,7 @@ Free for open source. Hosted SaaS available at [SafeDep](https://safedep.io).
 
 ```bash
 # macOS & Linux
-brew install safedep/tap/vet
+brew install vet
 
 # Using npm
 npm install -g @safedep/vet
