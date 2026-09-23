@@ -195,6 +195,13 @@ func NewSyncReporterEnvironmentResolver() SyncReporterEnvResolver {
 		return GithubActionsSyncReporterResolver()
 	}
 
+	// Bitbucket Pipelines always sets `BITBUCKET_REPO_FULL_NAME`, and so does
+	// SafeDep's scan sandbox for a Bitbucket scan. `BITBUCKET_BUILD_NUMBER`
+	// is not the detector because the sandbox is not a pipeline build.
+	if os.Getenv("BITBUCKET_REPO_FULL_NAME") != "" {
+		return BitbucketSyncReporterResolver()
+	}
+
 	return DefaultSyncReporterEnvResolver()
 }
 
