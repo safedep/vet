@@ -151,7 +151,72 @@ func TestNewSyncReporterEnvironmentResolver(t *testing.T) {
 			expectedGitSha:        "abc123",
 		},
 		{
-			name: "should return default values when GITHUB_ACTIONS is not set",
+			name: "should return Bitbucket values for a branch build",
+			setupEnv: func(t *testing.T) {
+				t.Setenv("GITHUB_ACTIONS", "")
+				t.Setenv("BITBUCKET_REPO_FULL_NAME", "safedep/demo")
+				t.Setenv("BITBUCKET_BRANCH", "main")
+				t.Setenv("BITBUCKET_COMMIT", "abc123")
+				t.Setenv("BITBUCKET_TAG", "")
+				t.Setenv("BITBUCKET_PR_ID", "")
+			},
+			expectedProjectSource: controltowerv1pb.Project_SOURCE_BITBUCKET,
+			expectedTrigger:       controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL,
+			expectedProjectUrl:    "https://bitbucket.org/safedep/demo",
+			expectedGitRef:        "main",
+			expectedGitSha:        "abc123",
+		},
+		{
+			name: "should return Bitbucket values for a tag build",
+			setupEnv: func(t *testing.T) {
+				t.Setenv("GITHUB_ACTIONS", "")
+				t.Setenv("BITBUCKET_REPO_FULL_NAME", "safedep/demo")
+				t.Setenv("BITBUCKET_BRANCH", "")
+				t.Setenv("BITBUCKET_COMMIT", "def456")
+				t.Setenv("BITBUCKET_TAG", "v1.2.3")
+				t.Setenv("BITBUCKET_PR_ID", "")
+			},
+			expectedProjectSource: controltowerv1pb.Project_SOURCE_BITBUCKET,
+			expectedTrigger:       controltowerv1.ToolTrigger_TOOL_TRIGGER_TAG,
+			expectedProjectUrl:    "https://bitbucket.org/safedep/demo",
+			expectedGitRef:        "v1.2.3",
+			expectedGitSha:        "def456",
+		},
+		{
+			name: "should return Bitbucket values for a pull request build",
+			setupEnv: func(t *testing.T) {
+				t.Setenv("GITHUB_ACTIONS", "")
+				t.Setenv("BITBUCKET_REPO_FULL_NAME", "safedep/demo")
+				t.Setenv("BITBUCKET_BRANCH", "feature")
+				t.Setenv("BITBUCKET_COMMIT", "0a1b2c")
+				t.Setenv("BITBUCKET_TAG", "")
+				t.Setenv("BITBUCKET_PR_ID", "42")
+			},
+			expectedProjectSource: controltowerv1pb.Project_SOURCE_BITBUCKET,
+			expectedTrigger:       controltowerv1.ToolTrigger_TOOL_TRIGGER_PULL_REQUEST,
+			expectedProjectUrl:    "https://bitbucket.org/safedep/demo",
+			expectedGitRef:        "feature",
+			expectedGitSha:        "0a1b2c",
+		},
+		{
+			name: "should prefer GitHub Actions when both environments are set",
+			setupEnv: func(t *testing.T) {
+				t.Setenv("GITHUB_ACTIONS", "true")
+				t.Setenv("GITHUB_SERVER_URL", "https://github.com")
+				t.Setenv("GITHUB_REPOSITORY", "safedep/vet")
+				t.Setenv("GITHUB_EVENT_NAME", "push")
+				t.Setenv("GITHUB_REF", "refs/heads/main")
+				t.Setenv("GITHUB_SHA", "abc123")
+				t.Setenv("BITBUCKET_REPO_FULL_NAME", "safedep/demo")
+			},
+			expectedProjectSource: controltowerv1pb.Project_SOURCE_GITHUB,
+			expectedTrigger:       controltowerv1.ToolTrigger_TOOL_TRIGGER_PUSH,
+			expectedProjectUrl:    "https://github.com/safedep/vet",
+			expectedGitRef:        "refs/heads/main",
+			expectedGitSha:        "abc123",
+		},
+		{
+			name: "should return default values when no CI environment is set",
 			setupEnv: func(t *testing.T) {
 				t.Setenv("GITHUB_ACTIONS", "")
 				t.Setenv("GITHUB_REPOSITORY", "")
@@ -159,6 +224,7 @@ func TestNewSyncReporterEnvironmentResolver(t *testing.T) {
 				t.Setenv("GITHUB_REF", "")
 				t.Setenv("GITHUB_SHA", "")
 				t.Setenv("GITHUB_EVENT_NAME", "")
+				t.Setenv("BITBUCKET_REPO_FULL_NAME", "")
 			},
 			expectedProjectSource: controltowerv1pb.Project_SOURCE_UNSPECIFIED,
 			expectedTrigger:       controltowerv1.ToolTrigger_TOOL_TRIGGER_MANUAL,
