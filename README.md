@@ -319,6 +319,10 @@ export VET_DISABLE_TELEMETRY=true
 
 <div align="center">
 
+### ⭐ Star History
+
+[![Star History Chart](https://star-history.dera.page/svg?repos=safedep/vet&type=Date)](https://star-history.dera.page/#safedep/vet&Date)
+
 ### Built With Open Source
 
 vet stands on the shoulders of giants:
