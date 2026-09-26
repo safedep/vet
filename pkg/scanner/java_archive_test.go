@@ -15,6 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestJavaArchiveMatchesOnlyClassesInArtifact checks supported Java import
+// forms and rejects unrelated packages, source types, and wildcard scopes.
 func TestJavaArchiveMatchesOnlyClassesInArtifact(t *testing.T) {
 	archivePath := filepath.Join(t.TempDir(), "commons-lang3.jar")
 	file, err := os.Create(archivePath)
@@ -56,6 +58,8 @@ func TestJavaArchiveMatchesOnlyClassesInArtifact(t *testing.T) {
 	}
 }
 
+// TestLocalJavaArchives checks exact Maven and Gradle cache locations and
+// rejects coordinate values that could escape those cache paths.
 func TestLocalJavaArchives(t *testing.T) {
 	root := t.TempDir()
 	mavenRoot := filepath.Join(root, "maven")
@@ -74,6 +78,8 @@ func TestLocalJavaArchives(t *testing.T) {
 	require.Empty(t, localJavaArchives("org.apache.commons", "commons-lang3", "../3.17.0"))
 }
 
+// TestCodeAnalysisEnricherMatchesJavaImportsToMavenArchive exercises evidence
+// enrichment through the code database for Maven and CycloneDX packages.
 func TestCodeAnalysisEnricherMatchesJavaImportsToMavenArchive(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("MAVEN_REPO_LOCAL", filepath.Join(root, "maven"))
