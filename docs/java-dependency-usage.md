@@ -22,3 +22,8 @@ its usage remains unknown. Resolve the project's dependencies with Maven or
 Gradle before scanning if you want Java usage evidence. Vet also supports
 static member and wildcard imports when the corresponding class or package
 is present in the JAR.
+
+Use a separate code database for each project. Vet treats Java evidence in
+the database selected by `--code` as belonging to the scanned project; mixing
+evidence from unrelated projects can attach usage to the wrong dependency.
+Large code databases and cached JARs can also increase scan memory and time.

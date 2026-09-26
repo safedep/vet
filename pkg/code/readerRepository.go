@@ -31,6 +31,8 @@ func (r *readerRepositoryImpl) GetDependencyUsageEvidencesByPackageName(ctx cont
 	return evidences, nil
 }
 
+// GetJavaDependencyUsageEvidences returns Java evidence from the selected code
+// database. The caller is responsible for selecting the database for this scan.
 func (r *readerRepositoryImpl) GetJavaDependencyUsageEvidences(ctx context.Context) ([]*ent.DepsUsageEvidence, error) {
 	evidences, err := r.client.DepsUsageEvidence.Query().
 		Where(depsusageevidence.UsageFilePathHasSuffix(".java")).

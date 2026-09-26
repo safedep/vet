@@ -63,6 +63,8 @@ func (e *codeAnalysisEnricher) Wait() error {
 	return nil
 }
 
+// EnrichDependencyUsageEvidence attaches package-hint matches and, for Maven
+// packages, Java imports whose classes occur in a locally cached artifact.
 func (e *codeAnalysisEnricher) EnrichDependencyUsageEvidence(pkg *models.Package) error {
 	evidences, err := e.ReaderRepository.GetDependencyUsageEvidencesByPackageName(context.Background(), pkg.GetName())
 	if err != nil {

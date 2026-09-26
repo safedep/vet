@@ -17,6 +17,8 @@ type javaArchiveIndex struct {
 	packages map[string]struct{}
 }
 
+// indexJavaArchive records class and direct package names from a local JAR
+// without reading or executing class contents.
 func indexJavaArchive(archivePath string) (*javaArchiveIndex, error) {
 	archive, err := zip.OpenReader(archivePath)
 	if err != nil {
@@ -49,7 +51,8 @@ func indexJavaArchive(archivePath string) (*javaArchiveIndex, error) {
 }
 
 // containsJavaImport accepts a class import, a static member import, or a
-// wildcard package import. Java nested classes use '$' in archive filenames.
+// wildcard package import from Java source. Java nested classes use '$' in
+// archive filenames.
 func (index *javaArchiveIndex) containsJavaImport(evidence *ent.DepsUsageEvidence) bool {
 	if evidence == nil || !strings.HasSuffix(strings.ToLower(evidence.UsageFilePath), ".java") {
 		return false
@@ -74,8 +77,8 @@ func (index *javaArchiveIndex) containsJavaImport(evidence *ent.DepsUsageEvidenc
 	return false
 }
 
-// localJavaArchives locates already downloaded Maven and Gradle artifacts.
-// No package downloads are performed during enrichment.
+// localJavaArchives locates JARs for exact Maven coordinates in the configured
+// Maven and Gradle caches. It does not download packages.
 func localJavaArchives(group, artifact, version string) []string {
 	if !safeMavenCoordinate(group, artifact, version) {
 		return nil
@@ -104,6 +107,8 @@ func localJavaArchives(group, artifact, version string) []string {
 	return append(paths, gradlePaths...)
 }
 
+// safeMavenCoordinate rejects empty and path-like values before constructing
+// cache paths or a Gradle glob from dependency coordinates.
 func safeMavenCoordinate(parts ...string) bool {
 	for _, part := range parts {
 		if part == "" || part == "." || part == ".." || strings.ContainsAny(part, `/\:*?[]"<>|`) || strings.Contains(part, "..") {

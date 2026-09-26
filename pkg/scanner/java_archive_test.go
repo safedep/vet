@@ -122,6 +122,8 @@ func TestCodeAnalysisEnricherMatchesJavaImportsToMavenArchive(t *testing.T) {
 	require.Len(t, fromSBOM.CodeAnalysis.UsageEvidences, 1)
 }
 
+// createTestJavaArchive writes only JAR entry names because archive matching
+// never needs class bytecode.
 func createTestJavaArchive(t *testing.T, path string, classes ...string) {
 	t.Helper()
 	file, err := os.Create(path)
