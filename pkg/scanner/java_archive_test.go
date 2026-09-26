@@ -23,6 +23,7 @@ func TestJavaArchiveMatchesOnlyClassesInArtifact(t *testing.T) {
 	for _, name := range []string{
 		"META-INF/maven/org.apache.commons/commons-lang3/pom.properties",
 		"org/apache/commons/lang3/StringUtils.class",
+		"org/apache/commons/lang3/Outer$Inner.class",
 		"org/apache/commons/lang3/math/NumberUtils.class",
 	} {
 		_, err := writer.Create(name)
@@ -42,6 +43,7 @@ func TestJavaArchiveMatchesOnlyClassesInArtifact(t *testing.T) {
 		{"org.apache.commons.lang3.StringUtils", false, "src/App.java", true},
 		{"org.apache.commons.lang3.StringUtils.isBlank", false, "src/App.java", true},
 		{"org.apache.commons.lang3.StringUtils", true, "src/App.java", true},
+		{"org.apache.commons.lang3.Outer.Inner", false, "src/App.java", true},
 		{"org.apache.commons.lang3", true, "src/App.java", true},
 		{"org.apache.commons.lang3.math", true, "src/App.java", true},
 		{"org.apache.commons", true, "src/App.java", false},

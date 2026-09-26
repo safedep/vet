@@ -37,6 +37,10 @@ func indexJavaArchive(archivePath string) (*javaArchiveIndex, error) {
 		}
 		class := strings.TrimSuffix(file.Name, ".class")
 		index.classes[class] = struct{}{}
+		// Java imports spell nested classes with dots, while JAR entries use '$'.
+		if strings.Contains(class, "$") {
+			index.classes[strings.ReplaceAll(class, "$", "/")] = struct{}{}
+		}
 		if slash := strings.LastIndexByte(class, '/'); slash > 0 {
 			index.packages[class[:slash]] = struct{}{}
 		}
