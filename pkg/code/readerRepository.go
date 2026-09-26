@@ -31,6 +31,16 @@ func (r *readerRepositoryImpl) GetDependencyUsageEvidencesByPackageName(ctx cont
 	return evidences, nil
 }
 
+func (r *readerRepositoryImpl) GetJavaDependencyUsageEvidences(ctx context.Context) ([]*ent.DepsUsageEvidence, error) {
+	evidences, err := r.client.DepsUsageEvidence.Query().
+		Where(depsusageevidence.UsageFilePathHasSuffix(".java")).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch Java dependency usage evidence: %w", err)
+	}
+	return evidences, nil
+}
+
 func (r *readerRepositoryImpl) GetSignatureMatchesByPackageHint(ctx context.Context, packageHint string) ([]*ent.CodeSignatureMatch, error) {
 	matches, err := r.client.CodeSignatureMatch.Query().
 		Where(codesignaturematch.PackageHint(packageHint)).
