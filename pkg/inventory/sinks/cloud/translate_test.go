@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	controltowerv1pb "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
+	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -128,6 +129,82 @@ func TestItemToVetEvent_WithAgentDetail(t *testing.T) {
 	assert.Equal(t, []string{"/work/CLAUDE.md"}, agent.GetInstructionFiles())
 	assert.Equal(t, "claude-opus-4-7", agent.GetModel())
 	assert.Equal(t, "ANTHROPIC_API_KEY", agent.GetApiKeyEnvName())
+}
+
+func TestItemToVetEvent_WithIDEExtensionDetail(t *testing.T) {
+	cases := []struct {
+		name      string
+		ecosystem string
+		want      packagev1.Ecosystem
+	}{
+		{"vscode marketplace", "VSCodeExtensions", packagev1.Ecosystem_ECOSYSTEM_VSCODE},
+		{"open vsx", "OpenVSXExtensions", packagev1.Ecosystem_ECOSYSTEM_OPENVSX},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			item := &inventory.Item{
+				Kind:         inventory.KindIDEExtension,
+				ItemIdentity: "id-ext",
+				Name:         "ms-python.python",
+				IDEExtension: &inventory.IDEExtensionDetail{
+					Package: &inventory.PackageIdentity{
+						Ecosystem: tc.ecosystem,
+						Name:      "ms-python.python",
+						Version:   "2024.1.0",
+					},
+					IDE: "VS Code",
+				},
+			}
+
+			io := itemToVetEvent(item).GetItemObserved()
+			require.True(t, io.HasIdeExtension())
+			assert.False(t, io.HasMcpServer())
+			assert.False(t, io.HasAgent())
+
+			ext := io.GetIdeExtension()
+			assert.Equal(t, "VS Code", ext.GetIde())
+			require.True(t, ext.HasPackageVersion())
+			pv := ext.GetPackageVersion()
+			assert.Equal(t, tc.want, pv.GetPackage().GetEcosystem())
+			assert.Equal(t, "ms-python.python", pv.GetPackage().GetName())
+			assert.Equal(t, "2024.1.0", pv.GetVersion())
+		})
+	}
+}
+
+func TestItemToVetEvent_IncompletePackageIdentityKeepsDetailWithoutIt(t *testing.T) {
+	cases := []struct {
+		name string
+		pkg  *inventory.PackageIdentity
+	}{
+		{"no identity", nil},
+		{"unknown ecosystem", &inventory.PackageIdentity{Ecosystem: "npm-but-wrong", Name: "a.b", Version: "1.0.0"}},
+		{"no name", &inventory.PackageIdentity{Ecosystem: "VSCodeExtensions", Version: "1.0.0"}},
+		{"no version", &inventory.PackageIdentity{Ecosystem: "VSCodeExtensions", Name: "a.b"}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			item := &inventory.Item{
+				Kind:         inventory.KindIDEExtension,
+				ItemIdentity: "id-ext",
+				Name:         "a.b",
+				IDEExtension: &inventory.IDEExtensionDetail{Package: tc.pkg, IDE: "VS Code"},
+			}
+
+			io := itemToVetEvent(item).GetItemObserved()
+			require.True(t, io.HasIdeExtension())
+			assert.Equal(t, "VS Code", io.GetIdeExtension().GetIde())
+			assert.False(t, io.GetIdeExtension().HasPackageVersion())
+		})
+	}
+}
+
+func TestIDEExtensionDetailToProto_NilReturnsNil(t *testing.T) {
+	assert.Nil(t, ideExtensionDetailToProto(nil))
+}
+
+func TestPackageIdentityToProto_NilReturnsNil(t *testing.T) {
+	assert.Nil(t, packageIdentityToProto(nil))
 }
 
 func TestSummaryToVetEvent(t *testing.T) {

@@ -203,6 +203,36 @@ func TestTranslateIDEExtensionStoresExtensionMetadata(t *testing.T) {
 	assert.Equal(t, "VS Code", item.Metadata[metaKeyAppDisplay])
 }
 
+func TestTranslateExtensionSetsIDEExtensionDetail(t *testing.T) {
+	tool := &aitool.AITool{
+		Name: "ms-python.python",
+		Type: aitool.AIToolTypeIDEExtension,
+		Extension: &aitool.ExtensionConfig{
+			ID:        "ms-python.python",
+			Version:   "2024.1.0",
+			Ecosystem: "VSCodeExtensions",
+			IDE:       "VS Code",
+		},
+	}
+
+	item := translate(tool)
+	require.NotNil(t, item)
+	assert.Equal(t, &inventory.IDEExtensionDetail{
+		Package: &inventory.PackageIdentity{
+			Ecosystem: "VSCodeExtensions",
+			Name:      "ms-python.python",
+			Version:   "2024.1.0",
+		},
+		IDE: "VS Code",
+	}, item.IDEExtension)
+}
+
+func TestTranslateWithoutExtensionLeavesIDEExtensionNil(t *testing.T) {
+	item := translate(&aitool.AITool{Name: "claude", Type: aitool.AIToolTypeCLITool})
+	require.NotNil(t, item)
+	assert.Nil(t, item.IDEExtension)
+}
+
 func TestTranslateUnknownTypeDegradesToUnspecified(t *testing.T) {
 	tool := &aitool.AITool{
 		Name:       "weird",

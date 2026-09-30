@@ -103,8 +103,20 @@ type AITool struct {
 
 	MCPServer *MCPServerConfig `json:"mcp_server,omitempty"`
 	Agent     *AgentConfig     `json:"agent,omitempty"`
+	// Extension repeats the extension.* metadata keys as typed fields. The
+	// JSON output keeps the keys only, so its shape does not change.
+	Extension *ExtensionConfig `json:"-"`
 	Enabled   *bool            `json:"enabled,omitempty"`
 	Metadata  map[string]any   `json:"metadata,omitempty"`
+}
+
+// ExtensionConfig is the registry identity of an IDE or AI extension.
+// Ecosystem is vet's models.Ecosystem string, e.g. VSCodeExtensions.
+type ExtensionConfig struct {
+	ID        string
+	Version   string
+	Ecosystem string
+	IDE       string
 }
 
 // SetMeta sets a metadata key-value pair, initializing the map if needed.

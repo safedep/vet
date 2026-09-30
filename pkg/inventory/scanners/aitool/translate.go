@@ -53,6 +53,16 @@ func translate(t *aitool.AITool) *inventory.Item {
 	if t.Agent != nil {
 		item.Agent = translateAgent(t.Agent)
 	}
+	if t.Extension != nil {
+		item.IDEExtension = &inventory.IDEExtensionDetail{
+			Package: &inventory.PackageIdentity{
+				Ecosystem: t.Extension.Ecosystem,
+				Name:      t.Extension.ID,
+				Version:   t.Extension.Version,
+			},
+			IDE: t.Extension.IDE,
+		}
+	}
 
 	item.Metadata = buildMetadata(t)
 	return item

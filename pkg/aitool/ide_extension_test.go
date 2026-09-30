@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/readers"
 )
 
@@ -66,6 +67,12 @@ func TestIDEExtensionDiscoverer_ExtensionMetadata(t *testing.T) {
 		assert.Equal(t, "ms-python.python", tool.Name)
 		assert.Equal(t, "2023.20.0", tool.GetMeta("extension.version"))
 		assert.Equal(t, "VS Code", tool.GetMeta("extension.ide"))
+		assert.Equal(t, &ExtensionConfig{
+			ID:        "ms-python.python",
+			Version:   "2023.20.0",
+			Ecosystem: models.EcosystemVSCodeExtensions,
+			IDE:       "VS Code",
+		}, tool.Extension)
 		assert.NotEmpty(t, tool.ID)
 		assert.NotEmpty(t, tool.SourceID)
 	})

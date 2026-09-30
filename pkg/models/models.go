@@ -259,7 +259,14 @@ func (pm *PackageManifest) GetMalwareAnalysisQuotaErrorCount() int {
 }
 
 func (pm *PackageManifest) GetControlTowerSpecEcosystem() packagev1.Ecosystem {
-	switch pm.Ecosystem {
+	return ControlTowerSpecEcosystem(pm.Ecosystem)
+}
+
+// ControlTowerSpecEcosystem maps a vet ecosystem string to the proto enum.
+// Callers that hold only the string, such as the inventory cloud sink, use
+// it so that vet keeps one mapping.
+func ControlTowerSpecEcosystem(ecosystem string) packagev1.Ecosystem {
+	switch ecosystem {
 	case EcosystemCargo:
 		return packagev1.Ecosystem_ECOSYSTEM_CARGO
 	case EcosystemGo:
