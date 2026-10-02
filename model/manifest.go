@@ -17,6 +17,9 @@ const (
 	ManifestKindImage    ManifestKind = "image"
 	ManifestKindPURL     ManifestKind = "purl"
 	ManifestKindEndpoint ManifestKind = "endpoint"
+	// ManifestKindAgentConfig is an agent or editor config file. It holds
+	// no package. The agentconfig control reads the file.
+	ManifestKindAgentConfig ManifestKind = "agent-config"
 )
 
 // Manifest is one file or input that declares packages.

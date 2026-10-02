@@ -43,7 +43,8 @@ type subpath interface{ Subpath() string }
 // enricher has data for it.
 func ToManifest(in Converted) (*model.Manifest, []error) {
 	kind := kindOf(in.Extractor)
-	if len(in.Inventory.Packages) == 0 && kind != model.ManifestKindWorkflow {
+	fileOnly := kind == model.ManifestKindWorkflow || kind == model.ManifestKindAgentConfig
+	if len(in.Inventory.Packages) == 0 && !fileOnly {
 		return nil, nil
 	}
 	m := &model.Manifest{
@@ -79,6 +80,8 @@ func ToManifest(in Converted) (*model.Manifest, []error) {
 	if len(m.Packages) == 0 {
 		if kind == model.ManifestKindWorkflow {
 			m.Ecosystem = model.EcosystemGitHubActions
+		}
+		if fileOnly {
 			return m, errs
 		}
 		return nil, errs

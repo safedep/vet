@@ -61,6 +61,7 @@ func enumSchema(t reflect.Type) *jsonschema.Schema {
 		values = []string{
 			string(model.ManifestKindLockfile), string(model.ManifestKindManifest), string(model.ManifestKindWorkflow),
 			string(model.ManifestKindSBOM), string(model.ManifestKindImage), string(model.ManifestKindPURL), string(model.ManifestKindEndpoint),
+			string(model.ManifestKindAgentConfig),
 		}
 	case reflect.TypeFor[Kind]():
 		values = []string{string(KindManifest), string(KindPackage), string(KindInventory), string(KindFinding), string(KindDiagnostic)}

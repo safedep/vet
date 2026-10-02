@@ -41,9 +41,9 @@ func TestBuild(t *testing.T) {
 		want    []string
 		wantErr string
 	}{
-		{name: "defaults", want: []string{"dependency-cooldown", "lockfile", "malware", "vulnerability", "workflow"}},
-		{name: "disabled", s: settings{enabled: map[string]bool{"malware": false}}, want: []string{"dependency-cooldown", "lockfile", "vulnerability", "workflow"}},
-		{name: "options", s: settings{options: map[string]map[string]any{"malware": {"trust_automated_analysis": true}}}, want: []string{"dependency-cooldown", "lockfile", "malware", "vulnerability", "workflow"}},
+		{name: "defaults", want: []string{"agent-config", "dependency-cooldown", "lockfile", "malware", "vulnerability", "workflow"}},
+		{name: "disabled", s: settings{enabled: map[string]bool{"malware": false}}, want: []string{"agent-config", "dependency-cooldown", "lockfile", "vulnerability", "workflow"}},
+		{name: "options", s: settings{options: map[string]map[string]any{"malware": {"trust_automated_analysis": true}}}, want: []string{"agent-config", "dependency-cooldown", "lockfile", "malware", "vulnerability", "workflow"}},
 		{name: "bad options", s: settings{options: map[string]map[string]any{"lockfile": {"nope": 1}}}, wantErr: "plugins.lockfile.options"},
 	}
 	for _, tc := range cases {

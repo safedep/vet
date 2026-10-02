@@ -176,6 +176,12 @@
   tier: P1
   guarantee: "A suppressed finding stays in the report with its suppression, and the gate ignores it."
   labels: [controls]
+- id: controls/agent-config/pr-change
+  title: "agent config: a changed editor task"
+  category: controls
+  tier: P1
+  guarantee: "In pull request mode, a change that adds a .vscode/tasks.json task with runOn: folderOpen gives a high editor-task-command finding. An agent instruction file that the change does not touch gives none."
+  labels: [agent-config, pr-mode]
 - id: controls/workflow/dangerous-trigger
   title: "workflow: dangerous trigger"
   category: controls
@@ -376,6 +382,12 @@
   tier: P2
   guarantee: "vet endpoint audit --all-users without root exits 2 and says to run it with sudo."
   labels: [endpoint]
+- id: endpoint/agent-config/findings
+  title: "endpoint audit: agent config findings"
+  category: endpoint
+  tier: P1
+  guarantee: "vet endpoint audit with a home directory that holds a risky .vscode/tasks.json and an MCP config gives findings."
+  labels: [endpoint, agent-config]
 # --- 4.9 Live rows. They call production and run with ACCEPTANCE_LIVE=1 only. ---
 - id: live/malware/known-malicious
   title: "live: known malicious package"

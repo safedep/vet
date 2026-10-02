@@ -178,8 +178,10 @@ var AgentConfigFiles = []string{
 	".vscode/tasks.json",
 	".claude/settings.json",
 	".claude/settings.local.json",
+	".claude/CLAUDE.md",
 	".mcp.json",
 	".cursor/mcp.json",
+	".vscode/mcp.json",
 	".codeium/windsurf/mcp_config.json",
 	".gemini/settings.json",
 }

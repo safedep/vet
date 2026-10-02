@@ -426,7 +426,8 @@
             "sbom",
             "image",
             "purl",
-            "endpoint"
+            "endpoint",
+            "agent-config"
           ]
         },
         "change": {

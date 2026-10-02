@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/safedep/vet/v2/internal/app"
@@ -265,8 +266,16 @@ func (r *run) rootOf(m *model.Manifest) fs.FS {
 	if m.Kind == model.ManifestKindPURL || len(r.artifacts) == 0 {
 		return nil
 	}
+	if r.artifacts[0].Kind == plugin.ArtifactEndpoint {
+		return osFS{}
+	}
 	return r.artifacts[0].Root
 }
+
+// osFS opens the absolute slash paths of the files of an endpoint.
+type osFS struct{}
+
+func (osFS) Open(name string) (fs.File, error) { return os.Open(filepath.FromSlash(name)) }
 
 func (r *run) stages(ctx context.Context, artifacts []plugin.Artifact) error {
 	r.diags = newDiagnostics()

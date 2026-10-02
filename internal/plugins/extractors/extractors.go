@@ -7,6 +7,7 @@ package extractors
 import (
 	"github.com/google/osv-scalibr/extractor/filesystem"
 
+	"github.com/safedep/vet/v2/internal/plugins/extractors/agentconfig"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/githubactions"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/packagejson"
@@ -28,7 +29,7 @@ func Default() ([]filesystem.Extractor, error) {
 	if err != nil {
 		return nil, err
 	}
-	vet = append(vet, gha, terraform.New(), packagejson.New())
+	vet = append(vet, gha, terraform.New(), packagejson.New(), agentconfig.New())
 	return Override(base, vet...), nil
 }
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -220,6 +221,13 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 	}
 	for _, e := range errs {
 		r.extractError(e)
+	}
+	if a.Kind == plugin.ArtifactEndpoint {
+		// An endpoint file keeps its absolute path in the report. rootOf
+		// reads it from the operating system.
+		for _, m := range ms {
+			m.Path = filepath.ToSlash(filepath.Join(a.Path, filepath.FromSlash(rel)))
+		}
 	}
 	if d != nil {
 		baseHash, inBase := d.base.hashes[rel]

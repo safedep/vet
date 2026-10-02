@@ -44,6 +44,8 @@ func kindOf(extractor string) model.ManifestKind {
 		return model.ManifestKindSBOM
 	case extractor == "github/actions":
 		return model.ManifestKindWorkflow
+	case extractor == "agent/config":
+		return model.ManifestKindAgentConfig
 	}
 	return model.ManifestKindManifest
 }

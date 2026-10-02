@@ -101,6 +101,11 @@ prints them.
 | `dangerous-trigger` | workflow | high | A `pull_request_target` or `workflow_run` workflow that checks out untrusted code |
 | `template-injection` | workflow | high | An untrusted expression inside a `run:` script |
 | `unpinned-action` | workflow | medium | A third-party action that a tag or a branch selects |
+| `editor-task-command` | agent-config | medium, high on folder open | A `.vscode/tasks.json` task that runs a shell command |
+| `agent-hook-command` | agent-config | medium | A Claude Code hook, a devcontainer lifecycle command or a git hook |
+| `mcp-server-added` | agent-config | medium | An MCP server in an agent or editor config |
+| `agent-instruction-change` | agent-config | info | An agent instruction file such as `CLAUDE.md` or `.cursorrules` |
+| `suspicious-command` | agent-config | critical | A command in those files that runs a downloaded script, decodes a payload or reads credentials |
 
 `vet fix github-actions run` pins each third-party action to its commit SHA.
 
