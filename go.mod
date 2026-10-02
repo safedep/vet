@@ -22,6 +22,7 @@ require (
 	github.com/hashicorp/hcl/v2 v2.24.0
 	github.com/invopop/jsonschema v0.13.0
 	github.com/mattn/go-sqlite3 v1.14.34
+	github.com/moby/moby/client v0.5.0
 	github.com/package-url/packageurl-go v0.1.5
 	github.com/posthog/posthog-go v1.10.0
 	github.com/rogpeppe/go-internal v1.16.0
@@ -33,6 +34,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/tidwall/gjson v1.19.0
 	github.com/tidwall/jsonc v0.3.3
+	github.com/wk8/go-ordered-map/v2 v2.1.8
 	github.com/zclconf/go-cty v1.18.0
 	golang.org/x/sys v0.47.0
 	golang.org/x/term v0.45.0
@@ -181,7 +183,6 @@ require (
 	github.com/moby/buildkit v0.26.3 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/moby/api v1.55.0 // indirect
-	github.com/moby/moby/client v0.5.0 // indirect
 	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/termenv v0.16.0 // indirect
@@ -217,7 +218,6 @@ require (
 	github.com/tonistiigi/go-csvvalue v0.0.0-20240814133006-030d3b2625d0 // indirect
 	github.com/ulikunitz/xz v0.5.15 // indirect
 	github.com/vbatts/tar-split v0.12.3 // indirect
-	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xhit/go-str2duration/v2 v2.1.0 // indirect

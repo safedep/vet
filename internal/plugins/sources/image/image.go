@@ -35,7 +35,7 @@ type Options struct {
 type Source struct {
 	opts Options
 	// load opens the image. Tests replace it.
-	load func(target string) (*layerimage.Image, string, error)
+	load func(ctx context.Context, target string) (*layerimage.Image, string, error)
 }
 
 // New returns the source.
@@ -43,9 +43,9 @@ func New(o Options) *Source { return &Source{opts: o, load: load} }
 
 // Artifacts yields the image file system. Close removes the files that the
 // image unpacked.
-func (s *Source) Artifacts(context.Context) iter.Seq2[plugin.Artifact, error] {
+func (s *Source) Artifacts(ctx context.Context) iter.Seq2[plugin.Artifact, error] {
 	return func(yield func(plugin.Artifact, error) bool) {
-		img, key, err := s.load(s.opts.Target)
+		img, key, err := s.load(ctx, s.opts.Target)
 		if err != nil {
 			yield(plugin.Artifact{}, err)
 			return
@@ -65,7 +65,7 @@ func IsTarball(target string) bool {
 	return strings.HasSuffix(strings.ToLower(target), ".tar")
 }
 
-func load(target string) (*layerimage.Image, string, error) {
+func load(ctx context.Context, target string) (*layerimage.Image, string, error) {
 	cfg := layerimage.DefaultConfig()
 	if IsTarball(target) {
 		abs, err := filepath.Abs(target)
@@ -87,7 +87,7 @@ func load(target string) (*layerimage.Image, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	img, localErr := layerimage.FromLocalDockerImage(ref, cfg)
+	img, localErr := fromDaemon(ctx, ref, cfg)
 	if localErr == nil {
 		return img, key, nil
 	}
