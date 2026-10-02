@@ -1,0 +1,23 @@
+{
+  "packages": [
+    "npm/js-tokens@4.0.0",
+    "npm/loose-envify@1.4.0",
+    "npm/react-dom@18.2.0",
+    "npm/react@18.2.0",
+    "npm/scheduler@0.23.0"
+  ],
+  "direct": [
+    "npm/react-dom@18.2.0"
+  ],
+  "roots": [
+    "npm/react-dom@18.2.0"
+  ],
+  "edges": [
+    "npm/loose-envify@1.4.0 -> npm/js-tokens@4.0.0",
+    "npm/react-dom@18.2.0 -> npm/loose-envify@1.4.0",
+    "npm/react-dom@18.2.0 -> npm/react@18.2.0",
+    "npm/react-dom@18.2.0 -> npm/scheduler@0.23.0",
+    "npm/react@18.2.0 -> npm/loose-envify@1.4.0",
+    "npm/scheduler@0.23.0 -> npm/loose-envify@1.4.0"
+  ]
+}

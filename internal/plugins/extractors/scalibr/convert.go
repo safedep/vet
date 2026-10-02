@@ -127,8 +127,9 @@ func isProdGroup(g string) bool {
 	return true
 }
 
-// graphOf builds the graph from the parent ids. A package with no parent
-// is a root and a direct dependency.
+// graphOf builds the graph from the parent ids. A root is a direct
+// dependency: a package that the extractor marks direct, or a package with
+// no parent.
 func graphOf(pkgs []*extractor.Package, byScalibrID map[string]model.PackageID, seen map[model.PackageID]*model.Package) *model.Graph {
 	g := model.NewGraph()
 	for _, sp := range pkgs {
@@ -143,7 +144,7 @@ func graphOf(pkgs []*extractor.Package, byScalibrID map[string]model.PackageID, 
 				parents++
 			}
 		}
-		if parents == 0 {
+		if parents == 0 || seen[child].Direct {
 			g.AddRoot(child)
 			seen[child].Direct = true
 		}

@@ -10,6 +10,7 @@ import (
 
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/cargolock"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/packagelockjson"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/pnpmlock"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/uvlock"
 )
 
@@ -21,6 +22,7 @@ func Extractors() ([]filesystem.Extractor, error) {
 		packagelockjson.New,
 		uvlock.New,
 		cargolock.New,
+		pnpmlock.New,
 	} {
 		e, err := newFn(cfg)
 		if err != nil {

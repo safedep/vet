@@ -17,6 +17,7 @@
   ],
   "direct": [
     "pypi/black@24.10.0",
+    "pypi/click@8.1.7",
     "pypi/emoji@2.14.0",
     "pypi/flake8@7.1.1"
   ],
@@ -26,6 +27,7 @@
   ],
   "roots": [
     "pypi/black@24.10.0",
+    "pypi/click@8.1.7",
     "pypi/emoji@2.14.0",
     "pypi/flake8@7.1.1"
   ],

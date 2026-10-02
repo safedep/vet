@@ -171,16 +171,17 @@ func (e Extractor) Extract(ctx context.Context, input *filesystem.ScanInput) (in
 		keys = append(keys, lockPackage.Name+"@"+lockPackage.Version)
 	}
 
-	if err := graph.Link(packages, keys, uvParents(parsedLockfile.Packages)); err != nil {
+	parents, direct := uvParents(parsedLockfile.Packages)
+	if err := graph.Link(packages, keys, parents, direct); err != nil {
 		return inventory.Inventory{}, err
 	}
 	return inventory.Inventory{Packages: packages}, nil
 }
 
 // uvParents maps the key of each package to the keys of the packages that
-// require it. The virtual root project is a parent key with no package, so
-// its requirements become the roots of the graph.
-func uvParents(pkgs []uvLockPackage) map[string]map[string]bool {
+// require it. The virtual root project is a parent key with no package. Its
+// requirements are the direct dependencies.
+func uvParents(pkgs []uvLockPackage) (map[string]map[string]bool, map[string]bool) {
 	versions := map[string][]string{}
 	for _, p := range pkgs {
 		versions[p.Name] = append(versions[p.Name], p.Version)
@@ -197,6 +198,7 @@ func uvParents(pkgs []uvLockPackage) map[string]map[string]bool {
 	}
 
 	parents := map[string]map[string]bool{}
+	direct := map[string]bool{}
 	for _, p := range pkgs {
 		parent := p.Name + "@" + p.Version
 		deps := p.Dependencies
@@ -209,12 +211,17 @@ func uvParents(pkgs []uvLockPackage) map[string]map[string]bool {
 			deps = append(deps, group...)
 		}
 		for _, d := range deps {
-			if child, ok := resolve(d); ok {
-				graph.Add(parents, child, parent)
+			child, ok := resolve(d)
+			if !ok {
+				continue
 			}
+			if p.Source.Virtual == "." {
+				direct[child] = true
+			}
+			graph.Add(parents, child, parent)
 		}
 	}
-	return parents
+	return parents, direct
 }
 
 // extractPackageName parses a TOML key-value line and returns the unquoted

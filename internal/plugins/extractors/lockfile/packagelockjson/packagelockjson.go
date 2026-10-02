@@ -42,6 +42,7 @@ import (
 	"github.com/tidwall/gjson"
 
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/commitextractor"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/graph"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/linefinder"
 	packagelockjson "github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/npmlock"
 )
@@ -507,6 +508,9 @@ func (e Extractor) extractPkgLock(_ context.Context, input *filesystem.ScanInput
 				Source:       pkg.Source,
 			},
 			Location: extractor.LocationFromPathAndLine(input.Path, pkg.Line),
+		}
+		if pkg.Direct {
+			result[i].Metadata = &graph.Metadata{Protoable: result[i].Metadata, Direct: true}
 		}
 		id, err := result[i].RequireID()
 		if err != nil {

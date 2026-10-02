@@ -63,6 +63,10 @@ func TestGraphGolden(t *testing.T) {
 		{"uv-grouped", "uvlock/testdata", "grouped-packages.lock", "uv.lock"},
 		{"cargo-many", "cargolock/testdata", "many-packages.lock", "Cargo.lock"},
 		{"cargo-local", "cargolock/testdata", "two-packages-with-local.lock", "Cargo.lock"},
+		{"pnpm-v5-peers", "pnpmlock/testdata", "peer-dependencies.yaml", "pnpm-lock.yaml"},
+		{"pnpm-v6-peers", "pnpmlock/testdata", "peer-dependencies-v6.yaml", "pnpm-lock.yaml"},
+		{"pnpm-v9-peers", "pnpmlock/testdata", "peer-dependencies.v9.yaml", "pnpm-lock.yaml"},
+		{"pnpm-v9-groups", "pnpmlock/testdata", "mixed-groups.v9.yaml", "pnpm-lock.yaml"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

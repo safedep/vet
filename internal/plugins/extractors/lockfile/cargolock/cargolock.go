@@ -118,7 +118,8 @@ func (e Extractor) Extract(_ context.Context, input *filesystem.ScanInput) (inve
 	for i, p := range parsedLockfile.Packages {
 		keys[i] = p.Name + "@" + p.Version
 	}
-	if err := graph.Link(packages, keys, cargoParents(parsedLockfile.Packages)); err != nil {
+	parents, direct := cargoParents(parsedLockfile.Packages)
+	if err := graph.Link(packages, keys, parents, direct); err != nil {
 		return inventory.Inventory{}, err
 	}
 	return inventory.Inventory{Packages: packages}, nil
@@ -127,17 +128,15 @@ func (e Extractor) Extract(_ context.Context, input *filesystem.ScanInput) (inve
 // cargoParents maps the key of each crate to the keys of the crates that
 // depend on it. A dependency is "name", "name version" or "name version
 // (source)". A crate with no source is a crate of the workspace. It makes
-// no edge, so its dependencies become the roots of the graph.
-func cargoParents(pkgs []cargoLockPackage) map[string]map[string]bool {
+// no edge, and its dependencies are the direct dependencies.
+func cargoParents(pkgs []cargoLockPackage) (map[string]map[string]bool, map[string]bool) {
 	versions := map[string][]string{}
 	for _, p := range pkgs {
 		versions[p.Name] = append(versions[p.Name], p.Version)
 	}
 	parents := map[string]map[string]bool{}
+	direct := map[string]bool{}
 	for _, p := range pkgs {
-		if p.Source == "" {
-			continue
-		}
 		for _, dep := range p.Dependencies {
 			fields := strings.Fields(dep)
 			if len(fields) == 0 {
@@ -149,10 +148,15 @@ func cargoParents(pkgs []cargoLockPackage) map[string]map[string]bool {
 			} else if vs := versions[name]; len(vs) > 0 {
 				version = vs[0]
 			}
-			graph.Add(parents, name+"@"+version, p.Name+"@"+p.Version)
+			child := name + "@" + version
+			if p.Source == "" {
+				direct[child] = true
+				continue
+			}
+			graph.Add(parents, child, p.Name+"@"+p.Version)
 		}
 	}
-	return parents
+	return parents, direct
 }
 
 // findLineNumbers returns the line numbers of the specified package names.
