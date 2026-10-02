@@ -91,15 +91,19 @@ func (c *Control) Controls() []plugin.ControlInfo {
 }
 
 type entry struct {
-	Resolved     string           `json:"resolved"`
-	Link         bool             `json:"link"`
-	Dependencies map[string]entry `json:"dependencies"`
+	Resolved string `json:"resolved"`
+	Link     bool   `json:"link"`
+}
+
+// legacyEntry is an entry of the nested dependencies of lockfile version 1.
+type legacyEntry struct {
+	Resolved     string                 `json:"resolved"`
+	Dependencies map[string]legacyEntry `json:"dependencies"`
 }
 
 type npmLockfile struct {
-	LockfileVersion int              `json:"lockfileVersion"`
-	Packages        map[string]entry `json:"packages"`
-	Dependencies    map[string]entry `json:"dependencies"`
+	Packages     map[string]entry       `json:"packages"`
+	Dependencies map[string]legacyEntry `json:"dependencies"`
 }
 
 // Evaluate reads the npm lockfile of the manifest from the target.
@@ -171,10 +175,10 @@ func (c *Control) finding(id string, locus finding.Locus, key finding.Key, title
 
 // flatten turns the nested dependencies of a lockfile version 1 into the
 // node_modules paths of version 2.
-func flatten(prefix string, deps map[string]entry, out map[string]entry) {
+func flatten(prefix string, deps map[string]legacyEntry, out map[string]entry) {
 	for name, e := range deps {
 		path := prefix + "node_modules/" + name
-		out[path] = e
+		out[path] = entry{Resolved: e.Resolved}
 		flatten(path+"/", e.Dependencies, out)
 	}
 }

@@ -17,7 +17,7 @@ const v3 = `{
   "name": "app",
   "lockfileVersion": 3,
   "packages": {
-    "": {"name": "app"},
+    "": {"name": "app", "dependencies": {"left-pad": "^1.3.0"}},
     "node_modules/left-pad": {
       "version": "1.3.0",
       "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"
