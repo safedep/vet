@@ -66,8 +66,11 @@ type Finalizer func(ctx context.Context, scan *state.Scan) (report.Gate, error)
 type Options struct {
 	Store *state.Store
 	// Cache is the enrichment cache, or nil.
-	Cache  *state.Cache
-	Source plugin.Source
+	Cache *state.Cache
+	// NoCacheRead makes the scan fetch every package again. The scan still
+	// writes the fresh results to the cache (--no-cache).
+	NoCacheRead bool
+	Source      plugin.Source
 	// Extractors returns the extractors for an artifact kind.
 	Extractors func(plugin.ArtifactKind) ([]plugin.Extractor, error)
 	Enrichers  []Enricher

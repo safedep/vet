@@ -1,0 +1,25 @@
+# After 11 completed scans of one target, the oldest is gone.
+cd proj
+exec vet scan . --mode plain -o plain
+capture FIRST 'f-[0-9a-f]+' stdout
+exec vet report list --mode plain -o json
+capture OLDEST '"id": "([0-9a-f]+)"'
+exec vet scan . --mode plain -o plain
+exec vet scan . --mode plain -o plain
+exec vet scan . --mode plain -o plain
+exec vet scan . --mode plain -o plain
+exec vet scan . --mode plain -o plain
+exec vet scan . --mode plain -o plain
+exec vet scan . --mode plain -o plain
+exec vet scan . --mode plain -o plain
+exec vet scan . --mode plain -o plain
+exec vet report list --mode plain -o json
+jsonq stdout len 10
+stdout '"id": "'$OLDEST'"'
+exec vet scan . --mode plain -o plain
+exec vet report list --mode plain -o json
+jsonq stdout len 10
+! stdout '"id": "'$OLDEST'"'
+
+-- proj/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"left-pad": "1.3.0"}}, "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}}}

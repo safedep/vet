@@ -3,6 +3,7 @@ package state
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -26,4 +27,17 @@ func TestOneFileManager(t *testing.T) {
 		}
 	}
 	assert.Equal(t, []string{"localdb.go"}, users)
+}
+
+func TestStateFilesAreOwnerOnly(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows has no permission bits")
+	}
+	s := openStore(t)
+	_, e := newScan(t, s, "/a")
+	for _, p := range []string{s.Index().Path(), e.File} {
+		info, err := os.Stat(p)
+		require.NoError(t, err)
+		assert.Equal(t, os.FileMode(0o600), info.Mode().Perm(), p)
+	}
 }

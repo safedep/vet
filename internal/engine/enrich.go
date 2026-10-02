@@ -53,7 +53,7 @@ func (r *run) enrichBatch(ctx context.Context, e Enricher, batch []*model.Packag
 	todo := batch
 	var results []state.EnrichmentResult
 	useCache := r.o.Cache != nil && e.TTL > 0
-	if useCache {
+	if useCache && !r.o.NoCacheRead {
 		hits, misses, err := r.o.Cache.Lookup(ctx, e.Name, e.Version, batch)
 		if err != nil {
 			return nil, err

@@ -51,7 +51,10 @@ func OpenCache(ctx context.Context, dir string) (*Cache, error) {
 	if err := appdir.Ensure(dir); err != nil {
 		return nil, err
 	}
-	mgr := openFile(dir, "cache.db")
+	mgr, err := openFile(dir, "cache.db")
+	if err != nil {
+		return nil, err
+	}
 	st, err := mgr.Store(ctx, localdb.Descriptor{Name: "vet_cache", Migrations: cacheMigrations})
 	if err != nil {
 		return nil, fmt.Errorf("open the enrichment cache: %w", err)
@@ -149,4 +152,24 @@ func (c *Cache) Prune(ctx context.Context) (int64, error) {
 		return 0, fmt.Errorf("prune the enrichment cache: %w", err)
 	}
 	return res.RowsAffected()
+}
+
+// CacheStats counts the entries of the cache.
+type CacheStats struct {
+	Entries int
+	Oldest  time.Time
+}
+
+// Stats returns the number of entries and the time of the oldest one.
+func (c *Cache) Stats(ctx context.Context) (CacheStats, error) {
+	var st CacheStats
+	var oldest sql.NullInt64
+	err := c.db.QueryRowContext(ctx, `SELECT COUNT(*), MIN(fetched_at) FROM vet_cache_enrichments`).Scan(&st.Entries, &oldest)
+	if err != nil {
+		return st, fmt.Errorf("count the enrichment cache: %w", err)
+	}
+	if oldest.Valid {
+		st.Oldest = time.UnixMilli(oldest.Int64).UTC()
+	}
+	return st, nil
 }

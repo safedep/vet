@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"time"
 
 	"github.com/safedep/dry/usefulerror"
 	"golang.org/x/term"
@@ -113,7 +114,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 	if dirs.Warning != "" {
 		tui.Warning("%s", dirs.Warning)
 	}
-	return withState(ctx, dirs, !o.NoCache && cfg.Cache.Enabled, func(store *state.Store, cache *state.Cache) error {
+	return withState(ctx, dirs, cfg.Cache.Enabled, func(store *state.Store, cache *state.Cache) error {
 		ttl, err := cfg.Cache.TTL.Value()
 		if err != nil {
 			return app.UsageError("cache.ttl: "+err.Error(), "Set a duration such as 24h or 7d.")
@@ -145,7 +146,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 		}
 		v := view.NewScan(view.Options{Target: o.Target, BaseRef: o.BaseRef, Animate: animate()})
 		eo := engine.Options{
-			Store: store, Cache: cache, Source: src,
+			Store: store, Cache: cache, NoCacheRead: o.NoCache, Source: src,
 			Extractors: func(plugin.ArtifactKind) ([]plugin.Extractor, error) { return extractors.Default() },
 			Enrichers:  enricherSpecs(set), Controls: engineControls(ctrls), Exclude: exclude,
 			Kind: kind, Mode: mode, BaseRef: o.BaseRef, OptionsHash: hash, VetVersion: version.Version(),
@@ -158,6 +159,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 			return runErr
 		}
 		defer closeWarn("the scan file", res.Scan.Close)
+		defer applyRetention(ctx, cfg, store, cache)
 		notContinued(res)
 		if res.Entry.Status == state.StatusInterrupted {
 			tui.Warning("Saved the progress of scan %s. Run vet scan again to continue it.", res.Entry.ID)
@@ -322,6 +324,49 @@ func notContinued(res *engine.Result) {
 	case res.NotContinued != nil && res.NotContinued.Stopped != nil:
 		tui.Info("Started a new scan. vet did not continue scan %s, because %s.",
 			res.NotContinued.Stopped.ID, reasonText[res.NotContinued.Reason])
+	}
+}
+
+// RetentionOf returns the retention rules of the config.
+func RetentionOf(cfg *config.Config) (state.Retention, error) {
+	r := cfg.State.Retention
+	interrupted, err := r.Interrupted.Value()
+	if err != nil {
+		return state.Retention{}, app.UsageError("state.retention.interrupted: "+err.Error(), "Set a duration such as 7d.")
+	}
+	size, err := r.MaxSize.Bytes()
+	if err != nil {
+		return state.Retention{}, app.UsageError("state.retention.max_size: "+err.Error(), "Set a size such as 2GB.")
+	}
+	return state.Retention{PerTarget: r.PerTarget, Interrupted: interrupted, MaxSize: size}, nil
+}
+
+// applyRetention deletes the old scans and the expired cache entries at the
+// end of a scan. It says nothing unless -v is set (scan state design,
+// section 6). A failure is a warning, because the scan is complete.
+func applyRetention(ctx context.Context, cfg *config.Config, store *state.Store, cache *state.Cache) {
+	r, err := RetentionOf(cfg)
+	if err != nil {
+		tui.Warning("retention: %v", err)
+		return
+	}
+	deleted, err := store.ApplyRetention(ctx, r, time.Now())
+	if err != nil {
+		tui.Warning("retention: %v", err)
+	}
+	for _, e := range deleted {
+		tui.Faint("Retention deleted scan %s of %s.", e.ID, e.TargetKey)
+	}
+	if cache == nil {
+		return
+	}
+	n, err := cache.Prune(ctx)
+	if err != nil {
+		tui.Warning("retention: %v", err)
+		return
+	}
+	if n > 0 {
+		tui.Faint("Retention deleted %d expired cache entries.", n)
 	}
 }
 

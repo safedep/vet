@@ -25,6 +25,23 @@ func Commands() map[string]func(ts *testscript.TestScript, neg bool, args []stri
 		"stub":        cmdStub,
 		"sleep":       cmdSleep,
 		"schemacheck": cmdSchemaCheck,
+		"mode":        cmdMode,
+	}
+}
+
+// cmdMode asserts the permission bits of a file or a directory:
+// mode <path> <octal>. Windows has no such bits, so a script that uses it
+// runs on unix only.
+func cmdMode(ts *testscript.TestScript, neg bool, args []string) {
+	if neg || len(args) != 2 {
+		ts.Fatalf("usage: mode <path> <octal>")
+	}
+	want, err := strconv.ParseUint(args[1], 8, 32)
+	ts.Check(err)
+	info, err := os.Stat(ts.MkAbs(args[0]))
+	ts.Check(err)
+	if got := info.Mode().Perm(); got != os.FileMode(want) {
+		ts.Fatalf("%s has mode %#o, want %#o", args[0], got, want)
 	}
 }
 

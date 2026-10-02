@@ -15,6 +15,7 @@ import (
 	"github.com/safedep/vet/v2/internal/cmd/policy"
 	"github.com/safedep/vet/v2/internal/cmd/report"
 	"github.com/safedep/vet/v2/internal/cmd/scan"
+	"github.com/safedep/vet/v2/internal/cmd/state"
 	"github.com/safedep/vet/v2/internal/cmd/version"
 )
 
@@ -51,6 +52,7 @@ Run "vet scan" in a project directory to start.`,
 		policy.New(a),
 		report.New(a),
 		scan.New(a),
+		state.New(a),
 		version.New(a),
 	)
 

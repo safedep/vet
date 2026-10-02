@@ -1,0 +1,10 @@
+[!unix] skip 'file modes are unix only'
+# The state directory is 0700 and each scan file is 0600.
+cd proj
+exec vet scan . --mode plain -o plain --state-dir $WORK/state
+mode $WORK/state 0700
+mode $WORK/state/scans 0700
+mode $WORK/state/vet.db 0600
+
+-- proj/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"left-pad": "1.3.0"}}, "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}}}

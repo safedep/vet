@@ -1,0 +1,13 @@
+# In agent mode or with --no-input, a command that asks for confirmation
+# exits 2 at once and names the flag.
+cd proj
+exec vet scan . --mode plain -o plain
+env CLAUDECODE=1
+execexit 2 vet state delete --all
+stderr '^ERR: code=usage_needs_confirmation .*--yes'
+env CLAUDECODE=
+execexit 2 vet state delete --all --no-input --mode plain
+stderr 'usage_needs_confirmation'
+
+-- proj/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"left-pad": "1.3.0"}}, "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}}}

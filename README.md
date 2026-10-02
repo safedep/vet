@@ -250,6 +250,8 @@ the order of the command tree.
 | [`vet policy control list`](docs/cmd/policy-control-list.md) | List the controls and their default severities. |
 | [`vet policy schema get`](docs/cmd/policy-schema-get.md) | Print the JSON Schema of the rule input. |
 | [`vet fix github-actions run`](docs/cmd/fix-github-actions-run.md) | Pin third-party GitHub Actions to commit SHAs. |
+| [`vet state show`](docs/cmd/state-show.md) | Show the state and cache directories, the scans and the retention rules. |
+| [`vet state delete`](docs/cmd/state-delete.md) | Delete scans or the enrichment cache. |
 | [`vet version`](docs/cmd/version.md) | Show the version and the build of vet. |
 
 ## Installation

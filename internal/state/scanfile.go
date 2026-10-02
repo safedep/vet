@@ -132,7 +132,10 @@ type Scan struct {
 }
 
 func openScanFile(ctx context.Context, dir, id string) (*Scan, error) {
-	mgr := openFile(dir, id+".db")
+	mgr, err := openFile(dir, id+".db")
+	if err != nil {
+		return nil, err
+	}
 	st, err := mgr.Store(ctx, localdb.Descriptor{Name: "vet_scan", Migrations: scanMigrations})
 	if err != nil {
 		return nil, fmt.Errorf("open scan file %s: %w", id, err)
