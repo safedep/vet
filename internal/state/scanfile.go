@@ -121,9 +121,10 @@ const (
 
 // Scan is one scan file. It implements plugin.State and plugin.Report.
 type Scan struct {
-	id  string
-	mgr localdb.FileManager
-	db  *sql.DB
+	id   string
+	mgr  localdb.FileManager
+	db   *sql.DB
+	lock *scanLock
 
 	mu      sync.Mutex
 	header  *report.Header
@@ -153,7 +154,12 @@ func (s *Scan) Path() string { return s.mgr.Path() }
 func (s *Scan) Size() (int64, error) { return s.mgr.Size() }
 
 // Close flushes and closes the scan file.
-func (s *Scan) Close() error { return s.mgr.Close() }
+// Close closes the scan file and releases the lock of a running scan.
+func (s *Scan) Close() error {
+	err := errors.Join(s.mgr.Close(), s.lock.release())
+	s.lock = nil
+	return err
+}
 
 func (s *Scan) setMeta(ctx context.Context, key string, v any) error {
 	b, err := json.Marshal(v)

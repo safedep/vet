@@ -64,8 +64,8 @@ type NewScan struct {
 	PID         int
 }
 
-// CreateScan makes a scan id, creates its scan file and adds a running entry
-// to the index.
+// CreateScan makes a scan id, creates and locks its scan file, and adds a
+// running entry to the index. Close on the scan releases the lock.
 func (s *Store) CreateScan(ctx context.Context, n NewScan) (*Scan, *IndexEntry, error) {
 	if err := appdir.Ensure(s.ScansDir()); err != nil {
 		return nil, nil, err
@@ -77,6 +77,9 @@ func (s *Store) CreateScan(ctx context.Context, n NewScan) (*Scan, *IndexEntry, 
 	scan, err := openScanFile(ctx, s.ScansDir(), id)
 	if err != nil {
 		return nil, nil, err
+	}
+	if scan.lock, err = acquireLock(scan.Path()); err != nil {
+		return nil, nil, errors.Join(err, scan.Close())
 	}
 	now := time.Now().UTC()
 	e := &IndexEntry{

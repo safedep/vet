@@ -10,8 +10,6 @@ buf.build/gen/go/safedep/api/grpc/go v1.6.2-20261001145028-14c0defb961c.1 h1:pk4
 buf.build/gen/go/safedep/api/grpc/go v1.6.2-20261001145028-14c0defb961c.1/go.mod h1:81/2akGAGywZYsoRu2/PReSpx4092Bkd/IhUO5Po500=
 buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.12-20261001145028-14c0defb961c.2 h1:TjPnsL2Mes9KZWLpQnyMPVZKKSHJUBYvGU6W3DvdOEk=
 buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.12-20261001145028-14c0defb961c.2/go.mod h1:LfbopTmazyAppwhYT2vdRDLDH8ZTm4QNbp9yFjGRbHs=
-buf.build/go/protovalidate v1.1.3 h1:m2GVEgQWd7rk+vIoAZ+f0ygGjvQTuqPQapBBdcpWVPE=
-buf.build/go/protovalidate v1.1.3/go.mod h1:9XIuohWz+kj+9JVn3WQneHA5LZP50mjvneZMnbLkiIE=
 buf.build/go/protovalidate v1.2.0 h1:DQVrUWkmGTBij+kOYv/x2LLxwcLaGKMdzShj1/6/3H0=
 buf.build/go/protovalidate v1.2.0/go.mod h1:7rYiQEhqvAipoazpVNBBH2S2f8bjG4huMVy1V2Yofn4=
 cel.dev/expr v0.25.2 h1:K6j46C81hXtZQfuX60cVWQFBJahKSE2gfRbNuvr5bFs=
@@ -673,8 +671,6 @@ github.com/gomarkdown/markdown v0.0.0-20260217112301-37c66b85d6ab h1:VYNivV7P8IR
 github.com/gomarkdown/markdown v0.0.0-20260217112301-37c66b85d6ab/go.mod h1:JDGcbDT52eL4fju3sZ4TeHGsQwhG9nbDV21aMyhwPoA=
 github.com/google/btree v0.0.0-20180813153112-4030bb1f1f0c/go.mod h1:lNA+9X1NB3Zf8V7Ke586lFgjr2dZNuvo3lPJSGZ5JPQ=
 github.com/google/btree v1.0.0/go.mod h1:lNA+9X1NB3Zf8V7Ke586lFgjr2dZNuvo3lPJSGZ5JPQ=
-github.com/google/cel-go v0.27.0 h1:e7ih85+4qVrBuqQWTW4FKSqZYokVuc3HnhH5keboFTo=
-github.com/google/cel-go v0.27.0/go.mod h1:tTJ11FWqnhw5KKpnWpvW9CJC3Y9GK4EIS0WXnBbebzw=
 github.com/google/cel-go v0.28.0 h1:KjSWstCpz/MN5t4a8gnGJNIYUsJRpdi/r97xWDphIQc=
 github.com/google/cel-go v0.28.0/go.mod h1:X0bD6iVNR8pkROSOoHVdgTkzmRcosof7WQqCD6wcMc8=
 github.com/google/go-cmp v0.2.0/go.mod h1:oXzfMopK8JAjlY9xF4vHSVASa0yLyX7SntLO5aqRK0M=
@@ -1150,8 +1146,6 @@ github.com/rust-secure-code/go-rustaudit v0.0.0-20250226111315-e20ec32e963c/go.m
 github.com/ryanuber/columnize v0.0.0-20160712163229-9b3edd62028f/go.mod h1:sm1tb6uqfes/u+d4ooFouqFdy9/2g9QGwK3SQygK0Ts=
 github.com/safedep/code v0.0.0-20260224174612-abe896956bc1 h1:om1nRWsx9KLDhMeaUGTYxqH9JT5HHkUp6QY/wDyLMtw=
 github.com/safedep/code v0.0.0-20260224174612-abe896956bc1/go.mod h1:QYfQrEgRFjd15kUk80t3vjvzC5xiKeSjXgn6Qx1S89w=
-github.com/safedep/dry v0.0.0-20260430094716-037c59666d04 h1:3Pmsbi1VQewLyGixsNUUJfs4nurMIXPfaCq30orkxug=
-github.com/safedep/dry v0.0.0-20260430094716-037c59666d04/go.mod h1:DXJSAov8jxZElBDFhvwCTrBKF+gVvVCtmimDjfKFU7I=
 github.com/safedep/dry v0.0.0-20261002073351-d0ae33065533 h1:0iOLnv22SWpZ+FxQiK+shQq5js1OhPTa2J1KGXYP4Q8=
 github.com/safedep/dry v0.0.0-20261002073351-d0ae33065533/go.mod h1:n7UbtpjdFQnveHgsljFHsoMpAfFeTs6hy0jCuK4gY6s=
 github.com/saferwall/pe v1.5.9 h1:iFD9h46ip3Vaf5inCrxzlvP1myUcw9NSkgt4XVbwklY=

@@ -35,6 +35,7 @@ require (
 	github.com/google/osv-scanner v1.9.2
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/hcl/v2 v2.24.0
+	github.com/invopop/jsonschema v0.13.0
 	github.com/jedib0t/go-pretty/v6 v6.7.9
 	github.com/kubescape/go-git-url v0.0.31
 	github.com/mattn/go-sqlite3 v1.14.34
@@ -50,6 +51,7 @@ require (
 	github.com/spdx/tools-golang v0.5.7
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
+	golang.org/x/sys v0.47.0
 	golang.org/x/term v0.45.0
 	google.golang.org/grpc v1.83.2
 	google.golang.org/protobuf v1.36.12
@@ -267,7 +269,6 @@ require (
 	github.com/ianlancetaylor/demangle v0.0.0-20251118225945-96ee0021ea0f // indirect
 	github.com/icholy/digest v1.1.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/invopop/jsonschema v0.13.0 // indirect
 	github.com/iris-contrib/schema v0.0.6 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jinzhu/copier v0.4.0 // indirect
@@ -441,7 +442,6 @@ require (
 	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
-	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/telemetry v0.0.0-20260708182218-49f421fb7959 // indirect
 	golang.org/x/text v0.41.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
