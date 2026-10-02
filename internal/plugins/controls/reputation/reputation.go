@@ -177,14 +177,38 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 
 // newAndUnpopular fails open: a package with no publish date is not new.
 // A new package with no download count is new and unpopular, because the
-// age is the stronger sign.
+// age is the stronger sign. A new package of an established publisher is
+// not unpopular.
 func (c *Control) newAndUnpopular(p *model.Package) bool {
 	in := p.Insight
-	if in == nil || in.FirstPublishedAt == nil {
+	if in == nil || in.FirstPublishedAt == nil || ownScope(p) {
 		return false
 	}
 	age := c.now().Sub(*in.FirstPublishedAt)
 	return age >= 0 && age < time.Duration(c.o.NewPackageDays)*24*time.Hour && in.Downloads < c.o.MinDownloads
+}
+
+// ownScope reports an npm package whose scope is the owner of its popular
+// source repository, such as @pnpm/exe.linux-x64 from pnpm/pnpm. Only the
+// owner of a scope publishes to it, so a new platform package of a known
+// project is not an unknown package.
+func ownScope(p *model.Package) bool {
+	in := p.Insight
+	if p.ID.Ecosystem != model.EcosystemNpm || p.ID.Namespace == "" || in.Stars < starjackStars {
+		return false
+	}
+	owner, ok := repoOwner(in.SourceRepo)
+	return ok && strings.EqualFold(strings.TrimPrefix(p.ID.Namespace, "@"), owner)
+}
+
+// repoOwner returns the owner of a github.com repository URL.
+func repoOwner(repo string) (string, bool) {
+	u, err := url.Parse(repo)
+	if err != nil || !strings.EqualFold(u.Host, "github.com") {
+		return "", false
+	}
+	owner, _, ok := strings.Cut(strings.Trim(u.Path, "/"), "/")
+	return owner, ok && owner != ""
 }
 
 func newPackageTitle(name string, in *model.Insight, now time.Time) string {
