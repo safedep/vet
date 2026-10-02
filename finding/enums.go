@@ -41,6 +41,15 @@ func (s Severity) Rank() int {
 // Valid reports whether the severity is in the closed set.
 func (s Severity) Valid() bool { return s.Rank() >= 0 }
 
+// Title returns the severity with a capital first letter, for example
+// "High".
+func (s Severity) Title() string {
+	if s == "" {
+		return ""
+	}
+	return strings.ToUpper(string(s[:1])) + string(s[1:])
+}
+
 // AtLeast reports whether s is as severe as other or more severe.
 func (s Severity) AtLeast(other Severity) bool { return s.Rank() >= other.Rank() }
 

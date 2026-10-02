@@ -1,0 +1,53 @@
+{
+  "schema": "https://gitlab.com/gitlab-org/security-products/security-report-schemas/-/raw/15.2.1/dist/dependency-scanning-report-format.json",
+  "version": "15.2.1",
+  "scan": {
+    "analyzer": {
+      "id": "vet",
+      "name": "vet",
+      "version": "test",
+      "vendor": {
+        "name": "SafeDep"
+      }
+    },
+    "scanner": {
+      "id": "vet",
+      "name": "vet",
+      "version": "test",
+      "vendor": {
+        "name": "SafeDep"
+      }
+    },
+    "type": "dependency_scanning",
+    "start_time": "2026-01-02T03:04:05",
+    "end_time": "2026-01-02T03:05:00",
+    "status": "success"
+  },
+  "vulnerabilities": [
+    {
+      "id": "f-478cf580259c82ac",
+      "name": "Malicious package",
+      "description": "The package runs a postinstall script that reads ~/.npmrc.\n\nmalysis: Verified malicious",
+      "severity": "Critical",
+      "solution": "Remove evil-colors.",
+      "identifiers": [
+        {
+          "type": "safedep_vet",
+          "name": "malware",
+          "value": "malware",
+          "url": "https://docs.safedep.io"
+        }
+      ],
+      "location": {
+        "file": "package-lock.json",
+        "dependency": {
+          "package": {
+            "name": "evil-colors"
+          },
+          "version": "1.4.1",
+          "direct": true
+        }
+      }
+    }
+  ]
+}

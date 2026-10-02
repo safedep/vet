@@ -176,6 +176,8 @@ The terminal view goes to stderr. Report data goes to stdout with `-o`, and to f
 | `sarif` | GitHub code scanning and other SARIF tools |
 | `markdown` | A pull request comment or a job summary |
 | `cyclonedx` | An SBOM with the findings as vulnerabilities |
+| `gitlab` | A GitLab dependency scanning report, for `artifacts:reports:dependency_scanning` |
+| `bitbucket` | A Bitbucket Code Insights report and its annotations |
 
 vet saves each scan in its state directory. `vet report show`, `vet report list`,
 `vet report diff` and `vet report finding show` read the saved scans with no new scan. A scan
@@ -194,6 +196,23 @@ that stops (Ctrl-C, a lost connection) continues on the next run.
 vet finds an AI agent from `CLAUDECODE` or `AI_AGENT`, and then writes JSON on stdout, never
 prompts, and prints each error as one `ERR: code=… message=… help=…` line. `--mode agent` sets
 the same behavior.
+
+GitLab CI reads the `gitlab` file as a dependency scanning report:
+
+```yaml
+vet:
+  script:
+    - vet scan . --fail-on critical --report gitlab=gl-dependency-scanning-report.json
+  artifacts:
+    when: always
+    reports:
+      dependency_scanning: gl-dependency-scanning-report.json
+```
+
+The `bitbucket` file holds `report` and `annotations`. A Bitbucket Pipelines step sends
+`report` with `PUT /2.0/repositories/{workspace}/{repo}/commit/{commit}/reports/vet`, then the
+annotations with `POST .../reports/vet/annotations`, at most 100 for each request. The gate
+sets the result of the report. With no gate, the report has no result.
 
 Coming from v1? The [v2.0.0 release notes](docs/release-notes/v2.0.0.md) map each v1 command,
 flag, variable and report field to v2.

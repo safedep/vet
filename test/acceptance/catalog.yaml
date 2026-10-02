@@ -76,6 +76,12 @@
   tier: P1
   guarantee: "--report json=... --report sarif=... --report cyclonedx=... writes three valid files from one scan."
   labels: [files]
+- id: report/forge/gitlab-bitbucket
+  title: "one scan writes the GitLab and the Bitbucket reports"
+  category: report
+  tier: P1
+  guarantee: "--report gitlab=PATH writes a GitLab dependency scanning report with the package findings. --report bitbucket=PATH writes a Code Insights report and its annotations, and the gate sets its result."
+  labels: [report, ci]
 - id: report/files/write-failure-exit-3
   title: "a failed report write exits 3"
   category: report

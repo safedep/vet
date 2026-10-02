@@ -7,7 +7,7 @@ Render a saved report.
 ```text
 vet report show [ID|FILE] [--fail-on SEVERITY] [--policy FILE] [--report FORMAT=PATH]...
                 [--all] [--state-dir DIR]
-                [-o table|plain|json|jsonl|sarif|markdown|cyclonedx]
+                [-o table|plain|json|jsonl|sarif|markdown|cyclonedx|gitlab|bitbucket]
 ```
 
 ## Description

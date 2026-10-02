@@ -9,7 +9,7 @@ vet scan [TARGET] [--base-ref REF] [--fail-on SEVERITY] [--policy FILE]
          [--report FORMAT=PATH]... [--strict] [--resume | --fresh] [--no-cache]
          [--exclude GLOB]... [--cooldown-days N]
          [--state-dir DIR] [--cache-dir DIR] [--ephemeral]
-         [-o table|plain|json|jsonl|sarif|markdown|cyclonedx]
+         [-o table|plain|json|jsonl|sarif|markdown|cyclonedx|gitlab|bitbucket]
 ```
 
 ## Description

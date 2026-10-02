@@ -9,7 +9,9 @@ import (
 
 	"github.com/safedep/dry/usefulerror"
 
+	"github.com/safedep/vet/v2/internal/plugins/bitbucket"
 	cloudreport "github.com/safedep/vet/v2/internal/plugins/cloud/report"
+	"github.com/safedep/vet/v2/internal/plugins/gitlab"
 	"github.com/safedep/vet/v2/internal/plugins/sinks/cyclonedx"
 	"github.com/safedep/vet/v2/internal/plugins/sinks/json"
 	"github.com/safedep/vet/v2/internal/plugins/sinks/jsonl"
@@ -38,8 +40,10 @@ type Registry []Spec
 // Builtin returns the built-in formats.
 func Builtin() Registry {
 	return Registry{
+		{Name: bitbucket.Name, Description: "a Bitbucket Code Insights report and its annotations", New: bitbucket.New},
 		{Name: cloudreport.Name, Description: "the report for SafeDep Cloud (not available yet)", New: cloudreport.New},
 		{Name: cyclonedx.Name, Description: "a CycloneDX 1.6 BOM of the packages and their vulnerabilities", New: cyclonedx.New},
+		{Name: gitlab.Name, Description: "a GitLab dependency scanning report of the package findings", New: gitlab.New},
 		{Name: json.Name, Description: "the report as one JSON document", New: json.New},
 		{Name: jsonl.Name, Description: "one report record on each line, as JSON", New: jsonl.New},
 		{Name: markdown.Name, Description: "the counts and the findings, for a pull request comment", New: markdown.New},

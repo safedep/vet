@@ -1,0 +1,46 @@
+{
+  "report": {
+    "title": "SafeDep vet",
+    "details": "vet found 0 supply chain findings.",
+    "report_type": "SECURITY",
+    "reporter": "SafeDep vet test",
+    "data": [
+      {
+        "title": "Findings",
+        "type": "NUMBER",
+        "value": 0
+      },
+      {
+        "title": "Critical",
+        "type": "NUMBER",
+        "value": 0
+      },
+      {
+        "title": "High",
+        "type": "NUMBER",
+        "value": 0
+      },
+      {
+        "title": "Medium",
+        "type": "NUMBER",
+        "value": 0
+      },
+      {
+        "title": "Low",
+        "type": "NUMBER",
+        "value": 0
+      },
+      {
+        "title": "Suppressed",
+        "type": "NUMBER",
+        "value": 0
+      },
+      {
+        "title": "Packages",
+        "type": "NUMBER",
+        "value": 2
+      }
+    ]
+  },
+  "annotations": []
+}
