@@ -12,6 +12,7 @@ import (
 
 	"github.com/safedep/dry/localdb"
 	"github.com/spf13/cobra"
+	"golang.org/x/mod/semver"
 
 	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/config"
@@ -132,10 +133,25 @@ func latestRelease(ctx context.Context, cfg *config.Config) Check {
 	if err != nil {
 		return Check{ID: "vet.release", Status: Warn, Message: "vet could not check the latest release: " + err.Error()}
 	}
-	if latest := r.GetTagName(); latest != version.Version() {
-		return Check{ID: "vet.release", Status: Warn, Message: "the latest release is " + latest + ", this is " + version.Version(), Fix: "Upgrade vet."}
+	return releaseCheck(r.GetTagName(), version.Version())
+}
+
+// releaseCheck warns only when the latest release is newer than this vet.
+// A development build of the next major version is newer than every
+// release.
+func releaseCheck(latest, current string) Check {
+	switch c := semver.Compare(latest, current); {
+	case !semver.IsValid(latest) || !semver.IsValid(current):
+		if latest == current {
+			return Check{ID: "vet.release", Status: Pass, Message: "vet " + current + " is the latest release"}
+		}
+		return Check{ID: "vet.release", Status: Warn, Message: "the latest release is " + latest + ", this is " + current, Fix: "Upgrade vet."}
+	case c > 0:
+		return Check{ID: "vet.release", Status: Warn, Message: "the latest release is " + latest + ", this is " + current, Fix: "Upgrade vet."}
+	case c < 0:
+		return Check{ID: "vet.release", Status: Pass, Message: "vet " + current + " is newer than the latest release " + latest}
 	}
-	return Check{ID: "vet.release", Status: Pass, Message: "vet " + version.Version() + " is the latest release"}
+	return Check{ID: "vet.release", Status: Pass, Message: "vet " + current + " is the latest release"}
 }
 
 func stateChecks(ctx context.Context, rt *config.Runtime, fix bool) []Check {
