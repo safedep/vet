@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/internal/plugins/internal/optschema"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 )
@@ -17,9 +18,12 @@ const Name = "vulnerability"
 // Control reports one finding for each advisory of a package version.
 type Control struct{}
 
+// Options are plugins.vulnerability.options. The control has none.
+type Options struct{}
+
 // New builds the control. It has no options.
 func New(cfg plugin.Config) (plugin.Control, error) {
-	if err := cfg.Decode(&struct{}{}); err != nil {
+	if err := cfg.Decode(&Options{}); err != nil {
 		return nil, err
 	}
 	return &Control{}, nil
@@ -112,7 +116,11 @@ func remediation(p *model.Package, v model.Vulnerability) *finding.Remediation {
 
 func advisoryURL(id string) string { return "https://osv.dev/vulnerability/" + id }
 
+// OptionsSchema returns the JSON Schema of the options.
+func (c *Control) OptionsSchema() []byte { return optschema.Of(&Options{}) }
+
 var (
 	_ plugin.Control   = (*Control)(nil)
 	_ plugin.Describer = (*Control)(nil)
+	_ plugin.Schemer   = (*Control)(nil)
 )

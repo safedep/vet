@@ -17,6 +17,7 @@ import (
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/packagelockjson"
+	"github.com/safedep/vet/v2/internal/plugins/internal/optschema"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 )
@@ -279,7 +280,11 @@ func (c *Control) followsConvention(resolved, name string) bool {
 	return false
 }
 
+// OptionsSchema returns the JSON Schema of the options.
+func (c *Control) OptionsSchema() []byte { return optschema.Of(&Options{}) }
+
 var (
 	_ plugin.Control   = (*Control)(nil)
 	_ plugin.Describer = (*Control)(nil)
+	_ plugin.Schemer   = (*Control)(nil)
 )

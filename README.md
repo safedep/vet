@@ -239,6 +239,13 @@ the order of the command tree.
 
 | Command | Description |
 | --- | --- |
+| [`vet config show`](docs/cmd/config-show.md) | Show the effective config. |
+| [`vet config get`](docs/cmd/config-get.md) | Print one config value. |
+| [`vet config set`](docs/cmd/config-set.md) | Set a key in the user config file. |
+| [`vet config delete`](docs/cmd/config-delete.md) | Remove a key from the user config file. |
+| [`vet config edit`](docs/cmd/config-edit.md) | Open the user config file in an editor. |
+| [`vet config validate`](docs/cmd/config-validate.md) | Check a config file. |
+| [`vet config schema get`](docs/cmd/config-schema-get.md) | Print the JSON Schema of the config file. |
 | [`vet doctor`](docs/cmd/doctor.md) | Check the state, the config, the credentials and the endpoints. |
 | [`vet scan`](docs/cmd/scan.md) | Scan a project, a repository, an image, an SBOM or a package. |
 | [`vet report show`](docs/cmd/report-show.md) | Render a saved report. |

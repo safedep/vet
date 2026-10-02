@@ -302,3 +302,33 @@
   tier: P2
   guarantee: "vet doctor exits 0 on a fresh sandbox, and -o json lists each check with an id."
   labels: [doctor]
+- id: dirs/xdg/kinds-apart
+  title: "config, state and cache live apart"
+  category: dirs
+  tier: P0
+  guarantee: "With the XDG_* variables set, config, state and cache land in their own safedep/vet directories. The config directory holds no database or log."
+  labels: [config, state]
+- id: config/layers/precedence
+  title: "the config layers apply in order"
+  category: config
+  tier: P0
+  guarantee: "A flag wins over a VET_* variable, which wins over the file, which wins over the default. vet config show --origin -o json names each source."
+  labels: [config]
+- id: config/repo/cannot-configure
+  title: "the scanned repository cannot configure vet"
+  category: config
+  tier: P0
+  guarantee: "A config file or policy file inside the scanned target changes nothing. A policy loads only with --policy."
+  labels: [config, gate]
+- id: config/set/rejects-unknown-key
+  title: "config set rejects an unknown key"
+  category: config
+  tier: P1
+  guarantee: "vet config set with a typo exits 2 and suggests the closest key."
+  labels: [config]
+- id: config/validate/unknown-key
+  title: "config validate fails on an unknown key"
+  category: config
+  tier: P1
+  guarantee: "vet config validate exits 2 on an unknown key. A scan only warns."
+  labels: [config]

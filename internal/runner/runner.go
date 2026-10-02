@@ -75,6 +75,9 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 		return err
 	}
 	cfg := rt.Config
+	for _, w := range rt.Warnings {
+		tui.Warning("%s", w)
+	}
 
 	gate, err := policy.ResolveSettings(o.FailOn, o.Policy, cfg.Policy)
 	if err != nil {

@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/internal/plugins/internal/optschema"
 	"github.com/safedep/vet/v2/internal/plugins/sinks/internal/render"
 	"github.com/safedep/vet/v2/internal/tui/section"
 	"github.com/safedep/vet/v2/internal/tui/stat"
@@ -135,3 +136,8 @@ func badge(s finding.Severity) string {
 	}
 	return style.Badge(role, strings.ToUpper(string(s)))
 }
+
+// OptionsSchema returns the JSON Schema of the options.
+func (s Sink) OptionsSchema() []byte { return optschema.Of(&Options{}) }
+
+var _ plugin.Schemer = Sink{}
