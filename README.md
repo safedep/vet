@@ -164,6 +164,9 @@ vet finds an AI agent from `CLAUDECODE` or `AI_AGENT`, and then writes JSON on s
 prompts, and prints each error as one `ERR: code=… message=… help=…` line. `--mode agent` sets
 the same behavior.
 
+Coming from v1? The [v2.0.0 release notes](docs/release-notes/v2.0.0.md) map each v1 command,
+flag, variable and report field to v2.
+
 ## Command reference
 
 vet v2 has one page for each command under [docs/cmd](docs/cmd). The table lists every command in
