@@ -1,0 +1,9 @@
+{
+  "packages": [
+    "pypi/emoji@2.14.0",
+    "pypi/protobuf@4.25.5"
+  ],
+  "direct": [],
+  "roots": [],
+  "edges": []
+}

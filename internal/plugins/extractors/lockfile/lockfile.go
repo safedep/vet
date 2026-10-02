@@ -9,6 +9,7 @@ import (
 	"github.com/google/osv-scalibr/extractor/filesystem"
 
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/packagelockjson"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/uvlock"
 )
 
 // Extractors returns the graph-aware lockfile extractors.
@@ -17,6 +18,7 @@ func Extractors() ([]filesystem.Extractor, error) {
 	var out []filesystem.Extractor
 	for _, newFn := range []func(*cpb.PluginConfig) (filesystem.Extractor, error){
 		packagelockjson.New,
+		uvlock.New,
 	} {
 		e, err := newFn(cfg)
 		if err != nil {

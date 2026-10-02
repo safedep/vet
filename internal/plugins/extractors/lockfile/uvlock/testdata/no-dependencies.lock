@@ -1,0 +1,7 @@
+version = 1
+requires-python = ">=3.10"
+
+[[package]]
+name = "uv-lockfiles"
+version = "0.1.0"
+source = { virtual = "." }

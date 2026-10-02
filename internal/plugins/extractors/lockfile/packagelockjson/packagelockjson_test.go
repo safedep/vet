@@ -33,6 +33,7 @@ import (
 	"github.com/google/osv-scalibr/testing/fakefs"
 	"github.com/google/osv-scalibr/testing/testcollector"
 
+	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/graphtest"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/units"
 )
 
@@ -372,7 +373,7 @@ func TestExtractor_Extract_Shrinkwrap_JSON(t *testing.T) {
 			}
 
 			wantInv := inventory.Inventory{Packages: tt.WantPackages}
-			if diff := cmp.Diff(wantInv, got, cmpopts.SortSlices(extracttest.PackageCmpLess), ignoreGraph); diff != "" {
+			if diff := cmp.Diff(wantInv, got, cmpopts.SortSlices(extracttest.PackageCmpLess), graphtest.IgnoreGraph); diff != "" {
 				t.Errorf("%s.Extract(%q) diff (-want +got):\n%s", extr.Name(), tt.InputConfig.Path, diff)
 			}
 
@@ -471,7 +472,7 @@ func TestExtractor_Extract_V1_LineNumbers(t *testing.T) {
 			}
 
 			wantInv := inventory.Inventory{Packages: tt.WantPackages}
-			if diff := cmp.Diff(wantInv, got, cmpopts.SortSlices(extracttest.PackageCmpLess), ignoreGraph); diff != "" {
+			if diff := cmp.Diff(wantInv, got, cmpopts.SortSlices(extracttest.PackageCmpLess), graphtest.IgnoreGraph); diff != "" {
 				t.Errorf("%s.Extract(%q) diff (-want +got):\n%s", extr.Name(), tt.InputConfig.Path, diff)
 			}
 		})

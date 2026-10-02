@@ -28,6 +28,8 @@ import (
 	"github.com/google/osv-scalibr/purl"
 	"github.com/google/osv-scalibr/testing/extracttest"
 	"github.com/google/osv-scalibr/testing/testcollector"
+
+	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/graphtest"
 )
 
 func TestNPMLockExtractor_Extract_V1(t *testing.T) {
@@ -1020,7 +1022,7 @@ func TestNPMLockExtractor_Extract_V1(t *testing.T) {
 			}
 
 			wantInv := inventory.Inventory{Packages: tt.WantPackages}
-			if diff := cmp.Diff(wantInv, got, cmpopts.SortSlices(extracttest.PackageCmpLess), ignoreGraph, cmpopts.IgnoreFields(location.File{}, "LineNumber")); diff != "" {
+			if diff := cmp.Diff(wantInv, got, cmpopts.SortSlices(extracttest.PackageCmpLess), graphtest.IgnoreGraph, cmpopts.IgnoreFields(location.File{}, "LineNumber")); diff != "" {
 				t.Errorf("%s.Extract(%q) diff (-want +got):\n%s", extr.Name(), tt.InputConfig.Path, diff)
 			}
 

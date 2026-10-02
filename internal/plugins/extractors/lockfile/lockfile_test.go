@@ -59,6 +59,8 @@ func TestGraphGolden(t *testing.T) {
 		{"npm-nested-dup", "packagelockjson/testdata", "nested-dependencies-dup.v2.json", "package-lock.json"},
 		{"npm-dev", "packagelockjson/testdata", "one-package-dev.v2.json", "package-lock.json"},
 		{"npm-workspaces", "packagelockjson/testdata", "workspaces.v3.json", "package-lock.json"},
+		{"uv-two", "uvlock/testdata", "two-packages.lock", "uv.lock"},
+		{"uv-grouped", "uvlock/testdata", "grouped-packages.lock", "uv.lock"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
