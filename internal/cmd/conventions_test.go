@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -234,6 +235,49 @@ func TestConventions_NoCrossCmdImports(t *testing.T) {
 		for _, imp := range strings.Split(parts[1], ",") {
 			if to := noun(imp); to != "" && to != from {
 				assert.Fail(t, "command packages import each other", "%s imports %s", parts[0], imp)
+			}
+		}
+	}
+}
+
+// TestConventions_SkillsNameRealCommands checks that each vet command and
+// flag that a skill names exists, so a skill cannot send an agent to a
+// command that is gone.
+func TestConventions_SkillsNameRealCommands(t *testing.T) {
+	skills, err := filepath.Glob(filepath.Join(repoRoot(t), ".claude", "skills", "*", "SKILL.md"))
+	require.NoError(t, err)
+	require.NotEmpty(t, skills)
+	root := newTree(t)
+	command := regexp.MustCompile("`vet ([^`]+)`")
+	for _, p := range skills {
+		b, err := os.ReadFile(p)
+		require.NoError(t, err)
+		name := filepath.Base(filepath.Dir(p))
+		assert.Contains(t, string(b), "\nname: "+name+"\n", "%s: the name is not the directory name", p)
+		assert.Contains(t, string(b), "\ndescription: ", "%s has no description", p)
+		for _, m := range command.FindAllStringSubmatch(string(b), -1) {
+			args := strings.Fields(m[1])
+			c, rest, err := root.Find(args)
+			require.NoError(t, err, "%s: `vet %s`", name, m[1])
+			if !assert.True(t, isLeaf(c), "%s: `vet %s` names no command", name, m[1]) {
+				continue
+			}
+			for _, a := range rest {
+				flag, _, _ := strings.Cut(strings.TrimLeft(a, "-"), "=")
+				if !strings.HasPrefix(a, "-") {
+					continue
+				}
+				f := c.Flags().Lookup(flag)
+				if f == nil {
+					f = c.InheritedFlags().Lookup(flag)
+				}
+				if f == nil && len(flag) == 1 {
+					f = c.Flags().ShorthandLookup(flag)
+					if f == nil {
+						f = c.InheritedFlags().ShorthandLookup(flag)
+					}
+				}
+				assert.NotNil(t, f, "%s: `vet %s` has no flag %s", name, m[1], a)
 			}
 		}
 	}

@@ -1,0 +1,23 @@
+# The steps of the vet-policy-authoring skill work in agent mode: read the
+# schema and the controls, write the starter, validate it, and test it on
+# the saved scan. The test does not change the saved scan or the config.
+cd proj
+exec vet policy schema get --mode agent
+stdout '"title": "vet policy input"'
+exec vet policy control list -o json --mode agent
+exec vet policy init vet-policy.yml --mode agent
+exec vet policy validate vet-policy.yml -o json --mode agent
+
+exec vet scan . -o json --mode agent
+jsonq stdout trailer.gate.outcome NONE
+stub stop
+execexit 1 vet report show last --policy vet-policy.yml -o json --mode agent
+jsonq stdout trailer.gate.outcome FAIL
+jsonq stdout trailer.gate.rules.0 no-malware
+exec vet report show last -o json --mode agent
+jsonq stdout trailer.gate.outcome NONE
+exec vet config get policy.file -o json --mode agent
+jsonq stdout value ''
+
+-- proj/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3"}}, "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"}}}

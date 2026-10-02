@@ -164,6 +164,11 @@ vet scan --policy vet-policy.yml
 
 `vet policy schema get` prints the fields that a rule can read.
 
+An AI agent can write the policy for you. The
+[`vet-policy-authoring`](.claude/skills/vet-policy-authoring/SKILL.md) Agent Skill drafts a
+policy, validates it and tests it on a saved scan with `vet report show --policy`. It never
+installs the policy. Copy the directory to `~/.claude/skills/` to use it in other repositories.
+
 ## Output
 
 The terminal view goes to stderr. Report data goes to stdout with `-o`, and to files with
