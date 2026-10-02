@@ -1,0 +1,13 @@
+Packages: 2
+Findings: 2
+Critical: 1
+High: 0
+
+┌────────────┬─────────────────┬──────────────────────────┬────────────────────────────┐
+│ SEVERITY   │ CONTROL         │ SUBJECT                  │ WHERE                      │
+├────────────┼─────────────────┼──────────────────────────┼────────────────────────────┤
+│ [CRITICAL] │ malware         │ npm/evil-colors@1.4.1    │ package-lock.json:42       │
+│ [MEDIUM]   │ unpinned-action │ .github/workflows/ci.yml │ .github/workflows/ci.yml:8 │
+└────────────┴─────────────────┴──────────────────────────┴────────────────────────────┘
+
+> 1 suppressed (vet report show -o json)

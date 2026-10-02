@@ -9,6 +9,13 @@ import (
 
 	"github.com/safedep/dry/usefulerror"
 
+	"github.com/safedep/vet/v2/internal/plugins/sinks/cyclonedx"
+	"github.com/safedep/vet/v2/internal/plugins/sinks/json"
+	"github.com/safedep/vet/v2/internal/plugins/sinks/jsonl"
+	"github.com/safedep/vet/v2/internal/plugins/sinks/markdown"
+	"github.com/safedep/vet/v2/internal/plugins/sinks/plain"
+	"github.com/safedep/vet/v2/internal/plugins/sinks/sarif"
+	"github.com/safedep/vet/v2/internal/plugins/sinks/table"
 	"github.com/safedep/vet/v2/internal/tui/output"
 	"github.com/safedep/vet/v2/plugin"
 )
@@ -28,7 +35,17 @@ type Spec struct {
 type Registry []Spec
 
 // Builtin returns the built-in formats.
-func Builtin() Registry { return Registry{} }
+func Builtin() Registry {
+	return Registry{
+		{Name: cyclonedx.Name, Description: "a CycloneDX 1.6 BOM of the packages and their vulnerabilities", New: cyclonedx.New},
+		{Name: json.Name, Description: "the report as one JSON document", New: json.New},
+		{Name: jsonl.Name, Description: "one report record on each line, as JSON", New: jsonl.New},
+		{Name: markdown.Name, Description: "the counts and the findings, for a pull request comment", New: markdown.New},
+		{Name: plain.Name, Description: "one finding on each line, with tab separated fields", New: plain.New},
+		{Name: sarif.Name, Description: "SARIF 2.1.0, for code scanning", New: sarif.New},
+		{Name: table.Name, Description: "the count cards and the most severe findings", New: table.New},
+	}
+}
 
 // Formats returns the format names.
 func (r Registry) Formats() []string {

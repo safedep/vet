@@ -1,0 +1,16 @@
+## vet scan
+
+| Packages | Findings | Critical | High | Suppressed | Gate |
+| ---: | ---: | ---: | ---: | ---: | --- |
+| 2 | 2 | 1 | 0 | 1 | NONE |
+
+| Severity | Control | Subject | Where | Finding |
+| --- | --- | --- | --- | --- |
+| critical | malware | `npm/evil-colors@1.4.1` | `package-lock.json:42` | `f-478cf580259c82ac` |
+| medium | unpinned-action | `.github/workflows/ci.yml` | `.github/workflows/ci.yml:8` | `f-e815bb3b5e0846f1` |
+
+<details><summary>1 suppressed</summary>
+
+- `dependency-cooldown` `npm/left-pad@1.3.0`: Reviewed
+
+</details>
