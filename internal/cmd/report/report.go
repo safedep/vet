@@ -18,7 +18,7 @@ func New(a *app.App) *cobra.Command {
 format, apply a new gate to it, list the scans, compare two scans, show one
 finding and print the JSON Schema of the report. They make no new scan.`,
 	}
-	c.AddCommand(newShow(a), newList(a), newDiff(a), newFinding(a))
+	c.AddCommand(newShow(a), newList(a), newDiff(a), newFinding(a), newSchema(a))
 	return c
 }
 
