@@ -19,12 +19,28 @@ import (
 // nonRegistrySource returns the git or file source of a lockfile entry,
 // or "". An HTTP registry URL is the lockfile control's concern.
 func nonRegistrySource(resolved string) string {
+	if projectRoot(resolved) {
+		return ""
+	}
 	for _, prefix := range []string{"git+", "git:", "github:", "file:", "link:", "path:"} {
 		if strings.HasPrefix(resolved, prefix) {
 			return resolved
 		}
 	}
 	return ""
+}
+
+var extras = regexp.MustCompile(`\[[^\]]*\]$`)
+
+// projectRoot reports a source that is the project itself, such as
+// "file:." in a lockfile or "-e .[dev]" in a requirements file. The
+// project installs its own code, which is not a dependency.
+func projectRoot(spec string) bool {
+	s := strings.TrimSpace(spec)
+	s = strings.TrimSpace(strings.TrimPrefix(s, "-e"))
+	s = strings.TrimPrefix(strings.TrimPrefix(strings.TrimPrefix(s, "file:"), "path:"), "link:")
+	s = extras.ReplaceAllString(strings.TrimSpace(s), "")
+	return s == "." || s == "./"
 }
 
 // npmManifests are the npm files whose package.json declares the
@@ -104,7 +120,7 @@ func requirements(m *model.Manifest) ([]finding.Finding, error) {
 		if line == "" || strings.HasPrefix(line, "#") || strings.HasPrefix(line, "--") {
 			continue
 		}
-		if requirementSource.MatchString(line) {
+		if requirementSource.MatchString(line) && !projectRoot(line) {
 			out = append(out, fileFinding(m.Path, data, line, line))
 		}
 	}
