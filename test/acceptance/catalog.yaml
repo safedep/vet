@@ -206,6 +206,12 @@
   tier: P1
   guarantee: "A package one typo away from a popular package, with few downloads, gives a high typosquat finding."
   labels: [reputation]
+- id: controls/workflow/hardening
+  title: "workflow: hardening controls"
+  category: controls
+  tier: P1
+  guarantee: "write-all permissions, secrets: inherit, a secret in a script and a self-hosted runner give the workflow hardening findings. A workflow with read permissions and secrets in env gives none."
+  labels: [workflow]
 - id: controls/workflow/dangerous-trigger
   title: "workflow: dangerous trigger"
   category: controls

@@ -1,6 +1,11 @@
 // Package workflow holds the GitHub Actions workflow controls: a dangerous
-// trigger with a checkout of the pull request, template injection, and an
-// action that is not pinned to a commit SHA.
+// trigger with a checkout of the pull request, template injection, an
+// action that is not pinned to a commit SHA, and the hardening controls of
+// the control catalog, phase 4.
+//
+// The action health control of phase 4 is not a control of its own: the
+// vulnerability and deprecated-package controls check actions as packages.
+// The archived check waits for gap G5 and the retag check for gap G8.
 package workflow
 
 import (
@@ -78,7 +83,15 @@ var infos = map[string]plugin.ControlInfo{
 
 // Controls describes the control ids.
 func (c *Control) Controls() []plugin.ControlInfo {
-	return []plugin.ControlInfo{infos[IDDangerousTrigger], infos[IDTemplateInjection], infos[IDUnpinnedAction]}
+	out := []plugin.ControlInfo{infos[IDDangerousTrigger], infos[IDTemplateInjection], infos[IDUnpinnedAction]}
+	for _, id := range hardeningIDs {
+		out = append(out, infos[id])
+	}
+	return out
+}
+
+func pluginInfo(id string, sev finding.Severity, title, desc string) plugin.ControlInfo {
+	return plugin.ControlInfo{ID: id, Family: finding.FamilyWorkflow, Severity: sev, Title: title, Description: desc}
 }
 
 // Evaluate reads the workflow file of the manifest from the target.
@@ -98,6 +111,7 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 	c.dangerousTrigger(e)
 	c.templateInjection(e)
 	c.unpinned(e)
+	c.hardening(e)
 	return e.out, nil
 }
 

@@ -2,7 +2,7 @@
 cd proj
 exec vet scan . --mode plain -o plain
 stdout 'unpinned-action\t.github/workflows/tag.yml\t.github/workflows/tag.yml:6'
-! stdout 'pinned.yml'
+! stdout 'unpinned-action\t.github/workflows/pinned.yml'
 
 -- proj/.github/workflows/tag.yml --
 on: push

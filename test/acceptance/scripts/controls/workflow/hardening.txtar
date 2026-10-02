@@ -1,0 +1,33 @@
+# The workflow hardening controls report write-all permissions, secrets:
+# inherit, a secret in a script and a self-hosted runner. A workflow with
+# read permissions and secrets in env gives none of them.
+cd proj
+exec vet scan . --mode plain -o plain
+stdout 'medium\texcessive-permissions\t.github/workflows/release.yml'
+stdout 'high\tsecrets-exposure\t.github/workflows/release.yml'
+stdout 'medium\tself-hosted-runner\t.github/workflows/release.yml'
+! stdout 'clean.yml'
+
+-- proj/.github/workflows/release.yml --
+on: push
+permissions: write-all
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - run: |
+          curl -H "Authorization: ${{ secrets.NPM_TOKEN }}" https://example.com
+  deploy:
+    uses: org/repo/.github/workflows/deploy.yml@6b9c6063abd6010835644d4c2e1bef4cf5cd0fca
+    secrets: inherit
+-- proj/.github/workflows/clean.yml --
+on: pull_request
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: make test
+        env:
+          TOKEN: ${{ secrets.TOKEN }}

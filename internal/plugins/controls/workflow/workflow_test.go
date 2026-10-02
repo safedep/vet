@@ -3,6 +3,7 @@ package workflow
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 	"testing/fstest"
 
@@ -20,6 +21,10 @@ type hit struct {
 	title   string
 }
 
+// hardening keeps the findings of the hardening controls in evaluate. The
+// phase 1 tests leave them out.
+var hardening bool
+
 func evaluate(t *testing.T, options plugin.MapConfig, file string, kind model.ManifestKind) []hit {
 	t.Helper()
 	data, err := os.ReadFile(filepath.Join("testdata", file))
@@ -30,6 +35,9 @@ func evaluate(t *testing.T, options plugin.MapConfig, file string, kind model.Ma
 	m := &model.Manifest{ID: "m1", Path: p, Kind: kind, Ecosystem: model.EcosystemGitHubActions, Root: fstest.MapFS{p: {Data: data}}}
 	var out []hit
 	for _, f := range plugintest.TestControl(t, c, m, nil) {
+		if slices.Contains(hardeningIDs, f.ControlID) && !hardening {
+			continue
+		}
 		require.NotNil(t, f.Locus)
 		assert.Equal(t, p, f.Subject.File.Path)
 		assert.NotEmpty(t, f.Locus.Snippet)
@@ -159,4 +167,36 @@ func TestPinned(t *testing.T) {
 func TestNewRejectsBadPattern(t *testing.T) {
 	_, err := New(plugin.MapConfig{"allow_unpinned": []any{"["}})
 	assert.Error(t, err)
+}
+
+func TestHardening(t *testing.T) {
+	hardening = true
+	t.Cleanup(func() { hardening = false })
+	byID := func(hits []hit) map[string][]int {
+		out := map[string][]int{}
+		for _, h := range hits {
+			if slices.Contains(hardeningIDs, h.control) {
+				out[h.control] = append(out[h.control], h.line)
+			}
+		}
+		return out
+	}
+	assert.Equal(t, map[string][]int{
+		IDSelfHostedRunner:     {10},
+		IDExcessivePermissions: {11},
+		IDSpoofableBot:         {12},
+		IDCachePoisoning:       {14},
+		IDArtifactPoisoning:    {17},
+		IDEnvInjection:         {19},
+		IDSecretsExposure:      {20, 21, 24},
+	}, sortLines(byID(evaluate(t, nil, "hardening.yml", model.ManifestKindWorkflow))))
+	assert.Empty(t, byID(evaluate(t, nil, "hardened.yml", model.ManifestKindWorkflow)), "a workflow with read permissions and secrets in env is clean")
+	assert.Equal(t, map[string][]int{IDExcessivePermissions: {1}}, byID(evaluate(t, nil, "unpinned.yml", model.ManifestKindWorkflow)), "a workflow with no permissions")
+}
+
+func sortLines(m map[string][]int) map[string][]int {
+	for k := range m {
+		slices.Sort(m[k])
+	}
+	return m
 }

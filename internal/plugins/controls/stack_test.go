@@ -124,14 +124,15 @@ func TestEveryControlOnAScan(t *testing.T) {
 		sort.Strings(v)
 	}
 	assert.Equal(t, map[string][]string{
-		"dependency-cooldown": {"left-pad"},
-		"deprecated-package":  {"left-pad"},
-		"malware":             {"safedep-test-pkg"},
-		"vulnerability":       {"left-pad"},
-		"untrusted-registry":  {"package-lock.json"},
-		"dangerous-trigger":   {".github/workflows/ci.yml"},
-		"template-injection":  {".github/workflows/ci.yml"},
-		"unpinned-action":     {".github/workflows/ci.yml"},
+		"dependency-cooldown":   {"left-pad"},
+		"deprecated-package":    {"left-pad"},
+		"excessive-permissions": {".github/workflows/ci.yml"},
+		"malware":               {"safedep-test-pkg"},
+		"vulnerability":         {"left-pad"},
+		"untrusted-registry":    {"package-lock.json"},
+		"dangerous-trigger":     {".github/workflows/ci.yml"},
+		"template-injection":    {".github/workflows/ci.yml"},
+		"unpinned-action":       {".github/workflows/ci.yml"},
 	}, got)
 }
 

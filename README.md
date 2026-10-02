@@ -115,6 +115,13 @@ prints them.
 | `dangerous-trigger` | workflow | high | A `pull_request_target` or `workflow_run` workflow that checks out untrusted code |
 | `template-injection` | workflow | high | An untrusted expression inside a `run:` script |
 | `unpinned-action` | workflow | medium | A third-party action that a tag or a branch selects |
+| `excessive-permissions` | workflow | medium | A workflow with no permissions or with write-all |
+| `secrets-exposure` | workflow | high | `secrets: inherit`, `toJSON(secrets)` or a secret in a script |
+| `github-env-injection` | workflow | high | A write to `GITHUB_ENV` or `GITHUB_PATH` with input that an outside user controls |
+| `cache-poisoning` | workflow | medium | A cache in a release or deploy job |
+| `artifact-poisoning` | workflow | medium | An artifact download in a `workflow_run` workflow |
+| `self-hosted-runner` | workflow | medium | A job on a self-hosted runner |
+| `spoofable-bot-condition` | workflow | medium | A condition on the actor name of a bot |
 | `editor-task-command` | agent-config | medium, high on folder open | A `.vscode/tasks.json` task that runs a shell command |
 | `agent-hook-command` | agent-config | medium | A Claude Code hook, a devcontainer lifecycle command or a git hook |
 | `mcp-server-added` | agent-config | medium | An MCP server in an agent or editor config |
