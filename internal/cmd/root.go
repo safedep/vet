@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/v2/internal/app"
+	"github.com/safedep/vet/v2/internal/cmd/version"
 )
 
 // New builds the full command tree. main and the tests call it, so both
@@ -40,6 +41,10 @@ Run "vet scan" in a project directory to start.`,
 	pf.BoolVar(&g.NoInput, "no-input", false, "Never prompt")
 	pf.StringVar(&g.ConfigFile, "config", "", "Config file to use in place of the user config file")
 	pf.StringVar(&g.Profile, "profile", "", "SafeDep credential profile")
+
+	root.AddCommand(
+		version.New(a),
+	)
 
 	return root
 }

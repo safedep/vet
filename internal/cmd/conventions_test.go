@@ -27,7 +27,7 @@ var (
 	// topLevelCommands are the children of the root. The list grows with
 	// each command until the tree of the command layout, section 3.2, is
 	// complete.
-	topLevelCommands = []string{}
+	topLevelCommands = []string{"version"}
 )
 
 const maxDepth = 3

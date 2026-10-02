@@ -232,6 +232,15 @@ Run `vet` anywhere using our container image:
 docker run --rm -v $(pwd):/app ghcr.io/safedep/vet:latest scan -D /app --malware-query
 ```
 
+## Command reference
+
+vet v2 has one page for each command under [docs/cmd](docs/cmd). The table lists every command in
+the order of the command tree.
+
+| Command | Description |
+| --- | --- |
+| [`vet version`](docs/cmd/version.md) | Show the version and the build of vet. |
+
 ## Installation
 
 ### Homebrew (Recommended)
