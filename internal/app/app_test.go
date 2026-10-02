@@ -16,6 +16,7 @@ import (
 	"github.com/safedep/vet/v2/internal/config/appdir"
 	"github.com/safedep/vet/v2/internal/tui/output"
 	"github.com/safedep/vet/v2/internal/tui/printer"
+	"github.com/safedep/vet/v2/internal/tui/prompt"
 )
 
 func TestExitCode(t *testing.T) {
@@ -138,5 +139,28 @@ func TestConfig(t *testing.T) {
 
 	env["VET_OUTPUT_MODE"] = "loud"
 	_, err = newApp().Config(ConfigOptions{})
+	assert.Equal(t, ExitUsage, ExitCode(err))
+}
+
+func TestApplyNoInputRefusesPrompts(t *testing.T) {
+	a := New(Options{LookupEnv: func(string) (string, bool) { return "", false }})
+	a.Globals.NoInput = true
+	require.NoError(t, a.Apply())
+	t.Cleanup(func() { prompt.SetNoInput(false) })
+	_, err := prompt.Confirm("continue?", true)
+	assert.ErrorIs(t, err, prompt.ErrAgentMode)
+}
+
+func TestConfirmNamesTheFlag(t *testing.T) {
+	a := New(Options{LookupEnv: func(string) (string, bool) { return "", false }})
+	a.Globals.NoInput = true
+	require.NoError(t, a.Apply())
+	t.Cleanup(func() { prompt.SetNoInput(false) })
+	ok, err := a.Confirm("Delete 3 scans?", "--yes")
+	assert.False(t, ok)
+	ue, isUseful := usefulerror.AsUsefulError(err)
+	require.True(t, isUseful)
+	assert.Equal(t, CodeNeedsConfirmation, ue.Code())
+	assert.Contains(t, ue.Help(), "--yes")
 	assert.Equal(t, ExitUsage, ExitCode(err))
 }

@@ -5,13 +5,17 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"sync"
 
+	"github.com/safedep/dry/usefulerror"
+
 	"github.com/safedep/vet/v2/internal/config"
 	"github.com/safedep/vet/v2/internal/tui/output"
 	"github.com/safedep/vet/v2/internal/tui/printer"
+	"github.com/safedep/vet/v2/internal/tui/prompt"
 )
 
 // Globals are the global flags: -o, --mode, -v, -q, --no-input, --config
@@ -67,6 +71,7 @@ func (a *App) Apply() error {
 	if err := setMode(g.Mode, "--mode"); err != nil {
 		return err
 	}
+	prompt.SetNoInput(g.NoInput)
 	switch {
 	case g.Verbose:
 		output.SetVerbosity(output.Verbose)
@@ -132,4 +137,22 @@ func (a *App) Printer() (*printer.Printer, error) {
 		return nil, UsageError(fmt.Sprintf("-o: %v", err), "Use table, plain, json or jsonl.")
 	}
 	return printer.New(f), nil
+}
+
+// CodeNeedsConfirmation is the error code of a command that needs a
+// confirmation in agent mode or with --no-input. The command exits with
+// code 2.
+const CodeNeedsConfirmation = "usage_needs_confirmation"
+
+// Confirm asks a yes or no question. In agent mode or with --no-input it
+// does not wait for input. It returns a usage error that names the flag
+// that answers the question.
+func (a *App) Confirm(label, flag string) (bool, error) {
+	ok, err := prompt.Confirm(label, false)
+	if errors.Is(err, prompt.ErrAgentMode) || errors.Is(err, prompt.ErrNoTTY) {
+		msg := fmt.Sprintf("%s: vet cannot ask in this mode", label)
+		return false, usefulerror.NewUsefulError().WithCode(CodeNeedsConfirmation).
+			WithHumanError(msg).WithHelp(fmt.Sprintf("Pass %s to confirm.", flag)).WithMsg(msg)
+	}
+	return ok, err
 }
