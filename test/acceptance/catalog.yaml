@@ -242,3 +242,15 @@
   tier: P1
   guarantee: "vet report show --policy FILE evaluates a policy against the last scan with no new scan."
   labels: [report, gate]
+- id: policy/validate/bad-policy-exit-2
+  title: "an invalid policy exits 2"
+  category: policy
+  tier: P1
+  guarantee: "An invalid policy file gives exit 2 and names the error."
+  labels: [gate]
+- id: policy/init/starter
+  title: "the starter policy validates and applies"
+  category: policy
+  tier: P1
+  guarantee: "vet policy init writes a starter policy that vet policy validate accepts and vet scan --policy applies."
+  labels: [gate]

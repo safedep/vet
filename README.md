@@ -245,6 +245,10 @@ the order of the command tree.
 | [`vet report diff`](docs/cmd/report-diff.md) | Compare the findings of two saved scans. |
 | [`vet report finding show`](docs/cmd/report-finding-show.md) | Show one finding of a saved scan. |
 | [`vet report schema get`](docs/cmd/report-schema-get.md) | Print the JSON Schema of the report. |
+| [`vet policy init`](docs/cmd/policy-init.md) | Write a starter policy file. |
+| [`vet policy validate`](docs/cmd/policy-validate.md) | Check a policy file. |
+| [`vet policy control list`](docs/cmd/policy-control-list.md) | List the controls and their default severities. |
+| [`vet policy schema get`](docs/cmd/policy-schema-get.md) | Print the JSON Schema of the rule input. |
 | [`vet version`](docs/cmd/version.md) | Show the version and the build of vet. |
 
 ## Installation

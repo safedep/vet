@@ -1,0 +1,32 @@
+# An invalid policy file gives exit 2 and names the error. A valid file
+# exits 0.
+execexit 2 vet policy validate bad.yml --mode plain
+stderr 'policy_invalid'
+stderr 'rules\[0\]: action is "block"'
+stderr 'suppressions\[0\]: reason is empty'
+
+execexit 2 vet scan proj --mode plain --policy bad.yml
+stderr 'policy_invalid'
+
+exec vet policy validate good.yml --mode plain -o json
+jsonq stdout rules 1
+
+execexit 2 vet policy validate missing.yml --mode plain
+stderr 'policy_invalid'
+
+-- bad.yml --
+version: 2
+rules:
+  - id: r1
+    when: finding.severity == "critical"
+    action: block
+suppressions:
+  - control: malware
+-- good.yml --
+version: 2
+rules:
+  - id: r1
+    when: package.days_since_publish < 5
+    action: warn
+-- proj/requirements.txt --
+requests==2.31.0
