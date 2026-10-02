@@ -10,10 +10,6 @@ concurrency: ci-release-automation
 permissions:
   contents: read
 
-env:
-  OSX_CROSS_TOOLCHAIN_REPOSITORY: https://github.com/abhisek/osxcross
-  OSX_CROSS_MACOS_SDK_VERSION: "12.3"
-
 jobs:
   goreleaser:
     timeout-minutes: 60
@@ -30,48 +26,6 @@ jobs:
         with:
           go-version-file: go.mod
           check-latest: true
-      - name: Install OSX Cross Compiler Build Tools
-        run: |
-          # ubuntu-latest (24.04) inadvertently enables ARM64 in APT sources, but the
-          # Azure-hosted mirror doesn't carry those packages, causing 404 errors when
-          # installing cross-compiler toolchains (e.g. gcc-aarch64-linux-gnu).
-          # Fix: restrict the APT source to amd64 only before updating indexes.
-          # Refs:
-          #   https://github.com/actions/runner-images/issues/10901
-          #   https://github.com/actions/runner-images/issues/12878
-          sudo sed -i 's/^Types: deb$/Types: deb\nArchitectures: amd64/' /etc/apt/sources.list.d/ubuntu.sources
-          sudo apt-get update -y
-          sudo apt-get install -y -qq --no-install-recommends \
-            build-essential clang gcc g++ gcc-mingw-w64 \
-            zlib1g-dev libmpc-dev libmpfr-dev libgmp-dev \
-            cmake libxml2-dev libssl-dev xz-utils \
-            gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-
-      - name: Setup OSX Cross Compiler Tool Chain Environment
-        run: |
-          echo "OSXCROSS_DIR=$(dirname $GITHUB_WORKSPACE)/osxcross" >> $GITHUB_ENV
-      - name: Clone OSX Cross Compiler Tool Chain
-        run: git clone $OSX_CROSS_TOOLCHAIN_REPOSITORY $OSXCROSS_DIR
-
-      - name: Setup Cache for OSX Cross Compiler Tool Chain
-        id: osxcross-cache
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        with:
-          # Cache the whole target dir (bin + SDK + lib). Caching only target/bin
-          # restores the clang wrappers but not target/SDK, and the build step
-          # below is skipped on a cache hit, so the macOS SDK goes missing and the
-          # darwin CGO build fails with "cannot find macOS SDK".
-          key: ${{ runner.os }}-osxcross-${{ env.OSX_CROSS_MACOS_SDK_VERSION }}-target
-          path: ${{ env.OSXCROSS_DIR }}/target
-      - name: Build OSX Cross Compiler Tool Chain
-        if: steps.osxcross-cache.outputs.cache-hit != 'true'
-        run: |
-          cd $OSXCROSS_DIR
-          SDK_VERSION=$OSX_CROSS_MACOS_SDK_VERSION UNATTENDED=yes ./build.sh
-      - name: Add OSX Cross Compiler Tool Chain to Path
-        run: |
-          echo "$OSXCROSS_DIR/target/bin" >> $GITHUB_PATH
-
       - name: Extract version
         id: version
         shell: bash
