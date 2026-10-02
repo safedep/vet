@@ -376,11 +376,18 @@ func (s *Scan) AddManifest(ctx context.Context, artifactKey string, m *model.Man
 	})
 }
 
+// Enrichment statuses.
+const (
+	EnrichmentOK       = "ok"
+	EnrichmentNotFound = "not_found"
+	EnrichmentFailed   = "failed"
+)
+
 // EnrichmentResult is the data that one enricher set on one package.
 type EnrichmentResult struct {
 	Package  *model.Package
 	Enricher string
-	// Status is "ok", "not_found" or "failed".
+	// Status is EnrichmentOK, EnrichmentNotFound or EnrichmentFailed.
 	Status string
 }
 

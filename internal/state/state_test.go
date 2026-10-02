@@ -101,7 +101,7 @@ func TestScanFileWrites(t *testing.T) {
 	assert.Equal(t, ArtifactExtracted, art.Status, "the manifest commits with the done mark of its artifact")
 
 	m.Packages[0].Malware = &model.MalwareAnalysis{Malicious: true}
-	require.NoError(t, scan.SaveEnrichments(ctx, []EnrichmentResult{{Package: m.Packages[0], Enricher: "malysis", Status: "ok"}}))
+	require.NoError(t, scan.SaveEnrichments(ctx, []EnrichmentResult{{Package: m.Packages[0], Enricher: "malysis", Status: EnrichmentOK}}))
 
 	f := finding.ForPackage(finding.Meta{ControlID: "malware", Family: finding.FamilyMalware, Severity: finding.SeverityCritical, Title: "x"},
 		m.Path, m.Packages[0], finding.Key{})

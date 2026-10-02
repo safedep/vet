@@ -74,7 +74,7 @@ func TestPackagesQuery(t *testing.T) {
 	assert.Equal(t, 1, count(plugin.PackageQuery{ChangedOnly: true}))
 
 	m.Packages[1].Insight = &model.Insight{Licenses: []string{"MIT"}}
-	require.NoError(t, scan.SaveEnrichments(ctx, []EnrichmentResult{{Package: m.Packages[1], Enricher: "insights", Status: "ok"}}))
+	require.NoError(t, scan.SaveEnrichments(ctx, []EnrichmentResult{{Package: m.Packages[1], Enricher: "insights", Status: EnrichmentOK}}))
 	p, err := scan.Package(ctx, m.Packages[1].ID)
 	require.NoError(t, err)
 	require.NotNil(t, p.Insight)
