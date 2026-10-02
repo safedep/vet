@@ -24,10 +24,7 @@ const safedepAPI = "buf.build/gen/go/safedep/api"
 // exist fails the test, so the list only shrinks.
 var legacyV1 = []string{
 	module + "/ent",
-	module + "/gen",
 	module + "/internal/analytics",
-	module + "/internal/command",
-	module + "/internal/ui",
 	module + "/pkg",
 	module + "/signatures",
 }
