@@ -1,7 +1,7 @@
 [
   {
     "manifest": {
-      "id": "m-b803fcb7f17e",
+      "id": "m-6783888d394f",
       "path": ".github/workflows/ci.yml",
       "ecosystem": "github-actions",
       "kind": "workflow",

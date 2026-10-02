@@ -60,9 +60,10 @@ func (m *Manifest) ReadFile() ([]byte, error) {
 	return fs.ReadFile(m.Root, m.Path)
 }
 
-// ManifestID returns the stable id of a manifest path in a target: "m-"
-// and 12 hex digits of the SHA-256 of the path.
-func ManifestID(path string) string {
-	sum := sha256.Sum256([]byte(path))
+// ManifestID returns the stable id of the manifest that an extractor reads
+// from a path in a target: "m-" and 12 hex digits of the SHA-256 of the
+// path and the extractor name. Two extractors can read one file.
+func ManifestID(path, extractor string) string {
+	sum := sha256.Sum256([]byte(path + "\x00" + extractor))
 	return "m-" + hex.EncodeToString(sum[:6])
 }

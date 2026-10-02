@@ -303,77 +303,82 @@ type packageData struct {
 // half a manifest.
 func (s *Scan) AddManifest(ctx context.Context, artifactKey string, m *model.Manifest) error {
 	return s.tx(ctx, func(tx *sql.Tx) error {
-		var seq int
-		if err := tx.QueryRowContext(ctx, `SELECT COALESCE(MAX(seq), 0) + 1 FROM vet_scan_manifests`).Scan(&seq); err != nil {
+		if err := addManifestTx(ctx, tx, artifactKey, m); err != nil {
 			return err
 		}
-		md, err := json.Marshal(manifestData{Manifest: m})
+		if artifactKey == "" {
+			return nil
+		}
+		_, err := tx.ExecContext(ctx, `UPDATE vet_scan_artifacts SET status = ? WHERE key = ?`, ArtifactExtracted, artifactKey)
+		return err
+	})
+}
+
+func addManifestTx(ctx context.Context, tx *sql.Tx, artifactKey string, m *model.Manifest) error {
+	var seq int
+	if err := tx.QueryRowContext(ctx, `SELECT COALESCE(MAX(seq), 0) + 1 FROM vet_scan_manifests`).Scan(&seq); err != nil {
+		return err
+	}
+	md, err := json.Marshal(manifestData{Manifest: m})
+	if err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, `INSERT INTO vet_scan_manifests (id, seq, artifact_key, path, ecosystem, kind, data)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT (id) DO UPDATE SET artifact_key = excluded.artifact_key, path = excluded.path,
+		ecosystem = excluded.ecosystem, kind = excluded.kind, data = excluded.data`,
+		m.ID, seq, artifactKey, m.Path, string(m.Ecosystem), string(m.Kind), md); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, `DELETE FROM vet_scan_manifest_packages WHERE manifest_id = ?`, m.ID); err != nil {
+		return err
+	}
+	for i, p := range m.Packages {
+		purl := p.ID.PURL()
+		if _, err := tx.ExecContext(ctx, `INSERT INTO vet_scan_packages (purl, ecosystem, name, version)
+			VALUES (?, ?, ?, ?) ON CONFLICT (purl) DO NOTHING`,
+			purl, string(p.ID.Ecosystem), p.ID.QualifiedName(), p.ID.Version); err != nil {
+			return err
+		}
+		bare := *p
+		bare.Insight, bare.Malware, bare.Usage = nil, nil, nil
+		pd, err := json.Marshal(packageData{Package: bare})
 		if err != nil {
 			return err
 		}
-		if _, err := tx.ExecContext(ctx, `INSERT INTO vet_scan_manifests (id, seq, artifact_key, path, ecosystem, kind, data)
-			VALUES (?, ?, ?, ?, ?, ?, ?)
-			ON CONFLICT (id) DO UPDATE SET artifact_key = excluded.artifact_key, path = excluded.path,
-			ecosystem = excluded.ecosystem, kind = excluded.kind, data = excluded.data`,
-			m.ID, seq, artifactKey, m.Path, string(m.Ecosystem), string(m.Kind), md); err != nil {
+		if _, err := tx.ExecContext(ctx, `INSERT INTO vet_scan_manifest_packages (manifest_id, purl, seq, change, data)
+			VALUES (?, ?, ?, ?, ?)
+			ON CONFLICT (manifest_id, purl) DO UPDATE SET data = excluded.data, change = excluded.change`,
+			m.ID, purl, i, string(p.Change), pd); err != nil {
 			return err
 		}
-		if _, err := tx.ExecContext(ctx, `DELETE FROM vet_scan_manifest_packages WHERE manifest_id = ?`, m.ID); err != nil {
-			return err
-		}
-		for i, p := range m.Packages {
-			purl := p.ID.PURL()
-			if _, err := tx.ExecContext(ctx, `INSERT INTO vet_scan_packages (purl, ecosystem, name, version)
-				VALUES (?, ?, ?, ?) ON CONFLICT (purl) DO NOTHING`,
-				purl, string(p.ID.Ecosystem), p.ID.QualifiedName(), p.ID.Version); err != nil {
-				return err
-			}
-			bare := *p
-			bare.Insight, bare.Malware, bare.Usage = nil, nil, nil
-			pd, err := json.Marshal(packageData{Package: bare})
-			if err != nil {
-				return err
-			}
-			if _, err := tx.ExecContext(ctx, `INSERT INTO vet_scan_manifest_packages (manifest_id, purl, seq, change, data)
-				VALUES (?, ?, ?, ?, ?)
-				ON CONFLICT (manifest_id, purl) DO UPDATE SET data = excluded.data, change = excluded.change`,
-				m.ID, purl, i, string(p.Change), pd); err != nil {
+	}
+	if _, err := tx.ExecContext(ctx, `DELETE FROM vet_scan_edges WHERE manifest_id = ?`, m.ID); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, `DELETE FROM vet_scan_roots WHERE manifest_id = ?`, m.ID); err != nil {
+		return err
+	}
+	if m.Graph != nil {
+		for _, r := range m.Graph.Roots() {
+			if _, err := tx.ExecContext(ctx, `INSERT OR IGNORE INTO vet_scan_roots (manifest_id, purl) VALUES (?, ?)`,
+				m.ID, r.PURL()); err != nil {
 				return err
 			}
 		}
-		if _, err := tx.ExecContext(ctx, `DELETE FROM vet_scan_edges WHERE manifest_id = ?`, m.ID); err != nil {
-			return err
-		}
-		if _, err := tx.ExecContext(ctx, `DELETE FROM vet_scan_roots WHERE manifest_id = ?`, m.ID); err != nil {
-			return err
-		}
-		if m.Graph != nil {
-			for _, r := range m.Graph.Roots() {
-				if _, err := tx.ExecContext(ctx, `INSERT OR IGNORE INTO vet_scan_roots (manifest_id, purl) VALUES (?, ?)`,
-					m.ID, r.PURL()); err != nil {
-					return err
-				}
-			}
-			var edgeErr error
-			m.Graph.Edges(func(parent, child model.PackageID) {
-				if edgeErr != nil {
-					return
-				}
-				_, edgeErr = tx.ExecContext(ctx, `INSERT OR IGNORE INTO vet_scan_edges (manifest_id, parent, child) VALUES (?, ?, ?)`,
-					m.ID, parent.PURL(), child.PURL())
-			})
+		var edgeErr error
+		m.Graph.Edges(func(parent, child model.PackageID) {
 			if edgeErr != nil {
-				return edgeErr
+				return
 			}
+			_, edgeErr = tx.ExecContext(ctx, `INSERT OR IGNORE INTO vet_scan_edges (manifest_id, parent, child) VALUES (?, ?, ?)`,
+				m.ID, parent.PURL(), child.PURL())
+		})
+		if edgeErr != nil {
+			return edgeErr
 		}
-		if artifactKey != "" {
-			if _, err := tx.ExecContext(ctx, `UPDATE vet_scan_artifacts SET status = ? WHERE key = ?`,
-				ArtifactExtracted, artifactKey); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
+	}
+	return nil
 }
 
 // Enrichment statuses.
@@ -382,6 +387,101 @@ const (
 	EnrichmentNotFound = "not_found"
 	EnrichmentFailed   = "failed"
 )
+
+// ArtifactStale marks an artifact of a continued scan that the current run
+// has not seen yet.
+const ArtifactStale = "stale"
+
+// CommitArtifact writes the manifests of one artifact and marks it
+// extracted, in one transaction. It first deletes the manifests that an
+// earlier run read from the artifact.
+func (s *Scan) CommitArtifact(ctx context.Context, a ArtifactRecord, ms []*model.Manifest) error {
+	a.Status = ArtifactExtracted
+	return s.tx(ctx, func(tx *sql.Tx) error {
+		if err := deleteManifestsTx(ctx, tx, `artifact_key = ?`, a.Key); err != nil {
+			return err
+		}
+		if _, err := tx.ExecContext(ctx, `INSERT INTO vet_scan_artifacts (key, kind, path, size, mtime, status, error)
+			VALUES (?, ?, ?, ?, ?, ?, ?)
+			ON CONFLICT (key) DO UPDATE SET kind = excluded.kind, path = excluded.path, size = excluded.size,
+			mtime = excluded.mtime, status = excluded.status, error = excluded.error`,
+			a.Key, a.Kind, a.Path, a.Size, unixMilli(a.MTime), a.Status, a.Error); err != nil {
+			return fmt.Errorf("write artifact %s: %w", a.Key, err)
+		}
+		for _, m := range ms {
+			if err := addManifestTx(ctx, tx, a.Key, m); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+// deleteManifestsTx deletes the manifests that match a condition, with
+// their packages, edges, roots and findings.
+func deleteManifestsTx(ctx context.Context, tx *sql.Tx, where string, args ...any) error {
+	sub := `SELECT id FROM vet_scan_manifests WHERE ` + where
+	for _, table := range []string{"vet_scan_manifest_packages", "vet_scan_edges", "vet_scan_roots", "vet_scan_findings"} {
+		if _, err := tx.ExecContext(ctx, `DELETE FROM `+table+` WHERE manifest_id IN (`+sub+`)`, args...); err != nil {
+			return err
+		}
+	}
+	_, err := tx.ExecContext(ctx, `DELETE FROM vet_scan_manifests WHERE `+where, args...)
+	return err
+}
+
+// MarkArtifactsStale marks each extracted artifact stale. A continued scan
+// calls it before it walks the target again.
+func (s *Scan) MarkArtifactsStale(ctx context.Context) error {
+	_, err := s.db.ExecContext(ctx, `UPDATE vet_scan_artifacts SET status = ? WHERE status = ?`, ArtifactStale, ArtifactExtracted)
+	return err
+}
+
+// ReviveArtifact marks a stale artifact extracted again, when the file has
+// not changed.
+func (s *Scan) ReviveArtifact(ctx context.Context, key string) error {
+	_, err := s.db.ExecContext(ctx, `UPDATE vet_scan_artifacts SET status = ? WHERE key = ?`, ArtifactExtracted, key)
+	return err
+}
+
+// DropStaleArtifacts deletes the artifacts that the run did not see, with
+// their manifests. It returns how many it deleted.
+func (s *Scan) DropStaleArtifacts(ctx context.Context) (int64, error) {
+	var n int64
+	err := s.tx(ctx, func(tx *sql.Tx) error {
+		if err := deleteManifestsTx(ctx, tx, `artifact_key IN (SELECT key FROM vet_scan_artifacts WHERE status = ?)`, ArtifactStale); err != nil {
+			return err
+		}
+		res, err := tx.ExecContext(ctx, `DELETE FROM vet_scan_artifacts WHERE status = ?`, ArtifactStale)
+		if err != nil {
+			return err
+		}
+		n, err = res.RowsAffected()
+		return err
+	})
+	return n, err
+}
+
+// ClearFindings deletes every finding and marks each manifest not
+// evaluated. A run evaluates the controls again, because the policy can
+// change between runs.
+func (s *Scan) ClearFindings(ctx context.Context) error {
+	return s.tx(ctx, func(tx *sql.Tx) error {
+		if _, err := tx.ExecContext(ctx, `DELETE FROM vet_scan_findings`); err != nil {
+			return err
+		}
+		_, err := tx.ExecContext(ctx, `UPDATE vet_scan_manifests SET evaluated = 0`)
+		return err
+	})
+}
+
+// Counts returns the number of distinct packages and of findings.
+func (s *Scan) Counts(ctx context.Context) (packages, findings int, err error) {
+	err = s.db.QueryRowContext(ctx, `SELECT
+		(SELECT COUNT(DISTINCT purl) FROM vet_scan_manifest_packages),
+		(SELECT COUNT(*) FROM vet_scan_findings)`).Scan(&packages, &findings)
+	return packages, findings, err
+}
 
 // EnrichmentResult is the data that one enricher set on one package.
 type EnrichmentResult struct {

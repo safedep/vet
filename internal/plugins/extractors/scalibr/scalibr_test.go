@@ -74,7 +74,7 @@ func TestExtractFileGolden(t *testing.T) {
 			require.Len(t, ms, 1)
 			m := ms[0]
 			assert.Equal(t, tc.kind, m.Kind)
-			assert.Equal(t, model.ManifestID(tc.file), m.ID)
+			assert.Equal(t, model.ManifestID(tc.file, m.Extractor), m.ID)
 			assert.NotEmpty(t, m.Packages)
 			b, err := fs.ReadFile(m.Root, m.Path)
 			require.NoError(t, err)

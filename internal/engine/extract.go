@@ -1,0 +1,192 @@
+package engine
+
+import (
+	"context"
+	"fmt"
+	"io/fs"
+	"path"
+	"regexp"
+	"strings"
+	"time"
+
+	"github.com/safedep/vet/v2/internal/plugins/extractors/scalibr"
+	"github.com/safedep/vet/v2/internal/state"
+	"github.com/safedep/vet/v2/model"
+	"github.com/safedep/vet/v2/plugin"
+	"github.com/safedep/vet/v2/report"
+)
+
+// skipDirs are the directories that a code scan does not walk. Their
+// packages come from the lockfiles of the project.
+var skipDirs = map[string]bool{".git": true, "node_modules": true}
+
+var unknownPURLType = regexp.MustCompile(`unknown PURL type "([^"]+)"`)
+
+// extract walks each artifact and commits the manifests of each file. A
+// file that has not changed since a stopped run keeps its manifests.
+func (r *run) extract(ctx context.Context, artifacts []plugin.Artifact) error {
+	scan := r.res.Scan
+	if r.res.Continued {
+		if err := scan.MarkArtifactsStale(ctx); err != nil {
+			return err
+		}
+	}
+	done := 0
+	for _, a := range artifacts {
+		var err error
+		if a.Kind == plugin.ArtifactPURL {
+			err = r.extractPURL(ctx, a)
+		} else {
+			err = r.extractFiles(ctx, a, &done)
+		}
+		if err != nil {
+			return err
+		}
+	}
+	_, err := scan.DropStaleArtifacts(ctx)
+	return err
+}
+
+func (r *run) extractPURL(ctx context.Context, a plugin.Artifact) error {
+	id, err := model.ParsePURL(a.PURL)
+	if err != nil {
+		return err
+	}
+	m := &model.Manifest{
+		ID: model.ManifestID(a.PURL, "purl"), Path: a.PURL, Ecosystem: id.Ecosystem, Kind: model.ManifestKindPURL,
+		Packages: []*model.Package{{ID: id, Direct: true}},
+	}
+	return r.res.Scan.CommitArtifact(ctx, state.ArtifactRecord{Key: a.Key, Kind: string(a.Kind), Path: a.PURL}, []*model.Manifest{m})
+}
+
+func (r *run) extractFiles(ctx context.Context, a plugin.Artifact, done *int) error {
+	exs, err := r.o.Extractors(a.Kind)
+	if err != nil {
+		return err
+	}
+	fsys, err := scalibr.FileSystem(a.Path, a.Root)
+	if err != nil {
+		return err
+	}
+	visit := func(rel string, info fs.FileInfo) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		if err := r.extractFile(ctx, a, fsys, rel, info, exs); err != nil {
+			return err
+		}
+		*done++
+		r.o.Observer.Progress(StageExtract, *done, 0)
+		return nil
+	}
+
+	if len(a.Include) > 0 {
+		for _, rel := range a.Include {
+			info, err := fs.Stat(fsys, rel)
+			if err != nil {
+				return err
+			}
+			if err := visit(rel, info); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	return fs.WalkDir(fsys, ".", func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			// An unreadable directory does not stop the scan.
+			r.diags.add(report.DiagnosticWarning, CodeExtractFailed, "walk", err.Error())
+			if d != nil && d.IsDir() {
+				return fs.SkipDir
+			}
+			return nil
+		}
+		if p == "." {
+			return nil
+		}
+		if d.IsDir() {
+			if (a.Kind == plugin.ArtifactDirectory && skipDirs[d.Name()]) || r.excluded(p) {
+				return fs.SkipDir
+			}
+			return nil
+		}
+		if !d.Type().IsRegular() || r.excluded(p) {
+			return nil
+		}
+		info, err := d.Info()
+		if err != nil {
+			return nil
+		}
+		return visit(p, info)
+	})
+}
+
+// excluded matches a path against the exclude patterns. A pattern matches
+// the whole path, its base name, or a directory prefix of the path.
+func (r *run) excluded(p string) bool {
+	for _, pat := range r.o.Exclude {
+		pat = strings.TrimSuffix(pat, "/")
+		if ok, _ := path.Match(pat, p); ok {
+			return true
+		}
+		if ok, _ := path.Match(pat, path.Base(p)); ok {
+			return true
+		}
+		if strings.HasPrefix(p, pat+"/") {
+			return true
+		}
+	}
+	return false
+}
+
+func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, rel string, info fs.FileInfo, exs []plugin.Extractor) error {
+	wanted := scalibr.Wanted(exs, rel, info)
+	if len(wanted) == 0 && a.Kind == plugin.ArtifactSBOM {
+		// The user named the file as an SBOM, so its name does not matter.
+		wanted = sbomExtractors(exs)
+	}
+	if len(wanted) == 0 {
+		return nil
+	}
+
+	scan := r.res.Scan
+	key := a.Key + "::" + rel
+	prev, err := scan.Artifact(ctx, key)
+	if err != nil {
+		return err
+	}
+	if prev != nil && prev.Status != state.ArtifactPending && prev.Size == info.Size() && prev.MTime.Equal(info.ModTime().Truncate(time.Millisecond)) {
+		return scan.ReviveArtifact(ctx, key)
+	}
+
+	ms, errs := scalibr.Extract(ctx, scalibr.Input{FS: fsys, Root: a.Path, Path: rel, Info: info}, wanted)
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	for _, e := range errs {
+		r.extractError(e)
+	}
+	return scan.CommitArtifact(ctx, state.ArtifactRecord{
+		Key: key, Kind: string(a.Kind), Path: rel, Size: info.Size(), MTime: info.ModTime(),
+	}, ms)
+}
+
+func (r *run) extractError(err error) {
+	if m := unknownPURLType.FindStringSubmatch(err.Error()); m != nil {
+		r.diags.add(report.DiagnosticWarning, CodeUnknownEcosystem, "extract",
+			fmt.Sprintf("vet has no data for the %s ecosystem, so it skips its packages", m[1]))
+		return
+	}
+	r.diags.add(report.DiagnosticWarning, CodeExtractFailed, "extract", err.Error())
+}
+
+func sbomExtractors(exs []plugin.Extractor) []plugin.Extractor {
+	var out []plugin.Extractor
+	for _, e := range exs {
+		if strings.HasPrefix(e.Name(), "sbom/") {
+			out = append(out, e)
+		}
+	}
+	return out
+}

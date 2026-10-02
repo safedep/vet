@@ -353,3 +353,29 @@ func (s *Scan) PackagesLacking(ctx context.Context, enricher string) iter.Seq2[*
 		}
 	}
 }
+
+// PackagesToEnrich returns up to limit distinct packages, in PURL order and
+// after the PURL after, that an enricher has no "ok" or "not_found" result
+// for. A failed result comes back, so a continued scan tries it again. The
+// PURL cursor lets a run page through the packages while it writes results.
+func (s *Scan) PackagesToEnrich(ctx context.Context, enricher, after string, limit int) ([]*model.Package, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT mp.data, p.insight, p.malware, p.usage
+		FROM vet_scan_packages p
+		JOIN vet_scan_manifest_packages mp ON mp.purl = p.purl
+		  AND mp.manifest_id = (SELECT manifest_id FROM vet_scan_manifest_packages WHERE purl = p.purl ORDER BY manifest_id LIMIT 1)
+		WHERE p.purl > ?
+		  AND NOT EXISTS (SELECT 1 FROM vet_scan_enrichments e
+		    WHERE e.purl = p.purl AND e.enricher = ? AND e.status IN (?, ?))
+		ORDER BY p.purl LIMIT ?`, after, enricher, EnrichmentOK, EnrichmentNotFound, limit)
+	if err != nil {
+		return nil, fmt.Errorf("query packages to enrich: %w", err)
+	}
+	var out []*model.Package
+	for p, err := range decodePackages(rows) {
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, p)
+	}
+	return out, nil
+}

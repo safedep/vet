@@ -15,8 +15,8 @@ import (
 	"github.com/safedep/vet/v2/model"
 )
 
-// Input is the output of one extractor on one file.
-type Input struct {
+// Converted is the output of one extractor on one file.
+type Converted struct {
 	// Path is the manifest path relative to the target root, with "/".
 	Path string
 	// Extractor is the name of the Scalibr extractor.
@@ -39,12 +39,12 @@ type subpath interface{ Subpath() string }
 // knows, and one error for each package that it skipped. A package with an
 // ecosystem outside the vet ecosystem table is skipped, because no
 // enricher has data for it.
-func ToManifest(in Input) (*model.Manifest, []error) {
+func ToManifest(in Converted) (*model.Manifest, []error) {
 	if len(in.Inventory.Packages) == 0 {
 		return nil, nil
 	}
 	m := &model.Manifest{
-		ID:        model.ManifestID(in.Path),
+		ID:        model.ManifestID(in.Path, in.Extractor),
 		Path:      in.Path,
 		Kind:      kindOf(in.Extractor),
 		Extractor: in.Extractor,

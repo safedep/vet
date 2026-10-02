@@ -1,7 +1,7 @@
 [
   {
     "manifest": {
-      "id": "m-bfbb984cb168",
+      "id": "m-5cab0cb86b93",
       "path": "bom.cdx.json",
       "ecosystem": "maven",
       "kind": "sbom",
