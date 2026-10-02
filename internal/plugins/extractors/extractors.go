@@ -1,16 +1,19 @@
 // Package extractors composes the extractor set of a code scan: the
 // Scalibr source extractors, with the vet lockfile copies in place of the
 // upstream extractors of the same name, the vet copy of the GitHub Actions
-// extractor, and the vet extractors for Terraform and package.json.
+// extractor, and the vet extractors for Terraform and for the manifests
+// package.json, Cargo.toml and pyproject.toml.
 package extractors
 
 import (
 	"github.com/google/osv-scalibr/extractor/filesystem"
 
 	"github.com/safedep/vet/v2/internal/plugins/extractors/agentconfig"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/cargotoml"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/githubactions"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/packagejson"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/pyproject"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/scalibr"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/terraform"
 )
@@ -29,7 +32,7 @@ func Default() ([]filesystem.Extractor, error) {
 	if err != nil {
 		return nil, err
 	}
-	vet = append(vet, gha, terraform.New(), packagejson.New(), agentconfig.New())
+	vet = append(vet, gha, terraform.New(), packagejson.New(), cargotoml.New(), pyproject.New(), agentconfig.New())
 	return Override(base, vet...), nil
 }
 

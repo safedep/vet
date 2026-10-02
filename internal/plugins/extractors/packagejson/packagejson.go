@@ -7,10 +7,8 @@ package packagejson
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"maps"
 	"path"
 	"regexp"
@@ -23,6 +21,8 @@ import (
 	"github.com/google/osv-scalibr/inventory"
 	"github.com/google/osv-scalibr/plugin"
 	"github.com/google/osv-scalibr/purl"
+
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/manifestmode"
 )
 
 // Name is the name of the extractor.
@@ -63,18 +63,11 @@ func (Extractor) FileRequired(api filesystem.FileAPI) bool {
 
 // Extract returns the declared dependencies with the lowest version that
 // each range allows. It returns nothing when a lockfile is next to the
-// file. A dependency on a file, a URL or a git repository has no registry
+// file or in a parent directory, as in a workspace. A dependency on a file, a URL or a git repository has no registry
 // version, so it is skipped.
 func (Extractor) Extract(_ context.Context, in *filesystem.ScanInput) (inventory.Inventory, error) {
-	dir := path.Dir(in.Path)
-	for _, name := range lockfiles {
-		_, err := fs.Stat(in.FS, path.Join(dir, name))
-		if err == nil {
-			return inventory.Inventory{}, nil
-		}
-		if !errors.Is(err, fs.ErrNotExist) {
-			return inventory.Inventory{}, err
-		}
+	if locked, err := manifestmode.Locked(in.FS, path.Dir(in.Path), lockfiles); err != nil || locked {
+		return inventory.Inventory{}, err
 	}
 
 	b, err := io.ReadAll(in.Reader)

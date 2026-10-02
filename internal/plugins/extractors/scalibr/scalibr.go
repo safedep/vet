@@ -13,6 +13,7 @@ import (
 	"github.com/google/osv-scalibr/extractor/filesystem/language/javascript/denojson"
 	"github.com/google/osv-scalibr/extractor/filesystem/language/javascript/denotssource"
 	"github.com/google/osv-scalibr/extractor/filesystem/language/javascript/packagejson"
+	"github.com/google/osv-scalibr/extractor/filesystem/language/ruby/gemspec"
 	"github.com/google/osv-scalibr/extractor/filesystem/list"
 	"github.com/google/osv-scalibr/extractor/filesystem/misc/githubactions"
 	"github.com/google/osv-scalibr/plugin"
@@ -34,11 +35,13 @@ var sourceGroups = []list.InitMap{
 // excluded are Scalibr extractors that do not read the dependencies of a
 // project. Scalibr's packagejson reads the package that a package.json
 // describes. vet reads the dependencies of package.json with its own
-// extractor (research report, section 3).
+// extractor (research report, section 3). A gemspec in a source tree
+// describes the gem that the project builds.
 var excluded = map[string]bool{
 	packagejson.Name:  true,
 	denojson.Name:     true,
 	denotssource.Name: true,
+	gemspec.Name:      true,
 }
 
 // SourceExtractors returns the Scalibr extractors that vet runs on code,
