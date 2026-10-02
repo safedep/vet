@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -169,14 +170,19 @@ func (blobInfo) ModTime() time.Time { return time.Time{} }
 func (blobInfo) IsDir() bool        { return false }
 func (blobInfo) Sys() any           { return nil }
 
-// blobHash returns the git blob hash of a head file, to tell a changed
-// file from an unchanged one.
-func blobHash(fsys fs.FS, rel string) (plumbing.Hash, error) {
+// sameBlob reports whether a head file has the content of a base blob.
+// Git can check a file out with CRLF line ends and store it with LF
+// (core.autocrlf), so the file also matches when its LF form does.
+func sameBlob(fsys fs.FS, rel string, base plumbing.Hash) (bool, error) {
 	data, err := fs.ReadFile(fsys, rel)
 	if err != nil {
-		return plumbing.ZeroHash, err
+		return false, err
 	}
-	return plumbing.ComputeHash(plumbing.BlobObject, data), nil
+	if plumbing.ComputeHash(plumbing.BlobObject, data) == base {
+		return true, nil
+	}
+	lf := bytes.ReplaceAll(data, []byte("\r\n"), []byte("\n"))
+	return len(lf) != len(data) && plumbing.ComputeHash(plumbing.BlobObject, lf) == base, nil
 }
 
 // diff marks the change of each package of the head manifest against the

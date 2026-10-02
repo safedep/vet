@@ -9,6 +9,7 @@ import (
 	"iter"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 
 	gogit "github.com/go-git/go-git/v5"
@@ -63,7 +64,11 @@ func (s *Source) Artifacts(ctx context.Context) iter.Seq2[plugin.Artifact, error
 			yield(plugin.Artifact{}, errors.Join(err, cleanup()))
 			return
 		}
-		co := &gogit.CloneOptions{URL: repoURL, Depth: 1, Auth: auth, SingleBranch: true, Tags: gogit.NoTags}
+		cloneURL := repoURL
+		if p, ok := LocalPath(repoURL); ok {
+			cloneURL = p
+		}
+		co := &gogit.CloneOptions{URL: cloneURL, Depth: 1, Auth: auth, SingleBranch: true, Tags: gogit.NoTags}
 		if ref != "" {
 			co.ReferenceName = plumbing.ReferenceName(ref)
 		}
@@ -152,17 +157,30 @@ func Key(repoURL string) (string, error) {
 		}
 		return "git:" + strings.ToLower(host) + "/" + trimGit(path), nil
 	}
+	if p, ok := LocalPath(repoURL); ok {
+		return "git:file:" + trimGit(filepath.ToSlash(filepath.Clean(p))), nil
+	}
 	u, err := url.Parse(repoURL)
 	if err != nil {
 		return "", fmt.Errorf("bad repository URL %q: %w", repoURL, err)
-	}
-	if u.Scheme == "file" {
-		return "git:file" + trimGit(u.Path), nil
 	}
 	if u.Host == "" {
 		return "", fmt.Errorf("bad repository URL %q", repoURL)
 	}
 	return "git:" + strings.ToLower(u.Host) + "/" + trimGit(strings.TrimPrefix(u.Path, "/")), nil
+}
+
+// LocalPath returns the path of a file:// URL. It takes a Windows path in
+// both forms, file://C:\repo and file:///C:/repo, which url.Parse rejects.
+func LocalPath(repoURL string) (string, bool) {
+	p, ok := strings.CutPrefix(repoURL, "file://")
+	if !ok {
+		return "", false
+	}
+	if len(p) > 2 && p[0] == '/' && p[2] == ':' {
+		p = p[1:]
+	}
+	return filepath.FromSlash(p), true
 }
 
 func trimGit(p string) string {

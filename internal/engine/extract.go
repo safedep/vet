@@ -198,13 +198,16 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 		r.extractError(e)
 	}
 	if d != nil {
-		hash, err := blobHash(fsys, rel)
-		if err != nil {
-			return err
-		}
 		baseHash, inBase := d.base.hashes[rel]
+		same := false
+		if inBase {
+			var err error
+			if same, err = sameBlob(fsys, rel, baseHash); err != nil {
+				return err
+			}
+		}
 		for _, m := range ms {
-			diff(m, d.base.manifests[m.ID], !inBase || baseHash != hash)
+			diff(m, d.base.manifests[m.ID], !same)
 			d.seen[m.ID] = true
 		}
 	}

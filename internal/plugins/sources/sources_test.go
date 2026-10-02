@@ -135,11 +135,31 @@ func TestGitKey(t *testing.T) {
 		"https://GitHub.com/safedep/vet.git/": "git:github.com/safedep/vet",
 		"git@github.com:safedep/vet.git":      "git:github.com/safedep/vet",
 		"ssh://git@gitlab.com/a/b.git":        "git:gitlab.com/a/b",
+		"file:///srv/repo.git":                "git:file:/srv/repo",
 	}
 	for in, want := range cases {
 		got, err := git.Key(in)
 		require.NoError(t, err)
 		assert.Equal(t, want, got, in)
+	}
+}
+
+func TestGitLocalPath(t *testing.T) {
+	cases := []struct {
+		in, want string
+		ok       bool
+	}{
+		{in: "file:///srv/repo", want: filepath.FromSlash("/srv/repo"), ok: true},
+		{in: "file:///C:/work/repo", want: filepath.FromSlash("C:/work/repo"), ok: true},
+		{in: `file://C:\work\repo`, want: filepath.FromSlash(`C:\work\repo`), ok: true},
+		{in: "https://github.com/safedep/vet"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.in, func(t *testing.T) {
+			got, ok := git.LocalPath(tc.in)
+			assert.Equal(t, tc.ok, ok)
+			assert.Equal(t, tc.want, got)
+		})
 	}
 }
 
