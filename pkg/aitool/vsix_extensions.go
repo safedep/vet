@@ -45,9 +45,17 @@ func enumVSIXExtensions(
 			tool.SetMeta("extension.version", pkg.Version)
 			tool.SetMeta("extension.ecosystem", manifest.Ecosystem)
 
-			if ide := ideNameFromPath(manifest.GetPath()); ide != "" {
+			ide := ideNameFromPath(manifest.GetPath())
+			if ide != "" {
 				tool.SetMeta("extension.ide", ide)
 				tool.AppDisplay = ide
+			}
+
+			tool.Extension = &ExtensionConfig{
+				ID:        pkg.Name,
+				Version:   pkg.Version,
+				Ecosystem: manifest.Ecosystem,
+				IDE:       ide,
 			}
 
 			return handler(tool)

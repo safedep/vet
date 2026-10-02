@@ -75,6 +75,21 @@ func (m *mockMalwareAnalysisServiceClient) InternalAgenticAnalyzePackage(ctx con
 	return args.Get(0).(*malysisv1.InternalAgenticAnalyzePackageResponse), args.Error(1)
 }
 
+func (m *mockMalwareAnalysisServiceClient) InternalEnqueueAnalysis(ctx context.Context, req *malysisv1.InternalEnqueueAnalysisRequest, opts ...grpc.CallOption) (*malysisv1.InternalEnqueueAnalysisResponse, error) {
+	args := m.Called(ctx, req, opts)
+	return args.Get(0).(*malysisv1.InternalEnqueueAnalysisResponse), args.Error(1)
+}
+
+func (m *mockMalwareAnalysisServiceClient) InternalGetAnalysisReport(ctx context.Context, req *malysisv1.InternalGetAnalysisReportRequest, opts ...grpc.CallOption) (*malysisv1.InternalGetAnalysisReportResponse, error) {
+	args := m.Called(ctx, req, opts)
+	return args.Get(0).(*malysisv1.InternalGetAnalysisReportResponse), args.Error(1)
+}
+
+func (m *mockMalwareAnalysisServiceClient) InternalQueryPackageAnalysis(ctx context.Context, req *malysisv1.InternalQueryPackageAnalysisRequest, opts ...grpc.CallOption) (*malysisv1.InternalQueryPackageAnalysisResponse, error) {
+	args := m.Called(ctx, req, opts)
+	return args.Get(0).(*malysisv1.InternalQueryPackageAnalysisResponse), args.Error(1)
+}
+
 // Test helper functions
 func createTestPackageVersion() *packagev1.PackageVersion {
 	return &packagev1.PackageVersion{

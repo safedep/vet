@@ -7,8 +7,10 @@ package cloud
 
 import (
 	controltowerv1pb "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
+	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 
 	"github.com/safedep/vet/pkg/inventory"
+	"github.com/safedep/vet/pkg/models"
 )
 
 // itemToVetEvent wraps a single inventory item in a VetInventoryEvent
@@ -44,7 +46,7 @@ func scanErrorToVetEvent(e inventory.ScanError) *controltowerv1pb.VetInventoryEv
 }
 
 // inventoryItemToProto translates an *inventory.Item 1:1 to its proto
-// counterpart. Pointer fields (Enabled, MCPServer, Agent) preserve
+// counterpart. Pointer fields (Enabled, MCPServer, Agent, IDEExtension) preserve
 // optional semantics: nil means "not set" on the wire.
 func inventoryItemToProto(item *inventory.Item) *controltowerv1pb.VetInventoryEvent_ItemObserved {
 	return controltowerv1pb.VetInventoryEvent_ItemObserved_builder{
@@ -58,6 +60,7 @@ func inventoryItemToProto(item *inventory.Item) *controltowerv1pb.VetInventoryEv
 		Enabled:      item.Enabled,
 		McpServer:    mcpDetailToProto(item.MCPServer),
 		Agent:        agentDetailToProto(item.Agent),
+		IdeExtension: ideExtensionDetailToProto(item.IDEExtension),
 		Metadata:     item.Metadata,
 	}.Build()
 }
@@ -92,6 +95,39 @@ func agentDetailToProto(d *inventory.AgentDetail) *controltowerv1pb.VetInventory
 		InstructionFiles: d.InstructionFiles,
 		Model:            d.Model,
 		ApiKeyEnvName:    d.APIKeyEnvName,
+	}.Build()
+}
+
+// ideExtensionDetailToProto converts IDE extension details. Returns nil when
+// the source detail is nil.
+func ideExtensionDetailToProto(d *inventory.IDEExtensionDetail) *controltowerv1pb.VetInventoryEvent_IDEExtensionDetail {
+	if d == nil {
+		return nil
+	}
+	return controltowerv1pb.VetInventoryEvent_IDEExtensionDetail_builder{
+		PackageVersion: packageIdentityToProto(d.Package),
+		Ide:            d.IDE,
+	}.Build()
+}
+
+// packageIdentityToProto converts the registry identity. Returns nil when the
+// source is nil, names no known ecosystem, or has no name or version. The
+// proto rejects an empty name or version, and one bad identity would fail the
+// whole event, so the item is sent without it.
+func packageIdentityToProto(p *inventory.PackageIdentity) *packagev1.PackageVersion {
+	if p == nil || p.Name == "" || p.Version == "" {
+		return nil
+	}
+	ecosystem := models.ControlTowerSpecEcosystem(p.Ecosystem)
+	if ecosystem == packagev1.Ecosystem_ECOSYSTEM_UNSPECIFIED {
+		return nil
+	}
+	return packagev1.PackageVersion_builder{
+		Package: packagev1.Package_builder{
+			Ecosystem: ecosystem,
+			Name:      p.Name,
+		}.Build(),
+		Version: p.Version,
 	}.Build()
 }
 

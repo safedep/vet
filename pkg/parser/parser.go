@@ -11,7 +11,6 @@ import (
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 	"github.com/safedep/vet/pkg/parser/custom/py"
-	"github.com/safedep/vet/pkg/parser/custom/sbom/spdx"
 )
 
 const (
@@ -55,7 +54,6 @@ var supportedEcosystems map[string]bool = map[string]bool{
 // TODO: Migrate these to graph parser
 var customExperimentalParsers map[string]lockfile.PackageDetailsParser = map[string]lockfile.PackageDetailsParser{
 	customParserTypePyWheel: parsePythonWheelDist,
-	customParserSpdxSBOM:    spdx.Parse,
 	customParserTypeSetupPy: py.ParseSetuppy,
 }
 
@@ -91,6 +89,7 @@ var dependencyGraphParsers map[string]dependencyGraphParser = map[string]depende
 	"pom.xml":                         parseMavenPomXmlFile,
 	"Cargo.lock":                      parseCargoLockFile,
 	customParserCycloneDXSBOM:         parseSbomCycloneDxAsGraph,
+	customParserSpdxSBOM:              parseSbomSpdxAsGraph,
 	customParserTypeJavaArchive:       parseJavaArchiveAsGraph,
 	customParserTypeJavaWebAppArchive: parseJavaArchiveAsGraph,
 	customParserGitHubActions:         parseGithubActionWorkflowAsGraph,

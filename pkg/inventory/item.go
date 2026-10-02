@@ -70,6 +70,9 @@ type Item struct {
 	MCPServer *MCPServerDetail
 	// Agent carries coding-agent-specific details when Kind == KindCodingAgent.
 	Agent *AgentDetail
+	// IDEExtension carries extension-specific details when Kind is
+	// KindIDEExtension or KindAIExtension.
+	IDEExtension *IDEExtensionDetail
 	// Metadata holds free-form, kind-specific attributes for kinds without a
 	// typed sub-message (CLI tools, AI extensions, etc.).
 	Metadata map[string]string
@@ -124,4 +127,25 @@ type AgentDetail struct {
 	Model string
 	// APIKeyEnvName is the env var name (not value) holding the API key.
 	APIKeyEnvName string
+}
+
+// IDEExtensionDetail mirrors proto VetInventoryEvent.IDEExtensionDetail.
+// Populated only when Kind is KindIDEExtension or KindAIExtension.
+type IDEExtensionDetail struct {
+	// Package is the registry identity; nil when no marketplace serves it.
+	Package *PackageIdentity
+	// IDE is the display name of the IDE that installed it, when known.
+	IDE string
+}
+
+// PackageIdentity mirrors proto package.v1.PackageVersion. Ecosystem stays
+// vet's models.Ecosystem string; the cloud sink maps it to the proto enum, so
+// this package does not depend on the wire types.
+type PackageIdentity struct {
+	// Ecosystem is the registry, e.g. VSCodeExtensions or OpenVSXExtensions.
+	Ecosystem string
+	// Name is the name the registry serves it under, e.g. publisher.name.
+	Name string
+	// Version is the installed version.
+	Version string
 }
