@@ -1,0 +1,18 @@
+{
+  "analysisId": "stub-suspicious",
+  "status": "ANALYSIS_STATUS_COMPLETED",
+  "report": {
+    "packageVersion": {
+      "package": {
+        "ecosystem": "ECOSYSTEM_NPM",
+        "name": "stub-suspicious"
+      },
+      "version": "1.0.0"
+    },
+    "inference": {
+      "isMalware": true,
+      "confidence": "CONFIDENCE_MEDIUM",
+      "summary": "The package reads files outside its directory."
+    }
+  }
+}

@@ -61,10 +61,13 @@ func toAnalysis(res *malysisv1.QueryPackageAnalysisResponse) *model.MalwareAnaly
 	inf := res.GetReport().GetInference()
 	out := &model.MalwareAnalysis{
 		Malicious:  inf.GetIsMalware(),
-		Verified:   res.GetVerificationRecord() != nil,
 		Confidence: confidence(inf.GetConfidence()),
 		Summary:    inf.GetSummary(),
 		AnalysisID: res.GetAnalysisId(),
+	}
+	// A verification record overrules the automated verdict.
+	if vr := res.GetVerificationRecord(); vr.GetIsMalware() || vr.GetIsSafe() {
+		out.Malicious, out.Verified = vr.GetIsMalware(), true
 	}
 	if out.AnalysisID != "" {
 		out.ReportURL = ReportURL + out.AnalysisID

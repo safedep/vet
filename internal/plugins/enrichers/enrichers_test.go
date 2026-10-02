@@ -74,15 +74,36 @@ func TestInsights(t *testing.T) {
 func TestMalysis(t *testing.T) {
 	s := startStub(t)
 	en := build(t, s)[malysis.Name]
-	evil, clean := npm("safedep-test-pkg", "0.1.3"), npm("lodash", "4.17.21")
-	plugintest.TestEnricher(t, en, []*model.Package{evil, clean})
+	cases := []struct {
+		pkg           *model.Package
+		malicious     bool
+		verified      bool
+		confidence    string
+		wantReportURL string
+	}{
+		{pkg: npm("safedep-test-pkg", "0.1.3"), malicious: true, verified: true, confidence: "high", wantReportURL: malysis.ReportURL + "stub-malicious"},
+		{pkg: npm("stub-suspicious", "1.0.0"), malicious: true, confidence: "medium", wantReportURL: malysis.ReportURL + "stub-suspicious"},
+		{pkg: npm("stub-verified-safe", "1.0.0"), verified: true, confidence: "medium", wantReportURL: malysis.ReportURL + "stub-verified-safe"},
+		{pkg: npm("lodash", "4.17.21")},
+	}
+	pkgs := make([]*model.Package, 0, len(cases))
+	for _, tc := range cases {
+		pkgs = append(pkgs, tc.pkg)
+	}
+	plugintest.TestEnricher(t, en, pkgs)
 
-	require.NotNil(t, evil.Malware)
-	assert.True(t, evil.Malware.Malicious)
-	assert.Equal(t, "high", evil.Malware.Confidence)
-	assert.Equal(t, malysis.ReportURL+"stub-malicious", evil.Malware.ReportURL)
-	require.NotNil(t, clean.Malware)
-	assert.False(t, clean.Malware.Malicious)
+	for _, tc := range cases {
+		t.Run(tc.pkg.ID.String(), func(t *testing.T) {
+			a := tc.pkg.Malware
+			require.NotNil(t, a)
+			assert.Equal(t, tc.malicious, a.Malicious)
+			assert.Equal(t, tc.verified, a.Verified, "only a verification record verifies the verdict")
+			if tc.wantReportURL != "" {
+				assert.Equal(t, tc.confidence, a.Confidence)
+				assert.Equal(t, tc.wantReportURL, a.ReportURL)
+			}
+		})
+	}
 }
 
 func TestFailOpen(t *testing.T) {
