@@ -40,8 +40,8 @@ import (
 	"github.com/google/osv-scalibr/purl"
 	"gopkg.in/yaml.v3"
 
-	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/commitextractor"
-	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/graph"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/commitextractor"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/graph"
 )
 
 const (

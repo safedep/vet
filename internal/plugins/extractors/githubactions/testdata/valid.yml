@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
+      - uses: actions/setup-python@v5.0.0
+      - name: Install
+        run: npm ci
+      - uses: docker/build-push-action@v6
+        with:
+          push: true
+
+  reusable-call:
+    uses: octo-org/example-repo/.github/workflows/reusable.yml@v1.2.3
+
+  pinned-call:
+    uses: octo-org/example-repo/.github/workflows/reusable.yml@1234567890abcdef1234567890abcdef12345678

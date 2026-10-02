@@ -29,7 +29,7 @@ import (
 	"github.com/google/osv-scalibr/testing/extracttest"
 	"github.com/google/osv-scalibr/testing/testcollector"
 
-	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/graphtest"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/graphtest"
 )
 
 func TestNPMLockExtractor_Extract_V1(t *testing.T) {

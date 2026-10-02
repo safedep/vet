@@ -33,8 +33,8 @@ import (
 	"github.com/google/osv-scalibr/testing/fakefs"
 	"github.com/google/osv-scalibr/testing/testcollector"
 
-	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/graphtest"
-	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/units"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/graphtest"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/units"
 )
 
 func TestExtractor_FileRequired(t *testing.T) {

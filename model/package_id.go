@@ -13,6 +13,9 @@ type PackageID struct {
 	Namespace string    `json:"namespace,omitempty"`
 	Name      string    `json:"name"`
 	Version   string    `json:"version,omitempty"`
+	// Subpath is the PURL subpath, for example "init" for the GitHub
+	// action github/codeql-action/init.
+	Subpath string `json:"subpath,omitempty"`
 }
 
 // ParsePURL parses a package URL into a PackageID.
@@ -27,7 +30,7 @@ func ParsePURL(s string) (PackageID, error) {
 		return PackageID{}, err
 	}
 
-	id := PackageID{Ecosystem: eco, Namespace: p.Namespace, Name: p.Name, Version: p.Version}
+	id := PackageID{Ecosystem: eco, Namespace: p.Namespace, Name: p.Name, Version: p.Version, Subpath: p.Subpath}
 	return id, id.Validate()
 }
 
@@ -48,21 +51,24 @@ func (id PackageID) PURL() string {
 	if err != nil {
 		return ""
 	}
-	return packageurl.NewPackageURL(info.PURLType, id.Namespace, id.Name, id.Version, nil, "").ToString()
+	return packageurl.NewPackageURL(info.PURLType, id.Namespace, id.Name, id.Version, nil, id.Subpath).ToString()
 }
 
 // QualifiedName returns the name that the ecosystem's users write, for
 // example "@scope/name" for npm or "group:artifact" for Maven.
 func (id PackageID) QualifiedName() string {
-	if id.Namespace == "" {
-		return id.Name
-	}
-	switch id.Ecosystem {
-	case EcosystemMaven:
-		return id.Namespace + ":" + id.Name
+	name := id.Name
+	switch {
+	case id.Namespace == "":
+	case id.Ecosystem == EcosystemMaven:
+		name = id.Namespace + ":" + id.Name
 	default:
-		return id.Namespace + "/" + id.Name
+		name = id.Namespace + "/" + id.Name
 	}
+	if id.Subpath != "" {
+		name += "/" + id.Subpath
+	}
+	return name
 }
 
 // String returns "<ecosystem>/<qualified name>@<version>".
@@ -76,6 +82,13 @@ func (id PackageID) String() string {
 		b.WriteString(id.Version)
 	}
 	return b.String()
+}
+
+// Package returns the identity of the package that holds a subpath: the
+// identity with no subpath.
+func (id PackageID) Package() PackageID {
+	id.Subpath = ""
+	return id
 }
 
 // WithoutVersion returns the identity with no version.

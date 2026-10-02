@@ -7,7 +7,7 @@ import (
 	"github.com/google/osv-scalibr/binary/proto/metadata"
 	"github.com/google/osv-scalibr/extractor"
 
-	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/graph"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/graph"
 )
 
 // IgnoreGraph leaves the package ids, the parent ids and the direct mark

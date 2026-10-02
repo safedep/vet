@@ -41,10 +41,10 @@ import (
 	"github.com/google/osv-scalibr/stats"
 	"github.com/tidwall/gjson"
 
-	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/commitextractor"
-	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/graph"
-	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/linefinder"
-	packagelockjson "github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/npmlock"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/commitextractor"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/graph"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/linefinder"
+	packagelockjson "github.com/safedep/vet/v2/internal/plugins/extractors/internal/npmlock"
 )
 
 const (

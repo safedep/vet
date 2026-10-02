@@ -27,7 +27,7 @@ import (
 	"github.com/google/osv-scalibr/purl"
 	"github.com/google/osv-scalibr/testing/extracttest"
 
-	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/graphtest"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/graphtest"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/pnpmlock"
 )
 

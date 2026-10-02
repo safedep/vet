@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/safedep/vet/v2/internal/plugins/extractors/githubactions"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/packagejson"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/terraform"
@@ -42,6 +43,7 @@ func TestDefaultUsesTheVetLockfileExtractors(t *testing.T) {
 	for _, v := range vet {
 		assert.IsType(t, v, byName[v.Name()], "the set must use the vet copy of %s", v.Name())
 	}
+	assert.IsType(t, &githubactions.Extractor{}, byName[githubactions.Name])
 	assert.Contains(t, byName, terraform.Name)
 	assert.Contains(t, byName, packagejson.Name)
 }

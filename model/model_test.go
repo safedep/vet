@@ -14,11 +14,12 @@ func TestParsePURL(t *testing.T) {
 		want    PackageID
 		wantErr bool
 	}{
-		{"npm scoped", "pkg:npm/%40babel/core@7.24.0", PackageID{EcosystemNpm, "@babel", "core", "7.24.0"}, false},
-		{"pypi", "pkg:pypi/requests@2.31.0", PackageID{EcosystemPyPI, "", "requests", "2.31.0"}, false},
-		{"maven", "pkg:maven/org.apache/commons@1.0", PackageID{EcosystemMaven, "org.apache", "commons", "1.0"}, false},
-		{"golang", "pkg:golang/github.com/pkg/errors@v0.9.1", PackageID{EcosystemGo, "github.com/pkg", "errors", "v0.9.1"}, false},
-		{"github actions", "pkg:githubactions/actions/checkout@v4", PackageID{EcosystemGitHubActions, "actions", "checkout", "v4"}, false},
+		{"npm scoped", "pkg:npm/%40babel/core@7.24.0", PackageID{EcosystemNpm, "@babel", "core", "7.24.0", ""}, false},
+		{"pypi", "pkg:pypi/requests@2.31.0", PackageID{EcosystemPyPI, "", "requests", "2.31.0", ""}, false},
+		{"maven", "pkg:maven/org.apache/commons@1.0", PackageID{EcosystemMaven, "org.apache", "commons", "1.0", ""}, false},
+		{"golang", "pkg:golang/github.com/pkg/errors@v0.9.1", PackageID{EcosystemGo, "github.com/pkg", "errors", "v0.9.1", ""}, false},
+		{"github actions", "pkg:githubactions/actions/checkout@v4", PackageID{EcosystemGitHubActions, "actions", "checkout", "v4", ""}, false},
+		{"github action subpath", "pkg:github/github/codeql-action@v3#init", PackageID{EcosystemGitHubActions, "github", "codeql-action", "v3", "init"}, false},
 		{"unknown type", "pkg:unknown/x@1", PackageID{}, true},
 		{"not a purl", "left-pad", PackageID{}, true},
 	}
@@ -37,10 +38,10 @@ func TestParsePURL(t *testing.T) {
 
 func TestPURLRoundTrip(t *testing.T) {
 	ids := []PackageID{
-		{EcosystemNpm, "@scope", "pkg", "1.0.0"},
-		{EcosystemPyPI, "", "flask", "3.0.0"},
-		{EcosystemMaven, "com.google", "guava", "33.0"},
-		{EcosystemCargo, "", "serde", "1.0.0"},
+		{EcosystemNpm, "@scope", "pkg", "1.0.0", ""},
+		{EcosystemPyPI, "", "flask", "3.0.0", ""},
+		{EcosystemMaven, "com.google", "guava", "33.0", ""},
+		{EcosystemCargo, "", "serde", "1.0.0", ""},
 	}
 	for _, id := range ids {
 		t.Run(id.String(), func(t *testing.T) {
@@ -59,6 +60,7 @@ func TestQualifiedName(t *testing.T) {
 		{PackageID{Ecosystem: EcosystemNpm, Namespace: "@a", Name: "b"}, "@a/b"},
 		{PackageID{Ecosystem: EcosystemMaven, Namespace: "g", Name: "a"}, "g:a"},
 		{PackageID{Ecosystem: EcosystemPyPI, Name: "x"}, "x"},
+		{PackageID{Ecosystem: EcosystemGitHubActions, Namespace: "github", Name: "codeql-action", Subpath: "init"}, "github/codeql-action/init"},
 	}
 	for _, tc := range cases {
 		assert.Equal(t, tc.want, tc.id.QualifiedName())
@@ -104,10 +106,10 @@ func TestChange(t *testing.T) {
 }
 
 func TestGraph(t *testing.T) {
-	a := PackageID{EcosystemNpm, "", "a", "1"}
-	b := PackageID{EcosystemNpm, "", "b", "1"}
-	c := PackageID{EcosystemNpm, "", "c", "1"}
-	d := PackageID{EcosystemNpm, "", "d", "1"}
+	a := PackageID{EcosystemNpm, "", "a", "1", ""}
+	b := PackageID{EcosystemNpm, "", "b", "1", ""}
+	c := PackageID{EcosystemNpm, "", "c", "1", ""}
+	d := PackageID{EcosystemNpm, "", "d", "1", ""}
 
 	g := NewGraph()
 	g.AddRoot(a)

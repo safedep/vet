@@ -30,6 +30,10 @@ type Input struct {
 // dependencies of a lockfile.
 type direct interface{ IsDirect() bool }
 
+// subpath is the metadata of a vet extractor that knows the PURL subpath
+// of a package, such as the sub-path of a GitHub action.
+type subpath interface{ Subpath() string }
+
 // ToManifest converts the packages of one extractor run into a manifest.
 // It returns the manifest, or nil when the run found no package that vet
 // knows, and one error for each package that it skipped. A package with an
@@ -100,6 +104,9 @@ func toPackage(sp *extractor.Package) (*model.Package, error) {
 	id, err := model.ParsePURL(pu.String())
 	if err != nil {
 		return nil, err
+	}
+	if md, ok := sp.Metadata.(subpath); ok {
+		id.Subpath = md.Subpath()
 	}
 	if id.Ecosystem == model.EcosystemGo {
 		id.Namespace, id.Name = splitGoPath(sp.Name)

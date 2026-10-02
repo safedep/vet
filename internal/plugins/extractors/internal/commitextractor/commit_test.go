@@ -17,7 +17,7 @@ package commitextractor_test
 import (
 	"testing"
 
-	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/commitextractor"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/commitextractor"
 )
 
 func TestTryExtractCommit(t *testing.T) {

@@ -41,9 +41,9 @@ import (
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/jsonc"
 
-	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/commitextractor"
-	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/graph"
-	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/internal/linefinder"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/commitextractor"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/graph"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/linefinder"
 )
 
 const (

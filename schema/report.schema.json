@@ -571,6 +571,9 @@
         },
         "version": {
           "type": "string"
+        },
+        "subpath": {
+          "type": "string"
         }
       },
       "type": "object",
