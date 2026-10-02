@@ -72,6 +72,9 @@ func Extract(ctx context.Context, in Input, exs []filesystem.Extractor) ([]*mode
 		inv, err := extractOne(ctx, e, fsys, f, info)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("%s: %s: %w", e.Name(), f.Path, err))
+			if len(inv.Packages) == 0 {
+				continue
+			}
 		}
 		m, perrs := ToManifest(Converted{Path: path.Clean(f.Path), Extractor: e.Name(), Root: fsys, Inventory: inv})
 		errs = append(errs, perrs...)

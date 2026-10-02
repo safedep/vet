@@ -1,0 +1,14 @@
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
+      - uses: ./.github/actions/local
+      - uses: my-org/tool@main
+      - uses: docker://alpine:3.19
+      - uses: docker://alpine@sha256:0000000000000000000000000000000000000000000000000000000000000000
+      - uses: actions/checkout@v4
+  call:
+    uses: other/repo/.github/workflows/build.yml@v1

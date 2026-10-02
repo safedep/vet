@@ -116,3 +116,22 @@ func TestKindOf(t *testing.T) {
 	assert.Equal(t, model.ManifestKindWorkflow, kindOf("github/actions"))
 	assert.Equal(t, model.ManifestKindManifest, kindOf("python/requirements"))
 }
+
+func TestWorkflowWithNoAction(t *testing.T) {
+	exs, err := SourceExtractors()
+	require.NoError(t, err)
+	file := ".github/workflows/greet.yml"
+	ms, errs := ExtractFile(context.Background(), File{Root: "testdata/gha-run-only", Path: file}, exs)
+	require.Empty(t, errs)
+	require.Len(t, ms, 1, "a workflow is a manifest with no package, for the workflow controls")
+	assert.Equal(t, model.ManifestKindWorkflow, ms[0].Kind)
+	assert.Equal(t, model.EcosystemGitHubActions, ms[0].Ecosystem)
+	assert.Empty(t, ms[0].Packages)
+
+	// The upstream extractor accepts a file that is not YAML, such as a
+	// template, with no error. The workflow controls skip it too.
+	ms, errs = ExtractFile(context.Background(), File{Root: "testdata/gha-invalid", Path: ".github/workflows/broken.yml"}, exs)
+	assert.Empty(t, errs)
+	require.Len(t, ms, 1)
+	assert.Empty(t, ms[0].Packages)
+}

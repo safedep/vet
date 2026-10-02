@@ -36,17 +36,20 @@ type subpath interface{ Subpath() string }
 
 // ToManifest converts the packages of one extractor run into a manifest.
 // It returns the manifest, or nil when the run found no package that vet
-// knows, and one error for each package that it skipped. A package with an
+// knows, and one error for each package that it skipped. A workflow is a
+// manifest even with no package, because the workflow controls read the
+// file itself. A package with an
 // ecosystem outside the vet ecosystem table is skipped, because no
 // enricher has data for it.
 func ToManifest(in Converted) (*model.Manifest, []error) {
-	if len(in.Inventory.Packages) == 0 {
+	kind := kindOf(in.Extractor)
+	if len(in.Inventory.Packages) == 0 && kind != model.ManifestKindWorkflow {
 		return nil, nil
 	}
 	m := &model.Manifest{
 		ID:        model.ManifestID(in.Path, in.Extractor),
 		Path:      in.Path,
-		Kind:      kindOf(in.Extractor),
+		Kind:      kind,
 		Extractor: in.Extractor,
 		Root:      in.Root,
 	}
@@ -74,6 +77,10 @@ func ToManifest(in Converted) (*model.Manifest, []error) {
 		m.Packages = append(m.Packages, p)
 	}
 	if len(m.Packages) == 0 {
+		if kind == model.ManifestKindWorkflow {
+			m.Ecosystem = model.EcosystemGitHubActions
+			return m, errs
+		}
 		return nil, errs
 	}
 	m.Ecosystem = mainEcosystem(m.Packages)

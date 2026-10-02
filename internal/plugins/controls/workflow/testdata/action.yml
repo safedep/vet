@@ -1,0 +1,7 @@
+name: composite
+runs:
+  using: composite
+  steps:
+    - uses: tj-actions/changed-files@v44
+    - run: echo "${{ github.head_ref }}"
+      shell: bash

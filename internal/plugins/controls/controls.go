@@ -5,9 +5,11 @@ package controls
 import (
 	"fmt"
 
+	"github.com/safedep/vet/v2/internal/plugins/controls/cooldown"
 	"github.com/safedep/vet/v2/internal/plugins/controls/lockfile"
 	"github.com/safedep/vet/v2/internal/plugins/controls/malware"
-	"github.com/safedep/vet/v2/internal/plugins/controls/vulnerability"
+	"github.com/safedep/vet/v2/internal/plugins/controls/vuln"
+	"github.com/safedep/vet/v2/internal/plugins/controls/workflow"
 	"github.com/safedep/vet/v2/plugin"
 )
 
@@ -21,9 +23,11 @@ type Spec struct {
 // by default.
 func Builtin() []Spec {
 	return []Spec{
+		{Name: cooldown.Name, New: cooldown.New},
 		{Name: lockfile.Name, New: lockfile.New},
 		{Name: malware.Name, New: malware.New},
-		{Name: vulnerability.Name, New: vulnerability.New},
+		{Name: vuln.Name, New: vuln.New},
+		{Name: workflow.Name, New: workflow.New},
 	}
 }
 

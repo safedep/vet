@@ -1,6 +1,6 @@
-// Package vulnerability is the control that reports the known
+// Package vuln is the control that reports the known
 // vulnerabilities of each package version, from SafeDep Insights v2.
-package vulnerability
+package vuln
 
 import (
 	"context"
