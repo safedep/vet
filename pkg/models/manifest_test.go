@@ -3,6 +3,7 @@ package models
 import (
 	"testing"
 
+	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,6 +22,27 @@ func TestGetOsvEcosystem(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.expected, GetOsvEcosystem(tc.input))
+		})
+	}
+}
+
+func TestControlTowerSpecEcosystem(t *testing.T) {
+	cases := []struct {
+		name     string
+		input    string
+		expected packagev1.Ecosystem
+	}{
+		{"vscode marketplace", EcosystemVSCodeExtensions, packagev1.Ecosystem_ECOSYSTEM_VSCODE},
+		{"open vsx", EcosystemOpenVSXExtensions, packagev1.Ecosystem_ECOSYSTEM_OPENVSX},
+		{"npm", EcosystemNpm, packagev1.Ecosystem_ECOSYSTEM_NPM},
+		{"unknown", "not-an-ecosystem", packagev1.Ecosystem_ECOSYSTEM_UNSPECIFIED},
+	}
+
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+			assert.Equal(t, test.expected, ControlTowerSpecEcosystem(test.input))
+			pm := PackageManifest{Ecosystem: test.input}
+			assert.Equal(t, test.expected, pm.GetControlTowerSpecEcosystem())
 		})
 	}
 }
