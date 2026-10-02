@@ -1,0 +1,9 @@
+{
+  "packages": [
+    "npm/supports-color@2.0.0",
+    "npm/supports-color@6.1.0"
+  ],
+  "direct": [],
+  "roots": [],
+  "edges": []
+}

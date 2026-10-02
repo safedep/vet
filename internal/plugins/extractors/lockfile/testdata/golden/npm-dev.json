@@ -1,0 +1,11 @@
+{
+  "packages": [
+    "npm/wrappy@1.0.2"
+  ],
+  "direct": [],
+  "dev": [
+    "npm/wrappy@1.0.2"
+  ],
+  "roots": [],
+  "edges": []
+}

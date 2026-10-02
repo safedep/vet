@@ -1,0 +1,54 @@
+{
+  "name": "my-monorepo",
+  "version": "1.0.0",
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {
+    "": {
+      "name": "my-monorepo",
+      "version": "1.0.0",
+      "workspaces": [
+        "client",
+        "packages/*",
+        "!packages/excluded"
+      ],
+      "dependencies": {
+        "dotenv": "^16.0.0"
+      }
+    },
+    "client": {
+      "name": "@my-monorepo/client",
+      "version": "1.0.0",
+      "dependencies": {
+        "@my-monorepo/pkg-a": "*"
+      }
+    },
+    "packages/pkg-a": {
+      "name": "@my-monorepo/pkg-a",
+      "version": "1.0.0",
+      "dependencies": {
+        "debug": "^4.3.4"
+      }
+    },
+    "packages/excluded": {
+      "name": "@my-monorepo/excluded",
+      "version": "1.0.0"
+    },
+    "node_modules/@my-monorepo/client": {
+      "resolved": "client",
+      "link": true
+    },
+    "node_modules/@my-monorepo/pkg-a": {
+      "resolved": "packages/pkg-a",
+      "link": true
+    },
+    "node_modules/dotenv": {
+      "version": "16.0.0",
+      "resolved": "https://registry.npmjs.org/dotenv/-/dotenv-16.0.0.tgz"
+    },
+    "packages/pkg-a/node_modules/debug": {
+      "version": "4.3.4",
+      "resolved": "https://registry.npmjs.org/debug/-/debug-4.3.4.tgz"
+    }
+  }
+}

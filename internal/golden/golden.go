@@ -3,6 +3,7 @@
 package golden
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -31,7 +32,10 @@ func Assert(t *testing.T, path string, got []byte) {
 // AssertJSON compares v, encoded as indented JSON, with the file at path.
 func AssertJSON(t *testing.T, path string, v any) {
 	t.Helper()
-	b, err := json.MarshalIndent(v, "", "  ")
-	require.NoError(t, err)
-	Assert(t, path, append(b, '\n'))
+	var b bytes.Buffer
+	enc := json.NewEncoder(&b)
+	enc.SetEscapeHTML(false)
+	enc.SetIndent("", "  ")
+	require.NoError(t, enc.Encode(v))
+	Assert(t, path, b.Bytes())
 }
