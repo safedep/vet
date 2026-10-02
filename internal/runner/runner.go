@@ -7,6 +7,7 @@ package runner
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/safedep/vet/v2/internal/credentials"
 	"github.com/safedep/vet/v2/internal/engine"
 	"github.com/safedep/vet/v2/internal/github"
+	"github.com/safedep/vet/v2/internal/plugins/cloud/tenantpolicy"
 	"github.com/safedep/vet/v2/internal/plugins/controls"
 	"github.com/safedep/vet/v2/internal/plugins/controls/cooldown"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers"
@@ -101,7 +103,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 	if err != nil {
 		return err
 	}
-	evaluator, err := newEvaluator(ctx, gate)
+	evaluator, err := newEvaluator(ctx, cfg, gate)
 	if err != nil {
 		return err
 	}
@@ -244,10 +246,17 @@ func Outputs(cfg *config.Config, out string, reports []string, extra map[string]
 	return outs, nil
 }
 
-func newEvaluator(ctx context.Context, s policy.Settings) (*policy.Evaluator, error) {
+func newEvaluator(ctx context.Context, cfg *config.Config, s policy.Settings) (*policy.Evaluator, error) {
 	var srcs []plugin.PolicySource
 	if s.File != "" {
 		srcs = append(srcs, file.New(s.File))
+	}
+	if cfg.PluginEnabled(tenantpolicy.Name, false) {
+		src, err := tenantpolicy.New(plugin.MapConfig(cfg.PluginOptions(tenantpolicy.Name)))
+		if err != nil {
+			return nil, app.UsageError(fmt.Sprintf("plugins.%s.options: %v", tenantpolicy.Name, err), "Fix the option in the config file.")
+		}
+		srcs = append(srcs, src)
 	}
 	return policy.NewFromSources(ctx, s.FailOn, nil, srcs...)
 }

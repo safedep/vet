@@ -7,6 +7,7 @@ import (
 
 	"github.com/safedep/vet/v2/internal/app"
 	vconfig "github.com/safedep/vet/v2/internal/config"
+	"github.com/safedep/vet/v2/internal/plugins/cloud/tenantpolicy"
 	"github.com/safedep/vet/v2/internal/plugins/controls"
 	"github.com/safedep/vet/v2/internal/plugins/sinks"
 	"github.com/safedep/vet/v2/internal/tui/output"
@@ -60,6 +61,13 @@ func pluginSchemas() (map[string][]byte, error) {
 		if sc, ok := sk.(plugin.Schemer); ok {
 			out[s.Name] = sc.OptionsSchema()
 		}
+	}
+	tp, err := tenantpolicy.New(plugin.MapConfig(nil))
+	if err != nil {
+		return nil, err
+	}
+	if sc, ok := tp.(plugin.Schemer); ok {
+		out[tenantpolicy.Name] = sc.OptionsSchema()
 	}
 	return out, nil
 }

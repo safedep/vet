@@ -18,6 +18,7 @@ import (
 const (
 	CodeSuppressionExpired = "policy_suppression_expired"
 	CodeRuleFailed         = "policy_rule_failed"
+	CodeSourceUnavailable  = "policy_source_unavailable"
 )
 
 // Store is the scan that Finalize reads and updates.
@@ -68,6 +69,9 @@ func (e *Evaluator) Finalize(ctx context.Context, s Store) (report.Gate, error) 
 		for _, err := range o.Errors {
 			addDiag(diags, CodeRuleFailed, err.Error())
 		}
+	}
+	for _, msg := range e.unavailable {
+		addDiag(diags, CodeSourceUnavailable, msg)
 	}
 	for _, k := range slices.Sorted(maps.Keys(diags)) {
 		if err := s.AddDiagnostic(ctx, diags[k]); err != nil {

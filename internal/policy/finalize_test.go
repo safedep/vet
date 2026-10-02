@@ -2,6 +2,8 @@ package policy_test
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -137,4 +139,41 @@ func TestFinalizeSeverityGate(t *testing.T) {
 	require.NoError(t, err)
 	res = scan(t, policy.NewEvaluator(p, policy.Options{FailOn: finding.SeverityCritical}))
 	assert.Equal(t, report.GatePass, res.Scan.Trailer().Gate.Outcome, "the gate ignores the suppressed critical finding")
+}
+
+type docs []plugin.PolicyDoc
+
+func (d docs) Policies(context.Context) ([]plugin.PolicyDoc, error) { return d, nil }
+
+type unavailable struct{}
+
+func (unavailable) Policies(context.Context) ([]plugin.PolicyDoc, error) {
+	return nil, fmt.Errorf("tenant policy: %w", plugin.ErrUnavailable)
+}
+
+type broken struct{}
+
+func (broken) Policies(context.Context) ([]plugin.PolicyDoc, error) { return nil, errors.New("disk") }
+
+func TestUnavailablePolicySource(t *testing.T) {
+	ctx := context.Background()
+	_, err := policy.NewFromSources(ctx, "", nil, broken{})
+	require.Error(t, err, "a source that fails for another reason stops the scan")
+
+	local := docs{{Name: "vet-policy.yml", Content: []byte(policyFile)}}
+	e, err := policy.NewFromSources(ctx, "", nil, local, unavailable{})
+	require.NoError(t, err)
+	res := scan(t, e)
+
+	tr := res.Scan.Trailer()
+	require.NotNil(t, tr)
+	assert.Equal(t, report.GateFail, tr.Gate.Outcome, "the local policy still applies")
+	var codes []string
+	for rec, err := range res.Scan.Records(ctx) {
+		require.NoError(t, err)
+		if rec.Diagnostic != nil {
+			codes = append(codes, rec.Diagnostic.Code)
+		}
+	}
+	assert.Contains(t, codes, policy.CodeSourceUnavailable)
 }

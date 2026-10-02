@@ -2,6 +2,7 @@ package policy
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -52,8 +53,13 @@ func ResolveSettings(failOnFlag, policyFlag string, cfg config.PolicyConfig) (Se
 // evaluator. With no source, the evaluator has the severity gate only.
 func NewFromSources(ctx context.Context, failOn finding.Severity, now func() time.Time, sources ...plugin.PolicySource) (*Evaluator, error) {
 	var docs []plugin.PolicyDoc
+	var unavailable []string
 	for _, src := range sources {
 		d, err := src.Policies(ctx)
+		if errors.Is(err, plugin.ErrUnavailable) {
+			unavailable = append(unavailable, err.Error())
+			continue
+		}
 		if err != nil {
 			return nil, fmt.Errorf("load policy: %w", err)
 		}
@@ -66,5 +72,7 @@ func NewFromSources(ctx context.Context, failOn finding.Severity, now func() tim
 			return nil, err
 		}
 	}
-	return NewEvaluator(p, Options{FailOn: failOn, Now: now}), nil
+	e := NewEvaluator(p, Options{FailOn: failOn, Now: now})
+	e.unavailable = unavailable
+	return e, nil
 }

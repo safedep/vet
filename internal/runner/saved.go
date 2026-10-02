@@ -177,7 +177,7 @@ func Show(ctx context.Context, a *app.App, o ShowOptions) error {
 		return err
 	}
 	if settings.FailOn != "" || settings.File != "" {
-		e, err := newEvaluator(ctx, settings)
+		e, err := newEvaluator(ctx, rt.Config, settings)
 		if err != nil {
 			return err
 		}

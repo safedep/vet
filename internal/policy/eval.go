@@ -21,6 +21,9 @@ type Evaluator struct {
 	p      *Policy
 	failOn finding.Severity
 	now    time.Time
+	// unavailable holds the errors of the policy sources that did not
+	// answer. Finalize records each one as a diagnostic.
+	unavailable []string
 }
 
 // NewEvaluator returns an evaluator. p can be nil: the built-in default
