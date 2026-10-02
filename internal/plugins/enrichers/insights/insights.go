@@ -23,7 +23,7 @@ import (
 const Name = "insights"
 
 // Version changes when the mapping changes, so the cache drops old results.
-const Version = "2"
+const Version = "3"
 
 // Enricher sets model.Package.Insight.
 type Enricher struct {
