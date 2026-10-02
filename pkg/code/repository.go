@@ -35,6 +35,7 @@ type writerRepository interface {
 // persisted in the storage. This is a contract to the rest of the system
 type ReaderRepository interface {
 	GetDependencyUsageEvidencesByPackageName(context.Context, string) ([]*ent.DepsUsageEvidence, error)
+	GetJavaDependencyUsageEvidences(context.Context) ([]*ent.DepsUsageEvidence, error)
 	GetSignatureMatchesByPackageHint(context.Context, string) ([]*ent.CodeSignatureMatch, error)
 	GetAllSignatureMatches(context.Context) ([]*ent.CodeSignatureMatch, error)
 	GetApplicationSignatureMatches(context.Context) ([]*ent.CodeSignatureMatch, error)
