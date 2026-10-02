@@ -186,6 +186,18 @@ func TestConventions_DocPageSections(t *testing.T) {
 	}
 }
 
+func TestConventions_DocPageNamesEveryFlag(t *testing.T) {
+	for path, c := range leaves(t) {
+		b, err := os.ReadFile(docPage(t, path))
+		if err != nil {
+			continue
+		}
+		c.LocalNonPersistentFlags().VisitAll(func(f *pflag.Flag) {
+			assert.Contains(t, string(b), "--"+f.Name, "page of %q does not name --%s", path, f.Name)
+		})
+	}
+}
+
 func TestConventions_ReadmeLinksAllDocPages(t *testing.T) {
 	readme, err := os.ReadFile(filepath.Join(repoRoot(t), "README.md"))
 	require.NoError(t, err)

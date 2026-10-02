@@ -26,7 +26,6 @@
 [![CodeQL](https://github.com/safedep/vet/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/safedep/vet/actions/workflows/codeql.yml)
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/safedep/vet)
-[![MCP Toplist](https://mcptoplist.com/badge/io.github.safedep%2Fvet-mcp.svg)](https://mcptoplist.com/server/io.github.safedep%2Fvet-mcp)
 
 </div>
 
@@ -37,200 +36,133 @@
 
 ## Why vet?
 
-> **70-90% of modern software is open source code** — how do you know it's safe?
+Your dependencies, your GitHub Actions workflows and your container images all run code that
+you did not write. `vet` finds the supply chain risk in them before it reaches production.
 
-Traditional SCA tools drown you in CVE noise. **vet** takes a different approach:
+- **Malicious packages.** vet checks each package against [SafeDep Malysis](https://safedep.io/),
+  which analyzes new package versions as the registries publish them.
+- **Known vulnerabilities**, with data from SafeDep Insights.
+- **Risky workflows.** Dangerous triggers, template injection and actions with no pinned commit SHA.
+- **Lockfile tampering.** Entries from an untrusted registry, or with the URL of another package.
+- **Fresh versions.** A version inside the cooldown window, before the community had time to look.
 
-- **Shadow AI discovery** — Discover AI tool usage signals across various tools and configurations
-- **Catch malware before it ships** — Zero-day detection through static and dynamic behavioral analysis (requires SafeDep Cloud access)
-- **Cut through vulnerability noise** — Analyzes actual code usage to surface only the risks that matter
-- **Enforce policy as code** — Express security, license, and quality requirements as [CEL](https://cel.dev/) expressions
-- **CI/CD integration** — Zero-config security guardrails in CI/CD
-
-Free for open source. Hosted SaaS available at [SafeDep](https://safedep.io).
+A plain scan reports and exits 0. A gate (`--fail-on`, or a policy) makes the scan exit 1 when
+it fails, so the same command works on a laptop, in CI and for an AI agent.
 
 ## Quick Start
 
-**Install in seconds:**
-
 ```bash
-# macOS & Linux
-brew install vet
+# Install
+brew install safedep/tap/vet
 
-# Using npm
-npm install -g @safedep/vet
+# Scan the current directory
+vet scan
+
+# Fail CI on a high or critical finding
+vet scan --fail-on high
+
+# Report only what a pull request changes
+vet scan --base-ref origin/main --fail-on high
+
+# Write SARIF for GitHub code scanning, from the saved scan, with no new scan
+vet report show --report sarif=vet.sarif
 ```
 
-or download a [pre-built binary](https://github.com/safedep/vet/releases)
+vet needs no account. With no credentials, vet uses the community endpoints of SafeDep. Run
+`vet auth login` to use the API endpoints of your SafeDep Cloud tenant.
 
-**Get started immediately:**
+## What vet scans
 
-```bash
-# Scan for malware in your dependencies
-vet scan -D . --malware-query
+| Target | Example |
+| --- | --- |
+| A directory (the default) | `vet scan`, `vet scan ./service` |
+| A git repository | `vet scan https://github.com/safedep/vet` |
+| A container image | `vet scan oci://alpine:3.20`, `vet scan image.tar` |
+| An SBOM (CycloneDX or SPDX) | `vet scan sbom.cdx.json` |
+| One package | `vet scan pkg:npm/express@4.19.2` |
 
-# Fail CI on critical vulnerabilities
-vet scan -D . --filter 'vulns.critical.exists(p, true)' --filter-fail
-```
+vet reads the lockfiles and manifests of npm, PyPI, Go, Maven, Gradle, Cargo, RubyGems, NuGet,
+Packagist, Pub and more, and the GitHub Actions workflows of the target. It does not install or
+run any of them.
 
-## Architecture
+## Controls
 
-`vet` follows a pipeline architecture: **readers** ingest package manifests from diverse sources (directories, repositories, container images, SBOMs), **enrichers** augment each package with vulnerability, malware, and scorecard data from SafeDep Cloud, the **CEL policy engine** evaluates security policies against enriched data, and **reporters** produce actionable output in formats like SARIF, JSON, and Markdown.
+A control turns the data about a package or a workflow into findings. `vet policy control list`
+prints them.
 
-<details>
-<summary>View architecture diagram</summary>
+| Control | Family | Default severity | Finds |
+| --- | --- | --- | --- |
+| `malware` | malware | critical | A malicious package |
+| `suspicious-package` | malware | high | A package that the analysis marks suspicious |
+| `vulnerability` | vulnerability | from the advisory | A known vulnerability |
+| `dependency-cooldown` | cooldown | high | A version that the registry published in the cooldown window (5 days) |
+| `untrusted-registry` | lockfile | high | A lockfile entry from an untrusted registry |
+| `registry-path-mismatch` | lockfile | high | A lockfile entry with the URL of another package |
+| `dangerous-trigger` | workflow | high | A `pull_request_target` or `workflow_run` workflow that checks out untrusted code |
+| `template-injection` | workflow | high | An untrusted expression inside a `run:` script |
+| `unpinned-action` | workflow | medium | A third-party action that a tag or a branch selects |
 
-```mermaid
-graph TB
-    subgraph "OSS Ecosystem"
-        R1[npm Registry]
-        R2[PyPI Registry]
-        R3[Maven Central]
-        R4[Other Registries]
-    end
+`vet fix github-actions run` pins each third-party action to its commit SHA.
 
-    subgraph "SafeDep Cloud"
-        M[Continuous Monitoring]
-        A[Real-time Code Analysis<br/>Malware Detection]
-        T[Threat Intelligence DB<br/>Vulnerabilities • Malware • Scorecard]
-    end
+## Policy
 
-    subgraph "vet CLI"
-        S[Source Repository<br/>Scanner]
-        P[CEL Policy Engine]
-        O[Reports & Actions<br/>SARIF/JSON/CSV]
-    end
-
-    R1 -->|New Packages| M
-    R2 -->|New Packages| M
-    R3 -->|New Packages| M
-    R4 -->|New Packages| M
-    M -->|Behavioral Analysis| A
-    A -->|Malware Signals| T
-
-    S -->|Query Package Info| T
-    T -->|Security Intelligence| S
-    S -->|Analysis Results| P
-    P -->|Policy Decisions| O
-
-    style M fill:#7CB9E8,stroke:#5A8DB8,color:#1a1a1a
-    style A fill:#E8A87C,stroke:#B88A5A,color:#1a1a1a
-    style T fill:#7CB9E8,stroke:#5A8DB8,color:#1a1a1a
-    style S fill:#90C695,stroke:#6B9870,color:#1a1a1a
-    style P fill:#E8C47C,stroke:#B89B5A,color:#1a1a1a
-    style O fill:#B8A3D4,stroke:#9478AA,color:#1a1a1a
-```
-
-</details>
-
-## Key Features
-
-### **Malicious Package Detection**
-
-Real-time protection against malicious packages powered by [SafeDep Cloud](https://docs.safedep.io/cloud/malware-analysis).
-Free for open source projects. Detects zero-day malware through active code analysis.
-
-### **Vulnerability Analysis**
-
-Unlike dependency scanners that flood you with noise, `vet` analyzes your **actual code usage** to prioritize real risks.
-See [dependency usage evidence](https://docs.safedep.io/vet/guides/dependency-usage-identification) for details.
-
-### **Policy as Code**
-
-Define security policies using CEL expressions to enforce context specific requirements:
-
-```bash
-# Block packages with critical CVEs
-vet scan --filter 'vulns.critical.exists(p, true)' --filter-fail
-
-# Enforce license compliance
-vet scan --filter 'licenses.contains_license("GPL-3.0")' --filter-fail
-
-# Require minimum OpenSSF Scorecard scores
-vet scan --filter 'scorecard.scores.Maintained < 5' --filter-fail
-```
-
-### **Multi-Ecosystem Support**
-
-Package managers: **npm**, **PyPI**, **Maven**, **Go**, **Ruby**, **Rust**, **PHP**
-Container images: **Docker**, **OCI**
-SBOM formats: **CycloneDX**, **SPDX**
-Source repositories: **GitHub**, **GitLab**
-
-## Malicious Package Detection
-
-**Real-time protection against malicious packages** by querying SafeDep's threat intelligence
-database, continuously populated through static and dynamic behavioral analysis.
-
-### Quick Setup
-
-```bash
-# Query known malicious packages (no API key needed)
-vet scan -D . --malware-query
-```
-
-> [!NOTE]
-> The `--malware` flag is deprecated. Active (on-demand) scanning has been retired in favour of
-> querying SafeDep's threat intelligence database. `--malware` now behaves identically to
-> `--malware-query` and is retained for backward compatibility.
-
-**Example detections:**
-
-- [MAL-2025-3541: express-cookie-parser](https://safedep.io/malicious-npm-package-express-cookie-parser/)
-- [MAL-2025-4339: eslint-config-airbnb-compat](https://safedep.io/digging-into-dynamic-malware-analysis-signals/)
-- [MAL-2025-4029: ts-runtime-compat-check](https://safedep.io/digging-into-dynamic-malware-analysis-signals/)
-
-**Key security features:**
-
-- Real-time lookups against SafeDep's known malicious packages database
-- Behavioral analysis using static and dynamic analysis (performed continuously in SafeDep Cloud)
-- Human-in-the-loop triaging for high-impact findings
-- Public [analysis log](https://vetpkg.dev/mal) for transparency
-
-### Advanced Usage
-
-```bash
-# Specialized scans
-vet scan --vsx --malware-query                  # VS Code extensions
-vet scan -D .github/workflows --malware-query   # GitHub Actions
-vet scan --image nats:2.10 --malware-query      # Container images
-```
-
-> [!NOTE]
-> The `vet inspect malware` command (on-demand analysis of a single package) is deprecated and
-> will be removed in a future release. Use `vet scan --malware-query` to check packages against
-> SafeDep's known malicious packages database.
-
-## Production Ready Integrations
-
-### GitHub Actions
-
-Zero-config security guardrails in CI/CD:
+A policy file sets the rules of the gate and the suppressions. A rule is a
+[CEL](https://cel.dev/) condition over the finding, the package and the manifest.
 
 ```yaml
-- uses: safedep/vet-action@v1
-  with:
-    policy: ".github/vet/policy.yml"
+version: 2
+rules:
+  - id: no-malware
+    when: finding.family == "malware"
+    action: fail
+  - id: fresh-packages
+    when: package.days_since_publish < 5
+    action: warn
+suppressions:
+  - purl: pkg:npm/left-pad@1.3.0
+    control: dependency-cooldown
+    reason: Reviewed. The maintainer published a fix.
+    expires: 2026-12-31
 ```
-
-See [vet-action](https://github.com/safedep/vet-action) documentation.
-
-### GitLab CI
-
-Enterprise scanning with [vet CI Component](https://docs.safedep.io/vet/guides/gitlab-dependency-scanning):
-
-```yaml
-include:
-  - component: gitlab.com/safedep/ci-components/vet/scan@main
-```
-
-### Container Integration
-
-Run `vet` anywhere using our container image:
 
 ```bash
-docker run --rm -v $(pwd):/app ghcr.io/safedep/vet:latest scan -D /app --malware-query
+vet policy init            # write a starter policy
+vet policy validate        # check it
+vet scan --policy vet-policy.yml
 ```
+
+`vet policy schema get` prints the fields that a rule can read.
+
+## Output
+
+The terminal view goes to stderr. Report data goes to stdout with `-o`, and to files with
+`--report FORMAT=PATH`. One scan writes many formats.
+
+| Format | Use |
+| --- | --- |
+| `table`, `plain` | People, and `grep` |
+| `json`, `jsonl` | Programs. `vet report schema get` prints the JSON Schema |
+| `sarif` | GitHub code scanning and other SARIF tools |
+| `markdown` | A pull request comment or a job summary |
+| `cyclonedx` | An SBOM with the findings as vulnerabilities |
+
+vet saves each scan in its state directory. `vet report show`, `vet report list`,
+`vet report diff` and `vet report finding show` read the saved scans with no new scan. A scan
+that stops (Ctrl-C, a lost connection) continues on the next run.
+
+## CI and AI agents
+
+| Exit code | Meaning |
+| --- | --- |
+| 0 | The scan completed, and the gate passed or no gate was set |
+| 1 | The gate failed |
+| 2 | A usage or config error. The message names the fix |
+| 3 | A runtime error, for example a report file that vet cannot write |
+| 130 | A signal stopped vet. The scan continues on the next run |
+
+vet finds an AI agent from `CLAUDECODE` or `AI_AGENT`, and then writes JSON on stdout, never
+prompts, and prints each error as one `ERR: code=… message=… help=…` line. `--mode agent` sets
+the same behavior.
 
 ## Command reference
 
@@ -267,66 +199,40 @@ the order of the command tree.
 
 ## Installation
 
-### Homebrew (Recommended)
+### Homebrew
 
 ```bash
 brew install safedep/tap/vet
 ```
 
-### npm
+### Release binaries
+
+Download the binary for your platform from the
+[releases page](https://github.com/safedep/vet/releases).
+
+### Go
 
 ```bash
-npm install @safedep/vet
+go install github.com/safedep/vet/v2/cmd/vet@latest
 ```
 
-### Direct Download
-
-See [releases](https://github.com/safedep/vet/releases) for pre-built binaries.
-
-### Go Install
-
-```bash
-go install github.com/safedep/vet@latest
-```
-
-### Container Image
-
-```bash
-# Quick test
-docker run --rm ghcr.io/safedep/vet:latest version
-
-# Scan local directory
-docker run --rm -v $(pwd):/workspace ghcr.io/safedep/vet:latest scan -D /workspace
-```
-
-### Verify Installation
+### Check the install
 
 ```bash
 vet version
-# Should display version and build information
+vet doctor
 ```
 
-## Advanced Features
+## Configuration
 
-**Learn more in our comprehensive documentation:**
-
-- **[AI Usage Discovery](./docs/ai-discovery.md)** - Discover AI tool usage signals across various tools and configurations
-- **[AI Agent Mode](./docs/agent.md)** - Run vet as an AI agent
-- **[MCP Server](./docs/mcp.md)** - Run vet as an MCP server for AI-assisted code analysis
-- **[Reporting](./docs/reporting.md)** - SARIF, JSON, CSV, HTML, Markdown formats
-- **[SBOM Support](https://docs.safedep.io/vet/guides/cyclonedx-sbom)** - CycloneDX, SPDX import/export
-- **[Query Mode](https://docs.safedep.io/cloud/quickstart#query-your-data)** - Scan once, analyze multiple times
-- **[GitHub Integration](https://docs.safedep.io/)** - Repository and organization scanning
-- **[GitHub Actions Pinning](./docs/github-actions-pinning.md)** - Pin GitHub Actions to commit SHAs to prevent supply chain attacks
+vet reads `vet.yml` from the user config directory (`vet config show` prints the path and each
+value with its source), then the `VET_*` variables, then the flags. A config file inside the
+scanned target changes nothing. `vet config schema get` prints the JSON Schema of the file.
 
 ## Privacy
 
-`vet` collects anonymous usage telemetry to improve the product. **Your code and package information is never transmitted.**
-
-```bash
-# Disable telemetry (optional)
-export VET_DISABLE_TELEMETRY=true
-```
+vet sends the identity of each package (its ecosystem, name and version) to SafeDep to get the
+data about it. vet sends no source code and no file content.
 
 ## Community & Support
 
@@ -356,7 +262,7 @@ export VET_DISABLE_TELEMETRY=true
 
 vet stands on the shoulders of giants:
 
-[OSV](https://osv.dev) • [OpenSSF Scorecard](https://securityscorecards.dev/) • [SLSA](https://slsa.dev/) • [OSV-SCALIBR](https://github.com/google/osv-scalibr) • [Syft](https://github.com/anchore/syft)
+[OSV](https://osv.dev) • [OpenSSF Scorecard](https://securityscorecards.dev/) • [SLSA](https://slsa.dev/) • [OSV-SCALIBR](https://github.com/google/osv-scalibr)
 
 ### Contributors
 
