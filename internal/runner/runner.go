@@ -90,7 +90,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 	if o.CooldownDays < 0 {
 		return app.UsageError("--cooldown-days must be 1 or more", "Set the number of days, for example --cooldown-days 7.")
 	}
-	creds, err := credentials.Resolve(credentials.Options{Profile: cfg.Cloud.Profile})
+	creds, err := credentials.Resolve(credentials.FromConfig(cfg.Cloud.Profile, cfg.Cloud.InsecureKeychainFallback, cfg.Cloud.KeychainFile))
 	if err != nil {
 		return err
 	}

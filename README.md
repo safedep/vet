@@ -239,6 +239,9 @@ the order of the command tree.
 
 | Command | Description |
 | --- | --- |
+| [`vet auth login`](docs/cmd/auth-login.md) | Save an API key in the keychain profile. |
+| [`vet auth status`](docs/cmd/auth-status.md) | Show the credentials that vet uses. |
+| [`vet auth logout`](docs/cmd/auth-logout.md) | Delete the credentials of the keychain profile. |
 | [`vet config show`](docs/cmd/config-show.md) | Show the effective config. |
 | [`vet config get`](docs/cmd/config-get.md) | Print one config value. |
 | [`vet config set`](docs/cmd/config-set.md) | Set a key in the user config file. |

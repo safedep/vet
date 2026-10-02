@@ -59,6 +59,27 @@ type Options struct {
 	Resolver cloud.CredentialResolver
 	// KeychainOptions pass through to the dry/cloud resolver.
 	KeychainOptions []cloud.KeychainOption
+	// Fallback is cloud.insecure_keychain_fallback.
+	Fallback bool
+	// File is cloud.keychain_file.
+	File string
+}
+
+// FromConfig returns the options of the cloud section of the config.
+func FromConfig(profile string, fallback bool, file string) Options {
+	return Options{Profile: profile, Fallback: fallback, File: file}
+}
+
+// keychainOptions returns the dry/cloud options of a profile.
+func (o Options) keychainOptions(profile string) []cloud.KeychainOption {
+	kopts := append([]cloud.KeychainOption{cloud.WithProfile(profile)}, o.KeychainOptions...)
+	switch {
+	case o.File != "":
+		kopts = append(kopts, cloud.WithKeychainHandle(newFileKeychain(o.File)))
+	case o.Fallback:
+		kopts = append(kopts, cloud.WithInsecureFileFallback())
+	}
+	return kopts
 }
 
 // Resolve reads the API key credentials from the environment, then from the
@@ -69,8 +90,7 @@ func Resolve(opts Options) (*Result, error) {
 
 	resolver := opts.Resolver
 	if resolver == nil {
-		kopts := append([]cloud.KeychainOption{cloud.WithProfile(profile)}, opts.KeychainOptions...)
-		r, err := cloud.NewDefaultCredentialResolver(cloud.CredentialTypeAPIKey, kopts...)
+		r, err := cloud.NewDefaultCredentialResolver(cloud.CredentialTypeAPIKey, opts.keychainOptions(profile)...)
 		if err != nil {
 			return nil, fmt.Errorf("create credential resolver: %w", err)
 		}

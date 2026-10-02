@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/v2/internal/app"
+	"github.com/safedep/vet/v2/internal/cmd/auth"
 	"github.com/safedep/vet/v2/internal/cmd/config"
 	"github.com/safedep/vet/v2/internal/cmd/doctor"
 	"github.com/safedep/vet/v2/internal/cmd/fix"
@@ -50,6 +51,7 @@ Run "vet scan" in a project directory to start.`,
 	pf.StringVar(&g.Profile, "profile", "", "SafeDep credential profile")
 
 	root.AddCommand(
+		auth.New(a),
 		config.New(a),
 		doctor.New(a),
 		fix.New(a),

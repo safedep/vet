@@ -68,6 +68,12 @@ type CacheConfig struct {
 type CloudConfig struct {
 	Profile   string          `yaml:"profile" json:"profile"`
 	Endpoints EndpointsConfig `yaml:"endpoints" json:"endpoints"`
+	// InsecureKeychainFallback stores the credentials in a plaintext file
+	// when the machine has no OS keychain, as the safedep cli does.
+	InsecureKeychainFallback bool `yaml:"insecure_keychain_fallback" json:"insecure_keychain_fallback"`
+	// KeychainFile stores the credentials in this plaintext file and never
+	// in the OS keychain, for tests and CI.
+	KeychainFile string `yaml:"keychain_file" json:"keychain_file"`
 }
 
 // EndpointsConfig holds the SafeDep service addresses. Tests point them at a

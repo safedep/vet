@@ -222,7 +222,7 @@ func sizeCheck(ctx context.Context, cfg *config.Config, s *state.Store, fix bool
 }
 
 func credentialCheck(cfg *config.Config) (*credentials.Result, Check) {
-	res, err := credentials.Resolve(credentials.Options{Profile: cfg.Cloud.Profile})
+	res, err := credentials.Resolve(credentials.FromConfig(cfg.Cloud.Profile, cfg.Cloud.InsecureKeychainFallback, cfg.Cloud.KeychainFile))
 	if err != nil {
 		return nil, Check{ID: "credentials", Status: Fail, Message: err.Error(), Fix: "Set both SAFEDEP_API_KEY and SAFEDEP_TENANT_ID, or neither, or run vet auth login."}
 	}

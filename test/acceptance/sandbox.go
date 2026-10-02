@@ -35,6 +35,9 @@ func Sandbox(env *testscript.Env) error {
 		}
 		env.Setenv(k, v)
 	}
+	// No script touches the host keychain. vet keeps the credentials in a
+	// plaintext file under the sandbox home.
+	env.Setenv("VET_CLOUD_KEYCHAIN_FILE", filepath.Join(home, "keychain.json"))
 	return nil
 }
 

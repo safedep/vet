@@ -128,6 +128,18 @@
   tier: P0
   guarantee: "SAFEDEP_API_KEY without SAFEDEP_TENANT_ID exits 2 and names the missing variable."
   labels: [credentials]
+- id: auth/status/no-secrets
+  title: "auth status prints no secret"
+  category: auth
+  tier: P1
+  guarantee: "vet auth status shows the last 4 characters of the API key in the table and no part of it in the JSON."
+  labels: [credentials]
+- id: auth/profile/selects
+  title: "--profile selects the keychain profile"
+  category: auth
+  tier: P1
+  guarantee: "vet auth login and status use the profile of --profile, else SAFEDEP_PROFILE, else default."
+  labels: [credentials]
 - id: controls/cooldown/inside-window
   title: "cooldown: inside window"
   category: controls
