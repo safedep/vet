@@ -72,7 +72,21 @@ func (s *Source) Artifacts(ctx context.Context) iter.Seq2[plugin.Artifact, error
 		if ref != "" {
 			co.ReferenceName = plumbing.ReferenceName(ref)
 		}
-		if err := clone(ctx, dir, co, ref); err != nil {
+		err = clone(ctx, dir, co, ref)
+		if co.Auth != nil && rejected(err) {
+			// A token that GitHub rejects, such as an expired one, must not
+			// stop the clone of a public repository.
+			log.Warnf("git: GitHub rejected the token for %s, the clone tries again with no token", repoURL)
+			co.Auth = nil
+			if rmErr := removeContents(dir); rmErr != nil {
+				err = errors.Join(err, rmErr)
+			} else if anonErr := clone(ctx, dir, co, ref); anonErr != nil {
+				err = errors.Join(err, anonErr)
+			} else {
+				err = nil
+			}
+		}
+		if err != nil {
 			yield(plugin.Artifact{}, errors.Join(fmt.Errorf("clone %s: %w", repoURL, err), cleanup()))
 			return
 		}
@@ -106,6 +120,12 @@ func clone(ctx context.Context, dir string, co *gogit.CloneOptions, ref string) 
 		}
 	}
 	return errors.Join(errs...)
+}
+
+// rejected reports a clone error that says that the server rejected the
+// credentials.
+func rejected(err error) bool {
+	return errors.Is(err, transport.ErrAuthenticationRequired) || errors.Is(err, transport.ErrAuthorizationFailed)
 }
 
 func removeContents(dir string) error {
