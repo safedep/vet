@@ -84,6 +84,9 @@ type Loaded struct {
 	FileLayer Layer
 	// Locked holds the keys that the managed file locks.
 	Locked map[string]bool
+	// UnknownKeys holds the unknown keys of the file. "vet config validate"
+	// reports them as errors.
+	UnknownKeys []string
 }
 
 // Load builds the effective config from the defaults, one config file, the
@@ -120,6 +123,7 @@ func Load(opts LoadOptions) (*Loaded, error) {
 					msg += fmt.Sprintf(". Did you mean %s?", s)
 				}
 				l.Warnings = append(l.Warnings, msg)
+				l.UnknownKeys = append(l.UnknownKeys, key)
 				continue
 			}
 			l.Origins.set(key, Origin{Layer: layer, Source: path})
