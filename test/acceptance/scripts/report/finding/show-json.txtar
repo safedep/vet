@@ -1,0 +1,20 @@
+# vet report finding show ID -o json returns the whole finding. An unknown
+# id exits 2.
+cd proj
+exec vet scan . --mode plain -o plain
+capture ID 'malware\t\S+\t\S+\t(f-[0-9a-f]+)'
+exec vet report finding show $ID --mode plain -o json
+jsonq stdout id $ID
+jsonq stdout control_id malware
+jsonq stdout severity critical
+jsonq stdout subject.package.purl pkg:npm/safedep-test-pkg@0.1.3
+jsonq stdout evidence.0.source malysis
+
+exec vet report finding show $ID --mode plain -o plain
+stdout 'title\tMalicious package npm/safedep-test-pkg@0.1.3'
+
+execexit 2 vet report finding show f-0000 --mode plain
+stderr 'usage_no_finding'
+
+-- proj/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3"}}, "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"}}}

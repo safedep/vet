@@ -1,0 +1,33 @@
+# vet report list
+
+List the saved scans of the current directory.
+
+## Synopsis
+
+```text
+vet report list [--all] [--state-dir DIR] [-o table|plain|json|jsonl]
+```
+
+## Description
+
+`vet report list` lists the saved scans of the current directory, the newest first. When the current
+directory has no scan, vet looks at each parent directory in turn. Each row has the scan id, the
+target, the start time, the run time, the status, the package and finding counts and the gate. A
+scan that continued after an interrupt shows `(continued)`. The run time is the sum of its runs.
+
+`--all` lists the scans of every target.
+
+## Examples
+
+```text
+vet report list
+vet report list --all -o json
+```
+
+## Exit codes
+
+| Code | Meaning |
+| --- | --- |
+| 0 | vet listed the scans. |
+| 2 | A flag is not valid. |
+| 3 | vet could not read the scan index. |

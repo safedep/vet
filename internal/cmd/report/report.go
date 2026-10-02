@@ -5,6 +5,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/v2/internal/app"
+	"github.com/safedep/vet/v2/internal/state"
+	"github.com/safedep/vet/v2/internal/tui"
 )
 
 // New returns the "vet report" command.
@@ -16,6 +18,12 @@ func New(a *app.App) *cobra.Command {
 format, apply a new gate to it, list the scans, compare two scans, show one
 finding and print the JSON Schema of the report. They make no new scan.`,
 	}
-	c.AddCommand(newShow(a))
+	c.AddCommand(newShow(a), newList(a), newDiff(a), newFinding(a))
 	return c
+}
+
+func closeStore(s *state.Store) {
+	if err := s.Close(); err != nil {
+		tui.Warning("close the scan index: %v", err)
+	}
 }

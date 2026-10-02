@@ -241,6 +241,9 @@ the order of the command tree.
 | --- | --- |
 | [`vet scan`](docs/cmd/scan.md) | Scan a project, a repository, an image, an SBOM or a package. |
 | [`vet report show`](docs/cmd/report-show.md) | Render a saved report. |
+| [`vet report list`](docs/cmd/report-list.md) | List the saved scans of the current directory. |
+| [`vet report diff`](docs/cmd/report-diff.md) | Compare the findings of two saved scans. |
+| [`vet report finding show`](docs/cmd/report-finding-show.md) | Show one finding of a saved scan. |
 | [`vet version`](docs/cmd/version.md) | Show the version and the build of vet. |
 
 ## Installation
