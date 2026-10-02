@@ -539,6 +539,9 @@
         "integrity": {
           "type": "string"
         },
+        "local": {
+          "type": "boolean"
+        },
         "insight": {
           "$ref": "#/$defs/Insight"
         },

@@ -55,6 +55,9 @@ type Enricher struct {
 	// or downgraded package, in pull request mode. The result becomes
 	// Package.PreviousInsight.
 	Prior bool
+	// Local is an enricher that reads the target and calls no registry, so
+	// it also gets the packages with no version and the local packages.
+	Local bool
 }
 
 // Control is one control of a scan.

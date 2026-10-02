@@ -23,6 +23,11 @@ type Package struct {
 	// Integrity is the checksum that a lockfile records, when it records one.
 	Integrity string `json:"integrity,omitempty"`
 
+	// Local marks a package that the project builds from its own tree, such
+	// as a workspace member or an editable install. It is not a registry
+	// package, so vet does not look it up.
+	Local bool `json:"local,omitempty"`
+
 	Insight *Insight `json:"insight,omitempty"`
 	// PreviousInsight is the Insights data of PreviousVersion, in pull
 	// request mode. The controls that compare two versions read it.
@@ -30,6 +35,10 @@ type Package struct {
 	Malware         *MalwareAnalysis `json:"malware,omitempty"`
 	Usage           *Usage           `json:"usage,omitempty"`
 }
+
+// Checkable reports whether a registry can answer for the package: it has a
+// version and it is not local.
+func (p *Package) Checkable() bool { return p.ID.Version != "" && !p.Local }
 
 // Insight is the package data from SafeDep Insights v2.
 type Insight struct {

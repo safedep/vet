@@ -53,15 +53,24 @@ func (r *run) enrichWith(ctx context.Context, e Enricher) error {
 }
 
 func (r *run) enrichBatch(ctx context.Context, e Enricher, batch []*model.Package) ([]state.EnrichmentResult, error) {
-	todo := batch
+	var todo []*model.Package
 	var results []state.EnrichmentResult
+	for _, p := range batch {
+		// A registry has no data for a package with no version or a local
+		// package, and the API rejects an empty version.
+		if !p.Checkable() && !e.Local {
+			results = append(results, state.EnrichmentResult{Package: p, Enricher: e.Name, Status: state.EnrichmentOK})
+			continue
+		}
+		todo = append(todo, p)
+	}
 	useCache := r.o.Cache != nil && e.TTL > 0
-	if useCache && !r.o.NoCacheRead {
-		hits, misses, err := r.o.Cache.Lookup(ctx, e.Name, e.Version, batch)
+	if useCache && !r.o.NoCacheRead && len(todo) > 0 {
+		hits, misses, err := r.o.Cache.Lookup(ctx, e.Name, e.Version, todo)
 		if err != nil {
 			return nil, err
 		}
-		results, todo = hits, misses
+		results, todo = append(results, hits...), misses
 	}
 	if len(todo) == 0 {
 		return results, nil
