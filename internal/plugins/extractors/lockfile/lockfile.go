@@ -12,6 +12,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/packagelockjson"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/pnpmlock"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/uvlock"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/yarnlock"
 )
 
 // Extractors returns the graph-aware lockfile extractors.
@@ -23,6 +24,7 @@ func Extractors() ([]filesystem.Extractor, error) {
 		uvlock.New,
 		cargolock.New,
 		pnpmlock.New,
+		yarnlock.New,
 	} {
 		e, err := newFn(cfg)
 		if err != nil {

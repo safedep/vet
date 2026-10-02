@@ -1,0 +1,17 @@
+{
+  "packages": [
+    "npm/@ws/ansi-regex@0.0.0-use.local",
+    "npm/ansi-regex@6.1.0"
+  ],
+  "direct": [
+    "npm/@ws/ansi-regex@0.0.0-use.local",
+    "npm/ansi-regex@6.1.0"
+  ],
+  "roots": [
+    "npm/@ws/ansi-regex@0.0.0-use.local",
+    "npm/ansi-regex@6.1.0"
+  ],
+  "edges": [
+    "npm/@ws/ansi-regex@0.0.0-use.local -> npm/ansi-regex@6.1.0"
+  ]
+}

@@ -67,6 +67,9 @@ func TestGraphGolden(t *testing.T) {
 		{"pnpm-v6-peers", "pnpmlock/testdata", "peer-dependencies-v6.yaml", "pnpm-lock.yaml"},
 		{"pnpm-v9-peers", "pnpmlock/testdata", "peer-dependencies.v9.yaml", "pnpm-lock.yaml"},
 		{"pnpm-v9-groups", "pnpmlock/testdata", "mixed-groups.v9.yaml", "pnpm-lock.yaml"},
+		{"yarn-v1-graph", "testdata/fixtures", "graph.v1.lock", "yarn.lock"},
+		{"yarn-v2-graph", "testdata/fixtures", "graph.v2.lock", "yarn.lock"},
+		{"yarn-v2-root", "yarnlock/testdata", "exclude-root.v2.lock", "yarn.lock"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

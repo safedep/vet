@@ -1,0 +1,15 @@
+{
+  "packages": [
+    "npm/debug@4.3.4",
+    "npm/ms@2.1.2"
+  ],
+  "direct": [
+    "npm/debug@4.3.4"
+  ],
+  "roots": [
+    "npm/debug@4.3.4"
+  ],
+  "edges": [
+    "npm/debug@4.3.4 -> npm/ms@2.1.2"
+  ]
+}
