@@ -1,6 +1,7 @@
 package acceptance
 
 import (
+	"debug/buildinfo"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -41,10 +42,16 @@ func Sandbox(env *testscript.Env) error {
 	return nil
 }
 
+// vetBinary is the path of the vet binary under test.
+var vetBinary string
+
 // Condition answers the script conditions of the harness: unix, git,
-// docker, root and live.
+// docker, root, live and cgo. cgo holds when the vet binary was built with
+// CGO, which code analysis needs.
 func Condition(cond string) (bool, error) {
 	switch cond {
+	case "cgo":
+		return builtWithCGO(vetBinary)
 	case "unix":
 		return runtime.GOOS != "windows", nil
 	case "git":
@@ -59,6 +66,22 @@ func Condition(cond string) (bool, error) {
 		return os.Getenv(LiveEnv) == "1", nil
 	}
 	return false, errUnknownCondition(cond)
+}
+
+func builtWithCGO(bin string) (bool, error) {
+	if bin == "" {
+		return false, nil
+	}
+	info, err := buildinfo.ReadFile(bin)
+	if err != nil {
+		return false, err
+	}
+	for _, s := range info.Settings {
+		if s.Key == "CGO_ENABLED" {
+			return s.Value == "1", nil
+		}
+	}
+	return false, nil
 }
 
 type errUnknownCondition string

@@ -92,6 +92,7 @@ func buildVet(t *testing.T) string {
 	// directory, so the path must be absolute.
 	bin, err := filepath.Abs(bin)
 	require.NoError(t, err)
+	vetBinary = bin
 	return filepath.Dir(bin)
 }
 

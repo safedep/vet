@@ -218,6 +218,18 @@
   tier: P1
   guarantee: "A package one typo away from a popular package, with few downloads, gives a high typosquat finding."
   labels: [reputation]
+- id: controls/reputation/dependency-confusion
+  title: "an internal name from a public registry is a finding"
+  category: controls
+  tier: P1
+  guarantee: "A package that matches plugins.reputation.options.internal_names and resolves from a public registry gives a dependency-confusion finding. The internal registry gives none."
+  labels: [controls, config]
+- id: enrichers/codeusage/imported
+  title: "a finding says where the code imports the package"
+  category: enrichers
+  tier: P2
+  guarantee: "With plugins.codeusage.enabled, on a build with CGO, a package finding gets codeusage evidence that names the importing files. The severity does not change."
+  labels: [enrichers, config]
 - id: controls/workflow/hardening
   title: "workflow: hardening controls"
   category: controls
@@ -248,6 +260,12 @@
   tier: P0
   guarantee: "In a git fixture with two commits, --base-ref reports only the added package, with change ADDED. Unchanged packages give no finding."
   labels: [scan]
+- id: scan/pr-mode/base-reuse
+  title: "a second pull request scan reuses the base"
+  category: scan
+  tier: P2
+  guarantee: "vet keeps the base extraction in the state directory, not in the target. A second scan with the same base commit gives the same findings."
+  labels: [pr-mode, state]
 - id: scan/pr-mode/workflow-change
   title: "pr mode: workflow change"
   category: scan
