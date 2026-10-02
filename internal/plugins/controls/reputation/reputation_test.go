@@ -48,6 +48,8 @@ func TestReputation(t *testing.T) {
 		{"swapped letters", nil, pkg(model.EcosystemNpm, "lodahs", "1.0.0", few), []string{IDTyposquat}},
 		{"homoglyph", nil, pkg(model.EcosystemPyPI, "reqvests", "1.0.0", &model.Insight{}), []string{IDTyposquat}},
 		{"separator", nil, pkg(model.EcosystemPyPI, "pythondateutil", "1.0.0", few), []string{IDTyposquat}},
+		{"another word with one more letter at the start", nil, pkg(model.EcosystemNpm, "args", "5.0.3", few), nil},
+		{"one more letter at the end", nil, pkg(model.EcosystemNpm, "lodashh", "1.0.0", few), []string{IDTyposquat}},
 		{"the popular package", nil, pkg(model.EcosystemNpm, "express", "4.19.2", few), nil},
 		{"a popular near name", nil, pkg(model.EcosystemNpm, "preact", "10.0.0", &model.Insight{Downloads: 5_000_000}), nil},
 		{"no data fails open", nil, pkg(model.EcosystemNpm, "expresss", "1.0.0", nil), nil},

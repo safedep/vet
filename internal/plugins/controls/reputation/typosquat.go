@@ -69,7 +69,17 @@ func similar(name, target string) bool {
 	if homoglyphs.Replace(name) == homoglyphs.Replace(target) {
 		return true
 	}
-	return distance(name, target) == 1
+	return distance(name, target) == 1 && !firstLetter(name, target)
+}
+
+// firstLetter reports a name that is the other name with one more letter
+// at the start, such as "ext" and "next" or "args" and "yargs". They are
+// other words, not typing errors.
+func firstLetter(a, b string) bool {
+	if len(a) > len(b) {
+		a, b = b, a
+	}
+	return len(b) == len(a)+1 && b[1:] == a
 }
 
 // distance is the Damerau-Levenshtein distance with adjacent swaps.
