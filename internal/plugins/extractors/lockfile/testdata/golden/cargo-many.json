@@ -1,0 +1,27 @@
+{
+  "packages": [
+    "cargo/aho-corasick@0.7.18",
+    "cargo/libc@0.2.140",
+    "cargo/memchr@2.4.1",
+    "cargo/syn@1.0.109",
+    "cargo/syn@2.0.15",
+    "cargo/zstd@0.11.2"
+  ],
+  "direct": [
+    "cargo/aho-corasick@0.7.18",
+    "cargo/libc@0.2.140",
+    "cargo/syn@1.0.109",
+    "cargo/syn@2.0.15",
+    "cargo/zstd@0.11.2"
+  ],
+  "roots": [
+    "cargo/aho-corasick@0.7.18",
+    "cargo/libc@0.2.140",
+    "cargo/syn@1.0.109",
+    "cargo/syn@2.0.15",
+    "cargo/zstd@0.11.2"
+  ],
+  "edges": [
+    "cargo/aho-corasick@0.7.18 -> cargo/memchr@2.4.1"
+  ]
+}

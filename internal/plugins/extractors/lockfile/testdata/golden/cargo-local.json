@@ -1,0 +1,9 @@
+{
+  "packages": [
+    "cargo/addr2line@0.15.2",
+    "cargo/local-rust-pkg@0.1.0"
+  ],
+  "direct": [],
+  "roots": [],
+  "edges": []
+}

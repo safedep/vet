@@ -61,6 +61,8 @@ func TestGraphGolden(t *testing.T) {
 		{"npm-workspaces", "packagelockjson/testdata", "workspaces.v3.json", "package-lock.json"},
 		{"uv-two", "uvlock/testdata", "two-packages.lock", "uv.lock"},
 		{"uv-grouped", "uvlock/testdata", "grouped-packages.lock", "uv.lock"},
+		{"cargo-many", "cargolock/testdata", "many-packages.lock", "Cargo.lock"},
+		{"cargo-local", "cargolock/testdata", "two-packages-with-local.lock", "Cargo.lock"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

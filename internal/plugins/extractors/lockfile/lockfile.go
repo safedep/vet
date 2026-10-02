@@ -8,6 +8,7 @@ import (
 	cpb "github.com/google/osv-scalibr/binary/proto/config_go_proto"
 	"github.com/google/osv-scalibr/extractor/filesystem"
 
+	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/cargolock"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/packagelockjson"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/uvlock"
 )
@@ -19,6 +20,7 @@ func Extractors() ([]filesystem.Extractor, error) {
 	for _, newFn := range []func(*cpb.PluginConfig) (filesystem.Extractor, error){
 		packagelockjson.New,
 		uvlock.New,
+		cargolock.New,
 	} {
 		e, err := newFn(cfg)
 		if err != nil {
