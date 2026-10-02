@@ -1,0 +1,14 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/pnpmlock",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/ansi-regex@5.0.1 [+] :19",
+        "npm/is-number@7.0.0 [+d] :24",
+        "npm/uuid@8.3.2 [+] :29"
+      ]
+    }
+  ]
+}

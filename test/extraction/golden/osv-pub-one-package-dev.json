@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "dart/pubspec",
+      "kind": "lockfile",
+      "ecosystem": "pub",
+      "packages": [
+        "pub/build_runner@2.2.1 [d]"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/pnpmlock",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/@typescript-eslint/types@5.13.0 [+] :11"
+      ]
+    }
+  ]
+}

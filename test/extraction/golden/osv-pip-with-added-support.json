@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "python/requirements",
+      "kind": "manifest",
+      "ecosystem": "pypi",
+      "packages": [
+        "pypi/twisted@20.3.0 [+] :1"
+      ]
+    }
+  ]
+}

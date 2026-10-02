@@ -1,0 +1,16 @@
+{
+  "manifests": [
+    {
+      "extractor": "python/requirements",
+      "kind": "manifest",
+      "ecosystem": "pypi",
+      "packages": [
+        "pypi/foo@1.2.3 [+] :2",
+        "pypi/bar@4.5\\.6 [+] :9",
+        "pypi/baz@7.8.9 [+] :13",
+        "pypi/baz@1.2.3 [+] :14",
+        "pypi/qux@10.11.12 [+] :17"
+      ]
+    }
+  ]
+}

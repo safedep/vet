@@ -3,7 +3,7 @@
     "manifest": {
       "id": "m-bfbb984cb168",
       "path": "bom.cdx.json",
-      "ecosystem": "npm",
+      "ecosystem": "maven",
       "kind": "sbom",
       "extractor": "sbom/cdx"
     },

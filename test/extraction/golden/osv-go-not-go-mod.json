@@ -1,0 +1,6 @@
+{
+  "manifests": [],
+  "errors": [
+    "go/gomod: go.mod: could not extract: go.mod:1: unknown directive: this"
+  ]
+}

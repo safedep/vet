@@ -1,0 +1,24 @@
+{
+  "manifests": [
+    {
+      "extractor": "python/requirements",
+      "kind": "manifest",
+      "ecosystem": "pypi",
+      "packages": [
+        "pypi/astroid@2.5.1 [+] :1",
+        "pypi/beautifulsoup4@4.9.3 [+] :3",
+        "pypi/boto3@1.17.19 [+] :5",
+        "pypi/botocore@1.20.19 [+] :7",
+        "pypi/certifi@2020.12.5 [+] :11",
+        "pypi/chardet@4.0.0 [+] :13",
+        "pypi/circus@0.17.1 [+] :15",
+        "pypi/click@7.1.2 [+] :17",
+        "pypi/django-debug-toolbar@3.2.1 [+] :19",
+        "pypi/django-filter@2.4.0 [+] :21",
+        "pypi/django-nose@1.4.7 [+] :23",
+        "pypi/django-storages@1.11.1 [+] :25",
+        "pypi/django@2.2.24 [+] :27"
+      ]
+    }
+  ]
+}

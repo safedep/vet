@@ -1,0 +1,6 @@
+{
+  "manifests": [],
+  "errors": [
+    "rust/cargolock: Cargo.lock: could not extract: toml: line 1: expected '.' or '=', but got 'i' instead"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "manifests": [
+    {
+      "extractor": "java/gradlelockfile",
+      "kind": "lockfile",
+      "ecosystem": "maven",
+      "packages": [
+        "maven/org.springframework.boot:spring-boot-autoconfigure@2.7.4 :5",
+        "maven/org.springframework.boot:spring-boot-configuration-processor@2.7.5 :6",
+        "maven/org.springframework.boot:spring-boot-devtools@2.7.6 :7",
+        "maven/org.springframework.boot:spring-boot-starter-aop@2.7.7 :8",
+        "maven/org.springframework.boot:spring-boot-starter-data-jpa@2.7.8 :9"
+      ]
+    }
+  ]
+}

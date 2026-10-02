@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "dart/pubspec",
+      "kind": "lockfile",
+      "ecosystem": "pub",
+      "packages": [
+        "pub/maa_core@0.0.1"
+      ]
+    }
+  ]
+}

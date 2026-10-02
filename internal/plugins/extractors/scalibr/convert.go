@@ -76,7 +76,7 @@ func ToManifest(in Input) (*model.Manifest, []error) {
 	if len(m.Packages) == 0 {
 		return nil, errs
 	}
-	m.Ecosystem = m.Packages[0].ID.Ecosystem
+	m.Ecosystem = mainEcosystem(m.Packages)
 	slices.SortStableFunc(m.Packages, func(a, b *model.Package) int {
 		if c := cmp.Compare(a.Line, b.Line); c != 0 {
 			return c
@@ -94,6 +94,23 @@ func ToManifest(in Input) (*model.Manifest, []error) {
 		}
 	}
 	return m, errs
+}
+
+// mainEcosystem returns the ecosystem of most packages. An SBOM can mix
+// ecosystems. A tie picks the first name in order, so the result does not
+// depend on the order of the packages.
+func mainEcosystem(pkgs []*model.Package) model.Ecosystem {
+	counts := map[model.Ecosystem]int{}
+	for _, p := range pkgs {
+		counts[p.ID.Ecosystem]++
+	}
+	var best model.Ecosystem
+	for _, e := range slices.Sorted(maps.Keys(counts)) {
+		if counts[e] > counts[best] {
+			best = e
+		}
+	}
+	return best
 }
 
 func toPackage(sp *extractor.Package) (*model.Package, error) {

@@ -1,0 +1,6 @@
+{
+  "manifests": [],
+  "errors": [
+    "python/pipfilelock: Pipfile.lock: could not extract: invalid character 'h' in literal true (expecting 'r')"
+  ]
+}

@@ -112,6 +112,11 @@ func (pdm npmPackageDetailsMap) add(key string, details packageDetails) {
 			details.Source = existing.Source
 		}
 		details.Direct = details.Direct || existing.Direct
+		// vet: keep the first line of a package that the lockfile holds
+		// more than once, so the output does not depend on map order.
+		if existing.Line > 0 && (details.Line == 0 || existing.Line < details.Line) {
+			details.Line = existing.Line
+		}
 		for k := range existing.Parents {
 			if details.Parents == nil {
 				details.Parents = map[string]bool{}

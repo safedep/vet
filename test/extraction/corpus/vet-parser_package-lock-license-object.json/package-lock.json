@@ -1,0 +1,26 @@
+{
+  "name": "test-app",
+  "version": "1.0.0",
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {
+    "": {
+      "name": "test-app",
+      "version": "1.0.0",
+      "license": "MIT",
+      "dependencies": {
+        "object-license": "^1.0.0"
+      }
+    },
+    "node_modules/object-license": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/object-license/-/object-license-1.0.0.tgz",
+      "integrity": "sha512-test",
+      "license": {
+        "type": "ISC",
+        "url": "https://opensource.org/licenses/ISC"
+      },
+      "dependencies": {}
+    }
+  }
+}

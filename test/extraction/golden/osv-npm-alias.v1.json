@@ -1,0 +1,14 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/packagelockjson",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/@babel/code-frame@7.0.0 :5",
+        "npm/string-width@5.1.2 :13",
+        "npm/string-width@4.2.0 :23"
+      ]
+    }
+  ]
+}

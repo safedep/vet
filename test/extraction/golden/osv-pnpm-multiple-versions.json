@@ -1,0 +1,14 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/pnpmlock",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/uuid@3.3.2 :13",
+        "npm/uuid@8.3.2 [+] :19",
+        "npm/xmlbuilder@9.0.7 :24"
+      ]
+    }
+  ]
+}

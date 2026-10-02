@@ -1,0 +1,14 @@
+{
+  "manifests": [
+    {
+      "extractor": "ruby/gemfilelock",
+      "kind": "lockfile",
+      "ecosystem": "rubygems",
+      "packages": [
+        "rubygems/coderay@1.1.3 :4",
+        "rubygems/method_source@1.0.0 :5",
+        "rubygems/pry@0.14.1 :6"
+      ]
+    }
+  ]
+}

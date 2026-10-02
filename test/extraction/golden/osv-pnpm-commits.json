@@ -1,0 +1,10 @@
+{
+  "manifests": [],
+  "errors": [
+    "pnpm-lock.yaml: unknown PURL type \"git\"",
+    "pnpm-lock.yaml: unknown PURL type \"git\"",
+    "pnpm-lock.yaml: unknown PURL type \"git\"",
+    "pnpm-lock.yaml: unknown PURL type \"git\"",
+    "pnpm-lock.yaml: unknown PURL type \"git\""
+  ]
+}

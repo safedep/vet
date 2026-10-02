@@ -1,0 +1,13 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/packagelockjson",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/lodash@1.3.1 :5",
+        "npm/other_package :10"
+      ]
+    }
+  ]
+}

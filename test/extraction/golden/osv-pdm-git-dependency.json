@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "python/pdmlock",
+      "kind": "lockfile",
+      "ecosystem": "pypi",
+      "packages": [
+        "pypi/toml@0.10.2 :11"
+      ]
+    }
+  ]
+}

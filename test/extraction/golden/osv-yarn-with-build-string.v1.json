@@ -1,0 +1,13 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/yarnlock",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/domino@2.1.6+git :5",
+        "npm/tslib@2.6.2 :10"
+      ]
+    }
+  ]
+}

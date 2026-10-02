@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/pnpmlock",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/acorn@8.7.0 [+] :10"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "python/poetrylock",
+      "kind": "lockfile",
+      "ecosystem": "pypi",
+      "packages": [
+        "pypi/numpy@1.23.3 :2"
+      ]
+    }
+  ]
+}

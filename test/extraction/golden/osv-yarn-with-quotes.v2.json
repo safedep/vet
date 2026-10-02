@@ -1,0 +1,13 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/yarnlock",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/compare-func@2.0.0 :8",
+        "npm/concat-map@0.0.1 :18"
+      ]
+    }
+  ]
+}

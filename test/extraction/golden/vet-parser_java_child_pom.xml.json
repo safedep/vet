@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "java/pomxml",
+      "kind": "manifest",
+      "ecosystem": "maven",
+      "packages": [
+        "maven/org.junit.jupiter:junit-jupiter-api [+] :18"
+      ]
+    }
+  ]
+}

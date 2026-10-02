@@ -1,0 +1,15 @@
+{
+  "manifests": [
+    {
+      "extractor": "python/requirements",
+      "kind": "manifest",
+      "ecosystem": "pypi",
+      "packages": [
+        "pypi/boto3@1.26.121 [+] :1",
+        "pypi/foo@1.0.0 [+] :2",
+        "pypi/fooproject@1.2 [+] :6",
+        "pypi/barproject@1.2 [+] :12"
+      ]
+    }
+  ]
+}

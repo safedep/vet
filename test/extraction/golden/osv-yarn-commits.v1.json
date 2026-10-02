@@ -1,0 +1,23 @@
+{
+  "manifests": [],
+  "errors": [
+    "yarn.lock: unknown PURL type \"git\"",
+    "yarn.lock: unknown PURL type \"git\"",
+    "yarn.lock: unknown PURL type \"git\"",
+    "yarn.lock: unknown PURL type \"git\"",
+    "yarn.lock: unknown PURL type \"git\"",
+    "yarn.lock: unknown PURL type \"git\"",
+    "yarn.lock: unknown PURL type \"git\"",
+    "yarn.lock: unknown PURL type \"git\"",
+    "yarn.lock: unknown PURL type \"git\"",
+    "yarn.lock: unknown PURL type \"git\"",
+    "yarn.lock: unknown PURL type \"git\"",
+    "yarn.lock: unknown PURL type \"git\"",
+    "yarn.lock: unknown PURL type \"git\"",
+    "yarn.lock: unknown PURL type \"git\"",
+    "yarn.lock: unknown PURL type \"git\"",
+    "yarn.lock: unknown PURL type \"git\"",
+    "yarn.lock: unknown PURL type \"git\"",
+    "yarn.lock: unknown PURL type \"git\""
+  ]
+}

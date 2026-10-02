@@ -1,0 +1,42 @@
+{
+  "manifests": [
+    {
+      "extractor": "python/uvlock",
+      "kind": "lockfile",
+      "ecosystem": "pypi",
+      "packages": [
+        "pypi/asgiref@3.8.1 :5",
+        "pypi/certifi@2025.1.31 :14",
+        "pypi/chardet@3.0.4 :23",
+        "pypi/django@3.2 [+] :32",
+        "pypi/fastapi@0.68.0 [+] :46",
+        "pypi/idna@2.10 :59",
+        "pypi/jinja2@2.10.1 [+] :68",
+        "pypi/markupsafe@3.0.2 :80",
+        "pypi/pydantic@1.10.21 :118",
+        "pypi/pytz@2025.1 :144",
+        "pypi/pyyaml@5.1 [+] :153",
+        "pypi/requests@2.25.0 [+] :159",
+        "pypi/ruff@0.9.10 [+] :174",
+        "pypi/sqlalchemy@1.3.0 [+] :199",
+        "pypi/sqlparse@0.5.3 :205",
+        "pypi/starlette@0.14.2 :214",
+        "pypi/typing-extensions@4.12.2 :223",
+        "pypi/urllib3@1.25.3 [+] :232"
+      ],
+      "edges": [
+        "pypi/django@3.2 -> pypi/asgiref@3.8.1",
+        "pypi/django@3.2 -> pypi/pytz@2025.1",
+        "pypi/django@3.2 -> pypi/sqlparse@0.5.3",
+        "pypi/fastapi@0.68.0 -> pypi/pydantic@1.10.21",
+        "pypi/fastapi@0.68.0 -> pypi/starlette@0.14.2",
+        "pypi/jinja2@2.10.1 -> pypi/markupsafe@3.0.2",
+        "pypi/pydantic@1.10.21 -> pypi/typing-extensions@4.12.2",
+        "pypi/requests@2.25.0 -> pypi/certifi@2025.1.31",
+        "pypi/requests@2.25.0 -> pypi/chardet@3.0.4",
+        "pypi/requests@2.25.0 -> pypi/idna@2.10",
+        "pypi/requests@2.25.0 -> pypi/urllib3@1.25.3"
+      ]
+    }
+  ]
+}

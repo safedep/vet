@@ -1,0 +1,13 @@
+{
+  "manifests": [
+    {
+      "extractor": "python/poetrylock",
+      "kind": "lockfile",
+      "ecosystem": "pypi",
+      "packages": [
+        "pypi/proto-plus@1.22.0 :2",
+        "pypi/protobuf@4.21.5 :16"
+      ]
+    }
+  ]
+}

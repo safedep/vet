@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/yarnlock",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/balanced-match@1.0.2 :8"
+      ]
+    }
+  ]
+}

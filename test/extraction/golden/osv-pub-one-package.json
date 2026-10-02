@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "dart/pubspec",
+      "kind": "lockfile",
+      "ecosystem": "pub",
+      "packages": [
+        "pub/back_button_interceptor@6.0.1"
+      ]
+    }
+  ]
+}
