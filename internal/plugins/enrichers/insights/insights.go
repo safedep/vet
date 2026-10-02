@@ -61,14 +61,14 @@ func toInsight(in *packagev1.PackageVersionInsight) *model.Insight {
 		Deprecated: in.GetDeprecated(),
 		Downloads:  int64(in.GetDownloadCount()),
 	}
-	if ts := in.GetPublishedAt(); ts != nil {
+	// published_at is the time that SafeDep published the insight.
+	// package_published_at is the time that the registry published the
+	// version.
+	if ts := in.GetPackagePublishedAt(); ts != nil {
 		t := ts.AsTime().UTC()
 		out.PublishedAt = &t
 	}
-	if ts := in.GetPackagePublishedAt(); ts != nil {
-		t := ts.AsTime().UTC()
-		out.FirstPublishedAt = &t
-	}
+	out.FirstPublishedAt = firstPublished(in.GetAvailableVersions(), out.PublishedAt)
 	out.Provenance = len(in.GetSlsaProvenances()) > 0
 	for _, l := range in.GetLicenses().GetLicenses() {
 		if id := l.GetLicenseId(); id != "" {
@@ -93,6 +93,21 @@ func toInsight(in *packagev1.PackageVersionInsight) *model.Insight {
 	}
 	out.LatestVersion = latest(in.GetAvailableVersions())
 	return out
+}
+
+// firstPublished returns the earliest publish date of the versions that
+// Insights lists, and of the version itself. With no dates it returns nil.
+func firstPublished(vs []*packagev1.PackageAvailableVersion, own *time.Time) *time.Time {
+	first := own
+	for _, v := range vs {
+		if v.GetPublishedAt() == nil {
+			continue
+		}
+		if at := v.GetPublishedAt().AsTime().UTC(); first == nil || at.Before(*first) {
+			first = &at
+		}
+	}
+	return first
 }
 
 // latest returns the default version of the registry, or the version with

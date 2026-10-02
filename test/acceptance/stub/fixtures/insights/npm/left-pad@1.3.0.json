@@ -13,7 +13,7 @@
       }
     ],
     "licenses": {"licenses": [{"licenseId": "WTFPL"}]},
-    "publishedAt": "2018-04-09T00:00:00Z",
+    "packagePublishedAt": "2018-04-09T00:00:00Z",
     "deprecated": true,
     "downloadCount": "1000",
     "projectInsights": [

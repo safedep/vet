@@ -35,12 +35,15 @@ type Package struct {
 type Insight struct {
 	Vulnerabilities []Vulnerability `json:"vulnerabilities,omitempty"`
 	Licenses        []string        `json:"licenses,omitempty"`
-	PublishedAt     *time.Time      `json:"published_at,omitempty"`
-	Deprecated      bool            `json:"deprecated,omitempty"`
-	Scorecard       *Scorecard      `json:"scorecard,omitempty"`
-	SourceRepo      string          `json:"source_repo,omitempty"`
-	Downloads       int64           `json:"downloads,omitempty"`
-	LatestVersion   string          `json:"latest_version,omitempty"`
+	// PublishedAt is the date that the registry published the version.
+	PublishedAt *time.Time `json:"published_at,omitempty"`
+	Deprecated  bool       `json:"deprecated,omitempty"`
+	Scorecard   *Scorecard `json:"scorecard,omitempty"`
+	SourceRepo  string     `json:"source_repo,omitempty"`
+	// Downloads is the download count of the version. Zero means that
+	// the registry gives no count.
+	Downloads     int64  `json:"downloads,omitempty"`
+	LatestVersion string `json:"latest_version,omitempty"`
 	// FirstPublishedAt is the publish date of the first version of the
 	// package.
 	FirstPublishedAt *time.Time `json:"first_published_at,omitempty"`
