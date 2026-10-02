@@ -1,0 +1,53 @@
+# vet scan DIR finds the manifest of each ecosystem family in a directory.
+exec vet scan proj --mode plain -o json
+reportcheck stdout
+jsonq stdout trailer.summary.manifests 6
+stdout '"path":"js/package-lock.json"'
+stdout '"path":"py/requirements.txt"'
+stdout '"path":"go/go.mod"'
+stdout '"path":"rs/Cargo.lock"'
+stdout '"path":"rb/Gemfile.lock"'
+stdout '"path":".github/workflows/ci.yml"'
+
+-- proj/js/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"left-pad": "1.3.0"}},
+    "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}
+  }
+}
+-- proj/py/requirements.txt --
+requests==2.31.0
+-- proj/go/go.mod --
+module example.com/app
+
+go 1.22
+
+require github.com/google/uuid v1.6.0
+-- proj/rs/Cargo.lock --
+version = 3
+
+[[package]]
+name = "serde"
+version = "1.0.200"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+-- proj/rb/Gemfile.lock --
+GEM
+  remote: https://rubygems.org/
+  specs:
+    rake (13.2.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  rake
+-- proj/.github/workflows/ci.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4

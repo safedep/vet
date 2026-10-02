@@ -1,0 +1,28 @@
+# vet exits 0 on a pass, 1 on a failed gate, 2 on a usage or config
+# error, 3 on a runtime error and 130 on a signal.
+cd proj
+exec vet scan . --mode plain -o plain --fail-on critical
+execexit 1 vet scan . --mode plain -o plain --fail-on high
+execexit 2 vet scan . --fail-on severe
+stderr 'usage_fail_on'
+execexit 2 vet scan nosuchdir
+execexit 3 vet scan . --mode plain -o plain --report json=$WORK/missing/dir/vet.json
+stderr 'report_write_failed'
+
+[!unix] stop 'signals are unix only'
+stub delay 3s
+! exec vet scan . --mode plain -o plain --fresh --no-cache &scan&
+sleep 1s
+kill -INT scan
+wait scan
+stderr 'Saved the progress of scan'
+
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"left-pad": "1.3.0"}},
+    "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}
+  }
+}

@@ -196,6 +196,10 @@ func open(ctx context.Context, o Options, first plugin.Artifact) (*Result, error
 	if err != nil {
 		return nil, err
 	}
+	if o.Resume && d.Continue == nil {
+		return nil, app.UsageError("--resume: no stopped scan of this target to continue",
+			"Run vet scan without --resume to start a new scan.")
+	}
 	host, err := os.Hostname()
 	if err != nil {
 		host = ""

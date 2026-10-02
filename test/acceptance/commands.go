@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/rogpeppe/go-internal/testscript"
 )
@@ -22,7 +23,19 @@ func Commands() map[string]func(ts *testscript.TestScript, neg bool, args []stri
 		"jsonq":       cmdJSONQ,
 		"reportcheck": cmdReportCheck,
 		"stub":        cmdStub,
+		"sleep":       cmdSleep,
 	}
+}
+
+// cmdSleep waits, for example for a background scan to reach a stage:
+// sleep <duration>.
+func cmdSleep(ts *testscript.TestScript, neg bool, args []string) {
+	if neg || len(args) != 1 {
+		ts.Fatalf("usage: sleep <duration>")
+	}
+	d, err := time.ParseDuration(args[0])
+	ts.Check(err)
+	time.Sleep(d)
 }
 
 // cmdExecExit runs a command and asserts its exact exit code:

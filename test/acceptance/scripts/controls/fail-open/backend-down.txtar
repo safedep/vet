@@ -1,0 +1,20 @@
+# With Insights down, the scan completes, the report has a diagnostic, and
+# the exit code does not change. --strict exits 3.
+cd proj
+stub fail insights Unavailable
+exec vet scan . --mode plain -o json --no-cache
+reportcheck stdout
+stdout '"code":"enrich_unavailable","component":"insights"'
+stderr '\[WARN\] insights: The backend did not answer'
+execexit 3 vet scan . --mode plain -o plain --no-cache --strict
+stderr 'scan_strict_diagnostic'
+
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"left-pad": "1.3.0"}},
+    "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}
+  }
+}

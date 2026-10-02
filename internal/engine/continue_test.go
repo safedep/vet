@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/plugin"
 )
@@ -74,4 +75,14 @@ func TestContinueRules(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestResumeWithNothingToResume(t *testing.T) {
+	f := newFixture(t)
+	o := f.options(t, project(t), &fakeEnricher{})
+	o.Resume = true
+	_, err := Run(context.Background(), o)
+	require.Error(t, err)
+	assert.Equal(t, app.ExitUsage, app.ExitCode(err))
+	assert.Contains(t, err.Error(), "no stopped scan")
 }

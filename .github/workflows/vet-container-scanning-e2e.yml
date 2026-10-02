@@ -31,6 +31,6 @@ jobs:
       - name: Run container scan tests
         shell: bash
         run: |
-          ./vet scan --image alpine:latest
-          ./vet scan --image ghcr.io/safedep/vet:latest
-          ./vet scan --image node:20
+          ./vet scan oci://alpine:latest --ephemeral
+          ./vet scan oci://ghcr.io/safedep/vet:latest --ephemeral
+          ./vet scan oci://node:20 --ephemeral

@@ -1,0 +1,33 @@
+[!git] skip 'needs git'
+# A workflow that the change modifies gives a finding on that file only.
+cd proj
+exec git -c user.email=t@example.com -c user.name=t init -q
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m base
+cp $WORK/tag.yml .github/workflows/changed.yml
+exec git -c user.email=t@example.com -c user.name=t commit -q -am head
+exec vet scan . --mode plain -o plain --base-ref HEAD~1
+stdout 'unpinned-action\t.github/workflows/changed.yml'
+! stdout 'old.yml'
+
+-- tag.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v5
+-- proj/.github/workflows/changed.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+-- proj/.github/workflows/old.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4

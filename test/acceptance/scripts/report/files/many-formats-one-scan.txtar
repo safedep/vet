@@ -1,0 +1,18 @@
+# One scan writes a JSON, a SARIF and a CycloneDX file.
+cd proj
+exec vet scan . --mode plain -o plain --report json=$WORK/vet.json --report sarif=$WORK/vet.sarif --report cyclonedx=$WORK/bom.cdx.json
+reportcheck $WORK/vet.json
+jsonq $WORK/vet.sarif version 2.1.0
+jsonq $WORK/bom.cdx.json bomFormat CycloneDX
+jsonq $WORK/bom.cdx.json components.len 2
+
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3","lodash": "4.17.21"}},
+    "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"},
+    "node_modules/lodash": {"version": "4.17.21", "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"}
+  }
+}

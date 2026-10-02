@@ -3,7 +3,6 @@ package engine
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/model"
@@ -90,7 +89,7 @@ func (r *run) enrichBatch(ctx context.Context, e Enricher, batch []*model.Packag
 func (r *run) enrichError(name string, err error) {
 	if errors.Is(err, plugin.ErrUnavailable) {
 		r.diags.add(report.DiagnosticWarning, CodeEnrichUnavailable, name,
-			fmt.Sprintf("%s did not answer. The controls that need its data did not run on some packages.", name))
+			"The backend did not answer. The controls that need its data did not run on some packages.")
 		return
 	}
 	r.diags.add(report.DiagnosticError, CodeEnrichFailed, name, err.Error())

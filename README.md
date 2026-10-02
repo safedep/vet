@@ -239,6 +239,7 @@ the order of the command tree.
 
 | Command | Description |
 | --- | --- |
+| [`vet scan`](docs/cmd/scan.md) | Scan a project, a repository, an image, an SBOM or a package. |
 | [`vet version`](docs/cmd/version.md) | Show the version and the build of vet. |
 
 ## Installation

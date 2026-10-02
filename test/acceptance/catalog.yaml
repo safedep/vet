@@ -120,3 +120,119 @@
   tier: P2
   guarantee: "vet version -o json prints the version, the Go version and the platform, and an unknown -o format exits 2."
   labels: [version]
+
+# --- 4.3 to 4.6: scanning, controls, scan state and credentials ---
+- id: auth/env/half-credential
+  title: "env: half credential"
+  category: auth
+  tier: P0
+  guarantee: "SAFEDEP_API_KEY without SAFEDEP_TENANT_ID exits 2 and names the missing variable."
+  labels: [credentials]
+- id: controls/cooldown/inside-window
+  title: "cooldown: inside window"
+  category: controls
+  tier: P0
+  guarantee: "A package published inside the cooldown window gives a finding. A package outside the window gives none."
+  labels: [controls]
+- id: controls/cooldown/option-sets-window
+  title: "cooldown: option sets window"
+  category: controls
+  tier: P1
+  guarantee: "plugins.dependency-cooldown.options.days changes the window."
+  labels: [controls]
+- id: controls/fail-open/backend-down
+  title: "fail open: backend down"
+  category: controls
+  tier: P0
+  guarantee: "With Insights down, the scan completes, the report has a diagnostic, and the exit code does not change. With --strict, vet exits 3."
+  labels: [controls]
+- id: controls/lockfile/untrusted-registry
+  title: "lockfile: untrusted registry"
+  category: controls
+  tier: P0
+  guarantee: "A lockfile entry that resolves from a registry outside the trusted list gives a finding."
+  labels: [controls]
+- id: controls/malware/known-malicious
+  title: "malware: known malicious"
+  category: controls
+  tier: P0
+  guarantee: "A package that the stub marks malicious gives a critical finding, and --policy with a malware gate exits 1."
+  labels: [controls]
+- id: controls/suppression/visible
+  title: "suppression: visible"
+  category: controls
+  tier: P1
+  guarantee: "A suppressed finding stays in the report with its suppression, and the gate ignores it."
+  labels: [controls]
+- id: controls/workflow/dangerous-trigger
+  title: "workflow: dangerous trigger"
+  category: controls
+  tier: P0
+  guarantee: "pull_request_target with a checkout of the head commit gives a finding."
+  labels: [controls]
+- id: controls/workflow/unpinned-action
+  title: "workflow: unpinned action"
+  category: controls
+  tier: P0
+  guarantee: "A workflow that uses an action by tag gives a finding. An action pinned by SHA gives none."
+  labels: [controls]
+- id: scan/working-tree/never-writes
+  title: "a scan never writes the target"
+  category: scan
+  tier: P0
+  guarantee: "After vet scan, the working tree of the target has no change (git status --porcelain is empty)."
+  labels: [scan]
+- id: scan/pr-mode/only-changes
+  title: "pr mode: only changes"
+  category: scan
+  tier: P0
+  guarantee: "In a git fixture with two commits, --base-ref reports only the added package, with change ADDED. Unchanged packages give no finding."
+  labels: [scan]
+- id: scan/pr-mode/workflow-change
+  title: "pr mode: workflow change"
+  category: scan
+  tier: P0
+  guarantee: "A workflow file changed between the base and the head gives a finding on that file only."
+  labels: [scan]
+- id: scan/sources/directory
+  title: "sources: directory"
+  category: scan
+  tier: P0
+  guarantee: "vet scan DIR finds the manifests in a fixture directory with one lockfile per supported ecosystem family."
+  labels: [scan]
+- id: scan/sources/git-clone
+  title: "sources: git clone"
+  category: scan
+  tier: P1
+  guarantee: "vet scan <git URL> clones the repository and scans its files. The script uses a local file:// repository, so it stays hermetic."
+  labels: [scan]
+- id: scan/sources/purl
+  title: "sources: purl"
+  category: scan
+  tier: P1
+  guarantee: "vet scan pkg:npm/... scans one package."
+  labels: [scan]
+- id: scan/sources/sbom
+  title: "sources: sbom"
+  category: scan
+  tier: P1
+  guarantee: "vet scan reads a CycloneDX and an SPDX file."
+  labels: [scan]
+- id: state/continue/after-interrupt
+  title: "continue: after interrupt"
+  category: state
+  tier: P0
+  guarantee: "After SIGINT, vet saves the progress and stops. The next vet scan continues the same scan id. Unit tests pin exit code 130 and the saved enrichments."
+  labels: [state]
+- id: state/ephemeral/no-files-left
+  title: "ephemeral: no files left"
+  category: state
+  tier: P0
+  guarantee: "--ephemeral leaves no file in the state and cache directories."
+  labels: [state]
+- id: state/resume/nothing-to-resume
+  title: "resume: nothing to resume"
+  category: state
+  tier: P1
+  guarantee: "vet scan --resume with no interrupted scan exits 2."
+  labels: [state]

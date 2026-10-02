@@ -1,0 +1,18 @@
+# The report goes to stdout and the messages go to stderr.
+cd proj
+exec vet scan . --mode plain -o json
+reportcheck stdout
+! stdout '\[INFO\]'
+stderr '\[INFO\] Read the manifests'
+! stderr '"header"'
+
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3","lodash": "4.17.21"}},
+    "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"},
+    "node_modules/lodash": {"version": "4.17.21", "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"}
+  }
+}

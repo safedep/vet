@@ -182,7 +182,7 @@ func (v *Scan) gate(h *report.Header, t *report.Trailer) {
 		v.line(style.Success("Gate passed: " + passReason(g)))
 	default:
 		if sum.Findings > 0 {
-			v.line(section.Hint(fmt.Sprintf("%d findings. No gate set, so vet exits 0.", sum.Findings)))
+			v.line(section.Hint(fmt.Sprintf("%s. No gate set, so vet exits 0.", plural(sum.Findings, "finding"))))
 		}
 	}
 	if v.mode == output.Rich && sum.Findings > 0 {
