@@ -1,0 +1,6 @@
+[INFO] Read the manifests: 3 files
+[INFO] Checked risk: 5 packages
+[INFO] Evaluated the controls: 1 manifest
+[INFO] Wrote the report
+[WARN] insights: 2 packages have no data (2 times)
+> 2 findings. No gate set, so vet exits 0.

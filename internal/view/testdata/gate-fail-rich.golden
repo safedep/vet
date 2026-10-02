@@ -1,0 +1,8 @@
+› [1/4] Read the manifests: 3 files
+› [2/4] Checked risk: 5 packages
+› [3/4] Evaluated the controls: 1 manifest
+› [4/4] Wrote the report
+⚠ insights: 2 packages have no data (2 times)
+✗ Gate failed: 1 finding at high or above, policy rule no-malware
+› Details: vet report finding show f-478cf580259c82ac
+› Report:  vet report show test0000scan -o json

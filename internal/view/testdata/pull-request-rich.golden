@@ -1,0 +1,9 @@
+i Comparing HEAD with origin/main
+› [1/4] Read the manifests: 3 files
+› [2/4] Checked risk: 5 packages
+› [3/4] Evaluated the controls: 1 manifest
+› [4/4] Wrote the report
+› 4 packages changed, 1 workflow changed. 210 unchanged packages not shown.
+⚠ insights: 2 packages have no data (2 times)
+› 2 findings. No gate set, so vet exits 0.
+› Report:  vet report show test0000scan -o json

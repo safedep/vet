@@ -1,0 +1,7 @@
+INFO: scan started target=. mode=delta
+progress: extract 3
+progress: enrich 5
+progress: evaluate 1
+progress: report 0
+WARN: diagnostic code=enrichment_unavailable component=insights message="2 packages have no data (2 times)"
+INFO: scan done findings=2 gate=none
