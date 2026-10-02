@@ -1,0 +1,31 @@
+[
+  {
+    "manifest": {
+      "id": "m-13ee4b2252c9",
+      "path": "Cargo.lock",
+      "ecosystem": "cargo",
+      "kind": "lockfile",
+      "extractor": "rust/cargolock"
+    },
+    "packages": [
+      {
+        "id": {
+          "ecosystem": "cargo",
+          "name": "addr2line",
+          "version": "0.15.2"
+        },
+        "direct": false,
+        "line": 6
+      },
+      {
+        "id": {
+          "ecosystem": "cargo",
+          "name": "syn",
+          "version": "1.0.73"
+        },
+        "direct": false,
+        "line": 15
+      }
+    ]
+  }
+]

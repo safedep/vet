@@ -219,3 +219,23 @@ func TestTUIIsSelfContained(t *testing.T) {
 		}
 	}
 }
+
+// scalibrAllowed are the only v2 packages that import Scalibr. The plugin
+// package holds the Extractor alias, and the adapter converts at the
+// boundary (package design, section 3.1).
+var scalibrAllowed = []string{
+	module + "/plugin",
+	module + "/internal/plugins/extractors",
+	module + "/internal/plugins/sources",
+}
+
+func TestOnlyExtractorsImportScalibr(t *testing.T) {
+	for _, p := range listPackages(t) {
+		if isLegacy(p.path) || underAny(p.path, scalibrAllowed) {
+			continue
+		}
+		for _, imp := range p.imports {
+			assert.False(t, under(imp, "github.com/google/osv-scalibr"), "package %s imports %s", p.path, imp)
+		}
+	}
+}

@@ -1,6 +1,10 @@
 package model
 
-import "io/fs"
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"io/fs"
+)
 
 // ManifestKind names what a manifest file is.
 type ManifestKind string
@@ -54,4 +58,11 @@ func (m *Manifest) ReadFile() ([]byte, error) {
 		return nil, fs.ErrNotExist
 	}
 	return fs.ReadFile(m.Root, m.Path)
+}
+
+// ManifestID returns the stable id of a manifest path in a target: "m-"
+// and 12 hex digits of the SHA-256 of the path.
+func ManifestID(path string) string {
+	sum := sha256.Sum256([]byte(path))
+	return "m-" + hex.EncodeToString(sum[:6])
 }

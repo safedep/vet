@@ -1,0 +1,31 @@
+[
+  {
+    "manifest": {
+      "id": "m-053150b640a7",
+      "path": "package-lock.json",
+      "ecosystem": "npm",
+      "kind": "lockfile",
+      "extractor": "javascript/packagelockjson"
+    },
+    "packages": [
+      {
+        "id": {
+          "ecosystem": "npm",
+          "name": "wrappy",
+          "version": "1.0.2"
+        },
+        "direct": false,
+        "line": 13
+      },
+      {
+        "id": {
+          "ecosystem": "npm",
+          "name": "supports-color",
+          "version": "5.5.0"
+        },
+        "direct": false,
+        "line": 18
+      }
+    ]
+  }
+]

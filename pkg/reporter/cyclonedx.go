@@ -164,7 +164,7 @@ func (r *cycloneDXReporter) addPackage(pkg *models.Package) {
 		BOMRef:     pkgPurl,
 		Licenses:   utils.PtrTo(cdx.Licenses(r.resolvePackageLicenses(pkg))),
 		Evidence: &cdx.Evidence{
-			Identity: utils.PtrTo([]cdx.EvidenceIdentity{
+			Identity: &cdx.EvidenceIdentityChoice{Identities: utils.PtrTo([]cdx.EvidenceIdentity{
 				{
 					Field:      cdx.EvidenceIdentityFieldTypePURL,
 					Confidence: utils.PtrTo(float32(0.7)),
@@ -176,7 +176,7 @@ func (r *cycloneDXReporter) addPackage(pkg *models.Package) {
 						},
 					}),
 				},
-			}),
+			})},
 		},
 	}
 
@@ -377,9 +377,12 @@ func (r *cycloneDXReporter) addSignatureMatchProperties(component *cdx.Component
 		component.Evidence = &cdx.Evidence{}
 	}
 	if component.Evidence.Identity == nil {
-		component.Evidence.Identity = utils.PtrTo([]cdx.EvidenceIdentity{})
+		component.Evidence.Identity = &cdx.EvidenceIdentityChoice{}
 	}
-	*component.Evidence.Identity = append(*component.Evidence.Identity, cdx.EvidenceIdentity{
+	if component.Evidence.Identity.Identities == nil {
+		component.Evidence.Identity.Identities = utils.PtrTo([]cdx.EvidenceIdentity{})
+	}
+	*component.Evidence.Identity.Identities = append(*component.Evidence.Identity.Identities, cdx.EvidenceIdentity{
 		Methods: utils.PtrTo([]cdx.EvidenceIdentityMethod{
 			{
 				Technique:  cdx.EvidenceIdentityTechniqueSourceCodeAnalysis,
@@ -478,7 +481,7 @@ func (r *cycloneDXReporter) recordApplicationSignatureMatches() {
 				BOMRef: first.SignatureVendor,
 			},
 			Evidence: &cdx.Evidence{
-				Identity: utils.PtrTo([]cdx.EvidenceIdentity{
+				Identity: &cdx.EvidenceIdentityChoice{Identities: utils.PtrTo([]cdx.EvidenceIdentity{
 					{
 						Methods: utils.PtrTo([]cdx.EvidenceIdentityMethod{
 							{
@@ -490,7 +493,7 @@ func (r *cycloneDXReporter) recordApplicationSignatureMatches() {
 							cdx.BOMReference(r.toolComponent.BOMRef),
 						}),
 					},
-				}),
+				})},
 				Occurrences: occurrences,
 			},
 			Properties: &[]cdx.Property{},

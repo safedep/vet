@@ -1,0 +1,30 @@
+[
+  {
+    "manifest": {
+      "id": "m-bfbb984cb168",
+      "path": "bom.cdx.json",
+      "ecosystem": "npm",
+      "kind": "sbom",
+      "extractor": "sbom/cdx"
+    },
+    "packages": [
+      {
+        "id": {
+          "ecosystem": "maven",
+          "namespace": "com.fasterxml.jackson.core",
+          "name": "jackson-databind",
+          "version": "2.15.2"
+        },
+        "direct": true
+      },
+      {
+        "id": {
+          "ecosystem": "npm",
+          "name": "lodash",
+          "version": "4.17.21"
+        },
+        "direct": true
+      }
+    ]
+  }
+]

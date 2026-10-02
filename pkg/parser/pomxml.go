@@ -4,52 +4,62 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 
-	cpb "github.com/google/osv-scalibr/binary/proto/config_go_proto"
+	"github.com/google/osv-scalibr/enricher"
+	pomenricher "github.com/google/osv-scalibr/enricher/transitivedependency/pomxml"
 	"github.com/google/osv-scalibr/extractor/filesystem"
-	"github.com/google/osv-scalibr/extractor/filesystem/language/java/pomxmlnet"
-	"github.com/google/osv-scalibr/fs"
+	"github.com/google/osv-scalibr/extractor/filesystem/language/java/pomxml"
+	scalibrfs "github.com/google/osv-scalibr/fs"
+	"github.com/google/osv-scalibr/plugin/config"
 
 	"github.com/safedep/vet/v2/pkg/models"
 )
 
-// parseMavenPomXmlFile parses the pom.xml file in a maven project.
-// Its finds the dependency from Maven Registry, and also from Parent Maven BOM
-// We use osc-scalibr's java/pomxmlnet (with Net, or Network) to fetch dependency from registry.
 func parseMavenPomXmlFile(lockfilePath string, _ *ParserConfig) (*models.PackageManifest, error) {
-	// Java/PomXMLNet extractor
-	pomXmlNetExtractor, err := pomxmlnet.New(&cpb.PluginConfig{})
+	abs, err := filepath.Abs(lockfilePath)
+	if err != nil {
+		return nil, err
+	}
+	root, rel := filepath.Dir(abs), filepath.Base(abs)
+
+	ext, err := pomxml.New(nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create pom.xml extractor: %w", err)
 	}
 
-	file, err := os.Open(lockfilePath)
+	file, err := os.Open(abs)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open lockfile: %s", err)
+		return nil, fmt.Errorf("failed to open lockfile: %w", err)
 	}
 	defer file.Close()
 
-	inputConfig := &filesystem.ScanInput{
-		FS:     fs.DirFS("."),
-		Path:   lockfilePath,
-		Reader: file,
+	inv, err := ext.Extract(context.Background(), &filesystem.ScanInput{
+		FS: scalibrfs.DirFS(root), Path: rel, Root: root, Reader: file,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to extract packages: %w", err)
+	}
+	for _, p := range inv.Packages {
+		p.Plugins = []string{pomxml.Name}
 	}
 
-	inventory, err := pomXmlNetExtractor.Extract(context.Background(), inputConfig)
+	enr, err := pomenricher.New(config.DefaultPluginConfig())
 	if err != nil {
-		return nil, fmt.Errorf("failed to extract packages: %s", err)
+		return nil, fmt.Errorf("failed to create pom.xml resolver: %w", err)
+	}
+	if err := enr.Enrich(context.Background(), &enricher.ScanInput{
+		ScanRoot: scalibrfs.RealFSScanRoot(root),
+	}, &inv); err != nil {
+		return nil, fmt.Errorf("failed to resolve dependencies: %w", err)
 	}
 
 	manifest := models.NewPackageManifestFromLocal(lockfilePath, models.EcosystemMaven)
-
-	for _, pkg := range inventory.Packages {
-		pkgDetails := models.NewPackageDetail(models.EcosystemMaven, pkg.Name, pkg.Version)
-		modelPackage := &models.Package{
-			PackageDetails: pkgDetails,
+	for _, pkg := range inv.Packages {
+		manifest.AddPackage(&models.Package{
+			PackageDetails: models.NewPackageDetail(models.EcosystemMaven, pkg.Name, pkg.Version),
 			Manifest:       manifest,
-		}
-		manifest.AddPackage(modelPackage)
+		})
 	}
-
 	return manifest, nil
 }

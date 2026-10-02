@@ -1,0 +1,9 @@
+[
+  {
+    "manifest": null,
+    "packages": null,
+    "errors": [
+      "conan.lock: unknown PURL type \"conan\""
+    ]
+  }
+]

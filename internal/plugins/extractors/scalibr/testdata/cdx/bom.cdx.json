@@ -1,0 +1,10 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "components": [
+    {"type": "library", "name": "lodash", "version": "4.17.21", "purl": "pkg:npm/lodash@4.17.21"},
+    {"type": "library", "name": "jackson-databind", "group": "com.fasterxml.jackson.core", "version": "2.15.2",
+     "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.15.2"}
+  ]
+}

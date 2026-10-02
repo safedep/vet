@@ -232,7 +232,7 @@ func (s *setuppyParserViaSyntaxTree) getDependencyStrings(filepath string) ([]st
 		logger.Debugf("- %s", constant)
 	}
 	logger.Debugf("Symbol to Constant Strings %v", s.Symbol2strings)
-	logger.Debugf("Symbol to Symbols Strings %v", (s.Symbol2symbols))
+	logger.Debugf("Symbol to Symbols Strings %v", s.Symbol2symbols)
 
 	return dependencies, nil
 }
