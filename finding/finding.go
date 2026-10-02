@@ -1,6 +1,7 @@
 package finding
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"time"
@@ -159,4 +160,16 @@ func (s Subject) validate() error {
 		return fmt.Errorf("subject kind %q does not match its field", s.Kind)
 	}
 	return nil
+}
+
+// Compare orders findings for a report: the most severe first, then by
+// control and id. Every report source uses this order.
+func Compare(a, b *Finding) int {
+	if c := cmp.Compare(b.Severity.Rank(), a.Severity.Rank()); c != 0 {
+		return c
+	}
+	if c := cmp.Compare(a.ControlID, b.ControlID); c != 0 {
+		return c
+	}
+	return cmp.Compare(a.ID, b.ID)
 }

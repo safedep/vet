@@ -136,7 +136,11 @@ func openScanFile(ctx context.Context, dir, id string) (*Scan, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open scan file %s: %w", id, err)
 	}
-	return &Scan{id: id, mgr: mgr, db: st.DB()}, nil
+	s := &Scan{id: id, mgr: mgr, db: st.DB()}
+	if err := s.loadMeta(ctx); err != nil {
+		return nil, errors.Join(err, mgr.Close())
+	}
+	return s, nil
 }
 
 // ID returns the scan id.

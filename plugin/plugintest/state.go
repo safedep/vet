@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"iter"
+	"slices"
 	"sort"
 	"time"
 
@@ -102,7 +103,7 @@ func (s *MemState) Dependents(_ context.Context, id model.PackageID) iter.Seq2[*
 // Findings yields the findings that match the query.
 func (s *MemState) Findings(_ context.Context, q plugin.FindingQuery) iter.Seq2[*finding.Finding, error] {
 	return func(yield func(*finding.Finding, error) bool) {
-		for _, f := range s.FindingList {
+		for _, f := range s.sortedFindings() {
 			if q.ControlID != "" && f.ControlID != q.ControlID {
 				continue
 			}
@@ -154,7 +155,7 @@ func (s *MemState) Trailer() *report.Trailer {
 }
 
 // Records yields the manifests, the packages, the inventory, the findings
-// and the diagnostics, in that order.
+// and the diagnostics, in that order. Findings come in finding.Compare order.
 func (s *MemState) Records(ctx context.Context) iter.Seq2[*report.Record, error] {
 	return func(yield func(*report.Record, error) bool) {
 		for r := range s.records() {
@@ -189,7 +190,7 @@ func (s *MemState) records() iter.Seq[*report.Record] {
 				return
 			}
 		}
-		for _, f := range s.FindingList {
+		for _, f := range s.sortedFindings() {
 			r := report.FindingRecord(f)
 			if !yield(&r) {
 				return
@@ -202,6 +203,10 @@ func (s *MemState) records() iter.Seq[*report.Record] {
 			}
 		}
 	}
+}
+
+func (s *MemState) sortedFindings() []*finding.Finding {
+	return slices.SortedStableFunc(slices.Values(s.FindingList), finding.Compare)
 }
 
 func (s *MemState) packageEntries() []*report.PackageEntry {
