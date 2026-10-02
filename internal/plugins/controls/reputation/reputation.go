@@ -146,7 +146,7 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 		}
 		if c.newAndUnpopular(p) {
 			out = append(out, newFinding(IDNewPackage, m, p, "",
-				fmt.Sprintf("%s is new and has %d downloads", name, p.Insight.Downloads),
+				newPackageTitle(name, p.Insight, c.now()),
 				"Review the code of the package before you use it, or wait until it has users."))
 		}
 		if why := anomaly(p); why != "" {
@@ -154,7 +154,9 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 				fmt.Sprintf("%s: %s", p.ID, why),
 				"Check the release notes and the publisher of the version."))
 		}
-		if in := p.Insight; in != nil && in.Stars >= starjackStars && in.Downloads < starjackDownloads {
+		// gap G6: with no publisher, the check compares the stars with the
+		// downloads, so it needs a download count.
+		if in := p.Insight; in != nil && in.Stars >= starjackStars && in.Downloads > 0 && in.Downloads < starjackDownloads {
 			out = append(out, newFinding(IDStarjacking, m, p, in.SourceRepo,
 				fmt.Sprintf("%s claims %s with %d stars and has %d downloads", name, in.SourceRepo, in.Stars, in.Downloads),
 				"Check that the publisher of the package owns the repository."))
@@ -173,7 +175,9 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 	return out, nil
 }
 
-// newAndUnpopular fails open: a package with no data is not new.
+// newAndUnpopular fails open: a package with no publish date is not new.
+// A new package with no download count is new and unpopular, because the
+// age is the stronger sign.
 func (c *Control) newAndUnpopular(p *model.Package) bool {
 	in := p.Insight
 	if in == nil || in.FirstPublishedAt == nil {
@@ -181,6 +185,14 @@ func (c *Control) newAndUnpopular(p *model.Package) bool {
 	}
 	age := c.now().Sub(*in.FirstPublishedAt)
 	return age >= 0 && age < time.Duration(c.o.NewPackageDays)*24*time.Hour && in.Downloads < c.o.MinDownloads
+}
+
+func newPackageTitle(name string, in *model.Insight, now time.Time) string {
+	days := int(now.Sub(*in.FirstPublishedAt).Hours() / 24)
+	if in.Downloads == 0 {
+		return fmt.Sprintf("%s is new: its first version is %d days old", name, days)
+	}
+	return fmt.Sprintf("%s is new: its first version is %d days old, with %d downloads", name, days, in.Downloads)
 }
 
 func (c *Control) confused(p *model.Package) bool {

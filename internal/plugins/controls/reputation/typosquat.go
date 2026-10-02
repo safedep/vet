@@ -1,6 +1,7 @@
 package reputation
 
 import (
+	"path"
 	"regexp"
 	"slices"
 	"strings"
@@ -15,11 +16,10 @@ var separators = regexp.MustCompile(`[-_.]+`)
 var homoglyphs = strings.NewReplacer("0", "o", "1", "l", "rn", "m", "vv", "w")
 
 // squatOf returns the popular name that the package name squats, or "". A
-// package with many downloads is popular itself, and a package with no
-// data fails open.
+// popular package is not a squat, and a package with no data fails open.
 func squatOf(p *model.Package) string {
 	in := p.Insight
-	if in == nil || in.Downloads >= popularDownloads {
+	if in == nil || popularItself(p) {
 		return ""
 	}
 	name := strings.ToLower(p.ID.QualifiedName())
@@ -36,6 +36,21 @@ func squatOf(p *model.Package) string {
 		}
 	}
 	return ""
+}
+
+// popularItself reports a package with many downloads, or with a popular
+// source repository of the same name. A squat can claim the repository of
+// the package that it copies, but that repository has the other name.
+func popularItself(p *model.Package) bool {
+	in := p.Insight
+	if in.Downloads >= popularDownloads {
+		return true
+	}
+	if in.Stars < starjackStars || in.SourceRepo == "" {
+		return false
+	}
+	repo := strings.TrimSuffix(path.Base(strings.TrimRight(in.SourceRepo, "/")), ".git")
+	return canonical(p.ID.Ecosystem, strings.ToLower(repo)) == canonical(p.ID.Ecosystem, strings.ToLower(p.ID.Name))
 }
 
 // canonical is the name that a registry treats as the same: PyPI ignores

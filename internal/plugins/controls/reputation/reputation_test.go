@@ -57,6 +57,10 @@ func TestReputation(t *testing.T) {
 		{"old and unpopular", nil, pkg(model.EcosystemNpm, "brand-new-thing", "0.0.1", &model.Insight{FirstPublishedAt: ago(400), Downloads: 5}), nil},
 		{"new with a shorter window", map[string]any{"new_package_days": 2}, pkg(model.EcosystemNpm, "brand-new-thing", "0.0.1", &model.Insight{FirstPublishedAt: ago(3), Downloads: 5}), nil},
 		{"starjacking", nil, pkg(model.EcosystemNpm, "some-fork", "1.0.0", &model.Insight{Stars: 90000, Downloads: 3, SourceRepo: "https://github.com/facebook/react"}), []string{IDStarjacking}},
+		{"no download count is not starjacking", nil, pkg(model.EcosystemCargo, "regex-syntax", "0.8.11", &model.Insight{Stars: 4039, SourceRepo: "https://github.com/rust-lang/regex"}), nil},
+		{"new with no download count", nil, pkg(model.EcosystemNpm, "brand-new-thing", "0.0.1", &model.Insight{FirstPublishedAt: ago(3)}), []string{IDNewPackage}},
+		{"a near name with its own popular repository", nil, pkg(model.EcosystemNpm, "enquirer", "2.4.1", &model.Insight{Stars: 7700, SourceRepo: "https://github.com/enquirer/enquirer"}), nil},
+		{"a squat that claims the repository it copies", nil, pkg(model.EcosystemNpm, "expresss", "1.0.0", &model.Insight{Stars: 65000, SourceRepo: "https://github.com/expressjs/express.git"}), []string{IDTyposquat}},
 		{
 			"internal name from the public registry",
 			map[string]any{"internal_names": []any{"@acme/*"}},
