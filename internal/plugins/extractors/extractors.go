@@ -1,13 +1,16 @@
 // Package extractors composes the extractor set of a code scan: the
 // Scalibr source extractors, with the vet lockfile copies in place of the
-// upstream extractors of the same name.
+// upstream extractors of the same name, and the vet extractors for
+// Terraform and package.json.
 package extractors
 
 import (
 	"github.com/google/osv-scalibr/extractor/filesystem"
 
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/packagejson"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/scalibr"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/terraform"
 )
 
 // Default returns the extractors of a code scan, sorted by name.
@@ -20,6 +23,7 @@ func Default() ([]filesystem.Extractor, error) {
 	if err != nil {
 		return nil, err
 	}
+	vet = append(vet, terraform.New(), packagejson.New())
 	return Override(base, vet...), nil
 }
 

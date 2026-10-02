@@ -34,7 +34,7 @@ var sourceGroups = []list.InitMap{
 // excluded are Scalibr extractors that do not read the dependencies of a
 // project. Scalibr's packagejson reads the package that a package.json
 // describes. vet reads the dependencies of package.json with its own
-// extractor (decisions P8).
+// extractor (research report, section 3).
 var excluded = map[string]bool{
 	packagejson.Name:  true,
 	denojson.Name:     true,

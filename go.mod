@@ -31,6 +31,7 @@ require (
 	github.com/gojek/heimdall/v7 v7.1.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/cel-go v0.28.0
+	github.com/google/go-cmp v0.7.0
 	github.com/google/go-github/v70 v70.0.0
 	github.com/google/osv-scalibr v0.5.3
 	github.com/google/osv-scanner v1.9.2
@@ -54,6 +55,9 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.11.1
+	github.com/tidwall/gjson v1.19.0
+	github.com/tidwall/jsonc v0.3.3
+	github.com/zclconf/go-cty v1.18.0
 	golang.org/x/sys v0.47.0
 	golang.org/x/term v0.45.0
 	google.golang.org/grpc v1.83.2
@@ -241,7 +245,6 @@ require (
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v1.0.0 // indirect
 	github.com/gomarkdown/markdown v0.0.0-20260217112301-37c66b85d6ab // indirect
-	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/go-containerregistry v0.21.2 // indirect
 	github.com/google/go-github/v74 v74.0.0 // indirect
 	github.com/google/go-querystring v1.2.0 // indirect
@@ -381,8 +384,6 @@ require (
 	github.com/tdewolff/parse/v2 v2.8.10 // indirect
 	github.com/therootcompany/xz v1.0.1 // indirect
 	github.com/thoas/go-funk v0.9.3 // indirect
-	github.com/tidwall/gjson v1.19.0 // indirect
-	github.com/tidwall/jsonc v0.3.3 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tink-crypto/tink-go/v2 v2.6.0 // indirect
@@ -410,7 +411,6 @@ require (
 	github.com/yuin/goldmark-emoji v1.0.6 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	github.com/zalando/go-keyring v0.2.6 // indirect
-	github.com/zclconf/go-cty v1.18.0 // indirect
 	github.com/zclconf/go-cty-yaml v1.2.0 // indirect
 	go.etcd.io/bbolt v1.4.3 // indirect
 	go.mongodb.org/mongo-driver/v2 v2.5.0 // indirect
