@@ -17,6 +17,8 @@ vet doctor [--fix] [--state-dir DIR] [--cache-dir DIR] [-o table|plain|json|json
 | --- | --- |
 | `vet.version`, `vet.release` | The version of vet, and whether it is the latest release. |
 | `config.file` | The config file loads and has no unknown key. |
+| `install.path` | The vet that PATH finds first is this vet. |
+| `plugins` | Each `plugins` section names a built-in plugin and has valid options. `codeusage` needs a vet build with CGO. |
 | `state.dir` | The state directory exists and vet can write to it. |
 | `state.filesystem` | The state directory is on a local file system. SQLite is not safe on a network file system. |
 | `state.index` | The scan index opens. |

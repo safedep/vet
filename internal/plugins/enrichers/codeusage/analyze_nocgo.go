@@ -14,3 +14,6 @@ import (
 func defaultAnalyzer(context.Context, string) ([]Evidence, error) {
 	return nil, fmt.Errorf("this vet build has no code analysis, because it has no CGO: %w", plugin.ErrUnavailable)
 }
+
+// Available reports that this build has code analysis.
+func Available() bool { return false }

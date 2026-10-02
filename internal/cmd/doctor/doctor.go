@@ -100,6 +100,7 @@ func run(ctx context.Context, a *app.App, f state.Flags, fix bool) []Check {
 	}
 	checks = append(checks, configCheck(rt.Loaded))
 	checks = append(checks, latestRelease(ctx, rt.Config))
+	checks = append(checks, installChecks(rt.Config)...)
 	checks = append(checks, stateChecks(ctx, rt, fix)...)
 	creds, credCheck := credentialCheck(rt.Config)
 	checks = append(checks, credCheck)

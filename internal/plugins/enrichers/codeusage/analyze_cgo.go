@@ -54,3 +54,6 @@ func defaultAnalyzer(ctx context.Context, dir string) ([]Evidence, error) {
 	}
 	return out, nil
 }
+
+// Available reports that this build has code analysis.
+func Available() bool { return true }
