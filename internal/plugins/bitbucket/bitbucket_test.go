@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/internal/plugins/internal/render"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/plugin/plugintest"
 	"github.com/safedep/vet/v2/report"
@@ -29,7 +30,7 @@ func TestTruncate(t *testing.T) {
 		{"ünïcödé", 4, "ünï…"},
 	}
 	for _, tc := range cases {
-		assert.Equal(t, tc.want, truncate(tc.in, tc.n), tc.in)
+		assert.Equal(t, tc.want, render.Truncate(tc.in, tc.n), tc.in)
 	}
 }
 

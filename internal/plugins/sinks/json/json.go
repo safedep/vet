@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/safedep/vet/v2/internal/plugins/sinks/internal/render"
+	"github.com/safedep/vet/v2/internal/plugins/internal/render"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/report"
 )

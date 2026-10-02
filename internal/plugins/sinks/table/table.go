@@ -12,7 +12,7 @@ import (
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/plugins/internal/optschema"
-	"github.com/safedep/vet/v2/internal/plugins/sinks/internal/render"
+	"github.com/safedep/vet/v2/internal/plugins/internal/render"
 	"github.com/safedep/vet/v2/internal/tui/section"
 	"github.com/safedep/vet/v2/internal/tui/stat"
 	"github.com/safedep/vet/v2/internal/tui/style"

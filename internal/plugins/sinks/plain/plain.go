@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/safedep/vet/v2/finding"
-	"github.com/safedep/vet/v2/internal/plugins/sinks/internal/render"
+	"github.com/safedep/vet/v2/internal/plugins/internal/render"
 	"github.com/safedep/vet/v2/plugin"
 )
 

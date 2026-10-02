@@ -12,6 +12,7 @@ import (
 	"slices"
 
 	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/internal/plugins/internal/render"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/report"
 )
@@ -133,8 +134,8 @@ func summary(r plugin.Report, findings []*finding.Finding) codeInsightsReport {
 
 func toAnnotation(f *finding.Finding) annotation {
 	a := annotation{
-		ExternalID: f.ID, Title: truncate(f.Title, maxTitle), AnnotationType: annotationType(f.Family),
-		Summary: truncate(f.Title, maxSummary), Details: truncate(details(f), maxDetails),
+		ExternalID: f.ID, Title: render.Truncate(f.Title, maxTitle), AnnotationType: annotationType(f.Family),
+		Summary: render.Truncate(f.Title, maxSummary), Details: render.Truncate(details(f), maxDetails),
 		Severity: annotationSeverity(f.Severity),
 	}
 	switch {
@@ -183,12 +184,4 @@ func annotationSeverity(s finding.Severity) string {
 		return "MEDIUM"
 	}
 	return "LOW"
-}
-
-func truncate(s string, n int) string {
-	r := []rune(s)
-	if len(r) <= n {
-		return s
-	}
-	return string(r[:n-1]) + "…"
 }

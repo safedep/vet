@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/safedep/vet/v2/finding"
-	"github.com/safedep/vet/v2/internal/plugins/sinks/internal/render"
+	"github.com/safedep/vet/v2/internal/plugins/internal/render"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/report"
 )
@@ -27,6 +27,10 @@ func New(cfg plugin.Config) (plugin.Sink, error) {
 	}
 	return Sink{}, nil
 }
+
+// maxTitle is the length of a title in the table, so that a long advisory
+// summary keeps the comment readable.
+const maxTitle = 100
 
 // Write writes the summary and the findings.
 func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
@@ -46,7 +50,7 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 	if delta {
 		cols = append(cols, "Change")
 	}
-	cols = append(cols, "Finding")
+	cols = append(cols, "Title", "Finding")
 	var suppressed []string
 	wrote := false
 	err := render.EachFinding(ctx, r, func(f *finding.Finding) error {
@@ -64,7 +68,7 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 		if delta {
 			cells = append(cells, strings.ToLower(string(f.Change)))
 		}
-		cells = append(cells, fmt.Sprintf("`%s`", f.ID))
+		cells = append(cells, cell(render.Truncate(render.Text(f.Title), maxTitle)), fmt.Sprintf("`%s`", f.ID))
 		_, err := io.WriteString(w, "| "+strings.Join(cells, " | ")+" |\n")
 		return err
 	})

@@ -59,6 +59,15 @@ func Where(f *finding.Finding) string {
 // Text escapes free text from a finding, such as a title.
 func Text(s string) string { return escape.Line(s) }
 
+// Truncate cuts s to at most n runes, with an ellipsis at the cut.
+func Truncate(s string, n int) string {
+	r := []rune(s)
+	if len(r) <= n {
+		return s
+	}
+	return string(r[:n-1]) + "…"
+}
+
 // EachRecord calls fn for each record of the report, in report order.
 func EachRecord(ctx context.Context, r plugin.Report, fn func(*report.Record) error) error {
 	for rec, err := range r.Records(ctx) {
