@@ -11,14 +11,7 @@ import (
 	"github.com/safedep/dry/utils"
 	"github.com/spf13/cobra"
 
-	"github.com/safedep/vet/v2/cmd/agent"
-	"github.com/safedep/vet/v2/cmd/ai"
-	"github.com/safedep/vet/v2/cmd/cloud"
-	"github.com/safedep/vet/v2/cmd/code"
-	"github.com/safedep/vet/v2/cmd/doc"
 	"github.com/safedep/vet/v2/cmd/endpoint"
-	"github.com/safedep/vet/v2/cmd/inspect"
-	"github.com/safedep/vet/v2/cmd/server"
 	"github.com/safedep/vet/v2/internal/analytics"
 	"github.com/safedep/vet/v2/internal/ui"
 	"github.com/safedep/vet/v2/pkg/common/logger"
@@ -100,23 +93,8 @@ func main() {
 
 	cmd.AddCommand(newAuthCommand())
 	cmd.AddCommand(newScanCommand())
-	cmd.AddCommand(newQueryCommand())
 	cmd.AddCommand(newVersionCommand())
-	cmd.AddCommand(newConnectCommand())
-	cmd.AddCommand(cloud.NewCloudCommand())
-	cmd.AddCommand(code.NewCodeCommand())
-	cmd.AddCommand(agent.NewAgentCommand())
-	cmd.AddCommand(doc.NewDocCommand())
-	cmd.AddCommand(ai.NewAICommand())
 	cmd.AddCommand(endpoint.NewEndpointCommand())
-
-	if checkIfPackageInspectCommandEnabled() {
-		cmd.AddCommand(inspect.NewPackageInspectCommand())
-	}
-
-	if checkIfServerCommandEnabled() {
-		cmd.AddCommand(server.NewServerCommand())
-	}
 
 	cobra.OnInitialize(func() {
 		if verbose {
@@ -166,22 +144,11 @@ func printBanner() {
 	}
 
 	bRet, err := strconv.ParseBool(os.Getenv("VET_DISABLE_BANNER"))
-	if (err == nil) && (bRet) {
+	if (err == nil) && bRet {
 		return
 	}
 
 	ui.PrintBanner(generateVetBanner(version, commit))
-}
-
-func checkIfPackageInspectCommandEnabled() bool {
-	// Enabled by default now that we have tested this for a while
-	return true
-}
-
-func checkIfServerCommandEnabled() bool {
-	// Enabled by default but keep option open for disabling
-	// based on remote config or user preference
-	return true
 }
 
 // Redirect to file or discard log if empty

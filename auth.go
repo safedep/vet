@@ -5,11 +5,9 @@ import (
 	"os"
 
 	"github.com/AlecAivazis/survey/v2"
-	tuierrors "github.com/safedep/dry/tui/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/v2/internal/auth"
-	"github.com/safedep/vet/v2/internal/command"
 	"github.com/safedep/vet/v2/internal/ui"
 	"github.com/safedep/vet/v2/pkg/common/logger"
 )
@@ -26,7 +24,6 @@ func newAuthCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(configureAuthCommand())
-	cmd.AddCommand(verifyAuthCommand())
 
 	return cmd
 }
@@ -65,11 +62,6 @@ func configureAuthCommand() *cobra.Command {
 			auth.SetRuntimeCloudTenant(authTenantDomain)
 			auth.SetRuntimeApiKey(key)
 
-			err = auth.Verify()
-			if err != nil {
-				tuierrors.ErrorExit(err)
-			}
-
 			err = auth.PersistApiKey(key, authTenantDomain)
 			if err != nil {
 				logger.Fatalf("Failed to configure auth: %v", err)
@@ -84,24 +76,6 @@ func configureAuthCommand() *cobra.Command {
 		"Tenant domain for SafeDep Cloud")
 
 	_ = cmd.MarkFlagRequired("tenant")
-
-	return cmd
-}
-
-func verifyAuthCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use: "verify",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if auth.CommunityMode() {
-				ui.PrintSuccess("Running in Community Mode")
-			}
-
-			command.FailOnError("auth/verify", auth.Verify())
-
-			ui.PrintSuccess("Authentication key is valid!")
-			return nil
-		},
-	}
 
 	return cmd
 }

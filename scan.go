@@ -16,7 +16,6 @@ import (
 	"github.com/safedep/vet/v2/internal/analytics"
 	"github.com/safedep/vet/v2/internal/auth"
 	"github.com/safedep/vet/v2/internal/command"
-	"github.com/safedep/vet/v2/internal/connect"
 	"github.com/safedep/vet/v2/internal/ui"
 	"github.com/safedep/vet/v2/pkg/analyzer"
 	"github.com/safedep/vet/v2/pkg/code"
@@ -373,7 +372,7 @@ func internalStartScan() error {
 	var err error
 
 	githubClientBuilder := func() *github.Client {
-		githubClient, err := connect.GetGithubClient()
+		githubClient, err := newGithubClient()
 		if err != nil {
 			logger.Fatalf("Failed to build Github client: %v", err)
 		}
@@ -1038,7 +1037,7 @@ func runAgentSkillScan() error {
 	}
 
 	// Create Google GitHub client (required by skill reader)
-	googleGithubClient, err := connect.GetGithubClient()
+	googleGithubClient, err := newGithubClient()
 	if err != nil {
 		return fmt.Errorf("failed to create Google GitHub client: %w", err)
 	}
@@ -1143,4 +1142,15 @@ func createMalwareQueryEnricher(githubClient *adapters.GithubClient) (scanner.Pa
 	}
 
 	return enricher, nil
+}
+
+// newGithubClient builds a GitHub client with the token in GITHUB_TOKEN, when
+// it is set. The v1 scan keeps it until the v2 scan command replaces it.
+func newGithubClient() (*github.Client, error) {
+	client := github.NewClient(nil)
+	if token := os.Getenv("GITHUB_TOKEN"); token != "" {
+		client = client.WithAuthToken(token)
+	}
+
+	return client, nil
 }

@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/safedep/vet/v2/internal/connect"
 	"github.com/safedep/vet/v2/pkg/models"
 	"github.com/safedep/vet/v2/pkg/readers"
 )
@@ -22,7 +21,7 @@ func TestGithubOrgReaderWithSafeDepOrg(t *testing.T) {
 		})
 
 		os.Setenv("GITHUB_TOKEN", "")
-		githubClient, err := connect.GetGithubClient()
+		githubClient, err := newGithubClient()
 		assert.Nil(t, err)
 
 		githubOrgReader, err := readers.NewGithubOrgReader(githubClient, &readers.GithubOrgReaderConfig{

@@ -4,6 +4,8 @@ import (
 	"os"
 	"strconv"
 	"testing"
+
+	"github.com/google/go-github/v70/github"
 )
 
 func verifyE2E(t *testing.T) {
@@ -15,4 +17,13 @@ func verifyE2E(t *testing.T) {
 
 func EnsureEndToEndTestIsEnabled(t *testing.T) {
 	verifyE2E(t)
+}
+
+func newGithubClient() (*github.Client, error) {
+	client := github.NewClient(nil)
+	if token := os.Getenv("GITHUB_TOKEN"); token != "" {
+		client = client.WithAuthToken(token)
+	}
+
+	return client, nil
 }
