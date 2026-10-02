@@ -106,6 +106,12 @@ prints them.
 | `license-change` | license | medium | An upgrade that changes the license |
 | `non-registry-dependency` | hygiene | medium | A dependency on git, a URL, a file or any version |
 | `scorecard-low` | hygiene | info | A package whose repository has an OpenSSF Scorecard score under 3 |
+| `typosquat` | reputation | high | A name one typo away from a popular package, with few downloads |
+| `new-unpopular-package` | reputation | medium | A package whose first version is under 30 days old, with under 1000 downloads |
+| `version-anomaly` | reputation | medium | An upgrade that jumps two major versions, or to a version older than the previous one |
+| `starjacking` | reputation | medium | A package that claims a popular repository and has almost no downloads |
+| `dependency-confusion` | reputation | medium | A package that matches `internal_names` and comes from a public registry |
+| `ai-bom-delta` | ai-bom | medium | In pull request mode, a new LLM SDK, agent framework or MCP library |
 | `dangerous-trigger` | workflow | high | A `pull_request_target` or `workflow_run` workflow that checks out untrusted code |
 | `template-injection` | workflow | high | An untrusted expression inside a `run:` script |
 | `unpinned-action` | workflow | medium | A third-party action that a tag or a branch selects |

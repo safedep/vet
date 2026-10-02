@@ -1,0 +1,11 @@
+{
+  "packageVersion": {
+    "package": {"ecosystem": "ECOSYSTEM_NPM", "name": "expresss"},
+    "version": "4.19.2"
+  },
+  "insight": {
+    "publishedAt": "2026-01-01T00:00:00Z",
+    "packagePublishedAt": "2026-01-01T00:00:00Z",
+    "downloadCount": "7"
+  }
+}

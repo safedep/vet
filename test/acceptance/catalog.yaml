@@ -200,6 +200,12 @@
   tier: P2
   guarantee: "A package.json dependency on git, a file or any version gives non-registry-dependency."
   labels: [hygiene]
+- id: controls/reputation/typosquat
+  title: "reputation: typosquat"
+  category: controls
+  tier: P1
+  guarantee: "A package one typo away from a popular package, with few downloads, gives a high typosquat finding."
+  labels: [reputation]
 - id: controls/workflow/dangerous-trigger
   title: "workflow: dangerous trigger"
   category: controls

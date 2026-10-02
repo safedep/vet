@@ -10,6 +10,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/controls/hygiene"
 	"github.com/safedep/vet/v2/internal/plugins/controls/lockfile"
 	"github.com/safedep/vet/v2/internal/plugins/controls/malware"
+	"github.com/safedep/vet/v2/internal/plugins/controls/reputation"
 	"github.com/safedep/vet/v2/internal/plugins/controls/vuln"
 	"github.com/safedep/vet/v2/internal/plugins/controls/workflow"
 	"github.com/safedep/vet/v2/plugin"
@@ -30,6 +31,7 @@ func Builtin() []Spec {
 		{Name: hygiene.Name, New: hygiene.New},
 		{Name: lockfile.Name, New: lockfile.New},
 		{Name: malware.Name, New: malware.New},
+		{Name: reputation.Name, New: reputation.New},
 		{Name: vuln.Name, New: vuln.New},
 		{Name: workflow.Name, New: workflow.New},
 	}
