@@ -5,7 +5,6 @@
       "kind": "lockfile",
       "ecosystem": "go",
       "packages": [
-        "go/stdlib@1.17 :3",
         "go/github.com/BurntSushi/toml@1.0.0 :6",
         "go/gopkg.in/yaml.v2@2.4.0 :7",
         "go/github.com/mattn/go-colorable@0.1.9 :11",
