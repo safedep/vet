@@ -214,6 +214,9 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 }
 
 func (r *run) extractError(err error) {
+	// gap G3: the OS packages of an image (deb, apk, rpm) and ecosystems
+	// such as Conan or Hex have no vet ecosystem and no Insights v2 data.
+	// The scan skips them with one diagnostic for each ecosystem.
 	if m := unknownPURLType.FindStringSubmatch(err.Error()); m != nil {
 		r.diags.add(report.DiagnosticWarning, CodeUnknownEcosystem, "extract",
 			fmt.Sprintf("vet has no data for the %s ecosystem, so it skips its packages", m[1]))
