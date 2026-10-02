@@ -7,6 +7,7 @@ package codeusage
 
 import (
 	"context"
+	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -91,8 +92,9 @@ func (e *Enricher) index(ctx context.Context) (map[string][]string, error) {
 		sets[k][file] = true
 	}
 	for _, ev := range evs {
-		add(normalize(ev.PackageHint), ev.FilePath)
-		add(normalize(rootModule(ev.ModuleName)), ev.FilePath)
+		file := e.rel(ev.FilePath)
+		add(normalize(ev.PackageHint), file)
+		add(normalize(rootModule(ev.ModuleName)), file)
 	}
 	out := make(map[string][]string, len(sets))
 	for k, set := range sets {
@@ -107,6 +109,24 @@ func (e *Enricher) index(ctx context.Context) (map[string][]string, error) {
 		out[k] = files
 	}
 	return out, nil
+}
+
+// rel returns the path of a file relative to the scanned directory, with
+// "/", as every other path of the report. A path outside it stays as the
+// analyzer gave it.
+func (e *Enricher) rel(file string) string {
+	if !filepath.IsAbs(file) {
+		return filepath.ToSlash(file)
+	}
+	dir, err := filepath.Abs(e.dir)
+	if err != nil {
+		return file
+	}
+	r, err := filepath.Rel(dir, file)
+	if err != nil || r == ".." || strings.HasPrefix(r, ".."+string(filepath.Separator)) {
+		return file
+	}
+	return filepath.ToSlash(r)
 }
 
 // keys returns the names under which code imports a package: the name, and

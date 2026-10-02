@@ -3,6 +3,7 @@ package codeusage
 import (
 	"context"
 	"errors"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -38,6 +39,22 @@ func TestEnrich(t *testing.T) {
 	assert.True(t, pkgs[1].Usage.Imported)
 	assert.True(t, pkgs[2].Usage.Imported, "PyPI names match with underscores")
 	assert.Equal(t, &model.Usage{}, pkgs[3].Usage)
+}
+
+func TestRelativeFiles(t *testing.T) {
+	root := t.TempDir()
+	outside := filepath.Join(filepath.Dir(root), "other", "x.js")
+	e := NewWith(root, func(context.Context, string) ([]Evidence, error) {
+		return []Evidence{
+			{PackageHint: "a", FilePath: filepath.Join(root, "src", "a.js")},
+			{PackageHint: "a", FilePath: "lib/b.js"},
+			{PackageHint: "a", FilePath: outside},
+		}, nil
+	})
+	pkgs := []*model.Package{{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "a", Version: "1.0.0"}}}
+	require.NoError(t, e.Enrich(context.Background(), pkgs))
+	want := []string{"lib/b.js", "src/a.js", outside}
+	assert.ElementsMatch(t, want, pkgs[0].Usage.Files)
 }
 
 func TestEnrichError(t *testing.T) {
