@@ -233,6 +233,9 @@ func Outputs(cfg *config.Config, out string, reports []string, extra map[string]
 			opts[k] = v
 		}
 		s, err := reg.New(d.Format, plugin.MapConfig(opts))
+		if _, ok := usefulerror.AsUsefulError(err); ok {
+			return nil, err
+		}
 		if err != nil {
 			return nil, app.UsageError(err.Error(), "Fix the option in the config file.")
 		}

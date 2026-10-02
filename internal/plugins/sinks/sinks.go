@@ -9,6 +9,7 @@ import (
 
 	"github.com/safedep/dry/usefulerror"
 
+	cloudreport "github.com/safedep/vet/v2/internal/plugins/cloud/report"
 	"github.com/safedep/vet/v2/internal/plugins/sinks/cyclonedx"
 	"github.com/safedep/vet/v2/internal/plugins/sinks/json"
 	"github.com/safedep/vet/v2/internal/plugins/sinks/jsonl"
@@ -31,12 +32,19 @@ type Spec struct {
 	New         plugin.Factory[plugin.Sink]
 }
 
+// Checker is optional. A sink that implements it can refuse to run, before
+// the scan starts. The SafeDep Cloud stub uses it.
+type Checker interface {
+	Check() error
+}
+
 // Registry is a list of formats, sorted by name.
 type Registry []Spec
 
 // Builtin returns the built-in formats.
 func Builtin() Registry {
 	return Registry{
+		{Name: cloudreport.Name, Description: "the report for SafeDep Cloud (not available yet)", New: cloudreport.New},
 		{Name: cyclonedx.Name, Description: "a CycloneDX 1.6 BOM of the packages and their vulnerabilities", New: cyclonedx.New},
 		{Name: json.Name, Description: "the report as one JSON document", New: json.New},
 		{Name: jsonl.Name, Description: "one report record on each line, as JSON", New: jsonl.New},
@@ -68,6 +76,11 @@ func (r Registry) New(format string, cfg plugin.Config) (plugin.Sink, error) {
 	s, err := r[i].New(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("plugins.%s.options: %w", format, err)
+	}
+	if c, ok := s.(Checker); ok {
+		if err := c.Check(); err != nil {
+			return nil, err
+		}
 	}
 	return s, nil
 }
