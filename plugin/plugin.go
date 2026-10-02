@@ -150,6 +150,13 @@ type PolicySource interface {
 	Policies(ctx context.Context) ([]PolicyDoc, error)
 }
 
+// Checker is optional. A plugin that implements it can refuse to run before
+// the scan starts, for example a stub of a backend that does not exist yet.
+// A sink that refuses makes the command exit with a usage error.
+type Checker interface {
+	Check() error
+}
+
 // Config is the plugin's own options section, plugins.<name>.options.
 type Config interface {
 	// Decode decodes the options into v. An unknown key is an error.

@@ -1,0 +1,21 @@
+# The SafeDep Cloud plugins are stubs until their contracts exist.
+# --report cloud=PATH exits 2 with the stub message before the scan
+# starts, and writes no file.
+cd proj
+execexit 2 vet scan . --mode plain --report cloud=$WORK/out.pb
+stderr 'the SafeDep Cloud report plugin is not available yet'
+! exists $WORK/out.pb
+stub calls insights 0
+
+# The tenant policy source fails open. The scan applies the local policy
+# and records a diagnostic.
+execexit 1 vet --config $WORK/config.yml scan . --mode plain -o json --fail-on critical
+stdout '"code":"policy_source_unavailable"'
+jsonq stdout trailer.gate.outcome FAIL
+
+-- config.yml --
+plugins:
+  tenant-policy:
+    enabled: true
+-- proj/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3"}}, "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"}}}

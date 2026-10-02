@@ -32,12 +32,6 @@ type Spec struct {
 	New         plugin.Factory[plugin.Sink]
 }
 
-// Checker is optional. A sink that implements it can refuse to run, before
-// the scan starts. The SafeDep Cloud stub uses it.
-type Checker interface {
-	Check() error
-}
-
 // Registry is a list of formats, sorted by name.
 type Registry []Spec
 
@@ -77,7 +71,7 @@ func (r Registry) New(format string, cfg plugin.Config) (plugin.Sink, error) {
 	if err != nil {
 		return nil, fmt.Errorf("plugins.%s.options: %w", format, err)
 	}
-	if c, ok := s.(Checker); ok {
+	if c, ok := s.(plugin.Checker); ok {
 		if err := c.Check(); err != nil {
 			return nil, err
 		}

@@ -66,3 +66,9 @@ func TestOptionsSchema(t *testing.T) {
 	assert.Contains(t, schema["properties"], "upload")
 	assert.Contains(t, schema["properties"], "project")
 }
+
+func TestConformance(t *testing.T) {
+	s, err := report.New(plugin.MapConfig(nil))
+	require.NoError(t, err)
+	assert.Nil(t, plugintest.TestSink(t, s, plugintest.SampleReport()))
+}

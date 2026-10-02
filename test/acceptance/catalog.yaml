@@ -356,6 +356,13 @@
   tier: P1
   guarantee: "vet config validate exits 2 on an unknown key. A scan only warns."
   labels: [config]
+# --- 4.7 SafeDep Cloud: the v2.1 stubs. The other cloud rows wait for the contracts. ---
+- id: cloud/stubs/not-available
+  title: "cloud plugins: stub messages"
+  category: cloud
+  tier: P1
+  guarantee: "--report cloud=PATH exits 2 with \"the SafeDep Cloud report plugin is not available yet\" before the scan starts. An enabled tenant policy source records a diagnostic, and the scan continues."
+  labels: [cloud, stub]
 # --- 4.9 Live rows. They call production and run with ACCEPTANCE_LIVE=1 only. ---
 - id: live/malware/known-malicious
   title: "live: known malicious package"

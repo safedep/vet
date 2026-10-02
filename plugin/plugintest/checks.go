@@ -3,6 +3,7 @@ package plugintest
 import (
 	"bytes"
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -62,11 +63,18 @@ func TestControl(t testing.TB, c plugin.Control, m *model.Manifest, s plugin.Sta
 }
 
 // TestSink checks that a sink writes the report twice to the same bytes and
-// returns them.
+// returns them. A sink that refuses to run in Check must also refuse in
+// Write and write nothing. TestSink returns nil for it.
 func TestSink(t testing.TB, s plugin.Sink, r plugin.Report) []byte {
 	t.Helper()
 
 	ctx := context.Background()
+	if c, ok := s.(plugin.Checker); ok && c.Check() != nil {
+		var out bytes.Buffer
+		assert.Error(t, s.Write(ctx, r, &out), "a sink that refuses in Check refuses in Write")
+		assert.Zero(t, out.Len(), "a sink that refuses writes nothing")
+		return nil
+	}
 	var a, b bytes.Buffer
 	require.NoError(t, s.Write(ctx, r, &a))
 	require.NoError(t, s.Write(ctx, r, &b))
@@ -125,11 +133,17 @@ func TestSource(t testing.TB, s plugin.Source) []plugin.Artifact {
 	return out
 }
 
-// TestPolicySource checks that each document has a name and content.
+// TestPolicySource checks that each document has a name and content. A
+// source of a remote backend can return plugin.ErrUnavailable with no
+// documents: the scan records a diagnostic and continues.
 func TestPolicySource(t testing.TB, p plugin.PolicySource) []plugin.PolicyDoc {
 	t.Helper()
 
 	docs, err := p.Policies(context.Background())
+	if errors.Is(err, plugin.ErrUnavailable) {
+		assert.Empty(t, docs, "an unavailable source returns no document")
+		return nil
+	}
 	require.NoError(t, err)
 	for _, d := range docs {
 		assert.NotEmpty(t, d.Name, "a policy document has a name")

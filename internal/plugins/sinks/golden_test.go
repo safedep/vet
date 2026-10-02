@@ -75,7 +75,7 @@ func TestSinksGolden(t *testing.T) {
 					t.Cleanup(func() { output.SetMode(prev) })
 					s, err := spec.New(plugin.MapConfig(nil))
 					require.NoError(t, err)
-					if c, ok := s.(sinks.Checker); ok && c.Check() != nil {
+					if c, ok := s.(plugin.Checker); ok && c.Check() != nil {
 						t.Skip("a stub sink writes nothing")
 					}
 					got := plugintest.TestSink(t, s, build())

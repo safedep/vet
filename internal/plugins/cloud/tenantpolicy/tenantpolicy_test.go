@@ -9,6 +9,7 @@ import (
 
 	"github.com/safedep/vet/v2/internal/plugins/cloud/tenantpolicy"
 	"github.com/safedep/vet/v2/plugin"
+	"github.com/safedep/vet/v2/plugin/plugintest"
 )
 
 func TestStub(t *testing.T) {
@@ -36,4 +37,10 @@ func TestStub(t *testing.T) {
 			assert.True(t, ok)
 		})
 	}
+}
+
+func TestConformance(t *testing.T) {
+	src, err := tenantpolicy.New(plugin.MapConfig(nil))
+	require.NoError(t, err)
+	assert.Nil(t, plugintest.TestPolicySource(t, src))
 }

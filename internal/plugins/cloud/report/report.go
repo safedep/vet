@@ -59,6 +59,6 @@ func ErrUnavailable() error {
 	return usefulerror.NewUsefulError().
 		WithCode(CodeUnavailable).
 		WithHumanError(msg).
-		WithHelp("Use --report json=PATH or --report jsonl=PATH. SafeDep Cloud reads both.").
+		WithHelp("Remove the cloud format. Use --report json=PATH or --report jsonl=PATH for a local report.").
 		WithMsg(msg)
 }
