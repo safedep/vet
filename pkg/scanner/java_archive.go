@@ -83,28 +83,32 @@ func localJavaArchives(group, artifact, version string) []string {
 	if !safeMavenCoordinate(group, artifact, version) {
 		return nil
 	}
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return nil
-	}
-
 	mavenRoot := os.Getenv("MAVEN_REPO_LOCAL")
-	if mavenRoot == "" {
-		mavenRoot = filepath.Join(home, ".m2", "repository")
-	}
 	gradleRoot := os.Getenv("GRADLE_USER_HOME")
-	if gradleRoot == "" {
-		gradleRoot = filepath.Join(home, ".gradle")
+	if mavenRoot == "" || gradleRoot == "" {
+		if home, err := os.UserHomeDir(); err == nil {
+			if mavenRoot == "" {
+				mavenRoot = filepath.Join(home, ".m2", "repository")
+			}
+			if gradleRoot == "" {
+				gradleRoot = filepath.Join(home, ".gradle")
+			}
+		}
 	}
 
 	paths := []string{}
-	mavenPath := filepath.Join(mavenRoot, filepath.FromSlash(strings.ReplaceAll(group, ".", "/")), artifact, version, artifact+"-"+version+".jar")
-	if _, err := os.Stat(mavenPath); err == nil {
-		paths = append(paths, mavenPath)
+	if mavenRoot != "" {
+		mavenPath := filepath.Join(mavenRoot, filepath.FromSlash(strings.ReplaceAll(group, ".", "/")), artifact, version, artifact+"-"+version+".jar")
+		if _, err := os.Stat(mavenPath); err == nil {
+			paths = append(paths, mavenPath)
+		}
 	}
-	gradlePattern := filepath.Join(gradleRoot, "caches", "modules-2", "files-2.1", group, artifact, version, "*", artifact+"-"+version+".jar")
-	gradlePaths, _ := filepath.Glob(gradlePattern)
-	return append(paths, gradlePaths...)
+	if gradleRoot != "" {
+		gradlePattern := filepath.Join(gradleRoot, "caches", "modules-2", "files-2.1", group, artifact, version, "*", artifact+"-"+version+".jar")
+		gradlePaths, _ := filepath.Glob(gradlePattern)
+		paths = append(paths, gradlePaths...)
+	}
+	return paths
 }
 
 // safeMavenCoordinate rejects empty and path-like values before constructing

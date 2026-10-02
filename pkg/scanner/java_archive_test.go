@@ -78,6 +78,43 @@ func TestLocalJavaArchives(t *testing.T) {
 	require.Empty(t, localJavaArchives("org.apache.commons", "commons-lang3", "../3.17.0"))
 }
 
+// TestLocalJavaArchivesWithoutHome checks that each configured cache remains
+// usable when no home directory is available for the other cache's default.
+func TestLocalJavaArchivesWithoutHome(t *testing.T) {
+	root := t.TempDir()
+	mavenRoot := filepath.Join(root, "maven")
+	gradleRoot := filepath.Join(root, "gradle")
+	mavenJar := filepath.Join(mavenRoot, "org", "apache", "commons", "commons-lang3", "3.17.0", "commons-lang3-3.17.0.jar")
+	gradleJar := filepath.Join(gradleRoot, "caches", "modules-2", "files-2.1", "org.apache.commons", "commons-lang3", "3.17.0", "digest", "commons-lang3-3.17.0.jar")
+	for _, jar := range []string{mavenJar, gradleJar} {
+		require.NoError(t, os.MkdirAll(filepath.Dir(jar), 0o755))
+		require.NoError(t, os.WriteFile(jar, nil, 0o644))
+	}
+	t.Setenv("HOME", "")
+	t.Setenv("USERPROFILE", "")
+	t.Setenv("home", "")
+	if _, err := os.UserHomeDir(); err == nil {
+		t.Skip("home lookup does not fail on this platform")
+	}
+	for _, tc := range []struct {
+		name   string
+		maven  string
+		gradle string
+		want   []string
+	}{
+		{"both overrides", mavenRoot, gradleRoot, []string{mavenJar, gradleJar}},
+		{"Maven only", mavenRoot, "", []string{mavenJar}},
+		{"Gradle only", "", gradleRoot, []string{gradleJar}},
+		{"no overrides", "", "", nil},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("MAVEN_REPO_LOCAL", tc.maven)
+			t.Setenv("GRADLE_USER_HOME", tc.gradle)
+			require.ElementsMatch(t, tc.want, localJavaArchives("org.apache.commons", "commons-lang3", "3.17.0"))
+		})
+	}
+}
+
 // TestCodeAnalysisEnricherMatchesJavaImportsToMavenArchive exercises evidence
 // enrichment through the code database for Maven and CycloneDX packages.
 func TestCodeAnalysisEnricherMatchesJavaImportsToMavenArchive(t *testing.T) {
@@ -115,9 +152,48 @@ func TestCodeAnalysisEnricherMatchesJavaImportsToMavenArchive(t *testing.T) {
 	badJar := filepath.Join(root, "maven", "org", "apache", "commons", "commons-text", "1.13.0", "commons-text-1.13.0.jar")
 	require.NoError(t, os.MkdirAll(filepath.Dir(badJar), 0o755))
 	require.NoError(t, os.WriteFile(badJar, []byte("not a jar"), 0o644))
-	unused := &models.Package{PackageDetails: models.NewPackageDetail(models.EcosystemMaven, "org.apache.commons:commons-text", "1.13.0")}
-	require.NoError(t, enricher.Enrich(unused, nil))
-	require.Empty(t, unused.CodeAnalysis.UsageEvidences)
+	unreadable := &models.Package{PackageDetails: models.NewPackageDetail(models.EcosystemMaven, "org.apache.commons:commons-text", "1.13.0")}
+	require.NoError(t, enricher.Enrich(unreadable, nil))
+	require.Nil(t, unreadable.CodeAnalysis.UsageEvidences)
+
+	missing := &models.Package{PackageDetails: models.NewPackageDetail(models.EcosystemMaven, "org.apache.commons:commons-collections4", "4.4")}
+	require.NoError(t, enricher.Enrich(missing, nil))
+	require.Nil(t, missing.CodeAnalysis.UsageEvidences)
+
+	// A successfully inspected JAR with no matching imports is a known empty
+	// result, rather than the nil result used for unavailable artifacts.
+	createTestJavaArchive(t, badJar, "org/apache/commons/text/StringEscapeUtils.class")
+	checked := &models.Package{PackageDetails: unreadable.PackageDetails}
+	require.NoError(t, enricher.Enrich(checked, nil))
+	require.NotNil(t, checked.CodeAnalysis.UsageEvidences)
+	require.Empty(t, checked.CodeAnalysis.UsageEvidences)
+
+	// Package-hint evidence must survive a missing or unreadable artifact.
+	for _, tc := range []struct {
+		name string
+		pkg  *models.Package
+	}{
+		{"missing", missing},
+		{"unreadable", unreadable},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.name == "unreadable" {
+				require.NoError(t, os.WriteFile(badJar, []byte("not a jar"), 0o644))
+			}
+			hint, err := client.DepsUsageEvidence.Create().
+				SetPackageHint(tc.pkg.GetName()).
+				SetModuleName("existing.match").
+				SetUsageFilePath("src/App.java").
+				SetLine(5).
+				SetUsedIn(source).
+				Save(context.Background())
+			require.NoError(t, err)
+			fresh := NewCodeAnalysisEnricher(CodeAnalysisEnricherConfig{EnableDepsUsageEvidence: true}, repository)
+			require.NoError(t, fresh.Enrich(tc.pkg, nil))
+			require.Len(t, tc.pkg.CodeAnalysis.UsageEvidences, 1)
+			require.Equal(t, hint.ID, tc.pkg.CodeAnalysis.UsageEvidences[0].ID)
+		})
+	}
 
 	// CycloneDX components use Maven package URLs. Their parsed coordinates
 	// must follow the same enrichment path as a pom.xml dependency.
@@ -126,6 +202,17 @@ func TestCodeAnalysisEnricherMatchesJavaImportsToMavenArchive(t *testing.T) {
 	fromSBOM := &models.Package{PackageDetails: parsed.GetPackageDetails()}
 	require.NoError(t, enricher.Enrich(fromSBOM, nil))
 	require.Len(t, fromSBOM.CodeAnalysis.UsageEvidences, 1)
+
+	// With no Java evidence at all, a readable JAR is still distinguishable
+	// from an unreadable JAR. Use a fresh enricher to avoid its evidence cache.
+	_, err = client.DepsUsageEvidence.Delete().Exec(context.Background())
+	require.NoError(t, err)
+	fresh := NewCodeAnalysisEnricher(CodeAnalysisEnricherConfig{EnableDepsUsageEvidence: true}, repository)
+	require.NoError(t, fresh.Enrich(used, nil))
+	require.NotNil(t, used.CodeAnalysis.UsageEvidences)
+	require.Empty(t, used.CodeAnalysis.UsageEvidences)
+	require.NoError(t, fresh.Enrich(unreadable, nil))
+	require.Nil(t, unreadable.CodeAnalysis.UsageEvidences)
 }
 
 // createTestJavaArchive writes only JAR entry names because archive matching

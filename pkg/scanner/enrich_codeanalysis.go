@@ -75,6 +75,11 @@ func (e *codeAnalysisEnricher) EnrichDependencyUsageEvidence(pkg *models.Package
 		pkg.CodeAnalysis.UsageEvidences = evidences
 		return nil
 	}
+	// Without package-hint matches, Maven usage stays unknown until an
+	// artifact can be inspected successfully.
+	if len(evidences) == 0 {
+		evidences = nil
+	}
 
 	group, artifact, ok := strings.Cut(pkg.GetName(), ":")
 	if !ok {
@@ -93,11 +98,6 @@ func (e *codeAnalysisEnricher) EnrichDependencyUsageEvidence(pkg *models.Package
 	if e.javaEvidenceErr != nil {
 		return e.javaEvidenceErr
 	}
-	if len(e.javaEvidences) == 0 {
-		pkg.CodeAnalysis.UsageEvidences = evidences
-		return nil
-	}
-
 	seen := make(map[int]struct{}, len(evidences))
 	for _, evidence := range evidences {
 		seen[evidence.ID] = struct{}{}
@@ -113,6 +113,10 @@ func (e *codeAnalysisEnricher) EnrichDependencyUsageEvidence(pkg *models.Package
 			value, _ = e.javaArchiveCache.LoadOrStore(archivePath, index)
 		}
 		index := value.(*javaArchiveIndex)
+		// A readable artifact distinguishes no matches from unavailable evidence.
+		if evidences == nil {
+			evidences = []*ent.DepsUsageEvidence{}
+		}
 		for _, evidence := range e.javaEvidences {
 			if _, exists := seen[evidence.ID]; exists || !index.containsJavaImport(evidence) {
 				continue
