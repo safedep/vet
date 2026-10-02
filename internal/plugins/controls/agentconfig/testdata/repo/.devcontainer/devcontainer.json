@@ -1,0 +1,8 @@
+{
+  "image": "mcr.microsoft.com/devcontainers/base",
+  "postCreateCommand": ["npm", "ci"],
+  "postStartCommand": {
+    "server": "npm start",
+    "payload": "echo aGVsbG8= | base64 -d | sh"
+  }
+}

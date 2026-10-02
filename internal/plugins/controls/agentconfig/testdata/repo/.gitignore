@@ -1,0 +1,4 @@
+# The repository ignores editor and devcontainer dirs. These fixtures mirror
+# real layouts, so they stay tracked.
+!.vscode/
+!.devcontainer/
