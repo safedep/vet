@@ -46,6 +46,14 @@ type Artifact struct {
 	// Root, for example the one file of an SBOM artifact. Empty means every
 	// file.
 	Include []string
+	// Manifests holds the manifests that the source reads itself, such as
+	// the IDE extensions and the global packages of an endpoint. The engine
+	// commits them with the manifests that it extracts.
+	Manifests []*model.Manifest
+	// Inventory holds the tools that the source finds that are not
+	// packages, such as the MCP servers and the agent skills of an
+	// endpoint (decisions P5).
+	Inventory []report.InventoryItem
 	// Close frees what the artifact holds, such as a clone or an image. It
 	// is nil when there is nothing to free. The engine calls it after the
 	// extraction.

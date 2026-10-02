@@ -1,0 +1,52 @@
+# vet endpoint audit
+
+Audit the tools on this machine.
+
+## Synopsis
+
+```text
+vet endpoint audit [--all-users] [--fail-on SEVERITY] [--policy FILE] [--report FORMAT=PATH]...
+                   [--strict] [--resume | --fresh] [--no-cache] [--cooldown-days N]
+                   [--ephemeral] [--state-dir DIR] [--cache-dir DIR] [-o FORMAT]
+```
+
+## Description
+
+`vet endpoint audit` checks the machine that it runs on. `vet scan` checks a project and never
+reads the home directory.
+
+| What vet finds | How the report holds it |
+| --- | --- |
+| AI tools, coding agents, MCP servers, agent skills, Neovim plugins | Inventory records. An MCP server record holds the names of its environment variables and headers, never their values. |
+| VS Code, Cursor, Windsurf and VSCodium extensions | Packages of the `vscode` or `openvsx` ecosystem. The malware control checks them. |
+| Global npm packages (`~/.npm-global`, nvm, the Windows npm prefix) | Packages of the `npm` ecosystem. Every package control checks them. |
+| Agent and editor config files (`.vscode/tasks.json`, `.claude/settings.json`, MCP configs) | Manifests that the agent configuration controls read. |
+
+vet reads the home directory of the current user. `--all-users` reads the home directory of every
+user and the machine-wide global packages (`/usr/local/lib/node_modules` and others). It needs
+root: run it with `sudo`. Under sudo, vet keeps its state in the directories of root.
+
+The target key is `endpoint:<hostname>`. `vet report show`, `vet report list` and
+`vet report diff` work on the audits of the machine as on the scans of a project. The gate,
+the policy, the reports and the state flags work as in `vet scan`.
+
+vet keeps the inventory in the local report. The SafeDep Cloud inventory sync is a stub until its
+contract exists.
+
+## Examples
+
+```text
+vet endpoint audit
+vet endpoint audit --fail-on high -o json
+sudo vet endpoint audit --all-users --report sarif=endpoint.sarif
+```
+
+## Exit codes
+
+| Code | Meaning |
+| --- | --- |
+| 0 | The audit completed, and the gate passed or no gate was set. |
+| 1 | The gate failed. |
+| 2 | A flag is not valid, or `--all-users` runs without root. |
+| 3 | A runtime error. |
+| 130 | A signal stopped the audit. It continues on the next run. |

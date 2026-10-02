@@ -1,0 +1,32 @@
+# vet endpoint audit reads the home directory: the MCP servers and the
+# skills become inventory, and the IDE extensions and the global npm
+# packages become packages that the controls check. vet scan never reads
+# the home directory.
+exec vet endpoint audit --mode plain -o json
+reportcheck stdout
+jsonq stdout header.scan.kind endpoint
+stdout '"target_key":"endpoint:'
+stdout '"kind":"mcp-server","name":"db"'
+stdout '"kind":"skill","name":"review"'
+stdout '"purl":"pkg:npm/safedep-test-pkg@0.1.3"'
+stdout '"purl":"pkg:vscode/evil-pub.evil-ext@1.0.0"'
+stdout '"control_id":"malware"'
+! stdout 'postgres://'
+
+mkdir $WORK/proj
+cd $WORK/proj
+exec vet scan . --mode plain -o json
+! stdout '"kind":"mcp-server"'
+! stdout 'safedep-test-pkg'
+
+-- home/.cursor/mcp.json --
+{"mcpServers": {"db": {"command": "node", "args": ["db.js"], "env": {"DB_URL": "postgres://user:pw@host/db"}}}}
+-- home/.claude/skills/review/SKILL.md --
+---
+name: review
+description: Reviews code.
+---
+-- home/.vscode/extensions/extensions.json --
+[{"identifier": {"id": "evil-pub.evil-ext"}, "version": "1.0.0"}]
+-- home/.npm-global/lib/node_modules/safedep-test-pkg/package.json --
+{"name": "safedep-test-pkg", "version": "0.1.3"}

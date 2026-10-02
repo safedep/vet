@@ -363,6 +363,19 @@
   tier: P1
   guarantee: "--report cloud=PATH exits 2 with \"the SafeDep Cloud report plugin is not available yet\" before the scan starts. An enabled tenant policy source records a diagnostic, and the scan continues."
   labels: [cloud, stub]
+# --- 4.8 Other surfaces: vet endpoint audit ---
+- id: endpoint/audit/inventory
+  title: "endpoint audit: inventory and packages"
+  category: endpoint
+  tier: P1
+  guarantee: "vet endpoint audit reports the MCP servers and skills of the home directory as inventory, with no secret value, and checks the IDE extensions and global npm packages as packages. vet scan never reads the home directory."
+  labels: [endpoint]
+- id: endpoint/audit/all-users-needs-root
+  title: "endpoint audit: --all-users needs root"
+  category: endpoint
+  tier: P2
+  guarantee: "vet endpoint audit --all-users without root exits 2 and says to run it with sudo."
+  labels: [endpoint]
 # --- 4.9 Live rows. They call production and run with ACCEPTANCE_LIVE=1 only. ---
 - id: live/malware/known-malicious
   title: "live: known malicious package"

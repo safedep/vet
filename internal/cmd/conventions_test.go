@@ -25,16 +25,17 @@ var (
 	rootLevelExceptions = []string{"doctor", "scan", "version"}
 	// hyphenExceptions are the command names that can have a hyphen.
 	hyphenExceptions = []string{"github-actions"}
-	// topLevelCommands are the children of the root in v2.0. "endpoint"
-	// lands with vet endpoint audit in v2.x.
-	topLevelCommands = []string{"auth", "config", "doctor", "fix", "policy", "report", "scan", "state", "version"}
-	// leafCommands are the leaves of the tree of the command layout,
-	// section 3.2, in v2.0.
+	// topLevelCommands are the children of the root: the 10 commands of
+	// the command layout, section 3.2.
+	topLevelCommands = []string{"auth", "config", "doctor", "endpoint", "fix", "policy", "report", "scan", "state", "version"}
+	// leafCommands are the 26 leaves of the tree of the command layout,
+	// section 3.2.
 	leafCommands = []string{
 		"scan",
 		"report show", "report list", "report diff", "report finding show", "report schema get",
 		"policy init", "policy validate", "policy control list", "policy schema get",
 		"fix github-actions run",
+		"endpoint audit",
 		"state show", "state delete",
 		"doctor",
 		"config show", "config get", "config set", "config delete", "config edit", "config validate",

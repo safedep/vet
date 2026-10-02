@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "vscode-project-tool": {
+      "command": "python",
+      "args": ["tool.py"]
+    }
+  }
+}

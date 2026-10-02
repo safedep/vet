@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "defaultMode": "allowedTools",
+    "allow": ["Read"],
+    "deny": []
+  },
+  "mcpServers": {
+    "global-server": {
+      "command": "npx",
+      "args": ["-y", "@example/mcp-server"],
+      "env": {
+        "API_KEY": "secret-value"
+      }
+    }
+  },
+  "model": "claude-sonnet-4-20250514"
+}

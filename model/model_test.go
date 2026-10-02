@@ -60,6 +60,8 @@ func TestQualifiedName(t *testing.T) {
 		{PackageID{Ecosystem: EcosystemNpm, Namespace: "@a", Name: "b"}, "@a/b"},
 		{PackageID{Ecosystem: EcosystemMaven, Namespace: "g", Name: "a"}, "g:a"},
 		{PackageID{Ecosystem: EcosystemPyPI, Name: "x"}, "x"},
+		{PackageID{Ecosystem: EcosystemVSCode, Namespace: "ms-python", Name: "python"}, "ms-python.python"},
+		{PackageID{Ecosystem: EcosystemOpenVSX, Name: "ms-python.python"}, "ms-python.python"},
 		{PackageID{Ecosystem: EcosystemGitHubActions, Namespace: "github", Name: "codeql-action", Subpath: "init"}, "github/codeql-action/init"},
 	}
 	for _, tc := range cases {

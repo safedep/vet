@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/safedep/dry/usefulerror"
+	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
 	"github.com/safedep/vet/v2/internal/app"
@@ -39,7 +40,10 @@ import (
 
 // Options are the inputs of a scan, from the flags of the command.
 type Options struct {
-	Target  string
+	Target string
+	// Source replaces the source that vet builds from Target, for example
+	// the endpoint source of vet endpoint audit.
+	Source  plugin.Source
 	Kind    report.ScanKind
 	BaseRef string
 
@@ -57,6 +61,22 @@ type Options struct {
 	CooldownDays int
 
 	State state.Flags
+}
+
+// RegisterFlags registers the flags that every scan command takes: the
+// gate, the reports, the state and the cooldown window.
+func (o *Options) RegisterFlags(c *cobra.Command) {
+	f := c.Flags()
+	f.StringVar(&o.FailOn, "fail-on", "", "Fail with exit code 1 on a finding at this severity or above: critical, high, medium, low or info")
+	f.StringVar(&o.Policy, "policy", "", "Policy v2 file or directory that sets the rules and the suppressions")
+	f.StringArrayVar(&o.Reports, "report", nil, "Also write the report as FORMAT=PATH, for example json=vet.json. Repeatable")
+	f.BoolVar(&o.Strict, "strict", false, "Exit with code 3 when a diagnostic exists, for example when a backend did not answer")
+	f.BoolVar(&o.Resume, "resume", false, "Continue the stopped scan of the target, however old it is")
+	f.BoolVar(&o.Fresh, "fresh", false, "Start a new scan, and do not continue a stopped one")
+	f.BoolVar(&o.NoCache, "no-cache", false, "Do not read or write the enrichment cache")
+	f.IntVar(&o.CooldownDays, "cooldown-days", 0, "Cooldown window in days. Sets plugins.dependency-cooldown.options.days")
+	o.State.Register(f)
+	c.MarkFlagsMutuallyExclusive("resume", "fresh")
 }
 
 // hashed are the options that change what a scan stores. A stopped scan
@@ -99,9 +119,11 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 	if creds.Warning != "" {
 		tui.Warning("%s", creds.Warning)
 	}
-	src, err := sources.New(o.Target, sources.Options{Tokens: github.DefaultProvider()})
-	if err != nil {
-		return err
+	src := o.Source
+	if src == nil {
+		if src, err = sources.New(o.Target, sources.Options{Tokens: github.DefaultProvider()}); err != nil {
+			return err
+		}
 	}
 	evaluator, err := newEvaluator(ctx, cfg, gate)
 	if err != nil {

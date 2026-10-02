@@ -96,6 +96,7 @@ A fixture holds the protojson of the response. The ecosystem is the enum name wi
 | `unix` | The OS is not Windows. Use it for file modes and signals. |
 | `git` | The `git` binary is on `PATH`. |
 | `docker` | A Docker daemon answers `docker info`. |
+| `root` | The process runs as root on Unix. |
 | `live` | `ACCEPTANCE_LIVE=1` is set. |
 
 A script under `scripts/live/` gets no stub server. It calls production with the host

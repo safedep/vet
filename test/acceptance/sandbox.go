@@ -42,7 +42,7 @@ func Sandbox(env *testscript.Env) error {
 }
 
 // Condition answers the script conditions of the harness: unix, git,
-// docker and live.
+// docker, root and live.
 func Condition(cond string) (bool, error) {
 	switch cond {
 	case "unix":
@@ -53,6 +53,8 @@ func Condition(cond string) (bool, error) {
 	case "docker":
 		// A docker binary with no daemon cannot load an image.
 		return exec.Command("docker", "info").Run() == nil, nil
+	case "root":
+		return runtime.GOOS != "windows" && os.Geteuid() == 0, nil
 	case "live":
 		return os.Getenv(LiveEnv) == "1", nil
 	}

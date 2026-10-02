@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "safedep": {
+      "command": "npx",
+      "args": ["-y", "@safedep/mcp"],
+      "env": {
+        "SAFEDEP_API_KEY": "sd-key-value"
+      }
+    },
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@mcp/postgres", "--token=secret123"],
+      "env": {
+        "DB_CONNECTION_STRING": "postgres://localhost/mydb"
+      }
+    }
+  }
+}

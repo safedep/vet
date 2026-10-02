@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "local-tool": {
+      "command": "python",
+      "args": ["-m", "mcp_tool"],
+      "env": {
+        "TOOL_TOKEN": "tok-123"
+      }
+    }
+  }
+}

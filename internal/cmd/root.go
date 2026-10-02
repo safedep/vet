@@ -14,6 +14,7 @@ import (
 	"github.com/safedep/vet/v2/internal/cmd/auth"
 	"github.com/safedep/vet/v2/internal/cmd/config"
 	"github.com/safedep/vet/v2/internal/cmd/doctor"
+	"github.com/safedep/vet/v2/internal/cmd/endpoint"
 	"github.com/safedep/vet/v2/internal/cmd/fix"
 	"github.com/safedep/vet/v2/internal/cmd/policy"
 	"github.com/safedep/vet/v2/internal/cmd/report"
@@ -54,6 +55,7 @@ Run "vet scan" in a project directory to start.`,
 		auth.New(a),
 		config.New(a),
 		doctor.New(a),
+		endpoint.New(a),
 		fix.New(a),
 		policy.New(a),
 		report.New(a),

@@ -132,6 +132,8 @@ func (id PackageID) QualifiedName() string {
 	case id.Namespace == "":
 	case id.Ecosystem == EcosystemMaven:
 		name = id.Namespace + ":" + id.Name
+	case id.Ecosystem == EcosystemVSCode, id.Ecosystem == EcosystemOpenVSX:
+		name = id.Namespace + "." + id.Name
 	default:
 		name = id.Namespace + "/" + id.Name
 	}

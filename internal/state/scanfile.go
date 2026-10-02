@@ -600,16 +600,30 @@ func insertFinding(ctx context.Context, tx *sql.Tx, manifestID string, f *findin
 	return err
 }
 
-// AddInventory writes an inventory item.
-func (s *Scan) AddInventory(ctx context.Context, item *report.InventoryItem) error {
-	b, err := json.Marshal(item)
-	if err != nil {
-		return err
-	}
-	if _, err := s.db.ExecContext(ctx, `INSERT INTO vet_scan_inventory (data) VALUES (?)`, b); err != nil {
-		return fmt.Errorf("write inventory item: %w", err)
-	}
-	return nil
+// ReplaceInventory writes the inventory of the scan in one transaction. It
+// deletes the items of an earlier run, so a continued scan holds the
+// inventory of its last run only.
+func (s *Scan) ReplaceInventory(ctx context.Context, items []report.InventoryItem) error {
+	return s.tx(ctx, func(tx *sql.Tx) error {
+		if _, err := tx.ExecContext(ctx, `DELETE FROM vet_scan_inventory`); err != nil {
+			return err
+		}
+		st, err := prepare(ctx, tx, `INSERT INTO vet_scan_inventory (data) VALUES (?)`)
+		if err != nil {
+			return err
+		}
+		defer st.close()
+		for i := range items {
+			b, err := json.Marshal(&items[i])
+			if err != nil {
+				return err
+			}
+			if _, err := st[0].ExecContext(ctx, b); err != nil {
+				return fmt.Errorf("write inventory item: %w", err)
+			}
+		}
+		return nil
+	})
 }
 
 // AddDiagnostic writes a diagnostic.

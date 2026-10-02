@@ -11,6 +11,7 @@ import (
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/plugin/plugintest"
+	"github.com/safedep/vet/v2/report"
 )
 
 func recordJSON(t *testing.T, r plugin.Report) []string {
@@ -42,9 +43,11 @@ func TestRecordsMatchMemState(t *testing.T) {
 		fs = append(fs, *f)
 	}
 	require.NoError(t, scan.AddFindings(ctx, want.ManifestList[0].ID, fs))
+	var items []report.InventoryItem
 	for _, i := range want.InventoryList {
-		require.NoError(t, scan.AddInventory(ctx, i))
+		items = append(items, *i)
 	}
+	require.NoError(t, scan.ReplaceInventory(ctx, items))
 	for _, d := range want.DiagnosticList {
 		require.NoError(t, scan.AddDiagnostic(ctx, d))
 	}

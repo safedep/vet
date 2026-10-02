@@ -33,10 +33,17 @@ func (r *run) extract(ctx context.Context, artifacts []plugin.Artifact) error {
 	}
 	done := 0
 	for _, a := range artifacts {
+		if err := r.extractSourced(ctx, a); err != nil {
+			return err
+		}
 		var err error
-		if a.Kind == plugin.ArtifactPURL {
+		switch {
+		case a.Kind == plugin.ArtifactPURL:
 			err = r.extractPURL(ctx, a)
-		} else {
+		case a.Kind == plugin.ArtifactEndpoint && len(a.Include) == 0:
+			// An endpoint root is a whole file system. The engine reads
+			// only the files that the source names.
+		default:
 			err = r.extractFiles(ctx, a, &done)
 		}
 		if err != nil {
@@ -45,6 +52,23 @@ func (r *run) extract(ctx context.Context, artifacts []plugin.Artifact) error {
 	}
 	_, err := scan.DropStaleArtifacts(ctx)
 	return err
+}
+
+// extractSourced commits the manifests and the inventory that the source
+// read itself. Each manifest commits as its own artifact, keyed by its
+// path, so a continued scan revives it like an extracted file.
+func (r *run) extractSourced(ctx context.Context, a plugin.Artifact) error {
+	scan := r.res.Scan
+	for _, m := range a.Manifests {
+		rec := state.ArtifactRecord{Key: a.Key + "::source::" + m.Path, Kind: string(a.Kind), Path: m.Path}
+		if err := scan.CommitArtifact(ctx, rec, []*model.Manifest{m}); err != nil {
+			return err
+		}
+	}
+	if a.Kind != plugin.ArtifactEndpoint && len(a.Inventory) == 0 {
+		return nil
+	}
+	return scan.ReplaceInventory(ctx, a.Inventory)
 }
 
 func (r *run) extractPURL(ctx context.Context, a plugin.Artifact) error {

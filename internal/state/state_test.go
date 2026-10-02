@@ -107,7 +107,8 @@ func TestScanFileWrites(t *testing.T) {
 		m.Path, m.Packages[0], finding.Key{})
 	require.NoError(t, scan.AddFindings(ctx, m.ID, []finding.Finding{f}))
 	require.NoError(t, scan.AddDiagnostic(ctx, &report.Diagnostic{Level: report.DiagnosticWarning, Code: "c", Component: "insights"}))
-	require.NoError(t, scan.AddInventory(ctx, &report.InventoryItem{Kind: report.InventorySkill, Name: "s"}))
+	require.NoError(t, scan.ReplaceInventory(ctx, []report.InventoryItem{{Kind: report.InventorySkill, Name: "old"}}))
+	require.NoError(t, scan.ReplaceInventory(ctx, []report.InventoryItem{{Kind: report.InventorySkill, Name: "s"}}))
 
 	require.NoError(t, scan.SetStage(ctx, "extract", "done"))
 	st, err := scan.Stage(ctx, "extract")

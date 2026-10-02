@@ -1,0 +1,6 @@
+# Editor config dirs are globally ignored; allow them here so test fixtures
+# that mirror real IDE layouts (e.g. fixtures/ide_extension/.vscode/) are tracked.
+!.vscode/
+!.cursor/
+!.windsurf/
+!.antigravity/

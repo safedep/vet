@@ -1,0 +1,23 @@
+{
+  "analysisId": "stub-malicious",
+  "status": "ANALYSIS_STATUS_COMPLETED",
+  "report": {
+    "packageVersion": {
+      "package": {
+        "ecosystem": "ECOSYSTEM_VSCODE",
+        "name": "evil-pub.evil-ext"
+      },
+      "version": "1.0.0"
+    },
+    "inference": {
+      "isMalware": true,
+      "confidence": "CONFIDENCE_HIGH",
+      "summary": "The extension sends the workspace files to a remote host."
+    }
+  },
+  "verificationRecord": {
+    "purl": "pkg:vscode/evil-pub.evil-ext@1.0.0",
+    "isMalware": true,
+    "reason": "stub: verified malicious"
+  }
+}
