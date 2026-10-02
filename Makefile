@@ -67,14 +67,14 @@ setup:
 		gen/violations \
 		gen/checks
 
-GO_CFLAGS=-X main.commit=$(GITCOMMIT) -X main.version=$(VERSION)
+GO_CFLAGS=-X github.com/safedep/vet/v2/internal/version.commit=$(GITCOMMIT) -X github.com/safedep/vet/v2/internal/version.version=$(VERSION)
 GO_LDFLAGS=-ldflags "-w $(GO_CFLAGS)"
 
 quick-vet:
-	go build ${GO_LDFLAGS}
+	go build ${GO_LDFLAGS} -o vet ./cmd/vet
 
 vet: oapi-codegen protoc-codegen
-	go build ${GO_LDFLAGS}
+	go build ${GO_LDFLAGS} -o vet ./cmd/vet
 
 .PHONY: test
 test:

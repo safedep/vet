@@ -1,7 +1,0 @@
-{
-  "mcpServers": {
-    "ag-server": {
-      "serverUrl": "https://mcp.example.com/mcp"
-    }
-  }
-}

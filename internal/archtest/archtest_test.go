@@ -23,8 +23,6 @@ const safedepAPI = "buf.build/gen/go/safedep/api"
 // replaces and removes them from this list. A listed path that does not
 // exist fails the test, so the list only shrinks.
 var legacyV1 = []string{
-	module,
-	module + "/cmd/endpoint",
 	module + "/ent",
 	module + "/gen",
 	module + "/internal/analytics",
@@ -32,7 +30,7 @@ var legacyV1 = []string{
 	module + "/internal/command",
 	module + "/internal/ui",
 	module + "/pkg",
-	module + "/test",
+	module + "/signatures",
 }
 
 // publicPackages are the plugin API. They import nothing from internal.
@@ -135,15 +133,7 @@ func underAny(path string, prefixes []string) bool {
 }
 
 func isLegacy(path string) bool {
-	if path == module {
-		return true
-	}
-	for _, p := range legacyV1[1:] {
-		if under(path, p) {
-			return true
-		}
-	}
-	return false
+	return underAny(path, legacyV1)
 }
 
 func TestLegacyListOnlyShrinks(t *testing.T) {
@@ -151,7 +141,7 @@ func TestLegacyListOnlyShrinks(t *testing.T) {
 	for _, prefix := range legacyV1 {
 		found := false
 		for _, p := range pkgs {
-			if (prefix == module && p.path == module) || (prefix != module && under(p.path, prefix)) {
+			if under(p.path, prefix) {
 				found = true
 				break
 			}

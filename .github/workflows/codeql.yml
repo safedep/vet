@@ -60,7 +60,7 @@ jobs:
 
       - run: |
           go mod tidy
-          go build
+          go build ./...
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@7211b7c8077ea37d8641b6271f6a365a22a5fbfa # v4

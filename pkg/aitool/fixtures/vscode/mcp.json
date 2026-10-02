@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "vscode-global": {
-      "command": "node",
-      "args": ["server.js"]
-    }
-  }
-}

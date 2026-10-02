@@ -11,6 +11,9 @@ env:
 
 builds:
   - id: linux
+    main: ./cmd/vet
+    ldflags:
+      - -s -w -X github.com/safedep/vet/v2/internal/version.version={{.Version}} -X github.com/safedep/vet/v2/internal/version.commit={{.Commit}}
     goos: [linux]
     goarch: [amd64, arm64]
     env:
@@ -28,6 +31,9 @@ builds:
           - CXX=aarch64-linux-gnu-g++
 
   - id: darwin
+    main: ./cmd/vet
+    ldflags:
+      - -s -w -X github.com/safedep/vet/v2/internal/version.version={{.Version}} -X github.com/safedep/vet/v2/internal/version.commit={{.Commit}}
     goos: [darwin]
     goarch: [amd64, arm64]
     env:
@@ -36,6 +42,9 @@ builds:
       - CXX=o64-clang++
 
   - id: windows
+    main: ./cmd/vet
+    ldflags:
+      - -s -w -X github.com/safedep/vet/v2/internal/version.version={{.Version}} -X github.com/safedep/vet/v2/internal/version.commit={{.Commit}}
     goos: [windows]
     goarch: [amd64]
     env:
