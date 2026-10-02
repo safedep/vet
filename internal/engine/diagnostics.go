@@ -25,10 +25,10 @@ const (
 // diagnostics counts the diagnostics of a run, so that one problem that
 // repeats, such as a backend that does not answer, gives one record.
 type diagnostics struct {
-	mu     sync.Mutex
-	byKey  map[string]*report.Diagnostic
-	order  []string
-	errors int
+	mu    sync.Mutex
+	byKey map[string]*report.Diagnostic
+	order []string
+	total int
 }
 
 func newDiagnostics() *diagnostics {
@@ -38,9 +38,7 @@ func newDiagnostics() *diagnostics {
 func (d *diagnostics) add(level report.DiagnosticLevel, code, component, msg string) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	if level == report.DiagnosticError {
-		d.errors++
-	}
+	d.total++
 	key := strings.Join([]string{string(level), code, component, msg}, "\x00")
 	if prev, ok := d.byKey[key]; ok {
 		prev.Count++

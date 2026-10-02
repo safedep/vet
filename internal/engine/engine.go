@@ -84,7 +84,7 @@ type Options struct {
 	Resume         bool
 	Fresh          bool
 	ContinueWithin time.Duration
-	// Strict makes a diagnostic of level error fail the scan.
+	// Strict makes any diagnostic fail the scan with exit code 3.
 	Strict bool
 
 	// BatchSize is the number of packages for each enricher call.
@@ -333,7 +333,7 @@ func (r *run) finish(ctx context.Context, runErr error) error {
 		entry.FinishedAt = r.o.Now().UTC()
 		entry.Gate = string(gate.Outcome)
 		entry.Packages, entry.Findings = trailer.Summary.Packages, trailer.Summary.Findings
-		if r.o.Strict && r.diags.errors > 0 {
+		if r.o.Strict && r.diags.total > 0 {
 			errs = append(errs, ErrStrict)
 		}
 	}
