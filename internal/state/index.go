@@ -85,7 +85,7 @@ type Index struct {
 }
 
 func openIndex(ctx context.Context, dir string) (*Index, error) {
-	mgr := localdb.NewFileManager(localdb.Config{Dir: dir, FileName: "vet.db", RejectNetworkFS: true})
+	mgr := openFile(dir, "vet.db")
 	st, err := mgr.Store(ctx, localdb.Descriptor{Name: "vet_scans", Migrations: indexMigrations})
 	if err != nil {
 		return nil, fmt.Errorf("open scan index: %w", err)

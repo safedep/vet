@@ -51,7 +51,7 @@ func OpenCache(ctx context.Context, dir string) (*Cache, error) {
 	if err := appdir.Ensure(dir); err != nil {
 		return nil, err
 	}
-	mgr := localdb.NewFileManager(localdb.Config{Dir: dir, FileName: "cache.db", RejectNetworkFS: true})
+	mgr := openFile(dir, "cache.db")
 	st, err := mgr.Store(ctx, localdb.Descriptor{Name: "vet_cache", Migrations: cacheMigrations})
 	if err != nil {
 		return nil, fmt.Errorf("open the enrichment cache: %w", err)
