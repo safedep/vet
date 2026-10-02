@@ -29,9 +29,9 @@ func TestConstructorsKeepOneSubject(t *testing.T) {
 		f    Finding
 		kind SubjectKind
 	}{
-		{"package", ForPackage(meta, "package-lock.json", pkg("1.0.0", 10)), SubjectPackage},
-		{"file", ForFile(meta, Locus{Path: ".github/workflows/ci.yml", StartLine: 3}), SubjectFile},
-		{"manifest", ForManifest(meta, "package-lock.json", model.EcosystemNpm), SubjectManifest},
+		{"package", ForPackage(meta, "package-lock.json", pkg("1.0.0", 10), Key{}), SubjectPackage},
+		{"file", ForFile(meta, Locus{Path: ".github/workflows/ci.yml", StartLine: 3}, Key{}), SubjectFile},
+		{"manifest", ForManifest(meta, "package-lock.json", model.EcosystemNpm, Key{}), SubjectManifest},
 		{"application", ForApplication(meta, "apps/agent", "sig-1"), SubjectApplication},
 	}
 	for _, tc := range cases {
@@ -48,7 +48,7 @@ func TestForPackageFields(t *testing.T) {
 	p := pkg("1.0.0", 10)
 	p.Direct = true
 	p.Change = model.ChangeAdded
-	f := ForPackage(meta, "package-lock.json", p)
+	f := ForPackage(meta, "package-lock.json", p, Key{})
 	assert.Equal(t, "pkg:npm/evil@1.0.0", f.Subject.Package.PURL)
 	assert.True(t, f.Subject.Package.Direct)
 	assert.Equal(t, model.ChangeAdded, f.Change)
@@ -57,7 +57,7 @@ func TestForPackageFields(t *testing.T) {
 }
 
 func TestValidate(t *testing.T) {
-	ok := ForManifest(Meta{ControlID: "c", Family: FamilyLockfile, Severity: SeverityHigh, Title: "t"}, "a.lock", model.EcosystemNpm)
+	ok := ForManifest(Meta{ControlID: "c", Family: FamilyLockfile, Severity: SeverityHigh, Title: "t"}, "a.lock", model.EcosystemNpm, Key{})
 	require.NoError(t, ok.Validate())
 
 	cases := []struct {
@@ -102,4 +102,64 @@ func TestFamilies(t *testing.T) {
 		assert.True(t, f.Valid(), f)
 	}
 	assert.False(t, Family("other").Valid())
+}
+
+func TestForPackageID(t *testing.T) {
+	base := ForPackage(meta, "package-lock.json", pkg("1.0.0", 10), Key{})
+
+	cases := []struct {
+		name string
+		f    Finding
+		same bool
+	}{
+		{"line moves", ForPackage(meta, "package-lock.json", pkg("1.0.0", 99), Key{}), true},
+		{"severity and text change", ForPackage(Meta{ControlID: "malware", Family: FamilyMalware, Severity: SeverityLow, Title: "x"}, "package-lock.json", pkg("1.0.0", 10), Key{}), true},
+		{"new version", ForPackage(meta, "package-lock.json", pkg("1.0.1", 10), Key{}), false},
+		{"other manifest", ForPackage(meta, "web/package-lock.json", pkg("1.0.0", 10), Key{}), false},
+		{"other advisory", ForPackage(meta, "package-lock.json", pkg("1.0.0", 10), Key{Discriminator: "GHSA-1"}), false},
+		{"other control", ForPackage(Meta{ControlID: "vulnerability", Family: FamilyVulnerability, Severity: SeverityCritical, Title: "x"}, "package-lock.json", pkg("1.0.0", 10), Key{}), false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.same {
+				assert.Equal(t, base.ID, tc.f.ID)
+			} else {
+				assert.NotEqual(t, base.ID, tc.f.ID)
+			}
+		})
+	}
+}
+
+func TestForFileID(t *testing.T) {
+	m := Meta{ControlID: "unpinned-action", Family: FamilyWorkflow, Severity: SeverityMedium, Title: "Unpinned action"}
+	l := Locus{Path: ".github/workflows/ci.yml", StartLine: 8, Snippet: "uses:   actions/checkout@v4"}
+	base := ForFile(m, l, Key{Discriminator: "actions/checkout"})
+
+	moved := l
+	moved.StartLine = 20
+	moved.Snippet = " uses: actions/checkout@v4 "
+
+	cases := []struct {
+		name string
+		f    Finding
+		same bool
+	}{
+		{"line moves and whitespace changes", ForFile(m, moved, Key{Discriminator: "actions/checkout"}), true},
+		{"second identical line", ForFile(m, l, Key{Discriminator: "actions/checkout", Occurrence: 1}), false},
+		{"other action", ForFile(m, l, Key{Discriminator: "actions/setup-go"}), false},
+		{"other file", ForFile(m, Locus{Path: ".github/workflows/release.yml", Snippet: l.Snippet}, Key{Discriminator: "actions/checkout"}), false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.same {
+				assert.Equal(t, base.ID, tc.f.ID)
+			} else {
+				assert.NotEqual(t, base.ID, tc.f.ID)
+			}
+		})
+	}
+}
+
+func TestNormalizeSnippet(t *testing.T) {
+	assert.Equal(t, "a b c", NormalizeSnippet("  a\tb\n  c "))
 }
