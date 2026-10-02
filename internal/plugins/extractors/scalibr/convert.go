@@ -34,6 +34,13 @@ type direct interface{ IsDirect() bool }
 // of a package, such as the sub-path of a GitHub action.
 type subpath interface{ Subpath() string }
 
+// lockEntry is the metadata of a vet lockfile extractor that knows the URL
+// and the integrity hash of an entry.
+type lockEntry interface {
+	Resolved() string
+	Integrity() string
+}
+
 // ToManifest converts the packages of one extractor run into a manifest.
 // It returns the manifest, or nil when the run found no package that vet
 // knows, and one error for each package that it skipped. A workflow is a
@@ -145,6 +152,9 @@ func toPackage(sp *extractor.Package) (*model.Package, error) {
 	if dg, ok := sp.Metadata.(osv.DepGroups); ok {
 		groups := dg.DepGroups()
 		p.Dev = len(groups) > 0 && !slices.ContainsFunc(groups, isProdGroup)
+	}
+	if e, ok := sp.Metadata.(lockEntry); ok {
+		p.Resolved, p.Integrity = e.Resolved(), e.Integrity()
 	}
 	if d, ok := sp.Metadata.(direct); ok {
 		p.Direct = d.IsDirect()

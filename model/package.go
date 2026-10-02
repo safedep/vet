@@ -23,9 +23,12 @@ type Package struct {
 	// Integrity is the checksum that a lockfile records, when it records one.
 	Integrity string `json:"integrity,omitempty"`
 
-	Insight *Insight         `json:"insight,omitempty"`
-	Malware *MalwareAnalysis `json:"malware,omitempty"`
-	Usage   *Usage           `json:"usage,omitempty"`
+	Insight *Insight `json:"insight,omitempty"`
+	// PreviousInsight is the Insights data of PreviousVersion, in pull
+	// request mode. The controls that compare two versions read it.
+	PreviousInsight *Insight         `json:"previous_insight,omitempty"`
+	Malware         *MalwareAnalysis `json:"malware,omitempty"`
+	Usage           *Usage           `json:"usage,omitempty"`
 }
 
 // Insight is the package data from SafeDep Insights v2.
@@ -38,6 +41,13 @@ type Insight struct {
 	SourceRepo      string          `json:"source_repo,omitempty"`
 	Downloads       int64           `json:"downloads,omitempty"`
 	LatestVersion   string          `json:"latest_version,omitempty"`
+	// FirstPublishedAt is the publish date of the first version of the
+	// package.
+	FirstPublishedAt *time.Time `json:"first_published_at,omitempty"`
+	// Provenance reports a SLSA provenance attestation for the version.
+	Provenance bool `json:"provenance,omitempty"`
+	// Stars is the star count of the source repository.
+	Stars int64 `json:"stars,omitempty"`
 }
 
 // Vulnerability is one advisory that affects the package version.

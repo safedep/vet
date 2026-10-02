@@ -139,7 +139,7 @@ func TestEvaluate(t *testing.T) {
 func TestEvaluateErrors(t *testing.T) {
 	c, err := New(plugin.MapConfig(nil))
 	require.NoError(t, err)
-	m := &model.Manifest{ID: "m1", Path: "package-lock.json", Extractor: packagelockjson.Name, Root: fstest.MapFS{}}
+	m := &model.Manifest{ID: "m1", Path: "package-lock.json", Kind: model.ManifestKindLockfile, Extractor: packagelockjson.Name, Root: fstest.MapFS{}}
 	_, err = c.Evaluate(t.Context(), m, nil)
 	assert.Error(t, err, "a missing file is an error")
 
@@ -177,7 +177,61 @@ func TestTrustedSource(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.url, func(t *testing.T) {
-			assert.Equal(t, tc.want, c.(*Control).trustedSource(tc.url))
+			assert.Equal(t, tc.want, c.(*Control).trustedSource(model.EcosystemNpm, tc.url))
 		})
 	}
+}
+
+func TestResolvedEntries(t *testing.T) {
+	pkg := func(eco model.Ecosystem, name, version, resolved string) *model.Package {
+		return &model.Package{ID: model.PackageID{Ecosystem: eco, Name: name, Version: version}, Resolved: resolved}
+	}
+	cases := []struct {
+		name string
+		opts map[string]any
+		pkg  *model.Package
+		want []string
+	}{
+		{"yarn on the npm registry", nil, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://registry.yarnpkg.com/debug/-/debug-4.3.4.tgz#abc"), nil},
+		{"yarn on another host", nil, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://evil.example/debug-4.3.4.tgz"), []string{IDUntrustedRegistry}},
+		{"yarn on the URL of another package", nil, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://registry.npmjs.org/evil/-/evil-1.0.0.tgz"), []string{IDPathMismatch}},
+		{"a user registry", map[string]any{"trusted_registries": []any{"https://npm.corp.example"}}, pkg(model.EcosystemNpm, "debug", "4.3.4", "https://npm.corp.example/debug/-/debug-4.3.4.tgz"), nil},
+		{"uv on PyPI", nil, pkg(model.EcosystemPyPI, "requests", "2.32.0", "https://pypi.org/simple"), nil},
+		{"uv on another index", nil, pkg(model.EcosystemPyPI, "requests", "2.32.0", "https://pypi.evil.example/simple"), []string{IDUntrustedRegistry}},
+		{"cargo on crates.io", nil, pkg(model.EcosystemCargo, "serde", "1.0.0", "registry+https://github.com/rust-lang/crates.io-index"), nil},
+		{"cargo on the sparse index", nil, pkg(model.EcosystemCargo, "serde", "1.0.0", "sparse+https://index.crates.io/"), nil},
+		{"cargo on another registry", nil, pkg(model.EcosystemCargo, "serde", "1.0.0", "registry+https://evil.example/index"), []string{IDUntrustedRegistry}},
+		{"a git source is not a registry", nil, pkg(model.EcosystemCargo, "serde", "1.0.0", "git+https://github.com/serde-rs/serde#abc"), nil},
+		{"no resolved URL", nil, pkg(model.EcosystemNpm, "debug", "4.3.4", ""), nil},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			c, err := New(plugin.MapConfig(tc.opts))
+			require.NoError(t, err)
+			m := &model.Manifest{ID: "m", Path: "yarn.lock", Kind: model.ManifestKindLockfile, Extractor: "javascript/yarnlock", Packages: []*model.Package{tc.pkg}}
+			var got []string
+			for _, f := range plugintest.TestControl(t, c, m, nil) {
+				got = append(got, f.ControlID)
+			}
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
+func TestPullRequestChecks(t *testing.T) {
+	c, err := New(plugin.MapConfig(nil))
+	require.NoError(t, err)
+	m := &model.Manifest{
+		ID: "m", Path: "yarn.lock", Kind: model.ManifestKindLockfile, Extractor: "javascript/yarnlock", Ecosystem: model.EcosystemNpm,
+		LockfileOnly: true, Change: model.ChangeModified,
+		Packages: []*model.Package{
+			{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "debug", Version: "4.3.4"}, Change: model.ChangeModified, Integrity: "sha512-new"},
+			{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "ms", Version: "2.1.3"}, Change: model.ChangeUnchanged, Integrity: "sha512-same"},
+		},
+	}
+	byID := map[string]int{}
+	for _, f := range plugintest.TestControl(t, c, m, nil) {
+		byID[f.ControlID]++
+	}
+	assert.Equal(t, map[string]int{IDIntegrityChanged: 1, IDLockfileOnly: 1}, byID)
 }

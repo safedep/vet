@@ -44,6 +44,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/commitextractor"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/graph"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/linefinder"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/lockmeta"
 )
 
 const (
@@ -67,6 +68,28 @@ type bunWorkspace struct {
 // bunDependencies reads the dependency names of a package tuple: the
 // object at index 2 with dependencies, optionalDependencies and
 // peerDependencies.
+// bunResolved returns the tarball URL of an npm entry
+// ["name@version", "url", {deps}, "integrity"]. An empty URL means the
+// default registry.
+func bunResolved(tuple []any) string {
+	if len(tuple) < 4 {
+		return ""
+	}
+	if u, ok := tuple[1].(string); ok && strings.Contains(u, "://") {
+		return u
+	}
+	return ""
+}
+
+// bunIntegrity returns the integrity hash of an npm entry.
+func bunIntegrity(tuple []any) string {
+	if len(tuple) < 4 {
+		return ""
+	}
+	h, _ := tuple[3].(string)
+	return h
+}
+
 func bunDependencies(tuple []any) []string {
 	if len(tuple) < 3 {
 		return nil
@@ -260,8 +283,10 @@ func (e Extractor) Extract(ctx context.Context, input *filesystem.ScanInput) (in
 				Commit: commit,
 				Repo:   repo,
 			},
-			Metadata: &osv.DepGroupMetadata{
-				DepGroupVals: []string{},
+			Metadata: &lockmeta.Metadata{
+				Protoable:     &osv.DepGroupMetadata{DepGroupVals: []string{}},
+				ResolvedURL:   bunResolved(pkg),
+				IntegrityHash: bunIntegrity(pkg),
 			},
 			Location: extractor.LocationFromPathAndLine(input.Path, lineNum),
 		})

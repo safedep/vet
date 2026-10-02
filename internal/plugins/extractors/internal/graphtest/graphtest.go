@@ -8,11 +8,13 @@ import (
 	"github.com/google/osv-scalibr/extractor"
 
 	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/graph"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/lockmeta"
 )
 
-// IgnoreGraph leaves the package ids, the parent ids and the direct mark
-// out of the upstream tests. Upstream does not set them. The golden test of
-// the lockfile package checks the graph.
+// IgnoreGraph leaves the package ids, the parent ids, the direct mark and
+// the lockmeta URL and hash out of the upstream tests. Upstream does not set
+// them. The golden test of the lockfile package checks the graph, and the
+// vet tests check the URL and the hash.
 var IgnoreGraph = cmp.Options{
 	cmpopts.IgnoreFields(extractor.Package{}, "ID", "ParentIDs"),
 	cmp.FilterValues(func(a, b metadata.Protoable) bool { return isWrapped(a) || isWrapped(b) },
@@ -20,13 +22,22 @@ var IgnoreGraph = cmp.Options{
 }
 
 func isWrapped(m metadata.Protoable) bool {
-	_, ok := m.(*graph.Metadata)
-	return ok
+	switch m.(type) {
+	case *graph.Metadata, *lockmeta.Metadata:
+		return true
+	}
+	return false
 }
 
 func unwrap(m metadata.Protoable) metadata.Protoable {
-	if w, ok := m.(*graph.Metadata); ok {
-		return w.Protoable
+	for {
+		switch w := m.(type) {
+		case *graph.Metadata:
+			m = w.Protoable
+		case *lockmeta.Metadata:
+			m = w.Protoable
+		default:
+			return m
+		}
 	}
-	return m
 }

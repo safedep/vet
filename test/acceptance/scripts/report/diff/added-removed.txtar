@@ -6,7 +6,7 @@ exec vet scan . --mode plain -o plain
 exec vet report diff --mode plain -o json
 jsonq stdout added.len 1
 jsonq stdout added.0.control_id malware
-jsonq stdout removed.len 1
+jsonq stdout removed.len 2
 jsonq stdout removed.0.control_id vulnerability
 jsonq stdout packages_added.0 pkg:npm/safedep-test-pkg@0.1.3
 

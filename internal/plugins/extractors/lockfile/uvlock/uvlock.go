@@ -38,6 +38,7 @@ import (
 	"github.com/google/osv-scalibr/purl"
 
 	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/graph"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/lockmeta"
 )
 
 const (
@@ -48,6 +49,31 @@ const (
 type uvLockPackageSource struct {
 	Virtual string `toml:"virtual"`
 	Git     string `toml:"git"`
+	// vet: the registry, URL, path and directory of the source.
+	Registry  string `toml:"registry"`
+	URL       string `toml:"url"`
+	Path      string `toml:"path"`
+	Directory string `toml:"directory"`
+	Editable  string `toml:"editable"`
+}
+
+// resolved returns the URL of the source: a registry, a URL, a git URL or
+// a file path.
+func (s uvLockPackageSource) resolved() string {
+	switch {
+	case s.Registry != "":
+		return s.Registry
+	case s.URL != "":
+		return s.URL
+	case s.Git != "":
+		return "git+" + s.Git
+	}
+	for _, p := range []string{s.Path, s.Directory, s.Editable} {
+		if p != "" {
+			return "file:" + p
+		}
+	}
+	return ""
 }
 
 type uvLockPackage struct {
@@ -164,8 +190,9 @@ func (e Extractor) Extract(ctx context.Context, input *filesystem.ScanInput) (in
 
 		sort.Strings(depGroupVals)
 
-		pkgDetails.Metadata = &osv.DepGroupMetadata{
-			DepGroupVals: depGroupVals,
+		pkgDetails.Metadata = &lockmeta.Metadata{
+			Protoable:   &osv.DepGroupMetadata{DepGroupVals: depGroupVals},
+			ResolvedURL: lockPackage.Source.resolved(),
 		}
 		packages = append(packages, pkgDetails)
 		keys = append(keys, lockPackage.Name+"@"+lockPackage.Version)

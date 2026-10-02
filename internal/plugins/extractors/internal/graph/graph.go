@@ -20,6 +20,22 @@ type Metadata struct {
 // IsDirect reports that the root project requires the package.
 func (m *Metadata) IsDirect() bool { return m.Direct }
 
+// Resolved returns the resolved URL of the wrapped metadata.
+func (m *Metadata) Resolved() string {
+	if r, ok := m.Protoable.(interface{ Resolved() string }); ok {
+		return r.Resolved()
+	}
+	return ""
+}
+
+// Integrity returns the integrity hash of the wrapped metadata.
+func (m *Metadata) Integrity() string {
+	if i, ok := m.Protoable.(interface{ Integrity() string }); ok {
+		return i.Integrity()
+	}
+	return ""
+}
+
 // DepGroups returns the dependency groups of the wrapped metadata.
 func (m *Metadata) DepGroups() []string {
 	if dg, ok := m.Protoable.(osv.DepGroups); ok {

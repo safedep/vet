@@ -38,6 +38,7 @@ import (
 
 	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/commitextractor"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/graph"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/lockmeta"
 )
 
 const (
@@ -54,6 +55,10 @@ var (
 	// Format for yarn.lock v1: `resolved "git+ssh://git@github.com:G-Rath/repo-2#hash"`
 	// Format for yarn.lock v2: `resolution: "@my-scope/my-first-package@https://github.com/my-org/my-first-pkg.git#commit=hash"`
 	yarnPackageResolutionRe = regexp.MustCompile(`^ {2}"?(?:resolution:|resolved)"? "([^ '"]+)"$`)
+
+	// vet: the integrity hash, `integrity sha512-...` in v1 and
+	// `checksum: 10c0/...` in v2.
+	yarnPackageIntegrityRe = regexp.MustCompile(`^ {2}"?(?:integrity|checksum:)"? "?([^ '"]+)"?$`)
 )
 
 func shouldSkipYarnLine(line string) bool {
@@ -186,7 +191,34 @@ func parseYarnPackageGroup(desc *packageDescription) *extractor.Package {
 			Commit: commit,
 			Repo:   repo,
 		},
+		Metadata: &lockmeta.Metadata{ResolvedURL: resolvedURL(resolution), IntegrityHash: yarnIntegrity(desc.props)},
 	}
+}
+
+// resolvedURL returns the URL of a resolution: the v1 resolved URL, or
+// the URL after the name of a v2 resolution such as
+// "pkg@https://example.com/pkg.tgz". A v2 resolution such as
+// "debug@npm:4.3.4" names no URL: the registry serves it.
+func resolvedURL(resolution string) string {
+	if strings.Contains(resolution, "://") && !strings.Contains(resolution[:strings.Index(resolution, "://")], "@") {
+		return resolution
+	}
+	// Skip the @ of a scoped name.
+	if i := strings.Index(resolution[min(1, len(resolution)):], "@"); i >= 0 {
+		if spec := resolution[i+2:]; strings.Contains(spec, "://") {
+			return spec
+		}
+	}
+	return ""
+}
+
+func yarnIntegrity(props []string) string {
+	for _, s := range props {
+		if m := yarnPackageIntegrityRe.FindStringSubmatch(s); m != nil {
+			return m[1]
+		}
+	}
+	return ""
 }
 
 // yarnSpecifiers returns the specifiers of an entry header, for example

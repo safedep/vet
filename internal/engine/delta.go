@@ -196,10 +196,10 @@ func diff(head, baseM *model.Manifest, fileChanged bool) {
 		}
 		return
 	}
-	exact := map[model.PackageID]bool{}
+	exact := map[model.PackageID]*model.Package{}
 	byName := map[model.PackageID][]string{}
 	for _, p := range baseM.Packages {
-		exact[p.ID] = true
+		exact[p.ID] = p
 		byName[p.ID.WithoutVersion()] = append(byName[p.ID.WithoutVersion()], p.ID.Version)
 	}
 	headNames := map[model.PackageID]bool{}
@@ -207,7 +207,11 @@ func diff(head, baseM *model.Manifest, fileChanged bool) {
 	for _, p := range head.Packages {
 		headNames[p.ID.WithoutVersion()] = true
 		switch prev := byName[p.ID.WithoutVersion()]; {
-		case exact[p.ID]:
+		case exact[p.ID] != nil && integrityChanged(exact[p.ID], p):
+			// The same version with another hash: the lockfile now
+			// installs other code under the same name and version.
+			p.Change = model.ChangeModified
+		case exact[p.ID] != nil:
 			p.Change = model.ChangeUnchanged
 		case len(prev) > 0:
 			p.PreviousVersion = prev[0]
@@ -230,6 +234,43 @@ func diff(head, baseM *model.Manifest, fileChanged bool) {
 	if changed {
 		head.Change = model.ChangeModified
 	}
+}
+
+// declaringFile maps a lockfile to the manifest file next to it.
+var declaringFile = map[string]string{
+	"package-lock.json": "package.json",
+	"yarn.lock":         "package.json",
+	"pnpm-lock.yaml":    "package.json",
+	"bun.lock":          "package.json",
+	"uv.lock":           "pyproject.toml",
+	"poetry.lock":       "pyproject.toml",
+	"pdm.lock":          "pyproject.toml",
+	"Pipfile.lock":      "Pipfile",
+	"Cargo.lock":        "Cargo.toml",
+	"Gemfile.lock":      "Gemfile",
+	"composer.lock":     "composer.json",
+}
+
+// lockfileOnly reports a changed lockfile whose manifest file is in the
+// base and has not changed.
+func lockfileOnly(fsys fs.FS, rel string, b *base) (bool, error) {
+	decl, ok := declaringFile[path.Base(rel)]
+	if !ok {
+		return false, nil
+	}
+	sibling := path.Join(path.Dir(rel), decl)
+	hash, inBase := b.hashes[sibling]
+	if !inBase {
+		return false, nil
+	}
+	if _, err := fs.Stat(fsys, sibling); err != nil {
+		return false, nil
+	}
+	return sameBlob(fsys, sibling, hash)
+}
+
+func integrityChanged(base, head *model.Package) bool {
+	return base.Integrity != "" && head.Integrity != "" && base.Integrity != head.Integrity
 }
 
 // removed returns the base manifests that the head does not have, with

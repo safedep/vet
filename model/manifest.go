@@ -30,6 +30,10 @@ type Manifest struct {
 	Ecosystem Ecosystem    `json:"ecosystem,omitempty"`
 	Kind      ManifestKind `json:"kind"`
 	Change    Change       `json:"change,omitempty"`
+	// LockfileOnly reports, in pull request mode, a change to a lockfile
+	// that leaves the manifest file next to it, such as package.json, as it
+	// was.
+	LockfileOnly bool `json:"lockfile_only,omitempty"`
 
 	// Extractor is the name of the extractor that read the manifest.
 	Extractor string `json:"extractor,omitempty"`

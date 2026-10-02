@@ -289,6 +289,16 @@
         },
         "latest_version": {
           "type": "string"
+        },
+        "first_published_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "provenance": {
+          "type": "boolean"
+        },
+        "stars": {
+          "type": "integer"
         }
       },
       "type": "object"
@@ -442,6 +452,9 @@
             "UNCHANGED"
           ]
         },
+        "lockfile_only": {
+          "type": "boolean"
+        },
         "extractor": {
           "type": "string"
         }
@@ -527,6 +540,9 @@
           "type": "string"
         },
         "insight": {
+          "$ref": "#/$defs/Insight"
+        },
+        "previous_insight": {
           "$ref": "#/$defs/Insight"
         },
         "malware": {

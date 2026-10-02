@@ -1,6 +1,7 @@
 // Package insights is the enricher of SafeDep Insights v2: vulnerabilities,
-// licenses, the publish date, deprecation, the OpenSSF Scorecard, the
-// source repository, downloads and the latest version. vet does not use
+// licenses, the publish dates, deprecation, the SLSA provenance, the
+// OpenSSF Scorecard, the source repository and its stars, downloads and
+// the latest version. vet does not use
 // Insights v1.
 package insights
 
@@ -22,7 +23,7 @@ import (
 const Name = "insights"
 
 // Version changes when the mapping changes, so the cache drops old results.
-const Version = "1"
+const Version = "2"
 
 // Enricher sets model.Package.Insight.
 type Enricher struct {
@@ -64,6 +65,11 @@ func toInsight(in *packagev1.PackageVersionInsight) *model.Insight {
 		t := ts.AsTime().UTC()
 		out.PublishedAt = &t
 	}
+	if ts := in.GetPackagePublishedAt(); ts != nil {
+		t := ts.AsTime().UTC()
+		out.FirstPublishedAt = &t
+	}
+	out.Provenance = len(in.GetSlsaProvenances()) > 0
 	for _, l := range in.GetLicenses().GetLicenses() {
 		if id := l.GetLicenseId(); id != "" {
 			out.Licenses = append(out.Licenses, id)
@@ -75,6 +81,7 @@ func toInsight(in *packagev1.PackageVersionInsight) *model.Insight {
 	for _, pi := range in.GetProjectInsights() {
 		if out.SourceRepo == "" {
 			out.SourceRepo = pi.GetProject().GetUrl()
+			out.Stars = pi.GetStars()
 		}
 		if sc := pi.GetScorecard(); sc != nil && out.Scorecard == nil {
 			card := &model.Scorecard{Score: float64(sc.GetScore()), Checks: map[string]float64{}}

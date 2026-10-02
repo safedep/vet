@@ -125,6 +125,7 @@ func TestEveryControlOnAScan(t *testing.T) {
 	}
 	assert.Equal(t, map[string][]string{
 		"dependency-cooldown": {"left-pad"},
+		"deprecated-package":  {"left-pad"},
 		"malware":             {"safedep-test-pkg"},
 		"vulnerability":       {"left-pad"},
 		"untrusted-registry":  {"package-lock.json"},

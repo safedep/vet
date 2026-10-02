@@ -79,6 +79,9 @@ func (s *Scan) Manifest(ctx context.Context, id string) (*model.Manifest, error)
 		}
 		m.Packages = append(m.Packages, p)
 	}
+	if err := s.attachPrior(ctx, m.Packages); err != nil {
+		return nil, err
+	}
 
 	g, err := s.graph(ctx, id)
 	if err != nil {
@@ -373,7 +376,7 @@ func (s *Scan) PackagesToEnrich(ctx context.Context, q EnrichQuery) ([]*model.Pa
 	introduced := ""
 	if q.Introduced {
 		introduced = ` AND EXISTS (SELECT 1 FROM vet_scan_manifest_packages c
-		    WHERE c.purl = p.purl AND c.change IN ('ADDED', 'UPGRADED', 'DOWNGRADED'))`
+		    WHERE c.purl = p.purl AND c.change IN ('ADDED', 'UPGRADED', 'DOWNGRADED', 'MODIFIED'))`
 	}
 	rows, err := s.db.QueryContext(ctx, `SELECT mp.data, p.insight, p.malware, p.usage
 		FROM vet_scan_packages p
@@ -394,4 +397,100 @@ func (s *Scan) PackagesToEnrich(ctx context.Context, q EnrichQuery) ([]*model.Pa
 		out = append(out, p)
 	}
 	return out, nil
+}
+
+// PriorID returns the identity of the previous version of an upgraded or a
+// downgraded package.
+func PriorID(p *model.Package) (model.PackageID, bool) {
+	if p.PreviousVersion == "" || (p.Change != model.ChangeUpgraded && p.Change != model.ChangeDowngraded) {
+		return model.PackageID{}, false
+	}
+	id := p.ID
+	id.Version = p.PreviousVersion
+	return id, true
+}
+
+// PriorToEnrich returns the previous versions of the upgraded and the
+// downgraded packages that have no prior data yet.
+func (s *Scan) PriorToEnrich(ctx context.Context) ([]*model.Package, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT data FROM vet_scan_manifest_packages
+		WHERE change IN (?, ?) ORDER BY purl`, string(model.ChangeUpgraded), string(model.ChangeDowngraded))
+	if err != nil {
+		return nil, fmt.Errorf("read upgraded packages: %w", err)
+	}
+	defer closeRows(rows)
+	seen := map[string]bool{}
+	var out []*model.Package
+	for rows.Next() {
+		var data []byte
+		if err := rows.Scan(&data); err != nil {
+			return nil, err
+		}
+		var pd packageData
+		if err := json.Unmarshal(data, &pd); err != nil {
+			return nil, fmt.Errorf("decode package: %w", err)
+		}
+		id, ok := PriorID(&pd.Package)
+		if !ok || seen[id.PURL()] {
+			continue
+		}
+		seen[id.PURL()] = true
+		out = append(out, &model.Package{ID: id})
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	var todo []*model.Package
+	for _, p := range out {
+		var n int
+		if err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM vet_scan_prior WHERE purl = ?`, p.ID.PURL()).Scan(&n); err != nil {
+			return nil, err
+		}
+		if n == 0 {
+			todo = append(todo, p)
+		}
+	}
+	return todo, nil
+}
+
+// SavePrior writes the Insights data of previous versions. A version with
+// no data is not written, so a continued scan asks again.
+func (s *Scan) SavePrior(ctx context.Context, pkgs []*model.Package) error {
+	return s.tx(ctx, func(tx *sql.Tx) error {
+		for _, p := range pkgs {
+			if p.Insight == nil {
+				continue
+			}
+			b, err := json.Marshal(p.Insight)
+			if err != nil {
+				return err
+			}
+			if _, err := tx.ExecContext(ctx, `INSERT INTO vet_scan_prior (purl, insight) VALUES (?, ?)
+				ON CONFLICT (purl) DO UPDATE SET insight = excluded.insight`, p.ID.PURL(), b); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+func (s *Scan) attachPrior(ctx context.Context, pkgs []*model.Package) error {
+	for _, p := range pkgs {
+		id, ok := PriorID(p)
+		if !ok {
+			continue
+		}
+		var b []byte
+		err := s.db.QueryRowContext(ctx, `SELECT insight FROM vet_scan_prior WHERE purl = ?`, id.PURL()).Scan(&b)
+		if errors.Is(err, sql.ErrNoRows) {
+			continue
+		}
+		if err != nil {
+			return fmt.Errorf("read prior data: %w", err)
+		}
+		if err := unmarshalIf(b, &p.PreviousInsight); err != nil {
+			return err
+		}
+	}
+	return nil
 }

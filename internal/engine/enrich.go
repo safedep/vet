@@ -33,6 +33,9 @@ func (r *run) enrichWith(ctx context.Context, e Enricher) error {
 			return err
 		}
 		if len(batch) == 0 {
+			if e.Prior && r.o.BaseRef != "" {
+				return r.enrichPrior(ctx, e)
+			}
 			return nil
 		}
 		after = batch[len(batch)-1].ID.PURL()
@@ -93,4 +96,30 @@ func (r *run) enrichError(name string, err error) {
 		return
 	}
 	r.diags.add(report.DiagnosticError, CodeEnrichFailed, name, err.Error())
+}
+
+// enrichPrior enriches the previous versions of the upgraded and the
+// downgraded packages. The cache answers first, because the data of a
+// version does not depend on the scan.
+func (r *run) enrichPrior(ctx context.Context, e Enricher) error {
+	todo, err := r.res.Scan.PriorToEnrich(ctx)
+	if err != nil {
+		return err
+	}
+	for len(todo) > 0 {
+		n := min(len(todo), r.o.BatchSize)
+		results, err := r.enrichBatch(ctx, e, todo[:n])
+		if err != nil {
+			return err
+		}
+		pkgs := make([]*model.Package, 0, len(results))
+		for _, res := range results {
+			pkgs = append(pkgs, res.Package)
+		}
+		if err := r.res.Scan.SavePrior(ctx, pkgs); err != nil {
+			return err
+		}
+		todo = todo[n:]
+	}
+	return nil
 }

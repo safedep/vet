@@ -1,7 +1,9 @@
-// Package lockfile is the lockfile poisoning control. It reads each npm
-// lockfile and reports an entry that resolves from an untrusted registry,
-// or from a URL that does not match the package name. It ports the v1
-// lfp analyzer.
+// Package lockfile is the lockfile poisoning control (control catalog,
+// phase 2). It reports an entry that resolves from an untrusted registry or
+// from a URL of another package, an entry whose integrity hash changes with
+// no version change, and a lockfile change with no change to the manifest
+// file next to it. It reads each npm lockfile itself, as the v1 lfp
+// analyzer did, and the resolved URL of the other lockfiles.
 package lockfile
 
 import (
@@ -29,6 +31,8 @@ const Name = "lockfile"
 const (
 	IDUntrustedRegistry = "untrusted-registry"
 	IDPathMismatch      = "registry-path-mismatch"
+	IDIntegrityChanged  = "integrity-changed"
+	IDLockfileOnly      = "lockfile-only-change"
 )
 
 const (
@@ -51,10 +55,19 @@ type Options struct {
 	TrustedRegistries []string `json:"trusted_registries"`
 }
 
+// defaultRegistries are the public registries of each ecosystem.
+var defaultRegistries = map[model.Ecosystem][]string{
+	model.EcosystemNpm:   {npmRegistry, "https://registry.yarnpkg.com"},
+	model.EcosystemPyPI:  {"https://pypi.org", "https://files.pythonhosted.org"},
+	model.EcosystemCargo: {"https://github.com/rust-lang/crates.io-index", "https://index.crates.io", "https://static.crates.io"},
+}
+
 // Control reports poisoned lockfile entries.
 type Control struct {
-	user    []*url.URL
-	trusted []*url.URL
+	user []*url.URL
+	// trusted holds the default registries of each ecosystem and the
+	// user registries.
+	trusted map[model.Ecosystem][]*url.URL
 }
 
 // New builds the control from its options.
@@ -63,15 +76,24 @@ func New(cfg plugin.Config) (plugin.Control, error) {
 	if err := cfg.Decode(&o); err != nil {
 		return nil, err
 	}
-	c := &Control{}
-	for _, raw := range append([]string{npmRegistry}, o.TrustedRegistries...) {
+	c := &Control{trusted: map[model.Ecosystem][]*url.URL{}}
+	for _, raw := range o.TrustedRegistries {
 		u, err := parseURL(raw)
 		if err != nil || u.Host == "" {
 			return nil, fmt.Errorf("lockfile: trusted registry %q is not a URL", raw)
 		}
-		c.trusted = append(c.trusted, u)
+		c.user = append(c.user, u)
 	}
-	c.user = c.trusted[1:]
+	for eco, raws := range defaultRegistries {
+		for _, raw := range raws {
+			u, err := parseURL(raw)
+			if err != nil {
+				return nil, err
+			}
+			c.trusted[eco] = append(c.trusted[eco], u)
+		}
+		c.trusted[eco] = append(c.trusted[eco], c.user...)
+	}
 	return c, nil
 }
 
@@ -87,6 +109,16 @@ func (c *Control) Controls() []plugin.ControlInfo {
 			ID: IDPathMismatch, Family: finding.FamilyLockfile, Severity: finding.SeverityHigh,
 			Title:       "Lockfile entry with a URL of another package",
 			Description: "The resolved URL of a lockfile entry does not match the package name. An attacker can edit a lockfile to install another package under a trusted name.",
+		},
+		{
+			ID: IDIntegrityChanged, Family: finding.FamilyLockfile, Severity: finding.SeverityHigh,
+			Title:       "Lockfile integrity hash changed with no version change",
+			Description: "The change keeps the version of a lockfile entry and changes its integrity hash. The lockfile now installs other code under the same name and version.",
+		},
+		{
+			ID: IDLockfileOnly, Family: finding.FamilyLockfile, Severity: finding.SeverityHigh,
+			Title:       "Lockfile change with no manifest change",
+			Description: "The change edits a lockfile and leaves the manifest file next to it as it was. A tool such as npm update makes this change, and so does an attacker who edits the lockfile by hand.",
 		},
 	}
 }
@@ -107,11 +139,31 @@ type npmLockfile struct {
 	Dependencies map[string]legacyEntry `json:"dependencies"`
 }
 
-// Evaluate reads the npm lockfile of the manifest from the target.
+// Evaluate checks the entries of a lockfile manifest.
 func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State) ([]finding.Finding, error) {
-	if m.Extractor != packagelockjson.Name || m.Root == nil {
+	if m.Kind != model.ManifestKindLockfile {
 		return nil, nil
 	}
+	var out []finding.Finding
+	switch {
+	case m.Extractor == packagelockjson.Name && m.Root != nil:
+		fs, err := c.npmLockfile(m)
+		if err != nil {
+			return nil, err
+		}
+		out = fs
+	case m.Extractor != packagelockjson.Name:
+		out = c.resolvedEntries(m)
+	}
+	out = append(out, c.integrity(m)...)
+	if m.LockfileOnly {
+		out = append(out, lockfileOnly(m))
+	}
+	return out, nil
+}
+
+// npmLockfile reads the npm lockfile of the manifest from the target.
+func (c *Control) npmLockfile(m *model.Manifest) ([]finding.Finding, error) {
 	data, err := fs.ReadFile(m.Root, m.Path)
 	if err != nil {
 		return nil, fmt.Errorf("read %s: %w", m.Path, err)
@@ -147,7 +199,7 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 		locus := finding.Locus{Path: m.Path, StartLine: lineOf(data, path, e.Resolved), Snippet: e.Resolved}
 		locus.EndLine = locus.StartLine
 		key := finding.Key{Discriminator: path}
-		if !c.trustedSource(e.Resolved) {
+		if !c.trustedSource(model.EcosystemNpm, e.Resolved) {
 			out = append(out, c.finding(IDUntrustedRegistry, locus, key,
 				fmt.Sprintf("%s resolves from an untrusted host", name),
 				fmt.Sprintf("The lockfile installs %s from %s. The host is not a trusted registry.", name, e.Resolved)))
@@ -220,7 +272,7 @@ func parseURL(raw string) (*url.URL, error) {
 	return url.Parse(raw)
 }
 
-func (c *Control) trustedSource(resolved string) bool {
+func (c *Control) trustedSource(eco model.Ecosystem, resolved string) bool {
 	u, err := parseURL(resolved)
 	if err != nil {
 		return false
@@ -228,7 +280,7 @@ func (c *Control) trustedSource(resolved string) bool {
 	if u.Scheme == "file" || u.Scheme == "" {
 		return true
 	}
-	for _, t := range c.trusted {
+	for _, t := range c.trustedOf(eco) {
 		if t.Scheme != "" && t.Scheme != u.Scheme {
 			continue
 		}
@@ -264,7 +316,7 @@ func (c *Control) followsConvention(resolved, name string) bool {
 	}
 	path := strings.TrimPrefix(u.Path, "/")
 	accept := []string{name}
-	for _, t := range c.trusted {
+	for _, t := range c.trustedOf(model.EcosystemNpm) {
 		if base := strings.Trim(t.Path, "/"); base != "" {
 			accept = append(accept, base+"/"+name)
 		}
@@ -278,6 +330,15 @@ func (c *Control) followsConvention(resolved, name string) bool {
 		}
 	}
 	return false
+}
+
+// trustedOf returns the trusted registries of an ecosystem: its public
+// registries and the user registries.
+func (c *Control) trustedOf(eco model.Ecosystem) []*url.URL {
+	if t, ok := c.trusted[eco]; ok {
+		return t
+	}
+	return c.user
 }
 
 // OptionsSchema returns the JSON Schema of the options.

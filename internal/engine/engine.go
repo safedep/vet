@@ -51,6 +51,10 @@ type Enricher struct {
 	// for the enricher.
 	TTL    time.Duration
 	Plugin plugin.Enricher
+	// Prior also runs the enricher on the previous version of each upgraded
+	// or downgraded package, in pull request mode. The result becomes
+	// Package.PreviousInsight.
+	Prior bool
 }
 
 // Control is one control of a scan.

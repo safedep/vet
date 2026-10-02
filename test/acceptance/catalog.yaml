@@ -182,6 +182,24 @@
   tier: P1
   guarantee: "In pull request mode, a change that adds a .vscode/tasks.json task with runOn: folderOpen gives a high editor-task-command finding. An agent instruction file that the change does not touch gives none."
   labels: [agent-config, pr-mode]
+- id: controls/lockfile/integrity-changed
+  title: "lockfile: integrity change with no version change"
+  category: controls
+  tier: P1
+  guarantee: "In pull request mode, a lockfile entry that keeps its version and changes its integrity hash gives integrity-changed, and the lockfile change with no package.json change gives lockfile-only-change."
+  labels: [lockfile, pr-mode]
+- id: controls/lockfile/yarn-untrusted
+  title: "lockfile: yarn entry from an untrusted host"
+  category: controls
+  tier: P1
+  guarantee: "A yarn.lock entry that resolves from a host that is not a trusted registry gives untrusted-registry. An entry on the npm registry gives none."
+  labels: [lockfile]
+- id: controls/hygiene/non-registry
+  title: "hygiene: dependency that is not on a registry"
+  category: controls
+  tier: P2
+  guarantee: "A package.json dependency on git, a file or any version gives non-registry-dependency."
+  labels: [hygiene]
 - id: controls/workflow/dangerous-trigger
   title: "workflow: dangerous trigger"
   category: controls

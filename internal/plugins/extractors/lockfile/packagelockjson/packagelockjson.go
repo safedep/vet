@@ -44,6 +44,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/commitextractor"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/graph"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/linefinder"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/lockmeta"
 	packagelockjson "github.com/safedep/vet/v2/internal/plugins/extractors/internal/npmlock"
 )
 
@@ -65,6 +66,9 @@ type packageDetails struct {
 	Line      int
 	Parents   map[string]bool
 	Direct    bool
+	// vet: Resolved and Integrity are the URL and the hash of the entry.
+	Resolved  string
+	Integrity string
 }
 
 type npmPackageDetailsMap map[string]packageDetails
@@ -112,6 +116,12 @@ func (pdm npmPackageDetailsMap) add(key string, details packageDetails) {
 			details.Source = existing.Source
 		}
 		details.Direct = details.Direct || existing.Direct
+		if existing.Integrity != "" && (details.Integrity == "" || existing.Integrity < details.Integrity) {
+			details.Integrity = existing.Integrity
+		}
+		if existing.Resolved != "" && (details.Resolved == "" || existing.Resolved < details.Resolved) {
+			details.Resolved = existing.Resolved
+		}
 		// vet: keep the first line of a package that the lockfile holds
 		// more than once, so the output does not depend on map order.
 		if existing.Line > 0 && (details.Line == 0 || existing.Line < details.Line) {
@@ -192,6 +202,8 @@ func parseNpmLockDependencies(dependencies map[string]packagelockjson.Dependency
 			DepGroups: detail.DepGroups(),
 			Source:    source,
 			Line:      line,
+			Resolved:  detail.Resolved,
+			Integrity: detail.Integrity,
 		})
 	}
 
@@ -322,6 +334,8 @@ func parseNpmLockPackages(packages map[string]packagelockjson.Package, finder *l
 			DepGroups: detail.DepGroups(),
 			Source:    source,
 			Line:      line,
+			Resolved:  detail.Resolved,
+			Integrity: detail.Integrity,
 		})
 	}
 
@@ -508,10 +522,10 @@ func (e Extractor) extractPkgLock(_ context.Context, input *filesystem.ScanInput
 			},
 			Version:  pkg.Version,
 			PURLType: purlType,
-			Metadata: &metadata.JavascriptPackageMetadata{
+			Metadata: &lockmeta.Metadata{Protoable: &metadata.JavascriptPackageMetadata{
 				DepGroupVals: pkg.DepGroups,
 				Source:       pkg.Source,
-			},
+			}, ResolvedURL: pkg.Resolved, IntegrityHash: pkg.Integrity},
 			Location: extractor.LocationFromPathAndLine(input.Path, pkg.Line),
 		}
 		if pkg.Direct {

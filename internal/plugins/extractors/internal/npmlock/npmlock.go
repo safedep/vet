@@ -27,8 +27,9 @@ type LockFile struct {
 // Dependency is the representation of an installed dependency in lockfileVersion 1
 type Dependency struct {
 	// For an aliased package, Version is like "npm:[name]@[version]"
-	Version  string `json:"version"`
-	Resolved string `json:"resolved"`
+	Version   string `json:"version"`
+	Resolved  string `json:"resolved"`
+	Integrity string `json:"integrity,omitempty"`
 
 	Dev      bool `json:"dev,omitempty"`
 	Optional bool `json:"optional,omitempty"`
@@ -56,10 +57,11 @@ func (dep Dependency) DepGroups() []string {
 // Package is the representation of an installed dependency in lockfileVersion 2+
 type Package struct {
 	// For an aliased package, Name is the real package name
-	Name     string `json:"name,omitempty"`
-	Version  string `json:"version"`
-	Resolved string `json:"resolved"`
-	Link     bool   `json:"link,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Version   string `json:"version"`
+	Resolved  string `json:"resolved"`
+	Integrity string `json:"integrity,omitempty"`
+	Link      bool   `json:"link,omitempty"`
 
 	Dev         bool `json:"dev,omitempty"`
 	DevOptional bool `json:"devOptional,omitempty"`

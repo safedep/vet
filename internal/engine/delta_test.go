@@ -164,3 +164,54 @@ func TestSameBlobIgnoresCRLF(t *testing.T) {
 		})
 	}
 }
+
+func TestPullRequestIntegrityAndPrior(t *testing.T) {
+	lockOf := func(leftPad, msHash string) string {
+		return `{"name": "app", "lockfileVersion": 3, "packages": {
+  "": {"name": "app", "dependencies": {"left-pad": "^1.2.0", "ms": "2.1.3"}},
+  "node_modules/left-pad": {"version": "` + leftPad + `", "integrity": "sha512-lp` + leftPad + `"},
+  "node_modules/ms": {"version": "2.1.3", "integrity": "` + msHash + `"}
+}}`
+	}
+	dir := t.TempDir()
+	repo, err := gogit.PlainInit(dir, false)
+	require.NoError(t, err)
+	write(t, dir, "package.json", `{"name": "app", "dependencies": {"left-pad": "^1.2.0", "ms": "2.1.3"}}`)
+	write(t, dir, "package-lock.json", lockOf("1.2.0", "sha512-old"))
+	wt, err := repo.Worktree()
+	require.NoError(t, err)
+	require.NoError(t, wt.AddGlob("."))
+	_, err = wt.Commit("base", &gogit.CommitOptions{Author: &object.Signature{Name: "t", Email: "t@example.com", When: time.Now()}})
+	require.NoError(t, err)
+	write(t, dir, "package-lock.json", lockOf("1.3.0", "sha512-new"))
+
+	f := newFixture(t)
+	en := &fakeEnricher{}
+	o := f.options(t, dir, en)
+	o.Enrichers[0].Prior = true
+	o.BaseRef = "HEAD"
+	res := runScan(t, o)
+	ctx := context.Background()
+
+	var lockID string
+	for m, err := range res.Scan.Manifests(ctx) {
+		require.NoError(t, err)
+		if m.Path == "package-lock.json" {
+			lockID = m.ID
+			assert.True(t, m.LockfileOnly, "package.json did not change")
+		}
+	}
+	require.NotEmpty(t, lockID)
+	m, err := res.Scan.Manifest(ctx, lockID)
+	require.NoError(t, err)
+	byName := map[string]*model.Package{}
+	for _, p := range m.Packages {
+		byName[p.ID.Name] = p
+	}
+	assert.Equal(t, model.ChangeModified, byName["ms"].Change, "the same version with another hash")
+	assert.Equal(t, "sha512-new", byName["ms"].Integrity)
+	require.Equal(t, model.ChangeUpgraded, byName["left-pad"].Change)
+	require.NotNil(t, byName["left-pad"].PreviousInsight, "the previous version gets its data")
+	assert.Equal(t, []string{"MIT"}, byName["left-pad"].PreviousInsight.Licenses)
+	assert.Equal(t, 3, en.seen, "left-pad, ms and the previous left-pad")
+}

@@ -42,6 +42,7 @@ import (
 
 	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/commitextractor"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/graph"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/lockmeta"
 )
 
 const (
@@ -50,10 +51,12 @@ const (
 )
 
 type pnpmLockPackageResolution struct {
-	Tarball string `yaml:"tarball"`
-	Commit  string `yaml:"commit"`
-	Repo    string `yaml:"repo"`
-	Type    string `yaml:"type"`
+	// vet: Integrity is the hash of the entry.
+	Integrity string `yaml:"integrity"`
+	Tarball   string `yaml:"tarball"`
+	Commit    string `yaml:"commit"`
+	Repo      string `yaml:"repo"`
+	Type      string `yaml:"type"`
 }
 
 type pnpmLockPackage struct {
@@ -296,8 +299,10 @@ func parsePnpmLock(lockfile pnpmLockfile, packageLineMap map[string]int, path st
 				Commit: commit,
 				Repo:   repo,
 			},
-			Metadata: &osv.DepGroupMetadata{
-				DepGroupVals: depGroups,
+			Metadata: &lockmeta.Metadata{
+				Protoable:     &osv.DepGroupMetadata{DepGroupVals: depGroups},
+				ResolvedURL:   pkg.Resolution.Tarball,
+				IntegrityHash: pkg.Resolution.Integrity,
 			},
 			Location: extractor.LocationFromPathAndLine(path, lineNum),
 		})

@@ -242,6 +242,15 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 			diff(m, d.base.manifests[m.ID], !same)
 			d.seen[m.ID] = true
 		}
+		if !same && inBase {
+			only, err := lockfileOnly(fsys, rel, d.base)
+			if err != nil {
+				return err
+			}
+			for _, m := range ms {
+				m.LockfileOnly = only && m.Kind == model.ManifestKindLockfile
+			}
+		}
 	}
 	return scan.CommitArtifact(ctx, state.ArtifactRecord{
 		Key: key, Kind: string(a.Kind), Path: rel, Size: info.Size(), MTime: info.ModTime(),

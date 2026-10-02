@@ -96,8 +96,16 @@ prints them.
 | `suspicious-package` | malware | high | A package that the analysis marks suspicious |
 | `vulnerability` | vulnerability | from the advisory | A known vulnerability |
 | `dependency-cooldown` | cooldown | high | A version that the registry published in the cooldown window (5 days) |
-| `untrusted-registry` | lockfile | high | A lockfile entry from an untrusted registry |
+| `untrusted-registry` | lockfile | high | A lockfile entry (npm, yarn, pnpm, bun, uv, Cargo) from an untrusted registry |
 | `registry-path-mismatch` | lockfile | high | A lockfile entry with the URL of another package |
+| `integrity-changed` | lockfile | high | In pull request mode, a lockfile entry whose hash changes with no version change |
+| `lockfile-only-change` | lockfile | high | In pull request mode, a lockfile change with no change to the manifest file next to it |
+| `install-scripts-added` | hygiene | high | In pull request mode, a new or upgraded npm package that runs install scripts |
+| `provenance-lost` | hygiene | medium | An upgrade to a version with no SLSA provenance, when the previous version had one |
+| `deprecated-package` | hygiene | medium | A version that the registry marks deprecated |
+| `license-change` | license | medium | An upgrade that changes the license |
+| `non-registry-dependency` | hygiene | medium | A dependency on git, a URL, a file or any version |
+| `scorecard-low` | hygiene | info | A package whose repository has an OpenSSF Scorecard score under 3 |
 | `dangerous-trigger` | workflow | high | A `pull_request_target` or `workflow_run` workflow that checks out untrusted code |
 | `template-injection` | workflow | high | An untrusted expression inside a `run:` script |
 | `unpinned-action` | workflow | medium | A third-party action that a tag or a branch selects |

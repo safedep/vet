@@ -1,9 +1,9 @@
 # A suppressed finding stays in the report with its suppression, and the
-# gate ignores it.
+# gate ignores it. The fixture left-pad has a vulnerability and is deprecated.
 cd proj
 exec vet scan . --mode plain -o json --fail-on high --policy $WORK/policy.yml
 stdout '"suppression":\{"reason":"Reviewed."'
-stdout '"suppressed":1'
+stdout '"suppressed":2'
 stderr 'Gate passed'
 
 -- policy.yml --

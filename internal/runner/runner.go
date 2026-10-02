@@ -26,6 +26,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/controls"
 	"github.com/safedep/vet/v2/internal/plugins/controls/cooldown"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers"
+	"github.com/safedep/vet/v2/internal/plugins/enrichers/insights"
 	"github.com/safedep/vet/v2/internal/plugins/extractors"
 	"github.com/safedep/vet/v2/internal/plugins/policysources/file"
 	"github.com/safedep/vet/v2/internal/plugins/sinks"
@@ -346,7 +347,7 @@ func withState(ctx context.Context, dirs *state.Dirs, useCache bool, fn func(*st
 func enricherSpecs(set *enrichers.Set) []engine.Enricher {
 	out := make([]engine.Enricher, 0, len(set.Specs))
 	for _, s := range set.Specs {
-		out = append(out, engine.Enricher{Name: s.Name, Version: s.Version, TTL: s.TTL, Plugin: s.Plugin})
+		out = append(out, engine.Enricher{Name: s.Name, Version: s.Version, TTL: s.TTL, Plugin: s.Plugin, Prior: s.Name == insights.Name})
 	}
 	return out
 }

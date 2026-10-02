@@ -105,6 +105,12 @@ var scanMigrations = []string{
 		component TEXT NOT NULL,
 		data      BLOB NOT NULL
 	)`,
+	// The Insights data of the previous version of each upgraded or
+	// downgraded package, in pull request mode.
+	`CREATE TABLE vet_scan_prior (
+		purl    TEXT PRIMARY KEY,
+		insight BLOB NOT NULL
+	)`,
 }
 
 const (
@@ -355,7 +361,7 @@ func addManifestTx(ctx context.Context, tx *sql.Tx, artifactKey string, m *model
 			return err
 		}
 		bare := *p
-		bare.Insight, bare.Malware, bare.Usage = nil, nil, nil
+		bare.Insight, bare.PreviousInsight, bare.Malware, bare.Usage = nil, nil, nil, nil
 		pd, err := json.Marshal(packageData{Package: bare})
 		if err != nil {
 			return err

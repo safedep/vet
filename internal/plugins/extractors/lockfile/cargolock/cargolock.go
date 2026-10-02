@@ -36,6 +36,7 @@ import (
 	"github.com/google/osv-scalibr/purl"
 
 	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/graph"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/lockmeta"
 )
 
 const (
@@ -47,6 +48,7 @@ type cargoLockPackage struct {
 	Name         string   `toml:"name"`
 	Version      string   `toml:"version"`
 	Source       string   `toml:"source"`
+	Checksum     string   `toml:"checksum"`
 	Dependencies []string `toml:"dependencies"`
 }
 
@@ -111,6 +113,7 @@ func (e Extractor) Extract(_ context.Context, input *filesystem.ScanInput) (inve
 			Version:  lockPackage.Version,
 			PURLType: purl.TypeCargo,
 			Location: loc,
+			Metadata: &lockmeta.Metadata{ResolvedURL: lockPackage.Source, IntegrityHash: lockPackage.Checksum},
 		})
 	}
 
