@@ -31,7 +31,7 @@ const Name = "rust/cargotoml"
 
 var lockfiles = []string{"Cargo.lock"}
 
-var versionRe = regexp.MustCompile(`^[0-9]+(?:\.[0-9]+){0,2}(?:-[0-9A-Za-z.-]+)?`)
+var exactRe = regexp.MustCompile(`^=\s*([0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?)$`)
 
 // sections are the dependency tables of a manifest and their groups.
 var sections = map[string][]string{
@@ -61,10 +61,12 @@ func (Extractor) FileRequired(api filesystem.FileAPI) bool {
 	return path.Base(p) == "Cargo.toml" && !slices.Contains(strings.Split(path.Dir(p), "/"), "target")
 }
 
-// Extract returns the registry dependencies with the lowest version that
-// each requirement allows. It returns nothing when a Cargo.lock is next to
-// the file or in a parent directory. It skips the crate itself, path, git
-// and workspace dependencies, and a requirement with no version.
+// Extract returns the registry dependencies. A dependency has a version
+// only when its requirement pins one with "=". Cargo reads "1.2.3" as
+// "^1.2.3", and the lowest version of the range is often years older than
+// the version that a build gets. It returns nothing when a Cargo.lock is
+// next to the file or in a parent directory. It skips the crate itself and
+// path, git and workspace dependencies.
 func (Extractor) Extract(_ context.Context, in *filesystem.ScanInput) (inventory.Inventory, error) {
 	if locked, err := manifestmode.Locked(in.FS, path.Dir(in.Path), lockfiles); err != nil || locked {
 		return inventory.Inventory{}, err
@@ -119,8 +121,7 @@ func (Extractor) Extract(_ context.Context, in *filesystem.ScanInput) (inventory
 func dependency(key string, v any) (string, string, bool) {
 	switch d := v.(type) {
 	case string:
-		version, ok := Floor(d)
-		return key, version, ok
+		return key, Pinned(d), true
 	case map[string]any:
 		for _, local := range []string{"path", "git", "workspace"} {
 			if _, ok := d[local]; ok {
@@ -132,31 +133,18 @@ func dependency(key string, v any) (string, string, bool) {
 			name = renamed
 		}
 		req, _ := d["version"].(string)
-		version, ok := Floor(req)
-		return name, version, ok
+		return name, Pinned(req), true
 	}
 	return "", "", false
 }
 
-// Floor returns the lowest version that a Cargo requirement allows, for
-// example "1.2.0" for "^1.2" or "1.2". It returns false for "*" and for a
-// requirement with no version.
-func Floor(req string) (string, bool) {
-	first, _, _ := strings.Cut(req, ",")
-	first = strings.TrimLeft(strings.TrimSpace(first), "^~=>< ")
-	first = strings.TrimSuffix(strings.TrimSuffix(first, ".*"), ".*")
-	v := versionRe.FindString(first)
-	if v == "" {
-		return "", false
+// Pinned returns the version of a requirement that pins one with "=", for
+// example "1.2.3" for "=1.2.3", or "".
+func Pinned(req string) string {
+	if m := exactRe.FindStringSubmatch(strings.TrimSpace(req)); m != nil {
+		return m[1]
 	}
-	core, pre, _ := strings.Cut(v, "-")
-	for strings.Count(core, ".") < 2 {
-		core += ".0"
-	}
-	if pre != "" {
-		return core + "-" + pre, true
-	}
-	return core, true
+	return ""
 }
 
 var _ filesystem.Extractor = Extractor{}

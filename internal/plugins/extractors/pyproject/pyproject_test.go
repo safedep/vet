@@ -16,12 +16,13 @@ func TestRequirement(t *testing.T) {
 		in, name, version string
 		ok                bool
 	}{
-		{"requests[socks]>=2.31,<3", "requests", "2.31", true},
+		{"requests[socks]>=2.31,<3", "requests", "", true},
 		{"click==8.1.7 ; python_version >= '3.9'", "click", "8.1.7", true},
-		{"attrs~=23.1", "attrs", "23.1", true},
+		{"attrs~=23.1", "attrs", "", true},
+		{"six===1.16.0", "six", "1.16.0", true},
 		{"django<5", "django", "", true},
 		{"rich", "rich", "", true},
-		{"numpy (>=1.26)", "numpy", "1.26", true},
+		{"numpy (==1.26.4)", "numpy", "1.26.4", true},
 		{"pkg==1.2.*", "pkg", "", true},
 		{"mylib @ git+https://github.com/example/mylib", "", "", false},
 	}
@@ -40,11 +41,11 @@ func TestExtract(t *testing.T) {
 		want map[string]bool
 	}{
 		{"pep621", map[string]bool{
-			"pypi/requests@2.31": false, "pypi/click@8.1.7": false, "pypi/rich": false, "pypi/attrs@23.1": false,
-			"pypi/django": false, "pypi/httpx@0.27": false, "pypi/pytest@8.0": true, "pypi/ruff@0.6.9": true,
+			"pypi/requests": false, "pypi/click@8.1.7": false, "pypi/rich": false, "pypi/attrs": false,
+			"pypi/django": false, "pypi/httpx": false, "pypi/pytest": true, "pypi/ruff@0.6.9": true,
 		}},
 		{"poetry", map[string]bool{
-			"pypi/fastapi@0.110.0": false, "pypi/uvicorn@0.29": false, "pypi/anything": false, "pypi/pytest@8.1": true,
+			"pypi/fastapi": false, "pypi/uvicorn": false, "pypi/anything": false, "pypi/pytest": true, "pypi/pydantic@2.7.1": false,
 		}},
 	}
 	for _, tc := range cases {

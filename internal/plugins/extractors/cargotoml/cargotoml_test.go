@@ -11,27 +11,20 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/extractors/scalibr"
 )
 
-func TestFloor(t *testing.T) {
-	cases := []struct {
-		in, want string
-		ok       bool
-	}{
-		{"1.0.195", "1.0.195", true},
-		{"1.10", "1.10.0", true},
-		{"1", "1.0.0", true},
-		{"^0.3", "0.3.0", true},
-		{"~3.8", "3.8.0", true},
-		{"=2.0.1", "2.0.1", true},
-		{">=0.52, <0.60", "0.52.0", true},
-		{"1.2.*", "1.2.0", true},
-		{"1.0.0-alpha.1", "1.0.0-alpha.1", true},
-		{"*", "", false},
-		{"", "", false},
+func TestPinned(t *testing.T) {
+	cases := map[string]string{
+		"=1.0.195":      "1.0.195",
+		"= 2.0.1":       "2.0.1",
+		"=1.0.0-beta.1": "1.0.0-beta.1",
+		"1.0.195":       "",
+		"^0.3":          "",
+		"~3.8":          "",
+		">=0.52, <0.60": "",
+		"*":             "",
+		"":              "",
 	}
-	for _, tc := range cases {
-		got, ok := Floor(tc.in)
-		assert.Equal(t, tc.ok, ok, tc.in)
-		assert.Equal(t, tc.want, got, tc.in)
+	for in, want := range cases {
+		assert.Equal(t, want, Pinned(in), in)
 	}
 }
 
@@ -45,12 +38,13 @@ func TestExtract(t *testing.T) {
 		got[p.ID.String()] = p.Dev
 	}
 	assert.Equal(t, map[string]bool{
-		"cargo/serde@1.0.195":      false,
-		"cargo/regex@1.10.0":       false,
-		"cargo/futures-util@0.3.0": false,
-		"cargo/tempfile@3.8.0":     true,
-		"cargo/windows-sys@0.52.0": false,
-	}, got, "no crate itself, no path, git, workspace or wildcard dependency")
+		"cargo/serde@1.0.195": false,
+		"cargo/regex":         false,
+		"cargo/anything":      false,
+		"cargo/futures-util":  false,
+		"cargo/tempfile":      true,
+		"cargo/windows-sys":   false,
+	}, got, "no crate itself, no path, git or workspace dependency, and a version only for a pin")
 
 	ms, errs = scalibr.ExtractFile(context.Background(), scalibr.File{Root: "testdata/workspace", Path: "crates/core/Cargo.toml"}, exs)
 	require.Empty(t, errs)
