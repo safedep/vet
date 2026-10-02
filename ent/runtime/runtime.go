@@ -2,7 +2,7 @@
 
 package runtime
 
-// The schema-stitching logic is generated in github.com/safedep/vet/ent/runtime.go
+// The schema-stitching logic is generated in github.com/safedep/vet/v2/ent/runtime.go
 
 const (
 	Version = "v0.14.6-0.20260218064135-ab0540611e15"           // Version of ent codegen.

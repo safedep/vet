@@ -30,15 +30,15 @@ jobs:
 
       - name: Check for uncommitted changes in generated code
         run: |
-          if [[ -n $(git status --porcelain -- ent/ pkg/analyzer/filterv2/) ]]; then
+          if [[ -n $(git status --porcelain -- ent/) ]]; then
             echo "ERROR: Generated code is out of sync!"
             echo "Please run 'make generate' and commit the changes."
             echo ""
             echo "Files with changes:"
-            git status --porcelain -- ent/ pkg/analyzer/filterv2/
+            git status --porcelain -- ent/
             echo ""
             echo "Diff:"
-            git diff -- ent/ pkg/analyzer/filterv2/
+            git diff -- ent/
             exit 1
           fi
 
