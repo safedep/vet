@@ -21,6 +21,10 @@ const (
 // outcome and not an error, so vet prints no error for it.
 var ErrGateFailed = errors.New("the gate failed")
 
+// ErrCheckFailed means that a check of "vet doctor" failed. The command
+// already printed the checks, so vet prints no error for it.
+var ErrCheckFailed = errors.New("a check failed")
+
 // ErrInterrupted means that a signal stopped the command after vet saved
 // the progress.
 var ErrInterrupted = errors.New("a signal stopped vet")
@@ -46,7 +50,7 @@ func ExitCode(err error) int {
 	switch {
 	case err == nil:
 		return ExitOK
-	case errors.Is(err, ErrGateFailed):
+	case errors.Is(err, ErrGateFailed), errors.Is(err, ErrCheckFailed):
 		return ExitGateFailed
 	case errors.Is(err, ErrInterrupted), errors.Is(err, context.Canceled):
 		return ExitInterrupted

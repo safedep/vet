@@ -138,3 +138,17 @@ func TestPubHasNoEnrichment(t *testing.T) {
 	assert.Nil(t, p.Insight)
 	assert.Zero(t, s.Calls(stub.Insights))
 }
+
+func TestProbe(t *testing.T) {
+	s := startStub(t)
+	set, err := Build(Options{CommunityURL: s.URL(), APIURL: s.URL(), Workers: 1, TTL: time.Hour})
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, set.Close()) })
+	for name, err := range set.Probe(context.Background()) {
+		assert.NoError(t, err, name)
+	}
+	s.Fail(stub.Insights, codes.Unavailable)
+	got := set.Probe(context.Background())
+	assert.ErrorIs(t, got[insights.Name], plugin.ErrUnavailable)
+	assert.NoError(t, got[malysis.Name])
+}

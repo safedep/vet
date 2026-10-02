@@ -239,6 +239,7 @@ the order of the command tree.
 
 | Command | Description |
 | --- | --- |
+| [`vet doctor`](docs/cmd/doctor.md) | Check the state, the config, the credentials and the endpoints. |
 | [`vet scan`](docs/cmd/scan.md) | Scan a project, a repository, an image, an SBOM or a package. |
 | [`vet report show`](docs/cmd/report-show.md) | Render a saved report. |
 | [`vet report list`](docs/cmd/report-list.md) | List the saved scans of the current directory. |

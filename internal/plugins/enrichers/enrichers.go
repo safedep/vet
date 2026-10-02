@@ -4,6 +4,7 @@
 package enrichers
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/insights"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/internal/client"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/malysis"
+	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 )
 
@@ -76,4 +78,18 @@ func Build(o Options) (*Set, error) {
 		},
 		conns: []*grpc.ClientConn{conn},
 	}, nil
+}
+
+// probePackage is a package that every SafeDep service knows.
+var probePackage = model.PackageID{Ecosystem: model.EcosystemNpm, Name: "lodash", Version: "4.17.21"}
+
+// Probe asks each enricher about one package, to check that its service
+// answers. A package that the service does not know is an answer too. It
+// returns the error of each enricher by name, or nil.
+func (s *Set) Probe(ctx context.Context) map[string]error {
+	out := map[string]error{}
+	for _, sp := range s.Specs {
+		out[sp.Name] = sp.Plugin.Enrich(ctx, []*model.Package{{ID: probePackage}})
+	}
+	return out
 }

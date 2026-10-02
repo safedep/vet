@@ -296,3 +296,9 @@
   tier: P2
   guarantee: "After 11 completed scans of one target, the oldest is gone."
   labels: [state]
+- id: health/doctor/healthy
+  title: "vet doctor passes on a fresh sandbox"
+  category: health
+  tier: P2
+  guarantee: "vet doctor exits 0 on a fresh sandbox, and -o json lists each check with an id."
+  labels: [doctor]
