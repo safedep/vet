@@ -59,6 +59,12 @@ type uvLockPackageSource struct {
 
 // resolved returns the URL of the source: a registry, a URL, a git URL or
 // a file path.
+// local reports a package that uv builds from the project tree: a
+// workspace member, a directory, an editable install or a local file.
+func (s uvLockPackageSource) local() bool {
+	return s.Virtual != "" || s.Path != "" || s.Directory != "" || s.Editable != ""
+}
+
 func (s uvLockPackageSource) resolved() string {
 	switch {
 	case s.Registry != "":
@@ -193,6 +199,7 @@ func (e Extractor) Extract(ctx context.Context, input *filesystem.ScanInput) (in
 		pkgDetails.Metadata = &lockmeta.Metadata{
 			Protoable:   &osv.DepGroupMetadata{DepGroupVals: depGroupVals},
 			ResolvedURL: lockPackage.Source.resolved(),
+			LocalSource: lockPackage.Source.local(),
 		}
 		packages = append(packages, pkgDetails)
 		keys = append(keys, lockPackage.Name+"@"+lockPackage.Version)

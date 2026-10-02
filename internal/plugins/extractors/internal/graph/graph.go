@@ -36,6 +36,14 @@ func (m *Metadata) Integrity() string {
 	return ""
 }
 
+// Local reports a local entry in the wrapped metadata.
+func (m *Metadata) Local() bool {
+	if l, ok := m.Protoable.(interface{ Local() bool }); ok {
+		return l.Local()
+	}
+	return false
+}
+
 // DepGroups returns the dependency groups of the wrapped metadata.
 func (m *Metadata) DepGroups() []string {
 	if dg, ok := m.Protoable.(osv.DepGroups); ok {

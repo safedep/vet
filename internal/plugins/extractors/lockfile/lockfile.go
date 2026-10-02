@@ -1,6 +1,6 @@
-// Package lockfile holds the graph-aware lockfile extractors. Each one is a
-// copy of a Scalibr extractor with a patch that sets the parent ids of
-// each package. Each copy keeps the Scalibr name, so it replaces the
+// Package lockfile holds the vet lockfile extractors. Each one is a copy of
+// a Scalibr extractor with a patch that sets the parent ids of each
+// package, or that marks the local packages. Each copy keeps the Scalibr name, so it replaces the
 // upstream extractor in the extractor set.
 package lockfile
 
@@ -10,6 +10,7 @@ import (
 
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/bunlock"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/cargolock"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/gemfilelock"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/packagelockjson"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/pnpmlock"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/uvlock"
@@ -27,6 +28,7 @@ func Extractors() ([]filesystem.Extractor, error) {
 		pnpmlock.New,
 		yarnlock.New,
 		bunlock.New,
+		gemfilelock.New,
 	} {
 		e, err := newFn(cfg)
 		if err != nil {

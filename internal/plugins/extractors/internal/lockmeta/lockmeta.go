@@ -14,6 +14,9 @@ type Metadata struct {
 	metadata.Protoable
 	ResolvedURL   string
 	IntegrityHash string
+	// LocalSource marks an entry that the project builds from its own
+	// tree: a workspace member, a path or an editable install.
+	LocalSource bool
 }
 
 // Resolved returns the URL that the entry resolves from.
@@ -21,6 +24,9 @@ func (m *Metadata) Resolved() string { return m.ResolvedURL }
 
 // Integrity returns the integrity hash of the entry.
 func (m *Metadata) Integrity() string { return m.IntegrityHash }
+
+// Local reports an entry that the project builds from its own tree.
+func (m *Metadata) Local() bool { return m.LocalSource }
 
 // DepGroups returns the dependency groups of the wrapped metadata.
 func (m *Metadata) DepGroups() []string {

@@ -113,7 +113,9 @@ func (e Extractor) Extract(_ context.Context, input *filesystem.ScanInput) (inve
 			Version:  lockPackage.Version,
 			PURLType: purl.TypeCargo,
 			Location: loc,
-			Metadata: &lockmeta.Metadata{ResolvedURL: lockPackage.Source, IntegrityHash: lockPackage.Checksum},
+			// A package with no source is a member of the workspace, or a path
+			// dependency.
+			Metadata: &lockmeta.Metadata{ResolvedURL: lockPackage.Source, IntegrityHash: lockPackage.Checksum, LocalSource: lockPackage.Source == ""},
 		})
 	}
 

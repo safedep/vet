@@ -191,7 +191,7 @@ func parseYarnPackageGroup(desc *packageDescription) *extractor.Package {
 			Commit: commit,
 			Repo:   repo,
 		},
-		Metadata: &lockmeta.Metadata{ResolvedURL: resolvedURL(resolution), IntegrityHash: yarnIntegrity(desc.props)},
+		Metadata: &lockmeta.Metadata{ResolvedURL: resolvedURL(resolution), IntegrityHash: yarnIntegrity(desc.props), LocalSource: localResolution(resolution) || localResolution(desc.header)},
 	}
 }
 
@@ -210,6 +210,18 @@ func resolvedURL(resolution string) string {
 		}
 	}
 	return ""
+}
+
+// localResolution reports an entry that resolves inside the project: a
+// workspace, a link, a portal or a file. yarn berry writes it in the
+// resolution, and yarn v1 in the entry header.
+func localResolution(resolution string) bool {
+	for _, proto := range []string{"@workspace:", "@link:", "@portal:", "@file:"} {
+		if strings.Contains(resolution, proto) {
+			return true
+		}
+	}
+	return false
 }
 
 func yarnIntegrity(props []string) string {

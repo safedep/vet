@@ -39,6 +39,7 @@ type subpath interface{ Subpath() string }
 type lockEntry interface {
 	Resolved() string
 	Integrity() string
+	Local() bool
 }
 
 // ToManifest converts the packages of one extractor run into a manifest.
@@ -154,7 +155,7 @@ func toPackage(sp *extractor.Package) (*model.Package, error) {
 		p.Dev = len(groups) > 0 && !slices.ContainsFunc(groups, isProdGroup)
 	}
 	if e, ok := sp.Metadata.(lockEntry); ok {
-		p.Resolved, p.Integrity = e.Resolved(), e.Integrity()
+		p.Resolved, p.Integrity, p.Local = e.Resolved(), e.Integrity(), e.Local()
 	}
 	if d, ok := sp.Metadata.(direct); ok {
 		p.Direct = d.IsDirect()
