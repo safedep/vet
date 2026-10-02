@@ -1,0 +1,31 @@
+{
+  "packages": [
+    "npm/ansi-styles@4.3.0",
+    "npm/chalk@4.1.2",
+    "npm/color-convert@2.0.1",
+    "npm/color-name@1.1.4",
+    "npm/has-flag@2.0.0",
+    "npm/has-flag@3.0.0",
+    "npm/has-flag@4.0.0",
+    "npm/supports-color@5.5.0",
+    "npm/supports-color@7.2.0"
+  ],
+  "direct": [
+    "npm/chalk@4.1.2",
+    "npm/has-flag@2.0.0",
+    "npm/supports-color@5.5.0"
+  ],
+  "roots": [
+    "npm/chalk@4.1.2",
+    "npm/has-flag@2.0.0",
+    "npm/supports-color@5.5.0"
+  ],
+  "edges": [
+    "npm/ansi-styles@4.3.0 -> npm/color-convert@2.0.1",
+    "npm/chalk@4.1.2 -> npm/ansi-styles@4.3.0",
+    "npm/chalk@4.1.2 -> npm/supports-color@7.2.0",
+    "npm/color-convert@2.0.1 -> npm/color-name@1.1.4",
+    "npm/supports-color@5.5.0 -> npm/has-flag@3.0.0",
+    "npm/supports-color@7.2.0 -> npm/has-flag@4.0.0"
+  ]
+}

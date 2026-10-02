@@ -70,6 +70,8 @@ func TestGraphGolden(t *testing.T) {
 		{"yarn-v1-graph", "testdata/fixtures", "graph.v1.lock", "yarn.lock"},
 		{"yarn-v2-graph", "testdata/fixtures", "graph.v2.lock", "yarn.lock"},
 		{"yarn-v2-root", "yarnlock/testdata", "exclude-root.v2.lock", "yarn.lock"},
+		{"bun-nested", "bunlock/testdata", "nested-dependencies.json5", "bun.lock"},
+		{"bun-scoped", "bunlock/testdata", "scoped-packages-mixed.json5", "bun.lock"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

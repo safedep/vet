@@ -1,0 +1,14 @@
+{
+  "lockfileVersion": 0,
+  "workspaces": {
+    "": {
+      "name": "bun-lockfile",
+      "dependencies": {
+        "@typescript-eslint/types": "^5.0.0",
+      },
+    },
+  },
+  "packages": {
+    "@typescript-eslint/types": ["@typescript-eslint/types@5.62.0", "", {}, "sha512-87NVngcbVXUahrRTqIK27gD2t5Cu1yuCXxbLcFtCzZGlfyVWWh8mLHkoxzjsB6DDNnvdL+fW8MiwPEJyGJQDgQ=="],
+  }
+}

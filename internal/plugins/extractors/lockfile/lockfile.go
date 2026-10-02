@@ -8,6 +8,7 @@ import (
 	cpb "github.com/google/osv-scalibr/binary/proto/config_go_proto"
 	"github.com/google/osv-scalibr/extractor/filesystem"
 
+	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/bunlock"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/cargolock"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/packagelockjson"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile/pnpmlock"
@@ -25,6 +26,7 @@ func Extractors() ([]filesystem.Extractor, error) {
 		cargolock.New,
 		pnpmlock.New,
 		yarnlock.New,
+		bunlock.New,
 	} {
 		e, err := newFn(cfg)
 		if err != nil {

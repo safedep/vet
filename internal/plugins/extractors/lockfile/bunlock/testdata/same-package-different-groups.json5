@@ -1,0 +1,19 @@
+{
+  "lockfileVersion": 0,
+  "workspaces": {
+    "": {
+      "name": "bun-lockfile",
+      "dependencies": {
+        "supports-color": "^5.0.0",
+      },
+      "devDependencies": {
+        "has-flag": "^3.0.0",
+      },
+    },
+  },
+  "packages": {
+    "has-flag": ["has-flag@3.0.0", "", {}, "sha512-sKJf1+ceQBr4SMkvQnBDNDtf4TXpVhVGateu0t918bl30FnbE2m4vNLX+VWe/dpjlb+HugGYzW7uQXH98HPEYw=="],
+
+    "supports-color": ["supports-color@5.5.0", "", { "dependencies": { "has-flag": "^3.0.0" } }, "sha512-QjVjwdXIt408MIiAqCX4oUKsgU2EqAGzs2Ppkm4aQYbjm+ZEWEcW4SfFNTr4uMNZma0ey4f5lgLrkB0aX0QMow=="],
+  }
+}
