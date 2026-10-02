@@ -42,6 +42,14 @@ type Artifact struct {
 	Key string
 	// PURL is set for a PURL artifact.
 	PURL string
+	// Include limits the files that the engine reads to these paths in
+	// Root, for example the one file of an SBOM artifact. Empty means every
+	// file.
+	Include []string
+	// Close frees what the artifact holds, such as a clone or an image. It
+	// is nil when there is nothing to free. The engine calls it after the
+	// extraction.
+	Close func() error
 }
 
 // Source enumerates the artifacts to scan: a directory, a repository, an
