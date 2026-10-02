@@ -58,6 +58,10 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 	if err != nil {
 		return nil, app.UsageError(fmt.Sprintf("--base-ref %s: %v", r.o.BaseRef, err), "Fetch the base branch first, for example git fetch origin main.")
 	}
+	cache := r.baseCache(a, *hash, exs)
+	if b, ok := cache.load(); ok {
+		return b, nil
+	}
 	commit, err := repo.CommitObject(*hash)
 	if err != nil {
 		return nil, err
@@ -106,6 +110,10 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 			m.Root = nil
 			b.manifests[m.ID] = m
 		}
+	}
+	if err := cache.save(b); err != nil {
+		// A base that vet cannot keep costs one more extraction next time.
+		r.diags.add(report.DiagnosticWarning, CodeExtractFailed, "delta", "keep the base extraction: "+err.Error())
 	}
 	return b, nil
 }

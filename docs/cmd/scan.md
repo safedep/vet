@@ -34,7 +34,9 @@ exits 1, when an unsuppressed finding is at the severity or above, or matches a 
 policy. The `policy.fail_on` and `policy.file` config keys set the same gate for every run.
 
 `--base-ref` compares the target with a git ref, for example `origin/main`. vet then checks only the
-packages and the workflows that the change adds or modifies, and reports only their findings.
+packages and the workflows that the change adds or modifies, and reports only their findings. vet
+keeps the extraction of the base commit in the state directory. The next scan with the same base
+commit reads it and does not extract the base again.
 
 stdout gets the report in the `-o` format. With no `-o`, the format follows the mode: `table` in a
 terminal, `plain` in CI and `json` under an agent. stderr gets the progress, the diagnostics and the

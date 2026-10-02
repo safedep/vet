@@ -215,3 +215,34 @@ func TestPullRequestIntegrityAndPrior(t *testing.T) {
 	assert.Equal(t, []string{"MIT"}, byName["left-pad"].PreviousInsight.Licenses)
 	assert.Equal(t, 3, en.seen, "left-pad, ms and the previous left-pad")
 }
+
+func changesOf(t *testing.T, res *Result) map[string]model.Change {
+	t.Helper()
+	out := map[string]model.Change{}
+	for p, err := range res.Scan.Packages(context.Background(), plugin.PackageQuery{}) {
+		require.NoError(t, err)
+		out[p.ID.String()] = p.Change
+	}
+	return out
+}
+
+func TestPullRequestModeReusesBase(t *testing.T) {
+	f := newFixture(t)
+	dir := gitProject(t)
+	o := f.options(t, dir, &fakeEnricher{})
+	o.BaseRef = "HEAD"
+	first := changesOf(t, runScan(t, o))
+
+	bases, err := filepath.Glob(filepath.Join(f.store.StateDir(), baseDir, "*.json"))
+	require.NoError(t, err)
+	require.Len(t, bases, 1)
+
+	second := changesOf(t, runScan(t, o))
+	assert.Equal(t, first, second, "the kept base gives the same changes")
+
+	require.NoError(t, os.WriteFile(bases[0], []byte(`{"manifests": [], "hashes": {}}`), 0o600))
+	third := changesOf(t, runScan(t, o))
+	for id, c := range third {
+		assert.Equal(t, model.ChangeAdded, c, "%s: vet reads the kept base and does not extract again", id)
+	}
+}
