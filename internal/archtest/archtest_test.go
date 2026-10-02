@@ -26,7 +26,6 @@ var legacyV1 = []string{
 	module + "/ent",
 	module + "/gen",
 	module + "/internal/analytics",
-	module + "/internal/auth",
 	module + "/internal/command",
 	module + "/internal/ui",
 	module + "/pkg",
