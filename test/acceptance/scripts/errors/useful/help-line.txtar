@@ -1,0 +1,12 @@
+# A usage error prints a usefulerror with a code and a help line, and exits 2.
+execexit 2 vet nosuchcommand
+stderr 'usage_invalid'
+stderr 'vet --help'
+! stdout .
+
+execexit 2 vet version --nosuchflag
+stderr 'usage_invalid'
+
+execexit 2 vet version -v -q
+stderr 'usage_invalid'
+stderr 'Use -v'

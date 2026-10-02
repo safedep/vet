@@ -45,6 +45,7 @@ require (
 	github.com/package-url/packageurl-go v0.1.4
 	github.com/pandatix/go-cvss v0.6.2
 	github.com/posthog/posthog-go v1.10.0
+	github.com/rogpeppe/go-internal v1.16.0
 	github.com/safedep/code v0.0.0-20260224174612-abe896956bc1
 	github.com/safedep/dry v0.0.0-20261002073351-d0ae33065533
 	github.com/sirupsen/logrus v1.9.4

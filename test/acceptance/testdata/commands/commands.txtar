@@ -1,0 +1,28 @@
+# execexit asserts the exact exit code.
+execexit 0 go version
+execexit 2 go nosuchcommand
+
+# capture keeps a value from stdout or a file.
+exec go env GOOS
+capture GOOSVAL '^(\w+)'
+capture WORD 'h(el)lo' data.txt
+exists $HOME
+
+# expandenv puts the environment into a file.
+env NAME=vet
+expandenv tmpl.txt
+cmp tmpl.txt want.txt
+
+# replace edits a file with Go escapes.
+replace data.txt 'hello' 'a\nb'
+cmp data.txt replaced.txt
+
+-- data.txt --
+hello
+-- tmpl.txt --
+name=$NAME el=$WORD
+-- want.txt --
+name=vet el=el
+-- replaced.txt --
+a
+b

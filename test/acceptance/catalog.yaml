@@ -1,0 +1,122 @@
+# Guarantee inventory of the vet acceptance suite. One row for each guarantee.
+# A script whose path id matches a row covers it. A row with no script is a gap.
+#
+# category is the first path segment of the id.
+# tier is P0 (an incident if it breaks), P1 (important) or P2 (tracked).
+# labels are free tags. A run can filter by category and by labels (see README.md).
+#
+# The rows follow docs/specs/.../vet-v2-acceptance-suite.md, section 4.
+
+# --- 4.1 Contracts that every command keeps ---
+- id: errors/exit-codes/contract
+  title: "exit codes are a contract"
+  category: errors
+  tier: P0
+  guarantee: "vet exits 0 on a pass, 1 on a failed gate, 2 on a usage or config error, 3 on a runtime error and 130 on a signal."
+  labels: [exit-codes]
+- id: policy/default/report-only
+  title: "a plain scan reports and exits 0"
+  category: policy
+  tier: P0
+  guarantee: "A plain vet scan of a fixture with a malicious package reports the finding, prints no gate line and exits 0."
+  labels: [gate]
+- id: policy/fail-on/severity
+  title: "--fail-on gates on severity"
+  category: policy
+  tier: P0
+  guarantee: "--fail-on high exits 1 when a high finding exists and 0 when only medium findings exist. policy.fail_on in the config file does the same."
+  labels: [gate]
+- id: output/streams/data-on-stdout
+  title: "data on stdout, messages on stderr"
+  category: output
+  tier: P0
+  guarantee: "Report data goes to stdout and messages go to stderr. vet scan > out leaves no progress line in out."
+  labels: [streams]
+- id: output/agent/auto-json
+  title: "agent mode writes JSON"
+  category: output
+  tier: P0
+  guarantee: "With CLAUDECODE=1 or AI_AGENT set, vet scan writes the report as JSON on stdout, with no ANSI codes and no banner."
+  labels: [agent]
+- id: output/agent/never-prompts
+  title: "agent mode never prompts"
+  category: output
+  tier: P0
+  guarantee: "In agent mode or with --no-input, a command that asks for confirmation exits 2 at once and names the flag."
+  labels: [agent, prompt]
+- id: output/escape/untrusted-text
+  title: "untrusted text prints escaped"
+  category: output
+  tier: P1
+  guarantee: "A package name with terminal escape codes in a lockfile prints escaped in plain mode."
+  labels: [escape]
+- id: errors/useful/help-line
+  title: "a usage error has a code and a help line"
+  category: errors
+  tier: P1
+  guarantee: "A usage error prints a usefulerror with a code and a help line on stderr, and vet exits 2."
+  labels: [exit-codes]
+
+# --- 4.2 The report contract ---
+- id: report/stream/jsonl-framing
+  title: "jsonl framing"
+  category: report
+  tier: P0
+  guarantee: "-o jsonl writes the header first and the trailer last, and record_count equals the number of records."
+  labels: [jsonl]
+- id: report/schema/json-validates
+  title: "json validates against the schema"
+  category: report
+  tier: P0
+  guarantee: "The -o json output validates against vet report schema get, and it carries schema_version."
+  labels: [schema]
+- id: report/files/many-formats-one-scan
+  title: "many report files from one scan"
+  category: report
+  tier: P1
+  guarantee: "--report json=... --report sarif=... --report cyclonedx=... writes three valid files from one scan."
+  labels: [files]
+- id: report/files/write-failure-exit-3
+  title: "a failed report write exits 3"
+  category: report
+  tier: P1
+  guarantee: "A report path that vet cannot write gives exit 3, not a log line."
+  labels: [files, exit-codes]
+- id: report/show/no-rescan
+  title: "report show renders from the scan file"
+  category: report
+  tier: P0
+  guarantee: "vet report show last --report sarif=x works with the stub server stopped. It renders from the scan file."
+  labels: [state]
+- id: report/diff/added-removed
+  title: "report diff"
+  category: report
+  tier: P1
+  guarantee: "vet report diff lists the findings added and removed between the last two scans."
+  labels: [state]
+- id: report/list/history
+  title: "report list"
+  category: report
+  tier: P1
+  guarantee: "vet report list shows each scan of the target, with its status, counts and gate. --all shows every target."
+  labels: [state]
+- id: report/finding/show-json
+  title: "report finding show"
+  category: report
+  tier: P1
+  guarantee: "vet report finding show ID -o json returns the whole finding, and an unknown id gives exit 2."
+  labels: [finding]
+- id: scan/determinism/same-report-twice
+  title: "the same scan gives the same report"
+  category: scan
+  tier: P1
+  guarantee: "Two scans of the same fixture give the same records, apart from ids and times."
+  labels: [determinism]
+
+# --- Other commands ---
+- id: version/print/json
+  title: "vet version prints its build"
+  category: version
+  tier: P2
+  guarantee: "vet version -o json prints the version, the Go version and the platform, and an unknown -o format exits 2."
+  labels: [version]
