@@ -1,0 +1,257 @@
+package report
+
+import (
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/model"
+)
+
+const (
+	// SchemaVersion is the version of the report schema, not of vet. A
+	// breaking change raises its major version and its URL.
+	SchemaVersion = "1.0.0"
+
+	// SchemaURL names the JSON Schema of this version.
+	SchemaURL = "https://schemas.safedep.io/vet/report/v1/report.schema.json"
+)
+
+// Header is the first item of a report.
+type Header struct {
+	SchemaVersion string   `json:"schema_version"`
+	Tool          Tool     `json:"tool"`
+	Scan          ScanInfo `json:"scan"`
+}
+
+// Tool names the program that wrote the report.
+type Tool struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+}
+
+// ScanKind names the kind of scan.
+type ScanKind string
+
+const (
+	ScanKindScan     ScanKind = "scan"
+	ScanKindEndpoint ScanKind = "endpoint"
+)
+
+// ScanMode names how a scan treats the target.
+type ScanMode string
+
+const (
+	ScanModeFull  ScanMode = "full"
+	ScanModeDelta ScanMode = "delta"
+)
+
+// ScanInfo describes the scan that the report belongs to.
+type ScanInfo struct {
+	ID        string    `json:"id"`
+	Kind      ScanKind  `json:"kind"`
+	Mode      ScanMode  `json:"mode"`
+	Target    string    `json:"target"`
+	TargetKey string    `json:"target_key"`
+	StartedAt time.Time `json:"started_at"`
+	Continued bool      `json:"continued,omitempty"`
+	BaseRef   string    `json:"base_ref,omitempty"`
+	GitRef    string    `json:"git_ref,omitempty"`
+	GitSHA    string    `json:"git_sha,omitempty"`
+}
+
+// Kind names the field that a record holds.
+type Kind string
+
+const (
+	KindManifest   Kind = "manifest"
+	KindPackage    Kind = "package"
+	KindInventory  Kind = "inventory"
+	KindFinding    Kind = "finding"
+	KindDiagnostic Kind = "diagnostic"
+)
+
+// Record holds exactly one of its fields. Kind names it.
+type Record struct {
+	Kind       Kind             `json:"kind"`
+	Manifest   *model.Manifest  `json:"manifest,omitempty"`
+	Package    *PackageEntry    `json:"package,omitempty"`
+	Inventory  *InventoryItem   `json:"inventory,omitempty"`
+	Finding    *finding.Finding `json:"finding,omitempty"`
+	Diagnostic *Diagnostic      `json:"diagnostic,omitempty"`
+}
+
+// PackageEntry is a package with the manifests that declare it.
+type PackageEntry struct {
+	PURL        string   `json:"purl"`
+	ManifestIDs []string `json:"manifest_ids"`
+	model.Package
+}
+
+// InventoryKind names the kind of an inventory item.
+type InventoryKind string
+
+const (
+	InventoryAITool       InventoryKind = "ai-tool"
+	InventoryMCPServer    InventoryKind = "mcp-server"
+	InventorySkill        InventoryKind = "skill"
+	InventoryEditorPlugin InventoryKind = "editor-plugin"
+)
+
+// InventoryItem is a tool on a machine that is not a package of a manifest:
+// an AI tool, an MCP server, an agent skill or an editor plugin (decisions P5).
+type InventoryItem struct {
+	Kind    InventoryKind     `json:"kind"`
+	Name    string            `json:"name"`
+	Version string            `json:"version,omitempty"`
+	Path    string            `json:"path,omitempty"`
+	Client  string            `json:"client,omitempty"`
+	Scope   string            `json:"scope,omitempty"`
+	Change  model.Change      `json:"change,omitempty"`
+	Details map[string]string `json:"details,omitempty"`
+}
+
+// DiagnosticLevel is the level of a diagnostic.
+type DiagnosticLevel string
+
+const (
+	DiagnosticWarning DiagnosticLevel = "warning"
+	DiagnosticError   DiagnosticLevel = "error"
+)
+
+// Diagnostic records an error or a limit that did not stop the scan, for
+// example an enrichment backend that did not answer.
+type Diagnostic struct {
+	Level     DiagnosticLevel `json:"level"`
+	Code      string          `json:"code"`
+	Component string          `json:"component"`
+	Message   string          `json:"message"`
+	Count     int             `json:"count,omitempty"`
+}
+
+// Trailer is the last item of a report.
+type Trailer struct {
+	Summary     Summary   `json:"summary"`
+	Gate        Gate      `json:"gate"`
+	RecordCount uint64    `json:"record_count"`
+	FinishedAt  time.Time `json:"finished_at"`
+}
+
+// Summary counts the records of a report.
+type Summary struct {
+	Manifests   int                      `json:"manifests"`
+	Packages    int                      `json:"packages"`
+	Inventory   int                      `json:"inventory"`
+	Findings    int                      `json:"findings"`
+	Suppressed  int                      `json:"suppressed"`
+	Diagnostics int                      `json:"diagnostics"`
+	BySeverity  map[finding.Severity]int `json:"by_severity"`
+	ByFamily    map[finding.Family]int   `json:"by_family"`
+}
+
+// GateOutcome is the result of the gate.
+type GateOutcome string
+
+const (
+	// GateNone means that the user set no gate.
+	GateNone GateOutcome = "NONE"
+	GatePass GateOutcome = "PASS"
+	GateFail GateOutcome = "FAIL"
+)
+
+// Gate is the outcome of the gate and what decided it.
+type Gate struct {
+	Outcome    GateOutcome      `json:"outcome"`
+	FailOn     finding.Severity `json:"fail_on,omitempty"`
+	Policy     string           `json:"policy,omitempty"`
+	Rules      []string         `json:"rules,omitempty"`
+	FindingIDs []string         `json:"finding_ids,omitempty"`
+}
+
+// ManifestRecord returns a record that holds a manifest.
+func ManifestRecord(m *model.Manifest) Record { return Record{Kind: KindManifest, Manifest: m} }
+
+// PackageRecord returns a record that holds a package entry.
+func PackageRecord(p *PackageEntry) Record { return Record{Kind: KindPackage, Package: p} }
+
+// InventoryRecord returns a record that holds an inventory item.
+func InventoryRecord(i *InventoryItem) Record { return Record{Kind: KindInventory, Inventory: i} }
+
+// FindingRecord returns a record that holds a finding.
+func FindingRecord(f *finding.Finding) Record { return Record{Kind: KindFinding, Finding: f} }
+
+// DiagnosticRecord returns a record that holds a diagnostic.
+func DiagnosticRecord(d *Diagnostic) Record { return Record{Kind: KindDiagnostic, Diagnostic: d} }
+
+// Validate checks that the record holds exactly the field that Kind names.
+func (r Record) Validate() error {
+	set := map[Kind]bool{
+		KindManifest:   r.Manifest != nil,
+		KindPackage:    r.Package != nil,
+		KindInventory:  r.Inventory != nil,
+		KindFinding:    r.Finding != nil,
+		KindDiagnostic: r.Diagnostic != nil,
+	}
+	n := 0
+	for _, v := range set {
+		if v {
+			n++
+		}
+	}
+	if n != 1 {
+		return fmt.Errorf("record must hold exactly one field, got %d", n)
+	}
+	if !set[r.Kind] {
+		return fmt.Errorf("record kind %q does not match its field", r.Kind)
+	}
+	if r.Finding != nil {
+		return r.Finding.Validate()
+	}
+	return nil
+}
+
+// NewSummary returns an empty summary.
+func NewSummary() Summary {
+	return Summary{BySeverity: map[finding.Severity]int{}, ByFamily: map[finding.Family]int{}}
+}
+
+// Add counts one record in the summary.
+func (s *Summary) Add(r Record) {
+	if s.BySeverity == nil || s.ByFamily == nil {
+		*s = mergeSummary(NewSummary(), *s)
+	}
+	switch r.Kind {
+	case KindManifest:
+		s.Manifests++
+	case KindPackage:
+		s.Packages++
+	case KindInventory:
+		s.Inventory++
+	case KindDiagnostic:
+		s.Diagnostics++
+	case KindFinding:
+		if r.Finding.Suppressed() {
+			s.Suppressed++
+			return
+		}
+		s.Findings++
+		s.BySeverity[r.Finding.Severity]++
+		s.ByFamily[r.Finding.Family]++
+	}
+}
+
+func mergeSummary(dst, src Summary) Summary {
+	dst.Manifests, dst.Packages, dst.Inventory = src.Manifests, src.Packages, src.Inventory
+	dst.Findings, dst.Suppressed, dst.Diagnostics = src.Findings, src.Suppressed, src.Diagnostics
+	for k, v := range src.BySeverity {
+		dst.BySeverity[k] = v
+	}
+	for k, v := range src.ByFamily {
+		dst.ByFamily[k] = v
+	}
+	return dst
+}
+
+// ErrIncomplete reports a stream whose record count does not match its trailer.
+var ErrIncomplete = errors.New("report stream is incomplete")
