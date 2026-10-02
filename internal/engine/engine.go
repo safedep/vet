@@ -155,6 +155,9 @@ func (o *Options) defaults() {
 	}
 	if o.Mode == "" {
 		o.Mode = report.ScanModeFull
+		if o.BaseRef != "" {
+			o.Mode = report.ScanModeDelta
+		}
 	}
 }
 

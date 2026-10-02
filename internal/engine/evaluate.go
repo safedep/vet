@@ -60,7 +60,7 @@ func (r *run) evaluateManifest(ctx context.Context, m *model.Manifest) []finding
 				r.diags.add(report.DiagnosticError, CodeInvalidFinding, c.ID, err.Error())
 				continue
 			}
-			if seen[f.ID] {
+			if seen[f.ID] || (r.o.BaseRef != "" && !introduced(f, m)) {
 				continue
 			}
 			seen[f.ID] = true

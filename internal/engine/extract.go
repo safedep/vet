@@ -68,11 +68,19 @@ func (r *run) extractFiles(ctx context.Context, a plugin.Artifact, done *int) er
 	if err != nil {
 		return err
 	}
+	var d *delta
+	if r.o.BaseRef != "" {
+		b, err := r.loadBase(ctx, a, exs)
+		if err != nil {
+			return err
+		}
+		d = &delta{base: b, seen: map[string]bool{}}
+	}
 	visit := func(rel string, info fs.FileInfo) error {
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		if err := r.extractFile(ctx, a, fsys, rel, info, exs); err != nil {
+		if err := r.extractFile(ctx, a, fsys, rel, info, exs, d); err != nil {
 			return err
 		}
 		*done++
@@ -93,6 +101,22 @@ func (r *run) extractFiles(ctx context.Context, a plugin.Artifact, done *int) er
 		return nil
 	}
 
+	if err := r.walk(fsys, a, visit); err != nil {
+		return err
+	}
+	if d != nil {
+		return r.commitRemoved(ctx, a, d.base.removed(d.seen))
+	}
+	return nil
+}
+
+// delta is the state of pull request mode during the walk.
+type delta struct {
+	base *base
+	seen map[string]bool
+}
+
+func (r *run) walk(fsys fs.FS, a plugin.Artifact, visit func(string, fs.FileInfo) error) error {
 	return fs.WalkDir(fsys, ".", func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			// An unreadable directory does not stop the scan.
@@ -140,7 +164,7 @@ func (r *run) excluded(p string) bool {
 	return false
 }
 
-func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, rel string, info fs.FileInfo, exs []plugin.Extractor) error {
+func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, rel string, info fs.FileInfo, exs []plugin.Extractor, d *delta) error {
 	wanted := scalibr.Wanted(exs, rel, info)
 	if len(wanted) == 0 && a.Kind == plugin.ArtifactSBOM {
 		// The user named the file as an SBOM, so its name does not matter.
@@ -157,6 +181,12 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 		return err
 	}
 	if prev != nil && prev.Status != state.ArtifactPending && prev.Size == info.Size() && prev.MTime.Equal(info.ModTime().Truncate(time.Millisecond)) {
+		if d != nil {
+			// The saved manifests already carry their change against the base.
+			for _, e := range wanted {
+				d.seen[model.ManifestID(rel, e.Name())] = true
+			}
+		}
 		return scan.ReviveArtifact(ctx, key)
 	}
 
@@ -166,6 +196,17 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 	}
 	for _, e := range errs {
 		r.extractError(e)
+	}
+	if d != nil {
+		hash, err := blobHash(fsys, rel)
+		if err != nil {
+			return err
+		}
+		baseHash, inBase := d.base.hashes[rel]
+		for _, m := range ms {
+			diff(m, d.base.manifests[m.ID], !inBase || baseHash != hash)
+			d.seen[m.ID] = true
+		}
 	}
 	return scan.CommitArtifact(ctx, state.ArtifactRecord{
 		Key: key, Kind: string(a.Kind), Path: rel, Size: info.Size(), MTime: info.ModTime(),

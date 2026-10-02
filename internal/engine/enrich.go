@@ -27,7 +27,9 @@ func (r *run) enrichWith(ctx context.Context, e Enricher) error {
 	scan := r.res.Scan
 	after, done := "", 0
 	for {
-		batch, err := scan.PackagesToEnrich(ctx, e.Name, after, r.o.BatchSize)
+		batch, err := scan.PackagesToEnrich(ctx, state.EnrichQuery{
+			Enricher: e.Name, After: after, Limit: r.o.BatchSize, Introduced: r.o.BaseRef != "",
+		})
 		if err != nil {
 			return err
 		}

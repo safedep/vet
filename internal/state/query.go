@@ -354,19 +354,35 @@ func (s *Scan) PackagesLacking(ctx context.Context, enricher string) iter.Seq2[*
 	}
 }
 
-// PackagesToEnrich returns up to limit distinct packages, in PURL order and
-// after the PURL after, that an enricher has no "ok" or "not_found" result
-// for. A failed result comes back, so a continued scan tries it again. The
-// PURL cursor lets a run page through the packages while it writes results.
-func (s *Scan) PackagesToEnrich(ctx context.Context, enricher, after string, limit int) ([]*model.Package, error) {
+// EnrichQuery selects a page of packages for an enricher.
+type EnrichQuery struct {
+	Enricher string
+	// After is the PURL cursor: the page starts after it.
+	After string
+	Limit int
+	// Introduced keeps the packages that pull request mode marks added,
+	// upgraded or downgraded.
+	Introduced bool
+}
+
+// PackagesToEnrich returns up to q.Limit distinct packages, in PURL order and
+// after q.After, that the enricher has no "ok" or "not_found" result for. A
+// failed result comes back, so a continued scan tries it again. The PURL
+// cursor lets a run page through the packages while it writes results.
+func (s *Scan) PackagesToEnrich(ctx context.Context, q EnrichQuery) ([]*model.Package, error) {
+	introduced := ""
+	if q.Introduced {
+		introduced = ` AND EXISTS (SELECT 1 FROM vet_scan_manifest_packages c
+		    WHERE c.purl = p.purl AND c.change IN ('ADDED', 'UPGRADED', 'DOWNGRADED'))`
+	}
 	rows, err := s.db.QueryContext(ctx, `SELECT mp.data, p.insight, p.malware, p.usage
 		FROM vet_scan_packages p
 		JOIN vet_scan_manifest_packages mp ON mp.purl = p.purl
 		  AND mp.manifest_id = (SELECT manifest_id FROM vet_scan_manifest_packages WHERE purl = p.purl ORDER BY manifest_id LIMIT 1)
 		WHERE p.purl > ?
 		  AND NOT EXISTS (SELECT 1 FROM vet_scan_enrichments e
-		    WHERE e.purl = p.purl AND e.enricher = ? AND e.status IN (?, ?))
-		ORDER BY p.purl LIMIT ?`, after, enricher, EnrichmentOK, EnrichmentNotFound, limit)
+		    WHERE e.purl = p.purl AND e.enricher = ? AND e.status IN (?, ?))`+introduced+`
+		ORDER BY p.purl LIMIT ?`, q.After, q.Enricher, EnrichmentOK, EnrichmentNotFound, q.Limit)
 	if err != nil {
 		return nil, fmt.Errorf("query packages to enrich: %w", err)
 	}

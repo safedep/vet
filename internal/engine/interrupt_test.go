@@ -58,7 +58,7 @@ func TestInterruptSavesProgress(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() { assert.NoError(t, scan.Close()) })
 	assert.Nil(t, scan.Trailer(), "a stopped scan has no trailer")
-	left, err := scan.PackagesToEnrich(context.Background(), "fake", "", 10)
+	left, err := scan.PackagesToEnrich(context.Background(), state.EnrichQuery{Enricher: "fake", Limit: 10})
 	require.NoError(t, err)
 	assert.Len(t, left, 3, "the first batch is saved")
 	stage, err := scan.Stage(context.Background(), StageExtract)
