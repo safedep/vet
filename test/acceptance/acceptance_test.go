@@ -55,7 +55,10 @@ func TestAcceptance(t *testing.T) {
 					if category == "live" {
 						ForwardEnv(env, "SAFEDEP_API_KEY", "SAFEDEP_TENANT_ID")
 					}
-					return Sandbox(env)
+					if err := Sandbox(env); err != nil {
+						return err
+					}
+					return StartStub(env, "stub/fixtures")
 				},
 				Cmds:      Commands(),
 				Condition: Condition,

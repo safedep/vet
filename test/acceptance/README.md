@@ -64,12 +64,28 @@ Windows profile directories under it. No script reads the host config, state, ca
 `testscript` does not forward the host environment, so `SAFEDEP_*`, `CLAUDECODE`, `AI_AGENT` and
 `CI` are unset. A script sets the mode that it tests. `testscript` never gives vet a TTY.
 
+The harness starts one stub SafeDep server for each script and sets `VET_CLOUD_ENDPOINTS_API`,
+`VET_CLOUD_ENDPOINTS_COMMUNITY` and `VET_GITHUB_API_URL` to it. The stub answers Insights v2 and
+Malysis over gRPC, and the GitHub API over HTTP, from `stub/fixtures/`:
+
+| Service | Fixture | Unknown package or repository |
+| --- | --- | --- |
+| Insights v2 | `insights/<ecosystem>/<name>@<version>.json` | NotFound |
+| Malysis | `malysis/<ecosystem>/<name>@<version>.json` | A completed analysis with no malware |
+| GitHub API | `github/<owner>/<repo>.json` with `tags` and `branches` | HTTP 404 |
+
+A fixture holds the protojson of the response. The ecosystem is the enum name without
+`ECOSYSTEM_`, in lower case.
+
 | Command | Use |
 | --- | --- |
 | `execexit <code> <cmd>...` | Assert the exact exit code. Every exit-code check uses it, never `! exec` alone. |
 | `expandenv <file>...` | Put `$VAR` values from the script environment into a file. |
 | `replace <file> <old> <new>` | Edit a file in place. The strings take Go escapes such as `\n`. |
 | `capture <var> <regexp> [file]` | Keep a value, such as a scan id, from stdout or a file. |
+| `jsonq <file\|stdout> <query> <want>` | Assert one field of a JSON document or of a JSON line. The query is a dotted path, for example `trailer.gate.outcome` or `records.-1.kind`. `len` gives a length. A JSON lines file is an array of its lines. |
+| `reportcheck <file\|stdout>` | Check the framing of a `-o json` or `-o jsonl` report: header first, trailer last, `record_count` right. It sets `$RECORDS`. |
+| `stub delay\|fail\|calls\|stop ...` | Control the stub server: slow each answer, fail a service (`insights`, `malysis`, `github`) with a gRPC code, assert the number of calls, or stop it. |
 
 | Condition | True when |
 | --- | --- |

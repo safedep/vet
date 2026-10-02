@@ -44,9 +44,11 @@ var publicPackages = []string{
 }
 
 // apiAllowed are the only v2 packages that import the SafeDep API contract.
+// The stub server of the acceptance suite speaks it to stand in for SafeDep.
 var apiAllowed = []string{
 	module + "/internal/plugins/enrichers",
 	module + "/internal/plugins/cloud",
+	module + "/test/acceptance/stub",
 }
 
 type pkgInfo struct {

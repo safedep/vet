@@ -22,6 +22,7 @@ linters:
             - $all
             - "!**/internal/plugins/enrichers/**"
             - "!**/internal/plugins/cloud/**"
+            - "!**/test/acceptance/stub/**"
           deny:
             - pkg: buf.build/gen/go/safedep/api
               desc: only internal/plugins/enrichers and internal/plugins/cloud import the SafeDep API (decisions D2).

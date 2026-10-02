@@ -15,10 +15,13 @@ import (
 // builtins. They have the dry/acceptance shape (decisions D17).
 func Commands() map[string]func(ts *testscript.TestScript, neg bool, args []string) {
 	return map[string]func(ts *testscript.TestScript, neg bool, args []string){
-		"execexit":  cmdExecExit,
-		"expandenv": cmdExpandEnv,
-		"replace":   cmdReplace,
-		"capture":   cmdCapture,
+		"execexit":    cmdExecExit,
+		"expandenv":   cmdExpandEnv,
+		"replace":     cmdReplace,
+		"capture":     cmdCapture,
+		"jsonq":       cmdJSONQ,
+		"reportcheck": cmdReportCheck,
+		"stub":        cmdStub,
 	}
 }
 

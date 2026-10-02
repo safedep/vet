@@ -10,8 +10,13 @@ import (
 // no vet binary.
 func TestCommands(t *testing.T) {
 	testscript.Run(t, testscript.Params{
-		Dir:       "testdata/commands",
-		Setup:     Sandbox,
+		Dir: "testdata/commands",
+		Setup: func(env *testscript.Env) error {
+			if err := Sandbox(env); err != nil {
+				return err
+			}
+			return StartStub(env, "stub/fixtures")
+		},
 		Cmds:      Commands(),
 		Condition: Condition,
 	})
