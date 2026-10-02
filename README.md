@@ -123,6 +123,11 @@ prints them.
 
 `vet fix github-actions run` pins each third-party action to its commit SHA.
 
+With `plugins.codeusage.enabled: true`, a scan of a directory also reads the source files and
+records which packages the code imports. Each package finding then says whether the project
+imports the package, and in which files. The code analysis needs a vet build with CGO, such as
+`go install`. A static release build records a diagnostic and scans with no code usage.
+
 ## Policy
 
 A policy file sets the rules of the gate and the suppressions. A rule is a

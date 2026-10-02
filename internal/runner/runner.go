@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -26,6 +27,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/controls"
 	"github.com/safedep/vet/v2/internal/plugins/controls/cooldown"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers"
+	"github.com/safedep/vet/v2/internal/plugins/enrichers/codeusage"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/insights"
 	"github.com/safedep/vet/v2/internal/plugins/extractors"
 	"github.com/safedep/vet/v2/internal/plugins/policysources/file"
@@ -152,6 +154,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 		set, err := enrichers.Build(enrichers.Options{
 			APIURL: cfg.Cloud.Endpoints.API, CommunityURL: cfg.Cloud.Endpoints.Community,
 			Credentials: creds, Workers: cfg.Scan.Concurrency, TTL: ttl,
+			CodeUsageDir: codeUsageDir(cfg, o),
 		})
 		if err != nil {
 			return err
@@ -274,6 +277,23 @@ func Outputs(cfg *config.Config, out string, reports []string, extra map[string]
 		outs = append(outs, engine.Output{Format: d.Format, Path: d.Path, Sink: s})
 	}
 	return outs, nil
+}
+
+// codeUsageDir returns the directory of a scan of a local directory when
+// plugins.codeusage is on, else "".
+func codeUsageDir(cfg *config.Config, o Options) string {
+	if o.Source != nil || !cfg.PluginEnabled(codeusage.Name, false) {
+		return ""
+	}
+	info, err := os.Stat(o.Target)
+	if err != nil || !info.IsDir() {
+		return ""
+	}
+	dir, err := filepath.Abs(o.Target)
+	if err != nil {
+		return ""
+	}
+	return dir
 }
 
 // CodeInventorySync is the diagnostic code of an inventory sync that did

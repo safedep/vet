@@ -64,8 +64,29 @@ func (r *run) evaluateManifest(ctx context.Context, m *model.Manifest) []finding
 				continue
 			}
 			seen[f.ID] = true
+			annotateUsage(&f, m)
 			out = append(out, f)
 		}
 	}
 	return out
+}
+
+// annotateUsage adds the code usage of the package of a finding as
+// evidence (control catalog, phase 3: reachability annotation). It changes
+// no severity.
+func annotateUsage(f *finding.Finding, m *model.Manifest) {
+	if f.Subject.Kind != finding.SubjectPackage || f.Subject.Package == nil {
+		return
+	}
+	for _, p := range m.Packages {
+		if p.ID.PURL() != f.Subject.Package.PURL || p.Usage == nil {
+			continue
+		}
+		summary := "No source file of the project imports the package."
+		if p.Usage.Imported {
+			summary = fmt.Sprintf("The project imports the package in %d files, for example %s.", len(p.Usage.Files), p.Usage.Files[0])
+		}
+		f.Evidence = append(f.Evidence, finding.Evidence{Source: "codeusage", Summary: summary})
+		return
+	}
 }

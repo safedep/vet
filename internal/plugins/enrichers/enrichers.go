@@ -1,6 +1,7 @@
-// Package enrichers builds the SafeDep enrichers of a scan: Insights v2
-// and Malysis. With no credentials, both call the community service. With
-// an API key, both call the API service of the tenant.
+// Package enrichers builds the enrichers of a scan: Insights v2 and
+// Malysis, and the codeusage enricher when it is on. With no credentials,
+// Insights and Malysis call the community service. With an API key, they
+// call the API service of the tenant.
 package enrichers
 
 import (
@@ -13,6 +14,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/safedep/vet/v2/internal/credentials"
+	"github.com/safedep/vet/v2/internal/plugins/enrichers/codeusage"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/insights"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/internal/client"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/malysis"
@@ -31,6 +33,9 @@ type Options struct {
 	Workers int
 	// TTL is the cache time to live.
 	TTL time.Duration
+	// CodeUsageDir turns on the codeusage enricher for the source files of
+	// this directory.
+	CodeUsageDir string
 }
 
 // Spec is one enricher with its cache identity.
@@ -39,6 +44,8 @@ type Spec struct {
 	Version string
 	TTL     time.Duration
 	Plugin  plugin.Enricher
+	// Local is an enricher that calls no service. Probe skips it.
+	Local bool
 }
 
 // Set is the enrichers and the connections they hold.
@@ -71,13 +78,18 @@ func Build(o Options) (*Set, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Set{
+	set := &Set{
 		Specs: []Spec{
 			{Name: insights.Name, Version: insights.Version, TTL: o.TTL, Plugin: insights.New(insightsv2grpc.NewInsightServiceClient(conn), o.Workers)},
 			{Name: malysis.Name, Version: malysis.Version, TTL: o.TTL, Plugin: malysis.New(malysisv1grpc.NewMalwareAnalysisServiceClient(conn), o.Workers)},
 		},
 		conns: []*grpc.ClientConn{conn},
-	}, nil
+	}
+	if o.CodeUsageDir != "" {
+		// The usage depends on the target, so the cache keeps none.
+		set.Specs = append(set.Specs, Spec{Name: codeusage.Name, Version: codeusage.Version, Plugin: codeusage.New(o.CodeUsageDir), Local: true})
+	}
+	return set, nil
 }
 
 // probePackage is a package that every SafeDep service knows.
@@ -89,6 +101,9 @@ var probePackage = model.PackageID{Ecosystem: model.EcosystemNpm, Name: "lodash"
 func (s *Set) Probe(ctx context.Context) map[string]error {
 	out := map[string]error{}
 	for _, sp := range s.Specs {
+		if sp.Local {
+			continue
+		}
 		out[sp.Name] = sp.Plugin.Enrich(ctx, []*model.Package{{ID: probePackage}})
 	}
 	return out

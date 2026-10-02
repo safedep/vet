@@ -33,13 +33,8 @@ jobs:
       - name: Vet
         run: |
           go vet ./...
-          # Two v1 packages need CGO, which a cross build turns off: go-tree-sitter
-          # and go-sqlite3. v2 deletes them. Until then the cross vet skips the
-          # packages whose builds or tests depend on them.
           for goos in darwin windows; do
-            skip=$(GOOS=$goos go list -test -f '{{.ImportPath}} {{join .Deps " "}}' ./... \
-              | grep -e 'smacker/go-tree-sitter' -e 'mattn/go-sqlite3' | cut -d' ' -f1 | sed 's/\.test$//' | sort -u)
-            GOOS=$goos go vet $(go list ./... | grep -vxF -f <(echo "$skip"))
+            GOOS=$goos go vet ./...
           done
 
       - name: Test

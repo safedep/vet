@@ -23,10 +23,7 @@ const safedepAPI = "buf.build/gen/go/safedep/api"
 // replaces and removes them from this list. A listed path that does not
 // exist fails the test, so the list only shrinks.
 var legacyV1 = []string{
-	module + "/ent",
 	module + "/internal/analytics",
-	module + "/pkg",
-	module + "/signatures",
 }
 
 // publicPackages are the plugin API. They import nothing from internal.

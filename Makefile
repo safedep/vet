@@ -4,12 +4,6 @@ VERSION := "$(shell git describe --tags --abbrev=0)-$(shell git rev-parse --shor
 
 all: quick-vet
 
-.PHONY: ent
-ent:
-	go generate ./ent
-
-generate: ent
-
 GO_CFLAGS=-X github.com/safedep/vet/v2/internal/version.commit=$(GITCOMMIT) -X github.com/safedep/vet/v2/internal/version.version=$(VERSION)
 GO_LDFLAGS=-ldflags "-w $(GO_CFLAGS)"
 
@@ -32,5 +26,4 @@ clean:
 
 gosec:
 	-docker run --rm -it -w /app/ -v `pwd`:/app/ securego/gosec \
-	-exclude-dir=/app/ent \
 	/app/...
