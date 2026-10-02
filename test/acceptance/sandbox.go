@@ -51,8 +51,8 @@ func Condition(cond string) (bool, error) {
 		_, err := exec.LookPath("git")
 		return err == nil, nil
 	case "docker":
-		_, err := exec.LookPath("docker")
-		return err == nil, nil
+		// A docker binary with no daemon cannot load an image.
+		return exec.Command("docker", "info").Run() == nil, nil
 	case "live":
 		return os.Getenv(LiveEnv) == "1", nil
 	}

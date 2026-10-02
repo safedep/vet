@@ -26,6 +26,7 @@ func Commands() map[string]func(ts *testscript.TestScript, neg bool, args []stri
 		"sleep":       cmdSleep,
 		"schemacheck": cmdSchemaCheck,
 		"mode":        cmdMode,
+		"imagetar":    cmdImageTar,
 	}
 }
 

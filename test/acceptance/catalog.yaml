@@ -230,6 +230,18 @@
   tier: P1
   guarantee: "vet scan reads a CycloneDX and an SPDX file."
   labels: [scan]
+- id: scan/sources/image
+  title: "sources: image"
+  category: scan
+  tier: P2
+  guarantee: "vet scan scans an image tarball, and with a Docker daemon an oci:// image from the daemon."
+  labels: [scan, docker]
+- id: scan/no-credentials/community
+  title: "no credentials: community endpoints"
+  category: scan
+  tier: P1
+  guarantee: "With no credentials, a scan completes, sends no authorization header and makes no upload."
+  labels: [scan, credentials]
 - id: state/continue/after-interrupt
   title: "continue: after interrupt"
   category: state

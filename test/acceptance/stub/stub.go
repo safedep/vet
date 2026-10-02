@@ -34,6 +34,11 @@ const (
 	Insights = "insights"
 	Malysis  = "malysis"
 	GitHub   = "github"
+	// Other counts the gRPC calls of a service that the stub does not
+	// serve, such as an upload.
+	Other = "other"
+	// Authenticated counts the requests that carry an authorization header.
+	Authenticated = "authenticated"
 )
 
 // Server is one stub server. The harness starts one for each script.
@@ -61,7 +66,10 @@ func Start(dir string) (*Server, error) {
 		return nil, err
 	}
 	s := &Server{dir: dir, ln: ln, fail: map[string]codes.Code{}, calls: map[string]int{}}
-	s.grpc = grpc.NewServer()
+	s.grpc = grpc.NewServer(grpc.UnknownServiceHandler(func(any, grpc.ServerStream) error {
+		s.count(Other)
+		return status.Error(codes.Unimplemented, "stub: no such service")
+	}))
 	insightsv2grpc.RegisterInsightServiceServer(s.grpc, &insightService{s: s})
 	malysisv1grpc.RegisterMalwareAnalysisServiceServer(s.grpc, &malysisService{s: s})
 
@@ -117,6 +125,12 @@ func (s *Server) Calls(service string) int {
 	return s.calls[service]
 }
 
+func (s *Server) count(service string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.calls[service]++
+}
+
 // begin counts a call, waits for the delay and returns the failure of the
 // service.
 func (s *Server) begin(ctx context.Context, service string) error {
@@ -138,6 +152,9 @@ func (s *Server) begin(ctx context.Context, service string) error {
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get("Authorization") != "" {
+		s.count(Authenticated)
+	}
 	if r.ProtoMajor == 2 && strings.HasPrefix(r.Header.Get("Content-Type"), "application/grpc") {
 		s.grpc.ServeHTTP(w, r)
 		return

@@ -1,0 +1,13 @@
+# With no credentials, a scan uses the community endpoints, completes and
+# makes no upload. The stub sees no authorization header and no call to a
+# service that it does not serve.
+cd proj
+exec vet scan . --mode plain -o json
+jsonq stdout trailer.gate.outcome NONE
+stdout '"control_id":"malware"'
+! stub calls malysis 0
+stub calls authenticated 0
+stub calls other 0
+
+-- proj/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3"}}, "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"}}}
