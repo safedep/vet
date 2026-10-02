@@ -70,7 +70,7 @@ func pluginSchemas() (map[string][]byte, error) {
 	if sc, ok := tp.(plugin.Schemer); ok {
 		out[tenantpolicy.Name] = sc.OptionsSchema()
 	}
-	inv, err := inventory.New(plugin.MapConfig(nil))
+	inv, err := inventory.New(plugin.MapConfig(nil), nil)
 	if err != nil {
 		return nil, err
 	}

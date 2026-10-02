@@ -30,8 +30,11 @@ The target key is `endpoint:<hostname>`. `vet report show`, `vet report list` an
 `vet report diff` work on the audits of the machine as on the scans of a project. The gate,
 the policy, the reports and the state flags work as in `vet scan`.
 
-vet keeps the inventory in the local report. The SafeDep Cloud inventory sync is a stub until its
-contract exists.
+vet keeps the inventory in the local report. With `plugins.cloud-inventory.enabled: true`, vet also
+writes the inventory of each audit to `inventory-sync.wal` in the state directory, with mode 0600,
+for SafeDep Cloud. The sync is a stub until its contract exists, so the report gets an
+`inventory_sync_unavailable` diagnostic and the batches wait in the log. The log keeps the last 50
+audits.
 
 ## Examples
 

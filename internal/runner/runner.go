@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/safedep/dry/usefulerror"
@@ -20,6 +21,7 @@ import (
 	"github.com/safedep/vet/v2/internal/credentials"
 	"github.com/safedep/vet/v2/internal/engine"
 	"github.com/safedep/vet/v2/internal/github"
+	"github.com/safedep/vet/v2/internal/plugins/cloud/inventory"
 	"github.com/safedep/vet/v2/internal/plugins/cloud/tenantpolicy"
 	"github.com/safedep/vet/v2/internal/plugins/controls"
 	"github.com/safedep/vet/v2/internal/plugins/controls/cooldown"
@@ -179,7 +181,12 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 			Kind: kind, Mode: mode, BaseRef: o.BaseRef, OptionsHash: hash, VetVersion: version.Version(),
 			Resume: o.Resume, Fresh: o.Fresh, ContinueWithin: within, Strict: o.Strict || cfg.Scan.Strict,
 			BatchSize: 100, Observer: v,
-			Finalize: func(ctx context.Context, s *state.Scan) (report.Gate, error) { return evaluator.Finalize(ctx, s) },
+			Finalize: func(ctx context.Context, s *state.Scan) (report.Gate, error) {
+				if err := syncInventory(ctx, cfg, store, s); err != nil {
+					return report.Gate{}, err
+				}
+				return evaluator.Finalize(ctx, s)
+			},
 		}
 		res, runErr := engine.Run(ctx, eo)
 		if res == nil {
@@ -266,6 +273,42 @@ func Outputs(cfg *config.Config, out string, reports []string, extra map[string]
 		outs = append(outs, engine.Output{Format: d.Format, Path: d.Path, Sink: s})
 	}
 	return outs, nil
+}
+
+// CodeInventorySync is the diagnostic code of an inventory sync that did
+// not reach SafeDep Cloud.
+const CodeInventorySync = "inventory_sync_unavailable"
+
+// syncInventory sends the inventory of an endpoint audit when
+// plugins.cloud-inventory is on. A sync that does not reach SafeDep Cloud
+// is a diagnostic: the batch waits in the log of the state directory.
+func syncInventory(ctx context.Context, cfg *config.Config, store *state.Store, s *state.Scan) error {
+	h := s.Header()
+	if h == nil || h.Scan.Kind != report.ScanKindEndpoint || !cfg.PluginEnabled(inventory.Name, false) {
+		return nil
+	}
+	syncer, err := inventory.New(plugin.MapConfig(cfg.PluginOptions(inventory.Name)), inventory.NewWAL(store.StateDir()))
+	if err != nil {
+		return app.UsageError(fmt.Sprintf("plugins.%s.options: %v", inventory.Name, err), "Fix the option in the config file.")
+	}
+	var items []report.InventoryItem
+	for rec, err := range s.Records(ctx) {
+		if err != nil {
+			return err
+		}
+		if rec.Inventory != nil {
+			items = append(items, *rec.Inventory)
+		}
+	}
+	err = syncer.Sync(ctx, h.Scan.TargetKey, items)
+	if !errors.Is(err, plugin.ErrUnavailable) {
+		return err
+	}
+	return s.AddDiagnostic(ctx, &report.Diagnostic{
+		Level: report.DiagnosticWarning, Code: CodeInventorySync, Component: inventory.Name,
+		Message: fmt.Sprintf("%s. The inventory waits in %s.", strings.TrimSuffix(err.Error(), ": "+plugin.ErrUnavailable.Error()), inventory.WALFile),
+		Count:   1,
+	})
 }
 
 func newEvaluator(ctx context.Context, cfg *config.Config, s policy.Settings) (*policy.Evaluator, error) {

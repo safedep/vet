@@ -1,0 +1,18 @@
+# With plugins.cloud-inventory on, an audit writes its inventory to the
+# write-ahead log in the state directory, and records that the sync is not
+# available yet. The audit still completes.
+exec vet --config $WORK/config.yml endpoint audit --mode plain -o json --state-dir $WORK/state
+stdout '"code":"inventory_sync_unavailable"'
+jsonq stdout trailer.gate.outcome NONE
+exists $WORK/state/inventory-sync.wal
+grep '"name":"review"' $WORK/state/inventory-sync.wal
+[unix] mode $WORK/state/inventory-sync.wal 600
+
+-- config.yml --
+plugins:
+  cloud-inventory:
+    enabled: true
+-- home/.claude/skills/review/SKILL.md --
+---
+name: review
+---

@@ -388,6 +388,12 @@
   tier: P1
   guarantee: "vet endpoint audit with a home directory that holds a risky .vscode/tasks.json and an MCP config gives findings."
   labels: [endpoint, agent-config]
+- id: endpoint/inventory-sync/wal
+  title: "endpoint audit: inventory sync log"
+  category: endpoint
+  tier: P2
+  guarantee: "With plugins.cloud-inventory on, vet endpoint audit writes its inventory to inventory-sync.wal in the state directory with mode 0600, records inventory_sync_unavailable, and completes."
+  labels: [endpoint, cloud, stub]
 # --- 4.9 Live rows. They call production and run with ACCEPTANCE_LIVE=1 only. ---
 - id: live/malware/known-malicious
   title: "live: known malicious package"
