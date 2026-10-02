@@ -4,8 +4,6 @@ package main
 import (
 	"context"
 	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/cmd"
@@ -13,7 +11,7 @@ import (
 )
 
 func main() {
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	ctx, stop := app.SignalContext(context.Background())
 	code, err := cmd.Run(ctx, os.Args[1:], app.Options{})
 	stop()
 	if err != nil {
