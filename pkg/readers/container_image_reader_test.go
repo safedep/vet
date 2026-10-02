@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/safedep/vet/pkg/models"
-	"github.com/safedep/vet/test"
+	"github.com/safedep/vet/v2/pkg/models"
+	"github.com/safedep/vet/v2/test"
 )
 
 func TestContainerImageReader_ApplicationName(t *testing.T) {

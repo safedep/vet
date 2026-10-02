@@ -9,9 +9,9 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/safedep/vet/ent/codesignaturematch"
-	"github.com/safedep/vet/ent/codesourcefile"
-	"github.com/safedep/vet/ent/depsusageevidence"
+	"github.com/safedep/vet/v2/ent/codesignaturematch"
+	"github.com/safedep/vet/v2/ent/codesourcefile"
+	"github.com/safedep/vet/v2/ent/depsusageevidence"
 )
 
 // CodeSourceFileCreate is the builder for creating a CodeSourceFile entity.

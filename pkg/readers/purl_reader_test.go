@@ -7,8 +7,8 @@ import (
 	"github.com/safedep/dry/adapters"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/safedep/vet/pkg/common/registry"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/common/registry"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 // We are not testing the actual parsing here because

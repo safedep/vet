@@ -5,9 +5,9 @@ import (
 
 	"github.com/safedep/dry/utils"
 
-	"github.com/safedep/vet/pkg/analyzer"
-	"github.com/safedep/vet/pkg/models"
-	"github.com/safedep/vet/pkg/reporter"
+	"github.com/safedep/vet/v2/pkg/analyzer"
+	"github.com/safedep/vet/v2/pkg/models"
+	"github.com/safedep/vet/v2/pkg/reporter"
 )
 
 type DataPoint string

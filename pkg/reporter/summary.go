@@ -14,12 +14,12 @@ import (
 	"github.com/safedep/dry/semver"
 	"github.com/safedep/dry/utils"
 
-	"github.com/safedep/vet/gen/insightapi"
-	"github.com/safedep/vet/pkg/analyzer"
-	"github.com/safedep/vet/pkg/exceptions"
-	"github.com/safedep/vet/pkg/models"
-	"github.com/safedep/vet/pkg/policy"
-	"github.com/safedep/vet/pkg/readers"
+	"github.com/safedep/vet/v2/gen/insightapi"
+	"github.com/safedep/vet/v2/pkg/analyzer"
+	"github.com/safedep/vet/v2/pkg/exceptions"
+	"github.com/safedep/vet/v2/pkg/models"
+	"github.com/safedep/vet/v2/pkg/policy"
+	"github.com/safedep/vet/v2/pkg/readers"
 )
 
 const (

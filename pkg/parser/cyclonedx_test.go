@@ -10,8 +10,8 @@ import (
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/safedep/vet/pkg/common/purl"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/common/purl"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 func TestParseCyclonedxSBOM(t *testing.T) {

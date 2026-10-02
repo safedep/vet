@@ -8,7 +8,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/common/logger"
 )
 
 const (

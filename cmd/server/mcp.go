@@ -9,11 +9,11 @@ import (
 	"github.com/safedep/dry/adapters"
 	"github.com/spf13/cobra"
 
-	"github.com/safedep/vet/internal/auth"
-	"github.com/safedep/vet/mcp"
-	"github.com/safedep/vet/mcp/server"
-	"github.com/safedep/vet/mcp/tools"
-	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/v2/internal/auth"
+	"github.com/safedep/vet/v2/mcp"
+	"github.com/safedep/vet/v2/mcp/server"
+	"github.com/safedep/vet/v2/mcp/tools"
+	"github.com/safedep/vet/v2/pkg/common/logger"
 )
 
 var (

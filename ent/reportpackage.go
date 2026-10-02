@@ -10,8 +10,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/safedep/vet/ent/reportmalware"
-	"github.com/safedep/vet/ent/reportpackage"
+	"github.com/safedep/vet/v2/ent/reportmalware"
+	"github.com/safedep/vet/v2/ent/reportpackage"
 )
 
 // ReportPackage is the model entity for the ReportPackage schema.

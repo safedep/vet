@@ -3,10 +3,10 @@ package analyzer
 import (
 	"fmt"
 
-	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
-	specmodels "github.com/safedep/vet/gen/models"
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/models"
+	jsonreportspec "github.com/safedep/vet/v2/gen/jsonreport"
+	specmodels "github.com/safedep/vet/v2/gen/models"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 const (

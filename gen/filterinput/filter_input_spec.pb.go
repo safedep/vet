@@ -7,7 +7,7 @@
 package filterinput
 
 import (
-	models "github.com/safedep/vet/gen/models"
+	models "github.com/safedep/vet/v2/gen/models"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"

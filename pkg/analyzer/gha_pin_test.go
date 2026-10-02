@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 type mockSHAResolver struct {

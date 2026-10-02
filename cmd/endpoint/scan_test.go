@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/safedep/vet/internal/auth"
-	"github.com/safedep/vet/pkg/inventory"
-	"github.com/safedep/vet/pkg/inventory/scanners"
+	"github.com/safedep/vet/v2/internal/auth"
+	"github.com/safedep/vet/v2/pkg/inventory"
+	"github.com/safedep/vet/v2/pkg/inventory/scanners"
 )
 
 // stubResolver implements auth.Resolver for tests.

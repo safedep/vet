@@ -1,8 +1,8 @@
 package reporter
 
 import (
-	"github.com/safedep/vet/pkg/analyzer"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/analyzer"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 // SyncReporterCallbacks are effects trigger during Cloud Sync Report Process

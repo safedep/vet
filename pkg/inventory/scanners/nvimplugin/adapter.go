@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/safedep/vet/pkg/inventory"
+	"github.com/safedep/vet/v2/pkg/inventory"
 )
 
 const scannerName = "nvim-plugin"

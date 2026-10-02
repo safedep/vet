@@ -8,11 +8,11 @@ import (
 	"github.com/safedep/dry/utils"
 	"github.com/spf13/cobra"
 
-	"github.com/safedep/vet/internal/command"
-	"github.com/safedep/vet/pkg/analyzer"
-	"github.com/safedep/vet/pkg/readers"
-	"github.com/safedep/vet/pkg/reporter"
-	"github.com/safedep/vet/pkg/scanner"
+	"github.com/safedep/vet/v2/internal/command"
+	"github.com/safedep/vet/v2/pkg/analyzer"
+	"github.com/safedep/vet/v2/pkg/readers"
+	"github.com/safedep/vet/v2/pkg/reporter"
+	"github.com/safedep/vet/v2/pkg/scanner"
 )
 
 var (

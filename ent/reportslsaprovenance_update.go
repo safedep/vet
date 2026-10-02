@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/safedep/vet/ent/predicate"
-	"github.com/safedep/vet/ent/reportpackage"
-	"github.com/safedep/vet/ent/reportslsaprovenance"
+	"github.com/safedep/vet/v2/ent/predicate"
+	"github.com/safedep/vet/v2/ent/reportpackage"
+	"github.com/safedep/vet/v2/ent/reportslsaprovenance"
 )
 
 // ReportSlsaProvenanceUpdate is the builder for updating ReportSlsaProvenance entities.

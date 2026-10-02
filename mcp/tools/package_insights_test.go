@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/safedep/vet/mcp"
+	"github.com/safedep/vet/v2/mcp"
 )
 
 func TestPackageInsightsTool_ExecuteGetPackageVulnerabilities(t *testing.T) {

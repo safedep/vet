@@ -5,8 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	xbomsig "github.com/safedep/vet/pkg/xbom/signatures"
-	_ "github.com/safedep/vet/signatures" // triggers embed registration
+	xbomsig "github.com/safedep/vet/v2/pkg/xbom/signatures"
+	_ "github.com/safedep/vet/v2/signatures" // triggers embed registration
 )
 
 func newValidateCommand() *cobra.Command {

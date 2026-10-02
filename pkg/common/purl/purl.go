@@ -6,7 +6,7 @@ import (
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/package-url/packageurl-go"
 
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 // Wraps a PURL parsed response for extensibility. This is internal and will

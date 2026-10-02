@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/safedep/vet/internal/connect"
-	"github.com/safedep/vet/pkg/models"
-	"github.com/safedep/vet/pkg/readers"
+	"github.com/safedep/vet/v2/internal/connect"
+	"github.com/safedep/vet/v2/pkg/models"
+	"github.com/safedep/vet/v2/pkg/readers"
 )
 
 func TestGithubReaderWithVetPublicRepository(t *testing.T) {

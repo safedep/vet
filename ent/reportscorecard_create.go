@@ -10,9 +10,9 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/safedep/vet/ent/reportproject"
-	"github.com/safedep/vet/ent/reportscorecard"
-	"github.com/safedep/vet/ent/reportscorecardcheck"
+	"github.com/safedep/vet/v2/ent/reportproject"
+	"github.com/safedep/vet/v2/ent/reportscorecard"
+	"github.com/safedep/vet/v2/ent/reportscorecardcheck"
 )
 
 // ReportScorecardCreate is the builder for creating a ReportScorecard entity.

@@ -6,10 +6,10 @@ import (
 
 	"github.com/safedep/dry/utils"
 
-	"github.com/safedep/vet/gen/insightapi"
-	"github.com/safedep/vet/pkg/analyzer"
-	"github.com/safedep/vet/pkg/malysis"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/gen/insightapi"
+	"github.com/safedep/vet/v2/pkg/analyzer"
+	"github.com/safedep/vet/v2/pkg/malysis"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 func newBitBucketAnnotationForPackage(pkg *models.Package) []*CodeInsightsAnnotation {

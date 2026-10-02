@@ -7,11 +7,11 @@ import (
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/safedep/dry/utils"
 
-	"github.com/safedep/vet/gen/filtersuite"
-	"github.com/safedep/vet/pkg/analyzer/filter"
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/models"
-	"github.com/safedep/vet/pkg/readers"
+	"github.com/safedep/vet/v2/gen/filtersuite"
+	"github.com/safedep/vet/v2/pkg/analyzer/filter"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/models"
+	"github.com/safedep/vet/v2/pkg/readers"
 )
 
 type celFilterAnalyzer struct {

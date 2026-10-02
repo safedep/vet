@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/safedep/vet/mcp"
+	"github.com/safedep/vet/v2/mcp"
 )
 
 // MockMcpServer is a mock implementation of server.McpServer

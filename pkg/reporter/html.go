@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/safedep/vet/ent"
-	"github.com/safedep/vet/pkg/analyzer"
-	"github.com/safedep/vet/pkg/models"
-	"github.com/safedep/vet/pkg/policy"
-	"github.com/safedep/vet/pkg/reporter/templates"
+	"github.com/safedep/vet/v2/ent"
+	"github.com/safedep/vet/v2/pkg/analyzer"
+	"github.com/safedep/vet/v2/pkg/models"
+	"github.com/safedep/vet/v2/pkg/policy"
+	"github.com/safedep/vet/v2/pkg/reporter/templates"
 )
 
 type HtmlReportingConfig struct {

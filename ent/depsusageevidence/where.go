@@ -5,7 +5,7 @@ package depsusageevidence
 import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/safedep/vet/ent/predicate"
+	"github.com/safedep/vet/v2/ent/predicate"
 )
 
 // ID filters vertices based on their ID field.

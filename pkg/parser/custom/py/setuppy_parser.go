@@ -9,7 +9,7 @@ import (
 	treesitter "github.com/smacker/go-tree-sitter"
 	"github.com/smacker/go-tree-sitter/python"
 
-	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/common/logger"
 )
 
 const (

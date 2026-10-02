@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/osv-scanner/pkg/lockfile"
 
-	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/common/logger"
 )
 
 // The order of regexp is important as it gives the precedence of range that we

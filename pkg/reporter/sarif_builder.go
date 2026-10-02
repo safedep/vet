@@ -8,10 +8,10 @@ import (
 	"github.com/safedep/dry/reporting/markdown"
 	"github.com/safedep/dry/utils"
 
-	"github.com/safedep/vet/gen/checks"
-	"github.com/safedep/vet/pkg/analyzer"
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/gen/checks"
+	"github.com/safedep/vet/v2/pkg/analyzer"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 // Internal rules apart from policy violations

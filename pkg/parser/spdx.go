@@ -11,10 +11,10 @@ import (
 	"github.com/spdx/tools-golang/spdx"
 	spdxcommon "github.com/spdx/tools-golang/spdx/v2/common"
 
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/common/purl"
-	"github.com/safedep/vet/pkg/common/utils/version"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/common/purl"
+	"github.com/safedep/vet/v2/pkg/common/utils/version"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 // The GitHub Dependency Graph API writes a package name as "<type>:<group>/<name>"

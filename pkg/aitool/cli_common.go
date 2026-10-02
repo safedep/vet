@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/common/logger"
 )
 
 var errNotVerified = errors.New("binary output did not match expected pattern")

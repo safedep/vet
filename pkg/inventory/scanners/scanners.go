@@ -14,11 +14,11 @@ package scanners
 import (
 	"fmt"
 
-	"github.com/safedep/vet/pkg/aitool"
-	"github.com/safedep/vet/pkg/inventory"
-	aitoolscanner "github.com/safedep/vet/pkg/inventory/scanners/aitool"
-	nvimpluginscanner "github.com/safedep/vet/pkg/inventory/scanners/nvimplugin"
-	skillsscanner "github.com/safedep/vet/pkg/inventory/scanners/skills"
+	"github.com/safedep/vet/v2/pkg/aitool"
+	"github.com/safedep/vet/v2/pkg/inventory"
+	aitoolscanner "github.com/safedep/vet/v2/pkg/inventory/scanners/aitool"
+	nvimpluginscanner "github.com/safedep/vet/v2/pkg/inventory/scanners/nvimplugin"
+	skillsscanner "github.com/safedep/vet/v2/pkg/inventory/scanners/skills"
 )
 
 // Descriptor declares one scanner: the Kind token accepted on the

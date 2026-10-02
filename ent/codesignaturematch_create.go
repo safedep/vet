@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/safedep/vet/ent/codesignaturematch"
-	"github.com/safedep/vet/ent/codesourcefile"
+	"github.com/safedep/vet/v2/ent/codesignaturematch"
+	"github.com/safedep/vet/v2/ent/codesourcefile"
 )
 
 // CodeSignatureMatchCreate is the builder for creating a CodeSignatureMatch entity.

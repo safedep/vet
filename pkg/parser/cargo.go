@@ -9,7 +9,7 @@ import (
 	"github.com/google/osv-scalibr/extractor/filesystem/language/rust/cargolock"
 	"github.com/google/osv-scalibr/fs"
 
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 // parserCargoLockFile using osv-scalibr to parse rust projects Cargo.lock file and find dependencies

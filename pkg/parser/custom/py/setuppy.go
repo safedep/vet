@@ -5,9 +5,9 @@ import (
 
 	"github.com/google/osv-scanner/pkg/lockfile"
 
-	"github.com/safedep/vet/pkg/common/logger"
-	regex_utils "github.com/safedep/vet/pkg/common/utils/regex"
-	"github.com/safedep/vet/pkg/common/utils/version"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	regex_utils "github.com/safedep/vet/v2/pkg/common/utils/regex"
+	"github.com/safedep/vet/v2/pkg/common/utils/version"
 )
 
 func ParseSetuppy(pathToLockfile string) ([]lockfile.PackageDetails, error) {

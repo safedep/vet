@@ -12,9 +12,9 @@ import (
 	"github.com/safedep/dry/errors"
 	"github.com/safedep/dry/utils"
 
-	"github.com/safedep/vet/gen/insightapi"
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/gen/insightapi"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 type InsightsBasedPackageMetaEnricherConfig struct {

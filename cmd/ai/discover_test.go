@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/safedep/vet/cmd/endpoint"
+	"github.com/safedep/vet/v2/cmd/endpoint"
 )
 
 func TestDiscoverCommand_DelegatesToRunAITool(t *testing.T) {

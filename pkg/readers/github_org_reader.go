@@ -9,8 +9,8 @@ import (
 
 	"github.com/google/go-github/v70/github"
 
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 const (

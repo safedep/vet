@@ -11,7 +11,7 @@ import (
 	"github.com/docker/docker/api/types/image"
 	scalibrlayerimage "github.com/google/osv-scalibr/artifact/image/layerscanning/image"
 
-	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/common/logger"
 )
 
 var errImageResolverUnsupported = errors.New("image resolver unsupported")

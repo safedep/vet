@@ -9,7 +9,7 @@ import (
 	"github.com/google/osv-scalibr/extractor/filesystem/language/javascript/bunlock"
 	"github.com/google/osv-scalibr/fs"
 
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 func parseBunLockFile(lockfilePath string, _ *ParserConfig) (*models.PackageManifest, error) {

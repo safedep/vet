@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/safedep/vet/ent/codesignaturematch"
-	"github.com/safedep/vet/ent/codesourcefile"
+	"github.com/safedep/vet/v2/ent/codesignaturematch"
+	"github.com/safedep/vet/v2/ent/codesourcefile"
 )
 
 // CodeSignatureMatch is the model entity for the CodeSignatureMatch schema.

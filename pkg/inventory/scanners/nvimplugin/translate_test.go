@@ -3,7 +3,7 @@ package nvimplugin
 import (
 	"testing"
 
-	"github.com/safedep/vet/pkg/inventory"
+	"github.com/safedep/vet/v2/pkg/inventory"
 )
 
 func TestTranslate_InstalledGitHubPlugin(t *testing.T) {

@@ -9,12 +9,12 @@ import (
 	"github.com/safedep/dry/utils"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/safedep/vet/gen/checks"
-	"github.com/safedep/vet/gen/filtersuite"
-	"github.com/safedep/vet/gen/insightapi"
-	"github.com/safedep/vet/pkg/analyzer"
-	"github.com/safedep/vet/pkg/models"
-	"github.com/safedep/vet/pkg/reporter"
+	"github.com/safedep/vet/v2/gen/checks"
+	"github.com/safedep/vet/v2/gen/filtersuite"
+	"github.com/safedep/vet/v2/gen/insightapi"
+	"github.com/safedep/vet/v2/pkg/analyzer"
+	"github.com/safedep/vet/v2/pkg/models"
+	"github.com/safedep/vet/v2/pkg/reporter"
 )
 
 func getBitbucketReporter(metaReportPath, annotationsReportPath string) (reporter.Reporter, error) {

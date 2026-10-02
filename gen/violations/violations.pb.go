@@ -7,9 +7,9 @@
 package violations
 
 import (
-	checks "github.com/safedep/vet/gen/checks"
-	filtersuite "github.com/safedep/vet/gen/filtersuite"
-	models "github.com/safedep/vet/gen/models"
+	checks "github.com/safedep/vet/v2/gen/checks"
+	filtersuite "github.com/safedep/vet/v2/gen/filtersuite"
+	models "github.com/safedep/vet/v2/gen/models"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"

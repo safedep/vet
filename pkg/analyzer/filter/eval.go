@@ -15,13 +15,13 @@ import (
 	"github.com/safedep/dry/utils"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/safedep/vet/gen/filterinput"
-	"github.com/safedep/vet/gen/filtersuite"
-	"github.com/safedep/vet/gen/insightapi"
-	specmodels "github.com/safedep/vet/gen/models"
-	"github.com/safedep/vet/pkg/common/clock"
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/gen/filterinput"
+	"github.com/safedep/vet/v2/gen/filtersuite"
+	"github.com/safedep/vet/v2/gen/insightapi"
+	specmodels "github.com/safedep/vet/v2/gen/models"
+	"github.com/safedep/vet/v2/pkg/common/clock"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 const (

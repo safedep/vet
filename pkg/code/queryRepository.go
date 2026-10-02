@@ -6,9 +6,9 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 
-	"github.com/safedep/vet/ent"
-	"github.com/safedep/vet/ent/codesignaturematch"
-	"github.com/safedep/vet/ent/predicate"
+	"github.com/safedep/vet/v2/ent"
+	"github.com/safedep/vet/v2/ent/codesignaturematch"
+	"github.com/safedep/vet/v2/ent/predicate"
 )
 
 // SignatureMatchFilter describes the filter criteria for querying

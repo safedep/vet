@@ -5,10 +5,10 @@ import (
 
 	"github.com/google/osv-scanner/pkg/lockfile"
 
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/common/purl"
-	"github.com/safedep/vet/pkg/common/registry"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/common/purl"
+	"github.com/safedep/vet/v2/pkg/common/registry"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 type purlReader struct {

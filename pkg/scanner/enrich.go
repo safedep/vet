@@ -1,7 +1,7 @@
 package scanner
 
 import (
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 // Callback to receive a discovery package dependency

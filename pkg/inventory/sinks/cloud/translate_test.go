@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/safedep/vet/pkg/inventory"
+	"github.com/safedep/vet/v2/pkg/inventory"
 )
 
 func TestItemToVetEvent_PlainItem(t *testing.T) {

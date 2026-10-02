@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/safedep/vet/pkg/inventory"
+	"github.com/safedep/vet/v2/pkg/inventory"
 )
 
 // fakeSyncClient is a programmable stub for the SyncClient interface.

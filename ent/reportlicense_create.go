@@ -10,8 +10,8 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/safedep/vet/ent/reportlicense"
-	"github.com/safedep/vet/ent/reportpackage"
+	"github.com/safedep/vet/v2/ent/reportlicense"
+	"github.com/safedep/vet/v2/ent/reportpackage"
 )
 
 // ReportLicenseCreate is the builder for creating a ReportLicense entity.

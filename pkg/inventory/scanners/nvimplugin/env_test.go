@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/safedep/vet/pkg/inventory"
+	"github.com/safedep/vet/v2/pkg/inventory"
 )
 
 func TestResolveEnv_HomeDirPrecedence(t *testing.T) {

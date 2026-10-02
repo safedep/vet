@@ -10,7 +10,7 @@ import (
 	"github.com/google/osv-scalibr/extractor/filesystem/language/java/pomxmlnet"
 	"github.com/google/osv-scalibr/fs"
 
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 // parseMavenPomXmlFile parses the pom.xml file in a maven project.

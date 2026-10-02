@@ -5,12 +5,12 @@ package enttest
 import (
 	"context"
 
-	"github.com/safedep/vet/ent"
+	"github.com/safedep/vet/v2/ent"
 	// required by schema hooks.
-	_ "github.com/safedep/vet/ent/runtime"
+	_ "github.com/safedep/vet/v2/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
-	"github.com/safedep/vet/ent/migrate"
+	"github.com/safedep/vet/v2/ent/migrate"
 )
 
 type (

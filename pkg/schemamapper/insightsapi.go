@@ -3,8 +3,8 @@ package schemamapper
 import (
 	"github.com/safedep/dry/utils"
 
-	"github.com/safedep/vet/gen/insightapi"
-	"github.com/safedep/vet/gen/models"
+	"github.com/safedep/vet/v2/gen/insightapi"
+	"github.com/safedep/vet/v2/gen/models"
 )
 
 // Unpacked vulnerability severity declaration as per

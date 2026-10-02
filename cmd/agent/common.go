@@ -7,7 +7,7 @@ import (
 
 	"github.com/charmbracelet/glamour"
 
-	"github.com/safedep/vet/agent"
+	"github.com/safedep/vet/v2/agent"
 )
 
 func buildModelFromEnvironment() (*agent.Model, error) {

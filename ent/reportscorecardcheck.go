@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/safedep/vet/ent/reportscorecard"
-	"github.com/safedep/vet/ent/reportscorecardcheck"
+	"github.com/safedep/vet/v2/ent/reportscorecard"
+	"github.com/safedep/vet/v2/ent/reportscorecardcheck"
 )
 
 // ReportScorecardCheck is the model entity for the ReportScorecardCheck schema.

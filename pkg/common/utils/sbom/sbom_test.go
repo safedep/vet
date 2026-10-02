@@ -6,7 +6,7 @@ import (
 	"github.com/google/osv-scanner/pkg/lockfile"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 func TestParsePurlType(t *testing.T) {

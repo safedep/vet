@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/safedep/vet/ent/reportpackage"
-	"github.com/safedep/vet/ent/reportslsaprovenance"
+	"github.com/safedep/vet/v2/ent/reportpackage"
+	"github.com/safedep/vet/v2/ent/reportslsaprovenance"
 )
 
 // ReportSlsaProvenance is the model entity for the ReportSlsaProvenance schema.

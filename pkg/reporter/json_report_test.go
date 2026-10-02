@@ -9,9 +9,9 @@ import (
 	"github.com/safedep/dry/api/pb"
 	"github.com/stretchr/testify/assert"
 
-	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
-	"github.com/safedep/vet/pkg/analyzer"
-	"github.com/safedep/vet/pkg/models"
+	jsonreportspec "github.com/safedep/vet/v2/gen/jsonreport"
+	"github.com/safedep/vet/v2/pkg/analyzer"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 // We are going to expose this as a contract eventually for other tools

@@ -6,7 +6,7 @@ import (
 
 	"github.com/bmatcuk/doublestar/v4"
 
-	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/common/logger"
 )
 
 const defaultApplicationName = "vet-scanned-project"

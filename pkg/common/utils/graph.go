@@ -5,7 +5,7 @@ import (
 
 	"github.com/safedep/dry/semver"
 
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 func FindDependencyGraphNodeBySemverRange(graph *models.DependencyGraph[*models.Package],

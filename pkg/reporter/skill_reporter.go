@@ -9,10 +9,10 @@ import (
 	"github.com/charmbracelet/glamour"
 	"github.com/jedib0t/go-pretty/v6/text"
 
-	"github.com/safedep/vet/pkg/analyzer"
-	"github.com/safedep/vet/pkg/malysis"
-	"github.com/safedep/vet/pkg/models"
-	"github.com/safedep/vet/pkg/policy"
+	"github.com/safedep/vet/v2/pkg/analyzer"
+	"github.com/safedep/vet/v2/pkg/malysis"
+	"github.com/safedep/vet/v2/pkg/models"
+	"github.com/safedep/vet/v2/pkg/policy"
 )
 
 // SkillReporterConfig configures the skill reporter

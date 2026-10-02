@@ -4,8 +4,8 @@ import (
 	"context"
 	"path/filepath"
 
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/readers"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/readers"
 )
 
 const (

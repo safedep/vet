@@ -10,9 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/safedep/vet/pkg/storage"
-	xbomsig "github.com/safedep/vet/pkg/xbom/signatures"
-	_ "github.com/safedep/vet/signatures" // triggers embed registration
+	"github.com/safedep/vet/v2/pkg/storage"
+	xbomsig "github.com/safedep/vet/v2/pkg/xbom/signatures"
+	_ "github.com/safedep/vet/v2/signatures" // triggers embed registration
 )
 
 func getAllLanguageCodes() []string {

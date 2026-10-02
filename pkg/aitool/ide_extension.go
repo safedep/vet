@@ -3,8 +3,8 @@ package aitool
 import (
 	"context"
 
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/readers"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/readers"
 )
 
 // ideExtensionApp is intentionally singular ("ide_extension"), distinct from

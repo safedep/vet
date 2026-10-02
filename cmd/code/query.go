@@ -6,11 +6,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/safedep/vet/internal/command"
-	pkgcode "github.com/safedep/vet/pkg/code"
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/storage"
-	xbomtui "github.com/safedep/vet/pkg/xbom/tui"
+	"github.com/safedep/vet/v2/internal/command"
+	pkgcode "github.com/safedep/vet/v2/pkg/code"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/storage"
+	xbomtui "github.com/safedep/vet/v2/pkg/xbom/tui"
 )
 
 var (

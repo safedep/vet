@@ -8,8 +8,8 @@ import (
 	"github.com/package-url/packageurl-go"
 	"github.com/spdx/tools-golang/spdx"
 
-	"github.com/safedep/vet/pkg/common/logger"
-	sbom_utils "github.com/safedep/vet/pkg/common/utils/sbom"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	sbom_utils "github.com/safedep/vet/v2/pkg/common/utils/sbom"
 )
 
 // Source from which PackageDetails will be created such as spdx, cyclone_dx, packagefile

@@ -4,7 +4,7 @@ import (
 	"github.com/safedep/code/core"
 	"github.com/safedep/code/lang"
 
-	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/common/logger"
 )
 
 func getAllLanguageCodeStrings() ([]string, error) {

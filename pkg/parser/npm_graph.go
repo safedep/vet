@@ -7,9 +7,9 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/common/utils"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/common/utils"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 // https://docs.npmjs.com/cli/v10/configuring-npm/package-json#license

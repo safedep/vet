@@ -6,8 +6,8 @@ package aitool
 import (
 	"fmt"
 
-	"github.com/safedep/vet/pkg/aitool"
-	"github.com/safedep/vet/pkg/inventory"
+	"github.com/safedep/vet/v2/pkg/aitool"
+	"github.com/safedep/vet/v2/pkg/inventory"
 )
 
 // Metadata keys mirror the canonical names used elsewhere in vet (see

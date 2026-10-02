@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/common/logger"
 )
 
 const defaultBaseURL = "https://clawhub.ai"

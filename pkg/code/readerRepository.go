@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/safedep/vet/ent"
-	"github.com/safedep/vet/ent/codesignaturematch"
-	"github.com/safedep/vet/ent/depsusageevidence"
+	"github.com/safedep/vet/v2/ent"
+	"github.com/safedep/vet/v2/ent/codesignaturematch"
+	"github.com/safedep/vet/v2/ent/depsusageevidence"
 )
 
 type readerRepositoryImpl struct {

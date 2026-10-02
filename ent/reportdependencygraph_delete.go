@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/safedep/vet/ent/predicate"
-	"github.com/safedep/vet/ent/reportdependencygraph"
+	"github.com/safedep/vet/v2/ent/predicate"
+	"github.com/safedep/vet/v2/ent/reportdependencygraph"
 )
 
 // ReportDependencyGraphDelete is the builder for deleting a ReportDependencyGraph entity.

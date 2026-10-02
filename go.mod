@@ -1,4 +1,4 @@
-module github.com/safedep/vet
+module github.com/safedep/vet/v2
 
 go 1.26.2
 

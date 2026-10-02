@@ -11,9 +11,9 @@ import (
 	"github.com/cli/oauth/device"
 	"github.com/spf13/cobra"
 
-	"github.com/safedep/vet/internal/connect"
-	"github.com/safedep/vet/internal/ui"
-	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/v2/internal/connect"
+	"github.com/safedep/vet/v2/internal/ui"
+	"github.com/safedep/vet/v2/pkg/common/logger"
 )
 
 func newConnectCommand() *cobra.Command {

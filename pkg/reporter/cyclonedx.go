@@ -12,17 +12,17 @@ import (
 	"github.com/google/uuid"
 	"github.com/safedep/dry/utils"
 
-	"github.com/safedep/vet/ent"
-	"github.com/safedep/vet/gen/insightapi"
-	"github.com/safedep/vet/pkg/analyzer"
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/common/utils/regex"
-	sbomUtils "github.com/safedep/vet/pkg/common/utils/sbom"
-	"github.com/safedep/vet/pkg/malysis"
-	"github.com/safedep/vet/pkg/models"
-	"github.com/safedep/vet/pkg/policy"
-	"github.com/safedep/vet/pkg/readers"
-	xbomsig "github.com/safedep/vet/pkg/xbom/signatures"
+	"github.com/safedep/vet/v2/ent"
+	"github.com/safedep/vet/v2/gen/insightapi"
+	"github.com/safedep/vet/v2/pkg/analyzer"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/common/utils/regex"
+	sbomUtils "github.com/safedep/vet/v2/pkg/common/utils/sbom"
+	"github.com/safedep/vet/v2/pkg/malysis"
+	"github.com/safedep/vet/v2/pkg/models"
+	"github.com/safedep/vet/v2/pkg/policy"
+	"github.com/safedep/vet/v2/pkg/readers"
+	xbomsig "github.com/safedep/vet/v2/pkg/xbom/signatures"
 )
 
 // CycloneDXReporterConfig contains configuration parameters for the CycloneDX reporter

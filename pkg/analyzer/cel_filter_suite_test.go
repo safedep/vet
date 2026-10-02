@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/safedep/vet/gen/checks"
-	"github.com/safedep/vet/gen/filtersuite"
+	"github.com/safedep/vet/v2/gen/checks"
+	"github.com/safedep/vet/v2/gen/filtersuite"
 )
 
 func TestLoadFilterSuiteFromFile(t *testing.T) {

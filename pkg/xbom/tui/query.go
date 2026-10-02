@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/term"
 
-	"github.com/safedep/vet/ent"
+	"github.com/safedep/vet/v2/ent"
 )
 
 // QueryResultRenderer renders code query results to stdout using

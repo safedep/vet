@@ -3,7 +3,7 @@ package signatures
 import (
 	"embed"
 
-	pkgsignatures "github.com/safedep/vet/pkg/xbom/signatures"
+	pkgsignatures "github.com/safedep/vet/v2/pkg/xbom/signatures"
 )
 
 //go:embed lang openai anthropic langchain crewai google microsoft cryptography github aws modelcontextprotocol xai mistralai cohere groq ollama huggingface togetherai fireworks perplexity vercel pydantic llamaindex mastra spring alibaba deepset agno

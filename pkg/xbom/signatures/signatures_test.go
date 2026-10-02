@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	signatures "github.com/safedep/vet/pkg/xbom/signatures"
-	_ "github.com/safedep/vet/signatures" // triggers embed registration
+	signatures "github.com/safedep/vet/v2/pkg/xbom/signatures"
+	_ "github.com/safedep/vet/v2/signatures" // triggers embed registration
 )
 
 func TestLoadAllSignatures(t *testing.T) {

@@ -8,9 +8,9 @@ import (
 
 	"github.com/google/osv-scanner/pkg/lockfile"
 
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/models"
-	"github.com/safedep/vet/pkg/parser/custom/py"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/models"
+	"github.com/safedep/vet/v2/pkg/parser/custom/py"
 )
 
 const (

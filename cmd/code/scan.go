@@ -9,15 +9,15 @@ import (
 	"github.com/safedep/code/core"
 	"github.com/spf13/cobra"
 
-	"github.com/safedep/vet/ent"
-	"github.com/safedep/vet/internal/command"
-	"github.com/safedep/vet/internal/ui"
-	"github.com/safedep/vet/pkg/code"
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/storage"
-	xbomsig "github.com/safedep/vet/pkg/xbom/signatures"
-	xbomtui "github.com/safedep/vet/pkg/xbom/tui"
-	_ "github.com/safedep/vet/signatures" // triggers embed registration
+	"github.com/safedep/vet/v2/ent"
+	"github.com/safedep/vet/v2/internal/command"
+	"github.com/safedep/vet/v2/internal/ui"
+	"github.com/safedep/vet/v2/pkg/code"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/storage"
+	xbomsig "github.com/safedep/vet/v2/pkg/xbom/signatures"
+	xbomtui "github.com/safedep/vet/v2/pkg/xbom/tui"
+	_ "github.com/safedep/vet/v2/signatures" // triggers embed registration
 )
 
 var (

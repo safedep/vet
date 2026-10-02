@@ -3,19 +3,19 @@
 package ent
 
 import (
-	"github.com/safedep/vet/ent/codesignaturematch"
-	"github.com/safedep/vet/ent/codesourcefile"
-	"github.com/safedep/vet/ent/depsusageevidence"
-	"github.com/safedep/vet/ent/reportdependency"
-	"github.com/safedep/vet/ent/reportdependencygraph"
-	"github.com/safedep/vet/ent/reportlicense"
-	"github.com/safedep/vet/ent/reportmalware"
-	"github.com/safedep/vet/ent/reportpackage"
-	"github.com/safedep/vet/ent/reportpackagemanifest"
-	"github.com/safedep/vet/ent/reportproject"
-	"github.com/safedep/vet/ent/reportslsaprovenance"
-	"github.com/safedep/vet/ent/reportvulnerability"
-	"github.com/safedep/vet/ent/schema"
+	"github.com/safedep/vet/v2/ent/codesignaturematch"
+	"github.com/safedep/vet/v2/ent/codesourcefile"
+	"github.com/safedep/vet/v2/ent/depsusageevidence"
+	"github.com/safedep/vet/v2/ent/reportdependency"
+	"github.com/safedep/vet/v2/ent/reportdependencygraph"
+	"github.com/safedep/vet/v2/ent/reportlicense"
+	"github.com/safedep/vet/v2/ent/reportmalware"
+	"github.com/safedep/vet/v2/ent/reportpackage"
+	"github.com/safedep/vet/v2/ent/reportpackagemanifest"
+	"github.com/safedep/vet/v2/ent/reportproject"
+	"github.com/safedep/vet/v2/ent/reportslsaprovenance"
+	"github.com/safedep/vet/v2/ent/reportvulnerability"
+	"github.com/safedep/vet/v2/ent/schema"
 )
 
 // The init function reads all schema descriptors with runtime code

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/safedep/vet/pkg/aitool"
-	"github.com/safedep/vet/pkg/inventory"
+	"github.com/safedep/vet/v2/pkg/aitool"
+	"github.com/safedep/vet/v2/pkg/inventory"
 )
 
 // scannerName is the stable, log-safe identifier exposed via Scanner.Name.

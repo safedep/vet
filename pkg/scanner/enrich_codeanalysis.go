@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/safedep/vet/pkg/code"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/code"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 type CodeAnalysisEnricherConfig struct {

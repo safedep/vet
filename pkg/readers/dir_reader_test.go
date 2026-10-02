@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/safedep/vet/pkg/models"
-	"github.com/safedep/vet/pkg/parser"
+	"github.com/safedep/vet/v2/pkg/models"
+	"github.com/safedep/vet/v2/pkg/parser"
 )
 
 // mavenResolutionAvailable resolves a fixture pom.xml through the same parser

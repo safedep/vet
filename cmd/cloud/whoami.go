@@ -6,10 +6,10 @@ import (
 	controltowerv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
 	"github.com/spf13/cobra"
 
-	"github.com/safedep/vet/internal/auth"
-	"github.com/safedep/vet/internal/command"
-	"github.com/safedep/vet/internal/ui"
-	"github.com/safedep/vet/pkg/cloud"
+	"github.com/safedep/vet/v2/internal/auth"
+	"github.com/safedep/vet/v2/internal/command"
+	"github.com/safedep/vet/v2/internal/ui"
+	"github.com/safedep/vet/v2/pkg/cloud"
 )
 
 func newWhoamiCommand() *cobra.Command {

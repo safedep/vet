@@ -12,16 +12,16 @@ import (
 	"github.com/safedep/dry/log"
 	"github.com/safedep/dry/reporting/markdown"
 
-	"github.com/safedep/vet/gen/checks"
-	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
-	specmodels "github.com/safedep/vet/gen/models"
-	"github.com/safedep/vet/gen/violations"
-	"github.com/safedep/vet/pkg/analyzer"
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/malysis"
-	"github.com/safedep/vet/pkg/models"
-	"github.com/safedep/vet/pkg/policy"
-	"github.com/safedep/vet/pkg/readers"
+	"github.com/safedep/vet/v2/gen/checks"
+	jsonreportspec "github.com/safedep/vet/v2/gen/jsonreport"
+	specmodels "github.com/safedep/vet/v2/gen/models"
+	"github.com/safedep/vet/v2/gen/violations"
+	"github.com/safedep/vet/v2/pkg/analyzer"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/malysis"
+	"github.com/safedep/vet/v2/pkg/models"
+	"github.com/safedep/vet/v2/pkg/policy"
+	"github.com/safedep/vet/v2/pkg/readers"
 )
 
 const (

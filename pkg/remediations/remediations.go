@@ -6,10 +6,10 @@ import (
 
 	"github.com/safedep/dry/utils"
 
-	"github.com/safedep/vet/gen/checks"
-	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
-	"github.com/safedep/vet/gen/violations"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/gen/checks"
+	jsonreportspec "github.com/safedep/vet/v2/gen/jsonreport"
+	"github.com/safedep/vet/v2/gen/violations"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 type RemediationGenerator interface {

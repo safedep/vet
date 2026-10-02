@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/safedep/vet/gen/exceptionsapi"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/gen/exceptionsapi"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 var jitter = 5 * time.Second

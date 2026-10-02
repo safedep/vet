@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/safedep/vet/ent/reportdependency"
-	"github.com/safedep/vet/ent/reportpackage"
+	"github.com/safedep/vet/v2/ent/reportdependency"
+	"github.com/safedep/vet/v2/ent/reportpackage"
 )
 
 // ReportDependency is the model entity for the ReportDependency schema.

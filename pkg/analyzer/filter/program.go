@@ -3,7 +3,7 @@ package filter
 import (
 	"github.com/google/cel-go/cel"
 
-	"github.com/safedep/vet/gen/filtersuite"
+	"github.com/safedep/vet/v2/gen/filtersuite"
 )
 
 // Holds a filter and its compiled CEL program

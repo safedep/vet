@@ -8,8 +8,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/safedep/vet/ent/codesourcefile"
-	"github.com/safedep/vet/ent/depsusageevidence"
+	"github.com/safedep/vet/v2/ent/codesourcefile"
+	"github.com/safedep/vet/v2/ent/depsusageevidence"
 )
 
 // DepsUsageEvidence is the model entity for the DepsUsageEvidence schema.

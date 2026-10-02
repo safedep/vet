@@ -3,7 +3,7 @@ package command
 import (
 	"os"
 
-	"github.com/safedep/vet/internal/ui"
+	"github.com/safedep/vet/v2/internal/ui"
 )
 
 func FailOnError(stage string, err error) {

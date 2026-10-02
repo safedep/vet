@@ -10,9 +10,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/safedep/vet/ent/codesourcefile"
-	"github.com/safedep/vet/ent/depsusageevidence"
-	"github.com/safedep/vet/ent/predicate"
+	"github.com/safedep/vet/v2/ent/codesourcefile"
+	"github.com/safedep/vet/v2/ent/depsusageevidence"
+	"github.com/safedep/vet/v2/ent/predicate"
 )
 
 // DepsUsageEvidenceUpdate is the builder for updating DepsUsageEvidence entities.

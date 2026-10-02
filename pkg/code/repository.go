@@ -5,7 +5,7 @@ import (
 
 	"github.com/safedep/code/plugin/depsusage"
 
-	"github.com/safedep/vet/ent"
+	"github.com/safedep/vet/v2/ent"
 )
 
 // SignatureMatchData holds the flattened data for a single signature match occurrence.

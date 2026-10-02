@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/safedep/vet/ent/reportdependencygraph"
+	"github.com/safedep/vet/v2/ent/reportdependencygraph"
 )
 
 // ReportDependencyGraph is the model entity for the ReportDependencyGraph schema.

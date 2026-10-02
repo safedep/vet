@@ -8,9 +8,9 @@ import (
 	"github.com/anchore/syft/syft/pkg/cataloger/java"
 	"github.com/anchore/syft/syft/source/filesource"
 
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/common/purl"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/common/purl"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 func parseJavaArchiveAsGraph(path string, config *ParserConfig) (*models.PackageManifest, error) {

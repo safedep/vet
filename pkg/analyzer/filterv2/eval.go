@@ -17,9 +17,9 @@ import (
 	"github.com/google/cel-go/common/types/traits"
 	"github.com/google/cel-go/ext"
 
-	"github.com/safedep/vet/pkg/common/clock"
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/common/clock"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 const (

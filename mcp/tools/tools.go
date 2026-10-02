@@ -1,8 +1,8 @@
 package tools
 
 import (
-	"github.com/safedep/vet/mcp"
-	"github.com/safedep/vet/mcp/server"
+	"github.com/safedep/vet/v2/mcp"
+	"github.com/safedep/vet/v2/mcp/server"
 )
 
 func RegisterAll(server server.McpServer, driver mcp.Driver) error {

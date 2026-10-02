@@ -7,10 +7,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/safedep/vet/agent"
-	"github.com/safedep/vet/internal/analytics"
-	"github.com/safedep/vet/internal/command"
-	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/v2/agent"
+	"github.com/safedep/vet/v2/internal/analytics"
+	"github.com/safedep/vet/v2/internal/command"
+	"github.com/safedep/vet/v2/pkg/common/logger"
 )
 
 //go:embed query_prompt.md

@@ -12,9 +12,9 @@ import (
 	"github.com/safedep/dry/adapters"
 	"gopkg.in/yaml.v3"
 
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/common/utils"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/common/utils"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 const ghaPinAnalyzerName = "GHAPinAnalyzer"

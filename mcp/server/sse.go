@@ -5,7 +5,7 @@ import (
 
 	"github.com/mark3labs/mcp-go/server"
 
-	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/common/logger"
 )
 
 // sseHandlerWithHeadSupport wraps the SSE handler to add support for HTTP HEAD requests.

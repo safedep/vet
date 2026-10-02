@@ -5,8 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/safedep/vet/internal/auth"
-	"github.com/safedep/vet/internal/ui"
+	"github.com/safedep/vet/v2/internal/auth"
+	"github.com/safedep/vet/v2/internal/ui"
 )
 
 var (

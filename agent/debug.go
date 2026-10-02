@@ -10,7 +10,7 @@ import (
 
 	"github.com/cloudwego/eino/schema"
 
-	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/common/logger"
 )
 
 func (a *reactQueryAgent) newDebugPromptDumper(dir string) func(context.Context, []*schema.Message) []*schema.Message {

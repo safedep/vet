@@ -8,10 +8,10 @@ import (
 	tuierrors "github.com/safedep/dry/tui/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/safedep/vet/internal/auth"
-	"github.com/safedep/vet/internal/command"
-	"github.com/safedep/vet/internal/ui"
-	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/v2/internal/auth"
+	"github.com/safedep/vet/v2/internal/command"
+	"github.com/safedep/vet/v2/internal/ui"
+	"github.com/safedep/vet/v2/pkg/common/logger"
 )
 
 var authTenantDomain string

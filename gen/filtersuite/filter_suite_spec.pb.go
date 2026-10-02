@@ -7,7 +7,7 @@
 package filtersuite
 
 import (
-	checks "github.com/safedep/vet/gen/checks"
+	checks "github.com/safedep/vet/v2/gen/checks"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"

@@ -11,9 +11,9 @@ import (
 	"github.com/safedep/dry/semver"
 	"google.golang.org/grpc"
 
-	"github.com/safedep/vet/gen/insightapi"
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/gen/insightapi"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 type insightsBasedPackageEnricherV2 struct {

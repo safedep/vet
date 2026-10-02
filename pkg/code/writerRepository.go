@@ -6,8 +6,8 @@ import (
 
 	"github.com/safedep/code/plugin/depsusage"
 
-	"github.com/safedep/vet/ent"
-	"github.com/safedep/vet/ent/codesourcefile"
+	"github.com/safedep/vet/v2/ent"
+	"github.com/safedep/vet/v2/ent/codesourcefile"
 )
 
 func (r *writerRepositoryImpl) getOrCreateSourceFile(ctx context.Context, filePath string) (*ent.CodeSourceFile, error) {

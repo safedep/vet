@@ -12,9 +12,9 @@ import (
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	"github.com/google/osv-scanner/pkg/lockfile"
 
-	"github.com/safedep/vet/ent"
-	"github.com/safedep/vet/gen/insightapi"
-	modelspec "github.com/safedep/vet/gen/models"
+	"github.com/safedep/vet/v2/ent"
+	"github.com/safedep/vet/v2/gen/insightapi"
+	modelspec "github.com/safedep/vet/v2/gen/models"
 )
 
 const (

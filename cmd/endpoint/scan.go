@@ -21,14 +21,14 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 
-	"github.com/safedep/vet/internal/auth"
-	"github.com/safedep/vet/internal/command"
-	"github.com/safedep/vet/internal/ui"
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/inventory"
-	"github.com/safedep/vet/pkg/inventory/scanners"
-	cloudsink "github.com/safedep/vet/pkg/inventory/sinks/cloud"
-	localsink "github.com/safedep/vet/pkg/inventory/sinks/local"
+	"github.com/safedep/vet/v2/internal/auth"
+	"github.com/safedep/vet/v2/internal/command"
+	"github.com/safedep/vet/v2/internal/ui"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/inventory"
+	"github.com/safedep/vet/v2/pkg/inventory/scanners"
+	cloudsink "github.com/safedep/vet/v2/pkg/inventory/sinks/cloud"
+	localsink "github.com/safedep/vet/v2/pkg/inventory/sinks/local"
 )
 
 // DefaultDrainTimeout is the default `--drain-timeout` value and the

@@ -3,8 +3,8 @@ package aitool
 import (
 	"strings"
 
-	"github.com/safedep/vet/pkg/models"
-	"github.com/safedep/vet/pkg/readers"
+	"github.com/safedep/vet/v2/pkg/models"
+	"github.com/safedep/vet/v2/pkg/readers"
 )
 
 // vsixManifestReader is the minimal interface needed by VSIX extension discoverers.

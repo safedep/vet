@@ -10,14 +10,14 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/safedep/vet/ent/reportdependency"
-	"github.com/safedep/vet/ent/reportlicense"
-	"github.com/safedep/vet/ent/reportmalware"
-	"github.com/safedep/vet/ent/reportpackage"
-	"github.com/safedep/vet/ent/reportpackagemanifest"
-	"github.com/safedep/vet/ent/reportproject"
-	"github.com/safedep/vet/ent/reportslsaprovenance"
-	"github.com/safedep/vet/ent/reportvulnerability"
+	"github.com/safedep/vet/v2/ent/reportdependency"
+	"github.com/safedep/vet/v2/ent/reportlicense"
+	"github.com/safedep/vet/v2/ent/reportmalware"
+	"github.com/safedep/vet/v2/ent/reportpackage"
+	"github.com/safedep/vet/v2/ent/reportpackagemanifest"
+	"github.com/safedep/vet/v2/ent/reportproject"
+	"github.com/safedep/vet/v2/ent/reportslsaprovenance"
+	"github.com/safedep/vet/v2/ent/reportvulnerability"
 )
 
 // ReportPackageCreate is the builder for creating a ReportPackage entity.

@@ -7,11 +7,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/safedep/vet/agent"
-	"github.com/safedep/vet/agent/tui"
-	"github.com/safedep/vet/internal/analytics"
-	"github.com/safedep/vet/pkg/clawhub"
-	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/v2/agent"
+	"github.com/safedep/vet/v2/agent/tui"
+	"github.com/safedep/vet/v2/internal/analytics"
+	"github.com/safedep/vet/v2/pkg/clawhub"
+	"github.com/safedep/vet/v2/pkg/common/logger"
 )
 
 //go:embed clawhub_scanner_prompt.md

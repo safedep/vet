@@ -8,9 +8,9 @@ import (
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/safedep/dry/utils"
 
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/common/purl"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/common/purl"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 func parseSbomCycloneDxAsGraph(path string, config *ParserConfig) (*models.PackageManifest, error) {

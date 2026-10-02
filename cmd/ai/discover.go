@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/safedep/vet/cmd/endpoint"
-	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/v2/cmd/endpoint"
+	"github.com/safedep/vet/v2/pkg/common/logger"
 )
 
 // runAITool is overridable so tests can capture the resolved Options

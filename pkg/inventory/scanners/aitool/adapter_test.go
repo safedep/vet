@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/safedep/vet/pkg/aitool"
-	"github.com/safedep/vet/pkg/inventory"
+	"github.com/safedep/vet/v2/pkg/aitool"
+	"github.com/safedep/vet/v2/pkg/inventory"
 )
 
 // fakeReader is a minimal aitool.AIToolReader used to seed a registry

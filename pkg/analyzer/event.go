@@ -3,8 +3,8 @@ package analyzer
 import (
 	"fmt"
 
-	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
-	"github.com/safedep/vet/pkg/models"
+	jsonreportspec "github.com/safedep/vet/v2/gen/jsonreport"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 func (ev *AnalyzerEvent) IsFailOnError() bool {

@@ -3,7 +3,7 @@ package server
 import (
 	"github.com/mark3labs/mcp-go/server"
 
-	"github.com/safedep/vet/mcp"
+	"github.com/safedep/vet/v2/mcp"
 )
 
 type McpServerConfig struct {

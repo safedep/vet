@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/safedep/vet/ent"
+	"github.com/safedep/vet/v2/ent"
 )
 
 func newTestRenderer(width int) *QueryResultRenderer {

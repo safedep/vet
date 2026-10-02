@@ -10,7 +10,7 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/safedep/vet/mcp"
+	"github.com/safedep/vet/v2/mcp"
 )
 
 type vetSqlQueryTool struct {

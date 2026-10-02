@@ -8,8 +8,8 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 type uvLockPackage struct {

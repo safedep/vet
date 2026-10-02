@@ -12,9 +12,9 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 
-	"github.com/safedep/vet/internal/auth"
-	"github.com/safedep/vet/internal/ui"
-	"github.com/safedep/vet/pkg/cloud"
+	"github.com/safedep/vet/v2/internal/auth"
+	"github.com/safedep/vet/v2/internal/ui"
+	"github.com/safedep/vet/v2/pkg/cloud"
 )
 
 func newCloudQuickstartCommand() *cobra.Command {

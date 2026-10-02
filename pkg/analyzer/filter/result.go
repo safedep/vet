@@ -1,6 +1,6 @@
 package filter
 
-import "github.com/safedep/vet/gen/filtersuite"
+import "github.com/safedep/vet/v2/gen/filtersuite"
 
 type filterEvaluationResult struct {
 	match   bool

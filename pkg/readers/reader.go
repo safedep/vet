@@ -5,7 +5,7 @@
 // [TDD]: https://github.com/safedep/vet/issues/21#issuecomment-1499633233
 package readers
 
-import "github.com/safedep/vet/pkg/models"
+import "github.com/safedep/vet/v2/pkg/models"
 
 type PackageManifestHandlerFn func(*models.PackageManifest, PackageReader) error
 

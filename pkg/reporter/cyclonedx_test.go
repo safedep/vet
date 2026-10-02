@@ -11,8 +11,8 @@ import (
 	"github.com/safedep/dry/utils"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/safedep/vet/gen/insightapi"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/gen/insightapi"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 var cdxTestToolMetaData = ToolMetadata{

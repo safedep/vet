@@ -10,9 +10,9 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/safedep/vet/ent/reportpackage"
-	"github.com/safedep/vet/ent/reportproject"
-	"github.com/safedep/vet/ent/reportscorecard"
+	"github.com/safedep/vet/v2/ent/reportpackage"
+	"github.com/safedep/vet/v2/ent/reportproject"
+	"github.com/safedep/vet/v2/ent/reportscorecard"
 )
 
 // ReportProjectCreate is the builder for creating a ReportProject entity.

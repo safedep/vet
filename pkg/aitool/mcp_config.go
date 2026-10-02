@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/common/logger"
 )
 
 // mcpServerEntry represents a single MCP server entry in an app config file.

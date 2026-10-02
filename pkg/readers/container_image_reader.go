@@ -17,8 +17,8 @@ import (
 	"github.com/google/osv-scalibr/plugin"
 	pluginlist "github.com/google/osv-scalibr/plugin/list"
 
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 type ContainerImageReaderConfig struct {

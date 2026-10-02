@@ -6,10 +6,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/safedep/vet/gen/filtersuite"
-	"github.com/safedep/vet/gen/insightapi"
-	"github.com/safedep/vet/pkg/common/clock"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/gen/filtersuite"
+	"github.com/safedep/vet/v2/gen/insightapi"
+	"github.com/safedep/vet/v2/pkg/common/clock"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 func TestEvaluatorLicenseExpression(t *testing.T) {

@@ -8,7 +8,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/safedep/vet/ent"
+	"github.com/safedep/vet/v2/ent"
 )
 
 type EntSqliteClientConfig struct {

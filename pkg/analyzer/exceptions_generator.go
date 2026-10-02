@@ -8,12 +8,12 @@ import (
 	"github.com/safedep/dry/api/pb"
 	"github.com/safedep/dry/utils"
 
-	"github.com/safedep/vet/gen/exceptionsapi"
-	"github.com/safedep/vet/gen/filtersuite"
-	"github.com/safedep/vet/pkg/analyzer/filter"
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/models"
-	"github.com/safedep/vet/pkg/readers"
+	"github.com/safedep/vet/v2/gen/exceptionsapi"
+	"github.com/safedep/vet/v2/gen/filtersuite"
+	"github.com/safedep/vet/v2/pkg/analyzer/filter"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/models"
+	"github.com/safedep/vet/v2/pkg/readers"
 )
 
 type exceptionsGenerator struct {

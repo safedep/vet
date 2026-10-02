@@ -5,7 +5,7 @@ import (
 
 	"github.com/safedep/dry/usefulerror"
 
-	"github.com/safedep/vet/pkg/cloud"
+	"github.com/safedep/vet/v2/pkg/cloud"
 )
 
 // Verify authentication to the data plane using

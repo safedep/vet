@@ -7,10 +7,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/safedep/vet/pkg/analyzer"
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/models"
-	"github.com/safedep/vet/pkg/policy"
+	"github.com/safedep/vet/v2/pkg/analyzer"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/models"
+	"github.com/safedep/vet/v2/pkg/policy"
 )
 
 var dotFileNameCleanerRegexp = regexp.MustCompile(`[^\w\d\.\-]`)

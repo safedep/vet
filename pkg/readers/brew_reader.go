@@ -8,8 +8,8 @@ import (
 
 	"github.com/google/osv-scanner/pkg/lockfile"
 
-	"github.com/safedep/vet/gen/insightapi"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/gen/insightapi"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 type brewReader struct {

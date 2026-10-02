@@ -9,7 +9,7 @@ import (
 	gocvss31 "github.com/pandatix/go-cvss/31"
 	gocvss40 "github.com/pandatix/go-cvss/40"
 
-	"github.com/safedep/vet/pkg/common/purl"
+	"github.com/safedep/vet/v2/pkg/common/purl"
 )
 
 // DEPRECATED: Use purl.PurlTypeToEcosystem directly

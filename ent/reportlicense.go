@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/safedep/vet/ent/reportlicense"
-	"github.com/safedep/vet/ent/reportpackage"
+	"github.com/safedep/vet/v2/ent/reportlicense"
+	"github.com/safedep/vet/v2/ent/reportpackage"
 )
 
 // ReportLicense is the model entity for the ReportLicense schema.

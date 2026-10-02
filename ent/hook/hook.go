@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/safedep/vet/ent"
+	"github.com/safedep/vet/v2/ent"
 )
 
 // The CodeSignatureMatchFunc type is an adapter to allow the use of ordinary

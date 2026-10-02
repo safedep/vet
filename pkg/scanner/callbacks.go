@@ -1,6 +1,6 @@
 package scanner
 
-import "github.com/safedep/vet/pkg/models"
+import "github.com/safedep/vet/v2/pkg/models"
 
 type ScannerCallbackOnManifestFn func(manifest *models.PackageManifest)
 

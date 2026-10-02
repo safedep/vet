@@ -8,7 +8,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/safedep/vet/ent/codesourcefile"
+	"github.com/safedep/vet/v2/ent/codesourcefile"
 )
 
 // CodeSourceFile is the model entity for the CodeSourceFile schema.

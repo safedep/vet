@@ -10,13 +10,13 @@ import (
 	scorecardv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/scorecard/v1"
 	vulnerabilityv1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/vulnerability/v1"
 
-	"github.com/safedep/vet/ent"
-	"github.com/safedep/vet/ent/reportpackage"
-	"github.com/safedep/vet/pkg/analyzer"
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/models"
-	"github.com/safedep/vet/pkg/policy"
-	"github.com/safedep/vet/pkg/storage"
+	"github.com/safedep/vet/v2/ent"
+	"github.com/safedep/vet/v2/ent/reportpackage"
+	"github.com/safedep/vet/v2/pkg/analyzer"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/models"
+	"github.com/safedep/vet/v2/pkg/policy"
+	"github.com/safedep/vet/v2/pkg/storage"
 )
 
 type Sqlite3ReporterConfig struct {

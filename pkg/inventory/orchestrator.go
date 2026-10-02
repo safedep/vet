@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/safedep/vet/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/common/logger"
 )
 
 // Orchestrator wires Scanners and Sinks into a single-goroutine producer

@@ -9,11 +9,11 @@ import (
 	"slices"
 	"strings"
 
-	jsonreportspec "github.com/safedep/vet/gen/jsonreport"
-	"github.com/safedep/vet/pkg/common/logger"
-	"github.com/safedep/vet/pkg/common/utils"
-	"github.com/safedep/vet/pkg/models"
-	"github.com/safedep/vet/pkg/readers"
+	jsonreportspec "github.com/safedep/vet/v2/gen/jsonreport"
+	"github.com/safedep/vet/v2/pkg/common/logger"
+	"github.com/safedep/vet/v2/pkg/common/utils"
+	"github.com/safedep/vet/v2/pkg/models"
+	"github.com/safedep/vet/v2/pkg/readers"
 )
 
 const npmRegistryTrustedUrlBase = "https://registry.npmjs.org"

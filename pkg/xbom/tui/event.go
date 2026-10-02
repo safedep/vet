@@ -13,7 +13,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"golang.org/x/term"
 
-	"github.com/safedep/vet/pkg/code"
+	"github.com/safedep/vet/v2/pkg/code"
 )
 
 // Internal bubbletea messages.

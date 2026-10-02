@@ -10,7 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/safedep/vet/ent/reportdependencygraph"
+	"github.com/safedep/vet/v2/ent/reportdependencygraph"
 )
 
 // ReportDependencyGraphCreate is the builder for creating a ReportDependencyGraph entity.

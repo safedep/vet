@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/safedep/vet/gen/insightapi"
-	"github.com/safedep/vet/gen/models"
+	"github.com/safedep/vet/v2/gen/insightapi"
+	"github.com/safedep/vet/v2/gen/models"
 )
 
 func TestInsightsVulnerabilitySeverityToModelSeverity(t *testing.T) {

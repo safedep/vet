@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"hash/fnv"
 
-	"github.com/safedep/vet/pkg/inventory"
+	"github.com/safedep/vet/v2/pkg/inventory"
 )
 
 // skill is the internal representation of a single discovered skill directory.

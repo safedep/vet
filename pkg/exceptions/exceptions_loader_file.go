@@ -8,7 +8,7 @@ import (
 
 	"github.com/safedep/dry/api/pb"
 
-	"github.com/safedep/vet/gen/exceptionsapi"
+	"github.com/safedep/vet/v2/gen/exceptionsapi"
 )
 
 type exceptionsFileLoader struct {

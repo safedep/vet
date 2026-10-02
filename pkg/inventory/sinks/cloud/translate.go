@@ -9,8 +9,8 @@ import (
 	controltowerv1pb "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 
-	"github.com/safedep/vet/pkg/inventory"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/inventory"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 // itemToVetEvent wraps a single inventory item in a VetInventoryEvent

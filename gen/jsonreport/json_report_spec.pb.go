@@ -7,8 +7,8 @@
 package jsonreportspec
 
 import (
-	models "github.com/safedep/vet/gen/models"
-	violations "github.com/safedep/vet/gen/violations"
+	models "github.com/safedep/vet/v2/gen/models"
+	violations "github.com/safedep/vet/v2/gen/violations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"

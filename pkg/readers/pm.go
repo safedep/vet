@@ -1,8 +1,8 @@
 package readers
 
 import (
-	"github.com/safedep/vet/pkg/exceptions"
-	"github.com/safedep/vet/pkg/models"
+	"github.com/safedep/vet/v2/pkg/exceptions"
+	"github.com/safedep/vet/v2/pkg/models"
 )
 
 type packageManifestModelReader struct {
