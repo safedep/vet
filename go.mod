@@ -29,7 +29,7 @@ require (
 	github.com/gojek/heimdall v5.0.2+incompatible
 	github.com/gojek/heimdall/v7 v7.1.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
-	github.com/google/cel-go v0.27.0
+	github.com/google/cel-go v0.28.0
 	github.com/google/go-github/v70 v70.0.0
 	github.com/google/osv-scalibr v0.4.4
 	github.com/google/osv-scanner v1.9.2
@@ -44,7 +44,7 @@ require (
 	github.com/pandatix/go-cvss v0.6.2
 	github.com/posthog/posthog-go v1.10.0
 	github.com/safedep/code v0.0.0-20260224174612-abe896956bc1
-	github.com/safedep/dry v0.0.0-20260430094716-037c59666d04
+	github.com/safedep/dry v0.0.0-20261002073351-d0ae33065533
 	github.com/sirupsen/logrus v1.9.4
 	github.com/smacker/go-tree-sitter v0.0.0-20240827094217-dd81d9e9be82
 	github.com/spdx/tools-golang v0.5.7
@@ -62,7 +62,7 @@ require (
 	ariga.io/atlas v1.1.0 // indirect
 	bitbucket.org/creachadair/stringset v0.0.14 // indirect
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.12-20260415201107-50325440f8f2.1 // indirect
-	buf.build/go/protovalidate v1.1.3 // indirect
+	buf.build/go/protovalidate v1.2.0 // indirect
 	cel.dev/expr v0.25.2 // indirect
 	cloud.google.com/go v0.123.0 // indirect
 	cloud.google.com/go/auth v0.18.2 // indirect
