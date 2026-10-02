@@ -356,3 +356,16 @@
   tier: P1
   guarantee: "vet config validate exits 2 on an unknown key. A scan only warns."
   labels: [config]
+# --- 4.9 Live rows. They call production and run with ACCEPTANCE_LIVE=1 only. ---
+- id: live/malware/known-malicious
+  title: "live: known malicious package"
+  category: live
+  tier: P0
+  guarantee: "A scan of safedep-test-pkg@0.1.3 (npm) against production gives a malware finding."
+  labels: [live, malware]
+- id: live/scan/vet-scans-vet
+  title: "live: vet scans its own go.mod"
+  category: live
+  tier: P1
+  guarantee: "A scan of the go.mod of vet completes against production with exit 0."
+  labels: [live]

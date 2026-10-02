@@ -85,13 +85,22 @@ A fixture holds the protojson of the response. The ecosystem is the enum name wi
 | `capture <var> <regexp> [file]` | Keep a value, such as a scan id, from stdout or a file. |
 | `jsonq <file\|stdout> <query> <want>` | Assert one field of a JSON document or of a JSON line. The query is a dotted path, for example `trailer.gate.outcome` or `records.-1.kind`. `len` gives a length. A JSON lines file is an array of its lines. |
 | `reportcheck <file\|stdout>` | Check the framing of a `-o json` or `-o jsonl` report: header first, trailer last, `record_count` right. It sets `$RECORDS`. |
-| `stub delay\|fail\|calls\|stop ...` | Control the stub server: slow each answer, fail a service (`insights`, `malysis`, `github`) with a gRPC code, assert the number of calls, or stop it. |
+| `stub delay\|fail\|calls\|stop ...` | Control the stub server: slow each answer, fail a service (`insights`, `malysis`, `github`) with a gRPC code, assert the number of calls, or stop it. `calls` also counts `other` (a call to a service that the stub does not serve) and `authenticated` (a request with an authorization header). |
+| `sleep <duration>` | Wait, for example before a signal. |
+| `schemacheck <schema> <file\|stdout>` | Validate a JSON document against a JSON Schema file. |
+| `mode <path> <octal>` | Assert the permission bits of a file or a directory. Unix only. |
+| `imagetar <out.tar> <ref> <dir>` | Write an image tarball with one layer that holds the files of a directory. |
 
 | Condition | True when |
 | --- | --- |
 | `unix` | The OS is not Windows. Use it for file modes and signals. |
 | `git` | The `git` binary is on `PATH`. |
-| `docker` | The `docker` binary is on `PATH`. |
+| `docker` | A Docker daemon answers `docker info`. |
 | `live` | `ACCEPTANCE_LIVE=1` is set. |
+
+A script under `scripts/live/` gets no stub server. It calls production with the host
+`SAFEDEP_API_KEY` and `SAFEDEP_TENANT_ID`, when they are set. `$VET_SRC` is the root of the vet source
+tree. `.github/workflows/acceptance.yml` runs the whole suite with `ACCEPTANCE_LIVE=1` each night, on
+dispatch and as an advisory check on pull requests into `v2`.
 
 Assert coarse, stable facts: an exit code, a field, a record count.

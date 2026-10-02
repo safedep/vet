@@ -17,6 +17,8 @@ import (
 
 func TestAcceptance(t *testing.T) {
 	binDir := buildVet(t)
+	srcDir, err := filepath.Abs(filepath.Join("..", ".."))
+	require.NoError(t, err)
 
 	cat, err := LoadCatalog("catalog.yaml")
 	require.NoError(t, err)
@@ -52,11 +54,15 @@ func TestAcceptance(t *testing.T) {
 				Files: byDir[relDir],
 				Setup: func(env *testscript.Env) error {
 					env.Setenv("PATH", binDir+string(os.PathListSeparator)+env.Getenv("PATH"))
-					if category == "live" {
-						ForwardEnv(env, "SAFEDEP_API_KEY", "SAFEDEP_TENANT_ID")
-					}
 					if err := Sandbox(env); err != nil {
 						return err
+					}
+					if category == "live" {
+						// A live script calls production, so it gets the host
+						// credentials, the source tree and no stub.
+						ForwardEnv(env, "SAFEDEP_API_KEY", "SAFEDEP_TENANT_ID")
+						env.Setenv("VET_SRC", srcDir)
+						return nil
 					}
 					return StartStub(env, "stub/fixtures")
 				},
