@@ -79,7 +79,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 	if err != nil {
 		return err
 	}
-	outs, err := Outputs(cfg, a.Globals.Output, o.Reports)
+	outs, err := Outputs(cfg, a.Globals.Output, o.Reports, nil)
 	if err != nil {
 		return err
 	}
@@ -210,8 +210,9 @@ func Render(ctx context.Context, r plugin.Report, v *view.Scan, outs []engine.Ou
 }
 
 // Outputs builds the destinations of -o and --report. The options of a
-// format come from plugins.<format>.options.
-func Outputs(cfg *config.Config, out string, reports []string) ([]engine.Output, error) {
+// format come from plugins.<format>.options, then from extra, which holds
+// the options that a flag sets.
+func Outputs(cfg *config.Config, out string, reports []string, extra map[string]map[string]any) ([]engine.Output, error) {
 	reg := sinks.Builtin()
 	dests, err := reg.Destinations(out, reports, output.CurrentMode())
 	if err != nil {
@@ -219,7 +220,14 @@ func Outputs(cfg *config.Config, out string, reports []string) ([]engine.Output,
 	}
 	outs := make([]engine.Output, 0, len(dests))
 	for _, d := range dests {
-		s, err := reg.New(d.Format, plugin.MapConfig(cfg.PluginOptions(d.Format)))
+		opts := map[string]any{}
+		for k, v := range cfg.PluginOptions(d.Format) {
+			opts[k] = v
+		}
+		for k, v := range extra[d.Format] {
+			opts[k] = v
+		}
+		s, err := reg.New(d.Format, plugin.MapConfig(opts))
 		if err != nil {
 			return nil, app.UsageError(err.Error(), "Fix the option in the config file.")
 		}

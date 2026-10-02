@@ -1,0 +1,22 @@
+# vet report show --policy applies a policy to the last scan with no new
+# scan. The saved scan keeps its gate.
+cd proj
+exec vet scan . --mode plain -o plain --report json=$WORK/vet.json
+stub stop
+execexit 1 vet report show --mode plain -o plain --policy $WORK/policy.yml
+stderr 'Gate failed: .*policy rule no-malware'
+exec vet report show --mode plain -o json
+jsonq stdout trailer.gate.outcome NONE
+
+cd $WORK
+execexit 1 vet report show vet.json --mode plain -o plain --fail-on critical
+stderr 'Gate failed: 1 finding at critical or above'
+
+-- policy.yml --
+version: 2
+rules:
+  - id: no-malware
+    when: finding.control_id == "malware"
+    action: fail
+-- proj/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3"}}, "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"}}}

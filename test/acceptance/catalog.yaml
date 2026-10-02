@@ -236,3 +236,9 @@
   tier: P1
   guarantee: "vet scan --resume with no interrupted scan exits 2."
   labels: [state]
+- id: report/show/policy-saved-scan
+  title: "report show applies a policy to a saved scan"
+  category: report
+  tier: P1
+  guarantee: "vet report show --policy FILE evaluates a policy against the last scan with no new scan."
+  labels: [report, gate]

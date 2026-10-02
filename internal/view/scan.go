@@ -25,6 +25,8 @@ type Options struct {
 	// Animate shows a live progress bar in rich mode. The command sets it
 	// when stderr is a terminal.
 	Animate bool
+	// Saved renders a saved report: there is no start line and no stage.
+	Saved bool
 }
 
 // Scan is the stderr view of one scan. It implements engine.Observer.
@@ -61,13 +63,12 @@ func NewScan(o Options) *Scan {
 	if o.BaseRef != "" {
 		mode = "delta"
 	}
-	switch v.mode {
-	case output.Agent:
+	switch {
+	case o.Saved:
+	case v.mode == output.Agent:
 		v.line(fmt.Sprintf("INFO: scan started target=%s mode=%s", field(o.Target), mode))
-	default:
-		if o.BaseRef != "" {
-			v.line(style.Info(fmt.Sprintf("Comparing HEAD with %s", escape.Line(o.BaseRef))))
-		}
+	case o.BaseRef != "":
+		v.line(style.Info(fmt.Sprintf("Comparing HEAD with %s", escape.Line(o.BaseRef))))
 	}
 	return v
 }

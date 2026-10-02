@@ -33,8 +33,12 @@ const CodeUsage = "usage_invalid"
 var usagePrefixes = []string{"usage_", "config_", "state_dir_", "credentials_", "policy_invalid"}
 
 // UsageError returns a usage error with a message and a help text.
-func UsageError(msg, help string) error {
-	return usefulerror.NewUsefulError().WithCode(CodeUsage).WithHumanError(msg).WithHelp(help).WithMsg(msg)
+func UsageError(msg, help string) error { return UsageErrorCode(CodeUsage, msg, help) }
+
+// UsageErrorCode returns a usage error with its own code. The code must
+// start with "usage_", so that the command exits with code 2.
+func UsageErrorCode(code, msg, help string) error {
+	return usefulerror.NewUsefulError().WithCode(code).WithHumanError(msg).WithHelp(help).WithMsg(msg)
 }
 
 // ExitCode maps an error of a command to its exit code.
