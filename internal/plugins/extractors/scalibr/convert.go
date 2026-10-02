@@ -125,7 +125,7 @@ func toPackage(sp *extractor.Package) (*model.Package, error) {
 	if pu == nil {
 		return nil, fmt.Errorf("package %s@%s has no PURL", sp.Name, sp.Version)
 	}
-	id, err := model.ParsePURL(pu.String())
+	id, err := model.NewPackageID(pu.Type, pu.Namespace, pu.Name, pu.Version, pu.Subpath)
 	if err != nil {
 		return nil, err
 	}

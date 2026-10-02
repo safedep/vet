@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/safedep/dry/localdb"
+	"github.com/safedep/dry/log"
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/model"
@@ -336,11 +337,21 @@ func addManifestTx(ctx context.Context, tx *sql.Tx, artifactKey string, m *model
 	if _, err := tx.ExecContext(ctx, `DELETE FROM vet_scan_manifest_packages WHERE manifest_id = ?`, m.ID); err != nil {
 		return err
 	}
+	st, err := prepare(ctx, tx,
+		`INSERT INTO vet_scan_packages (purl, ecosystem, name, version)
+			VALUES (?, ?, ?, ?) ON CONFLICT (purl) DO NOTHING`,
+		`INSERT INTO vet_scan_manifest_packages (manifest_id, purl, seq, change, data)
+			VALUES (?, ?, ?, ?, ?)
+			ON CONFLICT (manifest_id, purl) DO UPDATE SET data = excluded.data, change = excluded.change`,
+		`INSERT OR IGNORE INTO vet_scan_edges (manifest_id, parent, child) VALUES (?, ?, ?)`)
+	if err != nil {
+		return err
+	}
+	defer st.close()
+	insertPackage, insertManifestPackage, insertEdge := st[0], st[1], st[2]
 	for i, p := range m.Packages {
 		purl := p.ID.PURL()
-		if _, err := tx.ExecContext(ctx, `INSERT INTO vet_scan_packages (purl, ecosystem, name, version)
-			VALUES (?, ?, ?, ?) ON CONFLICT (purl) DO NOTHING`,
-			purl, string(p.ID.Ecosystem), p.ID.QualifiedName(), p.ID.Version); err != nil {
+		if _, err := insertPackage.ExecContext(ctx, purl, string(p.ID.Ecosystem), p.ID.QualifiedName(), p.ID.Version); err != nil {
 			return err
 		}
 		bare := *p
@@ -349,10 +360,7 @@ func addManifestTx(ctx context.Context, tx *sql.Tx, artifactKey string, m *model
 		if err != nil {
 			return err
 		}
-		if _, err := tx.ExecContext(ctx, `INSERT INTO vet_scan_manifest_packages (manifest_id, purl, seq, change, data)
-			VALUES (?, ?, ?, ?, ?)
-			ON CONFLICT (manifest_id, purl) DO UPDATE SET data = excluded.data, change = excluded.change`,
-			m.ID, purl, i, string(p.Change), pd); err != nil {
+		if _, err := insertManifestPackage.ExecContext(ctx, m.ID, purl, i, string(p.Change), pd); err != nil {
 			return err
 		}
 	}
@@ -374,14 +382,38 @@ func addManifestTx(ctx context.Context, tx *sql.Tx, artifactKey string, m *model
 			if edgeErr != nil {
 				return
 			}
-			_, edgeErr = tx.ExecContext(ctx, `INSERT OR IGNORE INTO vet_scan_edges (manifest_id, parent, child) VALUES (?, ?, ?)`,
-				m.ID, parent.PURL(), child.PURL())
+			_, edgeErr = insertEdge.ExecContext(ctx, m.ID, parent.PURL(), child.PURL())
 		})
 		if edgeErr != nil {
 			return edgeErr
 		}
 	}
 	return nil
+}
+
+// stmts are the prepared statements of one transaction. SQLite parses a
+// statement on each call, so a loop prepares it once.
+type stmts []*sql.Stmt
+
+func prepare(ctx context.Context, tx *sql.Tx, queries ...string) (stmts, error) {
+	var st stmts
+	for _, q := range queries {
+		s, err := tx.PrepareContext(ctx, q)
+		if err != nil {
+			st.close()
+			return nil, err
+		}
+		st = append(st, s)
+	}
+	return st, nil
+}
+
+func (st stmts) close() {
+	for _, s := range st {
+		if err := s.Close(); err != nil {
+			log.Warnf("state: close a statement: %v", err)
+		}
+	}
 }
 
 // Enrichment statuses.

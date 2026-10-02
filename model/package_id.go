@@ -24,12 +24,29 @@ func ParsePURL(s string) (PackageID, error) {
 	if err != nil {
 		return PackageID{}, fmt.Errorf("parse PURL %q: %w", s, err)
 	}
+	return fromPURL(p)
+}
 
+// NewPackageID builds a PackageID from the parts of a PURL, with the same
+// normal form as ParsePURL. It does not encode and parse a PURL string, so
+// it is fast. A name with a "/" goes through ParsePURL, which moves the
+// leading part into the namespace.
+func NewPackageID(purlType, namespace, name, version, subpath string) (PackageID, error) {
+	p := packageurl.PackageURL{Type: purlType, Namespace: namespace, Name: name, Version: version, Subpath: subpath}
+	if strings.Contains(name, "/") {
+		return ParsePURL(p.ToString())
+	}
+	if err := p.Normalize(); err != nil {
+		return PackageID{}, fmt.Errorf("parse PURL %q: %w", p.ToString(), err)
+	}
+	return fromPURL(p)
+}
+
+func fromPURL(p packageurl.PackageURL) (PackageID, error) {
 	eco, err := EcosystemFromPURLType(p.Type)
 	if err != nil {
 		return PackageID{}, err
 	}
-
 	id := PackageID{Ecosystem: eco, Namespace: p.Namespace, Name: p.Name, Version: p.Version, Subpath: p.Subpath}
 	return id, id.Validate()
 }
@@ -51,7 +68,60 @@ func (id PackageID) PURL() string {
 	if err != nil {
 		return ""
 	}
+	if plainPURL(id) {
+		return plainPURLString(info.PURLType, id)
+	}
 	return packageurl.NewPackageURL(info.PURLType, id.Namespace, id.Name, id.Version, nil, id.Subpath).ToString()
+}
+
+// plainPURL reports an identity with no character that a PURL encodes.
+// Its PURL is a plain join of the parts. A scan builds a PURL for each
+// package many times, and the encoder is slow.
+func plainPURL(id PackageID) bool {
+	return plain(id.Namespace, true) && plain(id.Name, false) && plain(id.Version, false) && plain(id.Subpath, true)
+}
+
+// plain reports a part that packageurl-go writes as it is. "/" splits the
+// namespace and the subpath into segments, and a name or a version
+// encodes it.
+func plain(s string, segments bool) bool {
+	for i := range len(s) {
+		c := s[i]
+		switch {
+		case 'a' <= c && c <= 'z', 'A' <= c && c <= 'Z', '0' <= c && c <= '9':
+		case c == '/' && segments:
+		case strings.IndexByte("-_.~:", c) < 0:
+			return false
+		}
+	}
+	return true
+}
+
+func plainPURLString(purlType string, id PackageID) string {
+	var b strings.Builder
+	b.WriteString("pkg:")
+	b.WriteString(purlType)
+	for seg := range strings.SplitSeq(id.Namespace, "/") {
+		if seg != "" {
+			b.WriteByte('/')
+			b.WriteString(seg)
+		}
+	}
+	b.WriteByte('/')
+	b.WriteString(id.Name)
+	if id.Version != "" {
+		b.WriteByte('@')
+		b.WriteString(id.Version)
+	}
+	sep := byte('#')
+	for seg := range strings.SplitSeq(id.Subpath, "/") {
+		if seg != "" {
+			b.WriteByte(sep)
+			b.WriteString(seg)
+			sep = '/'
+		}
+	}
+	return b.String()
 }
 
 // QualifiedName returns the name that the ecosystem's users write, for

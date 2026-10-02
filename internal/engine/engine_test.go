@@ -94,7 +94,7 @@ type fixture struct {
 	cache *state.Cache
 }
 
-func newFixture(t *testing.T) *fixture {
+func newFixture(t testing.TB) *fixture {
 	t.Helper()
 	root := t.TempDir()
 	s, err := state.Open(context.Background(), state.Options{StateDir: filepath.Join(root, "state")})
@@ -108,7 +108,7 @@ func newFixture(t *testing.T) *fixture {
 
 func codeExtractors(plugin.ArtifactKind) ([]plugin.Extractor, error) { return extractors.Default() }
 
-func (f *fixture) options(t *testing.T, target string, en *fakeEnricher, controls ...Control) Options {
+func (f *fixture) options(t testing.TB, target string, en *fakeEnricher, controls ...Control) Options {
 	t.Helper()
 	src, err := sources.New(target, sources.Options{})
 	require.NoError(t, err)
