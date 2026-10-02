@@ -11,7 +11,7 @@ vet config edit [--config FILE]
 ## Description
 
 `vet config edit` opens the user config file, or the `--config` file, in `$VISUAL` or `$EDITOR`, then
-checks it as `vet config validate` does. A new file starts with one comment. In agent mode or with
+checks it as `vet config validate` does. The variable can hold arguments, such as `code --wait`. A new file starts with one comment. In agent mode or with
 `--no-input`, vet cannot open an editor and exits 2.
 
 ## Examples
@@ -19,6 +19,7 @@ checks it as `vet config validate` does. A new file starts with one comment. In 
 ```text
 vet config edit
 EDITOR=nano vet config edit
+VISUAL='code --wait' vet config edit
 ```
 
 ## Exit codes

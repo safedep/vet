@@ -386,6 +386,12 @@
   tier: P1
   guarantee: "vet config set with a typo exits 2 and suggests the closest key."
   labels: [config]
+- id: config/edit/checks-the-file
+  title: "config edit checks the file after the editor exits"
+  category: config
+  tier: P1
+  guarantee: "vet config edit runs $EDITOR with its arguments and keeps the comments. An unknown key exits 2. With --no-input vet opens no editor and exits 2."
+  labels: [config]
 - id: config/validate/unknown-key
   title: "config validate fails on an unknown key"
   category: config

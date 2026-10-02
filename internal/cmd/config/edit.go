@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -38,8 +39,8 @@ then check it. The file keeps every comment. In agent mode or with
 					return err
 				}
 			}
-			ed := editor(a)
-			c := exec.CommandContext(cmd.Context(), ed, path)
+			ed := strings.Fields(editor(a))
+			c := exec.CommandContext(cmd.Context(), ed[0], append(ed[1:], path)...)
 			c.Stdin, c.Stdout, c.Stderr = os.Stdin, os.Stdout, os.Stderr
 			if err := c.Run(); err != nil {
 				return err
@@ -57,9 +58,11 @@ then check it. The file keeps every comment. In agent mode or with
 	}
 }
 
+// editor returns the editor command. It can have arguments, such as
+// "code --wait".
 func editor(a *app.App) string {
 	for _, k := range []string{"VISUAL", "EDITOR"} {
-		if v, ok := a.LookupEnv(k); ok && v != "" {
+		if v, ok := a.LookupEnv(k); ok && strings.TrimSpace(v) != "" {
 			return v
 		}
 	}
