@@ -198,3 +198,22 @@ func TestOnlyEnrichersAndCloudImportTheAPI(t *testing.T) {
 		}
 	}
 }
+
+// TestTUIIsSelfContained keeps internal/tui free to move to dry/tui
+// (decisions D15). It imports no vet package outside itself, and no other
+// vet package imports dry/tui.
+func TestTUIIsSelfContained(t *testing.T) {
+	tui := module + "/internal/tui"
+	for _, p := range listPackages(t) {
+		inside := under(p.path, tui)
+		for _, imp := range p.imports {
+			if inside {
+				assert.False(t, under(imp, module) && !under(imp, tui), "package %s imports %s", p.path, imp)
+				continue
+			}
+			if !isLegacy(p.path) {
+				assert.False(t, under(imp, "github.com/safedep/dry/tui"), "package %s imports %s", p.path, imp)
+			}
+		}
+	}
+}
