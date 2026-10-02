@@ -254,3 +254,15 @@
   tier: P1
   guarantee: "vet policy init writes a starter policy that vet policy validate accepts and vet scan --policy applies."
   labels: [gate]
+- id: fix/github-actions/pins-by-sha
+  title: "the fix pins actions by SHA"
+  category: fix
+  tier: P0
+  guarantee: "vet fix github-actions run rewrites each third-party uses: with a tag to a commit SHA with the tag in a comment, from a stub GitHub answer. Local and same-repository actions do not change."
+  labels: [fix]
+- id: fix/github-actions/dry-run
+  title: "the fix dry run writes nothing"
+  category: fix
+  tier: P1
+  guarantee: "vet fix github-actions run --dry-run prints the diff and writes nothing."
+  labels: [fix]

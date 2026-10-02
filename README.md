@@ -249,6 +249,7 @@ the order of the command tree.
 | [`vet policy validate`](docs/cmd/policy-validate.md) | Check a policy file. |
 | [`vet policy control list`](docs/cmd/policy-control-list.md) | List the controls and their default severities. |
 | [`vet policy schema get`](docs/cmd/policy-schema-get.md) | Print the JSON Schema of the rule input. |
+| [`vet fix github-actions run`](docs/cmd/fix-github-actions-run.md) | Pin third-party GitHub Actions to commit SHAs. |
 | [`vet version`](docs/cmd/version.md) | Show the version and the build of vet. |
 
 ## Installation
