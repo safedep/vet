@@ -28,14 +28,13 @@ import (
 	"slices"
 	"strings"
 
+	cpb "github.com/google/osv-scalibr/binary/proto/config_go_proto"
 	"github.com/google/osv-scalibr/extractor"
 	"github.com/google/osv-scalibr/extractor/filesystem"
 	"github.com/google/osv-scalibr/inventory"
 	"github.com/google/osv-scalibr/log"
 	"github.com/google/osv-scalibr/plugin"
 	"github.com/google/osv-scalibr/purl"
-
-	cpb "github.com/google/osv-scalibr/binary/proto/config_go_proto"
 
 	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/lockmeta"
 )
