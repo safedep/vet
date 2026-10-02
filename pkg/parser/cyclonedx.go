@@ -4,8 +4,11 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
+	"strings"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
+	"github.com/package-url/packageurl-go"
 	"github.com/safedep/dry/utils"
 
 	"github.com/safedep/vet/pkg/common/logger"
@@ -48,16 +51,26 @@ func parseSbomCycloneDxAsGraph(path string, config *ParserConfig) (*models.Packa
 
 	// Iterate over all components in the BOM and add the package in dependency graph
 	// This just adds the nodes in the graph without any relations
+	// Components we cannot turn into a package are dropped. Keep a tally so the
+	// drop is visible: the logger goes to io.Discard unless --log is passed, so
+	// otherwise the only trace is a library count that is quietly short.
+	skipped := map[string]int{}
+
 	for _, component := range components {
 		ref, pkg, err := cdxExtractPackageFromComponent(component)
 		if err != nil {
 			logger.Errorf("Failed to extract package from component %v: %v",
 				component, err)
+			skipped[cdxComponentPurlType(component)] += 1
 			continue
 		}
 
 		bomRefMap[ref] = pkg
 		manifest.AddPackage(pkg)
+	}
+
+	if len(skipped) > 0 {
+		cdxWarnAboutSkippedComponents(path, len(components), skipped)
 	}
 
 	// Iterate over the dependency relations and add the edges in the graph
@@ -139,4 +152,41 @@ func cdxExtractPackageFromComponent(component cdx.Component) (string, *models.Pa
 	return pUrl, &models.Package{
 		PackageDetails: parsedPurl.GetPackageDetails(),
 	}, nil
+}
+
+// cdxComponentPurlType returns the PURL type of a component, for grouping the
+// components we had to skip. Anything we cannot read a type out of is grouped
+// under "unknown", which includes a component with neither a PURL nor a BOM ref.
+func cdxComponentPurlType(component cdx.Component) string {
+	instance, err := packageurl.FromString(component.PackageURL)
+	if err != nil || instance.Type == "" {
+		return "unknown"
+	}
+
+	return instance.Type
+}
+
+// cdxWarnAboutSkippedComponents tells the user, on stderr, that the SBOM held
+// components this run did not scan. Without it the run is indistinguishable from
+// one over an SBOM that only ever held the components vet understands, and it
+// still exits 0.
+//
+// This is reachable with vet's own output: Package.GetPackageUrl renders the
+// distro ecosystems found during container scanning as pkg:apk, pkg:deb and
+// pkg:rpm, and PurlTypeToEcosystem maps none of those three.
+func cdxWarnAboutSkippedComponents(path string, componentCount int, skipped map[string]int) {
+	total := 0
+	types := make([]string, 0, len(skipped))
+
+	for purlType, count := range skipped {
+		total += count
+		types = append(types, fmt.Sprintf("%s (%d)", purlType, count))
+	}
+
+	sort.Strings(types)
+
+	fmt.Fprintf(os.Stderr,
+		"warning: %s: skipped %d of %d component(s), no ecosystem is mapped for %s. "+
+			"They were not scanned and are not counted in the results below.\n",
+		path, total, componentCount, strings.Join(types, ", "))
 }
