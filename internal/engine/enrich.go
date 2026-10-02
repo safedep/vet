@@ -76,6 +76,10 @@ func (r *run) enrichBatch(ctx context.Context, e Enricher, batch []*model.Packag
 		return results, nil
 	}
 
+	before := make([]enrichedData, len(todo))
+	for i, p := range todo {
+		before[i] = dataOf(p)
+	}
 	status := state.EnrichmentOK
 	if err := e.Plugin.Enrich(ctx, todo); err != nil {
 		if ctx.Err() != nil {
@@ -89,11 +93,45 @@ func (r *run) enrichBatch(ctx context.Context, e Enricher, batch []*model.Packag
 		fresh = append(fresh, state.EnrichmentResult{Package: p, Enricher: e.Name, Status: status})
 	}
 	if useCache {
-		if err := r.o.Cache.Put(ctx, e.Version, e.TTL, fresh); err != nil {
+		own := make([]state.EnrichmentResult, len(fresh))
+		for i, res := range fresh {
+			own[i] = res
+			own[i].Package = ownData(res.Package, before[i])
+		}
+		if err := r.o.Cache.Put(ctx, e.Version, e.TTL, own); err != nil {
 			return nil, err
 		}
 	}
 	return append(results, fresh...), nil
+}
+
+// enrichedData holds the data fields of a package.
+type enrichedData struct {
+	insight *model.Insight
+	malware *model.MalwareAnalysis
+	usage   *model.Usage
+}
+
+func dataOf(p *model.Package) enrichedData {
+	return enrichedData{insight: p.Insight, malware: p.Malware, usage: p.Usage}
+}
+
+// ownData returns a copy of the package with only the data that the
+// enricher set. The cache keeps a result for each enricher and version. A
+// result must not carry the data of another enricher, or a cache hit puts
+// back an old result of that enricher.
+func ownData(p *model.Package, before enrichedData) *model.Package {
+	out := &model.Package{ID: p.ID}
+	if p.Insight != before.insight {
+		out.Insight = p.Insight
+	}
+	if p.Malware != before.malware {
+		out.Malware = p.Malware
+	}
+	if p.Usage != before.usage {
+		out.Usage = p.Usage
+	}
+	return out
 }
 
 // enrichError records a failed batch. A backend that does not answer is a

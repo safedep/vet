@@ -18,7 +18,7 @@ import (
 const Name = "malysis"
 
 // Version changes when the mapping changes, so the cache drops old results.
-const Version = "1"
+const Version = "2"
 
 // ReportURL is the public page of an analysis.
 const ReportURL = "https://platform.safedep.io/community/malysis/"
