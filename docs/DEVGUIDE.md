@@ -12,8 +12,8 @@ This guide holds the rules for vet v2 commands and their documentation. The conv
 - Each top-level noun has one Go package, `internal/cmd/<noun>/`. A package under
   `internal/cmd/<x>` does not import `internal/cmd/<y>`. **(lint)** Shared code goes in
   `internal/app` or in a package outside `internal/cmd`.
-- The top-level set is pinned in `topLevelCommands`. **(lint)** A change to it needs the program
-  owner.
+- The top-level set is pinned in `topLevelCommands`, and the leaves in `leafCommands`. **(lint)** A
+  change to either list needs the program owner.
 
 ### The path
 

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -24,10 +25,23 @@ var (
 	rootLevelExceptions = []string{"doctor", "scan", "version"}
 	// hyphenExceptions are the command names that can have a hyphen.
 	hyphenExceptions = []string{"github-actions"}
-	// topLevelCommands are the children of the root. The list grows with
-	// each command until the tree of the command layout, section 3.2, is
-	// complete.
+	// topLevelCommands are the children of the root in v2.0. "endpoint"
+	// lands with vet endpoint audit in v2.x.
 	topLevelCommands = []string{"auth", "config", "doctor", "fix", "policy", "report", "scan", "state", "version"}
+	// leafCommands are the leaves of the tree of the command layout,
+	// section 3.2, in v2.0.
+	leafCommands = []string{
+		"scan",
+		"report show", "report list", "report diff", "report finding show", "report schema get",
+		"policy init", "policy validate", "policy control list", "policy schema get",
+		"fix github-actions run",
+		"state show", "state delete",
+		"doctor",
+		"config show", "config get", "config set", "config delete", "config edit", "config validate",
+		"config schema get",
+		"auth login", "auth status", "auth logout",
+		"version",
+	}
 )
 
 const maxDepth = 3
@@ -119,6 +133,11 @@ func TestConventions_TopLevelCommands(t *testing.T) {
 	}
 	assert.ElementsMatch(t, topLevelCommands, names,
 		"top-level commands changed. Update topLevelCommands and docs/DEVGUIDE.md")
+}
+
+func TestConventions_Leaves(t *testing.T) {
+	assert.ElementsMatch(t, leafCommands, slices.Collect(maps.Keys(leaves(t))),
+		"leaves changed. Update leafCommands and docs/DEVGUIDE.md")
 }
 
 func TestConventions_MaxDepth(t *testing.T) {

@@ -22,6 +22,10 @@ vet: quick-vet
 test:
 	go test ./...
 
+.PHONY: lint-conventions
+lint-conventions:
+	go test -count=1 -run 'TestConventions|TestIsAllowedVerb|TestAllowedVerbs' ./internal/cmd/
+
 .PHONY: clean
 clean:
 	-rm -rf out
