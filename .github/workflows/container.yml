@@ -1,11 +1,9 @@
 name: Container Image Releaser
 
+# vet v2 publishes no Docker image until the program owner decides its
+# distribution (decisions D13). The workflow runs only on manual dispatch.
 on:
-  push:
-    tags:
-      - "*"
-    branches:
-      - "main"
+  workflow_dispatch:
 
 concurrency: ci-container-release
 
