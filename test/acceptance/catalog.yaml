@@ -236,6 +236,12 @@
   tier: P2
   guarantee: "With plugins.codeusage.enabled, on a build with CGO, each code signature that matches is a capability record in the JSON report and an xbom:<signature id> component with source code analysis evidence in the CycloneDX BOM."
   labels: [enrichers, config, sinks]
+- id: controls/reputation/ai-capability-added
+  title: "a change that adds an AI call is a finding"
+  category: controls
+  tier: P2
+  guarantee: "In pull request mode with plugins.codeusage.enabled, on a build with CGO, a change that adds a call to an AI SDK gives an ai-bom-delta finding on the application. A capability that the base commit has gives none."
+  labels: [controls, pr-mode, config]
 - id: controls/workflow/hardening
   title: "workflow: hardening controls"
   category: controls

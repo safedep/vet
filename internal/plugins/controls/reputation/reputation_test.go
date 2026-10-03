@@ -1,15 +1,18 @@
 package reputation
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/plugin/plugintest"
+	"github.com/safedep/vet/v2/report"
 )
 
 var now = time.Date(2026, 10, 2, 0, 0, 0, 0, time.UTC)
@@ -116,4 +119,28 @@ func TestDistance(t *testing.T) {
 func TestOptions(t *testing.T) {
 	_, err := New(plugin.MapConfig(map[string]any{"internal_names": []any{"["}}))
 	assert.Error(t, err)
+}
+
+func TestAICapabilityDelta(t *testing.T) {
+	c := &Control{}
+	occ := []report.Occurrence{{File: "agent.py", Line: 7, Language: "python"}}
+	s := plugintest.NewMemState()
+	s.CapabilityList = []*report.Capability{
+		{ID: "openai.client", Product: "OpenAI SDK", Service: "Chat", Tags: []string{"ai", "llm"}, Change: model.ChangeAdded, Occurrences: occ},
+		{ID: "anthropic.client", Tags: []string{"ai"}, Change: model.ChangeUnchanged, Occurrences: occ},
+		{ID: "crypto.md5", Tags: []string{"cryptography"}, Change: model.ChangeAdded, Occurrences: occ},
+		{ID: "cohere.client", Tags: []string{"ai"}, Occurrences: occ},
+	}
+	fs, err := c.EvaluateApplication(context.Background(), s)
+	require.NoError(t, err)
+	require.Len(t, fs, 1, "only an added AI capability")
+	f := fs[0]
+	require.NoError(t, f.Validate())
+	assert.Equal(t, IDAIBOM, f.ControlID)
+	assert.Equal(t, finding.SubjectApplication, f.Subject.Kind)
+	assert.Equal(t, "openai.client", f.Subject.Application.SignatureID)
+	assert.Equal(t, model.ChangeAdded, f.Change)
+	assert.Equal(t, "The change adds a call to OpenAI SDK Chat", f.Title)
+	assert.Equal(t, &finding.Locus{Path: "agent.py", StartLine: 7, EndLine: 7}, f.Locus)
+	assert.Equal(t, finding.ForApplication(finding.Meta{ControlID: IDAIBOM}, ".", "openai.client").ID, f.ID, "the id holds the control, the root and the signature")
 }

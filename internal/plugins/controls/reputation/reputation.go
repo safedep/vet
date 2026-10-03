@@ -1,6 +1,7 @@
 // Package reputation holds the identity and reputation controls (control
 // catalog, phase 3): typosquat, a new or unpopular package, a version
-// anomaly, starjacking, dependency confusion, and an AI BOM delta.
+// anomaly, starjacking, dependency confusion, and an AI BOM delta: a new AI
+// SDK in a manifest, or a new AI capability in the code.
 //
 // gap G6: Insights v2 has no maintainers and no publisher of a version, so
 // the maintainer change control does not exist, and starjacking cannot
@@ -8,6 +9,7 @@
 package reputation
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"net/url"
@@ -21,6 +23,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/internal/optschema"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
+	"github.com/safedep/vet/v2/report"
 )
 
 // Name is the plugin name and the config key under plugins.
@@ -121,7 +124,7 @@ var infos = []plugin.ControlInfo{
 	{
 		ID: IDAIBOM, Family: finding.FamilyAIBOM, Severity: finding.SeverityMedium,
 		Title:       "New AI capability",
-		Description: "The change adds an LLM provider SDK, an agent framework or an MCP library.",
+		Description: "The change adds an LLM provider SDK, an agent framework or an MCP library, or code that calls one.",
 	},
 }
 
@@ -173,6 +176,56 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 		}
 	}
 	return out, nil
+}
+
+var _ plugin.ApplicationControl = (*Control)(nil)
+
+// aiTag is the signature tag of an AI capability.
+const aiTag = "ai"
+
+// EvaluateApplication reports each AI capability that the change adds to the
+// code of the application. The codeusage enricher sets the change of a
+// capability in pull request mode only, so a full scan reports none.
+func (c *Control) EvaluateApplication(ctx context.Context, s plugin.State) ([]finding.Finding, error) {
+	var out []finding.Finding
+	for capability, err := range s.Capabilities(ctx) {
+		if err != nil {
+			return nil, err
+		}
+		if capability.Change == model.ChangeAdded && capability.HasTag(aiTag) {
+			out = append(out, capabilityFinding(capability))
+		}
+	}
+	return out, nil
+}
+
+func capabilityFinding(c *report.Capability) finding.Finding {
+	info := infoOf(IDAIBOM)
+	name := cmp.Or(strings.TrimSpace(strings.Join([]string{c.Product, c.Service}, " ")), c.ID)
+	f := finding.ForApplication(finding.Meta{
+		ControlID: IDAIBOM, Family: info.Family, Severity: info.Severity,
+		Title: fmt.Sprintf("The change adds a call to %s", name), Description: cmp.Or(c.Description, info.Description),
+	}, ".", c.ID)
+	f.Change = model.ChangeAdded
+	if len(c.Occurrences) > 0 {
+		o := c.Occurrences[0]
+		f.Locus = &finding.Locus{Path: o.File, StartLine: o.Line, EndLine: o.Line}
+		f.Evidence = []finding.Evidence{{
+			Source:  "codeusage",
+			Summary: fmt.Sprintf("%d calls match the code signature %s, the first in %s at line %d.", len(c.Occurrences), c.ID, o.File, o.Line),
+		}}
+	}
+	f.Remediation = &finding.Remediation{Summary: "Review the use of the AI capability against the AI policy of the project."}
+	return f
+}
+
+func infoOf(id string) plugin.ControlInfo {
+	for _, i := range infos {
+		if i.ID == id {
+			return i
+		}
+	}
+	return plugin.ControlInfo{}
 }
 
 // newAndUnpopular fails open: a package with no publish date is not new.
@@ -269,12 +322,7 @@ func major(v string) (int, bool) {
 }
 
 func newFinding(id string, m *model.Manifest, p *model.Package, discriminator, title, fix string) finding.Finding {
-	var info plugin.ControlInfo
-	for _, i := range infos {
-		if i.ID == id {
-			info = i
-		}
-	}
+	info := infoOf(id)
 	f := finding.ForPackage(finding.Meta{
 		ControlID: id, Family: info.Family, Severity: info.Severity, Confidence: finding.ConfidenceMedium,
 		Title: title, Description: info.Description,
