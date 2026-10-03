@@ -28,7 +28,7 @@ func invalidValue(key, raw string, origin Origin, cause error) error {
 	}
 	return newError(CodeInvalid,
 		fmt.Sprintf("%s: invalid value %q from %s: %v", key, raw, from, cause),
-		fmt.Sprintf("Set a valid value for %s.", key))
+		fmt.Sprintf("Set %s to a valid value.", key))
 }
 
 func unknownKey(key string) error {

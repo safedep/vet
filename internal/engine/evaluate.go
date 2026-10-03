@@ -118,9 +118,13 @@ func annotateUsage(f *finding.Finding, m *model.Manifest) {
 		case n == 0:
 			summary = "The project imports the package."
 		case n == 1:
-			summary = fmt.Sprintf("The project imports the package in %s.", p.Usage.Files[0])
+			summary = fmt.Sprintf("%s imports the package.", p.Usage.Files[0])
 		default:
-			summary = fmt.Sprintf("The project imports the package in %d files, for example %s.", n, p.Usage.Files[0])
+			others := "1 other file"
+			if n > 2 {
+				others = fmt.Sprintf("%d other files", n-1)
+			}
+			summary = fmt.Sprintf("%s and %s import the package.", p.Usage.Files[0], others)
 		}
 		f.Evidence = append(f.Evidence, finding.Evidence{Source: "codeusage", Summary: summary})
 		return

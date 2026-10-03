@@ -29,3 +29,6 @@ messages, commit messages, pull requests and docs.
 - One sentence, one idea.
 - Use the active voice and name the actor.
 - Cut every word that does no work.
+- Do not end a message with a full stop right after a value that a user copies: a path, a scan
+  id, a config key, a flag or a command. Put the value earlier in the sentence, or end the message
+  with the value and no full stop.

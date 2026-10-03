@@ -53,7 +53,7 @@ example "vendor,testdata".`,
 				return err
 			}
 			managedWarning(rt)
-			tui.Success("Set %s in %s.", args[0], path)
+			tui.Success("Set %s in %s", args[0], path)
 			return nil
 		},
 	}
@@ -74,7 +74,7 @@ func newDelete(a *app.App) *cobra.Command {
 				return err
 			}
 			managedWarning(rt)
-			tui.Success("Removed %s from %s.", args[0], path)
+			tui.Success("Removed %s from %s", args[0], path)
 			return nil
 		},
 	}

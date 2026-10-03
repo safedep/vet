@@ -378,7 +378,7 @@ func syncInventory(ctx context.Context, cfg *config.Config, store *state.Store, 
 	}
 	return s.AddDiagnostic(ctx, &report.Diagnostic{
 		Level: report.DiagnosticWarning, Code: CodeInventorySync, Component: inventory.Name,
-		Message: fmt.Sprintf("%s. The inventory waits in %s.", strings.TrimSuffix(err.Error(), ": "+plugin.ErrUnavailable.Error()), inventory.WALFile),
+		Message: fmt.Sprintf("%s. vet keeps the inventory in %s and sends it on the next scan.", strings.TrimSuffix(err.Error(), ": "+plugin.ErrUnavailable.Error()), inventory.WALFile),
 		Count:   1,
 	})
 }
@@ -485,7 +485,7 @@ var reasonText = map[state.Reason]string{
 func notContinued(res *engine.Result) {
 	switch {
 	case res.Continued:
-		tui.Info("Continued the stopped scan %s.", res.Entry.ID)
+		tui.Info("vet continued scan %s from where it stopped.", res.Entry.ID)
 	case res.NotContinued != nil && res.NotContinued.Stopped != nil:
 		tui.Info("Started a new scan. vet did not continue scan %s, because %s.",
 			res.NotContinued.Stopped.ID, reasonText[res.NotContinued.Reason])
@@ -520,7 +520,7 @@ func applyRetention(ctx context.Context, cfg *config.Config, store *state.Store,
 		tui.Warning("retention: %v", err)
 	}
 	for _, e := range deleted {
-		tui.Faint("Retention deleted scan %s of %s.", e.ID, e.TargetKey)
+		tui.Faint("Retention deleted scan %s of %s", e.ID, e.TargetKey)
 	}
 	if cache == nil {
 		return

@@ -107,7 +107,7 @@ func apiKey(in io.Reader, stdin bool) (string, error) {
 // names the flag that answers it.
 func askError(err error, flag string) error {
 	if errors.Is(err, prompt.ErrAgentMode) || errors.Is(err, prompt.ErrNoTTY) {
-		return app.UsageErrorCode(app.CodeNeedsConfirmation, "vet cannot ask in this mode", fmt.Sprintf("Pass %s.", flag))
+		return app.UsageErrorCode(app.CodeNeedsConfirmation, "vet cannot ask in this mode", fmt.Sprintf("Pass %s to confirm.", flag))
 	}
 	return err
 }

@@ -12,7 +12,7 @@ capture ID 'Saved the progress of scan ([0-9a-f]+)\.' stderr
 
 stub delay 0s
 exec vet scan . --mode plain -o json --no-cache
-stderr 'Continued the stopped scan '$ID
+stderr 'continued scan '$ID' from where it stopped'
 jsonq stdout header.scan.id $ID
 jsonq stdout header.scan.continued true
 

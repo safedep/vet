@@ -4,7 +4,7 @@
 cd proj
 exec vet --config $WORK/config.yml scan . -o json --mode agent
 stdout '"source": ?"codeusage"'
-stdout 'The project imports the package in index.js\.'
+stdout 'index.js imports the package\.'
 stdout '"severity": ?"critical"'
 
 -- config.yml --
