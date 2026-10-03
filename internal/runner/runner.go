@@ -243,8 +243,19 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 		if res.Entry.Status != state.StatusCompleted {
 			return runErr
 		}
-		return errors.Join(Render(ctx, res.Scan, v, outs), strictError(runErr))
+		return outcome(Render(ctx, res.Scan, v, outs), runErr)
 	})
+}
+
+// outcome joins the error of the report and the error of the scan. A gate
+// on a scan with a --strict diagnostic ran on incomplete data, so the
+// strict error wins and exits with code 3. Render already printed the gate.
+func outcome(renderErr, runErr error) error {
+	strict := strictError(runErr)
+	if strict != nil && errors.Is(renderErr, app.ErrGateFailed) {
+		renderErr = nil
+	}
+	return errors.Join(renderErr, strict)
 }
 
 // CodeStrict is the error code of a scan that --strict fails. The command

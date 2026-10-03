@@ -4,6 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/safedep/vet/v2/internal/app"
+	"github.com/safedep/vet/v2/internal/engine"
 )
 
 func TestLockableKeys(t *testing.T) {
@@ -23,6 +26,28 @@ func TestLockableKeys(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.want, tc.o.lockableKeys())
+		})
+	}
+}
+
+func TestOutcome(t *testing.T) {
+	cases := []struct {
+		name              string
+		renderErr, runErr error
+		want              int
+	}{
+		{"clean", nil, nil, app.ExitOK},
+		{"gate", app.ErrGateFailed, nil, app.ExitGateFailed},
+		{"strict", nil, engine.ErrStrict, app.ExitRuntime},
+		{"strict and gate", app.ErrGateFailed, engine.ErrStrict, app.ExitRuntime},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := outcome(tc.renderErr, tc.runErr)
+			assert.Equal(t, tc.want, app.ExitCode(err))
+			if tc.runErr != nil {
+				assert.ErrorContains(t, err, CodeStrict, "the strict message prints")
+			}
 		})
 	}
 }
