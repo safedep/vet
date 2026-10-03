@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -32,6 +33,14 @@ func errCode(t *testing.T, err error) string {
 	ue, ok := usefulerror.AsUsefulError(err)
 	require.True(t, ok, "error is a usefulerror: %v", err)
 	return ue.Code()
+}
+
+func humanError(t *testing.T, err error) string {
+	t.Helper()
+	require.Error(t, err)
+	ue, ok := usefulerror.AsUsefulError(err)
+	require.True(t, ok, "error is a usefulerror: %v", err)
+	return ue.HumanError()
 }
 
 func TestLoadDefaults(t *testing.T) {
@@ -142,6 +151,19 @@ func TestLoadErrors(t *testing.T) {
 			_, err := Load(tc.opts)
 			assert.Equal(t, tc.code, errCode(t, err))
 		})
+	}
+}
+
+func TestLoadNamesTheValueOfTheWrongType(t *testing.T) {
+	dir := t.TempDir()
+	cases := []struct{ file, want string }{
+		{"scan:\n  concurrency: many\n", `scan.concurrency must be a whole number, got "many" (file %s)`},
+		{"scan:\n  include_dev: maybe\n", `scan.include_dev must be true or false, got "maybe" (file %s)`},
+	}
+	for _, tc := range cases {
+		path := writeFile(t, dir, "config.yml", tc.file)
+		_, err := Load(LoadOptions{ConfigFile: path, LookupEnv: env(nil)})
+		assert.Equal(t, fmt.Sprintf(tc.want, path), humanError(t, err))
 	}
 }
 

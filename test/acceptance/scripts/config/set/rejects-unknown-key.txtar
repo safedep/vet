@@ -15,6 +15,9 @@ jsonq stdout value 4
 
 execexit 2 vet --config $WORK/config.yml config set scan.concurrency many --mode plain
 stderr 'config_invalid'
+stderr 'scan.concurrency must be a whole number, got "many"'
+stderr 'vet did not write the value to .*config\.yml$'
+! stderr 'strconv'
 
 exec vet --config $WORK/config.yml config delete scan.concurrency --mode plain
 stderr 'Removed scan.concurrency from .*config\.yml$'

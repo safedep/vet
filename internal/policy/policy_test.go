@@ -51,7 +51,7 @@ func TestParseErrors(t *testing.T) {
 	}{
 		{name: "empty file", doc: "", want: []string{"version is 0"}},
 		{name: "version 1", doc: "version: 1\n", want: []string{"version is 1"}},
-		{name: "unknown key", doc: "version: 2\nfilters: []\n", want: []string{"field filters not found"}},
+		{name: "unknown key", doc: "version: 2\nfilters: []\n", want: []string{`p.yml line 2: "filters" is not a field of a policy file. A policy file has version, rules and suppressions.`}},
 		{name: "not yaml", doc: "version: [\n", want: []string{"p.yml"}},
 		{
 			name: "bad rules",
@@ -74,6 +74,43 @@ func TestParseErrors(t *testing.T) {
 			for _, w := range tc.want {
 				assert.Contains(t, err.Error(), w)
 			}
+		})
+	}
+}
+
+func TestYAMLErrorsNameTheFileAndTheLine(t *testing.T) {
+	cases := []struct {
+		name string
+		doc  string
+		want string
+	}{
+		{
+			name: "unknown rule field",
+			doc:  "version: 2\nrules:\n  - id: r1\n    fail: true\n    when: 'true'\n    action: fail\n",
+			want: `bad.yml line 4: "fail" is not a field of a rule. A rule has id, description, when and action.`,
+		},
+		{
+			name: "unknown suppression field",
+			doc:  "version: 2\nsuppressions:\n  - control: c\n    why: x\n",
+			want: `bad.yml line 4: "why" is not a field of a suppression. A suppression has id, purl, control, reason and expires.`,
+		},
+		{
+			name: "two errors",
+			doc:  "version: 2\nfilters: []\nrules:\n  - id: r1\n    fail: true\n",
+			want: "bad.yml line 2: \"filters\" is not a field of a policy file. A policy file has version, rules and suppressions.\n" +
+				`bad.yml line 5: "fail" is not a field of a rule. A rule has id, description, when and action.`,
+		},
+		{name: "wrong type", doc: "version: two\n", want: `bad.yml line 1: the value "two" must be a whole number`},
+		{name: "rules not a list", doc: "version: 2\nrules:\n  id: r1\n", want: "bad.yml line 3: the value must be a list"},
+		{name: "syntax", doc: "version: [\n", want: "bad.yml line 1: did not find expected node content"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := Load([]plugin.PolicyDoc{{Name: "bad.yml", Content: []byte(tc.doc)}})
+			ue, ok := usefulerror.AsUsefulError(err)
+			require.True(t, ok)
+			assert.Equal(t, tc.want, ue.HumanError())
+			assert.NotContains(t, err.Error(), CodeInvalid+": "+CodeInvalid, "the code shows once")
 		})
 	}
 }

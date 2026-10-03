@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/safedep/dry/usefulerror"
@@ -21,14 +22,22 @@ func newError(code, msg, help string) error {
 	return usefulerror.NewUsefulError().WithCode(code).WithHumanError(msg).WithHelp(help).WithMsg(msg)
 }
 
-func invalidValue(key, raw string, origin Origin, cause error) error {
-	from := string(origin.Layer)
-	if origin.Source != "" {
-		from += " " + origin.Source
-	}
-	return newError(CodeInvalid,
-		fmt.Sprintf("%s: invalid value %q from %s: %v", key, raw, from, cause),
+// The errors of a value with the wrong type. Each text completes the
+// sentence "KEY ...", as in "scan.concurrency must be a whole number".
+var (
+	errNotBool = errors.New("must be true or false")
+	errNotInt  = errors.New("must be a whole number")
+)
+
+func invalidValue(key, raw string, origin Origin, want error) error {
+	return newError(CodeInvalid, badValue(key, want.Error(), raw, origin.String()),
 		fmt.Sprintf("Set %s to a valid value.", key))
+}
+
+// badValue says what a key must be, the value it got and where the value
+// comes from, as `scan.concurrency must be a whole number, got "x" (flag)`.
+func badValue(key, want, raw, from string) string {
+	return fmt.Sprintf("%s %s, got %q (%s)", key, want, raw, from)
 }
 
 func unknownKey(key string) error {

@@ -82,7 +82,7 @@ func Load(docs []plugin.PolicyDoc) (*Policy, error) {
 	var errs []error
 	seen := map[string]string{}
 	for _, d := range docs {
-		p, err := Parse(d.Name, d.Content)
+		p, err := parse(d.Name, d.Content)
 		if err != nil {
 			errs = append(errs, err)
 			continue
@@ -106,11 +106,19 @@ func Load(docs []plugin.PolicyDoc) (*Policy, error) {
 
 // Parse parses and checks one policy document. name names it in errors.
 func Parse(name string, data []byte) (*Policy, error) {
+	p, err := parse(name, data)
+	if err != nil {
+		return nil, invalid(err)
+	}
+	return p, nil
+}
+
+func parse(name string, data []byte) (*Policy, error) {
 	var doc document
 	dec := yaml.NewDecoder(bytes.NewReader(data))
 	dec.KnownFields(true)
 	if err := dec.Decode(&doc); err != nil && !errors.Is(err, io.EOF) {
-		return nil, invalid(fmt.Errorf("%s: %w", name, err))
+		return nil, yamlError(name, err)
 	}
 	var errs []error
 	if doc.Version != Version {
@@ -149,7 +157,7 @@ func Parse(name string, data []byte) (*Policy, error) {
 		}
 	}
 	if len(errs) > 0 {
-		return nil, invalid(fmt.Errorf("%s: %w", name, errors.Join(errs...)))
+		return nil, fmt.Errorf("%s: %w", name, errors.Join(errs...))
 	}
 	return &Policy{Sources: []string{name}, Rules: doc.Rules, Suppressions: doc.Suppressions}, nil
 }

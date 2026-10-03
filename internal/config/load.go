@@ -30,6 +30,14 @@ type Origin struct {
 	Source string `json:"source,omitempty"`
 }
 
+// String returns the layer and the source, as "file /etc/vet.yml".
+func (o Origin) String() string {
+	if o.Source == "" {
+		return string(o.Layer)
+	}
+	return string(o.Layer) + " " + o.Source
+}
+
 // Origins records the origin of each key, for "vet config show --origin".
 type Origins struct {
 	byKey map[string]Origin
@@ -135,7 +143,11 @@ func Load(opts LoadOptions) (*Loaded, error) {
 				l.UnknownKeys = append(l.UnknownKeys, key)
 				continue
 			}
-			l.Origins.set(key, Origin{Layer: layer, Source: path})
+			origin := Origin{Layer: layer, Source: path}
+			if err := checkKind(key, valueAt(fileTree, key)); err != nil {
+				return nil, invalidValue(key, fmt.Sprint(valueAt(fileTree, key)), origin, err)
+			}
+			l.Origins.set(key, origin)
 		}
 		merge(tree, fileTree)
 
@@ -349,6 +361,36 @@ func setKey(tree map[string]any, key, raw string) error {
 	return nil
 }
 
+// checkKind returns the error of a file value with the wrong type for its
+// key, as a string for a number. The YAML decoder would name a line of the
+// merged tree, not of the file.
+func checkKind(key string, v any) error {
+	switch knownKeys[key].Kind {
+	case kindBool:
+		if _, ok := v.(bool); !ok {
+			return errNotBool
+		}
+	case kindInt:
+		if _, ok := v.(int); !ok {
+			return errNotInt
+		}
+	}
+	return nil
+}
+
+// valueAt returns the value of a dotted key in a tree, or nil.
+func valueAt(tree map[string]any, key string) any {
+	var v any = tree
+	for p := range strings.SplitSeq(key, ".") {
+		m, ok := v.(map[string]any)
+		if !ok {
+			return nil
+		}
+		v = m[p]
+	}
+	return v
+}
+
 func parseValue(key, raw string) (any, error) {
 	info, known := knownKeys[key]
 	if !known {
@@ -361,9 +403,17 @@ func parseValue(key, raw string) (any, error) {
 	}
 	switch info.Kind {
 	case kindBool:
-		return strconv.ParseBool(strings.TrimSpace(raw))
+		b, err := strconv.ParseBool(strings.TrimSpace(raw))
+		if err != nil {
+			return nil, errNotBool
+		}
+		return b, nil
 	case kindInt:
-		return strconv.Atoi(strings.TrimSpace(raw))
+		n, err := strconv.Atoi(strings.TrimSpace(raw))
+		if err != nil {
+			return nil, errNotInt
+		}
+		return n, nil
 	case kindList:
 		var out []any
 		for _, s := range strings.Split(raw, ",") {

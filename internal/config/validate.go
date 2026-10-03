@@ -19,16 +19,16 @@ func (l *Loaded) Validate() error {
 		if ok {
 			return
 		}
-		errs = append(errs, fmt.Errorf("%s: invalid value %q from %s: %s", key, value, l.describe(key), allowed))
+		errs = append(errs, errors.New(badValue(key, allowed, value, l.Origins.Of(key).String())))
 	}
 
-	check("output.mode", c.Output.Mode, slices.Contains([]string{"auto", "rich", "plain", "agent"}, c.Output.Mode), "use auto, rich, plain or agent")
-	check("output.color", c.Output.Color, slices.Contains([]string{"auto", "always", "never"}, c.Output.Color), "use auto, always or never")
-	check("scan.concurrency", fmt.Sprint(c.Scan.Concurrency), c.Scan.Concurrency >= 1 && c.Scan.Concurrency <= 256, "use a number from 1 to 256")
+	check("output.mode", c.Output.Mode, slices.Contains([]string{"auto", "rich", "plain", "agent"}, c.Output.Mode), "must be auto, rich, plain or agent")
+	check("output.color", c.Output.Color, slices.Contains([]string{"auto", "always", "never"}, c.Output.Color), "must be auto, always or never")
+	check("scan.concurrency", fmt.Sprint(c.Scan.Concurrency), c.Scan.Concurrency >= 1 && c.Scan.Concurrency <= 256, "must be a number from 1 to 256")
 
 	if c.Policy.FailOn != "" {
 		_, err := finding.ParseSeverity(c.Policy.FailOn)
-		check("policy.fail_on", c.Policy.FailOn, err == nil, "use critical, high, medium, low or info")
+		check("policy.fail_on", c.Policy.FailOn, err == nil, "must be critical, high, medium, low or info")
 	}
 
 	for key, d := range map[string]Duration{
@@ -37,19 +37,19 @@ func (l *Loaded) Validate() error {
 		"cache.ttl":                   c.Cache.TTL,
 	} {
 		_, err := d.Value()
-		check(key, string(d), err == nil, "use a duration such as 24h or 7d")
+		check(key, string(d), err == nil, "must be a duration such as 24h or 7d")
 	}
 
 	_, err := c.State.Retention.MaxSize.Bytes()
-	check("state.retention.max_size", string(c.State.Retention.MaxSize), err == nil, "use a size such as 500MB or 2GB")
-	check("state.retention.per_target", fmt.Sprint(c.State.Retention.PerTarget), c.State.Retention.PerTarget >= 1, "use 1 or more")
+	check("state.retention.max_size", string(c.State.Retention.MaxSize), err == nil, "must be a size such as 500MB or 2GB")
+	check("state.retention.per_target", fmt.Sprint(c.State.Retention.PerTarget), c.State.Retention.PerTarget >= 1, "must be 1 or more")
 
 	for key, u := range map[string]string{
 		"cloud.endpoints.api":       c.Cloud.Endpoints.API,
 		"cloud.endpoints.community": c.Cloud.Endpoints.Community,
 		"github.api_url":            c.GitHub.APIURL,
 	} {
-		check(key, u, validURL(u), "use an http or https URL")
+		check(key, u, validURL(u), "must be an http or https URL")
 	}
 
 	slices.SortFunc(errs, func(a, b error) int { return strings.Compare(a.Error(), b.Error()) })
@@ -78,14 +78,6 @@ func (l *Loaded) ValidateStrict() error {
 		lines = append(lines, line)
 	}
 	return newError(CodeUnknownKey, strings.Join(lines, "\n"), "Remove or rename the unknown keys.")
-}
-
-func (l *Loaded) describe(key string) string {
-	o := l.Origins.Of(key)
-	if o.Source == "" {
-		return string(o.Layer)
-	}
-	return string(o.Layer) + " " + o.Source
 }
 
 func validURL(s string) bool {

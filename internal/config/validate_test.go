@@ -22,14 +22,14 @@ func TestValidateRejects(t *testing.T) {
 		raw  string
 		want string
 	}{
-		{"mode", "output.mode", "fancy", "use auto, rich, plain or agent"},
-		{"color", "output.color", "pink", "use auto, always or never"},
-		{"concurrency", "scan.concurrency", "0", "use a number from 1 to 256"},
-		{"fail on", "policy.fail_on", "urgent", "use critical, high, medium, low or info"},
-		{"duration", "state.continue_within", "soon", "use a duration"},
-		{"size", "state.retention.max_size", "big", "use a size"},
-		{"per target", "state.retention.per_target", "0", "use 1 or more"},
-		{"url", "cloud.endpoints.api", "ftp://x", "use an http or https URL"},
+		{"mode", "output.mode", "fancy", `output.mode must be auto, rich, plain or agent, got "fancy" (flag)`},
+		{"color", "output.color", "pink", `output.color must be auto, always or never, got "pink" (flag)`},
+		{"concurrency", "scan.concurrency", "0", `scan.concurrency must be a number from 1 to 256, got "0" (flag)`},
+		{"fail on", "policy.fail_on", "urgent", `policy.fail_on must be critical, high, medium, low or info, got "urgent" (flag)`},
+		{"duration", "state.continue_within", "soon", `state.continue_within must be a duration such as 24h or 7d, got "soon" (flag)`},
+		{"size", "state.retention.max_size", "big", `state.retention.max_size must be a size such as 500MB or 2GB, got "big" (flag)`},
+		{"per target", "state.retention.per_target", "0", `state.retention.per_target must be 1 or more, got "0" (flag)`},
+		{"url", "cloud.endpoints.api", "ftp://x", `cloud.endpoints.api must be an http or https URL, got "ftp://x" (flag)`},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -37,9 +37,7 @@ func TestValidateRejects(t *testing.T) {
 			require.NoError(t, err)
 			err = l.Validate()
 			assert.Equal(t, CodeInvalid, errCode(t, err))
-			assert.ErrorContains(t, err, tc.key)
-			assert.ErrorContains(t, err, "from flag")
-			assert.ErrorContains(t, err, tc.want)
+			assert.Equal(t, tc.want, humanError(t, err))
 		})
 	}
 }
@@ -47,7 +45,7 @@ func TestValidateRejects(t *testing.T) {
 func TestValidateNamesTheVariable(t *testing.T) {
 	l, err := Load(LoadOptions{LookupEnv: env(map[string]string{"VET_OUTPUT_MODE": "fancy"})})
 	require.NoError(t, err)
-	assert.ErrorContains(t, l.Validate(), "from env VET_OUTPUT_MODE")
+	assert.ErrorContains(t, l.Validate(), "(env VET_OUTPUT_MODE)")
 }
 
 func TestValidateStrictUnknownKey(t *testing.T) {

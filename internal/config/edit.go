@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/safedep/dry/usefulerror"
 	"gopkg.in/yaml.v3"
 
 	"github.com/safedep/vet/v2/internal/config/appdir"
@@ -73,7 +74,8 @@ func SetInFile(path, key, raw string) error {
 	}
 	v, err := parseValue(key, raw)
 	if err != nil {
-		return invalidValue(key, raw, Origin{Layer: LayerFile, Source: path}, err)
+		return newError(CodeInvalid, fmt.Sprintf("%s %v, got %q", key, err, raw),
+			"vet did not write the value to "+path)
 	}
 	doc, err := readDoc(path)
 	if err != nil {
@@ -205,12 +207,22 @@ func writeDoc(path string, doc *yaml.Node) (err error) {
 	}
 	l, err := Load(LoadOptions{ConfigFile: tmp.Name(), LookupEnv: func(string) (string, bool) { return "", false }})
 	if err != nil {
-		return err
+		return rejected(err, tmp.Name(), path)
 	}
 	if err := l.Validate(); err != nil {
-		return err
+		return rejected(err, tmp.Name(), path)
 	}
 	return os.Rename(tmp.Name(), path)
+}
+
+// rejected names the config file in place of its temporary copy, and says
+// that the file did not change.
+func rejected(err error, tmp, path string) error {
+	ue, ok := usefulerror.AsUsefulError(err)
+	if !ok {
+		return err
+	}
+	return newError(ue.Code(), strings.ReplaceAll(ue.HumanError(), tmp, path), "vet did not write the change to "+path)
 }
 
 // SortedKeys returns the keys of a value map, sorted.
