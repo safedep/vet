@@ -18,7 +18,7 @@ The rules are in docs/DEVGUIDE.md, sections "Command shape" and "Documentation".
 4. Write docs/cmd/<path joined with ->.md from the template in the guide. Keep Synopsis and Exit codes.
 5. Add the README row in tree order, under the section of its top-level noun.
 6. For a new user-facing guarantee, add an acceptance script and its catalog row.
-7. Run go test ./internal/cmd/.
+7. Run go test ./internal/cmd/, then make check before the push.
 
 ## Invariants
 

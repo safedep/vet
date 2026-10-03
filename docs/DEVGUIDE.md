@@ -147,4 +147,4 @@ vet <path> ...
 4. Write the page from the template.
 5. Add the README row in tree order.
 6. For a new user-facing guarantee, add an acceptance script and its catalog row.
-7. Run `go test ./internal/cmd/`.
+7. Run `go test ./internal/cmd/`, then `make check` before the push.

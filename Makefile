@@ -19,6 +19,38 @@ vet: quick-vet
 test:
 	go test ./...
 
+GOLANGCI_LINT ?= golangci-lint
+# CI lints the lines that changed since this ref.
+LINT_BASE ?= origin/v2
+
+# check is the gate to run before a push. It runs what CI runs: the build,
+# go vet for each OS, the tests, the lint of the changed lines and the
+# hermetic acceptance suite.
+.PHONY: check
+check:
+	go build ./...
+	go vet ./...
+	GOOS=darwin go vet ./...
+	GOOS=windows go vet ./...
+	go test -count=1 ./...
+	$(GOLANGCI_LINT) run --new-from-rev=$(LINT_BASE) ./...
+	go test -tags acceptance -count=1 ./test/acceptance/ -run TestAcceptance
+
+# fmt formats the code with the gci and gofumpt rules of the lint.
+.PHONY: fmt
+fmt:
+	$(GOLANGCI_LINT) fmt ./...
+
+# golden rewrites the golden files and the committed report schemas. Read
+# the diff before you commit it.
+.PHONY: golden
+golden:
+	UPDATE_GOLDEN=1 UPDATE_SCHEMA=1 go test -count=1 ./...
+
+.PHONY: acceptance
+acceptance:
+	go test -tags acceptance -count=1 ./test/acceptance/ -run TestAcceptance
+
 .PHONY: lint-conventions
 lint-conventions:
 	go test -count=1 -run 'TestConventions|TestIsAllowedVerb|TestAllowedVerbs' ./internal/cmd/
