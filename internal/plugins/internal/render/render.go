@@ -5,6 +5,7 @@ package render
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/tui/escape"
@@ -13,16 +14,15 @@ import (
 )
 
 // Subject names what the finding is about: ecosystem/name@version for a
-// package, and the path for a file, a manifest or an application.
+// package, the element at fault or the path for a file, and the path for a
+// manifest or an application.
 func Subject(f *finding.Finding) string {
 	s := f.Subject
 	switch {
 	case s.Package != nil:
-		v := string(s.Package.Ecosystem) + "/" + s.Package.Name
-		if s.Package.Version != "" {
-			v += "@" + s.Package.Version
-		}
-		return escape.Line(v)
+		return escape.Line(packageSubject(s.Package))
+	case s.File != nil && s.File.Element != "":
+		return escape.Line(s.File.Element)
 	case s.File != nil:
 		return escape.Line(s.File.Path)
 	case s.Manifest != nil:
@@ -33,13 +33,39 @@ func Subject(f *finding.Finding) string {
 	return ""
 }
 
+func packageSubject(p *finding.PackageSubject) string {
+	v := string(p.Ecosystem) + "/" + p.Name
+	if p.Version != "" {
+		v += "@" + p.Version
+	}
+	return v
+}
+
 // SubjectID is the machine form of the subject: the PURL of a package, and
 // the path otherwise.
 func SubjectID(f *finding.Finding) string {
-	if p := f.Subject.Package; p != nil {
-		return escape.Line(p.PURL)
+	switch s := f.Subject; {
+	case s.Package != nil:
+		return escape.Line(s.Package.PURL)
+	case s.File != nil:
+		return escape.Line(s.File.Path)
 	}
 	return Subject(f)
+}
+
+// Title is the title of the finding with no repeat of what Subject names:
+// "GHSA-1234: Prototype pollution" for "GHSA-1234 in npm/x@1.0.0: Prototype
+// pollution", and "is not pinned to a commit SHA" for "actions/checkout@v4
+// is not pinned to a commit SHA".
+func Title(f *finding.Finding) string {
+	t := f.Title
+	switch s := f.Subject; {
+	case s.Package != nil:
+		t = strings.Replace(t, " in "+packageSubject(s.Package), "", 1)
+	case s.File != nil && s.File.Element != "":
+		t = strings.TrimPrefix(t, s.File.Element+" ")
+	}
+	return escape.Line(t)
 }
 
 // Where is path:line of the finding, or the manifest path.

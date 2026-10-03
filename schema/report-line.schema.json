@@ -117,6 +117,9 @@
       "properties": {
         "path": {
           "type": "string"
+        },
+        "element": {
+          "type": "string"
         }
       },
       "type": "object",

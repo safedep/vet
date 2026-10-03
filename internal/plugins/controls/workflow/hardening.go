@@ -102,13 +102,13 @@ func (c *Control) permissions(e *emitter) {
 	d := e.doc
 	top := get(d.root, "permissions")
 	if scalar(top) == "write-all" {
-		e.add(IDExcessivePermissions, top.Line, "workflow", "The workflow asks for write-all permissions",
+		e.add(IDExcessivePermissions, top.Line, "workflow", "permissions: write-all", "The workflow asks for write-all permissions",
 			&finding.Remediation{Summary: "Set permissions: contents: read at the top, and give each job only the write permissions that it needs."})
 	}
 	for _, j := range d.jobs() {
 		p := get(j.node, "permissions")
 		if scalar(p) == "write-all" {
-			e.add(IDExcessivePermissions, p.Line, j.job, fmt.Sprintf("Job %s asks for write-all permissions", j.job),
+			e.add(IDExcessivePermissions, p.Line, j.job, "permissions: write-all", fmt.Sprintf("Job %s asks for write-all permissions", j.job),
 				&finding.Remediation{Summary: "Give the job only the write permissions that it needs."})
 		}
 	}
@@ -118,7 +118,7 @@ func (c *Control) permissions(e *emitter) {
 	for _, j := range d.jobs() {
 		if get(j.node, "permissions") == nil && get(j.node, "uses") == nil {
 			on := keyLine(d.root, "on")
-			e.add(IDExcessivePermissions, on, "default", "The workflow sets no permissions, so its token gets the repository default",
+			e.add(IDExcessivePermissions, on, "default", "permissions", "The workflow sets no permissions, so its token gets the repository default",
 				&finding.Remediation{Summary: "Add permissions: contents: read at the top of the workflow."})
 			return
 		}
@@ -129,13 +129,13 @@ func (c *Control) secretsExposure(e *emitter) {
 	d := e.doc
 	for _, j := range d.jobs() {
 		if s := get(j.node, "secrets"); scalar(s) == "inherit" {
-			e.add(IDSecretsExposure, s.Line, j.job, fmt.Sprintf("Job %s passes every secret to %s", j.job, scalar(get(j.node, "uses"))),
+			e.add(IDSecretsExposure, s.Line, j.job, "secrets: inherit", fmt.Sprintf("Job %s passes every secret to %s", j.job, scalar(get(j.node, "uses"))),
 				&finding.Remediation{Summary: "Pass only the secrets that the reusable workflow needs, by name."})
 		}
 	}
 	walkScalars(d.root, func(n *yaml.Node) {
 		if loc := toJSONSecrets.FindStringIndex(n.Value); loc != nil {
-			e.add(IDSecretsExposure, line(n, loc[0]), "toJSON", "The workflow reads every secret with toJSON(secrets)",
+			e.add(IDSecretsExposure, line(n, loc[0]), "toJSON", "toJSON(secrets)", "The workflow reads every secret with toJSON(secrets)",
 				&finding.Remediation{Summary: "Read each secret that the step needs by name."})
 		}
 	})
@@ -150,7 +150,7 @@ func (c *Control) secretsInScripts(e *emitter) {
 		}
 		for _, m := range secretInScript.FindAllStringSubmatchIndex(run.Value, -1) {
 			name := run.Value[m[2]:m[3]]
-			e.add(IDSecretsExposure, line(run, m[0]), name, fmt.Sprintf("The script reads secrets.%s directly", name),
+			e.add(IDSecretsExposure, line(run, m[0]), name, "secrets."+name, fmt.Sprintf("The script reads secrets.%s directly", name),
 				&finding.Remediation{Summary: fmt.Sprintf("Set env: %s: ${{ secrets.%s }} on the step, and read \"$%s\" in the script.", name, name, name)})
 		}
 	}
@@ -162,7 +162,7 @@ func (c *Control) envInjection(e *emitter) {
 	})
 	for _, s := range e.doc.steps() {
 		run := get(s.node, "run")
-		loc := envFileWrite.FindStringIndex(scalar(run))
+		loc := envFileWrite.FindStringSubmatchIndex(scalar(run))
 		if loc == nil {
 			continue
 		}
@@ -175,7 +175,7 @@ func (c *Control) envInjection(e *emitter) {
 		if !dangerous && !untrustedInput {
 			continue
 		}
-		e.add(IDEnvInjection, line(run, loc[0]), s.job, "A script writes to GITHUB_ENV or GITHUB_PATH with input that an outside user controls",
+		e.add(IDEnvInjection, line(run, loc[0]), s.job, envFile(run.Value, loc), "A script writes to GITHUB_ENV or GITHUB_PATH with input that an outside user controls",
 			&finding.Remediation{Summary: "Do not write untrusted input to GITHUB_ENV or GITHUB_PATH. Pass it to the next step as a step output, and quote it there."})
 	}
 }
@@ -197,7 +197,7 @@ func (c *Control) cachePoisoning(e *emitter) {
 			if !restores {
 				continue
 			}
-			e.add(IDCachePoisoning, uses.Line, j.job, fmt.Sprintf("Release job %s restores a cache with %s", j.job, v),
+			e.add(IDCachePoisoning, uses.Line, j.job, v, fmt.Sprintf("Release job %s restores a cache with %s", j.job, v),
 				&finding.Remediation{Summary: "Build releases with no cache, or with a cache key that only the release workflow writes."})
 		}
 	}
@@ -215,7 +215,7 @@ func (c *Control) artifactPoisoning(e *emitter) {
 	for _, s := range e.doc.steps() {
 		uses := get(s.node, "uses")
 		if v := scalar(uses); hasPrefixAny(v, artifactDownloads) {
-			e.add(IDArtifactPoisoning, uses.Line, s.job, fmt.Sprintf("Job %s downloads an artifact of the triggering run", s.job),
+			e.add(IDArtifactPoisoning, uses.Line, s.job, v, fmt.Sprintf("Job %s downloads an artifact of the triggering run", s.job),
 				&finding.Remediation{Summary: "Treat the artifact as untrusted: check it, and do not run it or write it to the paths of the workflow."})
 		}
 	}
@@ -234,7 +234,7 @@ func (c *Control) selfHosted(e *emitter) {
 			}
 		}
 		if slices.Contains(labels, "self-hosted") {
-			e.add(IDSelfHostedRunner, r.Line, j.job, fmt.Sprintf("Job %s runs on a self-hosted runner", j.job),
+			e.add(IDSelfHostedRunner, r.Line, j.job, "runs-on: self-hosted", fmt.Sprintf("Job %s runs on a self-hosted runner", j.job),
 				&finding.Remediation{Summary: "In a public repository, run pull request jobs on GitHub-hosted runners, or use ephemeral self-hosted runners."})
 		}
 	}
@@ -243,7 +243,7 @@ func (c *Control) selfHosted(e *emitter) {
 func (c *Control) spoofableBot(e *emitter) {
 	check := func(job string, n *yaml.Node) {
 		if loc := botCondition.FindStringIndex(scalar(n)); loc != nil {
-			e.add(IDSpoofableBot, line(n, loc[0]), job, "A condition trusts the actor name of a bot",
+			e.add(IDSpoofableBot, line(n, loc[0]), job, scalar(n)[loc[0]:loc[1]], "A condition trusts the actor name of a bot",
 				&finding.Remediation{Summary: "Check github.event.pull_request.user.login, which a user cannot spoof, in place of github.actor."})
 		}
 	}
@@ -253,6 +253,16 @@ func (c *Control) spoofableBot(e *emitter) {
 	for _, s := range e.doc.steps() {
 		check(s.job, get(s.node, "if"))
 	}
+}
+
+// envFile returns GITHUB_ENV or GITHUB_PATH from a match of envFileWrite.
+func envFile(script string, loc []int) string {
+	for i := 4; i+1 < len(loc); i += 2 {
+		if loc[i] >= 0 {
+			return script[loc[i]:loc[i+1]]
+		}
+	}
+	return ""
 }
 
 func hasPrefixAny(s string, prefixes []string) bool {

@@ -124,7 +124,9 @@ type emitter struct {
 	out  []finding.Finding
 }
 
-func (e *emitter) add(id string, l int, discriminator, title string, rem *finding.Remediation) {
+// add appends a finding. element names the part of the file at fault, as
+// the subject of the finding shows it.
+func (e *emitter) add(id string, l int, discriminator, element, title string, rem *finding.Remediation) {
 	snippet := e.doc.text(l)
 	k := strings.Join([]string{id, discriminator, finding.NormalizeSnippet(snippet)}, "\x00")
 	occ := e.seen[k]
@@ -135,6 +137,7 @@ func (e *emitter) add(id string, l int, discriminator, title string, rem *findin
 		Title: title, Description: info.Description,
 	}, finding.Locus{Path: e.path, StartLine: l, EndLine: l, Snippet: snippet},
 		finding.Key{Discriminator: discriminator, Occurrence: occ})
+	f.Subject.File.Element = element
 	f.Remediation = rem
 	e.out = append(e.out, f)
 }
@@ -170,7 +173,7 @@ func (c *Control) dangerousTrigger(e *emitter) {
 		if at == nil {
 			continue
 		}
-		e.add(IDDangerousTrigger, line(at, 0), s.job,
+		e.add(IDDangerousTrigger, line(at, 0), s.job, trigger,
 			fmt.Sprintf("%s with a checkout of the pull request code in job %s", trigger, s.job), rem)
 	}
 }
@@ -180,8 +183,8 @@ func (c *Control) templateInjection(e *emitter) {
 		for _, script := range scripts(s) {
 			for _, loc := range expression.FindAllStringSubmatchIndex(script.Value, -1) {
 				for _, field := range untrusted(script.Value[loc[2]:loc[3]]) {
-					e.add(IDTemplateInjection, line(script, loc[0]), field,
-						fmt.Sprintf("${{ %s }} in a script", field),
+					expr := fmt.Sprintf("${{ %s }}", field)
+					e.add(IDTemplateInjection, line(script, loc[0]), field, expr, expr+" in a script",
 						&finding.Remediation{Summary: fmt.Sprintf("Pass the value through an environment variable: set env: VALUE: ${{ %s }} on the step, and use \"$VALUE\" in the script.", field)})
 				}
 			}
@@ -214,7 +217,7 @@ func (c *Control) unpinned(e *emitter) {
 		if ok || c.allowed(name) {
 			continue
 		}
-		e.add(IDUnpinnedAction, line(u.node, 0), name, fmt.Sprintf("%s is not pinned to a commit SHA", value),
+		e.add(IDUnpinnedAction, line(u.node, 0), name, value, fmt.Sprintf("%s is not pinned to a commit SHA", value),
 			&finding.Remediation{Summary: "Pin the action to the commit SHA of the tag, and keep the tag in a comment.", Command: fixCommand})
 	}
 }

@@ -200,3 +200,51 @@ func sortLines(m map[string][]int) map[string][]int {
 	}
 	return m
 }
+
+func TestElementNamesThePartAtFault(t *testing.T) {
+	cases := []struct {
+		file string
+		want map[string][]string
+	}{
+		{file: "pwn.yml", want: map[string][]string{
+			IDDangerousTrigger:     {"pull_request_target", "pull_request_target"},
+			IDExcessivePermissions: {"permissions"},
+		}},
+		{file: "action.yml", want: map[string][]string{
+			IDTemplateInjection: {"${{ github.head_ref }}"},
+			IDUnpinnedAction:    {"tj-actions/changed-files@v44"},
+		}},
+		{file: "hardening.yml", want: map[string][]string{
+			IDSelfHostedRunner:     {"runs-on: self-hosted"},
+			IDExcessivePermissions: {"permissions: write-all"},
+			IDSpoofableBot:         {"github.actor == 'dependabot[bot]'"},
+			IDCachePoisoning:       {"actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af"},
+			IDArtifactPoisoning:    {"actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093"},
+			IDEnvInjection:         {"GITHUB_ENV"},
+			IDSecretsExposure:      {"secrets.NPM_TOKEN", "secrets: inherit", "toJSON(secrets)"},
+			IDTemplateInjection:    {"${{ github.event.workflow_run.head_branch }}"},
+		}},
+		{file: "unpinned.yml", want: map[string][]string{
+			IDExcessivePermissions: {"permissions"},
+			IDUnpinnedAction:       {"actions/checkout@v4", "actions/checkout@v4", "docker://alpine:3.19", "my-org/tool@main", "other/repo/.github/workflows/build.yml@v1"},
+		}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.file, func(t *testing.T) {
+			data, err := os.ReadFile(filepath.Join("testdata", tc.file))
+			require.NoError(t, err)
+			c, err := New(plugin.MapConfig(nil))
+			require.NoError(t, err)
+			p := ".github/workflows/" + tc.file
+			m := &model.Manifest{ID: "m1", Path: p, Kind: model.ManifestKindWorkflow, Root: fstest.MapFS{p: {Data: data}}}
+			got := map[string][]string{}
+			for _, f := range plugintest.TestControl(t, c, m, nil) {
+				got[f.ControlID] = append(got[f.ControlID], f.Subject.File.Element)
+			}
+			for k := range got {
+				slices.Sort(got[k])
+			}
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}

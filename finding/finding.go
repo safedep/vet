@@ -50,6 +50,10 @@ type PackageSubject struct {
 // FileSubject is a file in the target, for example a workflow.
 type FileSubject struct {
 	Path string `json:"path"`
+	// Element is the part of the file that is at fault, such as an action
+	// ref, a trigger or an expression of a workflow. It is empty when the
+	// finding is about the file as a whole.
+	Element string `json:"element,omitempty"`
 }
 
 // ManifestSubject is a manifest file as a whole.
