@@ -21,9 +21,9 @@ func TestAISignatures(t *testing.T) {
 			"ai.tensorflow", "ai.tiktoken", "ai.vertexai", "ai.vllm", "ai.weaviate", "google.genai.client",
 		},
 		"ai.ts": {
-			"ai.chroma", "ai.genkit", "ai.huggingface.transformers", "ai.langfuse", "ai.llamacpp", "ai.onnxruntime",
-			"ai.pinecone", "ai.qdrant", "ai.replicate", "ai.tensorflow", "ai.tiktoken", "ai.vertexai", "ai.weaviate",
-			"google.genai.client",
+			"ai.chroma", "ai.elevenlabs", "ai.genkit", "ai.huggingface.transformers", "ai.langfuse", "ai.llamacpp",
+			"ai.onnxruntime", "ai.pinecone", "ai.qdrant", "ai.replicate", "ai.tensorflow", "ai.tiktoken", "ai.vertexai",
+			"ai.weaviate", "google.genai.client", "langchain.js",
 		},
 		"Ai.java": {
 			"ai.djl", "ai.dl4j", "ai.milvus", "ai.onnxruntime", "ai.pinecone", "ai.qdrant", "ai.smile", "ai.tensorflow",

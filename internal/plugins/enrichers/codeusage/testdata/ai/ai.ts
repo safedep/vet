@@ -16,6 +16,8 @@ import { genkit } from "genkit";
 import { googleAI } from "@genkit-ai/google-genai";
 import { Agent } from "@openai/agents";
 import { Langfuse } from "langfuse";
+import { DocxLoader } from "langchain/document_loaders/fs/docx";
+import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
 
 export async function run() {
   await pipeline("sentiment-analysis");
@@ -34,5 +36,8 @@ export async function run() {
   await getLlama();
   genkit({ plugins: [googleAI()] });
   new Langfuse();
+  await new DocxLoader("a.docx").load();
+  new ElevenLabsClient();
+  await import("@xenova/transformers").then(({ pipeline }) => pipeline("feature-extraction"));
   return Agent;
 }

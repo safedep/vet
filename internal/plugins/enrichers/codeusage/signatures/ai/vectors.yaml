@@ -89,6 +89,8 @@ signatures:
         conditions:
           - type: call
             value: "@pinecone-database/pinecone/*"
+          - type: call
+            value: "pinecone-client/*"
       java:
         match: any
         conditions:

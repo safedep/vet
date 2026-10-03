@@ -380,3 +380,16 @@ signatures:
         conditions:
           - type: call
             value: "@langchain/core/*"
+
+  - id: langchain.js
+    description: "LangChain.js chains, loaders, splitters and vector stores"
+    vendor: "LangChain"
+    product: "LangChain.js"
+    service: "Framework"
+    tags: [ai, llm]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "langchain/*"

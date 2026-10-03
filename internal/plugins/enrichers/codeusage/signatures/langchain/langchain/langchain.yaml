@@ -30,7 +30,7 @@ signatures:
           - type: call
             value: "langchain/createAgent"
           - type: call
-            value: "langchain/*"
+            value: "langchain/agents/*"
       go:
         match: any
         conditions:

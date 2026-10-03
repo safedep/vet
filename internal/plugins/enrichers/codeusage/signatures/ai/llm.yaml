@@ -68,6 +68,26 @@ signatures:
           - type: call
             value: "Prism\\Prism\\*"
 
+  - id: ai.elevenlabs
+    description: "Generates and transcribes speech with ElevenLabs"
+    vendor: "ElevenLabs"
+    product: "ElevenLabs"
+    service: "AI client"
+    tags: [ai, audio]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "elevenlabs.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "elevenlabs/*"
+          - type: call
+            value: "@elevenlabs/elevenlabs-js/*"
+
   - id: ai.vertexai
     description: "Google Cloud Vertex AI models and endpoints"
     vendor: "Google"
