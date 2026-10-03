@@ -103,7 +103,7 @@ func emitMCPServers(cfg *mcpAppConfig, configPath string, scope AIToolScope, app
 			Transport:    transport,
 			Command:      entry.Command,
 			Args:         SanitizeArgs(entry.Args),
-			URL:          entry.resolvedURL(),
+			URL:          SanitizeURL(entry.resolvedURL()),
 			EnvVarNames:  sortedMapKeys(entry.Env),
 			HeaderNames:  sortedMapKeys(entry.Headers),
 			AllowedTools: entry.AllowedTools,

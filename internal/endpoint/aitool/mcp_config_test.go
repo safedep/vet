@@ -69,3 +69,18 @@ func TestDetectTransport(t *testing.T) {
 		assert.Equal(t, MCPTransportSSE, detectTransport(entry))
 	})
 }
+
+func TestEmitMCPServersRedactsSecrets(t *testing.T) {
+	cfg := &mcpAppConfig{MCPServers: map[string]mcpServerEntry{
+		"remote": {URL: "https://user:pw@mcp.example.com/sse?token=abc"},
+		"local":  {Command: "npx", Args: []string{"server", "--token", "sk-secret"}},
+	}}
+	got := map[string]*MCPServerConfig{}
+	err := emitMCPServers(cfg, "mcp.json", AIToolScopeSystem, "app", "App", func(tool *AITool) error {
+		got[tool.Name] = tool.MCPServer
+		return nil
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "https://REDACTED@mcp.example.com/sse?token=REDACTED", got["remote"].URL)
+	assert.Equal(t, []string{"server", "--token", "<REDACTED>"}, got["local"].Args)
+}

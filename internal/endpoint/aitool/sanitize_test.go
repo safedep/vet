@@ -46,3 +46,29 @@ func TestSanitizeArgs_NilSlice(t *testing.T) {
 	sanitized := SanitizeArgs(nil)
 	assert.Nil(t, sanitized, "nil input should return nil, not empty slice")
 }
+
+func TestSanitizeArgs_RedactsSplitFlagValues(t *testing.T) {
+	sanitized := SanitizeArgs([]string{"--token", "sk-secret", "--API-KEY", "k", "--port", "8080"})
+	assert.Equal(t, []string{"--token", "<REDACTED>", "--API-KEY", "<REDACTED>", "--port", "8080"}, sanitized)
+}
+
+func TestSanitizeURL(t *testing.T) {
+	cases := []struct {
+		name, in, want string
+	}{
+		{name: "credentials", in: "https://user:pw@mcp.example.com/sse", want: "https://REDACTED@mcp.example.com/sse"},
+		{name: "secret query", in: "https://mcp.example.com/sse?api_key=abc&region=eu", want: "https://mcp.example.com/sse?api_key=REDACTED&region=eu"},
+		{name: "no secret", in: "https://mcp.example.com/sse?region=eu", want: "https://mcp.example.com/sse?region=eu"},
+		{name: "not a URL", in: "server.js", want: "server.js"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, SanitizeURL(tc.in))
+		})
+	}
+}
+
+func TestSanitizeArgs_RedactsURLCredentials(t *testing.T) {
+	sanitized := SanitizeArgs([]string{"mcp-remote", "https://user:pw@mcp.example.com/sse"})
+	assert.Equal(t, []string{"mcp-remote", "https://REDACTED@mcp.example.com/sse"}, sanitized)
+}
