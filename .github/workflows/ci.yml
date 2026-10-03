@@ -28,6 +28,13 @@ jobs:
       - name: Install gotestsum
         run: go install gotest.tools/gotestsum@latest
 
+      - name: Vet
+        run: |
+          go vet ./...
+          for goos in darwin windows; do
+            GOOS=$goos go vet ./...
+          done
+
       - name: Build and Test
         run: |
           go mod tidy

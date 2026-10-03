@@ -12,9 +12,6 @@ on:
       - "go.mod"
       - "cmd/vet/**"
   workflow_dispatch:
-  # Temporary: remove before the merge into v2.
-  push:
-    branches: [claude/vet-v2-implementation]
 
 permissions:
   contents: read

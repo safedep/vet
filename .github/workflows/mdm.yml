@@ -2,12 +2,12 @@ name: MDM Scripts
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, v2]
     paths:
       - scripts/mdm/**
       - .github/workflows/mdm.yml
   push:
-    branches: [main]
+    branches: [main, v2]
     paths:
       - scripts/mdm/**
       - .github/workflows/mdm.yml
