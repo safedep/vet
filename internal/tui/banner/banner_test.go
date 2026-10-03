@@ -43,3 +43,21 @@ func TestPrintToShowsTheBannerOnlyToAHuman(t *testing.T) {
 		})
 	}
 }
+
+func TestDisplayVersion(t *testing.T) {
+	cases := []struct {
+		in, want string
+	}{
+		{in: "", want: "dev"},
+		{in: "v2.0.1", want: "v2.0.1"},
+		{in: "v2.0.1+dirty", want: "v2.0.1"},
+		{in: "v2.0.0-20261003111228-8957dc6e7130", want: "dev (8957dc6)"},
+		{in: "v2.0.0-20261003111228-8957dc6e7130+dirty", want: "dev (8957dc6)"},
+		{in: "devel", want: "devel"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.in, func(t *testing.T) {
+			assert.Equal(t, tc.want, DisplayVersion(tc.in))
+		})
+	}
+}

@@ -25,6 +25,10 @@ runs the controls, and applies the gate. A plain scan reports and exits 0.
 --base-ref compares the target with a git ref and reports only what the
 change adds. vet saves each scan, so "vet report show" renders it again
 with no new scan, and an interrupted scan continues on the next run.`,
+		Example: `  vet scan                            # Scan the current directory
+  vet scan . --fail-on high           # Exit 1 on a high or critical finding
+  vet scan . --policy default         # Apply the policy that vet policy init wrote
+  vet scan . --base-ref origin/main   # Report only what the branch changes`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			o.Target = "."
@@ -35,8 +39,8 @@ with no new scan, and an interrupted scan continues on the next run.`,
 		},
 	}
 	f := c.Flags()
-	f.StringVar(&o.BaseRef, "base-ref", "", "Report only what the target changes since this git ref (pull request mode)")
-	f.StringArrayVar(&o.Exclude, "exclude", nil, "Skip the paths that match this glob, relative to the target. Repeatable")
+	f.StringVar(&o.BaseRef, "base-ref", "", "Report only the changes since this git ref")
+	f.StringArrayVar(&o.Exclude, "exclude", nil, "Skip the paths that match this glob. Repeatable")
 	o.RegisterFlags(c)
 	return c
 }

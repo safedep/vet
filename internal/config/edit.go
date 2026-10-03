@@ -117,7 +117,12 @@ func readDoc(path string) (*yaml.Node, error) {
 	if err := yaml.Unmarshal(b, &doc); err != nil {
 		return nil, newError(CodeFileInvalid, fmt.Sprintf("%s: %v", path, err), "Fix the YAML, or run vet config edit.")
 	}
-	if len(doc.Content) == 0 || doc.Content[0].Kind != yaml.MappingNode {
+	if len(doc.Content) == 0 {
+		// yaml.v3 drops the comments of a file that has only comments.
+		comments := string(bytes.TrimSpace(b))
+		return &yaml.Node{Kind: yaml.DocumentNode, HeadComment: comments, Content: []*yaml.Node{{Kind: yaml.MappingNode}}}, nil
+	}
+	if doc.Content[0].Kind != yaml.MappingNode {
 		return nil, newError(CodeFileInvalid, fmt.Sprintf("%s is not a YAML mapping", path), "Fix the YAML, or run vet config edit.")
 	}
 	return &doc, nil
@@ -176,13 +181,8 @@ func deleteNode(m *yaml.Node, path []string) bool {
 // writeDoc checks the new file with Load and Validate, then writes it with
 // mode 0600.
 func writeDoc(path string, doc *yaml.Node) (err error) {
-	var buf bytes.Buffer
-	enc := yaml.NewEncoder(&buf)
-	enc.SetIndent(2)
-	if err := enc.Encode(doc); err != nil {
-		return err
-	}
-	if err := enc.Close(); err != nil {
+	b, err := encodeDoc(doc)
+	if err != nil {
 		return err
 	}
 	if err := appdir.Ensure(filepath.Dir(path)); err != nil {
@@ -199,7 +199,7 @@ func writeDoc(path string, doc *yaml.Node) (err error) {
 			}
 		}
 	}()
-	if _, err := tmp.Write(buf.Bytes()); err != nil {
+	if _, err := tmp.Write(b); err != nil {
 		return errors.Join(err, tmp.Close())
 	}
 	if err := tmp.Close(); err != nil {
@@ -223,6 +223,31 @@ func rejected(err error, tmp, path string) error {
 		return err
 	}
 	return newError(ue.Code(), strings.ReplaceAll(ue.HumanError(), tmp, path), "vet did not write the change to "+path)
+}
+
+// encodeDoc returns the YAML of a config file. yaml.v3 writes an empty
+// mapping as "{}", which is JSON, so a file with no key keeps only its
+// comments.
+func encodeDoc(doc *yaml.Node) ([]byte, error) {
+	if m := root(doc); len(m.Content) == 0 {
+		var comments []string
+		for _, c := range []string{doc.HeadComment, m.HeadComment, m.LineComment, m.FootComment, doc.FootComment} {
+			if c != "" {
+				comments = append(comments, c+"\n")
+			}
+		}
+		return []byte(strings.Join(comments, "")), nil
+	}
+	var buf bytes.Buffer
+	enc := yaml.NewEncoder(&buf)
+	enc.SetIndent(2)
+	if err := enc.Encode(doc); err != nil {
+		return nil, err
+	}
+	if err := enc.Close(); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 // SortedKeys returns the keys of a value map, sorted.

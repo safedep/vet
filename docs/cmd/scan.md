@@ -65,6 +65,8 @@ state and no cache after the scan.
 ```text
 vet scan
 vet scan . --fail-on high
+vet scan . --policy default
+vet scan . --base-ref origin/main
 vet scan . --base-ref origin/main --report sarif=vet.sarif
 vet scan . --policy vet-policy.yml -o json
 vet scan oci://alpine:3.20 --ephemeral

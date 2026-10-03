@@ -254,29 +254,68 @@ func TestConventions_SkillsNameRealCommands(t *testing.T) {
 		assert.Contains(t, string(b), "\nname: "+name+"\n", "%s: the name is not the directory name", p)
 		assert.Contains(t, string(b), "\ndescription: ", "%s has no description", p)
 		for _, m := range command.FindAllStringSubmatch(string(b), -1) {
-			args := strings.Fields(m[1])
-			c, rest, err := root.Find(args)
-			require.NoError(t, err, "%s: `vet %s`", name, m[1])
-			if !assert.True(t, isLeaf(c), "%s: `vet %s` names no command", name, m[1]) {
+			assertRealCommand(t, root, name, m[1])
+		}
+	}
+}
+
+// TestConventions_Examples checks that each line of a help example names a
+// real command and its flags, and that the page of a leaf lists the same
+// command line in its Examples section.
+func TestConventions_Examples(t *testing.T) {
+	root := newTree(t)
+	check := func(c *cobra.Command, path []string) {
+		where := strings.Join(append([]string{"vet"}, path...), " ")
+		var page string
+		if isLeaf(c) && c != root {
+			b, err := os.ReadFile(docPage(t, strings.Join(path, " ")))
+			require.NoError(t, err)
+			_, page, _ = strings.Cut(string(b), "## Examples")
+		}
+		for _, line := range strings.Split(c.Example, "\n") {
+			cmdline, _, _ := strings.Cut(line, "#")
+			cmdline = strings.TrimSpace(cmdline)
+			if cmdline == "" {
 				continue
 			}
-			for _, a := range rest {
-				flag, _, _ := strings.Cut(strings.TrimLeft(a, "-"), "=")
-				if !strings.HasPrefix(a, "-") {
-					continue
-				}
-				f := c.Flags().Lookup(flag)
-				if f == nil {
-					f = c.InheritedFlags().Lookup(flag)
-				}
-				if f == nil && len(flag) == 1 {
-					f = c.Flags().ShorthandLookup(flag)
-					if f == nil {
-						f = c.InheritedFlags().ShorthandLookup(flag)
-					}
-				}
-				assert.NotNil(t, f, "%s: `vet %s` has no flag %s", name, m[1], a)
+			args, ok := strings.CutPrefix(cmdline, "vet ")
+			if !assert.True(t, ok, "%s: the example %q does not start with vet", where, line) {
+				continue
+			}
+			assertRealCommand(t, root, where, args)
+			if page != "" {
+				assert.Contains(t, page, "\n"+cmdline+"\n", "%s: the Examples section of the page has no %q", where, cmdline)
 			}
 		}
+	}
+	check(root, nil)
+	walk(root, nil, check)
+}
+
+// assertRealCommand checks that "vet args" names a leaf and that each flag
+// of it exists.
+func assertRealCommand(t *testing.T, root *cobra.Command, where, args string) {
+	t.Helper()
+	c, rest, err := root.Find(strings.Fields(args))
+	require.NoError(t, err, "%s: `vet %s`", where, args)
+	if !assert.True(t, isLeaf(c), "%s: `vet %s` names no command", where, args) {
+		return
+	}
+	for _, a := range rest {
+		if !strings.HasPrefix(a, "-") {
+			continue
+		}
+		flag, _, _ := strings.Cut(strings.TrimLeft(a, "-"), "=")
+		f := c.Flags().Lookup(flag)
+		if f == nil {
+			f = c.InheritedFlags().Lookup(flag)
+		}
+		if f == nil && len(flag) == 1 {
+			f = c.Flags().ShorthandLookup(flag)
+			if f == nil {
+				f = c.InheritedFlags().ShorthandLookup(flag)
+			}
+		}
+		assert.NotNil(t, f, "%s: `vet %s` has no flag %s", where, args, a)
 	}
 }

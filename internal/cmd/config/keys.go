@@ -7,14 +7,13 @@ import (
 	vconfig "github.com/safedep/vet/v2/internal/config"
 	"github.com/safedep/vet/v2/internal/tui"
 	"github.com/safedep/vet/v2/internal/tui/escape"
-	"github.com/safedep/vet/v2/internal/tui/printer"
 )
 
 func newGet(a *app.App) *cobra.Command {
 	return &cobra.Command{
 		Use:   "get KEY",
 		Short: "Print one config value",
-		Long:  `Print the effective value of one key. -o json prints the value and its source.`,
+		Long:  `Print the effective value of one key, with no other text. -o json prints the value and its source.`,
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			rt, err := a.Config(app.ConfigOptions{})
@@ -30,7 +29,7 @@ func newGet(a *app.App) *cobra.Command {
 				return err
 			}
 			e := Entry{Key: args[0], Value: v, Origin: rt.Origins.Of(args[0])}
-			return p.Print(e, printer.Rows{Rows: [][]string{{escape.Line(text(v))}}})
+			return p.PrintText(e, escape.Line(text(v)))
 		},
 	}
 }

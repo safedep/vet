@@ -12,7 +12,7 @@ vet config delete KEY [--config FILE]
 
 `vet config delete` removes a key from the user config file, or from the `--config` file, so that
 the next layer down applies. vet removes the sections that the key leaves empty, and keeps the
-comments of the file.
+comments of the file. When the file has no key left, vet writes only its comments.
 
 ## Examples
 

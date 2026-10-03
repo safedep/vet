@@ -20,6 +20,9 @@ by a report file that "vet scan -o json" or "-o jsonl" wrote.
 --fail-on and --policy apply a new gate to the saved report, which tests
 a policy against a scan. The saved scan does not change. The exit code
 follows the gate of the rendered report.`,
+		Example: `  vet report show                    # Show the last scan of this directory
+  vet report show last -o json       # Print the last scan as JSON
+  vet report show --policy default   # Test a policy against the last scan`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 1 {

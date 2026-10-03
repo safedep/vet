@@ -126,6 +126,12 @@
   labels: [determinism]
 
 # --- Other commands ---
+- id: version/print/one-line
+  title: "vet version prints one line"
+  category: version
+  tier: P2
+  guarantee: "vet version prints the version, the Go version and the platform on one line in the table and plain formats."
+  labels: [version]
 - id: version/print/json
   title: "vet version prints its build"
   category: version
@@ -492,7 +498,7 @@
   title: "vet doctor passes on a fresh sandbox"
   category: health
   tier: P2
-  guarantee: "vet doctor exits 0 on a fresh sandbox, and -o json lists each check with an id."
+  guarantee: "vet doctor exits 0 on a fresh sandbox, and -o json lists each check with an id. The text output has one line for each check, and a fix line under a check that failed."
   labels: [doctor]
 - id: dirs/xdg/kinds-apart
   title: "config, state and cache live apart"
@@ -512,6 +518,12 @@
   tier: P0
   guarantee: "A config file or policy file inside the scanned target changes nothing. A policy loads only with --policy."
   labels: [config, gate]
+- id: config/get/bare-value
+  title: "config get prints the bare value"
+  category: config
+  tier: P2
+  guarantee: "vet config get prints only the value in the table and plain formats, and -o json keeps the key, the value and the source. A config delete of the last key leaves a YAML file, not {}."
+  labels: [config]
 - id: config/set/rejects-unknown-key
   title: "config set rejects an unknown key"
   category: config

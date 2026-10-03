@@ -74,14 +74,14 @@ type Options struct {
 // gate, the reports, the state and the cooldown window.
 func (o *Options) RegisterFlags(c *cobra.Command) {
 	f := c.Flags()
-	f.StringVar(&o.FailOn, "fail-on", "", "Fail with exit code 1 on a finding at this severity or above: critical, high, medium, low or info")
-	f.StringVar(&o.Policy, "policy", "", "Policy v2 file or directory that sets the rules and the suppressions")
-	f.StringArrayVar(&o.Reports, "report", nil, "Also write the report as FORMAT=PATH, for example json=vet.json. Repeatable")
-	f.BoolVar(&o.Strict, "strict", false, "Exit with code 3 when a diagnostic exists, for example when a backend did not answer")
-	f.BoolVar(&o.Resume, "resume", false, "Continue the stopped scan of the target, however old it is")
-	f.BoolVar(&o.Fresh, "fresh", false, "Start a new scan, and do not continue a stopped one")
-	f.BoolVar(&o.NoCache, "no-cache", false, "Ignore the cached enrichments, and refresh the cache with new results")
-	f.IntVar(&o.CooldownDays, "cooldown-days", 0, "Cooldown window in days. Sets plugins.dependency-cooldown.options.days")
+	f.StringVar(&o.FailOn, "fail-on", "", "Exit 1 on a finding at this severity or above")
+	f.StringVar(&o.Policy, "policy", "", "Policy v2 file, directory or name")
+	f.StringArrayVar(&o.Reports, "report", nil, "Also write the report as FORMAT=PATH. Repeatable")
+	f.BoolVar(&o.Strict, "strict", false, "Exit 3 when the report has a diagnostic")
+	f.BoolVar(&o.Resume, "resume", false, "Continue the stopped scan, however old it is")
+	f.BoolVar(&o.Fresh, "fresh", false, "Start a new scan in place of a stopped one")
+	f.BoolVar(&o.NoCache, "no-cache", false, "Ignore and refresh the cached enrichments")
+	f.IntVar(&o.CooldownDays, "cooldown-days", 0, "Days of the dependency cooldown window")
 	o.State.Register(f)
 	c.MarkFlagsMutuallyExclusive("resume", "fresh")
 }

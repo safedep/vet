@@ -39,6 +39,10 @@ workflows, container images and SBOMs. It checks each package for malware,
 vulnerabilities and other risk, and applies your policy as a gate.
 
 Run "vet scan" in a project directory to start.`,
+		Example: `  vet scan                    # Scan the project in the current directory
+  vet scan . --fail-on high   # Exit 1 on a high or critical finding
+  vet report show             # Show the last scan again, with no new scan
+  vet doctor                  # Check the config, the state and the endpoints`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		PersistentPreRunE: func(*cobra.Command, []string) error {

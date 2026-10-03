@@ -57,6 +57,8 @@ only the uses: value, so the file keeps its format.
 
 --dry-run prints the diff and writes nothing. DIR is the root of the
 repository. The default is the current directory.`,
+		Example: `  vet fix github-actions run --dry-run   # Show the diff and write nothing
+  vet fix github-actions run             # Pin each action to a commit SHA`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			root := "."

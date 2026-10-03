@@ -3,11 +3,12 @@ package version
 
 import (
 	"runtime"
+	"strings"
 
 	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/v2/internal/app"
-	"github.com/safedep/vet/v2/internal/tui/printer"
+	"github.com/safedep/vet/v2/internal/tui/banner"
 	"github.com/safedep/vet/v2/internal/version"
 )
 
@@ -29,13 +30,23 @@ func Current() Info {
 	}
 }
 
+// Line returns the build as one line, with the version as the banner
+// shows it: vet <version> (<commit>) <go> <platform>.
+func (i Info) Line() string {
+	v := banner.DisplayVersion(i.Version)
+	if c := i.Commit[:min(7, len(i.Commit))]; c != "" && !strings.Contains(v, c) {
+		v += " (" + c + ")"
+	}
+	return "vet " + v + " " + i.Go + " " + i.Platform
+}
+
 // New returns the "vet version" command.
 func New(a *app.App) *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
 		Short: "Show the version and the build of vet",
 		Long: `Show the version of vet, the commit that it was built from, the Go version
-and the platform. Use -o json to read the fields in a script.`,
+and the platform on one line. Use -o json to read the fields in a script.`,
 		Args: cobra.NoArgs,
 		RunE: func(*cobra.Command, []string) error {
 			p, err := a.Printer()
@@ -43,10 +54,7 @@ and the platform. Use -o json to read the fields in a script.`,
 				return err
 			}
 			i := Current()
-			return p.Print(i, printer.Rows{
-				Headers: []string{"VERSION", "COMMIT", "GO", "PLATFORM"},
-				Rows:    [][]string{{i.Version, i.Commit, i.Go, i.Platform}},
-			})
+			return p.PrintText(i, i.Line())
 		},
 	}
 }

@@ -1,5 +1,6 @@
 # vet doctor exits 0 on a fresh sandbox, and -o json lists each check with
-# an id. A stopped endpoint fails a check and exits 1.
+# an id. A stopped endpoint fails a check and exits 1. The text output is
+# one line for each check, with a fix line under a check that failed.
 exec vet doctor --mode plain -o json
 jsonq stdout 0.id vet.version
 stdout '"id": "state.index"'
@@ -8,4 +9,6 @@ stdout '"id": "endpoint.insights",\s+"status": "pass"'
 
 stub fail malysis Unavailable
 execexit 1 vet doctor --mode plain -o plain
-stdout 'endpoint.malysis\tfail'
+stdout '^\[ERR\]\s+endpoint\.malysis\s+malysis did not answer'
+stdout '^\s+> Check the network'
+stdout '^\[OK\]\s+state\.size\s+0 scans use 0 B'

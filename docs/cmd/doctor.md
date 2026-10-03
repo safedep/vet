@@ -11,7 +11,8 @@ vet doctor [--fix] [--state-dir DIR] [--cache-dir DIR] [-o table|plain|json|json
 ## Description
 
 `vet doctor` checks that vet can work. Each check has a stable id, a status (`pass`, `warn` or
-`fail`), a message and a fix. `-o json` returns the list for agents.
+`fail`), a message and a fix. vet prints one line for each check, with an icon for its status, and
+a `›` line with the fix under a check that did not pass. `-o json` returns the list for agents.
 
 | Check | What it checks |
 | --- | --- |

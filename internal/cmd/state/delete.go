@@ -56,6 +56,8 @@ runs.
 vet asks before it deletes. In agent mode, with --no-input or with no
 terminal, vet cannot ask: pass --yes, or the command exits 2. --dry-run
 shows what vet would delete and deletes nothing.`,
+		Example: `  vet state delete --older-than 7d       # Delete the scans older than 7 days
+  vet state delete --interrupted --yes   # Delete the interrupted scans, and do not ask`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error { return runDelete(cmd, a, o) },
 	}

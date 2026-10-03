@@ -23,8 +23,10 @@ import (
 	"github.com/safedep/vet/v2/internal/runner"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/internal/tui"
+	"github.com/safedep/vet/v2/internal/tui/banner"
+	"github.com/safedep/vet/v2/internal/tui/checklist"
 	"github.com/safedep/vet/v2/internal/tui/escape"
-	"github.com/safedep/vet/v2/internal/tui/printer"
+	"github.com/safedep/vet/v2/internal/tui/humanize"
 	"github.com/safedep/vet/v2/internal/version"
 )
 
@@ -36,6 +38,17 @@ const (
 	Warn Status = "warn"
 	Fail Status = "fail"
 )
+
+func (s Status) item() checklist.Status {
+	switch s {
+	case Fail:
+		return checklist.Fail
+	case Warn:
+		return checklist.Warn
+	default:
+		return checklist.Pass
+	}
+}
 
 // Check is one check of "vet doctor". The id is stable.
 type Check struct {
@@ -71,13 +84,13 @@ scan.`,
 			if err != nil {
 				return err
 			}
-			rows := printer.Rows{Headers: []string{"CHECK", "STATUS", "MESSAGE", "FIX"}}
+			items := make([]checklist.Item, 0, len(checks))
 			failed := false
 			for _, c := range checks {
-				rows.Rows = append(rows.Rows, []string{c.ID, string(c.Status), escape.Line(c.Message), escape.Line(c.Fix)})
+				items = append(items, checklist.Item{Status: c.Status.item(), Name: c.ID, Text: escape.Line(c.Message), Fix: escape.Line(c.Fix)})
 				failed = failed || c.Status == Fail
 			}
-			if err := p.Print(checks, rows); err != nil {
+			if err := p.PrintText(checks, checklist.Lines(items)...); err != nil {
 				return err
 			}
 			if failed {
@@ -94,7 +107,7 @@ scan.`,
 }
 
 func run(ctx context.Context, a *app.App, f state.Flags, fix bool) []Check {
-	checks := []Check{{ID: "vet.version", Status: Pass, Message: "vet " + version.Version()}}
+	checks := []Check{{ID: "vet.version", Status: Pass, Message: "vet " + banner.DisplayVersion(version.Version())}}
 	rt, err := a.Config(app.ConfigOptions{StateDir: f.StateDir, CacheDir: f.CacheDir})
 	if err != nil {
 		return append(checks, Check{ID: "config.load", Status: Fail, Message: err.Error(), Fix: "vet config validate"})
@@ -140,18 +153,21 @@ func latestRelease(ctx context.Context, cfg *config.Config) Check {
 // A development build of the next major version is newer than every
 // release.
 func releaseCheck(latest, current string) Check {
+	shown := banner.DisplayVersion(current)
+	latestMsg := Check{ID: "vet.release", Status: Pass, Message: "vet " + shown + " is the latest release"}
+	older := Check{ID: "vet.release", Status: Warn, Message: "the latest release is " + latest + ", this is " + shown, Fix: "Upgrade vet."}
 	switch c := semver.Compare(latest, current); {
 	case !semver.IsValid(latest) || !semver.IsValid(current):
 		if latest == current {
-			return Check{ID: "vet.release", Status: Pass, Message: "vet " + current + " is the latest release"}
+			return latestMsg
 		}
-		return Check{ID: "vet.release", Status: Warn, Message: "the latest release is " + latest + ", this is " + current, Fix: "Upgrade vet."}
+		return older
 	case c > 0:
-		return Check{ID: "vet.release", Status: Warn, Message: "the latest release is " + latest + ", this is " + current, Fix: "Upgrade vet."}
+		return older
 	case c < 0:
-		return Check{ID: "vet.release", Status: Pass, Message: "vet " + current + " is newer than the latest release " + latest}
+		return Check{ID: "vet.release", Status: Pass, Message: "vet " + shown + " is newer than the latest release " + latest}
 	}
-	return Check{ID: "vet.release", Status: Pass, Message: "vet " + current + " is the latest release"}
+	return latestMsg
 }
 
 func stateChecks(ctx context.Context, rt *config.Runtime, fix bool) []Check {
@@ -227,15 +243,29 @@ func sizeCheck(ctx context.Context, cfg *config.Config, s *state.Store, fix bool
 	if err != nil {
 		return Check{ID: "state.size", Status: Fail, Message: err.Error()}
 	}
+	limit := ""
+	if r.MaxSize > 0 {
+		limit = string(cfg.State.Retention.MaxSize)
+	}
 	if r.MaxSize > 0 && u.Bytes > r.MaxSize {
 		if !fix {
-			return Check{ID: "state.size", Status: Warn, Message: fmt.Sprintf("the scans use %d bytes, over the limit of %d", u.Bytes, r.MaxSize), Fix: "vet doctor --fix"}
+			return Check{ID: "state.size", Status: Warn, Message: fmt.Sprintf("the scans use %s, over the limit of %s", humanize.Bytes(u.Bytes), limit), Fix: "vet doctor --fix"}
 		}
 		if _, err := s.ApplyRetention(ctx, r, time.Now()); err != nil {
 			return Check{ID: "state.size", Status: Fail, Message: err.Error()}
 		}
 	}
-	return Check{ID: "state.size", Status: Pass, Message: fmt.Sprintf("%d scans use %d bytes of the limit of %d", u.Scans, u.Bytes, r.MaxSize)}
+	return Check{ID: "state.size", Status: Pass, Message: sizeMessage(u.Scans, u.Bytes, limit)}
+}
+
+// sizeMessage names the limit as the config sets it, as vet state show
+// does.
+func sizeMessage(scans int, used int64, limit string) string {
+	msg := fmt.Sprintf("%d scans use %s", scans, humanize.Bytes(used))
+	if limit != "" {
+		msg += " of the limit of " + limit
+	}
+	return msg
 }
 
 func credentialCheck(cfg *config.Config) (*credentials.Result, Check) {

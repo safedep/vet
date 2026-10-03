@@ -1,0 +1,10 @@
+# vet version prints one line in the table and plain formats: the version
+# as the banner shows it, the Go version and the platform.
+exec vet version --mode plain
+stdout '^vet \S+.* go[0-9.]+ [a-z0-9]+/[a-z0-9]+$'
+! stdout 'VERSION'
+! stderr .
+
+exec vet version --mode plain -o table
+stdout '^vet .* go[0-9.]+ '
+! stdout '│'

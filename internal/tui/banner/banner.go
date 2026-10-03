@@ -4,6 +4,7 @@ package banner
 
 import (
 	"io"
+	"regexp"
 	"strings"
 
 	drybanner "github.com/safedep/dry/tui/banner"
@@ -25,16 +26,27 @@ func PrintTo(w io.Writer, version string) {
 	if output.CurrentMode() != output.Rich || output.CurrentVerbosity() <= output.Silent {
 		return
 	}
-	b := drybanner.Banner{Art: art, Name: "vet", Version: displayVersion(version), Tagline: Tagline}
+	b := drybanner.Banner{Art: art, Name: "vet", Version: DisplayVersion(version), Tagline: Tagline}
 	b.PrintTo(w)
 	if _, err := io.WriteString(w, "\n"); err != nil {
 		return
 	}
 }
 
-// displayVersion drops the build metadata, as in +dirty, so that dry/tui
-// shows a pseudo-version as dev (<commit>).
-func displayVersion(v string) string {
+// pseudoVersion matches a Go pseudo-version and captures its commit. It is
+// the rule of dry/tui/banner, which does not export it.
+var pseudoVersion = regexp.MustCompile(`^v\d+\.\d+\.\d+-\d{14}-([0-9a-f]{12})$`)
+
+// DisplayVersion returns the version as the banner shows it. It drops the
+// build metadata, as in +dirty, and shows a pseudo-version as
+// dev (<commit>).
+func DisplayVersion(v string) string {
 	v, _, _ = strings.Cut(v, "+")
+	if v == "" {
+		return "dev"
+	}
+	if m := pseudoVersion.FindStringSubmatch(v); m != nil {
+		return "dev (" + m[1][:7] + ")"
+	}
 	return v
 }

@@ -10,8 +10,8 @@ vet config get KEY [-o table|plain|json|jsonl]
 
 ## Description
 
-`vet config get` prints the effective value of one key. `-o json` prints the key, the value and its
-source. An unknown key exits 2 and names the closest known key.
+`vet config get` prints the effective value of one key on stdout, with no other text, so a script
+can read it. `-o json` prints the key, the value and its source. An unknown key exits 2 and names the closest known key.
 
 ## Examples
 

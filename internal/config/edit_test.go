@@ -81,6 +81,32 @@ func TestDeleteInFile(t *testing.T) {
 	assert.Equal(t, CodeUnknownKey, errCode(t, DeleteInFile(p, "polcy.fail_on")))
 }
 
+func TestDeleteInFileWritesYAMLWhenEmpty(t *testing.T) {
+	cases := []struct {
+		name, file, want, afterSet string
+	}{
+		{name: "no comment", file: "scan:\n  concurrency: 4\n", want: "", afterSet: "scan:\n  concurrency: 2\n"},
+		{
+			name: "file comment", file: "# my vet settings\n\nscan:\n  concurrency: 4\n",
+			want: "# my vet settings\n", afterSet: "# my vet settings\n\nscan:\n  concurrency: 2\n",
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := filepath.Join(t.TempDir(), "config.yml")
+			require.NoError(t, os.WriteFile(p, []byte(tc.file), 0o600))
+			require.NoError(t, DeleteInFile(p, "scan.concurrency"))
+			b, err := os.ReadFile(p)
+			require.NoError(t, err)
+			assert.Equal(t, tc.want, string(b))
+			require.NoError(t, SetInFile(p, "scan.concurrency", "2"), "vet can edit the file again")
+			b, err = os.ReadFile(p)
+			require.NoError(t, err)
+			assert.Equal(t, tc.afterSet, string(b))
+		})
+	}
+}
+
 func TestGet(t *testing.T) {
 	c := Default()
 	v, err := Get(&c, "scan.concurrency")
