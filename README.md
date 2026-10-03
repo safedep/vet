@@ -39,7 +39,7 @@
 Your dependencies, your GitHub Actions workflows and your container images all run code that
 you did not write. `vet` finds the supply chain risk in them before it reaches production.
 
-- **Malicious packages.** vet checks each package against [SafeDep Malysis](https://safedep.io/),
+- **Malicious packages.** vet checks each package against [SafeDep Threat Intel](https://safedep.io/),
   which analyzes new package versions as the registries publish them.
 - **Known vulnerabilities**, with data from SafeDep Insights.
 - **Risky workflows.** Dangerous triggers, template injection and actions with no pinned commit SHA.

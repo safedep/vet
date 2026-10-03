@@ -25,7 +25,7 @@ vet scan [TARGET] [--base-ref REF] [--fail-on SEVERITY] [--policy FILE]
 | A package URL. | `vet scan pkg:npm/left-pad@1.3.0` |
 
 vet extracts the packages and the GitHub Actions workflows, checks the packages with SafeDep
-Insights and Malysis, and runs the controls: malware, known vulnerabilities, the dependency
+Insights and SafeDep Threat Intel, and runs the controls: malware, known vulnerabilities, the dependency
 cooldown, lockfile poisoning, dangerous workflow triggers, template injection and unpinned actions.
 vet works with no credentials. `vet auth login` uses the API of your tenant.
 

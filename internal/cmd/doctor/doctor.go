@@ -55,8 +55,8 @@ func New(a *app.App) *cobra.Command {
 		Use:   "doctor",
 		Short: "Check the state, the config, the credentials and the endpoints",
 		Long: `Check that vet can work: the version, the state directory, its file system
-and its scans, the config file, the SafeDep credentials, and the Insights
-and Malysis endpoints. Each check has a stable id, a status (pass, warn or
+and its scans, the config file, the SafeDep credentials, and the SafeDep
+Insights and Threat Intel endpoints. Each check has a stable id, a status (pass, warn or
 fail), a message and a fix. vet exits 1 when a check fails.
 
 --fix repairs the state: it marks a scan whose process stopped as

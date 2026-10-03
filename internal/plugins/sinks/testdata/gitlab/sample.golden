@@ -27,7 +27,7 @@
     {
       "id": "f-478cf580259c82ac",
       "name": "Malicious package",
-      "description": "The package runs a postinstall script that reads ~/.npmrc.\n\nmalysis: Verified malicious",
+      "description": "The package runs a postinstall script that reads ~/.npmrc.\n\nthreat-intel: Verified malicious",
       "severity": "Critical",
       "solution": "Remove evil-colors.",
       "identifiers": [

@@ -26,7 +26,7 @@ vet doctor [--fix] [--state-dir DIR] [--cache-dir DIR] [-o table|plain|json|json
 | `state.scans` | Each scan has its file and its index entry, and no scan is marked running after its process stopped. |
 | `state.size` | The scans are under the `state.retention.max_size` limit. |
 | `credentials` | The SafeDep credentials: anonymous, or the tenant, the source and the profile. |
-| `endpoint.insights`, `endpoint.malysis` | The Insights and Malysis endpoints answer in 5 seconds. |
+| `endpoint.insights`, `endpoint.malysis` | The SafeDep Insights and Threat Intel endpoints answer in 5 seconds. |
 
 `--fix` repairs the state: it marks a scan whose process stopped as interrupted, adds index entries
 for scan files that have none, removes the entries whose file is gone, sets the directory mode to

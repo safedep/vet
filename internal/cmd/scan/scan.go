@@ -18,7 +18,7 @@ func New(a *app.App) *cobra.Command {
 current directory), a git repository URL, a container image (oci://IMAGE or
 an image .tar file), an SBOM file or a package URL (pkg:npm/name@1.0.0).
 
-vet extracts the packages, checks them with SafeDep Insights and Malysis,
+vet extracts the packages, checks them with SafeDep Insights and Threat Intel,
 runs the controls, and applies the gate. A plain scan reports and exits 0.
 --fail-on and --policy set a gate that exits 1 when it fails.
 

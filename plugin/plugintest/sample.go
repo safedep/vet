@@ -22,7 +22,7 @@ func SampleReport() *MemState {
 		Title: "Malicious package", Description: "The package runs a postinstall script that reads ~/.npmrc.",
 	}, m.Path, evil, finding.Key{})
 	malware.Remediation = &finding.Remediation{Summary: "Remove evil-colors.", FixedVersion: "1.3.9"}
-	malware.Evidence = []finding.Evidence{{Source: "malysis", Summary: "Verified malicious"}}
+	malware.Evidence = []finding.Evidence{{Source: "threat-intel", Summary: "Verified malicious"}}
 
 	workflow := finding.ForFile(finding.Meta{
 		ControlID: "unpinned-action", Family: finding.FamilyWorkflow, Severity: finding.SeverityMedium,
