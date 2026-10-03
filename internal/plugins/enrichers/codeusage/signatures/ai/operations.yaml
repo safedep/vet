@@ -1,0 +1,100 @@
+version: 0.1
+# Generated from ai_sigs.py. One id for each library, with the call forms
+# of each language.
+
+signatures:
+  - id: ai.mem0
+    description: "Stores agent memory with Mem0"
+    vendor: "Mem0"
+    product: "Mem0"
+    service: "Agent memory"
+    tags: [ai, memory]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "mem0.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "mem0ai/*"
+
+  - id: ai.langfuse
+    description: "Traces LLM calls with Langfuse"
+    vendor: "Langfuse"
+    product: "Langfuse"
+    service: "LLM observability"
+    tags: [ai, observability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langfuse.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "langfuse/*"
+          - type: call
+            value: "@langfuse/*"
+
+  - id: ai.langsmith
+    description: "Traces LLM calls with LangSmith"
+    vendor: "LangChain"
+    product: "LangSmith"
+    service: "LLM observability"
+    tags: [ai, observability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langsmith.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "langsmith/*"
+
+  - id: ai.mlflow
+    description: "Tracks experiments and models with MLflow"
+    vendor: "Databricks"
+    product: "MLflow"
+    service: "ML lifecycle"
+    tags: [ai, ml, observability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "mlflow.*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "org.mlflow.*"
+
+  - id: ai.wandb
+    description: "Tracks experiments with Weights & Biases"
+    vendor: "Weights & Biases"
+    product: "Weights & Biases"
+    service: "ML lifecycle"
+    tags: [ai, ml, observability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "wandb.*"
+          - type: call
+            value: "weave.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "wandb/*"
+          - type: call
+            value: "weave/*"

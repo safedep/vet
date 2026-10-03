@@ -54,23 +54,35 @@ func TestCryptoSignatures(t *testing.T) {
 	}
 	for file, algorithms := range cases {
 		t.Run(file, func(t *testing.T) {
-			dir := t.TempDir()
-			data, err := os.ReadFile(filepath.Join("testdata", "crypto", file))
-			require.NoError(t, err)
-			write(t, dir, file, string(data))
-
-			a, err := defaultAnalyzer(context.Background(), dir)
-			require.NoError(t, err)
 			var got []string
-			for _, m := range a.Matches {
-				if id, ok := strings.CutPrefix(m.Signature.ID, "crypto."); ok && !slices.Contains(got, id) {
-					got = append(got, id)
-				}
+			for _, id := range fixtureMatches(t, "crypto", file, "cryptography") {
+				got = append(got, strings.TrimPrefix(id, "crypto."))
 			}
 			assert.Empty(t, missing(algorithms, got), "algorithms that do not match")
 			assert.Empty(t, missing(got, algorithms), "algorithms that match and should not")
 		})
 	}
+}
+
+// fixtureMatches runs the embedded signatures on testdata/<dir>/<file> and
+// returns the ids of the matched signatures that have the tag, each once.
+func fixtureMatches(t *testing.T, dir, file, tag string) []string {
+	t.Helper()
+	data, err := os.ReadFile(filepath.Join("testdata", dir, file))
+	require.NoError(t, err)
+	root := t.TempDir()
+	write(t, root, file, string(data))
+
+	a, err := defaultAnalyzer(context.Background(), root)
+	require.NoError(t, err)
+	var ids []string
+	for _, m := range a.Matches {
+		if slices.Contains(m.Signature.Tags, tag) && !slices.Contains(ids, m.Signature.ID) {
+			ids = append(ids, m.Signature.ID)
+		}
+	}
+	slices.Sort(ids)
+	return ids
 }
 
 // missing returns the items of want that got does not have.

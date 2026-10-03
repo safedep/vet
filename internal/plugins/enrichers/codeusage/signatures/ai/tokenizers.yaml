@@ -1,0 +1,85 @@
+version: 0.1
+# Generated from ai_sigs.py. One id for each library, with the call forms
+# of each language.
+
+signatures:
+  - id: ai.tiktoken
+    description: "Counts and encodes LLM tokens with tiktoken"
+    vendor: "OpenAI"
+    product: "tiktoken"
+    service: "Tokenizer"
+    tags: [ai, tokenizer]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "tiktoken.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "tiktoken/*"
+          - type: call
+            value: "js-tiktoken/*"
+          - type: call
+            value: "@dqbd/tiktoken/*"
+          - type: call
+            value: "gpt-tokenizer/*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.knuddels.jtokkit.*"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/pkoukk/tiktoken-go/*"
+          - type: call
+            value: "github.com/tiktoken-go/tokenizer/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "Microsoft.ML.Tokenizers.*"
+          - type: call
+            value: "SharpToken.*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "tiktoken_rs::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "Yethee\\Tiktoken\\*"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "Tiktoken::*"
+
+  - id: ai.huggingface.tokenizers
+    description: "Encodes text with Hugging Face Tokenizers"
+    vendor: "Hugging Face"
+    product: "Tokenizers"
+    service: "Tokenizer"
+    tags: [ai, tokenizer]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "tokenizers.*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "tokenizers::*"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "Tokenizers::*"

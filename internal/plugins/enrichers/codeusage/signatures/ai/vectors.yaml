@@ -1,0 +1,317 @@
+version: 0.1
+# Generated from ai_sigs.py. One id for each library, with the call forms
+# of each language.
+
+signatures:
+  - id: ai.sentence_transformers
+    description: "Computes text embeddings"
+    vendor: "Hugging Face"
+    product: "Sentence Transformers"
+    service: "Embeddings"
+    tags: [ai, embeddings]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "sentence_transformers.*"
+
+  - id: ai.fastembed
+    description: "Computes text embeddings with FastEmbed"
+    vendor: "Qdrant"
+    product: "FastEmbed"
+    service: "Embeddings"
+    tags: [ai, embeddings]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "fastembed.*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "fastembed::*"
+
+  - id: ai.chroma
+    description: "Stores and queries embeddings in Chroma"
+    vendor: "Chroma"
+    product: "Chroma"
+    service: "Vector database"
+    tags: [ai, vectordb]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "chromadb.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "chromadb/*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "tech.amikos.chromadb.*"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/amikos-tech/chroma-go/*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "chromadb::*"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "Chroma::*"
+
+  - id: ai.pinecone
+    description: "Stores and queries embeddings in Pinecone"
+    vendor: "Pinecone"
+    product: "Pinecone"
+    service: "Vector database"
+    tags: [ai, vectordb]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "pinecone.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@pinecone-database/pinecone/*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "io.pinecone.*"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/pinecone-io/go-pinecone/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "Pinecone.*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "pinecone_sdk::*"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "Pinecone::*"
+
+  - id: ai.qdrant
+    description: "Stores and queries embeddings in Qdrant"
+    vendor: "Qdrant"
+    product: "Qdrant"
+    service: "Vector database"
+    tags: [ai, vectordb]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "qdrant_client.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@qdrant/js-client-rest/*"
+          - type: call
+            value: "@qdrant/js-client-grpc/*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "io.qdrant.client.*"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/qdrant/go-client/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "Qdrant.Client.*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "qdrant_client::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "Qdrant\\*"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "Qdrant::*"
+
+  - id: ai.weaviate
+    description: "Stores and queries embeddings in Weaviate"
+    vendor: "Weaviate"
+    product: "Weaviate"
+    service: "Vector database"
+    tags: [ai, vectordb]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "weaviate.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "weaviate-client/*"
+          - type: call
+            value: "weaviate-ts-client/*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "io.weaviate.client.*"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/weaviate/weaviate-go-client/*"
+
+  - id: ai.milvus
+    description: "Stores and queries embeddings in Milvus"
+    vendor: "Zilliz"
+    product: "Milvus"
+    service: "Vector database"
+    tags: [ai, vectordb]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "pymilvus.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@zilliz/milvus2-sdk-node/*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "io.milvus.*"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/milvus-io/milvus/client/*"
+          - type: call
+            value: "github.com/milvus-io/milvus-sdk-go/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "Milvus.Client.*"
+
+  - id: ai.pgvector
+    description: "Stores and queries embeddings in PostgreSQL with pgvector"
+    vendor: ""
+    product: "pgvector"
+    service: "Vector database"
+    tags: [ai, vectordb]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "pgvector.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "pgvector/*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.pgvector.*"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/pgvector/pgvector-go/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "Pgvector.*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "pgvector::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "Pgvector\\*"
+
+  - id: ai.faiss
+    description: "Indexes and searches embeddings with FAISS"
+    vendor: "Meta"
+    product: "FAISS"
+    service: "Vector index"
+    tags: [ai, vectordb]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "faiss.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "faiss-node/*"
+
+  - id: ai.lancedb
+    description: "Stores and queries embeddings in LanceDB"
+    vendor: "LanceDB"
+    product: "LanceDB"
+    service: "Vector database"
+    tags: [ai, vectordb]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "lancedb.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@lancedb/lancedb/*"
+          - type: call
+            value: "vectordb/*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "lancedb::*"

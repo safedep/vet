@@ -1,0 +1,341 @@
+version: 0.1
+# Generated from ai_sigs.py. One id for each library, with the call forms
+# of each language.
+
+signatures:
+  - id: ai.litellm
+    description: "Calls many LLM providers through LiteLLM"
+    vendor: "BerriAI"
+    product: "LiteLLM"
+    service: "LLM gateway"
+    tags: [ai, llm, gateway]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "litellm.*"
+
+  - id: ai.genai_rs
+    description: "Calls many LLM providers through the genai crate"
+    vendor: ""
+    product: "genai"
+    service: "LLM gateway"
+    tags: [ai, llm, gateway]
+    languages:
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "genai::*"
+
+  - id: ai.ruby_llm
+    description: "Calls many LLM providers through RubyLLM"
+    vendor: ""
+    product: "RubyLLM"
+    service: "LLM gateway"
+    tags: [ai, llm, gateway]
+    languages:
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "RubyLLM::*"
+
+  - id: ai.omniai
+    description: "Calls many LLM providers through OmniAI"
+    vendor: ""
+    product: "OmniAI"
+    service: "LLM gateway"
+    tags: [ai, llm, gateway]
+    languages:
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "OmniAI::*"
+
+  - id: ai.prism
+    description: "Calls many LLM providers through Prism"
+    vendor: ""
+    product: "Prism"
+    service: "LLM gateway"
+    tags: [ai, llm, gateway]
+    languages:
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "Prism\\Prism\\*"
+
+  - id: ai.vertexai
+    description: "Google Cloud Vertex AI models and endpoints"
+    vendor: "Google"
+    product: "Vertex AI"
+    service: "AI client"
+    tags: [ai, llm]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "vertexai.*"
+          - type: call
+            value: "google.cloud.aiplatform.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@google-cloud/vertexai/*"
+          - type: call
+            value: "@google-cloud/aiplatform/*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.google.cloud.vertexai.*"
+          - type: call
+            value: "com.google.cloud.aiplatform.*"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "cloud.google.com/go/vertexai/*"
+          - type: call
+            value: "cloud.google.com/go/aiplatform/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "Google.Cloud.AIPlatform.*"
+
+  - id: ai.replicate
+    description: "Runs models on Replicate"
+    vendor: "Replicate"
+    product: "Replicate"
+    service: "AI client"
+    tags: [ai, llm]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "replicate.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "replicate"
+          - type: call
+            value: "replicate/*"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/replicate/replicate-go/*"
+
+  - id: azure.ai.foundry
+    description: "Azure AI inference, projects and agents"
+    vendor: "Microsoft"
+    product: "Azure AI Foundry"
+    service: "AI client"
+    tags: [ai, llm, agent]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "azure.ai.inference.*"
+          - type: call
+            value: "azure.ai.projects.*"
+          - type: call
+            value: "azure.ai.agents.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@azure-rest/ai-inference/*"
+          - type: call
+            value: "@azure/ai-projects/*"
+          - type: call
+            value: "@azure/ai-agents/*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.azure.ai.inference.*"
+          - type: call
+            value: "com.azure.ai.projects.*"
+          - type: call
+            value: "com.azure.ai.agents.*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "Azure.AI.Inference.*"
+          - type: call
+            value: "Azure.AI.Projects.*"
+          - type: call
+            value: "Azure.AI.Agents.*"
+
+  - id: ai.instructor
+    description: "Gets structured output from LLMs with Instructor"
+    vendor: ""
+    product: "Instructor"
+    service: "Structured output"
+    tags: [ai, llm]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "instructor.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@instructor-ai/instructor/*"
+
+  - id: ai.dspy
+    description: "Builds LLM programs with DSPy"
+    vendor: "Stanford"
+    product: "DSPy"
+    service: "Agent framework"
+    tags: [ai, llm, agent]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "dspy.*"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "DSPy::*"
+
+  - id: ai.autogen
+    description: "Builds multi-agent apps with AutoGen"
+    vendor: "Microsoft"
+    product: "AutoGen"
+    service: "Agent framework"
+    tags: [ai, agent]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "autogen.*"
+          - type: call
+            value: "autogen_agentchat.*"
+          - type: call
+            value: "autogen_core.*"
+          - type: call
+            value: "autogen_ext.*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "AutoGen.*"
+          - type: call
+            value: "Microsoft.AutoGen.*"
+
+  - id: ai.eino
+    description: "Builds LLM apps with Eino"
+    vendor: "CloudWeGo"
+    product: "Eino"
+    service: "Agent framework"
+    tags: [ai, llm, agent]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/cloudwego/eino/*"
+          - type: call
+            value: "github.com/cloudwego/eino-ext/*"
+
+  - id: ai.genkit
+    description: "Builds LLM apps with Genkit"
+    vendor: "Google"
+    product: "Genkit"
+    service: "Agent framework"
+    tags: [ai, llm, agent]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "genkit/*"
+          - type: call
+            value: "@genkit-ai/*"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/firebase/genkit/go/*"
+
+  - id: ai.rig
+    description: "Builds LLM apps with Rig"
+    vendor: ""
+    product: "Rig"
+    service: "Agent framework"
+    tags: [ai, llm, agent]
+    languages:
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "rig::*"
+
+  - id: ai.llphant
+    description: "Builds LLM apps with LLPhant"
+    vendor: ""
+    product: "LLPhant"
+    service: "Agent framework"
+    tags: [ai, llm, agent]
+    languages:
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "LLPhant\\*"
+
+  - id: ai.neuron
+    description: "Builds agents with Neuron AI"
+    vendor: ""
+    product: "Neuron AI"
+    service: "Agent framework"
+    tags: [ai, llm, agent]
+    languages:
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "NeuronAI\\*"
+
+  - id: ai.laragent
+    description: "Builds agents with LarAgent"
+    vendor: ""
+    product: "LarAgent"
+    service: "Agent framework"
+    tags: [ai, llm, agent]
+    languages:
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "LarAgent\\*"
+
+  - id: ai.symfony
+    description: "Builds LLM apps with Symfony AI"
+    vendor: "Symfony"
+    product: "Symfony AI"
+    service: "Agent framework"
+    tags: [ai, llm, agent]
+    languages:
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "Symfony\\AI\\*"

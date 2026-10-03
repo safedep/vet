@@ -3,6 +3,8 @@ version: 0.1
 # https://pypi.org/project/google-genai/
 # https://www.npmjs.com/package/@google/genai
 # https://central.sonatype.com/artifact/com.google.genai/google-genai
+# https://github.com/google-gemini/gemini-php
+# https://github.com/gbaptista/gemini-ai
 
 signatures:
   - id: google.genai.client
@@ -17,11 +19,15 @@ signatures:
         conditions:
           - type: call
             value: "google.genai.Client"
+          - type: call
+            value: "google.generativeai.*"
       javascript:
         match: any
         conditions:
           - type: call
             value: "@google/genai/GoogleGenAI"
+          - type: call
+            value: "@google/generative-ai/*"
       java:
         match: any
         conditions:
@@ -39,6 +45,18 @@ signatures:
         conditions:
           - type: call
             value: "Google.GenAI.*"
+          - type: call
+            value: "Mscc.GenerativeAI.*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "Gemini\\*"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "Gemini::*"
 
   - id: google.genai.sdk
     description: "Google Gemini SDK API surfaces (models, chats, embeddings)"

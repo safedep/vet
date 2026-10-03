@@ -1,0 +1,439 @@
+version: 0.1
+# Generated from ai_sigs.py. One id for each library, with the call forms
+# of each language.
+
+signatures:
+  - id: ai.pytorch
+    description: "PyTorch tensors and neural networks"
+    vendor: "Meta"
+    product: "PyTorch"
+    service: "ML framework"
+    tags: [ai, ml]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "torch.*"
+          - type: call
+            value: "torchvision.*"
+          - type: call
+            value: "torchaudio.*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "org.pytorch.*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "TorchSharp.*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "tch::*"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "Torch::*"
+
+  - id: ai.tensorflow
+    description: "TensorFlow and Keras models"
+    vendor: "Google"
+    product: "TensorFlow"
+    service: "ML framework"
+    tags: [ai, ml]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "tensorflow.*"
+          - type: call
+            value: "keras.*"
+          - type: call
+            value: "tf_keras.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@tensorflow/tfjs/*"
+          - type: call
+            value: "@tensorflow/tfjs-node/*"
+          - type: call
+            value: "@tensorflow/tfjs-node-gpu/*"
+          - type: call
+            value: "@tensorflow-models/*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "org.tensorflow.*"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/tensorflow/tensorflow/tensorflow/go/*"
+          - type: call
+            value: "github.com/galeone/tfgo/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "Tensorflow.*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "tensorflow::*"
+
+  - id: ai.jax
+    description: "JAX arrays, Flax models and Optax optimizers"
+    vendor: "Google"
+    product: "JAX"
+    service: "ML framework"
+    tags: [ai, ml]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "jax.*"
+          - type: call
+            value: "flax.*"
+          - type: call
+            value: "optax.*"
+
+  - id: ai.mlx
+    description: "MLX arrays and models on Apple silicon"
+    vendor: "Apple"
+    product: "MLX"
+    service: "ML framework"
+    tags: [ai, ml]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "mlx.*"
+          - type: call
+            value: "mlx_lm.*"
+
+  - id: ai.sklearn
+    description: "scikit-learn models and pipelines"
+    vendor: ""
+    product: "scikit-learn"
+    service: "ML library"
+    tags: [ai, ml]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "sklearn.*"
+
+  - id: ai.gradient_boosting
+    description: "XGBoost, LightGBM and CatBoost models"
+    vendor: ""
+    product: "Gradient boosting"
+    service: "ML library"
+    tags: [ai, ml]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "xgboost.*"
+          - type: call
+            value: "lightgbm.*"
+          - type: call
+            value: "catboost.*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "ml.dmlc.xgboost4j.*"
+
+  - id: ai.mlnet
+    description: "ML.NET training and prediction"
+    vendor: "Microsoft"
+    product: "ML.NET"
+    service: "ML framework"
+    tags: [ai, ml]
+    languages:
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "MLContext"
+          - type: call
+            value: "Microsoft.ML.MLContext"
+          - type: call
+            value: "Microsoft.ML.Data.*"
+          - type: call
+            value: "Microsoft.ML.Trainers.*"
+          - type: call
+            value: "Microsoft.ML.Transforms.*"
+
+  - id: ai.djl
+    description: "Deep Java Library models and inference"
+    vendor: "Amazon"
+    product: "Deep Java Library"
+    service: "ML framework"
+    tags: [ai, ml]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "ai.djl.*"
+
+  - id: ai.dl4j
+    description: "Deeplearning4j networks and ND4J arrays"
+    vendor: "Eclipse"
+    product: "Deeplearning4j"
+    service: "ML framework"
+    tags: [ai, ml]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "org.deeplearning4j.*"
+          - type: call
+            value: "org.nd4j.*"
+
+  - id: ai.smile
+    description: "Smile statistical machine learning"
+    vendor: ""
+    product: "Smile"
+    service: "ML library"
+    tags: [ai, ml]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "smile.*"
+
+  - id: ai.tribuo
+    description: "Tribuo machine learning"
+    vendor: "Oracle"
+    product: "Tribuo"
+    service: "ML library"
+    tags: [ai, ml]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "org.tribuo.*"
+
+  - id: ai.weka
+    description: "Weka machine learning"
+    vendor: ""
+    product: "Weka"
+    service: "ML library"
+    tags: [ai, ml]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "weka.*"
+
+  - id: ai.candle
+    description: "Candle tensors and models"
+    vendor: "Hugging Face"
+    product: "Candle"
+    service: "ML framework"
+    tags: [ai, ml]
+    languages:
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "candle_core::*"
+          - type: call
+            value: "candle_nn::*"
+          - type: call
+            value: "candle_transformers::*"
+          - type: call
+            value: "candle::*"
+
+  - id: ai.burn
+    description: "Burn tensors and models"
+    vendor: "Tracel"
+    product: "Burn"
+    service: "ML framework"
+    tags: [ai, ml]
+    languages:
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "burn::*"
+
+  - id: ai.linfa
+    description: "Linfa and SmartCore machine learning"
+    vendor: ""
+    product: "Linfa"
+    service: "ML library"
+    tags: [ai, ml]
+    languages:
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "linfa::*"
+          - type: call
+            value: "linfa_linear::*"
+          - type: call
+            value: "linfa_logistic::*"
+          - type: call
+            value: "linfa_clustering::*"
+          - type: call
+            value: "linfa_trees::*"
+          - type: call
+            value: "linfa_svm::*"
+          - type: call
+            value: "linfa_bayes::*"
+          - type: call
+            value: "linfa_reduction::*"
+          - type: call
+            value: "smartcore::*"
+
+  - id: ai.gorgonia
+    description: "Gorgonia graphs and tensors"
+    vendor: ""
+    product: "Gorgonia"
+    service: "ML framework"
+    tags: [ai, ml]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "gorgonia.org/gorgonia/*"
+          - type: call
+            value: "gorgonia.org/tensor/*"
+
+  - id: ai.golearn
+    description: "GoLearn machine learning"
+    vendor: ""
+    product: "GoLearn"
+    service: "ML library"
+    tags: [ai, ml]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/sjwhitworth/golearn/*"
+
+  - id: ai.rubixml
+    description: "Rubix ML machine learning"
+    vendor: ""
+    product: "Rubix ML"
+    service: "ML library"
+    tags: [ai, ml]
+    languages:
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "Rubix\\ML\\*"
+
+  - id: ai.phpml
+    description: "PHP-ML machine learning"
+    vendor: ""
+    product: "PHP-ML"
+    service: "ML library"
+    tags: [ai, ml]
+    languages:
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "Phpml\\*"
+
+  - id: ai.rumale
+    description: "Rumale machine learning"
+    vendor: ""
+    product: "Rumale"
+    service: "ML library"
+    tags: [ai, ml]
+    languages:
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "Rumale::*"
+
+  - id: ai.huggingface.transformers
+    description: "Hugging Face Transformers pipelines and pretrained models"
+    vendor: "Hugging Face"
+    product: "Transformers"
+    service: "Model library"
+    tags: [ai, ml]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "transformers.*"
+          - type: call
+            value: "diffusers.*"
+          - type: call
+            value: "peft.*"
+          - type: call
+            value: "trl.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@huggingface/transformers/*"
+          - type: call
+            value: "@xenova/transformers/*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "Codewithkyrian\\Transformers\\*"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "Informers::*"
+
+  - id: ai.huggingface.hub
+    description: "Downloads models from the Hugging Face Hub"
+    vendor: "Hugging Face"
+    product: "Hugging Face Hub"
+    service: "Model hub"
+    tags: [ai, ml]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "huggingface_hub.hf_hub_download"
+          - type: call
+            value: "huggingface_hub.snapshot_download"
+          - type: call
+            value: "huggingface_hub.HfApi"
+          - type: call
+            value: "huggingface_hub.login"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@huggingface/hub/*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "hf_hub::*"

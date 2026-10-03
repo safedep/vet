@@ -118,6 +118,30 @@ signatures:
         conditions:
           - type: call
             value: "dev.langchain4j.model.chat.*"
+          - type: call
+            value: "dev.langchain4j.model.openai.*"
+          - type: call
+            value: "dev.langchain4j.model.anthropic.*"
+          - type: call
+            value: "dev.langchain4j.model.ollama.*"
+          - type: call
+            value: "dev.langchain4j.model.azure.*"
+          - type: call
+            value: "dev.langchain4j.model.googleai.*"
+          - type: call
+            value: "dev.langchain4j.model.vertexai.*"
+          - type: call
+            value: "dev.langchain4j.model.bedrock.*"
+          - type: call
+            value: "dev.langchain4j.model.mistralai.*"
+          - type: call
+            value: "dev.langchain4j.model.huggingface.*"
+          - type: call
+            value: "dev.langchain4j.model.localai.*"
+          - type: call
+            value: "dev.langchain4j.model.github.*"
+          - type: call
+            value: "dev.langchain4j.service.*"
       go:
         match: any
         conditions:

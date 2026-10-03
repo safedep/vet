@@ -1,0 +1,117 @@
+version: 0.1
+# Generated from ai_sigs.py. One id for each library, with the call forms
+# of each language.
+
+signatures:
+  - id: ai.onnxruntime
+    description: "Runs ONNX models"
+    vendor: "Microsoft"
+    product: "ONNX Runtime"
+    service: "Model runtime"
+    tags: [ai, inference]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "onnxruntime.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "onnxruntime-node/*"
+          - type: call
+            value: "onnxruntime-web/*"
+          - type: call
+            value: "onnxruntime-react-native/*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "ai.onnxruntime.*"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/yalue/onnxruntime_go/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "Microsoft.ML.OnnxRuntime.*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "ort::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "OnnxRuntime\\*"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "OnnxRuntime::*"
+
+  - id: ai.llamacpp
+    description: "Runs GGUF models with llama.cpp bindings"
+    vendor: ""
+    product: "llama.cpp"
+    service: "Model runtime"
+    tags: [ai, inference, llm]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "llama_cpp.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "node-llama-cpp/*"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/go-skynet/go-llama.cpp/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "LLama.*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "llama_cpp_2::*"
+          - type: call
+            value: "llama_cpp::*"
+
+  - id: ai.vllm
+    description: "Serves and runs models with vLLM"
+    vendor: ""
+    product: "vLLM"
+    service: "Model runtime"
+    tags: [ai, inference, llm]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "vllm.*"
+
+  - id: ai.mistralrs
+    description: "Runs models with mistral.rs"
+    vendor: ""
+    product: "mistral.rs"
+    service: "Model runtime"
+    tags: [ai, inference, llm]
+    languages:
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "mistralrs::*"
