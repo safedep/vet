@@ -33,14 +33,14 @@ type Scan struct {
 }
 
 func newList(a *app.App) *cobra.Command {
-	var all bool
+	var allTargets bool
 	var f state.Flags
 	c := &cobra.Command{
 		Use:   "list",
 		Short: "List the saved scans of the current directory",
 		Long: `List the saved scans of the current directory, or of its nearest parent
 that has a scan, the newest first, with the status, the counts and the
-gate of each. --all lists the scans of every target.`,
+gate of each. --all-targets lists the scans of every target.`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			ctx := cmd.Context()
@@ -50,7 +50,7 @@ gate of each. --all lists the scans of every target.`,
 			}
 			defer closeStore(s)
 			var es []*state.IndexEntry
-			if all {
+			if allTargets {
 				es, err = s.Index().List(ctx, state.ListOptions{})
 			} else {
 				es, err = runner.TargetScans(ctx, s)
@@ -66,7 +66,7 @@ gate of each. --all lists the scans of every target.`,
 			return p.Print(scans, rows)
 		},
 	}
-	c.Flags().BoolVar(&all, "all", false, "List the scans of every target")
+	c.Flags().BoolVar(&allTargets, "all-targets", false, "List the scans of every target")
 	c.Flags().StringVar(&f.StateDir, "state-dir", "", "Directory of the scan index and the scan files")
 	return c
 }

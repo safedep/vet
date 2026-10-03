@@ -22,7 +22,7 @@ The argument names another report:
 | Argument | Report |
 | --- | --- |
 | `last` | The last completed scan of the current directory. This is the default. |
-| A scan id, or a unique prefix of it | That scan. `vet report list --all` lists the ids. |
+| A scan id, or a unique prefix of it | That scan. `vet report list --all-targets` lists the ids. |
 | A file | A report that `vet scan -o json` or `-o jsonl` wrote, or a scan file (`.db`). |
 
 `--fail-on` and `--policy` apply a new gate to the saved report. This tests a policy against a scan

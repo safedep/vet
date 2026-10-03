@@ -5,7 +5,7 @@ List the saved scans of the current directory.
 ## Synopsis
 
 ```text
-vet report list [--all] [--state-dir DIR] [-o table|plain|json|jsonl]
+vet report list [--all-targets] [--state-dir DIR] [-o table|plain|json|jsonl]
 ```
 
 ## Description
@@ -18,13 +18,13 @@ The table shows the first 8 characters of the scan id. In a narrow terminal, the
 run time and the status first, and cuts the start of the target path. `-o json` and `-o plain`
 show the full id.
 
-`--all` lists the scans of every target.
+`--all-targets` lists the scans of every target.
 
 ## Examples
 
 ```text
 vet report list
-vet report list --all -o json
+vet report list --all-targets -o json
 ```
 
 ## Exit codes

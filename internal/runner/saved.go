@@ -76,14 +76,14 @@ func Resolve(ctx context.Context, s *state.Store, ref string) (*state.IndexEntry
 			return nil, err
 		}
 		if len(es) == 0 {
-			return nil, noScan("no completed scan of this directory", "Run vet scan, or name a scan id. vet report list --all lists every scan.")
+			return nil, noScan("no completed scan of this directory", "Run vet scan, or name a scan id. vet report list --all-targets lists every scan.")
 		}
 		return es[0], nil
 	}
 	e, err := s.Index().Find(ctx, ref)
 	switch {
 	case errors.Is(err, state.ErrNotFound):
-		return nil, noScan(fmt.Sprintf("no scan has the id %q", ref), "vet report list --all lists every scan.")
+		return nil, noScan(fmt.Sprintf("no scan has the id %q", ref), "vet report list --all-targets lists every scan.")
 	case err != nil:
 		return nil, noScan(err.Error(), "Type more characters of the id.")
 	}

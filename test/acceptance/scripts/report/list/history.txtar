@@ -1,5 +1,5 @@
 # vet report list shows each scan of the target with its status, counts
-# and gate. --all shows every target.
+# and gate. --all-targets shows every target.
 cd a
 exec vet scan . --mode plain -o plain
 execexit 1 vet scan . --mode plain -o plain --fail-on critical
@@ -14,14 +14,19 @@ cd ../b
 exec vet scan . --mode plain -o plain
 exec vet report list --mode plain -o json
 jsonq stdout len 1
-exec vet report list --all --mode plain -o plain
+exec vet report list --all-targets --mode plain -o plain
 stdout 'SCAN\tTARGET'
-exec vet report list --all --mode plain -o json
+exec vet report list --all-targets --mode plain -o json
 jsonq stdout len 3
-exec vet report list --all --mode plain -o table
+exec vet report list --all-targets --mode plain -o table
 stdout '│ [0-9a-f]{8} │ …[/\\]'
 
 -- a/package-lock.json --
 {"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3"}}, "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"}}}
 -- b/requirements.txt --
 requests==2.31.0
+
+# --all means each finding on vet report show. vet report list names the
+# targets with --all-targets.
+execexit 2 vet report list --all --mode plain
+stderr 'unknown flag: --all'
