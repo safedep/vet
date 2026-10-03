@@ -26,9 +26,10 @@ func SampleReport() *MemState {
 
 	workflow := finding.ForFile(finding.Meta{
 		ControlID: "unpinned-action", Family: finding.FamilyWorkflow, Severity: finding.SeverityMedium,
-		Title: "Third-party action is not pinned to a commit SHA",
+		Title: "tj-actions/changed-files@v44 is not pinned to a commit SHA",
 	}, finding.Locus{Path: ".github/workflows/ci.yml", StartLine: 8, Snippet: "uses: tj-actions/changed-files@v44"},
 		finding.Key{Discriminator: "tj-actions/changed-files"})
+	workflow.Subject.File.Element = "tj-actions/changed-files@v44"
 
 	suppressed := finding.ForPackage(finding.Meta{
 		ControlID: "dependency-cooldown", Family: finding.FamilyCooldown, Severity: finding.SeverityHigh,

@@ -115,7 +115,7 @@
           "ruleId": "unpinned-action",
           "level": "warning",
           "message": {
-            "text": "Third-party action is not pinned to a commit SHA"
+            "text": "tj-actions/changed-files@v44 is not pinned to a commit SHA"
           },
           "locations": [
             {

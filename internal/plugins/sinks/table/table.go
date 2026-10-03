@@ -41,6 +41,10 @@ const wideWidth = 110
 // leave less room, the table also cuts them.
 const minTextWidth = 16
 
+// textWidth is the FINDING width under which the table drops CONTROL, then
+// WHERE.
+const textWidth = 24
+
 // textLines is the most lines that the FINDING text of a row takes. A
 // longer text ends with an ellipsis.
 const textLines = 2
@@ -156,10 +160,35 @@ func (s Sink) rows(fs []*finding.Finding) []row {
 // findingTable drops CONTROL and WHERE on a narrow terminal. FINDING takes
 // the width that the other columns leave, and wraps onto a second line, so
 // that a cut falls on the FINDING text and not on the subject or the place.
+// When FINDING gets less than textWidth, the table drops CONTROL, then
+// WHERE.
 func findingTable(rows []row, idLen int, delta bool, width int) string {
 	wide := width >= wideWidth
+	l := findingLayout(rows, idLen, delta, wide, wide)
+	if l.room(width) < textWidth && wide {
+		l = findingLayout(rows, idLen, delta, false, true)
+	}
+	if l.room(width) < textWidth && wide {
+		l = findingLayout(rows, idLen, delta, false, false)
+	}
+	room := max(l.room(width), minTextWidth)
+	tbl := table.New().Headers(l.cells[0]...)
+	for i, row := range l.cells[1:] {
+		row[l.textAt] = wrap(rows[i].text(room), room, textLines)
+		tbl.Row(row...)
+	}
+	return tbl.Render()
+}
+
+// layout is the cells of the findings table with an empty FINDING column.
+type layout struct {
+	cells  [][]string
+	textAt int
+}
+
+func findingLayout(rows []row, idLen int, delta, control, where bool) layout {
 	headers := []string{"SEVERITY", "ID"}
-	if wide {
+	if control {
 		headers = append(headers, "CONTROL")
 	}
 	if delta {
@@ -167,40 +196,39 @@ func findingTable(rows []row, idLen int, delta bool, width int) string {
 	}
 	headers = append(headers, "SUBJECT", "FINDING")
 	textAt := len(headers) - 1
-	if wide {
+	if where {
 		headers = append(headers, "WHERE")
 	}
 	cells := [][]string{headers}
 	for _, r := range rows {
 		f := r[0]
 		row := []string{badge(f.Severity), f.ID[:min(idLen, len(f.ID))]}
-		if wide {
+		if control {
 			row = append(row, render.Text(f.ControlID))
 		}
 		if delta {
 			row = append(row, strings.ToLower(string(f.Change)))
 		}
 		row = append(row, render.Subject(f), "")
-		if wide {
+		if where {
 			row = append(row, render.Where(f))
 		}
 		cells = append(cells, row)
 	}
-	// Each column takes two cells of padding and one of border, and the
-	// table one more border.
+	return layout{cells: cells, textAt: textAt}
+}
+
+// room is the width that the other columns leave to FINDING. Each column
+// takes two cells of padding and one of border, and the table one more
+// border.
+func (l layout) room(width int) int {
 	room := width - 1 - 3
-	for i := range headers {
-		if i != textAt {
-			room -= columnWidth(cells, i) + 3
+	for i := range l.cells[0] {
+		if i != l.textAt {
+			room -= columnWidth(l.cells, i) + 3
 		}
 	}
-	room = max(room, minTextWidth)
-	tbl := table.New().Headers(headers...)
-	for i, row := range cells[1:] {
-		row[textAt] = wrap(rows[i].text(room), room, textLines)
-		tbl.Row(row...)
-	}
-	return tbl.Render()
+	return room
 }
 
 // wrap breaks text into lines of width cells at most, and cuts it to n

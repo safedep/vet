@@ -4,14 +4,12 @@ Critical: 1
 High: 0
 Gate: FAIL
 
-┌────────────┬────────────┬─────────────────┬────────┬───────────────────────┬────────────────┬────────────────────────┐
-│ SEVERITY   │ ID         │ CONTROL         │ CHANGE │ SUBJECT               │ FINDING        │ WHERE                  │
-├────────────┼────────────┼─────────────────┼────────┼───────────────────────┼────────────────┼────────────────────────┤
-│ [CRITICAL] │ f-478cf580 │ malware         │ added  │ npm/evil-colors@1.4.1 │ Malicious      │ package-lock.json:42   │
-│            │            │                 │        │                       │ package        │                        │
-│ [MEDIUM]   │ f-e815bb3b │ unpinned-action │ added  │ .github/workflows/ci… │ Third-party    │ .github/workflows/ci.… │
-│            │            │                 │        │                       │ action is not… │                        │
-└────────────┴────────────┴─────────────────┴────────┴───────────────────────┴────────────────┴────────────────────────┘
+┌────────────┬────────────┬────────┬──────────────────────────────┬───────────────────────────────┐
+│ SEVERITY   │ ID         │ CHANGE │ SUBJECT                      │ FINDING                       │
+├────────────┼────────────┼────────┼──────────────────────────────┼───────────────────────────────┤
+│ [CRITICAL] │ f-478cf580 │ added  │ npm/evil-colors@1.4.1        │ Malicious package             │
+│ [MEDIUM]   │ f-e815bb3b │ added  │ tj-actions/changed-files@v44 │ is not pinned to a commit SHA │
+└────────────┴────────────┴────────┴──────────────────────────────┴───────────────────────────────┘
 
 > 1 suppressed finding. vet report show -o json lists it.
 

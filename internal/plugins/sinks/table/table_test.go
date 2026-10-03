@@ -136,11 +136,11 @@ func TestLimitOfSingleRows(t *testing.T) {
 	got := write(t, plugin.MapConfig{"limit": 1}, plugintest.SampleReport())
 	assert.Contains(t, got, "› 1 more finding. vet report show --all lists each finding.")
 	assert.Contains(t, got, "› 1 suppressed finding. vet report show -o json lists it.")
-	assert.NotContains(t, got, "unpinned-action")
+	assert.NotContains(t, got, "tj-actions/changed-files@v44")
 
 	got = write(t, nil, plugintest.SampleReport())
 	assert.NotContains(t, got, "more finding")
-	assert.Contains(t, got, "unpinned-action")
+	assert.Contains(t, got, "tj-actions/changed-files@v44")
 
 	_, err := New(plugin.MapConfig{"limit": -1})
 	assert.Error(t, err)
@@ -191,7 +191,8 @@ func TestColumnsFollowTheWidth(t *testing.T) {
 		{name: "narrow", width: 80, headers: []string{"SEVERITY", "ID", "SUBJECT", "FINDING"}},
 		{name: "wide", width: 120, headers: []string{"SEVERITY", "ID", "CONTROL", "SUBJECT", "FINDING", "WHERE"}},
 		{name: "narrow pull request", width: 80, delta: true, headers: []string{"SEVERITY", "ID", "CHANGE", "SUBJECT", "FINDING"}},
-		{name: "wide pull request", width: 120, delta: true, headers: []string{"SEVERITY", "ID", "CONTROL", "CHANGE", "SUBJECT", "FINDING", "WHERE"}},
+		{name: "wide pull request", width: 130, delta: true, headers: []string{"SEVERITY", "ID", "CONTROL", "CHANGE", "SUBJECT", "FINDING", "WHERE"}},
+		{name: "no room for the control", width: 120, delta: true, headers: []string{"SEVERITY", "ID", "CHANGE", "SUBJECT", "FINDING", "WHERE"}},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
