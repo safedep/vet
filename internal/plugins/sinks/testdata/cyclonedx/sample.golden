@@ -91,7 +91,7 @@
             "location": "src/cache.py",
             "line": 3,
             "offset": 9,
-            "additionalContext": "hashlib//md5"
+            "symbol": "hashlib//md5"
           }
         ]
       },
@@ -142,7 +142,7 @@
             "location": "src/chat.py",
             "line": 12,
             "offset": 5,
-            "additionalContext": "openai//OpenAI"
+            "symbol": "openai//OpenAI"
           }
         ]
       }

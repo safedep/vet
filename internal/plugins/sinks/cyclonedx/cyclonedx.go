@@ -63,7 +63,9 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 			comps = append(comps, capabilityComponent(rec.Capability))
 		}
 	}
-	bom.Components = &comps
+	if len(comps) > 0 {
+		bom.Components = &comps
+	}
 	if len(vulns) > 0 {
 		bom.Vulnerabilities = &vulns
 	}
@@ -108,7 +110,7 @@ const toolRef = "vet"
 func capabilityComponent(c *report.Capability) cdx.Component {
 	occurrences := make([]cdx.EvidenceOccurrence, 0, len(c.Occurrences))
 	for _, o := range c.Occurrences {
-		occ := cdx.EvidenceOccurrence{Location: o.File, AdditionalContext: o.Callee}
+		occ := cdx.EvidenceOccurrence{Location: o.File, Symbol: o.Callee}
 		if o.Line > 0 {
 			occ.Line = &o.Line
 		}
