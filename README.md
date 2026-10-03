@@ -45,6 +45,8 @@ you did not write. `vet` finds the supply chain risk in them before it reaches p
 - **Risky workflows.** Dangerous triggers, template injection and actions with no pinned commit SHA.
 - **Lockfile tampering.** Entries from an untrusted registry, or with the URL of another package.
 - **Fresh versions.** A version inside the cooldown window, before the community had time to look.
+- **AI and crypto inventory.** With code analysis on, vet lists the AI libraries and the
+  cryptographic algorithms that the code calls, and writes them as a CycloneDX xBOM and CBOM.
 
 A plain scan reports and exits 0. A gate (`--fail-on`, or a policy) makes the scan exit 1 when
 it fails, so the same command works on a laptop, in CI and for an AI agent.
@@ -130,9 +132,28 @@ prints them.
 
 `vet fix github-actions run` pins each third-party action to its commit SHA.
 
-With `plugins.codeusage.enabled: true`, a scan of a directory also reads the source files and
-records which packages the code imports. Each package finding then says whether the project
-imports the package, and in which files. The code analysis needs a vet build with CGO, such as
+## Code usage, AI and crypto inventory
+
+With `plugins.codeusage.enabled: true`, a scan of a directory also reads the source files of
+Python, JavaScript, TypeScript, Java, Go, C#, Rust, PHP and Ruby. vet then reports:
+
+- **Code usage.** Which packages the code imports, and in which files. Each package finding says
+  whether the project uses the package.
+- **AI capabilities.** The LLM SDKs, agent frameworks, MCP libraries, ML frameworks, model
+  runtimes, vector stores and tokenizers that the code calls, with each call site.
+- **Crypto capabilities.** The algorithms (such as SHA-256, AES, RSA and Argon2), the protocols
+  (TLS, SSH), certificates (X.509) and tokens (JWT) that the code uses. A weak algorithm, such as
+  MD5, SHA-1, DES or RC4, has the `weak` tag.
+
+```bash
+vet config set plugins.codeusage.enabled true
+vet scan . -o cyclonedx > bom.json
+```
+
+The `cyclonedx` report holds each AI capability as a component and each crypto capability as a
+`cryptographic-asset` (a CBOM, CycloneDX 1.7). In pull request mode, each capability says whether
+the change adds or removes it, and the `ai-bom-delta` control reports a new AI library. The code
+analysis runs on the machine and sends no source code. It needs a vet build with CGO, such as
 `go install`. A static release build records a diagnostic and scans with no code usage.
 
 ## Policy
@@ -180,7 +201,7 @@ The terminal view goes to stderr. Report data goes to stdout with `-o`, and to f
 | `json`, `jsonl` | Programs. `vet report schema get` prints the JSON Schema |
 | `sarif` | GitHub code scanning and other SARIF tools |
 | `markdown` | A pull request comment or a job summary |
-| `cyclonedx` | An SBOM with the findings as vulnerabilities |
+| `cyclonedx` | An SBOM with the findings as vulnerabilities, and the AI and crypto inventory (CycloneDX 1.7) |
 | `gitlab` | A GitLab dependency scanning report, for `artifacts:reports:dependency_scanning` |
 | `bitbucket` | A Bitbucket Code Insights report and its annotations |
 
@@ -284,7 +305,7 @@ vet doctor
 
 ## Configuration
 
-vet reads `vet.yml` from the user config directory (`vet config show` prints the path and each
+vet reads `config.yml` from the user config directory (`vet config show` prints the path and each
 value with its source), then the `VET_*` variables, then the flags. A config file inside the
 scanned target changes nothing. `vet config schema get` prints the JSON Schema of the file.
 

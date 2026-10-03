@@ -10,4 +10,4 @@ The user guide is at [docs.safedep.io](https://docs.safedep.io/).
   tests check.
 - [`../test/acceptance/README.md`](../test/acceptance/README.md): the acceptance suite, and how to
   add a guarantee.
-- [`adr/`](./adr) and [`specs/`](./specs): earlier design records.
+- [`release-notes/`](./release-notes): the changes that each release asks of a user.

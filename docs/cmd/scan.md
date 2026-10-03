@@ -43,6 +43,11 @@ terminal, `plain` in CI and `json` under an agent. stderr gets the progress, the
 gate line. `--report FORMAT=PATH` also writes the report to a file. vet writes a temporary file and
 renames it into place, so a failed write leaves no partial file.
 
+With `plugins.codeusage.enabled: true`, vet also reads the source files of a directory target. It
+records which packages the code imports, and the AI and crypto capabilities that the code calls.
+The `cyclonedx` report writes them as an xBOM and a CBOM. The code analysis needs a vet build with
+CGO. A static build records a diagnostic and scans with no code usage.
+
 A backend that does not answer does not fail the scan. The controls that need its data do not run,
 and the report has a diagnostic. `--strict` turns a diagnostic into exit code 3.
 
