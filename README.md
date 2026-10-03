@@ -147,14 +147,25 @@ Python, JavaScript, TypeScript, Java, Go, C#, Rust, PHP and Ruby. vet then repor
 
 ```bash
 vet config set plugins.codeusage.enabled true
-vet scan . -o cyclonedx > bom.json
+vet scan . --report cyclonedx=../bom.json
 ```
 
+Write the BOM outside the project directory. vet reads the CycloneDX and SPDX files in the
+directory as SBOMs, so a `bom.json` in the project becomes part of the next scan.
+
 The `cyclonedx` report holds each AI capability as a component and each crypto capability as a
-`cryptographic-asset` (a CBOM, CycloneDX 1.7). In pull request mode, each capability says whether
-the change adds or removes it, and the `ai-bom-delta` control reports a new AI library. The code
-analysis runs on the machine and sends no source code. It needs a vet build with CGO, such as
-`go install`. A static release build records a diagnostic and scans with no code usage.
+`cryptographic-asset` (a CBOM, CycloneDX 1.7). To list the capabilities and their call sites in the
+terminal:
+
+```bash
+vet scan . -o jsonl | jq -r 'select(.kind == "capability") | .capability
+  | "\(.id)\t\(.occurrences[0].file):\(.occurrences[0].line)\t\(.tags | join(","))"'
+```
+
+In pull request mode, each capability says whether the change adds or removes it, and the
+`ai-bom-delta` control reports a new AI library. The code analysis runs on the machine and sends no
+source code. It needs a vet build with CGO, such as `go install` or the container image. The release
+binaries are static builds today: they record a diagnostic and scan with no code usage.
 
 ## Policy
 
