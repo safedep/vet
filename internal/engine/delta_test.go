@@ -144,6 +144,34 @@ func TestDiff(t *testing.T) {
 	assert.Equal(t, model.ChangeUnchanged, same.Change)
 }
 
+func TestDiffRemovesOneOfTwoVersions(t *testing.T) {
+	id := func(name, v string) model.PackageID {
+		return model.PackageID{Ecosystem: model.EcosystemNpm, Name: name, Version: v}
+	}
+	changes := func(m *model.Manifest) map[string]model.Change {
+		out := map[string]model.Change{}
+		for _, p := range m.Packages {
+			out[p.ID.String()] = p.Change
+		}
+		return out
+	}
+
+	head := &model.Manifest{Packages: []*model.Package{{ID: id("foo", "2.0.0")}}}
+	diff(head, &model.Manifest{Packages: []*model.Package{{ID: id("foo", "1.0.0")}, {ID: id("foo", "2.0.0")}}}, false)
+	assert.Equal(t, map[string]model.Change{
+		"npm/foo@2.0.0": model.ChangeUnchanged,
+		"npm/foo@1.0.0": model.ChangeRemoved,
+	}, changes(head))
+	assert.Equal(t, model.ChangeModified, head.Change)
+
+	upgraded := &model.Manifest{Packages: []*model.Package{{ID: id("foo", "3.0.0")}, {ID: id("foo", "2.0.0")}}}
+	diff(upgraded, &model.Manifest{Packages: []*model.Package{{ID: id("foo", "1.0.0")}, {ID: id("foo", "2.0.0")}}}, false)
+	assert.Equal(t, map[string]model.Change{
+		"npm/foo@3.0.0": model.ChangeUpgraded,
+		"npm/foo@2.0.0": model.ChangeUnchanged,
+	}, changes(upgraded), "the version that an upgrade replaces is not also removed")
+}
+
 func TestPullRequestIntegrityAndPrior(t *testing.T) {
 	lockOf := func(leftPad, msHash string) string {
 		return `{"name": "app", "lockfileVersion": 3, "packages": {

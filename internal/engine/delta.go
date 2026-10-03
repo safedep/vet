@@ -160,6 +160,7 @@ func diff(head, baseM *model.Manifest, fileChanged bool) {
 		headVersions[name][p.ID.Version] = true
 	}
 	changed := fileChanged
+	replaced := map[model.PackageID]bool{}
 	for _, p := range head.Packages {
 		name := p.ID.WithoutVersion()
 		switch prev := previousVersion(p.ID.Version, byName[name], headVersions[name]); {
@@ -173,6 +174,9 @@ func diff(head, baseM *model.Manifest, fileChanged bool) {
 		case exact[p.ID] != nil:
 			p.Change = model.ChangeUnchanged
 		case prev != "":
+			old := name
+			old.Version = prev
+			replaced[old] = true
 			p.PreviousVersion = prev
 			p.Change = model.ChangeUpgraded
 			if semver.IsAhead(p.ID.Version, prev) {
@@ -183,8 +187,11 @@ func diff(head, baseM *model.Manifest, fileChanged bool) {
 		}
 		changed = changed || p.Change != model.ChangeUnchanged
 	}
+	// A base version is removed when the head does not have it and no head
+	// version replaced it, so foo@1 is removed when the head keeps only
+	// foo@2 of a base with both.
 	for _, p := range baseM.Packages {
-		if headVersions[p.ID.WithoutVersion()] == nil {
+		if !headVersions[p.ID.WithoutVersion()][p.ID.Version] && !replaced[p.ID] {
 			head.Packages = append(head.Packages, &model.Package{ID: p.ID, Direct: p.Direct, Dev: p.Dev, Change: model.ChangeRemoved})
 			changed = true
 		}
