@@ -33,7 +33,7 @@ var (
 	// section 3.2.
 	leafCommands = []string{
 		"scan",
-		"report show", "report list", "report diff", "report finding show", "report schema get",
+		"report show", "report list", "report diff", "report finding show", "report capability list", "report schema get",
 		"policy init", "policy validate", "policy control list", "policy schema get",
 		"fix github-actions run",
 		"endpoint audit",

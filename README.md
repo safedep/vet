@@ -154,12 +154,15 @@ Write the BOM outside the project directory. vet reads the CycloneDX and SPDX fi
 directory as SBOMs, so a `bom.json` in the project becomes part of the next scan.
 
 The `cyclonedx` report holds each AI capability as a component and each crypto capability as a
-`cryptographic-asset` (a CBOM, CycloneDX 1.7). To list the capabilities and their call sites in the
-terminal:
+`cryptographic-asset` (a CBOM, CycloneDX 1.7).
+
+In a terminal, the scan view shows an "AI and crypto" table under the findings: AI first, then
+weak crypto, then the other crypto, with the first call site of each. To list every capability and
+every call site of the last scan, with no new scan:
 
 ```bash
-vet scan . -o jsonl | jq -r 'select(.kind == "capability") | .capability
-  | "\(.id)\t\(.occurrences[0].file):\(.occurrences[0].line)\t\(.tags | join(","))"'
+vet report capability list
+vet report capability list --tag cryptography --tag weak
 ```
 
 In pull request mode, each capability says whether the change adds or removes it, and the
@@ -217,7 +220,8 @@ The terminal view goes to stderr. Report data goes to stdout with `-o`, and to f
 | `bitbucket` | A Bitbucket Code Insights report and its annotations |
 
 vet saves each scan in its state directory. `vet report show`, `vet report list`,
-`vet report diff` and `vet report finding show` read the saved scans with no new scan. A scan
+`vet report diff`, `vet report finding show` and `vet report capability list` read the saved scans
+with no new scan. A scan
 that stops (Ctrl-C, a lost connection) continues on the next run.
 
 ## CI and AI agents
@@ -277,6 +281,7 @@ the order of the command tree.
 | [`vet report list`](docs/cmd/report-list.md) | List the saved scans of the current directory. |
 | [`vet report diff`](docs/cmd/report-diff.md) | Compare the findings of two saved scans. |
 | [`vet report finding show`](docs/cmd/report-finding-show.md) | Show one finding of a saved scan. |
+| [`vet report capability list`](docs/cmd/report-capability-list.md) | List the AI and crypto capabilities of a saved scan. |
 | [`vet report schema get`](docs/cmd/report-schema-get.md) | Print the JSON Schema of the report. |
 | [`vet policy init`](docs/cmd/policy-init.md) | Write a starter policy file. |
 | [`vet policy validate`](docs/cmd/policy-validate.md) | Check a policy file. |

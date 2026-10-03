@@ -236,6 +236,12 @@
   tier: P2
   guarantee: "With plugins.codeusage.enabled, on a build with CGO, each code signature that matches is a capability record in the JSON report and an xbom:<signature id> component with source code analysis evidence in the CycloneDX BOM."
   labels: [enrichers, config, sinks]
+- id: report/capability/list
+  title: "the scan view and report capability list show the AI and crypto capabilities"
+  category: report
+  tier: P2
+  guarantee: "With plugins.codeusage.enabled, on a build with CGO, the table view lists the capabilities with a weak badge on weak crypto, and vet report capability list lists each call site of the last scan and filters by tag."
+  labels: [report, enrichers]
 - id: controls/reputation/ai-capability-added
   title: "a change that adds an AI call is a finding"
   category: controls

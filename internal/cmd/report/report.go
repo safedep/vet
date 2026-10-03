@@ -16,9 +16,10 @@ func New(a *app.App) *cobra.Command {
 		Short: "Read the reports of saved scans",
 		Long: `vet saves each scan. The report commands render a saved scan in any
 format, apply a new gate to it, list the scans, compare two scans, show one
-finding and print the JSON Schema of the report. They make no new scan.`,
+finding, list the AI and crypto capabilities and print the JSON Schema of
+the report. They make no new scan.`,
 	}
-	c.AddCommand(newShow(a), newList(a), newDiff(a), newFinding(a), newSchema(a))
+	c.AddCommand(newShow(a), newList(a), newDiff(a), newFinding(a), newCapability(a), newSchema(a))
 	return c
 }
 
