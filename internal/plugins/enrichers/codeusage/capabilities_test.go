@@ -90,12 +90,14 @@ func TestCapabilitiesOfAFullScan(t *testing.T) {
 func TestCapabilitiesOfAPullRequest(t *testing.T) {
 	dir := gitbasetest.Repo(t, map[string]string{
 		"kept.py":                  "call openai.client\n",
+		"crlf.py":                  "x = 1\ny = 2\n",
 		"edited.py":                "call langchain.chain\n",
 		"gone.py":                  "call cohere.client\n",
 		"node_modules/lib/x.py":    "call mistral.client\n",
 		"moved/unchanged/other.py": "x = 1\n",
 	})
 	gitbasetest.Write(t, dir, "edited.py", "call anthropic.client\n")
+	gitbasetest.Write(t, dir, "crlf.py", "x = 1\r\ny = 2\r\n")
 	gitbasetest.Write(t, dir, "new.py", "call openai.client\ncall groq.client\n")
 	require.NoError(t, os.Remove(filepath.Join(dir, "gone.py")))
 

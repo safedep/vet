@@ -76,8 +76,9 @@ func (e *Enricher) baseMatches(ctx context.Context) (out []Match, err error) {
 		if f.Size > maxBaseFile || skippedPath(rel) {
 			return nil
 		}
-		if info, err := os.Stat(filepath.Join(e.dir, filepath.FromSlash(rel))); err == nil && info.Size() == f.Size {
-			// A file that vet cannot read is changed.
+		// A CRLF checkout of an LF blob is larger than the blob, but at
+		// most twice its size. A file that vet cannot read is changed.
+		if info, err := os.Stat(filepath.Join(e.dir, filepath.FromSlash(rel))); err == nil && info.Size() >= f.Size && info.Size() <= 2*f.Size {
 			if same, err := gitbase.SameBlob(fsys, rel, f.Hash); err == nil && same {
 				unchanged[rel] = true
 				return nil
