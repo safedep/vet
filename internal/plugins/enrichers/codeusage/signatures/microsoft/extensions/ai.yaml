@@ -1,0 +1,18 @@
+version: 0.1
+# References -
+# https://learn.microsoft.com/en-us/dotnet/ai/microsoft-extensions-ai
+# https://www.nuget.org/packages/Microsoft.Extensions.AI
+
+signatures:
+  - id: microsoft.extensions.ai
+    description: "Microsoft.Extensions.AI abstractions for chat clients, embedding generators and AI functions"
+    vendor: "Microsoft"
+    product: "Microsoft.Extensions.AI"
+    service: "AI abstractions"
+    tags: [ai, llm, text]
+    languages:
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "Microsoft.Extensions.AI.*"

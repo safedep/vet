@@ -23,3 +23,8 @@ signatures:
         conditions:
           - type: call
             value: "com.microsoft.semantickernel.Kernel.*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "Microsoft.SemanticKernel.*"

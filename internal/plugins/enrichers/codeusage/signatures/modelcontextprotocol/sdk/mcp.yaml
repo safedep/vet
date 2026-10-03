@@ -34,6 +34,35 @@ signatures:
         conditions:
           - type: call
             value: "io.modelcontextprotocol.server.McpServer.*"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/modelcontextprotocol/go-sdk/mcp/NewServer"
+          - type: call
+            value: "github.com/mark3labs/mcp-go/server/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "ModelContextProtocol.Server.*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "rmcp::*"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "MCP::Server.new"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "PhpMcp\\Server\\*"
+          - type: call
+            value: "Mcp\\Server\\*"
 
   - id: mcp.sdk.client
     description: "Model Context Protocol client: connects an application to MCP servers"
@@ -62,3 +91,20 @@ signatures:
         conditions:
           - type: call
             value: "io.modelcontextprotocol.client.*"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/modelcontextprotocol/go-sdk/mcp/NewClient"
+          - type: call
+            value: "github.com/mark3labs/mcp-go/client/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "ModelContextProtocol.Client.*"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "MCP::Client.new"

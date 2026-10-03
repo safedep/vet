@@ -27,6 +27,18 @@ signatures:
         conditions:
           - type: call
             value: "com.google.genai.Client.builder"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "google.golang.org/genai/*"
+          - type: call
+            value: "github.com/google/generative-ai-go/genai/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "Google.GenAI.*"
 
   - id: google.genai.sdk
     description: "Google Gemini SDK API surfaces (models, chats, embeddings)"

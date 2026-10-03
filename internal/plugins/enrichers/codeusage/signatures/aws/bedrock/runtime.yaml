@@ -40,3 +40,28 @@ signatures:
             value: "software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeClient.create"
           - type: call
             value: "software.amazon.awssdk.services.bedrockruntime.*"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/aws/aws-sdk-go-v2/service/bedrockruntime/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "Amazon.BedrockRuntime.*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "aws_sdk_bedrockruntime::*"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "Aws::BedrockRuntime::Client.new"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "Aws\\BedrockRuntime\\*"

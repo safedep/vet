@@ -19,3 +19,8 @@ signatures:
             value: "agent_framework.ChatAgent"
           - type: call
             value: "agent_framework.openai.OpenAIChatClient"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "Microsoft.Agents.AI.*"

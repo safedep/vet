@@ -31,3 +31,23 @@ signatures:
             value: "ollama/Ollama"
           - type: call
             value: "ollama/*"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/ollama/ollama/api/*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "ollama_rs::*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "OllamaSharp.*"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "Ollama.new"

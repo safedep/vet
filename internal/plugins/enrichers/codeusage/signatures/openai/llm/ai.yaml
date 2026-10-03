@@ -40,6 +40,34 @@ signatures:
             value: "github.com/openai/openai-go/NewClient"
           - type: call
             value: "github.com/openai/openai-go/*"
+          - type: call
+            value: "github.com/sashabaranov/go-openai/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "OpenAI.*"
+          - type: call
+            value: "OpenAIClient"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "async_openai::*"
+          - type: call
+            value: "openai_api_rs::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "OpenAI\\*"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "OpenAI::Client.new"
+          - type: call
+            value: "OpenAI::*"
 
   - id: openai.sync
     description: "OpenAI AI Sync Responses"
@@ -122,6 +150,13 @@ signatures:
             value: "com.azure.ai.openai.OpenAIAsyncClient"
           - type: call
             value: "com.azure.ai.openai.OpenAIClient"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "Azure.AI.OpenAI.*"
+          - type: call
+            value: "AzureOpenAIClient"
 
   - id: openai.embeddings
     description: "OpenAI Embedding models and vectorization"

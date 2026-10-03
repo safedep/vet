@@ -42,6 +42,32 @@ signatures:
         conditions:
           - type: call
             value: "github.com/anthropics/anthropic-sdk-go/NewClient"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "Anthropic.*"
+          - type: call
+            value: "AnthropicClient"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "anthropic::*"
+          - type: call
+            value: "anthropic_sdk::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "Anthropic\\*"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "Anthropic::Client.new"
+          - type: call
+            value: "Anthropic::*"
 
   - id: anthropic.messages
     description: "Anthropic Messages API for chat completions"

@@ -35,3 +35,8 @@ signatures:
             value: "com.cohere.api.Cohere.builder"
           - type: call
             value: "com.cohere.api.*"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/cohere-ai/cohere-go/v2/*"
