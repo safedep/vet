@@ -23,6 +23,7 @@ import (
 	"github.com/safedep/vet/v2/internal/tui/style"
 	"github.com/safedep/vet/v2/internal/tui/table"
 	"github.com/safedep/vet/v2/internal/tui/theme"
+	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/report"
 )
@@ -99,8 +100,11 @@ func (s Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 	var open []*finding.Finding
 	var ids []string
 	var tools []*report.InventoryItem
+	changed := 0
 	err := render.EachRecord(ctx, r, func(rec *report.Record) error {
 		switch f := rec.Finding; {
+		case rec.Package != nil && rec.Package.Change.Introduces():
+			changed++
 		case rec.Inventory != nil:
 			tools = append(tools, rec.Inventory)
 		case f != nil:
@@ -125,13 +129,26 @@ func (s Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 		return err
 	}
 
-	parts := []string{stat.Render(cards(h, t)...)}
-	if len(shown) == 0 {
-		parts = append(parts, style.Success("No findings. "+plural(t.Summary.Packages, "package", "packages")+" checked."))
-	} else {
-		parts = append(parts, findingTable(shown, report.ShortIDLength(ids), delta, output.Width()))
+	packages := t.Summary.Packages
+	if delta {
+		packages = changed
 	}
-	if hints := findingHints(len(open), rows, len(shown), t.Summary.Suppressed); len(hints) > 0 {
+	parts := []string{stat.Render(cards(h, t, packages)...)}
+	change, same := sameChange(shown)
+	if len(shown) == 0 {
+		checked := plural(packages, "package", "packages")
+		if delta {
+			checked = plural(packages, "changed package", "changed packages")
+		}
+		parts = append(parts, style.Success("No findings. "+checked+" checked."))
+	} else {
+		parts = append(parts, findingTable(shown, report.ShortIDLength(ids), delta && !same, output.Width()))
+	}
+	hints := findingHints(len(open), rows, len(shown), t.Summary.Suppressed)
+	if text := changeHint(change); delta && same && text != "" {
+		hints = append([]string{section.Hint(text)}, hints...)
+	}
+	if len(hints) > 0 {
 		parts = append(parts, strings.Join(hints, "\n"))
 	}
 	if len(tools) > 0 {
@@ -467,17 +484,53 @@ func tags(c *report.Capability) string {
 	return text + ", " + b
 }
 
-// cards counts the packages and the findings. An endpoint audit also
-// counts the tools.
-func cards(h *report.Header, t *report.Trailer) []stat.Card {
+// sameChange returns the change of the rows when each row has the same
+// change. A pull request table then needs no CHANGE column.
+func sameChange(rows []row) (model.Change, bool) {
+	if len(rows) == 0 {
+		return "", false
+	}
+	c := rows[0][0].Change
+	for _, r := range rows[1:] {
+		if r[0].Change != c {
+			return "", false
+		}
+	}
+	return c, true
+}
+
+// changeVerbs name what a pull request does to a package or a file.
+var changeVerbs = map[model.Change]string{
+	model.ChangeAdded:      "adds",
+	model.ChangeUpgraded:   "upgrades",
+	model.ChangeDowngraded: "downgrades",
+	model.ChangeModified:   "changes",
+}
+
+// changeHint says the change of each row of a pull request table with no
+// CHANGE column.
+func changeHint(c model.Change) string {
+	if v, ok := changeVerbs[c]; ok {
+		return "Each finding is on a package or a file that the change " + v + "."
+	}
+	return ""
+}
+
+// cards counts the packages and the findings. A pull request scan counts
+// the packages that it changes. An endpoint audit also counts the tools.
+func cards(h *report.Header, t *report.Trailer, packages int) []stat.Card {
 	sum := t.Summary
 	crit, high := theme.RoleCritical, theme.RoleHigh
 	var cs []stat.Card
 	if h.Scan.Kind == report.ScanKindEndpoint {
 		cs = append(cs, stat.Card{Label: "Tools", Value: strconv.Itoa(sum.Inventory)})
 	}
+	label := "Packages"
+	if h.Scan.Mode == report.ScanModeDelta {
+		label = "Changed"
+	}
 	cs = append(cs, []stat.Card{
-		{Label: "Packages", Value: strconv.Itoa(sum.Packages)},
+		{Label: label, Value: strconv.Itoa(packages)},
 		{Label: "Findings", Value: strconv.Itoa(sum.Findings)},
 		{Label: "Critical", Value: strconv.Itoa(sum.BySeverity[finding.SeverityCritical]), Accent: &crit},
 		{Label: "High", Value: strconv.Itoa(sum.BySeverity[finding.SeverityHigh]), Accent: &high},

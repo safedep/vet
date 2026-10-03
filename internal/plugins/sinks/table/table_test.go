@@ -203,6 +203,12 @@ func TestColumnsFollowTheWidth(t *testing.T) {
 				h := *r.Header()
 				h.Scan.Mode = report.ScanModeDelta
 				r.HeaderValue = &h
+				for i, f := range r.FindingList {
+					f.Change = model.ChangeUpgraded
+					if i == len(r.FindingList)-1 {
+						f.Change = model.ChangeAdded
+					}
+				}
 			}
 			got := write(t, nil, r)
 			var header string
@@ -215,6 +221,30 @@ func TestColumnsFollowTheWidth(t *testing.T) {
 			assert.Equal(t, tc.headers, strings.Fields(strings.ReplaceAll(header, "│", " ")))
 		})
 	}
+}
+
+func TestPullRequestTable(t *testing.T) {
+	withWidth(t, 120)
+	output.SetMode(output.Plain)
+	r := plugintest.SampleReport()
+	h := *r.Header()
+	h.Scan.Mode = report.ScanModeDelta
+	r.HeaderValue = &h
+	r.CapabilityList, r.InventoryList = nil, nil
+	r.ManifestList[0].Packages[0].Change = model.ChangeAdded
+	for _, f := range r.FindingList {
+		f.Change = model.ChangeAdded
+	}
+
+	got := write(t, nil, r)
+	assert.Contains(t, got, "Changed: 1", "the card counts the changed packages, not every package")
+	assert.NotContains(t, got, "CHANGE", "each row has the same change")
+	assert.Contains(t, got, "Each finding is on a package or a file that the change adds.")
+
+	r.FindingList[1].Change = model.ChangeModified
+	got = write(t, nil, r)
+	assert.Contains(t, got, "CHANGE")
+	assert.NotContains(t, got, "Each finding is on")
 }
 
 func TestBadgeRoles(t *testing.T) {

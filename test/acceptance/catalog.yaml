@@ -284,6 +284,12 @@
   tier: P0
   guarantee: "After vet scan, the working tree of the target has no change (git status --porcelain is empty)."
   labels: [scan]
+- id: scan/pr-mode/counts
+  title: "pr mode: counts and columns"
+  category: scan
+  tier: P1
+  guarantee: "In pull request mode, the table card counts the changed packages, and the table drops the CHANGE column when each row has the same change and says the change in a hint. A bad --base-ref exits 2 and leaves no failed scan. vet report diff warns when it compares a full scan with a pull request scan."
+  labels: [scan]
 - id: scan/pr-mode/only-changes
   title: "pr mode: only changes"
   category: scan

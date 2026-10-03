@@ -149,6 +149,11 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 	run := &run{o: o, res: res, started: o.Now()}
 
 	err = run.stages(ctx, artifacts)
+	if app.ExitCode(err) == app.ExitUsage && !res.Continued {
+		// A bad flag, such as an unknown --base-ref, is not a scan. The
+		// index keeps no failed row for it.
+		return nil, errors.Join(err, discard(ctx, o.Store, res))
+	}
 	if finishErr := run.finish(ctx, err); finishErr != nil {
 		err = errors.Join(err, finishErr)
 	}
@@ -159,6 +164,14 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 		return res, err
 	}
 	return res, nil
+}
+
+// discard closes and deletes a scan that never started.
+func discard(ctx context.Context, store *state.Store, res *Result) error {
+	if err := res.Scan.Close(); err != nil {
+		return err
+	}
+	return store.DeleteScan(context.WithoutCancel(ctx), res.Entry)
 }
 
 func (o *Options) defaults() {

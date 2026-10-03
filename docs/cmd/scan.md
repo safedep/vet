@@ -38,7 +38,9 @@ as `vet policy init` writes it, unless the current directory has a file with tha
 `--base-ref` compares the target with a git ref, for example `origin/main`. vet then checks only the
 packages and the workflows that the change adds or modifies, and reports only their findings. vet
 keeps the extraction of the base commit in the state directory. The next scan with the same base
-commit reads it and does not extract the base again.
+commit reads it and does not extract the base again. The table counts the changed packages. It
+shows a CHANGE column only when the rows have different changes. A `--base-ref` that git does not
+know exits with code 2 and leaves no scan in the index.
 
 stdout gets the report in the `-o` format. With no `-o`, the format follows the mode: `table` in a
 terminal, `plain` in CI and `json` under an agent. stderr gets the progress, the diagnostics and the

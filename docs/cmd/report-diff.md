@@ -17,6 +17,9 @@ adds and removes. A suppressed finding does not count.
 With no argument, BASE and HEAD are the last two completed scans of the current directory. With one
 argument, HEAD is the last scan. An argument is a scan id prefix, `last` or a report file.
 
+A pull request scan holds only the findings of the changes. vet warns when it compares a pull
+request scan with a full scan, because the diff is then not complete.
+
 ## Examples
 
 ```text

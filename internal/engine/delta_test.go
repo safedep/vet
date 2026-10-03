@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/safedep/vet/v2/internal/app"
+	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/report"
@@ -118,9 +119,10 @@ func TestPullRequestModeNeedsGit(t *testing.T) {
 	res, err := Run(context.Background(), o)
 	require.Error(t, err)
 	assert.Equal(t, app.ExitUsage, app.ExitCode(err))
-	if res != nil {
-		require.NoError(t, res.Scan.Close())
-	}
+	assert.Nil(t, res, "a usage error is not a scan")
+	es, err := o.Store.Index().List(context.Background(), state.ListOptions{})
+	require.NoError(t, err)
+	assert.Empty(t, es, "the index keeps no failed row for a usage error")
 }
 
 func TestDiff(t *testing.T) {

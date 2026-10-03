@@ -11,9 +11,11 @@ import (
 	"github.com/safedep/vet/v2/internal/reportdoc"
 	"github.com/safedep/vet/v2/internal/runner"
 	"github.com/safedep/vet/v2/internal/state"
+	"github.com/safedep/vet/v2/internal/tui"
 	"github.com/safedep/vet/v2/internal/tui/escape"
 	"github.com/safedep/vet/v2/internal/tui/printer"
 	"github.com/safedep/vet/v2/plugin"
+	"github.com/safedep/vet/v2/report"
 )
 
 // Diff is the result of "vet report diff".
@@ -52,6 +54,7 @@ id prefix, "last" or a report file.`,
 			if err != nil {
 				return err
 			}
+			warnModes(b.Header().Scan, h.Header().Scan)
 			d, err := compare(cmd, b, h)
 			if err != nil {
 				return err
@@ -90,6 +93,24 @@ func diffRefs(cmd *cobra.Command, a *app.App, f state.Flags, args []string) (str
 			"Run vet scan again, or name two scans: vet report diff BASE HEAD.")
 	}
 	return es[1].ID, es[0].ID, nil
+}
+
+// warnModes warns when one scan is a pull request scan and the other is a
+// full scan. A pull request scan holds only the findings of the changes, so
+// the diff lists the other findings as added or removed.
+func warnModes(base, head report.ScanInfo) {
+	if base.Mode == head.Mode {
+		return
+	}
+	tui.Warning("Scan %s is a %s and scan %s is a %s. A pull request scan holds only the findings of the changes, so this diff is not complete.",
+		shortID(base.ID), modeName(base.Mode), shortID(head.ID), modeName(head.Mode))
+}
+
+func modeName(m report.ScanMode) string {
+	if m == report.ScanModeDelta {
+		return "pull request scan"
+	}
+	return "full scan"
 }
 
 func compare(cmd *cobra.Command, base, head *reportdoc.Doc) (*Diff, error) {
