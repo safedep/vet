@@ -59,8 +59,6 @@ func isCobraGenerated(c *cobra.Command) bool {
 	return c.Name() == "help" || c.Name() == "completion"
 }
 
-func isLeaf(c *cobra.Command) bool { return c.Run != nil || c.RunE != nil }
-
 // walk calls fn for each command under the root with its path, the root
 // excluded.
 func walk(c *cobra.Command, path []string, fn func(c *cobra.Command, path []string)) {

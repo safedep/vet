@@ -60,7 +60,7 @@
   title: "a usage error has a code and a help line"
   category: errors
   tier: P1
-  guarantee: "A usage error prints a usefulerror with a code and a help line on stderr, and vet exits 2."
+  guarantee: "A usage error prints a usefulerror with a code and a help line on stderr, and vet exits 2. The help line names the help of the command that failed. An argument error names the arguments of the command."
   labels: [exit-codes]
 
 # --- 4.2 The report contract ---

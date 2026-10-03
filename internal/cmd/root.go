@@ -116,7 +116,7 @@ func Run(ctx context.Context, args []string, o app.Options) (int, error) {
 func execute(ctx context.Context, root *cobra.Command, args []string) (int, error) {
 	markRunErrors(root)
 	root.SetArgs(args)
-	err := root.ExecuteContext(ctx)
+	c, err := root.ExecuteContextC(ctx)
 	if err == nil {
 		return app.ExitOK, nil
 	}
@@ -124,7 +124,7 @@ func execute(ctx context.Context, root *cobra.Command, args []string) (int, erro
 	var re runError
 	if !errors.As(err, &re) {
 		if _, ok := usefulerror.AsUsefulError(err); !ok {
-			err = app.UsageError(err.Error(), `Run "vet --help" to list the commands and the flags.`)
+			err = usageError(c, err)
 		}
 	}
 	code := app.ExitCode(err)
