@@ -1,0 +1,21 @@
+# A package whose analysis is not complete has no malware verdict. vet does
+# not cache it, so the next scan asks Threat Intel again. A verdict and the
+# Insights data stay cached.
+cd proj
+exec vet scan . --mode plain -o plain
+stub calls malysis 2
+stub calls insights 2
+exec vet scan . --mode plain -o plain --fresh
+stub calls malysis 3
+stub calls insights 2
+
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"stub-pending": "1.0.0", "safedep-test-pkg": "0.1.3"}},
+    "node_modules/stub-pending": {"version": "1.0.0", "resolved": "https://registry.npmjs.org/stub-pending/-/stub-pending-1.0.0.tgz"},
+    "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"}
+  }
+}

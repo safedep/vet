@@ -168,7 +168,7 @@
   title: "fail open: backend down"
   category: controls
   tier: P0
-  guarantee: "With Insights down, the scan completes, the report has a diagnostic, and the exit code does not change. With --strict, vet exits 3."
+  guarantee: "With Insights down, the scan completes, the report has a diagnostic, and the exit code does not change. With --strict, vet exits 3, also when the gate fails, and the gate line still prints."
   labels: [controls]
 - id: controls/lockfile/untrusted-registry
   title: "lockfile: untrusted registry"
@@ -331,6 +331,42 @@
   category: scan
   tier: P1
   guarantee: "A malformed manifest gives a vet diagnostic. No log line of a library reaches stderr."
+  labels: [scan, output]
+- id: controls/malware/suspicious
+  title: "an unverified verdict is suspicious, a safe verification overrules"
+  category: controls
+  tier: P0
+  guarantee: "An unverified malicious verdict gives a high suspicious-package finding, a verification record that marks the version safe gives no malware finding, and trust_automated_analysis turns the unverified verdict into a critical malware finding."
+  labels: [controls, malware]
+- id: state/cache/verdict-pending
+  title: "a missing malware verdict is asked again"
+  category: state
+  tier: P1
+  guarantee: "A package with no malware verdict is not cached, so the next scan asks Threat Intel again. A verdict and the Insights data stay cached."
+  labels: [state, cache, malware]
+- id: scan/pr-mode/resolved-host-changed
+  title: "pull request mode sees a lockfile entry that moves its download"
+  category: scan
+  tier: P0
+  guarantee: "In pull request mode, a yarn.lock entry that keeps its version and its hash and moves its resolved URL to another host is a modified package and gives untrusted-registry."
+  labels: [scan, pr-mode, lockfile]
+- id: scan/sources/git-token-redacted
+  title: "a token in a git target URL never prints"
+  category: scan
+  tier: P0
+  guarantee: "A token in the URL of a git target is not on stdout or stderr, also when the clone fails."
+  labels: [scan, sources, secrets]
+- id: config/env/plugin-options
+  title: "VET_PLUGINS variables set plugin options"
+  category: config
+  tier: P2
+  guarantee: "A VET_PLUGINS_<NAME>_OPTIONS_<OPTION> variable sets the plugin option, the scan uses it, and vet config get names the variable as the origin."
+  labels: [config]
+- id: scan/output/diagnostics-grouped
+  title: "a person sees five diagnostics and a count"
+  category: scan
+  tier: P2
+  guarantee: "In plain and rich mode, stderr shows the first five diagnostics and a line that counts the rest and names vet report show SCAN_ID -v. -v shows all of them."
   labels: [scan, output]
 - id: state/continue/after-interrupt
   title: "continue: after interrupt"
