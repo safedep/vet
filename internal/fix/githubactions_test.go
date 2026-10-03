@@ -2,11 +2,14 @@ package fix
 
 import (
 	"context"
-	"errors"
+	"fmt"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
 
+	gh "github.com/google/go-github/v70/github"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -18,7 +21,7 @@ type fakeResolver struct{ calls int }
 func (f *fakeResolver) ResolveSHA(_ context.Context, owner, repo, ref string) (string, error) {
 	f.calls++
 	if owner == "gone" {
-		return "", errors.New("404 Not Found")
+		return "", fmt.Errorf("resolve: %w", &gh.ErrorResponse{Response: &http.Response{StatusCode: http.StatusNotFound, Request: &http.Request{Method: "GET", URL: &url.URL{}}}})
 	}
 	return sha, nil
 }
@@ -85,6 +88,8 @@ func TestPlanAndApply(t *testing.T) {
 	require.Len(t, p.Failures, 1)
 	assert.Equal(t, "gone/action@v1", p.Failures[0].Action)
 	assert.Equal(t, 13, p.Failures[0].Line)
+	assert.Equal(t, "GitHub API answered 404 (no such repository or ref)", p.Failures[0].Reason)
+	assert.False(t, p.NeedsToken())
 
 	assert.Contains(t, p.Diff(), "@@ -6 +6 @@\n-      - uses: actions/checkout@v4\n+      - uses: actions/checkout@"+sha+" # v4\n")
 

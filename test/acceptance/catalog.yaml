@@ -440,6 +440,12 @@
   tier: P1
   guarantee: "vet fix github-actions run --dry-run prints the diff and writes nothing."
   labels: [fix]
+- id: fix/github-actions/unresolved
+  title: "the fix names each action that it could not pin"
+  category: fix
+  tier: P2
+  guarantee: "vet fix github-actions run prints one line with a short reason for each action that it could not pin, one hint and no \"No action to pin\" line, and exits 3."
+  labels: [fix]
 - id: state/continue/options-change
   title: "other scan options start a new scan"
   category: state

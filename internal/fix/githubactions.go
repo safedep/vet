@@ -18,6 +18,8 @@ import (
 
 	gogit "github.com/go-git/go-git/v5"
 	"gopkg.in/yaml.v3"
+
+	"github.com/safedep/vet/v2/internal/github"
 )
 
 var commitSHA = regexp.MustCompile(`^([0-9a-f]{40}|[0-9a-f]{64})$`)
@@ -52,6 +54,10 @@ type Failure struct {
 	Line   int    `json:"line"`
 	Action string `json:"action"`
 	Error  string `json:"error"`
+	// Reason is a short form of Error for a person.
+	Reason string `json:"-"`
+	// NeedsToken is true when a GitHub token can fix the failure.
+	NeedsToken bool `json:"-"`
 }
 
 // Plan is the set of edits of a run.
@@ -59,6 +65,16 @@ type Plan struct {
 	Root     string    `json:"root"`
 	Files    []*File   `json:"files"`
 	Failures []Failure `json:"failures"`
+}
+
+// NeedsToken is true when a GitHub token can fix a failure of the plan.
+func (p *Plan) NeedsToken() bool {
+	for _, f := range p.Failures {
+		if f.NeedsToken {
+			return true
+		}
+	}
+	return false
 }
 
 // PinOptions configure PlanPins.
@@ -120,14 +136,16 @@ func planFile(ctx context.Context, rel string, data []byte, o PinOptions, cache 
 		if !ok {
 			var err error
 			if sha, err = o.Resolver.ResolveSHA(ctx, parts[0], parts[1], ref); err != nil {
-				fails = append(fails, Failure{Path: rel, Line: n.Line, Action: n.Value, Error: err.Error()})
+				reason, token := github.Reason(err)
+				fails = append(fails, Failure{Path: rel, Line: n.Line, Action: n.Value, Error: err.Error(), Reason: reason, NeedsToken: token})
 				continue
 			}
 			cache[key] = sha
 		}
 		old, updated, ok := rewriteLine(lines[n.Line-1], n, action+"@"+sha, ref)
 		if !ok {
-			fails = append(fails, Failure{Path: rel, Line: n.Line, Action: n.Value, Error: "the uses: value is not on one line"})
+			const msg = "the uses: value is not on one line"
+			fails = append(fails, Failure{Path: rel, Line: n.Line, Action: n.Value, Error: msg, Reason: msg})
 			continue
 		}
 		lines[n.Line-1] = updated

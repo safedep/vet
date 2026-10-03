@@ -16,6 +16,7 @@ import (
 	"github.com/safedep/vet/v2/internal/github"
 	"github.com/safedep/vet/v2/internal/tui"
 	"github.com/safedep/vet/v2/internal/tui/escape"
+	"github.com/safedep/vet/v2/internal/tui/humanize"
 	"github.com/safedep/vet/v2/internal/tui/output"
 	"github.com/safedep/vet/v2/internal/tui/printer"
 )
@@ -75,7 +76,8 @@ repository. The default is the current directory.`,
 				return err
 			}
 			for _, f := range plan.Failures {
-				tui.Warning("%s:%d: %s: %s", escape.Line(f.Path), f.Line, escape.Line(f.Action), escape.Line(f.Error))
+				tui.Warning("%s:%d: %s: %s", escape.Line(f.Path), f.Line, escape.Line(f.Action), escape.Line(f.Reason))
+				tui.Faint("  %s", escape.Line(f.Error))
 			}
 			if err := printPlan(a, plan, dryRun); err != nil {
 				return err
@@ -87,9 +89,12 @@ repository. The default is the current directory.`,
 			}
 			summary(plan, dryRun)
 			if len(plan.Failures) > 0 {
-				msg := "vet could not pin " + plural(len(plan.Failures), "action")
-				return usefulerror.NewUsefulError().WithCode(CodeUnresolved).WithHumanError(msg).
-					WithHelp("Check the action names and the GitHub token, then run the fix again.").WithMsg(msg)
+				msg := "vet could not pin " + humanize.Count(len(plan.Failures), "action")
+				help := "Check the action names and the refs, then run the fix again."
+				if plan.NeedsToken() {
+					help = "Set GITHUB_TOKEN or run gh auth login, then run the fix again."
+				}
+				return usefulerror.NewUsefulError().WithCode(CodeUnresolved).WithHumanError(msg).WithHelp(help).WithMsg(msg)
 			}
 			return nil
 		},
@@ -109,29 +114,27 @@ func printPlan(a *app.App, plan *vfix.Plan, dryRun bool) error {
 		_, err := fmt.Fprint(output.Stdout(), escape.Text(plan.Diff()))
 		return err
 	}
-	rows := printer.Rows{Headers: []string{"FILE", "LINE", "ACTION", "REF", "SHA"}, Empty: "No action to pin."}
+	rows := printer.Rows{Headers: []string{"FILE", "LINE", "ACTION", "REF", "SHA"}}
 	for _, f := range plan.Files {
 		for _, e := range f.Edits {
 			rows.Rows = append(rows.Rows, []string{escape.Line(f.Path), strconv.Itoa(e.Line), escape.Line(e.Action), escape.Line(e.Ref), e.SHA})
 		}
+	}
+	if len(rows.Rows) == 0 && p.Format() == printer.Table {
+		return nil // The summary line on stderr says that vet pinned no action.
 	}
 	return p.Print(plan, rows)
 }
 
 func summary(plan *vfix.Plan, dryRun bool) {
 	switch {
+	case plan.Edits() == 0 && len(plan.Failures) > 0:
+		return // The error of the command counts the actions that failed.
 	case plan.Edits() == 0:
 		tui.Info("No action to pin.")
 	case dryRun:
-		tui.Info("vet would pin %s in %s. Run without --dry-run to write them.", plural(plan.Edits(), "action"), plural(len(plan.Files), "file"))
+		tui.Info("vet would pin %s in %s. Run without --dry-run to write them.", humanize.Count(plan.Edits(), "action"), humanize.Count(len(plan.Files), "file"))
 	default:
-		tui.Success("Pinned %s in %s.", plural(plan.Edits(), "action"), plural(len(plan.Files), "file"))
+		tui.Success("Pinned %s in %s.", humanize.Count(plan.Edits(), "action"), humanize.Count(len(plan.Files), "file"))
 	}
-}
-
-func plural(n int, word string) string {
-	if n == 1 {
-		return "1 " + word
-	}
-	return strconv.Itoa(n) + " " + word + "s"
 }

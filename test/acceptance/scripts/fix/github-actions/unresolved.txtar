@@ -1,0 +1,24 @@
+# vet fix github-actions run names each action that it could not pin, with a
+# short reason. It prints one hint, no "No action to pin" line, and exits 3.
+execexit 3 vet fix github-actions run --dry-run --mode plain
+stderr 'ci.yml:6: nobody/nothing@v1: GitHub API answered 404'
+! stderr '\[\]'
+! stderr 'No action to pin'
+stderr 'fix_unresolved'
+stderr -count=1 'Check the action names and the refs, then run the fix again\.'
+cmp .github/workflows/ci.yml $WORK/before.yml
+
+-- .github/workflows/ci.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: nobody/nothing@v1
+-- before.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: nobody/nothing@v1
