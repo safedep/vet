@@ -1,0 +1,22 @@
+# A yarn.lock entry that resolves from a host that is not a trusted
+# registry gives untrusted-registry. The control covers yarn, pnpm, bun, uv
+# and Cargo lockfiles as well as npm.
+exec vet scan . --mode plain -o plain
+stdout 'high\tuntrusted-registry\tpkg:npm/left-pad@1.3.0'
+! stdout 'debug'
+
+-- yarn.lock --
+# yarn lockfile v1
+
+
+debug@^4.3.4:
+  version "4.3.4"
+  resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.4.tgz#abc"
+  integrity sha512-debug
+
+left-pad@1.3.0:
+  version "1.3.0"
+  resolved "https://evil.example/left-pad-1.3.0.tgz"
+  integrity sha512-leftpad
+-- package.json --
+{"name": "app", "dependencies": {"debug": "^4.3.4", "left-pad": "1.3.0"}}

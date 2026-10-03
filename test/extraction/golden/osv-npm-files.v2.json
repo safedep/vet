@@ -1,0 +1,14 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/packagelockjson",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/etag@1.8.0 [d] :16",
+        "npm/abbrev@1.0.9 [d] :36",
+        "npm/abbrev@2.3.4 [d] :42"
+      ]
+    }
+  ]
+}

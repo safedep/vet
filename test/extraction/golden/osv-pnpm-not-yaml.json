@@ -1,0 +1,6 @@
+{
+  "manifests": [],
+  "errors": [
+    "javascript/pnpmlock: pnpm-lock.yaml: could not extract: yaml: unmarshal errors:\n  line 1: cannot unmarshal !!str `this is...` into pnpmlock.pnpmLockfileV6"
+  ]
+}

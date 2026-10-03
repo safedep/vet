@@ -1,0 +1,13 @@
+# A scan that reads no manifest warns about it and names what vet reads, so
+# a person does not take it for a clean result. It still exits 0.
+mkdir empty
+cd empty
+exec vet scan . --mode plain -o plain
+stderr '^\[WARN\] vet found no manifest in .*empty$'
+stderr 'vet reads lockfiles'
+
+exec vet scan . --mode plain -o table
+! stdout 'No findings'
+
+exec vet scan . --mode agent -o json
+stderr '^WARN: no manifest found target='

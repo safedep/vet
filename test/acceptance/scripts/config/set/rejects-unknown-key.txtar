@@ -1,0 +1,33 @@
+# vet config set with a typo exits 2 and suggests the closest key. A valid
+# key writes the file and keeps its comments. The message ends with the
+# path, with no full stop, so a copy of the path opens the file.
+execexit 2 vet --config $WORK/config.yml config set scan.concurency 4 --mode plain
+stderr 'config_unknown_key'
+stderr 'Did you mean scan.concurrency\?'
+cmp $WORK/config.yml $WORK/before.yml
+
+exec vet --config $WORK/config.yml config set scan.concurrency 4 --mode plain
+stderr 'Set scan.concurrency in .*config\.yml$'
+grep '# keep me' $WORK/config.yml
+grep 'concurrency: 4' $WORK/config.yml
+exec vet --config $WORK/config.yml config get scan.concurrency -o json
+jsonq stdout value 4
+
+execexit 2 vet --config $WORK/config.yml config set scan.concurrency many --mode plain
+stderr 'config_invalid'
+stderr 'scan.concurrency must be a whole number, got "many"'
+stderr 'vet did not write the value to .*config\.yml$'
+! stderr 'strconv'
+
+exec vet --config $WORK/config.yml config delete scan.concurrency --mode plain
+stderr 'Removed scan.concurrency from .*config\.yml$'
+! grep 'concurrency' $WORK/config.yml
+
+-- config.yml --
+# keep me
+policy:
+  fail_on: high
+-- before.yml --
+# keep me
+policy:
+  fail_on: high

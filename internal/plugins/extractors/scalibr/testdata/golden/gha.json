@@ -1,0 +1,53 @@
+[
+  {
+    "manifest": {
+      "id": "m-6783888d394f",
+      "path": ".github/workflows/ci.yml",
+      "ecosystem": "github-actions",
+      "kind": "workflow",
+      "extractor": "github/actions"
+    },
+    "packages": [
+      {
+        "id": {
+          "ecosystem": "github-actions",
+          "namespace": "actions",
+          "name": "checkout",
+          "version": "v3"
+        },
+        "direct": true,
+        "line": 16
+      },
+      {
+        "id": {
+          "ecosystem": "github-actions",
+          "namespace": "actions",
+          "name": "setup-go",
+          "version": "6edd4406fa81c3da01a34fa6f6343087c207a568"
+        },
+        "direct": true,
+        "line": 19
+      },
+      {
+        "id": {
+          "ecosystem": "github-actions",
+          "namespace": "docker",
+          "name": "setup-qemu-action",
+          "version": "v2"
+        },
+        "direct": true,
+        "line": 46
+      },
+      {
+        "id": {
+          "ecosystem": "github-actions",
+          "namespace": "docker",
+          "name": "setup-buildx-action",
+          "version": "v2"
+        },
+        "direct": true,
+        "line": 49
+      }
+    ]
+  }
+]

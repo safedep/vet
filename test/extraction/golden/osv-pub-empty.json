@@ -1,0 +1,6 @@
+{
+  "manifests": [],
+  "errors": [
+    "dart/pubspec: pubspec.lock: could not extract: EOF"
+  ]
+}

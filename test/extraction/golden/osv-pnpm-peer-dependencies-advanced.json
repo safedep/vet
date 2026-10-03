@@ -1,0 +1,41 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/pnpmlock",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/@typescript-eslint/eslint-plugin@5.13.0 [+] :17",
+        "npm/@typescript-eslint/parser@5.13.0 [+] :44",
+        "npm/@typescript-eslint/type-utils@5.13.0 :64",
+        "npm/@typescript-eslint/types@5.13.0 :83",
+        "npm/@typescript-eslint/typescript-estree@5.13.0 :88",
+        "npm/@typescript-eslint/utils@5.13.0 :109",
+        "npm/eslint-utils@3.0.0 :127",
+        "npm/eslint@8.10.0 [+] :137",
+        "npm/tsutils@3.21.0 :181"
+      ],
+      "edges": [
+        "npm/@typescript-eslint/eslint-plugin@5.13.0 -> npm/@typescript-eslint/parser@5.13.0",
+        "npm/@typescript-eslint/eslint-plugin@5.13.0 -> npm/@typescript-eslint/type-utils@5.13.0",
+        "npm/@typescript-eslint/eslint-plugin@5.13.0 -> npm/@typescript-eslint/utils@5.13.0",
+        "npm/@typescript-eslint/eslint-plugin@5.13.0 -> npm/eslint@8.10.0",
+        "npm/@typescript-eslint/eslint-plugin@5.13.0 -> npm/tsutils@3.21.0",
+        "npm/@typescript-eslint/parser@5.13.0 -> npm/@typescript-eslint/types@5.13.0",
+        "npm/@typescript-eslint/parser@5.13.0 -> npm/@typescript-eslint/typescript-estree@5.13.0",
+        "npm/@typescript-eslint/parser@5.13.0 -> npm/eslint@8.10.0",
+        "npm/@typescript-eslint/type-utils@5.13.0 -> npm/@typescript-eslint/utils@5.13.0",
+        "npm/@typescript-eslint/type-utils@5.13.0 -> npm/eslint@8.10.0",
+        "npm/@typescript-eslint/type-utils@5.13.0 -> npm/tsutils@3.21.0",
+        "npm/@typescript-eslint/typescript-estree@5.13.0 -> npm/@typescript-eslint/types@5.13.0",
+        "npm/@typescript-eslint/typescript-estree@5.13.0 -> npm/tsutils@3.21.0",
+        "npm/@typescript-eslint/utils@5.13.0 -> npm/@typescript-eslint/types@5.13.0",
+        "npm/@typescript-eslint/utils@5.13.0 -> npm/@typescript-eslint/typescript-estree@5.13.0",
+        "npm/@typescript-eslint/utils@5.13.0 -> npm/eslint-utils@3.0.0",
+        "npm/@typescript-eslint/utils@5.13.0 -> npm/eslint@8.10.0",
+        "npm/eslint-utils@3.0.0 -> npm/eslint@8.10.0",
+        "npm/eslint@8.10.0 -> npm/eslint-utils@3.0.0"
+      ]
+    }
+  ]
+}

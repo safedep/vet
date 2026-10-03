@@ -4,44 +4,21 @@ version: 2
 before:
   hooks:
     - go mod tidy
-    - go generate ./...
 
-env:
-  - CGO_ENABLED=1
-
+# vet v2 needs no CGO, so one static build covers each platform.
 builds:
-  - id: linux
-    goos: [linux]
-    goarch: [amd64, arm64]
+  - id: vet
+    main: ./cmd/vet
+    ldflags:
+      - -s -w -X github.com/safedep/vet/v2/internal/version.version={{.Version}} -X github.com/safedep/vet/v2/internal/version.commit={{.Commit}}
     env:
-      - CGO_ENABLED=1
-    overrides:
-      - goos: linux
-        goarch: amd64
-        env:
-          - CC=x86_64-linux-gnu-gcc
-          - CXX=x86_64-linux-gnu-g++
-      - goos: linux
+      - CGO_ENABLED=0
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+    # The npm packages have no Windows arm64 build.
+    ignore:
+      - goos: windows
         goarch: arm64
-        env:
-          - CC=aarch64-linux-gnu-gcc
-          - CXX=aarch64-linux-gnu-g++
-
-  - id: darwin
-    goos: [darwin]
-    goarch: [amd64, arm64]
-    env:
-      - CGO_ENABLED=1
-      - CC=o64-clang
-      - CXX=o64-clang++
-
-  - id: windows
-    goos: [windows]
-    goarch: [amd64]
-    env:
-      - CGO_ENABLED=1
-      - CC=x86_64-w64-mingw32-gcc
-      - CXX=x86_64-w64-mingw32-g++
 
 release:
   # for prerelease it doesn't build and distribute

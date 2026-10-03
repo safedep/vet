@@ -1,0 +1,23 @@
+# With plugins.codeusage.enabled, each code signature that matches is a
+# capability of the scan: a capability record in the JSON report and an
+# xbom component in the CycloneDX BOM.
+[!cgo] skip 'code analysis needs a vet built with CGO'
+cd proj
+exec vet --config $WORK/config.yml scan . -o json --mode agent
+stdout '"kind": ?"capability"'
+stdout '"id": ?"openai.client"'
+stdout '"file": ?"app.py"'
+exec vet --config $WORK/config.yml scan . -o cyclonedx --mode plain
+stdout '"bom-ref": ?"xbom:openai.client"'
+stdout '"technique": ?"source-code-analysis"'
+
+-- config.yml --
+plugins:
+  codeusage:
+    enabled: true
+-- proj/app.py --
+from openai import OpenAI
+
+client = OpenAI()
+-- proj/requirements.txt --
+openai==1.51.0

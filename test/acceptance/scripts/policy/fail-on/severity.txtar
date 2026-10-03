@@ -1,0 +1,35 @@
+# --fail-on high exits 1 on a high finding, and 0 when the findings are only
+# medium. policy.fail_on in the config file does the same.
+cd vuln
+execexit 1 vet scan . --mode plain -o plain --fail-on high
+stdout 'vulnerability'
+stderr 'Gate failed: 1 finding at high or above'
+
+cd ../medium
+exec vet scan . --mode plain -o plain --fail-on high
+stdout 'unpinned-action'
+stderr 'Gate passed'
+
+cd ../vuln
+execexit 1 vet --config $WORK/config.yml scan . --mode plain -o plain
+stderr 'Gate failed'
+
+-- config.yml --
+policy:
+  fail_on: high
+-- vuln/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"left-pad": "1.3.0"}},
+    "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}
+  }
+}
+-- medium/.github/workflows/ci.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4

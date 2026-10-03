@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "python/requirements",
+      "kind": "manifest",
+      "ecosystem": "pypi",
+      "packages": [
+        "pypi/cyclic-r-complex@2 [+] :4"
+      ]
+    }
+  ]
+}

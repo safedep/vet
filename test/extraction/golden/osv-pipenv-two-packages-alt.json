@@ -1,0 +1,13 @@
+{
+  "manifests": [
+    {
+      "extractor": "python/pipfilelock",
+      "kind": "lockfile",
+      "ecosystem": "pypi",
+      "packages": [
+        "pypi/itsdangerous@2.1.2 :19",
+        "pypi/markupsafe@2.1.1 :27"
+      ]
+    }
+  ]
+}

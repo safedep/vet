@@ -1,0 +1,72 @@
+{
+  "report": {
+    "title": "SafeDep vet",
+    "details": "vet found 2 supply chain findings.",
+    "report_type": "SECURITY",
+    "reporter": "SafeDep vet test",
+    "result": "FAILED",
+    "data": [
+      {
+        "title": "Findings",
+        "type": "NUMBER",
+        "value": 2
+      },
+      {
+        "title": "Critical",
+        "type": "NUMBER",
+        "value": 1
+      },
+      {
+        "title": "High",
+        "type": "NUMBER",
+        "value": 0
+      },
+      {
+        "title": "Medium",
+        "type": "NUMBER",
+        "value": 1
+      },
+      {
+        "title": "Low",
+        "type": "NUMBER",
+        "value": 0
+      },
+      {
+        "title": "Suppressed",
+        "type": "NUMBER",
+        "value": 1
+      },
+      {
+        "title": "Packages",
+        "type": "NUMBER",
+        "value": 2
+      },
+      {
+        "title": "Base ref",
+        "type": "TEXT",
+        "value": "origin/main"
+      }
+    ]
+  },
+  "annotations": [
+    {
+      "external_id": "f-478cf580259c82ac",
+      "title": "Malicious package",
+      "annotation_type": "VULNERABILITY",
+      "summary": "Malicious package",
+      "details": "The package runs a postinstall script that reads ~/.npmrc. Remove evil-colors.",
+      "severity": "CRITICAL",
+      "path": "package-lock.json",
+      "line": 42
+    },
+    {
+      "external_id": "f-e815bb3b5e0846f1",
+      "title": "tj-actions/changed-files@v44 is not pinned to a commit SHA",
+      "annotation_type": "CODE_SMELL",
+      "summary": "tj-actions/changed-files@v44 is not pinned to a commit SHA",
+      "severity": "MEDIUM",
+      "path": ".github/workflows/ci.yml",
+      "line": 8
+    }
+  ]
+}

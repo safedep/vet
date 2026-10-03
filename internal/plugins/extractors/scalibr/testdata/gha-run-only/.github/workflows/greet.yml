@@ -1,0 +1,7 @@
+name: greet
+on: issues
+jobs:
+  greet:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Thanks for the issue"

@@ -1,0 +1,126 @@
+// Package vuln is the control that reports the known
+// vulnerabilities of each package version, from SafeDep Insights v2.
+package vuln
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/internal/plugins/internal/optschema"
+	"github.com/safedep/vet/v2/model"
+	"github.com/safedep/vet/v2/plugin"
+)
+
+// Name is the plugin name and the control id.
+const Name = "vulnerability"
+
+// Control reports one finding for each advisory of a package version.
+type Control struct{}
+
+// Options are plugins.vulnerability.options. The control has none.
+type Options struct{}
+
+// New builds the control. It has no options.
+func New(cfg plugin.Config) (plugin.Control, error) {
+	if err := cfg.Decode(&Options{}); err != nil {
+		return nil, err
+	}
+	return &Control{}, nil
+}
+
+// Controls describes the control id.
+func (c *Control) Controls() []plugin.ControlInfo {
+	return []plugin.ControlInfo{{
+		ID: Name, Family: finding.FamilyVulnerability, Severity: finding.SeverityHigh,
+		Title:       "Known vulnerability",
+		Description: "An advisory affects the package version. The finding has the severity of the advisory.",
+	}}
+}
+
+// Evaluate reports each advisory of each package of the manifest.
+func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State) ([]finding.Finding, error) {
+	var out []finding.Finding
+	for _, p := range m.Packages {
+		if p.Insight == nil {
+			continue
+		}
+		for _, v := range p.Insight.Vulnerabilities {
+			out = append(out, newFinding(m, p, v))
+		}
+	}
+	return out, nil
+}
+
+func newFinding(m *model.Manifest, p *model.Package, v model.Vulnerability) finding.Finding {
+	sev, conf := severity(v)
+	title := fmt.Sprintf("%s in %s", v.ID, p.ID)
+	if v.Summary != "" {
+		title += ": " + v.Summary
+	}
+	f := finding.ForPackage(finding.Meta{
+		ControlID: Name, Family: finding.FamilyVulnerability, Severity: sev, Confidence: conf,
+		Title: title, Description: v.Summary,
+	}, m.Path, p, finding.Key{Discriminator: v.ID})
+	f.Evidence = []finding.Evidence{{Source: "insights", Summary: evidence(v), URL: advisoryURL(v.ID)}}
+	f.References = []string{advisoryURL(v.ID)}
+	f.Remediation = remediation(p, v)
+	return f
+}
+
+// severity uses the risk of the advisory, then its CVSS score. An advisory
+// with neither is medium with low confidence.
+func severity(v model.Vulnerability) (finding.Severity, finding.Confidence) {
+	if s, err := finding.ParseSeverity(v.Severity); err == nil {
+		return s, finding.ConfidenceHigh
+	}
+	switch {
+	case v.CVSS >= 9:
+		return finding.SeverityCritical, finding.ConfidenceHigh
+	case v.CVSS >= 7:
+		return finding.SeverityHigh, finding.ConfidenceHigh
+	case v.CVSS >= 4:
+		return finding.SeverityMedium, finding.ConfidenceHigh
+	case v.CVSS > 0:
+		return finding.SeverityLow, finding.ConfidenceHigh
+	}
+	return finding.SeverityMedium, finding.ConfidenceLow
+}
+
+func evidence(v model.Vulnerability) string {
+	s := v.ID
+	if len(v.Aliases) > 0 {
+		s += fmt.Sprintf(" (aliases %v)", v.Aliases)
+	}
+	if v.CVSS > 0 {
+		s += fmt.Sprintf(", CVSS %.1f", v.CVSS)
+	}
+	return s
+}
+
+func remediation(p *model.Package, v model.Vulnerability) *finding.Remediation {
+	if len(v.Fixed) > 0 {
+		return &finding.Remediation{
+			Summary:      fmt.Sprintf("Upgrade %s to %s or later.", p.ID.QualifiedName(), v.Fixed[0]),
+			FixedVersion: v.Fixed[0],
+		}
+	}
+	// gap G1: Insights v2 has no fixed versions, so the remediation can only
+	// name the latest version.
+	if p.Insight.LatestVersion != "" && p.Insight.LatestVersion != p.ID.Version {
+		return &finding.Remediation{Summary: fmt.Sprintf("Upgrade %s to a version that fixes %s. The latest version is %s.",
+			p.ID.QualifiedName(), v.ID, p.Insight.LatestVersion)}
+	}
+	return &finding.Remediation{Summary: fmt.Sprintf("Upgrade %s to a version that fixes %s.", p.ID.QualifiedName(), v.ID)}
+}
+
+func advisoryURL(id string) string { return "https://osv.dev/vulnerability/" + id }
+
+// OptionsSchema returns the JSON Schema of the options.
+func (c *Control) OptionsSchema() []byte { return optschema.Of(&Options{}) }
+
+var (
+	_ plugin.Control   = (*Control)(nil)
+	_ plugin.Describer = (*Control)(nil)
+	_ plugin.Schemer   = (*Control)(nil)
+)

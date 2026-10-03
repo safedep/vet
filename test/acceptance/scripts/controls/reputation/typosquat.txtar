@@ -1,0 +1,8 @@
+# A package one typo away from a popular name, with few downloads, gives a
+# typosquat finding. The popular package itself gives none.
+exec vet scan . --mode plain -o plain
+stdout 'high\ttyposquat\tpkg:npm/expresss@4.19.2'
+! stdout 'typosquat\tpkg:npm/left-pad'
+
+-- package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app"}, "node_modules/expresss": {"version": "4.19.2", "resolved": "https://registry.npmjs.org/expresss/-/expresss-4.19.2.tgz"}, "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}}}

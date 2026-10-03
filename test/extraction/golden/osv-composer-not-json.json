@@ -1,0 +1,6 @@
+{
+  "manifests": [],
+  "errors": [
+    "php/composerlock: composer.lock: could not extract: invalid character 'h' in literal true (expecting 'r')"
+  ]
+}

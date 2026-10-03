@@ -1,0 +1,19 @@
+# -o jsonl writes the header first and the trailer last, and record_count
+# counts the records.
+cd proj
+exec vet scan . --mode plain -o jsonl
+reportcheck stdout
+jsonq stdout 0.kind header
+jsonq stdout -1.kind trailer
+stdout '^\{"\$schema":"https://schemas.safedep.io/vet/report/v1/report-line.schema.json","kind":"manifest"'
+
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3","lodash": "4.17.21"}},
+    "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"},
+    "node_modules/lodash": {"version": "4.17.21", "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"}
+  }
+}

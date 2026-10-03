@@ -1,0 +1,16 @@
+{
+  "manifests": [
+    {
+      "extractor": "ruby/gemfilelock",
+      "kind": "lockfile",
+      "ecosystem": "rubygems",
+      "packages": [
+        "rubygems/hanami-controller@2.0.0.alpha1 :6",
+        "rubygems/hanami-utils@2.0.0.alpha1 :15",
+        "rubygems/concurrent-ruby@1.1.7 :22",
+        "rubygems/rack@2.2.3 :23",
+        "rubygems/transproc@1.1.1 :24"
+      ]
+    }
+  ]
+}

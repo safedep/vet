@@ -1,0 +1,21 @@
+{
+  "manifests": [
+    {
+      "extractor": "ruby/gemfilelock",
+      "kind": "lockfile",
+      "ecosystem": "rubygems",
+      "packages": [
+        "rubygems/ast@2.4.2 :4",
+        "rubygems/parallel@1.21.0 :5",
+        "rubygems/parser@3.1.1.0 :6",
+        "rubygems/rainbow@3.1.1 :8",
+        "rubygems/regexp_parser@2.2.1 :9",
+        "rubygems/rexml@3.2.5 :10",
+        "rubygems/rubocop@1.25.1 :11",
+        "rubygems/rubocop-ast@1.16.0 :20",
+        "rubygems/ruby-progressbar@1.11.0 :22",
+        "rubygems/unicode-display_width@2.1.0 :23"
+      ]
+    }
+  ]
+}

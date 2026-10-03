@@ -1,0 +1,25 @@
+# Under an agent, vet scan writes the report as JSON on stdout with no
+# ANSI codes, and agent lines on stderr.
+cd proj
+env CLAUDECODE=1
+exec vet scan .
+reportcheck stdout
+! stdout '\x1b\['
+stderr '^INFO: scan started'
+! stderr '\x1b\['
+
+env CLAUDECODE=
+env AI_AGENT=1
+exec vet scan .
+reportcheck stdout
+
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3","lodash": "4.17.21"}},
+    "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"},
+    "node_modules/lodash": {"version": "4.17.21", "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"}
+  }
+}

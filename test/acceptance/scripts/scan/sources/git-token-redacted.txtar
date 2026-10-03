@@ -1,0 +1,6 @@
+# A token in the URL of a git target never prints: not in the error of a
+# clone that fails, and not on stdout.
+! exec vet scan https://x-access-token:s3cr3t-t0ken@127.0.0.1:1/org/repo.git --mode plain -o json
+! stderr 's3cr3t-t0ken'
+! stdout 's3cr3t-t0ken'
+stderr '127.0.0.1:1/org/repo.git'

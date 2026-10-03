@@ -1,0 +1,13 @@
+{
+  "manifests": [
+    {
+      "extractor": "java/pomxml",
+      "kind": "manifest",
+      "ecosystem": "maven",
+      "packages": [
+        "maven/org.mine:mypackage@1.0.0 [+] :18",
+        "maven/org.mine:my.package@2.3.4 [+] :24"
+      ]
+    }
+  ]
+}

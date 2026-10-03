@@ -1,0 +1,7 @@
+## vet scan
+
+| Packages | Findings | Critical | High | Suppressed | Gate |
+| ---: | ---: | ---: | ---: | ---: | --- |
+| 2 | 0 | 0 | 0 | 0 | NONE |
+
+No findings. 2 packages checked.

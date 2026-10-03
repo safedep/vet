@@ -1,0 +1,16 @@
+{
+  "lockfileVersion": 0,
+  "workspaces": {
+    "": {
+      "name": "bun-lockfile",
+      "dependencies": {
+        "wrappy": "^1.0.0",
+      },
+    },
+  },
+  "packages": {
+    "wrappy-bad1": [123, "", {}, "sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ=="],
+    "wrappy": ["wrappy@1.0.2", "", {}, "sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ=="],
+    "wrappy-bad2": [{}, "", {}, "sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ=="],
+  }
+}

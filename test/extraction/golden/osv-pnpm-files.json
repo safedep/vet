@@ -1,0 +1,16 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/pnpmlock",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/my-file-package@0.0.0 :10",
+        "npm/a-local-package@1.0.0 :16",
+        "npm/a-nested-local-package@1.0.0 :22",
+        "npm/one-up@1.0.0 :28",
+        "npm/one-up-with-peer@1.0.0 :34"
+      ]
+    }
+  ]
+}

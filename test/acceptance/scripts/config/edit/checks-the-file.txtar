@@ -1,0 +1,31 @@
+# vet config edit runs $EDITOR with its arguments, then checks the file. A
+# valid edit exits 0. An unknown key exits 2. With --no-input vet does not
+# open an editor.
+[!unix] skip 'the fake editor is a shell script'
+chmod 755 good.sh
+chmod 755 bad.sh
+
+env EDITOR=$WORK/good.sh' --wait'
+exec vet --config $WORK/config.yml config edit --mode plain
+stderr 'is valid'
+grep '# keep me' $WORK/config.yml
+grep 'concurrency: 2' $WORK/config.yml
+grep '^--wait$' $WORK/args
+
+env EDITOR=$WORK/bad.sh
+execexit 2 vet --config $WORK/config.yml config edit --mode plain
+stderr 'config_unknown_key'
+
+execexit 2 vet --config $WORK/other.yml config edit --no-input --mode plain
+stderr 'needs a terminal'
+! exists $WORK/other.yml
+
+-- config.yml --
+# keep me
+-- good.sh --
+#!/bin/sh
+printf '%s\n' "$1" > "$(dirname "$0")/args"
+printf 'scan:\n  concurrency: 2\n' >> "$2"
+-- bad.sh --
+#!/bin/sh
+printf 'polcy:\n  fail_on: high\n' >> "$1"

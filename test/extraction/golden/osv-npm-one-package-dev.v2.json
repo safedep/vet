@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/packagelockjson",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/wrappy@1.0.2 [+d] :10"
+      ]
+    }
+  ]
+}

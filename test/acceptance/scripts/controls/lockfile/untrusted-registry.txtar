@@ -1,0 +1,22 @@
+# A lockfile entry that resolves from a registry outside the trusted list
+# gives a finding. plugins.lockfile.options.trusted_registries trusts it.
+cd proj
+exec vet scan . --mode plain -o plain
+stdout 'untrusted-registry\tpackage-lock.json'
+exec vet --config $WORK/config.yml scan . --mode plain -o plain --fresh
+! stdout 'untrusted-registry'
+
+-- config.yml --
+plugins:
+  lockfile:
+    options:
+      trusted_registries: ["https://npm.corp.example"]
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"left-pad": "1.3.0"}},
+    "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://npm.corp.example/left-pad/-/left-pad-1.3.0.tgz"}
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "manifests": [],
+  "errors": [
+    "conan.lock: unknown PURL type \"conan\"",
+    "conan.lock: unknown PURL type \"conan\""
+  ]
+}

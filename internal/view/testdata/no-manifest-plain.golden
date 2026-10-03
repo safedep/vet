@@ -1,0 +1,6 @@
+[INFO] Read the manifests: 3 files in 1.5s
+[INFO] Checked 5 packages in 1.5s
+[INFO] Evaluated the controls: 1 manifest in 1.5s
+[INFO] Report
+[WARN] vet found no manifest in /test
+> vet reads lockfiles (package-lock.json, go.mod and more), SBOMs and workflows.

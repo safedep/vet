@@ -1,0 +1,16 @@
+# The table of vet endpoint audit counts the tools and lists each one, by
+# kind. The first step names the machine, not the manifests.
+exec vet endpoint audit --mode plain -o table
+stderr 'Read the tools on this machine'
+! stderr 'Read the manifests'
+stdout 'Tools: .*1 MCP server, 1 agent skill'
+stdout 'MCP server .*db'
+stdout 'agent skill .*review'
+
+-- home/.cursor/mcp.json --
+{"mcpServers": {"db": {"command": "node", "args": ["db.js"]}}}
+-- home/.claude/skills/review/SKILL.md --
+---
+name: review
+description: Reviews code.
+---

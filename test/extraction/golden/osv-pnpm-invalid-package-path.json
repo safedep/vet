@@ -1,0 +1,25 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/pnpmlock",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/@babel/helper-string-parser@7.19.4 [+] :21",
+        "npm/@babel/helper-validator-identifier@7.19.1 [+] :25",
+        "npm/@babel/parser@7.20.7 [+] :29",
+        "npm/@types/jsdom@20.0.1 [+d] :36",
+        "npm/stream@0.0.2 [+] :54",
+        "npm/typescript@4.7.4 :60",
+        "npm/pinia@2.0.28 [+] :65",
+        "npm/http-proxy-agent@5.0.0 [+d] :83"
+      ],
+      "edges": [
+        "npm/pinia@2.0.28 -> npm/typescript@4.7.4"
+      ]
+    }
+  ],
+  "errors": [
+    "javascript/pnpmlock: pnpm-lock.yaml: invalid dependency path: axios@1.2.5"
+  ]
+}

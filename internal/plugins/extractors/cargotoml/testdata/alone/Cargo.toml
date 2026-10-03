@@ -1,0 +1,18 @@
+[package]
+name = "my-crate"
+version = "0.3.0"
+
+[dependencies]
+serde = { version = "=1.0.195", features = ["derive"] }
+regex = "1.10"
+local-helper = { path = "../helper", version = "0.1.0" }
+shared = { workspace = true }
+from-git = { git = "https://github.com/example/from-git" }
+anything = "*"
+renamed = { package = "futures-util", version = "0.3" }
+
+[dev-dependencies]
+tempfile = "~3.8"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = ">=0.52, <0.60" }

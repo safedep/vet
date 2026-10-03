@@ -3,46 +3,16 @@ on:
   pull_request:
     branches:
       - main
+      - v2
   push:
     branches:
       - main
+      - v2
 
 permissions:
   contents: read
 
 jobs:
-  check-generated-code:
-    timeout-minutes: 10
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Source
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Set up Go
-        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
-        with:
-          go-version-file: go.mod
-
-      - name: Run code generation
-        run: make generate
-
-      - name: Check for uncommitted changes in generated code
-        run: |
-          if [[ -n $(git status --porcelain -- ent/ pkg/analyzer/filterv2/) ]]; then
-            echo "ERROR: Generated code is out of sync!"
-            echo "Please run 'make generate' and commit the changes."
-            echo ""
-            echo "Files with changes:"
-            git status --porcelain -- ent/ pkg/analyzer/filterv2/
-            echo ""
-            echo "Diff:"
-            git diff -- ent/ pkg/analyzer/filterv2/
-            exit 1
-          fi
-
-      - name: Validate xBOM signatures
-        run: go run . code validate
-
   run-test:
     timeout-minutes: 15
     runs-on: ubuntu-latest
@@ -58,10 +28,17 @@ jobs:
       - name: Install gotestsum
         run: go install gotest.tools/gotestsum@latest
 
+      - name: Vet
+        run: |
+          go vet ./...
+          for goos in darwin windows; do
+            GOOS=$goos go vet ./...
+          done
+
       - name: Build and Test
         run: |
           go mod tidy
-          go build
+          go build ./...
           gotestsum --format github-actions -- -coverprofile=coverage.txt ./...
         env:
           VET_E2E: true
@@ -76,9 +53,13 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-  run-e2e:
+  acceptance:
     timeout-minutes: 30
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Source
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -87,138 +68,7 @@ jobs:
         uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
         with:
           go-version-file: go.mod
-          check-latest: true
 
-      - name: Build vet
-        run: |
-          go mod tidy
-          go build
-
-      - name: Run E2E Scenarios
-        run: |
-          ./test/scenarios/all.sh
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Run E2E Scenarios with Insights V2
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-        run: |
-          ./test/scenarios/all.sh
-        env:
-          E2E_INSIGHTS_V2: true
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # This will not be available when there is a PR from a forked repository
-          VET_API_KEY: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
-          VET_CONTROL_TOWER_TENANT_ID: ${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }}
-          # Free tier keys, used in e2e test scenerio 15
-          VET_API_KEY_FREE: ${{ secrets.SAFEDEP_CLOUD_API_KEY_FREE }}
-          VET_CONTROL_TOWER_TENANT_ID_FREE: ${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN_FREE }}
-
-  build-container-test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Checkout Source
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Setup QEMU
-        uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
-
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
-
-      - name: Build Multi-Platform Container Image (verification only)
-        run: |
-          docker buildx build --platform linux/amd64,linux/arm64 \
-          -t build-container-test:latest .
-
-      - name: Build and Load Native Platform Image for Testing
-        run: |
-          docker buildx build --platform linux/amd64 --load \
-          -t build-container-test:latest .
-
-      - name: Test Container Image
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-        run: |
-          docker run --rm \
-            -e VET_API_KEY=${{ secrets.SAFEDEP_CLOUD_API_KEY }} \
-            -e VET_CONTROL_TOWER_TENANT_ID=${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }} \
-            build-container-test:latest \
-            auth verify
-
-  # Exercises the full nx npm pipeline as a release gate:
-  # goreleaser snapshot (all platforms) -> sync-binaries -> tsdown wrapper ->
-  # smoke (vet version) -> pnpm publish --dry-run. Needs the cross-compile
-  # toolchain because vet is CGO; osxcross is cached across runs.
-  release-preflight:
-    timeout-minutes: 60
-    runs-on: ubuntu-latest
-    env:
-      OSX_CROSS_TOOLCHAIN_REPOSITORY: https://github.com/abhisek/osxcross
-      OSX_CROSS_MACOS_SDK_VERSION: "12.3"
-    steps:
-      - name: Checkout Source
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 0
-
-      - name: Set up Go
-        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
-        with:
-          go-version-file: go.mod
-          cache: true
-
-      - name: Enable corepack
-        run: corepack enable
-
-      - name: Set up Node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
-        with:
-          node-version: "24"
-          cache: "pnpm"
-
-      - name: Install OSX Cross Compiler Build Tools
-        run: |
-          sudo sed -i 's/^Types: deb$/Types: deb\nArchitectures: amd64/' /etc/apt/sources.list.d/ubuntu.sources
-          sudo apt-get update -y
-          sudo apt-get install -y -qq --no-install-recommends \
-            build-essential clang gcc g++ gcc-mingw-w64 \
-            zlib1g-dev libmpc-dev libmpfr-dev libgmp-dev \
-            cmake libxml2-dev libssl-dev xz-utils \
-            gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-
-      - name: Setup OSX Cross Compiler Tool Chain Environment
-        run: echo "OSXCROSS_DIR=$(dirname $GITHUB_WORKSPACE)/osxcross" >> $GITHUB_ENV
-
-      - name: Clone OSX Cross Compiler Tool Chain
-        run: git clone $OSX_CROSS_TOOLCHAIN_REPOSITORY $OSXCROSS_DIR
-
-      - name: Cache OSX Cross Compiler Tool Chain
-        id: osxcross-cache
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        with:
-          # Cache the whole target dir (bin + SDK + lib). Caching only target/bin
-          # restores the clang wrappers but not target/SDK, and the build step
-          # below is skipped on a cache hit, so the macOS SDK goes missing and the
-          # darwin CGO build fails with "cannot find macOS SDK".
-          key: ${{ runner.os }}-osxcross-${{ env.OSX_CROSS_MACOS_SDK_VERSION }}-target
-          path: ${{ env.OSXCROSS_DIR }}/target
-
-      - name: Build OSX Cross Compiler Tool Chain
-        if: steps.osxcross-cache.outputs.cache-hit != 'true'
-        run: cd $OSXCROSS_DIR && SDK_VERSION=$OSX_CROSS_MACOS_SDK_VERSION UNATTENDED=yes ./build.sh
-
-      - name: Add OSX Cross Compiler Tool Chain to Path
-        run: echo "$OSXCROSS_DIR/target/bin" >> $GITHUB_PATH
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install GoReleaser
-        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
-        with:
-          install-only: true
-          version: "~> v2"
-
-      - name: Release preflight
-        run: pnpm nx run vet:release-preflight
+      # The hermetic acceptance run gates the change. It calls no network.
+      - name: Acceptance (hermetic)
+        run: go test -tags acceptance -count=1 ./test/acceptance/ -run TestAcceptance

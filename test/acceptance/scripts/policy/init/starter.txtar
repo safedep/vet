@@ -1,0 +1,24 @@
+# vet policy init writes a starter policy that validates, and a scan
+# applies it.
+exec vet policy init vet-policy.yml --mode plain
+exists vet-policy.yml
+exec vet policy validate vet-policy.yml --mode plain -o json
+jsonq stdout rules 4
+execexit 2 vet policy init vet-policy.yml --mode plain
+stderr 'exists'
+
+exec vet policy init --mode plain
+stderr 'Wrote .*policies.default\.yml'
+execexit 2 vet policy init --mode plain
+
+cd proj
+execexit 1 vet scan . --mode plain -o plain --policy $WORK/vet-policy.yml
+stderr 'policy rule no-malware'
+
+exec vet policy control list --mode plain -o json
+stdout '"id": "dependency-cooldown"'
+exec vet policy schema get
+stdout '"days_since_publish"'
+
+-- proj/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3"}}, "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"}}}

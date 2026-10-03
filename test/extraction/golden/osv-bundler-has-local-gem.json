@@ -1,0 +1,41 @@
+{
+  "manifests": [
+    {
+      "extractor": "ruby/gemfilelock",
+      "kind": "lockfile",
+      "ecosystem": "rubygems",
+      "packages": [
+        "rubygems/backbone-on-rails@1.2.0.0 :4",
+        "rubygems/actionpack@7.0.2.2 :14",
+        "rubygems/actionview@7.0.2.2 :21",
+        "rubygems/activesupport@7.0.2.2 :27",
+        "rubygems/builder@3.2.4 :32",
+        "rubygems/coffee-script@2.4.1 :33",
+        "rubygems/coffee-script-source@1.12.2 :36",
+        "rubygems/concurrent-ruby@1.1.9 :37",
+        "rubygems/crass@1.0.6 :38",
+        "rubygems/eco@1.0.0 :39",
+        "rubygems/eco-source@1.1.0.rc.1 :43",
+        "rubygems/ejs@1.1.1 :44",
+        "rubygems/erubi@1.10.0 :45",
+        "rubygems/execjs@2.8.1 :46",
+        "rubygems/i18n@1.10.0 :47",
+        "rubygems/jquery-rails@4.4.0 :49",
+        "rubygems/loofah@2.14.0 :53",
+        "rubygems/method_source@1.0.0 :56",
+        "rubygems/minitest@5.15.0 :57",
+        "rubygems/nokogiri@1.13.3 :58",
+        "rubygems/racc@1.6.0 :60",
+        "rubygems/rack@2.2.3 :61",
+        "rubygems/rack-test@1.1.0 :62",
+        "rubygems/rails-dom-testing@2.0.3 :64",
+        "rubygems/rails-html-sanitizer@1.4.2 :67",
+        "rubygems/railties@7.0.2.2 :69",
+        "rubygems/rake@13.0.6 :76",
+        "rubygems/thor@1.2.1 :77",
+        "rubygems/tzinfo@2.0.4 :78",
+        "rubygems/zeitwerk@2.5.4 :80"
+      ]
+    }
+  ]
+}

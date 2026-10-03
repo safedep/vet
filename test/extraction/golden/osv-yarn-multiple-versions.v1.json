@@ -1,0 +1,15 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/yarnlock",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/define-properties@1.1.3 :5",
+        "npm/define-property@0.2.5 :12",
+        "npm/define-property@1.0.0 :19",
+        "npm/define-property@2.0.2 :26"
+      ]
+    }
+  ]
+}

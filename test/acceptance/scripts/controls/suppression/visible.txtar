@@ -1,0 +1,22 @@
+# A suppressed finding stays in the report with its suppression, and the
+# gate ignores it. The fixture left-pad has a vulnerability and is deprecated.
+cd proj
+exec vet scan . --mode plain -o json --fail-on high --policy $WORK/policy.yml
+stdout '"suppression":\{"reason":"Reviewed."'
+stdout '"suppressed":2'
+stderr 'Gate passed'
+
+-- policy.yml --
+version: 2
+suppressions:
+  - purl: pkg:npm/left-pad
+    reason: Reviewed.
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"left-pad": "1.3.0"}},
+    "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}
+  }
+}

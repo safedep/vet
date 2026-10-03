@@ -1,0 +1,7 @@
+{
+  "packageVersion": {
+    "package": {"ecosystem": "ECOSYSTEM_NPM", "name": "lodash"},
+    "version": "4.17.21"
+  },
+  "insight": {}
+}

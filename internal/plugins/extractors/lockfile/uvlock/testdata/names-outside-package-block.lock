@@ -1,0 +1,19 @@
+version = 1
+
+[[package]]
+other-field = "value"
+name = "first-pkg"
+version = "1.0.0"
+description = """
+This is a multiline description.
+name = "second-pkg"
+"""
+
+[package.tool.uv]
+name = "first-pkg-tool"
+
+[[package]]
+# name = "fake-pkg"
+name_other = "not-this"
+name = "second-pkg"
+version = "2.0.0"

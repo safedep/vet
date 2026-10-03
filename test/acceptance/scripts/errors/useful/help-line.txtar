@@ -1,0 +1,29 @@
+# A usage error prints a usefulerror with a code and a help line, and exits 2.
+# The help line names the help of the command that failed. An unknown
+# subcommand fails as an unknown command does. An argument error names the
+# arguments of the command.
+execexit 2 vet nosuchcommand --mode plain
+stderr 'usage_invalid'
+stderr 'vet --help'
+! stdout .
+
+execexit 2 vet scna --mode plain
+stderr 'Did you mean vet scan\?'
+! stderr 'Did you mean this'
+
+execexit 2 vet report shwo --mode plain
+stderr 'unknown command "shwo" for "vet report"'
+stderr 'Did you mean vet report show\?'
+stderr 'vet report --help'
+
+execexit 2 vet version --nosuchflag --mode plain
+stderr 'usage_invalid'
+stderr 'vet version --help'
+
+execexit 2 vet report finding show --mode plain
+stderr 'vet report finding show needs 1 argument: ID'
+! stderr 'arg\(s\)'
+
+execexit 2 vet version -v -q
+stderr 'usage_invalid'
+stderr 'Use -v'

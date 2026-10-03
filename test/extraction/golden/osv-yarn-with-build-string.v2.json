@@ -1,0 +1,15 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/yarnlock",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/tslib@2.6.2 [+] :15"
+      ]
+    }
+  ],
+  "errors": [
+    "yarn.lock: unknown PURL type \"git\""
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "java/gradlelockfile",
+      "kind": "lockfile",
+      "ecosystem": "maven",
+      "packages": [
+        "maven/org.springframework.security:spring-security-crypto@5.7.3 :4"
+      ]
+    }
+  ]
+}

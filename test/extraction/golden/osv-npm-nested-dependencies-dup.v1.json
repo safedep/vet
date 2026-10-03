@@ -1,0 +1,50 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/packagelockjson",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/@vue/component-compiler-utils@2.6.0 :5",
+        "npm/supports-color@6.1.0 :21",
+        "npm/autoprefixer@9.5.1 :31",
+        "npm/babel-code-frame@6.26.0 :54",
+        "npm/supports-color@2.0.0 :64",
+        "npm/css-declaration-sorter@4.0.1 :71",
+        "npm/cssnano@4.1.10 :90",
+        "npm/cssnano-preset-default@4.0.7 :111",
+        "npm/cssnano-util-raw-cache@4.0.1 :158",
+        "npm/friendly-errors-webpack-plugin@1.7.0 :176",
+        "npm/postcss-calc@7.0.1 :193",
+        "npm/postcss-colormin@4.0.3 :214",
+        "npm/postcss-convert-values@4.0.1 :236",
+        "npm/postcss-discard-comments@4.0.2 :255",
+        "npm/postcss-discard-duplicates@4.0.2 :273",
+        "npm/postcss-discard-empty@4.0.1 :291",
+        "npm/postcss-discard-overridden@4.0.1 :309",
+        "npm/postcss-loader@3.0.0 :327",
+        "npm/postcss-merge-longhand@4.0.11 :348",
+        "npm/postcss-merge-rules@4.0.3 :369",
+        "npm/postcss-minify-font-values@4.0.2 :392",
+        "npm/postcss-minify-gradients@4.0.2 :411",
+        "npm/postcss-minify-params@4.0.2 :432",
+        "npm/postcss-minify-selectors@4.0.2 :455",
+        "npm/postcss-normalize-charset@4.0.1 :476",
+        "npm/postcss-normalize-display-values@4.0.2 :494",
+        "npm/postcss-normalize-positions@4.0.2 :514",
+        "npm/postcss-normalize-repeat-style@4.0.2 :535",
+        "npm/postcss-normalize-string@4.0.2 :556",
+        "npm/postcss-normalize-timing-functions@4.0.2 :576",
+        "npm/postcss-normalize-unicode@4.0.1 :596",
+        "npm/postcss-normalize-url@4.0.1 :616",
+        "npm/postcss-normalize-whitespace@4.0.2 :637",
+        "npm/postcss-ordered-values@4.1.2 :656",
+        "npm/postcss-reduce-initial@4.0.3 :676",
+        "npm/postcss-reduce-transforms@4.0.2 :697",
+        "npm/postcss-svgo@4.0.2 :718",
+        "npm/postcss-unique-selectors@4.0.1 :739",
+        "npm/supports-color@5.5.0 :759"
+      ]
+    }
+  ]
+}

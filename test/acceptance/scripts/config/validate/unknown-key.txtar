@@ -1,0 +1,18 @@
+# vet config validate exits 2 on an unknown key. A scan only warns.
+execexit 2 vet config validate $WORK/config.yml --mode plain
+stderr 'config_unknown_key'
+stderr 'scan.exlude: unknown key'
+stderr 'Did you mean scan.exclude\?'
+
+cd proj
+exec vet --config $WORK/config.yml scan . --mode plain -o plain
+stderr '\[WARN\].*unknown key scan.exlude'
+
+exec vet config schema get
+stdout '"dependency-cooldown"'
+
+-- config.yml --
+scan:
+  exlude: [vendor]
+-- proj/requirements.txt --
+requests==2.31.0

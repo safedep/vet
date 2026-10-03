@@ -1,0 +1,29 @@
+{
+  "packageVersion": {
+    "package": {"ecosystem": "ECOSYSTEM_NPM", "name": "left-pad"},
+    "version": "1.3.0"
+  },
+  "insight": {
+    "vulnerabilities": [
+      {
+        "id": {"type": "VULNERABILITY_IDENTIFIER_TYPE_OSV", "value": "GHSA-stub-0001"},
+        "summary": "Stub vulnerability for tests",
+        "aliases": [{"type": "VULNERABILITY_IDENTIFIER_TYPE_CVE", "value": "CVE-2026-0001"}],
+        "severities": [{"type": "TYPE_CVSS_V3", "score": "7.5", "risk": "RISK_HIGH"}]
+      }
+    ],
+    "licenses": {"licenses": [{"licenseId": "WTFPL"}]},
+    "packagePublishedAt": "2018-04-09T00:00:00Z",
+    "deprecated": true,
+    "downloadCount": "1000",
+    "projectInsights": [
+      {
+        "project": {"name": "stevemao/left-pad", "url": "https://github.com/stevemao/left-pad"},
+        "scorecard": {"score": 3.5, "checks": [{"name": "Maintained", "score": 0}]}
+      }
+    ],
+    "availableVersions": [
+      {"version": "1.3.0", "defaultVersion": true}
+    ]
+  }
+}

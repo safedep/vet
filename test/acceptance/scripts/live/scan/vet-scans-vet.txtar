@@ -1,0 +1,7 @@
+# A scan of the go.mod of vet completes against production with exit 0.
+[!live] skip 'set ACCEPTANCE_LIVE=1 to call production'
+mkdir proj
+cp $VET_SRC/go.mod proj/go.mod
+exec vet scan proj --mode plain -o json
+reportcheck stdout
+jsonq stdout trailer.summary.manifests 1

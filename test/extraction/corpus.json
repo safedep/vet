@@ -1,0 +1,1222 @@
+[
+ {
+  "id": "osv-bundler-has-git-gem",
+  "group": "bundler",
+  "file": "Gemfile.lock"
+ },
+ {
+  "id": "osv-bundler-has-local-gem",
+  "group": "bundler",
+  "file": "Gemfile.lock"
+ },
+ {
+  "id": "osv-bundler-multiple-gems",
+  "group": "bundler",
+  "file": "Gemfile.lock"
+ },
+ {
+  "id": "osv-bundler-no-gem-section",
+  "group": "bundler",
+  "file": "Gemfile.lock"
+ },
+ {
+  "id": "osv-bundler-no-gems",
+  "group": "bundler",
+  "file": "Gemfile.lock"
+ },
+ {
+  "id": "osv-bundler-no-spec-section",
+  "group": "bundler",
+  "file": "Gemfile.lock"
+ },
+ {
+  "id": "osv-bundler-one-gem",
+  "group": "bundler",
+  "file": "Gemfile.lock"
+ },
+ {
+  "id": "osv-bundler-rails",
+  "group": "bundler",
+  "file": "Gemfile.lock"
+ },
+ {
+  "id": "osv-bundler-rubocop",
+  "group": "bundler",
+  "file": "Gemfile.lock"
+ },
+ {
+  "id": "osv-bundler-some-gems",
+  "group": "bundler",
+  "file": "Gemfile.lock"
+ },
+ {
+  "id": "osv-cargo-empty",
+  "group": "cargo",
+  "file": "Cargo.lock"
+ },
+ {
+  "id": "osv-cargo-not-toml",
+  "group": "cargo",
+  "file": "Cargo.lock"
+ },
+ {
+  "id": "osv-cargo-one-package",
+  "group": "cargo",
+  "file": "Cargo.lock"
+ },
+ {
+  "id": "osv-cargo-package-with-build-string",
+  "group": "cargo",
+  "file": "Cargo.lock"
+ },
+ {
+  "id": "osv-cargo-two-packages-with-local",
+  "group": "cargo",
+  "file": "Cargo.lock"
+ },
+ {
+  "id": "osv-cargo-two-packages",
+  "group": "cargo",
+  "file": "Cargo.lock"
+ },
+ {
+  "id": "osv-composer-empty",
+  "group": "composer",
+  "file": "composer.lock"
+ },
+ {
+  "id": "osv-composer-not-json",
+  "group": "composer",
+  "file": "composer.lock"
+ },
+ {
+  "id": "osv-composer-one-package-dev",
+  "group": "composer",
+  "file": "composer.lock"
+ },
+ {
+  "id": "osv-composer-one-package",
+  "group": "composer",
+  "file": "composer.lock"
+ },
+ {
+  "id": "osv-composer-two-packages-alt",
+  "group": "composer",
+  "file": "composer.lock"
+ },
+ {
+  "id": "osv-composer-two-packages",
+  "group": "composer",
+  "file": "composer.lock"
+ },
+ {
+  "id": "osv-conan-empty.v1",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-empty.v1.revisions",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-empty.v2",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-nested-dependencies.v1",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-nested-dependencies.v1.revisions",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-nested-dependencies.v2",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-no-name.v1",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-no-name.v1.revisions",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-no-name.v2",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-not-json",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-old-format-0.0",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-old-format-0.1",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-old-format-0.2",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-old-format-0.3",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-one-package-dev.v1",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-one-package-dev.v1.revisions",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-one-package-dev.v2",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-one-package.v1",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-one-package.v1.revisions",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-one-package.v2",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-two-packages.v1",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-two-packages.v1.revisions",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-conan-two-packages.v2",
+  "group": "conan",
+  "file": "conan.lock"
+ },
+ {
+  "id": "osv-go-empty",
+  "group": "go",
+  "file": "go.mod"
+ },
+ {
+  "id": "osv-go-indirect-packages",
+  "group": "go",
+  "file": "go.mod"
+ },
+ {
+  "id": "osv-go-not-go-mod",
+  "group": "go",
+  "file": "go.mod"
+ },
+ {
+  "id": "osv-go-one-package",
+  "group": "go",
+  "file": "go.mod"
+ },
+ {
+  "id": "osv-go-replace-different",
+  "group": "go",
+  "file": "go.mod"
+ },
+ {
+  "id": "osv-go-replace-local",
+  "group": "go",
+  "file": "go.mod"
+ },
+ {
+  "id": "osv-go-replace-mixed",
+  "group": "go",
+  "file": "go.mod"
+ },
+ {
+  "id": "osv-go-replace-no-version",
+  "group": "go",
+  "file": "go.mod"
+ },
+ {
+  "id": "osv-go-replace-not-required",
+  "group": "go",
+  "file": "go.mod"
+ },
+ {
+  "id": "osv-go-replace-one",
+  "group": "go",
+  "file": "go.mod"
+ },
+ {
+  "id": "osv-go-two-packages",
+  "group": "go",
+  "file": "go.mod"
+ },
+ {
+  "id": "osv-gradle-5-pkg",
+  "group": "gradle",
+  "file": "gradle.lockfile"
+ },
+ {
+  "id": "osv-gradle-one-pkg",
+  "group": "gradle",
+  "file": "gradle.lockfile"
+ },
+ {
+  "id": "osv-gradle-only-comments",
+  "group": "gradle",
+  "file": "gradle.lockfile"
+ },
+ {
+  "id": "osv-gradle-only-empty",
+  "group": "gradle",
+  "file": "gradle.lockfile"
+ },
+ {
+  "id": "osv-gradle-with-bad-pkg",
+  "group": "gradle",
+  "file": "gradle.lockfile"
+ },
+ {
+  "id": "osv-maven-empty",
+  "group": "maven",
+  "file": "pom.xml"
+ },
+ {
+  "id": "osv-maven-interpolation",
+  "group": "maven",
+  "file": "pom.xml"
+ },
+ {
+  "id": "osv-maven-invalid-syntax",
+  "group": "maven",
+  "file": "pom.xml"
+ },
+ {
+  "id": "osv-maven-not-pom",
+  "group": "maven",
+  "file": "pom.xml"
+ },
+ {
+  "id": "osv-maven-one-package",
+  "group": "maven",
+  "file": "pom.xml"
+ },
+ {
+  "id": "osv-maven-two-packages",
+  "group": "maven",
+  "file": "pom.xml"
+ },
+ {
+  "id": "osv-maven-with-dependency-management",
+  "group": "maven",
+  "file": "pom.xml"
+ },
+ {
+  "id": "osv-maven-with-scope",
+  "group": "maven",
+  "file": "pom.xml"
+ },
+ {
+  "id": "osv-mix-empty",
+  "group": "mix",
+  "file": "mix.lock"
+ },
+ {
+  "id": "osv-mix-git",
+  "group": "mix",
+  "file": "mix.lock"
+ },
+ {
+  "id": "osv-mix-many",
+  "group": "mix",
+  "file": "mix.lock"
+ },
+ {
+  "id": "osv-mix-one-package",
+  "group": "mix",
+  "file": "mix.lock"
+ },
+ {
+  "id": "osv-mix-two-packages",
+  "group": "mix",
+  "file": "mix.lock"
+ },
+ {
+  "id": "osv-npm-alias.v1",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-alias.v2",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-commits.v1",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-commits.v2",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-empty.v1",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-empty.v2",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-files.v1",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-files.v2",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-nested-dependencies-dup.v1",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-nested-dependencies-dup.v2",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-nested-dependencies.v1",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-nested-dependencies.v2",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-not-json",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-one-package-dev.v1",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-one-package-dev.v2",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-one-package.v1",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-one-package.v2",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-optional-package.v1",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-optional-package.v2",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-same-package-different-groups.v1",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-same-package-different-groups.v2",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-scoped-packages.v1",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-scoped-packages.v2",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-two-packages.v1",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-npm-two-packages.v2",
+  "group": "npm",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "osv-nuget-empty.v0",
+  "group": "nuget",
+  "file": "packages.lock.json"
+ },
+ {
+  "id": "osv-nuget-empty.v1",
+  "group": "nuget",
+  "file": "packages.lock.json"
+ },
+ {
+  "id": "osv-nuget-not-json",
+  "group": "nuget",
+  "file": "packages.lock.json"
+ },
+ {
+  "id": "osv-nuget-one-framework-one-package.v1",
+  "group": "nuget",
+  "file": "packages.lock.json"
+ },
+ {
+  "id": "osv-nuget-one-framework-two-packages.v1",
+  "group": "nuget",
+  "file": "packages.lock.json"
+ },
+ {
+  "id": "osv-nuget-two-frameworks-different-packages.v1",
+  "group": "nuget",
+  "file": "packages.lock.json"
+ },
+ {
+  "id": "osv-nuget-two-frameworks-duplicate-packages.v1",
+  "group": "nuget",
+  "file": "packages.lock.json"
+ },
+ {
+  "id": "osv-nuget-two-frameworks-mixed-packages.v1",
+  "group": "nuget",
+  "file": "packages.lock.json"
+ },
+ {
+  "id": "osv-pdm-dev-dependency",
+  "group": "pdm",
+  "file": "pdm.lock"
+ },
+ {
+  "id": "osv-pdm-empty",
+  "group": "pdm",
+  "file": "pdm.lock"
+ },
+ {
+  "id": "osv-pdm-git-dependency",
+  "group": "pdm",
+  "file": "pdm.lock"
+ },
+ {
+  "id": "osv-pdm-not-toml",
+  "group": "pdm",
+  "file": "pdm.lock"
+ },
+ {
+  "id": "osv-pdm-optional-dependency",
+  "group": "pdm",
+  "file": "pdm.lock"
+ },
+ {
+  "id": "osv-pdm-single-package",
+  "group": "pdm",
+  "file": "pdm.lock"
+ },
+ {
+  "id": "osv-pdm-two-packages",
+  "group": "pdm",
+  "file": "pdm.lock"
+ },
+ {
+  "id": "osv-pip-cyclic-r-complex-1",
+  "group": "pip",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "osv-pip-cyclic-r-complex-2",
+  "group": "pip",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "osv-pip-cyclic-r-complex-3",
+  "group": "pip",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "osv-pip-cyclic-r-self",
+  "group": "pip",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "osv-pip-duplicate-r-base",
+  "group": "pip",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "osv-pip-duplicate-r-dev",
+  "group": "pip",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "osv-pip-duplicate-r-test",
+  "group": "pip",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "osv-pip-empty",
+  "group": "pip",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "osv-pip-file-format-example",
+  "group": "pip",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "osv-pip-line-continuation",
+  "group": "pip",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "osv-pip-multiple-packages-constrained",
+  "group": "pip",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "osv-pip-multiple-packages-mixed",
+  "group": "pip",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "osv-pip-non-normalized-names",
+  "group": "pip",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "osv-pip-one-package-constrained",
+  "group": "pip",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "osv-pip-one-package-unconstrained",
+  "group": "pip",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "osv-pip-only-comments",
+  "group": "pip",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "osv-pip-other-file",
+  "group": "pip",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "osv-pip-with-added-support",
+  "group": "pip",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "osv-pip-with-bad-r-option",
+  "group": "pip",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "osv-pip-with-multiple-r-options",
+  "group": "pip",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "osv-pip-with-per-requirement-options",
+  "group": "pip",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "osv-pipenv-empty",
+  "group": "pipenv",
+  "file": "Pipfile.lock"
+ },
+ {
+  "id": "osv-pipenv-multiple-packages",
+  "group": "pipenv",
+  "file": "Pipfile.lock"
+ },
+ {
+  "id": "osv-pipenv-no-version",
+  "group": "pipenv",
+  "file": "Pipfile.lock"
+ },
+ {
+  "id": "osv-pipenv-not-json",
+  "group": "pipenv",
+  "file": "Pipfile.lock"
+ },
+ {
+  "id": "osv-pipenv-one-package-dev",
+  "group": "pipenv",
+  "file": "Pipfile.lock"
+ },
+ {
+  "id": "osv-pipenv-one-package",
+  "group": "pipenv",
+  "file": "Pipfile.lock"
+ },
+ {
+  "id": "osv-pipenv-two-packages-alt",
+  "group": "pipenv",
+  "file": "Pipfile.lock"
+ },
+ {
+  "id": "osv-pipenv-two-packages",
+  "group": "pipenv",
+  "file": "Pipfile.lock"
+ },
+ {
+  "id": "osv-pnpm-commits.v9",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-commits",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-empty",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-exotic",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-files",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-invalid-package-path",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-mixed-groups.v53",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-mixed-groups.v54",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-mixed-groups.v6",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-mixed-groups.v9",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-multiple-packages",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-multiple-versions.v9",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-multiple-versions",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-no-packages.v9",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-no-packages",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-not-yaml",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-one-package-dev.v9",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-one-package-dev",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-one-package-v6-lockfile",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-one-package.v9",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-one-package",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-peer-dependencies-advanced.v9",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-peer-dependencies-advanced",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-peer-dependencies.v9",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-peer-dependencies",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-scoped-packages-v6-lockfile",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-scoped-packages.v9",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-scoped-packages",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-pnpm-tarball",
+  "group": "pnpm",
+  "file": "pnpm-lock.yaml"
+ },
+ {
+  "id": "osv-poetry-empty",
+  "group": "poetry",
+  "file": "poetry.lock"
+ },
+ {
+  "id": "osv-poetry-not-toml",
+  "group": "poetry",
+  "file": "poetry.lock"
+ },
+ {
+  "id": "osv-poetry-one-package-with-metadata",
+  "group": "poetry",
+  "file": "poetry.lock"
+ },
+ {
+  "id": "osv-poetry-one-package",
+  "group": "poetry",
+  "file": "poetry.lock"
+ },
+ {
+  "id": "osv-poetry-optional-package",
+  "group": "poetry",
+  "file": "poetry.lock"
+ },
+ {
+  "id": "osv-poetry-source-git",
+  "group": "poetry",
+  "file": "poetry.lock"
+ },
+ {
+  "id": "osv-poetry-source-legacy",
+  "group": "poetry",
+  "file": "poetry.lock"
+ },
+ {
+  "id": "osv-poetry-two-packages",
+  "group": "poetry",
+  "file": "poetry.lock"
+ },
+ {
+  "id": "osv-pub-empty",
+  "group": "pub",
+  "file": "pubspec.lock"
+ },
+ {
+  "id": "osv-pub-mixed-packages",
+  "group": "pub",
+  "file": "pubspec.lock"
+ },
+ {
+  "id": "osv-pub-no-packages",
+  "group": "pub",
+  "file": "pubspec.lock"
+ },
+ {
+  "id": "osv-pub-not-yaml",
+  "group": "pub",
+  "file": "pubspec.lock"
+ },
+ {
+  "id": "osv-pub-one-package-dev",
+  "group": "pub",
+  "file": "pubspec.lock"
+ },
+ {
+  "id": "osv-pub-one-package",
+  "group": "pub",
+  "file": "pubspec.lock"
+ },
+ {
+  "id": "osv-pub-source-git",
+  "group": "pub",
+  "file": "pubspec.lock"
+ },
+ {
+  "id": "osv-pub-source-path",
+  "group": "pub",
+  "file": "pubspec.lock"
+ },
+ {
+  "id": "osv-pub-source-sdk",
+  "group": "pub",
+  "file": "pubspec.lock"
+ },
+ {
+  "id": "osv-pub-two-packages",
+  "group": "pub",
+  "file": "pubspec.lock"
+ },
+ {
+  "id": "osv-renv-empty",
+  "group": "renv",
+  "file": "renv.lock"
+ },
+ {
+  "id": "osv-renv-not-json",
+  "group": "renv",
+  "file": "renv.lock"
+ },
+ {
+  "id": "osv-renv-one-package",
+  "group": "renv",
+  "file": "renv.lock"
+ },
+ {
+  "id": "osv-renv-two-packages",
+  "group": "renv",
+  "file": "renv.lock"
+ },
+ {
+  "id": "osv-renv-with-bioconductor",
+  "group": "renv",
+  "file": "renv.lock"
+ },
+ {
+  "id": "osv-renv-with-mixed-sources",
+  "group": "renv",
+  "file": "renv.lock"
+ },
+ {
+  "id": "osv-renv-without-repository",
+  "group": "renv",
+  "file": "renv.lock"
+ },
+ {
+  "id": "osv-yarn-commits.v1",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-commits.v2",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-empty.v1",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-empty.v2",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-files.v1",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-files.v2",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-metadata-only.v2",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-multiple-constraints.v1",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-multiple-versions.v1",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-multiple-versions.v2",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-one-package.v1",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-one-package.v2",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-scoped-packages.v1",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-scoped-packages.v2",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-two-packages.v1",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-two-packages.v2",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-with-aliases.v1",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-with-aliases.v2",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-with-build-string.v1",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-with-build-string.v2",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-with-prerelease.v1",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-with-prerelease.v2",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-with-quotes.v1",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "osv-yarn-with-quotes.v2",
+  "group": "yarn",
+  "file": "yarn.lock"
+ },
+ {
+  "id": "vet-parser_bom-dropwizard-cdx-example.json",
+  "group": "vet:bom-cyclonedx",
+  "file": "bom.cdx.json"
+ },
+ {
+  "id": "vet-parser_bom-juiceshop-cdx-example.json",
+  "group": "vet:bom-cyclonedx",
+  "file": "bom.cdx.json"
+ },
+ {
+  "id": "vet-parser_bom-maven.json",
+  "group": "vet:bom-cyclonedx",
+  "file": "bom.cdx.json"
+ },
+ {
+  "id": "vet-parser_bun.lock",
+  "group": "vet:bun.lock",
+  "file": "bun.lock"
+ },
+ {
+  "id": "vet-parser_gha_.github_workflows_ci.yml",
+  "group": "vet:github-actions",
+  "file": ".github/workflows/ci.yml"
+ },
+ {
+  "id": "vet-parser_janusgraph_oss_2dc3a123d9.json",
+  "group": "vet:bom-spdx",
+  "file": "sbom.spdx.json"
+ },
+ {
+  "id": "vet-parser_java_child_pom.xml",
+  "group": "vet:pom.xml",
+  "file": "pom.xml"
+ },
+ {
+  "id": "vet-parser_java_pom.xml",
+  "group": "vet:pom.xml",
+  "file": "pom.xml"
+ },
+ {
+  "id": "vet-parser_osv-scanner_google_3cab6.json",
+  "group": "vet:bom-spdx",
+  "file": "sbom.spdx.json"
+ },
+ {
+  "id": "vet-parser_package-json-license-array.json",
+  "group": "vet:package.json",
+  "file": "package.json"
+ },
+ {
+  "id": "vet-parser_package-json-with-only-dev-dependencies.json",
+  "group": "vet:package.json",
+  "file": "package.json"
+ },
+ {
+  "id": "vet-parser_package-lock-graph.json",
+  "group": "vet:package-lock.json",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "vet-parser_package-lock-license-object.json",
+  "group": "vet:package-lock.json",
+  "file": "package-lock.json"
+ },
+ {
+  "id": "vet-parser_package.json",
+  "group": "vet:package.json",
+  "file": "package.json"
+ },
+ {
+  "id": "vet-parser_requests_psf_2ee5b0b01.json",
+  "group": "vet:bom-spdx",
+  "file": "sbom.spdx.json"
+ },
+ {
+  "id": "vet-parser_rust_Cargo.lock",
+  "group": "vet:Cargo.lock",
+  "file": "Cargo.lock"
+ },
+ {
+  "id": "vet-parser_terraform.lock.hcl",
+  "group": "vet:.terraform.lock.hcl",
+  "file": ".terraform.lock.hcl"
+ },
+ {
+  "id": "vet-parser_uv.lock",
+  "group": "vet:uv.lock",
+  "file": "uv.lock"
+ },
+ {
+  "id": "vet-readers_duplicate-packages_requirements.txt",
+  "group": "vet:requirements.txt",
+  "file": "requirements.txt"
+ },
+ {
+  "id": "vet-readers_java-multi_gradle.lockfile",
+  "group": "vet:gradle.lockfile",
+  "file": "gradle.lockfile"
+ },
+ {
+  "id": "vet-readers_java-multi_pom.xml",
+  "group": "vet:pom.xml",
+  "file": "pom.xml"
+ },
+ {
+  "id": "vet-readers_java_gradle.lockfile",
+  "group": "vet:gradle.lockfile",
+  "file": "gradle.lockfile"
+ },
+ {
+  "id": "vet-readers_multi-with-invalid_package-lock.json",
+  "group": "vet:package-lock.json",
+  "file": "package-lock.json"
+ }
+]

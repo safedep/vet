@@ -1,0 +1,16 @@
+{
+  "manifests": [
+    {
+      "extractor": "go/gomod",
+      "kind": "lockfile",
+      "ecosystem": "go",
+      "packages": [
+        "go/github.com/BurntSushi/toml@1.0.0 :6",
+        "go/gopkg.in/yaml.v2@2.4.0 :7",
+        "go/github.com/mattn/go-colorable@0.1.9 :11",
+        "go/github.com/mattn/go-isatty@0.0.14 :12",
+        "go/golang.org/x/sys@0.0.0-20210630005230-0f9fa26af87c :13"
+      ]
+    }
+  ]
+}

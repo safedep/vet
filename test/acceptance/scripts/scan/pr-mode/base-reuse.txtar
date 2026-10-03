@@ -1,0 +1,24 @@
+[!git] skip 'needs git'
+[windows] skip 'Windows keeps the state in its profile directories, not XDG'
+# vet keeps the base extraction of a pull request scan. A second scan with
+# the same base commit reads it and gives the same findings.
+cd proj
+exec git -c user.email=t@example.com -c user.name=t init -q
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m base
+cp $WORK/head.json package-lock.json
+exec vet scan . --mode plain -o plain --base-ref HEAD
+stdout 'malware\tpkg:npm/safedep-test-pkg@0.1.3'
+cp stdout $WORK/first.txt
+exists $XDG_STATE_HOME/safedep/vet/bases
+
+exec vet scan . --mode plain -o plain --base-ref HEAD --fresh
+cmp stdout $WORK/first.txt
+exec git status --porcelain
+stdout '^ M package-lock.json$'
+! stdout 'bases'
+
+-- head.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"left-pad": "1.3.0","safedep-test-pkg": "0.1.3"}}, "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}, "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"}}}
+-- proj/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"left-pad": "1.3.0"}}, "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}}}

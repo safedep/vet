@@ -1,0 +1,22 @@
+# Without a terminal, vet state delete with no --yes exits 2 and names the
+# flag. --dry-run -o json deletes nothing. --yes deletes.
+cd proj
+exec vet scan . --mode plain -o plain
+exec vet scan . --mode plain -o plain --fresh
+execexit 2 vet state delete --all --mode plain
+stderr 'usage_needs_confirmation'
+stderr 'Pass --yes to confirm'
+
+exec vet state delete --all --dry-run --mode plain -o json
+jsonq stdout dry_run true
+jsonq stdout scans.len 2
+exec vet report list --mode plain -o json
+jsonq stdout len 2
+
+exec vet state delete --all --yes --mode plain -o json
+jsonq stdout scans.len 2
+exec vet report list --mode plain -o json
+jsonq stdout len 0
+
+-- proj/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"left-pad": "1.3.0"}}, "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}}}

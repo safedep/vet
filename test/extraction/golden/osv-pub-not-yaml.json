@@ -1,0 +1,6 @@
+{
+  "manifests": [],
+  "errors": [
+    "dart/pubspec: pubspec.lock: could not extract: yaml: unmarshal errors:\n  line 1: cannot unmarshal !!str `this is...` into pubspec.pubspecLockfile"
+  ]
+}

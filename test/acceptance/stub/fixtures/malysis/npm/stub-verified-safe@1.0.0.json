@@ -1,0 +1,23 @@
+{
+  "analysisId": "stub-verified-safe",
+  "status": "ANALYSIS_STATUS_COMPLETED",
+  "report": {
+    "packageVersion": {
+      "package": {
+        "ecosystem": "ECOSYSTEM_NPM",
+        "name": "stub-verified-safe"
+      },
+      "version": "1.0.0"
+    },
+    "inference": {
+      "isMalware": true,
+      "confidence": "CONFIDENCE_MEDIUM",
+      "summary": "The package runs a build script."
+    }
+  },
+  "verificationRecord": {
+    "purl": "pkg:npm/stub-verified-safe@1.0.0",
+    "isSafe": true,
+    "reason": "stub: a person checked it"
+  }
+}

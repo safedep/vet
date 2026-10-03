@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "go/gomod",
+      "kind": "lockfile",
+      "ecosystem": "go",
+      "packages": [
+        "go/github.com/BurntSushi/toml@1.0.0 :3"
+      ]
+    }
+  ]
+}

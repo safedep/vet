@@ -1,0 +1,24 @@
+# vet fix github-actions run --dry-run prints the diff and writes nothing.
+exec vet fix github-actions run --dry-run --mode plain
+stdout '^-      - uses: actions/checkout@v4$'
+stdout '^\+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4$'
+stderr 'vet would pin 1 action in 1 file'
+cmp .github/workflows/ci.yml $WORK/before.yml
+
+exec vet fix github-actions run --dry-run --mode plain -o json
+jsonq stdout files.0.edits.0.sha 11bd71901bbe5b1630ceea73d27597364c9af683
+
+-- .github/workflows/ci.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+-- before.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4

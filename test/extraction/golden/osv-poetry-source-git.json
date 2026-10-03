@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "python/poetrylock",
+      "kind": "lockfile",
+      "ecosystem": "pypi",
+      "packages": [
+        "pypi/ike@0.2.0 :2"
+      ]
+    }
+  ]
+}

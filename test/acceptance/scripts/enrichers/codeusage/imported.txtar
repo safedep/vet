@@ -1,0 +1,18 @@
+# With plugins.codeusage.enabled, a package finding says where the code
+# imports the package. The finding keeps its severity.
+[!cgo] skip 'code analysis needs a vet built with CGO'
+cd proj
+exec vet --config $WORK/config.yml scan . -o json --mode agent
+stdout '"source": ?"codeusage"'
+stdout 'index.js imports the package\.'
+stdout '"severity": ?"critical"'
+
+-- config.yml --
+plugins:
+  codeusage:
+    enabled: true
+-- proj/index.js --
+const pkg = require('safedep-test-pkg');
+pkg.run();
+-- proj/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3"}}, "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"}}}

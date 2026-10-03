@@ -1,0 +1,24 @@
+{
+  "packages": [
+    "npm/@my-monorepo/client@1.0.0",
+    "npm/@my-monorepo/excluded@1.0.0",
+    "npm/@my-monorepo/pkg-a@1.0.0",
+    "npm/debug@4.3.4",
+    "npm/dotenv@16.0.0"
+  ],
+  "direct": [
+    "npm/@my-monorepo/client@1.0.0",
+    "npm/@my-monorepo/excluded@1.0.0",
+    "npm/@my-monorepo/pkg-a@1.0.0",
+    "npm/dotenv@16.0.0"
+  ],
+  "roots": [
+    "npm/@my-monorepo/client@1.0.0",
+    "npm/@my-monorepo/excluded@1.0.0",
+    "npm/@my-monorepo/pkg-a@1.0.0",
+    "npm/dotenv@16.0.0"
+  ],
+  "edges": [
+    "npm/@my-monorepo/pkg-a@1.0.0 -> npm/debug@4.3.4"
+  ]
+}

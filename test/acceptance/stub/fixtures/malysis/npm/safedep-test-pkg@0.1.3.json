@@ -1,0 +1,23 @@
+{
+  "analysisId": "stub-malicious",
+  "status": "ANALYSIS_STATUS_COMPLETED",
+  "report": {
+    "packageVersion": {
+      "package": {
+        "ecosystem": "ECOSYSTEM_NPM",
+        "name": "safedep-test-pkg"
+      },
+      "version": "0.1.3"
+    },
+    "inference": {
+      "isMalware": true,
+      "confidence": "CONFIDENCE_HIGH",
+      "summary": "The install script sends environment variables to a remote host."
+    }
+  },
+  "verificationRecord": {
+    "purl": "pkg:npm/safedep-test-pkg@0.1.3",
+    "isMalware": true,
+    "reason": "stub: verified malicious"
+  }
+}

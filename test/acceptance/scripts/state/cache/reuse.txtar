@@ -1,0 +1,12 @@
+# A second scan within the cache time to live makes no enrichment call.
+# --no-cache makes the calls again.
+cd proj
+exec vet scan . --mode plain -o plain
+stub calls insights 1
+exec vet scan . --mode plain -o plain --fresh
+stub calls insights 1
+exec vet scan . --mode plain -o plain --fresh --no-cache
+stub calls insights 2
+
+-- proj/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"left-pad": "1.3.0"}}, "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}}}

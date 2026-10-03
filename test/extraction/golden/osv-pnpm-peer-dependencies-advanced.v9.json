@@ -1,0 +1,56 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/pnpmlock",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/@eslint-community/eslint-utils@4.4.0 :26",
+        "npm/@eslint/eslintrc@2.1.4 :32",
+        "npm/@typescript-eslint/eslint-plugin@5.62.0 [+] :36",
+        "npm/@typescript-eslint/parser@5.62.0 [+] :47",
+        "npm/@typescript-eslint/type-utils@5.62.0 :57",
+        "npm/@typescript-eslint/typescript-estree@5.62.0 :67",
+        "npm/@typescript-eslint/utils@5.62.0 :76",
+        "npm/debug@4.3.4 :82",
+        "npm/eslint@8.57.0 [+] :91",
+        "npm/has-flag@4.0.0 :96",
+        "npm/supports-color@7.2.0 [+] :100",
+        "npm/tsutils@3.21.0 :104",
+        "npm/typescript@4.9.5 [+] :110"
+      ],
+      "edges": [
+        "npm/@eslint-community/eslint-utils@4.4.0 -> npm/eslint@8.57.0",
+        "npm/@eslint/eslintrc@2.1.4 -> npm/debug@4.3.4",
+        "npm/@typescript-eslint/eslint-plugin@5.62.0 -> npm/@typescript-eslint/parser@5.62.0",
+        "npm/@typescript-eslint/eslint-plugin@5.62.0 -> npm/@typescript-eslint/type-utils@5.62.0",
+        "npm/@typescript-eslint/eslint-plugin@5.62.0 -> npm/@typescript-eslint/utils@5.62.0",
+        "npm/@typescript-eslint/eslint-plugin@5.62.0 -> npm/debug@4.3.4",
+        "npm/@typescript-eslint/eslint-plugin@5.62.0 -> npm/eslint@8.57.0",
+        "npm/@typescript-eslint/eslint-plugin@5.62.0 -> npm/tsutils@3.21.0",
+        "npm/@typescript-eslint/eslint-plugin@5.62.0 -> npm/typescript@4.9.5",
+        "npm/@typescript-eslint/parser@5.62.0 -> npm/@typescript-eslint/typescript-estree@5.62.0",
+        "npm/@typescript-eslint/parser@5.62.0 -> npm/debug@4.3.4",
+        "npm/@typescript-eslint/parser@5.62.0 -> npm/eslint@8.57.0",
+        "npm/@typescript-eslint/parser@5.62.0 -> npm/typescript@4.9.5",
+        "npm/@typescript-eslint/type-utils@5.62.0 -> npm/@typescript-eslint/typescript-estree@5.62.0",
+        "npm/@typescript-eslint/type-utils@5.62.0 -> npm/@typescript-eslint/utils@5.62.0",
+        "npm/@typescript-eslint/type-utils@5.62.0 -> npm/debug@4.3.4",
+        "npm/@typescript-eslint/type-utils@5.62.0 -> npm/eslint@8.57.0",
+        "npm/@typescript-eslint/type-utils@5.62.0 -> npm/tsutils@3.21.0",
+        "npm/@typescript-eslint/type-utils@5.62.0 -> npm/typescript@4.9.5",
+        "npm/@typescript-eslint/typescript-estree@5.62.0 -> npm/debug@4.3.4",
+        "npm/@typescript-eslint/typescript-estree@5.62.0 -> npm/tsutils@3.21.0",
+        "npm/@typescript-eslint/typescript-estree@5.62.0 -> npm/typescript@4.9.5",
+        "npm/@typescript-eslint/utils@5.62.0 -> npm/@eslint-community/eslint-utils@4.4.0",
+        "npm/@typescript-eslint/utils@5.62.0 -> npm/@typescript-eslint/typescript-estree@5.62.0",
+        "npm/@typescript-eslint/utils@5.62.0 -> npm/eslint@8.57.0",
+        "npm/eslint@8.57.0 -> npm/@eslint-community/eslint-utils@4.4.0",
+        "npm/eslint@8.57.0 -> npm/@eslint/eslintrc@2.1.4",
+        "npm/eslint@8.57.0 -> npm/debug@4.3.4",
+        "npm/supports-color@7.2.0 -> npm/has-flag@4.0.0",
+        "npm/tsutils@3.21.0 -> npm/typescript@4.9.5"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/pnpmlock",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/aws-sdk@2.1087.0 [+] :11",
+        "npm/base64-js@1.5.1 :26",
+        "npm/buffer@4.9.2 :30",
+        "npm/events@1.1.1 :38",
+        "npm/ieee754@1.1.13 :43",
+        "npm/isarray@1.0.0 :47",
+        "npm/jmespath@0.16.0 :51",
+        "npm/punycode@1.3.2 :56",
+        "npm/querystring@0.2.0 :60",
+        "npm/sax@1.2.1 :66",
+        "npm/url@0.10.3 :70",
+        "npm/uuid@3.3.2 :77",
+        "npm/xml2js@0.4.19 :83",
+        "npm/xmlbuilder@9.0.7 :90"
+      ],
+      "edges": [
+        "npm/aws-sdk@2.1087.0 -> npm/buffer@4.9.2",
+        "npm/aws-sdk@2.1087.0 -> npm/events@1.1.1",
+        "npm/aws-sdk@2.1087.0 -> npm/ieee754@1.1.13",
+        "npm/aws-sdk@2.1087.0 -> npm/jmespath@0.16.0",
+        "npm/aws-sdk@2.1087.0 -> npm/querystring@0.2.0",
+        "npm/aws-sdk@2.1087.0 -> npm/sax@1.2.1",
+        "npm/aws-sdk@2.1087.0 -> npm/url@0.10.3",
+        "npm/aws-sdk@2.1087.0 -> npm/uuid@3.3.2",
+        "npm/aws-sdk@2.1087.0 -> npm/xml2js@0.4.19",
+        "npm/buffer@4.9.2 -> npm/base64-js@1.5.1",
+        "npm/buffer@4.9.2 -> npm/ieee754@1.1.13",
+        "npm/buffer@4.9.2 -> npm/isarray@1.0.0",
+        "npm/url@0.10.3 -> npm/punycode@1.3.2",
+        "npm/url@0.10.3 -> npm/querystring@0.2.0",
+        "npm/xml2js@0.4.19 -> npm/sax@1.2.1",
+        "npm/xml2js@0.4.19 -> npm/xmlbuilder@9.0.7"
+      ]
+    }
+  ]
+}

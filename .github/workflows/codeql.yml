@@ -13,10 +13,10 @@ name: "CodeQL"
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "v2"]
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: ["main"]
+    branches: ["main", "v2"]
 
 permissions:
   contents: read
@@ -60,7 +60,7 @@ jobs:
 
       - run: |
           go mod tidy
-          go build
+          go build ./...
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@7211b7c8077ea37d8641b6271f6a365a22a5fbfa # v4

@@ -1,0 +1,17 @@
+{
+  "manifests": [
+    {
+      "extractor": "ruby/gemfilelock",
+      "kind": "lockfile",
+      "ecosystem": "rubygems",
+      "packages": [
+        "rubygems/bundler-audit@0.9.0.1 :4",
+        "rubygems/coderay@1.1.3 :7",
+        "rubygems/dotenv@2.7.6 :8",
+        "rubygems/method_source@1.0.0 :9",
+        "rubygems/pry@0.14.1 :10",
+        "rubygems/thor@1.2.1 :13"
+      ]
+    }
+  ]
+}

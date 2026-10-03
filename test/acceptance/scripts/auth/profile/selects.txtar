@@ -1,0 +1,21 @@
+# --profile selects the keychain profile. SAFEDEP_PROFILE does the same
+# when no flag is set.
+stdin key.txt
+exec vet --profile work auth login --api-key-stdin --tenant work.safedep.io
+stderr 'on profile "work"'
+
+exec vet auth status -o json
+jsonq stdout profile default
+! stdout work.safedep.io
+
+exec vet --profile work auth status -o json
+jsonq stdout tenant work.safedep.io
+jsonq stdout profile_source 'flag or config'
+
+env SAFEDEP_PROFILE=work
+exec vet auth status -o json
+jsonq stdout tenant work.safedep.io
+jsonq stdout profile_source SAFEDEP_PROFILE
+
+-- key.txt --
+sk_test_work_5678

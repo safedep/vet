@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "python/requirements",
+      "kind": "manifest",
+      "ecosystem": "pypi",
+      "packages": [
+        "pypi/django@0.1.0 [+] :1"
+      ]
+    }
+  ]
+}

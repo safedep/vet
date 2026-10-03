@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "my-poetry-app"
+version = "0.1.0"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.110.0"
+uvicorn = { version = "~0.29", extras = ["standard"] }
+local-lib = { path = "../local-lib" }
+anything = "*"
+pydantic = "2.7.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.1"

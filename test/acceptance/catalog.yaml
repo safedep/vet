@@ -1,0 +1,613 @@
+# Guarantee inventory of the vet acceptance suite. One row for each guarantee.
+# A script whose path id matches a row covers it. A row with no script is a gap.
+#
+# category is the first path segment of the id.
+# tier is P0 (an incident if it breaks), P1 (important) or P2 (tracked).
+# labels are free tags. A run can filter by category and by labels (see README.md).
+#
+# The rows follow docs/specs/.../vet-v2-acceptance-suite.md, section 4.
+
+# --- 4.1 Contracts that every command keeps ---
+- id: errors/exit-codes/contract
+  title: "exit codes are a contract"
+  category: errors
+  tier: P0
+  guarantee: "vet exits 0 on a pass, 1 on a failed gate, 2 on a usage or config error, 3 on a runtime error and 130 on a signal."
+  labels: [exit-codes]
+- id: policy/skill/authoring-workflow
+  title: "the policy authoring skill steps work in agent mode"
+  category: policy
+  tier: P2
+  guarantee: "The vet-policy-authoring skill steps run in agent mode: schema get, control list, init, validate, then report show --policy on the saved scan. The test fails the gate and changes neither the saved scan nor the config."
+  labels: [policy, agent]
+- id: policy/default/report-only
+  title: "a plain scan reports and exits 0"
+  category: policy
+  tier: P0
+  guarantee: "A plain vet scan of a fixture with a malicious package reports the finding, prints no gate line and exits 0."
+  labels: [gate]
+- id: policy/fail-on/severity
+  title: "--fail-on gates on severity"
+  category: policy
+  tier: P0
+  guarantee: "--fail-on high exits 1 when a high finding exists and 0 when only medium findings exist. policy.fail_on in the config file does the same."
+  labels: [gate]
+- id: output/streams/data-on-stdout
+  title: "data on stdout, messages on stderr"
+  category: output
+  tier: P0
+  guarantee: "Report data goes to stdout and messages go to stderr. vet scan > out leaves no progress line in out."
+  labels: [streams]
+- id: output/agent/auto-json
+  title: "agent mode writes JSON"
+  category: output
+  tier: P0
+  guarantee: "With CLAUDECODE=1 or AI_AGENT set, vet scan writes the report as JSON on stdout, with no ANSI codes and no banner."
+  labels: [agent]
+- id: output/agent/never-prompts
+  title: "agent mode never prompts"
+  category: output
+  tier: P0
+  guarantee: "In agent mode or with --no-input, a command that asks for confirmation exits 2 at once and names the flag."
+  labels: [agent, prompt]
+- id: output/escape/untrusted-text
+  title: "untrusted text prints escaped"
+  category: output
+  tier: P1
+  guarantee: "A package name with terminal escape codes in a lockfile prints escaped in plain mode."
+  labels: [escape]
+- id: errors/useful/help-line
+  title: "a usage error has a code and a help line"
+  category: errors
+  tier: P1
+  guarantee: "A usage error prints a usefulerror with a code and a help line on stderr, and vet exits 2. The help line names the help of the command that failed. An unknown subcommand, as in vet report shwo, exits 2 and suggests the closest command. An argument error names the arguments of the command."
+  labels: [exit-codes]
+
+# --- 4.2 The report contract ---
+- id: report/stream/jsonl-framing
+  title: "jsonl framing"
+  category: report
+  tier: P0
+  guarantee: "-o jsonl writes the header first and the trailer last, and record_count equals the number of records."
+  labels: [jsonl]
+- id: report/schema/json-validates
+  title: "json validates against the schema"
+  category: report
+  tier: P0
+  guarantee: "The -o json output validates against vet report schema get, and it carries schema_version."
+  labels: [schema]
+- id: report/files/many-formats-one-scan
+  title: "many report files from one scan"
+  category: report
+  tier: P1
+  guarantee: "--report json=... --report sarif=... --report cyclonedx=... writes three valid files from one scan."
+  labels: [files]
+- id: report/forge/gitlab-bitbucket
+  title: "one scan writes the GitLab and the Bitbucket reports"
+  category: report
+  tier: P1
+  guarantee: "--report gitlab=PATH writes a GitLab dependency scanning report with the package findings. --report bitbucket=PATH writes a Code Insights report and its annotations, and the gate sets its result."
+  labels: [report, ci]
+- id: report/files/write-failure-exit-3
+  title: "a failed report write exits 3"
+  category: report
+  tier: P1
+  guarantee: "A report path that vet cannot write gives exit 3, not a log line."
+  labels: [files, exit-codes]
+- id: report/show/no-rescan
+  title: "report show renders from the scan file"
+  category: report
+  tier: P0
+  guarantee: "vet report show last --report sarif=x works with the stub server stopped. It renders from the scan file."
+  labels: [state]
+- id: report/diff/added-removed
+  title: "report diff"
+  category: report
+  tier: P1
+  guarantee: "vet report diff lists the findings added and removed between the last two scans."
+  labels: [state]
+- id: report/list/history
+  title: "report list"
+  category: report
+  tier: P1
+  guarantee: "vet report list shows each scan of the target, with its status, counts and gate. --all-targets shows every target. The table shows the 8-character scan id in full and cuts the start of a long target path."
+  labels: [state]
+- id: report/finding/show-json
+  title: "report finding show"
+  category: report
+  tier: P1
+  guarantee: "vet report finding show ID -o json returns the whole finding, and an unknown id gives exit 2."
+  labels: [finding]
+- id: scan/determinism/same-report-twice
+  title: "the same scan gives the same report"
+  category: scan
+  tier: P1
+  guarantee: "Two scans of the same fixture give the same records, apart from ids and times."
+  labels: [determinism]
+
+# --- Other commands ---
+- id: version/print/one-line
+  title: "vet version prints one line"
+  category: version
+  tier: P2
+  guarantee: "vet version prints the version, the Go version and the platform on one line in the table and plain formats."
+  labels: [version]
+- id: version/print/json
+  title: "vet version prints its build"
+  category: version
+  tier: P2
+  guarantee: "vet version -o json prints the version, the Go version and the platform, and an unknown -o format exits 2."
+  labels: [version]
+
+# --- 4.3 to 4.6: scanning, controls, scan state and credentials ---
+- id: auth/env/half-credential
+  title: "env: half credential"
+  category: auth
+  tier: P0
+  guarantee: "SAFEDEP_API_KEY without SAFEDEP_TENANT_ID exits 2 and names the missing variable."
+  labels: [credentials]
+- id: auth/status/no-secrets
+  title: "auth status prints no secret"
+  category: auth
+  tier: P1
+  guarantee: "vet auth status shows the last 4 characters of the API key in the table and no part of it in the JSON."
+  labels: [credentials]
+- id: auth/status/no-key
+  title: "auth status names the community endpoints"
+  category: auth
+  tier: P2
+  guarantee: "With no API key, vet auth status says that vet uses the community endpoints with a rate limit, and the hint names vet auth login."
+  labels: [credentials]
+- id: auth/profile/selects
+  title: "--profile selects the keychain profile"
+  category: auth
+  tier: P1
+  guarantee: "vet auth login and status use the profile of --profile, else SAFEDEP_PROFILE, else default."
+  labels: [credentials]
+- id: controls/cooldown/inside-window
+  title: "cooldown: inside window"
+  category: controls
+  tier: P0
+  guarantee: "A package published inside the cooldown window gives a finding. A package outside the window gives none."
+  labels: [controls]
+- id: controls/cooldown/option-sets-window
+  title: "cooldown: option sets window"
+  category: controls
+  tier: P1
+  guarantee: "plugins.dependency-cooldown.options.days changes the window."
+  labels: [controls]
+- id: controls/fail-open/backend-down
+  title: "fail open: backend down"
+  category: controls
+  tier: P0
+  guarantee: "With Insights down, the scan completes, the report has a diagnostic, and the exit code does not change. With --strict, vet exits 3, also when the gate fails, and the gate line still prints."
+  labels: [controls]
+- id: controls/lockfile/untrusted-registry
+  title: "lockfile: untrusted registry"
+  category: controls
+  tier: P0
+  guarantee: "A lockfile entry that resolves from a registry outside the trusted list gives a finding."
+  labels: [controls]
+- id: controls/malware/known-malicious
+  title: "malware: known malicious"
+  category: controls
+  tier: P0
+  guarantee: "A package that the stub marks malicious gives a critical finding, and --policy with a malware gate exits 1."
+  labels: [controls]
+- id: controls/suppression/visible
+  title: "suppression: visible"
+  category: controls
+  tier: P1
+  guarantee: "A suppressed finding stays in the report with its suppression, and the gate ignores it."
+  labels: [controls]
+- id: controls/agent-config/pr-change
+  title: "agent config: a changed editor task"
+  category: controls
+  tier: P1
+  guarantee: "In pull request mode, a change that adds a .vscode/tasks.json task with runOn: folderOpen gives a high editor-task-command finding. An agent instruction file that the change does not touch gives none."
+  labels: [agent-config, pr-mode]
+- id: controls/lockfile/integrity-changed
+  title: "lockfile: integrity change with no version change"
+  category: controls
+  tier: P1
+  guarantee: "In pull request mode, a lockfile entry that keeps its version and changes its integrity hash gives integrity-changed, and the lockfile change with no package.json change gives lockfile-only-change."
+  labels: [lockfile, pr-mode]
+- id: controls/lockfile/yarn-untrusted
+  title: "lockfile: yarn entry from an untrusted host"
+  category: controls
+  tier: P1
+  guarantee: "A yarn.lock entry that resolves from a host that is not a trusted registry gives untrusted-registry. An entry on the npm registry gives none."
+  labels: [lockfile]
+- id: controls/hygiene/non-registry
+  title: "hygiene: dependency that is not on a registry"
+  category: controls
+  tier: P2
+  guarantee: "A package.json dependency on git, a file or any version gives non-registry-dependency."
+  labels: [hygiene]
+- id: controls/reputation/typosquat
+  title: "reputation: typosquat"
+  category: controls
+  tier: P1
+  guarantee: "A package one typo away from a popular package, with few downloads, gives a high typosquat finding."
+  labels: [reputation]
+- id: controls/reputation/dependency-confusion
+  title: "an internal name from a public registry is a finding"
+  category: controls
+  tier: P1
+  guarantee: "A package that matches plugins.reputation.options.internal_names and resolves from a public registry gives a dependency-confusion finding. The internal registry gives none."
+  labels: [controls, config]
+- id: enrichers/codeusage/imported
+  title: "a finding says where the code imports the package"
+  category: enrichers
+  tier: P2
+  guarantee: "With plugins.codeusage.enabled, on a build with CGO, a package finding gets codeusage evidence that names the importing files. The severity does not change."
+  labels: [enrichers, config]
+- id: enrichers/codeusage/capabilities
+  title: "the code signatures that match are the xBOM"
+  category: enrichers
+  tier: P2
+  guarantee: "With plugins.codeusage.enabled, on a build with CGO, each code signature that matches is a capability record in the JSON report and an xbom:<signature id> component with source code analysis evidence in the CycloneDX BOM."
+  labels: [enrichers, config, sinks]
+- id: report/capability/list
+  title: "the scan view and report capability list show the AI and crypto capabilities"
+  category: report
+  tier: P2
+  guarantee: "With plugins.codeusage.enabled, on a build with CGO, the table view lists the capabilities with a weak badge on weak crypto, and vet report capability list lists each call site of the last scan and filters by tag."
+  labels: [report, enrichers]
+- id: controls/reputation/ai-capability-added
+  title: "a change that adds an AI call is a finding"
+  category: controls
+  tier: P2
+  guarantee: "In pull request mode with plugins.codeusage.enabled, on a build with CGO, a change that adds a call to an AI SDK gives an ai-bom-delta finding on the application. A capability that the base commit has gives none."
+  labels: [controls, pr-mode, config]
+- id: controls/workflow/hardening
+  title: "workflow: hardening controls"
+  category: controls
+  tier: P1
+  guarantee: "write-all permissions, secrets: inherit, a secret in a script and a self-hosted runner give the workflow hardening findings. A workflow with read permissions and secrets in env gives none."
+  labels: [workflow]
+- id: controls/workflow/dangerous-trigger
+  title: "workflow: dangerous trigger"
+  category: controls
+  tier: P0
+  guarantee: "pull_request_target with a checkout of the head commit gives a finding."
+  labels: [controls]
+- id: controls/workflow/unpinned-action
+  title: "workflow: unpinned action"
+  category: controls
+  tier: P0
+  guarantee: "A workflow that uses an action by tag gives a finding. An action pinned by SHA gives none."
+  labels: [controls]
+- id: scan/working-tree/never-writes
+  title: "a scan never writes the target"
+  category: scan
+  tier: P0
+  guarantee: "After vet scan, the working tree of the target has no change (git status --porcelain is empty)."
+  labels: [scan]
+- id: scan/pr-mode/counts
+  title: "pr mode: counts and columns"
+  category: scan
+  tier: P1
+  guarantee: "In pull request mode, the table card counts the changed packages, and the table drops the CHANGE column when each row has the same change and says the change in a hint. A bad --base-ref exits 2 and leaves no failed scan. vet report diff warns when it compares a full scan with a pull request scan."
+  labels: [scan]
+- id: scan/pr-mode/only-changes
+  title: "pr mode: only changes"
+  category: scan
+  tier: P0
+  guarantee: "In a git fixture with two commits, --base-ref reports only the added package, with change ADDED. Unchanged packages give no finding."
+  labels: [scan]
+- id: scan/pr-mode/base-reuse
+  title: "a second pull request scan reuses the base"
+  category: scan
+  tier: P2
+  guarantee: "vet keeps the base extraction in the state directory, not in the target. A second scan with the same base commit gives the same findings."
+  labels: [pr-mode, state]
+- id: scan/pr-mode/workflow-change
+  title: "pr mode: workflow change"
+  category: scan
+  tier: P0
+  guarantee: "A workflow file changed between the base and the head gives a finding on that file only."
+  labels: [scan]
+- id: scan/sources/directory
+  title: "sources: directory"
+  category: scan
+  tier: P0
+  guarantee: "vet scan DIR finds the manifests in a fixture directory with one lockfile per supported ecosystem family."
+  labels: [scan]
+- id: scan/sources/git-clone
+  title: "sources: git clone"
+  category: scan
+  tier: P1
+  guarantee: "vet scan <git URL> clones the repository and scans its files. The script uses a local file:// repository, so it stays hermetic."
+  labels: [scan]
+- id: scan/sources/purl
+  title: "sources: purl"
+  category: scan
+  tier: P1
+  guarantee: "vet scan pkg:npm/... scans one package."
+  labels: [scan]
+- id: scan/sources/sbom
+  title: "sources: sbom"
+  category: scan
+  tier: P1
+  guarantee: "vet scan reads a CycloneDX and an SPDX file."
+  labels: [scan]
+- id: scan/formats/terraform-lockfile
+  title: "formats: Terraform lock file"
+  category: scan
+  tier: P1
+  guarantee: "vet scan reads the providers of a .terraform.lock.hcl file as packages of the terraform ecosystem, with the provider address as the name and the line of each provider block."
+  labels: [scan]
+- id: scan/sources/image
+  title: "sources: image"
+  category: scan
+  tier: P2
+  guarantee: "vet scan scans an image tarball, and with a Docker daemon an oci:// image from the daemon."
+  labels: [scan, docker]
+- id: scan/no-credentials/community
+  title: "no credentials: community endpoints"
+  category: scan
+  tier: P1
+  guarantee: "With no credentials, a scan completes, sends no authorization header and makes no upload."
+  labels: [scan, credentials]
+- id: scan/output/no-library-logs
+  title: "scan: no library log lines on stderr"
+  category: scan
+  tier: P1
+  guarantee: "A malformed manifest gives a vet diagnostic. No log line of a library reaches stderr."
+  labels: [scan, output]
+- id: controls/malware/suspicious
+  title: "an unverified verdict is suspicious, a safe verification overrules"
+  category: controls
+  tier: P0
+  guarantee: "An unverified malicious verdict gives a high suspicious-package finding, a verification record that marks the version safe gives no malware finding, and trust_automated_analysis turns the unverified verdict into a critical malware finding."
+  labels: [controls, malware]
+- id: state/cache/verdict-pending
+  title: "a missing malware verdict is asked again"
+  category: state
+  tier: P1
+  guarantee: "A package with no malware verdict is not cached, so the next scan asks Threat Intel again. A verdict and the Insights data stay cached."
+  labels: [state, cache, malware]
+- id: scan/pr-mode/resolved-host-changed
+  title: "pull request mode sees a lockfile entry that moves its download"
+  category: scan
+  tier: P0
+  guarantee: "In pull request mode, a yarn.lock entry that keeps its version and its hash and moves its resolved URL to another host is a modified package and gives untrusted-registry."
+  labels: [scan, pr-mode, lockfile]
+- id: scan/sources/git-token-redacted
+  title: "a token in a git target URL never prints"
+  category: scan
+  tier: P0
+  guarantee: "A token in the URL of a git target is not on stdout or stderr, also when the clone fails."
+  labels: [scan, sources, secrets]
+- id: config/env/plugin-options
+  title: "VET_PLUGINS variables set plugin options"
+  category: config
+  tier: P2
+  guarantee: "A VET_PLUGINS_<NAME>_OPTIONS_<OPTION> variable sets the plugin option, the scan uses it, and vet config get names the variable as the origin."
+  labels: [config]
+- id: scan/output/diagnostics-grouped
+  title: "a person sees one line for each kind of diagnostic"
+  category: scan
+  tier: P2
+  guarantee: "In plain and rich mode, stderr groups the diagnostics by level, component and code. Each group gets one line with its first message and a count of the rest, errors first, at most five lines. A line names vet report show SCAN_ID -v. -v shows each diagnostic."
+  labels: [scan, output]
+- id: scan/output/next-steps
+  title: "a person sees the gate and the next commands"
+  category: scan
+  tier: P1
+  guarantee: "After a scan with findings, stderr names the gate that failed, as (--fail-on high), and then names vet report show SCAN_ID --all and vet report finding show ID. It does not suggest -o json. vet report show does not name itself. The agent mode gets no such line."
+  labels: [scan, output, gate]
+- id: scan/output/no-manifest
+  title: "a scan with no manifest warns"
+  category: scan
+  tier: P1
+  guarantee: "A scan that reads no manifest warns that vet found no manifest in the target and names what vet reads. It exits 0."
+  labels: [scan, output]
+- id: scan/output/table-groups-vulnerabilities
+  title: "the table puts the vulnerabilities of a package on one row"
+  category: scan
+  tier: P1
+  guarantee: "The table shows the vulnerabilities of one package on one row with the short id of the most severe finding. vet report finding show accepts the short id. vet report show --all lists each finding on its own row."
+  labels: [scan, output]
+- id: state/continue/after-interrupt
+  title: "continue: after interrupt"
+  category: state
+  tier: P0
+  guarantee: "After SIGINT, vet saves the progress and stops. The next vet scan continues the same scan id. Unit tests pin exit code 130 and the saved enrichments."
+  labels: [state]
+- id: state/ephemeral/no-files-left
+  title: "ephemeral: no files left"
+  category: state
+  tier: P0
+  guarantee: "--ephemeral leaves no file in the state and cache directories."
+  labels: [state]
+- id: state/resume/nothing-to-resume
+  title: "resume: nothing to resume"
+  category: state
+  tier: P1
+  guarantee: "vet scan --resume with no interrupted scan exits 2."
+  labels: [state]
+- id: report/show/policy-saved-scan
+  title: "report show applies a policy to a saved scan"
+  category: report
+  tier: P1
+  guarantee: "vet report show --policy FILE evaluates a policy against the last scan with no new scan."
+  labels: [report, gate]
+- id: policy/validate/bad-policy-exit-2
+  title: "an invalid policy exits 2"
+  category: policy
+  tier: P1
+  guarantee: "An invalid policy file gives exit 2 and names the error."
+  labels: [gate]
+- id: policy/init/starter
+  title: "the starter policy validates and applies"
+  category: policy
+  tier: P1
+  guarantee: "vet policy init writes a starter policy that vet policy validate accepts and vet scan --policy applies."
+  labels: [gate]
+- id: policy/name/config-dir
+  title: "a bare policy name finds the policy that init wrote"
+  category: policy
+  tier: P1
+  guarantee: "vet policy validate NAME, vet scan --policy NAME and vet report show --policy NAME read policies/NAME.yml in the config directory, which vet policy init writes. A file of that name in the current directory wins."
+  labels: [gate]
+- id: fix/github-actions/pins-by-sha
+  title: "the fix pins actions by SHA"
+  category: fix
+  tier: P0
+  guarantee: "vet fix github-actions run rewrites each third-party uses: with a tag to a commit SHA with the tag in a comment, from a stub GitHub answer. Local and same-repository actions do not change."
+  labels: [fix]
+- id: fix/github-actions/dry-run
+  title: "the fix dry run writes nothing"
+  category: fix
+  tier: P1
+  guarantee: "vet fix github-actions run --dry-run prints the diff and writes nothing."
+  labels: [fix]
+- id: fix/github-actions/unresolved
+  title: "the fix names each action that it could not pin"
+  category: fix
+  tier: P2
+  guarantee: "vet fix github-actions run prints one line with a short reason for each action that it could not pin, one hint and no \"No action to pin\" line, and exits 3."
+  labels: [fix]
+- id: state/continue/options-change
+  title: "other scan options start a new scan"
+  category: state
+  tier: P1
+  guarantee: "With other scan options, vet starts a new scan and prints the reason."
+  labels: [state]
+- id: state/cache/reuse
+  title: "the enrichment cache answers a second scan"
+  category: state
+  tier: P1
+  guarantee: "A second scan within the cache time to live makes no enrichment call. --no-cache makes them again."
+  labels: [state]
+- id: state/clean/needs-yes
+  title: "state delete needs --yes with no terminal"
+  category: state
+  tier: P1
+  guarantee: "Without a TTY, vet state delete with no --yes exits 2. --dry-run -o json deletes nothing."
+  labels: [state, prompt]
+- id: state/clean/counts
+  title: "state delete counts the scans and asks after the table"
+  category: state
+  tier: P2
+  guarantee: "vet state delete says 1 scan and N scans, shows the table before it asks, and prints one line when no scan matches."
+  labels: [state, prompt]
+- id: state/files/permissions
+  title: "the state is owner only"
+  category: state
+  tier: P1
+  guarantee: "The state directory is 0700 and each file is 0600."
+  labels: [state]
+- id: state/retention/per-target
+  title: "retention keeps 10 scans of a target"
+  category: state
+  tier: P2
+  guarantee: "After 11 completed scans of one target, the oldest is gone."
+  labels: [state]
+- id: health/doctor/healthy
+  title: "vet doctor passes on a fresh sandbox"
+  category: health
+  tier: P2
+  guarantee: "vet doctor exits 0 on a fresh sandbox, and -o json lists each check with an id. The text output has one line for each check, and a fix line under a check that failed."
+  labels: [doctor]
+- id: dirs/xdg/kinds-apart
+  title: "config, state and cache live apart"
+  category: dirs
+  tier: P0
+  guarantee: "With the XDG_* variables set, config, state and cache land in their own safedep/vet directories. The config directory holds no database or log."
+  labels: [config, state]
+- id: config/layers/precedence
+  title: "the config layers apply in order"
+  category: config
+  tier: P0
+  guarantee: "A flag wins over a VET_* variable, which wins over the file, which wins over the default. vet config show --origin -o json names each source."
+  labels: [config]
+- id: config/repo/cannot-configure
+  title: "the scanned repository cannot configure vet"
+  category: config
+  tier: P0
+  guarantee: "A config file or policy file inside the scanned target changes nothing. A policy loads only with --policy."
+  labels: [config, gate]
+- id: config/get/bare-value
+  title: "config get prints the bare value"
+  category: config
+  tier: P2
+  guarantee: "vet config get prints only the value in the table and plain formats, and -o json keeps the key, the value and the source. A config delete of the last key leaves a YAML file, not {}."
+  labels: [config]
+- id: config/set/rejects-unknown-key
+  title: "config set rejects an unknown key"
+  category: config
+  tier: P1
+  guarantee: "vet config set with a typo exits 2 and suggests the closest key."
+  labels: [config]
+- id: config/edit/checks-the-file
+  title: "config edit checks the file after the editor exits"
+  category: config
+  tier: P1
+  guarantee: "vet config edit runs $EDITOR with its arguments and keeps the comments. An unknown key exits 2. With --no-input vet opens no editor and exits 2."
+  labels: [config]
+- id: config/validate/unknown-key
+  title: "config validate fails on an unknown key"
+  category: config
+  tier: P1
+  guarantee: "vet config validate exits 2 on an unknown key. A scan only warns."
+  labels: [config]
+# --- 4.7 SafeDep Cloud: the v2.1 stubs. The other cloud rows wait for the contracts. ---
+- id: cloud/stubs/not-available
+  title: "cloud plugins: stub messages"
+  category: cloud
+  tier: P1
+  guarantee: "--report cloud=PATH exits 2 with \"the SafeDep Cloud report plugin is not available yet\" before the scan starts. An enabled tenant policy source records a diagnostic, and the scan continues."
+  labels: [cloud, stub]
+# --- 4.8 Other surfaces: vet endpoint audit ---
+- id: endpoint/audit/inventory
+  title: "endpoint audit: inventory and packages"
+  category: endpoint
+  tier: P1
+  guarantee: "vet endpoint audit reports the MCP servers and skills of the home directory as inventory, with no secret value, and checks the IDE extensions and global npm packages as packages. vet scan never reads the home directory."
+  labels: [endpoint]
+- id: endpoint/audit/tools-table
+  title: "endpoint audit: the table lists the tools"
+  category: endpoint
+  tier: P1
+  guarantee: "The table of vet endpoint audit counts the tools by kind and lists each one. The first step line names the machine, not the manifests."
+  labels: [endpoint]
+- id: endpoint/audit/all-users-needs-root
+  title: "endpoint audit: --all-users needs root"
+  category: endpoint
+  tier: P2
+  guarantee: "vet endpoint audit --all-users without root exits 2 and says to run it with sudo."
+  labels: [endpoint]
+- id: endpoint/agent-config/findings
+  title: "endpoint audit: agent config findings"
+  category: endpoint
+  tier: P1
+  guarantee: "vet endpoint audit with a home directory that holds a risky .vscode/tasks.json and an MCP config gives findings."
+  labels: [endpoint, agent-config]
+- id: endpoint/inventory-sync/wal
+  title: "endpoint audit: inventory sync log"
+  category: endpoint
+  tier: P2
+  guarantee: "With plugins.cloud-inventory on, vet endpoint audit writes its inventory to inventory-sync.wal in the state directory with mode 0600, records inventory_sync_unavailable, and completes."
+  labels: [endpoint, cloud, stub]
+# --- 4.9 Live rows. They call production and run with ACCEPTANCE_LIVE=1 only. ---
+- id: live/malware/known-malicious
+  title: "live: known malicious package"
+  category: live
+  tier: P0
+  guarantee: "A scan of safedep-test-pkg@0.1.3 (npm) against production gives a malware finding."
+  labels: [live, malware]
+- id: live/scan/vet-scans-vet
+  title: "live: vet scans its own go.mod"
+  category: live
+  tier: P1
+  guarantee: "A scan of the go.mod of vet completes against production with exit 0."
+  labels: [live]
+- id: live/scan/registry-image
+  title: "live: vet pulls an image from a registry"
+  category: live
+  tier: P1
+  guarantee: "vet scan oci://alpine:3.20 pulls the image from a public registry and completes with exit 0."
+  labels: [live, image]

@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "ruby/gemfilelock",
+      "kind": "lockfile",
+      "ecosystem": "rubygems",
+      "packages": [
+        "rubygems/ast@2.4.2 :4"
+      ]
+    }
+  ]
+}

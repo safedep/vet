@@ -1,0 +1,13 @@
+{
+  "manifests": [
+    {
+      "extractor": "dotnet/packageslockjson",
+      "kind": "lockfile",
+      "ecosystem": "nuget",
+      "packages": [
+        "nuget/Test.Core@6.0.5",
+        "nuget/Test.System@0.13.0-beta4"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+# A VET_PLUGINS_<NAME>_OPTIONS_<OPTION> variable sets a plugin option, and
+# vet config get names the variable as the origin.
+env VET_PLUGINS_DEPENDENCY_COOLDOWN_OPTIONS_DAYS=100000
+exec vet config get plugins.dependency-cooldown.options.days -o json
+jsonq stdout value 100000
+jsonq stdout origin.layer env
+jsonq stdout origin.source VET_PLUGINS_DEPENDENCY_COOLDOWN_OPTIONS_DAYS
+
+cd proj
+exec vet scan . --mode plain -o plain
+stdout 'dependency-cooldown\tpkg:npm/left-pad@1.3.0'
+
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"left-pad": "1.3.0"}},
+    "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}
+  }
+}

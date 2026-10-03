@@ -1,0 +1,9 @@
+# vet version prints its build as JSON on stdout.
+exec vet version -o json
+stdout '"version": '
+stdout '"platform": '
+! stderr .
+
+execexit 2 vet version -o xml
+stderr 'usage_invalid'
+! stdout .

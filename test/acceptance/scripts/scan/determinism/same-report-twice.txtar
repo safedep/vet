@@ -1,0 +1,25 @@
+# Two scans of one project give the same findings.
+cd proj
+exec vet scan . --mode plain -o plain
+cp stdout $WORK/first.txt
+exec vet scan . --mode plain -o plain --fresh
+cmp stdout $WORK/first.txt
+
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3","lodash": "4.17.21","left-pad": "1.3.0"}},
+    "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"},
+    "node_modules/lodash": {"version": "4.17.21", "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"},
+    "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}
+  }
+}
+-- proj/.github/workflows/ci.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4

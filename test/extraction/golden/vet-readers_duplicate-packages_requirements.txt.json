@@ -1,0 +1,15 @@
+{
+  "manifests": [
+    {
+      "extractor": "python/requirements",
+      "kind": "manifest",
+      "ecosystem": "pypi",
+      "packages": [
+        "pypi/bleach@3.1.2 [+] :1",
+        "pypi/bleach [+] :2",
+        "pypi/requests@2.25.1 [+] :3",
+        "pypi/requests [+] :4"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+# vet scan reads the providers of a Terraform dependency lock file. The
+# package name is the provider address. A provider with no version keeps
+# an empty version.
+exec vet scan . --mode plain -o jsonl
+stdout '"path":".terraform.lock.hcl","ecosystem":"terraform"'
+stdout '"extractor":"terraform/lockfile"'
+stdout '"purl":"pkg:terraform/registry.terraform.io%2Fhashicorp%2Faws@5.0.1"'
+stdout '"name":"registry.terraform.io/hashicorp/aws","version":"5.0.1"},"direct":true,"line":1'
+stdout '"name":"registry.terraform.io/integrations/github","version":"5.9.0"},"direct":true,"line":7'
+stdout '"name":"registry.terraform.io/hashicorp/random"},"direct":true,"line":12'
+
+-- .terraform.lock.hcl --
+provider "registry.terraform.io/hashicorp/aws" {
+  version     = "5.0.1"
+  constraints = "5.0.1"
+  hashes      = ["h1:1YOp1xS6o82ttLLW1sPCzIBfWEA6KlLuxQYeam55bQo="]
+}
+
+provider "registry.terraform.io/integrations/github" {
+  version = "5.9.0"
+}
+
+# A lock file always has a version. vet does not fail on a provider without one.
+provider "registry.terraform.io/hashicorp/random" {
+}

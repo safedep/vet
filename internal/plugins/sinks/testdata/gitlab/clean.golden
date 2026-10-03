@@ -1,0 +1,27 @@
+{
+  "schema": "https://gitlab.com/gitlab-org/security-products/security-report-schemas/-/raw/15.2.1/dist/dependency-scanning-report-format.json",
+  "version": "15.2.1",
+  "scan": {
+    "analyzer": {
+      "id": "vet",
+      "name": "vet",
+      "version": "test",
+      "vendor": {
+        "name": "SafeDep"
+      }
+    },
+    "scanner": {
+      "id": "vet",
+      "name": "vet",
+      "version": "test",
+      "vendor": {
+        "name": "SafeDep"
+      }
+    },
+    "type": "dependency_scanning",
+    "start_time": "2026-01-02T03:04:05",
+    "end_time": "2026-01-02T03:05:00",
+    "status": "success"
+  },
+  "vulnerabilities": []
+}

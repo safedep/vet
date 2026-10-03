@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "dart/pubspec",
+      "kind": "lockfile",
+      "ecosystem": "pub",
+      "packages": [
+        "pub/flutter_web_plugins@0.0.0"
+      ]
+    }
+  ]
+}
