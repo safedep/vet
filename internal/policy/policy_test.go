@@ -221,5 +221,17 @@ func TestApplyRuleError(t *testing.T) {
 	out := NewEvaluator(p, Options{}).Apply(f, pkg, nil)
 	require.Len(t, out.Errors, 1)
 	assert.Contains(t, out.Errors[0].Error(), "rule bad")
-	assert.False(t, out.Fail, "a rule that does not evaluate does not fail the gate")
+	assert.True(t, out.Fail, "a fail rule that does not evaluate fails the gate")
+	assert.Equal(t, []string{"bad"}, out.BrokenRules)
+	assert.Empty(t, f.PolicyRule, "the finding did not match the rule")
+
+	warn, err := Parse("p.yml", []byte("version: 2\nrules:\n  - id: bad\n    when: int(finding.title) > 0\n    action: warn\n"))
+	require.NoError(t, err)
+	out = NewEvaluator(warn, Options{}).Apply(f, pkg, nil)
+	require.Len(t, out.Errors, 1)
+	assert.False(t, out.Fail, "a warn rule that does not evaluate is a diagnostic only")
+
+	gate := NewEvaluator(p, Options{}).NewGate()
+	gate.Add(f, NewEvaluator(p, Options{}).Apply(f, pkg, nil))
+	assert.Equal(t, []string{"bad"}, gate.Result().Rules, "the gate names the rule that did not run")
 }

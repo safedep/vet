@@ -52,6 +52,9 @@ type Outcome struct {
 	Expired []string
 	// Errors are the rules that failed to evaluate.
 	Errors []error
+	// BrokenRules are the fail rules that failed to evaluate. Each fails
+	// the gate: a rule that cannot run must not let a finding pass.
+	BrokenRules []string
 }
 
 // Apply evaluates the policy on a finding with its package and manifest,
@@ -79,6 +82,9 @@ func (e *Evaluator) Apply(f *finding.Finding, pkg *model.Package, m *model.Manif
 		ok, err := r.expr.Match(in)
 		if err != nil {
 			out.Errors = append(out.Errors, fmt.Errorf("rule %s: %w", r.ID, err))
+			if r.Action == ActionFail {
+				out.BrokenRules = append(out.BrokenRules, r.ID)
+			}
 			continue
 		}
 		if !ok {
@@ -98,10 +104,10 @@ func (e *Evaluator) Apply(f *finding.Finding, pkg *model.Package, m *model.Manif
 	}
 
 	if f.Suppressed() {
-		out.FailRules = nil
+		out.FailRules, out.BrokenRules = nil, nil
 		return out
 	}
-	out.Fail = len(out.FailRules) > 0 || (e.failOn != "" && f.Severity.AtLeast(e.failOn))
+	out.Fail = len(out.FailRules) > 0 || len(out.BrokenRules) > 0 || (e.failOn != "" && f.Severity.AtLeast(e.failOn))
 	return out
 }
 
