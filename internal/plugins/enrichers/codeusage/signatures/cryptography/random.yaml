@@ -1,0 +1,144 @@
+version: 0.1
+# Generated from crypto_sigs.py. One id for each algorithm, with the call forms
+# of each language. The tags hold the CycloneDX crypto primitive.
+
+signatures:
+  - id: crypto.random
+    description: "Cryptographically secure random numbers"
+    vendor: ""
+    product: "CSPRNG"
+    service: "Secure random"
+    tags: [cryptography, drbg]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "secrets.token_bytes"
+          - type: call
+            value: "secrets.token_hex"
+          - type: call
+            value: "secrets.token_urlsafe"
+          - type: call
+            value: "secrets.randbelow"
+          - type: call
+            value: "secrets.choice"
+          - type: call
+            value: "secrets.SystemRandom"
+          - type: call
+            value: "os.urandom"
+          - type: call
+            value: "random.SystemRandom"
+          - type: call
+            value: "Crypto.Random.get_random_bytes"
+          - type: call
+            value: "nacl.utils.random"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/randomBytes"
+          - type: call
+            value: "crypto/randomFill"
+          - type: call
+            value: "crypto/randomFillSync"
+          - type: call
+            value: "crypto/randomInt"
+          - type: call
+            value: "crypto/randomUUID"
+          - type: call
+            value: "crypto/getRandomValues"
+          - type: call
+            value: "crypto/webcrypto/getRandomValues"
+          - type: call
+            value: "node:crypto/randomBytes"
+          - type: call
+            value: "node:crypto/randomFill"
+          - type: call
+            value: "node:crypto/randomFillSync"
+          - type: call
+            value: "node:crypto/randomInt"
+          - type: call
+            value: "node:crypto/randomUUID"
+          - type: call
+            value: "node:crypto/getRandomValues"
+          - type: call
+            value: "node:crypto/webcrypto/getRandomValues"
+          - type: call
+            value: "tweetnacl/randomBytes"
+          - type: call
+            value: "@noble/hashes/utils/randomBytes"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.SecureRandom"
+          - type: call
+            value: "java.security.SecureRandom.getInstance"
+          - type: call
+            value: "java.security.SecureRandom.getInstanceStrong"
+          - type: call
+            value: "SecureRandom.getInstanceStrong"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/rand/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "RandomNumberGenerator.Create"
+          - type: call
+            value: "System.Security.Cryptography.RandomNumberGenerator.Create"
+          - type: call
+            value: "RandomNumberGenerator.GetBytes"
+          - type: call
+            value: "System.Security.Cryptography.RandomNumberGenerator.GetBytes"
+          - type: call
+            value: "RandomNumberGenerator.Fill"
+          - type: call
+            value: "System.Security.Cryptography.RandomNumberGenerator.Fill"
+          - type: call
+            value: "RandomNumberGenerator.GetInt32"
+          - type: call
+            value: "System.Security.Cryptography.RandomNumberGenerator.GetInt32"
+          - type: call
+            value: "RNGCryptoServiceProvider"
+          - type: call
+            value: "System.Security.Cryptography.RNGCryptoServiceProvider"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "rand::rngs::OsRng::*"
+          - type: call
+            value: "rand_core::OsRng::*"
+          - type: call
+            value: "getrandom::*"
+          - type: call
+            value: "ring::rand::SystemRandom::*"
+          - type: call
+            value: "openssl::rand::rand_bytes"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "random_bytes"
+          - type: call
+            value: "random_int"
+          - type: call
+            value: "openssl_random_pseudo_bytes"
+          - type: call
+            value: "sodium_randombytes_buf"
+          - type: call
+            value: "phpseclib3\\Crypt\\Random::string"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "SecureRandom.*"
+          - type: call
+            value: "OpenSSL::Random.random_bytes"
+          - type: call
+            value: "Random.urandom"

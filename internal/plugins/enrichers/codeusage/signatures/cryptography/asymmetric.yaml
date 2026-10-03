@@ -1,0 +1,627 @@
+version: 0.1
+# Generated from crypto_sigs.py. One id for each algorithm, with the call forms
+# of each language. The tags hold the CycloneDX crypto primitive.
+
+signatures:
+  - id: crypto.rsa
+    description: "RSA public key encryption and signatures"
+    vendor: ""
+    product: "RSA"
+    service: "RSA"
+    tags: [cryptography, pke, signature]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "cryptography.hazmat.primitives.asymmetric.rsa.generate_private_key"
+          - type: call
+            value: "cryptography.hazmat.primitives.asymmetric.padding.OAEP"
+          - type: call
+            value: "cryptography.hazmat.primitives.asymmetric.padding.PSS"
+          - type: call
+            value: "cryptography.hazmat.primitives.asymmetric.padding.PKCS1v15"
+          - type: call
+            value: "Crypto.PublicKey.RSA.generate"
+          - type: call
+            value: "Crypto.PublicKey.RSA.import_key"
+          - type: call
+            value: "Crypto.Cipher.PKCS1_OAEP.new"
+          - type: call
+            value: "Crypto.Signature.pkcs1_15.new"
+          - type: call
+            value: "Crypto.Signature.pss.new"
+          - type: call
+            value: "rsa.newkeys"
+          - type: call
+            value: "rsa.encrypt"
+          - type: call
+            value: "rsa.sign"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/generateKeyPair"
+            args:
+              - index: 0
+                values: ["\"rsa\"", "'rsa'", "\"RSA\"", "'RSA'", "\"rsa-pss\"", "'rsa-pss'", "\"RSA-PSS\"", "'RSA-PSS'"]
+          - type: call
+            value: "crypto/generateKeyPairSync"
+            args:
+              - index: 0
+                values: ["\"rsa\"", "'rsa'", "\"RSA\"", "'RSA'", "\"rsa-pss\"", "'rsa-pss'", "\"RSA-PSS\"", "'RSA-PSS'"]
+          - type: call
+            value: "node:crypto/generateKeyPair"
+            args:
+              - index: 0
+                values: ["\"rsa\"", "'rsa'", "\"RSA\"", "'RSA'", "\"rsa-pss\"", "'rsa-pss'", "\"RSA-PSS\"", "'RSA-PSS'"]
+          - type: call
+            value: "node:crypto/generateKeyPairSync"
+            args:
+              - index: 0
+                values: ["\"rsa\"", "'rsa'", "\"RSA\"", "'RSA'", "\"rsa-pss\"", "'rsa-pss'", "\"RSA-PSS\"", "'RSA-PSS'"]
+          - type: call
+            value: "crypto/publicEncrypt"
+          - type: call
+            value: "crypto/privateDecrypt"
+          - type: call
+            value: "crypto/privateEncrypt"
+          - type: call
+            value: "crypto/publicDecrypt"
+          - type: call
+            value: "node:crypto/publicEncrypt"
+          - type: call
+            value: "node:crypto/privateDecrypt"
+          - type: call
+            value: "node:crypto/privateEncrypt"
+          - type: call
+            value: "node:crypto/publicDecrypt"
+          - type: call
+            value: "node-rsa"
+          - type: call
+            value: "node-forge/pki/rsa/generateKeyPair"
+          - type: call
+            value: "jsencrypt"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.KeyPairGenerator.getInstance"
+            args:
+              - index: 0
+                values: ["\"RSA\"", "\"rsa\""]
+          - type: call
+            value: "KeyPairGenerator.getInstance"
+            args:
+              - index: 0
+                values: ["\"RSA\"", "\"rsa\""]
+          - type: call
+            value: "javax.crypto.Cipher.getInstance"
+            args:
+              - index: 0
+                values: ["\"RSA\"", "\"rsa\"", "\"RSA/ECB/PKCS1Padding\"", "\"rsa/ecb/pkcs1padding\"", "\"RSA/ECB/PKCS1PADDING\"", "\"RSA/ECB/OAEPWithSHA-256AndMGF1Padding\"", "\"rsa/ecb/oaepwithsha-256andmgf1padding\"", "\"RSA/ECB/OAEPWITHSHA-256ANDMGF1PADDING\"", "\"RSA/ECB/OAEPWithSHA-1AndMGF1Padding\"", "\"rsa/ecb/oaepwithsha-1andmgf1padding\"", "\"RSA/ECB/OAEPWITHSHA-1ANDMGF1PADDING\"", "\"RSA/NONE/OAEPWithSHA256AndMGF1Padding\"", "\"rsa/none/oaepwithsha256andmgf1padding\"", "\"RSA/NONE/OAEPWITHSHA256ANDMGF1PADDING\""]
+          - type: call
+            value: "Cipher.getInstance"
+            args:
+              - index: 0
+                values: ["\"RSA\"", "\"rsa\"", "\"RSA/ECB/PKCS1Padding\"", "\"rsa/ecb/pkcs1padding\"", "\"RSA/ECB/PKCS1PADDING\"", "\"RSA/ECB/OAEPWithSHA-256AndMGF1Padding\"", "\"rsa/ecb/oaepwithsha-256andmgf1padding\"", "\"RSA/ECB/OAEPWITHSHA-256ANDMGF1PADDING\"", "\"RSA/ECB/OAEPWithSHA-1AndMGF1Padding\"", "\"rsa/ecb/oaepwithsha-1andmgf1padding\"", "\"RSA/ECB/OAEPWITHSHA-1ANDMGF1PADDING\"", "\"RSA/NONE/OAEPWithSHA256AndMGF1Padding\"", "\"rsa/none/oaepwithsha256andmgf1padding\"", "\"RSA/NONE/OAEPWITHSHA256ANDMGF1PADDING\""]
+          - type: call
+            value: "java.security.Signature.getInstance"
+            args:
+              - index: 0
+                values: ["\"SHA256withRSA\"", "\"sha256withrsa\"", "\"SHA256WITHRSA\"", "\"SHA1withRSA\"", "\"sha1withrsa\"", "\"SHA1WITHRSA\"", "\"SHA512withRSA\"", "\"sha512withrsa\"", "\"SHA512WITHRSA\"", "\"SHA384withRSA\"", "\"sha384withrsa\"", "\"SHA384WITHRSA\"", "\"RSASSA-PSS\"", "\"rsassa-pss\"", "\"SHA256withRSA/PSS\"", "\"sha256withrsa/pss\"", "\"SHA256WITHRSA/PSS\""]
+          - type: call
+            value: "Signature.getInstance"
+            args:
+              - index: 0
+                values: ["\"SHA256withRSA\"", "\"sha256withrsa\"", "\"SHA256WITHRSA\"", "\"SHA1withRSA\"", "\"sha1withrsa\"", "\"SHA1WITHRSA\"", "\"SHA512withRSA\"", "\"sha512withrsa\"", "\"SHA512WITHRSA\"", "\"SHA384withRSA\"", "\"sha384withrsa\"", "\"SHA384WITHRSA\"", "\"RSASSA-PSS\"", "\"rsassa-pss\"", "\"SHA256withRSA/PSS\"", "\"sha256withrsa/pss\"", "\"SHA256WITHRSA/PSS\""]
+          - type: call
+            value: "java.security.KeyFactory.getInstance"
+            args:
+              - index: 0
+                values: ["\"RSA\"", "\"rsa\""]
+          - type: call
+            value: "KeyFactory.getInstance"
+            args:
+              - index: 0
+                values: ["\"RSA\"", "\"rsa\""]
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/rsa/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "RSA.Create"
+          - type: call
+            value: "System.Security.Cryptography.RSA.Create"
+          - type: call
+            value: "RSACryptoServiceProvider"
+          - type: call
+            value: "System.Security.Cryptography.RSACryptoServiceProvider"
+          - type: call
+            value: "RSACng"
+          - type: call
+            value: "System.Security.Cryptography.RSACng"
+          - type: call
+            value: "RSAOpenSsl"
+          - type: call
+            value: "System.Security.Cryptography.RSAOpenSsl"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "rsa::*"
+          - type: call
+            value: "ring::signature::RsaKeyPair::*"
+          - type: call
+            value: "openssl::rsa::Rsa::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "openssl_public_encrypt"
+          - type: call
+            value: "openssl_private_decrypt"
+          - type: call
+            value: "openssl_private_encrypt"
+          - type: call
+            value: "phpseclib3\\Crypt\\RSA::*"
+          - type: call
+            value: "phpseclib\\Crypt\\RSA"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "OpenSSL::PKey::RSA.*"
+
+  - id: crypto.ecdsa
+    description: "Elliptic curve signatures (ECDSA)"
+    vendor: ""
+    product: "ECDSA"
+    service: "ECDSA"
+    tags: [cryptography, signature]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "cryptography.hazmat.primitives.asymmetric.ec.generate_private_key"
+          - type: call
+            value: "cryptography.hazmat.primitives.asymmetric.ec.ECDSA"
+          - type: call
+            value: "Crypto.PublicKey.ECC.generate"
+          - type: call
+            value: "Crypto.Signature.DSS.new"
+          - type: call
+            value: "ecdsa.SigningKey.generate"
+          - type: call
+            value: "ecdsa.SigningKey.from_pem"
+          - type: call
+            value: "coincurve.PrivateKey"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/generateKeyPair"
+            args:
+              - index: 0
+                values: ["\"ec\"", "'ec'", "\"EC\"", "'EC'"]
+          - type: call
+            value: "crypto/generateKeyPairSync"
+            args:
+              - index: 0
+                values: ["\"ec\"", "'ec'", "\"EC\"", "'EC'"]
+          - type: call
+            value: "node:crypto/generateKeyPair"
+            args:
+              - index: 0
+                values: ["\"ec\"", "'ec'", "\"EC\"", "'EC'"]
+          - type: call
+            value: "node:crypto/generateKeyPairSync"
+            args:
+              - index: 0
+                values: ["\"ec\"", "'ec'", "\"EC\"", "'EC'"]
+          - type: call
+            value: "elliptic/ec"
+          - type: call
+            value: "@noble/curves/secp256k1/secp256k1"
+          - type: call
+            value: "@noble/curves/p256/p256"
+          - type: call
+            value: "@noble/secp256k1/sign"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.KeyPairGenerator.getInstance"
+            args:
+              - index: 0
+                values: ["\"EC\"", "\"ec\"", "\"ECDSA\"", "\"ecdsa\""]
+          - type: call
+            value: "KeyPairGenerator.getInstance"
+            args:
+              - index: 0
+                values: ["\"EC\"", "\"ec\"", "\"ECDSA\"", "\"ecdsa\""]
+          - type: call
+            value: "java.security.Signature.getInstance"
+            args:
+              - index: 0
+                values: ["\"SHA256withECDSA\"", "\"sha256withecdsa\"", "\"SHA256WITHECDSA\"", "\"SHA384withECDSA\"", "\"sha384withecdsa\"", "\"SHA384WITHECDSA\"", "\"SHA512withECDSA\"", "\"sha512withecdsa\"", "\"SHA512WITHECDSA\"", "\"SHA1withECDSA\"", "\"sha1withecdsa\"", "\"SHA1WITHECDSA\""]
+          - type: call
+            value: "Signature.getInstance"
+            args:
+              - index: 0
+                values: ["\"SHA256withECDSA\"", "\"sha256withecdsa\"", "\"SHA256WITHECDSA\"", "\"SHA384withECDSA\"", "\"sha384withecdsa\"", "\"SHA384WITHECDSA\"", "\"SHA512withECDSA\"", "\"sha512withecdsa\"", "\"SHA512WITHECDSA\"", "\"SHA1withECDSA\"", "\"sha1withecdsa\"", "\"SHA1WITHECDSA\""]
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/ecdsa/*"
+          - type: call
+            value: "crypto/elliptic/*"
+          - type: call
+            value: "github.com/decred/dcrd/dcrec/secp256k1/v4/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "ECDsa.Create"
+          - type: call
+            value: "System.Security.Cryptography.ECDsa.Create"
+          - type: call
+            value: "ECDsaCng"
+          - type: call
+            value: "System.Security.Cryptography.ECDsaCng"
+          - type: call
+            value: "ECDsaOpenSsl"
+          - type: call
+            value: "System.Security.Cryptography.ECDsaOpenSsl"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "p256::ecdsa::*"
+          - type: call
+            value: "p384::ecdsa::*"
+          - type: call
+            value: "k256::ecdsa::*"
+          - type: call
+            value: "ecdsa::*"
+          - type: call
+            value: "ring::signature::EcdsaKeyPair::*"
+          - type: call
+            value: "secp256k1::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "phpseclib3\\Crypt\\EC::*"
+          - type: call
+            value: "Mdanter\\Ecc\\*"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "OpenSSL::PKey::EC.*"
+          - type: call
+            value: "Secp256k1::*"
+
+  - id: crypto.ed25519
+    description: "Ed25519 signatures"
+    vendor: ""
+    product: "EdDSA"
+    service: "Ed25519"
+    tags: [cryptography, signature]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey.generate"
+          - type: call
+            value: "cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey"
+          - type: call
+            value: "cryptography.hazmat.primitives.asymmetric.ed448.Ed448PrivateKey.generate"
+          - type: call
+            value: "nacl.signing.SigningKey"
+          - type: call
+            value: "nacl.signing.SigningKey.generate"
+          - type: call
+            value: "Crypto.Signature.eddsa.new"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/generateKeyPair"
+            args:
+              - index: 0
+                values: ["\"ed25519\"", "'ed25519'", "\"ED25519\"", "'ED25519'", "\"ed448\"", "'ed448'", "\"ED448\"", "'ED448'"]
+          - type: call
+            value: "crypto/generateKeyPairSync"
+            args:
+              - index: 0
+                values: ["\"ed25519\"", "'ed25519'", "\"ED25519\"", "'ED25519'", "\"ed448\"", "'ed448'", "\"ED448\"", "'ED448'"]
+          - type: call
+            value: "node:crypto/generateKeyPair"
+            args:
+              - index: 0
+                values: ["\"ed25519\"", "'ed25519'", "\"ED25519\"", "'ED25519'", "\"ed448\"", "'ed448'", "\"ED448\"", "'ED448'"]
+          - type: call
+            value: "node:crypto/generateKeyPairSync"
+            args:
+              - index: 0
+                values: ["\"ed25519\"", "'ed25519'", "\"ED25519\"", "'ED25519'", "\"ed448\"", "'ed448'", "\"ED448\"", "'ED448'"]
+          - type: call
+            value: "tweetnacl/sign"
+          - type: call
+            value: "tweetnacl/sign/keyPair"
+          - type: call
+            value: "@noble/ed25519/sign"
+          - type: call
+            value: "@noble/curves/ed25519/ed25519"
+          - type: call
+            value: "libsodium-wrappers/crypto_sign_keypair"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.KeyPairGenerator.getInstance"
+            args:
+              - index: 0
+                values: ["\"Ed25519\"", "\"ed25519\"", "\"ED25519\"", "\"EdDSA\"", "\"eddsa\"", "\"EDDSA\"", "\"Ed448\"", "\"ed448\"", "\"ED448\""]
+          - type: call
+            value: "KeyPairGenerator.getInstance"
+            args:
+              - index: 0
+                values: ["\"Ed25519\"", "\"ed25519\"", "\"ED25519\"", "\"EdDSA\"", "\"eddsa\"", "\"EDDSA\"", "\"Ed448\"", "\"ed448\"", "\"ED448\""]
+          - type: call
+            value: "java.security.Signature.getInstance"
+            args:
+              - index: 0
+                values: ["\"Ed25519\"", "\"ed25519\"", "\"ED25519\"", "\"EdDSA\"", "\"eddsa\"", "\"EDDSA\""]
+          - type: call
+            value: "Signature.getInstance"
+            args:
+              - index: 0
+                values: ["\"Ed25519\"", "\"ed25519\"", "\"ED25519\"", "\"EdDSA\"", "\"eddsa\"", "\"EDDSA\""]
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/ed25519/*"
+          - type: call
+            value: "golang.org/x/crypto/ed25519/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "NSec.Cryptography.SignatureAlgorithm.Ed25519"
+          - type: call
+            value: "Org.BouncyCastle.Crypto.Signers.Ed25519Signer"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "ed25519_dalek::*"
+          - type: call
+            value: "ed25519::*"
+          - type: call
+            value: "ring::signature::Ed25519KeyPair::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "sodium_crypto_sign"
+          - type: call
+            value: "sodium_crypto_sign_keypair"
+          - type: call
+            value: "sodium_crypto_sign_detached"
+          - type: call
+            value: "sodium_crypto_sign_verify_detached"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "Ed25519::SigningKey.*"
+          - type: call
+            value: "RbNaCl::SigningKey.*"
+
+  - id: crypto.ecdh
+    description: "Elliptic curve key agreement (ECDH, X25519)"
+    vendor: ""
+    product: "ECDH"
+    service: "ECDH and X25519"
+    tags: [cryptography, key-agree]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "cryptography.hazmat.primitives.asymmetric.x25519.X25519PrivateKey.generate"
+          - type: call
+            value: "cryptography.hazmat.primitives.asymmetric.x25519.X25519PrivateKey"
+          - type: call
+            value: "cryptography.hazmat.primitives.asymmetric.ec.ECDH"
+          - type: call
+            value: "nacl.public.PrivateKey.generate"
+          - type: call
+            value: "nacl.public.Box"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/createECDH"
+          - type: call
+            value: "crypto/diffieHellman"
+          - type: call
+            value: "node:crypto/createECDH"
+          - type: call
+            value: "node:crypto/diffieHellman"
+          - type: call
+            value: "crypto/generateKeyPair"
+            args:
+              - index: 0
+                values: ["\"x25519\"", "'x25519'", "\"X25519\"", "'X25519'", "\"x448\"", "'x448'", "\"X448\"", "'X448'"]
+          - type: call
+            value: "crypto/generateKeyPairSync"
+            args:
+              - index: 0
+                values: ["\"x25519\"", "'x25519'", "\"X25519\"", "'X25519'", "\"x448\"", "'x448'", "\"X448\"", "'X448'"]
+          - type: call
+            value: "node:crypto/generateKeyPair"
+            args:
+              - index: 0
+                values: ["\"x25519\"", "'x25519'", "\"X25519\"", "'X25519'", "\"x448\"", "'x448'", "\"X448\"", "'X448'"]
+          - type: call
+            value: "node:crypto/generateKeyPairSync"
+            args:
+              - index: 0
+                values: ["\"x25519\"", "'x25519'", "\"X25519\"", "'X25519'", "\"x448\"", "'x448'", "\"X448\"", "'X448'"]
+          - type: call
+            value: "tweetnacl/box"
+          - type: call
+            value: "@noble/curves/ed25519/x25519"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "javax.crypto.KeyAgreement.getInstance"
+            args:
+              - index: 0
+                values: ["\"ECDH\"", "\"ecdh\"", "\"X25519\"", "\"x25519\"", "\"XDH\"", "\"xdh\"", "\"DH\"", "\"dh\"", "\"DiffieHellman\"", "\"diffiehellman\"", "\"DIFFIEHELLMAN\""]
+          - type: call
+            value: "KeyAgreement.getInstance"
+            args:
+              - index: 0
+                values: ["\"ECDH\"", "\"ecdh\"", "\"X25519\"", "\"x25519\"", "\"XDH\"", "\"xdh\"", "\"DH\"", "\"dh\"", "\"DiffieHellman\"", "\"diffiehellman\"", "\"DIFFIEHELLMAN\""]
+          - type: call
+            value: "java.security.KeyPairGenerator.getInstance"
+            args:
+              - index: 0
+                values: ["\"X25519\"", "\"x25519\"", "\"XDH\"", "\"xdh\""]
+          - type: call
+            value: "KeyPairGenerator.getInstance"
+            args:
+              - index: 0
+                values: ["\"X25519\"", "\"x25519\"", "\"XDH\"", "\"xdh\""]
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/ecdh/*"
+          - type: call
+            value: "golang.org/x/crypto/curve25519/*"
+          - type: call
+            value: "golang.org/x/crypto/nacl/box/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "ECDiffieHellman.Create"
+          - type: call
+            value: "System.Security.Cryptography.ECDiffieHellman.Create"
+          - type: call
+            value: "ECDiffieHellmanCng"
+          - type: call
+            value: "System.Security.Cryptography.ECDiffieHellmanCng"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "x25519_dalek::*"
+          - type: call
+            value: "ring::agreement::*"
+          - type: call
+            value: "p256::ecdh::*"
+          - type: call
+            value: "crypto_box::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "sodium_crypto_box"
+          - type: call
+            value: "sodium_crypto_box_keypair"
+          - type: call
+            value: "sodium_crypto_kx_keypair"
+          - type: call
+            value: "sodium_crypto_scalarmult"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "RbNaCl::PrivateKey.*"
+          - type: call
+            value: "RbNaCl::Box.*"
+
+  - id: crypto.dsa
+    description: "DSA signatures"
+    vendor: ""
+    product: "DSA"
+    service: "DSA"
+    tags: [cryptography, signature, weak]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "cryptography.hazmat.primitives.asymmetric.dsa.generate_private_key"
+          - type: call
+            value: "Crypto.PublicKey.DSA.generate"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.KeyPairGenerator.getInstance"
+            args:
+              - index: 0
+                values: ["\"DSA\"", "\"dsa\""]
+          - type: call
+            value: "KeyPairGenerator.getInstance"
+            args:
+              - index: 0
+                values: ["\"DSA\"", "\"dsa\""]
+          - type: call
+            value: "java.security.Signature.getInstance"
+            args:
+              - index: 0
+                values: ["\"SHA1withDSA\"", "\"sha1withdsa\"", "\"SHA1WITHDSA\"", "\"SHA256withDSA\"", "\"sha256withdsa\"", "\"SHA256WITHDSA\"", "\"DSA\"", "\"dsa\""]
+          - type: call
+            value: "Signature.getInstance"
+            args:
+              - index: 0
+                values: ["\"SHA1withDSA\"", "\"sha1withdsa\"", "\"SHA1WITHDSA\"", "\"SHA256withDSA\"", "\"sha256withdsa\"", "\"SHA256WITHDSA\"", "\"DSA\"", "\"dsa\""]
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/dsa/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "DSA.Create"
+          - type: call
+            value: "System.Security.Cryptography.DSA.Create"
+          - type: call
+            value: "DSACryptoServiceProvider"
+          - type: call
+            value: "System.Security.Cryptography.DSACryptoServiceProvider"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "dsa::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "phpseclib3\\Crypt\\DSA::*"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "OpenSSL::PKey::DSA.*"

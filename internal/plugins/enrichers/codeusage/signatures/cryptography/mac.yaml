@@ -1,0 +1,112 @@
+version: 0.1
+# Generated from crypto_sigs.py. One id for each algorithm, with the call forms
+# of each language. The tags hold the CycloneDX crypto primitive.
+
+signatures:
+  - id: crypto.hmac
+    description: "Hash-based message authentication code"
+    vendor: ""
+    product: "HMAC"
+    service: "HMAC"
+    tags: [cryptography, mac]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hmac.new"
+          - type: call
+            value: "hmac.digest"
+          - type: call
+            value: "cryptography.hazmat.primitives.hmac.HMAC"
+          - type: call
+            value: "Crypto.Hash.HMAC.new"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/createHmac"
+          - type: call
+            value: "node:crypto/createHmac"
+          - type: call
+            value: "crypto-js/HmacSHA256"
+          - type: call
+            value: "crypto-js/HmacSHA1"
+          - type: call
+            value: "crypto-js/HmacSHA512"
+          - type: call
+            value: "crypto-js/HmacMD5"
+          - type: call
+            value: "@noble/hashes/hmac/hmac"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "javax.crypto.Mac.getInstance"
+            args:
+              - index: 0
+                values: ["\"HmacSHA256\"", "\"hmacsha256\"", "\"HMACSHA256\"", "\"HmacSHA1\"", "\"hmacsha1\"", "\"HMACSHA1\"", "\"HmacSHA512\"", "\"hmacsha512\"", "\"HMACSHA512\"", "\"HmacSHA384\"", "\"hmacsha384\"", "\"HMACSHA384\"", "\"HmacMD5\"", "\"hmacmd5\"", "\"HMACMD5\""]
+          - type: call
+            value: "Mac.getInstance"
+            args:
+              - index: 0
+                values: ["\"HmacSHA256\"", "\"hmacsha256\"", "\"HMACSHA256\"", "\"HmacSHA1\"", "\"hmacsha1\"", "\"HMACSHA1\"", "\"HmacSHA512\"", "\"hmacsha512\"", "\"HMACSHA512\"", "\"HmacSHA384\"", "\"hmacsha384\"", "\"HMACSHA384\"", "\"HmacMD5\"", "\"hmacmd5\"", "\"HMACMD5\""]
+          - type: call
+            value: "org.apache.commons.codec.digest.HmacUtils"
+          - type: call
+            value: "org.bouncycastle.crypto.macs.HMac"
+          - type: call
+            value: "com.google.common.hash.Hashing.hmacSha256"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/hmac/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "HMACSHA256"
+          - type: call
+            value: "System.Security.Cryptography.HMACSHA256"
+          - type: call
+            value: "HMACSHA1"
+          - type: call
+            value: "System.Security.Cryptography.HMACSHA1"
+          - type: call
+            value: "HMACSHA512"
+          - type: call
+            value: "System.Security.Cryptography.HMACSHA512"
+          - type: call
+            value: "HMACSHA384"
+          - type: call
+            value: "System.Security.Cryptography.HMACSHA384"
+          - type: call
+            value: "HMACSHA256.HashData"
+          - type: call
+            value: "System.Security.Cryptography.HMACSHA256.HashData"
+          - type: call
+            value: "HMACSHA512.HashData"
+          - type: call
+            value: "System.Security.Cryptography.HMACSHA512.HashData"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "hmac::*"
+          - type: call
+            value: "ring::hmac::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "hash_hmac"
+          - type: call
+            value: "hash_hmac_file"
+          - type: call
+            value: "hash_hmac_algos"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "OpenSSL::HMAC.*"

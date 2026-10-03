@@ -1,0 +1,206 @@
+version: 0.1
+# Generated from crypto_sigs.py. One id for each algorithm, with the call forms
+# of each language. The tags hold the CycloneDX crypto primitive.
+
+signatures:
+  - id: crypto.jwt
+    description: "JSON Web Token signing and verification"
+    vendor: ""
+    product: "JWT"
+    service: "JSON Web Token"
+    tags: [cryptography, token, jwt]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "jwt.encode"
+          - type: call
+            value: "jwt.decode"
+          - type: call
+            value: "jwt.PyJWT"
+          - type: call
+            value: "jose.jwt.encode"
+          - type: call
+            value: "jose.jwt.decode"
+          - type: call
+            value: "jwcrypto.jwt.JWT"
+          - type: call
+            value: "authlib.jose.jwt.encode"
+          - type: call
+            value: "authlib.jose.jwt.decode"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "jsonwebtoken/sign"
+          - type: call
+            value: "jsonwebtoken/verify"
+          - type: call
+            value: "jsonwebtoken/decode"
+          - type: call
+            value: "jose/SignJWT"
+          - type: call
+            value: "jose/jwtVerify"
+          - type: call
+            value: "jose/EncryptJWT"
+          - type: call
+            value: "jose/jwtDecrypt"
+          - type: call
+            value: "jwt-decode/jwtDecode"
+          - type: call
+            value: "jwt-decode"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "io.jsonwebtoken.Jwts.builder"
+          - type: call
+            value: "io.jsonwebtoken.Jwts.parser"
+          - type: call
+            value: "io.jsonwebtoken.Jwts.parserBuilder"
+          - type: call
+            value: "com.auth0.jwt.JWT.create"
+          - type: call
+            value: "com.auth0.jwt.JWT.require"
+          - type: call
+            value: "com.auth0.jwt.JWT.decode"
+          - type: call
+            value: "com.nimbusds.jwt.SignedJWT"
+          - type: call
+            value: "com.nimbusds.jwt.SignedJWT.parse"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "github.com/golang-jwt/jwt/v5/*"
+          - type: call
+            value: "github.com/golang-jwt/jwt/v4/*"
+          - type: call
+            value: "github.com/golang-jwt/jwt/*"
+          - type: call
+            value: "github.com/dgrijalva/jwt-go/*"
+          - type: call
+            value: "github.com/lestrrat-go/jwx/v2/jwt/*"
+          - type: call
+            value: "github.com/go-jose/go-jose/v4/*"
+          - type: call
+            value: "gopkg.in/square/go-jose.v2/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "JwtSecurityTokenHandler"
+          - type: call
+            value: "System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler"
+          - type: call
+            value: "JsonWebTokenHandler"
+          - type: call
+            value: "Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler"
+          - type: call
+            value: "JwtSecurityToken"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "jsonwebtoken::*"
+          - type: call
+            value: "jwt_simple::*"
+          - type: call
+            value: "josekit::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "Firebase\\JWT\\JWT::*"
+          - type: call
+            value: "Lcobucci\\JWT\\*"
+          - type: call
+            value: "Tymon\\JWTAuth\\*"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "JWT.encode"
+          - type: call
+            value: "JWT.decode"
+
+  - id: crypto.nacl
+    description: "NaCl and libsodium boxes"
+    vendor: ""
+    product: "NaCl"
+    service: "NaCl and libsodium"
+    tags: [cryptography, ae]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "nacl.secret.SecretBox"
+          - type: call
+            value: "nacl.public.Box"
+          - type: call
+            value: "nacl.public.SealedBox"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "tweetnacl/secretbox"
+          - type: call
+            value: "tweetnacl/box"
+          - type: call
+            value: "libsodium-wrappers/crypto_secretbox_easy"
+          - type: call
+            value: "libsodium-wrappers/crypto_box_easy"
+          - type: call
+            value: "sodium-native/crypto_secretbox_easy"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "org.abstractj.kalium.crypto.SecretBox"
+          - type: call
+            value: "com.goterl.lazysodium.LazySodiumJava"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "golang.org/x/crypto/nacl/secretbox/*"
+          - type: call
+            value: "golang.org/x/crypto/nacl/box/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "Sodium.SecretBox.Create"
+          - type: call
+            value: "SecretBox.Create"
+          - type: call
+            value: "Sodium.PublicKeyBox.Create"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "sodiumoxide::*"
+          - type: call
+            value: "crypto_secretbox::*"
+          - type: call
+            value: "dryoc::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "sodium_crypto_secretbox"
+          - type: call
+            value: "sodium_crypto_secretbox_open"
+          - type: call
+            value: "sodium_crypto_box_seal"
+          - type: call
+            value: "sodium_crypto_box_seal_open"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "RbNaCl::SecretBox.*"
+          - type: call
+            value: "RbNaCl::SimpleBox.*"

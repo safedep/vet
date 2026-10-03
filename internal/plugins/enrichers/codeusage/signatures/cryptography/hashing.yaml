@@ -1,0 +1,871 @@
+version: 0.1
+# Generated from crypto_sigs.py. One id for each algorithm, with the call forms
+# of each language. The tags hold the CycloneDX crypto primitive.
+
+signatures:
+  - id: crypto.md5
+    description: "MD5 message digest"
+    vendor: ""
+    product: "MD5"
+    service: "MD5"
+    tags: [cryptography, hash, weak]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.md5"
+          - type: call
+            value: "hashlib.new"
+            args:
+              - index: 0
+                values: ["\"md5\"", "'md5'", "\"MD5\"", "'MD5'"]
+          - type: call
+            value: "Crypto.Hash.MD5.new"
+          - type: call
+            value: "Cryptodome.Hash.MD5.new"
+          - type: call
+            value: "cryptography.hazmat.primitives.hashes.MD5"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/createHash"
+            args:
+              - index: 0
+                values: ["\"md5\"", "'md5'", "\"MD5\"", "'MD5'"]
+          - type: call
+            value: "node:crypto/createHash"
+            args:
+              - index: 0
+                values: ["\"md5\"", "'md5'", "\"MD5\"", "'MD5'"]
+          - type: call
+            value: "crypto-js/MD5"
+          - type: call
+            value: "md5"
+          - type: call
+            value: "blueimp-md5"
+          - type: call
+            value: "spark-md5/hash"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"MD5\"", "\"md5\""]
+          - type: call
+            value: "MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"MD5\"", "\"md5\""]
+          - type: call
+            value: "org.apache.commons.codec.digest.DigestUtils.md5Hex"
+          - type: call
+            value: "org.apache.commons.codec.digest.DigestUtils.md5"
+          - type: call
+            value: "org.bouncycastle.crypto.digests.MD5Digest"
+          - type: call
+            value: "com.google.common.hash.Hashing.md5"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/md5/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "MD5.Create"
+          - type: call
+            value: "System.Security.Cryptography.MD5.Create"
+          - type: call
+            value: "MD5.HashData"
+          - type: call
+            value: "System.Security.Cryptography.MD5.HashData"
+          - type: call
+            value: "MD5CryptoServiceProvider"
+          - type: call
+            value: "System.Security.Cryptography.MD5CryptoServiceProvider"
+          - type: call
+            value: "HMACMD5"
+          - type: call
+            value: "System.Security.Cryptography.HMACMD5"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "md5::*"
+          - type: call
+            value: "md5::Md5::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "md5"
+          - type: call
+            value: "md5_file"
+          - type: call
+            value: "hash"
+            args:
+              - index: 0
+                values: ["\"md5\"", "'md5'", "\"MD5\"", "'MD5'"]
+          - type: call
+            value: "hash_file"
+            args:
+              - index: 0
+                values: ["\"md5\"", "'md5'", "\"MD5\"", "'MD5'"]
+          - type: call
+            value: "hash_init"
+            args:
+              - index: 0
+                values: ["\"md5\"", "'md5'", "\"MD5\"", "'MD5'"]
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "Digest::MD5.*"
+          - type: call
+            value: "OpenSSL::Digest::MD5.*"
+          - type: call
+            value: "OpenSSL::Digest.new"
+            args:
+              - index: 0
+                values: ["\"md5\"", "'md5'", "\"MD5\"", "'MD5'"]
+
+  - id: crypto.sha1
+    description: "SHA-1 message digest"
+    vendor: ""
+    product: "SHA-1"
+    service: "SHA-1"
+    tags: [cryptography, hash, weak]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.sha1"
+          - type: call
+            value: "hashlib.new"
+            args:
+              - index: 0
+                values: ["\"sha1\"", "'sha1'", "\"SHA1\"", "'SHA1'"]
+          - type: call
+            value: "Crypto.Hash.SHA1.new"
+          - type: call
+            value: "Cryptodome.Hash.SHA1.new"
+          - type: call
+            value: "cryptography.hazmat.primitives.hashes.SHA1"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/createHash"
+            args:
+              - index: 0
+                values: ["\"sha1\"", "'sha1'", "\"SHA1\"", "'SHA1'"]
+          - type: call
+            value: "node:crypto/createHash"
+            args:
+              - index: 0
+                values: ["\"sha1\"", "'sha1'", "\"SHA1\"", "'SHA1'"]
+          - type: call
+            value: "crypto-js/SHA1"
+          - type: call
+            value: "sha1"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"SHA-1\"", "\"sha-1\"", "\"SHA1\"", "\"sha1\"", "\"SHA\"", "\"sha\""]
+          - type: call
+            value: "MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"SHA-1\"", "\"sha-1\"", "\"SHA1\"", "\"sha1\"", "\"SHA\"", "\"sha\""]
+          - type: call
+            value: "org.apache.commons.codec.digest.DigestUtils.sha1Hex"
+          - type: call
+            value: "org.apache.commons.codec.digest.DigestUtils.sha1"
+          - type: call
+            value: "org.bouncycastle.crypto.digests.SHA1Digest"
+          - type: call
+            value: "com.google.common.hash.Hashing.sha1"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/sha1/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "SHA1.Create"
+          - type: call
+            value: "System.Security.Cryptography.SHA1.Create"
+          - type: call
+            value: "SHA1.HashData"
+          - type: call
+            value: "System.Security.Cryptography.SHA1.HashData"
+          - type: call
+            value: "SHA1Managed"
+          - type: call
+            value: "System.Security.Cryptography.SHA1Managed"
+          - type: call
+            value: "SHA1CryptoServiceProvider"
+          - type: call
+            value: "System.Security.Cryptography.SHA1CryptoServiceProvider"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "sha1::*"
+          - type: call
+            value: "sha1_smol::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "sha1"
+          - type: call
+            value: "sha1_file"
+          - type: call
+            value: "hash"
+            args:
+              - index: 0
+                values: ["\"sha1\"", "'sha1'", "\"SHA1\"", "'SHA1'"]
+          - type: call
+            value: "hash_file"
+            args:
+              - index: 0
+                values: ["\"sha1\"", "'sha1'", "\"SHA1\"", "'SHA1'"]
+          - type: call
+            value: "hash_init"
+            args:
+              - index: 0
+                values: ["\"sha1\"", "'sha1'", "\"SHA1\"", "'SHA1'"]
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "Digest::SHA1.*"
+          - type: call
+            value: "OpenSSL::Digest::SHA1.*"
+          - type: call
+            value: "OpenSSL::Digest.new"
+            args:
+              - index: 0
+                values: ["\"sha1\"", "'sha1'", "\"SHA1\"", "'SHA1'"]
+
+  - id: crypto.sha256
+    description: "SHA-256 message digest"
+    vendor: ""
+    product: "SHA-2"
+    service: "SHA-256"
+    tags: [cryptography, hash]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.sha256"
+          - type: call
+            value: "hashlib.new"
+            args:
+              - index: 0
+                values: ["\"sha256\"", "'sha256'", "\"SHA256\"", "'SHA256'"]
+          - type: call
+            value: "Crypto.Hash.SHA256.new"
+          - type: call
+            value: "Cryptodome.Hash.SHA256.new"
+          - type: call
+            value: "cryptography.hazmat.primitives.hashes.SHA256"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/createHash"
+            args:
+              - index: 0
+                values: ["\"sha256\"", "'sha256'", "\"SHA256\"", "'SHA256'"]
+          - type: call
+            value: "node:crypto/createHash"
+            args:
+              - index: 0
+                values: ["\"sha256\"", "'sha256'", "\"SHA256\"", "'SHA256'"]
+          - type: call
+            value: "crypto/subtle/digest"
+            args:
+              - index: 0
+                values: ["\"SHA-256\"", "'SHA-256'", "\"sha-256\"", "'sha-256'"]
+          - type: call
+            value: "crypto-js/SHA256"
+          - type: call
+            value: "@noble/hashes/sha2/sha256"
+          - type: call
+            value: "@noble/hashes/sha256/sha256"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"SHA-256\"", "\"sha-256\"", "\"SHA256\"", "\"sha256\""]
+          - type: call
+            value: "MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"SHA-256\"", "\"sha-256\"", "\"SHA256\"", "\"sha256\""]
+          - type: call
+            value: "org.apache.commons.codec.digest.DigestUtils.sha256Hex"
+          - type: call
+            value: "org.apache.commons.codec.digest.DigestUtils.sha256"
+          - type: call
+            value: "org.bouncycastle.crypto.digests.SHA256Digest"
+          - type: call
+            value: "com.google.common.hash.Hashing.sha256"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/sha256/New"
+          - type: call
+            value: "crypto/sha256/Sum256"
+          - type: call
+            value: "crypto/sha256/New224"
+          - type: call
+            value: "crypto/sha256/Sum224"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "SHA256.Create"
+          - type: call
+            value: "System.Security.Cryptography.SHA256.Create"
+          - type: call
+            value: "SHA256.HashData"
+          - type: call
+            value: "System.Security.Cryptography.SHA256.HashData"
+          - type: call
+            value: "SHA256Managed"
+          - type: call
+            value: "System.Security.Cryptography.SHA256Managed"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "sha2::Sha256::*"
+          - type: call
+            value: "sha2::Sha224::*"
+          - type: call
+            value: "openssl::sha::sha256"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "hash"
+            args:
+              - index: 0
+                values: ["\"sha256\"", "'sha256'", "\"SHA256\"", "'SHA256'", "\"SHA-256\"", "'SHA-256'", "\"sha-256\"", "'sha-256'"]
+          - type: call
+            value: "hash_file"
+            args:
+              - index: 0
+                values: ["\"sha256\"", "'sha256'", "\"SHA256\"", "'SHA256'", "\"SHA-256\"", "'SHA-256'", "\"sha-256\"", "'sha-256'"]
+          - type: call
+            value: "hash_init"
+            args:
+              - index: 0
+                values: ["\"sha256\"", "'sha256'", "\"SHA256\"", "'SHA256'", "\"SHA-256\"", "'SHA-256'", "\"sha-256\"", "'sha-256'"]
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "Digest::SHA256.*"
+          - type: call
+            value: "OpenSSL::Digest::SHA256.*"
+          - type: call
+            value: "OpenSSL::Digest.new"
+            args:
+              - index: 0
+                values: ["\"sha256\"", "'sha256'", "\"SHA256\"", "'SHA256'", "\"SHA-256\"", "'SHA-256'", "\"sha-256\"", "'sha-256'"]
+
+  - id: crypto.sha384
+    description: "SHA-384 message digest"
+    vendor: ""
+    product: "SHA-2"
+    service: "SHA-384"
+    tags: [cryptography, hash]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.sha384"
+          - type: call
+            value: "hashlib.new"
+            args:
+              - index: 0
+                values: ["\"sha384\"", "'sha384'", "\"SHA384\"", "'SHA384'"]
+          - type: call
+            value: "Crypto.Hash.SHA384.new"
+          - type: call
+            value: "Cryptodome.Hash.SHA384.new"
+          - type: call
+            value: "cryptography.hazmat.primitives.hashes.SHA384"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/createHash"
+            args:
+              - index: 0
+                values: ["\"sha384\"", "'sha384'", "\"SHA384\"", "'SHA384'"]
+          - type: call
+            value: "node:crypto/createHash"
+            args:
+              - index: 0
+                values: ["\"sha384\"", "'sha384'", "\"SHA384\"", "'SHA384'"]
+          - type: call
+            value: "crypto/subtle/digest"
+            args:
+              - index: 0
+                values: ["\"SHA-384\"", "'SHA-384'", "\"sha-384\"", "'sha-384'"]
+          - type: call
+            value: "crypto-js/SHA384"
+          - type: call
+            value: "@noble/hashes/sha2/sha384"
+          - type: call
+            value: "@noble/hashes/sha512/sha384"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"SHA-384\"", "\"sha-384\"", "\"SHA384\"", "\"sha384\""]
+          - type: call
+            value: "MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"SHA-384\"", "\"sha-384\"", "\"SHA384\"", "\"sha384\""]
+          - type: call
+            value: "org.apache.commons.codec.digest.DigestUtils.sha384Hex"
+          - type: call
+            value: "org.apache.commons.codec.digest.DigestUtils.sha384"
+          - type: call
+            value: "org.bouncycastle.crypto.digests.SHA384Digest"
+          - type: call
+            value: "com.google.common.hash.Hashing.sha384"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/sha512/New384"
+          - type: call
+            value: "crypto/sha512/Sum384"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "SHA384.Create"
+          - type: call
+            value: "System.Security.Cryptography.SHA384.Create"
+          - type: call
+            value: "SHA384.HashData"
+          - type: call
+            value: "System.Security.Cryptography.SHA384.HashData"
+          - type: call
+            value: "SHA384Managed"
+          - type: call
+            value: "System.Security.Cryptography.SHA384Managed"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "sha2::Sha384::*"
+          - type: call
+            value: "openssl::sha::sha384"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "hash"
+            args:
+              - index: 0
+                values: ["\"sha384\"", "'sha384'", "\"SHA384\"", "'SHA384'", "\"SHA-384\"", "'SHA-384'", "\"sha-384\"", "'sha-384'"]
+          - type: call
+            value: "hash_file"
+            args:
+              - index: 0
+                values: ["\"sha384\"", "'sha384'", "\"SHA384\"", "'SHA384'", "\"SHA-384\"", "'SHA-384'", "\"sha-384\"", "'sha-384'"]
+          - type: call
+            value: "hash_init"
+            args:
+              - index: 0
+                values: ["\"sha384\"", "'sha384'", "\"SHA384\"", "'SHA384'", "\"SHA-384\"", "'SHA-384'", "\"sha-384\"", "'sha-384'"]
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "Digest::SHA384.*"
+          - type: call
+            value: "OpenSSL::Digest::SHA384.*"
+          - type: call
+            value: "OpenSSL::Digest.new"
+            args:
+              - index: 0
+                values: ["\"sha384\"", "'sha384'", "\"SHA384\"", "'SHA384'", "\"SHA-384\"", "'SHA-384'", "\"sha-384\"", "'sha-384'"]
+
+  - id: crypto.sha512
+    description: "SHA-512 message digest"
+    vendor: ""
+    product: "SHA-2"
+    service: "SHA-512"
+    tags: [cryptography, hash]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.sha512"
+          - type: call
+            value: "hashlib.new"
+            args:
+              - index: 0
+                values: ["\"sha512\"", "'sha512'", "\"SHA512\"", "'SHA512'"]
+          - type: call
+            value: "Crypto.Hash.SHA512.new"
+          - type: call
+            value: "Cryptodome.Hash.SHA512.new"
+          - type: call
+            value: "cryptography.hazmat.primitives.hashes.SHA512"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/createHash"
+            args:
+              - index: 0
+                values: ["\"sha512\"", "'sha512'", "\"SHA512\"", "'SHA512'"]
+          - type: call
+            value: "node:crypto/createHash"
+            args:
+              - index: 0
+                values: ["\"sha512\"", "'sha512'", "\"SHA512\"", "'SHA512'"]
+          - type: call
+            value: "crypto/subtle/digest"
+            args:
+              - index: 0
+                values: ["\"SHA-512\"", "'SHA-512'", "\"sha-512\"", "'sha-512'"]
+          - type: call
+            value: "crypto-js/SHA512"
+          - type: call
+            value: "@noble/hashes/sha2/sha512"
+          - type: call
+            value: "@noble/hashes/sha512/sha512"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"SHA-512\"", "\"sha-512\"", "\"SHA512\"", "\"sha512\""]
+          - type: call
+            value: "MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"SHA-512\"", "\"sha-512\"", "\"SHA512\"", "\"sha512\""]
+          - type: call
+            value: "org.apache.commons.codec.digest.DigestUtils.sha512Hex"
+          - type: call
+            value: "org.apache.commons.codec.digest.DigestUtils.sha512"
+          - type: call
+            value: "org.bouncycastle.crypto.digests.SHA512Digest"
+          - type: call
+            value: "com.google.common.hash.Hashing.sha512"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/sha512/New"
+          - type: call
+            value: "crypto/sha512/Sum512"
+          - type: call
+            value: "crypto/sha512/New512_256"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "SHA512.Create"
+          - type: call
+            value: "System.Security.Cryptography.SHA512.Create"
+          - type: call
+            value: "SHA512.HashData"
+          - type: call
+            value: "System.Security.Cryptography.SHA512.HashData"
+          - type: call
+            value: "SHA512Managed"
+          - type: call
+            value: "System.Security.Cryptography.SHA512Managed"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "sha2::Sha512::*"
+          - type: call
+            value: "openssl::sha::sha512"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "hash"
+            args:
+              - index: 0
+                values: ["\"sha512\"", "'sha512'", "\"SHA512\"", "'SHA512'", "\"SHA-512\"", "'SHA-512'", "\"sha-512\"", "'sha-512'"]
+          - type: call
+            value: "hash_file"
+            args:
+              - index: 0
+                values: ["\"sha512\"", "'sha512'", "\"SHA512\"", "'SHA512'", "\"SHA-512\"", "'SHA-512'", "\"sha-512\"", "'sha-512'"]
+          - type: call
+            value: "hash_init"
+            args:
+              - index: 0
+                values: ["\"sha512\"", "'sha512'", "\"SHA512\"", "'SHA512'", "\"SHA-512\"", "'SHA-512'", "\"sha-512\"", "'sha-512'"]
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "Digest::SHA512.*"
+          - type: call
+            value: "OpenSSL::Digest::SHA512.*"
+          - type: call
+            value: "OpenSSL::Digest.new"
+            args:
+              - index: 0
+                values: ["\"sha512\"", "'sha512'", "\"SHA512\"", "'SHA512'", "\"SHA-512\"", "'SHA-512'", "\"sha-512\"", "'sha-512'"]
+
+  - id: crypto.sha3
+    description: "SHA-3 and SHAKE message digests"
+    vendor: ""
+    product: "SHA-3"
+    service: "SHA-3"
+    tags: [cryptography, hash]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.sha3_224"
+          - type: call
+            value: "hashlib.sha3_256"
+          - type: call
+            value: "hashlib.sha3_384"
+          - type: call
+            value: "hashlib.sha3_512"
+          - type: call
+            value: "hashlib.shake_128"
+          - type: call
+            value: "hashlib.shake_256"
+          - type: call
+            value: "Crypto.Hash.SHA3_256.new"
+          - type: call
+            value: "Crypto.Hash.SHA3_512.new"
+          - type: call
+            value: "cryptography.hazmat.primitives.hashes.SHA3_256"
+          - type: call
+            value: "cryptography.hazmat.primitives.hashes.SHA3_512"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/createHash"
+            args:
+              - index: 0
+                values: ["\"sha3-256\"", "'sha3-256'", "\"SHA3-256\"", "'SHA3-256'", "\"sha3-512\"", "'sha3-512'", "\"SHA3-512\"", "'SHA3-512'", "\"sha3-384\"", "'sha3-384'", "\"SHA3-384\"", "'SHA3-384'", "\"sha3-224\"", "'sha3-224'", "\"SHA3-224\"", "'SHA3-224'"]
+          - type: call
+            value: "node:crypto/createHash"
+            args:
+              - index: 0
+                values: ["\"sha3-256\"", "'sha3-256'", "\"SHA3-256\"", "'SHA3-256'", "\"sha3-512\"", "'sha3-512'", "\"SHA3-512\"", "'SHA3-512'", "\"sha3-384\"", "'sha3-384'", "\"SHA3-384\"", "'SHA3-384'", "\"sha3-224\"", "'sha3-224'", "\"SHA3-224\"", "'SHA3-224'"]
+          - type: call
+            value: "crypto-js/SHA3"
+          - type: call
+            value: "js-sha3/sha3_256"
+          - type: call
+            value: "js-sha3/keccak256"
+          - type: call
+            value: "@noble/hashes/sha3/sha3_256"
+          - type: call
+            value: "@noble/hashes/sha3/keccak_256"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"SHA3-256\"", "\"sha3-256\"", "\"SHA3-512\"", "\"sha3-512\"", "\"SHA3-384\"", "\"sha3-384\"", "\"SHA3-224\"", "\"sha3-224\""]
+          - type: call
+            value: "MessageDigest.getInstance"
+            args:
+              - index: 0
+                values: ["\"SHA3-256\"", "\"sha3-256\"", "\"SHA3-512\"", "\"sha3-512\"", "\"SHA3-384\"", "\"sha3-384\"", "\"SHA3-224\"", "\"sha3-224\""]
+          - type: call
+            value: "org.bouncycastle.crypto.digests.SHA3Digest"
+          - type: call
+            value: "org.bouncycastle.crypto.digests.KeccakDigest"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "golang.org/x/crypto/sha3/*"
+          - type: call
+            value: "crypto/sha3/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "SHA3_256.HashData"
+          - type: call
+            value: "System.Security.Cryptography.SHA3_256.HashData"
+          - type: call
+            value: "SHA3_512.HashData"
+          - type: call
+            value: "System.Security.Cryptography.SHA3_512.HashData"
+          - type: call
+            value: "SHA3_384.HashData"
+          - type: call
+            value: "System.Security.Cryptography.SHA3_384.HashData"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "sha3::*"
+          - type: call
+            value: "tiny_keccak::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "hash"
+            args:
+              - index: 0
+                values: ["\"sha3-256\"", "'sha3-256'", "\"SHA3-256\"", "'SHA3-256'", "\"sha3-512\"", "'sha3-512'", "\"SHA3-512\"", "'SHA3-512'", "\"sha3-384\"", "'sha3-384'", "\"SHA3-384\"", "'SHA3-384'", "\"sha3-224\"", "'sha3-224'", "\"SHA3-224\"", "'SHA3-224'"]
+          - type: call
+            value: "hash_file"
+            args:
+              - index: 0
+                values: ["\"sha3-256\"", "'sha3-256'", "\"SHA3-256\"", "'SHA3-256'", "\"sha3-512\"", "'sha3-512'", "\"SHA3-512\"", "'SHA3-512'", "\"sha3-384\"", "'sha3-384'", "\"SHA3-384\"", "'SHA3-384'", "\"sha3-224\"", "'sha3-224'", "\"SHA3-224\"", "'SHA3-224'"]
+          - type: call
+            value: "hash_init"
+            args:
+              - index: 0
+                values: ["\"sha3-256\"", "'sha3-256'", "\"SHA3-256\"", "'SHA3-256'", "\"sha3-512\"", "'sha3-512'", "\"SHA3-512\"", "'SHA3-512'", "\"sha3-384\"", "'sha3-384'", "\"SHA3-384\"", "'SHA3-384'", "\"sha3-224\"", "'sha3-224'", "\"SHA3-224\"", "'SHA3-224'"]
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "SHA3::Digest.*"
+          - type: call
+            value: "Digest::SHA3.*"
+
+  - id: crypto.blake
+    description: "BLAKE2 and BLAKE3 message digests"
+    vendor: ""
+    product: "BLAKE"
+    service: "BLAKE2 and BLAKE3"
+    tags: [cryptography, hash]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.blake2b"
+          - type: call
+            value: "hashlib.blake2s"
+          - type: call
+            value: "blake3.blake3"
+          - type: call
+            value: "cryptography.hazmat.primitives.hashes.BLAKE2b"
+          - type: call
+            value: "nacl.hash.blake2b"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/createHash"
+            args:
+              - index: 0
+                values: ["\"blake2b512\"", "'blake2b512'", "\"BLAKE2B512\"", "'BLAKE2B512'", "\"blake2s256\"", "'blake2s256'", "\"BLAKE2S256\"", "'BLAKE2S256'"]
+          - type: call
+            value: "node:crypto/createHash"
+            args:
+              - index: 0
+                values: ["\"blake2b512\"", "'blake2b512'", "\"BLAKE2B512\"", "'BLAKE2B512'", "\"blake2s256\"", "'blake2s256'", "\"BLAKE2S256\"", "'BLAKE2S256'"]
+          - type: call
+            value: "@noble/hashes/blake2b/blake2b"
+          - type: call
+            value: "@noble/hashes/blake3/blake3"
+          - type: call
+            value: "blakejs/blake2b"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "org.bouncycastle.crypto.digests.Blake2bDigest"
+          - type: call
+            value: "org.bouncycastle.crypto.digests.Blake3Digest"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "golang.org/x/crypto/blake2b/*"
+          - type: call
+            value: "golang.org/x/crypto/blake2s/*"
+          - type: call
+            value: "lukechampine.com/blake3/*"
+          - type: call
+            value: "github.com/zeebo/blake3/*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "blake2::*"
+          - type: call
+            value: "blake3::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "sodium_crypto_generichash"
+          - type: call
+            value: "hash"
+            args:
+              - index: 0
+                values: ["\"blake2b\"", "'blake2b'", "\"BLAKE2B\"", "'BLAKE2B'", "\"blake2s\"", "'blake2s'", "\"BLAKE2S\"", "'BLAKE2S'"]
+          - type: call
+            value: "hash_file"
+            args:
+              - index: 0
+                values: ["\"blake2b\"", "'blake2b'", "\"BLAKE2B\"", "'BLAKE2B'", "\"blake2s\"", "'blake2s'", "\"BLAKE2S\"", "'BLAKE2S'"]
+          - type: call
+            value: "hash_init"
+            args:
+              - index: 0
+                values: ["\"blake2b\"", "'blake2b'", "\"BLAKE2B\"", "'BLAKE2B'", "\"blake2s\"", "'blake2s'", "\"BLAKE2S\"", "'BLAKE2S'"]
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "RbNaCl::Hash::Blake2b.*"
+          - type: call
+            value: "Blake3.*"

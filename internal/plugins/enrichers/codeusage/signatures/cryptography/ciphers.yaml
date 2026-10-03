@@ -1,0 +1,653 @@
+version: 0.1
+# Generated from crypto_sigs.py. One id for each algorithm, with the call forms
+# of each language. The tags hold the CycloneDX crypto primitive.
+
+signatures:
+  - id: crypto.aes
+    description: "AES symmetric encryption"
+    vendor: ""
+    product: "AES"
+    service: "AES"
+    tags: [cryptography, block-cipher]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "cryptography.hazmat.primitives.ciphers.algorithms.AES"
+          - type: call
+            value: "cryptography.hazmat.primitives.ciphers.aead.AESGCM"
+          - type: call
+            value: "cryptography.hazmat.primitives.ciphers.aead.AESCCM"
+          - type: call
+            value: "cryptography.hazmat.primitives.ciphers.aead.AESOCB3"
+          - type: call
+            value: "cryptography.hazmat.primitives.ciphers.aead.AESSIV"
+          - type: call
+            value: "cryptography.fernet.Fernet"
+          - type: call
+            value: "Crypto.Cipher.AES.new"
+          - type: call
+            value: "Cryptodome.Cipher.AES.new"
+          - type: call
+            value: "pyaes.AESModeOfOperationCTR"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/createCipheriv"
+            args:
+              - index: 0
+                values: ["\"aes-128-gcm\"", "'aes-128-gcm'", "\"AES-128-GCM\"", "'AES-128-GCM'", "\"aes-192-gcm\"", "'aes-192-gcm'", "\"AES-192-GCM\"", "'AES-192-GCM'", "\"aes-256-gcm\"", "'aes-256-gcm'", "\"AES-256-GCM\"", "'AES-256-GCM'", "\"aes-128-cbc\"", "'aes-128-cbc'", "\"AES-128-CBC\"", "'AES-128-CBC'", "\"aes-192-cbc\"", "'aes-192-cbc'", "\"AES-192-CBC\"", "'AES-192-CBC'", "\"aes-256-cbc\"", "'aes-256-cbc'", "\"AES-256-CBC\"", "'AES-256-CBC'", "\"aes-128-ctr\"", "'aes-128-ctr'", "\"AES-128-CTR\"", "'AES-128-CTR'", "\"aes-256-ctr\"", "'aes-256-ctr'", "\"AES-256-CTR\"", "'AES-256-CTR'", "\"aes-128-ecb\"", "'aes-128-ecb'", "\"AES-128-ECB\"", "'AES-128-ECB'", "\"aes-256-ecb\"", "'aes-256-ecb'", "\"AES-256-ECB\"", "'AES-256-ECB'", "\"aes-128-cfb\"", "'aes-128-cfb'", "\"AES-128-CFB\"", "'AES-128-CFB'", "\"aes-256-cfb\"", "'aes-256-cfb'", "\"AES-256-CFB\"", "'AES-256-CFB'", "\"aes-128-ofb\"", "'aes-128-ofb'", "\"AES-128-OFB\"", "'AES-128-OFB'", "\"aes-256-ofb\"", "'aes-256-ofb'", "\"AES-256-OFB\"", "'AES-256-OFB'", "\"aes128\"", "'aes128'", "\"AES128\"", "'AES128'", "\"aes256\"", "'aes256'", "\"AES256\"", "'AES256'", "\"id-aes256-GCM\"", "'id-aes256-GCM'", "\"id-aes256-gcm\"", "'id-aes256-gcm'", "\"ID-AES256-GCM\"", "'ID-AES256-GCM'"]
+          - type: call
+            value: "node:crypto/createCipheriv"
+            args:
+              - index: 0
+                values: ["\"aes-128-gcm\"", "'aes-128-gcm'", "\"AES-128-GCM\"", "'AES-128-GCM'", "\"aes-192-gcm\"", "'aes-192-gcm'", "\"AES-192-GCM\"", "'AES-192-GCM'", "\"aes-256-gcm\"", "'aes-256-gcm'", "\"AES-256-GCM\"", "'AES-256-GCM'", "\"aes-128-cbc\"", "'aes-128-cbc'", "\"AES-128-CBC\"", "'AES-128-CBC'", "\"aes-192-cbc\"", "'aes-192-cbc'", "\"AES-192-CBC\"", "'AES-192-CBC'", "\"aes-256-cbc\"", "'aes-256-cbc'", "\"AES-256-CBC\"", "'AES-256-CBC'", "\"aes-128-ctr\"", "'aes-128-ctr'", "\"AES-128-CTR\"", "'AES-128-CTR'", "\"aes-256-ctr\"", "'aes-256-ctr'", "\"AES-256-CTR\"", "'AES-256-CTR'", "\"aes-128-ecb\"", "'aes-128-ecb'", "\"AES-128-ECB\"", "'AES-128-ECB'", "\"aes-256-ecb\"", "'aes-256-ecb'", "\"AES-256-ECB\"", "'AES-256-ECB'", "\"aes-128-cfb\"", "'aes-128-cfb'", "\"AES-128-CFB\"", "'AES-128-CFB'", "\"aes-256-cfb\"", "'aes-256-cfb'", "\"AES-256-CFB\"", "'AES-256-CFB'", "\"aes-128-ofb\"", "'aes-128-ofb'", "\"AES-128-OFB\"", "'AES-128-OFB'", "\"aes-256-ofb\"", "'aes-256-ofb'", "\"AES-256-OFB\"", "'AES-256-OFB'", "\"aes128\"", "'aes128'", "\"AES128\"", "'AES128'", "\"aes256\"", "'aes256'", "\"AES256\"", "'AES256'", "\"id-aes256-GCM\"", "'id-aes256-GCM'", "\"id-aes256-gcm\"", "'id-aes256-gcm'", "\"ID-AES256-GCM\"", "'ID-AES256-GCM'"]
+          - type: call
+            value: "crypto/createDecipheriv"
+            args:
+              - index: 0
+                values: ["\"aes-128-gcm\"", "'aes-128-gcm'", "\"AES-128-GCM\"", "'AES-128-GCM'", "\"aes-192-gcm\"", "'aes-192-gcm'", "\"AES-192-GCM\"", "'AES-192-GCM'", "\"aes-256-gcm\"", "'aes-256-gcm'", "\"AES-256-GCM\"", "'AES-256-GCM'", "\"aes-128-cbc\"", "'aes-128-cbc'", "\"AES-128-CBC\"", "'AES-128-CBC'", "\"aes-192-cbc\"", "'aes-192-cbc'", "\"AES-192-CBC\"", "'AES-192-CBC'", "\"aes-256-cbc\"", "'aes-256-cbc'", "\"AES-256-CBC\"", "'AES-256-CBC'", "\"aes-128-ctr\"", "'aes-128-ctr'", "\"AES-128-CTR\"", "'AES-128-CTR'", "\"aes-256-ctr\"", "'aes-256-ctr'", "\"AES-256-CTR\"", "'AES-256-CTR'", "\"aes-128-ecb\"", "'aes-128-ecb'", "\"AES-128-ECB\"", "'AES-128-ECB'", "\"aes-256-ecb\"", "'aes-256-ecb'", "\"AES-256-ECB\"", "'AES-256-ECB'", "\"aes-128-cfb\"", "'aes-128-cfb'", "\"AES-128-CFB\"", "'AES-128-CFB'", "\"aes-256-cfb\"", "'aes-256-cfb'", "\"AES-256-CFB\"", "'AES-256-CFB'", "\"aes-128-ofb\"", "'aes-128-ofb'", "\"AES-128-OFB\"", "'AES-128-OFB'", "\"aes-256-ofb\"", "'aes-256-ofb'", "\"AES-256-OFB\"", "'AES-256-OFB'", "\"aes128\"", "'aes128'", "\"AES128\"", "'AES128'", "\"aes256\"", "'aes256'", "\"AES256\"", "'AES256'", "\"id-aes256-GCM\"", "'id-aes256-GCM'", "\"id-aes256-gcm\"", "'id-aes256-gcm'", "\"ID-AES256-GCM\"", "'ID-AES256-GCM'"]
+          - type: call
+            value: "node:crypto/createDecipheriv"
+            args:
+              - index: 0
+                values: ["\"aes-128-gcm\"", "'aes-128-gcm'", "\"AES-128-GCM\"", "'AES-128-GCM'", "\"aes-192-gcm\"", "'aes-192-gcm'", "\"AES-192-GCM\"", "'AES-192-GCM'", "\"aes-256-gcm\"", "'aes-256-gcm'", "\"AES-256-GCM\"", "'AES-256-GCM'", "\"aes-128-cbc\"", "'aes-128-cbc'", "\"AES-128-CBC\"", "'AES-128-CBC'", "\"aes-192-cbc\"", "'aes-192-cbc'", "\"AES-192-CBC\"", "'AES-192-CBC'", "\"aes-256-cbc\"", "'aes-256-cbc'", "\"AES-256-CBC\"", "'AES-256-CBC'", "\"aes-128-ctr\"", "'aes-128-ctr'", "\"AES-128-CTR\"", "'AES-128-CTR'", "\"aes-256-ctr\"", "'aes-256-ctr'", "\"AES-256-CTR\"", "'AES-256-CTR'", "\"aes-128-ecb\"", "'aes-128-ecb'", "\"AES-128-ECB\"", "'AES-128-ECB'", "\"aes-256-ecb\"", "'aes-256-ecb'", "\"AES-256-ECB\"", "'AES-256-ECB'", "\"aes-128-cfb\"", "'aes-128-cfb'", "\"AES-128-CFB\"", "'AES-128-CFB'", "\"aes-256-cfb\"", "'aes-256-cfb'", "\"AES-256-CFB\"", "'AES-256-CFB'", "\"aes-128-ofb\"", "'aes-128-ofb'", "\"AES-128-OFB\"", "'AES-128-OFB'", "\"aes-256-ofb\"", "'aes-256-ofb'", "\"AES-256-OFB\"", "'AES-256-OFB'", "\"aes128\"", "'aes128'", "\"AES128\"", "'AES128'", "\"aes256\"", "'aes256'", "\"AES256\"", "'AES256'", "\"id-aes256-GCM\"", "'id-aes256-GCM'", "\"id-aes256-gcm\"", "'id-aes256-gcm'", "\"ID-AES256-GCM\"", "'ID-AES256-GCM'"]
+          - type: call
+            value: "crypto-js/AES/encrypt"
+          - type: call
+            value: "crypto-js/AES/decrypt"
+          - type: call
+            value: "aes-js/ModeOfOperation/ctr"
+          - type: call
+            value: "@noble/ciphers/aes/gcm"
+          - type: call
+            value: "node-forge/cipher/createCipher"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "javax.crypto.Cipher.getInstance"
+            args:
+              - index: 0
+                values: ["\"AES\"", "\"aes\"", "\"AES/GCM/NoPadding\"", "\"aes/gcm/nopadding\"", "\"AES/GCM/NOPADDING\"", "\"AES/CBC/PKCS5Padding\"", "\"aes/cbc/pkcs5padding\"", "\"AES/CBC/PKCS5PADDING\"", "\"AES/CBC/NoPadding\"", "\"aes/cbc/nopadding\"", "\"AES/CBC/NOPADDING\"", "\"AES/ECB/PKCS5Padding\"", "\"aes/ecb/pkcs5padding\"", "\"AES/ECB/PKCS5PADDING\"", "\"AES/CTR/NoPadding\"", "\"aes/ctr/nopadding\"", "\"AES/CTR/NOPADDING\"", "\"AES_256/GCM/NoPadding\"", "\"aes_256/gcm/nopadding\"", "\"AES_256/GCM/NOPADDING\"", "\"AES/CFB/NoPadding\"", "\"aes/cfb/nopadding\"", "\"AES/CFB/NOPADDING\""]
+          - type: call
+            value: "Cipher.getInstance"
+            args:
+              - index: 0
+                values: ["\"AES\"", "\"aes\"", "\"AES/GCM/NoPadding\"", "\"aes/gcm/nopadding\"", "\"AES/GCM/NOPADDING\"", "\"AES/CBC/PKCS5Padding\"", "\"aes/cbc/pkcs5padding\"", "\"AES/CBC/PKCS5PADDING\"", "\"AES/CBC/NoPadding\"", "\"aes/cbc/nopadding\"", "\"AES/CBC/NOPADDING\"", "\"AES/ECB/PKCS5Padding\"", "\"aes/ecb/pkcs5padding\"", "\"AES/ECB/PKCS5PADDING\"", "\"AES/CTR/NoPadding\"", "\"aes/ctr/nopadding\"", "\"AES/CTR/NOPADDING\"", "\"AES_256/GCM/NoPadding\"", "\"aes_256/gcm/nopadding\"", "\"AES_256/GCM/NOPADDING\"", "\"AES/CFB/NoPadding\"", "\"aes/cfb/nopadding\"", "\"AES/CFB/NOPADDING\""]
+          - type: call
+            value: "javax.crypto.KeyGenerator.getInstance"
+            args:
+              - index: 0
+                values: ["\"AES\"", "\"aes\""]
+          - type: call
+            value: "KeyGenerator.getInstance"
+            args:
+              - index: 0
+                values: ["\"AES\"", "\"aes\""]
+          - type: call
+            value: "javax.crypto.spec.SecretKeySpec"
+            args:
+              - index: 1
+                values: ["\"AES\"", "\"aes\""]
+          - type: call
+            value: "SecretKeySpec"
+            args:
+              - index: 1
+                values: ["\"AES\"", "\"aes\""]
+          - type: call
+            value: "org.bouncycastle.crypto.engines.AESEngine"
+          - type: call
+            value: "com.google.crypto.tink.aead.AesGcmKeyManager"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/aes/*"
+          - type: call
+            value: "crypto/cipher/NewGCM"
+          - type: call
+            value: "crypto/cipher/NewGCMWithNonceSize"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "Aes.Create"
+          - type: call
+            value: "System.Security.Cryptography.Aes.Create"
+          - type: call
+            value: "AesGcm"
+          - type: call
+            value: "System.Security.Cryptography.AesGcm"
+          - type: call
+            value: "AesCcm"
+          - type: call
+            value: "System.Security.Cryptography.AesCcm"
+          - type: call
+            value: "AesManaged"
+          - type: call
+            value: "System.Security.Cryptography.AesManaged"
+          - type: call
+            value: "AesCryptoServiceProvider"
+          - type: call
+            value: "System.Security.Cryptography.AesCryptoServiceProvider"
+          - type: call
+            value: "RijndaelManaged"
+          - type: call
+            value: "System.Security.Cryptography.RijndaelManaged"
+          - type: call
+            value: "Rijndael.Create"
+          - type: call
+            value: "System.Security.Cryptography.Rijndael.Create"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "aes_gcm::*"
+          - type: call
+            value: "aes::*"
+          - type: call
+            value: "aes_siv::*"
+          - type: call
+            value: "aes_gcm_siv::*"
+          - type: call
+            value: "openssl::symm::Cipher::aes_256_gcm"
+          - type: call
+            value: "openssl::symm::Cipher::aes_256_cbc"
+          - type: call
+            value: "openssl::symm::Cipher::aes_128_gcm"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "openssl_encrypt"
+            args:
+              - index: 1
+                values: ["\"aes-128-gcm\"", "'aes-128-gcm'", "\"AES-128-GCM\"", "'AES-128-GCM'", "\"aes-192-gcm\"", "'aes-192-gcm'", "\"AES-192-GCM\"", "'AES-192-GCM'", "\"aes-256-gcm\"", "'aes-256-gcm'", "\"AES-256-GCM\"", "'AES-256-GCM'", "\"aes-128-cbc\"", "'aes-128-cbc'", "\"AES-128-CBC\"", "'AES-128-CBC'", "\"aes-192-cbc\"", "'aes-192-cbc'", "\"AES-192-CBC\"", "'AES-192-CBC'", "\"aes-256-cbc\"", "'aes-256-cbc'", "\"AES-256-CBC\"", "'AES-256-CBC'", "\"aes-128-ctr\"", "'aes-128-ctr'", "\"AES-128-CTR\"", "'AES-128-CTR'", "\"aes-256-ctr\"", "'aes-256-ctr'", "\"AES-256-CTR\"", "'AES-256-CTR'", "\"aes-128-ecb\"", "'aes-128-ecb'", "\"AES-128-ECB\"", "'AES-128-ECB'", "\"aes-256-ecb\"", "'aes-256-ecb'", "\"AES-256-ECB\"", "'AES-256-ECB'", "\"aes-128-cfb\"", "'aes-128-cfb'", "\"AES-128-CFB\"", "'AES-128-CFB'", "\"aes-256-cfb\"", "'aes-256-cfb'", "\"AES-256-CFB\"", "'AES-256-CFB'", "\"aes-128-ofb\"", "'aes-128-ofb'", "\"AES-128-OFB\"", "'AES-128-OFB'", "\"aes-256-ofb\"", "'aes-256-ofb'", "\"AES-256-OFB\"", "'AES-256-OFB'", "\"aes128\"", "'aes128'", "\"AES128\"", "'AES128'", "\"aes256\"", "'aes256'", "\"AES256\"", "'AES256'", "\"id-aes256-GCM\"", "'id-aes256-GCM'", "\"id-aes256-gcm\"", "'id-aes256-gcm'", "\"ID-AES256-GCM\"", "'ID-AES256-GCM'"]
+          - type: call
+            value: "openssl_decrypt"
+            args:
+              - index: 1
+                values: ["\"aes-128-gcm\"", "'aes-128-gcm'", "\"AES-128-GCM\"", "'AES-128-GCM'", "\"aes-192-gcm\"", "'aes-192-gcm'", "\"AES-192-GCM\"", "'AES-192-GCM'", "\"aes-256-gcm\"", "'aes-256-gcm'", "\"AES-256-GCM\"", "'AES-256-GCM'", "\"aes-128-cbc\"", "'aes-128-cbc'", "\"AES-128-CBC\"", "'AES-128-CBC'", "\"aes-192-cbc\"", "'aes-192-cbc'", "\"AES-192-CBC\"", "'AES-192-CBC'", "\"aes-256-cbc\"", "'aes-256-cbc'", "\"AES-256-CBC\"", "'AES-256-CBC'", "\"aes-128-ctr\"", "'aes-128-ctr'", "\"AES-128-CTR\"", "'AES-128-CTR'", "\"aes-256-ctr\"", "'aes-256-ctr'", "\"AES-256-CTR\"", "'AES-256-CTR'", "\"aes-128-ecb\"", "'aes-128-ecb'", "\"AES-128-ECB\"", "'AES-128-ECB'", "\"aes-256-ecb\"", "'aes-256-ecb'", "\"AES-256-ECB\"", "'AES-256-ECB'", "\"aes-128-cfb\"", "'aes-128-cfb'", "\"AES-128-CFB\"", "'AES-128-CFB'", "\"aes-256-cfb\"", "'aes-256-cfb'", "\"AES-256-CFB\"", "'AES-256-CFB'", "\"aes-128-ofb\"", "'aes-128-ofb'", "\"AES-128-OFB\"", "'AES-128-OFB'", "\"aes-256-ofb\"", "'aes-256-ofb'", "\"AES-256-OFB\"", "'AES-256-OFB'", "\"aes128\"", "'aes128'", "\"AES128\"", "'AES128'", "\"aes256\"", "'aes256'", "\"AES256\"", "'AES256'", "\"id-aes256-GCM\"", "'id-aes256-GCM'", "\"id-aes256-gcm\"", "'id-aes256-gcm'", "\"ID-AES256-GCM\"", "'ID-AES256-GCM'"]
+          - type: call
+            value: "phpseclib3\\Crypt\\AES"
+          - type: call
+            value: "phpseclib\\Crypt\\AES"
+          - type: call
+            value: "Defuse\\Crypto\\Crypto::encrypt"
+          - type: call
+            value: "Defuse\\Crypto\\Crypto::decrypt"
+          - type: call
+            value: "Illuminate\\Support\\Facades\\Crypt::*"
+          - type: call
+            value: "sodium_crypto_aead_aes256gcm_encrypt"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "OpenSSL::Cipher.new"
+            args:
+              - index: 0
+                values: ["\"aes-128-gcm\"", "'aes-128-gcm'", "\"AES-128-GCM\"", "'AES-128-GCM'", "\"aes-192-gcm\"", "'aes-192-gcm'", "\"AES-192-GCM\"", "'AES-192-GCM'", "\"aes-256-gcm\"", "'aes-256-gcm'", "\"AES-256-GCM\"", "'AES-256-GCM'", "\"aes-128-cbc\"", "'aes-128-cbc'", "\"AES-128-CBC\"", "'AES-128-CBC'", "\"aes-192-cbc\"", "'aes-192-cbc'", "\"AES-192-CBC\"", "'AES-192-CBC'", "\"aes-256-cbc\"", "'aes-256-cbc'", "\"AES-256-CBC\"", "'AES-256-CBC'", "\"aes-128-ctr\"", "'aes-128-ctr'", "\"AES-128-CTR\"", "'AES-128-CTR'", "\"aes-256-ctr\"", "'aes-256-ctr'", "\"AES-256-CTR\"", "'AES-256-CTR'", "\"aes-128-ecb\"", "'aes-128-ecb'", "\"AES-128-ECB\"", "'AES-128-ECB'", "\"aes-256-ecb\"", "'aes-256-ecb'", "\"AES-256-ECB\"", "'AES-256-ECB'", "\"aes-128-cfb\"", "'aes-128-cfb'", "\"AES-128-CFB\"", "'AES-128-CFB'", "\"aes-256-cfb\"", "'aes-256-cfb'", "\"AES-256-CFB\"", "'AES-256-CFB'", "\"aes-128-ofb\"", "'aes-128-ofb'", "\"AES-128-OFB\"", "'AES-128-OFB'", "\"aes-256-ofb\"", "'aes-256-ofb'", "\"AES-256-OFB\"", "'AES-256-OFB'", "\"aes128\"", "'aes128'", "\"AES128\"", "'AES128'", "\"aes256\"", "'aes256'", "\"AES256\"", "'AES256'", "\"id-aes256-GCM\"", "'id-aes256-GCM'", "\"id-aes256-gcm\"", "'id-aes256-gcm'", "\"ID-AES256-GCM\"", "'ID-AES256-GCM'"]
+          - type: call
+            value: "OpenSSL::Cipher::AES.*"
+          - type: call
+            value: "OpenSSL::Cipher::AES256.*"
+          - type: call
+            value: "OpenSSL::Cipher::AES128.*"
+          - type: call
+            value: "ActiveSupport::MessageEncryptor.new"
+
+  - id: crypto.des
+    description: "DES symmetric encryption"
+    vendor: ""
+    product: "DES"
+    service: "DES"
+    tags: [cryptography, block-cipher, weak]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "Crypto.Cipher.DES.new"
+          - type: call
+            value: "Cryptodome.Cipher.DES.new"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/createCipheriv"
+            args:
+              - index: 0
+                values: ["\"des\"", "'des'", "\"DES\"", "'DES'", "\"des-cbc\"", "'des-cbc'", "\"DES-CBC\"", "'DES-CBC'", "\"des-ecb\"", "'des-ecb'", "\"DES-ECB\"", "'DES-ECB'"]
+          - type: call
+            value: "node:crypto/createCipheriv"
+            args:
+              - index: 0
+                values: ["\"des\"", "'des'", "\"DES\"", "'DES'", "\"des-cbc\"", "'des-cbc'", "\"DES-CBC\"", "'DES-CBC'", "\"des-ecb\"", "'des-ecb'", "\"DES-ECB\"", "'DES-ECB'"]
+          - type: call
+            value: "crypto-js/DES/encrypt"
+          - type: call
+            value: "crypto-js/DES/decrypt"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "javax.crypto.Cipher.getInstance"
+            args:
+              - index: 0
+                values: ["\"DES\"", "\"des\"", "\"DES/CBC/PKCS5Padding\"", "\"des/cbc/pkcs5padding\"", "\"DES/CBC/PKCS5PADDING\"", "\"DES/ECB/PKCS5Padding\"", "\"des/ecb/pkcs5padding\"", "\"DES/ECB/PKCS5PADDING\""]
+          - type: call
+            value: "Cipher.getInstance"
+            args:
+              - index: 0
+                values: ["\"DES\"", "\"des\"", "\"DES/CBC/PKCS5Padding\"", "\"des/cbc/pkcs5padding\"", "\"DES/CBC/PKCS5PADDING\"", "\"DES/ECB/PKCS5Padding\"", "\"des/ecb/pkcs5padding\"", "\"DES/ECB/PKCS5PADDING\""]
+          - type: call
+            value: "javax.crypto.spec.SecretKeySpec"
+            args:
+              - index: 1
+                values: ["\"DES\"", "\"des\""]
+          - type: call
+            value: "SecretKeySpec"
+            args:
+              - index: 1
+                values: ["\"DES\"", "\"des\""]
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/des/NewCipher"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "DES.Create"
+          - type: call
+            value: "System.Security.Cryptography.DES.Create"
+          - type: call
+            value: "DESCryptoServiceProvider"
+          - type: call
+            value: "System.Security.Cryptography.DESCryptoServiceProvider"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "des::Des::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "openssl_encrypt"
+            args:
+              - index: 1
+                values: ["\"des\"", "'des'", "\"DES\"", "'DES'", "\"des-cbc\"", "'des-cbc'", "\"DES-CBC\"", "'DES-CBC'", "\"des-ecb\"", "'des-ecb'", "\"DES-ECB\"", "'DES-ECB'"]
+          - type: call
+            value: "openssl_decrypt"
+            args:
+              - index: 1
+                values: ["\"des\"", "'des'", "\"DES\"", "'DES'", "\"des-cbc\"", "'des-cbc'", "\"DES-CBC\"", "'DES-CBC'", "\"des-ecb\"", "'des-ecb'", "\"DES-ECB\"", "'DES-ECB'"]
+          - type: call
+            value: "phpseclib3\\Crypt\\DES"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "OpenSSL::Cipher.new"
+            args:
+              - index: 0
+                values: ["\"des\"", "'des'", "\"DES\"", "'DES'", "\"des-cbc\"", "'des-cbc'", "\"DES-CBC\"", "'DES-CBC'", "\"des-ecb\"", "'des-ecb'", "\"DES-ECB\"", "'DES-ECB'"]
+          - type: call
+            value: "OpenSSL::Cipher::DES.*"
+
+  - id: crypto.3des
+    description: "Triple DES symmetric encryption"
+    vendor: ""
+    product: "DES"
+    service: "Triple DES"
+    tags: [cryptography, block-cipher, weak]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "Crypto.Cipher.DES3.new"
+          - type: call
+            value: "Cryptodome.Cipher.DES3.new"
+          - type: call
+            value: "cryptography.hazmat.primitives.ciphers.algorithms.TripleDES"
+          - type: call
+            value: "cryptography.hazmat.decrepit.ciphers.algorithms.TripleDES"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/createCipheriv"
+            args:
+              - index: 0
+                values: ["\"des-ede3-cbc\"", "'des-ede3-cbc'", "\"DES-EDE3-CBC\"", "'DES-EDE3-CBC'", "\"des-ede3\"", "'des-ede3'", "\"DES-EDE3\"", "'DES-EDE3'", "\"des-ede-cbc\"", "'des-ede-cbc'", "\"DES-EDE-CBC\"", "'DES-EDE-CBC'", "\"des3\"", "'des3'", "\"DES3\"", "'DES3'"]
+          - type: call
+            value: "node:crypto/createCipheriv"
+            args:
+              - index: 0
+                values: ["\"des-ede3-cbc\"", "'des-ede3-cbc'", "\"DES-EDE3-CBC\"", "'DES-EDE3-CBC'", "\"des-ede3\"", "'des-ede3'", "\"DES-EDE3\"", "'DES-EDE3'", "\"des-ede-cbc\"", "'des-ede-cbc'", "\"DES-EDE-CBC\"", "'DES-EDE-CBC'", "\"des3\"", "'des3'", "\"DES3\"", "'DES3'"]
+          - type: call
+            value: "crypto-js/TripleDES/encrypt"
+          - type: call
+            value: "crypto-js/TripleDES/decrypt"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "javax.crypto.Cipher.getInstance"
+            args:
+              - index: 0
+                values: ["\"DESede\"", "\"desede\"", "\"DESEDE\"", "\"DESede/CBC/PKCS5Padding\"", "\"desede/cbc/pkcs5padding\"", "\"DESEDE/CBC/PKCS5PADDING\"", "\"DESede/ECB/PKCS5Padding\"", "\"desede/ecb/pkcs5padding\"", "\"DESEDE/ECB/PKCS5PADDING\"", "\"TripleDES\"", "\"tripledes\"", "\"TRIPLEDES\""]
+          - type: call
+            value: "Cipher.getInstance"
+            args:
+              - index: 0
+                values: ["\"DESede\"", "\"desede\"", "\"DESEDE\"", "\"DESede/CBC/PKCS5Padding\"", "\"desede/cbc/pkcs5padding\"", "\"DESEDE/CBC/PKCS5PADDING\"", "\"DESede/ECB/PKCS5Padding\"", "\"desede/ecb/pkcs5padding\"", "\"DESEDE/ECB/PKCS5PADDING\"", "\"TripleDES\"", "\"tripledes\"", "\"TRIPLEDES\""]
+          - type: call
+            value: "javax.crypto.spec.SecretKeySpec"
+            args:
+              - index: 1
+                values: ["\"DESede\"", "\"desede\"", "\"DESEDE\""]
+          - type: call
+            value: "SecretKeySpec"
+            args:
+              - index: 1
+                values: ["\"DESede\"", "\"desede\"", "\"DESEDE\""]
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/des/NewTripleDESCipher"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "TripleDES.Create"
+          - type: call
+            value: "System.Security.Cryptography.TripleDES.Create"
+          - type: call
+            value: "TripleDESCryptoServiceProvider"
+          - type: call
+            value: "System.Security.Cryptography.TripleDESCryptoServiceProvider"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "des::TdesEde3::*"
+          - type: call
+            value: "des::TdesEde2::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "openssl_encrypt"
+            args:
+              - index: 1
+                values: ["\"des-ede3-cbc\"", "'des-ede3-cbc'", "\"DES-EDE3-CBC\"", "'DES-EDE3-CBC'", "\"des-ede3\"", "'des-ede3'", "\"DES-EDE3\"", "'DES-EDE3'", "\"des-ede-cbc\"", "'des-ede-cbc'", "\"DES-EDE-CBC\"", "'DES-EDE-CBC'", "\"des3\"", "'des3'", "\"DES3\"", "'DES3'"]
+          - type: call
+            value: "openssl_decrypt"
+            args:
+              - index: 1
+                values: ["\"des-ede3-cbc\"", "'des-ede3-cbc'", "\"DES-EDE3-CBC\"", "'DES-EDE3-CBC'", "\"des-ede3\"", "'des-ede3'", "\"DES-EDE3\"", "'DES-EDE3'", "\"des-ede-cbc\"", "'des-ede-cbc'", "\"DES-EDE-CBC\"", "'DES-EDE-CBC'", "\"des3\"", "'des3'", "\"DES3\"", "'DES3'"]
+          - type: call
+            value: "phpseclib3\\Crypt\\TripleDES"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "OpenSSL::Cipher.new"
+            args:
+              - index: 0
+                values: ["\"des-ede3-cbc\"", "'des-ede3-cbc'", "\"DES-EDE3-CBC\"", "'DES-EDE3-CBC'", "\"des-ede3\"", "'des-ede3'", "\"DES-EDE3\"", "'DES-EDE3'", "\"des-ede-cbc\"", "'des-ede-cbc'", "\"DES-EDE-CBC\"", "'DES-EDE-CBC'", "\"des3\"", "'des3'", "\"DES3\"", "'DES3'"]
+
+  - id: crypto.rc4
+    description: "RC4 stream cipher"
+    vendor: ""
+    product: "RC4"
+    service: "RC4"
+    tags: [cryptography, stream-cipher, weak]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "Crypto.Cipher.ARC4.new"
+          - type: call
+            value: "Cryptodome.Cipher.ARC4.new"
+          - type: call
+            value: "cryptography.hazmat.primitives.ciphers.algorithms.ARC4"
+          - type: call
+            value: "cryptography.hazmat.decrepit.ciphers.algorithms.ARC4"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/createCipheriv"
+            args:
+              - index: 0
+                values: ["\"rc4\"", "'rc4'", "\"RC4\"", "'RC4'"]
+          - type: call
+            value: "node:crypto/createCipheriv"
+            args:
+              - index: 0
+                values: ["\"rc4\"", "'rc4'", "\"RC4\"", "'RC4'"]
+          - type: call
+            value: "crypto-js/RC4/encrypt"
+          - type: call
+            value: "crypto-js/RC4/decrypt"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "javax.crypto.Cipher.getInstance"
+            args:
+              - index: 0
+                values: ["\"RC4\"", "\"rc4\"", "\"ARCFOUR\"", "\"arcfour\""]
+          - type: call
+            value: "Cipher.getInstance"
+            args:
+              - index: 0
+                values: ["\"RC4\"", "\"rc4\"", "\"ARCFOUR\"", "\"arcfour\""]
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/rc4/*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "rc4::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "openssl_encrypt"
+            args:
+              - index: 1
+                values: ["\"rc4\"", "'rc4'", "\"RC4\"", "'RC4'"]
+          - type: call
+            value: "phpseclib3\\Crypt\\RC4"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "OpenSSL::Cipher.new"
+            args:
+              - index: 0
+                values: ["\"rc4\"", "'rc4'", "\"RC4\"", "'RC4'"]
+
+  - id: crypto.blowfish
+    description: "Blowfish symmetric encryption"
+    vendor: ""
+    product: "Blowfish"
+    service: "Blowfish"
+    tags: [cryptography, block-cipher, weak]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "Crypto.Cipher.Blowfish.new"
+          - type: call
+            value: "cryptography.hazmat.primitives.ciphers.algorithms.Blowfish"
+          - type: call
+            value: "cryptography.hazmat.decrepit.ciphers.algorithms.Blowfish"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/createCipheriv"
+            args:
+              - index: 0
+                values: ["\"bf-cbc\"", "'bf-cbc'", "\"BF-CBC\"", "'BF-CBC'", "\"blowfish\"", "'blowfish'", "\"BLOWFISH\"", "'BLOWFISH'"]
+          - type: call
+            value: "node:crypto/createCipheriv"
+            args:
+              - index: 0
+                values: ["\"bf-cbc\"", "'bf-cbc'", "\"BF-CBC\"", "'BF-CBC'", "\"blowfish\"", "'blowfish'", "\"BLOWFISH\"", "'BLOWFISH'"]
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "javax.crypto.Cipher.getInstance"
+            args:
+              - index: 0
+                values: ["\"Blowfish\"", "\"blowfish\"", "\"BLOWFISH\"", "\"Blowfish/CBC/PKCS5Padding\"", "\"blowfish/cbc/pkcs5padding\"", "\"BLOWFISH/CBC/PKCS5PADDING\""]
+          - type: call
+            value: "Cipher.getInstance"
+            args:
+              - index: 0
+                values: ["\"Blowfish\"", "\"blowfish\"", "\"BLOWFISH\"", "\"Blowfish/CBC/PKCS5Padding\"", "\"blowfish/cbc/pkcs5padding\"", "\"BLOWFISH/CBC/PKCS5PADDING\""]
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "golang.org/x/crypto/blowfish/*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "blowfish::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "openssl_encrypt"
+            args:
+              - index: 1
+                values: ["\"bf-cbc\"", "'bf-cbc'", "\"BF-CBC\"", "'BF-CBC'", "\"bf-ecb\"", "'bf-ecb'", "\"BF-ECB\"", "'BF-ECB'"]
+          - type: call
+            value: "phpseclib3\\Crypt\\Blowfish"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "OpenSSL::Cipher.new"
+            args:
+              - index: 0
+                values: ["\"bf-cbc\"", "'bf-cbc'", "\"BF-CBC\"", "'BF-CBC'"]
+
+  - id: crypto.chacha20
+    description: "ChaCha20 and ChaCha20-Poly1305 encryption"
+    vendor: ""
+    product: "ChaCha20"
+    service: "ChaCha20-Poly1305"
+    tags: [cryptography, ae]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "cryptography.hazmat.primitives.ciphers.aead.ChaCha20Poly1305"
+          - type: call
+            value: "cryptography.hazmat.primitives.ciphers.algorithms.ChaCha20"
+          - type: call
+            value: "Crypto.Cipher.ChaCha20.new"
+          - type: call
+            value: "Crypto.Cipher.ChaCha20_Poly1305.new"
+          - type: call
+            value: "Cryptodome.Cipher.ChaCha20_Poly1305.new"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/createCipheriv"
+            args:
+              - index: 0
+                values: ["\"chacha20-poly1305\"", "'chacha20-poly1305'", "\"CHACHA20-POLY1305\"", "'CHACHA20-POLY1305'", "\"chacha20\"", "'chacha20'", "\"CHACHA20\"", "'CHACHA20'"]
+          - type: call
+            value: "node:crypto/createCipheriv"
+            args:
+              - index: 0
+                values: ["\"chacha20-poly1305\"", "'chacha20-poly1305'", "\"CHACHA20-POLY1305\"", "'CHACHA20-POLY1305'", "\"chacha20\"", "'chacha20'", "\"CHACHA20\"", "'CHACHA20'"]
+          - type: call
+            value: "@noble/ciphers/chacha/chacha20poly1305"
+          - type: call
+            value: "@noble/ciphers/chacha/xchacha20poly1305"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "javax.crypto.Cipher.getInstance"
+            args:
+              - index: 0
+                values: ["\"ChaCha20-Poly1305\"", "\"chacha20-poly1305\"", "\"CHACHA20-POLY1305\"", "\"ChaCha20\"", "\"chacha20\"", "\"CHACHA20\""]
+          - type: call
+            value: "Cipher.getInstance"
+            args:
+              - index: 0
+                values: ["\"ChaCha20-Poly1305\"", "\"chacha20-poly1305\"", "\"CHACHA20-POLY1305\"", "\"ChaCha20\"", "\"chacha20\"", "\"CHACHA20\""]
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "golang.org/x/crypto/chacha20poly1305/*"
+          - type: call
+            value: "golang.org/x/crypto/chacha20/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "ChaCha20Poly1305"
+          - type: call
+            value: "System.Security.Cryptography.ChaCha20Poly1305"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "chacha20poly1305::*"
+          - type: call
+            value: "chacha20::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "openssl_encrypt"
+            args:
+              - index: 1
+                values: ["\"chacha20-poly1305\"", "'chacha20-poly1305'", "\"CHACHA20-POLY1305\"", "'CHACHA20-POLY1305'", "\"chacha20\"", "'chacha20'", "\"CHACHA20\"", "'CHACHA20'"]
+          - type: call
+            value: "sodium_crypto_aead_chacha20poly1305_ietf_encrypt"
+          - type: call
+            value: "sodium_crypto_aead_xchacha20poly1305_ietf_encrypt"
+          - type: call
+            value: "sodium_crypto_aead_chacha20poly1305_encrypt"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "OpenSSL::Cipher.new"
+            args:
+              - index: 0
+                values: ["\"chacha20-poly1305\"", "'chacha20-poly1305'", "\"CHACHA20-POLY1305\"", "'CHACHA20-POLY1305'", "\"chacha20\"", "'chacha20'", "\"CHACHA20\"", "'CHACHA20'"]
+          - type: call
+            value: "RbNaCl::AEAD::ChaCha20Poly1305IETF.*"
+          - type: call
+            value: "RbNaCl::AEAD::XChaCha20Poly1305IETF.*"

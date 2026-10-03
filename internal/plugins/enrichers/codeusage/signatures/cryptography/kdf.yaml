@@ -1,0 +1,433 @@
+version: 0.1
+# Generated from crypto_sigs.py. One id for each algorithm, with the call forms
+# of each language. The tags hold the CycloneDX crypto primitive.
+
+signatures:
+  - id: crypto.pbkdf2
+    description: "PBKDF2 key derivation"
+    vendor: ""
+    product: "PBKDF2"
+    service: "PBKDF2"
+    tags: [cryptography, kdf]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.pbkdf2_hmac"
+          - type: call
+            value: "cryptography.hazmat.primitives.kdf.pbkdf2.PBKDF2HMAC"
+          - type: call
+            value: "Crypto.Protocol.KDF.PBKDF2"
+          - type: call
+            value: "passlib.hash.pbkdf2_sha256.hash"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/pbkdf2"
+          - type: call
+            value: "crypto/pbkdf2Sync"
+          - type: call
+            value: "node:crypto/pbkdf2"
+          - type: call
+            value: "node:crypto/pbkdf2Sync"
+          - type: call
+            value: "crypto-js/PBKDF2"
+          - type: call
+            value: "@noble/hashes/pbkdf2/pbkdf2"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "javax.crypto.SecretKeyFactory.getInstance"
+            args:
+              - index: 0
+                values: ["\"PBKDF2WithHmacSHA256\"", "\"pbkdf2withhmacsha256\"", "\"PBKDF2WITHHMACSHA256\"", "\"PBKDF2WithHmacSHA1\"", "\"pbkdf2withhmacsha1\"", "\"PBKDF2WITHHMACSHA1\"", "\"PBKDF2WithHmacSHA512\"", "\"pbkdf2withhmacsha512\"", "\"PBKDF2WITHHMACSHA512\""]
+          - type: call
+            value: "SecretKeyFactory.getInstance"
+            args:
+              - index: 0
+                values: ["\"PBKDF2WithHmacSHA256\"", "\"pbkdf2withhmacsha256\"", "\"PBKDF2WITHHMACSHA256\"", "\"PBKDF2WithHmacSHA1\"", "\"pbkdf2withhmacsha1\"", "\"PBKDF2WITHHMACSHA1\"", "\"PBKDF2WithHmacSHA512\"", "\"pbkdf2withhmacsha512\"", "\"PBKDF2WITHHMACSHA512\""]
+          - type: call
+            value: "org.springframework.security.crypto.password.Pbkdf2PasswordEncoder"
+          - type: call
+            value: "org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "golang.org/x/crypto/pbkdf2/*"
+          - type: call
+            value: "crypto/pbkdf2/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "Rfc2898DeriveBytes"
+          - type: call
+            value: "System.Security.Cryptography.Rfc2898DeriveBytes"
+          - type: call
+            value: "Rfc2898DeriveBytes.Pbkdf2"
+          - type: call
+            value: "System.Security.Cryptography.Rfc2898DeriveBytes.Pbkdf2"
+          - type: call
+            value: "KeyDerivation.Pbkdf2"
+          - type: call
+            value: "Microsoft.AspNetCore.Cryptography.KeyDerivation.KeyDerivation.Pbkdf2"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "pbkdf2::*"
+          - type: call
+            value: "ring::pbkdf2::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "hash_pbkdf2"
+          - type: call
+            value: "openssl_pbkdf2"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "OpenSSL::PKCS5.pbkdf2_hmac"
+          - type: call
+            value: "OpenSSL::PKCS5.pbkdf2_hmac_sha1"
+          - type: call
+            value: "OpenSSL::KDF.pbkdf2_hmac"
+
+  - id: crypto.bcrypt
+    description: "bcrypt password hashing"
+    vendor: ""
+    product: "bcrypt"
+    service: "bcrypt"
+    tags: [cryptography, kdf, password]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "bcrypt.hashpw"
+          - type: call
+            value: "bcrypt.checkpw"
+          - type: call
+            value: "bcrypt.gensalt"
+          - type: call
+            value: "bcrypt.kdf"
+          - type: call
+            value: "passlib.hash.bcrypt.hash"
+          - type: call
+            value: "passlib.hash.bcrypt.verify"
+          - type: call
+            value: "flask_bcrypt.Bcrypt"
+          - type: call
+            value: "flask_bcrypt.generate_password_hash"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "bcrypt/hash"
+          - type: call
+            value: "bcrypt/hashSync"
+          - type: call
+            value: "bcrypt/compare"
+          - type: call
+            value: "bcrypt/compareSync"
+          - type: call
+            value: "bcrypt/genSalt"
+          - type: call
+            value: "bcryptjs/hash"
+          - type: call
+            value: "bcryptjs/hashSync"
+          - type: call
+            value: "bcryptjs/compare"
+          - type: call
+            value: "bcryptjs/compareSync"
+          - type: call
+            value: "bcryptjs/genSalt"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "org.mindrot.jbcrypt.BCrypt.hashpw"
+          - type: call
+            value: "org.mindrot.jbcrypt.BCrypt.checkpw"
+          - type: call
+            value: "org.mindrot.jbcrypt.BCrypt.gensalt"
+          - type: call
+            value: "org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"
+          - type: call
+            value: "at.favre.lib.crypto.bcrypt.BCrypt.withDefaults"
+          - type: call
+            value: "at.favre.lib.crypto.bcrypt.BCrypt.verifyer"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "golang.org/x/crypto/bcrypt/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "BCrypt.Net.BCrypt.HashPassword"
+          - type: call
+            value: "BCrypt.Net.BCrypt.Verify"
+          - type: call
+            value: "BCrypt.HashPassword"
+          - type: call
+            value: "BCrypt.Verify"
+          - type: call
+            value: "BCrypt.EnhancedHashPassword"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "bcrypt::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "password_hash"
+          - type: call
+            value: "password_verify"
+          - type: call
+            value: "password_needs_rehash"
+          - type: call
+            value: "Illuminate\\Support\\Facades\\Hash::make"
+          - type: call
+            value: "Illuminate\\Support\\Facades\\Hash::check"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "BCrypt::Password.*"
+          - type: call
+            value: "BCrypt::Engine.*"
+
+  - id: crypto.scrypt
+    description: "scrypt key derivation"
+    vendor: ""
+    product: "scrypt"
+    service: "scrypt"
+    tags: [cryptography, kdf, password]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "hashlib.scrypt"
+          - type: call
+            value: "cryptography.hazmat.primitives.kdf.scrypt.Scrypt"
+          - type: call
+            value: "Crypto.Protocol.KDF.scrypt"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/scrypt"
+          - type: call
+            value: "crypto/scryptSync"
+          - type: call
+            value: "node:crypto/scrypt"
+          - type: call
+            value: "node:crypto/scryptSync"
+          - type: call
+            value: "@noble/hashes/scrypt/scrypt"
+          - type: call
+            value: "scrypt-js/scrypt"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "org.springframework.security.crypto.scrypt.SCryptPasswordEncoder"
+          - type: call
+            value: "org.bouncycastle.crypto.generators.SCrypt.generate"
+          - type: call
+            value: "com.lambdaworks.crypto.SCryptUtil.scrypt"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "golang.org/x/crypto/scrypt/*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "scrypt::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "sodium_crypto_pwhash_scryptsalsa208sha256"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "SCrypt::Password.*"
+          - type: call
+            value: "OpenSSL::KDF.scrypt"
+
+  - id: crypto.argon2
+    description: "Argon2 password hashing"
+    vendor: ""
+    product: "Argon2"
+    service: "Argon2"
+    tags: [cryptography, kdf, password]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "argon2.PasswordHasher"
+          - type: call
+            value: "argon2.low_level.hash_secret"
+          - type: call
+            value: "argon2.low_level.hash_secret_raw"
+          - type: call
+            value: "passlib.hash.argon2.hash"
+          - type: call
+            value: "nacl.pwhash.argon2id.str"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "argon2/hash"
+          - type: call
+            value: "argon2/verify"
+          - type: call
+            value: "@node-rs/argon2/hash"
+          - type: call
+            value: "@node-rs/argon2/verify"
+          - type: call
+            value: "argon2-browser/hash"
+          - type: call
+            value: "@noble/hashes/argon2/argon2id"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "org.springframework.security.crypto.argon2.Argon2PasswordEncoder"
+          - type: call
+            value: "de.mkammerer.argon2.Argon2Factory.create"
+          - type: call
+            value: "org.bouncycastle.crypto.generators.Argon2BytesGenerator"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "golang.org/x/crypto/argon2/*"
+          - type: call
+            value: "github.com/alexedwards/argon2id/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "Argon2id"
+          - type: call
+            value: "Argon2i"
+          - type: call
+            value: "Konscious.Security.Cryptography.Argon2id"
+          - type: call
+            value: "Isopoh.Cryptography.Argon2.Argon2.Hash"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "argon2::*"
+          - type: call
+            value: "rust_argon2::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "sodium_crypto_pwhash"
+          - type: call
+            value: "sodium_crypto_pwhash_str"
+          - type: call
+            value: "sodium_crypto_pwhash_str_verify"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "Argon2::Password.*"
+
+  - id: crypto.hkdf
+    description: "HKDF key derivation"
+    vendor: ""
+    product: "HKDF"
+    service: "HKDF"
+    tags: [cryptography, kdf]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "cryptography.hazmat.primitives.kdf.hkdf.HKDF"
+          - type: call
+            value: "cryptography.hazmat.primitives.kdf.hkdf.HKDFExpand"
+          - type: call
+            value: "Crypto.Protocol.KDF.HKDF"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/hkdf"
+          - type: call
+            value: "crypto/hkdfSync"
+          - type: call
+            value: "node:crypto/hkdf"
+          - type: call
+            value: "node:crypto/hkdfSync"
+          - type: call
+            value: "@noble/hashes/hkdf/hkdf"
+          - type: call
+            value: "futoin-hkdf"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "org.bouncycastle.crypto.generators.HKDFBytesGenerator"
+          - type: call
+            value: "at.favre.lib.hkdf.HKDF.fromHmacSha256"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "golang.org/x/crypto/hkdf/*"
+          - type: call
+            value: "crypto/hkdf/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "HKDF.DeriveKey"
+          - type: call
+            value: "System.Security.Cryptography.HKDF.DeriveKey"
+          - type: call
+            value: "HKDF.Expand"
+          - type: call
+            value: "System.Security.Cryptography.HKDF.Expand"
+          - type: call
+            value: "HKDF.Extract"
+          - type: call
+            value: "System.Security.Cryptography.HKDF.Extract"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "hkdf::*"
+          - type: call
+            value: "ring::hkdf::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "hash_hkdf"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "OpenSSL::KDF.hkdf"
