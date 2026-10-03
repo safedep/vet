@@ -3,6 +3,7 @@ package humanize
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/safedep/dry/tui/humanize"
@@ -28,4 +29,13 @@ func Elapsed(d time.Duration) string {
 	}
 	r := d.Round(time.Minute)
 	return fmt.Sprintf("%dh%dm", int(r.Hours()), int(r.Minutes())%60)
+}
+
+// Count returns a count with its noun, as "1 scan" or "3 scans". The
+// plural adds an s.
+func Count(n int, noun string) string {
+	if n == 1 {
+		return "1 " + noun
+	}
+	return strconv.Itoa(n) + " " + noun + "s"
 }

@@ -177,7 +177,7 @@ const CodeNeedsConfirmation = "usage_needs_confirmation"
 func (a *App) Confirm(label, flag string) (bool, error) {
 	ok, err := prompt.Confirm(label, false)
 	if errors.Is(err, prompt.ErrAgentMode) || errors.Is(err, prompt.ErrNoTTY) {
-		msg := fmt.Sprintf("%s: vet cannot ask in this mode", label)
+		msg := fmt.Sprintf("vet cannot ask %q in this mode", label)
 		return false, usefulerror.NewUsefulError().WithCode(CodeNeedsConfirmation).
 			WithHumanError(msg).WithHelp(fmt.Sprintf("Pass %s to confirm.", flag)).WithMsg(msg)
 	}

@@ -15,6 +15,7 @@ import (
 	vstate "github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/internal/tui"
 	"github.com/safedep/vet/v2/internal/tui/escape"
+	"github.com/safedep/vet/v2/internal/tui/humanize"
 	"github.com/safedep/vet/v2/internal/tui/printer"
 )
 
@@ -99,14 +100,29 @@ func runDelete(cmd *cobra.Command, a *app.App, o deleteOptions) error {
 		return err
 	}
 	if len(d.Scans) == 0 && !d.Cache {
-		tui.Info("Nothing to delete.")
+		tui.Info("No scan to delete.")
+		if p.Format() == printer.Table {
+			return nil
+		}
 		return p.Print(d, deleteRows(d))
 	}
-	if !o.dryRun && !o.yes {
-		what := fmt.Sprintf("%d scans", len(d.Scans))
-		if d.Cache {
-			what += " and the enrichment cache"
+	ask := !o.dryRun && !o.yes
+	// A person reads the table before vet asks. A script reads the data
+	// after the delete, so that it shows what vet did.
+	shown := ask && p.Format() == printer.Table
+	if shown {
+		if err := p.Print(d, deleteRows(d)); err != nil {
+			return err
 		}
+	}
+	what := humanize.Count(len(d.Scans), "scan")
+	switch {
+	case d.Cache && len(d.Scans) == 0:
+		what = "the enrichment cache"
+	case d.Cache:
+		what += " and the enrichment cache"
+	}
+	if ask {
 		ok, err := a.Confirm(fmt.Sprintf("Delete %s (%s)?", what, bytes(d.SizeBytes)), "--yes")
 		if err != nil {
 			return err
@@ -128,13 +144,15 @@ func runDelete(cmd *cobra.Command, a *app.App, o deleteOptions) error {
 			}
 		}
 	}
-	if err := p.Print(d, deleteRows(d)); err != nil {
-		return err
+	if !shown {
+		if err := p.Print(d, deleteRows(d)); err != nil {
+			return err
+		}
 	}
 	if o.dryRun {
-		tui.Info("vet would delete %d scans and free %s. Run without --dry-run to delete them.", len(d.Scans), bytes(d.SizeBytes))
+		tui.Info("vet would delete %s (%s). Run without --dry-run to delete.", what, bytes(d.SizeBytes))
 	} else {
-		tui.Success("Deleted %d scans. Freed %s.", len(d.Scans), bytes(d.SizeBytes))
+		tui.Success("Deleted %s (%s).", what, bytes(d.SizeBytes))
 	}
 	return nil
 }
@@ -197,7 +215,7 @@ func selectScans(cmd *cobra.Command, cfg *config.Config, s *vstate.Store, o dele
 }
 
 func deleteRows(d Deletion) printer.Rows {
-	rows := printer.Rows{Headers: []string{"SCAN", "TARGET", "STATUS", "SIZE"}, Empty: "No scan to delete."}
+	rows := printer.Rows{Headers: []string{"SCAN", "TARGET", "STATUS", "SIZE"}}
 	for _, s := range d.Scans {
 		rows.Rows = append(rows.Rows, []string{s.ID, escape.Line(s.Target), s.Status, bytes(s.SizeBytes)})
 	}

@@ -27,3 +27,9 @@ func TestElapsed(t *testing.T) {
 		})
 	}
 }
+
+func TestCount(t *testing.T) {
+	assert.Equal(t, "0 scans", Count(0, "scan"))
+	assert.Equal(t, "1 scan", Count(1, "scan"))
+	assert.Equal(t, "2 actions", Count(2, "action"))
+}

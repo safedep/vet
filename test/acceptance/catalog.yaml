@@ -452,6 +452,12 @@
   tier: P1
   guarantee: "Without a TTY, vet state delete with no --yes exits 2. --dry-run -o json deletes nothing."
   labels: [state, prompt]
+- id: state/clean/counts
+  title: "state delete counts the scans and asks after the table"
+  category: state
+  tier: P2
+  guarantee: "vet state delete says 1 scan and N scans, shows the table before it asks, and prints one line when no scan matches."
+  labels: [state, prompt]
 - id: state/files/permissions
   title: "the state is owner only"
   category: state
