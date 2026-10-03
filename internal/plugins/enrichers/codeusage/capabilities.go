@@ -102,11 +102,7 @@ func (e *Enricher) baseMatches(ctx context.Context) (out []Match, err error) {
 	if err != nil {
 		return nil, err
 	}
-	for _, m := range a.Matches {
-		m.FilePath = relTo(tmp, m.FilePath)
-		out = append(out, m)
-	}
-	return out, nil
+	return append(out, e.external(a.Matches, tmp)...), nil
 }
 
 // skippedPath reports a path under a directory of installed or built code.

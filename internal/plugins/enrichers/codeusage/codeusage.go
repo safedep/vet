@@ -24,7 +24,7 @@ import (
 const Name = "codeusage"
 
 // Version changes when the mapping or the signatures change.
-const Version = "3"
+const Version = "4"
 
 // maxFiles bounds the files that a package usage lists.
 const maxFiles = 20
@@ -89,6 +89,7 @@ type Enricher struct {
 	once     sync.Once
 	modules  map[module][]string
 	matches  []Match
+	own      []string
 	provider provider
 	err      error
 }
@@ -141,11 +142,11 @@ func (e *Enricher) index(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	evs := a.Usage
-	for _, m := range a.Matches {
-		m.FilePath = relTo(e.dir, m.FilePath)
-		e.matches = append(e.matches, m)
+	if e.own, err = ownRoots(e.dir); err != nil {
+		return err
 	}
+	e.matches = e.external(a.Matches, e.dir)
+	evs := a.Usage
 	autoload, err := readAutoload(e.dir)
 	if err != nil {
 		return err
@@ -164,6 +165,20 @@ func (e *Enricher) index(ctx context.Context) error {
 	}
 	e.provider = provider{autoload: autoload}
 	return nil
+}
+
+// external returns the matches that do not call into the project itself,
+// with paths relative to root.
+func (e *Enricher) external(matches []Match, root string) []Match {
+	out := make([]Match, 0, len(matches))
+	for _, m := range matches {
+		if inRoots(m.Callee, e.own) {
+			continue
+		}
+		m.FilePath = relTo(root, m.FilePath)
+		out = append(out, m)
+	}
+	return out
 }
 
 // sortedFiles returns the files of a set in order, at most maxFiles.
