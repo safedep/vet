@@ -14,7 +14,8 @@ func TestAnnotateUsage(t *testing.T) {
 	unused := &model.Package{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "b", Version: "1.0.0"}, Usage: &model.Usage{}}
 	unknown := &model.Package{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "c", Version: "1.0.0"}}
 	once := &model.Package{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "d", Version: "1.0.0"}, Usage: &model.Usage{Imported: true, Files: []string{"index.js"}}}
-	m := &model.Manifest{Path: "package-lock.json", Packages: []*model.Package{used, unused, unknown, once}}
+	noFiles := &model.Package{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "e", Version: "1.0.0"}, Usage: &model.Usage{Imported: true}}
+	m := &model.Manifest{Path: "package-lock.json", Packages: []*model.Package{used, unused, unknown, once, noFiles}}
 	meta := finding.Meta{ControlID: "x", Family: finding.FamilyMalware, Severity: finding.SeverityHigh, Title: "t"}
 
 	cases := []struct {
@@ -25,6 +26,7 @@ func TestAnnotateUsage(t *testing.T) {
 		{unused, []finding.Evidence{{Source: "codeusage", Summary: "No source file of the project imports the package."}}},
 		{unknown, nil},
 		{once, []finding.Evidence{{Source: "codeusage", Summary: "The project imports the package in index.js."}}},
+		{noFiles, []finding.Evidence{{Source: "codeusage", Summary: "The project imports the package."}}},
 	}
 	for _, tc := range cases {
 		f := finding.ForPackage(meta, m.Path, tc.pkg, finding.Key{})

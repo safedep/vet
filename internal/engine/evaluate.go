@@ -113,11 +113,14 @@ func annotateUsage(f *finding.Finding, m *model.Manifest) {
 			continue
 		}
 		summary := "No source file of the project imports the package."
-		if p.Usage.Imported {
+		switch n := len(p.Usage.Files); {
+		case !p.Usage.Imported:
+		case n == 0:
+			summary = "The project imports the package."
+		case n == 1:
 			summary = fmt.Sprintf("The project imports the package in %s.", p.Usage.Files[0])
-			if n := len(p.Usage.Files); n > 1 {
-				summary = fmt.Sprintf("The project imports the package in %d files, for example %s.", n, p.Usage.Files[0])
-			}
+		default:
+			summary = fmt.Sprintf("The project imports the package in %d files, for example %s.", n, p.Usage.Files[0])
 		}
 		f.Evidence = append(f.Evidence, finding.Evidence{Source: "codeusage", Summary: summary})
 		return
