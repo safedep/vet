@@ -11,9 +11,11 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 	"time"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
+	"github.com/github/go-spdx/v2/spdxexp"
 
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
@@ -85,10 +87,7 @@ func component(p *report.PackageEntry) cdx.Component {
 	}
 	c.Scope = scope
 	if in := p.Insight; in != nil && len(in.Licenses) > 0 {
-		var ls cdx.Licenses
-		for _, l := range in.Licenses {
-			ls = append(ls, cdx.LicenseChoice{License: &cdx.License{ID: l}})
-		}
+		ls := licenses(in.Licenses)
 		c.Licenses = &ls
 	}
 	props := []cdx.Property{{Name: "safedep:direct", Value: strconv.FormatBool(p.Direct)}}
@@ -192,8 +191,47 @@ func cryptoProperties(c *report.Capability) *cdx.CryptoProperties {
 	}
 	return &cdx.CryptoProperties{
 		AssetType:           cdx.CryptoAssetTypeAlgorithm,
-		AlgorithmProperties: &cdx.CryptoAlgorithmProperties{Primitive: primitive, AlgorithmFamily: c.Product},
+		AlgorithmProperties: &cdx.CryptoAlgorithmProperties{Primitive: primitive, AlgorithmFamily: family(c.Product)},
 	}
+}
+
+func family(product string) string {
+	if algorithmFamilies[product] {
+		return product
+	}
+	return ""
+}
+
+// licenses returns the license choices of the declared licenses. An SPDX
+// id is an id, and a name that SPDX does not know is a name. CycloneDX
+// takes an SPDX expression, such as "Apache-2.0 OR MIT", only as the one
+// choice, so the expression joins all the declared licenses with AND. A
+// declared name that is not SPDX keeps each license a name.
+func licenses(declared []string) cdx.Licenses {
+	var out cdx.Licenses
+	var terms []string
+	compound, named := false, false
+	for _, l := range declared {
+		if ok, id := spdxexp.ActiveLicense(l); ok {
+			out = append(out, cdx.LicenseChoice{License: &cdx.License{ID: id}})
+			terms = append(terms, id)
+			continue
+		}
+		out = append(out, cdx.LicenseChoice{License: &cdx.License{Name: l}})
+		if ok, _ := spdxexp.ValidateLicenses([]string{l}); ok {
+			compound = true
+			terms = append(terms, "("+l+")")
+		} else {
+			named = true
+		}
+	}
+	switch {
+	case !compound || named:
+		return out
+	case len(declared) == 1:
+		return cdx.Licenses{{Expression: declared[0]}}
+	}
+	return cdx.Licenses{{Expression: strings.Join(terms, " AND ")}}
 }
 
 func capabilityName(c *report.Capability) string {
@@ -222,7 +260,7 @@ func vulnerability(p *report.PackageEntry, v model.Vulnerability) cdx.Vulnerabil
 		BOMRef:      v.ID + "/" + p.PURL,
 		ID:          v.ID,
 		Description: v.Summary,
-		Source:      &cdx.Source{Name: "OSV", URL: "https://osv.dev/vulnerability/" + v.ID},
+		Source:      advisorySource(v.ID),
 		Affects:     &[]cdx.Affects{{Ref: p.PURL}},
 	}
 	rating := cdx.VulnerabilityRating{Severity: cdx.Severity(v.Severity)}
@@ -236,11 +274,23 @@ func vulnerability(p *report.PackageEntry, v model.Vulnerability) cdx.Vulnerabil
 	if len(v.Aliases) > 0 {
 		var refs []cdx.VulnerabilityReference
 		for _, a := range v.Aliases {
-			refs = append(refs, cdx.VulnerabilityReference{ID: a})
+			refs = append(refs, cdx.VulnerabilityReference{ID: a, Source: advisorySource(a)})
 		}
 		cv.References = &refs
 	}
 	return cv
+}
+
+// advisorySource returns the database that publishes an advisory id: NVD
+// for a CVE, GitHub for a GHSA, and OSV for the rest.
+func advisorySource(id string) *cdx.Source {
+	switch {
+	case strings.HasPrefix(id, "CVE-"):
+		return &cdx.Source{Name: "NVD", URL: "https://nvd.nist.gov/vuln/detail/" + id}
+	case strings.HasPrefix(id, "GHSA-"):
+		return &cdx.Source{Name: "GitHub", URL: "https://github.com/advisories/" + id}
+	}
+	return &cdx.Source{Name: "OSV", URL: "https://osv.dev/vulnerability/" + id}
 }
 
 // serial returns a URN UUID (version 5 form) from the scan id.

@@ -23,6 +23,9 @@ func TestCryptoProperties(t *testing.T) {
 		{"authenticated encryption", report.Capability{Product: "ChaCha20", Tags: []string{"cryptography", "ae"}}, &cdx.CryptoProperties{
 			AssetType: cdx.CryptoAssetTypeAlgorithm, AlgorithmProperties: &cdx.CryptoAlgorithmProperties{Primitive: cdx.CryptoPrimitiveAE, AlgorithmFamily: "ChaCha20"},
 		}},
+		{"family outside the registry", report.Capability{Product: "RSA", Tags: []string{"cryptography", "pke", "signature"}}, &cdx.CryptoProperties{
+			AssetType: cdx.CryptoAssetTypeAlgorithm, AlgorithmProperties: &cdx.CryptoAlgorithmProperties{Primitive: cdx.CryptoPrimitiveSignature},
+		}},
 		{"tls", report.Capability{Tags: []string{"cryptography", "protocol", "tls"}}, &cdx.CryptoProperties{
 			AssetType: cdx.CryptoAssetTypeProtocol, ProtocolProperties: &cdx.CryptoProtocolProperties{Type: cdx.CryptoProtocolTypeTLS},
 		}},

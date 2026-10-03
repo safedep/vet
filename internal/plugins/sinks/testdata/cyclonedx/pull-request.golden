@@ -164,12 +164,16 @@
       "bom-ref": "GHSA-stub-0001/pkg:npm/left-pad@1.3.0",
       "id": "GHSA-stub-0001",
       "source": {
-        "name": "OSV",
-        "url": "https://osv.dev/vulnerability/GHSA-stub-0001"
+        "name": "GitHub",
+        "url": "https://github.com/advisories/GHSA-stub-0001"
       },
       "references": [
         {
-          "id": "CVE-2026-0001"
+          "id": "CVE-2026-0001",
+          "source": {
+            "name": "NVD",
+            "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-0001"
+          }
         }
       ],
       "ratings": [
