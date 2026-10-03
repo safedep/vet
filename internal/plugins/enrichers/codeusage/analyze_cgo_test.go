@@ -24,6 +24,8 @@ func TestDefaultAnalyzer(t *testing.T) {
 	dir := t.TempDir()
 	write(t, dir, "app.py", "import requests\nfrom yaml import safe_load\nfrom openai import OpenAI\n\nrequests.get(\"https://example.com\")\nsafe_load(\"a: 1\")\nclient = OpenAI()\n")
 	write(t, dir, "node_modules/x/index.py", "import skipped\nskipped.run()\n")
+	write(t, dir, "static/swagger-ui-bundle.js", "const OpenAI = require('openai');\nnew OpenAI();\n")
+	write(t, dir, "static/app.min.js", "const OpenAI = require('openai');\nnew OpenAI();\n")
 	a, err := defaultAnalyzer(context.Background(), dir)
 	require.NoError(t, err)
 	var modules []string

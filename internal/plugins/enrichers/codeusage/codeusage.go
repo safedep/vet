@@ -10,6 +10,7 @@ package codeusage
 import (
 	"context"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"sort"
 	"strings"
@@ -239,3 +240,8 @@ func rootModule(m string) string {
 var skippedDirs = []string{"node_modules", "vendor", ".git", ".venv", "venv", "dist", "build", "target", "__pycache__"}
 
 func skippedDir(name string) bool { return slices.Contains(skippedDirs, name) }
+
+// bundledFile matches a minified or bundled script, such as a vendored
+// swagger-ui-bundle.js. It holds a copy of other packages, and its short
+// global names, such as ai, look like the names of npm packages.
+var bundledFile = regexp.MustCompile(`(\.min|[.-]bundle)\.[cm]?js$`)

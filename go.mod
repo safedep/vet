@@ -21,7 +21,7 @@ require (
 	github.com/package-url/packageurl-go v0.1.5
 	github.com/posthog/posthog-go v1.10.0
 	github.com/rogpeppe/go-internal v1.16.0
-	github.com/safedep/code v0.0.0-20261003061144-5c05f91ffa27
+	github.com/safedep/code v0.0.0-20261003062400-f9bffa26614d
 	github.com/safedep/dry v0.0.0-20261002073351-d0ae33065533
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
 	github.com/spf13/cobra v1.10.2

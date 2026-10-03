@@ -20,6 +20,7 @@ import (
 
 var skipped = []*regexp.Regexp{
 	regexp.MustCompile(`(^|/)(` + strings.Join(regexpQuoted(skippedDirs), "|") + `)(/|$)`),
+	bundledFile,
 }
 
 func regexpQuoted(names []string) []string {

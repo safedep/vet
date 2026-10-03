@@ -147,3 +147,20 @@ func TestCapabilitiesAnalyzeOnce(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, la.runs, 1, "usage and capabilities share one analysis")
 }
+
+func TestSkippedPath(t *testing.T) {
+	cases := map[string]bool{
+		"app.py":                       false,
+		"src/client.js":                false,
+		"src/bundle.go":                false,
+		"node_modules/openai/index.js": true,
+		"web/dist/app.js":              true,
+		"static/swagger-ui-bundle.js":  true,
+		"static/vendor.bundle.mjs":     true,
+		"public/jquery.min.js":         true,
+		"src/minify.js":                false,
+	}
+	for rel, want := range cases {
+		assert.Equal(t, want, skippedPath(rel), rel)
+	}
+}

@@ -106,8 +106,12 @@ func (e *Enricher) baseMatches(ctx context.Context) (out []Match, err error) {
 	return append(out, e.external(a.Matches, tmp)...), nil
 }
 
-// skippedPath reports a path under a directory of installed or built code.
+// skippedPath reports a bundled script, or a path under a directory of
+// installed or built code.
 func skippedPath(rel string) bool {
+	if bundledFile.MatchString(rel) {
+		return true
+	}
 	for dir := path.Dir(rel); dir != "." && dir != "/"; dir = path.Dir(dir) {
 		if skippedDir(path.Base(dir)) {
 			return true
