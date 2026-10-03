@@ -26,6 +26,7 @@ type Doc struct {
 	manifests []*model.Manifest
 	packages  []*report.PackageEntry
 	inventory []*report.InventoryItem
+	caps      []*report.Capability
 	findings  []*finding.Finding
 	diags     []*report.Diagnostic
 }
@@ -67,6 +68,8 @@ func (d *Doc) add(r *report.Record) {
 		d.packages = append(d.packages, r.Package)
 	case r.Inventory != nil:
 		d.inventory = append(d.inventory, r.Inventory)
+	case r.Capability != nil:
+		d.caps = append(d.caps, r.Capability)
 	case r.Finding != nil:
 		d.findings = append(d.findings, r.Finding)
 	case r.Diagnostic != nil:
@@ -140,6 +143,12 @@ func (d *Doc) records() iter.Seq[*report.Record] {
 		}
 		for _, i := range d.inventory {
 			r := report.InventoryRecord(i)
+			if !yield(&r) {
+				return
+			}
+		}
+		for _, c := range d.caps {
+			r := report.CapabilityRecord(c)
 			if !yield(&r) {
 				return
 			}
@@ -221,6 +230,17 @@ func (d *Doc) Findings(_ context.Context, q plugin.FindingQuery) iter.Seq2[*find
 				continue
 			}
 			if !yield(f, nil) {
+				return
+			}
+		}
+	}
+}
+
+// Capabilities yields the capabilities in report order.
+func (d *Doc) Capabilities(_ context.Context) iter.Seq2[*report.Capability, error] {
+	return func(yield func(*report.Capability, error) bool) {
+		for _, c := range d.caps {
+			if !yield(c, nil) {
 				return
 			}
 		}

@@ -48,6 +48,12 @@ func TestRecordsMatchMemState(t *testing.T) {
 		items = append(items, *i)
 	}
 	require.NoError(t, scan.ReplaceInventory(ctx, items))
+	require.NoError(t, scan.ReplaceCapabilities(ctx, []report.Capability{{ID: "old"}}))
+	var caps []report.Capability
+	for _, c := range want.CapabilityList {
+		caps = append(caps, *c)
+	}
+	require.NoError(t, scan.ReplaceCapabilities(ctx, caps))
 	for _, d := range want.DiagnosticList {
 		require.NoError(t, scan.AddDiagnostic(ctx, d))
 	}

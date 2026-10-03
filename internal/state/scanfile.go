@@ -111,6 +111,11 @@ var scanMigrations = []string{
 		purl    TEXT PRIMARY KEY,
 		insight BLOB NOT NULL
 	)`,
+	// The capabilities that the code signatures find (the xBOM).
+	`CREATE TABLE vet_scan_capabilities (
+		id   TEXT PRIMARY KEY,
+		data BLOB NOT NULL
+	)`,
 }
 
 const (
@@ -610,11 +615,25 @@ func insertFinding(ctx context.Context, tx *sql.Tx, manifestID string, f *findin
 // deletes the items of an earlier run, so a continued scan holds the
 // inventory of its last run only.
 func (s *Scan) ReplaceInventory(ctx context.Context, items []report.InventoryItem) error {
+	return replaceRows(ctx, s, `DELETE FROM vet_scan_inventory`, `INSERT INTO vet_scan_inventory (data) VALUES (?)`,
+		items, func(*report.InventoryItem) []any { return nil })
+}
+
+// ReplaceCapabilities writes the capabilities of the scan in one
+// transaction, in place of those of an earlier run.
+func (s *Scan) ReplaceCapabilities(ctx context.Context, caps []report.Capability) error {
+	return replaceRows(ctx, s, `DELETE FROM vet_scan_capabilities`, `INSERT INTO vet_scan_capabilities (id, data) VALUES (?, ?)`,
+		caps, func(c *report.Capability) []any { return []any{c.ID} })
+}
+
+// replaceRows deletes the rows of a table and inserts one row for each
+// item: the key columns that keys returns, then the item as JSON.
+func replaceRows[T any](ctx context.Context, s *Scan, del, insert string, items []T, keys func(*T) []any) error {
 	return s.tx(ctx, func(tx *sql.Tx) error {
-		if _, err := tx.ExecContext(ctx, `DELETE FROM vet_scan_inventory`); err != nil {
+		if _, err := tx.ExecContext(ctx, del); err != nil {
 			return err
 		}
-		st, err := prepare(ctx, tx, `INSERT INTO vet_scan_inventory (data) VALUES (?)`)
+		st, err := prepare(ctx, tx, insert)
 		if err != nil {
 			return err
 		}
@@ -624,8 +643,8 @@ func (s *Scan) ReplaceInventory(ctx context.Context, items []report.InventoryIte
 			if err != nil {
 				return err
 			}
-			if _, err := st[0].ExecContext(ctx, b); err != nil {
-				return fmt.Errorf("write inventory item: %w", err)
+			if _, err := st[0].ExecContext(ctx, append(keys(&items[i]), b)...); err != nil {
+				return fmt.Errorf("write row: %w", err)
 			}
 		}
 		return nil

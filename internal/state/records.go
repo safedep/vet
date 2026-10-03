@@ -50,7 +50,7 @@ func (s *Scan) loadMeta(ctx context.Context) error {
 }
 
 // Records yields the manifests, the packages in PURL order, the inventory,
-// the findings and the diagnostics. Each query has an explicit order, so the
+// the capabilities, the findings and the diagnostics. Each query has an explicit order, so the
 // same scan file always gives the same stream.
 func (s *Scan) Records(ctx context.Context) iter.Seq2[*report.Record, error] {
 	return func(yield func(*report.Record, error) bool) {
@@ -58,6 +58,7 @@ func (s *Scan) Records(ctx context.Context) iter.Seq2[*report.Record, error] {
 			s.manifestRecords,
 			s.packageRecords,
 			s.inventoryRecords,
+			s.capabilityRecords,
 			s.findingRecords,
 			s.diagnosticRecords,
 		}
@@ -89,6 +90,18 @@ func (s *Scan) inventoryRecords(ctx context.Context, yield func(*report.Record, 
 				return nil, fmt.Errorf("decode inventory item: %w", err)
 			}
 			r := report.InventoryRecord(&it)
+			return &r, nil
+		})
+}
+
+func (s *Scan) capabilityRecords(ctx context.Context, yield func(*report.Record, error) bool) bool {
+	return s.blobRecords(ctx, `SELECT data FROM vet_scan_capabilities ORDER BY id`, yield,
+		func(b []byte) (*report.Record, error) {
+			var c report.Capability
+			if err := json.Unmarshal(b, &c); err != nil {
+				return nil, fmt.Errorf("decode capability: %w", err)
+			}
+			r := report.CapabilityRecord(&c)
 			return &r, nil
 		})
 }

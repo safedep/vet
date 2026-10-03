@@ -19,6 +19,7 @@ type MemState struct {
 	ManifestList   []*model.Manifest
 	FindingList    []*finding.Finding
 	InventoryList  []*report.InventoryItem
+	CapabilityList []*report.Capability
 	DiagnosticList []*report.Diagnostic
 	HeaderValue    *report.Header
 	TrailerValue   *report.Trailer
@@ -70,6 +71,11 @@ func (s *MemState) Packages(ctx context.Context, q plugin.PackageQuery) iter.Seq
 			}
 		}
 	}
+}
+
+// Capabilities yields the capabilities in insertion order.
+func (s *MemState) Capabilities(ctx context.Context) iter.Seq2[*report.Capability, error] {
+	return yieldAll(ctx, s.CapabilityList)
 }
 
 // Package returns the first package with the identity.
@@ -190,6 +196,12 @@ func (s *MemState) records() iter.Seq[*report.Record] {
 				return
 			}
 		}
+		for _, c := range s.CapabilityList {
+			r := report.CapabilityRecord(c)
+			if !yield(&r) {
+				return
+			}
+		}
 		for _, f := range s.sortedFindings() {
 			r := report.FindingRecord(f)
 			if !yield(&r) {
@@ -228,4 +240,19 @@ func (s *MemState) packageEntries() []*report.PackageEntry {
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].PURL < out[j].PURL })
 	return out
+}
+
+func yieldAll[T any](ctx context.Context, items []T) iter.Seq2[T, error] {
+	return func(yield func(T, error) bool) {
+		for _, it := range items {
+			if err := ctx.Err(); err != nil {
+				var zero T
+				yield(zero, err)
+				return
+			}
+			if !yield(it, nil) {
+				return
+			}
+		}
+	}
 }

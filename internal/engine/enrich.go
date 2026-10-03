@@ -19,7 +19,30 @@ func (r *run) enrich(ctx context.Context) error {
 			return err
 		}
 	}
-	return nil
+	return r.findCapabilities(ctx)
+}
+
+// findCapabilities asks each enricher that finds capabilities, and writes
+// them in place of those of an earlier run. A finder that fails adds a
+// diagnostic, as a failed batch does, and the scan goes on.
+func (r *run) findCapabilities(ctx context.Context) error {
+	var caps []report.Capability
+	for _, e := range r.o.Enrichers {
+		f, ok := e.Plugin.(plugin.CapabilityFinder)
+		if !ok {
+			continue
+		}
+		cs, err := f.Capabilities(ctx)
+		if err != nil {
+			if ctxErr := ctx.Err(); ctxErr != nil {
+				return ctxErr
+			}
+			r.enrichError(e.Name, err)
+			continue
+		}
+		caps = append(caps, cs...)
+	}
+	return r.res.Scan.ReplaceCapabilities(ctx, caps)
 }
 
 func (r *run) enrichWith(ctx context.Context, e Enricher) error {

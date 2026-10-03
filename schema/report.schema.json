@@ -17,6 +17,54 @@
         "root"
       ]
     },
+    "Capability": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "vendor": {
+          "type": "string"
+        },
+        "product": {
+          "type": "string"
+        },
+        "service": {
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "change": {
+          "type": "string",
+          "enum": [
+            "",
+            "ADDED",
+            "UPGRADED",
+            "DOWNGRADED",
+            "MODIFIED",
+            "REMOVED",
+            "UNCHANGED"
+          ]
+        },
+        "occurrences": {
+          "items": {
+            "$ref": "#/$defs/Occurrence"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object",
+      "required": [
+        "id",
+        "occurrences"
+      ]
+    },
     "Diagnostic": {
       "properties": {
         "level": {
@@ -495,6 +543,29 @@
         "path"
       ]
     },
+    "Occurrence": {
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer"
+        },
+        "column": {
+          "type": "integer"
+        },
+        "language": {
+          "type": "string"
+        },
+        "callee": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "file"
+      ]
+    },
     "PackageEntry": {
       "properties": {
         "purl": {
@@ -656,7 +727,8 @@
             "package",
             "inventory",
             "finding",
-            "diagnostic"
+            "diagnostic",
+            "capability"
           ]
         },
         "manifest": {
@@ -673,6 +745,9 @@
         },
         "diagnostic": {
           "$ref": "#/$defs/Diagnostic"
+        },
+        "capability": {
+          "$ref": "#/$defs/Capability"
         }
       },
       "type": "object",
@@ -806,6 +881,9 @@
         "inventory": {
           "type": "integer"
         },
+        "capabilities": {
+          "type": "integer"
+        },
         "findings": {
           "type": "integer"
         },
@@ -833,6 +911,7 @@
         "manifests",
         "packages",
         "inventory",
+        "capabilities",
         "findings",
         "suppressed",
         "diagnostics",

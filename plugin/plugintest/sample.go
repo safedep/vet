@@ -37,9 +37,14 @@ func SampleReport() *MemState {
 	suppressed.Suppression = &finding.Suppression{Reason: "Reviewed", Rule: "s-1"}
 
 	return &MemState{
-		ManifestList:   []*model.Manifest{m},
-		FindingList:    []*finding.Finding{&malware, &workflow, &suppressed},
-		InventoryList:  []*report.InventoryItem{{Kind: report.InventoryMCPServer, Name: "filesystem", Client: "claude-code"}},
+		ManifestList:  []*model.Manifest{m},
+		FindingList:   []*finding.Finding{&malware, &workflow, &suppressed},
+		InventoryList: []*report.InventoryItem{{Kind: report.InventoryMCPServer, Name: "filesystem", Client: "claude-code"}},
+		CapabilityList: []*report.Capability{{
+			ID: "openai.client", Description: "Creates a client of the OpenAI API.", Vendor: "OpenAI", Product: "OpenAI SDK",
+			Service: "Chat Completions", Tags: []string{"ai", "llm"},
+			Occurrences: []report.Occurrence{{File: "src/chat.py", Line: 12, Column: 5, Language: "python", Callee: "openai//OpenAI"}},
+		}},
 		DiagnosticList: []*report.Diagnostic{{Level: report.DiagnosticWarning, Code: "enrichment_unavailable", Component: "insights", Message: "2 packages have no data", Count: 2}},
 	}
 }

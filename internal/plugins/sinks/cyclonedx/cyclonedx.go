@@ -1,5 +1,6 @@
 // Package cyclonedx is the CycloneDX 1.6 format: a BOM of the packages of
-// the scan, with their known vulnerabilities.
+// the scan, with their known vulnerabilities, and of the capabilities that
+// the code signatures find (the xBOM).
 package cyclonedx
 
 import (
@@ -40,7 +41,7 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 	bom.Metadata = &cdx.Metadata{
 		Timestamp: h.Scan.StartedAt.UTC().Format(time.RFC3339),
 		Tools: &cdx.ToolsChoice{Components: &[]cdx.Component{{
-			Type: cdx.ComponentTypeApplication, Name: h.Tool.Name, Version: h.Tool.Version, Publisher: "SafeDep",
+			Type: cdx.ComponentTypeApplication, Name: h.Tool.Name, Version: h.Tool.Version, Publisher: "SafeDep", BOMRef: toolRef,
 		}}},
 		Component: &cdx.Component{Type: cdx.ComponentTypeApplication, Name: h.Scan.Target, BOMRef: "target"},
 	}
@@ -50,12 +51,13 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 		if err != nil {
 			return err
 		}
-		if rec.Kind != report.KindPackage || rec.Package == nil {
-			continue
+		switch {
+		case rec.Package != nil:
+			comps = append(comps, component(rec.Package))
+			vulns = append(vulns, vulnerabilities(rec.Package)...)
+		case rec.Capability != nil:
+			comps = append(comps, capabilityComponent(rec.Capability))
 		}
-		p := rec.Package
-		comps = append(comps, component(p))
-		vulns = append(vulns, vulnerabilities(p)...)
 	}
 	bom.Components = &comps
 	if len(vulns) > 0 {
@@ -90,6 +92,69 @@ func component(p *report.PackageEntry) cdx.Component {
 	}
 	c.Properties = &props
 	return c
+}
+
+// toolRef is the BOM reference of vet, the tool that finds the evidence.
+const toolRef = "vet"
+
+// knownTags are the signature tags that become component properties, as in
+// vet v1.
+var knownTags = []string{"ai", "cryptography", "encryption", "hash", "ml", "iaas", "paas", "saas"}
+
+// capabilityComponent describes a capability as vet v1 did: the reference is
+// xbom:<signature id>, and the evidence is the source code analysis with
+// each matched call.
+func capabilityComponent(c *report.Capability) cdx.Component {
+	occurrences := make([]cdx.EvidenceOccurrence, 0, len(c.Occurrences))
+	for _, o := range c.Occurrences {
+		occ := cdx.EvidenceOccurrence{Location: o.File, AdditionalContext: o.Callee}
+		if o.Line > 0 {
+			occ.Line = &o.Line
+		}
+		if o.Column > 0 {
+			occ.Offset = &o.Column
+		}
+		occurrences = append(occurrences, occ)
+	}
+	confidence := float32(1)
+	var props []cdx.Property
+	for _, tag := range knownTags {
+		if c.HasTag(tag) {
+			props = append(props, cdx.Property{Name: tag, Value: "true"})
+		}
+	}
+	if c.Change != "" {
+		props = append(props, cdx.Property{Name: "safedep:change", Value: string(c.Change)})
+	}
+	comp := cdx.Component{
+		BOMRef: "xbom:" + c.ID, Type: cdx.ComponentTypeLibrary, Name: capabilityName(c), Description: c.Description,
+		Publisher: c.Vendor,
+		Evidence: &cdx.Evidence{
+			Identity: &cdx.EvidenceIdentityChoice{Identities: &[]cdx.EvidenceIdentity{{
+				Field:   cdx.EvidenceIdentityFieldTypeName,
+				Methods: &[]cdx.EvidenceIdentityMethod{{Technique: cdx.EvidenceIdentityTechniqueSourceCodeAnalysis, Confidence: &confidence}},
+				Tools:   &[]cdx.BOMReference{toolRef},
+			}}},
+			Occurrences: &occurrences,
+		},
+	}
+	if c.Vendor != "" {
+		comp.Manufacturer = &cdx.OrganizationalEntity{Name: c.Vendor}
+	}
+	if len(props) > 0 {
+		comp.Properties = &props
+	}
+	return comp
+}
+
+func capabilityName(c *report.Capability) string {
+	switch {
+	case c.Product != "" && c.Service != "":
+		return c.Product + " - " + c.Service
+	case c.Product != "":
+		return c.Product
+	}
+	return c.ID
 }
 
 func vulnerabilities(p *report.PackageEntry) []cdx.Vulnerability {

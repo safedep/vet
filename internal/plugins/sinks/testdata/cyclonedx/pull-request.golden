@@ -9,6 +9,7 @@
     "tools": {
       "components": [
         {
+          "bom-ref": "vet",
           "type": "application",
           "publisher": "SafeDep",
           "name": "vet",
@@ -61,6 +62,46 @@
           "value": "false"
         }
       ]
+    },
+    {
+      "bom-ref": "xbom:openai.client",
+      "type": "library",
+      "manufacturer": {
+        "name": "OpenAI"
+      },
+      "publisher": "OpenAI",
+      "name": "OpenAI SDK - Chat Completions",
+      "description": "Creates a client of the OpenAI API.",
+      "properties": [
+        {
+          "name": "ai",
+          "value": "true"
+        }
+      ],
+      "evidence": {
+        "identity": [
+          {
+            "field": "name",
+            "methods": [
+              {
+                "technique": "source-code-analysis",
+                "confidence": 1
+              }
+            ],
+            "tools": [
+              "vet"
+            ]
+          }
+        ],
+        "occurrences": [
+          {
+            "location": "src/chat.py",
+            "line": 12,
+            "offset": 5,
+            "additionalContext": "openai//OpenAI"
+          }
+        ]
+      }
     }
   ],
   "vulnerabilities": [

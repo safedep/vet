@@ -97,12 +97,28 @@ type State interface {
 	Package(ctx context.Context, id model.PackageID) (*model.Package, error)
 	Dependents(ctx context.Context, id model.PackageID) iter.Seq2[*model.Package, error]
 	Findings(ctx context.Context, q FindingQuery) iter.Seq2[*finding.Finding, error]
+	// Capabilities yields the capabilities of the target in id order.
+	Capabilities(ctx context.Context) iter.Seq2[*report.Capability, error]
+}
+
+// CapabilityFinder is an enricher that also finds the capabilities of the
+// target (the xBOM). The engine calls it once for each scan, after the
+// enrichers.
+type CapabilityFinder interface {
+	Capabilities(ctx context.Context) ([]report.Capability, error)
 }
 
 // Control evaluates one manifest, loaded with its packages, and returns
 // findings. A control that looks across manifests reads State.
 type Control interface {
 	Evaluate(ctx context.Context, m *model.Manifest, s State) ([]finding.Finding, error)
+}
+
+// ApplicationControl is a control that also checks the application as a
+// whole, once for each scan, after the manifests. Its findings have an
+// application subject, such as a new capability of the code.
+type ApplicationControl interface {
+	EvaluateApplication(ctx context.Context, s State) ([]finding.Finding, error)
 }
 
 // ControlInfo describes one control id that a control plugin emits.

@@ -11,6 +11,7 @@ import (
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
+	"github.com/safedep/vet/v2/report"
 )
 
 var _ plugin.State = (*Scan)(nil)
@@ -493,4 +494,16 @@ func (s *Scan) attachPrior(ctx context.Context, pkgs []*model.Package) error {
 		}
 	}
 	return nil
+}
+
+// Capabilities yields the capabilities of the scan in id order.
+func (s *Scan) Capabilities(ctx context.Context) iter.Seq2[*report.Capability, error] {
+	return func(yield func(*report.Capability, error) bool) {
+		s.capabilityRecords(ctx, func(r *report.Record, err error) bool {
+			if err != nil {
+				return yield(nil, err)
+			}
+			return yield(r.Capability, nil)
+		})
+	}
 }

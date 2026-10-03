@@ -3,6 +3,7 @@ package report
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/safedep/vet/v2/finding"
@@ -70,6 +71,7 @@ const (
 	KindInventory  Kind = "inventory"
 	KindFinding    Kind = "finding"
 	KindDiagnostic Kind = "diagnostic"
+	KindCapability Kind = "capability"
 )
 
 // Record holds exactly one of its fields. Kind names it.
@@ -80,6 +82,7 @@ type Record struct {
 	Inventory  *InventoryItem   `json:"inventory,omitempty"`
 	Finding    *finding.Finding `json:"finding,omitempty"`
 	Diagnostic *Diagnostic      `json:"diagnostic,omitempty"`
+	Capability *Capability      `json:"capability,omitempty"`
 }
 
 // PackageEntry is a package with the manifests that declare it.
@@ -112,6 +115,36 @@ type InventoryItem struct {
 	Details map[string]string `json:"details,omitempty"`
 }
 
+// Capability is a behavior of the application that a code signature finds,
+// such as a call to the SDK of an LLM provider. The capabilities of a scan
+// are its xBOM. The ID is the signature id.
+type Capability struct {
+	ID          string       `json:"id"`
+	Description string       `json:"description,omitempty"`
+	Vendor      string       `json:"vendor,omitempty"`
+	Product     string       `json:"product,omitempty"`
+	Service     string       `json:"service,omitempty"`
+	Tags        []string     `json:"tags,omitempty"`
+	Change      model.Change `json:"change,omitempty"`
+	// Occurrences are the calls that match the signature, at most a
+	// bounded number of them.
+	Occurrences []Occurrence `json:"occurrences"`
+}
+
+// HasTag reports whether the signature of the capability has a tag.
+func (c *Capability) HasTag(tag string) bool { return slices.Contains(c.Tags, tag) }
+
+// Occurrence is one call in the source code that matches a signature.
+type Occurrence struct {
+	File     string `json:"file"`
+	Line     int    `json:"line,omitempty"`
+	Column   int    `json:"column,omitempty"`
+	Language string `json:"language,omitempty"`
+	// Callee is the name of the called function, as the call graph
+	// resolves it, such as openai//OpenAI.
+	Callee string `json:"callee,omitempty"`
+}
+
 // DiagnosticLevel is the level of a diagnostic.
 type DiagnosticLevel string
 
@@ -140,14 +173,15 @@ type Trailer struct {
 
 // Summary counts the records of a report.
 type Summary struct {
-	Manifests   int                      `json:"manifests"`
-	Packages    int                      `json:"packages"`
-	Inventory   int                      `json:"inventory"`
-	Findings    int                      `json:"findings"`
-	Suppressed  int                      `json:"suppressed"`
-	Diagnostics int                      `json:"diagnostics"`
-	BySeverity  map[finding.Severity]int `json:"by_severity"`
-	ByFamily    map[finding.Family]int   `json:"by_family"`
+	Manifests    int                      `json:"manifests"`
+	Packages     int                      `json:"packages"`
+	Inventory    int                      `json:"inventory"`
+	Capabilities int                      `json:"capabilities"`
+	Findings     int                      `json:"findings"`
+	Suppressed   int                      `json:"suppressed"`
+	Diagnostics  int                      `json:"diagnostics"`
+	BySeverity   map[finding.Severity]int `json:"by_severity"`
+	ByFamily     map[finding.Family]int   `json:"by_family"`
 }
 
 // GateOutcome is the result of the gate.
@@ -178,6 +212,9 @@ func PackageRecord(p *PackageEntry) Record { return Record{Kind: KindPackage, Pa
 // InventoryRecord returns a record that holds an inventory item.
 func InventoryRecord(i *InventoryItem) Record { return Record{Kind: KindInventory, Inventory: i} }
 
+// CapabilityRecord returns a record that holds a capability.
+func CapabilityRecord(c *Capability) Record { return Record{Kind: KindCapability, Capability: c} }
+
 // FindingRecord returns a record that holds a finding.
 func FindingRecord(f *finding.Finding) Record { return Record{Kind: KindFinding, Finding: f} }
 
@@ -192,6 +229,7 @@ func (r Record) Validate() error {
 		KindInventory:  r.Inventory != nil,
 		KindFinding:    r.Finding != nil,
 		KindDiagnostic: r.Diagnostic != nil,
+		KindCapability: r.Capability != nil,
 	}
 	n := 0
 	for _, v := range set {
@@ -228,6 +266,8 @@ func (s *Summary) Add(r Record) {
 		s.Packages++
 	case KindInventory:
 		s.Inventory++
+	case KindCapability:
+		s.Capabilities++
 	case KindDiagnostic:
 		s.Diagnostics++
 	case KindFinding:
@@ -242,7 +282,7 @@ func (s *Summary) Add(r Record) {
 }
 
 func mergeSummary(dst, src Summary) Summary {
-	dst.Manifests, dst.Packages, dst.Inventory = src.Manifests, src.Packages, src.Inventory
+	dst.Manifests, dst.Packages, dst.Inventory, dst.Capabilities = src.Manifests, src.Packages, src.Inventory, src.Capabilities
 	dst.Findings, dst.Suppressed, dst.Diagnostics = src.Findings, src.Suppressed, src.Diagnostics
 	for k, v := range src.BySeverity {
 		dst.BySeverity[k] = v
