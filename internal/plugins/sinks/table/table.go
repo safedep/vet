@@ -97,7 +97,7 @@ func (s Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 		return err
 	}
 
-	parts := []string{stat.Render(cards(t, caps)...)}
+	parts := []string{stat.Render(cards(t)...)}
 	if shown == 0 {
 		checked := "1 package"
 		if n := t.Summary.Packages; n != 1 {
@@ -152,7 +152,7 @@ func (s Sink) capabilityTable(caps []*report.Capability, delta bool) []string {
 		}
 		tbl.Row(append(row, render.Truncate(render.Text(c.Name()), 40), tags(c), CapabilityWhere(c))...)
 	}
-	parts := []string{style.Heading("AI and crypto"), tbl.Render()}
+	parts := []string{style.Heading("AI and crypto: " + kindCounts(caps)), tbl.Render()}
 	if more := len(caps) - len(shown); more > 0 {
 		parts = append(parts, section.Hint(fmt.Sprintf("%d more (vet report capability list)", more)))
 	}
@@ -176,23 +176,39 @@ func CapabilityWhere(c *report.Capability) string {
 	return where
 }
 
-// tags lists the tags other than the kind tag. The weak tag is a warning
-// badge, as a severity is.
-func tags(c *report.Capability) string {
+// kindCounts counts the capabilities of each kind, as "2 AI, 1 crypto".
+func kindCounts(caps []*report.Capability) string {
+	counts := map[report.CapabilityKind]int{}
+	for _, c := range caps {
+		counts[c.Kind()]++
+	}
 	var out []string
-	for _, t := range c.Tags {
-		switch t {
-		case report.TagAI, report.TagCrypto:
-		case report.TagWeak:
-			out = append(out, style.Badge(theme.RoleWarning, strings.ToUpper(t)))
-		default:
-			out = append(out, render.Text(t))
+	for _, k := range []struct {
+		kind  report.CapabilityKind
+		label string
+	}{{report.CapabilityAI, "AI"}, {report.CapabilityCrypto, "crypto"}, {report.CapabilityOther, "other"}} {
+		if n := counts[k.kind]; n > 0 {
+			out = append(out, fmt.Sprintf("%d %s", n, k.label))
 		}
 	}
 	return strings.Join(out, ", ")
 }
 
-func cards(t *report.Trailer, caps []*report.Capability) []stat.Card {
+// tags lists the tags other than the kind tag. The weak tag is a warning
+// badge, as a severity is.
+func tags(c *report.Capability) string {
+	var out []string
+	for _, t := range c.DetailTags() {
+		if t == report.TagWeak {
+			out = append(out, style.Badge(theme.RoleWarning, strings.ToUpper(t)))
+			continue
+		}
+		out = append(out, render.Text(t))
+	}
+	return strings.Join(out, ", ")
+}
+
+func cards(t *report.Trailer) []stat.Card {
 	sum := t.Summary
 	crit, high := theme.RoleError, theme.RoleWarning
 	cs := []stat.Card{
@@ -200,21 +216,6 @@ func cards(t *report.Trailer, caps []*report.Capability) []stat.Card {
 		{Label: "Findings", Value: strconv.Itoa(sum.Findings)},
 		{Label: "Critical", Value: strconv.Itoa(sum.BySeverity[finding.SeverityCritical]), Accent: &crit},
 		{Label: "High", Value: strconv.Itoa(sum.BySeverity[finding.SeverityHigh]), Accent: &high},
-	}
-	var ai, crypto int
-	for _, c := range caps {
-		switch c.Kind() {
-		case report.CapabilityAI:
-			ai++
-		case report.CapabilityCrypto:
-			crypto++
-		}
-	}
-	if ai > 0 {
-		cs = append(cs, stat.Card{Label: "AI", Value: strconv.Itoa(ai)})
-	}
-	if crypto > 0 {
-		cs = append(cs, stat.Card{Label: "Crypto", Value: strconv.Itoa(crypto)})
 	}
 	switch t.Gate.Outcome {
 	case report.GatePass:

@@ -54,7 +54,7 @@ func TestCapabilities(t *testing.T) {
 	}{
 		{
 			name: "default", options: nil,
-			want: []string{"AI and crypto", "OpenAI SDK Chat Completions", "src/chat.py:12", "MD5", "[WEAK]"},
+			want: []string{"AI and crypto: 1 AI, 1 crypto", "OpenAI SDK Chat Completions", "src/chat.py:12", "MD5", "[WEAK]"},
 		},
 		{
 			name: "limit 1 keeps AI first", options: plugin.MapConfig{"limit": 1},
@@ -63,7 +63,7 @@ func TestCapabilities(t *testing.T) {
 		},
 		{
 			name: "no capabilities", noCaps: true,
-			notWant: []string{"AI and crypto", "Crypto:"},
+			notWant: []string{"AI and crypto"},
 		},
 	}
 	for _, tc := range cases {

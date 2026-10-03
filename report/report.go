@@ -168,6 +168,18 @@ func (c *Capability) Name() string {
 	return c.Product + " " + c.Service
 }
 
+// DetailTags returns the tags other than the tag that sets the kind, as
+// llm or hash.
+func (c *Capability) DetailTags() []string {
+	var out []string
+	for _, t := range c.Tags {
+		if t != TagAI && t != TagCrypto {
+			out = append(out, t)
+		}
+	}
+	return out
+}
+
 // Kind returns the group of the capability, from its tags.
 func (c *Capability) Kind() CapabilityKind {
 	switch {

@@ -4,9 +4,7 @@
 [!cgo] skip 'code analysis needs a vet built with CGO'
 cd proj
 exec vet --config $WORK/config.yml scan . -o table --mode plain
-stdout 'AI and crypto'
-stdout 'AI: 2'
-stdout 'Crypto: 1'
+stdout 'AI and crypto: 2 AI, 1 crypto'
 stdout '\[WEAK\]'
 
 exec vet --config $WORK/config.yml report capability list -o plain --mode plain

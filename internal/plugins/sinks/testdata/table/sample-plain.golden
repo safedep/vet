@@ -2,8 +2,6 @@ Packages: 2
 Findings: 2
 Critical: 1
 High: 0
-AI: 1
-Crypto: 1
 
 ┌────────────┬─────────────────┬──────────────────────────┬────────────────────────────┐
 │ SEVERITY   │ CONTROL         │ SUBJECT                  │ WHERE                      │
@@ -14,7 +12,7 @@ Crypto: 1
 
 > 1 suppressed (vet report show -o json)
 
-AI and crypto
+AI and crypto: 1 AI, 1 crypto
 
 ┌────────┬─────────────────────────────┬──────────────┬────────────────┐
 │ KIND   │ CAPABILITY                  │ TAGS         │ WHERE          │

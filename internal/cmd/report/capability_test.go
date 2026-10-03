@@ -23,8 +23,8 @@ func TestCapabilityRows(t *testing.T) {
 		headers []string
 		first   []string
 	}{
-		{"full scan", false, []string{"KIND", "CAPABILITY", "TAGS", "WHERE", "CALL"}, []string{"AI", "OpenAI SDK", "ai, llm", "a.py:3", "openai//OpenAI"}},
-		{"pull request", true, []string{"KIND", "CAPABILITY", "TAGS", "CHANGE", "WHERE", "CALL"}, []string{"AI", "OpenAI SDK", "ai, llm", "added", "a.py:3", "openai//OpenAI"}},
+		{"full scan", false, []string{"KIND", "CAPABILITY", "TAGS", "WHERE", "CALL"}, []string{"AI", "OpenAI SDK", "llm", "a.py:3", "openai//OpenAI"}},
+		{"pull request", true, []string{"KIND", "CAPABILITY", "TAGS", "CHANGE", "WHERE", "CALL"}, []string{"AI", "OpenAI SDK", "llm", "added", "a.py:3", "openai//OpenAI"}},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

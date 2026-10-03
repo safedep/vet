@@ -89,7 +89,7 @@ func capabilityRows(caps []*report.Capability, delta bool) printer.Rows {
 		Empty:   "The scan has no capability. Set plugins.codeusage.enabled to true, then scan again.",
 	}
 	for _, c := range caps {
-		row := []string{strings.ToUpper(string(c.Kind())), escape.Line(c.Name()), escape.Line(strings.Join(c.Tags, ", "))}
+		row := []string{strings.ToUpper(string(c.Kind())), escape.Line(c.Name()), escape.Line(strings.Join(c.DetailTags(), ", "))}
 		if delta {
 			row = append(row, strings.ToLower(string(c.Change)))
 		}
