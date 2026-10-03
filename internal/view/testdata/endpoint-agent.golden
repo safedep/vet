@@ -1,0 +1,6 @@
+INFO: scan started target="" mode=full
+progress: extract 3
+progress: enrich 5
+progress: evaluate 1
+progress: report 0
+INFO: scan done findings=0 gate=none

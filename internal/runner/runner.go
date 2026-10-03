@@ -218,7 +218,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 			mode = report.ScanModeDelta
 		}
 		banner.Print(version.Version())
-		v := view.NewScan(view.Options{Target: git.Redact(o.Target), BaseRef: o.BaseRef, Animate: animate()})
+		v := view.NewScan(view.Options{Target: git.Redact(o.Target), BaseRef: o.BaseRef, Kind: kind, Animate: animate()})
 		eo := engine.Options{
 			Store: store, Cache: cache, NoCacheRead: o.NoCache, Source: src,
 			Extractors: func(plugin.ArtifactKind) ([]plugin.Extractor, error) { return extractors.Default() },

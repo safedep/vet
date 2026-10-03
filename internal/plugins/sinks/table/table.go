@@ -89,7 +89,7 @@ type row []*finding.Finding
 func (s Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 	h, t := r.Header(), r.Trailer()
 	delta := h.Scan.Mode == report.ScanModeDelta
-	if sum := t.Summary; sum.Manifests == 0 && sum.Packages == 0 && sum.Findings == 0 && sum.Capabilities == 0 {
+	if sum := t.Summary; sum.Manifests == 0 && sum.Packages == 0 && sum.Findings == 0 && sum.Capabilities == 0 && sum.Inventory == 0 {
 		// A scan that read nothing has nothing to count. The scan view
 		// warns that it found no manifest, so zero cards and "No
 		// findings" do not read as a clean result.
@@ -98,10 +98,16 @@ func (s Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 
 	var open []*finding.Finding
 	var ids []string
-	err := render.EachFinding(ctx, r, func(f *finding.Finding) error {
-		ids = append(ids, f.ID)
-		if !f.Suppressed() {
-			open = append(open, f)
+	var tools []*report.InventoryItem
+	err := render.EachRecord(ctx, r, func(rec *report.Record) error {
+		switch f := rec.Finding; {
+		case rec.Inventory != nil:
+			tools = append(tools, rec.Inventory)
+		case f != nil:
+			ids = append(ids, f.ID)
+			if !f.Suppressed() {
+				open = append(open, f)
+			}
 		}
 		return nil
 	})
@@ -119,7 +125,7 @@ func (s Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 		return err
 	}
 
-	parts := []string{stat.Render(cards(t)...)}
+	parts := []string{stat.Render(cards(h, t)...)}
 	if len(shown) == 0 {
 		parts = append(parts, style.Success("No findings. "+plural(t.Summary.Packages, "package", "packages")+" checked."))
 	} else {
@@ -127,6 +133,9 @@ func (s Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 	}
 	if hints := findingHints(len(open), rows, len(shown), t.Summary.Suppressed); len(hints) > 0 {
 		parts = append(parts, strings.Join(hints, "\n"))
+	}
+	if len(tools) > 0 {
+		parts = append(parts, s.toolTable(tools)...)
 	}
 	if len(caps) > 0 {
 		parts = append(parts, s.capabilityTable(caps, delta)...)
@@ -458,15 +467,21 @@ func tags(c *report.Capability) string {
 	return text + ", " + b
 }
 
-func cards(t *report.Trailer) []stat.Card {
+// cards counts the packages and the findings. An endpoint audit also
+// counts the tools.
+func cards(h *report.Header, t *report.Trailer) []stat.Card {
 	sum := t.Summary
 	crit, high := theme.RoleCritical, theme.RoleHigh
-	cs := []stat.Card{
+	var cs []stat.Card
+	if h.Scan.Kind == report.ScanKindEndpoint {
+		cs = append(cs, stat.Card{Label: "Tools", Value: strconv.Itoa(sum.Inventory)})
+	}
+	cs = append(cs, []stat.Card{
 		{Label: "Packages", Value: strconv.Itoa(sum.Packages)},
 		{Label: "Findings", Value: strconv.Itoa(sum.Findings)},
 		{Label: "Critical", Value: strconv.Itoa(sum.BySeverity[finding.SeverityCritical]), Accent: &crit},
 		{Label: "High", Value: strconv.Itoa(sum.BySeverity[finding.SeverityHigh]), Accent: &high},
-	}
+	}...)
 	switch t.Gate.Outcome {
 	case report.GatePass:
 		pass := theme.RoleSuccess

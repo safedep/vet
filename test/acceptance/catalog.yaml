@@ -556,6 +556,12 @@
   tier: P1
   guarantee: "vet endpoint audit reports the MCP servers and skills of the home directory as inventory, with no secret value, and checks the IDE extensions and global npm packages as packages. vet scan never reads the home directory."
   labels: [endpoint]
+- id: endpoint/audit/tools-table
+  title: "endpoint audit: the table lists the tools"
+  category: endpoint
+  tier: P1
+  guarantee: "The table of vet endpoint audit counts the tools by kind and lists each one. The first step line names the machine, not the manifests."
+  labels: [endpoint]
 - id: endpoint/audit/all-users-needs-root
   title: "endpoint audit: --all-users needs root"
   category: endpoint

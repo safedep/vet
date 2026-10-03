@@ -26,6 +26,9 @@ import (
 type Options struct {
 	Target  string
 	BaseRef string
+	// Kind is the kind of the scan. An endpoint audit names its steps for
+	// the machine.
+	Kind report.ScanKind
 	// Animate shows a live progress bar in rich mode. The command sets it
 	// when stderr is a terminal.
 	Animate bool
@@ -133,7 +136,7 @@ func (v *Scan) endStage() {
 		return
 	}
 	v.stopBar()
-	text := stepText(v.stage, max(v.done, v.total), v.files)
+	text := stepText(v.o.Kind, v.stage, max(v.done, v.total), v.files)
 	if d := v.now().Sub(v.started); d >= shownElapsed && v.stage != engine.StageReport {
 		text += " in " + humanize.Elapsed(d)
 	}
@@ -148,9 +151,12 @@ func (v *Scan) endStage() {
 	v.stage = ""
 }
 
-func stepText(stage string, n int, files []string) string {
+func stepText(kind report.ScanKind, stage string, n int, files []string) string {
 	switch stage {
 	case engine.StageExtract:
+		if kind == report.ScanKindEndpoint {
+			return "Read the tools on this machine"
+		}
 		return counted("Read the manifests", n, "file")
 	case engine.StageEnrich:
 		return "Checked " + plural(n, "package")

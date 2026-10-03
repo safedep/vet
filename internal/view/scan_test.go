@@ -93,6 +93,8 @@ func TestScanGolden(t *testing.T) {
 	delta.Scan.Mode, delta.Scan.BaseRef = report.ScanModeDelta, "origin/main"
 	empty := *sample.Trailer()
 	empty.Summary = report.Summary{}
+	machine := *sample.Header()
+	machine.Scan.Kind = report.ScanKindEndpoint
 
 	cases := []struct {
 		name    string
@@ -108,6 +110,7 @@ func TestScanGolden(t *testing.T) {
 		{name: "pull-request", opts: Options{Target: ".", BaseRef: "origin/main"}, header: &delta, trailer: sample.Trailer(), summary: summary},
 		{name: "saved", opts: Options{Saved: true}, header: sample.Header(), trailer: &failOn, summary: summary},
 		{name: "no-manifest", opts: Options{Target: "."}, header: sample.Header(), trailer: &empty},
+		{name: "endpoint", opts: Options{Kind: report.ScanKindEndpoint}, header: &machine, trailer: &empty},
 	}
 	modes := map[string]output.Mode{"rich": output.Rich, "plain": output.Plain, "agent": output.Agent}
 	for _, tc := range cases {

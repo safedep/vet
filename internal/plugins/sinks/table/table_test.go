@@ -1,6 +1,7 @@
 package table
 
 import (
+	"slices"
 	"strings"
 	"testing"
 
@@ -319,4 +320,32 @@ func TestWrap(t *testing.T) {
 			assert.Equal(t, tc.want, wrap(tc.text, tc.width, textLines))
 		})
 	}
+}
+
+func TestToolTable(t *testing.T) {
+	withWidth(t, 120)
+	r := plugintest.SampleReport()
+	r.InventoryList = []*report.InventoryItem{
+		{Kind: report.InventorySkill, Name: "review"},
+		{Kind: report.InventoryMCPServer, Name: "db", Client: "cursor"},
+		{Kind: report.InventoryAITool, Name: "Claude Code"},
+		{Kind: report.InventoryMCPServer, Name: "aws"},
+		{Kind: "browser-extension", Name: "x"},
+	}
+	r.CapabilityList = nil
+	got := write(t, nil, r)
+	assert.Contains(t, got, "Tools: 1 AI tool, 2 MCP servers, 1 agent skill, 1 other tool")
+	var names []string
+	for _, l := range strings.Split(got, "\n") {
+		if f := strings.Fields(strings.ReplaceAll(l, "│", " ")); strings.HasPrefix(l, "│") && len(f) > 1 && slices.Contains([]string{"AI", "MCP", "agent", "browser-extension"}, f[0]) {
+			names = append(names, l)
+		}
+	}
+	require.Len(t, names, 5)
+	for i, want := range []string{"Claude Code", "aws", "db", "review", "x"} {
+		assert.Contains(t, names[i], want, "the tools sort by kind, then by name")
+	}
+
+	got = write(t, plugin.MapConfig{"limit": 2}, r)
+	assert.Contains(t, got, "› 3 more tools. vet report show --all lists each one.")
 }

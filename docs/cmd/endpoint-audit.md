@@ -22,6 +22,9 @@ reads the home directory.
 | Global npm packages (`~/.npm-global`, nvm, the Windows npm prefix) | Packages of the `npm` ecosystem. Every package control checks them. |
 | Agent and editor config files (`.vscode/tasks.json`, `.claude/settings.json`, MCP configs) | Manifests that the agent configuration controls read. |
 
+The table counts the tools by kind and lists each one, with its client and its path. It shows
+10 rows. `vet report show --all` lists every tool.
+
 vet reads the home directory of the current user. `--all-users` reads the home directory of every
 user and the machine-wide global packages (`/usr/local/lib/node_modules` and others). It needs
 root: run it with `sudo`. Under sudo, vet keeps its state in the directories of root.
