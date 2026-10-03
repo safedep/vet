@@ -429,8 +429,8 @@ github.com/rust-secure-code/go-rustaudit v0.0.0-20250226111315-e20ec32e963c h1:8
 github.com/rust-secure-code/go-rustaudit v0.0.0-20250226111315-e20ec32e963c/go.mod h1:kwM/7r/rVluTE8qJbHAffduuqmSv4knVQT2IajGvSiA=
 github.com/safedep/code v0.0.0-20261003074956-ca03c078c5bb h1:4VhnGDEVH4nLqhYf3845DEXP+l4wqDpViEO4Y8Jz9U4=
 github.com/safedep/code v0.0.0-20261003074956-ca03c078c5bb/go.mod h1:QYfQrEgRFjd15kUk80t3vjvzC5xiKeSjXgn6Qx1S89w=
-github.com/safedep/dry v0.0.0-20261003140635-560d4d98ff34 h1:Z5rxcC51X5+ra7ysV0vRDcg04ok1Je0/EoO1E6ZnJz4=
-github.com/safedep/dry v0.0.0-20261003140635-560d4d98ff34/go.mod h1:n7UbtpjdFQnveHgsljFHsoMpAfFeTs6hy0jCuK4gY6s=
+github.com/safedep/dry v0.0.0-20261003141049-d28c73a868b0 h1:IQIAStRi2LwwsadHh4mCw8si/0J+IYeYcaRQlYvvyUs=
+github.com/safedep/dry v0.0.0-20261003141049-d28c73a868b0/go.mod h1:n7UbtpjdFQnveHgsljFHsoMpAfFeTs6hy0jCuK4gY6s=
 github.com/saferwall/pe v1.6.4 h1:sevZnbF2R3okkOfG1PCwuG7D16UNdn92EpXTuH2q8Eg=
 github.com/saferwall/pe v1.6.4/go.mod h1:aNooU8V9vpqCUCiPb9WWIxEag15MeTjUoDtKQiAsZwY=
 github.com/santhosh-tekuri/jsonschema/v6 v6.0.2 h1:KRzFb2m7YtdldCEkzs6KqmJw4nqEVZGK7IN2kJkjTuQ=
