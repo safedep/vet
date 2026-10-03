@@ -4,4 +4,4 @@ progress: enrich 5
 progress: evaluate 1
 progress: report 0
 WARN: diagnostic code=enrichment_unavailable component=insights message="2 packages have no data (2 times)"
-OK: gate passed fail_on=critical findings=3
+ERR: gate failed fail_on=high findings=2 exit=1

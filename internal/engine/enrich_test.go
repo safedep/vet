@@ -2,6 +2,10 @@ package engine
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"path/filepath"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -115,6 +119,62 @@ func TestCacheSkipsEmptyResultsOnlyWhenAsked(t *testing.T) {
 				assert.Equal(t, 2*first, calls.Load(), "the second scan asks for each package again")
 			} else {
 				assert.Equal(t, first, calls.Load(), "the second scan reads the cache")
+			}
+		})
+	}
+}
+
+// progressLog records the progress of the enrich stage.
+type progressLog struct {
+	mu     sync.Mutex
+	events [][2]int
+}
+
+func (*progressLog) Stage(string, int, int) {}
+
+func (l *progressLog) Progress(stage string, done, total int) {
+	if stage != StageEnrich {
+		return
+	}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.events = append(l.events, [2]int{done, total})
+}
+
+func TestEnrichProgressCountsPackages(t *testing.T) {
+	cases := []struct {
+		name      string
+		enrichers int
+		resumed   bool
+		first     [2]int
+	}{
+		{name: "one enricher", enrichers: 1, first: [2]int{0, 4}},
+		{name: "two enrichers", enrichers: 2, first: [2]int{0, 4}},
+		{name: "continued scan", enrichers: 1, resumed: true, first: [2]int{1, 3}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			f := newFixture(t)
+			dir := project(t)
+			if tc.resumed {
+				interrupt(t, f, dir)
+				require.NoError(t, os.Remove(filepath.Join(dir, "vendor", "requirements.txt")))
+			}
+			o := f.options(t, dir, &fakeEnricher{})
+			o.Cache, o.BatchSize = nil, 1
+			for i := 1; i < tc.enrichers; i++ {
+				o.Enrichers = append(o.Enrichers, Enricher{Name: fmt.Sprintf("fake%d", i), Version: "1", Plugin: &fakeEnricher{}})
+			}
+			log := &progressLog{}
+			o.Observer = log
+			runScan(t, o)
+
+			require.NotEmpty(t, log.events)
+			assert.Equal(t, tc.first, log.events[0])
+			last := log.events[len(log.events)-1]
+			assert.Equal(t, [2]int{tc.first[1], tc.first[1]}, last, "the stage ends with every package done")
+			for i := 1; i < len(log.events); i++ {
+				assert.GreaterOrEqual(t, log.events[i][0], log.events[i-1][0], "the count does not go back")
 			}
 		})
 	}

@@ -224,7 +224,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 			Enrichers:  enricherSpecs(set), Controls: engineControls(ctrls), Exclude: exclude,
 			Kind: kind, Mode: mode, BaseRef: o.BaseRef, OptionsHash: hash, VetVersion: version.Version(),
 			Resume: o.Resume, Fresh: o.Fresh, ContinueWithin: within, Strict: o.Strict || cfg.Scan.Strict,
-			BatchSize: 100, Observer: v,
+			BatchSize: 100, Observer: v, Opened: notContinued,
 			Finalize: func(ctx context.Context, s *state.Scan) (report.Gate, error) {
 				if err := syncInventory(ctx, cfg, store, s); err != nil {
 					return report.Gate{}, err
@@ -233,12 +233,12 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 			},
 		}
 		res, runErr := engine.Run(ctx, eo)
+		v.Stop()
 		if res == nil {
 			return runErr
 		}
 		defer closeWarn("the scan file", res.Scan.Close)
 		defer applyRetention(ctx, cfg, store, cache)
-		notContinued(res)
 		if res.Entry.Status == state.StatusInterrupted {
 			tui.Warning("Saved the progress of scan %s. Run vet scan again to continue it.", res.Entry.ID)
 		}
@@ -277,23 +277,14 @@ func strictError(err error) error {
 // Render prints the stderr summary of a completed scan, writes the report
 // to the destinations, and returns app.ErrGateFailed for a failed gate.
 func Render(ctx context.Context, r plugin.Report, v *view.Scan, outs []engine.Output) error {
-	var diags []*report.Diagnostic
-	for rec, err := range r.Records(ctx) {
-		if err != nil {
-			return err
-		}
-		if rec.Diagnostic != nil {
-			diags = append(diags, rec.Diagnostic)
-		}
-	}
-	changes, err := view.CountChanges(ctx, r)
+	s, err := view.Summarize(ctx, r)
 	if err != nil {
 		return err
 	}
 	if err := engine.WriteOutputs(ctx, r, outs, output.Stdout()); err != nil {
 		return err
 	}
-	v.Finish(r.Header(), r.Trailer(), diags, changes)
+	v.Finish(r.Header(), r.Trailer(), s)
 	if r.Trailer().Gate.Outcome == report.GateFail {
 		return app.ErrGateFailed
 	}
@@ -508,8 +499,12 @@ func RetentionOf(cfg *config.Config) (state.Retention, error) {
 
 // applyRetention deletes the old scans and the expired cache entries at the
 // end of a scan. It says nothing unless -v is set (scan state design,
-// section 6). A failure is a warning, because the scan is complete.
+// section 6). A failure is a warning, because the scan is complete. A
+// signal skips it: the user asked vet to stop, and the next scan applies it.
 func applyRetention(ctx context.Context, cfg *config.Config, store *state.Store, cache *state.Cache) {
+	if ctx.Err() != nil {
+		return
+	}
 	r, err := RetentionOf(cfg)
 	if err != nil {
 		tui.Warning("retention: %v", err)

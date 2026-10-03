@@ -363,10 +363,22 @@
   guarantee: "A VET_PLUGINS_<NAME>_OPTIONS_<OPTION> variable sets the plugin option, the scan uses it, and vet config get names the variable as the origin."
   labels: [config]
 - id: scan/output/diagnostics-grouped
-  title: "a person sees five diagnostics and a count"
+  title: "a person sees one line for each kind of diagnostic"
   category: scan
   tier: P2
-  guarantee: "In plain and rich mode, stderr shows the first five diagnostics and a line that counts the rest and names vet report show SCAN_ID -v. -v shows all of them."
+  guarantee: "In plain and rich mode, stderr groups the diagnostics by level, component and code. Each group gets one line with its first message and a count of the rest, errors first, at most five lines. A line names vet report show SCAN_ID -v. -v shows each diagnostic."
+  labels: [scan, output]
+- id: scan/output/next-steps
+  title: "a person sees the gate and the next commands"
+  category: scan
+  tier: P1
+  guarantee: "After a scan with findings, stderr names the gate that failed, as (--fail-on high), and then names vet report show SCAN_ID --all and vet report finding show ID. It does not suggest -o json. vet report show does not name itself. The agent mode gets no such line."
+  labels: [scan, output, gate]
+- id: scan/output/no-manifest
+  title: "a scan with no manifest warns"
+  category: scan
+  tier: P1
+  guarantee: "A scan that reads no manifest warns that vet found no manifest in the target and names what vet reads. It exits 0."
   labels: [scan, output]
 - id: state/continue/after-interrupt
   title: "continue: after interrupt"

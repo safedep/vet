@@ -86,3 +86,25 @@ func TestResumeWithNothingToResume(t *testing.T) {
 	assert.Equal(t, app.ExitUsage, app.ExitCode(err))
 	assert.Contains(t, err.Error(), "no stopped scan")
 }
+
+// orderLog records the calls of Opened and of the stages in order.
+type orderLog struct{ calls []string }
+
+func (l *orderLog) Stage(name string, _, _ int) { l.calls = append(l.calls, name) }
+func (*orderLog) Progress(string, int, int)     {}
+
+func TestOpenedRunsBeforeTheFirstStage(t *testing.T) {
+	f := newFixture(t)
+	dir := project(t)
+	interrupt(t, f, dir)
+
+	o := f.options(t, dir, &fakeEnricher{})
+	log := &orderLog{}
+	o.Observer = log
+	o.Opened = func(res *Result) {
+		log.calls = append(log.calls, "opened")
+		assert.True(t, res.Continued)
+	}
+	runScan(t, o)
+	assert.Equal(t, []string{"opened", StageExtract, StageEnrich, StageEvaluate, StageReport}, log.calls)
+}

@@ -1,6 +1,6 @@
 [!unix] skip 'signals are unix only'
 # After SIGINT, vet saves the progress. The next vet scan continues the same
-# scan id and completes it.
+# scan id and completes it. It says so before the first step.
 cd proj
 stub delay 3s
 ! exec vet scan . --mode plain -o plain --no-cache &scan&
@@ -12,7 +12,7 @@ capture ID 'Saved the progress of scan ([0-9a-f]+)\.' stderr
 
 stub delay 0s
 exec vet scan . --mode plain -o json --no-cache
-stderr 'continued scan '$ID' from where it stopped'
+stderr '(?s)continued scan '$ID' from where it stopped.*\[INFO\] Read the manifests'
 jsonq stdout header.scan.id $ID
 jsonq stdout header.scan.continued true
 

@@ -1,0 +1,2 @@
+WARN: diagnostic code=enrichment_unavailable component=insights message="2 packages have no data (2 times)"
+ERR: gate failed fail_on=high findings=2 exit=1

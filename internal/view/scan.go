@@ -1,18 +1,20 @@
 // Package view renders the stderr part of a scan: the step lines, the
-// progress, the diagnostics and the gate line, for the rich, plain and
-// agent modes. The report itself goes to stdout through a sink.
+// progress, the diagnostics, the gate line and the next steps, for the
+// rich, plain and agent modes. The report itself goes to stdout through a
+// sink.
 package view
 
 import (
-	"cmp"
 	"fmt"
 	"io"
-	"slices"
+	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/safedep/vet/v2/internal/engine"
 	"github.com/safedep/vet/v2/internal/tui/escape"
+	"github.com/safedep/vet/v2/internal/tui/humanize"
 	"github.com/safedep/vet/v2/internal/tui/output"
 	"github.com/safedep/vet/v2/internal/tui/progress"
 	"github.com/safedep/vet/v2/internal/tui/section"
@@ -35,32 +37,24 @@ type Options struct {
 type Scan struct {
 	o    Options
 	mode output.Mode
+	now  func() time.Time
 
 	mu      sync.Mutex
 	stage   string
 	index   int
-	total   int
+	steps   int
 	done    int
-	prog    *progress.Progress
-	tracker *progress.Tracker
+	total   int
+	started time.Time
+	bar     *progress.Bar
 }
 
-var stageText = map[string]string{
-	engine.StageExtract:  "Read the manifests",
-	engine.StageEnrich:   "Checked risk",
-	engine.StageEvaluate: "Evaluated the controls",
-	engine.StageReport:   "Wrote the report",
-}
-
-var stageUnit = map[string]string{
-	engine.StageExtract:  "file",
-	engine.StageEnrich:   "package",
-	engine.StageEvaluate: "manifest",
-}
+// shownElapsed is the shortest stage that a step line gives the run time of.
+const shownElapsed = time.Second
 
 // NewScan returns the view and prints the start line.
 func NewScan(o Options) *Scan {
-	v := &Scan{o: o, mode: output.CurrentMode()}
+	v := &Scan{o: o, mode: output.CurrentMode(), now: time.Now}
 	mode := "full"
 	if o.BaseRef != "" {
 		mode = "delta"
@@ -76,28 +70,50 @@ func NewScan(o Options) *Scan {
 }
 
 // Stage ends the stage that runs and starts the next one.
-func (v *Scan) Stage(name string, index, total int) {
+func (v *Scan) Stage(name string, index, steps int) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 	v.endStage()
-	v.stage, v.index, v.total, v.done = name, index, total, 0
-	if v.mode == output.Rich && v.o.Animate && name == engine.StageEnrich {
-		v.prog = progress.New()
-		v.tracker = v.prog.Track(stageText[name], 0)
-	}
+	v.stage, v.index, v.steps, v.done, v.total, v.started = name, index, steps, 0, 0, v.now()
 }
 
-// Progress records the units done in the stage.
-func (v *Scan) Progress(stage string, done, _ int) {
+// Progress records the units done in the stage. The enrich stage shows a
+// live bar once it knows the number of packages.
+func (v *Scan) Progress(stage string, done, total int) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 	if stage != v.stage {
 		return
 	}
-	if v.tracker != nil && done > v.done {
-		v.tracker.Increment(int64(done - v.done))
+	v.done, v.total = done, total
+	if stage != engine.StageEnrich || total == 0 || !v.live() {
+		return
 	}
-	v.done = done
+	if v.bar == nil {
+		v.bar = progress.Start("Checking "+plural(total, "package"), total)
+	}
+	v.bar.Set(done)
+}
+
+// live reports whether the view draws a live bar: on a terminal, in rich
+// mode, and not with -q.
+func (v *Scan) live() bool {
+	return v.mode == output.Rich && v.o.Animate && output.CurrentVerbosity() > output.Silent
+}
+
+// Stop removes the live bar of a scan that ends before Finish, for
+// example on a signal.
+func (v *Scan) Stop() {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	v.stopBar()
+}
+
+func (v *Scan) stopBar() {
+	if v.bar != nil {
+		v.bar.Stop()
+		v.bar = nil
+	}
 }
 
 // endStage prints the line of the stage that ends.
@@ -105,18 +121,14 @@ func (v *Scan) endStage() {
 	if v.stage == "" {
 		return
 	}
-	if v.tracker != nil {
-		v.tracker.Done()
-		v.prog.Wait()
-		v.tracker, v.prog = nil, nil
-	}
-	text := stageText[v.stage]
-	if unit := stageUnit[v.stage]; unit != "" && v.done > 0 {
-		text = fmt.Sprintf("%s: %s", text, plural(v.done, unit))
+	v.stopBar()
+	text := stepText(v.stage, max(v.done, v.total))
+	if d := v.now().Sub(v.started); d >= shownElapsed {
+		text += " in " + humanize.Elapsed(d)
 	}
 	switch v.mode {
 	case output.Rich:
-		v.line(fmt.Sprintf("%s [%d/%d] %s", style.Faint("›"), v.index, v.total, text))
+		v.line(fmt.Sprintf("%s [%d/%d] %s", style.Faint("›"), v.index, v.steps, text))
 	case output.Plain:
 		v.line("[INFO] " + text)
 	case output.Agent:
@@ -125,85 +137,66 @@ func (v *Scan) endStage() {
 	v.stage = ""
 }
 
+func stepText(stage string, n int) string {
+	switch stage {
+	case engine.StageExtract:
+		return counted("Read the manifests", n, "file")
+	case engine.StageEnrich:
+		return "Checked " + plural(n, "package")
+	case engine.StageEvaluate:
+		return counted("Evaluated the controls", n, "manifest")
+	}
+	return "Wrote the report"
+}
+
+func counted(text string, n int, unit string) string {
+	if n == 0 {
+		return text
+	}
+	return fmt.Sprintf("%s: %s", text, plural(n, unit))
+}
+
 // Finish ends the last stage, then prints the changes of a pull request
-// scan, the diagnostics, the gate line and the next steps.
-func (v *Scan) Finish(h *report.Header, t *report.Trailer, diags []*report.Diagnostic, changed Changes) {
+// scan, a missing manifest, the diagnostics, the gate line and the next
+// steps.
+func (v *Scan) Finish(h *report.Header, t *report.Trailer, s Summary) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 	v.endStage()
 	if h.Scan.Mode == report.ScanModeDelta && v.mode != output.Agent {
 		v.line(section.Hint(fmt.Sprintf("%s changed, %s changed. %s not shown.",
-			plural(changed.Packages, "package"), plural(changed.Workflows, "workflow"), plural(changed.Unchanged, "unchanged package"))))
+			plural(s.Changes.Packages, "package"), plural(s.Changes.Workflows, "workflow"), plural(s.Changes.Unchanged, "unchanged package"))))
 	}
-	v.diagnostics(h, diags)
-	v.gate(h, t)
+	v.noManifest(h, t)
+	v.diagnostics(h, s.Diagnostics)
+	v.gate(t)
+	v.next(h, t, s)
 }
 
-// shownDiagnostics is the number of diagnostics that a human sees. A scan
-// of a large repository can have hundreds, as for a test corpus of
-// malformed files. -v and the agent mode show all of them.
-const shownDiagnostics = 5
-
-func (v *Scan) diagnostics(h *report.Header, diags []*report.Diagnostic) {
-	all := v.mode == output.Agent || output.CurrentVerbosity() == output.Verbose
-	if all || len(diags) <= shownDiagnostics {
-		for _, d := range diags {
-			v.diagnostic(d)
-		}
+// noManifest warns about a scan that read no manifest. Such a scan has no
+// finding, and a person can take it for a clean result.
+func (v *Scan) noManifest(h *report.Header, t *report.Trailer) {
+	if t.Summary.Manifests > 0 || h.Scan.Kind == report.ScanKindEndpoint {
 		return
 	}
-	sorted := slices.Clone(diags)
-	slices.SortStableFunc(sorted, func(a, b *report.Diagnostic) int {
-		return cmp.Compare(levelRank(a.Level), levelRank(b.Level))
-	})
-	for _, d := range sorted[:shownDiagnostics] {
-		v.diagnostic(d)
+	if v.mode == output.Agent {
+		v.line("WARN: no manifest found target=" + field(h.Scan.Target))
+		return
 	}
-	n := len(diags) - shownDiagnostics
-	more := fmt.Sprintf("%d more diagnostics.", n)
-	if n == 1 {
-		more = "1 more diagnostic."
-	}
-	if h.Scan.ID != "" {
-		more += " Show all: vet report show " + h.Scan.ID + " -v"
-	} else {
-		more += " Run with -v to show all."
-	}
-	v.line(section.Hint(more))
+	v.line(style.Warning("vet found no manifest in " + escape.Line(targetName(h.Scan))))
+	v.line(section.Hint("vet reads lockfiles (package-lock.json, go.mod and more), SBOMs and workflows."))
 }
 
-func levelRank(l report.DiagnosticLevel) int {
-	if l == report.DiagnosticError {
-		return 0
+// targetName names the target for a person: the absolute path of a
+// directory or a file, else the target as the user gave it.
+func targetName(s report.ScanInfo) string {
+	if filepath.IsAbs(s.TargetKey) {
+		return s.TargetKey
 	}
-	return 1
+	return s.Target
 }
 
-// Changes counts what a pull request changes.
-type Changes struct {
-	Packages, Workflows, Unchanged int
-}
-
-func (v *Scan) diagnostic(d *report.Diagnostic) {
-	msg := escape.Line(d.Message)
-	if d.Count > 1 {
-		msg = fmt.Sprintf("%s (%d times)", msg, d.Count)
-	}
-	switch {
-	case v.mode == output.Agent:
-		level := "WARN"
-		if d.Level == report.DiagnosticError {
-			level = "ERR"
-		}
-		v.line(fmt.Sprintf("%s: diagnostic code=%s component=%s message=%s", level, d.Code, field(d.Component), field(msg)))
-	case d.Level == report.DiagnosticError:
-		v.fail(style.Error(fmt.Sprintf("%s: %s", d.Component, msg)))
-	default:
-		v.line(style.Warning(fmt.Sprintf("%s: %s", d.Component, msg)))
-	}
-}
-
-func (v *Scan) gate(h *report.Header, t *report.Trailer) {
+func (v *Scan) gate(t *report.Trailer) {
 	g, sum := t.Gate, t.Summary
 	if v.mode == output.Agent {
 		switch g.Outcome {
@@ -226,16 +219,6 @@ func (v *Scan) gate(h *report.Header, t *report.Trailer) {
 			v.line(section.Hint(fmt.Sprintf("%s. No gate set, so vet exits 0.", plural(sum.Findings, "finding"))))
 		}
 	}
-	if v.mode == output.Rich && sum.Findings > 0 {
-		id := ""
-		if len(g.FindingIDs) > 0 {
-			id = g.FindingIDs[0]
-		}
-		if id != "" {
-			v.line(section.Hint("Details: vet report finding show " + id))
-		}
-		v.line(section.Hint("Report:  vet report show " + h.Scan.ID + " -o json"))
-	}
 }
 
 func gateFields(g report.Gate) string {
@@ -249,24 +232,35 @@ func gateFields(g report.Gate) string {
 	return b.String()
 }
 
+// gateReason counts the findings that failed the gate and names the gate.
 func gateReason(g report.Gate) string {
-	n := len(g.FindingIDs)
-	var parts []string
+	n := plural(len(g.FindingIDs), "finding")
+	if g.FailOn != "" && len(g.Rules) == 0 {
+		return fmt.Sprintf("%s at %s or above (--fail-on %s)", n, g.FailOn, g.FailOn)
+	}
+	var gates []string
 	if g.FailOn != "" {
-		parts = append(parts, fmt.Sprintf("%s at %s or above", plural(n, "finding"), g.FailOn))
+		gates = append(gates, "--fail-on "+string(g.FailOn))
 	}
 	if len(g.Rules) > 0 {
-		parts = append(parts, "policy rule "+strings.Join(g.Rules, ", "))
+		gates = append(gates, rulesText(g.Rules))
 	}
-	if len(parts) == 0 {
-		parts = append(parts, plural(n, "finding"))
+	if len(gates) == 0 {
+		return n
 	}
-	return strings.Join(parts, ", ")
+	return fmt.Sprintf("%s (%s)", n, strings.Join(gates, ", "))
+}
+
+func rulesText(rules []string) string {
+	if len(rules) == 1 {
+		return "policy rule " + rules[0]
+	}
+	return "policy rules " + joinAnd(rules)
 }
 
 func passReason(g report.Gate) string {
 	if g.FailOn != "" {
-		return fmt.Sprintf("no finding at %s or above", g.FailOn)
+		return fmt.Sprintf("no finding at %s or above (--fail-on %s)", g.FailOn, g.FailOn)
 	}
 	return "no policy rule failed"
 }
@@ -276,6 +270,14 @@ func plural(n int, word string) string {
 		return "1 " + word
 	}
 	return fmt.Sprintf("%d %ss", n, word)
+}
+
+// joinAnd joins words as a list in a sentence: "a", "a and b", "a, b and c".
+func joinAnd(words []string) string {
+	if len(words) < 2 {
+		return strings.Join(words, "")
+	}
+	return strings.Join(words[:len(words)-1], ", ") + " and " + words[len(words)-1]
 }
 
 // field quotes an agent field value that holds a space or a quote.

@@ -374,18 +374,11 @@ type EnrichQuery struct {
 // failed result comes back, so a continued scan tries it again. The PURL
 // cursor lets a run page through the packages while it writes results.
 func (s *Scan) PackagesToEnrich(ctx context.Context, q EnrichQuery) ([]*model.Package, error) {
-	introduced := ""
-	if q.Introduced {
-		introduced = ` AND EXISTS (SELECT 1 FROM vet_scan_manifest_packages c
-		    WHERE c.purl = p.purl AND c.change IN ('ADDED', 'UPGRADED', 'DOWNGRADED', 'MODIFIED'))`
-	}
 	rows, err := s.db.QueryContext(ctx, `SELECT mp.data, p.insight, p.malware, p.usage
 		FROM vet_scan_packages p
 		JOIN vet_scan_manifest_packages mp ON mp.purl = p.purl
 		  AND mp.manifest_id = (SELECT manifest_id FROM vet_scan_manifest_packages WHERE purl = p.purl ORDER BY manifest_id LIMIT 1)
-		WHERE p.purl > ?
-		  AND NOT EXISTS (SELECT 1 FROM vet_scan_enrichments e
-		    WHERE e.purl = p.purl AND e.enricher = ? AND e.status IN (?, ?))`+introduced+`
+		WHERE p.purl > ? AND NOT `+enriched+introducedFilter(q.Introduced)+`
 		ORDER BY p.purl LIMIT ?`, q.After, q.Enricher, EnrichmentOK, EnrichmentNotFound, q.Limit)
 	if err != nil {
 		return nil, fmt.Errorf("query packages to enrich: %w", err)
@@ -398,6 +391,34 @@ func (s *Scan) PackagesToEnrich(ctx context.Context, q EnrichQuery) ([]*model.Pa
 		out = append(out, p)
 	}
 	return out, nil
+}
+
+// enriched holds for a package that the enricher has an "ok" or a
+// "not_found" result for. Its arguments are the enricher and the two
+// statuses.
+const enriched = `EXISTS (SELECT 1 FROM vet_scan_enrichments e
+		    WHERE e.purl = p.purl AND e.enricher = ? AND e.status IN (?, ?))`
+
+func introducedFilter(introduced bool) string {
+	if !introduced {
+		return ""
+	}
+	return ` AND EXISTS (SELECT 1 FROM vet_scan_manifest_packages c
+		    WHERE c.purl = p.purl AND c.change IN ('ADDED', 'UPGRADED', 'DOWNGRADED', 'MODIFIED'))`
+}
+
+// EnrichCounts returns the number of packages that the enricher of q
+// checks, and the number of them that PackagesToEnrich still returns. It
+// ignores q.After and q.Limit.
+func (s *Scan) EnrichCounts(ctx context.Context, q EnrichQuery) (all, todo int, err error) {
+	err = s.db.QueryRowContext(ctx, `SELECT COUNT(*), COALESCE(SUM(NOT `+enriched+`), 0)
+		FROM vet_scan_packages p
+		WHERE EXISTS (SELECT 1 FROM vet_scan_manifest_packages mp WHERE mp.purl = p.purl)`+introducedFilter(q.Introduced),
+		q.Enricher, EnrichmentOK, EnrichmentNotFound).Scan(&all, &todo)
+	if err != nil {
+		return 0, 0, fmt.Errorf("count packages to enrich: %w", err)
+	}
+	return all, todo, nil
 }
 
 // PriorID returns the identity of the previous version of an upgraded or a

@@ -107,7 +107,10 @@ type Options struct {
 
 	Finalize Finalizer
 	Observer Observer
-	Now      func() time.Time
+	// Opened gets the result before the first stage, so the command can
+	// say that the run continues a stopped scan. It can be nil.
+	Opened func(*Result)
+	Now    func() time.Time
 }
 
 // Result is the outcome of a scan.
@@ -139,6 +142,9 @@ func Run(ctx context.Context, o Options) (*Result, error) {
 	res, err := open(ctx, o, artifacts[0])
 	if err != nil {
 		return nil, err
+	}
+	if o.Opened != nil {
+		o.Opened(res)
 	}
 	run := &run{o: o, res: res, started: o.Now()}
 

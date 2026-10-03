@@ -14,12 +14,50 @@ import (
 // batch at a time. The cache answers first. A batch that fails is recorded
 // as failed, so a continued scan tries it again, and the scan goes on.
 func (r *run) enrich(ctx context.Context) error {
+	p, err := r.enrichProgress(ctx)
+	if err != nil {
+		return err
+	}
 	for _, e := range r.o.Enrichers {
-		if err := r.enrichWith(ctx, e); err != nil {
+		if err := r.enrichWith(ctx, e, p); err != nil {
 			return err
 		}
 	}
 	return r.findCapabilities(ctx)
+}
+
+// enrichProgress reports the enrich stage in packages. Each enricher
+// checks each package, so the packages done are the share of the checks
+// done. A continued scan starts with the checks that an earlier run saved.
+type enrichProgress struct {
+	obs      Observer
+	packages int
+	checks   int
+	done     int
+}
+
+func (r *run) enrichProgress(ctx context.Context) (*enrichProgress, error) {
+	p := &enrichProgress{obs: r.o.Observer}
+	for _, e := range r.o.Enrichers {
+		all, todo, err := r.res.Scan.EnrichCounts(ctx, state.EnrichQuery{Enricher: e.Name, Introduced: r.o.BaseRef != ""})
+		if err != nil {
+			return nil, err
+		}
+		p.packages = all
+		p.checks += all
+		p.done += all - todo
+	}
+	p.add(0)
+	return p, nil
+}
+
+func (p *enrichProgress) add(checks int) {
+	p.done += checks
+	done := p.packages
+	if p.checks > 0 {
+		done = min(p.done*p.packages/p.checks, p.packages)
+	}
+	p.obs.Progress(StageEnrich, done, p.packages)
 }
 
 // findCapabilities asks each enricher that finds capabilities, and writes
@@ -45,9 +83,9 @@ func (r *run) findCapabilities(ctx context.Context) error {
 	return r.res.Scan.ReplaceCapabilities(ctx, caps)
 }
 
-func (r *run) enrichWith(ctx context.Context, e Enricher) error {
+func (r *run) enrichWith(ctx context.Context, e Enricher, p *enrichProgress) error {
 	scan := r.res.Scan
-	after, done := "", 0
+	after := ""
 	for {
 		batch, err := scan.PackagesToEnrich(ctx, state.EnrichQuery{
 			Enricher: e.Name, After: after, Limit: r.o.BatchSize, Introduced: r.o.BaseRef != "",
@@ -70,8 +108,7 @@ func (r *run) enrichWith(ctx context.Context, e Enricher) error {
 		if err := scan.SaveEnrichments(ctx, results); err != nil {
 			return err
 		}
-		done += len(batch)
-		r.o.Observer.Progress(StageEnrich, done, 0)
+		p.add(len(batch))
 	}
 }
 

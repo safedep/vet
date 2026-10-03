@@ -1,13 +1,16 @@
-# A person sees the first five diagnostics and a line that counts the rest
-# and names the command that shows them. -v shows all of them.
+# A person sees one line for each kind of diagnostic, with the first message
+# and a count of the rest, and a line that names the command that shows each
+# one. -v shows each diagnostic.
 cd proj
 exec vet scan . --mode plain -o json
-stderr -count=5 '^\[WARN\] extract:'
-stderr '2 more diagnostics\. Show all: vet report show [0-9a-f]+ -v$'
+stderr -count=1 '^\[WARN\] extract:'
+stderr '^\[WARN\] extract: .* \(and 6 more like it\)$'
+stderr 'Show all: vet report show [0-9a-f]+ -v$'
 
 exec vet scan . --mode plain -o json -v --fresh
 stderr -count=7 '^\[WARN\] extract:'
-! stderr 'more diagnostics'
+! stderr 'more like it'
+! stderr 'Show all'
 
 -- proj/a/package-lock.json --
 this is not json
