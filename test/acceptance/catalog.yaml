@@ -605,3 +605,9 @@
   tier: P1
   guarantee: "A scan of the go.mod of vet completes against production with exit 0."
   labels: [live]
+- id: live/scan/registry-image
+  title: "live: vet pulls an image from a registry"
+  category: live
+  tier: P1
+  guarantee: "vet scan oci://alpine:3.20 pulls the image from a public registry and completes with exit 0."
+  labels: [live, image]
