@@ -54,9 +54,7 @@ Run "vet scan" in a project directory to start.`,
 
 	help := root.HelpFunc()
 	root.SetHelpFunc(func(c *cobra.Command, args []string) {
-		if c == c.Root() {
-			banner.PrintTo(c.OutOrStdout(), buildinfo.Version())
-		}
+		banner.PrintTo(c.OutOrStdout(), buildinfo.Version())
 		help(c, args)
 	})
 

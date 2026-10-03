@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -10,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/safedep/vet/v2/internal/app"
+	"github.com/safedep/vet/v2/internal/tui/banner"
 	"github.com/safedep/vet/v2/internal/tui/output"
 )
 
@@ -63,3 +66,35 @@ func TestExecuteExitCodes(t *testing.T) {
 type discard struct{}
 
 func (discard) Write(p []byte) (int, error) { return len(p), nil }
+
+func TestHelpPrintsTheBanner(t *testing.T) {
+	prev := output.CurrentMode()
+	t.Cleanup(func() { output.SetMode(prev) })
+	cases := []struct {
+		name string
+		mode output.Mode
+		args []string
+		want bool
+	}{
+		{name: "root", mode: output.Rich, args: []string{"--help"}, want: true},
+		{name: "command", mode: output.Rich, args: []string{"scan", "-h"}, want: true},
+		{name: "subcommand", mode: output.Rich, args: []string{"report", "show", "--help"}, want: true},
+		{name: "command group", mode: output.Rich, args: []string{"report"}, want: true},
+		{name: "help command", mode: output.Rich, args: []string{"help", "scan"}, want: true},
+		{name: "plain mode", mode: output.Plain, args: []string{"scan", "-h"}, want: false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			output.SetMode(tc.mode)
+			root := New(app.New(app.Options{}))
+			var out bytes.Buffer
+			root.SetOut(&out)
+			root.SetErr(&discard{})
+			code, err := execute(context.Background(), root, tc.args)
+			require.NoError(t, err)
+			assert.Equal(t, app.ExitOK, code)
+			assert.Equal(t, tc.want, strings.Contains(out.String(), banner.Tagline), out.String())
+			assert.Contains(t, out.String(), "Usage:")
+		})
+	}
+}
