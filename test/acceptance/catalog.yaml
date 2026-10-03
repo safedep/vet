@@ -320,6 +320,12 @@
   tier: P1
   guarantee: "With no credentials, a scan completes, sends no authorization header and makes no upload."
   labels: [scan, credentials]
+- id: scan/output/no-library-logs
+  title: "scan: no library log lines on stderr"
+  category: scan
+  tier: P1
+  guarantee: "A malformed manifest gives a vet diagnostic. No log line of a library reaches stderr."
+  labels: [scan, output]
 - id: state/continue/after-interrupt
   title: "continue: after interrupt"
   category: state

@@ -21,13 +21,17 @@ import (
 	"github.com/safedep/vet/v2/internal/cmd/scan"
 	"github.com/safedep/vet/v2/internal/cmd/state"
 	"github.com/safedep/vet/v2/internal/cmd/version"
+	"github.com/safedep/vet/v2/internal/logging"
 	"github.com/safedep/vet/v2/internal/plugins/cloud/inventory"
 	"github.com/safedep/vet/v2/internal/plugins/cloud/tenantpolicy"
 	"github.com/safedep/vet/v2/internal/plugins/controls"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/codeusage"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/insights"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/malysis"
+	"github.com/safedep/vet/v2/internal/plugins/extractors"
 	"github.com/safedep/vet/v2/internal/plugins/sinks"
+	"github.com/safedep/vet/v2/internal/tui/banner"
+	buildinfo "github.com/safedep/vet/v2/internal/version"
 	"github.com/safedep/vet/v2/plugin"
 )
 
@@ -48,6 +52,14 @@ Run "vet scan" in a project directory to start.`,
 			return a.Apply()
 		},
 	}
+
+	help := root.HelpFunc()
+	root.SetHelpFunc(func(c *cobra.Command, args []string) {
+		if c == c.Root() {
+			banner.PrintTo(c.OutOrStdout(), buildinfo.Version())
+		}
+		help(c, args)
+	})
 
 	g := &a.Globals
 	pf := root.PersistentFlags()
@@ -103,6 +115,8 @@ func Run(ctx context.Context, args []string, o app.Options) (int, error) {
 	if o.PluginNames == nil {
 		o.PluginNames = pluginNames()
 	}
+	logging.CaptureStandardLog()
+	extractors.CaptureLogs(logging.Emit)
 	return execute(ctx, New(app.New(o)), args)
 }
 

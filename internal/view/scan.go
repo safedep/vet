@@ -4,8 +4,10 @@
 package view
 
 import (
+	"cmp"
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 	"sync"
 
@@ -133,10 +135,48 @@ func (v *Scan) Finish(h *report.Header, t *report.Trailer, diags []*report.Diagn
 		v.line(section.Hint(fmt.Sprintf("%s changed, %s changed. %s not shown.",
 			plural(changed.Packages, "package"), plural(changed.Workflows, "workflow"), plural(changed.Unchanged, "unchanged package"))))
 	}
-	for _, d := range diags {
+	v.diagnostics(h, diags)
+	v.gate(h, t)
+}
+
+// shownDiagnostics is the number of diagnostics that a human sees. A scan
+// of a large repository can have hundreds, as for a test corpus of
+// malformed files. -v and the agent mode show all of them.
+const shownDiagnostics = 5
+
+func (v *Scan) diagnostics(h *report.Header, diags []*report.Diagnostic) {
+	all := v.mode == output.Agent || output.CurrentVerbosity() == output.Verbose
+	if all || len(diags) <= shownDiagnostics {
+		for _, d := range diags {
+			v.diagnostic(d)
+		}
+		return
+	}
+	sorted := slices.Clone(diags)
+	slices.SortStableFunc(sorted, func(a, b *report.Diagnostic) int {
+		return cmp.Compare(levelRank(a.Level), levelRank(b.Level))
+	})
+	for _, d := range sorted[:shownDiagnostics] {
 		v.diagnostic(d)
 	}
-	v.gate(h, t)
+	n := len(diags) - shownDiagnostics
+	more := fmt.Sprintf("%d more diagnostics.", n)
+	if n == 1 {
+		more = "1 more diagnostic."
+	}
+	if h.Scan.ID != "" {
+		more += " Show all: vet report show " + h.Scan.ID + " -v"
+	} else {
+		more += " Run with -v to show all."
+	}
+	v.line(section.Hint(more))
+}
+
+func levelRank(l report.DiagnosticLevel) int {
+	if l == report.DiagnosticError {
+		return 0
+	}
+	return 1
 }
 
 // Changes counts what a pull request changes.

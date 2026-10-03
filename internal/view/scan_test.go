@@ -3,9 +3,11 @@ package view
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -102,4 +104,39 @@ func TestCountChanges(t *testing.T) {
 	c, err := CountChanges(context.Background(), s)
 	require.NoError(t, err)
 	assert.Equal(t, Changes{Packages: 1, Workflows: 1, Unchanged: 1}, c)
+}
+
+func TestDiagnosticsShowsAFewToAHuman(t *testing.T) {
+	sample := plugintest.SampleReport()
+	var diags []*report.Diagnostic
+	for i := range 8 {
+		diags = append(diags, &report.Diagnostic{Level: report.DiagnosticWarning, Code: "extract_failed", Component: "extract", Message: fmt.Sprintf("file %d", i)})
+	}
+	diags = append(diags, &report.Diagnostic{Level: report.DiagnosticError, Code: "enrich_failed", Component: "malysis", Message: "unavailable"})
+	cases := []struct {
+		name      string
+		mode      output.Mode
+		verbosity output.Verbosity
+		lines     int
+	}{
+		{"plain", output.Plain, output.Normal, shownDiagnostics + 1},
+		{"plain -v", output.Plain, output.Verbose, len(diags)},
+		{"agent", output.Agent, output.Normal, len(diags)},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			output.SetVerbosity(tc.verbosity)
+			t.Cleanup(func() { output.SetVerbosity(output.Normal) })
+			got := capture(t, tc.mode, func() {
+				v := NewScan(Options{Saved: true})
+				v.diagnostics(sample.Header(), diags)
+			})
+			lines := strings.Split(strings.TrimSpace(got), "\n")
+			assert.Len(t, lines, tc.lines)
+			if tc.lines < len(diags) {
+				assert.Contains(t, lines[0], "malysis", "an error comes first")
+				assert.Contains(t, lines[len(lines)-1], "4 more diagnostics. Show all: vet report show "+sample.Header().Scan.ID+" -v")
+			}
+		})
+	}
 }

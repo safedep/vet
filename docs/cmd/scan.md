@@ -40,7 +40,9 @@ commit reads it and does not extract the base again.
 
 stdout gets the report in the `-o` format. With no `-o`, the format follows the mode: `table` in a
 terminal, `plain` in CI and `json` under an agent. stderr gets the progress, the diagnostics and the
-gate line. `--report FORMAT=PATH` also writes the report to a file. vet writes a temporary file and
+gate line. In a terminal, vet first prints its banner and shows the first five diagnostics, errors
+first. `-v` and the agent mode show all of them, and `vet report show SCAN_ID -v` lists them again.
+The log lines of the parser libraries print only with `-v`. `--report FORMAT=PATH` also writes the report to a file. vet writes a temporary file and
 renames it into place, so a failed write leaves no partial file.
 
 With `plugins.codeusage.enabled: true`, vet also reads the source files of a directory target. It

@@ -37,6 +37,7 @@ import (
 	"github.com/safedep/vet/v2/internal/policy"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/internal/tui"
+	"github.com/safedep/vet/v2/internal/tui/banner"
 	"github.com/safedep/vet/v2/internal/tui/output"
 	"github.com/safedep/vet/v2/internal/version"
 	"github.com/safedep/vet/v2/internal/view"
@@ -215,6 +216,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 		if o.BaseRef != "" {
 			mode = report.ScanModeDelta
 		}
+		banner.Print(version.Version())
 		v := view.NewScan(view.Options{Target: git.Redact(o.Target), BaseRef: o.BaseRef, Animate: animate()})
 		eo := engine.Options{
 			Store: store, Cache: cache, NoCacheRead: o.NoCache, Source: src,
