@@ -68,6 +68,12 @@ type LoadOptions struct {
 	Flags map[string]string
 	// LookupEnv reads a variable. It defaults to os.LookupEnv.
 	LookupEnv func(string) (string, bool)
+	// Environ lists the variables, for the VET_PLUGINS_* keys. With no
+	// Environ, vet reads no plugin variable.
+	Environ func() []string
+	// PluginNames are the plugins that a VET_PLUGINS_* variable can name.
+	// A variable turns "-" into "_", so vet needs the names to map it back.
+	PluginNames []string
 	// TrustManaged checks the owner of the managed file and its directories.
 	// It defaults to ManagedFileTrusted.
 	TrustManaged func(path string) bool
@@ -151,6 +157,26 @@ func Load(opts LoadOptions) (*Loaded, error) {
 			return nil, invalidValue(key, raw, Origin{Layer: LayerEnv, Source: name}, err)
 		}
 		l.Origins.set(key, Origin{Layer: LayerEnv, Source: name})
+	}
+
+	if opts.Environ != nil {
+		vars := opts.Environ()
+		sort.Strings(vars)
+		for _, kv := range vars {
+			name, raw, _ := strings.Cut(kv, "=")
+			key, ok := pluginEnvKey(name, opts.PluginNames)
+			if !ok {
+				continue
+			}
+			if l.Locked[key] {
+				l.Warnings = append(l.Warnings, fmt.Sprintf("%s is ignored: the managed file %s locks %s", name, l.File, key))
+				continue
+			}
+			if err := setKey(tree, key, raw); err != nil {
+				return nil, invalidValue(key, raw, Origin{Layer: LayerEnv, Source: name}, err)
+			}
+			l.Origins.set(key, Origin{Layer: LayerEnv, Source: name})
+		}
 	}
 
 	flagKeys := make([]string, 0, len(opts.Flags))
@@ -346,4 +372,46 @@ func parseValue(key, raw string) (any, error) {
 	default:
 		return raw, nil
 	}
+}
+
+// RefuseLocked returns an error for the first key that the managed file
+// locks. A command calls it with the keys of the flags that the user set,
+// as --fail-on for policy.fail_on: a flag for a locked key is a usage
+// error, as in the config design, section 3.2.
+func (l *Loaded) RefuseLocked(keys ...string) error {
+	for _, k := range keys {
+		if l.Locked[k] {
+			return lockedKey(k, l.File)
+		}
+	}
+	return nil
+}
+
+// pluginEnvKey maps a VET_PLUGINS_* variable to its key, as
+// VET_PLUGINS_DEPENDENCY_COOLDOWN_OPTIONS_DAYS to
+// plugins.dependency-cooldown.options.days. The longest plugin name that
+// fits wins, and an option name is in lower case.
+func pluginEnvKey(name string, plugins []string) (string, bool) {
+	rest, ok := strings.CutPrefix(name, "VET_PLUGINS_")
+	if !ok {
+		return "", false
+	}
+	best := ""
+	for _, p := range plugins {
+		prefix := strings.TrimPrefix(EnvName("plugins."+p), "VET_PLUGINS_") + "_"
+		if strings.HasPrefix(rest, prefix) && len(p) > len(best) {
+			best = p
+		}
+	}
+	if best == "" {
+		return "", false
+	}
+	field := strings.TrimPrefix(rest, strings.TrimPrefix(EnvName("plugins."+best), "VET_PLUGINS_")+"_")
+	switch {
+	case field == "ENABLED":
+		return "plugins." + best + ".enabled", true
+	case strings.HasPrefix(field, "OPTIONS_") && len(field) > len("OPTIONS_"):
+		return "plugins." + best + ".options." + strings.ToLower(strings.TrimPrefix(field, "OPTIONS_")), true
+	}
+	return "", false
 }

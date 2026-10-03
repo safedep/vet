@@ -113,6 +113,9 @@ func TestLoadLockdown(t *testing.T) {
 		Flags: map[string]string{"policy.fail_on": "low"},
 	})
 	assert.Equal(t, CodeLocked, errCode(t, err))
+
+	assert.NoError(t, l.RefuseLocked("scan.strict", "scan.exclude"), "the managed file does not set them")
+	assert.Equal(t, CodeLocked, errCode(t, l.RefuseLocked("scan.strict", "policy.fail_on")), "a local flag such as --fail-on")
 }
 
 func TestLoadErrors(t *testing.T) {
@@ -162,4 +165,40 @@ func TestKeys(t *testing.T) {
 	assert.False(t, IsKnownKey("plugins.x.other"))
 	assert.Equal(t, "VET_SCAN_INCLUDE_DEV", EnvName("scan.include_dev"))
 	assert.Equal(t, "VET_PLUGINS_DEPENDENCY_COOLDOWN_ENABLED", EnvName("plugins.dependency-cooldown.enabled"))
+}
+
+func TestPluginEnvKey(t *testing.T) {
+	plugins := []string{"dependency-cooldown", "codeusage", "lockfile", "lockfile-extra"}
+	cases := map[string]string{
+		"VET_PLUGINS_DEPENDENCY_COOLDOWN_OPTIONS_DAYS":    "plugins.dependency-cooldown.options.days",
+		"VET_PLUGINS_CODEUSAGE_ENABLED":                   "plugins.codeusage.enabled",
+		"VET_PLUGINS_LOCKFILE_OPTIONS_TRUSTED_REGISTRIES": "plugins.lockfile.options.trusted_registries",
+		"VET_PLUGINS_LOCKFILE_EXTRA_ENABLED":              "plugins.lockfile-extra.enabled",
+		"VET_PLUGINS_UNKNOWN_ENABLED":                     "",
+		"VET_PLUGINS_CODEUSAGE_OPTIONS_":                  "",
+		"VET_PLUGINS_CODEUSAGE_COLOR":                     "",
+		"VET_SCAN_STRICT":                                 "",
+	}
+	for name, want := range cases {
+		key, ok := pluginEnvKey(name, plugins)
+		assert.Equal(t, want != "", ok, name)
+		assert.Equal(t, want, key, name)
+	}
+}
+
+func TestLoadPluginVariables(t *testing.T) {
+	dir := t.TempDir()
+	managed := writeFile(t, dir, "managed.yml", "managed:\n  lockdown: true\nplugins:\n  codeusage:\n    enabled: false\n")
+	l, err := Load(LoadOptions{
+		ManagedFile: managed, TrustManaged: trustAll, LookupEnv: env(nil),
+		Environ: func() []string {
+			return []string{"VET_PLUGINS_DEPENDENCY_COOLDOWN_OPTIONS_DAYS=7", "VET_PLUGINS_CODEUSAGE_ENABLED=true", "HOME=/x"}
+		},
+		PluginNames: []string{"dependency-cooldown", "codeusage"},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, map[string]any{"days": 7}, l.Config.PluginOptions("dependency-cooldown"))
+	assert.Equal(t, Origin{Layer: LayerEnv, Source: "VET_PLUGINS_DEPENDENCY_COOLDOWN_OPTIONS_DAYS"}, l.Origins.Of("plugins.dependency-cooldown.options.days"))
+	assert.False(t, l.Config.PluginEnabled("codeusage", true), "a variable cannot change a locked key")
+	assert.NotEmpty(t, l.Warnings)
 }

@@ -164,3 +164,8 @@ func TestConfirmNamesTheFlag(t *testing.T) {
 	assert.Contains(t, ue.Help(), "--yes")
 	assert.Equal(t, ExitUsage, ExitCode(err))
 }
+
+func TestConfigOptionsDirKeys(t *testing.T) {
+	assert.Empty(t, ConfigOptions{}.dirKeys())
+	assert.Equal(t, []string{"state.dir", "cache.dir"}, ConfigOptions{StateDir: "s", CacheDir: "c"}.dirKeys(), "a managed file can lock both")
+}

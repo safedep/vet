@@ -34,6 +34,10 @@ type Globals struct {
 type Options struct {
 	// LookupEnv reads a variable. It defaults to os.LookupEnv.
 	LookupEnv func(string) (string, bool)
+	// Environ lists the variables. It defaults to os.Environ.
+	Environ func() []string
+	// PluginNames are the built-in plugins, for the VET_PLUGINS_* variables.
+	PluginNames []string
 	// Bootstrap changes how the config loads, for tests.
 	Bootstrap config.BootstrapOptions
 }
@@ -50,6 +54,9 @@ type App struct {
 
 // New returns an App.
 func New(o Options) *App {
+	if o.Environ == nil {
+		o.Environ = os.Environ
+	}
 	if o.LookupEnv == nil {
 		o.LookupEnv = os.LookupEnv
 	}
@@ -100,6 +107,17 @@ type ConfigOptions struct {
 	StateDir, CacheDir string
 }
 
+func (o ConfigOptions) dirKeys() []string {
+	var keys []string
+	if o.StateDir != "" {
+		keys = append(keys, "state.dir")
+	}
+	if o.CacheDir != "" {
+		keys = append(keys, "cache.dir")
+	}
+	return keys
+}
+
 // Config loads the config of the run once: the defaults, the config files,
 // the VET_* variables and the flags. A config mode applies when --mode is
 // not set.
@@ -111,6 +129,12 @@ func (a *App) Config(o ConfigOptions) (*config.Runtime, error) {
 		if b.LookupEnv == nil {
 			b.LookupEnv = a.opts.LookupEnv
 		}
+		if b.Environ == nil {
+			b.Environ = a.opts.Environ
+		}
+		if b.PluginNames == nil {
+			b.PluginNames = a.opts.PluginNames
+		}
 		b.Flags = map[string]string{}
 		if a.Globals.Mode != "" {
 			b.Flags["output.mode"] = a.Globals.Mode
@@ -119,6 +143,9 @@ func (a *App) Config(o ConfigOptions) (*config.Runtime, error) {
 			b.Flags["cloud.profile"] = a.Globals.Profile
 		}
 		a.runtime, a.err = config.Bootstrap(b)
+		if a.err == nil {
+			a.err = a.runtime.RefuseLocked(o.dirKeys()...)
+		}
 		if a.err == nil && a.Globals.Mode == "" {
 			a.err = setMode(a.runtime.Config.Output.Mode, "output.mode")
 		}

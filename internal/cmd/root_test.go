@@ -63,3 +63,10 @@ func TestExecuteExitCodes(t *testing.T) {
 type discard struct{}
 
 func (discard) Write(p []byte) (int, error) { return len(p), nil }
+
+func TestPluginNamesCoverTheConfigPlugins(t *testing.T) {
+	names := pluginNames()
+	for _, want := range []string{"dependency-cooldown", "lockfile", "codeusage", "insights", "cloud-inventory", "tenant-policy", "cyclonedx"} {
+		assert.Contains(t, names, want, "a VET_PLUGINS_* variable can name %s", want)
+	}
+}

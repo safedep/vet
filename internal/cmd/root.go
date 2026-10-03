@@ -21,6 +21,14 @@ import (
 	"github.com/safedep/vet/v2/internal/cmd/scan"
 	"github.com/safedep/vet/v2/internal/cmd/state"
 	"github.com/safedep/vet/v2/internal/cmd/version"
+	"github.com/safedep/vet/v2/internal/plugins/cloud/inventory"
+	"github.com/safedep/vet/v2/internal/plugins/cloud/tenantpolicy"
+	"github.com/safedep/vet/v2/internal/plugins/controls"
+	"github.com/safedep/vet/v2/internal/plugins/enrichers/codeusage"
+	"github.com/safedep/vet/v2/internal/plugins/enrichers/insights"
+	"github.com/safedep/vet/v2/internal/plugins/enrichers/malysis"
+	"github.com/safedep/vet/v2/internal/plugins/sinks"
+	"github.com/safedep/vet/v2/plugin"
 )
 
 // New builds the full command tree. main and the tests call it, so both
@@ -92,7 +100,26 @@ func markRunErrors(c *cobra.Command) {
 // to print or nil. A failed gate and a stop on a signal print no error,
 // because the command already reported them.
 func Run(ctx context.Context, args []string, o app.Options) (int, error) {
+	if o.PluginNames == nil {
+		o.PluginNames = pluginNames()
+	}
 	return execute(ctx, New(app.New(o)), args)
+}
+
+// pluginNames are the names of the built-in plugins. A VET_PLUGINS_*
+// variable names one of them.
+func pluginNames() []string {
+	names := []string{insights.Name, malysis.Name, codeusage.Name, inventory.Name, tenantpolicy.Name}
+	for _, s := range controls.Builtin() {
+		names = append(names, s.Name)
+	}
+	for _, s := range sinks.Builtin() {
+		names = append(names, s.Name)
+	}
+	for _, k := range []plugin.Kind{plugin.KindSource, plugin.KindExtractor, plugin.KindPolicySource} {
+		names = append(names, plugin.Names(k)...)
+	}
+	return names
 }
 
 func execute(ctx context.Context, root *cobra.Command, args []string) (int, error) {

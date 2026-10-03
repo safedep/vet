@@ -160,6 +160,9 @@ func Show(ctx context.Context, a *app.App, o ShowOptions) error {
 	if err != nil {
 		return err
 	}
+	if err := rt.RefuseLocked(gateKeys(o.FailOn, o.Policy)...); err != nil {
+		return err
+	}
 	settings, err := policy.ResolveSettings(o.FailOn, o.Policy, rt.Config.Policy)
 	if err != nil {
 		return err

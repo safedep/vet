@@ -85,6 +85,34 @@ func (o *Options) RegisterFlags(c *cobra.Command) {
 	c.MarkFlagsMutuallyExclusive("resume", "fresh")
 }
 
+// lockableKeys are the config keys of the scan flags that the user set. A
+// managed file with lockdown refuses each of them.
+func (o Options) lockableKeys() []string {
+	keys := gateKeys(o.FailOn, o.Policy)
+	if o.Strict {
+		keys = append(keys, "scan.strict")
+	}
+	if len(o.Exclude) > 0 {
+		keys = append(keys, "scan.exclude")
+	}
+	if o.CooldownDays > 0 {
+		keys = append(keys, "plugins."+cooldown.Name+".options.days")
+	}
+	return keys
+}
+
+// gateKeys are the config keys of --fail-on and --policy, when set.
+func gateKeys(failOn, policyFile string) []string {
+	var keys []string
+	if failOn != "" {
+		keys = append(keys, "policy.fail_on")
+	}
+	if policyFile != "" {
+		keys = append(keys, "policy.file")
+	}
+	return keys
+}
+
 // hashed are the options that change what a scan stores. A stopped scan
 // continues only when they are the same.
 type hashed struct {
@@ -107,6 +135,9 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 	cfg := rt.Config
 	for _, w := range rt.Warnings {
 		tui.Warning("%s", w)
+	}
+	if err := rt.RefuseLocked(o.lockableKeys()...); err != nil {
+		return err
 	}
 
 	gate, err := policy.ResolveSettings(o.FailOn, o.Policy, cfg.Policy)
