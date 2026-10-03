@@ -2,11 +2,10 @@ package codeusage
 
 import (
 	"encoding/json"
-	"io/fs"
-	"os"
-	"path/filepath"
 	"slices"
 	"strings"
+
+	"github.com/safedep/dry/log"
 
 	"github.com/safedep/vet/v2/model"
 )
@@ -125,29 +124,15 @@ type composerPackage struct {
 }
 
 // readAutoload reads the namespace prefixes of the composer.lock files
-// under dir. A file that vet cannot read or parse adds nothing.
+// under dir. A file that vet cannot read or parse adds nothing, and vet
+// logs it.
 func readAutoload(dir string) (map[string]string, error) {
 	out := map[string]string{}
-	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return nil
-		}
-		if d.IsDir() {
-			if path != dir && skippedDir(d.Name()) {
-				return filepath.SkipDir
-			}
-			return nil
-		}
-		if d.Name() != "composer.lock" {
-			return nil
-		}
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return nil
-		}
+	err := readManifests(dir, func(name string) bool { return name == "composer.lock" }, func(path string, data []byte) {
 		var lock composerLock
-		if json.Unmarshal(data, &lock) != nil {
-			return nil
+		if err := json.Unmarshal(data, &lock); err != nil {
+			log.Warnf("codeusage: cannot parse %s: %v", path, err)
+			return
 		}
 		for _, p := range append(lock.Packages, lock.PackagesDev...) {
 			for prefix := range p.Autoload.PSR4 {
@@ -157,7 +142,6 @@ func readAutoload(dir string) (map[string]string, error) {
 				out[strings.TrimSuffix(prefix, `\`)+`\`] = normalize(p.Name)
 			}
 		}
-		return nil
 	})
 	return out, err
 }

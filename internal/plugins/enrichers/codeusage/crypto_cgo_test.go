@@ -20,7 +20,7 @@ import (
 func TestCryptoSignatures(t *testing.T) {
 	cases := map[string][]string{
 		"crypto.py": {
-			"md5", "sha1", "sha256", "sha512", "sha3", "blake", "hmac", "scrypt", "aes", "chacha20", "des",
+			"md5", "sha1", "sha256", "sha512", "sha3", "blake2", "hmac", "scrypt", "aes", "chacha20poly1305", "des",
 			"rc4", "rsa", "ecdsa", "ed25519", "ecdh", "pbkdf2", "hkdf", "bcrypt", "argon2", "random", "tls", "x509", "jwt",
 		},
 		"crypto.js": {
@@ -32,7 +32,7 @@ func TestCryptoSignatures(t *testing.T) {
 			"ecdh", "pbkdf2", "bcrypt", "random", "tls", "x509", "jwt",
 		},
 		"crypto.go": {
-			"md5", "sha1", "sha256", "sha512", "sha3", "hmac", "aes", "3des", "des", "rc4", "chacha20", "rsa",
+			"md5", "sha1", "sha256", "sha512", "sha3", "hmac", "aes", "3des", "des", "rc4", "chacha20poly1305", "rsa",
 			"ecdsa", "ed25519", "ecdh", "pbkdf2", "bcrypt", "scrypt", "argon2", "hkdf", "random", "tls", "ssh", "x509", "jwt",
 		},
 		"Crypto.cs": {
@@ -40,11 +40,11 @@ func TestCryptoSignatures(t *testing.T) {
 			"random", "x509", "tls", "jwt", "bcrypt",
 		},
 		"crypto.rs": {
-			"md5", "sha1", "sha256", "sha512", "sha3", "blake", "hmac", "aes", "chacha20", "rsa", "ed25519",
+			"md5", "sha1", "sha256", "sha512", "sha3", "blake3", "hmac", "aes", "chacha20poly1305", "rsa", "ed25519",
 			"ecdh", "pbkdf2", "bcrypt", "argon2", "hkdf", "tls", "x509", "jwt", "random",
 		},
 		"crypto.php": {
-			"md5", "sha1", "sha256", "sha512", "sha3", "hmac", "aes", "3des", "chacha20", "rsa", "ed25519",
+			"md5", "sha1", "sha256", "sha512", "sha3", "hmac", "aes", "3des", "chacha20poly1305", "rsa", "ed25519",
 			"pbkdf2", "bcrypt", "argon2", "hkdf", "random", "x509", "ssh", "jwt",
 		},
 		"crypto.rb": {

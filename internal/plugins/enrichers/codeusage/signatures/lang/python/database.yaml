@@ -206,10 +206,24 @@ signatures:
         conditions:
           - type: call
             value: "boto3.resource"
+            args:
+              - index: 0
+                values: ["\"dynamodb\"", "'dynamodb'"]
           - type: call
             value: "boto3.client"
+            args:
+              - index: 0
+                values: ["\"dynamodb\"", "'dynamodb'"]
           - type: call
             value: "boto3.Session.resource"
+            args:
+              - index: 0
+                values: ["\"dynamodb\"", "'dynamodb'"]
+          - type: call
+            value: "boto3.Session.client"
+            args:
+              - index: 0
+                values: ["\"dynamodb\"", "'dynamodb'"]
 
   - id: python.database.couchdb
     description: "CouchDB operations"

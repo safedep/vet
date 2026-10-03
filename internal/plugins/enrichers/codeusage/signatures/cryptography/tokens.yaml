@@ -185,6 +185,8 @@ signatures:
           - type: call
             value: "crypto_secretbox::*"
           - type: call
+            value: "crypto_box::*"
+          - type: call
             value: "dryoc::*"
       php:
         match: any
@@ -193,6 +195,10 @@ signatures:
             value: "sodium_crypto_secretbox"
           - type: call
             value: "sodium_crypto_secretbox_open"
+          - type: call
+            value: "sodium_crypto_box"
+          - type: call
+            value: "sodium_crypto_box_open"
           - type: call
             value: "sodium_crypto_box_seal"
           - type: call
@@ -204,3 +210,5 @@ signatures:
             value: "RbNaCl::SecretBox.*"
           - type: call
             value: "RbNaCl::SimpleBox.*"
+          - type: call
+            value: "RbNaCl::Box.*"

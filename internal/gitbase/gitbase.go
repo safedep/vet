@@ -17,6 +17,7 @@ import (
 	gogit "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/safedep/dry/log"
 )
 
 var (
@@ -77,8 +78,20 @@ func (t *Tree) Walk(ctx context.Context, fn func(rel string, f *object.File) err
 		if !ok || rel == "" {
 			return nil
 		}
+		if !localPath(rel) {
+			log.Warnf("gitbase: skipped the base file %q, which is not a local path", rel)
+			return nil
+		}
 		return fn(rel, f)
 	})
+}
+
+// localPath reports whether a tree path stays inside the directory that a
+// caller writes it to. go-git rejects ".." in a tree entry today. vet
+// checks again, so that no future version of go-git can make a base file
+// escape the temporary directory.
+func localPath(rel string) bool {
+	return fs.ValidPath(rel) && filepath.IsLocal(filepath.FromSlash(rel))
 }
 
 // repoPrefix returns the path of dir in the repository, with "/" and a

@@ -778,11 +778,11 @@ signatures:
           - type: call
             value: "Digest::SHA3.*"
 
-  - id: crypto.blake
-    description: "BLAKE2 and BLAKE3 message digests"
+  - id: crypto.blake2
+    description: "BLAKE2 message digests"
     vendor: ""
-    product: "BLAKE"
-    service: "BLAKE2 and BLAKE3"
+    product: "BLAKE2"
+    service: "BLAKE2"
     tags: [cryptography, hash]
     languages:
       python:
@@ -793,9 +793,9 @@ signatures:
           - type: call
             value: "hashlib.blake2s"
           - type: call
-            value: "blake3.blake3"
-          - type: call
             value: "cryptography.hazmat.primitives.hashes.BLAKE2b"
+          - type: call
+            value: "cryptography.hazmat.primitives.hashes.BLAKE2s"
           - type: call
             value: "nacl.hash.blake2b"
       javascript:
@@ -814,7 +814,7 @@ signatures:
           - type: call
             value: "@noble/hashes/blake2b/blake2b"
           - type: call
-            value: "@noble/hashes/blake3/blake3"
+            value: "@noble/hashes/blake2s/blake2s"
           - type: call
             value: "blakejs/blake2b"
       java:
@@ -823,7 +823,7 @@ signatures:
           - type: call
             value: "org.bouncycastle.crypto.digests.Blake2bDigest"
           - type: call
-            value: "org.bouncycastle.crypto.digests.Blake3Digest"
+            value: "org.bouncycastle.crypto.digests.Blake2sDigest"
       go:
         match: any
         conditions:
@@ -831,17 +831,11 @@ signatures:
             value: "golang.org/x/crypto/blake2b/*"
           - type: call
             value: "golang.org/x/crypto/blake2s/*"
-          - type: call
-            value: "lukechampine.com/blake3/*"
-          - type: call
-            value: "github.com/zeebo/blake3/*"
       rust:
         match: any
         conditions:
           - type: call
             value: "blake2::*"
-          - type: call
-            value: "blake3::*"
       php:
         match: any
         conditions:
@@ -867,5 +861,43 @@ signatures:
         conditions:
           - type: call
             value: "RbNaCl::Hash::Blake2b.*"
+
+  - id: crypto.blake3
+    description: "BLAKE3 message digests"
+    vendor: ""
+    product: "BLAKE3"
+    service: "BLAKE3"
+    tags: [cryptography, hash]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "blake3.blake3"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@noble/hashes/blake3/blake3"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "org.bouncycastle.crypto.digests.Blake3Digest"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "lukechampine.com/blake3/*"
+          - type: call
+            value: "github.com/zeebo/blake3/*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "blake3::*"
+      ruby:
+        match: any
+        conditions:
           - type: call
             value: "Blake3.*"

@@ -79,3 +79,22 @@ func TestSignaturesIgnorePlainCode(t *testing.T) {
 		})
 	}
 }
+
+func TestDynamoDBNeedsItsService(t *testing.T) {
+	cases := map[string]bool{
+		"import boto3\n\ntable = boto3.resource('dynamodb').Table('t')\n": true,
+		"import boto3\n\nclient = boto3.client(\"dynamodb\")\n":           true,
+		"import boto3\n\ns3 = boto3.client('s3')\n":                       false,
+	}
+	for code, want := range cases {
+		dir := t.TempDir()
+		write(t, dir, "app.py", code)
+		a, err := defaultAnalyzer(context.Background(), dir)
+		require.NoError(t, err)
+		got := false
+		for _, m := range a.Matches {
+			got = got || m.Signature.ID == "python.database.dynamodb"
+		}
+		assert.Equal(t, want, got, code)
+	}
+}

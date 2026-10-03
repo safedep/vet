@@ -447,8 +447,6 @@ signatures:
             value: "cryptography.hazmat.primitives.asymmetric.ec.ECDH"
           - type: call
             value: "nacl.public.PrivateKey.generate"
-          - type: call
-            value: "nacl.public.Box"
       javascript:
         match: any
         conditions:
@@ -481,7 +479,7 @@ signatures:
               - index: 0
                 values: ["\"x25519\"", "'x25519'", "\"X25519\"", "'X25519'", "\"x448\"", "'x448'", "\"X448\"", "'X448'"]
           - type: call
-            value: "tweetnacl/box"
+            value: "tweetnacl/box/keyPair"
           - type: call
             value: "@noble/curves/ed25519/x25519"
       java:
@@ -514,8 +512,6 @@ signatures:
             value: "crypto/ecdh/*"
           - type: call
             value: "golang.org/x/crypto/curve25519/*"
-          - type: call
-            value: "golang.org/x/crypto/nacl/box/*"
       csharp:
         match: any
         conditions:
@@ -536,13 +532,9 @@ signatures:
             value: "ring::agreement::*"
           - type: call
             value: "p256::ecdh::*"
-          - type: call
-            value: "crypto_box::*"
       php:
         match: any
         conditions:
-          - type: call
-            value: "sodium_crypto_box"
           - type: call
             value: "sodium_crypto_box_keypair"
           - type: call
@@ -554,8 +546,6 @@ signatures:
         conditions:
           - type: call
             value: "RbNaCl::PrivateKey.*"
-          - type: call
-            value: "RbNaCl::Box.*"
 
   - id: crypto.dsa
     description: "DSA signatures"

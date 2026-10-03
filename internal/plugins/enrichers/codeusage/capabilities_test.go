@@ -95,6 +95,7 @@ func TestCapabilitiesOfAPullRequest(t *testing.T) {
 		"gone.py":                  "call cohere.client\n",
 		"node_modules/lib/x.py":    "call mistral.client\n",
 		"moved/unchanged/other.py": "x = 1\n",
+		"big.py":                   "call crypto.md5\n" + strings.Repeat("# padding\n", maxBaseFile/10+1),
 	})
 	gitbasetest.Write(t, dir, "edited.py", "call anthropic.client\n")
 	gitbasetest.Write(t, dir, "crlf.py", "x = 1\r\ny = 2\r\n")
@@ -110,6 +111,7 @@ func TestCapabilitiesOfAPullRequest(t *testing.T) {
 		"groq.client":      model.ChangeAdded,
 		"langchain.chain":  model.ChangeRemoved,
 		"cohere.client":    model.ChangeRemoved,
+		"crypto.md5":       model.ChangeUnchanged,
 	}, ids(caps))
 
 	require.Len(t, la.runs, 2, "the head, then the changed base files")

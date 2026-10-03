@@ -11,18 +11,16 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
+	"github.com/safedep/dry/log"
 )
 
-// ownRoots returns the namespaces of the modules that the project itself
-// declares, in the call graph form with "//": the Go module path, the Rust
-// crate, the PHP namespace of the autoload map, the npm package and the
-// Python distribution. A call into the project itself is not a capability
-// of a dependency, so an SDK repository does not match its own signature.
-// A file that vet cannot read or parse adds nothing.
-func ownRoots(dir string) ([]string, error) {
-	var roots []string
-	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+// readManifests calls read with the content of each file under dir whose
+// name match accepts, outside the directories of installed or built code.
+// vet logs a file or a directory that it cannot read, and goes on.
+func readManifests(dir string, match func(name string) bool, read func(path string, data []byte)) error {
+	return filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
+			log.Warnf("codeusage: skipped %s: %v", path, err)
 			return nil
 		}
 		if d.IsDir() {
@@ -31,21 +29,38 @@ func ownRoots(dir string) ([]string, error) {
 			}
 			return nil
 		}
-		read := ownReaders[d.Name()]
-		if strings.HasSuffix(d.Name(), ".gemspec") {
-			read = gemModules
-		}
-		if read == nil {
+		if !match(d.Name()) {
 			return nil
 		}
 		data, err := os.ReadFile(path)
 		if err != nil {
+			log.Warnf("codeusage: cannot read %s: %v", path, err)
 			return nil
 		}
-		roots = append(roots, read(path, data)...)
+		read(path, data)
 		return nil
 	})
+}
+
+// ownRoots returns the namespaces of the modules that the project itself
+// declares, in the call graph form with "//": the Go module path, the Rust
+// crate, the PHP namespace of the autoload map, the npm package and the
+// Python distribution. A call into the project itself is not a capability
+// of a dependency, so an SDK repository does not match its own signature.
+// A file that vet cannot read or parse adds nothing, and vet logs it.
+func ownRoots(dir string) ([]string, error) {
+	var roots []string
+	err := readManifests(dir, func(name string) bool { return ownReader(name) != nil }, func(path string, data []byte) {
+		roots = append(roots, ownReader(filepath.Base(path))(path, data)...)
+	})
 	return roots, err
+}
+
+func ownReader(name string) func(path string, data []byte) []string {
+	if strings.HasSuffix(name, ".gemspec") {
+		return gemModules
+	}
+	return ownReaders[name]
 }
 
 // ownReaders read the own namespaces from a manifest, by file name.
@@ -67,19 +82,23 @@ func goModule(_ string, data []byte) []string {
 	return nil
 }
 
-func cargoCrate(_ string, data []byte) []string {
+func cargoCrate(path string, data []byte) []string {
 	var c struct {
 		Package struct {
 			Name string `toml:"name"`
 		} `toml:"package"`
 	}
-	if _, err := toml.Decode(string(data), &c); err != nil || c.Package.Name == "" {
+	if _, err := toml.Decode(string(data), &c); err != nil {
+		log.Warnf("codeusage: cannot parse %s: %v", path, err)
+		return nil
+	}
+	if c.Package.Name == "" {
 		return nil
 	}
 	return []string{strings.ReplaceAll(c.Package.Name, "-", "_")}
 }
 
-func composerNamespaces(_ string, data []byte) []string {
+func composerNamespaces(path string, data []byte) []string {
 	type autoload struct {
 		PSR4 map[string]json.RawMessage `json:"psr-4"`
 	}
@@ -87,7 +106,8 @@ func composerNamespaces(_ string, data []byte) []string {
 		Autoload    autoload `json:"autoload"`
 		AutoloadDev autoload `json:"autoload-dev"`
 	}
-	if json.Unmarshal(data, &c) != nil {
+	if err := json.Unmarshal(data, &c); err != nil {
+		log.Warnf("codeusage: cannot parse %s: %v", path, err)
 		return nil
 	}
 	var out []string
@@ -101,11 +121,15 @@ func composerNamespaces(_ string, data []byte) []string {
 	return out
 }
 
-func npmPackage(_ string, data []byte) []string {
+func npmPackage(path string, data []byte) []string {
 	var p struct {
 		Name string `json:"name"`
 	}
-	if json.Unmarshal(data, &p) != nil || p.Name == "" {
+	if err := json.Unmarshal(data, &p); err != nil {
+		log.Warnf("codeusage: cannot parse %s: %v", path, err)
+		return nil
+	}
+	if p.Name == "" {
 		return nil
 	}
 	return []string{slashRoot(p.Name)}
@@ -127,6 +151,7 @@ func pythonDistribution(path string, data []byte) []string {
 		} `toml:"tool"`
 	}
 	if _, err := toml.Decode(string(data), &p); err != nil {
+		log.Warnf("codeusage: cannot parse %s: %v", path, err)
 		return nil
 	}
 	var out []string

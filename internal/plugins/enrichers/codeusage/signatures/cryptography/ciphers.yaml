@@ -304,7 +304,7 @@ signatures:
   - id: crypto.3des
     description: "Triple DES symmetric encryption"
     vendor: ""
-    product: "DES"
+    product: "3DES"
     service: "Triple DES"
     tags: [cryptography, block-cipher, weak]
     languages:
@@ -555,7 +555,47 @@ signatures:
                 values: ["\"bf-cbc\"", "'bf-cbc'", "\"BF-CBC\"", "'BF-CBC'"]
 
   - id: crypto.chacha20
-    description: "ChaCha20 and ChaCha20-Poly1305 encryption"
+    description: "ChaCha20 stream encryption"
+    vendor: ""
+    product: "ChaCha20"
+    service: "ChaCha20"
+    tags: [cryptography, stream-cipher]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "cryptography.hazmat.primitives.ciphers.algorithms.ChaCha20"
+          - type: call
+            value: "Crypto.Cipher.ChaCha20.new"
+          - type: call
+            value: "Cryptodome.Cipher.ChaCha20.new"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "javax.crypto.Cipher.getInstance"
+            args:
+              - index: 0
+                values: ["\"ChaCha20\"", "\"chacha20\"", "\"CHACHA20\""]
+          - type: call
+            value: "Cipher.getInstance"
+            args:
+              - index: 0
+                values: ["\"ChaCha20\"", "\"chacha20\"", "\"CHACHA20\""]
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "golang.org/x/crypto/chacha20/*"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "chacha20::*"
+
+  - id: crypto.chacha20poly1305
+    description: "ChaCha20-Poly1305 authenticated encryption"
     vendor: ""
     product: "ChaCha20"
     service: "ChaCha20-Poly1305"
@@ -566,10 +606,6 @@ signatures:
         conditions:
           - type: call
             value: "cryptography.hazmat.primitives.ciphers.aead.ChaCha20Poly1305"
-          - type: call
-            value: "cryptography.hazmat.primitives.ciphers.algorithms.ChaCha20"
-          - type: call
-            value: "Crypto.Cipher.ChaCha20.new"
           - type: call
             value: "Crypto.Cipher.ChaCha20_Poly1305.new"
           - type: call
@@ -598,19 +634,17 @@ signatures:
             value: "javax.crypto.Cipher.getInstance"
             args:
               - index: 0
-                values: ["\"ChaCha20-Poly1305\"", "\"chacha20-poly1305\"", "\"CHACHA20-POLY1305\"", "\"ChaCha20\"", "\"chacha20\"", "\"CHACHA20\""]
+                values: ["\"ChaCha20-Poly1305\"", "\"chacha20-poly1305\"", "\"CHACHA20-POLY1305\""]
           - type: call
             value: "Cipher.getInstance"
             args:
               - index: 0
-                values: ["\"ChaCha20-Poly1305\"", "\"chacha20-poly1305\"", "\"CHACHA20-POLY1305\"", "\"ChaCha20\"", "\"chacha20\"", "\"CHACHA20\""]
+                values: ["\"ChaCha20-Poly1305\"", "\"chacha20-poly1305\"", "\"CHACHA20-POLY1305\""]
       go:
         match: any
         conditions:
           - type: call
             value: "golang.org/x/crypto/chacha20poly1305/*"
-          - type: call
-            value: "golang.org/x/crypto/chacha20/*"
       csharp:
         match: any
         conditions:
@@ -623,8 +657,6 @@ signatures:
         conditions:
           - type: call
             value: "chacha20poly1305::*"
-          - type: call
-            value: "chacha20::*"
       php:
         match: any
         conditions:

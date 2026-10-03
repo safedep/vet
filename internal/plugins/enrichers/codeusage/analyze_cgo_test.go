@@ -82,3 +82,38 @@ func TestReadSignaturesRejects(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, sigs, 1)
 }
+
+func TestDefaultAnalyzerUnderSkippedParent(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "build", "vendor", "app")
+	write(t, dir, "app.py", "from openai import OpenAI\n\nclient = OpenAI()\n")
+	write(t, dir, "vendor/x/index.py", "from openai import OpenAI\n\nOpenAI()\n")
+
+	a, err := defaultAnalyzer(context.Background(), dir)
+	require.NoError(t, err)
+	require.NotEmpty(t, a.Matches, "a parent directory named build or vendor is not part of the target")
+	for _, m := range a.Matches {
+		assert.Equal(t, filepath.Join(dir, "app.py"), m.FilePath)
+	}
+}
+
+func TestSkipPatterns(t *testing.T) {
+	cases := []struct {
+		root, path string
+		skip       bool
+	}{
+		{"/ci/build/app", "/ci/build/app/main.py", false},
+		{"/ci/build/app", "/ci/build/app/src/build.py", false},
+		{"/ci/build/app", "/ci/build/app/node_modules/x/index.js", true},
+		{"/ci/build/app", "/ci/build/app/web/dist/app.js", true},
+		{"/ci/build/app", "/ci/build/app/static/swagger-ui-bundle.js", true},
+		{`C:\ci\app`, `C:\ci\app\node_modules\x\index.js`, true},
+		{`C:\ci\app`, `C:\ci\app\src\index.js`, false},
+	}
+	for _, tc := range cases {
+		skip := false
+		for _, re := range skipPatterns(tc.root) {
+			skip = skip || re.MatchString(tc.path)
+		}
+		assert.Equal(t, tc.skip, skip, tc.path)
+	}
+}

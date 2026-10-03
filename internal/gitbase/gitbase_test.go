@@ -73,3 +73,18 @@ func TestSameBlobIgnoresCRLF(t *testing.T) {
 		})
 	}
 }
+
+func TestLocalPath(t *testing.T) {
+	cases := map[string]bool{
+		"go.mod":          true,
+		"src/app/main.go": true,
+		"../etc/passwd":   false,
+		"src/../../x":     false,
+		"/etc/passwd":     false,
+		"":                false,
+		"src/./main.go":   false,
+	}
+	for rel, want := range cases {
+		assert.Equal(t, want, localPath(rel), rel)
+	}
+}

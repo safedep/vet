@@ -5,6 +5,7 @@ package codeusage
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"sync"
@@ -18,9 +19,16 @@ import (
 	"github.com/safedep/code/plugin/depsusage"
 )
 
-var skipped = []*regexp.Regexp{
-	regexp.MustCompile(`(^|/)(` + strings.Join(regexpQuoted(skippedDirs), "|") + `)(/|$)`),
-	bundledFile,
+// skipPatterns match the paths under root that vet does not analyze. They
+// look only below root, so a target such as /ci/build/app keeps its code,
+// and they take both path separators for Windows.
+func skipPatterns(root string) []*regexp.Regexp {
+	const sep = `[\\/]`
+	names := strings.Join(regexpQuoted(skippedDirs), "|")
+	return []*regexp.Regexp{
+		regexp.MustCompile(`^` + regexp.QuoteMeta(root) + sep + `(?:.*` + sep + `)?(?:` + names + `)(?:` + sep + `|$)`),
+		bundledFile,
+	}
 }
 
 func regexpQuoted(names []string) []string {
@@ -47,7 +55,11 @@ func defaultAnalyzer(ctx context.Context, dir string) (Analysis, error) {
 	if err != nil {
 		return Analysis{}, err
 	}
-	fileSystem, err := fs.NewLocalFileSystem(fs.LocalFileSystemConfig{AppDirectories: []string{dir}, ExcludePatterns: skipped})
+	root, err := filepath.Abs(dir)
+	if err != nil {
+		return Analysis{}, err
+	}
+	fileSystem, err := fs.NewLocalFileSystem(fs.LocalFileSystemConfig{AppDirectories: []string{root}, ExcludePatterns: skipPatterns(root)})
 	if err != nil {
 		return Analysis{}, err
 	}

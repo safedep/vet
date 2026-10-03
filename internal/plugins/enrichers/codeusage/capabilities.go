@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"context"
 	"errors"
+	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
@@ -19,8 +20,9 @@ import (
 // maxOccurrences bounds the calls that a capability lists.
 const maxOccurrences = 20
 
-// maxBaseFile is the size above which a base file is not source code
-// worth an analysis, such as a bundle or a data file.
+// maxBaseFile is the size above which a changed base file is not source
+// code worth an analysis, such as a bundle or a data file. An unchanged
+// file of any size keeps the matches of the head.
 const maxBaseFile = 4 << 20
 
 // Capabilities returns one capability for each signature that matches the
@@ -73,16 +75,15 @@ func (e *Enricher) baseMatches(ctx context.Context) (out []Match, err error) {
 	changed := 0
 	fsys := os.DirFS(e.dir)
 	err = tree.Walk(ctx, func(rel string, f *object.File) error {
-		if f.Size > maxBaseFile || skippedPath(rel) {
+		if skippedPath(rel) {
 			return nil
 		}
-		// A CRLF checkout of an LF blob is larger than the blob, but at
-		// most twice its size. A file that vet cannot read is changed.
-		if info, err := os.Stat(filepath.Join(e.dir, filepath.FromSlash(rel))); err == nil && info.Size() >= f.Size && info.Size() <= 2*f.Size {
-			if same, err := gitbase.SameBlob(fsys, rel, f.Hash); err == nil && same {
-				unchanged[rel] = true
-				return nil
-			}
+		if e.sameAsHead(fsys, rel, f) {
+			unchanged[rel] = true
+			return nil
+		}
+		if f.Size > maxBaseFile {
+			return nil
 		}
 		changed++
 		return gitbase.WriteBlob(f, filepath.Join(tmp, filepath.FromSlash(rel)))
@@ -104,6 +105,18 @@ func (e *Enricher) baseMatches(ctx context.Context) (out []Match, err error) {
 		return nil, err
 	}
 	return append(out, e.external(a.Matches, tmp)...), nil
+}
+
+// sameAsHead reports whether the head file has the content of the base
+// blob. A CRLF checkout of an LF blob is larger than the blob, but at most
+// twice its size. A file that vet cannot read is not the same.
+func (e *Enricher) sameAsHead(fsys fs.FS, rel string, f *object.File) bool {
+	info, err := os.Stat(filepath.Join(e.dir, filepath.FromSlash(rel)))
+	if err != nil || info.Size() < f.Size || info.Size() > 2*f.Size {
+		return false
+	}
+	same, err := gitbase.SameBlob(fsys, rel, f.Hash)
+	return err == nil && same
 }
 
 // skippedPath reports a bundled script, or a path under a directory of
