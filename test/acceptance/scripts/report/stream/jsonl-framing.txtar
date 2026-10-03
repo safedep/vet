@@ -5,7 +5,7 @@ exec vet scan . --mode plain -o jsonl
 reportcheck stdout
 jsonq stdout 0.kind header
 jsonq stdout -1.kind trailer
-stdout '^\{"\$schema":"https://schemas.safedep.io/vet/report/v1/report.schema.json","kind":"manifest"'
+stdout '^\{"\$schema":"https://schemas.safedep.io/vet/report/v1/report-line.schema.json","kind":"manifest"'
 
 -- proj/package-lock.json --
 {

@@ -64,6 +64,6 @@ func TestRead(t *testing.T) {
 func TestLineCarriesSchemaAndKind(t *testing.T) {
 	b, err := json.Marshal(HeaderLine(&Header{}))
 	require.NoError(t, err)
-	assert.Contains(t, string(b), `"$schema":"`+SchemaURL+`"`)
+	assert.Contains(t, string(b), `"$schema":"`+LineSchemaURL+`"`)
 	assert.Contains(t, string(b), `"kind":"header"`)
 }

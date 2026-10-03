@@ -10,24 +10,26 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// committedSchema is the schema file that the repository keeps.
-var committedSchema = filepath.Join("..", "schema", "report.schema.json")
-
-// TestSchemaIsCommitted fails when the Go types and the committed schema
-// differ. Run "UPDATE_SCHEMA=1 go test ./report/" to write the file.
+// TestSchemaIsCommitted fails when the Go types and the committed schemas
+// differ. Run "UPDATE_SCHEMA=1 go test ./report/" to write the files.
 func TestSchemaIsCommitted(t *testing.T) {
-	got, err := Schema()
-	require.NoError(t, err)
-	got = append(got, '\n')
+	for file, gen := range map[string]func() ([]byte, error){"report.schema.json": Schema, "report-line.schema.json": LineSchema} {
+		t.Run(file, func(t *testing.T) {
+			committed := filepath.Join("..", "schema", file)
+			got, err := gen()
+			require.NoError(t, err)
+			got = append(got, '\n')
 
-	if os.Getenv("UPDATE_SCHEMA") == "1" {
-		require.NoError(t, os.MkdirAll(filepath.Dir(committedSchema), 0o755))
-		require.NoError(t, os.WriteFile(committedSchema, got, 0o644))
+			if os.Getenv("UPDATE_SCHEMA") == "1" {
+				require.NoError(t, os.MkdirAll(filepath.Dir(committed), 0o755))
+				require.NoError(t, os.WriteFile(committed, got, 0o644))
+			}
+
+			want, err := os.ReadFile(committed)
+			require.NoError(t, err, "run UPDATE_SCHEMA=1 go test ./report/ to write the schema")
+			assert.Equal(t, string(want), string(got), "the report types changed: run UPDATE_SCHEMA=1 go test ./report/")
+		})
 	}
-
-	want, err := os.ReadFile(committedSchema)
-	require.NoError(t, err, "run UPDATE_SCHEMA=1 go test ./report/ to write the schema")
-	assert.Equal(t, string(want), string(got), "the report types changed: run UPDATE_SCHEMA=1 go test ./report/")
 }
 
 func TestSchemaListsEnums(t *testing.T) {

@@ -26,15 +26,15 @@ type Line struct {
 
 // HeaderLine returns the first line of a jsonl report.
 func HeaderLine(h *Header) Line {
-	return Line{Schema: SchemaURL, Record: Record{Kind: LineHeader}, Header: h}
+	return Line{Schema: LineSchemaURL, Record: Record{Kind: LineHeader}, Header: h}
 }
 
 // RecordLine returns the line of one record.
-func RecordLine(r Record) Line { return Line{Schema: SchemaURL, Record: r} }
+func RecordLine(r Record) Line { return Line{Schema: LineSchemaURL, Record: r} }
 
 // TrailerLine returns the last line of a jsonl report.
 func TrailerLine(t *Trailer) Line {
-	return Line{Schema: SchemaURL, Record: Record{Kind: LineTrailer}, Trailer: t}
+	return Line{Schema: LineSchemaURL, Record: Record{Kind: LineTrailer}, Trailer: t}
 }
 
 // ErrFraming means that a report stream is not complete or not in order.

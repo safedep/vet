@@ -20,16 +20,38 @@ type Document struct {
 
 // Schema returns the JSON Schema of Document, generated from the Go types.
 func Schema() ([]byte, error) {
+	return schemaOf(&Document{}, enumSchema, SchemaURL, "vet report",
+		"The local report of a vet scan, schema version "+SchemaVersion+".")
+}
+
+// LineSchema returns the JSON Schema of one line of "-o jsonl": the
+// header, one record or the trailer.
+func LineSchema() ([]byte, error) {
+	lineKinds := func(t reflect.Type) *jsonschema.Schema {
+		if t == reflect.TypeFor[Kind]() {
+			return stringEnum(append(recordKinds(), string(LineHeader), string(LineTrailer))...)
+		}
+		return enumSchema(t)
+	}
+	return schemaOf(&Line{}, lineKinds, LineSchemaURL, "vet report line",
+		"One line of the jsonl report of a vet scan, schema version "+SchemaVersion+".")
+}
+
+func schemaOf(v any, mapper func(reflect.Type) *jsonschema.Schema, id, title, desc string) ([]byte, error) {
 	r := &jsonschema.Reflector{
 		// A minor schema version can add fields. A reader must keep working.
 		AllowAdditionalProperties: true,
-		Mapper:                    enumSchema,
+		Mapper:                    mapper,
 	}
-	s := r.Reflect(&Document{})
-	s.ID = SchemaURL
-	s.Title = "vet report"
-	s.Description = "The local report of a vet scan, schema version " + SchemaVersion + "."
+	s := r.Reflect(v)
+	s.ID = jsonschema.ID(id)
+	s.Title = title
+	s.Description = desc
 	return json.MarshalIndent(s, "", "  ")
+}
+
+func recordKinds() []string {
+	return []string{string(KindManifest), string(KindPackage), string(KindInventory), string(KindFinding), string(KindDiagnostic), string(KindCapability)}
 }
 
 // enumSchema maps each closed enum to a string schema with its values.
@@ -64,7 +86,7 @@ func enumSchema(t reflect.Type) *jsonschema.Schema {
 			string(model.ManifestKindAgentConfig),
 		}
 	case reflect.TypeFor[Kind]():
-		values = []string{string(KindManifest), string(KindPackage), string(KindInventory), string(KindFinding), string(KindDiagnostic), string(KindCapability)}
+		values = recordKinds()
 	case reflect.TypeFor[ScanKind]():
 		values = []string{string(ScanKindScan), string(ScanKindEndpoint)}
 	case reflect.TypeFor[ScanMode]():
@@ -79,6 +101,10 @@ func enumSchema(t reflect.Type) *jsonschema.Schema {
 		return nil
 	}
 
+	return stringEnum(values...)
+}
+
+func stringEnum(values ...string) *jsonschema.Schema {
 	enum := make([]any, len(values))
 	for i, v := range values {
 		enum[i] = v

@@ -17,6 +17,9 @@ const (
 
 	// SchemaURL names the JSON Schema of this version.
 	SchemaURL = "https://schemas.safedep.io/vet/report/v1/report.schema.json"
+
+	// LineSchemaURL names the JSON Schema of one line of "-o jsonl".
+	LineSchemaURL = "https://schemas.safedep.io/vet/report/v1/report-line.schema.json"
 )
 
 // Header is the first item of a report.
