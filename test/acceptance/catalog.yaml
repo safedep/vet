@@ -146,6 +146,12 @@
   tier: P1
   guarantee: "vet auth status shows the last 4 characters of the API key in the table and no part of it in the JSON."
   labels: [credentials]
+- id: auth/status/no-key
+  title: "auth status names the community endpoints"
+  category: auth
+  tier: P2
+  guarantee: "With no API key, vet auth status says that vet uses the community endpoints with a rate limit, and the hint names vet auth login."
+  labels: [credentials]
 - id: auth/profile/selects
   title: "--profile selects the keychain profile"
   category: auth

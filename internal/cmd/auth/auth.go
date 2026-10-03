@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -67,7 +68,7 @@ credentials in a plaintext file, as the safedep cli does.`,
 			}
 			if tenant == "" {
 				if tenant, err = prompt.Prompt("Tenant domain (for example acme.safedep.io)"); err != nil {
-					return askError(err, "--tenant")
+					return askError(err, "the tenant", "Pass the tenant domain with --tenant")
 				}
 			}
 			if strings.TrimSpace(key) == "" || strings.TrimSpace(tenant) == "" {
@@ -92,7 +93,7 @@ func apiKey(in io.Reader, stdin bool) (string, error) {
 	if !stdin {
 		key, err := prompt.Secret("API key")
 		if err != nil {
-			return "", askError(err, "--api-key-stdin")
+			return "", askError(err, "the API key", "Pass --api-key-stdin and write the key to stdin.")
 		}
 		return key, nil
 	}
@@ -104,10 +105,10 @@ func apiKey(in io.Reader, stdin bool) (string, error) {
 }
 
 // askError turns a prompt that vet cannot show into a usage error that
-// names the flag that answers it.
-func askError(err error, flag string) error {
+// names what vet asks for and the flag that gives it.
+func askError(err error, what, help string) error {
 	if errors.Is(err, prompt.ErrAgentMode) || errors.Is(err, prompt.ErrNoTTY) {
-		return app.UsageErrorCode(app.CodeNeedsConfirmation, "vet cannot ask in this mode", fmt.Sprintf("Pass %s to confirm.", flag))
+		return app.UsageErrorCode(app.CodeNeedsConfirmation, fmt.Sprintf("vet cannot ask for %s in this mode", what), help)
 	}
 	return err
 }
@@ -117,9 +118,9 @@ func newStatus(a *app.App) *cobra.Command {
 	c := &cobra.Command{
 		Use:   "status",
 		Short: "Show the credentials that vet uses",
-		Long: `Show the profile, the tenant, and the source of the data plane API key and
-of the control plane token. vet prints no secret: the table shows the last
-4 characters of the key, and -o json shows none.`,
+		Long: `Show the profile, the API key and its tenant, and the cloud access that
+vet uses, with the source of each one. vet prints no secret: the table
+shows the last 4 characters of the key, and -o json shows none.`,
 		Args: cobra.NoArgs,
 		RunE: func(*cobra.Command, []string) error {
 			o, err := options(a, fallback)
@@ -137,7 +138,10 @@ of the control plane token. vet prints no secret: the table shows the last
 			if err != nil {
 				return err
 			}
-			return p.Print(st, statusRows(st))
+			if err := p.Print(st, statusRows(st)); err != nil {
+				return err
+			}
+			return tui.Hint("%s", statusHint(st))
 		},
 	}
 	c.Flags().BoolVar(&fallback, "insecure-keychain-fallback", false, "Use a plaintext file when the machine has no OS keychain")
@@ -148,21 +152,35 @@ func statusRows(st *credentials.Status) printer.Rows {
 	rows := printer.Rows{Headers: []string{"ITEM", "VALUE", "SOURCE"}}
 	add := func(k, v, s string) { rows.Rows = append(rows.Rows, []string{k, v, s}) }
 	add("Profile", st.Profile, st.ProfileSource)
-	tenant, key, token := "-", "none: vet uses the community endpoints", "none"
-	if st.Tenant != "" {
-		tenant = st.Tenant
-	}
+	key, cloud := "none (community endpoints, rate limited)", "none"
 	if st.APIKey != "" {
-		key = "API key ••••" + st.KeyHint
+		key = "••••" + st.KeyHint
+		if st.Tenant != "" {
+			key += " (" + st.Tenant + ")"
+		}
 	}
 	if st.Token != "" {
-		token = "token"
+		cloud = st.Tenant
+		if cloud == "" {
+			cloud = "signed in"
+		}
 	}
-	add("Tenant", tenant, st.APIKey)
-	add("Data plane", key, st.APIKey)
-	add("Control plane", token, st.Token)
-	add("Shared with", strings.Join(st.SharedWith, ", "), "")
+	add("API key", key, st.APIKey)
+	add("Cloud access", cloud, st.Token)
 	return rows
+}
+
+// statusHint says how to save a key when there is none, and which tools
+// read the same profile.
+func statusHint(st *credentials.Status) string {
+	shared := "The safedep CLI reads the same profile."
+	if slices.Contains(st.SharedWith, "pmg") {
+		shared = "pmg and the safedep CLI read the same profile."
+	}
+	if st.APIKey == "" {
+		return "vet auth login saves an API key. " + shared
+	}
+	return shared
 }
 
 func newLogout(a *app.App) *cobra.Command {

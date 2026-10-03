@@ -1,0 +1,12 @@
+# With no API key, vet auth status says that vet uses the community
+# endpoints, which have a rate limit. The hint names vet auth login.
+exec vet auth status --mode plain -o table
+stdout 'API key'
+stdout 'none \(community endpoints, rate limited\)'
+stdout 'Cloud access'
+! stdout 'Data plane'
+stderr 'vet auth login saves an API key\.'
+
+exec vet auth status -o json
+! stdout api_key_source
+jsonq stdout profile default

@@ -6,8 +6,11 @@
 package tui
 
 import (
+	"fmt"
+
 	drytui "github.com/safedep/dry/tui"
 	"github.com/safedep/dry/tui/output"
+	"github.com/safedep/dry/tui/section"
 	"github.com/safedep/dry/tui/theme"
 )
 
@@ -28,6 +31,16 @@ func Success(format string, a ...any) { drytui.Success(format, a...) }
 
 // Warning prints a warning line on stderr.
 func Warning(format string, a ...any) { drytui.Warning(format, a...) }
+
+// Hint prints a next-step hint on stderr. It prints nothing with -q and in
+// agent mode.
+func Hint(format string, a ...any) error {
+	if output.CurrentVerbosity() <= output.Silent || output.CurrentMode() == output.Agent {
+		return nil
+	}
+	_, err := fmt.Fprintln(output.Stderr(), section.Hint(fmt.Sprintf(format, a...)))
+	return err
+}
 
 // Error prints an error line on stderr.
 func Error(format string, a ...any) { drytui.Error(format, a...) }

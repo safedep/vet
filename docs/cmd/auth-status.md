@@ -10,9 +10,10 @@ vet auth status [--insecure-keychain-fallback] [--profile NAME] [-o table|plain|
 
 ## Description
 
-`vet auth status` shows the profile and where vet found it, the tenant, the source of the data plane
-API key and the source of the control plane token. vet reads `SAFEDEP_API_KEY` and
-`SAFEDEP_TENANT_ID` first, then the keychain profile.
+`vet auth status` shows the profile and where vet found it, the API key and its tenant, and the
+cloud access (the control plane token), with the source of each one. With no API key, vet uses the
+community endpoints, which have a rate limit. vet reads `SAFEDEP_API_KEY` and `SAFEDEP_TENANT_ID`
+first, then the keychain profile.
 
 vet prints no secret. The table shows the last 4 characters of the API key. The JSON output shows no
 part of it.
