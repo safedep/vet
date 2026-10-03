@@ -144,7 +144,7 @@ func (p *Printer) jsonLines(value any) error {
 // plain writes one tab-separated line for the headers and for each row, for
 // cut and awk. A tab or a line break in a cell becomes a space.
 func (p *Printer) plain(rows Rows) error {
-	lines := make([][]string, 0, len(rows.Rows)+1)
+	var lines [][]string
 	if len(rows.Headers) > 0 {
 		lines = append(lines, rows.Headers)
 	}

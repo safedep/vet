@@ -30,8 +30,8 @@ var (
 	matchers = []*regexp.Regexp{
 		regexp.MustCompile(`(?:^|.+@)(?:git(?:\+(?:ssh|https))?|ssh)://.+#(\w+)$`),
 		regexp.MustCompile(`(?:^|.+@)https://.+\.git#(\w+)$`),
-		regexp.MustCompile(`https://codeload\.github\.com(?:/[\w-.]+)+/tar\.gz/(\w+)`),
-		regexp.MustCompile(`https://gitlab\.com(?:/[\w-.]+)+/-/archive/(\w+)`),
+		regexp.MustCompile(`^https://codeload\.github\.com(?:/[\w-.]+)+/tar\.gz/(\w+)`),
+		regexp.MustCompile(`^https://gitlab\.com(?:/[\w-.]+)+/-/archive/(\w+)`),
 		regexp.MustCompile(`.+[#&]commit[:=](\w+)$`),
 		regexp.MustCompile(`^(?:github|gitlab|bitbucket):.+#(\w+)$`),
 	}

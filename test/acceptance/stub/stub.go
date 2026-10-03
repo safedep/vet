@@ -168,12 +168,25 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (s *Server) fixturePath(service string, pv *packagev1.PackageVersion) string {
 	eco := strings.ToLower(strings.TrimPrefix(pv.GetPackage().GetEcosystem().String(), "ECOSYSTEM_"))
 	name := strings.ReplaceAll(pv.GetPackage().GetName(), ":", "_")
-	return filepath.Join(s.dir, service, eco, filepath.FromSlash(name)+"@"+pv.GetVersion()+".json")
+	return s.fixture(service, eco, filepath.FromSlash(name)+"@"+pv.GetVersion()+".json")
+}
+
+// fixture returns the file under the fixture directory, or "" when the
+// parts of the request path leave the directory.
+func (s *Server) fixture(parts ...string) string {
+	rel := filepath.Join(parts...)
+	if !filepath.IsLocal(rel) || strings.Contains(rel, "..") {
+		return ""
+	}
+	return filepath.Join(s.dir, rel)
 }
 
 // readFixture decodes a protojson fixture. It returns false when the file
 // does not exist.
 func readFixture(path string, m proto.Message) (bool, error) {
+	if path == "" {
+		return false, nil
+	}
 	data, err := os.ReadFile(path)
 	if errors.Is(err, os.ErrNotExist) {
 		return false, nil
@@ -267,7 +280,12 @@ func (s *Server) serveGitHub(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var repo githubRepo
-	data, err := os.ReadFile(filepath.Join(s.dir, GitHub, parts[1], parts[2]+".json"))
+	path := s.fixture(GitHub, parts[1], parts[2]+".json")
+	if path == "" {
+		http.NotFound(w, r)
+		return
+	}
+	data, err := os.ReadFile(path)
 	if err != nil {
 		http.NotFound(w, r)
 		return
