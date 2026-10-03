@@ -122,6 +122,9 @@ func Load(opts LoadOptions) (*Loaded, error) {
 			return nil, err
 		}
 		l.File, l.FileLayer = path, layer
+		if layer == LayerManaged && opts.ConfigFile != "" {
+			l.Warnings = append(l.Warnings, fmt.Sprintf("--config %s is ignored: the managed file %s applies", opts.ConfigFile, path))
+		}
 		for _, key := range leaves(fileTree, "") {
 			if !IsKnownKey(key) && !isSectionKey(key) {
 				msg := fmt.Sprintf("%s: unknown key %s", path, key)

@@ -202,3 +202,14 @@ func TestLoadPluginVariables(t *testing.T) {
 	assert.False(t, l.Config.PluginEnabled("codeusage", true), "a variable cannot change a locked key")
 	assert.NotEmpty(t, l.Warnings)
 }
+
+func TestLoadWarnsThatTheManagedFileWins(t *testing.T) {
+	dir := t.TempDir()
+	managed := writeFile(t, dir, "managed.yml", "scan:\n  concurrency: 2\n")
+	own := writeFile(t, dir, "own.yml", "scan:\n  concurrency: 9\n")
+	l, err := Load(LoadOptions{ManagedFile: managed, ConfigFile: own, TrustManaged: trustAll, LookupEnv: env(nil)})
+	require.NoError(t, err)
+	assert.Equal(t, 2, l.Config.Scan.Concurrency)
+	require.Len(t, l.Warnings, 1)
+	assert.Contains(t, l.Warnings[0], "--config "+own+" is ignored")
+}
