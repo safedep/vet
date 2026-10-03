@@ -3,13 +3,12 @@
 package state
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/v2/internal/app"
 	vstate "github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/internal/tui"
+	"github.com/safedep/vet/v2/internal/tui/humanize"
 )
 
 // New returns the "vet state" command.
@@ -33,15 +32,4 @@ func closeStore(s *vstate.Store) {
 }
 
 // bytes formats a size, for example 12.5 MB.
-func bytes(n int64) string {
-	const unit = 1000
-	if n < unit {
-		return fmt.Sprintf("%d B", n)
-	}
-	div, exp := int64(unit), 0
-	for m := n / unit; m >= unit; m /= unit {
-		div *= unit
-		exp++
-	}
-	return fmt.Sprintf("%.1f %cB", float64(n)/float64(div), "kMGTPE"[exp])
-}
+var bytes = humanize.Bytes

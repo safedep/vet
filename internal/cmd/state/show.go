@@ -13,6 +13,7 @@ import (
 	"github.com/safedep/vet/v2/internal/tui/escape"
 	"github.com/safedep/vet/v2/internal/tui/humanize"
 	"github.com/safedep/vet/v2/internal/tui/printer"
+	"github.com/safedep/vet/v2/internal/tui/table"
 )
 
 // Show is the output of "vet state show".
@@ -108,7 +109,7 @@ the enrichment cache, and the retention rules.`,
 }
 
 func showRows(s Show, now time.Time) printer.Rows {
-	rows := printer.Rows{Headers: []string{"ITEM", "VALUE"}}
+	rows := printer.Rows{Headers: []string{"ITEM", "VALUE"}, Columns: []table.Column{{Fit: table.Keep}, {Fit: table.Wrap}}}
 	add := func(k, v string) { rows.Rows = append(rows.Rows, []string{k, v}) }
 	add("State directory", escape.Line(s.StateDir)+" ("+s.StateDirOrigin+")")
 	add("Cache directory", escape.Line(s.CacheDir)+" ("+s.CacheDirOrigin+")")

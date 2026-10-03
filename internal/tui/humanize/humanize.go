@@ -12,7 +12,7 @@ import (
 // Time returns a time relative to now, for example "4 minutes ago".
 func Time(t, now time.Time) string { return humanize.Time(t, now) }
 
-// Duration returns a short duration, for example "3m".
+// Duration returns a short duration, for example "3m48s".
 func Duration(d time.Duration) string { return humanize.Duration(d) }
 
 // Elapsed returns the run time of a step: "2.1s" below ten seconds, then
@@ -38,4 +38,18 @@ func Count(n int, noun string) string {
 		return "1 " + noun
 	}
 	return strconv.Itoa(n) + " " + noun + "s"
+}
+
+// Bytes returns a size in SI units, for example "12.5 MB".
+func Bytes(n int64) string {
+	const unit = 1000
+	if n < unit {
+		return fmt.Sprintf("%d B", n)
+	}
+	div, exp := int64(unit), 0
+	for m := n / unit; m >= unit; m /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.1f %cB", float64(n)/float64(div), "kMGTPE"[exp])
 }

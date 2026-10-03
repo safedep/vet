@@ -13,7 +13,8 @@ vet state show [--state-dir DIR] [--cache-dir DIR] [-o table|plain|json|jsonl]
 `vet state show` shows where vet keeps its scan state and its enrichment cache, and the rule that
 chose each directory: a flag, a `VET_*` variable, the config file or the default. It shows the
 number of scans, the number of targets and their size, each interrupted scan that the next
-`vet scan` can continue, the number of cache entries and their size, and the retention rules.
+`vet scan` can continue, the number of cache entries and their size, and the retention rules. The
+table wraps a long value in a narrow terminal.
 
 ## Examples
 
