@@ -29,7 +29,9 @@ The argument names another report:
 before you use it in CI. The `policy.fail_on` and `policy.file` config keys apply too, as in
 `vet scan`. The saved scan does not change. The exit code follows the gate of the rendered report.
 
-The table shows the ten most severe findings. `--all` shows every finding.
+The table shows the ten most severe rows. A row holds one finding, or the vulnerabilities of one
+package. `--all` shows each finding on its own row, with no row limit. The ID column holds a short id
+that `vet report finding show` accepts.
 
 ## Examples
 

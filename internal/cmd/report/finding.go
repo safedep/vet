@@ -58,7 +58,7 @@ finding.`,
 			switch len(match) {
 			case 0:
 				return app.UsageErrorCode(CodeNoFinding, fmt.Sprintf("scan %s has no finding %q", doc.Header().Scan.ID, args[0]),
-					"vet report show lists the finding ids.")
+					"vet report show prints the id of each finding.")
 			case 1:
 			default:
 				return app.UsageErrorCode(CodeNoFinding, fmt.Sprintf("%q matches %d findings", args[0], len(match)),

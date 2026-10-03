@@ -1,0 +1,29 @@
+# The table puts the vulnerabilities of one package on one row, with the
+# short id of the most severe finding. vet report finding show accepts that
+# id. --all lists each finding on its own row.
+cd proj
+exec vet scan . --mode plain -o table
+stdout '\[CRITICAL\] │ f-[0-9a-f]{8} │ npm/minimist@1\.2\.0'
+stdout '1 critical, 1 medium'
+stdout -count=1 'npm/minimist@1\.2\.0'
+stdout '2 vulnerabilities in 1 package\. vet report show --all lists each finding\.'
+stdout 'Details: vet report finding show ID'
+capture ID '\[CRITICAL\] │ (f-[0-9a-f]+) │'
+
+exec vet report finding show $ID --mode plain -o plain
+stdout 'GHSA-stub-0002'
+
+exec vet report show --all --mode plain -o table
+stdout -count=2 'npm/minimist@1\.2\.0'
+stdout 'GHSA-stub-0002: Stub'
+! stdout 'vulnerabilities in'
+
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"minimist": "1.2.0"}},
+    "node_modules/minimist": {"version": "1.2.0", "resolved": "https://registry.npmjs.org/minimist/-/minimist-1.2.0.tgz"}
+  }
+}

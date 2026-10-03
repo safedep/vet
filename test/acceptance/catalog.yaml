@@ -380,6 +380,12 @@
   tier: P1
   guarantee: "A scan that reads no manifest warns that vet found no manifest in the target and names what vet reads. It exits 0."
   labels: [scan, output]
+- id: scan/output/table-groups-vulnerabilities
+  title: "the table puts the vulnerabilities of a package on one row"
+  category: scan
+  tier: P1
+  guarantee: "The table shows the vulnerabilities of one package on one row with the short id of the most severe finding. vet report finding show accepts the short id. vet report show --all lists each finding on its own row."
+  labels: [scan, output]
 - id: state/continue/after-interrupt
   title: "continue: after interrupt"
   category: state

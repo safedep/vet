@@ -3,20 +3,21 @@ Findings: 2
 Critical: 1
 High: 0
 
-┌────────────┬─────────────────┬──────────────────────────┬────────────────────────────┐
-│ SEVERITY   │ CONTROL         │ SUBJECT                  │ WHERE                      │
-├────────────┼─────────────────┼──────────────────────────┼────────────────────────────┤
-│ [CRITICAL] │ malware         │ npm/evil-colors@1.4.1    │ package-lock.json:42       │
-│ [MEDIUM]   │ unpinned-action │ .github/workflows/ci.yml │ .github/workflows/ci.yml:8 │
-└────────────┴─────────────────┴──────────────────────────┴────────────────────────────┘
+┌────────────┬────────────┬─────────────────┬──────────────────────────┬──────────────────┬────────────────────────────┐
+│ SEVERITY   │ ID         │ CONTROL         │ SUBJECT                  │ FINDING          │ WHERE                      │
+├────────────┼────────────┼─────────────────┼──────────────────────────┼──────────────────┼────────────────────────────┤
+│ [CRITICAL] │ f-478cf580 │ malware         │ npm/evil-colors@1.4.1    │ Malicious packa… │ package-lock.json:42       │
+│ [MEDIUM]   │ f-e815bb3b │ unpinned-action │ .github/workflows/ci.yml │ Third-party act… │ .github/workflows/ci.yml:8 │
+└────────────┴────────────┴─────────────────┴──────────────────────────┴──────────────────┴────────────────────────────┘
 
-> 1 suppressed (vet report show -o json)
+> 1 suppressed finding. vet report show -o json lists it.
+> Details: vet report finding show ID
 
 AI and crypto: 1 AI, 1 crypto
 
-┌────────┬─────────────────────────────┬──────────────┬────────────────┐
-│ KIND   │ CAPABILITY                  │ TAGS         │ WHERE          │
-├────────┼─────────────────────────────┼──────────────┼────────────────┤
-│ AI     │ OpenAI SDK Chat Completions │ llm          │ src/chat.py:12 │
-│ CRYPTO │ MD5                         │ hash, [WEAK] │ src/cache.py:3 │
-└────────┴─────────────────────────────┴──────────────┴────────────────┘
+┌────────┬─────────────────────────────┬──────────────┬────────────────┬────────────────┐
+│ KIND   │ CAPABILITY                  │ TAGS         │ WHERE          │ CALL           │
+├────────┼─────────────────────────────┼──────────────┼────────────────┼────────────────┤
+│ AI     │ OpenAI SDK Chat Completions │ llm          │ src/chat.py:12 │ openai//OpenAI │
+│ CRYPTO │ MD5                         │ hash, [WEAK] │ src/cache.py:3 │ hashlib//md5   │
+└────────┴─────────────────────────────┴──────────────┴────────────────┴────────────────┘
