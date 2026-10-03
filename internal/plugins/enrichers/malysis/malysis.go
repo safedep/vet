@@ -21,7 +21,7 @@ const Name = "malysis"
 const Version = "2"
 
 // ReportURL is the public page of an analysis.
-const ReportURL = "https://platform.safedep.io/community/malysis/"
+const ReportURL = "https://app.safedep.io/community/malysis/"
 
 // Enricher sets model.Package.Malware.
 type Enricher struct {
