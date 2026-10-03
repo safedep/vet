@@ -5,11 +5,9 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"testing/fstest"
 	"time"
 
 	gogit "github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -141,28 +139,6 @@ func TestDiff(t *testing.T) {
 
 	diff(same, &model.Manifest{Packages: []*model.Package{{ID: id("a", "1.0.0")}}}, false)
 	assert.Equal(t, model.ChangeUnchanged, same.Change)
-}
-
-func TestSameBlobIgnoresCRLF(t *testing.T) {
-	lf := []byte("on: push\njobs: {}\n")
-	base := plumbing.ComputeHash(plumbing.BlobObject, lf)
-	cases := []struct {
-		name string
-		data string
-		want bool
-	}{
-		{name: "same bytes", data: string(lf), want: true},
-		{name: "CRLF checkout of the LF blob", data: "on: push\r\njobs: {}\r\n", want: true},
-		{name: "changed", data: "on: pull_request\njobs: {}\n"},
-		{name: "changed with CRLF", data: "on: pull_request\r\njobs: {}\r\n"},
-	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			got, err := sameBlob(fstest.MapFS{"ci.yml": {Data: []byte(tc.data)}}, "ci.yml", base)
-			require.NoError(t, err)
-			assert.Equal(t, tc.want, got)
-		})
-	}
 }
 
 func TestPullRequestIntegrityAndPrior(t *testing.T) {

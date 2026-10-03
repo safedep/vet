@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/safedep/vet/v2/internal/gitbase"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/scalibr"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/model"
@@ -234,7 +235,7 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 		same := false
 		if inBase {
 			var err error
-			if same, err = sameBlob(fsys, rel, baseHash); err != nil {
+			if same, err = gitbase.SameBlob(fsys, rel, baseHash); err != nil {
 				return err
 			}
 		}

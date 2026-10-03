@@ -1,11 +1,9 @@
 package engine
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"io/fs"
 	"os"
 	"path"
@@ -13,13 +11,13 @@ import (
 	"strings"
 	"time"
 
-	gogit "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/safedep/dry/semver"
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/app"
+	"github.com/safedep/vet/v2/internal/gitbase"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/scalibr"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/model"
@@ -42,35 +40,20 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 	if a.Kind != plugin.ArtifactDirectory || a.Path == "" {
 		return nil, app.UsageError("--base-ref needs a git working tree as the target", "Run vet scan in a git repository, or leave out --base-ref.")
 	}
-	repo, err := gogit.PlainOpenWithOptions(a.Path, &gogit.PlainOpenOptions{DetectDotGit: true})
-	if err != nil {
-		return nil, app.UsageError(fmt.Sprintf("--base-ref: %s is not in a git repository: %v", a.Path, err), "Run vet scan in a git repository, or leave out --base-ref.")
-	}
-	wt, err := repo.Worktree()
-	if err != nil {
+	tree, err := gitbase.Open(a.Path, r.o.BaseRef)
+	switch {
+	case errors.Is(err, gitbase.ErrNotRepository):
+		return nil, app.UsageError(fmt.Sprintf("--base-ref: %v", err), "Run vet scan in a git repository, or leave out --base-ref.")
+	case errors.Is(err, gitbase.ErrRevision):
+		return nil, app.UsageError(fmt.Sprintf("--base-ref %v", err), "Fetch the base branch first, for example git fetch origin main.")
+	case err != nil:
 		return nil, err
 	}
-	prefix, err := repoPrefix(wt.Filesystem.Root(), a.Path)
-	if err != nil {
-		return nil, err
-	}
-	hash, err := repo.ResolveRevision(plumbing.Revision(r.o.BaseRef))
-	if err != nil {
-		return nil, app.UsageError(fmt.Sprintf("--base-ref %s: %v", r.o.BaseRef, err), "Fetch the base branch first, for example git fetch origin main.")
-	}
+	hash := &tree.Commit
 	cache := r.baseCache(a, *hash, exs)
 	if b, ok := cache.load(); ok {
 		return b, nil
 	}
-	commit, err := repo.CommitObject(*hash)
-	if err != nil {
-		return nil, err
-	}
-	tree, err := commit.Tree()
-	if err != nil {
-		return nil, err
-	}
-
 	tmp, err := os.MkdirTemp("", "vet-base-")
 	if err != nil {
 		return nil, err
@@ -83,18 +66,14 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 
 	b := &base{manifests: map[string]*model.Manifest{}, hashes: map[string]plumbing.Hash{}}
 	var files []string
-	err = tree.Files().ForEach(func(f *object.File) error {
-		if err := ctx.Err(); err != nil {
-			return err
-		}
-		rel, ok := strings.CutPrefix(f.Name, prefix)
-		if !ok || rel == "" || r.skipped(rel) {
+	err = tree.Walk(ctx, func(rel string, f *object.File) error {
+		if r.skipped(rel) {
 			return nil
 		}
 		if len(scalibr.Wanted(exs, rel, blobInfo{name: path.Base(rel), size: f.Size})) == 0 {
 			return nil
 		}
-		if err := writeBlob(f, filepath.Join(tmp, filepath.FromSlash(rel))); err != nil {
+		if err := gitbase.WriteBlob(f, filepath.Join(tmp, filepath.FromSlash(rel))); err != nil {
 			return err
 		}
 		b.hashes[rel] = f.Hash
@@ -118,27 +97,6 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 	return b, nil
 }
 
-// repoPrefix returns the path of dir in the repository, with "/" and a
-// trailing "/", or "" for the repository root.
-func repoPrefix(repoRoot, dir string) (string, error) {
-	rr, err := filepath.EvalSymlinks(repoRoot)
-	if err != nil {
-		return "", err
-	}
-	d, err := filepath.EvalSymlinks(dir)
-	if err != nil {
-		return "", err
-	}
-	rel, err := filepath.Rel(rr, d)
-	if err != nil {
-		return "", err
-	}
-	if rel == "." {
-		return "", nil
-	}
-	return filepath.ToSlash(rel) + "/", nil
-}
-
 // skipped reports a path under a skipped or an excluded directory.
 func (r *run) skipped(rel string) bool {
 	for _, part := range strings.Split(path.Dir(rel), "/") {
@@ -147,22 +105,6 @@ func (r *run) skipped(rel string) bool {
 		}
 	}
 	return r.excluded(rel)
-}
-
-func writeBlob(f *object.File, dst string) error {
-	if err := os.MkdirAll(filepath.Dir(dst), 0o700); err != nil {
-		return err
-	}
-	rd, err := f.Reader()
-	if err != nil {
-		return err
-	}
-	out, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o600)
-	if err != nil {
-		return errors.Join(err, rd.Close())
-	}
-	_, err = io.Copy(out, rd)
-	return errors.Join(err, out.Close(), rd.Close())
 }
 
 // blobInfo is the file info of a base file for FileRequired.
@@ -177,21 +119,6 @@ func (blobInfo) Mode() fs.FileMode  { return 0o644 }
 func (blobInfo) ModTime() time.Time { return time.Time{} }
 func (blobInfo) IsDir() bool        { return false }
 func (blobInfo) Sys() any           { return nil }
-
-// sameBlob reports whether a head file has the content of a base blob.
-// Git can check a file out with CRLF line ends and store it with LF
-// (core.autocrlf), so the file also matches when its LF form does.
-func sameBlob(fsys fs.FS, rel string, base plumbing.Hash) (bool, error) {
-	data, err := fs.ReadFile(fsys, rel)
-	if err != nil {
-		return false, err
-	}
-	if plumbing.ComputeHash(plumbing.BlobObject, data) == base {
-		return true, nil
-	}
-	lf := bytes.ReplaceAll(data, []byte("\r\n"), []byte("\n"))
-	return len(lf) != len(data) && plumbing.ComputeHash(plumbing.BlobObject, lf) == base, nil
-}
 
 // diff marks the change of each package of the head manifest against the
 // base manifest of the same id, and adds the packages that the base had
@@ -274,7 +201,7 @@ func lockfileOnly(fsys fs.FS, rel string, b *base) (bool, error) {
 	if _, err := fs.Stat(fsys, sibling); err != nil {
 		return false, nil
 	}
-	return sameBlob(fsys, sibling, hash)
+	return gitbase.SameBlob(fsys, sibling, hash)
 }
 
 func integrityChanged(base, head *model.Package) bool {
