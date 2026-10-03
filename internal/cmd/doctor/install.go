@@ -9,11 +9,8 @@ import (
 	"strings"
 
 	"github.com/safedep/vet/v2/internal/config"
-	"github.com/safedep/vet/v2/internal/plugins/cloud/inventory"
-	"github.com/safedep/vet/v2/internal/plugins/cloud/tenantpolicy"
-	"github.com/safedep/vet/v2/internal/plugins/controls"
+	"github.com/safedep/vet/v2/internal/plugins/builtin"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/codeusage"
-	"github.com/safedep/vet/v2/internal/plugins/sinks"
 	"github.com/safedep/vet/v2/plugin"
 )
 
@@ -52,16 +49,9 @@ func realPath(p string) string {
 // pluginCheck checks each plugins section of the config: the plugin must
 // be a built-in one, and its options must be valid.
 func pluginCheck(cfg *config.Config) Check {
-	known := map[string]func(plugin.Config) error{
-		codeusage.Name:    func(plugin.Config) error { return nil },
-		tenantpolicy.Name: func(c plugin.Config) error { _, err := tenantpolicy.New(c); return err },
-		inventory.Name:    func(c plugin.Config) error { _, err := inventory.New(c, nil); return err },
-	}
-	for _, s := range controls.Builtin() {
-		known[s.Name] = func(c plugin.Config) error { _, err := s.New(c); return err }
-	}
-	for _, s := range sinks.Builtin() {
-		known[s.Name] = func(c plugin.Config) error { _, err := s.New(c); return err }
+	known := map[string]func(plugin.Config) error{}
+	for _, p := range builtin.Plugins() {
+		known[p.Name] = p.Check
 	}
 	names := make([]string, 0, len(cfg.Plugins))
 	for n := range cfg.Plugins {
@@ -89,7 +79,7 @@ func pluginCheck(cfg *config.Config) Check {
 		}
 	}
 	if len(problems) == 0 {
-		return Check{ID: "plugins", Status: Pass, Message: fmt.Sprintf("%d built-in control plugins, every plugin section is valid", len(controls.Builtin()))}
+		return Check{ID: "plugins", Status: Pass, Message: fmt.Sprintf("%d built-in plugins, every plugin section is valid", len(known))}
 	}
 	return Check{ID: "plugins", Status: status, Message: strings.Join(problems, "; "), Fix: "vet config validate, and vet config schema get for the plugin options"}
 }

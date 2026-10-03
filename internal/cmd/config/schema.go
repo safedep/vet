@@ -7,12 +7,8 @@ import (
 
 	"github.com/safedep/vet/v2/internal/app"
 	vconfig "github.com/safedep/vet/v2/internal/config"
-	"github.com/safedep/vet/v2/internal/plugins/cloud/inventory"
-	"github.com/safedep/vet/v2/internal/plugins/cloud/tenantpolicy"
-	"github.com/safedep/vet/v2/internal/plugins/controls"
-	"github.com/safedep/vet/v2/internal/plugins/sinks"
+	"github.com/safedep/vet/v2/internal/plugins/builtin"
 	"github.com/safedep/vet/v2/internal/tui/output"
-	"github.com/safedep/vet/v2/plugin"
 )
 
 func newSchemaGet(a *app.App) *cobra.Command {
@@ -42,38 +38,17 @@ editor.`,
 }
 
 // pluginSchemas returns the options schema of each built-in plugin that
-// implements plugin.Schemer.
+// has options.
 func pluginSchemas() (map[string][]byte, error) {
 	out := map[string][]byte{}
-	for _, s := range controls.Builtin() {
-		c, err := s.New(plugin.MapConfig(nil))
+	for _, p := range builtin.Plugins() {
+		schema, err := p.Schema()
 		if err != nil {
 			return nil, err
 		}
-		if sc, ok := c.(plugin.Schemer); ok {
-			out[s.Name] = sc.OptionsSchema()
+		if schema != nil {
+			out[p.Name] = schema
 		}
 	}
-	for _, s := range sinks.Builtin() {
-		sk, err := s.New(plugin.MapConfig(nil))
-		if err != nil {
-			return nil, err
-		}
-		if sc, ok := sk.(plugin.Schemer); ok {
-			out[s.Name] = sc.OptionsSchema()
-		}
-	}
-	tp, err := tenantpolicy.New(plugin.MapConfig(nil))
-	if err != nil {
-		return nil, err
-	}
-	if sc, ok := tp.(plugin.Schemer); ok {
-		out[tenantpolicy.Name] = sc.OptionsSchema()
-	}
-	inv, err := inventory.New(plugin.MapConfig(nil), nil)
-	if err != nil {
-		return nil, err
-	}
-	out[inventory.Name] = inv.OptionsSchema()
 	return out, nil
 }

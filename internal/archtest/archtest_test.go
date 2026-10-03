@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -220,5 +221,25 @@ func TestOnlyExtractorsImportScalibr(t *testing.T) {
 		for _, imp := range p.imports {
 			assert.False(t, under(imp, "github.com/google/osv-scalibr"), "package %s imports %s", p.path, imp)
 		}
+	}
+}
+
+// pluginListAllowed are the only packages that import both the control
+// plugins and the sinks. A package that imports both usually lists every
+// plugin by hand, and that list goes stale. Read internal/plugins/builtin
+// in its place. The runner builds a scan, so it needs both.
+var pluginListAllowed = []string{
+	module + "/internal/plugins/builtin",
+	module + "/internal/runner",
+}
+
+func TestOneListOfBuiltinPlugins(t *testing.T) {
+	controls, sinks := module+"/internal/plugins/controls", module+"/internal/plugins/sinks"
+	for _, p := range listPackages(t) {
+		if isLegacy(p.path) || slices.Contains(pluginListAllowed, p.path) {
+			continue
+		}
+		assert.False(t, slices.Contains(p.imports, controls) && slices.Contains(p.imports, sinks),
+			"package %s imports the controls and the sinks: read the plugin list from internal/plugins/builtin", p.path)
 	}
 }
