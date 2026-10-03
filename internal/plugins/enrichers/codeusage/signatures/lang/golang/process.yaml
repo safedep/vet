@@ -1,0 +1,155 @@
+version: 0.1
+
+# Go standard library process execution and management
+# References:
+# - https://pkg.go.dev/os/exec
+# - https://pkg.go.dev/syscall
+# - https://pkg.go.dev/os
+
+signatures:
+  - id: golang.process.exec
+    description: "Process execution"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Process execution"
+    tags: [process, exec, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "os/exec/Command"
+          - type: call
+            value: "os/exec/CommandContext"
+          - type: call
+            value: "os/exec/Cmd.Run"
+          - type: call
+            value: "os/exec/Cmd.Start"
+          - type: call
+            value: "os/exec/Cmd.Output"
+          - type: call
+            value: "os/exec/Cmd.CombinedOutput"
+
+  - id: golang.process.syscall.exec
+    description: "Low-level process execution via syscall"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Syscall exec"
+    tags: [process, exec, syscall, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "syscall/Exec"
+          - type: call
+            value: "syscall/ForkExec"
+          - type: call
+            value: "syscall/StartProcess"
+
+  - id: golang.process.info
+    description: "Process information"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Process info"
+    tags: [process, info, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "os/Getpid"
+          - type: call
+            value: "os/Getppid"
+          - type: call
+            value: "os/Getuid"
+          - type: call
+            value: "os/Getgid"
+          - type: call
+            value: "os/Geteuid"
+          - type: call
+            value: "os/Getegid"
+          - type: call
+            value: "os/Getgroups"
+
+  - id: golang.process.signal
+    description: "Process signal handling"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Signal handling"
+    tags: [process, signal, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "os/signal/Notify"
+          - type: call
+            value: "os/signal/Ignore"
+          - type: call
+            value: "os/signal/Reset"
+          - type: call
+            value: "os/signal/Stop"
+          - type: call
+            value: "syscall/Kill"
+          - type: call
+            value: "os/Process.Kill"
+          - type: call
+            value: "os/Process.Signal"
+
+  - id: golang.process.exit
+    description: "Process exit operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Process exit"
+    tags: [process, exit, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "os/Exit"
+          - type: call
+            value: "log/Fatal"
+          - type: call
+            value: "log/Fatalf"
+          - type: call
+            value: "log/Fatalln"
+          - type: call
+            value: "panic"
+
+  - id: golang.process.workdir
+    description: "Working directory operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Working directory"
+    tags: [process, workdir, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "os/Getwd"
+          - type: call
+            value: "os/Chdir"
+
+  - id: golang.process.user
+    description: "User and group operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "User/Group info"
+    tags: [process, user, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "os/user/Current"
+          - type: call
+            value: "os/user/Lookup"
+          - type: call
+            value: "os/user/LookupId"
+          - type: call
+            value: "os/user/LookupGroup"
+          - type: call
+            value: "os/user/LookupGroupId"

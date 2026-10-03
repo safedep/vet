@@ -1,0 +1,17 @@
+version: 0.1
+# References -
+# https://www.npmjs.com/package/@mastra/core
+
+signatures:
+  - id: mastra.agents
+    description: "Mastra TypeScript agent framework"
+    vendor: "Mastra"
+    product: "Mastra"
+    service: "AI agent runtime"
+    tags: [ai, agent, llm]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@mastra/core/*"

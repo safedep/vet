@@ -1,0 +1,23 @@
+version: 0.1
+# References -
+# https://pypi.org/project/fireworks-ai/ (imports as `fireworks`)
+
+signatures:
+  - id: fireworks.client
+    description: "Fireworks AI API client"
+    vendor: "Fireworks AI"
+    product: "Fireworks API"
+    service: "AI client"
+    tags: [ai, llm, text]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "fireworks.Fireworks"
+          - type: call
+            value: "fireworks.AsyncFireworks"
+          - type: call
+            value: "fireworks.client.Fireworks"
+          - type: call
+            value: "fireworks.client.AsyncFireworks"

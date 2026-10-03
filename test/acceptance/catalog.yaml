@@ -230,6 +230,12 @@
   tier: P2
   guarantee: "With plugins.codeusage.enabled, on a build with CGO, a package finding gets codeusage evidence that names the importing files. The severity does not change."
   labels: [enrichers, config]
+- id: enrichers/codeusage/capabilities
+  title: "the code signatures that match are the xBOM"
+  category: enrichers
+  tier: P2
+  guarantee: "With plugins.codeusage.enabled, on a build with CGO, each code signature that matches is a capability record in the JSON report and an xbom:<signature id> component with source code analysis evidence in the CycloneDX BOM."
+  labels: [enrichers, config, sinks]
 - id: controls/workflow/hardening
   title: "workflow: hardening controls"
   category: controls

@@ -1,0 +1,55 @@
+version: 0.1
+signatures:
+  - id: azure.storage.blob
+    description: "Azure Blob Storage"
+    vendor: "Microsoft"
+    product: "Azure"
+    service: "Blob Storage"
+    tags: [storage, blob, paas]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "azure.storage.blob.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@azure/storage-blob.*"
+
+  - id: azure.cosmos
+    description: "Azure Cosmos DB"
+    vendor: "Microsoft"
+    product: "Azure"
+    service: "Cosmos DB"
+    tags: [cosmos, database, nosql, paas]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "azure.cosmos.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@azure/cosmos.*"
+
+  - id: azure.IAM
+    description: "Azure IAM services"
+    vendor: "Microsoft"
+    product: "Azure"
+    service: "IAM services"
+    tags: [keyvault, secrets, credentials, paas]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "azure.identity.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@azure/identity.*"

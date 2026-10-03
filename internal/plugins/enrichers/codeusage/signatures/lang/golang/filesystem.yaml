@@ -1,0 +1,184 @@
+version: 0.1
+
+# Go standard library filesystem operations
+# References:
+# - https://pkg.go.dev/os
+# - https://pkg.go.dev/io/ioutil
+# - https://pkg.go.dev/io/fs
+
+signatures:
+  - id: golang.filesystem.read
+    description: "File read operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Filesystem read"
+    tags: [filesystem, read, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "os/ReadFile"
+          - type: call
+            value: "os/Open"
+          - type: call
+            value: "os/OpenFile"
+          - type: call
+            value: "ioutil/ReadFile"
+          - type: call
+            value: "ioutil/ReadAll"
+          - type: call
+            value: "ioutil/ReadDir"
+          - type: call
+            value: "os/ReadDir"
+
+  - id: golang.filesystem.write
+    description: "File write operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Filesystem write"
+    tags: [filesystem, write, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "os/WriteFile"
+          - type: call
+            value: "os/Create"
+          - type: call
+            value: "os/OpenFile"
+          - type: call
+            value: "ioutil/WriteFile"
+          - type: call
+            value: "os/File.Write"
+          - type: call
+            value: "os/File.WriteString"
+          - type: call
+            value: "os/File.WriteAt"
+
+  - id: golang.filesystem.delete
+    description: "File and directory deletion"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Filesystem delete"
+    tags: [filesystem, delete, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "os/Remove"
+          - type: call
+            value: "os/RemoveAll"
+
+  - id: golang.filesystem.mkdir
+    description: "Directory creation"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Filesystem mkdir"
+    tags: [filesystem, mkdir, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "os/Mkdir"
+          - type: call
+            value: "os/MkdirAll"
+
+  - id: golang.filesystem.rename
+    description: "File and directory rename/move operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Filesystem rename"
+    tags: [filesystem, rename, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "os/Rename"
+
+  - id: golang.filesystem.stat
+    description: "File and directory stat operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Filesystem stat"
+    tags: [filesystem, stat, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "os/Stat"
+          - type: call
+            value: "os/Lstat"
+          - type: call
+            value: "os/File.Stat"
+
+  - id: golang.filesystem.chmod
+    description: "File permission changes"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Filesystem chmod"
+    tags: [filesystem, chmod, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "os/Chmod"
+          - type: call
+            value: "os/File.Chmod"
+
+  - id: golang.filesystem.chown
+    description: "File ownership changes"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Filesystem chown"
+    tags: [filesystem, chown, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "os/Chown"
+          - type: call
+            value: "os/Lchown"
+          - type: call
+            value: "os/File.Chown"
+
+  - id: golang.filesystem.symlink
+    description: "Symbolic link operations"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Filesystem symlink"
+    tags: [filesystem, symlink, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "os/Symlink"
+          - type: call
+            value: "os/Readlink"
+
+  - id: golang.filesystem.temp
+    description: "Temporary file/directory creation"
+    vendor: "Go"
+    product: "Standard Library"
+    service: "Filesystem temp"
+    tags: [filesystem, temp, capability]
+    languages:
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "os/CreateTemp"
+          - type: call
+            value: "os/MkdirTemp"
+          - type: call
+            value: "ioutil/TempFile"
+          - type: call
+            value: "ioutil/TempDir"

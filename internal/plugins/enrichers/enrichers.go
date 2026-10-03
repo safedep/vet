@@ -36,6 +36,8 @@ type Options struct {
 	// CodeUsageDir turns on the codeusage enricher for the source files of
 	// this directory.
 	CodeUsageDir string
+	// CodeUsage are the options of the codeusage enricher.
+	CodeUsage codeusage.Options
 }
 
 // Spec is one enricher with its cache identity.
@@ -87,7 +89,7 @@ func Build(o Options) (*Set, error) {
 	}
 	if o.CodeUsageDir != "" {
 		// The usage depends on the target, so the cache keeps none.
-		set.Specs = append(set.Specs, Spec{Name: codeusage.Name, Version: codeusage.Version, Plugin: codeusage.New(o.CodeUsageDir), Local: true})
+		set.Specs = append(set.Specs, Spec{Name: codeusage.Name, Version: codeusage.Version, Plugin: codeusage.New(o.CodeUsageDir, o.CodeUsage), Local: true})
 	}
 	return set, nil
 }

@@ -1,0 +1,57 @@
+version: 0.1
+
+# Python standard library environment variable operations
+# References:
+# - https://docs.python.org/3/library/os.html
+
+signatures:
+  - id: python.environment.read
+    description: "Environment variable read operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Environment read"
+    tags: [environment, read, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "os.getenv"
+          - type: call
+            value: "os.environ.get"
+          - type: call
+            value: "os.environ.__getitem__"
+
+  - id: python.environment.write
+    description: "Environment variable write operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Environment write"
+    tags: [environment, write, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "os.putenv"
+          - type: call
+            value: "os.environ.__setitem__"
+          - type: call
+            value: "os.unsetenv"
+          - type: call
+            value: "os.environ.pop"
+
+  - id: python.environment.expand
+    description: "Environment variable expansion"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Environment expansion"
+    tags: [environment, expansion, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "os.path.expandvars"
+          - type: call
+            value: "os.path.expanduser"

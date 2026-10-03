@@ -155,6 +155,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 			APIURL: cfg.Cloud.Endpoints.API, CommunityURL: cfg.Cloud.Endpoints.Community,
 			Credentials: creds, Workers: cfg.Scan.Concurrency, TTL: ttl,
 			CodeUsageDir: codeUsageDir(cfg, o),
+			CodeUsage:    codeusage.Options{BaseRef: o.BaseRef},
 		})
 		if err != nil {
 			return err

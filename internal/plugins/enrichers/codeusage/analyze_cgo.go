@@ -7,12 +7,14 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/safedep/code/core"
 	"github.com/safedep/code/fs"
 	"github.com/safedep/code/lang"
 	"github.com/safedep/code/parser"
 	"github.com/safedep/code/plugin"
+	"github.com/safedep/code/plugin/callgraph"
 	"github.com/safedep/code/plugin/depsusage"
 )
 
@@ -29,35 +31,91 @@ func regexpQuoted(names []string) []string {
 }
 
 // defaultAnalyzer parses the source files with tree-sitter, which needs
-// CGO.
-func defaultAnalyzer(ctx context.Context, dir string) ([]Evidence, error) {
+// CGO. One pass finds the imports and matches the code signatures on the
+// call graph of each file.
+func defaultAnalyzer(ctx context.Context, dir string) (Analysis, error) {
+	sigs, err := loadSignatures()
+	if err != nil {
+		return Analysis{}, err
+	}
+	matcher, err := callgraph.NewSignatureMatcher(sigs)
+	if err != nil {
+		return Analysis{}, err
+	}
 	langs, err := lang.AllLanguages()
 	if err != nil {
-		return nil, err
+		return Analysis{}, err
 	}
 	fileSystem, err := fs.NewLocalFileSystem(fs.LocalFileSystemConfig{AppDirectories: []string{dir}, ExcludePatterns: skipped})
 	if err != nil {
-		return nil, err
+		return Analysis{}, err
 	}
 	walker, err := fs.NewSourceWalker(fs.SourceWalkerConfig{}, langs)
 	if err != nil {
-		return nil, err
+		return Analysis{}, err
 	}
 	tree, err := parser.NewWalkingParser(walker, langs)
 	if err != nil {
-		return nil, err
+		return Analysis{}, err
 	}
-	var out []Evidence
-	var collect depsusage.DependencyUsageCallback = func(_ context.Context, ev *depsusage.UsageEvidence) error {
-		out = append(out, Evidence{PackageHint: ev.PackageHint, ModuleName: ev.ModuleName, Language: languageOf(ev.FilePath), FilePath: ev.FilePath, Line: ev.Line})
+
+	var mu sync.Mutex
+	var out Analysis
+	var collectUsage depsusage.DependencyUsageCallback = func(_ context.Context, ev *depsusage.UsageEvidence) error {
+		mu.Lock()
+		defer mu.Unlock()
+		out.Usage = append(out.Usage, Evidence{
+			PackageHint: ev.PackageHint, ModuleName: ev.ModuleName, Language: languageOf(ev.FilePath), FilePath: ev.FilePath, Line: ev.Line,
+		})
 		return nil
 	}
-	exec, err := plugin.NewTreeWalkPluginExecutor(tree, []core.Plugin{depsusage.NewDependencyUsagePlugin(collect)})
+	var collectMatches callgraph.CallgraphCallback = func(_ context.Context, cg *callgraph.CallGraph) error {
+		ms, err := matches(matcher, cg)
+		if err != nil {
+			return err
+		}
+		mu.Lock()
+		defer mu.Unlock()
+		out.Matches = append(out.Matches, ms...)
+		return nil
+	}
+	exec, err := plugin.NewTreeWalkPluginExecutor(tree, []core.Plugin{
+		depsusage.NewDependencyUsagePlugin(collectUsage),
+		callgraph.NewCallGraphPlugin(collectMatches),
+	})
+	if err != nil {
+		return Analysis{}, err
+	}
+	if err := exec.Execute(ctx, fileSystem); err != nil {
+		return Analysis{}, fmt.Errorf("code analysis: %w", err)
+	}
+	return out, nil
+}
+
+// matches returns one match for each call that matches a signature
+// condition in the call graph of a file.
+func matches(matcher *callgraph.SignatureMatcher, cg *callgraph.CallGraph) ([]Match, error) {
+	results, err := matcher.MatchSignatures(cg)
+	if err != nil || len(results) == 0 {
+		return nil, err
+	}
+	data, err := cg.Tree.Data()
 	if err != nil {
 		return nil, err
 	}
-	if err := exec.Execute(ctx, fileSystem); err != nil {
-		return nil, fmt.Errorf("code usage: %w", err)
+	var out []Match
+	for _, r := range results {
+		sig := signatureOf(r.MatchedSignature)
+		for _, c := range r.MatchedConditions {
+			for _, ev := range c.Evidences {
+				md := ev.Metadata(data)
+				m := Match{Signature: sig, FilePath: r.FilePath, Language: string(r.MatchedLanguageCode), Callee: md.CalleeNamespace}
+				if at := md.CallerIdentifierMetadata; at != nil {
+					m.Line, m.Column = int(at.StartLine)+1, int(at.StartColumn)+1
+				}
+				out = append(out, m)
+			}
+		}
 	}
 	return out, nil
 }

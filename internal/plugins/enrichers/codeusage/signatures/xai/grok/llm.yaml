@@ -1,0 +1,27 @@
+version: 0.1
+# References -
+# https://pypi.org/project/xai-sdk/
+# https://www.npmjs.com/package/@ai-sdk/xai (Vercel AI SDK provider; xAI has no official npm SDK)
+
+signatures:
+  - id: xai.grok.client
+    description: "xAI Grok API client"
+    vendor: "xAI"
+    product: "Grok"
+    service: "AI client"
+    tags: [ai, llm, text]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "xai_sdk.Client"
+          - type: call
+            value: "xai_sdk.AsyncClient"
+          - type: call
+            value: "xai_sdk.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@ai-sdk/xai/*"

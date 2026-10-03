@@ -1,0 +1,203 @@
+version: 0.1
+
+# Python process execution and management
+# References:
+# - https://docs.python.org/3/library/subprocess.html
+# - https://docs.python.org/3/library/os.html
+# - https://docs.python.org/3/library/sys.html
+# - https://docs.python.org/3/library/signal.html
+
+signatures:
+  - id: python.process.exec
+    description: "Process execution"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Process execution"
+    tags: [process, exec, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "subprocess.run"
+          - type: call
+            value: "subprocess.Popen"
+          - type: call
+            value: "subprocess.call"
+          - type: call
+            value: "subprocess.check_call"
+          - type: call
+            value: "subprocess.check_output"
+          - type: call
+            value: "os.system"
+          - type: call
+            value: "os.spawn"
+          - type: call
+            value: "os.spawnl"
+          - type: call
+            value: "os.spawnle"
+          - type: call
+            value: "os.spawnlp"
+          - type: call
+            value: "os.spawnlpe"
+          - type: call
+            value: "os.spawnv"
+          - type: call
+            value: "os.spawnve"
+          - type: call
+            value: "os.spawnvp"
+          - type: call
+            value: "os.spawnvpe"
+          - type: call
+            value: "os.execl"
+          - type: call
+            value: "os.execle"
+          - type: call
+            value: "os.execlp"
+          - type: call
+            value: "os.execlpe"
+          - type: call
+            value: "os.execv"
+          - type: call
+            value: "os.execve"
+          - type: call
+            value: "os.execvp"
+          - type: call
+            value: "os.execvpe"
+
+  - id: python.process.info
+    description: "Process information"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Process info"
+    tags: [process, info, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "os.getpid"
+          - type: call
+            value: "os.getppid"
+          - type: call
+            value: "os.getuid"
+          - type: call
+            value: "os.getgid"
+          - type: call
+            value: "os.geteuid"
+          - type: call
+            value: "os.getegid"
+          - type: call
+            value: "os.getgroups"
+          - type: call
+            value: "os.getpgid"
+          - type: call
+            value: "os.getsid"
+
+  - id: python.process.signal
+    description: "Process signal handling"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Signal handling"
+    tags: [process, signal, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "signal.signal"
+          - type: call
+            value: "signal.pause"
+          - type: call
+            value: "signal.alarm"
+          - type: call
+            value: "os.kill"
+          - type: call
+            value: "os.killpg"
+
+  - id: python.process.exit
+    description: "Process exit operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Process exit"
+    tags: [process, exit, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "sys.exit"
+          - type: call
+            value: "os._exit"
+          - type: call
+            value: "os.abort"
+
+  - id: python.process.workdir
+    description: "Working directory operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Working directory"
+    tags: [process, workdir, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "os.getcwd"
+          - type: call
+            value: "os.chdir"
+          - type: call
+            value: "os.fchdir"
+
+  - id: python.process.user
+    description: "User and group operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "User/Group info"
+    tags: [process, user, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "pwd.getpwnam"
+          - type: call
+            value: "pwd.getpwuid"
+          - type: call
+            value: "grp.getgrnam"
+          - type: call
+            value: "grp.getgrgid"
+          - type: call
+            value: "os.getlogin"
+
+  - id: python.process.fork
+    description: "Process forking"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Process fork"
+    tags: [process, fork, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "os.fork"
+          - type: call
+            value: "os.forkpty"
+
+  - id: python.process.priority
+    description: "Process priority/scheduling"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "Process priority"
+    tags: [process, priority, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "os.nice"
+          - type: call
+            value: "os.getpriority"
+          - type: call
+            value: "os.setpriority"

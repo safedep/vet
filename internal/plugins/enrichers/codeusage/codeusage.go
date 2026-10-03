@@ -1,8 +1,10 @@
-// Package codeusage is the enricher of code usage evidence (decisions P8).
-// It reads the source files of the target once, finds the imports, and
-// sets model.Package.Usage: whether the code imports the package, and in
-// which files. The scan file keeps the usage with the package, and the
-// engine adds it to each package finding as evidence.
+// Package codeusage is the enricher of code usage evidence and of the
+// xBOM (decisions P8). It reads the source files of the target once. It
+// finds the imports and sets model.Package.Usage: whether the code imports
+// the package, and in which files. The engine adds the usage to each
+// package finding as evidence. It also matches the code signatures on the
+// call graph of each file, and each signature that matches is a capability
+// of the application, such as a call to an LLM provider.
 package codeusage
 
 import (
@@ -14,14 +16,15 @@ import (
 	"sync"
 
 	"github.com/safedep/vet/v2/model"
+	"github.com/safedep/vet/v2/plugin"
 )
 
 // Name is the registered name of the enricher and the config key under
 // plugins. It is off by default, because it parses each source file.
 const Name = "codeusage"
 
-// Version changes when the mapping changes.
-const Version = "2"
+// Version changes when the mapping or the signatures change.
+const Version = "3"
 
 // maxFiles bounds the files that a package usage lists.
 const maxFiles = 20
@@ -38,34 +41,75 @@ type Evidence struct {
 	Line     uint
 }
 
-// Analyzer finds the imports of the source files under a directory.
-type Analyzer func(ctx context.Context, dir string) ([]Evidence, error)
+// Signature describes a code signature: what a match of it means.
+type Signature struct {
+	ID          string
+	Description string
+	Vendor      string
+	Product     string
+	Service     string
+	Tags        []string
+}
 
-// Enricher sets model.Package.Usage from the imports of the target.
+// Match is one call in a source file that matches a code signature.
+type Match struct {
+	Signature Signature
+	FilePath  string
+	Line      int
+	Column    int
+	Language  string
+	// Callee is the called function, as the call graph resolves it.
+	Callee string
+}
+
+// Analysis is what the analyzer finds in the source files under a
+// directory.
+type Analysis struct {
+	Usage   []Evidence
+	Matches []Match
+}
+
+// Analyzer analyzes the source files under a directory.
+type Analyzer func(ctx context.Context, dir string) (Analysis, error)
+
+// Options are the options of the enricher.
+type Options struct {
+	// BaseRef is the base ref of pull request mode. Each capability then
+	// gets the change against the base commit.
+	BaseRef string
+}
+
+// Enricher sets model.Package.Usage from the imports of the target, and
+// finds the capabilities of the target.
 type Enricher struct {
 	dir     string
+	o       Options
 	analyze Analyzer
 
 	once     sync.Once
 	modules  map[module][]string
+	matches  []Match
 	provider provider
 	err      error
 }
 
+var _ plugin.CapabilityFinder = (*Enricher)(nil)
+
 // New returns the enricher of a directory with the default analyzer. A
 // vet build with no CGO has no analyzer: the enricher then returns
 // plugin.ErrUnavailable, and the scan records a diagnostic.
-func New(dir string) *Enricher { return NewWith(dir, defaultAnalyzer) }
+func New(dir string, o Options) *Enricher { return NewWith(dir, o, defaultAnalyzer) }
 
 // NewWith returns the enricher with an analyzer. Tests use it.
-func NewWith(dir string, a Analyzer) *Enricher { return &Enricher{dir: dir, analyze: a} }
+func NewWith(dir string, o Options, a Analyzer) *Enricher {
+	return &Enricher{dir: dir, o: o, analyze: a}
+}
 
 // Enrich sets the usage of each package. A package that no file imports
 // gets Imported false. A package of an ecosystem with no source language,
 // such as a GitHub Action, gets no usage.
 func (e *Enricher) Enrich(ctx context.Context, pkgs []*model.Package) error {
-	e.once.Do(func() { e.err = e.index(ctx) })
-	if e.err != nil {
+	if err := e.load(ctx); err != nil {
 		return e.err
 	}
 	for _, p := range pkgs {
@@ -86,10 +130,21 @@ func (e *Enricher) Enrich(ctx context.Context, pkgs []*model.Package) error {
 	return nil
 }
 
+// load analyzes the target once for the scan.
+func (e *Enricher) load(ctx context.Context) error {
+	e.once.Do(func() { e.err = e.index(ctx) })
+	return e.err
+}
+
 func (e *Enricher) index(ctx context.Context) error {
-	evs, err := e.analyze(ctx, e.dir)
+	a, err := e.analyze(ctx, e.dir)
 	if err != nil {
 		return err
+	}
+	evs := a.Usage
+	for _, m := range a.Matches {
+		m.FilePath = relTo(e.dir, m.FilePath)
+		e.matches = append(e.matches, m)
 	}
 	autoload, err := readAutoload(e.dir)
 	if err != nil {
@@ -101,7 +156,7 @@ func (e *Enricher) index(ctx context.Context) error {
 		if sets[m] == nil {
 			sets[m] = map[string]bool{}
 		}
-		sets[m][e.rel(ev.FilePath)] = true
+		sets[m][relTo(e.dir, ev.FilePath)] = true
 	}
 	e.modules = make(map[module][]string, len(sets))
 	for m, set := range sets {
@@ -127,18 +182,18 @@ func sortedFiles(set map[string]bool) []string {
 	return files
 }
 
-// rel returns the path of a file relative to the scanned directory, with
-// "/", as every other path of the report. A path outside it stays as the
-// analyzer gave it.
-func (e *Enricher) rel(file string) string {
+// relTo returns the path of a file relative to a directory, with "/", as
+// every other path of the report. A path outside the directory stays as
+// the analyzer gave it.
+func relTo(dir, file string) string {
 	if !filepath.IsAbs(file) {
 		return filepath.ToSlash(file)
 	}
-	dir, err := filepath.Abs(e.dir)
+	abs, err := filepath.Abs(dir)
 	if err != nil {
 		return file
 	}
-	r, err := filepath.Rel(dir, file)
+	r, err := filepath.Rel(abs, file)
 	if err != nil || r == ".." || strings.HasPrefix(r, ".."+string(filepath.Separator)) {
 		return file
 	}

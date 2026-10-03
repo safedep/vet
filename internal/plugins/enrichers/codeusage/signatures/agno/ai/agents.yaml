@@ -1,0 +1,21 @@
+version: 0.1
+# References -
+# https://pypi.org/project/agno/
+
+signatures:
+  - id: agno.agent
+    description: "Agno agent framework (formerly Phidata)"
+    vendor: "Agno"
+    product: "Agno"
+    service: "AI agent runtime"
+    tags: [ai, agent, llm]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "agno.agent.Agent"
+          - type: call
+            value: "agno.team.Team"
+          - type: call
+            value: "agno.workflow.Workflow"

@@ -1,0 +1,33 @@
+version: 0.1
+# References -
+# https://pypi.org/project/claude-agent-sdk/
+# https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk
+
+signatures:
+  - id: anthropic.agents.sdk
+    description: "Claude Agent SDK"
+    vendor: "Anthropic"
+    product: "Claude Agent SDK"
+    service: "AI agent runtime"
+    tags: [ai, agent, llm]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "claude_agent_sdk.query"
+          - type: call
+            value: "claude_agent_sdk.ClaudeSDKClient"
+          - type: call
+            value: "claude_agent_sdk.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@anthropic-ai/claude-agent-sdk/query"
+          - type: call
+            value: "@anthropic-ai/claude-agent-sdk/tool"
+          - type: call
+            value: "@anthropic-ai/claude-agent-sdk/createSdkMcpServer"
+          - type: call
+            value: "@anthropic-ai/claude-agent-sdk/*"

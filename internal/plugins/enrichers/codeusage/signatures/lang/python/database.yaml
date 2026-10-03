@@ -1,0 +1,244 @@
+version: 0.1
+
+# Python database operations
+# References:
+# - https://docs.python.org/3/library/sqlite3.html
+# - https://www.psycopg.org/
+# - https://pymongo.readthedocs.io/
+# - https://redis-py.readthedocs.io/
+
+signatures:
+  - id: python.database.sql
+    description: "SQL database operations"
+    vendor: "Python"
+    product: "Standard Library"
+    service: "SQL database"
+    tags: [database, sql, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "sqlite3.connect"
+          - type: call
+            value: "sqlite3.Connection.execute"
+          - type: call
+            value: "sqlite3.Connection.executemany"
+          - type: call
+            value: "sqlite3.Cursor.execute"
+          - type: call
+            value: "sqlite3.Cursor.executemany"
+
+  - id: python.database.postgres
+    description: "PostgreSQL database operations"
+    vendor: "PostgreSQL"
+    product: "psycopg2"
+    service: "PostgreSQL"
+    tags: [database, postgres, sql, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "psycopg2.connect"
+          - type: call
+            value: "psycopg2.Connection.cursor"
+          - type: call
+            value: "psycopg2.Cursor.execute"
+          - type: call
+            value: "psycopg2.Cursor.executemany"
+          - type: call
+            value: "psycopg.connect"
+          - type: call
+            value: "psycopg.Connection.execute"
+          - type: call
+            value: "asyncpg.connect"
+          - type: call
+            value: "asyncpg.create_pool"
+
+  - id: python.database.mysql
+    description: "MySQL database operations"
+    vendor: "MySQL"
+    product: "PyMySQL"
+    service: "MySQL"
+    tags: [database, mysql, sql, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "pymysql.connect"
+          - type: call
+            value: "pymysql.Connection.cursor"
+          - type: call
+            value: "pymysql.Cursor.execute"
+          - type: call
+            value: "MySQLdb.connect"
+          - type: call
+            value: "mysql.connector.connect"
+
+  - id: python.database.sqlalchemy
+    description: "SQLAlchemy ORM operations"
+    vendor: "SQLAlchemy"
+    product: "SQLAlchemy"
+    service: "SQLAlchemy ORM"
+    tags: [database, sqlalchemy, orm, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "sqlalchemy.create_engine"
+          - type: call
+            value: "sqlalchemy.Engine.connect"
+          - type: call
+            value: "sqlalchemy.Engine.execute"
+          - type: call
+            value: "sqlalchemy.orm.Session"
+          - type: call
+            value: "sqlalchemy.orm.sessionmaker"
+
+  - id: python.database.mongodb
+    description: "MongoDB operations"
+    vendor: "MongoDB"
+    product: "pymongo"
+    service: "MongoDB"
+    tags: [database, mongodb, nosql, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "pymongo.MongoClient"
+          - type: call
+            value: "pymongo.MongoClient.get_database"
+          - type: call
+            value: "pymongo.Database.get_collection"
+          - type: call
+            value: "pymongo.Collection.insert_one"
+          - type: call
+            value: "pymongo.Collection.insert_many"
+          - type: call
+            value: "pymongo.Collection.find"
+          - type: call
+            value: "pymongo.Collection.find_one"
+          - type: call
+            value: "pymongo.Collection.update_one"
+          - type: call
+            value: "pymongo.Collection.delete_one"
+
+  - id: python.database.redis
+    description: "Redis operations"
+    vendor: "Redis"
+    product: "redis-py"
+    service: "Redis"
+    tags: [database, redis, cache, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "redis.Redis"
+          - type: call
+            value: "redis.StrictRedis"
+          - type: call
+            value: "redis.from_url"
+          - type: call
+            value: "redis.Redis.get"
+          - type: call
+            value: "redis.Redis.set"
+          - type: call
+            value: "redis.Redis.delete"
+          - type: call
+            value: "redis.Redis.hget"
+          - type: call
+            value: "redis.Redis.hset"
+
+  - id: python.database.elasticsearch
+    description: "Elasticsearch operations"
+    vendor: "Elasticsearch"
+    product: "elasticsearch-py"
+    service: "Elasticsearch"
+    tags: [database, elasticsearch, search, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "elasticsearch.Elasticsearch"
+          - type: call
+            value: "elasticsearch.Elasticsearch.search"
+          - type: call
+            value: "elasticsearch.Elasticsearch.index"
+          - type: call
+            value: "elasticsearch.Elasticsearch.delete"
+          - type: call
+            value: "elasticsearch.AsyncElasticsearch"
+
+  - id: python.database.cassandra
+    description: "Cassandra operations"
+    vendor: "Apache Cassandra"
+    product: "cassandra-driver"
+    service: "Cassandra"
+    tags: [database, cassandra, nosql, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "cassandra.cluster.Cluster"
+          - type: call
+            value: "cassandra.cluster.Cluster.connect"
+          - type: call
+            value: "cassandra.cluster.Session.execute"
+          - type: call
+            value: "cassandra.cluster.Session.execute_async"
+
+  - id: python.database.dynamodb
+    description: "AWS DynamoDB operations"
+    vendor: "AWS"
+    product: "boto3"
+    service: "DynamoDB"
+    tags: [database, dynamodb, nosql, aws, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "boto3.resource"
+          - type: call
+            value: "boto3.client"
+          - type: call
+            value: "boto3.Session.resource"
+
+  - id: python.database.couchdb
+    description: "CouchDB operations"
+    vendor: "Apache CouchDB"
+    product: "couchdb"
+    service: "CouchDB"
+    tags: [database, couchdb, nosql, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "couchdb.Server"
+          - type: call
+            value: "couchdb.Database"
+
+  - id: python.database.neo4j
+    description: "Neo4j graph database operations"
+    vendor: "Neo4j"
+    product: "neo4j-python-driver"
+    service: "Neo4j"
+    tags: [database, neo4j, graph, capability]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "neo4j.GraphDatabase.driver"
+          - type: call
+            value: "neo4j.Driver.session"
+          - type: call
+            value: "neo4j.Session.run"

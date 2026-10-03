@@ -1,0 +1,209 @@
+version: 0.1
+
+# Node.js/JavaScript cryptographic operations
+# References:
+# - https://nodejs.org/api/crypto.html
+
+signatures:
+  - id: javascript.crypto.hash
+    description: "Cryptographic hash operations"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Cryptographic hashing"
+    tags: [crypto, hash, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/createHash"
+          - type: call
+            value: "crypto/getHashes"
+
+  - id: javascript.crypto.hmac
+    description: "HMAC operations"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "HMAC"
+    tags: [crypto, hmac, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/createHmac"
+          - type: call
+            value: "crypto/timingSafeEqual"
+
+  - id: javascript.crypto.cipher
+    description: "Encryption/Decryption operations"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Cipher"
+    tags: [crypto, cipher, encryption, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/createCipher"
+          - type: call
+            value: "crypto/createCipheriv"
+          - type: call
+            value: "crypto/createDecipher"
+          - type: call
+            value: "crypto/createDecipheriv"
+          - type: call
+            value: "crypto/getCiphers"
+
+  - id: javascript.crypto.keys
+    description: "Key generation and management"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Key Management"
+    tags: [crypto, keys, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/generateKeyPair"
+          - type: call
+            value: "crypto/generateKeyPairSync"
+          - type: call
+            value: "crypto/generateKey"
+          - type: call
+            value: "crypto/generateKeySync"
+          - type: call
+            value: "crypto/createPublicKey"
+          - type: call
+            value: "crypto/createPrivateKey"
+          - type: call
+            value: "crypto/createSecretKey"
+
+  - id: javascript.crypto.sign
+    description: "Digital signature operations"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Digital Signatures"
+    tags: [crypto, signing, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/createSign"
+          - type: call
+            value: "crypto/sign"
+          - type: call
+            value: "crypto/createVerify"
+          - type: call
+            value: "crypto/verify"
+
+  - id: javascript.crypto.publicencrypt
+    description: "Public key encryption"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Public Key Encryption"
+    tags: [crypto, encryption, rsa, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/publicEncrypt"
+          - type: call
+            value: "crypto/publicDecrypt"
+          - type: call
+            value: "crypto/privateEncrypt"
+          - type: call
+            value: "crypto/privateDecrypt"
+
+  - id: javascript.crypto.random
+    description: "Cryptographically secure random number generation"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Crypto random"
+    tags: [crypto, random, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/randomBytes"
+          - type: call
+            value: "crypto/randomInt"
+          - type: call
+            value: "crypto/randomUUID"
+          - type: call
+            value: "crypto/randomFillSync"
+          - type: call
+            value: "crypto/randomFill"
+
+  - id: javascript.crypto.pbkdf2
+    description: "PBKDF2 key derivation"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "PBKDF2"
+    tags: [crypto, pbkdf2, kdf, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/pbkdf2"
+          - type: call
+            value: "crypto/pbkdf2Sync"
+
+  - id: javascript.crypto.scrypt
+    description: "Scrypt key derivation"
+    vendor: "Node.js"
+    product: "Standard Library"
+    service: "Scrypt"
+    tags: [crypto, scrypt, kdf, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/scrypt"
+          - type: call
+            value: "crypto/scryptSync"
+
+  - id: javascript.crypto.bcrypt
+    description: "Bcrypt password hashing"
+    vendor: "Node.js"
+    product: "bcrypt"
+    service: "Bcrypt"
+    tags: [crypto, bcrypt, password, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "bcrypt/hash"
+          - type: call
+            value: "bcrypt/hashSync"
+          - type: call
+            value: "bcrypt/compare"
+          - type: call
+            value: "bcrypt/compareSync"
+          - type: call
+            value: "bcrypt/genSalt"
+
+  - id: javascript.crypto.jwt
+    description: "JSON Web Token operations"
+    vendor: "Node.js"
+    product: "jsonwebtoken"
+    service: "JWT"
+    tags: [crypto, jwt, token, capability]
+    languages:
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "jsonwebtoken/sign"
+          - type: call
+            value: "jsonwebtoken/verify"
+          - type: call
+            value: "jsonwebtoken/decode"

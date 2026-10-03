@@ -1,0 +1,31 @@
+version: 0.1
+
+# References -
+# https://pycryptodome.readthedocs.io/en/latest/src/cipher/aes.html
+
+signatures:
+  - id: crypto.aes
+    description: "AES encryption/decryption"
+    vendor: ""
+    product: "Symmetric encryption algorithm"
+    service: "AES encryption"
+    tags: [cryptography, encryption, symmetric]
+    languages:
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "javax.crypto.Cipher.getInstance"
+            args:
+              - index: 0
+                values: ["\"aes\"", "\"AES\"", "\"Aes\""]
+          - type: call
+            value: "javax.crypto.spec.SecretKeySpec"
+            args:
+              - index: 1
+                values: ["\"aes\"", "\"AES\"", "\"Aes\""]
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "Crypto.Cipher.AES.new"

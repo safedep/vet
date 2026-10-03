@@ -1,0 +1,33 @@
+version: 0.1
+# References -
+# https://pypi.org/project/ollama/
+# https://www.npmjs.com/package/ollama
+
+signatures:
+  - id: ollama.client
+    description: "Ollama local LLM client"
+    vendor: "Ollama"
+    product: "Ollama"
+    service: "Local AI inference"
+    tags: [ai, llm, text]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "ollama.chat"
+          - type: call
+            value: "ollama.generate"
+          - type: call
+            value: "ollama.embed"
+          - type: call
+            value: "ollama.Client"
+          - type: call
+            value: "ollama.AsyncClient"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "ollama/Ollama"
+          - type: call
+            value: "ollama/*"

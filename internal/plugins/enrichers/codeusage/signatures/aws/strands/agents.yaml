@@ -1,0 +1,27 @@
+version: 0.1
+# References -
+# https://pypi.org/project/strands-agents/ (imports as `strands`)
+# https://www.npmjs.com/package/@strands-agents/sdk
+
+signatures:
+  - id: aws.strands.agent
+    description: "AWS Strands Agents SDK"
+    vendor: "AWS"
+    product: "Strands Agents"
+    service: "AI agent runtime"
+    tags: [ai, agent, llm]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "strands.Agent"
+          - type: call
+            value: "strands.tool"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@strands-agents/sdk/Agent"
+          - type: call
+            value: "@strands-agents/sdk/*"

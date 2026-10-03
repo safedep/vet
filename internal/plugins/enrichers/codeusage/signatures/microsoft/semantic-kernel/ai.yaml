@@ -1,0 +1,25 @@
+version: 0.1
+# References -
+# https://pypi.org/project/semantic-kernel/
+# https://central.sonatype.com/artifact/com.microsoft.semantic-kernel/semantickernel-api
+
+signatures:
+  - id: microsoft.semantickernel.core
+    description: "Microsoft Semantic Kernel"
+    vendor: "Microsoft"
+    product: "Semantic Kernel"
+    service: "AI orchestration"
+    tags: [ai, llm, agent]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "semantic_kernel.Kernel"
+          - type: call
+            value: "semantic_kernel.agents.ChatCompletionAgent"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.microsoft.semantickernel.Kernel.*"

@@ -1,0 +1,27 @@
+version: 0.1
+# References -
+# https://pypi.org/project/langgraph/
+# https://www.npmjs.com/package/@langchain/langgraph
+
+signatures:
+  - id: langchain.langgraph.graph
+    description: "LangGraph stateful agent graph construction"
+    vendor: "LangChain"
+    product: "LangGraph"
+    service: "Agent orchestration"
+    tags: [ai, agent, llm]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "langgraph.graph.StateGraph"
+          - type: call
+            value: "langgraph.*"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@langchain/langgraph/StateGraph"
+          - type: call
+            value: "@langchain/langgraph/*"

@@ -1,0 +1,29 @@
+version: 0.1
+# References -
+# https://pypi.org/project/groq/
+# https://www.npmjs.com/package/groq-sdk
+
+signatures:
+  - id: groq.client
+    description: "Groq API client for fast LLM inference"
+    vendor: "Groq"
+    product: "Groq API"
+    service: "AI client"
+    tags: [ai, llm, text]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "groq.Groq"
+          - type: call
+            value: "groq.AsyncGroq"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "groq-sdk"
+          - type: call
+            value: "groq-sdk/Groq"
+          - type: call
+            value: "groq-sdk/*"

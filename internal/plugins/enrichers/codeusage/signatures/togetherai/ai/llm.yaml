@@ -1,0 +1,29 @@
+version: 0.1
+# References -
+# https://pypi.org/project/together/
+# https://www.npmjs.com/package/together-ai
+
+signatures:
+  - id: togetherai.client
+    description: "Together AI API client"
+    vendor: "Together AI"
+    product: "Together API"
+    service: "AI client"
+    tags: [ai, llm, text]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "together.Together"
+          - type: call
+            value: "together.AsyncTogether"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "together-ai"
+          - type: call
+            value: "together-ai/Together"
+          - type: call
+            value: "together-ai/*"

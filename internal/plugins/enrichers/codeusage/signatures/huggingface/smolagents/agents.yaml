@@ -1,0 +1,19 @@
+version: 0.1
+# References -
+# https://pypi.org/project/smolagents/
+
+signatures:
+  - id: huggingface.smolagents.agent
+    description: "Hugging Face smolagents framework"
+    vendor: "Hugging Face"
+    product: "smolagents"
+    service: "AI agent runtime"
+    tags: [ai, agent, llm]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "smolagents.CodeAgent"
+          - type: call
+            value: "smolagents.ToolCallingAgent"

@@ -1,0 +1,29 @@
+version: 0.1
+# References -
+# https://pypi.org/project/google-adk/
+# https://central.sonatype.com/artifact/com.google.adk/google-adk
+
+signatures:
+  - id: google.adk.agent
+    description: "Google Agent Development Kit"
+    vendor: "Google"
+    product: "ADK"
+    service: "AI agent runtime"
+    tags: [ai, agent, llm]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "google.adk.Agent"
+          - type: call
+            value: "google.adk.runners.Runner"
+          - type: call
+            value: "google.adk.*"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.google.adk.agents.LlmAgent.builder"
+          - type: call
+            value: "com.google.adk.*"

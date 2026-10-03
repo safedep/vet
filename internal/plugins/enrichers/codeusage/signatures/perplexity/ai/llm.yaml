@@ -1,0 +1,29 @@
+version: 0.1
+# References -
+# https://pypi.org/project/perplexityai/ (imports as `perplexity`)
+# https://www.npmjs.com/package/@perplexity-ai/perplexity_ai
+
+signatures:
+  - id: perplexity.client
+    description: "Perplexity API client"
+    vendor: "Perplexity"
+    product: "Perplexity API"
+    service: "AI client"
+    tags: [ai, llm, text]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "perplexity.Perplexity"
+          - type: call
+            value: "perplexity.AsyncPerplexity"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "@perplexity-ai/perplexity_ai"
+          - type: call
+            value: "@perplexity-ai/perplexity_ai/Perplexity"
+          - type: call
+            value: "@perplexity-ai/perplexity_ai/*"

@@ -16,17 +16,17 @@ import (
 
 func TestEnrich(t *testing.T) {
 	calls := 0
-	fake := func(context.Context, string) ([]Evidence, error) {
+	fake := func(context.Context, string) (Analysis, error) {
 		calls++
-		return []Evidence{
+		return Analysis{Usage: []Evidence{
 			{PackageHint: "lodash", ModuleName: "lodash/fp", FilePath: "src/b.js"},
 			{PackageHint: "lodash", ModuleName: "lodash", FilePath: "src/a.js"},
 			{ModuleName: "@scope/pkg/sub", FilePath: "src/c.js"},
 			{PackageHint: "yaml", ModuleName: "yaml", FilePath: "app.py"},
 			{PackageHint: "python_dateutil", ModuleName: "dateutil", FilePath: "app.py"},
-		}, nil
+		}}, nil
 	}
-	e := NewWith("/repo", fake)
+	e := NewWith("/repo", Options{}, fake)
 	pkgs := []*model.Package{
 		{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "lodash", Version: "4.17.21"}},
 		{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Namespace: "@scope", Name: "pkg", Version: "1.0.0"}},
@@ -46,12 +46,12 @@ func TestEnrich(t *testing.T) {
 func TestRelativeFiles(t *testing.T) {
 	root := t.TempDir()
 	outside := filepath.Join(filepath.Dir(root), "other", "x.js")
-	e := NewWith(root, func(context.Context, string) ([]Evidence, error) {
-		return []Evidence{
+	e := NewWith(root, Options{}, func(context.Context, string) (Analysis, error) {
+		return Analysis{Usage: []Evidence{
 			{PackageHint: "a", FilePath: filepath.Join(root, "src", "a.js")},
 			{PackageHint: "a", FilePath: "lib/b.js"},
 			{PackageHint: "a", FilePath: outside},
-		}, nil
+		}}, nil
 	})
 	pkgs := []*model.Package{{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "a", Version: "1.0.0"}}}
 	require.NoError(t, e.Enrich(context.Background(), pkgs))
@@ -60,8 +60,8 @@ func TestRelativeFiles(t *testing.T) {
 }
 
 func TestEnrichError(t *testing.T) {
-	e := NewWith("/repo", func(context.Context, string) ([]Evidence, error) {
-		return nil, plugin.ErrUnavailable
+	e := NewWith("/repo", Options{}, func(context.Context, string) (Analysis, error) {
+		return Analysis{}, plugin.ErrUnavailable
 	})
 	err := e.Enrich(context.Background(), []*model.Package{{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "a", Version: "1"}}})
 	require.Error(t, err)
