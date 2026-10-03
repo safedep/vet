@@ -301,3 +301,21 @@ func TestEmptyScanWritesNothing(t *testing.T) {
 	r.ManifestList, r.FindingList, r.CapabilityList, r.InventoryList = nil, nil, nil, nil
 	assert.Empty(t, string(plugintest.TestSink(t, s, r)))
 }
+
+func TestWrap(t *testing.T) {
+	cases := []struct {
+		name  string
+		text  string
+		width int
+		want  string
+	}{
+		{name: "fits", text: "Malicious package", width: 20, want: "Malicious package"},
+		{name: "two lines", text: "Malicious package", width: 10, want: "Malicious\npackage"},
+		{name: "cut at a word", text: "Third-party action is not pinned to a commit", width: 12, want: "Third-party\naction is…"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, wrap(tc.text, tc.width, textLines))
+		})
+	}
+}

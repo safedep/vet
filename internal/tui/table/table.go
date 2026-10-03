@@ -119,8 +119,17 @@ func columnWidths(headers []string, rows [][]string) []int {
 			if i >= len(w) {
 				w = append(w, 0)
 			}
-			w[i] = max(w[i], ansi.StringWidth(c))
+			w[i] = max(w[i], cellWidth(c))
 		}
+	}
+	return w
+}
+
+// cellWidth is the width of the widest line of a cell.
+func cellWidth(c string) int {
+	w := 0
+	for l := range strings.SplitSeq(c, "\n") {
+		w = max(w, ansi.StringWidth(l))
 	}
 	return w
 }
@@ -194,7 +203,7 @@ func fitRow(cells []string, widths []int, cols []Column) []string {
 	out := make([]string, len(cells))
 	for i, c := range cells {
 		out[i] = c
-		if i < len(widths) && ansi.StringWidth(c) > widths[i] {
+		if i < len(widths) && cellWidth(c) > widths[i] {
 			out[i] = fitCell(c, widths[i], cols[i].Fit)
 		}
 	}

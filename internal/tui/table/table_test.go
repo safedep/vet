@@ -104,3 +104,12 @@ func TestRenderFitsColumns(t *testing.T) {
 	assert.NotContains(t, out, "…")
 	assert.Equal(t, 20, strings.Count(out, "word"))
 }
+
+func TestRenderMeasuresTheWidestLineOfACell(t *testing.T) {
+	output.SetMode(output.Plain)
+	t.Cleanup(func() { output.SetMode(output.Rich) })
+
+	subject := "npm/evil-colors@1.4.1"
+	out := New().Headers("SUBJECT", "FINDING").Row(subject, "Malicious\npackage").MaxWidth(40).Render()
+	assert.Contains(t, out, subject, "a two-line cell is as wide as its widest line")
+}

@@ -41,6 +41,10 @@ const wideWidth = 110
 // leave less room, the table also cuts them.
 const minTextWidth = 16
 
+// textLines is the most lines that the FINDING text of a row takes. A
+// longer text ends with an ellipsis.
+const textLines = 2
+
 // Options are the options of the table format.
 type Options struct {
 	// All shows every finding on its own row, with no limit.
@@ -150,8 +154,8 @@ func (s Sink) rows(fs []*finding.Finding) []row {
 }
 
 // findingTable drops CONTROL and WHERE on a narrow terminal. FINDING takes
-// the width that the other columns leave, so that a cut falls on the
-// FINDING text and not on the subject or the place.
+// the width that the other columns leave, and wraps onto a second line, so
+// that a cut falls on the FINDING text and not on the subject or the place.
 func findingTable(rows []row, idLen int, delta bool, width int) string {
 	wide := width >= wideWidth
 	headers := []string{"SEVERITY", "ID"}
@@ -193,10 +197,21 @@ func findingTable(rows []row, idLen int, delta bool, width int) string {
 	room = max(room, minTextWidth)
 	tbl := table.New().Headers(headers...)
 	for i, row := range cells[1:] {
-		row[textAt] = ansi.Truncate(rows[i].text(room), room, "…")
+		row[textAt] = wrap(rows[i].text(room), room, textLines)
 		tbl.Row(row...)
 	}
 	return tbl.Render()
+}
+
+// wrap breaks text into lines of width cells at most, and cuts it to n
+// lines. The last line of a cut text ends with an ellipsis.
+func wrap(text string, width, n int) string {
+	lines := strings.Split(ansi.Wrap(text, width, ""), "\n")
+	if len(lines) > n {
+		last, _, _ := strings.Cut(ansi.Wrap(strings.Join(lines[n-1:], " "), width-1, ""), "\n")
+		lines = append(lines[:n-1], strings.TrimRight(last, " ")+"…")
+	}
+	return strings.Join(lines, "\n")
 }
 
 func columnWidth(rows [][]string, col int) int {

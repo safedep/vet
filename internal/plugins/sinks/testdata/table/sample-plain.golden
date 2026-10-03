@@ -3,12 +3,14 @@ Findings: 2
 Critical: 1
 High: 0
 
-┌────────────┬────────────┬─────────────────┬──────────────────────────┬──────────────────┬────────────────────────────┐
-│ SEVERITY   │ ID         │ CONTROL         │ SUBJECT                  │ FINDING          │ WHERE                      │
-├────────────┼────────────┼─────────────────┼──────────────────────────┼──────────────────┼────────────────────────────┤
-│ [CRITICAL] │ f-478cf580 │ malware         │ npm/evil-colors@1.4.1    │ Malicious packa… │ package-lock.json:42       │
-│ [MEDIUM]   │ f-e815bb3b │ unpinned-action │ .github/workflows/ci.yml │ Third-party act… │ .github/workflows/ci.yml:8 │
-└────────────┴────────────┴─────────────────┴──────────────────────────┴──────────────────┴────────────────────────────┘
+┌────────────┬────────────┬─────────────────┬──────────────────────────┬────────────────┬────────────────────────────┐
+│ SEVERITY   │ ID         │ CONTROL         │ SUBJECT                  │ FINDING        │ WHERE                      │
+├────────────┼────────────┼─────────────────┼──────────────────────────┼────────────────┼────────────────────────────┤
+│ [CRITICAL] │ f-478cf580 │ malware         │ npm/evil-colors@1.4.1    │ Malicious      │ package-lock.json:42       │
+│            │            │                 │                          │ package        │                            │
+│ [MEDIUM]   │ f-e815bb3b │ unpinned-action │ .github/workflows/ci.yml │ Third-party    │ .github/workflows/ci.yml:8 │
+│            │            │                 │                          │ action is not… │                            │
+└────────────┴────────────┴─────────────────┴──────────────────────────┴────────────────┴────────────────────────────┘
 
 > 1 suppressed finding. vet report show -o json lists it.
 
