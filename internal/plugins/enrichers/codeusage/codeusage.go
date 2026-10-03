@@ -8,6 +8,7 @@ package codeusage
 import (
 	"context"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -20,7 +21,7 @@ import (
 const Name = "codeusage"
 
 // Version changes when the mapping changes.
-const Version = "1"
+const Version = "2"
 
 // maxFiles bounds the files that a package usage lists.
 const maxFiles = 20
@@ -31,8 +32,10 @@ type Evidence struct {
 	// guesses it, for example "yaml" for "import yaml".
 	PackageHint string
 	ModuleName  string
-	FilePath    string
-	Line        uint
+	// Language is the language of the file, as safedep/code names it.
+	Language string
+	FilePath string
+	Line     uint
 }
 
 // Analyzer finds the imports of the source files under a directory.
@@ -43,9 +46,10 @@ type Enricher struct {
 	dir     string
 	analyze Analyzer
 
-	once  sync.Once
-	usage map[string][]string
-	err   error
+	once     sync.Once
+	modules  map[module][]string
+	provider provider
+	err      error
 }
 
 // New returns the enricher of a directory with the default analyzer. A
@@ -57,58 +61,70 @@ func New(dir string) *Enricher { return NewWith(dir, defaultAnalyzer) }
 func NewWith(dir string, a Analyzer) *Enricher { return &Enricher{dir: dir, analyze: a} }
 
 // Enrich sets the usage of each package. A package that no file imports
-// gets Imported false.
+// gets Imported false. A package of an ecosystem with no source language,
+// such as a GitHub Action, gets no usage.
 func (e *Enricher) Enrich(ctx context.Context, pkgs []*model.Package) error {
-	e.once.Do(func() { e.usage, e.err = e.index(ctx) })
+	e.once.Do(func() { e.err = e.index(ctx) })
 	if e.err != nil {
 		return e.err
 	}
 	for _, p := range pkgs {
-		u := &model.Usage{}
-		for _, k := range keys(p.ID) {
-			if files, ok := e.usage[k]; ok {
-				u.Imported, u.Files = true, files
-				break
+		if _, ok := ecosystemLanguages[p.ID.Ecosystem]; !ok {
+			p.Usage = nil
+			continue
+		}
+		set := map[string]bool{}
+		for m, files := range e.modules {
+			if e.provider.provides(p.ID, m) {
+				for _, f := range files {
+					set[f] = true
+				}
 			}
 		}
-		p.Usage = u
+		p.Usage = &model.Usage{Imported: len(set) > 0, Files: sortedFiles(set)}
 	}
 	return nil
 }
 
-func (e *Enricher) index(ctx context.Context) (map[string][]string, error) {
+func (e *Enricher) index(ctx context.Context) error {
 	evs, err := e.analyze(ctx, e.dir)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	sets := map[string]map[string]bool{}
-	add := func(k, file string) {
-		if k == "" {
-			return
-		}
-		if sets[k] == nil {
-			sets[k] = map[string]bool{}
-		}
-		sets[k][file] = true
+	autoload, err := readAutoload(e.dir)
+	if err != nil {
+		return err
 	}
+	sets := map[module]map[string]bool{}
 	for _, ev := range evs {
-		file := e.rel(ev.FilePath)
-		add(normalize(ev.PackageHint), file)
-		add(normalize(rootModule(ev.ModuleName)), file)
-	}
-	out := make(map[string][]string, len(sets))
-	for k, set := range sets {
-		files := make([]string, 0, len(set))
-		for f := range set {
-			files = append(files, f)
+		m := module{Language: ev.Language, Hint: ev.PackageHint, Name: ev.ModuleName}
+		if sets[m] == nil {
+			sets[m] = map[string]bool{}
 		}
-		sort.Strings(files)
-		if len(files) > maxFiles {
-			files = files[:maxFiles]
-		}
-		out[k] = files
+		sets[m][e.rel(ev.FilePath)] = true
 	}
-	return out, nil
+	e.modules = make(map[module][]string, len(sets))
+	for m, set := range sets {
+		e.modules[m] = sortedFiles(set)
+	}
+	e.provider = provider{autoload: autoload}
+	return nil
+}
+
+// sortedFiles returns the files of a set in order, at most maxFiles.
+func sortedFiles(set map[string]bool) []string {
+	if len(set) == 0 {
+		return nil
+	}
+	files := make([]string, 0, len(set))
+	for f := range set {
+		files = append(files, f)
+	}
+	sort.Strings(files)
+	if len(files) > maxFiles {
+		files = files[:maxFiles]
+	}
+	return files
 }
 
 // rel returns the path of a file relative to the scanned directory, with
@@ -129,16 +145,6 @@ func (e *Enricher) rel(file string) string {
 	return filepath.ToSlash(r)
 }
 
-// keys returns the names under which code imports a package: the name, and
-// for PyPI the name with underscores.
-func keys(id model.PackageID) []string {
-	name := normalize(id.QualifiedName())
-	if id.Ecosystem == model.EcosystemPyPI {
-		return []string{name, strings.ReplaceAll(name, "-", "_")}
-	}
-	return []string{name}
-}
-
 func normalize(s string) string { return strings.ToLower(strings.TrimSpace(s)) }
 
 // rootModule returns the package part of an import path: "lodash" for
@@ -157,3 +163,9 @@ func rootModule(m string) string {
 	}
 	return m
 }
+
+// skippedDirs are the directories that hold installed or built code, not
+// the code of the project.
+var skippedDirs = []string{"node_modules", "vendor", ".git", ".venv", "venv", "dist", "build", "target", "__pycache__"}
+
+func skippedDir(name string) bool { return slices.Contains(skippedDirs, name) }

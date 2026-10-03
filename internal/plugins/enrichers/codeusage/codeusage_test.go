@@ -32,6 +32,7 @@ func TestEnrich(t *testing.T) {
 		{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Namespace: "@scope", Name: "pkg", Version: "1.0.0"}},
 		{ID: model.PackageID{Ecosystem: model.EcosystemPyPI, Name: "python-dateutil", Version: "2.9.0"}},
 		{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "unused", Version: "1.0.0"}},
+		{ID: model.PackageID{Ecosystem: model.EcosystemGitHubActions, Namespace: "actions", Name: "checkout", Version: "v4"}},
 	}
 	plugintest.TestEnricher(t, e, pkgs)
 	assert.Equal(t, 1, calls, "the analysis runs once for a scan")
@@ -39,6 +40,7 @@ func TestEnrich(t *testing.T) {
 	assert.True(t, pkgs[1].Usage.Imported)
 	assert.True(t, pkgs[2].Usage.Imported, "PyPI names match with underscores")
 	assert.Equal(t, &model.Usage{}, pkgs[3].Usage)
+	assert.Nil(t, pkgs[4].Usage, "an action has no source imports")
 }
 
 func TestRelativeFiles(t *testing.T) {

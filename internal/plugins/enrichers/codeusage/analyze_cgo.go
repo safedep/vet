@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/safedep/code/core"
 	"github.com/safedep/code/fs"
@@ -15,10 +16,16 @@ import (
 	"github.com/safedep/code/plugin/depsusage"
 )
 
-// skipped are the directories that hold installed or built code, not the
-// code of the project.
 var skipped = []*regexp.Regexp{
-	regexp.MustCompile(`(^|/)(node_modules|vendor|\.git|\.venv|venv|dist|build|target|__pycache__)(/|$)`),
+	regexp.MustCompile(`(^|/)(` + strings.Join(regexpQuoted(skippedDirs), "|") + `)(/|$)`),
+}
+
+func regexpQuoted(names []string) []string {
+	out := make([]string, len(names))
+	for i, n := range names {
+		out[i] = regexp.QuoteMeta(n)
+	}
+	return out
 }
 
 // defaultAnalyzer parses the source files with tree-sitter, which needs
@@ -42,7 +49,7 @@ func defaultAnalyzer(ctx context.Context, dir string) ([]Evidence, error) {
 	}
 	var out []Evidence
 	var collect depsusage.DependencyUsageCallback = func(_ context.Context, ev *depsusage.UsageEvidence) error {
-		out = append(out, Evidence{PackageHint: ev.PackageHint, ModuleName: ev.ModuleName, FilePath: ev.FilePath, Line: ev.Line})
+		out = append(out, Evidence{PackageHint: ev.PackageHint, ModuleName: ev.ModuleName, Language: languageOf(ev.FilePath), FilePath: ev.FilePath, Line: ev.Line})
 		return nil
 	}
 	exec, err := plugin.NewTreeWalkPluginExecutor(tree, []core.Plugin{depsusage.NewDependencyUsagePlugin(collect)})
@@ -53,6 +60,13 @@ func defaultAnalyzer(ctx context.Context, dir string) ([]Evidence, error) {
 		return nil, fmt.Errorf("code usage: %w", err)
 	}
 	return out, nil
+}
+
+func languageOf(file string) string {
+	if l, ok := lang.ResolveLanguageFromPath(file); ok {
+		return string(l.Meta().Code)
+	}
+	return ""
 }
 
 // Available reports that this build has code analysis.
