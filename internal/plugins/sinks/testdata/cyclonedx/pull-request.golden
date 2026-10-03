@@ -1,7 +1,7 @@
 {
-  "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
+  "$schema": "http://cyclonedx.org/schema/bom-1.7.schema.json",
   "bomFormat": "CycloneDX",
-  "specVersion": "1.6",
+  "specVersion": "1.7",
   "serialNumber": "urn:uuid:c0c84aa5-b8a8-5c24-8bd6-b7e3e13dcd30",
   "version": 1,
   "metadata": {
@@ -64,6 +64,57 @@
       ]
     },
     {
+      "bom-ref": "xbom:crypto.md5",
+      "type": "cryptographic-asset",
+      "name": "MD5",
+      "description": "MD5 message digest",
+      "properties": [
+        {
+          "name": "safedep:tag",
+          "value": "cryptography"
+        },
+        {
+          "name": "safedep:tag",
+          "value": "hash"
+        },
+        {
+          "name": "safedep:tag",
+          "value": "weak"
+        }
+      ],
+      "evidence": {
+        "identity": [
+          {
+            "field": "name",
+            "methods": [
+              {
+                "technique": "source-code-analysis",
+                "confidence": 1
+              }
+            ],
+            "tools": [
+              "vet"
+            ]
+          }
+        ],
+        "occurrences": [
+          {
+            "location": "src/cache.py",
+            "line": 3,
+            "offset": 9,
+            "additionalContext": "hashlib//md5"
+          }
+        ]
+      },
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "hash",
+          "algorithmFamily": "MD5"
+        }
+      }
+    },
+    {
       "bom-ref": "xbom:openai.client",
       "type": "library",
       "manufacturer": {
@@ -74,8 +125,12 @@
       "description": "Creates a client of the OpenAI API.",
       "properties": [
         {
-          "name": "ai",
-          "value": "true"
+          "name": "safedep:tag",
+          "value": "ai"
+        },
+        {
+          "name": "safedep:tag",
+          "value": "llm"
         }
       ],
       "evidence": {
@@ -120,8 +175,7 @@
       "ratings": [
         {
           "score": 7.5,
-          "severity": "high",
-          "method": "other"
+          "severity": "high"
         }
       ],
       "description": "Prototype pollution",

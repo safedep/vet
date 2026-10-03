@@ -95,12 +95,12 @@ func TestSampleReport(t *testing.T) {
 	}
 	assert.Equal(t, []report.Kind{
 		report.KindManifest, report.KindPackage, report.KindPackage, report.KindInventory, report.KindCapability,
-		report.KindFinding, report.KindFinding, report.KindFinding, report.KindDiagnostic,
+		report.KindCapability, report.KindFinding, report.KindFinding, report.KindFinding, report.KindDiagnostic,
 	}, kinds)
 
 	tr := r.Trailer()
-	assert.Equal(t, uint64(9), tr.RecordCount)
-	assert.Equal(t, 1, tr.Summary.Capabilities)
+	assert.Equal(t, uint64(10), tr.RecordCount)
+	assert.Equal(t, 2, tr.Summary.Capabilities)
 	assert.Equal(t, 2, tr.Summary.Findings)
 	assert.Equal(t, 1, tr.Summary.Suppressed)
 	assert.Equal(t, report.GateNone, tr.Gate.Outcome)

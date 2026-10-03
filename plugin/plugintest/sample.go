@@ -41,6 +41,10 @@ func SampleReport() *MemState {
 		FindingList:   []*finding.Finding{&malware, &workflow, &suppressed},
 		InventoryList: []*report.InventoryItem{{Kind: report.InventoryMCPServer, Name: "filesystem", Client: "claude-code"}},
 		CapabilityList: []*report.Capability{{
+			ID: "crypto.md5", Description: "MD5 message digest", Product: "MD5", Service: "MD5",
+			Tags:        []string{"cryptography", "hash", "weak"},
+			Occurrences: []report.Occurrence{{File: "src/cache.py", Line: 3, Column: 9, Language: "python", Callee: "hashlib//md5"}},
+		}, {
 			ID: "openai.client", Description: "Creates a client of the OpenAI API.", Vendor: "OpenAI", Product: "OpenAI SDK",
 			Service: "Chat Completions", Tags: []string{"ai", "llm"},
 			Occurrences: []report.Occurrence{{File: "src/chat.py", Line: 12, Column: 5, Language: "python", Callee: "openai//OpenAI"}},

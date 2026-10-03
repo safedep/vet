@@ -1,9 +1,11 @@
-// Package cyclonedx is the CycloneDX 1.6 format: a BOM of the packages of
+// Package cyclonedx is the CycloneDX 1.7 format: a BOM of the packages of
 // the scan, with their known vulnerabilities, and of the capabilities that
-// the code signatures find (the xBOM).
+// the code signatures find (the xBOM). A cryptographic capability is a
+// cryptographic asset, so the BOM is also a CBOM.
 package cyclonedx
 
 import (
+	"cmp"
 	"context"
 	"crypto/sha256"
 	"fmt"
@@ -66,7 +68,10 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 	enc := cdx.NewBOMEncoder(w, cdx.BOMFileFormatJSON)
 	enc.SetPretty(true)
 	enc.SetEscapeHTML(false)
-	return enc.EncodeVersion(bom, cdx.SpecVersion1_6)
+	// Encode writes the BOM in the version of NewBOM. EncodeVersion would
+	// convert the BOM, and its conversion turns a cryptographic asset into
+	// an application in every version.
+	return enc.Encode(bom)
 }
 
 func component(p *report.PackageEntry) cdx.Component {
@@ -97,13 +102,10 @@ func component(p *report.PackageEntry) cdx.Component {
 // toolRef is the BOM reference of vet, the tool that finds the evidence.
 const toolRef = "vet"
 
-// knownTags are the signature tags that become component properties, as in
-// vet v1.
-var knownTags = []string{"ai", "cryptography", "encryption", "hash", "ml", "iaas", "paas", "saas"}
-
-// capabilityComponent describes a capability as vet v1 did: the reference is
+// capabilityComponent describes a capability: the reference is
 // xbom:<signature id>, and the evidence is the source code analysis with
-// each matched call.
+// each matched call. A cryptographic capability is a cryptographic asset
+// with its crypto properties, so the BOM is also a CBOM.
 func capabilityComponent(c *report.Capability) cdx.Component {
 	occurrences := make([]cdx.EvidenceOccurrence, 0, len(c.Occurrences))
 	for _, o := range c.Occurrences {
@@ -117,11 +119,9 @@ func capabilityComponent(c *report.Capability) cdx.Component {
 		occurrences = append(occurrences, occ)
 	}
 	confidence := float32(1)
-	var props []cdx.Property
-	for _, tag := range knownTags {
-		if c.HasTag(tag) {
-			props = append(props, cdx.Property{Name: tag, Value: "true"})
-		}
+	props := make([]cdx.Property, 0, len(c.Tags)+1)
+	for _, tag := range c.Tags {
+		props = append(props, cdx.Property{Name: "safedep:tag", Value: tag})
 	}
 	if c.Change != "" {
 		props = append(props, cdx.Property{Name: "safedep:change", Value: string(c.Change)})
@@ -144,7 +144,56 @@ func capabilityComponent(c *report.Capability) cdx.Component {
 	if len(props) > 0 {
 		comp.Properties = &props
 	}
+	if crypto := cryptoProperties(c); crypto != nil {
+		comp.Type, comp.Name, comp.CryptoProperties = cdx.ComponentTypeCryptographicAsset, cmp.Or(c.Service, c.ID), crypto
+	}
 	return comp
+}
+
+// cryptoPrimitives are the signature tags that name a CycloneDX crypto
+// primitive.
+var cryptoPrimitives = []cdx.CryptoPrimitive{
+	cdx.CryptoPrimitiveHash, cdx.CryptoPrimitiveMAC, cdx.CryptoPrimitiveBlockCipher, cdx.CryptoPrimitiveStreamCipher,
+	cdx.CryptoPrimitiveSignature, cdx.CryptoPrimitivePKE, cdx.CryptoPrimitiveKDF, cdx.CryptoPrimitiveKeyAgree,
+	cdx.CryptoPrimitiveAE, cdx.CryptoPrimitiveDRBG, cdx.CryptoPrimitiveKEM, cdx.CryptoPrimitiveXOF,
+}
+
+// cryptoProperties returns the crypto properties of a capability with the
+// cryptography tag, or nil. A protocol tag gives a protocol, a certificate
+// tag a certificate, a token tag a token, and a primitive tag an algorithm
+// of the family that the signature product names.
+func cryptoProperties(c *report.Capability) *cdx.CryptoProperties {
+	if !c.HasTag("cryptography") {
+		return nil
+	}
+	switch {
+	case c.HasTag("protocol"):
+		kind := cdx.CryptoProtocolTypeOther
+		for _, t := range []cdx.CryptoProtocolType{cdx.CryptoProtocolTypeTLS, cdx.CryptoProtocolTypeSSH} {
+			if c.HasTag(string(t)) {
+				kind = t
+			}
+		}
+		return &cdx.CryptoProperties{AssetType: cdx.CryptoAssetTypeProtocol, ProtocolProperties: &cdx.CryptoProtocolProperties{Type: kind}}
+	case c.HasTag("certificate"):
+		return &cdx.CryptoProperties{AssetType: cdx.CryptoAssetTypeCertificate}
+	case c.HasTag("token"):
+		return &cdx.CryptoProperties{
+			AssetType:                       cdx.CryptoAssetTypeRelatedCryptoMaterial,
+			RelatedCryptoMaterialProperties: &cdx.RelatedCryptoMaterialProperties{Type: cdx.RelatedCryptoMaterialTypeToken},
+		}
+	}
+	primitive := cdx.CryptoPrimitiveUnknown
+	for _, p := range cryptoPrimitives {
+		if c.HasTag(string(p)) {
+			primitive = p
+			break
+		}
+	}
+	return &cdx.CryptoProperties{
+		AssetType:           cdx.CryptoAssetTypeAlgorithm,
+		AlgorithmProperties: &cdx.CryptoAlgorithmProperties{Primitive: primitive, AlgorithmFamily: c.Product},
+	}
 }
 
 func capabilityName(c *report.Capability) string {

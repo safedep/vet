@@ -42,7 +42,7 @@ func Builtin() Registry {
 	return Registry{
 		{Name: bitbucket.Name, Description: "a Bitbucket Code Insights report and its annotations", New: bitbucket.New},
 		{Name: cloudreport.Name, Description: "the report for SafeDep Cloud (not available yet)", New: cloudreport.New},
-		{Name: cyclonedx.Name, Description: "a CycloneDX 1.6 BOM of the packages and their vulnerabilities", New: cyclonedx.New},
+		{Name: cyclonedx.Name, Description: "a CycloneDX 1.7 BOM of the packages, their vulnerabilities and the code capabilities, with crypto assets", New: cyclonedx.New},
 		{Name: gitlab.Name, Description: "a GitLab dependency scanning report of the package findings", New: gitlab.New},
 		{Name: json.Name, Description: "the report as one JSON document", New: json.New},
 		{Name: jsonl.Name, Description: "one report record on each line, as JSON", New: jsonl.New},
