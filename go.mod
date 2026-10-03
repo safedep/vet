@@ -23,7 +23,7 @@ require (
 	github.com/posthog/posthog-go v1.10.0
 	github.com/rogpeppe/go-internal v1.16.0
 	github.com/safedep/code v0.0.0-20261003074956-ca03c078c5bb
-	github.com/safedep/dry v0.0.0-20261003135742-fe0a173de36b
+	github.com/safedep/dry v0.0.0-20261003140635-560d4d98ff34
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
