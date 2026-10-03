@@ -14,6 +14,11 @@ type Package struct {
 	// PreviousVersion is the base version for an upgrade or a downgrade.
 	PreviousVersion string `json:"previous_version,omitempty"`
 
+	// PreviousResolved and PreviousIntegrity are the base download URL and
+	// checksum of a modified package: the same version from another source.
+	PreviousResolved  string `json:"previous_resolved,omitempty"`
+	PreviousIntegrity string `json:"previous_integrity,omitempty"`
+
 	// Line is the line of the declaration in the manifest, when the extractor knows it.
 	Line int `json:"line,omitempty"`
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -216,9 +217,104 @@ func TestPullRequestModeReusesBase(t *testing.T) {
 	second := changesOf(t, runScan(t, o))
 	assert.Equal(t, first, second, "the kept base gives the same changes")
 
-	require.NoError(t, os.WriteFile(bases[0], []byte(`{"manifests": [], "hashes": {}}`), 0o600))
+	require.NoError(t, os.WriteFile(bases[0], []byte(`{"version": 1, "manifests": [], "hashes": {}}`), 0o600))
 	third := changesOf(t, runScan(t, o))
 	for id, c := range third {
 		assert.Equal(t, model.ChangeAdded, c, "%s: vet reads the kept base and does not extract again", id)
 	}
+
+	require.NoError(t, os.WriteFile(bases[0], []byte(`{"manifests": [], "hashes": {}}`), 0o600))
+	assert.Equal(t, first, changesOf(t, runScan(t, o)), "a kept file of another version is extracted again")
+}
+
+func TestDiffMarksAChangedSourceModified(t *testing.T) {
+	id := model.PackageID{Ecosystem: model.EcosystemNpm, Name: "ms", Version: "2.1.3"}
+	npm := "https://registry.yarnpkg.com/ms/-/ms-2.1.3.tgz"
+	evil := "https://evil.example/ms-2.1.3.tgz"
+	cases := []struct {
+		name       string
+		base, head model.Package
+		want       model.Change
+	}{
+		{"same entry", model.Package{Resolved: npm, Integrity: "sha512-a"}, model.Package{Resolved: npm, Integrity: "sha512-a"}, model.ChangeUnchanged},
+		{"new URL", model.Package{Resolved: npm, Integrity: "sha512-a"}, model.Package{Resolved: evil, Integrity: "sha512-a"}, model.ChangeModified},
+		{"new hash", model.Package{Integrity: "sha512-a"}, model.Package{Integrity: "sha512-b"}, model.ChangeModified},
+		{"hash removed", model.Package{Resolved: npm, Integrity: "sha512-a"}, model.Package{Resolved: npm}, model.ChangeModified},
+		{"hash added", model.Package{Resolved: npm}, model.Package{Resolved: npm, Integrity: "sha512-a"}, model.ChangeUnchanged},
+		{"now local", model.Package{}, model.Package{Local: true}, model.ChangeModified},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.base.ID, tc.head.ID = id, id
+			head := &model.Manifest{Packages: []*model.Package{&tc.head}}
+			diff(head, &model.Manifest{Packages: []*model.Package{&tc.base}}, true)
+			assert.Equal(t, tc.want, tc.head.Change)
+			assert.True(t, tc.head.Change.Introduces() == (tc.want == model.ChangeModified), "a modified entry gets the package findings in pull request mode")
+			if tc.want == model.ChangeModified {
+				assert.Equal(t, tc.base.Resolved, tc.head.PreviousResolved)
+				assert.Equal(t, tc.base.Integrity, tc.head.PreviousIntegrity)
+			}
+		})
+	}
+}
+
+func TestPreviousVersion(t *testing.T) {
+	cases := []struct {
+		name    string
+		version string
+		base    []string
+		kept    []string
+		want    string
+	}{
+		{"one base version", "2.0.0", []string{"1.0.0"}, nil, "1.0.0"},
+		{"the closest below", "2.1.0", []string{"1.0.0", "2.0.0"}, []string{"1.0.0"}, "2.0.0"},
+		{"base order does not matter", "2.1.0", []string{"2.0.0", "1.0.0"}, []string{"1.0.0"}, "2.0.0"},
+		{"a downgrade takes the lowest above", "1.5.0", []string{"3.0.0", "2.0.0"}, nil, "2.0.0"},
+		{"a kept version replaces nothing", "3.0.0", []string{"1.0.0", "2.0.0"}, []string{"1.0.0", "2.0.0"}, ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			kept := map[string]bool{tc.version: true}
+			for _, v := range tc.kept {
+				kept[v] = true
+			}
+			assert.Equal(t, tc.want, previousVersion(tc.version, tc.base, kept))
+		})
+	}
+}
+
+func TestPullRequestModeReportsABaseThatVetCannotRead(t *testing.T) {
+	dir := t.TempDir()
+	repo, err := gogit.PlainInit(dir, false)
+	require.NoError(t, err)
+	write(t, dir, "package-lock.json", `{"lockfileVersion": 3, "packages": {`)
+	wt, err := repo.Worktree()
+	require.NoError(t, err)
+	require.NoError(t, wt.AddGlob("."))
+	_, err = wt.Commit("base", &gogit.CommitOptions{Author: &object.Signature{Name: "t", Email: "t@example.com", When: time.Now()}})
+	require.NoError(t, err)
+	write(t, dir, "package-lock.json", `{"name": "app", "lockfileVersion": 3, "packages": {
+  "": {"name": "app", "dependencies": {"ms": "2.1.3"}},
+  "node_modules/ms": {"version": "2.1.3", "integrity": "sha512-a"}
+}}`)
+
+	f := newFixture(t)
+	o := f.options(t, dir, &fakeEnricher{})
+	o.BaseRef = "HEAD"
+	res := runScan(t, o)
+
+	var messages []string
+	for rec, err := range res.Scan.Records(context.Background()) {
+		require.NoError(t, err)
+		if rec.Diagnostic != nil {
+			messages = append(messages, rec.Diagnostic.Message)
+		}
+	}
+	assert.Contains(t, strings.Join(messages, "\n"), "read the base of package-lock.json")
+	for id, c := range changesOf(t, res) {
+		assert.Equal(t, model.ChangeAdded, c, "%s: a base that vet cannot read is empty", id)
+	}
+	bases, err := filepath.Glob(filepath.Join(f.store.StateDir(), baseDir, "*.json"))
+	require.NoError(t, err)
+	assert.Empty(t, bases, "vet does not keep a base with an error")
 }

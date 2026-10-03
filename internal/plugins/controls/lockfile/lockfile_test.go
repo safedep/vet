@@ -225,13 +225,20 @@ func TestPullRequestChecks(t *testing.T) {
 		ID: "m", Path: "yarn.lock", Kind: model.ManifestKindLockfile, Extractor: "javascript/yarnlock", Ecosystem: model.EcosystemNpm,
 		LockfileOnly: true, Change: model.ChangeModified,
 		Packages: []*model.Package{
-			{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "debug", Version: "4.3.4"}, Change: model.ChangeModified, Integrity: "sha512-new"},
+			{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "debug", Version: "4.3.4"}, Change: model.ChangeModified, Integrity: "sha512-new", PreviousIntegrity: "sha512-old"},
 			{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "ms", Version: "2.1.3"}, Change: model.ChangeUnchanged, Integrity: "sha512-same"},
+			{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "chalk", Version: "5.3.0"}, Change: model.ChangeModified, PreviousIntegrity: "sha512-gone"},
+			{
+				ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "lodash", Version: "4.17.21"}, Change: model.ChangeModified,
+				Integrity: "sha512-kept", PreviousIntegrity: "sha512-kept",
+				Resolved:         "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz",
+				PreviousResolved: "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz",
+			},
 		},
 	}
 	byID := map[string]int{}
 	for _, f := range plugintest.TestControl(t, c, m, nil) {
 		byID[f.ControlID]++
 	}
-	assert.Equal(t, map[string]int{IDIntegrityChanged: 1, IDLockfileOnly: 1}, byID)
+	assert.Equal(t, map[string]int{IDIntegrityChanged: 2, IDLockfileOnly: 1}, byID, "a changed or removed hash, not a URL change with the same hash")
 }

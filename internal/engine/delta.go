@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -83,12 +84,25 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 	if err != nil {
 		return nil, err
 	}
+	failed := false
 	for _, rel := range files {
-		ms, _ := scalibr.ExtractFile(ctx, scalibr.File{Root: tmp, Path: rel}, exs)
+		ms, errs := scalibr.ExtractFile(ctx, scalibr.File{Root: tmp, Path: rel}, exs)
+		for _, err := range errs {
+			// A base file that vet cannot read has no base manifest, so
+			// each package of its head file is added. vet reports more,
+			// not less, and says why.
+			failed = true
+			r.diags.add(report.DiagnosticWarning, CodeExtractFailed, "delta",
+				fmt.Sprintf("read the base of %s: %v. vet compares its packages with an empty base", rel, err))
+		}
 		for _, m := range ms {
 			m.Root = nil
 			b.manifests[m.ID] = m
 		}
+	}
+	if failed {
+		// The next run tries the base again, and does not keep the error.
+		return b, nil
 	}
 	if err := cache.save(b); err != nil {
 		// A base that vet cannot keep costs one more extraction next time.
@@ -137,21 +151,31 @@ func diff(head, baseM *model.Manifest, fileChanged bool) {
 		exact[p.ID] = p
 		byName[p.ID.WithoutVersion()] = append(byName[p.ID.WithoutVersion()], p.ID.Version)
 	}
-	headNames := map[model.PackageID]bool{}
+	headVersions := map[model.PackageID]map[string]bool{}
+	for _, p := range head.Packages {
+		name := p.ID.WithoutVersion()
+		if headVersions[name] == nil {
+			headVersions[name] = map[string]bool{}
+		}
+		headVersions[name][p.ID.Version] = true
+	}
 	changed := fileChanged
 	for _, p := range head.Packages {
-		headNames[p.ID.WithoutVersion()] = true
-		switch prev := byName[p.ID.WithoutVersion()]; {
-		case exact[p.ID] != nil && integrityChanged(exact[p.ID], p):
-			// The same version with another hash: the lockfile now
-			// installs other code under the same name and version.
+		name := p.ID.WithoutVersion()
+		switch prev := previousVersion(p.ID.Version, byName[name], headVersions[name]); {
+		case exact[p.ID] != nil && sourceChanged(exact[p.ID], p):
+			// The same version from another URL, with another hash or
+			// with no hash: the lockfile can now install other code
+			// under the same name and version.
 			p.Change = model.ChangeModified
+			p.PreviousResolved = exact[p.ID].Resolved
+			p.PreviousIntegrity = exact[p.ID].Integrity
 		case exact[p.ID] != nil:
 			p.Change = model.ChangeUnchanged
-		case len(prev) > 0:
-			p.PreviousVersion = prev[0]
+		case prev != "":
+			p.PreviousVersion = prev
 			p.Change = model.ChangeUpgraded
-			if semver.IsAhead(p.ID.Version, prev[0]) {
+			if semver.IsAhead(p.ID.Version, prev) {
 				p.Change = model.ChangeDowngraded
 			}
 		default:
@@ -160,7 +184,7 @@ func diff(head, baseM *model.Manifest, fileChanged bool) {
 		changed = changed || p.Change != model.ChangeUnchanged
 	}
 	for _, p := range baseM.Packages {
-		if !headNames[p.ID.WithoutVersion()] {
+		if headVersions[p.ID.WithoutVersion()] == nil {
 			head.Packages = append(head.Packages, &model.Package{ID: p.ID, Direct: p.Direct, Dev: p.Dev, Change: model.ChangeRemoved})
 			changed = true
 		}
@@ -169,6 +193,26 @@ func diff(head, baseM *model.Manifest, fileChanged bool) {
 	if changed {
 		head.Change = model.ChangeModified
 	}
+}
+
+// previousVersion returns the base version that a head version replaces:
+// the highest base version below it, else the lowest above it. A base
+// version that the head still has replaces nothing, so a lockfile with
+// two versions of a package compares each with the right one.
+func previousVersion(version string, base []string, kept map[string]bool) string {
+	var below, above string
+	for _, v := range base {
+		switch {
+		case kept[v]:
+		case semver.IsAhead(v, version):
+			if below == "" || semver.IsAhead(below, v) {
+				below = v
+			}
+		case above == "" || semver.IsAhead(v, above):
+			above = v
+		}
+	}
+	return cmp.Or(below, above)
 }
 
 // declaringFile maps a lockfile to the manifest file next to it.
@@ -204,8 +248,12 @@ func lockfileOnly(fsys fs.FS, rel string, b *base) (bool, error) {
 	return gitbase.SameBlob(fsys, sibling, hash)
 }
 
-func integrityChanged(base, head *model.Package) bool {
-	return base.Integrity != "" && head.Integrity != "" && base.Integrity != head.Integrity
+// sourceChanged reports a lockfile entry whose download URL, checksum or
+// local mark changed with no version change. A removed checksum is a
+// change, since it turns off the check of the archive.
+func sourceChanged(base, head *model.Package) bool {
+	return base.Resolved != head.Resolved || base.Integrity != head.Integrity && base.Integrity != "" ||
+		base.Local != head.Local
 }
 
 // removed returns the base manifests that the head does not have, with

@@ -53,15 +53,22 @@ func registryURL(resolved string) string {
 func (c *Control) integrity(m *model.Manifest) []finding.Finding {
 	var out []finding.Finding
 	for _, p := range m.Packages {
-		if p.Change != model.ChangeModified || p.Integrity == "" {
+		if p.Change != model.ChangeModified || p.Integrity == p.PreviousIntegrity || p.PreviousIntegrity == "" {
 			continue
 		}
 		name := p.ID.String()
 		out = append(out, c.packageFinding(IDIntegrityChanged, m, p, finding.Key{Discriminator: p.Integrity},
 			fmt.Sprintf("%s has a new integrity hash", name),
-			fmt.Sprintf("The change keeps %s and changes its integrity hash to %s. Check where the new archive comes from.", name, p.Integrity)))
+			integrityDescription(name, p)))
 	}
 	return out
+}
+
+func integrityDescription(name string, p *model.Package) string {
+	if p.Integrity == "" {
+		return fmt.Sprintf("The change keeps %s and removes its integrity hash %s. The package manager then installs the archive with no check.", name, p.PreviousIntegrity)
+	}
+	return fmt.Sprintf("The change keeps %s and changes its integrity hash from %s to %s. Check where the new archive comes from.", name, p.PreviousIntegrity, p.Integrity)
 }
 
 func lockfileOnly(m *model.Manifest) finding.Finding {

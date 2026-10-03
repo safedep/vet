@@ -601,6 +601,12 @@
         "previous_version": {
           "type": "string"
         },
+        "previous_resolved": {
+          "type": "string"
+        },
+        "previous_integrity": {
+          "type": "string"
+        },
         "line": {
           "type": "integer"
         },
