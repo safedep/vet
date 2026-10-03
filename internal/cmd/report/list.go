@@ -12,6 +12,7 @@ import (
 	"github.com/safedep/vet/v2/internal/tui/escape"
 	"github.com/safedep/vet/v2/internal/tui/humanize"
 	"github.com/safedep/vet/v2/internal/tui/printer"
+	"github.com/safedep/vet/v2/internal/tui/table"
 )
 
 // Scan is one row of "vet report list".
@@ -74,7 +75,17 @@ func listRows(es []*state.IndexEntry, now time.Time) ([]Scan, printer.Rows) {
 	scans := make([]Scan, 0, len(es))
 	rows := printer.Rows{
 		Headers: []string{"SCAN", "TARGET", "STARTED", "DURATION", "STATUS", "PACKAGES", "FINDINGS", "GATE"},
-		Empty:   "No saved scan. Run vet scan.",
+		Columns: []table.Column{
+			{Fit: table.Keep},
+			{Fit: table.CutLeft},
+			{Fit: table.Keep},
+			{Drop: 1},
+			{Drop: 2},
+			{Fit: table.Keep},
+			{Fit: table.Keep},
+			{Fit: table.Keep},
+		},
+		Empty: "No saved scan. Run vet scan.",
 	}
 	for _, e := range es {
 		s := Scan{

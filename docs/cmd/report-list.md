@@ -14,6 +14,9 @@ vet report list [--all] [--state-dir DIR] [-o table|plain|json|jsonl]
 directory has no scan, vet looks at each parent directory in turn. Each row has the scan id, the
 target, the start time, the run time, the status, the package and finding counts and the gate. A
 scan that continued after an interrupt shows `(continued)`. The run time is the sum of its runs.
+The table shows the first 8 characters of the scan id. In a narrow terminal, the table drops the
+run time and the status first, and cuts the start of the target path. `-o json` and `-o plain`
+show the full id.
 
 `--all` lists the scans of every target.
 

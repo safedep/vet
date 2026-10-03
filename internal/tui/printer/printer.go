@@ -58,6 +58,9 @@ type Rows struct {
 	Footer  string
 	// Empty replaces a table with no rows.
 	Empty string
+	// Columns tells the table how to fit each column to a narrow terminal.
+	// Plain ignores it.
+	Columns []table.Column
 }
 
 // Printer writes data in one format.
@@ -98,13 +101,29 @@ func (p *Printer) Print(value any, rows Rows) error {
 	case Plain:
 		return p.plain(rows)
 	default:
-		r := table.New().Headers(rows.Headers...).Rows(rows.Rows...).Title(rows.Title).Footer(rows.Footer)
+		r := table.New().Headers(rows.Headers...).Rows(rows.Rows...).Columns(rows.Columns...).
+			Title(rows.Title).Footer(rows.Footer)
 		if rows.Empty != "" {
 			r.EmptyMessage(rows.Empty)
 		}
 		_, err := fmt.Fprintln(p.w, r.Render())
 		return err
 	}
+}
+
+// PrintText writes value as json or jsonl, or the lines as table or plain.
+// It is for output that a person reads as text, not as a table: one value,
+// one line, or a list.
+func (p *Printer) PrintText(value any, lines ...string) error {
+	if p.format == JSON || p.format == JSONL {
+		return p.Print(value, Rows{})
+	}
+	for _, l := range lines {
+		if _, err := fmt.Fprintln(p.w, l); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (p *Printer) jsonLines(value any) error {

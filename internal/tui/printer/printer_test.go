@@ -70,3 +70,23 @@ func TestParseAndDefaultFormat(t *testing.T) {
 	assert.Equal(t, Plain, DefaultFormat(output.Plain))
 	assert.Equal(t, JSON, DefaultFormat(output.Agent))
 }
+
+func TestPrintText(t *testing.T) {
+	value := item{Name: "vet", Count: 1}
+	cases := []struct {
+		format Format
+		want   string
+	}{
+		{format: Table, want: "vet 1\nsecond\n"},
+		{format: Plain, want: "vet 1\nsecond\n"},
+		{format: JSON, want: "{\n  \"name\": \"vet\",\n  \"count\": 1\n}\n"},
+		{format: JSONL, want: "{\"name\":\"vet\",\"count\":1}\n"},
+	}
+	for _, tc := range cases {
+		t.Run(string(tc.format), func(t *testing.T) {
+			var buf bytes.Buffer
+			require.NoError(t, New(tc.format, WithWriter(&buf)).PrintText(value, "vet 1", "second"))
+			assert.Equal(t, tc.want, buf.String())
+		})
+	}
+}

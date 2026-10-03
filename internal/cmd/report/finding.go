@@ -12,6 +12,7 @@ import (
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/internal/tui/escape"
 	"github.com/safedep/vet/v2/internal/tui/printer"
+	"github.com/safedep/vet/v2/internal/tui/table"
 	"github.com/safedep/vet/v2/plugin"
 )
 
@@ -77,7 +78,7 @@ finding.`,
 }
 
 func findingRows(f *finding.Finding) printer.Rows {
-	rows := printer.Rows{Headers: []string{"FIELD", "VALUE"}}
+	rows := printer.Rows{Headers: []string{"FIELD", "VALUE"}, Columns: []table.Column{{Fit: table.Keep}, {Fit: table.Wrap}}}
 	add := func(k, v string) {
 		if v != "" {
 			rows.Rows = append(rows.Rows, []string{k, escape.Line(v)})

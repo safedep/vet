@@ -110,7 +110,7 @@
   title: "report list"
   category: report
   tier: P1
-  guarantee: "vet report list shows each scan of the target, with its status, counts and gate. --all shows every target."
+  guarantee: "vet report list shows each scan of the target, with its status, counts and gate. --all shows every target. The table shows the 8-character scan id in full and cuts the start of a long target path."
   labels: [state]
 - id: report/finding/show-json
   title: "report finding show"

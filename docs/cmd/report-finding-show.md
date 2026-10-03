@@ -14,6 +14,8 @@ vet report finding show ID [--scan ID|FILE] [--state-dir DIR] [-o table|plain|js
 the severity, the subject, the place, the description, the evidence, the fix and the references. The
 scan view and every report print the finding ids. A unique prefix of an id works.
 
+The table shows each value in full. It wraps a long value in a narrow terminal.
+
 `--scan` names another scan, by an id prefix, by `last` or by a report file. `-o json` prints the
 whole finding, so an agent can explain it with no guess.
 
