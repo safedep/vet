@@ -5,6 +5,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,8 +14,12 @@ import (
 	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/config"
 	"github.com/safedep/vet/v2/internal/engine"
+	"github.com/safedep/vet/v2/internal/plugins/sinks/plain"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/internal/tui/output"
+	"github.com/safedep/vet/v2/internal/view"
+	"github.com/safedep/vet/v2/plugin"
+	"github.com/safedep/vet/v2/plugin/plugintest"
 )
 
 func TestLockableKeys(t *testing.T) {
@@ -103,4 +108,25 @@ func TestRetentionSkipsAStoppedScan(t *testing.T) {
 			assert.Empty(t, stderr.String())
 		})
 	}
+}
+
+func TestRenderPrintsTheReportStepBeforeTheReport(t *testing.T) {
+	var term bytes.Buffer
+	prev := output.CurrentMode()
+	output.SetMode(output.Plain)
+	output.SetWriters(&term, &term)
+	t.Cleanup(func() {
+		output.SetMode(prev)
+		output.SetWriters(os.Stdout, os.Stderr)
+	})
+	sink, err := plain.New(plugin.MapConfig(nil))
+	require.NoError(t, err)
+	v := view.NewScan(view.Options{Target: "."})
+	v.Stage(engine.StageReport, 4, 4)
+
+	require.NoError(t, Render(context.Background(), plugintest.SampleReport(), v, []engine.Output{{Format: plain.Name, Sink: sink}}))
+
+	step := strings.Index(term.String(), "[INFO] Report\n")
+	require.GreaterOrEqual(t, step, 0, term.String())
+	assert.Equal(t, 0, step, "the step line comes before the report:\n%s", term.String())
 }

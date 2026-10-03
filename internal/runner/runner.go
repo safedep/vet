@@ -282,6 +282,13 @@ func Render(ctx context.Context, r plugin.Report, v *view.Scan, outs []engine.Ou
 	if err != nil {
 		return err
 	}
+	var files []string
+	for _, o := range outs {
+		if o.Path != "" {
+			files = append(files, o.Path)
+		}
+	}
+	v.Report(files)
 	if err := engine.WriteOutputs(ctx, r, outs, output.Stdout()); err != nil {
 		return err
 	}

@@ -47,6 +47,7 @@ type Scan struct {
 	total   int
 	started time.Time
 	bar     *progress.Bar
+	files   []string
 }
 
 // shownElapsed is the shortest stage that a step line gives the run time of.
@@ -116,14 +117,24 @@ func (v *Scan) stopBar() {
 	}
 }
 
+// Report ends the report stage before the report goes out, so that its
+// step line comes before a report on the terminal. files are the report
+// files that the scan writes.
+func (v *Scan) Report(files []string) {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	v.files = files
+	v.endStage()
+}
+
 // endStage prints the line of the stage that ends.
 func (v *Scan) endStage() {
 	if v.stage == "" {
 		return
 	}
 	v.stopBar()
-	text := stepText(v.stage, max(v.done, v.total))
-	if d := v.now().Sub(v.started); d >= shownElapsed {
+	text := stepText(v.stage, max(v.done, v.total), v.files)
+	if d := v.now().Sub(v.started); d >= shownElapsed && v.stage != engine.StageReport {
 		text += " in " + humanize.Elapsed(d)
 	}
 	switch v.mode {
@@ -137,7 +148,7 @@ func (v *Scan) endStage() {
 	v.stage = ""
 }
 
-func stepText(stage string, n int) string {
+func stepText(stage string, n int, files []string) string {
 	switch stage {
 	case engine.StageExtract:
 		return counted("Read the manifests", n, "file")
@@ -146,7 +157,10 @@ func stepText(stage string, n int) string {
 	case engine.StageEvaluate:
 		return counted("Evaluated the controls", n, "manifest")
 	}
-	return "Wrote the report"
+	if len(files) == 0 {
+		return "Report"
+	}
+	return "Report: " + escape.Line(joinAnd(files))
 }
 
 func counted(text string, n int, unit string) string {

@@ -62,6 +62,7 @@ func run(v *Scan) {
 	v.Stage(engine.StageEvaluate, 3, 4)
 	v.Progress(engine.StageEvaluate, 1, 1)
 	v.Stage(engine.StageReport, 4, 4)
+	v.Report(nil)
 }
 
 // vulnerability is a high finding on left-pad with a fixed version.
