@@ -1,10 +1,13 @@
 SHELL := /bin/bash
 GITCOMMIT := $(shell git rev-parse HEAD)
-VERSION := "$(shell git describe --tags --abbrev=0)-$(shell git rev-parse --short HEAD)"
+# Only a v2 tag names a v2 build, as v2.0.1-3-gabc1234. With no v2 tag, the
+# Go build info gives the version. A v1 tag would make vet doctor ask for
+# an upgrade.
+VERSION := $(shell git describe --tags --match 'v2.*' 2>/dev/null)
 
 all: quick-vet
 
-GO_CFLAGS=-X github.com/safedep/vet/v2/internal/version.commit=$(GITCOMMIT) -X github.com/safedep/vet/v2/internal/version.version=$(VERSION)
+GO_CFLAGS=-X github.com/safedep/vet/v2/internal/version.commit=$(GITCOMMIT) $(if $(VERSION),-X github.com/safedep/vet/v2/internal/version.version=$(VERSION))
 GO_LDFLAGS=-ldflags "-w $(GO_CFLAGS)"
 
 quick-vet:
