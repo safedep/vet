@@ -92,6 +92,8 @@ type hashed struct {
 	Exclude   []string `json:"exclude,omitempty"`
 	API       string   `json:"api"`
 	Anonymous bool     `json:"anonymous"`
+	Tenant    string   `json:"tenant,omitempty"`
+	Enrichers []string `json:"enrichers,omitempty"`
 }
 
 // Scan runs a scan, writes the report to its destinations and returns the
@@ -168,7 +170,10 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 			return app.UsageError("state.continue_within: "+err.Error(), "Set a duration such as 24h.")
 		}
 		exclude := append(append([]string{}, cfg.Scan.Exclude...), o.Exclude...)
-		hash, err := state.OptionsHash(hashed{BaseRef: o.BaseRef, Exclude: exclude, API: cfg.Cloud.Endpoints.API, Anonymous: creds.Anonymous()})
+		hash, err := state.OptionsHash(hashed{
+			BaseRef: o.BaseRef, Exclude: exclude, API: cfg.Cloud.Endpoints.API, Anonymous: creds.Anonymous(),
+			Tenant: creds.TenantDomain(), Enrichers: enricherIDs(set),
+		})
 		if err != nil {
 			return err
 		}
@@ -364,6 +369,16 @@ func withState(ctx context.Context, dirs *state.Dirs, useCache bool, fn func(*st
 		defer func() { err = errors.Join(err, cache.Close()) }()
 	}
 	return fn(store, cache)
+}
+
+// enricherIDs names each enabled enricher with its version. A stopped scan
+// with another set has rows that this run would not write.
+func enricherIDs(set *enrichers.Set) []string {
+	out := make([]string, 0, len(set.Specs))
+	for _, s := range set.Specs {
+		out = append(out, s.Name+"@"+s.Version)
+	}
+	return out
 }
 
 func enricherSpecs(set *enrichers.Set) []engine.Enricher {
