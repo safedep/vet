@@ -37,6 +37,18 @@ func TestCobraUsageErrors(t *testing.T) {
 			help: `Run "vet --help" to list the commands and the flags.`,
 		},
 		{
+			name: "unknown subcommand suggests the full command",
+			args: []string{"test", "shwo"},
+			msg:  `unknown command "shwo" for "vet test"`,
+			help: `Did you mean vet test show? Run "vet test --help" to list the commands and the flags.`,
+		},
+		{
+			name: "unknown subcommand with no suggestion",
+			args: []string{"test", "zzzzzz"},
+			msg:  `unknown command "zzzzzz" for "vet test"`,
+			help: `Run "vet test --help" to list the commands and the flags.`,
+		},
+		{
 			name: "unknown flag names the help of the failing command",
 			args: []string{"test", "run", "--bogus"},
 			msg:  "unknown flag: --bogus",

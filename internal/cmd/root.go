@@ -6,6 +6,8 @@ package cmd
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/safedep/dry/usefulerror"
 	"github.com/spf13/cobra"
@@ -117,7 +119,41 @@ func Run(ctx context.Context, args []string, o app.Options) (int, error) {
 	return execute(ctx, New(app.New(o)), args)
 }
 
+// rejectUnknownSubcommands makes each command with subcommands, the root
+// excluded, fail on an unknown subcommand. cobra checks the subcommand only
+// on the root, and prints the help and exits 0 for "vet report shwo".
+func rejectUnknownSubcommands(c *cobra.Command) {
+	for _, child := range c.Commands() {
+		if child.HasSubCommands() && !child.Runnable() {
+			child.Args = unknownSubcommand
+			child.RunE = func(cmd *cobra.Command, _ []string) error { return cmd.Help() }
+		}
+		rejectUnknownSubcommands(child)
+	}
+}
+
+// unknownSubcommand returns the error of cobra for an unknown command, so
+// that usageError reads it as it reads the error of the root.
+func unknownSubcommand(c *cobra.Command, args []string) error {
+	if len(args) == 0 {
+		return nil
+	}
+	var b strings.Builder
+	fmt.Fprintf(&b, "unknown command %q for %q", args[0], c.CommandPath())
+	if c.SuggestionsMinimumDistance <= 0 {
+		c.SuggestionsMinimumDistance = 2
+	}
+	if s := c.SuggestionsFor(args[0]); len(s) > 0 {
+		b.WriteString("\n\nDid you mean this?\n")
+		for _, name := range s {
+			fmt.Fprintf(&b, "\t%s\n", name)
+		}
+	}
+	return errors.New(b.String())
+}
+
 func execute(ctx context.Context, root *cobra.Command, args []string) (int, error) {
+	rejectUnknownSubcommands(root)
 	markRunErrors(root)
 	root.SetArgs(args)
 	c, err := root.ExecuteContextC(ctx)
