@@ -67,7 +67,7 @@ func isRepositoryURL(target string) bool {
 }
 
 func targetError(target, msg, help string) error {
-	m := fmt.Sprintf("%s: %s", target, msg)
+	m := fmt.Sprintf("%s: %s", git.Redact(target), msg)
 	return usefulerror.NewUsefulError().WithCode(CodeTarget).WithHumanError(m).WithHelp(help).WithMsg(m)
 }
 

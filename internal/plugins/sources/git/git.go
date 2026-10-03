@@ -76,7 +76,7 @@ func (s *Source) Artifacts(ctx context.Context) iter.Seq2[plugin.Artifact, error
 		if co.Auth != nil && rejected(err) {
 			// A token that GitHub rejects, such as an expired one, must not
 			// stop the clone of a public repository.
-			log.Warnf("git: GitHub rejected the token for %s, the clone tries again with no token", repoURL)
+			log.Warnf("git: GitHub rejected the token for %s, the clone tries again with no token", Redact(repoURL))
 			co.Auth = nil
 			if rmErr := removeContents(dir); rmErr != nil {
 				err = errors.Join(err, rmErr)
@@ -87,14 +87,14 @@ func (s *Source) Artifacts(ctx context.Context) iter.Seq2[plugin.Artifact, error
 			}
 		}
 		if err != nil {
-			yield(plugin.Artifact{}, errors.Join(fmt.Errorf("clone %s: %w", repoURL, err), cleanup()))
+			yield(plugin.Artifact{}, errors.Join(fmt.Errorf("clone %s: %w", Redact(repoURL), err), cleanup()))
 			return
 		}
 		yield(plugin.Artifact{
 			Kind:  plugin.ArtifactDirectory,
 			Root:  os.DirFS(dir),
 			Path:  dir,
-			Label: s.opts.Target,
+			Label: Redact(s.opts.Target),
 			Key:   key,
 			Close: cleanup,
 		}, nil)
@@ -173,7 +173,7 @@ func Key(repoURL string) (string, error) {
 	if rest, ok := strings.CutPrefix(repoURL, "git@"); ok {
 		host, path, found := strings.Cut(rest, ":")
 		if !found {
-			return "", fmt.Errorf("bad repository URL %q", repoURL)
+			return "", fmt.Errorf("bad repository URL %q", Redact(repoURL))
 		}
 		return "git:" + strings.ToLower(host) + "/" + trimGit(path), nil
 	}
@@ -182,12 +182,31 @@ func Key(repoURL string) (string, error) {
 	}
 	u, err := url.Parse(repoURL)
 	if err != nil {
-		return "", fmt.Errorf("bad repository URL %q: %w", repoURL, err)
+		return "", fmt.Errorf("bad repository URL %q", Redact(repoURL))
 	}
 	if u.Host == "" {
-		return "", fmt.Errorf("bad repository URL %q", repoURL)
+		return "", fmt.Errorf("bad repository URL %q", Redact(repoURL))
 	}
 	return "git:" + strings.ToLower(u.Host) + "/" + trimGit(strings.TrimPrefix(u.Path, "/")), nil
+}
+
+// Redact removes the user name and the password from a repository URL, as
+// in https://x-access-token:TOKEN@github.com/org/repo. The report, the
+// state index and the messages hold the target, and a CI job keeps them as
+// artifacts.
+func Redact(target string) string {
+	scheme, rest, ok := strings.Cut(target, "://")
+	if !ok {
+		return target
+	}
+	authority, path, _ := strings.Cut(rest, "/")
+	if at := strings.LastIndex(authority, "@"); at >= 0 {
+		authority = authority[at+1:]
+	}
+	if path == "" && !strings.Contains(rest, "/") {
+		return scheme + "://" + authority
+	}
+	return scheme + "://" + authority + "/" + path
 }
 
 // LocalPath returns the path of a file:// URL. It takes a Windows path in

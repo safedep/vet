@@ -33,6 +33,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/policysources/file"
 	"github.com/safedep/vet/v2/internal/plugins/sinks"
 	"github.com/safedep/vet/v2/internal/plugins/sources"
+	"github.com/safedep/vet/v2/internal/plugins/sources/git"
 	"github.com/safedep/vet/v2/internal/policy"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/internal/tui"
@@ -178,7 +179,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 		if o.BaseRef != "" {
 			mode = report.ScanModeDelta
 		}
-		v := view.NewScan(view.Options{Target: o.Target, BaseRef: o.BaseRef, Animate: animate()})
+		v := view.NewScan(view.Options{Target: git.Redact(o.Target), BaseRef: o.BaseRef, Animate: animate()})
 		eo := engine.Options{
 			Store: store, Cache: cache, NoCacheRead: o.NoCache, Source: src,
 			Extractors: func(plugin.ArtifactKind) ([]plugin.Extractor, error) { return extractors.Default() },
