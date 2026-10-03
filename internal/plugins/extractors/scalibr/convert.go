@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"io/fs"
 	"maps"
+	"path/filepath"
 	"slices"
 	"strings"
 
 	"github.com/google/osv-scalibr/extractor"
 	"github.com/google/osv-scalibr/extractor/filesystem/osv"
 	"github.com/google/osv-scalibr/inventory"
+	"github.com/google/osv-scalibr/purl"
 
 	"github.com/safedep/vet/v2/model"
 )
@@ -68,6 +70,9 @@ func ToManifest(in Converted) (*model.Manifest, []error) {
 	seen := map[model.PackageID]*model.Package{}
 	hasEdges := false
 	for _, sp := range in.Inventory.Packages {
+		if localGoReplacement(sp) {
+			continue
+		}
 		p, err := toPackage(sp)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("%s: %w", in.Path, err))
@@ -129,6 +134,14 @@ func mainEcosystem(pkgs []*model.Package) model.Ecosystem {
 		}
 	}
 	return best
+}
+
+// localGoReplacement reports a go.mod replace target on the local disk, as
+// in replace example.com/x => ../x. It is code of the project, not a
+// module, and it has no PURL.
+func localGoReplacement(sp *extractor.Package) bool {
+	return sp.PURLType == purl.TypeGolang && sp.Version == "" &&
+		(strings.HasPrefix(sp.Name, ".") || strings.HasPrefix(sp.Name, "/") || filepath.IsAbs(sp.Name))
 }
 
 func toPackage(sp *extractor.Package) (*model.Package, error) {

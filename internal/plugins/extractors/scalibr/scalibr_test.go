@@ -135,3 +135,20 @@ func TestWorkflowWithNoAction(t *testing.T) {
 	require.Len(t, ms, 1)
 	assert.Empty(t, ms[0].Packages)
 }
+
+func TestGoLocalReplaceIsNotAPackage(t *testing.T) {
+	exs, err := SourceExtractors()
+	require.NoError(t, err)
+	ms, errs := ExtractFile(context.Background(), File{Root: "testdata/gomod-replace", Path: "go.mod"}, exs)
+	assert.Empty(t, errs, "a replace with a local path is project code, not an error")
+	require.Len(t, ms, 1)
+	var names []string
+	for _, p := range ms[0].Packages {
+		names = append(names, p.ID.QualifiedName()+"@"+p.ID.Version)
+	}
+	assert.Contains(t, names, "github.com/me/forked@1.0.1")
+	assert.NotContains(t, names, "../sdk@")
+	for _, n := range names {
+		assert.NotContains(t, n, "acme/sdk", "the local replacement drops the module")
+	}
+}
