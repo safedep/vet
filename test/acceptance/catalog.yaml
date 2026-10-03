@@ -428,6 +428,12 @@
   tier: P1
   guarantee: "vet policy init writes a starter policy that vet policy validate accepts and vet scan --policy applies."
   labels: [gate]
+- id: policy/name/config-dir
+  title: "a bare policy name finds the policy that init wrote"
+  category: policy
+  tier: P1
+  guarantee: "vet policy validate NAME, vet scan --policy NAME and vet report show --policy NAME read policies/NAME.yml in the config directory, which vet policy init writes. A file of that name in the current directory wins."
+  labels: [gate]
 - id: fix/github-actions/pins-by-sha
   title: "the fix pins actions by SHA"
   category: fix

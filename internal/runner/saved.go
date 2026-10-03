@@ -167,6 +167,7 @@ func Show(ctx context.Context, a *app.App, o ShowOptions) error {
 	if err != nil {
 		return err
 	}
+	settings.File = rt.ResolvePolicy(settings.File)
 	var extra map[string]map[string]any
 	if o.All {
 		extra = map[string]map[string]any{"table": {"all": true}}

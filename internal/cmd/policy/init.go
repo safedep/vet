@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/v2/internal/app"
+	vconfig "github.com/safedep/vet/v2/internal/config"
 	"github.com/safedep/vet/v2/internal/config/appdir"
 	"github.com/safedep/vet/v2/internal/tui"
 )
@@ -52,10 +51,11 @@ func newInit(a *app.App) *cobra.Command {
 		Use:   "init [NAME]",
 		Short: "Write a starter policy file",
 		Long: `Write a starter policy v2 file with rules for malware, critical
-vulnerabilities, risky workflows and fresh packages. A NAME with a .yml or
-.yaml extension, or with a directory, is a path. Another NAME, or no NAME,
-writes policies/NAME.yml in the vet config directory. The default NAME is
-"default". vet does not replace a file that exists unless --force is set.`,
+vulnerabilities, risky workflows and fresh packages. A NAME with an
+extension or a directory is a path. Another NAME writes policies/NAME.yml
+in the vet config directory, and --policy NAME then finds it. The default
+NAME is "default". vet does not replace a file that exists unless --force
+is set.`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			name := "default"
@@ -63,16 +63,15 @@ writes policies/NAME.yml in the vet config directory. The default NAME is
 				name = args[0]
 			}
 			path := name
-			if !isPath(name) {
+			if vconfig.IsPolicyName(name) {
 				rt, err := a.Config(app.ConfigOptions{})
 				if err != nil {
 					return err
 				}
-				dir := filepath.Join(rt.Dirs.Config, "policies")
-				if err := appdir.Ensure(dir); err != nil {
+				if err := appdir.Ensure(rt.PolicyDir()); err != nil {
 					return err
 				}
-				path = filepath.Join(dir, name+".yml")
+				path = rt.PolicyFile(name)
 			}
 			if _, err := os.Stat(path); err == nil && !force {
 				return app.UsageError(fmt.Sprintf("%s exists", path), "Pass --force to replace it, or name another file.")
@@ -82,15 +81,10 @@ writes policies/NAME.yml in the vet config directory. The default NAME is
 			if err := os.WriteFile(path, []byte(Starter), 0o600); err != nil {
 				return err
 			}
-			tui.Success("Wrote %s. vet scan --policy %s applies it.", path, path)
+			tui.Success("Wrote %s. vet scan --policy %s applies it.", path, name)
 			return nil
 		},
 	}
 	c.Flags().BoolVar(&force, "force", false, "Replace a file that exists")
 	return c
-}
-
-func isPath(name string) bool {
-	ext := strings.ToLower(filepath.Ext(name))
-	return ext == ".yml" || ext == ".yaml" || strings.ContainsAny(name, `/\`)
 }

@@ -20,8 +20,8 @@ optional expiry. vet scan --policy and vet report show --policy apply it.`,
 	}
 	control := &cobra.Command{
 		Use:   "control",
-		Short: "Read the controls that a policy names",
-		Long:  `Read the controls of vet: the ids that a rule or a suppression names.`,
+		Short: "Read the controls of vet",
+		Long:  `Read the controls of vet. A rule or a suppression of a policy names a control by its id.`,
 	}
 	control.AddCommand(newControlList(a))
 	schema := &cobra.Command{

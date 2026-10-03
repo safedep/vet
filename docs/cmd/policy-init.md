@@ -15,9 +15,9 @@ vulnerability and on a dangerous workflow trigger or a template injection, and w
 that the registry published in the last 5 days. Its suppression list is empty, with a commented
 example.
 
-A NAME with a `.yml` or `.yaml` extension, or with a directory, is a path, for example
-`vet-policy.yml` in a repository. Another NAME writes `policies/NAME.yml` in the vet config
-directory. The default NAME is `default`. vet does not replace a file that exists unless `--force`
+A NAME with an extension or a directory is a path, for example `vet-policy.yml` in a repository.
+Another NAME writes `policies/NAME.yml` in the vet config directory, and `--policy NAME` and
+`vet policy validate NAME` then find it. The default NAME is `default`. vet does not replace a file that exists unless `--force`
 is set.
 
 ## Examples
@@ -26,6 +26,7 @@ is set.
 vet policy init vet-policy.yml
 vet policy init strict
 vet scan . --policy vet-policy.yml
+vet scan . --policy strict
 ```
 
 ## Exit codes

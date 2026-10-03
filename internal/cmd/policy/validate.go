@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/v2/internal/app"
+	vconfig "github.com/safedep/vet/v2/internal/config"
 	"github.com/safedep/vet/v2/internal/plugins/policysources/file"
 	"github.com/safedep/vet/v2/internal/policy"
 	"github.com/safedep/vet/v2/internal/tui/printer"
@@ -18,23 +19,29 @@ type Result struct {
 
 func newValidate(a *app.App) *cobra.Command {
 	return &cobra.Command{
-		Use:   "validate [FILE]",
+		Use:   "validate [FILE|NAME]",
 		Short: "Check a policy file",
 		Long: `Check a policy v2 file, or each .yml and .yaml file of a directory: the
 version, each rule, its CEL condition and its action, and each
-suppression. The default is the file of the policy.file config key. vet
-lists every problem and exits 2. validate changes nothing.`,
+suppression. A NAME with no extension and no directory is
+policies/NAME.yml in the vet config directory, as vet policy init writes
+it. The default is the file of the policy.file config key. vet lists
+every problem and exits 2. validate changes nothing.`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			path := ""
 			if len(args) == 1 {
 				path = args[0]
-			} else {
+			}
+			if path == "" || vconfig.IsPolicyName(path) {
 				rt, err := a.Config(app.ConfigOptions{})
 				if err != nil {
 					return err
 				}
-				path = rt.Config.Policy.File
+				if path == "" {
+					path = rt.Config.Policy.File
+				}
+				path = rt.ResolvePolicy(path)
 			}
 			if path == "" {
 				return app.UsageError("no policy file to check", "Name a file, or set policy.file in the config file.")

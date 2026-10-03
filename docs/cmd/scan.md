@@ -5,7 +5,7 @@ Scan a project, a repository, an image, an SBOM or a package.
 ## Synopsis
 
 ```text
-vet scan [TARGET] [--base-ref REF] [--fail-on SEVERITY] [--policy FILE]
+vet scan [TARGET] [--base-ref REF] [--fail-on SEVERITY] [--policy FILE|NAME]
          [--report FORMAT=PATH]... [--strict] [--resume | --fresh] [--no-cache]
          [--exclude GLOB]... [--cooldown-days N]
          [--state-dir DIR] [--cache-dir DIR] [--ephemeral]
@@ -31,7 +31,9 @@ vet works with no credentials. `vet auth login` uses the API of your tenant.
 
 A plain scan reports and exits 0. `--fail-on` and `--policy` set a gate. The gate fails, and vet
 exits 1, when an unsuppressed finding is at the severity or above, or matches a fail rule of the
-policy. The `policy.fail_on` and `policy.file` config keys set the same gate for every run.
+policy. The `policy.fail_on` and `policy.file` config keys set the same gate for every run. A
+policy NAME with no extension and no directory is `policies/NAME.yml` in the vet config directory,
+as `vet policy init` writes it, unless the current directory has a file with that name.
 
 `--base-ref` compares the target with a git ref, for example `origin/main`. vet then checks only the
 packages and the workflows that the change adds or modifies, and reports only their findings. vet

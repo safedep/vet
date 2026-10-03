@@ -5,7 +5,7 @@ Render a saved report.
 ## Synopsis
 
 ```text
-vet report show [ID|FILE] [--fail-on SEVERITY] [--policy FILE] [--report FORMAT=PATH]...
+vet report show [ID|FILE] [--fail-on SEVERITY] [--policy FILE|NAME] [--report FORMAT=PATH]...
                 [--all] [--state-dir DIR]
                 [-o table|plain|json|jsonl|sarif|markdown|cyclonedx|gitlab|bitbucket]
 ```
@@ -27,7 +27,8 @@ The argument names another report:
 
 `--fail-on` and `--policy` apply a new gate to the saved report. This tests a policy against a scan
 before you use it in CI. The `policy.fail_on` and `policy.file` config keys apply too, as in
-`vet scan`. The saved scan does not change. The exit code follows the gate of the rendered report.
+`vet scan`. The saved scan does not change. The exit code follows the gate of the rendered report. `--policy` takes a
+file, a directory or a policy NAME, as in `vet scan`.
 
 The table shows the ten most severe rows. A row holds one finding, or the vulnerabilities of one
 package. `--all` shows each finding on its own row, with no row limit. The ID column holds a short id
@@ -40,6 +41,7 @@ vet report show
 vet report show last -o json
 vet report show 3f2a --report sarif=vet.sarif
 vet report show --policy vet-policy.yml
+vet report show --policy default
 vet report show vet.json -o markdown
 ```
 

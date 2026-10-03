@@ -30,7 +30,7 @@ follows the gate of the rendered report.`,
 	}
 	f := c.Flags()
 	f.StringVar(&o.FailOn, "fail-on", "", "Apply a gate that fails on a finding at this severity or above")
-	f.StringVar(&o.Policy, "policy", "", "Apply the gate and the suppressions of this policy v2 file")
+	f.StringVar(&o.Policy, "policy", "", "Apply this policy v2 file, directory or name")
 	f.StringArrayVar(&o.Reports, "report", nil, "Also write the report as FORMAT=PATH. Repeatable")
 	f.BoolVar(&o.All, "all", false, "Show each finding on its own row in the table, with no row limit")
 	f.StringVar(&o.State.StateDir, "state-dir", "", "Directory of the scan index and the scan files")

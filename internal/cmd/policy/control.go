@@ -8,6 +8,7 @@ import (
 	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/plugins/controls"
 	"github.com/safedep/vet/v2/internal/tui/printer"
+	"github.com/safedep/vet/v2/internal/tui/table"
 	"github.com/safedep/vet/v2/plugin"
 )
 
@@ -24,7 +25,7 @@ type Control struct {
 func newControlList(a *app.App) *cobra.Command {
 	return &cobra.Command{
 		Use:   "list",
-		Short: "List the controls and their default severities",
+		Short: "List the controls of vet and their default severities",
 		Long: `List each control id of vet, with the plugin that emits it, its family,
 its default severity and what it checks. A rule matches a control id, a
 suppression names one, and --fail-on uses the default severities. A
@@ -40,7 +41,10 @@ severity of its advisory.`,
 			if err != nil {
 				return err
 			}
-			rows := printer.Rows{Headers: []string{"CONTROL", "PLUGIN", "FAMILY", "SEVERITY", "TITLE"}}
+			rows := printer.Rows{
+				Headers: []string{"CONTROL", "PLUGIN", "FAMILY", "SEVERITY", "TITLE"},
+				Columns: []table.Column{{Fit: table.Keep}, {Drop: 1}, {Drop: 2}, {Fit: table.Keep}},
+			}
 			for _, c := range list {
 				rows.Rows = append(rows.Rows, []string{c.ID, c.Plugin, c.Family, c.Severity, c.Title})
 			}

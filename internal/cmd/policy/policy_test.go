@@ -27,9 +27,3 @@ func TestStarterNamesKnownControls(t *testing.T) {
 		assert.True(t, ids[id], "control %s is listed", id)
 	}
 }
-
-func TestIsPath(t *testing.T) {
-	for name, want := range map[string]bool{"default": false, "strict": false, "vet-policy.yml": true, "p.YAML": true, "dir/p": true} {
-		assert.Equal(t, want, isPath(name), name)
-	}
-}

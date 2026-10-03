@@ -145,6 +145,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 	if err != nil {
 		return err
 	}
+	gate.File = rt.ResolvePolicy(gate.File)
 	outs, err := Outputs(cfg, a.Globals.Output, o.Reports, nil)
 	if err != nil {
 		return err
