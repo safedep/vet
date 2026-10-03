@@ -1,5 +1,5 @@
 // Package table is the table format, the default in rich mode: the count
-// cards and the most severe findings. The step lines and the gate line go
+// cards, the most severe findings and the AI and crypto capabilities. The step lines and the gate line go
 // to stderr, so the table is the data part of the scan view.
 package table
 
@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -91,9 +92,18 @@ func (s Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 		return err
 	}
 
-	parts := []string{stat.Render(cards(t)...)}
+	caps, err := capabilities(ctx, r)
+	if err != nil {
+		return err
+	}
+
+	parts := []string{stat.Render(cards(t, caps)...)}
 	if shown == 0 {
-		parts = append(parts, style.Success(fmt.Sprintf("No findings. %d packages checked.", t.Summary.Packages)))
+		checked := "1 package"
+		if n := t.Summary.Packages; n != 1 {
+			checked = fmt.Sprintf("%d packages", n)
+		}
+		parts = append(parts, style.Success("No findings. "+checked+" checked."))
 	} else {
 		parts = append(parts, tbl.Render())
 	}
@@ -103,11 +113,86 @@ func (s Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 	if n := t.Summary.Suppressed; n > 0 {
 		parts = append(parts, section.Hint(fmt.Sprintf("%d suppressed (vet report show -o json)", n)))
 	}
+	if len(caps) > 0 {
+		parts = append(parts, s.capabilityTable(caps, delta)...)
+	}
 	_, err = io.WriteString(w, section.Join(parts...)+"\n")
 	return err
 }
 
-func cards(t *report.Trailer) []stat.Card {
+// capabilities returns the capabilities of the report in reader order.
+func capabilities(ctx context.Context, r plugin.Report) ([]*report.Capability, error) {
+	var out []*report.Capability
+	for c, err := range r.Capabilities(ctx) {
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, c)
+	}
+	slices.SortStableFunc(out, report.CompareCapabilities)
+	return out, nil
+}
+
+// capabilityTable renders the AI and crypto section: one row for each
+// capability, with the first call site.
+func (s Sink) capabilityTable(caps []*report.Capability, delta bool) []string {
+	headers := []string{"KIND"}
+	if delta {
+		headers = append(headers, "CHANGE")
+	}
+	tbl := table.New().Headers(append(headers, "CAPABILITY", "TAGS", "WHERE")...)
+	shown := caps
+	if s.limit > 0 && len(shown) > s.limit {
+		shown = shown[:s.limit]
+	}
+	for _, c := range shown {
+		row := []string{strings.ToUpper(string(c.Kind()))}
+		if delta {
+			row = append(row, strings.ToLower(string(c.Change)))
+		}
+		tbl.Row(append(row, render.Truncate(render.Text(c.Name()), 40), tags(c), CapabilityWhere(c))...)
+	}
+	parts := []string{style.Heading("AI and crypto"), tbl.Render()}
+	if more := len(caps) - len(shown); more > 0 {
+		parts = append(parts, section.Hint(fmt.Sprintf("%d more (vet report capability list)", more)))
+	}
+	return parts
+}
+
+// CapabilityWhere is file:line of the first call site, with the count of
+// the other call sites.
+func CapabilityWhere(c *report.Capability) string {
+	if len(c.Occurrences) == 0 {
+		return ""
+	}
+	o := c.Occurrences[0]
+	where := render.Text(o.File)
+	if o.Line > 0 {
+		where = fmt.Sprintf("%s:%d", where, o.Line)
+	}
+	if n := len(c.Occurrences) - 1; n > 0 {
+		where = fmt.Sprintf("%s (+%d)", where, n)
+	}
+	return where
+}
+
+// tags lists the tags other than the kind tag. The weak tag is a warning
+// badge, as a severity is.
+func tags(c *report.Capability) string {
+	var out []string
+	for _, t := range c.Tags {
+		switch t {
+		case report.TagAI, report.TagCrypto:
+		case report.TagWeak:
+			out = append(out, style.Badge(theme.RoleWarning, strings.ToUpper(t)))
+		default:
+			out = append(out, render.Text(t))
+		}
+	}
+	return strings.Join(out, ", ")
+}
+
+func cards(t *report.Trailer, caps []*report.Capability) []stat.Card {
 	sum := t.Summary
 	crit, high := theme.RoleError, theme.RoleWarning
 	cs := []stat.Card{
@@ -115,6 +200,21 @@ func cards(t *report.Trailer) []stat.Card {
 		{Label: "Findings", Value: strconv.Itoa(sum.Findings)},
 		{Label: "Critical", Value: strconv.Itoa(sum.BySeverity[finding.SeverityCritical]), Accent: &crit},
 		{Label: "High", Value: strconv.Itoa(sum.BySeverity[finding.SeverityHigh]), Accent: &high},
+	}
+	var ai, crypto int
+	for _, c := range caps {
+		switch c.Kind() {
+		case report.CapabilityAI:
+			ai++
+		case report.CapabilityCrypto:
+			crypto++
+		}
+	}
+	if ai > 0 {
+		cs = append(cs, stat.Card{Label: "AI", Value: strconv.Itoa(ai)})
+	}
+	if crypto > 0 {
+		cs = append(cs, stat.Card{Label: "Crypto", Value: strconv.Itoa(crypto)})
 	}
 	switch t.Gate.Outcome {
 	case report.GatePass:

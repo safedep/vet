@@ -1,6 +1,7 @@
 package report
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"slices"
@@ -136,6 +137,65 @@ type Capability struct {
 
 // HasTag reports whether the signature of the capability has a tag.
 func (c *Capability) HasTag(tag string) bool { return slices.Contains(c.Tags, tag) }
+
+// The signature tags that set the kind of a capability, and the tag of a
+// weak algorithm.
+const (
+	TagAI     = "ai"
+	TagCrypto = "cryptography"
+	TagWeak   = "weak"
+)
+
+// CapabilityKind groups the capabilities for a reader: the AI BOM, the
+// CBOM and the rest.
+type CapabilityKind string
+
+const (
+	CapabilityAI     CapabilityKind = "ai"
+	CapabilityCrypto CapabilityKind = "crypto"
+	CapabilityOther  CapabilityKind = "other"
+)
+
+// Name is the short name of the capability for a reader: the product and
+// the service, or the id.
+func (c *Capability) Name() string {
+	switch {
+	case c.Product == "":
+		return c.ID
+	case c.Service == "" || c.Service == c.Product:
+		return c.Product
+	}
+	return c.Product + " " + c.Service
+}
+
+// Kind returns the group of the capability, from its tags.
+func (c *Capability) Kind() CapabilityKind {
+	switch {
+	case c.HasTag(TagAI):
+		return CapabilityAI
+	case c.HasTag(TagCrypto):
+		return CapabilityCrypto
+	}
+	return CapabilityOther
+}
+
+// CompareCapabilities orders capabilities for a reader: AI first, then
+// weak crypto, then the other crypto, then the rest, each by id.
+func CompareCapabilities(a, b *Capability) int {
+	rank := func(c *Capability) int {
+		switch c.Kind() {
+		case CapabilityAI:
+			return 0
+		case CapabilityCrypto:
+			if c.HasTag(TagWeak) {
+				return 1
+			}
+			return 2
+		}
+		return 3
+	}
+	return cmp.Or(cmp.Compare(rank(a), rank(b)), cmp.Compare(a.ID, b.ID))
+}
 
 // Occurrence is one call in the source code that matches a signature.
 type Occurrence struct {

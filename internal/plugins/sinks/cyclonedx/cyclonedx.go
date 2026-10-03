@@ -164,7 +164,7 @@ var cryptoPrimitives = []cdx.CryptoPrimitive{
 // tag a certificate, a token tag a token, and a primitive tag an algorithm
 // of the family that the signature product names.
 func cryptoProperties(c *report.Capability) *cdx.CryptoProperties {
-	if !c.HasTag("cryptography") {
+	if !c.HasTag(report.TagCrypto) {
 		return nil
 	}
 	switch {

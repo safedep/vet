@@ -2,5 +2,16 @@ Packages: 2
 Findings: 0
 Critical: 0
 High: 0
+AI: 1
+Crypto: 1
 
 [OK] No findings. 2 packages checked.
+
+AI and crypto
+
+┌────────┬─────────────────────────────┬──────────────┬────────────────┐
+│ KIND   │ CAPABILITY                  │ TAGS         │ WHERE          │
+├────────┼─────────────────────────────┼──────────────┼────────────────┤
+│ AI     │ OpenAI SDK Chat Completions │ llm          │ src/chat.py:12 │
+│ CRYPTO │ MD5                         │ hash, [WEAK] │ src/cache.py:3 │
+└────────┴─────────────────────────────┴──────────────┴────────────────┘

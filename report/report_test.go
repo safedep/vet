@@ -2,6 +2,7 @@ package report
 
 import (
 	"encoding/json"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -85,4 +86,21 @@ func TestPackageEntryJSONFlattens(t *testing.T) {
 	var back PackageEntry
 	require.NoError(t, json.Unmarshal(b, &back))
 	assert.Equal(t, e, back)
+}
+
+func TestCompareCapabilitiesPutsAIThenWeakCryptoFirst(t *testing.T) {
+	caps := []*Capability{
+		{ID: "net.http", Tags: []string{"network"}},
+		{ID: "crypto.sha256", Tags: []string{TagCrypto, "hash"}},
+		{ID: "openai.client", Tags: []string{TagAI, "llm"}},
+		{ID: "crypto.md5", Tags: []string{TagCrypto, "hash", TagWeak}},
+		{ID: "anthropic.client", Tags: []string{TagAI, "llm"}},
+	}
+	slices.SortFunc(caps, CompareCapabilities)
+	var ids []string
+	for _, c := range caps {
+		ids = append(ids, c.ID)
+	}
+	assert.Equal(t, []string{"anthropic.client", "openai.client", "crypto.md5", "crypto.sha256", "net.http"}, ids)
+	assert.Equal(t, CapabilityOther, caps[4].Kind())
 }

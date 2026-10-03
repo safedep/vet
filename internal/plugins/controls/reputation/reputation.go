@@ -181,7 +181,7 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 var _ plugin.ApplicationControl = (*Control)(nil)
 
 // aiTag is the signature tag of an AI capability.
-const aiTag = "ai"
+const aiTag = report.TagAI
 
 // EvaluateApplication reports each AI capability that the change adds to the
 // code of the application. The codeusage enricher sets the change of a
