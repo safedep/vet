@@ -58,6 +58,10 @@ type Enricher struct {
 	// Local is an enricher that reads the target and calls no registry, so
 	// it also gets the packages with no version and the local packages.
 	Local bool
+	// SkipEmpty keeps a package with no data from the enricher out of the
+	// cache, so the next scan asks again. A malware verdict that is not
+	// ready yet must not hide the verdict for the whole TTL.
+	SkipEmpty bool
 }
 
 // Control is one control of a scan.

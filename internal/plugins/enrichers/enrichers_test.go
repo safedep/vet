@@ -152,3 +152,31 @@ func TestProbe(t *testing.T) {
 	assert.ErrorIs(t, got[insights.Name], plugin.ErrUnavailable)
 	assert.NoError(t, got[malysis.Name])
 }
+
+func TestThreatIntelCachesLessThanInsights(t *testing.T) {
+	s := startStub(t)
+	cases := []struct {
+		name        string
+		ttl         time.Duration
+		threatIntel time.Duration
+	}{
+		{"the default ttl", 24 * time.Hour, malysis.MaxTTL},
+		{"a short ttl", time.Hour, time.Hour},
+		{"no cache", 0, 0},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			set, err := Build(Options{CommunityURL: s.URL(), APIURL: s.URL(), Workers: 1, TTL: tc.ttl})
+			require.NoError(t, err)
+			t.Cleanup(func() { require.NoError(t, set.Close()) })
+			specs := map[string]Spec{}
+			for _, sp := range set.Specs {
+				specs[sp.Name] = sp
+			}
+			assert.Equal(t, tc.ttl, specs[insights.Name].TTL)
+			assert.False(t, specs[insights.Name].SkipEmpty, "a package with no insight stays cached")
+			assert.Equal(t, tc.threatIntel, specs[malysis.Name].TTL)
+			assert.True(t, specs[malysis.Name].SkipEmpty, "a missing verdict is not cached")
+		})
+	}
+}

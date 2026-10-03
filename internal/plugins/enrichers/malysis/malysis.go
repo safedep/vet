@@ -5,6 +5,7 @@ package malysis
 import (
 	"context"
 	"strings"
+	"time"
 
 	malysisv1grpc "buf.build/gen/go/safedep/api/grpc/go/safedep/services/malysis/v1/malysisv1grpc"
 	malysismsg "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
@@ -19,6 +20,11 @@ const Name = "malysis"
 
 // Version changes when the mapping changes, so the cache drops old results.
 const Version = "2"
+
+// MaxTTL caps the cache time of a verdict. A verdict changes faster than
+// vulnerability data: an analysis completes hours after a version is
+// published, and a verification confirms or clears it later.
+const MaxTTL = 6 * time.Hour
 
 // ReportURL is the public page of an analysis.
 const ReportURL = "https://app.safedep.io/community/malysis/"

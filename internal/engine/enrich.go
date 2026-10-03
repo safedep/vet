@@ -116,10 +116,13 @@ func (r *run) enrichBatch(ctx context.Context, e Enricher, batch []*model.Packag
 		fresh = append(fresh, state.EnrichmentResult{Package: p, Enricher: e.Name, Status: status})
 	}
 	if useCache {
-		own := make([]state.EnrichmentResult, len(fresh))
+		own := make([]state.EnrichmentResult, 0, len(fresh))
 		for i, res := range fresh {
-			own[i] = res
-			own[i].Package = ownData(res.Package, before[i])
+			res.Package = ownData(res.Package, before[i])
+			if e.SkipEmpty && res.Package.Insight == nil && res.Package.Malware == nil && res.Package.Usage == nil {
+				continue
+			}
+			own = append(own, res)
 		}
 		if err := r.o.Cache.Put(ctx, e.Version, e.TTL, own); err != nil {
 			return nil, err

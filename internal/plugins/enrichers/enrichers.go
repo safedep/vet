@@ -48,6 +48,8 @@ type Spec struct {
 	Plugin  plugin.Enricher
 	// Local is an enricher that calls no service. Probe skips it.
 	Local bool
+	// SkipEmpty keeps a package with no data out of the cache.
+	SkipEmpty bool
 }
 
 // Set is the enrichers and the connections they hold.
@@ -83,7 +85,10 @@ func Build(o Options) (*Set, error) {
 	set := &Set{
 		Specs: []Spec{
 			{Name: insights.Name, Version: insights.Version, TTL: o.TTL, Plugin: insights.New(insightsv2grpc.NewInsightServiceClient(conn), o.Workers)},
-			{Name: malysis.Name, Version: malysis.Version, TTL: o.TTL, Plugin: malysis.New(malysisv1grpc.NewMalwareAnalysisServiceClient(conn), o.Workers)},
+			{
+				Name: malysis.Name, Version: malysis.Version, TTL: min(o.TTL, malysis.MaxTTL), SkipEmpty: true,
+				Plugin: malysis.New(malysisv1grpc.NewMalwareAnalysisServiceClient(conn), o.Workers),
+			},
 		},
 		conns: []*grpc.ClientConn{conn},
 	}

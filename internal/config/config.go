@@ -59,9 +59,11 @@ type RetentionConfig struct {
 
 // CacheConfig sets the enrichment cache.
 type CacheConfig struct {
-	Dir     string   `yaml:"dir" json:"dir"`
-	Enabled bool     `yaml:"enabled" json:"enabled"`
-	TTL     Duration `yaml:"ttl" json:"ttl"`
+	Dir     string `yaml:"dir" json:"dir"`
+	Enabled bool   `yaml:"enabled" json:"enabled"`
+	// TTL is how long vet keeps an enrichment. A malware verdict stays at
+	// most 6h, and a package with no verdict yet is not cached.
+	TTL Duration `yaml:"ttl" json:"ttl"`
 }
 
 // CloudConfig sets the SafeDep profile and the service addresses.

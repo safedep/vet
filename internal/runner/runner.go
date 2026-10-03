@@ -80,7 +80,7 @@ func (o *Options) RegisterFlags(c *cobra.Command) {
 	f.BoolVar(&o.Strict, "strict", false, "Exit with code 3 when a diagnostic exists, for example when a backend did not answer")
 	f.BoolVar(&o.Resume, "resume", false, "Continue the stopped scan of the target, however old it is")
 	f.BoolVar(&o.Fresh, "fresh", false, "Start a new scan, and do not continue a stopped one")
-	f.BoolVar(&o.NoCache, "no-cache", false, "Do not read or write the enrichment cache")
+	f.BoolVar(&o.NoCache, "no-cache", false, "Ignore the cached enrichments, and refresh the cache with new results")
 	f.IntVar(&o.CooldownDays, "cooldown-days", 0, "Cooldown window in days. Sets plugins.dependency-cooldown.options.days")
 	o.State.Register(f)
 	c.MarkFlagsMutuallyExclusive("resume", "fresh")
@@ -428,7 +428,10 @@ func enricherIDs(set *enrichers.Set) []string {
 func enricherSpecs(set *enrichers.Set) []engine.Enricher {
 	out := make([]engine.Enricher, 0, len(set.Specs))
 	for _, s := range set.Specs {
-		out = append(out, engine.Enricher{Name: s.Name, Version: s.Version, TTL: s.TTL, Plugin: s.Plugin, Prior: s.Name == insights.Name, Local: s.Local})
+		out = append(out, engine.Enricher{
+			Name: s.Name, Version: s.Version, TTL: s.TTL, Plugin: s.Plugin,
+			Prior: s.Name == insights.Name, Local: s.Local, SkipEmpty: s.SkipEmpty,
+		})
 	}
 	return out
 }

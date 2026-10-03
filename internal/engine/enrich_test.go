@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -75,5 +76,46 @@ func TestCacheKeepsOnlyTheEnricherData(t *testing.T) {
 		assert.Equal(t, "new", p.Insight.LatestVersion, "a malysis cache hit does not put back the old insight of %s", p.ID)
 		require.NotNil(t, p.Malware, p.ID.String())
 		assert.Equal(t, "verdict", p.Malware.Summary)
+	}
+}
+
+// countEnricher counts its calls and sets no data, as a backend that has
+// no result yet.
+type countEnricher struct{ calls *atomic.Int32 }
+
+func (e countEnricher) Enrich(_ context.Context, pkgs []*model.Package) error {
+	e.calls.Add(int32(len(pkgs)))
+	return nil
+}
+
+func TestCacheSkipsEmptyResultsOnlyWhenAsked(t *testing.T) {
+	f := newFixture(t)
+	dir := project(t)
+	for _, tc := range []struct {
+		name      string
+		skipEmpty bool
+		secondRun bool
+	}{
+		{"an empty insight stays cached", false, false},
+		{"an empty verdict asks again", true, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			calls := &atomic.Int32{}
+			opts := func() Options {
+				o := f.options(t, dir, nil)
+				o.Enrichers = []Enricher{{Name: tc.name, Version: "1", TTL: time.Hour, SkipEmpty: tc.skipEmpty, Plugin: countEnricher{calls}}}
+				o.Fresh = true
+				return o
+			}
+			runScan(t, opts())
+			first := calls.Load()
+			require.Positive(t, first)
+			runScan(t, opts())
+			if tc.secondRun {
+				assert.Equal(t, 2*first, calls.Load(), "the second scan asks for each package again")
+			} else {
+				assert.Equal(t, first, calls.Load(), "the second scan reads the cache")
+			}
+		})
 	}
 }
