@@ -332,6 +332,12 @@
   tier: P1
   guarantee: "vet scan reads a CycloneDX and an SPDX file."
   labels: [scan]
+- id: scan/formats/terraform-lockfile
+  title: "formats: Terraform lock file"
+  category: scan
+  tier: P1
+  guarantee: "vet scan reads the providers of a .terraform.lock.hcl file as packages of the terraform ecosystem, with the provider address as the name and the line of each provider block."
+  labels: [scan]
 - id: scan/sources/image
   title: "sources: image"
   category: scan

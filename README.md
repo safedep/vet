@@ -84,8 +84,8 @@ vet needs no account. With no credentials, vet uses the community endpoints of S
 | One package | `vet scan pkg:npm/express@4.19.2` |
 
 vet reads the lockfiles and manifests of npm, PyPI, Go, Maven, Gradle, Cargo, RubyGems, NuGet,
-Packagist, Pub and more, and the GitHub Actions workflows of the target. It does not install or
-run any of them.
+Packagist, Pub and more, the Terraform providers of `.terraform.lock.hcl`, and the GitHub Actions
+workflows of the target. It does not install or run any of them.
 
 ## Controls
 
