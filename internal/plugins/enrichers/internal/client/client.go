@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
@@ -98,6 +99,45 @@ func Unavailable(err error) bool {
 	return errors.Is(err, context.DeadlineExceeded)
 }
 
+// packageError is the error of a backend call for one package. A person
+// reads it as a diagnostic, so a gRPC error gets a short text in place of
+// the status dump.
+type packageError struct {
+	ID  model.PackageID
+	Err error
+}
+
+func (e *packageError) Error() string {
+	s, ok := status.FromError(e.Err)
+	if !ok {
+		return fmt.Sprintf("%s: %v", e.ID, e.Err)
+	}
+	return fmt.Sprintf("The backend did not answer for %s (%s).", e.ID, codeText(s.Code()))
+}
+
+func (e *packageError) Unwrap() error { return e.Err }
+
+var codeTexts = map[codes.Code]string{
+	codes.Canceled:           "cancelled",
+	codes.Unknown:            "unknown error",
+	codes.InvalidArgument:    "invalid request",
+	codes.AlreadyExists:      "conflict",
+	codes.PermissionDenied:   "permission denied",
+	codes.FailedPrecondition: "invalid request",
+	codes.OutOfRange:         "invalid request",
+	codes.Unimplemented:      "not supported",
+	codes.Internal:           "internal error",
+	codes.DataLoss:           "internal error",
+	codes.Unauthenticated:    "API key not accepted",
+}
+
+func codeText(c codes.Code) string {
+	if t, ok := codeTexts[c]; ok {
+		return t
+	}
+	return strings.ToLower(c.String())
+}
+
 // Each calls fn for each package with at most workers calls at once. A
 // NotFound answer and a package with no API ecosystem are no data. When the
 // backend does not answer, Each returns an error that wraps
@@ -132,7 +172,7 @@ func Each(ctx context.Context, workers int, pkgs []*model.Package, fn func(conte
 				return
 			}
 			if firstErr == nil {
-				firstErr = fmt.Errorf("%s: %w", p.ID, err)
+				firstErr = &packageError{ID: p.ID, Err: err}
 			}
 		}()
 	}
