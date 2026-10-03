@@ -42,7 +42,11 @@ func (v *Scan) next(h *report.Header, t *report.Trailer, s Summary) {
 	if !v.o.Saved {
 		v.line(section.Hint("Full list: " + fullList(h.Scan.ID)))
 	}
-	v.line(section.Hint("One finding: vet report finding show " + top[0].ID))
+	ids := make([]string, len(findings))
+	for i, f := range findings {
+		ids[i] = f.ID
+	}
+	v.line(section.Hint("One finding: vet report finding show " + report.ShortID(top[0].ID, report.ShortIDLength(ids))))
 }
 
 // fixText names the upgrades that fix the findings, the most severe

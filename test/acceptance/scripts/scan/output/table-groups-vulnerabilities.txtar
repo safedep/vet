@@ -7,7 +7,7 @@ stdout '\[CRITICAL\] │ f-[0-9a-f]{8} │ npm/minimist@1\.2\.0'
 stdout '1 critical, 1 medium'
 stdout -count=1 'npm/minimist@1\.2\.0'
 stdout '2 vulnerabilities in 1 package\. vet report show --all lists each finding\.'
-stdout 'Details: vet report finding show ID'
+! stdout 'Details:'
 capture ID '\[CRITICAL\] │ (f-[0-9a-f]+) │'
 
 exec vet report finding show $ID --mode plain -o plain

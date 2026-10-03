@@ -41,9 +41,6 @@ const wideWidth = 110
 // leave less room, the table also cuts them.
 const minTextWidth = 16
 
-// minIDLength is the length of a short finding id: "f-" and 8 hex digits.
-const minIDLength = 10
-
 // Options are the options of the table format.
 type Options struct {
 	// All shows every finding on its own row, with no limit.
@@ -84,6 +81,12 @@ type row []*finding.Finding
 func (s Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 	h, t := r.Header(), r.Trailer()
 	delta := h.Scan.Mode == report.ScanModeDelta
+	if sum := t.Summary; sum.Manifests == 0 && sum.Packages == 0 && sum.Findings == 0 && sum.Capabilities == 0 {
+		// A scan that read nothing has nothing to count. The scan view
+		// warns that it found no manifest, so zero cards and "No
+		// findings" do not read as a clean result.
+		return nil
+	}
 
 	var open []*finding.Finding
 	var ids []string
@@ -112,7 +115,7 @@ func (s Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 	if len(shown) == 0 {
 		parts = append(parts, style.Success("No findings. "+plural(t.Summary.Packages, "package", "packages")+" checked."))
 	} else {
-		parts = append(parts, findingTable(shown, idLength(ids), delta, output.Width()))
+		parts = append(parts, findingTable(shown, report.ShortIDLength(ids), delta, output.Width()))
 	}
 	if hints := findingHints(len(open), rows, len(shown), t.Summary.Suppressed); len(hints) > 0 {
 		parts = append(parts, strings.Join(hints, "\n"))
@@ -248,22 +251,6 @@ func (r row) fix() string {
 	return fix
 }
 
-// idLength is the length of the shortest prefix that tells each finding id
-// apart from the others, and at least minIDLength.
-func idLength(ids []string) int {
-	slices.Sort(ids)
-	n := minIDLength
-	for i := 1; i < len(ids); i++ {
-		a, b := ids[i-1], ids[i]
-		common := 0
-		for common < min(len(a), len(b)) && a[common] == b[common] {
-			common++
-		}
-		n = max(n, common+1)
-	}
-	return n
-}
-
 // findingHints says what the table leaves out, and where to read it.
 func findingHints(findings int, rows []row, shown, suppressed int) []string {
 	const all = "vet report show --all lists each finding."
@@ -282,9 +269,6 @@ func findingHints(findings int, rows []row, shown, suppressed int) []string {
 		hints = append(hints, "1 suppressed finding. vet report show -o json lists it.")
 	case suppressed > 1:
 		hints = append(hints, fmt.Sprintf("%d suppressed findings. vet report show -o json lists them.", suppressed))
-	}
-	if shown > 0 {
-		hints = append(hints, "Details: vet report finding show ID")
 	}
 	for i, h := range hints {
 		hints[i] = section.Hint(h)

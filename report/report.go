@@ -138,6 +138,30 @@ type Capability struct {
 // HasTag reports whether the signature of the capability has a tag.
 func (c *Capability) HasTag(tag string) bool { return slices.Contains(c.Tags, tag) }
 
+// minShortID is the length of a short finding id: "f-" and 8 hex digits.
+const minShortID = 10
+
+// ShortIDLength is the length of the shortest prefix that tells each
+// finding id apart from the others, and at least ten characters. vet
+// report finding show accepts the prefix.
+func ShortIDLength(ids []string) int {
+	sorted := slices.Clone(ids)
+	slices.Sort(sorted)
+	n := minShortID
+	for i := 1; i < len(sorted); i++ {
+		a, b := sorted[i-1], sorted[i]
+		common := 0
+		for common < min(len(a), len(b)) && a[common] == b[common] {
+			common++
+		}
+		n = max(n, common+1)
+	}
+	return n
+}
+
+// ShortID cuts id to n characters.
+func ShortID(id string, n int) string { return id[:min(n, len(id))] }
+
 // The signature tags that set the kind of a capability, and the tag of a
 // weak algorithm.
 const (

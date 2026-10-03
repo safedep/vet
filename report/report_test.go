@@ -104,3 +104,20 @@ func TestCompareCapabilitiesPutsAIThenWeakCryptoFirst(t *testing.T) {
 	assert.Equal(t, []string{"anthropic.client", "openai.client", "crypto.md5", "crypto.sha256", "net.http"}, ids)
 	assert.Equal(t, CapabilityOther, caps[4].Kind())
 }
+
+func TestShortIDTellsTheFindingsApart(t *testing.T) {
+	cases := []struct {
+		name string
+		ids  []string
+		want int
+	}{
+		{name: "distinct", ids: []string{"f-1111111111111111", "f-2222222222222222"}, want: minShortID},
+		{name: "shared prefix", ids: []string{"f-1234567890abcdef", "f-1234567890abffff", "f-9999999999999999"}, want: 15},
+		{name: "one", ids: []string{"f-1111111111111111"}, want: minShortID},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, ShortIDLength(tc.ids))
+		})
+	}
+}

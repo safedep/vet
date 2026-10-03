@@ -6,5 +6,8 @@ exec vet scan . --mode plain -o plain
 stderr '^\[WARN\] vet found no manifest in .*empty$'
 stderr 'vet reads lockfiles'
 
+exec vet scan . --mode plain -o table
+! stdout 'No findings'
+
 exec vet scan . --mode agent -o json
 stderr '^WARN: no manifest found target='

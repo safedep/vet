@@ -1,4 +1,4 @@
 ⚠ insights: 2 packages have no data (2 times)
 ✗ Gate failed: 2 findings at high or above (--fail-on high)
 › Fix: upgrade left-pad to 1.3.1
-› One finding: vet report finding show f-478cf580259c82ac
+› One finding: vet report finding show f-478cf580

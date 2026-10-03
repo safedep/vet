@@ -79,7 +79,7 @@ func rowsOf(out string) []string {
 	return rows
 }
 
-func short(f *finding.Finding) string { return f.ID[:minIDLength] }
+func short(f *finding.Finding) string { return report.ShortID(f.ID, 10) }
 
 func TestGroupsTheVulnerabilitiesOfAPackage(t *testing.T) {
 	withWidth(t, 160)
@@ -91,7 +91,7 @@ func TestGroupsTheVulnerabilitiesOfAPackage(t *testing.T) {
 		"[INFO] " + short(r.FindingList[5]) + " scorecard-low pypi/django@2.2.0 Low OpenSSF Scorecard requirements.txt:2",
 	}, rowsOf(got))
 	assert.Contains(t, got, "› 5 vulnerabilities in 2 packages. vet report show --all lists each finding.")
-	assert.Contains(t, got, "› Details: vet report finding show ID")
+	assert.NotContains(t, got, "Details:", "the scan view names the finding show command")
 }
 
 func TestAllListsEachFinding(t *testing.T) {
@@ -215,23 +215,6 @@ func TestColumnsFollowTheWidth(t *testing.T) {
 	}
 }
 
-func TestShortIDTellsTheFindingsApart(t *testing.T) {
-	cases := []struct {
-		name string
-		ids  []string
-		want int
-	}{
-		{name: "distinct", ids: []string{"f-1111111111111111", "f-2222222222222222"}, want: minIDLength},
-		{name: "shared prefix", ids: []string{"f-1234567890abcdef", "f-1234567890abffff", "f-9999999999999999"}, want: 15},
-		{name: "one", ids: []string{"f-1111111111111111"}, want: minIDLength},
-	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, idLength(tc.ids))
-		})
-	}
-}
-
 func TestBadgeRoles(t *testing.T) {
 	assert.Equal(t, map[finding.Severity]theme.Role{
 		finding.SeverityCritical: theme.RoleCritical,
@@ -309,4 +292,12 @@ func TestCapabilityWhereCountsTheOtherCalls(t *testing.T) {
 	c := &report.Capability{Occurrences: []report.Occurrence{{File: "a.py", Line: 3}, {File: "b.py", Line: 9}, {File: "c.py"}}}
 	assert.Equal(t, "a.py:3 (+2)", CapabilityWhere(c))
 	assert.Empty(t, CapabilityWhere(&report.Capability{}))
+}
+
+func TestEmptyScanWritesNothing(t *testing.T) {
+	s, err := New(plugin.MapConfig(nil))
+	require.NoError(t, err)
+	r := plugintest.SampleReport()
+	r.ManifestList, r.FindingList, r.CapabilityList, r.InventoryList = nil, nil, nil, nil
+	assert.Empty(t, string(plugintest.TestSink(t, s, r)))
 }
