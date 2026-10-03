@@ -1,0 +1,63 @@
+name: vet exceptions
+description: |
+  The packages that the policy flags and that vet accepts. safedep/dry and
+  safedep/code are SafeDep libraries with few GitHub stars. The other
+  packages come in through osv-scalibr and go-git, and the low-popularity
+  or no-maintenance check flags them. Review each one when it expires.
+exceptions:
+  - ecosystem: Go
+    name: github.com/safedep/dry
+    version: '*'
+    expires: 2027-10-03T00:00:00Z
+  - ecosystem: Go
+    name: github.com/safedep/code
+    version: '*'
+    expires: 2027-10-03T00:00:00Z
+  - ecosystem: Go
+    name: github.com/ayoubfaouzi/pkcs7
+    version: '*'
+    expires: 2027-04-03T00:00:00Z
+  - ecosystem: Go
+    name: github.com/canonical/chisel-manifest
+    version: '*'
+    expires: 2027-04-03T00:00:00Z
+  - ecosystem: Go
+    name: github.com/emirpasic/gods
+    version: '*'
+    expires: 2027-04-03T00:00:00Z
+  - ecosystem: Go
+    name: github.com/kevinburke/ssh_config
+    version: '*'
+    expires: 2027-04-03T00:00:00Z
+  - ecosystem: Go
+    name: github.com/masahiro331/go-ext4-filesystem
+    version: '*'
+    expires: 2027-04-03T00:00:00Z
+  - ecosystem: Go
+    name: github.com/saferwall/pe
+    version: '*'
+    expires: 2027-04-03T00:00:00Z
+  - ecosystem: Go
+    name: github.com/sergi/go-diff
+    version: '*'
+    expires: 2027-04-03T00:00:00Z
+  - ecosystem: Go
+    name: github.com/tidwall/gjson
+    version: '*'
+    expires: 2027-04-03T00:00:00Z
+  - ecosystem: Go
+    name: github.com/tidwall/jsonc
+    version: '*'
+    expires: 2027-04-03T00:00:00Z
+  - ecosystem: Go
+    name: github.com/vbatts/tar-split
+    version: '*'
+    expires: 2027-04-03T00:00:00Z
+  - ecosystem: Go
+    name: github.com/xanzy/ssh-agent
+    version: '*'
+    expires: 2027-04-03T00:00:00Z
+  - ecosystem: Go
+    name: github.com/xeipuuv/gojsonpointer
+    version: '*'
+    expires: 2027-04-03T00:00:00Z

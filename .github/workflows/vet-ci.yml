@@ -37,6 +37,7 @@ jobs:
         uses: safedep/vet-action@01f547ee95dfd4f8f11fa64b399e5e00f22b0801
         with:
           policy: .github/vet/policy.yml
+          exception-file: .github/vet/exceptions.yml
           cloud: ${{ env.SAFEDEP_CLOUD_MODE }}
           cloud-key: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
           cloud-tenant: ${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }}
