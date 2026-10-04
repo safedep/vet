@@ -65,8 +65,8 @@ jobs:
           fi
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
-      # Control Tower runs vet from the digest of the latest image. The verify
-      # job fails when the release changes it or the latest GitHub release.
+      # Users of vet v1 pin the latest image and the latest GitHub release. The
+      # verify job fails when the release changes either of them.
       - name: Record the v1 channels
         id: before
         env:
@@ -153,7 +153,7 @@ jobs:
             exit 1
           fi
           if [ "$image" != "$LATEST_IMAGE" ]; then
-            echo "::error::The digest of the latest image changed. Control Tower runs this image."
+            echo "::error::The digest of the latest image changed. Users of vet v1 run this image."
             exit 1
           fi
 

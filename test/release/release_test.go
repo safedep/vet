@@ -1,7 +1,7 @@
 // Package release_test checks the rules that keep a vet v2 build out of the
-// release channels of vet v1. Control Tower runs vet from the latest
-// container image, and the vet-action, the Homebrew formula and mise read
-// the latest GitHub release.
+// release channels of vet v1. Users of v1 run the latest container image,
+// and the vet-action, the Homebrew formula and mise read the latest GitHub
+// release.
 package release_test
 
 import (
