@@ -50,6 +50,6 @@ func SampleReport() *MemState {
 			Service: "Chat Completions", Tags: []string{"ai", "llm"},
 			Occurrences: []report.Occurrence{{File: "src/chat.py", Line: 12, Column: 5, Language: "python", Callee: "openai//OpenAI"}},
 		}},
-		DiagnosticList: []*report.Diagnostic{{Level: report.DiagnosticWarning, Code: "enrichment_unavailable", Component: "insights", Message: "2 packages have no data", Count: 2}},
+		DiagnosticList: []*report.Diagnostic{{Level: report.DiagnosticWarning, Code: "enrich_unavailable", Component: "insights", Message: "2 packages have no data", Count: 2}},
 	}
 }

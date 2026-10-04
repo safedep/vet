@@ -28,6 +28,21 @@ const (
 	Instructions Type = "instructions"
 )
 
+// HomeFiles are the agent and editor files that a home directory can hold,
+// by slash path relative to the home directory. Classify knows the type of
+// each one.
+var HomeFiles = []string{
+	".vscode/tasks.json",
+	".claude/settings.json",
+	".claude/settings.local.json",
+	".claude/CLAUDE.md",
+	".mcp.json",
+	".cursor/mcp.json",
+	".vscode/mcp.json",
+	".codeium/windsurf/mcp_config.json",
+	".gemini/settings.json",
+}
+
 var instructionFiles = map[string]bool{
 	"claude.md": true, "agents.md": true, "gemini.md": true,
 	".cursorrules": true, ".windsurfrules": true, ".clinerules": true,

@@ -21,6 +21,7 @@ import (
 
 	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 	"github.com/safedep/vet/v2/internal/endpoint/inventory/scanners"
+	"github.com/safedep/vet/v2/internal/plugins/internal/agentfiles"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 )
@@ -113,7 +114,7 @@ func (s *Source) artifact(ctx context.Context) (plugin.Artifact, error) {
 				a.Manifests = mergeManifest(a.Manifests, m)
 			}
 		}
-		for _, f := range AgentConfigFiles {
+		for _, f := range agentfiles.HomeFiles {
 			files[filepath.Join(home, filepath.FromSlash(f))] = true
 		}
 		a.Manifests = append(a.Manifests, globalPackages(userGlobalRoots(home))...)
@@ -169,21 +170,6 @@ func (s *Source) inventory(ctx context.Context, home string) ([]*inventory.Item,
 		}
 	}
 	return out, nil
-}
-
-// AgentConfigFiles are the files under a home directory that make an
-// editor or a coding agent run commands. The agent configuration control
-// reads them.
-var AgentConfigFiles = []string{
-	".vscode/tasks.json",
-	".claude/settings.json",
-	".claude/settings.local.json",
-	".claude/CLAUDE.md",
-	".mcp.json",
-	".cursor/mcp.json",
-	".vscode/mcp.json",
-	".codeium/windsurf/mcp_config.json",
-	".gemini/settings.json",
 }
 
 // configFile returns the config file of an item that the controls read:
