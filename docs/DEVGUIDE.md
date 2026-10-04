@@ -93,8 +93,9 @@ The allowed verbs:
   `docs/cmd/scan.md`, `docs/cmd/doctor.md` and `docs/cmd/version.md`.
 - Each page has a leaf. A renamed command does not leave its old page behind. **(lint)**
 - A person writes each page. vet does not generate pages.
-- The README has one short section for each top-level noun, then the full reference table. The
-  table links every page. **(lint)** The rows follow the order of the tree.
+- The command index `docs/cmd/README.md` has one table row for each leaf. The table links every
+  page. **(lint)** The rows follow the order of the tree. The root `README.md` links the index
+  **(lint)** and lists no commands.
 
 ### Page template
 
@@ -145,6 +146,6 @@ vet <path> ...
 2. Pick the verb from `verbs.go`.
 3. Write `Short` and `Long`.
 4. Write the page from the template.
-5. Add the README row in tree order.
+5. Add the row to `docs/cmd/README.md` in tree order.
 6. For a new user-facing guarantee, add an acceptance script and its catalog row.
 7. Run `go test ./internal/cmd/`, then `make check` before the push.

@@ -160,14 +160,23 @@ func TestConventions_LeafDocPagesExist(t *testing.T) {
 	}
 }
 
+// commandIndex is the page in docs/cmd that links every command page.
+const commandIndex = "README.md"
+
+// commandPages returns the command pages of docs/cmd, with no index.
+func commandPages(t *testing.T) []string {
+	t.Helper()
+	pages, err := filepath.Glob(filepath.Join(repoRoot(t), "docs", "cmd", "*.md"))
+	require.NoError(t, err)
+	return slices.DeleteFunc(pages, func(p string) bool { return filepath.Base(p) == commandIndex })
+}
+
 func TestConventions_NoOrphanDocPages(t *testing.T) {
 	want := map[string]bool{}
 	for path := range leaves(t) {
 		want[filepath.Base(docPage(t, path))] = true
 	}
-	pages, err := filepath.Glob(filepath.Join(repoRoot(t), "docs", "cmd", "*.md"))
-	require.NoError(t, err)
-	for _, p := range pages {
+	for _, p := range commandPages(t) {
 		assert.True(t, want[filepath.Base(p)], "page %s has no leaf command", filepath.Base(p))
 	}
 }
@@ -198,15 +207,17 @@ func TestConventions_DocPageNamesEveryFlag(t *testing.T) {
 	}
 }
 
-func TestConventions_ReadmeLinksAllDocPages(t *testing.T) {
+func TestConventions_IndexLinksAllDocPages(t *testing.T) {
+	index, err := os.ReadFile(filepath.Join(repoRoot(t), "docs", "cmd", commandIndex))
+	require.NoError(t, err)
+	for _, p := range commandPages(t) {
+		link := filepath.Base(p)
+		assert.Contains(t, string(index), "("+link+")", "docs/cmd/%s does not link %s", commandIndex, link)
+	}
+
 	readme, err := os.ReadFile(filepath.Join(repoRoot(t), "README.md"))
 	require.NoError(t, err)
-	pages, err := filepath.Glob(filepath.Join(repoRoot(t), "docs", "cmd", "*.md"))
-	require.NoError(t, err)
-	for _, p := range pages {
-		link := "docs/cmd/" + filepath.Base(p)
-		assert.Contains(t, string(readme), "("+link+")", "README.md does not link %s", link)
-	}
+	assert.Contains(t, string(readme), "(docs/cmd/"+commandIndex+")", "README.md does not link the command index")
 }
 
 func TestConventions_NoCrossCmdImports(t *testing.T) {

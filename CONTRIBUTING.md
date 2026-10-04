@@ -40,13 +40,11 @@ When contributing changes to repository, follow these steps:
 
 ### Install Dependencies
 
-- Install [ASDF](https://asdf-vm.com/)
-- Install the development tools
+- Install [mise](https://mise.jdx.dev/)
+- Install the development tools. mise reads their versions from `.tool-versions`.
 
 ```bash
-asdf plugin add golang
-asdf plugin add gitleaks
-asdf install
+mise install
 ```
 
 - Install git hooks (using Go toolchain)
@@ -67,9 +65,9 @@ go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0
 make
 ```
 
-`cmd/vet` needs no CGO. `CGO_ENABLED=0 go build ./cmd/vet` builds it for any platform. The
-`codeusage` enricher parses source files with tree-sitter, which needs CGO: a build with CGO has
-code analysis, and a static build reports it unavailable.
+The release builds use CGO. The `codeusage` enricher parses source files with tree-sitter, and
+tree-sitter needs CGO. `CGO_ENABLED=0 go build ./cmd/vet` also works. That build records a
+diagnostic and scans with no code usage.
 
 ### Format Code
 
