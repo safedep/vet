@@ -150,3 +150,16 @@ func TestAICapabilityDelta(t *testing.T) {
 	assert.Equal(t, &finding.Locus{Path: "agent.py", StartLine: 7, EndLine: 7}, f.Locus)
 	assert.Equal(t, finding.ForApplication(finding.Meta{ControlID: IDAIBOM}, ".", "openai.client").ID, f.ID, "the id holds the control, the root and the signature")
 }
+
+// TestPopularNamesAreCanonical checks that each popular name names itself.
+// A name that does not would flag the popular package as a squat of itself.
+func TestPopularNamesAreCanonical(t *testing.T) {
+	for eco, names := range popular {
+		for _, name := range names {
+			id, err := model.NewPackageVersion(eco, name, "1.0.0")
+			require.NoError(t, err, "%s %s", eco, name)
+			assert.Equal(t, name, id.Name(), "%s %s", eco, name)
+			assert.True(t, id.NameIs(name), "%s %s", eco, name)
+		}
+	}
+}
