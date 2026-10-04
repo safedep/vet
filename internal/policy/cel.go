@@ -57,7 +57,7 @@ func newEnv() (*cel.Env, error) {
 				}
 				c, err := id.Compare(id.WithVersion(v))
 				if err != nil {
-					return types.NewErr("%s: %v", errNoOrder, err)
+					return types.WrapErr(fmt.Errorf("%w: %w", errNoOrder, err))
 				}
 				return types.Int(c)
 			}))),
@@ -113,7 +113,8 @@ func (e *Expr) Match(in Input) (bool, error) {
 	}
 	out, _, err := e.prg.Eval(vars)
 	if err != nil {
-		if strings.Contains(err.Error(), errNoKey.Error()) || strings.Contains(err.Error(), errNoOrder.Error()) {
+		// CEL gives a missing map key as text, with no error to match.
+		if errors.Is(err, errNoOrder) || strings.Contains(err.Error(), errNoKey.Error()) {
 			return false, nil
 		}
 		return false, errors.New(restorePackage(err.Error()))
