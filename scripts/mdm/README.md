@@ -1,6 +1,6 @@
 # vet MDM Scripts
 
-Run `vet endpoint scan` across a fleet through an MDM (Jamf, Mosyle, Kandji,
+Run `vet endpoint audit` across a fleet through an MDM (Jamf, Mosyle, Kandji,
 Intune, JumpCloud), so every user's AI tool and MCP inventory reaches SafeDep
 Cloud.
 
@@ -43,12 +43,13 @@ sudo ./vet_endpoint_scan.sh
 # With cloud sync. Pass the credentials in the environment:
 sudo SAFEDEP_API_KEY=... SAFEDEP_TENANT_ID=... ./vet_endpoint_scan.sh
 
-# Forward flags to `vet endpoint scan`:
-sudo ./vet_endpoint_scan.sh --silent --kind ai-tool
+# Forward flags to `vet endpoint audit`:
+sudo ./vet_endpoint_scan.sh -q -o json
 ```
 
 Cloud sync turns on only when both `SAFEDEP_API_KEY` and `SAFEDEP_TENANT_ID` are
-set. The script streams the keys into each per-user scan over stdin, never
+set. The script then sets `VET_PLUGINS_CLOUD_INVENTORY_ENABLED=true`, which turns on the
+`cloud-inventory` plugin of each scan. The script streams the keys into each per-user scan over stdin, never
 through argv or a shared environment, so they do not leak through `ps` on a
 multi-user host. Set both or neither. A half-set pair is rejected.
 

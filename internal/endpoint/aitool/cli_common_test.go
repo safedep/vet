@@ -1,9 +1,15 @@
 package aitool
 
 import (
+	"context"
+	"os/exec"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 )
 
 func TestCLIVerifiers_VerifyOutput(t *testing.T) {
@@ -105,4 +111,37 @@ func TestCLIToolDiscoverer_Interface(t *testing.T) {
 
 	assert.Equal(t, "Aider CLI", d.Name())
 	assert.Equal(t, "aider", d.App())
+}
+
+type shVerifier struct{}
+
+func (shVerifier) BinaryNames() []string { return []string{"sh"} }
+func (shVerifier) VerifyArgs() []string  { return []string{"-c", "echo 1.2.3"} }
+func (shVerifier) DisplayName() string   { return "Shell" }
+func (shVerifier) App() string           { return "shell" }
+func (shVerifier) VerifyOutput(stdout, _ string) (string, bool) {
+	return strings.TrimSpace(stdout), true
+}
+
+func TestProbeBinaryBuildsCLIToolItem(t *testing.T) {
+	binPath, err := exec.LookPath("sh")
+	if err != nil {
+		t.Skip("no sh on PATH")
+	}
+
+	it, err := probeBinary(context.Background(), "sh", shVerifier{})
+	require.NoError(t, err)
+
+	assert.Equal(t, inventory.KindCLITool, it.Kind)
+	assert.Equal(t, inventory.ScopeSystem, it.Scope)
+	assert.Equal(t, "Shell", it.Name)
+	assert.Equal(t, "shell", it.App)
+	assert.Equal(t, binPath, it.ConfigPath)
+	assert.Equal(t, inventory.ItemIdentity("shell", inventory.KindCLITool, inventory.ScopeSystem, "Shell", binPath), it.ItemIdentity)
+	assert.Equal(t, map[string]string{
+		"app.display":     "Shell",
+		"binary.version":  "1.2.3",
+		"binary.path":     binPath,
+		"binary.verified": "true",
+	}, it.Metadata)
 }

@@ -33,8 +33,8 @@ func newScan(t *testing.T, s *Store, target string) (*Scan, *IndexEntry) {
 }
 
 func lockfile() *model.Manifest {
-	a := &model.Package{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "a", Version: "1.0.0"}, Direct: true, Line: 3}
-	b := &model.Package{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "b", Version: "2.0.0"}}
+	a := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "a", "1.0.0"), Direct: true, Line: 3}
+	b := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "b", "2.0.0")}
 	g := model.NewGraph()
 	g.AddRoot(a.ID)
 	g.AddEdge(a.ID, b.ID)

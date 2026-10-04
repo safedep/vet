@@ -51,10 +51,9 @@ const (
 type Item struct {
 	// Kind classifies the item.
 	Kind Kind
-	// ItemIdentity is the deterministic dedup key (FNV-64a of
-	// app/kind/scope/name/config_path); computed by the scanner adapter.
+	// ItemIdentity is the dedup key from the function ItemIdentity.
 	ItemIdentity string
-	// SourceID groups items emitted from the same source (app + config file).
+	// SourceID groups the items of one source. The function SourceID makes it.
 	SourceID string
 	// Name is the human-readable label for the item.
 	Name string
@@ -76,6 +75,14 @@ type Item struct {
 	// Metadata holds free-form, kind-specific attributes for kinds without a
 	// typed sub-message (CLI tools, AI extensions, etc.).
 	Metadata map[string]string
+}
+
+// SetMeta sets one metadata value and makes the map when it is nil.
+func (it *Item) SetMeta(key, value string) {
+	if it.Metadata == nil {
+		it.Metadata = make(map[string]string)
+	}
+	it.Metadata[key] = value
 }
 
 // Transport classifies an MCP server's wire protocol. Mirrors the proto

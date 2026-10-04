@@ -1,6 +1,10 @@
 package aitool
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
+)
 
 // enumVSIXExtensions calls handler for each accepted extension of r.
 // nameFor gets the extension id in lower case and returns the display
@@ -8,7 +12,7 @@ import "strings"
 func enumVSIXExtensions(
 	r vsixManifestReader,
 	app string,
-	toolType AIToolType,
+	kind inventory.Kind,
 	nameFor func(id string) (name string, ok bool),
 	handler AIToolHandlerFn,
 ) error {
@@ -22,26 +26,29 @@ func enumVSIXExtensions(
 			if !ok {
 				continue
 			}
-			tool := &AITool{
-				Name:       name,
-				Type:       toolType,
-				Scope:      AIToolScopeSystem,
-				App:        app,
-				AppDisplay: app,
-				ConfigPath: manifest.Path,
-			}
-			tool.ID = generateID(tool.App, string(tool.Type), string(tool.Scope), ext.ID, tool.ConfigPath)
-			tool.SourceID = generateSourceID(tool.App, tool.ConfigPath)
-			tool.SetMeta("extension.id", ext.ID)
-			tool.SetMeta("extension.version", ext.Version)
-			tool.SetMeta("extension.ecosystem", string(manifest.Ecosystem))
 			ide := ideNameFromPath(manifest.Path)
+			appDisplay := app
 			if ide != "" {
-				tool.SetMeta("extension.ide", ide)
-				tool.AppDisplay = ide
+				appDisplay = ide
 			}
-			tool.Extension = &ExtensionConfig{ID: ext.ID, Version: ext.Version, Ecosystem: string(manifest.Ecosystem), IDE: ide}
-			if err := handler(tool); err != nil {
+			// The identity keys off the extension id, not the display name.
+			item := newItem(kind, inventory.ScopeSystem, app, appDisplay, ext.ID, manifest.Path)
+			item.Name = name
+			item.SetMeta(metaKeyExtensionID, ext.ID)
+			item.SetMeta(metaKeyExtensionVersion, ext.Version)
+			item.SetMeta(metaKeyExtensionEcosystem, string(manifest.Ecosystem))
+			if ide != "" {
+				item.SetMeta(metaKeyExtensionIDE, ide)
+			}
+			item.IDEExtension = &inventory.IDEExtensionDetail{
+				Package: &inventory.PackageIdentity{
+					Ecosystem: string(manifest.Ecosystem),
+					Name:      ext.ID,
+					Version:   ext.Version,
+				},
+				IDE: ide,
+			}
+			if err := handler(item); err != nil {
 				return err
 			}
 		}

@@ -9,6 +9,7 @@ import (
 	"github.com/safedep/vet/v2/internal/tui/escape"
 	"github.com/safedep/vet/v2/internal/tui/output"
 	"github.com/safedep/vet/v2/internal/tui/section"
+	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/report"
 )
 
@@ -54,19 +55,19 @@ func (v *Scan) next(h *report.Header, t *report.Trailer, s Summary) {
 // many findings takes the highest version. A vulnerability with no fixed
 // version takes the latest version of the package, as its remediation
 // does. It is empty when no finding has a version above the one in use.
-func fixText(findings []*finding.Finding, latest map[string]string) string {
+func fixText(findings []*finding.Finding, latest map[model.PackageKey]string) string {
 	type fix struct{ name, version string }
-	var keys []string
-	fixes := map[string]*fix{}
+	var keys []model.PackageKey
+	fixes := map[model.PackageKey]*fix{}
 	for _, f := range findings {
-		p, version := upgrade(f, latest)
-		if p == nil {
+		id, version, ok := upgrade(f, latest)
+		if !ok {
 			continue
 		}
-		key := string(p.Ecosystem) + "/" + p.Name
+		key := id.NameKey()
 		x, ok := fixes[key]
 		if !ok {
-			x = &fix{name: p.Name}
+			x = &fix{name: id.RawName()}
 			fixes[key] = x
 			keys = append(keys, key)
 		}
@@ -84,21 +85,25 @@ func fixText(findings []*finding.Finding, latest map[string]string) string {
 	return "upgrade " + joinAnd(parts)
 }
 
-// upgrade returns the package of a finding and the version that fixes it,
-// or nil when the finding names no version above the one in use.
-func upgrade(f *finding.Finding, latest map[string]string) (*finding.PackageSubject, string) {
+// upgrade returns the package of a finding and the version that fixes it.
+// It returns false when the finding names no version above the one in use.
+func upgrade(f *finding.Finding, latest map[model.PackageKey]string) (model.PackageVersion, string, bool) {
 	p := f.Subject.Package
 	if p == nil || f.Remediation == nil {
-		return nil, ""
+		return model.PackageVersion{}, "", false
+	}
+	id, err := p.PackageVersion()
+	if err != nil {
+		return model.PackageVersion{}, "", false
 	}
 	version := f.Remediation.FixedVersion
 	if version == "" && f.Family == finding.FamilyVulnerability {
-		version = latest[p.PURL]
+		version = latest[id.Key()]
 	}
-	if !semver.IsAhead(p.Version, version) {
-		return nil, ""
+	if !semver.IsAhead(id.RawVersion(), version) {
+		return model.PackageVersion{}, "", false
 	}
-	return p, version
+	return id, version, true
 }
 
 func fullList(scanID string) string {

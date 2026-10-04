@@ -130,7 +130,7 @@ func TestLoadMerges(t *testing.T) {
 }
 
 func packageFinding(control string, sev finding.Severity, name, version string, published *time.Time) (*finding.Finding, *model.Package) {
-	p := &model.Package{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: name, Version: version}, Direct: true}
+	p := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, name, version), Direct: true}
 	if published != nil {
 		p.Insight = &model.Insight{PublishedAt: published}
 	}

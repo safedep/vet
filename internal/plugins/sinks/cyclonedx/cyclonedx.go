@@ -79,9 +79,10 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 }
 
 func component(p *report.PackageEntry) cdx.Component {
+	group, name := groupAndName(p.ID)
 	c := cdx.Component{
-		BOMRef: p.PURL, Type: cdx.ComponentTypeLibrary, Name: p.ID.Name, Version: p.ID.Version, PackageURL: p.PURL,
-		Group: p.ID.Namespace,
+		BOMRef: componentRef(p), Type: cdx.ComponentTypeLibrary,
+		Group: group, Name: name, Version: p.ID.RawVersion(), PackageURL: p.PURL,
 	}
 	scope := cdx.ScopeRequired
 	if p.Dev {
@@ -98,6 +99,12 @@ func component(p *report.PackageEntry) cdx.Component {
 	}
 	c.Properties = &props
 	return c
+}
+
+// componentRef is the BOM reference of a package: its PURL, or its key
+// when the name forms no PURL.
+func componentRef(p *report.PackageEntry) string {
+	return cmp.Or(p.PURL, string(p.ID.Key()))
 }
 
 // toolRef is the BOM reference of vet, the tool that finds the evidence.
@@ -204,6 +211,33 @@ func family(product string) string {
 	return ""
 }
 
+// groupAndName splits the raw name into the CycloneDX group and name: the
+// npm scope, the Maven group, the publisher of an editor extension, or the
+// path before the last slash of a Go module, a Composer vendor, a GitHub
+// action or a Terraform provider.
+func groupAndName(id model.PackageVersion) (string, string) {
+	name := id.RawName()
+	switch id.Ecosystem() {
+	case model.EcosystemNpm:
+		if scope, rest, ok := strings.Cut(name, "/"); ok && strings.HasPrefix(scope, "@") {
+			return scope, rest
+		}
+	case model.EcosystemMaven:
+		if i := strings.LastIndex(name, ":"); i >= 0 {
+			return name[:i], name[i+1:]
+		}
+	case model.EcosystemVSCode, model.EcosystemOpenVSX:
+		if publisher, rest, ok := strings.Cut(name, "."); ok {
+			return publisher, rest
+		}
+	case model.EcosystemGo, model.EcosystemPackagist, model.EcosystemGitHubActions, model.EcosystemTerraformProvider:
+		if i := strings.LastIndex(name, "/"); i >= 0 {
+			return name[:i], name[i+1:]
+		}
+	}
+	return "", name
+}
+
 // licenses returns the license choices of the declared licenses. An SPDX
 // id is an id, and a name that SPDX does not know is a name. CycloneDX
 // takes an SPDX expression, such as "Apache-2.0 OR MIT", only as the one
@@ -258,12 +292,13 @@ func vulnerabilities(p *report.PackageEntry) []cdx.Vulnerability {
 }
 
 func vulnerability(p *report.PackageEntry, v model.Vulnerability) cdx.Vulnerability {
+	ref := componentRef(p)
 	cv := cdx.Vulnerability{
-		BOMRef:      v.ID + "/" + p.PURL,
+		BOMRef:      v.ID + "/" + ref,
 		ID:          v.ID,
 		Description: v.Summary,
 		Source:      advisorySource(v.ID),
-		Affects:     &[]cdx.Affects{{Ref: p.PURL}},
+		Affects:     &[]cdx.Affects{{Ref: ref}},
 	}
 	rating := cdx.VulnerabilityRating{Severity: cdx.Severity(v.Severity)}
 	if v.CVSS > 0 {

@@ -51,7 +51,7 @@ var scanMigrations = []string{
 		data         BLOB NOT NULL
 	)`,
 	`CREATE TABLE vet_scan_packages (
-		purl      TEXT PRIMARY KEY,
+		pkey      TEXT PRIMARY KEY,
 		ecosystem TEXT NOT NULL,
 		name      TEXT NOT NULL,
 		version   TEXT NOT NULL,
@@ -61,13 +61,13 @@ var scanMigrations = []string{
 	)`,
 	`CREATE TABLE vet_scan_manifest_packages (
 		manifest_id TEXT NOT NULL,
-		purl        TEXT NOT NULL,
+		pkey        TEXT NOT NULL,
 		seq         INTEGER NOT NULL,
 		change      TEXT NOT NULL,
 		data        BLOB NOT NULL,
-		PRIMARY KEY (manifest_id, purl)
+		PRIMARY KEY (manifest_id, pkey)
 	)`,
-	`CREATE INDEX vet_scan_manifest_packages_purl ON vet_scan_manifest_packages (purl)`,
+	`CREATE INDEX vet_scan_manifest_packages_pkey ON vet_scan_manifest_packages (pkey)`,
 	`CREATE TABLE vet_scan_edges (
 		manifest_id TEXT NOT NULL,
 		parent      TEXT NOT NULL,
@@ -77,15 +77,15 @@ var scanMigrations = []string{
 	`CREATE INDEX vet_scan_edges_child ON vet_scan_edges (child)`,
 	`CREATE TABLE vet_scan_roots (
 		manifest_id TEXT NOT NULL,
-		purl        TEXT NOT NULL,
-		PRIMARY KEY (manifest_id, purl)
+		pkey        TEXT NOT NULL,
+		PRIMARY KEY (manifest_id, pkey)
 	)`,
 	`CREATE TABLE vet_scan_enrichments (
-		purl       TEXT NOT NULL,
+		pkey       TEXT NOT NULL,
 		enricher   TEXT NOT NULL,
 		status     TEXT NOT NULL,
 		fetched_at INTEGER NOT NULL,
-		PRIMARY KEY (purl, enricher)
+		PRIMARY KEY (pkey, enricher)
 	)`,
 	`CREATE TABLE vet_scan_findings (
 		id            TEXT PRIMARY KEY,
@@ -108,7 +108,7 @@ var scanMigrations = []string{
 	// The Insights data of the previous version of each upgraded or
 	// downgraded package, in pull request mode.
 	`CREATE TABLE vet_scan_prior (
-		purl    TEXT PRIMARY KEY,
+		pkey    TEXT PRIMARY KEY,
 		insight BLOB NOT NULL
 	)`,
 	// The capabilities that the code signatures find (the xBOM).
@@ -349,11 +349,11 @@ func addManifestTx(ctx context.Context, tx *sql.Tx, artifactKey string, m *model
 		return err
 	}
 	st, err := prepare(ctx, tx,
-		`INSERT INTO vet_scan_packages (purl, ecosystem, name, version)
-			VALUES (?, ?, ?, ?) ON CONFLICT (purl) DO NOTHING`,
-		`INSERT INTO vet_scan_manifest_packages (manifest_id, purl, seq, change, data)
+		`INSERT INTO vet_scan_packages (pkey, ecosystem, name, version)
+			VALUES (?, ?, ?, ?) ON CONFLICT (pkey) DO NOTHING`,
+		`INSERT INTO vet_scan_manifest_packages (manifest_id, pkey, seq, change, data)
 			VALUES (?, ?, ?, ?, ?)
-			ON CONFLICT (manifest_id, purl) DO UPDATE SET data = excluded.data, change = excluded.change`,
+			ON CONFLICT (manifest_id, pkey) DO UPDATE SET data = excluded.data, change = excluded.change`,
 		`INSERT OR IGNORE INTO vet_scan_edges (manifest_id, parent, child) VALUES (?, ?, ?)`)
 	if err != nil {
 		return err
@@ -361,8 +361,8 @@ func addManifestTx(ctx context.Context, tx *sql.Tx, artifactKey string, m *model
 	defer st.close()
 	insertPackage, insertManifestPackage, insertEdge := st[0], st[1], st[2]
 	for i, p := range m.Packages {
-		purl := p.ID.PURL()
-		if _, err := insertPackage.ExecContext(ctx, purl, string(p.ID.Ecosystem), p.ID.QualifiedName(), p.ID.Version); err != nil {
+		pkey := string(p.ID.Key())
+		if _, err := insertPackage.ExecContext(ctx, pkey, string(p.ID.Ecosystem()), p.ID.Name(), p.ID.Version()); err != nil {
 			return err
 		}
 		bare := *p
@@ -371,7 +371,7 @@ func addManifestTx(ctx context.Context, tx *sql.Tx, artifactKey string, m *model
 		if err != nil {
 			return err
 		}
-		if _, err := insertManifestPackage.ExecContext(ctx, m.ID, purl, i, string(p.Change), pd); err != nil {
+		if _, err := insertManifestPackage.ExecContext(ctx, m.ID, pkey, i, string(p.Change), pd); err != nil {
 			return err
 		}
 	}
@@ -383,17 +383,17 @@ func addManifestTx(ctx context.Context, tx *sql.Tx, artifactKey string, m *model
 	}
 	if m.Graph != nil {
 		for _, r := range m.Graph.Roots() {
-			if _, err := tx.ExecContext(ctx, `INSERT OR IGNORE INTO vet_scan_roots (manifest_id, purl) VALUES (?, ?)`,
-				m.ID, r.PURL()); err != nil {
+			if _, err := tx.ExecContext(ctx, `INSERT OR IGNORE INTO vet_scan_roots (manifest_id, pkey) VALUES (?, ?)`,
+				m.ID, string(r.Key())); err != nil {
 				return err
 			}
 		}
 		var edgeErr error
-		m.Graph.Edges(func(parent, child model.PackageID) {
+		m.Graph.Edges(func(parent, child model.PackageVersion) {
 			if edgeErr != nil {
 				return
 			}
-			_, edgeErr = insertEdge.ExecContext(ctx, m.ID, parent.PURL(), child.PURL())
+			_, edgeErr = insertEdge.ExecContext(ctx, m.ID, string(parent.Key()), string(child.Key()))
 		})
 		if edgeErr != nil {
 			return edgeErr
@@ -524,7 +524,7 @@ func (s *Scan) ClearFindings(ctx context.Context) error {
 // Counts returns the number of distinct packages and of findings.
 func (s *Scan) Counts(ctx context.Context) (packages, findings int, err error) {
 	err = s.db.QueryRowContext(ctx, `SELECT
-		(SELECT COUNT(DISTINCT purl) FROM vet_scan_manifest_packages),
+		(SELECT COUNT(DISTINCT pkey) FROM vet_scan_manifest_packages),
 		(SELECT COUNT(*) FROM vet_scan_findings)`).Scan(&packages, &findings)
 	return packages, findings, err
 }
@@ -546,7 +546,7 @@ func (s *Scan) SaveEnrichments(ctx context.Context, results []EnrichmentResult) 
 	now := time.Now().UnixMilli()
 	return s.tx(ctx, func(tx *sql.Tx) error {
 		for _, r := range results {
-			purl := r.Package.ID.PURL()
+			pkey := string(r.Package.ID.Key())
 			insight, err := marshalOrNil(r.Package.Insight)
 			if err != nil {
 				return err
@@ -561,12 +561,12 @@ func (s *Scan) SaveEnrichments(ctx context.Context, results []EnrichmentResult) 
 			}
 			if _, err := tx.ExecContext(ctx, `UPDATE vet_scan_packages SET
 				insight = COALESCE(?, insight), malware = COALESCE(?, malware), usage = COALESCE(?, usage)
-				WHERE purl = ?`, insight, malware, usage, purl); err != nil {
+				WHERE pkey = ?`, insight, malware, usage, pkey); err != nil {
 				return err
 			}
-			if _, err := tx.ExecContext(ctx, `INSERT INTO vet_scan_enrichments (purl, enricher, status, fetched_at)
-				VALUES (?, ?, ?, ?) ON CONFLICT (purl, enricher) DO UPDATE SET status = excluded.status,
-				fetched_at = excluded.fetched_at`, purl, r.Enricher, r.Status, now); err != nil {
+			if _, err := tx.ExecContext(ctx, `INSERT INTO vet_scan_enrichments (pkey, enricher, status, fetched_at)
+				VALUES (?, ?, ?, ?) ON CONFLICT (pkey, enricher) DO UPDATE SET status = excluded.status,
+				fetched_at = excluded.fetched_at`, pkey, r.Enricher, r.Status, now); err != nil {
 				return err
 			}
 		}

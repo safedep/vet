@@ -16,9 +16,9 @@ type Summary struct {
 	// Findings are the findings that no suppression hides, the most
 	// severe first.
 	Findings []*finding.Finding
-	// Latest maps the PURL of a package to its latest version, when the
+	// Latest maps the key of a package to its latest version, when the
 	// insights know it.
-	Latest  map[string]string
+	Latest  map[model.PackageKey]string
 	Changes Changes
 }
 
@@ -29,7 +29,7 @@ type Changes struct {
 
 // Summarize reads the summary of a report in one pass.
 func Summarize(ctx context.Context, r plugin.Report) (Summary, error) {
-	s := Summary{Latest: map[string]string{}}
+	s := Summary{Latest: map[model.PackageKey]string{}}
 	for rec, err := range r.Records(ctx) {
 		if err != nil {
 			return Summary{}, err
@@ -51,7 +51,7 @@ func Summarize(ctx context.Context, r plugin.Report) (Summary, error) {
 
 func (s *Summary) addPackage(p *report.PackageEntry) {
 	if p.Insight != nil && p.Insight.LatestVersion != "" {
-		s.Latest[p.PURL] = p.Insight.LatestVersion
+		s.Latest[p.ID.Key()] = p.Insight.LatestVersion
 	}
 	if p.Change.Introduces() {
 		s.Changes.Packages++

@@ -58,7 +58,7 @@ type Suppression struct {
 	Expires string `yaml:"expires,omitempty"`
 
 	ref     string
-	pkg     *model.PackageID
+	pkg     *model.PackageVersion
 	expires *time.Time
 }
 

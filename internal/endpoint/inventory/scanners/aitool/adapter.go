@@ -1,3 +1,5 @@
+// Package aitool adapts the aitool discovery layer to the inventory
+// producer pipeline.
 package aitool
 
 import (
@@ -13,8 +15,7 @@ import (
 const scannerName = "aitool"
 
 // adapter implements inventory.Scanner by delegating discovery to an
-// aitool.Registry and translating each emitted aitool.AITool into a
-// wire-decoupled inventory.Item.
+// aitool.Registry.
 //
 // Construction takes a registry rather than a factory so that tests can
 // inject a registry seeded with deterministic fakes, and so that the cmd
@@ -39,7 +40,7 @@ func (a *adapter) Name() string {
 }
 
 // Scan walks every discoverer registered in the underlying aitool
-// registry, translates each AITool to an Item, and forwards to emit.
+// registry and forwards each item to emit.
 //
 // emit's error is propagated back up so the orchestrator can stop the
 // scan when the consumer requests early termination (e.g. context
@@ -54,19 +55,18 @@ func (a *adapter) Scan(ctx context.Context, cfg inventory.ScanConfig, emit inven
 		return fmt.Errorf("aitool scanner: build discovery config: %w", err)
 	}
 
-	return a.registry.Discover(ctx, discoveryCfg, func(t *aitool.AITool) error {
-		if t == nil {
+	return a.registry.Discover(ctx, discoveryCfg, func(it *inventory.Item) error {
+		if it == nil {
 			return nil
 		}
-		return emit(translate(t))
+		return emit(it)
 	})
 }
 
 // toDiscoveryConfig adapts an inventory.ScanConfig to an
 // aitool.DiscoveryConfig. Nil scopes preserve aitool's "all scopes"
-// semantics; an explicit (possibly empty) scope list is converted to a
-// DiscoveryScope. An unknown scope value bubbles up the underlying
-// error so the orchestrator records a scanner_failed event.
+// semantics. An unknown scope value bubbles up the underlying error so
+// the orchestrator records a scanner_failed event.
 func toDiscoveryConfig(cfg inventory.ScanConfig) (aitool.DiscoveryConfig, error) {
 	out := aitool.DiscoveryConfig{
 		HomeDir:    cfg.HomeDir,
@@ -76,32 +76,10 @@ func toDiscoveryConfig(cfg inventory.ScanConfig) (aitool.DiscoveryConfig, error)
 		return out, nil
 	}
 
-	scopes, err := convertScopes(cfg.Scopes)
-	if err != nil {
-		return aitool.DiscoveryConfig{}, err
-	}
-	scope, err := aitool.NewDiscoveryScope(scopes...)
+	scope, err := aitool.NewDiscoveryScope(cfg.Scopes...)
 	if err != nil {
 		return aitool.DiscoveryConfig{}, err
 	}
 	out.Scope = scope
-	return out, nil
-}
-
-// convertScopes maps inventory.Scope values to their aitool equivalents.
-// Unknown scopes return an error so the caller can attribute the failure
-// to the aitool scanner.
-func convertScopes(in []inventory.Scope) ([]aitool.AIToolScope, error) {
-	out := make([]aitool.AIToolScope, 0, len(in))
-	for _, s := range in {
-		switch s {
-		case inventory.ScopeSystem:
-			out = append(out, aitool.AIToolScopeSystem)
-		case inventory.ScopeProject:
-			out = append(out, aitool.AIToolScopeProject)
-		default:
-			return nil, fmt.Errorf("unsupported scope: %d", s)
-		}
-	}
 	return out, nil
 }

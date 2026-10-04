@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -145,41 +144,35 @@ func diff(head, baseM *model.Manifest, fileChanged bool) {
 		}
 		return
 	}
-	exact := map[model.PackageID]*model.Package{}
-	byName := map[model.PackageID][]string{}
+	exact := map[model.PackageKey]*model.Package{}
+	baseVersions := map[model.PackageKey][]model.PackageVersion{}
 	for _, p := range baseM.Packages {
-		exact[p.ID] = p
-		byName[p.ID.WithoutVersion()] = append(byName[p.ID.WithoutVersion()], p.ID.Version)
+		exact[p.ID.Key()] = p
+		baseVersions[p.ID.NameKey()] = append(baseVersions[p.ID.NameKey()], p.ID)
 	}
-	headVersions := map[model.PackageID]map[string]bool{}
+	inHead := map[model.PackageKey]bool{}
 	for _, p := range head.Packages {
-		name := p.ID.WithoutVersion()
-		if headVersions[name] == nil {
-			headVersions[name] = map[string]bool{}
-		}
-		headVersions[name][p.ID.Version] = true
+		inHead[p.ID.Key()] = true
 	}
 	changed := fileChanged
-	replaced := map[model.PackageID]bool{}
+	replaced := map[model.PackageKey]bool{}
 	for _, p := range head.Packages {
-		name := p.ID.WithoutVersion()
-		switch prev := previousVersion(p.ID.Version, byName[name], headVersions[name]); {
-		case exact[p.ID] != nil && sourceChanged(exact[p.ID], p):
+		base := exact[p.ID.Key()]
+		switch prev, ok := previousVersion(p.ID, baseVersions[p.ID.NameKey()], inHead); {
+		case base != nil && sourceChanged(base, p):
 			// The same version from another URL, with another hash or
 			// with no hash: the lockfile can now install other code
 			// under the same name and version.
 			p.Change = model.ChangeModified
-			p.PreviousResolved = exact[p.ID].Resolved
-			p.PreviousIntegrity = exact[p.ID].Integrity
-		case exact[p.ID] != nil:
+			p.PreviousResolved = base.Resolved
+			p.PreviousIntegrity = base.Integrity
+		case base != nil:
 			p.Change = model.ChangeUnchanged
-		case prev != "":
-			old := name
-			old.Version = prev
-			replaced[old] = true
-			p.PreviousVersion = prev
+		case ok:
+			replaced[prev.Key()] = true
+			p.PreviousVersion = prev.RawVersion()
 			p.Change = model.ChangeUpgraded
-			if semver.IsAhead(p.ID.Version, prev) {
+			if semver.IsAhead(p.ID.RawVersion(), prev.RawVersion()) {
 				p.Change = model.ChangeDowngraded
 			}
 		default:
@@ -191,7 +184,7 @@ func diff(head, baseM *model.Manifest, fileChanged bool) {
 	// version replaced it, so foo@1 is removed when the head keeps only
 	// foo@2 of a base with both.
 	for _, p := range baseM.Packages {
-		if !headVersions[p.ID.WithoutVersion()][p.ID.Version] && !replaced[p.ID] {
+		if !inHead[p.ID.Key()] && !replaced[p.ID.Key()] {
 			head.Packages = append(head.Packages, &model.Package{ID: p.ID, Direct: p.Direct, Dev: p.Dev, Change: model.ChangeRemoved})
 			changed = true
 		}
@@ -206,20 +199,23 @@ func diff(head, baseM *model.Manifest, fileChanged bool) {
 // the highest base version below it, else the lowest above it. A base
 // version that the head still has replaces nothing, so a lockfile with
 // two versions of a package compares each with the right one.
-func previousVersion(version string, base []string, kept map[string]bool) string {
-	var below, above string
+func previousVersion(version model.PackageVersion, base []model.PackageVersion, inHead map[model.PackageKey]bool) (model.PackageVersion, bool) {
+	var below, above model.PackageVersion
 	for _, v := range base {
 		switch {
-		case kept[v]:
-		case semver.IsAhead(v, version):
-			if below == "" || semver.IsAhead(below, v) {
+		case inHead[v.Key()]:
+		case semver.IsAhead(v.RawVersion(), version.RawVersion()):
+			if below.IsZero() || semver.IsAhead(below.RawVersion(), v.RawVersion()) {
 				below = v
 			}
-		case above == "" || semver.IsAhead(v, above):
+		case above.IsZero() || semver.IsAhead(v.RawVersion(), above.RawVersion()):
 			above = v
 		}
 	}
-	return cmp.Or(below, above)
+	if !below.IsZero() {
+		return below, true
+	}
+	return above, !above.IsZero()
 }
 
 // declaringFile maps a lockfile to the manifest file next to it.
@@ -300,10 +296,12 @@ func introduced(f finding.Finding, m *model.Manifest) bool {
 		if f.Subject.Package == nil {
 			return false
 		}
-		for _, p := range m.Packages {
-			if p.ID.PURL() == f.Subject.Package.PURL {
-				return p.Change.Introduces()
-			}
+		id, err := f.Subject.Package.PackageVersion()
+		if err != nil {
+			return false
+		}
+		if p := m.Package(id); p != nil {
+			return p.Change.Introduces()
 		}
 		return false
 	case finding.SubjectFile, finding.SubjectManifest:

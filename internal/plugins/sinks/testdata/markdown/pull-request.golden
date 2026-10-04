@@ -6,7 +6,7 @@
 
 | Severity | Control | Subject | Where | Change | Title | Finding |
 | --- | --- | --- | --- | --- | --- | --- |
-| critical | malware | `npm/evil-colors@1.4.1` | `package-lock.json:42` | added | Malicious package | `f-478cf580259c82ac` |
+| critical | malware | `npm/evil-colors@1.4.1` | `package-lock.json:42` | added | Malicious package | `f-f7017b227d6ad796` |
 | medium | unpinned-action | `tj-actions/changed-files@v44` | `.github/workflows/ci.yml:8` | added | tj-actions/changed-files@v44 is not pinned to a commit SHA | `f-e815bb3b5e0846f1` |
 
 <details><summary>1 suppressed</summary>

@@ -3,16 +3,19 @@ package aitool
 import (
 	"context"
 	"errors"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 )
 
 type mockReader struct {
 	name  string
 	app   string
-	tools []*AITool
+	tools []*inventory.Item
 }
 
 func (m *mockReader) Name() string { return m.name }
@@ -33,7 +36,7 @@ func TestRegistry_DiscoverCallsAllFactories(t *testing.T) {
 		return &mockReader{
 			name: "reader1",
 			app:  "host1",
-			tools: []*AITool{
+			tools: []*inventory.Item{
 				{Name: "tool1", App: "host1"},
 			},
 		}, nil
@@ -43,14 +46,14 @@ func TestRegistry_DiscoverCallsAllFactories(t *testing.T) {
 		return &mockReader{
 			name: "reader2",
 			app:  "host2",
-			tools: []*AITool{
+			tools: []*inventory.Item{
 				{Name: "tool2", App: "host2"},
 			},
 		}, nil
 	})
 
-	var collected []*AITool
-	err := r.Discover(context.Background(), DiscoveryConfig{}, func(tool *AITool) error {
+	var collected []*inventory.Item
+	err := r.Discover(context.Background(), DiscoveryConfig{}, func(tool *inventory.Item) error {
 		collected = append(collected, tool)
 		return nil
 	})
@@ -72,12 +75,12 @@ func TestRegistry_FactoryErrorSkipped(t *testing.T) {
 		return &mockReader{
 			name:  "working",
 			app:   "host",
-			tools: []*AITool{{Name: "tool1"}},
+			tools: []*inventory.Item{{Name: "tool1"}},
 		}, nil
 	})
 
-	var collected []*AITool
-	err := r.Discover(context.Background(), DiscoveryConfig{}, func(tool *AITool) error {
+	var collected []*inventory.Item
+	err := r.Discover(context.Background(), DiscoveryConfig{}, func(tool *inventory.Item) error {
 		collected = append(collected, tool)
 		return nil
 	})
@@ -93,12 +96,12 @@ func TestRegistry_HandlerErrorPropagated(t *testing.T) {
 		return &mockReader{
 			name:  "reader",
 			app:   "host",
-			tools: []*AITool{{Name: "tool1"}, {Name: "tool2"}},
+			tools: []*inventory.Item{{Name: "tool1"}, {Name: "tool2"}},
 		}, nil
 	})
 
 	handlerErr := errors.New("handler error")
-	err := r.Discover(context.Background(), DiscoveryConfig{}, func(tool *AITool) error {
+	err := r.Discover(context.Background(), DiscoveryConfig{}, func(tool *inventory.Item) error {
 		return handlerErr
 	})
 
@@ -115,13 +118,13 @@ func TestRegistry_DeterministicOrder(t *testing.T) {
 			return &mockReader{
 				name:  n,
 				app:   n,
-				tools: []*AITool{{Name: n, App: n, Metadata: map[string]any{"order": idx}}},
+				tools: []*inventory.Item{{Name: n, App: n, Metadata: map[string]string{"order": strconv.Itoa(idx)}}},
 			}, nil
 		})
 	}
 
 	var names []string
-	err := r.Discover(context.Background(), DiscoveryConfig{}, func(tool *AITool) error {
+	err := r.Discover(context.Background(), DiscoveryConfig{}, func(tool *inventory.Item) error {
 		names = append(names, tool.Name)
 		return nil
 	})

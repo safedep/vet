@@ -23,6 +23,11 @@ go test ./internal/engine/ -run TestName -count=1   # one test
 
 ## Find what exists before you write it
 
+Read [docs/glossary.md](docs/glossary.md) before you name a thing. It names each concept of vet and
+the code that owns it. Use its term and its type. Do not add a second word or a second type for a
+concept that it lists. When a change adds a concept, or overrules a term, update the glossary in the
+same pull request.
+
 vet and `dry` already have most of the parts that a change needs. Search before you add a type, a
 helper or a list. Each row is the one place for its concern.
 
@@ -43,6 +48,7 @@ helper or a list. Each row is the one place for its concern.
 | Wiring of one scan from the config | `internal/runner` |
 | A token in a git URL | `git.Redact` in `internal/plugins/sources/git` |
 | GitHub token and client | `internal/github` |
+| Package identity: compare, key, order, PURL and the wire form of a package version | `model.PackageVersion`. It wraps the `dry/api/pb` rules. |
 | Report types and the JSON Schema of the report | `report` |
 | Golden file comparison in tests | `internal/golden` |
 | Sample report for sink and view tests | `plugin/plugintest` |
@@ -57,6 +63,11 @@ the wrong package. Move the code. Do not change the rule to make the test pass.
 
 - Only `internal/tui` imports `dry/tui`. `internal/tui` imports no other vet package.
 - Only the enrichers and the cloud plugins import the SafeDep API contract.
+- Only `model` imports the identity rules of `dry/api/pb`. Compare package versions with `Equal`,
+  `Key` or `Compare`, never with the name and version strings or the PURL. The PURL is for display
+  and for the wire.
+- Only the API clients call `RawProto`. A remote API gets the raw name and version and applies its
+  own rules.
 - Only `plugin`, the extractors and the sources import Scalibr.
 - The public packages `model`, `finding`, `report` and `plugin` import nothing from `internal`.
 - Only `internal/plugins/builtin` and `internal/runner` import both the controls and the sinks.

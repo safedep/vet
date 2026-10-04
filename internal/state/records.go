@@ -49,7 +49,7 @@ func (s *Scan) loadMeta(ctx context.Context) error {
 	return nil
 }
 
-// Records yields the manifests, the packages in PURL order, the inventory,
+// Records yields the manifests, the packages in package key order, the inventory,
 // the capabilities, the findings and the diagnostics. Each query has an explicit order, so the
 // same scan file always gives the same stream.
 func (s *Scan) Records(ctx context.Context) iter.Seq2[*report.Record, error] {
@@ -169,15 +169,15 @@ func (s *Scan) blobRecords(ctx context.Context, query string, yield func(*report
 	return true
 }
 
-// packageRecords yields one entry for each PURL. The rows come in PURL
+// packageRecords yields one entry for each package key. The rows come in key
 // order, then manifest order, so one pass groups them. The package fields
 // come from the first manifest that declares the package.
 func (s *Scan) packageRecords(ctx context.Context, yield func(*report.Record, error) bool) bool {
 	rows, err := s.db.QueryContext(ctx, `SELECT mp.manifest_id, mp.data, p.insight, p.malware, p.usage
 		FROM vet_scan_packages p
-		JOIN vet_scan_manifest_packages mp ON mp.purl = p.purl
+		JOIN vet_scan_manifest_packages mp ON mp.pkey = p.pkey
 		JOIN vet_scan_manifests m ON m.id = mp.manifest_id
-		ORDER BY p.purl, m.seq, m.id`)
+		ORDER BY p.pkey, m.seq, m.id`)
 	if err != nil {
 		yield(nil, fmt.Errorf("read package records: %w", err))
 		return false
@@ -205,8 +205,7 @@ func (s *Scan) packageRecords(ctx context.Context, yield func(*report.Record, er
 			yield(nil, fmt.Errorf("decode package: %w", err))
 			return false
 		}
-		purl := pd.ID.PURL()
-		if cur != nil && cur.PURL == purl {
+		if cur != nil && cur.ID.Equal(pd.ID) {
 			cur.ManifestIDs = append(cur.ManifestIDs, manifestID)
 			continue
 		}
@@ -224,7 +223,7 @@ func (s *Scan) packageRecords(ctx context.Context, yield func(*report.Record, er
 				return false
 			}
 		}
-		cur = &report.PackageEntry{PURL: purl, ManifestIDs: []string{manifestID}, Package: p}
+		cur = &report.PackageEntry{PURL: p.ID.PURL(), ManifestIDs: []string{manifestID}, Package: p}
 	}
 	if err := rows.Err(); err != nil {
 		yield(nil, err)

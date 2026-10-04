@@ -15,7 +15,7 @@ var now = time.Date(2026, 10, 2, 0, 0, 0, 0, time.UTC)
 
 func sampleInput(published *time.Time) Input {
 	p := &model.Package{
-		ID:     model.PackageID{Ecosystem: model.EcosystemNpm, Name: "left-pad", Version: "1.3.0"},
+		ID:     model.MustPackageVersion(model.EcosystemNpm, "left-pad", "1.3.0"),
 		Direct: true, Change: model.ChangeAdded,
 		Insight: &model.Insight{
 			Licenses: []string{"MIT"}, PublishedAt: published,

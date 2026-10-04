@@ -33,10 +33,12 @@ func Subject(f *finding.Finding) string {
 	return ""
 }
 
+// packageSubject shows the name and the version that the manifest writes, as
+// model.PackageVersion.String does.
 func packageSubject(p *finding.PackageSubject) string {
-	v := string(p.Ecosystem) + "/" + p.Name
-	if p.Version != "" {
-		v += "@" + p.Version
+	v := string(p.Ecosystem) + "/" + p.RawName
+	if p.RawVersion != "" {
+		v += "@" + p.RawVersion
 	}
 	return v
 }

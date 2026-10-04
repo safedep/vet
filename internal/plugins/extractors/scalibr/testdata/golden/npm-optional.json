@@ -12,7 +12,10 @@
         "id": {
           "ecosystem": "npm",
           "name": "wrappy",
-          "version": "1.0.2"
+          "version": "1.0.2",
+          "raw_name": "wrappy",
+          "raw_version": "1.0.2",
+          "purl": "pkg:npm/wrappy@1.0.2"
         },
         "direct": false,
         "line": 10
@@ -21,7 +24,10 @@
         "id": {
           "ecosystem": "npm",
           "name": "supports-color",
-          "version": "5.5.0"
+          "version": "5.5.0",
+          "raw_name": "supports-color",
+          "raw_version": "5.5.0",
+          "purl": "pkg:npm/supports-color@5.5.0"
         },
         "direct": false,
         "line": 16

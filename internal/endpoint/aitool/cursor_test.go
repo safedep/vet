@@ -7,6 +7,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 )
 
 func TestCursorDiscoverer_WithFixtures(t *testing.T) {
@@ -23,8 +25,8 @@ func TestCursorDiscoverer_WithFixtures(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	err = reader.EnumTools(context.Background(), func(tool *AITool) error {
+	var tools []*inventory.Item
+	err = reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		tools = append(tools, tool)
 		return nil
 	})
@@ -34,9 +36,9 @@ func TestCursorDiscoverer_WithFixtures(t *testing.T) {
 	assert.NotEmpty(t, tools)
 
 	// Check for system MCP server "database"
-	var systemMCPServers []*AITool
+	var systemMCPServers []*inventory.Item
 	for _, tool := range tools {
-		if tool.Type == AIToolTypeMCPServer && tool.Scope == AIToolScopeSystem {
+		if tool.Kind == inventory.KindMCPServer && tool.Scope == inventory.ScopeSystem {
 			systemMCPServers = append(systemMCPServers, tool)
 		}
 	}
@@ -45,9 +47,9 @@ func TestCursorDiscoverer_WithFixtures(t *testing.T) {
 	assert.Equal(t, cursorApp, systemMCPServers[0].App)
 
 	// Check for coding agents
-	var agents []*AITool
+	var agents []*inventory.Item
 	for _, tool := range tools {
-		if tool.Type == AIToolTypeCodingAgent {
+		if tool.Kind == inventory.KindCodingAgent {
 			agents = append(agents, tool)
 		}
 	}
@@ -55,9 +57,9 @@ func TestCursorDiscoverer_WithFixtures(t *testing.T) {
 	assert.Equal(t, "Cursor", agents[0].Name)
 
 	// Check that the project-scoped instruction files are emitted as project_config
-	var projectConfigs []*AITool
+	var projectConfigs []*inventory.Item
 	for _, tool := range tools {
-		if tool.Type == AIToolTypeProjectConfig && tool.Scope == AIToolScopeProject {
+		if tool.Kind == inventory.KindProjectConfig && tool.Scope == inventory.ScopeProject {
 			projectConfigs = append(projectConfigs, tool)
 		}
 	}
@@ -80,9 +82,9 @@ func TestCursorDiscoverer_WithFixtures(t *testing.T) {
 	assert.True(t, foundRule1, "should find rule1.md in InstructionFiles")
 
 	// Check for project MCP server
-	var projectMCPServers []*AITool
+	var projectMCPServers []*inventory.Item
 	for _, tool := range tools {
-		if tool.Type == AIToolTypeMCPServer && tool.Scope == AIToolScopeProject {
+		if tool.Kind == inventory.KindMCPServer && tool.Scope == inventory.ScopeProject {
 			projectMCPServers = append(projectMCPServers, tool)
 		}
 	}
@@ -107,8 +109,8 @@ func TestCursorDiscoverer_MissingConfig(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	err = reader.EnumTools(context.Background(), func(tool *AITool) error {
+	var tools []*inventory.Item
+	err = reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		tools = append(tools, tool)
 		return nil
 	})
@@ -128,8 +130,8 @@ func TestCursorDiscoverer_DirExistsButNoMCPJson(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	err = reader.EnumTools(context.Background(), func(tool *AITool) error {
+	var tools []*inventory.Item
+	err = reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		tools = append(tools, tool)
 		return nil
 	})
@@ -137,7 +139,7 @@ func TestCursorDiscoverer_DirExistsButNoMCPJson(t *testing.T) {
 
 	// Should still emit a coding_agent even without mcp.json
 	require.Len(t, tools, 1)
-	assert.Equal(t, AIToolTypeCodingAgent, tools[0].Type)
+	assert.Equal(t, inventory.KindCodingAgent, tools[0].Kind)
 	assert.Equal(t, "Cursor", tools[0].Name)
-	assert.Equal(t, AIToolScopeSystem, tools[0].Scope)
+	assert.Equal(t, inventory.ScopeSystem, tools[0].Scope)
 }

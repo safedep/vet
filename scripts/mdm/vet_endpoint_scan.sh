@@ -1,5 +1,5 @@
 #!/bin/bash
-# vet_endpoint_scan.sh — run `vet endpoint scan` for every local user and sync
+# vet_endpoint_scan.sh — run `vet endpoint audit` for every local user and sync
 # the discovered inventory to SafeDep Cloud. One file, Linux and macOS.
 #
 # MDM tools (Jamf, Mosyle, Kandji, Intune, JumpCloud, ...) run scripts either as
@@ -14,14 +14,15 @@
 #     running it by hand): it scans just that user, with their full login
 #     environment.
 #
-# Cloud sync turns on when SAFEDEP_API_KEY and SAFEDEP_TENANT_ID are set. The
+# Cloud sync turns on when SAFEDEP_API_KEY and SAFEDEP_TENANT_ID are set: the
+# script then turns on the cloud-inventory plugin of each scan. The
 # keys are streamed into each per-user scan through stdin, never through argv or
 # a shared environment, so they do not leak through `ps` on a multi-user box.
 # Without the keys the script prints a local inventory per user and exits 0.
 #
-# Extra arguments are forwarded verbatim to `vet endpoint scan`, for example:
+# Extra arguments are forwarded verbatim to `vet endpoint audit`, for example:
 #
-#   sudo ./vet_endpoint_scan.sh --silent --kind ai-tool
+#   sudo ./vet_endpoint_scan.sh -q -o json
 #
 # Environment variables:
 #   SAFEDEP_API_KEY    — SafeDep Cloud API key (enables cloud sync; set with the tenant)
@@ -163,10 +164,11 @@ scan_user() {
         IFS= read -r -d "" SAFEDEP_API_KEY || exit 1
         IFS= read -r -d "" SAFEDEP_TENANT_ID || exit 1
         export SAFEDEP_API_KEY SAFEDEP_TENANT_ID
+        export VET_PLUGINS_CLOUD_INVENTORY_ENABLED=true
         exec "$@"
-      ' _ "$VET_BIN" endpoint scan ${SCAN_ARGS[@]+"${SCAN_ARGS[@]}"}
+      ' _ "$VET_BIN" endpoint audit ${SCAN_ARGS[@]+"${SCAN_ARGS[@]}"}
   else
-    run_as_user "$user" "$home" "$VET_BIN" endpoint scan ${SCAN_ARGS[@]+"${SCAN_ARGS[@]}"}
+    run_as_user "$user" "$home" "$VET_BIN" endpoint audit ${SCAN_ARGS[@]+"${SCAN_ARGS[@]}"}
   fi
 }
 

@@ -45,7 +45,7 @@ func TestExtract(t *testing.T) {
 	golden.AssertJSON(t, filepath.Join("testdata", "golden", "alone.json"), ms[0].Packages)
 	for _, p := range ms[0].Packages {
 		assert.True(t, p.Direct)
-		assert.Equal(t, p.ID.Name == "jest", p.Dev, p.ID.Name)
+		assert.Equal(t, p.ID.RawName() == "jest", p.Dev, p.ID.RawName())
 	}
 
 	ms, errs = scalibr.ExtractFile(context.Background(), scalibr.File{Root: "testdata/locked", Path: "package.json"}, exs)

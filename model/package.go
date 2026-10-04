@@ -6,10 +6,10 @@ import "time"
 // optional pointer fields hold the data of each data source. They are nil
 // when the source did not answer.
 type Package struct {
-	ID     PackageID `json:"id"`
-	Direct bool      `json:"direct"`
-	Dev    bool      `json:"dev,omitempty"`
-	Change Change    `json:"change,omitempty"`
+	ID     PackageVersion `json:"id"`
+	Direct bool           `json:"direct"`
+	Dev    bool           `json:"dev,omitempty"`
+	Change Change         `json:"change,omitempty"`
 
 	// PreviousVersion is the base version for an upgrade or a downgrade.
 	PreviousVersion string `json:"previous_version,omitempty"`
@@ -43,7 +43,7 @@ type Package struct {
 
 // Checkable reports whether a registry can answer for the package: it has a
 // version and it is not local.
-func (p *Package) Checkable() bool { return p.ID.Version != "" && !p.Local }
+func (p *Package) Checkable() bool { return p.ID.RawVersion() != "" && !p.Local }
 
 // Insight is the package data from SafeDep Insights v2.
 type Insight struct {

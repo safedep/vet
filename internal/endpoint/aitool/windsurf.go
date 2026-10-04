@@ -4,6 +4,8 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 )
 
 const (
@@ -33,7 +35,7 @@ func (d *windsurfDiscoverer) Name() string { return "Windsurf Config" }
 func (d *windsurfDiscoverer) App() string  { return windsurfApp }
 
 func (d *windsurfDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn) error {
-	if !d.config.ScopeEnabled(AIToolScopeSystem) {
+	if !d.config.ScopeEnabled(inventory.ScopeSystem) {
 		return nil
 	}
 
@@ -42,24 +44,15 @@ func (d *windsurfDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerF
 
 	// System-level: ~/.codeium/windsurf/mcp_config.json
 	if cfg, err := parseMCPAppConfig(mcpConfigPath); err == nil {
-		if err := emitMCPServers(cfg, mcpConfigPath, AIToolScopeSystem, windsurfApp, windsurfAppDisplay, handler); err != nil {
+		if err := emitMCPServers(cfg, mcpConfigPath, inventory.ScopeSystem, windsurfApp, windsurfAppDisplay, handler); err != nil {
 			return err
 		}
 	}
 
 	// Emit coding_agent if the windsurf config directory exists
 	if info, err := os.Stat(windsurfDir); err == nil && info.IsDir() {
-		agent := &AITool{
-			Name:       "Windsurf",
-			Type:       AIToolTypeCodingAgent,
-			Scope:      AIToolScopeSystem,
-			App:        windsurfApp,
-			AppDisplay: windsurfAppDisplay,
-			ConfigPath: windsurfDir,
-			Agent:      &AgentConfig{},
-		}
-		agent.ID = generateID(agent.App, string(agent.Type), string(agent.Scope), agent.Name, agent.ConfigPath)
-		agent.SourceID = generateSourceID(agent.App, agent.ConfigPath)
+		agent := newItem(inventory.KindCodingAgent, inventory.ScopeSystem, windsurfApp, windsurfAppDisplay, "Windsurf", windsurfDir)
+		agent.Agent = &inventory.AgentDetail{}
 
 		if err := handler(agent); err != nil {
 			return err

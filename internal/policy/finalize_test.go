@@ -34,7 +34,7 @@ func (everyPackage) Evaluate(_ context.Context, m *model.Manifest, _ plugin.Stat
 	var out []finding.Finding
 	for _, p := range m.Packages {
 		sev := finding.SeverityLow
-		if p.ID.Name == "evil" {
+		if p.ID.RawName() == "evil" {
 			sev = finding.SeverityCritical
 		}
 		out = append(out, finding.ForPackage(finding.Meta{ControlID: "every", Family: finding.FamilyHygiene, Severity: sev, Title: p.ID.String()}, m.Path, p, finding.Key{}))

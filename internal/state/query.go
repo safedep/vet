@@ -68,7 +68,7 @@ func (s *Scan) Manifest(ctx context.Context, id string) (*model.Manifest, error)
 	m := md.Manifest
 
 	rows, err := s.db.QueryContext(ctx, `SELECT mp.data, p.insight, p.malware, p.usage
-		FROM vet_scan_manifest_packages mp JOIN vet_scan_packages p ON p.purl = mp.purl
+		FROM vet_scan_manifest_packages mp JOIN vet_scan_packages p ON p.pkey = mp.pkey
 		WHERE mp.manifest_id = ? ORDER BY mp.seq`, id)
 	if err != nil {
 		return nil, fmt.Errorf("read packages of %s: %w", id, err)
@@ -84,7 +84,7 @@ func (s *Scan) Manifest(ctx context.Context, id string) (*model.Manifest, error)
 		return nil, err
 	}
 
-	g, err := s.graph(ctx, id)
+	g, err := s.graph(ctx, id, m.Packages)
 	if err != nil {
 		return nil, err
 	}
@@ -92,20 +92,35 @@ func (s *Scan) Manifest(ctx context.Context, id string) (*model.Manifest, error)
 	return m, nil
 }
 
-func (s *Scan) graph(ctx context.Context, manifestID string) (*model.Graph, error) {
+// graph loads the graph of a manifest. The scan file stores the package key
+// of each node, and the graph takes the identity of each node from the
+// packages of the manifest, so it keeps their raw spelling.
+func (s *Scan) graph(ctx context.Context, manifestID string, pkgs []*model.Package) (*model.Graph, error) {
+	byKey := make(map[string]model.PackageVersion, len(pkgs))
+	for _, p := range pkgs {
+		byKey[string(p.ID.Key())] = p.ID
+	}
+	node := func(k string) (model.PackageVersion, error) {
+		id, ok := byKey[k]
+		if !ok {
+			return model.PackageVersion{}, fmt.Errorf("manifest %s: the graph names %s, which is not a package of the manifest", manifestID, k)
+		}
+		return id, nil
+	}
+
 	g := model.NewGraph()
 	found := false
-	roots, err := s.db.QueryContext(ctx, `SELECT purl FROM vet_scan_roots WHERE manifest_id = ? ORDER BY purl`, manifestID)
+	roots, err := s.db.QueryContext(ctx, `SELECT pkey FROM vet_scan_roots WHERE manifest_id = ? ORDER BY pkey`, manifestID)
 	if err != nil {
 		return nil, fmt.Errorf("read roots: %w", err)
 	}
 	for roots.Next() {
-		var purl string
-		if err := roots.Scan(&purl); err != nil {
+		var k string
+		if err := roots.Scan(&k); err != nil {
 			closeRows(roots)
 			return nil, err
 		}
-		id, err := model.ParsePURL(purl)
+		id, err := node(k)
 		if err != nil {
 			closeRows(roots)
 			return nil, err
@@ -125,11 +140,11 @@ func (s *Scan) graph(ctx context.Context, manifestID string) (*model.Graph, erro
 		if err := edges.Scan(&parent, &child); err != nil {
 			return nil, err
 		}
-		pid, err := model.ParsePURL(parent)
+		pid, err := node(parent)
 		if err != nil {
 			return nil, err
 		}
-		cid, err := model.ParsePURL(child)
+		cid, err := node(child)
 		if err != nil {
 			return nil, err
 		}
@@ -199,7 +214,7 @@ func unmarshalIf[T any](b []byte, dst **T) error {
 func (s *Scan) Packages(ctx context.Context, q plugin.PackageQuery) iter.Seq2[*model.Package, error] {
 	return func(yield func(*model.Package, error) bool) {
 		sqlq := `SELECT mp.data, p.insight, p.malware, p.usage
-			FROM vet_scan_manifest_packages mp JOIN vet_scan_packages p ON p.purl = mp.purl
+			FROM vet_scan_manifest_packages mp JOIN vet_scan_packages p ON p.pkey = mp.pkey
 			JOIN vet_scan_manifests m ON m.id = mp.manifest_id WHERE 1 = 1`
 		var args []any
 		if q.ManifestID != "" {
@@ -229,11 +244,11 @@ func (s *Scan) Packages(ctx context.Context, q plugin.PackageQuery) iter.Seq2[*m
 
 // Package returns the package with the identity, from the first manifest
 // that declares it.
-func (s *Scan) Package(ctx context.Context, id model.PackageID) (*model.Package, error) {
+func (s *Scan) Package(ctx context.Context, id model.PackageVersion) (*model.Package, error) {
 	rows, err := s.db.QueryContext(ctx, `SELECT mp.data, p.insight, p.malware, p.usage
-		FROM vet_scan_manifest_packages mp JOIN vet_scan_packages p ON p.purl = mp.purl
+		FROM vet_scan_manifest_packages mp JOIN vet_scan_packages p ON p.pkey = mp.pkey
 		JOIN vet_scan_manifests m ON m.id = mp.manifest_id
-		WHERE mp.purl = ? ORDER BY m.seq LIMIT 1`, id.PURL())
+		WHERE mp.pkey = ? ORDER BY m.seq LIMIT 1`, string(id.Key()))
 	if err != nil {
 		return nil, fmt.Errorf("query package %s: %w", id, err)
 	}
@@ -244,13 +259,13 @@ func (s *Scan) Package(ctx context.Context, id model.PackageID) (*model.Package,
 }
 
 // Dependents yields the packages that depend on the identity in any manifest.
-func (s *Scan) Dependents(ctx context.Context, id model.PackageID) iter.Seq2[*model.Package, error] {
+func (s *Scan) Dependents(ctx context.Context, id model.PackageVersion) iter.Seq2[*model.Package, error] {
 	return func(yield func(*model.Package, error) bool) {
 		rows, err := s.db.QueryContext(ctx, `SELECT mp.data, p.insight, p.malware, p.usage
 			FROM vet_scan_edges e
-			JOIN vet_scan_manifest_packages mp ON mp.manifest_id = e.manifest_id AND mp.purl = e.parent
-			JOIN vet_scan_packages p ON p.purl = mp.purl
-			WHERE e.child = ? ORDER BY e.manifest_id, e.parent`, id.PURL())
+			JOIN vet_scan_manifest_packages mp ON mp.manifest_id = e.manifest_id AND mp.pkey = e.parent
+			JOIN vet_scan_packages p ON p.pkey = mp.pkey
+			WHERE e.child = ? ORDER BY e.manifest_id, e.parent`, string(id.Key()))
 		if err != nil {
 			yield(nil, fmt.Errorf("query dependents of %s: %w", id, err))
 			return
@@ -342,10 +357,10 @@ func (s *Scan) PackagesLacking(ctx context.Context, enricher string) iter.Seq2[*
 	return func(yield func(*model.Package, error) bool) {
 		rows, err := s.db.QueryContext(ctx, `SELECT mp.data, p.insight, p.malware, p.usage
 			FROM vet_scan_packages p
-			JOIN vet_scan_manifest_packages mp ON mp.purl = p.purl
-			  AND mp.manifest_id = (SELECT manifest_id FROM vet_scan_manifest_packages WHERE purl = p.purl ORDER BY manifest_id LIMIT 1)
-			WHERE NOT EXISTS (SELECT 1 FROM vet_scan_enrichments e WHERE e.purl = p.purl AND e.enricher = ?)
-			ORDER BY p.purl`, enricher)
+			JOIN vet_scan_manifest_packages mp ON mp.pkey = p.pkey
+			  AND mp.manifest_id = (SELECT manifest_id FROM vet_scan_manifest_packages WHERE pkey = p.pkey ORDER BY manifest_id LIMIT 1)
+			WHERE NOT EXISTS (SELECT 1 FROM vet_scan_enrichments e WHERE e.pkey = p.pkey AND e.enricher = ?)
+			ORDER BY p.pkey`, enricher)
 		if err != nil {
 			yield(nil, fmt.Errorf("query packages to enrich: %w", err))
 			return
@@ -361,7 +376,7 @@ func (s *Scan) PackagesLacking(ctx context.Context, enricher string) iter.Seq2[*
 // EnrichQuery selects a page of packages for an enricher.
 type EnrichQuery struct {
 	Enricher string
-	// After is the PURL cursor: the page starts after it.
+	// After is the package key cursor: the page starts after it.
 	After string
 	Limit int
 	// Introduced keeps the packages that pull request mode marks added,
@@ -369,17 +384,17 @@ type EnrichQuery struct {
 	Introduced bool
 }
 
-// PackagesToEnrich returns up to q.Limit distinct packages, in PURL order and
+// PackagesToEnrich returns up to q.Limit distinct packages, in key order and
 // after q.After, that the enricher has no "ok" or "not_found" result for. A
-// failed result comes back, so a continued scan tries it again. The PURL
+// failed result comes back, so a continued scan tries it again. The key
 // cursor lets a run page through the packages while it writes results.
 func (s *Scan) PackagesToEnrich(ctx context.Context, q EnrichQuery) ([]*model.Package, error) {
 	rows, err := s.db.QueryContext(ctx, `SELECT mp.data, p.insight, p.malware, p.usage
 		FROM vet_scan_packages p
-		JOIN vet_scan_manifest_packages mp ON mp.purl = p.purl
-		  AND mp.manifest_id = (SELECT manifest_id FROM vet_scan_manifest_packages WHERE purl = p.purl ORDER BY manifest_id LIMIT 1)
-		WHERE p.purl > ? AND NOT `+enriched+introducedFilter(q.Introduced)+`
-		ORDER BY p.purl LIMIT ?`, q.After, q.Enricher, EnrichmentOK, EnrichmentNotFound, q.Limit)
+		JOIN vet_scan_manifest_packages mp ON mp.pkey = p.pkey
+		  AND mp.manifest_id = (SELECT manifest_id FROM vet_scan_manifest_packages WHERE pkey = p.pkey ORDER BY manifest_id LIMIT 1)
+		WHERE p.pkey > ? AND NOT `+enriched+introducedFilter(q.Introduced)+`
+		ORDER BY p.pkey LIMIT ?`, q.After, q.Enricher, EnrichmentOK, EnrichmentNotFound, q.Limit)
 	if err != nil {
 		return nil, fmt.Errorf("query packages to enrich: %w", err)
 	}
@@ -397,14 +412,14 @@ func (s *Scan) PackagesToEnrich(ctx context.Context, q EnrichQuery) ([]*model.Pa
 // "not_found" result for. Its arguments are the enricher and the two
 // statuses.
 const enriched = `EXISTS (SELECT 1 FROM vet_scan_enrichments e
-		    WHERE e.purl = p.purl AND e.enricher = ? AND e.status IN (?, ?))`
+		    WHERE e.pkey = p.pkey AND e.enricher = ? AND e.status IN (?, ?))`
 
 func introducedFilter(introduced bool) string {
 	if !introduced {
 		return ""
 	}
 	return ` AND EXISTS (SELECT 1 FROM vet_scan_manifest_packages c
-		    WHERE c.purl = p.purl AND c.change IN ('ADDED', 'UPGRADED', 'DOWNGRADED', 'MODIFIED'))`
+		    WHERE c.pkey = p.pkey AND c.change IN ('ADDED', 'UPGRADED', 'DOWNGRADED', 'MODIFIED'))`
 }
 
 // EnrichCounts returns the number of packages that the enricher of q
@@ -413,7 +428,7 @@ func introducedFilter(introduced bool) string {
 func (s *Scan) EnrichCounts(ctx context.Context, q EnrichQuery) (all, todo int, err error) {
 	err = s.db.QueryRowContext(ctx, `SELECT COUNT(*), COALESCE(SUM(NOT `+enriched+`), 0)
 		FROM vet_scan_packages p
-		WHERE EXISTS (SELECT 1 FROM vet_scan_manifest_packages mp WHERE mp.purl = p.purl)`+introducedFilter(q.Introduced),
+		WHERE EXISTS (SELECT 1 FROM vet_scan_manifest_packages mp WHERE mp.pkey = p.pkey)`+introducedFilter(q.Introduced),
 		q.Enricher, EnrichmentOK, EnrichmentNotFound).Scan(&all, &todo)
 	if err != nil {
 		return 0, 0, fmt.Errorf("count packages to enrich: %w", err)
@@ -423,25 +438,23 @@ func (s *Scan) EnrichCounts(ctx context.Context, q EnrichQuery) (all, todo int, 
 
 // PriorID returns the identity of the previous version of an upgraded or a
 // downgraded package.
-func PriorID(p *model.Package) (model.PackageID, bool) {
+func PriorID(p *model.Package) (model.PackageVersion, bool) {
 	if p.PreviousVersion == "" || (p.Change != model.ChangeUpgraded && p.Change != model.ChangeDowngraded) {
-		return model.PackageID{}, false
+		return model.PackageVersion{}, false
 	}
-	id := p.ID
-	id.Version = p.PreviousVersion
-	return id, true
+	return p.ID.WithVersion(p.PreviousVersion), true
 }
 
 // PriorToEnrich returns the previous versions of the upgraded and the
 // downgraded packages that have no prior data yet.
 func (s *Scan) PriorToEnrich(ctx context.Context) ([]*model.Package, error) {
 	rows, err := s.db.QueryContext(ctx, `SELECT data FROM vet_scan_manifest_packages
-		WHERE change IN (?, ?) ORDER BY purl`, string(model.ChangeUpgraded), string(model.ChangeDowngraded))
+		WHERE change IN (?, ?) ORDER BY pkey`, string(model.ChangeUpgraded), string(model.ChangeDowngraded))
 	if err != nil {
 		return nil, fmt.Errorf("read upgraded packages: %w", err)
 	}
 	defer closeRows(rows)
-	seen := map[string]bool{}
+	seen := map[model.PackageKey]bool{}
 	var out []*model.Package
 	for rows.Next() {
 		var data []byte
@@ -453,10 +466,10 @@ func (s *Scan) PriorToEnrich(ctx context.Context) ([]*model.Package, error) {
 			return nil, fmt.Errorf("decode package: %w", err)
 		}
 		id, ok := PriorID(&pd.Package)
-		if !ok || seen[id.PURL()] {
+		if !ok || seen[id.Key()] {
 			continue
 		}
-		seen[id.PURL()] = true
+		seen[id.Key()] = true
 		out = append(out, &model.Package{ID: id})
 	}
 	if err := rows.Err(); err != nil {
@@ -465,7 +478,7 @@ func (s *Scan) PriorToEnrich(ctx context.Context) ([]*model.Package, error) {
 	var todo []*model.Package
 	for _, p := range out {
 		var n int
-		if err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM vet_scan_prior WHERE purl = ?`, p.ID.PURL()).Scan(&n); err != nil {
+		if err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM vet_scan_prior WHERE pkey = ?`, string(p.ID.Key())).Scan(&n); err != nil {
 			return nil, err
 		}
 		if n == 0 {
@@ -487,8 +500,8 @@ func (s *Scan) SavePrior(ctx context.Context, pkgs []*model.Package) error {
 			if err != nil {
 				return err
 			}
-			if _, err := tx.ExecContext(ctx, `INSERT INTO vet_scan_prior (purl, insight) VALUES (?, ?)
-				ON CONFLICT (purl) DO UPDATE SET insight = excluded.insight`, p.ID.PURL(), b); err != nil {
+			if _, err := tx.ExecContext(ctx, `INSERT INTO vet_scan_prior (pkey, insight) VALUES (?, ?)
+				ON CONFLICT (pkey) DO UPDATE SET insight = excluded.insight`, string(p.ID.Key()), b); err != nil {
 				return err
 			}
 		}
@@ -503,7 +516,7 @@ func (s *Scan) attachPrior(ctx context.Context, pkgs []*model.Package) error {
 			continue
 		}
 		var b []byte
-		err := s.db.QueryRowContext(ctx, `SELECT insight FROM vet_scan_prior WHERE purl = ?`, id.PURL()).Scan(&b)
+		err := s.db.QueryRowContext(ctx, `SELECT insight FROM vet_scan_prior WHERE pkey = ?`, string(id.Key())).Scan(&b)
 		if errors.Is(err, sql.ErrNoRows) {
 			continue
 		}

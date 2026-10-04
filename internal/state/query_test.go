@@ -23,7 +23,7 @@ func seed(t *testing.T) (*Scan, *model.Manifest) {
 
 	py := &model.Manifest{
 		ID: "m2", Path: "requirements.txt", Ecosystem: model.EcosystemPyPI, Kind: model.ManifestKindManifest,
-		Packages: []*model.Package{{ID: model.PackageID{Ecosystem: model.EcosystemPyPI, Name: "flask", Version: "3.0.0"}, Direct: true}},
+		Packages: []*model.Package{{ID: model.MustPackageVersion(model.EcosystemPyPI, "flask", "3.0.0"), Direct: true}},
 	}
 	require.NoError(t, scan.AddManifest(ctx, "", py))
 	return scan, m
@@ -41,8 +41,8 @@ func TestManifestRoundTrip(t *testing.T) {
 	assert.True(t, got.Packages[0].Direct)
 	assert.Equal(t, 3, got.Packages[0].Line)
 	require.NotNil(t, got.Graph)
-	assert.Equal(t, []model.PackageID{m.Packages[0].ID}, got.Graph.Roots())
-	assert.Equal(t, []model.PackageID{m.Packages[1].ID}, got.Graph.Children(m.Packages[0].ID))
+	assert.Equal(t, m.Packages[0].ID.Key(), got.Graph.Roots()[0].Key())
+	assert.Equal(t, m.Packages[1].ID.Key(), got.Graph.Children(m.Packages[0].ID)[0].Key())
 
 	py, err := scan.Manifest(ctx, "m2")
 	require.NoError(t, err)
@@ -80,20 +80,20 @@ func TestPackagesQuery(t *testing.T) {
 	require.NotNil(t, p.Insight)
 	assert.Equal(t, []string{"MIT"}, p.Insight.Licenses)
 
-	_, err = scan.Package(ctx, model.PackageID{Ecosystem: model.EcosystemNpm, Name: "none", Version: "1"})
+	_, err = scan.Package(ctx, model.MustPackageVersion(model.EcosystemNpm, "none", "1"))
 	assert.ErrorIs(t, err, ErrNotFound)
 
 	var deps []string
 	for d, err := range scan.Dependents(ctx, m.Packages[1].ID) {
 		require.NoError(t, err)
-		deps = append(deps, d.ID.Name)
+		deps = append(deps, d.ID.RawName())
 	}
 	assert.Equal(t, []string{"a"}, deps)
 
 	var lacking []string
 	for p, err := range scan.PackagesLacking(ctx, "insights") {
 		require.NoError(t, err)
-		lacking = append(lacking, p.ID.Name)
+		lacking = append(lacking, p.ID.RawName())
 	}
 	assert.Equal(t, []string{"a", "flask"}, lacking)
 }

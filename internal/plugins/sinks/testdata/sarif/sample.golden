@@ -69,7 +69,7 @@
             }
           ],
           "partialFingerprints": {
-            "vetFindingId/v1": "f-478cf580259c82ac"
+            "vetFindingId/v1": "f-f7017b227d6ad796"
           },
           "properties": {
             "security-severity": "9.5",
@@ -95,7 +95,7 @@
             }
           ],
           "partialFingerprints": {
-            "vetFindingId/v1": "f-717913dc7dd3396c"
+            "vetFindingId/v1": "f-1badc134ad1d507f"
           },
           "suppressions": [
             {

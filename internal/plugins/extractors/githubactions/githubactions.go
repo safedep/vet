@@ -280,9 +280,6 @@ func packageFromUses(uses string, line int, path string) *extractor.Package {
 			Repo: "https://github.com/" + name,
 		},
 	}
-	if len(parts) == 3 && parts[2] != "" {
-		pkg.Metadata = &Metadata{ActionSubpath: strings.Trim(parts[2], "/")}
-	}
 	if commitSHARegexp.MatchString(ref) {
 		pkg.SourceCode.Commit = ref
 	}
@@ -303,17 +300,5 @@ func mappingValue(node *yaml.Node, key string) *yaml.Node {
 	}
 	return nil
 }
-
-// Metadata records the sub-path of an action in its repository. The
-// scalibr adapter reads Subpath into the PURL subpath.
-type Metadata struct {
-	ActionSubpath string
-}
-
-// IsProtoable marks Metadata as package metadata.
-func (*Metadata) IsProtoable() {}
-
-// Subpath returns the sub-path of the action.
-func (m *Metadata) Subpath() string { return m.ActionSubpath }
 
 var _ filesystem.Extractor = Extractor{}

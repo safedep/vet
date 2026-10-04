@@ -11,9 +11,11 @@
       {
         "id": {
           "ecosystem": "github-actions",
-          "namespace": "actions",
-          "name": "checkout",
-          "version": "v3"
+          "name": "actions/checkout",
+          "version": "v3",
+          "raw_name": "actions/checkout",
+          "raw_version": "v3",
+          "purl": "pkg:github/actions/checkout@v3"
         },
         "direct": true,
         "line": 16
@@ -21,9 +23,11 @@
       {
         "id": {
           "ecosystem": "github-actions",
-          "namespace": "actions",
-          "name": "setup-go",
-          "version": "6edd4406fa81c3da01a34fa6f6343087c207a568"
+          "name": "actions/setup-go",
+          "version": "6edd4406fa81c3da01a34fa6f6343087c207a568",
+          "raw_name": "actions/setup-go",
+          "raw_version": "6edd4406fa81c3da01a34fa6f6343087c207a568",
+          "purl": "pkg:github/actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568"
         },
         "direct": true,
         "line": 19
@@ -31,9 +35,11 @@
       {
         "id": {
           "ecosystem": "github-actions",
-          "namespace": "docker",
-          "name": "setup-qemu-action",
-          "version": "v2"
+          "name": "docker/setup-qemu-action",
+          "version": "v2",
+          "raw_name": "docker/setup-qemu-action",
+          "raw_version": "v2",
+          "purl": "pkg:github/docker/setup-qemu-action@v2"
         },
         "direct": true,
         "line": 46
@@ -41,9 +47,11 @@
       {
         "id": {
           "ecosystem": "github-actions",
-          "namespace": "docker",
-          "name": "setup-buildx-action",
-          "version": "v2"
+          "name": "docker/setup-buildx-action",
+          "version": "v2",
+          "raw_name": "docker/setup-buildx-action",
+          "raw_version": "v2",
+          "purl": "pkg:github/docker/setup-buildx-action@v2"
         },
         "direct": true,
         "line": 49

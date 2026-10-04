@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -42,6 +43,14 @@ var apiAllowed = []string{
 	module + "/internal/plugins/cloud",
 	module + "/test/acceptance/stub",
 }
+
+// packageMessages is the one SafeDep API package that model imports, for
+// the ecosystem enum and the wire form of a package version.
+const packageMessages = safedepAPI + "/protocolbuffers/go/safedep/messages/package/v1"
+
+// dryIdentity is the dry package that owns the identity rules. Only model
+// imports it, so the rules stay behind model.PackageVersion.
+const dryIdentity = "github.com/safedep/dry/api/pb"
 
 type pkgInfo struct {
 	path    string
@@ -160,7 +169,6 @@ func TestModelHasNoExtractionOrStorageTypes(t *testing.T) {
 		"entgo.io/ent",
 		"github.com/google/osv-scanner",
 		"github.com/google/osv-scalibr",
-		safedepAPI,
 		module + "/ent",
 		module + "/pkg",
 	}
@@ -180,9 +188,88 @@ func TestOnlyEnrichersAndCloudImportTheAPI(t *testing.T) {
 			continue
 		}
 		for _, imp := range p.imports {
+			if under(p.path, module+"/model") && imp == packageMessages {
+				continue
+			}
 			assert.False(t, under(imp, safedepAPI), "package %s imports %s", p.path, imp)
 		}
 	}
+}
+
+// TestOnlyModelImportsTheIdentityRules keeps each ecosystem rule behind
+// model.PackageVersion. A package that needs a name, a key or an order asks
+// model.
+func TestOnlyModelImportsTheIdentityRules(t *testing.T) {
+	for _, p := range listPackages(t) {
+		if isLegacy(p.path) || under(p.path, module+"/model") {
+			continue
+		}
+		for _, imp := range p.imports {
+			assert.NotEqual(t, dryIdentity, imp, "package %s imports %s", p.path, imp)
+		}
+	}
+}
+
+// TestOnlyAPIClientsSendTheWireForm keeps the raw form of a package version
+// on the way to a SafeDep service. Every other package compares the
+// canonical form.
+func TestOnlyAPIClientsSendTheWireForm(t *testing.T) {
+	allowed := append([]string{module + "/model"}, apiAllowed...)
+	for path, src := range sourcesOutside(t, allowed) {
+		assert.NotContains(t, src, ".RawProto()", "%s sends the wire form of a package", path)
+	}
+}
+
+// purlIdentity matches a PURL that the code compares or uses as a map key.
+// A PURL is for display and for the wire. A name that forms no PURL has an
+// empty PURL, so two packages would have the same PURL.
+var purlIdentity = regexp.MustCompile(`\.PURL(\(\))?\s*[!=]=\s*[^"\s]|[!=]=\s*[\w.]+\.PURL\b|\[[^\]\n]*\.PURL(\(\))?\]`)
+
+// TestPackagesCompareByKey keeps the identity of a package in
+// model.PackageVersion: Equal, Key and NameKey, never the PURL string.
+func TestPackagesCompareByKey(t *testing.T) {
+	for path, src := range sourcesOutside(t, []string{module + "/model"}) {
+		assert.Empty(t, purlIdentity.FindAllString(src, -1), "%s uses a PURL as the identity of a package", path)
+	}
+}
+
+// sourcesOutside returns the non-test Go files of vet, by path, that are
+// not in the allowed packages.
+func sourcesOutside(t *testing.T, allowed []string) map[string]string {
+	t.Helper()
+	root := repoRoot(t)
+	out := map[string]string{}
+	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			switch d.Name() {
+			case ".git", "node_modules", "testdata":
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
+			return nil
+		}
+		rel, err := filepath.Rel(root, filepath.Dir(path))
+		if err != nil {
+			return err
+		}
+		pkg := module + "/" + filepath.ToSlash(rel)
+		if underAny(pkg, allowed) || isLegacy(pkg) {
+			return nil
+		}
+		src, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		out[path] = string(src)
+		return nil
+	})
+	require.NoError(t, err)
+	return out
 }
 
 // TestTUIIsSelfContained keeps internal/tui free to move to dry/tui

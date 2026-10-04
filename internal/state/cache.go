@@ -29,6 +29,21 @@ var cacheMigrations = []string{
 		PRIMARY KEY (purl, enricher, enricher_version)
 	)`,
 	`CREATE INDEX vet_cache_enrichments_expires ON vet_cache_enrichments (expires_at)`,
+	// The cache keys a package by its PackageKey, the canonical form under
+	// the rule version, and no longer by its PURL. The old rows hold the
+	// PURL spelling, so the migration drops them.
+	`DROP TABLE vet_cache_enrichments`,
+	`CREATE TABLE vet_cache_package_enrichments (
+		pkey             TEXT NOT NULL,
+		enricher         TEXT NOT NULL,
+		enricher_version TEXT NOT NULL,
+		status           TEXT NOT NULL,
+		data             BLOB NOT NULL,
+		fetched_at       INTEGER NOT NULL,
+		expires_at       INTEGER NOT NULL,
+		PRIMARY KEY (pkey, enricher, enricher_version)
+	)`,
+	`CREATE INDEX vet_cache_package_enrichments_expires ON vet_cache_package_enrichments (expires_at)`,
 }
 
 // cachedData holds the package fields that an enricher sets.
@@ -72,8 +87,8 @@ func (c *Cache) Path() string { return c.mgr.Path() }
 // live entry. It returns the results of the hits and the packages that
 // the enricher must still enrich.
 func (c *Cache) Lookup(ctx context.Context, enricher, version string, pkgs []*model.Package) ([]EnrichmentResult, []*model.Package, error) {
-	stmt, err := c.db.PrepareContext(ctx, `SELECT status, data FROM vet_cache_enrichments
-		WHERE purl = ? AND enricher = ? AND enricher_version = ? AND expires_at > ?`)
+	stmt, err := c.db.PrepareContext(ctx, `SELECT status, data FROM vet_cache_package_enrichments
+		WHERE pkey = ? AND enricher = ? AND enricher_version = ? AND expires_at > ?`)
 	if err != nil {
 		return nil, nil, fmt.Errorf("read the enrichment cache: %w", err)
 	}
@@ -89,7 +104,7 @@ func (c *Cache) Lookup(ctx context.Context, enricher, version string, pkgs []*mo
 	for _, p := range pkgs {
 		var status string
 		var data []byte
-		err := stmt.QueryRowContext(ctx, p.ID.PURL(), enricher, version, now).Scan(&status, &data)
+		err := stmt.QueryRowContext(ctx, string(p.ID.Key()), enricher, version, now).Scan(&status, &data)
 		if errors.Is(err, sql.ErrNoRows) {
 			misses = append(misses, p)
 			continue
@@ -134,11 +149,11 @@ func (c *Cache) Put(ctx context.Context, version string, ttl time.Duration, resu
 		if err != nil {
 			return errors.Join(err, tx.Rollback())
 		}
-		if _, err := tx.ExecContext(ctx, `INSERT INTO vet_cache_enrichments
-			(purl, enricher, enricher_version, status, data, fetched_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?)
-			ON CONFLICT (purl, enricher, enricher_version) DO UPDATE SET status = excluded.status,
+		if _, err := tx.ExecContext(ctx, `INSERT INTO vet_cache_package_enrichments
+			(pkey, enricher, enricher_version, status, data, fetched_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?)
+			ON CONFLICT (pkey, enricher, enricher_version) DO UPDATE SET status = excluded.status,
 			data = excluded.data, fetched_at = excluded.fetched_at, expires_at = excluded.expires_at`,
-			r.Package.ID.PURL(), r.Enricher, version, r.Status, data, now.UnixMilli(), now.Add(ttl).UnixMilli()); err != nil {
+			string(r.Package.ID.Key()), r.Enricher, version, r.Status, data, now.UnixMilli(), now.Add(ttl).UnixMilli()); err != nil {
 			return errors.Join(fmt.Errorf("write the enrichment cache: %w", err), tx.Rollback())
 		}
 	}
@@ -147,7 +162,7 @@ func (c *Cache) Put(ctx context.Context, version string, ttl time.Duration, resu
 
 // Prune deletes the expired entries and returns how many it deleted.
 func (c *Cache) Prune(ctx context.Context) (int64, error) {
-	res, err := c.db.ExecContext(ctx, `DELETE FROM vet_cache_enrichments WHERE expires_at <= ?`, c.now().UnixMilli())
+	res, err := c.db.ExecContext(ctx, `DELETE FROM vet_cache_package_enrichments WHERE expires_at <= ?`, c.now().UnixMilli())
 	if err != nil {
 		return 0, fmt.Errorf("prune the enrichment cache: %w", err)
 	}
@@ -164,7 +179,7 @@ type CacheStats struct {
 func (c *Cache) Stats(ctx context.Context) (CacheStats, error) {
 	var st CacheStats
 	var oldest sql.NullInt64
-	err := c.db.QueryRowContext(ctx, `SELECT COUNT(*), MIN(fetched_at) FROM vet_cache_enrichments`).Scan(&st.Entries, &oldest)
+	err := c.db.QueryRowContext(ctx, `SELECT COUNT(*), MIN(fetched_at) FROM vet_cache_package_enrichments`).Scan(&st.Entries, &oldest)
 	if err != nil {
 		return st, fmt.Errorf("count the enrichment cache: %w", err)
 	}

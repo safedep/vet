@@ -8,6 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 )
 
 func fixturesDir(t *testing.T) string {
@@ -38,8 +40,8 @@ func TestClaudeCodeDiscoverer_SystemSettings(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		var tools []*AITool
-		err = reader.EnumTools(context.Background(), func(tool *AITool) error {
+		var tools []*inventory.Item
+		err = reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 			tools = append(tools, tool)
 			return nil
 		})
@@ -50,24 +52,24 @@ func TestClaudeCodeDiscoverer_SystemSettings(t *testing.T) {
 		assert.NotEmpty(t, tools)
 
 		// Check coding agent
-		var agents []*AITool
+		var agents []*inventory.Item
 		for _, tool := range tools {
-			if tool.Type == AIToolTypeCodingAgent {
+			if tool.Kind == inventory.KindCodingAgent {
 				agents = append(agents, tool)
 			}
 		}
 		require.NotEmpty(t, agents)
 		assert.Equal(t, "Claude Code", agents[0].Name)
 		assert.Equal(t, claudeCodeApp, agents[0].App)
-		assert.Equal(t, AIToolScopeSystem, agents[0].Scope)
+		assert.Equal(t, inventory.ScopeSystem, agents[0].Scope)
 		require.NotNil(t, agents[0].Agent)
 		assert.Equal(t, "allowedTools", agents[0].Agent.PermissionMode)
 		assert.Equal(t, "claude-sonnet-4-20250514", agents[0].Agent.Model)
 
 		// Check MCP servers
-		var mcpServers []*AITool
+		var mcpServers []*inventory.Item
 		for _, tool := range tools {
-			if tool.Type == AIToolTypeMCPServer {
+			if tool.Kind == inventory.KindMCPServer {
 				mcpServers = append(mcpServers, tool)
 			}
 		}
@@ -93,9 +95,9 @@ func TestClaudeCodeDiscoverer_SystemSettings(t *testing.T) {
 		}
 
 		// Check that CLAUDE.md is emitted as project_config, not coding_agent
-		var projectConfigs []*AITool
+		var projectConfigs []*inventory.Item
 		for _, tool := range tools {
-			if tool.Type == AIToolTypeProjectConfig && tool.Scope == AIToolScopeProject {
+			if tool.Kind == inventory.KindProjectConfig && tool.Scope == inventory.ScopeProject {
 				projectConfigs = append(projectConfigs, tool)
 			}
 		}
@@ -113,8 +115,8 @@ func TestClaudeCodeDiscoverer_SystemSettings(t *testing.T) {
 
 		// Verify no project-scoped coding_agent exists
 		for _, tool := range tools {
-			if tool.Type == AIToolTypeCodingAgent {
-				assert.NotEqual(t, AIToolScopeProject, tool.Scope,
+			if tool.Kind == inventory.KindCodingAgent {
+				assert.NotEqual(t, inventory.ScopeProject, tool.Scope,
 					"coding_agent should only be system-scoped")
 			}
 		}
@@ -125,8 +127,8 @@ func TestClaudeCodeDiscoverer_SystemSettings(t *testing.T) {
 		require.NoError(t, err)
 
 		// Should not error with non-existent paths
-		var tools []*AITool
-		err = reader.EnumTools(context.Background(), func(tool *AITool) error {
+		var tools []*inventory.Item
+		err = reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 			tools = append(tools, tool)
 			return nil
 		})

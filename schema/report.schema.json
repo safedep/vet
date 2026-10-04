@@ -474,7 +474,7 @@
             "pub",
             "pypi",
             "rubygems",
-            "terraform",
+            "terraform-provider",
             "vscode"
           ]
         },
@@ -536,7 +536,7 @@
             "pub",
             "pypi",
             "rubygems",
-            "terraform",
+            "terraform-provider",
             "vscode"
           ]
         }
@@ -581,7 +581,7 @@
           "type": "array"
         },
         "id": {
-          "$ref": "#/$defs/PackageID"
+          "$ref": "#/$defs/PackageVersion"
         },
         "direct": {
           "type": "boolean"
@@ -643,45 +643,6 @@
         "direct"
       ]
     },
-    "PackageID": {
-      "properties": {
-        "ecosystem": {
-          "type": "string",
-          "enum": [
-            "cargo",
-            "github-actions",
-            "go",
-            "maven",
-            "npm",
-            "nuget",
-            "openvsx",
-            "packagist",
-            "pub",
-            "pypi",
-            "rubygems",
-            "terraform",
-            "vscode"
-          ]
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "version": {
-          "type": "string"
-        },
-        "subpath": {
-          "type": "string"
-        }
-      },
-      "type": "object",
-      "required": [
-        "ecosystem",
-        "name"
-      ]
-    },
     "PackageSubject": {
       "properties": {
         "purl": {
@@ -701,7 +662,7 @@
             "pub",
             "pypi",
             "rubygems",
-            "terraform",
+            "terraform-provider",
             "vscode"
           ]
         },
@@ -709,6 +670,12 @@
           "type": "string"
         },
         "version": {
+          "type": "string"
+        },
+        "raw_name": {
+          "type": "string"
+        },
+        "raw_version": {
           "type": "string"
         },
         "direct": {
@@ -723,8 +690,52 @@
         "purl",
         "ecosystem",
         "name",
+        "raw_name",
         "direct",
         "manifest_path"
+      ]
+    },
+    "PackageVersion": {
+      "properties": {
+        "ecosystem": {
+          "type": "string",
+          "enum": [
+            "cargo",
+            "github-actions",
+            "go",
+            "maven",
+            "npm",
+            "nuget",
+            "openvsx",
+            "packagist",
+            "pub",
+            "pypi",
+            "rubygems",
+            "terraform-provider",
+            "vscode"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "raw_name": {
+          "type": "string"
+        },
+        "raw_version": {
+          "type": "string"
+        },
+        "purl": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "ecosystem",
+        "name",
+        "raw_name"
       ]
     },
     "Record": {

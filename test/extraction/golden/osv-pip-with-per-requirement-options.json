@@ -7,8 +7,8 @@
       "packages": [
         "pypi/boto3@1.26.121 [+] :1",
         "pypi/foo@1.0.0 [+] :2",
-        "pypi/fooproject@1.2 [+] :6",
-        "pypi/barproject@1.2 [+] :12"
+        "pypi/FooProject@1.2 [+] :6",
+        "pypi/BarProject@1.2 [+] :12"
       ]
     }
   ]

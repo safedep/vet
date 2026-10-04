@@ -36,7 +36,7 @@ make_mock_vet() {
 #!/bin/bash
 if [[ "\${1:-}" == "version" ]]; then echo "vet mock v0.0.0"; exit 0; fi
 printf 'argv:%s\n' "\$*" >> "${args_cap}"
-printf 'api=%s tenant=%s\n' "\${SAFEDEP_API_KEY:-}" "\${SAFEDEP_TENANT_ID:-}" >> "${env_cap}"
+printf 'api=%s tenant=%s sync=%s\n' "\${SAFEDEP_API_KEY:-}" "\${SAFEDEP_TENANT_ID:-}" "\${VET_PLUGINS_CLOUD_INVENTORY_ENABLED:-}" >> "${env_cap}"
 exit 0
 EOF
   chmod 0755 "${dir}/vet"
@@ -108,12 +108,12 @@ test_scan_current_user_with_cloud() {
   make_mock_vet "${tmp}/bin" "${tmp}/args" "${tmp}/env"
 
   PATH="${tmp}/bin:$PATH" SAFEDEP_API_KEY="key-123" SAFEDEP_TENANT_ID="tenant-abc" \
-    bash "$SCRIPT" --silent --kind ai-tool >/dev/null 2>&1
+    bash "$SCRIPT" -q -o json >/dev/null 2>&1
 
   local args env
   args=$(cat "${tmp}/args"); env=$(cat "${tmp}/env")
-  assert_equals "argv:endpoint scan --silent --kind ai-tool" "$args" "scan argv"
-  assert_contains "$env" "api=key-123 tenant=tenant-abc" "cloud creds reached vet via env"
+  assert_equals "argv:endpoint audit -q -o json" "$args" "scan argv"
+  assert_contains "$env" "api=key-123 tenant=tenant-abc sync=true" "cloud creds and the sync plugin reached vet via env"
   # Credentials must never ride in argv (ps-visible on a shared host).
   refute_contains "$args" "key-123" "api key absent from argv"
   refute_contains "$args" "tenant-abc" "tenant absent from argv"
@@ -128,10 +128,10 @@ test_scan_current_user_local_only() {
   # Scrub any inherited creds so this is a genuine local-only run.
   local out
   out=$(PATH="${tmp}/bin:$PATH" env -u SAFEDEP_API_KEY -u SAFEDEP_TENANT_ID \
-    bash "$SCRIPT" --silent 2>&1)
+    bash "$SCRIPT" -q 2>&1)
 
-  assert_equals "argv:endpoint scan --silent" "$(cat "${tmp}/args")" "local-only argv"
-  assert_equals "api= tenant=" "$(cat "${tmp}/env")" "no creds in vet env"
+  assert_equals "argv:endpoint audit -q" "$(cat "${tmp}/args")" "local-only argv"
+  assert_equals "api= tenant= sync=" "$(cat "${tmp}/env")" "no creds and no sync in vet env"
   assert_contains "$out" "local-only" "local-only notice printed"
 }
 

@@ -32,12 +32,16 @@ type FindingInput struct {
 }
 
 // PackageInput is the package of a package finding. It is an empty map
-// for a file, manifest or application finding.
+// for a file, manifest or application finding. Name and Version hold the
+// canonical form, so a rule matches every spelling of one package version.
+// RawName and RawVersion hold the form that the manifest writes.
 type PackageInput struct {
 	PURL            string   `json:"purl"`
 	Ecosystem       string   `json:"ecosystem"`
 	Name            string   `json:"name"`
 	Version         string   `json:"version"`
+	RawName         string   `json:"raw_name"`
+	RawVersion      string   `json:"raw_version"`
 	Direct          bool     `json:"direct"`
 	Dev             bool     `json:"dev"`
 	Change          string   `json:"change"`
@@ -97,7 +101,8 @@ func NewInput(f *finding.Finding, pkg *model.Package, m *model.Manifest, now tim
 
 func packageInput(p *model.Package, now time.Time) *PackageInput {
 	in := &PackageInput{
-		PURL: p.ID.PURL(), Ecosystem: string(p.ID.Ecosystem), Name: p.ID.QualifiedName(), Version: p.ID.Version,
+		PURL: p.ID.PURL(), Ecosystem: string(p.ID.Ecosystem()), Name: p.ID.Name(), Version: p.ID.Version(),
+		RawName: p.ID.RawName(), RawVersion: p.ID.RawVersion(),
 		Direct: p.Direct, Dev: p.Dev, Change: string(p.Change), PreviousVersion: p.PreviousVersion,
 		Licenses: []string{}, Vulnerabilities: []VulnerabilityInput{},
 	}

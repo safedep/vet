@@ -79,7 +79,7 @@ func (r *run) extractPURL(ctx context.Context, a plugin.Artifact) error {
 		return err
 	}
 	m := &model.Manifest{
-		ID: model.ManifestID(a.PURL, "purl"), Path: a.PURL, Ecosystem: id.Ecosystem, Kind: model.ManifestKindPURL,
+		ID: model.ManifestID(a.PURL, "purl"), Path: a.PURL, Ecosystem: id.Ecosystem(), Kind: model.ManifestKindPURL,
 		Packages: []*model.Package{{ID: id, Direct: true}},
 	}
 	return r.res.Scan.CommitArtifact(ctx, state.ArtifactRecord{Key: a.Key, Kind: string(a.Kind), Path: a.PURL}, []*model.Manifest{m})

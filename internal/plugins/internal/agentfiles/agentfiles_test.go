@@ -40,3 +40,12 @@ func TestClassify(t *testing.T) {
 		assert.False(t, ok, p)
 	}
 }
+
+// TestHomeFilesClassify keeps one list of agent files: a home file that
+// Classify does not know would reach no control.
+func TestHomeFilesClassify(t *testing.T) {
+	for _, f := range HomeFiles {
+		_, ok := Classify(f)
+		assert.True(t, ok, f)
+	}
+}

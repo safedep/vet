@@ -37,14 +37,24 @@ type Subject struct {
 	Application *ApplicationSubject `json:"application,omitempty"`
 }
 
-// PackageSubject is a package version in one manifest.
+// PackageSubject is a package version in one manifest. PURL, Name and
+// Version hold the canonical form, which a reader compares. RawName and
+// RawVersion hold the form that the manifest writes.
 type PackageSubject struct {
 	PURL         string          `json:"purl"`
 	Ecosystem    model.Ecosystem `json:"ecosystem"`
 	Name         string          `json:"name"`
 	Version      string          `json:"version,omitempty"`
+	RawName      string          `json:"raw_name"`
+	RawVersion   string          `json:"raw_version,omitempty"`
 	Direct       bool            `json:"direct"`
 	ManifestPath string          `json:"manifest_path"`
+}
+
+// PackageVersion rebuilds the identity of the package from the ecosystem and
+// the raw form, so it compares under the current identity rule.
+func (s *PackageSubject) PackageVersion() (model.PackageVersion, error) {
+	return model.NewPackageVersion(s.Ecosystem, s.RawName, s.RawVersion)
 }
 
 // FileSubject is a file in the target, for example a workflow.

@@ -80,7 +80,7 @@ func (c nameControl) Evaluate(_ context.Context, m *model.Manifest, _ plugin.Sta
 	}
 	var out []finding.Finding
 	for _, p := range m.Packages {
-		if p.ID.Name == c.name {
+		if p.ID.RawName() == c.name {
 			out = append(out, finding.ForPackage(finding.Meta{
 				ControlID: "test-name", Family: finding.FamilyMalware, Severity: finding.SeverityCritical, Title: "bad name",
 			}, m.Path, p, finding.Key{}))
@@ -148,7 +148,7 @@ func TestRunFullScan(t *testing.T) {
 	assert.Equal(t, 3, tr.Summary.Packages)
 	assert.Equal(t, 2, tr.Summary.Manifests)
 
-	p, err := res.Scan.Package(context.Background(), model.PackageID{Ecosystem: model.EcosystemNpm, Name: "left-pad", Version: "1.3.0"})
+	p, err := res.Scan.Package(context.Background(), model.MustPackageVersion(model.EcosystemNpm, "left-pad", "1.3.0"))
 	require.NoError(t, err)
 	require.NotNil(t, p.Insight)
 	assert.True(t, p.Direct)
@@ -169,7 +169,7 @@ func TestCacheAnswersTheNextScan(t *testing.T) {
 	o.Fresh = true
 	res := runScan(t, o)
 	assert.Zero(t, en.seen, "the cache answers each package")
-	p, err := res.Scan.Package(context.Background(), model.PackageID{Ecosystem: model.EcosystemPyPI, Name: "requests", Version: "2.31.0"})
+	p, err := res.Scan.Package(context.Background(), model.MustPackageVersion(model.EcosystemPyPI, "requests", "2.31.0"))
 	require.NoError(t, err)
 	require.NotNil(t, p.Insight)
 }

@@ -3,105 +3,75 @@ package model
 import (
 	"fmt"
 	"sort"
+
+	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
+	"github.com/safedep/dry/api/pb"
 )
 
-// Ecosystem is a closed set of package ecosystems.
+// Ecosystem is the name of a package ecosystem, as a person reads and writes
+// it in a flag, a config file, a report or a policy. The names come from
+// dry/api/pb, so every SafeDep tool prints the same name for one ecosystem.
 type Ecosystem string
 
 const (
-	EcosystemNpm           Ecosystem = "npm"
-	EcosystemPyPI          Ecosystem = "pypi"
-	EcosystemMaven         Ecosystem = "maven"
-	EcosystemGo            Ecosystem = "go"
-	EcosystemCargo         Ecosystem = "cargo"
-	EcosystemRubyGems      Ecosystem = "rubygems"
-	EcosystemNuGet         Ecosystem = "nuget"
-	EcosystemPackagist     Ecosystem = "packagist"
-	EcosystemPub           Ecosystem = "pub"
-	EcosystemGitHubActions Ecosystem = "github-actions"
-	EcosystemTerraform     Ecosystem = "terraform"
-	EcosystemVSCode        Ecosystem = "vscode"
-	EcosystemOpenVSX       Ecosystem = "openvsx"
+	EcosystemNpm               Ecosystem = "npm"
+	EcosystemPyPI              Ecosystem = "pypi"
+	EcosystemMaven             Ecosystem = "maven"
+	EcosystemGo                Ecosystem = "go"
+	EcosystemCargo             Ecosystem = "cargo"
+	EcosystemRubyGems          Ecosystem = "rubygems"
+	EcosystemNuGet             Ecosystem = "nuget"
+	EcosystemPackagist         Ecosystem = "packagist"
+	EcosystemPub               Ecosystem = "pub"
+	EcosystemGitHubActions     Ecosystem = "github-actions"
+	EcosystemTerraformProvider Ecosystem = "terraform-provider"
+	EcosystemVSCode            Ecosystem = "vscode"
+	EcosystemOpenVSX           Ecosystem = "openvsx"
 )
 
-// EcosystemInfo is one row of the ecosystem table.
-type EcosystemInfo struct {
-	Ecosystem Ecosystem
-	PURLType  string
-	OSVName   string
+// ecosystems maps each ecosystem that vet reads to its SafeDep API value.
+// TestEcosystemsMatchDry checks each name against the dry name table.
+var ecosystems = map[Ecosystem]packagev1.Ecosystem{
+	EcosystemNpm:               packagev1.Ecosystem_ECOSYSTEM_NPM,
+	EcosystemPyPI:              packagev1.Ecosystem_ECOSYSTEM_PYPI,
+	EcosystemMaven:             packagev1.Ecosystem_ECOSYSTEM_MAVEN,
+	EcosystemGo:                packagev1.Ecosystem_ECOSYSTEM_GO,
+	EcosystemCargo:             packagev1.Ecosystem_ECOSYSTEM_CARGO,
+	EcosystemRubyGems:          packagev1.Ecosystem_ECOSYSTEM_RUBYGEMS,
+	EcosystemNuGet:             packagev1.Ecosystem_ECOSYSTEM_NUGET,
+	EcosystemPackagist:         packagev1.Ecosystem_ECOSYSTEM_PACKAGIST,
+	EcosystemPub:               packagev1.Ecosystem_ECOSYSTEM_PUB,
+	EcosystemGitHubActions:     packagev1.Ecosystem_ECOSYSTEM_GITHUB_ACTIONS,
+	EcosystemTerraformProvider: packagev1.Ecosystem_ECOSYSTEM_TERRAFORM_PROVIDER,
+	EcosystemVSCode:            packagev1.Ecosystem_ECOSYSTEM_VSCODE,
+	EcosystemOpenVSX:           packagev1.Ecosystem_ECOSYSTEM_OPENVSX,
 }
 
-// ecosystems is the one ecosystem table. Every lookup goes through it.
-var ecosystems = []EcosystemInfo{
-	{EcosystemNpm, "npm", "npm"},
-	{EcosystemPyPI, "pypi", "PyPI"},
-	{EcosystemMaven, "maven", "Maven"},
-	{EcosystemGo, "golang", "Go"},
-	{EcosystemCargo, "cargo", "crates.io"},
-	{EcosystemRubyGems, "gem", "RubyGems"},
-	{EcosystemNuGet, "nuget", "NuGet"},
-	{EcosystemPackagist, "composer", "Packagist"},
-	{EcosystemPub, "pub", "Pub"},
-	{EcosystemGitHubActions, "githubactions", "GitHub Actions"},
-	{EcosystemTerraform, "terraform", ""},
-	{EcosystemVSCode, "vscode", ""},
-	{EcosystemOpenVSX, "openvsx", ""},
-}
-
-var (
-	byEcosystem = map[Ecosystem]EcosystemInfo{}
-	byPURLType  = map[string]EcosystemInfo{}
-)
-
-func init() {
-	for _, e := range ecosystems {
-		byEcosystem[e.Ecosystem] = e
-		byPURLType[e.PURLType] = e
-	}
-	// "github" is the PURL type that some tools use for GitHub Actions.
-	byPURLType["github"] = byEcosystem[EcosystemGitHubActions]
-}
-
-// Ecosystems returns every known ecosystem, sorted.
+// Ecosystems returns every ecosystem that vet reads, sorted.
 func Ecosystems() []Ecosystem {
 	out := make([]Ecosystem, 0, len(ecosystems))
-	for _, e := range ecosystems {
-		out = append(out, e.Ecosystem)
+	for e := range ecosystems {
+		out = append(out, e)
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
 	return out
 }
 
-// Info returns the table row of the ecosystem.
-func (e Ecosystem) Info() (EcosystemInfo, error) {
-	info, ok := byEcosystem[e]
-	if !ok {
-		return EcosystemInfo{}, fmt.Errorf("unknown ecosystem %q", string(e))
-	}
-	return info, nil
-}
-
-// Valid reports whether the ecosystem is in the table.
+// Valid reports whether vet reads the ecosystem.
 func (e Ecosystem) Valid() bool {
-	_, ok := byEcosystem[e]
+	_, ok := ecosystems[e]
 	return ok
 }
 
-// EcosystemFromPURLType returns the ecosystem of a PURL type.
-func EcosystemFromPURLType(t string) (Ecosystem, error) {
-	info, ok := byPURLType[t]
-	if !ok {
-		return "", fmt.Errorf("unknown PURL type %q", t)
+// ecosystemOf returns the ecosystem of a SafeDep API value, or an error for
+// a value that vet does not read.
+func ecosystemOf(value packagev1.Ecosystem) (Ecosystem, error) {
+	name, err := pb.EcosystemName(value)
+	if err != nil {
+		return "", err
 	}
-	return info.Ecosystem, nil
-}
-
-// EcosystemFromOSV returns the ecosystem of an OSV ecosystem name.
-func EcosystemFromOSV(name string) (Ecosystem, error) {
-	for _, e := range ecosystems {
-		if e.OSVName != "" && e.OSVName == name {
-			return e.Ecosystem, nil
-		}
+	if e := Ecosystem(name); e.Valid() {
+		return e, nil
 	}
-	return "", fmt.Errorf("unknown OSV ecosystem %q", name)
+	return "", fmt.Errorf("vet does not read the %s ecosystem", name)
 }

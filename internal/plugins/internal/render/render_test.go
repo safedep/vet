@@ -10,7 +10,7 @@ import (
 )
 
 func TestSubjectAndWhere(t *testing.T) {
-	p := &model.Package{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Namespace: "@s", Name: "x\x1b[31m", Version: "1.0.0"}, Line: 3}
+	p := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "@s/x\x1b[31m", "1.0.0"), Line: 3}
 	pkg := finding.ForPackage(finding.Meta{ControlID: "c", Family: finding.FamilyMalware, Severity: finding.SeverityLow, Title: "t"}, "a/package-lock.json", p, finding.Key{})
 	file := finding.ForFile(finding.Meta{ControlID: "c", Family: finding.FamilyWorkflow, Severity: finding.SeverityLow, Title: "t"},
 		finding.Locus{Path: "ci.yml"}, finding.Key{})
@@ -40,7 +40,7 @@ func TestSubjectAndWhere(t *testing.T) {
 }
 
 func TestTitleDropsTheSubject(t *testing.T) {
-	p := &model.Package{ID: model.PackageID{Ecosystem: model.EcosystemPyPI, Name: "django", Version: "2.2.0"}}
+	p := &model.Package{ID: model.MustPackageVersion(model.EcosystemPyPI, "django", "2.2.0")}
 	pkg := func(title string) finding.Finding {
 		return finding.ForPackage(finding.Meta{ControlID: "c", Family: finding.FamilyVulnerability, Severity: finding.SeverityLow, Title: title}, "requirements.txt", p, finding.Key{})
 	}

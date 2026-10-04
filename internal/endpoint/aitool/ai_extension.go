@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 
 	"github.com/safedep/dry/log"
+
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 )
 
 const (
@@ -26,7 +28,7 @@ func (d *aiExtensionDiscoverer) Name() string { return "AI IDE Extensions" }
 func (d *aiExtensionDiscoverer) App() string  { return ideExtensionsApp }
 
 func (d *aiExtensionDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn) error {
-	if !d.config.ScopeEnabled(AIToolScopeSystem) {
+	if !d.config.ScopeEnabled(inventory.ScopeSystem) {
 		return nil
 	}
 
@@ -40,7 +42,7 @@ func (d *aiExtensionDiscoverer) EnumTools(_ context.Context, handler AIToolHandl
 		r = newVSIXReader(home)
 	}
 
-	return enumVSIXExtensions(r, ideExtensionsApp, AIToolTypeAIExtension,
+	return enumVSIXExtensions(r, ideExtensionsApp, inventory.KindAIExtension,
 		func(id string) (string, bool) {
 			info, ok := knownAIExtensions[id]
 			return info.DisplayName, ok

@@ -2,12 +2,12 @@
 # package name is the provider address. A provider with no version keeps
 # an empty version.
 exec vet scan . --mode plain -o jsonl
-stdout '"path":".terraform.lock.hcl","ecosystem":"terraform"'
+stdout '"path":".terraform.lock.hcl","ecosystem":"terraform-provider"'
 stdout '"extractor":"terraform/lockfile"'
-stdout '"purl":"pkg:terraform/registry.terraform.io%2Fhashicorp%2Faws@5.0.1"'
-stdout '"name":"registry.terraform.io/hashicorp/aws","version":"5.0.1"},"direct":true,"line":1'
-stdout '"name":"registry.terraform.io/integrations/github","version":"5.9.0"},"direct":true,"line":7'
-stdout '"name":"registry.terraform.io/hashicorp/random"},"direct":true,"line":12'
+stdout '"purl":"pkg:terraform/registry.terraform.io/hashicorp/aws@5.0.1"'
+stdout '"name":"registry.terraform.io/hashicorp/aws","version":"5.0.1",.*"direct":true,"line":1'
+stdout '"name":"registry.terraform.io/integrations/github","version":"5.9.0",.*"direct":true,"line":7'
+stdout '"name":"registry.terraform.io/hashicorp/random","raw_name":.*"direct":true,"line":12'
 
 -- .terraform.lock.hcl --
 provider "registry.terraform.io/hashicorp/aws" {

@@ -5,9 +5,9 @@
       "kind": "manifest",
       "ecosystem": "pypi",
       "packages": [
-        "pypi/zope-interface@5.4.0 [+] :1",
-        "pypi/pillow@1.0.0 [+] :6",
-        "pypi/twisted@20.3.0 [+] :8"
+        "pypi/zope.interface@5.4.0 [+] :1",
+        "pypi/Pillow@1.0.0 [+] :6",
+        "pypi/Twisted@20.3.0 [+] :8"
       ]
     }
   ]

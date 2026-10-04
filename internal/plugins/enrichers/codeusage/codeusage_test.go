@@ -28,11 +28,11 @@ func TestEnrich(t *testing.T) {
 	}
 	e := NewWith("/repo", Options{}, fake)
 	pkgs := []*model.Package{
-		{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "lodash", Version: "4.17.21"}},
-		{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Namespace: "@scope", Name: "pkg", Version: "1.0.0"}},
-		{ID: model.PackageID{Ecosystem: model.EcosystemPyPI, Name: "python-dateutil", Version: "2.9.0"}},
-		{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "unused", Version: "1.0.0"}},
-		{ID: model.PackageID{Ecosystem: model.EcosystemGitHubActions, Namespace: "actions", Name: "checkout", Version: "v4"}},
+		{ID: model.MustPackageVersion(model.EcosystemNpm, "lodash", "4.17.21")},
+		{ID: model.MustPackageVersion(model.EcosystemNpm, "@scope/pkg", "1.0.0")},
+		{ID: model.MustPackageVersion(model.EcosystemPyPI, "python-dateutil", "2.9.0")},
+		{ID: model.MustPackageVersion(model.EcosystemNpm, "unused", "1.0.0")},
+		{ID: model.MustPackageVersion(model.EcosystemGitHubActions, "actions/checkout", "v4")},
 	}
 	plugintest.TestEnricher(t, e, pkgs)
 	assert.Equal(t, 1, calls, "the analysis runs once for a scan")
@@ -53,7 +53,7 @@ func TestRelativeFiles(t *testing.T) {
 			{PackageHint: "a", FilePath: outside},
 		}}, nil
 	})
-	pkgs := []*model.Package{{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "a", Version: "1.0.0"}}}
+	pkgs := []*model.Package{{ID: model.MustPackageVersion(model.EcosystemNpm, "a", "1.0.0")}}
 	require.NoError(t, e.Enrich(context.Background(), pkgs))
 	want := []string{"lib/b.js", "src/a.js", outside}
 	assert.ElementsMatch(t, want, pkgs[0].Usage.Files)
@@ -63,7 +63,7 @@ func TestEnrichError(t *testing.T) {
 	e := NewWith("/repo", Options{}, func(context.Context, string) (Analysis, error) {
 		return Analysis{}, plugin.ErrUnavailable
 	})
-	err := e.Enrich(context.Background(), []*model.Package{{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "a", Version: "1"}}})
+	err := e.Enrich(context.Background(), []*model.Package{{ID: model.MustPackageVersion(model.EcosystemNpm, "a", "1")}})
 	require.Error(t, err)
 	assert.True(t, errors.Is(err, plugin.ErrUnavailable))
 }

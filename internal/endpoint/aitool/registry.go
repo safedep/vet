@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"github.com/safedep/dry/log"
+
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 )
 
 // DiscoveryConfig provides context for AI tool discovery.
@@ -23,7 +25,7 @@ type DiscoveryConfig struct {
 
 // ScopeEnabled is a convenience method that checks whether the given scope
 // is active in this config. Returns true when Scope is nil (all enabled).
-func (c DiscoveryConfig) ScopeEnabled(scope AIToolScope) bool {
+func (c DiscoveryConfig) ScopeEnabled(scope inventory.Scope) bool {
 	if c.Scope == nil {
 		return true
 	}

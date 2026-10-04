@@ -15,7 +15,7 @@ import (
 var now = time.Date(2026, 10, 2, 12, 0, 0, 0, time.UTC)
 
 func pkg(name string, published *time.Time) *model.Package {
-	p := &model.Package{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: name, Version: "1.0.0"}, Direct: true}
+	p := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, name, "1.0.0"), Direct: true}
 	if published != nil {
 		p.Insight = &model.Insight{PublishedAt: published}
 	}

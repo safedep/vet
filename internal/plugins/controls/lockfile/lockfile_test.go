@@ -184,7 +184,7 @@ func TestTrustedSource(t *testing.T) {
 
 func TestResolvedEntries(t *testing.T) {
 	pkg := func(eco model.Ecosystem, name, version, resolved string) *model.Package {
-		return &model.Package{ID: model.PackageID{Ecosystem: eco, Name: name, Version: version}, Resolved: resolved}
+		return &model.Package{ID: model.MustPackageVersion(eco, name, version), Resolved: resolved}
 	}
 	cases := []struct {
 		name string
@@ -225,11 +225,11 @@ func TestPullRequestChecks(t *testing.T) {
 		ID: "m", Path: "yarn.lock", Kind: model.ManifestKindLockfile, Extractor: "javascript/yarnlock", Ecosystem: model.EcosystemNpm,
 		LockfileOnly: true, Change: model.ChangeModified,
 		Packages: []*model.Package{
-			{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "debug", Version: "4.3.4"}, Change: model.ChangeModified, Integrity: "sha512-new", PreviousIntegrity: "sha512-old"},
-			{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "ms", Version: "2.1.3"}, Change: model.ChangeUnchanged, Integrity: "sha512-same"},
-			{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "chalk", Version: "5.3.0"}, Change: model.ChangeModified, PreviousIntegrity: "sha512-gone"},
+			{ID: model.MustPackageVersion(model.EcosystemNpm, "debug", "4.3.4"), Change: model.ChangeModified, Integrity: "sha512-new", PreviousIntegrity: "sha512-old"},
+			{ID: model.MustPackageVersion(model.EcosystemNpm, "ms", "2.1.3"), Change: model.ChangeUnchanged, Integrity: "sha512-same"},
+			{ID: model.MustPackageVersion(model.EcosystemNpm, "chalk", "5.3.0"), Change: model.ChangeModified, PreviousIntegrity: "sha512-gone"},
 			{
-				ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "lodash", Version: "4.17.21"}, Change: model.ChangeModified,
+				ID: model.MustPackageVersion(model.EcosystemNpm, "lodash", "4.17.21"), Change: model.ChangeModified,
 				Integrity: "sha512-kept", PreviousIntegrity: "sha512-kept",
 				Resolved:         "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz",
 				PreviousResolved: "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz",

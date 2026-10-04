@@ -100,12 +100,11 @@ func packageOf(m *model.Manifest, f *finding.Finding) *model.Package {
 	if m == nil || f.Subject.Package == nil {
 		return nil
 	}
-	for _, p := range m.Packages {
-		if p.ID.PURL() == f.Subject.Package.PURL {
-			return p
-		}
+	id, err := f.Subject.Package.PackageVersion()
+	if err != nil {
+		return nil
 	}
-	return nil
+	return m.Package(id)
 }
 
 func changed(a, b *finding.Finding) bool {

@@ -9,6 +9,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 )
 
 // buildUserConfigHomeDir creates a temp home directory containing:
@@ -66,8 +68,8 @@ func TestClaudeCodeUserConfigDiscoverer_ReadsUserLevelMCPs(t *testing.T) {
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{HomeDir: home})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	require.NoError(t, reader.EnumTools(context.Background(), func(t *AITool) error {
+	var tools []*inventory.Item
+	require.NoError(t, reader.EnumTools(context.Background(), func(t *inventory.Item) error {
 		tools = append(tools, t)
 		return nil
 	}))
@@ -83,8 +85,8 @@ func TestClaudeCodeUserConfigDiscoverer_ReadsPluginCache_StandardFormat(t *testi
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{HomeDir: home})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	require.NoError(t, reader.EnumTools(context.Background(), func(t *AITool) error {
+	var tools []*inventory.Item
+	require.NoError(t, reader.EnumTools(context.Background(), func(t *inventory.Item) error {
 		tools = append(tools, t)
 		return nil
 	}))
@@ -99,8 +101,8 @@ func TestClaudeCodeUserConfigDiscoverer_ReadsPluginCache_BareFormat(t *testing.T
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{HomeDir: home})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	require.NoError(t, reader.EnumTools(context.Background(), func(t *AITool) error {
+	var tools []*inventory.Item
+	require.NoError(t, reader.EnumTools(context.Background(), func(t *inventory.Item) error {
 		tools = append(tools, t)
 		return nil
 	}))
@@ -117,8 +119,8 @@ func TestClaudeCodeUserConfigDiscoverer_UserLevelMCPs_AreSystemScoped(t *testing
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{HomeDir: home})
 	require.NoError(t, err)
 
-	require.NoError(t, reader.EnumTools(context.Background(), func(tool *AITool) error {
-		assert.Equal(t, AIToolScopeSystem, tool.Scope, "user-scope and plugin-cache MCPs must be system-scoped")
+	require.NoError(t, reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
+		assert.Equal(t, inventory.ScopeSystem, tool.Scope, "user-scope and plugin-cache MCPs must be system-scoped")
 		return nil
 	}))
 }
@@ -129,7 +131,7 @@ func TestClaudeCodeUserConfigDiscoverer_AllToolsAreClaudeCodeApp(t *testing.T) {
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{HomeDir: home})
 	require.NoError(t, err)
 
-	require.NoError(t, reader.EnumTools(context.Background(), func(tool *AITool) error {
+	require.NoError(t, reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		assert.Equal(t, claudeCodeApp, tool.App)
 		return nil
 	}))
@@ -141,8 +143,8 @@ func TestClaudeCodeUserConfigDiscoverer_MissingHomeDir_HandledGracefully(t *test
 	})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	err = reader.EnumTools(context.Background(), func(tool *AITool) error {
+	var tools []*inventory.Item
+	err = reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		tools = append(tools, tool)
 		return nil
 	})
@@ -153,7 +155,7 @@ func TestClaudeCodeUserConfigDiscoverer_MissingHomeDir_HandledGracefully(t *test
 func TestClaudeCodeUserConfigDiscoverer_ProjectScopeOnly_EmitsNothing(t *testing.T) {
 	home := buildUserConfigHomeDir(t)
 
-	scope, err := NewDiscoveryScope(AIToolScopeProject)
+	scope, err := NewDiscoveryScope(inventory.ScopeProject)
 	require.NoError(t, err)
 
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{
@@ -162,8 +164,8 @@ func TestClaudeCodeUserConfigDiscoverer_ProjectScopeOnly_EmitsNothing(t *testing
 	})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	require.NoError(t, reader.EnumTools(context.Background(), func(tool *AITool) error {
+	var tools []*inventory.Item
+	require.NoError(t, reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		tools = append(tools, tool)
 		return nil
 	}))
@@ -177,10 +179,10 @@ func TestClaudeCodeUserConfigDiscoverer_Name(t *testing.T) {
 }
 
 // collectMCPNames extracts the names of all MCP server tools.
-func collectMCPNames(tools []*AITool) []string {
+func collectMCPNames(tools []*inventory.Item) []string {
 	var names []string
 	for _, tool := range tools {
-		if tool.Type == AIToolTypeMCPServer {
+		if tool.Kind == inventory.KindMCPServer {
 			names = append(names, tool.Name)
 		}
 	}
@@ -202,7 +204,7 @@ func buildHomeWithProjectMCPs(t *testing.T, projectEntries map[string]any) strin
 
 func TestClaudeCodeUserConfigDiscoverer_ProjectMCPs_EmittedAsProjectScoped(t *testing.T) {
 	// items under projects[*] in ~/.claude.json are Claude Code "local" scope —
-	// they must be emitted as AIToolScopeProject, not AIToolScopeSystem.
+	// they must be emitted as inventory.ScopeProject, not inventory.ScopeSystem.
 	home := buildHomeWithProjectMCPs(t, map[string]any{
 		"/home/user/myproject": map[string]any{
 			"mcpServers": map[string]any{
@@ -214,8 +216,8 @@ func TestClaudeCodeUserConfigDiscoverer_ProjectMCPs_EmittedAsProjectScoped(t *te
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{HomeDir: home})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	require.NoError(t, reader.EnumTools(context.Background(), func(tool *AITool) error {
+	var tools []*inventory.Item
+	require.NoError(t, reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		tools = append(tools, tool)
 		return nil
 	}))
@@ -226,7 +228,7 @@ func TestClaudeCodeUserConfigDiscoverer_ProjectMCPs_EmittedAsProjectScoped(t *te
 
 func TestClaudeCodeUserConfigDiscoverer_ProjectMCPs_ScopeIsProject(t *testing.T) {
 	// Claude Code's "local" scope (projects[path].mcpServers) must produce
-	// AIToolScopeProject items, not AIToolScopeSystem.
+	// inventory.ScopeProject items, not inventory.ScopeSystem.
 	home := buildHomeWithProjectMCPs(t, map[string]any{
 		"/home/user/myproject": map[string]any{
 			"mcpServers": map[string]any{
@@ -238,10 +240,10 @@ func TestClaudeCodeUserConfigDiscoverer_ProjectMCPs_ScopeIsProject(t *testing.T)
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{HomeDir: home})
 	require.NoError(t, err)
 
-	require.NoError(t, reader.EnumTools(context.Background(), func(tool *AITool) error {
-		if tool.Type == AIToolTypeMCPServer && tool.Name == "proj-server" {
-			assert.Equal(t, AIToolScopeProject, tool.Scope,
-				"projects[path].mcpServers are local-scope; must be AIToolScopeProject")
+	require.NoError(t, reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
+		if tool.Kind == inventory.KindMCPServer && tool.Name == "proj-server" {
+			assert.Equal(t, inventory.ScopeProject, tool.Scope,
+				"projects[path].mcpServers are local-scope; must be inventory.ScopeProject")
 		}
 		return nil
 	}))
@@ -260,8 +262,8 @@ func TestClaudeCodeUserConfigDiscoverer_ProjectMCPs_ConfigPathIsProjectPath(t *t
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{HomeDir: home})
 	require.NoError(t, err)
 
-	require.NoError(t, reader.EnumTools(context.Background(), func(tool *AITool) error {
-		if tool.Type == AIToolTypeMCPServer && tool.Name == "proj-server" {
+	require.NoError(t, reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
+		if tool.Kind == inventory.KindMCPServer && tool.Name == "proj-server" {
 			assert.Equal(t, projPath, tool.ConfigPath,
 				"ConfigPath must be the project path so IDs are unique per project")
 		}
@@ -282,8 +284,8 @@ func TestClaudeCodeUserConfigDiscoverer_ProjectMCPs_EmptyMCPServersSkipped(t *te
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{HomeDir: home})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	require.NoError(t, reader.EnumTools(context.Background(), func(tool *AITool) error {
+	var tools []*inventory.Item
+	require.NoError(t, reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		tools = append(tools, tool)
 		return nil
 	}))
@@ -308,9 +310,9 @@ func TestClaudeCodeUserConfigDiscoverer_ProjectMCPs_DisabledServerHasEnabledFals
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{HomeDir: home})
 	require.NoError(t, err)
 
-	toolByName := map[string]*AITool{}
-	require.NoError(t, reader.EnumTools(context.Background(), func(tool *AITool) error {
-		if tool.Type == AIToolTypeMCPServer {
+	toolByName := map[string]*inventory.Item{}
+	require.NoError(t, reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
+		if tool.Kind == inventory.KindMCPServer {
 			toolByName[tool.Name] = tool
 		}
 		return nil
@@ -340,8 +342,8 @@ func TestClaudeCodeUserConfigDiscoverer_ProjectMCPs_DisabledNameNotInMCPServers_
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{HomeDir: home})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	err = reader.EnumTools(context.Background(), func(tool *AITool) error {
+	var tools []*inventory.Item
+	err = reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		tools = append(tools, tool)
 		return nil
 	})
@@ -366,8 +368,8 @@ func TestClaudeCodeUserConfigDiscoverer_ProjectMCPs_MultipleProjects_AllEmitted(
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{HomeDir: home})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	require.NoError(t, reader.EnumTools(context.Background(), func(tool *AITool) error {
+	var tools []*inventory.Item
+	require.NoError(t, reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		tools = append(tools, tool)
 		return nil
 	}))
@@ -394,22 +396,22 @@ func TestClaudeCodeUserConfigDiscoverer_ProjectMCPs_SameNameDiffProject_DiffIDs(
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{HomeDir: home})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	require.NoError(t, reader.EnumTools(context.Background(), func(tool *AITool) error {
-		if tool.Type == AIToolTypeMCPServer {
+	var tools []*inventory.Item
+	require.NoError(t, reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
+		if tool.Kind == inventory.KindMCPServer {
 			tools = append(tools, tool)
 		}
 		return nil
 	}))
 
-	notionTools := []*AITool{}
+	notionTools := []*inventory.Item{}
 	for _, t := range tools {
 		if t.Name == "notion" {
 			notionTools = append(notionTools, t)
 		}
 	}
 	require.Len(t, notionTools, 2, "both projects' notion entries must be emitted")
-	assert.NotEqual(t, notionTools[0].ID, notionTools[1].ID,
+	assert.NotEqual(t, notionTools[0].ItemIdentity, notionTools[1].ItemIdentity,
 		"same server name from different projects must have different IDs")
 }
 
@@ -425,8 +427,8 @@ func TestClaudeCodeUserConfigDiscoverer_ProjectMCPs_MissingProjectsKey_Graceful(
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{HomeDir: home})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	err = reader.EnumTools(context.Background(), func(tool *AITool) error {
+	var tools []*inventory.Item
+	err = reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		tools = append(tools, tool)
 		return nil
 	})
@@ -439,7 +441,7 @@ func TestClaudeCodeUserConfigDiscoverer_ProjectMCPs_MissingProjectsKey_Graceful(
 
 func TestClaudeCodeUserConfigDiscoverer_LocalScopeMCPs_AppearAsProjectScoped(t *testing.T) {
 	// Verifies end-to-end that a specific project's local-scope MCPs arrive
-	// with AIToolScopeProject (not system-scoped).
+	// with inventory.ScopeProject (not system-scoped).
 	const projDir = "/home/user/myproject"
 	home := buildHomeWithProjectMCPs(t, map[string]any{
 		projDir: map[string]any{
@@ -452,8 +454,8 @@ func TestClaudeCodeUserConfigDiscoverer_LocalScopeMCPs_AppearAsProjectScoped(t *
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{HomeDir: home})
 	require.NoError(t, err)
 
-	var found *AITool
-	require.NoError(t, reader.EnumTools(context.Background(), func(tool *AITool) error {
+	var found *inventory.Item
+	require.NoError(t, reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		if tool.Name == "local-server" {
 			found = tool
 		}
@@ -461,7 +463,7 @@ func TestClaudeCodeUserConfigDiscoverer_LocalScopeMCPs_AppearAsProjectScoped(t *
 	}))
 
 	require.NotNil(t, found, "local-scope MCP must be discovered")
-	assert.Equal(t, AIToolScopeProject, found.Scope)
+	assert.Equal(t, inventory.ScopeProject, found.Scope)
 	assert.Equal(t, projDir, found.ConfigPath)
 }
 
@@ -475,8 +477,8 @@ func TestClaudeCodeUserConfigDiscoverer_LocalScopeMCPs_EmptyMCPServers_NoItems(t
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{HomeDir: home})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	require.NoError(t, reader.EnumTools(context.Background(), func(tool *AITool) error {
+	var tools []*inventory.Item
+	require.NoError(t, reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		tools = append(tools, tool)
 		return nil
 	}))
@@ -496,8 +498,8 @@ func TestClaudeCodeUserConfigDiscoverer_LocalScopeMCPs_DisabledServer(t *testing
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{HomeDir: home})
 	require.NoError(t, err)
 
-	var found *AITool
-	require.NoError(t, reader.EnumTools(context.Background(), func(tool *AITool) error {
+	var found *inventory.Item
+	require.NoError(t, reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		if tool.Name == "github" {
 			found = tool
 		}
@@ -513,7 +515,7 @@ func TestClaudeCodeUserConfigDiscoverer_LocalScopeMCPs_DisabledServer(t *testing
 
 func TestClaudeCodeUserConfigDiscoverer_ProjectScopeOnly_EmitsAllProjectMCPs(t *testing.T) {
 	// With project-only scope:
-	// - projects[*].mcpServers (local-scope) must all appear as AIToolScopeProject
+	// - projects[*].mcpServers (local-scope) must all appear as inventory.ScopeProject
 	// - top-level mcpServers (user-scope) and plugin cache must NOT appear
 	home := t.TempDir()
 	writeJSONFile(t, filepath.Join(home, ".claude.json"), map[string]any{
@@ -534,7 +536,7 @@ func TestClaudeCodeUserConfigDiscoverer_ProjectScopeOnly_EmitsAllProjectMCPs(t *
 		},
 	})
 
-	scope, err := NewDiscoveryScope(AIToolScopeProject)
+	scope, err := NewDiscoveryScope(inventory.ScopeProject)
 	require.NoError(t, err)
 
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{
@@ -543,8 +545,8 @@ func TestClaudeCodeUserConfigDiscoverer_ProjectScopeOnly_EmitsAllProjectMCPs(t *
 	})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	require.NoError(t, reader.EnumTools(context.Background(), func(tool *AITool) error {
+	var tools []*inventory.Item
+	require.NoError(t, reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		tools = append(tools, tool)
 		return nil
 	}))
@@ -556,8 +558,8 @@ func TestClaudeCodeUserConfigDiscoverer_ProjectScopeOnly_EmitsAllProjectMCPs(t *
 		"user-scope MCPs must NOT appear when scope is project-only")
 
 	for _, tool := range tools {
-		assert.Equal(t, AIToolScopeProject, tool.Scope,
-			"all items under project scope must be AIToolScopeProject")
+		assert.Equal(t, inventory.ScopeProject, tool.Scope,
+			"all items under project scope must be inventory.ScopeProject")
 	}
 }
 
@@ -578,7 +580,7 @@ func TestClaudeCodeUserConfigDiscoverer_SystemScopeOnly_NoProjectMCPs(t *testing
 		},
 	})
 
-	scope, err := NewDiscoveryScope(AIToolScopeSystem)
+	scope, err := NewDiscoveryScope(inventory.ScopeSystem)
 	require.NoError(t, err)
 
 	reader, err := NewClaudeCodeUserConfigDiscoverer(DiscoveryConfig{
@@ -587,8 +589,8 @@ func TestClaudeCodeUserConfigDiscoverer_SystemScopeOnly_NoProjectMCPs(t *testing
 	})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	require.NoError(t, reader.EnumTools(context.Background(), func(tool *AITool) error {
+	var tools []*inventory.Item
+	require.NoError(t, reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		tools = append(tools, tool)
 		return nil
 	}))
@@ -599,7 +601,7 @@ func TestClaudeCodeUserConfigDiscoverer_SystemScopeOnly_NoProjectMCPs(t *testing
 		"local-scope project MCPs must NOT appear when scope is system-only")
 
 	for _, tool := range tools {
-		assert.Equal(t, AIToolScopeSystem, tool.Scope,
+		assert.Equal(t, inventory.ScopeSystem, tool.Scope,
 			"system-only scope must produce only system-scoped items")
 	}
 }

@@ -1,6 +1,7 @@
 package report
 
 import (
+	"cmp"
 	"slices"
 	"strings"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/safedep/vet/v2/internal/tui"
 	"github.com/safedep/vet/v2/internal/tui/escape"
 	"github.com/safedep/vet/v2/internal/tui/printer"
+	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/report"
 )
@@ -129,13 +131,15 @@ func compare(cmd *cobra.Command, base, head *reportdoc.Doc) (*Diff, error) {
 		}
 		return out, nil
 	}
-	purls := func(doc *reportdoc.Doc) (map[string]bool, error) {
-		out := map[string]bool{}
+	// packages maps the key of each package to its PURL. A name that
+	// forms no PURL shows as ecosystem/name@version.
+	packages := func(doc *reportdoc.Doc) (map[model.PackageKey]string, error) {
+		out := map[model.PackageKey]string{}
 		for p, err := range doc.Packages(ctx, plugin.PackageQuery{}) {
 			if err != nil {
 				return nil, err
 			}
-			out[p.ID.PURL()] = true
+			out[p.ID.Key()] = cmp.Or(p.ID.PURL(), p.ID.String())
 		}
 		return out, nil
 	}
@@ -162,22 +166,22 @@ func compare(cmd *cobra.Command, base, head *reportdoc.Doc) (*Diff, error) {
 	slices.SortFunc(d.Added, finding.Compare)
 	slices.SortFunc(d.Removed, finding.Compare)
 
-	bp, err := purls(base)
+	bp, err := packages(base)
 	if err != nil {
 		return nil, err
 	}
-	hp, err := purls(head)
+	hp, err := packages(head)
 	if err != nil {
 		return nil, err
 	}
-	for p := range hp {
-		if !bp[p] {
-			d.PackagesAdded = append(d.PackagesAdded, p)
+	for k, label := range hp {
+		if _, ok := bp[k]; !ok {
+			d.PackagesAdded = append(d.PackagesAdded, label)
 		}
 	}
-	for p := range bp {
-		if !hp[p] {
-			d.PackagesRemoved = append(d.PackagesRemoved, p)
+	for k, label := range bp {
+		if _, ok := hp[k]; !ok {
+			d.PackagesRemoved = append(d.PackagesRemoved, label)
 		}
 	}
 	slices.Sort(d.PackagesAdded)

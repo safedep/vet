@@ -99,7 +99,7 @@ func (r *run) enrichWith(ctx context.Context, e Enricher, p *enrichProgress) err
 			}
 			return nil
 		}
-		after = batch[len(batch)-1].ID.PURL()
+		after = string(batch[len(batch)-1].ID.Key())
 
 		results, err := r.enrichBatch(ctx, e, batch)
 		if err != nil {

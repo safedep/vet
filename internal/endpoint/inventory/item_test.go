@@ -109,3 +109,11 @@ func TestAgentDetailZeroValue(t *testing.T) {
 	assert.Empty(t, detail.Model)
 	assert.Empty(t, detail.APIKeyEnvName)
 }
+
+func TestItemSetMeta(t *testing.T) {
+	var item Item
+	item.SetMeta("a", "1")
+	item.SetMeta("b", "2")
+	item.SetMeta("a", "3")
+	assert.Equal(t, map[string]string{"a": "3", "b": "2"}, item.Metadata)
+}

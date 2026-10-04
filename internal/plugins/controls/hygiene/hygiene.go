@@ -112,7 +112,7 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 		if p.Change == model.ChangeRemoved {
 			continue
 		}
-		if scripts[p.ID.String()] && introduces(p) {
+		if scripts[p.ID.Key()] && introduces(p) {
 			out = append(out, packageFinding(IDInstallScripts, m, p, "",
 				fmt.Sprintf("%s runs install scripts", p.ID),
 				"Check what the scripts do. Install with --ignore-scripts if the package works with no script."))
@@ -120,7 +120,7 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 		out = append(out, c.insight(m, p)...)
 		if src := nonRegistrySource(p.Resolved); src != "" {
 			out = append(out, packageFinding(IDNonRegistry, m, p, src,
-				fmt.Sprintf("%s comes from %s", p.ID.QualifiedName(), src),
+				fmt.Sprintf("%s comes from %s", p.ID.RawName(), src),
 				"Use a released version from a registry, or pin the source to a commit."))
 		}
 	}
@@ -155,12 +155,12 @@ func (c *Control) insight(m *model.Manifest, p *model.Package) []finding.Finding
 	}
 	if prev != nil && len(prev.Licenses) > 0 && len(in.Licenses) > 0 && !sameLicenses(prev.Licenses, in.Licenses) {
 		out = append(out, packageFinding(IDLicenseChange, m, p, strings.Join(in.Licenses, ","),
-			fmt.Sprintf("%s changes its license from %s to %s", p.ID.QualifiedName(), strings.Join(prev.Licenses, ", "), strings.Join(in.Licenses, ", ")),
+			fmt.Sprintf("%s changes its license from %s to %s", p.ID.RawName(), strings.Join(prev.Licenses, ", "), strings.Join(in.Licenses, ", ")),
 			"Check that the new license fits the license policy of the project."))
 	}
 	if sc := in.Scorecard; sc != nil && sc.Score < c.minScore {
 		out = append(out, packageFinding(IDScorecardLow, m, p, "",
-			fmt.Sprintf("%s has an OpenSSF Scorecard score of %.1f", p.ID.QualifiedName(), sc.Score),
+			fmt.Sprintf("%s has an OpenSSF Scorecard score of %.1f", p.ID.RawName(), sc.Score),
 			"Review the maintenance and the security practices of the project."))
 	}
 	return out

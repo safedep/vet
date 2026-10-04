@@ -100,7 +100,10 @@ func extensionManifest(it *inventory.Item) *model.Manifest {
 		return nil
 	}
 	// The marketplace id, publisher.name, is the package name.
-	id := model.PackageID{Ecosystem: eco, Name: strings.ToLower(e.Package.Name), Version: e.Package.Version}
+	id, err := model.NewPackageVersion(eco, strings.ToLower(e.Package.Name), e.Package.Version)
+	if err != nil {
+		return nil
+	}
 	return &model.Manifest{
 		ID: model.ManifestID(it.ConfigPath, "endpoint/extensions"), Path: it.ConfigPath, Ecosystem: eco,
 		Kind: model.ManifestKindEndpoint, Extractor: "endpoint/extensions",
@@ -125,9 +128,9 @@ func mergeManifest(ms []*model.Manifest, m *model.Manifest) []*model.Manifest {
 	return append(ms, m)
 }
 
-func hasPackage(m *model.Manifest, id model.PackageID) bool {
+func hasPackage(m *model.Manifest, id model.PackageVersion) bool {
 	for _, p := range m.Packages {
-		if p.ID == id {
+		if p.ID.Equal(id) {
 			return true
 		}
 	}

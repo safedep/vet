@@ -101,17 +101,17 @@ func evidence(v model.Vulnerability) string {
 func remediation(p *model.Package, v model.Vulnerability) *finding.Remediation {
 	if len(v.Fixed) > 0 {
 		return &finding.Remediation{
-			Summary:      fmt.Sprintf("Upgrade %s to %s or later.", p.ID.QualifiedName(), v.Fixed[0]),
+			Summary:      fmt.Sprintf("Upgrade %s to %s or later.", p.ID.RawName(), v.Fixed[0]),
 			FixedVersion: v.Fixed[0],
 		}
 	}
 	// gap G1: Insights v2 has no fixed versions, so the remediation can only
 	// name the latest version.
-	if p.Insight.LatestVersion != "" && p.Insight.LatestVersion != p.ID.Version {
+	if p.Insight.LatestVersion != "" && !p.ID.WithVersion(p.Insight.LatestVersion).Equal(p.ID) {
 		return &finding.Remediation{Summary: fmt.Sprintf("Upgrade %s to a version that fixes %s. The latest version is %s.",
-			p.ID.QualifiedName(), v.ID, p.Insight.LatestVersion)}
+			p.ID.RawName(), v.ID, p.Insight.LatestVersion)}
 	}
-	return &finding.Remediation{Summary: fmt.Sprintf("Upgrade %s to a version that fixes %s.", p.ID.QualifiedName(), v.ID)}
+	return &finding.Remediation{Summary: fmt.Sprintf("Upgrade %s to a version that fixes %s.", p.ID.RawName(), v.ID)}
 }
 
 func advisoryURL(id string) string { return "https://osv.dev/vulnerability/" + id }

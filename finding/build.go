@@ -33,9 +33,11 @@ type Key struct {
 func ForPackage(m Meta, manifestPath string, pkg *model.Package, key Key) Finding {
 	s := &PackageSubject{
 		PURL:         pkg.ID.PURL(),
-		Ecosystem:    pkg.ID.Ecosystem,
-		Name:         pkg.ID.QualifiedName(),
-		Version:      pkg.ID.Version,
+		Ecosystem:    pkg.ID.Ecosystem(),
+		Name:         pkg.ID.Name(),
+		Version:      pkg.ID.Version(),
+		RawName:      pkg.ID.RawName(),
+		RawVersion:   pkg.ID.RawVersion(),
 		Direct:       pkg.Direct,
 		ManifestPath: manifestPath,
 	}
@@ -44,7 +46,7 @@ func ForPackage(m Meta, manifestPath string, pkg *model.Package, key Key) Findin
 	if pkg.Line > 0 {
 		f.Locus = &Locus{Path: manifestPath, StartLine: pkg.Line, EndLine: pkg.Line}
 	}
-	f.ID = computeID(m.ControlID, string(SubjectPackage), s.PURL, manifestPath, key.Discriminator)
+	f.ID = computeID(m.ControlID, string(SubjectPackage), string(pkg.ID.Key()), manifestPath, key.Discriminator)
 	return f
 }
 

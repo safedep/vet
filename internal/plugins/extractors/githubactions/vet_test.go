@@ -4,8 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/google/osv-scalibr/extractor"
 	"github.com/google/osv-scalibr/extractor/filesystem"
 	"github.com/google/osv-scalibr/extractor/filesystem/simplefileapi"
 	"github.com/stretchr/testify/assert"
@@ -15,10 +13,10 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/extractors/scalibr"
 )
 
-// ignoreSubpath leaves the vet metadata out of the upstream tests. TestVet
-// checks it.
-var ignoreSubpath = cmpopts.IgnoreFields(extractor.Package{}, "Metadata")
-
+// TestVetCompositeActionsAndSubpaths checks that a subpath is not part of
+// the package identity. github/codeql-action/init and
+// github/codeql-action/analyze are the same package, and advisories name it
+// github/codeql-action.
 func TestVetCompositeActionsAndSubpaths(t *testing.T) {
 	e, err := githubactions.New(nil)
 	require.NoError(t, err)
@@ -28,10 +26,10 @@ func TestVetCompositeActionsAndSubpaths(t *testing.T) {
 		path string
 		want []string
 	}{
-		{".github/actions/setup/action.yml", []string{"github-actions/actions/setup-go@v5", "github-actions/github/codeql-action/init@v3"}},
+		{".github/actions/setup/action.yml", []string{"github-actions/actions/setup-go@v5", "github-actions/github/codeql-action@v3"}},
 		{".github/workflows/ci.yml", []string{
 			"github-actions/actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
-			"github-actions/github/codeql-action/analyze@v3",
+			"github-actions/github/codeql-action@v3",
 		}},
 	}
 	for _, tc := range cases {

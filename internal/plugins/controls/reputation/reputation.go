@@ -141,7 +141,7 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 		if p.Change == model.ChangeRemoved {
 			continue
 		}
-		name := p.ID.QualifiedName()
+		name := p.ID.RawName()
 		if target := squatOf(p); target != "" {
 			out = append(out, newFinding(IDTyposquat, m, p, target,
 				fmt.Sprintf("%s looks like a typo of %s", name, target),
@@ -169,7 +169,7 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 				fmt.Sprintf("%s has an internal name and comes from a public registry", name),
 				"Install the package from the internal registry, and reserve the name on the public registry."))
 		}
-		if p.Change == model.ChangeAdded && slices.Contains(aiSDKs[p.ID.Ecosystem], name) {
+		if p.Change == model.ChangeAdded && slices.Contains(aiSDKs[p.ID.Ecosystem()], name) {
 			out = append(out, newFinding(IDAIBOM, m, p, "",
 				fmt.Sprintf("The change adds %s", name),
 				"Review the use of the AI capability against the AI policy of the project."))
@@ -247,11 +247,12 @@ func (c *Control) newAndUnpopular(p *model.Package) bool {
 // project is not an unknown package.
 func ownScope(p *model.Package) bool {
 	in := p.Insight
-	if p.ID.Ecosystem != model.EcosystemNpm || p.ID.Namespace == "" || in.Stars < starjackStars {
+	scope, _, scoped := strings.Cut(p.ID.Name(), "/")
+	if p.ID.Ecosystem() != model.EcosystemNpm || !scoped || !strings.HasPrefix(scope, "@") || in.Stars < starjackStars {
 		return false
 	}
 	owner, ok := repoOwner(in.SourceRepo)
-	return ok && strings.EqualFold(strings.TrimPrefix(p.ID.Namespace, "@"), owner)
+	return ok && strings.EqualFold(strings.TrimPrefix(scope, "@"), owner)
 }
 
 // repoOwner returns the owner of a github.com repository URL.
@@ -273,7 +274,7 @@ func newPackageTitle(name string, in *model.Insight, now time.Time) string {
 }
 
 func (c *Control) confused(p *model.Package) bool {
-	name := p.ID.QualifiedName()
+	name := p.ID.RawName()
 	internal := false
 	for _, pat := range c.o.InternalNames {
 		if ok, _ := path.Match(pat, name); ok {
@@ -298,8 +299,8 @@ func anomaly(p *model.Package) string {
 	if p.Change != model.ChangeUpgraded || p.PreviousVersion == "" {
 		return ""
 	}
-	if from, to, ok := majors(p.PreviousVersion, p.ID.Version); ok && to-from >= 2 {
-		return fmt.Sprintf("the upgrade jumps from %s to %s", p.PreviousVersion, p.ID.Version)
+	if from, to, ok := majors(p.PreviousVersion, p.ID.RawVersion()); ok && to-from >= 2 {
+		return fmt.Sprintf("the upgrade jumps from %s to %s", p.PreviousVersion, p.ID.RawVersion())
 	}
 	in, prev := p.Insight, p.PreviousInsight
 	if in != nil && prev != nil && in.PublishedAt != nil && prev.PublishedAt != nil && in.PublishedAt.Before(*prev.PublishedAt) {

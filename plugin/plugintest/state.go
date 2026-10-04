@@ -59,7 +59,7 @@ func (s *MemState) Packages(ctx context.Context, q plugin.PackageQuery) iter.Seq
 					yield(nil, err)
 					return
 				}
-				if q.Ecosystem != "" && p.ID.Ecosystem != q.Ecosystem {
+				if q.Ecosystem != "" && p.ID.Ecosystem() != q.Ecosystem {
 					continue
 				}
 				if q.ChangedOnly && !p.Change.Introduces() {
@@ -79,7 +79,7 @@ func (s *MemState) Capabilities(ctx context.Context) iter.Seq2[*report.Capabilit
 }
 
 // Package returns the first package with the identity.
-func (s *MemState) Package(_ context.Context, id model.PackageID) (*model.Package, error) {
+func (s *MemState) Package(_ context.Context, id model.PackageVersion) (*model.Package, error) {
 	for _, m := range s.ManifestList {
 		if p := m.Package(id); p != nil {
 			return p, nil
@@ -89,7 +89,7 @@ func (s *MemState) Package(_ context.Context, id model.PackageID) (*model.Packag
 }
 
 // Dependents yields the packages that depend on the identity in any manifest graph.
-func (s *MemState) Dependents(_ context.Context, id model.PackageID) iter.Seq2[*model.Package, error] {
+func (s *MemState) Dependents(_ context.Context, id model.PackageVersion) iter.Seq2[*model.Package, error] {
 	return func(yield func(*model.Package, error) bool) {
 		for _, m := range s.ManifestList {
 			if m.Graph == nil {
@@ -222,20 +222,19 @@ func (s *MemState) sortedFindings() []*finding.Finding {
 }
 
 func (s *MemState) packageEntries() []*report.PackageEntry {
-	byPURL := map[string]*report.PackageEntry{}
+	byKey := map[model.PackageKey]*report.PackageEntry{}
 	for _, m := range s.ManifestList {
 		for _, p := range m.Packages {
-			purl := p.ID.PURL()
-			e, ok := byPURL[purl]
+			e, ok := byKey[p.ID.Key()]
 			if !ok {
-				e = &report.PackageEntry{PURL: purl, Package: *p}
-				byPURL[purl] = e
+				e = &report.PackageEntry{PURL: p.ID.PURL(), Package: *p}
+				byKey[p.ID.Key()] = e
 			}
 			e.ManifestIDs = append(e.ManifestIDs, m.ID)
 		}
 	}
-	out := make([]*report.PackageEntry, 0, len(byPURL))
-	for _, e := range byPURL {
+	out := make([]*report.PackageEntry, 0, len(byKey))
+	for _, e := range byKey {
 		out = append(out, e)
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].PURL < out[j].PURL })

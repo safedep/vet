@@ -23,9 +23,18 @@ linters:
             - "!**/internal/plugins/enrichers/**"
             - "!**/internal/plugins/cloud/**"
             - "!**/test/acceptance/stub/**"
+            - "!**/model/**"
           deny:
             - pkg: buf.build/gen/go/safedep/api
-              desc: only internal/plugins/enrichers and internal/plugins/cloud import the SafeDep API (decisions D2).
+              desc: only internal/plugins/enrichers and internal/plugins/cloud import the SafeDep API (decisions D2). model imports the package messages only, for the ecosystem enum and the wire form.
+        # model.PackageVersion holds each package identity rule. Ask model for a name, a key or an order.
+        dry-identity:
+          files:
+            - $all
+            - "!**/model/**"
+          deny:
+            - pkg: github.com/safedep/dry/api/pb
+              desc: use model.PackageVersion. Only model imports dry/api/pb.
   exclusions:
     paths: []
 

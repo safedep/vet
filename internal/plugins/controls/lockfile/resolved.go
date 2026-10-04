@@ -18,15 +18,15 @@ func (c *Control) resolvedEntries(m *model.Manifest) []finding.Finding {
 		if raw == "" || p.Change == model.ChangeRemoved {
 			continue
 		}
-		name := p.ID.QualifiedName()
+		name := p.ID.RawName()
 		key := finding.Key{Discriminator: raw}
-		if !c.trustedSource(p.ID.Ecosystem, raw) {
+		if !c.trustedSource(p.ID.Ecosystem(), raw) {
 			out = append(out, c.packageFinding(IDUntrustedRegistry, m, p, key,
 				fmt.Sprintf("%s resolves from an untrusted host", name),
 				fmt.Sprintf("The lockfile installs %s from %s. The host is not a trusted registry.", name, raw)))
 			continue
 		}
-		if p.ID.Ecosystem == model.EcosystemNpm && !c.followsConvention(raw, name) {
+		if p.ID.Ecosystem() == model.EcosystemNpm && !c.followsConvention(raw, name) {
 			out = append(out, c.packageFinding(IDPathMismatch, m, p, key,
 				fmt.Sprintf("%s resolves from the URL of another package", name),
 				fmt.Sprintf("The lockfile installs %s from %s. The URL path does not match the package name.", name, raw)))

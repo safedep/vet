@@ -50,9 +50,9 @@ type Manifest struct {
 }
 
 // Package returns the package with the identity, or nil.
-func (m *Manifest) Package(id PackageID) *Package {
+func (m *Manifest) Package(id PackageVersion) *Package {
 	for _, p := range m.Packages {
-		if p.ID == id {
+		if p.ID.Equal(id) {
 			return p
 		}
 	}

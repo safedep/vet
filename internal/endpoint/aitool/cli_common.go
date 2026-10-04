@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/safedep/dry/log"
+
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 )
 
 var errNotVerified = errors.New("binary output did not match expected pattern")
@@ -42,7 +44,7 @@ type CLIToolVerifier interface {
 // lookup → execute → verify → emit pipeline.
 func probeAndVerify(ctx context.Context, verifier CLIToolVerifier, handler AIToolHandlerFn) error {
 	for _, name := range verifier.BinaryNames() {
-		tool, err := probeBinary(ctx, name, verifier)
+		item, err := probeBinary(ctx, name, verifier)
 		if err != nil {
 			// Binary-not-on-PATH and verifier-output-mismatch are
 			// expected outcomes when the tool is not installed; they
@@ -55,15 +57,15 @@ func probeAndVerify(ctx context.Context, verifier CLIToolVerifier, handler AIToo
 			continue
 		}
 
-		return handler(tool)
+		return handler(item)
 	}
 
 	return nil
 }
 
-// probeBinary probes a single binary candidate. Returns the discovered tool
+// probeBinary probes a single binary candidate. Returns the discovered item
 // or an error if the binary was not found, failed to run, or did not verify.
-func probeBinary(ctx context.Context, name string, verifier CLIToolVerifier) (*AITool, error) {
+func probeBinary(ctx context.Context, name string, verifier CLIToolVerifier) (*inventory.Item, error) {
 	binPath, err := exec.LookPath(name)
 	if err != nil {
 		return nil, err
@@ -87,26 +89,14 @@ func probeBinary(ctx context.Context, name string, verifier CLIToolVerifier) (*A
 		return nil, errNotVerified
 	}
 
-	tool := &AITool{
-		Name:       verifier.DisplayName(),
-		Type:       AIToolTypeCLITool,
-		Scope:      AIToolScopeSystem,
-		App:        verifier.App(),
-		AppDisplay: verifier.DisplayName(),
-		ConfigPath: binPath,
-	}
-
-	tool.ID = generateID(tool.App, string(tool.Type), string(tool.Scope), tool.Name, tool.ConfigPath)
-	tool.SourceID = generateSourceID(tool.App, tool.ConfigPath)
-
+	item := newItem(inventory.KindCLITool, inventory.ScopeSystem, verifier.App(), verifier.DisplayName(), verifier.DisplayName(), binPath)
 	if version != "" {
-		tool.SetMeta("binary.version", version)
+		item.SetMeta(metaKeyBinaryVersion, version)
 	}
+	item.SetMeta(metaKeyBinaryPath, binPath)
+	item.SetMeta(metaKeyBinaryVerified, "true")
 
-	tool.SetMeta("binary.path", binPath)
-	tool.SetMeta("binary.verified", true)
-
-	return tool, nil
+	return item, nil
 }
 
 // cliToolDiscoverer wraps a CLIToolVerifier as an AIToolReader.
@@ -119,7 +109,7 @@ func (d *cliToolDiscoverer) Name() string { return d.verifier.DisplayName() + " 
 func (d *cliToolDiscoverer) App() string  { return d.verifier.App() }
 func (d *cliToolDiscoverer) EnumTools(ctx context.Context, handler AIToolHandlerFn) error {
 	// CLI tools are system-scoped; skip when system scope is not enabled
-	if !d.config.ScopeEnabled(AIToolScopeSystem) {
+	if !d.config.ScopeEnabled(inventory.ScopeSystem) {
 		return nil
 	}
 	return probeAndVerify(ctx, d.verifier, handler)
