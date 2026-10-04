@@ -6,7 +6,8 @@ A policy decides when a scan fails. It is a YAML file with rules and suppression
   Its action is `fail` or `warn`. A `fail` rule that matches fails the gate, and vet exits 1. A
   `warn` rule marks the finding and does not fail the gate.
 - vet applies each rule to each finding. A package with no finding does not reach a rule. For
-  example, a rule on `package.licenses` sees only the packages that have a finding.
+  example, a rule on `package.licenses` sees only the packages that have a finding. To gate on a
+  license, use the license control. See [License gate](#license-gate).
 - A **suppression** hides findings from the gate. It needs a reason, and it can expire. A
   suppressed finding stays in the report.
 
@@ -148,6 +149,30 @@ condition that needs the answer does not match. CEL still decides `a || b` when 
   - id: new-mcp-server
     when: finding.control_id == "mcp-server-added"
     action: fail
+```
+
+## License gate
+
+The license control reports a license that an allow list or a deny list rejects. See
+[License lists](controls.md#license-lists). A policy rule then decides the gate:
+
+```yaml
+# config.yml
+plugins:
+  license:
+    options:
+      allow: [osi-approved]
+      deny: [GPL-3.0-only, GPL-3.0-or-later, AGPL-3.0-only, AGPL-3.0-or-later]
+```
+
+```yaml
+# vet-policy.yml
+  - id: no-denied-license
+    when: finding.control_id == "license-denied"
+    action: fail
+  - id: license-review
+    when: finding.control_id in ["license-not-allowed", "license-unknown"]
+    action: warn
 ```
 
 ## Where vet reads the policy

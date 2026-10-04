@@ -15,8 +15,8 @@ import (
 	"time"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
-	"github.com/github/go-spdx/v2/spdxexp"
 
+	"github.com/safedep/vet/v2/internal/spdxlicense"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/report"
@@ -244,30 +244,22 @@ func groupAndName(id model.PackageVersion) (string, string) {
 // choice, so the expression joins all the declared licenses with AND. A
 // declared name that is not SPDX keeps each license a name.
 func licenses(declared []string) cdx.Licenses {
+	d := spdxlicense.Parse(declared)
+	if !d.IDs && len(d.Unknown) == 0 && !d.None && d.Expression != "" {
+		return cdx.Licenses{{Expression: d.Expression}}
+	}
 	var out cdx.Licenses
-	var terms []string
-	compound, named := false, false
 	for _, l := range declared {
-		if ok, id := spdxexp.ActiveLicense(l); ok {
+		if strings.TrimSpace(l) == "" {
+			continue
+		}
+		if id, ok := spdxlicense.ActiveID(l); ok {
 			out = append(out, cdx.LicenseChoice{License: &cdx.License{ID: id}})
-			terms = append(terms, id)
 			continue
 		}
 		out = append(out, cdx.LicenseChoice{License: &cdx.License{Name: l}})
-		if ok, _ := spdxexp.ValidateLicenses([]string{l}); ok {
-			compound = true
-			terms = append(terms, "("+l+")")
-		} else {
-			named = true
-		}
 	}
-	switch {
-	case !compound || named:
-		return out
-	case len(declared) == 1:
-		return cdx.Licenses{{Expression: declared[0]}}
-	}
-	return cdx.Licenses{{Expression: strings.Join(terms, " AND ")}}
+	return out
 }
 
 func capabilityName(c *report.Capability) string {

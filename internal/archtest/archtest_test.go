@@ -327,6 +327,20 @@ func TestOnlyExtractorsImportScalibr(t *testing.T) {
 	}
 }
 
+// Only internal/spdxlicense reads SPDX license expressions. A second reader
+// would compare licenses with other rules, such as a deprecated id or an
+// or-later term.
+func TestOnlySPDXLicenseImportsGoSPDX(t *testing.T) {
+	for _, p := range listPackages(t) {
+		if isLegacy(p.path) || under(p.path, module+"/internal/spdxlicense") {
+			continue
+		}
+		for _, imp := range p.imports {
+			assert.False(t, under(imp, "github.com/github/go-spdx"), "package %s imports %s", p.path, imp)
+		}
+	}
+}
+
 // pluginListAllowed are the only packages that import both the control
 // plugins and the sinks. A package that imports both usually lists every
 // plugin by hand, and that list goes stale. Read internal/plugins/builtin

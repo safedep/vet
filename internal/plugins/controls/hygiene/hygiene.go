@@ -7,11 +7,11 @@ package hygiene
 import (
 	"context"
 	"fmt"
-	"slices"
 	"strings"
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/plugins/internal/optschema"
+	"github.com/safedep/vet/v2/internal/spdxlicense"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 )
@@ -153,7 +153,7 @@ func (c *Control) insight(m *model.Manifest, p *model.Package) []finding.Finding
 			fmt.Sprintf("%s has no provenance, and %s had one", p.ID, p.PreviousVersion),
 			"Check that the maintainers published the version from their build system, or stay on the previous version."))
 	}
-	if prev != nil && len(prev.Licenses) > 0 && len(in.Licenses) > 0 && !sameLicenses(prev.Licenses, in.Licenses) {
+	if prev != nil && len(prev.Licenses) > 0 && len(in.Licenses) > 0 && !spdxlicense.Equal(prev.Licenses, in.Licenses) {
 		out = append(out, packageFinding(IDLicenseChange, m, p, strings.Join(in.Licenses, ","),
 			fmt.Sprintf("%s changes its license from %s to %s", p.ID.RawName(), strings.Join(prev.Licenses, ", "), strings.Join(in.Licenses, ", ")),
 			"Check that the new license fits the license policy of the project."))
@@ -164,13 +164,6 @@ func (c *Control) insight(m *model.Manifest, p *model.Package) []finding.Finding
 			"Review the maintenance and the security practices of the project."))
 	}
 	return out
-}
-
-func sameLicenses(a, b []string) bool {
-	x, y := slices.Clone(a), slices.Clone(b)
-	slices.Sort(x)
-	slices.Sort(y)
-	return slices.Equal(x, y)
 }
 
 func packageFinding(id string, m *model.Manifest, p *model.Package, discriminator, title, fix string) finding.Finding {
