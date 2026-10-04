@@ -60,3 +60,28 @@ func TestInspectAndRepair(t *testing.T) {
 	assert.Equal(t, "/c", o.TargetKey)
 	assert.Equal(t, StatusInterrupted, o.Status, "a scan file with no trailer is interrupted")
 }
+
+// TestRepairDeletesAnOrphanOfAnotherFormat checks that a repair does not
+// index a scan file that this vet cannot open.
+func TestRepairDeletesAnOrphanOfAnotherFormat(t *testing.T) {
+	ctx := context.Background()
+	s := openStore(t)
+	old, e, err := s.CreateScan(ctx, NewScan{TargetKey: "/old", TargetLabel: ".", Kind: "scan", OptionsHash: "h", VetVersion: "test"})
+	require.NoError(t, err)
+	require.NoError(t, old.SetHeader(ctx, &report.Header{SchemaVersion: report.SchemaVersion, Scan: report.ScanInfo{ID: e.ID, TargetKey: "/old"}}))
+	require.NoError(t, old.setMeta(ctx, metaFormat, scanFormat-1))
+	require.NoError(t, old.Close())
+	require.NoError(t, s.Index().Delete(ctx, e.ID))
+
+	is, err := s.Inspect(ctx)
+	require.NoError(t, err)
+	require.Len(t, is.Orphans, 1)
+	require.NoError(t, s.Repair(ctx, is))
+
+	assert.NoFileExists(t, e.File)
+	_, err = s.Index().Get(ctx, e.ID)
+	assert.Error(t, err, "the repair adds no entry for the old scan")
+	again, err := s.Inspect(ctx)
+	require.NoError(t, err)
+	assert.True(t, again.Empty())
+}
