@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/rogpeppe/go-internal/testscript"
 )
@@ -64,6 +65,8 @@ func Condition(cond string) (bool, error) {
 		return runtime.GOOS != "windows" && os.Geteuid() == 0, nil
 	case "live":
 		return os.Getenv(LiveEnv) == "1", nil
+	case "harness-version":
+		return builtWithHarnessVersion(vetBinary)
 	}
 	return false, errUnknownCondition(cond)
 }
@@ -95,4 +98,25 @@ func ForwardEnv(env *testscript.Env, keys ...string) {
 			env.Setenv(key, v)
 		}
 	}
+}
+
+// HarnessVersion is the version of the binary that the harness builds. It
+// has the form of a release build, with no v, so a script can check the
+// release logic. A VET_BIN binary has its own version.
+const HarnessVersion = "2.0.0-alpha.20260101000000"
+
+func builtWithHarnessVersion(bin string) (bool, error) {
+	if bin == "" {
+		return false, nil
+	}
+	info, err := buildinfo.ReadFile(bin)
+	if err != nil {
+		return false, err
+	}
+	for _, s := range info.Settings {
+		if s.Key == "-ldflags" {
+			return strings.Contains(s.Value, "version.version="+HarnessVersion), nil
+		}
+	}
+	return false, nil
 }

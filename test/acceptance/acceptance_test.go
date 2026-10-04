@@ -84,7 +84,7 @@ func buildVet(t *testing.T) string {
 			name += ".exe"
 		}
 		bin = filepath.Join(t.TempDir(), name)
-		build := exec.Command("go", "build", "-o", bin, "../../cmd/vet")
+		build := exec.Command("go", "build", "-ldflags", "-X github.com/safedep/vet/v2/internal/version.version="+HarnessVersion, "-o", bin, "../../cmd/vet")
 		build.Stderr = os.Stderr
 		require.NoError(t, build.Run(), "build vet for the acceptance run")
 	}

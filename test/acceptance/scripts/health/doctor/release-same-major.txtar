@@ -1,0 +1,8 @@
+# vet doctor compares a release build with the newest release of its major
+# version. An alpha build of v2 learns about a newer alpha and never about
+# v1. The stub lists two v2 alphas, a v1 release candidate and v1.19.1.
+[!harness-version] skip 'needs the version that the harness builds in'
+exec vet doctor --mode plain -o json
+stdout '"id": "vet.release",\s+"status": "warn",\s+"message": "the newest release is v2.0.0-alpha.20260102000000, this is 2.0.0-alpha.20260101000000"'
+! stdout 'v1\.19\.1'
+! stdout 'v1\.20\.0'

@@ -144,15 +144,22 @@ func latestRelease(ctx context.Context, cfg *config.Config) Check {
 	if err != nil {
 		return Check{ID: "vet.release", Status: Warn, Message: "vet could not check the latest release: " + err.Error()}
 	}
-	releases, _, err := client.Repositories.ListReleases(ctx, "safedep", "vet", &gh.ListOptions{PerPage: 100})
-	if err != nil {
-		return Check{ID: "vet.release", Status: Warn, Message: "vet could not check the latest release: " + err.Error()}
-	}
 	var tags []string
-	for _, r := range releases {
-		if !r.GetDraft() {
-			tags = append(tags, r.GetTagName())
+	opts := &gh.ListOptions{PerPage: 100}
+	for {
+		releases, resp, err := client.Repositories.ListReleases(ctx, "safedep", "vet", opts)
+		if err != nil {
+			return Check{ID: "vet.release", Status: Warn, Message: "vet could not check the latest release: " + err.Error()}
 		}
+		for _, r := range releases {
+			if !r.GetDraft() {
+				tags = append(tags, r.GetTagName())
+			}
+		}
+		if resp.NextPage == 0 {
+			break
+		}
+		opts.Page = resp.NextPage
 	}
 	return releaseCheck(tags, version.Version())
 }

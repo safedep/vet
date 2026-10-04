@@ -524,6 +524,12 @@
   tier: P2
   guarantee: "vet doctor exits 0 on a fresh sandbox, and -o json lists each check with an id. The text output has one line for each check, and a fix line under a check that failed."
   labels: [doctor]
+- id: health/doctor/release-same-major
+  title: "doctor: release of the same major version"
+  category: health
+  tier: P2
+  guarantee: "vet doctor compares a v2 alpha build with the newest v2 release, pre-releases included, and never suggests v1."
+  labels: [doctor]
 - id: dirs/xdg/kinds-apart
   title: "config, state and cache live apart"
   category: dirs
