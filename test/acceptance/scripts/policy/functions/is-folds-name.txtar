@@ -1,0 +1,15 @@
+# package.is(name) compares a name under the rule of the ecosystem. A fail
+# rule with package.is("python-dateutil") matches the PyPI package
+# python.dateutil and fails the gate.
+execexit 1 vet scan proj --policy $WORK/vet-policy.yml --mode plain -o json
+jsonq stdout trailer.gate.outcome FAIL
+jsonq stdout trailer.gate.rules.0 no-old-dateutil
+
+-- vet-policy.yml --
+version: 2
+rules:
+  - id: no-old-dateutil
+    when: package.is("python-dateutil") && package.version_cmp("2.8.1") < 0
+    action: fail
+-- proj/requirements.txt --
+python.dateutil==2.8.0

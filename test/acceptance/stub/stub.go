@@ -216,6 +216,13 @@ func (i *insightService) GetPackageVersionInsight(ctx context.Context, req *insi
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
+	// A registry keys a package by its exact name and version. The fixture
+	// names its package, so the stub matches it exactly, also on a file
+	// system that ignores the case of a path.
+	if got := res.GetPackageVersion(); found && got != nil &&
+		(got.GetPackage().GetName() != req.GetPackageVersion().GetPackage().GetName() || got.GetVersion() != req.GetPackageVersion().GetVersion()) {
+		found = false
+	}
 	if !found {
 		return nil, status.Errorf(codes.NotFound, "stub: no insight for %s@%s",
 			req.GetPackageVersion().GetPackage().GetName(), req.GetPackageVersion().GetVersion())

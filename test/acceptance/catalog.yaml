@@ -236,6 +236,12 @@
   tier: P1
   guarantee: "A package that matches plugins.reputation.options.internal_names and resolves from a public registry gives a dependency-confusion finding. The internal registry gives none."
   labels: [controls, config]
+- id: controls/reputation/internal-names-fold
+  title: "internal_names folds under the rule of the ecosystem"
+  category: controls
+  tier: P0
+  guarantee: "internal_names: [acme-*] matches the PyPI name Acme.Utils, and the scan reports a dependency-confusion finding."
+  labels: [controls, config, identity]
 - id: enrichers/codeusage/imported
   title: "a finding says where the code imports the package"
   category: enrichers
@@ -611,3 +617,39 @@
   tier: P1
   guarantee: "vet scan oci://alpine:3.20 pulls the image from a public registry and completes with exit 0."
   labels: [live, image]
+- id: scan/identity/purl-raw-form
+  title: "a PURL target keeps its raw form"
+  category: scan
+  tier: P0
+  guarantee: "vet scan pkg:pypi/X@1.0.0.0.0.0 sends the name X and the version 1.0.0.0.0.0 to SafeDep Insights, not the canonical form."
+  labels: [scan, identity, enrichers]
+- id: scan/identity/purl-go-case
+  title: "a Go module path keeps its case"
+  category: scan
+  tier: P0
+  guarantee: "vet scan pkg:golang/github.com/Masterminds/goutils@v1.1.0 sends the module path with its case and reports the advisory of that module."
+  labels: [scan, identity, enrichers]
+- id: policy/functions/is-folds-name
+  title: "package.is compares under the rule of the ecosystem"
+  category: policy
+  tier: P0
+  guarantee: "A fail rule with package.is(\"python-dateutil\") and package.version_cmp matches the PyPI package python.dateutil and fails the gate."
+  labels: [policy, gate, identity]
+- id: scan/pr-mode/version-order
+  title: "pull request mode orders versions under the rule of the ecosystem"
+  category: scan
+  tier: P0
+  guarantee: "In pull request mode, requests 2.31 to 2.31.0 is unchanged and pkg 1.0rc1 to 1.0 is an upgrade, under the PyPI rules."
+  labels: [scan, pr-mode, identity]
+- id: live/identity/pypi-name-fold
+  title: "live: Insights folds a PyPI name"
+  category: live
+  tier: P0
+  guarantee: "A scan of pkg:pypi/Django@3.2.0 against production returns vulnerability findings. vet sends Django, so SafeDep Insights must fold PyPI names."
+  labels: [live, identity, enrichers]
+- id: live/identity/go-module-case
+  title: "live: Insights finds a Go module by its path with case"
+  category: live
+  tier: P0
+  guarantee: "A scan of pkg:golang/github.com/Masterminds/goutils@v1.1.0 against production reports GHSA-xg2h-wx96-xgxr."
+  labels: [live, identity, enrichers]

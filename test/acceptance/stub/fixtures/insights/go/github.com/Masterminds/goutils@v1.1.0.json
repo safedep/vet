@@ -1,0 +1,17 @@
+{
+  "packageVersion": {
+    "package": {"ecosystem": "ECOSYSTEM_GO", "name": "github.com/Masterminds/goutils"},
+    "version": "v1.1.0"
+  },
+  "insight": {
+    "vulnerabilities": [
+      {
+        "id": {"type": "VULNERABILITY_IDENTIFIER_TYPE_OSV", "value": "GHSA-xg2h-wx96-xgxr"},
+        "summary": "Stub randomly generated alphanumeric strings",
+        "severities": [{"type": "TYPE_CVSS_V3", "score": "7.5", "risk": "RISK_HIGH"}]
+      }
+    ],
+    "packagePublishedAt": "2020-01-01T00:00:00Z",
+    "downloadCount": "100000"
+  }
+}

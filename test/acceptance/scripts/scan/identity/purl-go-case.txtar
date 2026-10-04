@@ -1,0 +1,4 @@
+# vet scan pkg:golang/... sends the module path with its case. A Go module
+# path is case-sensitive, so a lower-case path names another module.
+exec vet scan pkg:golang/github.com/Masterminds/goutils@v1.1.0 --mode plain -o json
+stdout 'GHSA-xg2h-wx96-xgxr'

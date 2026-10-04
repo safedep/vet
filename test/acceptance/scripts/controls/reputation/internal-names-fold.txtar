@@ -1,0 +1,13 @@
+# The literal parts of an internal_names pattern fold under the rule of the
+# ecosystem. acme-* matches the PyPI name Acme.Utils, which comes from the
+# public registry, so the scan reports a dependency confusion.
+exec vet --config $WORK/config.yml scan proj --mode plain -o plain
+stdout 'dependency-confusion'
+
+-- config.yml --
+plugins:
+  reputation:
+    options:
+      internal_names: ["acme-*"]
+-- proj/requirements.txt --
+Acme.Utils==1.0.0

@@ -1,0 +1,17 @@
+{
+  "packageVersion": {
+    "package": {"ecosystem": "ECOSYSTEM_PYPI", "name": "python.dateutil"},
+    "version": "2.8.0"
+  },
+  "insight": {
+    "vulnerabilities": [
+      {
+        "id": {"type": "VULNERABILITY_IDENTIFIER_TYPE_OSV", "value": "GHSA-stub-du01"},
+        "summary": "Stub advisory of dateutil",
+        "severities": [{"type": "TYPE_CVSS_V3", "score": "7.5", "risk": "RISK_HIGH"}]
+      }
+    ],
+    "packagePublishedAt": "2020-01-01T00:00:00Z",
+    "downloadCount": "100000"
+  }
+}

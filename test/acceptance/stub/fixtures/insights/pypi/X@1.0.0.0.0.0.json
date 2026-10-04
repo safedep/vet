@@ -1,0 +1,17 @@
+{
+  "packageVersion": {
+    "package": {"ecosystem": "ECOSYSTEM_PYPI", "name": "X"},
+    "version": "1.0.0.0.0.0"
+  },
+  "insight": {
+    "vulnerabilities": [
+      {
+        "id": {"type": "VULNERABILITY_IDENTIFIER_TYPE_OSV", "value": "GHSA-stub-raw1"},
+        "summary": "Stub advisory for the raw form",
+        "severities": [{"type": "TYPE_CVSS_V3", "score": "7.5", "risk": "RISK_HIGH"}]
+      }
+    ],
+    "packagePublishedAt": "2020-01-01T00:00:00Z",
+    "downloadCount": "100000"
+  }
+}
