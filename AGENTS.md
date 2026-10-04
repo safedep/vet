@@ -59,7 +59,8 @@ the wrong package. Move the code. Do not change the rule to make the test pass.
 - Only `internal/tui` imports `dry/tui`. `internal/tui` imports no other vet package.
 - Only the enrichers and the cloud plugins import the SafeDep API contract.
 - Only `model` imports the identity rules of `dry/api/pb`. Compare package versions with `Equal`,
-  `Key` or `Compare`, never with the name and version strings.
+  `Key` or `Compare`, never with the name and version strings or the PURL. The PURL is for display
+  and for the wire.
 - Only the API clients call `RawProto`. A remote API gets the raw name and version and applies its
   own rules.
 - Only `plugin`, the extractors and the sources import Scalibr.

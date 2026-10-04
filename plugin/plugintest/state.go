@@ -222,20 +222,19 @@ func (s *MemState) sortedFindings() []*finding.Finding {
 }
 
 func (s *MemState) packageEntries() []*report.PackageEntry {
-	byPURL := map[string]*report.PackageEntry{}
+	byKey := map[model.PackageKey]*report.PackageEntry{}
 	for _, m := range s.ManifestList {
 		for _, p := range m.Packages {
-			purl := p.ID.PURL()
-			e, ok := byPURL[purl]
+			e, ok := byKey[p.ID.Key()]
 			if !ok {
-				e = &report.PackageEntry{PURL: purl, Package: *p}
-				byPURL[purl] = e
+				e = &report.PackageEntry{PURL: p.ID.PURL(), Package: *p}
+				byKey[p.ID.Key()] = e
 			}
 			e.ManifestIDs = append(e.ManifestIDs, m.ID)
 		}
 	}
-	out := make([]*report.PackageEntry, 0, len(byPURL))
-	for _, e := range byPURL {
+	out := make([]*report.PackageEntry, 0, len(byKey))
+	for _, e := range byKey {
 		out = append(out, e)
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].PURL < out[j].PURL })

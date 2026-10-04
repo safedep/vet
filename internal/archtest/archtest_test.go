@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -213,8 +214,31 @@ func TestOnlyModelImportsTheIdentityRules(t *testing.T) {
 // on the way to a SafeDep service. Every other package compares the
 // canonical form.
 func TestOnlyAPIClientsSendTheWireForm(t *testing.T) {
-	root := repoRoot(t)
 	allowed := append([]string{module + "/model"}, apiAllowed...)
+	for path, src := range sourcesOutside(t, allowed) {
+		assert.NotContains(t, src, ".RawProto()", "%s sends the wire form of a package", path)
+	}
+}
+
+// purlIdentity matches a PURL that the code compares or uses as a map key.
+// A PURL is for display and for the wire. A name that forms no PURL has an
+// empty PURL, so two packages would have the same PURL.
+var purlIdentity = regexp.MustCompile(`\.PURL(\(\))?\s*[!=]=\s*[^"\s]|[!=]=\s*[\w.]+\.PURL\b|\[[^\]\n]*\.PURL(\(\))?\]`)
+
+// TestPackagesCompareByKey keeps the identity of a package in
+// model.PackageVersion: Equal, Key and NameKey, never the PURL string.
+func TestPackagesCompareByKey(t *testing.T) {
+	for path, src := range sourcesOutside(t, []string{module + "/model"}) {
+		assert.Empty(t, purlIdentity.FindAllString(src, -1), "%s uses a PURL as the identity of a package", path)
+	}
+}
+
+// sourcesOutside returns the non-test Go files of vet, by path, that are
+// not in the allowed packages.
+func sourcesOutside(t *testing.T, allowed []string) map[string]string {
+	t.Helper()
+	root := repoRoot(t)
+	out := map[string]string{}
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -241,10 +265,11 @@ func TestOnlyAPIClientsSendTheWireForm(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		assert.NotContains(t, string(src), ".RawProto()", "%s sends the wire form of a package", path)
+		out[path] = string(src)
 		return nil
 	})
 	require.NoError(t, err)
+	return out
 }
 
 // TestTUIIsSelfContained keeps internal/tui free to move to dry/tui

@@ -153,7 +153,7 @@ func TestSummarize(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, Changes{Packages: 1, Workflows: 1, Unchanged: 1}, got.Changes)
 	assert.Len(t, got.Diagnostics, 1)
-	assert.Equal(t, map[string]string{"pkg:npm/left-pad@1.3.0": "1.3.1"}, got.Latest)
+	assert.Equal(t, map[model.PackageKey]string{model.MustPackageVersion(model.EcosystemNpm, "left-pad", "1.3.0").Key(): "1.3.1"}, got.Latest)
 	var severities []finding.Severity
 	for _, f := range got.Findings {
 		severities = append(severities, f.Severity)
@@ -261,23 +261,34 @@ func TestCleanMessage(t *testing.T) {
 }
 
 func TestFixText(t *testing.T) {
-	pkg := func(name, version, fixed string, sev finding.Severity) *finding.Finding {
-		p := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, name, version)}
+	pkgIn := func(eco model.Ecosystem, name, version, fixed string, sev finding.Severity) *finding.Finding {
+		p := &model.Package{ID: model.MustPackageVersion(eco, name, version)}
 		f := finding.ForPackage(finding.Meta{ControlID: "vulnerability", Family: finding.FamilyVulnerability, Severity: sev, Title: "v"},
 			"package-lock.json", p, finding.Key{Discriminator: fixed})
 		f.Remediation = &finding.Remediation{Summary: "Upgrade.", FixedVersion: fixed}
 		return &f
 	}
+	pkg := func(name, version, fixed string, sev finding.Severity) *finding.Finding {
+		return pkgIn(model.EcosystemNpm, name, version, fixed, sev)
+	}
 	cases := []struct {
 		name     string
 		findings []*finding.Finding
-		latest   map[string]string
+		latest   map[model.PackageKey]string
 		want     string
 	}{
 		{name: "no fix", findings: []*finding.Finding{pkg("a", "1.0.0", "", finding.SeverityHigh)}},
 		{
 			name: "the latest version of a vulnerable package", findings: []*finding.Finding{pkg("a", "1.0.0", "", finding.SeverityHigh)},
-			latest: map[string]string{"pkg:npm/a@1.0.0": "1.2.0"}, want: "upgrade a to 1.2.0",
+			latest: map[model.PackageKey]string{model.MustPackageVersion(model.EcosystemNpm, "a", "1.0.0").Key(): "1.2.0"}, want: "upgrade a to 1.2.0",
+		},
+		{
+			name: "two spellings of one PyPI package are one fix with the raw name",
+			findings: []*finding.Finding{
+				pkgIn(model.EcosystemPyPI, "Django", "2.2.0", "2.2.24", finding.SeverityHigh),
+				pkgIn(model.EcosystemPyPI, "django", "2.2", "3.2.4", finding.SeverityHigh),
+			},
+			want: "upgrade Django to 3.2.4",
 		},
 		{name: "a lower version is no upgrade", findings: []*finding.Finding{pkg("a", "1.4.1", "1.3.9", finding.SeverityHigh)}},
 		{name: "one package", findings: []*finding.Finding{pkg("minimist", "1.2.0", "1.2.6", finding.SeverityCritical)}, want: "upgrade minimist to 1.2.6"},
