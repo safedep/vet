@@ -1,0 +1,6 @@
+{
+  "manifests": [],
+  "errors": [
+    "java/pomxml: pom.xml: could not extract pom from pom.xml: EOF"
+  ]
+}

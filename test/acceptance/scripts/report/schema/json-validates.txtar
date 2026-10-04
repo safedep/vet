@@ -1,0 +1,23 @@
+# The -o json output validates against vet report schema get, and it
+# carries schema_version.
+exec vet report schema get
+cp stdout $WORK/schema.json
+jsonq $WORK/schema.json title 'vet report'
+
+cd proj
+execexit 1 vet scan . --mode plain -o json --fail-on high
+cp stdout $WORK/report.json
+schemacheck $WORK/schema.json $WORK/report.json
+jsonq $WORK/report.json header.schema_version 1.0.0
+
+execexit 2 vet report schema get -o table
+
+-- proj/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"left-pad": "1.3.0"}}, "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}}}
+-- proj/.github/workflows/ci.yml --
+on: push
+jobs:
+  b:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4

@@ -1,0 +1,31 @@
+# The scan view shows the AI and crypto capabilities under the findings,
+# AI first. vet report capability list lists each call site of the last
+# scan, and --tag keeps the capabilities with each tag.
+[!cgo] skip 'code analysis needs a vet built with CGO'
+cd proj
+exec vet --config $WORK/config.yml scan . -o table --mode plain
+stdout 'AI and crypto: 2 AI, 1 crypto'
+stdout '\[WEAK\]'
+
+exec vet --config $WORK/config.yml report capability list -o plain --mode plain
+stdout 'app.py:3'
+stdout 'app.py:6'
+stdout 'hashlib//md5'
+
+exec vet --config $WORK/config.yml report capability list --tag weak -o json --mode plain
+jsonq stdout 0.id crypto.md5
+! stdout 'openai'
+
+-- config.yml --
+plugins:
+  codeusage:
+    enabled: true
+-- proj/app.py --
+import hashlib
+from openai import OpenAI
+client = OpenAI()
+
+
+print(hashlib.md5(b"x").hexdigest())
+-- proj/requirements.txt --
+openai==1.51.0

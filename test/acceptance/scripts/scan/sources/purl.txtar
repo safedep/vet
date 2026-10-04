@@ -1,0 +1,3 @@
+# vet scan with a package URL scans that one package.
+exec vet scan pkg:npm/safedep-test-pkg@0.1.3 --mode plain -o plain
+stdout 'malware\tpkg:npm/safedep-test-pkg@0.1.3'

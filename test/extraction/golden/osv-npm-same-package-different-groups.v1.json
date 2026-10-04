@@ -1,0 +1,14 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/packagelockjson",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/ajv@5.5.2 :5",
+        "npm/eslint@1.2.3 [d] :17",
+        "npm/table@1.0.0 :49"
+      ]
+    }
+  ]
+}

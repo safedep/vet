@@ -1,0 +1,14 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/yarnlock",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/ansi-regex@5.0.1 :5",
+        "npm/ansi-regex@6.0.1 :10",
+        "npm/@babel/helper-validator-identifier@7.22.20 :15"
+      ]
+    }
+  ]
+}

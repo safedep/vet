@@ -1,0 +1,298 @@
+version: 0.1
+# Generated from crypto_sigs.py. One id for each algorithm, with the call forms
+# of each language. The tags hold the CycloneDX crypto primitive.
+
+signatures:
+  - id: crypto.tls
+    description: "TLS connections and servers"
+    vendor: ""
+    product: "TLS"
+    service: "TLS"
+    tags: [cryptography, protocol, tls]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "ssl.create_default_context"
+          - type: call
+            value: "ssl.SSLContext"
+          - type: call
+            value: "ssl.wrap_socket"
+          - type: call
+            value: "OpenSSL.SSL.Context"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "tls/connect"
+          - type: call
+            value: "tls/createServer"
+          - type: call
+            value: "tls/createSecureContext"
+          - type: call
+            value: "node:tls/connect"
+          - type: call
+            value: "node:tls/createServer"
+          - type: call
+            value: "node:tls/createSecureContext"
+          - type: call
+            value: "https/createServer"
+          - type: call
+            value: "node:https/createServer"
+          - type: call
+            value: "https/Agent"
+          - type: call
+            value: "node:https/Agent"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "javax.net.ssl.SSLContext.getInstance"
+            args:
+              - index: 0
+                values: ["\"TLS\"", "\"tls\"", "\"TLSv1.2\"", "\"tlsv1.2\"", "\"TLSV1.2\"", "\"TLSv1.3\"", "\"tlsv1.3\"", "\"TLSV1.3\"", "\"SSL\"", "\"ssl\"", "\"SSLv3\"", "\"sslv3\"", "\"SSLV3\"", "\"TLSv1\"", "\"tlsv1\"", "\"TLSV1\""]
+          - type: call
+            value: "SSLContext.getInstance"
+            args:
+              - index: 0
+                values: ["\"TLS\"", "\"tls\"", "\"TLSv1.2\"", "\"tlsv1.2\"", "\"TLSV1.2\"", "\"TLSv1.3\"", "\"tlsv1.3\"", "\"TLSV1.3\"", "\"SSL\"", "\"ssl\"", "\"SSLv3\"", "\"sslv3\"", "\"SSLV3\"", "\"TLSv1\"", "\"tlsv1\"", "\"TLSV1\""]
+          - type: call
+            value: "javax.net.ssl.SSLSocketFactory.getDefault"
+          - type: call
+            value: "javax.net.ssl.TrustManagerFactory.getInstance"
+          - type: call
+            value: "io.netty.handler.ssl.SslContextBuilder.forClient"
+          - type: call
+            value: "io.netty.handler.ssl.SslContextBuilder.forServer"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/tls/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "SslStream"
+          - type: call
+            value: "System.Security.Cryptography.SslStream"
+          - type: call
+            value: "System.Net.Security.SslStream"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "rustls::*"
+          - type: call
+            value: "tokio_rustls::*"
+          - type: call
+            value: "native_tls::*"
+          - type: call
+            value: "openssl::ssl::*"
+          - type: call
+            value: "rustls_pemfile::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "stream_socket_enable_crypto"
+          - type: call
+            value: "stream_context_set_option"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "OpenSSL::SSL::SSLContext.*"
+          - type: call
+            value: "OpenSSL::SSL::SSLSocket.*"
+
+  - id: crypto.ssh
+    description: "SSH clients and servers"
+    vendor: ""
+    product: "SSH"
+    service: "SSH"
+    tags: [cryptography, protocol, ssh]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "paramiko.SSHClient"
+          - type: call
+            value: "paramiko.Transport"
+          - type: call
+            value: "paramiko.RSAKey.generate"
+          - type: call
+            value: "asyncssh.connect"
+          - type: call
+            value: "fabric.Connection"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "ssh2/Client"
+          - type: call
+            value: "ssh2/Server"
+          - type: call
+            value: "node-ssh/NodeSSH"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "com.jcraft.jsch.JSch"
+          - type: call
+            value: "org.apache.sshd.client.SshClient.setUpDefaultClient"
+          - type: call
+            value: "org.apache.sshd.server.SshServer.setUpDefaultServer"
+          - type: call
+            value: "net.schmizz.sshj.SSHClient"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "golang.org/x/crypto/ssh/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "Renci.SshNet.SshClient"
+          - type: call
+            value: "SshClient"
+          - type: call
+            value: "Renci.SshNet.SftpClient"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "russh::*"
+          - type: call
+            value: "ssh2::Session::*"
+          - type: call
+            value: "thrussh::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "phpseclib3\\Net\\SSH2"
+          - type: call
+            value: "phpseclib3\\Net\\SFTP"
+          - type: call
+            value: "phpseclib\\Net\\SSH2"
+          - type: call
+            value: "ssh2_connect"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "Net::SSH.start"
+          - type: call
+            value: "Net::SFTP.start"
+
+  - id: crypto.x509
+    description: "X.509 certificate parsing and creation"
+    vendor: ""
+    product: "X.509"
+    service: "X.509 certificates"
+    tags: [cryptography, certificate]
+    languages:
+      python:
+        match: any
+        conditions:
+          - type: call
+            value: "cryptography.x509.load_pem_x509_certificate"
+          - type: call
+            value: "cryptography.x509.load_der_x509_certificate"
+          - type: call
+            value: "cryptography.x509.CertificateBuilder"
+          - type: call
+            value: "OpenSSL.crypto.load_certificate"
+          - type: call
+            value: "OpenSSL.crypto.X509"
+      javascript:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/X509Certificate"
+          - type: call
+            value: "node:crypto/X509Certificate"
+          - type: call
+            value: "node-forge/pki/certificateFromPem"
+          - type: call
+            value: "node-forge/pki/createCertificate"
+          - type: call
+            value: "@peculiar/x509/X509Certificate"
+      java:
+        match: any
+        conditions:
+          - type: call
+            value: "java.security.cert.CertificateFactory.getInstance"
+            args:
+              - index: 0
+                values: ["\"X.509\"", "\"x.509\"", "\"X509\"", "\"x509\""]
+          - type: call
+            value: "CertificateFactory.getInstance"
+            args:
+              - index: 0
+                values: ["\"X.509\"", "\"x.509\"", "\"X509\"", "\"x509\""]
+          - type: call
+            value: "org.bouncycastle.cert.X509v3CertificateBuilder"
+          - type: call
+            value: "org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder"
+      go:
+        match: any
+        conditions:
+          - type: call
+            value: "crypto/x509/*"
+      csharp:
+        match: any
+        conditions:
+          - type: call
+            value: "X509Certificate2"
+          - type: call
+            value: "System.Security.Cryptography.X509Certificate2"
+          - type: call
+            value: "X509Certificate2.CreateFromPem"
+          - type: call
+            value: "System.Security.Cryptography.X509Certificate2.CreateFromPem"
+          - type: call
+            value: "X509Certificate2.CreateFromPemFile"
+          - type: call
+            value: "System.Security.Cryptography.X509Certificate2.CreateFromPemFile"
+          - type: call
+            value: "CertificateRequest"
+          - type: call
+            value: "System.Security.Cryptography.CertificateRequest"
+          - type: call
+            value: "System.Security.Cryptography.X509Certificates.X509Certificate2"
+      rust:
+        match: any
+        conditions:
+          - type: call
+            value: "x509_parser::*"
+          - type: call
+            value: "rcgen::*"
+          - type: call
+            value: "openssl::x509::*"
+          - type: call
+            value: "x509_cert::*"
+      php:
+        match: any
+        conditions:
+          - type: call
+            value: "openssl_x509_read"
+          - type: call
+            value: "openssl_x509_parse"
+          - type: call
+            value: "openssl_csr_new"
+          - type: call
+            value: "openssl_csr_sign"
+          - type: call
+            value: "phpseclib3\\File\\X509"
+      ruby:
+        match: any
+        conditions:
+          - type: call
+            value: "OpenSSL::X509::Certificate.*"
+          - type: call
+            value: "OpenSSL::X509::Request.*"

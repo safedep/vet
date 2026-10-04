@@ -1,0 +1,14 @@
+{
+  "manifests": [
+    {
+      "extractor": "python/pdmlock",
+      "kind": "lockfile",
+      "ecosystem": "pypi",
+      "packages": [
+        "pypi/pyroute2@0.7.11 :11",
+        "pypi/toml@0.10.2 :23",
+        "pypi/win-inet-pton@1.1.0 :34"
+      ]
+    }
+  ]
+}

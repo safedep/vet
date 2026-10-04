@@ -1,0 +1,6 @@
+{
+  "manifests": [],
+  "errors": [
+    "dotnet/packageslockjson: packages.lock.json: failed to decode packages.lock.json file: invalid character 'h' in literal true (expecting 'r')"
+  ]
+}

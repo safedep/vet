@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/packagejsonmanifest",
+      "kind": "manifest",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/moment@2.29.0 [+]"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+# A package that matches plugins.reputation.options.internal_names and
+# comes from a public registry gives a dependency-confusion finding. The
+# same name from the internal registry gives none.
+exec vet --config $WORK/config.yml scan public --mode plain -o plain
+stdout 'medium\tdependency-confusion\tpkg:npm/%40acme/billing@1.0.0'
+exec vet --config $WORK/config.yml scan internal --mode plain -o plain
+! stdout 'dependency-confusion'
+
+-- config.yml --
+plugins:
+  reputation:
+    options:
+      internal_names: ["@acme/*"]
+-- public/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app"}, "node_modules/@acme/billing": {"version": "1.0.0", "resolved": "https://registry.npmjs.org/@acme/billing/-/billing-1.0.0.tgz"}}}
+-- internal/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app"}, "node_modules/@acme/billing": {"version": "1.0.0", "resolved": "https://npm.acme.example/@acme/billing/-/billing-1.0.0.tgz"}}}

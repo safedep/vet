@@ -1,0 +1,17 @@
+{
+  "manifests": [
+    {
+      "extractor": "terraform/lockfile",
+      "kind": "manifest",
+      "ecosystem": "terraform",
+      "packages": [
+        "terraform/registry.terraform.io/datadog/datadog@3.21.0 [+] :1",
+        "terraform/registry.terraform.io/hashicorp/aws@5.0.1 [+] :23",
+        "terraform/registry.terraform.io/hashicorp/google@4.59.0 [+] :46",
+        "terraform/registry.terraform.io/hashicorp/kubernetes@2.11.0 [+] :66",
+        "terraform/registry.terraform.io/hashicorp/random@3.6.3 [+] :86",
+        "terraform/registry.terraform.io/integrations/github@5.9.0 [+] :106"
+      ]
+    }
+  ]
+}

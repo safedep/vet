@@ -1,0 +1,13 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/packagelockjson",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/supports-color@6.1.0 :10",
+        "npm/supports-color@2.0.0 :32"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "manifests": [
+    {
+      "extractor": "sbom/cdx",
+      "kind": "sbom",
+      "ecosystem": "maven",
+      "packages": [
+        "maven/com.fasterxml.jackson.core:jackson-annotations@2.13.0 [+]",
+        "maven/com.fasterxml.jackson.core:jackson-core@2.13.0 [+]",
+        "maven/com.fasterxml.jackson.core:jackson-databind@2.13.0 [+]",
+        "maven/log4j:log4j@1.2.17 [+]",
+        "maven/org.apiguardian:apiguardian-api@1.1.2 [+]",
+        "maven/org.codehaus.plexus:plexus-utils@1.0.4 [+]",
+        "maven/org.junit.jupiter:junit-jupiter-api@5.8.1 [+]",
+        "maven/org.junit.jupiter:junit-jupiter-engine@5.8.1 [+]",
+        "maven/org.junit.platform:junit-platform-commons@1.8.1 [+]",
+        "maven/org.junit.platform:junit-platform-engine@1.8.1 [+]",
+        "maven/org.opentest4j:opentest4j@1.2.0 [+]"
+      ]
+    }
+  ]
+}

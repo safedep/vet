@@ -1,0 +1,15 @@
+[windows] skip 'Windows uses its profile directories, not XDG'
+# With the XDG variables set, config, state and cache land in their own
+# safedep/vet directories. The config directory holds no database.
+cd proj
+exec vet config set policy.fail_on critical --mode plain
+exec vet scan . --mode plain -o plain
+exists $XDG_CONFIG_HOME/safedep/vet/config.yml
+exists $XDG_STATE_HOME/safedep/vet/vet.db
+exists $XDG_CACHE_HOME/safedep/vet/cache.db
+! exists $XDG_CONFIG_HOME/safedep/vet/vet.db
+! exists $XDG_CONFIG_HOME/safedep/vet/cache.db
+! exists $XDG_STATE_HOME/safedep/vet/config.yml
+
+-- proj/requirements.txt --
+requests==2.31.0

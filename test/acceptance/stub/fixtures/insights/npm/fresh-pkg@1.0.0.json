@@ -1,0 +1,9 @@
+{
+  "packageVersion": {
+    "package": {"ecosystem": "ECOSYSTEM_NPM", "name": "fresh-pkg"},
+    "version": "1.0.0"
+  },
+  "insight": {
+    "packagePublishedAt": "2099-01-01T00:00:00Z"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "packageVersion": {
+    "package": {"ecosystem": "ECOSYSTEM_NPM", "name": "minimist"},
+    "version": "1.2.0"
+  },
+  "insight": {
+    "vulnerabilities": [
+      {
+        "id": {"type": "VULNERABILITY_IDENTIFIER_TYPE_OSV", "value": "GHSA-stub-0002"},
+        "summary": "Stub prototype pollution",
+        "severities": [{"type": "TYPE_CVSS_V3", "score": "9.8", "risk": "RISK_CRITICAL"}]
+      },
+      {
+        "id": {"type": "VULNERABILITY_IDENTIFIER_TYPE_OSV", "value": "GHSA-stub-0003"},
+        "summary": "Stub denial of service",
+        "severities": [{"type": "TYPE_CVSS_V3", "score": "5.3", "risk": "RISK_MEDIUM"}]
+      }
+    ],
+    "licenses": {"licenses": [{"licenseId": "MIT"}]},
+    "packagePublishedAt": "2014-06-11T00:00:00Z",
+    "downloadCount": "1000",
+    "availableVersions": [
+      {"version": "1.2.0"},
+      {"version": "1.2.8", "defaultVersion": true}
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "packages": [
+    "npm/@babel/code-frame@7.22.13",
+    "npm/@babel/highlight@7.22.20",
+    "npm/chalk@2.4.2",
+    "npm/escape-string-regexp@1.0.5"
+  ],
+  "direct": [
+    "npm/@babel/code-frame@7.22.13"
+  ],
+  "roots": [
+    "npm/@babel/code-frame@7.22.13"
+  ],
+  "edges": [
+    "npm/@babel/code-frame@7.22.13 -> npm/@babel/highlight@7.22.20",
+    "npm/@babel/code-frame@7.22.13 -> npm/chalk@2.4.2",
+    "npm/@babel/highlight@7.22.20 -> npm/chalk@2.4.2",
+    "npm/chalk@2.4.2 -> npm/escape-string-regexp@1.0.5"
+  ]
+}

@@ -1,0 +1,15 @@
+# vet scan scans an image. The tarball part needs no registry and no
+# Docker daemon. The oci:// part loads the same image into a local daemon.
+imagetar image.tar vet-acceptance/app:test rootfs
+exec vet scan image.tar --mode plain -o plain
+stdout 'malware\tpkg:npm/safedep-test-pkg@0.1.3'
+
+[!linux] stop 'the Docker daemon of the runner takes Linux images on Linux only'
+[!docker] stop 'no docker daemon'
+exec docker load -i image.tar
+exec vet scan oci://vet-acceptance/app:test --mode plain -o plain
+stdout 'malware\tpkg:npm/safedep-test-pkg@0.1.3'
+exec docker rmi vet-acceptance/app:test
+
+-- rootfs/app/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3"}}, "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"}}}

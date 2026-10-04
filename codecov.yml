@@ -1,0 +1,5 @@
+# cmd/vet/main.go only wires the signal context to cmd.Run and exits with
+# its code. The acceptance suite runs the real binary, which unit test
+# coverage does not see.
+ignore:
+  - "cmd/vet/main.go"

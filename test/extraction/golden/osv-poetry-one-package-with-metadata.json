@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "python/poetrylock",
+      "kind": "lockfile",
+      "ecosystem": "pypi",
+      "packages": [
+        "pypi/emoji@2.0.0 :2"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "vet",
+          "version": "test",
+          "informationUri": "https://github.com/safedep/vet",
+          "rules": [
+            {
+              "id": "dependency-cooldown",
+              "shortDescription": {
+                "text": "dependency-cooldown"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "cooldown"
+                ]
+              }
+            },
+            {
+              "id": "malware",
+              "shortDescription": {
+                "text": "malware"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "malware"
+                ]
+              }
+            },
+            {
+              "id": "unpinned-action",
+              "shortDescription": {
+                "text": "unpinned-action"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "workflow"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "malware",
+          "level": "error",
+          "message": {
+            "text": "Malicious package. The package runs a postinstall script that reads ~/.npmrc."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "package-lock.json"
+                },
+                "region": {
+                  "startLine": 42,
+                  "endLine": 42
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "vetFindingId/v1": "f-478cf580259c82ac"
+          },
+          "properties": {
+            "security-severity": "9.5",
+            "tags": [
+              "critical",
+              "malware"
+            ]
+          }
+        },
+        {
+          "ruleId": "dependency-cooldown",
+          "level": "error",
+          "message": {
+            "text": "Package version is inside the cooldown window"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "package-lock.json"
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "vetFindingId/v1": "f-717913dc7dd3396c"
+          },
+          "suppressions": [
+            {
+              "kind": "external",
+              "justification": "Reviewed"
+            }
+          ],
+          "properties": {
+            "security-severity": "8.0",
+            "tags": [
+              "high",
+              "cooldown"
+            ]
+          }
+        },
+        {
+          "ruleId": "unpinned-action",
+          "level": "warning",
+          "message": {
+            "text": "tj-actions/changed-files@v44 is not pinned to a commit SHA"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/ci.yml"
+                },
+                "region": {
+                  "startLine": 8,
+                  "endLine": 8
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "vetFindingId/v1": "f-e815bb3b5e0846f1"
+          },
+          "properties": {
+            "security-severity": "5.5",
+            "tags": [
+              "medium",
+              "workflow"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

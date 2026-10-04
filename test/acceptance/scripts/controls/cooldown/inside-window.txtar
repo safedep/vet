@@ -1,0 +1,17 @@
+# A version published inside the cooldown window gives a finding. A version
+# published before the window gives none.
+cd proj
+exec vet scan . --mode plain -o plain
+stdout 'dependency-cooldown\tpkg:npm/fresh-pkg@1.0.0'
+! stdout 'dependency-cooldown\tpkg:npm/left-pad'
+
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"fresh-pkg": "1.0.0","left-pad": "1.3.0"}},
+    "node_modules/fresh-pkg": {"version": "1.0.0", "resolved": "https://registry.npmjs.org/fresh-pkg/-/fresh-pkg-1.0.0.tgz"},
+    "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}
+  }
+}

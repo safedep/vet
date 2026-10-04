@@ -1,0 +1,7 @@
+{
+  "manifests": [],
+  "errors": [
+    "mix.lock: unknown PURL type \"hex\"",
+    "mix.lock: unknown PURL type \"hex\""
+  ]
+}

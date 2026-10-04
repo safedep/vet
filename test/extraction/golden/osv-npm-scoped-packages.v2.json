@@ -1,0 +1,13 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/packagelockjson",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/@babel/code-frame@7.0.0 :10",
+        "npm/wrappy@1.0.2 :18"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "lockfileVersion": 0,
+  "workspaces": {
+    "": {
+      "dependencies": {
+        "uWebSocket.js": "uNetworking/uWebSockets.js#v20.51.0",
+      },
+    },
+  },
+  "packages": {
+    "uWebSocket.js": ["uWebSockets.js@github:uNetworking/uWebSockets.js#6609a88", {}, "uNetworking-uWebSockets.js-6609a88"],
+  }
+}

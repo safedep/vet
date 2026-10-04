@@ -1,0 +1,20 @@
+{
+  "manifests": [
+    {
+      "extractor": "python/requirements",
+      "kind": "manifest",
+      "ecosystem": "pypi",
+      "packages": [
+        "pypi/pytest [+] :3",
+        "pypi/pytest-cov [+] :4",
+        "pypi/beautifulsoup4 [+] :5",
+        "pypi/docopt@0.6.1 [+] :9",
+        "pypi/keyring@4.1.1 [+] :10",
+        "pypi/coverage [+] :11",
+        "pypi/mopidy-dirble@1.1 [+] :12",
+        "pypi/rejected [+] :23",
+        "pypi/green [+] :24"
+      ]
+    }
+  ]
+}

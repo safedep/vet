@@ -1,0 +1,13 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/packagelockjson",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/wrappy@1.0.2 [+] :10",
+        "npm/supports-color@5.5.0 :16"
+      ]
+    }
+  ]
+}

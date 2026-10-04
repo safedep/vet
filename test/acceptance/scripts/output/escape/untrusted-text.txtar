@@ -1,0 +1,11 @@
+# A package name with a terminal escape in a lockfile prints escaped in
+# plain mode.
+cd proj
+exec vet scan . --mode plain -o plain
+capture ID 'untrusted-registry\t\S+\t\S+\t(f-[0-9a-f]+)'
+exec vet report finding show $ID --mode plain -o plain
+! stdout '\x1b\['
+stdout 'evil\\x1b\[31m resolves from an untrusted host'
+
+-- proj/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app"}, "node_modules/evil\u001b[31m": {"version": "1.0.0", "resolved": "https://evil.example.com/evil/-/evil-1.0.0.tgz"}}}

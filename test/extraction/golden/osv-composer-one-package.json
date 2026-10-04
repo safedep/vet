@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "php/composerlock",
+      "kind": "lockfile",
+      "ecosystem": "packagist",
+      "packages": [
+        "packagist/sentry/sdk@2.0.4 :10"
+      ]
+    }
+  ]
+}

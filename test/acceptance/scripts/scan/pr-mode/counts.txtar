@@ -1,0 +1,47 @@
+[!git] skip 'needs git'
+# In pull request mode, the table counts the changed packages, and drops
+# the CHANGE column when each row has the same change. A bad --base-ref
+# leaves no failed scan. vet report diff warns when it compares a full scan
+# with a pull request scan.
+cd proj
+exec git -c user.email=t@example.com -c user.name=t init -q
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m base
+exec vet scan . --mode plain -o plain
+cp $WORK/head.json package-lock.json
+exec git -c user.email=t@example.com -c user.name=t commit -q -am head
+
+exec vet scan . --mode plain -o table --base-ref HEAD~1
+stdout 'Changed: 1'
+! stdout 'Packages: 2'
+! stdout 'CHANGE'
+stdout 'Each finding is on a package or a file that the change adds.'
+stderr '1 package changed'
+
+execexit 2 vet scan . --mode plain --base-ref nosuchref
+stderr 'nosuchref'
+exec vet report list --mode plain -o plain
+! stdout 'failed'
+
+exec vet report diff --mode plain -o plain
+stderr 'is a full scan and scan .* is a pull request scan'
+
+-- head.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"left-pad": "1.3.0","safedep-test-pkg": "0.1.3"}},
+    "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"},
+    "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"}
+  }
+}
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"left-pad": "1.3.0"}},
+    "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}
+  }
+}

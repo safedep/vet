@@ -1,0 +1,1030 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.safedep.io/vet/report/v1/report-line.schema.json",
+  "$ref": "#/$defs/Line",
+  "$defs": {
+    "ApplicationSubject": {
+      "properties": {
+        "root": {
+          "type": "string"
+        },
+        "signature_id": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "root"
+      ]
+    },
+    "Capability": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "vendor": {
+          "type": "string"
+        },
+        "product": {
+          "type": "string"
+        },
+        "service": {
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "change": {
+          "type": "string",
+          "enum": [
+            "",
+            "ADDED",
+            "UPGRADED",
+            "DOWNGRADED",
+            "MODIFIED",
+            "REMOVED",
+            "UNCHANGED"
+          ]
+        },
+        "occurrences": {
+          "items": {
+            "$ref": "#/$defs/Occurrence"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object",
+      "required": [
+        "id",
+        "occurrences"
+      ]
+    },
+    "Diagnostic": {
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": [
+            "warning",
+            "error"
+          ]
+        },
+        "code": {
+          "type": "string"
+        },
+        "component": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "count": {
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "required": [
+        "level",
+        "code",
+        "component",
+        "message"
+      ]
+    },
+    "Evidence": {
+      "properties": {
+        "source": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "source",
+        "summary"
+      ]
+    },
+    "FileSubject": {
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "element": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "path"
+      ]
+    },
+    "Finding": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "control_id": {
+          "type": "string"
+        },
+        "family": {
+          "type": "string",
+          "enum": [
+            "malware",
+            "vulnerability",
+            "cooldown",
+            "workflow",
+            "lockfile",
+            "agent-config",
+            "ai-bom",
+            "license",
+            "hygiene",
+            "reputation"
+          ]
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low",
+            "info"
+          ]
+        },
+        "confidence": {
+          "type": "string",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "subject": {
+          "$ref": "#/$defs/Subject"
+        },
+        "locus": {
+          "$ref": "#/$defs/Locus"
+        },
+        "change": {
+          "type": "string",
+          "enum": [
+            "",
+            "ADDED",
+            "UPGRADED",
+            "DOWNGRADED",
+            "MODIFIED",
+            "REMOVED",
+            "UNCHANGED"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "type": "array"
+        },
+        "references": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "remediation": {
+          "$ref": "#/$defs/Remediation"
+        },
+        "suppression": {
+          "$ref": "#/$defs/Suppression"
+        },
+        "policy_rule": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "id",
+        "control_id",
+        "family",
+        "severity",
+        "confidence",
+        "subject",
+        "title",
+        "description"
+      ]
+    },
+    "Gate": {
+      "properties": {
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "NONE",
+            "PASS",
+            "FAIL"
+          ]
+        },
+        "fail_on": {
+          "type": "string",
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low",
+            "info"
+          ]
+        },
+        "policy": {
+          "type": "string"
+        },
+        "rules": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "finding_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object",
+      "required": [
+        "outcome"
+      ]
+    },
+    "Header": {
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "tool": {
+          "$ref": "#/$defs/Tool"
+        },
+        "scan": {
+          "$ref": "#/$defs/ScanInfo"
+        }
+      },
+      "type": "object",
+      "required": [
+        "schema_version",
+        "tool",
+        "scan"
+      ]
+    },
+    "Insight": {
+      "properties": {
+        "vulnerabilities": {
+          "items": {
+            "$ref": "#/$defs/Vulnerability"
+          },
+          "type": "array"
+        },
+        "licenses": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "published_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "deprecated": {
+          "type": "boolean"
+        },
+        "scorecard": {
+          "$ref": "#/$defs/Scorecard"
+        },
+        "source_repo": {
+          "type": "string"
+        },
+        "downloads": {
+          "type": "integer"
+        },
+        "latest_version": {
+          "type": "string"
+        },
+        "first_published_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "provenance": {
+          "type": "boolean"
+        },
+        "stars": {
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "InventoryItem": {
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "ai-tool",
+            "mcp-server",
+            "skill",
+            "editor-plugin"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "client": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "change": {
+          "type": "string",
+          "enum": [
+            "",
+            "ADDED",
+            "UPGRADED",
+            "DOWNGRADED",
+            "MODIFIED",
+            "REMOVED",
+            "UNCHANGED"
+          ]
+        },
+        "details": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      },
+      "type": "object",
+      "required": [
+        "kind",
+        "name"
+      ]
+    },
+    "Line": {
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "manifest",
+            "package",
+            "inventory",
+            "finding",
+            "diagnostic",
+            "capability",
+            "header",
+            "trailer"
+          ]
+        },
+        "manifest": {
+          "$ref": "#/$defs/Manifest"
+        },
+        "package": {
+          "$ref": "#/$defs/PackageEntry"
+        },
+        "inventory": {
+          "$ref": "#/$defs/InventoryItem"
+        },
+        "finding": {
+          "$ref": "#/$defs/Finding"
+        },
+        "diagnostic": {
+          "$ref": "#/$defs/Diagnostic"
+        },
+        "capability": {
+          "$ref": "#/$defs/Capability"
+        },
+        "header": {
+          "$ref": "#/$defs/Header"
+        },
+        "trailer": {
+          "$ref": "#/$defs/Trailer"
+        }
+      },
+      "type": "object",
+      "required": [
+        "$schema",
+        "kind"
+      ]
+    },
+    "Locus": {
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "start_line": {
+          "type": "integer"
+        },
+        "end_line": {
+          "type": "integer"
+        },
+        "snippet": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "path"
+      ]
+    },
+    "MalwareAnalysis": {
+      "properties": {
+        "malicious": {
+          "type": "boolean"
+        },
+        "verified": {
+          "type": "boolean"
+        },
+        "confidence": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "report_url": {
+          "type": "string"
+        },
+        "analysis_id": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "malicious",
+        "verified"
+      ]
+    },
+    "Manifest": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "ecosystem": {
+          "type": "string",
+          "enum": [
+            "cargo",
+            "github-actions",
+            "go",
+            "maven",
+            "npm",
+            "nuget",
+            "openvsx",
+            "packagist",
+            "pub",
+            "pypi",
+            "rubygems",
+            "terraform",
+            "vscode"
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "lockfile",
+            "manifest",
+            "workflow",
+            "sbom",
+            "image",
+            "purl",
+            "endpoint",
+            "agent-config"
+          ]
+        },
+        "change": {
+          "type": "string",
+          "enum": [
+            "",
+            "ADDED",
+            "UPGRADED",
+            "DOWNGRADED",
+            "MODIFIED",
+            "REMOVED",
+            "UNCHANGED"
+          ]
+        },
+        "lockfile_only": {
+          "type": "boolean"
+        },
+        "extractor": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "id",
+        "path",
+        "kind"
+      ]
+    },
+    "ManifestSubject": {
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "ecosystem": {
+          "type": "string",
+          "enum": [
+            "cargo",
+            "github-actions",
+            "go",
+            "maven",
+            "npm",
+            "nuget",
+            "openvsx",
+            "packagist",
+            "pub",
+            "pypi",
+            "rubygems",
+            "terraform",
+            "vscode"
+          ]
+        }
+      },
+      "type": "object",
+      "required": [
+        "path"
+      ]
+    },
+    "Occurrence": {
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer"
+        },
+        "column": {
+          "type": "integer"
+        },
+        "language": {
+          "type": "string"
+        },
+        "callee": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "file"
+      ]
+    },
+    "PackageEntry": {
+      "properties": {
+        "purl": {
+          "type": "string"
+        },
+        "manifest_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "id": {
+          "$ref": "#/$defs/PackageID"
+        },
+        "direct": {
+          "type": "boolean"
+        },
+        "dev": {
+          "type": "boolean"
+        },
+        "change": {
+          "type": "string",
+          "enum": [
+            "",
+            "ADDED",
+            "UPGRADED",
+            "DOWNGRADED",
+            "MODIFIED",
+            "REMOVED",
+            "UNCHANGED"
+          ]
+        },
+        "previous_version": {
+          "type": "string"
+        },
+        "previous_resolved": {
+          "type": "string"
+        },
+        "previous_integrity": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer"
+        },
+        "resolved": {
+          "type": "string"
+        },
+        "integrity": {
+          "type": "string"
+        },
+        "local": {
+          "type": "boolean"
+        },
+        "insight": {
+          "$ref": "#/$defs/Insight"
+        },
+        "previous_insight": {
+          "$ref": "#/$defs/Insight"
+        },
+        "malware": {
+          "$ref": "#/$defs/MalwareAnalysis"
+        },
+        "usage": {
+          "$ref": "#/$defs/Usage"
+        }
+      },
+      "type": "object",
+      "required": [
+        "purl",
+        "manifest_ids",
+        "id",
+        "direct"
+      ]
+    },
+    "PackageID": {
+      "properties": {
+        "ecosystem": {
+          "type": "string",
+          "enum": [
+            "cargo",
+            "github-actions",
+            "go",
+            "maven",
+            "npm",
+            "nuget",
+            "openvsx",
+            "packagist",
+            "pub",
+            "pypi",
+            "rubygems",
+            "terraform",
+            "vscode"
+          ]
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "subpath": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "ecosystem",
+        "name"
+      ]
+    },
+    "PackageSubject": {
+      "properties": {
+        "purl": {
+          "type": "string"
+        },
+        "ecosystem": {
+          "type": "string",
+          "enum": [
+            "cargo",
+            "github-actions",
+            "go",
+            "maven",
+            "npm",
+            "nuget",
+            "openvsx",
+            "packagist",
+            "pub",
+            "pypi",
+            "rubygems",
+            "terraform",
+            "vscode"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "direct": {
+          "type": "boolean"
+        },
+        "manifest_path": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "purl",
+        "ecosystem",
+        "name",
+        "direct",
+        "manifest_path"
+      ]
+    },
+    "Remediation": {
+      "properties": {
+        "summary": {
+          "type": "string"
+        },
+        "fixed_version": {
+          "type": "string"
+        },
+        "command": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "summary"
+      ]
+    },
+    "ScanInfo": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "scan",
+            "endpoint"
+          ]
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "full",
+            "delta"
+          ]
+        },
+        "target": {
+          "type": "string"
+        },
+        "target_key": {
+          "type": "string"
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "continued": {
+          "type": "boolean"
+        },
+        "base_ref": {
+          "type": "string"
+        },
+        "git_ref": {
+          "type": "string"
+        },
+        "git_sha": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "mode",
+        "target",
+        "target_key",
+        "started_at"
+      ]
+    },
+    "Scorecard": {
+      "properties": {
+        "score": {
+          "type": "number"
+        },
+        "checks": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "type": "object"
+        }
+      },
+      "type": "object",
+      "required": [
+        "score"
+      ]
+    },
+    "Subject": {
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "package",
+            "file",
+            "manifest",
+            "application"
+          ]
+        },
+        "package": {
+          "$ref": "#/$defs/PackageSubject"
+        },
+        "file": {
+          "$ref": "#/$defs/FileSubject"
+        },
+        "manifest": {
+          "$ref": "#/$defs/ManifestSubject"
+        },
+        "application": {
+          "$ref": "#/$defs/ApplicationSubject"
+        }
+      },
+      "type": "object",
+      "required": [
+        "kind"
+      ]
+    },
+    "Summary": {
+      "properties": {
+        "manifests": {
+          "type": "integer"
+        },
+        "packages": {
+          "type": "integer"
+        },
+        "inventory": {
+          "type": "integer"
+        },
+        "capabilities": {
+          "type": "integer"
+        },
+        "findings": {
+          "type": "integer"
+        },
+        "suppressed": {
+          "type": "integer"
+        },
+        "diagnostics": {
+          "type": "integer"
+        },
+        "by_severity": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "by_family": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "type": "object"
+        }
+      },
+      "type": "object",
+      "required": [
+        "manifests",
+        "packages",
+        "inventory",
+        "capabilities",
+        "findings",
+        "suppressed",
+        "diagnostics",
+        "by_severity",
+        "by_family"
+      ]
+    },
+    "Suppression": {
+      "properties": {
+        "reason": {
+          "type": "string"
+        },
+        "expires": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "rule": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "reason"
+      ]
+    },
+    "Tool": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "name",
+        "version"
+      ]
+    },
+    "Trailer": {
+      "properties": {
+        "summary": {
+          "$ref": "#/$defs/Summary"
+        },
+        "gate": {
+          "$ref": "#/$defs/Gate"
+        },
+        "record_count": {
+          "type": "integer"
+        },
+        "finished_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "type": "object",
+      "required": [
+        "summary",
+        "gate",
+        "record_count",
+        "finished_at"
+      ]
+    },
+    "Usage": {
+      "properties": {
+        "imported": {
+          "type": "boolean"
+        },
+        "files": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object",
+      "required": [
+        "imported"
+      ]
+    },
+    "Vulnerability": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "aliases": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string"
+        },
+        "cvss": {
+          "type": "number"
+        },
+        "fixed": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object",
+      "required": [
+        "id"
+      ]
+    }
+  },
+  "title": "vet report line",
+  "description": "One line of the jsonl report of a vet scan, schema version 1.0.0."
+}

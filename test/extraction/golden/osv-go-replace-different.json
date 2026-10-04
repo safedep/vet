@@ -1,0 +1,13 @@
+{
+  "manifests": [
+    {
+      "extractor": "go/gomod",
+      "kind": "lockfile",
+      "ecosystem": "go",
+      "packages": [
+        "go/example.com/fork/foe@1.4.5 :7",
+        "go/example.com/fork/foe@1.4.2 :8"
+      ]
+    }
+  ]
+}

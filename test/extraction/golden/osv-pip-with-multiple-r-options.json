@@ -1,0 +1,13 @@
+{
+  "manifests": [
+    {
+      "extractor": "python/requirements",
+      "kind": "manifest",
+      "ecosystem": "pypi",
+      "packages": [
+        "pypi/requests@1.2.3 [+] :4",
+        "pypi/pandas@0.23.4 [+] :5"
+      ]
+    }
+  ]
+}

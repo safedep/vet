@@ -1,0 +1,17 @@
+# A scan of a malformed manifest prints a diagnostic, not the log line of a
+# library. With -v the library line prints, with no timestamp.
+cd proj
+exec vet scan . --mode plain -o json
+! stderr '^20[0-9][0-9]/[0-9][0-9]/[0-9][0-9] '
+! stderr '^could not extract pom'
+stderr '\[WARN\] extract: java/pomxml: pom.xml'
+
+exec vet scan . --mode plain -o json -v
+! stderr '^20[0-9][0-9]/[0-9][0-9]/[0-9][0-9] '
+
+-- proj/pom.xml --
+<project>
+  <
+</project>
+-- proj/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app"}}}

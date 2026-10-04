@@ -1,0 +1,6 @@
+# vet scan pulls an image from a public registry with no Docker daemon and
+# completes the scan with exit 0.
+[!live] skip 'set ACCEPTANCE_LIVE=1 to call production'
+exec vet scan oci://alpine:3.20 --mode plain -o json
+reportcheck stdout
+jsonq stdout header.scan.target oci://alpine:3.20

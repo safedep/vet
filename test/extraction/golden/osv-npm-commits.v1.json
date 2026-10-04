@@ -1,0 +1,28 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/packagelockjson",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/ansi-styles@1.0.0 :19",
+        "npm/postcss-calc@7.0.1 :70"
+      ]
+    }
+  ],
+  "errors": [
+    "package-lock.json: unknown PURL type \"git\"",
+    "package-lock.json: unknown PURL type \"git\"",
+    "package-lock.json: unknown PURL type \"git\"",
+    "package-lock.json: unknown PURL type \"git\"",
+    "package-lock.json: unknown PURL type \"git\"",
+    "package-lock.json: unknown PURL type \"git\"",
+    "package-lock.json: unknown PURL type \"git\"",
+    "package-lock.json: unknown PURL type \"git\"",
+    "package-lock.json: unknown PURL type \"git\"",
+    "package-lock.json: unknown PURL type \"git\"",
+    "package-lock.json: unknown PURL type \"git\"",
+    "package-lock.json: unknown PURL type \"git\"",
+    "package-lock.json: unknown PURL type \"git\""
+  ]
+}

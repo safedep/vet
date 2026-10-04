@@ -1,0 +1,30 @@
+# In pull request mode with plugins.codeusage.enabled, a change that adds
+# a call to an AI SDK gives an ai-bom-delta finding on the application. A
+# capability that the base commit has gives none.
+[!cgo] skip 'code analysis needs a vet built with CGO'
+[!git] skip 'needs git'
+cd repo
+exec git -c user.email=t@example.com -c user.name=t init -q
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m base
+cp $WORK/agent.py agent.py
+exec vet --config $WORK/config.yml scan . --base-ref HEAD --mode plain -o json
+stdout '"control_id":"ai-bom-delta","family":"ai-bom"'
+stdout '"kind":"application","application":\{"root":".","signature_id":"anthropic.client"\}'
+! stdout '"signature_id":"openai.client"'
+
+-- config.yml --
+plugins:
+  codeusage:
+    enabled: true
+-- repo/app.py --
+from openai import OpenAI
+
+client = OpenAI()
+-- repo/requirements.txt --
+openai==1.51.0
+anthropic==0.40.0
+-- agent.py --
+import anthropic
+
+client = anthropic.Anthropic()

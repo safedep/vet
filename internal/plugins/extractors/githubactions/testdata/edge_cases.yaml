@@ -1,0 +1,33 @@
+name: edges
+
+on: [push]
+
+jobs:
+  local-and-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./local-action
+      - uses: ../another-local
+      - uses: docker://alpine:3.18
+      - uses: actions/checkout@v4
+
+  subpath-action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: github/codeql-action/init@v3
+      - uses: github/codeql-action/analyze@v3
+
+  branch-and-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/cache@main
+      - uses: actions/upload-artifact@v4
+
+  malformed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: nobody
+      - uses: "@noref"
+      - uses: ""
+      - uses: actions/no-version@
+      - run: echo "no uses here"

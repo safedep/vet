@@ -1,0 +1,47 @@
+{
+  "packages": [
+    "pypi/black@24.10.0",
+    "pypi/click@8.1.7",
+    "pypi/colorama@0.4.6",
+    "pypi/emoji@2.14.0",
+    "pypi/flake8@7.1.1",
+    "pypi/mccabe@0.7.0",
+    "pypi/mypy-extensions@1.0.0",
+    "pypi/packaging@24.2",
+    "pypi/pathspec@0.12.1",
+    "pypi/platformdirs@4.3.6",
+    "pypi/pycodestyle@2.12.1",
+    "pypi/pyflakes@3.2.0",
+    "pypi/tomli@2.2.1",
+    "pypi/typing-extensions@4.12.2"
+  ],
+  "direct": [
+    "pypi/black@24.10.0",
+    "pypi/click@8.1.7",
+    "pypi/emoji@2.14.0",
+    "pypi/flake8@7.1.1"
+  ],
+  "dev": [
+    "pypi/black@24.10.0",
+    "pypi/flake8@7.1.1"
+  ],
+  "roots": [
+    "pypi/black@24.10.0",
+    "pypi/click@8.1.7",
+    "pypi/emoji@2.14.0",
+    "pypi/flake8@7.1.1"
+  ],
+  "edges": [
+    "pypi/black@24.10.0 -> pypi/click@8.1.7",
+    "pypi/black@24.10.0 -> pypi/mypy-extensions@1.0.0",
+    "pypi/black@24.10.0 -> pypi/packaging@24.2",
+    "pypi/black@24.10.0 -> pypi/pathspec@0.12.1",
+    "pypi/black@24.10.0 -> pypi/platformdirs@4.3.6",
+    "pypi/black@24.10.0 -> pypi/tomli@2.2.1",
+    "pypi/black@24.10.0 -> pypi/typing-extensions@4.12.2",
+    "pypi/click@8.1.7 -> pypi/colorama@0.4.6",
+    "pypi/flake8@7.1.1 -> pypi/mccabe@0.7.0",
+    "pypi/flake8@7.1.1 -> pypi/pycodestyle@2.12.1",
+    "pypi/flake8@7.1.1 -> pypi/pyflakes@3.2.0"
+  ]
+}

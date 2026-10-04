@@ -1,0 +1,8 @@
+# The stub server answers the GitHub API and counts the calls.
+stub calls github 0
+stub fail github Unavailable
+stub fail github OK
+stub delay 1ms
+stub calls github 0
+! stub calls github 1
+stub stop

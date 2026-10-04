@@ -1,0 +1,20 @@
+# An action used by tag gives a finding. An action pinned by SHA gives none.
+cd proj
+exec vet scan . --mode plain -o plain
+stdout 'unpinned-action\t.github/workflows/tag.yml\t.github/workflows/tag.yml:6'
+! stdout 'unpinned-action\t.github/workflows/pinned.yml'
+
+-- proj/.github/workflows/tag.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+-- proj/.github/workflows/pinned.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683

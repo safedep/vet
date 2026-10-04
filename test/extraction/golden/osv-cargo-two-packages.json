@@ -1,0 +1,13 @@
+{
+  "manifests": [
+    {
+      "extractor": "rust/cargolock",
+      "kind": "lockfile",
+      "ecosystem": "cargo",
+      "packages": [
+        "cargo/addr2line@0.15.2 :6",
+        "cargo/syn@1.0.73 :15"
+      ]
+    }
+  ]
+}

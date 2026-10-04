@@ -1,0 +1,13 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/yarnlock",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/@nicolo-ribaudo/chokidar-2@2.1.8-no-fsevents.3 :8",
+        "npm/gensync@1.0.0-beta.2 :15"
+      ]
+    }
+  ]
+}

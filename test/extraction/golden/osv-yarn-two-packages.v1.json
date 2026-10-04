@@ -1,0 +1,13 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/yarnlock",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/concat-map@0.0.1 :5",
+        "npm/concat-stream@1.6.2 :10"
+      ]
+    }
+  ]
+}

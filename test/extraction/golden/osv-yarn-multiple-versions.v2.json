@@ -1,0 +1,14 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/yarnlock",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/debug@4.3.3 :8",
+        "npm/debug@2.6.9 :20",
+        "npm/debug@3.2.7 :29"
+      ]
+    }
+  ]
+}

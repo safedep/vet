@@ -1,0 +1,29 @@
+# A flag wins over a VET_* variable, which wins over the file, which wins
+# over the default. vet config show --origin -o json names each source.
+exec vet --config $WORK/config.yml config get scan.concurrency -o json
+jsonq stdout value 2
+jsonq stdout origin.layer file
+
+env VET_SCAN_CONCURRENCY=3
+env VET_CLOUD_PROFILE=fromenv
+exec vet --config $WORK/config.yml config get scan.concurrency -o json
+jsonq stdout value 3
+jsonq stdout origin.layer env
+jsonq stdout origin.source VET_SCAN_CONCURRENCY
+
+exec vet --config $WORK/config.yml --profile fromflag config get cloud.profile -o json
+jsonq stdout value fromflag
+jsonq stdout origin.layer flag
+
+exec vet --config $WORK/config.yml config get state.continue_within -o json
+jsonq stdout origin.layer default
+
+exec vet --config $WORK/config.yml config show --origin --mode plain -o plain
+stdout 'scan.concurrency\t3\tenv VET_SCAN_CONCURRENCY'
+stdout 'cache.ttl\t24h\tdefault'
+
+-- config.yml --
+scan:
+  concurrency: 2
+cloud:
+  profile: fromfile

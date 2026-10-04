@@ -1,0 +1,22 @@
+[
+  {
+    "manifest": {
+      "id": "m-1a7a7fcab136",
+      "path": "requirements.txt",
+      "ecosystem": "pypi",
+      "kind": "manifest",
+      "extractor": "python/requirements"
+    },
+    "packages": [
+      {
+        "id": {
+          "ecosystem": "pypi",
+          "name": "django",
+          "version": "2.2.24"
+        },
+        "direct": true,
+        "line": 1
+      }
+    ]
+  }
+]

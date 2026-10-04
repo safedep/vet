@@ -3,6 +3,29 @@
 
 version: "2"
 linters:
+  enable:
+    - depguard
+  settings:
+    depguard:
+      rules:
+        # internal/tui is the only package that imports dry/tui (decisions D15).
+        dry-tui:
+          files:
+            - $all
+            - "!**/internal/tui/**"
+          deny:
+            - pkg: github.com/safedep/dry/tui
+              desc: import internal/tui. Only internal/tui imports dry/tui (decisions D15).
+        # Only the enrichers and the cloud plugins speak the SafeDep API contract (decisions D2).
+        safedep-api:
+          files:
+            - $all
+            - "!**/internal/plugins/enrichers/**"
+            - "!**/internal/plugins/cloud/**"
+            - "!**/test/acceptance/stub/**"
+          deny:
+            - pkg: buf.build/gen/go/safedep/api
+              desc: only internal/plugins/enrichers and internal/plugins/cloud import the SafeDep API (decisions D2).
   exclusions:
     paths: []
 

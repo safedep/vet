@@ -1,0 +1,29 @@
+# A config file or a policy file inside the scanned target changes nothing.
+# A policy loads only with --policy.
+cd proj
+exec vet scan . --mode plain -o json
+jsonq stdout trailer.gate.outcome NONE
+! stdout '"control_id":"dependency-cooldown"'
+execexit 1 vet scan . --mode plain -o plain --policy vet-policy.yml
+
+-- proj/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3"}}, "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"}}}
+-- proj/config.yml --
+policy:
+  fail_on: low
+plugins:
+  dependency-cooldown:
+    options:
+      days: 100000
+-- proj/.safedep/vet/config.yml --
+policy:
+  fail_on: low
+-- proj/.vet.yml --
+policy:
+  fail_on: low
+-- proj/vet-policy.yml --
+version: 2
+rules:
+  - id: no-malware
+    when: finding.family == "malware"
+    action: fail

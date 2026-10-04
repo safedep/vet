@@ -1,0 +1,193 @@
+{
+  "$schema": "http://cyclonedx.org/schema/bom-1.7.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.7",
+  "serialNumber": "urn:uuid:c0c84aa5-b8a8-5c24-8bd6-b7e3e13dcd30",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-01-02T03:04:05Z",
+    "tools": {
+      "components": [
+        {
+          "bom-ref": "vet",
+          "type": "application",
+          "publisher": "SafeDep",
+          "name": "vet",
+          "version": "test"
+        }
+      ]
+    },
+    "component": {
+      "bom-ref": "target",
+      "type": "application",
+      "name": "."
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:npm/evil-colors@1.4.1",
+      "type": "library",
+      "name": "evil-colors",
+      "version": "1.4.1",
+      "scope": "required",
+      "purl": "pkg:npm/evil-colors@1.4.1",
+      "properties": [
+        {
+          "name": "safedep:direct",
+          "value": "true"
+        },
+        {
+          "name": "safedep:malware",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:npm/left-pad@1.3.0",
+      "type": "library",
+      "name": "left-pad",
+      "version": "1.3.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "WTFPL"
+          }
+        }
+      ],
+      "purl": "pkg:npm/left-pad@1.3.0",
+      "properties": [
+        {
+          "name": "safedep:direct",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "bom-ref": "xbom:crypto.md5",
+      "type": "cryptographic-asset",
+      "name": "MD5",
+      "description": "MD5 message digest",
+      "properties": [
+        {
+          "name": "safedep:tag",
+          "value": "cryptography"
+        },
+        {
+          "name": "safedep:tag",
+          "value": "hash"
+        },
+        {
+          "name": "safedep:tag",
+          "value": "weak"
+        }
+      ],
+      "evidence": {
+        "identity": [
+          {
+            "field": "name",
+            "methods": [
+              {
+                "technique": "source-code-analysis",
+                "confidence": 1
+              }
+            ],
+            "tools": [
+              "vet"
+            ]
+          }
+        ],
+        "occurrences": [
+          {
+            "location": "src/cache.py",
+            "line": 3,
+            "offset": 9,
+            "symbol": "hashlib//md5"
+          }
+        ]
+      },
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "hash",
+          "algorithmFamily": "MD5"
+        }
+      }
+    },
+    {
+      "bom-ref": "xbom:openai.client",
+      "type": "library",
+      "manufacturer": {
+        "name": "OpenAI"
+      },
+      "publisher": "OpenAI",
+      "name": "OpenAI SDK - Chat Completions",
+      "description": "Creates a client of the OpenAI API.",
+      "properties": [
+        {
+          "name": "safedep:tag",
+          "value": "ai"
+        },
+        {
+          "name": "safedep:tag",
+          "value": "llm"
+        }
+      ],
+      "evidence": {
+        "identity": [
+          {
+            "field": "name",
+            "methods": [
+              {
+                "technique": "source-code-analysis",
+                "confidence": 1
+              }
+            ],
+            "tools": [
+              "vet"
+            ]
+          }
+        ],
+        "occurrences": [
+          {
+            "location": "src/chat.py",
+            "line": 12,
+            "offset": 5,
+            "symbol": "openai//OpenAI"
+          }
+        ]
+      }
+    }
+  ],
+  "vulnerabilities": [
+    {
+      "bom-ref": "GHSA-stub-0001/pkg:npm/left-pad@1.3.0",
+      "id": "GHSA-stub-0001",
+      "source": {
+        "name": "GitHub",
+        "url": "https://github.com/advisories/GHSA-stub-0001"
+      },
+      "references": [
+        {
+          "id": "CVE-2026-0001",
+          "source": {
+            "name": "NVD",
+            "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-0001"
+          }
+        }
+      ],
+      "ratings": [
+        {
+          "score": 7.5,
+          "severity": "high"
+        }
+      ],
+      "description": "Prototype pollution",
+      "affects": [
+        {
+          "ref": "pkg:npm/left-pad@1.3.0"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+[
+  {
+    "id": {
+      "ecosystem": "npm",
+      "name": "express",
+      "version": "4.18.2"
+    },
+    "direct": true
+  },
+  {
+    "id": {
+      "ecosystem": "npm",
+      "name": "fsevents",
+      "version": "2.3.3"
+    },
+    "direct": true
+  },
+  {
+    "id": {
+      "ecosystem": "npm",
+      "name": "jest",
+      "version": "29.0.0"
+    },
+    "direct": true,
+    "dev": true
+  },
+  {
+    "id": {
+      "ecosystem": "npm",
+      "name": "left-pad",
+      "version": "1.3.0"
+    },
+    "direct": true
+  },
+  {
+    "id": {
+      "ecosystem": "npm",
+      "name": "lodash",
+      "version": "4.17.21"
+    },
+    "direct": true
+  }
+]

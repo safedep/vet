@@ -1,0 +1,72 @@
+[
+  {
+    "manifest": {
+      "id": "m-c566ce55e8c6",
+      "path": "go.mod",
+      "ecosystem": "go",
+      "kind": "lockfile",
+      "extractor": "go/gomod"
+    },
+    "packages": [
+      {
+        "id": {
+          "ecosystem": "go",
+          "name": "stdlib",
+          "version": "1.17"
+        },
+        "direct": false,
+        "line": 3
+      },
+      {
+        "id": {
+          "ecosystem": "go",
+          "namespace": "github.com/BurntSushi",
+          "name": "toml",
+          "version": "1.0.0"
+        },
+        "direct": false,
+        "line": 6
+      },
+      {
+        "id": {
+          "ecosystem": "go",
+          "namespace": "gopkg.in",
+          "name": "yaml.v2",
+          "version": "2.4.0"
+        },
+        "direct": false,
+        "line": 7
+      },
+      {
+        "id": {
+          "ecosystem": "go",
+          "namespace": "github.com/mattn",
+          "name": "go-colorable",
+          "version": "0.1.9"
+        },
+        "direct": false,
+        "line": 11
+      },
+      {
+        "id": {
+          "ecosystem": "go",
+          "namespace": "github.com/mattn",
+          "name": "go-isatty",
+          "version": "0.0.14"
+        },
+        "direct": false,
+        "line": 12
+      },
+      {
+        "id": {
+          "ecosystem": "go",
+          "namespace": "golang.org/x",
+          "name": "sys",
+          "version": "0.0.0-20210630005230-0f9fa26af87c"
+        },
+        "direct": false,
+        "line": 13
+      }
+    ]
+  }
+]

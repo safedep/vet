@@ -1,0 +1,145 @@
+package policy
+
+import (
+	"errors"
+	"fmt"
+	"strings"
+
+	"github.com/google/cel-go/cel"
+)
+
+// packageIdent stands in for "package", which CEL reserves. It has the same
+// length, so the columns of an error stay right.
+const packageIdent = "vet_pkg"
+
+var errNoKey = errors.New("no such key")
+
+// Expr is a compiled rule condition.
+type Expr struct {
+	src string
+	prg cel.Program
+}
+
+func newEnv() (*cel.Env, error) {
+	dyn := cel.MapType(cel.StringType, cel.DynType)
+	return cel.NewEnv(
+		cel.Variable("finding", dyn),
+		cel.Variable(packageIdent, dyn),
+		cel.Variable("manifest", dyn),
+		cel.CrossTypeNumericComparisons(true),
+	)
+}
+
+// Compile compiles a rule condition. The condition must give a bool.
+func Compile(src string) (*Expr, error) {
+	env, err := newEnv()
+	if err != nil {
+		return nil, fmt.Errorf("create the CEL environment: %w", err)
+	}
+	ast, iss := env.Compile(rewritePackage(src))
+	if iss.Err() != nil {
+		return nil, errors.New(restorePackage(iss.Err().Error()))
+	}
+	if t := ast.OutputType(); !t.IsExactType(cel.BoolType) && !t.IsExactType(cel.DynType) {
+		return nil, fmt.Errorf("the condition gives %s, not bool", t)
+	}
+	prg, err := env.Program(ast)
+	if err != nil {
+		return nil, errors.New(restorePackage(err.Error()))
+	}
+	return &Expr{src: src, prg: prg}, nil
+}
+
+// Match evaluates the condition on an input. A condition that reads an
+// absent optional field, such as package.days_since_publish of a package
+// with no publish date, does not match, and gives no error.
+func (e *Expr) Match(in Input) (bool, error) {
+	vars, err := in.activation()
+	if err != nil {
+		return false, err
+	}
+	out, _, err := e.prg.Eval(vars)
+	if err != nil {
+		if strings.Contains(err.Error(), errNoKey.Error()) {
+			return false, nil
+		}
+		return false, errors.New(restorePackage(err.Error()))
+	}
+	b, ok := out.Value().(bool)
+	if !ok {
+		return false, fmt.Errorf("the condition gave %v, not a bool", out.Value())
+	}
+	return b, nil
+}
+
+// rewritePackage replaces the identifier "package" outside string literals.
+// A field that is named package, as in x.package, stays.
+func rewritePackage(src string) string {
+	const word = "package"
+	var b strings.Builder
+	for i := 0; i < len(src); {
+		if q := quoteAt(src, i); q != "" {
+			end := closeQuote(src, i+len(q), q)
+			b.WriteString(src[i:end])
+			i = end
+			continue
+		}
+		if strings.HasPrefix(src[i:], word) && !identByte(at(src, i-1)) && at(src, i-1) != '.' &&
+			!identByte(at(src, i+len(word))) {
+			b.WriteString(packageIdent)
+			i += len(word)
+			continue
+		}
+		b.WriteByte(src[i])
+		i++
+	}
+	return b.String()
+}
+
+func restorePackage(msg string) string { return strings.ReplaceAll(msg, packageIdent, "package") }
+
+// quoteAt returns the quote that opens a string literal at i, with any raw
+// or bytes prefix, or "".
+func quoteAt(src string, i int) string {
+	j := i
+	for j < len(src) && j-i < 2 && strings.ContainsRune("rRbB", rune(src[j])) {
+		j++
+	}
+	if j > i && identByte(at(src, i-1)) {
+		return ""
+	}
+	for _, q := range []string{`"""`, `'''`, `"`, `'`} {
+		if strings.HasPrefix(src[j:], q) {
+			return src[i:j] + q
+		}
+	}
+	return ""
+}
+
+// closeQuote returns the index after the quote that closes a literal.
+func closeQuote(src string, i int, open string) int {
+	q := strings.TrimLeft(open, "rRbB")
+	raw := strings.ContainsAny(open[:len(open)-len(q)], "rR")
+	for i < len(src) {
+		if !raw && src[i] == '\\' {
+			i += 2
+			continue
+		}
+		if strings.HasPrefix(src[i:], q) {
+			return i + len(q)
+		}
+		i++
+	}
+	return len(src)
+}
+
+func at(s string, i int) byte {
+	if i < 0 || i >= len(s) {
+		return 0
+	}
+	return s[i]
+}
+
+func identByte(c byte) bool {
+	return c == '_' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9'
+}

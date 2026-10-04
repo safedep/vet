@@ -1,0 +1,6 @@
+{
+  "manifests": [],
+  "errors": [
+    "python/pdmlock: pdm.lock: could not extract: toml: line 1: expected '.' or '=', but got 'i' instead"
+  ]
+}

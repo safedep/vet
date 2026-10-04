@@ -1,0 +1,28 @@
+[!git] skip 'needs git'
+# After vet scan, the working tree of the target has no change.
+cd proj
+exec git init -q
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m base
+exec vet scan . --mode plain -o plain --report json=$WORK/out/vet.json
+exec git status --porcelain
+! stdout .
+
+-- out/.keep --
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3","lodash": "4.17.21"}},
+    "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"},
+    "node_modules/lodash": {"version": "4.17.21", "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"}
+  }
+}
+-- proj/.github/workflows/ci.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4

@@ -1,0 +1,24 @@
+# vet report diff lists the findings that the last scan adds and removes.
+cd proj
+exec vet scan . --mode plain -o plain
+cp $WORK/head.json package-lock.json
+exec vet scan . --mode plain -o plain
+exec vet report diff --mode plain -o json
+jsonq stdout added.len 1
+jsonq stdout added.0.control_id malware
+jsonq stdout removed.len 2
+jsonq stdout removed.0.control_id vulnerability
+jsonq stdout packages_added.0 pkg:npm/safedep-test-pkg@0.1.3
+
+exec vet report diff --mode plain -o plain
+stdout 'added\tcritical\tmalware'
+stdout 'removed\thigh\tvulnerability'
+
+cd $WORK
+execexit 2 vet report diff
+stderr 'usage_no_scan'
+
+-- head.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3"}}, "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"}}}
+-- proj/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"left-pad": "1.3.0"}}, "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}}}

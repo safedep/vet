@@ -1,0 +1,21 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/packagelockjson",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/postcss@6.0.23 [+] :10",
+        "npm/postcss-calc@7.0.1 [+] :23",
+        "npm/postcss@7.0.16 :34",
+        "npm/supports-color@6.1.0 :47",
+        "npm/supports-color@5.5.0 :58"
+      ],
+      "edges": [
+        "npm/postcss-calc@7.0.1 -> npm/postcss@7.0.16",
+        "npm/postcss@6.0.23 -> npm/supports-color@5.5.0",
+        "npm/postcss@7.0.16 -> npm/supports-color@6.1.0"
+      ]
+    }
+  ]
+}

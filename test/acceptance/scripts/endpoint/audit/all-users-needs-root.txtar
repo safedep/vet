@@ -1,0 +1,7 @@
+# --all-users reads every home directory, so it needs root. Without root
+# it exits 2 and says how to run it.
+[windows] skip 'Windows checks an elevated token, not root'
+[root] skip 'the run has root'
+execexit 2 vet endpoint audit --all-users --mode plain
+stderr 'all-users needs root'
+stderr 'sudo vet endpoint audit --all-users'

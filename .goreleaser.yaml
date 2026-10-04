@@ -1,51 +1,34 @@
 # This is an example .goreleaser.yml file with some sensible defaults.
 # Make sure to check the documentation at https://goreleaser.com
 version: 2
+# The module path ends in /v2, so goreleaser would name the project v2.
+project_name: vet
 before:
   hooks:
     - go mod tidy
-    - go generate ./...
 
-env:
-  - CGO_ENABLED=1
-
+# vet v2 needs no CGO, so one static build covers each platform.
 builds:
-  - id: linux
-    goos: [linux]
-    goarch: [amd64, arm64]
+  - id: vet
+    main: ./cmd/vet
+    ldflags:
+      - -s -w -X github.com/safedep/vet/v2/internal/version.version={{.Version}} -X github.com/safedep/vet/v2/internal/version.commit={{.Commit}}
     env:
-      - CGO_ENABLED=1
-    overrides:
-      - goos: linux
-        goarch: amd64
-        env:
-          - CC=x86_64-linux-gnu-gcc
-          - CXX=x86_64-linux-gnu-g++
-      - goos: linux
+      - CGO_ENABLED=0
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+    # The npm packages have no Windows arm64 build.
+    ignore:
+      - goos: windows
         goarch: arm64
-        env:
-          - CC=aarch64-linux-gnu-gcc
-          - CXX=aarch64-linux-gnu-g++
 
-  - id: darwin
-    goos: [darwin]
-    goarch: [amd64, arm64]
-    env:
-      - CGO_ENABLED=1
-      - CC=o64-clang
-      - CXX=o64-clang++
-
-  - id: windows
-    goos: [windows]
-    goarch: [amd64]
-    env:
-      - CGO_ENABLED=1
-      - CC=x86_64-w64-mingw32-gcc
-      - CXX=x86_64-w64-mingw32-g++
-
+# vet v2 publishes nothing yet. The GitHub release and the Homebrew tap are
+# the release channels of vet v1, so a v2 build must not reach them. The
+# program owner decides how v2 ships to early adopters (Linear FOU-416 and
+# FOU-417). Until then no workflow runs a release, and a manual
+# "goreleaser release" creates no GitHub release and uploads no cask.
 release:
-  # for prerelease it doesn't build and distribute
-  prerelease: auto
+  disable: true
 
 universal_binaries:
   - replace: true
@@ -69,6 +52,10 @@ homebrew_casks:
           run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ "{{staged_path}}" }}/vet"], must_succeed: false
         end
       end
+    skip_upload: true
+    # The release is disabled, so the cask cannot take its download URL from it.
+    url:
+      template: "https://github.com/safedep/vet/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
     repository:
       owner: safedep
       name: homebrew-tap

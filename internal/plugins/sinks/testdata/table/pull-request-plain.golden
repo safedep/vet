@@ -1,0 +1,32 @@
+Changed: 2
+Findings: 2
+Critical: 1
+High: 0
+Gate: FAIL
+
+┌────────────┬────────────┬──────────────────────────────┬───────────────────────────────┬────────────────────────────┐
+│ SEVERITY   │ ID         │ SUBJECT                      │ FINDING                       │ WHERE                      │
+├────────────┼────────────┼──────────────────────────────┼───────────────────────────────┼────────────────────────────┤
+│ [CRITICAL] │ f-478cf580 │ npm/evil-colors@1.4.1        │ Malicious package             │ package-lock.json:42       │
+│ [MEDIUM]   │ f-e815bb3b │ tj-actions/changed-files@v44 │ is not pinned to a commit SHA │ .github/workflows/ci.yml:8 │
+└────────────┴────────────┴──────────────────────────────┴───────────────────────────────┴────────────────────────────┘
+
+> Each finding is on a package or a file that the change adds.
+> 1 suppressed finding. vet report show -o json lists it.
+
+Tools: 1 MCP server
+
+┌────────────┬────────────┬─────────┬─────────────┬──────┐
+│ KIND       │ NAME       │ VERSION │ CLIENT      │ PATH │
+├────────────┼────────────┼─────────┼─────────────┼──────┤
+│ MCP server │ filesystem │         │ claude-code │      │
+└────────────┴────────────┴─────────┴─────────────┴──────┘
+
+AI and crypto: 1 AI, 1 crypto
+
+┌────────┬────────┬─────────────────────────────┬──────────────┬────────────────┬────────────────┐
+│ KIND   │ CHANGE │ CAPABILITY                  │ TAGS         │ WHERE          │ CALL           │
+├────────┼────────┼─────────────────────────────┼──────────────┼────────────────┼────────────────┤
+│ AI     │        │ OpenAI SDK Chat Completions │ llm          │ src/chat.py:12 │ openai//OpenAI │
+│ CRYPTO │        │ MD5                         │ hash, [WEAK] │ src/cache.py:3 │ hashlib//md5   │
+└────────┴────────┴─────────────────────────────┴──────────────┴────────────────┴────────────────┘

@@ -1,0 +1,7 @@
+{
+  "manifests": [],
+  "errors": [
+    "renv.lock: unknown PURL type \"cran\"",
+    "renv.lock: unknown PURL type \"cran\""
+  ]
+}

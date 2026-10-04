@@ -1,0 +1,15 @@
+# vet scan --resume with no stopped scan exits 2.
+cd proj
+execexit 2 vet scan . --resume
+stderr 'no stopped scan'
+
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3","lodash": "4.17.21"}},
+    "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"},
+    "node_modules/lodash": {"version": "4.17.21", "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"}
+  }
+}

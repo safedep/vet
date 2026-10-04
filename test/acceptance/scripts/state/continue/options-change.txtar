@@ -1,0 +1,14 @@
+[!unix] skip 'signals are unix only'
+# With other scan options, vet starts a new scan and prints the reason.
+cd proj
+stub delay 3s
+! exec vet scan . --mode plain -o plain --no-cache &scan&
+sleep 1s
+kill -INT scan
+wait scan
+stub delay 0s
+exec vet scan . --mode plain -o plain --exclude vendor
+stderr 'Started a new scan. vet did not continue scan [0-9a-f]+, because the scan options changed'
+
+-- proj/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"left-pad": "1.3.0"}}, "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}}}

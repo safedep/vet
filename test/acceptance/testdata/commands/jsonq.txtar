@@ -1,0 +1,24 @@
+# jsonq reads a JSON document.
+jsonq doc.json header.schema_version 1.0.0
+jsonq doc.json records.len 2
+jsonq doc.json records.-1.kind finding
+jsonq doc.json trailer.record_count 2
+! jsonq doc.json records.0.kind finding
+! jsonq doc.json nokey x
+
+# jsonq reads JSON lines as an array.
+jsonq lines.jsonl 0.kind header
+jsonq lines.jsonl -1.trailer.record_count 0
+jsonq lines.jsonl len 2
+
+# reportcheck checks the framing.
+reportcheck lines.jsonl
+! reportcheck bad.jsonl
+
+-- doc.json --
+{"header": {"schema_version": "1.0.0"}, "records": [{"kind": "manifest"}, {"kind": "finding"}], "trailer": {"record_count": 2}}
+-- lines.jsonl --
+{"$schema":"x","kind":"header","header":{"schema_version":"1.0.0"}}
+{"$schema":"x","kind":"trailer","trailer":{"record_count":0}}
+-- bad.jsonl --
+{"$schema":"x","kind":"trailer","trailer":{"record_count":0}}

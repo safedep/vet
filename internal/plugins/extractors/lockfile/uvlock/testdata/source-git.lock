@@ -1,0 +1,18 @@
+version = 1
+requires-python = ">=3.10"
+
+[[package]]
+name = "ruff"
+version = "0.8.1"
+source = { git = "https://github.com/astral-sh/ruff#84748be16341b76e073d117329f7f5f4ee2941ad" }
+
+[[package]]
+name = "uv-lockfiles"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "ruff", git = "https://github.com/astral-sh/ruff" }]

@@ -1,0 +1,22 @@
+# vet config get prints the bare value on stdout in the table and plain
+# formats, so a script can read it. -o json keeps the key, the value and
+# the source. A delete of the last key leaves YAML, not {}.
+exec vet --config $WORK/config.yml config get scan.concurrency -o table --mode plain
+stdout '^4$'
+! stdout '│'
+exec vet --config $WORK/config.yml config get scan.concurrency -o plain --mode plain
+stdout '^4$'
+exec vet --config $WORK/config.yml config get scan.concurrency -o json
+jsonq stdout value 4
+
+exec vet --config $WORK/config.yml config delete scan.concurrency --mode plain
+! grep '\{\}' $WORK/config.yml
+grep '# vet settings' $WORK/config.yml
+exec vet --config $WORK/config.yml config set scan.concurrency 2 --mode plain
+grep 'concurrency: 2' $WORK/config.yml
+
+-- config.yml --
+# vet settings
+
+scan:
+  concurrency: 4

@@ -1,0 +1,14 @@
+{
+  "packages": [
+    "npm/ansi-regex@5.0.1",
+    "npm/is-number@7.0.0",
+    "npm/uuid@8.3.2"
+  ],
+  "direct": [
+    "npm/ansi-regex@5.0.1",
+    "npm/is-number@7.0.0",
+    "npm/uuid@8.3.2"
+  ],
+  "roots": [],
+  "edges": []
+}

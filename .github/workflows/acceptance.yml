@@ -1,0 +1,93 @@
+name: Acceptance Suite
+
+# The live acceptance run. It calls production, so it is advisory: never a
+# required check. The hermetic run gates each change in ci.yml.
+# GitHub runs the schedule on the default branch only.
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref to test (default: the triggering ref)"
+        required: false
+        default: ""
+      category:
+        description: "Category filter, for example live (default: all)"
+        required: false
+        default: ""
+      labels:
+        description: "Comma-separated label filter, for example malware,gate (default: all)"
+        required: false
+        default: ""
+  schedule:
+    - cron: "17 3 * * *"
+  pull_request:
+    branches: [v2]
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+
+concurrency:
+  group: acceptance-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  acceptance:
+    name: Acceptance Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    env:
+      ACCEPTANCE_LIVE: "1"
+      SAFEDEP_API_KEY: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
+      SAFEDEP_TENANT_ID: ${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Set up Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: go.mod
+
+      - name: Build vet
+        run: make quick-vet
+
+      - name: Install gotestsum
+        run: go install gotest.tools/gotestsum@v1.13.0
+
+      - name: Run acceptance suite
+        env:
+          VET_BIN: ${{ github.workspace }}/vet
+          ACCEPTANCE_CATEGORY: ${{ inputs.category }}
+          ACCEPTANCE_LABELS: ${{ inputs.labels }}
+        run: |
+          gotestsum --junitfile "${RUNNER_TEMP}/acceptance.xml" --format testname \
+            -- -tags acceptance -timeout 20m ./test/acceptance -run TestAcceptance
+
+      - name: Render report
+        if: always()
+        run: |
+          go run ./test/acceptance/report \
+            -junit "${RUNNER_TEMP}/acceptance.xml" \
+            -catalog test/acceptance/catalog.yaml \
+            -scripts test/acceptance/scripts \
+            | tee "${RUNNER_TEMP}/acceptance-report.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: acceptance-report
+          path: |
+            ${{ runner.temp }}/acceptance-report.md
+            ${{ runner.temp }}/acceptance.xml

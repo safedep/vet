@@ -1,0 +1,19 @@
+{
+  "manifests": [
+    {
+      "extractor": "python/requirements",
+      "kind": "manifest",
+      "ecosystem": "pypi",
+      "packages": [
+        "pypi/flask [+] :1",
+        "pypi/flask-cors [+] :2",
+        "pypi/pandas@0.23.4 [+] :3",
+        "pypi/numpy@1.16.0 [+] :4",
+        "pypi/scikit-learn@0.20.1 [+] :5",
+        "pypi/sklearn [+] :6",
+        "pypi/requests [+] :7",
+        "pypi/gevent [+] :8"
+      ]
+    }
+  ]
+}

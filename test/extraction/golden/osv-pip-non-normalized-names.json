@@ -1,0 +1,14 @@
+{
+  "manifests": [
+    {
+      "extractor": "python/requirements",
+      "kind": "manifest",
+      "ecosystem": "pypi",
+      "packages": [
+        "pypi/zope-interface@5.4.0 [+] :1",
+        "pypi/pillow@1.0.0 [+] :6",
+        "pypi/twisted@20.3.0 [+] :8"
+      ]
+    }
+  ]
+}

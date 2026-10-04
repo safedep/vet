@@ -1,0 +1,12 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/packagejsonmanifest",
+      "kind": "manifest",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/a@1.0.0 [+d]"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+on: [issues, pull_request]
+jobs:
+  greet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: echo title
+        run: |
+          echo "start"
+          echo "${{ github.event.issue.title }}"
+          echo "${{ github.event.pull_request.title }} ${{ github.event.commits[0].message }}"
+      - name: safe
+        env:
+          TITLE: ${{ github.event.issue.title }}
+        run: echo "$TITLE ${{ github.event.issue.number }}"
+      - uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        with:
+          script: |
+            console.log("${{ github.event.comment.body }}")

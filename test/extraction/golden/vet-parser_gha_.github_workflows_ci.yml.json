@@ -1,0 +1,15 @@
+{
+  "manifests": [
+    {
+      "extractor": "github/actions",
+      "kind": "workflow",
+      "ecosystem": "github-actions",
+      "packages": [
+        "github-actions/actions/checkout@v3 [+] :16",
+        "github-actions/actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 [+] :19",
+        "github-actions/docker/setup-qemu-action@v2 [+] :46",
+        "github-actions/docker/setup-buildx-action@v2 [+] :49"
+      ]
+    }
+  ]
+}

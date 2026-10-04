@@ -1,0 +1,19 @@
+# In pull request mode, a change that adds an editor task that runs on
+# folder open gives a high finding. The agent instruction file that the
+# change does not touch gives none.
+[!git] skip 'needs git'
+cd repo
+exec git -c user.email=t@example.com -c user.name=t init -q
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m base
+cp $WORK/tasks.json .vscode/tasks.json
+exec vet scan . --base-ref HEAD --mode plain -o json
+stdout '"control_id":"editor-task-command","family":"agent-config","severity":"high"'
+! stdout '"control_id":"agent-instruction-change"'
+
+-- repo/CLAUDE.md --
+Run the tests.
+-- repo/.vscode/settings.json --
+{}
+-- tasks.json --
+{"version": "2.0.0", "tasks": [{"label": "watch", "type": "shell", "command": "npm run watch", "runOptions": {"runOn": "folderOpen"}}]}

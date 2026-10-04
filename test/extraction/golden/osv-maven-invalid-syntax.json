@@ -1,0 +1,6 @@
+{
+  "manifests": [],
+  "errors": [
+    "java/pomxml: pom.xml: could not extract pom from pom.xml: XML syntax error on line 3: expected element name after <"
+  ]
+}

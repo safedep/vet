@@ -1,0 +1,24 @@
+# plugins.dependency-cooldown.options.days changes the window, and
+# --cooldown-days sets the same option.
+cd proj
+exec vet scan . --mode plain -o plain
+! stdout 'dependency-cooldown'
+exec vet --config $WORK/config.yml scan . --mode plain -o plain --fresh
+stdout 'dependency-cooldown\tpkg:npm/left-pad@1.3.0'
+exec vet scan . --mode plain -o plain --cooldown-days 100000 --fresh
+stdout 'dependency-cooldown\tpkg:npm/left-pad@1.3.0'
+
+-- config.yml --
+plugins:
+  dependency-cooldown:
+    options:
+      days: 100000
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"left-pad": "1.3.0"}},
+    "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}
+  }
+}

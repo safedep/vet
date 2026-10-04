@@ -1,0 +1,14 @@
+{
+  "manifests": [
+    {
+      "extractor": "javascript/yarnlock",
+      "kind": "lockfile",
+      "ecosystem": "npm",
+      "packages": [
+        "npm/@babel/cli@7.16.8 :8",
+        "npm/@babel/code-frame@7.16.7 :35",
+        "npm/@babel/compat-data@7.16.8 :44"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "packages": [
+    "npm/postcss-calc@7.0.1",
+    "npm/postcss@6.0.23",
+    "npm/postcss@7.0.16",
+    "npm/supports-color@5.5.0",
+    "npm/supports-color@6.1.0"
+  ],
+  "direct": [
+    "npm/postcss-calc@7.0.1",
+    "npm/postcss@6.0.23"
+  ],
+  "roots": [
+    "npm/postcss-calc@7.0.1",
+    "npm/postcss@6.0.23"
+  ],
+  "edges": [
+    "npm/postcss-calc@7.0.1 -> npm/postcss@7.0.16",
+    "npm/postcss@6.0.23 -> npm/supports-color@5.5.0",
+    "npm/postcss@7.0.16 -> npm/supports-color@6.1.0"
+  ]
+}

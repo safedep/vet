@@ -1,0 +1,23 @@
+# pull_request_target with a checkout of the head commit gives a finding.
+cd proj
+exec vet scan . --mode plain -o plain
+stdout 'dangerous-trigger\t.github/workflows/pr.yml\t.github/workflows/pr.yml:9'
+! stdout 'dangerous-trigger\t.github/workflows/safe.yml'
+
+-- proj/.github/workflows/pr.yml --
+on: pull_request_target
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          ref: ${{ github.event.pull_request.head.sha }}
+-- proj/.github/workflows/safe.yml --
+on: pull_request_target
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683

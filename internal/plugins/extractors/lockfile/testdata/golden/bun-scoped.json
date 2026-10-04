@@ -1,0 +1,22 @@
+{
+  "packages": [
+    "npm/@babel/code-frame@7.26.2",
+    "npm/@babel/helper-validator-identifier@7.25.9",
+    "npm/js-tokens@4.0.0",
+    "npm/picocolors@1.1.1",
+    "npm/wrappy@1.0.2"
+  ],
+  "direct": [
+    "npm/@babel/code-frame@7.26.2",
+    "npm/wrappy@1.0.2"
+  ],
+  "roots": [
+    "npm/@babel/code-frame@7.26.2",
+    "npm/wrappy@1.0.2"
+  ],
+  "edges": [
+    "npm/@babel/code-frame@7.26.2 -> npm/@babel/helper-validator-identifier@7.25.9",
+    "npm/@babel/code-frame@7.26.2 -> npm/js-tokens@4.0.0",
+    "npm/@babel/code-frame@7.26.2 -> npm/picocolors@1.1.1"
+  ]
+}

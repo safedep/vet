@@ -1,0 +1,28 @@
+# One scan writes a GitLab dependency scanning report and a Bitbucket Code
+# Insights file. The malicious package is in both. The failed gate makes
+# the Code Insights result FAILED.
+cd proj
+execexit 1 vet scan . --mode plain -o plain --fail-on critical --report gitlab=$WORK/gl-dependency-scanning.json --report bitbucket=$WORK/bitbucket.json
+
+jsonq $WORK/gl-dependency-scanning.json version 15.2.1
+jsonq $WORK/gl-dependency-scanning.json scan.type dependency_scanning
+jsonq $WORK/gl-dependency-scanning.json scan.scanner.vendor.name SafeDep
+jsonq $WORK/gl-dependency-scanning.json vulnerabilities.0.severity Critical
+jsonq $WORK/gl-dependency-scanning.json vulnerabilities.0.location.dependency.package.name safedep-test-pkg
+jsonq $WORK/gl-dependency-scanning.json vulnerabilities.0.identifiers.0.name malware
+
+jsonq $WORK/bitbucket.json report.report_type SECURITY
+jsonq $WORK/bitbucket.json report.result FAILED
+jsonq $WORK/bitbucket.json annotations.0.severity CRITICAL
+jsonq $WORK/bitbucket.json annotations.0.path package-lock.json
+
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3","lodash": "4.17.21"}},
+    "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"},
+    "node_modules/lodash": {"version": "4.17.21", "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"}
+  }
+}
