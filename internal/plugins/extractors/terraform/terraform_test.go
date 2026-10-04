@@ -17,12 +17,11 @@ func TestExtract(t *testing.T) {
 	require.Empty(t, errs)
 	require.Len(t, ms, 1)
 	m := ms[0]
-	assert.Equal(t, "terraform", string(m.Ecosystem))
+	assert.Equal(t, "terraform-provider", string(m.Ecosystem))
 	require.NotEmpty(t, m.Packages)
 	p := m.Packages[0]
-	assert.Equal(t, "registry.terraform.io/datadog/datadog", p.ID.QualifiedName())
-	assert.Equal(t, "3.21.0", p.ID.Version)
+	assert.Equal(t, "registry.terraform.io/datadog/datadog", p.ID.RawName())
+	assert.Equal(t, "3.21.0", p.ID.RawVersion())
 	assert.Equal(t, 1, p.Line)
 	assert.True(t, p.Direct)
-	t.Log(p.ID.PURL())
 }

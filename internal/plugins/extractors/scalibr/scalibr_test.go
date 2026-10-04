@@ -31,7 +31,7 @@ func view(ms []*model.Manifest, errs []error) []goldenManifest {
 			for _, r := range m.Graph.Roots() {
 				g.Roots = append(g.Roots, r.String())
 			}
-			m.Graph.Edges(func(p, c model.PackageID) { g.Edges = append(g.Edges, p.String()+" -> "+c.String()) })
+			m.Graph.Edges(func(p, c model.PackageVersion) { g.Edges = append(g.Edges, p.String()+" -> "+c.String()) })
 			sort.Strings(g.Edges)
 		}
 		out = append(out, g)
@@ -144,7 +144,7 @@ func TestGoLocalReplaceIsNotAPackage(t *testing.T) {
 	require.Len(t, ms, 1)
 	var names []string
 	for _, p := range ms[0].Packages {
-		names = append(names, p.ID.QualifiedName()+"@"+p.ID.Version)
+		names = append(names, p.ID.RawName()+"@"+p.ID.RawVersion())
 	}
 	assert.Contains(t, names, "github.com/me/forked@1.0.1")
 	assert.NotContains(t, names, "../sdk@")

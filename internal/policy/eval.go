@@ -122,17 +122,16 @@ func (s *Suppression) matches(f *finding.Finding) bool {
 		if f.Subject.Package == nil {
 			return false
 		}
-		id, err := model.ParsePURL(f.Subject.Package.PURL)
+		id, err := f.Subject.Package.PackageVersion()
 		if err != nil {
 			return false
 		}
-		want := *s.pkg
-		if want.Version == "" {
-			id.Version = ""
+		// A suppression PURL with no version matches each version of the
+		// package. Both sides compare in the canonical form.
+		if s.pkg.RawVersion() == "" {
+			return id.SamePackage(*s.pkg)
 		}
-		if id != want {
-			return false
-		}
+		return id.Equal(*s.pkg)
 	}
 	return true
 }

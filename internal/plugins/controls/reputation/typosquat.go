@@ -22,13 +22,13 @@ func squatOf(p *model.Package) string {
 	if in == nil || popularItself(p) {
 		return ""
 	}
-	name := strings.ToLower(p.ID.QualifiedName())
-	names := popular[p.ID.Ecosystem]
+	name := strings.ToLower(p.ID.Name())
+	names := popular[p.ID.Ecosystem()]
 	if slices.Contains(names, name) {
 		return ""
 	}
 	for _, target := range names {
-		if len(target) < 4 || canonical(p.ID.Ecosystem, name) == canonical(p.ID.Ecosystem, target) {
+		if len(target) < 4 || canonical(p.ID.Ecosystem(), name) == canonical(p.ID.Ecosystem(), target) {
 			continue
 		}
 		if similar(name, target) {
@@ -50,7 +50,7 @@ func popularItself(p *model.Package) bool {
 		return false
 	}
 	repo := strings.TrimSuffix(path.Base(strings.TrimRight(in.SourceRepo, "/")), ".git")
-	return canonical(p.ID.Ecosystem, strings.ToLower(repo)) == canonical(p.ID.Ecosystem, strings.ToLower(p.ID.Name))
+	return canonical(p.ID.Ecosystem(), strings.ToLower(repo)) == canonical(p.ID.Ecosystem(), strings.ToLower(p.ID.Name()))
 }
 
 // canonical is the name that a registry treats as the same: PyPI ignores

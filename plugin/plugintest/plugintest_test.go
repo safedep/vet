@@ -131,16 +131,16 @@ func TestMemStateQueries(t *testing.T) {
 	}
 	assert.Equal(t, 2, n)
 
-	p, err := r.Package(ctx, model.PackageID{Ecosystem: model.EcosystemNpm, Name: "left-pad", Version: "1.3.0"})
+	p, err := r.Package(ctx, model.MustPackageVersion(model.EcosystemNpm, "left-pad", "1.3.0"))
 	require.NoError(t, err)
-	assert.Equal(t, "left-pad", p.ID.Name)
-	_, err = r.Package(ctx, model.PackageID{Ecosystem: model.EcosystemNpm, Name: "missing"})
+	assert.Equal(t, "left-pad", p.ID.RawName())
+	_, err = r.Package(ctx, model.MustPackageVersion(model.EcosystemNpm, "missing", ""))
 	assert.Error(t, err)
 }
 
 func TestDependents(t *testing.T) {
-	a := &model.Package{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "a", Version: "1"}}
-	b := &model.Package{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "b", Version: "1"}}
+	a := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "a", "1")}
+	b := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "b", "1")}
 	g := model.NewGraph()
 	g.AddRoot(a.ID)
 	g.AddEdge(a.ID, b.ID)
@@ -149,7 +149,7 @@ func TestDependents(t *testing.T) {
 	var got []string
 	for p, err := range s.Dependents(context.Background(), b.ID) {
 		require.NoError(t, err)
-		got = append(got, p.ID.Name)
+		got = append(got, p.ID.RawName())
 	}
 	assert.Equal(t, []string{"a"}, got)
 }

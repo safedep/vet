@@ -11,9 +11,11 @@
       {
         "id": {
           "ecosystem": "maven",
-          "namespace": "com.fasterxml.jackson.core",
-          "name": "jackson-databind",
-          "version": "2.15.2"
+          "name": "com.fasterxml.jackson.core:jackson-databind",
+          "version": "2.15.2",
+          "raw_name": "com.fasterxml.jackson.core:jackson-databind",
+          "raw_version": "2.15.2",
+          "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.15.2"
         },
         "direct": true
       },
@@ -21,7 +23,10 @@
         "id": {
           "ecosystem": "npm",
           "name": "lodash",
-          "version": "4.17.21"
+          "version": "4.17.21",
+          "raw_name": "lodash",
+          "raw_version": "4.17.21",
+          "purl": "pkg:npm/lodash@4.17.21"
         },
         "direct": true
       }

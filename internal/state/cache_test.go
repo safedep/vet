@@ -12,7 +12,7 @@ import (
 )
 
 func pkg(name string) *model.Package {
-	return &model.Package{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: name, Version: "1.0.0"}}
+	return &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, name, "1.0.0")}
 }
 
 func TestCache(t *testing.T) {
@@ -49,7 +49,7 @@ func TestCache(t *testing.T) {
 			require.NoError(t, err)
 			var names []string
 			for _, h := range hits {
-				names = append(names, h.Package.ID.Name)
+				names = append(names, h.Package.ID.RawName())
 			}
 			assert.Equal(t, tc.hits, names)
 			assert.Len(t, misses, 3-len(tc.hits))

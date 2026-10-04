@@ -67,7 +67,7 @@ func run(v *Scan) {
 
 // vulnerability is a high finding on left-pad with a fixed version.
 func vulnerability() *finding.Finding {
-	pad := &model.Package{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "left-pad", Version: "1.3.0"}}
+	pad := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "left-pad", "1.3.0")}
 	f := finding.ForPackage(finding.Meta{
 		ControlID: "vulnerability", Family: finding.FamilyVulnerability, Severity: finding.SeverityHigh, Title: "GHSA-1",
 	}, "package-lock.json", pad, finding.Key{Discriminator: "GHSA-1"})
@@ -262,7 +262,7 @@ func TestCleanMessage(t *testing.T) {
 
 func TestFixText(t *testing.T) {
 	pkg := func(name, version, fixed string, sev finding.Severity) *finding.Finding {
-		p := &model.Package{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: name, Version: version}}
+		p := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, name, version)}
 		f := finding.ForPackage(finding.Meta{ControlID: "vulnerability", Family: finding.FamilyVulnerability, Severity: sev, Title: "v"},
 			"package-lock.json", p, finding.Key{Discriminator: fixed})
 		f.Remediation = &finding.Remediation{Summary: "Upgrade.", FixedVersion: fixed}

@@ -126,8 +126,8 @@ func TestPullRequestModeNeedsGit(t *testing.T) {
 }
 
 func TestDiff(t *testing.T) {
-	id := func(name, v string) model.PackageID {
-		return model.PackageID{Ecosystem: model.EcosystemNpm, Name: name, Version: v}
+	id := func(name, v string) model.PackageVersion {
+		return model.MustPackageVersion(model.EcosystemNpm, name, v)
 	}
 	head := &model.Manifest{Packages: []*model.Package{{ID: id("a", "1.0.0")}, {ID: id("b", "1.0.0")}}}
 	base := &model.Manifest{Packages: []*model.Package{{ID: id("a", "1.0.0")}, {ID: id("b", "2.0.0")}}}
@@ -145,8 +145,8 @@ func TestDiff(t *testing.T) {
 }
 
 func TestDiffRemovesOneOfTwoVersions(t *testing.T) {
-	id := func(name, v string) model.PackageID {
-		return model.PackageID{Ecosystem: model.EcosystemNpm, Name: name, Version: v}
+	id := func(name, v string) model.PackageVersion {
+		return model.MustPackageVersion(model.EcosystemNpm, name, v)
 	}
 	changes := func(m *model.Manifest) map[string]model.Change {
 		out := map[string]model.Change{}
@@ -213,7 +213,7 @@ func TestPullRequestIntegrityAndPrior(t *testing.T) {
 	require.NoError(t, err)
 	byName := map[string]*model.Package{}
 	for _, p := range m.Packages {
-		byName[p.ID.Name] = p
+		byName[p.ID.RawName()] = p
 	}
 	assert.Equal(t, model.ChangeModified, byName["ms"].Change, "the same version with another hash")
 	assert.Equal(t, "sha512-new", byName["ms"].Integrity)
@@ -258,7 +258,7 @@ func TestPullRequestModeReusesBase(t *testing.T) {
 }
 
 func TestDiffMarksAChangedSourceModified(t *testing.T) {
-	id := model.PackageID{Ecosystem: model.EcosystemNpm, Name: "ms", Version: "2.1.3"}
+	id := model.MustPackageVersion(model.EcosystemNpm, "ms", "2.1.3")
 	npm := "https://registry.yarnpkg.com/ms/-/ms-2.1.3.tgz"
 	evil := "https://evil.example/ms-2.1.3.tgz"
 	cases := []struct {
@@ -302,13 +302,22 @@ func TestPreviousVersion(t *testing.T) {
 		{"a downgrade takes the lowest above", "1.5.0", []string{"3.0.0", "2.0.0"}, nil, "2.0.0"},
 		{"a kept version replaces nothing", "3.0.0", []string{"1.0.0", "2.0.0"}, []string{"1.0.0", "2.0.0"}, ""},
 	}
+	pv := func(v string) model.PackageVersion { return model.MustPackageVersion(model.EcosystemNpm, "x", v) }
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			kept := map[string]bool{tc.version: true}
+			inHead := map[model.PackageKey]bool{pv(tc.version).Key(): true}
 			for _, v := range tc.kept {
-				kept[v] = true
+				inHead[pv(v).Key()] = true
 			}
-			assert.Equal(t, tc.want, previousVersion(tc.version, tc.base, kept))
+			var base []model.PackageVersion
+			for _, v := range tc.base {
+				base = append(base, pv(v))
+			}
+			got, ok := previousVersion(pv(tc.version), base, inHead)
+			assert.Equal(t, tc.want != "", ok)
+			if ok {
+				assert.Equal(t, tc.want, got.RawVersion())
+			}
 		})
 	}
 }

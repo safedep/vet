@@ -40,18 +40,18 @@ type provider struct {
 	autoload map[string]string
 }
 
-func (pv provider) provides(id model.PackageID, m module) bool {
-	if m.Language != "" && !slices.Contains(ecosystemLanguages[id.Ecosystem], m.Language) {
+func (pv provider) provides(id model.PackageVersion, m module) bool {
+	if m.Language != "" && !slices.Contains(ecosystemLanguages[id.Ecosystem()], m.Language) {
 		return false
 	}
 
-	name := normalize(id.QualifiedName())
+	name := normalize(id.RawName())
 	hint, mod := normalize(m.Hint), normalize(m.Name)
 	if name == hint || name == normalize(rootModule(m.Name)) {
 		return true
 	}
 
-	switch id.Ecosystem {
+	switch id.Ecosystem() {
 	case model.EcosystemPyPI:
 		// A namespace package installs a dotted module, as
 		// google-cloud-storage installs google.cloud.storage.

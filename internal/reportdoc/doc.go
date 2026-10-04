@@ -187,7 +187,7 @@ func (d *Doc) Packages(_ context.Context, q plugin.PackageQuery) iter.Seq2[*mode
 			switch {
 			case q.ManifestID != "" && !slices.Contains(e.ManifestIDs, q.ManifestID):
 				continue
-			case q.Ecosystem != "" && p.ID.Ecosystem != q.Ecosystem:
+			case q.Ecosystem != "" && p.ID.Ecosystem() != q.Ecosystem:
 				continue
 			case q.ChangedOnly && !p.Change.Introduces():
 				continue
@@ -200,9 +200,9 @@ func (d *Doc) Packages(_ context.Context, q plugin.PackageQuery) iter.Seq2[*mode
 }
 
 // Package returns one package, or nil.
-func (d *Doc) Package(_ context.Context, id model.PackageID) (*model.Package, error) {
+func (d *Doc) Package(_ context.Context, id model.PackageVersion) (*model.Package, error) {
 	for _, e := range d.packages {
-		if e.ID == id {
+		if e.ID.Equal(id) {
 			p := e.Package
 			return &p, nil
 		}
@@ -212,7 +212,7 @@ func (d *Doc) Package(_ context.Context, id model.PackageID) (*model.Package, er
 
 // Dependents yields the packages that depend on a package. A saved report
 // holds no graph edges, so it yields nothing.
-func (d *Doc) Dependents(context.Context, model.PackageID) iter.Seq2[*model.Package, error] {
+func (d *Doc) Dependents(context.Context, model.PackageVersion) iter.Seq2[*model.Package, error] {
 	return func(func(*model.Package, error) bool) {}
 }
 

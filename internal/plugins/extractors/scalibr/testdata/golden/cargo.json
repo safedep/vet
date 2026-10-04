@@ -12,7 +12,10 @@
         "id": {
           "ecosystem": "cargo",
           "name": "addr2line",
-          "version": "0.15.2"
+          "version": "0.15.2",
+          "raw_name": "addr2line",
+          "raw_version": "0.15.2",
+          "purl": "pkg:cargo/addr2line@0.15.2"
         },
         "direct": false,
         "line": 6
@@ -21,7 +24,10 @@
         "id": {
           "ecosystem": "cargo",
           "name": "syn",
-          "version": "1.0.73"
+          "version": "1.0.73",
+          "raw_name": "syn",
+          "raw_version": "1.0.73",
+          "purl": "pkg:cargo/syn@1.0.73"
         },
         "direct": false,
         "line": 15

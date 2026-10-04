@@ -39,7 +39,7 @@ func build(t *testing.T, s *stub.Server) map[string]plugin.Enricher {
 }
 
 func npm(name, version string) *model.Package {
-	return &model.Package{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: name, Version: version}}
+	return &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, name, version)}
 }
 
 func TestInsights(t *testing.T) {
@@ -133,7 +133,7 @@ func TestFailOpen(t *testing.T) {
 
 func TestPubHasNoEnrichment(t *testing.T) {
 	s := startStub(t)
-	p := &model.Package{ID: model.PackageID{Ecosystem: model.EcosystemPub, Name: "http", Version: "1.0.0"}}
+	p := &model.Package{ID: model.MustPackageVersion(model.EcosystemPub, "http", "1.0.0")}
 	require.NoError(t, build(t, s)[insights.Name].Enrich(context.Background(), []*model.Package{p}))
 	assert.Nil(t, p.Insight)
 	assert.Zero(t, s.Calls(stub.Insights))

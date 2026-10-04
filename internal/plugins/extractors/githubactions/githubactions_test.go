@@ -267,7 +267,7 @@ func TestExtract(t *testing.T) {
 				t.Fatalf("%s.Extract(%q) unexpected error: %v", extr.Name(), tc.path, err)
 			}
 			wantInv := inventory.Inventory{Packages: tc.wantPackages}
-			if diff := cmp.Diff(wantInv, got, cmpopts.SortSlices(extracttest.PackageCmpLess), ignoreSubpath); diff != "" {
+			if diff := cmp.Diff(wantInv, got, cmpopts.SortSlices(extracttest.PackageCmpLess)); diff != "" {
 				t.Errorf("%s.Extract(%q) diff (-want +got):\n%s", extr.Name(), tc.path, diff)
 			}
 		})

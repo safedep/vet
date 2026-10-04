@@ -32,10 +32,6 @@ type Converted struct {
 // dependencies of a lockfile.
 type direct interface{ IsDirect() bool }
 
-// subpath is the metadata of a vet extractor that knows the PURL subpath
-// of a package, such as the sub-path of a GitHub action.
-type subpath interface{ Subpath() string }
-
 // lockEntry is the metadata of a vet lockfile extractor that knows the URL
 // and the integrity hash of an entry.
 type lockEntry interface {
@@ -66,8 +62,8 @@ func ToManifest(in Converted) (*model.Manifest, []error) {
 	}
 
 	var errs []error
-	byScalibrID := map[string]model.PackageID{}
-	seen := map[model.PackageID]*model.Package{}
+	byScalibrID := map[string]model.PackageVersion{}
+	seen := map[model.PackageKey]*model.Package{}
 	hasEdges := false
 	for _, sp := range in.Inventory.Packages {
 		if localGoReplacement(sp) {
@@ -82,12 +78,12 @@ func ToManifest(in Converted) (*model.Manifest, []error) {
 			byScalibrID[sp.ID] = p.ID
 		}
 		hasEdges = hasEdges || len(sp.ParentIDs) > 0
-		if prev, dup := seen[p.ID]; dup {
+		if prev, dup := seen[p.ID.Key()]; dup {
 			prev.Direct = prev.Direct || p.Direct
 			prev.Dev = prev.Dev && p.Dev
 			continue
 		}
-		seen[p.ID] = p
+		seen[p.ID.Key()] = p
 		m.Packages = append(m.Packages, p)
 	}
 	if len(m.Packages) == 0 {
@@ -104,7 +100,7 @@ func ToManifest(in Converted) (*model.Manifest, []error) {
 		if c := cmp.Compare(a.Line, b.Line); c != 0 {
 			return c
 		}
-		return cmp.Compare(a.ID.PURL(), b.ID.PURL())
+		return cmp.Compare(a.ID.Key(), b.ID.Key())
 	})
 
 	switch {
@@ -125,7 +121,7 @@ func ToManifest(in Converted) (*model.Manifest, []error) {
 func mainEcosystem(pkgs []*model.Package) model.Ecosystem {
 	counts := map[model.Ecosystem]int{}
 	for _, p := range pkgs {
-		counts[p.ID.Ecosystem]++
+		counts[p.ID.Ecosystem()]++
 	}
 	var best model.Ecosystem
 	for _, e := range slices.Sorted(maps.Keys(counts)) {
@@ -149,15 +145,14 @@ func toPackage(sp *extractor.Package) (*model.Package, error) {
 	if pu == nil {
 		return nil, fmt.Errorf("package %s@%s has no PURL", sp.Name, sp.Version)
 	}
-	id, err := model.NewPackageID(pu.Type, pu.Namespace, pu.Name, pu.Version, pu.Subpath)
+	fromPURL, err := model.ParsePURL(pu.String())
 	if err != nil {
 		return nil, err
 	}
-	if md, ok := sp.Metadata.(subpath); ok {
-		id.Subpath = md.Subpath()
-	}
-	if id.Ecosystem == model.EcosystemGo {
-		id.Namespace, id.Name = splitGoPath(sp.Name)
+	version := cmp.Or(sp.Version, fromPURL.RawVersion())
+	id, err := model.NewPackageVersion(fromPURL.Ecosystem(), rawName(sp.Name, fromPURL.RawName()), version)
+	if err != nil {
+		return nil, err
 	}
 	p := &model.Package{ID: id}
 	if loc := sp.Location.Descriptor; loc != nil && loc.File != nil {
@@ -188,7 +183,7 @@ func isProdGroup(g string) bool {
 // graphOf builds the graph from the parent ids. A root is a direct
 // dependency: a package that the extractor marks direct, or a package with
 // no parent.
-func graphOf(pkgs []*extractor.Package, byScalibrID map[string]model.PackageID, seen map[model.PackageID]*model.Package) *model.Graph {
+func graphOf(pkgs []*extractor.Package, byScalibrID map[string]model.PackageVersion, seen map[model.PackageKey]*model.Package) *model.Graph {
 	g := model.NewGraph()
 	for _, sp := range pkgs {
 		child, ok := byScalibrID[sp.ID]
@@ -197,26 +192,32 @@ func graphOf(pkgs []*extractor.Package, byScalibrID map[string]model.PackageID, 
 		}
 		parents := 0
 		for _, pid := range slices.Sorted(maps.Keys(sp.ParentIDs)) {
-			if parent, ok := byScalibrID[pid]; ok && parent != child {
+			if parent, ok := byScalibrID[pid]; ok && !parent.Equal(child) {
 				g.AddEdge(parent, child)
 				parents++
 			}
 		}
-		if parents == 0 || seen[child].Direct {
+		if parents == 0 || seen[child.Key()].Direct {
 			g.AddRoot(child)
-			seen[child].Direct = true
+			seen[child.Key()].Direct = true
 		}
 	}
 	return g
 }
 
-// splitGoPath splits a Go module path into the PURL namespace and name. A
-// golang PURL is in lower case, but Go module paths are case sensitive, so
-// vet keeps the path that the manifest declares.
-func splitGoPath(path string) (string, string) {
-	i := strings.LastIndex(path, "/")
-	if i < 0 {
-		return "", path
+// rawName returns the name as the manifest writes it. Scalibr builds its
+// PURL with the packageurl-go fold, which lowers the case of a Go path and
+// folds PyPI separators, so the PURL name is not the raw name. The PURL still
+// holds the namespace, such as the Maven group, that an SBOM component name
+// can leave out. vet takes the extractor name when it differs from the PURL
+// name only in case and separators, and the PURL name in all other cases.
+func rawName(name, fromPURL string) string {
+	if name != "" && looseName(name) == looseName(fromPURL) {
+		return name
 	}
-	return path[:i], path[i+1:]
+	return fromPURL
 }
+
+var nameSeparators = strings.NewReplacer("_", "-", ".", "-")
+
+func looseName(s string) string { return nameSeparators.Replace(strings.ToLower(s)) }

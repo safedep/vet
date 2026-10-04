@@ -94,8 +94,8 @@ type FindingQuery struct {
 type State interface {
 	Manifests(ctx context.Context) iter.Seq2[*model.Manifest, error]
 	Packages(ctx context.Context, q PackageQuery) iter.Seq2[*model.Package, error]
-	Package(ctx context.Context, id model.PackageID) (*model.Package, error)
-	Dependents(ctx context.Context, id model.PackageID) iter.Seq2[*model.Package, error]
+	Package(ctx context.Context, id model.PackageVersion) (*model.Package, error)
+	Dependents(ctx context.Context, id model.PackageVersion) iter.Seq2[*model.Package, error]
 	Findings(ctx context.Context, q FindingQuery) iter.Seq2[*finding.Finding, error]
 	// Capabilities yields the capabilities of the target in id order.
 	Capabilities(ctx context.Context) iter.Seq2[*report.Capability, error]

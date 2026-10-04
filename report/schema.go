@@ -42,12 +42,21 @@ func schemaOf(v any, mapper func(reflect.Type) *jsonschema.Schema, id, title, de
 		// A minor schema version can add fields. A reader must keep working.
 		AllowAdditionalProperties: true,
 		Mapper:                    mapper,
+		Namer:                     schemaName,
 	}
 	s := r.Reflect(v)
 	s.ID = jsonschema.ID(id)
 	s.Title = title
 	s.Description = desc
 	return json.MarshalIndent(s, "", "  ")
+}
+
+// schemaName names the JSON shape of model.PackageVersion after the type.
+func schemaName(t reflect.Type) string {
+	if t == reflect.TypeOf(model.PackageVersion{}.JSONSchemaAlias()) {
+		return "PackageVersion"
+	}
+	return t.Name()
 }
 
 func recordKinds() []string {

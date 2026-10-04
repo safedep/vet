@@ -108,8 +108,12 @@ func annotateUsage(f *finding.Finding, m *model.Manifest) {
 	if f.Subject.Kind != finding.SubjectPackage || f.Subject.Package == nil {
 		return
 	}
+	id, err := f.Subject.Package.PackageVersion()
+	if err != nil {
+		return
+	}
 	for _, p := range m.Packages {
-		if p.ID.PURL() != f.Subject.Package.PURL || p.Usage == nil {
+		if !p.ID.Equal(id) || p.Usage == nil {
 			continue
 		}
 		summary := "No source file of the project imports the package."

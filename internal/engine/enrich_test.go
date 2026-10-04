@@ -18,8 +18,8 @@ import (
 )
 
 func TestEnrichBatchSkipsUncheckable(t *testing.T) {
-	id := func(version string) model.PackageID {
-		return model.PackageID{Ecosystem: model.EcosystemPyPI, Name: "pkg-" + version, Version: version}
+	id := func(version string) model.PackageVersion {
+		return model.MustPackageVersion(model.EcosystemPyPI, "pkg-"+version, version)
 	}
 	pkgs := []*model.Package{{ID: id("1.0.0")}, {ID: id("")}, {ID: id("2.0.0"), Local: true}}
 	cases := []struct {

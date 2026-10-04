@@ -43,6 +43,14 @@ var apiAllowed = []string{
 	module + "/test/acceptance/stub",
 }
 
+// packageMessages is the one SafeDep API package that model imports, for
+// the ecosystem enum and the wire form of a package version.
+const packageMessages = safedepAPI + "/protocolbuffers/go/safedep/messages/package/v1"
+
+// dryIdentity is the dry package that owns the identity rules. Only model
+// imports it, so the rules stay behind model.PackageVersion.
+const dryIdentity = "github.com/safedep/dry/api/pb"
+
 type pkgInfo struct {
 	path    string
 	imports []string
@@ -160,7 +168,6 @@ func TestModelHasNoExtractionOrStorageTypes(t *testing.T) {
 		"entgo.io/ent",
 		"github.com/google/osv-scanner",
 		"github.com/google/osv-scalibr",
-		safedepAPI,
 		module + "/ent",
 		module + "/pkg",
 	}
@@ -180,9 +187,64 @@ func TestOnlyEnrichersAndCloudImportTheAPI(t *testing.T) {
 			continue
 		}
 		for _, imp := range p.imports {
+			if under(p.path, module+"/model") && imp == packageMessages {
+				continue
+			}
 			assert.False(t, under(imp, safedepAPI), "package %s imports %s", p.path, imp)
 		}
 	}
+}
+
+// TestOnlyModelImportsTheIdentityRules keeps each ecosystem rule behind
+// model.PackageVersion. A package that needs a name, a key or an order asks
+// model.
+func TestOnlyModelImportsTheIdentityRules(t *testing.T) {
+	for _, p := range listPackages(t) {
+		if isLegacy(p.path) || under(p.path, module+"/model") {
+			continue
+		}
+		for _, imp := range p.imports {
+			assert.NotEqual(t, dryIdentity, imp, "package %s imports %s", p.path, imp)
+		}
+	}
+}
+
+// TestOnlyAPIClientsSendTheWireForm keeps the raw form of a package version
+// on the way to a SafeDep service. Every other package compares the
+// canonical form.
+func TestOnlyAPIClientsSendTheWireForm(t *testing.T) {
+	root := repoRoot(t)
+	allowed := append([]string{module + "/model"}, apiAllowed...)
+	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			switch d.Name() {
+			case ".git", "node_modules", "testdata":
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
+			return nil
+		}
+		rel, err := filepath.Rel(root, filepath.Dir(path))
+		if err != nil {
+			return err
+		}
+		pkg := module + "/" + filepath.ToSlash(rel)
+		if underAny(pkg, allowed) || isLegacy(pkg) {
+			return nil
+		}
+		src, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		assert.NotContains(t, string(src), ".RawProto()", "%s sends the wire form of a package", path)
+		return nil
+	})
+	require.NoError(t, err)
 }
 
 // TestTUIIsSelfContained keeps internal/tui free to move to dry/tui

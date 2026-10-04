@@ -1,7 +1,7 @@
 {
   "manifests": [],
   "errors": [
-    "pnpm-lock.yaml: unknown PURL type \"git\"",
-    "pnpm-lock.yaml: unknown PURL type \"git\""
+    "pnpm-lock.yaml: unknown ecosystem: PURL type \"git\"",
+    "pnpm-lock.yaml: unknown ecosystem: PURL type \"git\""
   ]
 }

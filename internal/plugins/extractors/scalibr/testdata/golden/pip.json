@@ -12,7 +12,10 @@
         "id": {
           "ecosystem": "pypi",
           "name": "django",
-          "version": "2.2.24"
+          "version": "2.2.24",
+          "raw_name": "django",
+          "raw_version": "2.2.24",
+          "purl": "pkg:pypi/django@2.2.24"
         },
         "direct": true,
         "line": 1

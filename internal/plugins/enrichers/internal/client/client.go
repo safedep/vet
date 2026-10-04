@@ -57,37 +57,22 @@ func Dial(name string, e Endpoint) (*grpc.ClientConn, error) {
 	return nil, fmt.Errorf("%s: endpoint %q needs https or http", name, e.URL)
 }
 
-// ErrNoEcosystem means that the SafeDep API has no enum for the ecosystem.
+// ErrNoEcosystem means that the SafeDep services do not take the ecosystem.
 var ErrNoEcosystem = errors.New("the SafeDep API has no ecosystem for the package")
 
-var ecosystems = map[model.Ecosystem]packagev1.Ecosystem{
-	model.EcosystemNpm:           packagev1.Ecosystem_ECOSYSTEM_NPM,
-	model.EcosystemPyPI:          packagev1.Ecosystem_ECOSYSTEM_PYPI,
-	model.EcosystemMaven:         packagev1.Ecosystem_ECOSYSTEM_MAVEN,
-	model.EcosystemGo:            packagev1.Ecosystem_ECOSYSTEM_GO,
-	model.EcosystemCargo:         packagev1.Ecosystem_ECOSYSTEM_CARGO,
-	model.EcosystemRubyGems:      packagev1.Ecosystem_ECOSYSTEM_RUBYGEMS,
-	model.EcosystemNuGet:         packagev1.Ecosystem_ECOSYSTEM_NUGET,
-	model.EcosystemPackagist:     packagev1.Ecosystem_ECOSYSTEM_PACKAGIST,
-	model.EcosystemGitHubActions: packagev1.Ecosystem_ECOSYSTEM_GITHUB_ACTIONS,
-	model.EcosystemTerraform:     packagev1.Ecosystem_ECOSYSTEM_TERRAFORM_PROVIDER,
-	model.EcosystemVSCode:        packagev1.Ecosystem_ECOSYSTEM_VSCODE,
-	model.EcosystemOpenVSX:       packagev1.Ecosystem_ECOSYSTEM_OPENVSX,
-	// gap G2: the SafeDep API has no enum for Pub, so Pub packages get no
-	// enrichment.
-}
+// gap G2: the SafeDep API has ECOSYSTEM_PUB, but the services validate the
+// ecosystem against an older SDK and reject it. Pub packages get no
+// enrichment until the services run on the new SDK.
+var notServed = map[model.Ecosystem]bool{model.EcosystemPub: true}
 
-// PackageVersion returns the API identity of a package. A GitHub action
-// drops its sub-path, because the data belongs to the repository.
-func PackageVersion(id model.PackageID) (*packagev1.PackageVersion, error) {
-	eco, ok := ecosystems[id.Ecosystem]
-	if !ok {
-		return nil, fmt.Errorf("%w: %s", ErrNoEcosystem, id.Ecosystem)
+// PackageVersion returns the wire form of a package: the raw name and
+// version, as the manifest writes them. The service folds them under its own
+// rule.
+func PackageVersion(id model.PackageVersion) (*packagev1.PackageVersion, error) {
+	if notServed[id.Ecosystem()] {
+		return nil, fmt.Errorf("%w: %s", ErrNoEcosystem, id.Ecosystem())
 	}
-	return &packagev1.PackageVersion{
-		Package: &packagev1.Package{Ecosystem: eco, Name: id.Package().QualifiedName()},
-		Version: id.Version,
-	}, nil
+	return id.RawProto(), nil
 }
 
 // Unavailable reports a gRPC error of a backend that does not answer.
@@ -103,7 +88,7 @@ func Unavailable(err error) bool {
 // reads it as a diagnostic, so a gRPC error gets a short text in place of
 // the status dump.
 type packageError struct {
-	ID  model.PackageID
+	ID  model.PackageVersion
 	Err error
 }
 

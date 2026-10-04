@@ -142,7 +142,7 @@ func TestBuiltinConformance(t *testing.T) {
 	manifests := []*model.Manifest{
 		{
 			ID: "m1", Path: "package-lock.json", Kind: model.ManifestKindLockfile, Ecosystem: model.EcosystemNpm,
-			Packages: []*model.Package{{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "a", Version: "1.0.0"}}},
+			Packages: []*model.Package{{ID: model.MustPackageVersion(model.EcosystemNpm, "a", "1.0.0")}},
 		},
 		{ID: "m2", Path: ".github/workflows/ci.yml", Kind: model.ManifestKindWorkflow, Ecosystem: model.EcosystemGitHubActions},
 		{ID: "m3", Path: "pkg:npm/a@1.0.0", Kind: model.ManifestKindPURL, Ecosystem: model.EcosystemNpm},

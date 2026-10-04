@@ -13,12 +13,19 @@ import (
 
 func TestProvides(t *testing.T) {
 	pv := provider{autoload: map[string]string{`GuzzleHttp\`: "guzzlehttp/guzzle", `GuzzleHttp\Psr7\`: "guzzlehttp/psr7"}}
-	id := func(eco model.Ecosystem, namespace, name string) model.PackageID {
-		return model.PackageID{Ecosystem: eco, Namespace: namespace, Name: name, Version: "1"}
+	id := func(eco model.Ecosystem, namespace, name string) model.PackageVersion {
+		sep := "/"
+		if eco == model.EcosystemMaven {
+			sep = ":"
+		}
+		if namespace != "" {
+			name = namespace + sep + name
+		}
+		return model.MustPackageVersion(eco, name, "1")
 	}
 	cases := []struct {
 		name string
-		id   model.PackageID
+		id   model.PackageVersion
 		m    module
 		want bool
 	}{

@@ -115,7 +115,7 @@ func (e *Enricher) Enrich(ctx context.Context, pkgs []*model.Package) error {
 		return e.err
 	}
 	for _, p := range pkgs {
-		if _, ok := ecosystemLanguages[p.ID.Ecosystem]; !ok {
+		if _, ok := ecosystemLanguages[p.ID.Ecosystem()]; !ok {
 			p.Usage = nil
 			continue
 		}

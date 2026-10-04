@@ -41,8 +41,8 @@ func write(t *testing.T, options plugin.MapConfig, r *plugintest.MemState) strin
 // finding of another control on django. fixed sets the fixed version of the
 // first findings.
 func vulnReport(fixed ...string) *plugintest.MemState {
-	django := &model.Package{ID: model.PackageID{Ecosystem: model.EcosystemPyPI, Name: "django", Version: "2.2.0"}, Line: 2}
-	requests := &model.Package{ID: model.PackageID{Ecosystem: model.EcosystemPyPI, Name: "requests", Version: "2.19.0"}, Line: 1}
+	django := &model.Package{ID: model.MustPackageVersion(model.EcosystemPyPI, "django", "2.2.0"), Line: 2}
+	requests := &model.Package{ID: model.MustPackageVersion(model.EcosystemPyPI, "requests", "2.19.0"), Line: 1}
 	vuln := func(p *model.Package, id string, sev finding.Severity) *finding.Finding {
 		f := finding.ForPackage(finding.Meta{
 			ControlID: "vulnerability", Family: finding.FamilyVulnerability, Severity: sev,

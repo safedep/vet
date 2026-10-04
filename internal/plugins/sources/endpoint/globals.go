@@ -90,9 +90,10 @@ func installedPackages(root string) []*model.Package {
 			log.Debugf("endpoint: skip %s: no name or version", d)
 			continue
 		}
-		id := model.PackageID{Ecosystem: model.EcosystemNpm, Name: pj.Name, Version: pj.Version}
-		if scope, name, ok := strings.Cut(pj.Name, "/"); ok && strings.HasPrefix(scope, "@") {
-			id.Namespace, id.Name = scope, name
+		id, err := model.NewPackageVersion(model.EcosystemNpm, pj.Name, pj.Version)
+		if err != nil {
+			log.Debugf("endpoint: skip %s: %v", d, err)
+			continue
 		}
 		out = append(out, &model.Package{ID: id, Direct: true})
 	}

@@ -69,7 +69,7 @@ func view(ms []*model.Manifest, errs []error, root string) caseView {
 			mv.Packages = append(mv.Packages, packageLine(p))
 		}
 		if m.Graph != nil {
-			m.Graph.Edges(func(p, c model.PackageID) { mv.Edges = append(mv.Edges, p.String()+" -> "+c.String()) })
+			m.Graph.Edges(func(p, c model.PackageVersion) { mv.Edges = append(mv.Edges, p.String()+" -> "+c.String()) })
 			sort.Strings(mv.Edges)
 		}
 		v.Manifests = append(v.Manifests, mv)

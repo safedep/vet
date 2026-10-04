@@ -102,13 +102,15 @@ func TestEnricher(t testing.TB, e plugin.Enricher, pkgs []*model.Package) {
 	ctx := context.Background()
 	require.NoError(t, e.Enrich(ctx, nil), "an enricher accepts an empty batch")
 
-	ids := make([]model.PackageID, len(pkgs))
+	ids := make([]model.PackageVersion, len(pkgs))
 	for i, p := range pkgs {
 		ids[i] = p.ID
 	}
 	require.NoError(t, e.Enrich(ctx, pkgs))
 	for i, p := range pkgs {
-		assert.Equal(t, ids[i], p.ID, "an enricher keeps the package identity")
+		assert.True(t, ids[i].Equal(p.ID), "an enricher keeps the package identity")
+		assert.Equal(t, ids[i].RawName(), p.ID.RawName(), "an enricher keeps the raw name")
+		assert.Equal(t, ids[i].RawVersion(), p.ID.RawVersion(), "an enricher keeps the raw version")
 	}
 }
 

@@ -100,7 +100,7 @@ func Build(o Options) (*Set, error) {
 }
 
 // probePackage is a package that every SafeDep service knows.
-var probePackage = model.PackageID{Ecosystem: model.EcosystemNpm, Name: "lodash", Version: "4.17.21"}
+var probePackage = model.MustPackageVersion(model.EcosystemNpm, "lodash", "4.17.21")
 
 // Probe asks each enricher about one package, to check that its service
 // answers. A package that the service does not know is an answer too. It

@@ -11,7 +11,7 @@
         "pypi/docopt@0.6.1 [+] :9",
         "pypi/keyring@4.1.1 [+] :10",
         "pypi/coverage [+] :11",
-        "pypi/mopidy-dirble@1.1 [+] :12",
+        "pypi/Mopidy-Dirble@1.1 [+] :12",
         "pypi/rejected [+] :23",
         "pypi/green [+] :24"
       ]

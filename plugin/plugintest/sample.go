@@ -10,8 +10,8 @@ import (
 // packages, one finding of each subject kind that applies, an inventory item
 // and a diagnostic. Sink tests render it.
 func SampleReport() *MemState {
-	evil := &model.Package{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "evil-colors", Version: "1.4.1"}, Direct: true, Line: 42}
-	pad := &model.Package{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "left-pad", Version: "1.3.0"}}
+	evil := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "evil-colors", "1.4.1"), Direct: true, Line: 42}
+	pad := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "left-pad", "1.3.0")}
 	m := &model.Manifest{
 		ID: "m-1", Path: "package-lock.json", Ecosystem: model.EcosystemNpm, Kind: model.ManifestKindLockfile,
 		Packages: []*model.Package{evil, pad},

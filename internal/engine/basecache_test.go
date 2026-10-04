@@ -18,8 +18,8 @@ func TestBaseCacheRoundTrip(t *testing.T) {
 	c := baseCache{dir: dir, target: "t", path: filepath.Join(dir, "t-1.json")}
 	m := &model.Manifest{ID: "m1", Path: "package-lock.json", Ecosystem: model.EcosystemNpm, Kind: model.ManifestKindLockfile, Extractor: "javascript/packagelockjson"}
 	m.Packages = []*model.Package{
-		{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "left-pad", Version: "1.2.0"}, Direct: true, Integrity: "sha512-a", Resolved: "https://registry.npmjs.org/left-pad/-/left-pad-1.2.0.tgz"},
-		{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "ms", Version: "2.1.3"}, Dev: true},
+		{ID: model.MustPackageVersion(model.EcosystemNpm, "left-pad", "1.2.0"), Direct: true, Integrity: "sha512-a", Resolved: "https://registry.npmjs.org/left-pad/-/left-pad-1.2.0.tgz"},
+		{ID: model.MustPackageVersion(model.EcosystemNpm, "ms", "2.1.3"), Dev: true},
 	}
 	want := &base{
 		manifests: map[string]*model.Manifest{"m1": m},

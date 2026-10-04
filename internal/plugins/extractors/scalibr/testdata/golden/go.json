@@ -12,7 +12,10 @@
         "id": {
           "ecosystem": "go",
           "name": "stdlib",
-          "version": "1.17"
+          "version": "1.17",
+          "raw_name": "stdlib",
+          "raw_version": "1.17",
+          "purl": "pkg:golang/stdlib@1.17"
         },
         "direct": false,
         "line": 3
@@ -20,9 +23,11 @@
       {
         "id": {
           "ecosystem": "go",
-          "namespace": "github.com/BurntSushi",
-          "name": "toml",
-          "version": "1.0.0"
+          "name": "github.com/BurntSushi/toml",
+          "version": "1.0.0",
+          "raw_name": "github.com/BurntSushi/toml",
+          "raw_version": "1.0.0",
+          "purl": "pkg:golang/github.com/BurntSushi/toml@1.0.0"
         },
         "direct": false,
         "line": 6
@@ -30,9 +35,11 @@
       {
         "id": {
           "ecosystem": "go",
-          "namespace": "gopkg.in",
-          "name": "yaml.v2",
-          "version": "2.4.0"
+          "name": "gopkg.in/yaml.v2",
+          "version": "2.4.0",
+          "raw_name": "gopkg.in/yaml.v2",
+          "raw_version": "2.4.0",
+          "purl": "pkg:golang/gopkg.in/yaml.v2@2.4.0"
         },
         "direct": false,
         "line": 7
@@ -40,9 +47,11 @@
       {
         "id": {
           "ecosystem": "go",
-          "namespace": "github.com/mattn",
-          "name": "go-colorable",
-          "version": "0.1.9"
+          "name": "github.com/mattn/go-colorable",
+          "version": "0.1.9",
+          "raw_name": "github.com/mattn/go-colorable",
+          "raw_version": "0.1.9",
+          "purl": "pkg:golang/github.com/mattn/go-colorable@0.1.9"
         },
         "direct": false,
         "line": 11
@@ -50,9 +59,11 @@
       {
         "id": {
           "ecosystem": "go",
-          "namespace": "github.com/mattn",
-          "name": "go-isatty",
-          "version": "0.0.14"
+          "name": "github.com/mattn/go-isatty",
+          "version": "0.0.14",
+          "raw_name": "github.com/mattn/go-isatty",
+          "raw_version": "0.0.14",
+          "purl": "pkg:golang/github.com/mattn/go-isatty@0.0.14"
         },
         "direct": false,
         "line": 12
@@ -60,9 +71,11 @@
       {
         "id": {
           "ecosystem": "go",
-          "namespace": "golang.org/x",
-          "name": "sys",
-          "version": "0.0.0-20210630005230-0f9fa26af87c"
+          "name": "golang.org/x/sys",
+          "version": "0.0.0-20210630005230-0f9fa26af87c",
+          "raw_name": "golang.org/x/sys",
+          "raw_version": "0.0.0-20210630005230-0f9fa26af87c",
+          "purl": "pkg:golang/golang.org/x/sys@0.0.0-20210630005230-0f9fa26af87c"
         },
         "direct": false,
         "line": 13

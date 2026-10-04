@@ -40,7 +40,7 @@ func viewOf(m *model.Manifest) graphView {
 		for _, r := range m.Graph.Roots() {
 			v.Roots = append(v.Roots, r.String())
 		}
-		m.Graph.Edges(func(p, c model.PackageID) { v.Edges = append(v.Edges, p.String()+" -> "+c.String()) })
+		m.Graph.Edges(func(p, c model.PackageVersion) { v.Edges = append(v.Edges, p.String()+" -> "+c.String()) })
 	}
 	for _, s := range [][]string{v.Packages, v.Direct, v.Dev, v.Roots, v.Edges} {
 		sort.Strings(s)

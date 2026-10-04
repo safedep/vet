@@ -43,6 +43,7 @@ helper or a list. Each row is the one place for its concern.
 | Wiring of one scan from the config | `internal/runner` |
 | A token in a git URL | `git.Redact` in `internal/plugins/sources/git` |
 | GitHub token and client | `internal/github` |
+| Package identity: compare, key, order, PURL and the wire form of a package version | `model.PackageVersion`. It wraps the `dry/api/pb` rules. |
 | Report types and the JSON Schema of the report | `report` |
 | Golden file comparison in tests | `internal/golden` |
 | Sample report for sink and view tests | `plugin/plugintest` |
@@ -57,6 +58,10 @@ the wrong package. Move the code. Do not change the rule to make the test pass.
 
 - Only `internal/tui` imports `dry/tui`. `internal/tui` imports no other vet package.
 - Only the enrichers and the cloud plugins import the SafeDep API contract.
+- Only `model` imports the identity rules of `dry/api/pb`. Compare package versions with `Equal`,
+  `Key` or `Compare`, never with the name and version strings.
+- Only the API clients call `RawProto`. A remote API gets the raw name and version and applies its
+  own rules.
 - Only `plugin`, the extractors and the sources import Scalibr.
 - The public packages `model`, `finding`, `report` and `plugin` import nothing from `internal`.
 - Only `internal/plugins/builtin` and `internal/runner` import both the controls and the sinks.

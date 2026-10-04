@@ -27,7 +27,7 @@ func TestEachGivesAShortTextForAGRPCError(t *testing.T) {
 		{"permission", status.Error(codes.PermissionDenied, "no"), "The backend did not answer for npm/left-pad@1.3.0 (permission denied)."},
 		{"other error", errors.New("bad data"), "npm/left-pad@1.3.0: bad data"},
 	}
-	pkgs := []*model.Package{{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "left-pad", Version: "1.3.0"}}}
+	pkgs := []*model.Package{{ID: model.MustPackageVersion(model.EcosystemNpm, "left-pad", "1.3.0")}}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			err := Each(context.Background(), 1, pkgs, func(context.Context, *model.Package) error { return tc.err })

@@ -79,9 +79,10 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 }
 
 func component(p *report.PackageEntry) cdx.Component {
+	group, name := groupAndName(p.ID)
 	c := cdx.Component{
-		BOMRef: p.PURL, Type: cdx.ComponentTypeLibrary, Name: p.ID.Name, Version: p.ID.Version, PackageURL: p.PURL,
-		Group: p.ID.Namespace,
+		BOMRef: cmp.Or(p.PURL, string(p.ID.Key())), Type: cdx.ComponentTypeLibrary,
+		Group: group, Name: name, Version: p.ID.RawVersion(), PackageURL: p.PURL,
 	}
 	scope := cdx.ScopeRequired
 	if p.Dev {
@@ -209,6 +210,28 @@ func family(product string) string {
 // takes an SPDX expression, such as "Apache-2.0 OR MIT", only as the one
 // choice, so the expression joins all the declared licenses with AND. A
 // declared name that is not SPDX keeps each license a name.
+// groupAndName splits the raw name into the CycloneDX group and name: the
+// npm scope, the Maven group, or the path before the last slash of a Go
+// module, a Composer vendor, a GitHub action or a Terraform provider.
+func groupAndName(id model.PackageVersion) (string, string) {
+	name := id.RawName()
+	switch id.Ecosystem() {
+	case model.EcosystemNpm:
+		if scope, rest, ok := strings.Cut(name, "/"); ok && strings.HasPrefix(scope, "@") {
+			return scope, rest
+		}
+	case model.EcosystemMaven:
+		if i := strings.LastIndex(name, ":"); i >= 0 {
+			return name[:i], name[i+1:]
+		}
+	case model.EcosystemGo, model.EcosystemPackagist, model.EcosystemGitHubActions, model.EcosystemTerraformProvider:
+		if i := strings.LastIndex(name, "/"); i >= 0 {
+			return name[:i], name[i+1:]
+		}
+	}
+	return "", name
+}
+
 func licenses(declared []string) cdx.Licenses {
 	var out cdx.Licenses
 	var terms []string

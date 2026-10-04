@@ -11,17 +11,17 @@
     }
   ],
   "errors": [
-    "package-lock.json: unknown PURL type \"git\"",
-    "package-lock.json: unknown PURL type \"git\"",
-    "package-lock.json: unknown PURL type \"git\"",
-    "package-lock.json: unknown PURL type \"git\"",
-    "package-lock.json: unknown PURL type \"git\"",
-    "package-lock.json: unknown PURL type \"git\"",
-    "package-lock.json: unknown PURL type \"git\"",
-    "package-lock.json: unknown PURL type \"git\"",
-    "package-lock.json: unknown PURL type \"git\"",
-    "package-lock.json: unknown PURL type \"git\"",
-    "package-lock.json: unknown PURL type \"git\"",
-    "package-lock.json: unknown PURL type \"git\""
+    "package-lock.json: unknown ecosystem: PURL type \"git\"",
+    "package-lock.json: unknown ecosystem: PURL type \"git\"",
+    "package-lock.json: unknown ecosystem: PURL type \"git\"",
+    "package-lock.json: unknown ecosystem: PURL type \"git\"",
+    "package-lock.json: unknown ecosystem: PURL type \"git\"",
+    "package-lock.json: unknown ecosystem: PURL type \"git\"",
+    "package-lock.json: unknown ecosystem: PURL type \"git\"",
+    "package-lock.json: unknown ecosystem: PURL type \"git\"",
+    "package-lock.json: unknown ecosystem: PURL type \"git\"",
+    "package-lock.json: unknown ecosystem: PURL type \"git\"",
+    "package-lock.json: unknown ecosystem: PURL type \"git\"",
+    "package-lock.json: unknown ecosystem: PURL type \"git\""
   ]
 }

@@ -18,7 +18,7 @@ var meta = Meta{
 
 func pkg(version string, line int) *model.Package {
 	return &model.Package{
-		ID:   model.PackageID{Ecosystem: model.EcosystemNpm, Name: "evil", Version: version},
+		ID:   model.MustPackageVersion(model.EcosystemNpm, "evil", version),
 		Line: line,
 	}
 }

@@ -13,8 +13,8 @@ import (
 	"github.com/safedep/vet/v2/plugin/plugintest"
 )
 
-func npm(name, version string) model.PackageID {
-	return model.PackageID{Ecosystem: model.EcosystemNpm, Name: name, Version: version}
+func npm(name, version string) model.PackageVersion {
+	return model.MustPackageVersion(model.EcosystemNpm, name, version)
 }
 
 func ids(t *testing.T, opts map[string]any, m *model.Manifest) []string {
@@ -93,7 +93,7 @@ func TestFileChecks(t *testing.T) {
 		ID: "m", Path: "package-lock.json", Kind: model.ManifestKindLockfile, Root: root,
 		Packages: []*model.Package{
 			{ID: npm("esbuild", "0.20.0"), Change: model.ChangeAdded},
-			{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Namespace: "@scope", Name: "native", Version: "1.0.0"}, Change: model.ChangeUpgraded},
+			{ID: model.MustPackageVersion(model.EcosystemNpm, "@scope/native", "1.0.0"), Change: model.ChangeUpgraded},
 			{ID: npm("left-pad", "1.3.0"), Change: model.ChangeAdded},
 		},
 	}

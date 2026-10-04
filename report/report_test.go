@@ -72,7 +72,7 @@ func TestPackageEntryJSONFlattens(t *testing.T) {
 	e := PackageEntry{
 		PURL:        "pkg:npm/a@1.0.0",
 		ManifestIDs: []string{"m1"},
-		Package:     model.Package{ID: model.PackageID{Ecosystem: model.EcosystemNpm, Name: "a", Version: "1.0.0"}, Direct: true},
+		Package:     model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "a", "1.0.0"), Direct: true},
 	}
 	b, err := json.Marshal(e)
 	require.NoError(t, err)
