@@ -22,8 +22,9 @@ functions that apply the rule of the ecosystem:
 - `package.is("name")` is true when the name names the package. `package.is("python-dateutil")`
   matches the PyPI package `python.dateutil`. Compare names with it, not with `==`.
 - `package.version_cmp("1.2.3")` gives -1, 0 or 1 when the version of the package is below, equal
-  to or above `1.2.3`. An ecosystem with no version order, such as GitHub Actions, has no answer,
-  and a rule that uses it does not match.
+  to or above `1.2.3`. An ecosystem with no version order, such as GitHub Actions, gives no answer.
+  A condition that needs the answer does not match, as with an absent field. CEL still decides
+  `a || b` when `b` is true, so a rule can add another check for the packages with no order.
 
 ## Examples
 

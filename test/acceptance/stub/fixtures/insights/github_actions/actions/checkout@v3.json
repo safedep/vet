@@ -1,0 +1,16 @@
+{
+  "packageVersion": {
+    "package": {"ecosystem": "ECOSYSTEM_GITHUB_ACTIONS", "name": "actions/checkout"},
+    "version": "v3"
+  },
+  "insight": {
+    "vulnerabilities": [
+      {
+        "id": {"type": "VULNERABILITY_IDENTIFIER_TYPE_OSV", "value": "GHSA-stub-gha1"},
+        "summary": "Stub advisory of an action",
+        "severities": [{"type": "TYPE_CVSS_V3", "score": "7.5", "risk": "RISK_HIGH"}]
+      }
+    ],
+    "packagePublishedAt": "2020-01-01T00:00:00Z"
+  }
+}

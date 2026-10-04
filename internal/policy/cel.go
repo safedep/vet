@@ -44,8 +44,10 @@ func newEnv() (*cel.Env, error) {
 				return types.Bool(ok && isString && id.NameIs(s))
 			}))),
 		// package.version_cmp(v) orders the version of the package against v
-		// under the rule of the ecosystem: -1, 0 or 1. With no order, the
-		// rule does not match.
+		// under the rule of the ecosystem: -1, 0 or 1. With no order, it
+		// gives no answer, and a condition that needs the answer does not
+		// match. CEL still decides a || b from a true b, as it does for an
+		// absent field, so a deny rule keeps its other checks.
 		cel.Function("version_cmp", cel.MemberOverload("package_version_cmp_string", []*cel.Type{dyn, cel.StringType}, cel.IntType,
 			cel.BinaryBinding(func(pkg, version ref.Val) ref.Val {
 				id, ok := celPackage(pkg)

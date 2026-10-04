@@ -204,7 +204,9 @@ vet scan --policy vet-policy.yml
 `package.version` hold the canonical form of the ecosystem, and `package.raw_name` and
 `package.raw_version` hold the form that the manifest writes. Compare a name with
 `package.is("name")` and a version with `package.version_cmp("1.2.3")`. Both apply the rule of
-the ecosystem, so `package.is("python-dateutil")` matches `python.dateutil`. A suppression `purl`
+the ecosystem, so `package.is("python-dateutil")` matches `python.dateutil`. An ecosystem with no
+version order, such as GitHub Actions, gives no answer to `package.version_cmp`. A condition that
+needs the answer does not match. A suppression `purl`
 matches every spelling of the package, and with no version it matches every version.
 
 An AI agent can write the policy for you. The

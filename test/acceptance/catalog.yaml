@@ -635,6 +635,12 @@
   tier: P0
   guarantee: "A fail rule with package.is(\"python-dateutil\") and package.version_cmp matches the PyPI package python.dateutil and fails the gate."
   labels: [policy, gate, identity]
+- id: policy/functions/version-cmp-no-order
+  title: "package.version_cmp gives no answer with no version order"
+  category: policy
+  tier: P1
+  guarantee: "For an action ref, a fail rule that needs package.version_cmp does not match and the gate passes. A rule that adds package.is on the other side of || still fails the gate."
+  labels: [policy, gate, identity]
 - id: scan/pr-mode/version-order
   title: "pull request mode orders versions under the rule of the ecosystem"
   category: scan

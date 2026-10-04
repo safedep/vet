@@ -140,6 +140,8 @@ func TestPackageFunctions(t *testing.T) {
 		{name: "a release after its candidate", expr: `package.version_cmp("1.0rc1") > 0`, in: inputOf(model.EcosystemPyPI, "x", "1.0"), want: true},
 		{name: "no order does not match", expr: `package.version_cmp("v4") < 0`, in: inputOf(model.EcosystemGitHubActions, "actions/checkout", "v3")},
 		{name: "no order negated does not match", expr: `!(package.version_cmp("v4") < 0)`, in: inputOf(model.EcosystemGitHubActions, "actions/checkout", "v3")},
+		{name: "no order with a false side does not match", expr: `package.version_cmp("v4") < 0 && true`, in: inputOf(model.EcosystemGitHubActions, "actions/checkout", "v3")},
+		{name: "no order with a true side matches", expr: `package.version_cmp("v4") < 0 || package.is("actions/checkout")`, in: inputOf(model.EcosystemGitHubActions, "actions/checkout", "v3"), want: true},
 		{name: "no package", expr: `package.is("x")`, in: Input{Finding: FindingInput{ControlID: "unpinned-action"}}},
 		{name: "no package has no version", expr: `package.version_cmp("1.0") < 0`, in: Input{Finding: FindingInput{ControlID: "unpinned-action"}}},
 	}

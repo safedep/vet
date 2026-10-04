@@ -1,0 +1,29 @@
+# The ref of an action has no version order, so package.version_cmp gives
+# no answer. A fail rule that needs the answer does not match, and the
+# gate passes. A rule that adds a check on the name still fires.
+exec vet scan proj --policy $WORK/order.yml --mode plain -o json
+stdout '"control_id":"vulnerability"'
+jsonq stdout trailer.gate.outcome PASS
+
+execexit 1 vet scan proj --policy $WORK/name.yml --mode plain -o json
+jsonq stdout trailer.gate.rules.0 old-or-checkout
+
+-- order.yml --
+version: 2
+rules:
+  - id: old-action
+    when: package.version_cmp("v4") < 0
+    action: fail
+-- name.yml --
+version: 2
+rules:
+  - id: old-or-checkout
+    when: package.version_cmp("v4") < 0 || package.is("actions/checkout")
+    action: fail
+-- proj/.github/workflows/ci.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
