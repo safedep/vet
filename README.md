@@ -184,6 +184,9 @@ rules:
   - id: fresh-packages
     when: package.days_since_publish < 5
     action: warn
+  - id: no-old-dateutil
+    when: package.is("python-dateutil") && package.version_cmp("2.8.1") < 0
+    action: fail
 suppressions:
   - purl: pkg:npm/left-pad@1.3.0
     control: dependency-cooldown
@@ -197,7 +200,12 @@ vet policy validate        # check it
 vet scan --policy vet-policy.yml
 ```
 
-`vet policy schema get` prints the fields that a rule can read.
+`vet policy schema get` prints the fields that a rule can read. `package.name` and
+`package.version` hold the canonical form of the ecosystem, and `package.raw_name` and
+`package.raw_version` hold the form that the manifest writes. Compare a name with
+`package.is("name")` and a version with `package.version_cmp("1.2.3")`. Both apply the rule of
+the ecosystem, so `package.is("python-dateutil")` matches `python.dateutil`. A suppression `purl`
+matches every spelling of the package, and with no version it matches every version.
 
 An AI agent can write the policy for you. The
 [`vet-policy-authoring`](.claude/skills/vet-policy-authoring/SKILL.md) Agent Skill drafts a

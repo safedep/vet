@@ -15,6 +15,16 @@ vet policy schema get [-o json]
 as `package.days_since_publish` of a package with no publish date, is absent. A rule that reads an
 absent field does not match. `has()` tests a field, for example `has(package.days_since_publish)`.
 
+`package.name` and `package.version` hold the canonical form under the rule of the ecosystem.
+`package.raw_name` and `package.raw_version` hold the form that the manifest writes. A rule has two
+functions that apply the rule of the ecosystem:
+
+- `package.is("name")` is true when the name names the package. `package.is("python-dateutil")`
+  matches the PyPI package `python.dateutil`. Compare names with it, not with `==`.
+- `package.version_cmp("1.2.3")` gives -1, 0 or 1 when the version of the package is below, equal
+  to or above `1.2.3`. An ecosystem with no version order, such as GitHub Actions, has no answer,
+  and a rule that uses it does not match.
+
 ## Examples
 
 ```text

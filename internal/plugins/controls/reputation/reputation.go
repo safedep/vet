@@ -65,7 +65,9 @@ type Options struct {
 	MinDownloads int64 `json:"min_downloads"`
 	// InternalNames are the patterns of the names of the internal packages,
 	// such as "@acme/*" or "acme-*". A package that matches and comes from
-	// a public registry is a dependency confusion.
+	// a public registry is a dependency confusion. The literal parts of a
+	// pattern fold under the rule of the ecosystem, so "acme-*" matches the
+	// PyPI name Acme.Utils.
 	InternalNames []string `json:"internal_names"`
 }
 
@@ -274,10 +276,10 @@ func newPackageTitle(name string, in *model.Insight, now time.Time) string {
 }
 
 func (c *Control) confused(p *model.Package) bool {
-	name := p.ID.RawName()
 	internal := false
 	for _, pat := range c.o.InternalNames {
-		if ok, _ := path.Match(pat, name); ok {
+		// New checks each pattern, so MatchName gives no error here.
+		if ok, _ := p.ID.MatchName(pat); ok {
 			internal = true
 			break
 		}

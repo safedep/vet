@@ -75,6 +75,12 @@ func TestReputation(t *testing.T) {
 			[]string{IDConfusion},
 		},
 		{
+			"a PyPI internal name in another spelling",
+			map[string]any{"internal_names": []any{"acme-*"}},
+			&model.Package{ID: model.MustPackageVersion(model.EcosystemPyPI, "Acme.Utils", "1.0.0"), Resolved: "https://files.pythonhosted.org/packages/acme_utils-1.0.0.tar.gz"},
+			[]string{IDConfusion},
+		},
+		{
 			"internal name from the internal registry",
 			map[string]any{"internal_names": []any{"@acme/*"}},
 			&model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "@acme/auth", "1.0.0"), Resolved: "https://npm.acme.example/@acme/auth/-/auth-1.0.0.tgz"}, nil,
