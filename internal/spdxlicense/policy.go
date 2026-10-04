@@ -158,7 +158,7 @@ func expand(entries []string) (map[string]bool, error) {
 		e := strings.TrimSpace(raw)
 		if members, ok := setIDs(e); ok {
 			for _, id := range members {
-				if t, ok := canonical(id); ok {
+				if t, ok := canonical(id); ok && t.exception == "" {
 					out[t.key()] = true
 				}
 			}

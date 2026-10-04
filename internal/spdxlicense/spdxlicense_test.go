@@ -126,7 +126,8 @@ func TestCheck(t *testing.T) {
 		{"deny of the base does not deny WITH", nil, []string{"GPL-2.0-only"}, []string{"GPL-2.0-only WITH Classpath-exception-2.0"}, Pass, nil},
 		{"deny the WITH term", nil, []string{"GPL-2.0-only WITH Classpath-exception-2.0"}, []string{"GPL-2.0-only WITH Classpath-exception-2.0"}, Denied, []string{"GPL-2.0-only WITH Classpath-exception-2.0"}},
 		{"deny a deprecated WITH id", nil, []string{"GPL-2.0-only WITH Classpath-exception-2.0"}, []string{"GPL-2.0-with-classpath-exception"}, Denied, []string{"GPL-2.0-only WITH Classpath-exception-2.0"}},
-		{"deny a deprecated variant", nil, []string{"BSD-2-Clause"}, []string{"BSD-2-Clause-FreeBSD"}, Denied, []string{"BSD-2-Clause"}},
+		{"deny a deprecated variant", nil, []string{"BSD-2-Clause-Views"}, []string{"BSD-2-Clause-FreeBSD"}, Denied, []string{"BSD-2-Clause-Views"}},
+		{"deny a deprecated duplicate", nil, []string{"BSD-2-Clause"}, []string{"BSD-2-Clause-NetBSD"}, Denied, []string{"BSD-2-Clause"}},
 		{"deny plus with no later version", nil, []string{"EUPL-1.2"}, []string{"EUPL-1.2+"}, Denied, []string{"EUPL-1.2+"}},
 		{"deny plus of an id with no version", nil, []string{"MIT"}, []string{"MIT+"}, Denied, []string{"MIT+"}},
 		{"deny plus with an allowed later version", nil, []string{"EUPL-1.1"}, []string{"EUPL-1.1+"}, Pass, nil},
@@ -143,6 +144,11 @@ func TestCheck(t *testing.T) {
 		{"either set allows WTFPL", []string{SetOSIApprovedOrFSF}, nil, []string{"WTFPL"}, Pass, nil},
 		{"osi set allows a deprecated id", []string{SetOSIApproved}, nil, []string{"GPL-3.0"}, Pass, nil},
 		{"osi set does not allow a WITH term", []string{SetOSIApproved}, nil, []string{"GPL-2.0-only WITH Classpath-exception-2.0"}, NotAllowed, nil},
+		{"osi set holds no WITH term of a deprecated id", []string{SetOSIApproved}, nil, []string{"GPL-3.0-only WITH GCC-exception-3.1"}, NotAllowed, nil},
+		{"osi set and a deprecated variant", []string{SetOSIApproved}, nil, []string{"BSD-2-Clause-FreeBSD"}, NotAllowed, nil},
+		{"deny the font exception", nil, []string{"GPL-2.0-only WITH Font-exception-2.0"}, []string{"GPL-2.0-with-font-exception"}, Denied, []string{"GPL-2.0-only WITH Font-exception-2.0"}},
+		{"deny a GFDL variant or-later", nil, []string{"GFDL-1.1-invariants-only", "GFDL-1.2-invariants-only", "GFDL-1.3-invariants-only"}, []string{"GFDL-1.1-invariants-or-later"}, Denied, []string{"GFDL-1.1-invariants-or-later"}},
+		{"plus on a license ref is not SPDX", nil, []string{"LicenseRef-a"}, []string{"LicenseRef-a+"}, Unknown, nil},
 		{"no lists", nil, nil, []string{"GPL-3.0-only"}, Pass, nil},
 	}
 	for _, tc := range cases {
@@ -157,7 +163,7 @@ func TestCheck(t *testing.T) {
 }
 
 func TestNewPolicyRejectsEntries(t *testing.T) {
-	for _, e := range []string{"GPL", "MIT OR Apache-2.0", "MIT AND GPL-3.0-only", "osi", "Apache 2.0", "", "MIT WITH nope"} {
+	for _, e := range []string{"GPL", "MIT OR Apache-2.0", "MIT AND GPL-3.0-only", "osi", "Apache 2.0", "", "MIT WITH nope", "LicenseRef-", "LicenseRef-a,b", "LicenseRef-a+", "DocumentRef-x"} {
 		t.Run(e, func(t *testing.T) {
 			_, err := NewPolicy([]string{e}, nil)
 			assert.ErrorContains(t, err, "allow:")
@@ -165,7 +171,7 @@ func TestNewPolicyRejectsEntries(t *testing.T) {
 			assert.ErrorContains(t, err, "deny:")
 		})
 	}
-	_, err := NewPolicy([]string{"mit", "GPL-2.0+", "LicenseRef-acme", "GPL-2.0-only with Classpath-exception-2.0", SetFSFLibre}, nil)
+	_, err := NewPolicy([]string{"mit", "GPL-2.0+", "LicenseRef-acme", "DocumentRef-spdx-tool-1.2:LicenseRef-MIT-Style-2", "GPL-2.0-only with Classpath-exception-2.0", SetFSFLibre}, nil)
 	assert.NoError(t, err)
 }
 
@@ -187,6 +193,10 @@ func TestEqual(t *testing.T) {
 		{"other id", []string{"MIT"}, []string{"Apache-2.0"}, false},
 		{"only is not or-later", []string{"GPL-2.0-only"}, []string{"GPL-2.0-or-later"}, false},
 		{"none is not an id", []string{"NONE"}, []string{"MIT"}, false},
+		{"none", []string{"NONE"}, []string{"none"}, true},
+		{"none and an id", []string{"NONE"}, []string{"NONE", "MIT"}, false},
+		{"repeated operand", []string{"(MIT AND MIT) OR Apache-2.0"}, []string{"MIT OR Apache-2.0"}, true},
+		{"nested group of one", []string{"((MIT)) OR (ISC OR (Apache-2.0))"}, []string{"Apache-2.0 OR ISC OR MIT"}, true},
 		{"free text", []string{"Apache 2.0"}, []string{"Apache 2.0"}, true},
 		{"free text and id", []string{"Apache 2.0"}, []string{"Apache-2.0"}, false},
 	}
@@ -230,7 +240,29 @@ func TestSuccessors(t *testing.T) {
 	}
 }
 
+// Each deprecated id maps to a successor, or is on the list of ids that
+// keep their own name.
+func TestEachDeprecatedIDHasASuccessor(t *testing.T) {
+	for _, l := range list.Licenses {
+		if !l.Deprecated {
+			continue
+		}
+		t.Run(l.ID, func(t *testing.T) {
+			got, ok := canonical(l.ID)
+			require.True(t, ok)
+			if slices.Contains(keptDeprecated, l.ID) {
+				assert.Equal(t, term{id: l.ID}, got)
+				return
+			}
+			assert.NotEqual(t, l.ID, got.id)
+			_, active := ActiveID(got.id)
+			assert.True(t, active, "%s maps to the active id %s", l.ID, got.id)
+		})
+	}
+}
+
 func TestLaterVersions(t *testing.T) {
+	assert.Equal(t, []string{"GFDL-1.1-invariants-only", "GFDL-1.2-invariants-only", "GFDL-1.3-invariants-only"}, laterVersions("GFDL-1.1-invariants-or-later"))
 	assert.Equal(t, []string{"GPL-2.0-only", "GPL-3.0-only"}, laterVersions("GPL-2.0-or-later"))
 	assert.Equal(t, []string{"EUPL-1.2"}, laterVersions("EUPL-1.2"))
 	assert.Equal(t, []string{"EUPL-1.1", "EUPL-1.2"}, laterVersions("EUPL-1.1"))

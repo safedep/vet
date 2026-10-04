@@ -106,8 +106,9 @@ var exceptions = func() map[string]string {
 	return out
 }()
 
-// versioned matches an id with a version, such as GPL-2.0-only or EUPL-1.2.
-var versioned = regexp.MustCompile(`^(.+)-(\d+(?:\.\d+)*)(-only|-or-later)?$`)
+// versioned matches an id with a version, such as GPL-2.0-only, EUPL-1.2 or
+// GFDL-1.3-invariants-or-later. The GFDL variants are families of their own.
+var versioned = regexp.MustCompile(`^(.+)-(\d+(?:\.\d+)*)(-invariants|-no-invariants)?(-only|-or-later)?$`)
 
 type version struct {
 	family  string
@@ -119,7 +120,7 @@ func versionOf(id string) (version, bool) {
 	if m == nil {
 		return version{}, false
 	}
-	v := version{family: strings.ToLower(m[1])}
+	v := version{family: strings.ToLower(m[1] + m[3])}
 	for _, n := range strings.Split(m[2], ".") {
 		i, err := strconv.Atoi(n)
 		if err != nil {

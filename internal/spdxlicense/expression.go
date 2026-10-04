@@ -3,6 +3,7 @@ package spdxlicense
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"slices"
 	"strings"
 )
@@ -107,7 +108,10 @@ func Equal(a, b []string) bool {
 	if !x.Known() || !y.Known() {
 		return slices.Equal(slices.Sorted(slices.Values(a)), slices.Sorted(slices.Values(b)))
 	}
-	return x.None == y.None && x.root.render(true) == y.root.render(true)
+	if x.None != y.None || (x.root == nil) != (y.root == nil) {
+		return false
+	}
+	return x.root == nil || x.root.simplify().render(true) == y.root.simplify().render(true)
 }
 
 type op int
@@ -176,6 +180,32 @@ func (n *node) render(sorted bool) string {
 		sep = " OR "
 	}
 	return strings.Join(parts, sep)
+}
+
+// simplify flattens nested operators of the same kind, drops a repeated
+// operand, and replaces an operator that keeps one operand with the
+// operand, so "(MIT AND MIT) OR ISC" becomes "MIT OR ISC".
+func (n *node) simplify() *node {
+	if n.op == opTerm {
+		return n
+	}
+	seen := map[string]bool{}
+	var kids []*node
+	for _, k := range n.flat(true) {
+		k = k.simplify()
+		if key := k.render(true); !seen[key] {
+			seen[key] = true
+			kids = append(kids, k)
+		}
+	}
+	if len(kids) == 1 {
+		return kids[0]
+	}
+	out := &node{op: n.op, kids: kids}
+	if flat := out.flat(true); len(flat) != len(kids) {
+		return (&node{op: n.op, kids: flat}).simplify()
+	}
+	return out
 }
 
 func (n *node) flat(sorted bool) []*node {
@@ -306,9 +336,11 @@ func isOperator(tok string) bool {
 	return strings.EqualFold(tok, "AND") || strings.EqualFold(tok, "OR") || strings.EqualFold(tok, "WITH")
 }
 
-func isRef(id string) bool {
-	return strings.HasPrefix(id, "LicenseRef-") || strings.HasPrefix(id, "DocumentRef-")
-}
+// ref matches a LicenseRef, with an optional DocumentRef, by the idstring
+// grammar of SPDX 2.3 Annex D.
+var ref = regexp.MustCompile(`^(DocumentRef-[A-Za-z0-9.-]+:)?LicenseRef-[A-Za-z0-9.-]+$`)
+
+func isRef(id string) bool { return ref.MatchString(id) }
 
 // licenseTerm reads one id with an optional +, in its canonical form.
 func licenseTerm(tok string) (term, error) {
@@ -360,14 +392,23 @@ func canonical(id string) (term, bool) {
 }
 
 // successors are the deprecated ids whose successor is not the id with
-// -only or -or-later. Each follows the note of the SPDX License List.
+// -only or -or-later. Each follows the note of the SPDX License List. A
+// GPL-2.0 or GPL-3.0 base is the -only id, as for the deprecated GPL-2.0.
 var successors = map[string]term{
 	"GPL-2.0-with-classpath-exception": {id: "GPL-2.0-only", exception: "Classpath-exception-2.0"},
 	"GPL-2.0-with-GCC-exception":       {id: "GPL-2.0-only", exception: "GCC-exception-2.0"},
 	"GPL-2.0-with-autoconf-exception":  {id: "GPL-2.0-only", exception: "Autoconf-exception-2.0"},
+	"GPL-2.0-with-bison-exception":     {id: "GPL-2.0-only", exception: "Bison-exception-2.2"},
+	"GPL-2.0-with-font-exception":      {id: "GPL-2.0-only", exception: "Font-exception-2.0"},
 	"GPL-3.0-with-GCC-exception":       {id: "GPL-3.0-only", exception: "GCC-exception-3.1"},
 	"GPL-3.0-with-autoconf-exception":  {id: "GPL-3.0-only", exception: "Autoconf-exception-3.0"},
-	"BSD-2-Clause-FreeBSD":             {id: "BSD-2-Clause"},
+	"BSD-2-Clause-FreeBSD":             {id: "BSD-2-Clause-Views"},
 	"BSD-2-Clause-NetBSD":              {id: "BSD-2-Clause"},
 	"StandardML-NJ":                    {id: "SMLNJ"},
+	"bzip2-1.0.5":                      {id: "bzip2-1.0.6"},
 }
+
+// keptDeprecated are the deprecated ids with no successor that vet can
+// name. The SPDX note of eCos-2.0 and wxWindows names an exception but not
+// the main license. Net-SNMP and Nunit have no successor.
+var keptDeprecated = []string{"eCos-2.0", "wxWindows", "Net-SNMP", "Nunit"}

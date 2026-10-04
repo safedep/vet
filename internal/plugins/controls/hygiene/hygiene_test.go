@@ -61,6 +61,10 @@ func TestInsightChecks(t *testing.T) {
 			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
 			Insight: &model.Insight{Licenses: []string{"GPL-3.0-only"}}, PreviousInsight: &model.Insight{Licenses: []string{"GPL-3.0"}},
 		}, nil},
+		{"no license before and after", nil, &model.Package{
+			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
+			Insight: &model.Insight{Licenses: []string{"NONE"}}, PreviousInsight: &model.Insight{Licenses: []string{"NONE"}},
+		}, nil},
 		{"OR becomes AND", nil, &model.Package{
 			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
 			Insight: &model.Insight{Licenses: []string{"MIT AND GPL-3.0-only"}}, PreviousInsight: &model.Insight{Licenses: []string{"MIT OR GPL-3.0-only"}},
