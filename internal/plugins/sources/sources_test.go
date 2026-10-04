@@ -81,6 +81,13 @@ func TestPURLSource(t *testing.T) {
 	as := plugintest.TestSource(t, s)
 	assert.Equal(t, "purl:pkg:npm/%40babel/core@7.24.0", as[0].Key)
 
+	for _, spelling := range []string{"pkg:pypi/Anthropic_SDK@0.1.0", "pkg:pypi/anthropic-sdk@0.1"} {
+		s, err = New(spelling, Options{})
+		require.NoError(t, err)
+		as = plugintest.TestSource(t, s)
+		assert.Equal(t, "purl:pkg:pypi/anthropic-sdk@0.1", as[0].Key, "one key for each spelling of a package version")
+	}
+
 	s, err = New("pkg:nope/x@1", Options{})
 	require.NoError(t, err)
 	for _, err := range s.Artifacts(context.Background()) {
