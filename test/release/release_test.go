@@ -29,10 +29,37 @@ func readYAML(t *testing.T, path string) map[string]any {
 
 func workflows(t *testing.T) []string {
 	t.Helper()
-	files, err := filepath.Glob(filepath.Join(root, ".github/workflows/*.yml"))
-	require.NoError(t, err)
+	var files []string
+	for _, pattern := range []string{"*.yml", "*.yaml"} {
+		found, err := filepath.Glob(filepath.Join(root, ".github/workflows", pattern))
+		require.NoError(t, err)
+		files = append(files, found...)
+	}
 	require.NotEmpty(t, files)
 	return files
+}
+
+// triggers returns the events of a workflow and their filters. A workflow
+// can write "on" as a string, a list or a map.
+func triggers(t *testing.T, wf map[string]any) map[string]any {
+	t.Helper()
+	switch on := wf["on"].(type) {
+	case string:
+		return map[string]any{on: nil}
+	case []any:
+		out := map[string]any{}
+		for _, event := range on {
+			name, ok := event.(string)
+			require.True(t, ok)
+			out[name] = nil
+		}
+		return out
+	case map[string]any:
+		return on
+	default:
+		require.Failf(t, "no trigger", "the workflow has no on key")
+		return nil
+	}
 }
 
 func TestGoreleaserPublishesAPreRelease(t *testing.T) {
@@ -52,16 +79,28 @@ func TestGoreleaserPublishesAPreRelease(t *testing.T) {
 	assert.Equal(t, "vet@edge", cask["name"])
 	assert.Contains(t, cask["conflicts"], map[string]any{"cask": "vet"})
 
-	for _, key := range []string{"brews", "dockers", "dockers_v2", "docker_manifests", "npms"} {
-		assert.NotContains(t, cfg, key, "a %s section can write a v1 channel", key)
+	assert.NotContains(t, cask, "skip_upload")
+	repo, ok := cask["repository"].(map[string]any)
+	require.True(t, ok, "the cask has no repository")
+	assert.Equal(t, "safedep", repo["owner"])
+	assert.Equal(t, "homebrew-tap", repo["name"])
+
+	// A new section can publish to a new place, such as a container
+	// registry, npm or a package index. Add it here only after a check that
+	// it cannot write a v1 channel.
+	allowed := []string{
+		"version", "project_name", "before", "builds", "universal_binaries", "archives",
+		"checksum", "snapshot", "changelog", "release", "homebrew_casks",
+	}
+	for key := range cfg {
+		assert.Contains(t, allowed, key, "the section %s can publish to a new place", key)
 	}
 }
 
 func TestReleaseRunsOnlyAfterAMerge(t *testing.T) {
 	wf := readYAML(t, ".github/workflows/release-edge.yml")
 
-	on, ok := wf["on"].(map[string]any)
-	require.True(t, ok)
+	on := triggers(t, wf)
 	assert.Len(t, on, 1, "a merge to v2 is the only trigger")
 	push, ok := on["push"].(map[string]any)
 	require.True(t, ok, "the trigger is not a push")
@@ -76,33 +115,40 @@ func TestReleaseRunsOnlyAfterAMerge(t *testing.T) {
 }
 
 // A tag workflow of v1, such as goreleaser.yml or container.yml, can come
-// back with a merge from main. It would publish the v2 alpha tag to v1.
+// back with a merge from main. It would publish the v2 alpha tag to v1. A
+// push trigger with no branch filter also runs on a tag.
 func TestNoWorkflowRunsOnATag(t *testing.T) {
 	for _, file := range workflows(t) {
 		t.Run(filepath.Base(file), func(t *testing.T) {
-			wf := readYAML(t, filepath.Join(".github/workflows", filepath.Base(file)))
-			on, ok := wf["on"].(map[string]any)
+			on := triggers(t, readYAML(t, filepath.Join(".github/workflows", filepath.Base(file))))
+			assert.NotContains(t, on, "release")
+			assert.NotContains(t, on, "create")
+			push, ok := on["push"]
 			if !ok {
 				return
 			}
-			push, ok := on["push"].(map[string]any)
-			if !ok {
-				return
-			}
-			assert.NotContains(t, push, "tags")
+			filter, ok := push.(map[string]any)
+			require.True(t, ok, "a push trigger with no filter runs on a tag")
+			assert.NotContains(t, filter, "tags")
+			assert.NotContains(t, filter, "tags-ignore")
+			assert.True(t, filter["branches"] != nil || filter["branches-ignore"] != nil,
+				"a push trigger with no branch filter runs on a tag")
 		})
 	}
 }
 
-// A line may name the latest image only to read its digest.
+// A line may name the latest image only to read its digest. The
+// docker/metadata-action writes the latest tag with value=latest or
+// latest=true, and with latest=auto on a tag.
 func TestNoWorkflowWritesTheLatestImage(t *testing.T) {
+	latest := regexp.MustCompile(`:latest\b|value=latest\b|latest=(true|auto)\b`)
 	scripts, err := filepath.Glob(filepath.Join(root, ".github/scripts/*"))
 	require.NoError(t, err)
 	for _, file := range append(workflows(t), scripts...) {
 		data, err := os.ReadFile(file)
 		require.NoError(t, err)
 		for i, line := range strings.Split(string(data), "\n") {
-			if strings.Contains(line, ":latest") {
+			if latest.MatchString(line) {
 				assert.Contains(t, line, "imagetools inspect", "%s:%d names the latest image", filepath.Base(file), i+1)
 			}
 		}

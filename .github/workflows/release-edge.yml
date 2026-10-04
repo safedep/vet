@@ -28,7 +28,8 @@ jobs:
   ci:
     if: github.repository == 'safedep/vet'
     uses: ./.github/workflows/ci.yml
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   release:
     needs: ci
@@ -37,12 +38,11 @@ jobs:
     timeout-minutes: 60
     permissions:
       contents: write # to create the GitHub pre-release
+      pull-requests: read # to find the pull request that merged the commit
       id-token: write # to sign the provenance
       attestations: write # to write the provenance
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
-      latest_release: ${{ steps.before.outputs.latest_release }}
-      latest_image: ${{ steps.before.outputs.latest_image }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -54,6 +54,21 @@ jobs:
         with:
           go-version-file: go.mod
 
+      # An admin can push to v2 with no pull request. That push does not
+      # release.
+      - name: Check that a pull request merged the commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          merged=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" \
+            --jq '[.[] | select(.merged_at != null and .base.ref == "v2")] | length')
+          if [ "$merged" -eq 0 ]; then
+            echo "::error::No merged pull request to v2 has the commit $GITHUB_SHA"
+            exit 1
+          fi
+
       # The tag comes from the clock only. Nothing in it comes from an input.
       - name: Make the tag
         id: tag
@@ -64,16 +79,6 @@ jobs:
             exit 1
           fi
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
-
-      # Users of vet v1 pin the latest image and the latest GitHub release. The
-      # verify job fails when the release changes either of them.
-      - name: Record the v1 channels
-        id: before
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          echo "latest_release=$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .tag_name)" >> "$GITHUB_OUTPUT"
-          echo "latest_image=$(docker buildx imagetools inspect --raw "$IMAGE:latest" | sha256sum | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
 
       # goreleaser creates the release with GITHUB_TOKEN, and GitHub creates
       # the tag from the release. A tag from GITHUB_TOKEN starts no workflow.
@@ -134,28 +139,37 @@ jobs:
             -t "$IMAGE:$TAG" \
             .
 
+  # vet v1 still moves the latest image and the latest release, so the check
+  # asks whether they point to this v2 build, not whether they changed.
   verify:
     needs: [release, container]
-    if: always() && needs.release.outputs.latest_image != ''
+    if: always() && needs.release.outputs.tag != ''
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Check that the v1 channels did not change
+      - name: Check that the v1 channels have no v2 build
         env:
           GH_TOKEN: ${{ github.token }}
-          LATEST_RELEASE: ${{ needs.release.outputs.latest_release }}
-          LATEST_IMAGE: ${{ needs.release.outputs.latest_image }}
+          TAG: ${{ needs.release.outputs.tag }}
+        shell: bash
         run: |
+          set -euo pipefail
           release=$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .tag_name)
-          image=$(docker buildx imagetools inspect --raw "$IMAGE:latest" | sha256sum | cut -d' ' -f1)
-          if [ "$release" != "$LATEST_RELEASE" ]; then
-            echo "::error::The latest GitHub release changed from $LATEST_RELEASE to $release"
+          if [[ "$release" == v2.* ]]; then
+            echo "::error::The latest GitHub release is the v2 build $release"
             exit 1
           fi
-          if [ "$image" != "$LATEST_IMAGE" ]; then
-            echo "::error::The digest of the latest image changed. Users of vet v1 run this image."
-            exit 1
-          fi
+          latest=$(docker buildx imagetools inspect "$IMAGE:latest" --format '{{json .Manifest}}' | jq -r .digest)
+          for ref in "$IMAGE:$TAG" "$IMAGE:v2-latest"; do
+            if ! ours=$(docker buildx imagetools inspect "$ref" --format '{{json .Manifest}}' | jq -r .digest); then
+              echo "::notice::$ref does not exist"
+              continue
+            fi
+            if [ "$latest" = "$ours" ]; then
+              echo "::error::The latest image is the v2 build $ref. Users of vet v1 run this image."
+              exit 1
+            fi
+          done
 
   smoke:
     needs: release
@@ -163,9 +177,11 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Install the cask
+        env:
+          TAG: ${{ needs.release.outputs.tag }}
         run: |
           brew install --cask safedep/tap/vet@edge
-          vet version
+          vet version | grep -F "${TAG#v}"
 
   prune:
     needs: [verify, smoke]
