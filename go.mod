@@ -3,8 +3,8 @@ module github.com/safedep/vet/v2
 go 1.26.3
 
 require (
-	buf.build/gen/go/safedep/api/grpc/go v1.6.2-20261001145028-14c0defb961c.1
-	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.12-20261001145028-14c0defb961c.2
+	buf.build/gen/go/safedep/api/grpc/go v1.6.2-20261004053326-d1b3d9e09eae.1
+	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.12-20261004053326-d1b3d9e09eae.2
 	github.com/BurntSushi/toml v1.6.0
 	github.com/CycloneDX/cyclonedx-go v0.11.0
 	github.com/charmbracelet/x/ansi v0.11.7
@@ -23,7 +23,7 @@ require (
 	github.com/posthog/posthog-go v1.10.0
 	github.com/rogpeppe/go-internal v1.16.0
 	github.com/safedep/code v0.0.0-20261003074956-ca03c078c5bb
-	github.com/safedep/dry v0.0.0-20261003141049-d28c73a868b0
+	github.com/safedep/dry v0.0.0-20261004073303-3b16d2bc1db8
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10

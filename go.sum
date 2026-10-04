@@ -4,8 +4,12 @@ buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.12-202604152011
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.12-20260415201107-50325440f8f2.1/go.mod h1:TCt1lluMFnctISJXvkIQ4x3ABrPuUKCWKyjKdkJNBpw=
 buf.build/gen/go/safedep/api/grpc/go v1.6.2-20261001145028-14c0defb961c.1 h1:pk4YYRlDtdJoASA0DPGAamfWIUXSCF4xA3djw/FHRiE=
 buf.build/gen/go/safedep/api/grpc/go v1.6.2-20261001145028-14c0defb961c.1/go.mod h1:81/2akGAGywZYsoRu2/PReSpx4092Bkd/IhUO5Po500=
+buf.build/gen/go/safedep/api/grpc/go v1.6.2-20261004053326-d1b3d9e09eae.1 h1:LMGp/TrMfjICdv2+kUJatzWBokhsusWp0C5ep/Pl824=
+buf.build/gen/go/safedep/api/grpc/go v1.6.2-20261004053326-d1b3d9e09eae.1/go.mod h1:vldfwE6529lDVqbqIvbgy/Fc/JIfijLmg0v9wQCUAug=
 buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.12-20261001145028-14c0defb961c.2 h1:TjPnsL2Mes9KZWLpQnyMPVZKKSHJUBYvGU6W3DvdOEk=
 buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.12-20261001145028-14c0defb961c.2/go.mod h1:LfbopTmazyAppwhYT2vdRDLDH8ZTm4QNbp9yFjGRbHs=
+buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.12-20261004053326-d1b3d9e09eae.2 h1:8bXjBVPy55hmNwVBFQ9uEE8Sg7b9talvT/VaNU5205A=
+buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.12-20261004053326-d1b3d9e09eae.2/go.mod h1:LfbopTmazyAppwhYT2vdRDLDH8ZTm4QNbp9yFjGRbHs=
 buf.build/go/protovalidate v1.2.0 h1:DQVrUWkmGTBij+kOYv/x2LLxwcLaGKMdzShj1/6/3H0=
 buf.build/go/protovalidate v1.2.0/go.mod h1:7rYiQEhqvAipoazpVNBBH2S2f8bjG4huMVy1V2Yofn4=
 cel.dev/expr v0.25.2 h1:K6j46C81hXtZQfuX60cVWQFBJahKSE2gfRbNuvr5bFs=
@@ -431,6 +435,8 @@ github.com/safedep/code v0.0.0-20261003074956-ca03c078c5bb h1:4VhnGDEVH4nLqhYf38
 github.com/safedep/code v0.0.0-20261003074956-ca03c078c5bb/go.mod h1:QYfQrEgRFjd15kUk80t3vjvzC5xiKeSjXgn6Qx1S89w=
 github.com/safedep/dry v0.0.0-20261003141049-d28c73a868b0 h1:IQIAStRi2LwwsadHh4mCw8si/0J+IYeYcaRQlYvvyUs=
 github.com/safedep/dry v0.0.0-20261003141049-d28c73a868b0/go.mod h1:n7UbtpjdFQnveHgsljFHsoMpAfFeTs6hy0jCuK4gY6s=
+github.com/safedep/dry v0.0.0-20261004073303-3b16d2bc1db8 h1:SMw+ak9YFW8i1S0hYJMkkfs2n4nmrhmlezvhbFAiK/Y=
+github.com/safedep/dry v0.0.0-20261004073303-3b16d2bc1db8/go.mod h1:PvfZT6uVtDcD8LHMkDWAwHovIzKSOK7TM16Hrot1ZMM=
 github.com/saferwall/pe v1.6.4 h1:sevZnbF2R3okkOfG1PCwuG7D16UNdn92EpXTuH2q8Eg=
 github.com/saferwall/pe v1.6.4/go.mod h1:aNooU8V9vpqCUCiPb9WWIxEag15MeTjUoDtKQiAsZwY=
 github.com/santhosh-tekuri/jsonschema/v6 v6.0.2 h1:KRzFb2m7YtdldCEkzs6KqmJw4nqEVZGK7IN2kJkjTuQ=
