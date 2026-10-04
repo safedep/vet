@@ -1,0 +1,230 @@
+name: Release Edge
+
+# Publishes an alpha pre-release of vet v2 when a pull request merges to the
+# v2 branch: a GitHub pre-release, the vet@edge Homebrew cask and the
+# container image tags v2-latest and the version. It never writes a channel
+# of vet v1. test/release checks the rules that keep it so.
+#
+# Only a push to v2 starts it. It has no manual dispatch and no pull request
+# trigger, so no release runs before a merge.
+on:
+  push:
+    branches: [v2]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+
+concurrency:
+  group: release-edge
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: ghcr.io/safedep/vet
+
+jobs:
+  ci:
+    if: github.repository == 'safedep/vet'
+    uses: ./.github/workflows/ci.yml
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  release:
+    needs: ci
+    environment: v2-edge
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write # to create the GitHub pre-release
+      pull-requests: read # to find the pull request that merged the commit
+      id-token: write # to sign the provenance
+      attestations: write # to write the provenance
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      # The tag push uses the token of the release app, not the checkout token.
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: go.mod
+
+      # An admin can push to v2 with no pull request. That push does not
+      # release.
+      - name: Check that a pull request merged the commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          merged=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" \
+            --jq '[.[] | select(.merged_at != null and .base.ref == "v2")] | length')
+          if [ "$merged" -eq 0 ]; then
+            echo "::error::No merged pull request to v2 has the commit $GITHUB_SHA"
+            exit 1
+          fi
+
+      # The tag comes from the clock only. Nothing in it comes from an input.
+      - name: Make the tag
+        id: tag
+        run: |
+          tag="v2.0.0-alpha.$(date -u +%Y%m%d%H%M%S)"
+          if [[ ! "$tag" =~ ^v2\.0\.0-alpha\.[0-9]{14}$ ]]; then
+            echo "::error::The tag $tag is not a v2 alpha tag"
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      # The release app writes the tag and the vet@edge cask. Its token can
+      # write only the contents of vet and homebrew-tap.
+      - name: Get a token of the release app
+        id: app
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.RELEASE_AUTOMATION_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_AUTOMATION_APP_KEY }}
+          owner: safedep
+          repositories: vet,homebrew-tap
+          permission-contents: write
+
+      # A ruleset lets only the release app create a v2 alpha tag. A tag push
+      # from an app starts the tag workflows of the tagged tree. test/release
+      # fails when a v2 workflow runs on a tag.
+      - name: Push the tag
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+          APP_TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          git tag "$TAG" "$GITHUB_SHA"
+          git push "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "refs/tags/$TAG"
+
+      # goreleaser creates the release on the tag with GITHUB_TOKEN, so the
+      # release event starts no workflow.
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ steps.app.outputs.token }}
+          GORELEASER_CURRENT_TAG: ${{ steps.tag.outputs.tag }}
+        run: .github/scripts/goreleaser-cross.sh release --clean
+
+      - name: Check the artifacts
+        run: .github/scripts/check-dist.sh
+
+      - name: Check the release is a pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: test "$(gh release view "$TAG" --json isPrerelease --jq .isPrerelease)" = true
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        with:
+          subject-checksums: dist/checksums.txt
+
+  container:
+    needs: release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write # to push the image
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Registry login
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
+
+      - name: Build and push
+        env:
+          TAG: ${{ needs.release.outputs.tag }}
+        run: |
+          docker buildx build --push --platform linux/amd64,linux/arm64 \
+            --build-arg "VERSION=${TAG#v}" \
+            -t "$IMAGE:v2-latest" \
+            -t "$IMAGE:$TAG" \
+            .
+
+  # vet v1 still moves the latest image and the latest release, so the check
+  # asks whether they point to this v2 build, not whether they changed.
+  verify:
+    needs: [release, container]
+    if: always() && needs.release.outputs.tag != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check that the v1 channels have no v2 build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release.outputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          release=$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .tag_name)
+          if [[ "$release" == v2.* ]]; then
+            echo "::error::The latest GitHub release is the v2 build $release"
+            exit 1
+          fi
+          latest=$(docker buildx imagetools inspect "$IMAGE:latest" --format '{{json .Manifest}}' | jq -r .digest)
+          if [[ "$latest" != sha256:* ]]; then
+            echo "::error::The latest image has no digest"
+            exit 1
+          fi
+          for ref in "$IMAGE:$TAG" "$IMAGE:v2-latest"; do
+            if ! ours=$(docker buildx imagetools inspect "$ref" --format '{{json .Manifest}}' | jq -r .digest); then
+              echo "::notice::$ref does not exist"
+              continue
+            fi
+            if [ "$latest" = "$ours" ]; then
+              echo "::error::The latest image is the v2 build $ref. Users of vet v1 run this image."
+              exit 1
+            fi
+          done
+
+  smoke:
+    needs: release
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - name: Install the cask
+        env:
+          TAG: ${{ needs.release.outputs.tag }}
+        run: |
+          brew install --cask safedep/tap/vet@edge
+          vet version | grep -F "${TAG#v}"
+
+  prune:
+    needs: [verify, smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # to delete old pre-releases
+    steps:
+      # Keep the last 5 alpha releases, so the v1 releases stay visible. The
+      # tags stay, because the Go module proxy keeps them.
+      - name: Delete old alpha releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release list --repo "$GITHUB_REPOSITORY" --limit 200 --json tagName,isPrerelease \
+            --jq '[.[] | select(.isPrerelease and (.tagName | test("^v2\\.0\\.0-alpha\\.[0-9]{14}$")))] | sort_by(.tagName) | reverse | .[5:] | .[].tagName' |
+            while read -r tag; do
+              gh release delete "$tag" --repo "$GITHUB_REPOSITORY" --yes
+            done

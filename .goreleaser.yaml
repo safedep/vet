@@ -7,40 +7,62 @@ before:
   hooks:
     - go mod tidy
 
-# vet v2 needs no CGO, so one static build covers each platform.
+# The code usage analysis needs CGO. The release runs in the
+# goreleaser-cross image, which has a C cross compiler for each target.
 builds:
   - id: vet
     main: ./cmd/vet
     ldflags:
       - -s -w -X github.com/safedep/vet/v2/internal/version.version={{.Version}} -X github.com/safedep/vet/v2/internal/version.commit={{.Commit}}
     env:
-      - CGO_ENABLED=0
+      - CGO_ENABLED=1
     goos: [linux, darwin, windows]
     goarch: [amd64, arm64]
-    # The npm packages have no Windows arm64 build.
     ignore:
       - goos: windows
         goarch: arm64
+    overrides:
+      - goos: linux
+        goarch: amd64
+        env: [CC=x86_64-linux-gnu-gcc, CXX=x86_64-linux-gnu-g++]
+      - goos: linux
+        goarch: arm64
+        env: [CC=aarch64-linux-gnu-gcc, CXX=aarch64-linux-gnu-g++]
+      - goos: darwin
+        goarch: amd64
+        env: [CC=o64-clang, CXX=o64-clang++]
+      - goos: darwin
+        goarch: arm64
+        env: [CC=oa64-clang, CXX=oa64-clang++]
+      - goos: windows
+        goarch: amd64
+        env: [CC=x86_64-w64-mingw32-gcc, CXX=x86_64-w64-mingw32-g++]
 
-# vet v2 publishes nothing yet. The GitHub release and the Homebrew tap are
-# the release channels of vet v1, so a v2 build must not reach them. The
-# program owner decides how v2 ships to early adopters (Linear FOU-416 and
-# FOU-417). Until then no workflow runs a release, and a manual
-# "goreleaser release" creates no GitHub release and uploads no cask.
+# vet v2 ships as an alpha pre-release on each merge to the v2 branch. A
+# pre-release that is not the latest release never reaches the v1 channels:
+# the vet-action, the Homebrew formula and "mise use github:safedep/vet" read
+# the latest release. test/release checks these values.
 release:
-  disable: true
+  prerelease: "true"
+  make_latest: "false"
+  target_commitish: "{{ .FullCommit }}"
+  footer: |
+    This is an alpha build of vet v2 from the v2 branch. vet v1 is the latest release.
 
 universal_binaries:
   - replace: true
 
 homebrew_casks:
-  - name: vet
+  # A fixed name, so a v2 build never writes the vet cask of v1.
+  - name: vet@edge
     directory: Casks
     homepage: https://safedep.io
     description: "SafeDep vet is a tool for identifying open source software supply chain risks"
     license: "Apache-2.0"
     binaries:
       - vet
+    conflicts:
+      - cask: vet
     # Homebrew 7 deprecates the `postflight` stanza that goreleaser writes from
     # `hooks.post.install`. The block below writes `postflight_steps` instead.
     # goreleaser runs a template pass over the rendered cask, so the quoted form
@@ -52,14 +74,11 @@ homebrew_casks:
           run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ "{{staged_path}}" }}/vet"], must_succeed: false
         end
       end
-    skip_upload: true
-    # The release is disabled, so the cask cannot take its download URL from it.
-    url:
-      template: "https://github.com/safedep/vet/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
     repository:
       owner: safedep
       name: homebrew-tap
       branch: main
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
 
 archives:
   - formats: [tar.gz]
