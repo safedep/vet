@@ -81,7 +81,7 @@ The allowed verbs:
 | Code | Meaning |
 | --- | --- |
 | 0 | The command completed. A scan with no gate, or with a gate that passed. |
-| 1 | The gate that the user set failed. |
+| 1 | The gate that the user set failed, or a `vet doctor` check failed. |
 | 2 | A usage or configuration error. No scan ran. |
 | 3 | A runtime error. |
 | 130 | A signal stopped the scan. vet saved the progress. |
