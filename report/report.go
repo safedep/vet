@@ -89,7 +89,8 @@ type Record struct {
 	Capability *Capability      `json:"capability,omitempty"`
 }
 
-// PackageEntry is a package with the manifests that declare it.
+// PackageEntry is a package with the manifests that declare it. PURL
+// follows the purl-spec type definition of the ecosystem.
 type PackageEntry struct {
 	PURL        string   `json:"purl"`
 	ManifestIDs []string `json:"manifest_ids"`

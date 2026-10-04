@@ -45,9 +45,12 @@ one package.
 _Avoid_: PURL as a key (a name can form no PURL, and the PURL is for display and the wire)
 
 **PURL**:
-The package URL of a package version, from `PackageVersion.PURL()`. It is for display, for report
-fields and for formats such as SARIF and CycloneDX. It can be empty. Never compare it and never use it
-as a map key. `internal/archtest` fails on both.
+The package URL of a package version, from `PackageVersion.PURL()`. It follows the purl-spec type
+definition of its ecosystem. It keeps the version as the manifest writes it, so `0.1.0` stays `0.1.0`
+for PyPI. It is for display, for report fields and for formats such as SARIF and CycloneDX. It can be
+empty. Never compare it and never use it as a map key. `internal/archtest` fails on both.
+`PackageVersion.CanonicalPURL()` is the PURL of the canonical name and version. Only the target key
+of a PURL target uses it.
 
 **Package**:
 One package version that a manifest declares or resolves, with the data that the enrichers add.
