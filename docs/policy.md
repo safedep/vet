@@ -5,6 +5,8 @@ A policy decides when a scan fails. It is a YAML file with rules and suppression
 - A **rule** is a [CEL](https://cel.dev/) condition over a finding, its package and its manifest.
   Its action is `fail` or `warn`. A `fail` rule that matches fails the gate, and vet exits 1. A
   `warn` rule marks the finding and does not fail the gate.
+- vet applies each rule to each finding. A package with no finding does not reach a rule. For
+  example, a rule on `package.licenses` sees only the packages that have a finding.
 - A **suppression** hides findings from the gate. It needs a reason, and it can expire. A
   suppressed finding stays in the report.
 
@@ -133,10 +135,6 @@ condition that needs the answer does not match. CEL still decides `a || b` when 
 ```yaml
   - id: old-lodash
     when: package.is("lodash") && package.version_cmp("4.17.21") < 0
-    action: fail
-  - id: copyleft-direct
-    description: A direct dependency with a GPL or AGPL license.
-    when: package.direct && package.licenses.exists(l, l.startsWith("GPL") || l.startsWith("AGPL"))
     action: fail
   - id: any-critical-advisory
     when: package.vulnerabilities.exists(v, v.severity == "critical")
