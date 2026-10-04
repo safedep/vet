@@ -80,4 +80,6 @@ jobs:
 
       - name: Check the version of the image
         run: |
-          docker run --rm vet:snapshot version | grep -F '"version": "2.0.0-snapshot"'
+          out=$(docker run --rm vet:snapshot version -o json)
+          echo "$out"
+          grep -F '"version": "2.0.0-snapshot"' <<< "$out"
