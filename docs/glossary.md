@@ -375,15 +375,18 @@ _Avoid_: host, device, agent
 
 **Inventory item**:
 A tool on an endpoint that is not a package of a manifest: `ai-tool`, `mcp-server`, `skill` or
-`editor-plugin`. `report.InventoryItem` and `report.InventoryKind`. `internal/endpoint/inventory`
-holds the detailed internal form that the cloud sync sends. An IDE extension that a marketplace
-serves is a package of an `endpoint` manifest, not an inventory item.
-_Avoid_: asset, tool (as a type name)
+`editor-plugin`. `report.InventoryItem` and `report.InventoryKind`. `inventory.Item` in
+`internal/endpoint/inventory` is the one detailed form that every endpoint scanner builds and that
+the cloud sync sends. Its `inventory.Kind` is finer than the report kind, and the endpoint source
+maps it to the report kind. `inventory.ItemIdentity` and `inventory.SourceID` make its keys. An IDE
+extension that a marketplace serves is a package of an `endpoint` manifest, not an inventory item.
+_Avoid_: asset, tool (as a type name), AI tool (as a type; the report kind is `ai-tool`)
 
 **Agent config**:
 A file that tells an AI agent or an editor to run commands or connect to servers: editor tasks, agent
 settings and hooks, devcontainer files, git hooks, MCP configs and agent instruction files.
 `internal/plugins/internal/agentfiles` classifies them, and the `agent-config` control checks them.
+`agentfiles.HomeFiles` is the one list of the files that a home directory can hold.
 
 ## Tests
 

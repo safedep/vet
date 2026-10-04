@@ -7,6 +7,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 )
 
 func TestWindsurfDiscoverer_WithFixtures(t *testing.T) {
@@ -25,8 +27,8 @@ func TestWindsurfDiscoverer_WithFixtures(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	err = reader.EnumTools(context.Background(), func(tool *AITool) error {
+	var tools []*inventory.Item
+	err = reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		tools = append(tools, tool)
 		return nil
 	})
@@ -34,28 +36,28 @@ func TestWindsurfDiscoverer_WithFixtures(t *testing.T) {
 	assert.NotEmpty(t, tools)
 
 	// Check coding_agent
-	var agents []*AITool
+	var agents []*inventory.Item
 	for _, tool := range tools {
-		if tool.Type == AIToolTypeCodingAgent {
+		if tool.Kind == inventory.KindCodingAgent {
 			agents = append(agents, tool)
 		}
 	}
 	require.Len(t, agents, 1)
 	assert.Equal(t, "Windsurf", agents[0].Name)
 	assert.Equal(t, windsurfApp, agents[0].App)
-	assert.Equal(t, AIToolScopeSystem, agents[0].Scope)
+	assert.Equal(t, inventory.ScopeSystem, agents[0].Scope)
 
 	// Check MCP servers
-	var mcpServers []*AITool
+	var mcpServers []*inventory.Item
 	for _, tool := range tools {
-		if tool.Type == AIToolTypeMCPServer {
+		if tool.Kind == inventory.KindMCPServer {
 			mcpServers = append(mcpServers, tool)
 		}
 	}
 	require.Len(t, mcpServers, 2)
 
 	// Find the stdio and remote servers
-	var stdioServer, remoteServer *AITool
+	var stdioServer, remoteServer *inventory.Item
 	for _, s := range mcpServers {
 		if s.Name == "local-server" {
 			stdioServer = s
@@ -66,11 +68,11 @@ func TestWindsurfDiscoverer_WithFixtures(t *testing.T) {
 	}
 
 	require.NotNil(t, stdioServer)
-	assert.Equal(t, MCPTransportStdio, stdioServer.MCPServer.Transport)
+	assert.Equal(t, inventory.TransportStdio, stdioServer.MCPServer.Transport)
 	assert.Equal(t, "npx", stdioServer.MCPServer.Command)
 
 	require.NotNil(t, remoteServer)
-	assert.Equal(t, MCPTransportStreamableHTTP, remoteServer.MCPServer.Transport)
+	assert.Equal(t, inventory.TransportStreamableHTTP, remoteServer.MCPServer.Transport)
 	assert.Equal(t, "https://example.com/mcp", remoteServer.MCPServer.URL)
 	assert.Contains(t, remoteServer.MCPServer.HeaderNames, "Authorization")
 }
@@ -81,8 +83,8 @@ func TestWindsurfDiscoverer_MissingConfig(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	err = reader.EnumTools(context.Background(), func(tool *AITool) error {
+	var tools []*inventory.Item
+	err = reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		tools = append(tools, tool)
 		return nil
 	})

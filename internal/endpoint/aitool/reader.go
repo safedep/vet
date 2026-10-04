@@ -1,10 +1,14 @@
 package aitool
 
-import "context"
+import (
+	"context"
 
-// AIToolHandlerFn is called for each discovered AI tool.
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
+)
+
+// AIToolHandlerFn is called for each discovered item.
 // Return an error to stop enumeration.
-type AIToolHandlerFn func(*AITool) error
+type AIToolHandlerFn func(*inventory.Item) error
 
 // AIToolReader discovers AI tools from a specific source.
 // Implementations should be specific to a single AI application

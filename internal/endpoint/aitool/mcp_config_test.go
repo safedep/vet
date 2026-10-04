@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 )
 
 func TestParseMCPAppConfig(t *testing.T) {
@@ -26,47 +28,47 @@ func TestParseMCPAppConfig(t *testing.T) {
 func TestDetectTransport(t *testing.T) {
 	t.Run("stdio_from_command", func(t *testing.T) {
 		entry := mcpServerEntry{Command: "npx", Args: []string{"-y", "server"}}
-		assert.Equal(t, MCPTransportStdio, detectTransport(entry))
+		assert.Equal(t, inventory.TransportStdio, detectTransport(entry))
 	})
 
 	t.Run("sse_from_url", func(t *testing.T) {
 		entry := mcpServerEntry{URL: "http://localhost:3000/sse"}
-		assert.Equal(t, MCPTransportSSE, detectTransport(entry))
+		assert.Equal(t, inventory.TransportSSE, detectTransport(entry))
 	})
 
 	t.Run("streamable_http_from_url", func(t *testing.T) {
 		entry := mcpServerEntry{URL: "http://localhost:3000/api"}
-		assert.Equal(t, MCPTransportStreamableHTTP, detectTransport(entry))
+		assert.Equal(t, inventory.TransportStreamableHTTP, detectTransport(entry))
 	})
 
 	t.Run("explicit_sse_overrides_command", func(t *testing.T) {
 		entry := mcpServerEntry{Type: "sse", Command: "npx", URL: "http://localhost/sse"}
-		assert.Equal(t, MCPTransportSSE, detectTransport(entry))
+		assert.Equal(t, inventory.TransportSSE, detectTransport(entry))
 	})
 
 	t.Run("explicit_streamable_http_with_underscore", func(t *testing.T) {
 		entry := mcpServerEntry{Type: "streamable_http", Command: "npx"}
-		assert.Equal(t, MCPTransportStreamableHTTP, detectTransport(entry))
+		assert.Equal(t, inventory.TransportStreamableHTTP, detectTransport(entry))
 	})
 
 	t.Run("explicit_streamable_http_with_hyphen", func(t *testing.T) {
 		entry := mcpServerEntry{Type: "streamable-http", URL: "http://localhost/api"}
-		assert.Equal(t, MCPTransportStreamableHTTP, detectTransport(entry))
+		assert.Equal(t, inventory.TransportStreamableHTTP, detectTransport(entry))
 	})
 
 	t.Run("explicit_stdio", func(t *testing.T) {
 		entry := mcpServerEntry{Type: "stdio", Command: "node"}
-		assert.Equal(t, MCPTransportStdio, detectTransport(entry))
+		assert.Equal(t, inventory.TransportStdio, detectTransport(entry))
 	})
 
 	t.Run("serverUrl_streamable_http", func(t *testing.T) {
 		entry := mcpServerEntry{ServerURL: "https://example.com/mcp"}
-		assert.Equal(t, MCPTransportStreamableHTTP, detectTransport(entry))
+		assert.Equal(t, inventory.TransportStreamableHTTP, detectTransport(entry))
 	})
 
 	t.Run("serverUrl_sse", func(t *testing.T) {
 		entry := mcpServerEntry{ServerURL: "https://example.com/sse"}
-		assert.Equal(t, MCPTransportSSE, detectTransport(entry))
+		assert.Equal(t, inventory.TransportSSE, detectTransport(entry))
 	})
 }
 
@@ -75,12 +77,43 @@ func TestEmitMCPServersRedactsSecrets(t *testing.T) {
 		"remote": {URL: "https://user:pw@mcp.example.com/sse?token=abc"},
 		"local":  {Command: "npx", Args: []string{"server", "--token", "sk-secret"}},
 	}}
-	got := map[string]*MCPServerConfig{}
-	err := emitMCPServers(cfg, "mcp.json", AIToolScopeSystem, "app", "App", func(tool *AITool) error {
+	got := map[string]*inventory.MCPServerDetail{}
+	err := emitMCPServers(cfg, "mcp.json", inventory.ScopeSystem, "app", "App", func(tool *inventory.Item) error {
 		got[tool.Name] = tool.MCPServer
 		return nil
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "https://REDACTED@mcp.example.com/sse?token=REDACTED", got["remote"].URL)
 	assert.Equal(t, []string{"server", "--token", "<REDACTED>"}, got["local"].Args)
+}
+
+func TestEmitMCPServersBuildsItems(t *testing.T) {
+	disabled := true
+	cfg := &mcpAppConfig{MCPServers: map[string]mcpServerEntry{
+		"local": {Command: "npx", Env: map[string]any{"API_KEY": "v"}, Disabled: &disabled},
+	}}
+	var items []*inventory.Item
+	err := emitMCPServers(cfg, "/p/.mcp.json", inventory.ScopeProject, "claude_code", "Claude Code", func(it *inventory.Item) error {
+		items = append(items, it)
+		return nil
+	})
+	require.NoError(t, err)
+	require.Len(t, items, 1)
+
+	it := items[0]
+	assert.Equal(t, inventory.KindMCPServer, it.Kind)
+	assert.Equal(t, inventory.ScopeProject, it.Scope)
+	assert.Equal(t, "local", it.Name)
+	assert.Equal(t, "claude_code", it.App)
+	assert.Equal(t, "/p/.mcp.json", it.ConfigPath)
+	assert.Equal(t, inventory.ItemIdentity("claude_code", inventory.KindMCPServer, inventory.ScopeProject, "local", "/p/.mcp.json"), it.ItemIdentity)
+	assert.Equal(t, inventory.SourceID("claude_code", "/p/.mcp.json"), it.SourceID)
+	assert.Equal(t, map[string]string{"app.display": "Claude Code"}, it.Metadata)
+	require.NotNil(t, it.Enabled)
+	assert.False(t, *it.Enabled)
+	require.NotNil(t, it.MCPServer)
+	assert.Equal(t, inventory.TransportStdio, it.MCPServer.Transport)
+	assert.Equal(t, []string{"API_KEY"}, it.MCPServer.EnvVarNames)
+	assert.Nil(t, it.Agent)
+	assert.Nil(t, it.IDEExtension)
 }

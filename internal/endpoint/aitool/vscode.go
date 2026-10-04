@@ -4,6 +4,8 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 )
 
 const (
@@ -38,7 +40,7 @@ func (d *vscodeDiscoverer) Name() string { return "VS Code Config" }
 func (d *vscodeDiscoverer) App() string  { return vscodeApp }
 
 func (d *vscodeDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn) error {
-	if d.config.ScopeEnabled(AIToolScopeSystem) {
+	if d.config.ScopeEnabled(inventory.ScopeSystem) {
 		// VS Code user-data directory is platform-specific; try all known
 		// locations and use the first mcp.json that parses successfully.
 		// Linux:   ~/.config/Code/User/
@@ -57,7 +59,7 @@ func (d *vscodeDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn)
 			if err != nil {
 				continue
 			}
-			if err := emitMCPServers(cfg, path, AIToolScopeSystem, vscodeApp, vscodeAppDisplay, handler); err != nil {
+			if err := emitMCPServers(cfg, path, inventory.ScopeSystem, vscodeApp, vscodeAppDisplay, handler); err != nil {
 				return err
 			}
 			break
@@ -65,17 +67,8 @@ func (d *vscodeDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn)
 
 		vscodeDir := filepath.Join(d.homeDir, ".vscode")
 		if info, err := os.Stat(vscodeDir); err == nil && info.IsDir() {
-			agent := &AITool{
-				Name:       "VS Code",
-				Type:       AIToolTypeCodingAgent,
-				Scope:      AIToolScopeSystem,
-				App:        vscodeApp,
-				AppDisplay: vscodeAppDisplay,
-				ConfigPath: vscodeDir,
-				Agent:      &AgentConfig{},
-			}
-			agent.ID = generateID(agent.App, string(agent.Type), string(agent.Scope), agent.Name, agent.ConfigPath)
-			agent.SourceID = generateSourceID(agent.App, agent.ConfigPath)
+			agent := newItem(inventory.KindCodingAgent, inventory.ScopeSystem, vscodeApp, vscodeAppDisplay, "VS Code", vscodeDir)
+			agent.Agent = &inventory.AgentDetail{}
 
 			if err := handler(agent); err != nil {
 				return err
@@ -83,7 +76,7 @@ func (d *vscodeDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn)
 		}
 	}
 
-	if d.config.ScopeEnabled(AIToolScopeProject) && d.projectDir != "" {
+	if d.config.ScopeEnabled(inventory.ScopeProject) && d.projectDir != "" {
 		vscodeDir := filepath.Join(d.projectDir, ".vscode")
 		for _, name := range []string{"mcp.json", "mcpservers.json", "mcp_config.json"} {
 			path := filepath.Join(vscodeDir, name)
@@ -91,7 +84,7 @@ func (d *vscodeDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn)
 			if err != nil {
 				continue
 			}
-			return emitMCPServers(cfg, path, AIToolScopeProject, vscodeApp, vscodeAppDisplay, handler)
+			return emitMCPServers(cfg, path, inventory.ScopeProject, vscodeApp, vscodeAppDisplay, handler)
 		}
 	}
 

@@ -1,19 +1,26 @@
 package aitool
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
+)
 
 // ScopeMetadata describes the prerequisites for a scope.
 type ScopeMetadata struct {
+	Name               string
 	RequiresHomeDir    bool
 	RequiresProjectDir bool
 }
 
 // knownScopes maps each scope to its metadata.
-var knownScopes = map[AIToolScope]ScopeMetadata{
-	AIToolScopeSystem: {
+var knownScopes = map[inventory.Scope]ScopeMetadata{
+	inventory.ScopeSystem: {
+		Name:            "system",
 		RequiresHomeDir: true,
 	},
-	AIToolScopeProject: {
+	inventory.ScopeProject: {
+		Name:               "project",
 		RequiresProjectDir: true,
 	},
 }
@@ -21,16 +28,16 @@ var knownScopes = map[AIToolScope]ScopeMetadata{
 // DiscoveryScope controls which scopes are active during discovery.
 // An empty set means all scopes are enabled.
 type DiscoveryScope struct {
-	enabled map[AIToolScope]bool
+	enabled map[inventory.Scope]bool
 }
 
-// NewDiscoveryScope creates a scope filter from the given scope names.
-// Returns an error if any scope name is not recognized.
-func NewDiscoveryScope(scopes ...AIToolScope) (*DiscoveryScope, error) {
-	ds := &DiscoveryScope{enabled: make(map[AIToolScope]bool)}
+// NewDiscoveryScope creates a scope filter from the given scopes.
+// Returns an error if any scope is not recognized.
+func NewDiscoveryScope(scopes ...inventory.Scope) (*DiscoveryScope, error) {
+	ds := &DiscoveryScope{enabled: make(map[inventory.Scope]bool)}
 	for _, s := range scopes {
 		if _, ok := knownScopes[s]; !ok {
-			return nil, fmt.Errorf("unknown scope: %q", s)
+			return nil, fmt.Errorf("unknown scope: %d", s)
 		}
 		ds.enabled[s] = true
 	}
@@ -39,12 +46,12 @@ func NewDiscoveryScope(scopes ...AIToolScope) (*DiscoveryScope, error) {
 
 // AllScopes returns a scope with nothing filtered.
 func AllScopes() *DiscoveryScope {
-	return &DiscoveryScope{enabled: make(map[AIToolScope]bool)}
+	return &DiscoveryScope{enabled: make(map[inventory.Scope]bool)}
 }
 
 // IsEnabled reports whether the given scope should be scanned.
 // Returns true when no scopes are explicitly selected (all enabled).
-func (ds *DiscoveryScope) IsEnabled(scope AIToolScope) bool {
+func (ds *DiscoveryScope) IsEnabled(scope inventory.Scope) bool {
 	if len(ds.enabled) == 0 {
 		return true
 	}
@@ -59,7 +66,7 @@ func (ds *DiscoveryScope) All() bool {
 // Validate checks that the DiscoveryConfig satisfies the prerequisites
 // of all enabled scopes.
 func (ds *DiscoveryScope) Validate(config DiscoveryConfig) error {
-	scopes := make([]AIToolScope, 0, len(ds.enabled))
+	scopes := make([]inventory.Scope, 0, len(ds.enabled))
 	if len(ds.enabled) == 0 {
 		for s := range knownScopes {
 			scopes = append(scopes, s)
@@ -72,10 +79,10 @@ func (ds *DiscoveryScope) Validate(config DiscoveryConfig) error {
 	for _, scope := range scopes {
 		meta := knownScopes[scope]
 		if meta.RequiresHomeDir && config.HomeDir == "" {
-			return fmt.Errorf("scope %q requires HomeDir to be set", scope)
+			return fmt.Errorf("scope %q requires HomeDir to be set", meta.Name)
 		}
 		if meta.RequiresProjectDir && config.ProjectDir == "" {
-			return fmt.Errorf("scope %q requires ProjectDir to be set", scope)
+			return fmt.Errorf("scope %q requires ProjectDir to be set", meta.Name)
 		}
 	}
 	return nil

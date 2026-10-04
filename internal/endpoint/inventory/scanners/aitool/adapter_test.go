@@ -13,9 +13,9 @@ import (
 )
 
 // fakeReader is a minimal aitool.AIToolReader used to seed a registry
-// with deterministic AITool emissions.
+// with deterministic item emissions.
 type fakeReader struct {
-	tools []*aitool.AITool
+	items []*inventory.Item
 	err   error
 }
 
@@ -25,8 +25,8 @@ func (f *fakeReader) EnumTools(ctx context.Context, handler aitool.AIToolHandler
 	if f.err != nil {
 		return f.err
 	}
-	for _, t := range f.tools {
-		if err := handler(t); err != nil {
+	for _, it := range f.items {
+		if err := handler(it); err != nil {
 			return err
 		}
 	}
@@ -61,36 +61,39 @@ func TestNewPanicsOnNilRegistry(t *testing.T) {
 	assert.Panics(t, func() { New(nil) })
 }
 
-func TestAdapterScanEmitsTranslatedItems(t *testing.T) {
-	reader := &fakeReader{
-		tools: []*aitool.AITool{
-			{
-				Name:       "anthropic-mcp",
-				Type:       aitool.AIToolTypeMCPServer,
-				Scope:      aitool.AIToolScopeProject,
-				App:        "claude_code",
-				AppDisplay: "Claude Code",
-				ConfigPath: "/work/.mcp.json",
-				MCPServer: &aitool.MCPServerConfig{
-					Transport: aitool.MCPTransportStdio,
-					Command:   "npx",
-				},
-			},
-			{
-				Name:       "claude",
-				Type:       aitool.AIToolTypeCLITool,
-				Scope:      aitool.AIToolScopeSystem,
-				App:        "claude_code",
-				ConfigPath: "/usr/local/bin/claude",
-				Metadata: map[string]any{
-					metaKeyBinaryPath:    "/usr/local/bin/claude",
-					metaKeyBinaryVersion: "1.0.0",
-				},
-			},
+func TestAdapterScanPassesItemsThrough(t *testing.T) {
+	enabled := true
+	items := []*inventory.Item{
+		{
+			Kind:         inventory.KindMCPServer,
+			ItemIdentity: "id-1",
+			SourceID:     "src-1",
+			Name:         "anthropic-mcp",
+			App:          "claude_code",
+			Scope:        inventory.ScopeProject,
+			ConfigPath:   "/work/.mcp.json",
+			Enabled:      &enabled,
+			MCPServer:    &inventory.MCPServerDetail{Transport: inventory.TransportStdio, Command: "npx"},
+			Metadata:     map[string]string{"app.display": "Claude Code"},
+		},
+		{
+			Kind:       inventory.KindCLITool,
+			Name:       "claude",
+			App:        "claude_code",
+			Scope:      inventory.ScopeSystem,
+			ConfigPath: "/usr/local/bin/claude",
+			Metadata:   map[string]string{"binary.path": "/usr/local/bin/claude", "binary.version": "1.0.0"},
+		},
+		{
+			Kind:         inventory.KindIDEExtension,
+			Name:         "ms-python.python",
+			App:          "ide_extension",
+			Scope:        inventory.ScopeSystem,
+			IDEExtension: &inventory.IDEExtensionDetail{IDE: "VS Code"},
 		},
 	}
 
-	scanner := New(newRegistryWithReader(reader))
+	scanner := New(newRegistryWithReader(&fakeReader{items: items}))
 
 	var emitted []*inventory.Item
 	err := scanner.Scan(context.Background(), inventory.ScanConfig{
@@ -101,22 +104,14 @@ func TestAdapterScanEmitsTranslatedItems(t *testing.T) {
 		return nil
 	})
 	require.NoError(t, err)
-	require.Len(t, emitted, 2)
-
-	assert.Equal(t, inventory.KindMCPServer, emitted[0].Kind)
-	assert.Equal(t, "anthropic-mcp", emitted[0].Name)
-	require.NotNil(t, emitted[0].MCPServer)
-	assert.Equal(t, "npx", emitted[0].MCPServer.Command)
-
-	assert.Equal(t, inventory.KindCLITool, emitted[1].Kind)
-	assert.Equal(t, "/usr/local/bin/claude", emitted[1].Metadata[metaKeyBinaryPath])
+	assert.Equal(t, items, emitted)
 }
 
 func TestAdapterScanPropagatesEmitError(t *testing.T) {
 	reader := &fakeReader{
-		tools: []*aitool.AITool{
-			{Name: "a", Type: aitool.AIToolTypeMCPServer, App: "x", ConfigPath: "/a"},
-			{Name: "b", Type: aitool.AIToolTypeMCPServer, App: "x", ConfigPath: "/b"},
+		items: []*inventory.Item{
+			{Name: "a", Kind: inventory.KindMCPServer, App: "x", ConfigPath: "/a"},
+			{Name: "b", Kind: inventory.KindMCPServer, App: "x", ConfigPath: "/b"},
 		},
 	}
 	scanner := New(newRegistryWithReader(reader))
@@ -160,8 +155,8 @@ func TestAdapterScanWithExplicitScopesBuildsDiscoveryScope(t *testing.T) {
 	}, func(*inventory.Item) error { return nil }))
 
 	require.NotNil(t, captured.Scope)
-	assert.True(t, captured.Scope.IsEnabled(aitool.AIToolScopeSystem))
-	assert.False(t, captured.Scope.IsEnabled(aitool.AIToolScopeProject))
+	assert.True(t, captured.Scope.IsEnabled(inventory.ScopeSystem))
+	assert.False(t, captured.Scope.IsEnabled(inventory.ScopeProject))
 }
 
 func TestAdapterScanWithUnknownScopeReturnsError(t *testing.T) {
@@ -172,9 +167,9 @@ func TestAdapterScanWithUnknownScopeReturnsError(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestAdapterScanSkipsNilTool(t *testing.T) {
-	reader := &fakeReader{tools: []*aitool.AITool{nil, {
-		Name: "x", Type: aitool.AIToolTypeMCPServer, App: "a", ConfigPath: "/p",
+func TestAdapterScanSkipsNilItem(t *testing.T) {
+	reader := &fakeReader{items: []*inventory.Item{nil, {
+		Name: "x", Kind: inventory.KindMCPServer, App: "a", ConfigPath: "/p",
 	}}}
 	scanner := New(newRegistryWithReader(reader))
 
@@ -184,7 +179,7 @@ func TestAdapterScanSkipsNilTool(t *testing.T) {
 		return nil
 	})
 	require.NoError(t, err)
-	assert.Equal(t, 1, count, "nil AITool must be skipped, not translated")
+	assert.Equal(t, 1, count, "nil item must be skipped")
 }
 
 // recordingReader is a no-op AIToolReader used purely to satisfy the

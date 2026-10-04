@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/safedep/dry/log"
+
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 )
 
 const (
@@ -41,7 +43,7 @@ func (d *claudeCodeDiscoverer) Name() string { return "Claude Code Config" }
 func (d *claudeCodeDiscoverer) App() string  { return claudeCodeApp }
 
 func (d *claudeCodeDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn) error {
-	if d.config.ScopeEnabled(AIToolScopeSystem) {
+	if d.config.ScopeEnabled(inventory.ScopeSystem) {
 		// System-level: ~/.claude/settings.json
 		systemSettingsPath := filepath.Join(d.homeDir, ".claude", "settings.json")
 		if err := d.processSystemSettings(systemSettingsPath, handler); err != nil {
@@ -54,7 +56,7 @@ func (d *claudeCodeDiscoverer) EnumTools(_ context.Context, handler AIToolHandle
 		}
 	}
 
-	if d.config.ScopeEnabled(AIToolScopeProject) && d.projectDir != "" {
+	if d.config.ScopeEnabled(inventory.ScopeProject) && d.projectDir != "" {
 		if err := d.processProjectConfigs(handler); err != nil {
 			return err
 		}
@@ -70,34 +72,18 @@ func (d *claudeCodeDiscoverer) processSystemSettings(path string, handler AITool
 		return nil
 	}
 
-	// Emit coding_agent for Claude Code itself
-	agent := &AITool{
-		Name:       "Claude Code",
-		Type:       AIToolTypeCodingAgent,
-		Scope:      AIToolScopeSystem,
-		App:        claudeCodeApp,
-		AppDisplay: claudeCodeAppDisplay,
-		ConfigPath: path,
-		Agent:      &AgentConfig{},
+	agent := newItem(inventory.KindCodingAgent, inventory.ScopeSystem, claudeCodeApp, claudeCodeAppDisplay, "Claude Code", path)
+	agent.Agent = &inventory.AgentDetail{
+		Model:          cfg.Model,
+		PermissionMode: claudeCodePermissionMode(cfg),
 	}
-
-	if cfg.Model != "" {
-		agent.Agent.Model = cfg.Model
-	}
-
-	if mode := claudeCodePermissionMode(cfg); mode != "" {
-		agent.Agent.PermissionMode = mode
-	}
-
-	agent.ID = generateID(agent.App, string(agent.Type), string(agent.Scope), agent.Name, agent.ConfigPath)
-	agent.SourceID = generateSourceID(agent.App, agent.ConfigPath)
 
 	if err := handler(agent); err != nil {
 		return err
 	}
 
 	// Emit MCP servers from system settings
-	return emitMCPServers(cfg, path, AIToolScopeSystem, claudeCodeApp, claudeCodeAppDisplay, handler)
+	return emitMCPServers(cfg, path, inventory.ScopeSystem, claudeCodeApp, claudeCodeAppDisplay, handler)
 }
 
 func (d *claudeCodeDiscoverer) walkProjectSettings(handler AIToolHandlerFn) error {
@@ -119,7 +105,7 @@ func (d *claudeCodeDiscoverer) walkProjectSettings(handler AIToolHandlerFn) erro
 			continue
 		}
 
-		if err := emitMCPServers(cfg, settingsPath, AIToolScopeSystem, claudeCodeApp, claudeCodeAppDisplay, handler); err != nil {
+		if err := emitMCPServers(cfg, settingsPath, inventory.ScopeSystem, claudeCodeApp, claudeCodeAppDisplay, handler); err != nil {
 			return err
 		}
 	}
@@ -131,7 +117,7 @@ func (d *claudeCodeDiscoverer) processProjectConfigs(handler AIToolHandlerFn) er
 	// .mcp.json
 	mcpJSONPath := filepath.Join(d.projectDir, ".mcp.json")
 	if cfg, err := parseMCPAppConfig(mcpJSONPath); err == nil {
-		if err := emitMCPServers(cfg, mcpJSONPath, AIToolScopeProject, claudeCodeApp, claudeCodeAppDisplay, handler); err != nil {
+		if err := emitMCPServers(cfg, mcpJSONPath, inventory.ScopeProject, claudeCodeApp, claudeCodeAppDisplay, handler); err != nil {
 			return err
 		}
 	}
@@ -139,7 +125,7 @@ func (d *claudeCodeDiscoverer) processProjectConfigs(handler AIToolHandlerFn) er
 	// .claude/settings.json (project-scoped)
 	projectSettingsPath := filepath.Join(d.projectDir, ".claude", "settings.json")
 	if cfg, err := parseMCPAppConfig(projectSettingsPath); err == nil {
-		if err := emitMCPServers(cfg, projectSettingsPath, AIToolScopeProject, claudeCodeApp, claudeCodeAppDisplay, handler); err != nil {
+		if err := emitMCPServers(cfg, projectSettingsPath, inventory.ScopeProject, claudeCodeApp, claudeCodeAppDisplay, handler); err != nil {
 			return err
 		}
 	}
@@ -152,21 +138,10 @@ func (d *claudeCodeDiscoverer) processProjectConfigs(handler AIToolHandlerFn) er
 	}
 
 	if len(instructionFiles) > 0 {
-		tool := &AITool{
-			Name:       "Claude Code",
-			Type:       AIToolTypeProjectConfig,
-			Scope:      AIToolScopeProject,
-			App:        claudeCodeApp,
-			AppDisplay: claudeCodeAppDisplay,
-			ConfigPath: d.projectDir,
-			Agent: &AgentConfig{
-				InstructionFiles: instructionFiles,
-			},
-		}
-		tool.ID = generateID(tool.App, string(tool.Type), string(tool.Scope), tool.Name, tool.ConfigPath)
-		tool.SourceID = generateSourceID(tool.App, tool.ConfigPath)
+		item := newItem(inventory.KindProjectConfig, inventory.ScopeProject, claudeCodeApp, claudeCodeAppDisplay, "Claude Code", d.projectDir)
+		item.Agent = &inventory.AgentDetail{InstructionFiles: instructionFiles}
 
-		if err := handler(tool); err != nil {
+		if err := handler(item); err != nil {
 			return err
 		}
 	}

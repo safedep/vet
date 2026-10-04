@@ -5,24 +5,26 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 )
 
 func TestNewDiscoveryScope_ValidScopes(t *testing.T) {
-	ds, err := NewDiscoveryScope(AIToolScopeSystem)
+	ds, err := NewDiscoveryScope(inventory.ScopeSystem)
 	require.NoError(t, err)
-	assert.True(t, ds.IsEnabled(AIToolScopeSystem))
-	assert.False(t, ds.IsEnabled(AIToolScopeProject))
+	assert.True(t, ds.IsEnabled(inventory.ScopeSystem))
+	assert.False(t, ds.IsEnabled(inventory.ScopeProject))
 }
 
 func TestNewDiscoveryScope_MultipleScopes(t *testing.T) {
-	ds, err := NewDiscoveryScope(AIToolScopeSystem, AIToolScopeProject)
+	ds, err := NewDiscoveryScope(inventory.ScopeSystem, inventory.ScopeProject)
 	require.NoError(t, err)
-	assert.True(t, ds.IsEnabled(AIToolScopeSystem))
-	assert.True(t, ds.IsEnabled(AIToolScopeProject))
+	assert.True(t, ds.IsEnabled(inventory.ScopeSystem))
+	assert.True(t, ds.IsEnabled(inventory.ScopeProject))
 }
 
 func TestNewDiscoveryScope_UnknownScope(t *testing.T) {
-	_, err := NewDiscoveryScope(AIToolScope("bogus"))
+	_, err := NewDiscoveryScope(inventory.Scope(99))
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "unknown scope")
 }
@@ -30,20 +32,20 @@ func TestNewDiscoveryScope_UnknownScope(t *testing.T) {
 func TestNewDiscoveryScope_Empty(t *testing.T) {
 	ds, err := NewDiscoveryScope()
 	require.NoError(t, err)
-	assert.True(t, ds.IsEnabled(AIToolScopeSystem))
-	assert.True(t, ds.IsEnabled(AIToolScopeProject))
+	assert.True(t, ds.IsEnabled(inventory.ScopeSystem))
+	assert.True(t, ds.IsEnabled(inventory.ScopeProject))
 	assert.True(t, ds.All())
 }
 
 func TestAllScopes(t *testing.T) {
 	ds := AllScopes()
 	assert.True(t, ds.All())
-	assert.True(t, ds.IsEnabled(AIToolScopeSystem))
-	assert.True(t, ds.IsEnabled(AIToolScopeProject))
+	assert.True(t, ds.IsEnabled(inventory.ScopeSystem))
+	assert.True(t, ds.IsEnabled(inventory.ScopeProject))
 }
 
 func TestDiscoveryScope_All(t *testing.T) {
-	ds, err := NewDiscoveryScope(AIToolScopeSystem)
+	ds, err := NewDiscoveryScope(inventory.ScopeSystem)
 	require.NoError(t, err)
 	assert.False(t, ds.All())
 
@@ -55,35 +57,35 @@ func TestDiscoveryScope_All(t *testing.T) {
 func TestDiscoveryScope_Validate(t *testing.T) {
 	tests := []struct {
 		name    string
-		scopes  []AIToolScope
+		scopes  []inventory.Scope
 		config  DiscoveryConfig
 		wantErr string
 	}{
 		{
 			name:   "system scope with home dir",
-			scopes: []AIToolScope{AIToolScopeSystem},
+			scopes: []inventory.Scope{inventory.ScopeSystem},
 			config: DiscoveryConfig{HomeDir: "/home/user"},
 		},
 		{
 			name:    "system scope without home dir",
-			scopes:  []AIToolScope{AIToolScopeSystem},
+			scopes:  []inventory.Scope{inventory.ScopeSystem},
 			config:  DiscoveryConfig{},
 			wantErr: "requires HomeDir",
 		},
 		{
 			name:   "project scope with project dir",
-			scopes: []AIToolScope{AIToolScopeProject},
+			scopes: []inventory.Scope{inventory.ScopeProject},
 			config: DiscoveryConfig{ProjectDir: "/my/project"},
 		},
 		{
 			name:    "project scope without project dir",
-			scopes:  []AIToolScope{AIToolScopeProject},
+			scopes:  []inventory.Scope{inventory.ScopeProject},
 			config:  DiscoveryConfig{},
 			wantErr: "requires ProjectDir",
 		},
 		{
 			name:   "both scopes satisfied",
-			scopes: []AIToolScope{AIToolScopeSystem, AIToolScopeProject},
+			scopes: []inventory.Scope{inventory.ScopeSystem, inventory.ScopeProject},
 			config: DiscoveryConfig{HomeDir: "/home/user", ProjectDir: "/my/project"},
 		},
 		{
@@ -118,15 +120,15 @@ func TestDiscoveryScope_Validate(t *testing.T) {
 
 func TestDiscoveryConfig_ScopeEnabled_NilScope(t *testing.T) {
 	config := DiscoveryConfig{}
-	assert.True(t, config.ScopeEnabled(AIToolScopeSystem))
-	assert.True(t, config.ScopeEnabled(AIToolScopeProject))
+	assert.True(t, config.ScopeEnabled(inventory.ScopeSystem))
+	assert.True(t, config.ScopeEnabled(inventory.ScopeProject))
 }
 
 func TestDiscoveryConfig_ScopeEnabled_WithScope(t *testing.T) {
-	ds, err := NewDiscoveryScope(AIToolScopeProject)
+	ds, err := NewDiscoveryScope(inventory.ScopeProject)
 	require.NoError(t, err)
 
 	config := DiscoveryConfig{Scope: ds}
-	assert.False(t, config.ScopeEnabled(AIToolScopeSystem))
-	assert.True(t, config.ScopeEnabled(AIToolScopeProject))
+	assert.False(t, config.ScopeEnabled(inventory.ScopeSystem))
+	assert.True(t, config.ScopeEnabled(inventory.ScopeProject))
 }

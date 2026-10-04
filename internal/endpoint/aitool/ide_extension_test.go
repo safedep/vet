@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 	"github.com/safedep/vet/v2/model"
 )
 
@@ -27,8 +28,8 @@ func TestIDEExtensionDiscoverer_Interface(t *testing.T) {
 func TestIDEExtensionDiscoverer_EmitsAllExtensions(t *testing.T) {
 	d := newFixtureDiscoverer(t, DiscoveryConfig{})
 
-	var tools []*AITool
-	err := d.EnumTools(context.Background(), func(tool *AITool) error {
+	var tools []*inventory.Item
+	err := d.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		tools = append(tools, tool)
 		return nil
 	})
@@ -40,9 +41,9 @@ func TestIDEExtensionDiscoverer_EmitsAllExtensions(t *testing.T) {
 func TestIDEExtensionDiscoverer_ToolType(t *testing.T) {
 	d := newFixtureDiscoverer(t, DiscoveryConfig{})
 
-	err := d.EnumTools(context.Background(), func(tool *AITool) error {
-		assert.Equal(t, AIToolTypeIDEExtension, tool.Type)
-		assert.Equal(t, AIToolScopeSystem, tool.Scope)
+	err := d.EnumTools(context.Background(), func(tool *inventory.Item) error {
+		assert.Equal(t, inventory.KindIDEExtension, tool.Kind)
+		assert.Equal(t, inventory.ScopeSystem, tool.Scope)
 		return nil
 	})
 
@@ -52,10 +53,9 @@ func TestIDEExtensionDiscoverer_ToolType(t *testing.T) {
 func TestIDEExtensionDiscoverer_ExtensionMetadata(t *testing.T) {
 	d := newFixtureDiscoverer(t, DiscoveryConfig{})
 
-	byID := map[string]*AITool{}
-	err := d.EnumTools(context.Background(), func(tool *AITool) error {
-		id, _ := tool.GetMeta("extension.id").(string)
-		byID[id] = tool
+	byID := map[string]*inventory.Item{}
+	err := d.EnumTools(context.Background(), func(tool *inventory.Item) error {
+		byID[tool.Metadata["extension.id"]] = tool
 		return nil
 	})
 	require.NoError(t, err)
@@ -64,34 +64,38 @@ func TestIDEExtensionDiscoverer_ExtensionMetadata(t *testing.T) {
 		tool, ok := byID["ms-python.python"]
 		require.True(t, ok)
 		assert.Equal(t, "ms-python.python", tool.Name)
-		assert.Equal(t, "2023.20.0", tool.GetMeta("extension.version"))
-		assert.Equal(t, "VS Code", tool.GetMeta("extension.ide"))
-		assert.Equal(t, &ExtensionConfig{
-			ID:        "ms-python.python",
-			Version:   "2023.20.0",
-			Ecosystem: string(model.EcosystemVSCode),
-			IDE:       "VS Code",
-		}, tool.Extension)
-		assert.NotEmpty(t, tool.ID)
-		assert.NotEmpty(t, tool.SourceID)
+		assert.Equal(t, "2023.20.0", tool.Metadata["extension.version"])
+		assert.Equal(t, "VS Code", tool.Metadata["extension.ide"])
+		assert.Equal(t, "VS Code", tool.Metadata["app.display"])
+		assert.Equal(t, &inventory.IDEExtensionDetail{
+			Package: &inventory.PackageIdentity{
+				Ecosystem: string(model.EcosystemVSCode),
+				Name:      "ms-python.python",
+				Version:   "2023.20.0",
+			},
+			IDE: "VS Code",
+		}, tool.IDEExtension)
+		assert.Equal(t, inventory.ItemIdentity(ideExtensionApp, inventory.KindIDEExtension, inventory.ScopeSystem,
+			"ms-python.python", tool.ConfigPath), tool.ItemIdentity)
+		assert.Equal(t, inventory.SourceID(ideExtensionApp, tool.ConfigPath), tool.SourceID)
 	})
 
 	t.Run("AI extension included", func(t *testing.T) {
 		tool, ok := byID["github.copilot"]
 		require.True(t, ok)
 		assert.Equal(t, "github.copilot", tool.Name)
-		assert.Equal(t, "1.200.0", tool.GetMeta("extension.version"))
+		assert.Equal(t, "1.200.0", tool.Metadata["extension.version"])
 	})
 }
 
 func TestIDEExtensionDiscoverer_SystemScopeOnly(t *testing.T) {
-	projectOnlyScope, err := NewDiscoveryScope(AIToolScopeProject)
+	projectOnlyScope, err := NewDiscoveryScope(inventory.ScopeProject)
 	require.NoError(t, err)
 
 	d := newFixtureDiscoverer(t, DiscoveryConfig{Scope: projectOnlyScope})
 
 	var count int
-	err = d.EnumTools(context.Background(), func(*AITool) error {
+	err = d.EnumTools(context.Background(), func(*inventory.Item) error {
 		count++
 		return nil
 	})
@@ -104,10 +108,10 @@ func TestIDEExtensionDiscoverer_StableIdentity(t *testing.T) {
 	collectIDs := func() map[string]string {
 		d := newFixtureDiscoverer(t, DiscoveryConfig{})
 		ids := map[string]string{}
-		_ = d.EnumTools(context.Background(), func(tool *AITool) error {
-			ids[tool.GetMeta("extension.id").(string)] = tool.ID
+		require.NoError(t, d.EnumTools(context.Background(), func(tool *inventory.Item) error {
+			ids[tool.Metadata["extension.id"]] = tool.ItemIdentity
 			return nil
-		})
+		}))
 		return ids
 	}
 

@@ -1,8 +1,6 @@
 package nvimplugin
 
 import (
-	"fmt"
-	"hash/fnv"
 	"strconv"
 
 	"github.com/safedep/vet/v2/internal/endpoint/inventory"
@@ -62,8 +60,8 @@ func translate(manager string, p Plugin) *inventory.Item {
 
 	return &inventory.Item{
 		Kind:         inventory.KindIDEExtension,
-		ItemIdentity: itemIdentity(appName, inventory.KindIDEExtension, inventory.ScopeSystem, p.Name, p.InstallDir),
-		SourceID:     sourceID(appName, p.SourcePath),
+		ItemIdentity: inventory.ItemIdentity(appName, inventory.KindIDEExtension, inventory.ScopeSystem, p.Name, p.InstallDir),
+		SourceID:     inventory.SourceID(appName, p.SourcePath),
 		Name:         displayName,
 		App:          appName,
 		Scope:        inventory.ScopeSystem,
@@ -76,20 +74,4 @@ func setIfNotEmpty(m map[string]string, k, v string) {
 	if v != "" {
 		m[k] = v
 	}
-}
-
-// itemIdentity is the FNV-64a dedup key hash(app/kind/scope/name/config_path),
-// matching the skills scanner and inventory.Item.ItemIdentity.
-func itemIdentity(app string, kind inventory.Kind, scope inventory.Scope, name, configPath string) string {
-	h := fnv.New64a()
-	_, _ = fmt.Fprintf(h, "%s/%d/%d/%s/%s", app, kind, scope, name, configPath)
-	return fmt.Sprintf("%x", h.Sum64())
-}
-
-// sourceID groups plugins from the same config, keyed by declaring source
-// path. FNV-64a keeps it within the backend's 100-char limit.
-func sourceID(app, sourcePath string) string {
-	h := fnv.New64a()
-	_, _ = fmt.Fprintf(h, "%s:%s", app, sourcePath)
-	return fmt.Sprintf("%x", h.Sum64())
 }

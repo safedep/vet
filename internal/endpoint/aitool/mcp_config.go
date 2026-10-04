@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/safedep/dry/log"
+
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 )
 
 // mcpServerEntry represents a single MCP server entry in an app config file.
@@ -63,44 +65,43 @@ func parseMCPAppConfig(path string) (*mcpAppConfig, error) {
 
 // detectTransport determines the MCP transport from a server entry.
 // An explicit "type" field takes priority over heuristics.
-func detectTransport(entry mcpServerEntry) MCPTransport {
+func detectTransport(entry mcpServerEntry) inventory.Transport {
 	// Explicit type declaration takes precedence
 	switch strings.ReplaceAll(strings.ToLower(entry.Type), "-", "_") {
 	case "sse":
-		return MCPTransportSSE
+		return inventory.TransportSSE
 	case "streamable_http":
-		return MCPTransportStreamableHTTP
+		return inventory.TransportStreamableHTTP
 	case "stdio":
-		return MCPTransportStdio
+		return inventory.TransportStdio
 	}
 
 	// Fall back to heuristics from command/url presence
 	if entry.Command != "" {
-		return MCPTransportStdio
+		return inventory.TransportStdio
 	}
 	if u := entry.resolvedURL(); u != "" {
 		if strings.Contains(u, "/sse") {
-			return MCPTransportSSE
+			return inventory.TransportSSE
 		}
-		return MCPTransportStreamableHTTP
+		return inventory.TransportStreamableHTTP
 	}
-	return MCPTransportStdio
+	return inventory.TransportStdio
 }
 
-// emitMCPServers creates and emits AITool entries for all MCP servers in a config.
+// emitMCPServers creates and emits an item for each MCP server in a config.
 // Entries from "mcpServers" and "servers" are merged; "mcpServers" takes precedence
 // when the same name appears in both.
-func emitMCPServers(cfg *mcpAppConfig, configPath string, scope AIToolScope, app, appDisplay string, handler AIToolHandlerFn) error {
+func emitMCPServers(cfg *mcpAppConfig, configPath string, scope inventory.Scope, app, appDisplay string, handler AIToolHandlerFn) error {
 	merged := make(map[string]mcpServerEntry, len(cfg.MCPServers)+len(cfg.Servers))
 	maps.Copy(merged, cfg.Servers)
 	maps.Copy(merged, cfg.MCPServers)
 	for _, name := range sortedKeys(merged) {
 		entry := merged[name]
 
-		transport := detectTransport(entry)
-
-		mcpCfg := &MCPServerConfig{
-			Transport:    transport,
+		item := newItem(inventory.KindMCPServer, scope, app, appDisplay, name, configPath)
+		item.MCPServer = &inventory.MCPServerDetail{
+			Transport:    detectTransport(entry),
 			Command:      entry.Command,
 			Args:         SanitizeArgs(entry.Args),
 			URL:          SanitizeURL(entry.resolvedURL()),
@@ -109,25 +110,12 @@ func emitMCPServers(cfg *mcpAppConfig, configPath string, scope AIToolScope, app
 			AllowedTools: entry.AllowedTools,
 		}
 
-		tool := &AITool{
-			Name:       name,
-			Type:       AIToolTypeMCPServer,
-			Scope:      scope,
-			App:        app,
-			AppDisplay: appDisplay,
-			ConfigPath: configPath,
-			MCPServer:  mcpCfg,
-		}
-
 		if entry.Disabled != nil {
 			enabled := !*entry.Disabled
-			tool.Enabled = &enabled
+			item.Enabled = &enabled
 		}
 
-		tool.ID = generateID(tool.App, string(tool.Type), string(tool.Scope), tool.Name, tool.ConfigPath)
-		tool.SourceID = generateSourceID(tool.App, tool.ConfigPath)
-
-		if err := handler(tool); err != nil {
+		if err := handler(item); err != nil {
 			return err
 		}
 	}

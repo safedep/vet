@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/safedep/dry/log"
+
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 )
 
 // ideExtensionApp is intentionally singular ("ide_extension"), distinct from
@@ -26,7 +28,7 @@ func (d *ideExtensionDiscoverer) Name() string { return "IDE Extensions" }
 func (d *ideExtensionDiscoverer) App() string  { return ideExtensionApp }
 
 func (d *ideExtensionDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn) error {
-	if !d.config.ScopeEnabled(AIToolScopeSystem) {
+	if !d.config.ScopeEnabled(inventory.ScopeSystem) {
 		return nil
 	}
 
@@ -40,6 +42,6 @@ func (d *ideExtensionDiscoverer) EnumTools(_ context.Context, handler AIToolHand
 		r = newVSIXReader(home)
 	}
 
-	return enumVSIXExtensions(r, ideExtensionApp, AIToolTypeIDEExtension,
+	return enumVSIXExtensions(r, ideExtensionApp, inventory.KindIDEExtension,
 		func(id string) (string, bool) { return id, true }, handler)
 }

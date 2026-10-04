@@ -7,6 +7,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 )
 
 func TestVSCodeDiscoverer_WithFixtures(t *testing.T) {
@@ -38,28 +40,28 @@ func TestVSCodeDiscoverer_WithFixtures(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	err = reader.EnumTools(context.Background(), func(tool *AITool) error {
+	var tools []*inventory.Item
+	err = reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		tools = append(tools, tool)
 		return nil
 	})
 	require.NoError(t, err)
 	assert.NotEmpty(t, tools)
 
-	var agents []*AITool
+	var agents []*inventory.Item
 	for _, tool := range tools {
-		if tool.Type == AIToolTypeCodingAgent {
+		if tool.Kind == inventory.KindCodingAgent {
 			agents = append(agents, tool)
 		}
 	}
 	require.Len(t, agents, 1)
 	assert.Equal(t, "VS Code", agents[0].Name)
 	assert.Equal(t, vscodeApp, agents[0].App)
-	assert.Equal(t, AIToolScopeSystem, agents[0].Scope)
+	assert.Equal(t, inventory.ScopeSystem, agents[0].Scope)
 
-	var systemMCP []*AITool
+	var systemMCP []*inventory.Item
 	for _, tool := range tools {
-		if tool.Type == AIToolTypeMCPServer && tool.Scope == AIToolScopeSystem {
+		if tool.Kind == inventory.KindMCPServer && tool.Scope == inventory.ScopeSystem {
 			systemMCP = append(systemMCP, tool)
 		}
 	}
@@ -67,9 +69,9 @@ func TestVSCodeDiscoverer_WithFixtures(t *testing.T) {
 	assert.Equal(t, "vscode-global", systemMCP[0].Name)
 	assert.Equal(t, vscodeApp, systemMCP[0].App)
 
-	var projectMCP []*AITool
+	var projectMCP []*inventory.Item
 	for _, tool := range tools {
-		if tool.Type == AIToolTypeMCPServer && tool.Scope == AIToolScopeProject {
+		if tool.Kind == inventory.KindMCPServer && tool.Scope == inventory.ScopeProject {
 			projectMCP = append(projectMCP, tool)
 		}
 	}
@@ -82,8 +84,8 @@ func TestVSCodeDiscoverer_MissingConfig(t *testing.T) {
 	reader, err := NewVSCodeDiscoverer(DiscoveryConfig{HomeDir: t.TempDir()})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	err = reader.EnumTools(context.Background(), func(tool *AITool) error {
+	var tools []*inventory.Item
+	err = reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		tools = append(tools, tool)
 		return nil
 	})
@@ -98,14 +100,14 @@ func TestVSCodeDiscoverer_DirExistsButNoMCPJson(t *testing.T) {
 	reader, err := NewVSCodeDiscoverer(DiscoveryConfig{HomeDir: tmpDir})
 	require.NoError(t, err)
 
-	var tools []*AITool
-	err = reader.EnumTools(context.Background(), func(tool *AITool) error {
+	var tools []*inventory.Item
+	err = reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
 		tools = append(tools, tool)
 		return nil
 	})
 	require.NoError(t, err)
 	require.Len(t, tools, 1)
-	assert.Equal(t, AIToolTypeCodingAgent, tools[0].Type)
+	assert.Equal(t, inventory.KindCodingAgent, tools[0].Kind)
 	assert.Equal(t, "VS Code", tools[0].Name)
 }
 
@@ -127,9 +129,9 @@ func TestVSCodeDiscoverer_ServersKey(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	var mcpServers []*AITool
-	err = reader.EnumTools(context.Background(), func(tool *AITool) error {
-		if tool.Type == AIToolTypeMCPServer {
+	var mcpServers []*inventory.Item
+	err = reader.EnumTools(context.Background(), func(tool *inventory.Item) error {
+		if tool.Kind == inventory.KindMCPServer {
 			mcpServers = append(mcpServers, tool)
 		}
 		return nil
@@ -137,5 +139,5 @@ func TestVSCodeDiscoverer_ServersKey(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, mcpServers)
 	assert.Equal(t, "vscode-project-tool", mcpServers[0].Name)
-	assert.Equal(t, AIToolScopeProject, mcpServers[0].Scope)
+	assert.Equal(t, inventory.ScopeProject, mcpServers[0].Scope)
 }

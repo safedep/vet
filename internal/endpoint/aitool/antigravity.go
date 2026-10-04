@@ -4,6 +4,8 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 )
 
 const (
@@ -36,14 +38,14 @@ func (d *antigravityDiscoverer) Name() string { return "Antigravity Config" }
 func (d *antigravityDiscoverer) App() string  { return antigravityApp }
 
 func (d *antigravityDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn) error {
-	if !d.config.ScopeEnabled(AIToolScopeSystem) {
+	if !d.config.ScopeEnabled(inventory.ScopeSystem) {
 		return nil
 	}
 
 	// ~/.gemini/antigravity/mcp_config.json holds global MCP server config.
 	systemMCPPath := filepath.Join(d.homeDir, ".gemini", "antigravity", "mcp_config.json")
 	if cfg, err := parseMCPAppConfig(systemMCPPath); err == nil {
-		if err := emitMCPServers(cfg, systemMCPPath, AIToolScopeSystem, antigravityApp, antigravityAppDisplay, handler); err != nil {
+		if err := emitMCPServers(cfg, systemMCPPath, inventory.ScopeSystem, antigravityApp, antigravityAppDisplay, handler); err != nil {
 			return err
 		}
 	}
@@ -67,17 +69,8 @@ func (d *antigravityDiscoverer) EnumTools(_ context.Context, handler AIToolHandl
 		if err != nil || !info.IsDir() {
 			continue
 		}
-		agent := &AITool{
-			Name:       "Antigravity",
-			Type:       AIToolTypeCodingAgent,
-			Scope:      AIToolScopeSystem,
-			App:        antigravityApp,
-			AppDisplay: antigravityAppDisplay,
-			ConfigPath: dir,
-			Agent:      &AgentConfig{},
-		}
-		agent.ID = generateID(agent.App, string(agent.Type), string(agent.Scope), agent.Name, agent.ConfigPath)
-		agent.SourceID = generateSourceID(agent.App, agent.ConfigPath)
+		agent := newItem(inventory.KindCodingAgent, inventory.ScopeSystem, antigravityApp, antigravityAppDisplay, "Antigravity", dir)
+		agent.Agent = &inventory.AgentDetail{}
 
 		if err := handler(agent); err != nil {
 			return err

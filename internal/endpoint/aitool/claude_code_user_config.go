@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 
 	"github.com/safedep/dry/log"
+
+	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 )
 
 type claudeCodeUserConfigDiscoverer struct {
@@ -34,7 +36,7 @@ func (d *claudeCodeUserConfigDiscoverer) Name() string { return "Claude Code Use
 func (d *claudeCodeUserConfigDiscoverer) App() string  { return claudeCodeApp }
 
 func (d *claudeCodeUserConfigDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn) error {
-	if d.config.ScopeEnabled(AIToolScopeSystem) {
+	if d.config.ScopeEnabled(inventory.ScopeSystem) {
 		if err := d.processUserConfig(handler); err != nil {
 			return err
 		}
@@ -42,7 +44,7 @@ func (d *claudeCodeUserConfigDiscoverer) EnumTools(_ context.Context, handler AI
 			return err
 		}
 	}
-	if d.config.ScopeEnabled(AIToolScopeProject) {
+	if d.config.ScopeEnabled(inventory.ScopeProject) {
 		if err := d.processAllProjectMCPs(handler); err != nil {
 			return err
 		}
@@ -59,7 +61,7 @@ func (d *claudeCodeUserConfigDiscoverer) processUserConfig(handler AIToolHandler
 		log.Debugf("Claude Code user config not found or unreadable: %s", path)
 		return nil
 	}
-	return emitMCPServers(cfg, path, AIToolScopeSystem, claudeCodeApp, claudeCodeAppDisplay, handler)
+	return emitMCPServers(cfg, path, inventory.ScopeSystem, claudeCodeApp, claudeCodeAppDisplay, handler)
 }
 
 // processAllProjectMCPs reads ~/.claude.json and emits MCP servers from every
@@ -78,7 +80,7 @@ func (d *claudeCodeUserConfigDiscoverer) processAllProjectMCPs(handler AIToolHan
 			continue
 		}
 		mcpCfg := projectEntryToMCPConfig(entry)
-		if err := emitMCPServers(mcpCfg, projectPath, AIToolScopeProject, claudeCodeApp, claudeCodeAppDisplay, handler); err != nil {
+		if err := emitMCPServers(mcpCfg, projectPath, inventory.ScopeProject, claudeCodeApp, claudeCodeAppDisplay, handler); err != nil {
 			return err
 		}
 	}
@@ -103,6 +105,6 @@ func (d *claudeCodeUserConfigDiscoverer) walkPluginCache(handler AIToolHandlerFn
 			log.Debugf("Claude Code plugin MCP config unreadable: %s: %v", path, parseErr)
 			return nil
 		}
-		return emitMCPServers(cfg, path, AIToolScopeSystem, claudeCodeApp, claudeCodeAppDisplay, handler)
+		return emitMCPServers(cfg, path, inventory.ScopeSystem, claudeCodeApp, claudeCodeAppDisplay, handler)
 	})
 }
