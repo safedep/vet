@@ -16,9 +16,11 @@ workflows that the change adds or modifies. The checkout needs the history of th
 
 ## GitHub Actions
 
-This workflow installs a pinned alpha build, checks the archive, scans the change and uploads the
-findings to GitHub code scanning. Set `VET_VERSION` to a release from
-[install.md](install.md#release-binaries).
+This workflow installs the newest alpha build, checks the archive, scans the change and uploads the
+findings to GitHub code scanning.
+
+The releases page keeps only the last 5 alpha builds, so the workflow finds the newest build when
+it runs. Do not pin an alpha version in a workflow. Its download fails when the release goes.
 
 ```yaml
 name: vet
@@ -43,8 +45,9 @@ jobs:
       - name: Install vet
         env:
           GH_TOKEN: ${{ github.token }}
-          VET_VERSION: v2.0.0-alpha.20261004163722
         run: |
+          VET_VERSION=$(gh api "repos/safedep/vet/releases?per_page=30" \
+            --jq '[.[] | select(.tag_name | startswith("v2.0.0-alpha."))][0].tag_name')
           gh release download "$VET_VERSION" --repo safedep/vet \
             --pattern vet_Linux_x86_64.tar.gz --pattern checksums.txt --dir "$RUNNER_TEMP"
           cd "$RUNNER_TEMP"
