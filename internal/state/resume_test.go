@@ -2,6 +2,7 @@ package state
 
 import (
 	"context"
+	"os"
 	"testing"
 	"time"
 
@@ -140,6 +141,22 @@ func TestContinueScan(t *testing.T) {
 	live, err := isLive(e.File)
 	require.NoError(t, err)
 	assert.True(t, live)
+}
+
+// TestStoppedScanWithNoFile checks that vet starts a new scan in place of a
+// stopped scan with no scan file, and does not make an empty scan file.
+func TestStoppedScanWithNoFile(t *testing.T) {
+	ctx := context.Background()
+	s := openStore(t)
+	scan, e := newScan(t, s, "/repo")
+	require.NoError(t, scan.Close())
+	require.NoError(t, os.Remove(e.File))
+
+	d, err := s.DecideContinue(ctx, ContinueRequest{TargetKey: "/repo", OptionsHash: "h1", VetVersion: "test"})
+	require.NoError(t, err)
+	assert.Nil(t, d.Continue)
+	assert.Equal(t, ReasonFileMissing, d.Reason)
+	assert.NoFileExists(t, e.File)
 }
 
 // TestScanOfAnotherFormat checks that vet refuses a scan file of another

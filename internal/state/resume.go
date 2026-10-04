@@ -36,6 +36,7 @@ const (
 	ReasonFresh          Reason = "fresh"
 	ReasonOptionsChanged Reason = "options-changed"
 	ReasonVersionChanged Reason = "version-changed"
+	ReasonFileMissing    Reason = "file-missing"
 	ReasonTooOld         Reason = "too-old"
 	ReasonLive           Reason = "live"
 )
@@ -102,7 +103,11 @@ func (s *Store) DecideContinue(ctx context.Context, r ContinueRequest) (*Continu
 		d.Reason = ReasonFresh
 	case stopped.OptionsHash != r.OptionsHash:
 		d.Reason = ReasonOptionsChanged
-	case stopped.VetVersion != r.VetVersion || !currentFormat(ctx, stopped):
+	case stopped.VetVersion != r.VetVersion:
+		d.Reason = ReasonVersionChanged
+	case missing(stopped.File):
+		d.Reason = ReasonFileMissing
+	case !currentFormat(ctx, stopped):
 		d.Reason = ReasonVersionChanged
 	case !r.Resume && r.now().Sub(stopped.UpdatedAt) > r.within():
 		d.Reason = ReasonTooOld
@@ -161,7 +166,13 @@ func (s *Store) ContinueScan(ctx context.Context, e *IndexEntry, pid int, host s
 	return scan, nil
 }
 
-// currentFormat reports a scan file that this vet can continue.
+func missing(file string) bool {
+	_, err := os.Stat(file)
+	return errors.Is(err, os.ErrNotExist)
+}
+
+// currentFormat reports a scan file that this vet can continue. Call it on a
+// file that exists, because the open creates a missing file.
 func currentFormat(ctx context.Context, e *IndexEntry) bool {
 	scan, err := openCurrentScanFile(ctx, filepath.Dir(e.File), e.ID)
 	if err != nil {

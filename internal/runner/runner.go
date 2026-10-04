@@ -477,6 +477,7 @@ var reasonText = map[state.Reason]string{
 	state.ReasonFresh:          "--fresh is set",
 	state.ReasonOptionsChanged: "the scan options changed",
 	state.ReasonVersionChanged: "the vet version changed",
+	state.ReasonFileMissing:    "its scan file is missing",
 	state.ReasonTooOld:         "it stopped more than state.continue_within ago. --resume continues it",
 	state.ReasonLive:           "another vet process runs it",
 }
