@@ -210,6 +210,22 @@ func TestOnlyModelImportsTheIdentityRules(t *testing.T) {
 	}
 }
 
+// drySemver orders versions as semver, which is wrong for PyPI, Maven and
+// other ecosystems. model.PackageVersion.Compare orders under the rule of
+// each ecosystem.
+const drySemver = "github.com/safedep/dry/semver"
+
+func TestNoPackageImportsSemverOrder(t *testing.T) {
+	for _, p := range listPackages(t) {
+		if isLegacy(p.path) {
+			continue
+		}
+		for _, imp := range p.imports {
+			assert.NotEqual(t, drySemver, imp, "package %s orders versions with %s. Use model.PackageVersion.Compare", p.path, imp)
+		}
+	}
+}
+
 // TestOnlyAPIClientsSendTheWireForm keeps the raw form of a package version
 // on the way to a SafeDep service. Every other package compares the
 // canonical form.

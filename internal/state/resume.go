@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -101,7 +102,7 @@ func (s *Store) DecideContinue(ctx context.Context, r ContinueRequest) (*Continu
 		d.Reason = ReasonFresh
 	case stopped.OptionsHash != r.OptionsHash:
 		d.Reason = ReasonOptionsChanged
-	case stopped.VetVersion != r.VetVersion:
+	case stopped.VetVersion != r.VetVersion || !currentFormat(ctx, stopped):
 		d.Reason = ReasonVersionChanged
 	case !r.Resume && r.now().Sub(stopped.UpdatedAt) > r.within():
 		d.Reason = ReasonTooOld
@@ -158,4 +159,13 @@ func (s *Store) ContinueScan(ctx context.Context, e *IndexEntry, pid int, host s
 		return nil, errors.Join(err, scan.Close())
 	}
 	return scan, nil
+}
+
+// currentFormat reports a scan file that this vet can continue.
+func currentFormat(ctx context.Context, e *IndexEntry) bool {
+	scan, err := openCurrentScanFile(ctx, filepath.Dir(e.File), e.ID)
+	if err != nil {
+		return false
+	}
+	return scan.Close() == nil
 }

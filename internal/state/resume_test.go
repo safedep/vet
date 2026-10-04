@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/safedep/dry/usefulerror"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -139,4 +140,24 @@ func TestContinueScan(t *testing.T) {
 	live, err := isLive(e.File)
 	require.NoError(t, err)
 	assert.True(t, live)
+}
+
+// TestScanOfAnotherFormat checks that vet refuses a scan file of another
+// format, and starts a new scan in place of a stopped one of that format.
+func TestScanOfAnotherFormat(t *testing.T) {
+	ctx := context.Background()
+	s := openStore(t)
+	scan, e := newScan(t, s, "/repo")
+	require.NoError(t, scan.setMeta(ctx, metaFormat, scanFormat-1))
+	require.NoError(t, scan.Close())
+
+	_, err := s.OpenScan(ctx, e)
+	var ue usefulerror.UsefulError
+	require.ErrorAs(t, err, &ue)
+	assert.Equal(t, CodeScanFormat, ue.Code())
+
+	d, err := s.DecideContinue(ctx, ContinueRequest{TargetKey: "/repo", OptionsHash: "h1", VetVersion: "test"})
+	require.NoError(t, err)
+	assert.Nil(t, d.Continue)
+	assert.Equal(t, ReasonVersionChanged, d.Reason)
 }

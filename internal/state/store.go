@@ -81,6 +81,9 @@ func (s *Store) CreateScan(ctx context.Context, n NewScan) (*Scan, *IndexEntry, 
 	if scan.lock, err = acquireLock(scan.Path()); err != nil {
 		return nil, nil, errors.Join(err, scan.Close())
 	}
+	if err := scan.setMeta(ctx, metaFormat, scanFormat); err != nil {
+		return nil, nil, errors.Join(err, scan.Close())
+	}
 	now := time.Now().UTC()
 	e := &IndexEntry{
 		ID: id, TargetKey: n.TargetKey, TargetLabel: n.TargetLabel, Kind: string(n.Kind),
@@ -99,7 +102,7 @@ func (s *Store) OpenScan(ctx context.Context, e *IndexEntry) (*Scan, error) {
 	if _, err := os.Stat(e.File); err != nil {
 		return nil, fmt.Errorf("scan %s: the scan file %s is missing: %w", e.ID, e.File, err)
 	}
-	return openScanFile(ctx, filepath.Dir(e.File), e.ID)
+	return openCurrentScanFile(ctx, filepath.Dir(e.File), e.ID)
 }
 
 // OpenScanFile opens a scan file by its path, for "vet report show FILE".
@@ -108,5 +111,17 @@ func OpenScanFile(ctx context.Context, path string) (*Scan, error) {
 		return nil, fmt.Errorf("scan file %s: %w", path, err)
 	}
 	base := filepath.Base(path)
-	return openScanFile(ctx, filepath.Dir(path), base[:len(base)-len(filepath.Ext(base))])
+	return openCurrentScanFile(ctx, filepath.Dir(path), base[:len(base)-len(filepath.Ext(base))])
+}
+
+// openCurrentScanFile opens a scan file and refuses one of another format.
+func openCurrentScanFile(ctx context.Context, dir, id string) (*Scan, error) {
+	scan, err := openScanFile(ctx, dir, id)
+	if err != nil {
+		return nil, err
+	}
+	if err := scan.checkFormat(ctx); err != nil {
+		return nil, errors.Join(err, scan.Close())
+	}
+	return scan, nil
 }

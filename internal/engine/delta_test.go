@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"cmp"
 	"context"
 	"os"
 	"path/filepath"
@@ -356,4 +357,34 @@ func TestPullRequestModeReportsABaseThatVetCannotRead(t *testing.T) {
 	bases, err := filepath.Glob(filepath.Join(f.store.StateDir(), baseDir, "*.json"))
 	require.NoError(t, err)
 	assert.Empty(t, bases, "vet does not keep a base with an error")
+}
+
+// TestDiffOrdersUnderTheEcosystemRule pairs versions by the canonical name
+// and orders them with the rule of the ecosystem.
+func TestDiffOrdersUnderTheEcosystemRule(t *testing.T) {
+	cases := []struct {
+		name       string
+		eco        model.Ecosystem
+		pkg        string
+		base, head string
+		headName   string
+		want       model.Change
+	}{
+		{"one PyPI version in two spellings", model.EcosystemPyPI, "requests", "2.31", "2.31.0", "", model.ChangeUnchanged},
+		{"a PyPI release after its candidate", model.EcosystemPyPI, "pkg", "1.0rc1", "1.0", "", model.ChangeUpgraded},
+		{"a PyPI candidate after its release", model.EcosystemPyPI, "pkg", "1.0", "1.0rc1", "", model.ChangeDowngraded},
+		{"a renamed PyPI spelling", model.EcosystemPyPI, "Zope.Interface", "5.0", "5.1", "zope-interface", model.ChangeUpgraded},
+		{"npm downgrade", model.EcosystemNpm, "a", "2.0.0", "1.0.0", "", model.ChangeDowngraded},
+		{"a ref of an action has no order", model.EcosystemGitHubActions, "actions/checkout", "v4", "v3", "", model.ChangeUpgraded},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			headName := cmp.Or(tc.headName, tc.pkg)
+			head := &model.Manifest{Packages: []*model.Package{{ID: model.MustPackageVersion(tc.eco, headName, tc.head)}}}
+			base := &model.Manifest{Packages: []*model.Package{{ID: model.MustPackageVersion(tc.eco, tc.pkg, tc.base)}}}
+			diff(head, base, false)
+			require.Len(t, head.Packages, 1, "no base version is removed")
+			assert.Equal(t, tc.want, head.Packages[0].Change)
+		})
+	}
 }

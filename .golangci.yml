@@ -35,6 +35,12 @@ linters:
           deny:
             - pkg: github.com/safedep/dry/api/pb
               desc: use model.PackageVersion. Only model imports dry/api/pb.
+        version-order:
+          files:
+            - $all
+          deny:
+            - pkg: github.com/safedep/dry/semver
+              desc: use model.PackageVersion.Compare. It orders versions under the rule of each ecosystem.
   exclusions:
     paths: []
 
