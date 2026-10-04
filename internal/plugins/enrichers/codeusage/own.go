@@ -157,7 +157,9 @@ func pythonDistribution(path string, data []byte) []string {
 	var out []string
 	for _, n := range []string{p.Project.Name, p.Tool.Poetry.Name} {
 		if n != "" {
-			out = append(out, strings.ReplaceAll(strings.ToLower(pep503(n)), "-", "_"))
+			// The module of a Python project is its name in lower case, with
+			// "_" for each "-" and ".".
+			out = append(out, strings.NewReplacer("-", "_", ".", "_").Replace(strings.ToLower(n)))
 		}
 	}
 	dir := filepath.Dir(path)

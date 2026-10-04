@@ -33,7 +33,8 @@ var ecosystemLanguages = map[model.Ecosystem][]string{
 
 // provider tells whether a package provides an imported module. Each
 // ecosystem has its own rule, because a registry name relates to an import
-// name in its own way.
+// name in its own way. The rules start from the canonical name. npm and Go
+// names are case-sensitive, so their rules compare the exact text.
 type provider struct {
 	// autoload maps a PHP namespace prefix, with a trailing "\", to the
 	// Composer package that autoloads it.
@@ -45,22 +46,28 @@ func (pv provider) provides(id model.PackageVersion, m module) bool {
 		return false
 	}
 
-	name := normalize(id.RawName())
-	hint, mod := normalize(m.Hint), normalize(m.Name)
-	if name == hint || name == normalize(rootModule(m.Name)) {
-		return true
-	}
-
+	name := id.Name()
+	hint, mod := strings.TrimSpace(m.Hint), strings.TrimSpace(m.Name)
 	switch id.Ecosystem() {
+	case model.EcosystemNpm:
+		return name == hint || name == rootModule(mod)
 	case model.EcosystemPyPI:
 		// A namespace package installs a dotted module, as
 		// google-cloud-storage installs google.cloud.storage.
-		return pep503(name) == pep503(hint) || slices.ContainsFunc(dottedPrefixes(mod, "-"), func(prefix string) bool {
-			return pep503(prefix) == pep503(name)
-		})
+		return id.NameIs(hint) || id.NameIs(rootModule(mod)) || slices.ContainsFunc(dottedPrefixes(mod, "-"), id.NameIs)
+	case model.EcosystemGo:
+		return mod == name || strings.HasPrefix(mod, name+"/")
 	case model.EcosystemMaven:
 		group, _, _ := strings.Cut(name, ":")
 		return mod == group || strings.HasPrefix(mod, group+".")
+	}
+
+	// NuGet, crates.io, RubyGems and Packagist ignore the case of a name.
+	name, hint, mod = normalize(name), normalize(hint), normalize(mod)
+	if name == hint || name == rootModule(mod) {
+		return true
+	}
+	switch id.Ecosystem() {
 	case model.EcosystemNuGet:
 		// Microsoft.Extensions.Logging comes from the package of that name
 		// or from Microsoft.Extensions.Logging.Abstractions. A namespace of
@@ -72,8 +79,6 @@ func (pv provider) provides(id model.PackageVersion, m module) bool {
 	case model.EcosystemRubyGems:
 		// require 'rspec/core' loads the rspec-core gem.
 		return slices.Contains(dottedPrefixes(strings.ReplaceAll(mod, "/", "."), "-"), name)
-	case model.EcosystemGo:
-		return strings.HasPrefix(mod, name+"/")
 	case model.EcosystemPackagist:
 		return pv.autoloadPackage(m.Name) == name
 	}
@@ -101,11 +106,6 @@ func dottedPrefixes(name, sep string) []string {
 		out = append(out, strings.Join(parts[:i+1], sep))
 	}
 	return out
-}
-
-// pep503 normalizes a Python distribution name.
-func pep503(name string) string {
-	return strings.NewReplacer("_", "-", ".", "-").Replace(name)
 }
 
 // composerLock is the part of composer.lock that tells which package
