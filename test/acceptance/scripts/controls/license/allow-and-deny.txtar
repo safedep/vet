@@ -1,0 +1,49 @@
+# plugins.license.options checks the SPDX license of each package. The stub
+# gives left-pad the license WTFPL, which is FSF libre and not OSI approved.
+# With no list, the control reports nothing.
+cd proj
+exec vet scan . --mode plain -o plain
+! stdout 'license-'
+
+execexit 1 vet --config $WORK/deny.yml scan . --mode plain -o plain --fresh --fail-on high
+stdout 'license-denied\tpkg:npm/left-pad@1.3.0'
+stderr 'Gate failed'
+
+exec vet --config $WORK/osi.yml scan . --mode plain -o plain --fresh
+stdout 'license-not-allowed\tpkg:npm/left-pad@1.3.0'
+
+exec vet --config $WORK/fsf.yml scan . --mode plain -o plain --fresh
+! stdout 'license-'
+
+execexit 2 vet --config $WORK/typo.yml scan . --mode plain -o plain --fresh
+stderr 'not an SPDX license id'
+
+-- deny.yml --
+plugins:
+  license:
+    options:
+      deny: [WTFPL, GPL-3.0-only]
+-- osi.yml --
+plugins:
+  license:
+    options:
+      allow: [osi-approved]
+-- fsf.yml --
+plugins:
+  license:
+    options:
+      allow: [fsf-libre]
+-- typo.yml --
+plugins:
+  license:
+    options:
+      deny: [GPL]
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"left-pad": "1.3.0"}},
+    "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}
+  }
+}

@@ -176,6 +176,12 @@
   tier: P1
   guarantee: "plugins.dependency-cooldown.options.days changes the window."
   labels: [controls]
+- id: controls/license/allow-and-deny
+  title: "license: allow and deny lists"
+  category: controls
+  tier: P1
+  guarantee: "plugins.license.options.deny fails the gate on a denied SPDX license. An allow list or a set reports a license outside it. An entry that is not SPDX exits 2."
+  labels: [controls, gate]
 - id: controls/fail-open/backend-down
   title: "fail open: backend down"
   category: controls
