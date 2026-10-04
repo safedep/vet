@@ -1,14 +1,19 @@
 // Package spdxlicense reads the license of a package as an SPDX license
 // expression (SPDX 2.3 Annex D), and checks it against allow and deny
-// lists. It uses github.com/github/go-spdx for the grammar and the license
-// ids, and the SPDX License List of the same go-spdx version for the OSI and
-// FSF flags.
+// lists. It parses the expression itself, in linear time, and takes the
+// license and exception ids from the SPDX License List of the go-spdx
+// version that go.mod pins, with the OSI and FSF flags.
 package spdxlicense
 
 import (
 	_ "embed"
 	"encoding/json"
+	"regexp"
+	"slices"
+	"strconv"
 	"strings"
+
+	"github.com/github/go-spdx/v2/spdxexp/spdxlicenses"
 )
 
 //go:generate go run ./internal/gen
@@ -82,21 +87,70 @@ func setIDs(name string) ([]string, bool) {
 	return out, true
 }
 
-// replacement maps a deprecated id to the id that replaced it, in lower
-// case. SPDX replaced GPL-2.0 with GPL-2.0-only, and go-spdx keeps the old
-// id as written. A deprecated id with no "-only" successor stays itself.
-var replacement = func() map[string]string {
-	active := map[string]string{}
+// ids holds each id of the list, in lower case.
+var ids = func() map[string]listEntry {
+	out := map[string]listEntry{}
 	for _, l := range list.Licenses {
-		if !l.Deprecated {
-			active[strings.ToLower(l.ID)] = l.ID
-		}
-	}
-	out := map[string]string{}
-	for _, l := range list.Licenses {
-		if id, ok := active[strings.ToLower(l.ID)+"-only"]; l.Deprecated && ok {
-			out[strings.ToLower(l.ID)] = id
-		}
+		out[strings.ToLower(l.ID)] = l
 	}
 	return out
 }()
+
+// exceptions holds each id of the SPDX License Exceptions List, in lower
+// case.
+var exceptions = func() map[string]string {
+	out := map[string]string{}
+	for _, e := range spdxlicenses.GetExceptions() {
+		out[strings.ToLower(e)] = e
+	}
+	return out
+}()
+
+// versioned matches an id with a version, such as GPL-2.0-only or EUPL-1.2.
+var versioned = regexp.MustCompile(`^(.+)-(\d+(?:\.\d+)*)(-only|-or-later)?$`)
+
+type version struct {
+	family  string
+	numbers []int
+}
+
+func versionOf(id string) (version, bool) {
+	m := versioned.FindStringSubmatch(id)
+	if m == nil {
+		return version{}, false
+	}
+	v := version{family: strings.ToLower(m[1])}
+	for _, n := range strings.Split(m[2], ".") {
+		i, err := strconv.Atoi(n)
+		if err != nil {
+			return version{}, false
+		}
+		v.numbers = append(v.numbers, i)
+	}
+	return v, true
+}
+
+// laterVersions returns the active ids that an or-later term lets a user
+// take: each version of its family from its own version up, with no
+// or-later id. GPL-2.0-or-later gives GPL-2.0-only and GPL-3.0-only, and
+// EUPL-1.2+ gives EUPL-1.2. An id with no version gives itself.
+func laterVersions(id string) []string {
+	v, ok := versionOf(id)
+	if !ok {
+		return []string{id}
+	}
+	var out []string
+	for _, l := range list.Licenses {
+		if l.Deprecated || strings.HasSuffix(l.ID, "-or-later") {
+			continue
+		}
+		w, ok := versionOf(l.ID)
+		if ok && w.family == v.family && slices.Compare(w.numbers, v.numbers) >= 0 {
+			out = append(out, l.ID)
+		}
+	}
+	if len(out) == 0 {
+		return []string{id}
+	}
+	return out
+}

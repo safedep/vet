@@ -115,11 +115,7 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 			continue
 		}
 		d := spdxlicense.Parse(p.Insight.Licenses)
-		r, err := c.policy.Check(d)
-		if err != nil {
-			return nil, fmt.Errorf("license of %s: %w", p.ID, err)
-		}
-		if f, ok := c.finding(m, p, d, r); ok {
+		if f, ok := c.finding(m, p, d, c.policy.Check(d)); ok {
 			out = append(out, f)
 		}
 	}
@@ -156,9 +152,13 @@ func (c *Control) finding(m *model.Manifest, p *model.Package, d spdxlicense.Dec
 		ControlID: id, Family: info.Family, Severity: info.Severity, Confidence: finding.ConfidenceHigh,
 		Title: title, Description: info.Description,
 	}, m.Path, p, finding.Key{Discriminator: shown})
+	declared := fmt.Sprintf("The declared license is %s.", cmp.Or(shown, "not known"))
+	if d.Expression != "" && d.Expression != shown {
+		declared = fmt.Sprintf("The declared license is %s, and its SPDX form is %s.", shown, d.Expression)
+	}
 	f.Evidence = []finding.Evidence{{
 		Source:  "insights",
-		Summary: fmt.Sprintf("The declared license is %s. vet checks it with the SPDX License List %s.", licenseText(d, cmp.Or(shown, "not known")), spdxlicense.ListVersion()),
+		Summary: fmt.Sprintf("%s vet checks it with the SPDX License List %s.", declared, spdxlicense.ListVersion()),
 	}}
 	f.Remediation = &finding.Remediation{Summary: fix}
 	return f, true

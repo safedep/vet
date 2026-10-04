@@ -182,7 +182,7 @@ _Avoid_: metadata, package info
 The license of a package as an SPDX license expression (SPDX 2.3 Annex D), such as `MIT OR
 Apache-2.0`. `spdxlicense.Parse` builds it from the declared license values of a package and joins
 two or more values with `AND`. `spdxlicense.Policy` checks it against the allow and the deny list of
-the license control. `spdxlicense.Equal` compares two licenses by meaning.
+the license control. `spdxlicense.Equal` compares the canonical form of two licenses.
 _Avoid_: license string (a string compare misses `GPL-3.0` and `GPL-3.0-only`)
 
 **SafeDep Threat Intel**:

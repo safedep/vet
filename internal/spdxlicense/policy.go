@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"slices"
 	"strings"
-
-	"github.com/github/go-spdx/v2/spdxexp"
 )
 
 // Verdict is the result of a license check.
@@ -21,9 +19,11 @@ const (
 )
 
 // Policy holds an allow list and a deny list. Each entry is an SPDX license
-// id, an "id WITH exception" term, a LicenseRef or the name of a set.
+// id, an "id WITH exception" term, a LicenseRef or the name of a set. An
+// entry matches a term of the same canonical form only: GPL-2.0-only does
+// not match GPL-2.0-only WITH Classpath-exception-2.0.
 type Policy struct {
-	allow []string
+	allow map[string]bool
 	deny  map[string]bool
 }
 
@@ -38,11 +38,7 @@ func NewPolicy(allow, deny []string) (*Policy, error) {
 	if err != nil {
 		return nil, fmt.Errorf("deny: %w", err)
 	}
-	p := &Policy{allow: a, deny: map[string]bool{}}
-	for _, e := range d {
-		p.deny[termKey(e)] = true
-	}
-	return p, nil
+	return &Policy{allow: a, deny: d}, nil
 }
 
 // Allows reports whether the policy has an allow list.
@@ -60,127 +56,125 @@ type Result struct {
 
 // Check applies the deny list, then the allow list. A license that has a
 // choice with no denied term is not denied, so "MIT OR GPL-3.0-only" passes
-// a deny list with GPL-3.0-only. A license that the check cannot decide is
-// Unknown, unless a denied term already decides it.
-func (p *Policy) Check(d Declared) (Result, error) {
-	if d.Expression != "" && p.Denies() {
-		denied, err := p.denied(d.Expression)
-		if err != nil {
-			return Result{}, err
-		}
-		if len(denied) > 0 {
-			return Result{Verdict: Denied, Denied: denied}, nil
-		}
+// a deny list with GPL-3.0-only. The values join with AND, so a known value
+// that fails a list fails the package, whatever its unknown values are.
+func (p *Policy) Check(d Declared) Result {
+	if d.root != nil && p.Denies() && p.denied(d.root) {
+		return Result{Verdict: Denied, Denied: p.deniedTerms(d.root)}
+	}
+	if p.Allows() && (d.None || d.root != nil && !p.allowed(d.root)) {
+		return Result{Verdict: NotAllowed}
 	}
 	if !d.Known() {
-		return Result{Verdict: Unknown}, nil
+		return Result{Verdict: Unknown}
 	}
-	if !p.Allows() {
-		return Result{Verdict: Pass}, nil
-	}
-	if d.None {
-		return Result{Verdict: NotAllowed}, nil
-	}
-	ok, err := spdxexp.Satisfies(d.Expression, p.allow)
-	if err != nil {
-		return Result{}, err
-	}
-	if !ok {
-		return Result{Verdict: NotAllowed}, nil
-	}
-	return Result{Verdict: Pass}, nil
+	return Result{Verdict: Pass}
 }
 
-// denied returns the denied terms of an expression when no choice of the
-// expression avoids them, else nil. A kept term that satisfies a denied
-// term, such as GPL-2.0-or-later for a denied GPL-2.0-only, does not avoid
-// it: the check takes the stricter reading.
-func (p *Policy) denied(expr string) ([]string, error) {
-	terms, err := spdxexp.ExtractLicenses(expr)
-	if err != nil {
-		return nil, err
-	}
-	var denied, keep []string
-	for _, t := range terms {
-		if p.deny[termKey(t)] {
-			denied = append(denied, t)
-		}
-	}
-	if len(denied) == 0 {
-		return nil, nil
-	}
-	for _, t := range terms {
-		if p.deny[termKey(t)] {
-			continue
-		}
-		covers := false
-		for _, d := range denied {
-			if ok, err := spdxexp.Satisfies(d, []string{t}); err == nil && ok {
-				covers = true
-				break
+// allowed reports whether a choice of the expression has only allowed
+// terms.
+func (p *Policy) allowed(n *node) bool {
+	switch n.op {
+	case opAnd:
+		for _, k := range n.kids {
+			if !p.allowed(k) {
+				return false
 			}
 		}
-		if !covers {
-			keep = append(keep, t)
-		}
+		return true
+	case opOr:
+		return slices.ContainsFunc(n.kids, p.allowed)
 	}
-	if len(keep) == 0 {
-		return denied, nil
+	if p.allow[n.term.key()] {
+		return true
 	}
-	ok, err := spdxexp.Satisfies(expr, keep)
-	if err != nil || ok {
-		return nil, err
-	}
-	return denied, nil
+	return n.term.orLater && slices.ContainsFunc(choices(n.term), func(t term) bool { return p.allow[t.key()] })
 }
 
-// expand checks the entries and replaces each set with its ids.
-func expand(entries []string) ([]string, error) {
-	var out, bad []string
+// denied reports whether each choice of the expression has a denied term.
+func (p *Policy) denied(n *node) bool {
+	switch n.op {
+	case opAnd:
+		return slices.ContainsFunc(n.kids, p.denied)
+	case opOr:
+		for _, k := range n.kids {
+			if !p.denied(k) {
+				return false
+			}
+		}
+		return true
+	}
+	return p.termDenied(n.term)
+}
+
+// termDenied reports a term that the deny list names, or an or-later term
+// whose versions the deny list names each.
+func (p *Policy) termDenied(t term) bool {
+	if p.deny[t.key()] {
+		return true
+	}
+	if !t.orLater {
+		return false
+	}
+	for _, c := range choices(t) {
+		if !p.deny[c.key()] {
+			return false
+		}
+	}
+	return true
+}
+
+func (p *Policy) deniedTerms(n *node) []string {
+	if n.op == opTerm {
+		if p.termDenied(n.term) {
+			return []string{n.term.String()}
+		}
+		return nil
+	}
+	var out []string
+	for _, k := range n.kids {
+		out = append(out, p.deniedTerms(k)...)
+	}
+	slices.Sort(out)
+	return slices.Compact(out)
+}
+
+// choices returns the licenses that an or-later term lets a user take, each
+// with the exception of the term.
+func choices(t term) []term {
+	var out []term
+	for _, id := range laterVersions(t.id) {
+		out = append(out, term{id: id, exception: t.exception})
+	}
+	return out
+}
+
+// expand checks the entries and returns their keys, with each set replaced
+// by its ids.
+func expand(entries []string) (map[string]bool, error) {
+	out := map[string]bool{}
+	var bad []string
 	for _, raw := range entries {
 		e := strings.TrimSpace(raw)
-		if ids, ok := setIDs(e); ok {
-			out = append(out, ids...)
+		if members, ok := setIDs(e); ok {
+			for _, id := range members {
+				if t, ok := canonical(id); ok {
+					out[t.key()] = true
+				}
+			}
 			continue
 		}
-		if !validTerm(e) {
+		n, err := parseExpression(e)
+		if err != nil || n.op != opTerm {
 			bad = append(bad, raw)
 			continue
 		}
-		out = append(out, e)
+		out[n.term.key()] = true
 	}
 	if len(bad) > 0 {
 		return nil, fmt.Errorf("%q: %w", bad, errInvalidEntry)
 	}
-	return slices.Compact(out), nil
+	return out, nil
 }
 
 var errInvalidEntry = errors.New("not an SPDX license id, an id WITH an exception, a LicenseRef or a set (" + strings.Join(Sets, ", ") + ")")
-
-// validTerm accepts one license term: an id, "id+", "id WITH exception" or
-// a LicenseRef. It rejects an expression with OR or AND.
-func validTerm(e string) bool {
-	f := strings.Fields(e)
-	if len(f) != 1 && (len(f) != 3 || !strings.EqualFold(f[1], "WITH")) {
-		return false
-	}
-	terms, err := spdxexp.ExtractLicenses(e)
-	return err == nil && len(terms) == 1
-}
-
-// termKey is the key of a term for the deny list: its SPDX form in lower
-// case, with a deprecated id mapped to its successor.
-func termKey(t string) string {
-	if terms, err := spdxexp.ExtractLicenses(t); err == nil && len(terms) == 1 {
-		t = terms[0]
-	}
-	base, exception, with := strings.Cut(t, " WITH ")
-	base = strings.ToLower(strings.TrimSpace(base))
-	if r, ok := replacement[base]; ok {
-		base = strings.ToLower(r)
-	}
-	if with {
-		return base + " with " + strings.ToLower(strings.TrimSpace(exception))
-	}
-	return base
-}

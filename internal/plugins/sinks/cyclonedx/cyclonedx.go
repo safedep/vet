@@ -89,9 +89,10 @@ func component(p *report.PackageEntry) cdx.Component {
 		scope = cdx.ScopeOptional
 	}
 	c.Scope = scope
-	if in := p.Insight; in != nil && len(in.Licenses) > 0 {
-		ls := licenses(in.Licenses)
-		c.Licenses = &ls
+	if in := p.Insight; in != nil {
+		if ls := licenses(in.Licenses); len(ls) > 0 {
+			c.Licenses = &ls
+		}
 	}
 	props := []cdx.Property{{Name: "safedep:direct", Value: strconv.FormatBool(p.Direct)}}
 	if p.Malware != nil && p.Malware.Malicious {

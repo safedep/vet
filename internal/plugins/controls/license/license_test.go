@@ -35,6 +35,9 @@ func TestEvaluate(t *testing.T) {
 		{"unknown with a deny list", map[string]any{"deny": gpl}, pkg(), nil},
 		{"unknown reported on request", map[string]any{"deny": gpl, "unknown": "report"}, pkg(), []string{license.IDUnknown}},
 		{"unknown ignored on request", map[string]any{"allow": []any{"MIT"}, "unknown": "ignore"}, pkg(), nil},
+		{"rejected part beside an unknown value", map[string]any{"allow": []any{"MIT"}}, pkg("GPL-3.0-only", "non-standard"), []string{license.IDNotAllowed}},
+		{"rejected part beside an unknown value with unknown ignored", map[string]any{"allow": []any{"MIT"}, "unknown": "ignore"}, pkg("GPL-3.0-only", "non-standard"), []string{license.IDNotAllowed}},
+		{"denied or-later with no later version", map[string]any{"deny": []any{"EUPL-1.2"}}, pkg("EUPL-1.2+"), []string{license.IDDenied}},
 		{"no insight", map[string]any{"allow": []any{"MIT"}}, &model.Package{ID: model.MustPackageVersion(model.EcosystemGitHubActions, "actions/checkout", "v4")}, nil},
 		{"removed package", map[string]any{"deny": gpl}, &model.Package{
 			ID: model.MustPackageVersion(model.EcosystemPyPI, "pyqt5", "5.15.11"), Change: model.ChangeRemoved,
@@ -62,9 +65,9 @@ func TestFinding(t *testing.T) {
 	fs := plugintest.TestControl(t, c, m, nil)
 	require.Len(t, fs, 1)
 	f := fs[0]
-	assert.Equal(t, "pypi/pyqt5@5.15.11 has the denied license GPL-3.0", f.Title)
+	assert.Equal(t, "pypi/pyqt5@5.15.11 has the denied license GPL-3.0-only", f.Title)
 	require.Len(t, f.Evidence, 1)
-	assert.Contains(t, f.Evidence[0].Summary, "The declared license is GPL-3.0. vet checks it with the SPDX License List ")
+	assert.Contains(t, f.Evidence[0].Summary, "The declared license is GPL-3.0, and its SPDX form is GPL-3.0-only. vet checks it with the SPDX License List ")
 	assert.NotEmpty(t, f.Remediation.Summary)
 }
 

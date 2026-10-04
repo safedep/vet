@@ -29,7 +29,7 @@ vet policy control list -o json
 | `license-change` | license | medium | An upgrade that changes the license |
 | `license-denied` | license | high | A license that `plugins.license.options.deny` names, in each choice of the license expression |
 | `license-not-allowed` | license | medium | A license that `plugins.license.options.allow` does not satisfy |
-| `license-unknown` | license | low | A package with no license data, or a license that is not an SPDX expression. Reported when `allow` is set |
+| `license-unknown` | license | low | A package with no license data, or a license that is not an SPDX expression. Reported when `allow` is set, or with `unknown: report` |
 | `non-registry-dependency` | hygiene | medium | A dependency on git, a URL, a file or any version |
 | `scorecard-low` | hygiene | info | A package whose repository has an OpenSSF Scorecard score under 3 |
 | `typosquat` | reputation | high | A name one typo away from a popular package, with few downloads |
@@ -97,14 +97,20 @@ Annex D):
   GPL-3.0-only` passes `deny: [GPL-3.0-only]`, because you can take MIT.
 - The deny list goes first. A package with more than one license value gets the values joined with
   `AND`.
-- An entry is an SPDX license id, an `id WITH exception` term or a `LicenseRef-` id. Case does not
-  matter, and a deprecated id such as `GPL-3.0` means `GPL-3.0-only`. A `WITH` term is a license of
-  its own, so `GPL-2.0-only` does not match `GPL-2.0-only WITH Classpath-exception-2.0`.
+- An entry is an SPDX license id, an `id WITH exception` term or a `LicenseRef-` id. An entry
+  matches one license exactly. Ids and operators match in any case. A deprecated id maps to the
+  successor that SPDX names, so `GPL-3.0` means `GPL-3.0-only`.
+- A `WITH` term is a license of its own. `GPL-2.0-only` does not match `GPL-2.0-only WITH
+  Classpath-exception-2.0`, and the sets do not hold `WITH` terms.
+- An or-later license, such as `GPL-2.0-or-later` or `EUPL-1.1+`, lets you take that version or a
+  later one. An allow list passes it when the list has one of those versions. A deny list fails it
+  when the list has each of those versions, or the or-later id itself.
 - An entry can also name a set from the flags of the SPDX License List: `osi-approved`, `fsf-libre`
   or `osi-approved-or-fsf-libre`.
 - vet rejects an entry that is not SPDX, so a typo cannot pass a package. There are no globs.
-- `NOASSERTION`, free text and a package with no license data are unknown. `NONE` means no license,
-  and it fails an allow list.
+- `NOASSERTION`, free text and a package with no license data are unknown. A known license value
+  that fails a list fails the package, even with an unknown value beside it. `NONE` means no
+  license, and it fails an allow list.
 
 ```yaml
 plugins:
@@ -114,7 +120,8 @@ plugins:
       deny: [AGPL-3.0-only, AGPL-3.0-or-later, SSPL-1.0]
 ```
 
-This deny list holds the strong copyleft licenses. Copy the ids that your policy needs:
+This deny list holds the common copyleft licenses, strong and weak. Copy the ids that your policy
+needs:
 
 ```yaml
 deny: [GPL-2.0-only, GPL-2.0-or-later, GPL-3.0-only, GPL-3.0-or-later,
