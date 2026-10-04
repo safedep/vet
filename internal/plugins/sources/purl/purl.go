@@ -3,6 +3,7 @@
 package purl
 
 import (
+	"cmp"
 	"context"
 	"iter"
 
@@ -26,7 +27,10 @@ type Source struct {
 // New returns the source.
 func New(o Options) *Source { return &Source{opts: o} }
 
-// Artifacts yields the PURL. The key is the PURL in its canonical form.
+// Artifacts yields the PURL as the user wrote it, so the scan keeps the raw
+// name and version. The key holds the canonical PURL, so two spellings of one
+// package version are one target. A name that forms no PURL takes the package
+// key.
 func (s *Source) Artifacts(context.Context) iter.Seq2[plugin.Artifact, error] {
 	return func(yield func(plugin.Artifact, error) bool) {
 		id, err := model.ParsePURL(s.opts.Target)
@@ -37,8 +41,8 @@ func (s *Source) Artifacts(context.Context) iter.Seq2[plugin.Artifact, error] {
 		yield(plugin.Artifact{
 			Kind:  plugin.ArtifactPURL,
 			Label: s.opts.Target,
-			Key:   "purl:" + id.PURL(),
-			PURL:  id.PURL(),
+			Key:   "purl:" + cmp.Or(id.PURL(), string(id.Key())),
+			PURL:  s.opts.Target,
 		}, nil)
 	}
 }
