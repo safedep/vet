@@ -15,6 +15,7 @@ RUN go mod download
 COPY . .
 
 ARG TARGETPLATFORM
+ARG VERSION
 ENV CGO_ENABLED=1
 
 # Set up cross-compilation environment based on target platform

@@ -4,10 +4,12 @@ on:
     branches:
       - main
       - v2
+  # Release Edge calls this workflow on a push to v2, as the gate of the
+  # release. So a push to v2 does not start it here.
   push:
     branches:
       - main
-      - v2
+  workflow_call:
 
 permissions:
   contents: read

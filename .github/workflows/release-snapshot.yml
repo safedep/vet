@@ -1,24 +1,30 @@
 name: Release Snapshot
 
-# Builds the release with goreleaser and publishes nothing. It checks the
-# binary for each platform and the Homebrew cask before a tag does.
+# Builds the release with goreleaser in the goreleaser-cross image and
+# publishes nothing. It checks the binary for each platform, CGO in each
+# binary and the Homebrew cask before a merge releases them.
 on:
   pull_request:
     branches: [v2]
     paths:
       - ".goreleaser.yaml"
       - ".github/workflows/release-snapshot.yml"
+      - ".github/workflows/release-edge.yml"
+      - ".github/scripts/**"
+      - "Dockerfile"
       - "go.mod"
       - "cmd/vet/**"
-  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   snapshot:
-    timeout-minutes: 30
+    timeout-minutes: 45
     runs-on: ubuntu-latest
+    # The cask template reads the tap token. The snapshot uploads nothing.
+    env:
+      HOMEBREW_TAP_GITHUB_TOKEN: unused
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -30,26 +36,32 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Install GoReleaser
-        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
-        with:
-          install-only: true
-          version: "~> v2"
-
       - name: Check the config
-        run: goreleaser check
+        run: .github/scripts/goreleaser-cross.sh check
 
       - name: Build a snapshot
-        run: goreleaser release --snapshot --clean --skip=publish
+        run: .github/scripts/goreleaser-cross.sh release --snapshot --clean --skip=publish
 
       - name: Check the artifacts
-        shell: bash
+        run: .github/scripts/check-dist.sh
+
+      - name: Upload the macOS archive
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: darwin
+          path: dist/*_Darwin_all.tar.gz
+
+  smoke-macos:
+    needs: snapshot
+    timeout-minutes: 15
+    runs-on: macos-latest
+    steps:
+      - name: Download the macOS archive
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        with:
+          name: darwin
+
+      - name: Run the binary
         run: |
-          set -euo pipefail
-          jq -r '.[] | select(.type == "Binary") | "\(.goos)/\(.goarch)"' dist/artifacts.json | sort > platforms.txt
-          cat platforms.txt
-          printf '%s\n' darwin/all linux/amd64 linux/arm64 windows/amd64 | diff - platforms.txt
-          test -f dist/homebrew/Casks/vet.rb
-          grep -q 'binary "vet"' dist/homebrew/Casks/vet.rb
-          bin=$(jq -r '.[] | select(.type == "Binary" and .goos == "linux" and .goarch == "amd64") | .path' dist/artifacts.json)
-          "$bin" version
+          tar -xzf ./*_Darwin_all.tar.gz vet
+          ./vet version
