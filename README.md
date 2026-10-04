@@ -305,9 +305,9 @@ the order of the command tree.
 
 ## Installation
 
-vet v2 is in alpha. Each merge to the `v2` branch publishes a pre-release with the version
-`2.0.0-alpha.<UTC timestamp>`. vet v1 stays the latest release, so the v1 install commands still
-install v1. Use one of these channels for vet v2.
+vet v2 is in alpha. Each merge to the `v2` branch that changes more than docs publishes a
+pre-release with the version `2.0.0-alpha.<UTC timestamp>`. vet v1 stays the latest release, so the
+v1 install commands still install v1. Use one of these channels for vet v2.
 
 ### Homebrew
 

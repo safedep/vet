@@ -183,6 +183,10 @@ jobs:
             exit 1
           fi
           latest=$(docker buildx imagetools inspect "$IMAGE:latest" --format '{{json .Manifest}}' | jq -r .digest)
+          if [[ "$latest" != sha256:* ]]; then
+            echo "::error::The latest image has no digest"
+            exit 1
+          fi
           for ref in "$IMAGE:$TAG" "$IMAGE:v2-latest"; do
             if ! ours=$(docker buildx imagetools inspect "$ref" --format '{{json .Manifest}}' | jq -r .digest); then
               echo "::notice::$ref does not exist"

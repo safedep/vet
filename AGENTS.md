@@ -79,8 +79,8 @@ the wrong package. Move the code. Do not change the rule to make the test pass.
 - Use `testify` and table-driven tests.
 - `test/release` keeps a v2 build out of the release channels of v1. Users of v1 run the `latest`
   container image. Never write the `latest` image tag, the latest GitHub release or the
-  `vet` cask from the v2 branch. The release workflow `release-edge.yml` runs only on a merge to
-  `v2`.
+  `vet` cask from the v2 branch. The release workflow `release-edge.yml` runs on a push to `v2`. It
+  publishes only a commit that a merged pull request brought in.
 
 ## Commits
 
