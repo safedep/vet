@@ -1,6 +1,8 @@
 # This is an example .goreleaser.yml file with some sensible defaults.
 # Make sure to check the documentation at https://goreleaser.com
 version: 2
+# The module path ends in /v2, so goreleaser would name the project v2.
+project_name: vet
 before:
   hooks:
     - go mod tidy
@@ -20,9 +22,13 @@ builds:
       - goos: windows
         goarch: arm64
 
+# vet v2 publishes nothing yet. The GitHub release and the Homebrew tap are
+# the release channels of vet v1, so a v2 build must not reach them. The
+# program owner decides how v2 ships to early adopters (Linear FOU-416 and
+# FOU-417). Until then no workflow runs a release, and a manual
+# "goreleaser release" creates no GitHub release and uploads no cask.
 release:
-  # for prerelease it doesn't build and distribute
-  prerelease: auto
+  disable: true
 
 universal_binaries:
   - replace: true
@@ -46,6 +52,10 @@ homebrew_casks:
           run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ "{{staged_path}}" }}/vet"], must_succeed: false
         end
       end
+    skip_upload: true
+    # The release is disabled, so the cask cannot take its download URL from it.
+    url:
+      template: "https://github.com/safedep/vet/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
     repository:
       owner: safedep
       name: homebrew-tap

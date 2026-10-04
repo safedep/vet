@@ -7,7 +7,6 @@ on:
     branches: [v2]
     paths:
       - ".goreleaser.yaml"
-      - ".github/workflows/goreleaser.yml"
       - ".github/workflows/release-snapshot.yml"
       - "go.mod"
       - "cmd/vet/**"
