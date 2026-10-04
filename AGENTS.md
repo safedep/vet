@@ -69,10 +69,14 @@ the wrong package. Move the code. Do not change the rule to make the test pass.
 
 ## Commits
 
-On the `v2` branch, start the subject with the task id of the vet v2 plan in square brackets, as in
-`[2b.6] Do not cache a missing malware verdict`. The plan is
-`docs/specs/2026-10-02-vet-v2-plan.md` in `safedep/control-tower`. A docs-only change adds `docs:`
-after the id. The body says what was wrong and why the change fixes it.
+On the `v2` branch, start the subject with the Linear issue id in square brackets, as in
+`[FOU-424] Send the endpoint inventory to SafeDep Cloud`. The Linear project "vet v2: production"
+holds the backlog and the status. A docs-only change adds `docs:` after the id. The body says what
+was wrong and why the change fixes it.
+
+The commits of the first implementation start with a task id of the vet v2 plan, as in `[2b.6]`.
+The plan, with the decisions and the gap table, is `docs/specs/2026-10-02-vet-v2-plan.md` in
+`safedep/control-tower`.
 
 ## Writing
 
