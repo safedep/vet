@@ -23,6 +23,11 @@ go test ./internal/engine/ -run TestName -count=1   # one test
 
 ## Find what exists before you write it
 
+Read [docs/glossary.md](docs/glossary.md) before you name a thing. It names each concept of vet and
+the code that owns it. Use its term and its type. Do not add a second word or a second type for a
+concept that it lists. When a change adds a concept, or overrules a term, update the glossary in the
+same pull request.
+
 vet and `dry` already have most of the parts that a change needs. Search before you add a type, a
 helper or a list. Each row is the one place for its concern.
 

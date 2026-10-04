@@ -6,6 +6,7 @@ The user guide is at [docs.safedep.io](https://docs.safedep.io/).
 
 - [`cmd/`](./cmd): one page for each command, with its flags, examples and exit codes.
   [README.md](../README.md#command-reference) links each page.
+- [`glossary.md`](./glossary.md): the terms of vet v2, and the code that owns each concept.
 - [`DEVGUIDE.md`](./DEVGUIDE.md): how to add or change a command, and the conventions that the
   tests check.
 - [`../test/acceptance/README.md`](../test/acceptance/README.md): the acceptance suite, and how to
