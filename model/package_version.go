@@ -248,7 +248,7 @@ func (p PackageVersion) PURL() string {
 		u.Name = fold(p.RawName())
 	}
 	if p.pv.HasVersionRule() {
-		u.Version = p.RawVersion()
+		u.Version = strings.TrimSpace(p.RawVersion())
 	}
 	return u.ToString()
 }

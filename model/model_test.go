@@ -111,6 +111,7 @@ func TestPURLFollowsPurlSpec(t *testing.T) {
 		{"pypi keeps a dot in the name", mustPV(t, EcosystemPyPI, "python.dateutil", "2.8.2"), "pkg:pypi/python.dateutil@2.8.2", "pkg:pypi/python-dateutil@2.8.2"},
 		{"pypi lowers case and maps underscore", mustPV(t, EcosystemPyPI, "Flask_RESTful", "3.0.0.0"), "pkg:pypi/flask-restful@3.0.0.0", "pkg:pypi/flask-restful@3"},
 		{"pypi with no version", mustPV(t, EcosystemPyPI, "Django", ""), "pkg:pypi/django", "pkg:pypi/django"},
+		{"pypi trims the version", mustPV(t, EcosystemPyPI, "django", " 4.2.0 "), "pkg:pypi/django@4.2.0", "pkg:pypi/django@4.2"},
 		{"npm is unchanged", mustPV(t, EcosystemNpm, "@babel/core", "7.24.0"), "pkg:npm/%40babel/core@7.24.0", "pkg:npm/%40babel/core@7.24.0"},
 		{"maven is unchanged", mustPV(t, EcosystemMaven, "com.google:guava", "33.0"), "pkg:maven/com.google/guava@33.0", "pkg:maven/com.google/guava@33.0"},
 	}

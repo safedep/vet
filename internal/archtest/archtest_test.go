@@ -239,7 +239,7 @@ func TestOnlyAPIClientsSendTheWireForm(t *testing.T) {
 // purlIdentity matches a PURL that the code compares or uses as a map key.
 // A PURL is for display and for the wire. A name that forms no PURL has an
 // empty PURL, so two packages would have the same PURL.
-var purlIdentity = regexp.MustCompile(`\.PURL(\(\))?\s*[!=]=\s*[^"\s]|[!=]=\s*[\w.]+\.PURL\b|\[[^\]\n]*\.PURL(\(\))?\]`)
+var purlIdentity = regexp.MustCompile(`\.(?:Canonical)?PURL(\(\))?\s*[!=]=\s*[^"\s]|[!=]=\s*[\w.]+\.(?:Canonical)?PURL\b|\[[^\]\n]*\.(?:Canonical)?PURL(\(\))?\]`)
 
 // TestPackagesCompareByKey keeps the identity of a package in
 // model.PackageVersion: Equal, Key and NameKey, never the PURL string.
