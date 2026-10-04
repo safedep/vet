@@ -27,7 +27,9 @@ func TestReleaseCheck(t *testing.T) {
 		{"an older alpha", "2.0.0-alpha.20261003120000", tags, Warn, "the newest release is v2.0.0-alpha.20261004163722, this is 2.0.0-alpha.20261003120000"},
 		{"a v2 release with no v2 release yet", "2.0.0", tags, Pass, "vet 2.0.0 has no newer release"},
 		{"a v2 development build", "v2.0.0-20261002155234-310d5116f0dd", tags, Pass, "vet dev (310d511) is a development build"},
-		{"a build with no version", "dev", tags, Warn, "the newest release is v1.19.1, this is dev"},
+		{"a build with no version", "devel", tags, Pass, "vet devel is a development build"},
+		{"a build newer than each release", "2.0.0-alpha.20261005000000", tags, Pass, "vet 2.0.0-alpha.20261005000000 is newer than the newest release v2.0.0-alpha.20261004163722"},
+		{"a v1 build ignores a v1 release candidate", "v1.19.1", []string{"v1.20.0-rc.1", "v1.19.1"}, Pass, "vet v1.19.1 is the newest release"},
 		{"no releases", "2.0.0-alpha.20261004163722", nil, Pass, "vet 2.0.0-alpha.20261004163722 has no newer release"},
 	}
 	for _, tc := range cases {
