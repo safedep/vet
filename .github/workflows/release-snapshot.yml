@@ -12,8 +12,10 @@ on:
       - ".github/workflows/release-edge.yml"
       - ".github/scripts/**"
       - "Dockerfile"
+      - "Makefile"
       - "go.mod"
-      - "cmd/vet/**"
+      - "go.sum"
+      - "**.go"
 
 permissions:
   contents: read
@@ -65,3 +67,17 @@ jobs:
         run: |
           tar -xzf ./*_Darwin_all.tar.gz vet
           ./vet version
+
+  container:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Build the image
+        run: docker build --build-arg VERSION=2.0.0-snapshot -t vet:snapshot .
+
+      - name: Check the version of the image
+        run: |
+          docker run --rm vet:snapshot version | grep -F '"version": "2.0.0-snapshot"'

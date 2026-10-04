@@ -15,15 +15,16 @@ RUN go mod download
 COPY . .
 
 ARG TARGETPLATFORM
+# make sets VERSION from a git tag, so the build passes it on the command line.
 ARG VERSION
 ENV CGO_ENABLED=1
 
 # Set up cross-compilation environment based on target platform
 RUN case "${TARGETPLATFORM}" in \
     "linux/amd64") \
-    CC=gcc CXX=g++ GOOS=linux GOARCH=amd64 make quick-vet ;; \
+    CC=gcc CXX=g++ GOOS=linux GOARCH=amd64 make quick-vet ${VERSION:+VERSION=$VERSION} ;; \
     "linux/arm64") \
-    CC=aarch64-linux-gnu-gcc CXX=aarch64-linux-gnu-g++ GOOS=linux GOARCH=arm64 make quick-vet ;; \
+    CC=aarch64-linux-gnu-gcc CXX=aarch64-linux-gnu-g++ GOOS=linux GOARCH=arm64 make quick-vet ${VERSION:+VERSION=$VERSION} ;; \
     *) echo "Unsupported platform: ${TARGETPLATFORM}" && exit 1 ;; \
     esac
 
