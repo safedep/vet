@@ -89,7 +89,7 @@ command for the newest build, the release binaries and the build attestations.
 
 vet reads the lockfiles and manifests of npm, PyPI, Go, Maven, Gradle, Cargo, RubyGems, NuGet,
 Packagist, Pub and more. It also reads the GitHub Actions workflows and the AI agent configs of the
-target. It does not install or run any of them. 35 controls turn this data into findings. See
+target. It does not install or run any of them. Controls turn this data into findings. See
 [controls.md](docs/controls.md).
 
 ## Policy
@@ -147,7 +147,7 @@ After its expiry date, the suppression no longer hides the finding. Read
 | --- | --- |
 | [Install](docs/install.md) | All channels and how to verify a release |
 | [Commands](docs/cmd/README.md) | Every command, its flags and its exit codes |
-| [Controls](docs/controls.md) | The 35 controls and their options |
+| [Controls](docs/controls.md) | The controls and their options |
 | [Policy](docs/policy.md) | Rules, suppressions and the gate |
 | [Output](docs/output.md) | Report formats, saved scans and configuration |
 | [CI and AI agents](docs/ci.md) | GitHub Actions, GitLab, Bitbucket and agent mode |
@@ -171,5 +171,3 @@ no infrastructure to manage.
 <a href="https://github.com/safedep/vet/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=safedep/vet" alt="Contributors to vet" />
 </a>
-
-<img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=304d1856-fcb3-4166-bfbf-b3e40d0f1e3b" />

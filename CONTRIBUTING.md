@@ -40,13 +40,11 @@ When contributing changes to repository, follow these steps:
 
 ### Install Dependencies
 
-- Install [ASDF](https://asdf-vm.com/)
-- Install the development tools
+- Install [mise](https://mise.jdx.dev/)
+- Install the development tools. mise reads their versions from `.tool-versions`.
 
 ```bash
-asdf plugin add golang
-asdf plugin add gitleaks
-asdf install
+mise install
 ```
 
 - Install git hooks (using Go toolchain)

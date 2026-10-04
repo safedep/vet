@@ -84,10 +84,31 @@ vet:
 
 ## Bitbucket Pipelines
 
-The `bitbucket` file holds `report` and `annotations`. A pipeline step sends `report` with
-`PUT /2.0/repositories/{workspace}/{repo}/commit/{commit}/reports/vet`. Then it sends the
-annotations with `POST .../reports/vet/annotations`, at most 100 in each request. The gate sets the
-result of the report. With no gate, the report has no result.
+`--report bitbucket=vet-bitbucket.json` writes a Bitbucket Code Insights file. The file holds two
+keys. `report` is the body of the report, and `annotations` is the list of findings. The gate sets
+the result of the report. With no gate, the report has no result.
+
+The Code Insights API takes the report and the annotations in two requests, and at most 100
+annotations in each request. In Pipelines, the local proxy at `localhost:29418` adds the
+credentials. This step needs `vet`, `curl` and `jq` in the image:
+
+```yaml
+pipelines:
+  pull-requests:
+    '**':
+      - step:
+          name: vet
+          script:
+            - vet scan --base-ref "origin/$BITBUCKET_PR_DESTINATION_BRANCH" --fail-on high --report bitbucket=vet-bitbucket.json || status=$?
+            - export API="http://api.bitbucket.org/2.0/repositories/$BITBUCKET_REPO_FULL_NAME/commit/$BITBUCKET_COMMIT/reports/vet"
+            - jq '.report' vet-bitbucket.json | curl -sSf --proxy http://localhost:29418 -X PUT -H 'Content-Type: application/json' --data @- "$API"
+            - |
+              jq -c '.annotations | range(0; length; 100) as $i | .[$i:$i+100]' vet-bitbucket.json |
+              while read -r batch; do
+                curl -sSf --proxy http://localhost:29418 -X POST -H 'Content-Type: application/json' --data "$batch" "$API/annotations"
+              done
+            - exit "${status:-0}"
+```
 
 ## AI agents
 
