@@ -22,13 +22,13 @@ func squatOf(p *model.Package) string {
 	if in == nil || popularItself(p) {
 		return ""
 	}
-	name := strings.ToLower(p.ID.Name())
 	names := popular[p.ID.Ecosystem()]
-	if slices.Contains(names, name) {
+	if slices.ContainsFunc(names, p.ID.NameIs) {
 		return ""
 	}
+	name := strings.ToLower(p.ID.Name())
 	for _, target := range names {
-		if len(target) < 4 || canonical(p.ID.Ecosystem(), name) == canonical(p.ID.Ecosystem(), target) {
+		if len(target) < 4 {
 			continue
 		}
 		if similar(name, target) {
@@ -49,17 +49,9 @@ func popularItself(p *model.Package) bool {
 	if in.Stars < starjackStars || in.SourceRepo == "" {
 		return false
 	}
+	// GitHub ignores the case of a repository name.
 	repo := strings.TrimSuffix(path.Base(strings.TrimRight(in.SourceRepo, "/")), ".git")
-	return canonical(p.ID.Ecosystem(), strings.ToLower(repo)) == canonical(p.ID.Ecosystem(), strings.ToLower(p.ID.Name()))
-}
-
-// canonical is the name that a registry treats as the same: PyPI ignores
-// the case and the separators (PEP 503).
-func canonical(eco model.Ecosystem, name string) string {
-	if eco == model.EcosystemPyPI {
-		return separators.ReplaceAllString(name, "-")
-	}
-	return name
+	return p.ID.NameIs(repo) || strings.EqualFold(repo, p.ID.Name())
 }
 
 func similar(name, target string) bool {

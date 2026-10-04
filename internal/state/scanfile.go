@@ -11,11 +11,21 @@ import (
 
 	"github.com/safedep/dry/localdb"
 	"github.com/safedep/dry/log"
+	"github.com/safedep/dry/usefulerror"
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/report"
 )
+
+// scanFormat is the format of a scan file. Raise it when a change makes the
+// scan files of an older vet unreadable. vet does not migrate a scan file:
+// it refuses an older one, and a stopped scan of an older format starts
+// again.
+const scanFormat = 2
+
+// CodeScanFormat is the error code of a scan file of another format.
+const CodeScanFormat = "state_scan_format"
 
 // scanMigrations is the schema of one scan file. The scan file is not a
 // public format: the report stream is the contract. Rows hold the record
@@ -51,10 +61,10 @@ var scanMigrations = []string{
 		data         BLOB NOT NULL
 	)`,
 	`CREATE TABLE vet_scan_packages (
-		pkey      TEXT PRIMARY KEY,
-		ecosystem TEXT NOT NULL,
-		name      TEXT NOT NULL,
-		version   TEXT NOT NULL,
+		pkey        TEXT PRIMARY KEY,
+		ecosystem   TEXT NOT NULL,
+		raw_name    TEXT NOT NULL,
+		raw_version TEXT NOT NULL,
 		insight   BLOB,
 		malware   BLOB,
 		usage     BLOB
@@ -122,6 +132,7 @@ const (
 	metaHeader  = "header"
 	metaOptions = "options"
 	metaTrailer = "trailer"
+	metaFormat  = "format"
 )
 
 // Artifact statuses in the scan file.
@@ -187,6 +198,20 @@ func (s *Scan) setMeta(ctx context.Context, key string, v any) error {
 		return fmt.Errorf("write %s: %w", key, err)
 	}
 	return nil
+}
+
+// checkFormat refuses a scan file of another format.
+func (s *Scan) checkFormat(ctx context.Context) error {
+	var format int
+	if _, err := s.getMeta(ctx, metaFormat, &format); err != nil {
+		return err
+	}
+	if format == scanFormat {
+		return nil
+	}
+	msg := fmt.Sprintf("scan %s was saved by another version of vet", s.id)
+	return usefulerror.NewUsefulError().WithCode(CodeScanFormat).WithHumanError(msg).
+		WithHelp("Run vet scan again. vet does not read the scan files of another version.").WithMsg(msg)
 }
 
 func (s *Scan) getMeta(ctx context.Context, key string, v any) (bool, error) {
@@ -349,7 +374,7 @@ func addManifestTx(ctx context.Context, tx *sql.Tx, artifactKey string, m *model
 		return err
 	}
 	st, err := prepare(ctx, tx,
-		`INSERT INTO vet_scan_packages (pkey, ecosystem, name, version)
+		`INSERT INTO vet_scan_packages (pkey, ecosystem, raw_name, raw_version)
 			VALUES (?, ?, ?, ?) ON CONFLICT (pkey) DO NOTHING`,
 		`INSERT INTO vet_scan_manifest_packages (manifest_id, pkey, seq, change, data)
 			VALUES (?, ?, ?, ?, ?)
@@ -362,7 +387,7 @@ func addManifestTx(ctx context.Context, tx *sql.Tx, artifactKey string, m *model
 	insertPackage, insertManifestPackage, insertEdge := st[0], st[1], st[2]
 	for i, p := range m.Packages {
 		pkey := string(p.ID.Key())
-		if _, err := insertPackage.ExecContext(ctx, pkey, string(p.ID.Ecosystem()), p.ID.Name(), p.ID.Version()); err != nil {
+		if _, err := insertPackage.ExecContext(ctx, pkey, string(p.ID.Ecosystem()), p.ID.RawName(), p.ID.RawVersion()); err != nil {
 			return err
 		}
 		bare := *p

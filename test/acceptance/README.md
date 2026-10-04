@@ -75,7 +75,8 @@ Malysis over gRPC, and the GitHub API over HTTP, from `stub/fixtures/`:
 | GitHub API | `github/<owner>/<repo>.json` with `tags` and `branches` | HTTP 404 |
 
 A fixture holds the protojson of the response. The ecosystem is the enum name without
-`ECOSYSTEM_`, in lower case.
+`ECOSYSTEM_`, in lower case. An Insights fixture with a `packageVersion` answers only a request with
+that exact name and version, also on a file system that ignores case.
 
 | Command | Use |
 | --- | --- |

@@ -281,7 +281,9 @@ _Avoid_: filter suite, policy file (when a policy source is meant)
 
 **Rule**:
 A policy entry with an id, a CEL condition (`when`) and an action: `fail` or `warn`. `policy.Rule`.
-The CEL input is `finding`, `package` and `manifest` (`policy.Input`). A **broken rule** is a fail rule
+The CEL input is `finding`, `package` and `manifest` (`policy.Input`). `package.is(name)` and
+`package.version_cmp(version)` compare under the rule of the ecosystem. With no version order,
+`version_cmp` gives no answer, and a condition that needs the answer does not match. A **broken rule** is a fail rule
 that errors at evaluation, and it fails the gate. `Finding.PolicyRule` names the rule that matched.
 _Avoid_: filter, check, control
 
@@ -338,7 +340,8 @@ steps. `internal/view`. The report goes to stdout through a sink, never through 
 The directory of the scan index and the scan files. The **scan index** (`vet.db`, `state.Index`)
 holds one row for each scan. The **scan file** (`scans/<id>.db`, `state.Scan`) holds one scan as it
 runs, and implements `plugin.State` and `plugin.Report`. `state.Store` is the handle for both.
-**Retention** deletes old scans, and never the last completed scan of a target.
+**Retention** deletes old scans, and never the last completed scan of a target. A scan file
+records its **format**. vet refuses a scan file of another format and does not migrate it.
 _Avoid_: database, history
 
 **Saved scan**:

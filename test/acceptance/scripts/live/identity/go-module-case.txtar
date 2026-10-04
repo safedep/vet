@@ -1,0 +1,5 @@
+# vet sends the Go module path with its case, and SafeDep Insights returns
+# the advisory of that module.
+[!live] skip 'set ACCEPTANCE_LIVE=1 to call production'
+exec vet scan pkg:golang/github.com/Masterminds/goutils@v1.1.0 --mode plain -o json
+stdout 'GHSA-xg2h-wx96-xgxr'

@@ -2,9 +2,11 @@ package state
 
 import (
 	"context"
+	"os"
 	"testing"
 	"time"
 
+	"github.com/safedep/dry/usefulerror"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -139,4 +141,40 @@ func TestContinueScan(t *testing.T) {
 	live, err := isLive(e.File)
 	require.NoError(t, err)
 	assert.True(t, live)
+}
+
+// TestStoppedScanWithNoFile checks that vet starts a new scan in place of a
+// stopped scan with no scan file, and does not make an empty scan file.
+func TestStoppedScanWithNoFile(t *testing.T) {
+	ctx := context.Background()
+	s := openStore(t)
+	scan, e := newScan(t, s, "/repo")
+	require.NoError(t, scan.Close())
+	require.NoError(t, os.Remove(e.File))
+
+	d, err := s.DecideContinue(ctx, ContinueRequest{TargetKey: "/repo", OptionsHash: "h1", VetVersion: "test"})
+	require.NoError(t, err)
+	assert.Nil(t, d.Continue)
+	assert.Equal(t, ReasonFileMissing, d.Reason)
+	assert.NoFileExists(t, e.File)
+}
+
+// TestScanOfAnotherFormat checks that vet refuses a scan file of another
+// format, and starts a new scan in place of a stopped one of that format.
+func TestScanOfAnotherFormat(t *testing.T) {
+	ctx := context.Background()
+	s := openStore(t)
+	scan, e := newScan(t, s, "/repo")
+	require.NoError(t, scan.setMeta(ctx, metaFormat, scanFormat-1))
+	require.NoError(t, scan.Close())
+
+	_, err := s.OpenScan(ctx, e)
+	var ue usefulerror.UsefulError
+	require.ErrorAs(t, err, &ue)
+	assert.Equal(t, CodeScanFormat, ue.Code())
+
+	d, err := s.DecideContinue(ctx, ContinueRequest{TargetKey: "/repo", OptionsHash: "h1", VetVersion: "test"})
+	require.NoError(t, err)
+	assert.Nil(t, d.Continue)
+	assert.Equal(t, ReasonVersionChanged, d.Reason)
 }

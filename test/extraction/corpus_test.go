@@ -14,6 +14,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/safedep/vet/v2/internal/golden"
@@ -98,6 +99,23 @@ func TestCorpus(t *testing.T) {
 			require.NoError(t, err)
 			ms, errs := scalibr.ExtractFile(context.Background(), scalibr.File{Root: root, Path: filepath.ToSlash(c.File)}, exs)
 			golden.AssertJSON(t, filepath.Join("golden", c.ID+".json"), view(ms, errs, root))
+			assertPURLRoundTrip(t, ms)
 		})
+	}
+}
+
+// assertPURLRoundTrip checks that the PURL of each package parses back to
+// the same package key, so a PURL in a report or a policy names the same
+// package as the scan.
+func assertPURLRoundTrip(t *testing.T, ms []*model.Manifest) {
+	t.Helper()
+	for _, m := range ms {
+		for _, p := range m.Packages {
+			purl := p.ID.PURL()
+			require.NotEmpty(t, purl, p.ID.String())
+			back, err := model.ParsePURL(purl)
+			require.NoError(t, err, purl)
+			assert.Equal(t, p.ID.Key(), back.Key(), purl)
+		}
 	}
 }

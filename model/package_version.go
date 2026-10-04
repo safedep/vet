@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"path"
 	"strings"
 
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
@@ -143,6 +144,85 @@ func (p PackageVersion) SamePackage(other PackageVersion) bool { return p.NameKe
 // or the values name two packages. A caller that gets an error must not claim
 // an order, for example an upgrade or a downgrade.
 func (p PackageVersion) Compare(other PackageVersion) (int, error) { return p.pv.Compare(other.pv) }
+
+// NameIs reports a name that names this package under the rule of the
+// ecosystem, so "python-dateutil" names the PyPI package python.dateutil.
+func (p PackageVersion) NameIs(name string) bool {
+	n, err := canonicalName(p.Ecosystem(), name)
+	return err == nil && n == p.Name()
+}
+
+// MatchName reports a canonical name that a path.Match pattern matches. The
+// literal parts of the pattern fold under the rule of the ecosystem, so
+// "acme-*" matches the PyPI name Acme.Utils.
+func (p PackageVersion) MatchName(pattern string) (bool, error) {
+	folded, err := foldPattern(p.Ecosystem(), pattern)
+	if err != nil {
+		return false, err
+	}
+	return path.Match(folded, p.Name())
+}
+
+// foldPattern folds the literal parts of a path.Match pattern. It keeps the
+// wildcards and the character classes as they are.
+func foldPattern(eco Ecosystem, pattern string) (string, error) {
+	var out, lit strings.Builder
+	flush := func() error {
+		if lit.Len() == 0 {
+			return nil
+		}
+		n, err := canonicalName(eco, lit.String())
+		if err != nil {
+			return err
+		}
+		for _, r := range n {
+			if strings.ContainsRune(`*?[\`, r) {
+				out.WriteByte('\\')
+			}
+			out.WriteRune(r)
+		}
+		lit.Reset()
+		return nil
+	}
+	for i := 0; i < len(pattern); i++ {
+		switch c := pattern[i]; {
+		case c == '*' || c == '?':
+			if err := flush(); err != nil {
+				return "", err
+			}
+			out.WriteByte(c)
+		case c == '[':
+			if err := flush(); err != nil {
+				return "", err
+			}
+			end := strings.IndexByte(pattern[i:], ']')
+			if end < 0 {
+				return "", path.ErrBadPattern
+			}
+			out.WriteString(pattern[i : i+end+1])
+			i += end
+		case c == '\\' && i+1 < len(pattern):
+			i++
+			lit.WriteByte(pattern[i])
+		default:
+			lit.WriteByte(c)
+		}
+	}
+	if err := flush(); err != nil {
+		return "", err
+	}
+	return out.String(), nil
+}
+
+// canonicalName returns a name, or a part of a name, under the rule of the
+// ecosystem.
+func canonicalName(eco Ecosystem, name string) (string, error) {
+	p, err := NewPackageVersion(eco, name, "")
+	if err != nil {
+		return "", err
+	}
+	return p.Name(), nil
+}
 
 // WithVersion returns the same package at another raw version.
 func (p PackageVersion) WithVersion(version string) PackageVersion {

@@ -272,3 +272,27 @@ func TestApplyRuleError(t *testing.T) {
 	gate.Add(f, NewEvaluator(p, Options{}).Apply(f, pkg, nil))
 	assert.Equal(t, []string{"bad"}, gate.Result().Rules, "the gate names the rule that did not run")
 }
+
+// TestSuppressionMatchesEverySpelling checks that a suppression PURL names
+// the package under the rule of the ecosystem.
+func TestSuppressionMatchesEverySpelling(t *testing.T) {
+	p := &model.Package{ID: model.MustPackageVersion(model.EcosystemPyPI, "python.dateutil", "2.9.0")}
+	cases := []struct {
+		purl string
+		want bool
+	}{
+		{"pkg:pypi/Python_Dateutil@2.9", true},
+		{"pkg:pypi/python-dateutil", true},
+		{"pkg:pypi/python-dateutil@2.8.0", false},
+		{"pkg:pypi/dateutil", false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.purl, func(t *testing.T) {
+			f := finding.ForPackage(finding.Meta{ControlID: "vulnerability", Family: finding.FamilyVulnerability, Severity: finding.SeverityHigh, Title: "t"}, "requirements.txt", p, finding.Key{})
+			pol, err := Parse("p.yml", []byte("version: 2\nsuppressions:\n  - reason: r\n    purl: "+tc.purl+"\n"))
+			require.NoError(t, err)
+			NewEvaluator(pol, Options{Now: func() time.Time { return now }}).Apply(&f, p, nil)
+			assert.Equal(t, tc.want, f.Suppressed())
+		})
+	}
+}

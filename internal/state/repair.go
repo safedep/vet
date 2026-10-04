@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/safedep/dry/usefulerror"
 )
 
 // Issues are the problems of the state that "vet doctor --fix" repairs.
@@ -64,7 +66,9 @@ func (s *Store) Inspect(ctx context.Context) (*Issues, error) {
 
 // Repair fixes the issues: it marks a stale running scan interrupted,
 // removes an entry whose file is gone, and adds an entry for an orphan
-// scan file from its header. It deletes no scan file.
+// scan file from its header. It deletes an orphan scan file of another
+// format, because this vet cannot read it and does not migrate it. It
+// deletes no other scan file.
 func (s *Store) Repair(ctx context.Context, i *Issues) error {
 	var errs []error
 	for _, e := range i.StaleRunning {
@@ -81,7 +85,10 @@ func (s *Store) Repair(ctx context.Context, i *Issues) error {
 
 func (s *Store) indexOrphan(ctx context.Context, file string) (err error) {
 	id := strings.TrimSuffix(filepath.Base(file), filepath.Ext(file))
-	scan, err := openScanFile(ctx, filepath.Dir(file), id)
+	scan, err := openCurrentScanFile(ctx, filepath.Dir(file), id)
+	if ue, ok := usefulerror.AsUsefulError(err); ok && ue.Code() == CodeScanFormat {
+		return os.Remove(file)
+	}
 	if err != nil {
 		return err
 	}

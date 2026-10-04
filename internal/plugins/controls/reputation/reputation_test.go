@@ -75,6 +75,12 @@ func TestReputation(t *testing.T) {
 			[]string{IDConfusion},
 		},
 		{
+			"a PyPI internal name in another spelling",
+			map[string]any{"internal_names": []any{"acme-*"}},
+			&model.Package{ID: model.MustPackageVersion(model.EcosystemPyPI, "Acme.Utils", "1.0.0"), Resolved: "https://files.pythonhosted.org/packages/acme_utils-1.0.0.tar.gz"},
+			[]string{IDConfusion},
+		},
+		{
 			"internal name from the internal registry",
 			map[string]any{"internal_names": []any{"@acme/*"}},
 			&model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "@acme/auth", "1.0.0"), Resolved: "https://npm.acme.example/@acme/auth/-/auth-1.0.0.tgz"}, nil,
@@ -143,4 +149,17 @@ func TestAICapabilityDelta(t *testing.T) {
 	assert.Equal(t, "The change adds a call to OpenAI SDK Chat", f.Title)
 	assert.Equal(t, &finding.Locus{Path: "agent.py", StartLine: 7, EndLine: 7}, f.Locus)
 	assert.Equal(t, finding.ForApplication(finding.Meta{ControlID: IDAIBOM}, ".", "openai.client").ID, f.ID, "the id holds the control, the root and the signature")
+}
+
+// TestPopularNamesAreCanonical checks that each popular name names itself.
+// A name that does not would flag the popular package as a squat of itself.
+func TestPopularNamesAreCanonical(t *testing.T) {
+	for eco, names := range popular {
+		for _, name := range names {
+			id, err := model.NewPackageVersion(eco, name, "1.0.0")
+			require.NoError(t, err, "%s %s", eco, name)
+			assert.Equal(t, name, id.Name(), "%s %s", eco, name)
+			assert.True(t, id.NameIs(name), "%s %s", eco, name)
+		}
+	}
 }

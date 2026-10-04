@@ -1,0 +1,10 @@
+{
+  "packageVersion": {
+    "package": {"ecosystem": "ECOSYSTEM_PYPI", "name": "Acme.Utils"},
+    "version": "1.0.0"
+  },
+  "insight": {
+    "packagePublishedAt": "2020-01-01T00:00:00Z",
+    "downloadCount": "100000"
+  }
+}

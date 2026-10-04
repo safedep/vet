@@ -1,0 +1,5 @@
+# vet scan pkg:... sends the name and the version as the user wrote them.
+# The stub answers only the exact name and version, so the advisory shows
+# only when vet sends X and 1.0.0.0.0.0, not the canonical x and 1.
+exec vet scan pkg:pypi/X@1.0.0.0.0.0 --mode plain -o json
+stdout 'GHSA-stub-raw1'

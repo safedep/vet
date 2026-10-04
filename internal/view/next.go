@@ -3,8 +3,6 @@ package view
 import (
 	"slices"
 
-	"github.com/safedep/dry/semver"
-
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/tui/escape"
 	"github.com/safedep/vet/v2/internal/tui/output"
@@ -56,7 +54,10 @@ func (v *Scan) next(h *report.Header, t *report.Trailer, s Summary) {
 // version takes the latest version of the package, as its remediation
 // does. It is empty when no finding has a version above the one in use.
 func fixText(findings []*finding.Finding, latest map[model.PackageKey]string) string {
-	type fix struct{ name, version string }
+	type fix struct {
+		name    string
+		version model.PackageVersion
+	}
 	var keys []model.PackageKey
 	fixes := map[model.PackageKey]*fix{}
 	for _, f := range findings {
@@ -71,7 +72,7 @@ func fixText(findings []*finding.Finding, latest map[model.PackageKey]string) st
 			fixes[key] = x
 			keys = append(keys, key)
 		}
-		if x.version == "" || semver.IsAhead(x.version, version) {
+		if x.version.IsZero() || less(x.version, version) {
 			x.version = version
 		}
 	}
@@ -80,30 +81,37 @@ func fixText(findings []*finding.Finding, latest map[model.PackageKey]string) st
 	}
 	parts := make([]string, 0, shownFixes)
 	for _, k := range keys[:min(len(keys), shownFixes)] {
-		parts = append(parts, escape.Line(fixes[k].name)+" to "+escape.Line(fixes[k].version))
+		parts = append(parts, escape.Line(fixes[k].name)+" to "+escape.Line(fixes[k].version.RawVersion()))
 	}
 	return "upgrade " + joinAnd(parts)
 }
 
 // upgrade returns the package of a finding and the version that fixes it.
-// It returns false when the finding names no version above the one in use.
-func upgrade(f *finding.Finding, latest map[model.PackageKey]string) (model.PackageVersion, string, bool) {
+// It returns false when the finding names no version above the one in use,
+// or when the ecosystem has no order to tell.
+func upgrade(f *finding.Finding, latest map[model.PackageKey]string) (model.PackageVersion, model.PackageVersion, bool) {
 	p := f.Subject.Package
 	if p == nil || f.Remediation == nil {
-		return model.PackageVersion{}, "", false
+		return model.PackageVersion{}, model.PackageVersion{}, false
 	}
 	id, err := p.PackageVersion()
 	if err != nil {
-		return model.PackageVersion{}, "", false
+		return model.PackageVersion{}, model.PackageVersion{}, false
 	}
 	version := f.Remediation.FixedVersion
 	if version == "" && f.Family == finding.FamilyVulnerability {
 		version = latest[id.Key()]
 	}
-	if !semver.IsAhead(id.RawVersion(), version) {
-		return model.PackageVersion{}, "", false
+	if version == "" || !less(id, id.WithVersion(version)) {
+		return model.PackageVersion{}, model.PackageVersion{}, false
 	}
-	return id, version, true
+	return id, id.WithVersion(version), true
+}
+
+// less reports a version below another under the order of the ecosystem.
+func less(a, b model.PackageVersion) bool {
+	c, err := a.Compare(b)
+	return err == nil && c < 0
 }
 
 func fullList(scanID string) string {

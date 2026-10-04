@@ -1,0 +1,20 @@
+[!git] skip 'needs git'
+# Pull request mode compares versions under the rule of the ecosystem.
+# requests 2.31 and 2.31.0 are one PyPI version, so the package is
+# unchanged. pkg 1.0rc1 to 1.0 is an upgrade.
+cd proj
+exec git -c user.email=t@example.com -c user.name=t init -q
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m base
+cp $WORK/head.txt requirements.txt
+exec vet scan . --mode plain -o jsonl --base-ref HEAD
+stdout '"raw_name":"requests".*"change":"UNCHANGED"'
+stdout '"raw_name":"pkg".*"change":"UPGRADED"'
+! stdout 'DOWNGRADED'
+
+-- head.txt --
+requests==2.31.0
+pkg==1.0
+-- proj/requirements.txt --
+requests==2.31
+pkg==1.0rc1

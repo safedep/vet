@@ -13,7 +13,6 @@ import (
 
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
-	"github.com/safedep/dry/semver"
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/app"
@@ -171,8 +170,10 @@ func diff(head, baseM *model.Manifest, fileChanged bool) {
 		case ok:
 			replaced[prev.Key()] = true
 			p.PreviousVersion = prev.RawVersion()
+			// With no order, such as the git ref of an action, the change is
+			// an upgrade: vet does not claim a downgrade that it cannot see.
 			p.Change = model.ChangeUpgraded
-			if semver.IsAhead(p.ID.RawVersion(), prev.RawVersion()) {
+			if c, err := p.ID.Compare(prev); err == nil && c < 0 {
 				p.Change = model.ChangeDowngraded
 			}
 		default:
@@ -196,26 +197,42 @@ func diff(head, baseM *model.Manifest, fileChanged bool) {
 }
 
 // previousVersion returns the base version that a head version replaces:
-// the highest base version below it, else the lowest above it. A base
-// version that the head still has replaces nothing, so a lockfile with
-// two versions of a package compares each with the right one.
+// the highest base version below it, else the lowest above it, under the
+// order of the ecosystem. With no order, it returns the first base version.
+// A base version that the head still has replaces nothing, so a lockfile
+// with two versions of a package compares each with the right one.
 func previousVersion(version model.PackageVersion, base []model.PackageVersion, inHead map[model.PackageKey]bool) (model.PackageVersion, bool) {
-	var below, above model.PackageVersion
+	var below, above, unordered model.PackageVersion
 	for _, v := range base {
+		if inHead[v.Key()] {
+			continue
+		}
+		c, err := version.Compare(v)
 		switch {
-		case inHead[v.Key()]:
-		case semver.IsAhead(v.RawVersion(), version.RawVersion()):
-			if below.IsZero() || semver.IsAhead(below.RawVersion(), v.RawVersion()) {
+		case err != nil:
+			if unordered.IsZero() {
+				unordered = v
+			}
+		case c > 0:
+			if below.IsZero() || less(below, v) {
 				below = v
 			}
-		case above.IsZero() || semver.IsAhead(v.RawVersion(), above.RawVersion()):
+		case above.IsZero() || less(v, above):
 			above = v
 		}
 	}
-	if !below.IsZero() {
-		return below, true
+	for _, v := range []model.PackageVersion{below, above, unordered} {
+		if !v.IsZero() {
+			return v, true
+		}
 	}
-	return above, !above.IsZero()
+	return model.PackageVersion{}, false
+}
+
+// less reports a version below another under the order of the ecosystem.
+func less(a, b model.PackageVersion) bool {
+	c, err := a.Compare(b)
+	return err == nil && c < 0
 }
 
 // declaringFile maps a lockfile to the manifest file next to it.

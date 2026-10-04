@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/x/ansi"
-	"github.com/safedep/dry/semver"
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/plugins/internal/optschema"
@@ -305,19 +304,42 @@ func (r row) text(room int) string {
 	return short
 }
 
-// fix is the highest fixed version of a vulnerability row. It is empty when
-// a finding of the row has no fixed version.
+// fix is the highest fixed version of a vulnerability row, under the order
+// of the ecosystem. With no order it lists each fixed version. It is empty
+// when a finding of the row has no fixed version.
 func (r row) fix() string {
-	var fix string
+	var versions []model.PackageVersion
 	for _, f := range r {
-		if f.Family != finding.FamilyVulnerability || f.Remediation == nil || f.Remediation.FixedVersion == "" {
+		if f.Family != finding.FamilyVulnerability || f.Remediation == nil || f.Remediation.FixedVersion == "" || f.Subject.Package == nil {
 			return ""
 		}
-		if v := f.Remediation.FixedVersion; fix == "" || semver.IsAhead(fix, v) {
-			fix = v
+		id, err := f.Subject.Package.PackageVersion()
+		if err != nil {
+			return ""
+		}
+		v := id.WithVersion(f.Remediation.FixedVersion)
+		if !slices.ContainsFunc(versions, v.Equal) {
+			versions = append(versions, v)
 		}
 	}
-	return fix
+	if len(versions) == 0 {
+		return ""
+	}
+	highest := versions[0]
+	for _, v := range versions[1:] {
+		c, err := v.Compare(highest)
+		if err != nil {
+			raw := make([]string, len(versions))
+			for i, v := range versions {
+				raw[i] = v.RawVersion()
+			}
+			return strings.Join(raw, ", ")
+		}
+		if c > 0 {
+			highest = v
+		}
+	}
+	return highest.RawVersion()
 }
 
 // findingHints says what the table leaves out, and where to read it.

@@ -248,3 +248,49 @@ func TestGraphMergesSpellings(t *testing.T) {
 	assert.Equal(t, "Zope.Interface", children[0].RawName(), "the graph keeps the first spelling")
 	assert.Len(t, g.PathTo(mustPV(t, EcosystemPyPI, "zope-interface", "5")), 2)
 }
+
+func TestNameIs(t *testing.T) {
+	cases := []struct {
+		eco  Ecosystem
+		pkg  string
+		name string
+		want bool
+	}{
+		{EcosystemPyPI, "python.dateutil", "python-dateutil", true},
+		{EcosystemPyPI, "Zope.Interface", "zope_interface", true},
+		{EcosystemPyPI, "requests", "request", false},
+		{EcosystemNpm, "JSONStream", "jsonstream", false},
+		{EcosystemGo, "github.com/Masterminds/goutils", "github.com/masterminds/goutils", false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.pkg+"="+tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, mustPV(t, tc.eco, tc.pkg, "1.0").NameIs(tc.name))
+		})
+	}
+}
+
+func TestMatchName(t *testing.T) {
+	cases := []struct {
+		eco     Ecosystem
+		pkg     string
+		pattern string
+		want    bool
+	}{
+		{EcosystemPyPI, "Acme.Utils", "acme-*", true},
+		{EcosystemPyPI, "acme_utils", "Acme.*", true},
+		{EcosystemPyPI, "other", "acme-*", false},
+		{EcosystemPyPI, "acme-x", "acme-[xy]", true},
+		{EcosystemNpm, "@acme/utils", "@acme/*", true},
+		{EcosystemNpm, "@Acme/utils", "@acme/*", false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.pkg+"~"+tc.pattern, func(t *testing.T) {
+			got, err := mustPV(t, tc.eco, tc.pkg, "1.0").MatchName(tc.pattern)
+			require.NoError(t, err)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+
+	_, err := mustPV(t, EcosystemPyPI, "a", "1").MatchName("a[")
+	assert.Error(t, err)
+}

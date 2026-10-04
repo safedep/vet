@@ -2,6 +2,7 @@ package table
 
 import (
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -156,6 +157,8 @@ func TestFixVersion(t *testing.T) {
 	}{
 		{name: "each finding has a fix", fixed: []string{"2.2.10", "3.0.1", "2.2.24"}, want: "3 vulnerabilities: 1 critical, 2 high (fix 3.0.1) requirements.txt:2"},
 		{name: "one finding has no fix", fixed: []string{"2.2.10", "3.0.1"}, want: "3 vulnerabilities: 1 critical, 2 high requirements.txt:2"},
+		{name: "the PyPI order", fixed: []string{"2.2.28", "3.0rc1", "2.2.24"}, want: "(fix 3.0rc1)"},
+		{name: "two spellings of one version", fixed: []string{"3.0", "3.0.0", "2.2.24"}, want: "(fix 3.0.0)"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -378,4 +381,16 @@ func TestToolTable(t *testing.T) {
 
 	got = write(t, plugin.MapConfig{"limit": 2}, r)
 	assert.Contains(t, got, "› 3 more tools. vet report show --all lists each one.")
+}
+
+func TestFixVersionWithNoOrder(t *testing.T) {
+	action := &model.Package{ID: model.MustPackageVersion(model.EcosystemGitHubActions, "actions/checkout", "v3")}
+	var r row
+	for i, v := range []string{"v4", "v5", "v4"} {
+		f := finding.ForPackage(finding.Meta{ControlID: "vulnerability", Family: finding.FamilyVulnerability, Severity: finding.SeverityHigh, Title: "t"},
+			".github/workflows/ci.yml", action, finding.Key{Discriminator: strconv.Itoa(i)})
+		f.Remediation = &finding.Remediation{FixedVersion: v}
+		r = append(r, &f)
+	}
+	assert.Equal(t, "v4, v5", r.fix(), "vet does not pick a version that it cannot order")
 }

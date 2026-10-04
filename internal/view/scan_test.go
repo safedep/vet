@@ -290,6 +290,15 @@ func TestFixText(t *testing.T) {
 			},
 			want: "upgrade Django to 3.2.4",
 		},
+		{
+			name:     "the PyPI order",
+			findings: []*finding.Finding{pkgIn(model.EcosystemPyPI, "pkg", "1.0rc1", "1.0", finding.SeverityHigh)},
+			want:     "upgrade pkg to 1.0",
+		},
+		{
+			name:     "no hint with no order",
+			findings: []*finding.Finding{pkgIn(model.EcosystemGitHubActions, "actions/checkout", "v3", "v4", finding.SeverityHigh)},
+		},
 		{name: "a lower version is no upgrade", findings: []*finding.Finding{pkg("a", "1.4.1", "1.3.9", finding.SeverityHigh)}},
 		{name: "one package", findings: []*finding.Finding{pkg("minimist", "1.2.0", "1.2.6", finding.SeverityCritical)}, want: "upgrade minimist to 1.2.6"},
 		{

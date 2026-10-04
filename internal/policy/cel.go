@@ -6,13 +6,21 @@ import (
 	"strings"
 
 	"github.com/google/cel-go/cel"
+	"github.com/google/cel-go/common/types"
+	"github.com/google/cel-go/common/types/ref"
+	"github.com/google/cel-go/common/types/traits"
+
+	"github.com/safedep/vet/v2/model"
 )
 
 // packageIdent stands in for "package", which CEL reserves. It has the same
 // length, so the columns of an error stay right.
 const packageIdent = "vet_pkg"
 
-var errNoKey = errors.New("no such key")
+var (
+	errNoKey   = errors.New("no such key")
+	errNoOrder = errors.New("no version order")
+)
 
 // Expr is a compiled rule condition.
 type Expr struct {
@@ -27,7 +35,52 @@ func newEnv() (*cel.Env, error) {
 		cel.Variable(packageIdent, dyn),
 		cel.Variable("manifest", dyn),
 		cel.CrossTypeNumericComparisons(true),
+		// package.is(name) compares a name under the rule of the ecosystem,
+		// so package.is("python-dateutil") matches python.dateutil.
+		cel.Function("is", cel.MemberOverload("package_is_string", []*cel.Type{dyn, cel.StringType}, cel.BoolType,
+			cel.BinaryBinding(func(pkg, name ref.Val) ref.Val {
+				id, ok := celPackage(pkg)
+				s, isString := name.Value().(string)
+				return types.Bool(ok && isString && id.NameIs(s))
+			}))),
+		// package.version_cmp(v) orders the version of the package against v
+		// under the rule of the ecosystem: -1, 0 or 1. With no order, it
+		// gives no answer, and a condition that needs the answer does not
+		// match. CEL still decides a || b from a true b, as it does for an
+		// absent field, so a deny rule keeps its other checks.
+		cel.Function("version_cmp", cel.MemberOverload("package_version_cmp_string", []*cel.Type{dyn, cel.StringType}, cel.IntType,
+			cel.BinaryBinding(func(pkg, version ref.Val) ref.Val {
+				id, ok := celPackage(pkg)
+				v, isString := version.Value().(string)
+				if !ok || !isString {
+					return types.NewErr("%s", errNoKey)
+				}
+				c, err := id.Compare(id.WithVersion(v))
+				if err != nil {
+					return types.WrapErr(fmt.Errorf("%w: %w", errNoOrder, err))
+				}
+				return types.Int(c)
+			}))),
 	)
+}
+
+// celPackage rebuilds the package version of the CEL package input from its
+// ecosystem and its raw form. It is false for a finding with no package.
+func celPackage(v ref.Val) (model.PackageVersion, bool) {
+	m, ok := v.(traits.Mapper)
+	if !ok {
+		return model.PackageVersion{}, false
+	}
+	field := func(key string) string {
+		f, found := m.Find(types.String(key))
+		if !found {
+			return ""
+		}
+		s, _ := f.Value().(string)
+		return s
+	}
+	id, err := model.NewPackageVersion(model.Ecosystem(field("ecosystem")), field("raw_name"), field("raw_version"))
+	return id, err == nil
 }
 
 // Compile compiles a rule condition. The condition must give a bool.
@@ -60,7 +113,8 @@ func (e *Expr) Match(in Input) (bool, error) {
 	}
 	out, _, err := e.prg.Eval(vars)
 	if err != nil {
-		if strings.Contains(err.Error(), errNoKey.Error()) {
+		// CEL gives a missing map key as text, with no error to match.
+		if errors.Is(err, errNoOrder) || strings.Contains(err.Error(), errNoKey.Error()) {
 			return false, nil
 		}
 		return false, errors.New(restorePackage(err.Error()))

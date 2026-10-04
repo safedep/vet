@@ -27,6 +27,12 @@ only with `--policy FILE` or the `policy.file` config key.
 1. Read the input of a rule: `vet policy schema get`. A rule reads `finding`, `package` and
    `manifest`. An optional field with no value is absent, so test it with `has()`, for example
    `has(package.days_since_publish) && package.days_since_publish < 5`.
+   Compare a package name with `package.is("name")`, not with `==`, and a version with
+   `package.version_cmp("1.2.3")`. Both apply the rule of the ecosystem: `package.is("python-dateutil")`
+   matches `python.dateutil`, and `package.version_cmp("2.0") < 0` holds for `1.0rc1`.
+   An ecosystem with no version order, such as GitHub Actions, gives no answer to
+   `package.version_cmp`. A condition that needs the answer does not match, but CEL still decides
+   `a || b` when `b` is true.
 2. Read the control ids and their default severities: `vet policy control list -o json`.
 3. Start from the starter file when the user has no policy: `vet policy init vet-policy.yml`.
 4. Write the rules. Keep one idea in each rule, and give it a `description`.

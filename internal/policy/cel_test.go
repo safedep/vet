@@ -113,3 +113,45 @@ func TestInputSchema(t *testing.T) {
 		assert.Contains(t, string(b), `"`+field+`"`)
 	}
 }
+
+func inputOf(eco model.Ecosystem, name, version string) Input {
+	p := &model.Package{ID: model.MustPackageVersion(eco, name, version)}
+	m := &model.Manifest{Path: "requirements.txt", Ecosystem: eco, Kind: model.ManifestKindLockfile}
+	f := finding.ForPackage(finding.Meta{ControlID: "vulnerability", Family: finding.FamilyVulnerability, Severity: finding.SeverityHigh, Title: "t"}, m.Path, p, finding.Key{})
+	return NewInput(&f, p, m, now)
+}
+
+func TestPackageFunctions(t *testing.T) {
+	dateutil := inputOf(model.EcosystemPyPI, "python.dateutil", "2.9.0")
+	cases := []struct {
+		name string
+		expr string
+		in   Input
+		want bool
+	}{
+		{name: "is folds the name", expr: `package.is("python-dateutil")`, in: dateutil, want: true},
+		{name: "a plain compare does not fold", expr: `package.name == "python.dateutil"`, in: dateutil},
+		{name: "the canonical name", expr: `package.name == "python-dateutil"`, in: dateutil, want: true},
+		{name: "the raw name", expr: `package.raw_name == "python.dateutil"`, in: dateutil, want: true},
+		{name: "is another package", expr: `package.is("dateutil")`, in: dateutil},
+		{name: "npm keeps case", expr: `package.is("jsonstream")`, in: inputOf(model.EcosystemNpm, "JSONStream", "1.0.3")},
+		{name: "version below", expr: `package.version_cmp("2.10.0") < 0`, in: dateutil, want: true},
+		{name: "version equal in another spelling", expr: `package.version_cmp("2.9") == 0`, in: dateutil, want: true},
+		{name: "a release after its candidate", expr: `package.version_cmp("1.0rc1") > 0`, in: inputOf(model.EcosystemPyPI, "x", "1.0"), want: true},
+		{name: "no order does not match", expr: `package.version_cmp("v4") < 0`, in: inputOf(model.EcosystemGitHubActions, "actions/checkout", "v3")},
+		{name: "no order negated does not match", expr: `!(package.version_cmp("v4") < 0)`, in: inputOf(model.EcosystemGitHubActions, "actions/checkout", "v3")},
+		{name: "no order with a false side does not match", expr: `package.version_cmp("v4") < 0 && true`, in: inputOf(model.EcosystemGitHubActions, "actions/checkout", "v3")},
+		{name: "no order with a true side matches", expr: `package.version_cmp("v4") < 0 || package.is("actions/checkout")`, in: inputOf(model.EcosystemGitHubActions, "actions/checkout", "v3"), want: true},
+		{name: "no package", expr: `package.is("x")`, in: Input{Finding: FindingInput{ControlID: "unpinned-action"}}},
+		{name: "no package has no version", expr: `package.version_cmp("1.0") < 0`, in: Input{Finding: FindingInput{ControlID: "unpinned-action"}}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			e, err := Compile(tc.expr)
+			require.NoError(t, err)
+			got, err := e.Match(tc.in)
+			require.NoError(t, err)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
