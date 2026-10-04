@@ -16,7 +16,7 @@ a `›` line with the fix under a check that did not pass. `-o json` returns the
 
 | Check | What it checks |
 | --- | --- |
-| `vet.version`, `vet.release` | The version of vet, and whether it is the latest release. |
+| `vet.version`, `vet.release` | The version of vet, and whether a newer release of the same major version exists. An alpha build compares with the newer alpha builds. |
 | `config.file` | The config file loads and has no unknown key. |
 | `install.path` | The vet that PATH finds first is this vet. |
 | `plugins` | Each `plugins` section names a built-in plugin and has valid options. `codeusage` needs a vet build with CGO. |
