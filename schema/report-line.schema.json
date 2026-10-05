@@ -515,7 +515,8 @@
             "image",
             "purl",
             "endpoint",
-            "agent-config"
+            "agent-config",
+            "installed"
           ]
         },
         "change": {

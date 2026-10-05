@@ -39,6 +39,7 @@ helper or a list. Each row is the one place for its concern.
 | Untrusted text on a terminal (package names, paths from a repository) | `internal/tui/escape` |
 | Log lines of libraries | `internal/logging`. They print only with `-v`. Do not write to the standard `log` package. |
 | The list of built-in plugins with a config section | `internal/plugins/builtin`. Do not list plugins by hand. |
+| The extractor set of a scan, declared and installed packages | `internal/plugins/extractors` (`For`), with `internal/plugins/extractors/installed` |
 | Control plugins, report formats | `internal/plugins/controls`, `internal/plugins/sinks` |
 | Enrichers and their cache settings | `internal/plugins/enrichers` |
 | The JSON Schema of plugin options | `internal/plugins/internal/optschema` |

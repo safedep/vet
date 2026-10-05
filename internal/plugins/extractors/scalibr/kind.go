@@ -3,6 +3,13 @@ package scalibr
 import (
 	"strings"
 
+	"github.com/google/osv-scalibr/extractor/filesystem"
+	"github.com/google/osv-scalibr/extractor/filesystem/language/golang/gobinary"
+	"github.com/google/osv-scalibr/extractor/filesystem/language/python/wheelegg"
+	"github.com/google/osv-scalibr/extractor/filesystem/language/ruby/gem"
+	"github.com/google/osv-scalibr/extractor/filesystem/language/rust/cargoauditable"
+
+	"github.com/safedep/vet/v2/internal/plugins/extractors/installed"
 	"github.com/safedep/vet/v2/model"
 )
 
@@ -35,9 +42,23 @@ var lockfiles = map[string]bool{
 	"go/gomod":                   true,
 }
 
+// installedReaders are the extractors that read a package on disk.
+var installedReaders = map[string]bool{
+	installed.NodeModulesName: true,
+	wheelegg.Name:             true,
+	gobinary.Name:             true,
+	gem.Name:                  true,
+	cargoauditable.Name:       true,
+}
+
+// ReadsInstalled reports an extractor that reads a package on disk.
+func ReadsInstalled(e filesystem.Extractor) bool { return installedReaders[e.Name()] }
+
 // kindOf returns the manifest kind of an extractor.
 func kindOf(extractor string) model.ManifestKind {
 	switch {
+	case installedReaders[extractor]:
+		return model.ManifestKindInstalled
 	case lockfiles[extractor]:
 		return model.ManifestKindLockfile
 	case strings.HasPrefix(extractor, "sbom/"):

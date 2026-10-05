@@ -1,0 +1,25 @@
+# An image scan reads declared and installed packages by default. vet reads
+# node_modules/minimist/package.json as an installed package, not as a
+# manifest, so its own dependency range is not a package of the scan.
+imagetar image.tar vet-acceptance/installed:test rootfs
+exec vet scan image.tar --mode plain -o jsonl
+stdout '"path":"app/package-lock.json","ecosystem":"npm","kind":"lockfile"'
+stdout '"raw_name":"left-pad"'
+stdout '"raw_name":"minimist"'
+stdout '"raw_name":"python-dateutil"'
+stdout '"path":"app/node_modules/minimist/package.json","ecosystem":"npm","kind":"installed"'
+stdout '"purl":"pkg:npm/minimist@1.2.0"},"direct":false'
+! stdout '"raw_name":"not-installed"'
+
+exec vet scan image.tar --mode plain -o jsonl --fresh --packages declared
+! stdout '"kind":"installed"'
+! stdout '"raw_name":"not-installed"'
+
+-- rootfs/app/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"left-pad": "1.3.0"}}, "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}}}
+-- rootfs/app/node_modules/minimist/package.json --
+{"name": "minimist", "version": "1.2.0", "dependencies": {"not-installed": "^1.0.0"}}
+-- rootfs/usr/lib/python3/dist-packages/python_dateutil-2.8.0.dist-info/METADATA --
+Metadata-Version: 2.1
+Name: python-dateutil
+Version: 2.8.0

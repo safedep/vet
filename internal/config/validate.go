@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/model"
 )
 
 // Validate checks every value of the effective config. Each error names the
@@ -25,6 +26,10 @@ func (l *Loaded) Validate() error {
 	check("output.mode", c.Output.Mode, slices.Contains([]string{"auto", "rich", "plain", "agent"}, c.Output.Mode), "must be auto, rich, plain or agent")
 	check("output.color", c.Output.Color, slices.Contains([]string{"auto", "always", "never"}, c.Output.Color), "must be auto, always or never")
 	check("scan.concurrency", fmt.Sprint(c.Scan.Concurrency), c.Scan.Concurrency >= 1 && c.Scan.Concurrency <= 256, "must be a number from 1 to 256")
+
+	if c.Scan.Packages != "" {
+		check("scan.packages", c.Scan.Packages, slices.Contains(model.PackagesValues, model.Packages(c.Scan.Packages)), "must be declared, installed or all")
+	}
 
 	if c.Policy.FailOn != "" {
 		_, err := finding.ParseSeverity(c.Policy.FailOn)
