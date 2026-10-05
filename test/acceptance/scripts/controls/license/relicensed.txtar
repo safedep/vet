@@ -1,0 +1,30 @@
+[!git] skip 'needs git'
+# In pull request mode, an upgrade from Apache-2.0 to BUSL-1.1 is
+# license-relicensed with high severity, not license-change.
+cd proj
+exec git -c user.email=t@example.com -c user.name=t init -q
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m base
+cp $WORK/head.json package-lock.json
+exec vet scan . --mode plain -o jsonl --base-ref HEAD
+stdout '"control_id":"license-relicensed".*"severity":"high"'
+! stdout '"control_id":"license-change"'
+
+-- head.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"relic": "2.0.0"}},
+    "node_modules/relic": {"version": "2.0.0", "resolved": "https://registry.npmjs.org/relic/-/relic-2.0.0.tgz"}
+  }
+}
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"relic": "1.0.0"}},
+    "node_modules/relic": {"version": "1.0.0", "resolved": "https://registry.npmjs.org/relic/-/relic-1.0.0.tgz"}
+  }
+}

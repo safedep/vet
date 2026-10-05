@@ -182,6 +182,18 @@
   tier: P1
   guarantee: "plugins.license.options.deny fails the gate on a denied SPDX license. An allow list or a set reports a license outside it. With a list, a package with no license data is license-unknown, unless unknown is ignore. An entry that is not SPDX exits 2."
   labels: [controls, gate]
+- id: controls/license/scope
+  title: "license: scope option"
+  category: controls
+  tier: P1
+  guarantee: "plugins.license.options.scope runtime skips dev dependencies. scope direct checks only the direct dependencies."
+  labels: [controls]
+- id: controls/license/relicensed
+  title: "license: relicensed on an upgrade"
+  category: controls
+  tier: P1
+  guarantee: "In pull request mode, an upgrade to a license that limits use, such as BUSL-1.1, is license-relicensed with high severity."
+  labels: [controls, pr-mode]
 - id: controls/fail-open/backend-down
   title: "fail open: backend down"
   category: controls

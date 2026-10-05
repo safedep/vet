@@ -1,0 +1,10 @@
+{
+  "packageVersion": {
+    "package": {"ecosystem": "ECOSYSTEM_NPM", "name": "relic"},
+    "version": "1.0.0"
+  },
+  "insight": {
+    "licenses": {"licenses": [{"licenseId": "Apache-2.0"}]},
+    "packagePublishedAt": "2024-01-01T00:00:00Z"
+  }
+}

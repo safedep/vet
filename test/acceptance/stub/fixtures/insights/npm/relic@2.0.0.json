@@ -1,0 +1,10 @@
+{
+  "packageVersion": {
+    "package": {"ecosystem": "ECOSYSTEM_NPM", "name": "relic"},
+    "version": "2.0.0"
+  },
+  "insight": {
+    "licenses": {"licenses": [{"licenseId": "BUSL-1.1"}]},
+    "packagePublishedAt": "2024-06-01T00:00:00Z"
+  }
+}
