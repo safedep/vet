@@ -49,6 +49,26 @@ func TestInsightChecks(t *testing.T) {
 			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
 			Insight: &model.Insight{Licenses: []string{"AGPL-3.0-only"}}, PreviousInsight: &model.Insight{Licenses: []string{"MIT"}},
 		}, []string{hygiene.IDLicenseChange}},
+		{"relicensed to source-available", nil, &model.Package{
+			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
+			Insight: &model.Insight{Licenses: []string{"SSPL-1.0"}}, PreviousInsight: &model.Insight{Licenses: []string{"Apache-2.0"}},
+		}, []string{hygiene.IDRelicensed}},
+		{"relicensed to no license", nil, &model.Package{
+			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
+			Insight: &model.Insight{Licenses: []string{"NONE"}}, PreviousInsight: &model.Insight{Licenses: []string{"MIT"}},
+		}, []string{hygiene.IDRelicensed}},
+		{"free to free with an exception", nil, &model.Package{
+			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
+			Insight: &model.Insight{Licenses: []string{"GPL-2.0-only WITH Classpath-exception-2.0"}}, PreviousInsight: &model.Insight{Licenses: []string{"MIT"}},
+		}, []string{hygiene.IDLicenseChange}},
+		{"free to a license that is not known", nil, &model.Package{
+			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
+			Insight: &model.Insight{Licenses: []string{"Custom"}}, PreviousInsight: &model.Insight{Licenses: []string{"MIT"}},
+		}, []string{hygiene.IDLicenseChange}},
+		{"not free to not free", nil, &model.Package{
+			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
+			Insight: &model.Insight{Licenses: []string{"BUSL-1.1"}}, PreviousInsight: &model.Insight{Licenses: []string{"SSPL-1.0"}},
+		}, []string{hygiene.IDLicenseChange}},
 		{"same licenses in another order", nil, &model.Package{
 			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
 			Insight: &model.Insight{Licenses: []string{"MIT", "Apache-2.0"}}, PreviousInsight: &model.Insight{Licenses: []string{"Apache-2.0", "MIT"}},

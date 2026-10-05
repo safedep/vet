@@ -27,9 +27,10 @@ vet policy control list -o json
 | `provenance-lost` | hygiene | medium | An upgrade to a version with no SLSA provenance, when the previous version had one |
 | `deprecated-package` | hygiene | medium | A version that the registry marks deprecated |
 | `license-change` | license | medium | An upgrade that changes the license |
+| `license-relicensed` | license | high | An upgrade from an OSI or FSF license to a known license that is neither, such as SSPL-1.0, BUSL-1.1 or `NONE` |
 | `license-denied` | license | high | A license that `plugins.license.options.deny` names, in each choice of the license expression |
 | `license-not-allowed` | license | medium | A license that `plugins.license.options.allow` does not satisfy |
-| `license-unknown` | license | low | A package with no license data, or a license that is not an SPDX expression. Reported when `allow` is set, or with `unknown: report` |
+| `license-unknown` | license | low | A package with no license data, a license that is not an SPDX expression, or `NONE` with only a deny list. Reported when a list is set, unless `unknown: ignore` |
 | `non-registry-dependency` | hygiene | medium | A dependency on git, a URL, a file or any version |
 | `scorecard-low` | hygiene | info | A package whose repository has an OpenSSF Scorecard score under 3 |
 | `typosquat` | reputation | high | A name one typo away from a popular package, with few downloads |
@@ -79,7 +80,8 @@ Some controls take options from the config file, under `plugins.<name>.options`.
 | `plugins.workflow.options.allow_unpinned` | none | The actions that `unpinned-action` accepts with a tag |
 | `plugins.license.options.allow` | none | The licenses that a package can have. See [License lists](#license-lists) |
 | `plugins.license.options.deny` | none | The licenses that a package cannot have |
-| `plugins.license.options.unknown` | `report` with `allow`, else `ignore` | `report` or `ignore` a package with no SPDX license |
+| `plugins.license.options.unknown` | `report` | `report` or `ignore` a package with no SPDX license |
+| `plugins.license.options.scope` | `all` | The packages to check: `all`, `runtime` (no dev dependencies) or `direct` |
 
 ```bash
 vet config set plugins.reputation.options.internal_names '["acme-*"]'
@@ -108,9 +110,15 @@ Annex D):
 - An entry can also name a set from the flags of the SPDX License List: `osi-approved`, `fsf-libre`
   or `osi-approved-or-fsf-libre`.
 - vet rejects an entry that is not SPDX, so a typo cannot pass a package. There are no globs.
-- `NOASSERTION`, free text and a package with no license data are unknown. A known license value
-  that fails a list fails the package, even with an unknown value beside it. `NONE` means no
-  license, and it fails an allow list.
+- `NOASSERTION`, free text and a package with no license data are unknown. vet reports them as
+  `license-unknown` when a list is set. Set `unknown: ignore` to stop this. A known license value
+  that fails a list fails the package, even with an unknown value beside it.
+- `NONE` means no license, so the author keeps all rights. It fails an allow list. A deny list alone
+  cannot decide it, so it is unknown.
+- `scope: runtime` skips the dev dependencies. `scope: direct` checks only the direct dependencies.
+  When a manifest does not mark its direct dependencies, vet checks all its packages.
+- `license-relicensed` (from the hygiene control) reports an upgrade that moves from an OSI or FSF
+  license to a known license that is neither, such as `SSPL-1.0`, `BUSL-1.1` or `NONE`.
 
 ```yaml
 plugins:

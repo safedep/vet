@@ -7,6 +7,7 @@ import (
 	"cmp"
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/safedep/vet/v2/finding"
@@ -32,6 +33,13 @@ const (
 	UnknownIgnore = "ignore"
 )
 
+// The values of the scope option.
+const (
+	ScopeAll     = "all"
+	ScopeRuntime = "runtime"
+	ScopeDirect  = "direct"
+)
+
 // Options are plugins.license.options.
 type Options struct {
 	// Allow lists the licenses that a package can have: SPDX license ids,
@@ -43,16 +51,21 @@ type Options struct {
 	// entries as Allow. A package fails when each choice of its license
 	// expression has a denied license.
 	Deny []string `json:"deny"`
-	// Unknown is "report" or "ignore" for a package with no license data, or
-	// with a license that is not an SPDX expression. The default is report
-	// when Allow is set, else ignore.
+	// Unknown is "report" or "ignore" for a package with no license data, a
+	// license that is not an SPDX expression, or NONE when only Deny is set.
+	// The default is report.
 	Unknown string `json:"unknown" jsonschema:"enum=report,enum=ignore"`
+	// Scope selects the packages to check: "all" (the default), "runtime"
+	// to skip dev dependencies, or "direct" for the direct dependencies. A
+	// manifest that marks no package direct has all its packages checked.
+	Scope string `json:"scope" jsonschema:"enum=all,enum=runtime,enum=direct"`
 }
 
 // Control checks the license of the packages of a manifest.
 type Control struct {
 	policy        *spdxlicense.Policy
 	reportUnknown bool
+	scope         string
 }
 
 // New builds the control from its options.
@@ -65,15 +78,18 @@ func New(cfg plugin.Config) (plugin.Control, error) {
 	if err != nil {
 		return nil, fmt.Errorf("license: %w", err)
 	}
-	c := &Control{policy: policy}
+	c := &Control{policy: policy, scope: cmp.Or(o.Scope, ScopeAll)}
 	switch o.Unknown {
-	case "":
-		c.reportUnknown = policy.Allows()
-	case UnknownReport:
+	case "", UnknownReport:
 		c.reportUnknown = true
 	case UnknownIgnore:
 	default:
 		return nil, fmt.Errorf("license: unknown %q: use report or ignore", o.Unknown)
+	}
+	switch c.scope {
+	case ScopeAll, ScopeRuntime, ScopeDirect:
+	default:
+		return nil, fmt.Errorf("license: scope %q: use all, runtime or direct", o.Scope)
 	}
 	return c, nil
 }
@@ -92,7 +108,7 @@ var infos = []plugin.ControlInfo{
 	{
 		ID: IDUnknown, Family: finding.FamilyLicense, Severity: finding.SeverityLow,
 		Title:       "Unknown license",
-		Description: "The package has no license data, or a license that is not an SPDX license expression, so the allow list cannot decide it.",
+		Description: "The package has no license data, a license that is not an SPDX license expression, or no license (NONE) with only a deny list. The lists cannot decide it.",
 	},
 }
 
@@ -110,8 +126,9 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 		return nil, nil
 	}
 	var out []finding.Finding
+	inScope := c.inScope(m)
 	for _, p := range m.Packages {
-		if p.Change == model.ChangeRemoved || p.Insight == nil {
+		if p.Change == model.ChangeRemoved || p.Insight == nil || !inScope(p) {
 			continue
 		}
 		d := spdxlicense.Parse(p.Insight.Licenses)
@@ -120,6 +137,21 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 		}
 	}
 	return out, nil
+}
+
+// inScope returns the scope test for the packages of a manifest. When the
+// manifest marks no package direct, vet does not know the direct packages,
+// so it checks all of them.
+func (c *Control) inScope(m *model.Manifest) func(*model.Package) bool {
+	switch c.scope {
+	case ScopeRuntime:
+		return func(p *model.Package) bool { return !p.Dev }
+	case ScopeDirect:
+		if slices.ContainsFunc(m.Packages, func(p *model.Package) bool { return p.Direct }) {
+			return func(p *model.Package) bool { return p.Direct }
+		}
+	}
+	return func(*model.Package) bool { return true }
 }
 
 func (c *Control) finding(m *model.Manifest, p *model.Package, d spdxlicense.Declared, r spdxlicense.Result) (finding.Finding, bool) {
@@ -139,9 +171,13 @@ func (c *Control) finding(m *model.Manifest, p *model.Package, d spdxlicense.Dec
 			return finding.Finding{}, false
 		}
 		id = IDUnknown
-		title = fmt.Sprintf("%s has no license data", p.ID)
-		if shown != "" {
+		switch {
+		case d.None:
+			title = fmt.Sprintf("%s declares no license, so the author keeps all rights", p.ID)
+		case shown != "":
 			title = fmt.Sprintf("%s has the license %q, which is not an SPDX expression", p.ID, shown)
+		default:
+			title = fmt.Sprintf("%s has no license data", p.ID)
 		}
 		fix = "Read the license of the package, then add a suppression with the license as the reason."
 	default:

@@ -106,7 +106,7 @@ func TestCheck(t *testing.T) {
 		{"license ref needs its own entry", []string{"MIT"}, nil, []string{"LicenseRef-acme"}, NotAllowed, nil},
 		{"allow a license ref", []string{"LicenseRef-acme"}, nil, []string{"LicenseRef-acme"}, Pass, nil},
 		{"none fails an allow list", []string{"MIT"}, nil, []string{"NONE"}, NotAllowed, nil},
-		{"none passes a deny list", nil, []string{"GPL-3.0-only"}, []string{"NONE"}, Pass, nil},
+		{"none is unknown to a deny list", nil, []string{"GPL-3.0-only"}, []string{"NONE"}, Unknown, nil},
 		{"unknown with an allow list", []string{"MIT"}, nil, []string{"NOASSERTION"}, Unknown, nil},
 		{"free text with an allow list", []string{"MIT"}, nil, []string{"Apache 2.0"}, Unknown, nil},
 		{"no data with an allow list", []string{"MIT"}, nil, nil, Unknown, nil},
@@ -206,6 +206,34 @@ func TestEqual(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.want, Equal(tc.a, tc.b))
+		})
+	}
+}
+
+func TestFree(t *testing.T) {
+	cases := []struct {
+		name   string
+		values []string
+		want   bool
+	}{
+		{"osi", []string{"MIT"}, true},
+		{"deprecated id", []string{"GPL-3.0"}, true},
+		{"or-later", []string{"GPL-2.0+"}, true},
+		{"exception", []string{"GPL-2.0-only WITH Classpath-exception-2.0"}, true},
+		{"a free choice", []string{"MIT OR SSPL-1.0"}, true},
+		{"source-available", []string{"SSPL-1.0"}, false},
+		{"business source", []string{"BUSL-1.1"}, false},
+		{"AND with a license that is not free", []string{"MIT AND BUSL-1.1"}, false},
+		{"two values", []string{"MIT", "Elastic-2.0"}, false},
+		{"license ref", []string{"LicenseRef-acme"}, false},
+		{"none", []string{"NONE"}, false},
+		{"no assertion", []string{"NOASSERTION"}, false},
+		{"free text", []string{"Apache 2.0"}, false},
+		{"no value", nil, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, Free(Parse(tc.values)))
 		})
 	}
 }

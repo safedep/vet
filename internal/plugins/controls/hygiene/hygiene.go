@@ -25,6 +25,7 @@ const (
 	IDProvenanceLost = "provenance-lost"
 	IDDeprecated     = "deprecated-package"
 	IDLicenseChange  = "license-change"
+	IDRelicensed     = "license-relicensed"
 	IDNonRegistry    = "non-registry-dependency"
 	IDScorecardLow   = "scorecard-low"
 )
@@ -81,6 +82,11 @@ var infos = []plugin.ControlInfo{
 		ID: IDLicenseChange, Family: finding.FamilyLicense, Severity: finding.SeverityMedium,
 		Title:       "License change on an upgrade",
 		Description: "The new version has a license other than the license of the previous version.",
+	},
+	{
+		ID: IDRelicensed, Family: finding.FamilyLicense, Severity: finding.SeverityHigh,
+		Title:       "Relicensed to a license that is not free",
+		Description: "The previous version has a license that the OSI approves or the FSF calls free. The new version has none, for example SSPL-1.0, BUSL-1.1 or no license.",
 	},
 	{
 		ID: IDNonRegistry, Family: finding.FamilyHygiene, Severity: finding.SeverityMedium,
@@ -154,9 +160,7 @@ func (c *Control) insight(m *model.Manifest, p *model.Package) []finding.Finding
 			"Check that the maintainers published the version from their build system, or stay on the previous version."))
 	}
 	if prev != nil && len(prev.Licenses) > 0 && len(in.Licenses) > 0 && !spdxlicense.Equal(prev.Licenses, in.Licenses) {
-		out = append(out, packageFinding(IDLicenseChange, m, p, strings.Join(in.Licenses, ","),
-			fmt.Sprintf("%s changes its license from %s to %s", p.ID.RawName(), strings.Join(prev.Licenses, ", "), strings.Join(in.Licenses, ", ")),
-			"Check that the new license fits the license policy of the project."))
+		out = append(out, licenseChange(m, p))
 	}
 	if sc := in.Scorecard; sc != nil && sc.Score < c.minScore {
 		out = append(out, packageFinding(IDScorecardLow, m, p, "",
@@ -164,6 +168,22 @@ func (c *Control) insight(m *model.Manifest, p *model.Package) []finding.Finding
 			"Review the maintenance and the security practices of the project."))
 	}
 	return out
+}
+
+// licenseChange reports a license change. A move from a free license to a
+// known license that is not free is a relicense.
+func licenseChange(m *model.Manifest, p *model.Package) finding.Finding {
+	from, to := strings.Join(p.PreviousInsight.Licenses, ", "), strings.Join(p.Insight.Licenses, ", ")
+	next := spdxlicense.Parse(p.Insight.Licenses)
+	discriminator := strings.Join(p.Insight.Licenses, ",")
+	if spdxlicense.Free(spdxlicense.Parse(p.PreviousInsight.Licenses)) && next.Known() && !spdxlicense.Free(next) {
+		return packageFinding(IDRelicensed, m, p, discriminator,
+			fmt.Sprintf("%s changes its license from %s to %s, which is not an OSI or FSF license", p.ID.RawName(), from, to),
+			"Read the new license before the upgrade. Stay on the previous version, or replace the package, if the license does not fit the project.")
+	}
+	return packageFinding(IDLicenseChange, m, p, discriminator,
+		fmt.Sprintf("%s changes its license from %s to %s", p.ID.RawName(), from, to),
+		"Check that the new license fits the license policy of the project.")
 }
 
 func packageFinding(id string, m *model.Manifest, p *model.Package, discriminator, title, fix string) finding.Finding {
