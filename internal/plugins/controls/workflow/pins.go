@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/internal/github"
 	"github.com/safedep/vet/v2/model"
 )
 
@@ -32,15 +33,15 @@ func init() {
 var releaseTag = regexp.MustCompile(`^v?\d+\.\d+\.\d+([-+][0-9A-Za-z.-]+)?$`)
 
 // pins checks the commit of each pinned uses: against the data of the
-// actionrefs enricher. A package with no data gets no finding: the
-// diagnostic of the enricher says why. In pull request mode, a pin that
-// the change does not add or change gets no finding.
+// actionrefs enricher. A package with no data gets no finding, because the
+// diagnostic of the enricher says why. In pull request mode, a pin that the
+// change does not add or change gets no finding.
 func (c *Control) pins(e *emitter, m *model.Manifest) {
 	for _, u := range e.doc.uses() {
 		value := scalar(u.node)
 		name, sha, ok := strings.Cut(value, "@")
 		parts := strings.SplitN(name, "/", 3)
-		if !ok || len(parts) < 2 || !commitSHA.MatchString(sha) {
+		if !ok || len(parts) < 2 || !github.IsCommitSHA(sha) {
 			continue
 		}
 		repo := parts[0] + "/" + parts[1]

@@ -148,22 +148,17 @@ func latestRelease(ctx context.Context, cfg *config.Config) Check {
 	if err != nil {
 		return Check{ID: "vet.release", Status: Warn, Message: "vet could not check the latest release: " + err.Error()}
 	}
+	releases, err := github.ListAll(func(page int) ([]*gh.RepositoryRelease, *gh.Response, error) {
+		return client.Repositories.ListReleases(ctx, "safedep", "vet", &gh.ListOptions{Page: page, PerPage: 100})
+	})
+	if err != nil {
+		return Check{ID: "vet.release", Status: Warn, Message: "vet could not check the latest release: " + err.Error()}
+	}
 	var tags []string
-	opts := &gh.ListOptions{PerPage: 100}
-	for {
-		releases, resp, err := client.Repositories.ListReleases(ctx, "safedep", "vet", opts)
-		if err != nil {
-			return Check{ID: "vet.release", Status: Warn, Message: "vet could not check the latest release: " + err.Error()}
+	for _, r := range releases {
+		if !r.GetDraft() {
+			tags = append(tags, r.GetTagName())
 		}
-		for _, r := range releases {
-			if !r.GetDraft() {
-				tags = append(tags, r.GetTagName())
-			}
-		}
-		if resp.NextPage == 0 {
-			break
-		}
-		opts.Page = resp.NextPage
 	}
 	return releaseCheck(tags, version.Version())
 }
@@ -334,7 +329,7 @@ func githubTokenCheck(ctx context.Context, tp github.TokenProvider) Check {
 	case errors.Is(err, github.ErrNoToken):
 		return Check{
 			ID: "github.token", Status: Warn,
-			Message: "no GitHub token: vet calls the GitHub API anonymously, with 60 calls an hour",
+			Message: "no GitHub token. vet calls the GitHub API anonymously, with 60 calls an hour",
 			Fix:     "Set GITHUB_TOKEN or run gh auth login.",
 		}
 	}

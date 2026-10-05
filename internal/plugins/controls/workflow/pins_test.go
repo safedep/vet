@@ -1,6 +1,8 @@
 package workflow
 
 import (
+	"cmp"
+	"fmt"
 	"testing"
 	"testing/fstest"
 
@@ -15,19 +17,12 @@ import (
 const pinSHA = "11bd71901bbe5b1630ceea73d27597364c9af683"
 
 func TestPins(t *testing.T) {
-	workflow := `on: push
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@` + pinSHA + ` # v4.2.2
-`
 	cases := []struct {
-		name   string
-		action *model.ActionCommit
-		change model.Change
-		file   string
-		want   []hit
+		name    string
+		action  *model.ActionCommit
+		change  model.Change
+		comment string
+		want    []hit
 	}{
 		{
 			name: "impostor", action: &model.ActionCommit{},
@@ -41,7 +36,7 @@ jobs:
 		},
 		{
 			name: "a moving major tag in the comment", action: &model.ActionCommit{Reachable: true, Ref: "main"},
-			file: "      - uses: actions/checkout@" + pinSHA + " # v4\n",
+			comment: "v4",
 		},
 		{name: "a pin that the pull request does not change", action: &model.ActionCommit{}, change: model.ChangeUnchanged},
 		{
@@ -51,10 +46,8 @@ jobs:
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			data := workflow
-			if tc.file != "" {
-				data = workflow[:len(workflow)-len("      - uses: actions/checkout@"+pinSHA+" # v4.2.2\n")] + tc.file
-			}
+			data := fmt.Sprintf("on: push\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@%s # %s\n",
+				pinSHA, cmp.Or(tc.comment, "v4.2.2"))
 			p := &model.Package{ID: model.MustPackageVersion(model.EcosystemGitHubActions, "actions/checkout", pinSHA), Change: tc.change}
 			p.Action = tc.action
 			path := ".github/workflows/ci.yml"

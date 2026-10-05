@@ -65,9 +65,7 @@ var scanMigrations = []string{
 		ecosystem   TEXT NOT NULL,
 		raw_name    TEXT NOT NULL,
 		raw_version TEXT NOT NULL,
-		insight   BLOB,
-		malware   BLOB,
-		usage     BLOB
+		enrichment  BLOB
 	)`,
 	`CREATE TABLE vet_scan_manifest_packages (
 		manifest_id TEXT NOT NULL,
@@ -126,9 +124,6 @@ var scanMigrations = []string{
 		id   TEXT PRIMARY KEY,
 		data BLOB NOT NULL
 	)`,
-	// The enrichment data of a package, as model.Enrichment JSON, in place
-	// of one column for each enricher. Format 3 reads only this column.
-	`ALTER TABLE vet_scan_packages ADD COLUMN enrichment BLOB`,
 }
 
 const (
@@ -709,11 +704,9 @@ func mergeEnrichment(ctx context.Context, tx *sql.Tx, pkey string, e model.Enric
 	if err != nil {
 		return err
 	}
-	var cur model.Enrichment
-	if len(stored) > 0 {
-		if err := json.Unmarshal(stored, &cur); err != nil {
-			return fmt.Errorf("decode package data: %w", err)
-		}
+	cur, err := decodeEnrichment(stored)
+	if err != nil {
+		return err
 	}
 	data, err := json.Marshal(cur.Merge(e))
 	if err != nil {

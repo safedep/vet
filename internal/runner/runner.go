@@ -213,13 +213,16 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 	if err != nil {
 		return err
 	}
+	configError := func(err error) error {
+		return app.UsageError(err.Error(), "Fix the option in the config file. vet config validate checks it.")
+	}
 	ctrls, err := controls.Build(withCooldown(cfg, o.CooldownDays))
 	if err != nil {
-		return app.UsageError(err.Error(), "Fix the option in the config file. vet config validate checks it.")
+		return configError(err)
 	}
 	refs, err := actionRefs(cfg)
 	if err != nil {
-		return app.UsageError(err.Error(), "Fix the option in the config file. vet config validate checks it.")
+		return configError(err)
 	}
 
 	dirs, err := state.PrepareDirs(state.DirRequest{Dirs: rt.Dirs, Ephemeral: o.State.EphemeralFrom(a.LookupEnv)})

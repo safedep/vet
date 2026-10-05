@@ -1,13 +1,13 @@
 package model
 
 import (
-	"reflect"
+	"cmp"
 	"time"
 )
 
-// Package is one package version that a manifest declares or resolves. The
-// optional pointer fields hold the data of each data source. They are nil
-// when the source did not answer.
+// Package is one package version that a manifest declares or resolves.
+// Enrichment holds the data of each enricher. A field is nil when the
+// enricher did not answer.
 type Package struct {
 	ID     PackageVersion `json:"id"`
 	Direct bool           `json:"direct"`
@@ -44,9 +44,9 @@ type Package struct {
 }
 
 // Enrichment holds the package data that the enrichers set. Each field
-// belongs to one enricher and is a pointer. The engine, the scan file and
-// the enrichment cache copy the fields through this struct, so a new
-// enricher adds its field here and nowhere else.
+// belongs to one enricher. The engine, the scan file and the enrichment
+// cache copy the fields through this struct. A new enricher adds its field
+// here, and to Merge and Since.
 type Enrichment struct {
 	Insight *Insight         `json:"insight,omitempty"`
 	Malware *MalwareAnalysis `json:"malware,omitempty"`
@@ -59,26 +59,26 @@ func (e Enrichment) Empty() bool { return e == Enrichment{} }
 
 // Merge returns e with each field that o sets.
 func (e Enrichment) Merge(o Enrichment) Enrichment {
-	dst, src := reflect.ValueOf(&e).Elem(), reflect.ValueOf(o)
-	for i := range src.NumField() {
-		if !src.Field(i).IsNil() {
-			dst.Field(i).Set(src.Field(i))
-		}
+	return Enrichment{
+		Insight: cmp.Or(o.Insight, e.Insight), Malware: cmp.Or(o.Malware, e.Malware),
+		Usage: cmp.Or(o.Usage, e.Usage), Action: cmp.Or(o.Action, e.Action),
 	}
-	return e
 }
 
-// Since returns the fields of e that differ from before: the data that an
-// enricher set.
+// Since returns the fields of e that differ from before. They are the
+// data that an enricher set.
 func (e Enrichment) Since(before Enrichment) Enrichment {
-	var out Enrichment
-	dst, now, was := reflect.ValueOf(&out).Elem(), reflect.ValueOf(e), reflect.ValueOf(before)
-	for i := range now.NumField() {
-		if now.Field(i).Pointer() != was.Field(i).Pointer() {
-			dst.Field(i).Set(now.Field(i))
-		}
+	return Enrichment{
+		Insight: changed(e.Insight, before.Insight), Malware: changed(e.Malware, before.Malware),
+		Usage: changed(e.Usage, before.Usage), Action: changed(e.Action, before.Action),
 	}
-	return out
+}
+
+func changed[T any](now, was *T) *T {
+	if now == was {
+		return nil
+	}
+	return now
 }
 
 // ActionCommit is the GitHub data of a GitHub Actions package pinned to a

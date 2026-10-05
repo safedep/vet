@@ -29,13 +29,13 @@ var installedInfo = plugin.ControlInfo{
 
 // locked holds the npm packages of the lockfiles of one project directory.
 type locked struct {
+	// dir is the directory of the lockfiles.
+	dir      string
 	keys     map[model.PackageKey]bool
 	versions map[model.PackageKey][]string
-	// anyVersion holds the paths, relative to the lockfile, of the npm
-	// lockfile entries that the extractor gives no npm package for, such as
-	// a git or a file dependency. The control cannot compare the version of
-	// these.
-	dir        string
+	// anyVersion holds the paths, relative to dir, of the npm lockfile
+	// entries that the extractor gives no npm package for, such as a git or
+	// a file dependency. The control cannot compare the version of these.
 	anyVersion map[string]bool
 }
 

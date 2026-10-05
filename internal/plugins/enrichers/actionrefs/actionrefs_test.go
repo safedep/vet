@@ -3,9 +3,10 @@ package actionrefs
 import (
 	"context"
 	"encoding/json"
-	"errors"
+	"maps"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -96,8 +97,8 @@ func (f *fakeGitHub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func refs(m map[string]string) []map[string]any {
 	out := []map[string]any{}
-	for name, sha := range m {
-		out = append(out, map[string]any{"name": name, "commit": map[string]string{"sha": sha}})
+	for _, name := range slices.Sorted(maps.Keys(m)) {
+		out = append(out, map[string]any{"name": name, "commit": map[string]string{"sha": m[name]}})
 	}
 	return out
 }
@@ -142,12 +143,7 @@ func TestEnrich(t *testing.T) {
 			e := newEnricher(t, newFake(), nil)
 			p := action("o/r", tc.sha)
 			require.NoError(t, e.Enrich(context.Background(), []*model.Package{p}))
-			require.NotNil(t, p.Action)
-			assert.Equal(t, tc.want.Reachable, p.Action.Reachable)
-			assert.ElementsMatch(t, tc.want.Tags, p.Action.Tags)
-			if len(tc.want.Tags) < 2 {
-				assert.Equal(t, tc.want.Ref, p.Action.Ref)
-			}
+			assert.Equal(t, tc.want, p.Action)
 		})
 	}
 }
@@ -179,20 +175,23 @@ func TestEnrichFailsOpen(t *testing.T) {
 		name      string
 		opts      map[string]any
 		rateLimit bool
-		pkg       *model.Package
+		pkgs      []*model.Package
 		wantMsg   []string
+		wantCalls int
 	}{
 		{
-			name: "the budget runs out", opts: map[string]any{"max_calls": 3}, pkg: action("o/r", impostor),
-			wantMsg: []string{"budget of 3 GitHub API calls ran out for o/r", "plugins.actionrefs.options.max_calls"},
+			name: "the budget runs out", opts: map[string]any{"max_calls": 3}, pkgs: []*model.Package{action("o/r", impostor)},
+			wantMsg: []string{"budget of 3 GitHub API calls ran out for o/r", "plugins.actionrefs.options.max_calls"}, wantCalls: 3,
 		},
 		{
-			name: "a rate limit", rateLimit: true, pkg: action("o/r", impostor),
-			wantMsg: []string{"GitHub API rate limit for o/r", "Set GITHUB_TOKEN or run gh auth login", "plugins.actionrefs.enabled to false"},
+			name: "a rate limit stops the other calls", rateLimit: true,
+			pkgs:      []*model.Package{action("o/r", impostor), action("o/other", impostor)},
+			wantMsg:   []string{"GitHub API rate limit for o/r, o/other", "Set GITHUB_TOKEN or run gh auth login", "plugins.actionrefs.enabled to false"},
+			wantCalls: 1,
 		},
 		{
-			name: "no such repository", pkg: action("o/missing", impostor),
-			wantMsg: []string{"answered 404", "o/missing"},
+			name: "no such repository", pkgs: []*model.Package{action("o/missing", impostor), action("o/missing", tagged)},
+			wantMsg: []string{"answered 404", "o/missing"}, wantCalls: 1,
 		},
 	}
 	for _, tc := range cases {
@@ -200,31 +199,23 @@ func TestEnrichFailsOpen(t *testing.T) {
 			f := newFake()
 			f.rateLimit = tc.rateLimit
 			e := newEnricher(t, f, tc.opts)
-			err := e.Enrich(context.Background(), []*model.Package{tc.pkg})
-			assert.Nil(t, tc.pkg.Action, "vet never reports an impostor from a partial check")
-			require.ErrorIs(t, err, plugin.ErrUnavailable)
+			err := e.Enrich(context.Background(), tc.pkgs)
+			for _, p := range tc.pkgs {
+				assert.Nil(t, p.Action, "vet never reports an impostor from a partial check")
+			}
 			var u plugin.UnavailableError
-			require.True(t, errors.As(err, &u))
+			require.ErrorAs(t, err, &u)
+			assert.ErrorIs(t, err, plugin.ErrUnavailable)
 			for _, want := range tc.wantMsg {
 				assert.Contains(t, string(u), want)
 			}
+			total := 0
+			for _, n := range f.calls {
+				total += n
+			}
+			assert.Equal(t, tc.wantCalls, total)
 		})
 	}
-}
-
-func TestEnrichStopsAfterARateLimit(t *testing.T) {
-	f := newFake()
-	f.rateLimit = true
-	e := newEnricher(t, f, nil)
-	pkgs := []*model.Package{action("o/r", impostor), action("o/other", impostor)}
-	err := e.Enrich(context.Background(), pkgs)
-	require.ErrorIs(t, err, plugin.ErrUnavailable)
-	assert.Contains(t, err.Error(), "o/r, o/other")
-	total := 0
-	for _, n := range f.calls {
-		total += n
-	}
-	assert.Equal(t, 1, total, "the rate limit stops the other calls")
 }
 
 func TestNewRejectsABadBudget(t *testing.T) {

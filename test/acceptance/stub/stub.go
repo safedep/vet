@@ -266,15 +266,11 @@ func (m *malysisService) QueryPackageAnalysis(ctx context.Context, req *malysisv
 }
 
 // githubRepo is the fixture of one repository: the commit SHA of each tag
-// and branch, the release tags, newest first, the default branch (main
-// when empty), and the status of each compare base...head that is not
-// identical or diverged.
+// and branch, and the release tags, newest first.
 type githubRepo struct {
-	Tags          map[string]string `json:"tags"`
-	Branches      map[string]string `json:"branches"`
-	Releases      []string          `json:"releases"`
-	DefaultBranch string            `json:"default_branch"`
-	Compare       map[string]string `json:"compare"`
+	Tags     map[string]string `json:"tags"`
+	Branches map[string]string `json:"branches"`
+	Releases []string          `json:"releases"`
 }
 
 // serveGitHub answers the GitHub API calls that resolve a ref to a commit
@@ -347,50 +343,37 @@ func (s *Server) serveGitHub(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
 	body := map[string]any{"sha": sha}
 	if rest[0] == "git" {
 		body = map[string]any{"ref": ref, "object": map[string]string{"sha": sha, "type": "commit"}}
 	}
-	if err := json.NewEncoder(w).Encode(body); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	writeJSON(w, body)
 }
 
 // serveRepo answers the calls of the actionrefs enricher: the repository,
-// its tags and branches, and the compare of a ref with a commit.
+// with the default branch main, its tags and branches, and the compare of
+// a ref with a commit. A ref contains only its own commit.
 func serveRepo(w http.ResponseWriter, r *http.Request, repo *githubRepo, rest []string) {
-	var body any
 	switch {
 	case len(rest) == 0:
-		def := repo.DefaultBranch
-		if def == "" {
-			def = "main"
-		}
-		body = map[string]string{"default_branch": def}
+		writeJSON(w, map[string]string{"default_branch": "main"})
 	case len(rest) == 1 && rest[0] == "tags":
-		body = refList(repo.Tags)
+		writeJSON(w, refList(repo.Tags))
 	case len(rest) == 1 && rest[0] == "branches":
-		body = refList(repo.Branches)
+		writeJSON(w, refList(repo.Branches))
 	case rest[0] == "compare":
-		pair := strings.Join(rest[1:], "/")
-		base, head, _ := strings.Cut(pair, "...")
-		status := repo.Compare[pair]
-		switch {
-		case status == "notfound":
-			http.NotFound(w, r)
-			return
-		case status != "":
-		case repo.Branches[base] == head || repo.Tags[base] == head:
+		base, head, _ := strings.Cut(strings.Join(rest[1:], "/"), "...")
+		status := "diverged"
+		if repo.Branches[base] == head || repo.Tags[base] == head {
 			status = "identical"
-		default:
-			status = "diverged"
 		}
-		body = map[string]string{"status": status}
+		writeJSON(w, map[string]string{"status": status})
 	default:
 		http.NotFound(w, r)
-		return
 	}
+}
+
+func writeJSON(w http.ResponseWriter, body any) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(body); err != nil {
 		fmt.Fprintf(os.Stderr, "stub: write: %v\n", err)
@@ -427,8 +410,5 @@ func (s *Server) serveReleases(w http.ResponseWriter, r *http.Request, owner, na
 	for _, tag := range repo.Releases {
 		out = append(out, release{TagName: tag})
 	}
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(out); err != nil {
-		fmt.Fprintf(os.Stderr, "stub: write: %v\n", err)
-	}
+	writeJSON(w, out)
 }

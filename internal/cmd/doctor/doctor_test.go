@@ -35,14 +35,22 @@ func TestStatusItem(t *testing.T) {
 }
 
 func TestGitHubTokenCheck(t *testing.T) {
-	env := func(vars map[string]string) github.TokenProvider {
-		return github.EnvProvider{LookupEnv: func(k string) (string, bool) { v, ok := vars[k]; return v, ok }}
+	cases := []struct {
+		name string
+		vars map[string]string
+		want Check
+	}{
+		{"a token", map[string]string{"GH_TOKEN": "x"}, Check{ID: "github.token", Status: Pass, Message: "GitHub token from GH_TOKEN"}},
+		{"no token", nil, Check{
+			ID: "github.token", Status: Warn,
+			Message: "no GitHub token. vet calls the GitHub API anonymously, with 60 calls an hour",
+			Fix:     "Set GITHUB_TOKEN or run gh auth login.",
+		}},
 	}
-	got := githubTokenCheck(context.Background(), env(map[string]string{"GH_TOKEN": "x"}))
-	assert.Equal(t, Check{ID: "github.token", Status: Pass, Message: "GitHub token from GH_TOKEN"}, got)
-
-	got = githubTokenCheck(context.Background(), env(nil))
-	assert.Equal(t, Warn, got.Status)
-	assert.Contains(t, got.Message, "anonymously")
-	assert.Equal(t, "Set GITHUB_TOKEN or run gh auth login.", got.Fix)
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tp := github.EnvProvider{LookupEnv: func(k string) (string, bool) { v, ok := tc.vars[k]; return v, ok }}
+			assert.Equal(t, tc.want, githubTokenCheck(context.Background(), tp))
+		})
+	}
 }

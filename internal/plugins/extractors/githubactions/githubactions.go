@@ -27,7 +27,6 @@ import (
 	"io"
 	"io/fs"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	cpb "github.com/google/osv-scalibr/binary/proto/config_go_proto"
@@ -40,6 +39,7 @@ import (
 	"github.com/google/osv-scalibr/stats"
 	"gopkg.in/yaml.v3"
 
+	"github.com/safedep/vet/v2/internal/github"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/internal/units"
 )
 
@@ -55,9 +55,6 @@ const (
 	workflowsDir = ".github/workflows"
 	actionsDir   = ".github/actions"
 )
-
-// commitSHARegexp matches a 40-character hexadecimal Git commit SHA.
-var commitSHARegexp = regexp.MustCompile(`^[0-9a-fA-F]{40}$`)
 
 // Extractor extracts GitHub Actions dependencies from workflow files.
 type Extractor struct {
@@ -280,7 +277,7 @@ func packageFromUses(uses string, line int, path string) *extractor.Package {
 			Repo: "https://github.com/" + name,
 		},
 	}
-	if commitSHARegexp.MatchString(ref) {
+	if github.IsCommitSHA(ref) {
 		pkg.SourceCode.Commit = ref
 	}
 	return pkg

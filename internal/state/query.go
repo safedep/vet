@@ -191,24 +191,20 @@ func decodePackage(data, enrichment []byte) (model.Package, error) {
 	if err := json.Unmarshal(data, &pd); err != nil {
 		return model.Package{}, fmt.Errorf("decode package: %w", err)
 	}
-	if len(enrichment) > 0 {
-		if err := json.Unmarshal(enrichment, &pd.Enrichment); err != nil {
-			return model.Package{}, fmt.Errorf("decode package data: %w", err)
-		}
-	}
-	return pd.Package, nil
+	e, err := decodeEnrichment(enrichment)
+	pd.Enrichment = e
+	return pd.Package, err
 }
 
-func unmarshalIf[T any](b []byte, dst **T) error {
+func decodeEnrichment(b []byte) (model.Enrichment, error) {
+	var e model.Enrichment
 	if len(b) == 0 {
-		return nil
+		return e, nil
 	}
-	var v T
-	if err := json.Unmarshal(b, &v); err != nil {
-		return fmt.Errorf("decode package data: %w", err)
+	if err := json.Unmarshal(b, &e); err != nil {
+		return e, fmt.Errorf("decode package data: %w", err)
 	}
-	*dst = &v
-	return nil
+	return e, nil
 }
 
 // Packages yields the packages that match the query. A package in two
@@ -525,9 +521,11 @@ func (s *Scan) attachPrior(ctx context.Context, pkgs []*model.Package) error {
 		if err != nil {
 			return fmt.Errorf("read prior data: %w", err)
 		}
-		if err := unmarshalIf(b, &p.PreviousInsight); err != nil {
-			return err
+		var prior model.Insight
+		if err := json.Unmarshal(b, &prior); err != nil {
+			return fmt.Errorf("decode prior data: %w", err)
 		}
+		p.PreviousInsight = &prior
 	}
 	return nil
 }

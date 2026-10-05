@@ -348,8 +348,11 @@ func TestEnrichment(t *testing.T) {
 	assert.Equal(t, Enrichment{Action: action}, after.Since(before), "Since keeps only the fields that changed")
 	assert.Equal(t, Enrichment{Insight: insight, Action: action}, before.Merge(Enrichment{Action: action}), "Merge keeps the fields that the other value does not set")
 
-	typ := reflect.TypeFor[Enrichment]()
-	for i := range typ.NumField() {
-		assert.Equal(t, reflect.Pointer, typ.Field(i).Type.Kind(), "Merge and Since need a pointer in field %s", typ.Field(i).Name)
+	var full Enrichment
+	v := reflect.ValueOf(&full).Elem()
+	for i := range v.NumField() {
+		v.Field(i).Set(reflect.New(v.Field(i).Type().Elem()))
 	}
+	assert.Equal(t, full, Enrichment{}.Merge(full), "Merge copies each field")
+	assert.Equal(t, full, full.Since(Enrichment{}), "Since copies each field")
 }

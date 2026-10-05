@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"regexp"
 	"slices"
 	"strings"
 	"sync"
@@ -30,12 +29,9 @@ const Name = "actionrefs"
 // Version changes when the mapping changes, so the cache drops old results.
 const Version = "1"
 
-// DefaultMaxCalls is the default call budget for one repository.
-const DefaultMaxCalls = 50
+const defaultMaxCalls = 50
 
 const pageSize = 100
-
-var commitSHA = regexp.MustCompile(`^[0-9a-fA-F]{40}$`)
 
 // Options are plugins.actionrefs.options.
 type Options struct {
@@ -63,7 +59,7 @@ func New(cfg plugin.Config, tokens github.TokenProvider, apiURL string) (*Enrich
 	if err := cfg.Decode(&o); err != nil {
 		return nil, err
 	}
-	e := &Enricher{tokens: tokens, apiURL: apiURL, maxCalls: DefaultMaxCalls, repos: map[string]*repo{}}
+	e := &Enricher{tokens: tokens, apiURL: apiURL, maxCalls: defaultMaxCalls, repos: map[string]*repo{}}
 	if o.MaxCalls != nil {
 		if *o.MaxCalls < 1 {
 			return nil, fmt.Errorf("%s: max_calls must be 1 or more, got %d", Name, *o.MaxCalls)
@@ -82,7 +78,7 @@ func (e *Enricher) OptionsSchema() []byte { return optschema.Of(&Options{}) }
 func (e *Enricher) Enrich(ctx context.Context, pkgs []*model.Package) error {
 	var todo []*model.Package
 	for _, p := range pkgs {
-		if p.ID.Ecosystem() == model.EcosystemGitHubActions && commitSHA.MatchString(p.ID.RawVersion()) {
+		if p.ID.Ecosystem() == model.EcosystemGitHubActions && github.IsCommitSHA(p.ID.RawVersion()) {
 			todo = append(todo, p)
 		}
 	}
@@ -98,11 +94,11 @@ func (e *Enricher) Enrich(ctx context.Context, pkgs []*model.Package) error {
 		}
 		e.client = c
 	}
-	var failed failures
+	failed := failures{maxCalls: e.maxCalls}
 	for _, p := range todo {
 		r := e.repo(p.ID.RawName())
 		if r.err != nil {
-			failed.add(r.err, r.slug(), e.maxCalls)
+			failed.add(r.err, r.slug())
 			continue
 		}
 		a, err := e.check(ctx, r, strings.ToLower(p.ID.RawVersion()))
@@ -115,7 +111,7 @@ func (e *Enricher) Enrich(ctx context.Context, pkgs []*model.Package) error {
 			if !errors.Is(err, errBudget) {
 				r.err = err
 			}
-			failed.add(err, r.slug(), e.maxCalls)
+			failed.add(err, r.slug())
 			continue
 		}
 		p.Action = a
@@ -161,8 +157,8 @@ func (e *Enricher) check(ctx context.Context, r *repo, sha string) (*model.Actio
 		return nil, err
 	}
 	for _, b := range branches {
-		if b.name != def {
-			refs = append(refs, b.name)
+		if b != def {
+			refs = append(refs, b)
 		}
 	}
 	for _, t := range tags {
@@ -187,15 +183,11 @@ func (e *Enricher) check(ctx context.Context, r *repo, sha string) (*model.Actio
 // the repository contains it.
 var errNoCommit = errors.New("no such commit")
 
-// contains reports whether ref contains the commit: the compare of ref
-// with the commit is behind or identical.
+// contains reports whether ref contains the commit. The compare of ref with
+// the commit is then behind or identical.
 func (e *Enricher) contains(ctx context.Context, r *repo, ref, sha string) (bool, error) {
-	var cmp *gh.CommitsComparison
-	err := e.call(ctx, r, func() (*gh.Response, error) {
-		var resp *gh.Response
-		var err error
-		cmp, resp, err = e.client.Repositories.CompareCommits(ctx, r.owner, r.name, ref, sha, &gh.ListOptions{PerPage: 1})
-		return resp, err
+	cmp, _, err := call(e, r, func() (*gh.CommitsComparison, *gh.Response, error) {
+		return e.client.Repositories.CompareCommits(ctx, r.owner, r.name, ref, sha, &gh.ListOptions{PerPage: 1})
 	})
 	var resp *gh.ErrorResponse
 	if errors.As(err, &resp) && resp.Response != nil && resp.Response.StatusCode == http.StatusNotFound {
@@ -212,91 +204,70 @@ func (e *Enricher) tags(ctx context.Context, r *repo) ([]ref, error) {
 	if r.tags != nil {
 		return r.tags, nil
 	}
-	tags := []ref{}
-	opts := &gh.ListOptions{PerPage: pageSize}
-	for {
-		var page []*gh.RepositoryTag
-		err := e.call(ctx, r, func() (*gh.Response, error) {
-			var resp *gh.Response
-			var err error
-			page, resp, err = e.client.Repositories.ListTags(ctx, r.owner, r.name, opts)
-			if resp != nil {
-				opts.Page = resp.NextPage
-			}
-			return resp, err
+	tags, err := github.ListAll(func(page int) ([]*gh.RepositoryTag, *gh.Response, error) {
+		return call(e, r, func() ([]*gh.RepositoryTag, *gh.Response, error) {
+			return e.client.Repositories.ListTags(ctx, r.owner, r.name, &gh.ListOptions{Page: page, PerPage: pageSize})
 		})
-		if err != nil {
-			return nil, err
-		}
-		for _, t := range page {
-			tags = append(tags, ref{name: t.GetName(), sha: strings.ToLower(t.GetCommit().GetSHA())})
-		}
-		if opts.Page == 0 {
-			r.tags = tags
-			return tags, nil
-		}
+	})
+	if err != nil {
+		return nil, err
 	}
+	r.tags = make([]ref, 0, len(tags))
+	for _, t := range tags {
+		r.tags = append(r.tags, ref{name: t.GetName(), sha: strings.ToLower(t.GetCommit().GetSHA())})
+	}
+	return r.tags, nil
 }
 
-func (e *Enricher) branches(ctx context.Context, r *repo) ([]ref, error) {
+func (e *Enricher) branches(ctx context.Context, r *repo) ([]string, error) {
 	if r.branches != nil {
 		return r.branches, nil
 	}
-	branches := []ref{}
-	opts := &gh.BranchListOptions{ListOptions: gh.ListOptions{PerPage: pageSize}}
-	for {
-		var page []*gh.Branch
-		err := e.call(ctx, r, func() (*gh.Response, error) {
-			var resp *gh.Response
-			var err error
-			page, resp, err = e.client.Repositories.ListBranches(ctx, r.owner, r.name, opts)
-			if resp != nil {
-				opts.Page = resp.NextPage
-			}
-			return resp, err
+	branches, err := github.ListAll(func(page int) ([]*gh.Branch, *gh.Response, error) {
+		return call(e, r, func() ([]*gh.Branch, *gh.Response, error) {
+			opts := &gh.BranchListOptions{ListOptions: gh.ListOptions{Page: page, PerPage: pageSize}}
+			return e.client.Repositories.ListBranches(ctx, r.owner, r.name, opts)
 		})
-		if err != nil {
-			return nil, err
-		}
-		for _, b := range page {
-			branches = append(branches, ref{name: b.GetName(), sha: strings.ToLower(b.GetCommit().GetSHA())})
-		}
-		if opts.Page == 0 {
-			r.branches = branches
-			return branches, nil
-		}
+	})
+	if err != nil {
+		return nil, err
 	}
+	r.branches = make([]string, 0, len(branches))
+	for _, b := range branches {
+		r.branches = append(r.branches, b.GetName())
+	}
+	return r.branches, nil
 }
 
 func (e *Enricher) defaultBranch(ctx context.Context, r *repo) (string, error) {
 	if r.defaultBranch != "" {
 		return r.defaultBranch, nil
 	}
-	err := e.call(ctx, r, func() (*gh.Response, error) {
-		info, resp, err := e.client.Repositories.Get(ctx, r.owner, r.name)
-		r.defaultBranch = info.GetDefaultBranch()
-		return resp, err
+	info, _, err := call(e, r, func() (*gh.Repository, *gh.Response, error) {
+		return e.client.Repositories.Get(ctx, r.owner, r.name)
 	})
+	r.defaultBranch = info.GetDefaultBranch()
 	return r.defaultBranch, err
 }
 
 // call makes one API call on the budget of the repository. A rate limit
 // halts the calls of each repository.
-func (e *Enricher) call(ctx context.Context, r *repo, fn func() (*gh.Response, error)) error {
+func call[T any](e *Enricher, r *repo, fn func() (T, *gh.Response, error)) (T, *gh.Response, error) {
+	var zero T
 	if e.halt != nil {
-		return e.halt
+		return zero, nil, e.halt
 	}
 	if r.calls >= e.maxCalls {
-		return errBudget
+		return zero, nil, errBudget
 	}
 	r.calls++
-	_, err := fn()
+	v, resp, err := fn()
 	var rate *gh.RateLimitError
 	var abuse *gh.AbuseRateLimitError
 	if errors.As(err, &rate) || errors.As(err, &abuse) {
 		e.halt = err
 	}
-	return err
+	return v, resp, err
 }
 
 // errBudget is a check that needs more calls than max_calls allows.
@@ -307,7 +278,7 @@ type repo struct {
 	owner, name   string
 	calls         int
 	tags          []ref
-	branches      []ref
+	branches      []string
 	defaultBranch string
 	err           error
 }
@@ -319,16 +290,17 @@ type ref struct{ name, sha string }
 // failures groups the repositories that the enricher could not check by
 // the reason.
 type failures struct {
-	reasons []string
-	repos   map[string][]string
-	token   bool
-	budget  bool
+	maxCalls int
+	reasons  []string
+	repos    map[string][]string
+	token    bool
+	budget   bool
 }
 
-func (f *failures) add(err error, repo string, maxCalls int) {
+func (f *failures) add(err error, repo string) {
 	var reason string
 	if errors.Is(err, errBudget) {
-		reason = fmt.Sprintf("The budget of %d GitHub API calls ran out", maxCalls)
+		reason = fmt.Sprintf("The budget of %d GitHub API calls ran out", f.maxCalls)
 		f.budget = true
 	} else {
 		var token bool
