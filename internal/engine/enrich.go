@@ -157,8 +157,8 @@ func (r *run) enrichBatch(ctx context.Context, e Enricher, batch []*model.Packag
 		for i, res := range fresh {
 			// A result must not carry the data of another enricher, or a
 			// cache hit puts back an old result of that enricher.
-			res.Package = &model.Package{ID: res.Package.ID, Enrichment: res.Package.Enrichment.Since(before[i])}
-			if e.SkipEmpty && res.Package.Enrichment.Empty() {
+			res.Package = &model.Package{ID: res.Package.ID, Enrichment: res.Package.Since(before[i])}
+			if e.SkipEmpty && res.Package.Empty() {
 				continue
 			}
 			own = append(own, res)
@@ -174,8 +174,12 @@ func (r *run) enrichBatch(ctx context.Context, e Enricher, batch []*model.Packag
 // warning: the controls that need its data fail open.
 func (r *run) enrichError(name string, err error) {
 	if errors.Is(err, plugin.ErrUnavailable) {
-		r.diags.add(report.DiagnosticWarning, CodeEnrichUnavailable, name,
-			"The backend did not answer. The controls that need its data did not run on some packages.")
+		msg := "The backend did not answer. The controls that need its data did not run on some packages."
+		var u plugin.UnavailableError
+		if errors.As(err, &u) {
+			msg = string(u)
+		}
+		r.diags.add(report.DiagnosticWarning, CodeEnrichUnavailable, name, msg)
 		return
 	}
 	r.diags.add(report.DiagnosticError, CodeEnrichFailed, name, err.Error())

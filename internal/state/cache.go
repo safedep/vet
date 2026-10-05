@@ -109,7 +109,7 @@ func (c *Cache) Lookup(ctx context.Context, enricher, version string, pkgs []*mo
 		if err := json.Unmarshal(data, &cached); err != nil {
 			return nil, nil, fmt.Errorf("decode the enrichment cache: %w", err)
 		}
-		p.Enrichment = p.Enrichment.Merge(cached)
+		p.Enrichment = p.Merge(cached)
 		hits = append(hits, EnrichmentResult{Package: p, Enricher: enricher, Status: status})
 	}
 	return hits, misses, nil

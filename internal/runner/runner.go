@@ -29,6 +29,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/controls"
 	"github.com/safedep/vet/v2/internal/plugins/controls/cooldown"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers"
+	"github.com/safedep/vet/v2/internal/plugins/enrichers/actionrefs"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/codeusage"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/insights"
 	"github.com/safedep/vet/v2/internal/plugins/extractors"
@@ -216,6 +217,10 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 	if err != nil {
 		return app.UsageError(err.Error(), "Fix the option in the config file. vet config validate checks it.")
 	}
+	refs, err := actionRefs(cfg)
+	if err != nil {
+		return app.UsageError(err.Error(), "Fix the option in the config file. vet config validate checks it.")
+	}
 
 	dirs, err := state.PrepareDirs(state.DirRequest{Dirs: rt.Dirs, Ephemeral: o.State.EphemeralFrom(a.LookupEnv)})
 	if err != nil {
@@ -234,6 +239,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 			Credentials: creds, Workers: cfg.Scan.Concurrency, TTL: ttl,
 			CodeUsageDir: codeUsageDir(cfg, o),
 			CodeUsage:    codeusage.Options{BaseRef: o.BaseRef},
+			ActionRefs:   refs,
 		})
 		if err != nil {
 			return err
@@ -392,6 +398,15 @@ func codeUsageDir(cfg *config.Config, o Options) string {
 		return ""
 	}
 	return dir
+}
+
+// actionRefs builds the actionrefs enricher, or nil when the config turns
+// it off.
+func actionRefs(cfg *config.Config) (*actionrefs.Enricher, error) {
+	if !cfg.PluginEnabled(actionrefs.Name, true) {
+		return nil, nil
+	}
+	return actionrefs.New(plugin.MapConfig(cfg.PluginOptions(actionrefs.Name)), github.DefaultProvider(), cfg.GitHub.APIURL)
 }
 
 // CodeInventorySync is the diagnostic code of an inventory sync that did

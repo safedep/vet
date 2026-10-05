@@ -18,6 +18,15 @@ import (
 // that needs its data fails open: the scan continues with a diagnostic.
 var ErrUnavailable = errors.New("plugin: backend unavailable")
 
+// UnavailableError is an ErrUnavailable with a message for the user, such
+// as the fix. The scan shows the message in place of the generic one.
+type UnavailableError string
+
+func (e UnavailableError) Error() string { return string(e) }
+
+// Is makes errors.Is(err, ErrUnavailable) true.
+func (e UnavailableError) Is(target error) bool { return target == ErrUnavailable }
+
 // ArtifactKind names the kind of an artifact that a source yields.
 type ArtifactKind string
 

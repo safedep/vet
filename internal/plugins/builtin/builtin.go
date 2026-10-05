@@ -11,6 +11,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/cloud/inventory"
 	"github.com/safedep/vet/v2/internal/plugins/cloud/tenantpolicy"
 	"github.com/safedep/vet/v2/internal/plugins/controls"
+	"github.com/safedep/vet/v2/internal/plugins/enrichers/actionrefs"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/codeusage"
 	"github.com/safedep/vet/v2/internal/plugins/sinks"
 	"github.com/safedep/vet/v2/plugin"
@@ -38,6 +39,7 @@ func Plugins() []Plugin {
 	out = append(out,
 		fromFactory(tenantpolicy.Name, tenantpolicy.New),
 		fromFactory(inventory.Name, func(c plugin.Config) (*inventory.Syncer, error) { return inventory.New(c, nil) }),
+		fromFactory(actionrefs.Name, func(c plugin.Config) (*actionrefs.Enricher, error) { return actionrefs.New(c, nil, "") }),
 		// codeusage reads only plugins.codeusage.enabled.
 		Plugin{Name: codeusage.Name, Check: func(plugin.Config) error { return nil }, Schema: func() ([]byte, error) { return nil, nil }},
 	)
