@@ -101,3 +101,31 @@ func TestNewClientUsesStubAndToken(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "https://api.github.com/", c.BaseURL.String())
 }
+
+func TestSource(t *testing.T) {
+	env := func(vars map[string]string) EnvProvider {
+		return EnvProvider{LookupEnv: func(k string) (string, bool) { v, ok := vars[k]; return v, ok }}
+	}
+	cases := []struct {
+		name string
+		tp   TokenProvider
+		want string
+		err  error
+	}{
+		{"github token", ChainProvider{env(map[string]string{"GITHUB_TOKEN": "a"}), GHProvider{Command: "no-such-gh"}}, "GITHUB_TOKEN", nil},
+		{"gh token", ChainProvider{env(map[string]string{"GH_TOKEN": "b"})}, "GH_TOKEN", nil},
+		{"no gh", ChainProvider{env(nil), GHProvider{Command: "no-such-gh"}}, "", ErrNoToken},
+		{"another provider", fixed{token: "c"}, "the token provider", nil},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := Source(context.Background(), tc.tp)
+			if tc.err != nil {
+				assert.ErrorIs(t, err, tc.err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}

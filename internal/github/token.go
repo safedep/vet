@@ -30,16 +30,21 @@ type EnvProvider struct {
 
 // Token returns the token of the first variable that is set.
 func (p EnvProvider) Token(context.Context) (string, error) {
+	_, token, err := p.find()
+	return token, err
+}
+
+func (p EnvProvider) find() (name, token string, err error) {
 	lookup := p.LookupEnv
 	if lookup == nil {
 		lookup = os.LookupEnv
 	}
 	for _, name := range []string{"GITHUB_TOKEN", "GH_TOKEN"} {
 		if v, ok := lookup(name); ok && strings.TrimSpace(v) != "" {
-			return strings.TrimSpace(v), nil
+			return name, strings.TrimSpace(v), nil
 		}
 	}
-	return "", ErrNoToken
+	return "", "", ErrNoToken
 }
 
 // GHProvider runs "gh auth token".
@@ -99,4 +104,30 @@ func (c ChainProvider) Token(ctx context.Context) (string, error) {
 // DefaultProvider reads GITHUB_TOKEN, then GH_TOKEN, then "gh auth token".
 func DefaultProvider() TokenProvider {
 	return ChainProvider{EnvProvider{}, GHProvider{}}
+}
+
+// Source names where a provider finds its token: GITHUB_TOKEN, GH_TOKEN
+// or gh auth token. It returns ErrNoToken when no provider has a token.
+func Source(ctx context.Context, tp TokenProvider) (string, error) {
+	switch p := tp.(type) {
+	case ChainProvider:
+		for _, sub := range p {
+			if s, err := Source(ctx, sub); !errors.Is(err, ErrNoToken) {
+				return s, err
+			}
+		}
+		return "", ErrNoToken
+	case EnvProvider:
+		name, _, err := p.find()
+		return name, err
+	case GHProvider:
+		if _, err := p.Token(ctx); err != nil {
+			return "", err
+		}
+		return "gh auth token", nil
+	}
+	if _, err := tp.Token(ctx); err != nil {
+		return "", err
+	}
+	return "the token provider", nil
 }

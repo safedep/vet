@@ -1,10 +1,12 @@
 package doctor
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/safedep/vet/v2/internal/github"
 	"github.com/safedep/vet/v2/internal/tui/checklist"
 )
 
@@ -30,4 +32,17 @@ func TestStatusItem(t *testing.T) {
 	for s, want := range map[Status]checklist.Status{Pass: checklist.Pass, Warn: checklist.Warn, Fail: checklist.Fail} {
 		assert.Equal(t, want, s.item(), s)
 	}
+}
+
+func TestGitHubTokenCheck(t *testing.T) {
+	env := func(vars map[string]string) github.TokenProvider {
+		return github.EnvProvider{LookupEnv: func(k string) (string, bool) { v, ok := vars[k]; return v, ok }}
+	}
+	got := githubTokenCheck(context.Background(), env(map[string]string{"GH_TOKEN": "x"}))
+	assert.Equal(t, Check{ID: "github.token", Status: Pass, Message: "GitHub token from GH_TOKEN"}, got)
+
+	got = githubTokenCheck(context.Background(), env(nil))
+	assert.Equal(t, Warn, got.Status)
+	assert.Contains(t, got.Message, "anonymously")
+	assert.Equal(t, "Set GITHUB_TOKEN or run gh auth login.", got.Fix)
 }

@@ -1,7 +1,8 @@
 // Package workflow holds the GitHub Actions workflow controls: a dangerous
 // trigger with a checkout of the pull request, template injection, an
-// action that is not pinned to a commit SHA, and the hardening controls of
-// the control catalog, phase 4.
+// action that is not pinned to a commit SHA, a pinned commit outside the
+// repository of the action, and the hardening controls of the control
+// catalog, phase 4.
 //
 // The action health control of phase 4 is not a control of its own: the
 // vulnerability and deprecated-package controls check actions as packages.
@@ -83,7 +84,7 @@ var infos = map[string]plugin.ControlInfo{
 
 // Controls describes the control ids.
 func (c *Control) Controls() []plugin.ControlInfo {
-	out := []plugin.ControlInfo{infos[IDDangerousTrigger], infos[IDTemplateInjection], infos[IDUnpinnedAction]}
+	out := []plugin.ControlInfo{infos[IDDangerousTrigger], infos[IDTemplateInjection], infos[IDUnpinnedAction], infos[IDImpostorCommit], infos[IDPinCommentMismatch]}
 	for _, id := range hardeningIDs {
 		out = append(out, infos[id])
 	}
@@ -111,6 +112,7 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 	c.dangerousTrigger(e)
 	c.templateInjection(e)
 	c.unpinned(e)
+	c.pins(e, m)
 	c.hardening(e)
 	return e.out, nil
 }
