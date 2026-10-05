@@ -59,7 +59,7 @@ and the report has a diagnostic. `--strict` turns a diagnostic into exit code 3.
 
 vet saves each scan in the state directory. `vet report show` renders it again with no new scan. A
 scan that a signal stops saves its progress, and the next `vet scan` of the target continues it. A
-newer scan of the target that completes supersedes the stopped scan, and vet does not continue it.
+newer scan of the target supersedes the stopped scan, and only `--resume` continues it.
 `--fresh` starts a new scan. `--resume` continues a stopped scan of any age. `--ephemeral` keeps no
 state and no cache after the scan.
 

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"slices"
 	"strings"
-	"sync"
 )
 
 // Verdict is the result of a license check.
@@ -60,8 +59,7 @@ type Result struct {
 // a deny list with GPL-3.0-only. With both lists, one choice must satisfy
 // both: "GPL-3.0-only OR SSPL-1.0" fails allow [GPL-3.0-only, MIT] with deny
 // [GPL-3.0-only]. The values join with AND, so a known value that fails a
-// list fails the package, whatever its unknown values are. NONE fails an
-// allow list. A deny list alone cannot decide NONE, so it is unknown.
+// list fails the package, whatever its unknown values are.
 func (p *Policy) Check(d Declared) Result {
 	if d.root != nil && p.Denies() && p.denied(d.root) {
 		return Result{Verdict: Denied, Denied: p.deniedTerms(d.root)}
@@ -69,7 +67,7 @@ func (p *Policy) Check(d Declared) Result {
 	if p.Allows() && (d.None || d.root != nil && !p.allowed(d.root)) {
 		return Result{Verdict: NotAllowed}
 	}
-	if !d.Known() || d.None {
+	if !d.Known() {
 		return Result{Verdict: Unknown}
 	}
 	return Result{Verdict: Pass}
@@ -78,17 +76,38 @@ func (p *Policy) Check(d Declared) Result {
 // allowed reports whether a choice of the expression has only terms that
 // the allow list names and the deny list does not.
 func (p *Policy) allowed(n *node) bool {
-	return satisfies(n, func(t term) bool {
-		if p.allow[t.key()] && !p.termDenied(t) {
-			return true
+	switch n.op {
+	case opAnd:
+		for _, k := range n.kids {
+			if !p.allowed(k) {
+				return false
+			}
 		}
-		return t.orLater && slices.ContainsFunc(choices(t), func(c term) bool { return p.allow[c.key()] && !p.deny[c.key()] })
-	})
+		return true
+	case opOr:
+		return slices.ContainsFunc(n.kids, p.allowed)
+	}
+	t := n.term
+	if p.allow[t.key()] && !p.termDenied(t) {
+		return true
+	}
+	return t.orLater && slices.ContainsFunc(choices(t), func(c term) bool { return p.allow[c.key()] && !p.deny[c.key()] })
 }
 
 // denied reports whether each choice of the expression has a denied term.
 func (p *Policy) denied(n *node) bool {
-	return !satisfies(n, func(t term) bool { return !p.termDenied(t) })
+	switch n.op {
+	case opAnd:
+		return slices.ContainsFunc(n.kids, p.denied)
+	case opOr:
+		for _, k := range n.kids {
+			if !p.denied(k) {
+				return false
+			}
+		}
+		return true
+	}
+	return p.termDenied(n.term)
 }
 
 // termDenied reports a term that the deny list names, or an or-later term
@@ -123,43 +142,6 @@ func (p *Policy) deniedTerms(n *node) []string {
 	return slices.Compact(out)
 }
 
-// satisfies reports whether a choice of the expression has only terms that
-// ok accepts.
-func satisfies(n *node, ok func(term) bool) bool {
-	sat := func(k *node) bool { return satisfies(k, ok) }
-	switch n.op {
-	case opAnd:
-		return !slices.ContainsFunc(n.kids, func(k *node) bool { return !sat(k) })
-	case opOr:
-		return slices.ContainsFunc(n.kids, sat)
-	}
-	return ok(n.term)
-}
-
-var freeKeys = sync.OnceValue(func() map[string]bool {
-	out := map[string]bool{}
-	ids, _ := setIDs(SetOSIApprovedOrFSF)
-	addSet(out, ids)
-	return out
-})
-
-// Free reports that a choice of the license has only licenses that the OSI
-// approves or the FSF calls free. A WITH term counts by its license, because
-// an SPDX exception adds a permission. NONE and a license that is not known
-// are not free.
-func Free(d Declared) bool {
-	if !d.Known() || d.None {
-		return false
-	}
-	keys := freeKeys()
-	return satisfies(d.root, func(t term) bool {
-		if keys[term{id: t.id}.key()] {
-			return true
-		}
-		return t.orLater && slices.ContainsFunc(laterVersions(t.id), func(id string) bool { return keys[term{id: id}.key()] })
-	})
-}
-
 // choices returns the licenses that an or-later term lets a user take, each
 // with the exception of the term.
 func choices(t term) []term {
@@ -178,7 +160,11 @@ func expand(entries []string) (map[string]bool, error) {
 	for _, raw := range entries {
 		e := strings.TrimSpace(raw)
 		if members, ok := setIDs(e); ok {
-			addSet(out, members)
+			for _, id := range members {
+				if t, ok := canonical(id); ok && t.exception == "" {
+					out[t.key()] = true
+				}
+			}
 			continue
 		}
 		n, err := parseExpression(e)
@@ -192,14 +178,6 @@ func expand(entries []string) (map[string]bool, error) {
 		return nil, fmt.Errorf("%q: %w", bad, errInvalidEntry)
 	}
 	return out, nil
-}
-
-func addSet(out map[string]bool, members []string) {
-	for _, id := range members {
-		if t, ok := canonical(id); ok && t.exception == "" {
-			out[t.key()] = true
-		}
-	}
 }
 
 var errInvalidEntry = errors.New("not an SPDX license id, an id WITH an exception, a LicenseRef or a set (" + strings.Join(Sets, ", ") + ")")
