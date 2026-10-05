@@ -291,7 +291,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 			return runErr
 		}
 		renderErr := Render(ctx, res.Scan, v, outs)
-		if res.Installed != "" && packages == "" {
+		if res.Installed != "" && packages == "" && o.BaseRef == "" {
 			tui.Info("The installed packages in %s are not in the scan. Scan with --packages all to check them too.", res.Installed)
 		}
 		return outcome(renderErr, runErr)

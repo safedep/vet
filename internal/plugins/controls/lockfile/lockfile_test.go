@@ -249,10 +249,18 @@ func TestInstalledNotLocked(t *testing.T) {
 	}
 	lock := &model.Manifest{
 		ID: "lock", Path: "app/package-lock.json", Ecosystem: model.EcosystemNpm, Kind: model.ManifestKindLockfile,
-		Packages: []*model.Package{npmPkg("left-pad", "1.3.0"), npmPkg("minimist", "1.2.8")},
+		Extractor: packagelockjson.Name,
+		Packages:  []*model.Package{npmPkg("left-pad", "1.3.0"), npmPkg("minimist", "1.2.8")},
 	}
+	// The extractor drops the git dependency, because it has no npm PURL.
+	root := fstest.MapFS{"app/package-lock.json": {Data: []byte(`{"lockfileVersion": 3, "packages": {
+  "": {"name": "app"},
+  "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"},
+  "node_modules/minimist": {"version": "1.2.8", "resolved": "https://registry.npmjs.org/minimist/-/minimist-1.2.8.tgz"},
+  "node_modules/from-git": {"version": "2.0.0", "resolved": "git+ssh://git@github.com/o/from-git.git#abc"}
+}}`)}}
 	installed := func(p string, pkg *model.Package) *model.Manifest {
-		return &model.Manifest{ID: p, Path: p, Ecosystem: model.EcosystemNpm, Kind: model.ManifestKindInstalled, Packages: []*model.Package{pkg}}
+		return &model.Manifest{ID: p, Path: p, Ecosystem: model.EcosystemNpm, Kind: model.ManifestKindInstalled, Root: root, Packages: []*model.Package{pkg}}
 	}
 	cases := []struct {
 		name  string
@@ -263,6 +271,8 @@ func TestInstalledNotLocked(t *testing.T) {
 		{"other version", installed("app/node_modules/minimist/package.json", npmPkg("minimist", "1.2.0")), "npm/minimist@1.2.0 is installed, and the lockfile has 1.2.8"},
 		{"not listed", installed("app/node_modules/a/node_modules/evil/package.json", npmPkg("evil", "1.0.0")), "npm/evil@1.0.0 is installed, and the lockfile does not list it"},
 		{"no lockfile in the project", installed("other/node_modules/evil/package.json", npmPkg("evil", "1.0.0")), ""},
+		{"git dependency", installed("app/node_modules/from-git/package.json", npmPkg("from-git", "2.0.0")), ""},
+		{"workspace member", installed("app/packages/a/node_modules/evil/package.json", npmPkg("evil", "1.0.0")), "npm/evil@1.0.0 is installed, and the lockfile does not list it"},
 	}
 	c, err := New(plugin.MapConfig(nil))
 	require.NoError(t, err)

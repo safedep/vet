@@ -150,27 +150,27 @@ func (r *run) walk(fsys fs.FS, a plugin.Artifact, readsInstalled bool, visit fun
 	systemDir := systemDirs(a)
 	return fs.WalkDir(fsys, ".", func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
-			// An unreadable directory does not stop the scan. Permission
-			// errors give one diagnostic with a count, because a scan of a
-			// root file system meets many.
-			msg := err.Error()
-			if errors.Is(err, fs.ErrPermission) {
-				msg = "vet skipped the paths that the user cannot read"
-			}
-			r.diags.add(report.DiagnosticWarning, CodeExtractFailed, "walk", msg)
+			// An unreadable directory does not stop the scan.
+			r.diags.add(report.DiagnosticWarning, CodeExtractFailed, "walk", readError(err))
 			if d != nil && d.IsDir() {
 				return fs.SkipDir
 			}
 			return nil
 		}
 		if p == "." {
+			if systemDir(p) {
+				return fs.SkipDir
+			}
 			return nil
 		}
 		if d.IsDir() {
+			if r.excluded(p) || systemDir(p) {
+				return fs.SkipDir
+			}
 			if !readsInstalled && a.Kind == plugin.ArtifactDirectory && installed.IsInstallDir(d.Name()) && r.res.Installed == "" {
 				r.res.Installed = p
 			}
-			if skipDir(a, d.Name(), readsInstalled) || r.excluded(p) || systemDir(p) {
+			if skipDir(a, d.Name(), readsInstalled) {
 				return fs.SkipDir
 			}
 			return nil
@@ -290,7 +290,19 @@ func (r *run) extractError(err error) {
 			fmt.Sprintf("vet has no data for the %s ecosystem, so it skips its packages", m[1]))
 		return
 	}
-	r.diags.add(report.DiagnosticWarning, CodeExtractFailed, "extract", err.Error())
+	r.diags.add(report.DiagnosticWarning, CodeExtractFailed, "extract", readError(err))
+}
+
+// permissionDenied is the one message of every path that the user cannot
+// read, so the diagnostics collapse into one with a count. A scan of a
+// root file system meets many.
+const permissionDenied = "vet skipped the paths that the user cannot read"
+
+func readError(err error) string {
+	if errors.Is(err, fs.ErrPermission) {
+		return permissionDenied
+	}
+	return err.Error()
 }
 
 func sbomExtractors(exs []plugin.Extractor) []plugin.Extractor {
