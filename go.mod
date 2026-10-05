@@ -22,6 +22,7 @@ require (
 	github.com/package-url/packageurl-go v0.1.5
 	github.com/posthog/posthog-go v1.10.0
 	github.com/rogpeppe/go-internal v1.16.0
+	github.com/rust-secure-code/go-rustaudit v0.0.0-20250226111315-e20ec32e963c
 	github.com/safedep/code v0.0.0-20261003074956-ca03c078c5bb
 	github.com/safedep/dry v0.0.0-20261004082451-fd743e2e48a8
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
@@ -192,7 +193,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/rust-secure-code/go-rustaudit v0.0.0-20250226111315-e20ec32e963c // indirect
 	github.com/saferwall/pe v1.6.4 // indirect
 	github.com/schollz/progressbar/v3 v3.18.0 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect

@@ -60,7 +60,10 @@ renames it into place, so a failed write leaves no partial file.
 Use `installed` for a deployed app, a build output, an unpacked archive or a mounted file system. A
 declared scan does not walk `node_modules`. No declared extractor reads a file under `node_modules`,
 `site-packages` or `dist-packages`, because those files belong to installed packages.
-Each installed package is in a manifest of kind `installed`, with the path of its metadata file.
+Each installed package is in a manifest of kind `installed`, with the path of its metadata file. vet
+does not report the project itself as an installed package: the `package.json` of the project, an
+editable install or a wheel in `dist/`, the main module of a local Go build and the root crate of a
+Rust binary.
 `--base-ref` reads declared packages only, because git does not hold installed packages.
 
 With `plugins.codeusage.enabled: true`, vet also reads the source files of a directory target. It

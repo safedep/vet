@@ -4,7 +4,10 @@ package installed
 
 import (
 	"context"
+	"debug/buildinfo"
+	"io"
 	"path"
+	"runtime/debug"
 	"strings"
 
 	cpb "github.com/google/osv-scalibr/binary/proto/config_go_proto"
@@ -15,6 +18,9 @@ import (
 	"github.com/google/osv-scalibr/extractor/filesystem/language/ruby/gem"
 	"github.com/google/osv-scalibr/extractor/filesystem/language/rust/cargoauditable"
 	"github.com/google/osv-scalibr/inventory"
+	"github.com/rust-secure-code/go-rustaudit"
+	"golang.org/x/mod/module"
+	"golang.org/x/mod/semver"
 )
 
 // NodeModulesName is the name of the npm extractor. Scalibr and vet both use
@@ -48,15 +54,19 @@ func Extractors() ([]filesystem.Extractor, error) {
 	if err != nil {
 		return nil, err
 	}
-	out := []filesystem.Extractor{nodeModules{nm}, goBinary{gb}}
-	for _, newFn := range []func(*cpb.PluginConfig) (filesystem.Extractor, error){wheelegg.New, gem.New, cargoauditable.New} {
-		e, err := newFn(cfg)
-		if err != nil {
-			return nil, err
-		}
-		out = append(out, e)
+	we, err := wheelegg.New(cfg)
+	if err != nil {
+		return nil, err
 	}
-	return out, nil
+	ge, err := gem.New(cfg)
+	if err != nil {
+		return nil, err
+	}
+	ca, err := cargoauditable.New(cfg)
+	if err != nil {
+		return nil, err
+	}
+	return []filesystem.Extractor{nodeModules{nm}, goBinary{gb}, pythonDist{we}, ge, rustBinary{ca}}, nil
 }
 
 // nodeModules reads the package.json of a package directory directly under
@@ -84,16 +94,32 @@ func packageRoot(p string) bool {
 	return path.Base(parent) == "node_modules"
 }
 
+// pythonDist reads the metadata of a distribution in site-packages or
+// dist-packages. The egg-info of an editable install and a wheel in dist/
+// describe the project itself.
+type pythonDist struct{ filesystem.Extractor }
+
+func (p pythonDist) FileRequired(api filesystem.FileAPI) bool {
+	return InInstallDir(api.Path()) && p.Extractor.FileRequired(api)
+}
+
 // goBinary names the Go toolchain of a binary stdlib, as the go.mod
 // extractor does. Scalibr names it go. A main module with no release
-// version is a local build of the project, not a module to look up.
+// version, such as (devel) or the pseudo-version of a build in a git
+// checkout, is the project itself, not a module to look up.
 type goBinary struct{ filesystem.Extractor }
 
 func (g goBinary) Extract(ctx context.Context, in *filesystem.ScanInput) (inventory.Inventory, error) {
 	inv, err := g.Extractor.Extract(ctx, in)
+	var main debug.Module
+	if ra, ok := in.Reader.(io.ReaderAt); ok {
+		if bi, err := buildinfo.Read(ra); err == nil {
+			main = bi.Main
+		}
+	}
 	pkgs := inv.Packages[:0]
 	for _, p := range inv.Packages {
-		if p.Version == "" || p.Version == "(devel)" {
+		if p.Name == main.Path && !released(main.Version) {
 			continue
 		}
 		if p.Name == "go" {
@@ -103,4 +129,40 @@ func (g goBinary) Extract(ctx context.Context, in *filesystem.ScanInput) (invent
 	}
 	inv.Packages = pkgs
 	return inv, err
+}
+
+// released reports a module version that a release tagged.
+func released(v string) bool {
+	return semver.IsValid(v) && !module.IsPseudoVersion(v) && !strings.Contains(v, "+dirty")
+}
+
+// rustBinary drops the root crate of a binary. cargo-auditable records the
+// crate that the binary builds as a dependency, and a local build gives it
+// the version of the project.
+type rustBinary struct{ filesystem.Extractor }
+
+func (r rustBinary) Extract(ctx context.Context, in *filesystem.ScanInput) (inventory.Inventory, error) {
+	inv, err := r.Extractor.Extract(ctx, in)
+	ra, ok := in.Reader.(io.ReaderAt)
+	if err != nil || !ok {
+		return inv, err
+	}
+	info, aerr := rustaudit.GetDependencyInfo(ra)
+	if aerr != nil {
+		return inv, nil
+	}
+	roots := map[string]bool{}
+	for _, d := range info.Packages {
+		if d.Root {
+			roots[d.Name+"@"+d.Version] = true
+		}
+	}
+	pkgs := inv.Packages[:0]
+	for _, p := range inv.Packages {
+		if !roots[p.Name+"@"+p.Version] {
+			pkgs = append(pkgs, p)
+		}
+	}
+	inv.Packages = pkgs
+	return inv, nil
 }
