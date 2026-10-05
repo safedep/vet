@@ -4,11 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	controltowerv1pb "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/controltower/v1"
 	servicev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/services/controltower/v1"
 	"github.com/safedep/dry/cloud/endpointsync"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/inventory"
@@ -139,6 +142,9 @@ func (s *CloudSink) Close(ctx context.Context) error {
 	if n, err := s.client.Sync(drainCtx); err != nil {
 		logger.Warnf("cloud sink: drain incomplete (synced=%d, timeout=%s): %v",
 			n, s.drainTimeout, err)
+		if hint := syncFailureHint(err); hint != "" {
+			logger.Warnf("cloud sink: %s", hint)
+		}
 	} else {
 		logger.Debugf("cloud sink: drained %d event(s) on close", n)
 	}
@@ -147,6 +153,29 @@ func (s *CloudSink) Close(ctx context.Context) error {
 		return fmt.Errorf("cloud sink: close: %w", err)
 	}
 	return nil
+}
+
+// syncFailureHint returns advice for a sync error that the API gateway
+// most likely caused by refusing the API key, and "" for other errors.
+// The gateway answers with plain HTTP 401/403 and a JSON body, not a gRPC
+// status. grpc-go reports that as Unauthenticated or PermissionDenied, or,
+// behind some proxies, as Internal with no trailers. Without the hint the
+// user sees only the transport error and does not know to check the key.
+func syncFailureHint(err error) string {
+	st, ok := status.FromError(err)
+	if !ok {
+		return ""
+	}
+
+	switch {
+	case st.Code() == codes.Unauthenticated, st.Code() == codes.PermissionDenied,
+		st.Code() == codes.Internal && strings.Contains(st.Message(), "without sending trailers"):
+		return "SafeDep Cloud refused the sync. The API key is probably not authorized for " +
+			"endpoint sync, or it belongs to another tenant. Check the key and tenant " +
+			"with `vet auth configure`."
+	default:
+		return ""
+	}
 }
 
 // send is the common build-and-emit path used by Emit and End. It
