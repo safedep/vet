@@ -110,6 +110,7 @@ func TestPURLFollowsPurlSpec(t *testing.T) {
 		{"pypi keeps a trailing zero", mustPV(t, EcosystemPyPI, "anthropic-sdk", "0.1.0"), "pkg:pypi/anthropic-sdk@0.1.0", "pkg:pypi/anthropic-sdk@0.1"},
 		{"pypi keeps a dot in the name", mustPV(t, EcosystemPyPI, "python.dateutil", "2.8.2"), "pkg:pypi/python.dateutil@2.8.2", "pkg:pypi/python-dateutil@2.8.2"},
 		{"pypi lowers case and maps underscore", mustPV(t, EcosystemPyPI, "Flask_RESTful", "3.0.0.0"), "pkg:pypi/flask-restful@3.0.0.0", "pkg:pypi/flask-restful@3"},
+		{"pypi encodes a slash in the name", mustPV(t, EcosystemPyPI, "foo/bar", "1.0.0"), "pkg:pypi/foo%2Fbar@1.0.0", "pkg:pypi/foo%2Fbar@1"},
 		{"pypi with no version", mustPV(t, EcosystemPyPI, "Django", ""), "pkg:pypi/django", "pkg:pypi/django"},
 		{"pypi trims the version", mustPV(t, EcosystemPyPI, "django", " 4.2.0 "), "pkg:pypi/django@4.2.0", "pkg:pypi/django@4.2"},
 		{"npm is unchanged", mustPV(t, EcosystemNpm, "@babel/core", "7.24.0"), "pkg:npm/%40babel/core@7.24.0", "pkg:npm/%40babel/core@7.24.0"},

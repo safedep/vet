@@ -167,6 +167,8 @@ plugins:
 
 ```yaml
 # vet-policy.yml
+version: 2
+rules:
   - id: no-denied-license
     when: finding.control_id == "license-denied"
     action: fail

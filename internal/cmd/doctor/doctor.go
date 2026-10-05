@@ -138,6 +138,9 @@ func configCheck(l *config.Loaded) Check {
 }
 
 func latestRelease(ctx context.Context, cfg *config.Config) Check {
+	if devBuild(version.Version()) {
+		return releaseCheck(nil, version.Version())
+	}
 	ctx, cancel := context.WithTimeout(ctx, probeTimeout)
 	defer cancel()
 	client, err := github.NewClient(ctx, nil, cfg.GitHub.APIURL, &http.Client{Timeout: probeTimeout})
@@ -170,10 +173,10 @@ func latestRelease(ctx context.Context, cfg *config.Config) Check {
 // with no version or a pseudo-version is a development build, and passes.
 func releaseCheck(tags []string, current string) Check {
 	shown := banner.DisplayVersion(current)
-	cur := semverOf(current)
-	if cur == "" || module.IsPseudoVersion(cur) {
+	if devBuild(current) {
 		return Check{ID: "vet.release", Status: Pass, Message: "vet " + shown + " is a development build"}
 	}
+	cur := semverOf(current)
 	newest := newestRelease(tags, cur)
 	if newest == "" {
 		return Check{ID: "vet.release", Status: Pass, Message: "vet " + shown + " has no newer release"}
@@ -185,6 +188,12 @@ func releaseCheck(tags []string, current string) Check {
 		return Check{ID: "vet.release", Status: Pass, Message: "vet " + shown + " is newer than the newest release " + newest}
 	}
 	return Check{ID: "vet.release", Status: Pass, Message: "vet " + shown + " is the newest release"}
+}
+
+// devBuild reports a build with no version or with a pseudo-version.
+func devBuild(current string) bool {
+	cur := semverOf(current)
+	return cur == "" || module.IsPseudoVersion(cur)
 }
 
 // newestRelease returns the newest tag of the major version of cur. It

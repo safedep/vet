@@ -56,8 +56,10 @@ type Result struct {
 
 // Check applies the deny list, then the allow list. A license that has a
 // choice with no denied term is not denied, so "MIT OR GPL-3.0-only" passes
-// a deny list with GPL-3.0-only. The values join with AND, so a known value
-// that fails a list fails the package, whatever its unknown values are.
+// a deny list with GPL-3.0-only. With both lists, one choice must satisfy
+// both: "GPL-3.0-only OR SSPL-1.0" fails allow [GPL-3.0-only, MIT] with deny
+// [GPL-3.0-only]. The values join with AND, so a known value that fails a
+// list fails the package, whatever its unknown values are.
 func (p *Policy) Check(d Declared) Result {
 	if d.root != nil && p.Denies() && p.denied(d.root) {
 		return Result{Verdict: Denied, Denied: p.deniedTerms(d.root)}
@@ -71,8 +73,8 @@ func (p *Policy) Check(d Declared) Result {
 	return Result{Verdict: Pass}
 }
 
-// allowed reports whether a choice of the expression has only allowed
-// terms.
+// allowed reports whether a choice of the expression has only terms that
+// the allow list names and the deny list does not.
 func (p *Policy) allowed(n *node) bool {
 	switch n.op {
 	case opAnd:
@@ -85,10 +87,11 @@ func (p *Policy) allowed(n *node) bool {
 	case opOr:
 		return slices.ContainsFunc(n.kids, p.allowed)
 	}
-	if p.allow[n.term.key()] {
+	t := n.term
+	if p.allow[t.key()] && !p.termDenied(t) {
 		return true
 	}
-	return n.term.orLater && slices.ContainsFunc(choices(n.term), func(t term) bool { return p.allow[t.key()] })
+	return t.orLater && slices.ContainsFunc(choices(t), func(c term) bool { return p.allow[c.key()] && !p.deny[c.key()] })
 }
 
 // denied reports whether each choice of the expression has a denied term.
