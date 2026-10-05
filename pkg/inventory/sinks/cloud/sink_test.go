@@ -3,6 +3,7 @@ package cloud
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -13,6 +14,8 @@ import (
 	"github.com/safedep/dry/cloud/endpointsync"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/safedep/vet/pkg/inventory"
@@ -302,4 +305,32 @@ func TestCloudSink_WithDrainTimeoutIgnoresNonPositive(t *testing.T) {
 	sink := New(fake, WithDrainTimeout(0), WithDrainTimeout(-1*time.Second))
 	assert.Equal(t, defaultDrainTimeout, sink.drainTimeout,
 		"non-positive drain timeouts must not override the default")
+}
+
+func TestSyncFailureHint(t *testing.T) {
+	wrap := func(err error) error { return fmt.Errorf("endpointsync: sync failed: %w", err) }
+
+	tests := []struct {
+		name     string
+		err      error
+		wantHint bool
+	}{
+		{"gateway 403", wrap(status.Error(codes.PermissionDenied, "unexpected HTTP status code received from server: 403 (Forbidden)")), true},
+		{"gateway 401", wrap(status.Error(codes.Unauthenticated, "unexpected HTTP status code received from server: 401 (Unauthorized)")), true},
+		{"non-gRPC reply with no trailers", wrap(status.Error(codes.Internal, "server closed the stream without sending trailers")), true},
+		{"other internal error", wrap(status.Error(codes.Internal, "boom")), false},
+		{"drain timeout", context.DeadlineExceeded, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			hint := syncFailureHint(tt.err)
+			if !tt.wantHint {
+				assert.Empty(t, hint)
+				return
+			}
+			assert.Contains(t, hint, "API key")
+			assert.Contains(t, hint, "tenant")
+		})
+	}
 }
