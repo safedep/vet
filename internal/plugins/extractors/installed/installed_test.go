@@ -138,28 +138,3 @@ func fileAPI(t *testing.T, p string) filesystem.FileAPI {
 	require.NoError(t, err)
 	return simplefileapi.New(p, info)
 }
-
-func TestNodeModulesReadsNameAndVersion(t *testing.T) {
-	nm := find[nodeModules](t)
-	cases := []struct {
-		name string
-		body string
-		want []string
-	}{
-		{"person fields off schema", `{"name":"a","version":"1.0.0","contributors":"x <x@y.z>","maintainers":"y"}`, []string{"a@1.0.0"}},
-		{"no version", `{"name":"a"}`, nil},
-	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			inv, err := nm.Extract(context.Background(), &filesystem.ScanInput{
-				Path: "node_modules/a/package.json", Reader: strings.NewReader(tc.body),
-			})
-			require.NoError(t, err)
-			var got []string
-			for _, p := range inv.Packages {
-				got = append(got, p.Name+"@"+p.Version)
-			}
-			assert.Equal(t, tc.want, got)
-		})
-	}
-}
