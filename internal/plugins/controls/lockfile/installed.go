@@ -31,9 +31,9 @@ var installedInfo = plugin.ControlInfo{
 type locked struct {
 	keys     map[model.PackageKey]bool
 	versions map[model.PackageKey][]string
-	// anyVersion holds the names of the npm lockfile entries that do not
-	// come from a registry, such as a git or a file dependency. The
-	// extractor gives them no npm package, so the version cannot match.
+	// anyVersion holds the names of the npm lockfile entries that the
+	// extractor gives no npm package for, such as a git or a file
+	// dependency. The control cannot compare the version of these.
 	anyVersion map[model.PackageKey]bool
 }
 
@@ -86,8 +86,8 @@ func (x *lockIndex) of(ctx context.Context, s plugin.State, root fs.FS) (map[str
 	return dirs, nil
 }
 
-// addUnversioned reads an npm lockfile and records the entries that do not
-// resolve from a registry tarball.
+// addUnversioned reads an npm lockfile and records the entries that the
+// extractor gave no npm package for.
 func (l *locked) addUnversioned(root fs.FS, file string) error {
 	data, err := fs.ReadFile(root, file)
 	if err != nil {
@@ -104,7 +104,10 @@ func (l *locked) addUnversioned(root fs.FS, file string) error {
 	}
 	for p, e := range entries {
 		name := nameOf(p)
-		if name == "" || (e.Resolved != "" && !e.Link && strings.HasPrefix(e.Resolved, "http") && strings.HasSuffix(e.Resolved, ".tgz")) {
+		if name == "" {
+			continue
+		}
+		if id, err := model.NewPackageVersion(model.EcosystemNpm, name, e.Version); err == nil && l.keys[id.Key()] {
 			continue
 		}
 		if id, err := model.NewPackageVersion(model.EcosystemNpm, name, "0"); err == nil {

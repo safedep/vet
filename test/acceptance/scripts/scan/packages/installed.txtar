@@ -2,7 +2,8 @@
 # lockfile and does not walk node_modules by default. installed reads the
 # packages on disk. all reads both, and reports an installed package that the
 # lockfile does not list. Each selection reads the workflows. A default scan
-# names the installed packages that it did not read.
+# names the installed packages that it did not read. A policy tells the two
+# origins apart with package.origin.
 cd proj
 exec vet scan . --mode plain -o jsonl
 stdout '"raw_name":"left-pad"'
@@ -20,6 +21,8 @@ stdout '"kind":"installed"'
 ! stdout '"kind":"lockfile"'
 ! stdout '"raw_name":"app"'
 ! stdout '"raw_name":"fixture"'
+stdout '"raw_name":"parse5-adapter"'
+! stderr 'extract'
 stdout '"path":".github/workflows/ci.yml","ecosystem":"github-actions","kind":"workflow"'
 
 exec vet scan . --mode plain -o jsonl --fresh --packages all
@@ -28,9 +31,26 @@ stdout '"kind":"installed"'
 stdout '"control_id":"installed-not-locked".*"raw_name":"minimist"'
 ! stdout '"control_id":"installed-not-locked".*"raw_name":"left-pad"'
 
+execexit 1 vet scan . --mode plain -o plain --packages all --policy $WORK/installed.yml
+stderr 'policy rule installed-only'
+exec vet scan . --mode plain -o plain --packages all --policy $WORK/declared.yml
+! stderr 'policy rule declared-only'
+
 execexit 2 vet scan . --packages everything
 stderr 'not valid'
 
+-- installed.yml --
+version: 2
+rules:
+  - id: installed-only
+    when: finding.control_id == "installed-not-locked" && package.origin == "installed"
+    action: fail
+-- declared.yml --
+version: 2
+rules:
+  - id: declared-only
+    when: finding.control_id == "installed-not-locked" && package.origin == "declared"
+    action: fail
 -- proj/.github/workflows/ci.yml --
 on: push
 jobs:
@@ -46,6 +66,8 @@ jobs:
 {"name": "left-pad", "version": "1.3.0"}
 -- proj/node_modules/minimist/package.json --
 {"name": "minimist", "version": "1.2.0"}
+-- proj/node_modules/parse5-adapter/package.json --
+{"name": "parse5-adapter", "version": "7.1.0", "contributors": "A <a@example.com>", "maintainers": "B"}
 -- proj/node_modules/minimist/test/fixture/package.json --
 {"name": "fixture", "version": "0.0.1"}
 -- proj/.venv/lib/python3.12/site-packages/python_dateutil-2.8.0.dist-info/METADATA --

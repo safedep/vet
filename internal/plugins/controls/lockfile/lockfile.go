@@ -127,12 +127,14 @@ func (c *Control) Controls() []plugin.ControlInfo {
 }
 
 type entry struct {
+	Version  string `json:"version"`
 	Resolved string `json:"resolved"`
 	Link     bool   `json:"link"`
 }
 
 // legacyEntry is an entry of the nested dependencies of lockfile version 1.
 type legacyEntry struct {
+	Version      string                 `json:"version"`
 	Resolved     string                 `json:"resolved"`
 	Dependencies map[string]legacyEntry `json:"dependencies"`
 }
@@ -238,7 +240,7 @@ func (c *Control) finding(id string, locus finding.Locus, key finding.Key, title
 func flatten(prefix string, deps map[string]legacyEntry, out map[string]entry) {
 	for name, e := range deps {
 		path := prefix + "node_modules/" + name
-		out[path] = entry{Resolved: e.Resolved}
+		out[path] = entry{Version: e.Version, Resolved: e.Resolved}
 		flatten(path+"/", e.Dependencies, out)
 	}
 }

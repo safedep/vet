@@ -1,0 +1,20 @@
+# A scan does not walk a pseudo file system such as /proc, and does not
+# list each path that the user cannot read. One diagnostic reports them.
+[linux] exec vet scan /proc --mode plain -o json --packages all
+[linux] jsonq stdout trailer.summary.diagnostics 0
+
+[root] skip 'root reads each path'
+chmod 000 proj/a
+chmod 000 proj/b
+exec vet scan proj --mode plain -o json --packages all
+stderr 'vet skipped the paths that the user cannot read'
+! stderr 'proj/a'
+chmod 755 proj/a
+chmod 755 proj/b
+
+-- proj/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app"}}}
+-- proj/a/x.txt --
+a
+-- proj/b/y.txt --
+b

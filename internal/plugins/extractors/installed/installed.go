@@ -5,12 +5,15 @@ package installed
 import (
 	"context"
 	"debug/buildinfo"
+	"encoding/json"
+	"fmt"
 	"io"
 	"path"
 	"runtime/debug"
 	"strings"
 
 	cpb "github.com/google/osv-scalibr/binary/proto/config_go_proto"
+	"github.com/google/osv-scalibr/extractor"
 	"github.com/google/osv-scalibr/extractor/filesystem"
 	"github.com/google/osv-scalibr/extractor/filesystem/language/golang/gobinary"
 	"github.com/google/osv-scalibr/extractor/filesystem/language/javascript/packagejson"
@@ -18,6 +21,7 @@ import (
 	"github.com/google/osv-scalibr/extractor/filesystem/language/ruby/gem"
 	"github.com/google/osv-scalibr/extractor/filesystem/language/rust/cargoauditable"
 	"github.com/google/osv-scalibr/inventory"
+	"github.com/google/osv-scalibr/purl"
 	"github.com/rust-secure-code/go-rustaudit"
 	"golang.org/x/mod/module"
 	"golang.org/x/mod/semver"
@@ -75,12 +79,35 @@ func Extractors() ([]filesystem.Extractor, error) {
 // nodeModules reads the package.json of a package directory directly under
 // node_modules. Scalibr reads each package.json with a name and a version,
 // so it also reports the project and the test fixtures inside a package.
+// Scalibr also fails on a person field that does not match the npm schema,
+// so nodeModules reads only the name and the version.
 type nodeModules struct{ filesystem.Extractor }
+
+type manifest struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+}
 
 func (nodeModules) Name() string { return NodeModulesName }
 
 func (n nodeModules) FileRequired(api filesystem.FileAPI) bool {
 	return packageRoot(api.Path()) && n.Extractor.FileRequired(api)
+}
+
+func (nodeModules) Extract(_ context.Context, in *filesystem.ScanInput) (inventory.Inventory, error) {
+	var m manifest
+	if err := json.NewDecoder(in.Reader).Decode(&m); err != nil {
+		return inventory.Inventory{}, fmt.Errorf("parse %s: %w", in.Path, err)
+	}
+	if m.Name == "" || m.Version == "" {
+		return inventory.Inventory{}, nil
+	}
+	return inventory.Inventory{Packages: []*extractor.Package{{
+		Name:     m.Name,
+		Version:  m.Version,
+		PURLType: purl.TypeNPM,
+		Location: extractor.LocationFromPath(in.Path),
+	}}}, nil
 }
 
 // packageRoot reports node_modules/NAME/package.json or
