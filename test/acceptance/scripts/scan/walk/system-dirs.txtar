@@ -3,6 +3,7 @@
 [linux] exec vet scan /proc --mode plain -o json --packages all
 [linux] jsonq stdout trailer.summary.diagnostics 0
 
+[!unix] skip 'chmod does not block a read on Windows'
 [root] skip 'root reads each path'
 chmod 000 proj/a
 chmod 000 proj/b
