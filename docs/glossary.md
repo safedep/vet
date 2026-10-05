@@ -83,7 +83,12 @@ Where a scan finds packages: `declared` (the lockfiles and the manifests), `inst
 packages on disk) or `all`. `model.Packages`, the `--packages` flag and the `scan.packages` config
 key. A directory defaults to `declared`, an image to `all`. `internal/plugins/extractors/installed`
 holds the extractors of installed packages.
-_Avoid_: origin, mode (a scan mode is full or delta)
+_Avoid_: mode (a scan mode is full or delta)
+
+**Package origin**:
+Where the manifest of a package found it: `declared` or `installed`. `model.ManifestKind.Origin`, and
+`package.origin` in the policy input. The packages of an `installed` or an `endpoint` manifest are
+installed. The others are declared.
 
 **Dependency graph**:
 The edges between the packages of one manifest. Its roots are the direct dependencies. `model.Graph`

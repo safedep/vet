@@ -36,18 +36,21 @@ type FindingInput struct {
 // canonical form, so a rule matches every spelling of one package version.
 // RawName and RawVersion hold the form that the manifest writes.
 type PackageInput struct {
-	PURL            string   `json:"purl"`
-	Ecosystem       string   `json:"ecosystem"`
-	Name            string   `json:"name"`
-	Version         string   `json:"version"`
-	RawName         string   `json:"raw_name"`
-	RawVersion      string   `json:"raw_version"`
-	Direct          bool     `json:"direct"`
-	Dev             bool     `json:"dev"`
-	Change          string   `json:"change"`
-	PreviousVersion string   `json:"previous_version"`
-	Licenses        []string `json:"licenses"`
-	Deprecated      bool     `json:"deprecated"`
+	PURL            string `json:"purl"`
+	Ecosystem       string `json:"ecosystem"`
+	Name            string `json:"name"`
+	Version         string `json:"version"`
+	RawName         string `json:"raw_name"`
+	RawVersion      string `json:"raw_version"`
+	Direct          bool   `json:"direct"`
+	Dev             bool   `json:"dev"`
+	Change          string `json:"change"`
+	PreviousVersion string `json:"previous_version"`
+	// Origin is declared or installed: where the manifest of the finding
+	// found the package.
+	Origin     string   `json:"origin,omitempty"`
+	Licenses   []string `json:"licenses"`
+	Deprecated bool     `json:"deprecated"`
 	// DaysSincePublish is floor(days since the registry published the
 	// version), as the cooldown control counts it.
 	DaysSincePublish *int64                `json:"days_since_publish,omitempty"`
@@ -95,6 +98,9 @@ func NewInput(f *finding.Finding, pkg *model.Package, m *model.Manifest, now tim
 	}
 	if pkg != nil {
 		in.Package = packageInput(pkg, now)
+		if m != nil {
+			in.Package.Origin = string(m.Kind.Origin())
+		}
 	}
 	return in
 }

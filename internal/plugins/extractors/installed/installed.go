@@ -32,11 +32,14 @@ const NodeModulesName = "javascript/nodemodules"
 // extractor does not read a file under them.
 var installDirs = map[string]bool{"node_modules": true, "site-packages": true, "dist-packages": true}
 
+// IsInstallDir reports a directory name that holds installed packages.
+func IsInstallDir(name string) bool { return installDirs[name] }
+
 // InInstallDir reports whether a path, with "/", is under a directory that
 // holds installed packages.
 func InInstallDir(p string) bool {
 	for part := range strings.SplitSeq(path.Dir(p), "/") {
-		if installDirs[part] {
+		if IsInstallDir(part) {
 			return true
 		}
 	}

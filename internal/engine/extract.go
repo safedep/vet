@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/fs"
 	"path"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/safedep/vet/v2/internal/gitbase"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/installed"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/scalibr"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/model"
@@ -144,11 +146,18 @@ type delta struct {
 	seen map[string]bool
 }
 
-func (r *run) walk(fsys fs.FS, a plugin.Artifact, installed bool, visit func(string, fs.FileInfo) error) error {
+func (r *run) walk(fsys fs.FS, a plugin.Artifact, readsInstalled bool, visit func(string, fs.FileInfo) error) error {
+	systemDir := systemDirs(a)
 	return fs.WalkDir(fsys, ".", func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
-			// An unreadable directory does not stop the scan.
-			r.diags.add(report.DiagnosticWarning, CodeExtractFailed, "walk", err.Error())
+			// An unreadable directory does not stop the scan. Permission
+			// errors give one diagnostic with a count, because a scan of a
+			// root file system meets many.
+			msg := err.Error()
+			if errors.Is(err, fs.ErrPermission) {
+				msg = "vet skipped the paths that the user cannot read"
+			}
+			r.diags.add(report.DiagnosticWarning, CodeExtractFailed, "walk", msg)
 			if d != nil && d.IsDir() {
 				return fs.SkipDir
 			}
@@ -158,7 +167,10 @@ func (r *run) walk(fsys fs.FS, a plugin.Artifact, installed bool, visit func(str
 			return nil
 		}
 		if d.IsDir() {
-			if skipDir(a, d.Name(), installed) || r.excluded(p) {
+			if !readsInstalled && a.Kind == plugin.ArtifactDirectory && installed.IsInstallDir(d.Name()) && r.res.Installed == "" {
+				r.res.Installed = p
+			}
+			if skipDir(a, d.Name(), readsInstalled) || r.excluded(p) || systemDir(p) {
 				return fs.SkipDir
 			}
 			return nil
@@ -176,11 +188,11 @@ func (r *run) walk(fsys fs.FS, a plugin.Artifact, installed bool, visit func(str
 
 // skipDir reports a directory of a directory artifact that the walk does
 // not enter.
-func skipDir(a plugin.Artifact, name string, installed bool) bool {
+func skipDir(a plugin.Artifact, name string, readsInstalled bool) bool {
 	if a.Kind != plugin.ArtifactDirectory || !skipDirs[name] {
 		return false
 	}
-	return name != "node_modules" || !installed
+	return name != "node_modules" || !readsInstalled
 }
 
 // excluded matches a path against the exclude patterns. A pattern matches

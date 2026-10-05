@@ -45,6 +45,7 @@ func TestMatch(t *testing.T) {
 		{name: "vulnerabilities", expr: `package.vulnerabilities.exists(v, v.cvss >= 7.0)`, in: sampleInput(nil), want: true},
 		{name: "malware", expr: `package.malware.malicious && !package.malware.verified`, in: sampleInput(nil), want: true},
 		{name: "manifest", expr: `manifest.kind == "lockfile" && package.change == "ADDED"`, in: sampleInput(nil), want: true},
+		{name: "origin", expr: `package.origin == "declared"`, in: sampleInput(nil), want: true},
 		{name: "a string that holds package", expr: `finding.title != "package.x"`, in: sampleInput(nil), want: true},
 		{name: "no package", expr: `package.direct`, in: Input{Finding: FindingInput{ControlID: "unpinned-action"}}},
 	}

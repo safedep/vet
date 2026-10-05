@@ -66,6 +66,13 @@ editable install or a wheel in `dist/`, the main module of a local Go build and 
 Rust binary.
 Each selection reads the GitHub Actions workflows and the agent config files.
 `--base-ref` reads declared packages only, because git does not hold installed packages.
+When a default scan of a directory skips `node_modules`, `site-packages` or `dist-packages`, vet
+names the directory and the flag that reads it. With `all`, the `installed-not-locked` control
+reports a package in `node_modules` that the npm lockfile of its project does not list.
+
+A scan of a root file system does not enter `proc`, `sys`, `dev` and the macOS `System/Volumes`.
+On Linux, vet also skips each pseudo file system, such as proc, sysfs and cgroup, wherever it is
+mounted. A path that the user cannot read gives one diagnostic with a count.
 
 With `plugins.codeusage.enabled: true`, vet also reads the source files of a directory target. It
 records which packages the code imports, and the AI and crypto capabilities that the code calls.

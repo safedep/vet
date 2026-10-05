@@ -26,6 +26,16 @@ const (
 	ManifestKindInstalled ManifestKind = "installed"
 )
 
+// Origin returns where the packages of a manifest of this kind come from.
+// The packages of an installed manifest and of the endpoint are on disk.
+// Every other manifest declares its packages.
+func (k ManifestKind) Origin() Packages {
+	if k == ManifestKindInstalled || k == ManifestKindEndpoint {
+		return PackagesInstalled
+	}
+	return PackagesDeclared
+}
+
 // Packages selects where a scan finds packages.
 type Packages string
 

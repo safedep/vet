@@ -122,6 +122,9 @@ type Result struct {
 	// NotContinued is set when a stopped scan exists that the run did not
 	// continue, with the reason.
 	NotContinued *state.ContinueDecision
+	// Installed is the first directory of installed packages, such as
+	// node_modules, that a scan of declared packages did not read.
+	Installed string
 }
 
 // ErrStrict means that --strict turned a diagnostic into a failure.
