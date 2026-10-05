@@ -1,11 +1,18 @@
 # --packages selects where vet finds packages. A directory scan reads the
 # lockfile and does not walk node_modules by default. installed reads the
-# packages on disk. all reads both. Each selection reads the workflows.
+# packages on disk. all reads both, and reports an installed package that the
+# lockfile does not list. Each selection reads the workflows. A default scan
+# names the installed packages that it did not read. A policy tells the two
+# origins apart with package.origin.
 cd proj
 exec vet scan . --mode plain -o jsonl
 stdout '"raw_name":"left-pad"'
 ! stdout '"raw_name":"minimist"'
 ! stdout '"kind":"installed"'
+stderr 'The installed packages in .+ are not in the scan'
+
+exec vet scan . --mode plain -o jsonl --fresh --packages declared
+! stderr 'are not in the scan'
 
 exec vet scan . --mode plain -o jsonl --fresh --packages installed
 stdout '"raw_name":"minimist"'
@@ -19,10 +26,29 @@ stdout '"path":".github/workflows/ci.yml","ecosystem":"github-actions","kind":"w
 exec vet scan . --mode plain -o jsonl --fresh --packages all
 stdout '"kind":"lockfile"'
 stdout '"kind":"installed"'
+stdout '"control_id":"installed-not-locked".*"raw_name":"minimist"'
+! stdout '"control_id":"installed-not-locked".*"raw_name":"left-pad"'
+
+execexit 1 vet scan . --mode plain -o plain --packages all --policy $WORK/installed.yml
+stderr 'policy rule installed-only'
+exec vet scan . --mode plain -o plain --packages all --policy $WORK/declared.yml
+! stderr 'policy rule declared-only'
 
 execexit 2 vet scan . --packages everything
 stderr 'not valid'
 
+-- installed.yml --
+version: 2
+rules:
+  - id: installed-only
+    when: finding.control_id == "installed-not-locked" && package.origin == "installed"
+    action: fail
+-- declared.yml --
+version: 2
+rules:
+  - id: declared-only
+    when: finding.control_id == "installed-not-locked" && package.origin == "declared"
+    action: fail
 -- proj/.github/workflows/ci.yml --
 on: push
 jobs:

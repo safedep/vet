@@ -1,9 +1,10 @@
 // Package lockfile is the lockfile poisoning control (control catalog,
 // phase 2). It reports an entry that resolves from an untrusted registry or
 // from a URL of another package, an entry whose integrity hash changes with
-// no version change, and a lockfile change with no change to the manifest
-// file next to it. It reads each npm lockfile itself, as the v1 lfp
-// analyzer did, and the resolved URL of the other lockfiles.
+// no version change, a lockfile change with no change to the manifest file
+// next to it, and an installed npm package that the lockfile does not list.
+// It reads each npm lockfile itself, as the v1 lfp analyzer did, and the
+// resolved URL of the other lockfiles.
 package lockfile
 
 import (
@@ -64,7 +65,8 @@ var defaultRegistries = map[model.Ecosystem][]string{
 
 // Control reports poisoned lockfile entries.
 type Control struct {
-	user []*url.URL
+	locks lockIndex
+	user  []*url.URL
 	// trusted holds the default registries of each ecosystem and the
 	// user registries.
 	trusted map[model.Ecosystem][]*url.URL
@@ -120,16 +122,19 @@ func (c *Control) Controls() []plugin.ControlInfo {
 			Title:       "Lockfile change with no manifest change",
 			Description: "The change edits a lockfile and leaves the manifest file next to it as it was. A tool such as npm update makes this change, and so does an attacker who edits the lockfile by hand.",
 		},
+		installedInfo,
 	}
 }
 
 type entry struct {
+	Version  string `json:"version"`
 	Resolved string `json:"resolved"`
 	Link     bool   `json:"link"`
 }
 
 // legacyEntry is an entry of the nested dependencies of lockfile version 1.
 type legacyEntry struct {
+	Version      string                 `json:"version"`
 	Resolved     string                 `json:"resolved"`
 	Dependencies map[string]legacyEntry `json:"dependencies"`
 }
@@ -139,8 +144,12 @@ type npmLockfile struct {
 	Dependencies map[string]legacyEntry `json:"dependencies"`
 }
 
-// Evaluate checks the entries of a lockfile manifest.
-func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State) ([]finding.Finding, error) {
+// Evaluate checks the entries of a lockfile manifest, and the packages of
+// an installed npm manifest against the lockfile of the project.
+func (c *Control) Evaluate(ctx context.Context, m *model.Manifest, s plugin.State) ([]finding.Finding, error) {
+	if m.Kind == model.ManifestKindInstalled {
+		return c.installed(ctx, m, s)
+	}
 	if m.Kind != model.ManifestKindLockfile {
 		return nil, nil
 	}
@@ -231,7 +240,7 @@ func (c *Control) finding(id string, locus finding.Locus, key finding.Key, title
 func flatten(prefix string, deps map[string]legacyEntry, out map[string]entry) {
 	for name, e := range deps {
 		path := prefix + "node_modules/" + name
-		out[path] = entry{Resolved: e.Resolved}
+		out[path] = entry{Version: e.Version, Resolved: e.Resolved}
 		flatten(path+"/", e.Dependencies, out)
 	}
 }

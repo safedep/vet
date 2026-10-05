@@ -104,6 +104,7 @@ A rule reads three variables. `vet policy schema get` prints their JSON Schema.
 | `name`, `version` | The canonical name and version of the ecosystem |
 | `raw_name`, `raw_version` | The name and version as the manifest writes them |
 | `direct`, `dev` | `true` for a direct or a development dependency |
+| `origin` | `declared` for a package of a lockfile or a manifest, `installed` for a package on disk |
 | `change`, `previous_version` | In pull request mode: `ADDED`, `UPGRADED`, `DOWNGRADED`, `MODIFIED`, `REMOVED` or `UNCHANGED` |
 | `licenses` | A list of SPDX ids |
 | `deprecated` | `true` when the registry marks the version deprecated |

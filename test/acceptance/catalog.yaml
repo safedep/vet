@@ -372,7 +372,13 @@
   title: "packages: installed packages of a directory"
   category: scan
   tier: P1
-  guarantee: "A directory scan reads the lockfile and skips node_modules. --packages installed reads node_modules and site-packages, and only the package.json of a package directory. --packages all reads both."
+  guarantee: "A directory scan reads the lockfile, skips node_modules and says so. --packages installed reads node_modules and site-packages, and only the package.json of a package directory. --packages all reads both and reports installed-not-locked for a package that the lockfile does not list. A policy tells declared and installed packages apart with package.origin."
+  labels: [scan]
+- id: scan/walk/system-dirs
+  title: "walk: system directories and unreadable paths"
+  category: scan
+  tier: P2
+  guarantee: "A scan does not walk a pseudo file system such as /proc. One diagnostic names the paths that the user cannot read, not one diagnostic for each path."
   labels: [scan]
 - id: scan/packages/image
   title: "packages: an image reads installed packages"

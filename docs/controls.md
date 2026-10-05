@@ -23,6 +23,7 @@ vet policy control list -o json
 | `registry-path-mismatch` | lockfile | high | A lockfile entry with the URL of another package |
 | `integrity-changed` | lockfile | high | In pull request mode, a lockfile entry whose hash changes with no version change |
 | `lockfile-only-change` | lockfile | high | In pull request mode, a lockfile change with no change to the manifest file next to it |
+| `installed-not-locked` | lockfile | medium | With `--packages all`, a package in `node_modules` that the npm lockfile of its project does not list, or with another version |
 | `install-scripts-added` | hygiene | high | In pull request mode, a new or upgraded npm package that runs install scripts |
 | `provenance-lost` | hygiene | medium | An upgrade to a version with no SLSA provenance, when the previous version had one |
 | `deprecated-package` | hygiene | medium | A version that the registry marks deprecated |
