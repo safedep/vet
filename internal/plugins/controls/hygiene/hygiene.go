@@ -25,6 +25,7 @@ const (
 	IDProvenanceLost = "provenance-lost"
 	IDDeprecated     = "deprecated-package"
 	IDLicenseChange  = "license-change"
+	IDRelicensed     = "license-relicensed"
 	IDNonRegistry    = "non-registry-dependency"
 	IDScorecardLow   = "scorecard-low"
 )
@@ -81,6 +82,11 @@ var infos = []plugin.ControlInfo{
 		ID: IDLicenseChange, Family: finding.FamilyLicense, Severity: finding.SeverityMedium,
 		Title:       "License change on an upgrade",
 		Description: "The new version has a license other than the license of the previous version.",
+	},
+	{
+		ID: IDRelicensed, Family: finding.FamilyLicense, Severity: finding.SeverityHigh,
+		Title:       "Relicensed to a license that limits use",
+		Description: "The new version moves to a license that limits the use of the code (source available, no commercial use or no derived works, such as SSPL-1.0, BUSL-1.1 or CC-BY-NC-4.0), or to no license.",
 	},
 	{
 		ID: IDNonRegistry, Family: finding.FamilyHygiene, Severity: finding.SeverityMedium,
@@ -154,9 +160,7 @@ func (c *Control) insight(m *model.Manifest, p *model.Package) []finding.Finding
 			"Check that the maintainers published the version from their build system, or stay on the previous version."))
 	}
 	if prev != nil && len(prev.Licenses) > 0 && len(in.Licenses) > 0 && !spdxlicense.Equal(prev.Licenses, in.Licenses) {
-		out = append(out, packageFinding(IDLicenseChange, m, p, strings.Join(in.Licenses, ","),
-			fmt.Sprintf("%s changes its license from %s to %s", p.ID.RawName(), strings.Join(prev.Licenses, ", "), strings.Join(in.Licenses, ", ")),
-			"Check that the new license fits the license policy of the project."))
+		out = append(out, licenseChange(m, p))
 	}
 	if sc := in.Scorecard; sc != nil && sc.Score < c.minScore {
 		out = append(out, packageFinding(IDScorecardLow, m, p, "",
@@ -164,6 +168,28 @@ func (c *Control) insight(m *model.Manifest, p *model.Package) []finding.Finding
 			"Review the maintenance and the security practices of the project."))
 	}
 	return out
+}
+
+// licenseChange reports a license change. A move from a license that does
+// not limit the use of the code to one that does, or to NONE, is a relicense.
+func licenseChange(m *model.Manifest, p *model.Package) finding.Finding {
+	from, to := strings.Join(p.PreviousInsight.Licenses, ", "), strings.Join(p.Insight.Licenses, ", ")
+	discriminator := strings.Join(p.Insight.Licenses, ",")
+	if relicensed(spdxlicense.Parse(p.PreviousInsight.Licenses), spdxlicense.Parse(p.Insight.Licenses)) {
+		return packageFinding(IDRelicensed, m, p, discriminator,
+			fmt.Sprintf("%s changes its license from %s to %s, which limits the use of the code", p.ID.RawName(), from, to),
+			"Read the new license before the upgrade. Stay on the previous version, or replace the package, if the license does not fit the project.")
+	}
+	return packageFinding(IDLicenseChange, m, p, discriminator,
+		fmt.Sprintf("%s changes its license from %s to %s", p.ID.RawName(), from, to),
+		"Check that the new license fits the license policy of the project.")
+}
+
+func relicensed(prev, next spdxlicense.Declared) bool {
+	if !prev.Known() || prev.NoLicense() || spdxlicense.Restricted(prev) {
+		return false
+	}
+	return next.NoLicense() || spdxlicense.Restricted(next)
 }
 
 func packageFinding(id string, m *model.Manifest, p *model.Package, discriminator, title, fix string) finding.Finding {

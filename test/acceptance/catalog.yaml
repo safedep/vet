@@ -180,8 +180,20 @@
   title: "license: allow and deny lists"
   category: controls
   tier: P1
-  guarantee: "plugins.license.options.deny fails the gate on a denied SPDX license. An allow list or a set reports a license outside it. An entry that is not SPDX exits 2."
+  guarantee: "plugins.license.options.deny fails the gate on a denied SPDX license. An allow list or a set reports a license outside it. With a list, a package with no license data is license-unknown, unless unknown is ignore. An entry that is not SPDX exits 2."
   labels: [controls, gate]
+- id: controls/license/scope
+  title: "license: scope option"
+  category: controls
+  tier: P1
+  guarantee: "plugins.license.options.scope runtime skips dev dependencies. scope direct checks only the direct dependencies."
+  labels: [controls]
+- id: controls/license/relicensed
+  title: "license: relicensed on an upgrade"
+  category: controls
+  tier: P1
+  guarantee: "In pull request mode, an upgrade to a license that limits use, such as BUSL-1.1, is license-relicensed with high severity."
+  labels: [controls, pr-mode]
 - id: controls/fail-open/backend-down
   title: "fail open: backend down"
   category: controls
@@ -487,6 +499,12 @@
   category: state
   tier: P1
   guarantee: "With other scan options, vet starts a new scan and prints the reason."
+  labels: [state]
+- id: state/continue/superseded
+  title: "a newer scan supersedes a stopped scan"
+  category: state
+  tier: P1
+  guarantee: "After a newer scan of the target completes, vet does not continue an older stopped scan and does not print the reason again."
   labels: [state]
 - id: state/cache/reuse
   title: "the enrichment cache answers a second scan"

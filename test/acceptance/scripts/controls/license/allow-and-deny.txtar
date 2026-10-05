@@ -1,6 +1,7 @@
 # plugins.license.options checks the SPDX license of each package. The stub
 # gives left-pad the license WTFPL, which is FSF libre and not OSI approved.
-# With no list, the control reports nothing.
+# With no list, the control reports nothing. With a list, a package with no
+# license data is unknown, unless unknown is ignore.
 cd proj
 exec vet scan . --mode plain -o plain
 ! stdout 'license-'
@@ -15,6 +16,14 @@ stdout 'license-not-allowed\tpkg:npm/left-pad@1.3.0'
 exec vet --config $WORK/fsf.yml scan . --mode plain -o plain --fresh
 ! stdout 'license-'
 
+cd $WORK/nolicense
+exec vet --config $WORK/deny.yml scan . --mode plain -o plain --fresh
+stdout 'license-unknown\tpkg:npm/fresh-pkg@1.0.0'
+
+exec vet --config $WORK/deny-ignore.yml scan . --mode plain -o plain --fresh
+! stdout 'license-'
+
+cd $WORK/proj
 execexit 2 vet --config $WORK/typo.yml scan . --mode plain -o plain --fresh
 stderr 'not an SPDX license id'
 
@@ -23,6 +32,12 @@ plugins:
   license:
     options:
       deny: [WTFPL, GPL-3.0-only]
+-- deny-ignore.yml --
+plugins:
+  license:
+    options:
+      deny: [WTFPL, GPL-3.0-only]
+      unknown: ignore
 -- osi.yml --
 plugins:
   license:
@@ -45,5 +60,14 @@ plugins:
   "packages": {
     "": {"name": "app", "dependencies": {"left-pad": "1.3.0"}},
     "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}
+  }
+}
+-- nolicense/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"fresh-pkg": "1.0.0"}},
+    "node_modules/fresh-pkg": {"version": "1.0.0", "resolved": "https://registry.npmjs.org/fresh-pkg/-/fresh-pkg-1.0.0.tgz"}
   }
 }

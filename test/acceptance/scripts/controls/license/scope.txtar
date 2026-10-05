@@ -1,0 +1,47 @@
+# plugins.license.options.scope selects the packages to check. left-pad
+# (WTFPL) is a direct dev dependency. minimist (MIT) is a runtime dependency
+# of fresh-pkg, so it is not direct.
+cd proj
+exec vet --config $WORK/all.yml scan . --mode plain -o plain --fresh
+stdout 'license-denied\tpkg:npm/left-pad@1.3.0'
+stdout 'license-denied\tpkg:npm/minimist@1.2.0'
+
+exec vet --config $WORK/runtime.yml scan . --mode plain -o plain --fresh
+! stdout 'license-denied\tpkg:npm/left-pad'
+stdout 'license-denied\tpkg:npm/minimist@1.2.0'
+
+exec vet --config $WORK/direct.yml scan . --mode plain -o plain --fresh
+stdout 'license-denied\tpkg:npm/left-pad@1.3.0'
+! stdout 'license-denied\tpkg:npm/minimist'
+
+-- all.yml --
+plugins:
+  license:
+    options:
+      deny: [WTFPL, MIT]
+      unknown: ignore
+-- runtime.yml --
+plugins:
+  license:
+    options:
+      deny: [WTFPL, MIT]
+      unknown: ignore
+      scope: runtime
+-- direct.yml --
+plugins:
+  license:
+    options:
+      deny: [WTFPL, MIT]
+      unknown: ignore
+      scope: direct
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"fresh-pkg": "1.0.0"}, "devDependencies": {"left-pad": "1.3.0"}},
+    "node_modules/fresh-pkg": {"version": "1.0.0", "resolved": "https://registry.npmjs.org/fresh-pkg/-/fresh-pkg-1.0.0.tgz", "dependencies": {"minimist": "1.2.0"}},
+    "node_modules/minimist": {"version": "1.2.0", "resolved": "https://registry.npmjs.org/minimist/-/minimist-1.2.0.tgz"},
+    "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz", "dev": true}
+  }
+}

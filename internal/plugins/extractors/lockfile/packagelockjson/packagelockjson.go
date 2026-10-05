@@ -261,6 +261,14 @@ func DeterminePackageSource(resolved, commit string) metadata.NPMPackageSource {
 	return metadata.Local
 }
 
+// isProject reports the root project or a local package of the project: a
+// workspace member or a file: directory. vet does not look up a local
+// package, so its dependencies are the direct dependencies of the lockfile.
+// npm installs the dev dependencies of the root only.
+func isProject(namePath string) bool {
+	return namePath == "" || !strings.Contains(namePath, "node_modules/")
+}
+
 // resolveNpmDependency finds the package-lock.json path that npm loads when the
 // package at from requires name: the nearest node_modules/name, walking up the tree.
 func resolveNpmDependency(packages map[string]packagelockjson.Package, from, name string) string {
@@ -351,6 +359,7 @@ func linkNpmLockPackages(packages map[string]packagelockjson.Package, details np
 		if namePath == "" {
 			requires = append(requires, detail.DevDependencies)
 		}
+		project := isProject(namePath)
 		for _, deps := range requires {
 			for dep := range deps {
 				childKey, ok := keyOf[resolveNpmDependency(packages, namePath, dep)]
@@ -358,9 +367,10 @@ func linkNpmLockPackages(packages map[string]packagelockjson.Package, details np
 					continue
 				}
 				child := details[childKey]
-				if namePath == "" {
+				if project {
 					child.Direct = true
-				} else {
+				}
+				if namePath != "" {
 					if child.Parents == nil {
 						child.Parents = map[string]bool{}
 					}

@@ -61,6 +61,7 @@ func TestGraphGolden(t *testing.T) {
 		{"npm-nested-dup", "packagelockjson/testdata", "nested-dependencies-dup.v2.json", "package-lock.json"},
 		{"npm-dev", "packagelockjson/testdata", "one-package-dev.v2.json", "package-lock.json"},
 		{"npm-workspaces", "packagelockjson/testdata", "workspaces.v3.json", "package-lock.json"},
+		{"npm-file-dev", "testdata/fixtures", "file-dev.v3.json", "package-lock.json"},
 		{"uv-two", "uvlock/testdata", "two-packages.lock", "uv.lock"},
 		{"uv-grouped", "uvlock/testdata", "grouped-packages.lock", "uv.lock"},
 		{"cargo-many", "cargolock/testdata", "many-packages.lock", "Cargo.lock"},

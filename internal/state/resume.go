@@ -65,39 +65,43 @@ type ContinueDecision struct {
 }
 
 // DecideContinue applies the rules of the scan state design, section 4.1,
-// to the last stopped scan of the target. It first marks each running scan
-// of the target that no process holds as interrupted.
+// to the newest scan of the target. A newer scan supersedes a stopped scan,
+// so vet does not report the stopped scan on each later run. With Resume,
+// vet takes the newest stopped scan, also when a newer scan exists.
+// DecideContinue first marks each running scan of the target that no
+// process holds as interrupted.
 func (s *Store) DecideContinue(ctx context.Context, r ContinueRequest) (*ContinueDecision, error) {
-	entries, err := s.index.List(ctx, ListOptions{
-		TargetKey: r.TargetKey,
-		Statuses:  []Status{StatusRunning, StatusInterrupted},
-	})
+	entries, err := s.index.List(ctx, ListOptions{TargetKey: r.TargetKey})
 	if err != nil {
 		return nil, err
 	}
-	var live, stopped *IndexEntry
+	var newest, stopped *IndexEntry
 	for _, e := range entries {
 		if e.Status == StatusRunning {
 			running, err := isLive(e.File)
 			if err != nil {
 				return nil, err
 			}
-			if running {
-				live = first(live, e)
-				continue
-			}
-			if err := s.markInterrupted(ctx, e); err != nil {
-				return nil, err
+			if !running {
+				if err := s.markInterrupted(ctx, e); err != nil {
+					return nil, err
+				}
 			}
 		}
-		stopped = first(stopped, e)
+		newest = first(newest, e)
+		if e.Status == StatusInterrupted {
+			stopped = first(stopped, e)
+		}
+	}
+	if !r.Resume && stopped != newest {
+		stopped = nil
 	}
 
 	d := &ContinueDecision{Stopped: stopped}
 	switch {
 	case stopped == nil:
-		if live != nil {
-			d.Stopped, d.Reason = live, ReasonLive
+		if newest != nil && newest.Status == StatusRunning {
+			d.Stopped, d.Reason = newest, ReasonLive
 		}
 	case r.Fresh:
 		d.Reason = ReasonFresh

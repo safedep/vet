@@ -106,7 +106,9 @@ func TestCheck(t *testing.T) {
 		{"license ref needs its own entry", []string{"MIT"}, nil, []string{"LicenseRef-acme"}, NotAllowed, nil},
 		{"allow a license ref", []string{"LicenseRef-acme"}, nil, []string{"LicenseRef-acme"}, Pass, nil},
 		{"none fails an allow list", []string{"MIT"}, nil, []string{"NONE"}, NotAllowed, nil},
-		{"none passes a deny list", nil, []string{"GPL-3.0-only"}, []string{"NONE"}, Pass, nil},
+		{"none is unknown to a deny list", nil, []string{"GPL-3.0-only"}, []string{"NONE"}, Unknown, nil},
+		{"none beside an id passes a deny list", nil, []string{"GPL-3.0-only"}, []string{"MIT", "NONE"}, Pass, nil},
+		{"none beside an allowed id passes an allow list", []string{"MIT"}, nil, []string{"MIT", "NONE"}, Pass, nil},
 		{"unknown with an allow list", []string{"MIT"}, nil, []string{"NOASSERTION"}, Unknown, nil},
 		{"free text with an allow list", []string{"MIT"}, nil, []string{"Apache 2.0"}, Unknown, nil},
 		{"no data with an allow list", []string{"MIT"}, nil, nil, Unknown, nil},
@@ -208,6 +210,40 @@ func TestEqual(t *testing.T) {
 			assert.Equal(t, tc.want, Equal(tc.a, tc.b))
 		})
 	}
+}
+
+func TestRestricted(t *testing.T) {
+	cases := []struct {
+		name   string
+		values []string
+		want   bool
+	}{
+		{"source available", []string{"SSPL-1.0"}, true},
+		{"business source", []string{"BUSL-1.1"}, true},
+		{"non-commercial", []string{"CC-BY-NC-SA-4.0"}, true},
+		{"no derived works", []string{"CC-BY-ND-4.0"}, true},
+		{"AND", []string{"MIT AND Elastic-2.0"}, true},
+		{"two values", []string{"MIT", "PolyForm-Noncommercial-1.0.0"}, true},
+		{"a choice that does not limit use", []string{"MIT OR SSPL-1.0"}, false},
+		{"permissive", []string{"MIT"}, false},
+		{"permissive with no SPDX flag", []string{"PSF-2.0"}, false},
+		{"attribution only", []string{"CC-BY-4.0"}, false},
+		{"license ref", []string{"LicenseRef-acme"}, false},
+		{"none", []string{"NONE"}, false},
+		{"free text", []string{"Apache 2.0"}, false},
+		{"no value", nil, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, Restricted(Parse(tc.values)))
+		})
+	}
+}
+
+func TestNoLicense(t *testing.T) {
+	assert.True(t, Parse([]string{"NONE"}).NoLicense())
+	assert.False(t, Parse([]string{"NONE", "MIT"}).NoLicense())
+	assert.False(t, Parse(nil).NoLicense())
 }
 
 // The embedded list and go-spdx must come from one SPDX License List, so a

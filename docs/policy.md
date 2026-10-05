@@ -173,7 +173,7 @@ rules:
     when: finding.control_id == "license-denied"
     action: fail
   - id: license-review
-    when: finding.control_id in ["license-not-allowed", "license-unknown"]
+    when: finding.control_id in ["license-not-allowed", "license-unknown", "license-relicensed"]
     action: warn
 ```
 

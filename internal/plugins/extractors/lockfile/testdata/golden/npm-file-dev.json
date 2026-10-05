@@ -1,0 +1,22 @@
+{
+  "packages": [
+    "npm/debug@4.3.4",
+    "npm/left-pad@1.3.0",
+    "npm/local-lib@1.0.0",
+    "npm/ms@2.1.2"
+  ],
+  "direct": [
+    "npm/debug@4.3.4",
+    "npm/left-pad@1.3.0",
+    "npm/local-lib@1.0.0"
+  ],
+  "roots": [
+    "npm/debug@4.3.4",
+    "npm/left-pad@1.3.0",
+    "npm/local-lib@1.0.0"
+  ],
+  "edges": [
+    "npm/debug@4.3.4 -> npm/ms@2.1.2",
+    "npm/local-lib@1.0.0 -> npm/left-pad@1.3.0"
+  ]
+}

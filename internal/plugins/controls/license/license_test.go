@@ -32,8 +32,10 @@ func TestEvaluate(t *testing.T) {
 		{"deny goes first", map[string]any{"allow": []any{"MIT"}, "deny": gpl}, pkg("MIT AND GPL-3.0-only"), []string{license.IDDenied}},
 		{"unknown with an allow list", map[string]any{"allow": []any{"MIT"}}, pkg(), []string{license.IDUnknown}},
 		{"free text with an allow list", map[string]any{"allow": []any{"MIT"}}, pkg("BSD"), []string{license.IDUnknown}},
-		{"unknown with a deny list", map[string]any{"deny": gpl}, pkg(), nil},
-		{"unknown reported on request", map[string]any{"deny": gpl, "unknown": "report"}, pkg(), []string{license.IDUnknown}},
+		{"unknown with a deny list", map[string]any{"deny": gpl}, pkg(), []string{license.IDUnknown}},
+		{"unknown ignored with a deny list", map[string]any{"deny": gpl, "unknown": "ignore"}, pkg(), nil},
+		{"none with a deny list", map[string]any{"deny": gpl}, pkg("NONE"), []string{license.IDUnknown}},
+		{"none with an allow list", map[string]any{"allow": []any{"MIT"}}, pkg("NONE"), []string{license.IDNotAllowed}},
 		{"unknown ignored on request", map[string]any{"allow": []any{"MIT"}, "unknown": "ignore"}, pkg(), nil},
 		{"rejected part beside an unknown value", map[string]any{"allow": []any{"MIT"}}, pkg("GPL-3.0-only", "non-standard"), []string{license.IDNotAllowed}},
 		{"rejected part beside an unknown value with unknown ignored", map[string]any{"allow": []any{"MIT"}, "unknown": "ignore"}, pkg("GPL-3.0-only", "non-standard"), []string{license.IDNotAllowed}},
@@ -71,6 +73,54 @@ func TestFinding(t *testing.T) {
 	assert.NotEmpty(t, f.Remediation.Summary)
 }
 
+func TestNoneTitle(t *testing.T) {
+	c, err := license.New(plugin.MapConfig(map[string]any{"deny": []any{"GPL-3.0-only"}}))
+	require.NoError(t, err)
+	m := &model.Manifest{ID: "m", Path: "requirements.txt", Kind: model.ManifestKindManifest, Packages: []*model.Package{pkg("NONE")}}
+	fs := plugintest.TestControl(t, c, m, nil)
+	require.Len(t, fs, 1)
+	assert.Equal(t, "pypi/pyqt5@5.15.11 declares no license, so the author keeps all rights", fs[0].Title)
+}
+
+func TestScope(t *testing.T) {
+	gpl := func(name string, direct, dev bool) *model.Package {
+		return &model.Package{
+			ID: model.MustPackageVersion(model.EcosystemNpm, name, "1.0.0"), Direct: direct, Dev: dev,
+			Insight: &model.Insight{Licenses: []string{"GPL-3.0-only"}},
+		}
+	}
+	removed := func(p *model.Package) *model.Package {
+		p.Change = model.ChangeRemoved
+		return p
+	}
+	all := []*model.Package{gpl("runtime", true, false), gpl("dev", true, true), gpl("indirect", false, false)}
+	cases := []struct {
+		name  string
+		scope string
+		pkgs  []*model.Package
+		want  []string
+	}{
+		{"default", "", all, []string{"runtime", "dev", "indirect"}},
+		{"all", license.ScopeAll, all, []string{"runtime", "dev", "indirect"}},
+		{"runtime", license.ScopeRuntime, all, []string{"runtime", "indirect"}},
+		{"direct", license.ScopeDirect, all, []string{"runtime", "dev"}},
+		{"direct with no direct data", license.ScopeDirect, []*model.Package{gpl("a", false, false), gpl("b", false, false)}, []string{"a", "b"}},
+		{"direct with only a removed direct package", license.ScopeDirect, []*model.Package{removed(gpl("old", true, false)), gpl("a", false, false)}, []string{"a"}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			c, err := license.New(plugin.MapConfig(map[string]any{"deny": []any{"GPL-3.0-only"}, "scope": tc.scope}))
+			require.NoError(t, err)
+			m := &model.Manifest{ID: "m", Path: "package-lock.json", Kind: model.ManifestKindLockfile, Packages: tc.pkgs}
+			var got []string
+			for _, f := range plugintest.TestControl(t, c, m, nil) {
+				got = append(got, f.Subject.Package.RawName)
+			}
+			assert.ElementsMatch(t, tc.want, got)
+		})
+	}
+}
+
 func TestNewRejectsOptions(t *testing.T) {
 	cases := []struct {
 		name string
@@ -80,6 +130,7 @@ func TestNewRejectsOptions(t *testing.T) {
 		{"an expression in a list", map[string]any{"allow": []any{"MIT OR Apache-2.0"}}, "license: allow:"},
 		{"a name that is not SPDX", map[string]any{"deny": []any{"GPL"}}, "license: deny:"},
 		{"a bad unknown value", map[string]any{"unknown": "warn"}, `license: unknown "warn"`},
+		{"a bad scope value", map[string]any{"scope": "prod"}, `license: scope "prod"`},
 		{"an unknown option", map[string]any{"globs": true}, "globs"},
 	}
 	for _, tc := range cases {
