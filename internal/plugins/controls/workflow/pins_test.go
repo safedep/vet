@@ -23,6 +23,7 @@ func TestPins(t *testing.T) {
 		change  model.Change
 		comment string
 		want    []hit
+		fix     string
 	}{
 		{
 			name: "impostor", action: &model.ActionCommit{},
@@ -34,6 +35,7 @@ func TestPins(t *testing.T) {
 		{
 			name: "the comment names another tag", action: &model.ActionCommit{Reachable: true, Tags: []string{"v4.1.0"}},
 			want: []hit{{IDPinCommentMismatch, 6, "Tag v4.2.2 in the comment does not point to commit 11bd71901bbe of actions/checkout"}},
+			fix:  "Pin the commit of v4.2.2, or change the comment to a tag of the pinned commit. Tag v4.1.0 points to the pinned commit.",
 		},
 		{
 			name: "a moving major tag in the comment", action: &model.ActionCommit{Reachable: true, Ref: "main"},
@@ -62,6 +64,9 @@ func TestPins(t *testing.T) {
 			for _, f := range plugintest.TestControl(t, c, m, nil) {
 				if f.ControlID == IDImpostorCommit || f.ControlID == IDPinCommentMismatch {
 					require.NotNil(t, f.Remediation)
+					if tc.fix != "" {
+						assert.Equal(t, tc.fix, f.Remediation.Summary)
+					}
 					got = append(got, hit{control: f.ControlID, line: f.Locus.StartLine, title: f.Title})
 				}
 			}

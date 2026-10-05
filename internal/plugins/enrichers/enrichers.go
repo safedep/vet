@@ -98,7 +98,7 @@ func Build(o Options) (*Set, error) {
 	}
 	if o.ActionRefs != nil {
 		// A pin with no data is not cached, so a later scan checks it again.
-		set.Specs = append(set.Specs, Spec{Name: actionrefs.Name, Version: actionrefs.Version, TTL: o.TTL, Plugin: o.ActionRefs, SkipEmpty: true})
+		set.Specs = append(set.Specs, Spec{Name: actionrefs.Name, Version: o.ActionRefs.CacheVersion(), TTL: o.TTL, Plugin: o.ActionRefs, SkipEmpty: true})
 	}
 	if o.CodeUsageDir != "" {
 		// The usage depends on the target, so the cache keeps none.

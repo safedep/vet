@@ -303,3 +303,13 @@ func TestNewRejectsABadBudget(t *testing.T) {
 	_, err := New(plugin.MapConfig(map[string]any{"max_calls": 0}), nil, "")
 	assert.ErrorContains(t, err, "max_calls must be 1 or more")
 }
+
+func TestCacheVersionNamesTheServer(t *testing.T) {
+	version := func(apiURL string) string {
+		e, err := New(plugin.MapConfig(nil), nil, apiURL)
+		require.NoError(t, err)
+		return e.CacheVersion()
+	}
+	assert.Equal(t, version(""), version("https://api.github.com/"))
+	assert.NotEqual(t, version("https://api.github.com"), version("https://ghe.example.com/api/v3"))
+}

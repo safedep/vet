@@ -6,6 +6,7 @@
 package actionrefs
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -74,6 +75,13 @@ func New(cfg plugin.Config, tokens github.TokenProvider, apiURL string) (*Enrich
 		e.maxCalls = *o.MaxCalls
 	}
 	return e, nil
+}
+
+// CacheVersion returns Version with the API URL. The refs of one
+// owner/repo differ on github.com and on a GitHub Enterprise server, so the
+// cache keeps the results of each server apart.
+func (e *Enricher) CacheVersion() string {
+	return Version + "+" + strings.TrimRight(cmp.Or(e.apiURL, "https://api.github.com"), "/")
 }
 
 // OptionsSchema returns the JSON Schema of the options.

@@ -66,8 +66,12 @@ func (c *Control) pins(e *emitter, m *model.Manifest) {
 			continue
 		}
 		summary := fmt.Sprintf("Pin the commit of %s, or change the comment to a tag of the pinned commit.", tag)
-		if len(p.Action.Tags) > 0 {
-			summary += fmt.Sprintf(" The pinned commit has the tags %s.", strings.Join(p.Action.Tags, ", "))
+		switch len(p.Action.Tags) {
+		case 0:
+		case 1:
+			summary += fmt.Sprintf(" Tag %s points to the pinned commit.", p.Action.Tags[0])
+		default:
+			summary += fmt.Sprintf(" Tags %s point to the pinned commit.", strings.Join(p.Action.Tags, ", "))
 		}
 		e.add(IDPinCommentMismatch, l, repo+"@"+sha, value,
 			fmt.Sprintf("Tag %s in the comment does not point to commit %s of %s", tag, short, repo),
