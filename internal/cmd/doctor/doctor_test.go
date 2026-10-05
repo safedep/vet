@@ -44,7 +44,7 @@ func TestGitHubTokenCheck(t *testing.T) {
 		{"no token", nil, Check{
 			ID: "github.token", Status: Warn,
 			Message: "no GitHub token. vet calls the GitHub API anonymously, with 60 calls an hour",
-			Fix:     "Set GITHUB_TOKEN or run gh auth login.",
+			Fix:     "Set GITHUB_TOKEN or run gh auth login to raise the limit.",
 		}},
 	}
 	for _, tc := range cases {

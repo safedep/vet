@@ -81,7 +81,7 @@ Some controls take options from the config file, under `plugins.<name>.options`.
 | `plugins.malware.options.trust_automated_analysis` | `false` | Report an unverified malicious verdict as `malware`, not `suspicious-package` |
 | `plugins.malware.options.minimum_confidence` | `high` | The lowest confidence of an unverified verdict that vet reports as `malware` |
 | `plugins.workflow.options.allow_unpinned` | none | The actions that `unpinned-action` accepts with a tag |
-| `plugins.actionrefs.options.max_calls` | `50` | The GitHub API calls that `impostor-commit` makes for one repository in a scan |
+| `plugins.actionrefs.options.max_calls` | `50`, `500` with a token | The GitHub API calls that `impostor-commit` makes for one repository in a scan |
 | `plugins.license.options.allow` | none | The licenses that a package can have. See [License lists](#license-lists) |
 | `plugins.license.options.deny` | none | The licenses that a package cannot have |
 | `plugins.license.options.unknown` | `report` | `report` or `ignore` a package with no SPDX license |
@@ -160,9 +160,19 @@ that points to the commit, the default branch, then each other branch and tag.
 - vet sends the `owner/repo` and the SHA to the GitHub API at `github.api_url`, and nowhere else.
 - vet reads the token from `GITHUB_TOKEN`, then `GH_TOKEN`, then `gh auth token`. With no token, vet
   calls GitHub anonymously, with 60 calls an hour. A repository with about 20 pinned actions needs a
-  token. In GitHub Actions, `GITHUB_TOKEN` is usually set. `vet doctor` shows the source of the
-  token.
-- `plugins.actionrefs.options.max_calls` bounds the calls for one repository.
+  token. `vet doctor` shows the source of the token.
+- In GitHub Actions, the runner does not set the `GITHUB_TOKEN` variable. Set it on the step that
+  runs vet:
+
+  ```yaml
+  - run: vet scan .
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+  ```
+
+- `plugins.actionrefs.options.max_calls` bounds the calls for one repository. The default is 50
+  with no token and 500 with a token. A legitimate pin needs a few calls. An impostor commit needs a
+  compare with each distinct commit of the branches and the tags.
 - A rate limit, an API error or a spent budget gives a warning and no finding. vet never reports an
   impostor commit from a partial check.
 - `pin-comment-mismatch` checks only a full release tag, such as `v4.2.0`. The owner of an action

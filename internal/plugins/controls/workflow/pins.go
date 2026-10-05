@@ -62,7 +62,7 @@ func (c *Control) pins(e *emitter, m *model.Manifest) {
 			continue
 		}
 		tag := commentTag(e.doc.text(l))
-		if tag == "" || slices.Contains(p.Action.Tags, tag) {
+		if tag == "" || slices.ContainsFunc(p.Action.Tags, func(t string) bool { return sameTag(t, tag) }) {
 			continue
 		}
 		summary := fmt.Sprintf("Pin the commit of %s, or change the comment to a tag of the pinned commit.", tag)
@@ -74,6 +74,10 @@ func (c *Control) pins(e *emitter, m *model.Manifest) {
 			&finding.Remediation{Summary: summary})
 	}
 }
+
+// sameTag compares two tags with no regard to a v prefix, as in v4.2.0 and
+// 4.2.0.
+func sameTag(a, b string) bool { return strings.TrimPrefix(a, "v") == strings.TrimPrefix(b, "v") }
 
 // commentTag returns the release tag that the comment of a uses: line
 // names, as in "# v4.2.0", "# v4.2.0; note" or "# tag=v4.2.0", or "".

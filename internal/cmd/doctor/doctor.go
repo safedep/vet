@@ -330,7 +330,7 @@ func githubTokenCheck(ctx context.Context, tp github.TokenProvider) Check {
 		return Check{
 			ID: "github.token", Status: Warn,
 			Message: "no GitHub token. vet calls the GitHub API anonymously, with 60 calls an hour",
-			Fix:     "Set GITHUB_TOKEN or run gh auth login.",
+			Fix:     "Set GITHUB_TOKEN or run gh auth login to raise the limit.",
 		}
 	}
 	return Check{ID: "github.token", Status: Warn, Message: "vet could not read the GitHub token: " + err.Error()}

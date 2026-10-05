@@ -332,6 +332,10 @@ func (s *Server) serveGitHub(w http.ResponseWriter, r *http.Request) {
 		if sha == "" {
 			sha = repo.Branches[ref]
 		}
+		// The fork network has each other commit.
+		if sha == "" && len(ref) == 40 {
+			sha = ref
+		}
 	}
 	if sha == "" {
 		http.NotFound(w, r)

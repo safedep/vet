@@ -16,7 +16,7 @@ stub fail github Unavailable
 exec vet scan . --mode plain -o jsonl --fresh --no-cache
 ! stdout '"control_id":"impostor-commit"'
 stderr 'vet did not check the pinned commits of some actions'
-stderr 'GitHub API answered 503 for actions/checkout'
+stderr 'The check of actions/checkout stopped with this reason: GitHub API answered 503'
 stub fail github OK
 
 exec vet --config $WORK/off.yml scan . --mode plain -o jsonl --fresh --no-cache

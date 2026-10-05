@@ -29,6 +29,7 @@ func TestPins(t *testing.T) {
 			want: []hit{{IDImpostorCommit, 6, "No branch or tag of actions/checkout contains commit 11bd71901bbe"}},
 		},
 		{name: "reachable with the tag of the comment", action: &model.ActionCommit{Reachable: true, Tags: []string{"v4", "v4.2.2"}}},
+		{name: "a comment with no v prefix", action: &model.ActionCommit{Reachable: true, Tags: []string{"v4.2.2"}}, comment: "4.2.2"},
 		{name: "no data", action: nil},
 		{
 			name: "the comment names another tag", action: &model.ActionCommit{Reachable: true, Tags: []string{"v4.1.0"}},
