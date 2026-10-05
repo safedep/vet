@@ -115,6 +115,58 @@ func TestDecideContinue(t *testing.T) {
 	}
 }
 
+// TestDecideContinueNewestScan checks that vet applies the continue rules
+// to the newest scan of the target only. A newer scan supersedes a stopped
+// scan, so vet does not report the stopped scan on each later run.
+func TestDecideContinueNewestScan(t *testing.T) {
+	now := time.Date(2026, 10, 2, 12, 0, 0, 0, time.UTC)
+	cases := []struct {
+		name      string
+		statuses  []Status
+		continues bool
+		reason    Reason
+	}{
+		{name: "newer completed scan supersedes", statuses: []Status{StatusInterrupted, StatusCompleted}},
+		{name: "newer failed scan supersedes", statuses: []Status{StatusInterrupted, StatusFailed}},
+		{name: "older completed scan does not", statuses: []Status{StatusCompleted, StatusInterrupted}, continues: true},
+		{name: "newer stopped scan of another version", statuses: []Status{StatusCompleted, StatusInterrupted}, reason: ReasonVersionChanged},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.Background()
+			s := openStore(t)
+			var last *IndexEntry
+			for i, st := range tc.statuses {
+				scan, e := newScan(t, s, "/repo")
+				require.NoError(t, scan.Close())
+				e.Status = st
+				e.StartedAt = now.Add(time.Duration(i-len(tc.statuses)) * time.Hour)
+				e.UpdatedAt = e.StartedAt
+				require.NoError(t, s.Index().Update(ctx, e))
+				last = e
+			}
+			req := ContinueRequest{TargetKey: "/repo", OptionsHash: "h1", VetVersion: "test", Now: now}
+			if tc.reason == ReasonVersionChanged {
+				req.VetVersion = "dev"
+			}
+			d, err := s.DecideContinue(ctx, req)
+			require.NoError(t, err)
+			assert.Equal(t, tc.reason, d.Reason)
+			switch {
+			case tc.continues:
+				require.NotNil(t, d.Continue)
+				assert.Equal(t, last.ID, d.Continue.ID)
+			case tc.reason != ReasonNone:
+				require.NotNil(t, d.Stopped)
+				assert.Equal(t, last.ID, d.Stopped.ID)
+			default:
+				assert.Nil(t, d.Continue)
+				assert.Nil(t, d.Stopped)
+			}
+		})
+	}
+}
+
 func TestContinueScan(t *testing.T) {
 	ctx := context.Background()
 	s := openStore(t)

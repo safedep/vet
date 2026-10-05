@@ -58,7 +58,8 @@ A backend that does not answer does not fail the scan. The controls that need it
 and the report has a diagnostic. `--strict` turns a diagnostic into exit code 3.
 
 vet saves each scan in the state directory. `vet report show` renders it again with no new scan. A
-scan that a signal stops saves its progress, and the next `vet scan` of the target continues it.
+scan that a signal stops saves its progress, and the next `vet scan` of the target continues it. A
+newer scan of the target that completes supersedes the stopped scan, and vet does not continue it.
 `--fresh` starts a new scan. `--resume` continues a stopped scan of any age. `--ephemeral` keeps no
 state and no cache after the scan.
 

@@ -65,17 +65,17 @@ type ContinueDecision struct {
 }
 
 // DecideContinue applies the rules of the scan state design, section 4.1,
-// to the last stopped scan of the target. It first marks each running scan
-// of the target that no process holds as interrupted.
+// to the newest scan of the target that no process holds. A newer scan
+// supersedes a stopped scan, so vet does not report the stopped scan again
+// after the target has a newer completed or failed scan. DecideContinue
+// first marks each running scan of the target that no process holds as
+// interrupted.
 func (s *Store) DecideContinue(ctx context.Context, r ContinueRequest) (*ContinueDecision, error) {
-	entries, err := s.index.List(ctx, ListOptions{
-		TargetKey: r.TargetKey,
-		Statuses:  []Status{StatusRunning, StatusInterrupted},
-	})
+	entries, err := s.index.List(ctx, ListOptions{TargetKey: r.TargetKey})
 	if err != nil {
 		return nil, err
 	}
-	var live, stopped *IndexEntry
+	var live, newest *IndexEntry
 	for _, e := range entries {
 		if e.Status == StatusRunning {
 			running, err := isLive(e.File)
@@ -90,7 +90,11 @@ func (s *Store) DecideContinue(ctx context.Context, r ContinueRequest) (*Continu
 				return nil, err
 			}
 		}
-		stopped = first(stopped, e)
+		newest = first(newest, e)
+	}
+	var stopped *IndexEntry
+	if newest != nil && newest.Status == StatusInterrupted {
+		stopped = newest
 	}
 
 	d := &ContinueDecision{Stopped: stopped}

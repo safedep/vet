@@ -488,6 +488,12 @@
   tier: P1
   guarantee: "With other scan options, vet starts a new scan and prints the reason."
   labels: [state]
+- id: state/continue/superseded
+  title: "a newer scan supersedes a stopped scan"
+  category: state
+  tier: P1
+  guarantee: "After a newer scan of the target completes, vet does not continue an older stopped scan and does not print the reason again."
+  labels: [state]
 - id: state/cache/reuse
   title: "the enrichment cache answers a second scan"
   category: state

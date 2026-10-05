@@ -149,6 +149,8 @@ batch commits in its own transaction, so an interrupted scan keeps the batches t
 **Continue**:
 What `vet scan` does with a stopped scan of the same target. It keeps the work that finished, when
 the options hash and the vet version match and the scan is younger than `state.continue_within`.
+vet looks only at the newest scan of the target. A newer completed or failed scan supersedes a
+stopped scan.
 `--resume` continues a stopped scan of any age. `--fresh` always starts a new scan.
 _Avoid_: retry, restart. Use stopped or interrupted for the scan, and `interrupted` for the index status.
 
