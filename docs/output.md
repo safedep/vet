@@ -18,6 +18,10 @@ vet scan --report sarif=vet.sarif --report markdown=vet.md
 | `gitlab` | A GitLab dependency scanning report, for `artifacts:reports:dependency_scanning` |
 | `bitbucket` | A Bitbucket Code Insights report and its annotations |
 
+Each package in a report has a `purl`. It follows the purl-spec type definition of its ecosystem,
+and it keeps the version as the manifest writes it. `name` and `version` hold the canonical form
+that vet compares.
+
 ## Saved scans
 
 vet saves each scan in its state directory. These commands read the saved scans, with no new scan:

@@ -53,6 +53,22 @@ func TestInsightChecks(t *testing.T) {
 			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
 			Insight: &model.Insight{Licenses: []string{"MIT", "Apache-2.0"}}, PreviousInsight: &model.Insight{Licenses: []string{"Apache-2.0", "MIT"}},
 		}, nil},
+		{"same expression in another order", nil, &model.Package{
+			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
+			Insight: &model.Insight{Licenses: []string{"Apache-2.0 OR MIT"}}, PreviousInsight: &model.Insight{Licenses: []string{"MIT OR Apache-2.0"}},
+		}, nil},
+		{"deprecated id of the same license", nil, &model.Package{
+			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
+			Insight: &model.Insight{Licenses: []string{"GPL-3.0-only"}}, PreviousInsight: &model.Insight{Licenses: []string{"GPL-3.0"}},
+		}, nil},
+		{"no license before and after", nil, &model.Package{
+			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
+			Insight: &model.Insight{Licenses: []string{"NONE"}}, PreviousInsight: &model.Insight{Licenses: []string{"NONE"}},
+		}, nil},
+		{"OR becomes AND", nil, &model.Package{
+			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
+			Insight: &model.Insight{Licenses: []string{"MIT AND GPL-3.0-only"}}, PreviousInsight: &model.Insight{Licenses: []string{"MIT OR GPL-3.0-only"}},
+		}, []string{hygiene.IDLicenseChange}},
 		{"low scorecard", nil, &model.Package{ID: npm("a", "1.0.0"), Insight: &model.Insight{Scorecard: &model.Scorecard{Score: 2.1}}}, []string{hygiene.IDScorecardLow}},
 		{"scorecard over the option", map[string]any{"min_scorecard": 2.0}, &model.Package{ID: npm("a", "1.0.0"), Insight: &model.Insight{Scorecard: &model.Scorecard{Score: 2.1}}}, nil},
 		{"git source", nil, &model.Package{ID: npm("a", "1.0.0"), Resolved: "git+https://github.com/o/a.git#abc"}, []string{hygiene.IDNonRegistry}},

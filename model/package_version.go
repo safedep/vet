@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
+	"github.com/package-url/packageurl-go"
 	"github.com/safedep/dry/api/pb"
 )
 
@@ -229,14 +230,47 @@ func (p PackageVersion) WithVersion(version string) PackageVersion {
 	return PackageVersion{pv: pb.NewPackageVersionFromParts(p.pv.Ecosystem(), p.pv.RawName(), version)}
 }
 
-// PURL is the canonical package URL. It is empty for a name that a PURL
-// cannot hold, so it is not a key. Use Key for a map or a store.
+// PURL is the package URL in the form of the purl-spec type definition. It
+// keeps the version as the manifest writes it, because no purl-spec type
+// folds a version. It is empty for a name that a PURL cannot hold. It parses
+// back to the same identity, but it is not a key: use Key for a map or a
+// store, and CanonicalPURL for one string across spellings.
 func (p PackageVersion) PURL() string {
+	urn := p.CanonicalPURL()
+	if urn == "" || !p.pv.HasRule() {
+		return urn
+	}
+	u, err := packageurl.FromString(urn)
+	if err != nil {
+		return ""
+	}
+	if fold, ok := purlSpecName[p.pv.Ecosystem()]; ok {
+		u.Name = fold(p.RawName())
+	}
+	if p.pv.HasVersionRule() {
+		u.Version = strings.TrimSpace(p.RawVersion())
+	}
+	return u.ToString()
+}
+
+// CanonicalPURL is the package URL of the canonical name and version. Two
+// spellings of one package version give one CanonicalPURL.
+func (p PackageVersion) CanonicalPURL() string {
 	urn, err := p.pv.URN()
 	if err != nil {
 		return ""
 	}
 	return urn
+}
+
+// purlSpecName holds the name normalization of the purl-spec type
+// definition for each ecosystem whose identity rule folds the name. A purl
+// name can differ from the identity name: purl-spec keeps the dot of a PyPI
+// name, and PEP 503 does not.
+var purlSpecName = map[packagev1.Ecosystem]func(string) string{
+	packagev1.Ecosystem_ECOSYSTEM_PYPI: func(name string) string {
+		return strings.ReplaceAll(strings.ToLower(name), "_", "-")
+	},
 }
 
 // String is "<ecosystem>/<raw name>@<raw version>", for display.

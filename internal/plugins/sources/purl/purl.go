@@ -41,7 +41,7 @@ func (s *Source) Artifacts(context.Context) iter.Seq2[plugin.Artifact, error] {
 		yield(plugin.Artifact{
 			Kind:  plugin.ArtifactPURL,
 			Label: s.opts.Target,
-			Key:   "purl:" + cmp.Or(id.PURL(), string(id.Key())),
+			Key:   "purl:" + cmp.Or(id.CanonicalPURL(), string(id.Key())),
 			PURL:  s.opts.Target,
 		}, nil)
 	}

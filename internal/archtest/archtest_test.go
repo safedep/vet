@@ -239,7 +239,7 @@ func TestOnlyAPIClientsSendTheWireForm(t *testing.T) {
 // purlIdentity matches a PURL that the code compares or uses as a map key.
 // A PURL is for display and for the wire. A name that forms no PURL has an
 // empty PURL, so two packages would have the same PURL.
-var purlIdentity = regexp.MustCompile(`\.PURL(\(\))?\s*[!=]=\s*[^"\s]|[!=]=\s*[\w.]+\.PURL\b|\[[^\]\n]*\.PURL(\(\))?\]`)
+var purlIdentity = regexp.MustCompile(`\.(?:Canonical)?PURL(\(\))?\s*[!=]=\s*[^"\s]|[!=]=\s*[\w.]+\.(?:Canonical)?PURL\b|\[[^\]\n]*\.(?:Canonical)?PURL(\(\))?\]`)
 
 // TestPackagesCompareByKey keeps the identity of a package in
 // model.PackageVersion: Equal, Key and NameKey, never the PURL string.
@@ -323,6 +323,20 @@ func TestOnlyExtractorsImportScalibr(t *testing.T) {
 		}
 		for _, imp := range p.imports {
 			assert.False(t, under(imp, "github.com/google/osv-scalibr"), "package %s imports %s", p.path, imp)
+		}
+	}
+}
+
+// Only internal/spdxlicense reads SPDX license expressions. A second reader
+// would compare licenses with other rules, such as a deprecated id or an
+// or-later term.
+func TestOnlySPDXLicenseImportsGoSPDX(t *testing.T) {
+	for _, p := range listPackages(t) {
+		if isLegacy(p.path) || under(p.path, module+"/internal/spdxlicense") {
+			continue
+		}
+		for _, imp := range p.imports {
+			assert.False(t, under(imp, "github.com/github/go-spdx"), "package %s imports %s", p.path, imp)
 		}
 	}
 }

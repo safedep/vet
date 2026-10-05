@@ -27,6 +27,9 @@ vet policy control list -o json
 | `provenance-lost` | hygiene | medium | An upgrade to a version with no SLSA provenance, when the previous version had one |
 | `deprecated-package` | hygiene | medium | A version that the registry marks deprecated |
 | `license-change` | license | medium | An upgrade that changes the license |
+| `license-denied` | license | high | A license that `plugins.license.options.deny` names, in each choice of the license expression |
+| `license-not-allowed` | license | medium | A license that `plugins.license.options.allow` does not satisfy |
+| `license-unknown` | license | low | A package with no license data, or a license that is not an SPDX expression. Reported when `allow` is set, or with `unknown: report` |
 | `non-registry-dependency` | hygiene | medium | A dependency on git, a URL, a file or any version |
 | `scorecard-low` | hygiene | info | A package whose repository has an OpenSSF Scorecard score under 3 |
 | `typosquat` | reputation | high | A name one typo away from a popular package, with few downloads |
@@ -74,10 +77,60 @@ Some controls take options from the config file, under `plugins.<name>.options`.
 | `plugins.malware.options.trust_automated_analysis` | `false` | Report an unverified malicious verdict as `malware`, not `suspicious-package` |
 | `plugins.malware.options.minimum_confidence` | `high` | The lowest confidence of an unverified verdict that vet reports as `malware` |
 | `plugins.workflow.options.allow_unpinned` | none | The actions that `unpinned-action` accepts with a tag |
+| `plugins.license.options.allow` | none | The licenses that a package can have. See [License lists](#license-lists) |
+| `plugins.license.options.deny` | none | The licenses that a package cannot have |
+| `plugins.license.options.unknown` | `report` with `allow`, else `ignore` | `report` or `ignore` a package with no SPDX license |
 
 ```bash
 vet config set plugins.reputation.options.internal_names '["acme-*"]'
 ```
+
+## License lists
+
+The license control checks the license of each package against two lists. It reads the license from
+SafeDep Insights as an SPDX license expression, and it follows the SPDX specification (SPDX 2.3
+Annex D):
+
+- **allow**: a package passes when the list satisfies its expression. `MIT OR GPL-3.0-only` passes
+  `allow: [MIT]`. `MIT AND GPL-3.0-only` does not.
+- **deny**: a package fails when each choice of its expression has a denied license. `MIT OR
+  GPL-3.0-only` passes `deny: [GPL-3.0-only]`, because you can take MIT.
+- The deny list goes first. A package with more than one license value gets the values joined with
+  `AND`.
+- An entry is an SPDX license id, an `id WITH exception` term or a `LicenseRef-` id. An entry
+  matches one license exactly. Ids and operators match in any case. A deprecated id maps to the
+  successor that SPDX names, so `GPL-3.0` means `GPL-3.0-only`.
+- A `WITH` term is a license of its own. `GPL-2.0-only` does not match `GPL-2.0-only WITH
+  Classpath-exception-2.0`, and the sets do not hold `WITH` terms.
+- An or-later license, such as `GPL-2.0-or-later` or `EUPL-1.1+`, lets you take that version or a
+  later one. An allow list passes it when the list has one of those versions. A deny list fails it
+  when the list has each of those versions, or the or-later id itself.
+- An entry can also name a set from the flags of the SPDX License List: `osi-approved`, `fsf-libre`
+  or `osi-approved-or-fsf-libre`.
+- vet rejects an entry that is not SPDX, so a typo cannot pass a package. There are no globs.
+- `NOASSERTION`, free text and a package with no license data are unknown. A known license value
+  that fails a list fails the package, even with an unknown value beside it. `NONE` means no
+  license, and it fails an allow list.
+
+```yaml
+plugins:
+  license:
+    options:
+      allow: [osi-approved]
+      deny: [AGPL-3.0-only, AGPL-3.0-or-later, SSPL-1.0]
+```
+
+This deny list holds the common copyleft licenses, strong and weak. Copy the ids that your policy
+needs:
+
+```yaml
+deny: [GPL-2.0-only, GPL-2.0-or-later, GPL-3.0-only, GPL-3.0-or-later,
+       LGPL-2.1-only, LGPL-2.1-or-later, LGPL-3.0-only, LGPL-3.0-or-later,
+       AGPL-3.0-only, AGPL-3.0-or-later, MPL-2.0, EUPL-1.2, SSPL-1.0]
+```
+
+The evidence of each finding names the SPDX License List version that decided it. A package that
+SafeDep Insights does not know has no verdict.
 
 ## Fix workflow findings
 

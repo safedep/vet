@@ -176,6 +176,12 @@
   tier: P1
   guarantee: "plugins.dependency-cooldown.options.days changes the window."
   labels: [controls]
+- id: controls/license/allow-and-deny
+  title: "license: allow and deny lists"
+  category: controls
+  tier: P1
+  guarantee: "plugins.license.options.deny fails the gate on a denied SPDX license. An allow list or a set reports a license outside it. An entry that is not SPDX exits 2."
+  labels: [controls, gate]
 - id: controls/fail-open/backend-down
   title: "fail open: backend down"
   category: controls
@@ -517,6 +523,12 @@
   category: health
   tier: P2
   guarantee: "vet doctor exits 0 on a fresh sandbox, and -o json lists each check with an id. The text output has one line for each check, and a fix line under a check that failed."
+  labels: [doctor]
+- id: health/doctor/release-same-major
+  title: "doctor: release of the same major version"
+  category: health
+  tier: P2
+  guarantee: "vet doctor compares a v2 alpha build with the newest v2 release, pre-releases included, and never suggests v1."
   labels: [doctor]
 - id: dirs/xdg/kinds-apart
   title: "config, state and cache live apart"

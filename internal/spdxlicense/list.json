@@ -1,0 +1,2488 @@
+{
+ "version": "297da51",
+ "release_date": "2026-01-30T00:00:00Z",
+ "licenses": [
+  {
+   "id": "0BSD",
+   "osi": true
+  },
+  {
+   "id": "3D-Slicer-1.0"
+  },
+  {
+   "id": "AAL",
+   "osi": true
+  },
+  {
+   "id": "ADSL"
+  },
+  {
+   "id": "AFL-1.1",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "AFL-1.2",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "AFL-2.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "AFL-2.1",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "AFL-3.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "AGPL-1.0",
+   "deprecated": true,
+   "fsf": true
+  },
+  {
+   "id": "AGPL-1.0-only"
+  },
+  {
+   "id": "AGPL-1.0-or-later"
+  },
+  {
+   "id": "AGPL-3.0",
+   "deprecated": true,
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "AGPL-3.0-only",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "AGPL-3.0-or-later",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "ALGLIB-Documentation",
+   "osi": true
+  },
+  {
+   "id": "AMD-newlib"
+  },
+  {
+   "id": "AMDPLPA"
+  },
+  {
+   "id": "AML"
+  },
+  {
+   "id": "AML-glslang"
+  },
+  {
+   "id": "AMPAS"
+  },
+  {
+   "id": "ANTLR-PD"
+  },
+  {
+   "id": "ANTLR-PD-fallback"
+  },
+  {
+   "id": "APAFML"
+  },
+  {
+   "id": "APL-1.0",
+   "osi": true
+  },
+  {
+   "id": "APSL-1.0",
+   "osi": true
+  },
+  {
+   "id": "APSL-1.1",
+   "osi": true
+  },
+  {
+   "id": "APSL-1.2",
+   "osi": true
+  },
+  {
+   "id": "APSL-2.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "ASWF-Digital-Assets-1.0"
+  },
+  {
+   "id": "ASWF-Digital-Assets-1.1"
+  },
+  {
+   "id": "Abstyles"
+  },
+  {
+   "id": "AdaCore-doc"
+  },
+  {
+   "id": "Adobe-2006"
+  },
+  {
+   "id": "Adobe-Display-PostScript"
+  },
+  {
+   "id": "Adobe-Glyph"
+  },
+  {
+   "id": "Adobe-Utopia"
+  },
+  {
+   "id": "Advanced-Cryptics-Dictionary"
+  },
+  {
+   "id": "Afmparse"
+  },
+  {
+   "id": "Aladdin"
+  },
+  {
+   "id": "Apache-1.0",
+   "fsf": true
+  },
+  {
+   "id": "Apache-1.1",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "Apache-2.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "App-s2p"
+  },
+  {
+   "id": "Arphic-1999"
+  },
+  {
+   "id": "Artistic-1.0",
+   "osi": true
+  },
+  {
+   "id": "Artistic-1.0-Perl",
+   "osi": true
+  },
+  {
+   "id": "Artistic-1.0-cl8",
+   "osi": true
+  },
+  {
+   "id": "Artistic-2.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "Artistic-dist"
+  },
+  {
+   "id": "Aspell-RU"
+  },
+  {
+   "id": "BSD-1-Clause",
+   "osi": true
+  },
+  {
+   "id": "BSD-2-Clause",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "BSD-2-Clause-Darwin"
+  },
+  {
+   "id": "BSD-2-Clause-FreeBSD",
+   "deprecated": true,
+   "fsf": true
+  },
+  {
+   "id": "BSD-2-Clause-NetBSD",
+   "deprecated": true,
+   "fsf": true
+  },
+  {
+   "id": "BSD-2-Clause-Patent",
+   "osi": true
+  },
+  {
+   "id": "BSD-2-Clause-Views"
+  },
+  {
+   "id": "BSD-2-Clause-first-lines"
+  },
+  {
+   "id": "BSD-2-Clause-pkgconf-disclaimer"
+  },
+  {
+   "id": "BSD-3-Clause",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "BSD-3-Clause-Attribution"
+  },
+  {
+   "id": "BSD-3-Clause-Clear",
+   "fsf": true
+  },
+  {
+   "id": "BSD-3-Clause-HP"
+  },
+  {
+   "id": "BSD-3-Clause-LBNL",
+   "osi": true
+  },
+  {
+   "id": "BSD-3-Clause-Modification"
+  },
+  {
+   "id": "BSD-3-Clause-No-Military-License"
+  },
+  {
+   "id": "BSD-3-Clause-No-Nuclear-License"
+  },
+  {
+   "id": "BSD-3-Clause-No-Nuclear-License-2014"
+  },
+  {
+   "id": "BSD-3-Clause-No-Nuclear-Warranty"
+  },
+  {
+   "id": "BSD-3-Clause-Open-MPI",
+   "osi": true
+  },
+  {
+   "id": "BSD-3-Clause-Sun"
+  },
+  {
+   "id": "BSD-3-Clause-Tso"
+  },
+  {
+   "id": "BSD-3-Clause-acpica"
+  },
+  {
+   "id": "BSD-3-Clause-flex"
+  },
+  {
+   "id": "BSD-4-Clause",
+   "fsf": true
+  },
+  {
+   "id": "BSD-4-Clause-Shortened"
+  },
+  {
+   "id": "BSD-4-Clause-UC"
+  },
+  {
+   "id": "BSD-4.3RENO"
+  },
+  {
+   "id": "BSD-4.3TAHOE"
+  },
+  {
+   "id": "BSD-Advertising-Acknowledgement"
+  },
+  {
+   "id": "BSD-Attribution-HPND-disclaimer"
+  },
+  {
+   "id": "BSD-Inferno-Nettverk"
+  },
+  {
+   "id": "BSD-Mark-Modifications"
+  },
+  {
+   "id": "BSD-Protection"
+  },
+  {
+   "id": "BSD-Source-Code"
+  },
+  {
+   "id": "BSD-Source-beginning-file"
+  },
+  {
+   "id": "BSD-Systemics"
+  },
+  {
+   "id": "BSD-Systemics-W3Works"
+  },
+  {
+   "id": "BSL-1.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "BUSL-1.1"
+  },
+  {
+   "id": "Baekmuk"
+  },
+  {
+   "id": "Bahyph"
+  },
+  {
+   "id": "Barr"
+  },
+  {
+   "id": "Beerware"
+  },
+  {
+   "id": "BitTorrent-1.0"
+  },
+  {
+   "id": "BitTorrent-1.1",
+   "fsf": true
+  },
+  {
+   "id": "Bitstream-Charter"
+  },
+  {
+   "id": "Bitstream-Vera"
+  },
+  {
+   "id": "BlueOak-1.0.0",
+   "osi": true
+  },
+  {
+   "id": "Boehm-GC"
+  },
+  {
+   "id": "Boehm-GC-without-fee"
+  },
+  {
+   "id": "Borceux"
+  },
+  {
+   "id": "Brian-Gladman-2-Clause"
+  },
+  {
+   "id": "Brian-Gladman-3-Clause"
+  },
+  {
+   "id": "Buddy"
+  },
+  {
+   "id": "C-UDA-1.0"
+  },
+  {
+   "id": "CAL-1.0",
+   "osi": true
+  },
+  {
+   "id": "CAL-1.0-Combined-Work-Exception",
+   "osi": true
+  },
+  {
+   "id": "CAPEC-tou"
+  },
+  {
+   "id": "CATOSL-1.1",
+   "osi": true
+  },
+  {
+   "id": "CC-BY-1.0"
+  },
+  {
+   "id": "CC-BY-2.0"
+  },
+  {
+   "id": "CC-BY-2.5"
+  },
+  {
+   "id": "CC-BY-2.5-AU"
+  },
+  {
+   "id": "CC-BY-3.0"
+  },
+  {
+   "id": "CC-BY-3.0-AT"
+  },
+  {
+   "id": "CC-BY-3.0-AU"
+  },
+  {
+   "id": "CC-BY-3.0-DE"
+  },
+  {
+   "id": "CC-BY-3.0-IGO"
+  },
+  {
+   "id": "CC-BY-3.0-NL"
+  },
+  {
+   "id": "CC-BY-3.0-US"
+  },
+  {
+   "id": "CC-BY-4.0",
+   "fsf": true
+  },
+  {
+   "id": "CC-BY-NC-1.0"
+  },
+  {
+   "id": "CC-BY-NC-2.0"
+  },
+  {
+   "id": "CC-BY-NC-2.5"
+  },
+  {
+   "id": "CC-BY-NC-3.0"
+  },
+  {
+   "id": "CC-BY-NC-3.0-DE"
+  },
+  {
+   "id": "CC-BY-NC-4.0"
+  },
+  {
+   "id": "CC-BY-NC-ND-1.0"
+  },
+  {
+   "id": "CC-BY-NC-ND-2.0"
+  },
+  {
+   "id": "CC-BY-NC-ND-2.5"
+  },
+  {
+   "id": "CC-BY-NC-ND-3.0"
+  },
+  {
+   "id": "CC-BY-NC-ND-3.0-DE"
+  },
+  {
+   "id": "CC-BY-NC-ND-3.0-IGO"
+  },
+  {
+   "id": "CC-BY-NC-ND-4.0"
+  },
+  {
+   "id": "CC-BY-NC-SA-1.0"
+  },
+  {
+   "id": "CC-BY-NC-SA-2.0"
+  },
+  {
+   "id": "CC-BY-NC-SA-2.0-DE"
+  },
+  {
+   "id": "CC-BY-NC-SA-2.0-FR"
+  },
+  {
+   "id": "CC-BY-NC-SA-2.0-UK"
+  },
+  {
+   "id": "CC-BY-NC-SA-2.5"
+  },
+  {
+   "id": "CC-BY-NC-SA-3.0"
+  },
+  {
+   "id": "CC-BY-NC-SA-3.0-DE"
+  },
+  {
+   "id": "CC-BY-NC-SA-3.0-IGO"
+  },
+  {
+   "id": "CC-BY-NC-SA-4.0"
+  },
+  {
+   "id": "CC-BY-ND-1.0"
+  },
+  {
+   "id": "CC-BY-ND-2.0"
+  },
+  {
+   "id": "CC-BY-ND-2.5"
+  },
+  {
+   "id": "CC-BY-ND-3.0"
+  },
+  {
+   "id": "CC-BY-ND-3.0-DE"
+  },
+  {
+   "id": "CC-BY-ND-4.0"
+  },
+  {
+   "id": "CC-BY-SA-1.0"
+  },
+  {
+   "id": "CC-BY-SA-2.0"
+  },
+  {
+   "id": "CC-BY-SA-2.0-UK"
+  },
+  {
+   "id": "CC-BY-SA-2.1-JP"
+  },
+  {
+   "id": "CC-BY-SA-2.5"
+  },
+  {
+   "id": "CC-BY-SA-3.0"
+  },
+  {
+   "id": "CC-BY-SA-3.0-AT"
+  },
+  {
+   "id": "CC-BY-SA-3.0-DE"
+  },
+  {
+   "id": "CC-BY-SA-3.0-IGO"
+  },
+  {
+   "id": "CC-BY-SA-4.0",
+   "fsf": true
+  },
+  {
+   "id": "CC-PDDC"
+  },
+  {
+   "id": "CC-PDM-1.0"
+  },
+  {
+   "id": "CC-SA-1.0"
+  },
+  {
+   "id": "CC0-1.0",
+   "fsf": true
+  },
+  {
+   "id": "CDDL-1.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "CDDL-1.1"
+  },
+  {
+   "id": "CDL-1.0"
+  },
+  {
+   "id": "CDLA-Permissive-1.0"
+  },
+  {
+   "id": "CDLA-Permissive-2.0"
+  },
+  {
+   "id": "CDLA-Sharing-1.0"
+  },
+  {
+   "id": "CECILL-1.0"
+  },
+  {
+   "id": "CECILL-1.1"
+  },
+  {
+   "id": "CECILL-2.0",
+   "fsf": true
+  },
+  {
+   "id": "CECILL-2.1",
+   "osi": true
+  },
+  {
+   "id": "CECILL-B",
+   "fsf": true
+  },
+  {
+   "id": "CECILL-C",
+   "fsf": true
+  },
+  {
+   "id": "CERN-OHL-1.1"
+  },
+  {
+   "id": "CERN-OHL-1.2"
+  },
+  {
+   "id": "CERN-OHL-P-2.0",
+   "osi": true
+  },
+  {
+   "id": "CERN-OHL-S-2.0",
+   "osi": true
+  },
+  {
+   "id": "CERN-OHL-W-2.0",
+   "osi": true
+  },
+  {
+   "id": "CFITSIO"
+  },
+  {
+   "id": "CMU-Mach"
+  },
+  {
+   "id": "CMU-Mach-nodoc"
+  },
+  {
+   "id": "CNRI-Jython"
+  },
+  {
+   "id": "CNRI-Python",
+   "osi": true
+  },
+  {
+   "id": "CNRI-Python-GPL-Compatible"
+  },
+  {
+   "id": "COIL-1.0"
+  },
+  {
+   "id": "CPAL-1.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "CPL-1.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "CPOL-1.02"
+  },
+  {
+   "id": "CUA-OPL-1.0",
+   "osi": true
+  },
+  {
+   "id": "Caldera"
+  },
+  {
+   "id": "Caldera-no-preamble"
+  },
+  {
+   "id": "Catharon"
+  },
+  {
+   "id": "ClArtistic",
+   "fsf": true
+  },
+  {
+   "id": "Clips"
+  },
+  {
+   "id": "Community-Spec-1.0"
+  },
+  {
+   "id": "Condor-1.1",
+   "fsf": true
+  },
+  {
+   "id": "Cornell-Lossless-JPEG"
+  },
+  {
+   "id": "Cronyx"
+  },
+  {
+   "id": "Crossword"
+  },
+  {
+   "id": "CryptoSwift"
+  },
+  {
+   "id": "CrystalStacker"
+  },
+  {
+   "id": "Cube"
+  },
+  {
+   "id": "D-FSL-1.0"
+  },
+  {
+   "id": "DEC-3-Clause"
+  },
+  {
+   "id": "DL-DE-BY-2.0"
+  },
+  {
+   "id": "DL-DE-ZERO-2.0"
+  },
+  {
+   "id": "DOC"
+  },
+  {
+   "id": "DRL-1.0"
+  },
+  {
+   "id": "DRL-1.1"
+  },
+  {
+   "id": "DSDP"
+  },
+  {
+   "id": "DocBook-DTD"
+  },
+  {
+   "id": "DocBook-Schema"
+  },
+  {
+   "id": "DocBook-Stylesheet"
+  },
+  {
+   "id": "DocBook-XML"
+  },
+  {
+   "id": "Dotseqn"
+  },
+  {
+   "id": "ECL-1.0",
+   "osi": true
+  },
+  {
+   "id": "ECL-2.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "EFL-1.0",
+   "osi": true
+  },
+  {
+   "id": "EFL-2.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "EPICS"
+  },
+  {
+   "id": "EPL-1.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "EPL-2.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "ESA-PL-permissive-2.4"
+  },
+  {
+   "id": "ESA-PL-strong-copyleft-2.4"
+  },
+  {
+   "id": "ESA-PL-weak-copyleft-2.4"
+  },
+  {
+   "id": "EUDatagrid",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "EUPL-1.0"
+  },
+  {
+   "id": "EUPL-1.1",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "EUPL-1.2",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "Elastic-2.0"
+  },
+  {
+   "id": "Entessa",
+   "osi": true
+  },
+  {
+   "id": "ErlPL-1.1"
+  },
+  {
+   "id": "Eurosym"
+  },
+  {
+   "id": "FBM"
+  },
+  {
+   "id": "FDK-AAC"
+  },
+  {
+   "id": "FSFAP",
+   "fsf": true
+  },
+  {
+   "id": "FSFAP-no-warranty-disclaimer"
+  },
+  {
+   "id": "FSFUL"
+  },
+  {
+   "id": "FSFULLR"
+  },
+  {
+   "id": "FSFULLRSD"
+  },
+  {
+   "id": "FSFULLRWD"
+  },
+  {
+   "id": "FSL-1.1-ALv2"
+  },
+  {
+   "id": "FSL-1.1-MIT"
+  },
+  {
+   "id": "FTL",
+   "fsf": true
+  },
+  {
+   "id": "Fair",
+   "osi": true
+  },
+  {
+   "id": "Ferguson-Twofish"
+  },
+  {
+   "id": "Frameworx-1.0",
+   "osi": true
+  },
+  {
+   "id": "FreeBSD-DOC"
+  },
+  {
+   "id": "FreeImage"
+  },
+  {
+   "id": "Furuseth"
+  },
+  {
+   "id": "GCR-docs"
+  },
+  {
+   "id": "GD"
+  },
+  {
+   "id": "GFDL-1.1",
+   "deprecated": true,
+   "fsf": true
+  },
+  {
+   "id": "GFDL-1.1-invariants-only"
+  },
+  {
+   "id": "GFDL-1.1-invariants-or-later"
+  },
+  {
+   "id": "GFDL-1.1-no-invariants-only"
+  },
+  {
+   "id": "GFDL-1.1-no-invariants-or-later"
+  },
+  {
+   "id": "GFDL-1.1-only",
+   "fsf": true
+  },
+  {
+   "id": "GFDL-1.1-or-later",
+   "fsf": true
+  },
+  {
+   "id": "GFDL-1.2",
+   "deprecated": true,
+   "fsf": true
+  },
+  {
+   "id": "GFDL-1.2-invariants-only"
+  },
+  {
+   "id": "GFDL-1.2-invariants-or-later"
+  },
+  {
+   "id": "GFDL-1.2-no-invariants-only"
+  },
+  {
+   "id": "GFDL-1.2-no-invariants-or-later"
+  },
+  {
+   "id": "GFDL-1.2-only",
+   "fsf": true
+  },
+  {
+   "id": "GFDL-1.2-or-later",
+   "fsf": true
+  },
+  {
+   "id": "GFDL-1.3",
+   "deprecated": true,
+   "fsf": true
+  },
+  {
+   "id": "GFDL-1.3-invariants-only"
+  },
+  {
+   "id": "GFDL-1.3-invariants-or-later"
+  },
+  {
+   "id": "GFDL-1.3-no-invariants-only"
+  },
+  {
+   "id": "GFDL-1.3-no-invariants-or-later"
+  },
+  {
+   "id": "GFDL-1.3-only",
+   "fsf": true
+  },
+  {
+   "id": "GFDL-1.3-or-later",
+   "fsf": true
+  },
+  {
+   "id": "GL2PS"
+  },
+  {
+   "id": "GLWTPL"
+  },
+  {
+   "id": "GPL-1.0",
+   "deprecated": true
+  },
+  {
+   "id": "GPL-1.0+",
+   "deprecated": true
+  },
+  {
+   "id": "GPL-1.0-only"
+  },
+  {
+   "id": "GPL-1.0-or-later"
+  },
+  {
+   "id": "GPL-2.0",
+   "deprecated": true,
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "GPL-2.0+",
+   "deprecated": true,
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "GPL-2.0-only",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "GPL-2.0-or-later",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "GPL-2.0-with-GCC-exception",
+   "deprecated": true
+  },
+  {
+   "id": "GPL-2.0-with-autoconf-exception",
+   "deprecated": true
+  },
+  {
+   "id": "GPL-2.0-with-bison-exception",
+   "deprecated": true
+  },
+  {
+   "id": "GPL-2.0-with-classpath-exception",
+   "deprecated": true
+  },
+  {
+   "id": "GPL-2.0-with-font-exception",
+   "deprecated": true
+  },
+  {
+   "id": "GPL-3.0",
+   "deprecated": true,
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "GPL-3.0+",
+   "deprecated": true,
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "GPL-3.0-only",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "GPL-3.0-or-later",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "GPL-3.0-with-GCC-exception",
+   "deprecated": true,
+   "osi": true
+  },
+  {
+   "id": "GPL-3.0-with-autoconf-exception",
+   "deprecated": true
+  },
+  {
+   "id": "Game-Programming-Gems"
+  },
+  {
+   "id": "Giftware"
+  },
+  {
+   "id": "Glide"
+  },
+  {
+   "id": "Glulxe"
+  },
+  {
+   "id": "Graphics-Gems"
+  },
+  {
+   "id": "Gutmann"
+  },
+  {
+   "id": "HDF5"
+  },
+  {
+   "id": "HIDAPI"
+  },
+  {
+   "id": "HP-1986"
+  },
+  {
+   "id": "HP-1989"
+  },
+  {
+   "id": "HPND",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "HPND-DEC"
+  },
+  {
+   "id": "HPND-Fenneberg-Livingston"
+  },
+  {
+   "id": "HPND-INRIA-IMAG"
+  },
+  {
+   "id": "HPND-Intel"
+  },
+  {
+   "id": "HPND-Kevlin-Henney"
+  },
+  {
+   "id": "HPND-MIT-disclaimer"
+  },
+  {
+   "id": "HPND-Markus-Kuhn"
+  },
+  {
+   "id": "HPND-Netrek"
+  },
+  {
+   "id": "HPND-Pbmplus"
+  },
+  {
+   "id": "HPND-SMC"
+  },
+  {
+   "id": "HPND-UC"
+  },
+  {
+   "id": "HPND-UC-export-US"
+  },
+  {
+   "id": "HPND-doc"
+  },
+  {
+   "id": "HPND-doc-sell"
+  },
+  {
+   "id": "HPND-export-US"
+  },
+  {
+   "id": "HPND-export-US-acknowledgement"
+  },
+  {
+   "id": "HPND-export-US-modify"
+  },
+  {
+   "id": "HPND-export2-US"
+  },
+  {
+   "id": "HPND-merchantability-variant"
+  },
+  {
+   "id": "HPND-sell-MIT-disclaimer-xserver"
+  },
+  {
+   "id": "HPND-sell-regexpr"
+  },
+  {
+   "id": "HPND-sell-variant"
+  },
+  {
+   "id": "HPND-sell-variant-MIT-disclaimer"
+  },
+  {
+   "id": "HPND-sell-variant-MIT-disclaimer-rev"
+  },
+  {
+   "id": "HPND-sell-variant-critical-systems"
+  },
+  {
+   "id": "HTMLTIDY"
+  },
+  {
+   "id": "HaskellReport"
+  },
+  {
+   "id": "Hippocratic-2.1"
+  },
+  {
+   "id": "IBM-pibs"
+  },
+  {
+   "id": "ICU",
+   "osi": true
+  },
+  {
+   "id": "IEC-Code-Components-EULA"
+  },
+  {
+   "id": "IJG",
+   "fsf": true
+  },
+  {
+   "id": "IJG-short"
+  },
+  {
+   "id": "IPA",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "IPL-1.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "ISC",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "ISC-Veillard"
+  },
+  {
+   "id": "ISO-permission"
+  },
+  {
+   "id": "ImageMagick"
+  },
+  {
+   "id": "Imlib2",
+   "fsf": true
+  },
+  {
+   "id": "Info-ZIP"
+  },
+  {
+   "id": "Inner-Net-2.0"
+  },
+  {
+   "id": "InnoSetup"
+  },
+  {
+   "id": "Intel",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "Intel-ACPI"
+  },
+  {
+   "id": "Interbase-1.0"
+  },
+  {
+   "id": "JPL-image"
+  },
+  {
+   "id": "JPNIC"
+  },
+  {
+   "id": "JSON"
+  },
+  {
+   "id": "Jam",
+   "osi": true
+  },
+  {
+   "id": "JasPer-2.0"
+  },
+  {
+   "id": "Kastrup"
+  },
+  {
+   "id": "Kazlib"
+  },
+  {
+   "id": "Knuth-CTAN"
+  },
+  {
+   "id": "LAL-1.2"
+  },
+  {
+   "id": "LAL-1.3"
+  },
+  {
+   "id": "LGPL-2.0",
+   "deprecated": true,
+   "osi": true
+  },
+  {
+   "id": "LGPL-2.0+",
+   "deprecated": true,
+   "osi": true
+  },
+  {
+   "id": "LGPL-2.0-only",
+   "osi": true
+  },
+  {
+   "id": "LGPL-2.0-or-later",
+   "osi": true
+  },
+  {
+   "id": "LGPL-2.1",
+   "deprecated": true,
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "LGPL-2.1+",
+   "deprecated": true,
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "LGPL-2.1-only",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "LGPL-2.1-or-later",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "LGPL-3.0",
+   "deprecated": true,
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "LGPL-3.0+",
+   "deprecated": true,
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "LGPL-3.0-only",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "LGPL-3.0-or-later",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "LGPLLR"
+  },
+  {
+   "id": "LOOP"
+  },
+  {
+   "id": "LPD-document"
+  },
+  {
+   "id": "LPL-1.0",
+   "osi": true
+  },
+  {
+   "id": "LPL-1.02",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "LPPL-1.0"
+  },
+  {
+   "id": "LPPL-1.1"
+  },
+  {
+   "id": "LPPL-1.2",
+   "fsf": true
+  },
+  {
+   "id": "LPPL-1.3a",
+   "fsf": true
+  },
+  {
+   "id": "LPPL-1.3c",
+   "osi": true
+  },
+  {
+   "id": "LZMA-SDK-9.11-to-9.20"
+  },
+  {
+   "id": "LZMA-SDK-9.22"
+  },
+  {
+   "id": "Latex2e"
+  },
+  {
+   "id": "Latex2e-translated-notice"
+  },
+  {
+   "id": "Leptonica"
+  },
+  {
+   "id": "LiLiQ-P-1.1",
+   "osi": true
+  },
+  {
+   "id": "LiLiQ-R-1.1",
+   "osi": true
+  },
+  {
+   "id": "LiLiQ-Rplus-1.1",
+   "osi": true
+  },
+  {
+   "id": "Libpng"
+  },
+  {
+   "id": "Linux-OpenIB"
+  },
+  {
+   "id": "Linux-man-pages-1-para"
+  },
+  {
+   "id": "Linux-man-pages-copyleft"
+  },
+  {
+   "id": "Linux-man-pages-copyleft-2-para"
+  },
+  {
+   "id": "Linux-man-pages-copyleft-var"
+  },
+  {
+   "id": "Lucida-Bitmap-Fonts"
+  },
+  {
+   "id": "MIPS"
+  },
+  {
+   "id": "MIT",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "MIT-0",
+   "osi": true
+  },
+  {
+   "id": "MIT-CMU"
+  },
+  {
+   "id": "MIT-Click"
+  },
+  {
+   "id": "MIT-Festival"
+  },
+  {
+   "id": "MIT-Khronos-old"
+  },
+  {
+   "id": "MIT-Modern-Variant",
+   "osi": true
+  },
+  {
+   "id": "MIT-STK"
+  },
+  {
+   "id": "MIT-Wu"
+  },
+  {
+   "id": "MIT-advertising"
+  },
+  {
+   "id": "MIT-enna"
+  },
+  {
+   "id": "MIT-feh"
+  },
+  {
+   "id": "MIT-open-group"
+  },
+  {
+   "id": "MIT-testregex"
+  },
+  {
+   "id": "MITNFA"
+  },
+  {
+   "id": "MMIXware"
+  },
+  {
+   "id": "MMPL-1.0.1"
+  },
+  {
+   "id": "MPEG-SSG"
+  },
+  {
+   "id": "MPL-1.0",
+   "osi": true
+  },
+  {
+   "id": "MPL-1.1",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "MPL-2.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "MPL-2.0-no-copyleft-exception",
+   "osi": true
+  },
+  {
+   "id": "MS-LPL"
+  },
+  {
+   "id": "MS-PL",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "MS-RL",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "MTLL"
+  },
+  {
+   "id": "Mackerras-3-Clause"
+  },
+  {
+   "id": "Mackerras-3-Clause-acknowledgment"
+  },
+  {
+   "id": "MakeIndex"
+  },
+  {
+   "id": "Martin-Birgmeier"
+  },
+  {
+   "id": "McPhee-slideshow"
+  },
+  {
+   "id": "Minpack"
+  },
+  {
+   "id": "MirOS",
+   "osi": true
+  },
+  {
+   "id": "Motosoto",
+   "osi": true
+  },
+  {
+   "id": "MulanPSL-1.0"
+  },
+  {
+   "id": "MulanPSL-2.0",
+   "osi": true
+  },
+  {
+   "id": "Multics",
+   "osi": true
+  },
+  {
+   "id": "Mup"
+  },
+  {
+   "id": "NAIST-2003"
+  },
+  {
+   "id": "NASA-1.3",
+   "osi": true
+  },
+  {
+   "id": "NBPL-1.0"
+  },
+  {
+   "id": "NCBI-PD"
+  },
+  {
+   "id": "NCGL-UK-2.0"
+  },
+  {
+   "id": "NCL"
+  },
+  {
+   "id": "NCSA",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "NGPL",
+   "osi": true
+  },
+  {
+   "id": "NICTA-1.0"
+  },
+  {
+   "id": "NIST-PD"
+  },
+  {
+   "id": "NIST-PD-TNT"
+  },
+  {
+   "id": "NIST-PD-fallback"
+  },
+  {
+   "id": "NIST-Software"
+  },
+  {
+   "id": "NLOD-1.0"
+  },
+  {
+   "id": "NLOD-2.0"
+  },
+  {
+   "id": "NLPL"
+  },
+  {
+   "id": "NOSL",
+   "fsf": true
+  },
+  {
+   "id": "NPL-1.0",
+   "fsf": true
+  },
+  {
+   "id": "NPL-1.1",
+   "fsf": true
+  },
+  {
+   "id": "NPOSL-3.0",
+   "osi": true
+  },
+  {
+   "id": "NRL"
+  },
+  {
+   "id": "NTIA-PD"
+  },
+  {
+   "id": "NTP",
+   "osi": true
+  },
+  {
+   "id": "NTP-0"
+  },
+  {
+   "id": "Naumen",
+   "osi": true
+  },
+  {
+   "id": "Net-SNMP",
+   "deprecated": true
+  },
+  {
+   "id": "NetCDF"
+  },
+  {
+   "id": "Newsletr"
+  },
+  {
+   "id": "Nokia",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "Noweb"
+  },
+  {
+   "id": "Nunit",
+   "deprecated": true,
+   "fsf": true
+  },
+  {
+   "id": "O-UDA-1.0"
+  },
+  {
+   "id": "OAR"
+  },
+  {
+   "id": "OCCT-PL"
+  },
+  {
+   "id": "OCLC-2.0",
+   "osi": true
+  },
+  {
+   "id": "ODC-By-1.0"
+  },
+  {
+   "id": "ODbL-1.0",
+   "fsf": true
+  },
+  {
+   "id": "OFFIS"
+  },
+  {
+   "id": "OFL-1.0",
+   "fsf": true
+  },
+  {
+   "id": "OFL-1.0-RFN"
+  },
+  {
+   "id": "OFL-1.0-no-RFN"
+  },
+  {
+   "id": "OFL-1.1",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "OFL-1.1-RFN",
+   "osi": true
+  },
+  {
+   "id": "OFL-1.1-no-RFN",
+   "osi": true
+  },
+  {
+   "id": "OGC-1.0"
+  },
+  {
+   "id": "OGDL-Taiwan-1.0"
+  },
+  {
+   "id": "OGL-Canada-2.0"
+  },
+  {
+   "id": "OGL-UK-1.0"
+  },
+  {
+   "id": "OGL-UK-2.0"
+  },
+  {
+   "id": "OGL-UK-3.0"
+  },
+  {
+   "id": "OGTSL",
+   "osi": true
+  },
+  {
+   "id": "OLDAP-1.1"
+  },
+  {
+   "id": "OLDAP-1.2"
+  },
+  {
+   "id": "OLDAP-1.3"
+  },
+  {
+   "id": "OLDAP-1.4"
+  },
+  {
+   "id": "OLDAP-2.0"
+  },
+  {
+   "id": "OLDAP-2.0.1"
+  },
+  {
+   "id": "OLDAP-2.1"
+  },
+  {
+   "id": "OLDAP-2.2"
+  },
+  {
+   "id": "OLDAP-2.2.1"
+  },
+  {
+   "id": "OLDAP-2.2.2"
+  },
+  {
+   "id": "OLDAP-2.3",
+   "fsf": true
+  },
+  {
+   "id": "OLDAP-2.4"
+  },
+  {
+   "id": "OLDAP-2.5"
+  },
+  {
+   "id": "OLDAP-2.6"
+  },
+  {
+   "id": "OLDAP-2.7",
+   "fsf": true
+  },
+  {
+   "id": "OLDAP-2.8",
+   "osi": true
+  },
+  {
+   "id": "OLFL-1.3",
+   "osi": true
+  },
+  {
+   "id": "OML"
+  },
+  {
+   "id": "OPL-1.0"
+  },
+  {
+   "id": "OPL-UK-3.0"
+  },
+  {
+   "id": "OPUBL-1.0"
+  },
+  {
+   "id": "OSET-PL-2.1",
+   "osi": true
+  },
+  {
+   "id": "OSL-1.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "OSL-1.1",
+   "fsf": true
+  },
+  {
+   "id": "OSL-2.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "OSL-2.1",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "OSL-3.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "OSSP"
+  },
+  {
+   "id": "OpenMDW-1.0"
+  },
+  {
+   "id": "OpenPBS-2.3"
+  },
+  {
+   "id": "OpenSSL",
+   "fsf": true
+  },
+  {
+   "id": "OpenSSL-standalone"
+  },
+  {
+   "id": "OpenVision"
+  },
+  {
+   "id": "PADL"
+  },
+  {
+   "id": "PDDL-1.0"
+  },
+  {
+   "id": "PHP-3.0",
+   "osi": true
+  },
+  {
+   "id": "PHP-3.01",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "PPL"
+  },
+  {
+   "id": "PSF-2.0"
+  },
+  {
+   "id": "ParaType-Free-Font-1.3"
+  },
+  {
+   "id": "Parity-6.0.0"
+  },
+  {
+   "id": "Parity-7.0.0"
+  },
+  {
+   "id": "Pixar"
+  },
+  {
+   "id": "Plexus"
+  },
+  {
+   "id": "PolyForm-Noncommercial-1.0.0"
+  },
+  {
+   "id": "PolyForm-Small-Business-1.0.0"
+  },
+  {
+   "id": "PostgreSQL",
+   "osi": true
+  },
+  {
+   "id": "Python-2.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "Python-2.0.1"
+  },
+  {
+   "id": "QPL-1.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "QPL-1.0-INRIA-2004"
+  },
+  {
+   "id": "Qhull"
+  },
+  {
+   "id": "RHeCos-1.1"
+  },
+  {
+   "id": "RPL-1.1",
+   "osi": true
+  },
+  {
+   "id": "RPL-1.5",
+   "osi": true
+  },
+  {
+   "id": "RPSL-1.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "RSA-MD"
+  },
+  {
+   "id": "RSCPL",
+   "osi": true
+  },
+  {
+   "id": "Rdisc"
+  },
+  {
+   "id": "Ruby",
+   "fsf": true
+  },
+  {
+   "id": "Ruby-pty"
+  },
+  {
+   "id": "SAX-PD"
+  },
+  {
+   "id": "SAX-PD-2.0"
+  },
+  {
+   "id": "SCEA"
+  },
+  {
+   "id": "SGI-B-1.0"
+  },
+  {
+   "id": "SGI-B-1.1"
+  },
+  {
+   "id": "SGI-B-2.0",
+   "fsf": true
+  },
+  {
+   "id": "SGI-OpenGL"
+  },
+  {
+   "id": "SGMLUG-PM"
+  },
+  {
+   "id": "SGP4"
+  },
+  {
+   "id": "SHL-0.5"
+  },
+  {
+   "id": "SHL-0.51"
+  },
+  {
+   "id": "SISSL",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "SISSL-1.2"
+  },
+  {
+   "id": "SL"
+  },
+  {
+   "id": "SMAIL-GPL"
+  },
+  {
+   "id": "SMLNJ",
+   "fsf": true
+  },
+  {
+   "id": "SMPPL"
+  },
+  {
+   "id": "SNIA"
+  },
+  {
+   "id": "SOFA"
+  },
+  {
+   "id": "SPL-1.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "SSH-OpenSSH"
+  },
+  {
+   "id": "SSH-short"
+  },
+  {
+   "id": "SSLeay-standalone"
+  },
+  {
+   "id": "SSPL-1.0"
+  },
+  {
+   "id": "SUL-1.0"
+  },
+  {
+   "id": "SWL"
+  },
+  {
+   "id": "Saxpath"
+  },
+  {
+   "id": "SchemeReport"
+  },
+  {
+   "id": "Sendmail"
+  },
+  {
+   "id": "Sendmail-8.23"
+  },
+  {
+   "id": "Sendmail-Open-Source-1.1"
+  },
+  {
+   "id": "SimPL-2.0",
+   "osi": true
+  },
+  {
+   "id": "Sleepycat",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "Soundex"
+  },
+  {
+   "id": "Spencer-86"
+  },
+  {
+   "id": "Spencer-94"
+  },
+  {
+   "id": "Spencer-99"
+  },
+  {
+   "id": "StandardML-NJ",
+   "deprecated": true,
+   "fsf": true
+  },
+  {
+   "id": "SugarCRM-1.1.3"
+  },
+  {
+   "id": "Sun-PPP"
+  },
+  {
+   "id": "Sun-PPP-2000"
+  },
+  {
+   "id": "SunPro"
+  },
+  {
+   "id": "Symlinks"
+  },
+  {
+   "id": "TAPR-OHL-1.0"
+  },
+  {
+   "id": "TCL"
+  },
+  {
+   "id": "TCP-wrappers"
+  },
+  {
+   "id": "TGPPL-1.0"
+  },
+  {
+   "id": "TMate"
+  },
+  {
+   "id": "TORQUE-1.1"
+  },
+  {
+   "id": "TOSL"
+  },
+  {
+   "id": "TPDL"
+  },
+  {
+   "id": "TPL-1.0"
+  },
+  {
+   "id": "TTWL"
+  },
+  {
+   "id": "TTYP0"
+  },
+  {
+   "id": "TU-Berlin-1.0"
+  },
+  {
+   "id": "TU-Berlin-2.0"
+  },
+  {
+   "id": "TekHVC"
+  },
+  {
+   "id": "TermReadKey"
+  },
+  {
+   "id": "ThirdEye"
+  },
+  {
+   "id": "TrustedQSL"
+  },
+  {
+   "id": "UCAR"
+  },
+  {
+   "id": "UCL-1.0",
+   "osi": true
+  },
+  {
+   "id": "UMich-Merit"
+  },
+  {
+   "id": "UPL-1.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "URT-RLE"
+  },
+  {
+   "id": "Ubuntu-font-1.0"
+  },
+  {
+   "id": "UnRAR"
+  },
+  {
+   "id": "Unicode-3.0",
+   "osi": true
+  },
+  {
+   "id": "Unicode-DFS-2015"
+  },
+  {
+   "id": "Unicode-DFS-2016",
+   "osi": true
+  },
+  {
+   "id": "Unicode-TOU"
+  },
+  {
+   "id": "UnixCrypt"
+  },
+  {
+   "id": "Unlicense",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "Unlicense-libtelnet"
+  },
+  {
+   "id": "Unlicense-libwhirlpool"
+  },
+  {
+   "id": "VOSTROM"
+  },
+  {
+   "id": "VSL-1.0",
+   "osi": true
+  },
+  {
+   "id": "Vim",
+   "fsf": true
+  },
+  {
+   "id": "Vixie-Cron"
+  },
+  {
+   "id": "W3C",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "W3C-19980720"
+  },
+  {
+   "id": "W3C-20150513",
+   "osi": true
+  },
+  {
+   "id": "WTFNMFPL"
+  },
+  {
+   "id": "WTFPL",
+   "fsf": true
+  },
+  {
+   "id": "Watcom-1.0",
+   "osi": true
+  },
+  {
+   "id": "Widget-Workshop"
+  },
+  {
+   "id": "WordNet",
+   "osi": true
+  },
+  {
+   "id": "Wsuipa"
+  },
+  {
+   "id": "X11",
+   "fsf": true
+  },
+  {
+   "id": "X11-distribute-modifications-variant"
+  },
+  {
+   "id": "X11-no-permit-persons"
+  },
+  {
+   "id": "X11-swapped"
+  },
+  {
+   "id": "XFree86-1.1",
+   "fsf": true
+  },
+  {
+   "id": "XSkat"
+  },
+  {
+   "id": "Xdebug-1.03"
+  },
+  {
+   "id": "Xerox"
+  },
+  {
+   "id": "Xfig"
+  },
+  {
+   "id": "Xnet",
+   "osi": true
+  },
+  {
+   "id": "YPL-1.0"
+  },
+  {
+   "id": "YPL-1.1",
+   "fsf": true
+  },
+  {
+   "id": "ZPL-1.1"
+  },
+  {
+   "id": "ZPL-2.0",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "ZPL-2.1",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "Zed"
+  },
+  {
+   "id": "Zeeff"
+  },
+  {
+   "id": "Zend-2.0",
+   "fsf": true
+  },
+  {
+   "id": "Zimbra-1.3",
+   "fsf": true
+  },
+  {
+   "id": "Zimbra-1.4"
+  },
+  {
+   "id": "Zlib",
+   "osi": true,
+   "fsf": true
+  },
+  {
+   "id": "any-OSI"
+  },
+  {
+   "id": "any-OSI-perl-modules"
+  },
+  {
+   "id": "bcrypt-Solar-Designer"
+  },
+  {
+   "id": "blessing"
+  },
+  {
+   "id": "bzip2-1.0.5",
+   "deprecated": true
+  },
+  {
+   "id": "bzip2-1.0.6"
+  },
+  {
+   "id": "check-cvs"
+  },
+  {
+   "id": "checkmk"
+  },
+  {
+   "id": "copyleft-next-0.3.0"
+  },
+  {
+   "id": "copyleft-next-0.3.1"
+  },
+  {
+   "id": "curl"
+  },
+  {
+   "id": "cve-tou"
+  },
+  {
+   "id": "diffmark"
+  },
+  {
+   "id": "dtoa"
+  },
+  {
+   "id": "dvipdfm"
+  },
+  {
+   "id": "eCos-2.0",
+   "deprecated": true,
+   "fsf": true
+  },
+  {
+   "id": "eGenix"
+  },
+  {
+   "id": "etalab-2.0"
+  },
+  {
+   "id": "fwlw"
+  },
+  {
+   "id": "gSOAP-1.3b"
+  },
+  {
+   "id": "generic-xts"
+  },
+  {
+   "id": "gnuplot",
+   "fsf": true
+  },
+  {
+   "id": "gtkbook"
+  },
+  {
+   "id": "hdparm"
+  },
+  {
+   "id": "hyphen-bulgarian"
+  },
+  {
+   "id": "iMatix",
+   "fsf": true
+  },
+  {
+   "id": "jove"
+  },
+  {
+   "id": "libpng-1.6.35"
+  },
+  {
+   "id": "libpng-2.0"
+  },
+  {
+   "id": "libselinux-1.0"
+  },
+  {
+   "id": "libtiff"
+  },
+  {
+   "id": "libutil-David-Nugent"
+  },
+  {
+   "id": "lsof"
+  },
+  {
+   "id": "magaz"
+  },
+  {
+   "id": "mailprio"
+  },
+  {
+   "id": "man2html"
+  },
+  {
+   "id": "metamail"
+  },
+  {
+   "id": "mpi-permissive"
+  },
+  {
+   "id": "mpich2"
+  },
+  {
+   "id": "mplus"
+  },
+  {
+   "id": "ngrep"
+  },
+  {
+   "id": "pkgconf"
+  },
+  {
+   "id": "pnmstitch"
+  },
+  {
+   "id": "psfrag"
+  },
+  {
+   "id": "psutils"
+  },
+  {
+   "id": "python-ldap"
+  },
+  {
+   "id": "radvd"
+  },
+  {
+   "id": "snprintf"
+  },
+  {
+   "id": "softSurfer"
+  },
+  {
+   "id": "ssh-keyscan"
+  },
+  {
+   "id": "swrule"
+  },
+  {
+   "id": "threeparttable"
+  },
+  {
+   "id": "ulem"
+  },
+  {
+   "id": "w3m"
+  },
+  {
+   "id": "wwl"
+  },
+  {
+   "id": "wxWindows",
+   "deprecated": true,
+   "osi": true
+  },
+  {
+   "id": "xinetd",
+   "fsf": true
+  },
+  {
+   "id": "xkeyboard-config-Zinoviev"
+  },
+  {
+   "id": "xlock"
+  },
+  {
+   "id": "xpp"
+  },
+  {
+   "id": "xzoom"
+  },
+  {
+   "id": "zlib-acknowledgement"
+  }
+ ]
+}

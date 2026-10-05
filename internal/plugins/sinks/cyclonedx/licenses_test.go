@@ -20,6 +20,8 @@ func TestLicenses(t *testing.T) {
 		{"id and expression", []string{"BSD-3-Clause", "Apache-2.0 OR MIT"}, cdx.Licenses{{Expression: "BSD-3-Clause AND (Apache-2.0 OR MIT)"}}},
 		{"unknown name", []string{"Proprietary"}, cdx.Licenses{name("Proprietary")}},
 		{"expression and unknown name", []string{"Apache-2.0 OR MIT", "Custom"}, cdx.Licenses{name("Apache-2.0 OR MIT"), name("Custom")}},
+		{"deprecated id", []string{"GPL-3.0"}, cdx.Licenses{{Expression: "GPL-3.0-only"}}},
+		{"blank value", []string{" "}, nil},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

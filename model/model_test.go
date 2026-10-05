@@ -100,6 +100,47 @@ func TestPURLRoundTrip(t *testing.T) {
 	}
 }
 
+func TestPURLFollowsPurlSpec(t *testing.T) {
+	cases := []struct {
+		name      string
+		id        PackageVersion
+		purl      string
+		canonical string
+	}{
+		{"pypi keeps a trailing zero", mustPV(t, EcosystemPyPI, "anthropic-sdk", "0.1.0"), "pkg:pypi/anthropic-sdk@0.1.0", "pkg:pypi/anthropic-sdk@0.1"},
+		{"pypi keeps a dot in the name", mustPV(t, EcosystemPyPI, "python.dateutil", "2.8.2"), "pkg:pypi/python.dateutil@2.8.2", "pkg:pypi/python-dateutil@2.8.2"},
+		{"pypi lowers case and maps underscore", mustPV(t, EcosystemPyPI, "Flask_RESTful", "3.0.0.0"), "pkg:pypi/flask-restful@3.0.0.0", "pkg:pypi/flask-restful@3"},
+		{"pypi encodes a slash in the name", mustPV(t, EcosystemPyPI, "foo/bar", "1.0.0"), "pkg:pypi/foo%2Fbar@1.0.0", "pkg:pypi/foo%2Fbar@1"},
+		{"pypi with no version", mustPV(t, EcosystemPyPI, "Django", ""), "pkg:pypi/django", "pkg:pypi/django"},
+		{"pypi trims the version", mustPV(t, EcosystemPyPI, "django", " 4.2.0 "), "pkg:pypi/django@4.2.0", "pkg:pypi/django@4.2"},
+		{"npm is unchanged", mustPV(t, EcosystemNpm, "@babel/core", "7.24.0"), "pkg:npm/%40babel/core@7.24.0", "pkg:npm/%40babel/core@7.24.0"},
+		{"maven is unchanged", mustPV(t, EcosystemMaven, "com.google:guava", "33.0"), "pkg:maven/com.google/guava@33.0", "pkg:maven/com.google/guava@33.0"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.purl, tc.id.PURL())
+			assert.Equal(t, tc.canonical, tc.id.CanonicalPURL())
+			got, err := ParsePURL(tc.id.PURL())
+			require.NoError(t, err)
+			assert.True(t, tc.id.Equal(got))
+		})
+	}
+}
+
+// A new name fold in dry changes the PURL name of its ecosystem. The
+// purl-spec name rule of that ecosystem must then join purlSpecName.
+func TestPURLSpecNameCoversEachNameFold(t *testing.T) {
+	for eco := range ecosystems {
+		t.Run(string(eco), func(t *testing.T) {
+			id := mustPV(t, eco, "Ab_c.d", "1.0.0")
+			if id.Name() == id.RawName() {
+				return
+			}
+			assert.Contains(t, purlSpecName, ecosystems[eco], "the PURL of %s has no purl-spec name rule", eco)
+		})
+	}
+}
+
 func TestPackageVersionIdentity(t *testing.T) {
 	t.Run("two spellings of one PyPI release are one key", func(t *testing.T) {
 		a := mustPV(t, EcosystemPyPI, "python.dateutil", "2.8")
@@ -163,7 +204,7 @@ func TestPackageVersionJSON(t *testing.T) {
 	in := mustPV(t, EcosystemPyPI, "Zope.Interface", "1.0.0.0")
 	b, err := json.Marshal(in)
 	require.NoError(t, err)
-	assert.JSONEq(t, `{"ecosystem":"pypi","name":"zope-interface","version":"1","raw_name":"Zope.Interface","raw_version":"1.0.0.0","purl":"pkg:pypi/zope-interface@1"}`, string(b))
+	assert.JSONEq(t, `{"ecosystem":"pypi","name":"zope-interface","version":"1","raw_name":"Zope.Interface","raw_version":"1.0.0.0","purl":"pkg:pypi/zope.interface@1.0.0.0"}`, string(b))
 
 	var out PackageVersion
 	require.NoError(t, json.Unmarshal(b, &out))

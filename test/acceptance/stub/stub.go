@@ -264,10 +264,11 @@ func (m *malysisService) QueryPackageAnalysis(ctx context.Context, req *malysisv
 }
 
 // githubRepo is the fixture of one repository: the commit SHA of each tag
-// and branch.
+// and branch, and the release tags, newest first.
 type githubRepo struct {
 	Tags     map[string]string `json:"tags"`
 	Branches map[string]string `json:"branches"`
+	Releases []string          `json:"releases"`
 }
 
 // serveGitHub answers the GitHub API calls that resolve a ref to a commit
@@ -276,12 +277,17 @@ type githubRepo struct {
 //	GET /repos/{owner}/{repo}/git/ref/tags/{tag}
 //	GET /repos/{owner}/{repo}/git/ref/heads/{branch}
 //	GET /repos/{owner}/{repo}/commits/{ref}
+//	GET /repos/{owner}/{repo}/releases (one page)
 func (s *Server) serveGitHub(w http.ResponseWriter, r *http.Request) {
 	if err := s.begin(r.Context(), GitHub); err != nil {
 		http.Error(w, err.Error(), http.StatusServiceUnavailable)
 		return
 	}
 	parts := strings.Split(strings.Trim(strings.TrimPrefix(r.URL.Path, "/api/v3"), "/"), "/")
+	if r.Method == http.MethodGet && len(parts) == 4 && parts[0] == "repos" && parts[3] == "releases" {
+		s.serveReleases(w, r, parts[1], parts[2])
+		return
+	}
 	if r.Method != http.MethodGet || len(parts) < 4 || parts[0] != "repos" {
 		http.NotFound(w, r)
 		return
@@ -335,5 +341,32 @@ func (s *Server) serveGitHub(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := json.NewEncoder(w).Encode(body); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+// serveReleases answers the release list of a repository from the
+// releases of its fixture. The list fits on one page.
+func (s *Server) serveReleases(w http.ResponseWriter, r *http.Request, owner, name string) {
+	path := s.fixture(GitHub, owner, name+".json")
+	data, err := os.ReadFile(path)
+	if path == "" || err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	var repo githubRepo
+	if err := json.Unmarshal(data, &repo); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	type release struct {
+		TagName string `json:"tag_name"`
+	}
+	out := make([]release, 0, len(repo.Releases))
+	for _, tag := range repo.Releases {
+		out = append(out, release{TagName: tag})
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(out); err != nil {
+		fmt.Fprintf(os.Stderr, "stub: write: %v\n", err)
 	}
 }

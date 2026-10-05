@@ -45,9 +45,12 @@ one package.
 _Avoid_: PURL as a key (a name can form no PURL, and the PURL is for display and the wire)
 
 **PURL**:
-The package URL of a package version, from `PackageVersion.PURL()`. It is for display, for report
-fields and for formats such as SARIF and CycloneDX. It can be empty. Never compare it and never use it
-as a map key. `internal/archtest` fails on both.
+The package URL of a package version, from `PackageVersion.PURL()`. It follows the purl-spec type
+definition of its ecosystem. It keeps the version as the manifest writes it, so `0.1.0` stays `0.1.0`
+for PyPI. It is for display, for report fields and for formats such as SARIF and CycloneDX. It can be
+empty. Never compare it and never use it as a map key. `internal/archtest` fails on both.
+`PackageVersion.CanonicalPURL()` is the PURL of the canonical name and version. Only the target key
+of a PURL target uses it.
 
 **Package**:
 One package version that a manifest declares or resolves, with the data that the enrichers add.
@@ -174,6 +177,13 @@ The package data from SafeDep Insights v2: vulnerabilities, licenses, publish da
 provenance, OpenSSF Scorecard, source repository, stars, downloads and the latest version.
 `model.Insight`, set by the `insights` enricher.
 _Avoid_: metadata, package info
+
+**License expression**:
+The license of a package as an SPDX license expression (SPDX 2.3 Annex D), such as `MIT OR
+Apache-2.0`. `spdxlicense.Parse` builds it from the declared license values of a package and joins
+two or more values with `AND`. `spdxlicense.Policy` checks it against the allow and the deny list of
+the license control. `spdxlicense.Equal` compares the canonical form of two licenses.
+_Avoid_: license string (a string compare misses `GPL-3.0` and `GPL-3.0-only`)
 
 **SafeDep Threat Intel**:
 The user-facing name of the malware verdict service. `model.MalwareAnalysis` holds its verdict on
