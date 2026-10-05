@@ -173,7 +173,7 @@ func (s *Scan) blobRecords(ctx context.Context, query string, yield func(*report
 // order, then manifest order, so one pass groups them. The package fields
 // come from the first manifest that declares the package.
 func (s *Scan) packageRecords(ctx context.Context, yield func(*report.Record, error) bool) bool {
-	rows, err := s.db.QueryContext(ctx, `SELECT mp.manifest_id, mp.data, p.insight, p.malware, p.usage
+	rows, err := s.db.QueryContext(ctx, `SELECT mp.manifest_id, mp.data, p.enrichment
 		FROM vet_scan_packages p
 		JOIN vet_scan_manifest_packages mp ON mp.pkey = p.pkey
 		JOIN vet_scan_manifests m ON m.id = mp.manifest_id
@@ -195,33 +195,22 @@ func (s *Scan) packageRecords(ctx context.Context, yield func(*report.Record, er
 	}
 	for rows.Next() {
 		var manifestID string
-		var data, insight, malware, usage []byte
-		if err := rows.Scan(&manifestID, &data, &insight, &malware, &usage); err != nil {
+		var data, enrichment []byte
+		if err := rows.Scan(&manifestID, &data, &enrichment); err != nil {
 			yield(nil, err)
 			return false
 		}
-		var pd packageData
-		if err := json.Unmarshal(data, &pd); err != nil {
-			yield(nil, fmt.Errorf("decode package: %w", err))
+		p, err := decodePackage(data, enrichment)
+		if err != nil {
+			yield(nil, err)
 			return false
 		}
-		if cur != nil && cur.ID.Equal(pd.ID) {
+		if cur != nil && cur.ID.Equal(p.ID) {
 			cur.ManifestIDs = append(cur.ManifestIDs, manifestID)
 			continue
 		}
 		if !flush() {
 			return false
-		}
-		p := pd.Package
-		for _, dec := range []error{
-			unmarshalIf(insight, &p.Insight),
-			unmarshalIf(malware, &p.Malware),
-			unmarshalIf(usage, &p.Usage),
-		} {
-			if dec != nil {
-				yield(nil, dec)
-				return false
-			}
 		}
 		cur = &report.PackageEntry{PURL: p.ID.PURL(), ManifestIDs: []string{manifestID}, Package: p}
 	}

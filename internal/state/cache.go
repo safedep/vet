@@ -46,13 +46,6 @@ var cacheMigrations = []string{
 	`CREATE INDEX vet_cache_package_enrichments_expires ON vet_cache_package_enrichments (expires_at)`,
 }
 
-// cachedData holds the package fields that an enricher sets.
-type cachedData struct {
-	Insight *model.Insight         `json:"insight,omitempty"`
-	Malware *model.MalwareAnalysis `json:"malware,omitempty"`
-	Usage   *model.Usage           `json:"usage,omitempty"`
-}
-
 // Cache is the enrichment cache in cache.db. Several vet processes can
 // share it.
 type Cache struct {
@@ -112,19 +105,11 @@ func (c *Cache) Lookup(ctx context.Context, enricher, version string, pkgs []*mo
 		if err != nil {
 			return nil, nil, fmt.Errorf("read the enrichment cache: %w", err)
 		}
-		var cd cachedData
-		if err := json.Unmarshal(data, &cd); err != nil {
+		var cached model.Enrichment
+		if err := json.Unmarshal(data, &cached); err != nil {
 			return nil, nil, fmt.Errorf("decode the enrichment cache: %w", err)
 		}
-		if cd.Insight != nil {
-			p.Insight = cd.Insight
-		}
-		if cd.Malware != nil {
-			p.Malware = cd.Malware
-		}
-		if cd.Usage != nil {
-			p.Usage = cd.Usage
-		}
+		p.Enrichment = p.Enrichment.Merge(cached)
 		hits = append(hits, EnrichmentResult{Package: p, Enricher: enricher, Status: status})
 	}
 	return hits, misses, nil
@@ -145,7 +130,7 @@ func (c *Cache) Put(ctx context.Context, version string, ttl time.Duration, resu
 		if r.Status == EnrichmentFailed {
 			continue
 		}
-		data, err := json.Marshal(cachedData{Insight: r.Package.Insight, Malware: r.Package.Malware, Usage: r.Package.Usage})
+		data, err := json.Marshal(r.Package.Enrichment)
 		if err != nil {
 			return errors.Join(err, tx.Rollback())
 		}

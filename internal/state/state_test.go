@@ -102,6 +102,11 @@ func TestScanFileWrites(t *testing.T) {
 
 	m.Packages[0].Malware = &model.MalwareAnalysis{Malicious: true}
 	require.NoError(t, scan.SaveEnrichments(ctx, []EnrichmentResult{{Package: m.Packages[0], Enricher: "malysis", Status: EnrichmentOK}}))
+	action := &model.Package{ID: m.Packages[0].ID, Enrichment: model.Enrichment{Action: &model.ActionCommit{Reachable: true, Ref: "main"}}}
+	require.NoError(t, scan.SaveEnrichments(ctx, []EnrichmentResult{{Package: action, Enricher: "actionrefs", Status: EnrichmentOK}}))
+	stored, err := scan.Package(ctx, m.Packages[0].ID)
+	require.NoError(t, err)
+	assert.Equal(t, model.Enrichment{Malware: m.Packages[0].Malware, Action: action.Action}, stored.Enrichment, "a save keeps the data of the other enrichers")
 
 	f := finding.ForPackage(finding.Meta{ControlID: "malware", Family: finding.FamilyMalware, Severity: finding.SeverityCritical, Title: "x"},
 		m.Path, m.Packages[0], finding.Key{})

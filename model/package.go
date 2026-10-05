@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"reflect"
+	"time"
+)
 
 // Package is one package version that a manifest declares or resolves. The
 // optional pointer fields hold the data of each data source. They are nil
@@ -33,12 +36,61 @@ type Package struct {
 	// package, so vet does not look it up.
 	Local bool `json:"local,omitempty"`
 
-	Insight *Insight `json:"insight,omitempty"`
+	Enrichment
+
 	// PreviousInsight is the Insights data of PreviousVersion, in pull
 	// request mode. The controls that compare two versions read it.
-	PreviousInsight *Insight         `json:"previous_insight,omitempty"`
-	Malware         *MalwareAnalysis `json:"malware,omitempty"`
-	Usage           *Usage           `json:"usage,omitempty"`
+	PreviousInsight *Insight `json:"previous_insight,omitempty"`
+}
+
+// Enrichment holds the package data that the enrichers set. Each field
+// belongs to one enricher and is a pointer. The engine, the scan file and
+// the enrichment cache copy the fields through this struct, so a new
+// enricher adds its field here and nowhere else.
+type Enrichment struct {
+	Insight *Insight         `json:"insight,omitempty"`
+	Malware *MalwareAnalysis `json:"malware,omitempty"`
+	Usage   *Usage           `json:"usage,omitempty"`
+	Action  *ActionCommit    `json:"action,omitempty"`
+}
+
+// Empty reports whether no field is set.
+func (e Enrichment) Empty() bool { return e == Enrichment{} }
+
+// Merge returns e with each field that o sets.
+func (e Enrichment) Merge(o Enrichment) Enrichment {
+	dst, src := reflect.ValueOf(&e).Elem(), reflect.ValueOf(o)
+	for i := range src.NumField() {
+		if !src.Field(i).IsNil() {
+			dst.Field(i).Set(src.Field(i))
+		}
+	}
+	return e
+}
+
+// Since returns the fields of e that differ from before: the data that an
+// enricher set.
+func (e Enrichment) Since(before Enrichment) Enrichment {
+	var out Enrichment
+	dst, now, was := reflect.ValueOf(&out).Elem(), reflect.ValueOf(e), reflect.ValueOf(before)
+	for i := range now.NumField() {
+		if now.Field(i).Pointer() != was.Field(i).Pointer() {
+			dst.Field(i).Set(now.Field(i))
+		}
+	}
+	return out
+}
+
+// ActionCommit is the GitHub data of a GitHub Actions package pinned to a
+// commit. A nil value means that the check did not finish.
+type ActionCommit struct {
+	// Reachable reports that a branch or a tag of the repository contains
+	// the commit.
+	Reachable bool `json:"reachable"`
+	// Tags are the tags that point to the commit.
+	Tags []string `json:"tags,omitempty"`
+	// Ref is the first branch or tag that vet found to contain the commit.
+	Ref string `json:"ref,omitempty"`
 }
 
 // Checkable reports whether a registry can answer for the package: it has a

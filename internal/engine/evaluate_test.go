@@ -10,12 +10,12 @@ import (
 )
 
 func TestAnnotateUsage(t *testing.T) {
-	used := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "a", "1.0.0"), Usage: &model.Usage{Imported: true, Files: []string{"src/x.js", "src/y.js"}}}
-	unused := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "b", "1.0.0"), Usage: &model.Usage{}}
+	used := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "a", "1.0.0"), Enrichment: model.Enrichment{Usage: &model.Usage{Imported: true, Files: []string{"src/x.js", "src/y.js"}}}}
+	unused := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "b", "1.0.0"), Enrichment: model.Enrichment{Usage: &model.Usage{}}}
 	unknown := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "c", "1.0.0")}
-	once := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "d", "1.0.0"), Usage: &model.Usage{Imported: true, Files: []string{"index.js"}}}
-	many := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "f", "1.0.0"), Usage: &model.Usage{Imported: true, Files: []string{"a.js", "b.js", "c.js"}}}
-	noFiles := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "e", "1.0.0"), Usage: &model.Usage{Imported: true}}
+	once := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "d", "1.0.0"), Enrichment: model.Enrichment{Usage: &model.Usage{Imported: true, Files: []string{"index.js"}}}}
+	many := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "f", "1.0.0"), Enrichment: model.Enrichment{Usage: &model.Usage{Imported: true, Files: []string{"a.js", "b.js", "c.js"}}}}
+	noFiles := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "e", "1.0.0"), Enrichment: model.Enrichment{Usage: &model.Usage{Imported: true}}}
 	m := &model.Manifest{Path: "package-lock.json", Packages: []*model.Package{used, unused, unknown, once, many, noFiles}}
 	meta := finding.Meta{ControlID: "x", Family: finding.FamilyMalware, Severity: finding.SeverityHigh, Title: "t"}
 

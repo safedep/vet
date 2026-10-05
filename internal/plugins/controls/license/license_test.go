@@ -13,7 +13,7 @@ import (
 )
 
 func pkg(licenses ...string) *model.Package {
-	return &model.Package{ID: model.MustPackageVersion(model.EcosystemPyPI, "pyqt5", "5.15.11"), Insight: &model.Insight{Licenses: licenses}}
+	return &model.Package{ID: model.MustPackageVersion(model.EcosystemPyPI, "pyqt5", "5.15.11"), Enrichment: model.Enrichment{Insight: &model.Insight{Licenses: licenses}}}
 }
 
 func TestEvaluate(t *testing.T) {
@@ -43,7 +43,7 @@ func TestEvaluate(t *testing.T) {
 		{"no insight", map[string]any{"allow": []any{"MIT"}}, &model.Package{ID: model.MustPackageVersion(model.EcosystemGitHubActions, "actions/checkout", "v4")}, nil},
 		{"removed package", map[string]any{"deny": gpl}, &model.Package{
 			ID: model.MustPackageVersion(model.EcosystemPyPI, "pyqt5", "5.15.11"), Change: model.ChangeRemoved,
-			Insight: &model.Insight{Licenses: []string{"GPL-3.0"}},
+			Enrichment: model.Enrichment{Insight: &model.Insight{Licenses: []string{"GPL-3.0"}}},
 		}, nil},
 	}
 	for _, tc := range cases {
@@ -86,7 +86,7 @@ func TestScope(t *testing.T) {
 	gpl := func(name string, direct, dev bool) *model.Package {
 		return &model.Package{
 			ID: model.MustPackageVersion(model.EcosystemNpm, name, "1.0.0"), Direct: direct, Dev: dev,
-			Insight: &model.Insight{Licenses: []string{"GPL-3.0-only"}},
+			Enrichment: model.Enrichment{Insight: &model.Insight{Licenses: []string{"GPL-3.0-only"}}},
 		}
 	}
 	removed := func(p *model.Package) *model.Package {
