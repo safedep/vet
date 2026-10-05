@@ -18,6 +18,7 @@ a `›` line with the fix under a check that did not pass. `-o json` returns the
 | --- | --- |
 | `vet.version`, `vet.release` | The version of vet, and whether a newer release of the same major version exists. An alpha build compares with the newer alpha builds. |
 | `config.file` | The config file loads and has no unknown key. |
+| `github.token` | The GitHub token and its source: `GITHUB_TOKEN`, `GH_TOKEN` or `gh auth token`. With no token, vet calls the GitHub API anonymously, with 60 calls an hour. |
 | `install.path` | The vet that PATH finds first is this vet. |
 | `plugins` | Each `plugins` section names a built-in plugin and has valid options. `codeusage` needs a vet build with CGO. |
 | `state.dir` | The state directory exists and vet can write to it. |

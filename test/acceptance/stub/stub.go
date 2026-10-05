@@ -8,10 +8,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"net"
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -264,11 +266,15 @@ func (m *malysisService) QueryPackageAnalysis(ctx context.Context, req *malysisv
 }
 
 // githubRepo is the fixture of one repository: the commit SHA of each tag
-// and branch, and the release tags, newest first.
+// and branch, the release tags, newest first, the default branch (main
+// when empty), and the status of each compare base...head that is not
+// identical or diverged.
 type githubRepo struct {
-	Tags     map[string]string `json:"tags"`
-	Branches map[string]string `json:"branches"`
-	Releases []string          `json:"releases"`
+	Tags          map[string]string `json:"tags"`
+	Branches      map[string]string `json:"branches"`
+	Releases      []string          `json:"releases"`
+	DefaultBranch string            `json:"default_branch"`
+	Compare       map[string]string `json:"compare"`
 }
 
 // serveGitHub answers the GitHub API calls that resolve a ref to a commit
@@ -278,6 +284,9 @@ type githubRepo struct {
 //	GET /repos/{owner}/{repo}/git/ref/heads/{branch}
 //	GET /repos/{owner}/{repo}/commits/{ref}
 //	GET /repos/{owner}/{repo}/releases (one page)
+//	GET /repos/{owner}/{repo}
+//	GET /repos/{owner}/{repo}/tags and /branches (one page)
+//	GET /repos/{owner}/{repo}/compare/{base}...{head}
 func (s *Server) serveGitHub(w http.ResponseWriter, r *http.Request) {
 	if err := s.begin(r.Context(), GitHub); err != nil {
 		http.Error(w, err.Error(), http.StatusServiceUnavailable)
@@ -288,7 +297,7 @@ func (s *Server) serveGitHub(w http.ResponseWriter, r *http.Request) {
 		s.serveReleases(w, r, parts[1], parts[2])
 		return
 	}
-	if r.Method != http.MethodGet || len(parts) < 4 || parts[0] != "repos" {
+	if r.Method != http.MethodGet || len(parts) < 3 || parts[0] != "repos" {
 		http.NotFound(w, r)
 		return
 	}
@@ -309,6 +318,10 @@ func (s *Server) serveGitHub(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rest := parts[3:]
+	if len(rest) == 0 || rest[0] == "tags" || rest[0] == "branches" || rest[0] == "compare" {
+		serveRepo(w, r, &repo, rest)
+		return
+	}
 	var sha, ref string
 	switch {
 	case len(rest) >= 4 && rest[0] == "git" && rest[1] == "ref" && rest[2] == "tags":
@@ -342,6 +355,55 @@ func (s *Server) serveGitHub(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(body); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+// serveRepo answers the calls of the actionrefs enricher: the repository,
+// its tags and branches, and the compare of a ref with a commit.
+func serveRepo(w http.ResponseWriter, r *http.Request, repo *githubRepo, rest []string) {
+	var body any
+	switch {
+	case len(rest) == 0:
+		def := repo.DefaultBranch
+		if def == "" {
+			def = "main"
+		}
+		body = map[string]string{"default_branch": def}
+	case len(rest) == 1 && rest[0] == "tags":
+		body = refList(repo.Tags)
+	case len(rest) == 1 && rest[0] == "branches":
+		body = refList(repo.Branches)
+	case rest[0] == "compare":
+		pair := strings.Join(rest[1:], "/")
+		base, head, _ := strings.Cut(pair, "...")
+		status := repo.Compare[pair]
+		switch {
+		case status == "notfound":
+			http.NotFound(w, r)
+			return
+		case status != "":
+		case repo.Branches[base] == head || repo.Tags[base] == head:
+			status = "identical"
+		default:
+			status = "diverged"
+		}
+		body = map[string]string{"status": status}
+	default:
+		http.NotFound(w, r)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(body); err != nil {
+		fmt.Fprintf(os.Stderr, "stub: write: %v\n", err)
+	}
+}
+
+// refList returns the tags or the branches of a fixture in name order.
+func refList(refs map[string]string) []map[string]any {
+	out := make([]map[string]any, 0, len(refs))
+	for _, name := range slices.Sorted(maps.Keys(refs)) {
+		out = append(out, map[string]any{"name": name, "commit": map[string]string{"sha": refs[name]}})
+	}
+	return out
 }
 
 // serveReleases answers the release list of a repository from the
