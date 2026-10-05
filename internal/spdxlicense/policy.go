@@ -66,7 +66,7 @@ func (p *Policy) Check(d Declared) Result {
 	if d.root != nil && p.Denies() && p.denied(d.root) {
 		return Result{Verdict: Denied, Denied: p.deniedTerms(d.root)}
 	}
-	if p.Allows() && (d.None || d.root != nil && !p.allowed(d.root)) {
+	if p.Allows() && (d.NoLicense() || d.root != nil && !p.allowed(d.root)) {
 		return Result{Verdict: NotAllowed}
 	}
 	if !d.Known() || d.NoLicense() {
