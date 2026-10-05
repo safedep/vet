@@ -250,7 +250,7 @@ func TestInstalledNotLocked(t *testing.T) {
 	lock := &model.Manifest{
 		ID: "lock", Path: "app/package-lock.json", Ecosystem: model.EcosystemNpm, Kind: model.ManifestKindLockfile,
 		Extractor: packagelockjson.Name,
-		Packages:  []*model.Package{npmPkg("left-pad", "1.3.0"), npmPkg("minimist", "1.2.8"), npmPkg("bundled", "1.0.0")},
+		Packages:  []*model.Package{npmPkg("left-pad", "1.3.0"), npmPkg("minimist", "1.2.8"), npmPkg("bundled", "1.0.0"), npmPkg("linked", "1.0.0")},
 	}
 	// The extractor drops the git dependency, because it has no npm PURL.
 	root := fstest.MapFS{"app/package-lock.json": {Data: []byte(`{"lockfileVersion": 3, "packages": {
@@ -258,7 +258,9 @@ func TestInstalledNotLocked(t *testing.T) {
   "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"},
   "node_modules/minimist": {"version": "1.2.8", "resolved": "https://registry.npmjs.org/minimist/-/minimist-1.2.8.tgz"},
   "node_modules/from-git": {"version": "2.0.0", "resolved": "git+ssh://git@github.com/o/from-git.git#abc"},
-  "node_modules/bundled": {"version": "1.0.0", "inBundle": true}
+  "node_modules/bundled": {"version": "1.0.0", "inBundle": true},
+  "node_modules/linked": {"resolved": "packages/linked", "link": true},
+  "node_modules/a/node_modules/linked": {"version": "1.0.0", "resolved": "https://registry.npmjs.org/linked/-/linked-1.0.0.tgz"}
 }}`)}}
 	installed := func(p string, pkg *model.Package) *model.Manifest {
 		return &model.Manifest{ID: p, Path: p, Ecosystem: model.EcosystemNpm, Kind: model.ManifestKindInstalled, Root: root, Packages: []*model.Package{pkg}}
@@ -274,6 +276,8 @@ func TestInstalledNotLocked(t *testing.T) {
 		{"no lockfile in the project", installed("other/node_modules/evil/package.json", npmPkg("evil", "1.0.0")), ""},
 		{"git dependency", installed("app/node_modules/from-git/package.json", npmPkg("from-git", "2.0.0")), ""},
 		{"no resolved field", installed("app/node_modules/bundled/package.json", npmPkg("bundled", "2.0.0")), "npm/bundled@2.0.0 is installed, and the lockfile has 1.0.0"},
+		{"link entry", installed("app/node_modules/linked/package.json", npmPkg("linked", "3.0.0")), ""},
+		{"registry entry of a linked name", installed("app/node_modules/a/node_modules/linked/package.json", npmPkg("linked", "2.0.0")), "npm/linked@2.0.0 is installed, and the lockfile has 1.0.0"},
 		{"workspace member", installed("app/packages/a/node_modules/evil/package.json", npmPkg("evil", "1.0.0")), "npm/evil@1.0.0 is installed, and the lockfile does not list it"},
 	}
 	c, err := New(plugin.MapConfig(nil))
