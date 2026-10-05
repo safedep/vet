@@ -27,7 +27,7 @@ vet policy control list -o json
 | `provenance-lost` | hygiene | medium | An upgrade to a version with no SLSA provenance, when the previous version had one |
 | `deprecated-package` | hygiene | medium | A version that the registry marks deprecated |
 | `license-change` | license | medium | An upgrade that changes the license |
-| `license-relicensed` | license | high | An upgrade from an OSI or FSF license to a known license that is neither, such as SSPL-1.0, BUSL-1.1 or `NONE` |
+| `license-relicensed` | license | high | An upgrade to a license that limits the use of the code, such as SSPL-1.0, BUSL-1.1 or CC-BY-NC-4.0, or to `NONE` |
 | `license-denied` | license | high | A license that `plugins.license.options.deny` names, in each choice of the license expression |
 | `license-not-allowed` | license | medium | A license that `plugins.license.options.allow` does not satisfy |
 | `license-unknown` | license | low | A package with no license data, a license that is not an SPDX expression, or `NONE` with only a deny list. Reported when a list is set, unless `unknown: ignore` |
@@ -114,11 +114,16 @@ Annex D):
   `license-unknown` when a list is set. Set `unknown: ignore` to stop this. A known license value
   that fails a list fails the package, even with an unknown value beside it.
 - `NONE` means no license, so the author keeps all rights. It fails an allow list. A deny list alone
-  cannot decide it, so it is unknown.
+  cannot decide it, so it is unknown. `NONE` beside a license id does not change the verdict of the
+  id.
 - `scope: runtime` skips the dev dependencies. `scope: direct` checks only the direct dependencies.
-  When a manifest does not mark its direct dependencies, vet checks all its packages.
-- `license-relicensed` (from the hygiene control) reports an upgrade that moves from an OSI or FSF
-  license to a known license that is neither, such as `SSPL-1.0`, `BUSL-1.1` or `NONE`.
+  The dependencies of an npm workspace member are direct. When a manifest does not mark its direct
+  dependencies, vet checks all its packages.
+- `license-relicensed` (from the hygiene control) reports an upgrade that moves to a license that
+  limits the use of the code, or to `NONE`. These licenses are source available (`SSPL-1.0`,
+  `BUSL-1.1`, `Elastic-2.0`), allow no commercial use (`CC-BY-NC-*`, `PolyForm-Noncommercial-1.0.0`,
+  `PolyForm-Small-Business-1.0.0`) or allow no derived works (`CC-BY-ND-*`). Each choice of the
+  expression must have one. Other license changes are `license-change`.
 
 ```yaml
 plugins:

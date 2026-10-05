@@ -147,7 +147,7 @@ func (c *Control) inScope(m *model.Manifest) func(*model.Package) bool {
 	case ScopeRuntime:
 		return func(p *model.Package) bool { return !p.Dev }
 	case ScopeDirect:
-		if slices.ContainsFunc(m.Packages, func(p *model.Package) bool { return p.Direct }) {
+		if slices.ContainsFunc(m.Packages, func(p *model.Package) bool { return p.Direct && p.Change != model.ChangeRemoved }) {
 			return func(p *model.Package) bool { return p.Direct }
 		}
 	}
@@ -172,7 +172,7 @@ func (c *Control) finding(m *model.Manifest, p *model.Package, d spdxlicense.Dec
 		}
 		id = IDUnknown
 		switch {
-		case d.None:
+		case d.NoLicense():
 			title = fmt.Sprintf("%s declares no license, so the author keeps all rights", p.ID)
 		case shown != "":
 			title = fmt.Sprintf("%s has the license %q, which is not an SPDX expression", p.ID, shown)

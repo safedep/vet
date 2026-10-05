@@ -87,6 +87,11 @@ func (d Declared) Known() bool {
 	return len(d.Unknown) == 0 && (d.root != nil || d.None)
 }
 
+// NoLicense reports NONE with no license id beside it.
+func (d Declared) NoLicense() bool {
+	return d.None && d.root == nil
+}
+
 // ActiveID returns the active SPDX license id of v, in the case of the SPDX
 // License List, or false when v is not one active id.
 func ActiveID(v string) (string, bool) {

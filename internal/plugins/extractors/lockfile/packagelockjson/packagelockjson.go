@@ -261,6 +261,12 @@ func DeterminePackageSource(resolved, commit string) metadata.NPMPackageSource {
 	return metadata.Local
 }
 
+// isProject reports the root project or a workspace member. Their
+// dependencies are the direct dependencies of the lockfile.
+func isProject(namePath string) bool {
+	return namePath == "" || !strings.Contains(namePath, "node_modules/")
+}
+
 // resolveNpmDependency finds the package-lock.json path that npm loads when the
 // package at from requires name: the nearest node_modules/name, walking up the tree.
 func resolveNpmDependency(packages map[string]packagelockjson.Package, from, name string) string {
@@ -348,7 +354,8 @@ func linkNpmLockPackages(packages map[string]packagelockjson.Package, details np
 			continue
 		}
 		requires := []map[string]string{detail.Dependencies, detail.OptionalDependencies, detail.PeerDependencies}
-		if namePath == "" {
+		project := isProject(namePath)
+		if project {
 			requires = append(requires, detail.DevDependencies)
 		}
 		for _, deps := range requires {
@@ -358,9 +365,10 @@ func linkNpmLockPackages(packages map[string]packagelockjson.Package, details np
 					continue
 				}
 				child := details[childKey]
-				if namePath == "" {
+				if project {
 					child.Direct = true
-				} else {
+				}
+				if namePath != "" {
 					if child.Parents == nil {
 						child.Parents = map[string]bool{}
 					}

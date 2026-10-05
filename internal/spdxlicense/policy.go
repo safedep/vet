@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"sync"
 )
 
 // Verdict is the result of a license check.
@@ -59,7 +60,8 @@ type Result struct {
 // a deny list with GPL-3.0-only. With both lists, one choice must satisfy
 // both: "GPL-3.0-only OR SSPL-1.0" fails allow [GPL-3.0-only, MIT] with deny
 // [GPL-3.0-only]. The values join with AND, so a known value that fails a
-// list fails the package, whatever its unknown values are.
+// list fails the package, whatever its unknown values are. NONE alone fails
+// an allow list. A deny list alone cannot decide it, so it is unknown.
 func (p *Policy) Check(d Declared) Result {
 	if d.root != nil && p.Denies() && p.denied(d.root) {
 		return Result{Verdict: Denied, Denied: p.deniedTerms(d.root)}
@@ -67,10 +69,33 @@ func (p *Policy) Check(d Declared) Result {
 	if p.Allows() && (d.None || d.root != nil && !p.allowed(d.root)) {
 		return Result{Verdict: NotAllowed}
 	}
-	if !d.Known() {
+	if !d.Known() || d.NoLicense() {
 		return Result{Verdict: Unknown}
 	}
 	return Result{Verdict: Pass}
+}
+
+// restrictive holds the licenses that limit the use of the code: source
+// available, no commercial use or no derived works. The SPDX License List
+// has no flag for them.
+var restrictive = sync.OnceValue(func() *Policy {
+	deny := []string{"SSPL-1.0", "BUSL-1.1", "Elastic-2.0", "PolyForm-Noncommercial-1.0.0", "PolyForm-Small-Business-1.0.0"}
+	for id, l := range ids {
+		if !l.Deprecated && (strings.HasPrefix(id, "cc-by-nc") || strings.HasPrefix(id, "cc-by-nd")) {
+			deny = append(deny, l.ID)
+		}
+	}
+	p, err := NewPolicy(nil, deny)
+	if err != nil {
+		panic(err)
+	}
+	return p
+})
+
+// Restricted reports that each choice of the license has a license that
+// limits the use of the code, such as SSPL-1.0, BUSL-1.1 or CC-BY-NC-4.0.
+func Restricted(d Declared) bool {
+	return d.root != nil && restrictive().denied(d.root)
 }
 
 // allowed reports whether a choice of the expression has only terms that

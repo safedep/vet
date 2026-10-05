@@ -89,6 +89,10 @@ func TestScope(t *testing.T) {
 			Insight: &model.Insight{Licenses: []string{"GPL-3.0-only"}},
 		}
 	}
+	removed := func(p *model.Package) *model.Package {
+		p.Change = model.ChangeRemoved
+		return p
+	}
 	all := []*model.Package{gpl("runtime", true, false), gpl("dev", true, true), gpl("indirect", false, false)}
 	cases := []struct {
 		name  string
@@ -101,6 +105,7 @@ func TestScope(t *testing.T) {
 		{"runtime", license.ScopeRuntime, all, []string{"runtime", "indirect"}},
 		{"direct", license.ScopeDirect, all, []string{"runtime", "dev"}},
 		{"direct with no direct data", license.ScopeDirect, []*model.Package{gpl("a", false, false), gpl("b", false, false)}, []string{"a", "b"}},
+		{"direct with only a removed direct package", license.ScopeDirect, []*model.Package{removed(gpl("old", true, false)), gpl("a", false, false)}, []string{"a"}},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
