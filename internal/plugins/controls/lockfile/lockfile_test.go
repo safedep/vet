@@ -242,3 +242,41 @@ func TestPullRequestChecks(t *testing.T) {
 	}
 	assert.Equal(t, map[string]int{IDIntegrityChanged: 2, IDLockfileOnly: 1}, byID, "a changed or removed hash, not a URL change with the same hash")
 }
+
+func TestInstalledNotLocked(t *testing.T) {
+	npmPkg := func(name, version string) *model.Package {
+		return &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, name, version)}
+	}
+	lock := &model.Manifest{
+		ID: "lock", Path: "app/package-lock.json", Ecosystem: model.EcosystemNpm, Kind: model.ManifestKindLockfile,
+		Packages: []*model.Package{npmPkg("left-pad", "1.3.0"), npmPkg("minimist", "1.2.8")},
+	}
+	installed := func(p string, pkg *model.Package) *model.Manifest {
+		return &model.Manifest{ID: p, Path: p, Ecosystem: model.EcosystemNpm, Kind: model.ManifestKindInstalled, Packages: []*model.Package{pkg}}
+	}
+	cases := []struct {
+		name  string
+		m     *model.Manifest
+		title string
+	}{
+		{"locked", installed("app/node_modules/left-pad/package.json", npmPkg("left-pad", "1.3.0")), ""},
+		{"other version", installed("app/node_modules/minimist/package.json", npmPkg("minimist", "1.2.0")), "npm/minimist@1.2.0 is installed, and the lockfile has 1.2.8"},
+		{"not listed", installed("app/node_modules/a/node_modules/evil/package.json", npmPkg("evil", "1.0.0")), "npm/evil@1.0.0 is installed, and the lockfile does not list it"},
+		{"no lockfile in the project", installed("other/node_modules/evil/package.json", npmPkg("evil", "1.0.0")), ""},
+	}
+	c, err := New(plugin.MapConfig(nil))
+	require.NoError(t, err)
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			s := plugintest.NewMemState(lock, tc.m)
+			fs := plugintest.TestControl(t, c, tc.m, s)
+			if tc.title == "" {
+				assert.Empty(t, fs)
+				return
+			}
+			require.Len(t, fs, 1)
+			assert.Equal(t, IDInstalledNotLocked, fs[0].ControlID)
+			assert.Equal(t, tc.title, fs[0].Title)
+		})
+	}
+}
