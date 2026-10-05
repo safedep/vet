@@ -8,6 +8,7 @@ package extractors
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/google/osv-scalibr/extractor/filesystem"
 
@@ -24,15 +25,20 @@ import (
 	"github.com/safedep/vet/v2/model"
 )
 
-// For returns the extractors that read the packages that p selects.
+// For returns the extractors that read the packages that p selects. The
+// workflow and agent config extractors run for every selection, because
+// their controls read the files, not the packages.
 func For(p model.Packages) ([]filesystem.Extractor, error) {
+	if !slices.Contains(model.PackagesValues, p) {
+		return nil, fmt.Errorf("extractors: unknown package selection %q", p)
+	}
+	d, err := Default()
+	if err != nil {
+		return nil, err
+	}
 	var out []filesystem.Extractor
-	if p.Declared() {
-		d, err := Default()
-		if err != nil {
-			return nil, err
-		}
-		for _, e := range d {
+	for _, e := range d {
+		if p.Declared() || scalibr.ReadsFileOnly(e) {
 			out = append(out, declared{e})
 		}
 	}
@@ -42,9 +48,6 @@ func For(p model.Packages) ([]filesystem.Extractor, error) {
 			return nil, err
 		}
 		out = append(out, in...)
-	}
-	if out == nil {
-		return nil, fmt.Errorf("extractors: unknown package selection %q", p)
 	}
 	return out, nil
 }

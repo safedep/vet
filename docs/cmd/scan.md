@@ -64,6 +64,7 @@ Each installed package is in a manifest of kind `installed`, with the path of it
 does not report the project itself as an installed package: the `package.json` of the project, an
 editable install or a wheel in `dist/`, the main module of a local Go build and the root crate of a
 Rust binary.
+Each selection reads the GitHub Actions workflows and the agent config files.
 `--base-ref` reads declared packages only, because git does not hold installed packages.
 
 With `plugins.codeusage.enabled: true`, vet also reads the source files of a directory target. It

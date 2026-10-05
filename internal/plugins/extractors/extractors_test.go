@@ -77,6 +77,7 @@ func TestFor(t *testing.T) {
 			assert.Equal(t, tc.installed, reads("node_modules/left-pad/package.json"))
 			assert.False(t, reads("node_modules/left-pad/package-lock.json"), "a declared extractor must not read a file of an installed package")
 			assert.False(t, reads("usr/lib/python3/dist-packages/x/requirements.txt"))
+			assert.True(t, reads(".github/workflows/ci.yml"), "the workflow controls read the file in each selection")
 		})
 	}
 	_, err := For("everything")
