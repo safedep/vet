@@ -368,6 +368,18 @@
   tier: P2
   guarantee: "vet scan scans an image tarball, and with a Docker daemon an oci:// image from the daemon."
   labels: [scan, docker]
+- id: scan/packages/installed
+  title: "packages: installed packages of a directory"
+  category: scan
+  tier: P1
+  guarantee: "A directory scan reads the lockfile and skips node_modules. --packages installed reads node_modules and site-packages, and only the package.json of a package directory. --packages all reads both."
+  labels: [scan]
+- id: scan/packages/image
+  title: "packages: an image reads installed packages"
+  category: scan
+  tier: P1
+  guarantee: "An image scan reads its lockfiles and its installed packages. A package.json in node_modules is an installed package, not a manifest."
+  labels: [scan]
 - id: scan/no-credentials/community
   title: "no credentials: community endpoints"
   category: scan

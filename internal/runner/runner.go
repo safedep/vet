@@ -5,11 +5,13 @@
 package runner
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -41,6 +43,7 @@ import (
 	"github.com/safedep/vet/v2/internal/tui/output"
 	"github.com/safedep/vet/v2/internal/version"
 	"github.com/safedep/vet/v2/internal/view"
+	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/report"
 )
@@ -57,6 +60,8 @@ type Options struct {
 	FailOn  string
 	Policy  string
 	Reports []string
+	// Packages is the --packages value, or empty.
+	Packages string
 
 	Strict  bool
 	Resume  bool
@@ -86,6 +91,35 @@ func (o *Options) RegisterFlags(c *cobra.Command) {
 	c.MarkFlagsMutuallyExclusive("resume", "fresh")
 }
 
+// packagesOf returns the --packages value, else scan.packages, or empty for
+// the default of each artifact kind.
+func packagesOf(o Options, cfg *config.Config) (model.Packages, error) {
+	p := model.Packages(cmp.Or(o.Packages, cfg.Scan.Packages))
+	if p != "" && !slices.Contains(model.PackagesValues, p) {
+		return "", app.UsageError(fmt.Sprintf("--packages %q is not valid", p), "Use declared, installed or all.")
+	}
+	if o.BaseRef != "" && p.Installed() {
+		return "", app.UsageError("--base-ref reads declared packages only, because git does not hold installed packages",
+			"Remove --base-ref, or scan with --packages declared.")
+	}
+	return p, nil
+}
+
+// packagesFor returns where vet finds the packages of an artifact. An image
+// holds installed packages, so it reads both by default. The selection
+// applies to directories and images only.
+func packagesFor(p model.Packages, k plugin.ArtifactKind) model.Packages {
+	switch {
+	case k != plugin.ArtifactDirectory && k != plugin.ArtifactImage:
+		return model.PackagesDeclared
+	case p != "":
+		return p
+	case k == plugin.ArtifactImage:
+		return model.PackagesAll
+	}
+	return model.PackagesDeclared
+}
+
 // lockableKeys are the config keys of the scan flags that the user set. A
 // managed file with lockdown refuses each of them.
 func (o Options) lockableKeys() []string {
@@ -95,6 +129,9 @@ func (o Options) lockableKeys() []string {
 	}
 	if len(o.Exclude) > 0 {
 		keys = append(keys, "scan.exclude")
+	}
+	if o.Packages != "" {
+		keys = append(keys, "scan.packages")
 	}
 	if o.CooldownDays > 0 {
 		keys = append(keys, "plugins."+cooldown.Name+".options.days")
@@ -123,6 +160,7 @@ type hashed struct {
 	Anonymous bool     `json:"anonymous"`
 	Tenant    string   `json:"tenant,omitempty"`
 	Enrichers []string `json:"enrichers,omitempty"`
+	Packages  string   `json:"packages,omitempty"`
 }
 
 // Scan runs a scan, writes the report to its destinations and returns the
@@ -147,6 +185,10 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 	}
 	gate.File = rt.ResolvePolicy(gate.File)
 	outs, err := Outputs(cfg, a.Globals.Output, o.Reports, nil)
+	if err != nil {
+		return err
+	}
+	packages, err := packagesOf(o, cfg)
 	if err != nil {
 		return err
 	}
@@ -205,7 +247,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 		exclude := append(append([]string{}, cfg.Scan.Exclude...), o.Exclude...)
 		hash, err := state.OptionsHash(hashed{
 			BaseRef: o.BaseRef, Exclude: exclude, API: cfg.Cloud.Endpoints.API, Anonymous: creds.Anonymous(),
-			Tenant: creds.TenantDomain(), Enrichers: enricherIDs(set),
+			Tenant: creds.TenantDomain(), Enrichers: enricherIDs(set), Packages: string(packages),
 		})
 		if err != nil {
 			return err
@@ -221,8 +263,10 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 		v := view.NewScan(view.Options{Target: git.Redact(o.Target), BaseRef: o.BaseRef, Kind: kind, Animate: animate()})
 		eo := engine.Options{
 			Store: store, Cache: cache, NoCacheRead: o.NoCache, Source: src,
-			Extractors: func(plugin.ArtifactKind) ([]plugin.Extractor, error) { return extractors.Default() },
-			Enrichers:  enricherSpecs(set), Controls: engineControls(ctrls), Exclude: exclude,
+			Extractors: func(k plugin.ArtifactKind) ([]plugin.Extractor, error) {
+				return extractors.For(packagesFor(packages, k))
+			},
+			Enrichers: enricherSpecs(set), Controls: engineControls(ctrls), Exclude: exclude,
 			Kind: kind, Mode: mode, BaseRef: o.BaseRef, OptionsHash: hash, VetVersion: version.Version(),
 			Resume: o.Resume, Fresh: o.Fresh, ContinueWithin: within, Strict: o.Strict || cfg.Scan.Strict,
 			BatchSize: 100, Observer: v, Opened: notContinued,

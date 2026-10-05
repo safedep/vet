@@ -7,6 +7,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -19,7 +20,8 @@ import (
 )
 
 // skipDirs are the directories that a code scan does not walk. Their
-// packages come from the lockfiles of the project.
+// packages come from the lockfiles of the project. A scan that reads
+// installed packages walks node_modules.
 var skipDirs = map[string]bool{".git": true, "node_modules": true}
 
 var unknownPURLType = regexp.MustCompile(`unknown PURL type "([^"]+)"`)
@@ -127,7 +129,7 @@ func (r *run) extractFiles(ctx context.Context, a plugin.Artifact, done *int) er
 		return nil
 	}
 
-	if err := r.walk(fsys, a, visit); err != nil {
+	if err := r.walk(fsys, a, slices.ContainsFunc(exs, scalibr.ReadsInstalled), visit); err != nil {
 		return err
 	}
 	if d != nil {
@@ -142,7 +144,7 @@ type delta struct {
 	seen map[string]bool
 }
 
-func (r *run) walk(fsys fs.FS, a plugin.Artifact, visit func(string, fs.FileInfo) error) error {
+func (r *run) walk(fsys fs.FS, a plugin.Artifact, installed bool, visit func(string, fs.FileInfo) error) error {
 	return fs.WalkDir(fsys, ".", func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			// An unreadable directory does not stop the scan.
@@ -156,7 +158,7 @@ func (r *run) walk(fsys fs.FS, a plugin.Artifact, visit func(string, fs.FileInfo
 			return nil
 		}
 		if d.IsDir() {
-			if (a.Kind == plugin.ArtifactDirectory && skipDirs[d.Name()]) || r.excluded(p) {
+			if skipDir(a, d.Name(), installed) || r.excluded(p) {
 				return fs.SkipDir
 			}
 			return nil
@@ -170,6 +172,15 @@ func (r *run) walk(fsys fs.FS, a plugin.Artifact, visit func(string, fs.FileInfo
 		}
 		return visit(p, info)
 	})
+}
+
+// skipDir reports a directory of a directory artifact that the walk does
+// not enter.
+func skipDir(a plugin.Artifact, name string, installed bool) bool {
+	if a.Kind != plugin.ArtifactDirectory || !skipDirs[name] {
+		return false
+	}
+	return name != "node_modules" || !installed
 }
 
 // excluded matches a path against the exclude patterns. A pattern matches

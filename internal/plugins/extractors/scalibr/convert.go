@@ -106,8 +106,9 @@ func ToManifest(in Converted) (*model.Manifest, []error) {
 	switch {
 	case hasEdges:
 		m.Graph = graphOf(in.Inventory.Packages, byScalibrID, seen)
-	case m.Kind != model.ManifestKindLockfile:
-		// A manifest declares only its direct dependencies.
+	case m.Kind != model.ManifestKindLockfile && m.Kind != model.ManifestKindInstalled:
+		// A manifest declares only its direct dependencies. A package on
+		// disk does not say whether the project depends on it directly.
 		for _, p := range m.Packages {
 			p.Direct = true
 		}

@@ -73,9 +73,17 @@ _Avoid_: lockfile (when you mean any manifest), dependency file
 
 **Manifest kind**:
 What a manifest is: `lockfile`, `manifest`, `workflow`, `sbom`, `image`, `purl`, `endpoint`,
-`agent-config`. `model.ManifestKind`. The value `manifest` means a file of declared dependencies with
-no lockfile, such as `package.json` in manifest mode. A `workflow` or `agent-config` manifest can hold
-no package, because its controls read the file.
+`agent-config`, `installed`. `model.ManifestKind`. The value `manifest` means a file of declared
+dependencies with no lockfile, such as `package.json` in manifest mode. A `workflow` or `agent-config`
+manifest can hold no package, because its controls read the file. An `installed` manifest is the
+metadata of a package on disk, such as `node_modules/left-pad/package.json`, or a Go binary.
+
+**Package selection**:
+Where a scan finds packages: `declared` (the lockfiles and the manifests), `installed` (the
+packages on disk) or `all`. `model.Packages`, the `--packages` flag and the `scan.packages` config
+key. A directory defaults to `declared`, an image to `all`. `internal/plugins/extractors/installed`
+holds the extractors of installed packages.
+_Avoid_: origin, mode (a scan mode is full or delta)
 
 **Dependency graph**:
 The edges between the packages of one manifest. Its roots are the direct dependencies. `model.Graph`

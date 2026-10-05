@@ -30,9 +30,12 @@ type OutputConfig struct {
 
 // ScanConfig sets what a scan reads and how it works.
 type ScanConfig struct {
-	IncludeDev  bool     `yaml:"include_dev" json:"include_dev"`
-	Exclude     []string `yaml:"exclude" json:"exclude"`
-	Concurrency int      `yaml:"concurrency" json:"concurrency"`
+	IncludeDev bool     `yaml:"include_dev" json:"include_dev"`
+	Exclude    []string `yaml:"exclude" json:"exclude"`
+	// Packages is declared, installed or all. Empty means declared for a
+	// directory and all for an image.
+	Packages    string `yaml:"packages" json:"packages"`
+	Concurrency int    `yaml:"concurrency" json:"concurrency"`
 	// Strict turns a diagnostic into exit code 3.
 	Strict bool `yaml:"strict" json:"strict"`
 }

@@ -18,6 +18,7 @@ import (
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/internal/tui/output"
 	"github.com/safedep/vet/v2/internal/view"
+	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/plugin/plugintest"
 )
@@ -129,4 +130,53 @@ func TestRenderPrintsTheReportStepBeforeTheReport(t *testing.T) {
 	step := strings.Index(term.String(), "[INFO] Report\n")
 	require.GreaterOrEqual(t, step, 0, term.String())
 	assert.Equal(t, 0, step, "the step line comes before the report:\n%s", term.String())
+}
+
+func TestPackagesOf(t *testing.T) {
+	cases := []struct {
+		name    string
+		flag    string
+		config  string
+		baseRef string
+		want    model.Packages
+		err     string
+	}{
+		{name: "default", want: ""},
+		{name: "flag", flag: "installed", want: model.PackagesInstalled},
+		{name: "config", config: "all", want: model.PackagesAll},
+		{name: "flag over config", flag: "declared", config: "all", want: model.PackagesDeclared},
+		{name: "bad value", flag: "everything", err: `--packages "everything" is not valid`},
+		{name: "base ref with installed", flag: "all", baseRef: "main", err: "--base-ref reads declared packages only"},
+		{name: "base ref with declared", flag: "declared", baseRef: "main", want: model.PackagesDeclared},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &config.Config{Scan: config.ScanConfig{Packages: tc.config}}
+			got, err := packagesOf(Options{Packages: tc.flag, BaseRef: tc.baseRef}, cfg)
+			if tc.err != "" {
+				assert.ErrorContains(t, err, tc.err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
+func TestPackagesFor(t *testing.T) {
+	cases := []struct {
+		set  model.Packages
+		kind plugin.ArtifactKind
+		want model.Packages
+	}{
+		{"", plugin.ArtifactDirectory, model.PackagesDeclared},
+		{"", plugin.ArtifactImage, model.PackagesAll},
+		{model.PackagesInstalled, plugin.ArtifactDirectory, model.PackagesInstalled},
+		{model.PackagesDeclared, plugin.ArtifactImage, model.PackagesDeclared},
+		{model.PackagesInstalled, plugin.ArtifactSBOM, model.PackagesDeclared},
+		{model.PackagesAll, plugin.ArtifactEndpoint, model.PackagesDeclared},
+	}
+	for _, tc := range cases {
+		assert.Equal(t, tc.want, packagesFor(tc.set, tc.kind), "%q on %s", tc.set, tc.kind)
+	}
 }

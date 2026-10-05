@@ -3,6 +3,13 @@ package scalibr
 import (
 	"strings"
 
+	"github.com/google/osv-scalibr/extractor/filesystem"
+	"github.com/google/osv-scalibr/extractor/filesystem/language/golang/gobinary"
+	"github.com/google/osv-scalibr/extractor/filesystem/language/python/wheelegg"
+	"github.com/google/osv-scalibr/extractor/filesystem/language/ruby/gem"
+	"github.com/google/osv-scalibr/extractor/filesystem/language/rust/cargoauditable"
+
+	"github.com/safedep/vet/v2/internal/plugins/extractors/installed"
 	"github.com/safedep/vet/v2/model"
 )
 
@@ -35,9 +42,30 @@ var lockfiles = map[string]bool{
 	"go/gomod":                   true,
 }
 
+// installedReaders are the extractors that read a package on disk.
+var installedReaders = map[string]bool{
+	installed.NodeModulesName: true,
+	wheelegg.Name:             true,
+	gobinary.Name:             true,
+	gem.Name:                  true,
+	cargoauditable.Name:       true,
+}
+
+// ReadsInstalled reports an extractor that reads a package on disk.
+func ReadsInstalled(e filesystem.Extractor) bool { return installedReaders[e.Name()] }
+
+// ReadsFileOnly reports an extractor whose controls read the file itself:
+// a workflow or an agent config file. Its manifest is not a package source.
+func ReadsFileOnly(e filesystem.Extractor) bool {
+	k := kindOf(e.Name())
+	return k == model.ManifestKindWorkflow || k == model.ManifestKindAgentConfig
+}
+
 // kindOf returns the manifest kind of an extractor.
 func kindOf(extractor string) model.ManifestKind {
 	switch {
+	case installedReaders[extractor]:
+		return model.ManifestKindInstalled
 	case lockfiles[extractor]:
 		return model.ManifestKindLockfile
 	case strings.HasPrefix(extractor, "sbom/"):

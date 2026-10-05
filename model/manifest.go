@@ -20,7 +20,32 @@ const (
 	// ManifestKindAgentConfig is an agent or editor config file. It holds
 	// no package. The agentconfig control reads the file.
 	ManifestKindAgentConfig ManifestKind = "agent-config"
+	// ManifestKindInstalled is the metadata of a package on disk, such as
+	// node_modules/left-pad/package.json, or a binary that records its
+	// modules.
+	ManifestKindInstalled ManifestKind = "installed"
 )
+
+// Packages selects where a scan finds packages.
+type Packages string
+
+const (
+	// PackagesDeclared reads the lockfiles and the manifests.
+	PackagesDeclared Packages = "declared"
+	// PackagesInstalled reads the packages on disk.
+	PackagesInstalled Packages = "installed"
+	// PackagesAll reads both.
+	PackagesAll Packages = "all"
+)
+
+// PackagesValues are the values of Packages, in the order of the docs.
+var PackagesValues = []Packages{PackagesDeclared, PackagesInstalled, PackagesAll}
+
+// Declared reports that p reads the lockfiles and the manifests.
+func (p Packages) Declared() bool { return p == PackagesDeclared || p == PackagesAll }
+
+// Installed reports that p reads the packages on disk.
+func (p Packages) Installed() bool { return p == PackagesInstalled || p == PackagesAll }
 
 // Manifest is one file or input that declares packages.
 type Manifest struct {

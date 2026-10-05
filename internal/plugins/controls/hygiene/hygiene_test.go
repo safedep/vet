@@ -156,6 +156,13 @@ func TestFileChecks(t *testing.T) {
 
 	req := &model.Manifest{ID: "r", Path: "requirements.txt", Kind: model.ManifestKindManifest, Extractor: "python/requirements", Root: root}
 	assert.Equal(t, []string{hygiene.IDNonRegistry, hygiene.IDNonRegistry}, ids(t, nil, req))
+
+	installed := fstest.MapFS{"node_modules/x/package.json": {Data: []byte(pkgJSON)}}
+	inst := &model.Manifest{
+		ID: "i", Path: "node_modules/x/package.json", Kind: model.ManifestKindInstalled, Root: installed,
+		Packages: []*model.Package{{ID: npm("x", "1.0.0")}},
+	}
+	assert.Empty(t, ids(t, nil, inst), "the package.json of an installed package declares the dependencies of that package")
 }
 
 func TestOptions(t *testing.T) {

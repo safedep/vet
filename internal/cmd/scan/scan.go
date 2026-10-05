@@ -22,13 +22,19 @@ vet extracts the packages, checks them with SafeDep Insights and Threat Intel,
 runs the controls, and applies the gate. A plain scan reports and exits 0.
 --fail-on and --policy set a gate that exits 1 when it fails.
 
+--packages selects where vet finds packages: declared (lockfiles and
+manifests), installed (the packages on disk, such as node_modules and
+site-packages) or all. A directory and a git URL default to declared, an
+image to all.
+
 --base-ref compares the target with a git ref and reports only what the
 change adds. vet saves each scan, so "vet report show" renders it again
 with no new scan, and an interrupted scan continues on the next run.`,
 		Example: `  vet scan                            # Scan the current directory
   vet scan . --fail-on high           # Exit 1 on a high or critical finding
   vet scan . --policy default         # Apply the policy that vet policy init wrote
-  vet scan . --base-ref origin/main   # Report only what the branch changes`,
+  vet scan . --base-ref origin/main   # Report only what the branch changes
+  vet scan /srv/app --packages installed  # Scan the packages on disk`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			o.Target = "."
@@ -41,6 +47,7 @@ with no new scan, and an interrupted scan continues on the next run.`,
 	f := c.Flags()
 	f.StringVar(&o.BaseRef, "base-ref", "", "Report only the changes since this git ref")
 	f.StringArrayVar(&o.Exclude, "exclude", nil, "Skip the paths that match this glob. Repeatable")
+	f.StringVar(&o.Packages, "packages", "", "Where to find packages: declared, installed or all")
 	o.RegisterFlags(c)
 	return c
 }

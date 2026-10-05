@@ -7,7 +7,7 @@ Scan a project, a repository, an image, an SBOM or a package.
 ```text
 vet scan [TARGET] [--base-ref REF] [--fail-on SEVERITY] [--policy FILE|NAME]
          [--report FORMAT=PATH]... [--strict] [--resume | --fresh] [--no-cache]
-         [--exclude GLOB]... [--cooldown-days N]
+         [--exclude GLOB]... [--packages declared|installed|all] [--cooldown-days N]
          [--state-dir DIR] [--cache-dir DIR] [--ephemeral]
          [-o table|plain|json|jsonl|sarif|markdown|cyclonedx|gitlab|bitbucket]
 ```
@@ -49,6 +49,24 @@ first. `-v` and the agent mode show all of them, and `vet report show SCAN_ID -v
 The log lines of the parser libraries print only with `-v`. `--report FORMAT=PATH` also writes the report to a file. vet writes a temporary file and
 renames it into place, so a failed write leaves no partial file.
 
+`--packages` selects where vet finds packages. The `scan.packages` config key sets it for every run.
+
+| Value | vet reads |
+| --- | --- |
+| `declared` | The lockfiles and the manifests. The default for a directory and a git URL. |
+| `installed` | The packages on disk: `node_modules`, Python `site-packages` and `dist-packages`, Go binaries, installed gems and Rust binaries built with cargo-auditable. |
+| `all` | Both. The default for an image. |
+
+Use `installed` for a deployed app, a build output, an unpacked archive or a mounted file system. A
+declared scan does not walk `node_modules`. No declared extractor reads a file under `node_modules`,
+`site-packages` or `dist-packages`, because those files belong to installed packages.
+Each installed package is in a manifest of kind `installed`, with the path of its metadata file. vet
+does not report the project itself as an installed package: the `package.json` of the project, an
+editable install or a wheel in `dist/`, the main module of a local Go build and the root crate of a
+Rust binary.
+Each selection reads the GitHub Actions workflows and the agent config files.
+`--base-ref` reads declared packages only, because git does not hold installed packages.
+
 With `plugins.codeusage.enabled: true`, vet also reads the source files of a directory target. It
 records which packages the code imports, and the AI and crypto capabilities that the code calls.
 The `cyclonedx` report writes them as an xBOM and a CBOM. The code analysis needs a vet build with
@@ -73,6 +91,7 @@ vet scan . --base-ref origin/main
 vet scan . --base-ref origin/main --report sarif=vet.sarif
 vet scan . --policy vet-policy.yml -o json
 vet scan oci://alpine:3.20 --ephemeral
+vet scan /srv/app --packages installed
 vet scan pkg:npm/left-pad@1.3.0 -o jsonl
 ```
 

@@ -56,7 +56,9 @@ var nonRegistrySpec = regexp.MustCompile(`^(git\+|git:|github:|gitlab:|bitbucket
 // declaredNonRegistry reads the file that declares the dependencies of the
 // manifest, and reports each dependency that is not on a registry.
 func declaredNonRegistry(m *model.Manifest) ([]finding.Finding, error) {
-	if m.Root == nil {
+	// The package.json of an installed package declares the dependencies
+	// of that package, not of the project.
+	if m.Root == nil || m.Kind == model.ManifestKindInstalled {
 		return nil, nil
 	}
 	base := path.Base(m.Path)
