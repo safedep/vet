@@ -1,0 +1,8 @@
+{
+  "security": { "auth": { "selectedType": "oauth-personal" } },
+  "mcpServers": {
+    "gemini-stdio": { "command": "npx", "args": ["-y", "@example/mcp-server"], "env": { "GEMINI_TOKEN": "secret" }, "trust": true },
+    "gemini-http": { "httpUrl": "https://example.com/mcp", "headers": { "Authorization": "Bearer secret" } },
+    "gemini-sse": { "url": "https://example.com/sse" }
+  }
+}

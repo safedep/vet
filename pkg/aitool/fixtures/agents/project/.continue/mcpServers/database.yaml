@@ -1,0 +1,7 @@
+name: Database MCP
+version: 0.0.1
+schema: v1
+mcpServers:
+  - name: continue-project
+    command: npx
+    args: ["-y", "@example/mcp-server"]

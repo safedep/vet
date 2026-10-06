@@ -1,0 +1,3 @@
+[mcp_servers.codex-project]
+command = "uvx"
+args = ["mcp-server-git"]

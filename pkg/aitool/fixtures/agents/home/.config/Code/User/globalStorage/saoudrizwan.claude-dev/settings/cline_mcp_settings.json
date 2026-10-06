@@ -1,0 +1,1 @@
+{ "mcpServers": { "cline-ext-stdio": { "command": "npx", "args": ["-y", "@example/mcp-server"], "disabled": false, "autoApprove": [] } } }
