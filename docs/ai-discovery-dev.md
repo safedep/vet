@@ -57,11 +57,16 @@ A config-based discoverer reads JSON configuration files from well-known filesys
 Most agents need nothing beyond "does this path exist" and "parse this MCP file". For those, return `newMCPAppDiscoverer(config, mcpAppSpec{...})` from the factory instead of writing a full `AIToolReader` (see `gemini.go`, `kiro.go`, `codex.go`). The spec lists:
 
 - `agentMarkers`: absolute paths; the first that exists emits the system `coding_agent`. Prefer a file only the agent writes when its directory is shared with another tool (e.g. `~/.gemini` is shared by Gemini CLI and Antigravity).
+- `installMarkers`: documented install locations (app bundles, install directories) that give the agent `app_bundle` evidence. Only add locations the vendor documents; build macOS/Linux rooted paths with `unixPath` and Windows ones with `envPath("LOCALAPPDATA", ...)` or `envPath("ProgramFiles", ...)`. Hand-written discoverers set `AITool.InstallPath` themselves (see `vscode.go`).
 - `systemMCPPaths` and `projectMCPGlobs`: MCP config files at system scope and globs relative to the project directory.
 - `instructionFiles`: project-relative paths reported together as one `project_config`.
 - `parse`: optional parser for non-standard layouts (TOML, YAML, JSONC, a different top-level key). It converts the file into `mcpAppConfig` so `emitMCPServers` keeps the redaction and naming rules in one place.
 
 Build every path with `path/filepath`. Use `resolveHomeDir` for the home directory, `envPath("APPDATA", ...)` for Windows locations (it returns `""` when the variable is unset, so nothing relative to the working directory is probed), and `envDirOr` for agents that honour a home-relocation variable such as `CODEX_HOME`. WSL / Windows path interop is out of scope.
+
+### Install evidence
+
+`Registry.Discover` holds back `coding_agent` items until every discoverer has run, then sets `agent.installed` and `agent.evidence` on each one (`agent_evidence.go`). Evidence is joined by `App`: a verified `cli_tool` with the same app gives `binary`, an AI extension whose `knownAIExtensions` entry names the app gives `extension`, and a non-empty `InstallPath` gives `app_bundle`. Give a new CLI verifier the same `App` as the agent's config discoverer, and set `App` on its extension entry, so the join works.
 
 ## Adding a new CLI tool discoverer
 

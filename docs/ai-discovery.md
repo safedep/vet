@@ -17,13 +17,13 @@ For example, Claude Code might appear as:
 
 These are **not duplicates**. They represent separate configuration surfaces that may carry different settings, permissions, or MCP server wiring.
 
-Note that `coding_agent` is only emitted when the tool is actually installed on the system (detected via system-level config or CLI binary). Project-level instruction and rule files such as `CLAUDE.md` or `.cursorrules` are reported as `project_config` instead, because these files are typically checked into version control and do not indicate that the current system has the tool.
+Note that `coding_agent` is emitted from system-level configuration (a config file or directory in the user's home), never from project files. Config can outlive an uninstalled agent, so each `coding_agent` also says how strong its install evidence is (see [Install evidence](#install-evidence)). Project-level instruction and rule files such as `CLAUDE.md` or `.cursorrules` are reported as `project_config` instead, because these files are typically checked into version control and do not indicate that the current system has the tool.
 
 ## Key concepts
 
 **Type** classifies the kind of AI tool usage detected:
 
-- `coding_agent` is an AI coding assistant installed on the system, detected via system-level configuration directories.
+- `coding_agent` is an AI coding assistant configured on the system, detected via system-level configuration files or directories. Its `agent.installed` metadata says whether anything beyond that config shows it is still installed.
 - `mcp_server` is a Model Context Protocol server configured for an application.
 - `cli_tool` is a standalone AI CLI binary found on `$PATH`. Each candidate is executed with a version flag and the output is verified against known patterns.
 - `ai_extension` is an AI-related IDE extension detected from installed extension manifests.
@@ -59,11 +59,24 @@ vet ai discover --report-json inventory.json --silent
 
 ## What is scanned
 
-**App configuration** is read from well-known system and project-level config paths for each supported application. System-level configs (e.g. `~/.claude/settings.json`, `~/.cursor/mcp.json`) indicate the tool is installed. Project-level configs (e.g. `.mcp.json`, `.cursorrules`) indicate the project is set up for a tool.
+**App configuration** is read from well-known system and project-level config paths for each supported application. System-level configs (e.g. `~/.claude/settings.json`, `~/.cursor/mcp.json`) indicate the tool is or was set up for the current user; they are not proof that it is still installed. Project-level configs (e.g. `.mcp.json`, `.cursorrules`) indicate the project is set up for a tool.
 
 **CLI binaries** are discovered by searching `$PATH` for known binary names. Each candidate is executed with a version flag and the output is verified against known patterns to confirm identity and extract the version number.
 
 **IDE extensions** are discovered by reading extension manifests from supported IDE distributions and matching against a curated list of known AI extension identifiers.
+
+## Install evidence
+
+Every `coding_agent` item carries two metadata keys, set after all discoverers have run:
+
+- `agent.evidence`: comma-separated, sorted list of the signals found for the agent's app:
+  - `config`: the system-level config the item was discovered from (always present).
+  - `binary`: a `cli_tool` item for the same app whose binary was found on `$PATH` and verified.
+  - `extension`: an installed IDE extension that belongs to the agent (e.g. Cline, Continue, Claude Code, Codex, Augment Code, Amazon Q).
+  - `app_bundle`: one of the agent's documented install locations exists (e.g. `/Applications/Zed.app`, `%LOCALAPPDATA%\Programs\Microsoft VS Code`).
+- `agent.installed`: `true` when the evidence includes anything other than `config`, otherwise `false`.
+
+A `coding_agent` with `agent.installed=false` may be left over from an uninstalled agent, or the agent may be installed somewhere vet does not look (for example a CLI that is not on `$PATH`). The table output marks these rows with `(config only)` in the DETAIL column. The JSON report keeps the same shape and includes both keys in `metadata`.
 
 ## Supported tools
 
@@ -95,6 +108,16 @@ filesystem boundary.
 | Cline | `cline` | `~/.cline/`, VS Code `globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json` | `.clinerules` | |
 | Roo Code | `roo_code` | VS Code `globalStorage/rooveterinaryinc.roo-cline/settings/mcp_settings.json` | `.roo/mcp.json`, `.roorules`, `.roo/rules/` | |
 | Aider | `aider` | | | `aider` |
+
+Documented install locations used for `app_bundle` evidence:
+
+| Tool | Locations |
+|------|-----------|
+| VS Code | `/Applications/Visual Studio Code.app`, `%LOCALAPPDATA%\Programs\Microsoft VS Code`, `%ProgramFiles%\Microsoft VS Code`, `/usr/share/code` |
+| Windsurf | `/Applications/Windsurf.app` |
+| Kiro | `/Applications/Kiro.app` |
+| Zed | `/Applications/Zed.app`, `~/.local/zed.app` |
+| Goose | `~/.local/bin/goose` |
 
 AI IDE extensions recognised by ID: GitHub Copilot, GitHub Copilot Chat, Claude
 Code, Codex, Gemini Code Assist, Cline, Roo Code, Kilo Code, Continue, Cody,

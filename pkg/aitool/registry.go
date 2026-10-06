@@ -54,7 +54,25 @@ func (r *Registry) Register(name string, factory AIToolDiscovererFactory) {
 
 // Discover runs all registered discoverers and calls handler for each tool found.
 // Factory or discoverer errors are logged and skipped; handler errors propagate immediately.
+// Coding agents are held back until every discoverer has run, because their
+// install evidence (agent.installed, agent.evidence) depends on CLI and
+// extension items that later discoverers emit.
 func (r *Registry) Discover(ctx context.Context, config DiscoveryConfig, handler AIToolHandlerFn) error {
+	evidence := newInstallEvidence()
+	var agents []*AITool
+
+	collect := func(tool *AITool) error {
+		if tool == nil {
+			return handler(tool)
+		}
+		if tool.Type == AIToolTypeCodingAgent {
+			agents = append(agents, tool)
+			return nil
+		}
+		evidence.observe(tool)
+		return handler(tool)
+	}
+
 	for _, entry := range r.entries {
 		reader, err := entry.factory(config)
 		if err != nil {
@@ -62,8 +80,15 @@ func (r *Registry) Discover(ctx context.Context, config DiscoveryConfig, handler
 			continue
 		}
 
-		err = reader.EnumTools(ctx, handler)
+		err = reader.EnumTools(ctx, collect)
 		if err != nil {
+			return err
+		}
+	}
+
+	for _, agent := range agents {
+		evidence.enrich(agent)
+		if err := handler(agent); err != nil {
 			return err
 		}
 	}

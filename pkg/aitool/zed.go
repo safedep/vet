@@ -53,9 +53,14 @@ func NewZedDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
 	}
 
 	return newMCPAppDiscoverer(config, mcpAppSpec{
-		app:            zedApp,
-		appDisplay:     zedAppDisplay,
-		agentMarkers:   zedDirs,
+		app:          zedApp,
+		appDisplay:   zedAppDisplay,
+		agentMarkers: zedDirs,
+		// Linux install script: ~/.local/zed.app, macOS: /Applications/Zed.app
+		installMarkers: []string{
+			filepath.Join(homeDir, ".local", "zed.app"),
+			unixPath("Applications", "Zed.app"),
+		},
 		systemMCPPaths: settingsPaths,
 		parse:          parseZedSettings,
 	}), nil

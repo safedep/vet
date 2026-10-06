@@ -53,6 +53,9 @@ func NewGooseDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
 		envPath("APPDATA", "Block", "goose", "config"),
 	}
 
+	// Where the official CLI installer puts goose on macOS and Linux.
+	gooseCLIPath := filepath.Join(homeDir, ".local", "bin", "goose")
+
 	var configPaths []string
 	for _, dir := range gooseDirs {
 		if dir != "" {
@@ -64,6 +67,7 @@ func NewGooseDiscoverer(config DiscoveryConfig) (AIToolReader, error) {
 		app:              gooseApp,
 		appDisplay:       gooseAppDisplay,
 		agentMarkers:     gooseDirs,
+		installMarkers:   []string{gooseCLIPath},
 		systemMCPPaths:   configPaths,
 		instructionFiles: []string{".goosehints"},
 		parse:            parseGooseConfig,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"runtime"
 )
 
 // mcpAppSpec describes a coding agent whose discovery is fully determined by
@@ -17,6 +18,11 @@ type mcpAppSpec struct {
 	// agentMarkers are absolute paths (files or directories). The first one
 	// that exists emits a system-scoped coding_agent.
 	agentMarkers []string
+
+	// installMarkers are documented install locations (app bundles, install
+	// directories). One existing gives the coding_agent app_bundle evidence;
+	// without it, config alone does not prove the agent is still installed.
+	installMarkers []string
 
 	// systemMCPPaths are absolute paths to system-level MCP config files.
 	systemMCPPaths []string
@@ -59,7 +65,9 @@ func (d *mcpAppDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn)
 		}
 
 		if marker := firstExistingPath(d.spec.agentMarkers); marker != "" {
-			if err := handler(newCodingAgent(d.spec.app, d.spec.appDisplay, marker)); err != nil {
+			agent := newCodingAgent(d.spec.app, d.spec.appDisplay, marker)
+			agent.InstallPath = firstExistingPath(d.spec.installMarkers)
+			if err := handler(agent); err != nil {
 				return err
 			}
 		}
@@ -172,6 +180,16 @@ func envPath(key string, elem ...string) string {
 		return ""
 	}
 	return filepath.Join(append([]string{base}, elem...)...)
+}
+
+// unixPath joins elem under the filesystem root on macOS and Linux. It
+// returns "" on Windows, where a rooted path without a drive letter would
+// resolve against the current drive.
+func unixPath(elem ...string) string {
+	if runtime.GOOS == "windows" {
+		return ""
+	}
+	return filepath.Join(append([]string{"/"}, elem...)...)
 }
 
 // envDirOr returns the directory named by the environment variable key when

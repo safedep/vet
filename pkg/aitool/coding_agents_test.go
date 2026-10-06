@@ -13,7 +13,7 @@ import (
 // see the fixture home.
 func isolateAgentEnv(t *testing.T) {
 	t.Helper()
-	for _, key := range []string{"CODEX_HOME", "COPILOT_HOME", "APPDATA"} {
+	for _, key := range []string{"CODEX_HOME", "COPILOT_HOME", "APPDATA", "LOCALAPPDATA", "ProgramFiles"} {
 		t.Setenv(key, "")
 	}
 }
