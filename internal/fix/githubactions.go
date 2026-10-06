@@ -16,7 +16,6 @@ import (
 	"sort"
 	"strings"
 
-	gogit "github.com/go-git/go-git/v5"
 	"gopkg.in/yaml.v3"
 
 	"github.com/safedep/vet/v2/internal/github"
@@ -92,20 +91,70 @@ type PinOptions struct {
 // and expressions stay as they are.
 func PlanPins(ctx context.Context, o PinOptions) (*Plan, error) {
 	if o.SameRepo == "" {
-		o.SameRepo = originRepo(o.Root)
+		o.SameRepo = github.OriginRepo(o.Root)
 	}
 	files, err := workflowFiles(o.Root)
 	if err != nil {
 		return nil, err
 	}
-	p := &Plan{Root: o.Root, Files: []*File{}, Failures: []Failure{}}
 	cache := map[string]string{}
+	return plan(ctx, o.Root, files, func(ctx context.Context, repo, ref string) (Pin, bool, error) {
+		if commitSHA.MatchString(strings.ToLower(ref)) || strings.EqualFold(repo, o.SameRepo) {
+			return Pin{}, false, nil
+		}
+		key := repo + "@" + ref
+		sha, ok := cache[key]
+		if !ok {
+			owner, name, _ := strings.Cut(repo, "/")
+			var err error
+			if sha, err = o.Resolver.ResolveSHA(ctx, owner, name, ref); err != nil {
+				return Pin{}, false, err
+			}
+			cache[key] = sha
+		}
+		return Pin{SHA: sha, Ref: ref, KeepComment: true}, true, nil
+	})
+}
+
+// Pin is the commit SHA of an action and the ref that the comment of the
+// uses: line names.
+type Pin struct {
+	SHA string
+	Ref string
+	// KeepComment keeps the old comment of the line after the ref.
+	KeepComment bool
+}
+
+// RepinOptions configure PlanRepins.
+type RepinOptions struct {
+	Root string
+	// Files are the slash paths under Root that the plan edits.
+	Files []string
+	// Pins maps owner/repo to the new pin of its actions.
+	Pins map[string]Pin
+}
+
+// PlanRepins moves each action of Pins in Files to its new pin. A line
+// that has the pin already stays.
+func PlanRepins(ctx context.Context, o RepinOptions) (*Plan, error) {
+	return plan(ctx, o.Root, o.Files, func(_ context.Context, repo, ref string) (Pin, bool, error) {
+		p, ok := o.Pins[strings.ToLower(repo)]
+		return p, ok && !strings.EqualFold(ref, p.SHA), nil
+	})
+}
+
+// pinner returns the pin of an action of repo at ref, or false to keep the
+// line.
+type pinner func(ctx context.Context, repo, ref string) (Pin, bool, error)
+
+func plan(ctx context.Context, root string, files []string, pin pinner) (*Plan, error) {
+	p := &Plan{Root: root, Files: []*File{}, Failures: []Failure{}}
 	for _, rel := range files {
-		data, err := os.ReadFile(filepath.Join(o.Root, filepath.FromSlash(rel)))
+		data, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(rel)))
 		if err != nil {
 			return nil, err
 		}
-		f, fails := planFile(ctx, rel, data, o, cache)
+		f, fails := planFile(ctx, rel, data, pin)
 		p.Failures = append(p.Failures, fails...)
 		if len(f.Edits) > 0 {
 			p.Files = append(p.Files, f)
@@ -114,7 +163,7 @@ func PlanPins(ctx context.Context, o PinOptions) (*Plan, error) {
 	return p, nil
 }
 
-func planFile(ctx context.Context, rel string, data []byte, o PinOptions, cache map[string]string) (*File, []Failure) {
+func planFile(ctx context.Context, rel string, data []byte, pin pinner) (*File, []Failure) {
 	f := &File{Path: rel, Edits: []Edit{}, before: data}
 	var doc yaml.Node
 	if err := yaml.Unmarshal(data, &doc); err != nil {
@@ -124,32 +173,30 @@ func planFile(ctx context.Context, rel string, data []byte, o PinOptions, cache 
 	var fails []Failure
 	for _, n := range usesNodes(&doc) {
 		action, ref, ok := strings.Cut(n.Value, "@")
-		if !ok || !pinnable(n.Value) || commitSHA.MatchString(strings.ToLower(ref)) {
+		if !ok || !pinnable(n.Value) {
 			continue
 		}
 		parts := strings.SplitN(action, "/", 3)
-		if len(parts) < 2 || strings.EqualFold(parts[0]+"/"+parts[1], o.SameRepo) {
+		if len(parts) < 2 {
 			continue
 		}
-		key := parts[0] + "/" + parts[1] + "@" + ref
-		sha, ok := cache[key]
-		if !ok {
-			var err error
-			if sha, err = o.Resolver.ResolveSHA(ctx, parts[0], parts[1], ref); err != nil {
-				reason, token := github.Reason(err)
-				fails = append(fails, Failure{Path: rel, Line: n.Line, Action: n.Value, Error: err.Error(), Reason: reason, NeedsToken: token})
-				continue
-			}
-			cache[key] = sha
+		p, ok, err := pin(ctx, parts[0]+"/"+parts[1], ref)
+		if err != nil {
+			reason, token := github.Reason(err)
+			fails = append(fails, Failure{Path: rel, Line: n.Line, Action: n.Value, Error: err.Error(), Reason: reason, NeedsToken: token})
+			continue
 		}
-		old, updated, ok := rewriteLine(lines[n.Line-1], n, action+"@"+sha, ref)
+		if !ok {
+			continue
+		}
+		old, updated, ok := rewriteLine(lines[n.Line-1], n, action+"@"+p.SHA, p.Ref, p.KeepComment)
 		if !ok {
 			const msg = "the uses: value is not on one line"
 			fails = append(fails, Failure{Path: rel, Line: n.Line, Action: n.Value, Error: msg, Reason: msg})
 			continue
 		}
 		lines[n.Line-1] = updated
-		f.Edits = append(f.Edits, Edit{Line: n.Line, Action: action, Ref: ref, SHA: sha, Old: strings.TrimRight(old, "\r\n"), New: strings.TrimRight(updated, "\r\n")})
+		f.Edits = append(f.Edits, Edit{Line: n.Line, Action: action, Ref: p.Ref, SHA: p.SHA, Old: strings.TrimRight(old, "\r\n"), New: strings.TrimRight(updated, "\r\n")})
 	}
 	f.after = []byte(strings.Join(lines, ""))
 	return f, fails
@@ -160,8 +207,9 @@ func pinnable(v string) bool {
 }
 
 // rewriteLine replaces the uses: value at its column, keeps its quotes, and
-// adds the old ref as a comment, or before an existing comment.
-func rewriteLine(line string, n *yaml.Node, value, ref string) (string, string, bool) {
+// writes ref as the comment. keep puts ref before an existing comment, and
+// otherwise ref replaces it.
+func rewriteLine(line string, n *yaml.Node, value, ref string, keep bool) (string, string, bool) {
 	start := n.Column - 1
 	if start < 0 || start >= len(line) {
 		return line, line, false
@@ -182,7 +230,9 @@ func rewriteLine(line string, n *yaml.Node, value, ref string) (string, string, 
 	}
 	comment := " # " + ref
 	if i := strings.Index(rest, "#"); i >= 0 {
-		comment = " # " + ref + "; " + strings.TrimSpace(rest[i+1:])
+		if keep {
+			comment = " # " + ref + "; " + strings.TrimSpace(rest[i+1:])
+		}
 		rest = rest[:i]
 	}
 	updated := line[:start] + quote + value + quote + strings.TrimRight(rest, " \t") + comment + eol
@@ -245,32 +295,6 @@ func workflowFiles(root string) ([]string, error) {
 		}
 	}
 	return out, nil
-}
-
-// originRepo returns owner/repo of the github.com origin remote of the git
-// repository at root, or "".
-func originRepo(root string) string {
-	repo, err := gogit.PlainOpenWithOptions(root, &gogit.PlainOpenOptions{DetectDotGit: true})
-	if err != nil {
-		return ""
-	}
-	remote, err := repo.Remote("origin")
-	if err != nil || len(remote.Config().URLs) == 0 {
-		return ""
-	}
-	return githubRepo(remote.Config().URLs[0])
-}
-
-func githubRepo(u string) string {
-	for _, prefix := range []string{"https://github.com/", "http://github.com/", "git@github.com:", "ssh://git@github.com/"} {
-		if rest, ok := strings.CutPrefix(u, prefix); ok {
-			parts := strings.SplitN(strings.TrimSuffix(strings.TrimSuffix(rest, "/"), ".git"), "/", 3)
-			if len(parts) >= 2 {
-				return parts[0] + "/" + parts[1]
-			}
-		}
-	}
-	return ""
 }
 
 // Diff returns a unified diff of the plan, one hunk for each edit.

@@ -46,7 +46,7 @@ func ListReleases(ctx context.Context, client *gh.Client, owner, repo string) ([
 
 // Choice is the rule that picks a release.
 type Choice struct {
-	// Major is the major version, such as v2.
+	// Major is the major version, such as v2, or "" for each major.
 	Major string
 	// Prerelease takes a pre-release too.
 	Prerelease bool
@@ -68,7 +68,7 @@ func (c Choice) Newest(releases []Release) (Release, bool) {
 		v := SemverOf(r.Tag)
 		switch {
 		case v == "" || r.Draft || module.IsPseudoVersion(v) || !fullForm(v):
-		case semver.Major(v) != c.Major:
+		case c.Major != "" && semver.Major(v) != c.Major:
 		case (r.Prerelease || semver.Prerelease(v) != "") && !c.Prerelease:
 		case c.Immutable && !r.Immutable:
 		case c.Minimum != "" && semver.Compare(v, SemverOf(c.Minimum)) < 0:
@@ -113,4 +113,14 @@ func SemverOf(v string) string {
 		return ""
 	}
 	return v
+}
+
+// ReleaseTag returns the release tag of a vet version, or false for a
+// development build, a pseudo-version or a version with build metadata.
+func ReleaseTag(version string) (string, bool) {
+	v := SemverOf(version)
+	if v == "" || module.IsPseudoVersion(v) || semver.Build(v) != "" {
+		return "", false
+	}
+	return v, true
 }

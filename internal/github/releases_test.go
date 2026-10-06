@@ -77,3 +77,34 @@ func TestListReleases(t *testing.T) {
 	assert.True(t, got[0].Immutable)
 	assert.Equal(t, "v1.19.1", got[1].Tag)
 }
+
+func TestReleaseTag(t *testing.T) {
+	cases := []struct {
+		version string
+		want    string
+	}{
+		{"2.0.0-alpha.20261005063951", "v2.0.0-alpha.20261005063951"},
+		{"v2.1.0", "v2.1.0"},
+		{"devel", ""},
+		{"v2.0.0-20261005063951-0123456789ab", ""},
+		{"2.1.0+dirty", ""},
+	}
+	for _, tc := range cases {
+		got, ok := ReleaseTag(tc.version)
+		assert.Equal(t, tc.want, got, tc.version)
+		assert.Equal(t, tc.want != "", ok, tc.version)
+	}
+}
+
+func TestChoiceOfEachMajor(t *testing.T) {
+	now := time.Date(2026, 10, 10, 0, 0, 0, 0, time.UTC)
+	old := now.Add(-48 * time.Hour)
+	releases := []Release{
+		{Tag: "v7.0.0-beta.1", Prerelease: true, PublishedAt: old},
+		{Tag: "v6.0.2", PublishedAt: old},
+		{Tag: "v5.0.1", PublishedAt: old},
+	}
+	got, ok := Choice{Cooldown: 24 * time.Hour, Now: now}.Newest(releases)
+	require.True(t, ok)
+	assert.Equal(t, "v6.0.2", got.Tag)
+}

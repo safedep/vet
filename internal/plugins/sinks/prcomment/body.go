@@ -8,10 +8,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"golang.org/x/mod/module"
-	"golang.org/x/mod/semver"
-
 	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/internal/github"
 	"github.com/safedep/vet/v2/internal/overview"
 	"github.com/safedep/vet/v2/internal/plugins/internal/render"
 	"github.com/safedep/vet/v2/internal/tui/humanize"
@@ -414,14 +412,10 @@ func (c *input) where(f *finding.Finding) string {
 // ref is the git ref of the vet docs: the tag of a release build, else
 // the v2 branch.
 func (c *input) ref() string {
-	v := c.header.Tool.Version
-	if !strings.HasPrefix(v, "v") {
-		v = "v" + v
+	if tag, ok := github.ReleaseTag(c.header.Tool.Version); ok {
+		return tag
 	}
-	if !semver.IsValid(v) || module.IsPseudoVersion(v) || semver.Build(v) != "" {
-		return devRef
-	}
-	return v
+	return devRef
 }
 
 func (c *input) docURL(control string) string {
