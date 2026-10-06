@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/safedep/vet/v2/internal/github"
 )
 
 func TestReleaseCheck(t *testing.T) {
@@ -34,7 +36,11 @@ func TestReleaseCheck(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			c := releaseCheck(tc.tags, tc.current)
+			var releases []github.Release
+			for _, tag := range tc.tags {
+				releases = append(releases, github.Release{Tag: tag})
+			}
+			c := releaseCheck(releases, tc.current)
 			assert.Equal(t, tc.want, c.Status)
 			assert.Equal(t, tc.message, c.Message)
 		})

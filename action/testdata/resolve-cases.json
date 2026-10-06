@@ -1,0 +1,11 @@
+[
+  {"name": "the alpha channel skips a young release and a replaced asset", "releases": "alpha-releases.json", "channel": "prerelease", "cooldown_hours": 24, "now": "2026-10-06T00:00:00Z", "want": "v2.0.0-alpha.20261004160304"},
+  {"name": "no cooldown takes the newest", "releases": "alpha-releases.json", "channel": "prerelease", "cooldown_hours": 0, "now": "2026-10-06T00:00:00Z", "want": "v2.0.0-alpha.20261005063951"},
+  {"name": "a later run takes the newest", "releases": "alpha-releases.json", "channel": "prerelease", "cooldown_hours": 24, "now": "2026-10-07T12:00:00Z", "want": "v2.0.0-alpha.20261005063951"},
+  {"name": "the stable channel has no v2 release yet", "releases": "alpha-releases.json", "channel": "stable", "cooldown_hours": 24, "now": "2026-10-06T00:00:00Z", "want": ""},
+  {"name": "the minimum is inside the cooldown", "releases": "alpha-releases.json", "channel": "prerelease", "cooldown_hours": 24, "min_version": "2.0.0-alpha.20261005000000", "now": "2026-10-06T00:00:00Z", "want": ""},
+  {"name": "a mutable release does not count", "releases": "alpha-releases.json", "channel": "prerelease", "cooldown_hours": 0, "min_version": "2.0.0-alpha.20261003000000", "now": "2026-10-03T12:00:00Z", "want": ""},
+  {"name": "the stable channel after GA", "releases": "ga-releases.json", "channel": "stable", "cooldown_hours": 24, "now": "2026-12-10T12:00:00Z", "want": "v2.0.0"},
+  {"name": "the prerelease channel after GA", "releases": "ga-releases.json", "channel": "prerelease", "cooldown_hours": 24, "now": "2026-12-10T12:00:00Z", "want": "v2.1.0-alpha.20261209000000"},
+  {"name": "the stable channel with no cooldown", "releases": "ga-releases.json", "channel": "stable", "cooldown_hours": 0, "now": "2026-12-10T12:00:00Z", "want": "v2.0.1"}
+]
