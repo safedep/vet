@@ -113,3 +113,56 @@ func TestPublishOutsideAPullRequest(t *testing.T) {
 	assert.Empty(t, cm.posted)
 	assert.True(t, strings.Contains(err.Error(), "pull request"))
 }
+
+// readOnly is the GitHub adapter of a fork run: it reads, and it cannot
+// write.
+type readOnly struct{ fakeCommenter }
+
+func (*readOnly) Upsert(context.Context, *ci.Comment, string) (string, error) {
+	return "", ci.ErrNoWriteAccess
+}
+
+func TestPublishByProxy(t *testing.T) {
+	forkEnv := func(t *testing.T, private bool) func(string) string {
+		t.Helper()
+		event := filepath.Join(t.TempDir(), "event.json")
+		priv := "false"
+		if private {
+			priv = "true"
+		}
+		require.NoError(t, os.WriteFile(event, []byte(`{"pull_request":{"number":7,"base":{"sha":"1"},"head":{"sha":"3","repo":{"full_name":"someone/app"}}},"repository":{"full_name":"acme/app","private":`+priv+`}}`), 0o600))
+		env := map[string]string{"GITHUB_ACTIONS": "true", "GITHUB_REPOSITORY": "acme/app", "GITHUB_EVENT_NAME": "pull_request", "GITHUB_EVENT_PATH": event}
+		return func(k string) string { return env[k] }
+	}
+	cases := []struct {
+		name     string
+		private  bool
+		noProxy  bool
+		wantPost bool
+		wantErr  string
+	}{
+		{name: "public fork", wantPost: true},
+		{name: "private fork", private: true, wantErr: "private repository"},
+		{name: "proxy off", noProxy: true, wantErr: "proxy is false"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			proxied := &fakeCommenter{}
+			sink := newPublisher(t, CreateChanges, forkEnv(t, tc.private), nil)
+			sink.commenter = func(context.Context, ci.Context) (ci.Commenter, error) { return &readOnly{}, nil }
+			sink.proxy = func(context.Context, ci.Context, ci.Commenter) (ci.Commenter, error) { return proxied, nil }
+			if tc.noProxy {
+				sink.proxy = nil
+			}
+			_, err := sink.Publish(context.Background(), pullRequest(report.GateFail))
+			if tc.wantErr != "" {
+				assert.ErrorContains(t, err, tc.wantErr)
+				assert.Empty(t, proxied.posted)
+				return
+			}
+			require.NoError(t, err)
+			require.Len(t, proxied.posted, 1)
+			assert.Contains(t, proxied.posted[0], viaProxy)
+		})
+	}
+}

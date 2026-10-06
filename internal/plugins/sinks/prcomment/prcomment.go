@@ -1,6 +1,7 @@
 package prcomment
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -15,6 +16,7 @@ import (
 	"github.com/safedep/vet/v2/internal/ci/githubci"
 	"github.com/safedep/vet/v2/internal/github"
 	"github.com/safedep/vet/v2/internal/overview"
+	"github.com/safedep/vet/v2/internal/plugins/cloud/ghcp"
 	"github.com/safedep/vet/v2/internal/plugins/controls"
 	"github.com/safedep/vet/v2/internal/plugins/internal/optschema"
 	"github.com/safedep/vet/v2/plugin"
@@ -37,6 +39,11 @@ type Options struct {
 	// Create decides when vet creates a new comment. vet always edits a
 	// comment that exists, so a resolved finding shows.
 	Create string `json:"create" jsonschema:"enum=changes,enum=findings"`
+	// Proxy posts the comment of a fork run of a public repository through
+	// the SafeDep comment proxy. The default is true.
+	Proxy *bool `json:"proxy"`
+	// ProxyURL is the address of the comment proxy.
+	ProxyURL string `json:"proxy_url"`
 }
 
 // Sink writes and publishes the pull request comment.
@@ -46,6 +53,9 @@ type Sink struct {
 	getenv  func(string) string
 	// commenter returns the adapter of the platform of a run.
 	commenter func(ctx context.Context, c ci.Context) (ci.Commenter, error)
+	// proxy returns the adapter of the comment proxy, or nil when the
+	// option turns it off. read finds the comment with the run token.
+	proxy func(ctx context.Context, c ci.Context, read ci.Commenter) (ci.Commenter, error)
 }
 
 // New builds the sink from its options.
@@ -65,8 +75,27 @@ func New(cfg plugin.Config) (plugin.Sink, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Sink{create: o.Create, attacks: attacks, getenv: os.Getenv, commenter: platformCommenter}, nil
+	s := &Sink{create: o.Create, attacks: attacks, getenv: os.Getenv, commenter: platformCommenter}
+	if o.Proxy == nil || *o.Proxy {
+		s.proxy = proxyCommenter(cmp.Or(o.ProxyURL, ghcp.DefaultURL))
+	}
+	return s, nil
 }
+
+// proxyCommenter returns the factory of the comment proxy at url. The
+// proxy takes the token of the run.
+func proxyCommenter(url string) func(context.Context, ci.Context, ci.Commenter) (ci.Commenter, error) {
+	return func(ctx context.Context, c ci.Context, read ci.Commenter) (ci.Commenter, error) {
+		token, err := github.DefaultProvider().Token(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("the comment proxy needs the token of the run: %w", err)
+		}
+		return ghcp.New(url, token, c, read)
+	}
+}
+
+// viaProxy is the footer line of a comment that the proxy posts.
+const viaProxy = "Posted by the SafeDep comment proxy, because the workflow token of a fork cannot write comments."
 
 // platformCommenter returns the adapter of the CI platform. The GitHub
 // adapter uses the token of the run.
@@ -118,7 +147,31 @@ func (s *Sink) Publish(ctx context.Context, r plugin.Report) (string, error) {
 			c.old = &st
 		}
 	}
-	return cm.Upsert(ctx, old, c.body())
+	url, err := cm.Upsert(ctx, old, c.body())
+	if !errors.Is(err, ci.ErrNoWriteAccess) || !run.Change.Fork {
+		return url, err
+	}
+	return s.publishByProxy(ctx, run, cm, old, c)
+}
+
+// publishByProxy posts the comment of a fork run through the comment
+// proxy. The proxy serves public repositories only.
+func (s *Sink) publishByProxy(ctx context.Context, run ci.Context, read ci.Commenter, old *ci.Comment, c *input) (url string, err error) {
+	switch {
+	case run.Change.Private:
+		return "", errors.New("the token of a fork run of a private repository cannot write a comment. The step summary has the report")
+	case s.proxy == nil:
+		return "", errors.New("the token of a fork run cannot write a comment, and plugins.pr-comment.options.proxy is false. The step summary has the report")
+	}
+	pc, err := s.proxy(ctx, run, read)
+	if err != nil {
+		return "", err
+	}
+	if closer, ok := pc.(io.Closer); ok {
+		defer func() { err = errors.Join(err, closer.Close()) }()
+	}
+	c.via = viaProxy
+	return pc.Upsert(ctx, old, c.body())
 }
 
 // creates reports whether a run with no comment yet posts one.
