@@ -296,3 +296,19 @@ func TestInstalledNotLocked(t *testing.T) {
 		})
 	}
 }
+
+func TestInstalledNotLockedSkipsARemovedLockfile(t *testing.T) {
+	removed := &model.Manifest{
+		ID: "lock", Path: "app/package-lock.json", Ecosystem: model.EcosystemNpm, Kind: model.ManifestKindLockfile,
+		Extractor: packagelockjson.Name, Change: model.ChangeRemoved,
+		Packages: []*model.Package{{ID: model.MustPackageVersion(model.EcosystemNpm, "evil", "1.0.0"), Change: model.ChangeRemoved}},
+	}
+	installed := &model.Manifest{
+		ID: "installed", Path: "app/node_modules/evil/package.json", Ecosystem: model.EcosystemNpm, Kind: model.ManifestKindInstalled,
+		Root: fstest.MapFS{}, Packages: []*model.Package{{ID: model.MustPackageVersion(model.EcosystemNpm, "evil", "1.0.0")}},
+	}
+	c, err := New(plugin.MapConfig(nil))
+	require.NoError(t, err)
+	assert.Empty(t, plugintest.TestControl(t, c, installed, plugintest.NewMemState(removed, installed)),
+		"a project with no lockfile at the head has no verdict")
+}

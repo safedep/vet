@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/model"
@@ -441,4 +442,26 @@ func diagnosticsOf(t *testing.T, res *Result) []*report.Diagnostic {
 		}
 	}
 	return diags
+}
+
+// fileControl reads the file of each manifest, as the workflow control does.
+type fileControl struct{}
+
+func (fileControl) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State) ([]finding.Finding, error) {
+	if _, err := m.ReadFile(); err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
+func TestPullRequestModeSkipsTheControlsOfARemovedManifest(t *testing.T) {
+	f := newFixture(t)
+	o := f.options(t, gitProject(t), &fakeEnricher{}, Control{ID: "file", Plugin: fileControl{}})
+	o.BaseRef = "HEAD"
+	res := runScan(t, o)
+
+	assert.Equal(t, model.ChangeRemoved, changesOf(t, res)["pypi/six@1.16.0"])
+	for _, d := range diagnosticsOf(t, res) {
+		assert.NotEqual(t, report.CodeControlFailed, d.Code, d.Message)
+	}
 }
