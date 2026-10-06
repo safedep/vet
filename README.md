@@ -132,6 +132,8 @@ After its expiry date, the suppression no longer hides the finding. Read
 
 ## Use cases
 
+- **Pull request check.** The [vet GitHub Action](docs/github-action.md) comments on each pull
+  request and fails the check on an attack. `vet ci init` adds it to a repository.
 - **CI gate.** Exit codes, SARIF for GitHub code scanning, GitLab and Bitbucket reports. See
   [ci.md](docs/ci.md).
 - **Pull request review.** `--base-ref` reports only the packages and workflows that a change adds.

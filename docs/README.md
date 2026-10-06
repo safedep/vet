@@ -7,6 +7,7 @@
 - [controls.md](controls.md): the controls, their families, severities and options.
 - [policy.md](policy.md): how to write a policy, test it and use it as a gate.
 - [output.md](output.md): the report formats, the saved scans and the configuration.
+- [github-action.md](github-action.md): the vet GitHub Action, its inputs, the comment and the gate.
 - [ci.md](ci.md): GitHub Actions, GitLab CI, Bitbucket Pipelines and AI agents.
 - [inventory.md](inventory.md): code usage, the AI and crypto inventory, the xBOM and the CBOM.
 - [release-notes/](release-notes): the changes that each release asks of a user.

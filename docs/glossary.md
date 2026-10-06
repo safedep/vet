@@ -357,9 +357,10 @@ finding or a diagnostic. `report.Record` and `report.Kind`. The **header** (`rep
 
 **Report format**:
 One way to write a report, provided by one sink plugin: `table`, `plain`, `json`, `jsonl`, `markdown`,
-`sarif`, `cyclonedx`, `gitlab`, `bitbucket` and `cloud`. The format name is the sink name. `-o FORMAT`
-writes to stdout, and `--report FORMAT=PATH` writes to a file. A **sink** (`plugin.Sink`) is the
-plugin.
+`sarif`, `cyclonedx`, `gitlab`, `bitbucket`, `cloud` and `pr-comment`. The format name is the sink
+name. `-o FORMAT` writes to stdout, and `--report FORMAT=PATH` writes to a file. A **sink**
+(`plugin.Sink`) is the plugin. A **publisher** (`plugin.Publisher`) is a sink that also takes
+`--report FORMAT` with no path, and sends the report to a place of its own, such as a pull request.
 _Avoid_: reporter, exporter
 
 **Printer format**:
@@ -374,6 +375,49 @@ _Avoid_: scan mode, output mode (when you mean the messaging mode)
 **View**:
 The stderr text of a scan: the step lines, the progress, the diagnostics, the gate line and the next
 steps. `internal/view`. The report goes to stdout through a sink, never through the view.
+
+## CI
+
+**CI context**:
+The CI run that runs vet: the platform, the repository, the links and the change that it builds.
+`ci.Context`, from `ci.Detect`. The change (`ci.Change`) is a pull request, with its number, its base
+and head commits, and whether it comes from a fork. A push and a schedule have no change.
+_Avoid_: CI environment, build info
+
+**Pull request comment**:
+The one comment that the `pr-comment` publisher posts on a pull request and edits on each push. A
+marker at the start finds it, and a key keeps apart the comments of two vet steps.
+`internal/plugins/sinks/prcomment`. An **adapter** (`ci.Commenter`) writes it to one platform:
+`githubci` with the token of the run, or `ghcp` through the comment proxy.
+_Avoid_: PR bot, sticky comment, review
+
+**State block**:
+The hidden block at the end of the pull request comment. It holds the head commit and the finding ids
+of the last run, so the next run can say what a push resolved. It never changes the gate. A block
+that does not parse gives no progress line.
+_Avoid_: comment state, metadata
+
+**Comment proxy**:
+The SafeDep service that posts the pull request comment of a fork run of a public repository, because
+the token of a fork run cannot write. `ghcp`, in `internal/plugins/cloud/ghcp`.
+_Avoid_: comment bot, relay
+
+**GitHub Action**:
+`action.yml` and the `action/` scripts of this repository. `install.sh` picks, checks and installs a
+vet release. `scan.sh` runs `vet scan` and maps the report to the outputs. Each rule of the gate, the
+comment and the state is in Go. `vet ci init` writes the workflow that uses it.
+_Avoid_: vet-action (the v1 action)
+
+**Release channel**:
+The set of releases that the action takes with `version: auto`: `prerelease` or `stable`.
+`action/channel.json` on the default branch selects it. It never shortens the release cooldown.
+_Avoid_: track, ring
+
+**Release cooldown**:
+The age that a release needs before the action or `vet ci update` takes it. The age counts from the
+latest of the publish time, the asset update times and, in the action, the attestation time.
+`github.Choice` and `action/resolve.jq`. It is not the dependency cooldown of the
+`dependency-cooldown` control.
 
 ## State and configuration
 
@@ -458,6 +502,7 @@ Some words name more than one thing in the code. Qualify them.
 | base | the base ref of pull request mode; the older scan of `vet report diff` | base ref; base scan |
 | cache | the enrichment cache; the base extraction cache; the `cache` config section | enrichment cache; base cache |
 | check | a `vet doctor` check; `plugin.Checker`; an OpenSSF Scorecard check | doctor check; Scorecard check. Never for a control |
+| cooldown | the dependency cooldown of the `dependency-cooldown` control; the release cooldown of the action | dependency cooldown; release cooldown |
 | endpoint | the machine; a SafeDep service URL | endpoint; service URL |
 | key | package key; finding key; target key | the full term |
 | kind | scan, artifact, manifest, record, subject, inventory, capability and plugin kinds | the full term |

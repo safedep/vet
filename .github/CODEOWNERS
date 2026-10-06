@@ -1,8 +1,10 @@
 # The GitHub Action reads action/channel.json from the default branch. It
 # selects the releases that each user of the action installs. The program
-# owner reviews each change to the channel, the oldest supported vet and
-# the issue form.
+# owner reviews each change to the channel, the oldest supported vet, the
+# issue form and the workflows. The review keeps a v2 release workflow off
+# the v1 branch.
 /action/channel.json @abhisek
 /action/min-version @abhisek
 /.github/ISSUE_TEMPLATE/ @abhisek
+/.github/workflows/ @abhisek
 /.github/CODEOWNERS @abhisek
