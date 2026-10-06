@@ -139,7 +139,7 @@ func configCheck(l *config.Loaded) Check {
 
 func latestRelease(ctx context.Context, cfg *config.Config) Check {
 	if devBuild(version.Version()) {
-		return releaseCheck(nil, version.Version())
+		return releaseCheck(nil, version.Version(), time.Now())
 	}
 	ctx, cancel := context.WithTimeout(ctx, probeTimeout)
 	defer cancel()
@@ -151,20 +151,20 @@ func latestRelease(ctx context.Context, cfg *config.Config) Check {
 	if err != nil {
 		return Check{ID: "vet.release", Status: Warn, Message: "vet could not check the latest release: " + err.Error()}
 	}
-	return releaseCheck(releases, version.Version())
+	return releaseCheck(releases, version.Version(), time.Now())
 }
 
 // releaseCheck compares this vet with the newest release of its major
 // version. A pre-release build compares with the pre-releases too, so an
 // alpha build of v2 learns about a newer alpha and never about v1. A build
 // with no version or a pseudo-version is a development build, and passes.
-func releaseCheck(releases []github.Release, current string) Check {
+func releaseCheck(releases []github.Release, current string, now time.Time) Check {
 	shown := banner.DisplayVersion(current)
 	if devBuild(current) {
 		return Check{ID: "vet.release", Status: Pass, Message: "vet " + shown + " is a development build"}
 	}
 	cur := github.SemverOf(current)
-	newest, ok := github.Choice{Major: semver.Major(cur), Prerelease: semver.Prerelease(cur) != ""}.Newest(releases)
+	newest, ok := github.Choice{Major: semver.Major(cur), Prerelease: semver.Prerelease(cur) != "", Now: now}.Newest(releases)
 	if !ok {
 		return Check{ID: "vet.release", Status: Pass, Message: "vet " + shown + " has no newer release"}
 	}

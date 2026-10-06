@@ -2,6 +2,7 @@ package doctor
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -38,9 +39,9 @@ func TestReleaseCheck(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var releases []github.Release
 			for _, tag := range tc.tags {
-				releases = append(releases, github.Release{Tag: tag})
+				releases = append(releases, github.Release{Tag: tag, PublishedAt: time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC)})
 			}
-			c := releaseCheck(releases, tc.current)
+			c := releaseCheck(releases, tc.current, time.Date(2026, 10, 6, 0, 0, 0, 0, time.UTC))
 			assert.Equal(t, tc.want, c.Status)
 			assert.Equal(t, tc.message, c.Message)
 		})
