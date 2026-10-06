@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/safedep/vet/v2/internal/engine"
+	"github.com/safedep/vet/v2/internal/overview"
 	"github.com/safedep/vet/v2/internal/tui/escape"
 	"github.com/safedep/vet/v2/internal/tui/humanize"
 	"github.com/safedep/vet/v2/internal/tui/output"
@@ -179,7 +180,7 @@ func counted(text string, n int, unit string) string {
 // Finish ends the last stage, then prints the changes of a pull request
 // scan, a missing manifest, the diagnostics, the gate line and the next
 // steps.
-func (v *Scan) Finish(h *report.Header, t *report.Trailer, s Summary) {
+func (v *Scan) Finish(h *report.Header, t *report.Trailer, s overview.Overview) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 	v.endStage()

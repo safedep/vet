@@ -1,4 +1,8 @@
-package view
+// Package overview reads what a person sees first in a report: the
+// findings that no suppression hides, the most severe first, the
+// diagnostics, and what a pull request changes. The terminal view and the
+// sinks share it.
+package overview
 
 import (
 	"context"
@@ -10,8 +14,8 @@ import (
 	"github.com/safedep/vet/v2/report"
 )
 
-// Summary is what the end of the view reads from a report.
-type Summary struct {
+// Overview is what a person sees first in a report.
+type Overview struct {
 	Diagnostics []*report.Diagnostic
 	// Findings are the findings that no suppression hides, the most
 	// severe first.
@@ -27,12 +31,12 @@ type Changes struct {
 	Packages, Workflows, Unchanged int
 }
 
-// Summarize reads the summary of a report in one pass.
-func Summarize(ctx context.Context, r plugin.Report) (Summary, error) {
-	s := Summary{Latest: map[model.PackageKey]string{}}
+// Read reads the overview of a report in one pass.
+func Read(ctx context.Context, r plugin.Report) (Overview, error) {
+	s := Overview{Latest: map[model.PackageKey]string{}}
 	for rec, err := range r.Records(ctx) {
 		if err != nil {
-			return Summary{}, err
+			return Overview{}, err
 		}
 		switch {
 		case rec.Diagnostic != nil:
@@ -49,7 +53,7 @@ func Summarize(ctx context.Context, r plugin.Report) (Summary, error) {
 	return s, nil
 }
 
-func (s *Summary) addPackage(p *report.PackageEntry) {
+func (s *Overview) addPackage(p *report.PackageEntry) {
 	if p.Insight != nil && p.Insight.LatestVersion != "" {
 		s.Latest[p.ID.Key()] = p.Insight.LatestVersion
 	}

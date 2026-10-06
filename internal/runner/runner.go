@@ -24,6 +24,7 @@ import (
 	"github.com/safedep/vet/v2/internal/credentials"
 	"github.com/safedep/vet/v2/internal/engine"
 	"github.com/safedep/vet/v2/internal/github"
+	"github.com/safedep/vet/v2/internal/overview"
 	"github.com/safedep/vet/v2/internal/plugins/cloud/inventory"
 	"github.com/safedep/vet/v2/internal/plugins/cloud/tenantpolicy"
 	"github.com/safedep/vet/v2/internal/plugins/controls"
@@ -339,7 +340,7 @@ func strictError(err error) error {
 // Render prints the stderr summary of a completed scan, writes the report
 // to the destinations, and returns app.ErrGateFailed for a failed gate.
 func Render(ctx context.Context, r plugin.Report, v *view.Scan, outs []engine.Output) error {
-	s, err := view.Summarize(ctx, r)
+	s, err := overview.Read(ctx, r)
 	if err != nil {
 		return err
 	}

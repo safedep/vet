@@ -35,6 +35,7 @@ helper or a list. Each row is the one place for its concern.
 | --- | --- |
 | Terminal output: messages, tables, panels, progress, prompts, banner | `internal/tui/...`, which wraps `dry/tui`. Look in `dry/tui` first for a missing part. |
 | Stderr view of a scan: steps, diagnostics, gate line | `internal/view` |
+| What a person sees first in a report: findings in order, diagnostics, what a change adds | `internal/overview`. The view and the sinks read it. |
 | Stdout data in the `-o` format | `internal/tui/printer` |
 | Untrusted text on a terminal (package names, paths from a repository) | `internal/tui/escape` |
 | Log lines of libraries | `internal/logging`. They print only with `-v`. Do not write to the standard `log` package. |
