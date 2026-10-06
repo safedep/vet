@@ -50,6 +50,13 @@ func BaseRefError(err error) error {
 	return err
 }
 
+// sameAtHead reports whether the file rel under dir has the content of the
+// base blob hash.
+func sameAtHead(dir, rel string, hash plumbing.Hash) bool {
+	data, err := os.ReadFile(filepath.Join(dir, filepath.FromSlash(rel)))
+	return err == nil && plumbing.ComputeHash(plumbing.BlobObject, data) == hash
+}
+
 // loadBase reads the base ref of the git working tree at dir. It writes
 // each base file that an extractor wants into a temporary directory and
 // extracts it there, so the base gets the same extractors as the head.
@@ -99,6 +106,11 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 	for _, rel := range files {
 		ms, errs := scalibr.ExtractFile(ctx, scalibr.File{Root: tmp, Path: rel}, exs)
 		for _, err := range errs {
+			// The head extraction reports an unknown ecosystem once, and
+			// the error of a file that the change keeps as it is.
+			if unknownPURLType.MatchString(err.Error()) || sameAtHead(a.Path, rel, b.hashes[rel]) {
+				continue
+			}
 			// A base file that vet cannot read has no base manifest, so
 			// each package of its head file is added. vet reports more,
 			// not less, and says why.

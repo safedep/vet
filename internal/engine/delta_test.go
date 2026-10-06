@@ -388,3 +388,33 @@ func TestDiffOrdersUnderTheEcosystemRule(t *testing.T) {
 		})
 	}
 }
+
+// A file that vet cannot read, and that the change keeps as it is, gets
+// one diagnostic from the head extraction and none from the base.
+func TestPullRequestModeReportsAnUnchangedBrokenFileOnce(t *testing.T) {
+	dir := t.TempDir()
+	repo, err := gogit.PlainInit(dir, false)
+	require.NoError(t, err)
+	write(t, dir, "package-lock.json", `{"lockfileVersion": 3, "packages": {`)
+	wt, err := repo.Worktree()
+	require.NoError(t, err)
+	require.NoError(t, wt.AddGlob("."))
+	_, err = wt.Commit("base", &gogit.CommitOptions{Author: &object.Signature{Name: "t", Email: "t@example.com", When: time.Now()}})
+	require.NoError(t, err)
+
+	f := newFixture(t)
+	o := f.options(t, dir, &fakeEnricher{})
+	o.BaseRef = "HEAD"
+	res := runScan(t, o)
+
+	var messages []string
+	for rec, err := range res.Scan.Records(context.Background()) {
+		require.NoError(t, err)
+		if rec.Diagnostic != nil {
+			messages = append(messages, rec.Diagnostic.Component+": "+rec.Diagnostic.Message)
+		}
+	}
+	all := strings.Join(messages, "\n")
+	assert.NotContains(t, all, "read the base of")
+	assert.Contains(t, all, "extract: ")
+}
