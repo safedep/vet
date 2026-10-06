@@ -74,6 +74,7 @@ func (d *vscodeDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn)
 				ConfigPath: vscodeDir,
 				Agent:      &AgentConfig{},
 			}
+			agent.InstallPath = firstExistingPath(vscodeInstallMarkers())
 			agent.ID = generateID(agent.App, string(agent.Type), string(agent.Scope), agent.Name, agent.ConfigPath)
 			agent.SourceID = generateSourceID(agent.App, agent.ConfigPath)
 
@@ -96,4 +97,16 @@ func (d *vscodeDiscoverer) EnumTools(_ context.Context, handler AIToolHandlerFn)
 	}
 
 	return nil
+}
+
+// vscodeInstallMarkers returns the documented VS Code install locations:
+// the macOS app bundle, the Windows user setup and system setup
+// directories, and the Linux deb/rpm install directory.
+func vscodeInstallMarkers() []string {
+	return []string{
+		unixPath("Applications", "Visual Studio Code.app"),
+		envPath("LOCALAPPDATA", "Programs", "Microsoft VS Code"),
+		envPath("ProgramFiles", "Microsoft VS Code"),
+		unixPath("usr", "share", "code"),
+	}
 }

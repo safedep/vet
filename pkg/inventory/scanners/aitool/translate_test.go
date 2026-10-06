@@ -295,3 +295,22 @@ func TestCopyBoolPtrIndependent(t *testing.T) {
 	assert.True(t, *got, "copyBoolPtr must produce an independent pointer")
 	assert.Nil(t, copyBoolPtr(nil))
 }
+
+func TestTranslateCodingAgentInstallEvidence(t *testing.T) {
+	tool := &aitool.AITool{
+		Name:       "Codex",
+		Type:       aitool.AIToolTypeCodingAgent,
+		Scope:      aitool.AIToolScopeSystem,
+		App:        "codex",
+		ConfigPath: "/home/u/.codex",
+		Agent:      &aitool.AgentConfig{},
+	}
+	tool.SetMeta(aitool.MetaAgentInstalled, false)
+	tool.SetMeta(aitool.MetaAgentEvidence, "config")
+
+	item := translate(tool)
+	require.NotNil(t, item)
+	assert.Equal(t, inventory.KindCodingAgent, item.Kind)
+	assert.Equal(t, "false", item.Metadata[aitool.MetaAgentInstalled])
+	assert.Equal(t, "config", item.Metadata[aitool.MetaAgentEvidence])
+}

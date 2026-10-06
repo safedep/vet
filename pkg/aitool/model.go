@@ -106,8 +106,12 @@ type AITool struct {
 	// Extension repeats the extension.* metadata keys as typed fields. The
 	// JSON output keeps the keys only, so its shape does not change.
 	Extension *ExtensionConfig `json:"-"`
-	Enabled   *bool            `json:"enabled,omitempty"`
-	Metadata  map[string]any   `json:"metadata,omitempty"`
+	// InstallPath is a documented install location of a coding agent (e.g.
+	// an app bundle) found on disk. It feeds agent.evidence and is not
+	// serialized on its own.
+	InstallPath string         `json:"-"`
+	Enabled     *bool          `json:"enabled,omitempty"`
+	Metadata    map[string]any `json:"metadata,omitempty"`
 }
 
 // ExtensionConfig is the registry identity of an IDE or AI extension.
