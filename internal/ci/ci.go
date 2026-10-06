@@ -6,6 +6,7 @@ package ci
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -44,6 +45,10 @@ type Change struct {
 	// Private is true for a private base repository.
 	Private bool
 }
+
+// ErrNoWriteAccess means that the token of the run cannot write a comment,
+// for example the read-only token of a fork run.
+var ErrNoWriteAccess = errors.New("the CI token cannot write a comment")
 
 // Comment is a comment on a change.
 type Comment struct {
