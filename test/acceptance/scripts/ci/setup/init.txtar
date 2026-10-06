@@ -24,7 +24,9 @@ stdout 'safedep/vet@1111111111111111111111111111111111111111 # v2.0.0-alpha.2026
 exec vet ci init --policy --mode plain
 stderr 'Wrote .github/workflows/vet.yml'
 stderr 'git add .github/workflows/vet.yml .github/vet/policy.yml .github/dependabot.yaml'
-cmp .github/workflows/vet.yml $WORK/want-vet.yml
+# A Windows checkout gives the want file CRLF line ends. vet writes LF.
+[!windows] cmp .github/workflows/vet.yml $WORK/want-vet.yml
+grep 'uses: safedep/vet@1111111111111111111111111111111111111111 # v2.0.0-alpha.20260101000000' .github/workflows/vet.yml
 cmp .github/dependabot.yaml $WORK/want-dependabot.yml
 ! exists .github/dependabot.yml
 exists .github/vet/policy.yml
