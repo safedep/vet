@@ -19,9 +19,11 @@ const (
 )
 
 func init() {
-	infos[IDImpostorCommit] = pluginInfo(IDImpostorCommit, finding.SeverityCritical,
+	impostor := pluginInfo(IDImpostorCommit, finding.SeverityCritical,
 		"Action pinned to a commit outside its repository",
 		"A step pins an action to a commit that no branch and no tag of the named repository contains. GitHub serves each commit of a fork through the repository, so the commit can come from a fork that an attacker controls.")
+	impostor.Attack = true
+	infos[IDImpostorCommit] = impostor
 	infos[IDPinCommentMismatch] = pluginInfo(IDPinCommentMismatch, finding.SeverityMedium,
 		"Pin comment names another tag",
 		"A step pins an action to a commit, and the comment names a release tag that does not point to that commit. A reviewer who reads the comment expects other code than the code that runs.")

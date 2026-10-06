@@ -137,6 +137,9 @@ type ControlInfo struct {
 	Severity    finding.Severity `json:"severity"`
 	Title       string           `json:"title"`
 	Description string           `json:"description"`
+	// Attack marks a control that finds an attack, such as a malicious
+	// package. The attacks gate fails on its findings and on no other.
+	Attack bool `json:"attack,omitempty"`
 }
 
 // Describer lists the control ids that a control plugin emits. Every control
