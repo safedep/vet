@@ -106,6 +106,32 @@ func TestBodyGolden(t *testing.T) {
 	}
 }
 
+func TestNote(t *testing.T) {
+	invalid := &report.Diagnostic{Level: report.DiagnosticWarning, Code: report.CodeBasePolicyInvalid, Component: "policy", Message: "does not load"}
+	cases := []struct {
+		name   string
+		policy string
+		diags  []*report.Diagnostic
+		want   string
+	}{
+		{name: "the change adds a policy", want: "This change adds a policy."},
+		{name: "the change edits a policy", policy: "origin/main:p.yml", want: "The gate uses `origin/main:p.yml`."},
+		{name: "the base policy does not load", diags: []*report.Diagnostic{invalid}, want: "The policy of the base branch does not load"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			s := pullRequest(report.GatePass)
+			s.DiagnosticList = tc.diags
+			s.TrailerValue.Gate.Policy = tc.policy
+			s.TrailerValue.Gate.PolicyChanged = true
+			var b strings.Builder
+			newInput(t, s).note(&b)
+			assert.Contains(t, b.String(), "[!NOTE]")
+			assert.Contains(t, b.String(), tc.want)
+		})
+	}
+}
+
 // The warning names only what can hide a finding of the change.
 func TestWarning(t *testing.T) {
 	parse := func(change model.Change) *report.Diagnostic {

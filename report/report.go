@@ -254,9 +254,9 @@ const (
 	DiagnosticError   DiagnosticLevel = "error"
 )
 
-// The diagnostic codes of the scan engine. A reader of a report acts on
-// them, so they are part of the report contract. Other components keep
-// their codes next to their code.
+// The diagnostic codes that a reader of a report acts on. They are part of
+// the report contract. Other components keep their codes next to their
+// code.
 const (
 	CodeExtractFailed      = "extract_failed"
 	CodeUnknownEcosystem   = "unknown_ecosystem"
@@ -266,6 +266,9 @@ const (
 	CodeControlUnavailable = "control_unavailable"
 	CodeControlFailed      = "control_failed"
 	CodeInvalidFinding     = "invalid_finding"
+	// CodeBasePolicyInvalid is a pull request scan whose base policy does
+	// not load while the change edits it. The gate applies no policy file.
+	CodeBasePolicyInvalid = "base_policy_invalid"
 )
 
 // Diagnostic records an error or a limit that did not stop the scan, for

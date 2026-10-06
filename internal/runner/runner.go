@@ -208,11 +208,11 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 			return err
 		}
 	}
-	policySrc, policyEdited, err := policySource(ctx, o.Target, o.BaseRef, gate.File, rt)
+	pol, err := policySource(ctx, o.Target, o.BaseRef, gate.File, rt)
 	if err != nil {
 		return err
 	}
-	evaluator, err := newEvaluator(ctx, cfg, gate.FailOn, policySrc)
+	evaluator, err := newEvaluator(ctx, cfg, gate.FailOn, pol.Source)
 	if err != nil {
 		return err
 	}
@@ -281,13 +281,14 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 			Enrichers: enricherSpecs(set), Controls: engineControls(ctrls), Exclude: exclude,
 			Kind: kind, Mode: mode, BaseRef: o.BaseRef, OptionsHash: hash, VetVersion: version.Version(),
 			Resume: o.Resume, Fresh: o.Fresh, ContinueWithin: within, Strict: o.Strict || cfg.Scan.Strict,
-			BatchSize: 100, Observer: v, Opened: notContinued,
+			Diagnostics: pol.diagnostics(),
+			BatchSize:   100, Observer: v, Opened: notContinued,
 			Finalize: func(ctx context.Context, s *state.Scan) (report.Gate, error) {
 				if err := syncInventory(ctx, cfg, store, s); err != nil {
 					return report.Gate{}, err
 				}
 				g, err := evaluator.Finalize(ctx, s)
-				g.PolicyChanged = policyEdited
+				g.PolicyChanged = pol.Changed
 				return g, err
 			},
 		}

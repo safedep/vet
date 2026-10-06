@@ -198,6 +198,10 @@ edit takes effect after it merges.
 - When the change edits the policy, vet says so, and the report sets `trailer.gate.policy_changed`.
 - `trailer.gate.policy` names the source, such as `origin/main:.github/vet/policy.yml`.
 - When the policy file does not exist at the base ref, vet applies no policy file to the change.
+- When the policy at the base ref does not load, such as a filter suite of vet v1, and the change
+  edits it, vet applies no policy file to the change. vet prints a warning, and the report has a
+  diagnostic with the code `base_policy_invalid`. The policy of the change must load. When the
+  change keeps a policy that does not load, the scan stops with `policy_invalid`.
 - vet reads a policy file anywhere in the git repository at `REF`, also when you scan a
   subdirectory. A policy outside the repository, such as `--policy NAME`, comes from disk. A file
   that the change adds cannot take over a policy name.

@@ -237,10 +237,20 @@ func (c *input) note(b *strings.Builder) {
 		return
 	}
 	line := "This change adds a policy. The base branch has no policy, so the gate applies none."
-	if g.Policy != "" {
+	switch {
+	case g.Policy != "":
 		line = fmt.Sprintf("This change edits the policy. The gate uses %s.", code(g.Policy))
+	case c.baseInvalid():
+		line = "This change edits the policy. The policy of the base branch does not load, so the gate applies none until this change merges."
 	}
 	c.alert(b, "NOTE", []string{line})
+}
+
+// baseInvalid reports that the policy of the base branch does not load.
+func (c *input) baseInvalid() bool {
+	return slices.ContainsFunc(c.view.Diagnostics, func(d *report.Diagnostic) bool {
+		return d.Code == report.CodeBasePolicyInvalid
+	})
 }
 
 func (c *input) progress(b *strings.Builder) {
