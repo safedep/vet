@@ -74,6 +74,11 @@ func TestPolicySource(t *testing.T) {
 			wantDocs: map[string]string{"HEAD:policies/a.yml": strict}, wantChanged: true,
 		},
 		{
+			name: "a directory of the path differs in case", base: map[string]string{"policies/strict/policy.yml": strict},
+			policy: "Policies/strict/policy.yml", baseRef: "HEAD",
+			wantDocs: map[string]string{"HEAD:policies/strict/policy.yml": strict},
+		},
+		{
 			name: "no policy at the base and in the change", base: map[string]string{"a.txt": "x"},
 			policy: ".github/vet/policy.yml", baseRef: "HEAD", wantNil: true,
 		},
@@ -142,6 +147,12 @@ func TestPolicySourceFailsClosed(t *testing.T) {
 
 	_, _, err = policySource(ctx, t.TempDir(), "HEAD", "p.yml", resolver{})
 	assert.Equal(t, app.ExitUsage, app.ExitCode(err), "a directory outside git is a usage error")
+
+	twins := gitbasetest.Repo(t, map[string]string{"pol/p.yml": strict, "Pol/p.yml": strict})
+	t.Chdir(twins)
+	_, _, err = policySource(ctx, twins, "HEAD", "POL/p.yml", resolver{})
+	assert.Equal(t, app.ExitUsage, app.ExitCode(err), "two entries that differ only in case are ambiguous")
+	assert.ErrorContains(t, err, "differ only in case")
 }
 
 func TestPolicySourceRefusesASymlinkAtTheBase(t *testing.T) {

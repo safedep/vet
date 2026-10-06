@@ -77,6 +77,9 @@ the check. Move to a stricter gate in steps:
 | Attacks | the default | An attack |
 | Policy | a policy file | An attack, and each finding that a `fail` rule of the policy matches |
 
+`fail-on: none` adds no gate of its own. A gate that the workflow sets for vet, with `args` or the
+`VET_POLICY_FAIL_ON` variable, still applies.
+
 `vet policy init .github/vet/policy.yml` or `vet ci init --policy` writes a starter policy. See
 [policy.md](policy.md).
 

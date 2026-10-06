@@ -84,26 +84,38 @@ func policySource(ctx context.Context, target, baseRef, value string, r policyRe
 	return policyDocs(docs), changed, nil
 }
 
-// baseName returns rel when the base has it. Else it returns the base
-// entry whose name differs only in case, as a file system that ignores
-// case finds it.
+// baseName returns rel when the base has it. Else it matches each part of
+// rel to the base entry whose name differs only in case, as a file system
+// that ignores case finds it. Two such entries make the match ambiguous,
+// and baseName fails.
 func baseName(fsys fs.FS, rel string) (string, error) {
 	_, err := fs.Stat(fsys, rel)
 	if !errors.Is(err, fs.ErrNotExist) {
 		return rel, err
 	}
-	entries, dirErr := fs.ReadDir(fsys, path.Dir(rel))
-	if dirErr != nil {
-		return rel, err
-	}
-	for _, e := range entries {
-		if strings.EqualFold(e.Name(), path.Base(rel)) {
-			folded := path.Join(path.Dir(rel), e.Name())
-			_, err := fs.Stat(fsys, folded)
-			return folded, err
+	dir := "."
+	for _, part := range strings.Split(rel, "/") {
+		entries, dirErr := fs.ReadDir(fsys, dir)
+		if dirErr != nil {
+			return rel, err
 		}
+		var match string
+		for _, e := range entries {
+			if !strings.EqualFold(e.Name(), part) {
+				continue
+			}
+			if match != "" {
+				return rel, fmt.Errorf("the base ref has more than one entry for %s that differ only in case", path.Join(dir, part))
+			}
+			match = e.Name()
+		}
+		if match == "" {
+			return rel, err
+		}
+		dir = path.Join(dir, match)
 	}
-	return rel, err
+	_, err = fs.Stat(fsys, dir)
+	return dir, err
 }
 
 // headChanged compares the policy of the working tree with the base
