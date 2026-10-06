@@ -131,7 +131,9 @@ func TestPublishByProxy(t *testing.T) {
 			priv = "true"
 		}
 		require.NoError(t, os.WriteFile(event, []byte(`{"pull_request":{"number":7,"base":{"sha":"1"},"head":{"sha":"3","repo":{"full_name":"someone/app"}}},"repository":{"full_name":"acme/app","private":`+priv+`}}`), 0o600))
-		env := map[string]string{"GITHUB_ACTIONS": "true", "GITHUB_REPOSITORY": "acme/app", "GITHUB_EVENT_NAME": "pull_request", "GITHUB_EVENT_PATH": event}
+		output := filepath.Join(filepath.Dir(event), "output")
+		require.NoError(t, os.WriteFile(output, nil, 0o600))
+		env := map[string]string{"GITHUB_ACTIONS": "true", "GITHUB_REPOSITORY": "acme/app", "GITHUB_EVENT_NAME": "pull_request", "GITHUB_EVENT_PATH": event, "GITHUB_OUTPUT": output}
 		return func(k string) string { return env[k] }
 	}
 	cases := []struct {
@@ -148,7 +150,8 @@ func TestPublishByProxy(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			proxied := &fakeCommenter{}
-			sink := newPublisher(t, CreateChanges, forkEnv(t, tc.private), nil)
+			env := forkEnv(t, tc.private)
+			sink := newPublisher(t, CreateChanges, env, nil)
 			sink.commenter = func(context.Context, ci.Context) (ci.Commenter, error) { return &readOnly{}, nil }
 			sink.proxy = func(context.Context, ci.Context, ci.Commenter) (ci.Commenter, error) { return proxied, nil }
 			if tc.noProxy {
@@ -163,6 +166,9 @@ func TestPublishByProxy(t *testing.T) {
 			require.NoError(t, err)
 			require.Len(t, proxied.posted, 1)
 			assert.Contains(t, proxied.posted[0], viaProxy)
+			out, err := os.ReadFile(env("GITHUB_OUTPUT"))
+			require.NoError(t, err)
+			assert.Equal(t, "comment-url=https://github.com/acme/app/pull/1#issuecomment-1\n", string(out), "the proxy path sets the output too")
 		})
 	}
 }

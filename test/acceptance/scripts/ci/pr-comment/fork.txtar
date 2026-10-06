@@ -10,6 +10,8 @@ env GITHUB_EVENT_NAME=pull_request
 env GITHUB_EVENT_PATH=$WORK/fork.json
 env GITHUB_TOKEN=ghs_readonly
 env VET_PLUGINS_PR_COMMENT_OPTIONS_PROXY_URL=$STUB_URL
+env GITHUB_OUTPUT=$WORK/output.txt
+cp $WORK/empty.txt $WORK/output.txt
 stub readonly
 cd repo
 exec git -c user.email=t@example.com -c user.name=t init -q
@@ -22,12 +24,14 @@ stub calls ghcp 1
 stub comments
 stdout '--- comment 1 by safedep-ghcp\[bot\] on acme/app/7'
 stdout 'Posted by the SafeDep comment proxy'
+grep '^comment-url=https://github.com/acme/app/pull/7#issuecomment-' $WORK/output.txt
 
 env GITHUB_EVENT_PATH=$WORK/private-fork.json
 execexit 1 vet scan . --base-ref HEAD --fail-on attacks --report pr-comment --mode plain -o plain
 stderr 'fork run of a private repository cannot write a comment'
 stub calls ghcp 1
 
+-- empty.txt --
 -- fork.json --
 {"pull_request": {"number": 7, "base": {"sha": "1111111111111111111111111111111111111111"}, "head": {"sha": "3333333333333333333333333333333333333333", "repo": {"full_name": "someone/app"}}}, "repository": {"full_name": "acme/app", "private": false}}
 -- private-fork.json --

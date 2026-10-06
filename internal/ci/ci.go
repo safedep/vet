@@ -36,6 +36,24 @@ type Context struct {
 	Change *Change
 }
 
+// SetOutput appends name=value to the file of the step outputs. It does
+// nothing when the run has no such file.
+func (c Context) SetOutput(name, value string) (err error) {
+	if c.Output == "" {
+		return nil
+	}
+	if strings.ContainsAny(value, "\r\n") {
+		return fmt.Errorf("the step output %s holds a line break", name)
+	}
+	f, err := os.OpenFile(c.Output, os.O_APPEND|os.O_WRONLY, 0)
+	if err != nil {
+		return fmt.Errorf("write the step output: %w", err)
+	}
+	defer func() { err = errors.Join(err, f.Close()) }()
+	_, err = fmt.Fprintf(f, "%s=%s\n", name, value)
+	return err
+}
+
 // Change is a pull request.
 type Change struct {
 	Number  int

@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -43,7 +41,6 @@ type fakeGitHub struct {
 	edits     int
 	nextID    int64
 	serverURL string
-	output    string
 }
 
 func (f *fakeGitHub) add(login, typ, body string) {
@@ -125,12 +122,9 @@ func newCommenter(t *testing.T, f *fakeGitHub) *Commenter {
 	srv := httptest.NewServer(f)
 	t.Cleanup(srv.Close)
 	f.serverURL = srv.URL
-	out := filepath.Join(t.TempDir(), "output")
-	require.NoError(t, os.WriteFile(out, nil, 0o600))
-	f.output = out
 	client, err := github.NewClient(context.Background(), nil, srv.URL, srv.Client())
 	require.NoError(t, err)
-	c, err := New(context.Background(), ci.Context{Repository: "acme/app", Change: &ci.Change{Number: 1}, Output: out}, client)
+	c, err := New(context.Background(), ci.Context{Repository: "acme/app", Change: &ci.Change{Number: 1}}, client)
 	require.NoError(t, err)
 	return c
 }
@@ -214,10 +208,6 @@ func TestUpsert(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 1, f.creates)
 	assert.Equal(t, 1, f.edits)
-
-	out, err := os.ReadFile(f.output)
-	require.NoError(t, err)
-	assert.Contains(t, string(out), "comment-url=https://github.com/acme/app/pull/1#issuecomment-1\n")
 }
 
 func TestUpsertWithAReadOnlyToken(t *testing.T) {

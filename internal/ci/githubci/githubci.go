@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 
@@ -25,8 +24,6 @@ type Commenter struct {
 	// tokenUser is the login of a personal token, or "" for the token of
 	// a GitHub App such as GITHUB_TOKEN.
 	tokenUser string
-	// output is the GITHUB_OUTPUT file of the step, or "".
-	output string
 }
 
 // New returns the commenter of the change of c.
@@ -38,7 +35,7 @@ func New(ctx context.Context, c ci.Context, client *gh.Client) (*Commenter, erro
 	if !ok {
 		return nil, fmt.Errorf("github: bad repository %q", c.Repository)
 	}
-	cm := &Commenter{client: client, owner: owner, repo: repo, number: c.Change.Number, output: c.Output}
+	cm := &Commenter{client: client, owner: owner, repo: repo, number: c.Change.Number}
 	// A personal token can read its user. The token of an app, such as
 	// GITHUB_TOKEN, cannot, and its comments come from a bot account.
 	u, resp, err := client.Users.Get(ctx, "")
@@ -93,16 +90,13 @@ func (c *Commenter) own(u *gh.User) bool {
 
 // Upsert creates the comment, or edits it when the body differs. When the
 // token cannot edit the old comment, for example the comment of another
-// bot, it creates a new one. It writes comment-url to the step output.
+// bot, it creates a new one.
 func (c *Commenter) Upsert(ctx context.Context, old *ci.Comment, body string) (string, error) {
 	url, err := c.upsert(ctx, old, body)
 	if old != nil && (errors.Is(err, ci.ErrNoWriteAccess) || errors.Is(err, errNotFound)) {
 		url, err = c.upsert(ctx, nil, body)
 	}
-	if err != nil {
-		return "", err
-	}
-	return url, c.setOutput("comment-url", url)
+	return url, err
 }
 
 var errNotFound = errors.New("github: the comment does not exist")
@@ -139,24 +133,6 @@ func (c *Commenter) upsert(ctx context.Context, old *ci.Comment, body string) (s
 		return "", fmt.Errorf("github: write the comment: %w", err)
 	}
 	return cm.GetHTMLURL(), nil
-}
-
-// setOutput appends name=value to the GITHUB_OUTPUT file, when the step
-// has one.
-func (c *Commenter) setOutput(name, value string) (err error) {
-	if c.output == "" {
-		return nil
-	}
-	if strings.ContainsAny(value, "\r\n") {
-		return fmt.Errorf("github: the step output %s holds a line break", name)
-	}
-	f, err := os.OpenFile(c.output, os.O_APPEND|os.O_WRONLY, 0)
-	if err != nil {
-		return fmt.Errorf("github: write the step output: %w", err)
-	}
-	defer func() { err = errors.Join(err, f.Close()) }()
-	_, err = fmt.Fprintf(f, "%s=%s\n", name, value)
-	return err
 }
 
 var _ ci.Commenter = (*Commenter)(nil)

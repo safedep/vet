@@ -1,6 +1,7 @@
 package ci
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -62,4 +63,17 @@ func TestDetectBadEvent(t *testing.T) {
 	_, ok, err := Detect(githubEnv("pull_request", "missing.json"))
 	assert.True(t, ok)
 	assert.ErrorContains(t, err, "read the GitHub event")
+}
+
+func TestSetOutput(t *testing.T) {
+	out := filepath.Join(t.TempDir(), "output")
+	require.NoError(t, os.WriteFile(out, []byte("gate=pass\n"), 0o600))
+	c := Context{Output: out}
+	require.NoError(t, c.SetOutput("comment-url", "https://github.com/acme/app/pull/1#issuecomment-1"))
+	got, err := os.ReadFile(out)
+	require.NoError(t, err)
+	assert.Equal(t, "gate=pass\ncomment-url=https://github.com/acme/app/pull/1#issuecomment-1\n", string(got))
+
+	assert.ErrorContains(t, c.SetOutput("x", "a\nb=c"), "line break")
+	assert.NoError(t, Context{}.SetOutput("x", "y"), "a run with no output file")
 }

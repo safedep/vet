@@ -160,10 +160,13 @@ func (s *Sink) Publish(ctx context.Context, r plugin.Report) (string, error) {
 		}
 	}
 	url, err := cm.Upsert(ctx, old, c.body())
-	if !errors.Is(err, ci.ErrNoWriteAccess) || !run.Change.Fork {
-		return url, err
+	if errors.Is(err, ci.ErrNoWriteAccess) && run.Change.Fork {
+		url, err = s.publishByProxy(ctx, run, cm, old, c)
 	}
-	return s.publishByProxy(ctx, run, cm, old, c)
+	if err != nil {
+		return "", err
+	}
+	return url, run.SetOutput("comment-url", url)
 }
 
 // publishByProxy posts the comment of a fork run through the comment
