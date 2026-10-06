@@ -45,7 +45,7 @@ func BaseRefError(err error) error {
 	case errors.Is(err, gitbase.ErrNotRepository):
 		return app.UsageError(fmt.Sprintf("--base-ref: %v", err), "Run vet scan in a git repository, or leave out --base-ref.")
 	case errors.Is(err, gitbase.ErrRevision):
-		return app.UsageError(fmt.Sprintf("--base-ref %v", err), "Fetch the base branch first, for example git fetch origin main.")
+		return app.UsageError(fmt.Sprintf("--base-ref %v", err), "Fetch the base branch first, as in: git fetch origin main")
 	}
 	return err
 }

@@ -12,7 +12,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
 
@@ -20,8 +19,6 @@ import (
 
 	"github.com/safedep/vet/v2/internal/github"
 )
-
-var commitSHA = regexp.MustCompile(`^([0-9a-f]{40}|[0-9a-f]{64})$`)
 
 // Resolver resolves a tag or a branch of a GitHub repository to a commit
 // SHA.
@@ -99,7 +96,7 @@ func PlanPins(ctx context.Context, o PinOptions) (*Plan, error) {
 	}
 	cache := map[string]string{}
 	return plan(ctx, o.Root, files, func(ctx context.Context, repo, ref string) (Pin, bool, error) {
-		if commitSHA.MatchString(strings.ToLower(ref)) || strings.EqualFold(repo, o.SameRepo) {
+		if github.IsCommitSHA(ref) || strings.EqualFold(repo, o.SameRepo) {
 			return Pin{}, false, nil
 		}
 		key := repo + "@" + ref
@@ -154,7 +151,7 @@ func PinnedTags(data []byte) (map[string]string, error) {
 	for _, n := range usesNodes(&doc) {
 		action, ref, ok := strings.Cut(n.Value, "@")
 		parts := strings.SplitN(action, "/", 3)
-		if !ok || len(parts) < 2 || !commitSHA.MatchString(strings.ToLower(ref)) {
+		if !ok || len(parts) < 2 || !github.IsCommitSHA(ref) {
 			continue
 		}
 		comment := strings.Fields(strings.TrimPrefix(n.LineComment, "#"))

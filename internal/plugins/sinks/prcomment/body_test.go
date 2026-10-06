@@ -238,3 +238,28 @@ func TestFormURLMatchesTheIssueForm(t *testing.T) {
 		assert.Contains(t, ids, key)
 	}
 }
+
+// A re-run of the first run of a head has no push to compare with.
+func TestProgressOfARerunOfTheFirstRun(t *testing.T) {
+	s := pullRequest(report.GatePass)
+	first := newInput(t, s)
+	st, ok := decodeState(first.body())
+	require.True(t, ok)
+	assert.True(t, st.First)
+
+	rerun := newInput(t, s)
+	rerun.old = &st
+	body := rerun.body()
+	assert.NotContains(t, body, "Since the last push")
+	again, ok := decodeState(body)
+	require.True(t, ok)
+	assert.True(t, again.First, "the next run of the head still has no push before it")
+}
+
+func TestNoteOfAFirstPolicy(t *testing.T) {
+	s := pullRequest(report.GatePass)
+	tr := *s.Trailer()
+	tr.Gate.PolicyChanged = true
+	s.TrailerValue = &tr
+	assert.Contains(t, newInput(t, s).body(), "This change adds a policy. The base branch has no policy, so the gate applies none.")
+}

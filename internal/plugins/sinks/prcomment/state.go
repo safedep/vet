@@ -30,6 +30,9 @@ type state struct {
 	// Since are the open findings of the push before HeadSHA. A second run
 	// of the same head compares with them.
 	Since []string `json:"since,omitempty"`
+	// First is true when HeadSHA has no push before it. A second run of
+	// the same head then shows no progress.
+	First bool `json:"first,omitempty"`
 }
 
 // encodeState returns the block, or false when the run has too many

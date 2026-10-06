@@ -201,7 +201,7 @@ func (c *input) note(b *strings.Builder) {
 	if !g.PolicyChanged {
 		return
 	}
-	line := "This change edits the policy. The gate uses the policy of the base branch."
+	line := "This change adds a policy. The base branch has no policy, so the gate applies none."
 	if g.Policy != "" {
 		line = fmt.Sprintf("This change edits the policy. The gate uses %s.", code(g.Policy))
 	}
@@ -209,10 +209,11 @@ func (c *input) note(b *strings.Builder) {
 }
 
 func (c *input) progress(b *strings.Builder) {
-	if c.old == nil {
+	base, ok := c.baseline()
+	if !ok {
 		return
 	}
-	p := compare(c.baseline(), ids(c.view.Findings), ids(c.view.Suppressed))
+	p := compare(base, ids(c.view.Findings), ids(c.view.Suppressed))
 	var parts []string
 	for _, part := range []struct {
 		n    int
@@ -232,13 +233,17 @@ func (c *input) progress(b *strings.Builder) {
 	b.WriteString(line + "\n\n")
 }
 
-// baseline is the findings of the last push before this head. A second run
-// of the same head keeps the baseline of the run before it.
-func (c *input) baseline() []string {
-	if c.old.HeadSHA != "" && c.old.HeadSHA == c.head() {
-		return c.old.Since
+// baseline is the findings of the last push before this head, or false
+// when this head has no push before it. A second run of the same head
+// keeps the baseline of the run before it.
+func (c *input) baseline() ([]string, bool) {
+	switch {
+	case c.old == nil:
+		return nil, false
+	case c.old.HeadSHA != "" && c.old.HeadSHA == c.head():
+		return c.old.Since, !c.old.First
 	}
-	return c.old.Findings
+	return c.old.Findings, true
 }
 
 func (c *input) status(b *strings.Builder, blocking, review int) {
@@ -381,9 +386,8 @@ func (c *input) footer(b *strings.Builder) {
 
 func (c *input) stateBlock() (string, bool) {
 	s := state{HeadSHA: c.head(), Findings: ids(c.view.Findings)}
-	if c.old != nil {
-		s.Since = c.baseline()
-	}
+	s.Since, s.First = c.baseline()
+	s.First = !s.First
 	return encodeState(s)
 }
 

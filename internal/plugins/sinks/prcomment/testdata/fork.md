@@ -51,4 +51,4 @@ suppressions:
 
 <sub>Posted by the SafeDep comment proxy, because the workflow token of a fork cannot write comments.</sub>
 
-<!-- vet:state eyJ2IjoxLCJoZWFkIjoiMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMiIsImlkcyI6WyJmLWU4MTViYjNiNWUwODQ2ZjEiLCJmLWY3MDE3YjIyN2Q2YWQ3OTYiXX0= -->
+<!-- vet:state eyJ2IjoxLCJoZWFkIjoiMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMiIsImlkcyI6WyJmLWU4MTViYjNiNWUwODQ2ZjEiLCJmLWY3MDE3YjIyN2Q2YWQ3OTYiXSwiZmlyc3QiOnRydWV9 -->

@@ -225,17 +225,18 @@ jobs:
     permissions:
       contents: write # to delete old pre-releases
     steps:
-      # Keep the last 5 alpha releases and each alpha release of the last 7
-      # days. So the v1 releases stay visible, and the GitHub Action keeps a
-      # release that passed its cooldown. The tags stay, because the Go
-      # module proxy keeps them.
+      # Keep the last 5 alpha releases, each alpha release of the last 7
+      # days and the newest one before them. So the v1 releases stay
+      # visible, and the GitHub Action always has a release that passed its
+      # cooldown, also after a burst of merges. The tags stay, because the
+      # Go module proxy keeps them.
       - name: Delete old alpha releases
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           cutoff=$(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ)
           gh release list --repo "$GITHUB_REPOSITORY" --limit 200 --json tagName,isPrerelease,publishedAt |
-            jq -r --arg cutoff "$cutoff" '[.[] | select(.isPrerelease and (.tagName | test("^v2\\.0\\.0-alpha\\.[0-9]{14}$")))] | sort_by(.tagName) | reverse | .[5:] | .[] | select(.publishedAt < $cutoff) | .tagName' |
+            jq -r --arg cutoff "$cutoff" '[.[] | select(.isPrerelease and (.tagName | test("^v2\\.0\\.0-alpha\\.[0-9]{14}$")))] | sort_by(.tagName) | reverse | (map(select(.publishedAt < $cutoff))[0].tagName) as $last | .[5:] | .[] | select(.publishedAt < $cutoff and .tagName != $last) | .tagName' |
             while read -r tag; do
               gh release delete "$tag" --repo "$GITHUB_REPOSITORY" --yes
             done

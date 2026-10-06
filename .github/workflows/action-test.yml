@@ -35,6 +35,29 @@ jobs:
         with:
           persist-credentials: false
 
+      # The install path with the releases that exist now, on each OS: the
+      # download, the checksum, the attestation and the PATH entry. A copy
+      # of the scripts takes a lower minimum, because the releases from
+      # before the action do not reach action/min-version.
+      - name: Test install.sh with the current releases
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTION_VERSION: latest-prerelease
+        run: |
+          set -euo pipefail
+          copy=$RUNNER_TEMP/action-copy
+          mkdir -p "$copy"
+          cp action/install.sh action/resolve.jq action/channel.json "$copy/"
+          echo "2.0.0-alpha.20261001000000" >"$copy/min-version"
+          paths=$RUNNER_TEMP/install-path
+          GITHUB_PATH=$paths bash "$copy/install.sh"
+          bin=$(head -n 1 "$paths")
+          if command -v cygpath >/dev/null; then
+            bin=$(cygpath -u "$bin")
+          fi
+          "$bin/vet" version
+
       # A raise of action/min-version has no release to install until a
       # release at or above it passes the cooldown. The job then skips the
       # install with a warning. The Go tests of action/ cover the choice.

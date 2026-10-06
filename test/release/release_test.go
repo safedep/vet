@@ -113,6 +113,13 @@ func TestReleaseRunsOnlyAfterAMerge(t *testing.T) {
 	job, ok := jobs["release"].(map[string]any)
 	require.True(t, ok)
 	assert.Equal(t, "v2-edge", job["environment"])
+
+	// An admin can push to v2 with no pull request. That push must not
+	// release.
+	data, err := os.ReadFile(filepath.Join(root, ".github/workflows/release-edge.yml"))
+	require.NoError(t, err)
+	assert.Contains(t, string(data), `commits/$GITHUB_SHA/pulls`)
+	assert.Contains(t, string(data), `select(.merged_at != null and .base.ref == "v2")`)
 }
 
 // A tag workflow of v1, such as goreleaser.yml or container.yml, can come
@@ -247,5 +254,5 @@ func TestReleaseKeepsWhatTheActionNeeds(t *testing.T) {
 	wf := string(data)
 	assert.Contains(t, wf, `--jq .immutable)" = true`)
 	assert.Contains(t, wf, `date -u -d '7 days ago'`)
-	assert.Contains(t, wf, `select(.publishedAt < $cutoff)`)
+	assert.Contains(t, wf, `select(.publishedAt < $cutoff and .tagName != $last)`)
 }

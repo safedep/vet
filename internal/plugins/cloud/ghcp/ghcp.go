@@ -21,10 +21,6 @@ import (
 // DefaultURL is the address of the proxy.
 const DefaultURL = "https://ghcp-integrations.safedep.io"
 
-// Tag names the comment of vet for the proxy. The proxy edits the comment
-// with the same tag.
-const Tag = "vet-pr-comment"
-
 // Commenter writes the comment through the proxy. It finds the comment
 // with read, which reads the comments with the token of the run.
 type Commenter struct {

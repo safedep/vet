@@ -27,10 +27,12 @@ done
 if [ "${RUNNER_OS:-}" = Windows ]; then
   jq() { command jq -b "$@"; }
 fi
+# The sum reads stdin, because sha256sum escapes a file name with a
+# backslash, such as a Windows path.
 if command -v sha256sum >/dev/null; then
-  sha256() { sha256sum "$1" | cut -d' ' -f1; }
+  sha256() { sha256sum <"$1" | cut -d' ' -f1; }
 elif command -v shasum >/dev/null; then
-  sha256() { shasum -a 256 "$1" | cut -d' ' -f1; }
+  sha256() { shasum -a 256 <"$1" | cut -d' ' -f1; }
 else
   fail "The action needs sha256sum or shasum on the runner"
 fi
@@ -142,7 +144,7 @@ while IFS=$'\t' read -r tag _ <&3; do
   [ -n "$want" ] && [ "$want" = "$got" ] || fail "The SHA-256 sum of $archive does not match checksums.txt in the release $tag"
 
   attestation=$dir/attestation.json
-  gh attestation verify "$dir/$archive" --repo "$repo" --cert-identity-regex "$signer" \
+  TZ=UTC gh attestation verify "$dir/$archive" --repo "$repo" --cert-identity-regex "$signer" \
     --deny-self-hosted-runners --format json >"$attestation" ||
     fail "The build attestation of $archive does not verify. Do not use the release $tag"
 

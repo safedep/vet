@@ -54,7 +54,7 @@ func startProxy(t *testing.T) (*proxy, string) {
 func TestUpsert(t *testing.T) {
 	p, url := startProxy(t)
 	run := ci.Context{ServerURL: "https://github.com", Repository: "acme/app", Change: &ci.Change{Number: 7, Fork: true}}
-	c, err := New(url, "ghs_token", Tag, run, reader{})
+	c, err := New(url, "ghs_token", testTag, run, reader{})
 	require.NoError(t, err)
 	t.Cleanup(func() { require.NoError(t, c.Close()) })
 
@@ -63,7 +63,7 @@ func TestUpsert(t *testing.T) {
 	assert.Equal(t, "https://github.com/acme/app/pull/7#issuecomment-42", got)
 	require.Len(t, p.reqs, 1)
 	req := p.reqs[0]
-	assert.Equal(t, []string{"acme", "app", "7", "body", Tag}, []string{req.GetOwner(), req.GetRepo(), req.GetPrNumber(), req.GetBody(), req.GetTag()})
+	assert.Equal(t, []string{"acme", "app", "7", "body", testTag}, []string{req.GetOwner(), req.GetRepo(), req.GetPrNumber(), req.GetBody(), req.GetTag()})
 	assert.Equal(t, []string{"Bearer ghs_token"}, p.auth)
 
 	old := &ci.Comment{ID: "42", Body: "body", URL: "https://github.com/acme/app/pull/7#issuecomment-42"}
@@ -76,10 +76,12 @@ func TestUpsert(t *testing.T) {
 func TestFindUsesTheRunToken(t *testing.T) {
 	_, url := startProxy(t)
 	found := &ci.Comment{ID: "1"}
-	c, err := New(url, "t", Tag, ci.Context{Repository: "acme/app", Change: &ci.Change{Number: 1}}, reader{found: found})
+	c, err := New(url, "t", testTag, ci.Context{Repository: "acme/app", Change: &ci.Change{Number: 1}}, reader{found: found})
 	require.NoError(t, err)
 	t.Cleanup(func() { require.NoError(t, c.Close()) })
 	got, err := c.Find(context.Background(), "m")
 	require.NoError(t, err)
 	assert.Same(t, found, got)
 }
+
+const testTag = "<!-- vet:pr-comment v1 -->"

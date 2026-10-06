@@ -21,7 +21,7 @@ inputs:
     description: Policy file. The action skips it when it does not exist. In a pull request, vet reads it at the base commit.
     default: .github/vet/policy.yml
   comment:
-    description: auto, findings or never. auto comments when a pull request changes a package or a workflow.
+    description: auto, findings or never. auto comments when a pull request adds or upgrades a package or a workflow.
     default: auto
   comment-proxy:
     description: Post the comment of a fork pull request to a public repository through the SafeDep comment proxy

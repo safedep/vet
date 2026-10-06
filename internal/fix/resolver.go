@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	gh "github.com/google/go-github/v70/github"
+
+	"github.com/safedep/vet/v2/internal/github"
 )
 
 // GitHubResolver resolves refs through the GitHub API.
@@ -18,7 +20,7 @@ func (r GitHubResolver) ResolveSHA(ctx context.Context, owner, repo, ref string)
 	if err != nil {
 		return "", fmt.Errorf("resolve %s/%s@%s: %w", owner, repo, ref, err)
 	}
-	if !commitSHA.MatchString(sha) {
+	if !github.IsCommitSHA(sha) {
 		return "", fmt.Errorf("resolve %s/%s@%s: the API returned %q, not a commit SHA", owner, repo, ref, sha)
 	}
 	return sha, nil

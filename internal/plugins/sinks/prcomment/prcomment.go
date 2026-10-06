@@ -6,12 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/safedep/vet/v2/finding"
@@ -30,8 +31,9 @@ const Name = "pr-comment"
 
 // The values of the create option.
 const (
-	// CreateChanges creates a comment when the change adds, upgrades or
-	// removes a package or a workflow, or has a finding.
+	// CreateChanges creates a comment when the change adds or upgrades a
+	// package or a workflow, or has a finding. A change that only removes
+	// gets no new comment.
 	CreateChanges = "changes"
 	// CreateFindings creates a comment only when the change has a finding.
 	CreateFindings = "findings"
@@ -82,17 +84,43 @@ func New(cfg plugin.Config) (plugin.Sink, error) {
 	if err != nil {
 		return nil, err
 	}
+	if err := checkProxyURL(o.ProxyURL); err != nil {
+		return nil, err
+	}
 	if !validKey.MatchString(o.Key) {
 		return nil, fmt.Errorf("pr-comment: key must hold only a-z, 0-9 and -, got %q", o.Key)
 	}
 	s := &Sink{create: o.Create, key: o.Key, attacks: attacks, getenv: os.Getenv, commenter: platformCommenter}
 	if o.Proxy == nil || *o.Proxy {
-		s.proxy = proxyCommenter(cmp.Or(o.ProxyURL, ghcp.DefaultURL), ghcp.Tag+strings.TrimSuffix("-"+o.Key, "-"))
+		// The proxy finds the comment to edit by the tag in its body, so
+		// the marker is the tag.
+		s.proxy = proxyCommenter(cmp.Or(o.ProxyURL, ghcp.DefaultURL), markerOf(o.Key))
 	}
 	return s, nil
 }
 
 var validKey = regexp.MustCompile(`^[a-z0-9-]*$`)
+
+// checkProxyURL refuses a proxy address that would send the token of the
+// run with no TLS. A loopback address, such as a test proxy, can use http.
+func checkProxyURL(raw string) error {
+	if raw == "" {
+		return nil
+	}
+	u, err := url.Parse(raw)
+	if err != nil {
+		return fmt.Errorf("pr-comment: proxy_url: %w", err)
+	}
+	host := u.Hostname()
+	ip := net.ParseIP(host)
+	switch {
+	case u.Scheme == "https":
+		return nil
+	case u.Scheme == "http" && (host == "localhost" || ip != nil && ip.IsLoopback()):
+		return nil
+	}
+	return fmt.Errorf("pr-comment: proxy_url must use https, got %q", raw)
+}
 
 // proxyCommenter returns the factory of the comment proxy at url, for the
 // comment with tag. The proxy takes the token of the run.

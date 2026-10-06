@@ -95,8 +95,8 @@ vet posts one comment on each pull request, and edits it on each push. The comme
 - the policy snippet that accepts a finding
 - a "Wrong result?" link to the [issue form](https://github.com/safedep/vet/issues/new?template=false-positive.yml)
 
-`comment: auto` posts a comment when the change adds, upgrades or removes a package or a workflow,
-or has a finding. `comment: findings` posts only when the change has a finding. `comment: never`
+`comment: auto` posts a comment when the change adds or upgrades a package or a workflow, or has a
+finding. A change that only removes a package gets no new comment. `comment: findings` posts only when the change has a finding. `comment: never`
 posts none. vet always edits a comment that exists, so a resolved finding shows.
 
 Two vet steps on one pull request, such as one for each service of a monorepo, need a key each.

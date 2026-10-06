@@ -122,6 +122,20 @@ func (*readOnly) Upsert(context.Context, *ci.Comment, string) (string, error) {
 	return "", ci.ErrNoWriteAccess
 }
 
+func TestProxyURL(t *testing.T) {
+	for raw, ok := range map[string]bool{
+		"":                         true,
+		"https://ghcp.example.com": true,
+		"http://127.0.0.1:8080":    true,
+		"http://localhost:1":       true,
+		"http://ghcp.example.com":  false,
+		"ftp://ghcp.example.com":   false,
+	} {
+		_, err := New(plugin.MapConfig{"proxy_url": raw})
+		assert.Equal(t, ok, err == nil, raw)
+	}
+}
+
 func TestPublishByProxy(t *testing.T) {
 	forkEnv := func(t *testing.T, private bool) func(string) string {
 		t.Helper()

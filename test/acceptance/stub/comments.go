@@ -22,7 +22,6 @@ type Comment struct {
 	Login  string
 	Bot    bool
 	Body   string
-	tag    string
 	byGHCP bool
 }
 
@@ -137,7 +136,8 @@ type ghcpService struct {
 	s *Server
 }
 
-// CreatePullRequestComment creates the comment of a tag, or edits it.
+// CreatePullRequestComment edits the comment of the proxy whose body holds
+// the tag, or creates one.
 func (g *ghcpService) CreatePullRequestComment(ctx context.Context, req *ghcpv1.CreatePullRequestCommentRequest) (*ghcpv1.CreatePullRequestCommentResponse, error) {
 	if err := g.s.begin(ctx, GHCP); err != nil {
 		return nil, err
@@ -146,13 +146,12 @@ func (g *ghcpService) CreatePullRequestComment(ctx context.Context, req *ghcpv1.
 	defer g.s.mu.Unlock()
 	issue := req.GetOwner() + "/" + req.GetRepo() + "/" + req.GetPrNumber()
 	for i := range g.s.comments {
-		if c := &g.s.comments[i]; c.Issue == issue && c.byGHCP && c.tag == req.GetTag() {
+		if c := &g.s.comments[i]; c.Issue == issue && c.byGHCP && req.GetTag() != "" && strings.Contains(c.Body, req.GetTag()) {
 			c.Body = req.GetBody()
 			return &ghcpv1.CreatePullRequestCommentResponse{CommentId: strconv.FormatInt(c.ID, 10)}, nil
 		}
 	}
 	c := g.s.addComment(issue, "safedep-ghcp[bot]", req.GetBody())
 	g.s.comments[len(g.s.comments)-1].byGHCP = true
-	g.s.comments[len(g.s.comments)-1].tag = req.GetTag()
 	return &ghcpv1.CreatePullRequestCommentResponse{CommentId: strconv.FormatInt(c.ID, 10)}, nil
 }

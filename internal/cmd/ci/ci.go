@@ -244,15 +244,22 @@ func (r *repository) first(names []string) (string, []byte, error) {
 func (r *repository) write(changes []change) error {
 	for _, c := range changes {
 		name := filepath.FromSlash(c.path)
-		if info, err := r.root.Lstat(name); err == nil && info.Mode()&fs.ModeSymlink != 0 {
-			return fmt.Errorf("vet does not write %s, because it is a symbolic link", c.path)
+		mode := fs.FileMode(0o644)
+		if info, err := r.root.Lstat(name); err == nil {
+			if info.Mode()&fs.ModeSymlink != 0 {
+				return fmt.Errorf("vet does not write %s, because it is a symbolic link", c.path)
+			}
+			mode = info.Mode().Perm()
 		}
 		if err := r.root.MkdirAll(filepath.Dir(name), 0o755); err != nil {
 			return err
 		}
 		tmp := filepath.Join(filepath.Dir(name), ".vet-"+path.Base(c.path)+".tmp")
-		if err := r.root.WriteFile(tmp, c.after, 0o644); err != nil {
+		if err := r.root.WriteFile(tmp, c.after, mode); err != nil {
 			return err
+		}
+		if err := r.root.Chmod(tmp, mode); err != nil {
+			return errors.Join(err, r.root.Remove(tmp))
 		}
 		if err := r.root.Rename(tmp, name); err != nil {
 			return errors.Join(err, r.root.Remove(tmp))
