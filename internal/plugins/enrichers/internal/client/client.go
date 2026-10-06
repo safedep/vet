@@ -1,61 +1,21 @@
-// Package client holds what the SafeDep enrichers share: the gRPC
-// connection, the ecosystem mapping and the worker pool.
+// Package client holds what the SafeDep enrichers share: the ecosystem
+// mapping, the errors and the worker pool. grpcdial makes the connection.
 package client
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
-	"net/url"
 	"strings"
 	"sync"
 
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
-	drygrpc "github.com/safedep/dry/adapters/grpc"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 )
-
-// Endpoint is a SafeDep service and the credentials for it. An empty API key
-// is an anonymous call to the community service.
-type Endpoint struct {
-	// URL is https://host[:port], or http://host:port for a stub.
-	URL    string
-	APIKey string
-	Tenant string
-}
-
-// Dial connects to the endpoint. An http URL uses no TLS, for the stub
-// server of the acceptance suite.
-func Dial(name string, e Endpoint) (*grpc.ClientConn, error) {
-	u, err := url.Parse(e.URL)
-	if err != nil || u.Hostname() == "" {
-		return nil, fmt.Errorf("%s: bad endpoint %q", name, e.URL)
-	}
-	port := u.Port()
-	headers := http.Header{}
-	if e.Tenant != "" {
-		headers.Set("x-tenant-id", e.Tenant)
-	}
-	switch u.Scheme {
-	case "http":
-		if port == "" {
-			port = "80"
-		}
-		return drygrpc.GrpcInsecureClient(name, u.Hostname(), port, e.APIKey, headers, nil, drygrpc.NoGrpcConfigurer)
-	case "https":
-		if port == "" {
-			port = "443"
-		}
-		return drygrpc.GrpcSecureClient(name, u.Hostname(), port, e.APIKey, headers, nil)
-	}
-	return nil, fmt.Errorf("%s: endpoint %q needs https or http", name, e.URL)
-}
 
 // ErrNoEcosystem means that the SafeDep services do not take the ecosystem.
 var ErrNoEcosystem = errors.New("the SafeDep API has no ecosystem for the package")

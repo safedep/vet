@@ -18,8 +18,8 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/actionrefs"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/codeusage"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/insights"
-	"github.com/safedep/vet/v2/internal/plugins/enrichers/internal/client"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/malysis"
+	"github.com/safedep/vet/v2/internal/plugins/internal/grpcdial"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 )
@@ -74,15 +74,15 @@ func (s *Set) Close() error {
 // Build connects to the services and returns the enrichers. It does not
 // call the network: gRPC connects on the first call.
 func Build(o Options) (*Set, error) {
-	ep := client.Endpoint{URL: o.CommunityURL}
+	ep := grpcdial.Endpoint{URL: o.CommunityURL}
 	if o.Credentials != nil && !o.Credentials.Anonymous() {
 		key, err := o.Credentials.Credentials.GetAPIKey()
 		if err != nil {
 			return nil, err
 		}
-		ep = client.Endpoint{URL: o.APIURL, APIKey: key, Tenant: o.Credentials.TenantDomain()}
+		ep = grpcdial.Endpoint{URL: o.APIURL, APIKey: key, Tenant: o.Credentials.TenantDomain()}
 	}
-	conn, err := client.Dial("vet-enrichers", ep)
+	conn, err := grpcdial.Dial("vet-enrichers", ep)
 	if err != nil {
 		return nil, err
 	}
