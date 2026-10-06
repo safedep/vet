@@ -1,4 +1,6 @@
 [
+  {"tag_name": "v2.9", "prerelease": false, "immutable": true, "published_at": "2026-11-01T00:00:00Z", "assets": []},
+  {"tag_name": "v2.0.5", "prerelease": false, "immutable": true, "published_at": null, "assets": [{"name": "checksums.txt", "updated_at": null}]},
   {"tag_name": "v2.1.0-alpha.20261209000000", "prerelease": true, "immutable": true, "published_at": "2026-12-09T00:00:00Z", "assets": []},
   {"tag_name": "v2.0.1", "prerelease": false, "immutable": true, "published_at": "2026-12-09T20:00:00Z", "assets": []},
   {"tag_name": "v2.0.0", "prerelease": false, "immutable": true, "published_at": "2026-12-01T00:00:00Z", "assets": []},

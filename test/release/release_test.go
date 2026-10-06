@@ -5,6 +5,7 @@
 package release_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -167,4 +168,34 @@ func TestCrossImageHasTheGoVersionOfGoMod(t *testing.T) {
 	require.NotNil(t, image, "the image needs a Go version tag and a digest")
 
 	assert.Equal(t, string(goVersion[1]), string(image[1]))
+}
+
+// The latest release of safedep/vet is a v1 release. The action lists the
+// releases and picks a v2 tag. gh release download with no tag also takes
+// the latest release, so install.sh always passes a tag.
+func TestActionNeverReadsTheLatestRelease(t *testing.T) {
+	files, err := filepath.Glob(filepath.Join(root, "action", "*"))
+	require.NoError(t, err)
+	files = append(files, filepath.Join(root, "action.yml"))
+	download := regexp.MustCompile(`gh release download "\$tag" `)
+	for _, file := range files {
+		if strings.HasSuffix(file, "_test.go") {
+			continue
+		}
+		info, err := os.Stat(file)
+		require.NoError(t, err)
+		if info.IsDir() {
+			continue
+		}
+		data, err := os.ReadFile(file)
+		require.NoError(t, err)
+		for i, line := range strings.Split(string(data), "\n") {
+			name := fmt.Sprintf("%s:%d", filepath.Base(file), i+1)
+			assert.NotContains(t, line, "releases/latest", name)
+			assert.NotContains(t, line, "--latest", name)
+			if strings.Contains(line, "gh release download") && !strings.HasPrefix(strings.TrimSpace(line), "#") {
+				assert.Regexp(t, download, line, "%s downloads with no explicit tag", name)
+			}
+		}
+	}
 }

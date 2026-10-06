@@ -67,12 +67,12 @@ func (c Choice) Newest(releases []Release) (Release, bool) {
 	for _, r := range releases {
 		v := SemverOf(r.Tag)
 		switch {
-		case v == "" || r.Draft || module.IsPseudoVersion(v):
+		case v == "" || r.Draft || module.IsPseudoVersion(v) || !fullForm(v):
 		case semver.Major(v) != c.Major:
 		case (r.Prerelease || semver.Prerelease(v) != "") && !c.Prerelease:
 		case c.Immutable && !r.Immutable:
 		case c.Minimum != "" && semver.Compare(v, SemverOf(c.Minimum)) < 0:
-		case c.Now.Sub(r.youngest()) < c.Cooldown:
+		case c.Now.Sub(r.youngest(c.Now)) < c.Cooldown:
 		case bestV == "" || semver.Compare(v, bestV) > 0:
 			best, bestV = r, v
 		}
@@ -81,15 +81,25 @@ func (c Choice) Newest(releases []Release) (Release, bool) {
 }
 
 // youngest returns the latest of the publish time and the asset update
-// times. A change to an old release makes it young again.
-func (r Release) youngest() time.Time {
+// times. A change to an old release makes it young again. A time that is
+// missing counts as now, so a release with no time is young.
+func (r Release) youngest(now time.Time) time.Time {
 	t := r.PublishedAt
-	for _, a := range r.Assets {
+	for _, a := range append([]Asset{{UpdatedAt: r.PublishedAt}}, r.Assets...) {
+		if a.UpdatedAt.IsZero() {
+			return now
+		}
 		if a.UpdatedAt.After(t) {
 			t = a.UpdatedAt
 		}
 	}
 	return t
+}
+
+// fullForm reports a version with a major, a minor and a patch number.
+// semver also takes the short form v2.1, which a release tag never has.
+func fullForm(v string) bool {
+	return strings.TrimSuffix(v, semver.Build(v)) == semver.Canonical(v)
 }
 
 // SemverOf returns the version in the form of golang.org/x/mod/semver, with
