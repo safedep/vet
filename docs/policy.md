@@ -188,6 +188,26 @@ rules:
 - The `policy.file` config key sets the policy for every run. `policy.fail_on` sets a severity or
   `attacks`.
 
+## Pull request mode
+
+With `--base-ref REF`, vet reads a policy file inside the scanned directory at `REF`, not from the
+working tree. A pull request that edits the policy cannot loosen the gate of its own change. The
+edit takes effect after it merges.
+
+- vet prints an info line that names the policy file and the base ref.
+- When the change edits the policy, vet says so, and the report sets `trailer.gate.policy_changed`.
+- `trailer.gate.policy` names the source, such as `origin/main:.github/vet/policy.yml`.
+- When the policy file does not exist at the base ref, vet applies no policy file to the change.
+- vet reads a policy file anywhere in the git repository at `REF`, also when you scan a
+  subdirectory. A policy outside the repository, such as `--policy NAME`, comes from disk. A file
+  that the change adds cannot take over a policy name.
+- vet stops with an error when it cannot read the policy at `REF`, for example when the policy is
+  a symbolic link in git. It never falls back to the policy of the change.
+- A config file that you pass with `--config` still comes from disk. Keep the gate in the policy
+  file, or pass `--fail-on` in the workflow.
+- To test a policy edit on your machine, apply it to a saved scan: `vet report show last --policy
+  vet-policy.yml`.
+
 ## The gate
 
 `--fail-on SEVERITY` and the policy work together. The gate fails when an unsuppressed finding is

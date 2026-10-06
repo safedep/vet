@@ -337,6 +337,10 @@ type Gate struct {
 	Policy     string      `json:"policy,omitempty"`
 	Rules      []string    `json:"rules,omitempty"`
 	FindingIDs []string    `json:"finding_ids,omitempty"`
+	// PolicyChanged is true when a pull request scan reads its policy at
+	// the base ref, and the change edits that policy. The gate uses the
+	// base version.
+	PolicyChanged bool `json:"policy_changed,omitempty"`
 }
 
 // ManifestRecord returns a record that holds a manifest.

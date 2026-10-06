@@ -11,11 +11,13 @@ import (
 
 	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/config"
+	"github.com/safedep/vet/v2/internal/plugins/policysources/file"
 	"github.com/safedep/vet/v2/internal/plugins/sources/dir"
 	"github.com/safedep/vet/v2/internal/policy"
 	"github.com/safedep/vet/v2/internal/reportdoc"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/internal/view"
+	"github.com/safedep/vet/v2/plugin"
 	"github.com/safedep/vet/v2/report"
 )
 
@@ -181,7 +183,11 @@ func Show(ctx context.Context, a *app.App, o ShowOptions) error {
 		return err
 	}
 	if settings.FailOn != "" || settings.File != "" {
-		e, err := newEvaluator(ctx, rt.Config, settings)
+		var src plugin.PolicySource
+		if settings.File != "" {
+			src = file.New(settings.File)
+		}
+		e, err := newEvaluator(ctx, rt.Config, settings.FailOn, src)
 		if err != nil {
 			return err
 		}

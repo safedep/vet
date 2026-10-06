@@ -38,3 +38,15 @@ func Write(t testing.TB, dir, rel, content string) {
 	require.NoError(t, os.MkdirAll(filepath.Dir(p), 0o700))
 	require.NoError(t, os.WriteFile(p, []byte(content), 0o600))
 }
+
+// Commit commits each file of the working tree on the current branch.
+func Commit(t testing.TB, dir string) {
+	t.Helper()
+	repo, err := gogit.PlainOpen(dir)
+	require.NoError(t, err)
+	wt, err := repo.Worktree()
+	require.NoError(t, err)
+	require.NoError(t, wt.AddGlob("."))
+	_, err = wt.Commit("change", &gogit.CommitOptions{Author: &object.Signature{Name: "t", Email: "t@example.com", When: time.Now()}})
+	require.NoError(t, err)
+}

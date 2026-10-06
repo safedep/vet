@@ -303,6 +303,9 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "policy_changed": {
+          "type": "boolean"
         }
       },
       "type": "object",

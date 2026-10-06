@@ -32,6 +32,12 @@
   tier: P0
   guarantee: "--fail-on high exits 1 when a high finding exists and 0 when only medium findings exist. policy.fail_on in the config file does the same."
   labels: [gate]
+- id: policy/base-ref/edited-policy
+  title: "A pull request cannot loosen its own policy"
+  category: policy
+  tier: P0
+  guarantee: "With --base-ref, vet reads a policy file of the git repository at the base ref. A change that removes a fail rule still fails the gate, and vet names the base ref and the edit."
+  labels: [gate, pr-mode]
 - id: policy/fail-on/attacks
   title: "--fail-on attacks gates on attack controls only"
   category: policy

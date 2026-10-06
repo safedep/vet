@@ -32,21 +32,34 @@ type base struct {
 	hashes    map[string]plumbing.Hash
 }
 
+// ErrBaseRefTarget is the usage error of --base-ref on a target that is
+// not a git working tree.
+func ErrBaseRefTarget() error {
+	return app.UsageError("--base-ref needs a git working tree as the target", "Run vet scan in a git repository, or leave out --base-ref.")
+}
+
+// BaseRefError maps an error of gitbase.Open to the usage error of
+// --base-ref, with its help.
+func BaseRefError(err error) error {
+	switch {
+	case errors.Is(err, gitbase.ErrNotRepository):
+		return app.UsageError(fmt.Sprintf("--base-ref: %v", err), "Run vet scan in a git repository, or leave out --base-ref.")
+	case errors.Is(err, gitbase.ErrRevision):
+		return app.UsageError(fmt.Sprintf("--base-ref %v", err), "Fetch the base branch first, for example git fetch origin main.")
+	}
+	return err
+}
+
 // loadBase reads the base ref of the git working tree at dir. It writes
 // each base file that an extractor wants into a temporary directory and
 // extracts it there, so the base gets the same extractors as the head.
 func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extractor) (*base, error) {
 	if a.Kind != plugin.ArtifactDirectory || a.Path == "" {
-		return nil, app.UsageError("--base-ref needs a git working tree as the target", "Run vet scan in a git repository, or leave out --base-ref.")
+		return nil, ErrBaseRefTarget()
 	}
 	tree, err := gitbase.Open(a.Path, r.o.BaseRef)
-	switch {
-	case errors.Is(err, gitbase.ErrNotRepository):
-		return nil, app.UsageError(fmt.Sprintf("--base-ref: %v", err), "Run vet scan in a git repository, or leave out --base-ref.")
-	case errors.Is(err, gitbase.ErrRevision):
-		return nil, app.UsageError(fmt.Sprintf("--base-ref %v", err), "Fetch the base branch first, for example git fetch origin main.")
-	case err != nil:
-		return nil, err
+	if err != nil {
+		return nil, BaseRefError(err)
 	}
 	hash := &tree.Commit
 	cache := r.baseCache(a, *hash, exs)

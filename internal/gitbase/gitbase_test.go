@@ -2,6 +2,7 @@ package gitbase
 
 import (
 	"context"
+	"io/fs"
 	"path/filepath"
 	"testing"
 	"testing/fstest"
@@ -20,6 +21,10 @@ func TestOpenAndWalk(t *testing.T) {
 	tree, err := Open(filepath.Join(dir, "app"), "HEAD")
 	require.NoError(t, err)
 	assert.False(t, tree.Commit.IsZero())
+
+	t.Chdir(filepath.Join(dir, "app"))
+	_, err = Open(".", "HEAD")
+	require.NoError(t, err, "a relative directory works")
 
 	var files []string
 	require.NoError(t, tree.Walk(context.Background(), func(rel string, _ *object.File) error {
@@ -87,4 +92,20 @@ func TestLocalPath(t *testing.T) {
 	for rel, want := range cases {
 		assert.Equal(t, want, localPath(rel), rel)
 	}
+}
+
+func TestFS(t *testing.T) {
+	dir := gitbasetest.Repo(t, map[string]string{"app/policy.yml": "version: 2\n", "app/lib/util.py": "x = 1\n", "README.md": "x\n"})
+	gitbasetest.Write(t, dir, "app/policy.yml", "head\n")
+
+	tree, err := Open(filepath.Join(dir, "app"), "HEAD")
+	require.NoError(t, err)
+	require.NoError(t, fstest.TestFS(tree.FS(), "policy.yml", "lib/util.py"))
+
+	data, err := fs.ReadFile(tree.FS(), "policy.yml")
+	require.NoError(t, err)
+	assert.Equal(t, "version: 2\n", string(data), "the FS reads the base, not the head")
+
+	_, err = fs.Stat(tree.FS(), "README.md")
+	assert.ErrorIs(t, err, fs.ErrNotExist, "the FS holds only the directory")
 }

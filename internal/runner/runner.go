@@ -33,7 +33,6 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/codeusage"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/insights"
 	"github.com/safedep/vet/v2/internal/plugins/extractors"
-	"github.com/safedep/vet/v2/internal/plugins/policysources/file"
 	"github.com/safedep/vet/v2/internal/plugins/sinks"
 	"github.com/safedep/vet/v2/internal/plugins/sources"
 	"github.com/safedep/vet/v2/internal/plugins/sources/git"
@@ -184,7 +183,6 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 	if err != nil {
 		return err
 	}
-	gate.File = rt.ResolvePolicy(gate.File)
 	outs, err := Outputs(cfg, a.Globals.Output, o.Reports, nil)
 	if err != nil {
 		return err
@@ -209,7 +207,11 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 			return err
 		}
 	}
-	evaluator, err := newEvaluator(ctx, cfg, gate)
+	policySrc, policyEdited, err := policySource(ctx, o.Target, o.BaseRef, gate.File, rt)
+	if err != nil {
+		return err
+	}
+	evaluator, err := newEvaluator(ctx, cfg, gate.FailOn, policySrc)
 	if err != nil {
 		return err
 	}
@@ -283,7 +285,9 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 				if err := syncInventory(ctx, cfg, store, s); err != nil {
 					return report.Gate{}, err
 				}
-				return evaluator.Finalize(ctx, s)
+				g, err := evaluator.Finalize(ctx, s)
+				g.PolicyChanged = policyEdited
+				return g, err
 			},
 		}
 		res, runErr := engine.Run(ctx, eo)
@@ -448,10 +452,12 @@ func syncInventory(ctx context.Context, cfg *config.Config, store *state.Store, 
 	})
 }
 
-func newEvaluator(ctx context.Context, cfg *config.Config, s policy.Settings) (*policy.Evaluator, error) {
+// newEvaluator builds the evaluator of the --fail-on value, the policy
+// file source, when not nil, and the tenant policy.
+func newEvaluator(ctx context.Context, cfg *config.Config, failOn report.FailOn, policyFile plugin.PolicySource) (*policy.Evaluator, error) {
 	var srcs []plugin.PolicySource
-	if s.File != "" {
-		srcs = append(srcs, file.New(s.File))
+	if policyFile != nil {
+		srcs = append(srcs, policyFile)
 	}
 	if cfg.PluginEnabled(tenantpolicy.Name, false) {
 		src, err := tenantpolicy.New(plugin.MapConfig(cfg.PluginOptions(tenantpolicy.Name)))
@@ -464,7 +470,7 @@ func newEvaluator(ctx context.Context, cfg *config.Config, s policy.Settings) (*
 	if err != nil {
 		return nil, err
 	}
-	return policy.NewFromSources(ctx, policy.Options{FailOn: s.FailOn, Attacks: attacks}, srcs...)
+	return policy.NewFromSources(ctx, policy.Options{FailOn: failOn, Attacks: attacks}, srcs...)
 }
 
 func withState(ctx context.Context, dirs *state.Dirs, useCache bool, fn func(*state.Store, *state.Cache) error) (err error) {

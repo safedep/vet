@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -26,13 +27,34 @@ type Options struct {
 	Path string `json:"path"`
 }
 
-// Source reads policy documents from a path.
+// Source reads policy documents from a file or a directory of a file
+// system.
 type Source struct {
-	path string
+	fsys fs.FS
+	name string
+	// label names a document by its path in fsys, for the gate and the
+	// errors.
+	label func(name string) string
 }
 
-// New returns a source for a file or a directory.
-func New(path string) *Source { return &Source{path: path} }
+// New returns a source for a file or a directory on disk. A document
+// keeps the path as the user wrote it.
+func New(p string) *Source {
+	clean := filepath.Clean(p)
+	base := filepath.Base(clean)
+	return NewFS(os.DirFS(filepath.Dir(clean)), base, func(name string) string {
+		if name == base {
+			return p
+		}
+		return filepath.Join(p, filepath.FromSlash(strings.TrimPrefix(name, base+"/")))
+	})
+}
+
+// NewFS returns a source for the file or the directory name of fsys.
+// label names a document by its path in fsys.
+func NewFS(fsys fs.FS, name string, label func(name string) string) *Source {
+	return &Source{fsys: fsys, name: name, label: label}
+}
 
 // Factory builds the source from its options.
 func Factory(cfg plugin.Config) (plugin.PolicySource, error) {
@@ -51,42 +73,44 @@ func Register() { plugin.RegisterPolicySource(Name, Factory) }
 
 // Policies reads the documents.
 func (s *Source) Policies(_ context.Context) ([]plugin.PolicyDoc, error) {
-	info, err := os.Stat(s.path)
+	info, err := fs.Stat(s.fsys, s.name)
 	if err != nil {
-		return nil, notFound(s.path, err)
+		return nil, notFound(s.label(s.name), err)
 	}
-	paths := []string{s.path}
+	names := []string{s.name}
 	if info.IsDir() {
-		if paths, err = policyFiles(s.path); err != nil {
+		if names, err = s.policyFiles(); err != nil {
 			return nil, err
 		}
 	}
-	docs := make([]plugin.PolicyDoc, 0, len(paths))
-	for _, p := range paths {
-		b, err := os.ReadFile(p)
+	docs := make([]plugin.PolicyDoc, 0, len(names))
+	for _, n := range names {
+		b, err := fs.ReadFile(s.fsys, n)
 		if err != nil {
-			return nil, notFound(p, err)
+			return nil, notFound(s.label(n), err)
 		}
-		docs = append(docs, plugin.PolicyDoc{Name: p, Content: b})
+		docs = append(docs, plugin.PolicyDoc{Name: s.label(n), Content: b})
 	}
 	return docs, nil
 }
 
-func policyFiles(dir string) ([]string, error) {
-	entries, err := os.ReadDir(dir)
+// policyFiles returns the .yml and .yaml files of the directory, in name
+// order.
+func (s *Source) policyFiles() ([]string, error) {
+	entries, err := fs.ReadDir(s.fsys, s.name)
 	if err != nil {
-		return nil, notFound(dir, err)
+		return nil, notFound(s.label(s.name), err)
 	}
 	var out []string
 	for _, e := range entries {
-		ext := strings.ToLower(filepath.Ext(e.Name()))
+		ext := strings.ToLower(path.Ext(e.Name()))
 		if e.Type().IsRegular() && (ext == ".yml" || ext == ".yaml") {
-			out = append(out, filepath.Join(dir, e.Name()))
+			out = append(out, path.Join(s.name, e.Name()))
 		}
 	}
 	sort.Strings(out)
 	if len(out) == 0 {
-		return nil, notFound(dir, fs.ErrNotExist)
+		return nil, notFound(s.label(s.name), fs.ErrNotExist)
 	}
 	return out, nil
 }

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"testing/fstest"
 
 	"github.com/safedep/dry/usefulerror"
 	"github.com/stretchr/testify/assert"
@@ -37,6 +38,7 @@ func TestPolicies(t *testing.T) {
 		wantErr bool
 	}{
 		{name: "a file", path: one, want: []string{one}},
+		{name: "a directory with a trailing separator", path: filepath.Join(dir, "policies") + string(filepath.Separator), want: []string{filepath.Join(dir, "policies", "a.yml"), filepath.Join(dir, "policies", "b.yaml")}},
 		{name: "a directory", path: filepath.Join(dir, "policies"), want: []string{filepath.Join(dir, "policies", "a.yml"), filepath.Join(dir, "policies", "b.yaml")}},
 		{name: "a missing file", path: filepath.Join(dir, "nope.yml"), wantErr: true},
 		{name: "a directory with no policy", path: filepath.Join(dir, "empty"), wantErr: true},
@@ -77,7 +79,7 @@ func TestEvaluatorFromTheSource(t *testing.T) {
 func TestFactory(t *testing.T) {
 	src, err := Factory(plugin.MapConfig{"path": "p.yml"})
 	require.NoError(t, err)
-	assert.Equal(t, "p.yml", src.(*Source).path)
+	assert.Equal(t, "p.yml", src.(*Source).name)
 
 	Register()
 	reg, err := plugin.NewPolicySource(Name, plugin.MapConfig{"path": "p.yml"})
@@ -88,4 +90,25 @@ func TestFactory(t *testing.T) {
 	assert.Error(t, err)
 	_, err = Factory(plugin.MapConfig{"url": "x"})
 	assert.Error(t, err)
+}
+
+func TestNewFSLabelsTheDocs(t *testing.T) {
+	fsys := fstest.MapFS{
+		".github/vet/policy.yml": {Data: []byte("version: 2\n")},
+		"policies/a.yml":         {Data: []byte("version: 2\n")},
+	}
+	label := func(name string) string { return "origin/main:" + name }
+
+	docs, err := NewFS(fsys, ".github/vet/policy.yml", label).Policies(context.Background())
+	require.NoError(t, err)
+	require.Len(t, docs, 1)
+	assert.Equal(t, "origin/main:.github/vet/policy.yml", docs[0].Name)
+
+	docs, err = NewFS(fsys, "policies", label).Policies(context.Background())
+	require.NoError(t, err)
+	require.Len(t, docs, 1)
+	assert.Equal(t, "origin/main:policies/a.yml", docs[0].Name)
+
+	_, err = NewFS(fsys, "missing.yml", label).Policies(context.Background())
+	assert.ErrorContains(t, err, "origin/main:missing.yml")
 }

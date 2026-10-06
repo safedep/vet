@@ -25,6 +25,9 @@ var (
 	ErrNotRepository = errors.New("not in a git repository")
 	// ErrRevision reports a base ref that the repository does not have.
 	ErrRevision = errors.New("unknown revision")
+	// ErrNotRegular reports a base entry that is a symbolic link or a
+	// submodule. vet does not follow it.
+	ErrNotRegular = errors.New("not a regular file or directory")
 )
 
 // Tree is the tree of the base commit, seen from a directory of the
@@ -36,10 +39,17 @@ type Tree struct {
 	// prefix is the path of the directory in the repository, with a
 	// trailing "/", or "" for the repository root.
 	prefix string
+	// root is the root of the working tree, with its symbolic links
+	// resolved.
+	root string
 }
 
 // Open resolves rev in the repository of dir.
 func Open(dir, rev string) (*Tree, error) {
+	dir, err := filepath.Abs(dir)
+	if err != nil {
+		return nil, err
+	}
 	repo, err := gogit.PlainOpenWithOptions(dir, &gogit.PlainOpenOptions{DetectDotGit: true})
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s: %v", ErrNotRepository, dir, err)
@@ -48,7 +58,11 @@ func Open(dir, rev string) (*Tree, error) {
 	if err != nil {
 		return nil, err
 	}
-	prefix, err := repoPrefix(wt.Filesystem.Root(), dir)
+	root, err := filepath.EvalSymlinks(wt.Filesystem.Root())
+	if err != nil {
+		return nil, err
+	}
+	prefix, err := repoPrefix(root, dir)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +78,36 @@ func Open(dir, rev string) (*Tree, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Tree{Commit: *hash, tree: tree, prefix: prefix}, nil
+	return &Tree{Commit: *hash, tree: tree, prefix: prefix, root: root}, nil
+}
+
+// Root returns the root of the working tree, with its symbolic links
+// resolved.
+func (t *Tree) Root() string { return t.root }
+
+// RepoFS returns the base tree of the whole repository, not only of the
+// directory, as a read-only file system.
+func (t *Tree) RepoFS() fs.FS {
+	return treeFS{t: &Tree{Commit: t.Commit, tree: t.tree, root: t.root}}
+}
+
+// RepoPath returns the path of p relative to the root of the working
+// tree, in "/" form. It resolves the symbolic links of the directories of
+// p. It is false when p is outside the working tree.
+func (t *Tree) RepoPath(p string) (string, bool) {
+	abs, err := filepath.Abs(p)
+	if err != nil {
+		return "", false
+	}
+	dir, err := filepath.EvalSymlinks(filepath.Dir(abs))
+	if err != nil {
+		return "", false
+	}
+	rel, err := filepath.Rel(t.root, filepath.Join(dir, filepath.Base(abs)))
+	if err != nil || !filepath.IsLocal(rel) {
+		return "", false
+	}
+	return filepath.ToSlash(rel), true
 }
 
 // Walk calls fn with each base file under the directory, with its path
@@ -95,17 +138,14 @@ func localPath(rel string) bool {
 }
 
 // repoPrefix returns the path of dir in the repository, with "/" and a
-// trailing "/", or "" for the repository root.
-func repoPrefix(repoRoot, dir string) (string, error) {
-	rr, err := filepath.EvalSymlinks(repoRoot)
-	if err != nil {
-		return "", err
-	}
+// trailing "/", or "" for the repository root. root has its symbolic links
+// resolved.
+func repoPrefix(root, dir string) (string, error) {
 	d, err := filepath.EvalSymlinks(dir)
 	if err != nil {
 		return "", err
 	}
-	rel, err := filepath.Rel(rr, d)
+	rel, err := filepath.Rel(root, d)
 	if err != nil {
 		return "", err
 	}
