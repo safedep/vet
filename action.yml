@@ -1,0 +1,86 @@
+# The GitHub Action of vet v2. docs/github-action.md is the setup page.
+# Each input goes to a script through env, never into a run line.
+name: SafeDep vet
+description: Stop malicious packages and risky workflow changes in pull requests
+author: SafeDep
+branding:
+  icon: shield
+  color: green
+
+inputs:
+  version:
+    description: auto, latest, latest-prerelease or a v2 version such as 2.1.0. An exact version skips the cooldown.
+    default: auto
+  cooldown:
+    description: Hours that a release must age before auto, latest or latest-prerelease picks it
+    default: "24"
+  fail-on:
+    description: attacks, none, critical, high, medium or low
+    default: attacks
+  policy:
+    description: Policy file. The action skips it when it does not exist. In a pull request, vet reads it at the base commit.
+    default: .github/vet/policy.yml
+  comment:
+    description: auto, findings or never. auto comments when a pull request adds or upgrades a package or a workflow.
+    default: auto
+  comment-proxy:
+    description: Post the comment of a fork pull request to a public repository through the SafeDep comment proxy
+    default: "true"
+  sarif:
+    description: Write SARIF and upload it to code scanning. The job needs security-events write.
+    default: "false"
+  args:
+    description: More arguments for vet scan, split on white space
+    default: ""
+  github-token:
+    description: Token for the releases, the comment and the GitHub checks of vet
+    default: ${{ github.token }}
+
+outputs:
+  gate:
+    description: pass, fail or none
+    value: ${{ steps.scan.outputs.gate }}
+  findings:
+    description: The count of findings in the report
+    value: ${{ steps.scan.outputs.findings }}
+  report:
+    description: The path of the JSON report
+    value: ${{ steps.scan.outputs.report }}
+  comment-url:
+    description: The URL of the pull request comment, or empty
+    value: ${{ steps.scan.outputs.comment-url }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install vet
+      shell: bash
+      env:
+        ACTION_VERSION: ${{ inputs.version }}
+        ACTION_COOLDOWN: ${{ inputs.cooldown }}
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: bash "$GITHUB_ACTION_PATH/action/install.sh"
+
+    - name: Scan
+      id: scan
+      shell: bash
+      env:
+        ACTION_FAIL_ON: ${{ inputs.fail-on }}
+        ACTION_POLICY: ${{ inputs.policy }}
+        ACTION_COMMENT: ${{ inputs.comment }}
+        ACTION_COMMENT_PROXY: ${{ inputs.comment-proxy }}
+        ACTION_SARIF: ${{ inputs.sarif }}
+        ACTION_ARGS: ${{ inputs.args }}
+        GH_TOKEN: ${{ inputs.github-token }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      run: bash "$GITHUB_ACTION_PATH/action/scan.sh"
+
+    # A failed upload does not fail the job. Code scanning of a private
+    # repository needs GitHub Advanced Security.
+    - name: Upload SARIF
+      if: ${{ !cancelled() && steps.scan.outputs.sarif != '' }}
+      continue-on-error: true
+      uses: github/codeql-action/upload-sarif@7211b7c8077ea37d8641b6271f6a365a22a5fbfa # v4.36.0
+      with:
+        sarif_file: ${{ steps.scan.outputs.sarif }}
+        category: vet

@@ -107,7 +107,5 @@ func cell(s string) string {
 	return strings.NewReplacer("|", `\|`, "\n", " ", "<", "&lt;", ">", "&gt;").Replace(s)
 }
 
-// code puts text in a code span that its backticks cannot close.
-func code(s string) string {
-	return "`" + strings.NewReplacer("|", `\|`, "\n", " ", "`", "'").Replace(s) + "`"
-}
+// code puts text in a code span of a table cell.
+func code(s string) string { return strings.ReplaceAll(render.Code(s), "|", `\|`) }

@@ -54,7 +54,7 @@ func TestSetInFileErrors(t *testing.T) {
 		{key: "scan.include_dev", value: "maybe", code: CodeInvalid, text: `scan.include_dev must be true or false, got "maybe"`},
 		{key: "scan.concurrency", value: "x", code: CodeInvalid, text: "vet did not write the value to " + p},
 		{key: "scan.concurrency", value: "0", code: CodeInvalid, text: "vet did not write the change to " + p},
-		{key: "policy.fail_on", value: "severe", code: CodeInvalid, text: `policy.fail_on must be critical, high, medium, low or info, got "severe" (file ` + p + ")"},
+		{key: "policy.fail_on", value: "severe", code: CodeInvalid, text: `policy.fail_on must be attacks, critical, high, medium, low or info, got "severe" (file ` + p + ")"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.key+"="+tc.value, func(t *testing.T) {

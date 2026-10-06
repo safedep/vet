@@ -1,0 +1,55 @@
+# action/scan.sh is the contract between the GitHub Action and vet. A
+# pinned action runs its scan.sh with each newer vet. This row runs
+# scan.sh with the real binary. A pull request that adds a malicious
+# package gets the comment, the step summary, the SARIF file and the
+# outputs, and the step fails.
+[!git] skip 'needs git'
+[!exec:bash] skip 'needs bash'
+[!exec:jq] skip 'needs jq'
+[windows] skip 'the action tests run scan.sh on Windows'
+env GITHUB_ACTIONS=true
+env GITHUB_REPOSITORY=acme/app
+env GITHUB_SERVER_URL=https://github.com
+env GITHUB_API_URL=$STUB_URL
+env GITHUB_RUN_ID=7
+env GITHUB_EVENT_NAME=pull_request
+env GITHUB_EVENT_PATH=$WORK/event.json
+env GITHUB_OUTPUT=$WORK/output.txt
+env GITHUB_STEP_SUMMARY=$WORK/summary.md
+env RUNNER_TEMP=$WORK/runner
+env GH_TOKEN=ghs_test
+env GITHUB_TOKEN=ghs_test
+env ACTION_FAIL_ON=attacks
+env ACTION_POLICY=.github/vet/policy.yml
+env ACTION_COMMENT=auto
+env ACTION_COMMENT_PROXY=true
+env ACTION_SARIF=true
+env 'ACTION_ARGS=--mode plain'
+cp $WORK/empty.txt $WORK/output.txt
+cp $WORK/empty.txt $WORK/summary.md
+mkdir $WORK/runner
+cd repo
+exec git -c user.email=t@example.com -c user.name=t init -q
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m base
+exec bash -c 'printf ''{"pull_request": {"number": 1, "base": {"sha": "%s"}, "head": {"sha": "2222222222222222222222222222222222222222", "repo": {"full_name": "acme/app"}}}, "repository": {"full_name": "acme/app", "private": false}}'' "$(git rev-parse HEAD)" >"$GITHUB_EVENT_PATH"'
+
+cp $WORK/evil-lock.json package-lock.json
+execexit 1 bash $VET_SRC/action/scan.sh
+stderr 'vet applies no policy file, because the base ref [0-9a-f]+ has no .github/vet/policy.yml'
+grep '^gate=fail$' $WORK/output.txt
+grep '^findings=1$' $WORK/output.txt
+grep '^report=.*report.json$' $WORK/output.txt
+grep '^sarif=.*vet.sarif$' $WORK/output.txt
+grep '^comment-url=https://github.com/acme/app/pull/1#issuecomment-1$' $WORK/output.txt
+grep 'safedep-test-pkg' $WORK/summary.md
+exec bash -c 'jq -r .trailer.gate.fail_on "$(sed -n "s/^report=//p" "$GITHUB_OUTPUT")"'
+stdout '^attacks$'
+stub comments
+stdout 'vet: 1 finding blocks this pull request'
+
+-- empty.txt --
+-- repo/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app"}}}
+-- evil-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3"}}, "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"}}}

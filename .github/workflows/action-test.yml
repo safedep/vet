@@ -1,0 +1,163 @@
+name: Action Test
+
+# Tests the GitHub Action of vet on each pull request that changes it.
+# The install job runs the action with a released vet on each runner OS.
+# The scan job builds vet from the pull request and runs action/scan.sh.
+# No job writes a release, a tag or an image. test/release checks this.
+on:
+  pull_request:
+    branches: [v2]
+    paths:
+      - action.yml
+      - action/**
+      - internal/ci/**
+      - internal/plugins/sinks/prcomment/**
+      - .github/workflows/action-test.yml
+
+concurrency:
+  group: action-test-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  install:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      # The install path with the releases that exist now, on each OS: the
+      # download, the checksum, the attestation and the PATH entry. A copy
+      # of the scripts takes a lower minimum, because the releases from
+      # before the action do not reach action/min-version.
+      - name: Test install.sh with the current releases
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTION_VERSION: latest-prerelease
+        run: |
+          set -euo pipefail
+          copy=$RUNNER_TEMP/action-copy
+          mkdir -p "$copy"
+          cp action/install.sh action/resolve.jq action/channel.json "$copy/"
+          echo "2.0.0-alpha.20261001000000" >"$copy/min-version"
+          paths=$RUNNER_TEMP/install-path
+          GITHUB_PATH=$paths bash "$copy/install.sh"
+          bin=$(head -n 1 "$paths")
+          if command -v cygpath >/dev/null; then
+            bin=$(cygpath -u "$bin")
+          fi
+          "$bin/vet" version
+
+      # A raise of action/min-version has no release to install until a
+      # release at or above it passes the cooldown. The job then skips the
+      # install with a warning. The Go tests of action/ cover the choice.
+      - name: Find a release that this action code supports
+        id: ready
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api --paginate 'repos/safedep/vet/releases?per_page=100' | jq -s 'add // []' >"$RUNNER_TEMP/releases.json"
+          min=$(tr -d '[:space:]' <action/min-version)
+          found=$(jq -r -f action/resolve.jq --arg major v2 --arg channel prerelease --arg cooldown_hours 24 \
+            --arg min_version "$min" --arg now "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$RUNNER_TEMP/releases.json")
+          if [ -z "$found" ]; then
+            echo "::warning::No vet release at or above $min passed the cooldown. The job skips the install test."
+            echo "ready=false" >>"$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >>"$GITHUB_OUTPUT"
+          fi
+
+      - name: Run the action
+        id: vet
+        if: steps.ready.outputs.ready == 'true'
+        uses: ./
+        with:
+          comment: never
+          fail-on: none
+
+      - name: Check the outputs
+        if: steps.ready.outputs.ready == 'true'
+        shell: bash
+        env:
+          GATE: ${{ steps.vet.outputs.gate }}
+          REPORT: ${{ steps.vet.outputs.report }}
+        run: |
+          set -euo pipefail
+          vet version
+          test -s "$REPORT"
+          case $GATE in
+            pass | fail | none) ;;
+            *) echo "::error::The gate output is '$GATE'"; exit 1 ;;
+          esac
+
+  scan:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      pull-requests: write # to post the comment of the ubuntu run
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: go.mod
+
+      - name: Build vet
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/vet-bin"
+          go build -o "$RUNNER_TEMP/vet-bin/" ./cmd/vet
+          path=$RUNNER_TEMP/vet-bin
+          if command -v cygpath >/dev/null; then
+            path=$(cygpath -w "$path")
+          fi
+          echo "$path" >>"$GITHUB_PATH"
+
+      # Only the ubuntu run comments, so the three runs do not edit one
+      # comment at the same time.
+      - name: Scan
+        id: scan
+        shell: bash
+        env:
+          ACTION_FAIL_ON: none
+          ACTION_POLICY: .github/vet/policy.yml
+          ACTION_COMMENT: ${{ matrix.os == 'ubuntu-latest' && 'auto' || 'never' }}
+          ACTION_COMMENT_PROXY: "true"
+          ACTION_SARIF: "true"
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: bash action/scan.sh
+
+      - name: Check the outputs
+        shell: bash
+        env:
+          GATE: ${{ steps.scan.outputs.gate }}
+          REPORT: ${{ steps.scan.outputs.report }}
+          SARIF: ${{ steps.scan.outputs.sarif }}
+        run: |
+          set -euo pipefail
+          test -s "$REPORT"
+          test -s "$SARIF"
+          test "$GATE" = none

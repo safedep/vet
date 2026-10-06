@@ -24,6 +24,7 @@ import (
 	"github.com/safedep/vet/v2/internal/credentials"
 	"github.com/safedep/vet/v2/internal/engine"
 	"github.com/safedep/vet/v2/internal/github"
+	"github.com/safedep/vet/v2/internal/overview"
 	"github.com/safedep/vet/v2/internal/plugins/cloud/inventory"
 	"github.com/safedep/vet/v2/internal/plugins/cloud/tenantpolicy"
 	"github.com/safedep/vet/v2/internal/plugins/controls"
@@ -33,7 +34,6 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/codeusage"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/insights"
 	"github.com/safedep/vet/v2/internal/plugins/extractors"
-	"github.com/safedep/vet/v2/internal/plugins/policysources/file"
 	"github.com/safedep/vet/v2/internal/plugins/sinks"
 	"github.com/safedep/vet/v2/internal/plugins/sources"
 	"github.com/safedep/vet/v2/internal/plugins/sources/git"
@@ -80,7 +80,7 @@ type Options struct {
 // gate, the reports, the state and the cooldown window.
 func (o *Options) RegisterFlags(c *cobra.Command) {
 	f := c.Flags()
-	f.StringVar(&o.FailOn, "fail-on", "", "Exit 1 on a finding at this severity or above")
+	f.StringVar(&o.FailOn, "fail-on", "", "Exit 1 on a finding at this severity or above, or on an attack with attacks")
 	f.StringVar(&o.Policy, "policy", "", "Policy v2 file, directory or name")
 	f.StringArrayVar(&o.Reports, "report", nil, "Also write the report as FORMAT=PATH. Repeatable")
 	f.BoolVar(&o.Strict, "strict", false, "Exit 3 when the report has a diagnostic")
@@ -184,7 +184,6 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 	if err != nil {
 		return err
 	}
-	gate.File = rt.ResolvePolicy(gate.File)
 	outs, err := Outputs(cfg, a.Globals.Output, o.Reports, nil)
 	if err != nil {
 		return err
@@ -209,7 +208,11 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 			return err
 		}
 	}
-	evaluator, err := newEvaluator(ctx, cfg, gate)
+	policySrc, policyEdited, err := policySource(ctx, o.Target, o.BaseRef, gate.File, rt)
+	if err != nil {
+		return err
+	}
+	evaluator, err := newEvaluator(ctx, cfg, gate.FailOn, policySrc)
 	if err != nil {
 		return err
 	}
@@ -283,7 +286,9 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 				if err := syncInventory(ctx, cfg, store, s); err != nil {
 					return report.Gate{}, err
 				}
-				return evaluator.Finalize(ctx, s)
+				g, err := evaluator.Finalize(ctx, s)
+				g.PolicyChanged = policyEdited
+				return g, err
 			},
 		}
 		res, runErr := engine.Run(ctx, eo)
@@ -335,7 +340,7 @@ func strictError(err error) error {
 // Render prints the stderr summary of a completed scan, writes the report
 // to the destinations, and returns app.ErrGateFailed for a failed gate.
 func Render(ctx context.Context, r plugin.Report, v *view.Scan, outs []engine.Output) error {
-	s, err := view.Summarize(ctx, r)
+	s, err := overview.Read(ctx, r)
 	if err != nil {
 		return err
 	}
@@ -349,11 +354,30 @@ func Render(ctx context.Context, r plugin.Report, v *view.Scan, outs []engine.Ou
 	if err := engine.WriteOutputs(ctx, r, outs, output.Stdout()); err != nil {
 		return err
 	}
+	publish(ctx, r, outs)
 	v.Finish(r.Header(), r.Trailer(), s)
 	if r.Trailer().Gate.Outcome == report.GateFail {
 		return app.ErrGateFailed
 	}
 	return nil
+}
+
+// publish runs each sink that publishes the report itself. A failure is a
+// warning: it never changes the exit code, which the gate sets.
+func publish(ctx context.Context, r plugin.Report, outs []engine.Output) {
+	for _, o := range outs {
+		p, ok := o.Sink.(plugin.Publisher)
+		if !o.Publish || !ok {
+			continue
+		}
+		where, err := p.Publish(ctx, r)
+		if where != "" {
+			tui.Info("vet published the %s report to %s", o.Format, where)
+		}
+		if err != nil {
+			tui.Warning("--report %s: %v", o.Format, err)
+		}
+	}
 }
 
 // Outputs builds the destinations of -o and --report. The options of a
@@ -381,7 +405,7 @@ func Outputs(cfg *config.Config, out string, reports []string, extra map[string]
 		if err != nil {
 			return nil, app.UsageError(err.Error(), "Fix the option in the config file.")
 		}
-		outs = append(outs, engine.Output{Format: d.Format, Path: d.Path, Sink: s})
+		outs = append(outs, engine.Output{Format: d.Format, Path: d.Path, Publish: d.Publish, Sink: s})
 	}
 	return outs, nil
 }
@@ -448,10 +472,12 @@ func syncInventory(ctx context.Context, cfg *config.Config, store *state.Store, 
 	})
 }
 
-func newEvaluator(ctx context.Context, cfg *config.Config, s policy.Settings) (*policy.Evaluator, error) {
+// newEvaluator builds the evaluator of the --fail-on value, the policy
+// file source, when not nil, and the tenant policy.
+func newEvaluator(ctx context.Context, cfg *config.Config, failOn report.FailOn, policyFile plugin.PolicySource) (*policy.Evaluator, error) {
 	var srcs []plugin.PolicySource
-	if s.File != "" {
-		srcs = append(srcs, file.New(s.File))
+	if policyFile != nil {
+		srcs = append(srcs, policyFile)
 	}
 	if cfg.PluginEnabled(tenantpolicy.Name, false) {
 		src, err := tenantpolicy.New(plugin.MapConfig(cfg.PluginOptions(tenantpolicy.Name)))
@@ -460,7 +486,11 @@ func newEvaluator(ctx context.Context, cfg *config.Config, s policy.Settings) (*
 		}
 		srcs = append(srcs, src)
 	}
-	return policy.NewFromSources(ctx, s.FailOn, nil, srcs...)
+	attacks, err := controls.AttackIDs()
+	if err != nil {
+		return nil, err
+	}
+	return policy.NewFromSources(ctx, policy.Options{FailOn: failOn, Attacks: attacks}, srcs...)
 }
 
 func withState(ctx context.Context, dirs *state.Dirs, useCache bool, fn func(*state.Store, *state.Cache) error) (err error) {

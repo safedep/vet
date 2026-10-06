@@ -1,0 +1,53 @@
+# In pull request mode, vet reads a policy file of the git repository at the
+# base ref. A change that removes a fail rule does not loosen its own gate,
+# and vet says so.
+[!git] skip 'needs git'
+cd repo
+exec git -c user.email=t@example.com -c user.name=t init -q
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m base
+cp $WORK/head-lock.json package-lock.json
+cp $WORK/loose-policy.yml vet-policy.yml
+execexit 1 vet scan . --base-ref HEAD --policy vet-policy.yml --mode plain -o json
+stderr 'vet reads the policy vet-policy.yml from the base ref HEAD'
+stderr 'This change edits vet-policy.yml. The gate uses the base version.'
+jsonq stdout trailer.gate.outcome FAIL
+jsonq stdout trailer.gate.policy HEAD:vet-policy.yml
+jsonq stdout trailer.gate.policy_changed true
+
+# A saved report reads the policy from disk.
+exec vet report show last --policy vet-policy.yml --mode plain -o json
+jsonq stdout trailer.gate.outcome PASS
+
+# With the policy as it is at the base, vet does not report an edit.
+cp $WORK/repo-policy.yml vet-policy.yml
+execexit 1 vet scan . --base-ref HEAD --policy vet-policy.yml --mode plain -o json
+stderr 'vet reads the policy vet-policy.yml from the base ref HEAD'
+! stderr 'This change edits'
+! stdout '"policy_changed"'
+
+# A policy file that the change adds does not apply to the change.
+cp $WORK/loose-policy.yml new-policy.yml
+exec vet scan . --base-ref HEAD --policy new-policy.yml --mode plain -o json
+stderr 'vet applies no policy file, because the base ref HEAD has no new-policy.yml'
+jsonq stdout trailer.gate.outcome NONE
+
+-- repo/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app"}}}
+-- repo/vet-policy.yml --
+version: 2
+rules:
+  - id: no-malware
+    when: finding.family == "malware"
+    action: fail
+-- repo-policy.yml --
+version: 2
+rules:
+  - id: no-malware
+    when: finding.family == "malware"
+    action: fail
+-- loose-policy.yml --
+version: 2
+rules: []
+-- head-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3"}}, "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"}}}

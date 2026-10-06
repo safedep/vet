@@ -105,6 +105,18 @@
         },
         "count": {
           "type": "integer"
+        },
+        "change": {
+          "type": "string",
+          "enum": [
+            "",
+            "ADDED",
+            "UPGRADED",
+            "DOWNGRADED",
+            "MODIFIED",
+            "REMOVED",
+            "UNCHANGED"
+          ]
         }
       },
       "type": "object",
@@ -259,6 +271,7 @@
         "fail_on": {
           "type": "string",
           "enum": [
+            "attacks",
             "critical",
             "high",
             "medium",
@@ -280,6 +293,9 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "policy_changed": {
+          "type": "boolean"
         }
       },
       "type": "object",

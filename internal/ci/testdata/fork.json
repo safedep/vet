@@ -1,0 +1,8 @@
+{
+  "pull_request": {
+    "number": 7,
+    "base": {"sha": "1111111111111111111111111111111111111111"},
+    "head": {"sha": "3333333333333333333333333333333333333333", "repo": {"full_name": "someone/app"}}
+  },
+  "repository": {"full_name": "acme/app", "private": false}
+}

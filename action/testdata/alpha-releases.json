@@ -1,0 +1,8 @@
+[
+  {"tag_name": "v2.0.0-alpha.20261005063951", "prerelease": true, "immutable": true, "published_at": "2026-10-05T06:47:50Z", "assets": [{"name": "checksums.txt", "updated_at": "2026-10-05T06:47:49Z"}]},
+  {"tag_name": "v2.0.0-alpha.20261004163722", "prerelease": true, "immutable": true, "published_at": "2026-10-04T16:46:58Z", "assets": [{"name": "checksums.txt", "updated_at": "2026-10-05T12:00:00Z"}]},
+  {"tag_name": "v2.0.0-alpha.20261004160304", "prerelease": true, "immutable": true, "published_at": "2026-10-04T16:12:20Z", "assets": [{"name": "checksums.txt", "updated_at": "2026-10-04T16:12:19Z"}]},
+  {"tag_name": "v2.0.0-alpha.20261003000000", "prerelease": true, "immutable": false, "published_at": "2026-10-03T00:00:00Z", "assets": []},
+  {"tag_name": "v2.0.0", "draft": true, "prerelease": false, "immutable": false, "published_at": null, "assets": []},
+  {"tag_name": "v1.19.1", "prerelease": false, "immutable": true, "published_at": "2026-09-16T16:37:11Z", "assets": []}
+]

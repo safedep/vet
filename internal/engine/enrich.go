@@ -179,10 +179,10 @@ func (r *run) enrichError(name string, err error) {
 		if errors.As(err, &u) {
 			msg = string(u)
 		}
-		r.diags.add(report.DiagnosticWarning, CodeEnrichUnavailable, name, msg)
+		r.diags.add(report.DiagnosticWarning, report.CodeEnrichUnavailable, name, msg)
 		return
 	}
-	r.diags.add(report.DiagnosticError, CodeEnrichFailed, name, err.Error())
+	r.diags.add(report.DiagnosticError, report.CodeEnrichFailed, name, err.Error())
 }
 
 // enrichPrior enriches the previous versions of the upgraded and the

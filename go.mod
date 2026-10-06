@@ -3,6 +3,7 @@ module github.com/safedep/vet/v2
 go 1.26.3
 
 require (
+	al.essio.dev/pkg/shellescape v1.5.1
 	buf.build/gen/go/safedep/api/grpc/go v1.6.2-20261004053326-d1b3d9e09eae.1
 	buf.build/gen/go/safedep/api/protocolbuffers/go v1.36.12-20261004053326-d1b3d9e09eae.2
 	github.com/BurntSushi/toml v1.6.0
@@ -42,7 +43,6 @@ require (
 )
 
 require (
-	al.essio.dev/pkg/shellescape v1.5.1 // indirect
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.12-20260415201107-50325440f8f2.1 // indirect
 	buf.build/go/protovalidate v1.2.0 // indirect
 	cel.dev/expr v0.25.2 // indirect

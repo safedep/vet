@@ -4,6 +4,7 @@ import (
 	"slices"
 
 	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/internal/overview"
 	"github.com/safedep/vet/v2/internal/tui/escape"
 	"github.com/safedep/vet/v2/internal/tui/output"
 	"github.com/safedep/vet/v2/internal/tui/section"
@@ -21,7 +22,7 @@ const shortID = 8
 // next prints the next steps of a person after the gate line: the
 // upgrades that fix the top findings, the command that lists every finding
 // and the command that explains one. The agent mode reads the report.
-func (v *Scan) next(h *report.Header, t *report.Trailer, s Summary) {
+func (v *Scan) next(h *report.Header, t *report.Trailer, s overview.Overview) {
 	findings := s.Findings
 	if v.mode == output.Agent || len(findings) == 0 {
 		return

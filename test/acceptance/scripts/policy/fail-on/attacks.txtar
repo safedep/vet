@@ -1,0 +1,30 @@
+# --fail-on attacks exits 1 on a malicious package, and 0 on a high
+# vulnerability. policy.fail_on: attacks in the config file does the same.
+cd malware
+execexit 1 vet scan . --mode plain -o json --fail-on attacks
+jsonq stdout trailer.gate.fail_on attacks
+stderr 'Gate failed: 1 finding of an attack control'
+
+cd ../vuln
+exec vet scan . --mode plain -o plain --fail-on attacks
+stdout 'vulnerability'
+stderr 'Gate passed: no finding of an attack control'
+
+cd ../malware
+execexit 1 vet --config $WORK/config.yml scan . --mode plain -o plain
+stderr 'Gate failed'
+
+-- config.yml --
+policy:
+  fail_on: attacks
+-- malware/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3"}}, "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"}}}
+-- vuln/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"left-pad": "1.3.0"}},
+    "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}
+  }
+}

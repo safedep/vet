@@ -1,6 +1,7 @@
 package acceptance
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -38,6 +39,8 @@ func StartStub(env *testscript.Env, fixtures string) error {
 //	stub delay <duration>
 //	stub fail <service> <grpc code>
 //	stub calls <service> <n>
+//	stub readonly
+//	stub comments
 //	stub stop
 func cmdStub(ts *testscript.TestScript, neg bool, args []string) {
 	s, ok := ts.Value(stubKey{}).(*stub.Server)
@@ -68,10 +71,17 @@ func cmdStub(ts *testscript.TestScript, neg bool, args []string) {
 		if (got == want) == neg {
 			ts.Fatalf("stub: %s has %d calls, want %s%d", args[1], got, map[bool]string{true: "not ", false: ""}[neg], want)
 		}
+	case args[0] == "readonly" && len(args) == 1:
+		s.SetReadOnly(true)
+	case args[0] == "comments" && len(args) == 1:
+		for _, c := range s.Comments() {
+			_, err := fmt.Fprintf(ts.Stdout(), "--- comment %d by %s on %s\n%s\n", c.ID, c.Login, c.Issue, c.Body)
+			ts.Check(err)
+		}
 	case args[0] == "stop" && len(args) == 1:
 		ts.Check(s.Close())
 	default:
-		ts.Fatalf("usage: stub delay <duration> | fail <service> <code> | calls <service> <n> | stop")
+		ts.Fatalf("usage: stub delay <duration> | fail <service> <code> | calls <service> <n> | readonly | comments | stop")
 	}
 }
 

@@ -23,7 +23,10 @@ type Output struct {
 	Format string
 	// Path is the file, or "" for stdout.
 	Path string
-	Sink plugin.Sink
+	// Publish is true when the sink publishes the report itself.
+	// WriteOutputs skips it, and Publish runs it.
+	Publish bool
+	Sink    plugin.Sink
 }
 
 // WriteOutputs writes the report to each destination. A file destination
@@ -31,6 +34,9 @@ type Output struct {
 // a failed write leaves no partial file and keeps the file that was there.
 func WriteOutputs(ctx context.Context, r plugin.Report, outs []Output, stdout io.Writer) error {
 	for _, o := range outs {
+		if o.Publish {
+			continue
+		}
 		var err error
 		if o.Path == "" {
 			err = writeSink(ctx, o.Sink, r, stdout)

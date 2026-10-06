@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	gh "github.com/google/go-github/v70/github"
 	"github.com/safedep/dry/localdb"
 	"github.com/spf13/cobra"
 	"golang.org/x/mod/module"
@@ -140,7 +139,7 @@ func configCheck(l *config.Loaded) Check {
 
 func latestRelease(ctx context.Context, cfg *config.Config) Check {
 	if devBuild(version.Version()) {
-		return releaseCheck(nil, version.Version())
+		return releaseCheck(nil, version.Version(), time.Now())
 	}
 	ctx, cancel := context.WithTimeout(ctx, probeTimeout)
 	defer cancel()
@@ -148,77 +147,40 @@ func latestRelease(ctx context.Context, cfg *config.Config) Check {
 	if err != nil {
 		return Check{ID: "vet.release", Status: Warn, Message: "vet could not check the latest release: " + err.Error()}
 	}
-	releases, err := github.ListAll(func(page int) ([]*gh.RepositoryRelease, *gh.Response, error) {
-		return client.Repositories.ListReleases(ctx, "safedep", "vet", &gh.ListOptions{Page: page, PerPage: 100})
-	})
+	releases, err := github.ListReleases(ctx, client, "safedep", "vet")
 	if err != nil {
 		return Check{ID: "vet.release", Status: Warn, Message: "vet could not check the latest release: " + err.Error()}
 	}
-	var tags []string
-	for _, r := range releases {
-		if !r.GetDraft() {
-			tags = append(tags, r.GetTagName())
-		}
-	}
-	return releaseCheck(tags, version.Version())
+	return releaseCheck(releases, version.Version(), time.Now())
 }
 
 // releaseCheck compares this vet with the newest release of its major
 // version. A pre-release build compares with the pre-releases too, so an
 // alpha build of v2 learns about a newer alpha and never about v1. A build
 // with no version or a pseudo-version is a development build, and passes.
-func releaseCheck(tags []string, current string) Check {
+func releaseCheck(releases []github.Release, current string, now time.Time) Check {
 	shown := banner.DisplayVersion(current)
 	if devBuild(current) {
 		return Check{ID: "vet.release", Status: Pass, Message: "vet " + shown + " is a development build"}
 	}
-	cur := semverOf(current)
-	newest := newestRelease(tags, cur)
-	if newest == "" {
+	cur := github.SemverOf(current)
+	newest, ok := github.Choice{Major: semver.Major(cur), Prerelease: semver.Prerelease(cur) != "", Now: now}.Newest(releases)
+	if !ok {
 		return Check{ID: "vet.release", Status: Pass, Message: "vet " + shown + " has no newer release"}
 	}
-	switch c := semver.Compare(semverOf(newest), cur); {
+	switch c := semver.Compare(github.SemverOf(newest.Tag), cur); {
 	case c > 0:
-		return Check{ID: "vet.release", Status: Warn, Message: "the newest release is " + newest + ", this is " + shown, Fix: "Upgrade vet."}
+		return Check{ID: "vet.release", Status: Warn, Message: "the newest release is " + newest.Tag + ", this is " + shown, Fix: "Upgrade vet."}
 	case c < 0:
-		return Check{ID: "vet.release", Status: Pass, Message: "vet " + shown + " is newer than the newest release " + newest}
+		return Check{ID: "vet.release", Status: Pass, Message: "vet " + shown + " is newer than the newest release " + newest.Tag}
 	}
 	return Check{ID: "vet.release", Status: Pass, Message: "vet " + shown + " is the newest release"}
 }
 
 // devBuild reports a build with no version or with a pseudo-version.
 func devBuild(current string) bool {
-	cur := semverOf(current)
+	cur := github.SemverOf(current)
 	return cur == "" || module.IsPseudoVersion(cur)
-}
-
-// newestRelease returns the newest tag of the major version of cur. It
-// takes a pre-release only when cur is a pre-release.
-func newestRelease(tags []string, cur string) string {
-	var newest, newestSemver string
-	for _, tag := range tags {
-		v := semverOf(tag)
-		if v == "" || semver.Major(v) != semver.Major(cur) || semver.Prerelease(v) != "" && semver.Prerelease(cur) == "" {
-			continue
-		}
-		if newest == "" || semver.Compare(v, newestSemver) > 0 {
-			newest, newestSemver = tag, v
-		}
-	}
-	return newest
-}
-
-// semverOf returns the version in the form of golang.org/x/mod/semver, with
-// the leading v, or "" for a version that is not valid. A release build
-// sets the version with no v.
-func semverOf(v string) string {
-	if !strings.HasPrefix(v, "v") {
-		v = "v" + v
-	}
-	if !semver.IsValid(v) {
-		return ""
-	}
-	return v
 }
 
 func stateChecks(ctx context.Context, rt *config.Runtime, fix bool) []Check {

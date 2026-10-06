@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/safedep/vet/v2/finding"
@@ -253,6 +254,20 @@ const (
 	DiagnosticError   DiagnosticLevel = "error"
 )
 
+// The diagnostic codes of the scan engine. A reader of a report acts on
+// them, so they are part of the report contract. Other components keep
+// their codes next to their code.
+const (
+	CodeExtractFailed      = "extract_failed"
+	CodeUnknownEcosystem   = "unknown_ecosystem"
+	CodeDeltaFailed        = "delta_failed"
+	CodeEnrichUnavailable  = "enrich_unavailable"
+	CodeEnrichFailed       = "enrich_failed"
+	CodeControlUnavailable = "control_unavailable"
+	CodeControlFailed      = "control_failed"
+	CodeInvalidFinding     = "invalid_finding"
+)
+
 // Diagnostic records an error or a limit that did not stop the scan, for
 // example an enrichment backend that did not answer.
 type Diagnostic struct {
@@ -261,6 +276,9 @@ type Diagnostic struct {
 	Component string          `json:"component"`
 	Message   string          `json:"message"`
 	Count     int             `json:"count,omitempty"`
+	// Change is the change of the file that the diagnostic is about, in
+	// pull request mode.
+	Change model.Change `json:"change,omitempty"`
 }
 
 // Trailer is the last item of a report.
@@ -294,13 +312,52 @@ const (
 	GateFail GateOutcome = "FAIL"
 )
 
+// FailOn is the --fail-on value of a gate: a severity, or attacks.
+type FailOn string
+
+// FailOnAttacks fails the gate on the findings of the attack controls, and
+// on no other finding.
+const FailOnAttacks FailOn = "attacks"
+
+// FailOnValues returns each --fail-on value, attacks first.
+func FailOnValues() []FailOn {
+	out := []FailOn{FailOnAttacks}
+	for _, s := range finding.Severities() {
+		out = append(out, FailOn(s))
+	}
+	return out
+}
+
+// ParseFailOn reads a --fail-on value.
+func ParseFailOn(v string) (FailOn, error) {
+	f := FailOn(strings.ToLower(strings.TrimSpace(v)))
+	if f == FailOnAttacks {
+		return f, nil
+	}
+	if _, ok := f.Severity(); ok {
+		return f, nil
+	}
+	return "", fmt.Errorf("unknown --fail-on value %q: use attacks, critical, high, medium, low or info", v)
+}
+
+// Severity returns the severity of a severity value. It is false for
+// attacks.
+func (f FailOn) Severity() (finding.Severity, bool) {
+	s := finding.Severity(f)
+	return s, s.Valid()
+}
+
 // Gate is the outcome of the gate and what decided it.
 type Gate struct {
-	Outcome    GateOutcome      `json:"outcome"`
-	FailOn     finding.Severity `json:"fail_on,omitempty"`
-	Policy     string           `json:"policy,omitempty"`
-	Rules      []string         `json:"rules,omitempty"`
-	FindingIDs []string         `json:"finding_ids,omitempty"`
+	Outcome    GateOutcome `json:"outcome"`
+	FailOn     FailOn      `json:"fail_on,omitempty"`
+	Policy     string      `json:"policy,omitempty"`
+	Rules      []string    `json:"rules,omitempty"`
+	FindingIDs []string    `json:"finding_ids,omitempty"`
+	// PolicyChanged is true when a pull request scan reads its policy at
+	// the base ref, and the change edits that policy. The gate uses the
+	// base version.
+	PolicyChanged bool `json:"policy_changed,omitempty"`
 }
 
 // ManifestRecord returns a record that holds a manifest.

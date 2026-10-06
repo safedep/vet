@@ -1,0 +1,42 @@
+# The token of a fork run cannot write. vet posts the comment of a public
+# repository through the SafeDep comment proxy, and posts none for a
+# private repository. The gate still sets the exit code.
+[!git] skip 'needs git'
+env GITHUB_ACTIONS=true
+env GITHUB_REPOSITORY=acme/app
+env GITHUB_SERVER_URL=https://github.com
+env GITHUB_API_URL=$STUB_URL
+env GITHUB_EVENT_NAME=pull_request
+env GITHUB_EVENT_PATH=$WORK/fork.json
+env GITHUB_TOKEN=ghs_readonly
+env VET_PLUGINS_PR_COMMENT_OPTIONS_PROXY_URL=$STUB_URL
+env GITHUB_OUTPUT=$WORK/output.txt
+cp $WORK/empty.txt $WORK/output.txt
+stub readonly
+cd repo
+exec git -c user.email=t@example.com -c user.name=t init -q
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m base
+cp $WORK/evil-lock.json package-lock.json
+
+execexit 1 vet scan . --base-ref HEAD --fail-on attacks --report pr-comment --mode plain -o plain
+stub calls ghcp 1
+stub comments
+stdout '--- comment 1 by safedep-ghcp\[bot\] on acme/app/7'
+stdout 'Posted by the SafeDep comment proxy'
+grep '^comment-url=https://github.com/acme/app/pull/7#issuecomment-' $WORK/output.txt
+
+env GITHUB_EVENT_PATH=$WORK/private-fork.json
+execexit 1 vet scan . --base-ref HEAD --fail-on attacks --report pr-comment --mode plain -o plain
+stderr 'fork run of a private repository cannot write a comment'
+stub calls ghcp 1
+
+-- empty.txt --
+-- fork.json --
+{"pull_request": {"number": 7, "base": {"sha": "1111111111111111111111111111111111111111"}, "head": {"sha": "3333333333333333333333333333333333333333", "repo": {"full_name": "someone/app"}}}, "repository": {"full_name": "acme/app", "private": false}}
+-- private-fork.json --
+{"pull_request": {"number": 8, "base": {"sha": "1111111111111111111111111111111111111111"}, "head": {"sha": "3333333333333333333333333333333333333333", "repo": {"full_name": "someone/app"}}}, "repository": {"full_name": "acme/app", "private": true}}
+-- repo/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app"}}}
+-- evil-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3"}}, "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"}}}

@@ -70,6 +70,7 @@ var infos = []plugin.ControlInfo{
 		ID: IDSuspiciousCommand, Family: finding.FamilyAgentConfig, Severity: finding.SeverityCritical,
 		Title:       "Suspicious command in an agent or editor config",
 		Description: "A command that an editor, an agent or a git hook runs looks malicious: it runs a downloaded script, decodes a payload or reads credentials.",
+		Attack:      true,
 	},
 }
 

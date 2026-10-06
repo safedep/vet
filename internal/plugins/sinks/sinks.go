@@ -17,6 +17,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/sinks/jsonl"
 	"github.com/safedep/vet/v2/internal/plugins/sinks/markdown"
 	"github.com/safedep/vet/v2/internal/plugins/sinks/plain"
+	"github.com/safedep/vet/v2/internal/plugins/sinks/prcomment"
 	"github.com/safedep/vet/v2/internal/plugins/sinks/sarif"
 	"github.com/safedep/vet/v2/internal/plugins/sinks/table"
 	"github.com/safedep/vet/v2/internal/tui/output"
@@ -32,6 +33,9 @@ type Spec struct {
 	Name        string
 	Description string
 	New         plugin.Factory[plugin.Sink]
+	// Publishes is true when the sink is a plugin.Publisher, so --report
+	// takes the format with no path.
+	Publishes bool
 }
 
 // Registry is a list of formats, sorted by name.
@@ -48,6 +52,7 @@ func Builtin() Registry {
 		{Name: jsonl.Name, Description: "one report record on each line, as JSON", New: jsonl.New},
 		{Name: markdown.Name, Description: "the counts and the findings, for a pull request comment", New: markdown.New},
 		{Name: plain.Name, Description: "one finding on each line, with tab separated fields", New: plain.New},
+		{Name: prcomment.Name, Description: "one pull request comment that vet edits on each run", New: prcomment.New, Publishes: true},
 		{Name: sarif.Name, Description: "SARIF 2.1.0, for code scanning", New: sarif.New},
 		{Name: table.Name, Description: "the count cards and the most severe findings", New: table.New},
 	}
@@ -83,10 +88,14 @@ func (r Registry) New(format string, cfg plugin.Config) (plugin.Sink, error) {
 	return s, nil
 }
 
-// Destination is a format and a path. An empty path is stdout.
+// Destination is a format and a path. An empty path is stdout, unless
+// Publish is set.
 type Destination struct {
 	Format string
 	Path   string
+	// Publish is true for --report FORMAT with no path: the sink publishes
+	// the report itself.
+	Publish bool
 }
 
 // Destinations checks -o and the --report values. It returns the stdout
@@ -100,9 +109,20 @@ func (r Registry) Destinations(out string, reports []string, mode output.Mode) (
 	}
 	dests := []Destination{{Format: out}}
 	seen := map[string]bool{}
+	published := map[string]bool{}
 	for _, v := range reports {
 		format, path, ok := strings.Cut(v, "=")
+		if !ok && r.publishes(format) {
+			if published[format] {
+				return nil, r.usage(fmt.Sprintf("--report %q: another --report publishes %s", v, format))
+			}
+			published[format] = true
+			dests = append(dests, Destination{Format: format, Publish: true})
+			continue
+		}
 		switch {
+		case ok && path == "" && r.publishes(format):
+			return nil, r.usage(fmt.Sprintf("--report %q: give a path, or use --report %s to publish", v, format))
 		case !ok || path == "":
 			return nil, r.usage(fmt.Sprintf("--report %q: use FORMAT=PATH, for example json=vet.json", v))
 		case !slices.Contains(r.Formats(), format):
@@ -114,6 +134,11 @@ func (r Registry) Destinations(out string, reports []string, mode output.Mode) (
 		dests = append(dests, Destination{Format: format, Path: path})
 	}
 	return dests, nil
+}
+
+func (r Registry) publishes(format string) bool {
+	i := slices.IndexFunc(r, func(s Spec) bool { return s.Name == format })
+	return i >= 0 && r[i].Publishes
 }
 
 // Default returns the format of -o when the user sets none: table for

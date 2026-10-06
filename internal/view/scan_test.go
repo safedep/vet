@@ -18,6 +18,7 @@ import (
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/engine"
 	"github.com/safedep/vet/v2/internal/golden"
+	"github.com/safedep/vet/v2/internal/overview"
 	"github.com/safedep/vet/v2/internal/tui/output"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin/plugintest"
@@ -79,16 +80,16 @@ func TestScanGolden(t *testing.T) {
 	sample := plugintest.SampleReport()
 	vuln := vulnerability()
 	sample.FindingList = append(sample.FindingList, vuln)
-	summary, err := Summarize(context.Background(), sample)
+	summary, err := overview.Read(context.Background(), sample)
 	require.NoError(t, err)
-	summary.Changes = Changes{Packages: 4, Workflows: 1, Unchanged: 210}
+	summary.Changes = overview.Changes{Packages: 4, Workflows: 1, Unchanged: 210}
 
 	fail := *sample.Trailer()
-	fail.Gate = report.Gate{Outcome: report.GateFail, FailOn: finding.SeverityHigh, Rules: []string{"no-malware"}, FindingIDs: []string{"f-478cf580259c82ac", vuln.ID}}
+	fail.Gate = report.Gate{Outcome: report.GateFail, FailOn: report.FailOn(finding.SeverityHigh), Rules: []string{"no-malware"}, FindingIDs: []string{"f-478cf580259c82ac", vuln.ID}}
 	failOn := *sample.Trailer()
-	failOn.Gate = report.Gate{Outcome: report.GateFail, FailOn: finding.SeverityHigh, FindingIDs: []string{"f-478cf580259c82ac", vuln.ID}}
+	failOn.Gate = report.Gate{Outcome: report.GateFail, FailOn: report.FailOn(finding.SeverityHigh), FindingIDs: []string{"f-478cf580259c82ac", vuln.ID}}
 	pass := *sample.Trailer()
-	pass.Gate = report.Gate{Outcome: report.GatePass, FailOn: finding.SeverityCritical}
+	pass.Gate = report.Gate{Outcome: report.GatePass, FailOn: report.FailOn(finding.SeverityCritical)}
 	delta := *sample.Header()
 	delta.Scan.Mode, delta.Scan.BaseRef = report.ScanModeDelta, "origin/main"
 	empty := *sample.Trailer()
@@ -101,7 +102,7 @@ func TestScanGolden(t *testing.T) {
 		opts    Options
 		header  *report.Header
 		trailer *report.Trailer
-		summary Summary
+		summary overview.Overview
 	}{
 		{name: "no-gate", opts: Options{Target: "."}, header: sample.Header(), trailer: sample.Trailer(), summary: summary},
 		{name: "gate-fail", opts: Options{Target: "my app"}, header: sample.Header(), trailer: &fail, summary: summary},
@@ -132,34 +133,15 @@ func TestScanGolden(t *testing.T) {
 func TestQuietKeepsTheFailure(t *testing.T) {
 	sample := plugintest.SampleReport()
 	fail := *sample.Trailer()
-	fail.Gate = report.Gate{Outcome: report.GateFail, FailOn: finding.SeverityHigh, FindingIDs: []string{"f-1"}}
+	fail.Gate = report.Gate{Outcome: report.GateFail, FailOn: report.FailOn(finding.SeverityHigh), FindingIDs: []string{"f-1"}}
 	output.SetVerbosity(output.Silent)
 	t.Cleanup(func() { output.SetVerbosity(output.Normal) })
 	got := capture(t, output.Plain, func() {
 		v := newScan(Options{Target: "."})
 		run(v)
-		v.Finish(sample.Header(), &fail, Summary{})
+		v.Finish(sample.Header(), &fail, overview.Overview{})
 	})
 	assert.Equal(t, "[ERR] Gate failed: 1 finding at high or above (--fail-on high)\n", got)
-}
-
-func TestSummarize(t *testing.T) {
-	s := plugintest.SampleReport()
-	s.ManifestList[0].Packages[0].Change = model.ChangeAdded
-	s.ManifestList[0].Packages[1].Insight = &model.Insight{LatestVersion: "1.3.1"}
-	s.ManifestList = append(s.ManifestList, &model.Manifest{ID: "w", Path: ".github/workflows/ci.yml", Kind: model.ManifestKindWorkflow, Change: model.ChangeModified})
-	s.FindingList = append(s.FindingList, vulnerability())
-	got, err := Summarize(context.Background(), s)
-	require.NoError(t, err)
-	assert.Equal(t, Changes{Packages: 1, Workflows: 1, Unchanged: 1}, got.Changes)
-	assert.Len(t, got.Diagnostics, 1)
-	assert.Equal(t, map[model.PackageKey]string{model.MustPackageVersion(model.EcosystemNpm, "left-pad", "1.3.0").Key(): "1.3.1"}, got.Latest)
-	var severities []finding.Severity
-	for _, f := range got.Findings {
-		severities = append(severities, f.Severity)
-	}
-	assert.Equal(t, []finding.Severity{finding.SeverityCritical, finding.SeverityHigh, finding.SeverityMedium}, severities,
-		"the most severe first, and no suppressed finding")
 }
 
 func TestDiagnosticsGroupsForAHuman(t *testing.T) {
@@ -329,10 +311,10 @@ func TestGateReason(t *testing.T) {
 		gate report.Gate
 		want string
 	}{
-		{"fail-on", report.Gate{FailOn: finding.SeverityHigh, FindingIDs: ids}, "2 findings at high or above (--fail-on high)"},
+		{"fail-on", report.Gate{FailOn: report.FailOn(finding.SeverityHigh), FindingIDs: ids}, "2 findings at high or above (--fail-on high)"},
 		{"one rule", report.Gate{Rules: []string{"no-malware"}, FindingIDs: ids[:1]}, "1 finding (policy rule no-malware)"},
 		{"rules", report.Gate{Rules: []string{"a", "b"}, FindingIDs: ids}, "2 findings (policy rules a and b)"},
-		{"both", report.Gate{FailOn: finding.SeverityHigh, Rules: []string{"a"}, FindingIDs: ids}, "2 findings (--fail-on high, policy rule a)"},
+		{"both", report.Gate{FailOn: report.FailOn(finding.SeverityHigh), Rules: []string{"a"}, FindingIDs: ids}, "2 findings (--fail-on high, policy rule a)"},
 		{"no gate named", report.Gate{FindingIDs: ids}, "2 findings"},
 	}
 	for _, tc := range cases {

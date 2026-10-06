@@ -32,21 +32,41 @@ type base struct {
 	hashes    map[string]plumbing.Hash
 }
 
+// ErrBaseRefTarget is the usage error of --base-ref on a target that is
+// not a git working tree.
+func ErrBaseRefTarget() error {
+	return app.UsageError("--base-ref needs a git working tree as the target", "Run vet scan in a git repository, or leave out --base-ref.")
+}
+
+// BaseRefError maps an error of gitbase.Open to the usage error of
+// --base-ref, with its help.
+func BaseRefError(err error) error {
+	switch {
+	case errors.Is(err, gitbase.ErrNotRepository):
+		return app.UsageError(fmt.Sprintf("--base-ref: %v", err), "Run vet scan in a git repository, or leave out --base-ref.")
+	case errors.Is(err, gitbase.ErrRevision):
+		return app.UsageError(fmt.Sprintf("--base-ref %v", err), "Fetch the base branch first, as in: git fetch origin main")
+	}
+	return err
+}
+
+// sameAtHead reports whether the file rel under dir has the content of the
+// base blob hash.
+func sameAtHead(dir, rel string, hash plumbing.Hash) bool {
+	data, err := os.ReadFile(filepath.Join(dir, filepath.FromSlash(rel)))
+	return err == nil && plumbing.ComputeHash(plumbing.BlobObject, data) == hash
+}
+
 // loadBase reads the base ref of the git working tree at dir. It writes
 // each base file that an extractor wants into a temporary directory and
 // extracts it there, so the base gets the same extractors as the head.
 func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extractor) (*base, error) {
 	if a.Kind != plugin.ArtifactDirectory || a.Path == "" {
-		return nil, app.UsageError("--base-ref needs a git working tree as the target", "Run vet scan in a git repository, or leave out --base-ref.")
+		return nil, ErrBaseRefTarget()
 	}
 	tree, err := gitbase.Open(a.Path, r.o.BaseRef)
-	switch {
-	case errors.Is(err, gitbase.ErrNotRepository):
-		return nil, app.UsageError(fmt.Sprintf("--base-ref: %v", err), "Run vet scan in a git repository, or leave out --base-ref.")
-	case errors.Is(err, gitbase.ErrRevision):
-		return nil, app.UsageError(fmt.Sprintf("--base-ref %v", err), "Fetch the base branch first, for example git fetch origin main.")
-	case err != nil:
-		return nil, err
+	if err != nil {
+		return nil, BaseRefError(err)
 	}
 	hash := &tree.Commit
 	cache := r.baseCache(a, *hash, exs)
@@ -59,7 +79,7 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 	}
 	defer func() {
 		if err := os.RemoveAll(tmp); err != nil {
-			r.diags.add(report.DiagnosticWarning, CodeExtractFailed, "delta", err.Error())
+			r.diags.add(report.DiagnosticWarning, report.CodeDeltaFailed, "delta", err.Error())
 		}
 	}()
 
@@ -86,11 +106,16 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 	for _, rel := range files {
 		ms, errs := scalibr.ExtractFile(ctx, scalibr.File{Root: tmp, Path: rel}, exs)
 		for _, err := range errs {
+			// The head extraction reports an unknown ecosystem once, and
+			// the error of a file that the change keeps as it is.
+			if unknownPURLType.MatchString(err.Error()) || sameAtHead(a.Path, rel, b.hashes[rel]) {
+				continue
+			}
 			// A base file that vet cannot read has no base manifest, so
 			// each package of its head file is added. vet reports more,
 			// not less, and says why.
 			failed = true
-			r.diags.add(report.DiagnosticWarning, CodeExtractFailed, "delta",
+			r.diags.add(report.DiagnosticWarning, report.CodeDeltaFailed, "delta",
 				fmt.Sprintf("read the base of %s: %v. vet compares its packages with an empty base", rel, err))
 		}
 		for _, m := range ms {
@@ -104,7 +129,7 @@ func (r *run) loadBase(ctx context.Context, a plugin.Artifact, exs []plugin.Extr
 	}
 	if err := cache.save(b); err != nil {
 		// A base that vet cannot keep costs one more extraction next time.
-		r.diags.add(report.DiagnosticWarning, CodeExtractFailed, "delta", "keep the base extraction: "+err.Error())
+		r.diags.add(report.DiagnosticWarning, report.CodeDeltaFailed, "delta", "keep the base extraction: "+err.Error())
 	}
 	return b, nil
 }

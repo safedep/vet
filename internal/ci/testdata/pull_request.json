@@ -1,0 +1,10 @@
+{
+  "action": "synchronize",
+  "number": 482,
+  "pull_request": {
+    "number": 482,
+    "base": {"sha": "1111111111111111111111111111111111111111", "repo": {"full_name": "acme/app"}},
+    "head": {"sha": "2222222222222222222222222222222222222222", "repo": {"full_name": "acme/app"}}
+  },
+  "repository": {"full_name": "acme/app", "private": false}
+}

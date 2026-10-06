@@ -125,19 +125,70 @@ func TestPlanKeepsCRLF(t *testing.T) {
 	assert.Equal(t, "jobs:\r\n  b:\r\n    steps:\r\n      - uses: a/b@"+sha+" # v1\r\n", string(got))
 }
 
-func TestGitHubRepo(t *testing.T) {
-	for in, want := range map[string]string{
-		"https://github.com/safedep/vet.git": "safedep/vet",
-		"git@github.com:safedep/vet.git":     "safedep/vet",
-		"ssh://git@github.com/safedep/vet":   "safedep/vet",
-		"https://gitlab.com/a/b":             "",
-	} {
-		assert.Equal(t, want, githubRepo(in), in)
-	}
-}
-
 func TestPlanWithNoWorkflows(t *testing.T) {
 	p, err := PlanPins(context.Background(), PinOptions{Root: t.TempDir(), Resolver: &fakeResolver{}})
 	require.NoError(t, err)
 	assert.Zero(t, p.Edits())
+}
+
+func TestPlanRepins(t *testing.T) {
+	const (
+		oldSHA = "1111111111111111111111111111111111111111"
+		newSHA = "2222222222222222222222222222222222222222"
+	)
+	root := t.TempDir()
+	dir := filepath.Join(root, ".github", "workflows")
+	require.NoError(t, os.MkdirAll(dir, 0o755))
+	before := `jobs:
+  vet:
+    steps:
+      - uses: actions/checkout@` + oldSHA + ` # v5.0.0
+      - uses: SafeDep/vet@` + oldSHA + ` # v2.0.0-alpha.1; a note
+      - uses: actions/setup-go@v5
+      - uses: actions/checkout@` + newSHA + ` # v6.0.2
+`
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "vet.yml"), []byte(before), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "ci.yml"), []byte(before), 0o644))
+
+	p, err := PlanRepins(context.Background(), RepinOptions{
+		Root:  root,
+		Files: []string{".github/workflows/vet.yml"},
+		Pins: map[string]Pin{
+			"actions/checkout": {SHA: newSHA, Ref: "v6.0.2"},
+			"safedep/vet":      {SHA: newSHA, Ref: "v2.0.0-alpha.2"},
+		},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, 2, p.Edits(), "the line with the pin already stays")
+	require.NoError(t, p.Apply())
+
+	got, err := os.ReadFile(filepath.Join(dir, "vet.yml"))
+	require.NoError(t, err)
+	assert.Equal(t, `jobs:
+  vet:
+    steps:
+      - uses: actions/checkout@`+newSHA+` # v6.0.2
+      - uses: SafeDep/vet@`+newSHA+` # v2.0.0-alpha.2
+      - uses: actions/setup-go@v5
+      - uses: actions/checkout@`+newSHA+` # v6.0.2
+`, string(got))
+	other, err := os.ReadFile(filepath.Join(dir, "ci.yml"))
+	require.NoError(t, err)
+	assert.Equal(t, before, string(other), "a file that is not in Files stays")
+}
+
+func TestPinnedTags(t *testing.T) {
+	got, err := PinnedTags([]byte(`jobs:
+  a:
+    steps:
+      - uses: actions/checkout@` + sha + ` # v6.0.2
+      - uses: "SafeDep/vet@` + sha + `" # v2.0.0-alpha.1; a note
+      - uses: actions/setup-go@v5 # v5
+      - uses: actions/cache@` + sha + `
+`))
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{"actions/checkout": "v6.0.2", "safedep/vet": "v2.0.0-alpha.1"}, got)
+
+	_, err = PinnedTags([]byte("jobs: [\n"))
+	assert.Error(t, err)
 }

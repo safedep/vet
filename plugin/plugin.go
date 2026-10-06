@@ -137,6 +137,9 @@ type ControlInfo struct {
 	Severity    finding.Severity `json:"severity"`
 	Title       string           `json:"title"`
 	Description string           `json:"description"`
+	// Attack marks a control that finds an attack, such as a malicious
+	// package. The attacks gate fails on its findings and on no other.
+	Attack bool `json:"attack,omitempty"`
 }
 
 // Describer lists the control ids that a control plugin emits. Every control
@@ -169,6 +172,15 @@ type StreamSink interface {
 	Begin(ctx context.Context, h *report.Header, w io.Writer) error
 	Record(ctx context.Context, r *report.Record, w io.Writer) error
 	End(ctx context.Context, t *report.Trailer, w io.Writer) error
+}
+
+// Publisher is optional. A sink that implements it also takes --report
+// FORMAT with no path: it publishes the report itself, for example as a
+// pull request comment, and returns where it went. Write still writes the
+// same body to a file or to stdout.
+type Publisher interface {
+	Sink
+	Publish(ctx context.Context, r Report) (string, error)
 }
 
 // PolicyDoc is one policy v2 document.

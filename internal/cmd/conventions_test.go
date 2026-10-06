@@ -27,15 +27,16 @@ var (
 	// hyphenExceptions are the command names that can have a hyphen.
 	hyphenExceptions = []string{"github-actions"}
 	// topLevelCommands are the children of the root: the 10 commands of
-	// the command layout, section 3.2.
-	topLevelCommands = []string{"auth", "config", "doctor", "endpoint", "fix", "policy", "report", "scan", "state", "version"}
+	// the command layout, section 3.2, and ci of the GitHub Action spec.
+	topLevelCommands = []string{"auth", "ci", "config", "doctor", "endpoint", "fix", "policy", "report", "scan", "state", "version"}
 	// leafCommands are the 26 leaves of the tree of the command layout,
-	// section 3.2.
+	// section 3.2, and the 2 leaves of ci.
 	leafCommands = []string{
 		"scan",
 		"report show", "report list", "report diff", "report finding show", "report capability list", "report schema get",
 		"policy init", "policy validate", "policy control list", "policy schema get",
 		"fix github-actions run",
+		"ci init", "ci update",
 		"endpoint audit",
 		"state show", "state delete",
 		"doctor",

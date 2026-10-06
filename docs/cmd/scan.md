@@ -5,7 +5,7 @@ Scan a project, a repository, an image, an SBOM or a package.
 ## Synopsis
 
 ```text
-vet scan [TARGET] [--base-ref REF] [--fail-on SEVERITY] [--policy FILE|NAME]
+vet scan [TARGET] [--base-ref REF] [--fail-on SEVERITY|attacks] [--policy FILE|NAME]
          [--report FORMAT=PATH]... [--strict] [--resume | --fresh] [--no-cache]
          [--exclude GLOB]... [--packages declared|installed|all] [--cooldown-days N]
          [--state-dir DIR] [--cache-dir DIR] [--ephemeral]

@@ -13,50 +13,57 @@ vet policy control list -o json
 
 ## All controls
 
+The table and the [control reference](#control-reference) come from the code. Each control id links
+to its section.
+
+<!-- controls:table:start -->
+
 | Control | Family | Default severity | Finds |
 | --- | --- | --- | --- |
-| `malware` | malware | critical | A malicious package |
-| `suspicious-package` | malware | high | A package that the analysis marks suspicious |
-| `vulnerability` | vulnerability | from the advisory | A known vulnerability |
-| `dependency-cooldown` | cooldown | high | A version that the registry published in the cooldown window (5 days) |
-| `untrusted-registry` | lockfile | high | A lockfile entry (npm, yarn, pnpm, bun, uv, Cargo) from an untrusted registry |
-| `registry-path-mismatch` | lockfile | high | A lockfile entry with the URL of another package |
-| `integrity-changed` | lockfile | high | In pull request mode, a lockfile entry whose hash changes with no version change |
-| `lockfile-only-change` | lockfile | high | In pull request mode, a lockfile change with no change to the manifest file next to it |
-| `installed-not-locked` | lockfile | medium | With `--packages all`, a package in `node_modules` that the npm lockfile of its project does not list, or with another version |
-| `install-scripts-added` | hygiene | high | In pull request mode, a new or upgraded npm package that runs install scripts |
-| `provenance-lost` | hygiene | medium | An upgrade to a version with no SLSA provenance, when the previous version had one |
-| `deprecated-package` | hygiene | medium | A version that the registry marks deprecated |
-| `license-change` | license | medium | An upgrade that changes the license |
-| `license-relicensed` | license | high | An upgrade to a license that limits the use of the code, such as SSPL-1.0, BUSL-1.1 or CC-BY-NC-4.0, or to `NONE` |
-| `license-denied` | license | high | A license that `plugins.license.options.deny` names, in each choice of the license expression |
-| `license-not-allowed` | license | medium | A license that `plugins.license.options.allow` does not satisfy |
-| `license-unknown` | license | low | A package with no license data, a license that is not an SPDX expression, or `NONE` with only a deny list. Reported when a list is set, unless `unknown: ignore` |
-| `non-registry-dependency` | hygiene | medium | A dependency on git, a URL, a file or any version |
-| `scorecard-low` | hygiene | info | A package whose repository has an OpenSSF Scorecard score under 3 |
-| `typosquat` | reputation | high | A name one typo away from a popular package, with few downloads |
-| `new-unpopular-package` | reputation | medium | A package whose first version is under 30 days old, with under 1000 downloads |
-| `version-anomaly` | reputation | medium | An upgrade that jumps two major versions, or to a version older than the previous one |
-| `starjacking` | reputation | medium | A package that claims a popular repository and has almost no downloads |
-| `dependency-confusion` | reputation | medium | A package that matches `internal_names` and comes from a public registry |
-| `ai-bom-delta` | ai-bom | medium | In pull request mode, a new LLM SDK, agent framework or MCP library |
-| `dangerous-trigger` | workflow | high | A `pull_request_target` or `workflow_run` workflow that checks out untrusted code |
-| `template-injection` | workflow | high | An untrusted expression inside a `run:` script |
-| `unpinned-action` | workflow | medium | A third-party action that a tag or a branch selects |
-| `impostor-commit` | workflow | critical | An action pinned to a commit that no branch and no tag of its repository contains. See [Pinned commits](#pinned-commits) |
-| `pin-comment-mismatch` | workflow | medium | A pin comment that names a release tag, such as `v4.2.0`, that does not point to the pinned commit |
-| `excessive-permissions` | workflow | medium | A workflow with no permissions or with write-all |
-| `secrets-exposure` | workflow | high | `secrets: inherit`, `toJSON(secrets)` or a secret in a script |
-| `github-env-injection` | workflow | high | A write to `GITHUB_ENV` or `GITHUB_PATH` with input that an outside user controls |
-| `cache-poisoning` | workflow | medium | A cache in a release or deploy job |
-| `artifact-poisoning` | workflow | medium | An artifact download in a `workflow_run` workflow |
-| `self-hosted-runner` | workflow | medium | A job on a self-hosted runner |
-| `spoofable-bot-condition` | workflow | medium | A condition on the actor name of a bot |
-| `editor-task-command` | agent-config | medium, high on folder open | A `.vscode/tasks.json` task that runs a shell command |
-| `agent-hook-command` | agent-config | medium | A Claude Code hook, a devcontainer lifecycle command or a git hook |
-| `mcp-server-added` | agent-config | medium | An MCP server in an agent or editor config |
-| `agent-instruction-change` | agent-config | info | An agent instruction file such as `CLAUDE.md` or `.cursorrules` |
-| `suspicious-command` | agent-config | critical | A command in those files that runs a downloaded script, decodes a payload or reads credentials |
+| [`editor-task-command`](#editor-task-command) | agent-config | medium | Editor task runs a command |
+| [`agent-hook-command`](#agent-hook-command) | agent-config | medium | Agent or git hook runs a command |
+| [`mcp-server-added`](#mcp-server-added) | agent-config | medium | MCP server in an agent config |
+| [`agent-instruction-change`](#agent-instruction-change) | agent-config | info | Agent instruction file |
+| [`suspicious-command`](#suspicious-command) | agent-config | critical | Suspicious command in an agent or editor config |
+| [`dependency-cooldown`](#dependency-cooldown) | cooldown | high | Version inside the cooldown window |
+| [`install-scripts-added`](#install-scripts-added) | hygiene | high | New dependency with install scripts |
+| [`provenance-lost`](#provenance-lost) | hygiene | medium | Provenance lost on an upgrade |
+| [`deprecated-package`](#deprecated-package) | hygiene | medium | Deprecated package |
+| [`license-change`](#license-change) | license | medium | License change on an upgrade |
+| [`license-relicensed`](#license-relicensed) | license | high | Relicensed to a license that limits use |
+| [`non-registry-dependency`](#non-registry-dependency) | hygiene | medium | Dependency that is not on a registry |
+| [`scorecard-low`](#scorecard-low) | hygiene | info | Low OpenSSF Scorecard |
+| [`license-denied`](#license-denied) | license | high | Denied license |
+| [`license-not-allowed`](#license-not-allowed) | license | medium | License not in the allow list |
+| [`license-unknown`](#license-unknown) | license | low | Unknown license |
+| [`untrusted-registry`](#untrusted-registry) | lockfile | high | Lockfile entry from an untrusted registry |
+| [`registry-path-mismatch`](#registry-path-mismatch) | lockfile | high | Lockfile entry with a URL of another package |
+| [`integrity-changed`](#integrity-changed) | lockfile | high | Lockfile integrity hash changed with no version change |
+| [`lockfile-only-change`](#lockfile-only-change) | lockfile | high | Lockfile change with no manifest change |
+| [`installed-not-locked`](#installed-not-locked) | lockfile | medium | Installed package that the lockfile does not list |
+| [`malware`](#malware) | malware | critical | Malicious package |
+| [`suspicious-package`](#suspicious-package) | malware | high | Suspicious package |
+| [`typosquat`](#typosquat) | reputation | high | Typosquat of a popular package |
+| [`new-unpopular-package`](#new-unpopular-package) | reputation | medium | New and unpopular package |
+| [`version-anomaly`](#version-anomaly) | reputation | medium | Version anomaly on an upgrade |
+| [`starjacking`](#starjacking) | reputation | medium | Package that claims a popular repository |
+| [`dependency-confusion`](#dependency-confusion) | reputation | medium | Internal package name on a public registry |
+| [`ai-bom-delta`](#ai-bom-delta) | ai-bom | medium | New AI capability |
+| [`vulnerability`](#vulnerability) | vulnerability | high | Known vulnerability |
+| [`dangerous-trigger`](#dangerous-trigger) | workflow | high | Dangerous workflow trigger |
+| [`template-injection`](#template-injection) | workflow | high | Workflow template injection |
+| [`unpinned-action`](#unpinned-action) | workflow | medium | Action not pinned to a commit SHA |
+| [`impostor-commit`](#impostor-commit) | workflow | critical | Action pinned to a commit outside its repository |
+| [`pin-comment-mismatch`](#pin-comment-mismatch) | workflow | medium | Pin comment names another tag |
+| [`excessive-permissions`](#excessive-permissions) | workflow | medium | Workflow with excessive permissions |
+| [`secrets-exposure`](#secrets-exposure) | workflow | high | Secrets exposed to more code than needs them |
+| [`github-env-injection`](#github-env-injection) | workflow | high | Untrusted write to GITHUB_ENV or GITHUB_PATH |
+| [`cache-poisoning`](#cache-poisoning) | workflow | medium | Cache in a release or deploy workflow |
+| [`artifact-poisoning`](#artifact-poisoning) | workflow | medium | Artifact download in a workflow_run workflow |
+| [`self-hosted-runner`](#self-hosted-runner) | workflow | medium | Job on a self-hosted runner |
+| [`spoofable-bot-condition`](#spoofable-bot-condition) | workflow | medium | Condition on a bot actor name |
+
+<!-- controls:table:end -->
 
 ## Pull request mode
 
@@ -183,3 +190,261 @@ that points to the commit, the default branch, then each other branch and tag.
 
 `vet fix github-actions run` pins each third-party action to its commit SHA, and keeps the tag in a
 comment. See [fix-github-actions-run.md](cmd/fix-github-actions-run.md).
+
+## Control reference
+
+<!-- controls:reference:start -->
+
+### editor-task-command
+
+**Editor task runs a command.** Family `agent-config`. Default severity medium. Plugin `agent-config`.
+
+An editor task runs a shell command on the machine of each developer who opens the folder. A task with runOn: folderOpen runs with no click, so its severity is high.
+
+### agent-hook-command
+
+**Agent or git hook runs a command.** Family `agent-config`. Default severity medium. Plugin `agent-config`.
+
+A coding agent hook, a devcontainer lifecycle command or a git hook runs a command on the machine of each developer.
+
+### mcp-server-added
+
+**MCP server in an agent config.** Family `agent-config`. Default severity medium. Plugin `agent-config`.
+
+An MCP config gives the coding agent a server to run or to call. The agent sends it the data of the project.
+
+### agent-instruction-change
+
+**Agent instruction file.** Family `agent-config`. Default severity info. Plugin `agent-config`.
+
+An instruction file tells a coding agent what to do in the project. Review it like code: it can tell the agent to run commands.
+
+### suspicious-command
+
+**Suspicious command in an agent or editor config.** Family `agent-config`. Default severity critical. Plugin `agent-config`. The attacks gate fails on it.
+
+A command that an editor, an agent or a git hook runs looks malicious: it runs a downloaded script, decodes a payload or reads credentials.
+
+### dependency-cooldown
+
+**Version inside the cooldown window.** Family `cooldown`. Default severity high. Plugin `dependency-cooldown`.
+
+The registry published the version less than the cooldown window ago. Most malicious versions are found and removed in the first days.
+
+### install-scripts-added
+
+**New dependency with install scripts.** Family `hygiene`. Default severity high. Plugin `hygiene`.
+
+The change adds or upgrades a package that runs a preinstall, install or postinstall script. The script runs on each machine that installs the package.
+
+### provenance-lost
+
+**Provenance lost on an upgrade.** Family `hygiene`. Default severity medium. Plugin `hygiene`.
+
+The previous version has a SLSA provenance attestation and the new version has none. The new version may not come from the build system of the project.
+
+### deprecated-package
+
+**Deprecated package.** Family `hygiene`. Default severity medium. Plugin `hygiene`.
+
+The registry marks the package version deprecated. It gets no fixes.
+
+### license-change
+
+**License change on an upgrade.** Family `license`. Default severity medium. Plugin `hygiene`.
+
+The new version has a license other than the license of the previous version.
+
+### license-relicensed
+
+**Relicensed to a license that limits use.** Family `license`. Default severity high. Plugin `hygiene`.
+
+The new version moves to a license that limits the use of the code (source available, no commercial use or no derived works, such as SSPL-1.0, BUSL-1.1 or CC-BY-NC-4.0), or to no license.
+
+### non-registry-dependency
+
+**Dependency that is not on a registry.** Family `hygiene`. Default severity medium. Plugin `hygiene`.
+
+A dependency comes from git, a URL or a file path, or takes any version. No registry checks it, and it can change with no new version.
+
+### scorecard-low
+
+**Low OpenSSF Scorecard.** Family `hygiene`. Default severity info. Plugin `hygiene`.
+
+The source repository of the package has a low OpenSSF Scorecard score. vet shows it for review.
+
+### license-denied
+
+**Denied license.** Family `license`. Default severity high. Plugin `license`.
+
+Each choice of the license of the package has a license that plugins.license.options.deny names.
+
+### license-not-allowed
+
+**License not in the allow list.** Family `license`. Default severity medium. Plugin `license`.
+
+The licenses that plugins.license.options.allow names do not satisfy the license of the package.
+
+### license-unknown
+
+**Unknown license.** Family `license`. Default severity low. Plugin `license`.
+
+The package has no license data, a license that is not an SPDX license expression, or no license (NONE) with only a deny list. The lists cannot decide it.
+
+### untrusted-registry
+
+**Lockfile entry from an untrusted registry.** Family `lockfile`. Default severity high. Plugin `lockfile`.
+
+A lockfile entry resolves from a host that is not a trusted registry. An attacker can edit a lockfile to install code from a host they control.
+
+### registry-path-mismatch
+
+**Lockfile entry with a URL of another package.** Family `lockfile`. Default severity high. Plugin `lockfile`.
+
+The resolved URL of a lockfile entry does not match the package name. An attacker can edit a lockfile to install another package under a trusted name.
+
+### integrity-changed
+
+**Lockfile integrity hash changed with no version change.** Family `lockfile`. Default severity high. Plugin `lockfile`.
+
+The change keeps the version of a lockfile entry and changes its integrity hash. The lockfile now installs other code under the same name and version.
+
+### lockfile-only-change
+
+**Lockfile change with no manifest change.** Family `lockfile`. Default severity high. Plugin `lockfile`.
+
+The change edits a lockfile and leaves the manifest file next to it as it was. A tool such as npm update makes this change, and so does an attacker who edits the lockfile by hand.
+
+### installed-not-locked
+
+**Installed package that the lockfile does not list.** Family `lockfile`. Default severity medium. Plugin `lockfile`.
+
+node_modules holds a package, or a version of a package, that the lockfile of the project does not list. A stale install gives this result, and so does a package that someone added to node_modules by hand.
+
+### malware
+
+**Malicious package.** Family `malware`. Default severity critical. Plugin `malware`. The attacks gate fails on it.
+
+SafeDep Threat Intel found malicious behavior in the package version, and a verification confirms it.
+
+### suspicious-package
+
+**Suspicious package.** Family `malware`. Default severity high. Plugin `malware`.
+
+The automated analysis of SafeDep Threat Intel marks the package version malicious. No verification confirms it.
+
+### typosquat
+
+**Typosquat of a popular package.** Family `reputation`. Default severity high. Plugin `reputation`.
+
+The name is one typo away from a popular package, and few people install it. Attackers publish such names to catch a typo.
+
+### new-unpopular-package
+
+**New and unpopular package.** Family `reputation`. Default severity medium. Plugin `reputation`.
+
+The first version of the package is recent, and few people install it. Nobody has had time to review it.
+
+### version-anomaly
+
+**Version anomaly on an upgrade.** Family `reputation`. Default severity medium. Plugin `reputation`.
+
+The upgrade jumps two or more major versions, or the new version is older than the previous one. A takeover often publishes such a version.
+
+### starjacking
+
+**Package that claims a popular repository.** Family `reputation`. Default severity medium. Plugin `reputation`.
+
+The package names a popular source repository, and few people install it. The repository may not belong to the publisher.
+
+### dependency-confusion
+
+**Internal package name on a public registry.** Family `reputation`. Default severity medium. Plugin `reputation`.
+
+The name matches an internal package name, and the package comes from a public registry. An attacker can publish a public package with the name of an internal one.
+
+### ai-bom-delta
+
+**New AI capability.** Family `ai-bom`. Default severity medium. Plugin `reputation`.
+
+The change adds an LLM provider SDK, an agent framework or an MCP library, or code that calls one.
+
+### vulnerability
+
+**Known vulnerability.** Family `vulnerability`. Default severity high. Plugin `vulnerability`.
+
+An advisory affects the package version. The finding has the severity of the advisory.
+
+### dangerous-trigger
+
+**Dangerous workflow trigger.** Family `workflow`. Default severity high. Plugin `workflow`.
+
+A pull_request_target or workflow_run workflow checks out the code of the pull request. That code runs with the secrets and the write token of the base repository.
+
+### template-injection
+
+**Workflow template injection.** Family `workflow`. Default severity high. Plugin `workflow`.
+
+A script interpolates an event field that an outside user controls, such as the title of a pull request. The user can run commands in the workflow.
+
+### unpinned-action
+
+**Action not pinned to a commit SHA.** Family `workflow`. Default severity medium. Plugin `workflow`.
+
+A step uses an action by a tag or a branch. The owner of the action, or an attacker who controls it, can move the tag to other code.
+
+### impostor-commit
+
+**Action pinned to a commit outside its repository.** Family `workflow`. Default severity critical. Plugin `workflow`. The attacks gate fails on it.
+
+A step pins an action to a commit that no branch and no tag of the named repository contains. GitHub serves each commit of a fork through the repository, so the commit can come from a fork that an attacker controls.
+
+### pin-comment-mismatch
+
+**Pin comment names another tag.** Family `workflow`. Default severity medium. Plugin `workflow`.
+
+A step pins an action to a commit, and the comment names a release tag that does not point to that commit. A reviewer who reads the comment expects other code than the code that runs.
+
+### excessive-permissions
+
+**Workflow with excessive permissions.** Family `workflow`. Default severity medium. Plugin `workflow`.
+
+The workflow sets no permissions, so its token gets the default permissions of the repository, or it asks for write-all. A step that an attacker controls can then write to the repository.
+
+### secrets-exposure
+
+**Secrets exposed to more code than needs them.** Family `workflow`. Default severity high. Plugin `workflow`.
+
+The workflow passes every secret to a reusable workflow with secrets: inherit, dumps them with toJSON(secrets), or puts a secret in a script. A step that prints or leaks the script leaks the secret.
+
+### github-env-injection
+
+**Untrusted write to GITHUB_ENV or GITHUB_PATH.** Family `workflow`. Default severity high. Plugin `workflow`.
+
+A script writes to GITHUB_ENV or GITHUB_PATH in a workflow that handles the input of an outside user. The user can set an environment variable or a path, such as LD_PRELOAD, for the next steps.
+
+### cache-poisoning
+
+**Cache in a release or deploy workflow.** Family `workflow`. Default severity medium. Plugin `workflow`.
+
+A release or deploy job restores a cache. A pull request workflow can write a poisoned cache, and the release then builds with it.
+
+### artifact-poisoning
+
+**Artifact download in a workflow_run workflow.** Family `workflow`. Default severity medium. Plugin `workflow`.
+
+A workflow_run workflow downloads an artifact of the triggering run. A pull request controls that artifact, and the privileged workflow uses it.
+
+### self-hosted-runner
+
+**Job on a self-hosted runner.** Family `workflow`. Default severity medium. Plugin `workflow`.
+
+A job runs on a self-hosted runner. In a public repository, a pull request from a fork can run code on the runner and keep a foothold on it.
+
+### spoofable-bot-condition
+
+**Condition on a bot actor name.** Family `workflow`. Default severity medium. Plugin `workflow`.
+
+A condition trusts the actor name of a bot, such as dependabot[bot]. github.actor is the last actor of the run, and a user can make the bot the actor of a run that the user controls.
+
+<!-- controls:reference:end -->

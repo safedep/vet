@@ -86,6 +86,14 @@ The allowed verbs:
 | 3 | A runtime error. |
 | 130 | A signal stopped the scan. vet saved the progress. |
 
+### The GitHub Action
+
+- `action/scan.sh` calls `vet scan`. A user who pins the action runs that `scan.sh` with each newer
+  vet. Do not remove or rename a flag, a report format, a `--fail-on` value or a report field that
+  `action/scan.sh` uses.
+- vet writes the `comment-url` step output. Keep the name.
+- The acceptance row `ci/action/scan` runs `action/scan.sh` with the binary.
+
 ## Documentation
 
 - Each leaf has one page at `docs/cmd/<path joined with ->.md`. **(lint)** For example

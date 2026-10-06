@@ -1,7 +1,9 @@
 # Output and saved scans
 
 The terminal view goes to stderr. Report data goes to stdout with `-o`, and to files with
-`--report FORMAT=PATH`. One scan writes many formats.
+`--report FORMAT=PATH`. One scan writes many formats. A format that publishes the report itself,
+such as a pull request comment, also takes `--report FORMAT` with no path. A failure to publish is a
+warning, and the gate alone sets the exit code.
 
 ```bash
 vet scan -o json > vet.json
@@ -13,7 +15,8 @@ vet scan --report sarif=vet.sarif --report markdown=vet.md
 | `table`, `plain` | People, and `grep` |
 | `json`, `jsonl` | Programs. `vet report schema get` prints the JSON Schema |
 | `sarif` | GitHub code scanning and other SARIF tools |
-| `markdown` | A pull request comment or a job summary |
+| `markdown` | A job summary, or a comment that you post with your own tools |
+| `pr-comment` | One pull request comment that vet edits on each run, with the progress since the last run. `--report pr-comment` posts it in CI. `--report pr-comment=FILE` writes the body |
 | `cyclonedx` | An SBOM with the findings as vulnerabilities, and the AI and crypto inventory (CycloneDX 1.7) |
 | `gitlab` | A GitLab dependency scanning report, for `artifacts:reports:dependency_scanning` |
 | `bitbucket` | A Bitbucket Code Insights report and its annotations |

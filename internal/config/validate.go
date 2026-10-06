@@ -7,8 +7,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/model"
+	"github.com/safedep/vet/v2/report"
 )
 
 // Validate checks every value of the effective config. Each error names the
@@ -32,8 +32,8 @@ func (l *Loaded) Validate() error {
 	}
 
 	if c.Policy.FailOn != "" {
-		_, err := finding.ParseSeverity(c.Policy.FailOn)
-		check("policy.fail_on", c.Policy.FailOn, err == nil, "must be critical, high, medium, low or info")
+		_, err := report.ParseFailOn(c.Policy.FailOn)
+		check("policy.fail_on", c.Policy.FailOn, err == nil, "must be attacks, critical, high, medium, low or info")
 	}
 
 	for key, d := range map[string]Duration{

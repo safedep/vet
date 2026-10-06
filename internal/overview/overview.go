@@ -1,4 +1,8 @@
-package view
+// Package overview reads what a person sees first in a report: the
+// findings that no suppression hides, the most severe first, the
+// diagnostics, and what a pull request changes. The terminal view and the
+// sinks share it.
+package overview
 
 import (
 	"context"
@@ -10,12 +14,14 @@ import (
 	"github.com/safedep/vet/v2/report"
 )
 
-// Summary is what the end of the view reads from a report.
-type Summary struct {
+// Overview is what a person sees first in a report.
+type Overview struct {
 	Diagnostics []*report.Diagnostic
 	// Findings are the findings that no suppression hides, the most
 	// severe first.
 	Findings []*finding.Finding
+	// Suppressed are the findings that a suppression hides.
+	Suppressed []*finding.Finding
 	// Latest maps the key of a package to its latest version, when the
 	// insights know it.
 	Latest  map[model.PackageKey]string
@@ -27,18 +33,20 @@ type Changes struct {
 	Packages, Workflows, Unchanged int
 }
 
-// Summarize reads the summary of a report in one pass.
-func Summarize(ctx context.Context, r plugin.Report) (Summary, error) {
-	s := Summary{Latest: map[model.PackageKey]string{}}
+// Read reads the overview of a report in one pass.
+func Read(ctx context.Context, r plugin.Report) (Overview, error) {
+	s := Overview{Latest: map[model.PackageKey]string{}}
 	for rec, err := range r.Records(ctx) {
 		if err != nil {
-			return Summary{}, err
+			return Overview{}, err
 		}
 		switch {
 		case rec.Diagnostic != nil:
 			s.Diagnostics = append(s.Diagnostics, rec.Diagnostic)
 		case rec.Finding != nil && rec.Finding.Suppression == nil:
 			s.Findings = append(s.Findings, rec.Finding)
+		case rec.Finding != nil:
+			s.Suppressed = append(s.Suppressed, rec.Finding)
 		case rec.Package != nil:
 			s.addPackage(rec.Package)
 		case rec.Manifest != nil && rec.Manifest.Kind == model.ManifestKindWorkflow && rec.Manifest.Change.Introduces():
@@ -49,7 +57,7 @@ func Summarize(ctx context.Context, r plugin.Report) (Summary, error) {
 	return s, nil
 }
 
-func (s *Summary) addPackage(p *report.PackageEntry) {
+func (s *Overview) addPackage(p *report.PackageEntry) {
 	if p.Insight != nil && p.Insight.LatestVersion != "" {
 		s.Latest[p.ID.Key()] = p.Insight.LatestVersion
 	}

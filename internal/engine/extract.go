@@ -151,7 +151,7 @@ func (r *run) walk(fsys fs.FS, a plugin.Artifact, readsInstalled bool, visit fun
 	return fs.WalkDir(fsys, ".", func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			// An unreadable directory does not stop the scan.
-			r.diags.add(report.DiagnosticWarning, CodeExtractFailed, "walk", readError(err))
+			r.diags.add(report.DiagnosticWarning, report.CodeExtractFailed, "walk", readError(err))
 			if d != nil && d.IsDir() {
 				return fs.SkipDir
 			}
@@ -243,8 +243,17 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 	if err := ctx.Err(); err != nil {
 		return err
 	}
+	var inBase, same bool
+	if d != nil {
+		if baseHash, ok := d.base.hashes[rel]; ok {
+			inBase = true
+			if same, err = gitbase.SameBlob(fsys, rel, baseHash); err != nil {
+				return err
+			}
+		}
+	}
 	for _, e := range errs {
-		r.extractError(e)
+		r.extractError(e, fileChange(d != nil, inBase, same))
 	}
 	if a.Kind == plugin.ArtifactEndpoint {
 		// An endpoint file keeps its absolute path in the report. rootOf
@@ -254,14 +263,6 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 		}
 	}
 	if d != nil {
-		baseHash, inBase := d.base.hashes[rel]
-		same := false
-		if inBase {
-			var err error
-			if same, err = gitbase.SameBlob(fsys, rel, baseHash); err != nil {
-				return err
-			}
-		}
 		for _, m := range ms {
 			diff(m, d.base.manifests[m.ID], !same)
 			d.seen[m.ID] = true
@@ -281,16 +282,32 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 	}, ms)
 }
 
-func (r *run) extractError(err error) {
+// fileChange is the change of a file against the base, or none outside
+// pull request mode.
+func fileChange(delta, inBase, same bool) model.Change {
+	switch {
+	case !delta:
+		return model.ChangeNone
+	case !inBase:
+		return model.ChangeAdded
+	case same:
+		return model.ChangeUnchanged
+	}
+	return model.ChangeModified
+}
+
+func (r *run) extractError(err error, change model.Change) {
 	// gap G3: the OS packages of an image (deb, apk, rpm) and ecosystems
 	// such as Conan or Hex have no vet ecosystem and no Insights v2 data.
 	// The scan skips them with one diagnostic for each ecosystem.
 	if m := unknownPURLType.FindStringSubmatch(err.Error()); m != nil {
-		r.diags.add(report.DiagnosticWarning, CodeUnknownEcosystem, "extract",
+		r.diags.add(report.DiagnosticWarning, report.CodeUnknownEcosystem, "extract",
 			fmt.Sprintf("vet has no data for the %s ecosystem, so it skips its packages", m[1]))
 		return
 	}
-	r.diags.add(report.DiagnosticWarning, CodeExtractFailed, "extract", readError(err))
+	r.diags.put(&report.Diagnostic{
+		Level: report.DiagnosticWarning, Code: report.CodeExtractFailed, Component: "extract", Message: readError(err), Change: change,
+	})
 }
 
 // permissionDenied is the one message of every path that the user cannot

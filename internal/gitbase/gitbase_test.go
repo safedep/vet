@@ -2,7 +2,10 @@ package gitbase
 
 import (
 	"context"
+	"io/fs"
+	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"testing/fstest"
 
@@ -20,6 +23,10 @@ func TestOpenAndWalk(t *testing.T) {
 	tree, err := Open(filepath.Join(dir, "app"), "HEAD")
 	require.NoError(t, err)
 	assert.False(t, tree.Commit.IsZero())
+
+	t.Chdir(filepath.Join(dir, "app"))
+	_, err = Open(".", "HEAD")
+	require.NoError(t, err, "a relative directory works")
 
 	var files []string
 	require.NoError(t, tree.Walk(context.Background(), func(rel string, _ *object.File) error {
@@ -87,4 +94,54 @@ func TestLocalPath(t *testing.T) {
 	for rel, want := range cases {
 		assert.Equal(t, want, localPath(rel), rel)
 	}
+}
+
+func TestFS(t *testing.T) {
+	dir := gitbasetest.Repo(t, map[string]string{"app/policy.yml": "version: 2\n", "app/lib/util.py": "x = 1\n", "README.md": "x\n"})
+	gitbasetest.Write(t, dir, "app/policy.yml", "head\n")
+
+	tree, err := Open(filepath.Join(dir, "app"), "HEAD")
+	require.NoError(t, err)
+	require.NoError(t, fstest.TestFS(tree.FS(), "policy.yml", "lib/util.py"))
+
+	data, err := fs.ReadFile(tree.FS(), "policy.yml")
+	require.NoError(t, err)
+	assert.Equal(t, "version: 2\n", string(data), "the FS reads the base, not the head")
+
+	_, err = fs.Stat(tree.FS(), "README.md")
+	assert.ErrorIs(t, err, fs.ErrNotExist, "the FS holds only the directory")
+}
+
+func TestRepoPath(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("needs symbolic links")
+	}
+	repo := gitbasetest.Repo(t, map[string]string{"a/p.yml": "x", "elsewhere/p.yml": "y"})
+	tree, err := Open(repo, "HEAD")
+	require.NoError(t, err)
+
+	rel, ok, err := tree.RepoPath(filepath.Join(repo, "a", "p.yml"))
+	require.NoError(t, err)
+	assert.True(t, ok)
+	assert.Equal(t, "a/p.yml", rel)
+
+	rel, ok, err = tree.RepoPath(filepath.Join(repo, "gone", "deep", "p.yml"))
+	require.NoError(t, err)
+	assert.True(t, ok, "a path that the working tree does not have")
+	assert.Equal(t, "gone/deep/p.yml", rel)
+
+	_, ok, err = tree.RepoPath(filepath.Join(t.TempDir(), "p.yml"))
+	require.NoError(t, err)
+	assert.False(t, ok, "a path outside the working tree")
+
+	link := filepath.Join(t.TempDir(), "link")
+	require.NoError(t, os.Symlink(repo, link))
+	rel, ok, err = tree.RepoPath(filepath.Join(link, "a", "p.yml"))
+	require.NoError(t, err)
+	assert.True(t, ok, "a link above the working tree resolves")
+	assert.Equal(t, "a/p.yml", rel)
+
+	require.NoError(t, os.Symlink("elsewhere", filepath.Join(repo, "b")))
+	_, _, err = tree.RepoPath(filepath.Join(repo, "b", "p.yml"))
+	assert.ErrorIs(t, err, ErrLink, "a link in the working tree")
 }

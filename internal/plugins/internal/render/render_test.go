@@ -65,3 +65,8 @@ func TestTitleDropsTheSubject(t *testing.T) {
 		})
 	}
 }
+
+func TestMarkdown(t *testing.T) {
+	assert.Equal(t, `\[x\](http://a) \<img\> @`+"\u200b"+`org \*b\* \# h \&\#64;`, Markdown("[x](http://a) <img> @org *b* # h &#64;"))
+	assert.Equal(t, "`a'b c`", Code("a`b\nc"))
+}

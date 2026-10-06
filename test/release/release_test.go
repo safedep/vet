@@ -5,6 +5,7 @@
 package release_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -112,6 +113,13 @@ func TestReleaseRunsOnlyAfterAMerge(t *testing.T) {
 	job, ok := jobs["release"].(map[string]any)
 	require.True(t, ok)
 	assert.Equal(t, "v2-edge", job["environment"])
+
+	// An admin can push to v2 with no pull request. That push must not
+	// release.
+	data, err := os.ReadFile(filepath.Join(root, ".github/workflows/release-edge.yml"))
+	require.NoError(t, err)
+	assert.Contains(t, string(data), `commits/$GITHUB_SHA/pulls`)
+	assert.Contains(t, string(data), `select(.merged_at != null and .base.ref == "v2")`)
 }
 
 // A tag workflow of v1, such as goreleaser.yml or container.yml, can come
@@ -167,4 +175,84 @@ func TestCrossImageHasTheGoVersionOfGoMod(t *testing.T) {
 	require.NotNil(t, image, "the image needs a Go version tag and a digest")
 
 	assert.Equal(t, string(goVersion[1]), string(image[1]))
+}
+
+// The latest release of safedep/vet is a v1 release. The action lists the
+// releases and picks a v2 tag. gh release download with no tag also takes
+// the latest release, so install.sh always passes a tag.
+func TestActionNeverReadsTheLatestRelease(t *testing.T) {
+	files, err := filepath.Glob(filepath.Join(root, "action", "*"))
+	require.NoError(t, err)
+	files = append(files, filepath.Join(root, "action.yml"))
+	download := regexp.MustCompile(`gh release download "\$tag" `)
+	for _, file := range files {
+		if strings.HasSuffix(file, "_test.go") {
+			continue
+		}
+		info, err := os.Stat(file)
+		require.NoError(t, err)
+		if info.IsDir() {
+			continue
+		}
+		data, err := os.ReadFile(file)
+		require.NoError(t, err)
+		for i, line := range strings.Split(string(data), "\n") {
+			name := fmt.Sprintf("%s:%d", filepath.Base(file), i+1)
+			assert.NotContains(t, line, "releases/latest", name)
+			assert.NotContains(t, line, "--latest", name)
+			if strings.Contains(line, "gh release download") && !strings.HasPrefix(strings.TrimSpace(line), "#") {
+				assert.Regexp(t, download, line, "%s downloads with no explicit tag", name)
+			}
+		}
+	}
+}
+
+// The action test runs on each pull request that changes the action. It
+// may read the repository and write the comment of the pull request. It
+// writes no release, no tag and no image.
+func TestActionTestWritesNoRelease(t *testing.T) {
+	wf := readYAML(t, ".github/workflows/action-test.yml")
+	assert.Equal(t, []string{"pull_request"}, keys(triggers(t, wf)))
+
+	allowed := map[string]string{"contents": "read", "pull-requests": "write"}
+	check := func(where string, perms any) {
+		m, ok := perms.(map[string]any)
+		require.True(t, ok, "%s sets no permissions map", where)
+		for scope, level := range m {
+			if level == "read" || level == "none" {
+				continue
+			}
+			assert.Equal(t, allowed[scope], level, "%s: %s: %v", where, scope, level)
+		}
+	}
+	check("the workflow", wf["permissions"])
+	jobs, ok := wf["jobs"].(map[string]any)
+	require.True(t, ok)
+	for name, job := range jobs {
+		j, ok := job.(map[string]any)
+		require.True(t, ok)
+		if perms, ok := j["permissions"]; ok {
+			check(name, perms)
+		}
+	}
+}
+
+func keys(m map[string]any) []string {
+	out := make([]string, 0, len(m))
+	for k := range m {
+		out = append(out, k)
+	}
+	return out
+}
+
+// The GitHub Action installs only an immutable release that passed its
+// cooldown. The release workflow checks that each release is immutable,
+// and its prune keeps each release of the last 7 days.
+func TestReleaseKeepsWhatTheActionNeeds(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join(root, ".github/workflows/release-edge.yml"))
+	require.NoError(t, err)
+	wf := string(data)
+	assert.Contains(t, wf, `--jq .immutable)" = true`)
+	assert.Contains(t, wf, `date -u -d '7 days ago'`)
+	assert.Contains(t, wf, `select(.publishedAt < $cutoff and .tagName != $last)`)
 }

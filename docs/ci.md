@@ -1,7 +1,7 @@
 # CI and AI agents
 
-A plain scan reports and exits 0. A gate makes the scan exit 1 when it fails. `--fail-on SEVERITY`
-and `--policy FILE` set a gate. See [policy.md](policy.md).
+A plain scan reports and exits 0. A gate makes the scan exit 1 when it fails. `--fail-on SEVERITY`,
+`--fail-on attacks` and `--policy FILE` set a gate. See [policy.md](policy.md).
 
 | Exit code | Meaning |
 | --- | --- |
@@ -16,61 +16,14 @@ workflows that the change adds or modifies. The checkout needs the history of th
 
 ## GitHub Actions
 
-This workflow installs the newest alpha build, checks the archive, scans the change and uploads the
-findings to GitHub code scanning.
-
-The releases page keeps only the last 5 alpha builds, so the workflow finds the newest build when
-it runs. Do not pin an alpha version in a workflow. Its download fails when the release goes.
-
-```yaml
-name: vet
-
-on:
-  pull_request:
-
-permissions:
-  contents: read
-
-jobs:
-  vet:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 0
-
-      - name: Install vet
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          VET_VERSION=$(gh api "repos/safedep/vet/releases?per_page=30" \
-            --jq '[.[] | select(.tag_name | startswith("v2.0.0-alpha."))][0].tag_name')
-          gh release download "$VET_VERSION" --repo safedep/vet \
-            --pattern vet_Linux_x86_64.tar.gz --pattern checksums.txt --dir "$RUNNER_TEMP"
-          cd "$RUNNER_TEMP"
-          sha256sum --check --ignore-missing checksums.txt
-          tar -xzf vet_Linux_x86_64.tar.gz vet
-          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
-
-      - name: Scan the change
-        env:
-          BASE_REF: ${{ github.base_ref }}
-          GITHUB_TOKEN: ${{ github.token }}
-        run: vet scan --base-ref "origin/$BASE_REF" --fail-on high --report sarif=vet.sarif
-
-      - uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
-        if: always()
-        with:
-          sarif_file: vet.sarif
-```
+The vet GitHub Action scans each pull request and fails the check on an attack. It comments when the
+change adds a package, a workflow or a finding.
+`vet ci init` adds it to a repository. See [github-action.md](github-action.md).
 
 `GITHUB_TOKEN` lets vet check the pinned actions of the workflows for impostor commits with the
 GitHub API. See [controls.md](controls.md#pinned-commits).
 
-The `vet-action` of vet v1 installs vet v1. A GitHub Action for vet v2 is planned.
+The `vet-action` of vet v1 installs vet v1.
 
 ## GitLab CI
 

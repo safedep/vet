@@ -1,0 +1,10 @@
+# Outside a pull request run, --report pr-comment posts nothing and warns.
+# --report pr-comment=FILE writes the body. Neither changes the exit code.
+env GITHUB_ACTIONS=
+exec vet scan . --report pr-comment --report pr-comment=comment.md --mode plain -o plain
+stderr '--report pr-comment: vet posts the comment only in a pull request run of GitHub Actions'
+grep '<!-- vet:pr-comment v1 -->' comment.md
+grep 'vet: no findings in this scan' comment.md
+
+-- package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app"}}}

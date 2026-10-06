@@ -107,7 +107,7 @@ func TestGitHub(t *testing.T) {
 		{name: "commit sha", path: "/repos/actions/checkout/commits/v4", accept: "application/vnd.github.sha", code: 200, body: sha},
 		{name: "unknown tag", path: "/repos/actions/checkout/git/ref/tags/v9", code: 404},
 		{name: "unknown repo", path: "/repos/nobody/nothing/commits/v1", code: 404},
-		{name: "releases", path: "/api/v3/repos/safedep/vet/releases", code: 200, body: `{"tag_name":"v2.0.0-alpha.20260102000000"}`},
+		{name: "releases", path: "/api/v3/repos/safedep/vet/releases", code: 200, body: `{"tag_name":"v2.0.0-alpha.20260102000000","immutable":true,"published_at":"2026-01-01T00:00:00Z"}`},
 		{name: "releases of an unknown repo", path: "/repos/nobody/nothing/releases", code: 404},
 	}
 	for _, tc := range cases {

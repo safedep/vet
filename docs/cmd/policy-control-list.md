@@ -16,6 +16,8 @@ suppression names one, and `--fail-on` compares the severity of each finding. A 
 another severity than the default. For example, a vulnerability finding takes the severity of its
 advisory. The command takes no policy. It lists every control that vet has.
 
+In JSON, `attack` is true for a control that finds an attack, such as a malicious package.
+
 In a narrow terminal, the table drops the plugin and family columns first. It never cuts the
 control id.
 

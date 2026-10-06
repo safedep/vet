@@ -1,0 +1,53 @@
+# vet ci update moves the safedep/vet and actions/checkout pins of the vet
+# workflow to the newest release. actions/checkout stays in its major
+# version. Each other line stays. A pin never moves to an older release.
+exec vet ci update --dry-run --mode plain
+stdout '\+      - uses: safedep/vet@2222222222222222222222222222222222222222 # v2.0.0-alpha.20260102000000'
+cmp .github/workflows/vet.yml $WORK/old.yml
+
+exec vet ci update --mode plain
+stderr 'Moved 2 pins in .github/workflows/vet.yml'
+cmp .github/workflows/vet.yml $WORK/want.yml
+
+exec vet ci update --mode plain
+stderr 'up to date'
+
+-- .github/workflows/vet.yml --
+name: vet
+on:
+  pull_request:
+jobs:
+  vet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@v4
+      - uses: safedep/vet@1111111111111111111111111111111111111111 # v2.0.0-alpha.20260101000000
+        with:
+          fail-on: high
+-- old.yml --
+name: vet
+on:
+  pull_request:
+jobs:
+  vet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@v4
+      - uses: safedep/vet@1111111111111111111111111111111111111111 # v2.0.0-alpha.20260101000000
+        with:
+          fail-on: high
+-- want.yml --
+name: vet
+on:
+  pull_request:
+jobs:
+  vet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+      - uses: actions/setup-node@v4
+      - uses: safedep/vet@2222222222222222222222222222222222222222 # v2.0.0-alpha.20260102000000
+        with:
+          fail-on: high

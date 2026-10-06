@@ -27,8 +27,16 @@ func TestGate(t *testing.T) {
 	}{
 		{name: "no gate", e: NewEvaluator(nil, Options{Now: at}), want: report.Gate{Outcome: report.GateNone}},
 		{
-			name: "severity fail", e: NewEvaluator(nil, Options{FailOn: finding.SeverityHigh, Now: at}),
-			want: report.Gate{Outcome: report.GateFail, FailOn: finding.SeverityHigh, FindingIDs: []string{crit.ID}},
+			name: "severity fail", e: NewEvaluator(nil, Options{FailOn: report.FailOn(finding.SeverityHigh), Now: at}),
+			want: report.Gate{Outcome: report.GateFail, FailOn: report.FailOn(finding.SeverityHigh), FindingIDs: []string{crit.ID}},
+		},
+		{
+			name: "attacks fail", e: NewEvaluator(nil, Options{FailOn: report.FailOnAttacks, Attacks: []string{"malware"}, Now: at}),
+			want: report.Gate{Outcome: report.GateFail, FailOn: report.FailOnAttacks, FindingIDs: []string{crit.ID}},
+		},
+		{
+			name: "attacks ignore severity", e: NewEvaluator(nil, Options{FailOn: report.FailOnAttacks, Attacks: []string{"impostor-commit"}, Now: at}),
+			want: report.Gate{Outcome: report.GatePass, FailOn: report.FailOnAttacks},
 		},
 		{
 			name: "policy fail", e: NewEvaluator(p, Options{Now: at}),
@@ -57,8 +65,9 @@ func TestResolveSettings(t *testing.T) {
 		wantErr            bool
 	}{
 		{name: "nothing set"},
-		{name: "config", cfg: config.PolicyConfig{FailOn: "HIGH", File: "p.yml"}, want: Settings{FailOn: finding.SeverityHigh, File: "p.yml"}},
-		{name: "flags win", failOn: "critical", policyFlag: "q.yml", cfg: config.PolicyConfig{FailOn: "low", File: "p.yml"}, want: Settings{FailOn: finding.SeverityCritical, File: "q.yml"}},
+		{name: "attacks", failOn: "attacks", want: Settings{FailOn: report.FailOnAttacks}},
+		{name: "config", cfg: config.PolicyConfig{FailOn: "HIGH", File: "p.yml"}, want: Settings{FailOn: report.FailOn(finding.SeverityHigh), File: "p.yml"}},
+		{name: "flags win", failOn: "critical", policyFlag: "q.yml", cfg: config.PolicyConfig{FailOn: "low", File: "p.yml"}, want: Settings{FailOn: report.FailOn(finding.SeverityCritical), File: "q.yml"}},
 		{name: "bad severity", failOn: "severe", wantErr: true},
 	}
 	for _, tc := range cases {

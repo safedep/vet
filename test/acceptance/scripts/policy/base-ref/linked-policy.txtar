@@ -1,0 +1,27 @@
+# A change cannot move the policy away from the base version with a
+# symbolic link. When the policy path goes through a link in the working
+# tree, the scan stops with a usage error.
+[!git] skip 'needs git'
+[windows] skip 'needs symbolic links'
+cd repo
+exec git -c user.email=t@example.com -c user.name=t init -q
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m base
+rm .github/vet
+mkdir elsewhere
+cp $WORK/loose-policy.yml elsewhere/policy.yml
+symlink .github/vet -> ../elsewhere
+execexit 2 vet scan . --base-ref HEAD --policy .github/vet/policy.yml --mode plain -o json
+stderr 'symbolic link'
+
+-- repo/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app"}}}
+-- repo/.github/vet/policy.yml --
+version: 2
+rules:
+  - id: no-malware
+    when: finding.family == "malware"
+    action: fail
+-- loose-policy.yml --
+version: 2
+rules: []

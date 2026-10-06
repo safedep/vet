@@ -1,0 +1,49 @@
+# In a GitHub Actions pull request run, --report pr-comment posts one
+# comment. The next run edits the same comment, and says what the push
+# resolved.
+[!git] skip 'needs git'
+env GITHUB_ACTIONS=true
+env GITHUB_REPOSITORY=acme/app
+env GITHUB_SERVER_URL=https://github.com
+env GITHUB_API_URL=$STUB_URL
+env GITHUB_RUN_ID=7
+env GITHUB_EVENT_NAME=pull_request
+env GITHUB_EVENT_PATH=$WORK/event.json
+env GITHUB_TOKEN=ghs_test
+env GITHUB_OUTPUT=$WORK/output.txt
+cp $WORK/empty.txt $WORK/output.txt
+cd repo
+exec git -c user.email=t@example.com -c user.name=t init -q
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m base
+
+cp $WORK/evil-lock.json package-lock.json
+execexit 1 vet scan . --base-ref HEAD --fail-on attacks --report pr-comment --mode plain -o plain
+stderr 'vet published the pr-comment report to https://github.com/acme/app/pull/1#issuecomment-1'
+grep 'comment-url=https://github.com/acme/app/pull/1#issuecomment-1' $WORK/output.txt
+stub comments
+stdout 'vet: 1 finding blocks this pull request'
+stdout 'npm/safedep-test-pkg@0.1.3'
+stdout '\[!CAUTION\]'
+stdout 'vet:state '
+
+# The fix is a new push: the same comment changes, and no new comment
+# appears.
+env GITHUB_EVENT_PATH=$WORK/fix-event.json
+cp $WORK/clean-lock.json package-lock.json
+exec vet scan . --base-ref HEAD --fail-on attacks --report pr-comment --mode plain -o plain
+stub comments
+stdout 'Since the last push:\*\* 1 resolved'
+! stdout '--- comment 2'
+
+-- empty.txt --
+-- event.json --
+{"pull_request": {"number": 1, "base": {"sha": "1111111111111111111111111111111111111111"}, "head": {"sha": "2222222222222222222222222222222222222222", "repo": {"full_name": "acme/app"}}}, "repository": {"full_name": "acme/app", "private": false}}
+-- fix-event.json --
+{"pull_request": {"number": 1, "base": {"sha": "1111111111111111111111111111111111111111"}, "head": {"sha": "4444444444444444444444444444444444444444", "repo": {"full_name": "acme/app"}}}, "repository": {"full_name": "acme/app", "private": false}}
+-- repo/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app"}}}
+-- clean-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app"}}}
+-- evil-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app", "dependencies": {"safedep-test-pkg": "0.1.3"}}, "node_modules/safedep-test-pkg": {"version": "0.1.3", "resolved": "https://registry.npmjs.org/safedep-test-pkg/-/safedep-test-pkg-0.1.3.tgz"}}}
