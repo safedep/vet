@@ -237,3 +237,15 @@ func keys(m map[string]any) []string {
 	}
 	return out
 }
+
+// The GitHub Action installs only an immutable release that passed its
+// cooldown. The release workflow checks that each release is immutable,
+// and its prune keeps each release of the last 7 days.
+func TestReleaseKeepsWhatTheActionNeeds(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join(root, ".github/workflows/release-edge.yml"))
+	require.NoError(t, err)
+	wf := string(data)
+	assert.Contains(t, wf, `--jq .immutable)" = true`)
+	assert.Contains(t, wf, `date -u -d '7 days ago'`)
+	assert.Contains(t, wf, `select(.publishedAt < $cutoff)`)
+}
