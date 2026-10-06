@@ -34,10 +34,12 @@ type Commenter struct {
 	owner, repo string
 	number      int
 	server      string
+	tag         string
 }
 
-// New connects to the proxy at url with the token of the run.
-func New(url, token string, c ci.Context, read ci.Commenter) (*Commenter, error) {
+// New connects to the proxy at url with the token of the run. tag names
+// the comment.
+func New(url, token, tag string, c ci.Context, read ci.Commenter) (*Commenter, error) {
 	if c.Change == nil {
 		return nil, fmt.Errorf("ghcp: the run has no pull request")
 	}
@@ -51,7 +53,7 @@ func New(url, token string, c ci.Context, read ci.Commenter) (*Commenter, error)
 	}
 	return &Commenter{
 		read: read, client: ghcpv1grpc.NewGitHubCommentsProxyServiceClient(conn), conn: conn,
-		owner: owner, repo: repo, number: c.Change.Number, server: c.ServerURL,
+		owner: owner, repo: repo, number: c.Change.Number, server: c.ServerURL, tag: tag,
 	}, nil
 }
 
@@ -66,7 +68,7 @@ func (c *Commenter) Upsert(ctx context.Context, old *ci.Comment, body string) (s
 		return old.URL, nil
 	}
 	res, err := c.client.CreatePullRequestComment(ctx, &ghcpv1.CreatePullRequestCommentRequest{
-		Owner: c.owner, Repo: c.repo, PrNumber: strconv.Itoa(c.number), Body: body, Tag: Tag,
+		Owner: c.owner, Repo: c.repo, PrNumber: strconv.Itoa(c.number), Body: body, Tag: c.tag,
 	})
 	if err != nil {
 		return "", fmt.Errorf("ghcp: post the comment: %w", err)

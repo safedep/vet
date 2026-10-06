@@ -87,6 +87,22 @@ func Where(f *finding.Finding) string {
 // Text escapes free text from a finding, such as a title.
 func Text(s string) string { return escape.Line(s) }
 
+// Code puts text in a markdown code span that its backticks cannot close.
+func Code(s string) string {
+	return "`" + strings.NewReplacer("`", "'", "\n", " ").Replace(s) + "`"
+}
+
+// markdownText escapes free text for markdown. The text cannot start a
+// link, an image, an HTML tag or entity, a heading, a table cell or a
+// mention: a zero-width space follows each "@".
+var markdownText = strings.NewReplacer(
+	`\`, `\\`, "`", "\\`", "*", `\*`, "_", `\_`, "[", `\[`, "]", `\]`, "<", `\<`, ">", `\>`, "&", `\&`,
+	"#", `\#`, "|", `\|`, "~", `\~`, "!", `\!`, "@", "@\u200b", "\n", " ",
+)
+
+// Markdown escapes free text for markdown.
+func Markdown(s string) string { return markdownText.Replace(s) }
+
 // Truncate cuts s to at most n runes, with an ellipsis at the cut.
 func Truncate(s string, n int) string {
 	r := []rune(s)

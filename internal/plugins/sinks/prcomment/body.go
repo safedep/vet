@@ -2,6 +2,7 @@ package prcomment
 
 import (
 	"fmt"
+	"io/fs"
 	"net/url"
 	"slices"
 	"strings"
@@ -11,17 +12,19 @@ import (
 	"golang.org/x/mod/semver"
 
 	"github.com/safedep/vet/v2/finding"
-	"github.com/safedep/vet/v2/internal/ci"
 	"github.com/safedep/vet/v2/internal/overview"
 	"github.com/safedep/vet/v2/internal/plugins/internal/render"
+	"github.com/safedep/vet/v2/internal/tui/humanize"
 	"github.com/safedep/vet/v2/report"
 )
 
 const (
-	// marker finds the comment of vet among the comments of a change.
-	marker = "<!-- vet:pr-comment v1 -->"
 	// maxChars is the size limit of a GitHub comment.
 	maxChars = 65536
+	// maxField bounds a name, a title or a path, and maxText a description,
+	// so that no single finding fills the comment.
+	maxField = 200
+	maxText  = 1000
 	// maxLines bounds the one-line lists of the last cut level.
 	maxLines = 100
 	// maxAlerts bounds the lines of an alert.
@@ -53,17 +56,24 @@ type dialect struct {
 
 var githubDialect = dialect{Alerts: true, HTML: true}
 
+// markerOf finds the comment of vet among the comments of a change. The
+// key keeps apart the comments of two vet steps on one change.
+func markerOf(key string) string {
+	if key == "" {
+		return "<!-- vet:pr-comment v1 -->"
+	}
+	return "<!-- vet:pr-comment v1 " + key + " -->"
+}
+
 // links point to the change on its platform. Each field can be empty.
 type links struct {
 	Server, Repository, Head, Run string
-}
-
-func linksOf(c ci.Context) links {
-	l := links{Server: c.ServerURL, Repository: c.Repository, Run: c.RunURL}
-	if c.Change != nil {
-		l.Head = c.Change.HeadSHA
-	}
-	return l
+	// Prefix is the path of the scan target in the repository, with a
+	// trailing "/", or "" for the root. File links need it.
+	Prefix string
+	// NoFiles turns off the file links, when vet cannot place the target
+	// in the repository.
+	NoFiles bool
 }
 
 // input is what the comment shows.
@@ -78,17 +88,26 @@ type input struct {
 	old *state
 	// via is a footer line of the adapter that posts the comment.
 	via string
+	// marker is the first line of the comment.
+	marker string
 }
 
-// body renders the comment at the first cut level that fits.
+// body renders the comment at the first cut level that fits. When no
+// level fits, it renders the verdict, the status and the footer only.
 func (c *input) body() string {
-	var b string
 	for level := cutNone; level < cutLevels; level++ {
-		if b = c.render(level); utf8.RuneCountInString(b) <= maxChars {
+		if b := c.render(level); utf8.RuneCountInString(b) <= maxChars {
 			return b
 		}
 	}
-	return b
+	blocking, review, rest := c.sections()
+	var b strings.Builder
+	b.WriteString(c.marker + "\n")
+	fmt.Fprintf(&b, "### %s\n\n", c.heading(len(blocking), len(review)+len(rest)))
+	c.status(&b, len(blocking), len(review))
+	b.WriteString("The findings do not fit in a comment. The full report has them.\n\n")
+	c.footer(&b)
+	return b.String()
 }
 
 func (c *input) delta() bool { return c.header.Scan.Mode == report.ScanModeDelta }
@@ -113,7 +132,7 @@ func (c *input) sections() (blocking, review, rest []*finding.Finding) {
 func (c *input) render(level int) string {
 	blocking, review, rest := c.sections()
 	var b strings.Builder
-	b.WriteString(marker + "\n")
+	b.WriteString(c.marker + "\n")
 	fmt.Fprintf(&b, "### %s\n\n", c.heading(len(blocking), len(review)+len(rest)))
 	c.caution(&b)
 	c.warning(&b)
@@ -140,9 +159,9 @@ func (c *input) heading(blocking, other int) string {
 	}
 	switch {
 	case blocking > 0:
-		return fmt.Sprintf("❌ vet: %s %s %s", plural(blocking, "finding"), verb(blocking, "blocks", "block"), where)
+		return fmt.Sprintf("❌ vet: %s %s %s", humanize.Count(blocking, "finding"), verb(blocking, "blocks", "block"), where)
 	case other > 0:
-		return fmt.Sprintf("⚠️ vet: %s to review in %s", plural(other, "finding"), where)
+		return fmt.Sprintf("⚠️ vet: %s to review in %s", humanize.Count(other, "finding"), where)
 	}
 	return "✅ vet: no findings in " + where
 }
@@ -152,7 +171,7 @@ func (c *input) caution(b *strings.Builder) {
 	var lines []string
 	for _, f := range c.view.Findings {
 		if c.attack(f) {
-			lines = append(lines, fmt.Sprintf("%s: %s", code(render.Subject(f)), c.text(render.Title(f))))
+			lines = append(lines, fmt.Sprintf("%s: %s", code(render.Subject(f)), md(render.Title(f), maxField)))
 		}
 	}
 	if len(lines) == 0 {
@@ -172,7 +191,7 @@ func (c *input) warning(b *strings.Builder) {
 	lines := []string{"Some checks did not complete, so a finding can be missing. Run the job again before you merge."}
 	var details []string
 	for _, d := range c.view.Diagnostics {
-		details = append(details, fmt.Sprintf("%s: %s", code(d.Component), c.text(render.Text(d.Message))))
+		details = append(details, fmt.Sprintf("%s: %s", code(d.Component), md(render.Text(d.Message), maxField)))
 	}
 	c.alert(b, "WARNING", append(lines, capLines(details, maxAlerts)...))
 }
@@ -195,8 +214,7 @@ func (c *input) progress(b *strings.Builder) {
 	if c.old == nil {
 		return
 	}
-	open := ids(c.view.Findings)
-	p := compare(*c.old, open, ids(c.view.Suppressed))
+	p := compare(c.baseline(), ids(c.view.Findings), ids(c.view.Suppressed))
 	var parts []string
 	for _, part := range []struct {
 		n    int
@@ -209,7 +227,20 @@ func (c *input) progress(b *strings.Builder) {
 	if len(parts) == 0 {
 		parts = []string{"no change"}
 	}
-	fmt.Fprintf(b, "**Since the last run:** %s\n\n", strings.Join(parts, " · "))
+	line := fmt.Sprintf("**Since the last push:** %s", strings.Join(parts, " · "))
+	if len(c.view.Diagnostics) > 0 {
+		line += ". Some checks did not complete, so a finding can show as resolved"
+	}
+	b.WriteString(line + "\n\n")
+}
+
+// baseline is the findings of the last push before this head. A second run
+// of the same head keeps the baseline of the run before it.
+func (c *input) baseline() []string {
+	if c.old.HeadSHA != "" && c.old.HeadSHA == c.head() {
+		return c.old.Since
+	}
+	return c.old.Findings
 }
 
 func (c *input) status(b *strings.Builder, blocking, review int) {
@@ -220,14 +251,14 @@ func (c *input) status(b *strings.Builder, blocking, review int) {
 	if review > 0 {
 		parts = append(parts, fmt.Sprintf("%d to review", review))
 	}
-	coverage := fmt.Sprintf("Checked %s", plural(c.trailer.Summary.Packages, "package"))
+	coverage := "Checked " + humanize.Count(c.trailer.Summary.Packages, "package")
 	if ch := c.view.Changes; c.delta() {
 		var changed []string
 		if ch.Packages > 0 {
-			changed = append(changed, plural(ch.Packages, "added or upgraded package"))
+			changed = append(changed, humanize.Count(ch.Packages, "added or upgraded package"))
 		}
 		if ch.Workflows > 0 {
-			changed = append(changed, plural(ch.Workflows, "changed workflow"))
+			changed = append(changed, humanize.Count(ch.Workflows, "changed workflow"))
 		}
 		coverage = "No package or workflow changed"
 		if len(changed) > 0 {
@@ -274,7 +305,7 @@ func (c *input) section(b *strings.Builder, title string, fs []*finding.Finding,
 }
 
 func (c *input) card(b *strings.Builder, f *finding.Finding) {
-	head := fmt.Sprintf("%s: **%s** · `%s`", code(render.Subject(f)), c.text(render.Title(f)), f.Severity)
+	head := fmt.Sprintf("%s: **%s** · `%s`", code(render.Subject(f)), md(render.Title(f), maxField), f.Severity)
 	if where := c.where(f); where != "" {
 		if f.Change != "" && c.delta() {
 			where = strings.ToLower(string(f.Change)) + " in " + where
@@ -283,16 +314,16 @@ func (c *input) card(b *strings.Builder, f *finding.Finding) {
 	}
 	b.WriteString(head + "\n\n")
 	if f.Description != "" {
-		b.WriteString(c.text(render.Text(f.Description)) + "\n\n")
+		b.WriteString(md(render.Text(f.Description), maxText) + "\n\n")
 	}
 	if r := f.Remediation; r != nil && r.Summary != "" {
-		fmt.Fprintf(b, "**Fix:** %s\n\n", c.text(render.Text(r.Summary)))
+		fmt.Fprintf(b, "**Fix:** %s\n\n", md(render.Text(r.Summary), maxText))
 	}
 	if r := f.Remediation; r != nil && r.Command != "" {
-		fmt.Fprintf(b, "```sh\n%s\n```\n\n", strings.ReplaceAll(render.Text(r.Command), "```", "'''"))
+		fmt.Fprintf(b, "```sh\n%s\n```\n\n", strings.ReplaceAll(render.Truncate(render.Text(r.Command), maxText), "```", "'''"))
 	}
 	if len(f.Evidence) > 0 {
-		fmt.Fprintf(b, "**Evidence:** %s\n\n", c.text(render.Text(f.Evidence[0].Summary)))
+		fmt.Fprintf(b, "**Evidence:** %s\n\n", md(render.Text(f.Evidence[0].Summary), maxText))
 	}
 	fmt.Fprintf(b, "[About this check](%s) · [Wrong result?](%s) · `%s`\n\n", c.docURL(f.ControlID), c.formURL(f), f.ID)
 }
@@ -304,7 +335,7 @@ func (c *input) lines(b *strings.Builder, fs []*finding.Finding) {
 			fmt.Fprintf(b, "- %d more in the full report\n", len(fs)-maxLines)
 			break
 		}
-		fmt.Fprintf(b, "- `%s` %s: %s · %s · `%s`\n", f.Severity, code(render.Subject(f)), c.text(render.Title(f)), code(render.Where(f)), f.ID)
+		fmt.Fprintf(b, "- `%s` %s: %s · %s · `%s`\n", f.Severity, code(render.Subject(f)), md(render.Title(f), maxField), code(render.Where(f)), f.ID)
 	}
 	b.WriteString("\n")
 }
@@ -337,7 +368,7 @@ func (c *input) snippet(b *strings.Builder, fs []*finding.Finding) {
 }
 
 func (c *input) footer(b *strings.Builder) {
-	parts := []string{fmt.Sprintf("[vet](%s) %s", repoURL, c.text(c.header.Tool.Version)), "open source, by SafeDep"}
+	parts := []string{fmt.Sprintf("[vet](%s) %s", repoURL, md(c.header.Tool.Version, maxField)), "open source, by SafeDep"}
 	if c.links.Run != "" {
 		parts = append(parts, fmt.Sprintf("[Full report](%s)", c.links.Run))
 	}
@@ -351,7 +382,11 @@ func (c *input) footer(b *strings.Builder) {
 }
 
 func (c *input) stateBlock() (string, bool) {
-	return encodeState(state{HeadSHA: c.head(), Findings: ids(c.view.Findings)})
+	s := state{HeadSHA: c.head(), Findings: ids(c.view.Findings)}
+	if c.old != nil {
+		s.Since = c.baseline()
+	}
+	return encodeState(s)
 }
 
 // where is the place of the finding, a link to the file at the head
@@ -362,10 +397,10 @@ func (c *input) where(f *finding.Finding) string {
 		return ""
 	}
 	l := f.Locus
-	if l == nil || l.Path == "" || c.links.Server == "" || c.links.Repository == "" || c.links.Head == "" {
+	if l == nil || l.Path == "" || c.links.NoFiles || c.links.Server == "" || c.links.Repository == "" || c.links.Head == "" || !fs.ValidPath(l.Path) {
 		return code(w)
 	}
-	segs := strings.Split(l.Path, "/")
+	segs := strings.Split(c.links.Prefix+l.Path, "/")
 	for i, s := range segs {
 		segs[i] = url.PathEscape(s)
 	}
@@ -442,23 +477,11 @@ func (c *input) small(b *strings.Builder, line string) {
 	b.WriteString(line + "\n\n")
 }
 
-// text makes free text safe in markdown: it cannot start a link, an image,
-// an HTML tag, a heading or a mention.
-func (c *input) text(s string) string {
-	at := "@\u200b"
-	if c.dialect.HTML {
-		at = "&#64;"
-	}
-	return strings.NewReplacer(
-		`\`, `\\`, "`", "\\`", "*", `\*`, "_", `\_`, "[", `\[`, "]", `\]`, "<", "&lt;", ">", "&gt;",
-		"#", `\#`, "|", `\|`, "~", `\~`, "!", `\!`, "@", at, "\n", " ",
-	).Replace(s)
-}
+// md escapes free text for markdown and bounds it to n runes.
+func md(s string, n int) string { return render.Markdown(render.Truncate(s, n)) }
 
-// code puts text in a code span that its backticks cannot close.
-func code(s string) string {
-	return "`" + strings.NewReplacer("`", "'", "\n", " ").Replace(s) + "`"
-}
+// code puts a name or a path in a code span, bounded to maxField runes.
+func code(s string) string { return render.Code(render.Truncate(s, maxField)) }
 
 func ids(fs []*finding.Finding) []string {
 	out := make([]string, 0, len(fs))
@@ -473,13 +496,6 @@ func capLines(lines []string, n int) []string {
 		return lines
 	}
 	return append(lines[:n:n], fmt.Sprintf("%d more in the full report.", len(lines)-n))
-}
-
-func plural(n int, word string) string {
-	if n == 1 {
-		return "1 " + word
-	}
-	return fmt.Sprintf("%d %ss", n, word)
 }
 
 func verb(n int, one, many string) string {

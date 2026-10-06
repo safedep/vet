@@ -74,7 +74,7 @@ func TestPublish(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			cm := &fakeCommenter{}
 			if tc.existing {
-				cm.existing = &ci.Comment{ID: "1", Body: marker}
+				cm.existing = &ci.Comment{ID: "1", Body: markerOf("")}
 			}
 			url, err := newPublisher(t, tc.create, prEnv(t), cm).Publish(context.Background(), tc.report)
 			require.NoError(t, err)
@@ -95,12 +95,12 @@ func TestPublishReadsTheOldState(t *testing.T) {
 	s.FindingList = s.FindingList[1:]
 	block, ok := encodeState(state{Findings: []string{fixed}})
 	require.True(t, ok)
-	cm := &fakeCommenter{existing: &ci.Comment{ID: "1", Body: marker + "\nold\n" + block}}
+	cm := &fakeCommenter{existing: &ci.Comment{ID: "1", Body: markerOf("") + "\nold\n" + block}}
 
 	_, err := newPublisher(t, CreateChanges, prEnv(t), cm).Publish(context.Background(), s)
 	require.NoError(t, err)
 	require.Len(t, cm.posted, 1)
-	assert.Contains(t, cm.posted[0], "**Since the last run:** 1 resolved")
+	assert.Contains(t, cm.posted[0], "**Since the last push:** 1 resolved")
 	st, ok := decodeState(cm.posted[0])
 	require.True(t, ok)
 	assert.Equal(t, "2222222222", st.HeadSHA, "the state names the head of the pull request")

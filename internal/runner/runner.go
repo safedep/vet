@@ -371,11 +371,11 @@ func publish(ctx context.Context, r plugin.Report, outs []engine.Output) {
 			continue
 		}
 		where, err := p.Publish(ctx, r)
-		switch {
-		case err != nil:
-			tui.Warning("--report %s: %v", o.Format, err)
-		case where != "":
+		if where != "" {
 			tui.Info("vet published the %s report to %s", o.Format, where)
+		}
+		if err != nil {
+			tui.Warning("--report %s: %v", o.Format, err)
 		}
 	}
 }

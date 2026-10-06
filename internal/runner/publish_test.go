@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,7 +33,10 @@ func TestPublish(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	output.SetWriters(&stdout, &stderr)
 	output.SetMode(output.Plain)
-	t.Cleanup(func() { output.SetMode(output.Rich) })
+	t.Cleanup(func() {
+		output.SetMode(output.Rich)
+		output.SetWriters(os.Stdout, os.Stderr)
+	})
 
 	ok := &fakePublisher{where: "https://example.com/c/1"}
 	failed := &fakePublisher{err: errors.New("no token")}

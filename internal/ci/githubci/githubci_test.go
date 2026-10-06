@@ -43,6 +43,7 @@ type fakeGitHub struct {
 	edits     int
 	nextID    int64
 	serverURL string
+	output    string
 }
 
 func (f *fakeGitHub) add(login, typ, body string) {
@@ -95,6 +96,10 @@ func (f *fakeGitHub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		for i := range f.comments {
+			if f.comments[i].ID == id && f.comments[i].User.Login != "github-actions[bot]" {
+				http.Error(w, `{"message":"Forbidden"}`, http.StatusForbidden)
+				return
+			}
 			if f.comments[i].ID == id {
 				f.edits++
 				f.comments[i].Body = in.Body
@@ -122,10 +127,10 @@ func newCommenter(t *testing.T, f *fakeGitHub) *Commenter {
 	f.serverURL = srv.URL
 	out := filepath.Join(t.TempDir(), "output")
 	require.NoError(t, os.WriteFile(out, nil, 0o600))
-	t.Setenv("GITHUB_OUTPUT", out)
+	f.output = out
 	client, err := github.NewClient(context.Background(), nil, srv.URL, srv.Client())
 	require.NoError(t, err)
-	c, err := New(context.Background(), ci.Context{Repository: "acme/app", Change: &ci.Change{Number: 1}}, client)
+	c, err := New(context.Background(), ci.Context{Repository: "acme/app", Change: &ci.Change{Number: 1}, Output: out}, client)
 	require.NoError(t, err)
 	return c
 }
@@ -149,6 +154,23 @@ func TestFind(t *testing.T) {
 			name: "a contributor plants the marker", comments: func(f *fakeGitHub) {
 				f.add("mallory", "User", marker+"\n<!-- vet:state forged -->")
 			},
+		},
+		{
+			name: "the comment of the token wins over another bot", comments: func(f *fakeGitHub) {
+				f.add("github-actions[bot]", "Bot", marker+"\nours")
+				f.add("other-app[bot]", "Bot", marker+"\nproxy")
+			}, wantID: "1",
+		},
+		{
+			name: "the marker must start the body", comments: func(f *fakeGitHub) {
+				f.add("github-actions[bot]", "Bot", "Quoted: "+marker)
+			},
+		},
+		{
+			name: "the newest of two", comments: func(f *fakeGitHub) {
+				f.add("github-actions[bot]", "Bot", marker+"\nold")
+				f.add("github-actions[bot]", "Bot", marker+"\nnew")
+			}, wantID: "2",
 		},
 		{
 			name: "the user of a personal token", user: "maintainer", comments: func(f *fakeGitHub) {
@@ -193,7 +215,7 @@ func TestUpsert(t *testing.T) {
 	assert.Equal(t, 1, f.creates)
 	assert.Equal(t, 1, f.edits)
 
-	out, err := os.ReadFile(os.Getenv("GITHUB_OUTPUT"))
+	out, err := os.ReadFile(f.output)
 	require.NoError(t, err)
 	assert.Contains(t, string(out), "comment-url=https://github.com/acme/app/pull/1#issuecomment-1\n")
 }
@@ -202,4 +224,18 @@ func TestUpsertWithAReadOnlyToken(t *testing.T) {
 	c := newCommenter(t, &fakeGitHub{readOnly: true})
 	_, err := c.Upsert(context.Background(), nil, marker)
 	assert.ErrorIs(t, err, ci.ErrNoWriteAccess)
+}
+
+func TestUpsertCreatesWhenTheOldCommentIsNotOurs(t *testing.T) {
+	f := &fakeGitHub{}
+	f.add("other-app[bot]", "Bot", marker+"\nproxy")
+	c := newCommenter(t, f)
+	old, err := c.Find(context.Background(), marker)
+	require.NoError(t, err)
+	require.NotNil(t, old)
+
+	url, err := c.Upsert(context.Background(), old, marker+"\nnew")
+	require.NoError(t, err)
+	assert.Equal(t, "https://github.com/acme/app/pull/1#issuecomment-2", url, "vet posts its own comment")
+	assert.Equal(t, 1, f.creates)
 }

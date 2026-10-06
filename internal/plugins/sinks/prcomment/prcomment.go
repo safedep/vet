@@ -8,7 +8,10 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
+	"regexp"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/safedep/vet/v2/finding"
@@ -44,11 +47,15 @@ type Options struct {
 	Proxy *bool `json:"proxy"`
 	// ProxyURL is the address of the comment proxy.
 	ProxyURL string `json:"proxy_url"`
+	// Key keeps apart the comments of two vet steps on one pull request,
+	// for example a step for each service of a monorepo.
+	Key string `json:"key" jsonschema:"pattern=^[a-z0-9-]*$"`
 }
 
 // Sink writes and publishes the pull request comment.
 type Sink struct {
 	create  string
+	key     string
 	attacks []string
 	getenv  func(string) string
 	// commenter returns the adapter of the platform of a run.
@@ -75,22 +82,27 @@ func New(cfg plugin.Config) (plugin.Sink, error) {
 	if err != nil {
 		return nil, err
 	}
-	s := &Sink{create: o.Create, attacks: attacks, getenv: os.Getenv, commenter: platformCommenter}
+	if !validKey.MatchString(o.Key) {
+		return nil, fmt.Errorf("pr-comment: key must hold only a-z, 0-9 and -, got %q", o.Key)
+	}
+	s := &Sink{create: o.Create, key: o.Key, attacks: attacks, getenv: os.Getenv, commenter: platformCommenter}
 	if o.Proxy == nil || *o.Proxy {
-		s.proxy = proxyCommenter(cmp.Or(o.ProxyURL, ghcp.DefaultURL))
+		s.proxy = proxyCommenter(cmp.Or(o.ProxyURL, ghcp.DefaultURL), ghcp.Tag+strings.TrimSuffix("-"+o.Key, "-"))
 	}
 	return s, nil
 }
 
-// proxyCommenter returns the factory of the comment proxy at url. The
-// proxy takes the token of the run.
-func proxyCommenter(url string) func(context.Context, ci.Context, ci.Commenter) (ci.Commenter, error) {
+var validKey = regexp.MustCompile(`^[a-z0-9-]*$`)
+
+// proxyCommenter returns the factory of the comment proxy at url, for the
+// comment with tag. The proxy takes the token of the run.
+func proxyCommenter(url, tag string) func(context.Context, ci.Context, ci.Commenter) (ci.Commenter, error) {
 	return func(ctx context.Context, c ci.Context, read ci.Commenter) (ci.Commenter, error) {
 		token, err := github.DefaultProvider().Token(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("the comment proxy needs the token of the run: %w", err)
 		}
-		return ghcp.New(url, token, c, read)
+		return ghcp.New(url, token, tag, c, read)
 	}
 }
 
@@ -130,12 +142,12 @@ func (s *Sink) Publish(ctx context.Context, r plugin.Report) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	c.links = linksOf(run)
+	c.links = linksOf(run, r.Header().Scan.Target)
 	cm, err := s.commenter(ctx, run)
 	if err != nil {
 		return "", err
 	}
-	old, err := cm.Find(ctx, marker)
+	old, err := cm.Find(ctx, c.marker)
 	if err != nil {
 		return "", err
 	}
@@ -186,18 +198,51 @@ func (s *Sink) creates(c *input) bool {
 // OptionsSchema returns the JSON Schema of the options.
 func (*Sink) OptionsSchema() []byte { return optschema.Of(&Options{}) }
 
-// Write writes the comment body. It reads the CI context for the links,
-// and it has no state of an earlier run.
+// Write writes the comment body, with no links to the platform and no
+// state of an earlier run.
 func (s *Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 	c, err := s.input(ctx, r)
 	if err != nil {
 		return err
 	}
-	if ctxCI, ok, err := ci.Detect(s.getenv); ok && err == nil {
-		c.links = linksOf(ctxCI)
-	}
 	_, err = io.WriteString(w, c.body())
 	return err
+}
+
+// linksOf returns the links of a run. The file links need the path of the
+// scan target in the checkout.
+func linksOf(run ci.Context, target string) links {
+	l := links{Server: run.ServerURL, Repository: run.Repository, Run: run.RunURL}
+	if run.Change != nil {
+		l.Head = run.Change.HeadSHA
+	}
+	l.Prefix, l.NoFiles = targetPrefix(run.Workspace, target)
+	return l
+}
+
+// targetPrefix returns the path of target in the workspace, with a
+// trailing "/", or "" for the root. noFiles is true when the target is not
+// in the workspace.
+func targetPrefix(workspace, target string) (prefix string, noFiles bool) {
+	if workspace == "" {
+		return "", true
+	}
+	ws, err := filepath.Abs(workspace)
+	if err != nil {
+		return "", true
+	}
+	t, err := filepath.Abs(target)
+	if err != nil {
+		return "", true
+	}
+	rel, err := filepath.Rel(ws, t)
+	switch {
+	case err != nil || !filepath.IsLocal(rel):
+		return "", true
+	case rel == ".":
+		return "", false
+	}
+	return filepath.ToSlash(rel) + "/", false
 }
 
 // input reads what the comment shows from the report.
@@ -209,7 +254,7 @@ func (s *Sink) input(ctx context.Context, r plugin.Report) (*input, error) {
 	return &input{
 		header: r.Header(), trailer: r.Trailer(), view: view,
 		attack:  func(f *finding.Finding) bool { return slices.Contains(s.attacks, f.ControlID) },
-		dialect: githubDialect,
+		dialect: githubDialect, marker: markerOf(s.key),
 	}, nil
 }
 

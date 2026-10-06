@@ -68,6 +68,7 @@ func TestDestinations(t *testing.T) {
 		},
 		{name: "publish twice", out: "table", reports: []string{"pr-comment", "pr-comment"}, wantErr: "another --report publishes pr-comment"},
 		{name: "no path for a file format", out: "table", reports: []string{"json"}, wantErr: "use FORMAT=PATH"},
+		{name: "empty path for a publisher", out: "table", reports: []string{"pr-comment="}, wantErr: "or use --report pr-comment to publish"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

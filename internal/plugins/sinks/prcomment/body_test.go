@@ -105,9 +105,9 @@ func TestBodyGolden(t *testing.T) {
 func TestBodyCutsToSize(t *testing.T) {
 	s := pullRequest(report.GateFail)
 	pad := s.ManifestList[0].Packages[1]
-	long := strings.Repeat("A long advisory text. ", 40)
+	long := strings.Repeat("A long advisory text. ", 45)
 	var failed []string
-	for i := range 700 {
+	for i := range 450 {
 		sev := finding.SeverityHigh
 		if i%3 == 0 {
 			sev = finding.SeverityMedium
@@ -127,15 +127,24 @@ func TestBodyCutsToSize(t *testing.T) {
 	assert.LessOrEqual(t, utf8.RuneCountInString(body), maxChars)
 	assert.Contains(t, body, "more in the full report")
 	assert.NotContains(t, body, stateOpen, "the state goes before the cards")
-	assert.True(t, strings.HasPrefix(body, marker), "the marker stays")
+	assert.True(t, strings.HasPrefix(body, markerOf("")), "the marker stays")
 }
 
-func TestTextEscapesMarkdown(t *testing.T) {
-	c := &input{dialect: githubDialect}
-	assert.Equal(t, `\[x\](http://a) &lt;img&gt; &#64;org \*b\* \# h`, c.text("[x](http://a) <img> @org *b* # h"))
-	c.dialect = dialect{}
-	assert.Equal(t, "@\u200borg", c.text("@org"))
-	assert.Equal(t, "`a'b c`", code("a`b\nc"))
+func TestUntrustedTextIsBounded(t *testing.T) {
+	s := pullRequest(report.GateFail)
+	huge := strings.Repeat("x", 100000)
+	s.FindingList[0].Title = huge
+	s.FindingList[0].Description = huge
+	s.FindingList[0].Subject.Package.RawName = huge
+	body := newInput(t, s).body()
+	assert.Less(t, utf8.RuneCountInString(body), 20000, "a single finding cannot fill the comment")
+}
+
+func TestKeyedMarker(t *testing.T) {
+	assert.Equal(t, "<!-- vet:pr-comment v1 -->", markerOf(""))
+	assert.Equal(t, "<!-- vet:pr-comment v1 api -->", markerOf("api"))
+	_, err := New(plugin.MapConfig{"key": "a b"})
+	assert.ErrorContains(t, err, "key must hold only")
 }
 
 func TestRef(t *testing.T) {
@@ -159,9 +168,42 @@ func TestWrite(t *testing.T) {
 	sink.(*Sink).getenv = func(string) string { return "" }
 	var b bytes.Buffer
 	require.NoError(t, sink.Write(context.Background(), pullRequest(report.GateFail), &b))
-	assert.True(t, strings.HasPrefix(b.String(), marker))
+	assert.True(t, strings.HasPrefix(b.String(), markerOf("")))
 	assert.Contains(t, b.String(), "`package-lock.json:42`", "no CI, so no file link")
 
 	_, err = New(plugin.MapConfig{"create": "always"})
 	assert.ErrorContains(t, err, "create must be changes or findings")
+}
+
+func TestTargetPrefix(t *testing.T) {
+	ws := t.TempDir()
+	cases := []struct {
+		target, prefix string
+		noFiles        bool
+	}{
+		{target: ws},
+		{target: filepath.Join(ws, "svc", "api"), prefix: "svc/api/"},
+		{target: t.TempDir(), noFiles: true},
+	}
+	for _, tc := range cases {
+		prefix, noFiles := targetPrefix(ws, tc.target)
+		assert.Equal(t, tc.prefix, prefix, tc.target)
+		assert.Equal(t, tc.noFiles, noFiles, tc.target)
+	}
+	_, noFiles := targetPrefix("", ws)
+	assert.True(t, noFiles, "no workspace, no file links")
+}
+
+func TestProgressKeepsTheBaselineOnARerun(t *testing.T) {
+	s := pullRequest(report.GatePass)
+	s.DiagnosticList = nil
+	open := s.FindingList[1].ID
+	c := newInput(t, s)
+	gone := "f-0000000000000001"
+	c.old = &state{Version: stateVersion, HeadSHA: testLinks.Head, Findings: []string{open}, Since: []string{gone, open}}
+	body := c.body()
+	assert.Contains(t, body, "**Since the last push:** 1 resolved", "a re-run of the same head compares with the push before it")
+	st, ok := decodeState(body)
+	require.True(t, ok)
+	assert.Equal(t, []string{gone, open}, st.Since)
 }

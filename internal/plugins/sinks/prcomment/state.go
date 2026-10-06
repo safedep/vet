@@ -23,19 +23,24 @@ const (
 var findingID = regexp.MustCompile(`^f-[0-9a-f]{16}$`)
 
 type state struct {
-	Version  int      `json:"v"`
-	HeadSHA  string   `json:"head"`
+	Version int    `json:"v"`
+	HeadSHA string `json:"head"`
+	// Findings are the open findings at HeadSHA.
 	Findings []string `json:"ids"`
+	// Since are the open findings of the push before HeadSHA. A second run
+	// of the same head compares with them.
+	Since []string `json:"since,omitempty"`
 }
 
 // encodeState returns the block, or false when the run has too many
 // findings for it.
 func encodeState(s state) (string, bool) {
-	if len(s.Findings) > maxStateIDs {
+	if len(s.Findings) > maxStateIDs || len(s.Since) > maxStateIDs {
 		return "", false
 	}
 	s.Version = stateVersion
 	s.Findings = slices.Sorted(slices.Values(s.Findings))
+	s.Since = slices.Sorted(slices.Values(s.Since))
 	data, err := json.Marshal(s)
 	if err != nil {
 		return "", false
@@ -43,27 +48,25 @@ func encodeState(s state) (string, bool) {
 	return stateOpen + base64.StdEncoding.EncodeToString(data) + stateClose, true
 }
 
-// decodeState reads the last block of a comment body. It is false when the
-// body has no block, or a block that vet did not write.
+// decodeState reads the block at the end of a comment body. It is false
+// when the body does not end with a block, or with a block that vet did
+// not write. A block in the middle of the body, for example in a package
+// name, does not count.
 func decodeState(body string) (state, bool) {
+	body = strings.TrimSpace(body)
 	i := strings.LastIndex(body, stateOpen)
-	if i < 0 {
+	if i < 0 || !strings.HasSuffix(body, stateClose) {
 		return state{}, false
 	}
-	rest := body[i+len(stateOpen):]
-	j := strings.Index(rest, stateClose)
-	if j < 0 {
-		return state{}, false
-	}
-	data, err := base64.StdEncoding.DecodeString(rest[:j])
+	data, err := base64.StdEncoding.DecodeString(body[i+len(stateOpen) : len(body)-len(stateClose)])
 	if err != nil {
 		return state{}, false
 	}
 	var s state
-	if err := json.Unmarshal(data, &s); err != nil || s.Version != stateVersion || len(s.Findings) > maxStateIDs {
+	if err := json.Unmarshal(data, &s); err != nil || s.Version != stateVersion || len(s.Findings) > maxStateIDs || len(s.Since) > maxStateIDs {
 		return state{}, false
 	}
-	for _, id := range s.Findings {
+	for _, id := range slices.Concat(s.Findings, s.Since) {
 		if !findingID.MatchString(id) {
 			return state{}, false
 		}
@@ -81,11 +84,11 @@ type progress struct {
 	Suppressed []string
 }
 
-// compare returns the progress from the old state to the open and the
-// suppressed findings of this run.
-func compare(old state, open, suppressed []string) progress {
+// compare returns the progress from the findings of the baseline to the
+// open and the suppressed findings of this run.
+func compare(baseline, open, suppressed []string) progress {
 	var p progress
-	for _, id := range old.Findings {
+	for _, id := range baseline {
 		switch {
 		case slices.Contains(open, id):
 		case slices.Contains(suppressed, id):
@@ -95,7 +98,7 @@ func compare(old state, open, suppressed []string) progress {
 		}
 	}
 	for _, id := range open {
-		if !slices.Contains(old.Findings, id) {
+		if !slices.Contains(baseline, id) {
 			p.New = append(p.New, id)
 		}
 	}

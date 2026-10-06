@@ -121,6 +121,8 @@ func (r Registry) Destinations(out string, reports []string, mode output.Mode) (
 			continue
 		}
 		switch {
+		case ok && path == "" && r.publishes(format):
+			return nil, r.usage(fmt.Sprintf("--report %q: give a path, or use --report %s to publish", v, format))
 		case !ok || path == "":
 			return nil, r.usage(fmt.Sprintf("--report %q: use FORMAT=PATH, for example json=vet.json", v))
 		case !slices.Contains(r.Formats(), format):

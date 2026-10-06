@@ -27,16 +27,20 @@ stdout 'npm/safedep-test-pkg@0.1.3'
 stdout '\[!CAUTION\]'
 stdout 'vet:state '
 
-# The fix: the same comment changes, and no new comment appears.
+# The fix is a new push: the same comment changes, and no new comment
+# appears.
+env GITHUB_EVENT_PATH=$WORK/fix-event.json
 cp $WORK/clean-lock.json package-lock.json
 exec vet scan . --base-ref HEAD --fail-on attacks --report pr-comment --mode plain -o plain
 stub comments
-stdout 'Since the last run:\*\* 1 resolved'
+stdout 'Since the last push:\*\* 1 resolved'
 ! stdout '--- comment 2'
 
 -- empty.txt --
 -- event.json --
 {"pull_request": {"number": 1, "base": {"sha": "1111111111111111111111111111111111111111"}, "head": {"sha": "2222222222222222222222222222222222222222", "repo": {"full_name": "acme/app"}}}, "repository": {"full_name": "acme/app", "private": false}}
+-- fix-event.json --
+{"pull_request": {"number": 1, "base": {"sha": "1111111111111111111111111111111111111111"}, "head": {"sha": "4444444444444444444444444444444444444444", "repo": {"full_name": "acme/app"}}}, "repository": {"full_name": "acme/app", "private": false}}
 -- repo/package-lock.json --
 {"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app"}}}
 -- clean-lock.json --

@@ -27,6 +27,10 @@ type Context struct {
 	APIURL     string
 	// RunURL is the page of the run, with its logs and its summary.
 	RunURL string
+	// Workspace is the directory of the checkout.
+	Workspace string
+	// Output is the file of the step outputs, or "".
+	Output string
 	// Change is the pull request of the run, or nil for a push or a
 	// schedule.
 	Change *Change
@@ -83,6 +87,8 @@ func detectGitHub(getenv func(string) string) (Context, error) {
 		Repository: getenv("GITHUB_REPOSITORY"),
 		ServerURL:  strings.TrimRight(getenv("GITHUB_SERVER_URL"), "/"),
 		APIURL:     strings.TrimRight(getenv("GITHUB_API_URL"), "/"),
+		Workspace:  getenv("GITHUB_WORKSPACE"),
+		Output:     getenv("GITHUB_OUTPUT"),
 	}
 	if run := getenv("GITHUB_RUN_ID"); run != "" && c.ServerURL != "" && c.Repository != "" {
 		c.RunURL = c.ServerURL + "/" + c.Repository + "/actions/runs/" + run

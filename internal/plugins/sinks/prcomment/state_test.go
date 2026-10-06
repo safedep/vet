@@ -55,17 +55,20 @@ func TestDecodeStateRejects(t *testing.T) {
 	}
 }
 
-func TestDecodeStateReadsTheLastBlock(t *testing.T) {
+func TestDecodeStateReadsTheBlockAtTheEnd(t *testing.T) {
 	first, _ := encodeState(state{Findings: []string{idA}})
 	last, _ := encodeState(state{Findings: []string{idB}})
-	got, ok := decodeState(first + "\n" + last)
+	got, ok := decodeState(first + "\n" + last + "\n")
 	require.True(t, ok)
 	assert.Equal(t, []string{idB}, got.Findings)
+
+	_, ok = decodeState("`" + first + "`\n<sub>footer</sub>\n")
+	assert.False(t, ok, "a block in the middle of the body does not count")
 }
 
 func TestCompare(t *testing.T) {
-	old := state{Findings: []string{idA, idB, idC}}
-	got := compare(old, []string{idA, idD}, []string{idC})
+	baseline := []string{idA, idB, idC}
+	got := compare(baseline, []string{idA, idD}, []string{idC})
 	assert.Equal(t, progress{Resolved: []string{idB}, New: []string{idD}, Suppressed: []string{idC}}, got)
-	assert.Equal(t, progress{}, compare(old, old.Findings, nil), "no change")
+	assert.Equal(t, progress{}, compare(baseline, baseline, nil), "no change")
 }
