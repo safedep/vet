@@ -2,25 +2,31 @@ package policy
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/model"
+	"github.com/safedep/vet/v2/report"
 )
 
 // Options configure an evaluator.
 type Options struct {
 	// FailOn fails the gate on an unsuppressed finding at this severity or
-	// above. Empty sets no severity gate.
-	FailOn finding.Severity
-	Now    func() time.Time
+	// above, or on a finding of an attack control. Empty sets no --fail-on gate.
+	FailOn report.FailOn
+	// Attacks are the ids of the attack controls, for the attacks
+	// --fail-on value.
+	Attacks []string
+	Now     func() time.Time
 }
 
-// Evaluator applies a policy and a severity gate to findings.
+// Evaluator applies a policy and a --fail-on value to findings.
 type Evaluator struct {
-	p      *Policy
-	failOn finding.Severity
-	now    time.Time
+	p       *Policy
+	failOn  report.FailOn
+	attacks []string
+	now     time.Time
 	// unavailable holds the errors of the policy sources that did not
 	// answer. Finalize records each one as a diagnostic.
 	unavailable []string
@@ -36,7 +42,7 @@ func NewEvaluator(p *Policy, o Options) *Evaluator {
 	if o.Now != nil {
 		now = o.Now
 	}
-	return &Evaluator{p: p, failOn: o.FailOn, now: now().UTC()}
+	return &Evaluator{p: p, failOn: o.FailOn, attacks: o.Attacks, now: now().UTC()}
 }
 
 // Gated reports whether the user set a gate: a severity or a policy.
@@ -107,8 +113,17 @@ func (e *Evaluator) Apply(f *finding.Finding, pkg *model.Package, m *model.Manif
 		out.FailRules, out.BrokenRules = nil, nil
 		return out
 	}
-	out.Fail = len(out.FailRules) > 0 || len(out.BrokenRules) > 0 || (e.failOn != "" && f.Severity.AtLeast(e.failOn))
+	out.Fail = len(out.FailRules) > 0 || len(out.BrokenRules) > 0 || e.failsOn(f)
 	return out
+}
+
+// failsOn reports whether the finding meets the --fail-on value.
+func (e *Evaluator) failsOn(f *finding.Finding) bool {
+	if e.failOn == report.FailOnAttacks {
+		return slices.Contains(e.attacks, f.ControlID)
+	}
+	sev, ok := e.failOn.Severity()
+	return ok && f.Severity.AtLeast(sev)
 }
 
 func (s *Suppression) matches(f *finding.Finding) bool {

@@ -4,22 +4,21 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/safedep/dry/usefulerror"
 
-	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/config"
 	"github.com/safedep/vet/v2/plugin"
+	"github.com/safedep/vet/v2/report"
 )
 
 // CodeFailOn is the error code of a --fail-on value that is not a
-// severity. The command exits with code 2.
+// --fail-on value. The command exits with code 2.
 const CodeFailOn = "usage_fail_on"
 
 // Settings are the gate of a run.
 type Settings struct {
-	FailOn finding.Severity
+	FailOn report.FailOn
 	// File is the policy file, or "".
 	File string
 }
@@ -37,21 +36,21 @@ func ResolveSettings(failOnFlag, policyFlag string, cfg config.PolicyConfig) (Se
 		failOn = failOnFlag
 	}
 	if failOn != "" {
-		sev, err := finding.ParseSeverity(failOn)
+		t, err := report.ParseFailOn(failOn)
 		if err != nil {
 			return Settings{}, usefulerror.NewUsefulError().WithCode(CodeFailOn).
 				WithHumanError(err.Error()).
-				WithHelp("Set --fail-on or policy.fail_on to critical, high, medium, low or info.").
+				WithHelp("Set --fail-on or policy.fail_on to attacks, critical, high, medium, low or info.").
 				WithMsg(err.Error())
 		}
-		s.FailOn = sev
+		s.FailOn = t
 	}
 	return s, nil
 }
 
 // NewFromSources loads the policy of the sources and returns its
-// evaluator. With no source, the evaluator has the severity gate only.
-func NewFromSources(ctx context.Context, failOn finding.Severity, now func() time.Time, sources ...plugin.PolicySource) (*Evaluator, error) {
+// evaluator. With no source, the evaluator has the --fail-on value only.
+func NewFromSources(ctx context.Context, o Options, sources ...plugin.PolicySource) (*Evaluator, error) {
 	var docs []plugin.PolicyDoc
 	var unavailable []string
 	for _, src := range sources {
@@ -72,7 +71,7 @@ func NewFromSources(ctx context.Context, failOn finding.Severity, now func() tim
 			return nil, err
 		}
 	}
-	e := NewEvaluator(p, Options{FailOn: failOn, Now: now})
+	e := NewEvaluator(p, o)
 	e.unavailable = unavailable
 	return e, nil
 }

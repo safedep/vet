@@ -1,7 +1,7 @@
 # CI and AI agents
 
-A plain scan reports and exits 0. A gate makes the scan exit 1 when it fails. `--fail-on SEVERITY`
-and `--policy FILE` set a gate. See [policy.md](policy.md).
+A plain scan reports and exits 0. A gate makes the scan exit 1 when it fails. `--fail-on SEVERITY`,
+`--fail-on attacks` and `--policy FILE` set a gate. See [policy.md](policy.md).
 
 | Exit code | Meaning |
 | --- | --- |

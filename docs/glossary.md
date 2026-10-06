@@ -330,10 +330,17 @@ _Avoid_: exception, ignore, waiver, allowlist
 
 **Gate**:
 The pass or fail decision of a scan: `NONE` (no gate set), `PASS` or `FAIL`, with the severity, the
-policies, the rules and the finding ids that decided it. `report.Gate`. `--fail-on SEVERITY` sets the
-severity part, and policy fail rules set the rule part. A plain scan has no gate and exits 0. A failed
-gate exits 1.
+policies, the rules and the finding ids that decided it. `report.Gate`. `--fail-on SEVERITY` or
+`--fail-on attacks` sets the `report.FailOn` part, and policy fail rules set the rule part. A plain
+scan has no gate and exits 0. A failed gate exits 1.
 _Avoid_: threshold, build breaker
+
+**Attacks gate**:
+The gate of `--fail-on attacks`. It fails on an unsuppressed finding of an attack control, and each
+other finding warns. `plugin.ControlInfo.Attack` marks the attack controls: `malware`,
+`impostor-commit` and `suspicious-command`. `controls.AttackIDs` lists them. It is the default gate
+of the vet GitHub Action.
+_Avoid_: malware-only mode, safe mode
 
 ## Reports and output
 

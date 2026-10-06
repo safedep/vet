@@ -41,7 +41,7 @@ func pullRequest() *plugintest.MemState {
 		f.Change = model.ChangeAdded
 	}
 	tr := *s.Trailer()
-	tr.Gate = report.Gate{Outcome: report.GateFail, FailOn: finding.SeverityHigh, FindingIDs: []string{s.FindingList[0].ID}}
+	tr.Gate = report.Gate{Outcome: report.GateFail, FailOn: report.FailOn(finding.SeverityHigh), FindingIDs: []string{s.FindingList[0].ID}}
 	s.TrailerValue = &tr
 	return s
 }

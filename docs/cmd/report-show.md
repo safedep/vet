@@ -5,7 +5,7 @@ Render a saved report.
 ## Synopsis
 
 ```text
-vet report show [ID|FILE] [--fail-on SEVERITY] [--policy FILE|NAME] [--report FORMAT=PATH]...
+vet report show [ID|FILE] [--fail-on SEVERITY|attacks] [--policy FILE|NAME] [--report FORMAT=PATH]...
                 [--all] [--state-dir DIR]
                 [-o table|plain|json|jsonl|sarif|markdown|cyclonedx|gitlab|bitbucket]
 ```

@@ -5,7 +5,7 @@ Audit the tools on this machine.
 ## Synopsis
 
 ```text
-vet endpoint audit [--all-users] [--fail-on SEVERITY] [--policy FILE] [--report FORMAT=PATH]...
+vet endpoint audit [--all-users] [--fail-on SEVERITY|attacks] [--policy FILE] [--report FORMAT=PATH]...
                    [--strict] [--resume | --fresh] [--no-cache] [--cooldown-days N]
                    [--ephemeral] [--state-dir DIR] [--cache-dir DIR] [-o FORMAT]
 ```

@@ -259,6 +259,7 @@
         "fail_on": {
           "type": "string",
           "enum": [
+            "attacks",
             "critical",
             "high",
             "medium",

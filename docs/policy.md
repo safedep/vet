@@ -185,13 +185,19 @@ rules:
   directory. A rule id must be unique across the files.
 - `--policy NAME`, with no extension and no directory, reads `policies/NAME.yml` in the vet config
   directory. `vet policy init NAME` writes that file.
-- The `policy.file` config key sets the policy for every run. `policy.fail_on` sets a severity.
+- The `policy.file` config key sets the policy for every run. `policy.fail_on` sets a severity or
+  `attacks`.
 
 ## The gate
 
 `--fail-on SEVERITY` and the policy work together. The gate fails when an unsuppressed finding is
 at the severity or above, or when it matches a `fail` rule. A plain scan, with neither, has no gate
-and exits 0. The report holds the gate in `trailer.gate`: the outcome, the policy, the rules that
+and exits 0.
+
+`--fail-on attacks` fails only on the controls that find an attack: `malware`, `impostor-commit`
+and `suspicious-command`. Each other finding warns. Use it to block attacks on the first day,
+before you fix old findings. `vet policy control list -o json` marks the attack controls with
+`attack: true`. The report holds the gate in `trailer.gate`: the outcome, the policy, the rules that
 failed and the finding ids.
 
 | Exit code | Meaning |

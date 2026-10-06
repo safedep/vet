@@ -11,6 +11,7 @@ import (
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
+	"github.com/safedep/vet/v2/report"
 )
 
 const valid = `version: 2
@@ -199,7 +200,7 @@ func TestApply(t *testing.T) {
 				shifted := tc.pub.Add(tc.now.Sub(now))
 				tc.pub = &shifted
 			}
-			e := NewEvaluator(p, Options{FailOn: tc.failOn, Now: func() time.Time { return at }})
+			e := NewEvaluator(p, Options{FailOn: report.FailOn(tc.failOn), Now: func() time.Time { return at }})
 			f, pkg := packageFinding(tc.control, tc.sev, tc.pkg, tc.version, tc.pub)
 			out := e.Apply(f, pkg, nil)
 			assert.Empty(t, out.Errors)
@@ -235,7 +236,7 @@ func TestApplySuppressionSelectors(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			p, err := Parse("p.yml", []byte("version: 2\nsuppressions:\n  - reason: r\n    "+tc.s+"\n"))
 			require.NoError(t, err)
-			out := NewEvaluator(p, Options{FailOn: finding.SeverityLow, Now: func() time.Time { return now }}).Apply(tc.f, pkg, nil)
+			out := NewEvaluator(p, Options{FailOn: report.FailOn(finding.SeverityLow), Now: func() time.Time { return now }}).Apply(tc.f, pkg, nil)
 			assert.Equal(t, tc.want, tc.f.Suppressed())
 			assert.Equal(t, !tc.want, out.Fail, "the gate ignores a suppressed finding")
 		})

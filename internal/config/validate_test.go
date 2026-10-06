@@ -25,7 +25,7 @@ func TestValidateRejects(t *testing.T) {
 		{"mode", "output.mode", "fancy", `output.mode must be auto, rich, plain or agent, got "fancy" (flag)`},
 		{"color", "output.color", "pink", `output.color must be auto, always or never, got "pink" (flag)`},
 		{"concurrency", "scan.concurrency", "0", `scan.concurrency must be a number from 1 to 256, got "0" (flag)`},
-		{"fail on", "policy.fail_on", "urgent", `policy.fail_on must be critical, high, medium, low or info, got "urgent" (flag)`},
+		{"fail on", "policy.fail_on", "urgent", `policy.fail_on must be attacks, critical, high, medium, low or info, got "urgent" (flag)`},
 		{"duration", "state.continue_within", "soon", `state.continue_within must be a duration such as 24h or 7d, got "soon" (flag)`},
 		{"size", "state.retention.max_size", "big", `state.retention.max_size must be a size such as 500MB or 2GB, got "big" (flag)`},
 		{"per target", "state.retention.per_target", "0", `state.retention.per_target must be 1 or more, got "0" (flag)`},

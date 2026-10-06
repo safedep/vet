@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/safedep/vet/v2/finding"
@@ -294,13 +295,48 @@ const (
 	GateFail GateOutcome = "FAIL"
 )
 
+// FailOn is the --fail-on value of a gate: a severity, or attacks.
+type FailOn string
+
+// FailOnAttacks fails the gate on the findings of the attack controls, and
+// on no other finding.
+const FailOnAttacks FailOn = "attacks"
+
+// FailOnValues returns each --fail-on value, attacks first.
+func FailOnValues() []FailOn {
+	out := []FailOn{FailOnAttacks}
+	for _, s := range finding.Severities() {
+		out = append(out, FailOn(s))
+	}
+	return out
+}
+
+// ParseFailOn reads a --fail-on value.
+func ParseFailOn(v string) (FailOn, error) {
+	f := FailOn(strings.ToLower(strings.TrimSpace(v)))
+	if f == FailOnAttacks {
+		return f, nil
+	}
+	if _, ok := f.Severity(); ok {
+		return f, nil
+	}
+	return "", fmt.Errorf("unknown --fail-on value %q: use attacks, critical, high, medium, low or info", v)
+}
+
+// Severity returns the severity of a severity value. It is false for
+// attacks.
+func (f FailOn) Severity() (finding.Severity, bool) {
+	s := finding.Severity(f)
+	return s, s.Valid()
+}
+
 // Gate is the outcome of the gate and what decided it.
 type Gate struct {
-	Outcome    GateOutcome      `json:"outcome"`
-	FailOn     finding.Severity `json:"fail_on,omitempty"`
-	Policy     string           `json:"policy,omitempty"`
-	Rules      []string         `json:"rules,omitempty"`
-	FindingIDs []string         `json:"finding_ids,omitempty"`
+	Outcome    GateOutcome `json:"outcome"`
+	FailOn     FailOn      `json:"fail_on,omitempty"`
+	Policy     string      `json:"policy,omitempty"`
+	Rules      []string    `json:"rules,omitempty"`
+	FindingIDs []string    `json:"finding_ids,omitempty"`
 }
 
 // ManifestRecord returns a record that holds a manifest.

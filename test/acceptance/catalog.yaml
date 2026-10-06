@@ -32,6 +32,12 @@
   tier: P0
   guarantee: "--fail-on high exits 1 when a high finding exists and 0 when only medium findings exist. policy.fail_on in the config file does the same."
   labels: [gate]
+- id: policy/fail-on/attacks
+  title: "--fail-on attacks gates on attack controls only"
+  category: policy
+  tier: P0
+  guarantee: "--fail-on attacks exits 1 on a malicious package and 0 on a high vulnerability. policy.fail_on: attacks in the config file does the same."
+  labels: [gate]
 - id: output/streams/data-on-stdout
   title: "data on stdout, messages on stderr"
   category: output

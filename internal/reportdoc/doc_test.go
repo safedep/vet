@@ -82,7 +82,7 @@ func TestPolicyGateOnADoc(t *testing.T) {
 	require.NoError(t, err)
 	p, err := policy.Parse("p.yml", []byte("version: 2\nsuppressions:\n  - control: malware\n    reason: r\n"))
 	require.NoError(t, err)
-	e := policy.NewEvaluator(p, policy.Options{FailOn: finding.SeverityCritical})
+	e := policy.NewEvaluator(p, policy.Options{FailOn: report.FailOn(finding.SeverityCritical)})
 	g, err := e.Finalize(ctx, d)
 	require.NoError(t, err)
 	d.SetGate(g, time.Now())

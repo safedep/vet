@@ -129,15 +129,15 @@ func TestFinalizeWithNoGate(t *testing.T) {
 }
 
 func TestFinalizeSeverityGate(t *testing.T) {
-	res := scan(t, policy.NewEvaluator(nil, policy.Options{FailOn: finding.SeverityCritical}))
+	res := scan(t, policy.NewEvaluator(nil, policy.Options{FailOn: report.FailOn(finding.SeverityCritical)}))
 	tr := res.Scan.Trailer()
 	require.NotNil(t, tr)
 	assert.Equal(t, report.GateFail, tr.Gate.Outcome)
-	assert.Equal(t, finding.SeverityCritical, tr.Gate.FailOn)
+	assert.Equal(t, report.FailOn(finding.SeverityCritical), tr.Gate.FailOn)
 
 	p, err := policy.Parse("p.yml", []byte("version: 2\nsuppressions:\n  - purl: pkg:pypi/evil\n    reason: r\n"))
 	require.NoError(t, err)
-	res = scan(t, policy.NewEvaluator(p, policy.Options{FailOn: finding.SeverityCritical}))
+	res = scan(t, policy.NewEvaluator(p, policy.Options{FailOn: report.FailOn(finding.SeverityCritical)}))
 	assert.Equal(t, report.GatePass, res.Scan.Trailer().Gate.Outcome, "the gate ignores the suppressed critical finding")
 }
 
@@ -157,11 +157,11 @@ func (broken) Policies(context.Context) ([]plugin.PolicyDoc, error) { return nil
 
 func TestUnavailablePolicySource(t *testing.T) {
 	ctx := context.Background()
-	_, err := policy.NewFromSources(ctx, "", nil, broken{})
+	_, err := policy.NewFromSources(ctx, policy.Options{}, broken{})
 	require.Error(t, err, "a source that fails for another reason stops the scan")
 
 	local := docs{{Name: "vet-policy.yml", Content: []byte(policyFile)}}
-	e, err := policy.NewFromSources(ctx, "", nil, local, unavailable{})
+	e, err := policy.NewFromSources(ctx, policy.Options{}, local, unavailable{})
 	require.NoError(t, err)
 	res := scan(t, e)
 

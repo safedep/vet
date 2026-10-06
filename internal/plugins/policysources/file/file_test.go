@@ -65,12 +65,12 @@ func TestEvaluatorFromTheSource(t *testing.T) {
 	dir := t.TempDir()
 	write(t, filepath.Join(dir, "a.yml"), "version: 2\nrules:\n  - id: r1\n    when: 'true'\n    action: warn\n")
 	write(t, filepath.Join(dir, "b.yml"), "version: 2\nrules:\n  - id: r2\n    when: 'true'\n    action: fail\n")
-	e, err := policy.NewFromSources(context.Background(), "", nil, New(dir))
+	e, err := policy.NewFromSources(context.Background(), policy.Options{}, New(dir))
 	require.NoError(t, err)
 	assert.True(t, e.Gated())
 
 	write(t, filepath.Join(dir, "c.yml"), "version: 2\nrules:\n  - id: r1\n    when: 'true'\n    action: fail\n")
-	_, err = policy.NewFromSources(context.Background(), "", nil, New(dir))
+	_, err = policy.NewFromSources(context.Background(), policy.Options{}, New(dir))
 	assert.ErrorContains(t, err, `rule "r1" is also in`)
 }
 

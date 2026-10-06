@@ -256,7 +256,7 @@ func gateFields(g report.Gate) string {
 func gateReason(g report.Gate) string {
 	n := plural(len(g.FindingIDs), "finding")
 	if g.FailOn != "" && len(g.Rules) == 0 {
-		return fmt.Sprintf("%s at %s or above (--fail-on %s)", n, g.FailOn, g.FailOn)
+		return fmt.Sprintf("%s %s (--fail-on %s)", n, failOnText(g.FailOn), g.FailOn)
 	}
 	var gates []string
 	if g.FailOn != "" {
@@ -280,9 +280,17 @@ func rulesText(rules []string) string {
 
 func passReason(g report.Gate) string {
 	if g.FailOn != "" {
-		return fmt.Sprintf("no finding at %s or above (--fail-on %s)", g.FailOn, g.FailOn)
+		return fmt.Sprintf("no finding %s (--fail-on %s)", failOnText(g.FailOn), g.FailOn)
 	}
 	return "no policy rule failed"
+}
+
+// failOnText names the findings that a --fail-on value fails on.
+func failOnText(t report.FailOn) string {
+	if t == report.FailOnAttacks {
+		return "of an attack control"
+	}
+	return fmt.Sprintf("at %s or above", t)
 }
 
 func plural(n int, word string) string {

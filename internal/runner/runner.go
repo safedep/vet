@@ -80,7 +80,7 @@ type Options struct {
 // gate, the reports, the state and the cooldown window.
 func (o *Options) RegisterFlags(c *cobra.Command) {
 	f := c.Flags()
-	f.StringVar(&o.FailOn, "fail-on", "", "Exit 1 on a finding at this severity or above")
+	f.StringVar(&o.FailOn, "fail-on", "", "Exit 1 on a finding at this severity or above, or on an attack with attacks")
 	f.StringVar(&o.Policy, "policy", "", "Policy v2 file, directory or name")
 	f.StringArrayVar(&o.Reports, "report", nil, "Also write the report as FORMAT=PATH. Repeatable")
 	f.BoolVar(&o.Strict, "strict", false, "Exit 3 when the report has a diagnostic")
@@ -460,7 +460,11 @@ func newEvaluator(ctx context.Context, cfg *config.Config, s policy.Settings) (*
 		}
 		srcs = append(srcs, src)
 	}
-	return policy.NewFromSources(ctx, s.FailOn, nil, srcs...)
+	attacks, err := controls.AttackIDs()
+	if err != nil {
+		return nil, err
+	}
+	return policy.NewFromSources(ctx, policy.Options{FailOn: s.FailOn, Attacks: attacks}, srcs...)
 }
 
 func withState(ctx context.Context, dirs *state.Dirs, useCache bool, fn func(*state.Store, *state.Cache) error) (err error) {

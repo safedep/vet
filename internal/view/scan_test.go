@@ -84,11 +84,11 @@ func TestScanGolden(t *testing.T) {
 	summary.Changes = Changes{Packages: 4, Workflows: 1, Unchanged: 210}
 
 	fail := *sample.Trailer()
-	fail.Gate = report.Gate{Outcome: report.GateFail, FailOn: finding.SeverityHigh, Rules: []string{"no-malware"}, FindingIDs: []string{"f-478cf580259c82ac", vuln.ID}}
+	fail.Gate = report.Gate{Outcome: report.GateFail, FailOn: report.FailOn(finding.SeverityHigh), Rules: []string{"no-malware"}, FindingIDs: []string{"f-478cf580259c82ac", vuln.ID}}
 	failOn := *sample.Trailer()
-	failOn.Gate = report.Gate{Outcome: report.GateFail, FailOn: finding.SeverityHigh, FindingIDs: []string{"f-478cf580259c82ac", vuln.ID}}
+	failOn.Gate = report.Gate{Outcome: report.GateFail, FailOn: report.FailOn(finding.SeverityHigh), FindingIDs: []string{"f-478cf580259c82ac", vuln.ID}}
 	pass := *sample.Trailer()
-	pass.Gate = report.Gate{Outcome: report.GatePass, FailOn: finding.SeverityCritical}
+	pass.Gate = report.Gate{Outcome: report.GatePass, FailOn: report.FailOn(finding.SeverityCritical)}
 	delta := *sample.Header()
 	delta.Scan.Mode, delta.Scan.BaseRef = report.ScanModeDelta, "origin/main"
 	empty := *sample.Trailer()
@@ -132,7 +132,7 @@ func TestScanGolden(t *testing.T) {
 func TestQuietKeepsTheFailure(t *testing.T) {
 	sample := plugintest.SampleReport()
 	fail := *sample.Trailer()
-	fail.Gate = report.Gate{Outcome: report.GateFail, FailOn: finding.SeverityHigh, FindingIDs: []string{"f-1"}}
+	fail.Gate = report.Gate{Outcome: report.GateFail, FailOn: report.FailOn(finding.SeverityHigh), FindingIDs: []string{"f-1"}}
 	output.SetVerbosity(output.Silent)
 	t.Cleanup(func() { output.SetVerbosity(output.Normal) })
 	got := capture(t, output.Plain, func() {
@@ -329,10 +329,10 @@ func TestGateReason(t *testing.T) {
 		gate report.Gate
 		want string
 	}{
-		{"fail-on", report.Gate{FailOn: finding.SeverityHigh, FindingIDs: ids}, "2 findings at high or above (--fail-on high)"},
+		{"fail-on", report.Gate{FailOn: report.FailOn(finding.SeverityHigh), FindingIDs: ids}, "2 findings at high or above (--fail-on high)"},
 		{"one rule", report.Gate{Rules: []string{"no-malware"}, FindingIDs: ids[:1]}, "1 finding (policy rule no-malware)"},
 		{"rules", report.Gate{Rules: []string{"a", "b"}, FindingIDs: ids}, "2 findings (policy rules a and b)"},
-		{"both", report.Gate{FailOn: finding.SeverityHigh, Rules: []string{"a"}, FindingIDs: ids}, "2 findings (--fail-on high, policy rule a)"},
+		{"both", report.Gate{FailOn: report.FailOn(finding.SeverityHigh), Rules: []string{"a"}, FindingIDs: ids}, "2 findings (--fail-on high, policy rule a)"},
 		{"no gate named", report.Gate{FindingIDs: ids}, "2 findings"},
 	}
 	for _, tc := range cases {

@@ -104,6 +104,10 @@ func enumSchema(t reflect.Type) *jsonschema.Schema {
 		values = []string{string(InventoryAITool), string(InventoryMCPServer), string(InventorySkill), string(InventoryEditorPlugin)}
 	case reflect.TypeFor[DiagnosticLevel]():
 		values = []string{string(DiagnosticWarning), string(DiagnosticError)}
+	case reflect.TypeFor[FailOn]():
+		for _, v := range FailOnValues() {
+			values = append(values, string(v))
+		}
 	case reflect.TypeFor[GateOutcome]():
 		values = []string{string(GateNone), string(GatePass), string(GateFail)}
 	default:
