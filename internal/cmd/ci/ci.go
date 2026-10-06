@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"al.essio.dev/pkg/shellescape"
 	"github.com/safedep/dry/usefulerror"
 	"github.com/spf13/cobra"
 
@@ -255,18 +256,26 @@ func (r *repository) write(changes []change) error {
 			return err
 		}
 		tmp := filepath.Join(filepath.Dir(name), ".vet-"+path.Base(c.path)+".tmp")
-		if err := r.root.WriteFile(tmp, c.after, mode); err != nil {
+		if err := r.place(tmp, name, c.after, mode); err != nil {
+			if rmErr := r.root.Remove(tmp); rmErr != nil && !errors.Is(rmErr, fs.ErrNotExist) {
+				return errors.Join(err, rmErr)
+			}
 			return err
-		}
-		if err := r.root.Chmod(tmp, mode); err != nil {
-			return errors.Join(err, r.root.Remove(tmp))
-		}
-		if err := r.root.Rename(tmp, name); err != nil {
-			return errors.Join(err, r.root.Remove(tmp))
 		}
 		tui.Success("Wrote %s", c.path)
 	}
 	return nil
+}
+
+// place writes data to tmp and renames it to name.
+func (r *repository) place(tmp, name string, data []byte, mode fs.FileMode) error {
+	if err := r.root.WriteFile(tmp, data, mode); err != nil {
+		return err
+	}
+	if err := r.root.Chmod(tmp, mode); err != nil {
+		return err
+	}
+	return r.root.Rename(tmp, name)
 }
 
 // change is one file that the command writes. before is nil for a new
@@ -321,11 +330,11 @@ func printDiff(changes []change) error {
 func nextSteps(dir string, changes []change) error {
 	git := "git"
 	if dir != "." {
-		git += " -C " + dir
+		git += " -C " + shellescape.Quote(dir)
 	}
 	paths := make([]string, 0, len(changes))
 	for _, c := range changes {
-		paths = append(paths, c.path)
+		paths = append(paths, shellescape.Quote(c.path))
 	}
 	hints := []string{
 		"Commit the files in a pull request:",

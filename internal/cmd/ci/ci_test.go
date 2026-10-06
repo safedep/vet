@@ -85,6 +85,16 @@ func TestWrite(t *testing.T) {
 	assert.Nil(t, missing)
 }
 
+func TestWriteLeavesNoTemporaryFileOnAFailure(t *testing.T) {
+	dir := githubRepo(t, map[string]string{".github/workflows/vet.yml/keep": "x"})
+	repo, err := openRepo(dir)
+	require.NoError(t, err)
+	t.Cleanup(repo.close)
+
+	require.Error(t, repo.write([]change{{path: ".github/workflows/vet.yml", after: []byte("x")}}), "the path is a directory")
+	assert.NoFileExists(t, filepath.Join(dir, ".github", "workflows", ".vet-vet.yml.tmp"))
+}
+
 func TestWriteRefusesASymbolicLink(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("needs symbolic links")

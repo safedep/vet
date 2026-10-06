@@ -1,8 +1,8 @@
 # The vet GitHub Action
 
-The vet GitHub Action scans each pull request. It posts one comment that says what the change adds,
-and it fails the check when the change adds an attack, such as a malicious package. The step summary
-holds the full report.
+The vet GitHub Action scans each pull request. When the change adds a package, a workflow or a
+finding, the action posts one comment that says what the change adds. It fails the check when the
+change adds an attack, such as a malicious package. The step summary holds the full report.
 
 ## Set up
 
@@ -89,7 +89,8 @@ gate used the base version. A developer tests a policy edit with `vet report sho
 
 ## The comment
 
-vet posts one comment on each pull request, and edits it on each push. The comment shows:
+vet keeps one comment on a pull request, and edits it on each push. The `comment` input sets when vet
+posts it. The comment shows:
 
 - a caution box for an attack, with what to do when a person or a CI run installed the package
 - a warning box when a check did not complete, or when vet cannot read a file. The box leaves out a

@@ -16,7 +16,8 @@ workflows that the change adds or modifies. The checkout needs the history of th
 
 ## GitHub Actions
 
-The vet GitHub Action scans each pull request, posts one comment, and fails the check on an attack.
+The vet GitHub Action scans each pull request and fails the check on an attack. It comments when the
+change adds a package, a workflow or a finding.
 `vet ci init` adds it to a repository. See [github-action.md](github-action.md).
 
 `GITHUB_TOKEN` lets vet check the pinned actions of the workflows for impostor commits with the
