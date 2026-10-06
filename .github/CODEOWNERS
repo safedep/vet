@@ -1,0 +1,11 @@
+# The GitHub Action reads action/channel.json from the default branch. It
+# selects the releases that each user of the action installs. The program
+# owner reviews each change to the action code, the channel, the oldest
+# supported vet, the issue form and the workflows. The action code holds
+# the cooldown and the signer rules. The review of the workflows keeps a
+# v2 release workflow off the v1 branch.
+/action.yml @abhisek
+/action/ @abhisek
+/.github/ISSUE_TEMPLATE/ @abhisek
+/.github/workflows/ @abhisek
+/.github/CODEOWNERS @abhisek
