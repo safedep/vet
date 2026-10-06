@@ -31,8 +31,13 @@ func (r *run) evaluate(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		m.Root = r.rootOf(m)
-		fs := r.evaluateManifest(ctx, m)
+		var fs []finding.Finding
+		// A removed manifest has no file at the head, and introduced drops
+		// each of its findings.
+		if m.Change != model.ChangeRemoved {
+			m.Root = r.rootOf(m)
+			fs = r.evaluateManifest(ctx, m)
+		}
 		if err := scan.AddFindings(ctx, m.ID, fs); err != nil {
 			return err
 		}

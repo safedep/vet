@@ -62,7 +62,7 @@ func (x *lockIndex) of(ctx context.Context, s plugin.State, root fs.FS) (map[str
 		if err != nil {
 			return nil, err
 		}
-		if m.Kind != model.ManifestKindLockfile || m.Ecosystem != model.EcosystemNpm {
+		if m.Kind != model.ManifestKindLockfile || m.Ecosystem != model.EcosystemNpm || m.Change == model.ChangeRemoved {
 			continue
 		}
 		dir := path.Dir(m.Path)

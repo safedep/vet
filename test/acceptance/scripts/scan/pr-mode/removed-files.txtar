@@ -1,0 +1,37 @@
+[!git] skip 'needs git'
+# A change that deletes a workflow file and a lockfile gives no finding and
+# no control_failed diagnostic. The controls do not read a deleted file.
+cd proj
+exec git -c user.email=t@example.com -c user.name=t init -q
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m base
+exec git rm -q .github/workflows/old.yml package-lock.json
+exec git -c user.email=t@example.com -c user.name=t commit -q -m head
+exec vet scan . --mode plain -o plain --base-ref HEAD~1 --strict
+! stdout 'unpinned-action'
+! stdout 'control_failed'
+! stderr 'control_failed'
+
+-- proj/.github/workflows/old.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+-- proj/.github/workflows/keep.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"left-pad": "1.3.0"}},
+    "node_modules/left-pad": {"version": "1.3.0", "resolved": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz"}
+  }
+}

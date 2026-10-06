@@ -356,6 +356,12 @@
   tier: P2
   guarantee: "vet keeps the base extraction in the state directory, not in the target. A second scan with the same base commit gives the same findings."
   labels: [pr-mode, state]
+- id: scan/pr-mode/removed-files
+  title: "pr mode: removed files"
+  category: scan
+  tier: P1
+  guarantee: "A change that deletes a workflow file and a lockfile gives no finding and no control_failed diagnostic."
+  labels: [scan]
 - id: scan/pr-mode/workflow-change
   title: "pr mode: workflow change"
   category: scan
