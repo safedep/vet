@@ -1,0 +1,1 @@
+{"amp.mcpServers": {"amp-project": {"command": "npx", "args": ["-y", "@example/mcp-server"]}}}

@@ -17,4 +17,9 @@ var knownAIExtensions = map[string]knownAIExtensionInfo{
 	"rooveterinaryinc.roo-cline":        {DisplayName: "Roo Code"},
 	"codeium.codeium":                   {DisplayName: "Codeium"},
 	"supermaven.supermaven":             {DisplayName: "Supermaven"},
+	"kilocode.kilo-code":                {DisplayName: "Kilo Code"},
+	"anthropic.claude-code":             {DisplayName: "Claude Code"},
+	"openai.chatgpt":                    {DisplayName: "Codex"},
+	"google.geminicodeassist":           {DisplayName: "Gemini Code Assist"},
+	"augment.vscode-augment":            {DisplayName: "Augment Code"},
 }

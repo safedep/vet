@@ -65,6 +65,41 @@ vet ai discover --report-json inventory.json --silent
 
 **IDE extensions** are discovered by reading extension manifests from supported IDE distributions and matching against a curated list of known AI extension identifiers.
 
+## Supported tools
+
+`~` is the user home directory (`%USERPROFILE%` on Windows). Paths are resolved
+with the native OS path rules; discovery does not look across the WSL / Windows
+filesystem boundary.
+
+| Tool | App | System signals | Project signals | CLI binary |
+|------|-----|----------------|-----------------|------------|
+| Claude Code | `claude_code` | `~/.claude/settings.json`, `~/.claude/projects/*/settings.json`, `~/.claude.json`, plugin `.mcp.json` | `.mcp.json`, `.claude/settings.json`, `CLAUDE.md` | `claude` |
+| Cursor | `cursor` | `~/.cursor/`, `~/.cursor/mcp.json` | `.cursor/mcp.json`, `.cursorrules`, `.cursor/rules/` | `cursor` |
+| Windsurf | `windsurf` | `~/.codeium/windsurf/`, `mcp_config.json` | | `windsurf` |
+| Antigravity | `antigravity` | `~/.antigravity/` (and XDG / `%APPDATA%` variants), `~/.gemini/antigravity/mcp_config.json` | | `antigravity` |
+| VS Code (Copilot agent mode MCP) | `vscode` | `~/.vscode/`, `Code/User/mcp.json` | `.vscode/mcp.json` | `code` |
+| OpenAI Codex | `codex` | `~/.codex/` (or `$CODEX_HOME`), `config.toml` `[mcp_servers]` | `.codex/config.toml` | `codex` |
+| Gemini CLI | `gemini_cli` | `~/.gemini/settings.json` | `.gemini/settings.json`, `GEMINI.md` | `gemini` |
+| GitHub Copilot CLI | `copilot_cli` | `~/.copilot/config.json` or `settings.json` (or `$COPILOT_HOME`), `mcp-config.json` | `.github/mcp.json` | `copilot` |
+| GitHub Copilot CLI (gh extension) | `gh_copilot` | | | `gh extension list` |
+| OpenCode | `opencode` | `~/.config/opencode/`, `opencode.json[c]` | `opencode.json[c]` | `opencode` |
+| Qwen Code | `qwen_code` | `~/.qwen/`, `settings.json` | `.qwen/settings.json`, `QWEN.md` | `qwen` |
+| Amp | `amp` | `~/.config/amp/`, `settings.json[c]` (`amp.mcpServers`) | `.amp/settings.json` | `amp` |
+| Augment Code (Auggie) | `augment` | `~/.augment/`, `settings.json` | | `auggie` |
+| Kiro | `kiro` | `~/.kiro/`, `settings/mcp.json` | `.kiro/settings/mcp.json`, `.kiro/steering/` | |
+| Amazon Q Developer | `amazon_q` | `~/.aws/amazonq/`, `mcp.json` | `.amazonq/mcp.json` | `q`, `amazon-q` |
+| JetBrains Junie | `junie` | `~/.junie/`, `mcp/mcp.json` | `.junie/mcp/mcp.json`, `.junie/guidelines.md` | |
+| Goose | `goose` | `~/.config/goose/config.yaml` (`%APPDATA%\Block\goose\config` on Windows) | `.goosehints` | |
+| Continue | `continue` | `~/.continue/`, `config.yaml` | `.continue/mcpServers/*.yaml` | |
+| Zed | `zed` | `~/.config/zed/settings.json` (`%APPDATA%\Zed` on Windows), `context_servers` | | |
+| Cline | `cline` | `~/.cline/`, VS Code `globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json` | `.clinerules` | |
+| Roo Code | `roo_code` | VS Code `globalStorage/rooveterinaryinc.roo-cline/settings/mcp_settings.json` | `.roo/mcp.json`, `.roorules`, `.roo/rules/` | |
+| Aider | `aider` | | | `aider` |
+
+AI IDE extensions recognised by ID: GitHub Copilot, GitHub Copilot Chat, Claude
+Code, Codex, Gemini Code Assist, Cline, Roo Code, Kilo Code, Continue, Cody,
+Tabnine, Amazon Q, Augment Code, Codeium and Supermaven.
+
 ## Security
 
 The discovery process never captures environment variable or header values. Only key names are recorded. CLI arguments matching secret patterns (`--token=`, `--api-key=`, `--password=`, etc.) are redacted. No network calls are made. All discovery is based on local filesystem and `$PATH` inspection.

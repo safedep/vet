@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+const amazonQApp = "amazon_q"
+
 var amazonQVersionRe = regexp.MustCompile(`(\d+\.\d+\.\d+)`)
 
 type amazonQVerifier struct{}
@@ -12,7 +14,7 @@ type amazonQVerifier struct{}
 func (d *amazonQVerifier) BinaryNames() []string { return []string{"q", "amazon-q"} }
 func (d *amazonQVerifier) VerifyArgs() []string  { return []string{"--version"} }
 func (d *amazonQVerifier) DisplayName() string   { return "Amazon Q" }
-func (d *amazonQVerifier) App() string           { return "amazon_q" }
+func (d *amazonQVerifier) App() string           { return amazonQApp }
 
 func (d *amazonQVerifier) VerifyOutput(stdout, stderr string) (string, bool) {
 	combined := stdout + stderr

@@ -60,6 +60,7 @@ require (
 	github.com/spdx/tools-golang v0.5.7
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
+	github.com/tidwall/jsonc v0.3.2
 	golang.org/x/oauth2 v0.36.0
 	golang.org/x/term v0.45.0
 	google.golang.org/genai v1.48.0
@@ -406,7 +407,6 @@ require (
 	github.com/therootcompany/xz v1.0.1 // indirect
 	github.com/thoas/go-funk v0.9.3 // indirect
 	github.com/tidwall/gjson v1.18.0 // indirect
-	github.com/tidwall/jsonc v0.3.2 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect

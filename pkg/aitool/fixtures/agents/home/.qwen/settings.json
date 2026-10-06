@@ -1,0 +1,1 @@
+{ "mcpServers": { "qwen-stdio": { "command": "uvx", "args": ["mcp-server-fetch"] } } }

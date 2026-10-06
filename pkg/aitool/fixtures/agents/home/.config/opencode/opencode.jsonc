@@ -1,0 +1,18 @@
+{
+  // OpenCode accepts JSONC
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "opencode-local": {
+      "type": "local",
+      "command": ["npx", "-y", "@example/mcp-server"],
+      "environment": { "OPENCODE_TOKEN": "secret" },
+      "enabled": true,
+    },
+    "opencode-remote": {
+      "type": "remote",
+      "url": "https://example.com/mcp",
+      "headers": { "Authorization": "Bearer secret" },
+      "enabled": false
+    }
+  }
+}

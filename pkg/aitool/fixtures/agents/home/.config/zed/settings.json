@@ -1,0 +1,22 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed documentation.
+{
+  "theme": "One Dark",
+  "context_servers": {
+    "zed-stdio": {
+      "command": "npx",
+      "args": ["-y", "@example/mcp-server"],
+      "env": { "ZED_TOKEN": "secret" },
+    },
+    "zed-legacy": {
+      "source": "custom",
+      "command": { "path": "uvx", "args": ["mcp-server-git"], "env": {} },
+      "settings": {}
+    },
+    "zed-remote": {
+      "url": "https://example.com/mcp",
+      "headers": { "Authorization": "Bearer secret" }
+    }
+  }
+}
