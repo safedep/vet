@@ -199,3 +199,41 @@ func TestActionNeverReadsTheLatestRelease(t *testing.T) {
 		}
 	}
 }
+
+// The action test runs on each pull request that changes the action. It
+// may read the repository and write the comment of the pull request. It
+// writes no release, no tag and no image.
+func TestActionTestWritesNoRelease(t *testing.T) {
+	wf := readYAML(t, ".github/workflows/action-test.yml")
+	assert.Equal(t, []string{"pull_request"}, keys(triggers(t, wf)))
+
+	allowed := map[string]string{"contents": "read", "pull-requests": "write"}
+	check := func(where string, perms any) {
+		m, ok := perms.(map[string]any)
+		require.True(t, ok, "%s sets no permissions map", where)
+		for scope, level := range m {
+			if level == "read" || level == "none" {
+				continue
+			}
+			assert.Equal(t, allowed[scope], level, "%s: %s: %v", where, scope, level)
+		}
+	}
+	check("the workflow", wf["permissions"])
+	jobs, ok := wf["jobs"].(map[string]any)
+	require.True(t, ok)
+	for name, job := range jobs {
+		j, ok := job.(map[string]any)
+		require.True(t, ok)
+		if perms, ok := j["permissions"]; ok {
+			check(name, perms)
+		}
+	}
+}
+
+func keys(m map[string]any) []string {
+	out := make([]string, 0, len(m))
+	for k := range m {
+		out = append(out, k)
+	}
+	return out
+}
