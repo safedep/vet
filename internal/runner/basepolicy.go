@@ -59,7 +59,8 @@ func policySource(ctx context.Context, target, baseRef, value string, r policyRe
 		return file.New(r.PolicyFile(value)), false, nil
 	case errors.Is(err, fs.ErrNotExist):
 		tui.Info("vet applies no policy file, because the base ref %s has no %s", baseRef, rel)
-		return nil, true, nil
+		_, headErr := os.Stat(p)
+		return nil, !errors.Is(headErr, fs.ErrNotExist), nil
 	case err != nil:
 		msg := fmt.Sprintf("read the policy %s at the base ref %s: %v", rel, baseRef, err)
 		return nil, false, app.UsageError(msg, "Keep the policy in git as a regular file or a directory of regular files.")

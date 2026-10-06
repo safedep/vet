@@ -93,17 +93,28 @@ func (t *Tree) RepoFS() fs.FS {
 
 // RepoPath returns the path of p relative to the root of the working
 // tree, in "/" form. It resolves the symbolic links of the directories of
-// p. It is false when p is outside the working tree.
+// p that exist. A directory that the working tree does not have, such as
+// one that the change deletes, has no link to resolve. It is false when p
+// is outside the working tree.
 func (t *Tree) RepoPath(p string) (string, bool) {
 	abs, err := filepath.Abs(p)
 	if err != nil {
 		return "", false
 	}
-	dir, err := filepath.EvalSymlinks(filepath.Dir(abs))
-	if err != nil {
-		return "", false
+	dir, rest := filepath.Dir(abs), filepath.Base(abs)
+	for {
+		real, err := filepath.EvalSymlinks(dir)
+		if err == nil {
+			dir = real
+			break
+		}
+		parent := filepath.Dir(dir)
+		if !errors.Is(err, fs.ErrNotExist) || parent == dir {
+			return "", false
+		}
+		dir, rest = parent, filepath.Join(filepath.Base(dir), rest)
 	}
-	rel, err := filepath.Rel(t.root, filepath.Join(dir, filepath.Base(abs)))
+	rel, err := filepath.Rel(t.root, filepath.Join(dir, rest))
 	if err != nil || !filepath.IsLocal(rel) {
 		return "", false
 	}

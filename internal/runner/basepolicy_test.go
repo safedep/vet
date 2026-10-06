@@ -74,6 +74,15 @@ func TestPolicySource(t *testing.T) {
 			wantDocs: map[string]string{"HEAD:policies/a.yml": strict}, wantChanged: true,
 		},
 		{
+			name: "no policy at the base and in the change", base: map[string]string{"a.txt": "x"},
+			policy: ".github/vet/policy.yml", baseRef: "HEAD", wantNil: true,
+		},
+		{
+			name: "the change deletes the policy directory", base: map[string]string{".github/vet/policy.yml": strict, "a.txt": "x"},
+			head: map[string]string{".github/vet/policy.yml": ""}, policy: ".github/vet/policy.yml", baseRef: "HEAD",
+			wantDocs: map[string]string{"HEAD:.github/vet/policy.yml": strict}, wantChanged: true,
+		},
+		{
 			name: "a file of the change cannot take over a name", base: map[string]string{"a.txt": "x"},
 			head: map[string]string{"strict": "loose\n"}, policy: "strict", baseRef: "HEAD",
 			wantDocs: map[string]string{"config": strict},
@@ -85,6 +94,9 @@ func TestPolicySource(t *testing.T) {
 			for rel, content := range tc.head {
 				if content == "" {
 					require.NoError(t, os.Remove(filepath.Join(repo, rel)))
+					if dir := filepath.Dir(rel); dir != "." {
+						require.NoError(t, os.RemoveAll(filepath.Join(repo, dir)))
+					}
 					continue
 				}
 				gitbasetest.Write(t, repo, rel, content)
