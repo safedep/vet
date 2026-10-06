@@ -73,18 +73,27 @@ type ParserConfig struct {
 	// MavenUpstreamRegistry replaces Maven Central as the default registry used
 	// to resolve pom.xml dependencies. Use it to point at a private registry or mirror.
 	MavenUpstreamRegistry string
+
+	// MavenUpstreamRegistryID is the <server><id> in Maven settings.xml that holds
+	// the credentials for MavenUpstreamRegistry. When empty, the ID is "default".
+	MavenUpstreamRegistryID string
 }
 
-// ValidateMavenUpstreamRegistry returns an error when registry is not an
-// absolute http(s) URL. An empty registry is valid and means Maven Central.
-func ValidateMavenUpstreamRegistry(registry string) error {
+// ValidateMavenUpstreamRegistry returns an error when registry is not an absolute
+// http(s) or artifactregistry URL, or when id is set without a registry.
+// An empty registry is valid and means Maven Central.
+func ValidateMavenUpstreamRegistry(registry, id string) error {
 	if registry == "" {
+		if id != "" {
+			return fmt.Errorf("maven upstream registry ID %q needs a Maven upstream registry URL", id)
+		}
+
 		return nil
 	}
 
 	u, err := url.Parse(registry)
-	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
-		return fmt.Errorf("invalid Maven upstream registry %q: must be an absolute http(s) URL", registry)
+	if err != nil || u.Host == "" || (u.Scheme != "http" && u.Scheme != "https" && u.Scheme != "artifactregistry") {
+		return fmt.Errorf("invalid Maven upstream registry %q: must be an absolute http(s) or artifactregistry URL", registry)
 	}
 
 	return nil

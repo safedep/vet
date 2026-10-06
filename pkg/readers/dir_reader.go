@@ -24,6 +24,10 @@ type DirectoryReaderConfig struct {
 
 	// MavenUpstreamRegistry replaces Maven Central when resolving pom.xml
 	MavenUpstreamRegistry string
+
+	// MavenUpstreamRegistryID is the settings.xml server ID with the credentials
+	// for MavenUpstreamRegistry
+	MavenUpstreamRegistryID string
 }
 
 type directoryReader struct {
@@ -107,8 +111,9 @@ func (p *directoryReader) EnumManifests(handler func(*models.PackageManifest,
 		}
 
 		manifest, err := lfParser.ParseWithConfig(lockfile, &parser.ParserConfig{
-			IncludeDevDependencies: true,
-			MavenUpstreamRegistry:  p.config.MavenUpstreamRegistry,
+			IncludeDevDependencies:  true,
+			MavenUpstreamRegistry:   p.config.MavenUpstreamRegistry,
+			MavenUpstreamRegistryID: p.config.MavenUpstreamRegistryID,
 		})
 		if err != nil {
 			logger.Warnf("Failed to parse: %s due to %v", path, err)

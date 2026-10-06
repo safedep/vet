@@ -24,6 +24,10 @@ type LockfileReaderConfig struct {
 
 	// MavenUpstreamRegistry replaces Maven Central when resolving pom.xml
 	MavenUpstreamRegistry string
+
+	// MavenUpstreamRegistryID is the settings.xml server ID with the credentials
+	// for MavenUpstreamRegistry
+	MavenUpstreamRegistryID string
 }
 
 // NewLockfileReader creates a [PackageManifestReader] that can be used to read
@@ -71,8 +75,9 @@ func (p *lockfileReader) EnumManifests(handler func(*models.PackageManifest,
 		}
 
 		manifest, err := lfParser.ParseWithConfig(rf, &parser.ParserConfig{
-			IncludeDevDependencies: true,
-			MavenUpstreamRegistry:  p.config.MavenUpstreamRegistry,
+			IncludeDevDependencies:  true,
+			MavenUpstreamRegistry:   p.config.MavenUpstreamRegistry,
+			MavenUpstreamRegistryID: p.config.MavenUpstreamRegistryID,
 		})
 		if err != nil {
 			return err

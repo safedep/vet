@@ -133,6 +133,55 @@ func Test_MavenPomXmlParser_UpstreamRegistry(t *testing.T) {
 	assert.Equal(t, int32(2), hits.Load())
 }
 
+func Test_MavenPomXmlParser_UpstreamRegistryAuth(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user, pass, ok := r.BasicAuth()
+		if !ok || user != "ci-bot" || pass != "s3cret" {
+			w.Header().Set("WWW-Authenticate", `Basic realm="maven"`)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		_, _ = w.Write([]byte(`<project>
+  <groupId>io.safedep.internal</groupId><artifactId>lib</artifactId><version>1.0</version>
+</project>`))
+	}))
+	defer server.Close()
+
+	// The scalibr Maven client reads credentials from ${HOME}/.m2/settings.xml
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("VET_TEST_MAVEN_PASSWORD", "s3cret")
+	require.NoError(t, os.MkdirAll(filepath.Join(home, ".m2"), 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(home, ".m2", "settings.xml"), []byte(`<settings><servers>
+  <server><id>acme-artifactory</id><username>ci-bot</username><password>${env.VET_TEST_MAVEN_PASSWORD}</password></server>
+</servers></settings>`), 0o600))
+
+	pomPath := filepath.Join(t.TempDir(), "pom.xml")
+	require.NoError(t, os.WriteFile(pomPath, []byte(`<project>
+  <groupId>io.safedep.test</groupId><artifactId>app</artifactId><version>1.0</version>
+  <dependencies>
+    <dependency><groupId>io.safedep.internal</groupId><artifactId>lib</artifactId><version>1.0</version></dependency>
+  </dependencies>
+</project>`), 0o600))
+
+	t.Run("matching registry ID sends credentials", func(t *testing.T) {
+		manifest, err := parseMavenPomXmlFile(pomPath, &ParserConfig{
+			MavenUpstreamRegistry:   server.URL,
+			MavenUpstreamRegistryID: "acme-artifactory",
+		})
+		require.NoError(t, err)
+		require.Len(t, manifest.Packages, 1)
+		assert.Equal(t, "io.safedep.internal:lib", manifest.Packages[0].Name)
+	})
+
+	t.Run("no registry ID sends no credentials", func(t *testing.T) {
+		_, err := parseMavenPomXmlFile(pomPath, &ParserConfig{
+			MavenUpstreamRegistry: server.URL,
+		})
+		assert.ErrorContains(t, err, "failed to fetch Maven project")
+	})
+}
+
 func Test_MavenPomXmlParser_InvalidUpstreamRegistry(t *testing.T) {
 	for _, registry := range []string{"not a url", "ftp://example.com/maven", "/relative/path", "https://"} {
 		t.Run(registry, func(t *testing.T) {
@@ -141,5 +190,23 @@ func Test_MavenPomXmlParser_InvalidUpstreamRegistry(t *testing.T) {
 			})
 			assert.ErrorContains(t, err, "invalid Maven upstream registry")
 		})
+	}
+
+	t.Run("registry ID without registry URL", func(t *testing.T) {
+		_, err := parseMavenPomXmlFile("./fixtures/java/pom.xml", &ParserConfig{
+			MavenUpstreamRegistryID: "acme-artifactory",
+		})
+		assert.ErrorContains(t, err, "needs a Maven upstream registry URL")
+	})
+}
+
+func Test_ValidateMavenUpstreamRegistry_Valid(t *testing.T) {
+	for _, registry := range []string{
+		"",
+		"http://localhost:8081/repository/maven-public",
+		"https://artifactory.example.com/maven",
+		"artifactregistry://us-maven.pkg.dev/project/repo",
+	} {
+		assert.NoError(t, ValidateMavenUpstreamRegistry(registry, ""), registry)
 	}
 }

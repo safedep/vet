@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	cpb "github.com/google/osv-scalibr/binary/proto/config_go_proto"
+	"github.com/google/osv-scalibr/clients/datasource"
+	"github.com/google/osv-scalibr/clients/resolution"
 	"github.com/google/osv-scalibr/extractor/filesystem"
 	"github.com/google/osv-scalibr/extractor/filesystem/language/java/pomxmlnet"
 	"github.com/google/osv-scalibr/fs"
@@ -17,26 +18,27 @@ import (
 // Its finds the dependency from Maven Registry, and also from Parent Maven BOM
 // We use osc-scalibr's java/pomxmlnet (with Net, or Network) to fetch dependency from registry.
 func parseMavenPomXmlFile(lockfilePath string, config *ParserConfig) (*models.PackageManifest, error) {
-	upstreamRegistry := ""
+	registry := datasource.MavenRegistry{ReleasesEnabled: true}
 	if config != nil {
-		upstreamRegistry = config.MavenUpstreamRegistry
+		registry.URL = config.MavenUpstreamRegistry
+		registry.ID = config.MavenUpstreamRegistryID
 	}
 
-	// pomxmlnet ignores an invalid registry URL and later panics on a nil client
-	if err := ValidateMavenUpstreamRegistry(upstreamRegistry); err != nil {
+	if err := ValidateMavenUpstreamRegistry(registry.URL, registry.ID); err != nil {
 		return nil, err
 	}
 
-	// Java/PomXMLNet extractor
-	pomXmlNetExtractor, err := pomxmlnet.New(&cpb.PluginConfig{
-		PluginSpecific: []*cpb.PluginSpecificConfig{
-			{Config: &cpb.PluginSpecificConfig_PomXmlNet{
-				PomXmlNet: &cpb.POMXMLNetConfig{UpstreamRegistry: upstreamRegistry},
-			}},
-		},
-	})
+	// We make the Maven client here and not with pomxmlnet.New, because pomxmlnet.New
+	// cannot set the registry ID. Maven settings.xml credentials are matched by this ID.
+	// An empty URL means Maven Central.
+	mavenClient, err := datasource.NewMavenRegistryAPIClient(context.Background(), registry, "", false)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create pom.xml extractor: %w", err)
+		return nil, fmt.Errorf("failed to create Maven registry client: %w", err)
+	}
+
+	pomXmlNetExtractor := pomxmlnet.Extractor{
+		DepClient:   resolution.NewMavenRegistryClientWithAPI(mavenClient),
+		MavenClient: mavenClient,
 	}
 
 	file, err := os.Open(lockfilePath)
