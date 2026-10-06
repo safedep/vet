@@ -725,3 +725,21 @@
   tier: P0
   guarantee: "A scan of pkg:golang/github.com/Masterminds/goutils@v1.1.0 against production reports GHSA-xg2h-wx96-xgxr."
   labels: [live, identity, enrichers]
+- id: ci/pr-comment/same-repo
+  title: "A pull request gets one comment that vet edits"
+  category: ci
+  tier: P0
+  guarantee: "In a GitHub Actions pull request run, --report pr-comment posts one comment and writes comment-url to the step output. The next run edits the same comment and says what the push resolved."
+  labels: [pr-comment, pr-mode]
+- id: ci/pr-comment/fork
+  title: "A fork pull request gets the comment through the proxy"
+  category: ci
+  tier: P0
+  guarantee: "When the token of a fork run cannot write, vet posts the comment of a public repository through the SafeDep comment proxy, and posts none for a private repository. The gate still sets the exit code."
+  labels: [pr-comment, pr-mode]
+- id: ci/pr-comment/no-ci
+  title: "pr-comment outside a pull request run"
+  category: ci
+  tier: P1
+  guarantee: "Outside a pull request run, --report pr-comment posts nothing and warns. --report pr-comment=FILE writes the comment body. Neither changes the exit code."
+  labels: [pr-comment]

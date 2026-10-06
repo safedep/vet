@@ -18,6 +18,7 @@ import (
 	"sync"
 	"time"
 
+	ghcpv1grpc "buf.build/gen/go/safedep/api/grpc/go/safedep/services/ghcp/v1/ghcpv1grpc"
 	insightsv2grpc "buf.build/gen/go/safedep/api/grpc/go/safedep/services/insights/v2/insightsv2grpc"
 	malysisv1grpc "buf.build/gen/go/safedep/api/grpc/go/safedep/services/malysis/v1/malysisv1grpc"
 	malysismsg "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/malysis/v1"
@@ -53,10 +54,12 @@ type Server struct {
 	closeOnce sync.Once
 	closeErr  error
 
-	mu    sync.Mutex
-	delay time.Duration
-	fail  map[string]codes.Code
-	calls map[string]int
+	mu       sync.Mutex
+	delay    time.Duration
+	fail     map[string]codes.Code
+	calls    map[string]int
+	readOnly bool
+	comments []Comment
 }
 
 // Start serves the fixtures under dir on a free local port. gRPC and the
@@ -74,6 +77,7 @@ func Start(dir string) (*Server, error) {
 	}))
 	insightsv2grpc.RegisterInsightServiceServer(s.grpc, &insightService{s: s})
 	malysisv1grpc.RegisterMalwareAnalysisServiceServer(s.grpc, &malysisService{s: s})
+	ghcpv1grpc.RegisterGitHubCommentsProxyServiceServer(s.grpc, &ghcpService{s: s})
 
 	var protocols http.Protocols
 	protocols.SetHTTP1(true)
@@ -289,6 +293,9 @@ func (s *Server) serveGitHub(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	parts := strings.Split(strings.Trim(strings.TrimPrefix(r.URL.Path, "/api/v3"), "/"), "/")
+	if s.serveComments(w, r, parts) {
+		return
+	}
 	if r.Method == http.MethodGet && len(parts) == 4 && parts[0] == "repos" && parts[3] == "releases" {
 		s.serveReleases(w, r, parts[1], parts[2])
 		return
