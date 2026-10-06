@@ -50,7 +50,7 @@ helper or a list. Each row is the one place for its concern.
 | Wiring of one scan from the config | `internal/runner` |
 | A token in a git URL | `git.Redact` in `internal/plugins/sources/git` |
 | GitHub token and client | `internal/github` |
-| The CI platform and the change that it builds, and the adapters that write to it | `internal/ci` |
+| The CI platform and the change that it builds, the adapters that write to it, and the setup files of `vet ci` | `internal/ci` |
 | Package identity: compare, key, order, PURL and the wire form of a package version | `model.PackageVersion`. It wraps the `dry/api/pb` rules. |
 | SPDX license expressions: parse, compare, allow and deny, the OSI and FSF sets | `internal/spdxlicense`. Do not call `go-spdx` from another package. |
 | Report types and the JSON Schema of the report | `report` |

@@ -749,3 +749,15 @@
   tier: P0
   guarantee: "action/scan.sh runs this vet in a pull request. It posts the comment, writes the step summary and the SARIF file, sets the gate, findings, report and comment-url outputs, and fails the step on a failed gate."
   labels: [action, pr-comment, pr-mode]
+- id: ci/setup/init
+  title: "vet ci init adds the vet workflow"
+  category: ci
+  tier: P1
+  guarantee: "vet ci init writes the vet workflow with the action and actions/checkout pinned to commit SHAs, adds a github-actions Dependabot entry with new lines only, and does not replace a workflow that exists."
+  labels: [action, ci-setup]
+- id: ci/setup/update
+  title: "vet ci update moves the action pins"
+  category: ci
+  tier: P1
+  guarantee: "vet ci update moves the safedep/vet and actions/checkout pins of the vet workflow to the newest release, and keeps each other line."
+  labels: [action, ci-setup]

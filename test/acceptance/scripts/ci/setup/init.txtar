@@ -1,0 +1,67 @@
+# vet ci init writes the vet workflow with the action pinned to this vet
+# release, and actions/checkout pinned to its newest release. It adds a
+# github-actions entry at the end of the Dependabot config and changes no
+# line of the user. A second run does not replace the workflow. A
+# repository on another platform gets no workflow.
+# A repository that is not on GitHub gets no workflow.
+mkdir plain
+! exec vet ci init plain --mode plain
+stderr 'vet ci init knows only GitHub'
+stderr 'docs/ci.md'
+
+mkdir .github
+exec vet ci init --dry-run --mode plain
+stdout 'safedep/vet@1111111111111111111111111111111111111111 # v2.0.0-alpha.20260101000000'
+! exists .github/workflows/vet.yml
+
+exec vet ci init --policy --mode plain
+stderr 'Wrote .github/workflows/vet.yml'
+stderr 'git add .github/workflows/vet.yml .github/vet/policy.yml .github/dependabot.yml'
+cmp .github/workflows/vet.yml $WORK/want-vet.yml
+cmp .github/dependabot.yml $WORK/want-dependabot.yml
+exists .github/vet/policy.yml
+exec vet policy validate .github/vet/policy.yml
+
+! exec vet ci init --mode plain
+stderr 'vet.yml exists'
+stderr 'vet ci update'
+
+-- .github/dependabot.yml --
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+-- want-dependabot.yml --
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 1
+-- want-vet.yml --
+name: vet
+on:
+  pull_request:
+permissions: {}
+concurrency:
+  group: vet-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  vet:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: safedep/vet@1111111111111111111111111111111111111111 # v2.0.0-alpha.20260101000000

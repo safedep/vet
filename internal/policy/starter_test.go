@@ -1,4 +1,4 @@
-package policy
+package policy_test
 
 import (
 	"testing"
@@ -11,7 +11,7 @@ import (
 )
 
 func TestStarterIsValid(t *testing.T) {
-	p, err := policy.Parse("starter", []byte(Starter))
+	p, err := policy.Parse("starter", []byte(policy.Starter))
 	require.NoError(t, err)
 	assert.Len(t, p.Rules, 4)
 }

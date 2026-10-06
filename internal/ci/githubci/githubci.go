@@ -1,5 +1,6 @@
-// Package githubci writes the pull request comment of vet on GitHub with
-// the REST API and the token of the run.
+// Package githubci is the GitHub adapter of internal/ci. It writes the pull
+// request comment with the REST API and the token of the run, and it holds
+// the files that vet ci init writes.
 package githubci
 
 import (

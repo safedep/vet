@@ -53,7 +53,8 @@ type Choice struct {
 	// Immutable takes only a release that GitHub marks immutable.
 	Immutable bool
 	// Cooldown skips a release that is younger. The age counts from the
-	// latest of the publish time and the asset update times.
+	// latest of the publish time and the asset update times. A release
+	// with a time after Now does not count.
 	Cooldown time.Duration
 	// Minimum skips a release below this version, or "".
 	Minimum string

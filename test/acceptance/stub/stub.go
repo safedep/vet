@@ -414,12 +414,15 @@ func (s *Server) serveReleases(w http.ResponseWriter, r *http.Request, owner, na
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	// Each release is old and immutable, so it passes a cooldown.
 	type release struct {
-		TagName string `json:"tag_name"`
+		TagName     string `json:"tag_name"`
+		Immutable   bool   `json:"immutable"`
+		PublishedAt string `json:"published_at"`
 	}
 	out := make([]release, 0, len(repo.Releases))
 	for _, tag := range repo.Releases {
-		out = append(out, release{TagName: tag})
+		out = append(out, release{TagName: tag, Immutable: true, PublishedAt: "2026-01-01T00:00:00Z"})
 	}
 	writeJSON(w, out)
 }

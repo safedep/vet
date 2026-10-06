@@ -28,6 +28,8 @@ vet has one page for each command. The table lists every command in the order of
 | [`vet policy control list`](policy-control-list.md) | List the controls and their default severities. |
 | [`vet policy schema get`](policy-schema-get.md) | Print the JSON Schema of the rule input. |
 | [`vet fix github-actions run`](fix-github-actions-run.md) | Pin third-party GitHub Actions to commit SHAs. |
+| [`vet ci init`](ci-init.md) | Add the vet workflow to a repository. |
+| [`vet ci update`](ci-update.md) | Move the action pins of the vet workflow. |
 | [`vet endpoint audit`](endpoint-audit.md) | Audit the tools on this machine. |
 | [`vet state show`](state-show.md) | Show the state and cache directories, the scans and the retention rules. |
 | [`vet state delete`](state-delete.md) | Delete scans or the enrichment cache. |
