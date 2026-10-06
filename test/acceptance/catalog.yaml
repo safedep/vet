@@ -743,3 +743,9 @@
   tier: P1
   guarantee: "Outside a pull request run, --report pr-comment posts nothing and warns. --report pr-comment=FILE writes the comment body. Neither changes the exit code."
   labels: [pr-comment]
+- id: ci/action/scan
+  title: "The scan script of the GitHub Action works with this vet"
+  category: ci
+  tier: P0
+  guarantee: "action/scan.sh runs this vet in a pull request. It posts the comment, writes the step summary and the SARIF file, sets the gate, findings, report and comment-url outputs, and fails the step on a failed gate."
+  labels: [action, pr-comment, pr-mode]

@@ -57,11 +57,13 @@ func TestAcceptance(t *testing.T) {
 					if err := Sandbox(env); err != nil {
 						return err
 					}
+					// A script reads files of the source tree, such as the
+					// scripts of the GitHub Action, from VET_SRC.
+					env.Setenv("VET_SRC", srcDir)
 					if category == "live" {
 						// A live script calls production, so it gets the host
-						// credentials, the source tree and no stub.
+						// credentials and no stub.
 						ForwardEnv(env, "SAFEDEP_API_KEY", "SAFEDEP_TENANT_ID")
-						env.Setenv("VET_SRC", srcDir)
 						return nil
 					}
 					return StartStub(env, "stub/fixtures")
