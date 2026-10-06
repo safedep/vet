@@ -1,5 +1,6 @@
 # vet ci update moves the safedep/vet and actions/checkout pins of the vet
-# workflow to the newest release. Each other line stays.
+# workflow to the newest release. actions/checkout stays in its major
+# version. Each other line stays. A pin never moves to an older release.
 exec vet ci update --dry-run --mode plain
 stdout '\+      - uses: safedep/vet@2222222222222222222222222222222222222222 # v2.0.0-alpha.20260102000000'
 cmp .github/workflows/vet.yml $WORK/old.yml
@@ -45,7 +46,7 @@ jobs:
   vet:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
       - uses: actions/setup-node@v4
       - uses: safedep/vet@2222222222222222222222222222222222222222 # v2.0.0-alpha.20260102000000
         with:

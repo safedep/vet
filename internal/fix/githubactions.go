@@ -143,6 +143,29 @@ func PlanRepins(ctx context.Context, o RepinOptions) (*Plan, error) {
 	})
 }
 
+// PinnedTags returns the tag in the comment of each action that a commit
+// SHA pins, by owner/repo in lower case. It fails when data is not YAML.
+func PinnedTags(data []byte) (map[string]string, error) {
+	var doc yaml.Node
+	if err := yaml.Unmarshal(data, &doc); err != nil {
+		return nil, err
+	}
+	out := map[string]string{}
+	for _, n := range usesNodes(&doc) {
+		action, ref, ok := strings.Cut(n.Value, "@")
+		parts := strings.SplitN(action, "/", 3)
+		if !ok || len(parts) < 2 || !commitSHA.MatchString(strings.ToLower(ref)) {
+			continue
+		}
+		comment := strings.Fields(strings.TrimPrefix(n.LineComment, "#"))
+		if len(comment) == 0 {
+			continue
+		}
+		out[strings.ToLower(parts[0]+"/"+parts[1])] = strings.TrimSuffix(comment[0], ";")
+	}
+	return out, nil
+}
+
 // pinner returns the pin of an action of repo at ref, or false to keep the
 // line.
 type pinner func(ctx context.Context, repo, ref string) (Pin, bool, error)

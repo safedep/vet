@@ -176,3 +176,19 @@ func TestPlanRepins(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, before, string(other), "a file that is not in Files stays")
 }
+
+func TestPinnedTags(t *testing.T) {
+	got, err := PinnedTags([]byte(`jobs:
+  a:
+    steps:
+      - uses: actions/checkout@` + sha + ` # v6.0.2
+      - uses: "SafeDep/vet@` + sha + `" # v2.0.0-alpha.1; a note
+      - uses: actions/setup-go@v5 # v5
+      - uses: actions/cache@` + sha + `
+`))
+	require.NoError(t, err)
+	assert.Equal(t, map[string]string{"actions/checkout": "v6.0.2", "safedep/vet": "v2.0.0-alpha.1"}, got)
+
+	_, err = PinnedTags([]byte("jobs: [\n"))
+	assert.Error(t, err)
+}

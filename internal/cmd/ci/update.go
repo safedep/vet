@@ -22,42 +22,61 @@ func newUpdate(a *app.App) *cobra.Command {
 		Long: `Move the safedep/vet and actions/checkout pins in
 .github/workflows/vet.yml to the newest release that is older than 24
 hours. vet takes an immutable stable release of vet v2, or a pre-release
-while v2 has no stable release. vet edits only the uses: lines of the two
-actions and keeps each other line.
+while v2 has no stable release. actions/checkout stays in its major
+version. A pin never moves to an older release.
 
-Use it when Dependabot or Renovate does not move the pins. It does not
-change other actions or other workflow files. --dry-run prints the diff
-and writes nothing. DIR is the root of the repository. The default is
-the current directory.`,
+vet edits only the uses: lines of the two actions, and writes the new
+tag as the comment. Each other line stays. Use it when Dependabot or
+Renovate does not move the pins. --dry-run prints the diff and writes
+nothing. DIR is the root of the repository. The default is the current
+directory.`,
 		Example: `  vet ci update --dry-run   # Show the new pins and write nothing
   vet ci update             # Move the pins`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			root := rootOf(args)
-			wf, err := read(root, githubci.WorkflowPath)
+			repo, err := openRepo(rootOf(args))
+			if err != nil {
+				return err
+			}
+			defer repo.close()
+			wfPath, wf, err := repo.first(githubci.WorkflowPaths)
 			if err != nil {
 				return err
 			}
 			if wf == nil {
-				return app.UsageError(githubci.WorkflowPath+" does not exist", "Run vet ci init to add it.")
+				return app.UsageError("The repository has no vet workflow", "Run vet ci init to add it.")
 			}
+			current, err := fix.PinnedTags(wf)
+			if err != nil {
+				return app.UsageError(fmt.Sprintf("The workflow %s is not valid YAML: %v", wfPath, err), "Fix the file, then run the command again.")
+			}
+			if _, ok := current[githubci.VetRepo]; !ok {
+				return app.UsageError(fmt.Sprintf("The workflow %s has no safedep/vet action pinned to a commit with a tag comment", wfPath),
+					"Run vet ci init --force to write the workflow again.")
+			}
+
 			pinner, err := newPinner(cmd.Context(), a)
 			if err != nil {
 				return err
 			}
-			vet, err := pinner.NewestVet(cmd.Context())
+			pins := map[string]fix.Pin{}
+			vet, ok, err := pinner.NewestVet(cmd.Context(), current[githubci.VetRepo])
 			if err != nil {
-				return err
+				return githubError(err)
 			}
-			checkout, err := pinner.NewestCheckout(cmd.Context())
-			if err != nil {
-				return err
+			if ok {
+				pins[githubci.VetRepo] = vet
 			}
-			plan, err := fix.PlanRepins(cmd.Context(), fix.RepinOptions{
-				Root:  root,
-				Files: []string{githubci.WorkflowPath},
-				Pins:  map[string]fix.Pin{githubci.VetRepo: vet, githubci.CheckoutRepo: checkout},
-			})
+			if tag, found := current[githubci.CheckoutRepo]; found {
+				checkout, ok, err := pinner.NewestCheckout(cmd.Context(), tag)
+				if err != nil {
+					return githubError(err)
+				}
+				if ok {
+					pins[githubci.CheckoutRepo] = checkout
+				}
+			}
+			plan, err := fix.PlanRepins(cmd.Context(), fix.RepinOptions{Root: repo.dir, Files: []string{wfPath}, Pins: pins})
 			if err != nil {
 				return err
 			}
@@ -66,7 +85,7 @@ the current directory.`,
 			}
 			switch {
 			case plan.Edits() == 0:
-				tui.Info("The pins of %s are up to date.", githubci.WorkflowPath)
+				tui.Info("The pins of %s are up to date", wfPath)
 				return nil
 			case dryRun:
 				_, err := fmt.Fprint(output.Stdout(), escape.Text(plan.Diff()))
@@ -75,7 +94,7 @@ the current directory.`,
 			if err := plan.Apply(); err != nil {
 				return err
 			}
-			tui.Success("Moved %s in %s", humanize.Count(plan.Edits(), "pin"), githubci.WorkflowPath)
+			tui.Success("Moved %s in %s", humanize.Count(plan.Edits(), "pin"), wfPath)
 			return nil
 		},
 	}

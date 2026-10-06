@@ -105,6 +105,10 @@ func ForwardEnv(env *testscript.Env, keys ...string) {
 // release logic. A VET_BIN binary has its own version.
 const HarnessVersion = "2.0.0-alpha.20260101000000"
 
+// HarnessCommit is the commit of the harness build. The stub GitHub API
+// names it for the tag of HarnessVersion.
+const HarnessCommit = "1111111111111111111111111111111111111111"
+
 func builtWithHarnessVersion(bin string) (bool, error) {
 	if bin == "" {
 		return false, nil

@@ -7,23 +7,27 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"slices"
+	"reflect"
 	"strings"
 	"time"
 
 	gh "github.com/google/go-github/v70/github"
+	"golang.org/x/mod/semver"
 	"gopkg.in/yaml.v3"
 
 	"github.com/safedep/vet/v2/internal/fix"
 	"github.com/safedep/vet/v2/internal/github"
 )
 
-// The files that vet ci init writes. The action reads PolicyPath by
-// default.
-const (
-	WorkflowPath   = ".github/workflows/vet.yml"
-	PolicyPath     = ".github/vet/policy.yml"
-	DependabotPath = ".github/dependabot.yml"
+// PolicyPath is the policy file that vet ci init --policy writes. The
+// action reads it by default.
+const PolicyPath = ".github/vet/policy.yml"
+
+// The names of the vet workflow and of the Dependabot config. The first
+// name is the one that vet writes. GitHub reads each of them.
+var (
+	WorkflowPaths   = []string{".github/workflows/vet.yml", ".github/workflows/vet.yaml"}
+	DependabotPaths = []string{".github/dependabot.yml", ".github/dependabot.yaml"}
 )
 
 // The repositories of the actions that the workflow pins.
@@ -32,8 +36,9 @@ const (
 	CheckoutRepo = "actions/checkout"
 )
 
-// Cooldown is the age that a release needs before vet ci update pins it.
-const Cooldown = 24 * time.Hour
+// CooldownHours is the age in hours that a release needs before vet ci
+// update pins it. It is the default of the cooldown input of the action.
+const CooldownHours = 24
 
 // IsRepository reports whether the repository at root is on GitHub: its
 // origin remote is on github.com, or it has a .github directory.
@@ -68,6 +73,10 @@ jobs:
 `, CheckoutRepo, checkout.SHA, checkout.Ref, VetRepo, vet.SHA, vet.Ref)
 }
 
+// ErrNoRelease is the error of a repository with no release that the
+// rule takes.
+var ErrNoRelease = errors.New("no release passes")
+
 // Pinner finds the pins of the workflow with the GitHub API.
 type Pinner struct {
 	Client *gh.Client
@@ -80,34 +89,57 @@ func (p Pinner) Vet(ctx context.Context, tag string) (fix.Pin, error) {
 }
 
 // NewestVet returns the pin of the newest immutable v2 release that is
-// older than the cooldown. It takes a stable release when one exists, and
-// a pre-release only while v2 has no stable release.
-func (p Pinner) NewestVet(ctx context.Context) (fix.Pin, error) {
-	c := github.Choice{Major: "v2", Immutable: true, Cooldown: Cooldown, Now: p.Now()}
-	return p.newest(ctx, VetRepo, c, true)
+// older than the cooldown and not older than current, or false when no
+// such release is newer than current. It takes a stable release when v2
+// has one, and a pre-release only while v2 has no stable release.
+func (p Pinner) NewestVet(ctx context.Context, current string) (fix.Pin, bool, error) {
+	releases, err := p.releases(ctx, VetRepo)
+	if err != nil {
+		return fix.Pin{}, false, err
+	}
+	c := github.Choice{Major: "v2", Immutable: true, Now: p.Now()}
+	_, stable := c.Newest(releases)
+	c.Prerelease = !stable
+	c.Cooldown = CooldownHours * time.Hour
+	c.Minimum = current
+	return p.newer(ctx, VetRepo, c, releases, current)
 }
 
 // NewestCheckout returns the pin of the newest stable release of
-// actions/checkout that is older than the cooldown.
-func (p Pinner) NewestCheckout(ctx context.Context) (fix.Pin, error) {
-	return p.newest(ctx, CheckoutRepo, github.Choice{Cooldown: Cooldown, Now: p.Now()}, false)
+// actions/checkout that is older than the cooldown. With a current tag,
+// it stays in the major of current and returns false when no release is
+// newer.
+func (p Pinner) NewestCheckout(ctx context.Context, current string) (fix.Pin, bool, error) {
+	releases, err := p.releases(ctx, CheckoutRepo)
+	if err != nil {
+		return fix.Pin{}, false, err
+	}
+	c := github.Choice{Cooldown: CooldownHours * time.Hour, Now: p.Now(), Minimum: current}
+	if v := github.SemverOf(current); v != "" {
+		c.Major = semver.Major(v)
+	}
+	return p.newer(ctx, CheckoutRepo, c, releases, current)
 }
 
-func (p Pinner) newest(ctx context.Context, repo string, c github.Choice, prerelease bool) (fix.Pin, error) {
+func (p Pinner) newer(ctx context.Context, repo string, c github.Choice, releases []github.Release, current string) (fix.Pin, bool, error) {
+	r, ok := c.Newest(releases)
+	switch {
+	case !ok && current == "":
+		return fix.Pin{}, false, fmt.Errorf("%s: %w the cooldown of %d hours", repo, ErrNoRelease, CooldownHours)
+	case !ok || r.Tag == current:
+		return fix.Pin{}, false, nil
+	}
+	pin, err := p.pin(ctx, repo, r.Tag)
+	return pin, err == nil, err
+}
+
+func (p Pinner) releases(ctx context.Context, repo string) ([]github.Release, error) {
 	owner, name, _ := strings.Cut(repo, "/")
 	releases, err := github.ListReleases(ctx, p.Client, owner, name)
 	if err != nil {
-		return fix.Pin{}, fmt.Errorf("list the releases of %s: %w", repo, err)
+		return nil, fmt.Errorf("list the releases of %s: %w", repo, err)
 	}
-	r, ok := c.Newest(releases)
-	if !ok && prerelease {
-		c.Prerelease = true
-		r, ok = c.Newest(releases)
-	}
-	if !ok {
-		return fix.Pin{}, fmt.Errorf("%s has no release that is older than %s", repo, c.Cooldown)
-	}
-	return p.pin(ctx, repo, r.Tag)
+	return releases, nil
 }
 
 func (p Pinner) pin(ctx context.Context, repo, tag string) (fix.Pin, error) {
@@ -137,8 +169,7 @@ const (
 	DependabotCreated DependabotChange = iota
 	// DependabotAdded adds the entry at the end of the config.
 	DependabotAdded
-	// DependabotPresent leaves a config that has a github-actions entry
-	// for the root.
+	// DependabotPresent leaves a config that has a github-actions entry.
 	DependabotPresent
 	// DependabotManual leaves a config that vet cannot extend with new
 	// lines only. The user adds DependabotEntry.
@@ -147,98 +178,91 @@ const (
 
 // AddDependabot returns the Dependabot config with DependabotEntry. old is
 // the config, or nil when the file does not exist. vet only adds lines at
-// the end of the file. It never changes a line of the user.
+// the end of the file. It checks that each value of the old config stays
+// the same, so it never changes a setting of the user.
 func AddDependabot(old []byte) ([]byte, DependabotChange) {
 	if old == nil {
 		return []byte("version: 2\nupdates:\n" + DependabotEntry), DependabotCreated
 	}
-	cfg, ok := parseDependabot(old)
-	switch {
-	case !ok:
+	var before map[string]any
+	if err := yaml.Unmarshal(old, &before); err != nil {
 		return old, DependabotManual
-	case cfg.hasActions():
-		return old, DependabotPresent
 	}
-	updates, ok := lastBlockSequence(old, "updates")
+	updates, _ := before["updates"].([]any)
+	for _, u := range updates {
+		if m, ok := u.(map[string]any); ok && m["package-ecosystem"] == "github-actions" {
+			return old, DependabotPresent
+		}
+	}
+	dash, ok := lastBlockSequence(old, "updates")
 	if !ok {
 		return old, DependabotManual
 	}
-	out := bytes.Clone(old)
-	if len(out) > 0 && out[len(out)-1] != '\n' {
-		out = append(out, '\n')
+	eol := "\n"
+	if bytes.Contains(old, []byte("\r\n")) {
+		eol = "\r\n"
 	}
-	indent := strings.Repeat(" ", updates.dash)
+	out := bytes.Clone(old)
+	if !bytes.HasSuffix(out, []byte("\n")) {
+		out = append(out, eol...)
+	}
 	for _, line := range strings.SplitAfter(DependabotEntry, "\n") {
 		if line != "" {
-			out = append(out, indent+strings.TrimPrefix(line, "  ")...)
+			out = append(out, strings.Repeat(" ", dash)+strings.TrimSuffix(strings.TrimPrefix(line, "  "), "\n")+eol...)
 		}
 	}
-	added, ok := parseDependabot(out)
-	if !ok || len(added.Updates) != len(cfg.Updates)+1 || !added.hasActions() {
+	if !onlyAdds(before, out) {
 		return old, DependabotManual
 	}
 	return out, DependabotAdded
 }
 
-type dependabot struct {
-	Updates []struct {
-		Ecosystem   string   `yaml:"package-ecosystem"`
-		Directory   string   `yaml:"directory"`
-		Directories []string `yaml:"directories"`
-	} `yaml:"updates"`
-}
-
-func parseDependabot(data []byte) (dependabot, bool) {
-	var cfg dependabot
-	if err := yaml.Unmarshal(data, &cfg); err != nil {
-		return dependabot{}, false
+// onlyAdds reports whether the config out holds each value of before, and
+// the entry of vet as one more update at the end.
+func onlyAdds(before map[string]any, out []byte) bool {
+	var after, entry map[string]any
+	var entries []any
+	if yaml.Unmarshal(out, &after) != nil || yaml.Unmarshal([]byte(DependabotEntry), &entries) != nil || len(entries) != 1 {
+		return false
 	}
-	return cfg, true
-}
-
-func (d dependabot) hasActions() bool {
-	for _, u := range d.Updates {
-		if u.Ecosystem != "github-actions" {
-			continue
-		}
-		if u.Directory == "/" || slices.Contains(u.Directories, "/") {
-			return true
-		}
+	entry, _ = entries[0].(map[string]any)
+	updates, _ := before["updates"].([]any)
+	want := map[string]any{}
+	for k, v := range before {
+		want[k] = v
 	}
-	return false
+	want["updates"] = append(append([]any{}, updates...), entry)
+	return reflect.DeepEqual(want, after)
 }
 
-// blockSequence is a block sequence and the column of its dashes.
-type blockSequence struct{ dash int }
-
-// lastBlockSequence finds key when it is the last key of the top mapping
-// and its value is a block sequence with at least one item. New items can
-// then go at the end of the file.
-func lastBlockSequence(data []byte, key string) (blockSequence, bool) {
+// lastBlockSequence returns the column of the dashes of key when key is
+// the last key of the top mapping and its value is a block sequence with
+// at least one item. New items can then go at the end of the file.
+func lastBlockSequence(data []byte, key string) (int, bool) {
 	var doc yaml.Node
 	if err := yaml.Unmarshal(data, &doc); err != nil || len(doc.Content) != 1 {
-		return blockSequence{}, false
+		return 0, false
 	}
 	top := doc.Content[0]
 	n := len(top.Content)
 	if top.Kind != yaml.MappingNode || n < 2 || top.Content[n-2].Value != key {
-		return blockSequence{}, false
+		return 0, false
 	}
 	seq := top.Content[n-1]
 	if seq.Kind != yaml.SequenceNode || seq.Style&yaml.FlowStyle != 0 || len(seq.Content) == 0 {
-		return blockSequence{}, false
+		return 0, false
 	}
 	lines := strings.Split(string(data), "\n")
 	first := seq.Content[0]
 	if first.Line < 1 || first.Line > len(lines) {
-		return blockSequence{}, false
+		return 0, false
 	}
 	line := lines[first.Line-1]
 	dash := strings.IndexByte(line, '-')
 	if dash < 0 || strings.TrimSpace(line[:dash]) != "" {
-		return blockSequence{}, false
+		return 0, false
 	}
-	return blockSequence{dash: dash}, true
+	return dash, true
 }
 
 // renovateFiles are the config files of Renovate.

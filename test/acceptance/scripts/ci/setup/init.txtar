@@ -1,32 +1,46 @@
 # vet ci init writes the vet workflow with the action pinned to this vet
 # release, and actions/checkout pinned to its newest release. It adds a
 # github-actions entry at the end of the Dependabot config and changes no
-# line of the user. A second run does not replace the workflow. A
-# repository on another platform gets no workflow.
-# A repository that is not on GitHub gets no workflow.
+# setting of the user. A second run does not replace the workflow. A
+# repository on another platform, or a directory below the root of a
+# repository, gets no workflow.
 mkdir plain
 ! exec vet ci init plain --mode plain
-stderr 'vet ci init knows only GitHub'
+stderr 'vet ci knows only GitHub'
 stderr 'docs/ci.md'
 
-mkdir .github
+[!git] skip 'needs git'
+exec git init -q
+mkdir sub/.github
+! exec vet ci init sub --mode plain
+stderr 'sub is not the root of its git repository'
+
+# A VET_BIN build has no release to pin.
+[!harness-version] skip 'needs the harness version'
 exec vet ci init --dry-run --mode plain
 stdout 'safedep/vet@1111111111111111111111111111111111111111 # v2.0.0-alpha.20260101000000'
 ! exists .github/workflows/vet.yml
 
 exec vet ci init --policy --mode plain
 stderr 'Wrote .github/workflows/vet.yml'
-stderr 'git add .github/workflows/vet.yml .github/vet/policy.yml .github/dependabot.yml'
+stderr 'git add .github/workflows/vet.yml .github/vet/policy.yml .github/dependabot.yaml'
 cmp .github/workflows/vet.yml $WORK/want-vet.yml
-cmp .github/dependabot.yml $WORK/want-dependabot.yml
+cmp .github/dependabot.yaml $WORK/want-dependabot.yml
+! exists .github/dependabot.yml
 exists .github/vet/policy.yml
 exec vet policy validate .github/vet/policy.yml
 
-! exec vet ci init --mode plain
-stderr 'vet.yml exists'
-stderr 'vet ci update'
+# vet's own scan finds no risk in the workflow that vet writes.
+exec vet scan . --mode plain -o plain
+! stdout 'unpinned-action|dangerous-trigger|template-injection|impostor-commit|pin-comment-mismatch'
 
--- .github/dependabot.yml --
+! exec vet ci init --mode plain
+stderr 'The workflow .github/workflows/vet.yml exists'
+stderr 'vet ci update'
+exec vet ci init --force --mode plain
+stderr 'vet leaves the Dependabot config .github/dependabot.yaml as it is'
+
+-- .github/dependabot.yaml --
 version: 2
 updates:
   - package-ecosystem: gomod

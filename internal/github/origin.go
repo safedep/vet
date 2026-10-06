@@ -32,3 +32,17 @@ func RemoteRepo(u string) string {
 	}
 	return ""
 }
+
+// WorktreeRoot returns the root of the git working tree at dir or above
+// it, or false when dir is in no git repository.
+func WorktreeRoot(dir string) (string, bool) {
+	repo, err := gogit.PlainOpenWithOptions(dir, &gogit.PlainOpenOptions{DetectDotGit: true})
+	if err != nil {
+		return "", false
+	}
+	wt, err := repo.Worktree()
+	if err != nil {
+		return "", false
+	}
+	return wt.Filesystem.Root(), true
+}

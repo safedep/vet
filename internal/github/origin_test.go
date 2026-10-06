@@ -34,4 +34,10 @@ func TestOriginRepo(t *testing.T) {
 	assert.Equal(t, "acme/app", OriginRepo(dir))
 	assert.Equal(t, "acme/app", OriginRepo(filepath.Join(dir, "sub")), "a directory in the repository")
 	assert.Empty(t, OriginRepo(t.TempDir()), "no repository")
+
+	root, ok := WorktreeRoot(filepath.Join(dir, "sub"))
+	require.True(t, ok)
+	assert.Equal(t, dir, root)
+	_, ok = WorktreeRoot(t.TempDir())
+	assert.False(t, ok)
 }
