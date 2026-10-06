@@ -80,5 +80,5 @@ func TestCapabilityFinderErrorIsADiagnostic(t *testing.T) {
 			codes = append(codes, r.Diagnostic.Code)
 		}
 	}
-	assert.Contains(t, codes, CodeEnrichFailed)
+	assert.Contains(t, codes, report.CodeEnrichFailed)
 }

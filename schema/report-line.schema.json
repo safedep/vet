@@ -105,6 +105,18 @@
         },
         "count": {
           "type": "integer"
+        },
+        "change": {
+          "type": "string",
+          "enum": [
+            "",
+            "ADDED",
+            "UPGRADED",
+            "DOWNGRADED",
+            "MODIFIED",
+            "REMOVED",
+            "UNCHANGED"
+          ]
         }
       },
       "type": "object",

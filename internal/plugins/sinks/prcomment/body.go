@@ -13,6 +13,7 @@ import (
 	"github.com/safedep/vet/v2/internal/overview"
 	"github.com/safedep/vet/v2/internal/plugins/internal/render"
 	"github.com/safedep/vet/v2/internal/tui/humanize"
+	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/report"
 )
 
@@ -184,18 +185,48 @@ func (c *input) caution(b *strings.Builder) {
 	c.alert(b, "CAUTION", lines)
 }
 
-// warning names the checks that failed open, so a missing finding does
-// not look like a clean result.
+// warning names the checks that failed open and the files that vet cannot
+// read, so a missing finding does not look like a clean result.
 func (c *input) warning(b *strings.Builder) {
-	if len(c.view.Diagnostics) == 0 {
-		return
+	checks, files := gaps(c.view.Diagnostics)
+	var lines []string
+	if len(checks) > 0 {
+		lines = append(lines, "Some checks did not complete, so a finding can be missing. Run the job again before you merge.")
+		lines = append(lines, diagLines(checks)...)
 	}
-	lines := []string{"Some checks did not complete, so a finding can be missing. Run the job again before you merge."}
-	var details []string
-	for _, d := range c.view.Diagnostics {
-		details = append(details, fmt.Sprintf("%s: %s", code(d.Component), md(render.Text(d.Message), maxField)))
+	if len(files) > 0 {
+		lines = append(lines, "vet cannot read some files, so a finding can be missing. Fix the files before you merge.")
+		lines = append(lines, diagLines(files)...)
 	}
-	c.alert(b, "WARNING", append(lines, capLines(details, maxAlerts)...))
+	if len(lines) > 0 {
+		c.alert(b, "WARNING", lines)
+	}
+}
+
+// gaps returns the diagnostics that can hide a finding of the change: the
+// checks that did not complete, and the files that vet cannot read. A file
+// that the change keeps as it is has no finding of the change.
+func gaps(diags []*report.Diagnostic) (checks, files []*report.Diagnostic) {
+	for _, d := range diags {
+		switch d.Code {
+		case report.CodeEnrichUnavailable, report.CodeEnrichFailed,
+			report.CodeControlUnavailable, report.CodeControlFailed, report.CodeInvalidFinding:
+			checks = append(checks, d)
+		case report.CodeExtractFailed:
+			if d.Change != model.ChangeUnchanged {
+				files = append(files, d)
+			}
+		}
+	}
+	return checks, files
+}
+
+func diagLines(diags []*report.Diagnostic) []string {
+	lines := make([]string, 0, len(diags))
+	for _, d := range diags {
+		lines = append(lines, fmt.Sprintf("%s: %s", code(d.Component), md(render.Text(d.Message), maxField)))
+	}
+	return capLines(lines, maxAlerts)
 }
 
 // note says that the gate used the policy of the base, when the change
@@ -231,7 +262,7 @@ func (c *input) progress(b *strings.Builder) {
 		parts = []string{"no change"}
 	}
 	line := fmt.Sprintf("**Since the last push:** %s", strings.Join(parts, " · "))
-	if len(c.view.Diagnostics) > 0 {
+	if checks, files := gaps(c.view.Diagnostics); len(checks)+len(files) > 0 {
 		line += ". Some checks did not complete, so a finding can show as resolved"
 	}
 	b.WriteString(line + "\n\n")

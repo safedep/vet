@@ -92,6 +92,8 @@ gate used the base version. A developer tests a policy edit with `vet report sho
 vet posts one comment on each pull request, and edits it on each push. The comment shows:
 
 - a caution box for an attack, with what to do when a person or a CI run installed the package
+- a warning box when a check did not complete, or when vet cannot read a file. The box leaves out a
+  file that the change does not edit
 - the blocking findings, with the fix and a link to the docs of the control
 - the other findings in a collapsed section
 - what the last push resolved, and what it added

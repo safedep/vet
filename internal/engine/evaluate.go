@@ -83,17 +83,17 @@ func (r *run) evaluateApplication(ctx context.Context) []finding.Finding {
 func (r *run) valid(controlID, where string, fs []finding.Finding, err error) []finding.Finding {
 	switch {
 	case errors.Is(err, plugin.ErrUnavailable):
-		r.diags.add(report.DiagnosticWarning, CodeControlUnavailable, controlID,
+		r.diags.add(report.DiagnosticWarning, report.CodeControlUnavailable, controlID,
 			fmt.Sprintf("%s did not run on some manifests, because its data was not available", controlID))
 		return nil
 	case err != nil:
-		r.diags.add(report.DiagnosticError, CodeControlFailed, controlID, fmt.Sprintf("%s: %v", where, err))
+		r.diags.add(report.DiagnosticError, report.CodeControlFailed, controlID, fmt.Sprintf("%s: %v", where, err))
 		return nil
 	}
 	out := fs[:0:0]
 	for _, f := range fs {
 		if err := f.Validate(); err != nil {
-			r.diags.add(report.DiagnosticError, CodeInvalidFinding, controlID, err.Error())
+			r.diags.add(report.DiagnosticError, report.CodeInvalidFinding, controlID, err.Error())
 			continue
 		}
 		out = append(out, f)

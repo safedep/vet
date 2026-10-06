@@ -254,6 +254,20 @@ const (
 	DiagnosticError   DiagnosticLevel = "error"
 )
 
+// The diagnostic codes of the scan engine. A reader of a report acts on
+// them, so they are part of the report contract. Other components keep
+// their codes next to their code.
+const (
+	CodeExtractFailed      = "extract_failed"
+	CodeUnknownEcosystem   = "unknown_ecosystem"
+	CodeDeltaFailed        = "delta_failed"
+	CodeEnrichUnavailable  = "enrich_unavailable"
+	CodeEnrichFailed       = "enrich_failed"
+	CodeControlUnavailable = "control_unavailable"
+	CodeControlFailed      = "control_failed"
+	CodeInvalidFinding     = "invalid_finding"
+)
+
 // Diagnostic records an error or a limit that did not stop the scan, for
 // example an enrichment backend that did not answer.
 type Diagnostic struct {
@@ -262,6 +276,9 @@ type Diagnostic struct {
 	Component string          `json:"component"`
 	Message   string          `json:"message"`
 	Count     int             `json:"count,omitempty"`
+	// Change is the change of the file that the diagnostic is about, in
+	// pull request mode.
+	Change model.Change `json:"change,omitempty"`
 }
 
 // Trailer is the last item of a report.

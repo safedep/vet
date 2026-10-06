@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"unicode/utf8"
@@ -101,6 +102,50 @@ func TestBodyGolden(t *testing.T) {
 	for name, build := range cases {
 		t.Run(name, func(t *testing.T) {
 			golden.Assert(t, filepath.Join("testdata", name+".md"), []byte(build(t).body()))
+		})
+	}
+}
+
+// The warning names only what can hide a finding of the change.
+func TestWarning(t *testing.T) {
+	parse := func(change model.Change) *report.Diagnostic {
+		return &report.Diagnostic{Level: report.DiagnosticWarning, Code: report.CodeExtractFailed, Component: "extract", Message: "package-lock.json: bad JSON", Change: change}
+	}
+	enricher := &report.Diagnostic{Level: report.DiagnosticError, Code: report.CodeEnrichFailed, Component: "insights", Message: "timeout"}
+	const runAgain, fixFiles = "Run the job again before you merge.", "Fix the files before you merge."
+	cases := []struct {
+		name     string
+		diags    []*report.Diagnostic
+		want     []string
+		wantNone bool
+	}{
+		{name: "a parse error of a file that the change keeps", diags: []*report.Diagnostic{parse(model.ChangeUnchanged)}, wantNone: true},
+		{name: "notes that hide no finding", wantNone: true, diags: []*report.Diagnostic{
+			{Code: report.CodeUnknownEcosystem, Component: "extract", Message: "no data for conan"},
+			{Code: report.CodeDeltaFailed, Component: "delta", Message: "read the base of package-lock.json"},
+		}},
+		{name: "a parse error of a file that the change edits", diags: []*report.Diagnostic{parse(model.ChangeModified)}, want: []string{fixFiles, "package-lock.json: bad JSON"}},
+		{name: "a parse error outside pull request mode", diags: []*report.Diagnostic{parse(model.ChangeNone)}, want: []string{fixFiles}},
+		{name: "an enricher failure", diags: []*report.Diagnostic{enricher}, want: []string{runAgain, "`insights`: timeout"}},
+		{name: "both kinds", diags: []*report.Diagnostic{parse(model.ChangeAdded), enricher}, want: []string{runAgain, fixFiles}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			s := pullRequest(report.GatePass)
+			s.DiagnosticList = tc.diags
+			var b strings.Builder
+			newInput(t, s).warning(&b)
+			if tc.wantNone {
+				assert.Empty(t, b.String())
+				return
+			}
+			assert.Contains(t, b.String(), "[!WARNING]")
+			for _, w := range tc.want {
+				assert.Contains(t, b.String(), w)
+			}
+			if !slices.Contains(tc.want, runAgain) {
+				assert.NotContains(t, b.String(), runAgain)
+			}
 		})
 	}
 }

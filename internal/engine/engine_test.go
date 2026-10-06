@@ -185,14 +185,14 @@ func TestFailOpen(t *testing.T) {
 		wantLevel report.DiagnosticLevel
 		wantMsg   string
 	}{
-		{name: "enricher unavailable", enrichErr: plugin.ErrUnavailable, wantCode: CodeEnrichUnavailable, wantLevel: report.DiagnosticWarning},
-		{name: "enricher unavailable with a fix", enrichErr: plugin.UnavailableError("Set GITHUB_TOKEN."), wantCode: CodeEnrichUnavailable, wantLevel: report.DiagnosticWarning, wantMsg: "Set GITHUB_TOKEN."},
-		{name: "enricher unavailable strict", enrichErr: plugin.ErrUnavailable, strict: true, wantErr: ErrStrict, wantCode: CodeEnrichUnavailable, wantLevel: report.DiagnosticWarning},
-		{name: "enricher error", enrichErr: errors.New("boom"), wantCode: CodeEnrichFailed, wantLevel: report.DiagnosticError},
-		{name: "enricher error strict", enrichErr: errors.New("boom"), strict: true, wantErr: ErrStrict, wantCode: CodeEnrichFailed, wantLevel: report.DiagnosticError},
-		{name: "control error", control: errors.New("bad"), wantCode: CodeControlFailed, wantLevel: report.DiagnosticError},
-		{name: "control unavailable", control: plugin.ErrUnavailable, wantCode: CodeControlUnavailable, wantLevel: report.DiagnosticWarning},
-		{name: "control unavailable strict", control: plugin.ErrUnavailable, strict: true, wantErr: ErrStrict, wantCode: CodeControlUnavailable, wantLevel: report.DiagnosticWarning},
+		{name: "enricher unavailable", enrichErr: plugin.ErrUnavailable, wantCode: report.CodeEnrichUnavailable, wantLevel: report.DiagnosticWarning},
+		{name: "enricher unavailable with a fix", enrichErr: plugin.UnavailableError("Set GITHUB_TOKEN."), wantCode: report.CodeEnrichUnavailable, wantLevel: report.DiagnosticWarning, wantMsg: "Set GITHUB_TOKEN."},
+		{name: "enricher unavailable strict", enrichErr: plugin.ErrUnavailable, strict: true, wantErr: ErrStrict, wantCode: report.CodeEnrichUnavailable, wantLevel: report.DiagnosticWarning},
+		{name: "enricher error", enrichErr: errors.New("boom"), wantCode: report.CodeEnrichFailed, wantLevel: report.DiagnosticError},
+		{name: "enricher error strict", enrichErr: errors.New("boom"), strict: true, wantErr: ErrStrict, wantCode: report.CodeEnrichFailed, wantLevel: report.DiagnosticError},
+		{name: "control error", control: errors.New("bad"), wantCode: report.CodeControlFailed, wantLevel: report.DiagnosticError},
+		{name: "control unavailable", control: plugin.ErrUnavailable, wantCode: report.CodeControlUnavailable, wantLevel: report.DiagnosticWarning},
+		{name: "control unavailable strict", control: plugin.ErrUnavailable, strict: true, wantErr: ErrStrict, wantCode: report.CodeControlUnavailable, wantLevel: report.DiagnosticWarning},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

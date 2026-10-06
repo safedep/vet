@@ -5,7 +5,6 @@ import (
 	"context"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -343,14 +342,14 @@ func TestPullRequestModeReportsABaseThatVetCannotRead(t *testing.T) {
 	o.BaseRef = "HEAD"
 	res := runScan(t, o)
 
-	var messages []string
-	for rec, err := range res.Scan.Records(context.Background()) {
-		require.NoError(t, err)
-		if rec.Diagnostic != nil {
-			messages = append(messages, rec.Diagnostic.Message)
+	var base *report.Diagnostic
+	for _, d := range diagnosticsOf(t, res) {
+		if d.Code == report.CodeDeltaFailed {
+			base = d
 		}
 	}
-	assert.Contains(t, strings.Join(messages, "\n"), "read the base of package-lock.json")
+	require.NotNil(t, base)
+	assert.Contains(t, base.Message, "read the base of package-lock.json")
 	for id, c := range changesOf(t, res) {
 		assert.Equal(t, model.ChangeAdded, c, "%s: a base that vet cannot read is empty", id)
 	}
@@ -390,31 +389,56 @@ func TestDiffOrdersUnderTheEcosystemRule(t *testing.T) {
 }
 
 // A file that vet cannot read, and that the change keeps as it is, gets
-// one diagnostic from the head extraction and none from the base.
-func TestPullRequestModeReportsAnUnchangedBrokenFileOnce(t *testing.T) {
-	dir := t.TempDir()
-	repo, err := gogit.PlainInit(dir, false)
-	require.NoError(t, err)
-	write(t, dir, "package-lock.json", `{"lockfileVersion": 3, "packages": {`)
-	wt, err := repo.Worktree()
-	require.NoError(t, err)
-	require.NoError(t, wt.AddGlob("."))
-	_, err = wt.Commit("base", &gogit.CommitOptions{Author: &object.Signature{Name: "t", Email: "t@example.com", When: time.Now()}})
-	require.NoError(t, err)
+// A parse error carries the change of its file, so a reader of a pull
+// request report can tell a file of the change from one that it keeps.
+func TestPullRequestModeMarksAParseErrorWithTheFileChange(t *testing.T) {
+	const broken, valid = `{"lockfileVersion": 3, "packages": {`, `{"lockfileVersion": 3, "packages": {}}`
+	cases := []struct {
+		name       string
+		base, head map[string]string
+		want       model.Change
+	}{
+		{"a file that the change keeps", map[string]string{"package-lock.json": broken}, map[string]string{"package-lock.json": broken}, model.ChangeUnchanged},
+		{"a file that the change breaks", map[string]string{"package-lock.json": valid}, map[string]string{"package-lock.json": broken}, model.ChangeModified},
+		{"a file that the change adds", map[string]string{"README.md": "x"}, map[string]string{"package-lock.json": broken}, model.ChangeAdded},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := t.TempDir()
+			repo, err := gogit.PlainInit(dir, false)
+			require.NoError(t, err)
+			for rel, content := range tc.base {
+				write(t, dir, rel, content)
+			}
+			wt, err := repo.Worktree()
+			require.NoError(t, err)
+			require.NoError(t, wt.AddGlob("."))
+			_, err = wt.Commit("base", &gogit.CommitOptions{Author: &object.Signature{Name: "t", Email: "t@example.com", When: time.Now()}})
+			require.NoError(t, err)
+			for rel, content := range tc.head {
+				write(t, dir, rel, content)
+			}
 
-	f := newFixture(t)
-	o := f.options(t, dir, &fakeEnricher{})
-	o.BaseRef = "HEAD"
-	res := runScan(t, o)
+			f := newFixture(t)
+			o := f.options(t, dir, &fakeEnricher{})
+			o.BaseRef = "HEAD"
+			diags := diagnosticsOf(t, runScan(t, o))
 
-	var messages []string
+			require.Len(t, diags, 1, "one diagnostic, from the head")
+			assert.Equal(t, report.CodeExtractFailed, diags[0].Code)
+			assert.Equal(t, tc.want, diags[0].Change)
+		})
+	}
+}
+
+func diagnosticsOf(t *testing.T, res *Result) []*report.Diagnostic {
+	t.Helper()
+	var diags []*report.Diagnostic
 	for rec, err := range res.Scan.Records(context.Background()) {
 		require.NoError(t, err)
 		if rec.Diagnostic != nil {
-			messages = append(messages, rec.Diagnostic.Component+": "+rec.Diagnostic.Message)
+			diags = append(diags, rec.Diagnostic)
 		}
 	}
-	all := strings.Join(messages, "\n")
-	assert.NotContains(t, all, "read the base of")
-	assert.Contains(t, all, "extract: ")
+	return diags
 }
