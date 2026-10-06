@@ -198,6 +198,7 @@ func Test_MavenPomXmlParser_UpstreamRegistryAuth(t *testing.T) {
 	// The scalibr Maven client reads credentials from ${HOME}/.m2/settings.xml
 	home := t.TempDir()
 	t.Setenv("HOME", home)
+	t.Setenv("USERPROFILE", home) // os.UserHomeDir reads this on Windows
 	t.Setenv("VET_TEST_MAVEN_PASSWORD", "s3cret")
 	require.NoError(t, os.MkdirAll(filepath.Join(home, ".m2"), 0o700))
 	require.NoError(t, os.WriteFile(filepath.Join(home, ".m2", "settings.xml"), []byte(`<settings><servers>
@@ -231,7 +232,14 @@ func Test_MavenPomXmlParser_UpstreamRegistryAuth(t *testing.T) {
 }
 
 func Test_MavenPomXmlParser_InvalidUpstreamRegistry(t *testing.T) {
-	for _, registry := range []string{"not a url", "ftp://example.com/maven", "/relative/path", "https://"} {
+	for _, registry := range []string{
+		"not a url",
+		"ftp://example.com/maven",
+		"/relative/path",
+		"https://",
+		"http://artifactory.example.com/maven",
+		"http://10.0.0.5:8081/maven",
+	} {
 		t.Run(registry, func(t *testing.T) {
 			_, err := parseMavenPomXmlFile("./fixtures/java/pom.xml", &ParserConfig{
 				MavenUpstreamRegistry: registry,
@@ -252,6 +260,8 @@ func Test_ValidateMavenUpstreamRegistry_Valid(t *testing.T) {
 	for _, registry := range []string{
 		"",
 		"http://localhost:8081/repository/maven-public",
+		"http://127.0.0.1:8081/maven",
+		"http://[::1]:8081/maven",
 		"https://artifactory.example.com/maven",
 		"artifactregistry://us-maven.pkg.dev/project/repo",
 	} {

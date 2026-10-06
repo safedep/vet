@@ -3,6 +3,7 @@ package parser
 import (
 	"errors"
 	"fmt"
+	"net"
 	"net/url"
 	"path/filepath"
 	"regexp"
@@ -80,7 +81,9 @@ type ParserConfig struct {
 }
 
 // ValidateMavenUpstreamRegistry returns an error when registry is not an absolute
-// http(s) or artifactregistry URL, or when id is set without a registry.
+// https or artifactregistry URL, or when id is set without a registry. http is
+// accepted only for a loopback host, because vet can send settings.xml credentials
+// to the registry. Maven 3.8.1 and later also blocks http repositories.
 // An empty registry is valid and means Maven Central.
 func ValidateMavenUpstreamRegistry(registry, id string) error {
 	if registry == "" {
@@ -93,7 +96,11 @@ func ValidateMavenUpstreamRegistry(registry, id string) error {
 
 	u, err := url.Parse(registry)
 	if err != nil || u.Host == "" || (u.Scheme != "http" && u.Scheme != "https" && u.Scheme != "artifactregistry") {
-		return fmt.Errorf("invalid Maven upstream registry %q: must be an absolute http(s) or artifactregistry URL", registry)
+		return fmt.Errorf("invalid Maven upstream registry %q: must be an absolute https or artifactregistry URL", registry)
+	}
+
+	if u.Scheme == "http" && !isLoopbackHost(u.Hostname()) {
+		return fmt.Errorf("invalid Maven upstream registry %q: use https, http is allowed only for localhost", registry)
 	}
 
 	return nil
@@ -328,4 +335,13 @@ func (pw *parserWrapper) ParseWithConfig(lockfilePath string, config *ParserConf
 	}
 
 	return pm, nil
+}
+
+func isLoopbackHost(host string) bool {
+	if host == "localhost" {
+		return true
+	}
+
+	ip := net.ParseIP(host)
+	return ip != nil && ip.IsLoopback()
 }
