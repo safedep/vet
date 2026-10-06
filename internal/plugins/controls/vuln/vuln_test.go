@@ -16,9 +16,9 @@ func manifest(in *model.Insight) *model.Manifest {
 	return &model.Manifest{
 		ID: "m1", Path: "requirements.txt", Ecosystem: model.EcosystemPyPI, Kind: model.ManifestKindManifest,
 		Packages: []*model.Package{{
-			ID:      model.MustPackageVersion(model.EcosystemPyPI, "requests", "2.0.0"),
-			Direct:  true,
-			Insight: in,
+			ID:         model.MustPackageVersion(model.EcosystemPyPI, "requests", "2.0.0"),
+			Direct:     true,
+			Enrichment: model.Enrichment{Insight: in},
 		}},
 	}
 }

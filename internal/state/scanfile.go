@@ -22,7 +22,7 @@ import (
 // scan files of an older vet unreadable. vet does not migrate a scan file:
 // it refuses an older one, and a stopped scan of an older format starts
 // again.
-const scanFormat = 2
+const scanFormat = 3
 
 // CodeScanFormat is the error code of a scan file of another format.
 const CodeScanFormat = "state_scan_format"
@@ -65,9 +65,7 @@ var scanMigrations = []string{
 		ecosystem   TEXT NOT NULL,
 		raw_name    TEXT NOT NULL,
 		raw_version TEXT NOT NULL,
-		insight   BLOB,
-		malware   BLOB,
-		usage     BLOB
+		enrichment  BLOB
 	)`,
 	`CREATE TABLE vet_scan_manifest_packages (
 		manifest_id TEXT NOT NULL,
@@ -391,7 +389,7 @@ func addManifestTx(ctx context.Context, tx *sql.Tx, artifactKey string, m *model
 			return err
 		}
 		bare := *p
-		bare.Insight, bare.PreviousInsight, bare.Malware, bare.Usage = nil, nil, nil, nil
+		bare.Enrichment, bare.PreviousInsight = model.Enrichment{}, nil
 		pd, err := json.Marshal(packageData{Package: bare})
 		if err != nil {
 			return err
@@ -572,21 +570,7 @@ func (s *Scan) SaveEnrichments(ctx context.Context, results []EnrichmentResult) 
 	return s.tx(ctx, func(tx *sql.Tx) error {
 		for _, r := range results {
 			pkey := string(r.Package.ID.Key())
-			insight, err := marshalOrNil(r.Package.Insight)
-			if err != nil {
-				return err
-			}
-			malware, err := marshalOrNil(r.Package.Malware)
-			if err != nil {
-				return err
-			}
-			usage, err := marshalOrNil(r.Package.Usage)
-			if err != nil {
-				return err
-			}
-			if _, err := tx.ExecContext(ctx, `UPDATE vet_scan_packages SET
-				insight = COALESCE(?, insight), malware = COALESCE(?, malware), usage = COALESCE(?, usage)
-				WHERE pkey = ?`, insight, malware, usage, pkey); err != nil {
+			if err := mergeEnrichment(ctx, tx, pkey, r.Package.Enrichment); err != nil {
 				return err
 			}
 			if _, err := tx.ExecContext(ctx, `INSERT INTO vet_scan_enrichments (pkey, enricher, status, fetched_at)
@@ -706,20 +690,28 @@ func (s *Scan) tx(ctx context.Context, fn func(*sql.Tx) error) error {
 	return nil
 }
 
-func marshalOrNil(v any) ([]byte, error) {
-	switch x := v.(type) {
-	case *model.Insight:
-		if x == nil {
-			return nil, nil
-		}
-	case *model.MalwareAnalysis:
-		if x == nil {
-			return nil, nil
-		}
-	case *model.Usage:
-		if x == nil {
-			return nil, nil
-		}
+// mergeEnrichment sets the fields of e on the stored enrichment data of a
+// package and keeps the other fields.
+func mergeEnrichment(ctx context.Context, tx *sql.Tx, pkey string, e model.Enrichment) error {
+	if e.Empty() {
+		return nil
 	}
-	return json.Marshal(v)
+	var stored []byte
+	err := tx.QueryRowContext(ctx, `SELECT enrichment FROM vet_scan_packages WHERE pkey = ?`, pkey).Scan(&stored)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	cur, err := decodeEnrichment(stored)
+	if err != nil {
+		return err
+	}
+	data, err := json.Marshal(cur.Merge(e))
+	if err != nil {
+		return err
+	}
+	_, err = tx.ExecContext(ctx, `UPDATE vet_scan_packages SET enrichment = ? WHERE pkey = ?`, data, pkey)
+	return err
 }

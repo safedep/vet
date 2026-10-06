@@ -1,0 +1,50 @@
+# A pinned commit that no branch and no tag of the action repository
+# contains gives impostor-commit. A pin comment that names a release tag of
+# another commit gives pin-comment-mismatch. A commit that a tag points to
+# gives neither. A GitHub API that does not answer gives a warning and no
+# finding. plugins.actionrefs.enabled: false turns off the check.
+cd proj
+exec vet scan . --mode plain -o jsonl
+stdout '"control_id":"impostor-commit".*impostor\.yml'
+stdout 'No branch or tag of actions/checkout contains commit 5555aaaa5555'
+stdout '"control_id":"pin-comment-mismatch".*mismatch\.yml'
+stdout 'Tag v4\.1\.0 in the comment does not point to commit 85e6279cec87 of actions/checkout'
+! stdout '"control_id":"(impostor-commit|pin-comment-mismatch)".*tagged\.yml'
+stdout '"reachable":true,"tags":\["v4","v4\.2\.2"\],"ref":"v4"'
+
+stub fail github Unavailable
+exec vet scan . --mode plain -o jsonl --fresh --no-cache
+! stdout '"control_id":"impostor-commit"'
+stderr 'vet did not check the pinned commits of some actions'
+stderr 'The check of actions/checkout stopped with this reason: GitHub API answered 503'
+stub fail github OK
+
+exec vet --config $WORK/off.yml scan . --mode plain -o jsonl --fresh --no-cache
+! stdout '"control_id":"impostor-commit"'
+! stderr 'pinned commits'
+
+-- off.yml --
+plugins:
+  actionrefs:
+    enabled: false
+-- proj/.github/workflows/tagged.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+-- proj/.github/workflows/impostor.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@5555aaaa5555aaaa5555aaaa5555aaaa5555aaaa # v4.2.2
+-- proj/.github/workflows/mismatch.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@85e6279cec87321a52edac9c87bce653a07cf6c2 # v4.1.0

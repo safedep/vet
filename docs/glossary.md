@@ -182,9 +182,11 @@ _Avoid_: warning (as a type), error record, issue
 ## Data
 
 **Enricher**:
-The plugin that adds data to a batch of packages: `insights`, `malysis` and `codeusage`.
-`plugin.Enricher`. Each enricher has a **version** that changes when its mapping changes, so the
-enrichment cache drops old results.
+The plugin that adds data to a batch of packages: `insights`, `malysis`, `codeusage` and
+`actionrefs`. `plugin.Enricher`. Each enricher has a **version** that changes when its mapping
+changes, so the enrichment cache drops old results. Each enricher sets one field of
+`model.Enrichment`, which `model.Package` embeds. The engine, the scan file and the enrichment cache
+copy the data through that struct.
 _Avoid_: analyzer, fetcher, provider
 
 **Insight**:
@@ -216,6 +218,13 @@ A missing backend contract that limits a control or a plugin, numbered G1 to G11
 `safedep/control-tower` holds the gap table. A code comment names the gap where the code works around
 it, as in `// gap G2: ...`.
 _Avoid_: TODO, limitation
+
+**Impostor commit**:
+A commit that an action pins with a SHA, and that no branch and no tag of the named repository
+contains. GitHub serves each commit of a fork network through each repository of the network, so the
+commit can come from a fork. `model.ActionCommit` on `Package.Action`, set by the `actionrefs`
+enricher. The `impostor-commit` control reports it.
+_Avoid_: fork commit, orphan commit, dangling commit
 
 **Code usage**:
 The evidence that the target's code imports a package, and in which files. `model.Usage`, set by the

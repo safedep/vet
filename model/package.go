@@ -1,10 +1,13 @@
 package model
 
-import "time"
+import (
+	"cmp"
+	"time"
+)
 
-// Package is one package version that a manifest declares or resolves. The
-// optional pointer fields hold the data of each data source. They are nil
-// when the source did not answer.
+// Package is one package version that a manifest declares or resolves.
+// Enrichment holds the data of each enricher. A field is nil when the
+// enricher did not answer.
 type Package struct {
 	ID     PackageVersion `json:"id"`
 	Direct bool           `json:"direct"`
@@ -33,12 +36,61 @@ type Package struct {
 	// package, so vet does not look it up.
 	Local bool `json:"local,omitempty"`
 
-	Insight *Insight `json:"insight,omitempty"`
+	Enrichment
+
 	// PreviousInsight is the Insights data of PreviousVersion, in pull
 	// request mode. The controls that compare two versions read it.
-	PreviousInsight *Insight         `json:"previous_insight,omitempty"`
-	Malware         *MalwareAnalysis `json:"malware,omitempty"`
-	Usage           *Usage           `json:"usage,omitempty"`
+	PreviousInsight *Insight `json:"previous_insight,omitempty"`
+}
+
+// Enrichment holds the package data that the enrichers set. Each field
+// belongs to one enricher. The engine, the scan file and the enrichment
+// cache copy the fields through this struct. A new enricher adds its field
+// here, and to Merge and Since.
+type Enrichment struct {
+	Insight *Insight         `json:"insight,omitempty"`
+	Malware *MalwareAnalysis `json:"malware,omitempty"`
+	Usage   *Usage           `json:"usage,omitempty"`
+	Action  *ActionCommit    `json:"action,omitempty"`
+}
+
+// Empty reports whether no field is set.
+func (e Enrichment) Empty() bool { return e == Enrichment{} }
+
+// Merge returns e with each field that o sets.
+func (e Enrichment) Merge(o Enrichment) Enrichment {
+	return Enrichment{
+		Insight: cmp.Or(o.Insight, e.Insight), Malware: cmp.Or(o.Malware, e.Malware),
+		Usage: cmp.Or(o.Usage, e.Usage), Action: cmp.Or(o.Action, e.Action),
+	}
+}
+
+// Since returns the fields of e that differ from before. They are the
+// data that an enricher set.
+func (e Enrichment) Since(before Enrichment) Enrichment {
+	return Enrichment{
+		Insight: changed(e.Insight, before.Insight), Malware: changed(e.Malware, before.Malware),
+		Usage: changed(e.Usage, before.Usage), Action: changed(e.Action, before.Action),
+	}
+}
+
+func changed[T any](now, was *T) *T {
+	if now == was {
+		return nil
+	}
+	return now
+}
+
+// ActionCommit is the GitHub data of a GitHub Actions package pinned to a
+// commit. A nil value means that the check did not finish.
+type ActionCommit struct {
+	// Reachable reports that a branch or a tag of the repository contains
+	// the commit.
+	Reachable bool `json:"reachable"`
+	// Tags are the tags that point to the commit.
+	Tags []string `json:"tags,omitempty"`
+	// Ref is the first branch or tag that vet found to contain the commit.
+	Ref string `json:"ref,omitempty"`
 }
 
 // Checkable reports whether a registry can answer for the package: it has a

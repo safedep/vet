@@ -116,6 +116,7 @@ func run(ctx context.Context, a *app.App, f state.Flags, fix bool) []Check {
 	}
 	checks = append(checks, configCheck(rt.Loaded))
 	checks = append(checks, latestRelease(ctx, rt.Config))
+	checks = append(checks, githubTokenCheck(ctx, github.DefaultProvider()))
 	checks = append(checks, installChecks(rt.Config)...)
 	checks = append(checks, stateChecks(ctx, rt, fix)...)
 	creds, credCheck := credentialCheck(rt.Config)
@@ -147,22 +148,17 @@ func latestRelease(ctx context.Context, cfg *config.Config) Check {
 	if err != nil {
 		return Check{ID: "vet.release", Status: Warn, Message: "vet could not check the latest release: " + err.Error()}
 	}
+	releases, err := github.ListAll(func(page int) ([]*gh.RepositoryRelease, *gh.Response, error) {
+		return client.Repositories.ListReleases(ctx, "safedep", "vet", &gh.ListOptions{Page: page, PerPage: 100})
+	})
+	if err != nil {
+		return Check{ID: "vet.release", Status: Warn, Message: "vet could not check the latest release: " + err.Error()}
+	}
 	var tags []string
-	opts := &gh.ListOptions{PerPage: 100}
-	for {
-		releases, resp, err := client.Repositories.ListReleases(ctx, "safedep", "vet", opts)
-		if err != nil {
-			return Check{ID: "vet.release", Status: Warn, Message: "vet could not check the latest release: " + err.Error()}
+	for _, r := range releases {
+		if !r.GetDraft() {
+			tags = append(tags, r.GetTagName())
 		}
-		for _, r := range releases {
-			if !r.GetDraft() {
-				tags = append(tags, r.GetTagName())
-			}
-		}
-		if resp.NextPage == 0 {
-			break
-		}
-		opts.Page = resp.NextPage
 	}
 	return releaseCheck(tags, version.Version())
 }
@@ -321,6 +317,23 @@ func sizeMessage(scans int, used int64, limit string) string {
 		msg += " of the limit of " + limit
 	}
 	return msg
+}
+
+// githubTokenCheck reports the GitHub token and its source. The actionrefs
+// enricher and vet fix call the GitHub API with it.
+func githubTokenCheck(ctx context.Context, tp github.TokenProvider) Check {
+	source, err := github.Source(ctx, tp)
+	switch {
+	case err == nil:
+		return Check{ID: "github.token", Status: Pass, Message: "GitHub token from " + source}
+	case errors.Is(err, github.ErrNoToken):
+		return Check{
+			ID: "github.token", Status: Warn,
+			Message: "no GitHub token. vet calls the GitHub API anonymously, with 60 calls an hour",
+			Fix:     "Set GITHUB_TOKEN or run gh auth login to raise the limit.",
+		}
+	}
+	return Check{ID: "github.token", Status: Warn, Message: "vet could not read the GitHub token: " + err.Error()}
 }
 
 func credentialCheck(cfg *config.Config) (*credentials.Result, Check) {

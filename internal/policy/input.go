@@ -59,6 +59,15 @@ type PackageInput struct {
 	LatestVersion    string                `json:"latest_version"`
 	Vulnerabilities  []VulnerabilityInput  `json:"vulnerabilities"`
 	Malware          *MalwareAnalysisInput `json:"malware,omitempty"`
+	Action           *ActionInput          `json:"action,omitempty"`
+}
+
+// ActionInput is the GitHub data of a GitHub Actions package pinned to a
+// commit.
+type ActionInput struct {
+	Reachable bool     `json:"reachable"`
+	Tags      []string `json:"tags"`
+	Ref       string   `json:"ref"`
 }
 
 // VulnerabilityInput is one advisory of a package.
@@ -133,6 +142,9 @@ func packageInput(p *model.Package, now time.Time) *PackageInput {
 	}
 	if a := p.Malware; a != nil {
 		in.Malware = &MalwareAnalysisInput{Malicious: a.Malicious, Verified: a.Verified, Confidence: a.Confidence}
+	}
+	if a := p.Action; a != nil {
+		in.Action = &ActionInput{Reachable: a.Reachable, Tags: append([]string{}, a.Tags...), Ref: a.Ref}
 	}
 	return in
 }

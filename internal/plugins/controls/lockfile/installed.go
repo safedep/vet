@@ -29,16 +29,18 @@ var installedInfo = plugin.ControlInfo{
 
 // locked holds the npm packages of the lockfiles of one project directory.
 type locked struct {
+	// dir is the directory of the lockfiles.
+	dir      string
 	keys     map[model.PackageKey]bool
 	versions map[model.PackageKey][]string
-	// anyVersion holds the names of the npm lockfile entries that the
-	// extractor gives no npm package for, such as a git or a file
-	// dependency. The control cannot compare the version of these.
-	anyVersion map[model.PackageKey]bool
+	// anyVersion holds the paths, relative to dir, of the npm lockfile
+	// entries that the extractor gives no npm package for, such as a git or
+	// a file dependency. The control cannot compare the version of these.
+	anyVersion map[string]bool
 }
 
-func newLocked() *locked {
-	return &locked{keys: map[model.PackageKey]bool{}, versions: map[model.PackageKey][]string{}, anyVersion: map[model.PackageKey]bool{}}
+func newLocked(dir string) *locked {
+	return &locked{dir: dir, keys: map[model.PackageKey]bool{}, versions: map[model.PackageKey][]string{}, anyVersion: map[string]bool{}}
 }
 
 // lockIndex maps a project directory to its locked npm packages. The
@@ -66,7 +68,7 @@ func (x *lockIndex) of(ctx context.Context, s plugin.State, root fs.FS) (map[str
 		dir := path.Dir(m.Path)
 		l := dirs[dir]
 		if l == nil {
-			l = newLocked()
+			l = newLocked(dir)
 			dirs[dir] = l
 		}
 		for _, p := range m.Packages {
@@ -110,9 +112,7 @@ func (l *locked) addUnversioned(root fs.FS, file string) error {
 		if id, err := model.NewPackageVersion(model.EcosystemNpm, name, e.Version); err == nil && l.keys[id.Key()] {
 			continue
 		}
-		if id, err := model.NewPackageVersion(model.EcosystemNpm, name, "0"); err == nil {
-			l.anyVersion[id.NameKey()] = true
-		}
+		l.anyVersion[p] = true
 	}
 	return nil
 }
@@ -136,7 +136,7 @@ func (c *Control) installed(ctx context.Context, m *model.Manifest, s plugin.Sta
 	}
 	var out []finding.Finding
 	for _, p := range m.Packages {
-		if l.keys[p.ID.Key()] || l.anyVersion[p.ID.NameKey()] {
+		if l.keys[p.ID.Key()] || l.anyVersion[l.entry(m.Path)] {
 			continue
 		}
 		title := fmt.Sprintf("%s is installed, and the lockfile does not list it", p.ID)
@@ -153,6 +153,16 @@ func (c *Control) installed(ctx context.Context, m *model.Manifest, s plugin.Sta
 		out = append(out, f)
 	}
 	return out, nil
+}
+
+// entry returns the lockfile entry path of the package.json of an installed
+// package, as in node_modules/a/node_modules/b.
+func (l *locked) entry(manifest string) string {
+	dir := path.Dir(manifest)
+	if l.dir == "." {
+		return dir
+	}
+	return strings.TrimPrefix(dir, l.dir+"/")
 }
 
 // nearest returns the lockfiles of the directory or of its nearest parent

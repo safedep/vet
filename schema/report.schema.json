@@ -3,6 +3,26 @@
   "$id": "https://schemas.safedep.io/vet/report/v1/report.schema.json",
   "$ref": "#/$defs/Document",
   "$defs": {
+    "ActionCommit": {
+      "properties": {
+        "reachable": {
+          "type": "boolean"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ref": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "reachable"
+      ]
+    },
     "ApplicationSubject": {
       "properties": {
         "root": {
@@ -626,14 +646,17 @@
         "insight": {
           "$ref": "#/$defs/Insight"
         },
-        "previous_insight": {
-          "$ref": "#/$defs/Insight"
-        },
         "malware": {
           "$ref": "#/$defs/MalwareAnalysis"
         },
         "usage": {
           "$ref": "#/$defs/Usage"
+        },
+        "action": {
+          "$ref": "#/$defs/ActionCommit"
+        },
+        "previous_insight": {
+          "$ref": "#/$defs/Insight"
         }
       },
       "type": "object",

@@ -58,6 +58,7 @@ jobs:
       - name: Scan the change
         env:
           BASE_REF: ${{ github.base_ref }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: vet scan --base-ref "origin/$BASE_REF" --fail-on high --report sarif=vet.sarif
 
       - uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
@@ -65,6 +66,9 @@ jobs:
         with:
           sarif_file: vet.sarif
 ```
+
+`GITHUB_TOKEN` lets vet check the pinned actions of the workflows for impostor commits with the
+GitHub API. See [controls.md](controls.md#pinned-commits).
 
 The `vet-action` of vet v1 installs vet v1. A GitHub Action for vet v2 is planned.
 

@@ -114,6 +114,7 @@ A rule reads three variables. `vet policy schema get` prints their JSON Schema.
 | `latest_version` | The newest version in the registry |
 | `vulnerabilities` | A list. Each item has `id`, `aliases`, `severity` and `cvss` |
 | `malware` | `malicious`, `verified` and `confidence` of the analysis |
+| `action` | For a GitHub Actions package pinned to a commit: `reachable` (a branch or a tag contains the commit), `tags` (the tags that point to it) and `ref` |
 
 **`manifest`**: `path`, `ecosystem`, `kind` and `change` of the file that holds the package.
 

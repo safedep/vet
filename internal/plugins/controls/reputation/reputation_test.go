@@ -36,7 +36,7 @@ func run(t *testing.T, opts map[string]any, p *model.Package) []string {
 }
 
 func pkg(eco model.Ecosystem, name, version string, in *model.Insight) *model.Package {
-	return &model.Package{ID: model.MustPackageVersion(eco, name, version), Insight: in}
+	return &model.Package{ID: model.MustPackageVersion(eco, name, version), Enrichment: model.Enrichment{Insight: in}}
 }
 
 func TestReputation(t *testing.T) {
@@ -63,8 +63,8 @@ func TestReputation(t *testing.T) {
 		{"new with a shorter window", map[string]any{"new_package_days": 2}, pkg(model.EcosystemNpm, "brand-new-thing", "0.0.1", &model.Insight{FirstPublishedAt: ago(3), Downloads: 5}), nil},
 		{"starjacking", nil, pkg(model.EcosystemNpm, "some-fork", "1.0.0", &model.Insight{Stars: 90000, Downloads: 3, SourceRepo: "https://github.com/facebook/react"}), []string{IDStarjacking}},
 		{"no download count is not starjacking", nil, pkg(model.EcosystemCargo, "regex-syntax", "0.8.11", &model.Insight{Stars: 4039, SourceRepo: "https://github.com/rust-lang/regex"}), nil},
-		{"a new package in the scope of its repository owner", nil, &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "@pnpm/exe.linux-x64", "12.0.0"), Insight: &model.Insight{FirstPublishedAt: ago(3), Stars: 36000, SourceRepo: "https://github.com/pnpm/pnpm"}}, nil},
-		{"a new package in a scope that copies the owner", nil, &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "@pnpmm/exe.linux-x64", "12.0.0"), Insight: &model.Insight{FirstPublishedAt: ago(3), Stars: 36000, SourceRepo: "https://github.com/pnpm/pnpm"}}, []string{IDNewPackage}},
+		{"a new package in the scope of its repository owner", nil, &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "@pnpm/exe.linux-x64", "12.0.0"), Enrichment: model.Enrichment{Insight: &model.Insight{FirstPublishedAt: ago(3), Stars: 36000, SourceRepo: "https://github.com/pnpm/pnpm"}}}, nil},
+		{"a new package in a scope that copies the owner", nil, &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "@pnpmm/exe.linux-x64", "12.0.0"), Enrichment: model.Enrichment{Insight: &model.Insight{FirstPublishedAt: ago(3), Stars: 36000, SourceRepo: "https://github.com/pnpm/pnpm"}}}, []string{IDNewPackage}},
 		{"new with no download count", nil, pkg(model.EcosystemNpm, "brand-new-thing", "0.0.1", &model.Insight{FirstPublishedAt: ago(3)}), []string{IDNewPackage}},
 		{"a near name with its own popular repository", nil, pkg(model.EcosystemNpm, "enquirer", "2.4.1", &model.Insight{Stars: 7700, SourceRepo: "https://github.com/enquirer/enquirer"}), nil},
 		{"a squat that claims the repository it copies", nil, pkg(model.EcosystemNpm, "expresss", "1.0.0", &model.Insight{Stars: 65000, SourceRepo: "https://github.com/expressjs/express.git"}), []string{IDTyposquat}},

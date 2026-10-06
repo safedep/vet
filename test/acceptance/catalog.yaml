@@ -284,6 +284,12 @@
   tier: P2
   guarantee: "In pull request mode with plugins.codeusage.enabled, on a build with CGO, a change that adds a call to an AI SDK gives an ai-bom-delta finding on the application. A capability that the base commit has gives none."
   labels: [controls, pr-mode, config]
+- id: controls/workflow/impostor-commit
+  title: "workflow: impostor commit and pin comment"
+  category: controls
+  tier: P1
+  guarantee: "A pinned action commit that no branch and no tag of its repository contains gives impostor-commit. A pin comment that names a release tag of another commit gives pin-comment-mismatch. A GitHub API that does not answer gives a warning and no finding. plugins.actionrefs.enabled: false turns off the check."
+  labels: [workflow]
 - id: controls/workflow/hardening
   title: "workflow: hardening controls"
   category: controls

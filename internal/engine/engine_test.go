@@ -183,8 +183,10 @@ func TestFailOpen(t *testing.T) {
 		wantErr   error
 		wantCode  string
 		wantLevel report.DiagnosticLevel
+		wantMsg   string
 	}{
 		{name: "enricher unavailable", enrichErr: plugin.ErrUnavailable, wantCode: CodeEnrichUnavailable, wantLevel: report.DiagnosticWarning},
+		{name: "enricher unavailable with a fix", enrichErr: plugin.UnavailableError("Set GITHUB_TOKEN."), wantCode: CodeEnrichUnavailable, wantLevel: report.DiagnosticWarning, wantMsg: "Set GITHUB_TOKEN."},
 		{name: "enricher unavailable strict", enrichErr: plugin.ErrUnavailable, strict: true, wantErr: ErrStrict, wantCode: CodeEnrichUnavailable, wantLevel: report.DiagnosticWarning},
 		{name: "enricher error", enrichErr: errors.New("boom"), wantCode: CodeEnrichFailed, wantLevel: report.DiagnosticError},
 		{name: "enricher error strict", enrichErr: errors.New("boom"), strict: true, wantErr: ErrStrict, wantCode: CodeEnrichFailed, wantLevel: report.DiagnosticError},
@@ -222,6 +224,9 @@ func TestFailOpen(t *testing.T) {
 			for _, d := range diags {
 				assert.Equal(t, tc.wantCode, d.Code)
 				assert.Equal(t, tc.wantLevel, d.Level)
+				if tc.wantMsg != "" {
+					assert.Equal(t, tc.wantMsg, d.Message)
+				}
 			}
 		})
 	}

@@ -8,10 +8,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"net"
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -278,6 +280,9 @@ type githubRepo struct {
 //	GET /repos/{owner}/{repo}/git/ref/heads/{branch}
 //	GET /repos/{owner}/{repo}/commits/{ref}
 //	GET /repos/{owner}/{repo}/releases (one page)
+//	GET /repos/{owner}/{repo}
+//	GET /repos/{owner}/{repo}/tags and /branches (one page)
+//	GET /repos/{owner}/{repo}/compare/{base}...{head}
 func (s *Server) serveGitHub(w http.ResponseWriter, r *http.Request) {
 	if err := s.begin(r.Context(), GitHub); err != nil {
 		http.Error(w, err.Error(), http.StatusServiceUnavailable)
@@ -288,7 +293,7 @@ func (s *Server) serveGitHub(w http.ResponseWriter, r *http.Request) {
 		s.serveReleases(w, r, parts[1], parts[2])
 		return
 	}
-	if r.Method != http.MethodGet || len(parts) < 4 || parts[0] != "repos" {
+	if r.Method != http.MethodGet || len(parts) < 3 || parts[0] != "repos" {
 		http.NotFound(w, r)
 		return
 	}
@@ -309,6 +314,10 @@ func (s *Server) serveGitHub(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rest := parts[3:]
+	if len(rest) == 0 || rest[0] == "tags" || rest[0] == "branches" || rest[0] == "compare" {
+		serveRepo(w, r, &repo, rest)
+		return
+	}
 	var sha, ref string
 	switch {
 	case len(rest) >= 4 && rest[0] == "git" && rest[1] == "ref" && rest[2] == "tags":
@@ -323,6 +332,10 @@ func (s *Server) serveGitHub(w http.ResponseWriter, r *http.Request) {
 		if sha == "" {
 			sha = repo.Branches[ref]
 		}
+		// The fork network has each other commit.
+		if sha == "" && len(ref) == 40 {
+			sha = ref
+		}
 	}
 	if sha == "" {
 		http.NotFound(w, r)
@@ -334,14 +347,50 @@ func (s *Server) serveGitHub(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
 	body := map[string]any{"sha": sha}
 	if rest[0] == "git" {
 		body = map[string]any{"ref": ref, "object": map[string]string{"sha": sha, "type": "commit"}}
 	}
-	if err := json.NewEncoder(w).Encode(body); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	writeJSON(w, body)
+}
+
+// serveRepo answers the calls of the actionrefs enricher: the repository,
+// with the default branch main, its tags and branches, and the compare of
+// a ref with a commit. A ref contains only its own commit.
+func serveRepo(w http.ResponseWriter, r *http.Request, repo *githubRepo, rest []string) {
+	switch {
+	case len(rest) == 0:
+		writeJSON(w, map[string]string{"default_branch": "main"})
+	case len(rest) == 1 && rest[0] == "tags":
+		writeJSON(w, refList(repo.Tags))
+	case len(rest) == 1 && rest[0] == "branches":
+		writeJSON(w, refList(repo.Branches))
+	case rest[0] == "compare":
+		base, head, _ := strings.Cut(strings.Join(rest[1:], "/"), "...")
+		status := "diverged"
+		if repo.Branches[base] == head || repo.Tags[base] == head {
+			status = "identical"
+		}
+		writeJSON(w, map[string]string{"status": status})
+	default:
+		http.NotFound(w, r)
 	}
+}
+
+func writeJSON(w http.ResponseWriter, body any) {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(body); err != nil {
+		fmt.Fprintf(os.Stderr, "stub: write: %v\n", err)
+	}
+}
+
+// refList returns the tags or the branches of a fixture in name order.
+func refList(refs map[string]string) []map[string]any {
+	out := make([]map[string]any, 0, len(refs))
+	for _, name := range slices.Sorted(maps.Keys(refs)) {
+		out = append(out, map[string]any{"name": name, "commit": map[string]string{"sha": refs[name]}})
+	}
+	return out
 }
 
 // serveReleases answers the release list of a repository from the
@@ -365,8 +414,5 @@ func (s *Server) serveReleases(w http.ResponseWriter, r *http.Request, owner, na
 	for _, tag := range repo.Releases {
 		out = append(out, release{TagName: tag})
 	}
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(out); err != nil {
-		fmt.Fprintf(os.Stderr, "stub: write: %v\n", err)
-	}
+	writeJSON(w, out)
 }

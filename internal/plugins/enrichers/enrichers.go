@@ -1,7 +1,8 @@
 // Package enrichers builds the enrichers of a scan: Insights v2 and
-// Malysis, and the codeusage enricher when it is on. With no credentials,
-// Insights and Malysis call the community service. With an API key, they
-// call the API service of the tenant.
+// Malysis, and the codeusage and actionrefs enrichers when they are on.
+// With no credentials, Insights and Malysis call the community service.
+// With an API key, they call the API service of the tenant. actionrefs
+// calls the GitHub API.
 package enrichers
 
 import (
@@ -14,6 +15,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/safedep/vet/v2/internal/credentials"
+	"github.com/safedep/vet/v2/internal/plugins/enrichers/actionrefs"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/codeusage"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/insights"
 	"github.com/safedep/vet/v2/internal/plugins/enrichers/internal/client"
@@ -38,6 +40,8 @@ type Options struct {
 	CodeUsageDir string
 	// CodeUsage are the options of the codeusage enricher.
 	CodeUsage codeusage.Options
+	// ActionRefs turns on the actionrefs enricher.
+	ActionRefs *actionrefs.Enricher
 }
 
 // Spec is one enricher with its cache identity.
@@ -91,6 +95,10 @@ func Build(o Options) (*Set, error) {
 			},
 		},
 		conns: []*grpc.ClientConn{conn},
+	}
+	if o.ActionRefs != nil {
+		// A pin with no data is not cached, so a later scan checks it again.
+		set.Specs = append(set.Specs, Spec{Name: actionrefs.Name, Version: o.ActionRefs.CacheVersion(), TTL: o.TTL, Plugin: o.ActionRefs, SkipEmpty: true})
 	}
 	if o.CodeUsageDir != "" {
 		// The usage depends on the target, so the cache keeps none.

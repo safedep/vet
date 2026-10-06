@@ -136,9 +136,9 @@ func (r *run) enrichBatch(ctx context.Context, e Enricher, batch []*model.Packag
 		return results, nil
 	}
 
-	before := make([]enrichedData, len(todo))
+	before := make([]model.Enrichment, len(todo))
 	for i, p := range todo {
-		before[i] = dataOf(p)
+		before[i] = p.Enrichment
 	}
 	status := state.EnrichmentOK
 	if err := e.Plugin.Enrich(ctx, todo); err != nil {
@@ -155,8 +155,10 @@ func (r *run) enrichBatch(ctx context.Context, e Enricher, batch []*model.Packag
 	if useCache {
 		own := make([]state.EnrichmentResult, 0, len(fresh))
 		for i, res := range fresh {
-			res.Package = ownData(res.Package, before[i])
-			if e.SkipEmpty && res.Package.Insight == nil && res.Package.Malware == nil && res.Package.Usage == nil {
+			// A result must not carry the data of another enricher, or a
+			// cache hit puts back an old result of that enricher.
+			res.Package = &model.Package{ID: res.Package.ID, Enrichment: res.Package.Since(before[i])}
+			if e.SkipEmpty && res.Package.Empty() {
 				continue
 			}
 			own = append(own, res)
@@ -168,41 +170,16 @@ func (r *run) enrichBatch(ctx context.Context, e Enricher, batch []*model.Packag
 	return append(results, fresh...), nil
 }
 
-// enrichedData holds the data fields of a package.
-type enrichedData struct {
-	insight *model.Insight
-	malware *model.MalwareAnalysis
-	usage   *model.Usage
-}
-
-func dataOf(p *model.Package) enrichedData {
-	return enrichedData{insight: p.Insight, malware: p.Malware, usage: p.Usage}
-}
-
-// ownData returns a copy of the package with only the data that the
-// enricher set. The cache keeps a result for each enricher and version. A
-// result must not carry the data of another enricher, or a cache hit puts
-// back an old result of that enricher.
-func ownData(p *model.Package, before enrichedData) *model.Package {
-	out := &model.Package{ID: p.ID}
-	if p.Insight != before.insight {
-		out.Insight = p.Insight
-	}
-	if p.Malware != before.malware {
-		out.Malware = p.Malware
-	}
-	if p.Usage != before.usage {
-		out.Usage = p.Usage
-	}
-	return out
-}
-
 // enrichError records a failed batch. A backend that does not answer is a
 // warning: the controls that need its data fail open.
 func (r *run) enrichError(name string, err error) {
 	if errors.Is(err, plugin.ErrUnavailable) {
-		r.diags.add(report.DiagnosticWarning, CodeEnrichUnavailable, name,
-			"The backend did not answer. The controls that need its data did not run on some packages.")
+		msg := "The backend did not answer. The controls that need its data did not run on some packages."
+		var u plugin.UnavailableError
+		if errors.As(err, &u) {
+			msg = string(u)
+		}
+		r.diags.add(report.DiagnosticWarning, CodeEnrichUnavailable, name, msg)
 		return
 	}
 	r.diags.add(report.DiagnosticError, CodeEnrichFailed, name, err.Error())

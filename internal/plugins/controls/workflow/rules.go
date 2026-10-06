@@ -4,6 +4,8 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+
+	"github.com/safedep/vet/v2/internal/github"
 )
 
 // dangerousTriggers run with a write token and the secrets of the base
@@ -65,7 +67,6 @@ var (
 	quotedIndex   = regexp.MustCompile(`\[\s*['"]([^'"]*)['"]\s*\]`)
 	numericIndex  = regexp.MustCompile(`\[[^\]]*\]`)
 	spaces        = regexp.MustCompile(`\s+`)
-	commitSHA     = regexp.MustCompile(`^[0-9a-fA-F]{40}$`)
 	imageDigest   = regexp.MustCompile(`@sha256:[0-9a-fA-F]{64}$`)
 	githubScript  = "actions/github-script@"
 	checkoutUsing = "actions/checkout@"
@@ -131,5 +132,5 @@ func pinned(uses string) (name string, ok bool) {
 		return "docker://" + name, imageDigest.MatchString(image)
 	}
 	name, ref, found := strings.Cut(uses, "@")
-	return name, found && commitSHA.MatchString(ref)
+	return name, found && github.IsCommitSHA(ref)
 }

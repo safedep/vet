@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"reflect"
 	"testing"
 
 	"github.com/safedep/dry/api/pb"
@@ -334,4 +335,24 @@ func TestMatchName(t *testing.T) {
 
 	_, err := mustPV(t, EcosystemPyPI, "a", "1").MatchName("a[")
 	assert.Error(t, err)
+}
+
+func TestEnrichment(t *testing.T) {
+	insight, action := &Insight{Deprecated: true}, &ActionCommit{Reachable: true}
+	before := Enrichment{Insight: insight}
+	after := before
+	after.Action = action
+
+	assert.True(t, Enrichment{}.Empty())
+	assert.False(t, before.Empty())
+	assert.Equal(t, Enrichment{Action: action}, after.Since(before), "Since keeps only the fields that changed")
+	assert.Equal(t, Enrichment{Insight: insight, Action: action}, before.Merge(Enrichment{Action: action}), "Merge keeps the fields that the other value does not set")
+
+	var full Enrichment
+	v := reflect.ValueOf(&full).Elem()
+	for i := range v.NumField() {
+		v.Field(i).Set(reflect.New(v.Field(i).Type().Elem()))
+	}
+	assert.Equal(t, full, Enrichment{}.Merge(full), "Merge copies each field")
+	assert.Equal(t, full, full.Since(Enrichment{}), "Since copies each field")
 }

@@ -36,75 +36,75 @@ func TestInsightChecks(t *testing.T) {
 		want []string
 	}{
 		{"no data", nil, &model.Package{ID: npm("a", "1.0.0")}, nil},
-		{"deprecated", nil, &model.Package{ID: npm("a", "1.0.0"), Insight: &model.Insight{Deprecated: true}}, []string{hygiene.IDDeprecated}},
+		{"deprecated", nil, &model.Package{ID: npm("a", "1.0.0"), Enrichment: model.Enrichment{Insight: &model.Insight{Deprecated: true}}}, []string{hygiene.IDDeprecated}},
 		{"provenance lost", nil, &model.Package{
 			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
-			Insight: &model.Insight{}, PreviousInsight: &model.Insight{Provenance: true},
+			Enrichment: model.Enrichment{Insight: &model.Insight{}}, PreviousInsight: &model.Insight{Provenance: true},
 		}, []string{hygiene.IDProvenanceLost}},
 		{"provenance kept", nil, &model.Package{
 			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
-			Insight: &model.Insight{Provenance: true}, PreviousInsight: &model.Insight{Provenance: true},
+			Enrichment: model.Enrichment{Insight: &model.Insight{Provenance: true}}, PreviousInsight: &model.Insight{Provenance: true},
 		}, nil},
 		{"license change", nil, &model.Package{
 			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
-			Insight: &model.Insight{Licenses: []string{"AGPL-3.0-only"}}, PreviousInsight: &model.Insight{Licenses: []string{"MIT"}},
+			Enrichment: model.Enrichment{Insight: &model.Insight{Licenses: []string{"AGPL-3.0-only"}}}, PreviousInsight: &model.Insight{Licenses: []string{"MIT"}},
 		}, []string{hygiene.IDLicenseChange}},
 		{"relicensed to source-available", nil, &model.Package{
 			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
-			Insight: &model.Insight{Licenses: []string{"SSPL-1.0"}}, PreviousInsight: &model.Insight{Licenses: []string{"Apache-2.0"}},
+			Enrichment: model.Enrichment{Insight: &model.Insight{Licenses: []string{"SSPL-1.0"}}}, PreviousInsight: &model.Insight{Licenses: []string{"Apache-2.0"}},
 		}, []string{hygiene.IDRelicensed}},
 		{"relicensed to no license", nil, &model.Package{
 			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
-			Insight: &model.Insight{Licenses: []string{"NONE"}}, PreviousInsight: &model.Insight{Licenses: []string{"MIT"}},
+			Enrichment: model.Enrichment{Insight: &model.Insight{Licenses: []string{"NONE"}}}, PreviousInsight: &model.Insight{Licenses: []string{"MIT"}},
 		}, []string{hygiene.IDRelicensed}},
 		{"permissive license with no SPDX flag", nil, &model.Package{
 			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
-			Insight: &model.Insight{Licenses: []string{"PSF-2.0"}}, PreviousInsight: &model.Insight{Licenses: []string{"Python-2.0"}},
+			Enrichment: model.Enrichment{Insight: &model.Insight{Licenses: []string{"PSF-2.0"}}}, PreviousInsight: &model.Insight{Licenses: []string{"Python-2.0"}},
 		}, []string{hygiene.IDLicenseChange}},
 		{"a choice that does not limit use", nil, &model.Package{
 			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
-			Insight: &model.Insight{Licenses: []string{"MIT OR BUSL-1.1"}}, PreviousInsight: &model.Insight{Licenses: []string{"MIT"}},
+			Enrichment: model.Enrichment{Insight: &model.Insight{Licenses: []string{"MIT OR BUSL-1.1"}}}, PreviousInsight: &model.Insight{Licenses: []string{"MIT"}},
 		}, []string{hygiene.IDLicenseChange}},
 		{"NONE beside an id", nil, &model.Package{
 			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
-			Insight: &model.Insight{Licenses: []string{"MIT", "NONE"}}, PreviousInsight: &model.Insight{Licenses: []string{"MIT"}},
+			Enrichment: model.Enrichment{Insight: &model.Insight{Licenses: []string{"MIT", "NONE"}}}, PreviousInsight: &model.Insight{Licenses: []string{"MIT"}},
 		}, []string{hygiene.IDLicenseChange}},
 		{"to a license that is not known", nil, &model.Package{
 			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
-			Insight: &model.Insight{Licenses: []string{"Custom"}}, PreviousInsight: &model.Insight{Licenses: []string{"MIT"}},
+			Enrichment: model.Enrichment{Insight: &model.Insight{Licenses: []string{"Custom"}}}, PreviousInsight: &model.Insight{Licenses: []string{"MIT"}},
 		}, []string{hygiene.IDLicenseChange}},
 		{"between licenses that limit use", nil, &model.Package{
 			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
-			Insight: &model.Insight{Licenses: []string{"BUSL-1.1"}}, PreviousInsight: &model.Insight{Licenses: []string{"SSPL-1.0"}},
+			Enrichment: model.Enrichment{Insight: &model.Insight{Licenses: []string{"BUSL-1.1"}}}, PreviousInsight: &model.Insight{Licenses: []string{"SSPL-1.0"}},
 		}, []string{hygiene.IDLicenseChange}},
 		{"to non-commercial", nil, &model.Package{
 			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
-			Insight: &model.Insight{Licenses: []string{"CC-BY-NC-4.0"}}, PreviousInsight: &model.Insight{Licenses: []string{"CC-BY-4.0"}},
+			Enrichment: model.Enrichment{Insight: &model.Insight{Licenses: []string{"CC-BY-NC-4.0"}}}, PreviousInsight: &model.Insight{Licenses: []string{"CC-BY-4.0"}},
 		}, []string{hygiene.IDRelicensed}},
 		{"same licenses in another order", nil, &model.Package{
 			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
-			Insight: &model.Insight{Licenses: []string{"MIT", "Apache-2.0"}}, PreviousInsight: &model.Insight{Licenses: []string{"Apache-2.0", "MIT"}},
+			Enrichment: model.Enrichment{Insight: &model.Insight{Licenses: []string{"MIT", "Apache-2.0"}}}, PreviousInsight: &model.Insight{Licenses: []string{"Apache-2.0", "MIT"}},
 		}, nil},
 		{"same expression in another order", nil, &model.Package{
 			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
-			Insight: &model.Insight{Licenses: []string{"Apache-2.0 OR MIT"}}, PreviousInsight: &model.Insight{Licenses: []string{"MIT OR Apache-2.0"}},
+			Enrichment: model.Enrichment{Insight: &model.Insight{Licenses: []string{"Apache-2.0 OR MIT"}}}, PreviousInsight: &model.Insight{Licenses: []string{"MIT OR Apache-2.0"}},
 		}, nil},
 		{"deprecated id of the same license", nil, &model.Package{
 			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
-			Insight: &model.Insight{Licenses: []string{"GPL-3.0-only"}}, PreviousInsight: &model.Insight{Licenses: []string{"GPL-3.0"}},
+			Enrichment: model.Enrichment{Insight: &model.Insight{Licenses: []string{"GPL-3.0-only"}}}, PreviousInsight: &model.Insight{Licenses: []string{"GPL-3.0"}},
 		}, nil},
 		{"no license before and after", nil, &model.Package{
 			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
-			Insight: &model.Insight{Licenses: []string{"NONE"}}, PreviousInsight: &model.Insight{Licenses: []string{"NONE"}},
+			Enrichment: model.Enrichment{Insight: &model.Insight{Licenses: []string{"NONE"}}}, PreviousInsight: &model.Insight{Licenses: []string{"NONE"}},
 		}, nil},
 		{"OR becomes AND", nil, &model.Package{
 			ID: npm("a", "2.0.0"), Change: model.ChangeUpgraded, PreviousVersion: "1.0.0",
-			Insight: &model.Insight{Licenses: []string{"MIT AND GPL-3.0-only"}}, PreviousInsight: &model.Insight{Licenses: []string{"MIT OR GPL-3.0-only"}},
+			Enrichment: model.Enrichment{Insight: &model.Insight{Licenses: []string{"MIT AND GPL-3.0-only"}}}, PreviousInsight: &model.Insight{Licenses: []string{"MIT OR GPL-3.0-only"}},
 		}, []string{hygiene.IDLicenseChange}},
-		{"low scorecard", nil, &model.Package{ID: npm("a", "1.0.0"), Insight: &model.Insight{Scorecard: &model.Scorecard{Score: 2.1}}}, []string{hygiene.IDScorecardLow}},
-		{"scorecard over the option", map[string]any{"min_scorecard": 2.0}, &model.Package{ID: npm("a", "1.0.0"), Insight: &model.Insight{Scorecard: &model.Scorecard{Score: 2.1}}}, nil},
+		{"low scorecard", nil, &model.Package{ID: npm("a", "1.0.0"), Enrichment: model.Enrichment{Insight: &model.Insight{Scorecard: &model.Scorecard{Score: 2.1}}}}, []string{hygiene.IDScorecardLow}},
+		{"scorecard over the option", map[string]any{"min_scorecard": 2.0}, &model.Package{ID: npm("a", "1.0.0"), Enrichment: model.Enrichment{Insight: &model.Insight{Scorecard: &model.Scorecard{Score: 2.1}}}}, nil},
 		{"git source", nil, &model.Package{ID: npm("a", "1.0.0"), Resolved: "git+https://github.com/o/a.git#abc"}, []string{hygiene.IDNonRegistry}},
-		{"removed package", nil, &model.Package{ID: npm("a", "1.0.0"), Change: model.ChangeRemoved, Insight: &model.Insight{Deprecated: true}}, nil},
+		{"removed package", nil, &model.Package{ID: npm("a", "1.0.0"), Change: model.ChangeRemoved, Enrichment: model.Enrichment{Insight: &model.Insight{Deprecated: true}}}, nil},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

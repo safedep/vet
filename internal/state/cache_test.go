@@ -66,3 +66,22 @@ func TestCache(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, int64(2), n)
 }
+
+func TestCacheKeepsTheDataOfOneEnricher(t *testing.T) {
+	ctx := context.Background()
+	c, err := OpenCache(ctx, t.TempDir())
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, c.Close()) })
+
+	put := pkg("a")
+	put.Action = &model.ActionCommit{Reachable: true, Tags: []string{"v4"}, Ref: "v4"}
+	require.NoError(t, c.Put(ctx, "1", time.Hour, []EnrichmentResult{{Package: put, Enricher: "actionrefs", Status: EnrichmentOK}}))
+
+	got := pkg("a")
+	got.Insight = &model.Insight{Licenses: []string{"MIT"}}
+	hits, _, err := c.Lookup(ctx, "actionrefs", "1", []*model.Package{got})
+	require.NoError(t, err)
+	require.Len(t, hits, 1)
+	assert.Equal(t, put.Action, got.Action)
+	assert.Equal(t, []string{"MIT"}, got.Insight.Licenses, "a hit keeps the data of another enricher")
+}

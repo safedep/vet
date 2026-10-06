@@ -67,7 +67,7 @@ func (s *Scan) Manifest(ctx context.Context, id string) (*model.Manifest, error)
 	}
 	m := md.Manifest
 
-	rows, err := s.db.QueryContext(ctx, `SELECT mp.data, p.insight, p.malware, p.usage
+	rows, err := s.db.QueryContext(ctx, `SELECT mp.data, p.enrichment
 		FROM vet_scan_manifest_packages mp JOIN vet_scan_packages p ON p.pkey = mp.pkey
 		WHERE mp.manifest_id = ? ORDER BY mp.seq`, id)
 	if err != nil {
@@ -164,26 +164,13 @@ func decodePackages(rows *sql.Rows) iter.Seq2[*model.Package, error] {
 	return func(yield func(*model.Package, error) bool) {
 		defer closeRows(rows)
 		for rows.Next() {
-			var data, insight, malware, usage []byte
-			if err := rows.Scan(&data, &insight, &malware, &usage); err != nil {
+			var data, enrichment []byte
+			if err := rows.Scan(&data, &enrichment); err != nil {
 				yield(nil, err)
 				return
 			}
-			var pd packageData
-			if err := json.Unmarshal(data, &pd); err != nil {
-				yield(nil, fmt.Errorf("decode package: %w", err))
-				return
-			}
-			p := pd.Package
-			if err := unmarshalIf(insight, &p.Insight); err != nil {
-				yield(nil, err)
-				return
-			}
-			if err := unmarshalIf(malware, &p.Malware); err != nil {
-				yield(nil, err)
-				return
-			}
-			if err := unmarshalIf(usage, &p.Usage); err != nil {
+			p, err := decodePackage(data, enrichment)
+			if err != nil {
 				yield(nil, err)
 				return
 			}
@@ -197,23 +184,34 @@ func decodePackages(rows *sql.Rows) iter.Seq2[*model.Package, error] {
 	}
 }
 
-func unmarshalIf[T any](b []byte, dst **T) error {
+// decodePackage reads the record JSON and the enrichment data of a package
+// row.
+func decodePackage(data, enrichment []byte) (model.Package, error) {
+	var pd packageData
+	if err := json.Unmarshal(data, &pd); err != nil {
+		return model.Package{}, fmt.Errorf("decode package: %w", err)
+	}
+	e, err := decodeEnrichment(enrichment)
+	pd.Enrichment = e
+	return pd.Package, err
+}
+
+func decodeEnrichment(b []byte) (model.Enrichment, error) {
+	var e model.Enrichment
 	if len(b) == 0 {
-		return nil
+		return e, nil
 	}
-	var v T
-	if err := json.Unmarshal(b, &v); err != nil {
-		return fmt.Errorf("decode package data: %w", err)
+	if err := json.Unmarshal(b, &e); err != nil {
+		return e, fmt.Errorf("decode package data: %w", err)
 	}
-	*dst = &v
-	return nil
+	return e, nil
 }
 
 // Packages yields the packages that match the query. A package in two
 // manifests comes once for each manifest, unless the query names one.
 func (s *Scan) Packages(ctx context.Context, q plugin.PackageQuery) iter.Seq2[*model.Package, error] {
 	return func(yield func(*model.Package, error) bool) {
-		sqlq := `SELECT mp.data, p.insight, p.malware, p.usage
+		sqlq := `SELECT mp.data, p.enrichment
 			FROM vet_scan_manifest_packages mp JOIN vet_scan_packages p ON p.pkey = mp.pkey
 			JOIN vet_scan_manifests m ON m.id = mp.manifest_id WHERE 1 = 1`
 		var args []any
@@ -245,7 +243,7 @@ func (s *Scan) Packages(ctx context.Context, q plugin.PackageQuery) iter.Seq2[*m
 // Package returns the package with the identity, from the first manifest
 // that declares it.
 func (s *Scan) Package(ctx context.Context, id model.PackageVersion) (*model.Package, error) {
-	rows, err := s.db.QueryContext(ctx, `SELECT mp.data, p.insight, p.malware, p.usage
+	rows, err := s.db.QueryContext(ctx, `SELECT mp.data, p.enrichment
 		FROM vet_scan_manifest_packages mp JOIN vet_scan_packages p ON p.pkey = mp.pkey
 		JOIN vet_scan_manifests m ON m.id = mp.manifest_id
 		WHERE mp.pkey = ? ORDER BY m.seq LIMIT 1`, string(id.Key()))
@@ -261,7 +259,7 @@ func (s *Scan) Package(ctx context.Context, id model.PackageVersion) (*model.Pac
 // Dependents yields the packages that depend on the identity in any manifest.
 func (s *Scan) Dependents(ctx context.Context, id model.PackageVersion) iter.Seq2[*model.Package, error] {
 	return func(yield func(*model.Package, error) bool) {
-		rows, err := s.db.QueryContext(ctx, `SELECT mp.data, p.insight, p.malware, p.usage
+		rows, err := s.db.QueryContext(ctx, `SELECT mp.data, p.enrichment
 			FROM vet_scan_edges e
 			JOIN vet_scan_manifest_packages mp ON mp.manifest_id = e.manifest_id AND mp.pkey = e.parent
 			JOIN vet_scan_packages p ON p.pkey = mp.pkey
@@ -355,7 +353,7 @@ func (s *Scan) UnevaluatedManifests(ctx context.Context) ([]string, error) {
 // enriched yet, in PURL order.
 func (s *Scan) PackagesLacking(ctx context.Context, enricher string) iter.Seq2[*model.Package, error] {
 	return func(yield func(*model.Package, error) bool) {
-		rows, err := s.db.QueryContext(ctx, `SELECT mp.data, p.insight, p.malware, p.usage
+		rows, err := s.db.QueryContext(ctx, `SELECT mp.data, p.enrichment
 			FROM vet_scan_packages p
 			JOIN vet_scan_manifest_packages mp ON mp.pkey = p.pkey
 			  AND mp.manifest_id = (SELECT manifest_id FROM vet_scan_manifest_packages WHERE pkey = p.pkey ORDER BY manifest_id LIMIT 1)
@@ -389,7 +387,7 @@ type EnrichQuery struct {
 // failed result comes back, so a continued scan tries it again. The key
 // cursor lets a run page through the packages while it writes results.
 func (s *Scan) PackagesToEnrich(ctx context.Context, q EnrichQuery) ([]*model.Package, error) {
-	rows, err := s.db.QueryContext(ctx, `SELECT mp.data, p.insight, p.malware, p.usage
+	rows, err := s.db.QueryContext(ctx, `SELECT mp.data, p.enrichment
 		FROM vet_scan_packages p
 		JOIN vet_scan_manifest_packages mp ON mp.pkey = p.pkey
 		  AND mp.manifest_id = (SELECT manifest_id FROM vet_scan_manifest_packages WHERE pkey = p.pkey ORDER BY manifest_id LIMIT 1)
@@ -523,9 +521,11 @@ func (s *Scan) attachPrior(ctx context.Context, pkgs []*model.Package) error {
 		if err != nil {
 			return fmt.Errorf("read prior data: %w", err)
 		}
-		if err := unmarshalIf(b, &p.PreviousInsight); err != nil {
-			return err
+		var prior model.Insight
+		if err := json.Unmarshal(b, &prior); err != nil {
+			return fmt.Errorf("decode prior data: %w", err)
 		}
+		p.PreviousInsight = &prior
 	}
 	return nil
 }

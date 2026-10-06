@@ -17,11 +17,13 @@ func sampleInput(published *time.Time) Input {
 	p := &model.Package{
 		ID:     model.MustPackageVersion(model.EcosystemNpm, "left-pad", "1.3.0"),
 		Direct: true, Change: model.ChangeAdded,
-		Insight: &model.Insight{
-			Licenses: []string{"MIT"}, PublishedAt: published,
-			Vulnerabilities: []model.Vulnerability{{ID: "GHSA-1", Severity: "high", CVSS: 7.5}},
+		Enrichment: model.Enrichment{
+			Insight: &model.Insight{
+				Licenses: []string{"MIT"}, PublishedAt: published,
+				Vulnerabilities: []model.Vulnerability{{ID: "GHSA-1", Severity: "high", CVSS: 7.5}},
+			},
+			Malware: &model.MalwareAnalysis{Malicious: true, Confidence: "high"},
 		},
-		Malware: &model.MalwareAnalysis{Malicious: true, Confidence: "high"},
 	}
 	m := &model.Manifest{Path: "package-lock.json", Ecosystem: model.EcosystemNpm, Kind: model.ManifestKindLockfile}
 	f := finding.ForPackage(finding.Meta{ControlID: "dependency-cooldown", Family: finding.FamilyCooldown, Severity: finding.SeverityHigh, Title: "t"}, m.Path, p, finding.Key{})
@@ -46,6 +48,9 @@ func TestMatch(t *testing.T) {
 		{name: "malware", expr: `package.malware.malicious && !package.malware.verified`, in: sampleInput(nil), want: true},
 		{name: "manifest", expr: `manifest.kind == "lockfile" && package.change == "ADDED"`, in: sampleInput(nil), want: true},
 		{name: "origin", expr: `package.origin == "declared"`, in: sampleInput(nil), want: true},
+		{name: "action", expr: `has(package.action) && !package.action.reachable`, in: actionInput(&model.ActionCommit{}), want: true},
+		{name: "action tags", expr: `"v4" in package.action.tags`, in: actionInput(&model.ActionCommit{Reachable: true, Tags: []string{"v4"}}), want: true},
+		{name: "no action data", expr: `has(package.action)`, in: actionInput(nil), want: false},
 		{name: "a string that holds package", expr: `finding.title != "package.x"`, in: sampleInput(nil), want: true},
 		{name: "no package", expr: `package.direct`, in: Input{Finding: FindingInput{ControlID: "unpinned-action"}}},
 	}
@@ -155,4 +160,12 @@ func TestPackageFunctions(t *testing.T) {
 			assert.Equal(t, tc.want, got)
 		})
 	}
+}
+
+func actionInput(a *model.ActionCommit) Input {
+	p := &model.Package{ID: model.MustPackageVersion(model.EcosystemGitHubActions, "actions/checkout", "11bd71901bbe5b1630ceea73d27597364c9af683")}
+	p.Action = a
+	m := &model.Manifest{Path: ".github/workflows/ci.yml", Ecosystem: model.EcosystemGitHubActions, Kind: model.ManifestKindWorkflow}
+	f := finding.ForPackage(finding.Meta{ControlID: "vulnerability", Family: finding.FamilyVulnerability, Severity: finding.SeverityHigh, Title: "t"}, m.Path, p, finding.Key{})
+	return NewInput(&f, p, m, now)
 }
