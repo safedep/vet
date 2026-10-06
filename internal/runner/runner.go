@@ -354,11 +354,30 @@ func Render(ctx context.Context, r plugin.Report, v *view.Scan, outs []engine.Ou
 	if err := engine.WriteOutputs(ctx, r, outs, output.Stdout()); err != nil {
 		return err
 	}
+	publish(ctx, r, outs)
 	v.Finish(r.Header(), r.Trailer(), s)
 	if r.Trailer().Gate.Outcome == report.GateFail {
 		return app.ErrGateFailed
 	}
 	return nil
+}
+
+// publish runs each sink that publishes the report itself. A failure is a
+// warning: it never changes the exit code, which the gate sets.
+func publish(ctx context.Context, r plugin.Report, outs []engine.Output) {
+	for _, o := range outs {
+		p, ok := o.Sink.(plugin.Publisher)
+		if !o.Publish || !ok {
+			continue
+		}
+		where, err := p.Publish(ctx, r)
+		switch {
+		case err != nil:
+			tui.Warning("--report %s: %v", o.Format, err)
+		case where != "":
+			tui.Info("vet published the %s report to %s", o.Format, where)
+		}
+	}
 }
 
 // Outputs builds the destinations of -o and --report. The options of a
@@ -386,7 +405,7 @@ func Outputs(cfg *config.Config, out string, reports []string, extra map[string]
 		if err != nil {
 			return nil, app.UsageError(err.Error(), "Fix the option in the config file.")
 		}
-		outs = append(outs, engine.Output{Format: d.Format, Path: d.Path, Sink: s})
+		outs = append(outs, engine.Output{Format: d.Format, Path: d.Path, Publish: d.Publish, Sink: s})
 	}
 	return outs, nil
 }

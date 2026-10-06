@@ -1,7 +1,9 @@
 # Output and saved scans
 
 The terminal view goes to stderr. Report data goes to stdout with `-o`, and to files with
-`--report FORMAT=PATH`. One scan writes many formats.
+`--report FORMAT=PATH`. One scan writes many formats. A format that publishes the report itself,
+such as a pull request comment, also takes `--report FORMAT` with no path. A failure to publish is a
+warning, and the gate alone sets the exit code.
 
 ```bash
 vet scan -o json > vet.json

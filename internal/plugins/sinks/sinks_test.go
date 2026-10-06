@@ -29,7 +29,15 @@ func spec(name string) Spec {
 	}}
 }
 
-var reg = Registry{spec("json"), spec("plain"), spec("sarif"), spec("table")}
+type nopPublisher struct{ nopSink }
+
+func (nopPublisher) Publish(context.Context, plugin.Report) (string, error) { return "", nil }
+
+var reg = Registry{
+	spec("json"), spec("plain"),
+	{Name: "pr-comment", Publishes: true, New: func(plugin.Config) (plugin.Sink, error) { return nopPublisher{}, nil }},
+	spec("sarif"), spec("table"),
+}
 
 func TestDestinations(t *testing.T) {
 	cases := []struct {
@@ -54,6 +62,12 @@ func TestDestinations(t *testing.T) {
 		{name: "no format", out: "table", reports: []string{"vet.json"}, wantErr: "use FORMAT=PATH"},
 		{name: "unknown report format", out: "table", reports: []string{"xml=a.xml"}, wantErr: `unknown format "xml"`},
 		{name: "same path twice", out: "table", reports: []string{"json=a", "sarif=a"}, wantErr: "another --report writes a"},
+		{
+			name: "publish", out: "table", reports: []string{"pr-comment", "pr-comment=body.md"},
+			want: []Destination{{Format: "table"}, {Format: "pr-comment", Publish: true}, {Format: "pr-comment", Path: "body.md"}},
+		},
+		{name: "publish twice", out: "table", reports: []string{"pr-comment", "pr-comment"}, wantErr: "another --report publishes pr-comment"},
+		{name: "no path for a file format", out: "table", reports: []string{"json"}, wantErr: "use FORMAT=PATH"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -64,7 +78,7 @@ func TestDestinations(t *testing.T) {
 				ue, ok := usefulerror.AsUsefulError(err)
 				require.True(t, ok)
 				assert.Equal(t, CodeOutput, ue.Code())
-				assert.Contains(t, ue.Help(), "json, plain, sarif, table")
+				assert.Contains(t, ue.Help(), "json, plain, pr-comment, sarif, table")
 				return
 			}
 			require.NoError(t, err)
@@ -89,4 +103,13 @@ func TestNew(t *testing.T) {
 func TestBuiltinIsSortedAndUnique(t *testing.T) {
 	formats := Builtin().Formats()
 	assert.IsIncreasing(t, formats)
+}
+
+func TestBuiltinPublishesMatchesTheSink(t *testing.T) {
+	for _, s := range Builtin() {
+		sink, err := s.New(plugin.MapConfig(nil))
+		require.NoError(t, err, s.Name)
+		_, ok := sink.(plugin.Publisher)
+		assert.Equal(t, ok, s.Publishes, "format %s: Spec.Publishes must match plugin.Publisher", s.Name)
+	}
 }

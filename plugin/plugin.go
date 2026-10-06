@@ -174,6 +174,15 @@ type StreamSink interface {
 	End(ctx context.Context, t *report.Trailer, w io.Writer) error
 }
 
+// Publisher is optional. A sink that implements it also takes --report
+// FORMAT with no path: it publishes the report itself, for example as a
+// pull request comment, and returns where it went. Write still writes the
+// same body to a file or to stdout.
+type Publisher interface {
+	Sink
+	Publish(ctx context.Context, r Report) (string, error)
+}
+
 // PolicyDoc is one policy v2 document.
 type PolicyDoc struct {
 	// Name names the origin of the document, for example a file path.
