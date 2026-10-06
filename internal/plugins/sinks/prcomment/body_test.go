@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -11,6 +13,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/golden"
@@ -206,4 +209,32 @@ func TestProgressKeepsTheBaselineOnARerun(t *testing.T) {
 	st, ok := decodeState(body)
 	require.True(t, ok)
 	assert.Equal(t, []string{gone, open}, st.Since)
+}
+
+// The "Wrong result?" link fills the issue form by its field ids. A
+// renamed field would leave the form empty.
+func TestFormURLMatchesTheIssueForm(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("..", "..", "..", "..", ".github", "ISSUE_TEMPLATE", formFile))
+	require.NoError(t, err)
+	var form struct {
+		Body []struct {
+			ID string `yaml:"id"`
+		} `yaml:"body"`
+	}
+	require.NoError(t, yaml.Unmarshal(data, &form))
+	var ids []string
+	for _, field := range form.Body {
+		ids = append(ids, field.ID)
+	}
+
+	s := pullRequest(report.GateFail)
+	u, err := url.Parse(newInput(t, s).formURL(s.FindingList[0]))
+	require.NoError(t, err)
+	q := u.Query()
+	assert.Equal(t, formFile, q.Get("template"))
+	q.Del("template")
+	require.NotEmpty(t, q)
+	for key := range q {
+		assert.Contains(t, ids, key)
+	}
 }
