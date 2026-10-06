@@ -12,7 +12,7 @@ on:
   schedule:
     - cron: "35 22 * * 0"
   push:
-    branches: ["main"]
+    branches: ["v2"]
 
 # Declare default permissions as read only.
 permissions: read-all
@@ -20,6 +20,10 @@ permissions: read-all
 jobs:
   analysis:
     name: Scorecard analysis
+    # Scorecard publishes results only for the default branch. The guard
+    # skips a push to v2 while main is the default branch. A schedule event
+    # has no repository in its payload, and it runs on the default branch.
+    if: github.event_name != 'push' || github.ref_name == github.event.repository.default_branch
     timeout-minutes: 30
     runs-on: ubuntu-latest
     permissions:
