@@ -21,6 +21,9 @@ type LockfileReaderConfig struct {
 
 	// Exclusions are glob patterns to ignore paths
 	Exclusions []string
+
+	// MavenUpstreamRegistry replaces Maven Central when resolving pom.xml
+	MavenUpstreamRegistry string
 }
 
 // NewLockfileReader creates a [PackageManifestReader] that can be used to read
@@ -67,7 +70,10 @@ func (p *lockfileReader) EnumManifests(handler func(*models.PackageManifest,
 			return err
 		}
 
-		manifest, err := lfParser.Parse(rf)
+		manifest, err := lfParser.ParseWithConfig(rf, &parser.ParserConfig{
+			IncludeDevDependencies: true,
+			MavenUpstreamRegistry:  p.config.MavenUpstreamRegistry,
+		})
 		if err != nil {
 			return err
 		}

@@ -92,6 +92,7 @@ var (
 	listExperimentalParsers          bool
 	failFast                         bool
 	trustedRegistryUrls              []string
+	mavenUpstreamRegistry            string
 	scannerExperimental              bool
 	malwareAnalyzerTrustToolResult   bool
 	malwareAnalysisTimeout           time.Duration
@@ -237,6 +238,8 @@ func newScanCommand() *cobra.Command {
 		"Lazily create cloud sessions for multiple projects (per manifest)")
 	cmd.Flags().StringVarP(&syncReportStream, "report-sync-project-version", "", "",
 		"Project stream name (e.g. branch) to use in cloud")
+	cmd.Flags().StringVarP(&mavenUpstreamRegistry, "maven-upstream-registry", "", "",
+		"Maven registry URL to use in place of Maven Central when resolving pom.xml (Example: https://artifactory.example.com/maven)")
 	cmd.Flags().StringArrayVarP(&trustedRegistryUrls, "trusted-registry", "", []string{},
 		"Trusted registry URLs to use for package manifest verification")
 	cmd.Flags().BoolVarP(&scannerExperimental, "experimental", "", false,
@@ -351,6 +354,11 @@ func startScan() {
 }
 
 func internalStartScan() error {
+	// Fail fast: the directory reader logs parse errors and continues
+	if err := parser.ValidateMavenUpstreamRegistry(mavenUpstreamRegistry); err != nil {
+		return err
+	}
+
 	if agentSkillSpec != "" {
 		if err := runAgentSkillScan(); err != nil {
 			tuierrors.ErrorExit(err)
@@ -410,9 +418,10 @@ func internalStartScan() error {
 
 		// nolint:ineffassign,staticcheck
 		reader, err = readers.NewLockfileReader(readers.LockfileReaderConfig{
-			Lockfiles:  lockfiles,
-			LockfileAs: manifestType,
-			Exclusions: scanExclude,
+			Lockfiles:             lockfiles,
+			LockfileAs:            manifestType,
+			Exclusions:            scanExclude,
+			MavenUpstreamRegistry: mavenUpstreamRegistry,
 		})
 	} else if len(manifests) > 0 {
 		analytics.TrackCommandScanPackageManifestScan()
@@ -424,9 +433,10 @@ func internalStartScan() error {
 
 		// nolint:ineffassign,staticcheck
 		reader, err = readers.NewLockfileReader(readers.LockfileReaderConfig{
-			Lockfiles:  manifests,
-			LockfileAs: manifestType,
-			Exclusions: scanExclude,
+			Lockfiles:             manifests,
+			LockfileAs:            manifestType,
+			Exclusions:            scanExclude,
+			MavenUpstreamRegistry: mavenUpstreamRegistry,
 		})
 	} else if len(githubRepoUrls) > 0 {
 		analytics.TrackCommandScanGitHubScan()
@@ -493,9 +503,10 @@ func internalStartScan() error {
 
 		// nolint:ineffassign,staticcheck
 		reader, err = readers.NewDirectoryReader(readers.DirectoryReaderConfig{
-			Path:                 baseDirectory,
-			Exclusions:           scanExclude,
-			ManifestTypeOverride: manifestType,
+			Path:                  baseDirectory,
+			Exclusions:            scanExclude,
+			ManifestTypeOverride:  manifestType,
+			MavenUpstreamRegistry: mavenUpstreamRegistry,
 		})
 	}
 

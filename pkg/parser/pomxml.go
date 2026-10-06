@@ -16,9 +16,25 @@ import (
 // parseMavenPomXmlFile parses the pom.xml file in a maven project.
 // Its finds the dependency from Maven Registry, and also from Parent Maven BOM
 // We use osc-scalibr's java/pomxmlnet (with Net, or Network) to fetch dependency from registry.
-func parseMavenPomXmlFile(lockfilePath string, _ *ParserConfig) (*models.PackageManifest, error) {
+func parseMavenPomXmlFile(lockfilePath string, config *ParserConfig) (*models.PackageManifest, error) {
+	upstreamRegistry := ""
+	if config != nil {
+		upstreamRegistry = config.MavenUpstreamRegistry
+	}
+
+	// pomxmlnet ignores an invalid registry URL and later panics on a nil client
+	if err := ValidateMavenUpstreamRegistry(upstreamRegistry); err != nil {
+		return nil, err
+	}
+
 	// Java/PomXMLNet extractor
-	pomXmlNetExtractor, err := pomxmlnet.New(&cpb.PluginConfig{})
+	pomXmlNetExtractor, err := pomxmlnet.New(&cpb.PluginConfig{
+		PluginSpecific: []*cpb.PluginSpecificConfig{
+			{Config: &cpb.PluginSpecificConfig_PomXmlNet{
+				PomXmlNet: &cpb.POMXMLNetConfig{UpstreamRegistry: upstreamRegistry},
+			}},
+		},
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create pom.xml extractor: %w", err)
 	}

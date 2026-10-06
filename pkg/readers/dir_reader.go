@@ -21,6 +21,9 @@ type DirectoryReaderConfig struct {
 	// directory reader will automatically try to find the suitable
 	// parser for a given file
 	ManifestTypeOverride string
+
+	// MavenUpstreamRegistry replaces Maven Central when resolving pom.xml
+	MavenUpstreamRegistry string
 }
 
 type directoryReader struct {
@@ -98,12 +101,15 @@ func (p *directoryReader) EnumManifests(handler func(*models.PackageManifest,
 
 		// We try to find a parser by filename and try to parse it
 		// We do not care about error here because not all files are parseable
-		p, err := parser.FindParser(lockfile, lockfileAs)
+		lfParser, err := parser.FindParser(lockfile, lockfileAs)
 		if err != nil {
 			return nil
 		}
 
-		manifest, err := p.Parse(lockfile)
+		manifest, err := lfParser.ParseWithConfig(lockfile, &parser.ParserConfig{
+			IncludeDevDependencies: true,
+			MavenUpstreamRegistry:  p.config.MavenUpstreamRegistry,
+		})
 		if err != nil {
 			logger.Warnf("Failed to parse: %s due to %v", path, err)
 			return nil
