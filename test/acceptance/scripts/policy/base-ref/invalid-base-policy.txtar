@@ -1,0 +1,47 @@
+# In pull request mode, a base policy that does not load, such as a filter
+# suite of vet v1, does not stop the change that replaces it. The gate
+# applies no policy file, and vet says so with a warning and a diagnostic.
+[!git] skip 'needs git'
+cd repo
+exec git -c user.email=t@example.com -c user.name=t init -q
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m base
+
+# The base policy and the policy of the change are the same, so the policy
+# stays broken and the scan stops.
+execexit 2 vet scan . --base-ref HEAD --policy vet-policy.yml --mode plain -o json
+stderr 'policy_invalid'
+
+# The change brings a v2 policy that does not load. The scan stops.
+cp $WORK/broken-policy.yml vet-policy.yml
+execexit 2 vet scan . --base-ref HEAD --policy vet-policy.yml --mode plain -o json
+stderr 'policy_invalid'
+
+# The change brings a v2 policy that loads. The gate applies no policy file.
+cp $WORK/v2-policy.yml vet-policy.yml
+exec vet scan . --base-ref HEAD --policy vet-policy.yml --mode plain -o json
+stderr 'The policy vet-policy.yml at the base ref HEAD does not load, and this change edits it'
+jsonq stdout trailer.gate.policy_changed true
+! stdout '"policy":"HEAD:vet-policy.yml"'
+stdout '"code":"base_policy_invalid"'
+
+-- repo/package-lock.json --
+{"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app"}}}
+-- repo/vet-policy.yml --
+name: SafeDep vet OSS suite
+filters:
+  - name: osv-malware
+    check_type: CheckTypeMalware
+    value: |
+      vulns.all.exists(v, v.id.startsWith("MAL-"))
+-- v2-policy.yml --
+version: 2
+rules:
+  - id: no-malware
+    when: finding.family == "malware"
+    action: fail
+-- broken-policy.yml --
+version: 2
+rules:
+  - id: no-when
+    action: fail

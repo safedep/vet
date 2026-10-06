@@ -16,6 +16,7 @@ import (
 	"github.com/safedep/vet/v2/internal/engine"
 	"github.com/safedep/vet/v2/internal/gitbase"
 	"github.com/safedep/vet/v2/internal/plugins/policysources/file"
+	"github.com/safedep/vet/v2/internal/policy"
 	"github.com/safedep/vet/v2/internal/tui"
 	"github.com/safedep/vet/v2/plugin"
 )
@@ -27,61 +28,99 @@ type policyResolver interface {
 	PolicyFile(name string) string
 }
 
-// policySource returns the source of the policy file, or nil with no
-// file. A pull request scan reads a policy file of the git working tree at
-// the base ref, so a change to the policy cannot loosen the gate of its
-// own pull request. It never falls back to the policy of the change.
-// changed is true when the change edits the policy.
-func policySource(ctx context.Context, target, baseRef, value string, r policyResolver) (src plugin.PolicySource, changed bool, err error) {
+// policyChoice is the policy file of a scan.
+type policyChoice struct {
+	// Source is nil with no policy file.
+	Source plugin.PolicySource
+	// Changed is true when the change edits the policy.
+	Changed bool
+	// BaseInvalid says why the gate applies no policy file: the base
+	// version does not load, and the change edits it. It is empty in each
+	// other case.
+	BaseInvalid string
+}
+
+// policySource chooses the policy file of a scan. A pull request scan
+// reads a policy file of the git working tree at the base ref, so a change
+// to the policy cannot loosen the gate of its own pull request. It never
+// falls back to the policy of the change.
+func policySource(ctx context.Context, target, baseRef, value string, r policyResolver) (policyChoice, error) {
 	if value == "" {
-		return nil, false, nil
+		return policyChoice{}, nil
 	}
 	p := r.ResolvePolicy(value)
 	if baseRef == "" {
-		return file.New(p), false, nil
+		return policyChoice{Source: file.New(p)}, nil
 	}
 	if info, err := os.Stat(target); err != nil || !info.IsDir() {
-		return nil, false, engine.ErrBaseRefTarget()
+		return policyChoice{}, engine.ErrBaseRefTarget()
 	}
 	tree, err := gitbase.Open(target, baseRef)
 	if err != nil {
-		return nil, false, engine.BaseRefError(err)
+		return policyChoice{}, engine.BaseRefError(err)
 	}
 	rel, ok, err := tree.RepoPath(p)
 	switch {
 	case err != nil:
 		msg := fmt.Sprintf("vet cannot read the policy %s at the base ref %s: %v", p, baseRef, err)
-		return nil, false, app.UsageError(msg, "Keep the policy in git as a regular file or a directory of regular files.")
+		return policyChoice{}, app.UsageError(msg, "Keep the policy in git as a regular file or a directory of regular files.")
 	case !ok:
-		return file.New(p), false, nil
+		return policyChoice{Source: file.New(p)}, nil
 	}
 	fsys := tree.RepoFS()
 	rel, err = baseName(fsys, rel)
 	switch {
 	case errors.Is(err, fs.ErrNotExist) && config.IsPolicyName(value):
 		// A file that the change adds cannot take over a policy name.
-		return file.New(r.PolicyFile(value)), false, nil
+		return policyChoice{Source: file.New(r.PolicyFile(value))}, nil
 	case errors.Is(err, fs.ErrNotExist):
 		tui.Info("vet applies no policy file, because the base ref %s has no %s", baseRef, rel)
 		_, headErr := os.Stat(p)
-		return nil, !errors.Is(headErr, fs.ErrNotExist), nil
+		return policyChoice{Changed: !errors.Is(headErr, fs.ErrNotExist)}, nil
 	case err != nil:
 		msg := fmt.Sprintf("read the policy %s at the base ref %s: %v", rel, baseRef, err)
-		return nil, false, app.UsageError(msg, "Keep the policy in git as a regular file or a directory of regular files.")
+		return policyChoice{}, app.UsageError(msg, "Keep the policy in git as a regular file or a directory of regular files.")
 	}
 	label := func(name string) string { return baseRef + ":" + name }
 	docs, err := file.NewFS(fsys, rel, label).Policies(ctx)
 	if err != nil {
-		return nil, false, err
+		return policyChoice{}, err
 	}
 	tui.Info("vet reads the policy %s from the base ref %s", rel, baseRef)
-	if changed, err = headChanged(ctx, tree.Root(), rel, label, docs); err != nil {
-		return nil, false, err
+	head, err := headDocs(ctx, tree.Root(), rel, label)
+	if err != nil {
+		return policyChoice{}, err
 	}
-	if changed {
-		tui.Info("This change edits %s. The gate uses the base version.", rel)
+	if head != nil && sameDocs(docs, head) {
+		return policyChoice{Source: policyDocs(docs)}, nil
 	}
-	return policyDocs(docs), changed, nil
+	if _, err := policy.Load(docs); err != nil {
+		return invalidBase(ctx, tree.Root(), rel, baseRef)
+	}
+	tui.Info("This change edits %s. The gate uses the base version.", rel)
+	return policyChoice{Source: policyDocs(docs), Changed: true}, nil
+}
+
+// invalidBase chooses no policy file when the base policy does not load and
+// the change edits it, as when a change moves a policy of vet v1 to v2.
+// The base has no policy that works, so the change cannot loosen one. The
+// policy of the change must load, so that the next pull request has a gate.
+// A base policy that does not load and that the change keeps still stops
+// the scan.
+func invalidBase(ctx context.Context, root, rel, baseRef string) (policyChoice, error) {
+	head, err := headDocs(ctx, root, rel, func(name string) string { return name })
+	if err != nil {
+		return policyChoice{}, err
+	}
+	if head != nil {
+		if _, err := policy.Load(head); err != nil {
+			return policyChoice{}, err
+		}
+	}
+	msg := fmt.Sprintf("The policy %s at the base ref %s does not load, and this change edits it. "+
+		"The gate applies no policy file until the change merges.", rel, baseRef)
+	tui.Warning("%s", msg)
+	return policyChoice{Changed: true, BaseInvalid: msg}, nil
 }
 
 // baseName returns rel when the base has it. Else it matches each part of
@@ -118,23 +157,24 @@ func baseName(fsys fs.FS, rel string) (string, error) {
 	return dir, err
 }
 
-// headChanged compares the policy of the working tree with the base
-// documents, by name and content. A checkout with CRLF line ends keeps the
-// same policy.
-func headChanged(ctx context.Context, root, rel string, label func(string) string, base []plugin.PolicyDoc) (bool, error) {
+// headDocs reads the policy of the working tree, or nil when the change
+// deletes it.
+func headDocs(ctx context.Context, root, rel string, label func(string) string) ([]plugin.PolicyDoc, error) {
 	fsys := os.DirFS(root)
 	if _, err := fs.Stat(fsys, rel); errors.Is(err, fs.ErrNotExist) {
-		return true, nil
+		return nil, nil
 	} else if err != nil {
-		return false, err
+		return nil, err
 	}
-	head, err := file.NewFS(fsys, rel, label).Policies(ctx)
-	if err != nil {
-		return false, err
-	}
-	return !slices.EqualFunc(base, head, func(a, b plugin.PolicyDoc) bool {
-		return a.Name == b.Name && bytes.Equal(lf(a.Content), lf(b.Content))
-	}), nil
+	return file.NewFS(fsys, rel, label).Policies(ctx)
+}
+
+// sameDocs compares two policies by name and content. A checkout with CRLF
+// line ends keeps the same policy.
+func sameDocs(a, b []plugin.PolicyDoc) bool {
+	return slices.EqualFunc(a, b, func(x, y plugin.PolicyDoc) bool {
+		return x.Name == y.Name && bytes.Equal(lf(x.Content), lf(y.Content))
+	})
 }
 
 func lf(b []byte) []byte { return bytes.ReplaceAll(b, []byte("\r\n"), []byte("\n")) }

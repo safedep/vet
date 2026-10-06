@@ -176,9 +176,9 @@ _Avoid_: best effort, soft fail
 **Diagnostic**:
 An error or a limit that did not stop the scan, with a level (`warning` or `error`), a code, a
 component and a count. `report.Diagnostic`. In pull request mode, a parse error also has the change
-of its file. The codes of the scan engine are constants in `report`, such as
-`report.CodeEnrichUnavailable`, because a reader of a report acts on them. Each other code is a
-constant next to the code that records it, such as `policy.CodeRuleFailed`.
+of its file. The codes that a reader of a report acts on are constants in `report`, such as
+`report.CodeEnrichUnavailable` and `report.CodeBasePolicyInvalid`. Each other code is a constant
+next to the code that records it, such as `policy.CodeRuleFailed`.
 _Avoid_: warning (as a type), error record, issue
 
 ## Data

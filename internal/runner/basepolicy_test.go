@@ -27,17 +27,21 @@ func (r resolver) PolicyFile(name string) string { return filepath.Join(r.config
 
 const strict = "version: 2\nrules: []\n"
 
+// v1Policy is a filter suite of vet v1, which vet v2 does not load.
+const v1Policy = "name: suite\nfilters:\n  - name: malware\n    value: \"true\"\n"
+
 func TestPolicySource(t *testing.T) {
 	cases := []struct {
-		name        string
-		base        map[string]string
-		head        map[string]string
-		target      string // relative to the repository
-		policy      string // relative to the repository, or a name
-		baseRef     string
-		wantNil     bool
-		wantDocs    map[string]string
-		wantChanged bool
+		name            string
+		base            map[string]string
+		head            map[string]string
+		target          string // relative to the repository
+		policy          string // relative to the repository, or a name
+		baseRef         string
+		wantNil         bool
+		wantDocs        map[string]string
+		wantChanged     bool
+		wantBaseInvalid bool
 	}{
 		{
 			name: "no base ref reads the disk", base: map[string]string{"p.yml": strict}, head: map[string]string{"p.yml": "head\n"},
@@ -88,6 +92,18 @@ func TestPolicySource(t *testing.T) {
 			wantDocs: map[string]string{"HEAD:.github/vet/policy.yml": strict}, wantChanged: true,
 		},
 		{
+			name: "the change moves a v1 policy to v2", base: map[string]string{"p.yml": v1Policy}, head: map[string]string{"p.yml": strict},
+			policy: "p.yml", baseRef: "HEAD", wantNil: true, wantChanged: true, wantBaseInvalid: true,
+		},
+		{
+			name: "the change deletes a v1 policy", base: map[string]string{"p.yml": v1Policy, "a.txt": "x"}, head: map[string]string{"p.yml": ""},
+			policy: "p.yml", baseRef: "HEAD", wantNil: true, wantChanged: true, wantBaseInvalid: true,
+		},
+		{
+			name: "the change keeps a v1 policy", base: map[string]string{"p.yml": v1Policy}, policy: "p.yml", baseRef: "HEAD",
+			wantDocs: map[string]string{"HEAD:p.yml": v1Policy},
+		},
+		{
 			name: "a file of the change cannot take over a name", base: map[string]string{"a.txt": "x"},
 			head: map[string]string{"strict": "loose\n"}, policy: "strict", baseRef: "HEAD",
 			wantDocs: map[string]string{"config": strict},
@@ -111,15 +127,16 @@ func TestPolicySource(t *testing.T) {
 			t.Chdir(repo)
 			target := filepath.Join(repo, tc.target)
 
-			src, changed, err := policySource(context.Background(), target, tc.baseRef, tc.policy, resolver{configDir: configDir})
+			pol, err := policySource(context.Background(), target, tc.baseRef, tc.policy, resolver{configDir: configDir})
 			require.NoError(t, err)
-			assert.Equal(t, tc.wantChanged, changed)
+			assert.Equal(t, tc.wantChanged, pol.Changed)
+			assert.Equal(t, tc.wantBaseInvalid, pol.BaseInvalid != "")
 			if tc.wantNil {
-				assert.Nil(t, src)
+				assert.Nil(t, pol.Source)
 				return
 			}
-			require.NotNil(t, src)
-			docs, err := src.Policies(context.Background())
+			require.NotNil(t, pol.Source)
+			docs, err := pol.Source.Policies(context.Background())
 			require.NoError(t, err)
 			got := map[string]string{}
 			for _, d := range docs {
@@ -139,18 +156,18 @@ func TestPolicySourceFailsClosed(t *testing.T) {
 	t.Chdir(repo)
 	ctx := context.Background()
 
-	_, _, err := policySource(ctx, repo, "no-such-ref", "p.yml", resolver{})
+	_, err := policySource(ctx, repo, "no-such-ref", "p.yml", resolver{})
 	assert.Equal(t, app.ExitUsage, app.ExitCode(err), "an unknown base ref is a usage error")
 
-	_, _, err = policySource(ctx, filepath.Join(repo, "p.yml"), "HEAD", "p.yml", resolver{})
+	_, err = policySource(ctx, filepath.Join(repo, "p.yml"), "HEAD", "p.yml", resolver{})
 	assert.Equal(t, app.ExitUsage, app.ExitCode(err), "a target that is not a directory is a usage error")
 
-	_, _, err = policySource(ctx, t.TempDir(), "HEAD", "p.yml", resolver{})
+	_, err = policySource(ctx, t.TempDir(), "HEAD", "p.yml", resolver{})
 	assert.Equal(t, app.ExitUsage, app.ExitCode(err), "a directory outside git is a usage error")
 
 	twins := gitbasetest.Repo(t, map[string]string{"pol/p.yml": strict, "Pol/p.yml": strict})
 	t.Chdir(twins)
-	_, _, err = policySource(ctx, twins, "HEAD", "POL/p.yml", resolver{})
+	_, err = policySource(ctx, twins, "HEAD", "POL/p.yml", resolver{})
 	assert.Equal(t, app.ExitUsage, app.ExitCode(err), "two entries that differ only in case are ambiguous")
 	assert.ErrorContains(t, err, "differ only in case")
 }
@@ -161,16 +178,28 @@ func TestPolicySourceRefusesASymlinkAtTheBase(t *testing.T) {
 	gitbasetest.Commit(t, repo)
 	t.Chdir(repo)
 
-	_, _, err := policySource(context.Background(), repo, "HEAD", "p.yml", resolver{})
+	_, err := policySource(context.Background(), repo, "HEAD", "p.yml", resolver{})
 	assert.Equal(t, app.ExitUsage, app.ExitCode(err))
 	assert.ErrorContains(t, err, "p.yml")
 }
 
+// A change that replaces a base policy that does not load must bring one
+// that loads.
+func TestPolicySourceNeedsAPolicyThatLoadsAfterAnInvalidBase(t *testing.T) {
+	repo := gitbasetest.Repo(t, map[string]string{"p.yml": v1Policy})
+	gitbasetest.Write(t, repo, "p.yml", "version: 2\nrules: [{id: x}]\n")
+	t.Chdir(repo)
+
+	_, err := policySource(context.Background(), repo, "HEAD", "p.yml", resolver{})
+	assert.Equal(t, app.ExitUsage, app.ExitCode(err))
+	assert.ErrorContains(t, err, "p.yml")
+	assert.NotContains(t, err.Error(), "HEAD:p.yml", "the error names the file of the change")
+}
+
 func TestPolicySourceWithNoFile(t *testing.T) {
-	src, changed, err := policySource(context.Background(), t.TempDir(), "HEAD", "", resolver{})
+	pol, err := policySource(context.Background(), t.TempDir(), "HEAD", "", resolver{})
 	require.NoError(t, err)
-	assert.Nil(t, src)
-	assert.False(t, changed)
+	assert.Equal(t, policyChoice{}, pol)
 }
 
 // A change cannot move the policy to a path that the base does not have
@@ -182,7 +211,7 @@ func TestPolicySourceRefusesALinkOfTheChange(t *testing.T) {
 	require.NoError(t, os.Symlink(filepath.Join("..", "elsewhere"), filepath.Join(repo, ".github", "vet")))
 	t.Chdir(repo)
 
-	_, _, err := policySource(context.Background(), repo, "HEAD", ".github/vet/policy.yml", resolver{})
+	_, err := policySource(context.Background(), repo, "HEAD", ".github/vet/policy.yml", resolver{})
 	assert.Equal(t, app.ExitUsage, app.ExitCode(err))
 	assert.ErrorContains(t, err, "symbolic link")
 }
@@ -194,10 +223,10 @@ func TestPolicySourceThroughALinkToTheRepository(t *testing.T) {
 	require.NoError(t, os.Symlink(repo, link))
 	t.Chdir(link)
 
-	src, changed, err := policySource(context.Background(), link, "HEAD", "p.yml", resolver{})
+	pol, err := policySource(context.Background(), link, "HEAD", "p.yml", resolver{})
 	require.NoError(t, err)
-	assert.False(t, changed)
-	docs, err := src.Policies(context.Background())
+	assert.False(t, pol.Changed)
+	docs, err := pol.Source.Policies(context.Background())
 	require.NoError(t, err)
 	require.Len(t, docs, 1)
 	assert.Equal(t, "HEAD:p.yml", docs[0].Name)

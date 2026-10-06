@@ -38,6 +38,12 @@
   tier: P0
   guarantee: "With --base-ref, vet reads a policy file of the git repository at the base ref. A change that removes a fail rule still fails the gate, and vet names the base ref and the edit."
   labels: [gate, pr-mode]
+- id: policy/base-ref/invalid-base-policy
+  title: "A pull request can replace a base policy that does not load"
+  category: policy
+  tier: P1
+  guarantee: "With --base-ref, a base policy that does not load, such as a filter suite of vet v1, does not stop the change that edits it. The gate applies no policy file, vet prints a warning, and the report has a base_policy_invalid diagnostic. The policy of the change must load. A broken policy that the change keeps still stops the scan."
+  labels: [gate, pr-mode]
 - id: policy/base-ref/linked-policy
   title: "A pull request cannot move its policy with a link"
   category: policy

@@ -87,6 +87,10 @@ In a pull request, vet reads the policy file at the base commit. So a pull reque
 gate of its own check by an edit of the policy. vet prints a notice, and the comment says that the
 gate used the base version. A developer tests a policy edit with `vet report show --policy FILE`.
 
+A pull request that replaces a policy of vet v1 with a v2 policy at the same path gets no policy
+gate, because the base version does not load. The attacks gate still applies. The comment says so,
+and the v2 policy applies after the merge.
+
 ## The comment
 
 vet keeps one comment on a pull request, and edits it on each push. The `comment` input sets when vet
