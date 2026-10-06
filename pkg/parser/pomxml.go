@@ -22,6 +22,8 @@ func parseMavenPomXmlFile(lockfilePath string, config *ParserConfig) (*models.Pa
 	if config != nil {
 		registry.URL = config.MavenUpstreamRegistry
 		registry.ID = config.MavenUpstreamRegistryID
+		// Private registries often host -SNAPSHOT versions, and Maven Central does not
+		registry.SnapshotsEnabled = registry.URL != ""
 	}
 
 	if err := ValidateMavenUpstreamRegistry(registry.URL, registry.ID); err != nil {

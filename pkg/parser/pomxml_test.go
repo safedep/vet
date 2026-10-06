@@ -133,6 +133,54 @@ func Test_MavenPomXmlParser_UpstreamRegistry(t *testing.T) {
 	assert.Equal(t, int32(2), hits.Load())
 }
 
+func Test_MavenPomXmlParser_UpstreamRegistrySnapshotParent(t *testing.T) {
+	// A child pom with a -SNAPSHOT parent that only the private registry has.
+	// The parent declares the dependency, so the parent must resolve.
+	// The pom file name has a timestamp, so the parser must read maven-metadata.xml first.
+	files := map[string]string{
+		"/maven/io/safedep/internal/parent/2.3-SNAPSHOT/maven-metadata.xml": `<metadata>
+  <groupId>io.safedep.internal</groupId><artifactId>parent</artifactId><version>2.3-SNAPSHOT</version>
+  <versioning><snapshotVersions>
+    <snapshotVersion><extension>pom</extension><value>2.3-20260101.120000-1</value></snapshotVersion>
+  </snapshotVersions></versioning>
+</metadata>`,
+		"/maven/io/safedep/internal/parent/2.3-SNAPSHOT/parent-2.3-20260101.120000-1.pom": `<project>
+  <groupId>io.safedep.internal</groupId><artifactId>parent</artifactId><version>2.3-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <dependencies>
+    <dependency><groupId>io.safedep.internal</groupId><artifactId>util</artifactId><version>2.0</version></dependency>
+  </dependencies>
+</project>`,
+		"/maven/io/safedep/internal/util/2.0/util-2.0.pom": `<project>
+  <groupId>io.safedep.internal</groupId><artifactId>util</artifactId><version>2.0</version>
+</project>`,
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, ok := files[r.URL.Path]
+		if !ok {
+			http.NotFound(w, r)
+			return
+		}
+		_, _ = w.Write([]byte(body))
+	}))
+	defer server.Close()
+
+	pomPath := filepath.Join(t.TempDir(), "pom.xml")
+	require.NoError(t, os.WriteFile(pomPath, []byte(`<project>
+  <parent><groupId>io.safedep.internal</groupId><artifactId>parent</artifactId><version>2.3-SNAPSHOT</version></parent>
+  <artifactId>payments</artifactId>
+</project>`), 0o600))
+
+	manifest, err := parseMavenPomXmlFile(pomPath, &ParserConfig{
+		MavenUpstreamRegistry: server.URL + "/maven",
+	})
+	require.NoError(t, err)
+
+	require.Len(t, manifest.Packages, 1)
+	assert.Equal(t, "io.safedep.internal:util", manifest.Packages[0].Name)
+}
+
 func Test_MavenPomXmlParser_UpstreamRegistryAuth(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, pass, ok := r.BasicAuth()
