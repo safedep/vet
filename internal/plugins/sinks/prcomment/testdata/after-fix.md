@@ -1,5 +1,5 @@
 <!-- vet:pr-comment v1 -->
-### ⚠️ vet: 1 finding to review in this pull request
+### ✅ vet: nothing to review in this pull request
 
 **Since the last push:** 1 resolved
 

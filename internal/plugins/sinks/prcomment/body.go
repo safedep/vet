@@ -101,7 +101,7 @@ func (c *input) body() string {
 	blocking, review, rest := c.sections()
 	var b strings.Builder
 	b.WriteString(c.marker + "\n")
-	fmt.Fprintf(&b, "### %s\n\n", c.heading(len(blocking), len(review)+len(rest)))
+	fmt.Fprintf(&b, "### %s\n\n", c.heading(len(blocking), len(review), len(rest)))
 	c.status(&b, len(blocking), len(review))
 	b.WriteString("The findings do not fit in a comment. The full report has them.\n\n")
 	c.footer(&b)
@@ -131,7 +131,7 @@ func (c *input) render(level int) string {
 	blocking, review, rest := c.sections()
 	var b strings.Builder
 	b.WriteString(c.marker + "\n")
-	fmt.Fprintf(&b, "### %s\n\n", c.heading(len(blocking), len(review)+len(rest)))
+	fmt.Fprintf(&b, "### %s\n\n", c.heading(len(blocking), len(review), len(rest)))
 	c.caution(&b)
 	c.warning(&b)
 	c.note(&b)
@@ -150,7 +150,9 @@ func (c *input) render(level int) string {
 	return b.String()
 }
 
-func (c *input) heading(blocking, other int) string {
+// heading counts the blocking findings, then the critical and high ones to
+// review. A lower finding needs no review, so it does not count here.
+func (c *input) heading(blocking, review, rest int) string {
 	where := "this scan"
 	if c.delta() {
 		where = "this pull request"
@@ -158,8 +160,10 @@ func (c *input) heading(blocking, other int) string {
 	switch {
 	case blocking > 0:
 		return fmt.Sprintf("❌ vet: %s %s %s", humanize.Count(blocking, "finding"), verb(blocking, "blocks", "block"), where)
-	case other > 0:
-		return fmt.Sprintf("⚠️ vet: %s to review in %s", humanize.Count(other, "finding"), where)
+	case review > 0:
+		return fmt.Sprintf("⚠️ vet: %s to review in %s", humanize.Count(review, "finding"), where)
+	case rest > 0:
+		return "✅ vet: nothing to review in " + where
 	}
 	return "✅ vet: no findings in " + where
 }

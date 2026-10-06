@@ -1,5 +1,5 @@
 <!-- vet:pr-comment v1 -->
-### ⚠️ vet: 2 findings to review in this pull request
+### ⚠️ vet: 1 finding to review in this pull request
 
 > [!CAUTION]
 > `npm/evil-colors@1.4.1`: Malicious package
