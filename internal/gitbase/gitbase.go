@@ -91,34 +91,57 @@ func (t *Tree) RepoFS() fs.FS {
 	return treeFS{t: &Tree{Commit: t.Commit, tree: t.tree, root: t.root}}
 }
 
+// ErrLink is the error of a path that goes through a symbolic link in the
+// working tree. A change can add such a link, so its target is not the
+// path that the base has.
+var ErrLink = errors.New("the path goes through a symbolic link in the working tree")
+
 // RepoPath returns the path of p relative to the root of the working
-// tree, in "/" form. It resolves the symbolic links of the directories of
-// p that exist. A directory that the working tree does not have, such as
-// one that the change deletes, has no link to resolve. It is false when p
-// is outside the working tree.
-func (t *Tree) RepoPath(p string) (string, bool) {
+// tree, in "/" form. It resolves the symbolic links of the directories
+// above the working tree, and fails with ErrLink on a link in it. A part
+// of p that the working tree does not have, such as a directory that the
+// change deletes, has no link to resolve. It is false when p is outside
+// the working tree.
+func (t *Tree) RepoPath(p string) (string, bool, error) {
 	abs, err := filepath.Abs(p)
 	if err != nil {
-		return "", false
+		return "", false, err
 	}
-	dir, rest := filepath.Dir(abs), filepath.Base(abs)
-	for {
-		real, err := filepath.EvalSymlinks(dir)
-		if err == nil {
-			dir = real
+	vol := filepath.VolumeName(abs)
+	cur := vol + string(filepath.Separator)
+	parts := strings.Split(strings.TrimPrefix(abs[len(vol):], string(filepath.Separator)), string(filepath.Separator))
+	for i, part := range parts {
+		next := filepath.Join(cur, part)
+		info, err := os.Lstat(next)
+		if errors.Is(err, fs.ErrNotExist) {
+			cur = filepath.Join(append([]string{cur}, parts[i:]...)...)
 			break
 		}
-		parent := filepath.Dir(dir)
-		if !errors.Is(err, fs.ErrNotExist) || parent == dir {
-			return "", false
+		if err != nil {
+			return "", false, err
 		}
-		dir, rest = parent, filepath.Join(filepath.Base(dir), rest)
+		if info.Mode()&fs.ModeSymlink != 0 {
+			if t.inside(cur) {
+				return "", false, ErrLink
+			}
+			if next, err = filepath.EvalSymlinks(next); err != nil {
+				return "", false, err
+			}
+		}
+		cur = next
 	}
-	rel, err := filepath.Rel(t.root, filepath.Join(dir, rest))
+	rel, err := filepath.Rel(t.root, cur)
 	if err != nil || !filepath.IsLocal(rel) {
-		return "", false
+		return "", false, nil
 	}
-	return filepath.ToSlash(rel), true
+	return filepath.ToSlash(rel), true, nil
+}
+
+// inside reports whether dir is the root of the working tree or a
+// directory in it.
+func (t *Tree) inside(dir string) bool {
+	rel, err := filepath.Rel(t.root, dir)
+	return err == nil && (rel == "." || filepath.IsLocal(rel))
 }
 
 // Walk calls fn with each base file under the directory, with its path

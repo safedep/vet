@@ -47,8 +47,12 @@ func policySource(ctx context.Context, target, baseRef, value string, r policyRe
 	if err != nil {
 		return nil, false, engine.BaseRefError(err)
 	}
-	rel, ok := tree.RepoPath(p)
-	if !ok {
+	rel, ok, err := tree.RepoPath(p)
+	switch {
+	case err != nil:
+		msg := fmt.Sprintf("vet cannot read the policy %s at the base ref %s: %v", p, baseRef, err)
+		return nil, false, app.UsageError(msg, "Keep the policy in git as a regular file or a directory of regular files.")
+	case !ok:
 		return file.New(p), false, nil
 	}
 	fsys := tree.RepoFS()

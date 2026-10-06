@@ -161,3 +161,33 @@ func TestPolicySourceWithNoFile(t *testing.T) {
 	assert.Nil(t, src)
 	assert.False(t, changed)
 }
+
+// A change cannot move the policy to a path that the base does not have
+// with a link in the working tree.
+func TestPolicySourceRefusesALinkOfTheChange(t *testing.T) {
+	repo := gitbasetest.Repo(t, map[string]string{".github/vet/policy.yml": strict})
+	require.NoError(t, os.RemoveAll(filepath.Join(repo, ".github", "vet")))
+	gitbasetest.Write(t, repo, "elsewhere/policy.yml", "loose\n")
+	require.NoError(t, os.Symlink(filepath.Join("..", "elsewhere"), filepath.Join(repo, ".github", "vet")))
+	t.Chdir(repo)
+
+	_, _, err := policySource(context.Background(), repo, "HEAD", ".github/vet/policy.yml", resolver{})
+	assert.Equal(t, app.ExitUsage, app.ExitCode(err))
+	assert.ErrorContains(t, err, "symbolic link")
+}
+
+// A link above the working tree, such as /var on macOS, resolves.
+func TestPolicySourceThroughALinkToTheRepository(t *testing.T) {
+	repo := gitbasetest.Repo(t, map[string]string{"p.yml": strict})
+	link := filepath.Join(t.TempDir(), "link")
+	require.NoError(t, os.Symlink(repo, link))
+	t.Chdir(link)
+
+	src, changed, err := policySource(context.Background(), link, "HEAD", "p.yml", resolver{})
+	require.NoError(t, err)
+	assert.False(t, changed)
+	docs, err := src.Policies(context.Background())
+	require.NoError(t, err)
+	require.Len(t, docs, 1)
+	assert.Equal(t, "HEAD:p.yml", docs[0].Name)
+}

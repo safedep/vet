@@ -38,6 +38,12 @@
   tier: P0
   guarantee: "With --base-ref, vet reads a policy file of the git repository at the base ref. A change that removes a fail rule still fails the gate, and vet names the base ref and the edit."
   labels: [gate, pr-mode]
+- id: policy/base-ref/linked-policy
+  title: "A pull request cannot move its policy with a link"
+  category: policy
+  tier: P0
+  guarantee: "With --base-ref, a policy path that goes through a symbolic link in the working tree stops the scan with a usage error. A change cannot point the policy path at a file that the base does not have."
+  labels: [gate, pr-mode]
 - id: policy/fail-on/attacks
   title: "--fail-on attacks gates on attack controls only"
   category: policy
