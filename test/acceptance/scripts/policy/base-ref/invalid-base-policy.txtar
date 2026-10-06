@@ -25,6 +25,9 @@ jsonq stdout trailer.gate.policy_changed true
 ! stdout '"policy":"HEAD:vet-policy.yml"'
 stdout '"code":"base_policy_invalid"'
 
+# --strict turns the diagnostic into exit 3.
+execexit 3 vet scan . --base-ref HEAD --policy vet-policy.yml --strict --mode plain -o json
+
 -- repo/package-lock.json --
 {"name": "app", "lockfileVersion": 3, "packages": {"": {"name": "app"}}}
 -- repo/vet-policy.yml --

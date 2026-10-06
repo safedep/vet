@@ -3,6 +3,7 @@ package engine
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -228,6 +229,30 @@ func TestFailOpen(t *testing.T) {
 					assert.Equal(t, tc.wantMsg, d.Message)
 				}
 			}
+		})
+	}
+}
+
+// A diagnostic of the caller is in the report and counts for --strict.
+func TestCallerDiagnostics(t *testing.T) {
+	for _, strict := range []bool{false, true} {
+		t.Run(fmt.Sprintf("strict=%v", strict), func(t *testing.T) {
+			f := newFixture(t)
+			o := f.options(t, project(t), &fakeEnricher{})
+			o.Strict = strict
+			o.Diagnostics = []*report.Diagnostic{{Level: report.DiagnosticWarning, Code: report.CodeBasePolicyInvalid, Component: "policy", Message: "does not load"}}
+			res, err := Run(context.Background(), o)
+			require.NotNil(t, res)
+			t.Cleanup(func() { assert.NoError(t, res.Scan.Close()) })
+			if strict {
+				assert.ErrorIs(t, err, ErrStrict)
+			} else {
+				require.NoError(t, err)
+			}
+			diags := diagnosticsOf(t, res)
+			require.Len(t, diags, 1)
+			assert.Equal(t, report.CodeBasePolicyInvalid, diags[0].Code)
+			assert.Equal(t, 1, diags[0].Count)
 		})
 	}
 }

@@ -101,6 +101,10 @@ type Options struct {
 	ContinueWithin time.Duration
 	// Strict makes any diagnostic fail the scan with exit code 3.
 	Strict bool
+	// Diagnostics are what the caller found before the run, such as a base
+	// policy that does not load. The run records them with its own, and
+	// Strict counts them.
+	Diagnostics []*report.Diagnostic
 
 	// BatchSize is the number of packages for each enricher call.
 	BatchSize int
@@ -312,6 +316,10 @@ func (osFS) Open(name string) (fs.File, error) { return os.Open(filepath.FromSla
 
 func (r *run) stages(ctx context.Context, artifacts []plugin.Artifact) error {
 	r.diags = newDiagnostics()
+	for _, d := range r.o.Diagnostics {
+		c := *d
+		r.diags.put(&c)
+	}
 	r.artifacts = artifacts
 	steps := []struct {
 		name string

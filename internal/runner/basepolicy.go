@@ -19,6 +19,7 @@ import (
 	"github.com/safedep/vet/v2/internal/policy"
 	"github.com/safedep/vet/v2/internal/tui"
 	"github.com/safedep/vet/v2/plugin"
+	"github.com/safedep/vet/v2/report"
 )
 
 // policyResolver maps a --policy value to a path. *config.Runtime
@@ -38,6 +39,17 @@ type policyChoice struct {
 	// version does not load, and the change edits it. It is empty in each
 	// other case.
 	BaseInvalid string
+}
+
+// diagnostics returns the diagnostic of a base policy that does not load,
+// or none.
+func (c policyChoice) diagnostics() []*report.Diagnostic {
+	if c.BaseInvalid == "" {
+		return nil
+	}
+	return []*report.Diagnostic{{
+		Level: report.DiagnosticWarning, Code: report.CodeBasePolicyInvalid, Component: "policy", Message: c.BaseInvalid,
+	}}
 }
 
 // policySource chooses the policy file of a scan. A pull request scan

@@ -281,18 +281,11 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 			Enrichers: enricherSpecs(set), Controls: engineControls(ctrls), Exclude: exclude,
 			Kind: kind, Mode: mode, BaseRef: o.BaseRef, OptionsHash: hash, VetVersion: version.Version(),
 			Resume: o.Resume, Fresh: o.Fresh, ContinueWithin: within, Strict: o.Strict || cfg.Scan.Strict,
-			BatchSize: 100, Observer: v, Opened: notContinued,
+			Diagnostics: pol.diagnostics(),
+			BatchSize:   100, Observer: v, Opened: notContinued,
 			Finalize: func(ctx context.Context, s *state.Scan) (report.Gate, error) {
 				if err := syncInventory(ctx, cfg, store, s); err != nil {
 					return report.Gate{}, err
-				}
-				if pol.BaseInvalid != "" {
-					if err := s.AddDiagnostic(ctx, &report.Diagnostic{
-						Level: report.DiagnosticWarning, Code: report.CodeBasePolicyInvalid, Component: "policy",
-						Message: pol.BaseInvalid, Count: 1,
-					}); err != nil {
-						return report.Gate{}, err
-					}
 				}
 				g, err := evaluator.Finalize(ctx, s)
 				g.PolicyChanged = pol.Changed
