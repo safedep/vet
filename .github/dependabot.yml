@@ -1,8 +1,6 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
-# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
-
+# Dependabot reads this file from the default branch only. The entries with
+# target-branch: main keep the vet v1 dependencies up to date after v2
+# becomes the default branch.
 version: 2
 updates:
   - package-ecosystem: "gomod"
@@ -11,5 +9,21 @@ updates:
       interval: "weekly"
   - package-ecosystem: "npm"
     directory: "/docs"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 1
+  - package-ecosystem: "gomod"
+    directory: "/"
+    target-branch: "main"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/docs"
+    target-branch: "main"
     schedule:
       interval: "weekly"
