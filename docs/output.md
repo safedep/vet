@@ -15,7 +15,8 @@ vet scan --report sarif=vet.sarif --report markdown=vet.md
 | `table`, `plain` | People, and `grep` |
 | `json`, `jsonl` | Programs. `vet report schema get` prints the JSON Schema |
 | `sarif` | GitHub code scanning and other SARIF tools |
-| `markdown` | A pull request comment or a job summary |
+| `markdown` | A job summary, or a comment that you post with your own tools |
+| `pr-comment` | One pull request comment that vet edits on each run, with the progress since the last run. `--report pr-comment` posts it in CI. `--report pr-comment=FILE` writes the body |
 | `cyclonedx` | An SBOM with the findings as vulnerabilities, and the AI and crypto inventory (CycloneDX 1.7) |
 | `gitlab` | A GitLab dependency scanning report, for `artifacts:reports:dependency_scanning` |
 | `bitbucket` | A Bitbucket Code Insights report and its annotations |

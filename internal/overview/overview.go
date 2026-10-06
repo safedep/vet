@@ -20,6 +20,8 @@ type Overview struct {
 	// Findings are the findings that no suppression hides, the most
 	// severe first.
 	Findings []*finding.Finding
+	// Suppressed are the findings that a suppression hides.
+	Suppressed []*finding.Finding
 	// Latest maps the key of a package to its latest version, when the
 	// insights know it.
 	Latest  map[model.PackageKey]string
@@ -43,6 +45,8 @@ func Read(ctx context.Context, r plugin.Report) (Overview, error) {
 			s.Diagnostics = append(s.Diagnostics, rec.Diagnostic)
 		case rec.Finding != nil && rec.Finding.Suppression == nil:
 			s.Findings = append(s.Findings, rec.Finding)
+		case rec.Finding != nil:
+			s.Suppressed = append(s.Suppressed, rec.Finding)
 		case rec.Package != nil:
 			s.addPackage(rec.Package)
 		case rec.Manifest != nil && rec.Manifest.Kind == model.ManifestKindWorkflow && rec.Manifest.Change.Introduces():

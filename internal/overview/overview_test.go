@@ -26,6 +26,7 @@ func TestRead(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, Changes{Packages: 1, Workflows: 1, Unchanged: 1}, got.Changes)
 	assert.Len(t, got.Diagnostics, 1)
+	assert.Len(t, got.Suppressed, 1)
 	assert.Equal(t, map[model.PackageKey]string{model.MustPackageVersion(model.EcosystemNpm, "left-pad", "1.3.0").Key(): "1.3.1"}, got.Latest)
 	var severities []finding.Severity
 	for _, f := range got.Findings {

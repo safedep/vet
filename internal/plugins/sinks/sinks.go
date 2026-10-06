@@ -17,6 +17,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/sinks/jsonl"
 	"github.com/safedep/vet/v2/internal/plugins/sinks/markdown"
 	"github.com/safedep/vet/v2/internal/plugins/sinks/plain"
+	"github.com/safedep/vet/v2/internal/plugins/sinks/prcomment"
 	"github.com/safedep/vet/v2/internal/plugins/sinks/sarif"
 	"github.com/safedep/vet/v2/internal/plugins/sinks/table"
 	"github.com/safedep/vet/v2/internal/tui/output"
@@ -51,6 +52,7 @@ func Builtin() Registry {
 		{Name: jsonl.Name, Description: "one report record on each line, as JSON", New: jsonl.New},
 		{Name: markdown.Name, Description: "the counts and the findings, for a pull request comment", New: markdown.New},
 		{Name: plain.Name, Description: "one finding on each line, with tab separated fields", New: plain.New},
+		{Name: prcomment.Name, Description: "one pull request comment that vet edits on each run", New: prcomment.New},
 		{Name: sarif.Name, Description: "SARIF 2.1.0, for code scanning", New: sarif.New},
 		{Name: table.Name, Description: "the count cards and the most severe findings", New: table.New},
 	}

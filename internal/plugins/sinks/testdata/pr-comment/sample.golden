@@ -1,0 +1,48 @@
+<!-- vet:pr-comment v1 -->
+### ⚠️ vet: 2 findings to review in this scan
+
+> [!CAUTION]
+> `npm/evil-colors@1.4.1`: Malicious package
+>
+> Do not merge this change. Treat each machine and each CI run that installed or ran it as exposed.
+
+> [!WARNING]
+> Some checks did not complete, so a finding can be missing. Run the job again before you merge.
+>
+> `insights`: 2 packages have no data
+
+**No gate** · 1 to review · Checked 2 packages.
+
+#### Review
+
+`npm/evil-colors@1.4.1`: **Malicious package** · `critical` · `package-lock.json:42`
+
+The package runs a postinstall script that reads \~/.npmrc.
+
+**Fix:** Remove evil-colors.
+
+**Evidence:** Verified malicious
+
+[About this check](https://github.com/safedep/vet/blob/v2/docs/controls.md#malware) · [Wrong result?](https://github.com/safedep/vet/issues/new?control=malware&finding=f-f7017b227d6ad796&subject=pkg%3Anpm%2Fevil-colors%401.4.1&template=false-positive.yml&version=test) · `f-f7017b227d6ad796`
+
+<details><summary>1 more finding (medium and lower)</summary>
+
+- `medium` `tj-actions/changed-files@v44`: is not pinned to a commit SHA · `.github/workflows/ci.yml:8` · `f-e815bb3b5e0846f1`
+
+</details>
+
+<details><summary>Maintainers: accept a finding</summary>
+
+Add a suppression to the policy file. Merge it to the base branch, then run the job again.
+
+```yaml
+suppressions:
+  - id: f-f7017b227d6ad796
+    reason: Why this finding is acceptable
+```
+
+</details>
+
+<sub>[vet](https://github.com/safedep/vet) test · open source, by SafeDep · [Wrong result?](https://github.com/safedep/vet/issues/new?template=false-positive.yml&version=test) · [Add vet to your repo](https://github.com/safedep/vet/blob/v2/docs/github-action.md)</sub>
+
+<!-- vet:state eyJ2IjoxLCJoZWFkIjoiIiwiaWRzIjpbImYtZTgxNWJiM2I1ZTA4NDZmMSIsImYtZjcwMTdiMjI3ZDZhZDc5NiJdfQ== -->
