@@ -267,7 +267,8 @@ Package docs cite it as "control catalog, phase N".
 
 **Family**:
 The group of a control id for the report summary: `malware`, `vulnerability`, `cooldown`,
-`workflow`, `lockfile`, `agent-config`, `ai-bom`, `license`, `hygiene`, `reputation`.
+`workflow`, `lockfile`, `agent-config`, `ai-bom`, `license`, `hygiene`, `reputation`, `policy`. The
+`policy` family holds the findings of package rules.
 `finding.Family`. A family is not a control name. The `hygiene` control emits the `license` family,
 for example.
 _Avoid_: category, type
@@ -327,6 +328,14 @@ that errors at evaluation, and it fails the gate. A rule can have a `help` text 
 the report shows on each finding that the rule matches.
 _Avoid_: filter, check, control
 
+**Package pattern**:
+A PURL that selects packages, in a suppression or in the `skip` option of `dependency-cooldown`.
+`model.PackagePattern`. A PURL with no version selects each version. A name with `*`, `?` or `[` is a
+glob, and `*` also matches a `/`, so `pkg:golang/buf.build/gen/go/acme/*` selects each module under
+that path. The literal parts fold under the rule of the ecosystem. A pattern has no qualifiers. A
+glob suppression must name a control.
+_Avoid_: wildcard PURL
+
 **Suppression**:
 A policy entry that hides a finding from the gate, selected by finding id, PURL or control id, with a
 required reason and an optional expiry. `policy.Suppression`. The finding keeps a
@@ -342,10 +351,12 @@ scan has no gate and exits 0. A failed gate exits 1.
 _Avoid_: threshold, build breaker
 
 **Gate record**:
-What the gate did with one finding. `finding.Gate`, the `gate` object of a finding in the report. Its
-`action` is `fail` or `warn`. It names the policy rules that matched with that action and the
-`--fail-on` value that failed the finding, with the `help` and the `link` of the first rule. Each
-output shows it as "Blocked by" or "Warned by". A suppressed finding has no gate record.
+What the gate did with one finding. `finding.GateRecord`, the `gate` object of a finding in the
+report. Its `action` is `fail` or `warn`. It names the policy rules that matched with that action, the
+fail rules that did not evaluate (`broken`) and the `--fail-on` value that failed the finding, with the
+`help` and the `link` of the first rule. The PR comment, the markdown report, the terminal table and
+`vet report finding show` show it as "Blocked by" or "Warned by". A suppressed finding has no gate
+record.
 _Avoid_: verdict (the result of a malware analysis), policy rule (the rule itself)
 
 **Attacks gate**:
@@ -457,6 +468,12 @@ _Avoid_: saved report (when you mean the scan)
 **Config layer**:
 One origin of a config value: `default`, `managed`, `file`, `env` or `flag`, from lowest to highest.
 `config.Layer`. Only one file layer applies.
+
+**Option source**:
+The config layer that set a plugin option, with the file base name, the variable or the flag, as
+`file config.yml` or `flag --cooldown-days`. `config.Origin.Short`. A control asks for it through
+`plugin.Originer`, so a finding can say where a setting came from. The vet default has no source.
+_Avoid_: origin (the origin of a package: declared or installed)
 
 **Managed config**:
 A config file that an administrator puts in the managed directory. It applies only when root owns it.

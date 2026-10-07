@@ -141,11 +141,18 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 // rule, as policy/no-evil, so that code scanning keeps two rules apart.
 func ruleID(f *finding.Finding) string {
 	if g := f.Gate; f.Family == finding.FamilyPolicy && g != nil {
-		if ids := append(slices.Clone(g.Rules), g.Broken...); len(ids) > 0 {
-			return f.ControlID + "/" + ids[0]
+		if id := cmp.Or(first(g.Rules), first(g.Broken)); id != "" {
+			return f.ControlID + "/" + id
 		}
 	}
 	return f.ControlID
+}
+
+func first(s []string) string {
+	if len(s) == 0 {
+		return ""
+	}
+	return s[0]
 }
 
 func toResult(f *finding.Finding) result {

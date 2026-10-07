@@ -365,10 +365,12 @@ func TestSafeURL(t *testing.T) {
 }
 
 func TestGroups(t *testing.T) {
-	pkg := func(id, purl, manifest string) *finding.Finding {
-		return &finding.Finding{ID: id, Subject: finding.Subject{Kind: finding.SubjectPackage, Package: &finding.PackageSubject{PURL: purl, ManifestPath: manifest}}}
+	pkg := func(id, name, manifest string) *finding.Finding {
+		f := finding.ForPackage(finding.Meta{ControlID: "c", Title: id}, manifest, &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, name, "1.0.0")}, finding.Key{})
+		f.ID = id
+		return &f
 	}
-	a1, b, a2, other := pkg("1", "pkg:npm/a@1", "package-lock.json"), pkg("2", "pkg:npm/b@1", "package-lock.json"), pkg("3", "pkg:npm/a@1", "package-lock.json"), pkg("4", "pkg:npm/a@1", "web/package-lock.json")
+	a1, b, a2, other := pkg("1", "a", "package-lock.json"), pkg("2", "b", "package-lock.json"), pkg("3", "a", "package-lock.json"), pkg("4", "a", "web/package-lock.json")
 	file := &finding.Finding{ID: "5", Subject: finding.Subject{Kind: finding.SubjectFile, File: &finding.FileSubject{Path: "ci.yml"}}}
 	got := groups([]*finding.Finding{a1, b, file, a2, other})
 	assert.Equal(t, [][]*finding.Finding{{a1, a2}, {b}, {file}, {other}}, got, "one package in two manifests makes two groups")

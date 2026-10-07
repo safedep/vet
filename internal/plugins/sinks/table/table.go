@@ -166,8 +166,7 @@ func (s Sink) rows(fs []*finding.Finding) []row {
 	var rows []row
 	at := map[string]int{}
 	for _, f := range fs {
-		if p := f.Subject.Package; !s.all && p != nil && f.Family == finding.FamilyVulnerability {
-			k := p.PURL + "\x00" + p.ManifestPath
+		if k, ok := render.PackageGroup(f); !s.all && ok && f.Family == finding.FamilyVulnerability {
 			if i, ok := at[k]; ok {
 				rows[i] = append(rows[i], f)
 				continue
@@ -305,19 +304,15 @@ func (r row) gate() *finding.GateRecord {
 	return first
 }
 
-func (r row) failing() bool { return r.gate() != nil && r.gate().Action == finding.GateActionFail }
+func (r row) failing() bool { return slices.ContainsFunc(r, (*finding.Finding).Fails) }
 
 // gateText is the short form of a gate record, as "fail no-malware" or
-// "warn --fail-on high".
+// "fail --fail-on high".
 func gateText(g *finding.GateRecord) string {
 	if g == nil {
 		return ""
 	}
-	parts := slices.Clone(g.Rules)
-	if g.FailOn != "" {
-		parts = append(parts, "--fail-on "+g.FailOn)
-	}
-	return render.Text(string(g.Action) + " " + strings.Join(parts, ", "))
+	return render.Text(string(g.Action) + " " + g.Short())
 }
 
 // text describes the row: the title of one finding, or the count of the

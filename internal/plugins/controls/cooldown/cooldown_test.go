@@ -88,9 +88,9 @@ func TestDescriptionNamesTheWindowAndItsSource(t *testing.T) {
 		cfg  plugin.Config
 		want string
 	}{
-		{"default", plugin.MapConfig(nil), "The cooldown window is 2 days, the vet default, so the version is eligible on 2026-10-04."},
-		{"flag", origins{plugin.MapConfig{"days": 5}, map[string]string{"days": "flag --cooldown-days"}}, "The cooldown window is 5 days, from flag --cooldown-days, so the version is eligible on 2026-10-07."},
-		{"config with no source", plugin.MapConfig{"days": 1}, "The cooldown window is 1 day, from your config, so"},
+		{"default", plugin.MapConfig(nil), "The version is eligible on 2026-10-04. The cooldown window is 2 days, from the vet default."},
+		{"flag", origins{plugin.MapConfig{"days": 5}, map[string]string{"days": "flag --cooldown-days"}}, "The version is eligible on 2026-10-07. The cooldown window is 5 days, from flag --cooldown-days."},
+		{"config with no source", plugin.MapConfig{"days": 1}, "The cooldown window is 1 day, from your config."},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -100,7 +100,7 @@ func TestDescriptionNamesTheWindowAndItsSource(t *testing.T) {
 			fs := plugintest.TestControl(t, c, &model.Manifest{ID: "m1", Path: "package-lock.json", Packages: []*model.Package{pkg("a", at(time.Hour))}}, nil)
 			require.Len(t, fs, 1)
 			assert.Contains(t, fs[0].Description, tc.want)
-			assert.Contains(t, fs[0].Description, "The setting plugins.dependency-cooldown.options.days sets the window.")
+			assert.Contains(t, fs[0].Description, "The setting plugins.dependency-cooldown.options.days sets the window, also in a flag or a variable")
 		})
 	}
 }
@@ -121,10 +121,24 @@ func TestSkip(t *testing.T) {
 	fs := plugintest.TestControl(t, c, &model.Manifest{ID: "m1", Path: "go.mod", Packages: []*model.Package{sdk, other, pkg("left-pad", at(time.Hour))}}, nil)
 	require.Len(t, fs, 1)
 	assert.Contains(t, fs[0].Title, "protovalidate")
+}
 
-	for _, bad := range []map[string]any{{"purl": "pkg:npm/a"}, {"purl": "not a purl", "reason": "r"}} {
-		_, err := New(plugin.MapConfig{"skip": []any{bad}})
-		assert.Error(t, err, "%v", bad)
+func TestNewRejectsBadSkip(t *testing.T) {
+	cases := []struct {
+		name string
+		skip map[string]any
+		want string
+	}{
+		{"no reason", map[string]any{"purl": "pkg:npm/a"}, "skip[0]: reason is empty"},
+		{"not a PURL", map[string]any{"purl": "not a purl", "reason": "r"}, "skip[0]"},
+		{"a glob that does not parse", map[string]any{"purl": "pkg:npm/a[", "reason": "r"}, "name glob"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := New(plugin.MapConfig{"skip": []any{tc.skip}})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), tc.want)
+		})
 	}
 }
 

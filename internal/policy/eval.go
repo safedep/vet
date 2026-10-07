@@ -100,9 +100,12 @@ func (e *Evaluator) Apply(f *finding.Finding, pkg *model.Package, m *model.Manif
 		out.FailRules, out.BrokenRules = nil, nil
 		return out
 	}
-	failOn := e.failsOn(f)
-	out.Fail = len(fail) > 0 || len(out.BrokenRules) > 0 || failOn
-	f.Gate = gateOf(fail, out.BrokenRules, warn, failOn, e.failOn)
+	var failOn report.FailOn
+	if e.failsOn(f) {
+		failOn = e.failOn
+	}
+	out.Fail = len(fail) > 0 || len(out.BrokenRules) > 0 || failOn != ""
+	f.Gate = gateOf(fail, out.BrokenRules, warn, failOn)
 	return out
 }
 
@@ -114,17 +117,19 @@ func (e *Evaluator) applyRule(f *finding.Finding, r *Rule, broken bool) Outcome 
 	if f.Suppressed() {
 		return out
 	}
+	var fail []*Rule
 	switch {
 	case broken:
-		out.Fail, out.BrokenRules = true, []string{r.ID}
-		f.Gate = gateOf(nil, out.BrokenRules, nil, false, "")
-		return out
+		out.BrokenRules = []string{r.ID}
 	case r.Action == ActionFail:
-		out.Fail, out.FailRules = true, []string{r.ID}
-		f.Gate = gateOf([]*Rule{r}, nil, nil, false, "")
-		return out
+		out.FailRules, fail = []string{r.ID}, []*Rule{r}
 	}
-	f.Gate = gateOf(nil, nil, r, false, "")
+	out.Fail = len(out.FailRules)+len(out.BrokenRules) > 0
+	warn := r
+	if out.Fail {
+		warn = nil
+	}
+	f.Gate = gateOf(fail, out.BrokenRules, warn, "")
 	return out
 }
 
@@ -145,17 +150,15 @@ func (e *Evaluator) suppression(f *finding.Finding, out *Outcome) *finding.Suppr
 	return nil
 }
 
-// gateOf builds the gate record of a finding: the fail rules and the
-// --fail-on value when one of them fails it, else the first warn rule.
-func gateOf(fail []*Rule, broken []string, warn *Rule, failOn bool, value report.FailOn) *finding.GateRecord {
+// gateOf builds the gate record of a finding: the fail rules, the broken
+// rules and the --fail-on value that fails it, else the first warn rule.
+// failOn is empty when --fail-on does not fail the finding.
+func gateOf(fail []*Rule, broken []string, warn *Rule, failOn report.FailOn) *finding.GateRecord {
 	switch {
-	case len(fail) > 0 || len(broken) > 0 || failOn:
-		g := &finding.GateRecord{Action: finding.GateActionFail, Broken: slices.Clone(broken)}
+	case len(fail) > 0 || len(broken) > 0 || failOn != "":
+		g := &finding.GateRecord{Action: finding.GateActionFail, Broken: slices.Clone(broken), FailOn: string(failOn)}
 		for _, r := range fail {
 			g.Rules = append(g.Rules, r.ID)
-		}
-		if failOn {
-			g.FailOn = string(value)
 		}
 		if len(fail) > 0 {
 			g.Help, g.Link = fail[0].Help, fail[0].Link

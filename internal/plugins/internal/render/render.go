@@ -135,3 +135,17 @@ func EachFinding(ctx context.Context, r plugin.Report, fn func(*finding.Finding)
 		return fn(rec.Finding)
 	})
 }
+
+// PackageGroup is the key that puts the findings of one package in one
+// manifest together. It is false for a finding of another subject.
+func PackageGroup(f *finding.Finding) (string, bool) {
+	p := f.Subject.Package
+	if p == nil {
+		return "", false
+	}
+	id, err := p.PackageVersion()
+	if err != nil {
+		return "", false
+	}
+	return string(id.Key()) + "\x00" + p.ManifestPath, true
+}

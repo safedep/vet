@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -168,6 +169,28 @@ func (g *GateRecord) Cause() string {
 		parts = append(parts, "--fail-on "+g.FailOn)
 	}
 	return strings.Join(parts, " and ")
+}
+
+// Short names the rules and the --fail-on value of the record, as
+// "no-malware, bad (broken), --fail-on high", for a narrow column.
+func (g *GateRecord) Short() string {
+	parts := slices.Clone(g.Rules)
+	for _, r := range g.Broken {
+		parts = append(parts, r+" (broken)")
+	}
+	if g.FailOn != "" {
+		parts = append(parts, "--fail-on "+g.FailOn)
+	}
+	return strings.Join(parts, ", ")
+}
+
+// Equal reports whether two records are the same. Both can be nil.
+func (g *GateRecord) Equal(o *GateRecord) bool {
+	if g == nil || o == nil {
+		return g == o
+	}
+	return g.Action == o.Action && slices.Equal(g.Rules, o.Rules) && slices.Equal(g.Broken, o.Broken) &&
+		g.FailOn == o.FailOn && g.Help == o.Help && g.Link == o.Link
 }
 
 // Fails reports whether the finding fails the gate.

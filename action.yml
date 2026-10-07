@@ -15,7 +15,7 @@ inputs:
     description: Hours that a vet release must age before auto, latest or latest-prerelease installs it. It applies to the vet binary, not to your packages.
     default: "24"
   package-cooldown:
-    description: Days that a package version must age before the dependency-cooldown control stops reporting it. Empty keeps the vet default of 2 days. It sets plugins.dependency-cooldown.options.days.
+    description: Days that a package version must age before the dependency-cooldown control stops reporting it. Empty keeps the vet default of 2 days. The input sets the config key plugins.dependency-cooldown.options.days
     default: ""
   fail-on:
     description: attacks, none, critical, high, medium or low
@@ -33,7 +33,7 @@ inputs:
     description: Write SARIF and upload it to code scanning. The job needs security-events write.
     default: "false"
   config:
-    description: A vet config file in the repository, such as .github/vet/config.yml. In a pull request, vet reads it at the base commit. Empty reads no config file.
+    description: The path of a vet config file in the repository, such as .github/vet/config.yml in the default setup. In a pull request, vet reads the file at the base commit. Empty reads no config file.
     default: ""
   args:
     description: More arguments for vet scan, split on white space

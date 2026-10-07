@@ -7,13 +7,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/url"
 	"time"
 
 	"github.com/safedep/dry/usefulerror"
 	"gopkg.in/yaml.v3"
 
 	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/internal/weburl"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 )
@@ -175,7 +175,7 @@ func parse(name string, data []byte) (*Policy, error) {
 		if r.Severity != "" && !r.Severity.Valid() {
 			errs = append(errs, fmt.Errorf("%s: severity is %q: use critical, high, medium, low or info", at, r.Severity))
 		}
-		if r.Link != "" && !webURL(r.Link) {
+		if r.Link != "" && !weburl.Valid(r.Link) {
 			errs = append(errs, fmt.Errorf("%s: link is %q: use an http or https URL", at, r.Link))
 		}
 		if r.When == "" {
@@ -215,9 +215,15 @@ func (s *Suppression) check() error {
 	}
 	if s.PURL != "" {
 		p, err := model.ParsePackagePattern(s.PURL)
-		if err != nil {
+		switch {
+		case err != nil:
 			errs = append(errs, err)
-		} else {
+		case p.Glob() && s.Control == "":
+			// A glob names many packages. With no control, it would also
+			// hide an attack, such as malware in a package with a look-alike
+			// name of the glob.
+			errs = append(errs, fmt.Errorf("purl %q has a name glob: set control too", s.PURL))
+		default:
 			s.pkg = &p
 		}
 	}
@@ -230,13 +236,6 @@ func (s *Suppression) check() error {
 		}
 	}
 	return errors.Join(errs...)
-}
-
-// webURL reports whether s is an absolute http or https URL. A report
-// shows the link of a rule, so the link must not run script.
-func webURL(s string) bool {
-	u, err := url.Parse(s)
-	return err == nil && (u.Scheme == "https" || u.Scheme == "http") && u.Host != ""
 }
 
 func parseExpiry(v string) (time.Time, error) {

@@ -81,6 +81,12 @@ func TestReputation(t *testing.T) {
 			[]string{IDConfusion},
 		},
 		{
+			"an internal glob matches a deeper name, because * also matches a /",
+			map[string]any{"internal_names": []any{"@acme/*"}},
+			&model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "@acme/auth/core", "1.0.0"), Resolved: "https://registry.npmjs.org/@acme/auth/core/-/core-1.0.0.tgz"},
+			[]string{IDConfusion},
+		},
+		{
 			"internal name from the internal registry",
 			map[string]any{"internal_names": []any{"@acme/*"}},
 			&model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "@acme/auth", "1.0.0"), Resolved: "https://npm.acme.example/@acme/auth/-/auth-1.0.0.tgz"}, nil,

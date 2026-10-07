@@ -180,6 +180,31 @@ func TestGateRecordCause(t *testing.T) {
 			assert.Equal(t, tc.want, tc.g.Cause())
 		})
 	}
-	assert.Equal(t, "Blocked by", (&GateRecord{Action: GateActionFail}).Label())
-	assert.False(t, GateAction("block").Valid())
+}
+
+func TestGateAction(t *testing.T) {
+	cases := []struct {
+		action GateAction
+		valid  bool
+		label  string
+	}{
+		{GateActionFail, true, "Blocked by"},
+		{GateActionWarn, true, "Warned by"},
+		{GateAction("block"), false, "Warned by"},
+	}
+	for _, tc := range cases {
+		t.Run(string(tc.action), func(t *testing.T) {
+			assert.Equal(t, tc.valid, tc.action.Valid())
+			assert.Equal(t, tc.label, (&GateRecord{Action: tc.action}).Label())
+		})
+	}
+}
+
+func TestGateRecordShortAndEqual(t *testing.T) {
+	g := &GateRecord{Action: GateActionFail, Rules: []string{"a"}, Broken: []string{"b"}, FailOn: "high"}
+	assert.Equal(t, "a, b (broken), --fail-on high", g.Short())
+	assert.True(t, g.Equal(&GateRecord{Action: GateActionFail, Rules: []string{"a"}, Broken: []string{"b"}, FailOn: "high"}))
+	assert.False(t, g.Equal(&GateRecord{Action: GateActionFail, Rules: []string{"a"}}))
+	assert.False(t, g.Equal(nil))
+	assert.True(t, (*GateRecord)(nil).Equal(nil))
 }

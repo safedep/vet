@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -28,6 +29,19 @@ const (
 type Origin struct {
 	Layer  Layer  `json:"layer"`
 	Source string `json:"source,omitempty"`
+}
+
+// Short returns the layer and the source, with the base name of a file,
+// as "file config.yml", so a report shows no local path. It is "" for the
+// default layer.
+func (o Origin) Short() string {
+	switch o.Layer {
+	case LayerDefault:
+		return ""
+	case LayerFile, LayerManaged:
+		return string(o.Layer) + " " + filepath.Base(o.Source)
+	}
+	return o.String()
 }
 
 // String returns the layer and the source, as "file /etc/vet.yml".

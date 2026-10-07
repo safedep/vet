@@ -228,8 +228,8 @@ func TestApplySuppressionSelectors(t *testing.T) {
 		{name: "other finding id", s: "id: f-0000000000000000", f: f},
 		{name: "purl with no version", s: "purl: pkg:npm/evil", f: f, want: true},
 		{name: "purl of another package", s: "purl: pkg:npm/good", f: f},
-		{name: "purl with a name glob", s: "purl: pkg:npm/ev*", f: f, want: true},
-		{name: "purl with a glob of another name", s: "purl: pkg:npm/go*", f: f},
+		{name: "purl with a name glob", s: "purl: pkg:npm/ev*\n    control: malware", f: f, want: true},
+		{name: "purl with a glob of another name", s: "purl: pkg:npm/go*\n    control: malware", f: f},
 		{name: "control", s: "control: malware", f: f, want: true},
 		{name: "control and purl", s: "control: malware\n    purl: pkg:npm/evil@2.0.0", f: f},
 		{name: "purl on a file finding", s: "purl: pkg:npm/evil", f: &file},
@@ -430,4 +430,10 @@ func TestPackageIsGlob(t *testing.T) {
 			assert.Equal(t, tc.want, got)
 		})
 	}
+}
+
+func TestGlobSuppressionNeedsAControl(t *testing.T) {
+	_, err := Parse("p.yml", []byte("version: 2\nsuppressions:\n  - purl: pkg:npm/@acme/*\n    reason: r\n"))
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), `purl "pkg:npm/@acme/*" has a name glob: set control too`)
 }

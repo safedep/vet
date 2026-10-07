@@ -13,6 +13,7 @@ import (
 	"github.com/safedep/vet/v2/internal/overview"
 	"github.com/safedep/vet/v2/internal/plugins/internal/render"
 	"github.com/safedep/vet/v2/internal/tui/humanize"
+	"github.com/safedep/vet/v2/internal/weburl"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/report"
 )
@@ -295,11 +296,7 @@ func (c *input) status(b *strings.Builder, blocking, review int) {
 	g := c.trailer.Gate
 	parts := []string{"**" + gateText(g.Outcome) + "**"}
 	if g.Policy != "" && !g.PolicyChanged {
-		word := "policy "
-		if strings.Contains(g.Policy, ", ") {
-			word = "policies "
-		}
-		parts = append(parts, word+code(g.Policy))
+		parts = append(parts, "Policy: "+code(g.Policy))
 	}
 	if blocking > 0 {
 		parts = append(parts, fmt.Sprintf("%d blocking", blocking))
@@ -380,12 +377,11 @@ func groups(fs []*finding.Finding) [][]*finding.Finding {
 	var out [][]*finding.Finding
 	at := map[string]int{}
 	for _, f := range fs {
-		p := f.Subject.Package
-		if p == nil {
+		k, ok := render.PackageGroup(f)
+		if !ok {
 			out = append(out, []*finding.Finding{f})
 			continue
 		}
-		k := p.PURL + "\x00" + p.ManifestPath
 		if i, ok := at[k]; ok {
 			out[i] = append(out[i], f)
 			continue
@@ -400,7 +396,7 @@ func groups(fs []*finding.Finding) [][]*finding.Finding {
 // heading of its package and starts with the title. It shows its place
 // when the place differs from the place of the heading.
 func (c *input) card(b *strings.Builder, f *finding.Finding, subject bool, heading string) {
-	head := fmt.Sprintf("**%s** · `%s`", md(render.Title(f), maxField), f.Severity)
+	head := fmt.Sprintf("**%s** · %s", md(render.Title(f), maxField), code(string(f.Severity)))
 	where := c.placeOf(f)
 	switch {
 	case subject:
@@ -428,7 +424,7 @@ func (c *input) card(b *strings.Builder, f *finding.Finding, subject bool, headi
 	if len(f.Evidence) > 0 {
 		fmt.Fprintf(b, "**Evidence:** %s\n\n", md(render.Text(f.Evidence[0].Summary), maxText))
 	}
-	fmt.Fprintf(b, "[About this check](%s) · [Wrong result?](%s) · `%s`\n\n", c.docURL(f.ControlID), c.formURL(f), f.ID)
+	fmt.Fprintf(b, "[About this check](%s) · [Wrong result?](%s) · %s\n\n", c.docURL(f.ControlID), c.formURL(f), code(f.ID))
 }
 
 // placeOf is the place of a finding with its change in pull request mode.
@@ -464,8 +460,11 @@ func (c *input) gate(b *strings.Builder, f *finding.Finding) {
 // target, or "". The policy validates the link. A report file can come
 // from anywhere, so the comment checks it again.
 func safeURL(s string) string {
+	if !weburl.Valid(s) {
+		return ""
+	}
 	u, err := url.Parse(s)
-	if err != nil || (u.Scheme != "https" && u.Scheme != "http") || u.Host == "" {
+	if err != nil {
 		return ""
 	}
 	return strings.NewReplacer("(", "%28", ")", "%29", " ", "%20", `\`, "%5C", "<", "%3C", ">", "%3E", `"`, "%22").Replace(u.String())
@@ -478,11 +477,11 @@ func (c *input) lines(b *strings.Builder, fs []*finding.Finding) {
 			fmt.Fprintf(b, "- %d more in the full report\n", len(fs)-maxLines)
 			break
 		}
-		line := fmt.Sprintf("- `%s` %s: %s · %s", f.Severity, code(render.Subject(f)), md(render.Title(f), maxField), code(render.Where(f)))
+		line := fmt.Sprintf("- %s %s: %s · %s", code(string(f.Severity)), code(render.Subject(f)), md(render.Title(f), maxField), code(render.Where(f)))
 		if g := f.Gate; g != nil {
 			line += " · " + strings.ToLower(g.Label()) + " " + md(render.Text(g.Cause()), maxField)
 		}
-		fmt.Fprintf(b, "%s · `%s`\n", line, f.ID)
+		fmt.Fprintf(b, "%s · %s\n", line, code(f.ID))
 	}
 	b.WriteString("\n")
 }

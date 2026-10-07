@@ -7,6 +7,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"sync"
 
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
 	"github.com/package-url/packageurl-go"
@@ -160,15 +161,49 @@ func (p PackageVersion) NameIs(name string) bool {
 // fold under the rule of the ecosystem, so "acme-*" matches the PyPI name
 // Acme.Utils.
 func (p PackageVersion) MatchName(pattern string) (bool, error) {
-	folded, err := foldPattern(p.Ecosystem(), pattern)
-	if err != nil {
-		return false, err
-	}
-	re, err := globRegexp(folded)
+	re, err := compiledGlob(p.Ecosystem(), pattern)
 	if err != nil {
 		return false, err
 	}
 	return re.MatchString(p.Name()), nil
+}
+
+// IsNameGlob reports whether a name holds a glob character.
+func IsNameGlob(name string) bool { return strings.ContainsAny(name, "*?[") }
+
+// NameMatches reports whether a name or a glob names the package. A glob
+// that does not parse matches nothing.
+func (p PackageVersion) NameMatches(nameOrGlob string) bool {
+	if !IsNameGlob(nameOrGlob) {
+		return p.NameIs(nameOrGlob)
+	}
+	ok, err := p.MatchName(nameOrGlob)
+	return err == nil && ok
+}
+
+// globs holds the compiled globs, by ecosystem and pattern. A policy runs
+// one glob on each package of a scan.
+var globs sync.Map
+
+type compiled struct {
+	re  *regexp.Regexp
+	err error
+}
+
+func compiledGlob(eco Ecosystem, pattern string) (*regexp.Regexp, error) {
+	key := string(eco) + "\x00" + pattern
+	if c, ok := globs.Load(key); ok {
+		return c.(compiled).re, c.(compiled).err
+	}
+	var c compiled
+	folded, err := foldPattern(eco, pattern)
+	if err == nil {
+		c.re, c.err = globRegexp(folded)
+	} else {
+		c.err = err
+	}
+	globs.Store(key, c)
+	return c.re, c.err
 }
 
 // globRegexp turns a path.Match pattern into a regular expression in which
@@ -191,9 +226,12 @@ func globRegexp(pattern string) (*regexp.Regexp, error) {
 		case '?':
 			b.WriteString(".")
 		case '[':
-			end := strings.IndexByte(pattern[i:], ']')
-			b.WriteString(pattern[i : i+end+1])
-			i += end
+			end, class, err := globClass(pattern, i)
+			if err != nil {
+				return nil, err
+			}
+			b.WriteString(class)
+			i = end
 		default:
 			b.WriteString(regexp.QuoteMeta(pattern[i : i+1]))
 		}
@@ -362,6 +400,41 @@ func (p *PackageVersion) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// globClass turns the class of a path.Match pattern that starts at i into
+// a class of a regular expression. Each member goes through QuoteMeta, so
+// \w or [:alpha:] keep the meaning of path.Match. It returns the index of
+// the closing ]. path.Match negates with ^ only, so a ! at the start is
+// an error, to stop a reader who expects the shell form.
+func globClass(pattern string, i int) (int, string, error) {
+	var b strings.Builder
+	b.WriteString("[")
+	j := i + 1
+	if j < len(pattern) && pattern[j] == '!' {
+		return 0, "", fmt.Errorf("glob %q: write a negated class as [^...], not with an exclamation mark", pattern)
+	}
+	if j < len(pattern) && pattern[j] == '^' {
+		b.WriteString("^")
+		j++
+	}
+	for ; j < len(pattern) && pattern[j] != ']'; j++ {
+		c := pattern[j]
+		switch {
+		case c == '\\' && j+1 < len(pattern):
+			j++
+			b.WriteString(regexp.QuoteMeta(pattern[j : j+1]))
+		case c == '-':
+			b.WriteString("-")
+		default:
+			b.WriteString(regexp.QuoteMeta(pattern[j : j+1]))
+		}
+	}
+	if j >= len(pattern) {
+		return 0, "", fmt.Errorf("glob %q: a class has no closing ]", pattern)
+	}
+	b.WriteString("]")
+	return j, b.String(), nil
+}
+
 // PackagePattern selects packages by a PURL. A PURL with no version
 // selects each version of the package. A name with *, ? or [ is a glob, as
 // MatchName reads it.
@@ -371,13 +444,17 @@ type PackagePattern struct {
 }
 
 // ParsePackagePattern parses a PURL that can hold a name glob, as
-// pkg:npm/@acme/* or pkg:golang/buf.build/gen/go/acme/*.
+// pkg:npm/@acme/* or pkg:golang/buf.build/gen/go/acme/*. A pattern has no
+// qualifiers and no subpath, so a ? of a glob cannot start the qualifiers.
 func ParsePackagePattern(purl string) (PackagePattern, error) {
+	if strings.ContainsAny(purl, "?#") {
+		return PackagePattern{}, fmt.Errorf("parse PURL %q: a PURL pattern has no qualifiers and no subpath. Write the ? of a glob as %%3F", purl)
+	}
 	id, err := ParsePURL(purl)
 	if err != nil {
 		return PackagePattern{}, err
 	}
-	p := PackagePattern{id: id, glob: strings.ContainsAny(id.RawName(), "*?[")}
+	p := PackagePattern{id: id, glob: IsNameGlob(id.RawName())}
 	if p.glob {
 		if _, err := id.MatchName(id.RawName()); err != nil {
 			return PackagePattern{}, fmt.Errorf("parse PURL %q: name glob: %w", purl, err)
@@ -385,6 +462,9 @@ func ParsePackagePattern(purl string) (PackagePattern, error) {
 	}
 	return p, nil
 }
+
+// Glob reports whether the name of the pattern is a glob.
+func (p PackagePattern) Glob() bool { return p.glob }
 
 // Matches reports whether the pattern selects the package version.
 func (p PackagePattern) Matches(id PackageVersion) bool {

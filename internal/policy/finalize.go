@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"iter"
 	"maps"
-	"reflect"
 	"slices"
 	"strings"
 
@@ -118,7 +117,7 @@ func (e *Evaluator) packageRules(ctx context.Context, s Store, gate *Gate, diags
 			return err
 		}
 		for _, p := range m.Packages {
-			if p.Change == model.ChangeUnchanged || p.Change == model.ChangeRemoved {
+			if p.Change != model.ChangeNone && !p.Change.Introduces() {
 				continue
 			}
 			vars, err := packageRuleInput(p, m, e.now).activation()
@@ -159,9 +158,13 @@ func (e *Evaluator) ruleFinding(r *Rule, m *model.Manifest, p *model.Package, br
 	case title == "":
 		title = "The package matches policy rule " + r.ID
 	}
+	desc := fmt.Sprintf("The policy rule %s matches the package.", r.ID)
+	if broken {
+		desc = fmt.Sprintf("The policy rule %s did not evaluate on the package. A fail rule that cannot run fails the gate.", r.ID)
+	}
 	f := finding.ForPackage(finding.Meta{
 		ControlID: RuleControl, Family: finding.FamilyPolicy, Severity: cmp.Or(r.Severity, finding.SeverityInfo),
-		Title: title, Description: fmt.Sprintf("The policy rule %s matches the package.", r.ID),
+		Title: title, Description: desc,
 	}, m.Path, p, finding.Key{Discriminator: r.ID})
 	return &f
 }
@@ -193,7 +196,7 @@ func packageOf(m *model.Manifest, f *finding.Finding) *model.Package {
 }
 
 func changed(a, b *finding.Finding) bool {
-	if !reflect.DeepEqual(a.Gate, b.Gate) || a.Suppressed() != b.Suppressed() {
+	if !a.Gate.Equal(b.Gate) || a.Suppressed() != b.Suppressed() {
 		return true
 	}
 	return a.Suppressed() && (a.Suppression.Rule != b.Suppression.Rule || a.Suppression.Reason != b.Suppression.Reason)

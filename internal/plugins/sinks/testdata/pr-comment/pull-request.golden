@@ -11,7 +11,7 @@
 >
 > `insights`: 2 packages have no data
 
-**Gate failed** · policy `origin/main:.github/vet/policy.yml` · 1 blocking · Checked 2 added or upgraded packages.
+**Gate failed** · Policy: `origin/main:.github/vet/policy.yml` · 1 blocking · Checked 2 added or upgraded packages.
 
 #### Blocking
 

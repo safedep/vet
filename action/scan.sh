@@ -98,13 +98,18 @@ fi
 config=${ACTION_CONFIG:-}
 global=()
 if [ -n "$config" ]; then
+  case /$config/ in
+    //* | */../* | */./* | *//*) fail "The config input is not a plain path in the repository: '$config'. Write it as .github/vet/config.yml" ;;
+  esac
   if [ -n "$base" ]; then
-    if git cat-file -e "$base:$config" 2>/dev/null; then
-      git show "$base:$config" >"$tmp/config.yml"
+    if [ -n "$(git ls-tree --name-only "$base" -- "$config")" ]; then
+      git show "$base:$config" >"$tmp/config.yml" || fail "vet cannot read $config at the base commit ${base:0:7}"
       global=(--config "$tmp/config.yml")
       echo "vet reads the config $config at the base commit ${base:0:7}"
+    elif [ -e "$config" ]; then
+      echo "::warning::The base commit has no $config, so vet reads no config file. The config of this change applies after it merges."
     else
-      echo "vet reads no config file, because the base commit has no $config"
+      fail "The config input names a file that does not exist: '$config'"
     fi
   elif [ -e "$config" ]; then
     global=(--config "$config")

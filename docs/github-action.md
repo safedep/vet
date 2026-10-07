@@ -54,8 +54,9 @@ Then, in the settings of the repository:
 | `comment` | `auto` | `auto`, `findings` or `never` |
 | `comment-proxy` | `true` | Post the comment of a fork pull request through the SafeDep comment proxy |
 | `sarif` | `false` | Write SARIF and upload it to code scanning. The job needs `security-events: write` |
-| `config` | empty | A vet config file in the repository, such as `.github/vet/config.yml`. In a pull request, vet reads it at the base commit |
+| `config` | empty | The path of a vet config file in the repository, such as `.github/vet/config.yml` in the default setup. In a pull request, vet reads the file at the base commit |
 | `args` | empty | More arguments for `vet scan`. The action splits them on white space |
+| `github-token` | `${{ github.token }}` | The token for the releases, the comment and the GitHub checks of vet |
 
 The action has two cooldowns for two different things:
 
@@ -89,9 +90,14 @@ suppressions:
     reason: Our own SDK, which we test on each release.
 ```
 
-The action reads the config file at the base commit, as it reads the policy. A pull request cannot
-turn off a control for its own scan.
-| `github-token` | `${{ github.token }}` | The token for the releases, the comment and the GitHub checks of vet |
+For a `pull_request` or `pull_request_target` event, the action reads the config file and the
+policy at the base commit, so a pull request cannot turn off a control for its own scan. When the base
+has no config file, the action warns and reads none. For a push or a merge queue, the action reads
+both files from the checkout. The `config` path is a path in the repository, with no leading `/` and
+no `..`.
+
+A suppression with a name glob must name a `control`, so a glob never hides an attack such as
+malware.
 
 ## Outputs
 

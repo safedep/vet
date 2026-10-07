@@ -1,8 +1,6 @@
 package policy
 
 import (
-	"strconv"
-
 	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/v2/internal/app"
@@ -41,5 +39,3 @@ severity of its advisory.`,
 		},
 	}
 }
-
-func itoa(n int) string { return strconv.Itoa(n) }

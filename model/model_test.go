@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"path"
 	"reflect"
 	"testing"
 
@@ -329,6 +330,7 @@ func TestMatchName(t *testing.T) {
 		{EcosystemGo, "example.com/a.b", "example.com/a?b", true},
 		{EcosystemGo, "example.com/axb", "example.com/a.b", false},
 		{EcosystemPyPI, "acme-z", "acme-[^xy]", true},
+		{EcosystemGo, "example.com/a]b", `example.com/a[\]]b`, true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.pkg+"~"+tc.pattern, func(t *testing.T) {
@@ -384,6 +386,32 @@ func TestPackagePattern(t *testing.T) {
 			assert.Equal(t, tc.want, p.Matches(tc.id))
 		})
 	}
-	_, err := ParsePackagePattern("pkg:npm/a[")
-	assert.Error(t, err)
+	for _, bad := range []string{"pkg:npm/a[", "pkg:npm/lodas?", "pkg:npm/a#sub", "pkg:npm/[!a]b"} {
+		_, err := ParsePackagePattern(bad)
+		assert.Error(t, err, bad)
+	}
+}
+
+func TestGlobClassKeepsTheMeaningOfPathMatch(t *testing.T) {
+	cases := []struct {
+		name, pattern string
+		want          bool
+	}{
+		{"a", "[\\w]", false},
+		{"w", "[\\w]", true},
+		{"5", "[\\d]", false},
+		{"b", "[a-c]", true},
+		{"d", "[^a-c]", true},
+		{"]", "[\\]]", true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.pattern+"~"+tc.name, func(t *testing.T) {
+			want, err := path.Match(tc.pattern, tc.name)
+			require.NoError(t, err)
+			require.Equal(t, tc.want, want, "the case agrees with path.Match")
+			got, err := mustPV(t, EcosystemGo, "example.com/"+tc.name, "v1.0.0").MatchName("example.com/" + tc.pattern)
+			require.NoError(t, err)
+			assert.Equal(t, tc.want, got)
+		})
+	}
 }

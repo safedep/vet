@@ -428,6 +428,7 @@ func TestScan(t *testing.T) {
 		policy       bool
 		policyDir    bool
 		config       bool
+		configHead   bool
 		summaryBytes int
 		// baseInOrigin puts the base commit only in the origin, so the
 		// script fetches it. header is a token header of the checkout.
@@ -547,11 +548,33 @@ func TestScan(t *testing.T) {
 			output: "vet reads the config .github/vet/config.yml at the base commit",
 		},
 		{
-			name:   "a pull request with no config at the base reads no config",
+			name:       "a pull request that adds the config reads no config, and warns",
+			event:      "pull_request",
+			configHead: true,
+			env:        map[string]string{"ACTION_CONFIG": ".github/vet/config.yml"},
+			noArgs:     []string{"--config"},
+			output:     "::warning::The base commit has no .github/vet/config.yml, so vet reads no config file.",
+		},
+		{
+			name:   "a pull request with no config in any commit fails",
 			event:  "pull_request",
 			env:    map[string]string{"ACTION_CONFIG": ".github/vet/config.yml"},
-			noArgs: []string{"--config"},
-			output: "vet reads no config file, because the base commit has no .github/vet/config.yml",
+			exit:   1,
+			output: "The config input names a file that does not exist: '.github/vet/config.yml'",
+		},
+		{
+			name:   "a config path that leaves the repository fails",
+			event:  "pull_request",
+			env:    map[string]string{"ACTION_CONFIG": "../config.yml"},
+			exit:   1,
+			output: "The config input is not a plain path in the repository: '../config.yml'",
+		},
+		{
+			name:   "an absolute config path fails",
+			event:  "push",
+			env:    map[string]string{"ACTION_CONFIG": "/etc/vet/config.yml"},
+			exit:   1,
+			output: "The config input is not a plain path in the repository: '/etc/vet/config.yml'",
 		},
 		{
 			name:   "a push reads the config of the checkout",
@@ -600,6 +623,9 @@ func TestScan(t *testing.T) {
 			gitIn(repo, "add", "-A")
 			gitIn(repo, "commit", "-q", "-m", "base")
 			base := gitIn(repo, "rev-parse", "HEAD")
+			if tc.configHead {
+				writeFile(t, filepath.Join(repo, ".github/vet/config.yml"), "plugins: {}\n", 0o644)
+			}
 			if tc.baseInOrigin {
 				origin := filepath.Join(root, "origin")
 				gitIn(root, "clone", "-q", repo, origin)

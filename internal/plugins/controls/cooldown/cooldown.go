@@ -126,8 +126,8 @@ func (c *Control) finding(m *model.Manifest, p *model.Package, published time.Ti
 	f := finding.ForPackage(finding.Meta{
 		ControlID: Name, Family: finding.FamilyCooldown, Severity: finding.SeverityHigh,
 		Title: fmt.Sprintf("%s was published %s", p.ID, ago(days)),
-		Description: fmt.Sprintf("The registry published this version on %s. The cooldown window is %s, %s, so the version is eligible on %s. The setting %s sets the window.",
-			published.Format(time.DateOnly), humanize.Count(c.days, "day"), c.sourceText(), eligible.Format(time.DateOnly), DaysKey),
+		Description: fmt.Sprintf("The registry published this version on %s. The version is eligible on %s. The cooldown window is %s, from %s. The setting %s sets the window, also in a flag or a variable",
+			published.Format(time.DateOnly), eligible.Format(time.DateOnly), humanize.Count(c.days, "day"), c.sourceText(), DaysKey),
 	}, m.Path, p, finding.Key{})
 	f.Evidence = []finding.Evidence{{Source: "insights", Summary: "published at " + published.Format(time.RFC3339)}}
 	summary := fmt.Sprintf("Wait until %s, or keep the version that you used before.", eligible.Format(time.DateOnly))
@@ -139,12 +139,7 @@ func (c *Control) finding(m *model.Manifest, p *model.Package, published time.Ti
 }
 
 // sourceText says where the window comes from.
-func (c *Control) sourceText() string {
-	if c.source == "" {
-		return "the vet default"
-	}
-	return "from " + c.source
-}
+func (c *Control) sourceText() string { return cmp.Or(c.source, "the vet default") }
 
 func ago(days int) string {
 	switch {

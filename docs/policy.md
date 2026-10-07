@@ -81,7 +81,10 @@ vet scan --base-ref origin/main --policy vet-policy.yml
 | `suppressions[].expires` | no | A date (`2026-12-31`) or an RFC 3339 time. A date means 00:00 UTC |
 
 A suppression with two selectors, such as `purl` and `control`, hides only the findings that match
-both. A suppression `purl` matches every spelling of the package name in its ecosystem.
+both. A suppression `purl` matches every spelling of the package name in its ecosystem. A name with `*`,
+`?` or `[` is a glob, and `*` also matches a `/`. A glob suppression must name a `control`, so that it
+never hides an attack such as malware. Write the `?` of a glob as `%3F`, because a `?` in a PURL
+starts the qualifiers.
 
 ## Package rules
 
@@ -105,13 +108,16 @@ This rule blocks an internal package name that comes from a public registry:
   - id: internal-from-public
     description: An internal package comes from a public registry.
     when: >-
-      package.is("@acme/*") && has(package.resolved) &&
-      !package.resolved.startsWith("https://npm.acme.example/")
+      package.is("@acme/*") &&
+      (!has(package.resolved) || !package.resolved.startsWith("https://npm.acme.example/"))
     action: fail
     severity: high
     help: Install @acme packages from the internal registry. Check .npmrc.
     link: https://wiki.acme.example/security/registries
 ```
+
+A rule that denies must also fail when a field is absent. A lockfile entry with no `resolved` URL
+does not say where npm gets the package, so the rule above fails on it.
 
 The `dependency-cooldown` control also reports fresh versions, as `high` findings. A cooldown rule
 in the policy makes a second finding on the same package. Each finding says what blocked or warned

@@ -235,3 +235,21 @@ func TestLoadWarnsThatTheManagedFileWins(t *testing.T) {
 	require.Len(t, l.Warnings, 1)
 	assert.Contains(t, l.Warnings[0], "--config "+own+" is ignored")
 }
+
+func TestOriginShort(t *testing.T) {
+	cases := []struct {
+		o    Origin
+		want string
+	}{
+		{Origin{Layer: LayerDefault}, ""},
+		{Origin{Layer: LayerFile, Source: "/home/a/.config/vet/config.yml"}, "file config.yml"},
+		{Origin{Layer: LayerManaged, Source: "/etc/vet/managed.yml"}, "managed managed.yml"},
+		{Origin{Layer: LayerEnv, Source: "VET_PLUGINS_DEPENDENCY_COOLDOWN_OPTIONS_DAYS"}, "env VET_PLUGINS_DEPENDENCY_COOLDOWN_OPTIONS_DAYS"},
+		{Origin{Layer: LayerFlag, Source: "--cooldown-days"}, "flag --cooldown-days"},
+	}
+	for _, tc := range cases {
+		t.Run(string(tc.o.Layer), func(t *testing.T) {
+			assert.Equal(t, tc.want, tc.o.Short())
+		})
+	}
+}

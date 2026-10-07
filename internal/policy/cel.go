@@ -46,7 +46,7 @@ func newEnv() (*cel.Env, error) {
 			cel.BinaryBinding(func(pkg, name ref.Val) ref.Val {
 				id, ok := celPackage(pkg)
 				s, isString := name.Value().(string)
-				return types.Bool(ok && isString && nameIs(id, s))
+				return types.Bool(ok && isString && id.NameMatches(s))
 			}))),
 		// package.version_cmp(v) orders the version of the package against v
 		// under the rule of the ecosystem: -1, 0 or 1. With no order, it
@@ -67,16 +67,6 @@ func newEnv() (*cel.Env, error) {
 				return types.Int(c)
 			}))),
 	)
-}
-
-// nameIs matches a name or a glob under the rule of the ecosystem. A
-// glob that does not parse matches nothing.
-func nameIs(id model.PackageVersion, name string) bool {
-	if !strings.ContainsAny(name, "*?[") {
-		return id.NameIs(name)
-	}
-	ok, err := id.MatchName(name)
-	return err == nil && ok
 }
 
 // celPackage rebuilds the package version of the CEL package input from its

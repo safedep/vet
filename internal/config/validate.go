@@ -3,10 +3,10 @@ package config
 import (
 	"errors"
 	"fmt"
-	"net/url"
 	"slices"
 	"strings"
 
+	"github.com/safedep/vet/v2/internal/weburl"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/report"
 )
@@ -54,7 +54,7 @@ func (l *Loaded) Validate() error {
 		"cloud.endpoints.community": c.Cloud.Endpoints.Community,
 		"github.api_url":            c.GitHub.APIURL,
 	} {
-		check(key, u, validURL(u), "must be an http or https URL")
+		check(key, u, weburl.Valid(u), "must be an http or https URL")
 	}
 
 	slices.SortFunc(errs, func(a, b error) int { return strings.Compare(a.Error(), b.Error()) })
@@ -83,9 +83,4 @@ func (l *Loaded) ValidateStrict() error {
 		lines = append(lines, line)
 	}
 	return newError(CodeUnknownKey, strings.Join(lines, "\n"), "Remove or rename the unknown keys.")
-}
-
-func validURL(s string) bool {
-	u, err := url.Parse(s)
-	return err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Host != ""
 }

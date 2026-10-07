@@ -14,6 +14,7 @@ import (
 	"github.com/safedep/vet/v2/internal/app"
 	"github.com/safedep/vet/v2/internal/config"
 	"github.com/safedep/vet/v2/internal/engine"
+	"github.com/safedep/vet/v2/internal/plugins/controls/cooldown"
 	"github.com/safedep/vet/v2/internal/plugins/sinks/plain"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/internal/tui/output"
@@ -178,5 +179,39 @@ func TestPackagesFor(t *testing.T) {
 	}
 	for _, tc := range cases {
 		assert.Equal(t, tc.want, packagesFor(tc.set, tc.kind), "%q on %s", tc.set, tc.kind)
+	}
+}
+
+func TestPluginOriginNamesTheSource(t *testing.T) {
+	dir := t.TempDir()
+	file := filepath.Join(dir, "config.yml")
+	require.NoError(t, os.WriteFile(file, []byte("plugins:\n  dependency-cooldown:\n    options:\n      days: 9\n"), 0o600))
+	cases := []struct {
+		name string
+		opts config.LoadOptions
+		days int
+		want string
+	}{
+		{"default", config.LoadOptions{}, 0, ""},
+		{"file", config.LoadOptions{ConfigFile: file}, 0, "file config.yml"},
+		{
+			"variable", config.LoadOptions{
+				LookupEnv:   func(string) (string, bool) { return "", false },
+				Environ:     func() []string { return []string{"VET_PLUGINS_DEPENDENCY_COOLDOWN_OPTIONS_DAYS=4"} },
+				PluginNames: []string{cooldown.Name},
+			}, 0, "env VET_PLUGINS_DEPENDENCY_COOLDOWN_OPTIONS_DAYS",
+		},
+		{"flag over the file", config.LoadOptions{ConfigFile: file}, 7, "flag --cooldown-days"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.opts.LookupEnv == nil {
+				tc.opts.LookupEnv = func(string) (string, bool) { return "", false }
+			}
+			l, err := config.Load(tc.opts)
+			require.NoError(t, err)
+			s := withCooldown(&config.Runtime{Loaded: l}, tc.days)
+			assert.Equal(t, tc.want, s.PluginOrigin(cooldown.Name, "days"))
+		})
 	}
 }

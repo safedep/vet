@@ -3,8 +3,8 @@
 # hides the finding from the gate.
 cd proj
 exec vet scan . --mode plain -o json
-stdout 'The cooldown window is 2 days, the vet default'
-stdout 'The setting plugins.dependency-cooldown.options.days sets the window'
+stdout 'The cooldown window is 2 days, from the vet default'
+stdout 'The setting plugins.dependency-cooldown.options.days sets the window, also in a flag or a variable'
 exec vet scan . --mode plain -o json --cooldown-days 7 --fresh
 stdout 'The cooldown window is 7 days, from flag --cooldown-days'
 
