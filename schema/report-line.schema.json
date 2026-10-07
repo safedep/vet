@@ -677,6 +677,12 @@
           },
           "type": "array"
         },
+        "uses": {
+          "items": {
+            "$ref": "#/$defs/PackageUse"
+          },
+          "type": "array"
+        },
         "id": {
           "$ref": "#/$defs/PackageVersion"
         },
@@ -793,6 +799,42 @@
         "raw_name",
         "direct",
         "manifest_path"
+      ]
+    },
+    "PackageUse": {
+      "properties": {
+        "manifest_id": {
+          "type": "string"
+        },
+        "direct": {
+          "type": "boolean"
+        },
+        "dev": {
+          "type": "boolean"
+        },
+        "change": {
+          "type": "string",
+          "enum": [
+            "",
+            "ADDED",
+            "UPGRADED",
+            "DOWNGRADED",
+            "MODIFIED",
+            "REMOVED",
+            "UNCHANGED"
+          ]
+        },
+        "previous_version": {
+          "type": "string"
+        },
+        "resolved": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "manifest_id",
+        "direct"
       ]
     },
     "PackageVersion": {

@@ -403,6 +403,9 @@ func TestGlobClassKeepsTheMeaningOfPathMatch(t *testing.T) {
 		{"b", "[a-c]", true},
 		{"d", "[^a-c]", true},
 		{"]", "[\\]]", true},
+		{"b", "[a\\-z]", false},
+		{"-", "[a\\-z]", true},
+		{"z", "[a\\-z]", true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.pattern+"~"+tc.name, func(t *testing.T) {

@@ -87,7 +87,7 @@ func (d *Doc) link() {
 	for _, e := range d.packages {
 		for _, id := range e.ManifestIDs {
 			if m, ok := byID[id]; ok {
-				p := e.Package
+				p := e.In(id)
 				m.Packages = append(m.Packages, &p)
 			}
 		}
@@ -183,7 +183,7 @@ func (d *Doc) Manifests(context.Context) iter.Seq2[*model.Manifest, error] {
 func (d *Doc) Packages(_ context.Context, q plugin.PackageQuery) iter.Seq2[*model.Package, error] {
 	return func(yield func(*model.Package, error) bool) {
 		for _, e := range d.packages {
-			p := e.Package
+			p := e.In(q.ManifestID)
 			switch {
 			case q.ManifestID != "" && !slices.Contains(e.ManifestIDs, q.ManifestID):
 				continue

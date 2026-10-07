@@ -21,6 +21,7 @@ import (
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
+	"github.com/safedep/vet/v2/plugin/plugintest"
 	"github.com/safedep/vet/v2/report"
 )
 
@@ -300,6 +301,28 @@ func TestPackageRulesOnASavedReport(t *testing.T) {
 			again, err := policy.NewEvaluator(p, policy.Options{}).Finalize(ctx, doc)
 			require.NoError(t, err)
 			assert.Equal(t, g, again, "a second run replaces the findings of the first")
+		})
+	}
+}
+
+func TestPackageRulesReadTheFieldsOfEachManifest(t *testing.T) {
+	ctx := context.Background()
+	id := model.MustPackageVersion(model.EcosystemNpm, "lodash", "4.17.21")
+	manifest := func(path string, direct bool) *model.Manifest {
+		return &model.Manifest{
+			ID: path, Path: path, Ecosystem: model.EcosystemNpm, Kind: model.ManifestKindLockfile,
+			Packages: []*model.Package{{ID: id, Direct: direct, Change: model.ChangeAdded}},
+		}
+	}
+	for path, want := range map[string]report.GateOutcome{"a.lock": report.GatePass, "b.lock": report.GateFail} {
+		t.Run(path, func(t *testing.T) {
+			doc, err := reportdoc.Load(ctx, plugintest.NewMemState(manifest("a.lock", false), manifest("b.lock", true)))
+			require.NoError(t, err)
+			p, err := policy.Parse("p.yml", []byte("version: 2\nrules:\n  - id: direct\n    when: manifest.path == \""+path+"\" && package.direct\n    action: fail\n"))
+			require.NoError(t, err)
+			g, err := policy.NewEvaluator(p, policy.Options{}).Finalize(ctx, doc)
+			require.NoError(t, err)
+			assert.Equal(t, want, g.Outcome)
 		})
 	}
 }

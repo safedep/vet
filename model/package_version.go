@@ -402,7 +402,8 @@ func (p *PackageVersion) UnmarshalJSON(b []byte) error {
 
 // globClass turns the class of a path.Match pattern that starts at i into
 // a class of a regular expression. Each member goes through QuoteMeta, so
-// \w or [:alpha:] keep the meaning of path.Match. It returns the index of
+// \w or [:alpha:] keep the meaning of path.Match. QuoteMeta does not escape
+// a hyphen, so an escaped hyphen stays \-. It returns the index of
 // the closing ]. path.Match negates with ^ only, so a ! at the start is
 // an error, to stop a reader who expects the shell form.
 func globClass(pattern string, i int) (int, string, error) {
@@ -421,11 +422,11 @@ func globClass(pattern string, i int) (int, string, error) {
 		switch {
 		case c == '\\' && j+1 < len(pattern):
 			j++
-			b.WriteString(regexp.QuoteMeta(pattern[j : j+1]))
+			b.WriteString(classMember(pattern[j]))
 		case c == '-':
 			b.WriteString("-")
 		default:
-			b.WriteString(regexp.QuoteMeta(pattern[j : j+1]))
+			b.WriteString(classMember(c))
 		}
 	}
 	if j >= len(pattern) {
@@ -433,6 +434,13 @@ func globClass(pattern string, i int) (int, string, error) {
 	}
 	b.WriteString("]")
 	return j, b.String(), nil
+}
+
+func classMember(c byte) string {
+	if c == '-' {
+		return `\-`
+	}
+	return regexp.QuoteMeta(string(c))
 }
 
 // PackagePattern selects packages by a PURL. A PURL with no version
