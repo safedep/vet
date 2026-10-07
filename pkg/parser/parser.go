@@ -3,6 +3,8 @@ package parser
 import (
 	"errors"
 	"fmt"
+	"net"
+	"net/url"
 	"path/filepath"
 	"regexp"
 
@@ -68,6 +70,40 @@ type ParserConfig struct {
 	// if the parser should include non-production dependencies as well. But this will work
 	// only for supported parsers such as npm graph parser
 	IncludeDevDependencies bool
+
+	// MavenUpstreamRegistry replaces Maven Central as the default registry used
+	// to resolve pom.xml dependencies. Use it to point at a private registry or mirror.
+	MavenUpstreamRegistry string
+
+	// MavenUpstreamRegistryID is the <server><id> in Maven settings.xml that holds
+	// the credentials for MavenUpstreamRegistry. When empty, the ID is "default".
+	MavenUpstreamRegistryID string
+}
+
+// ValidateMavenUpstreamRegistry returns an error when registry is not an absolute
+// https or artifactregistry URL, or when id is set without a registry. http is
+// accepted only for a loopback host, because vet can send settings.xml credentials
+// to the registry. Maven 3.8.1 and later also blocks http repositories.
+// An empty registry is valid and means Maven Central.
+func ValidateMavenUpstreamRegistry(registry, id string) error {
+	if registry == "" {
+		if id != "" {
+			return fmt.Errorf("maven upstream registry ID %q needs a Maven upstream registry URL", id)
+		}
+
+		return nil
+	}
+
+	u, err := url.Parse(registry)
+	if err != nil || u.Host == "" || (u.Scheme != "http" && u.Scheme != "https" && u.Scheme != "artifactregistry") {
+		return fmt.Errorf("invalid Maven upstream registry %q: must be an absolute https or artifactregistry URL", registry)
+	}
+
+	if u.Scheme == "http" && !isLoopbackHost(u.Hostname()) {
+		return fmt.Errorf("invalid Maven upstream registry %q: use https, http is allowed only for localhost", registry)
+	}
+
+	return nil
 }
 
 // Graph parser always takes precedence over lockfile parser
@@ -299,4 +335,13 @@ func (pw *parserWrapper) ParseWithConfig(lockfilePath string, config *ParserConf
 	}
 
 	return pm, nil
+}
+
+func isLoopbackHost(host string) bool {
+	if host == "localhost" {
+		return true
+	}
+
+	ip := net.ParseIP(host)
+	return ip != nil && ip.IsLoopback()
 }

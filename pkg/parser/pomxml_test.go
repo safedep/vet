@@ -1,10 +1,16 @@
 package parser
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var deps = []string{
@@ -73,5 +79,192 @@ func Test_MavenPomXmlParser_RemoteParent(t *testing.T) {
 	assert.Equal(t, len(manifest.Packages), 4)
 	for _, pkg := range manifest.Packages {
 		assert.Contains(t, deps, pkg.Name)
+	}
+}
+
+func Test_MavenPomXmlParser_UpstreamRegistry(t *testing.T) {
+	// Fake private registry with internal artifacts that Maven Central does not have.
+	// lib depends on util, so a pass proves transitive lookups also use the registry.
+	poms := map[string]string{
+		"/maven/io/safedep/internal/lib/1.0/lib-1.0.pom": `<project>
+  <groupId>io.safedep.internal</groupId><artifactId>lib</artifactId><version>1.0</version>
+  <dependencies>
+    <dependency><groupId>io.safedep.internal</groupId><artifactId>util</artifactId><version>2.0</version></dependency>
+  </dependencies>
+</project>`,
+		"/maven/io/safedep/internal/util/2.0/util-2.0.pom": `<project>
+  <groupId>io.safedep.internal</groupId><artifactId>util</artifactId><version>2.0</version>
+</project>`,
+	}
+
+	var hits atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, ok := poms[r.URL.Path]
+		if !ok {
+			http.NotFound(w, r)
+			return
+		}
+		hits.Add(1)
+		_, _ = w.Write([]byte(body))
+	}))
+	defer server.Close()
+
+	// No <repositories> block: the registry must come from the parser config
+	pomPath := filepath.Join(t.TempDir(), "pom.xml")
+	err := os.WriteFile(pomPath, []byte(`<project>
+  <groupId>io.safedep.test</groupId><artifactId>app</artifactId><version>1.0</version>
+  <dependencies>
+    <dependency><groupId>io.safedep.internal</groupId><artifactId>lib</artifactId><version>1.0</version></dependency>
+  </dependencies>
+</project>`), 0o600)
+	require.NoError(t, err)
+
+	manifest, err := parseMavenPomXmlFile(pomPath, &ParserConfig{
+		MavenUpstreamRegistry: server.URL + "/maven",
+	})
+	require.NoError(t, err)
+
+	names := []string{}
+	for _, pkg := range manifest.Packages {
+		names = append(names, pkg.Name)
+	}
+
+	assert.ElementsMatch(t, []string{"io.safedep.internal:lib", "io.safedep.internal:util"}, names)
+	assert.Equal(t, int32(2), hits.Load())
+}
+
+func Test_MavenPomXmlParser_UpstreamRegistrySnapshotParent(t *testing.T) {
+	// A child pom with a -SNAPSHOT parent that only the private registry has.
+	// The parent declares the dependency, so the parent must resolve.
+	// The pom file name has a timestamp, so the parser must read maven-metadata.xml first.
+	files := map[string]string{
+		"/maven/io/safedep/internal/parent/2.3-SNAPSHOT/maven-metadata.xml": `<metadata>
+  <groupId>io.safedep.internal</groupId><artifactId>parent</artifactId><version>2.3-SNAPSHOT</version>
+  <versioning><snapshotVersions>
+    <snapshotVersion><extension>pom</extension><value>2.3-20260101.120000-1</value></snapshotVersion>
+  </snapshotVersions></versioning>
+</metadata>`,
+		"/maven/io/safedep/internal/parent/2.3-SNAPSHOT/parent-2.3-20260101.120000-1.pom": `<project>
+  <groupId>io.safedep.internal</groupId><artifactId>parent</artifactId><version>2.3-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <dependencies>
+    <dependency><groupId>io.safedep.internal</groupId><artifactId>util</artifactId><version>2.0</version></dependency>
+  </dependencies>
+</project>`,
+		"/maven/io/safedep/internal/util/2.0/util-2.0.pom": `<project>
+  <groupId>io.safedep.internal</groupId><artifactId>util</artifactId><version>2.0</version>
+</project>`,
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, ok := files[r.URL.Path]
+		if !ok {
+			http.NotFound(w, r)
+			return
+		}
+		_, _ = w.Write([]byte(body))
+	}))
+	defer server.Close()
+
+	pomPath := filepath.Join(t.TempDir(), "pom.xml")
+	require.NoError(t, os.WriteFile(pomPath, []byte(`<project>
+  <parent><groupId>io.safedep.internal</groupId><artifactId>parent</artifactId><version>2.3-SNAPSHOT</version></parent>
+  <artifactId>payments</artifactId>
+</project>`), 0o600))
+
+	manifest, err := parseMavenPomXmlFile(pomPath, &ParserConfig{
+		MavenUpstreamRegistry: server.URL + "/maven",
+	})
+	require.NoError(t, err)
+
+	require.Len(t, manifest.Packages, 1)
+	assert.Equal(t, "io.safedep.internal:util", manifest.Packages[0].Name)
+}
+
+func Test_MavenPomXmlParser_UpstreamRegistryAuth(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user, pass, ok := r.BasicAuth()
+		if !ok || user != "ci-bot" || pass != "s3cret" {
+			w.Header().Set("WWW-Authenticate", `Basic realm="maven"`)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		_, _ = w.Write([]byte(`<project>
+  <groupId>io.safedep.internal</groupId><artifactId>lib</artifactId><version>1.0</version>
+</project>`))
+	}))
+	defer server.Close()
+
+	// The scalibr Maven client reads credentials from ${HOME}/.m2/settings.xml
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("USERPROFILE", home) // os.UserHomeDir reads this on Windows
+	t.Setenv("VET_TEST_MAVEN_PASSWORD", "s3cret")
+	require.NoError(t, os.MkdirAll(filepath.Join(home, ".m2"), 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(home, ".m2", "settings.xml"), []byte(`<settings><servers>
+  <server><id>acme-artifactory</id><username>ci-bot</username><password>${env.VET_TEST_MAVEN_PASSWORD}</password></server>
+</servers></settings>`), 0o600))
+
+	pomPath := filepath.Join(t.TempDir(), "pom.xml")
+	require.NoError(t, os.WriteFile(pomPath, []byte(`<project>
+  <groupId>io.safedep.test</groupId><artifactId>app</artifactId><version>1.0</version>
+  <dependencies>
+    <dependency><groupId>io.safedep.internal</groupId><artifactId>lib</artifactId><version>1.0</version></dependency>
+  </dependencies>
+</project>`), 0o600))
+
+	t.Run("matching registry ID sends credentials", func(t *testing.T) {
+		manifest, err := parseMavenPomXmlFile(pomPath, &ParserConfig{
+			MavenUpstreamRegistry:   server.URL,
+			MavenUpstreamRegistryID: "acme-artifactory",
+		})
+		require.NoError(t, err)
+		require.Len(t, manifest.Packages, 1)
+		assert.Equal(t, "io.safedep.internal:lib", manifest.Packages[0].Name)
+	})
+
+	t.Run("no registry ID sends no credentials", func(t *testing.T) {
+		_, err := parseMavenPomXmlFile(pomPath, &ParserConfig{
+			MavenUpstreamRegistry: server.URL,
+		})
+		assert.ErrorContains(t, err, "failed to fetch Maven project")
+	})
+}
+
+func Test_MavenPomXmlParser_InvalidUpstreamRegistry(t *testing.T) {
+	for _, registry := range []string{
+		"not a url",
+		"ftp://example.com/maven",
+		"/relative/path",
+		"https://",
+		"http://artifactory.example.com/maven",
+		"http://10.0.0.5:8081/maven",
+	} {
+		t.Run(registry, func(t *testing.T) {
+			_, err := parseMavenPomXmlFile("./fixtures/java/pom.xml", &ParserConfig{
+				MavenUpstreamRegistry: registry,
+			})
+			assert.ErrorContains(t, err, "invalid Maven upstream registry")
+		})
+	}
+
+	t.Run("registry ID without registry URL", func(t *testing.T) {
+		_, err := parseMavenPomXmlFile("./fixtures/java/pom.xml", &ParserConfig{
+			MavenUpstreamRegistryID: "acme-artifactory",
+		})
+		assert.ErrorContains(t, err, "needs a Maven upstream registry URL")
+	})
+}
+
+func Test_ValidateMavenUpstreamRegistry_Valid(t *testing.T) {
+	for _, registry := range []string{
+		"",
+		"http://localhost:8081/repository/maven-public",
+		"http://127.0.0.1:8081/maven",
+		"http://[::1]:8081/maven",
+		"https://artifactory.example.com/maven",
+		"artifactregistry://us-maven.pkg.dev/project/repo",
+	} {
+		assert.NoError(t, ValidateMavenUpstreamRegistry(registry, ""), registry)
 	}
 }
