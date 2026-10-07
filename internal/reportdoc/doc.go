@@ -292,13 +292,22 @@ func (d *Doc) Manifest(_ context.Context, id string) (*model.Manifest, error) {
 	return nil, nil
 }
 
-// ReplaceFinding keeps the new suppression and rule of a finding.
+// ReplaceFinding keeps the new suppression and gate record of a finding,
+// or adds the finding.
 func (d *Doc) ReplaceFinding(_ context.Context, _ string, f *finding.Finding) error {
 	for i, g := range d.findings {
 		if g.ID == f.ID {
 			d.findings[i] = f
+			return nil
 		}
 	}
+	d.findings = append(d.findings, f)
+	return nil
+}
+
+// DeleteFindings deletes the findings of a control.
+func (d *Doc) DeleteFindings(_ context.Context, controlID string) error {
+	d.findings = slices.DeleteFunc(d.findings, func(f *finding.Finding) bool { return f.ControlID == controlID })
 	return nil
 }
 

@@ -13,6 +13,7 @@ import (
 	"github.com/safedep/dry/usefulerror"
 	"gopkg.in/yaml.v3"
 
+	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 )
@@ -45,8 +46,34 @@ type Rule struct {
 	// Link is an http or https URL with more guidance, such as a page of
 	// the security team.
 	Link string `yaml:"link,omitempty"`
+	// Severity is the severity of the finding that a package rule makes.
+	// It is info when it is empty.
+	Severity finding.Severity `yaml:"severity,omitempty"`
 
-	expr *Expr
+	expr   *Expr
+	source string
+}
+
+// Source names the document of the rule.
+func (r *Rule) Source() string { return r.source }
+
+// Scope is what a rule runs on.
+type Scope string
+
+const (
+	// ScopeFinding rules run on each finding.
+	ScopeFinding Scope = "finding"
+	// ScopePackage rules run on each package. A rule that reads package
+	// and not finding has this scope.
+	ScopePackage Scope = "package"
+)
+
+// Scope returns what the rule runs on.
+func (r *Rule) Scope() Scope {
+	if r.expr != nil && r.expr.reads[packageIdent] && !r.expr.reads["finding"] {
+		return ScopePackage
+	}
+	return ScopeFinding
 }
 
 // Suppression hides the findings that match all of its selectors from the
@@ -144,6 +171,9 @@ func parse(name string, data []byte) (*Policy, error) {
 		if r.Action != ActionFail && r.Action != ActionWarn {
 			errs = append(errs, fmt.Errorf("%s: action is %q: use fail or warn", at, r.Action))
 		}
+		if r.Severity != "" && !r.Severity.Valid() {
+			errs = append(errs, fmt.Errorf("%s: severity is %q: use critical, high, medium, low or info", at, r.Severity))
+		}
 		if r.Link != "" && !webURL(r.Link) {
 			errs = append(errs, fmt.Errorf("%s: link is %q: use an http or https URL", at, r.Link))
 		}
@@ -167,6 +197,9 @@ func parse(name string, data []byte) (*Policy, error) {
 	}
 	if len(errs) > 0 {
 		return nil, fmt.Errorf("%s: %w", name, errors.Join(errs...))
+	}
+	for i := range doc.Rules {
+		doc.Rules[i].source = name
 	}
 	return &Policy{Sources: []string{name}, Rules: doc.Rules, Suppressions: doc.Suppressions}, nil
 }

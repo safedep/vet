@@ -13,7 +13,10 @@ import (
 func TestStarterIsValid(t *testing.T) {
 	p, err := policy.Parse("starter", []byte(policy.Starter))
 	require.NoError(t, err)
-	assert.Len(t, p.Rules, 4)
+	require.Len(t, p.Rules, 3)
+	for _, r := range p.Rules {
+		assert.Equal(t, policy.ScopeFinding, r.Scope(), "the starter has no cooldown rule and no package rule: %s", r.ID)
+	}
 }
 
 func TestStarterNamesKnownControls(t *testing.T) {

@@ -294,8 +294,12 @@ func (c *input) baseline() ([]string, bool) {
 func (c *input) status(b *strings.Builder, blocking, review int) {
 	g := c.trailer.Gate
 	parts := []string{"**" + gateText(g.Outcome) + "**"}
-	if g.Policy != "" {
-		parts = append(parts, "policy "+code(g.Policy))
+	if g.Policy != "" && !g.PolicyChanged {
+		word := "policy "
+		if strings.Contains(g.Policy, ", ") {
+			word = "policies "
+		}
+		parts = append(parts, word+code(g.Policy))
 	}
 	if blocking > 0 {
 		parts = append(parts, fmt.Sprintf("%d blocking", blocking))
@@ -354,16 +358,17 @@ func (c *input) section(b *strings.Builder, title string, fs []*finding.Finding,
 	}
 	for _, g := range groups(fs) {
 		if len(g) == 1 {
-			c.card(b, g[0], true)
+			c.card(b, g[0], true, "")
 			continue
 		}
+		place := c.placeOf(g[0])
 		head := code(render.Subject(g[0]))
-		if where := c.placeOf(g[0]); where != "" {
-			head += " · " + where
+		if place != "" {
+			head += " · " + place
 		}
 		b.WriteString(head + "\n\n")
 		for _, f := range g {
-			c.card(b, f, false)
+			c.card(b, f, false, place)
 		}
 	}
 }
@@ -392,16 +397,22 @@ func groups(fs []*finding.Finding) [][]*finding.Finding {
 }
 
 // card writes one finding. With subject false, the card follows the
-// heading of its package and starts with the title.
-func (c *input) card(b *strings.Builder, f *finding.Finding, subject bool) {
+// heading of its package and starts with the title. It shows its place
+// when the place differs from the place of the heading.
+func (c *input) card(b *strings.Builder, f *finding.Finding, subject bool, heading string) {
 	head := fmt.Sprintf("**%s** · `%s`", md(render.Title(f), maxField), f.Severity)
-	if subject {
+	where := c.placeOf(f)
+	switch {
+	case subject:
 		head = code(render.Subject(f)) + ": " + head
-		if where := c.placeOf(f); where != "" {
-			head += " · " + where
-		}
-	} else {
+	default:
 		head += " · " + code(f.ControlID)
+		if where == heading {
+			where = ""
+		}
+	}
+	if where != "" {
+		head += " · " + where
 	}
 	b.WriteString(head + "\n\n")
 	if f.Description != "" {
@@ -436,7 +447,7 @@ func (c *input) gate(b *strings.Builder, f *finding.Finding) {
 	if g == nil {
 		return
 	}
-	fmt.Fprintf(b, "**%s:** %s\n\n", g.Label(), md(g.Cause(), maxField))
+	fmt.Fprintf(b, "**%s:** %s\n\n", g.Label(), md(render.Text(g.Cause()), maxField))
 	var help []string
 	if g.Help != "" {
 		help = append(help, md(render.Text(g.Help), maxText))
@@ -457,7 +468,7 @@ func safeURL(s string) string {
 	if err != nil || (u.Scheme != "https" && u.Scheme != "http") || u.Host == "" {
 		return ""
 	}
-	return strings.NewReplacer("(", "%28", ")", "%29", " ", "%20").Replace(u.String())
+	return strings.NewReplacer("(", "%28", ")", "%29", " ", "%20", `\`, "%5C", "<", "%3C", ">", "%3E", `"`, "%22").Replace(u.String())
 }
 
 // lines writes one line for each finding, up to maxLines.
@@ -469,7 +480,7 @@ func (c *input) lines(b *strings.Builder, fs []*finding.Finding) {
 		}
 		line := fmt.Sprintf("- `%s` %s: %s · %s", f.Severity, code(render.Subject(f)), md(render.Title(f), maxField), code(render.Where(f)))
 		if g := f.Gate; g != nil {
-			line += " · " + strings.ToLower(g.Label()) + " " + md(g.Cause(), maxField)
+			line += " · " + strings.ToLower(g.Label()) + " " + md(render.Text(g.Cause()), maxField)
 		}
 		fmt.Fprintf(b, "%s · `%s`\n", line, f.ID)
 	}

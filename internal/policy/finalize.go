@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"iter"
@@ -22,12 +23,20 @@ const (
 	CodeSourceUnavailable  = "policy_source_unavailable"
 )
 
+// RuleControl is the control id of the findings that the package rules
+// make.
+const RuleControl = "policy"
+
 // Store is the scan that Finalize reads and updates.
 type Store interface {
 	Findings(ctx context.Context, q plugin.FindingQuery) iter.Seq2[*finding.Finding, error]
 	FindingManifest(ctx context.Context, findingID string) (string, error)
+	Manifests(ctx context.Context) iter.Seq2[*model.Manifest, error]
 	Manifest(ctx context.Context, id string) (*model.Manifest, error)
+	// ReplaceFinding writes a finding, or adds it when the scan does not
+	// have it.
 	ReplaceFinding(ctx context.Context, manifestID string, f *finding.Finding) error
+	DeleteFindings(ctx context.Context, controlID string) error
 	AddDiagnostic(ctx context.Context, d *report.Diagnostic) error
 }
 
@@ -35,6 +44,11 @@ type Store interface {
 // findings whose suppression or rule changed, records the policy
 // diagnostics, and returns the gate.
 func (e *Evaluator) Finalize(ctx context.Context, s Store) (report.Gate, error) {
+	// The findings of an earlier evaluation, as of "vet report show
+	// --policy", do not reach the rules.
+	if err := s.DeleteFindings(ctx, RuleControl); err != nil {
+		return report.Gate{}, err
+	}
 	var all []*finding.Finding
 	for f, err := range s.Findings(ctx, plugin.FindingQuery{IncludeSuppressed: true}) {
 		if err != nil {
@@ -71,6 +85,9 @@ func (e *Evaluator) Finalize(ctx context.Context, s Store) (report.Gate, error) 
 			addDiag(diags, CodeRuleFailed, err.Error())
 		}
 	}
+	if err := e.packageRules(ctx, s, gate, diags); err != nil {
+		return report.Gate{}, err
+	}
 	for _, msg := range e.unavailable {
 		addDiag(diags, CodeSourceUnavailable, msg)
 	}
@@ -80,6 +97,66 @@ func (e *Evaluator) Finalize(ctx context.Context, s Store) (report.Gate, error) 
 		}
 	}
 	return gate.Result(), nil
+}
+
+// packageRules runs each package rule on each package. In pull request
+// mode, it skips the packages that the change keeps or removes. A match
+// adds a finding that names the rule. The other rules do not evaluate it,
+// and --fail-on does not apply to it: the action of the rule decides.
+func (e *Evaluator) packageRules(ctx context.Context, s Store, gate *Gate, diags map[string]*report.Diagnostic) error {
+	var rules []*Rule
+	for i := range e.p.Rules {
+		if r := &e.p.Rules[i]; r.Scope() == ScopePackage {
+			rules = append(rules, r)
+		}
+	}
+	if len(rules) == 0 {
+		return nil
+	}
+	for m, err := range s.Manifests(ctx) {
+		if err != nil {
+			return err
+		}
+		for _, p := range m.Packages {
+			if p.Change == model.ChangeUnchanged || p.Change == model.ChangeRemoved {
+				continue
+			}
+			in := packageRuleInput(p, m, e.now)
+			for _, r := range rules {
+				ok, err := r.expr.Match(in)
+				if err != nil {
+					addDiag(diags, CodeRuleFailed, fmt.Sprintf("rule %s: %v", r.ID, err))
+				}
+				// A fail rule that cannot run must not let a package pass.
+				if !ok && (err == nil || r.Action != ActionFail) {
+					continue
+				}
+				f := e.ruleFinding(r, m, p)
+				o := e.applyRule(f, r, err != nil)
+				gate.Add(f, o)
+				for _, ref := range o.Expired {
+					addDiag(diags, CodeSuppressionExpired, fmt.Sprintf("%s expired. It no longer suppresses findings.", ref))
+				}
+				if err := s.ReplaceFinding(ctx, m.ID, f); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
+// ruleFinding is the finding of a package rule on a package.
+func (e *Evaluator) ruleFinding(r *Rule, m *model.Manifest, p *model.Package) *finding.Finding {
+	title := r.Description
+	if title == "" {
+		title = "The package matches policy rule " + r.ID
+	}
+	f := finding.ForPackage(finding.Meta{
+		ControlID: RuleControl, Family: finding.FamilyPolicy, Severity: cmp.Or(r.Severity, finding.SeverityInfo),
+		Title: title, Description: fmt.Sprintf("The policy rule %s matches the package.", r.ID),
+	}, m.Path, p, finding.Key{Discriminator: r.ID})
+	return &f
 }
 
 func manifestOf(ctx context.Context, s Store, cache map[string]*model.Manifest, id string) (*model.Manifest, error) {

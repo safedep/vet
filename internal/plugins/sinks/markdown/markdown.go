@@ -112,11 +112,11 @@ func gate(g report.Gate) string {
 }
 
 // gateCell names what blocks or warns on a finding.
-func gateCell(g *finding.Gate) string {
+func gateCell(g *finding.GateRecord) string {
 	if g == nil {
 		return ""
 	}
-	return cell(render.Text(g.Label() + " " + g.Cause()))
+	return render.Markdown(render.Text(g.Label() + " " + g.Cause()))
 }
 
 // cell makes text safe in a table cell.

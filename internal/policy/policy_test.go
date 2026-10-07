@@ -18,7 +18,7 @@ import (
 const valid = `version: 2
 rules:
   - id: no-fresh-packages
-    when: package.days_since_publish < 5
+    when: finding.subject_kind == "package" && package.days_since_publish < 5
     action: fail
   - id: workflow-risk
     description: Workflow findings need a review.
@@ -89,7 +89,7 @@ func TestYAMLErrorsNameTheFileAndTheLine(t *testing.T) {
 		{
 			name: "unknown rule field",
 			doc:  "version: 2\nrules:\n  - id: r1\n    fail: true\n    when: 'true'\n    action: fail\n",
-			want: `bad.yml line 4: "fail" is not a field of a rule. A rule has id, description, when, action, help and link.`,
+			want: `bad.yml line 4: "fail" is not a field of a rule. A rule has id, description, when, action, help, link and severity.`,
 		},
 		{
 			name: "unknown suppression field",
@@ -100,7 +100,7 @@ func TestYAMLErrorsNameTheFileAndTheLine(t *testing.T) {
 			name: "two errors",
 			doc:  "version: 2\nfilters: []\nrules:\n  - id: r1\n    fail: true\n",
 			want: "bad.yml line 2: \"filters\" is not a field of a policy file. A policy file has version, rules and suppressions.\n" +
-				`bad.yml line 5: "fail" is not a field of a rule. A rule has id, description, when, action, help and link.`,
+				`bad.yml line 5: "fail" is not a field of a rule. A rule has id, description, when, action, help, link and severity.`,
 		},
 		{name: "wrong type", doc: "version: two\n", want: `bad.yml line 1: the value "two" must be a whole number`},
 		{name: "rules not a list", doc: "version: 2\nrules:\n  id: r1\n", want: "bad.yml line 3: the value must be a list"},
@@ -149,7 +149,7 @@ func TestApply(t *testing.T) {
 	type want struct {
 		fail       bool
 		failRules  []string
-		gate       *finding.Gate
+		gate       *finding.GateRecord
 		suppressed bool
 		expired    int
 	}
@@ -166,16 +166,16 @@ func TestApply(t *testing.T) {
 	}{
 		{
 			name: "fail rule", control: "vulnerability", sev: finding.SeverityLow, pkg: "a", version: "1.0.0", pub: &fresh,
-			want: want{fail: true, failRules: []string{"no-fresh-packages"}, gate: &finding.Gate{Action: finding.GateActionFail, Rules: []string{"no-fresh-packages"}}},
+			want: want{fail: true, failRules: []string{"no-fresh-packages"}, gate: &finding.GateRecord{Action: finding.GateActionFail, Rules: []string{"no-fresh-packages"}}},
 		},
 		{name: "no rule matches", control: "vulnerability", sev: finding.SeverityLow, pkg: "a", version: "1.0.0", pub: &old},
 		{
 			name: "warn rule", control: "dangerous-trigger", sev: finding.SeverityHigh, pkg: "a", version: "1.0.0", pub: &old,
-			want: want{gate: &finding.Gate{Action: finding.GateActionWarn, Rules: []string{"workflow-risk"}}},
+			want: want{gate: &finding.GateRecord{Action: finding.GateActionWarn, Rules: []string{"workflow-risk"}}},
 		},
 		{
 			name: "severity gate", failOn: finding.SeverityHigh, control: "dangerous-trigger", sev: finding.SeverityHigh, pkg: "a", version: "1.0.0",
-			want: want{fail: true, gate: &finding.Gate{Action: finding.GateActionFail, FailOn: "high"}},
+			want: want{fail: true, gate: &finding.GateRecord{Action: finding.GateActionFail, FailOn: "high"}},
 		},
 		{name: "below the severity gate", failOn: finding.SeverityCritical, control: "vulnerability", sev: finding.SeverityHigh, pkg: "a", version: "1.0.0"},
 		{
@@ -184,11 +184,11 @@ func TestApply(t *testing.T) {
 		},
 		{
 			name: "other version is not suppressed", control: "dependency-cooldown", sev: finding.SeverityHigh, pkg: "left-pad-utils", version: "3.2.2", pub: &fresh,
-			want: want{fail: true, failRules: []string{"no-fresh-packages"}, gate: &finding.Gate{Action: finding.GateActionFail, Rules: []string{"no-fresh-packages"}}},
+			want: want{fail: true, failRules: []string{"no-fresh-packages"}, gate: &finding.GateRecord{Action: finding.GateActionFail, Rules: []string{"no-fresh-packages"}}},
 		},
 		{
 			name: "expired suppression", now: time.Date(2026, 11, 1, 0, 0, 0, 0, time.UTC), control: "dependency-cooldown", sev: finding.SeverityHigh, pkg: "left-pad-utils", version: "3.2.1",
-			pub: &fresh, want: want{fail: true, failRules: []string{"no-fresh-packages"}, gate: &finding.Gate{Action: finding.GateActionFail, Rules: []string{"no-fresh-packages"}}, expired: 1},
+			pub: &fresh, want: want{fail: true, failRules: []string{"no-fresh-packages"}, gate: &finding.GateRecord{Action: finding.GateActionFail, Rules: []string{"no-fresh-packages"}}, expired: 1},
 		},
 	}
 	for _, tc := range cases {
@@ -247,7 +247,7 @@ func TestApplySuppressionSelectors(t *testing.T) {
 func TestApplyClearsAnEarlierRun(t *testing.T) {
 	f, pkg := packageFinding("malware", finding.SeverityCritical, "evil", "1.0.0", nil)
 	f.Suppression = &finding.Suppression{Reason: "old"}
-	f.Gate = &finding.Gate{Action: finding.GateActionWarn, Rules: []string{"old-rule"}}
+	f.Gate = &finding.GateRecord{Action: finding.GateActionWarn, Rules: []string{"old-rule"}}
 	NewEvaluator(nil, Options{}).Apply(f, pkg, nil)
 	assert.False(t, f.Suppressed())
 	assert.Nil(t, f.Gate)
@@ -262,7 +262,8 @@ func TestApplyRuleError(t *testing.T) {
 	assert.Contains(t, out.Errors[0].Error(), "rule bad")
 	assert.True(t, out.Fail, "a fail rule that does not evaluate fails the gate")
 	assert.Equal(t, []string{"bad"}, out.BrokenRules)
-	assert.Equal(t, &finding.Gate{Action: finding.GateActionFail, Rules: []string{"bad"}}, f.Gate, "a fail rule that does not evaluate blocks the finding")
+	assert.Equal(t, &finding.GateRecord{Action: finding.GateActionFail, Broken: []string{"bad"}}, f.Gate, "a fail rule that does not evaluate blocks the finding")
+	assert.Equal(t, "policy rule bad, which did not evaluate", f.Gate.Cause())
 
 	warn, err := Parse("p.yml", []byte("version: 2\nrules:\n  - id: bad\n    when: int(finding.title) > 0\n    action: warn\n"))
 	require.NoError(t, err)
@@ -344,15 +345,15 @@ rules:
 		name    string
 		control string
 		failOn  report.FailOn
-		want    *finding.Gate
+		want    *finding.GateRecord
 	}{
 		{
 			name: "two fail rules and --fail-on", control: "malware", failOn: report.FailOnAttacks,
-			want: &finding.Gate{Action: finding.GateActionFail, Rules: []string{"block-malware", "block-critical"}, FailOn: "attacks", Help: "Remove the package.", Link: "https://wiki.example.com/malware"},
+			want: &finding.GateRecord{Action: finding.GateActionFail, Rules: []string{"block-malware", "block-critical"}, FailOn: "attacks", Help: "Remove the package.", Link: "https://wiki.example.com/malware"},
 		},
 		{
 			name: "one fail rule", control: "vulnerability",
-			want: &finding.Gate{Action: finding.GateActionFail, Rules: []string{"block-critical"}},
+			want: &finding.GateRecord{Action: finding.GateActionFail, Rules: []string{"block-critical"}},
 		},
 	}
 	for _, tc := range cases {
@@ -365,7 +366,62 @@ rules:
 
 	f, pkg := packageFinding("vulnerability", finding.SeverityLow, "a", "1.0.0", nil)
 	NewEvaluator(p, Options{}).Apply(f, pkg, nil)
-	assert.Equal(t, &finding.Gate{Action: finding.GateActionWarn, Rules: []string{"note"}, Help: "Read the note."}, f.Gate)
+	assert.Equal(t, &finding.GateRecord{Action: finding.GateActionWarn, Rules: []string{"note"}, Help: "Read the note."}, f.Gate)
 	assert.Equal(t, "Warned by", f.Gate.Label())
 	assert.Equal(t, "policy rule note", f.Gate.Cause())
+}
+
+func TestRuleScope(t *testing.T) {
+	cases := []struct {
+		when string
+		want Scope
+	}{
+		{`package.days_since_publish < 2`, ScopePackage},
+		{`package.vulnerabilities.exists(v, v.severity == "critical")`, ScopePackage},
+		{`finding.severity == "high"`, ScopeFinding},
+		{`finding.severity == "high" && package.direct`, ScopeFinding},
+		{`manifest.path == "go.mod"`, ScopeFinding},
+		{`true`, ScopeFinding},
+		{`"package" == "x"`, ScopeFinding},
+	}
+	for _, tc := range cases {
+		t.Run(tc.when, func(t *testing.T) {
+			p, err := Parse("p.yml", []byte("version: 2\nrules:\n  - id: r\n    when: "+strconv.Quote(tc.when)+"\n    action: warn\n"))
+			require.NoError(t, err)
+			assert.Equal(t, tc.want, p.Rules[0].Scope())
+			assert.Equal(t, "p.yml", p.Rules[0].Source())
+		})
+	}
+}
+
+func TestRuleSeverity(t *testing.T) {
+	_, err := Parse("p.yml", []byte("version: 2\nrules:\n  - id: r\n    when: \"true\"\n    action: warn\n    severity: urgent\n"))
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), `severity is "urgent"`)
+}
+
+func TestPackageIsGlob(t *testing.T) {
+	scoped := &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, "@acme/utils", "1.0.0"), Resolved: "https://registry.npmjs.org/@acme/utils/-/utils-1.0.0.tgz"}
+	pypi := &model.Package{ID: model.MustPackageVersion(model.EcosystemPyPI, "Acme.Utils", "1.0.0")}
+	cases := []struct {
+		when string
+		pkg  *model.Package
+		want bool
+	}{
+		{`package.is("@acme/*")`, scoped, true},
+		{`package.is("@other/*")`, scoped, false},
+		{`package.is("acme-*")`, pypi, true},
+		{`package.is("[")`, scoped, false},
+		{`package.resolved.startsWith("https://registry.npmjs.org/")`, scoped, true},
+		{`has(package.resolved)`, pypi, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.when, func(t *testing.T) {
+			e, err := Compile(tc.when)
+			require.NoError(t, err)
+			got, err := e.Match(packageRuleInput(tc.pkg, nil, now))
+			require.NoError(t, err)
+			assert.Equal(t, tc.want, got)
+		})
+	}
 }

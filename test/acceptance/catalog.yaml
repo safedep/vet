@@ -717,7 +717,13 @@
   title: "a blocked finding names its rule"
   category: policy
   tier: P0
-  guarantee: "Each finding that a rule blocks or warns names the rule in the markdown and JSON reports, with the help and the link of the rule."
+  guarantee: "Each finding that a rule blocks or warns names the rule in the markdown report. The JSON report also holds the help and the link of the rule."
+  labels: [policy, gate]
+- id: policy/package-rules/blocks-a-package
+  title: "a package rule blocks a package with no finding"
+  category: policy
+  tier: P0
+  guarantee: "A rule that reads package and not finding runs on each package, blocks a package that no control reports, and names the rule. vet policy validate prints the scope of each rule. vet report show --policy replaces the findings of the old package rules."
   labels: [policy, gate]
 - id: policy/functions/is-folds-name
   title: "package.is compares under the rule of the ecosystem"

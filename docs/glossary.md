@@ -317,7 +317,10 @@ _Avoid_: filter suite, policy file (when a policy source is meant)
 
 **Rule**:
 A policy entry with an id, a CEL condition (`when`) and an action: `fail` or `warn`. `policy.Rule`.
-The CEL input is `finding`, `package` and `manifest` (`policy.Input`). `package.is(name)` and
+A rule that reads `package` and not `finding` is a **package rule** (`policy.ScopePackage`). It runs
+on each package, and a match makes a finding with the control id `policy` (`policy.RuleControl`) and
+the family `policy`. Every other rule runs on each finding (`policy.ScopeFinding`).
+The CEL input is `finding`, `package` and `manifest` (`policy.Input`). `package.is(name)`, which also takes a glob, and
 `package.version_cmp(version)` compare under the rule of the ecosystem. With no version order,
 `version_cmp` gives no answer, and a condition that needs the answer does not match. A **broken rule** is a fail rule
 that errors at evaluation, and it fails the gate. A rule can have a `help` text and a `link`, which

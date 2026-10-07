@@ -5,9 +5,9 @@ A policy decides when a scan fails. It is a YAML file with rules and suppression
 - A **rule** is a [CEL](https://cel.dev/) condition over a finding, its package and its manifest.
   Its action is `fail` or `warn`. A `fail` rule that matches fails the gate, and vet exits 1. A
   `warn` rule marks the finding and does not fail the gate.
-- vet applies each rule to each finding. A package with no finding does not reach a rule. For
-  example, a rule on `package.licenses` sees only the packages that have a finding. To gate on a
-  license, use the license control. See [License gate](#license-gate).
+- A rule that reads `finding` runs on each finding. A rule that reads `package` and not `finding`
+  is a **package rule**. It runs on each package, so it can block a package that no control
+  reports. See [Package rules](#package-rules).
 - A **suppression** hides findings from the gate. It needs a reason, and it can expire. A
   suppressed finding stays in the report.
 
@@ -53,8 +53,10 @@ suppressions:
     expires: 2026-12-31
 ```
 
-In a full scan, `package.change` is empty, so `new-dependency-age` does not match. With
-`--base-ref`, vet compares the change with the base, and a new package has `change == "ADDED"`:
+`new-dependency-age` reads only `package`, so it is a package rule. It runs on each package, also
+on a package that no control reports. In a full scan, `package.change` is empty, so it does not
+match. With `--base-ref`, vet compares the change with the base, and a new package has
+`change == "ADDED"`:
 
 ```bash
 vet scan --base-ref origin/main --policy vet-policy.yml
@@ -71,6 +73,7 @@ vet scan --base-ref origin/main --policy vet-policy.yml
 | `rules[].action` | yes | `fail` or `warn` |
 | `rules[].help` | no | What to do when the rule matches. The report shows it on each finding that the rule matches |
 | `rules[].link` | no | An http or https URL with more guidance, such as a page of your security team |
+| `rules[].severity` | no | The severity of the finding that a package rule makes. The default is `info` |
 | `suppressions[].id` | one of `id`, `purl`, `control` | A finding id, such as `f-e8b1a3df1a3b5c13` |
 | `suppressions[].purl` | one of `id`, `purl`, `control` | A package. With no version, it matches every version |
 | `suppressions[].control` | one of `id`, `purl`, `control` | A control id, such as `dependency-cooldown` |
@@ -79,6 +82,39 @@ vet scan --base-ref origin/main --policy vet-policy.yml
 
 A suppression with two selectors, such as `purl` and `control`, hides only the findings that match
 both. A suppression `purl` matches every spelling of the package name in its ecosystem.
+
+## Package rules
+
+A rule that reads `package` and not `finding` runs once on each package. In pull request mode, it
+runs on each package that the change adds or changes. It skips the packages that the change keeps
+or removes. A rule that reads neither runs on each finding.
+
+`vet policy validate` prints the scope of each rule: "each finding" or "each package".
+
+A match makes a finding with the control id `policy`:
+
+- The title is the `description` of the rule.
+- The severity is the `severity` of the rule, or `info`.
+- The action of the rule decides the gate. `--fail-on` does not apply to the finding, and no other
+  rule evaluates it.
+- A suppression with the finding id, the `purl` or `control: policy` hides it.
+
+This rule blocks an internal package name that comes from a public registry:
+
+```yaml
+  - id: internal-from-public
+    description: An internal package comes from a public registry.
+    when: >-
+      package.is("@acme/*") && has(package.resolved) &&
+      !package.resolved.startsWith("https://npm.acme.example/")
+    action: fail
+    severity: high
+    help: Install @acme packages from the internal registry. Check .npmrc.
+    link: https://wiki.acme.example/security/registries
+```
+
+The `dependency-cooldown` control also reports fresh versions. When a cooldown rule in the policy and
+the control disagree, the gate record of each finding names the setting that decided.
 
 ## The rule input
 
@@ -106,6 +142,7 @@ A rule reads three variables. `vet policy schema get` prints their JSON Schema.
 | `name`, `version` | The canonical name and version of the ecosystem |
 | `raw_name`, `raw_version` | The name and version as the manifest writes them |
 | `direct`, `dev` | `true` for a direct or a development dependency |
+| `resolved` | The download URL that the lockfile records. Absent when the lockfile has none |
 | `origin` | `declared` for a package of a lockfile or a manifest, `installed` for a package on disk |
 | `change`, `previous_version` | In pull request mode: `ADDED`, `UPGRADED`, `DOWNGRADED`, `MODIFIED`, `REMOVED` or `UNCHANGED` |
 | `licenses` | A list of SPDX ids |
@@ -128,7 +165,8 @@ Test the field with `has()`, as in `has(package.days_since_publish)`.
 Names and versions follow the rules of each ecosystem. Use the two package functions, not `==`.
 
 - `package.is("name")` is true when the name names the package. `package.is("python-dateutil")`
-  matches the PyPI package `python.dateutil`.
+  matches the PyPI package `python.dateutil`. A name with `*`, `?` or `[` is a glob:
+  `package.is("@acme/*")` matches each package of the `@acme` scope.
 - `package.version_cmp("1.2.3")` gives -1, 0 or 1 when the version is below, equal to or above
   `1.2.3`. `package.version_cmp("2.0") < 0` is true for `1.0rc1` on PyPI.
 

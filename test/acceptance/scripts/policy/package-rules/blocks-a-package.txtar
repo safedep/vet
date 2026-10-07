@@ -1,0 +1,39 @@
+# A rule that reads package and not finding runs on each package. It
+# blocks a package that no control reports, and the finding names the
+# rule.
+exec vet policy validate $WORK/vet-policy.yml --mode plain -o json
+stdout '"id": "no-six",\s+"source": "[^"]+vet-policy.yml",\s+"action": "fail",\s+"scope": "package"'
+stdout '"id": "every-critical",\s+"source": "[^"]+vet-policy.yml",\s+"action": "fail",\s+"scope": "finding"'
+
+cd proj
+execexit 1 vet scan . --policy $WORK/vet-policy.yml --mode plain -o json
+jsonq stdout trailer.gate.rules.0 no-six
+stdout '"control_id":"policy","family":"policy","severity":"high"'
+stdout '"title":"The six package is not allowed."'
+
+# A new policy on the saved scan replaces the findings of the old package
+# rules.
+exec vet report show last --policy $WORK/other-policy.yml --mode plain -o json
+! stdout 'no-six'
+stdout '"gate":\{"action":"warn","rules":\["note-requests"\]\}'
+
+-- vet-policy.yml --
+version: 2
+rules:
+  - id: no-six
+    description: The six package is not allowed.
+    when: package.is("six")
+    action: fail
+    severity: high
+  - id: every-critical
+    when: finding.severity == "critical"
+    action: fail
+-- other-policy.yml --
+version: 2
+rules:
+  - id: note-requests
+    when: package.is("requests")
+    action: warn
+-- proj/requirements.txt --
+six==1.16.0
+requests==2.31.0

@@ -47,10 +47,10 @@ const requirements = "evil==1.0.0\nrequests==2.31.0\nflask==3.0.0\n"
 const policyFile = `version: 2
 rules:
   - id: no-evil
-    when: package.name == "evil"
+    when: finding.control_id == "every" && package.name == "evil"
     action: fail
   - id: note-flask
-    when: package.name == "flask"
+    when: finding.control_id == "every" && package.name == "flask"
     action: warn
 suppressions:
   - purl: pkg:pypi/requests
@@ -106,7 +106,7 @@ func TestFinalizeInAScan(t *testing.T) {
 	assert.Equal(t, []string{"no-evil"}, byName["evil"].Gate.Rules)
 	require.True(t, byName["requests"].Suppressed())
 	assert.Equal(t, "Reviewed.", byName["requests"].Suppression.Reason)
-	assert.Equal(t, &finding.Gate{Action: finding.GateActionWarn, Rules: []string{"note-flask"}}, byName["flask"].Gate)
+	assert.Equal(t, &finding.GateRecord{Action: finding.GateActionWarn, Rules: []string{"note-flask"}}, byName["flask"].Gate)
 	assert.False(t, byName["flask"].Suppressed(), "an expired suppression does not match")
 
 	var diags []*report.Diagnostic
@@ -118,6 +118,58 @@ func TestFinalizeInAScan(t *testing.T) {
 	}
 	require.Len(t, diags, 1)
 	assert.Equal(t, policy.CodeSuppressionExpired, diags[0].Code)
+}
+
+func TestFinalizePackageRules(t *testing.T) {
+	p, err := policy.Parse("vet-policy.yml", []byte(`version: 2
+rules:
+  - id: no-evil
+    description: The evil package is not allowed.
+    when: package.is("EVIL")
+    action: fail
+    severity: high
+    help: Remove it.
+  - id: note-flask
+    when: package.name == "flask"
+    action: warn
+  - id: every-high
+    when: finding.severity == "high"
+    action: fail
+suppressions:
+  - id: f-0000000000000000
+    reason: unused
+`))
+	require.NoError(t, err)
+	assert.Equal(t, policy.ScopePackage, p.Rules[0].Scope())
+	assert.Equal(t, policy.ScopeFinding, p.Rules[2].Scope())
+	res := scan(t, policy.NewEvaluator(p, policy.Options{}))
+	ctx := context.Background()
+
+	tr := res.Scan.Trailer()
+	require.NotNil(t, tr)
+	assert.Equal(t, report.GateFail, tr.Gate.Outcome)
+	assert.Equal(t, []string{"no-evil"}, tr.Gate.Rules, "every-high does not evaluate the high finding of a package rule")
+	assert.Equal(t, 5, tr.Summary.Findings, "three control findings and two package rule findings")
+
+	var rules []*finding.Finding
+	for f, err := range res.Scan.Findings(ctx, plugin.FindingQuery{ControlID: policy.RuleControl}) {
+		require.NoError(t, err)
+		rules = append(rules, f)
+	}
+	require.Len(t, rules, 2)
+	evil, flask := rules[0], rules[1]
+	assert.Equal(t, "The evil package is not allowed.", evil.Title)
+	assert.Equal(t, finding.SeverityHigh, evil.Severity)
+	assert.Equal(t, finding.FamilyPolicy, evil.Family)
+	assert.Equal(t, &finding.GateRecord{Action: finding.GateActionFail, Rules: []string{"no-evil"}, Help: "Remove it."}, evil.Gate)
+	assert.Equal(t, "The package matches policy rule note-flask", flask.Title)
+	assert.Equal(t, finding.SeverityInfo, flask.Severity)
+	assert.Equal(t, &finding.GateRecord{Action: finding.GateActionWarn, Rules: []string{"note-flask"}}, flask.Gate)
+
+	for f, err := range res.Scan.Findings(ctx, plugin.FindingQuery{ControlID: "every"}) {
+		require.NoError(t, err)
+		assert.Nil(t, f.Gate, "a package rule does not run on the findings of %s", f.Subject.Package.Name)
+	}
 }
 
 func TestFinalizeWithNoGate(t *testing.T) {

@@ -36,14 +36,16 @@ type FindingInput struct {
 // canonical form, so a rule matches every spelling of one package version.
 // RawName and RawVersion hold the form that the manifest writes.
 type PackageInput struct {
-	PURL            string `json:"purl"`
-	Ecosystem       string `json:"ecosystem"`
-	Name            string `json:"name"`
-	Version         string `json:"version"`
-	RawName         string `json:"raw_name"`
-	RawVersion      string `json:"raw_version"`
-	Direct          bool   `json:"direct"`
-	Dev             bool   `json:"dev"`
+	PURL       string `json:"purl"`
+	Ecosystem  string `json:"ecosystem"`
+	Name       string `json:"name"`
+	Version    string `json:"version"`
+	RawName    string `json:"raw_name"`
+	RawVersion string `json:"raw_version"`
+	Direct     bool   `json:"direct"`
+	Dev        bool   `json:"dev"`
+	// Resolved is the download URL that the lockfile records.
+	Resolved        string `json:"resolved,omitempty"`
 	Change          string `json:"change"`
 	PreviousVersion string `json:"previous_version"`
 	// Origin is declared or installed: where the manifest of the finding
@@ -95,13 +97,21 @@ type ManifestInput struct {
 
 // NewInput builds the input of a finding. pkg and m can be nil.
 func NewInput(f *finding.Finding, pkg *model.Package, m *model.Manifest, now time.Time) Input {
-	in := Input{Finding: FindingInput{
+	in := packageRuleInput(pkg, m, now)
+	in.Finding = FindingInput{
 		ID: f.ID, ControlID: f.ControlID, Family: string(f.Family), Severity: string(f.Severity),
 		Confidence: string(f.Confidence), Title: f.Title, Change: string(f.Change), SubjectKind: string(f.Subject.Kind),
-	}}
+	}
 	if f.Locus != nil {
 		in.Finding.Path = f.Locus.Path
 	}
+	return in
+}
+
+// packageRuleInput builds the input of a package rule, which has no
+// finding. pkg and m can be nil.
+func packageRuleInput(pkg *model.Package, m *model.Manifest, now time.Time) Input {
+	var in Input
 	if m != nil {
 		in.Manifest = ManifestInput{Path: m.Path, Ecosystem: string(m.Ecosystem), Kind: string(m.Kind), Change: string(m.Change)}
 	}
@@ -118,7 +128,7 @@ func packageInput(p *model.Package, now time.Time) *PackageInput {
 	in := &PackageInput{
 		PURL: p.ID.PURL(), Ecosystem: string(p.ID.Ecosystem()), Name: p.ID.Name(), Version: p.ID.Version(),
 		RawName: p.ID.RawName(), RawVersion: p.ID.RawVersion(),
-		Direct: p.Direct, Dev: p.Dev, Change: string(p.Change), PreviousVersion: p.PreviousVersion,
+		Direct: p.Direct, Dev: p.Dev, Resolved: p.Resolved, Change: string(p.Change), PreviousVersion: p.PreviousVersion,
 		Licenses: []string{}, Vulnerabilities: []VulnerabilityInput{},
 	}
 	if i := p.Insight; i != nil {

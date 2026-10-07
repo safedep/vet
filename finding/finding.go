@@ -26,7 +26,7 @@ type Finding struct {
 	References  []string     `json:"references,omitempty"`
 	Remediation *Remediation `json:"remediation,omitempty"`
 	Suppression *Suppression `json:"suppression,omitempty"`
-	Gate        *Gate        `json:"gate,omitempty"`
+	Gate        *GateRecord  `json:"gate,omitempty"`
 }
 
 // Subject holds exactly one of its fields. Kind names it.
@@ -120,24 +120,30 @@ const (
 	GateActionWarn GateAction = "warn"
 )
 
-// Gate records why the gate fails or warns on a finding. A finding that
+// GateRecord records why the gate fails or warns on a finding. A finding that
 // no rule and no --fail-on value matches has no Gate, and neither has a
 // suppressed finding.
-type Gate struct {
+type GateRecord struct {
 	Action GateAction `json:"action"`
 	// Rules are the policy rules that match with the action: each fail
 	// rule, or the first warn rule.
 	Rules []string `json:"rules,omitempty"`
+	// Broken are the fail rules that did not evaluate. Each one fails the
+	// finding, so that a rule that cannot run does not let it pass.
+	Broken []string `json:"broken,omitempty"`
 	// FailOn is the --fail-on value that fails the finding.
 	FailOn string `json:"fail_on,omitempty"`
-	// Help and Link come from the first rule.
+	// Help and Link come from the first rule in Rules.
 	Help string `json:"help,omitempty"`
 	Link string `json:"link,omitempty"`
 }
 
+// Valid reports whether the action is in the closed set.
+func (a GateAction) Valid() bool { return a == GateActionFail || a == GateActionWarn }
+
 // Label is "Blocked by" for a fail record and "Warned by" for a warn
 // record.
-func (g *Gate) Label() string {
+func (g *GateRecord) Label() string {
 	if g.Action == GateActionFail {
 		return "Blocked by"
 	}
@@ -146,7 +152,7 @@ func (g *Gate) Label() string {
 
 // Cause names the rules and the --fail-on value of the record, as in
 // "policy rule no-malware and --fail-on high".
-func (g *Gate) Cause() string {
+func (g *GateRecord) Cause() string {
 	var parts []string
 	switch len(g.Rules) {
 	case 0:
@@ -154,6 +160,9 @@ func (g *Gate) Cause() string {
 		parts = append(parts, "policy rule "+g.Rules[0])
 	default:
 		parts = append(parts, "policy rules "+strings.Join(g.Rules, ", "))
+	}
+	for _, r := range g.Broken {
+		parts = append(parts, "policy rule "+r+", which did not evaluate")
 	}
 	if g.FailOn != "" {
 		parts = append(parts, "--fail-on "+g.FailOn)
@@ -190,6 +199,9 @@ func (f *Finding) Validate() error {
 	}
 	if f.Title == "" {
 		errs = append(errs, errors.New("title is empty"))
+	}
+	if f.Gate != nil && !f.Gate.Action.Valid() {
+		errs = append(errs, fmt.Errorf("unknown gate action %q", f.Gate.Action))
 	}
 	if err := f.Subject.validate(); err != nil {
 		errs = append(errs, err)

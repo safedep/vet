@@ -179,7 +179,8 @@
             "ai-bom",
             "license",
             "hygiene",
-            "reputation"
+            "reputation",
+            "policy"
           ]
         },
         "severity": {
@@ -243,7 +244,7 @@
           "$ref": "#/$defs/Suppression"
         },
         "gate": {
-          "$ref": "#/$defs/Gate"
+          "$ref": "#/$defs/GateRecord"
         }
       },
       "type": "object",
@@ -260,10 +261,61 @@
     },
     "Gate": {
       "properties": {
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "NONE",
+            "PASS",
+            "FAIL"
+          ]
+        },
+        "fail_on": {
+          "type": "string",
+          "enum": [
+            "attacks",
+            "critical",
+            "high",
+            "medium",
+            "low",
+            "info"
+          ]
+        },
+        "policy": {
+          "type": "string"
+        },
+        "rules": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "finding_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "policy_changed": {
+          "type": "boolean"
+        }
+      },
+      "type": "object",
+      "required": [
+        "outcome"
+      ]
+    },
+    "GateRecord": {
+      "properties": {
         "action": {
           "type": "string"
         },
         "rules": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "broken": {
           "items": {
             "type": "string"
           },

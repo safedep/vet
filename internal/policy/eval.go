@@ -68,31 +68,21 @@ type Outcome struct {
 // finding, and clears the values of an earlier evaluation.
 func (e *Evaluator) Apply(f *finding.Finding, pkg *model.Package, m *model.Manifest) Outcome {
 	var out Outcome
-	f.Suppression, f.Gate = nil, nil
-	for i := range e.p.Suppressions {
-		s := &e.p.Suppressions[i]
-		if !s.matches(f) {
-			continue
-		}
-		if s.expires != nil && !e.now.Before(*s.expires) {
-			out.Expired = append(out.Expired, s.ref)
-			continue
-		}
-		f.Suppression = &finding.Suppression{Reason: s.Reason, Expires: s.expires, Rule: s.ref}
-		break
-	}
+	f.Suppression, f.Gate = e.suppression(f, &out), nil
 
 	in := NewInput(f, pkg, m, e.now)
 	var warn *Rule
 	var fail []*Rule
 	for i := range e.p.Rules {
 		r := &e.p.Rules[i]
+		if r.Scope() == ScopePackage {
+			continue
+		}
 		ok, err := r.expr.Match(in)
 		if err != nil {
 			out.Errors = append(out.Errors, fmt.Errorf("rule %s: %w", r.ID, err))
 			if r.Action == ActionFail {
 				out.BrokenRules = append(out.BrokenRules, r.ID)
-				fail = append(fail, r)
 			}
 			continue
 		}
@@ -111,17 +101,56 @@ func (e *Evaluator) Apply(f *finding.Finding, pkg *model.Package, m *model.Manif
 		return out
 	}
 	failOn := e.failsOn(f)
-	out.Fail = len(fail) > 0 || failOn
-	f.Gate = gateOf(fail, warn, failOn, e.failOn)
+	out.Fail = len(fail) > 0 || len(out.BrokenRules) > 0 || failOn
+	f.Gate = gateOf(fail, out.BrokenRules, warn, failOn, e.failOn)
 	return out
+}
+
+// applyRule applies the suppressions and one package rule to the finding
+// of that rule. broken is true when the rule did not evaluate.
+func (e *Evaluator) applyRule(f *finding.Finding, r *Rule, broken bool) Outcome {
+	var out Outcome
+	f.Suppression, f.Gate = e.suppression(f, &out), nil
+	if f.Suppressed() {
+		return out
+	}
+	switch {
+	case broken:
+		out.Fail, out.BrokenRules = true, []string{r.ID}
+		f.Gate = gateOf(nil, out.BrokenRules, nil, false, "")
+		return out
+	case r.Action == ActionFail:
+		out.Fail, out.FailRules = true, []string{r.ID}
+		f.Gate = gateOf([]*Rule{r}, nil, nil, false, "")
+		return out
+	}
+	f.Gate = gateOf(nil, nil, r, false, "")
+	return out
+}
+
+// suppression returns the suppression of the finding, or nil. It adds the
+// expired suppressions that match to the outcome.
+func (e *Evaluator) suppression(f *finding.Finding, out *Outcome) *finding.Suppression {
+	for i := range e.p.Suppressions {
+		s := &e.p.Suppressions[i]
+		if !s.matches(f) {
+			continue
+		}
+		if s.expires != nil && !e.now.Before(*s.expires) {
+			out.Expired = append(out.Expired, s.ref)
+			continue
+		}
+		return &finding.Suppression{Reason: s.Reason, Expires: s.expires, Rule: s.ref}
+	}
+	return nil
 }
 
 // gateOf builds the gate record of a finding: the fail rules and the
 // --fail-on value when one of them fails it, else the first warn rule.
-func gateOf(fail []*Rule, warn *Rule, failOn bool, value report.FailOn) *finding.Gate {
+func gateOf(fail []*Rule, broken []string, warn *Rule, failOn bool, value report.FailOn) *finding.GateRecord {
 	switch {
-	case len(fail) > 0 || failOn:
-		g := &finding.Gate{Action: finding.GateActionFail}
+	case len(fail) > 0 || len(broken) > 0 || failOn:
+		g := &finding.GateRecord{Action: finding.GateActionFail, Broken: slices.Clone(broken)}
 		for _, r := range fail {
 			g.Rules = append(g.Rules, r.ID)
 		}
@@ -133,7 +162,7 @@ func gateOf(fail []*Rule, warn *Rule, failOn bool, value report.FailOn) *finding
 		}
 		return g
 	case warn != nil:
-		return &finding.Gate{Action: finding.GateActionWarn, Rules: []string{warn.ID}, Help: warn.Help, Link: warn.Link}
+		return &finding.GateRecord{Action: finding.GateActionWarn, Rules: []string{warn.ID}, Help: warn.Help, Link: warn.Link}
 	}
 	return nil
 }

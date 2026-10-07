@@ -282,14 +282,10 @@ func columnWidth(rows [][]string, col int) int {
 	return w
 }
 
-// text describes the row: the title of one finding, or the count of the
-// vulnerabilities by severity, as "6 vulnerabilities: 2 critical, 4 high".
-// When that is wider than room, the count leaves out the total. A
-// vulnerability row ends with the version that fixes each of its findings.
 // gate is the gate record of the row: the first finding that fails the
 // gate, else the first finding with a record.
-func (r row) gate() *finding.Gate {
-	var first *finding.Gate
+func (r row) gate() *finding.GateRecord {
+	var first *finding.GateRecord
 	for _, f := range r {
 		if f.Fails() {
 			return f.Gate
@@ -303,7 +299,7 @@ func (r row) gate() *finding.Gate {
 
 // gateText is the short form of a gate record, as "fail no-malware" or
 // "warn --fail-on high".
-func gateText(g *finding.Gate) string {
+func gateText(g *finding.GateRecord) string {
 	if g == nil {
 		return ""
 	}
@@ -314,6 +310,10 @@ func gateText(g *finding.Gate) string {
 	return render.Text(string(g.Action) + " " + strings.Join(parts, ", "))
 }
 
+// text describes the row: the title of one finding, or the count of the
+// vulnerabilities by severity, as "6 vulnerabilities: 2 critical, 4 high".
+// When that is wider than room, the count leaves out the total. A
+// vulnerability row ends with the version that fixes each of its findings.
 func (r row) text(room int) string {
 	var fix string
 	if v := r.fix(); v != "" {

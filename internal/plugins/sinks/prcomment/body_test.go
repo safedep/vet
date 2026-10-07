@@ -338,11 +338,11 @@ func TestNoteOfAFirstPolicy(t *testing.T) {
 func TestOneCardForEachPackage(t *testing.T) {
 	s := pullRequest(report.GateFail)
 	evil := s.FindingList[0]
-	evil.Gate = &finding.Gate{Action: finding.GateActionFail, FailOn: string(report.FailOnAttacks)}
+	evil.Gate = &finding.GateRecord{Action: finding.GateActionFail, FailOn: string(report.FailOnAttacks)}
 	cooldown := *evil
 	cooldown.ID, cooldown.ControlID, cooldown.Family, cooldown.Severity = "f-1111111111111111", "dependency-cooldown", finding.FamilyCooldown, finding.SeverityHigh
 	cooldown.Title, cooldown.Description, cooldown.Evidence, cooldown.Remediation = "Version inside the cooldown window", "", nil, nil
-	cooldown.Gate = &finding.Gate{Action: finding.GateActionFail, Rules: []string{"critical-or-high"}, Help: "Wait, or suppress the finding.", Link: "javascript:alert(1)"}
+	cooldown.Gate = &finding.GateRecord{Action: finding.GateActionFail, Rules: []string{"critical-or-high"}, Help: "Wait, or suppress the finding.", Link: "javascript:alert(1)"}
 	s.FindingList = append(s.FindingList, &cooldown)
 	tr := *s.Trailer()
 	tr.Gate.FindingIDs = append(tr.Gate.FindingIDs, cooldown.ID)
@@ -362,4 +362,14 @@ func TestSafeURL(t *testing.T) {
 	assert.Equal(t, "https://wiki.example.com/a%28b%29", safeURL("https://wiki.example.com/a(b)"))
 	assert.Empty(t, safeURL("javascript:alert(1)"))
 	assert.Empty(t, safeURL("https://"))
+}
+
+func TestGroups(t *testing.T) {
+	pkg := func(id, purl, manifest string) *finding.Finding {
+		return &finding.Finding{ID: id, Subject: finding.Subject{Kind: finding.SubjectPackage, Package: &finding.PackageSubject{PURL: purl, ManifestPath: manifest}}}
+	}
+	a1, b, a2, other := pkg("1", "pkg:npm/a@1", "package-lock.json"), pkg("2", "pkg:npm/b@1", "package-lock.json"), pkg("3", "pkg:npm/a@1", "package-lock.json"), pkg("4", "pkg:npm/a@1", "web/package-lock.json")
+	file := &finding.Finding{ID: "5", Subject: finding.Subject{Kind: finding.SubjectFile, File: &finding.FileSubject{Path: "ci.yml"}}}
+	got := groups([]*finding.Finding{a1, b, file, a2, other})
+	assert.Equal(t, [][]*finding.Finding{{a1, a2}, {b}, {file}, {other}}, got, "one package in two manifests makes two groups")
 }

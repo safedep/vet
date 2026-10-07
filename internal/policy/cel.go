@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/google/cel-go/cel"
+	celast "github.com/google/cel-go/common/ast"
 	"github.com/google/cel-go/common/types"
 	"github.com/google/cel-go/common/types/ref"
 	"github.com/google/cel-go/common/types/traits"
@@ -26,6 +27,8 @@ var (
 type Expr struct {
 	src string
 	prg cel.Program
+	// reads holds the input variables that the condition reads.
+	reads map[string]bool
 }
 
 func newEnv() (*cel.Env, error) {
@@ -36,12 +39,13 @@ func newEnv() (*cel.Env, error) {
 		cel.Variable("manifest", dyn),
 		cel.CrossTypeNumericComparisons(true),
 		// package.is(name) compares a name under the rule of the ecosystem,
-		// so package.is("python-dateutil") matches python.dateutil.
+		// so package.is("python-dateutil") matches python.dateutil. A name
+		// with *, ? or [ is a glob, as in package.is("@acme/*").
 		cel.Function("is", cel.MemberOverload("package_is_string", []*cel.Type{dyn, cel.StringType}, cel.BoolType,
 			cel.BinaryBinding(func(pkg, name ref.Val) ref.Val {
 				id, ok := celPackage(pkg)
 				s, isString := name.Value().(string)
-				return types.Bool(ok && isString && id.NameIs(s))
+				return types.Bool(ok && isString && nameIs(id, s))
 			}))),
 		// package.version_cmp(v) orders the version of the package against v
 		// under the rule of the ecosystem: -1, 0 or 1. With no order, it
@@ -62,6 +66,16 @@ func newEnv() (*cel.Env, error) {
 				return types.Int(c)
 			}))),
 	)
+}
+
+// nameIs matches a name or a glob under the rule of the ecosystem. A
+// glob that does not parse matches nothing.
+func nameIs(id model.PackageVersion, name string) bool {
+	if !strings.ContainsAny(name, "*?[") {
+		return id.NameIs(name)
+	}
+	ok, err := id.MatchName(name)
+	return err == nil && ok
 }
 
 // celPackage rebuilds the package version of the CEL package input from its
@@ -100,7 +114,18 @@ func Compile(src string) (*Expr, error) {
 	if err != nil {
 		return nil, errors.New(restorePackage(err.Error()))
 	}
-	return &Expr{src: src, prg: prg}, nil
+	return &Expr{src: src, prg: prg, reads: idents(ast)}, nil
+}
+
+// idents returns the input variables that a condition reads.
+func idents(a *cel.Ast) map[string]bool {
+	out := map[string]bool{}
+	celast.PostOrderVisit(a.NativeRep().Expr(), celast.NewExprVisitor(func(e celast.Expr) {
+		if e.Kind() == celast.IdentKind {
+			out[e.AsIdent()] = true
+		}
+	}))
+	return out
 }
 
 // Match evaluates the condition on an input. A condition that reads an

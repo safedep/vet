@@ -10,7 +10,7 @@ stderr 'policy_invalid'
 
 execexit 2 vet policy validate unknown.yml --mode plain
 stderr -count=1 'policy_invalid'
-stderr 'unknown.yml line 4: "fail" is not a field of a rule. A rule has id, description, when, action, help and link.'
+stderr 'unknown.yml line 4: "fail" is not a field of a rule. A rule has id, description, when, action, help, link and severity.'
 ! stderr 'policy\.Rule'
 
 exec vet policy validate good.yml --mode plain -o json

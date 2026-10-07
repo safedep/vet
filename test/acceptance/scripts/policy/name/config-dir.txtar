@@ -5,7 +5,7 @@
 exec vet policy init --mode plain
 stderr 'vet scan --policy default applies it'
 exec vet policy validate default --mode plain -o json
-jsonq stdout rules 4
+jsonq stdout rules 3
 
 cd proj
 execexit 1 vet scan . --mode plain -o plain --policy default
