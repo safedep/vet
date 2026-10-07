@@ -113,8 +113,13 @@ This rule blocks an internal package name that comes from a public registry:
     link: https://wiki.acme.example/security/registries
 ```
 
-The `dependency-cooldown` control also reports fresh versions. When a cooldown rule in the policy and
-the control disagree, the gate record of each finding names the setting that decided.
+The `dependency-cooldown` control also reports fresh versions, as `high` findings. A cooldown rule
+in the policy makes a second finding on the same package. Each finding says what blocked or warned
+it, so the PR comment shows both causes on the card of the package.
+
+An earlier v2 alpha ran each rule on the findings only. A rule that reads only `package` now makes
+its own finding, and the control findings of the package no longer carry its gate record. To keep
+the old behaviour, add a `finding` condition, as `finding.subject_kind == "package" && ...`.
 
 ## The rule input
 
@@ -144,7 +149,7 @@ A rule reads three variables. `vet policy schema get` prints their JSON Schema.
 | `direct`, `dev` | `true` for a direct or a development dependency |
 | `resolved` | The download URL that the lockfile records. Absent when the lockfile has none |
 | `origin` | `declared` for a package of a lockfile or a manifest, `installed` for a package on disk |
-| `change`, `previous_version` | In pull request mode: `ADDED`, `UPGRADED`, `DOWNGRADED`, `MODIFIED`, `REMOVED` or `UNCHANGED` |
+| `change`, `previous_version` | In pull request mode: `ADDED`, `UPGRADED`, `DOWNGRADED`, `MODIFIED`, `REMOVED` or `UNCHANGED`. A package rule never sees `REMOVED` or `UNCHANGED` |
 | `licenses` | A list of SPDX ids |
 | `deprecated` | `true` when the registry marks the version deprecated |
 | `days_since_publish` | The age of the version in days |

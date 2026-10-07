@@ -50,6 +50,8 @@ type settings map[string]map[string]any
 
 func (s settings) PluginEnabled(string, bool) bool { return true }
 
+func (s settings) PluginOrigin(string, string) string { return "" }
+
 func (s settings) PluginOptions(name string) map[string]any {
 	if o, ok := s[name]; ok {
 		return o

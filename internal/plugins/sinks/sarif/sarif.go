@@ -121,10 +121,10 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 		if rec.Kind != report.KindFinding || f == nil {
 			continue
 		}
-		if !rules[f.ControlID] {
-			rules[f.ControlID] = true
+		if id := ruleID(f); !rules[id] {
+			rules[id] = true
 			rn.Tool.Driver.Rules = append(rn.Tool.Driver.Rules, rule{
-				ID: f.ControlID, ShortDescription: text{Text: f.ControlID},
+				ID: id, ShortDescription: text{Text: id},
 				Properties: properties{Tags: []string{"security", string(f.Family)}},
 			})
 		}
@@ -137,13 +137,24 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 	return enc.Encode(log{Schema: schemaURI, Version: "2.1.0", Runs: []run{rn}})
 }
 
+// ruleID is the control id. A finding of a package rule adds the id of the
+// rule, as policy/no-evil, so that code scanning keeps two rules apart.
+func ruleID(f *finding.Finding) string {
+	if g := f.Gate; f.Family == finding.FamilyPolicy && g != nil {
+		if ids := append(slices.Clone(g.Rules), g.Broken...); len(ids) > 0 {
+			return f.ControlID + "/" + ids[0]
+		}
+	}
+	return f.ControlID
+}
+
 func toResult(f *finding.Finding) result {
 	msg := f.Title
 	if f.Description != "" {
 		msg += ". " + f.Description
 	}
 	res := result{
-		RuleID: f.ControlID, Level: level(f.Severity), Message: text{Text: msg},
+		RuleID: ruleID(f), Level: level(f.Severity), Message: text{Text: msg},
 		PartialFingerprints: map[string]string{fingerprint: f.ID},
 		Properties:          properties{SecuritySeverity: securitySeverity(f.Severity), Tags: []string{string(f.Severity), string(f.Family)}},
 	}

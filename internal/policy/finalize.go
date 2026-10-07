@@ -121,9 +121,12 @@ func (e *Evaluator) packageRules(ctx context.Context, s Store, gate *Gate, diags
 			if p.Change == model.ChangeUnchanged || p.Change == model.ChangeRemoved {
 				continue
 			}
-			in := packageRuleInput(p, m, e.now)
+			vars, err := packageRuleInput(p, m, e.now).activation()
+			if err != nil {
+				return err
+			}
 			for _, r := range rules {
-				ok, err := r.expr.Match(in)
+				ok, err := r.expr.matchVars(vars)
 				if err != nil {
 					addDiag(diags, CodeRuleFailed, fmt.Sprintf("rule %s: %v", r.ID, err))
 				}
@@ -131,7 +134,7 @@ func (e *Evaluator) packageRules(ctx context.Context, s Store, gate *Gate, diags
 				if !ok && (err == nil || r.Action != ActionFail) {
 					continue
 				}
-				f := e.ruleFinding(r, m, p)
+				f := e.ruleFinding(r, m, p, err != nil)
 				o := e.applyRule(f, r, err != nil)
 				gate.Add(f, o)
 				for _, ref := range o.Expired {
@@ -146,10 +149,14 @@ func (e *Evaluator) packageRules(ctx context.Context, s Store, gate *Gate, diags
 	return nil
 }
 
-// ruleFinding is the finding of a package rule on a package.
-func (e *Evaluator) ruleFinding(r *Rule, m *model.Manifest, p *model.Package) *finding.Finding {
+// ruleFinding is the finding of a package rule on a package. broken is
+// true when the rule did not evaluate on the package.
+func (e *Evaluator) ruleFinding(r *Rule, m *model.Manifest, p *model.Package, broken bool) *finding.Finding {
 	title := r.Description
-	if title == "" {
+	switch {
+	case broken:
+		title = "Policy rule " + r.ID + " did not evaluate on the package"
+	case title == "":
 		title = "The package matches policy rule " + r.ID
 	}
 	f := finding.ForPackage(finding.Meta{

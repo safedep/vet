@@ -17,6 +17,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/extractors"
 	"github.com/safedep/vet/v2/internal/plugins/sources"
 	"github.com/safedep/vet/v2/internal/policy"
+	"github.com/safedep/vet/v2/internal/reportdoc"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
@@ -228,4 +229,77 @@ func TestUnavailablePolicySource(t *testing.T) {
 		}
 	}
 	assert.Contains(t, codes, policy.CodeSourceUnavailable)
+}
+
+// savedReport is a saved report with one lockfile and the packages.
+func savedReport(pkgs ...*model.Package) *reportdoc.Doc {
+	m := &model.Manifest{ID: "m1", Path: "package-lock.json", Ecosystem: model.EcosystemNpm, Kind: model.ManifestKindLockfile}
+	recs := []report.Record{report.ManifestRecord(m)}
+	for _, p := range pkgs {
+		recs = append(recs, report.PackageRecord(&report.PackageEntry{PURL: p.ID.PURL(), ManifestIDs: []string{m.ID}, Package: *p}))
+	}
+	return reportdoc.FromDocument(&report.Document{Records: recs})
+}
+
+func npm(name string, change model.Change) *model.Package {
+	return &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, name, "1.0.0"), Change: change}
+}
+
+func TestPackageRulesOnASavedReport(t *testing.T) {
+	ctx := context.Background()
+	cases := []struct {
+		name   string
+		policy string
+		pkgs   []*model.Package
+		gate   report.GateOutcome
+		titles []string
+	}{
+		{
+			name:   "the change keeps or removes a package",
+			policy: "  - id: any\n    when: package.name != \"\"\n    action: fail\n",
+			pkgs:   []*model.Package{npm("kept", model.ChangeUnchanged), npm("gone", model.ChangeRemoved), npm("new", model.ChangeAdded), npm("full", model.ChangeNone)},
+			gate:   report.GateFail,
+			titles: []string{"The package matches policy rule any", "The package matches policy rule any"},
+		},
+		{
+			name:   "a fail rule that does not evaluate blocks the package",
+			policy: "  - id: bad\n    when: int(package.name) > 0\n    action: fail\n",
+			pkgs:   []*model.Package{npm("a", model.ChangeAdded)},
+			gate:   report.GateFail,
+			titles: []string{"Policy rule bad did not evaluate on the package"},
+		},
+		{
+			name:   "a warn rule that does not evaluate makes no finding",
+			policy: "  - id: bad\n    when: int(package.name) > 0\n    action: warn\n",
+			pkgs:   []*model.Package{npm("a", model.ChangeAdded)},
+			gate:   report.GatePass,
+		},
+		{
+			name:   "a suppression hides the finding of a package rule",
+			policy: "  - id: any\n    when: package.name != \"\"\n    action: fail\nsuppressions:\n  - control: policy\n    purl: pkg:npm/a\n    reason: Reviewed.\n",
+			pkgs:   []*model.Package{npm("a", model.ChangeAdded)},
+			gate:   report.GatePass,
+			titles: []string{"The package matches policy rule any"},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p, err := policy.Parse("p.yml", []byte("version: 2\nrules:\n"+tc.policy))
+			require.NoError(t, err)
+			doc := savedReport(tc.pkgs...)
+			g, err := policy.NewEvaluator(p, policy.Options{}).Finalize(ctx, doc)
+			require.NoError(t, err)
+			assert.Equal(t, tc.gate, g.Outcome)
+			var titles []string
+			for f, err := range doc.Findings(ctx, plugin.FindingQuery{IncludeSuppressed: true}) {
+				require.NoError(t, err)
+				titles = append(titles, f.Title)
+			}
+			assert.Equal(t, tc.titles, titles)
+
+			again, err := policy.NewEvaluator(p, policy.Options{}).Finalize(ctx, doc)
+			require.NoError(t, err)
+			assert.Equal(t, g, again, "a second run replaces the findings of the first")
+		})
+	}
 }

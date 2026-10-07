@@ -191,12 +191,7 @@ func (s *Suppression) matches(f *finding.Finding) bool {
 		if err != nil {
 			return false
 		}
-		// A suppression PURL with no version matches each version of the
-		// package. Both sides compare in the canonical form.
-		if s.pkg.RawVersion() == "" {
-			return id.SamePackage(*s.pkg)
-		}
-		return id.Equal(*s.pkg)
+		return s.pkg.Matches(id)
 	}
 	return true
 }

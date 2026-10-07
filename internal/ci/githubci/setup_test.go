@@ -62,7 +62,7 @@ func TestDefaultsOfTheAction(t *testing.T) {
 	}
 	require.NoError(t, yaml.Unmarshal(data, &action))
 	assert.Equal(t, PolicyPath, action.Inputs["policy"].Default)
-	assert.Equal(t, fmt.Sprint(CooldownHours), action.Inputs["cooldown"].Default)
+	assert.Equal(t, fmt.Sprint(CooldownHours), action.Inputs["release-cooldown"].Default)
 }
 
 // docs/github-action.md shows the workflow that vet ci init writes.

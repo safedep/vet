@@ -82,7 +82,8 @@ type Suppression struct {
 	// ID is a finding id.
 	ID string `yaml:"id,omitempty"`
 	// PURL matches the package of a finding. A PURL with no version
-	// matches every version.
+	// matches every version. A name with *, ? or [ is a glob, as in
+	// pkg:golang/buf.build/gen/go/acme/*.
 	PURL    string `yaml:"purl,omitempty"`
 	Control string `yaml:"control,omitempty"`
 	Reason  string `yaml:"reason"`
@@ -91,7 +92,7 @@ type Suppression struct {
 	Expires string `yaml:"expires,omitempty"`
 
 	ref     string
-	pkg     *model.PackageVersion
+	pkg     *model.PackagePattern
 	expires *time.Time
 }
 
@@ -213,11 +214,11 @@ func (s *Suppression) check() error {
 		errs = append(errs, errors.New("reason is empty"))
 	}
 	if s.PURL != "" {
-		id, err := model.ParsePURL(s.PURL)
+		p, err := model.ParsePackagePattern(s.PURL)
 		if err != nil {
 			errs = append(errs, err)
 		} else {
-			s.pkg = &id
+			s.pkg = &p
 		}
 	}
 	if s.Expires != "" {

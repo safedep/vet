@@ -176,7 +176,15 @@ func (s Sink) rows(fs []*finding.Finding) []row {
 		}
 		rows = append(rows, row{f})
 	}
+	// A finding that fails the gate comes first, so the row limit never
+	// hides it.
 	slices.SortStableFunc(rows, func(a, b row) int {
+		if fa, fb := a.failing(), b.failing(); fa != fb {
+			if fa {
+				return -1
+			}
+			return 1
+		}
 		return b[0].Severity.Rank() - a[0].Severity.Rank()
 	})
 	return rows
@@ -296,6 +304,8 @@ func (r row) gate() *finding.GateRecord {
 	}
 	return first
 }
+
+func (r row) failing() bool { return r.gate() != nil && r.gate().Action == finding.GateActionFail }
 
 // gateText is the short form of a gate record, as "fail no-malware" or
 // "warn --fail-on high".

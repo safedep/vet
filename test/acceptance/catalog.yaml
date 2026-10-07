@@ -200,6 +200,12 @@
   tier: P1
   guarantee: "plugins.dependency-cooldown.options.days changes the window."
   labels: [controls]
+- id: controls/cooldown/skip-and-source
+  title: "cooldown: skip, source and glob suppression"
+  category: controls
+  tier: P0
+  guarantee: "The cooldown finding names the window, its source and the setting key. The skip option takes a package out of the cooldown. A suppression purl with a name glob hides the finding from the gate."
+  labels: [controls, gate]
 - id: controls/license/allow-and-deny
   title: "license: allow and deny lists"
   category: controls

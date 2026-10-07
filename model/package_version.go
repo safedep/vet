@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"path"
+	"regexp"
 	"strings"
 
 	packagev1 "buf.build/gen/go/safedep/api/protocolbuffers/go/safedep/messages/package/v1"
@@ -153,15 +154,52 @@ func (p PackageVersion) NameIs(name string) bool {
 	return err == nil && n == p.Name()
 }
 
-// MatchName reports a canonical name that a path.Match pattern matches. The
-// literal parts of the pattern fold under the rule of the ecosystem, so
-// "acme-*" matches the PyPI name Acme.Utils.
+// MatchName reports a canonical name that a glob matches. The glob has the
+// syntax of path.Match, but * also matches a /, so "buf.build/gen/go/acme/*"
+// matches each module under that path. The literal parts of the pattern
+// fold under the rule of the ecosystem, so "acme-*" matches the PyPI name
+// Acme.Utils.
 func (p PackageVersion) MatchName(pattern string) (bool, error) {
 	folded, err := foldPattern(p.Ecosystem(), pattern)
 	if err != nil {
 		return false, err
 	}
-	return path.Match(folded, p.Name())
+	re, err := globRegexp(folded)
+	if err != nil {
+		return false, err
+	}
+	return re.MatchString(p.Name()), nil
+}
+
+// globRegexp turns a path.Match pattern into a regular expression in which
+// * matches any text and ? matches one character, a / too.
+func globRegexp(pattern string) (*regexp.Regexp, error) {
+	if _, err := path.Match(pattern, ""); err != nil {
+		return nil, err
+	}
+	var b strings.Builder
+	b.WriteString("^")
+	for i := 0; i < len(pattern); i++ {
+		switch c := pattern[i]; c {
+		case '\\':
+			i++
+			if i < len(pattern) {
+				b.WriteString(regexp.QuoteMeta(pattern[i : i+1]))
+			}
+		case '*':
+			b.WriteString(".*")
+		case '?':
+			b.WriteString(".")
+		case '[':
+			end := strings.IndexByte(pattern[i:], ']')
+			b.WriteString(pattern[i : i+end+1])
+			i += end
+		default:
+			b.WriteString(regexp.QuoteMeta(pattern[i : i+1]))
+		}
+	}
+	b.WriteString("$")
+	return regexp.Compile(b.String())
 }
 
 // foldPattern folds the literal parts of a path.Match pattern. It keeps the
@@ -322,4 +360,46 @@ func (p *PackageVersion) UnmarshalJSON(b []byte) error {
 	}
 	*p = v
 	return nil
+}
+
+// PackagePattern selects packages by a PURL. A PURL with no version
+// selects each version of the package. A name with *, ? or [ is a glob, as
+// MatchName reads it.
+type PackagePattern struct {
+	id   PackageVersion
+	glob bool
+}
+
+// ParsePackagePattern parses a PURL that can hold a name glob, as
+// pkg:npm/@acme/* or pkg:golang/buf.build/gen/go/acme/*.
+func ParsePackagePattern(purl string) (PackagePattern, error) {
+	id, err := ParsePURL(purl)
+	if err != nil {
+		return PackagePattern{}, err
+	}
+	p := PackagePattern{id: id, glob: strings.ContainsAny(id.RawName(), "*?[")}
+	if p.glob {
+		if _, err := id.MatchName(id.RawName()); err != nil {
+			return PackagePattern{}, fmt.Errorf("parse PURL %q: name glob: %w", purl, err)
+		}
+	}
+	return p, nil
+}
+
+// Matches reports whether the pattern selects the package version.
+func (p PackagePattern) Matches(id PackageVersion) bool {
+	if id.Ecosystem() != p.id.Ecosystem() {
+		return false
+	}
+	version := p.id.RawVersion()
+	if !p.glob {
+		if version == "" {
+			return id.SamePackage(p.id)
+		}
+		return id.Equal(p.id)
+	}
+	if ok, err := id.MatchName(p.id.RawName()); err != nil || !ok {
+		return false
+	}
+	return version == "" || id.Equal(id.WithVersion(version))
 }

@@ -228,6 +228,8 @@ func TestApplySuppressionSelectors(t *testing.T) {
 		{name: "other finding id", s: "id: f-0000000000000000", f: f},
 		{name: "purl with no version", s: "purl: pkg:npm/evil", f: f, want: true},
 		{name: "purl of another package", s: "purl: pkg:npm/good", f: f},
+		{name: "purl with a name glob", s: "purl: pkg:npm/ev*", f: f, want: true},
+		{name: "purl with a glob of another name", s: "purl: pkg:npm/go*", f: f},
 		{name: "control", s: "control: malware", f: f, want: true},
 		{name: "control and purl", s: "control: malware\n    purl: pkg:npm/evil@2.0.0", f: f},
 		{name: "purl on a file finding", s: "purl: pkg:npm/evil", f: &file},
@@ -383,6 +385,10 @@ func TestRuleScope(t *testing.T) {
 		{`manifest.path == "go.mod"`, ScopeFinding},
 		{`true`, ScopeFinding},
 		{`"package" == "x"`, ScopeFinding},
+		{`package.vulnerabilities.exists(finding, finding.severity == "critical")`, ScopePackage},
+		{`[1].exists(package, package == 1)`, ScopeFinding},
+		{`[1].exists(x, x == 1) && finding.severity == "high" && package.direct`, ScopeFinding},
+		{`{"a": package.name}.size() > 0`, ScopePackage},
 	}
 	for _, tc := range cases {
 		t.Run(tc.when, func(t *testing.T) {

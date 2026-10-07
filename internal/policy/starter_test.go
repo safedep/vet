@@ -30,3 +30,15 @@ func TestStarterNamesKnownControls(t *testing.T) {
 		assert.True(t, ids[id], "control %s is listed", id)
 	}
 }
+
+// TestRuleControlIsReserved keeps the control id of the package rules
+// apart from the built-in controls. Finalize deletes the findings of that
+// id before each evaluation.
+func TestRuleControlIsReserved(t *testing.T) {
+	list, err := controls.Catalog()
+	require.NoError(t, err)
+	for _, c := range list {
+		assert.NotEqual(t, policy.RuleControl, c.ID)
+		assert.NotEqual(t, policy.RuleControl, c.Plugin, "plugin %s", c.Plugin)
+	}
+}

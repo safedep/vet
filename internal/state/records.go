@@ -171,7 +171,8 @@ func (s *Scan) blobRecords(ctx context.Context, query string, yield func(*report
 
 // packageRecords yields one entry for each package key. The rows come in key
 // order, then manifest order, so one pass groups them. The package fields
-// come from the first manifest that declares the package.
+// come from the first manifest that declares the package, and
+// report.PackageEntry.Merge adds each other manifest.
 func (s *Scan) packageRecords(ctx context.Context, yield func(*report.Record, error) bool) bool {
 	rows, err := s.db.QueryContext(ctx, `SELECT mp.manifest_id, mp.data, p.enrichment
 		FROM vet_scan_packages p
@@ -206,7 +207,7 @@ func (s *Scan) packageRecords(ctx context.Context, yield func(*report.Record, er
 			return false
 		}
 		if cur != nil && cur.ID.Equal(p.ID) {
-			cur.ManifestIDs = append(cur.ManifestIDs, manifestID)
+			cur.Merge(manifestID, &p)
 			continue
 		}
 		if !flush() {

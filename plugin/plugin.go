@@ -208,6 +208,13 @@ type Config interface {
 	Decode(v any) error
 }
 
+// Originer is optional. A Config that implements it names the source of an
+// option, as "flag --cooldown-days" or "file config.yml". It gives "" for
+// an option that no layer sets, which keeps the default of the plugin.
+type Originer interface {
+	Origin(key string) string
+}
+
 // Schemer is optional. A plugin that implements it adds its options to
 // "vet config schema get".
 type Schemer interface {

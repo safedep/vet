@@ -98,6 +98,19 @@ type PackageEntry struct {
 	model.Package
 }
 
+// Merge adds the copy of the package in one more manifest. The entry keeps
+// the most risk, because a policy on a saved report reads it: the change
+// of a manifest that adds or changes the package, direct when one manifest
+// has it direct, and dev only when each manifest has it as dev.
+func (e *PackageEntry) Merge(manifestID string, p *model.Package) {
+	e.ManifestIDs = append(e.ManifestIDs, manifestID)
+	if !e.Change.Introduces() && p.Change.Introduces() {
+		e.Change, e.PreviousVersion = p.Change, p.PreviousVersion
+	}
+	e.Direct = e.Direct || p.Direct
+	e.Dev = e.Dev && p.Dev
+}
+
 // InventoryKind names the kind of an inventory item.
 type InventoryKind string
 

@@ -3,12 +3,14 @@
 package cooldown
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"time"
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/plugins/internal/optschema"
+	"github.com/safedep/vet/v2/internal/tui/humanize"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 )
@@ -16,18 +18,35 @@ import (
 // Name is the plugin name and the control id.
 const Name = "dependency-cooldown"
 
-// DefaultDays is the cooldown window of pmg.
-const DefaultDays = 5
+// DefaultDays is the cooldown window. It is the default of pmg.
+const DefaultDays = 2
+
+// DaysKey is the config key of the window.
+const DaysKey = "plugins." + Name + ".options.days"
 
 // Options are plugins.dependency-cooldown.options.
 type Options struct {
 	Days *int `json:"days"`
+	// Skip lists the packages that the cooldown does not check, such as
+	// the SDKs of your own organization. Other controls still check them.
+	Skip []Skip `json:"skip"`
+}
+
+// Skip is one package that the cooldown does not check. A PURL with no
+// version skips each version. A name with *, ? or [ is a glob.
+type Skip struct {
+	PURL   string `json:"purl"`
+	Reason string `json:"reason"`
 }
 
 // Control reports the versions inside the cooldown window.
 type Control struct {
 	days int
-	now  func() time.Time
+	// source names the setting of the window, as "flag --cooldown-days",
+	// or "" for the default.
+	source string
+	skip   []model.PackagePattern
+	now    func() time.Time
 }
 
 // New builds the control from its options.
@@ -42,6 +61,20 @@ func New(cfg plugin.Config) (plugin.Control, error) {
 			return nil, fmt.Errorf("dependency-cooldown: days must be 1 or more, got %d", *o.Days)
 		}
 		c.days = *o.Days
+		c.source = "your config"
+		if or, ok := cfg.(plugin.Originer); ok {
+			c.source = cmp.Or(or.Origin("days"), c.source)
+		}
+	}
+	for i, s := range o.Skip {
+		if s.Reason == "" {
+			return nil, fmt.Errorf("dependency-cooldown: skip[%d]: reason is empty", i)
+		}
+		p, err := model.ParsePackagePattern(s.PURL)
+		if err != nil {
+			return nil, fmt.Errorf("dependency-cooldown: skip[%d]: %w", i, err)
+		}
+		c.skip = append(c.skip, p)
 	}
 	return c, nil
 }
@@ -66,7 +99,7 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 	now := c.now().UTC()
 	var out []finding.Finding
 	for _, p := range m.Packages {
-		if p.Insight == nil || p.Insight.PublishedAt == nil {
+		if p.Insight == nil || p.Insight.PublishedAt == nil || c.skipped(p.ID) {
 			continue
 		}
 		published := p.Insight.PublishedAt.UTC()
@@ -79,12 +112,22 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 	return out, nil
 }
 
+func (c *Control) skipped(id model.PackageVersion) bool {
+	for _, p := range c.skip {
+		if p.Matches(id) {
+			return true
+		}
+	}
+	return false
+}
+
 func (c *Control) finding(m *model.Manifest, p *model.Package, published time.Time, days int) finding.Finding {
 	eligible := published.AddDate(0, 0, c.days)
 	f := finding.ForPackage(finding.Meta{
 		ControlID: Name, Family: finding.FamilyCooldown, Severity: finding.SeverityHigh,
-		Title:       fmt.Sprintf("%s was published %s", p.ID, ago(days)),
-		Description: fmt.Sprintf("The registry published this version on %s. The cooldown window is %d days, so the version is eligible on %s.", published.Format(time.DateOnly), c.days, eligible.Format(time.DateOnly)),
+		Title: fmt.Sprintf("%s was published %s", p.ID, ago(days)),
+		Description: fmt.Sprintf("The registry published this version on %s. The cooldown window is %s, %s, so the version is eligible on %s. The setting %s sets the window.",
+			published.Format(time.DateOnly), humanize.Count(c.days, "day"), c.sourceText(), eligible.Format(time.DateOnly), DaysKey),
 	}, m.Path, p, finding.Key{})
 	f.Evidence = []finding.Evidence{{Source: "insights", Summary: "published at " + published.Format(time.RFC3339)}}
 	summary := fmt.Sprintf("Wait until %s, or keep the version that you used before.", eligible.Format(time.DateOnly))
@@ -93,6 +136,14 @@ func (c *Control) finding(m *model.Manifest, p *model.Package, published time.Ti
 	}
 	f.Remediation = &finding.Remediation{Summary: summary}
 	return f
+}
+
+// sourceText says where the window comes from.
+func (c *Control) sourceText() string {
+	if c.source == "" {
+		return "the vet default"
+	}
+	return "from " + c.source
 }
 
 func ago(days int) string {

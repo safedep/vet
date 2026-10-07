@@ -324,6 +324,11 @@ func TestMatchName(t *testing.T) {
 		{EcosystemPyPI, "acme-x", "acme-[xy]", true},
 		{EcosystemNpm, "@acme/utils", "@acme/*", true},
 		{EcosystemNpm, "@Acme/utils", "@acme/*", false},
+		{EcosystemGo, "buf.build/gen/go/safedep/api/grpc/go", "buf.build/gen/go/safedep/*", true},
+		{EcosystemGo, "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go", "buf.build/gen/go/safedep/*", false},
+		{EcosystemGo, "example.com/a.b", "example.com/a?b", true},
+		{EcosystemGo, "example.com/axb", "example.com/a.b", false},
+		{EcosystemPyPI, "acme-z", "acme-[^xy]", true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.pkg+"~"+tc.pattern, func(t *testing.T) {
@@ -355,4 +360,30 @@ func TestEnrichment(t *testing.T) {
 	}
 	assert.Equal(t, full, Enrichment{}.Merge(full), "Merge copies each field")
 	assert.Equal(t, full, full.Since(Enrichment{}), "Since copies each field")
+}
+
+func TestPackagePattern(t *testing.T) {
+	grpc := mustPV(t, EcosystemGo, "buf.build/gen/go/safedep/api/grpc/go", "v1.6.2")
+	cases := []struct {
+		purl string
+		id   PackageVersion
+		want bool
+	}{
+		{"pkg:golang/buf.build/gen/go/safedep/*", grpc, true},
+		{"pkg:golang/buf.build/gen/go/bufbuild/*", grpc, false},
+		{"pkg:npm/buf.build/gen/go/safedep/*", grpc, false},
+		{"pkg:golang/buf.build/gen/go/safedep/*@v1.6.2", grpc, true},
+		{"pkg:golang/buf.build/gen/go/safedep/*@v1.6.3", grpc, false},
+		{"pkg:pypi/Python.Dateutil", mustPV(t, EcosystemPyPI, "python-dateutil", "2.8.0"), true},
+		{"pkg:pypi/python-dateutil@2.8.1", mustPV(t, EcosystemPyPI, "python-dateutil", "2.8.0"), false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.purl, func(t *testing.T) {
+			p, err := ParsePackagePattern(tc.purl)
+			require.NoError(t, err)
+			assert.Equal(t, tc.want, p.Matches(tc.id))
+		})
+	}
+	_, err := ParsePackagePattern("pkg:npm/a[")
+	assert.Error(t, err)
 }

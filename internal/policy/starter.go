@@ -2,8 +2,8 @@ package policy
 
 // Starter is the policy that "vet policy init" and "vet ci init --policy"
 // write. It fails on the controls that need no tuning. It has no cooldown
-// rule: the dependency-cooldown control reports a fresh version, and a
-// rule on its severity decides the gate.
+// rule. The dependency-cooldown control reports a fresh version as a high
+// finding, and a rule on high findings, or --fail-on high, blocks it.
 const Starter = `# vet policy v2. vet scan --policy FILE applies it.
 # vet policy schema get prints the fields that a rule reads.
 version: 2

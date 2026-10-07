@@ -87,6 +87,32 @@ if [ -n "$policy" ]; then
   fi
 fi
 
+if [ -n "${ACTION_PACKAGE_COOLDOWN:-}" ]; then
+  [[ $ACTION_PACKAGE_COOLDOWN =~ ^[1-9][0-9]{0,4}$ ]] ||
+    fail "The package-cooldown input is not a count of days: '$ACTION_PACKAGE_COOLDOWN'"
+  args+=(--cooldown-days "$ACTION_PACKAGE_COOLDOWN")
+fi
+
+# In a pull request, vet reads the config at the base commit, as it reads
+# the policy. A change cannot turn off a control for its own scan.
+config=${ACTION_CONFIG:-}
+global=()
+if [ -n "$config" ]; then
+  if [ -n "$base" ]; then
+    if git cat-file -e "$base:$config" 2>/dev/null; then
+      git show "$base:$config" >"$tmp/config.yml"
+      global=(--config "$tmp/config.yml")
+      echo "vet reads the config $config at the base commit ${base:0:7}"
+    else
+      echo "vet reads no config file, because the base commit has no $config"
+    fi
+  elif [ -e "$config" ]; then
+    global=(--config "$config")
+  else
+    fail "The config input names a file that does not exist: '$config'"
+  fi
+fi
+
 # The args input splits on white space. The script never evaluates it.
 extra=()
 if [ -n "${ACTION_ARGS:-}" ]; then
@@ -94,7 +120,7 @@ if [ -n "${ACTION_ARGS:-}" ]; then
 fi
 
 code=0
-vet "${args[@]}" ${extra[@]+"${extra[@]}"} >"$report" || code=$?
+vet ${global[@]+"${global[@]}"} "${args[@]}" ${extra[@]+"${extra[@]}"} >"$report" || code=$?
 
 # A step summary holds at most 1 MiB.
 if [ -s "$summary" ] && [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then

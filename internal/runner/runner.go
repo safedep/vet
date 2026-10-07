@@ -219,7 +219,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 	configError := func(err error) error {
 		return app.UsageError(err.Error(), "Fix the option in the config file. vet config validate checks it.")
 	}
-	ctrls, err := controls.Build(withCooldown(cfg, o.CooldownDays))
+	ctrls, err := controls.Build(withCooldown(rt, o.CooldownDays))
 	if err != nil {
 		return configError(err)
 	}
@@ -544,15 +544,38 @@ func engineControls(cs []controls.Control) []engine.Control {
 // config (decisions P7).
 type pluginSettings struct {
 	cfg       *config.Config
+	origins   *config.Origins
 	overrides map[string]map[string]any
+	// flags names the flag of each override.
+	flags map[string]map[string]string
 }
 
-func withCooldown(cfg *config.Config, days int) pluginSettings {
-	s := pluginSettings{cfg: cfg, overrides: map[string]map[string]any{}}
+func withCooldown(rt *config.Runtime, days int) pluginSettings {
+	s := pluginSettings{cfg: rt.Config, origins: rt.Origins, overrides: map[string]map[string]any{}, flags: map[string]map[string]string{}}
 	if days > 0 {
 		s.overrides[cooldown.Name] = map[string]any{"days": days}
+		s.flags[cooldown.Name] = map[string]string{"days": "--cooldown-days"}
 	}
 	return s
+}
+
+// PluginOrigin names the flag or the config layer that sets an option. A
+// file names its base name only, so a report shows no local path.
+func (s pluginSettings) PluginOrigin(name, key string) string {
+	if f := s.flags[name][key]; f != "" {
+		return "flag " + f
+	}
+	if s.origins == nil {
+		return ""
+	}
+	o := s.origins.Of("plugins." + name + ".options." + key)
+	switch o.Layer {
+	case config.LayerDefault, "":
+		return ""
+	case config.LayerFile, config.LayerManaged:
+		return string(o.Layer) + " " + filepath.Base(o.Source)
+	}
+	return o.String()
 }
 
 func (s pluginSettings) PluginEnabled(name string, def bool) bool {

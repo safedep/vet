@@ -225,12 +225,11 @@ func (s *MemState) packageEntries() []*report.PackageEntry {
 	byKey := map[model.PackageKey]*report.PackageEntry{}
 	for _, m := range s.ManifestList {
 		for _, p := range m.Packages {
-			e, ok := byKey[p.ID.Key()]
-			if !ok {
-				e = &report.PackageEntry{PURL: p.ID.PURL(), Package: *p}
-				byKey[p.ID.Key()] = e
+			if e, ok := byKey[p.ID.Key()]; ok {
+				e.Merge(m.ID, p)
+				continue
 			}
-			e.ManifestIDs = append(e.ManifestIDs, m.ID)
+			byKey[p.ID.Key()] = &report.PackageEntry{PURL: p.ID.PURL(), ManifestIDs: []string{m.ID}, Package: *p}
 		}
 	}
 	out := make([]*report.PackageEntry, 0, len(byKey))

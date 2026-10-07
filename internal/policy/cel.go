@@ -3,6 +3,7 @@ package policy
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/google/cel-go/cel"
@@ -117,14 +118,56 @@ func Compile(src string) (*Expr, error) {
 	return &Expr{src: src, prg: prg, reads: idents(ast)}, nil
 }
 
-// idents returns the input variables that a condition reads.
+// idents returns the input variables that a condition reads. A variable
+// of a macro, as v in exists(v, ...), hides an input variable of the same
+// name inside the macro.
 func idents(a *cel.Ast) map[string]bool {
 	out := map[string]bool{}
-	celast.PostOrderVisit(a.NativeRep().Expr(), celast.NewExprVisitor(func(e celast.Expr) {
-		if e.Kind() == celast.IdentKind {
-			out[e.AsIdent()] = true
+	var walk func(e celast.Expr, local map[string]bool)
+	walk = func(e celast.Expr, local map[string]bool) {
+		switch e.Kind() {
+		case celast.IdentKind:
+			if !local[e.AsIdent()] {
+				out[e.AsIdent()] = true
+			}
+		case celast.SelectKind:
+			walk(e.AsSelect().Operand(), local)
+		case celast.CallKind:
+			c := e.AsCall()
+			if c.IsMemberFunction() {
+				walk(c.Target(), local)
+			}
+			for _, arg := range c.Args() {
+				walk(arg, local)
+			}
+		case celast.ListKind:
+			for _, el := range e.AsList().Elements() {
+				walk(el, local)
+			}
+		case celast.MapKind:
+			for _, en := range e.AsMap().Entries() {
+				walk(en.AsMapEntry().Key(), local)
+				walk(en.AsMapEntry().Value(), local)
+			}
+		case celast.StructKind:
+			for _, f := range e.AsStruct().Fields() {
+				walk(f.AsStructField().Value(), local)
+			}
+		case celast.ComprehensionKind:
+			c := e.AsComprehension()
+			walk(c.IterRange(), local)
+			walk(c.AccuInit(), local)
+			inner := maps.Clone(local)
+			inner[c.IterVar()], inner[c.AccuVar()] = true, true
+			if c.HasIterVar2() {
+				inner[c.IterVar2()] = true
+			}
+			walk(c.LoopCondition(), inner)
+			walk(c.LoopStep(), inner)
+			walk(c.Result(), inner)
 		}
-	}))
+	}
+	walk(a.NativeRep().Expr(), map[string]bool{})
 	return out
 }
 
@@ -136,6 +179,12 @@ func (e *Expr) Match(in Input) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	return e.matchVars(vars)
+}
+
+// matchVars evaluates the condition on the CEL variables of an input, so a
+// caller that runs many rules on one input builds the variables once.
+func (e *Expr) matchVars(vars map[string]any) (bool, error) {
 	out, _, err := e.prg.Eval(vars)
 	if err != nil {
 		// CEL gives a missing map key as text, with no error to match.

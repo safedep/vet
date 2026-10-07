@@ -429,8 +429,15 @@ _Avoid_: track, ring
 **Release cooldown**:
 The age that a release needs before the action or `vet ci update` takes it. The age counts from the
 latest of the publish time, the asset update times and, in the action, the attestation time.
-`github.Choice` and `action/resolve.jq`. It is not the dependency cooldown of the
-`dependency-cooldown` control.
+`github.Choice` and `action/resolve.jq`. The action input `release-cooldown` sets it, in hours. It is
+not the dependency cooldown.
+
+**Dependency cooldown**:
+The age that a package version needs before the `dependency-cooldown` control stops reporting it:
+2 days by default, the same as pmg. `plugins.dependency-cooldown.options.days`, `--cooldown-days`
+and the action input `package-cooldown` set it, in days. The `skip` option lists the packages that
+the control does not check. The control reports a `high` finding, and a policy rule decides the
+gate. It is not the release cooldown.
 
 ## State and configuration
 

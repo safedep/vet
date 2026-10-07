@@ -1,0 +1,40 @@
+# The cooldown finding names the window and its source. The skip option
+# takes a package out of the cooldown, and a suppression with a name glob
+# hides the finding from the gate.
+cd proj
+exec vet scan . --mode plain -o json
+stdout 'The cooldown window is 2 days, the vet default'
+stdout 'The setting plugins.dependency-cooldown.options.days sets the window'
+exec vet scan . --mode plain -o json --cooldown-days 7 --fresh
+stdout 'The cooldown window is 7 days, from flag --cooldown-days'
+
+exec vet --config $WORK/config.yml scan . --mode plain -o plain --fresh
+! stdout 'dependency-cooldown'
+
+execexit 1 vet scan . --mode plain -o plain --fail-on high --fresh
+exec vet scan . --mode plain -o json --fail-on high --policy $WORK/vet-policy.yml --fresh
+jsonq stdout trailer.gate.outcome PASS
+stdout '"suppression":\{"reason":"Our own package."'
+
+-- config.yml --
+plugins:
+  dependency-cooldown:
+    options:
+      skip:
+        - purl: pkg:npm/fresh-*
+          reason: Our own package.
+-- vet-policy.yml --
+version: 2
+suppressions:
+  - purl: pkg:npm/fresh-*
+    control: dependency-cooldown
+    reason: Our own package.
+-- proj/package-lock.json --
+{
+  "name": "app",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {"name": "app", "dependencies": {"fresh-pkg": "1.0.0"}},
+    "node_modules/fresh-pkg": {"version": "1.0.0", "resolved": "https://registry.npmjs.org/fresh-pkg/-/fresh-pkg-1.0.0.tgz"}
+  }
+}

@@ -121,3 +121,14 @@ func TestShortIDTellsTheFindingsApart(t *testing.T) {
 		})
 	}
 }
+
+func TestPackageEntryMergeKeepsTheMostRisk(t *testing.T) {
+	id := model.MustPackageVersion(model.EcosystemNpm, "lodash", "4.17.21")
+	e := PackageEntry{ManifestIDs: []string{"a"}, Package: model.Package{ID: id, Change: model.ChangeUnchanged, Dev: true}}
+	e.Merge("b", &model.Package{ID: id, Change: model.ChangeUpgraded, PreviousVersion: "4.17.20", Direct: true})
+	assert.Equal(t, []string{"a", "b"}, e.ManifestIDs)
+	assert.Equal(t, model.ChangeUpgraded, e.Change, "one manifest upgrades the package")
+	assert.Equal(t, "4.17.20", e.PreviousVersion)
+	assert.True(t, e.Direct)
+	assert.False(t, e.Dev, "one manifest has it as a runtime dependency")
+}
