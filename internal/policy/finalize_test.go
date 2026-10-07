@@ -103,10 +103,10 @@ func TestFinalizeInAScan(t *testing.T) {
 		byName[f.Subject.Package.Name] = f
 	}
 	require.Len(t, byName, 3)
-	assert.Equal(t, "no-evil", byName["evil"].PolicyRule)
+	assert.Equal(t, []string{"no-evil"}, byName["evil"].Gate.Rules)
 	require.True(t, byName["requests"].Suppressed())
 	assert.Equal(t, "Reviewed.", byName["requests"].Suppression.Reason)
-	assert.Equal(t, "note-flask", byName["flask"].PolicyRule)
+	assert.Equal(t, &finding.Gate{Action: finding.GateActionWarn, Rules: []string{"note-flask"}}, byName["flask"].Gate)
 	assert.False(t, byName["flask"].Suppressed(), "an expired suppression does not match")
 
 	var diags []*report.Diagnostic

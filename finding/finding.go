@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/safedep/vet/v2/model"
@@ -25,7 +26,7 @@ type Finding struct {
 	References  []string     `json:"references,omitempty"`
 	Remediation *Remediation `json:"remediation,omitempty"`
 	Suppression *Suppression `json:"suppression,omitempty"`
-	PolicyRule  string       `json:"policy_rule,omitempty"`
+	Gate        *Gate        `json:"gate,omitempty"`
 }
 
 // Subject holds exactly one of its fields. Kind names it.
@@ -107,6 +108,61 @@ type Suppression struct {
 	Expires *time.Time `json:"expires,omitempty"`
 	Rule    string     `json:"rule,omitempty"`
 }
+
+// GateAction is what the gate does with a finding.
+type GateAction string
+
+const (
+	// GateActionFail means that the finding fails the gate.
+	GateActionFail GateAction = "fail"
+	// GateActionWarn means that a warn rule matched the finding, and the
+	// finding does not fail the gate.
+	GateActionWarn GateAction = "warn"
+)
+
+// Gate records why the gate fails or warns on a finding. A finding that
+// no rule and no --fail-on value matches has no Gate, and neither has a
+// suppressed finding.
+type Gate struct {
+	Action GateAction `json:"action"`
+	// Rules are the policy rules that match with the action: each fail
+	// rule, or the first warn rule.
+	Rules []string `json:"rules,omitempty"`
+	// FailOn is the --fail-on value that fails the finding.
+	FailOn string `json:"fail_on,omitempty"`
+	// Help and Link come from the first rule.
+	Help string `json:"help,omitempty"`
+	Link string `json:"link,omitempty"`
+}
+
+// Label is "Blocked by" for a fail record and "Warned by" for a warn
+// record.
+func (g *Gate) Label() string {
+	if g.Action == GateActionFail {
+		return "Blocked by"
+	}
+	return "Warned by"
+}
+
+// Cause names the rules and the --fail-on value of the record, as in
+// "policy rule no-malware and --fail-on high".
+func (g *Gate) Cause() string {
+	var parts []string
+	switch len(g.Rules) {
+	case 0:
+	case 1:
+		parts = append(parts, "policy rule "+g.Rules[0])
+	default:
+		parts = append(parts, "policy rules "+strings.Join(g.Rules, ", "))
+	}
+	if g.FailOn != "" {
+		parts = append(parts, "--fail-on "+g.FailOn)
+	}
+	return strings.Join(parts, " and ")
+}
+
+// Fails reports whether the finding fails the gate.
+func (f *Finding) Fails() bool { return f.Gate != nil && f.Gate.Action == GateActionFail }
 
 // Suppressed reports whether a policy suppressed the finding.
 func (f *Finding) Suppressed() bool { return f.Suppression != nil }

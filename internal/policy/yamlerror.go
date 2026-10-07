@@ -31,7 +31,7 @@ var yamlTypes = map[string]struct {
 // yamlError turns an error of the YAML decoder into lines that name the
 // file and the line, and no Go type:
 //
-//	bad.yml line 4: "fail" is not a field of a rule. A rule has id, description, when and action.
+//	bad.yml line 4: "fail" is not a field of a rule. A rule has id, description, when, action, help and link.
 func yamlError(name string, err error) error {
 	var te *yaml.TypeError
 	if !errors.As(err, &te) {

@@ -114,6 +114,10 @@ func findingRows(f *finding.Finding) printer.Rows {
 	if s := f.Suppression; s != nil {
 		add("suppressed", s.Reason)
 	}
-	add("policy rule", f.PolicyRule)
+	if g := f.Gate; g != nil {
+		add(strings.ToLower(g.Label()), g.Cause())
+		add("help", g.Help)
+		add("link", g.Link)
+	}
 	return rows
 }

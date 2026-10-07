@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"time"
 
 	"github.com/safedep/dry/usefulerror"
@@ -39,6 +40,11 @@ type Rule struct {
 	Description string `yaml:"description,omitempty"`
 	When        string `yaml:"when"`
 	Action      Action `yaml:"action"`
+	// Help tells the reader of a report what to do when the rule matches.
+	Help string `yaml:"help,omitempty"`
+	// Link is an http or https URL with more guidance, such as a page of
+	// the security team.
+	Link string `yaml:"link,omitempty"`
 
 	expr *Expr
 }
@@ -138,6 +144,9 @@ func parse(name string, data []byte) (*Policy, error) {
 		if r.Action != ActionFail && r.Action != ActionWarn {
 			errs = append(errs, fmt.Errorf("%s: action is %q: use fail or warn", at, r.Action))
 		}
+		if r.Link != "" && !webURL(r.Link) {
+			errs = append(errs, fmt.Errorf("%s: link is %q: use an http or https URL", at, r.Link))
+		}
 		if r.When == "" {
 			errs = append(errs, fmt.Errorf("%s: when is empty", at))
 			continue
@@ -187,6 +196,13 @@ func (s *Suppression) check() error {
 		}
 	}
 	return errors.Join(errs...)
+}
+
+// webURL reports whether s is an absolute http or https URL. A report
+// shows the link of a rule, so the link must not run script.
+func webURL(s string) bool {
+	u, err := url.Parse(s)
+	return err == nil && (u.Scheme == "https" || u.Scheme == "http") && u.Host != ""
 }
 
 func parseExpiry(v string) (time.Time, error) {

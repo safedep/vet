@@ -320,7 +320,8 @@ A policy entry with an id, a CEL condition (`when`) and an action: `fail` or `wa
 The CEL input is `finding`, `package` and `manifest` (`policy.Input`). `package.is(name)` and
 `package.version_cmp(version)` compare under the rule of the ecosystem. With no version order,
 `version_cmp` gives no answer, and a condition that needs the answer does not match. A **broken rule** is a fail rule
-that errors at evaluation, and it fails the gate. `Finding.PolicyRule` names the rule that matched.
+that errors at evaluation, and it fails the gate. A rule can have a `help` text and a `link`, which
+the report shows on each finding that the rule matches.
 _Avoid_: filter, check, control
 
 **Suppression**:
@@ -336,6 +337,13 @@ policies, the rules and the finding ids that decided it. `report.Gate`. `--fail-
 `--fail-on attacks` sets the `report.FailOn` part, and policy fail rules set the rule part. A plain
 scan has no gate and exits 0. A failed gate exits 1.
 _Avoid_: threshold, build breaker
+
+**Gate record**:
+What the gate did with one finding. `finding.Gate`, the `gate` object of a finding in the report. Its
+`action` is `fail` or `warn`. It names the policy rules that matched with that action and the
+`--fail-on` value that failed the finding, with the `help` and the `link` of the first rule. Each
+output shows it as "Blocked by" or "Warned by". A suppressed finding has no gate record.
+_Avoid_: verdict (the result of a malware analysis), policy rule (the rule itself)
 
 **Attacks gate**:
 The gate of `--fail-on attacks`. It fails on an unsuppressed finding of an attack control, and each

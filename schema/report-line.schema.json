@@ -242,8 +242,8 @@
         "suppression": {
           "$ref": "#/$defs/Suppression"
         },
-        "policy_rule": {
-          "type": "string"
+        "gate": {
+          "$ref": "#/$defs/Gate"
         }
       },
       "type": "object",
@@ -260,26 +260,7 @@
     },
     "Gate": {
       "properties": {
-        "outcome": {
-          "type": "string",
-          "enum": [
-            "NONE",
-            "PASS",
-            "FAIL"
-          ]
-        },
-        "fail_on": {
-          "type": "string",
-          "enum": [
-            "attacks",
-            "critical",
-            "high",
-            "medium",
-            "low",
-            "info"
-          ]
-        },
-        "policy": {
+        "action": {
           "type": "string"
         },
         "rules": {
@@ -288,19 +269,19 @@
           },
           "type": "array"
         },
-        "finding_ids": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
+        "fail_on": {
+          "type": "string"
         },
-        "policy_changed": {
-          "type": "boolean"
+        "help": {
+          "type": "string"
+        },
+        "link": {
+          "type": "string"
         }
       },
       "type": "object",
       "required": [
-        "outcome"
+        "action"
       ]
     },
     "Header": {

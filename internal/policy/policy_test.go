@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"strconv"
 	"testing"
 	"time"
 
@@ -88,7 +89,7 @@ func TestYAMLErrorsNameTheFileAndTheLine(t *testing.T) {
 		{
 			name: "unknown rule field",
 			doc:  "version: 2\nrules:\n  - id: r1\n    fail: true\n    when: 'true'\n    action: fail\n",
-			want: `bad.yml line 4: "fail" is not a field of a rule. A rule has id, description, when and action.`,
+			want: `bad.yml line 4: "fail" is not a field of a rule. A rule has id, description, when, action, help and link.`,
 		},
 		{
 			name: "unknown suppression field",
@@ -99,7 +100,7 @@ func TestYAMLErrorsNameTheFileAndTheLine(t *testing.T) {
 			name: "two errors",
 			doc:  "version: 2\nfilters: []\nrules:\n  - id: r1\n    fail: true\n",
 			want: "bad.yml line 2: \"filters\" is not a field of a policy file. A policy file has version, rules and suppressions.\n" +
-				`bad.yml line 5: "fail" is not a field of a rule. A rule has id, description, when and action.`,
+				`bad.yml line 5: "fail" is not a field of a rule. A rule has id, description, when, action, help and link.`,
 		},
 		{name: "wrong type", doc: "version: two\n", want: `bad.yml line 1: the value "two" must be a whole number`},
 		{name: "rules not a list", doc: "version: 2\nrules:\n  id: r1\n", want: "bad.yml line 3: the value must be a list"},
@@ -148,7 +149,7 @@ func TestApply(t *testing.T) {
 	type want struct {
 		fail       bool
 		failRules  []string
-		policyRule string
+		gate       *finding.Gate
 		suppressed bool
 		expired    int
 	}
@@ -165,29 +166,29 @@ func TestApply(t *testing.T) {
 	}{
 		{
 			name: "fail rule", control: "vulnerability", sev: finding.SeverityLow, pkg: "a", version: "1.0.0", pub: &fresh,
-			want: want{fail: true, failRules: []string{"no-fresh-packages"}, policyRule: "no-fresh-packages"},
+			want: want{fail: true, failRules: []string{"no-fresh-packages"}, gate: &finding.Gate{Action: finding.GateActionFail, Rules: []string{"no-fresh-packages"}}},
 		},
 		{name: "no rule matches", control: "vulnerability", sev: finding.SeverityLow, pkg: "a", version: "1.0.0", pub: &old},
 		{
 			name: "warn rule", control: "dangerous-trigger", sev: finding.SeverityHigh, pkg: "a", version: "1.0.0", pub: &old,
-			want: want{policyRule: "workflow-risk"},
+			want: want{gate: &finding.Gate{Action: finding.GateActionWarn, Rules: []string{"workflow-risk"}}},
 		},
 		{
 			name: "severity gate", failOn: finding.SeverityHigh, control: "dangerous-trigger", sev: finding.SeverityHigh, pkg: "a", version: "1.0.0",
-			want: want{fail: true, policyRule: "workflow-risk"},
+			want: want{fail: true, gate: &finding.Gate{Action: finding.GateActionFail, FailOn: "high"}},
 		},
 		{name: "below the severity gate", failOn: finding.SeverityCritical, control: "vulnerability", sev: finding.SeverityHigh, pkg: "a", version: "1.0.0"},
 		{
 			name: "suppressed", control: "dependency-cooldown", sev: finding.SeverityHigh, pkg: "left-pad-utils", version: "3.2.1", pub: &fresh, failOn: finding.SeverityLow,
-			want: want{policyRule: "no-fresh-packages", suppressed: true},
+			want: want{suppressed: true},
 		},
 		{
 			name: "other version is not suppressed", control: "dependency-cooldown", sev: finding.SeverityHigh, pkg: "left-pad-utils", version: "3.2.2", pub: &fresh,
-			want: want{fail: true, failRules: []string{"no-fresh-packages"}, policyRule: "no-fresh-packages"},
+			want: want{fail: true, failRules: []string{"no-fresh-packages"}, gate: &finding.Gate{Action: finding.GateActionFail, Rules: []string{"no-fresh-packages"}}},
 		},
 		{
 			name: "expired suppression", now: time.Date(2026, 11, 1, 0, 0, 0, 0, time.UTC), control: "dependency-cooldown", sev: finding.SeverityHigh, pkg: "left-pad-utils", version: "3.2.1",
-			pub: &fresh, want: want{fail: true, failRules: []string{"no-fresh-packages"}, policyRule: "no-fresh-packages", expired: 1},
+			pub: &fresh, want: want{fail: true, failRules: []string{"no-fresh-packages"}, gate: &finding.Gate{Action: finding.GateActionFail, Rules: []string{"no-fresh-packages"}}, expired: 1},
 		},
 	}
 	for _, tc := range cases {
@@ -206,7 +207,7 @@ func TestApply(t *testing.T) {
 			assert.Empty(t, out.Errors)
 			assert.Equal(t, tc.want.fail, out.Fail)
 			assert.Equal(t, tc.want.failRules, out.FailRules)
-			assert.Equal(t, tc.want.policyRule, f.PolicyRule)
+			assert.Equal(t, tc.want.gate, f.Gate)
 			assert.Equal(t, tc.want.suppressed, f.Suppressed())
 			assert.Len(t, out.Expired, tc.want.expired)
 		})
@@ -246,10 +247,10 @@ func TestApplySuppressionSelectors(t *testing.T) {
 func TestApplyClearsAnEarlierRun(t *testing.T) {
 	f, pkg := packageFinding("malware", finding.SeverityCritical, "evil", "1.0.0", nil)
 	f.Suppression = &finding.Suppression{Reason: "old"}
-	f.PolicyRule = "old-rule"
+	f.Gate = &finding.Gate{Action: finding.GateActionWarn, Rules: []string{"old-rule"}}
 	NewEvaluator(nil, Options{}).Apply(f, pkg, nil)
 	assert.False(t, f.Suppressed())
-	assert.Empty(t, f.PolicyRule)
+	assert.Nil(t, f.Gate)
 }
 
 func TestApplyRuleError(t *testing.T) {
@@ -261,7 +262,7 @@ func TestApplyRuleError(t *testing.T) {
 	assert.Contains(t, out.Errors[0].Error(), "rule bad")
 	assert.True(t, out.Fail, "a fail rule that does not evaluate fails the gate")
 	assert.Equal(t, []string{"bad"}, out.BrokenRules)
-	assert.Empty(t, f.PolicyRule, "the finding did not match the rule")
+	assert.Equal(t, &finding.Gate{Action: finding.GateActionFail, Rules: []string{"bad"}}, f.Gate, "a fail rule that does not evaluate blocks the finding")
 
 	warn, err := Parse("p.yml", []byte("version: 2\nrules:\n  - id: bad\n    when: int(finding.title) > 0\n    action: warn\n"))
 	require.NoError(t, err)
@@ -296,4 +297,75 @@ func TestSuppressionMatchesEverySpelling(t *testing.T) {
 			assert.Equal(t, tc.want, f.Suppressed())
 		})
 	}
+}
+
+func TestRuleLink(t *testing.T) {
+	cases := []struct {
+		name, link string
+		ok         bool
+	}{
+		{"https", "https://wiki.example.com/security", true},
+		{"http", "http://wiki.example.com", true},
+		{"script", "javascript:alert(1)", false},
+		{"relative", "/security", false},
+		{"no host", "https://", false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := Parse("p.yml", []byte("version: 2\nrules:\n  - id: r\n    when: \"true\"\n    action: warn\n    link: "+strconv.Quote(tc.link)+"\n"))
+			if tc.ok {
+				assert.NoError(t, err)
+				return
+			}
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "use an http or https URL")
+		})
+	}
+}
+
+func TestApplyGateRecord(t *testing.T) {
+	p, err := Parse("p.yml", []byte(`version: 2
+rules:
+  - id: note
+    when: "true"
+    action: warn
+    help: Read the note.
+  - id: block-malware
+    when: finding.control_id == "malware"
+    action: fail
+    help: Remove the package.
+    link: https://wiki.example.com/malware
+  - id: block-critical
+    when: finding.severity == "critical"
+    action: fail
+`))
+	require.NoError(t, err)
+	cases := []struct {
+		name    string
+		control string
+		failOn  report.FailOn
+		want    *finding.Gate
+	}{
+		{
+			name: "two fail rules and --fail-on", control: "malware", failOn: report.FailOnAttacks,
+			want: &finding.Gate{Action: finding.GateActionFail, Rules: []string{"block-malware", "block-critical"}, FailOn: "attacks", Help: "Remove the package.", Link: "https://wiki.example.com/malware"},
+		},
+		{
+			name: "one fail rule", control: "vulnerability",
+			want: &finding.Gate{Action: finding.GateActionFail, Rules: []string{"block-critical"}},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			f, pkg := packageFinding(tc.control, finding.SeverityCritical, "evil", "1.0.0", nil)
+			NewEvaluator(p, Options{FailOn: tc.failOn, Attacks: []string{"malware"}, Now: func() time.Time { return now }}).Apply(f, pkg, nil)
+			assert.Equal(t, tc.want, f.Gate)
+		})
+	}
+
+	f, pkg := packageFinding("vulnerability", finding.SeverityLow, "a", "1.0.0", nil)
+	NewEvaluator(p, Options{}).Apply(f, pkg, nil)
+	assert.Equal(t, &finding.Gate{Action: finding.GateActionWarn, Rules: []string{"note"}, Help: "Read the note."}, f.Gate)
+	assert.Equal(t, "Warned by", f.Gate.Label())
+	assert.Equal(t, "policy rule note", f.Gate.Cause())
 }

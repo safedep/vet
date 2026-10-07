@@ -11,13 +11,17 @@
 >
 > `insights`: 2 packages have no data
 
-**Gate failed** · 1 blocking · Checked 2 added or upgraded packages.
+**Gate failed** · policy `origin/main:.github/vet/policy.yml` · 1 blocking · Checked 2 added or upgraded packages.
 
 #### Blocking
 
 `npm/evil-colors@1.4.1`: **Malicious package** · `critical` · added in `package-lock.json:42`
 
 The package runs a postinstall script that reads \~/.npmrc.
+
+**Blocked by:** policy rule no-malware and --fail-on high
+
+**Policy help:** Remove the package and rotate the secrets of each machine that installed it. · [Policy guidance](https://wiki.example.com/security/malware)
 
 **Fix:** Remove evil-colors.
 
@@ -27,7 +31,7 @@ The package runs a postinstall script that reads \~/.npmrc.
 
 <details><summary>1 more finding (medium and lower)</summary>
 
-- `medium` `tj-actions/changed-files@v44`: is not pinned to a commit SHA · `.github/workflows/ci.yml:8` · `f-e815bb3b5e0846f1`
+- `medium` `tj-actions/changed-files@v44`: is not pinned to a commit SHA · `.github/workflows/ci.yml:8` · warned by policy rule pin-actions · `f-e815bb3b5e0846f1`
 
 </details>
 

@@ -292,7 +292,11 @@ func (c *input) baseline() ([]string, bool) {
 }
 
 func (c *input) status(b *strings.Builder, blocking, review int) {
-	parts := []string{"**" + gateText(c.trailer.Gate.Outcome) + "**"}
+	g := c.trailer.Gate
+	parts := []string{"**" + gateText(g.Outcome) + "**"}
+	if g.Policy != "" {
+		parts = append(parts, "policy "+code(g.Policy))
+	}
 	if blocking > 0 {
 		parts = append(parts, fmt.Sprintf("%d blocking", blocking))
 	}
@@ -338,6 +342,7 @@ func gateText(o report.GateOutcome) string {
 }
 
 // section writes a card for each finding, or one line each when short.
+// The findings of one package in one manifest share a card.
 func (c *input) section(b *strings.Builder, title string, fs []*finding.Finding, short bool) {
 	if len(fs) == 0 {
 		return
@@ -347,23 +352,62 @@ func (c *input) section(b *strings.Builder, title string, fs []*finding.Finding,
 		c.lines(b, fs)
 		return
 	}
-	for _, f := range fs {
-		c.card(b, f)
+	for _, g := range groups(fs) {
+		if len(g) == 1 {
+			c.card(b, g[0], true)
+			continue
+		}
+		head := code(render.Subject(g[0]))
+		if where := c.placeOf(g[0]); where != "" {
+			head += " · " + where
+		}
+		b.WriteString(head + "\n\n")
+		for _, f := range g {
+			c.card(b, f, false)
+		}
 	}
 }
 
-func (c *input) card(b *strings.Builder, f *finding.Finding) {
-	head := fmt.Sprintf("%s: **%s** · `%s`", code(render.Subject(f)), md(render.Title(f), maxField), f.Severity)
-	if where := c.where(f); where != "" {
-		if f.Change != "" && c.delta() {
-			where = strings.ToLower(string(f.Change)) + " in " + where
+// groups puts the findings of one package in one manifest together, in
+// the order of their first finding. A finding of another subject is a
+// group of its own.
+func groups(fs []*finding.Finding) [][]*finding.Finding {
+	var out [][]*finding.Finding
+	at := map[string]int{}
+	for _, f := range fs {
+		p := f.Subject.Package
+		if p == nil {
+			out = append(out, []*finding.Finding{f})
+			continue
 		}
-		head += " · " + where
+		k := p.PURL + "\x00" + p.ManifestPath
+		if i, ok := at[k]; ok {
+			out[i] = append(out[i], f)
+			continue
+		}
+		at[k] = len(out)
+		out = append(out, []*finding.Finding{f})
+	}
+	return out
+}
+
+// card writes one finding. With subject false, the card follows the
+// heading of its package and starts with the title.
+func (c *input) card(b *strings.Builder, f *finding.Finding, subject bool) {
+	head := fmt.Sprintf("**%s** · `%s`", md(render.Title(f), maxField), f.Severity)
+	if subject {
+		head = code(render.Subject(f)) + ": " + head
+		if where := c.placeOf(f); where != "" {
+			head += " · " + where
+		}
+	} else {
+		head += " · " + code(f.ControlID)
 	}
 	b.WriteString(head + "\n\n")
 	if f.Description != "" {
 		b.WriteString(md(render.Text(f.Description), maxText) + "\n\n")
 	}
+	c.gate(b, f)
 	if r := f.Remediation; r != nil && r.Summary != "" {
 		fmt.Fprintf(b, "**Fix:** %s\n\n", md(render.Text(r.Summary), maxText))
 	}
@@ -376,6 +420,46 @@ func (c *input) card(b *strings.Builder, f *finding.Finding) {
 	fmt.Fprintf(b, "[About this check](%s) · [Wrong result?](%s) · `%s`\n\n", c.docURL(f.ControlID), c.formURL(f), f.ID)
 }
 
+// placeOf is the place of a finding with its change in pull request mode.
+func (c *input) placeOf(f *finding.Finding) string {
+	where := c.where(f)
+	if where != "" && f.Change != "" && c.delta() {
+		where = strings.ToLower(string(f.Change)) + " in " + where
+	}
+	return where
+}
+
+// gate says what blocks or warns on the finding, with the help and the
+// link of the rule.
+func (c *input) gate(b *strings.Builder, f *finding.Finding) {
+	g := f.Gate
+	if g == nil {
+		return
+	}
+	fmt.Fprintf(b, "**%s:** %s\n\n", g.Label(), md(g.Cause(), maxField))
+	var help []string
+	if g.Help != "" {
+		help = append(help, md(render.Text(g.Help), maxText))
+	}
+	if u := safeURL(g.Link); u != "" {
+		help = append(help, fmt.Sprintf("[Policy guidance](%s)", u))
+	}
+	if len(help) > 0 {
+		fmt.Fprintf(b, "**Policy help:** %s\n\n", strings.Join(help, " · "))
+	}
+}
+
+// safeURL returns an http or https link that is safe in a markdown link
+// target, or "". The policy validates the link. A report file can come
+// from anywhere, so the comment checks it again.
+func safeURL(s string) string {
+	u, err := url.Parse(s)
+	if err != nil || (u.Scheme != "https" && u.Scheme != "http") || u.Host == "" {
+		return ""
+	}
+	return strings.NewReplacer("(", "%28", ")", "%29", " ", "%20").Replace(u.String())
+}
+
 // lines writes one line for each finding, up to maxLines.
 func (c *input) lines(b *strings.Builder, fs []*finding.Finding) {
 	for i, f := range fs {
@@ -383,7 +467,11 @@ func (c *input) lines(b *strings.Builder, fs []*finding.Finding) {
 			fmt.Fprintf(b, "- %d more in the full report\n", len(fs)-maxLines)
 			break
 		}
-		fmt.Fprintf(b, "- `%s` %s: %s · %s · `%s`\n", f.Severity, code(render.Subject(f)), md(render.Title(f), maxField), code(render.Where(f)), f.ID)
+		line := fmt.Sprintf("- `%s` %s: %s · %s", f.Severity, code(render.Subject(f)), md(render.Title(f), maxField), code(render.Where(f)))
+		if g := f.Gate; g != nil {
+			line += " · " + strings.ToLower(g.Label()) + " " + md(g.Cause(), maxField)
+		}
+		fmt.Fprintf(b, "%s · `%s`\n", line, f.ID)
 	}
 	b.WriteString("\n")
 }

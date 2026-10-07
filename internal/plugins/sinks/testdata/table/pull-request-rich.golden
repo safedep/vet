@@ -3,12 +3,13 @@
 │  Changed   ││  Findings  ││  Critical  ││  High      ││  Gate      │
 ╰────────────╯╰────────────╯╰────────────╯╰────────────╯╰────────────╯
 
-╭────────────┬────────────┬──────────────────────────────┬───────────────────────────────┬────────────────────────────╮
-│ SEVERITY   │ ID         │ SUBJECT                      │ FINDING                       │ WHERE                      │
-├────────────┼────────────┼──────────────────────────────┼───────────────────────────────┼────────────────────────────┤
-│ [CRITICAL] │ f-f7017b22 │ npm/evil-colors@1.4.1        │ Malicious package             │ package-lock.json:42       │
-│ [MEDIUM]   │ f-e815bb3b │ tj-actions/changed-files@v44 │ is not pinned to a commit SHA │ .github/workflows/ci.yml:8 │
-╰────────────┴────────────┴──────────────────────────────┴───────────────────────────────┴────────────────────────────╯
+╭────────────┬────────────┬─────────────────────────────────┬──────────────────────────────┬───────────────────────────╮
+│ SEVERITY   │ ID         │ GATE                            │ SUBJECT                      │ FINDING                   │
+├────────────┼────────────┼─────────────────────────────────┼──────────────────────────────┼───────────────────────────┤
+│ [CRITICAL] │ f-f7017b22 │ fail no-malware, --fail-on high │ npm/evil-colors@1.4.1        │ Malicious package         │
+│ [MEDIUM]   │ f-e815bb3b │ warn pin-actions                │ tj-actions/changed-files@v44 │ is not pinned to a commit │
+│            │            │                                 │                              │ SHA                       │
+╰────────────┴────────────┴─────────────────────────────────┴──────────────────────────────┴───────────────────────────╯
 
 › Each finding is on a package or a file that the change adds.
 › 1 suppressed finding. vet report show -o json lists it.

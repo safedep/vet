@@ -713,6 +713,12 @@
   tier: P0
   guarantee: "vet scan pkg:golang/github.com/Masterminds/goutils@v1.1.0 sends the module path with its case and reports the advisory of that module."
   labels: [scan, identity, enrichers]
+- id: policy/gate/names-the-cause
+  title: "a blocked finding names its rule"
+  category: policy
+  tier: P0
+  guarantee: "Each finding that a rule blocks or warns names the rule in the markdown and JSON reports, with the help and the link of the rule."
+  labels: [policy, gate]
 - id: policy/functions/is-folds-name
   title: "package.is compares under the rule of the ecosystem"
   category: policy

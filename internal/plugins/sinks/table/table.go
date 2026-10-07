@@ -213,6 +213,10 @@ type layout struct {
 
 func findingLayout(rows []row, idLen int, delta, control, where bool) layout {
 	headers := []string{"SEVERITY", "ID"}
+	gated := slices.ContainsFunc(rows, func(r row) bool { return r.gate() != nil })
+	if gated {
+		headers = append(headers, "GATE")
+	}
 	if control {
 		headers = append(headers, "CONTROL")
 	}
@@ -228,6 +232,9 @@ func findingLayout(rows []row, idLen int, delta, control, where bool) layout {
 	for _, r := range rows {
 		f := r[0]
 		row := []string{badge(f.Severity), f.ID[:min(idLen, len(f.ID))]}
+		if gated {
+			row = append(row, gateText(r.gate()))
+		}
 		if control {
 			row = append(row, render.Text(f.ControlID))
 		}
@@ -279,6 +286,34 @@ func columnWidth(rows [][]string, col int) int {
 // vulnerabilities by severity, as "6 vulnerabilities: 2 critical, 4 high".
 // When that is wider than room, the count leaves out the total. A
 // vulnerability row ends with the version that fixes each of its findings.
+// gate is the gate record of the row: the first finding that fails the
+// gate, else the first finding with a record.
+func (r row) gate() *finding.Gate {
+	var first *finding.Gate
+	for _, f := range r {
+		if f.Fails() {
+			return f.Gate
+		}
+		if first == nil {
+			first = f.Gate
+		}
+	}
+	return first
+}
+
+// gateText is the short form of a gate record, as "fail no-malware" or
+// "warn --fail-on high".
+func gateText(g *finding.Gate) string {
+	if g == nil {
+		return ""
+	}
+	parts := slices.Clone(g.Rules)
+	if g.FailOn != "" {
+		parts = append(parts, "--fail-on "+g.FailOn)
+	}
+	return render.Text(string(g.Action) + " " + strings.Join(parts, ", "))
+}
+
 func (r row) text(room int) string {
 	var fix string
 	if v := r.fix(); v != "" {

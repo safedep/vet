@@ -64,11 +64,11 @@ type Outcome struct {
 }
 
 // Apply evaluates the policy on a finding with its package and manifest,
-// which can be nil. It sets the suppression and the policy rule of the
+// which can be nil. It sets the suppression and the gate record of the
 // finding, and clears the values of an earlier evaluation.
 func (e *Evaluator) Apply(f *finding.Finding, pkg *model.Package, m *model.Manifest) Outcome {
 	var out Outcome
-	f.Suppression, f.PolicyRule = nil, ""
+	f.Suppression, f.Gate = nil, nil
 	for i := range e.p.Suppressions {
 		s := &e.p.Suppressions[i]
 		if !s.matches(f) {
@@ -83,38 +83,59 @@ func (e *Evaluator) Apply(f *finding.Finding, pkg *model.Package, m *model.Manif
 	}
 
 	in := NewInput(f, pkg, m, e.now)
-	var warn string
-	for _, r := range e.p.Rules {
+	var warn *Rule
+	var fail []*Rule
+	for i := range e.p.Rules {
+		r := &e.p.Rules[i]
 		ok, err := r.expr.Match(in)
 		if err != nil {
 			out.Errors = append(out.Errors, fmt.Errorf("rule %s: %w", r.ID, err))
 			if r.Action == ActionFail {
 				out.BrokenRules = append(out.BrokenRules, r.ID)
+				fail = append(fail, r)
 			}
 			continue
 		}
-		if !ok {
-			continue
-		}
-		if r.Action == ActionFail {
+		switch {
+		case !ok:
+		case r.Action == ActionFail:
 			out.FailRules = append(out.FailRules, r.ID)
-		} else if warn == "" {
-			warn = r.ID
+			fail = append(fail, r)
+		case warn == nil:
+			warn = r
 		}
-	}
-	switch {
-	case len(out.FailRules) > 0:
-		f.PolicyRule = out.FailRules[0]
-	default:
-		f.PolicyRule = warn
 	}
 
 	if f.Suppressed() {
 		out.FailRules, out.BrokenRules = nil, nil
 		return out
 	}
-	out.Fail = len(out.FailRules) > 0 || len(out.BrokenRules) > 0 || e.failsOn(f)
+	failOn := e.failsOn(f)
+	out.Fail = len(fail) > 0 || failOn
+	f.Gate = gateOf(fail, warn, failOn, e.failOn)
 	return out
+}
+
+// gateOf builds the gate record of a finding: the fail rules and the
+// --fail-on value when one of them fails it, else the first warn rule.
+func gateOf(fail []*Rule, warn *Rule, failOn bool, value report.FailOn) *finding.Gate {
+	switch {
+	case len(fail) > 0 || failOn:
+		g := &finding.Gate{Action: finding.GateActionFail}
+		for _, r := range fail {
+			g.Rules = append(g.Rules, r.ID)
+		}
+		if failOn {
+			g.FailOn = string(value)
+		}
+		if len(fail) > 0 {
+			g.Help, g.Link = fail[0].Help, fail[0].Link
+		}
+		return g
+	case warn != nil:
+		return &finding.Gate{Action: finding.GateActionWarn, Rules: []string{warn.ID}, Help: warn.Help, Link: warn.Link}
+	}
+	return nil
 }
 
 // failsOn reports whether the finding meets the --fail-on value.

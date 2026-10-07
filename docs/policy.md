@@ -69,6 +69,8 @@ vet scan --base-ref origin/main --policy vet-policy.yml
 | `rules[].description` | no | What the rule is for |
 | `rules[].when` | yes | A CEL condition that gives a bool |
 | `rules[].action` | yes | `fail` or `warn` |
+| `rules[].help` | no | What to do when the rule matches. The report shows it on each finding that the rule matches |
+| `rules[].link` | no | An http or https URL with more guidance, such as a page of your security team |
 | `suppressions[].id` | one of `id`, `purl`, `control` | A finding id, such as `f-e8b1a3df1a3b5c13` |
 | `suppressions[].purl` | one of `id`, `purl`, `control` | A package. With no version, it matches every version |
 | `suppressions[].control` | one of `id`, `purl`, `control` | A control id, such as `dependency-cooldown` |
@@ -224,6 +226,18 @@ and `suspicious-command`. Each other finding warns. Use it to block attacks on t
 before you fix old findings. `vet policy control list -o json` marks the attack controls with
 `attack: true`. The report holds the gate in `trailer.gate`: the outcome, the policy, the rules that
 failed and the finding ids.
+
+Each finding says what the gate did with it. The PR comment, the step summary, the terminal table
+and the markdown report show "Blocked by" or "Warned by" with the rules and the `--fail-on` value.
+The JSON report holds it in the `gate` object of the finding:
+
+```json
+"gate": {"action": "fail", "rules": ["critical-or-high"], "help": "Ask the security team.", "link": "https://wiki.example.com/security"}
+```
+
+When two settings disagree, the gate record shows which one decided. For example, a `warn` rule on
+fresh packages and a `fail` rule on `high` findings both match a `dependency-cooldown` finding. A
+`fail` rule wins, and the finding says "Blocked by policy rule critical-or-high".
 
 | Exit code | Meaning |
 | --- | --- |

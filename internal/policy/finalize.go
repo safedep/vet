@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"iter"
 	"maps"
+	"reflect"
 	"slices"
 	"strings"
 
@@ -108,7 +109,7 @@ func packageOf(m *model.Manifest, f *finding.Finding) *model.Package {
 }
 
 func changed(a, b *finding.Finding) bool {
-	if a.PolicyRule != b.PolicyRule || a.Suppressed() != b.Suppressed() {
+	if !reflect.DeepEqual(a.Gate, b.Gate) || a.Suppressed() != b.Suppressed() {
 		return true
 	}
 	return a.Suppressed() && (a.Suppression.Rule != b.Suppression.Rule || a.Suppression.Reason != b.Suppression.Reason)

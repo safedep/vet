@@ -1,0 +1,32 @@
+# Each finding that a rule blocks or warns names the rule in the report,
+# with the help and the link of the rule.
+execexit 1 vet scan proj --policy $WORK/vet-policy.yml --mode plain -o markdown
+stdout 'Blocked by policy rule pin-actions'
+execexit 1 vet scan proj --policy $WORK/vet-policy.yml --mode plain -o json
+stdout '"gate":\{"action":"fail","rules":\["pin-actions"\],"help":"Pin the action to a commit SHA.","link":"https://wiki.example.com/actions"\}'
+
+# A warn rule names the rule, and the gate passes.
+exec vet scan proj --policy $WORK/warn-policy.yml --mode plain -o markdown
+stdout 'Warned by policy rule note-actions'
+
+-- vet-policy.yml --
+version: 2
+rules:
+  - id: pin-actions
+    when: finding.control_id == "unpinned-action"
+    action: fail
+    help: Pin the action to a commit SHA.
+    link: https://wiki.example.com/actions
+-- warn-policy.yml --
+version: 2
+rules:
+  - id: note-actions
+    when: finding.control_id == "unpinned-action"
+    action: warn
+-- proj/.github/workflows/ci.yml --
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4

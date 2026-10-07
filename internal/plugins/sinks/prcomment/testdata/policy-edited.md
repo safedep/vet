@@ -14,7 +14,7 @@
 > [!NOTE]
 > This change edits the policy. The gate uses `origin/main:.github/vet/policy.yml`.
 
-**Gate failed** · 1 blocking · Checked 2 added or upgraded packages at `2222222`.
+**Gate failed** · policy `origin/main:.github/vet/policy.yml` · 1 blocking · Checked 2 added or upgraded packages at `2222222`.
 
 #### Blocking
 

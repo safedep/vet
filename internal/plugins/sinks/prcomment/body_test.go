@@ -334,3 +334,32 @@ func TestNoteOfAFirstPolicy(t *testing.T) {
 	s.TrailerValue = &tr
 	assert.Contains(t, newInput(t, s).body(), "This change adds a policy. The base branch has no policy, so the gate applies none.")
 }
+
+func TestOneCardForEachPackage(t *testing.T) {
+	s := pullRequest(report.GateFail)
+	evil := s.FindingList[0]
+	evil.Gate = &finding.Gate{Action: finding.GateActionFail, FailOn: string(report.FailOnAttacks)}
+	cooldown := *evil
+	cooldown.ID, cooldown.ControlID, cooldown.Family, cooldown.Severity = "f-1111111111111111", "dependency-cooldown", finding.FamilyCooldown, finding.SeverityHigh
+	cooldown.Title, cooldown.Description, cooldown.Evidence, cooldown.Remediation = "Version inside the cooldown window", "", nil, nil
+	cooldown.Gate = &finding.Gate{Action: finding.GateActionFail, Rules: []string{"critical-or-high"}, Help: "Wait, or suppress the finding.", Link: "javascript:alert(1)"}
+	s.FindingList = append(s.FindingList, &cooldown)
+	tr := *s.Trailer()
+	tr.Gate.FindingIDs = append(tr.Gate.FindingIDs, cooldown.ID)
+	s.TrailerValue = &tr
+
+	body := newInput(t, s).body()
+	assert.Equal(t, 1, strings.Count(body, "`npm/evil-colors@1.4.1` · added in"), "the package heading shows once")
+	assert.Contains(t, body, "**Malicious package** · `critical` · `malware`")
+	assert.Contains(t, body, "**Version inside the cooldown window** · `high` · `dependency-cooldown`")
+	assert.Contains(t, body, "**Blocked by:** --fail-on attacks")
+	assert.Contains(t, body, "**Blocked by:** policy rule critical-or-high")
+	assert.Contains(t, body, "**Policy help:** Wait, or suppress the finding.\n")
+	assert.NotContains(t, body, "javascript:", "the comment drops a link that is not http or https")
+}
+
+func TestSafeURL(t *testing.T) {
+	assert.Equal(t, "https://wiki.example.com/a%28b%29", safeURL("https://wiki.example.com/a(b)"))
+	assert.Empty(t, safeURL("javascript:alert(1)"))
+	assert.Empty(t, safeURL("https://"))
+}
