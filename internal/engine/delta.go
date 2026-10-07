@@ -190,6 +190,11 @@ func diff(head, baseM *model.Manifest, fileChanged bool) {
 			p.Change = model.ChangeModified
 			p.PreviousResolved = base.Resolved
 			p.PreviousIntegrity = base.Integrity
+		case base != nil && (base.Dev != p.Dev || base.Direct != p.Direct):
+			// The change makes a dev dependency a runtime one, or the
+			// reverse, or a transitive one direct. A rule on dev or on
+			// direct must see the package.
+			p.Change = model.ChangeModified
 		case base != nil:
 			p.Change = model.ChangeUnchanged
 		case ok:

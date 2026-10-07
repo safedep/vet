@@ -79,7 +79,8 @@ Some controls take options from the config file, under `plugins.<name>.options`.
 
 | Config key | Default | Effect |
 | --- | --- | --- |
-| `plugins.dependency-cooldown.options.days` | `5` | The cooldown window. `--cooldown-days N` sets it for one scan |
+| `plugins.dependency-cooldown.options.days` | `2` | The cooldown window, the same default as pmg. `--cooldown-days N` sets it for one scan |
+| `plugins.dependency-cooldown.options.skip` | none | The packages that the cooldown does not check, each with a `purl` and a `reason`. A PURL with no version skips each version, and a name glob such as `pkg:golang/buf.build/gen/go/acme/*` works. Other controls still check the packages |
 | `plugins.lockfile.options.trusted_registries` | none | The registry URLs that `untrusted-registry` trusts, in addition to the public registries |
 | `plugins.reputation.options.internal_names` | none | The names of your private packages, for `dependency-confusion`. Globs such as `acme-*` work |
 | `plugins.reputation.options.new_package_days` | `30` | The age under which `new-unpopular-package` reports a package |

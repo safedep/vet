@@ -50,7 +50,12 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 	if delta {
 		cols = append(cols, "Change")
 	}
-	cols = append(cols, "Title", "Finding")
+	cols = append(cols, "Title")
+	gated := t.Gate.Outcome != report.GateNone
+	if gated {
+		cols = append(cols, "Gate")
+	}
+	cols = append(cols, "Finding")
 	var suppressed []string
 	wrote := false
 	err := render.EachFinding(ctx, r, func(f *finding.Finding) error {
@@ -68,7 +73,11 @@ func (Sink) Write(ctx context.Context, r plugin.Report, w io.Writer) error {
 		if delta {
 			cells = append(cells, strings.ToLower(string(f.Change)))
 		}
-		cells = append(cells, cell(render.Truncate(render.Text(f.Title), maxTitle)), fmt.Sprintf("`%s`", f.ID))
+		cells = append(cells, cell(render.Truncate(render.Text(f.Title), maxTitle)))
+		if gated {
+			cells = append(cells, gateCell(f.Gate))
+		}
+		cells = append(cells, fmt.Sprintf("`%s`", f.ID))
 		_, err := io.WriteString(w, "| "+strings.Join(cells, " | ")+" |\n")
 		return err
 	})
@@ -100,6 +109,14 @@ func gate(g report.Gate) string {
 		return "**FAIL**"
 	}
 	return string(g.Outcome)
+}
+
+// gateCell names what blocks or warns on a finding.
+func gateCell(g *finding.GateRecord) string {
+	if g == nil {
+		return ""
+	}
+	return render.Markdown(render.Text(g.Label() + " " + g.Cause()))
 }
 
 // cell makes text safe in a table cell.

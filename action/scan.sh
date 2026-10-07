@@ -87,6 +87,37 @@ if [ -n "$policy" ]; then
   fi
 fi
 
+if [ -n "${ACTION_PACKAGE_COOLDOWN:-}" ]; then
+  [[ $ACTION_PACKAGE_COOLDOWN =~ ^[1-9][0-9]{0,4}$ ]] ||
+    fail "The package-cooldown input is not a count of days: '$ACTION_PACKAGE_COOLDOWN'"
+  args+=(--cooldown-days "$ACTION_PACKAGE_COOLDOWN")
+fi
+
+# In a pull request, vet reads the config at the base commit, as it reads
+# the policy. A change cannot turn off a control for its own scan.
+config=${ACTION_CONFIG:-}
+global=()
+if [ -n "$config" ]; then
+  case /$config/ in
+    //* | */../* | */./* | *//*) fail "The config input is not a plain path in the repository: '$config'. Write it as .github/vet/config.yml" ;;
+  esac
+  if [ -n "$base" ]; then
+    if [ -n "$(git ls-tree --name-only "$base" -- "$config")" ]; then
+      git show "$base:$config" >"$tmp/config.yml" || fail "vet cannot read $config at the base commit ${base:0:7}"
+      global=(--config "$tmp/config.yml")
+      echo "vet reads the config $config at the base commit ${base:0:7}"
+    elif [ -e "$config" ]; then
+      echo "::warning::The base commit has no $config, so vet reads no config file. The config of this change applies after it merges."
+    else
+      fail "The config input names a file that does not exist: '$config'"
+    fi
+  elif [ -e "$config" ]; then
+    global=(--config "$config")
+  else
+    fail "The config input names a file that does not exist: '$config'"
+  fi
+fi
+
 # The args input splits on white space. The script never evaluates it.
 extra=()
 if [ -n "${ACTION_ARGS:-}" ]; then
@@ -94,7 +125,7 @@ if [ -n "${ACTION_ARGS:-}" ]; then
 fi
 
 code=0
-vet "${args[@]}" ${extra[@]+"${extra[@]}"} >"$report" || code=$?
+vet ${global[@]+"${global[@]}"} "${args[@]}" ${extra[@]+"${extra[@]}"} >"$report" || code=$?
 
 # A step summary holds at most 1 MiB.
 if [ -s "$summary" ] && [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then

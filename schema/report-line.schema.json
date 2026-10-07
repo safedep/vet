@@ -179,7 +179,8 @@
             "ai-bom",
             "license",
             "hygiene",
-            "reputation"
+            "reputation",
+            "policy"
           ]
         },
         "severity": {
@@ -242,8 +243,8 @@
         "suppression": {
           "$ref": "#/$defs/Suppression"
         },
-        "policy_rule": {
-          "type": "string"
+        "gate": {
+          "$ref": "#/$defs/GateRecord"
         }
       },
       "type": "object",
@@ -301,6 +302,38 @@
       "type": "object",
       "required": [
         "outcome"
+      ]
+    },
+    "GateRecord": {
+      "properties": {
+        "action": {
+          "type": "string"
+        },
+        "rules": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "broken": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "fail_on": {
+          "type": "string"
+        },
+        "help": {
+          "type": "string"
+        },
+        "link": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "action"
       ]
     },
     "Header": {
@@ -644,6 +677,12 @@
           },
           "type": "array"
         },
+        "uses": {
+          "items": {
+            "$ref": "#/$defs/PackageUse"
+          },
+          "type": "array"
+        },
         "id": {
           "$ref": "#/$defs/PackageVersion"
         },
@@ -760,6 +799,42 @@
         "raw_name",
         "direct",
         "manifest_path"
+      ]
+    },
+    "PackageUse": {
+      "properties": {
+        "manifest_id": {
+          "type": "string"
+        },
+        "direct": {
+          "type": "boolean"
+        },
+        "dev": {
+          "type": "boolean"
+        },
+        "change": {
+          "type": "string",
+          "enum": [
+            "",
+            "ADDED",
+            "UPGRADED",
+            "DOWNGRADED",
+            "MODIFIED",
+            "REMOVED",
+            "UNCHANGED"
+          ]
+        },
+        "previous_version": {
+          "type": "string"
+        },
+        "resolved": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "manifest_id",
+        "direct"
       ]
     },
     "PackageVersion": {

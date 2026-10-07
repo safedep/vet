@@ -3,9 +3,11 @@ package policy
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/google/cel-go/cel"
+	celast "github.com/google/cel-go/common/ast"
 	"github.com/google/cel-go/common/types"
 	"github.com/google/cel-go/common/types/ref"
 	"github.com/google/cel-go/common/types/traits"
@@ -26,6 +28,8 @@ var (
 type Expr struct {
 	src string
 	prg cel.Program
+	// reads holds the input variables that the condition reads.
+	reads map[string]bool
 }
 
 func newEnv() (*cel.Env, error) {
@@ -36,12 +40,13 @@ func newEnv() (*cel.Env, error) {
 		cel.Variable("manifest", dyn),
 		cel.CrossTypeNumericComparisons(true),
 		// package.is(name) compares a name under the rule of the ecosystem,
-		// so package.is("python-dateutil") matches python.dateutil.
+		// so package.is("python-dateutil") matches python.dateutil. A name
+		// with *, ? or [ is a glob, as in package.is("@acme/*").
 		cel.Function("is", cel.MemberOverload("package_is_string", []*cel.Type{dyn, cel.StringType}, cel.BoolType,
 			cel.BinaryBinding(func(pkg, name ref.Val) ref.Val {
 				id, ok := celPackage(pkg)
 				s, isString := name.Value().(string)
-				return types.Bool(ok && isString && id.NameIs(s))
+				return types.Bool(ok && isString && id.NameMatches(s))
 			}))),
 		// package.version_cmp(v) orders the version of the package against v
 		// under the rule of the ecosystem: -1, 0 or 1. With no order, it
@@ -100,7 +105,60 @@ func Compile(src string) (*Expr, error) {
 	if err != nil {
 		return nil, errors.New(restorePackage(err.Error()))
 	}
-	return &Expr{src: src, prg: prg}, nil
+	return &Expr{src: src, prg: prg, reads: idents(ast)}, nil
+}
+
+// idents returns the input variables that a condition reads. A variable
+// of a macro, as v in exists(v, ...), hides an input variable of the same
+// name inside the macro.
+func idents(a *cel.Ast) map[string]bool {
+	out := map[string]bool{}
+	var walk func(e celast.Expr, local map[string]bool)
+	walk = func(e celast.Expr, local map[string]bool) {
+		switch e.Kind() {
+		case celast.IdentKind:
+			if !local[e.AsIdent()] {
+				out[e.AsIdent()] = true
+			}
+		case celast.SelectKind:
+			walk(e.AsSelect().Operand(), local)
+		case celast.CallKind:
+			c := e.AsCall()
+			if c.IsMemberFunction() {
+				walk(c.Target(), local)
+			}
+			for _, arg := range c.Args() {
+				walk(arg, local)
+			}
+		case celast.ListKind:
+			for _, el := range e.AsList().Elements() {
+				walk(el, local)
+			}
+		case celast.MapKind:
+			for _, en := range e.AsMap().Entries() {
+				walk(en.AsMapEntry().Key(), local)
+				walk(en.AsMapEntry().Value(), local)
+			}
+		case celast.StructKind:
+			for _, f := range e.AsStruct().Fields() {
+				walk(f.AsStructField().Value(), local)
+			}
+		case celast.ComprehensionKind:
+			c := e.AsComprehension()
+			walk(c.IterRange(), local)
+			walk(c.AccuInit(), local)
+			inner := maps.Clone(local)
+			inner[c.IterVar()], inner[c.AccuVar()] = true, true
+			if c.HasIterVar2() {
+				inner[c.IterVar2()] = true
+			}
+			walk(c.LoopCondition(), inner)
+			walk(c.LoopStep(), inner)
+			walk(c.Result(), inner)
+		}
+	}
+	walk(a.NativeRep().Expr(), map[string]bool{})
+	return out
 }
 
 // Match evaluates the condition on an input. A condition that reads an
@@ -111,6 +169,12 @@ func (e *Expr) Match(in Input) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	return e.matchVars(vars)
+}
+
+// matchVars evaluates the condition on the CEL variables of an input, so a
+// caller that runs many rules on one input builds the variables once.
+func (e *Expr) matchVars(vars map[string]any) (bool, error) {
 	out, _, err := e.prg.Eval(vars)
 	if err != nil {
 		// CEL gives a missing map key as text, with no error to match.

@@ -273,6 +273,8 @@ func TestDiffMarksAChangedSourceModified(t *testing.T) {
 		{"hash removed", model.Package{Resolved: npm, Integrity: "sha512-a"}, model.Package{Resolved: npm}, model.ChangeModified},
 		{"hash added", model.Package{Resolved: npm}, model.Package{Resolved: npm, Integrity: "sha512-a"}, model.ChangeUnchanged},
 		{"now local", model.Package{}, model.Package{Local: true}, model.ChangeModified},
+		{"dev turns into runtime", model.Package{Resolved: npm, Dev: true}, model.Package{Resolved: npm}, model.ChangeModified},
+		{"transitive turns direct", model.Package{Resolved: npm}, model.Package{Resolved: npm, Direct: true}, model.ChangeModified},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -281,7 +283,7 @@ func TestDiffMarksAChangedSourceModified(t *testing.T) {
 			diff(head, &model.Manifest{Packages: []*model.Package{&tc.base}}, true)
 			assert.Equal(t, tc.want, tc.head.Change)
 			assert.True(t, tc.head.Change.Introduces() == (tc.want == model.ChangeModified), "a modified entry gets the package findings in pull request mode")
-			if tc.want == model.ChangeModified {
+			if tc.want == model.ChangeModified && sourceChanged(&tc.base, &tc.head) {
 				assert.Equal(t, tc.base.Resolved, tc.head.PreviousResolved)
 				assert.Equal(t, tc.base.Integrity, tc.head.PreviousIntegrity)
 			}

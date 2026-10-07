@@ -64,11 +64,78 @@ type Outcome struct {
 }
 
 // Apply evaluates the policy on a finding with its package and manifest,
-// which can be nil. It sets the suppression and the policy rule of the
+// which can be nil. It sets the suppression and the gate record of the
 // finding, and clears the values of an earlier evaluation.
 func (e *Evaluator) Apply(f *finding.Finding, pkg *model.Package, m *model.Manifest) Outcome {
 	var out Outcome
-	f.Suppression, f.PolicyRule = nil, ""
+	f.Suppression, f.Gate = e.suppression(f, &out), nil
+
+	in := NewInput(f, pkg, m, e.now)
+	var warn *Rule
+	var fail []*Rule
+	for i := range e.p.Rules {
+		r := &e.p.Rules[i]
+		if r.Scope() == ScopePackage {
+			continue
+		}
+		ok, err := r.expr.Match(in)
+		if err != nil {
+			out.Errors = append(out.Errors, fmt.Errorf("rule %s: %w", r.ID, err))
+			if r.Action == ActionFail {
+				out.BrokenRules = append(out.BrokenRules, r.ID)
+			}
+			continue
+		}
+		switch {
+		case !ok:
+		case r.Action == ActionFail:
+			out.FailRules = append(out.FailRules, r.ID)
+			fail = append(fail, r)
+		case warn == nil:
+			warn = r
+		}
+	}
+
+	if f.Suppressed() {
+		out.FailRules, out.BrokenRules = nil, nil
+		return out
+	}
+	var failOn report.FailOn
+	if e.failsOn(f) {
+		failOn = e.failOn
+	}
+	out.Fail = len(fail) > 0 || len(out.BrokenRules) > 0 || failOn != ""
+	f.Gate = gateOf(fail, out.BrokenRules, warn, failOn)
+	return out
+}
+
+// applyRule applies the suppressions and one package rule to the finding
+// of that rule. broken is true when the rule did not evaluate.
+func (e *Evaluator) applyRule(f *finding.Finding, r *Rule, broken bool) Outcome {
+	var out Outcome
+	f.Suppression, f.Gate = e.suppression(f, &out), nil
+	if f.Suppressed() {
+		return out
+	}
+	var fail []*Rule
+	switch {
+	case broken:
+		out.BrokenRules = []string{r.ID}
+	case r.Action == ActionFail:
+		out.FailRules, fail = []string{r.ID}, []*Rule{r}
+	}
+	out.Fail = len(out.FailRules)+len(out.BrokenRules) > 0
+	warn := r
+	if out.Fail {
+		warn = nil
+	}
+	f.Gate = gateOf(fail, out.BrokenRules, warn, "")
+	return out
+}
+
+// suppression returns the suppression of the finding, or nil. It adds the
+// expired suppressions that match to the outcome.
+func (e *Evaluator) suppression(f *finding.Finding, out *Outcome) *finding.Suppression {
 	for i := range e.p.Suppressions {
 		s := &e.p.Suppressions[i]
 		if !s.matches(f) {
@@ -78,43 +145,29 @@ func (e *Evaluator) Apply(f *finding.Finding, pkg *model.Package, m *model.Manif
 			out.Expired = append(out.Expired, s.ref)
 			continue
 		}
-		f.Suppression = &finding.Suppression{Reason: s.Reason, Expires: s.expires, Rule: s.ref}
-		break
+		return &finding.Suppression{Reason: s.Reason, Expires: s.expires, Rule: s.ref}
 	}
+	return nil
+}
 
-	in := NewInput(f, pkg, m, e.now)
-	var warn string
-	for _, r := range e.p.Rules {
-		ok, err := r.expr.Match(in)
-		if err != nil {
-			out.Errors = append(out.Errors, fmt.Errorf("rule %s: %w", r.ID, err))
-			if r.Action == ActionFail {
-				out.BrokenRules = append(out.BrokenRules, r.ID)
-			}
-			continue
-		}
-		if !ok {
-			continue
-		}
-		if r.Action == ActionFail {
-			out.FailRules = append(out.FailRules, r.ID)
-		} else if warn == "" {
-			warn = r.ID
-		}
-	}
+// gateOf builds the gate record of a finding: the fail rules, the broken
+// rules and the --fail-on value that fails it, else the first warn rule.
+// failOn is empty when --fail-on does not fail the finding.
+func gateOf(fail []*Rule, broken []string, warn *Rule, failOn report.FailOn) *finding.GateRecord {
 	switch {
-	case len(out.FailRules) > 0:
-		f.PolicyRule = out.FailRules[0]
-	default:
-		f.PolicyRule = warn
+	case len(fail) > 0 || len(broken) > 0 || failOn != "":
+		g := &finding.GateRecord{Action: finding.GateActionFail, Broken: slices.Clone(broken), FailOn: string(failOn)}
+		for _, r := range fail {
+			g.Rules = append(g.Rules, r.ID)
+		}
+		if len(fail) > 0 {
+			g.Help, g.Link = fail[0].Help, fail[0].Link
+		}
+		return g
+	case warn != nil:
+		return &finding.GateRecord{Action: finding.GateActionWarn, Rules: []string{warn.ID}, Help: warn.Help, Link: warn.Link}
 	}
-
-	if f.Suppressed() {
-		out.FailRules, out.BrokenRules = nil, nil
-		return out
-	}
-	out.Fail = len(out.FailRules) > 0 || len(out.BrokenRules) > 0 || e.failsOn(f)
-	return out
+	return nil
 }
 
 // failsOn reports whether the finding meets the --fail-on value.
@@ -141,12 +194,7 @@ func (s *Suppression) matches(f *finding.Finding) bool {
 		if err != nil {
 			return false
 		}
-		// A suppression PURL with no version matches each version of the
-		// package. Both sides compare in the canonical form.
-		if s.pkg.RawVersion() == "" {
-			return id.SamePackage(*s.pkg)
-		}
-		return id.Equal(*s.pkg)
+		return s.pkg.Matches(id)
 	}
 	return true
 }

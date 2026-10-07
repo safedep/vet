@@ -267,7 +267,8 @@ Package docs cite it as "control catalog, phase N".
 
 **Family**:
 The group of a control id for the report summary: `malware`, `vulnerability`, `cooldown`,
-`workflow`, `lockfile`, `agent-config`, `ai-bom`, `license`, `hygiene`, `reputation`.
+`workflow`, `lockfile`, `agent-config`, `ai-bom`, `license`, `hygiene`, `reputation`, `policy`. The
+`policy` family holds the findings of package rules.
 `finding.Family`. A family is not a control name. The `hygiene` control emits the `license` family,
 for example.
 _Avoid_: category, type
@@ -317,11 +318,23 @@ _Avoid_: filter suite, policy file (when a policy source is meant)
 
 **Rule**:
 A policy entry with an id, a CEL condition (`when`) and an action: `fail` or `warn`. `policy.Rule`.
-The CEL input is `finding`, `package` and `manifest` (`policy.Input`). `package.is(name)` and
+A rule that reads `package` and not `finding` is a **package rule** (`policy.ScopePackage`). It runs
+on each package, and a match makes a finding with the control id `policy` (`policy.RuleControl`) and
+the family `policy`. Every other rule runs on each finding (`policy.ScopeFinding`).
+The CEL input is `finding`, `package` and `manifest` (`policy.Input`). `package.is(name)`, which also takes a glob, and
 `package.version_cmp(version)` compare under the rule of the ecosystem. With no version order,
 `version_cmp` gives no answer, and a condition that needs the answer does not match. A **broken rule** is a fail rule
-that errors at evaluation, and it fails the gate. `Finding.PolicyRule` names the rule that matched.
+that errors at evaluation, and it fails the gate. A rule can have a `help` text and a `link`, which
+the report shows on each finding that the rule matches.
 _Avoid_: filter, check, control
+
+**Package pattern**:
+A PURL that selects packages, in a suppression or in the `skip` option of `dependency-cooldown`.
+`model.PackagePattern`. A PURL with no version selects each version. A name with `*`, `?` or `[` is a
+glob, and `*` also matches a `/`, so `pkg:golang/buf.build/gen/go/acme/*` selects each module under
+that path. The literal parts fold under the rule of the ecosystem. A pattern has no qualifiers. A
+glob suppression must name a control.
+_Avoid_: wildcard PURL
 
 **Suppression**:
 A policy entry that hides a finding from the gate, selected by finding id, PURL or control id, with a
@@ -336,6 +349,15 @@ policies, the rules and the finding ids that decided it. `report.Gate`. `--fail-
 `--fail-on attacks` sets the `report.FailOn` part, and policy fail rules set the rule part. A plain
 scan has no gate and exits 0. A failed gate exits 1.
 _Avoid_: threshold, build breaker
+
+**Gate record**:
+What the gate did with one finding. `finding.GateRecord`, the `gate` object of a finding in the
+report. Its `action` is `fail` or `warn`. It names the policy rules that matched with that action, the
+fail rules that did not evaluate (`broken`) and the `--fail-on` value that failed the finding, with the
+`help` and the `link` of the first rule. The PR comment, the markdown report, the terminal table and
+`vet report finding show` show it as "Blocked by" or "Warned by". A suppressed finding has no gate
+record.
+_Avoid_: verdict (the result of a malware analysis), policy rule (the rule itself)
 
 **Attacks gate**:
 The gate of `--fail-on attacks`. It fails on an unsuppressed finding of an attack control, and each
@@ -418,8 +440,15 @@ _Avoid_: track, ring
 **Release cooldown**:
 The age that a release needs before the action or `vet ci update` takes it. The age counts from the
 latest of the publish time, the asset update times and, in the action, the attestation time.
-`github.Choice` and `action/resolve.jq`. It is not the dependency cooldown of the
-`dependency-cooldown` control.
+`github.Choice` and `action/resolve.jq`. The action input `release-cooldown` sets it, in hours. It is
+not the dependency cooldown.
+
+**Dependency cooldown**:
+The age that a package version needs before the `dependency-cooldown` control stops reporting it:
+2 days by default, the same as pmg. `plugins.dependency-cooldown.options.days`, `--cooldown-days`
+and the action input `package-cooldown` set it, in days. The `skip` option lists the packages that
+the control does not check. The control reports a `high` finding, and a policy rule decides the
+gate. It is not the release cooldown.
 
 ## State and configuration
 
@@ -439,6 +468,12 @@ _Avoid_: saved report (when you mean the scan)
 **Config layer**:
 One origin of a config value: `default`, `managed`, `file`, `env` or `flag`, from lowest to highest.
 `config.Layer`. Only one file layer applies.
+
+**Option source**:
+The config layer that set a plugin option, with the file base name, the variable or the flag, as
+`file config.yml` or `flag --cooldown-days`. `config.Origin.Short`. A control asks for it through
+`plugin.Originer`, so a finding can say where a setting came from. The vet default has no source.
+_Avoid_: origin (the origin of a package: declared or installed)
 
 **Managed config**:
 A config file that an administrator puts in the managed directory. It applies only when root owns it.

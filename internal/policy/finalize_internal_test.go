@@ -33,3 +33,12 @@ func TestPackageOfMatchesByIdentity(t *testing.T) {
 		})
 	}
 }
+
+func TestChangedSeesTheGateRecord(t *testing.T) {
+	warn := &finding.Finding{ID: "f", Gate: &finding.GateRecord{Action: finding.GateActionWarn, Rules: []string{"a"}}}
+	fail := &finding.Finding{ID: "f", Gate: &finding.GateRecord{Action: finding.GateActionFail, Rules: []string{"a"}}}
+	none := &finding.Finding{ID: "f"}
+	assert.True(t, changed(warn, fail), "a warn record that turns into a fail record")
+	assert.True(t, changed(warn, none), "a removed record")
+	assert.False(t, changed(warn, &finding.Finding{ID: "f", Gate: &finding.GateRecord{Action: finding.GateActionWarn, Rules: []string{"a"}}}))
+}

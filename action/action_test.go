@@ -235,7 +235,7 @@ func TestInstall(t *testing.T) {
 			name:     "auto takes the newest release older than the cooldown",
 			releases: []release{{tag: old, prerelease: true, age: 3 * day}, {tag: young, prerelease: true, age: time.Hour}},
 			want:     old,
-			output:   "The choice comes from the prerelease channel and a cooldown of 24 hours",
+			output:   "The choice comes from the prerelease channel and a release cooldown of 24 hours",
 		},
 		{
 			name:     "the channel file on the default branch picks the stable releases",
@@ -248,7 +248,7 @@ func TestInstall(t *testing.T) {
 			channel:  `{"v2": {"channel": "prerelease", "cooldown": 0}}`,
 			releases: []release{{tag: young, prerelease: true, age: time.Hour}},
 			exit:     1,
-			output:   "No vet release passes the cooldown of 24 hours. The newest release " + young + " is 1 hour old. To use it now, set the version input to " + strings.TrimPrefix(young, "v"),
+			output:   "No vet release passes the release cooldown of 24 hours. The newest release " + young + " is 1 hour old. To use it now, set the version input to " + strings.TrimPrefix(young, "v"),
 		},
 		{
 			name:     "a channel file that is not valid falls back to the copy of the action",
@@ -334,13 +334,13 @@ func TestInstall(t *testing.T) {
 			name:     "a cooldown that is not a number fails",
 			cooldown: "1d",
 			exit:     1,
-			output:   "The cooldown input is not a count of hours: '1d'",
+			output:   "The release-cooldown input is not a count of hours: '1d'",
 		},
 		{
 			name:     "a cooldown with a leading zero fails",
 			cooldown: "024",
 			exit:     1,
-			output:   "The cooldown input is not a count of hours: '024'",
+			output:   "The release-cooldown input is not a count of hours: '024'",
 		},
 	}
 	for _, tc := range tests {
@@ -350,14 +350,14 @@ func TestInstall(t *testing.T) {
 			runner := t.TempDir()
 			path := filepath.Join(runner, "path")
 			out, code := run(t, runner, map[string]string{
-				"PATH":            bin + string(os.PathListSeparator) + os.Getenv("PATH"),
-				"FAKE":            fake,
-				"ACTION_VERSION":  tc.version,
-				"ACTION_COOLDOWN": tc.cooldown,
-				"RUNNER_OS":       "Linux",
-				"RUNNER_ARCH":     "X64",
-				"RUNNER_TEMP":     runner,
-				"GITHUB_PATH":     path,
+				"PATH":                    bin + string(os.PathListSeparator) + os.Getenv("PATH"),
+				"FAKE":                    fake,
+				"ACTION_VERSION":          tc.version,
+				"ACTION_RELEASE_COOLDOWN": tc.cooldown,
+				"RUNNER_OS":               "Linux",
+				"RUNNER_ARCH":             "X64",
+				"RUNNER_TEMP":             runner,
+				"GITHUB_PATH":             path,
 			}, filepath.Join(actionDir, "install.sh"))
 			require.Equal(t, tc.exit, code, out)
 			assert.Contains(t, out, tc.output)
@@ -427,6 +427,8 @@ func TestScan(t *testing.T) {
 		env          map[string]string
 		policy       bool
 		policyDir    bool
+		config       bool
+		configHead   bool
 		summaryBytes int
 		// baseInOrigin puts the base commit only in the origin, so the
 		// script fetches it. header is a token header of the checkout.
@@ -524,6 +526,71 @@ func TestScan(t *testing.T) {
 			noOutputs: []string{"gate=", "findings=", "report="},
 		},
 		{
+			name:  "package-cooldown sets the window of the dependency-cooldown control",
+			event: "push",
+			env:   map[string]string{"ACTION_PACKAGE_COOLDOWN": "7"},
+			args:  []string{"--cooldown-days\n7"},
+		},
+		{
+			name:   "a package-cooldown that is not a count of days fails",
+			event:  "push",
+			env:    map[string]string{"ACTION_PACKAGE_COOLDOWN": "2d"},
+			exit:   1,
+			output: "The package-cooldown input is not a count of days: '2d'",
+		},
+		{
+			name:   "a pull request reads the config at the base commit",
+			event:  "pull_request",
+			config: true,
+			env:    map[string]string{"ACTION_CONFIG": ".github/vet/config.yml"},
+			args:   []string{"--config\n"},
+			noArgs: []string{"--config\n.github/vet/config.yml"},
+			output: "vet reads the config .github/vet/config.yml at the base commit",
+		},
+		{
+			name:       "a pull request that adds the config reads no config, and warns",
+			event:      "pull_request",
+			configHead: true,
+			env:        map[string]string{"ACTION_CONFIG": ".github/vet/config.yml"},
+			noArgs:     []string{"--config"},
+			output:     "::warning::The base commit has no .github/vet/config.yml, so vet reads no config file.",
+		},
+		{
+			name:   "a pull request with no config in any commit fails",
+			event:  "pull_request",
+			env:    map[string]string{"ACTION_CONFIG": ".github/vet/config.yml"},
+			exit:   1,
+			output: "The config input names a file that does not exist: '.github/vet/config.yml'",
+		},
+		{
+			name:   "a config path that leaves the repository fails",
+			event:  "pull_request",
+			env:    map[string]string{"ACTION_CONFIG": "../config.yml"},
+			exit:   1,
+			output: "The config input is not a plain path in the repository: '../config.yml'",
+		},
+		{
+			name:   "an absolute config path fails",
+			event:  "push",
+			env:    map[string]string{"ACTION_CONFIG": "/etc/vet/config.yml"},
+			exit:   1,
+			output: "The config input is not a plain path in the repository: '/etc/vet/config.yml'",
+		},
+		{
+			name:   "a push reads the config of the checkout",
+			event:  "push",
+			config: true,
+			env:    map[string]string{"ACTION_CONFIG": ".github/vet/config.yml"},
+			args:   []string{"--config\n.github/vet/config.yml"},
+		},
+		{
+			name:   "a push with a missing config fails",
+			event:  "push",
+			env:    map[string]string{"ACTION_CONFIG": ".github/vet/config.yml"},
+			exit:   1,
+			output: "The config input names a file that does not exist: '.github/vet/config.yml'",
+		},
+		{
 			name:   "a comment input that is not valid fails",
 			event:  "push",
 			env:    map[string]string{"ACTION_COMMENT": "always"},
@@ -542,6 +609,9 @@ func TestScan(t *testing.T) {
 			if tc.policyDir {
 				writeFile(t, filepath.Join(repo, ".github/vet/a.yml"), "version: 2\n", 0o644)
 			}
+			if tc.config {
+				writeFile(t, filepath.Join(repo, ".github/vet/config.yml"), "plugins: {}\n", 0o644)
+			}
 			gitIn := func(dir string, args ...string) string {
 				cmd := exec.Command("git", append([]string{"-c", "user.email=t@example.com", "-c", "user.name=t"}, args...)...)
 				cmd.Dir = dir
@@ -553,6 +623,9 @@ func TestScan(t *testing.T) {
 			gitIn(repo, "add", "-A")
 			gitIn(repo, "commit", "-q", "-m", "base")
 			base := gitIn(repo, "rev-parse", "HEAD")
+			if tc.configHead {
+				writeFile(t, filepath.Join(repo, ".github/vet/config.yml"), "plugins: {}\n", 0o644)
+			}
 			if tc.baseInOrigin {
 				origin := filepath.Join(root, "origin")
 				gitIn(root, "clone", "-q", repo, origin)

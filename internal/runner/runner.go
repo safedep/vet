@@ -135,7 +135,7 @@ func (o Options) lockableKeys() []string {
 		keys = append(keys, "scan.packages")
 	}
 	if o.CooldownDays > 0 {
-		keys = append(keys, "plugins."+cooldown.Name+".options.days")
+		keys = append(keys, cooldown.DaysKey)
 	}
 	return keys
 }
@@ -219,7 +219,7 @@ func Scan(ctx context.Context, a *app.App, o Options) error {
 	configError := func(err error) error {
 		return app.UsageError(err.Error(), "Fix the option in the config file. vet config validate checks it.")
 	}
-	ctrls, err := controls.Build(withCooldown(cfg, o.CooldownDays))
+	ctrls, err := controls.Build(withCooldown(rt, o.CooldownDays))
 	if err != nil {
 		return configError(err)
 	}
@@ -544,15 +544,30 @@ func engineControls(cs []controls.Control) []engine.Control {
 // config (decisions P7).
 type pluginSettings struct {
 	cfg       *config.Config
-	overrides map[string]map[string]any
+	origins   *config.Origins
+	overrides map[string]map[string]override
 }
 
-func withCooldown(cfg *config.Config, days int) pluginSettings {
-	s := pluginSettings{cfg: cfg, overrides: map[string]map[string]any{}}
+// override is the value of a flag that sets a plugin option.
+type override struct {
+	value  any
+	origin config.Origin
+}
+
+func withCooldown(rt *config.Runtime, days int) pluginSettings {
+	s := pluginSettings{cfg: rt.Config, origins: rt.Origins, overrides: map[string]map[string]override{}}
 	if days > 0 {
-		s.overrides[cooldown.Name] = map[string]any{"days": days}
+		s.overrides[cooldown.Name] = map[string]override{"days": {value: days, origin: config.Origin{Layer: config.LayerFlag, Source: "--cooldown-days"}}}
 	}
 	return s
+}
+
+// PluginOrigin names the flag or the config layer that sets an option.
+func (s pluginSettings) PluginOrigin(name, key string) string {
+	if o, ok := s.overrides[name][key]; ok {
+		return o.origin.Short()
+	}
+	return s.origins.Of("plugins." + name + ".options." + key).Short()
 }
 
 func (s pluginSettings) PluginEnabled(name string, def bool) bool {
@@ -564,8 +579,8 @@ func (s pluginSettings) PluginOptions(name string) map[string]any {
 	for k, v := range s.cfg.PluginOptions(name) {
 		out[k] = v
 	}
-	for k, v := range s.overrides[name] {
-		out[k] = v
+	for k, o := range s.overrides[name] {
+		out[k] = o.value
 	}
 	return out
 }

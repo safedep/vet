@@ -163,3 +163,48 @@ func TestForFileID(t *testing.T) {
 func TestNormalizeSnippet(t *testing.T) {
 	assert.Equal(t, "a b c", NormalizeSnippet("  a\tb\n  c "))
 }
+
+func TestGateRecordCause(t *testing.T) {
+	cases := []struct {
+		name string
+		g    GateRecord
+		want string
+	}{
+		{"one rule", GateRecord{Action: GateActionWarn, Rules: []string{"a"}}, "policy rule a"},
+		{"two rules and --fail-on", GateRecord{Action: GateActionFail, Rules: []string{"a", "b"}, FailOn: "high"}, "policy rules a, b and --fail-on high"},
+		{"broken rule", GateRecord{Action: GateActionFail, Broken: []string{"c"}}, "policy rule c, which did not evaluate"},
+		{"--fail-on only", GateRecord{Action: GateActionFail, FailOn: "attacks"}, "--fail-on attacks"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, tc.g.Cause())
+		})
+	}
+}
+
+func TestGateAction(t *testing.T) {
+	cases := []struct {
+		action GateAction
+		valid  bool
+		label  string
+	}{
+		{GateActionFail, true, "Blocked by"},
+		{GateActionWarn, true, "Warned by"},
+		{GateAction("block"), false, "Warned by"},
+	}
+	for _, tc := range cases {
+		t.Run(string(tc.action), func(t *testing.T) {
+			assert.Equal(t, tc.valid, tc.action.Valid())
+			assert.Equal(t, tc.label, (&GateRecord{Action: tc.action}).Label())
+		})
+	}
+}
+
+func TestGateRecordShortAndEqual(t *testing.T) {
+	g := &GateRecord{Action: GateActionFail, Rules: []string{"a"}, Broken: []string{"b"}, FailOn: "high"}
+	assert.Equal(t, "a, b (broken), --fail-on high", g.Short())
+	assert.True(t, g.Equal(&GateRecord{Action: GateActionFail, Rules: []string{"a"}, Broken: []string{"b"}, FailOn: "high"}))
+	assert.False(t, g.Equal(&GateRecord{Action: GateActionFail, Rules: []string{"a"}}))
+	assert.False(t, g.Equal(nil))
+	assert.True(t, (*GateRecord)(nil).Equal(nil))
+}

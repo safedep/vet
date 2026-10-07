@@ -1,20 +1,32 @@
 package policy
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 
 	"github.com/safedep/vet/v2/internal/app"
 	vconfig "github.com/safedep/vet/v2/internal/config"
 	"github.com/safedep/vet/v2/internal/plugins/policysources/file"
 	"github.com/safedep/vet/v2/internal/policy"
+	"github.com/safedep/vet/v2/internal/tui/humanize"
 	"github.com/safedep/vet/v2/internal/tui/printer"
 )
 
 // Result is the output of "vet policy validate".
 type Result struct {
-	Sources      []string `json:"sources"`
-	Rules        int      `json:"rules"`
-	Suppressions int      `json:"suppressions"`
+	Sources      []string   `json:"sources"`
+	Rules        int        `json:"rules"`
+	Suppressions int        `json:"suppressions"`
+	RuleList     []RuleInfo `json:"rule_list"`
+}
+
+// RuleInfo says what a rule runs on: each finding, or each package.
+type RuleInfo struct {
+	ID     string        `json:"id"`
+	Source string        `json:"source"`
+	Action policy.Action `json:"action"`
+	Scope  policy.Scope  `json:"scope"`
 }
 
 func newValidate(a *app.App) *cobra.Command {
@@ -58,10 +70,17 @@ every problem and exits 2. validate changes nothing.`,
 			if err != nil {
 				return err
 			}
-			r := Result{Sources: p.Sources, Rules: len(p.Rules), Suppressions: len(p.Suppressions)}
-			rows := printer.Rows{Headers: []string{"FILE", "RULES", "SUPPRESSIONS", "STATUS"}}
-			for _, s := range p.Sources {
-				rows.Rows = append(rows.Rows, []string{s, itoa(r.Rules), itoa(r.Suppressions), "valid"})
+			r := Result{Sources: p.Sources, Rules: len(p.Rules), Suppressions: len(p.Suppressions), RuleList: []RuleInfo{}}
+			rows := printer.Rows{
+				Title:   fmt.Sprintf("Valid: %s, %s", humanize.Count(r.Rules, "rule"), humanize.Count(r.Suppressions, "suppression")),
+				Headers: []string{"RULE", "ACTION", "RUNS ON", "FILE"},
+				Empty:   "The policy has no rules.",
+			}
+			for i := range p.Rules {
+				rule := &p.Rules[i]
+				info := RuleInfo{ID: rule.ID, Source: rule.Source(), Action: rule.Action, Scope: rule.Scope()}
+				r.RuleList = append(r.RuleList, info)
+				rows.Rows = append(rows.Rows, []string{info.ID, string(info.Action), "each " + string(info.Scope), info.Source})
 			}
 			return pr.Print(r, rows)
 		},

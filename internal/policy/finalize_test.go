@@ -17,9 +17,11 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/extractors"
 	"github.com/safedep/vet/v2/internal/plugins/sources"
 	"github.com/safedep/vet/v2/internal/policy"
+	"github.com/safedep/vet/v2/internal/reportdoc"
 	"github.com/safedep/vet/v2/internal/state"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
+	"github.com/safedep/vet/v2/plugin/plugintest"
 	"github.com/safedep/vet/v2/report"
 )
 
@@ -47,10 +49,10 @@ const requirements = "evil==1.0.0\nrequests==2.31.0\nflask==3.0.0\n"
 const policyFile = `version: 2
 rules:
   - id: no-evil
-    when: package.name == "evil"
+    when: finding.control_id == "every" && package.name == "evil"
     action: fail
   - id: note-flask
-    when: package.name == "flask"
+    when: finding.control_id == "every" && package.name == "flask"
     action: warn
 suppressions:
   - purl: pkg:pypi/requests
@@ -103,10 +105,10 @@ func TestFinalizeInAScan(t *testing.T) {
 		byName[f.Subject.Package.Name] = f
 	}
 	require.Len(t, byName, 3)
-	assert.Equal(t, "no-evil", byName["evil"].PolicyRule)
+	assert.Equal(t, []string{"no-evil"}, byName["evil"].Gate.Rules)
 	require.True(t, byName["requests"].Suppressed())
 	assert.Equal(t, "Reviewed.", byName["requests"].Suppression.Reason)
-	assert.Equal(t, "note-flask", byName["flask"].PolicyRule)
+	assert.Equal(t, &finding.GateRecord{Action: finding.GateActionWarn, Rules: []string{"note-flask"}}, byName["flask"].Gate)
 	assert.False(t, byName["flask"].Suppressed(), "an expired suppression does not match")
 
 	var diags []*report.Diagnostic
@@ -118,6 +120,58 @@ func TestFinalizeInAScan(t *testing.T) {
 	}
 	require.Len(t, diags, 1)
 	assert.Equal(t, policy.CodeSuppressionExpired, diags[0].Code)
+}
+
+func TestFinalizePackageRules(t *testing.T) {
+	p, err := policy.Parse("vet-policy.yml", []byte(`version: 2
+rules:
+  - id: no-evil
+    description: The evil package is not allowed.
+    when: package.is("EVIL")
+    action: fail
+    severity: high
+    help: Remove it.
+  - id: note-flask
+    when: package.name == "flask"
+    action: warn
+  - id: every-high
+    when: finding.severity == "high"
+    action: fail
+suppressions:
+  - id: f-0000000000000000
+    reason: unused
+`))
+	require.NoError(t, err)
+	assert.Equal(t, policy.ScopePackage, p.Rules[0].Scope())
+	assert.Equal(t, policy.ScopeFinding, p.Rules[2].Scope())
+	res := scan(t, policy.NewEvaluator(p, policy.Options{}))
+	ctx := context.Background()
+
+	tr := res.Scan.Trailer()
+	require.NotNil(t, tr)
+	assert.Equal(t, report.GateFail, tr.Gate.Outcome)
+	assert.Equal(t, []string{"no-evil"}, tr.Gate.Rules, "every-high does not evaluate the high finding of a package rule")
+	assert.Equal(t, 5, tr.Summary.Findings, "three control findings and two package rule findings")
+
+	var rules []*finding.Finding
+	for f, err := range res.Scan.Findings(ctx, plugin.FindingQuery{ControlID: policy.RuleControl}) {
+		require.NoError(t, err)
+		rules = append(rules, f)
+	}
+	require.Len(t, rules, 2)
+	evil, flask := rules[0], rules[1]
+	assert.Equal(t, "The evil package is not allowed.", evil.Title)
+	assert.Equal(t, finding.SeverityHigh, evil.Severity)
+	assert.Equal(t, finding.FamilyPolicy, evil.Family)
+	assert.Equal(t, &finding.GateRecord{Action: finding.GateActionFail, Rules: []string{"no-evil"}, Help: "Remove it."}, evil.Gate)
+	assert.Equal(t, "The package matches policy rule note-flask", flask.Title)
+	assert.Equal(t, finding.SeverityInfo, flask.Severity)
+	assert.Equal(t, &finding.GateRecord{Action: finding.GateActionWarn, Rules: []string{"note-flask"}}, flask.Gate)
+
+	for f, err := range res.Scan.Findings(ctx, plugin.FindingQuery{ControlID: "every"}) {
+		require.NoError(t, err)
+		assert.Nil(t, f.Gate, "a package rule does not run on the findings of %s", f.Subject.Package.Name)
+	}
 }
 
 func TestFinalizeWithNoGate(t *testing.T) {
@@ -176,4 +230,99 @@ func TestUnavailablePolicySource(t *testing.T) {
 		}
 	}
 	assert.Contains(t, codes, policy.CodeSourceUnavailable)
+}
+
+// savedReport is a saved report with one lockfile and the packages.
+func savedReport(pkgs ...*model.Package) *reportdoc.Doc {
+	m := &model.Manifest{ID: "m1", Path: "package-lock.json", Ecosystem: model.EcosystemNpm, Kind: model.ManifestKindLockfile}
+	recs := []report.Record{report.ManifestRecord(m)}
+	for _, p := range pkgs {
+		recs = append(recs, report.PackageRecord(&report.PackageEntry{PURL: p.ID.PURL(), ManifestIDs: []string{m.ID}, Package: *p}))
+	}
+	return reportdoc.FromDocument(&report.Document{Records: recs})
+}
+
+func npm(name string, change model.Change) *model.Package {
+	return &model.Package{ID: model.MustPackageVersion(model.EcosystemNpm, name, "1.0.0"), Change: change}
+}
+
+func TestPackageRulesOnASavedReport(t *testing.T) {
+	ctx := context.Background()
+	cases := []struct {
+		name   string
+		policy string
+		pkgs   []*model.Package
+		gate   report.GateOutcome
+		titles []string
+	}{
+		{
+			name:   "the change keeps or removes a package",
+			policy: "  - id: any\n    when: package.name != \"\"\n    action: fail\n",
+			pkgs:   []*model.Package{npm("kept", model.ChangeUnchanged), npm("gone", model.ChangeRemoved), npm("new", model.ChangeAdded), npm("full", model.ChangeNone)},
+			gate:   report.GateFail,
+			titles: []string{"The package matches policy rule any", "The package matches policy rule any"},
+		},
+		{
+			name:   "a fail rule that does not evaluate blocks the package",
+			policy: "  - id: bad\n    when: int(package.name) > 0\n    action: fail\n",
+			pkgs:   []*model.Package{npm("a", model.ChangeAdded)},
+			gate:   report.GateFail,
+			titles: []string{"Policy rule bad did not evaluate on the package"},
+		},
+		{
+			name:   "a warn rule that does not evaluate makes no finding",
+			policy: "  - id: bad\n    when: int(package.name) > 0\n    action: warn\n",
+			pkgs:   []*model.Package{npm("a", model.ChangeAdded)},
+			gate:   report.GatePass,
+		},
+		{
+			name:   "a suppression hides the finding of a package rule",
+			policy: "  - id: any\n    when: package.name != \"\"\n    action: fail\nsuppressions:\n  - control: policy\n    purl: pkg:npm/a\n    reason: Reviewed.\n",
+			pkgs:   []*model.Package{npm("a", model.ChangeAdded)},
+			gate:   report.GatePass,
+			titles: []string{"The package matches policy rule any"},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p, err := policy.Parse("p.yml", []byte("version: 2\nrules:\n"+tc.policy))
+			require.NoError(t, err)
+			doc := savedReport(tc.pkgs...)
+			g, err := policy.NewEvaluator(p, policy.Options{}).Finalize(ctx, doc)
+			require.NoError(t, err)
+			assert.Equal(t, tc.gate, g.Outcome)
+			var titles []string
+			for f, err := range doc.Findings(ctx, plugin.FindingQuery{IncludeSuppressed: true}) {
+				require.NoError(t, err)
+				titles = append(titles, f.Title)
+			}
+			assert.Equal(t, tc.titles, titles)
+
+			again, err := policy.NewEvaluator(p, policy.Options{}).Finalize(ctx, doc)
+			require.NoError(t, err)
+			assert.Equal(t, g, again, "a second run replaces the findings of the first")
+		})
+	}
+}
+
+func TestPackageRulesReadTheFieldsOfEachManifest(t *testing.T) {
+	ctx := context.Background()
+	id := model.MustPackageVersion(model.EcosystemNpm, "lodash", "4.17.21")
+	manifest := func(path string, direct bool) *model.Manifest {
+		return &model.Manifest{
+			ID: path, Path: path, Ecosystem: model.EcosystemNpm, Kind: model.ManifestKindLockfile,
+			Packages: []*model.Package{{ID: id, Direct: direct, Change: model.ChangeAdded}},
+		}
+	}
+	for path, want := range map[string]report.GateOutcome{"a.lock": report.GatePass, "b.lock": report.GateFail} {
+		t.Run(path, func(t *testing.T) {
+			doc, err := reportdoc.Load(ctx, plugintest.NewMemState(manifest("a.lock", false), manifest("b.lock", true)))
+			require.NoError(t, err)
+			p, err := policy.Parse("p.yml", []byte("version: 2\nrules:\n  - id: direct\n    when: manifest.path == \""+path+"\" && package.direct\n    action: fail\n"))
+			require.NoError(t, err)
+			g, err := policy.NewEvaluator(p, policy.Options{}).Finalize(ctx, doc)
+			require.NoError(t, err)
+			assert.Equal(t, want, g.Outcome)
+		})
+	}
 }

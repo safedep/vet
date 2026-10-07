@@ -13,7 +13,10 @@ import (
 func TestStarterIsValid(t *testing.T) {
 	p, err := policy.Parse("starter", []byte(policy.Starter))
 	require.NoError(t, err)
-	assert.Len(t, p.Rules, 4)
+	require.Len(t, p.Rules, 3)
+	for _, r := range p.Rules {
+		assert.Equal(t, policy.ScopeFinding, r.Scope(), "the starter has no cooldown rule and no package rule: %s", r.ID)
+	}
 }
 
 func TestStarterNamesKnownControls(t *testing.T) {
@@ -25,5 +28,17 @@ func TestStarterNamesKnownControls(t *testing.T) {
 	}
 	for _, id := range []string{"malware", "suspicious-package", "vulnerability", "dangerous-trigger", "template-injection", "unpinned-action", "dependency-cooldown", "untrusted-registry"} {
 		assert.True(t, ids[id], "control %s is listed", id)
+	}
+}
+
+// TestRuleControlIsReserved keeps the control id of the package rules
+// apart from the built-in controls. Finalize deletes the findings of that
+// id before each evaluation.
+func TestRuleControlIsReserved(t *testing.T) {
+	list, err := controls.Catalog()
+	require.NoError(t, err)
+	for _, c := range list {
+		assert.NotEqual(t, policy.RuleControl, c.ID)
+		assert.NotEqual(t, policy.RuleControl, c.Plugin, "plugin %s", c.Plugin)
 	}
 }

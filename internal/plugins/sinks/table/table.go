@@ -166,8 +166,7 @@ func (s Sink) rows(fs []*finding.Finding) []row {
 	var rows []row
 	at := map[string]int{}
 	for _, f := range fs {
-		if p := f.Subject.Package; !s.all && p != nil && f.Family == finding.FamilyVulnerability {
-			k := p.PURL + "\x00" + p.ManifestPath
+		if k, ok := render.PackageGroup(f); !s.all && ok && f.Family == finding.FamilyVulnerability {
 			if i, ok := at[k]; ok {
 				rows[i] = append(rows[i], f)
 				continue
@@ -176,7 +175,15 @@ func (s Sink) rows(fs []*finding.Finding) []row {
 		}
 		rows = append(rows, row{f})
 	}
+	// A finding that fails the gate comes first, so the row limit never
+	// hides it.
 	slices.SortStableFunc(rows, func(a, b row) int {
+		if fa, fb := a.failing(), b.failing(); fa != fb {
+			if fa {
+				return -1
+			}
+			return 1
+		}
 		return b[0].Severity.Rank() - a[0].Severity.Rank()
 	})
 	return rows
@@ -213,6 +220,10 @@ type layout struct {
 
 func findingLayout(rows []row, idLen int, delta, control, where bool) layout {
 	headers := []string{"SEVERITY", "ID"}
+	gated := slices.ContainsFunc(rows, func(r row) bool { return r.gate() != nil })
+	if gated {
+		headers = append(headers, "GATE")
+	}
 	if control {
 		headers = append(headers, "CONTROL")
 	}
@@ -228,6 +239,9 @@ func findingLayout(rows []row, idLen int, delta, control, where bool) layout {
 	for _, r := range rows {
 		f := r[0]
 		row := []string{badge(f.Severity), f.ID[:min(idLen, len(f.ID))]}
+		if gated {
+			row = append(row, gateText(r.gate()))
+		}
 		if control {
 			row = append(row, render.Text(f.ControlID))
 		}
@@ -273,6 +287,32 @@ func columnWidth(rows [][]string, col int) int {
 		w = max(w, ansi.StringWidth(r[col]))
 	}
 	return w
+}
+
+// gate is the gate record of the row: the first finding that fails the
+// gate, else the first finding with a record.
+func (r row) gate() *finding.GateRecord {
+	var first *finding.GateRecord
+	for _, f := range r {
+		if f.Fails() {
+			return f.Gate
+		}
+		if first == nil {
+			first = f.Gate
+		}
+	}
+	return first
+}
+
+func (r row) failing() bool { return slices.ContainsFunc(r, (*finding.Finding).Fails) }
+
+// gateText is the short form of a gate record, as "fail no-malware" or
+// "fail --fail-on high".
+func gateText(g *finding.GateRecord) string {
+	if g == nil {
+		return ""
+	}
+	return render.Text(string(g.Action) + " " + g.Short())
 }
 
 // text describes the row: the title of one finding, or the count of the

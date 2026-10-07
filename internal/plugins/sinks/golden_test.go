@@ -41,7 +41,15 @@ func pullRequest() *plugintest.MemState {
 		f.Change = model.ChangeAdded
 	}
 	tr := *s.Trailer()
-	tr.Gate = report.Gate{Outcome: report.GateFail, FailOn: report.FailOn(finding.SeverityHigh), FindingIDs: []string{s.FindingList[0].ID}}
+	s.FindingList[0].Gate = &finding.GateRecord{
+		Action: finding.GateActionFail, Rules: []string{"no-malware"}, FailOn: string(finding.SeverityHigh),
+		Help: "Remove the package and rotate the secrets of each machine that installed it.", Link: "https://wiki.example.com/security/malware",
+	}
+	s.FindingList[1].Gate = &finding.GateRecord{Action: finding.GateActionWarn, Rules: []string{"pin-actions"}}
+	tr.Gate = report.Gate{
+		Outcome: report.GateFail, FailOn: report.FailOn(finding.SeverityHigh), Policy: "origin/main:.github/vet/policy.yml",
+		Rules: []string{"no-malware"}, FindingIDs: []string{s.FindingList[0].ID},
+	}
 	s.TrailerValue = &tr
 	return s
 }

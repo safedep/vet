@@ -601,8 +601,16 @@ func (s *Scan) AddFindings(ctx context.Context, manifestID string, findings []fi
 	})
 }
 
+// DeleteFindings deletes the findings of a control.
+func (s *Scan) DeleteFindings(ctx context.Context, controlID string) error {
+	if _, err := s.db.ExecContext(ctx, `DELETE FROM vet_scan_findings WHERE control_id = ?`, controlID); err != nil {
+		return fmt.Errorf("scan file: delete findings: %w", err)
+	}
+	return nil
+}
+
 // ReplaceFinding writes a finding again, for example after a policy
-// suppression.
+// suppression. It adds a finding that the scan does not have.
 func (s *Scan) ReplaceFinding(ctx context.Context, manifestID string, f *finding.Finding) error {
 	return s.tx(ctx, func(tx *sql.Tx) error { return insertFinding(ctx, tx, manifestID, f) })
 }

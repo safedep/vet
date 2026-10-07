@@ -47,14 +47,57 @@ Then, in the settings of the repository:
 | Input | Default | Meaning |
 | --- | --- | --- |
 | `version` | `auto` | `auto`, `latest`, `latest-prerelease` or an exact v2 version such as `2.1.0` |
-| `cooldown` | `24` | Hours that a release must age before `auto`, `latest` or `latest-prerelease` picks it |
+| `release-cooldown` | `24` | Hours that a vet release must age before `auto`, `latest` or `latest-prerelease` installs it. It applies to the vet binary |
+| `package-cooldown` | empty | Days that a version of your packages must age before `dependency-cooldown` stops reporting it. Empty keeps the vet default of 2 days. It sets `plugins.dependency-cooldown.options.days` |
 | `fail-on` | `attacks` | `attacks`, `none`, `critical`, `high`, `medium` or `low` |
 | `policy` | `.github/vet/policy.yml` | The policy file. The action skips it when it does not exist |
 | `comment` | `auto` | `auto`, `findings` or `never` |
 | `comment-proxy` | `true` | Post the comment of a fork pull request through the SafeDep comment proxy |
 | `sarif` | `false` | Write SARIF and upload it to code scanning. The job needs `security-events: write` |
+| `config` | empty | The path of a vet config file in the repository, such as `.github/vet/config.yml` in the default setup. In a pull request, vet reads the file at the base commit |
 | `args` | empty | More arguments for `vet scan`. The action splits them on white space |
 | `github-token` | `${{ github.token }}` | The token for the releases, the comment and the GitHub checks of vet |
+
+The action has two cooldowns for two different things:
+
+- `release-cooldown` is the age of the **vet binary** that the action installs. It protects the
+  job from a bad vet release.
+- `package-cooldown` is the age of the **package versions** that your pull request adds. The
+  `dependency-cooldown` control reports a version that is younger, as a `high` finding. The
+  control only reports. A policy rule on `high` findings, or `fail-on: high`, blocks the change.
+
+When the control and a cooldown rule in your policy disagree, each finding says what blocked it,
+as "Blocked by policy rule critical-or-high".
+
+To trust the packages of your own organization, skip them in the cooldown in the config file:
+
+```yaml
+# .github/vet/config.yml, with config: .github/vet/config.yml
+plugins:
+  dependency-cooldown:
+    options:
+      skip:
+        - purl: pkg:golang/buf.build/gen/go/acme/*
+          reason: Our own SDK, which we test on each release.
+```
+
+Or keep the finding in the report and hide it from the gate with a suppression in the policy:
+
+```yaml
+suppressions:
+  - purl: pkg:golang/buf.build/gen/go/acme/*
+    control: dependency-cooldown
+    reason: Our own SDK, which we test on each release.
+```
+
+For a `pull_request` or `pull_request_target` event, the action reads the config file and the
+policy at the base commit, so a pull request cannot turn off a control for its own scan. When the base
+has no config file, the action warns and reads none. For a push or a merge queue, the action reads
+both files from the checkout. The `config` path is a path in the repository, with no leading `/` and
+no `..`.
+
+A suppression with a name glob must name a `control`, so a glob never hides an attack such as
+malware.
 
 ## Outputs
 
@@ -137,20 +180,20 @@ The action code stays at the commit that you pin. The vet binary moves to the ne
 - `version: auto` follows the release channel of SafeDep vet: the pre-releases during the alpha, and
   the stable releases after it.
 - `latest` takes the newest stable v2 release, and `latest-prerelease` the newest v2 release.
-- An exact version, such as `2.1.0`, takes that release, with no cooldown.
+- An exact version, such as `2.1.0`, takes that release, with no release cooldown.
 
-The action takes only an immutable v2 release that is older than the cooldown. The age counts from
+The action takes only an immutable v2 release that is older than the release cooldown. The age counts from
 the latest of the publish time, the update time of each asset and the time of the build
 attestation. A change to an old release makes it young again. Nothing in the vet repository can
-shorten the cooldown. Only your workflow file can, with `version` or `cooldown`.
+shorten the release cooldown. Only your workflow file can, with `version` or `release-cooldown`.
 
 The action checks the SHA-256 sum of the archive and its build attestation. The attestation must come
 from the release workflow of vet v2 on a GitHub-hosted runner. A failed check fails the job, and the
 action does not fall back to an older release.
 
-When no release passes the cooldown, the job fails and names the newest release and its age. For an
-urgent fix, SafeDep publishes a security advisory that names the version to pin until the fix passes
-the cooldown.
+When no release passes the release cooldown, the job fails and names the newest release and its
+age. For an urgent fix, SafeDep publishes a security advisory that names the version to pin until
+the fix passes the release cooldown.
 
 The action needs `bash`, `gh`, `jq`, `tar` or `unzip`, and `sha256sum` or `shasum`. The GitHub-hosted
 Linux, macOS and Windows runners have each of them.

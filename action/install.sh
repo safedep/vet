@@ -3,7 +3,7 @@
 # docs/github-action.md gives the rules. The script never reads the latest
 # release of safedep/vet, because that release belongs to vet v1.
 #
-# Environment: ACTION_VERSION, ACTION_COOLDOWN, GH_TOKEN, RUNNER_OS,
+# Environment: ACTION_VERSION, ACTION_RELEASE_COOLDOWN, GH_TOKEN, RUNNER_OS,
 # RUNNER_ARCH, RUNNER_TEMP, GITHUB_PATH.
 set -euo pipefail
 
@@ -68,22 +68,22 @@ read_channel() {
 }
 
 version=${ACTION_VERSION:-auto}
-cooldown=${ACTION_COOLDOWN:-24}
-[[ $cooldown =~ ^(0|[1-9][0-9]{0,5})$ ]] || fail "The cooldown input is not a count of hours: '$cooldown'"
+cooldown=${ACTION_RELEASE_COOLDOWN:-24}
+[[ $cooldown =~ ^(0|[1-9][0-9]{0,5})$ ]] || fail "The release-cooldown input is not a count of hours: '$cooldown'"
 min=$(tr -d '[:space:]' <"$here/min-version")
 exact=""
 case $version in
   auto)
     read_channel
-    reason="the $channel channel and a cooldown of $(hours "$cooldown")"
+    reason="the $channel channel and a release cooldown of $(hours "$cooldown")"
     ;;
   latest)
     channel=stable
-    reason="the newest stable release and a cooldown of $(hours "$cooldown")"
+    reason="the newest stable release and a release cooldown of $(hours "$cooldown")"
     ;;
   latest-prerelease)
     channel=prerelease
-    reason="the newest release and a cooldown of $(hours "$cooldown")"
+    reason="the newest release and a release cooldown of $(hours "$cooldown")"
     ;;
   *)
     [[ $version =~ ^v?2\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]] ||
@@ -121,7 +121,7 @@ if [ ! -s "$candidates" ]; then
   [ -n "$newest" ] || fail "safedep/vet has no immutable $channel v2 release at or above $min"
   tag=${newest%%$'\t'*}
   age=$(jq -rn --arg t "${newest#*$'\t'}" '(now - ($t | fromdateiso8601)) / 3600 | floor')
-  fail "No vet release passes the cooldown of $(hours "$cooldown"). The newest release $tag is $(hours "$age") old. To use it now, set the version input to ${tag#v}"
+  fail "No vet release passes the release cooldown of $(hours "$cooldown"). The newest release $tag is $(hours "$age") old. To use it now, set the version input to ${tag#v}"
 fi
 
 # The attestation time is the latest time that sigstore verified: the
@@ -171,4 +171,4 @@ while IFS=$'\t' read -r tag _ <&3; do
   exit 0
 done 3<"$candidates"
 
-fail "No vet release passes the cooldown of $(hours "$cooldown"). The attestation of each candidate is too new."
+fail "No vet release passes the release cooldown of $(hours "$cooldown"). The attestation of each candidate is too new."

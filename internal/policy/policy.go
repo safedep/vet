@@ -12,6 +12,8 @@ import (
 	"github.com/safedep/dry/usefulerror"
 	"gopkg.in/yaml.v3"
 
+	"github.com/safedep/vet/v2/finding"
+	"github.com/safedep/vet/v2/internal/weburl"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 )
@@ -39,8 +41,39 @@ type Rule struct {
 	Description string `yaml:"description,omitempty"`
 	When        string `yaml:"when"`
 	Action      Action `yaml:"action"`
+	// Help tells the reader of a report what to do when the rule matches.
+	Help string `yaml:"help,omitempty"`
+	// Link is an http or https URL with more guidance, such as a page of
+	// the security team.
+	Link string `yaml:"link,omitempty"`
+	// Severity is the severity of the finding that a package rule makes.
+	// It is info when it is empty.
+	Severity finding.Severity `yaml:"severity,omitempty"`
 
-	expr *Expr
+	expr   *Expr
+	source string
+}
+
+// Source names the document of the rule.
+func (r *Rule) Source() string { return r.source }
+
+// Scope is what a rule runs on.
+type Scope string
+
+const (
+	// ScopeFinding rules run on each finding.
+	ScopeFinding Scope = "finding"
+	// ScopePackage rules run on each package. A rule that reads package
+	// and not finding has this scope.
+	ScopePackage Scope = "package"
+)
+
+// Scope returns what the rule runs on.
+func (r *Rule) Scope() Scope {
+	if r.expr != nil && r.expr.reads[packageIdent] && !r.expr.reads["finding"] {
+		return ScopePackage
+	}
+	return ScopeFinding
 }
 
 // Suppression hides the findings that match all of its selectors from the
@@ -49,7 +82,8 @@ type Suppression struct {
 	// ID is a finding id.
 	ID string `yaml:"id,omitempty"`
 	// PURL matches the package of a finding. A PURL with no version
-	// matches every version.
+	// matches every version. A name with *, ? or [ is a glob, as in
+	// pkg:golang/buf.build/gen/go/acme/*.
 	PURL    string `yaml:"purl,omitempty"`
 	Control string `yaml:"control,omitempty"`
 	Reason  string `yaml:"reason"`
@@ -58,7 +92,7 @@ type Suppression struct {
 	Expires string `yaml:"expires,omitempty"`
 
 	ref     string
-	pkg     *model.PackageVersion
+	pkg     *model.PackagePattern
 	expires *time.Time
 }
 
@@ -138,6 +172,12 @@ func parse(name string, data []byte) (*Policy, error) {
 		if r.Action != ActionFail && r.Action != ActionWarn {
 			errs = append(errs, fmt.Errorf("%s: action is %q: use fail or warn", at, r.Action))
 		}
+		if r.Severity != "" && !r.Severity.Valid() {
+			errs = append(errs, fmt.Errorf("%s: severity is %q: use critical, high, medium, low or info", at, r.Severity))
+		}
+		if r.Link != "" && !weburl.Valid(r.Link) {
+			errs = append(errs, fmt.Errorf("%s: link is %q: use an http or https URL", at, r.Link))
+		}
 		if r.When == "" {
 			errs = append(errs, fmt.Errorf("%s: when is empty", at))
 			continue
@@ -159,6 +199,9 @@ func parse(name string, data []byte) (*Policy, error) {
 	if len(errs) > 0 {
 		return nil, fmt.Errorf("%s: %w", name, errors.Join(errs...))
 	}
+	for i := range doc.Rules {
+		doc.Rules[i].source = name
+	}
 	return &Policy{Sources: []string{name}, Rules: doc.Rules, Suppressions: doc.Suppressions}, nil
 }
 
@@ -171,11 +214,17 @@ func (s *Suppression) check() error {
 		errs = append(errs, errors.New("reason is empty"))
 	}
 	if s.PURL != "" {
-		id, err := model.ParsePURL(s.PURL)
-		if err != nil {
+		p, err := model.ParsePackagePattern(s.PURL)
+		switch {
+		case err != nil:
 			errs = append(errs, err)
-		} else {
-			s.pkg = &id
+		case p.Glob() && s.Control == "":
+			// A glob names many packages. With no control, it would also
+			// hide an attack, such as malware in a package with a look-alike
+			// name of the glob.
+			errs = append(errs, fmt.Errorf("purl %q has a name glob: set control too", s.PURL))
+		default:
+			s.pkg = &p
 		}
 	}
 	if s.Expires != "" {

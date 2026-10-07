@@ -36,8 +36,8 @@ func TestEvaluate(t *testing.T) {
 		want    string
 	}{
 		{name: "published today", pkg: pkg("a", at(2*time.Hour)), want: "npm/a@1.0.0 was published less than 1 day ago"},
-		{name: "published 4 days ago", pkg: pkg("a", at(4*day+23*time.Hour)), want: "npm/a@1.0.0 was published 4 days ago"},
-		{name: "published 5 days ago", pkg: pkg("a", at(5*day))},
+		{name: "published 1 day ago", pkg: pkg("a", at(1*day+23*time.Hour)), want: "npm/a@1.0.0 was published 1 day ago"},
+		{name: "published 2 days ago", pkg: pkg("a", at(2*day))},
 		{name: "published long ago", pkg: pkg("a", at(400*day))},
 		{name: "no publish date", pkg: pkg("a", nil)},
 		{name: "a wider window", options: plugin.MapConfig{"days": 30}, pkg: pkg("a", at(20*day)), want: "npm/a@1.0.0 was published 20 days ago"},
@@ -72,6 +72,74 @@ func TestRemediationNamesThePreviousVersion(t *testing.T) {
 	require.Len(t, fs, 1)
 	assert.Contains(t, fs[0].Remediation.Summary, "keep version 0.9.0")
 	assert.Equal(t, model.ChangeUpgraded, fs[0].Change)
+}
+
+// origins is a config with the source of each option.
+type origins struct {
+	plugin.MapConfig
+	from map[string]string
+}
+
+func (o origins) Origin(key string) string { return o.from[key] }
+
+func TestDescriptionNamesTheWindowAndItsSource(t *testing.T) {
+	cases := []struct {
+		name string
+		cfg  plugin.Config
+		want string
+	}{
+		{"default", plugin.MapConfig(nil), "The version is eligible on 2026-10-04. The cooldown window is 2 days, from the vet default."},
+		{"flag", origins{plugin.MapConfig{"days": 5}, map[string]string{"days": "flag --cooldown-days"}}, "The version is eligible on 2026-10-07. The cooldown window is 5 days, from flag --cooldown-days."},
+		{"config with no source", plugin.MapConfig{"days": 1}, "The cooldown window is 1 day, from your config."},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			c, err := New(tc.cfg)
+			require.NoError(t, err)
+			c.(*Control).now = func() time.Time { return now }
+			fs := plugintest.TestControl(t, c, &model.Manifest{ID: "m1", Path: "package-lock.json", Packages: []*model.Package{pkg("a", at(time.Hour))}}, nil)
+			require.Len(t, fs, 1)
+			assert.Contains(t, fs[0].Description, tc.want)
+			assert.Contains(t, fs[0].Description, "The setting plugins.dependency-cooldown.options.days sets the window, also in a flag or a variable")
+		})
+	}
+}
+
+func TestSkip(t *testing.T) {
+	c, err := New(plugin.MapConfig{"skip": []any{
+		map[string]any{"purl": "pkg:golang/buf.build/gen/go/safedep/*", "reason": "Our own SDK."},
+		map[string]any{"purl": "pkg:npm/left-pad@1.0.0", "reason": "Reviewed."},
+	}})
+	require.NoError(t, err)
+	c.(*Control).now = func() time.Time { return now }
+	goPkg := func(name string) *model.Package {
+		p := &model.Package{ID: model.MustPackageVersion(model.EcosystemGo, name, "v1.0.0")}
+		p.Insight = &model.Insight{PublishedAt: at(time.Hour)}
+		return p
+	}
+	sdk, other := goPkg("buf.build/gen/go/safedep/api/grpc/go"), goPkg("buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go")
+	fs := plugintest.TestControl(t, c, &model.Manifest{ID: "m1", Path: "go.mod", Packages: []*model.Package{sdk, other, pkg("left-pad", at(time.Hour))}}, nil)
+	require.Len(t, fs, 1)
+	assert.Contains(t, fs[0].Title, "protovalidate")
+}
+
+func TestNewRejectsBadSkip(t *testing.T) {
+	cases := []struct {
+		name string
+		skip map[string]any
+		want string
+	}{
+		{"no reason", map[string]any{"purl": "pkg:npm/a"}, "skip[0]: reason is empty"},
+		{"not a PURL", map[string]any{"purl": "not a purl", "reason": "r"}, "skip[0]"},
+		{"a glob that does not parse", map[string]any{"purl": "pkg:npm/a[", "reason": "r"}, "name glob"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := New(plugin.MapConfig{"skip": []any{tc.skip}})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), tc.want)
+		})
+	}
 }
 
 func TestNewRejectsBadDays(t *testing.T) {

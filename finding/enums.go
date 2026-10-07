@@ -94,13 +94,16 @@ const (
 	FamilyLicense       Family = "license"
 	FamilyHygiene       Family = "hygiene"
 	FamilyReputation    Family = "reputation"
+	// FamilyPolicy holds the findings of the policy rules that run on each
+	// package.
+	FamilyPolicy Family = "policy"
 )
 
 // Families returns every family.
 func Families() []Family {
 	return []Family{
 		FamilyMalware, FamilyVulnerability, FamilyCooldown, FamilyWorkflow, FamilyLockfile,
-		FamilyAgentConfig, FamilyAIBOM, FamilyLicense, FamilyHygiene, FamilyReputation,
+		FamilyAgentConfig, FamilyAIBOM, FamilyLicense, FamilyHygiene, FamilyReputation, FamilyPolicy,
 	}
 }
 

@@ -3,7 +3,7 @@
 exec vet policy init vet-policy.yml --mode plain
 exists vet-policy.yml
 exec vet policy validate vet-policy.yml --mode plain -o json
-jsonq stdout rules 4
+jsonq stdout rules 3
 execexit 2 vet policy init vet-policy.yml --mode plain
 stderr 'exists'
 

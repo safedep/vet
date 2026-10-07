@@ -40,7 +40,9 @@ only with `--policy FILE` or the `policy.file` config key.
 6. Test the policy against a saved scan. `vet report list -o json` lists the scans. With no scan,
    run `vet scan . -o json` once. Then run `vet report show last --policy vet-policy.yml -o json`.
    The `trailer.gate` object holds the outcome, the rules that failed and the finding ids. Each
-   finding that a rule matched has `policy_rule`. The saved scan does not change.
+   finding that a rule or `--fail-on` matched has a `gate` object: the `action` (`fail` or `warn`),
+   the `rules`, the `fail_on` value and the `help` and `link` of the first rule. The saved scan does
+   not change.
 7. Show the user the policy, the gate outcome, and the findings that each rule matched or that a
    suppression hid. Then give the command that applies it: `vet scan . --policy vet-policy.yml`.
 

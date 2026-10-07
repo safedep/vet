@@ -19,6 +19,8 @@ func (s settings) PluginEnabled(name string, def bool) bool {
 	return def
 }
 
+func (s settings) PluginOrigin(string, string) string { return "" }
+
 func (s settings) PluginOptions(name string) map[string]any {
 	if o, ok := s.options[name]; ok {
 		return o

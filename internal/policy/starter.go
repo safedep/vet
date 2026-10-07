@@ -1,8 +1,9 @@
 package policy
 
 // Starter is the policy that "vet policy init" and "vet ci init --policy"
-// write. It fails on the controls that need no tuning and warns on the
-// others.
+// write. It fails on the controls that need no tuning. It has no cooldown
+// rule. The dependency-cooldown control reports a fresh version as a high
+// finding, and a rule on high findings, or --fail-on high, blocks it.
 const Starter = `# vet policy v2. vet scan --policy FILE applies it.
 # vet policy schema get prints the fields that a rule reads.
 version: 2
@@ -18,10 +19,6 @@ rules:
   - id: workflow-risk
     when: finding.control_id in ["dangerous-trigger", "template-injection"]
     action: fail
-  - id: fresh-packages
-    description: A version that the registry published in the last 5 days.
-    when: package.days_since_publish < 5
-    action: warn
 
 # A suppression hides findings from the gate. The findings stay in the
 # report. Set id, purl or control, a reason, and an optional expiry.

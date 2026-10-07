@@ -43,7 +43,18 @@ func Builtin() []Spec {
 type Settings interface {
 	PluginEnabled(name string, def bool) bool
 	PluginOptions(name string) map[string]any
+	// PluginOrigin names the source of one option of a plugin, or "".
+	PluginOrigin(name, key string) string
 }
+
+// config is the options of one plugin with their sources.
+type config struct {
+	plugin.MapConfig
+	name string
+	s    Settings
+}
+
+func (c config) Origin(key string) string { return c.s.PluginOrigin(c.name, key) }
 
 // Control is a built control plugin with its name.
 type Control struct {
@@ -58,7 +69,7 @@ func Build(s Settings) ([]Control, error) {
 		if !s.PluginEnabled(spec.Name, true) {
 			continue
 		}
-		c, err := spec.New(plugin.MapConfig(s.PluginOptions(spec.Name)))
+		c, err := spec.New(config{MapConfig: s.PluginOptions(spec.Name), name: spec.Name, s: s})
 		if err != nil {
 			return nil, fmt.Errorf("plugins.%s.options: %w", spec.Name, err)
 		}

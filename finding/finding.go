@@ -4,6 +4,8 @@ import (
 	"cmp"
 	"errors"
 	"fmt"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/safedep/vet/v2/model"
@@ -25,7 +27,7 @@ type Finding struct {
 	References  []string     `json:"references,omitempty"`
 	Remediation *Remediation `json:"remediation,omitempty"`
 	Suppression *Suppression `json:"suppression,omitempty"`
-	PolicyRule  string       `json:"policy_rule,omitempty"`
+	Gate        *GateRecord  `json:"gate,omitempty"`
 }
 
 // Subject holds exactly one of its fields. Kind names it.
@@ -108,6 +110,92 @@ type Suppression struct {
 	Rule    string     `json:"rule,omitempty"`
 }
 
+// GateAction is what the gate does with a finding.
+type GateAction string
+
+const (
+	// GateActionFail means that the finding fails the gate.
+	GateActionFail GateAction = "fail"
+	// GateActionWarn means that a warn rule matched the finding, and the
+	// finding does not fail the gate.
+	GateActionWarn GateAction = "warn"
+)
+
+// GateRecord records why the gate fails or warns on a finding. A finding that
+// no rule and no --fail-on value matches has no Gate, and neither has a
+// suppressed finding.
+type GateRecord struct {
+	Action GateAction `json:"action"`
+	// Rules are the policy rules that match with the action: each fail
+	// rule, or the first warn rule.
+	Rules []string `json:"rules,omitempty"`
+	// Broken are the fail rules that did not evaluate. Each one fails the
+	// finding, so that a rule that cannot run does not let it pass.
+	Broken []string `json:"broken,omitempty"`
+	// FailOn is the --fail-on value that fails the finding.
+	FailOn string `json:"fail_on,omitempty"`
+	// Help and Link come from the first rule in Rules.
+	Help string `json:"help,omitempty"`
+	Link string `json:"link,omitempty"`
+}
+
+// Valid reports whether the action is in the closed set.
+func (a GateAction) Valid() bool { return a == GateActionFail || a == GateActionWarn }
+
+// Label is "Blocked by" for a fail record and "Warned by" for a warn
+// record.
+func (g *GateRecord) Label() string {
+	if g.Action == GateActionFail {
+		return "Blocked by"
+	}
+	return "Warned by"
+}
+
+// Cause names the rules and the --fail-on value of the record, as in
+// "policy rule no-malware and --fail-on high".
+func (g *GateRecord) Cause() string {
+	var parts []string
+	switch len(g.Rules) {
+	case 0:
+	case 1:
+		parts = append(parts, "policy rule "+g.Rules[0])
+	default:
+		parts = append(parts, "policy rules "+strings.Join(g.Rules, ", "))
+	}
+	for _, r := range g.Broken {
+		parts = append(parts, "policy rule "+r+", which did not evaluate")
+	}
+	if g.FailOn != "" {
+		parts = append(parts, "--fail-on "+g.FailOn)
+	}
+	return strings.Join(parts, " and ")
+}
+
+// Short names the rules and the --fail-on value of the record, as
+// "no-malware, bad (broken), --fail-on high", for a narrow column.
+func (g *GateRecord) Short() string {
+	parts := slices.Clone(g.Rules)
+	for _, r := range g.Broken {
+		parts = append(parts, r+" (broken)")
+	}
+	if g.FailOn != "" {
+		parts = append(parts, "--fail-on "+g.FailOn)
+	}
+	return strings.Join(parts, ", ")
+}
+
+// Equal reports whether two records are the same. Both can be nil.
+func (g *GateRecord) Equal(o *GateRecord) bool {
+	if g == nil || o == nil {
+		return g == o
+	}
+	return g.Action == o.Action && slices.Equal(g.Rules, o.Rules) && slices.Equal(g.Broken, o.Broken) &&
+		g.FailOn == o.FailOn && g.Help == o.Help && g.Link == o.Link
+}
+
+// Fails reports whether the finding fails the gate.
+func (f *Finding) Fails() bool { return f.Gate != nil && f.Gate.Action == GateActionFail }
+
 // Suppressed reports whether a policy suppressed the finding.
 func (f *Finding) Suppressed() bool { return f.Suppression != nil }
 
@@ -134,6 +222,9 @@ func (f *Finding) Validate() error {
 	}
 	if f.Title == "" {
 		errs = append(errs, errors.New("title is empty"))
+	}
+	if f.Gate != nil && !f.Gate.Action.Valid() {
+		errs = append(errs, fmt.Errorf("unknown gate action %q", f.Gate.Action))
 	}
 	if err := f.Subject.validate(); err != nil {
 		errs = append(errs, err)

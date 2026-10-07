@@ -25,7 +25,9 @@ func (g *Gate) Add(f *finding.Finding, o Outcome) {
 		return
 	}
 	g.fail = true
-	g.ids = append(g.ids, f.ID)
+	if !slices.Contains(g.ids, f.ID) {
+		g.ids = append(g.ids, f.ID)
+	}
 	for _, r := range append(slices.Clone(o.FailRules), o.BrokenRules...) {
 		if !slices.Contains(g.rules, r) {
 			g.rules = append(g.rules, r)

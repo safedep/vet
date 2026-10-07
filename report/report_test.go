@@ -121,3 +121,38 @@ func TestShortIDTellsTheFindingsApart(t *testing.T) {
 		})
 	}
 }
+
+func TestPackageEntryMergeKeepsTheMostRisk(t *testing.T) {
+	id := model.MustPackageVersion(model.EcosystemNpm, "lodash", "4.17.21")
+	e := PackageEntry{ManifestIDs: []string{"a"}, Package: model.Package{ID: id, Change: model.ChangeUnchanged, Dev: true}}
+	e.Merge("b", &model.Package{ID: id, Change: model.ChangeUpgraded, PreviousVersion: "4.17.20", Direct: true})
+	assert.Equal(t, []string{"a", "b"}, e.ManifestIDs)
+	assert.Equal(t, model.ChangeUpgraded, e.Change, "one manifest upgrades the package")
+	assert.Equal(t, "4.17.20", e.PreviousVersion)
+	assert.True(t, e.Direct)
+	assert.False(t, e.Dev, "one manifest has it as a runtime dependency")
+}
+
+func TestPackageEntryKeepsTheFieldsOfEachManifest(t *testing.T) {
+	id := model.MustPackageVersion(model.EcosystemNpm, "lodash", "4.17.21")
+	same := PackageEntry{ManifestIDs: []string{"a"}, Package: model.Package{ID: id, Direct: true}}
+	same.Merge("b", &model.Package{ID: id, Direct: true})
+	assert.Empty(t, same.Uses, "the manifests agree")
+
+	e := PackageEntry{ManifestIDs: []string{"a"}, Package: model.Package{ID: id, Change: model.ChangeUnchanged, Dev: true}}
+	e.Merge("b", &model.Package{ID: id, Change: model.ChangeUnchanged, Dev: true})
+	e.Merge("c", &model.Package{ID: id, Change: model.ChangeUpgraded, PreviousVersion: "4.17.20", Direct: true})
+	require.Len(t, e.Uses, 3)
+
+	a := e.In("a")
+	assert.Equal(t, model.ChangeUnchanged, a.Change)
+	assert.False(t, a.Direct)
+	assert.True(t, a.Dev)
+	assert.Equal(t, a, e.In("b"))
+
+	c := e.In("c")
+	assert.Equal(t, model.ChangeUpgraded, c.Change)
+	assert.Equal(t, "4.17.20", c.PreviousVersion)
+	assert.True(t, c.Direct)
+	assert.False(t, c.Dev)
+}

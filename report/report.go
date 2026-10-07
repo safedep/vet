@@ -14,7 +14,8 @@ import (
 
 const (
 	// SchemaVersion is the version of the report schema, not of vet. A
-	// breaking change raises its major version and its URL.
+	// breaking change raises its major version and its URL. The rule starts
+	// at the v2.0.0 release. The edge builds before it can change the schema.
 	SchemaVersion = "1.0.0"
 
 	// SchemaURL names the JSON Schema of this version.
@@ -91,11 +92,66 @@ type Record struct {
 }
 
 // PackageEntry is a package with the manifests that declare it. PURL
-// follows the purl-spec type definition of the ecosystem.
+// follows the purl-spec type definition of the ecosystem. Uses is empty
+// when each manifest declares the package with the same fields.
 type PackageEntry struct {
-	PURL        string   `json:"purl"`
-	ManifestIDs []string `json:"manifest_ids"`
+	PURL        string       `json:"purl"`
+	ManifestIDs []string     `json:"manifest_ids"`
+	Uses        []PackageUse `json:"uses,omitempty"`
 	model.Package
+}
+
+// PackageUse holds the fields of a package that change from one manifest
+// to the next and that a policy rule reads.
+type PackageUse struct {
+	ManifestID      string       `json:"manifest_id"`
+	Direct          bool         `json:"direct"`
+	Dev             bool         `json:"dev,omitempty"`
+	Change          model.Change `json:"change,omitempty"`
+	PreviousVersion string       `json:"previous_version,omitempty"`
+	Resolved        string       `json:"resolved,omitempty"`
+}
+
+func useOf(manifestID string, p *model.Package) PackageUse {
+	return PackageUse{
+		ManifestID: manifestID, Direct: p.Direct, Dev: p.Dev,
+		Change: p.Change, PreviousVersion: p.PreviousVersion, Resolved: p.Resolved,
+	}
+}
+
+// Merge adds the copy of the package in one more manifest. The entry keeps
+// the most risk: the change of a manifest that adds or changes the
+// package, direct when one manifest has it direct, and dev only when each
+// manifest has it as dev. When the manifests disagree, Uses keeps the
+// fields of each manifest, so a policy on a saved report reads them.
+func (e *PackageEntry) Merge(manifestID string, p *model.Package) {
+	use := useOf(manifestID, p)
+	if len(e.Uses) == 0 && useOf(manifestID, &e.Package) != use {
+		for _, id := range e.ManifestIDs {
+			e.Uses = append(e.Uses, useOf(id, &e.Package))
+		}
+	}
+	if len(e.Uses) > 0 {
+		e.Uses = append(e.Uses, use)
+	}
+	e.ManifestIDs = append(e.ManifestIDs, manifestID)
+	if !e.Change.Introduces() && p.Change.Introduces() {
+		e.Change, e.PreviousVersion = p.Change, p.PreviousVersion
+	}
+	e.Direct = e.Direct || p.Direct
+	e.Dev = e.Dev && p.Dev
+}
+
+// In returns the package as the manifest declares it.
+func (e *PackageEntry) In(manifestID string) model.Package {
+	p := e.Package
+	for _, u := range e.Uses {
+		if u.ManifestID == manifestID {
+			p.Direct, p.Dev, p.Change, p.PreviousVersion, p.Resolved = u.Direct, u.Dev, u.Change, u.PreviousVersion, u.Resolved
+			break
+		}
+	}
+	return p
 }
 
 // InventoryKind names the kind of an inventory item.
