@@ -3,8 +3,12 @@ package scanner
 import (
 	"context"
 	"fmt"
+	"strings"
+	"sync"
 
+	"github.com/safedep/vet/ent"
 	"github.com/safedep/vet/pkg/code"
+	"github.com/safedep/vet/pkg/common/logger"
 	"github.com/safedep/vet/pkg/models"
 )
 
@@ -15,6 +19,10 @@ type CodeAnalysisEnricherConfig struct {
 type codeAnalysisEnricher struct {
 	config           CodeAnalysisEnricherConfig
 	ReaderRepository code.ReaderRepository
+	javaEvidenceOnce sync.Once
+	javaEvidences    []*ent.DepsUsageEvidence
+	javaEvidenceErr  error
+	javaArchiveCache sync.Map
 }
 
 var _ PackageMetaEnricher = (*codeAnalysisEnricher)(nil)
@@ -55,12 +63,68 @@ func (e *codeAnalysisEnricher) Wait() error {
 	return nil
 }
 
+// EnrichDependencyUsageEvidence attaches package-hint matches and, for Maven
+// packages, Java imports whose classes occur in a locally cached artifact.
 func (e *codeAnalysisEnricher) EnrichDependencyUsageEvidence(pkg *models.Package) error {
 	evidences, err := e.ReaderRepository.GetDependencyUsageEvidencesByPackageName(context.Background(), pkg.GetName())
 	if err != nil {
 		return fmt.Errorf("failed to fetch dependency usage evidence: %w", err)
 	}
 
+	if !strings.EqualFold(string(pkg.Ecosystem), models.EcosystemMaven) {
+		pkg.CodeAnalysis.UsageEvidences = evidences
+		return nil
+	}
+	// Without package-hint matches, Maven usage stays unknown until an
+	// artifact can be inspected successfully.
+	if len(evidences) == 0 {
+		evidences = nil
+	}
+
+	group, artifact, ok := strings.Cut(pkg.GetName(), ":")
+	if !ok {
+		pkg.CodeAnalysis.UsageEvidences = evidences
+		return nil
+	}
+	archives := localJavaArchives(group, artifact, pkg.GetVersion())
+	if len(archives) == 0 {
+		pkg.CodeAnalysis.UsageEvidences = evidences
+		return nil
+	}
+
+	e.javaEvidenceOnce.Do(func() {
+		e.javaEvidences, e.javaEvidenceErr = e.ReaderRepository.GetJavaDependencyUsageEvidences(context.Background())
+	})
+	if e.javaEvidenceErr != nil {
+		return e.javaEvidenceErr
+	}
+	seen := make(map[int]struct{}, len(evidences))
+	for _, evidence := range evidences {
+		seen[evidence.ID] = struct{}{}
+	}
+	for _, archivePath := range archives {
+		value, ok := e.javaArchiveCache.Load(archivePath)
+		if !ok {
+			index, err := indexJavaArchive(archivePath)
+			if err != nil {
+				logger.Warnf("skipping unreadable Java archive %s: %v", archivePath, err)
+				continue
+			}
+			value, _ = e.javaArchiveCache.LoadOrStore(archivePath, index)
+		}
+		index := value.(*javaArchiveIndex)
+		// A readable artifact distinguishes no matches from unavailable evidence.
+		if evidences == nil {
+			evidences = []*ent.DepsUsageEvidence{}
+		}
+		for _, evidence := range e.javaEvidences {
+			if _, exists := seen[evidence.ID]; exists || !index.containsJavaImport(evidence) {
+				continue
+			}
+			evidences = append(evidences, evidence)
+			seen[evidence.ID] = struct{}{}
+		}
+	}
 	pkg.CodeAnalysis.UsageEvidences = evidences
 	return nil
 }
