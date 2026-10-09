@@ -3,7 +3,7 @@ zope.interface==5.4.0
     #   scrapy
     #   twisted
 
-Pillow==1.0.0
+Pillow==12.3.0
 
-Twisted[http2]==20.3.0
+Twisted[http2]==26.4.0rc2
     # via scrapy

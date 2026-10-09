@@ -1,2 +1,2 @@
-twisted[http2]==20.3.0
+twisted[http2]==26.4.0rc2
     # via scrapy
