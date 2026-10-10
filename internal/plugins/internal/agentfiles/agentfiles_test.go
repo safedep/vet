@@ -24,6 +24,8 @@ func TestClassify(t *testing.T) {
 		{".devcontainer/devcontainer.json", DevContainer},
 		{".devcontainer.json", DevContainer},
 		{".husky/pre-commit", GitHook},
+		{".githooks/pre-commit", GitHook},
+		{"tools/.githooks/post-checkout", GitHook},
 		{"lefthook.yml", Lefthook},
 		{".mcp.json", MCPConfig},
 		{".cursor/mcp.json", MCPConfig},
@@ -41,7 +43,7 @@ func TestClassify(t *testing.T) {
 		assert.True(t, ok, tc.path)
 		assert.Equal(t, tc.want, got, tc.path)
 	}
-	for _, p := range []string{"tasks.json", "settings.json", ".husky/_/husky.sh", "README.md", "mcp.json", ".cursor/settings.json", "User/tasks.json", ".config/Other/User/tasks.json"} {
+	for _, p := range []string{"tasks.json", "settings.json", ".husky/_/husky.sh", "README.md", "mcp.json", ".cursor/settings.json", ".githooks/README.md", "User/tasks.json", ".config/Other/User/tasks.json"} {
 		_, ok := Classify(p)
 		assert.False(t, ok, p)
 	}

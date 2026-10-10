@@ -24,7 +24,8 @@ const (
 	ClaudeSettings Type = "claude-settings"
 	// DevContainer is devcontainer.json, with lifecycle commands.
 	DevContainer Type = "devcontainer"
-	// GitHook is a husky hook script.
+	// GitHook is a husky hook script, or a hook of a .githooks folder that a
+	// setup step points core.hooksPath at.
 	GitHook Type = "git-hook"
 	// Lefthook is lefthook.yml.
 	Lefthook Type = "lefthook"
@@ -71,6 +72,16 @@ func isEditorUserDir(p string) bool {
 	return path.Base(p) == "User" && slices.Contains(editorUserDirs, path.Base(path.Dir(p)))
 }
 
+// gitHooks are the hook names that git runs.
+var gitHooks = map[string]bool{
+	"applypatch-msg": true, "pre-applypatch": true, "post-applypatch": true,
+	"pre-commit": true, "pre-merge-commit": true, "prepare-commit-msg": true,
+	"commit-msg": true, "post-commit": true, "pre-rebase": true,
+	"post-checkout": true, "post-merge": true, "pre-push": true,
+	"post-rewrite": true, "reference-transaction": true, "push-to-checkout": true,
+	"pre-auto-gc": true, "fsmonitor-watchman": true, "sendemail-validate": true,
+}
+
 var instructionFiles = map[string]bool{
 	"claude.md": true, "agents.md": true, "gemini.md": true,
 	".cursorrules": true, ".windsurfrules": true, ".clinerules": true,
@@ -91,7 +102,8 @@ func Classify(p string) (t Type, ok bool) {
 		return ClaudeSettings, true
 	case dir == ".devcontainer" && base == "devcontainer.json", base == ".devcontainer.json":
 		return DevContainer, true
-	case dir == ".husky" && !strings.HasPrefix(base, "_") && !strings.HasPrefix(base, "."):
+	case dir == ".husky" && !strings.HasPrefix(base, "_") && !strings.HasPrefix(base, "."),
+		dir == ".githooks" && gitHooks[base]:
 		return GitHook, true
 	case base == "lefthook.yml" || base == "lefthook.yaml" || base == ".lefthook.yml" || base == ".lefthook.yaml":
 		return Lefthook, true
