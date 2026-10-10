@@ -25,6 +25,7 @@ to its section.
 | [`mcp-server-added`](#mcp-server-added) | agent-config | medium | MCP server in an agent config |
 | [`agent-instruction-change`](#agent-instruction-change) | agent-config | info | Agent instruction file |
 | [`suspicious-command`](#suspicious-command) | agent-config | critical | Suspicious command in an agent or editor config |
+| [`agent-config-unreadable`](#agent-config-unreadable) | agent-config | high | Agent or editor config that vet cannot read |
 | [`dependency-cooldown`](#dependency-cooldown) | cooldown | high | Version inside the cooldown window |
 | [`install-scripts-added`](#install-scripts-added) | hygiene | high | New dependency with install scripts |
 | [`provenance-lost`](#provenance-lost) | hygiene | medium | Provenance lost on an upgrade |
@@ -225,6 +226,12 @@ An instruction file tells a coding agent what to do in the project. Review it li
 **Suspicious command in an agent or editor config.** Family `agent-config`. Default severity critical. Plugin `agent-config`. The attacks gate fails on it.
 
 A command that an editor, an agent or a git hook runs looks malicious: it runs a downloaded script, decodes a payload or reads credentials.
+
+### agent-config-unreadable
+
+**Agent or editor config that vet cannot read.** Family `agent-config`. Default severity high. Plugin `agent-config`.
+
+vet cannot parse the file, or the file is too large to read, so vet cannot check what it runs. An editor or an agent can still run it, and an attacker can break or pad a file to hide a command.
 
 ### dependency-cooldown
 

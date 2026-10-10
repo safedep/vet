@@ -28,7 +28,13 @@ const (
 	IDMCPServer         = "mcp-server-added"
 	IDInstructionChange = "agent-instruction-change"
 	IDSuspiciousCommand = "suspicious-command"
+	IDUnreadable        = "agent-config-unreadable"
 )
+
+// maxSize is the largest config file that the control reads. A larger file
+// gives an unreadable finding, because padding can push a payload past any
+// size limit.
+const maxSize = 16 << 20
 
 // Options are plugins.agent-config.options.
 type Options struct{}
@@ -72,6 +78,11 @@ var infos = []plugin.ControlInfo{
 		Description: "A command that an editor, an agent or a git hook runs looks malicious: it runs a downloaded script, decodes a payload or reads credentials.",
 		Attack:      true,
 	},
+	{
+		ID: IDUnreadable, Family: finding.FamilyAgentConfig, Severity: finding.SeverityHigh,
+		Title:       "Agent or editor config that vet cannot read",
+		Description: "vet cannot parse the file, or the file is too large to read, so vet cannot check what it runs. An editor or an agent can still run it, and an attacker can break or pad a file to hide a command.",
+	},
 }
 
 // Controls describes the control ids.
@@ -89,34 +100,46 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 	if !ok {
 		return nil, nil
 	}
+	e := &emitter{path: m.Path, seen: map[string]int{}}
+	info, err := fs.Stat(m.Root, m.Path)
+	if err != nil {
+		return nil, fmt.Errorf("stat %s: %w", m.Path, err)
+	}
+	if info.Size() > maxSize {
+		e.unreadable(1, "size", fmt.Sprintf("%s is %d MiB, larger than the %d MiB that vet reads", m.Path, info.Size()>>20, maxSize>>20))
+		return e.out, nil
+	}
 	data, err := fs.ReadFile(m.Root, m.Path)
 	if err != nil {
 		return nil, fmt.Errorf("read %s: %w", m.Path, err)
 	}
-	e := &emitter{path: m.Path, lines: strings.Split(string(data), "\n"), seen: map[string]int{}}
-	switch t {
-	case agentfiles.Instructions:
+	e.lines = strings.Split(string(data), "\n")
+	if t == agentfiles.Instructions {
 		e.add(IDInstructionChange, finding.SeverityInfo, 1, "instructions", "Agent instruction file "+m.Path, nil)
 		return e.out, nil
-	case agentfiles.MCPConfig:
-		servers, err := mcpServers(data)
-		if err != nil {
-			return nil, nil
-		}
-		for _, s := range servers {
-			c.server(e, s)
-		}
-		return e.out, nil
 	}
-	cmds, err := commands(t, data)
+	cmds, servers, err := parse(t, data)
 	if err != nil {
-		// A file that does not parse runs nothing in the editor either.
-		return nil, nil
+		e.unreadable(errorLine(data, err), "parse", fmt.Sprintf("vet cannot parse %s: %v", m.Path, err))
+		return e.out, nil
 	}
 	for _, cmd := range cmds {
 		c.command(e, t, cmd)
 	}
+	for _, s := range servers {
+		c.server(e, s)
+	}
 	return e.out, nil
+}
+
+// parse reads the commands of a file, or the servers of an MCP config.
+func parse(t agentfiles.Type, data []byte) ([]command, []server, error) {
+	if t == agentfiles.MCPConfig {
+		servers, err := mcpServers(data)
+		return nil, servers, err
+	}
+	cmds, err := commands(t, data)
+	return cmds, nil, err
 }
 
 func commands(t agentfiles.Type, data []byte) ([]command, error) {
@@ -171,6 +194,11 @@ func (*Control) suspicious(e *emitter, line int, name, text string) {
 	}
 	e.add(IDSuspiciousCommand, finding.SeverityCritical, line, name, fmt.Sprintf("%s %s", name, reason),
 		&finding.Remediation{Summary: "Do not run the command. Remove it, and check the machines that ran it."})
+}
+
+func (e *emitter) unreadable(line int, discriminator, title string) {
+	e.add(IDUnreadable, finding.SeverityHigh, line, discriminator, title,
+		&finding.Remediation{Summary: "Fix the file or remove it. An editor or an agent can run what vet cannot read."})
 }
 
 // short cuts a command to its first 80 characters for a title.

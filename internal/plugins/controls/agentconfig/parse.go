@@ -3,6 +3,7 @@ package agentconfig
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -82,8 +83,29 @@ func stripJSONC(data []byte) []byte {
 	return out.Bytes()
 }
 
+// errorLine returns the line of a JSON syntax error in a JSON with comments
+// file, or 1. stripJSONC keeps the line breaks, so the offset in the
+// stripped data gives the line in the file.
+func errorLine(data []byte, err error) int {
+	var se *json.SyntaxError
+	if !errors.As(err, &se) {
+		return 1
+	}
+	clean := stripJSONC(data)
+	if se.Offset <= 0 || se.Offset > int64(len(clean)) {
+		return 1
+	}
+	return bytes.Count(clean[:se.Offset], []byte("\n")) + 1
+}
+
+// decodeJSONC decodes a JSON with comments file. An empty file holds
+// nothing and leaves v as it is.
 func decodeJSONC(data []byte, v any) error {
-	return json.Unmarshal(stripJSONC(data), v)
+	clean := stripJSONC(data)
+	if len(bytes.TrimSpace(clean)) == 0 {
+		return nil
+	}
+	return json.Unmarshal(clean, v)
 }
 
 // lineOf returns the line of the first occurrence of the JSON form of s,

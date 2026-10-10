@@ -2,7 +2,9 @@ package agentconfig_test
 
 import (
 	"os"
+	"strings"
 	"testing"
+	"testing/fstest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -79,4 +81,42 @@ func TestAgentConfigSkips(t *testing.T) {
 	}
 	_, err = agentconfig.New(plugin.MapConfig(map[string]any{"x": 1}))
 	assert.Error(t, err)
+}
+
+// testFile evaluates one file of a memory file system.
+func testFile(t *testing.T, path, data string) []want {
+	t.Helper()
+	c, err := agentconfig.New(plugin.MapConfig(nil))
+	require.NoError(t, err)
+	root := fstest.MapFS{path: {Data: []byte(data)}}
+	m := &model.Manifest{ID: "m", Path: path, Kind: model.ManifestKindAgentConfig, Root: root}
+	var got []want
+	for _, f := range plugintest.TestControl(t, c, m, nil) {
+		got = append(got, want{f.ControlID, f.Severity, f.Locus.StartLine})
+	}
+	return got
+}
+
+func TestAgentConfigUnreadable(t *testing.T) {
+	unreadable := func(line int) []want {
+		return []want{{agentconfig.IDUnreadable, finding.SeverityHigh, line}}
+	}
+	cases := []struct {
+		name, path, data string
+		want             []want
+	}{
+		{"missing comma", ".vscode/tasks.json", "{\n\"version\": \"2.0.0\"\n\"tasks\": []}", unreadable(3)},
+		{"unterminated comment holds no command", ".vscode/tasks.json", "{\"tasks\": []} /* x", nil},
+		{"wrong type", ".vscode/tasks.json", `{"tasks": [{"label": 5}]}`, unreadable(1)},
+		{"broken MCP config", ".cursor/mcp.json", `{"mcpServers": {`, unreadable(1)},
+		{"broken lefthook", "lefthook.yml", "pre-commit:\n  commands: [", unreadable(1)},
+		{"too large", ".vscode/tasks.json", `{"tasks": []}` + strings.Repeat(" ", 17<<20), unreadable(1)},
+		{"trailing comma parses", ".vscode/tasks.json", `{"tasks": [],}`, nil},
+		{"empty file", ".vscode/tasks.json", " \n", nil},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.ElementsMatch(t, tc.want, testFile(t, tc.path, tc.data))
+		})
+	}
 }
