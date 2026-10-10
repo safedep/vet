@@ -26,6 +26,13 @@ type command struct {
 	hidden bool
 }
 
+// setting is one editor setting that turns off a safety check.
+type setting struct {
+	key   string
+	title string
+	line  int
+}
+
 // server is one MCP server of a config file.
 type server struct {
 	name    string
@@ -454,6 +461,35 @@ func mcpServers(data []byte) ([]server, error) {
 		}
 		cmd := strings.TrimSpace(strings.Join(words, " "))
 		out = append(out, server{name: n, command: cmd, url: url, line: lineOf(data, n)})
+	}
+	return out, nil
+}
+
+// unsafeSettings are the editor settings that turn off a safety check, with
+// the values that do it and why.
+var unsafeSettings = []struct {
+	key    string
+	unsafe func(v any) bool
+	title  string
+}{
+	{"task.allowAutomaticTasks", func(v any) bool { return v == "on" || v == true }, "Setting task.allowAutomaticTasks lets a folder-open task run with no prompt"},
+	{"terminal.integrated.hideOnStartup", func(v any) bool { return v == "always" }, "Setting terminal.integrated.hideOnStartup hides the terminal of a task"},
+	{"security.workspace.trust.enabled", func(v any) bool { return v == false }, "Setting security.workspace.trust.enabled turns off workspace trust"},
+}
+
+// editorSettings reads the settings of an editor settings.json that turn
+// off a safety check.
+func editorSettings(data []byte) ([]setting, error) {
+	doc, err := decodeJSONC(data)
+	if err != nil {
+		return nil, err
+	}
+	root := objectOf(doc)
+	var out []setting
+	for _, u := range unsafeSettings {
+		if v, ok := root[u.key]; ok && u.unsafe(v) {
+			out = append(out, setting{key: u.key, title: u.title, line: lineOf(data, `"`+u.key+`"`)})
+		}
 	}
 	return out, nil
 }

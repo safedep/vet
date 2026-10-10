@@ -31,6 +31,7 @@ const (
 	IDInstructionChange = "agent-instruction-change"
 	IDSuspiciousCommand = "suspicious-command"
 	IDUnreadable        = "agent-config-unreadable"
+	IDEditorAutorun     = "editor-autorun-enabled"
 )
 
 const (
@@ -90,6 +91,11 @@ var infos = []plugin.ControlInfo{
 		Attack:      true,
 	},
 	{
+		ID: IDEditorAutorun, Family: finding.FamilyAgentConfig, Severity: finding.SeverityHigh,
+		Title:       "Editor setting turns off a safety check",
+		Description: "A setting lets tasks run with no prompt, hides the terminal of a task, or turns off workspace trust. An attacker sets it so that a folder-open task runs unseen.",
+	},
+	{
 		ID: IDUnreadable, Family: finding.FamilyAgentConfig, Severity: finding.SeverityHigh,
 		Title:       "Agent or editor config that vet cannot read",
 		Description: "vet cannot parse the file, or the file is too large to read, so vet cannot check what it runs. An editor or an agent can still run it, and an attacker can break or pad a file to hide a command.",
@@ -125,21 +131,25 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 		e.add(IDInstructionChange, finding.SeverityInfo, 1, "instructions", "Agent instruction file "+m.Path, nil)
 		return e.out, nil
 	}
-	cmds, servers, err := parse(t, data)
+	p, err := parse(t, data)
 	if err != nil {
 		e.unreadable(errorLine(err), "parse", fmt.Sprintf("vet cannot parse %s: %s", m.Path, short(firstLine(err.Error()))))
 		return e.out, nil
 	}
-	if len(cmds)+len(servers) > maxCommands {
+	if len(p.commands)+len(p.servers) > maxCommands {
 		e.unreadable(1, "count", fmt.Sprintf("%s holds more than %d commands, the most that vet reads", m.Path, maxCommands))
-		cmds = cmds[:min(len(cmds), maxCommands)]
-		servers = servers[:min(len(servers), maxCommands-len(cmds))]
+		p.commands = p.commands[:min(len(p.commands), maxCommands)]
+		p.servers = p.servers[:min(len(p.servers), maxCommands-len(p.commands))]
 	}
-	for _, cmd := range cmds {
+	for _, cmd := range p.commands {
 		c.command(e, t, cmd)
 	}
-	for _, s := range servers {
+	for _, s := range p.servers {
 		c.server(e, s)
+	}
+	for _, s := range p.settings {
+		e.add(IDEditorAutorun, finding.SeverityHigh, s.line, s.key, s.title,
+			&finding.Remediation{Summary: "Remove the setting. Let the editor ask before a task runs."})
 	}
 	return e.out, nil
 }
@@ -166,14 +176,27 @@ func firstLine(s string) string {
 	return s
 }
 
-// parse reads the commands of a file, or the servers of an MCP config.
-func parse(t agentfiles.Type, data []byte) ([]command, []server, error) {
-	if t == agentfiles.MCPConfig {
-		servers, err := mcpServers(data)
-		return nil, servers, err
+// parsed is what a config file runs or sets.
+type parsed struct {
+	commands []command
+	servers  []server
+	settings []setting
+}
+
+// parse reads the commands of a file, the servers of an MCP config, or the
+// settings of an editor.
+func parse(t agentfiles.Type, data []byte) (parsed, error) {
+	var p parsed
+	var err error
+	switch t {
+	case agentfiles.MCPConfig:
+		p.servers, err = mcpServers(data)
+	case agentfiles.EditorSettings:
+		p.settings, err = editorSettings(data)
+	default:
+		p.commands, err = commands(t, data)
 	}
-	cmds, err := commands(t, data)
-	return cmds, nil, err
+	return p, err
 }
 
 func commands(t agentfiles.Type, data []byte) ([]command, error) {

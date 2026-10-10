@@ -212,3 +212,20 @@ func TestHiddenFolderOpenTask(t *testing.T) {
 	got := testFile(t, ".vscode/tasks.json", `{"tasks":[{"label":"x","command":"npm run lint","hide":true,"presentation":{"reveal":"never","echo":false}}]}`)
 	assert.Equal(t, []want{{agentconfig.IDEditorTask, finding.SeverityMedium, 1}}, got, "a hidden task that does not run on open waits for a click")
 }
+
+func TestEditorAutorun(t *testing.T) {
+	autorun := func(line int) want { return want{agentconfig.IDEditorAutorun, finding.SeverityHigh, line} }
+	cases := []struct {
+		name, path, data string
+		want             []want
+	}{
+		{"workspace settings", ".vscode/settings.json", "{\n  // Run tasks.\n  \"task.allowAutomaticTasks\": \"on\",\n  \"terminal.integrated.hideOnStartup\": \"always\",\n}", []want{autorun(3), autorun(4)}},
+		{"user settings", ".config/Code/User/settings.json", `{"security.workspace.trust.enabled": false}`, []want{autorun(1)}},
+		{"safe values", ".vscode/settings.json", `{"task.allowAutomaticTasks": "off", "terminal.integrated.hideOnStartup": "never", "editor.tabSize": 2}`, nil},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.ElementsMatch(t, tc.want, testFile(t, tc.path, tc.data))
+		})
+	}
+}

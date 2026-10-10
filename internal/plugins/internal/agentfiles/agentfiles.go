@@ -16,6 +16,10 @@ const (
 	// EditorTasks is .vscode/tasks.json, .cursor/tasks.json or the user
 	// tasks of an editor.
 	EditorTasks Type = "editor-tasks"
+	// EditorSettings is the settings.json of an editor, in .vscode or in
+	// the user folder of the editor. A setting can make tasks run with no
+	// prompt.
+	EditorSettings Type = "editor-settings"
 	// ClaudeSettings is .claude/settings.json, with hooks.
 	ClaudeSettings Type = "claude-settings"
 	// DevContainer is devcontainer.json, with lifecycle commands.
@@ -43,21 +47,21 @@ var HomeFiles = append([]string{
 	".vscode/mcp.json",
 	".codeium/windsurf/mcp_config.json",
 	".gemini/settings.json",
-}, userTasks()...)
+}, userFiles()...)
 
 // editorUserDirs are the folder names of the editors that keep user tasks
-// in <config dir>/<name>/User/tasks.json.
+// and settings in <config dir>/<name>/User.
 var editorUserDirs = []string{"Code", "Code - Insiders", "Cursor", "VSCodium", "Windsurf"}
 
 // configDirs are the config folders of each OS, relative to the home
 // directory: Linux, macOS and Windows.
 var configDirs = []string{".config", "Library/Application Support", "AppData/Roaming"}
 
-func userTasks() []string {
+func userFiles() []string {
 	var out []string
 	for _, c := range configDirs {
 		for _, e := range editorUserDirs {
-			out = append(out, c+"/"+e+"/User/tasks.json")
+			out = append(out, c+"/"+e+"/User/tasks.json", c+"/"+e+"/User/settings.json")
 		}
 	}
 	return out
@@ -81,6 +85,8 @@ func Classify(p string) (t Type, ok bool) {
 	switch {
 	case base == "tasks.json" && (dir == ".vscode" || dir == ".cursor" || isEditorUserDir(path.Dir(p))):
 		return EditorTasks, true
+	case base == "settings.json" && (dir == ".vscode" || isEditorUserDir(path.Dir(p))):
+		return EditorSettings, true
 	case dir == ".claude" && (base == "settings.json" || base == "settings.local.json"):
 		return ClaudeSettings, true
 	case dir == ".devcontainer" && base == "devcontainer.json", base == ".devcontainer.json":
