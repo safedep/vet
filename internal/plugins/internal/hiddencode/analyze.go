@@ -265,8 +265,6 @@ func disguised(p string, data []byte) []Signal {
 		(bytes.HasPrefix(trimmed, []byte("<")) && !bytes.HasPrefix(trimmed, []byte("<!--"))) {
 		// A web page or a data URI that a download saved under the name of
 		// an image is not a script that node runs.
-		// A web page that a download saved under the name of an image is
-		// not a script that node runs.
 		return nil
 	}
 	lead := len(data) - len(trimmed)
