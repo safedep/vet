@@ -5,6 +5,7 @@ package agentfiles
 
 import (
 	"path"
+	"slices"
 	"strings"
 )
 
@@ -12,7 +13,8 @@ import (
 type Type string
 
 const (
-	// EditorTasks is .vscode/tasks.json.
+	// EditorTasks is .vscode/tasks.json, .cursor/tasks.json or the user
+	// tasks of an editor.
 	EditorTasks Type = "editor-tasks"
 	// ClaudeSettings is .claude/settings.json, with hooks.
 	ClaudeSettings Type = "claude-settings"
@@ -30,8 +32,8 @@ const (
 
 // HomeFiles are the agent and editor files that a home directory can hold,
 // by slash path relative to the home directory. Classify knows the type of
-// each one.
-var HomeFiles = []string{
+// each one. The user tasks of an editor run in every folder that it opens.
+var HomeFiles = append([]string{
 	".vscode/tasks.json",
 	".claude/settings.json",
 	".claude/settings.local.json",
@@ -41,6 +43,28 @@ var HomeFiles = []string{
 	".vscode/mcp.json",
 	".codeium/windsurf/mcp_config.json",
 	".gemini/settings.json",
+}, userTasks()...)
+
+// editorUserDirs are the folder names of the editors that keep user tasks
+// in <config dir>/<name>/User/tasks.json.
+var editorUserDirs = []string{"Code", "Code - Insiders", "Cursor", "VSCodium", "Windsurf"}
+
+// configDirs are the config folders of each OS, relative to the home
+// directory: Linux, macOS and Windows.
+var configDirs = []string{".config", "Library/Application Support", "AppData/Roaming"}
+
+func userTasks() []string {
+	var out []string
+	for _, c := range configDirs {
+		for _, e := range editorUserDirs {
+			out = append(out, c+"/"+e+"/User/tasks.json")
+		}
+	}
+	return out
+}
+
+func isEditorUserDir(p string) bool {
+	return path.Base(p) == "User" && slices.Contains(editorUserDirs, path.Base(path.Dir(p)))
 }
 
 var instructionFiles = map[string]bool{
@@ -55,7 +79,7 @@ func Classify(p string) (t Type, ok bool) {
 	dir := path.Base(path.Dir(p))
 	lower := strings.ToLower(base)
 	switch {
-	case dir == ".vscode" && base == "tasks.json":
+	case base == "tasks.json" && (dir == ".vscode" || dir == ".cursor" || isEditorUserDir(path.Dir(p))):
 		return EditorTasks, true
 	case dir == ".claude" && (base == "settings.json" || base == "settings.local.json"):
 		return ClaudeSettings, true

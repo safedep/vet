@@ -31,6 +31,7 @@ func machineHome(t *testing.T, skill string) string {
 	write(t, filepath.Join(home, ".claude", "skills", skill, "SKILL.md"), "---\nname: "+skill+"\ndescription: A test skill.\n---\n")
 	write(t, filepath.Join(home, ".vscode", "extensions", "extensions.json"), `[{"identifier": {"id": "ms-python.python"}, "version": "2023.20.0"}]`)
 	write(t, filepath.Join(home, ".vscode", "tasks.json"), `{"version": "2.0.0", "tasks": []}`)
+	write(t, filepath.Join(home, ".config", "Code", "User", "tasks.json"), `{"version": "2.0.0", "tasks": []}`)
 	write(t, filepath.Join(home, ".npm-global", "lib", "node_modules", "left-pad", "package.json"), `{"name": "left-pad", "version": "1.3.0"}`)
 	write(t, filepath.Join(home, ".npm-global", "lib", "node_modules", "@types", "node", "package.json"), `{"name": "@types/node", "version": "20.1.0"}`)
 	return home
@@ -89,6 +90,7 @@ func TestAuditOneUser(t *testing.T) {
 		return filepath.ToSlash(r)
 	}
 	assert.Contains(t, a.Include, rel(filepath.Join(home, ".vscode", "tasks.json")))
+	assert.Contains(t, a.Include, rel(filepath.Join(home, ".config", "Code", "User", "tasks.json")))
 	assert.Contains(t, a.Include, rel(filepath.Join(home, ".cursor", "mcp.json")))
 	for _, f := range a.Include {
 		_, err := os.Stat(filepath.Join(a.Path, filepath.FromSlash(f)))
