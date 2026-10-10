@@ -564,6 +564,7 @@ func mcpServers(data []byte) ([]server, error) {
 		return nil, err
 	}
 	root := objectOf(doc)
+	clean := stripJSONC(data)
 	var out []server
 	for _, key := range []string{"mcpServers", "servers"} {
 		section := objectOf(root[key])
@@ -583,19 +584,105 @@ func mcpServers(data []byte) ([]server, error) {
 				words = append(words, stringOf(a))
 			}
 			cmd := strings.TrimSpace(strings.Join(words, " "))
-			out = append(out, server{name: n, command: cmd, url: url, line: lineIn(data, key, n)})
+			line := keyLine(clean, key, n)
+			if line == 0 {
+				line = lineOf(data, n)
+			}
+			out = append(out, server{name: n, command: cmd, url: url, line: line})
 		}
 	}
 	return out, nil
 }
 
-// lineIn returns the line of s after the key section of data, or the line
-// of s in data when data does not hold the key.
-func lineIn(data []byte, key, s string) int {
-	if i := bytes.Index(data, []byte(`"`+key+`"`)); i >= 0 {
-		return bytes.Count(data[:i], []byte("\n")) + lineOf(data[i:], s)
+// keyLine returns the line of the key at path in the JSON text clean, or 0.
+// It reads the JSON tokens, so a key in a comment or in a string does not
+// match. Of two keys of one name, the last one counts, as in the decoded
+// value. stripJSONC keeps the lines of a file, so the line is the line in
+// the file.
+func keyLine(clean []byte, path ...string) int {
+	dec := json.NewDecoder(bytes.NewReader(clean))
+	if t, err := dec.Token(); err != nil || t != json.Delim('{') {
+		return 0
 	}
-	return lineOf(data, s)
+	line, err := lastKeyLine(dec, clean, path)
+	if err != nil {
+		return 0
+	}
+	return line
+}
+
+// lastKeyLine reads the rest of an object from dec and returns the line of
+// the last key at path in it.
+func lastKeyLine(dec *json.Decoder, clean []byte, path []string) (int, error) {
+	line := 0
+	for dec.More() {
+		t, err := dec.Token()
+		if err != nil {
+			return 0, err
+		}
+		if t != path[0] {
+			if err := skipValue(dec); err != nil {
+				return 0, err
+			}
+			continue
+		}
+		if len(path) == 1 {
+			line = bytes.Count(clean[:dec.InputOffset()], []byte("\n")) + 1
+			if err := skipValue(dec); err != nil {
+				return 0, err
+			}
+			continue
+		}
+		t, err = dec.Token()
+		if err != nil {
+			return 0, err
+		}
+		switch t {
+		case json.Delim('{'):
+			if line, err = lastKeyLine(dec, clean, path[1:]); err != nil {
+				return 0, err
+			}
+		case json.Delim('['):
+			if err := skipRest(dec); err != nil {
+				return 0, err
+			}
+			line = 0
+		default:
+			line = 0
+		}
+	}
+	_, err := dec.Token()
+	return line, err
+}
+
+// skipValue reads one value from dec.
+func skipValue(dec *json.Decoder) error {
+	t, err := dec.Token()
+	if err != nil {
+		return err
+	}
+	if t == json.Delim('{') || t == json.Delim('[') {
+		return skipRest(dec)
+	}
+	return nil
+}
+
+// skipRest reads the rest of an object or an array from dec, up to its
+// closing token.
+func skipRest(dec *json.Decoder) error {
+	for depth := 1; depth > 0; {
+		t, err := dec.Token()
+		if err != nil {
+			return err
+		}
+		switch t {
+		case json.Delim('{'), json.Delim('['):
+			depth++
+		case json.Delim('}'), json.Delim(']'):
+			depth--
+		}
+	}
+	return nil
 }
 
 // unsafeSettings are the editor settings that turn off a safety check, with

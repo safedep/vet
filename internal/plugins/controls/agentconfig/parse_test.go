@@ -99,3 +99,23 @@ func TestEditorTasks(t *testing.T) {
 		})
 	}
 }
+
+func TestKeyLine(t *testing.T) {
+	cases := []struct {
+		name string
+		data string
+		want int
+	}{
+		{"nested key", "{\n\"servers\": {\n\"x\": {}\n}\n}", 3},
+		{"a key in a comment", "{\n// \"servers\": {\"x\": 1}\n\"servers\": {\n\"x\": {}\n}\n}", 4},
+		{"a key in a string", "{\"note\": \"\\\"servers\\\" x\",\n\"servers\": {\n\"x\": {}}}", 3},
+		{"the last of two keys", "{\"servers\": {\"x\": 1},\n\"servers\": {\n\"x\": 2}}", 3},
+		{"no key", `{"servers": {"y": 1}}`, 0},
+		{"a list in place of an object", `{"servers": [1]}`, 0},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, keyLine(stripJSONC([]byte(tc.data)), "servers", "x"))
+		})
+	}
+}

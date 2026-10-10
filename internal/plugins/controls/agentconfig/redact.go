@@ -11,17 +11,20 @@ var (
 	secretKey = regexp.MustCompile(`(?i)("[^"]*(token|secret|passw|pwd|apikey|api_key|auth|credential|cookie|session)[^"]*"\s*:\s*)"(?:[^"\\]|\\.)*"`)
 	// userinfo is the user and the password of a URL.
 	userinfo = regexp.MustCompile(`(?i)\b([a-z][a-z0-9+.-]*://)[^\s/@:"']+:[^\s/@"']+@`)
-	// authScheme is the credential of an HTTP authorization value, as in a
-	// curl -H "Authorization: Bearer <token>" command.
-	authScheme = regexp.MustCompile(`(?i)\b(bearer|basic|token)\s+[a-z0-9._~+/=-]{8,}`)
+	// authHeader is the credential of an authorization header, as in a
+	// curl -H "Authorization: Bearer <token>" command. A credential of any
+	// length is a secret.
+	authHeader = regexp.MustCompile(`(?i)(authorization\s*:\s*(?:(?:bearer|basic|token|digest)\s+)?)[^\s"']+`)
+	// bearer is a bearer token outside a header, as in --auth "Bearer <token>".
+	bearer = regexp.MustCompile(`(?i)\b(bearer\s+)[^\s"']+`)
 	// secretFlag is the value of a command flag that names a secret, as in
-	// --token=<token> or --api-key <key>.
-	secretFlag = regexp.MustCompile(`(?i)(--?[a-z0-9-]*(token|secret|passw|api-?key)[a-z0-9-]*[= ])("[^"]*"|'[^']*'|[^\s"']+)`)
+	// --token=<token> or --api-key <key>, with any shell white space.
+	secretFlag = regexp.MustCompile(`(?i)(--?[a-z0-9-]*(token|secret|passw|api-?key)[a-z0-9-]*(?:=|\s+))("[^"]*"|'[^']*'|[^\s"']+)`)
 	// secretQuery is the value of a URL query key that names a secret.
 	secretQuery = regexp.MustCompile(`(?i)([?&][a-z0-9_-]*(token|secret|passw|apikey|api_key|key|sig|auth)[a-z0-9_-]*=)[^&\s"']+`)
 	// secretEnv is the value of a shell variable that names a secret, as in
 	// API_TOKEN=<token> npm run deploy.
-	secretEnv = regexp.MustCompile(`\b([A-Z0-9_]*(TOKEN|SECRET|PASSWORD|PASSWD|API_KEY|APIKEY)[A-Z0-9_]*=)[^\s"']+`)
+	secretEnv = regexp.MustCompile(`\b([A-Z0-9_]*(TOKEN|SECRET|PASSWORD|PASSWD|API_KEY|APIKEY)[A-Z0-9_]*=)("[^"]*"|'[^']*'|[^\s"']+)`)
 )
 
 // redact masks the secret values of a text from a config file: the values
@@ -34,7 +37,8 @@ func redact(s string) string {
 		return stringValue.ReplaceAllString(block, `$1"***"`)
 	})
 	s = secretKey.ReplaceAllString(s, `$1"***"`)
-	s = authScheme.ReplaceAllString(s, `$1 ***`)
+	s = authHeader.ReplaceAllString(s, `$1***`)
+	s = bearer.ReplaceAllString(s, `$1***`)
 	s = secretFlag.ReplaceAllString(s, `$1***`)
 	s = secretQuery.ReplaceAllString(s, `$1***`)
 	s = secretEnv.ReplaceAllString(s, `$1***`)
