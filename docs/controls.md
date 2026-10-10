@@ -28,6 +28,7 @@ to its section.
 | [`editor-autorun-enabled`](#editor-autorun-enabled) | agent-config | high | Editor setting turns off a safety check |
 | [`agent-config-unreadable`](#agent-config-unreadable) | agent-config | high | Agent or editor config that vet cannot read |
 | [`dependency-cooldown`](#dependency-cooldown) | cooldown | high | Version inside the cooldown window |
+| [`padded-code`](#padded-code) | hidden-code | critical | Code hidden in a build config |
 | [`install-scripts-added`](#install-scripts-added) | hygiene | high | New dependency with install scripts |
 | [`provenance-lost`](#provenance-lost) | hygiene | medium | Provenance lost on an upgrade |
 | [`deprecated-package`](#deprecated-package) | hygiene | medium | Deprecated package |
@@ -245,6 +246,12 @@ vet cannot parse the file, or the file is too large to read, so vet cannot check
 **Version inside the cooldown window.** Family `cooldown`. Default severity high. Plugin `dependency-cooldown`.
 
 The registry published the version less than the cooldown window ago. Most malicious versions are found and removed in the first days.
+
+### padded-code
+
+**Code hidden in a build config.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. The attacks gate fails on it.
+
+A build or tool config holds code after a long run of spaces or after its export, so an editor shows a clean file. The config runs at each build, test or lint. PolinRider adds its loader this way.
 
 ### install-scripts-added
 
