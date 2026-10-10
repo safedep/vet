@@ -127,6 +127,11 @@ func (s *Source) artifact(ctx context.Context) (plugin.Artifact, error) {
 	if s.opts.AllUsers {
 		a.Manifests = append(a.Manifests, globalPackages(s.sys.GlobalRoots())...)
 	}
+	for _, root := range s.npmRoots(homes) {
+		for _, f := range hiddencode.EntryFiles(filepath.ToSlash(root)) {
+			files[filepath.FromSlash(f)] = true
+		}
+	}
 	for _, dir := range s.opts.Projects {
 		if err := projectFiles(ctx, dir, files); err != nil {
 			return plugin.Artifact{}, err
@@ -208,6 +213,21 @@ func include(root string, files map[string]bool) []string {
 		out = append(out, filepath.ToSlash(rel))
 	}
 	sort.Strings(out)
+	return out
+}
+
+// npmRoots returns the global package folders whose npm entry scripts vet
+// checks: those of the users, and with --all-users those of the machine.
+// PolinRider overwrites npm/lib/cli.js, so each npm or npx command starts
+// the malware again.
+func (s *Source) npmRoots(homes []string) []string {
+	var out []string
+	for _, home := range homes {
+		out = append(out, userGlobalRoots(home)...)
+	}
+	if s.opts.AllUsers {
+		out = append(out, s.sys.GlobalRoots()...)
+	}
 	return out
 }
 

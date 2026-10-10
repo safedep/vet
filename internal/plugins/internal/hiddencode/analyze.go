@@ -81,8 +81,21 @@ func Analyze(c Class, p string, data []byte) []Signal {
 		return invisible(p, data)
 	case Script:
 		return historyRewrite(p, data)
+	case Entry:
+		return named(append(oversizeEntry(data), padded(data)...), data)
 	}
 	return nil
+}
+
+// maxEntry is the largest npm entry script that vet expects. The published
+// npm lib/cli.js is a few lines. PolinRider overwrites it with about 1 MB.
+const maxEntry = 64 << 10
+
+func oversizeEntry(data []byte) []Signal {
+	if len(data) <= maxEntry {
+		return nil
+	}
+	return []Signal{{ID: IDPaddedCode, Line: 1, Title: fmt.Sprintf("The npm entry script is %d KiB. The published file is a few lines", len(data)>>10)}}
 }
 
 // rewriteScripts are the file names of the PolinRider script that folds

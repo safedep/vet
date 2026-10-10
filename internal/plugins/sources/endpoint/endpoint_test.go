@@ -165,3 +165,13 @@ func TestCheckProjects(t *testing.T) {
 	assert.ErrorContains(t, CheckProjects([]string{filepath.Join(dir, "missing")}), "--projects")
 	assert.ErrorContains(t, CheckProjects([]string{file}), "not a folder")
 }
+
+func TestAuditNPMEntryScripts(t *testing.T) {
+	home := machineHome(t, "review")
+	cli := filepath.Join(home, ".npm-global", "lib", "node_modules", "npm", "lib", "cli.js")
+	write(t, cli, "module.exports = require('./npm')\n")
+	a := artifactOf(t, New(Options{}, fakeSystem(home)))
+	rel, err := filepath.Rel(a.Path, cli)
+	require.NoError(t, err)
+	assert.Contains(t, a.Include, filepath.ToSlash(rel))
+}

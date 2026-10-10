@@ -29,7 +29,24 @@ const (
 	// Script is a shell or batch script, or a .gitignore, read for a script
 	// that rewrites the git history.
 	Script Class = "script"
+	// Entry is an entry script of a package manager in a global install,
+	// such as npm/lib/cli.js. It runs at each npm or npx command. It is the
+	// one class that sits in an install folder.
+	Entry Class = "entry"
 )
+
+// entryFiles are the entry scripts of npm in its install folder.
+var entryFiles = []string{"node_modules/npm/lib/cli.js", "node_modules/npm/bin/npm-cli.js", "node_modules/npm/bin/npx-cli.js"}
+
+// EntryFiles returns the entry scripts of npm under a global package folder,
+// such as /usr/local/lib/node_modules.
+func EntryFiles(root string) []string {
+	out := make([]string, 0, len(entryFiles))
+	for _, f := range entryFiles {
+		out = append(out, path.Join(root, strings.TrimPrefix(f, "node_modules/")))
+	}
+	return out
+}
 
 // configName matches the build and tool configs that load as code.
 var configName = regexp.MustCompile(`^[\w.-]+\.config\.(js|mjs|cjs|ts|mts|cts)$|^\.?(eslintrc|babelrc|prettierrc|stylelintrc)\.(js|cjs|mjs)$`)
@@ -64,6 +81,11 @@ var generatedDirs = map[string]bool{"dist": true, "build": true, "vendor": true,
 func Classify(p string) (c Class, ok bool) {
 	base := path.Base(p)
 	ext := strings.ToLower(path.Ext(base))
+	for _, f := range entryFiles {
+		if p == f || strings.HasSuffix(p, "/"+f) {
+			return Entry, true
+		}
+	}
 	switch {
 	case configName.MatchString(base) || configFiles[base]:
 		return Config, true

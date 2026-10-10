@@ -162,3 +162,12 @@ func TestCampaign(t *testing.T) {
 	}
 	assert.Empty(t, Analyze(Config, "next.config.js", []byte("// seed 2857687\nmodule.exports = {}\n")), "a marker alone makes no finding")
 }
+
+func TestEntry(t *testing.T) {
+	clean := "#!/usr/bin/env node\nrequire('../lib/cli.js')(process)\n"
+	assert.Empty(t, Analyze(Entry, "node_modules/npm/bin/npm-cli.js", []byte(clean)))
+	big := "module.exports = require('./npm')\n" + strings.Repeat("// x\n", 20000)
+	assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(Entry, "node_modules/npm/lib/cli.js", []byte(big))))
+	padded := "module.exports = cli;" + strings.Repeat(" ", 200) + "eval(x)\n"
+	assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(Entry, "node_modules/npm/lib/cli.js", []byte(padded))))
+}

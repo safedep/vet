@@ -38,8 +38,8 @@ func New(cfg plugin.Config) (plugin.Control, error) {
 var infos = []plugin.ControlInfo{
 	{
 		ID: hiddencode.IDPaddedCode, Family: finding.FamilyHiddenCode, Severity: finding.SeverityCritical,
-		Title:       "Code hidden in a build config",
-		Description: "A build or tool config holds code after a long run of spaces or after its export, so an editor shows a clean file. The config runs at each build, test or lint. PolinRider adds its loader this way.",
+		Title:       "Code hidden in a build config or an npm entry script",
+		Description: "A build or tool config holds code after a long run of spaces or after its export, so an editor shows a clean file. The config runs at each build, test or lint. An npm entry script of a global install is far larger than the published file, so it runs more at each npm command. PolinRider adds its loader in both ways.",
 		Attack:      true,
 	},
 	{

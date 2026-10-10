@@ -28,7 +28,7 @@ to its section.
 | [`editor-autorun-enabled`](#editor-autorun-enabled) | agent-config | high | Editor setting turns off a safety check |
 | [`agent-config-unreadable`](#agent-config-unreadable) | agent-config | high | Agent or editor config that vet cannot read |
 | [`dependency-cooldown`](#dependency-cooldown) | cooldown | high | Version inside the cooldown window |
-| [`padded-code`](#padded-code) | hidden-code | critical | Code hidden in a build config |
+| [`padded-code`](#padded-code) | hidden-code | critical | Code hidden in a build config or an npm entry script |
 | [`disguised-script`](#disguised-script) | hidden-code | critical | Script in a font, image or dictionary file |
 | [`unicode-decoder`](#unicode-decoder) | hidden-code | critical | Payload in invisible Unicode characters |
 | [`invisible-unicode`](#invisible-unicode) | hidden-code | high | Invisible Unicode characters |
@@ -253,9 +253,9 @@ The registry published the version less than the cooldown window ago. Most malic
 
 ### padded-code
 
-**Code hidden in a build config.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. The attacks gate fails on it.
+**Code hidden in a build config or an npm entry script.** Family `hidden-code`. Default severity critical. Plugin `hidden-code`. The attacks gate fails on it.
 
-A build or tool config holds code after a long run of spaces or after its export, so an editor shows a clean file. The config runs at each build, test or lint. PolinRider adds its loader this way.
+A build or tool config holds code after a long run of spaces or after its export, so an editor shows a clean file. The config runs at each build, test or lint. An npm entry script of a global install is far larger than the published file, so it runs more at each npm command. PolinRider adds its loader in both ways.
 
 ### disguised-script
 

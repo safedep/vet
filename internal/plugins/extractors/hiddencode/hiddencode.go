@@ -12,6 +12,7 @@ import (
 	"github.com/google/osv-scalibr/inventory"
 	"github.com/google/osv-scalibr/plugin"
 
+	"github.com/safedep/vet/v2/internal/plugins/extractors/installed"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/scalibr"
 	"github.com/safedep/vet/v2/internal/plugins/internal/hiddencode"
 )
@@ -34,11 +35,18 @@ func (Extractor) Version() int { return 0 }
 // Requirements of the extractor.
 func (Extractor) Requirements() *plugin.Capabilities { return &plugin.Capabilities{} }
 
-// FileRequired reports a file that can hide code, of any size.
+// FileRequired reports a file that can hide code, of any size. A file in an
+// install folder belongs to a package, not to the project, except the npm
+// entry scripts of a global install.
 func (Extractor) FileRequired(api filesystem.FileAPI) bool {
-	_, ok := hiddencode.Classify(filepath.ToSlash(api.Path()))
-	return ok
+	p := filepath.ToSlash(api.Path())
+	c, ok := hiddencode.Classify(p)
+	return ok && (c == hiddencode.Entry || !installed.InInstallDir(p))
 }
+
+// ReadsInstallDirs reports that the extractor applies the install folder
+// rule itself.
+func (Extractor) ReadsInstallDirs() bool { return true }
 
 // Extract yields no package. A file with no sign of hidden code gives
 // scalibr.ErrNoManifest, so it adds nothing to the report.

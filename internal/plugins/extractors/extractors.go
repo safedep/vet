@@ -39,9 +39,14 @@ func For(p model.Packages) ([]filesystem.Extractor, error) {
 	}
 	var out []filesystem.Extractor
 	for _, e := range d {
-		if p.Declared() || scalibr.ReadsFileOnly(e) {
-			out = append(out, declared{e})
+		if !p.Declared() && !scalibr.ReadsFileOnly(e) {
+			continue
 		}
+		if r, ok := e.(installDirReader); ok && r.ReadsInstallDirs() {
+			out = append(out, e)
+			continue
+		}
+		out = append(out, declared{e})
 	}
 	if p.Installed() {
 		in, err := installed.Extractors()
@@ -74,6 +79,11 @@ func Default() ([]filesystem.Extractor, error) {
 	vet = append(vet, gha, gm, terraform.New(), packagejson.New(), cargotoml.New(), pyproject.New(), agentconfig.New(), hiddencode.New())
 	return Override(base, vet...), nil
 }
+
+// installDirReader is an extractor that applies the install folder rule of
+// declared itself, such as the hidden-code extractor, which reads the npm
+// entry scripts of a global install.
+type installDirReader interface{ ReadsInstallDirs() bool }
 
 // declared is an extractor of the declared set. A file under node_modules
 // or a Python install directory belongs to an installed package, not to

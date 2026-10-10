@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/osv-scalibr/extractor/filesystem"
+	"github.com/google/osv-scalibr/extractor/filesystem/simplefileapi"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -35,5 +36,16 @@ func TestOnlyAFileWithASignIsAManifest(t *testing.T) {
 			assert.Equal(t, model.ManifestKindFile, ms[0].Kind)
 			assert.Empty(t, ms[0].Packages)
 		}
+	}
+}
+
+func TestInstallFolders(t *testing.T) {
+	e := hiddencode.New()
+	for p, want := range map[string]bool{
+		"usr/local/lib/node_modules/npm/lib/cli.js": true,
+		"node_modules/left-pad/postcss.config.js":   false,
+		"client/postcss.config.mjs":                 true,
+	} {
+		assert.Equal(t, want, e.FileRequired(simplefileapi.New(p, nil)), p)
 	}
 }
