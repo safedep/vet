@@ -56,7 +56,7 @@ func (Extractor) Extract(_ context.Context, in *filesystem.ScanInput) (inventory
 	if !ok {
 		return inventory.Inventory{}, scalibr.ErrNoManifest
 	}
-	data, err := hiddencode.Read(in.FS, p, c)
+	data, err := hiddencode.Read(in.Reader, p, c)
 	if err != nil {
 		return inventory.Inventory{}, err
 	}

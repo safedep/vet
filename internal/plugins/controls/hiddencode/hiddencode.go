@@ -91,7 +91,7 @@ func (*Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State) (
 	if !ok {
 		return nil, nil
 	}
-	data, err := hiddencode.Read(m.Root, m.Path, c)
+	data, err := hiddencode.Open(m.Root, m.Path, c)
 	if err != nil {
 		return nil, fmt.Errorf("read %s: %w", m.Path, err)
 	}

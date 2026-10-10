@@ -95,7 +95,7 @@ func TestInvisible(t *testing.T) {
 		want             []string
 	}{
 		{"GlassWorm shape", "src/index.js", decoderJS + "eval(Buffer.from(s(`" + payload + "`)).toString());\n", []string{IDUnicodeDecoder}},
-		{"payload with no decoder", "src/index.js", "const x = `" + payload + "`;\n", []string{IDInvisibleUnicode}},
+		{"payload with no decoder in the file", "src/index.js", "const x = `" + payload + "`;\n", []string{IDUnicodeDecoder}},
 		{"zero-width run", "lib/a.py", "token = 'a\u200b\u200b\u200b\u200bb'\n", []string{IDInvisibleUnicode}},
 		{"Trojan Source", "src/auth.ts", "if (isAdmin) { \u202e} \u2066// check\u2069\n", []string{IDInvisibleUnicode}},
 		{"tag text in an agent file", "CLAUDE.md", "Run the tests.\U000E0049\U000E0067\U000E006E\U000E006F\U000E0072\U000E0065\n", []string{IDInvisibleUnicode}},
@@ -112,6 +112,99 @@ func TestInvisible(t *testing.T) {
 			assert.Equal(t, tc.want, ids(Analyze(c, tc.path, []byte(tc.data))))
 		})
 	}
+}
+
+func TestInvisibleEvasion(t *testing.T) {
+	payload := selectors("console.log('hidden payload')")
+	spaced := strings.Join(strings.Split(payload, ""), " ")
+	perLine := strings.Join(strings.Split(payload, ""), "\n")
+	cases := []struct {
+		name, path, data string
+		want             []string
+	}{
+		{"a decoy run of zero-width spaces", "src/a.js", "const d = '" + strings.Repeat("\u200b", 601) + "';\nconst x = `" + payload + "`;\n", []string{IDUnicodeDecoder}},
+		{"a space before each selector", "src/a.js", "const x = `" + spaced + "`;\n", []string{IDUnicodeDecoder}},
+		{"one selector on each line", "src/a.js", perLine, []string{IDUnicodeDecoder}},
+		{"a payload in a built file", "dist/extension.js", "var x=`" + payload + "`;", []string{IDUnicodeDecoder}},
+		{"a minified file with a run gives nothing else", "web/app.min.js", "var x='\u200b\u200b\u200b\u200b';", nil},
+		{"keycap emoji", "src/keys.ts", strings.Repeat("1\ufe0f\u20e3 ", 20), nil},
+		{"CJK variation sequences", "src/names.ts", strings.Repeat("\u845b\U000E0100", 20), nil},
+		{"emoji presentation", "src/ui.ts", strings.Repeat("\u2764\ufe0f ", 30), nil},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			c, ok := Classify(tc.path)
+			require.True(t, ok)
+			assert.Equal(t, tc.want, ids(Analyze(c, tc.path, []byte(tc.data))))
+		})
+	}
+}
+
+func TestPaddedEvasion(t *testing.T) {
+	cases := []struct {
+		name, pad string
+	}{
+		{"no-break spaces", strings.Repeat("\u00a0", 280)},
+		{"ideographic spaces", strings.Repeat("\u3000", 140)},
+		{"mixed spaces", strings.Repeat(strings.Repeat(" ", 99)+"\u00a0", 3)},
+		{"form feed", strings.Repeat(" ", 280) + "\f"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			data := "export default {plugins:{}};" + tc.pad + "eval(x)\n"
+			assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(Config, "postcss.config.mjs", []byte(data))))
+		})
+	}
+	assert.Equal(t, []string{IDPaddedCode}, ids(Analyze(Source, "src/server.js", []byte("app.listen(3000);"+strings.Repeat(" ", 300)+"eval(x)\n"))), "any hand-written source file")
+	assert.Empty(t, Analyze(Source, "dist/bundle.js", []byte("a();"+strings.Repeat(" ", 300)+"b()\n")), "a built file")
+	assert.Empty(t, Analyze(Config, "postcss.config.mjs", []byte("export default config;"+strings.Repeat(" ", 280)+"\r\n")), "CRLF after trailing spaces")
+}
+
+func TestAfterExport(t *testing.T) {
+	for data, want := range map[string]bool{
+		"module.exports = nextConfig; // eslint-disable-line": false,
+		"export default config; /* prettier-ignore */":        false,
+		"module.exports = base; module.exports.extra = 1;":    false,
+		"module.exports = config;   ":                         false,
+		"module.exports = config; eval(x)":                    true,
+	} {
+		assert.Equal(t, want, len(Analyze(Config, "next.config.js", []byte(data))) > 0, data)
+	}
+}
+
+func TestDisguisedEvasionAndNoise(t *testing.T) {
+	cases := []struct {
+		name, path, data string
+		want             []string
+	}{
+		{"own magic bytes then script", "fonts/a.woff2", "wOF2=1;require('child_process').exec('x')", []string{IDDisguisedScript}},
+		{"true then script", "fonts/a.ttf", "true;require('child_process')", []string{IDDisguisedScript}},
+		{"binary comment then script", "fonts/a.woff", "/*\x00\x01\x02" + strings.Repeat("\x00", 600) + "*/require('child_process').exec('x')", []string{IDDisguisedScript}},
+		{"hex payload", "fonts/fa-brands-regular.woff2", strings.Repeat("6a", 300), []string{IDDisguisedScript}},
+		{"a saved web page", "img/logo.png", "<!DOCTYPE html><html><body>Not Found</body></html>", nil},
+		{"placeholder text", "public/favicon.ico", "fake-favicon", nil},
+		{"an HTTP dump", "fixtures/font.woff2", "HTTP/2 200\r\ncontent-type: font/woff2\r\n\r\n", nil},
+		{"fuzz dictionary", "fuzz/js.dict", "kw1=\"function\"\nkw2=\"=>\"\nkw3=\"var a = \"\n", nil},
+		{"word list with the word function", ".vscode/spellright.dict", "callback\nfunction\nclosure\n", nil},
+		{"binary dictionary", "data/zh.dict", "\x28\xb5\x2f\xfd\x00\x00function var", nil},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			c, ok := Classify(tc.path)
+			require.True(t, ok)
+			assert.Equal(t, tc.want, ids(Analyze(c, tc.path, []byte(tc.data))))
+		})
+	}
+}
+
+func TestReadsAFontInFull(t *testing.T) {
+	data := "\x00\x01" + strings.Repeat("\x00", 1000) + "require('child_process')"
+	got, err := Read(strings.NewReader(data), "a.woff2", Asset)
+	require.NoError(t, err)
+	assert.Len(t, got, len(data))
+	got, err = Read(strings.NewReader(data), "a.png", Asset)
+	require.NoError(t, err)
+	assert.Len(t, got, headSize, "an image needs only its head")
 }
 
 func TestInvisibleSnippetHasNoPayload(t *testing.T) {

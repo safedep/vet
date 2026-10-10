@@ -47,7 +47,7 @@ func TestDisguisedScript(t *testing.T) {
 	require.Len(t, fs, 1)
 	assert.Equal(t, "disguised-script", fs[0].ControlID)
 	assert.Equal(t, finding.SeverityCritical, fs[0].Severity)
-	assert.Equal(t, "The file has a .woff2 name but holds text, not a woff2 file, after 273 leading spaces and tabs", fs[0].Title)
+	assert.Equal(t, "The file has a .woff2 name but holds a script or an encoded payload, not a woff2 file, after 273 leading spaces and tabs", fs[0].Title)
 }
 
 func TestHistoryRewriteScript(t *testing.T) {

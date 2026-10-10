@@ -278,6 +278,12 @@
   tier: P1
   guarantee: "In pull request mode, a change that adds code after a run of spaces to a build config gives padded-code and fails the attacks gate. A clean config that the change keeps gives nothing."
   labels: [hidden-code, pr-mode]
+- id: controls/hidden-code/pr-unchanged
+  title: "hidden code: an unchanged infected file in pull request mode"
+  category: controls
+  tier: P2
+  guarantee: "In pull request mode, a build config with hidden code that the change keeps gives no finding. A change that adds hidden code to a clean config gives padded-code on a MODIFIED file manifest."
+  labels: [hidden-code, pr-mode]
 - id: controls/lockfile/integrity-changed
   title: "lockfile: integrity change with no version change"
   category: controls

@@ -49,13 +49,12 @@ func EntryFiles(root string) []string {
 }
 
 // configName matches the build and tool configs that load as code.
-var configName = regexp.MustCompile(`^[\w.-]+\.config\.(js|mjs|cjs|ts|mts|cts)$|^\.?(eslintrc|babelrc|prettierrc|stylelintrc)\.(js|cjs|mjs)$`)
+var configName = regexp.MustCompile(`(?i)^[\w.-]+\.(config|conf)(\.[\w-]+)?\.(js|mjs|cjs|ts|mts|cts)$|^\.?(eslintrc|babelrc|prettierrc|stylelintrc)\.(js|cjs|mjs)$|^(webpack|rollup|gatsby-(config|node|browser|ssr))(\.[\w-]+)?\.(js|mjs|cjs|ts)$|^(gulpfile|gruntfile)\.(js|mjs|cjs|ts)$`)
 
 // configFiles are the other files that PolinRider changes and that load as
 // code at each build or start.
 var configFiles = map[string]bool{
 	"truffle.js": true, "truffle-config.js": true, "tailwind.js": true, "App.js": true,
-	"gulpfile.js": true, "Gruntfile.js": true,
 }
 
 var assetExts = map[string]bool{
@@ -65,16 +64,30 @@ var assetExts = map[string]bool{
 }
 
 var sourceExts = map[string]bool{
-	".js": true, ".mjs": true, ".cjs": true, ".jsx": true,
+	".js": true, ".mjs": true, ".cjs": true, ".jsx": true, ".vue": true, ".svelte": true,
 	".ts": true, ".mts": true, ".cts": true, ".tsx": true, ".py": true,
 }
 
 var scriptExts = map[string]bool{".bat": true, ".cmd": true, ".ps1": true, ".sh": true}
 
 // generatedDirs hold built or vendored code. A minified bundle has long
-// lines and odd characters, and it is not the source that a developer
-// reads, so the Unicode check skips it.
+// lines, runs of white space and odd characters, so vet checks it only for
+// a payload in invisible characters. A GitHub Action and a VS Code
+// extension run their built dist or out folder.
 var generatedDirs = map[string]bool{"dist": true, "build": true, "vendor": true, "out": true, ".next": true, "coverage": true}
+
+// generated reports a built, vendored or minified source file.
+func generated(p string) bool {
+	if strings.HasSuffix(path.Base(p), ".min.js") {
+		return true
+	}
+	for _, part := range strings.Split(path.Dir(p), "/") {
+		if generatedDirs[part] {
+			return true
+		}
+	}
+	return false
+}
 
 // Classify returns the class of a file by its slash path relative to the
 // target. ok is false for a file that the controls do not read.
@@ -97,20 +110,15 @@ func Classify(p string) (c Class, ok bool) {
 	if t, ok := agentfiles.Classify(p); ok && t == agentfiles.Instructions {
 		return Source, true
 	}
-	if !sourceExts[ext] || strings.HasSuffix(base, ".min.js") {
+	if !sourceExts[ext] {
 		return "", false
-	}
-	for _, part := range strings.Split(path.Dir(p), "/") {
-		if generatedDirs[part] {
-			return "", false
-		}
 	}
 	return Source, true
 }
 
-// MaxSize is the largest file that the controls read, except an asset,
-// whose first bytes are enough. A config over the limit is a finding
-// itself, because a real config is a few KiB.
+// MaxSize is the largest part of a file that the controls read. A config
+// over the limit is a finding itself, because a real config is a few KiB.
+// known gap: vet does not check the part of a source file after MaxSize.
 const MaxSize = 4 << 20
 
 // headSize is the part of an asset that the check reads.

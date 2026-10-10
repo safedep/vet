@@ -303,6 +303,10 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 	if d != nil {
 		for _, m := range ms {
 			diff(m, d.base.manifests[m.ID], !same)
+			if m.Kind == model.ManifestKindFile && inBase {
+				// A clean base file has no manifest, but the file was there.
+				m.Change = fileChange(true, inBase, same)
+			}
 			d.seen[m.ID] = true
 		}
 		if !same && inBase {
@@ -314,6 +318,13 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 				m.LockfileOnly = only && m.Kind == model.ManifestKindLockfile
 			}
 		}
+	}
+	if len(ms) == 0 && len(errs) == 0 && prev == nil {
+		// Most files that the hidden-code extractor reads give no manifest.
+		// A record of each one costs a transaction, and a continued scan
+		// reads such a file again at little cost. A file with a record
+		// commits, so that its old manifests go.
+		return nil
 	}
 	return scan.CommitArtifact(ctx, state.ArtifactRecord{
 		Key: key, Kind: string(a.Kind), Path: rel, Size: info.Size(), MTime: info.ModTime(),

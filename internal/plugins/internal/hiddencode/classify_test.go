@@ -30,7 +30,7 @@ func TestClassify(t *testing.T) {
 		assert.True(t, ok, p)
 		assert.Equal(t, want, got, p)
 	}
-	for _, p := range []string{"README.md", "dist/index.js", "vendor/lib.js", "app.min.js", "logo.svg", "package.json", "main.go"} {
+	for _, p := range []string{"README.md", "logo.svg", "package.json", "main.go"} {
 		_, ok := Classify(p)
 		assert.False(t, ok, p)
 	}

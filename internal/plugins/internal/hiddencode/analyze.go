@@ -8,6 +8,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 
 	"github.com/safedep/vet/v2/internal/plugins/internal/agentfiles"
@@ -41,9 +42,8 @@ type Signal struct {
 	Campaign string
 }
 
-// Read reads the part of a file that Analyze needs: the first bytes of an
-// asset that starts with its magic bytes, else at most MaxSize+1 bytes.
-func Read(fsys fs.FS, p string, c Class) (data []byte, err error) {
+// Open reads the part of a file of fsys that Analyze needs. See Read.
+func Open(fsys fs.FS, p string, c Class) (data []byte, err error) {
 	f, err := fsys.Open(p)
 	if err != nil {
 		return nil, err
@@ -53,16 +53,23 @@ func Read(fsys fs.FS, p string, c Class) (data []byte, err error) {
 			err = cerr
 		}
 	}()
+	return Read(f, p, c)
+}
+
+// Read reads the part of a file that Analyze needs: the first bytes of a
+// binary image, else at most MaxSize+1 bytes. A font is small, and a
+// script can sit after a binary header in it, so vet reads all of it.
+func Read(r io.Reader, p string, c Class) ([]byte, error) {
 	head := make([]byte, headSize)
-	n, err := io.ReadFull(f, head)
+	n, err := io.ReadFull(r, head)
 	if err != nil && err != io.ErrUnexpectedEOF && err != io.EOF {
 		return nil, err
 	}
 	head = head[:n]
-	if c == Asset && !text(head) {
+	if c == Asset && !text(head) && !fontExts[strings.ToLower(path.Ext(p))] {
 		return head, nil
 	}
-	rest, err := io.ReadAll(io.LimitReader(f, MaxSize+1-int64(n)))
+	rest, err := io.ReadAll(io.LimitReader(r, MaxSize+1-int64(n)))
 	if err != nil {
 		return nil, err
 	}
@@ -74,11 +81,14 @@ func Read(fsys fs.FS, p string, c Class) (data []byte, err error) {
 func Analyze(c Class, p string, data []byte) []Signal {
 	switch c {
 	case Config:
-		return named(append(padded(data), invisible(p, data)...), data)
+		return named(append(append(oversizeConfig(data), padded(data)...), invisible(p, data)...), data)
 	case Asset:
 		return named(disguised(p, data), data)
 	case Source:
-		return invisible(p, data)
+		if generated(p) {
+			return invisible(p, data)
+		}
+		return named(append(padded(data), invisible(p, data)...), data)
 	case Script:
 		return historyRewrite(p, data)
 	case Entry:
@@ -149,95 +159,149 @@ func historyRewrite(p string, data []byte) []Signal {
 	return []Signal{{ID: IDHistoryRewrite, Line: line, Visible: string(bytes.TrimSpace(lines[line-1])), Title: "The script amends the last commit with no hooks, keeps its date, and force-pushes it"}}
 }
 
-// magic are the first bytes of each binary asset type.
-var magic = map[string][][]byte{
-	".woff":  {[]byte("wOFF")},
-	".woff2": {[]byte("wOF2")},
-	".ttf":   {{0, 1, 0, 0}, []byte("true"), []byte("ttcf")},
-	".otf":   {[]byte("OTTO"), {0, 1, 0, 0}},
-	".png":   {[]byte("\x89PNG")},
-	".jpg":   {{0xFF, 0xD8, 0xFF}},
-	".jpeg":  {{0xFF, 0xD8, 0xFF}},
-	".gif":   {[]byte("GIF8")},
-	".ico":   {{0, 0, 1, 0}, {0, 0, 2, 0}},
-	".bmp":   {[]byte("BM")},
-	".webp":  {[]byte("RIFF")},
-}
+// fontExts are the asset types that vet reads in full: a font is small.
+var fontExts = map[string]bool{".woff": true, ".woff2": true, ".ttf": true, ".otf": true, ".eot": true}
+
+// textExts are the asset types that hold text: a dictionary holds one word
+// on each line.
+var textExts = map[string]bool{".dict": true, ".llf": true}
 
 // lfsPointer starts a Git LFS pointer file, which stands in for a binary
 // asset in a checkout with no LFS.
 var lfsPointer = []byte("version https://git-lfs.github.com/spec/")
 
-// scriptToken is a sign of a script in a text asset, such as a dictionary
-// file, which holds one word on each line.
-var scriptToken = regexp.MustCompile(`require\(|eval\(|Function\(|global\[|process\.|child_process|=>|\bfunction\b|\bvar \w+\s*=`)
+// scriptToken is a sign of JavaScript. Each one needs its punctuation, so a
+// word list or a fuzz dictionary that holds the word "function" is not a
+// script.
+var scriptToken = regexp.MustCompile(`require\s*\(|\beval\s*\(|\bFunction\s*\(|global\[|process\.(env|argv|platform)|child_process|=>\s*\{|\bfunction\s*\w*\s*\(|\btry\s*\{|\b(var|let|const)\s+[\w$]+\s*=|console\.\w+\(|_0x[0-9a-f]{4}|String\.fromCharCode|\batob\s*\(|Buffer\.from\(`)
+
+// strongToken is a sign of a script in binary data. Compressed font data
+// holds none of them by chance.
+var strongToken = regexp.MustCompile(`require\s*\(\s*['"]|child_process|\beval\s*\(|\bnew Function\s*\(|process\.env\b`)
+
+// encoded is a long run of hex or base64, as a hex payload that a loader
+// reads from a fake font.
+var encoded = regexp.MustCompile(`[0-9a-fA-F]{256,}|[A-Za-z0-9+/]{512,}={0,2}`)
+
+// maxWordLine is the longest line of a dictionary that holds words. A fuzz
+// dictionary can have a line of a few hundred bytes.
+const maxWordLine = 2000
 
 // disguised finds a script in a font, an image or a dictionary file. The
 // Contagious Interview tasks run node on such a file, so the folder looks
-// like it holds only assets.
+// like it holds only assets. A real font or image holds a NUL byte in its
+// first bytes, so text in a binary asset type is the sign, not the magic
+// bytes, which a script can start with.
 func disguised(p string, data []byte) []Signal {
 	ext := strings.ToLower(path.Ext(p))
-	want, binary := magic[ext]
-	if !binary {
-		// A dictionary is text. A long line or a script token is not a word
-		// list.
+	sig := func(line int, title string) []Signal {
+		return []Signal{{ID: IDDisguisedScript, Line: line, Title: title}}
+	}
+	if textExts[ext] {
+		if !text(data) {
+			return nil
+		}
 		for i, line := range bytes.Split(data, []byte("\n")) {
-			if len(line) > 500 || scriptToken.Match(line) {
-				return []Signal{{ID: IDDisguisedScript, Line: i + 1, Title: fmt.Sprintf("The %s file holds a script, not a word list", ext)}}
+			if n := len(scriptToken.FindAll(line, 2)); n >= 2 || (n == 1 && len(line) > maxWordLine) {
+				return sig(i+1, fmt.Sprintf("The %s file holds a script, not a word list", ext))
 			}
 		}
 		return nil
 	}
-	for _, m := range want {
-		if bytes.HasPrefix(data, m) {
-			return nil
+	if !text(data) {
+		if fontExts[ext] && strongToken.Match(data) {
+			return sig(1, fmt.Sprintf("The %s file holds script code after its binary header", ext))
 		}
-	}
-	if bytes.HasPrefix(data, lfsPointer) || !text(data) {
 		return nil
 	}
-	title := fmt.Sprintf("The file has a %s name but holds text, not a %s file", ext, ext[1:])
-	if tabs := len(data) - len(bytes.TrimLeft(data, " \t\r\n")); tabs > 0 {
-		title += fmt.Sprintf(", after %d leading spaces and tabs", tabs)
+	trimmed := bytes.TrimLeft(data, " \t\r\n\f\v")
+	if bytes.HasPrefix(data, lfsPointer) || (bytes.HasPrefix(trimmed, []byte("<")) && !bytes.HasPrefix(trimmed, []byte("<!--"))) {
+		// A web page that a download saved under the name of an image is
+		// not a script that node runs.
+		return nil
 	}
-	return []Signal{{ID: IDDisguisedScript, Line: 1, Title: title}}
+	lead := len(data) - len(trimmed)
+	if lead < minPad && !scriptToken.Match(data) && !encoded.Match(data) {
+		return nil
+	}
+	title := fmt.Sprintf("The file has a %s name but holds a script or an encoded payload, not a %s file", ext, ext[1:])
+	if lead > 0 {
+		title += fmt.Sprintf(", after %d leading spaces and tabs", lead)
+	}
+	return sig(1, title)
 }
 
-// minPad is the shortest run of spaces or tabs that hides code. The
+// minPad is the shortest run of white space that hides code. The
 // PolinRider configs use about 280. A normal config aligns a comment with
 // a few spaces.
 const minPad = 100
 
-// pad is a run of spaces or tabs followed by more text on the same line.
-var pad = regexp.MustCompile(`[ \t]{` + fmt.Sprint(minPad) + `,}[^\s]`)
+// space reports a character that JavaScript reads as white space: the
+// Unicode spaces, such as U+00A0 and U+3000, and the byte order mark.
+func space(r rune) bool { return unicode.IsSpace(r) || r == 0xFEFF }
+
+// padRun finds a run of at least minPad white space characters followed by
+// more text on the line. It returns the byte offsets of the run and the
+// count of its characters.
+func padRun(line []byte) (start, end, count int, ok bool) {
+	runStart, n := 0, 0
+	for i := 0; i < len(line); {
+		r, size := utf8.DecodeRune(line[i:])
+		if space(r) {
+			if n == 0 {
+				runStart = i
+			}
+			n++
+		} else {
+			if n >= minPad {
+				return runStart, i, n, true
+			}
+			n = 0
+		}
+		i += size
+	}
+	return 0, 0, 0, false
+}
 
 // afterExport is code on the same line after the export of a config, such
 // as "export default config; eval(...)".
-var afterExport = regexp.MustCompile(`^\s*(export\s+default\s+[\w$.]+|module\.exports\s*=\s*[\w$.]+)\s*;\s*\S`)
+var afterExport = regexp.MustCompile(`^\s*(export\s+default\s+[\w$.]+|module\.exports\s*=\s*[\w$.]+)\s*;\s*`)
 
-// padded finds code that a config hides after a run of spaces or after its
-// export.
-func padded(data []byte) []Signal {
-	if len(data) > MaxSize {
-		return []Signal{{ID: IDPaddedCode, Line: 1, Title: fmt.Sprintf("The config is larger than %d MiB. A real config is a few KiB", MaxSize>>20)}}
+// moreExport is what can follow an export on the same line in a clean
+// config: a comment, or one more export.
+var moreExport = regexp.MustCompile(`^(//|/\*|module\.exports|exports\.|export\s)`)
+
+func oversizeConfig(data []byte) []Signal {
+	if len(data) <= MaxSize {
+		return nil
 	}
+	return []Signal{{ID: IDPaddedCode, Line: 1, Title: fmt.Sprintf("The config is larger than %d MiB. A real config is a few KiB", MaxSize>>20)}}
+}
+
+// padded finds code that a file hides after a long run of white space, or
+// that a config hides after its export.
+func padded(data []byte) []Signal {
 	var out []Signal
 	for i, line := range bytes.Split(data, []byte("\n")) {
-		if loc := pad.FindIndex(line); loc != nil {
-			run := loc[1] - 1 - loc[0]
+		if start, end, n, ok := padRun(line); ok {
 			out = append(out, Signal{
-				ID: IDPaddedCode, Line: i + 1, Visible: string(bytes.TrimSpace(line[:loc[0]])),
-				Title: fmt.Sprintf("Code continues on line %d after %d spaces, with %d bytes off screen", i+1, run, len(line)-loc[1]+1),
+				ID: IDPaddedCode, Line: i + 1, Visible: string(bytes.TrimSpace(line[:start])),
+				Title: fmt.Sprintf("Code continues on line %d after %d spaces, with %d bytes off screen", i+1, n, len(line)-end),
 			})
 			continue
 		}
-		if loc := afterExport.FindIndex(line); loc != nil {
-			hidden := loc[1] - 1
-			out = append(out, Signal{
-				ID: IDPaddedCode, Line: i + 1, Visible: string(bytes.TrimSpace(line[:hidden])),
-				Title: fmt.Sprintf("Code continues on line %d after the export of the config, with %d bytes", i+1, len(line)-hidden),
-			})
+		loc := afterExport.FindIndex(line)
+		if loc == nil {
+			continue
 		}
+		rest := bytes.TrimRight(line[loc[1]:], " \t\r")
+		if len(rest) == 0 || moreExport.Match(rest) {
+			continue
+		}
+		out = append(out, Signal{
+			ID: IDPaddedCode, Line: i + 1, Visible: string(bytes.TrimSpace(line[:loc[1]])),
+			Title: fmt.Sprintf("Code continues on line %d after the export of the config, with %d bytes", i+1, len(rest)),
+		})
 	}
 	return out
 }
@@ -292,8 +356,8 @@ const (
 	// minRun is the shortest run of invisible characters that hides text.
 	// An emoji sequence uses at most two in a row.
 	minRun = 4
-	// minPayload is the shortest run of selectors or tags that carries a
-	// payload for a decoder.
+	// minPayload is the fewest selectors with no base character, or tags
+	// outside a flag emoji, that carry a payload. Real text has none.
 	minPayload = 16
 	// blackFlag starts a subdivision flag emoji, such as the flag of
 	// England, which spells its region in tag characters.
@@ -302,19 +366,32 @@ const (
 )
 
 // decoder is a sign of code that turns invisible characters into a payload.
-var decoder = regexp.MustCompile(`(?i)codePointAt|fromCodePoint|0xfe0[0f]|0xe01[0-9a-f]{2}|\\u\{e01|\beval\s*\(|\bFunction\s*\(|\bexec\s*\(`)
+// It only words the title: the payload itself is the sign.
+var decoder = regexp.MustCompile(`(?i)codePointAt|fromCodePoint|charCodeAt|0xfe0[0f]|0xe01[0-9a-f]{2}|\\u\{e01`)
 
-// invisible finds the longest run of invisible characters, and the first
-// bidi control of a code file. An agent instruction file can hold right to
-// left text, so only a run counts there.
+// keycap follows the selector of a keycap emoji, such as 1, a selector and
+// the keycap.
+const keycap = 0x20E3
+
+// invisible finds a payload in variation selectors or tag characters, a run
+// of invisible characters, and a bidi control in code. A selector modifies
+// the character before it, such as an emoji or a Han character. A selector
+// after ASCII, a space or another invisible character modifies nothing, so
+// vet counts it as payload, and so a tag character outside a flag emoji.
+// The count covers the whole file, so a decoy run, spaces between the
+// characters or one character per line do not hide the payload. An agent
+// instruction file can hold right to left text, so only a run counts
+// there. A built file gives only the payload signal.
 func invisible(p string, data []byte) []Signal {
 	if !mayHoldInvisible(data) {
 		return nil
 	}
 	t, isAgentFile := agentfiles.Classify(p)
 	code := !isAgentFile || t != agentfiles.Instructions
-	var longestLine, longest, longestPayload, bidiLine int
-	line, start, cur, payload := 1, 0, 0, 0
+	built := generated(p)
+	var longestLine, longest, bidiLine, payload, payloadLine int
+	line, start, cur := 1, 0, 0
+	prev := '\n'
 	for i := 0; i < len(data); {
 		r, size := utf8.DecodeRune(data[i:])
 		i += size
@@ -325,37 +402,55 @@ func invisible(p string, data []byte) []Signal {
 		if r == 0xFEFF && i == size {
 			k = visible
 		}
+		switch {
+		case k == selector && (prev < utf8.RuneSelf || kindOf(prev) != visible || space(prev)):
+			if next, _ := utf8.DecodeRune(data[i:]); next != keycap {
+				payload++
+			}
+		case k == tag:
+			payload++
+		}
+		if payload > 0 && payloadLine == 0 {
+			payloadLine = line
+		}
 		if k == visible {
 			if cur > longest {
-				longestLine, longest, longestPayload = start, cur, payload
+				longestLine, longest = start, cur
 			}
-			cur, payload = 0, 0
+			cur = 0
 			if r == '\n' {
 				line++
 			}
-			continue
+		} else {
+			if cur == 0 {
+				start = line
+			}
+			cur++
+			if k == bidi && code && bidiLine == 0 {
+				bidiLine = line
+			}
 		}
-		if cur == 0 {
-			start = line
-		}
-		cur++
-		if k == selector || k == tag {
-			payload++
-		}
-		if k == bidi && code && bidiLine == 0 {
-			bidiLine = line
-		}
+		prev = r
 	}
 	if cur > longest {
-		longestLine, longest, longestPayload = start, cur, payload
+		longestLine, longest = start, cur
 	}
 	var out []Signal
-	if longest >= minRun {
-		id, title := IDInvisibleUnicode, fmt.Sprintf("Line %d holds a run of %d invisible characters", longestLine, longest)
-		if longestPayload >= minPayload && decoder.Match(data) {
-			id, title = IDUnicodeDecoder, fmt.Sprintf("Line %d hides a payload in %d invisible characters, and the file holds a decoder", longestLine, longest)
+	if payload >= minPayload {
+		title := fmt.Sprintf("The file hides a payload in %d invisible characters, from line %d", payload, payloadLine)
+		if decoder.Match(data) {
+			title += ", and holds a decoder"
 		}
-		out = append(out, Signal{ID: id, Line: longestLine, Title: title, Visible: visibleLine(data, longestLine)})
+		return append(out, Signal{ID: IDUnicodeDecoder, Line: payloadLine, Title: title, Visible: visibleLine(data, payloadLine)})
+	}
+	if built {
+		return nil
+	}
+	if longest >= minRun {
+		out = append(out, Signal{
+			ID: IDInvisibleUnicode, Line: longestLine, Visible: visibleLine(data, longestLine),
+			Title: fmt.Sprintf("Line %d holds a run of %d invisible characters", longestLine, longest),
+		})
 	}
 	if bidiLine > 0 {
 		out = append(out, Signal{
