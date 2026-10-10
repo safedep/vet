@@ -141,3 +141,24 @@ func TestHistoryRewrite(t *testing.T) {
 		})
 	}
 }
+
+func TestCampaign(t *testing.T) {
+	cases := []struct {
+		name, path, data, want string
+	}{
+		{"v1 marker", "postcss.config.mjs", "export default config;" + strings.Repeat(" ", 280) + `global['!']='8-270-2';var _$_1e42=(function(){})();`, "PolinRider"},
+		{"v2 marker", "tailwind.config.js", "module.exports = config;" + strings.Repeat(" ", 280) + `global['_V']='8-st14';global['r']=require;`, "PolinRider"},
+		{"fake font with a seed", "fonts/a.woff2", "\t\t\tvar s=(\"rmcej%otb%\",2857687);", "PolinRider"},
+		{"no marker", "postcss.config.mjs", "export default config;" + strings.Repeat(" ", 280) + "eval(x)", ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			c, ok := Classify(tc.path)
+			require.True(t, ok)
+			s := Analyze(c, tc.path, []byte(tc.data))
+			require.NotEmpty(t, s)
+			assert.Equal(t, tc.want, s[0].Campaign)
+		})
+	}
+	assert.Empty(t, Analyze(Config, "next.config.js", []byte("// seed 2857687\nmodule.exports = {}\n")), "a marker alone makes no finding")
+}

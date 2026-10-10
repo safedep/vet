@@ -56,3 +56,9 @@ func TestHistoryRewriteScript(t *testing.T) {
 	assert.Equal(t, "history-rewrite-script", fs[0].ControlID)
 	assert.Equal(t, 2, fs[0].Locus.StartLine)
 }
+
+func TestCampaignInTheTitle(t *testing.T) {
+	fs := evaluate(t, "postcss.config.mjs", "export default config;"+strings.Repeat(" ", 280)+"global['_V']='8-st14';eval(x)")
+	require.Len(t, fs, 1)
+	assert.Equal(t, "Code continues on line 1 after 280 spaces, with 30 bytes off screen. It matches PolinRider", fs[0].Title)
+}

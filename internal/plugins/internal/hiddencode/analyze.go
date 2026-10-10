@@ -74,9 +74,9 @@ func Read(fsys fs.FS, p string, c Class) (data []byte, err error) {
 func Analyze(c Class, p string, data []byte) []Signal {
 	switch c {
 	case Config:
-		return append(padded(data), invisible(p, data)...)
+		return named(append(padded(data), invisible(p, data)...), data)
 	case Asset:
-		return disguised(p, data)
+		return named(disguised(p, data), data)
 	case Source:
 		return invisible(p, data)
 	case Script:
