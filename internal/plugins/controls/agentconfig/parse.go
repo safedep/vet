@@ -356,16 +356,51 @@ func hiddenTask(t object) bool {
 // taskOSes are the OS blocks of a task, each with its own command.
 var taskOSes = []string{"windows", "osx", "linux"}
 
-// editorTasks reads the shell and process tasks of .vscode/tasks.json. A
-// task can set its own command in each OS block, and the editor runs the
-// one of the OS of the developer.
+// mergedKeys are the task keys whose objects the editor merges key by key
+// with the outer level, in place of a full replace.
+var mergedKeys = map[string]bool{"options": true, "shell": true, "env": true, "presentation": true}
+
+// overlay returns a copy of base with the keys of top on top, as the editor
+// merges an OS block over a task and a task over the root of tasks.json.
+func overlay(base, top object) object {
+	out := maps.Clone(base)
+	if out == nil {
+		out = object{}
+	}
+	for k, v := range top {
+		if sub, outer := objectOf(v), objectOf(out[k]); mergedKeys[k] && sub != nil && outer != nil {
+			v = overlay(outer, sub)
+		}
+		out[k] = v
+	}
+	return out
+}
+
+// inherited returns the keys of a root object or a root OS block that each
+// task of tasks.json inherits.
+func inherited(o object) object {
+	out := object{}
+	for _, k := range []string{"options", "presentation"} {
+		if v, ok := o[k]; ok {
+			out[k] = v
+		}
+	}
+	return out
+}
+
+// editorTasks reads the shell and process tasks of .vscode/tasks.json. The
+// editor runs each task with the options and presentation of the root, and
+// with the OS block of the developer merged on top. So vet reads one
+// command for each OS whose merged task differs from the plain task.
 func editorTasks(data []byte) ([]command, error) {
 	doc, err := decodeJSONC(data)
 	if err != nil {
 		return nil, err
 	}
+	root := objectOf(doc)
+	base := inherited(root)
 	var out []command
-	for i, v := range listOf(objectOf(doc)["tasks"]) {
+	for i, v := range listOf(root["tasks"]) {
 		if len(out) > maxCommands {
 			break
 		}
@@ -378,26 +413,27 @@ func editorTasks(data []byte) ([]command, error) {
 			name = fmt.Sprintf("task %d", i+1)
 		}
 		onOpen := stringOf(objectOf(t["runOptions"])["runOn"]) == "folderOpen"
-		hidden := hiddenTask(t)
-		add := func(suffix string, block object) {
-			if text, first := taskText(block); text != "" {
-				out = append(out, command{name: name + suffix, text: text, line: lineOf(data, first), onOpen: onOpen, hidden: hidden})
+		seen := map[command]bool{}
+		add := func(suffix string, task object) {
+			text, first := taskText(task)
+			if text == "" {
+				return
 			}
+			c := command{text: text, onOpen: onOpen, hidden: hiddenTask(task)}
+			if seen[c] {
+				return
+			}
+			seen[c] = true
+			c.name, c.line = name+suffix, lineOf(data, first)
+			out = append(out, c)
 		}
-		add("", t)
-		top, _ := taskText(t)
+		add("", overlay(base, t))
 		for _, osName := range taskOSes {
-			block := objectOf(t[osName])
-			if block == nil {
+			rootOS, taskOS := objectOf(root[osName]), objectOf(t[osName])
+			if rootOS == nil && taskOS == nil {
 				continue
 			}
-			// The editor merges the OS block over the task, so a block with
-			// only args or options still changes what runs.
-			merged := maps.Clone(t)
-			maps.Copy(merged, block)
-			if text, _ := taskText(merged); text != top {
-				add(" ("+osName+")", merged)
-			}
+			add(" ("+osName+")", overlay(overlay(overlay(base, inherited(rootOS)), t), taskOS))
 		}
 	}
 	return out, nil

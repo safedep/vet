@@ -260,6 +260,12 @@
   tier: P1
   guarantee: "A folder-open task that hides its terminal, with OS commands that run node on a fake font or pipe a download to a shell, gives a critical suspicious-command finding for each OS command, and the attacks gate fails. A .vscode/settings.json that turns on automatic tasks gives a high editor-autorun-enabled finding. A .githooks hook gives findings."
   labels: [agent-config, attacks]
+- id: controls/agent-config/inherited
+  title: "agent config: a task command that VS Code merges"
+  category: controls
+  tier: P1
+  guarantee: "vet merges the root options and the OS block of a task over the task, as VS Code does. A payload that is only in the merged command gives a critical suspicious-command finding, and the attacks gate fails."
+  labels: [agent-config, attacks]
 - id: controls/agent-config/unreadable
   title: "agent config: a file that vet cannot parse"
   category: controls
