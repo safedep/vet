@@ -254,6 +254,18 @@
   tier: P1
   guarantee: "In pull request mode, a change that adds a .vscode/tasks.json task with runOn: folderOpen gives a high editor-task-command finding. An agent instruction file that the change does not touch gives none."
   labels: [agent-config, pr-mode]
+- id: controls/agent-config/hidden-task
+  title: "agent config: a hidden folder-open task"
+  category: controls
+  tier: P1
+  guarantee: "A folder-open task that hides its terminal, with OS commands that run node on a fake font or pipe a download to a shell, gives a critical suspicious-command finding for each OS command, and the attacks gate fails. A .vscode/settings.json that turns on automatic tasks gives a high editor-autorun-enabled finding. A .githooks hook gives findings."
+  labels: [agent-config, attacks]
+- id: controls/agent-config/unreadable
+  title: "agent config: a file that vet cannot parse"
+  category: controls
+  tier: P1
+  guarantee: "A .vscode/tasks.json with a syntax error gives a high agent-config-unreadable finding on the line of the error. The attacks gate passes."
+  labels: [agent-config]
 - id: controls/lockfile/integrity-changed
   title: "lockfile: integrity change with no version change"
   category: controls
@@ -681,6 +693,12 @@
   category: endpoint
   tier: P1
   guarantee: "vet endpoint audit with a home directory that holds a risky .vscode/tasks.json and an MCP config gives findings."
+  labels: [endpoint, agent-config]
+- id: endpoint/agent-config/user-tasks
+  title: "endpoint audit: editor user tasks"
+  category: endpoint
+  tier: P1
+  guarantee: "vet endpoint audit reads the user tasks.json of VS Code in the config folder of the home directory, and a suspicious task in it gives a finding."
   labels: [endpoint, agent-config]
 - id: endpoint/inventory-sync/wal
   title: "endpoint audit: inventory sync log"

