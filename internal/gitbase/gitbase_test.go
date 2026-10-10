@@ -145,3 +145,16 @@ func TestRepoPath(t *testing.T) {
 	_, _, err = tree.RepoPath(filepath.Join(repo, "b", "p.yml"))
 	assert.ErrorIs(t, err, ErrLink, "a link in the working tree")
 }
+
+func TestSameBlobReadsALink(t *testing.T) {
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "real.json"), []byte("{}"), 0o600))
+	require.NoError(t, os.Symlink("real.json", filepath.Join(dir, "link.json")))
+	fsys := os.DirFS(dir)
+	same, err := SameBlob(fsys, "link.json", plumbing.ComputeHash(plumbing.BlobObject, []byte("real.json")))
+	require.NoError(t, err)
+	assert.True(t, same, "git keeps the link text")
+	same, err = SameBlob(fsys, "link.json", plumbing.ComputeHash(plumbing.BlobObject, []byte("{}")))
+	require.NoError(t, err)
+	assert.False(t, same)
+}

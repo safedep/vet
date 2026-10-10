@@ -36,7 +36,7 @@ const (
 )
 
 // entryFiles are the entry scripts of npm in its install folder.
-var entryFiles = []string{"node_modules/npm/lib/cli.js", "node_modules/npm/bin/npm-cli.js", "node_modules/npm/bin/npx-cli.js"}
+var entryFiles = []string{"node_modules/npm/lib/cli.js", "node_modules/npm/lib/cli/entry.js", "node_modules/npm/bin/npm-cli.js", "node_modules/npm/bin/npx-cli.js"}
 
 // EntryFiles returns the entry scripts of npm under a global package folder,
 // such as /usr/local/lib/node_modules.

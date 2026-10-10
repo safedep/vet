@@ -192,3 +192,23 @@ func TestAuditNPMEntryScripts(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, a.Include, filepath.ToSlash(rel))
 }
+
+func TestAuditProjectsLinks(t *testing.T) {
+	home := machineHome(t, "review")
+	code := filepath.Join(home, "code")
+	write(t, filepath.Join(code, "api", "cfg", "tasks.json"), "x")
+	require.NoError(t, os.Symlink("cfg", filepath.Join(code, "api", ".vscode")))
+	require.NoError(t, os.Symlink("..", filepath.Join(code, "api", "cfg", ".claude")))
+	write(t, filepath.Join(code, "target", "next.config.mjs"), "x")
+	require.NoError(t, os.MkdirAll(filepath.Join(code, "target", ".git"), 0o700))
+	a := artifactOf(t, New(Options{Projects: []string{code}}, fakeSystem(home)))
+	prefix := filepath.ToSlash(code)[1:] + "/"
+	var got []string
+	for _, f := range a.Include {
+		if rel, ok := strings.CutPrefix(f, prefix); ok {
+			got = append(got, rel)
+		}
+	}
+	assert.ElementsMatch(t, []string{"api/.vscode/tasks.json", "target/next.config.mjs"}, got,
+		"a linked config folder is read once, and a repository named target is not skipped")
+}

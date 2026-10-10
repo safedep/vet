@@ -285,3 +285,24 @@ func TestWalkFollowsLinksInsideTheTarget(t *testing.T) {
 	}
 	assert.Equal(t, []string{".vscode/tasks.json"}, paths, "the link inside the target is read, the link outside is not")
 }
+
+func TestWalkFollowsLinkedConfigFolders(t *testing.T) {
+	dir := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "cfg"), 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "cfg", "tasks.json"), []byte(`{"tasks": []}`), 0o600))
+	require.NoError(t, os.Symlink("cfg", filepath.Join(dir, ".vscode")))
+	require.NoError(t, os.Symlink("..", filepath.Join(dir, "cfg", ".claude")))
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "pkgs", "a"), 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "pkgs", "a", "requirements.txt"), []byte("flask==3.0.0\n"), 0o600))
+	require.NoError(t, os.Symlink(filepath.Join("pkgs", "a"), filepath.Join(dir, "linked-pkg")))
+
+	f := newFixture(t)
+	res := runScan(t, f.options(t, dir, nil))
+	var paths []string
+	for m, err := range res.Scan.Manifests(context.Background()) {
+		require.NoError(t, err)
+		paths = append(paths, m.Path)
+	}
+	assert.ElementsMatch(t, []string{".vscode/tasks.json", "pkgs/a/requirements.txt"}, paths,
+		"a linked config folder is read, a link back to the root and other linked folders are not")
+}

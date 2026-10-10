@@ -136,8 +136,9 @@ func (s *Source) artifact(ctx context.Context) (plugin.Artifact, error) {
 	if err != nil {
 		return plugin.Artifact{}, err
 	}
+	walked := map[string]bool{}
 	for _, dir := range projects {
-		if err := projectFiles(ctx, dir, files); err != nil {
+		if err := projectFiles(ctx, dir, files, walked); err != nil {
 			return plugin.Artifact{}, err
 		}
 	}
@@ -251,9 +252,21 @@ const maxProjectFiles = 100000
 // code or hide it. A worm that spreads to every repository on a machine
 // changes these files. The source files stay out, so a large folder of
 // repositories stays fast to audit.
-func projectFiles(ctx context.Context, dir string, files map[string]bool) error {
+// walked holds the real path of each folder that the walk entered, so a
+// link back to a parent folder does not loop.
+func projectFiles(ctx context.Context, dir string, files, walked map[string]bool) error {
+	real, err := filepath.EvalSymlinks(dir)
+	if err != nil || walked[real] {
+		return nil
+	}
+	walked[real] = true
 	added := 0
-	return filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
+	// The walk reads the real folder, and names each file by its path under
+	// dir: the controls read the name of a linked folder, such as .vscode.
+	return filepath.WalkDir(real, func(p string, d fs.DirEntry, err error) error {
+		if rel, relErr := filepath.Rel(real, p); relErr == nil {
+			p = filepath.Join(dir, rel)
+		}
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
@@ -266,12 +279,26 @@ func projectFiles(ctx context.Context, dir string, files map[string]bool) error 
 			return nil
 		}
 		if d.IsDir() {
-			if p != dir && projectSkipDirs[d.Name()] {
+			if p != dir && projectSkipDirs[d.Name()] && !repository(p) {
 				return fs.SkipDir
 			}
 			return nil
 		}
-		if !d.Type().IsRegular() || !projectFile(filepath.ToSlash(p)) {
+		if d.Type()&fs.ModeSymlink != 0 {
+			// An editor follows a link such as .vscode or .vscode/tasks.json.
+			info, err := os.Stat(p)
+			switch {
+			case err != nil:
+				return nil
+			case info.IsDir() && agentfiles.ConfigDirs[d.Name()]:
+				return projectFiles(ctx, p, files, walked)
+			case !info.Mode().IsRegular():
+				return nil
+			}
+		} else if !d.Type().IsRegular() {
+			return nil
+		}
+		if !projectFile(filepath.ToSlash(p)) {
 			return nil
 		}
 		if added >= maxProjectFiles {
@@ -282,6 +309,13 @@ func projectFiles(ctx context.Context, dir string, files map[string]bool) error 
 		added++
 		return nil
 	})
+}
+
+// repository reports a folder that holds a git repository. A repository
+// can have the name of a skipped folder, such as target or venv.
+func repository(dir string) bool {
+	_, err := os.Stat(filepath.Join(dir, ".git"))
+	return err == nil
 }
 
 // CheckProjects returns the absolute path of each --projects folder, or an

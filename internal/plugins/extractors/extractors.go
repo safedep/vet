@@ -23,6 +23,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/extractors/pyproject"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/scalibr"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/terraform"
+	"github.com/safedep/vet/v2/internal/plugins/internal/agentfiles"
 	"github.com/safedep/vet/v2/model"
 )
 
@@ -79,6 +80,11 @@ func Default() ([]filesystem.Extractor, error) {
 	vet = append(vet, gha, gm, terraform.New(), packagejson.New(), cargotoml.New(), pyproject.New(), agentconfig.New(), hiddencode.New())
 	return Override(base, vet...), nil
 }
+
+// FollowsLink reports a folder name that a walk enters through a symbolic
+// link: a config folder of an editor or an agent. Other linked folders,
+// such as the packages of a monorepo, would add each manifest twice.
+func FollowsLink(name string) bool { return agentfiles.ConfigDirs[name] }
 
 // installDirReader is an extractor that applies the install folder rule of
 // declared itself, such as the hidden-code extractor, which reads the npm

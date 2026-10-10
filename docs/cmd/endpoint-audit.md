@@ -19,9 +19,9 @@ reads the home directory.
 | --- | --- |
 | AI tools, coding agents, MCP servers, agent skills, Neovim plugins | Inventory records. An MCP server record holds the names of its environment variables and headers, never their values. |
 | VS Code, Cursor, Windsurf and VSCodium extensions | Packages of the `vscode` or `openvsx` ecosystem. The malware control checks them. |
-| Global npm packages (`~/.npm-global`, nvm, the Windows npm prefix) | Packages of the `npm` ecosystem. Every package control checks them. |
+| Global npm packages (`~/.npm-global`, nvm, volta, fnm, asdf, mise, the Windows npm prefix) | Packages of the `npm` ecosystem. Every package control checks them. |
 | Agent and editor config files (`.vscode/tasks.json`, `.claude/settings.json`, MCP configs, the user tasks and settings of each editor) | Manifests that the agent configuration controls read. |
-| The entry scripts of the global npm (`npm/lib/cli.js`, `npm/bin/npm-cli.js`, `npm/bin/npx-cli.js`) of the user, and of the machine with `--all-users` | Manifests that the hidden-code controls read. A changed entry script runs at each npm command. |
+| The entry scripts of the global npm (`npm/lib/cli.js`, `npm/lib/cli/entry.js`, `npm/bin/npm-cli.js`, `npm/bin/npx-cli.js`) of the user, and of the machine with `--all-users` | Manifests that the hidden-code controls read. A changed entry script runs at each npm command. |
 | With `--projects DIR`, the agent and editor configs, build configs, fonts and images, and scripts of the repositories under `DIR` | Manifests that the agent configuration and hidden-code controls read. |
 
 The table counts the tools by kind and lists each one, with its client and its path. It shows

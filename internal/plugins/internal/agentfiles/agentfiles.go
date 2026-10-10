@@ -50,6 +50,11 @@ var HomeFiles = append([]string{
 	".gemini/settings.json",
 }, userFiles()...)
 
+// ConfigDirs are the folders of a repository that hold agent or editor
+// config. An editor or an agent follows a symbolic link to such a folder,
+// so a scan follows it too.
+var ConfigDirs = map[string]bool{".vscode": true, ".cursor": true, ".claude": true, ".githooks": true, ".husky": true, ".devcontainer": true}
+
 // editorUserDirs are the folder names of the editors that keep user tasks
 // and settings in <config dir>/<name>/User.
 var editorUserDirs = []string{"Code", "Code - Insiders", "Cursor", "VSCodium", "Windsurf"}
