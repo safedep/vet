@@ -8,6 +8,7 @@ package hiddencode
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/safedep/vet/v2/finding"
 	"github.com/safedep/vet/v2/internal/plugins/internal/hiddencode"
@@ -58,6 +59,12 @@ var infos = []plugin.ControlInfo{
 		Title:       "Invisible Unicode characters",
 		Description: "A file holds a run of invisible characters, or code holds a bidirectional control. They can hide text from a reviewer, hide instructions from a person who reads an agent file, or show code in another order than the compiler reads it.",
 	},
+	{
+		ID: hiddencode.IDHistoryRewrite, Family: finding.FamilyHiddenCode, Severity: finding.SeverityCritical,
+		Title:       "Script that rewrites the git history",
+		Description: "A script amends the last commit with no hooks, keeps its date, and force-pushes it, or .gitignore hides such a script. PolinRider uses it to fold its change into the last real commit of each repository on an infected machine, so the history shows no new commit.",
+		Attack:      true,
+	},
 }
 
 // Controls describes the control ids.
@@ -71,6 +78,7 @@ var remediation = map[string]string{
 	hiddencode.IDDisguisedScript:  "Do not open the folder in an editor or run it. Remove the file, find what runs it, and check the machines that opened the folder.",
 	hiddencode.IDUnicodeDecoder:   "Do not run or install the code. Remove the characters and the decoder, and check the machines that ran it.",
 	hiddencode.IDInvisibleUnicode: "Show the file with the invisible characters visible, and remove each one that the text does not need.",
+	hiddencode.IDHistoryRewrite:   "Treat the machine that holds the script as infected. Compare each repository on it with its remote history, and rotate its credentials.",
 }
 
 // Evaluate reads the file of the manifest and reports each sign of hidden
@@ -109,11 +117,9 @@ func (*Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State) (
 	return out, nil
 }
 
+// infoOf returns the description of a control id of the package. Each id
+// of a signal is in infos, and a test keeps it so.
 func infoOf(id string) plugin.ControlInfo {
-	for _, i := range infos {
-		if i.ID == id {
-			return i
-		}
-	}
-	return plugin.ControlInfo{ID: id, Family: finding.FamilyHiddenCode, Severity: finding.SeverityHigh}
+	i := slices.IndexFunc(infos, func(c plugin.ControlInfo) bool { return c.ID == id })
+	return infos[i]
 }

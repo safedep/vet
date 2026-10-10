@@ -119,3 +119,25 @@ func TestInvisibleSnippetHasNoPayload(t *testing.T) {
 	require.Len(t, s, 1)
 	assert.Equal(t, "const x = ``;", s[0].Visible)
 }
+
+func TestHistoryRewrite(t *testing.T) {
+	polinrider := "@echo off\r\nfor /f %%i in ('git log -1 --format^=%%cd') do set LAST_COMMIT_DATE=%%i\r\ndate %LAST_COMMIT_DATE%\r\ngit add .\r\ngit commit --amend --no-edit --no-verify\r\ngit push -uf origin %CURRENT_BRANCH% --no-verify\r\n"
+	cases := []struct {
+		name, path, data string
+		want             []string
+	}{
+		{"the script by name", "temp_auto_push.bat", "@echo off\n", []string{IDHistoryRewrite}},
+		{"the script by content", "tools/sync.bat", polinrider, []string{IDHistoryRewrite}},
+		{"a shell script that keeps the date", "scripts/fix.sh", "GIT_COMMITTER_DATE=\"$(git log -1 --format=%cd)\" git commit --amend --no-verify --no-edit\ngit push --force origin HEAD\n", []string{IDHistoryRewrite}},
+		{".gitignore hides the script", ".gitignore", "node_modules\n/temp_auto_push.bat\n", []string{IDHistoryRewrite}},
+		{".gitignore hides the helper files", ".gitignore", "config.bat\nbranch_structure.json\n", []string{IDHistoryRewrite}},
+		{".gitignore with config.bat only", ".gitignore", "config.bat\n", nil},
+		{"a release script that force-pushes", "scripts/release.sh", "git commit --amend --no-edit\ngit push --force-with-lease\n", nil},
+		{"amend with no clock change", "scripts/fixup.sh", "git commit --amend --no-verify\ngit push -f\n", nil},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, ids(Analyze(Script, tc.path, []byte(tc.data))))
+		})
+	}
+}

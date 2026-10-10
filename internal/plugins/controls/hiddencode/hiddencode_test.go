@@ -49,3 +49,10 @@ func TestDisguisedScript(t *testing.T) {
 	assert.Equal(t, finding.SeverityCritical, fs[0].Severity)
 	assert.Equal(t, "The file has a .woff2 name but holds text, not a woff2 file, after 273 leading spaces and tabs", fs[0].Title)
 }
+
+func TestHistoryRewriteScript(t *testing.T) {
+	fs := evaluate(t, ".gitignore", "node_modules\ntemp_auto_push.bat\n")
+	require.Len(t, fs, 1)
+	assert.Equal(t, "history-rewrite-script", fs[0].ControlID)
+	assert.Equal(t, 2, fs[0].Locus.StartLine)
+}

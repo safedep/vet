@@ -23,6 +23,11 @@ const (
 	IDHistoryRewrite   = "history-rewrite-script"
 )
 
+// IDs returns every control id of a signal.
+func IDs() []string {
+	return []string{IDPaddedCode, IDDisguisedScript, IDInvisibleUnicode, IDUnicodeDecoder, IDHistoryRewrite}
+}
+
 // Signal is one sign of hidden code in a file.
 type Signal struct {
 	// ID is the control id of the finding.
@@ -74,8 +79,61 @@ func Analyze(c Class, p string, data []byte) []Signal {
 		return disguised(p, data)
 	case Source:
 		return invisible(p, data)
+	case Script:
+		return historyRewrite(p, data)
 	}
 	return nil
+}
+
+// rewriteScripts are the file names of the PolinRider script that folds
+// its change into the last commit of the victim and force-pushes it.
+var rewriteScripts = map[string]bool{"temp_auto_push.bat": true, "temp_interactive_push.bat": true}
+
+var (
+	amend    = regexp.MustCompile(`\bcommit\b[^\n]*--amend\b`)
+	noVerify = regexp.MustCompile(`--no-verify\b`)
+	force    = regexp.MustCompile(`\bpush\b[^\n]*(\s-[a-zA-Z]*f[a-zA-Z]*\b|--force\b)`)
+	// clock is a change of the system clock or of the commit date, so the
+	// amended commit keeps the time of the original.
+	clock = regexp.MustCompile(`(?i)(^|[\s&|;(])(date|time)\s+[^\s/]|Set-Date|GIT_COMMITTER_DATE|LAST_COMMIT_DATE`)
+)
+
+// historyRewrite finds the PolinRider script that rewrites the last commit
+// of a repository: by its name, by the entries that hide it in .gitignore,
+// or by what it runs. The rewrite keeps the author, the date and the
+// message, so the force-push shows no new commit.
+func historyRewrite(p string, data []byte) []Signal {
+	base := path.Base(p)
+	if rewriteScripts[strings.ToLower(base)] {
+		return []Signal{{ID: IDHistoryRewrite, Line: 1, Title: "The file has the name of the PolinRider script that rewrites the last commit and force-pushes it"}}
+	}
+	lines := bytes.Split(data, []byte("\n"))
+	if base == ".gitignore" {
+		entries := map[string]int{}
+		for i, l := range lines {
+			entries[strings.ToLower(strings.TrimPrefix(strings.TrimSpace(string(l)), "/"))] = i + 1
+		}
+		for name := range rewriteScripts {
+			if line, ok := entries[name]; ok {
+				return []Signal{{ID: IDHistoryRewrite, Line: line, Visible: name, Title: ".gitignore hides " + name + ", the PolinRider script that rewrites the last commit"}}
+			}
+		}
+		if line, ok := entries["config.bat"]; ok && entries["branch_structure.json"] > 0 {
+			return []Signal{{ID: IDHistoryRewrite, Line: line, Visible: "config.bat", Title: ".gitignore hides config.bat and branch_structure.json, the files of the PolinRider push script"}}
+		}
+		return nil
+	}
+	if !amend.Match(data) || !noVerify.Match(data) || !force.Match(data) || !clock.Match(data) {
+		return nil
+	}
+	line := 1
+	for i, l := range lines {
+		if amend.Match(l) {
+			line = i + 1
+			break
+		}
+	}
+	return []Signal{{ID: IDHistoryRewrite, Line: line, Visible: string(bytes.TrimSpace(lines[line-1])), Title: "The script amends the last commit with no hooks, keeps its date, and force-pushes it"}}
 }
 
 // magic are the first bytes of each binary asset type.
