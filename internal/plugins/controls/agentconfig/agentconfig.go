@@ -245,7 +245,7 @@ func (c *Control) server(e *emitter, s server) {
 	case s.command != "":
 		title += " runs " + short(s.command)
 	case s.url != "":
-		title += " calls " + s.url
+		title += " calls " + short(s.url)
 	}
 	e.add(IDMCPServer, finding.SeverityMedium, s.line, s.name, title,
 		&finding.Remediation{Summary: "Check who publishes the server and what it can read. Pin the version of the package that it runs."})
@@ -284,7 +284,11 @@ func (e *emitter) unreadable(line int, discriminator, title string) {
 }
 
 // short cuts a command to its first 80 characters for a title.
-func short(s string) string { return finding.Shorten(strings.Join(strings.Fields(s), " "), 80) }
+// short is the text of a config file as a title shows it: redacted, then
+// cut, so the cut does not leave a part of a secret.
+func short(s string) string {
+	return finding.Shorten(redact(strings.Join(strings.Fields(s), " ")), 80)
+}
 
 // emitter builds the file findings of one file, with the occurrence index
 // among identical snippets.
@@ -331,7 +335,7 @@ func (e *emitter) add(id string, sev finding.Severity, line int, discriminator, 
 	}
 	f := finding.ForFile(finding.Meta{
 		ControlID: id, Family: info.Family, Severity: sev, Confidence: finding.ConfidenceHigh,
-		Title: title, Description: info.Description,
+		Title: redact(title), Description: info.Description,
 	}, finding.Locus{Path: e.path, StartLine: line, EndLine: line, Snippet: snip.full},
 		finding.Key{Discriminator: discriminator, Occurrence: occ})
 	f.Locus.Snippet = snip.display
