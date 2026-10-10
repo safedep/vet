@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"path"
 	"strings"
 
 	"github.com/safedep/vet/v2/finding"
@@ -221,7 +222,7 @@ func (c *Control) server(e *emitter, s server) {
 }
 
 func (*Control) suspicious(e *emitter, line int, name, text string) {
-	reason := suspiciousReason(text)
+	reason := suspiciousReason(text, path.Base(path.Dir(e.path)))
 	if reason == "" {
 		return
 	}
