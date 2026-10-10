@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -30,9 +32,61 @@ type server struct {
 	line    int
 }
 
-// stripJSONC removes the comments and the trailing commas of a JSON with
-// comments file, such as the VS Code and devcontainer files.
+// The parsers decode into generic values and read each field with a type
+// check. A typed decode stops at the first value of a wrong type, so one
+// bad value would hide the commands of the whole file. Map keys also match
+// exactly, as they do in the editor. encoding/json matches struct fields
+// with no case, so a decoy "COMMAND" key would win over "command".
+type object = map[string]any
+
+func objectOf(v any) object { o, _ := v.(map[string]any); return o }
+
+func listOf(v any) []any { l, _ := v.([]any); return l }
+
+func stringOf(v any) string { s, _ := v.(string); return s }
+
+// sortedKeys returns the keys of o in order.
+func sortedKeys(o object) []string {
+	keys := make([]string, 0, len(o))
+	for k := range o {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+// parseError is a syntax error with its line in the file.
+type parseError struct {
+	line int
+	err  error
+}
+
+func (e *parseError) Error() string { return e.err.Error() }
+
+func (e *parseError) Unwrap() error { return e.err }
+
+// errorLine returns the line of a parse error, or 1.
+func errorLine(err error) int {
+	var pe *parseError
+	if errors.As(err, &pe) {
+		return pe.line
+	}
+	return 1
+}
+
+var bom = []byte("\xEF\xBB\xBF")
+
+// stripJSONC removes the byte order mark, the comments and the trailing
+// commas of a JSON with comments file, such as the VS Code and devcontainer
+// files. It keeps each line break, so a line in the result is the same line
+// in the file.
 func stripJSONC(data []byte) []byte {
+	return stripTrailingCommas(stripComments(bytes.TrimPrefix(data, bom)))
+}
+
+// scanJSON calls each for each byte outside a string, and copies each byte
+// of a string as it is. each returns how many bytes it took.
+func scanJSON(data []byte, each func(out *bytes.Buffer, i int) int) []byte {
 	var out bytes.Buffer
 	inString, escaped := false, false
 	for i := 0; i < len(data); i++ {
@@ -49,63 +103,86 @@ func stripJSONC(data []byte) []byte {
 			}
 			continue
 		}
-		switch {
-		case c == '"':
+		if c == '"' {
 			inString = true
 			out.WriteByte(c)
-		case c == '/' && i+1 < len(data) && data[i+1] == '/':
-			for i < len(data) && data[i] != '\n' {
-				i++
-			}
-			out.WriteByte('\n')
-		case c == '/' && i+1 < len(data) && data[i+1] == '*':
-			end := bytes.Index(data[i+2:], []byte("*/"))
-			if end < 0 {
-				i = len(data)
-				continue
-			}
-			// Keep the line breaks, so the line numbers stay right.
-			out.Write(bytes.Repeat([]byte("\n"), bytes.Count(data[i:i+2+end+2], []byte("\n"))))
-			i += 2 + end + 1
-		case c == ',':
-			j := i + 1
-			for j < len(data) && strings.ContainsRune(" \t\r\n", rune(data[j])) {
-				j++
-			}
-			if j < len(data) && (data[j] == '}' || data[j] == ']') {
-				continue
-			}
-			out.WriteByte(c)
-		default:
-			out.WriteByte(c)
+			continue
 		}
+		i += each(&out, i) - 1
 	}
 	return out.Bytes()
 }
 
-// errorLine returns the line of a JSON syntax error in a JSON with comments
-// file, or 1. stripJSONC keeps the line breaks, so the offset in the
-// stripped data gives the line in the file.
-func errorLine(data []byte, err error) int {
-	var se *json.SyntaxError
-	if !errors.As(err, &se) {
+func stripComments(data []byte) []byte {
+	return scanJSON(data, func(out *bytes.Buffer, i int) int {
+		switch {
+		case bytes.HasPrefix(data[i:], []byte("//")):
+			end := bytes.IndexByte(data[i:], '\n')
+			if end < 0 {
+				return len(data) - i
+			}
+			return end
+		case bytes.HasPrefix(data[i:], []byte("/*")):
+			end := bytes.Index(data[i+2:], []byte("*/"))
+			n := len(data) - i
+			if end >= 0 {
+				n = end + 4
+			}
+			out.Write(bytes.Repeat([]byte("\n"), bytes.Count(data[i:i+n], []byte("\n"))))
+			return n
+		}
+		out.WriteByte(data[i])
 		return 1
-	}
-	clean := stripJSONC(data)
-	if se.Offset <= 0 || se.Offset > int64(len(clean)) {
-		return 1
-	}
-	return bytes.Count(clean[:se.Offset], []byte("\n")) + 1
+	})
 }
 
-// decodeJSONC decodes a JSON with comments file. An empty file holds
-// nothing and leaves v as it is.
-func decodeJSONC(data []byte, v any) error {
+func stripTrailingCommas(data []byte) []byte {
+	return scanJSON(data, func(out *bytes.Buffer, i int) int {
+		if data[i] == ',' {
+			rest := bytes.TrimLeft(data[i+1:], " \t\r\n")
+			if len(rest) > 0 && (rest[0] == '}' || rest[0] == ']') {
+				return 1
+			}
+		}
+		out.WriteByte(data[i])
+		return 1
+	})
+}
+
+// decodeJSONC decodes a JSON with comments file into a generic value. An
+// empty file holds nothing and gives nil.
+func decodeJSONC(data []byte) (any, error) {
 	clean := stripJSONC(data)
 	if len(bytes.TrimSpace(clean)) == 0 {
-		return nil
+		return nil, nil
 	}
-	return json.Unmarshal(clean, v)
+	var v any
+	if err := json.Unmarshal(clean, &v); err != nil {
+		line := 1
+		var se *json.SyntaxError
+		if errors.As(err, &se) && se.Offset > 0 && se.Offset <= int64(len(clean)) {
+			line = bytes.Count(clean[:se.Offset], []byte("\n")) + 1
+		}
+		return nil, &parseError{line: line, err: err}
+	}
+	return v, nil
+}
+
+var yamlLine = regexp.MustCompile(`^yaml: line (\d+):`)
+
+// decodeYAML decodes a YAML file into a generic value.
+func decodeYAML(data []byte) (any, error) {
+	var v any
+	if err := yaml.Unmarshal(data, &v); err != nil {
+		line := 1
+		if m := yamlLine.FindStringSubmatch(err.Error()); m != nil {
+			if n, convErr := strconv.Atoi(m[1]); convErr == nil {
+				line = n
+			}
+		}
+		return nil, &parseError{line: line, err: err}
+	}
+	return v, nil
 }
 
 // lineOf returns the line of the first occurrence of the JSON form of s,
@@ -153,13 +230,8 @@ func commandText(v any) []string {
 		}
 		return []string{strings.Join(parts, " ")}
 	case map[string]any:
-		keys := make([]string, 0, len(c))
-		for k := range c {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
 		var out []string
-		for _, k := range keys {
+		for _, k := range sortedKeys(c) {
 			out = append(out, commandText(c[k])...)
 		}
 		return out
@@ -167,113 +239,107 @@ func commandText(v any) []string {
 	return nil
 }
 
-// taskCommand is the command part of a task, or of one OS block of it.
-type taskCommand struct {
-	Command any   `json:"command"`
-	Args    []any `json:"args"`
+// taskWord is one word of a task command or of its args: a string, or a
+// quoted string as {"value": "...", "quoting": "strong"}.
+func taskWord(v any) string {
+	if o := objectOf(v); o != nil {
+		v = o["value"]
+	}
+	switch w := v.(type) {
+	case string:
+		return w
+	case []any:
+		parts := make([]string, 0, len(w))
+		for _, p := range w {
+			if s := stringOf(p); s != "" {
+				parts = append(parts, s)
+			}
+		}
+		return strings.Join(parts, " ")
+	}
+	return ""
 }
 
-// text joins the command and its arguments, or gives "".
-func (c taskCommand) text() string {
-	texts := commandText(c.Command)
-	if len(texts) == 0 {
-		return ""
+// taskText joins the command and the args of a task, or of one OS block of
+// a task.
+func taskText(t object) (text, first string) {
+	first = taskWord(t["command"])
+	if strings.TrimSpace(first) == "" {
+		return "", ""
 	}
-	if args := commandText(c.Args); len(args) > 0 {
-		return texts[0] + " " + args[0]
+	words := []string{first}
+	for _, a := range listOf(t["args"]) {
+		if w := taskWord(a); w != "" {
+			words = append(words, w)
+		}
 	}
-	return texts[0]
+	return strings.Join(words, " "), first
 }
+
+// taskOSes are the OS blocks of a task, each with its own command.
+var taskOSes = []string{"windows", "osx", "linux"}
 
 // editorTasks reads the shell and process tasks of .vscode/tasks.json. A
 // task can set its own command in each OS block, and the editor runs the
 // one of the OS of the developer.
 func editorTasks(data []byte) ([]command, error) {
-	var doc struct {
-		Tasks []struct {
-			taskCommand
-			Label      string       `json:"label"`
-			Windows    *taskCommand `json:"windows"`
-			OSX        *taskCommand `json:"osx"`
-			Linux      *taskCommand `json:"linux"`
-			RunOptions struct {
-				RunOn string `json:"runOn"`
-			} `json:"runOptions"`
-		} `json:"tasks"`
-	}
-	if err := decodeJSONC(data, &doc); err != nil {
+	doc, err := decodeJSONC(data)
+	if err != nil {
 		return nil, err
 	}
 	var out []command
-	for i, t := range doc.Tasks {
-		name := t.Label
+	for i, v := range listOf(objectOf(doc)["tasks"]) {
+		t := objectOf(v)
+		if t == nil {
+			continue
+		}
+		name := stringOf(t["label"])
 		if name == "" {
 			name = fmt.Sprintf("task %d", i+1)
 		}
-		onOpen := t.RunOptions.RunOn == "folderOpen"
-		blocks := []struct {
-			suffix string
-			c      *taskCommand
-		}{{"", &t.taskCommand}, {" (windows)", t.Windows}, {" (osx)", t.OSX}, {" (linux)", t.Linux}}
-		for _, b := range blocks {
-			if b.c == nil {
-				continue
+		onOpen := stringOf(objectOf(t["runOptions"])["runOn"]) == "folderOpen"
+		add := func(suffix string, block object) {
+			if text, first := taskText(block); text != "" {
+				out = append(out, command{name: name + suffix, text: text, line: lineOf(data, first), onOpen: onOpen})
 			}
-			if text := b.c.text(); text != "" {
-				out = append(out, command{name: name + b.suffix, text: text, line: lineOf(data, firstText(b.c.Command)), onOpen: onOpen})
+		}
+		add("", t)
+		for _, osName := range taskOSes {
+			if block := objectOf(t[osName]); block != nil {
+				add(" ("+osName+")", block)
 			}
 		}
 	}
 	return out, nil
 }
 
-// firstText returns the first command text of v, or "".
-func firstText(v any) string {
-	if texts := commandText(v); len(texts) > 0 {
-		return texts[0]
-	}
-	return ""
-}
-
 // claudeHooks reads the hook commands and the status line command of
 // .claude/settings.json.
 func claudeHooks(data []byte) ([]command, error) {
-	var doc struct {
-		Hooks map[string][]struct {
-			Matcher string `json:"matcher"`
-			Hooks   []struct {
-				Type    string `json:"type"`
-				Command string `json:"command"`
-			} `json:"hooks"`
-		} `json:"hooks"`
-		StatusLine struct {
-			Command string `json:"command"`
-		} `json:"statusLine"`
-	}
-	if err := decodeJSONC(data, &doc); err != nil {
+	doc, err := decodeJSONC(data)
+	if err != nil {
 		return nil, err
 	}
-	events := make([]string, 0, len(doc.Hooks))
-	for e := range doc.Hooks {
-		events = append(events, e)
-	}
-	sort.Strings(events)
+	root := objectOf(doc)
+	hooks := objectOf(root["hooks"])
 	var out []command
-	for _, e := range events {
-		for _, m := range doc.Hooks[e] {
-			for _, h := range m.Hooks {
-				if strings.TrimSpace(h.Command) == "" {
+	for _, event := range sortedKeys(hooks) {
+		for _, mv := range listOf(hooks[event]) {
+			m := objectOf(mv)
+			for _, hv := range listOf(m["hooks"]) {
+				c := stringOf(objectOf(hv)["command"])
+				if strings.TrimSpace(c) == "" {
 					continue
 				}
-				name := e
-				if m.Matcher != "" {
-					name += " " + m.Matcher
+				name := event
+				if matcher := stringOf(m["matcher"]); matcher != "" {
+					name += " " + matcher
 				}
-				out = append(out, command{name: name, text: h.Command, line: lineOf(data, h.Command)})
+				out = append(out, command{name: name, text: c, line: lineOf(data, c)})
 			}
 		}
 	}
-	if c := strings.TrimSpace(doc.StatusLine.Command); c != "" {
+	if c := strings.TrimSpace(stringOf(objectOf(root["statusLine"])["command"])); c != "" {
 		out = append(out, command{name: "statusLine", text: c, line: lineOf(data, c)})
 	}
 	return out, nil
@@ -283,13 +349,14 @@ var lifecycle = []string{"initializeCommand", "onCreateCommand", "updateContentC
 
 // devContainer reads the lifecycle commands of devcontainer.json.
 func devContainer(data []byte) ([]command, error) {
-	var doc map[string]any
-	if err := decodeJSONC(data, &doc); err != nil {
+	doc, err := decodeJSONC(data)
+	if err != nil {
 		return nil, err
 	}
+	root := objectOf(doc)
 	var out []command
 	for _, key := range lifecycle {
-		for _, text := range commandText(doc[key]) {
+		for _, text := range commandText(root[key]) {
 			out = append(out, command{name: key, text: text, line: lineOf(data, text)})
 		}
 	}
@@ -309,40 +376,27 @@ func gitHook(data []byte) []command {
 	return out
 }
 
-// lefthook reads the run commands of lefthook.yml.
+// lefthook reads the run commands of lefthook.yml. A top-level key that is
+// not a hook, such as min_version or colors, holds no command.
 func lefthook(data []byte) ([]command, error) {
-	var doc map[string]struct {
-		Commands map[string]struct {
-			Run string `yaml:"run"`
-		} `yaml:"commands"`
-		Jobs []struct {
-			Name string `yaml:"name"`
-			Run  string `yaml:"run"`
-		} `yaml:"jobs"`
-	}
-	if err := yaml.Unmarshal(data, &doc); err != nil {
+	doc, err := decodeYAML(data)
+	if err != nil {
 		return nil, err
 	}
-	hooks := make([]string, 0, len(doc))
-	for h := range doc {
-		hooks = append(hooks, h)
-	}
-	sort.Strings(hooks)
+	root := objectOf(doc)
 	var out []command
-	for _, h := range hooks {
-		names := make([]string, 0, len(doc[h].Commands))
-		for n := range doc[h].Commands {
-			names = append(names, n)
-		}
-		sort.Strings(names)
-		for _, n := range names {
-			if run := strings.TrimSpace(doc[h].Commands[n].Run); run != "" {
+	for _, h := range sortedKeys(root) {
+		hook := objectOf(root[h])
+		cmds := objectOf(hook["commands"])
+		for _, n := range sortedKeys(cmds) {
+			if run := strings.TrimSpace(stringOf(objectOf(cmds[n])["run"])); run != "" {
 				out = append(out, command{name: h + " " + n, text: run, line: lineOf(data, run)})
 			}
 		}
-		for i, j := range doc[h].Jobs {
-			if run := strings.TrimSpace(j.Run); run != "" {
-				name := j.Name
+		for i, jv := range listOf(hook["jobs"]) {
+			j := objectOf(jv)
+			if run := strings.TrimSpace(stringOf(j["run"])); run != "" {
+				name := stringOf(j["name"])
 				if name == "" {
 					name = fmt.Sprintf("job %d", i+1)
 				}
@@ -356,42 +410,31 @@ func lefthook(data []byte) ([]command, error) {
 // mcpServers reads the servers of an MCP config: mcpServers in the agent
 // files, servers in .vscode/mcp.json.
 func mcpServers(data []byte) ([]server, error) {
-	type entry struct {
-		Command   string   `json:"command"`
-		Args      []string `json:"args"`
-		URL       string   `json:"url"`
-		ServerURL string   `json:"serverUrl"`
-		HTTPURL   string   `json:"httpUrl"`
-	}
-	var doc struct {
-		MCPServers map[string]entry `json:"mcpServers"`
-		Servers    map[string]entry `json:"servers"`
-	}
-	if err := decodeJSONC(data, &doc); err != nil {
+	doc, err := decodeJSONC(data)
+	if err != nil {
 		return nil, err
 	}
-	all := map[string]entry{}
-	for n, e := range doc.Servers {
-		all[n] = e
+	root := objectOf(doc)
+	all := object{}
+	for _, key := range []string{"servers", "mcpServers"} {
+		for n, e := range objectOf(root[key]) {
+			all[n] = e
+		}
 	}
-	for n, e := range doc.MCPServers {
-		all[n] = e
-	}
-	names := make([]string, 0, len(all))
-	for n := range all {
-		names = append(names, n)
-	}
-	sort.Strings(names)
 	var out []server
-	for _, n := range names {
-		e := all[n]
-		url := e.URL
-		for _, u := range []string{e.ServerURL, e.HTTPURL} {
+	for _, n := range sortedKeys(all) {
+		e := objectOf(all[n])
+		url := ""
+		for _, key := range []string{"url", "serverUrl", "httpUrl"} {
 			if url == "" {
-				url = u
+				url = stringOf(e[key])
 			}
 		}
-		cmd := strings.TrimSpace(strings.Join(append([]string{e.Command}, e.Args...), " "))
+		words := []string{stringOf(e["command"])}
+		for _, a := range listOf(e["args"]) {
+			words = append(words, stringOf(a))
+		}
+		cmd := strings.TrimSpace(strings.Join(words, " "))
 		out = append(out, server{name: n, command: cmd, url: url, line: lineOf(data, n)})
 	}
 	return out, nil

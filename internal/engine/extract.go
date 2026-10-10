@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"os"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -148,6 +149,7 @@ type delta struct {
 
 func (r *run) walk(fsys fs.FS, a plugin.Artifact, readsInstalled bool, visit func(string, fs.FileInfo) error) error {
 	systemDir := systemDirs(a)
+	linked := linkedFiles(a)
 	return fs.WalkDir(fsys, ".", func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			// An unreadable directory does not stop the scan.
@@ -175,7 +177,16 @@ func (r *run) walk(fsys fs.FS, a plugin.Artifact, readsInstalled bool, visit fun
 			}
 			return nil
 		}
-		if !d.Type().IsRegular() || r.excluded(p) {
+		if r.excluded(p) {
+			return nil
+		}
+		if d.Type()&fs.ModeSymlink != 0 {
+			if info, ok := linked(p); ok {
+				return visit(p, info)
+			}
+			return nil
+		}
+		if !d.Type().IsRegular() {
 			return nil
 		}
 		info, err := d.Info()
@@ -184,6 +195,33 @@ func (r *run) walk(fsys fs.FS, a plugin.Artifact, readsInstalled bool, visit fun
 		}
 		return visit(p, info)
 	})
+}
+
+// linkedFiles returns a function that gives the file info of the target of a
+// symbolic link, when the target is a regular file inside the directory
+// artifact. An editor follows a link such as .vscode/tasks.json to a file of
+// the repository, so the scan reads the target too. A link that leaves the
+// artifact, or that points to a directory, gives false.
+func linkedFiles(a plugin.Artifact) func(rel string) (fs.FileInfo, bool) {
+	root, err := filepath.EvalSymlinks(a.Path)
+	if a.Kind != plugin.ArtifactDirectory || a.Path == "" || err != nil {
+		return func(string) (fs.FileInfo, bool) { return nil, false }
+	}
+	return func(rel string) (fs.FileInfo, bool) {
+		target, err := filepath.EvalSymlinks(filepath.Join(root, filepath.FromSlash(rel)))
+		if err != nil {
+			return nil, false
+		}
+		in, err := filepath.Rel(root, target)
+		if err != nil || in == ".." || strings.HasPrefix(in, ".."+string(filepath.Separator)) {
+			return nil, false
+		}
+		info, err := os.Stat(target)
+		if err != nil || !info.Mode().IsRegular() {
+			return nil, false
+		}
+		return info, true
+	}
 }
 
 // skipDir reports a directory of a directory artifact that the walk does

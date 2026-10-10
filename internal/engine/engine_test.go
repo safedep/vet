@@ -265,3 +265,23 @@ func TestPURLTarget(t *testing.T) {
 	assert.Equal(t, 1, res.Entry.Findings)
 	assert.Equal(t, "purl:pkg:npm/evil@1.0.0", res.Entry.TargetKey)
 }
+
+func TestWalkFollowsLinksInsideTheTarget(t *testing.T) {
+	dir, outside := t.TempDir(), t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, ".vscode"), 0o700))
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "scripts"), 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "scripts", "tasks.txt"), []byte(`{"tasks": []}`), 0o600))
+	require.NoError(t, os.Symlink(filepath.Join("..", "scripts", "tasks.txt"), filepath.Join(dir, ".vscode", "tasks.json")))
+	require.NoError(t, os.WriteFile(filepath.Join(outside, "reqs.txt"), []byte("flask==3.0.0\n"), 0o600))
+	require.NoError(t, os.Symlink(filepath.Join(outside, "reqs.txt"), filepath.Join(dir, "requirements.txt")))
+	require.NoError(t, os.Symlink("scripts", filepath.Join(dir, "linked-dir")))
+
+	f := newFixture(t)
+	res := runScan(t, f.options(t, dir, nil))
+	var paths []string
+	for m, err := range res.Scan.Manifests(context.Background()) {
+		require.NoError(t, err)
+		paths = append(paths, m.Path)
+	}
+	assert.Equal(t, []string{".vscode/tasks.json"}, paths, "the link inside the target is read, the link outside is not")
+}

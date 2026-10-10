@@ -8,6 +8,7 @@ package agentconfig
 import (
 	"context"
 	"fmt"
+	"io"
 	"io/fs"
 	"strings"
 
@@ -31,10 +32,19 @@ const (
 	IDUnreadable        = "agent-config-unreadable"
 )
 
-// maxSize is the largest config file that the control reads. A larger file
-// gives an unreadable finding, because padding can push a payload past any
-// size limit.
-const maxSize = 16 << 20
+const (
+	// maxSize is the largest config file that the control reads. A larger
+	// file gives an unreadable finding, so padding cannot push a command
+	// past the limit unseen. No real config comes near 1 MiB.
+	maxSize = 1 << 20
+	// maxCommands is the most commands and servers that the control reads in
+	// one file. The rest give one unreadable finding, so a file cannot make
+	// the scan slow with many findings.
+	maxCommands = 500
+	// maxSnippet is the longest snippet that a finding shows. The finding id
+	// still hashes the whole line.
+	maxSnippet = 200
+)
 
 // Options are plugins.agent-config.options.
 type Options struct{}
@@ -100,18 +110,14 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 	if !ok {
 		return nil, nil
 	}
-	e := &emitter{path: m.Path, seen: map[string]int{}}
-	info, err := fs.Stat(m.Root, m.Path)
-	if err != nil {
-		return nil, fmt.Errorf("stat %s: %w", m.Path, err)
-	}
-	if info.Size() > maxSize {
-		e.unreadable(1, "size", fmt.Sprintf("%s is %d MiB, larger than the %d MiB that vet reads", m.Path, info.Size()>>20, maxSize>>20))
-		return e.out, nil
-	}
-	data, err := fs.ReadFile(m.Root, m.Path)
+	data, err := readLimited(m.Root, m.Path)
 	if err != nil {
 		return nil, fmt.Errorf("read %s: %w", m.Path, err)
+	}
+	e := &emitter{path: m.Path, seen: map[string]int{}, snippets: map[int]snippet{}}
+	if len(data) > maxSize {
+		e.unreadable(1, "size", fmt.Sprintf("%s is larger than %d MiB, the most that vet reads", m.Path, maxSize>>20))
+		return e.out, nil
 	}
 	e.lines = strings.Split(string(data), "\n")
 	if t == agentfiles.Instructions {
@@ -120,8 +126,13 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 	}
 	cmds, servers, err := parse(t, data)
 	if err != nil {
-		e.unreadable(errorLine(data, err), "parse", fmt.Sprintf("vet cannot parse %s: %v", m.Path, err))
+		e.unreadable(errorLine(err), "parse", fmt.Sprintf("vet cannot parse %s: %s", m.Path, short(firstLine(err.Error()))))
 		return e.out, nil
+	}
+	if len(cmds)+len(servers) > maxCommands {
+		e.unreadable(1, "count", fmt.Sprintf("%s holds more than %d commands, the most that vet reads", m.Path, maxCommands))
+		cmds = cmds[:min(len(cmds), maxCommands)]
+		servers = servers[:min(len(servers), maxCommands-len(cmds))]
 	}
 	for _, cmd := range cmds {
 		c.command(e, t, cmd)
@@ -130,6 +141,28 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 		c.server(e, s)
 	}
 	return e.out, nil
+}
+
+// readLimited reads at most one byte more than maxSize, so a file that grows
+// or has no fixed size cannot make the control read more.
+func readLimited(fsys fs.FS, name string) (data []byte, err error) {
+	f, err := fsys.Open(name)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if cerr := f.Close(); err == nil {
+			err = cerr
+		}
+	}()
+	return io.ReadAll(io.LimitReader(f, maxSize+1))
+}
+
+func firstLine(s string) string {
+	if i := strings.IndexByte(s, '\n'); i >= 0 {
+		return s[:i]
+	}
+	return s
 }
 
 // parse reads the commands of a file, or the servers of an MCP config.
@@ -217,14 +250,34 @@ type emitter struct {
 	lines []string
 	seen  map[string]int
 	out   []finding.Finding
+	// snippets holds the snippet of each line. One minified line can hold
+	// every command of a file, so the emitter reads each line once.
+	snippets map[int]snippet
+}
+
+// snippet is the redacted text of a line: the full text for the finding
+// id, and a short text for display.
+type snippet struct{ full, display string }
+
+func (e *emitter) snippet(line int) snippet {
+	if line < 1 || line > len(e.lines) {
+		return snippet{}
+	}
+	s, ok := e.snippets[line]
+	if !ok {
+		s.full = redact(strings.TrimSpace(e.lines[line-1]))
+		s.display = s.full
+		if len(s.display) > maxSnippet {
+			s.display = s.display[:maxSnippet-3] + "..."
+		}
+		e.snippets[line] = s
+	}
+	return s
 }
 
 func (e *emitter) add(id string, sev finding.Severity, line int, discriminator, title string, rem *finding.Remediation) {
-	snippet := ""
-	if line >= 1 && line <= len(e.lines) {
-		snippet = redact(strings.TrimSpace(e.lines[line-1]))
-	}
-	k := strings.Join([]string{id, discriminator, finding.NormalizeSnippet(snippet)}, "\x00")
+	snip := e.snippet(line)
+	k := strings.Join([]string{id, discriminator, finding.NormalizeSnippet(snip.full)}, "\x00")
 	occ := e.seen[k]
 	e.seen[k]++
 	var info plugin.ControlInfo
@@ -236,8 +289,9 @@ func (e *emitter) add(id string, sev finding.Severity, line int, discriminator, 
 	f := finding.ForFile(finding.Meta{
 		ControlID: id, Family: info.Family, Severity: sev, Confidence: finding.ConfidenceHigh,
 		Title: title, Description: info.Description,
-	}, finding.Locus{Path: e.path, StartLine: line, EndLine: line, Snippet: snippet},
+	}, finding.Locus{Path: e.path, StartLine: line, EndLine: line, Snippet: snip.full},
 		finding.Key{Discriminator: discriminator, Occurrence: occ})
+	f.Locus.Snippet = snip.display
 	f.Remediation = rem
 	e.out = append(e.out, f)
 }
