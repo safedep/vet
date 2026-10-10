@@ -22,6 +22,7 @@ import (
 	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 	"github.com/safedep/vet/v2/internal/endpoint/inventory/scanners"
 	"github.com/safedep/vet/v2/internal/plugins/internal/agentfiles"
+	"github.com/safedep/vet/v2/internal/plugins/internal/hiddencode"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 )
@@ -33,6 +34,10 @@ const Name = "endpoint"
 type Options struct {
 	// AllUsers reads the home directory of every user. It needs root.
 	AllUsers bool `json:"all_users"`
+	// Projects are folders of repositories. vet reads the files of each one
+	// that can run code or hide it: agent and editor configs, build configs,
+	// assets and scripts.
+	Projects []string `json:"projects,omitempty"`
 }
 
 // System is what the source reads from the machine. Tests replace it.
@@ -122,6 +127,11 @@ func (s *Source) artifact(ctx context.Context) (plugin.Artifact, error) {
 	if s.opts.AllUsers {
 		a.Manifests = append(a.Manifests, globalPackages(s.sys.GlobalRoots())...)
 	}
+	for _, dir := range s.opts.Projects {
+		if err := projectFiles(ctx, dir, files); err != nil {
+			return plugin.Artifact{}, err
+		}
+	}
 	a.Include = include(root, files)
 	sortManifests(a.Manifests)
 	return a, nil
@@ -199,6 +209,81 @@ func include(root string, files map[string]bool) []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+// projectSkipDirs are the folders that hold no file of the project itself,
+// or that are too large to walk on each audit.
+var projectSkipDirs = map[string]bool{
+	".git": true, ".hg": true, ".svn": true, "node_modules": true, ".venv": true, "venv": true,
+	"__pycache__": true, ".gradle": true, "target": true, ".next": true, ".cache": true, ".npm": true,
+}
+
+// maxProjectFiles caps the files that --projects adds to one audit.
+const maxProjectFiles = 100000
+
+// projectFiles adds the files of the repositories under dir that can run
+// code or hide it. A worm that spreads to every repository on a machine
+// changes these files. The source files stay out, so a large folder of
+// repositories stays fast to audit.
+func projectFiles(ctx context.Context, dir string, files map[string]bool) error {
+	if err := CheckProjects([]string{dir}); err != nil {
+		return err
+	}
+	added := 0
+	return filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+		if err != nil {
+			// An unreadable folder does not stop the audit.
+			log.Warnf("endpoint: %s: %v", p, err)
+			if d != nil && d.IsDir() {
+				return fs.SkipDir
+			}
+			return nil
+		}
+		if d.IsDir() {
+			if p != dir && projectSkipDirs[d.Name()] {
+				return fs.SkipDir
+			}
+			return nil
+		}
+		if !d.Type().IsRegular() || !projectFile(filepath.ToSlash(p)) {
+			return nil
+		}
+		if added >= maxProjectFiles {
+			log.Warnf("endpoint: --projects %s holds more than %d files to check. vet checks the first %d", dir, maxProjectFiles, maxProjectFiles)
+			return fs.SkipAll
+		}
+		files[p] = true
+		added++
+		return nil
+	})
+}
+
+// CheckProjects returns an error for a --projects folder that does not
+// exist or is not a folder.
+func CheckProjects(dirs []string) error {
+	for _, dir := range dirs {
+		info, err := os.Stat(dir)
+		if err != nil {
+			return fmt.Errorf("--projects %s: %w", dir, err)
+		}
+		if !info.IsDir() {
+			return fmt.Errorf("--projects %s: not a folder", dir)
+		}
+	}
+	return nil
+}
+
+// projectFile reports a file of a repository that the agent-config or the
+// hidden-code controls read, other than a source file.
+func projectFile(p string) bool {
+	if _, ok := agentfiles.Classify(p); ok {
+		return true
+	}
+	c, ok := hiddencode.Classify(p)
+	return ok && c != hiddencode.Source
 }
 
 // fsRoot returns the root of the file system that holds path: "/" or a

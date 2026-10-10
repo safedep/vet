@@ -1,0 +1,20 @@
+# vet endpoint audit --projects checks the repositories under a folder. A
+# build config with code after a run of spaces fails the attacks gate,
+# and the finding names the repository in its path. A folder that does
+# not exist exits 2.
+execexit 1 vet endpoint audit --mode plain -o json --projects $HOME/code --fail-on attacks
+stdout '"control_id":"padded-code","family":"hidden-code","severity":"critical"'
+stdout '"path":"[^"]*code/payments-api/client/postcss.config.mjs"'
+stdout '"control_id":"history-rewrite-script"'
+! stdout 'clean-app'
+execexit 2 vet endpoint audit --mode plain --projects $HOME/missing
+stderr '--projects'
+
+-- home/code/payments-api/client/postcss.config.mjs --
+const config = { plugins: {} };
+export default config;                                                                                                                        console.log(1)
+-- home/code/payments-api/.gitignore --
+node_modules
+temp_auto_push.bat
+-- home/code/clean-app/next.config.js --
+module.exports = { reactStrictMode: true };

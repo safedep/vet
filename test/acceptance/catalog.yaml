@@ -700,6 +700,12 @@
   tier: P1
   guarantee: "vet endpoint audit reads the user tasks.json of VS Code in the config folder of the home directory, and a suspicious task in it gives a finding."
   labels: [endpoint, agent-config]
+- id: endpoint/projects/hidden-code
+  title: "endpoint audit: hidden code in local repositories"
+  category: endpoint
+  tier: P1
+  guarantee: "vet endpoint audit --projects DIR checks the repositories under DIR. A build config with code after a run of spaces gives a critical padded-code finding with the repository in its path, a .gitignore that hides temp_auto_push.bat gives history-rewrite-script, and the attacks gate fails. A clean repository gives none. A --projects folder that does not exist exits 2."
+  labels: [endpoint, hidden-code, attacks]
 - id: endpoint/inventory-sync/wal
   title: "endpoint audit: inventory sync log"
   category: endpoint

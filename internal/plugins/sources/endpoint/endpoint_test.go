@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -132,4 +133,35 @@ func TestOneUserReadsNoSystemRoot(t *testing.T) {
 		return nil
 	}
 	artifactOf(t, New(Options{}, sys))
+}
+
+func TestAuditProjects(t *testing.T) {
+	home := machineHome(t, "review")
+	code := filepath.Join(home, "code")
+	for _, f := range []string{
+		"api/next.config.mjs", "api/.vscode/tasks.json", "api/public/fonts/a.woff2", "api/.gitignore",
+		"api/src/index.ts", "api/node_modules/x/postcss.config.js", "web/client/tailwind.config.js", "web/.git/hooks/pre-commit",
+	} {
+		write(t, filepath.Join(code, filepath.FromSlash(f)), "x")
+	}
+	a := artifactOf(t, New(Options{Projects: []string{code}}, fakeSystem(home)))
+	var got []string
+	prefix := filepath.ToSlash(code)[1:] + "/"
+	for _, f := range a.Include {
+		if rel, ok := strings.CutPrefix(f, prefix); ok {
+			got = append(got, rel)
+		}
+	}
+	assert.ElementsMatch(t, []string{
+		"api/next.config.mjs", "api/.vscode/tasks.json", "api/public/fonts/a.woff2", "api/.gitignore", "web/client/tailwind.config.js",
+	}, got, "the source files, node_modules and .git stay out")
+}
+
+func TestCheckProjects(t *testing.T) {
+	dir := t.TempDir()
+	file := filepath.Join(dir, "f")
+	write(t, file, "x")
+	assert.NoError(t, CheckProjects([]string{dir}))
+	assert.ErrorContains(t, CheckProjects([]string{filepath.Join(dir, "missing")}), "--projects")
+	assert.ErrorContains(t, CheckProjects([]string{file}), "not a folder")
 }
