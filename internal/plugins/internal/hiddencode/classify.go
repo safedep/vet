@@ -1,0 +1,95 @@
+// Package hiddencode finds code that a file of a repository hides: code
+// after a run of spaces in a build config, a script in a file that claims
+// to be a font, invisible Unicode characters that carry a payload, and a
+// script that rewrites the git history. The hidden-code extractor and the
+// hidden-code control share it, so the extractor adds a manifest only for
+// a file that the control reports.
+package hiddencode
+
+import (
+	"path"
+	"regexp"
+	"strings"
+
+	"github.com/safedep/vet/v2/internal/plugins/internal/agentfiles"
+)
+
+// Class is the class of a file that can hide code.
+type Class string
+
+const (
+	// Config is a build or tool config that runs when a developer builds,
+	// tests or lints the project, such as postcss.config.mjs.
+	Config Class = "config"
+	// Asset is a font, an image or a dictionary file. It must hold no code.
+	Asset Class = "asset"
+	// Source is a source file or an agent instruction file, read for
+	// invisible Unicode.
+	Source Class = "source"
+	// Script is a shell or batch script, or a .gitignore, read for a script
+	// that rewrites the git history.
+	Script Class = "script"
+)
+
+// configName matches the build and tool configs that load as code.
+var configName = regexp.MustCompile(`^[\w.-]+\.config\.(js|mjs|cjs|ts|mts|cts)$|^\.?(eslintrc|babelrc|prettierrc|stylelintrc)\.(js|cjs|mjs)$`)
+
+// configFiles are the other files that PolinRider changes and that load as
+// code at each build or start.
+var configFiles = map[string]bool{
+	"truffle.js": true, "truffle-config.js": true, "tailwind.js": true, "App.js": true,
+	"gulpfile.js": true, "Gruntfile.js": true,
+}
+
+var assetExts = map[string]bool{
+	".woff": true, ".woff2": true, ".ttf": true, ".otf": true, ".eot": true,
+	".png": true, ".jpg": true, ".jpeg": true, ".gif": true, ".ico": true, ".bmp": true, ".webp": true,
+	".dict": true, ".llf": true,
+}
+
+var sourceExts = map[string]bool{
+	".js": true, ".mjs": true, ".cjs": true, ".jsx": true,
+	".ts": true, ".mts": true, ".cts": true, ".tsx": true, ".py": true,
+}
+
+var scriptExts = map[string]bool{".bat": true, ".cmd": true, ".ps1": true, ".sh": true}
+
+// generatedDirs hold built or vendored code. A minified bundle has long
+// lines and odd characters, and it is not the source that a developer
+// reads, so the Unicode check skips it.
+var generatedDirs = map[string]bool{"dist": true, "build": true, "vendor": true, "out": true, ".next": true, "coverage": true}
+
+// Classify returns the class of a file by its slash path relative to the
+// target. ok is false for a file that the controls do not read.
+func Classify(p string) (c Class, ok bool) {
+	base := path.Base(p)
+	ext := strings.ToLower(path.Ext(base))
+	switch {
+	case configName.MatchString(base) || configFiles[base]:
+		return Config, true
+	case assetExts[ext]:
+		return Asset, true
+	case scriptExts[ext] || base == ".gitignore":
+		return Script, true
+	}
+	if t, ok := agentfiles.Classify(p); ok && t == agentfiles.Instructions {
+		return Source, true
+	}
+	if !sourceExts[ext] || strings.HasSuffix(base, ".min.js") {
+		return "", false
+	}
+	for _, part := range strings.Split(path.Dir(p), "/") {
+		if generatedDirs[part] {
+			return "", false
+		}
+	}
+	return Source, true
+}
+
+// MaxSize is the largest file that the controls read, except an asset,
+// whose first bytes are enough. A config over the limit is a finding
+// itself, because a real config is a few KiB.
+const MaxSize = 4 << 20
+
+// headSize is the part of an asset that the check reads.
+const headSize = 512

@@ -16,6 +16,7 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/extractors/cargotoml"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/githubactions"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/gomod"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/hiddencode"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/installed"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/packagejson"
@@ -26,8 +27,8 @@ import (
 )
 
 // For returns the extractors that read the packages that p selects. The
-// workflow and agent config extractors run for every selection, because
-// their controls read the files, not the packages.
+// workflow, agent config and hidden-code extractors run for every
+// selection, because their controls read the files, not the packages.
 func For(p model.Packages) ([]filesystem.Extractor, error) {
 	if !slices.Contains(model.PackagesValues, p) {
 		return nil, fmt.Errorf("extractors: unknown package selection %q", p)
@@ -70,7 +71,7 @@ func Default() ([]filesystem.Extractor, error) {
 	if err != nil {
 		return nil, err
 	}
-	vet = append(vet, gha, gm, terraform.New(), packagejson.New(), cargotoml.New(), pyproject.New(), agentconfig.New())
+	vet = append(vet, gha, gm, terraform.New(), packagejson.New(), cargotoml.New(), pyproject.New(), agentconfig.New(), hiddencode.New())
 	return Override(base, vet...), nil
 }
 

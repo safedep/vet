@@ -90,10 +90,14 @@ const (
 	FamilyWorkflow      Family = "workflow"
 	FamilyLockfile      Family = "lockfile"
 	FamilyAgentConfig   Family = "agent-config"
-	FamilyAIBOM         Family = "ai-bom"
-	FamilyLicense       Family = "license"
-	FamilyHygiene       Family = "hygiene"
-	FamilyReputation    Family = "reputation"
+	// FamilyHiddenCode holds the findings of code that a file hides: after
+	// a run of spaces, in a file that claims to be a font, or in invisible
+	// Unicode characters.
+	FamilyHiddenCode Family = "hidden-code"
+	FamilyAIBOM      Family = "ai-bom"
+	FamilyLicense    Family = "license"
+	FamilyHygiene    Family = "hygiene"
+	FamilyReputation Family = "reputation"
 	// FamilyPolicy holds the findings of the policy rules that run on each
 	// package.
 	FamilyPolicy Family = "policy"
@@ -103,7 +107,7 @@ const (
 func Families() []Family {
 	return []Family{
 		FamilyMalware, FamilyVulnerability, FamilyCooldown, FamilyWorkflow, FamilyLockfile,
-		FamilyAgentConfig, FamilyAIBOM, FamilyLicense, FamilyHygiene, FamilyReputation, FamilyPolicy,
+		FamilyAgentConfig, FamilyHiddenCode, FamilyAIBOM, FamilyLicense, FamilyHygiene, FamilyReputation, FamilyPolicy,
 	}
 }
 

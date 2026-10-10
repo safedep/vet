@@ -55,10 +55,16 @@ var installedReaders = map[string]bool{
 func ReadsInstalled(e filesystem.Extractor) bool { return installedReaders[e.Name()] }
 
 // ReadsFileOnly reports an extractor whose controls read the file itself:
-// a workflow or an agent config file. Its manifest is not a package source.
+// a workflow, an agent config file or a file that can hide code. Its
+// manifest is not a package source.
 func ReadsFileOnly(e filesystem.Extractor) bool {
 	k := kindOf(e.Name())
-	return k == model.ManifestKindWorkflow || k == model.ManifestKindAgentConfig
+	return fileOnly(k)
+}
+
+// fileOnly reports a manifest kind whose controls read the file itself.
+func fileOnly(k model.ManifestKind) bool {
+	return k == model.ManifestKindWorkflow || k == model.ManifestKindAgentConfig || k == model.ManifestKindFile
 }
 
 // kindOf returns the manifest kind of an extractor.
@@ -74,6 +80,8 @@ func kindOf(extractor string) model.ManifestKind {
 		return model.ManifestKindWorkflow
 	case extractor == "agent/config":
 		return model.ManifestKindAgentConfig
+	case extractor == "code/hidden":
+		return model.ManifestKindFile
 	}
 	return model.ManifestKindManifest
 }
