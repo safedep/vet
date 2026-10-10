@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"maps"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -362,6 +363,7 @@ var mergedKeys = map[string]bool{"options": true, "shell": true, "env": true, "p
 
 // overlay returns a copy of base with the keys of top on top, as the editor
 // merges an OS block over a task and a task over the root of tasks.json.
+// The args of both levels add up, outer first.
 func overlay(base, top object) object {
 	out := maps.Clone(base)
 	if out == nil {
@@ -371,16 +373,19 @@ func overlay(base, top object) object {
 		if sub, outer := objectOf(v), objectOf(out[k]); mergedKeys[k] && sub != nil && outer != nil {
 			v = overlay(outer, sub)
 		}
+		if k == "args" {
+			v = append(slices.Clone(listOf(out[k])), listOf(v)...)
+		}
 		out[k] = v
 	}
 	return out
 }
 
 // inherited returns the keys of a root object or a root OS block that each
-// task of tasks.json inherits.
+// task of tasks.json inherits. A task with no command runs the root command.
 func inherited(o object) object {
 	out := object{}
-	for _, k := range []string{"options", "presentation"} {
+	for _, k := range []string{"command", "args", "options", "presentation"} {
 		if v, ok := o[k]; ok {
 			out[k] = v
 		}

@@ -264,7 +264,7 @@
   title: "agent config: a task command that VS Code merges"
   category: controls
   tier: P1
-  guarantee: "vet merges the root options and the OS block of a task over the task, as VS Code does. A payload that is only in the merged command gives a critical suspicious-command finding, and the attacks gate fails."
+  guarantee: "vet merges the root command, args and options of tasks.json and the OS block of a task over the task, as VS Code does. A payload that is only in the merged command gives a critical suspicious-command finding, and the attacks gate fails."
   labels: [agent-config, attacks]
 - id: controls/agent-config/unreadable
   title: "agent config: a file that vet cannot parse"
