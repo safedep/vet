@@ -1,0 +1,20 @@
+# In pull request mode, a change that adds code after a run of spaces to a
+# build config gives padded-code. A clean config that the change keeps
+# gives no manifest and no finding.
+[!git] skip 'needs git'
+cd repo
+exec git -c user.email=t@example.com -c user.name=t init -q
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m base
+cp $WORK/infected.mjs postcss.config.mjs
+execexit 1 vet scan . --base-ref HEAD --mode plain -o json --fail-on attacks
+stdout '"control_id":"padded-code"'
+! stdout 'tailwind.config.js'
+
+-- repo/postcss.config.mjs --
+export default { plugins: {} };
+-- repo/tailwind.config.js --
+module.exports = { content: [] };
+-- infected.mjs --
+const config = { plugins: {} };
+export default config;                                                                                                              (function(){var _0xa1b2=function(){return 1};var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();})();//1

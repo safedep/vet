@@ -1,0 +1,20 @@
+# In pull request mode, a build config that holds hidden code in the base
+# and that the change keeps gives no finding. A change to it is MODIFIED.
+[!git] skip 'needs git'
+cd repo
+exec git -c user.email=t@example.com -c user.name=t init -q
+exec git -c user.email=t@example.com -c user.name=t add -A
+exec git -c user.email=t@example.com -c user.name=t commit -q -m base
+exec vet scan . --base-ref HEAD --mode plain -o json --fail-on attacks
+! stdout '"control_id":"padded-code"'
+cp $WORK/infected.mjs postcss.config.mjs
+execexit 1 vet scan . --base-ref HEAD --mode plain -o json --fail-on attacks
+stdout '"control_id":"padded-code"'
+stdout '"kind":"file","change":"MODIFIED"'
+
+-- repo/tailwind.config.js --
+module.exports = config;                                                                                                              (function(){var _0xa1b2=function(){return 1};var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();})();//1
+-- repo/postcss.config.mjs --
+export default { plugins: {} };
+-- infected.mjs --
+export default config;                                                                                                              (function(){var _0xa1b2=function(){return 1};var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();var _0xc3d4=_0xa1b2();})();//2

@@ -21,7 +21,9 @@ import (
 
 	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 	"github.com/safedep/vet/v2/internal/endpoint/inventory/scanners"
+	"github.com/safedep/vet/v2/internal/plugins/extractors"
 	"github.com/safedep/vet/v2/internal/plugins/internal/agentfiles"
+	"github.com/safedep/vet/v2/internal/plugins/internal/hiddencode"
 	"github.com/safedep/vet/v2/model"
 	"github.com/safedep/vet/v2/plugin"
 )
@@ -33,6 +35,10 @@ const Name = "endpoint"
 type Options struct {
 	// AllUsers reads the home directory of every user. It needs root.
 	AllUsers bool `json:"all_users"`
+	// Projects are folders of repositories. vet reads the files of each one
+	// that can run code or hide it: agent and editor configs, build configs,
+	// assets and scripts.
+	Projects []string `json:"projects,omitempty"`
 }
 
 // System is what the source reads from the machine. Tests replace it.
@@ -122,6 +128,25 @@ func (s *Source) artifact(ctx context.Context) (plugin.Artifact, error) {
 	if s.opts.AllUsers {
 		a.Manifests = append(a.Manifests, globalPackages(s.sys.GlobalRoots())...)
 	}
+	for _, root := range s.npmRoots(homes) {
+		for _, f := range hiddencode.EntryFiles(filepath.ToSlash(root)) {
+			files[filepath.FromSlash(f)] = true
+		}
+	}
+	projects, err := CheckProjects(homes[0], s.opts.Projects)
+	if err != nil {
+		return plugin.Artifact{}, err
+	}
+	for _, dir := range projects {
+		real, err := filepath.EvalSymlinks(dir)
+		if err != nil {
+			return plugin.Artifact{}, fmt.Errorf("endpoint: --projects %s: %w", dir, err)
+		}
+		w := projectWalk{ctx: ctx, project: dir, files: files}
+		if err := w.walk(dir, real); err != nil {
+			return plugin.Artifact{}, err
+		}
+	}
 	a.Include = include(root, files)
 	sortManifests(a.Manifests)
 	return a, nil
@@ -193,12 +218,176 @@ func include(root string, files map[string]bool) []string {
 		}
 		rel, err := filepath.Rel(root, f)
 		if err != nil || strings.HasPrefix(rel, "..") {
+			// A file on another volume than the home directory, on Windows.
+			log.Warnf("endpoint: %s is outside %s, so vet does not check it", f, root)
 			continue
 		}
 		out = append(out, filepath.ToSlash(rel))
 	}
 	sort.Strings(out)
 	return out
+}
+
+// npmRoots returns the global package folders whose npm entry scripts vet
+// checks: those of the users, and with --all-users those of the machine.
+// PolinRider overwrites npm/lib/cli.js, so each npm or npx command starts
+// the malware again.
+func (s *Source) npmRoots(homes []string) []string {
+	var out []string
+	for _, home := range homes {
+		out = append(out, userGlobalRoots(home)...)
+	}
+	if s.opts.AllUsers {
+		out = append(out, s.sys.GlobalRoots()...)
+	}
+	return out
+}
+
+// projectSkipDirs are the folders that hold no file of the project itself,
+// or that are too large to walk on each audit.
+var projectSkipDirs = map[string]bool{
+	".git": true, ".hg": true, ".svn": true, "node_modules": true, ".venv": true, "venv": true,
+	"__pycache__": true, ".gradle": true, "target": true, ".next": true, ".cache": true, ".npm": true,
+}
+
+// maxProjectFiles caps the files that --projects adds for one folder. It is
+// a variable for the tests.
+var maxProjectFiles = 100000
+
+// projectWalk adds the files of the repositories under one --projects
+// folder that can run code or hide it. A worm that spreads to every
+// repository on a machine changes these files. The source files stay out,
+// so a large folder of repositories stays fast to audit. The file cap holds
+// for the whole folder, with the linked folders that the walk follows.
+type projectWalk struct {
+	ctx     context.Context
+	project string
+	files   map[string]bool
+	links   extractors.Links
+	added   int
+	full    bool
+}
+
+// walk reads the folder real under the name dir: the controls read the
+// name of a linked folder, such as .vscode.
+func (w *projectWalk) walk(dir, real string) error {
+	return filepath.WalkDir(real, func(p string, d fs.DirEntry, err error) error {
+		if w.full {
+			return fs.SkipAll
+		}
+		if rel, relErr := filepath.Rel(real, p); relErr == nil {
+			p = filepath.Join(dir, rel)
+		}
+		if w.ctx.Err() != nil {
+			return w.ctx.Err()
+		}
+		if err != nil {
+			// An unreadable folder does not stop the audit.
+			log.Warnf("endpoint: %s: %v", p, err)
+			if d != nil && d.IsDir() {
+				return fs.SkipDir
+			}
+			return nil
+		}
+		if d.IsDir() {
+			if p != dir && projectSkipDirs[d.Name()] && !repository(p) {
+				return fs.SkipDir
+			}
+			return nil
+		}
+		if d.Type()&fs.ModeSymlink != 0 {
+			// An editor follows a link such as .vscode or .vscode/tasks.json.
+			info, err := os.Stat(p)
+			switch {
+			case err != nil:
+				return nil
+			case info.IsDir() && extractors.FollowsLink(d.Name()):
+				return w.follow(p)
+			case !info.Mode().IsRegular():
+				return nil
+			}
+		} else if !d.Type().IsRegular() {
+			return nil
+		}
+		if !projectFile(filepath.ToSlash(p)) {
+			return nil
+		}
+		if w.added >= maxProjectFiles {
+			if !w.full {
+				w.full = true
+				log.Warnf("endpoint: --projects %s holds more than %d files to check. vet checks the first %d", w.project, maxProjectFiles, maxProjectFiles)
+			}
+			return fs.SkipAll
+		}
+		w.files[p] = true
+		w.added++
+		return nil
+	})
+}
+
+// follow walks the linked config folder p, under the name p.
+func (w *projectWalk) follow(p string) error {
+	target, err := filepath.EvalSymlinks(p)
+	if err != nil {
+		return nil
+	}
+	from, err := filepath.EvalSymlinks(filepath.Dir(p))
+	if err != nil {
+		return nil
+	}
+	err = w.links.Follow(from, target, func() error { return w.walk(p, target) })
+	if errors.Is(err, extractors.ErrTooManyLinks) {
+		log.Warnf("endpoint: %s: %v", p, err)
+		return nil
+	}
+	return err
+}
+
+// repository reports a folder that holds a git repository. A repository
+// can have the name of a skipped folder, such as target or venv.
+func repository(dir string) bool {
+	_, err := os.Stat(filepath.Join(dir, ".git"))
+	return err == nil
+}
+
+// CheckProjects returns the absolute path of each --projects folder, or an
+// error for a folder that does not exist, is not a folder, or is on another
+// volume than home. The audit
+// reads files by their path from the root of the file system, so a
+// relative path would match no file.
+func CheckProjects(home string, dirs []string) ([]string, error) {
+	vol := filepath.VolumeName(home)
+	out := make([]string, 0, len(dirs))
+	for _, dir := range dirs {
+		abs, err := filepath.Abs(dir)
+		if err != nil {
+			return nil, fmt.Errorf("--projects %s: %w", dir, err)
+		}
+		info, err := os.Stat(abs)
+		if err != nil {
+			return nil, fmt.Errorf("--projects %s: %w", dir, err)
+		}
+		if !info.IsDir() {
+			return nil, fmt.Errorf("--projects %s: not a folder", dir)
+		}
+		// The audit reads one file system, the one of the home directory.
+		// On Windows a folder on another volume gives no finding at all.
+		if v := filepath.VolumeName(abs); !strings.EqualFold(v, vol) {
+			return nil, fmt.Errorf("--projects %s: the folder is not on volume %s of the home directory", dir, vol)
+		}
+		out = append(out, abs)
+	}
+	return out, nil
+}
+
+// projectFile reports a file of a repository that the agent-config or the
+// hidden-code controls read, other than a source file.
+func projectFile(p string) bool {
+	if _, ok := agentfiles.Classify(p); ok {
+		return true
+	}
+	c, ok := hiddencode.Classify(p)
+	return ok && c != hiddencode.Source
 }
 
 // fsRoot returns the root of the file system that holds path: "/" or a

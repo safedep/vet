@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"os"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -13,6 +14,7 @@ import (
 	"time"
 
 	"github.com/safedep/vet/v2/internal/gitbase"
+	"github.com/safedep/vet/v2/internal/plugins/extractors"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/installed"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/scalibr"
 	"github.com/safedep/vet/v2/internal/state"
@@ -148,7 +150,10 @@ type delta struct {
 
 func (r *run) walk(fsys fs.FS, a plugin.Artifact, readsInstalled bool, visit func(string, fs.FileInfo) error) error {
 	systemDir := systemDirs(a)
-	return fs.WalkDir(fsys, ".", func(p string, d fs.DirEntry, err error) error {
+	linked := linkedFiles(a)
+	var links extractors.Links
+	var walkFn fs.WalkDirFunc
+	walkFn = func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			// An unreadable directory does not stop the scan.
 			r.diags.add(report.DiagnosticWarning, report.CodeExtractFailed, "walk", readError(err))
@@ -175,7 +180,27 @@ func (r *run) walk(fsys fs.FS, a plugin.Artifact, readsInstalled bool, visit fun
 			}
 			return nil
 		}
-		if !d.Type().IsRegular() || r.excluded(p) {
+		if r.excluded(p) {
+			return nil
+		}
+		if d.Type()&fs.ModeSymlink != 0 {
+			info, target, from, ok := linked(p)
+			switch {
+			case !ok:
+				return nil
+			case !info.IsDir():
+				return visit(p, info)
+			case !extractors.FollowsLink(d.Name()):
+				return nil
+			}
+			err := links.Follow(from, target, func() error { return fs.WalkDir(fsys, p, walkFn) })
+			if errors.Is(err, extractors.ErrTooManyLinks) {
+				r.diags.add(report.DiagnosticWarning, report.CodeExtractFailed, "walk", p+": "+err.Error())
+				return nil
+			}
+			return err
+		}
+		if !d.Type().IsRegular() {
 			return nil
 		}
 		info, err := d.Info()
@@ -183,7 +208,41 @@ func (r *run) walk(fsys fs.FS, a plugin.Artifact, readsInstalled bool, visit fun
 			return nil
 		}
 		return visit(p, info)
-	})
+	}
+	return fs.WalkDir(fsys, ".", walkFn)
+}
+
+// linkedFiles returns a function that gives the file info and the real path
+// of the target of a symbolic link, when the target is a regular file or a
+// folder inside the directory artifact, and the real path of the folder that
+// holds the link. An editor follows a link such as .vscode/tasks.json to a
+// file of the repository, so the scan reads the target too. A link that
+// leaves the artifact gives false.
+func linkedFiles(a plugin.Artifact) func(rel string) (info fs.FileInfo, target, from string, ok bool) {
+	root, err := filepath.EvalSymlinks(a.Path)
+	if a.Kind != plugin.ArtifactDirectory || a.Path == "" || err != nil {
+		return func(string) (fs.FileInfo, string, string, bool) { return nil, "", "", false }
+	}
+	return func(rel string) (fs.FileInfo, string, string, bool) {
+		link := filepath.Join(root, filepath.FromSlash(rel))
+		target, err := filepath.EvalSymlinks(link)
+		if err != nil {
+			return nil, "", "", false
+		}
+		in, err := filepath.Rel(root, target)
+		if err != nil || in == ".." || strings.HasPrefix(in, ".."+string(filepath.Separator)) {
+			return nil, "", "", false
+		}
+		info, err := os.Stat(target)
+		if err != nil || (!info.Mode().IsRegular() && !info.IsDir()) {
+			return nil, "", "", false
+		}
+		from, err := filepath.EvalSymlinks(filepath.Dir(link))
+		if err != nil {
+			return nil, "", "", false
+		}
+		return info, target, from, true
+	}
 }
 
 // skipDir reports a directory of a directory artifact that the walk does
@@ -265,6 +324,11 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 	if d != nil {
 		for _, m := range ms {
 			diff(m, d.base.manifests[m.ID], !same)
+			if inBase && d.base.manifests[m.ID] == nil {
+				// The base file gave no manifest, such as a clean file of the
+				// hidden-code extractor, but the file was there.
+				m.Change = fileChange(true, inBase, same)
+			}
 			d.seen[m.ID] = true
 		}
 		if !same && inBase {
@@ -276,6 +340,12 @@ func (r *run) extractFile(ctx context.Context, a plugin.Artifact, fsys fs.FS, re
 				m.LockfileOnly = only && m.Kind == model.ManifestKindLockfile
 			}
 		}
+	}
+	if len(ms) == 0 && len(errs) == 0 && prev == nil {
+		// A file that gives no manifest needs no record: a record costs a
+		// transaction, and a continued scan reads the file again at little
+		// cost. A file with a record commits, so that its old manifests go.
+		return nil
 	}
 	return scan.CommitArtifact(ctx, state.ArtifactRecord{
 		Key: key, Kind: string(a.Kind), Path: rel, Size: info.Size(), MTime: info.ModTime(),

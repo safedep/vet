@@ -145,3 +145,15 @@ func TestRepoPath(t *testing.T) {
 	_, _, err = tree.RepoPath(filepath.Join(repo, "b", "p.yml"))
 	assert.ErrorIs(t, err, ErrLink, "a link in the working tree")
 }
+
+func TestSameBlobCountsALinkAsChanged(t *testing.T) {
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "real.json"), []byte("{}"), 0o600))
+	require.NoError(t, os.Symlink("real.json", filepath.Join(dir, "link.json")))
+	fsys := os.DirFS(dir)
+	for _, base := range []string{"real.json", "{}"} {
+		same, err := SameBlob(fsys, "link.json", plumbing.ComputeHash(plumbing.BlobObject, []byte(base)))
+		require.NoError(t, err)
+		assert.False(t, same, "the target of a link can change with the same link text")
+	}
+}

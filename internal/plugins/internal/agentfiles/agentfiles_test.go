@@ -13,11 +13,19 @@ func TestClassify(t *testing.T) {
 	}{
 		{".vscode/tasks.json", EditorTasks},
 		{"app/.vscode/tasks.json", EditorTasks},
+		{".cursor/tasks.json", EditorTasks},
+		{".config/Code/User/tasks.json", EditorTasks},
+		{"Library/Application Support/Cursor/User/tasks.json", EditorTasks},
+		{"AppData/Roaming/Code - Insiders/User/tasks.json", EditorTasks},
+		{".vscode/settings.json", EditorSettings},
+		{".config/Cursor/User/settings.json", EditorSettings},
 		{".claude/settings.json", ClaudeSettings},
 		{".claude/settings.local.json", ClaudeSettings},
 		{".devcontainer/devcontainer.json", DevContainer},
 		{".devcontainer.json", DevContainer},
 		{".husky/pre-commit", GitHook},
+		{".githooks/pre-commit", GitHook},
+		{"tools/.githooks/post-checkout", GitHook},
 		{"lefthook.yml", Lefthook},
 		{".mcp.json", MCPConfig},
 		{".cursor/mcp.json", MCPConfig},
@@ -35,7 +43,7 @@ func TestClassify(t *testing.T) {
 		assert.True(t, ok, tc.path)
 		assert.Equal(t, tc.want, got, tc.path)
 	}
-	for _, p := range []string{"tasks.json", "settings.json", ".husky/_/husky.sh", "README.md", "mcp.json", ".vscode/settings.json"} {
+	for _, p := range []string{"tasks.json", "settings.json", ".husky/_/husky.sh", "README.md", "mcp.json", ".cursor/settings.json", ".githooks/README.md", "User/tasks.json", ".config/Other/User/tasks.json"} {
 		_, ok := Classify(p)
 		assert.False(t, ok, p)
 	}

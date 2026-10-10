@@ -16,18 +16,20 @@ import (
 	"github.com/safedep/vet/v2/internal/plugins/extractors/cargotoml"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/githubactions"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/gomod"
+	"github.com/safedep/vet/v2/internal/plugins/extractors/hiddencode"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/installed"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/lockfile"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/packagejson"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/pyproject"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/scalibr"
 	"github.com/safedep/vet/v2/internal/plugins/extractors/terraform"
+	"github.com/safedep/vet/v2/internal/plugins/internal/agentfiles"
 	"github.com/safedep/vet/v2/model"
 )
 
 // For returns the extractors that read the packages that p selects. The
-// workflow and agent config extractors run for every selection, because
-// their controls read the files, not the packages.
+// workflow, agent config and hidden-code extractors run for every
+// selection, because their controls read the files, not the packages.
 func For(p model.Packages) ([]filesystem.Extractor, error) {
 	if !slices.Contains(model.PackagesValues, p) {
 		return nil, fmt.Errorf("extractors: unknown package selection %q", p)
@@ -38,9 +40,14 @@ func For(p model.Packages) ([]filesystem.Extractor, error) {
 	}
 	var out []filesystem.Extractor
 	for _, e := range d {
-		if p.Declared() || scalibr.ReadsFileOnly(e) {
-			out = append(out, declared{e})
+		if !p.Declared() && !scalibr.ReadsFileOnly(e) {
+			continue
 		}
+		if r, ok := e.(installDirReader); ok && r.ReadsInstallDirs() {
+			out = append(out, e)
+			continue
+		}
+		out = append(out, declared{e})
 	}
 	if p.Installed() {
 		in, err := installed.Extractors()
@@ -70,9 +77,19 @@ func Default() ([]filesystem.Extractor, error) {
 	if err != nil {
 		return nil, err
 	}
-	vet = append(vet, gha, gm, terraform.New(), packagejson.New(), cargotoml.New(), pyproject.New(), agentconfig.New())
+	vet = append(vet, gha, gm, terraform.New(), packagejson.New(), cargotoml.New(), pyproject.New(), agentconfig.New(), hiddencode.New())
 	return Override(base, vet...), nil
 }
+
+// FollowsLink reports a folder name that a walk enters through a symbolic
+// link: a config folder of an editor or an agent. Other linked folders,
+// such as the packages of a monorepo, would add each manifest twice.
+func FollowsLink(name string) bool { return agentfiles.ConfigDirs[name] }
+
+// installDirReader is an extractor that applies the install folder rule of
+// declared itself, such as the hidden-code extractor, which reads the npm
+// entry scripts of a global install.
+type installDirReader interface{ ReadsInstallDirs() bool }
 
 // declared is an extractor of the declared set. A file under node_modules
 // or a Python install directory belongs to an installed package, not to

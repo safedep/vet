@@ -124,6 +124,10 @@ var scanMigrations = []string{
 		id   TEXT PRIMARY KEY,
 		data BLOB NOT NULL
 	)`,
+	// An extracted file replaces its manifests and their findings by
+	// artifact key, so a scan of many files needs these indexes.
+	`CREATE INDEX vet_scan_manifests_artifact ON vet_scan_manifests (artifact_key)`,
+	`CREATE INDEX vet_scan_findings_manifest ON vet_scan_findings (manifest_id)`,
 }
 
 const (

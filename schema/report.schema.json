@@ -198,6 +198,7 @@
             "workflow",
             "lockfile",
             "agent-config",
+            "hidden-code",
             "ai-bom",
             "license",
             "hygiene",
@@ -558,6 +559,7 @@
             "purl",
             "endpoint",
             "agent-config",
+            "file",
             "installed"
           ]
         },

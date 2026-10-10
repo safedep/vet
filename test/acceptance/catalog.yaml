@@ -254,6 +254,54 @@
   tier: P1
   guarantee: "In pull request mode, a change that adds a .vscode/tasks.json task with runOn: folderOpen gives a high editor-task-command finding. An agent instruction file that the change does not touch gives none."
   labels: [agent-config, pr-mode]
+- id: controls/agent-config/hidden-task
+  title: "agent config: a hidden folder-open task"
+  category: controls
+  tier: P1
+  guarantee: "A folder-open task that hides its terminal, with OS commands that run node on a fake font or pipe a download to a shell, gives a critical suspicious-command finding for each OS command, and the attacks gate fails. A .vscode/settings.json that turns on automatic tasks gives a high editor-autorun-enabled finding. A .githooks hook gives findings."
+  labels: [agent-config, attacks]
+- id: controls/agent-config/inherited
+  title: "agent config: a task command that VS Code merges"
+  category: controls
+  tier: P1
+  guarantee: "vet merges the root command, args and options of tasks.json and the OS block of a task over the task, as VS Code does. A payload that is only in the merged command gives a critical suspicious-command finding, and the attacks gate fails."
+  labels: [agent-config, attacks]
+- id: controls/agent-config/linked-alias
+  title: "agent config: two config folder names that link to one folder"
+  category: controls
+  tier: P1
+  guarantee: "When .claude and .vscode both link to one folder, vet reads the folder under each name. A malicious folder-open task gives a critical suspicious-command finding at .vscode/tasks.json, and the attacks gate fails."
+  labels: [agent-config, attacks]
+- id: controls/agent-config/unreadable
+  title: "agent config: a file that vet cannot parse"
+  category: controls
+  tier: P1
+  guarantee: "A .vscode/tasks.json with a syntax error gives a high agent-config-unreadable finding on the line of the error. A malicious command on a line of the broken file still gives suspicious-command and fails the attacks gate. A broken file with no such command passes it."
+  labels: [agent-config]
+- id: controls/hidden-code/repository
+  title: "hidden code: a PolinRider-style repository"
+  category: controls
+  tier: P1
+  guarantee: "vet scan of a repository with code after a run of spaces in a build config, a script in a .woff2 file, a .gitignore that hides temp_auto_push.bat, and a payload in variation selectors with a decoder gives padded-code, disguised-script, history-rewrite-script and unicode-payload findings, and the attacks gate fails. The padded-code title names PolinRider, and its snippet holds no payload. A clean config and a real font give no finding."
+  labels: [hidden-code, attacks]
+- id: controls/hidden-code/pr-change
+  title: "hidden code: a changed build config in pull request mode"
+  category: controls
+  tier: P1
+  guarantee: "In pull request mode, a change that adds code after a run of spaces to a build config gives padded-code and fails the attacks gate. A clean config that the change keeps gives nothing."
+  labels: [hidden-code, pr-mode]
+- id: controls/hidden-code/pr-unchanged
+  title: "hidden code: an unchanged infected file in pull request mode"
+  category: controls
+  tier: P2
+  guarantee: "In pull request mode, a build config with hidden code that the change keeps gives no finding. A change that adds hidden code to a clean config gives padded-code on a MODIFIED file manifest."
+  labels: [hidden-code, pr-mode]
+- id: controls/hidden-code/trojan-source
+  title: "hidden code: a bidirectional control in code"
+  category: controls
+  tier: P2
+  guarantee: "A bidirectional control in a source file gives a high invisible-unicode finding. The attacks gate passes, and --fail-on high fails."
+  labels: [hidden-code]
 - id: controls/lockfile/integrity-changed
   title: "lockfile: integrity change with no version change"
   category: controls
@@ -682,6 +730,24 @@
   tier: P1
   guarantee: "vet endpoint audit with a home directory that holds a risky .vscode/tasks.json and an MCP config gives findings."
   labels: [endpoint, agent-config]
+- id: endpoint/agent-config/user-tasks
+  title: "endpoint audit: editor user tasks"
+  category: endpoint
+  tier: P1
+  guarantee: "vet endpoint audit reads the user tasks.json of VS Code in the config folder of the home directory, and a suspicious task in it gives a finding."
+  labels: [endpoint, agent-config]
+- id: endpoint/projects/hidden-code
+  title: "endpoint audit: hidden code in local repositories"
+  category: endpoint
+  tier: P1
+  guarantee: "vet endpoint audit --projects DIR checks the repositories under DIR. A build config with code after a run of spaces gives a critical padded-code finding with the repository in its path, a .gitignore that hides temp_auto_push.bat gives history-rewrite-script, and the attacks gate fails. A clean repository gives none. A --projects folder that does not exist exits 2."
+  labels: [endpoint, hidden-code, attacks]
+- id: endpoint/npm/entry
+  title: "endpoint audit: an overwritten npm entry script"
+  category: endpoint
+  tier: P1
+  guarantee: "vet endpoint audit gives a critical padded-code finding for a global npm lib/cli.js that is far larger than the published file, and the attacks gate fails."
+  labels: [endpoint, hidden-code, attacks]
 - id: endpoint/inventory-sync/wal
   title: "endpoint audit: inventory sync log"
   category: endpoint

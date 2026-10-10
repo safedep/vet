@@ -1,0 +1,16 @@
+# Markers of known campaigns. A marker never makes a finding alone. It names
+# the campaign in the title of a padded-code or disguised-script finding.
+# Each marker is a regular expression of the RE2 syntax. The actors change
+# their markers, so add the new ones here when a report publishes them.
+campaigns:
+  - name: PolinRider
+    # OpenSourceMalware, PolinRider dossier (2026-03 to 2026-09):
+    # https://github.com/OpenSourceMalware/PolinRider
+    markers:
+      - 'rmcej%otb%'
+      - 'Cot%3t=shtP'
+      - '_\$_1e42'
+      - 'function MDy\('
+      - 'global\[[''"](!|_V)[''"]\]\s*=\s*[''"][A-Z]?\d+-[\w-]+[''"]'
+      - 'global\[[''"]r[''"]\]\s*=\s*require'
+      - '\b(2857687|2667686|1111436|3896884)\b'
