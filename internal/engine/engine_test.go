@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -305,4 +307,49 @@ func TestWalkFollowsLinkedConfigFolders(t *testing.T) {
 	}
 	assert.ElementsMatch(t, []string{".vscode/tasks.json", "pkgs/a/requirements.txt"}, paths,
 		"a linked config folder is read, a link back to the root and other linked folders are not")
+}
+
+func TestWalkReadsEachNameOfALinkedFolder(t *testing.T) {
+	dir := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "cfg"), 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "cfg", "tasks.json"), []byte(`{"tasks": []}`), 0o600))
+	require.NoError(t, os.Symlink("cfg", filepath.Join(dir, ".claude")))
+	require.NoError(t, os.Symlink("cfg", filepath.Join(dir, ".vscode")))
+
+	f := newFixture(t)
+	res := runScan(t, f.options(t, dir, nil))
+	var paths []string
+	for m, err := range res.Scan.Manifests(context.Background()) {
+		require.NoError(t, err)
+		paths = append(paths, m.Path)
+	}
+	assert.Contains(t, paths, ".vscode/tasks.json", ".claude comes first and must not hide .vscode")
+}
+
+func TestWalkBoundsLinkedFolders(t *testing.T) {
+	// Each folder links twice to the next one, so the names double at each
+	// level: 2^12 paths with no bound.
+	dir := t.TempDir()
+	const levels = 12
+	for i := range levels {
+		cur := filepath.Join(dir, fmt.Sprintf("d%d", i))
+		require.NoError(t, os.MkdirAll(cur, 0o700))
+		next := fmt.Sprintf("../d%d", i+1)
+		require.NoError(t, os.Symlink(next, filepath.Join(cur, ".vscode")))
+		require.NoError(t, os.Symlink(next, filepath.Join(cur, ".claude")))
+	}
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, fmt.Sprintf("d%d", levels)), 0o700))
+
+	f := newFixture(t)
+	res := runScan(t, f.options(t, dir, nil))
+	var msgs []string
+	for rec, err := range res.Scan.Records(context.Background()) {
+		require.NoError(t, err)
+		if rec.Diagnostic != nil {
+			msgs = append(msgs, rec.Diagnostic.Message)
+		}
+	}
+	assert.True(t, slices.ContainsFunc(msgs, func(m string) bool {
+		return strings.Contains(m, fmt.Sprintf("at most %d linked folders", extractors.MaxLinkedDirs))
+	}), "the walk stops at the bound and says so: %v", msgs)
 }

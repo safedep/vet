@@ -21,6 +21,7 @@ import (
 
 	"github.com/safedep/vet/v2/internal/endpoint/inventory"
 	"github.com/safedep/vet/v2/internal/endpoint/inventory/scanners"
+	"github.com/safedep/vet/v2/internal/plugins/extractors"
 	"github.com/safedep/vet/v2/internal/plugins/internal/agentfiles"
 	"github.com/safedep/vet/v2/internal/plugins/internal/hiddencode"
 	"github.com/safedep/vet/v2/model"
@@ -136,9 +137,9 @@ func (s *Source) artifact(ctx context.Context) (plugin.Artifact, error) {
 	if err != nil {
 		return plugin.Artifact{}, err
 	}
-	walked := map[string]bool{}
 	for _, dir := range projects {
-		if err := projectFiles(ctx, dir, files, walked); err != nil {
+		var links extractors.Links
+		if err := projectFiles(ctx, dir, files, &links); err != nil {
 			return plugin.Artifact{}, err
 		}
 	}
@@ -252,14 +253,13 @@ const maxProjectFiles = 100000
 // code or hide it. A worm that spreads to every repository on a machine
 // changes these files. The source files stay out, so a large folder of
 // repositories stays fast to audit.
-// walked holds the real path of each folder that the walk entered, so a
-// link back to a parent folder does not loop.
-func projectFiles(ctx context.Context, dir string, files, walked map[string]bool) error {
+// links holds the linked folders that the walk is inside, so a link back
+// to a parent folder does not loop.
+func projectFiles(ctx context.Context, dir string, files map[string]bool, links *extractors.Links) error {
 	real, err := filepath.EvalSymlinks(dir)
-	if err != nil || walked[real] {
+	if err != nil {
 		return nil
 	}
-	walked[real] = true
 	added := 0
 	// The walk reads the real folder, and names each file by its path under
 	// dir: the controls read the name of a linked folder, such as .vscode.
@@ -290,8 +290,8 @@ func projectFiles(ctx context.Context, dir string, files, walked map[string]bool
 			switch {
 			case err != nil:
 				return nil
-			case info.IsDir() && agentfiles.ConfigDirs[d.Name()]:
-				return projectFiles(ctx, p, files, walked)
+			case info.IsDir() && extractors.FollowsLink(d.Name()):
+				return followLink(ctx, p, files, links)
 			case !info.Mode().IsRegular():
 				return nil
 			}
@@ -309,6 +309,24 @@ func projectFiles(ctx context.Context, dir string, files, walked map[string]bool
 		added++
 		return nil
 	})
+}
+
+// followLink walks the linked config folder p, under the name p.
+func followLink(ctx context.Context, p string, files map[string]bool, links *extractors.Links) error {
+	target, err := filepath.EvalSymlinks(p)
+	if err != nil {
+		return nil
+	}
+	from, err := filepath.EvalSymlinks(filepath.Dir(p))
+	if err != nil {
+		return nil
+	}
+	err = links.Follow(from, target, func() error { return projectFiles(ctx, p, files, links) })
+	if errors.Is(err, extractors.ErrTooManyLinks) {
+		log.Warnf("endpoint: %s: %v", p, err)
+		return nil
+	}
+	return err
 }
 
 // repository reports a folder that holds a git repository. A repository

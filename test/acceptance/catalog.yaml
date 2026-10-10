@@ -266,6 +266,12 @@
   tier: P1
   guarantee: "vet merges the root command, args and options of tasks.json and the OS block of a task over the task, as VS Code does. A payload that is only in the merged command gives a critical suspicious-command finding, and the attacks gate fails."
   labels: [agent-config, attacks]
+- id: controls/agent-config/linked-alias
+  title: "agent config: two config folder names that link to one folder"
+  category: controls
+  tier: P1
+  guarantee: "When .claude and .vscode both link to one folder, vet reads the folder under each name. A malicious folder-open task gives a critical suspicious-command finding at .vscode/tasks.json, and the attacks gate fails."
+  labels: [agent-config, attacks]
 - id: controls/agent-config/unreadable
   title: "agent config: a file that vet cannot parse"
   category: controls

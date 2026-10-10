@@ -217,3 +217,13 @@ func TestAuditProjectsLinks(t *testing.T) {
 	assert.ElementsMatch(t, []string{"api/.vscode/tasks.json", "target/next.config.mjs"}, got,
 		"a linked config folder is read once, and a repository named target is not skipped")
 }
+
+func TestAuditProjectsReadsEachNameOfALinkedFolder(t *testing.T) {
+	home := machineHome(t, "review")
+	code := filepath.Join(home, "code")
+	write(t, filepath.Join(code, "api", "cfg", "tasks.json"), "x")
+	require.NoError(t, os.Symlink("cfg", filepath.Join(code, "api", ".claude")))
+	require.NoError(t, os.Symlink("cfg", filepath.Join(code, "api", ".vscode")))
+	a := artifactOf(t, New(Options{Projects: []string{code}}, fakeSystem(home)))
+	assert.Contains(t, a.Include, filepath.ToSlash(code)[1:]+"/api/.vscode/tasks.json", ".claude comes first and must not hide .vscode")
+}

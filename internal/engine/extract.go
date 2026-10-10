@@ -151,7 +151,7 @@ type delta struct {
 func (r *run) walk(fsys fs.FS, a plugin.Artifact, readsInstalled bool, visit func(string, fs.FileInfo) error) error {
 	systemDir := systemDirs(a)
 	linked := linkedFiles(a)
-	seen := map[string]bool{}
+	var links extractors.Links
 	var walkFn fs.WalkDirFunc
 	walkFn = func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -184,17 +184,21 @@ func (r *run) walk(fsys fs.FS, a plugin.Artifact, readsInstalled bool, visit fun
 			return nil
 		}
 		if d.Type()&fs.ModeSymlink != 0 {
-			info, real, ok := linked(p)
+			info, target, from, ok := linked(p)
 			switch {
 			case !ok:
 				return nil
 			case !info.IsDir():
 				return visit(p, info)
-			case !extractors.FollowsLink(d.Name()) || seen[real]:
+			case !extractors.FollowsLink(d.Name()):
 				return nil
 			}
-			seen[real] = true
-			return fs.WalkDir(fsys, p, walkFn)
+			err := links.Follow(from, target, func() error { return fs.WalkDir(fsys, p, walkFn) })
+			if errors.Is(err, extractors.ErrTooManyLinks) {
+				r.diags.add(report.DiagnosticWarning, report.CodeExtractFailed, "walk", p+": "+err.Error())
+				return nil
+			}
+			return err
 		}
 		if !d.Type().IsRegular() {
 			return nil
@@ -205,36 +209,39 @@ func (r *run) walk(fsys fs.FS, a plugin.Artifact, readsInstalled bool, visit fun
 		}
 		return visit(p, info)
 	}
-	if root, err := filepath.EvalSymlinks(a.Path); err == nil {
-		seen[root] = true
-	}
 	return fs.WalkDir(fsys, ".", walkFn)
 }
 
 // linkedFiles returns a function that gives the file info and the real path
 // of the target of a symbolic link, when the target is a regular file or a
-// folder inside the directory artifact. An editor follows a link such as
-// .vscode/tasks.json to a file of the repository, so the scan reads the
-// target too. A link that leaves the artifact gives false.
-func linkedFiles(a plugin.Artifact) func(rel string) (fs.FileInfo, string, bool) {
+// folder inside the directory artifact, and the real path of the folder that
+// holds the link. An editor follows a link such as .vscode/tasks.json to a
+// file of the repository, so the scan reads the target too. A link that
+// leaves the artifact gives false.
+func linkedFiles(a plugin.Artifact) func(rel string) (info fs.FileInfo, target, from string, ok bool) {
 	root, err := filepath.EvalSymlinks(a.Path)
 	if a.Kind != plugin.ArtifactDirectory || a.Path == "" || err != nil {
-		return func(string) (fs.FileInfo, string, bool) { return nil, "", false }
+		return func(string) (fs.FileInfo, string, string, bool) { return nil, "", "", false }
 	}
-	return func(rel string) (fs.FileInfo, string, bool) {
-		target, err := filepath.EvalSymlinks(filepath.Join(root, filepath.FromSlash(rel)))
+	return func(rel string) (fs.FileInfo, string, string, bool) {
+		link := filepath.Join(root, filepath.FromSlash(rel))
+		target, err := filepath.EvalSymlinks(link)
 		if err != nil {
-			return nil, "", false
+			return nil, "", "", false
 		}
 		in, err := filepath.Rel(root, target)
 		if err != nil || in == ".." || strings.HasPrefix(in, ".."+string(filepath.Separator)) {
-			return nil, "", false
+			return nil, "", "", false
 		}
 		info, err := os.Stat(target)
 		if err != nil || (!info.Mode().IsRegular() && !info.IsDir()) {
-			return nil, "", false
+			return nil, "", "", false
 		}
-		return info, target, true
+		from, err := filepath.EvalSymlinks(filepath.Dir(link))
+		if err != nil {
+			return nil, "", "", false
+		}
+		return info, target, from, true
 	}
 }
 
