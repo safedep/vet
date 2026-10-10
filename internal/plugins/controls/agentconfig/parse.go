@@ -2,6 +2,7 @@ package agentconfig
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode/utf16"
 
 	"gopkg.in/yaml.v3"
 )
@@ -48,7 +50,22 @@ type server struct {
 // with no case, so a decoy "COMMAND" key would win over "command".
 type object = map[string]any
 
-func objectOf(v any) object { o, _ := v.(map[string]any); return o }
+// objectOf returns v as an object. yaml.v3 decodes a mapping with a key
+// that is not a string, such as 1:, to map[any]any, so the keys become
+// strings.
+func objectOf(v any) object {
+	switch o := v.(type) {
+	case map[string]any:
+		return o
+	case map[any]any:
+		out := make(object, len(o))
+		for k, e := range o {
+			out[fmt.Sprint(k)] = e
+		}
+		return out
+	}
+	return nil
+}
 
 func listOf(v any) []any { l, _ := v.([]any); return l }
 
@@ -84,6 +101,26 @@ func errorLine(err error) int {
 }
 
 var bom = []byte("\xEF\xBB\xBF")
+
+// utf8Text returns a UTF-16 file with a byte order mark as UTF-8. The
+// editors read such a file, so vet reads it too. Other data comes back as
+// it is.
+func utf8Text(data []byte) []byte {
+	var order binary.ByteOrder
+	switch {
+	case bytes.HasPrefix(data, []byte{0xFF, 0xFE}):
+		order = binary.LittleEndian
+	case bytes.HasPrefix(data, []byte{0xFE, 0xFF}):
+		order = binary.BigEndian
+	default:
+		return data
+	}
+	units := make([]uint16, 0, len(data)/2)
+	for i := 2; i+1 < len(data); i += 2 {
+		units = append(units, order.Uint16(data[i:]))
+	}
+	return []byte(string(utf16.Decode(units)))
+}
 
 // stripJSONC removes the byte order mark, the comments and the trailing
 // commas of a JSON with comments file, such as the VS Code and devcontainer
@@ -273,10 +310,25 @@ func taskWord(v any) string {
 // a task.
 func taskText(t object) (text, first string) {
 	first = taskWord(t["command"])
+	if script := stringOf(t["script"]); strings.TrimSpace(first) == "" && script != "" {
+		// An npm task runs a script of package.json.
+		first = script
+		return "npm run " + script, first
+	}
 	if strings.TrimSpace(first) == "" {
 		return "", ""
 	}
-	words := []string{first}
+	// The shell of a task runs the command with its own arguments, which
+	// can hold the payload.
+	shell := objectOf(objectOf(t["options"])["shell"])
+	words := []string{}
+	if exe := stringOf(shell["executable"]); exe != "" {
+		words = append(words, exe)
+		for _, a := range listOf(shell["args"]) {
+			words = append(words, stringOf(a))
+		}
+	}
+	words = append(words, first)
 	for _, a := range listOf(t["args"]) {
 		if w := taskWord(a); w != "" {
 			words = append(words, w)
@@ -285,13 +337,13 @@ func taskText(t object) (text, first string) {
 	return strings.Join(words, " "), first
 }
 
-// hiddenTask reports a task that never shows its terminal and also hides
+// hiddenTask reports a task that does not show its terminal and also hides
 // it in a second way: out of the task list, with no echo of the command, or
 // with the terminal closed at the end. A watch task can set reveal: never
-// alone. The PolinRider tasks set all of them.
+// or silent alone. The PolinRider tasks set all of them.
 func hiddenTask(t object) bool {
 	p := objectOf(t["presentation"])
-	if stringOf(p["reveal"]) != "never" {
+	if r := stringOf(p["reveal"]); r != "never" && r != "silent" {
 		return false
 	}
 	hide, _ := t["hide"].(bool)
@@ -313,6 +365,9 @@ func editorTasks(data []byte) ([]command, error) {
 	}
 	var out []command
 	for i, v := range listOf(objectOf(doc)["tasks"]) {
+		if len(out) > maxCommands {
+			break
+		}
 		t := objectOf(v)
 		if t == nil {
 			continue
@@ -349,6 +404,9 @@ func claudeHooks(data []byte) ([]command, error) {
 	hooks := objectOf(root["hooks"])
 	var out []command
 	for _, event := range sortedKeys(hooks) {
+		if len(out) > maxCommands {
+			break
+		}
 		for _, mv := range listOf(hooks[event]) {
 			m := objectOf(mv)
 			for _, hv := range listOf(m["hooks"]) {
@@ -388,15 +446,25 @@ func devContainer(data []byte) ([]command, error) {
 	return out, nil
 }
 
-// gitHook reads the command lines of a husky hook script.
+// huskySource is the line of a husky v8 hook that sources the husky helper.
+var huskySource = regexp.MustCompile(`^(\.|source)\s+["']?\$\(dirname\b.*_/husky\.sh`)
+
+// gitHook reads the command lines of a git hook script. A line that ends
+// with a backslash goes on in the next line, so the two are one command.
 func gitHook(data []byte) []command {
 	var out []command
-	for i, l := range strings.Split(string(data), "\n") {
-		l = strings.TrimSpace(l)
-		if l == "" || strings.HasPrefix(l, "#") || strings.Contains(l, "husky.sh") {
+	lines := strings.Split(string(data), "\n")
+	for i := 0; i < len(lines) && len(out) <= maxCommands; i++ {
+		start := i
+		l := strings.TrimSpace(lines[i])
+		for strings.HasSuffix(l, "\\") && i+1 < len(lines) {
+			i++
+			l = strings.TrimSuffix(l, "\\") + " " + strings.TrimSpace(lines[i])
+		}
+		if l == "" || strings.HasPrefix(l, "#") || huskySource.MatchString(l) {
 			continue
 		}
-		out = append(out, command{name: "hook", text: l, line: i + 1})
+		out = append(out, command{name: "hook", text: l, line: start + 1})
 	}
 	return out
 }
@@ -411,6 +479,9 @@ func lefthook(data []byte) ([]command, error) {
 	root := objectOf(doc)
 	var out []command
 	for _, h := range sortedKeys(root) {
+		if len(out) > maxCommands {
+			break
+		}
 		hook := objectOf(root[h])
 		cmds := objectOf(hook["commands"])
 		for _, n := range sortedKeys(cmds) {
@@ -448,6 +519,9 @@ func mcpServers(data []byte) ([]server, error) {
 	}
 	var out []server
 	for _, n := range sortedKeys(all) {
+		if len(out) > maxCommands {
+			break
+		}
 		e := objectOf(all[n])
 		url := ""
 		for _, key := range []string{"url", "serverUrl", "httpUrl"} {

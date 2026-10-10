@@ -44,8 +44,10 @@ const (
 	// the scan slow with many findings.
 	maxCommands = 500
 	// maxSnippet is the longest snippet that a finding shows. The finding id
-	// still hashes the whole line.
-	maxSnippet = 200
+	// hashes the line up to maxKeySnippet, so a reformatted line keeps its id
+	// and a minified line of 1 MiB does not cost a pass for each finding.
+	maxSnippet    = 200
+	maxKeySnippet = 4 << 10
 )
 
 // Options are plugins.agent-config.options.
@@ -126,6 +128,7 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 		e.unreadable(1, "size", fmt.Sprintf("%s is larger than %d MiB, the most that vet reads", m.Path, maxSize>>20))
 		return e.out, nil
 	}
+	data = utf8Text(data)
 	e.lines = strings.Split(string(data), "\n")
 	if t == agentfiles.Instructions {
 		e.add(IDInstructionChange, finding.SeverityInfo, 1, "instructions", "Agent instruction file "+m.Path, nil)
@@ -134,6 +137,9 @@ func (c *Control) Evaluate(_ context.Context, m *model.Manifest, _ plugin.State)
 	p, err := parse(t, data)
 	if err != nil {
 		e.unreadable(errorLine(err), "parse", fmt.Sprintf("vet cannot parse %s: %s", m.Path, short(firstLine(err.Error()))))
+		// An editor can read past a syntax error and run the task, so a
+		// broken file must not hide a malicious command.
+		c.suspiciousLines(e)
 		return e.out, nil
 	}
 	if len(p.commands)+len(p.servers) > maxCommands {
@@ -256,6 +262,22 @@ func (*Control) suspicious(e *emitter, line int, name, reason string) {
 		&finding.Remediation{Summary: "Do not run the command. Remove it, and check the machines that ran it."})
 }
 
+// suspiciousLines reports each line of a file that vet cannot parse that
+// holds a malicious command.
+func (c *Control) suspiciousLines(e *emitter) {
+	dir := path.Base(path.Dir(e.path))
+	found := 0
+	for i, l := range e.lines {
+		if found >= maxCommands {
+			return
+		}
+		if reason := suspiciousReason(l, dir); reason != "" {
+			c.suspicious(e, i+1, fmt.Sprintf("line %d", i+1), reason)
+			found++
+		}
+	}
+}
+
 func (e *emitter) unreadable(line int, discriminator, title string) {
 	e.add(IDUnreadable, finding.SeverityHigh, line, discriminator, title,
 		&finding.Remediation{Summary: "Fix the file or remove it. An editor or an agent can run what vet cannot read."})
@@ -282,8 +304,8 @@ type emitter struct {
 	snippets map[int]snippet
 }
 
-// snippet is the redacted text of a line: the full text for the finding
-// id, and a short text for display.
+// snippet is the redacted text of a line: the text for the finding id, and
+// a short text for display.
 type snippet struct{ full, display string }
 
 func (e *emitter) snippet(line int) snippet {
@@ -294,6 +316,9 @@ func (e *emitter) snippet(line int) snippet {
 	if !ok {
 		s.full = redact(strings.TrimSpace(e.lines[line-1]))
 		s.display = s.full
+		if len(s.full) > maxKeySnippet {
+			s.full = s.full[:maxKeySnippet]
+		}
 		if len(s.display) > maxSnippet {
 			s.display = s.display[:maxSnippet-3] + "..."
 		}
