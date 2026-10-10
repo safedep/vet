@@ -138,8 +138,12 @@ func (s *Source) artifact(ctx context.Context) (plugin.Artifact, error) {
 		return plugin.Artifact{}, err
 	}
 	for _, dir := range projects {
-		var links extractors.Links
-		if err := projectFiles(ctx, dir, files, &links); err != nil {
+		real, err := filepath.EvalSymlinks(dir)
+		if err != nil {
+			return plugin.Artifact{}, fmt.Errorf("endpoint: --projects %s: %w", dir, err)
+		}
+		w := projectWalk{ctx: ctx, project: dir, files: files}
+		if err := w.walk(dir, real); err != nil {
 			return plugin.Artifact{}, err
 		}
 	}
@@ -246,29 +250,33 @@ var projectSkipDirs = map[string]bool{
 	"__pycache__": true, ".gradle": true, "target": true, ".next": true, ".cache": true, ".npm": true,
 }
 
-// maxProjectFiles caps the files that --projects adds for one folder.
-const maxProjectFiles = 100000
+// maxProjectFiles caps the files that --projects adds for one folder. It is
+// a variable for the tests.
+var maxProjectFiles = 100000
 
-// projectFiles adds the files of the repositories under dir that can run
-// code or hide it. A worm that spreads to every repository on a machine
-// changes these files. The source files stay out, so a large folder of
-// repositories stays fast to audit.
-// links holds the linked folders that the walk is inside, so a link back
-// to a parent folder does not loop.
-func projectFiles(ctx context.Context, dir string, files map[string]bool, links *extractors.Links) error {
-	real, err := filepath.EvalSymlinks(dir)
-	if err != nil {
-		return nil
-	}
-	added := 0
-	// The walk reads the real folder, and names each file by its path under
-	// dir: the controls read the name of a linked folder, such as .vscode.
+// projectWalk adds the files of the repositories under one --projects
+// folder that can run code or hide it. A worm that spreads to every
+// repository on a machine changes these files. The source files stay out,
+// so a large folder of repositories stays fast to audit. The file cap holds
+// for the whole folder, with the linked folders that the walk follows.
+type projectWalk struct {
+	ctx     context.Context
+	project string
+	files   map[string]bool
+	links   extractors.Links
+	added   int
+	full    bool
+}
+
+// walk reads the folder real under the name dir: the controls read the
+// name of a linked folder, such as .vscode.
+func (w *projectWalk) walk(dir, real string) error {
 	return filepath.WalkDir(real, func(p string, d fs.DirEntry, err error) error {
 		if rel, relErr := filepath.Rel(real, p); relErr == nil {
 			p = filepath.Join(dir, rel)
 		}
-		if ctx.Err() != nil {
-			return ctx.Err()
+		if w.ctx.Err() != nil {
+			return w.ctx.Err()
 		}
 		if err != nil {
 			// An unreadable folder does not stop the audit.
@@ -291,7 +299,7 @@ func projectFiles(ctx context.Context, dir string, files map[string]bool, links 
 			case err != nil:
 				return nil
 			case info.IsDir() && extractors.FollowsLink(d.Name()):
-				return followLink(ctx, p, files, links)
+				return w.follow(p)
 			case !info.Mode().IsRegular():
 				return nil
 			}
@@ -301,18 +309,21 @@ func projectFiles(ctx context.Context, dir string, files map[string]bool, links 
 		if !projectFile(filepath.ToSlash(p)) {
 			return nil
 		}
-		if added >= maxProjectFiles {
-			log.Warnf("endpoint: --projects %s holds more than %d files to check. vet checks the first %d", dir, maxProjectFiles, maxProjectFiles)
+		if w.added >= maxProjectFiles {
+			if !w.full {
+				w.full = true
+				log.Warnf("endpoint: --projects %s holds more than %d files to check. vet checks the first %d", w.project, maxProjectFiles, maxProjectFiles)
+			}
 			return fs.SkipAll
 		}
-		files[p] = true
-		added++
+		w.files[p] = true
+		w.added++
 		return nil
 	})
 }
 
-// followLink walks the linked config folder p, under the name p.
-func followLink(ctx context.Context, p string, files map[string]bool, links *extractors.Links) error {
+// follow walks the linked config folder p, under the name p.
+func (w *projectWalk) follow(p string) error {
 	target, err := filepath.EvalSymlinks(p)
 	if err != nil {
 		return nil
@@ -321,7 +332,7 @@ func followLink(ctx context.Context, p string, files map[string]bool, links *ext
 	if err != nil {
 		return nil
 	}
-	err = links.Follow(from, target, func() error { return projectFiles(ctx, p, files, links) })
+	err = w.links.Follow(from, target, func() error { return w.walk(p, target) })
 	if errors.Is(err, extractors.ErrTooManyLinks) {
 		log.Warnf("endpoint: %s: %v", p, err)
 		return nil

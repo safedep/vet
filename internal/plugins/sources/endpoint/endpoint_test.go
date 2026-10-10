@@ -227,3 +227,25 @@ func TestAuditProjectsReadsEachNameOfALinkedFolder(t *testing.T) {
 	a := artifactOf(t, New(Options{Projects: []string{code}}, fakeSystem(home)))
 	assert.Contains(t, a.Include, filepath.ToSlash(code)[1:]+"/api/.vscode/tasks.json", ".claude comes first and must not hide .vscode")
 }
+
+func TestAuditProjectsCapCountsLinkedFolders(t *testing.T) {
+	old := maxProjectFiles
+	maxProjectFiles = 2
+	t.Cleanup(func() { maxProjectFiles = old })
+	home := machineHome(t, "review")
+	code := filepath.Join(home, "code")
+	write(t, filepath.Join(code, "api", "cfg", "tasks.json"), "x")
+	require.NoError(t, os.Symlink("cfg", filepath.Join(code, "api", ".claude")))
+	require.NoError(t, os.Symlink("cfg", filepath.Join(code, "api", ".vscode")))
+	write(t, filepath.Join(code, "api", "next.config.mjs"), "x")
+	write(t, filepath.Join(code, "api", "vite.config.js"), "x")
+	a := artifactOf(t, New(Options{Projects: []string{code}}, fakeSystem(home)))
+	prefix := filepath.ToSlash(code)[1:] + "/"
+	n := 0
+	for _, f := range a.Include {
+		if strings.HasPrefix(f, prefix) {
+			n++
+		}
+	}
+	assert.Equal(t, 2, n, "the cap holds across the linked folders that the walk follows")
+}
