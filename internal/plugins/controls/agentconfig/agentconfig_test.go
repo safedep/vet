@@ -333,3 +333,25 @@ func TestTitlesHoldNoSecret(t *testing.T) {
 		})
 	}
 }
+
+func TestTitlesHoldNoCommandText(t *testing.T) {
+	cases := []struct{ name, path, data, title string }{
+		{"task", ".vscode/tasks.json", `{"tasks":[{"label":"build","command":"make release"}]}`, `Task "build" runs a command`},
+		{"folder-open task", ".vscode/tasks.json", `{"tasks":[{"label":"build","command":"make release","runOptions":{"runOn":"folderOpen"}}]}`, `Task "build" runs a command when the folder opens`},
+		{"hook", ".claude/settings.json", `{"hooks":{"Stop":[{"hooks":[{"type":"command","command":"make release"}]}]}}`, "Stop runs a command"},
+		{"MCP command", ".cursor/mcp.json", `{"mcpServers":{"db":{"command":"make","args":["release"]}}}`, `MCP server "db" runs a local command`},
+		{"MCP URL", ".cursor/mcp.json", `{"mcpServers":{"db":{"url":"https://mcp.example/release?x=1"}}}`, `MCP server "db" calls mcp.example`},
+		{"MCP URL that does not parse", ".cursor/mcp.json", `{"mcpServers":{"db":{"url":"release"}}}`, `MCP server "db" calls a remote server`},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			c, err := agentconfig.New(plugin.MapConfig(nil))
+			require.NoError(t, err)
+			m := &model.Manifest{ID: "m", Path: tc.path, Kind: model.ManifestKindAgentConfig, Root: fstest.MapFS{tc.path: {Data: []byte(tc.data)}}}
+			fs := plugintest.TestControl(t, c, m, nil)
+			require.Len(t, fs, 1)
+			assert.Equal(t, tc.title, fs[0].Title)
+			assert.Contains(t, fs[0].Locus.Snippet, "release", "the snippet still shows the line")
+		})
+	}
+}

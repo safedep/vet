@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"net/url"
 	"path"
 	"strings"
 
@@ -224,13 +225,13 @@ func commands(t agentfiles.Type, data []byte) ([]command, error) {
 func (c *Control) command(e *emitter, t agentfiles.Type, cmd command) {
 	review := &finding.Remediation{Summary: "Review the command. Remove it if the project does not need it."}
 	if t == agentfiles.EditorTasks {
-		sev, title := finding.SeverityMedium, fmt.Sprintf("Task %q runs %s", cmd.name, short(cmd.text))
+		sev, title := finding.SeverityMedium, fmt.Sprintf("Task %q runs a command", cmd.name)
 		if cmd.onOpen {
-			sev, title = finding.SeverityHigh, fmt.Sprintf("Task %q runs %s when the folder opens", cmd.name, short(cmd.text))
+			sev, title = finding.SeverityHigh, fmt.Sprintf("Task %q runs a command when the folder opens", cmd.name)
 		}
 		e.add(IDEditorTask, sev, cmd.line, cmd.name, title, review)
 	} else {
-		e.add(IDAgentHook, finding.SeverityMedium, cmd.line, cmd.name, fmt.Sprintf("%s runs %s", cmd.name, short(cmd.text)), review)
+		e.add(IDAgentHook, finding.SeverityMedium, cmd.line, cmd.name, fmt.Sprintf("%s runs a command", cmd.name), review)
 	}
 	reason := suspiciousReason(cmd.text, path.Base(path.Dir(e.path)))
 	if reason == "" && cmd.onOpen && cmd.hidden {
@@ -243,9 +244,9 @@ func (c *Control) server(e *emitter, s server) {
 	title := fmt.Sprintf("MCP server %q", s.name)
 	switch {
 	case s.command != "":
-		title += " runs " + short(s.command)
+		title += " runs a local command"
 	case s.url != "":
-		title += " calls " + short(s.url)
+		title += " calls " + hostOf(s.url)
 	}
 	e.add(IDMCPServer, finding.SeverityMedium, s.line, s.name, title,
 		&finding.Remediation{Summary: "Check who publishes the server and what it can read. Pin the version of the package that it runs."})
@@ -284,6 +285,16 @@ func (e *emitter) unreadable(line int, discriminator, title string) {
 }
 
 // short cuts a command to its first 80 characters for a title.
+// hostOf names the server of an MCP URL for a title. A title holds no
+// text of a command or a URL from the file, because a redactor cannot know
+// each form of a secret. The snippet shows the redacted line.
+func hostOf(raw string) string {
+	if u, err := url.Parse(raw); err == nil && u.Hostname() != "" {
+		return u.Hostname()
+	}
+	return "a remote server"
+}
+
 // short is the text of a config file as a title shows it: redacted, then
 // cut, so the cut does not leave a part of a secret.
 func short(s string) string {
