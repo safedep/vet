@@ -555,39 +555,47 @@ func lefthook(data []byte) ([]command, error) {
 }
 
 // mcpServers reads the servers of an MCP config: mcpServers in the agent
-// files, servers in .vscode/mcp.json.
+// files, servers in .vscode/mcp.json. A file can hold both keys, and a
+// client can read either, so vet reads each entry of each key. A merge
+// would let a harmless entry hide a malicious entry of the same name.
 func mcpServers(data []byte) ([]server, error) {
 	doc, err := decodeJSONC(data)
 	if err != nil {
 		return nil, err
 	}
 	root := objectOf(doc)
-	all := object{}
-	for _, key := range []string{"servers", "mcpServers"} {
-		for n, e := range objectOf(root[key]) {
-			all[n] = e
-		}
-	}
 	var out []server
-	for _, n := range sortedKeys(all) {
-		if len(out) > maxCommands {
-			break
-		}
-		e := objectOf(all[n])
-		url := ""
-		for _, key := range []string{"url", "serverUrl", "httpUrl"} {
-			if url == "" {
-				url = stringOf(e[key])
+	for _, key := range []string{"mcpServers", "servers"} {
+		section := objectOf(root[key])
+		for _, n := range sortedKeys(section) {
+			if len(out) > maxCommands {
+				return out, nil
 			}
+			e := objectOf(section[n])
+			url := ""
+			for _, k := range []string{"url", "serverUrl", "httpUrl"} {
+				if url == "" {
+					url = stringOf(e[k])
+				}
+			}
+			words := []string{stringOf(e["command"])}
+			for _, a := range listOf(e["args"]) {
+				words = append(words, stringOf(a))
+			}
+			cmd := strings.TrimSpace(strings.Join(words, " "))
+			out = append(out, server{name: n, command: cmd, url: url, line: lineIn(data, key, n)})
 		}
-		words := []string{stringOf(e["command"])}
-		for _, a := range listOf(e["args"]) {
-			words = append(words, stringOf(a))
-		}
-		cmd := strings.TrimSpace(strings.Join(words, " "))
-		out = append(out, server{name: n, command: cmd, url: url, line: lineOf(data, n)})
 	}
 	return out, nil
+}
+
+// lineIn returns the line of s after the key section of data, or the line
+// of s in data when data does not hold the key.
+func lineIn(data []byte, key, s string) int {
+	if i := bytes.Index(data, []byte(`"`+key+`"`)); i >= 0 {
+		return bytes.Count(data[:i], []byte("\n")) + lineOf(data[i:], s)
+	}
+	return lineOf(data, s)
 }
 
 // unsafeSettings are the editor settings that turn off a safety check, with
